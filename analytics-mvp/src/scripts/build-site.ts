@@ -1,6 +1,6 @@
 // Собирает страницы сервиса со встроенной историей и клиентским движком.
 // Период и сравнение считаются в браузере. Запуск: npm run build:site
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import type { SkuDaily } from "../types.js";
 import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, renderAssistant, staticPage } from "../site.js";
 
@@ -128,6 +128,10 @@ function main() {
   const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl, txsku, ads };
 
   mkdirSync("public", { recursive: true });
+  // чистим страницы-сироты прошлых сборок (FENIX H1)
+  for (const orphan of ["dashboard.html", "styleguide.html", "data.json"]) {
+    try { rmSync(`public/${orphan}`); } catch { /* нет файла - ок */ }
+  }
   writeFileSync("public/index.html", renderOverview(model));
   writeFileSync("public/tovary.html", renderTovary(model));
   writeFileSync("public/obzor.html", renderOverview(model));

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Headless smoke-прогон контролов каждой страницы через jsdom.
 // Имитирует клики собственников: периоды, сравнение, фильтры, раскрытие строк,
 // чипы и ввод ассистента. Любая рантайм-ошибка = тест падает.
@@ -46,6 +47,14 @@ for (const page of PAGES) {
   if (q) { q.value = "сводка за период"; const ask = document.getElementById("ask"); if (ask) fire(ask, "click"); fire(q, "keydown"); }
   // повторное переключение периода после действий
   click(".chip");
+  // краевой случай: инвертированные даты (FENIX B2)
+  const cf = document.getElementById("cf"), ct = document.getElementById("ct");
+  if (cf && ct) { cf.value = "2026-06-01"; ct.value = "2026-05-01"; const ac = document.getElementById("applyCustom"); if (ac) fire(ac, "click"); }
+  // поиск числовых поломок в ВИДИМОМ тексте (без исходника <script>)
+  const clone = document.body.cloneNode(true);
+  clone.querySelectorAll("script").forEach((s: any) => s.remove());
+  const body = clone.textContent || "";
+  if (/-?Infinity|NaN|undefined ₽/.test(body)) errors.push("в выводе Infinity/NaN/undefined");
 
   // проверка, что ключевые контейнеры заполнены (не пустые)
   const checks: Array<[string, string]> = [];

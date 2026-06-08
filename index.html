@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GENGROUP — Бренд-глоссарий v2.1</title>
+  <meta name="description" content="Бренд-глоссарий GENGROUP v2.1 — архитектура продукта и терминология для команды холдинга и партнёров." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-current="">
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по глоссарию">
+    <div class="sidebar__progress" aria-hidden="true">
+      <div class="sidebar__progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="sidebar__header">
+      <a href="index.html" class="sidebar__logo">
+        <span class="sidebar__brand">GENGROUP</span>
+        <span class="sidebar__sub">Бренд-глоссарий v2.1</span>
+      </a>
+      <button class="sidebar__close" id="sidebar-close" aria-label="Закрыть меню" type="button">&times;</button>
+    </div>
+    <div class="sidebar__search">
+      <input type="search" class="sidebar__search-input" id="search-input"
+             placeholder="Поиск по глоссарию..." autocomplete="off" />
+      <div class="sidebar__results" id="search-results" role="listbox" aria-label="Результаты поиска"></div>
+    </div>
+    <nav class="sidebar__nav" aria-label="Оглавление">
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Разделы</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="sections/01-architecture.html" data-section="01">1. Архитектура продукта</a></li>
+          <li><a class="sidebar__link" href="sections/02-palette.html" data-section="02">2. Палитра (Palette)</a></li>
+          <li><a class="sidebar__link" href="sections/03-linea.html" data-section="03">3. Линия (Linea)</a></li>
+          <li><a class="sidebar__link" href="sections/04-collezione.html" data-section="04">4. Коллекция (Collezione)</a></li>
+          <li><a class="sidebar__link" href="sections/05-ensemble.html" data-section="05">5. Комплект (Ensemble)</a></li>
+          <li><a class="sidebar__link" href="sections/06-model.html" data-section="06">6. Модель, артикул, размер</a></li>
+          <li><a class="sidebar__link" href="sections/07-sales-modes.html" data-section="07">7. Режимы продаж</a></li>
+          <li><a class="sidebar__link" href="sections/08-practice.html" data-section="08">8. Применение терминов</a></li>
+          <li><a class="sidebar__link" href="sections/09-brand-arch.html" data-section="09">9. Brand Architecture</a></li>
+          <li><a class="sidebar__link" href="sections/10-systems.html" data-section="10">10. Системы и поля данных</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Приложения</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="appendix/a-dictionary.html" data-section="a">A. Алфавитный словарь</a></li>
+          <li><a class="sidebar__link" href="appendix/b-migration.html" data-section="b">B. Миграция v1.0/v2.0 → v2.1</a></li>
+          <li><a class="sidebar__link" href="appendix/c-history.html" data-section="c">C. История версий</a></li>
+          <li><a class="sidebar__link" href="appendix/d-roadmap.html" data-section="d">D. План приведения к v2.1</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+  <button class="hamburger" id="hamburger" aria-label="Открыть меню" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
+
+  <main class="main">
+    <div class="content">
+      <p class="lead">Заглушка главной страницы. Содержимое появится на шаге 2.</p>
+    </div>
+  </main>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

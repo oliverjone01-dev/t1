@@ -32,9 +32,22 @@ export function parseCogs(text: string): CogsRow[] {
   return out;
 }
 
-// Токены имени: латиница/кириллица/цифры, в верхнем регистре.
+// Синонимы материалов (в листе и таксономии называют по-разному).
+const SYN: Record<string, string> = {
+  STONE: "KER", КЕРАМИЧЕСКИЙ: "KER", КЕРАМИЧЕСКИ: "KER", КЕРАМОГРАНИТ: "KER", КЕРАМ: "KER", КЕРАМИЧ: "KER",
+  WOOD: "WOOD", ЛДСП: "WOOD",
+};
+// Шумовые слова, не несущие идентичности модели.
+const STOP = new Set([
+  "С", "СЕНСОРНЫМ", "СЕНСОРНОЙ", "ВЫКЛЮЧАТЕЛЕМ", "ВЫКЛЮЧАТЕЛЬ", "КНОПКОЙ", "КНОПКА",
+  "СМ", "СПОДСВЕТКОЙ", "ПОДСВЕТКОЙ", "В", "И", "НА", "ДЛЯ", "НОВИНКА",
+]);
+
+// Токены имени: латиница/кириллица/цифры, верхний регистр, синонимы и стоп-слова.
 export function tokens(s: string): string[] {
-  return (s.toUpperCase().match(/[A-ZА-ЯЁ0-9]+/g) || []).filter((t) => t.length > 0);
+  return (s.toUpperCase().match(/[A-ZА-ЯЁ0-9]+/g) || [])
+    .map((t) => SYN[t] || t)
+    .filter((t) => t.length > 0 && !STOP.has(t));
 }
 
 function jaccard(a: Set<string>, b: Set<string>): number {

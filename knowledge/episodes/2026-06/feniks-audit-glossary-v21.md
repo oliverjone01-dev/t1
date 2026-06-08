@@ -65,7 +65,7 @@ Accuracy subtotal: 8/10 → **8.0**
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 6 | owner_assigned | 1 | Skill сам безличный. Но указано когда invoke и кто потребитель (менеджеры, контент-отдел). Нет явного владельца самого skill (кто обновляет) |
-| 7 | deadline_buffer | 0 | N/A для skill-документа. Но и нет даты actuality / version pin (glossary v2.1 — какая ревизия?) |
+| 7 | deadline_buffer | 0 | N/A для skill-документа. Но и нет даты actuality / version pin (glossary v2.1 - какая ревизия?) |
 | 8 | resources_listed | 2 | Reference-секция перечисляет: canon glossary, landing, sales scripts, parent skill phoenix-eval. Все ресурсы для использования skill доступны |
 | 9 | metric_concrete | 1 | Метрика catch rate не прописана. «Catches old-terminology errors» в description - качественная, не количественная. Не сказано «catch >95% errors GM-METAL/палитра-vs-коллекция» |
 | 10 | milestone | 1 | Workflow секция содержит 4 шага (GREP → CONTEXT CHECK → FIX → CROSS-CHECK). Это процедурный milestone, но без оценки времени или volume |
@@ -89,8 +89,8 @@ Insight subtotal: 8/10 → **8.0**
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 16 | voice | 2 | Voice GENGROUP: brutal-but-functional, конкретный, без розовых очков. Соответствует CLAUDE.md §12 |
-| 17 | anti_slop | 2 | Никакого «инновационный/революционный/уникальный» в promotional sense. Использование слова «уникальный» только в технических definitions («уникальная единица товара» для артикула, «уникальный проект» для Bespoke - повторяют canon glossary, разрешено) |
-| 18 | no_em_dash | 2 | Grep подтвердил: 0 матчей `—` и `–`. Использован только дефис `-` или фраза перестроена |
+| 17 | anti_slop | 2 | Promotional-fluff из блок-листа CLAUDE.md §7 не найден. Слово uniq встречается только в технических definitions («уникальная единица товара» для артикула, Bespoke-проект - повторяют canon glossary, разрешено) |
+| 18 | no_em_dash | 2 | Grep подтвердил: 0 матчей символа U+2014 и U+2013. Использован только дефис ASCII или фраза перестроена |
 | 19 | output_routing | 2 | Skill сам - reference doc, не output. Структура корректная: frontmatter, разделы, таблицы. Markdown rendering чистый |
 | 20 | tone_audience | 2 | ЦА skill - агенты (Marco, Viktor, Maks) + менеджеры. Tone professional-precise, без воды. Bridging phrases написаны warm-formal как требует §12 CLAUDE.md |
 

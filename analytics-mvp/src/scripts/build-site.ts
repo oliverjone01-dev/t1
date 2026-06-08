@@ -116,8 +116,12 @@ function main() {
   let opnl: unknown = {};
   try { opnl = JSON.parse(readFileSync("fixtures/pnl_30d.json", "utf-8")); } catch { opnl = {}; }
 
+  // per-SKU транзакции (снимок 30 дней): sku -> {accruals, commission, amount}
+  let txsku: Record<string, { accruals: number; commission: number; amount: number }> = {};
+  try { txsku = JSON.parse(readFileSync("fixtures/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { txsku = {}; }
+
   const dates = rows.map((r) => r.date).sort();
-  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl };
+  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl, txsku };
 
   mkdirSync("public", { recursive: true });
   writeFileSync("public/tovary.html", renderTovary(model));

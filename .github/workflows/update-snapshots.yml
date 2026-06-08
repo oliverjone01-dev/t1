@@ -53,6 +53,11 @@ jobs:
           fetch gengroup-ozon-ads  '{"days":30}' ads  fixtures/ads_30d.json
           fetch gengroup-ozon-pnl  "{\"dateFrom\":\"$FROM\",\"dateTo\":\"$TO\"}" pnl /tmp/pnl_raw.json
           npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
+          # per-SKU транзакции (маржа после сборов)
+          curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-pnl-sku" "${AUTH[@]}" \
+            -d "{\"dateFrom\":\"$FROM\",\"dateTo\":\"$TO\"}" -o /tmp/pnlsku.json
+          npx tsx src/scripts/validate-snapshot.ts pnlsku /tmp/pnlsku.json
+          mv /tmp/pnlsku.json fixtures/pnl_sku_30d.json
 
           # дневная история за вчера (пустой день допустим)
           curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
@@ -79,6 +84,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add analytics-mvp/data/history.ndjson analytics-mvp/fixtures/skus_live_30d.json \
                   analytics-mvp/fixtures/ads_30d.json analytics-mvp/fixtures/pnl_30d.json \
+                  analytics-mvp/fixtures/pnl_sku_30d.json \
                   analytics-mvp/data/sku_cogs.json analytics-mvp/public/*.html
           if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
           git commit -m "data: ежедневное обновление снимков OZON $(date -u +%F)"

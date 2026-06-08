@@ -267,15 +267,64 @@ Backup: branch `gengroup-agents-v9` в git history сохраняется бес
 
 ## 9. Roadmap v9 -> v9.5
 
-| Sprint | Срок | Содержание | Owner |
-|---|---|---|---|
-| **Sprint 1** | Неделя 1 | CLAUDE.md, 12 subagents, 3 core skills, 4 commands, settings.json hooks, 4 schemas, manifest | Claude (build) + Иван (review) |
-| **Sprint 2** | Неделя 2 | 7 продуктовых skills (brand, content-factory, encyclopedia, cross-sell, competitor-intel, geo-aeo, crisis-response); knowledge/ структура; archive/v8/ README | Claude (build) + Иван (review) |
-| **Sprint 3** | Недели 3-4 | Browser/Computer Use для FENIX+СЕМЁН; Bitrix24 MCP coupling (когда готов или CSV fallback); telemetry collector via Stop hook; pre-push FENIX hook | Иван (Bitrix MCP), Claude (build остального), Дмитрий Янчоглов (1C/Bitrix integration owner) |
-| **Sprint 4** | Недели 4-6 | Prompt caching layer; reflexion loop первый запуск CC-19; calibration session FENIX threshold tuning | Claude + Иван |
-| **v9.5** | Q3-2026 | RLAIF feedback loop closed (persistent self-correction по результатам Protocol 15 reflexion); Bitrix24 MCP production | Claude + Иван + Борис |
+### 9.1 Sprint plan с оценкой эффорта
 
-Каждый Sprint - буфер +30% от инженерной оценки (FENIX hard rule 8).
+Эффорт - в человеко-часах команды. Все цифры `[ГИПОТЕЗА: основано на стандартных оценках LLM-инфра + GENGROUP integration patterns]`. Уточняются после Sprint 1 actual measurement.
+
+| Sprint | Срок | Содержание | Owner | Effort (ч.) | Buffer 30% | Total |
+|---|---|---|---|---|---|---|
+| **Sprint 1** | Неделя 1 | CLAUDE.md, 12 subagents, 3 core skills, 4 commands, settings.json hooks, 4 schemas, manifest | Claude (build) + Иван (review 4ч) | 20 | 6 | 26 |
+| **Sprint 2** | Неделя 2 | 7 продуктовых skills, knowledge/, archive/v8/ README | Claude (build) + Иван (review 4ч) | 14 | 4 | 18 |
+| **Sprint 3** | Недели 3-4 | Browser/Computer Use FENIX+СЕМЁН; Bitrix24 MCP coupling или CSV fallback; telemetry collector; pre-push FENIX hook | Иван (Bitrix MCP - 16ч), Claude (build - 24ч), Дмитрий Янчоглов (1C/Bitrix - 16ч) | 56 | 17 | 73 |
+| **Sprint 4** | Недели 4-6 | Prompt caching layer; reflexion loop первый CC-19; calibration session FENIX threshold tuning | Claude (build 16ч) + Иван (calibration 8ч) | 24 | 7 | 31 |
+| **v9.5** | Q3-2026 | RLAIF feedback loop closed; Bitrix24 MCP production | Claude + Иван + Борис | TBD | TBD | TBD |
+
+**Total v9.0 (Sprint 1-4):** 114 + 34 buffer = **148 человеко-часов**. Распределение: ~70% Claude, ~20% Иван, ~10% Дмитрий Янчоглов.
+
+### 9.2 50% Milestones (контрольные точки внутри Sprint)
+
+Каждый Sprint длиннее одной недели - 50%-checkpoint обязателен.
+
+| Sprint | 50%-milestone | Критерий продолжения |
+|---|---|---|
+| Sprint 3 (середина недели 3) | Browser-use prototype работает на 1 странице genglass.ru; pre-push hook в dry-run mode | Если FENIX через browser-use возвращает audit_report за <60 сек - go. Иначе - pivot на manual snapshot mode |
+| Sprint 4 (середина недели 5) | Prompt caching экономия измерена на 1 типе системного промпта (FENIX или СПАРТАК) | Если saving ≥50% от input cost - go на остальные. Иначе - revisit стратегии prompt structure |
+
+### 9.3 Критический путь зависимостей
+
+```
+[Sprint 1: foundation]
+       │
+       ▼
+[Sprint 2: skills + knowledge]
+       │
+       ├─────────────────────────────────────────┐
+       ▼                                         ▼
+[Sprint 3: integrations]                  [Independent: Sprint 4 prompt caching]
+       │                                         │
+   ┌───┴───┐                                     │
+   ▼       ▼                                     │
+[Bitrix24]  [Browser-use FENIX+СЕМЁН]            │
+   │       │                                     │
+   │   ┌───┴───┐                                 │
+   │   ▼       ▼                                 │
+   │ [telemetry] [pre-push hook]                 │
+   │       │       │                             │
+   └───────┴───────┴─────────────────────────────┴─→ [Sprint 4: reflexion + calibration]
+                                                            │
+                                                            ▼
+                                                   [v9.5: RLAIF + Bitrix24 production]
+
+CRITICAL PATH (longest):
+Sprint 1 -> Sprint 2 -> Sprint 3 (Bitrix24 MCP) -> Sprint 4 (reflexion needs production data) -> v9.5
+
+BLOCKER risk: Bitrix24 MCP not ready -> CSV fallback unblocks Sprint 3 partially
+              (telemetry, browser-use продолжаются, только cross-sell skill ждёт реальных данных)
+```
+
+### 9.4 Правила буфера
+
+Каждый Sprint - буфер +30% от инженерной оценки (FENIX hard rule 8). Если фактический эффорт превышает оценку + буфер - L1 эскалация Ивану (Protocol 8 §matrix).
 
 ## 10. Open Items (v9 release backlog)
 
@@ -288,9 +337,10 @@ Backup: branch `gengroup-agents-v9` в git history сохраняется бес
 
 ---
 
-**Версия документа:** v9.0.0 RC2 (iteration 2 после FENIX VETO iteration 1)
-**FENIX iteration 1:** score 5.05/10, verdict=veto. Полный отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9.md`
-**Rework applied:** 10 пунктов из rework_tz (em dash -> dash, [ДАННЫЕ]/[ГИПОТЕЗА] tagging, 2 schemas созданы, naming моделей унифицирован, Alternatives Considered §6, Downside §7, archive README §3.1, опечатки, ответственные §9)
-**Re-audit gate:** требуется второй проход FENIX. Threshold: ≥7.5 = go; 6.0-7.4 = return iteration 3; <6.0 = эскалация Богдану + pre-mortem.
+**Версия документа:** v9.0.0 GA (iteration 2 verdict=GO)
+**FENIX iteration 1:** score 5.05/10, verdict=veto. Отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9.md`
+**FENIX iteration 2:** score 8.15/10, verdict=GO (delta +3.10). Отчёт: `knowledge/episodes/2026-06/feniks-audit-master-system-v9-iter2.md`
+**Rework applied (iter 1 -> iter 2):** 10 пунктов rework_tz + 4 минорки (council-vote.json em dash, 50% milestones §9.2, эффорт-оценка §9.1, критический путь §9.3) до выпуска GA.
+**Re-audit checkpoint:** post-Sprint 4 reflexion CC-19.
 
 **Подпись:** Claude (Opus 4.7) + Иван Раюшкин (CMO)

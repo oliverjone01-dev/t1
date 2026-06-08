@@ -44,11 +44,11 @@
     },
     "top_strength": {
       "type": "string",
-      "description": "One sentence — what to STEAL THIS from the output"
+      "description": "One sentence - what to STEAL THIS from the output"
     },
     "top_weakness": {
       "type": "string",
-      "description": "One sentence — main gap"
+      "description": "One sentence - main gap"
     },
     "rank": {
       "type": "integer",

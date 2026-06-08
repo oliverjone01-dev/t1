@@ -1,25 +1,36 @@
 ---
 name: cross-sell
-description: Cross-sell engine for GENGROUP - rules and triggers for proposing complementary items. Auto-invoke when a deal is being structured in Bitrix24, when crafting follow-up email, or when discussing complete-the-set offers (комплект Прихожая, Кабинет, Зона отдыха). Knows complementarity rules per category and per палитра.
+description: GENGROUP cross-sell engine - palette-bundle discipline + 16-category complementarity matrix. Auto-invoke on cross-sell or upsell discussion, bundle creation (Прихожая/Кабинет/Зона отдыха), КП composition, follow-up email crafting, average-order-value optimization. Triggers - кросс-продажа, допродажа, cross-sell, upsell, средний чек, комплект, что ещё предложить, сопутствующие товары, bundle, рекомендация. Combines palette-discipline (no mix per glossary v2.1 §5) with 16-category product matrix from Cross-Sell v3.1.
 ---
 
-# Cross-Sell - Bundle & Complementary Offer Logic
+# Cross-Sell - Palette Bundle + Category Matrix
+
+## Purpose
+
+Two parallel systems for raising average order value (target +15-20% [ГИПОТЕЗА: cross-sell v8 SKILL line 10, no Bitrix24 verified data yet]):
+
+1. **Palette-Bundle** - готовый комплект 2-7 артикулов в **одной палитре** (Прихожая ORO, Кабинет NERO, etc). 8-12% bundle discount.
+2. **Category-Complementarity** - cross-category recommendations across the 16-category product matrix (стол → стулья, зеркало → консоль). 3-5 items per anchor.
+
+Systems work together: bundle discount applies to палитровые наборы; category matrix drives item selection within and across bundles.
 
 ## When to invoke
 
 - Сделка в Bitrix24 на 1-2 артикула - возможен cross-sell до комплекта
+- КП для дизайнера или розничного клиента (включить раздел «Рекомендуемые дополнения»)
 - Follow-up email через 7/14/30 дней после первой покупки
 - Конструктор калькуляции на сайте - предложение комплектующих
-- КП для дизайнера - предложение комплекта вместо одиночных артикулов
+- Менеджер обрабатывает «А что ещё посоветуете?»
 
-## Bundle logic (Ensemble) - комплект
+## System A - Palette-Bundle (Ensemble)
 
 ### Базовый принцип
 - Размер комплекта: 2-7 артикулов
-- Все артикулы в **одной палитре** (микс палитр в одном комплекте запрещён)
-- Скидка за комплект: 8-12% от суммы артикулов отдельно
+- Все артикулы в **одной палитре** (микс палитр в одном комплекте запрещён - см. glossary v2.1 §5)
+- Bundle discount: 8-12% от суммы артикулов отдельно [ДАННЫЕ: glossary.md §5.3, c=1.0]
+- Дизайнер-партнёр получает **независимый** бонус 20% (не вычитается из bundle-скидки) [ДАННЫЕ: glossary.md §5.3, c=1.0]
 
-### Стандартные комплекты GENGLASS
+### Действующие комплекты GENGLASS
 
 | Зона | Артикулов | Состав | Действующие палитры |
 |---|---|---|---|
@@ -28,32 +39,77 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
 | Зона отдыха | 3 | Журнальный стол + банкетка + зеркало | NERO / BIANCO |
 | Столовая группа | 3 | Стол TRUBIS + витрина + буфет | ORO |
 
-## Cross-sell triggers (по категориям)
+## System B - Category-Complementarity (16-cat matrix v3.1)
 
-| Купил | Предлагать | Reasoning |
+Полная матрица 16 категорий с 3-5 recommendations per anchor - в `references/matrix-v31.md`.
+
+**Quick reference (топ-5 анкеров по продажам):**
+
+| Anchor | 1-st recommendation | Reasoning |
 |---|---|---|
-| Зеркало в раме (категория mirrors) | Подсветка + банкетка + вешалка | Логика интерьерной зоны (прихожая) |
-| Стол TRUBIS обеденный | Стулья / банкетки + витрина в той же палитре | Столовая группа |
-| Стол журнальный | Зеркало + консоль (для гостиной) | Зона отдыха |
-| Стеллаж TRUBIS | Стол TRUBIS в той же палитре | Линия TRUBIS - единый дизайн-код |
-| Перегородка межкомнатная | Зеркало в той же палитре (для зонирования) | Visual continuity |
-| Артикул в палитре CIPRIA (Drop) | Другие 6 моделей первой волны CIPRIA | Поддержка запуска Drop |
+| Обеденный стол | Стулья (matching leg finish) | Same set logic |
+| Зеркало (стандарт) | Зеркало LED (апгрейд) или Консоль | Upgrade или прихожая комплект |
+| Стеллаж TRUBIS | Стол TRUBIS той же палитры | Линия TRUBIS - единый дизайн-код |
+| Стеклянная перегородка | Зеркало LED | Визуальное расширение пространства |
+| Консоль | Зеркало над консолью | Классическая пара в прихожей |
+
+Все 16 категорий - см. `references/matrix-v31.md`.
+
+### 5 правил Cross-Sell Matrix v3.1
+
+1. **Maximum 3-5 links per anchor category** - не перегружать клиента
+2. **«One order» test:** клиент реально купит ОБА в одном заказе? Если нет → не рекомендовать
+3. **Price proximity:** cross-sell items - 30-100% от цены anchor. Не предлагать 500K стол + 5K подсвечник
+4. **Style consistency:** одна aesthetic family. Не миксить industrial и classic
+5. **Space logic:** один room/zone (гостиная стол → гостиная зеркало, не bathroom accessory)
+
+## Application in sales conversations
+
+When client mentions or asks about product X:
+
+1. **Identify anchor** category - какой ряд из 16
+2. **Identify palette** (если уже зафиксирована) - чтобы предлагать ту же
+3. **Select 2-3 relevant** cross-sell items (по правилам 1-5 выше)
+4. **Frame as solution, not upsell:**
+   > «Клиенты, которые заказывают [X], обычно сразу берут [Y] - это создаёт единый стиль [зоны]. Если возьмём комплектом - bundle-скидка 8-12%».
+5. **In КП** - отдельный раздел «Рекомендуемые дополнения» после основных позиций
+
+## Cross-sell triggers (по категориям GENGLASS)
+
+| Купил | Предлагать | Логика |
+|---|---|---|
+| Зеркало в раме | Подсветка + банкетка + вешалка | Прихожая комплект |
+| Стол TRUBIS обеденный | Стулья + витрина в той же палитре | Столовая группа |
+| Стол журнальный | Зеркало + консоль | Зона отдыха комплект |
+| Стеллаж TRUBIS | Стол TRUBIS той же палитры | Линия TRUBIS |
+| Перегородка межкомнатная | Зеркало в той же палитре | Visual continuity при зонировании |
+| Артикул CIPRIA (Drop) | Другие 6 моделей первой волны CIPRIA | Поддержка запуска Drop |
 
 ## Pricing rules
 
 - Артикулы отдельно: 100% от прайса
-- В комплекте: 88-92% (скидка 8-12%)
-- Дизайнер-партнёр получает **независимый** бонус 20% (не вычитается из bundle-скидки)
-- Конкретные условия совмещения - регламент CFO
+- В комплекте (палитро-bundle): 88-92% (скидка 8-12%) [ДАННЫЕ: glossary.md §5.3]
+- Дизайнер-партнёр: 20% independent commission [ДАННЫЕ: glossary.md, agents/viktor.md]
+- Bundle discount и designer commission **НЕ складываются** в одну общую скидку - регламент CFO
 
-## A2A integration
+## Hard Rules
 
-При триггере cross-sell от Bitrix24 - А2А запрос к skill:
+1. **Никаких миксов палитр** в одном комплекте [ДАННЫЕ: glossary v2.1 §5]
+2. **Никакого микса брендов** GENGLASS и VALONTI в одном комплекте [ДАННЫЕ: glossary §9]
+3. Cross-sell для дизайнера - через комплект, не через одиночные допы (ROMI выше - см. agents/marco.md benchmarks)
+4. Bundle discount и designer bonus не суммируются - регламент CFO
+5. Bespoke / индивидуальные размеры **не cross-sell** (отдельный workflow - см. glossary v2.1 §7.3)
+6. Maximum 7 артикулов в bundle (определение Ensemble) [ДАННЫЕ: glossary §5]
+7. Maximum 3-5 cross-sell recommendations per anchor (правило matrix v3.1)
+
+## A2A Integration
+
+При триггере cross-sell от Bitrix24 (через subagent boris) - JSON-запрос по `schemas/a2a-message.json`:
 
 ```json
 {
   "from": "boris",
-  "to": "cross-sell-skill",
+  "to": "cross-sell",
   "intent": "complementarity_query",
   "context": {
     "deal_id": "B24-12345",
@@ -65,27 +121,33 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
 }
 ```
 
-Ответ - список 1-3 рекомендованных артикулов с reasoning.
-
-## Hard Rules
-
-1. **Никаких миксов палитр** в одном комплекте (см. glossary v2.1 §5)
-2. Cross-sell для дизайнера - через комплект, не через одиночные допы (ROMI выше)
-3. Скидка комплект и бонус дизайнеру не складываются в одну общую (см. glossary v2.1 §5)
-4. Bespoke / индивидуальные размеры не cross-sell (отдельный workflow)
+Ответ - список 1-3 рекомендованных артикулов с reasoning через 5 правил matrix v3.1.
 
 ## Anti-patterns
 
-- ❌ Предложение в первом ответе менеджера (build trust сначала)
+- ❌ Предложение cross-sell в первом ответе менеджера (build trust сначала, 2-3 reply turns)
 - ❌ Cross-sell разноценовых сегментов (premium стол + эконом стулья)
-- ❌ Cross-sell несовместимых брендов (артикулы GENGLASS не миксятся с VALONTI в одном комплекте)
-- ❌ Bundle на 8+ артикулов (превышает определение комплекта 2-7)
+- ❌ Cross-sell с миксом палитр (NERO стол + ORO стулья)
+- ❌ Cross-sell несовместимых брендов в одном комплекте
+- ❌ Bundle на 8+ артикулов (превышает определение Ensemble)
+- ❌ Игнорирование «one order test» («может, потом докупит» - НЕ cross-sell)
+- ❌ Универсальный шаблон без учёта зоны клиента (гостиная stuff в bathroom context)
+
+## Data Gap (Sprint 3+ resolution)
+
+**Currently:** matrix v3.1 основана на логическом product affinity, не на Bitrix24 historical co-purchase data.
+
+**Open task** (Q3-2026): получить выгрузку из Bitrix24/OZON co-purchase patterns - validate matrix и rank recommendations by frequency. Owner: Борис #11 + Дмитрий Янчоглов.
+
+**До получения данных:** matrix v3.1 - рабочий baseline, ranking по человеческой логике (5 rules), confidence 0.7.
 
 ## Reference
 
-- Glossary v2.1 §5 (Комплект / Ensemble)
-- Pricing details: `glossary.md` §4.4 + §5.3
+- Glossary v2.1 §5 (Комплект / Ensemble): `glossary.md` lines 292-330
+- 16-category matrix v3.1: `references/matrix-v31.md` (в этом skill)
 - Sales scripts using cross-sell: `.claude/agents/viktor.md`
+- Pricing canon: `glossary.md` §4.4 + §5.3
+- A2A schema: `schemas/a2a-message.json`
 
 ## Future (Sprint 3+)
 
@@ -93,3 +155,4 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
 - Автоматический cross-sell prompt при создании сделки на 1-2 артикула
 - Historical analytics: какие cross-sell конвертятся выше у каких сегментов
 - Skill update через CC-19 Reflexion при появлении паттернов
+- Matrix v3.2: pruning irrelevant pairs (по реальным данным)

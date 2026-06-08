@@ -59,8 +59,8 @@ const NAV: Array<[string, string, string]> = [
   ["Обзор", "obzor.html", "Обзор"],
   ["Товары", "tovary.html", "Товары"],
   ["Воронка", "voronka.html", "Воронка"],
-  ["Маркетинг и цена", "#", "Маркетинг и цена"],
-  ["Кампании", "#", "Кампании"],
+  ["Маркетинг и цена", "marketing.html", "Маркетинг и цена"],
+  ["Кампании", "campaigns.html", "Кампании"],
   ["Карточки", "cards.html", "Карточки"],
   ["Деньги", "money.html", "Деньги"],
 ];
@@ -136,6 +136,26 @@ ${pageJs}
 }
 
 const FOOT_OPS = `Все цифры - <b>[ДАННЫЕ]</b> из дневной истории OZON (оперативный слой T-1). Период и сравнение считаются в браузере. Маржа/P&L - после коннектора транзакций (Фаза 2).`;
+
+// Статичная страница-снимок (реклама/цены - их нет в дневной истории, показываем
+// фиксированное окно без интерактивного пересчёта).
+export function staticPage(active: string, periodLabel: string, sections: string, footer: string): string {
+  const nav = NAV.map(([t, href, key]) => {
+    const cls = key === active ? "tab on" : href === "#" ? "tab soon" : "tab";
+    return `<a class="${cls}" href="${href}">${t}${href === "#" ? " ·" : ""}</a>`;
+  }).join("");
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGLASS · ${active}</title><style>${DS_CSS}</style></head>
+<body><div class="aurora"></div><div class="wrap">
+  <header><div class="brand"><div class="logo">GG</div>
+    <div><h1>GENGLASS · аналитика OZON</h1><div class="sub">${periodLabel}</div></div></div>
+    <span class="tag">оперативный слой · снимок</span></header>
+  <nav>${nav}</nav>
+  ${sections}
+  <footer>${footer}</footer>
+</div></body></html>`;
+}
 
 // ---------------- Товары ----------------
 export function renderTovary(model: unknown): string {

@@ -2,7 +2,7 @@
 // Период и сравнение считаются в браузере. Запуск: npm run build:site
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import type { SkuDaily } from "../types.js";
-import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, staticPage } from "../site.js";
+import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, renderAssistant, staticPage } from "../site.js";
 
 const ru = (n: number) => new Intl.NumberFormat("ru-RU").format(Math.round(n));
 const mln = (n: number) => (Math.abs(n) >= 1e6 ? (n / 1e6).toFixed(2) + " М" : ru(n));
@@ -120,8 +120,12 @@ function main() {
   let txsku: Record<string, { accruals: number; commission: number; amount: number }> = {};
   try { txsku = JSON.parse(readFileSync("fixtures/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { txsku = {}; }
 
+  // реклама (снимок 30 дней) - для ассистента
+  let ads: unknown = {};
+  try { ads = JSON.parse(readFileSync("fixtures/ads_30d.json", "utf-8")); } catch { ads = {}; }
+
   const dates = rows.map((r) => r.date).sort();
-  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl, txsku };
+  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl, txsku, ads };
 
   mkdirSync("public", { recursive: true });
   writeFileSync("public/tovary.html", renderTovary(model));
@@ -129,6 +133,7 @@ function main() {
   writeFileSync("public/voronka.html", renderFunnel(model));
   writeFileSync("public/cards.html", renderCards(model));
   writeFileSync("public/money.html", renderMoney(model));
+  writeFileSync("public/assistant.html", renderAssistant(model));
 
   const footMkt = `ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.`;
   writeFileSync("public/marketing.html", staticPage("Маркетинг и цена", "снимок рекламы и цен за 30 дней", buildMarketing(), footMkt));

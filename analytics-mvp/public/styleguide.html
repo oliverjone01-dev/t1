@@ -3,85 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GENGLASS Analytics - Design System</title>
+<title>GENGLASS Analytics - Design System (Orbi)</title>
 <style>
   :root{
-    --bg:#0E1116; --surface:#161B22; --raised:#1B2230; --line:#232B36;
-    --txt:#EEF2F6; --mut:#93A0AE;
-    --acc:#5BE7A9; --acc2:#8AA0FF;
-    --good:#3FCF8E; --bad:#FF6B6B; --warn:#F2B544; --info:#6AA8FF;
+    --bg:#0A0A0B; --surface:#161617; --raised:#1E1E20; --line:#2A2A2D;
+    --txt:#F5F5F6; --mut:#8A8A90; --mut2:#5E5E64;
+    --brand:#FF4438;            /* действие / внимание - как CTA Orbi */
+    --good:#34D399;            /* только рост */
+    --bad:#FF5A5F;             /* падение */
+    --warn:#F2B544;
+    --c1:#FF4438; --c2:#8AA0FF; --c3:#34D399; --c4:#F2B544; --c5:#6AD0E6; --c6:#B79BFF;
     --r-card:16px; --r-ctl:10px; --pad:22px;
-    --c1:#5BE7A9; --c2:#8AA0FF; --c3:#F2B544; --c4:#FF8FA3; --c5:#6AD0E6; --c6:#B79BFF;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:
-      radial-gradient(900px 500px at 80% -10%, rgba(91,231,169,.08), transparent 60%),
-      radial-gradient(800px 500px at 0% 0%, rgba(138,160,255,.07), transparent 55%),
-      var(--bg);
-    color:var(--txt);font:14px/1.55 Inter,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased}
-  .wrap{max-width:1160px;margin:0 auto;padding:28px}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:14px/1.55 Inter,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
   .num{font-variant-numeric:tabular-nums}
-  h1{font-size:20px;margin:0;font-weight:650;letter-spacing:-.01em}
-  h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:34px 0 14px;font-weight:600}
-  .sub{color:var(--mut);font-size:13px}
+  .wrap{max-width:1160px;margin:0 auto;padding:28px;position:relative;z-index:1}
 
-  /* top bar */
+  /* сигнатурное хроматическое кольцо Orbi - единственный яркий элемент */
+  .aurora{position:fixed;inset:-20% 0 auto 0;height:520px;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(60% 120% at 50% 0%, transparent 38%, rgba(255,120,40,.55) 46%, rgba(255,60,120,.5) 54%, rgba(120,90,255,.45) 62%, rgba(70,170,255,.4) 70%, transparent 80%);
+    filter:blur(38px);opacity:.5;transform:scaleY(.7)}
+  .aurora:after{content:"";position:absolute;inset:0;background:radial-gradient(70% 90% at 50% 28%, var(--bg), transparent 70%)}
+
+  h1{font-size:21px;margin:0;font-weight:680;letter-spacing:-.02em}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:36px 0 14px;font-weight:600}
+  .sub{color:var(--mut);font-size:13px}
+  .tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);
+    border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
+
   header{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--acc),var(--acc2));
-    display:grid;place-items:center;color:#0b1410;font-weight:800;font-size:15px}
+  .logo{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#0A0A0B;font-weight:800;font-size:14px}
   .chips{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
   .chip{padding:6px 13px;border-radius:999px;color:var(--mut);font-size:13px;cursor:pointer;border:0;background:transparent;font:inherit}
-  .chip.on{background:var(--raised);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line)}
-  .btn{padding:8px 14px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--surface);color:var(--txt);font:inherit;cursor:pointer}
-  .btn.primary{background:linear-gradient(135deg,var(--acc),#46c98f);color:#08120d;border:0;font-weight:600}
+  .chip.on{background:var(--raised);color:var(--txt)}
+  .btn{padding:9px 15px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--surface);color:var(--txt);font:inherit;cursor:pointer}
+  .btn.primary{background:var(--brand);color:#fff;border:0;font-weight:600;box-shadow:0 6px 20px rgba(255,68,56,.25)}
 
-  /* swatches */
+  /* двухтоновый заголовок Orbi */
+  .hero{font-size:46px;line-height:1.04;font-weight:700;letter-spacing:-.03em;margin:30px 0 10px}
+  .hero .dim{color:var(--mut2)}
+
   .sw{display:flex;flex-wrap:wrap;gap:10px}
-  .swatch{width:128px}
+  .swatch{width:124px}
   .swatch .box{height:54px;border-radius:12px;border:1px solid rgba(255,255,255,.06)}
   .swatch .lab{font-size:11px;color:var(--mut);margin-top:6px}
   .swatch .hex{font-size:11px;color:var(--txt)}
 
-  /* type scale */
-  .type div{margin:2px 0}
-  .t-kpi{font-size:30px;font-weight:650;letter-spacing:-.02em}
-  .t-h{font-size:18px;font-weight:600}
-  .t-b{font-size:14px}
-  .t-l{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
-
-  /* KPI cards */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--surface);
-    border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);position:relative;overflow:hidden}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);position:relative;overflow:hidden}
   .kpi .lab{color:var(--mut);font-size:12px}
-  .kpi .val{font-size:28px;font-weight:650;margin-top:6px;letter-spacing:-.02em}
+  .kpi .val{font-size:28px;font-weight:680;margin-top:6px;letter-spacing:-.02em}
   .kpi .d{font-size:12.5px;margin-top:6px;display:inline-flex;align-items:center;gap:4px}
   .up{color:var(--good)} .down{color:var(--bad)}
   .pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600}
-  .pill.g{background:rgba(63,207,142,.14);color:var(--good)}
-  .pill.r{background:rgba(255,107,107,.14);color:var(--bad)}
-  .pill.w{background:rgba(242,181,68,.14);color:var(--warn)}
-  .spark{position:absolute;right:14px;bottom:12px;opacity:.85}
+  .pill.g{background:rgba(52,211,153,.15);color:var(--good)}
+  .pill.r{background:rgba(255,90,95,.15);color:var(--bad)}
+  .pill.w{background:rgba(242,181,68,.15);color:var(--warn)}
+  .spark{position:absolute;right:14px;bottom:12px;opacity:.9}
 
-  /* tables */
   table{width:100%;border-collapse:collapse}
   th,td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
   th{color:var(--mut);font-weight:500;font-size:12px}
   td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;vertical-align:middle}
   .bar-cell{position:relative}
-  .bar-cell .fill{position:absolute;left:0;top:50%;transform:translateY(-50%);height:22px;border-radius:6px;opacity:.22}
+  .bar-cell .fill{position:absolute;right:0;top:50%;transform:translateY(-50%);height:22px;border-radius:6px;opacity:.22}
   .bar-cell span{position:relative}
 
-  /* heatmap */
-  .heat{display:grid;grid-template-columns:120px repeat(6,1fr);gap:5px;align-items:center}
-  .heat .hc{height:30px;border-radius:7px;display:grid;place-items:center;font-size:12px;color:#0b1410;font-weight:600}
+  .heat{display:grid;grid-template-columns:130px repeat(6,1fr);gap:5px;align-items:center}
+  .heat .hc{height:30px;border-radius:7px;display:grid;place-items:center;font-size:12px;color:#0A0A0B;font-weight:600}
   .heat .lbl{color:var(--mut);font-size:12px}
   .heat .hh{color:var(--mut);font-size:11px;text-align:center}
 
-  /* waterfall mini */
   .wf{display:flex;align-items:flex-end;gap:8px;height:120px}
   .wf .col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
   .wf .b{width:100%;border-radius:7px 7px 4px 4px}
@@ -89,12 +86,13 @@
   .wf .cv{font-size:12px;font-weight:600}
 
   .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:780px){.two{grid-template-columns:1fr}}
+  @media(max-width:780px){.two{grid-template-columns:1fr};.hero{font-size:34px}}
   .note{color:var(--mut);font-size:12px;margin-top:8px}
   footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:12px}
 </style>
 </head>
 <body>
+<div class="aurora"></div>
 <div class="wrap">
 
   <header>
@@ -102,49 +100,52 @@
       <div class="logo">GG</div>
       <div>
         <h1>GENGLASS · аналитика OZON</h1>
-        <div class="sub">дизайн-система · превью на живых данных (09.05-07.06 vs 09.04-08.05)</div>
+        <div class="sub">дизайн-система в стиле Orbi · превью на живых данных</div>
       </div>
     </div>
     <div style="display:flex;gap:10px;align-items:center">
       <div class="chips">
         <button class="chip">7д</button><button class="chip on">30д</button>
-        <button class="chip">90д</button><button class="chip">Год</button><button class="chip">Свой</button>
+        <button class="chip">90д</button><button class="chip">Год</button>
       </div>
       <button class="btn">Сравнить</button>
       <button class="btn primary">Применить</button>
     </div>
   </header>
 
+  <div class="hero">Что реально<br><span class="dim">зарабатывает на OZON</span></div>
+  <span class="tag">срез 09.05-07.06 против 09.04-08.05</span>
+
   <h2>Палитра</h2>
   <div class="sw">
-    <div class="swatch"><div class="box" style="background:#0E1116"></div><div class="lab">Фон</div><div class="hex">#0E1116</div></div>
-    <div class="swatch"><div class="box" style="background:#161B22"></div><div class="lab">Поверхность</div><div class="hex">#161B22</div></div>
-    <div class="swatch"><div class="box" style="background:#1B2230"></div><div class="lab">Приподнятая</div><div class="hex">#1B2230</div></div>
-    <div class="swatch"><div class="box" style="background:#5BE7A9"></div><div class="lab">Акцент money</div><div class="hex">#5BE7A9</div></div>
-    <div class="swatch"><div class="box" style="background:#8AA0FF"></div><div class="lab">Вторичный</div><div class="hex">#8AA0FF</div></div>
-    <div class="swatch"><div class="box" style="background:#FF6B6B"></div><div class="lab">Падение</div><div class="hex">#FF6B6B</div></div>
+    <div class="swatch"><div class="box" style="background:#0A0A0B"></div><div class="lab">Фон</div><div class="hex">#0A0A0B</div></div>
+    <div class="swatch"><div class="box" style="background:#161617"></div><div class="lab">Поверхность</div><div class="hex">#161617</div></div>
+    <div class="swatch"><div class="box" style="background:#1E1E20"></div><div class="lab">Приподнятая</div><div class="hex">#1E1E20</div></div>
+    <div class="swatch"><div class="box" style="background:#FF4438"></div><div class="lab">Действие/внимание</div><div class="hex">#FF4438</div></div>
+    <div class="swatch"><div class="box" style="background:#34D399"></div><div class="lab">Рост</div><div class="hex">#34D399</div></div>
+    <div class="swatch"><div class="box" style="background:#FF5A5F"></div><div class="lab">Падение</div><div class="hex">#FF5A5F</div></div>
     <div class="swatch"><div class="box" style="background:#F2B544"></div><div class="lab">Риск</div><div class="hex">#F2B544</div></div>
   </div>
 
-  <h2>Типографика</h2>
-  <div class="card type">
-    <div class="t-kpi num">23 978 124 ₽</div>
-    <div class="t-h">Заголовок раздела</div>
-    <div class="t-b">Базовый текст. Цифры везде с tabular-nums для ровных колонок: 1 234 · 56 789 · 0,86.</div>
-    <div class="t-l">Лейбл / подпись</div>
+  <h2>Типографика (двухтоновый заголовок как у Orbi)</h2>
+  <div class="card">
+    <div style="font-size:30px;font-weight:680;letter-spacing:-.02em" class="num">23 978 124 ₽</div>
+    <div style="font-size:22px;font-weight:680;letter-spacing:-.02em;margin-top:6px">Оборот за период <span style="color:var(--mut2)">упал на 15,6%</span></div>
+    <div style="margin-top:6px">Базовый текст. Цифры с tabular-nums: 1 234 · 56 789 · 0,86.</div>
+    <div class="sub" style="text-transform:uppercase;letter-spacing:.08em;margin-top:4px">Лейбл / подпись</div>
   </div>
 
-  <h2>KPI-карты со спарклайнами и дельтой</h2>
+  <h2>KPI-карты</h2>
   <div class="grid">
     <div class="card kpi">
       <div class="lab">Оборот</div><div class="val num">23,98 М ₽</div>
       <div class="d down">▼ -15,6% <span class="sub">к пред.</span></div>
-      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#FF6B6B" stroke-width="2" points="0,8 14,6 28,12 42,10 56,18 70,22 84,26"/></svg>
+      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#FF5A5F" stroke-width="2" points="0,8 14,6 28,12 42,10 56,18 70,22 84,26"/></svg>
     </div>
     <div class="card kpi">
       <div class="lab">Заказы</div><div class="val num">458</div>
       <div class="d down">▼ -16,7%</div>
-      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#FF6B6B" stroke-width="2" points="0,10 14,9 28,14 42,12 56,20 70,21 84,24"/></svg>
+      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#FF5A5F" stroke-width="2" points="0,10 14,9 28,14 42,12 56,20 70,21 84,24"/></svg>
     </div>
     <div class="card kpi">
       <div class="lab">ДРР канала</div><div class="val num">22,1%</div>
@@ -154,45 +155,42 @@
     <div class="card kpi">
       <div class="lab">Валовая маржа <span class="pill w">по С\С</span></div><div class="val num">57%</div>
       <div class="d up">▲ +1,2 пп</div>
-      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#3FCF8E" stroke-width="2" points="0,20 14,18 28,16 42,17 56,13 70,12 84,9"/></svg>
+      <svg class="spark" width="84" height="34" viewBox="0 0 84 34"><polyline fill="none" stroke="#34D399" stroke-width="2" points="0,20 14,18 28,16 42,17 56,13 70,12 84,9"/></svg>
     </div>
   </div>
 
   <h2>Графики</h2>
   <div class="two">
     <div class="card">
-      <div class="t-l" style="margin-bottom:14px">Оборот по линиям, М ₽</div>
-      <svg width="100%" height="190" viewBox="0 0 460 190" preserveAspectRatio="none">
-        <g font-size="11" fill="#93A0AE">
-          <!-- bars -->
-          <g>
-            <rect x="60" y="20"  width="360" height="22" rx="6" fill="#5BE7A9"/>
-            <rect x="60" y="52"  width="165" height="22" rx="6" fill="#8AA0FF"/>
-            <rect x="60" y="84"  width="80"  height="22" rx="6" fill="#6AD0E6"/>
-            <rect x="60" y="116" width="64"  height="22" rx="6" fill="#B79BFF"/>
-            <rect x="60" y="148" width="40"  height="22" rx="6" fill="#F2B544"/>
-          </g>
-          <g fill="#EEF2F6" font-size="11">
-            <text x="8" y="35">TRUBIS</text><text x="8" y="67">зеркала</text>
-            <text x="8" y="99">столы</text><text x="8" y="131">OSOLIS</text><text x="8" y="163">прочее</text>
-          </g>
-          <g fill="#EEF2F6" font-size="11" text-anchor="start" font-weight="600">
-            <text x="426" y="35">11,5</text><text x="231" y="67">5,3</text>
-            <text x="146" y="99">2,5</text><text x="130" y="131">2,0</text><text x="106" y="163">1,3</text>
-          </g>
+      <span class="tag" style="margin-bottom:14px">Оборот по линиям, М ₽</span>
+      <svg width="100%" height="190" viewBox="0 0 460 190" preserveAspectRatio="none" style="margin-top:12px">
+        <g>
+          <rect x="60" y="20"  width="360" height="22" rx="6" fill="#FF4438"/>
+          <rect x="60" y="52"  width="165" height="22" rx="6" fill="#8AA0FF"/>
+          <rect x="60" y="84"  width="80"  height="22" rx="6" fill="#6AD0E6"/>
+          <rect x="60" y="116" width="64"  height="22" rx="6" fill="#B79BFF"/>
+          <rect x="60" y="148" width="40"  height="22" rx="6" fill="#5E5E64"/>
+        </g>
+        <g fill="#F5F5F6" font-size="11">
+          <text x="8" y="35">TRUBIS</text><text x="8" y="67">зеркала</text>
+          <text x="8" y="99">столы</text><text x="8" y="131">OSOLIS</text><text x="8" y="163">прочее</text>
+        </g>
+        <g fill="#F5F5F6" font-size="11" font-weight="600">
+          <text x="426" y="35">11,5</text><text x="231" y="67">5,3</text>
+          <text x="146" y="99">2,5</text><text x="130" y="131">2,0</text><text x="106" y="163">1,3</text>
         </g>
       </svg>
     </div>
     <div class="card">
-      <div class="t-l" style="margin-bottom:14px">Тренд оборота по дням (area)</div>
-      <svg width="100%" height="190" viewBox="0 0 460 190" preserveAspectRatio="none">
+      <span class="tag" style="margin-bottom:14px">Тренд оборота по дням (area)</span>
+      <svg width="100%" height="190" viewBox="0 0 460 190" preserveAspectRatio="none" style="margin-top:12px">
         <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#5BE7A9" stop-opacity=".35"/><stop offset="1" stop-color="#5BE7A9" stop-opacity="0"/>
+          <stop offset="0" stop-color="#FF4438" stop-opacity=".30"/><stop offset="1" stop-color="#FF4438" stop-opacity="0"/>
         </linearGradient></defs>
-        <path d="M0,120 C60,90 90,140 140,110 C190,80 230,130 280,95 C330,60 380,100 460,70 L460,190 L0,190 Z" fill="url(#ag)"/>
-        <path d="M0,120 C60,90 90,140 140,110 C190,80 230,130 280,95 C330,60 380,100 460,70" fill="none" stroke="#5BE7A9" stroke-width="2.5"/>
+        <path d="M0,90 C60,80 90,120 140,110 C190,100 230,140 280,130 C330,120 380,150 460,150 L460,190 L0,190 Z" fill="url(#ag)"/>
+        <path d="M0,90 C60,80 90,120 140,110 C190,100 230,140 280,130 C330,120 380,150 460,150" fill="none" stroke="#FF4438" stroke-width="2.5"/>
       </svg>
-      <div class="note">после S3 здесь живая дневная история, не заглушка</div>
+      <div class="note">оборот снижается - линия красная не для красоты, а по смыслу. После S3 - живая дневная история</div>
     </div>
   </div>
 
@@ -200,20 +198,20 @@
   <div class="card">
     <svg width="100%" height="150" viewBox="0 0 460 150" preserveAspectRatio="none">
       <g>
-        <rect x="0" y="60" width="38" height="90" rx="5" fill="#5BE7A9"/>
-        <rect x="44" y="78" width="38" height="72" rx="5" fill="#5BE7A9"/>
+        <rect x="0" y="60" width="38" height="90" rx="5" fill="#FF4438"/>
+        <rect x="44" y="78" width="38" height="72" rx="5" fill="#FF4438"/>
         <rect x="88" y="92" width="38" height="58" rx="5" fill="#8AA0FF"/>
         <rect x="132" y="104" width="38" height="46" rx="5" fill="#8AA0FF"/>
         <rect x="176" y="116" width="38" height="34" rx="5" fill="#8AA0FF"/>
-        <rect x="220" y="126" width="38" height="24" rx="5" fill="#F2B544"/>
-        <rect x="264" y="132" width="38" height="18" rx="5" fill="#F2B544"/>
-        <rect x="308" y="138" width="38" height="12" rx="5" fill="#F2B544"/>
-        <rect x="352" y="142" width="38" height="8" rx="5" fill="#F2B544"/>
-        <rect x="396" y="145" width="38" height="5" rx="5" fill="#F2B544"/>
+        <rect x="220" y="126" width="38" height="24" rx="5" fill="#5E5E64"/>
+        <rect x="264" y="132" width="38" height="18" rx="5" fill="#5E5E64"/>
+        <rect x="308" y="138" width="38" height="12" rx="5" fill="#5E5E64"/>
+        <rect x="352" y="142" width="38" height="8" rx="5" fill="#5E5E64"/>
+        <rect x="396" y="145" width="38" height="5" rx="5" fill="#5E5E64"/>
       </g>
-      <path d="M19,60 L63,40 L107,28 L151,20 L195,15 L239,12 L283,10 L327,8 L371,7 L415,6" fill="none" stroke="#EEF2F6" stroke-width="2" stroke-dasharray="3 3"/>
+      <path d="M19,60 L63,40 L107,28 L151,20 L195,15 L239,12 L283,10 L327,8 L371,7 L415,6" fill="none" stroke="#F5F5F6" stroke-width="2" stroke-dasharray="3 3"/>
     </svg>
-    <div class="note"><span class="pill g">A</span> 20% моделей = 64% оборота &nbsp; <span class="pill" style="background:rgba(138,160,255,.14);color:#8AA0FF">B</span> &nbsp; <span class="pill w">C</span> длинный хвост</div>
+    <div class="note"><span class="pill r">A</span> 20% моделей = 64% оборота &nbsp; <span class="pill" style="background:rgba(138,160,255,.15);color:#8AA0FF">B</span> &nbsp; <span class="pill" style="background:rgba(94,94,100,.3);color:#9a9aa0">C</span> длинный хвост</div>
   </div>
 
   <h2>Хитмап заказы (модель × месяц, только реальные месяцы фев26+)</h2>
@@ -221,53 +219,52 @@
     <div class="heat">
       <div></div><div class="hh">Фев</div><div class="hh">Мар</div><div class="hh">Апр</div><div class="hh">Май</div><div class="hh">Июн</div><div class="hh">Итого</div>
       <div class="lbl">TRUBIS Oval 200</div>
-      <div class="hc" style="background:#2f6b50">18</div><div class="hc" style="background:#5BE7A9">88</div><div class="hc" style="background:#3f9e72">52</div><div class="hc" style="background:#8f5a3a">17</div><div class="hc" style="background:#4fb985">36</div><div class="lbl num">211</div>
+      <div class="hc" style="background:#5a2520">18</div><div class="hc" style="background:#FF4438">88</div><div class="hc" style="background:#b5392f">52</div><div class="hc" style="background:#4a201c">17</div><div class="hc" style="background:#993029">36</div><div class="lbl num">211</div>
       <div class="lbl">NOLVIS L</div>
-      <div class="hc" style="background:#5BE7A9">86</div><div class="hc" style="background:#3f9e72">39</div><div class="hc" style="background:#377a5b">34</div><div class="hc" style="background:#7a4733">14</div><div class="hc" style="background:#2f6b50">23</div><div class="lbl num">196</div>
+      <div class="hc" style="background:#FF4438">86</div><div class="hc" style="background:#993029">39</div><div class="hc" style="background:#8a2c25">34</div><div class="hc" style="background:#3f1c19">14</div><div class="hc" style="background:#6e2620">23</div><div class="lbl num">196</div>
       <div class="lbl">ZILOSI</div>
-      <div class="hc" style="background:#357a59">19</div><div class="hc" style="background:#2f6b50">25</div><div class="hc" style="background:#3f9e72">36</div><div class="hc" style="background:#6e3f30">8</div><div class="hc" style="background:#4fb985">50</div><div class="lbl num">138</div>
+      <div class="hc" style="background:#6e2620">19</div><div class="hc" style="background:#7a2823">25</div><div class="hc" style="background:#993029">36</div><div class="hc" style="background:#341613">8</div><div class="hc" style="background:#b5392f">50</div><div class="lbl num">138</div>
     </div>
+    <div class="note">в монохром-красной шкале как у Orbi: насыщенность = объём</div>
   </div>
 
-  <h2>Строка таблицы товара + мини-водопад маржи</h2>
+  <h2>Строка товара + водопад маржи М1 → М3</h2>
   <div class="card" style="padding:0">
     <table>
-      <thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r bar-cell">Заказы</th><th class="r">Ср.чек</th><th class="r">Цена vs рынок</th><th class="r">Склад</th><th class="r">Возвр</th></tr></thead>
+      <thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Заказы</th><th class="r">Ср.чек</th><th class="r">Цена vs рынок</th><th class="r">Склад</th><th class="r">Возвр</th></tr></thead>
       <tbody>
         <tr>
-          <td><span class="dot" style="background:#5BE7A9"></span>TRUBIS Wood Oval 160</td>
+          <td><span class="dot" style="background:#FF4438"></span>TRUBIS Wood Oval 160</td>
           <td class="r num">1,16 М</td>
-          <td class="r bar-cell"><span class="fill" style="width:80%;background:#8AA0FF;right:0;left:auto"></span><span class="num">20</span></td>
+          <td class="r bar-cell"><span class="fill" style="width:80%;background:#8AA0FF"></span><span class="num">20</span></td>
           <td class="r num">58 128</td>
           <td class="r"><span class="pill g">0.86 дешевле</span></td>
-          <td class="r num">186</td>
-          <td class="r num">0%</td>
+          <td class="r num">186</td><td class="r num">0%</td>
         </tr>
         <tr>
           <td><span class="dot" style="background:#8AA0FF"></span>KONUX 100/180</td>
           <td class="r num">1,13 М</td>
-          <td class="r bar-cell"><span class="fill" style="width:56%;background:#8AA0FF;right:0;left:auto"></span><span class="num">14</span></td>
+          <td class="r bar-cell"><span class="fill" style="width:56%;background:#8AA0FF"></span><span class="num">14</span></td>
           <td class="r num">80 760</td>
           <td class="r"><span class="pill w">нет индекса</span></td>
-          <td class="r num">191</td>
-          <td class="r num">0%</td>
+          <td class="r num">191</td><td class="r num">0%</td>
         </tr>
       </tbody>
     </table>
     <div style="padding:18px 22px;border-top:1px solid var(--line)">
-      <div class="t-l" style="margin-bottom:12px">Раскрытие модели · водопад маржи М1 → М3 (реальные сборы OZON)</div>
-      <div class="wf">
-        <div class="col"><div class="cv">1,16 М</div><div class="b" style="height:100%;background:#5BE7A9"></div><div class="cl">Выручка</div></div>
-        <div class="col"><div class="cv" style="color:#FF8FA3">-0,50 М</div><div class="b" style="height:43%;background:#FF8FA3"></div><div class="cl">С\С</div></div>
-        <div class="col"><div class="cv" style="color:#F2B544">-0,21 М</div><div class="b" style="height:18%;background:#F2B544"></div><div class="cl">Комис+логист+эквайр</div></div>
-        <div class="col"><div class="cv" style="color:#5BE7A9">0,45 М</div><div class="b" style="height:39%;background:linear-gradient(180deg,#5BE7A9,#46c98f)"></div><div class="cl">М3 после сборов</div></div>
+      <span class="tag" style="margin-bottom:12px">раскрытие модели · водопад маржи (реальные сборы OZON)</span>
+      <div class="wf" style="margin-top:12px">
+        <div class="col"><div class="cv">1,16 М</div><div class="b" style="height:100%;background:#FF4438"></div><div class="cl">Выручка</div></div>
+        <div class="col"><div class="cv" style="color:var(--mut)">-0,50 М</div><div class="b" style="height:43%;background:#5E5E64"></div><div class="cl">С\С</div></div>
+        <div class="col"><div class="cv" style="color:var(--warn)">-0,21 М</div><div class="b" style="height:18%;background:#F2B544"></div><div class="cl">Комис+логист+эквайр</div></div>
+        <div class="col"><div class="cv" style="color:var(--good)">0,45 М</div><div class="b" style="height:39%;background:#34D399"></div><div class="cl">М3 после сборов</div></div>
       </div>
-      <div class="note">Реклама по SKU не вычитается (не разносится достоверно, G5) - режется на уровне канала. Маржа по товару честна до М3.</div>
+      <div class="note">Реклама по SKU не вычитается (не разносится достоверно, G5) - режется на канале. Маржа честна до М3.</div>
     </div>
   </div>
 
   <footer>
-    Дизайн-система в духе heyorbi (тёмный премиум-финтех). Сайт-референс отдал 403, поэтому это интерпретация, не копия пикселей - покажи скрин блока, подгоню токены. Все цифры здесь из живого среза OZON, кроме помеченных «после S3».
+    Поправлено по реальному скрину Orbi: красный = действие/внимание (не зелёный), зелёный только для роста, нейтрально-чёрный фон, двухтоновый заголовок, пилюли-теги, хроматическое кольцо сверху как единственный яркий элемент. Все цифры из живого среза OZON, кроме помеченных «после S3».
   </footer>
 </div>
 </body>

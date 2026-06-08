@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Smoke validation for GENGROUP v9.0 JSON schemas.
+
+Runs:
+1. Meta-validation: each schema valid against Draft 2020-12
+2. Sample-validation: representative payloads pass their schema
+
+Usage:
+    pip install jsonschema
+    python3 schemas/smoke-test.py
+
+Exit code:
+    0 - all valid
+    1 - any failure
+"""
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+try:
+    from jsonschema import Draft202012Validator
+except ImportError:
+    print("Install: pip install jsonschema", file=sys.stderr)
+    sys.exit(2)
+
+SCHEMA_DIR = Path(__file__).parent
+
+SAMPLES: dict[str, dict] = {
+    "a2a-message.json": {
+        "from": "marco",
+        "to": "feniks",
+        "intent": "review_request",
+        "thread_id": "council-2026-06-08-01",
+        "context": {"p9_required": True, "cost_budget_usd": 0.5},
+        "expected_output": "audit-report",
+    },
+    "audit-report.json": {
+        "agent": "feniks",
+        "skill": "phoenix-eval",
+        "task_id": "smoke-test-001",
+        "timestamp": "2026-06-08T12:00:00+03:00",
+        "scores": {
+            "accuracy": 8.0,
+            "actionability": 8.0,
+            "insight": 7.0,
+            "brand_fit": 9.0,
+            "risk_awareness": 7.0,
+        },
+        "weighted_total": 7.85,
+        "verdict": "go",
+    },
+    "council-vote.json": {
+        "voter": "marco",
+        "council_id": "CC-12-smoke",
+        "target_id": "AnonymA",
+        "scores": {
+            "accuracy": 7.0,
+            "actionability": 8.0,
+            "insight": 6.0,
+            "brand_fit": 8.0,
+            "risk_awareness": 7.0,
+        },
+        "weighted_total": 7.25,
+        "vote": "best",
+    },
+    "roadmap-entry.json": {
+        "id": "ROAD-2026-Q3-001",
+        "title": "Smoke roadmap entry",
+        "owner": "Иван",
+        "deadline": "2026-09-01",
+        "p9_status": "passed",
+        "first_checkpoint": {
+            "date": "2026-07-01",
+            "criterion": "mvp shipped",
+            "owner": "Claude",
+        },
+        "ice": {"impact": 7, "confidence": 6, "ease": 5, "total": 210},
+        "effort_hours": {"estimate": 40, "buffer_percent": 30},
+        "expected_effect": {
+            "value": 1_000_000,
+            "tag": "data",
+            "source": "CRM cohort",
+        },
+        "downside": {
+            "scenario": "no impact",
+            "lost_resources": "40h team",
+            "reputational_risk": "low",
+        },
+    },
+}
+
+
+def main() -> int:
+    failures = 0
+    for name, sample in SAMPLES.items():
+        path = SCHEMA_DIR / name
+        try:
+            schema = json.loads(path.read_text())
+        except Exception as e:
+            print(f"FAIL  {name}: cannot load ({e})")
+            failures += 1
+            continue
+
+        try:
+            Draft202012Validator.check_schema(schema)
+        except Exception as e:
+            print(f"FAIL  {name}: schema meta-invalid ({e})")
+            failures += 1
+            continue
+
+        validator = Draft202012Validator(schema)
+        errors = list(validator.iter_errors(sample))
+        if errors:
+            print(f"FAIL  {name}: sample violates schema:")
+            for err in errors[:5]:
+                print(f"      - {err.message}")
+            failures += 1
+        else:
+            print(f"OK    {name}")
+
+    if failures:
+        print(f"\n{failures} schema(s) failed validation", file=sys.stderr)
+        return 1
+    print("\nAll 4 schemas valid (meta + sample)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

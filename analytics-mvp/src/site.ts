@@ -302,6 +302,9 @@ export function renderMoney(model: unknown): string {
   <h2>Сверенный P&L · закрытые месяцы (из подписанных Актов OZON)</h2>
   <div class="grid" id="pnl"></div>
   <div class="note">Сверенный слой. За незакрытые месяцы (май-июнь) чистая прибыль не показывается - не выдумывается (DOC_05 §1.2). Метод разнесения Акта - открытый риск G3 (двойной счёт "Базовое вознаграждение"), цифры с оговоркой.</div>
+  <h2>Операционный P&L по транзакциям · 30 дней (реальные сборы OZON)</h2>
+  <div class="card" id="txpnl"></div>
+  <div class="note">Реальные сборы из /v3/finance/transaction (комиссия, логистика, эквайринг, подписки). Это канальный водопад М1→М3, работает и для незакрытого периода. С\С и реклама тут НЕ вычитаются: базис единиц у начисления и заказов разный, чистая прибыль - только из Актов. Маржа по С\С - на странице Товары.</div>
   <h2>Оборот по месяцам · оперативный слой (GMV, не прибыль)</h2>
   <div class="card" id="gmv"></div>
   <h2>Оборот за выбранный период (для контекста)</h2>
@@ -316,6 +319,7 @@ function drawStatic(){
   C.forEach(m=>{cum+=m.profit;const margin=Math.round(m.profit/m.realization*1000)/10;const pos=m.profit>=0;ph+='<div class="card"><div class="sub">'+m.label+'</div><div class="val num" style="font-size:24px;font-weight:680;color:'+(pos?'#34D399':'#FF5A5F')+'">'+mln(m.profit)+' ₽</div><div class="sub" style="margin-top:6px">реализация '+mln(m.realization)+' · маржа '+margin+'%</div></div>';});
   ph+='<div class="card" style="border-color:#34343a"><div class="sub">Накоплено (фев-апр)</div><div class="val num" style="font-size:24px;font-weight:680">'+mln(cum)+' ₽</div><div class="sub" style="margin-top:6px">чистая прибыль</div></div>';
   document.getElementById('pnl').innerHTML=ph;
+  const P=DATA.opnl;if(P&&P.accruals){const fees=P.accruals-P.payout;let w='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:14px">'+'<div class="card kpi"><div class="lab">Выручка начисленная (М1)</div><div class="val num">'+mln(P.accruals)+' ₽</div><div class="sub">'+P.dateFrom+'..'+P.dateTo+'</div></div>'+'<div class="card kpi"><div class="lab">Сборы OZON</div><div class="val num" style="color:#FF5A5F">'+mln(-fees)+' ₽</div><div class="sub">'+(Math.round(fees/P.accruals*1000)/10)+'% от выручки</div></div>'+'<div class="card kpi"><div class="lab">К начислению (М3)</div><div class="val num" style="color:#34D399">'+mln(P.payout)+' ₽</div><div class="sub">'+(Math.round(P.payout/P.accruals*1000)/10)+'% от выручки</div></div></div>';w+='<table><thead><tr><th>Статья сбора</th><th class="r">Сумма</th><th class="r">% выручки</th></tr></thead><tbody>';for(const k in P.breakdown){const v=P.breakdown[k];w+='<tr><td>'+k+'</td><td class="r num down">'+mln(v)+' ₽</td><td class="r num">'+(Math.round(Math.abs(v)/P.accruals*1000)/10)+'%</td></tr>';}w+='</tbody></table>';document.getElementById('txpnl').innerHTML=w;}
   const bm={};for(const f of F){const mo=f[0].slice(0,7);bm[mo]=(bm[mo]||0)+f[2];}const ms=Object.keys(bm).sort();const max=Math.max(1,...Object.values(bm));
   let g='';ms.forEach(m=>{g+='<div style="display:grid;grid-template-columns:80px 1fr 110px;align-items:center;gap:10px;margin:8px 0"><div class="sub">'+m+'</div><div style="background:#1E1E20;border-radius:7px"><div style="height:24px;width:'+(bm[m]/max*100)+'%;background:linear-gradient(90deg,#8AA0FF,#6377d6);border-radius:7px"></div></div><div class="r num">'+mln(bm[m])+' ₽</div></div>';});document.getElementById('gmv').innerHTML=g;
 }

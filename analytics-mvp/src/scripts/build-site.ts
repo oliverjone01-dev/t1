@@ -112,8 +112,12 @@ function main() {
   let cogs: Record<string, number> = {};
   try { cogs = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8")); } catch { cogs = {}; }
 
+  // операционный P&L по транзакциям (снимок 30 дней, реальные сборы OZON)
+  let opnl: unknown = {};
+  try { opnl = JSON.parse(readFileSync("fixtures/pnl_30d.json", "utf-8")); } catch { opnl = {}; }
+
   const dates = rows.map((r) => r.date).sort();
-  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs };
+  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl };
 
   mkdirSync("public", { recursive: true });
   writeFileSync("public/tovary.html", renderTovary(model));

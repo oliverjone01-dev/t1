@@ -364,37 +364,44 @@ function answer(q){
   const lg=linesGrowth(cur.from,cur.to,cmp.from,cmp.to).sort((a,b)=>b.growth-a.growth);
   const A=DATA.ads||{};const At=A.totals||{};
   q=(q||'').toLowerCase();
+  const themes=[/реклам|дрр|слив|кампан|бюджет/,/маржа|прибыл|зарабат|себес|рентаб/,/возврат|брак|отмен/,/карточк|конверс|переделать|трафик/,/выросл|упал|динам|движен|лучш|хуж/];
+  const nHit=themes.filter(t=>t.test(q)).length;
+  let pre='';
+  if(nHit>1)pre='<div class="note">В вопросе несколько тем - отвечаю на первую, остальные спросите отдельно.</div>';
+  const known=nHit>0||/сводк|итог|как дела|обзор/.test(q)||q.trim()==='';
+  if(!known)pre='<div class="note">Не распознал вопрос точно - показываю сводку. Умею: реклама/ДРР, маржа, возвраты, карточки, динамика.</div>';
   if(/реклам|дрр|слив|кампан|бюджет/.test(q)){
     const burn=(A.burners||[]).slice(0,5);const wasted=(A.burners||[]).reduce((s,b)=>s+(b.o===0?b.sp:0),0);
-    let h='<div class="sub">ДРР канала <b>'+(At.drr||0)+'%</b> · расход '+mln(At.spend||0)+' ₽ · ROAS '+((At.adRevenue/At.spend)||0).toFixed(1)+'x (снимок 30 дней)</div><table style="margin-top:8px"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+burn.map(b=>'<tr><td>'+b.off+'</td><td class="r num">'+rub(b.sp)+'</td><td class="r num">'+b.o+'</td><td class="r num down">'+(b.drr||'0 зак.')+'</td></tr>').join('')+'</tbody></table><div class="note">Потенциал возврата от отключения нулевых: <b>'+mln(wasted)+' ₽</b> <span class="pill b-Y">[ГИПОТЕЗА]</span></div>';
-    return ansCard('Реклама за снимок 30 дней',h);
+    let h='<div class="sub">ДРР канала <b>'+(At.drr||0)+'%</b> · расход '+mln(At.spend||0)+' ₽ · ROAS '+((At.adRevenue/At.spend)||0).toFixed(1)+'x (снимок 30 дней)</div><table style="margin-top:8px"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+burn.map(b=>'<tr><td>'+b.off+'</td><td class="r num">'+rub(b.sp)+'</td><td class="r num">'+b.o+'</td><td class="r num down">'+(b.drr||'0 зак.')+'</td></tr>').join('')+'</tbody></table><div class="note">Потенциал возврата от отключения нулевых: <b>'+mln(wasted)+' ₽</b> <span class="pill b-Y">[ГИПОТЕЗА]</span> (без учёта лага атрибуции OZON и органики)</div>';
+    return pre+ansCard('Реклама за снимок 30 дней',h);
   }
   if(/маржа|прибыл|зарабат|себес|рентаб/.test(q)){
     const g=gmFor(cur);const vbl={};const v=skuViews(cur.from,cur.to);for(const x of v){const c=cogsOf(x.sku);if(c>0){let e=vbl[x.line];if(!e){e={g:0,rc:0};vbl[x.line]=e;}e.g+=x.rev-c*x.units;e.rc+=x.rev;}}
     const ml=Object.keys(vbl).map(k=>({line:k,m:Math.round(vbl[k].g/vbl[k].rc*1000)/10})).sort((a,b)=>b.m-a.m);
     let h='<div class="sub">Валовая маржа по С\\\\С: <b>'+g.gm+'%</b> (покрытие '+g.cov+'% оборота). После сборов OZON канал отдаёт ~46% выручки (полный М3, см. Деньги).</div><table style="margin-top:8px"><thead><tr><th>Линия</th><th class="r">Вал. маржа</th></tr></thead><tbody>'+ml.map(x=>'<tr><td>'+x.line+'</td><td class="r num">'+x.m+'%</td></tr>').join('')+'</tbody></table>';
-    return ansCard('Маржа за '+per,h);
+    return pre+ansCard('Маржа за '+per,h);
   }
   if(/возврат|брак|отмен/.test(q)){
     const a=aggSku(win(cur.from,cur.to));const lm={};for(const x of a.values()){let e=lm[SK[x.sku][1]];if(!e){e={ret:0,units:0};lm[SK[x.sku][1]]=e;}e.ret+=x.ret;e.units+=x.units;}
     const arr=Object.keys(lm).map(k=>({line:k,rr:lm[k].units+lm[k].ret>0?Math.round(lm[k].ret/(lm[k].units+lm[k].ret)*1000)/10:0,ret:lm[k].ret})).sort((x,y)=>y.rr-x.rr);
     let h='<div class="sub">Всего возвратов: <b>'+tc.ret+'</b> ('+pct(dg(tc.ret,tp.ret))+' к пред.)</div><table style="margin-top:8px"><thead><tr><th>Линия</th><th class="r">Возвраты</th><th class="r">Возврат %</th></tr></thead><tbody>'+arr.filter(x=>x.ret>0).map(x=>'<tr><td>'+x.line+'</td><td class="r num">'+x.ret+'</td><td class="r num '+(x.rr>5?'down':'')+'">'+x.rr+'%</td></tr>').join('')+'</tbody></table>';
-    return ansCard('Возвраты за '+per,h);
+    return pre+ansCard('Возвраты за '+per,h);
   }
   if(/карточк|конверс|переделать|трафик|заказов мало/.test(q)){
     const v=skuViews(cur.from,cur.to);const vs=v.map(x=>x.views).sort((a,b)=>a-b);const medV=vs[Math.floor(vs.length/2)]||0;
     const fix=v.filter(x=>x.views>=Math.max(3000,medV)&&x.conv<0.2).sort((a,b)=>b.views-a.views).slice(0,10);
     let h='<div class="sub">'+fix.length+' кандидатов: показов выше медианы, конверсия в заказ ниже 0.2%</div><table style="margin-top:8px"><thead><tr><th>Товар</th><th class="r">Показы</th><th class="r">Заказы</th><th class="r">CR</th></tr></thead><tbody>'+fix.map(x=>'<tr><td>'+x.name+'</td><td class="r num">'+rub(x.views)+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num down">'+x.conv+'</td></tr>').join('')+'</tbody></table>';
-    return ansCard('Карточки на ремонт за '+per,h);
+    return pre+ansCard('Карточки на ремонт за '+per,h);
   }
   if(/выросл|упал|динам|движен|лучш|хуж/.test(q)){
     let h='<table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Рост</th></tr></thead><tbody>'+lg.map(d=>'<tr><td>'+d.line+'</td><td class="r num">'+mln(d.rev)+'</td><td class="r '+(d.growth>=0?'up':'down')+'">'+pct(d.growth)+'</td></tr>').join('')+'</tbody></table>';
-    return ansCard('Динамика по линиям за '+per,h);
+    return pre+ansCard('Динамика по линиям за '+per,h);
   }
   // сводка по умолчанию
+  if(tc.units===0)return pre+ansCard('Сводка за '+per,'<div class="sub">Нет продаж в выбранном периоде - менять окно сверху.</div>');
   const g=gmFor(cur);const up=lg[0],dn=lg[lg.length-1];
-  let h='<div style="font-size:15px;line-height:1.7">Оборот <b>'+mln(tc.rev)+' ₽</b> ('+pct(dg(tc.rev,tp.rev))+' к пред.), заказов <b>'+tc.units+'</b> ('+pct(dg(tc.units,tp.units))+').<br>Валовая маржа <b>'+g.gm+'%</b> по С\\\\С (покрытие '+g.cov+'%). ДРР канала <b>'+(At.drr||0)+'%</b> (снимок).<br>Лучше всех растёт <b>'+(up?up.line:'-')+'</b> ('+(up?pct(up.growth):'')+'), хуже всех <b>'+(dn?dn.line:'-')+'</b> ('+(dn?pct(dn.growth):'')+').<br>Возвратов '+tc.ret+', SKU с продажами '+tc.sku+'.</div>';
-  return ansCard('Сводка за '+per,h);
+  let h='<div style="font-size:15px;line-height:1.7">Оборот <b>'+mln(tc.rev)+' ₽</b> ('+pct(dg(tc.rev,tp.rev))+' к пред.), заказов <b>'+tc.units+'</b> ('+pct(dg(tc.units,tp.units))+').<br>Валовая маржа <b>'+g.gm+'%</b> по С\\\\С (покрытие '+g.cov+'%). ДРР канала <b>'+(At.drr||0)+'%</b> (снимок 30д, отдельный период).<br>Лучше всех растёт <b>'+(up?up.line:'-')+'</b> ('+(up?pct(up.growth):'')+'), хуже всех <b>'+(dn?dn.line:'-')+'</b> ('+(dn?pct(dn.growth):'')+').<br>Возвратов '+tc.ret+', SKU с продажами '+tc.sku+'.</div>';
+  return pre+ansCard('Сводка за '+per,h);
 }
 function run(q){lastQ=q;document.getElementById('answer').innerHTML=answer(q);}
 function draw(cur,cmp){if(lastQ)document.getElementById('answer').innerHTML=answer(lastQ);}

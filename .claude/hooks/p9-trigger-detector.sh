@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Protocol 9 trigger detector — fires on UserPromptSubmit.
+# Protocol 9 trigger detector - fires on UserPromptSubmit.
 # Reads JSON event from stdin, scans user prompt for P9 triggers,
 # injects additionalContext if any found.
 # Exit 0 = continue. Never blocks; only nudges.
@@ -44,7 +44,7 @@ if [ "${#HITS[@]}" -eq 0 ]; then
 fi
 
 REMINDER="Protocol 9 trigger(s) detected in your prompt: ${HITS[*]}.
-Before proceeding with planning or commitments, run /reality-audit on the relevant claim — tag every figure as [ДАННЫЕ] or [ГИПОТЕЗА], answer the 5 questions, and apply hard rules. See CLAUDE.md §5."
+Before proceeding with planning or commitments, run /reality-audit on the relevant claim - tag every figure as [ДАННЫЕ] or [ГИПОТЕЗА], answer the 5 questions, and apply hard rules. See CLAUDE.md §5."
 
 python3 - "$REMINDER" <<'PY'
 import json, sys

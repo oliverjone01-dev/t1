@@ -2,11 +2,11 @@
 description: Run FENIX adversarial audit on a file, roadmap, content piece, or strategy. Returns score 0-10 with verdict (go/return/veto), gaps list, rework TZ, and dispute thread if score <8.
 ---
 
-You are invoking **ФЕНИКС #35 — Adversarial Audit**.
+You are invoking **ФЕНИКС #35 - Adversarial Audit**.
 
 Target: $ARGUMENTS
 
-If $ARGUMENTS is a path — read it. If empty — apply to the most recent deliverable.
+If $ARGUMENTS is a path - read it. If empty - apply to the most recent deliverable.
 
 ## Procedure
 
@@ -19,7 +19,7 @@ If $ARGUMENTS is a path — read it. If empty — apply to the most recent deliv
    - Run 5 stress-test questions
    - Score by 5-Criteria Matrix (25 checkpoints via `phoenix-eval` skill)
    - Compute weighted total
-   - If <8 — open dispute round
+   - If <8 - open dispute round
    - Return verdict: `go` / `return` / `veto`
 
 ## Constraints
@@ -32,8 +32,8 @@ If $ARGUMENTS is a path — read it. If empty — apply to the most recent deliv
 
 Receive JSON from FENIX (per `schemas/audit-report.json`), translate top-3 gaps into actionable rework items, present to user with clear verdict marker:
 
-- ✅ **GO** — proceed to deliver
-- 🟡 **RETURN** — rework items, max 3 iterations
-- 🔴 **VETO** — escalation to Иван
+- ✅ **GO** - proceed to deliver
+- 🟡 **RETURN** - rework items, max 3 iterations
+- 🔴 **VETO** - escalation to Иван
 
 Persist full report to `knowledge/episodes/$(date +%Y-%m)/feniks-audit-<slug>.md`.

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gengroup.local/schemas/roadmap-entry.json",
+  "title": "Roadmap Entry (post Protocol 9)",
+  "description": "Standard schema for any task entering GENGROUP Roadmap. All entries must have figures tagged via Protocol 9, an owner, deadline, P9 status, and checkpoint.",
+  "type": "object",
+  "required": ["id", "title", "owner", "deadline", "p9_status", "first_checkpoint", "ice", "effort_hours", "expected_effect"],
+  "additionalProperties": true,
+  "properties": {
+    "id": { "type": "string", "description": "Stable identifier, e.g. ROAD-2026-Q3-042" },
+    "title": { "type": "string", "maxLength": 120 },
+    "owner": {
+      "type": "string",
+      "description": "Single accountable person (name or role + name)"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date with built-in 30% buffer (per FENIX hard rule)"
+    },
+    "p9_status": {
+      "type": "string",
+      "enum": ["passed", "pilot", "blocked", "skipped"],
+      "description": "Outcome of Protocol 9 Reality Audit"
+    },
+    "p9_report_ref": {
+      "type": "string",
+      "description": "Path to knowledge/episodes/.../reality-audit-<slug>.md"
+    },
+    "ice": {
+      "type": "object",
+      "required": ["impact", "confidence", "ease", "total"],
+      "properties": {
+        "impact":     { "type": "number", "minimum": 0, "maximum": 10 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 10 },
+        "ease":       { "type": "number", "minimum": 0, "maximum": 10 },
+        "total":      { "type": "number" }
+      }
+    },
+    "pareto": {
+      "type": "boolean",
+      "description": "Pareto-priority. FENIX rule: false if any assumption unverified"
+    },
+    "effort_hours": {
+      "type": "object",
+      "required": ["estimate", "buffer_percent"],
+      "properties": {
+        "estimate": { "type": "number", "minimum": 0 },
+        "buffer_percent": { "type": "number", "minimum": 30, "maximum": 100 },
+        "engineer": { "type": "string" }
+      }
+    },
+    "budget_rub": {
+      "type": "object",
+      "properties": {
+        "amount":     { "type": "number", "minimum": 0 },
+        "tag":        { "type": "string", "enum": ["data", "hypothesis"] },
+        "hitl_required": { "type": "boolean" }
+      }
+    },
+    "expected_effect": {
+      "type": "object",
+      "required": ["value", "tag"],
+      "properties": {
+        "value": {
+          "oneOf": [
+            { "type": "number" },
+            { "type": "object", "properties": { "low": {"type":"number"}, "high": {"type":"number"} } }
+          ]
+        },
+        "tag": { "type": "string", "enum": ["data", "hypothesis", "wide_range_unverified"] },
+        "source": { "type": "string", "description": "Path or human source" },
+        "assumptions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "downside": {
+      "type": "object",
+      "description": "Mandatory per FENIX Risk-21",
+      "properties": {
+        "scenario": { "type": "string" },
+        "lost_resources": { "type": "string" },
+        "reputational_risk": { "type": "string" }
+      }
+    },
+    "first_checkpoint": {
+      "type": "object",
+      "required": ["date", "criterion", "owner"],
+      "properties": {
+        "date":      { "type": "string", "format": "date" },
+        "criterion": { "type": "string", "description": "Concrete go/no-go signal" },
+        "owner":     { "type": "string" }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string", "description": "Other roadmap-entry ids or external systems (Bitrix24 MCP, etc.)" }
+    },
+    "fenix_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Step 12.5 result, if applicable"
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["context", "designers", "marketplaces", "tenders", "referral", "seo", "email", "other"]
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "p9_status": { "const": "passed" } } },
+      "then": { "required": ["downside"] }
+    },
+    {
+      "if": { "properties": { "pareto": { "const": true } } },
+      "then": { "properties": { "p9_status": { "const": "passed" } } }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Anti-Slop checker — fires on PreToolUse for Write/Edit on .md/.html/.txt files.
+# Anti-Slop checker - fires on PreToolUse for Write/Edit on .md/.html/.txt files.
 # Scans the new_string/content for forbidden patterns from CLAUDE.md §7.
 # Warns (does not block) by injecting additionalContext.
 
@@ -69,9 +69,9 @@ for pat in "${PATTERNS[@]}"; do
   fi
 done
 
-# Em dash check (single character — different rule)
-if printf '%s' "$CONTENT" | grep -q '—'; then
-  HITS+=("em dash '—'")
+# Em dash check (single character - different rule)
+if printf '%s' "$CONTENT" | grep -q '-'; then
+  HITS+=("em dash '-'")
 fi
 
 if [ "${#HITS[@]}" -eq 0 ]; then

@@ -1,6 +1,6 @@
 # Migration Guide: v8.0 → v9.0
 
-> Что менять в продакшене и в каком порядке. Каждый шаг — небольшой, atomic, обратимый.
+> Что менять в продакшене и в каком порядке. Каждый шаг - небольшой, atomic, обратимый.
 
 ## Что мигрирует и что нет
 
@@ -13,17 +13,17 @@
 | Glossary v2.1 (.docx + landing) | `glossary.md` + `index.html` (уже сделано) | Done |
 | Protocol 9 принцип | `protocol-9-runner` skill + `/reality-audit` + hook | Executable |
 | СПАРТАК step 12.5 | `feniks` subagent + Task tool routing | Mandatory в `/council`, `/feniks` commands |
-| n8n JARVIS | Без изменений — это middleware, не агент | Кодиннект через MCP |
-| Bitrix24 MCP (planned) | Когда готов — подключить как MCP server | Q3-2026 |
+| n8n JARVIS | Без изменений - это middleware, не агент | Кодиннект через MCP |
+| Bitrix24 MCP (planned) | Когда готов - подключить как MCP server | Q3-2026 |
 
 ## Шаги миграции (рекомендуемая последовательность)
 
-### Sprint 0 — подготовка (1 день)
+### Sprint 0 - подготовка (1 день)
 
 - [ ] Сделать snapshot всех v8 артефактов в `.claude/agents/archive/v8/`
-- [ ] Записать текущие KPI (cost per session, FENIX avg score, cycle time) — будут baseline для success criteria из MASTER_SYSTEM_v9.md §7
+- [ ] Записать текущие KPI (cost per session, FENIX avg score, cycle time) - будут baseline для success criteria из MASTER_SYSTEM_v9.md §7
 
-### Sprint 1 — фундамент (неделя 1)
+### Sprint 1 - фундамент (неделя 1)
 
 - [x] Создать `CLAUDE.md` (auto-loaded operating constitution)
 - [x] Создать 12 active subagents в `.claude/agents/`
@@ -31,9 +31,9 @@
 - [x] Создать 4 slash commands: `/council`, `/reality-audit`, `/feniks`, `/crisis`
 - [x] Настроить `.claude/settings.json` с hooks (P9 detector, Anti-Slop)
 - [x] Создать schemas: `a2a-message.json`, `audit-report.json`
-- [ ] Запустить smoke test: `/feniks agents-v9/MASTER_SYSTEM_v9.md` — должна работать (само-аудит манифеста)
+- [ ] Запустить smoke test: `/feniks agents-v9/MASTER_SYSTEM_v9.md` - должна работать (само-аудит манифеста)
 
-### Sprint 2 — наполнение (неделя 2)
+### Sprint 2 - наполнение (неделя 2)
 
 - [ ] Перенести remaining 7 skills из v8 в `.claude/skills/`:
   - `gengroup-brand` → `.claude/skills/brand/SKILL.md`
@@ -52,15 +52,15 @@
   - Конкуренты (PDFs)
 - [ ] Создать `knowledge/episodes/2026-06/` для текущих эпизодов
 
-### Sprint 3 — автоматизация (неделя 3)
+### Sprint 3 - автоматизация (неделя 3)
 
 - [ ] Включить hooks в `.claude/settings.json` (если ещё не активированы)
-- [ ] Запустить ФЕНИКС-аудит первого крупного deliverable через `/feniks` — проверить, что весь pipeline работает end-to-end
+- [ ] Запустить ФЕНИКС-аудит первого крупного deliverable через `/feniks` - проверить, что весь pipeline работает end-to-end
 - [ ] Запустить тренировочный `/council` на тестовой задаче ("разработать план запуска CIPRIA на маркетплейсах")
-- [ ] Telemetry: настроить запись в `traces/YYYY-MM-DD/*.jsonl` (через Stop hook — TODO в Sprint 4)
+- [ ] Telemetry: настроить запись в `traces/YYYY-MM-DD/*.jsonl` (через Stop hook - TODO в Sprint 4)
 - [ ] Baseline metrics после первой недели использования
 
-### Sprint 4 — интеграции (недели 4-6)
+### Sprint 4 - интеграции (недели 4-6)
 
 - [ ] **Bitrix24 MCP** (когда готов): подключить как MCP server, тестировать чтение через ДАТА
 - [ ] **n8n MCP** (уже есть): задокументировать в `CLAUDE.md` какие workflows доступны
@@ -68,9 +68,9 @@
 - [ ] **Prompt caching:** замаркировать system prompts subagents как cacheable
 - [ ] **Telemetry collector:** Stop hook, который флашит trace в файл
 
-### Sprint 5 — Reflexion loop (месяц 2)
+### Sprint 5 - Reflexion loop (месяц 2)
 
-- [ ] Первый `/council` с CC-19 (Reflexion) — ретро по episodic memory
+- [ ] Первый `/council` с CC-19 (Reflexion) - ретро по episodic memory
 - [ ] Обновление skill checklists на основе reflexion findings
 - [ ] Снять метрики vs baseline из Sprint 0
 
@@ -89,7 +89,7 @@ Backup branch: `gengroup-agents-v9` сохранён в git history, к нему
 | Риск | Вероятность | Mitigation |
 |---|---|---|
 | Hooks мешают повседневной работе (false positives P9) | Средняя | Hooks injectят reminders, не блокируют. Tune patterns по фактуре |
-| ФЕНИКС оценивает слишком жёстко — всё <8 | Высокая в первый месяц | Это и есть цель — calibration. v8 9.99/10 был ложным |
+| ФЕНИКС оценивает слишком жёстко - всё <8 | Высокая в первый месяц | Это и есть цель - calibration. v8 9.99/10 был ложным |
 | Coordination overhead Council | Средняя | Roster max 4. Solo для рутины |
 | Cost per Council > $1 budget | Средняя | Model routing (P11). Прерывание при превышении |
 | Agents не знают новых протоколов P11-P15 | Низкая | CLAUDE.md auto-loaded, прописано во всех 12 agents |
@@ -106,14 +106,14 @@ Backup branch: `gengroup-agents-v9` сохранён в git history, к нему
 - ✅ 100% Roadmap entries с P9-меткой
 - ✅ ≥1 reflexion-driven skill update в месяц
 
-Если 3+ из 6 не достигнуты к Д+60 — provoке полный pre-mortem с ФЕНИКСОМ.
+Если 3+ из 6 не достигнуты к Д+60 - провести полный pre-mortem с ФЕНИКСОМ.
 
-## Decision Log (DR — Design Records)
+## Decision Log (DR - Design Records)
 
 | DR# | Decision | Rationale |
 |---|---|---|
 | DR-001 | Активный ростер 12 вместо 36 | Coordination tax O(n²); research показывает peak в 5-12 |
-| DR-002 | Все межагентные сообщения — JSON | Markdown не валидируется и не агрегируется |
+| DR-002 | Все межагентные сообщения - JSON | Markdown не валидируется и не агрегируется |
 | DR-003 | Hooks для P9 и Anti-Slop | Принципы не блокируют. Только executable enforcement работает |
 | DR-004 | Model routing per task class | $3.00/Council → $0.40 saving достигается этим одним решением |
 | DR-005 | ФЕНИКС остаётся в Tier 0 (не подчиняется СПАРТАКУ) | Главное оружие против self-deception. Сохраняем |
@@ -124,4 +124,4 @@ Backup branch: `gengroup-agents-v9` сохранён в git history, к нему
 
 **Контакт по миграции:** Иван Раюшкин (CMO) + Claude (architect/auditor)
 **Дата старта:** июнь 2026
-**Контрольная дата:** через 60 дней — full review vs success criteria
+**Контрольная дата:** через 60 дней - full review vs success criteria

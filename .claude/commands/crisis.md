@@ -2,11 +2,11 @@
 description: Activate Protocol 8 Crisis Response. 24-hour Plan B for cash gap, KPI drop, channel block, key team loss, mass refunds, or production failure. Mobilizes SPARTAK + FENIX + ROMAN + EMMA.
 ---
 
-You are activating **Protocol 8 — Crisis Response (CC-15)**.
+You are activating **Protocol 8 - Crisis Response (CC-15)**.
 
 Crisis description: $ARGUMENTS
 
-If $ARGUMENTS is empty — ask user which trigger fired:
+If $ARGUMENTS is empty - ask user which trigger fired:
 1. Кассовый разрыв (cash <2 weeks)
 2. Потеря ключевого сотрудника (РОП / РОМ / Интернет-маркетолог)
 3. Блокировка критического канала (TG/WhatsApp/...)
@@ -16,12 +16,12 @@ If $ARGUMENTS is empty — ask user which trigger fired:
 
 ## Procedure (24-hour Plan B)
 
-### T+0 → T+0:30 — Activation
+### T+0 → T+0:30 - Activation
 1. SPARTAK activates CC-15 automatically
-2. Lock down — no further commitments or PR until Plan B ready
+2. Lock down - no further commitments or PR until Plan B ready
 3. Notify Иван + Богдан by message (not email)
 
-### T+0:30 → T+4:00 — Express Audit
+### T+0:30 → T+4:00 - Express Audit
 4. **Delegate to `feniks` subagent**: 30-min scope audit
    - What's actually broken (vs perceived)
    - Magnitude (₽, % impact)
@@ -35,7 +35,7 @@ If $ARGUMENTS is empty — ask user which trigger fired:
    - What to say externally
    - What NOT to say (legal/PR risks)
 
-### T+4:00 → T+24:00 — Plan B
+### T+4:00 → T+24:00 - Plan B
 7. SPARTAK synthesizes 3 scenarios:
    - **Best case** (problem resolves in 7 days with action X)
    - **Expected case** (resolves in 30 days with actions X, Y, Z)
@@ -44,9 +44,9 @@ If $ARGUMENTS is empty — ask user which trigger fired:
    - Concrete action items (owner + deadline + cost)
    - Decision tree (if A then B)
    - Communication plan (internal + external)
-9. Step 12.5 — FENIX final audit on Plan B (no exceptions, even in crisis)
+9. Step 12.5 - FENIX final audit on Plan B (no exceptions, even in crisis)
 
-### T+24:00 — Deliver
+### T+24:00 - Deliver
 10. Plan B document to Иван + Богдан
 11. Daily checkpoint until crisis resolved
 12. Post-mortem episode in `knowledge/episodes/YYYY-MM/crisis-<trigger>-<date>.md`

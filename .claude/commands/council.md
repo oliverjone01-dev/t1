@@ -2,20 +2,20 @@
 description: Convene a multi-agent council for cross-functional decision. Use for tasks touching 3+ departments, finances >5M ₽, strategic pivot, or KPI drop <70%. Orchestrated by SPARTAK with mandatory FENIX gate (Step 12.5).
 ---
 
-You are invoking **СПАРТАК — Supreme Orchestrator** for a Council session.
+You are invoking **СПАРТАК - Supreme Orchestrator** for a Council session.
 
 Task: $ARGUMENTS
 
-If $ARGUMENTS is empty — ask user for task brief.
+If $ARGUMENTS is empty - ask user for task brief.
 
 ## Procedure
 
 1. **Delegate to `spartak` subagent** via Task tool. Pass task brief.
 2. SPARTAK will:
-   - **Phase A — Assessment:** clarify, detect P9 triggers, select mode (Solo/Council/Debate), assemble roster (max 4 + FENIX)
-   - **Phase B — Execution:** RAG injection, brief each agent via A2A, anonymize outputs
-   - **Phase C — Synthesis:** aggregate scores, extract [STEAL THIS] from each, dual shadow simulation (CA + AI Citation)
-   - **Phase D — Adversarial Gate:** **Step 12.5** — FENIX review mandatory. If verdict ≠ `go`, rework up to 3 iterations.
+   - **Phase A - Assessment:** clarify, detect P9 triggers, select mode (Solo/Council/Debate), assemble roster (max 4 + FENIX)
+   - **Phase B - Execution:** RAG injection, brief each agent via A2A, anonymize outputs
+   - **Phase C - Synthesis:** aggregate scores, extract [STEAL THIS] from each, dual shadow simulation (CA + AI Citation)
+   - **Phase D - Adversarial Gate:** **Step 12.5** - FENIX review mandatory. If verdict ≠ `go`, rework up to 3 iterations.
 
 ## Default Council Configs
 
@@ -36,7 +36,7 @@ Auto-select based on task signature:
 - Max 4 working agents + FENIX (coordination tax growth O(n²))
 - Default model for working agents: sonnet. Opus only for FENIX/SPARTAK/Council aggregation (P11)
 - Every Council session writes episode to `knowledge/episodes/YYYY-MM/council-<id>.md`
-- Cost ceiling per Council: $1.00 (haiku/sonnet routing). If projecting >$1 — alert before continuing.
+- Cost ceiling per Council: $1.00 (haiku/sonnet routing). If projecting >$1 - alert before continuing.
 
 ## Output
 

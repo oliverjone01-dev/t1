@@ -62,7 +62,104 @@
 
   <main class="main">
     <div class="content">
-      <p class="lead">Заглушка приложения B. Содержимое появится на шаге 5.</p>
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="../index.html">Глоссарий</a><span class="crumbs__sep">/</span>Приложение B. Миграция v1.0/v2.0 → v2.1
+      </nav>
+      <p class="page-eyebrow">Приложение B</p>
+      <h1>Миграция v1.0 / v2.0 → v2.1</h1>
+
+      <h2 id="map">B.1 Таблица соответствий</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Было</th><th>Стало (v2.1)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>«Коллекция NERO»</td><td><strong>Палитра NERO</strong></td></tr>
+            <tr><td>«Коллекция ORO»</td><td><strong>Палитра ORO</strong></td></tr>
+            <tr><td>«Коллекция BIANCO»</td><td><strong>Палитра BIANCO</strong></td></tr>
+            <tr><td>«Коллекция CIPRIA» / «розовая коллекция»</td><td><strong>Палитра CIPRIA (Drop весна 2026)</strong></td></tr>
+            <tr><td>«Коллекция TRUBIS»</td><td><strong>Линия TRUBIS</strong></td></tr>
+            <tr><td>«Ежемесячный комплект»</td><td><strong>Комплект (Ensemble)</strong></td></tr>
+            <tr><td>«Квартальная коллекция»</td><td><strong>Квартальный Drop палитры</strong></td></tr>
+            <tr><td>«SKU» (иногда означало модель)</td><td><strong>Артикул (если единица товара) / Модель (если тип дизайна)</strong></td></tr>
+            <tr><td>«Интерьерное решение» (как товар)</td><td><strong>Scena — способ подачи комплекта, не товар</strong></td></tr>
+            <tr><td>GM-METAL</td><td><strong>Metal-GM</strong></td></tr>
+            <tr><td>«Коллекция INDUSTRIAL»</td><td><strong>Палитра в разработке INDUSTRIAL</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="priorities">B.2 Приоритеты миграции</h2>
+
+      <h3 id="p0">Priority-0: срочно, 72 часа от вступления в силу</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Баннер главной сайта «Наша новая коллекция. Розовая серия»</td><td>Заменить на «Весенний дроп. Палитра CIPRIA»</td><td>Сергей</td></tr>
+            <tr><td>URL <code>/premera-rozovoj-kollekczii-mebeli/</code></td><td>301-редирект на <code>/product-category/?pa_palitra=cipria</code> (или временный slug)</td><td>Сергей</td></tr>
+            <tr><td>Меню «Коллекция TRUBIS»</td><td>Заменить на «Линия TRUBIS»</td><td>Сергей</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p1">Priority-1: 14 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Внутренние документы</td><td>Замена терминологии в CRM, регламентах</td><td>Борис, Дмитрий Янчоглов</td></tr>
+            <tr><td>1С: добавить поля</td><td>Линия, Маркетинговое наименование</td><td>Борис, отдел 1С</td></tr>
+            <tr><td>Bitrix24: добавить поля</td><td>Линия в сделке</td><td>Дмитрий Янчоглов</td></tr>
+            <tr><td>Скрипты продаж</td><td>Обновить речевые модули</td><td>Виктор, РОПы</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p2">Priority-2: 30 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Сайт genglass.ru полностью</td><td>Все упоминания «коллекция» в контексте цвета → «палитра»; создать страницу <code>/line/trubis/</code></td><td>Сергей</td></tr>
+            <tr><td>Презентация GENGLASS</td><td>Обновить терминологию в PDF</td><td>Маркетинг</td></tr>
+            <tr><td>КП шаблоны</td><td>Заменить терминологию в шаблонах Bitrix24</td><td>Борис</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p3">Priority-3: 45 дней</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Карточки маркетплейсов</td><td>Постепенная замена в заголовках и описаниях</td><td>Наташа Скриптун</td></tr>
+            <tr><td>Email-шаблоны</td><td>Обновить</td><td>Маркетинг</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="p4">Priority-4: непрерывно</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Что</th><th>Действие</th><th>Ответственный</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Публичные материалы</td><td>Новую терминологию с момента вступления, старые не переписывать</td><td>Контент-отдел</td></tr>
+            <tr><td>Обучение менеджеров</td><td>Буклет «Архитектура продукта GENGLASS» (3 листа A4)</td><td>ТРЕНЕР #36</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 

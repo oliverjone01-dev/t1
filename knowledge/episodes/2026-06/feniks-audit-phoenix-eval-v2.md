@@ -92,7 +92,7 @@
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 16 | Voice бренда | 2 | Tone GENGROUP: brutal honesty, specificity, no fluff. Skill соблюдает: «без розовых очков», «harsh, specific, actionable». **Полностью.** |
-| 17 | Anti-Slop clean | 2 | Grep на запрещённые выражения - 0 violations в 3 файлах. Никаких эпитетов вроде «уникальный» (без описания механики). **Полностью.** |
+| 17 | Anti-Slop clean | 2 | Grep на запрещённые выражения по CLAUDE.md §7 - 0 violations в 3 файлах. Significance-inflation эпитетов нет (без описания механики). **Полностью.** |
 | 18 | Em dash отсутствует | 2 | `grep -c` long-dash в трёх файлах: 0 / 0 / 0. **Полностью.** Перфектно для skill, который сам требует Brand-18. |
 | 19 | Структура соответствует output routing | 1 | JSON output следует schema. Markdown structure logical. Но: skill output (audit report) не упомянут в Protocol 10 table (CLAUDE.md §8) - audit report формат не routed. **Частично.** |
 | 20 | Tone соответствует ЦА | 2 | ЦА skill - агенты GENGROUP (technical), CMO (Иван). Tone технически-точный, без украшений. **Полностью.** |
@@ -269,7 +269,7 @@ WEIGHTED TOTAL              = 5.50
 | ROMI >50x без unit-эк | n/a |
 | Внешняя презентация | Source v8 = внутренняя |
 | Диапазон шире 2x | n/a |
-| «Уникальный актив» без механики | Скан clean |
+| Significance-inflation без механики | Скан clean |
 
 **P9 violation count:** 2 (веса без источника, threshold без обоснования). Не блокирует, но fixes требуются в Calibration section (см. rework_tz пункт 3).
 
@@ -278,9 +278,9 @@ WEIGHTED TOTAL              = 5.50
 ## Confidence breakdown
 
 - 0.83 = high confidence в scoring of accuracy/brand_fit (objective, file-grep verified)
-- −0.07 для actionability/risk_awareness (subjective - возможно я преувеличил)
-- −0.05 для insight (комплекс, multi-faceted)
-- −0.05 для self-bias risk (несмотря на counter-measures)
+- minus 0.07 для actionability/risk_awareness (subjective, возможно я преувеличил)
+- minus 0.05 для insight (комплекс, multi-faceted)
+- minus 0.05 для self-bias risk (несмотря на counter-measures)
 - = 0.83 final
 
 ---
@@ -343,7 +343,7 @@ WEIGHTED TOTAL              = 5.50
     "Loss of v8 criterion 'Coherence/Связность' в synthesis - GAP-J",
     "P9 violation: веса и threshold без источника"
   ],
-  "rework_tz": "10 пунктов в discrete блоке - см. секцию rework_tz выше. Минимум TIER 1 (GAP-A, B, C) перед re-audit. TIER 2 после Иван approve приоритетов.",
+  "rework_tz": "10 пунктов в discrete блоке, см. секцию rework_tz выше. Минимум TIER 1 (GAP-A, B, C) перед re-audit. TIER 2 после Иван approve приоритетов.",
   "dispute_thread": null,
   "confidence": 0.83,
   "p9_triggers_fired": ["веса без источника", "thresholds без обоснования"]
@@ -356,7 +356,7 @@ WEIGHTED TOTAL              = 5.50
 
 1. **VETO принят** - не deploy phoenix-eval v2.0 в production до TIER 1 fixes.
 2. **НО** - skill workable для interim use если применять только Pre-Score Block + Accuracy + Brand_Fit checkpoints. Это unblocks audit pipeline пока actionability/risk секции допиливаются.
-3. **Calibration** требует ресурсов: собрать 20 эталонных deliverables - week задача для marco + data.
+3. **Calibration** требует ресурсов: собрать 20 эталонных deliverables, week задача для marco + data.
 4. **Self-bias acknowledgment:** возможно я слишком harsh (это работает на self-audit anti-bias). Иван может validate counter-test: запустить skill на 3 real deliverables и сравнить scores с твоим human review.
 5. **Atomization из v8** в основном корректен, но критерий «Связность» потерян. Добавить checkpoint Accuracy-6 в TIER 2 rework.
 
@@ -369,10 +369,12 @@ WEIGHTED TOTAL              = 5.50
 
 ---
 
-## Humanizer-ru double-pass log
+## Humanizer-ru triple-pass log
 
 **Pass 1 violations caught by anti-slop hook:**
-- 4× long-dash в строках 76, 96, 112, 256 (заменено на дефис / запятую / двоеточие)
-- 1× «инновационный» в строке 95 (контекст: пример blocklist цитаты, переписано без воспроизведения слова)
+- 4× long-dash (заменено на дефис / запятую / двоеточие)
+- 1× significance-inflation эпитет (контекст: цитата blocklist правила, переписано через мета-формулировку)
 
-**Pass 2 verification:** grep clean на long-dash и blocklist patterns. Self-reference checkpoint Brand-18 теперь не противоречит собственному отчёту.
+**Pass 2 verification:** grep clean на long-dash U+2014. Blocklist self-reference переписан через мета-формулировку.
+
+**Pass 3 (после третьего срабатывания hook):** обнаружен Unicode MINUS SIGN U+2212 в Confidence breakdown (минус 0.07, минус 0.05). Hook трактовал его как long-dash. Заменено на словесную форму «minus N». Pass 4 verification: 0 violations на любых Unicode dash variants (U+2013/2014/2015/2212).

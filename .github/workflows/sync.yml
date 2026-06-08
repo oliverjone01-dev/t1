@@ -16,7 +16,7 @@ on:
         required: false
 
 concurrency:
-  group: ozon-sync
+  group: ozon-data # общий с update-snapshots.yml - без гонки за push (FENIX G5)
   cancel-in-progress: false
 
 permissions:

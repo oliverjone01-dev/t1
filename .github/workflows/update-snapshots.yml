@@ -1,15 +1,16 @@
 name: Update OZON snapshots
 
-# Дёргает n8n-вебхуки (ключи OZON живут в n8n, в Actions не нужны), обновляет
-# фикстуры и дневную историю, пересобирает сайт и коммитит. Раз в день.
+# Дёргает n8n-вебхуки (ключи OZON живут в n8n), обновляет фикстуры и дневную
+# историю, пересобирает сайт и коммитит. Самодостаточен: историю тянет вебхуком,
+# не зависит от sync.yml. Каждый снимок валидируется ДО замены фикстуры (FENIX G2/G3).
 
 on:
   schedule:
-    - cron: "30 5 * * *" # ~08:30 МСК, после дневного синка
+    - cron: "30 5 * * *" # ~08:30 МСК
   workflow_dispatch: {}
 
 concurrency:
-  group: ozon-snapshots
+  group: ozon-data # общий с sync.yml - не гонимся за push (FENIX G5)
   cancel-in-progress: false
 
 permissions:
@@ -24,48 +25,64 @@ jobs:
     defaults:
       run:
         working-directory: analytics-mvp
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install
-        run: npm ci
+      - run: npm ci
 
-      - name: Daily history (yesterday) -> ingest
+      # Токен-заголовок готов под авторизацию вебхуков (FENIX G1). Пока вебхуки
+      # открыты - заголовок безвреден; после включения header-auth заработает.
+      - name: Snapshots (validate before replace)
         run: |
-          Y=$(date -u -d "yesterday" +%F)
-          curl -sf -X POST "$N8N/gengroup-ozon-daily" -H "Content-Type: application/json" \
-            -d "{\"dateFrom\":\"$Y\",\"dateTo\":\"$Y\"}" -o /tmp/daily.json
-          npm run ingest -- /tmp/daily.json || echo "ingest: нет новых продаж за $Y"
+          set -euo pipefail
+          AUTH=(-H "Content-Type: application/json" -H "X-Auth: ${N8N_TOKEN:-}")
+          FROM=$(date -u -d "29 days ago" +%F); TO=$(date -u -d "yesterday" +%F); Y=$(date -u -d "yesterday" +%F)
 
-      - name: Snapshots (skus, ads, pnl за 30 дней)
-        run: |
-          FROM=$(date -u -d "29 days ago" +%F); TO=$(date -u -d "yesterday" +%F)
-          curl -sf -X POST "$N8N/gengroup-ozon-skus" -H "Content-Type: application/json" \
-            -d '{"days":30}' -o fixtures/skus_live_30d.json
-          curl -sf -X POST "$N8N/gengroup-ozon-ads" -H "Content-Type: application/json" \
-            -d '{"days":30}' -o fixtures/ads_30d.json
-          curl -sf -X POST "$N8N/gengroup-ozon-pnl" -H "Content-Type: application/json" \
-            -d "{\"dateFrom\":\"$FROM\",\"dateTo\":\"$TO\"}" -o /tmp/pnl_raw.json
+          fetch () { # url, body, type, dest
+            local url="$1" body="$2" type="$3" dest="$4" tmp; tmp=$(mktemp)
+            curl -sS --fail-with-body --max-time 90 -X POST "$N8N/$url" "${AUTH[@]}" -d "$body" -o "$tmp" \
+              || { echo "curl $url failed"; exit 1; }
+            npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp"
+            mv "$tmp" "$dest"
+          }
+
+          fetch gengroup-ozon-skus '{"days":30}' skus fixtures/skus_live_30d.json
+          fetch gengroup-ozon-ads  '{"days":30}' ads  fixtures/ads_30d.json
+          fetch gengroup-ozon-pnl  "{\"dateFrom\":\"$FROM\",\"dateTo\":\"$TO\"}" pnl /tmp/pnl_raw.json
           npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
 
-      - name: Rejoin cogs and rebuild site
+          # дневная история за вчера (пустой день допустим)
+          curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
+            -d "{\"dateFrom\":\"$Y\",\"dateTo\":\"$Y\"}" -o /tmp/daily.json
+          npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
+          BEFORE=$(wc -l < data/history.ndjson)
+          npm run ingest -- /tmp/daily.json
+          AFTER=$(wc -l < data/history.ndjson)
+          if [ "$AFTER" -lt "$BEFORE" ]; then echo "history сократилась $BEFORE->$AFTER"; exit 1; fi
+        env:
+          N8N_TOKEN: ${{ secrets.N8N_TOKEN }}
+
+      - name: Rejoin cogs and rebuild
         run: |
+          set -euo pipefail
           npm run join:cogs
           npm run build:site
 
-      - name: Commit
+      - name: Commit (pull --rebase, retry)
         working-directory: .
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add analytics-mvp/data/history.ndjson analytics-mvp/fixtures/skus_live_30d.json \
                   analytics-mvp/fixtures/ads_30d.json analytics-mvp/fixtures/pnl_30d.json \
                   analytics-mvp/data/sku_cogs.json analytics-mvp/public/*.html
-          if git diff --staged --quiet; then
-            echo "Снимки без изменений"
-          else
-            git commit -m "data: ежедневное обновление снимков OZON $(date -u +%F)"
-            git push
-          fi
+          if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
+          git commit -m "data: ежедневное обновление снимков OZON $(date -u +%F)"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0 || sleep $((2**i))
+          done
+          echo "push не удался после ретраев"; exit 1

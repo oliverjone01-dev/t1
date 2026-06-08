@@ -56,7 +56,7 @@
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 1 | Каждая цифра имеет тег `[ДАННЫЕ]`/`[ГИПОТЕЗА]` | 1 | SKILL.md: только в Strategy checklist (revenue 750M, brand allocation) теги есть. Веса 25/25/20/15/15 - без тега (по умолчанию [ГИПОТЕЗА]). Benchmarks: ноль тегов, все цифры представлены как факты с источниками. Snapshot date отсутствует. **Частично.** |
-| 2 | Источники проверяемы | 1 | Benchmarks указывает «Roistat», «SendPulse data», «Bitrix24 goal», «CRM», «Target», «Industry», «Industry reports» - нет URL, нет даты, нет path к выгрузке. Не falsifiable. **Частично.** |
+| 2 | Источники проверяемы | 1 | Benchmarks указывает «Roistat», «SendPulse data», «Bitrix24 goal», «CRM», «Target», «Industry», «Industry reports» - нет URL, нет даты, нет path к выгрузке. Not falsifiable. **Частично.** |
 | 3 | Факты не противоречат `knowledge/semantic/` | 1 | Brand allocation помечен «[ГИПОТЕЗА: v8 source, требует CFO confirmation]» - честно. НО: target EBITDA 21% (benchmarks.md table) проходит без cross-check к актуальному cfo-snapshot. 27000 заказов canon (per atomization verdict) не упомянут. **Частично.** |
 | 4 | Терминология глоссария соблюдена | 2 | Checkpoint Accuracy-4 явно цитирует правила: «коллекция / палитра / линия». Внутри skill эти термины не злоупотребляются. **Полностью.** |
 | 5 | Названия брендов корректные | 2 | Metal-GM с дефисом, GLASS-MEMORY с дефисом - корректно. **Полностью.** |
@@ -68,12 +68,12 @@
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 6 | Назначен ответственный | 1 | Skill говорит «ФЕНИКС» как owner, но не уточняет: кто запускает / triggers? «Используется агентом ФЕНИКС или вручную через `/feniks <path>`» - инструмент даёт path but не процедуру в multi-agent scenario. Inter-Skill Feedback: «СПАРТАК инициирует обновление». ОК, owner есть. **Частично** - missing fallback owner если СПАРТАК недоступен. |
-| 7 | Дедлайн с буфером | 0 | Нет SLA для audit. Сколько времени должен занять полный 25-checkpoint pass? Нет. Сколько максимум на 1 диспут? Нет (только max 5 раундов, но это не deadline). **0.** Это ironic - skill требует «дедлайн с буфером» от других, но не имеет своего. |
+| 7 | Дедлайн с буфером | 0 | Нет SLA для audit. Сколько времени должен занять полный 25-checkpoint pass? Нет. Сколько максимум на 1 диспут? Нет (только max 5 раундов, но это не deadline). **0.** Ironic moment: skill требует «дедлайн с буфером» от других, но не имеет своего. |
 | 8 | Ресурсы перечислены | 1 | Reference files указаны (benchmarks, dispute-template, schema, agent profile). Tooling не описан (Read/Grep/Bash explicit?). Model routing (opus per CLAUDE.md §6) не упомянут в skill. **Частично.** |
 | 9 | Метрика успеха конкретна | 1 | Verdict thresholds чёткие (≥9.0/7.5-8.9/6.0-7.4/<6.0). Но success ИНСТРУМЕНТА не определён: «skill работает успешно если X% deliverables проходят с 1-й итерации»? Нет North Star metric для самого skill. **Частично.** |
 | 10 | Чекпоинт промежуточный | 0 | Skill это процесс ~30-45 мин при добросовестном выполнении. Нет milestone «после 5 checkpoints - re-check direction». Нет early-exit если первые 3 пункта Accuracy = 0/2 (там можно скипнуть остальное и сразу veto). **GAP-9: optimization missing.** |
 
-**Actionability raw:** (1+0+1+1+0)/10 = **3.0/10** — **РЕЗКО НИЗКО**
+**Actionability raw:** (1+0+1+1+0)/10 = **3.0/10**, статус: РЕЗКО НИЗКО
 
 ### INSIGHT (20%)
 
@@ -92,8 +92,8 @@
 | # | Checkpoint | Score | Обоснование |
 |---|---|---|---|
 | 16 | Voice бренда | 2 | Tone GENGROUP: brutal honesty, specificity, no fluff. Skill соблюдает: «без розовых очков», «harsh, specific, actionable». **Полностью.** |
-| 17 | Anti-Slop clean | 2 | Grep на запрещённые выражения - 0 violations в 3 файлах. Никаких «уникальный», «инновационный», «выглядит хорошо». **Полностью.** |
-| 18 | Em dash отсутствует | 2 | `grep -c "—"` в трёх файлах: 0 / 0 / 0. **Полностью.** Перфектно для skill, который сам требует Brand-18. |
+| 17 | Anti-Slop clean | 2 | Grep на запрещённые выражения - 0 violations в 3 файлах. Никаких эпитетов вроде «уникальный» (без описания механики). **Полностью.** |
+| 18 | Em dash отсутствует | 2 | `grep -c` long-dash в трёх файлах: 0 / 0 / 0. **Полностью.** Перфектно для skill, который сам требует Brand-18. |
 | 19 | Структура соответствует output routing | 1 | JSON output следует schema. Markdown structure logical. Но: skill output (audit report) не упомянут в Protocol 10 table (CLAUDE.md §8) - audit report формат не routed. **Частично.** |
 | 20 | Tone соответствует ЦА | 2 | ЦА skill - агенты GENGROUP (technical), CMO (Иван). Tone технически-точный, без украшений. **Полностью.** |
 
@@ -109,7 +109,7 @@
 | 24 | Зависимости от других задач/команд | 1 | Reference на agents/feniks.md, schemas/audit-report.json, protocol-9-runner, brand skill, knowledge/semantic. Версионирование зависимостей не указано (какая версия schema актуальна?). **Частично.** |
 | 25 | Reversibility | 0 | Можно ли откатить decision phoenix-eval? Если verdict «go» оказался wrong (deliverable failed in production) - что обновляется? Inter-Skill Feedback есть для патерн errors, но не для single false-positive. Нет «retract verdict» механизма. **0.** |
 
-**Risk Awareness raw:** (1+1+0+1+0)/10 = **3.0/10** — **РЕЗКО НИЗКО**
+**Risk Awareness raw:** (1+1+0+1+0)/10 = **3.0/10**, статус: РЕЗКО НИЗКО
 
 ---
 
@@ -206,7 +206,7 @@ WEIGHTED TOTAL              = 5.50
      c) Notify Ивану
 
 6. Добавить tag verification:
-   - Accuracy-1b: spot check 3 random [ДАННЫЕ] tags - реально ли источник проверяем?
+   - Accuracy-1b: spot check 3 random tags - реально ли источник проверяем?
 
 7. Добавить confidence threshold:
    - Verdict «go» требует confidence ≥0.7
@@ -232,7 +232,7 @@ WEIGHTED TOTAL              = 5.50
 ФЕНИКС-skill в авторстве самого ФЕНИКСА. Risk: завышение score.
 
 **Counter-measures applied:**
-1. Каждый ≥9.0 чекпоинт проверен двойной аргументацией. Brand_Fit 9.0 = grep verified (em dash 0), терминология glossary verified.
+1. Каждый ≥9.0 чекпоинт проверен двойной аргументацией. Brand_Fit 9.0 = grep verified (long-dash 0), терминология glossary verified.
 2. Намеренно искал violations: actionability катастрофически низкая (3.0), risk_awareness тоже (3.0). Без self-bias self-audit вернул бы 7-8 формальной похвалы.
 3. Final verdict = VETO. Если skill phoenix-eval не выдерживает собственного аудита, он не должен go-live в production без fix.
 
@@ -244,16 +244,16 @@ WEIGHTED TOTAL              = 5.50
 
 | Element | v8 source | v9 deliverable | Synthesis ОК? |
 |---|---|---|---|
-| 25-checkpoint matrix | НЕТ (только 5 criteria 1-10) | ДА | ✅ v9 backbone сохранён |
-| 5 Stress-test questions Q1-Q5 | ДА (Step 3) | ДА (Pre-Score Block) | ✅ v8 принят |
-| Document-Type checklists | ДА (4 types) | ДА (4 types) | ✅ v8 принят |
-| Inter-Skill Feedback Loop | ДА (Protocol 9) | ДА (Protocol 15, переименовано) | ⚠️ протокол перенумерован, возможна путаница в old refs |
-| Industry Benchmarks | inline mini-table (7 metrics) | references/benchmarks.md (22 metrics × 4 categories) | ✅ улучшение |
-| Dispute template | НЕТ (только Step 6 ТЗ) | references/dispute-template.md (полный формат + правила) | ✅ улучшение |
-| Special Rules (VETO, monthly audit) | ДА | ДА | ✅ v8 принят |
-| Threshold | v8: 8.0 (Step 5) и 9.5 (Special Rule 6) - КОНФЛИКТ | v9: 7.5 (verdict table) и 7.5 (Special Rule 6) - consistent | ✅ v9 fixed inconsistency |
-| Scoring scale | v8: 1-10 (10 criteria) | v9: 0/1/2 per checkpoint, 0-10 per criterion | ✅ v9 более грубо но проще |
-| C1 Полнота / C5 Связность (v8 criteria) | ДА | НЕТ - заменены на 5 новых criteria | ⚠️ потеря «Связность» — нет проверки consistency с other documents в 25 checkpoints. **Subtle GAP-J** |
+| 25-checkpoint matrix | НЕТ (только 5 criteria 1-10) | ДА | OK: v9 backbone сохранён |
+| 5 Stress-test questions Q1-Q5 | ДА (Step 3) | ДА (Pre-Score Block) | OK: v8 принят |
+| Document-Type checklists | ДА (4 types) | ДА (4 types) | OK: v8 принят |
+| Inter-Skill Feedback Loop | ДА (Protocol 9) | ДА (Protocol 15, переименовано) | WARN: протокол перенумерован, возможна путаница в old refs |
+| Industry Benchmarks | inline mini-table (7 metrics) | references/benchmarks.md (22 metrics × 4 categories) | OK: улучшение |
+| Dispute template | НЕТ (только Step 6 ТЗ) | references/dispute-template.md (полный формат + правила) | OK: улучшение |
+| Special Rules (VETO, monthly audit) | ДА | ДА | OK: v8 принят |
+| Threshold | v8: 8.0 (Step 5) и 9.5 (Special Rule 6) - КОНФЛИКТ | v9: 7.5 (verdict table) и 7.5 (Special Rule 6) - consistent | OK: v9 fixed inconsistency |
+| Scoring scale | v8: 1-10 (10 criteria) | v9: 0/1/2 per checkpoint, 0-10 per criterion | OK: v9 более грубо но проще |
+| C1 Полнота / C5 Связность (v8 criteria) | ДА | НЕТ - заменены на 5 новых criteria | WARN: потеря «Связность», нет проверки consistency с other documents в 25 checkpoints. **Subtle GAP-J** |
 
 **Atomization verdict:** synthesis в основном корректен, но потерян criterion «Связность / Coherence» из v8. Чекпоинт Accuracy-3 «не противоречит RAG» это покрывает частично, но не cross-document consistency. **Recommend: добавить checkpoint Accuracy-6 «Consistent with prior deliverables in same project».**
 
@@ -366,3 +366,13 @@ WEIGHTED TOTAL              = 5.50
 **Owner:** Иван (single-decider override)
 **Re-audit trigger:** после TIER 1 fixes implemented
 **Status:** VETO, escalated to Иван
+
+---
+
+## Humanizer-ru double-pass log
+
+**Pass 1 violations caught by anti-slop hook:**
+- 4× long-dash в строках 76, 96, 112, 256 (заменено на дефис / запятую / двоеточие)
+- 1× «инновационный» в строке 95 (контекст: пример blocklist цитаты, переписано без воспроизведения слова)
+
+**Pass 2 verification:** grep clean на long-dash и blocklist patterns. Self-reference checkpoint Brand-18 теперь не противоречит собственному отчёту.

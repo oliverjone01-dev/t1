@@ -11,7 +11,8 @@
     "ping": "tsx src/scripts/ping.ts",
     "backfill": "tsx src/scripts/backfill.ts",
     "ingest": "tsx src/scripts/ingest.ts",
-    "report": "tsx src/scripts/report.ts"
+    "report": "tsx src/scripts/report.ts",
+    "build:site": "tsx src/scripts/build-site.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

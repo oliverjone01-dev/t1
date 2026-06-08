@@ -128,6 +128,7 @@ function main() {
   const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs, opnl, txsku, ads };
 
   mkdirSync("public", { recursive: true });
+  writeFileSync("public/index.html", renderOverview(model));
   writeFileSync("public/tovary.html", renderTovary(model));
   writeFileSync("public/obzor.html", renderOverview(model));
   writeFileSync("public/voronka.html", renderFunnel(model));

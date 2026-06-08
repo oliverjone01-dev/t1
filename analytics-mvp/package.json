@@ -14,7 +14,8 @@
     "report": "tsx src/scripts/report.ts",
     "build:site": "tsx src/scripts/build-site.ts",
     "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",
-    "join:cogs": "tsx src/scripts/build-cogs-join.ts"
+    "join:cogs": "tsx src/scripts/build-cogs-join.ts",
+    "smoke": "tsx src/scripts/smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
+    "jsdom": "^25.0.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"

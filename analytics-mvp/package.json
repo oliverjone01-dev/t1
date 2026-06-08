@@ -1,0 +1,25 @@
+{
+  "name": "gengroup-analytics-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GENGLASS OZON analytics MVP - connector, store, period engine, dashboards",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "ping": "tsx src/scripts/ping.ts",
+    "backfill": "tsx src/scripts/backfill.ts",
+    "report": "tsx src/scripts/report.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

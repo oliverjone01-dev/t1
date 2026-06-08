@@ -61,8 +61,8 @@ const NAV: Array<[string, string, string]> = [
   ["Воронка", "voronka.html", "Воронка"],
   ["Маркетинг и цена", "#", "Маркетинг и цена"],
   ["Кампании", "#", "Кампании"],
-  ["Карточки", "#", "Карточки"],
-  ["Деньги", "#", "Деньги"],
+  ["Карточки", "cards.html", "Карточки"],
+  ["Деньги", "money.html", "Деньги"],
 ];
 
 // Общий движок: данные + витрины + период/сравнение. draw(cur,cmp) определяет страница.
@@ -219,4 +219,64 @@ function draw(cur,cmp){
 }
 boot();`;
   return shell("Воронка", sections, js, JSON.stringify(model), FOOT_OPS);
+}
+
+// ---------------- Карточки ----------------
+export function renderCards(model: unknown): string {
+  const sections = `
+  <h2>Срез периода</h2><div class="grid" id="kpis"></div>
+  <h2>Карточки на ремонт · трафик есть, заказов мало</h2>
+  <div class="card" style="padding:0"><table><thead><tr>
+    <th>Товар</th><th>Линия</th><th class="r">Показы</th><th class="r">Заказы</th><th class="r">CR заказ</th><th class="r">Оборот</th>
+  </tr></thead><tbody id="fix"></tbody></table></div>
+  <div class="note">кандидаты: показов выше медианы, конверсия в заказ ниже 0,2%. Чинить фото/описание/цену.</div>
+  <h2>Высокие возвраты</h2>
+  <div class="card" style="padding:0"><table><thead><tr>
+    <th>Товар</th><th>Линия</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">Возврат %</th>
+  </tr></thead><tbody id="ret"></tbody></table></div>`;
+  const js = `
+function draw(cur,cmp){
+  const v=skuViews(cur.from,cur.to),tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
+  const cro=c=>Math.round((c.views?c.units/c.views:0)*1000)/10;
+  const vs=v.map(x=>x.views).sort((a,b)=>a-b),medV=vs[Math.floor(vs.length/2)]||0;
+  const fix=v.filter(x=>x.views>=Math.max(3000,medV)&&x.conv<0.2).sort((a,b)=>b.views-a.views).slice(0,25);
+  const ret=v.map(x=>({...x,rr:x.units+x.ret>0?Math.round(x.ret/(x.units+x.ret)*1000)/10:0})).filter(x=>x.ret>0).sort((a,b)=>b.rr-a.rr).slice(0,20);
+  document.getElementById('kpis').innerHTML=[
+    '<div class="card kpi"><div class="lab">Кандидатов на переделку</div><div class="val num">'+fix.length+'</div></div>',
+    kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,x=>x),
+    kpiCard('Возвраты, шт',tc.ret,tp.ret,false,rub),
+    '<div class="card kpi"><div class="lab">Показов суммарно</div><div class="val num">'+rub(tc.views)+'</div></div>'
+  ].join('');
+  document.getElementById('fix').innerHTML=fix.length?fix.map(x=>'<tr><td>'+x.name+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.views)+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num down">'+x.conv+'</td><td class="r num">'+mln(x.rev)+'</td></tr>').join(''):'<tr><td colspan="6" class="note">нет кандидатов в этом периоде</td></tr>';
+  document.getElementById('ret').innerHTML=ret.length?ret.map(x=>'<tr><td>'+x.name+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num">'+rub(x.ret)+'</td><td class="r num '+(x.rr>5?'down':'')+'">'+x.rr+'%</td></tr>').join(''):'<tr><td colspan="5" class="note">возвратов в этом периоде нет</td></tr>';
+}
+boot();`;
+  return shell("Карточки", sections, js, JSON.stringify(model), FOOT_OPS + " Индекс цены (дороже/дешевле рынка) - на странице Маркетинг, после подтяжки цен.");
+}
+
+// ---------------- Деньги ----------------
+export function renderMoney(model: unknown): string {
+  const sections = `
+  <h2>Сверенный P&L · закрытые месяцы (из подписанных Актов OZON)</h2>
+  <div class="grid" id="pnl"></div>
+  <div class="note">Сверенный слой. За незакрытые месяцы (май-июнь) чистая прибыль не показывается - не выдумывается (DOC_05 §1.2). Метод разнесения Акта - открытый риск G3 (двойной счёт "Базовое вознаграждение"), цифры с оговоркой.</div>
+  <h2>Оборот по месяцам · оперативный слой (GMV, не прибыль)</h2>
+  <div class="card" id="gmv"></div>
+  <h2>Оборот за выбранный период (для контекста)</h2>
+  <div class="grid" id="kpis"></div>`;
+  const js = `
+function draw(cur,cmp){
+  const tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
+  document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽ (GMV)',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub)].join('');
+}
+function drawStatic(){
+  const C=DATA.closed;let cum=0;let ph='';
+  C.forEach(m=>{cum+=m.profit;const margin=Math.round(m.profit/m.realization*1000)/10;const pos=m.profit>=0;ph+='<div class="card"><div class="sub">'+m.label+'</div><div class="val num" style="font-size:24px;font-weight:680;color:'+(pos?'#34D399':'#FF5A5F')+'">'+mln(m.profit)+' ₽</div><div class="sub" style="margin-top:6px">реализация '+mln(m.realization)+' · маржа '+margin+'%</div></div>';});
+  ph+='<div class="card" style="border-color:#34343a"><div class="sub">Накоплено (фев-апр)</div><div class="val num" style="font-size:24px;font-weight:680">'+mln(cum)+' ₽</div><div class="sub" style="margin-top:6px">чистая прибыль</div></div>';
+  document.getElementById('pnl').innerHTML=ph;
+  const bm={};for(const f of F){const mo=f[0].slice(0,7);bm[mo]=(bm[mo]||0)+f[2];}const ms=Object.keys(bm).sort();const max=Math.max(1,...Object.values(bm));
+  let g='';ms.forEach(m=>{g+='<div style="display:grid;grid-template-columns:80px 1fr 110px;align-items:center;gap:10px;margin:8px 0"><div class="sub">'+m+'</div><div style="background:#1E1E20;border-radius:7px"><div style="height:24px;width:'+(bm[m]/max*100)+'%;background:linear-gradient(90deg,#8AA0FF,#6377d6);border-radius:7px"></div></div><div class="r num">'+mln(bm[m])+' ₽</div></div>';});document.getElementById('gmv').innerHTML=g;
+}
+boot(drawStatic);`;
+  return shell("Деньги", sections, js, JSON.stringify(model), `Сверенный слой - <b>[ДАННЫЕ]</b> из подписанных Актов (фев-апр). Оперативный GMV - из дневной истории. Слои не смешиваются. Маржа по SKU - после коннектора транзакций (Фаза 2).`);
 }

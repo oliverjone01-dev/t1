@@ -228,11 +228,15 @@ export function renderOverview(model: unknown): string {
 function draw(cur,cmp){
   const tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
   const cro=c=>Math.round((c.views?c.units/c.views:0)*1000)/10,aov=c=>Math.round(c.units?c.rev/c.units:0);
-  document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,v=>v),kpiCard('Возвраты',tc.ret,tp.ret,false,rub),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
+  const views=skuViews(cur.from,cur.to);let gC=0,rCov=0;const vbl={};for(const v of views){const c=cogsOf(v.sku);if(c>0){gC+=v.rev-c*v.units;rCov+=v.rev;let e=vbl[v.line];if(!e){e={g:0,rc:0};vbl[v.line]=e;}e.g+=v.rev-c*v.units;e.rc+=v.rev;}}
+  const gm=rCov>0?Math.round(gC/rCov*1000)/10:0,cov=Math.round(rCov/(tc.rev||1)*100);
+  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gm+'%</div><div class="d sub">покрытие '+cov+'%</div></div>';
+  document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),marginCard,kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,v=>v),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
   const dr=dailyRev(cur.from,cur.to);document.getElementById('trend').innerHTML=areaSvg(dr.map(d=>d.rev),tc.rev>=tp.rev?'#34D399':'#FF4438');
   document.getElementById('trendNote').textContent='с '+cur.from+' по '+cur.to+' · пик дня '+mln(Math.max(...dr.map(d=>d.rev)))+' ₽';
+  const lmarg=l=>vbl[l]&&vbl[l].rc>0?(Math.round(vbl[l].g/vbl[l].rc*1000)/10)+'%':'-';
   const lg=linesGrowth(cur.from,cur.to,cmp.from,cmp.to).sort((a,b)=>b.growth-a.growth);
-  let mh='<table><tbody>';lg.forEach(d=>{const up=d.growth>=0;mh+='<tr><td>'+d.line+'</td><td class="r num">'+mln(d.rev)+'</td><td class="r '+(up?'up':'down')+'">'+pct(d.growth)+'</td></tr>';});mh+='</tbody></table>';document.getElementById('movers').innerHTML=mh;
+  let mh='<table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Рост</th><th class="r">Маржа</th></tr></thead><tbody>';lg.forEach(d=>{const up=d.growth>=0;mh+='<tr><td>'+d.line+'</td><td class="r num">'+mln(d.rev)+'</td><td class="r '+(up?'up':'down')+'">'+pct(d.growth)+'</td><td class="r num">'+lmarg(d.line)+'</td></tr>';});mh+='</tbody></table>';document.getElementById('movers').innerHTML=mh;
   const a=aggLine(win(cur.from,cur.to));const arr=[...a.values()].sort((x,y)=>y.rev-x.rev);const max=Math.max(1,...arr.map(x=>x.rev));let lb='';arr.forEach(x=>{lb+='<div style="display:grid;grid-template-columns:120px 1fr 90px;align-items:center;gap:10px;margin:7px 0"><div class="sub">'+x.line+'</div><div style="background:#1E1E20;border-radius:7px;overflow:hidden"><div style="height:22px;width:'+(x.rev/max*100)+'%;background:linear-gradient(90deg,#FF4438,#b5392f);border-radius:7px"></div></div><div class="r num">'+mln(x.rev)+' ₽</div></div>';});document.getElementById('lineBars').innerHTML=lb;
 }
 boot();`;

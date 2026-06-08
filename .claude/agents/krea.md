@@ -41,7 +41,7 @@ tools: Read, Grep, Glob, WebFetch, Write
 
 1. **READ BRIEF** - задача, целевой бренд, deliverable type
 2. **COMPETITOR SCAN** - что делают Cassina/Minotti/Molteni/Poliform в этой нише; что делают РФ-конкуренты (Бельведер, MR.DOORS)
-3. **REFERENCE PULL** - 5–10 mood references, по 2 фразе обоснования на каждую
+3. **REFERENCE PULL** - 5-10 mood references, по 2 фразе обоснования на каждую
 4. **ANGLE** - каков угол, который агентство само не возьмёт
 5. **EXECUTABLE BRIEF** - параметры: композиция, свет, цвет, props, фон, talent (если есть), reference frames
 6. **ANTI-MEDIAN CHECK** - прогон через 3 вопроса

@@ -64,9 +64,9 @@ description: GENGROUP terminology reference and consistency checker. Auto-invoke
 
 Терминология влияет на цену:
 - Палитра Core (NERO/ORO/BIANCO): референсная цена
-- Палитра Drop (CIPRIA): +5–15%
-- Коллекционная модель: +15–30%
-- Лимитированная серия (50 шт, нумерация): доп. +10–20%
+- Палитра Drop (CIPRIA): +5-15%
+- Коллекционная модель: +15-30%
+- Лимитированная серия (50 шт, нумерация): доп. +10-20%
 
 ## Reference
 

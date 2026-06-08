@@ -14,11 +14,11 @@ description: Production-grade content templates for GENGROUP across all channels
 ## Templates
 
 ### Article (Pillar / Satellite)
-- 1500–2500 слов
+- 1500-2500 слов
 - Структура: 7 блоков от задачи читателя (см. МАКС #3)
 - 6-block output: META / ТЕКСТ / ИЛЛЮСТРАЦИИ / SCHEMA / GEO-AEO / ПЕРЕЛИНКОВКА
 - Min 3 цифры на H2-блок
-- Inline CTA каждые 600–800 слов
+- Inline CTA каждые 600-800 слов
 
 ### Landing page
 - Hero: H1 + sub + 1-line proof + CTA
@@ -33,12 +33,12 @@ description: Production-grade content templates for GENGROUP across all channels
 - НЕ путать с лонгридом
 
 ### Email sequence
-- 5–7 писем, частота 2–5 дней
+- 5-7 писем, частота 2-5 дней
 - Каждое - одна mission (welcome / educate / soft-pitch / case / urgency / re-engagement / hard-pitch)
 - Subject line: ≤50 символов, без emoji, без CAPS
 
 ### Social post (TG/VK/Instagram)
-- 200–800 знаков
+- 200-800 знаков
 - Hook в первой строке (без «друзья», без «не секрет»)
 - 1 CTA внизу
 
@@ -51,10 +51,10 @@ description: Production-grade content templates for GENGROUP across all channels
 
 | Канал | Длина | Особенности |
 |---|---|---|
-| Telegram пост | 200–1500 знаков | Markdown поддержка, форматирование умеренно |
-| VK | 300–4000 | Хештеги до 5; «Статья» для лонгрида (8K+ знаков) |
+| Telegram пост | 200-1500 знаков | Markdown поддержка, форматирование умеренно |
+| VK | 300-4000 | Хештеги до 5; «Статья» для лонгрида (8K+ знаков) |
 | Дзен | 1500+ | SEO-логика, заголовок ≤100, обложка обязательна |
-| Email | 300–800 для сейл, 1500+ для образовательного | HTML inline, темная тема - fallback |
+| Email | 300-800 для сейл, 1500+ для образовательного | HTML inline, темная тема - fallback |
 | OZON title | 60 знаков | Модель + категория + параметр |
 | WB title | 60 знаков | Модель + категория + ключ |
 | Я.Маркет title | 100 знаков | Развёрнутее |

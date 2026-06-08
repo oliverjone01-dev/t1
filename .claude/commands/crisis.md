@@ -62,8 +62,8 @@ If $ARGUMENTS is empty - ask user which trigger fired:
 
 | Level | Condition | Who escalates | To whom | Reaction |
 |---|---|---|---|---|
-| L1 (yellow) | Task slipped 1–3 days | Owner | Иван (CMO) | 24h |
-| L2 (orange) | Task slipped 4–7 days OR blocks next phase | Иван | Богдан (директор) | 24h |
+| L1 (yellow) | Task slipped 1-3 days | Owner | Иван (CMO) | 24h |
+| L2 (orange) | Task slipped 4-7 days OR blocks next phase | Иван | Богдан (директор) | 24h |
 | L3 (red) | Phase 0 not done in 5 days OR critical breach by client/partner | Иван | Богдан + экстренное совещание | Immediately |
 | L4 (black) | System error in public channel due to wrong data | Anyone | Иван + Богдан | Immediately, Protocol 8 |
 

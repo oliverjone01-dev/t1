@@ -37,9 +37,12 @@ function main() {
       if (!(data.accruals > 0)) fail("pnl accruals не положителен");
       if (!(data.payout > 0)) fail("pnl payout не положителен");
       break;
-    case "pnlsku":
-      if (!data.bySku || Object.keys(data.bySku).length < 10) fail("pnl-sku bySku пустой/короткий");
+    case "pnlsku": {
+      const n = data.bySku ? Object.keys(data.bySku).length : 0;
+      if (n < 10) fail("pnl-sku bySku пустой/короткий");
+      if (typeof data.skuCount === "number" && data.skuCount !== n) fail(`skuCount ${data.skuCount} != ключей ${n}`);
       break;
+    }
     case "daily":
       if (!Array.isArray(data.rows)) fail("daily rows отсутствует");
       // пустой день (0 продаж) допустим - не фейлим, но печатаем

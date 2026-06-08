@@ -108,8 +108,12 @@ function main() {
     r.date, r.sku, Math.round(r.revenue), r.units, r.views, r.to_cart, r.delivered, r.returns, r.cancellations,
   ]);
 
+  // себестоимость: sku -> С\С (где сматчено)
+  let cogs: Record<string, number> = {};
+  try { cogs = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8")); } catch { cogs = {}; }
+
   const dates = rows.map((r) => r.date).sort();
-  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax };
+  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax, cogs };
 
   mkdirSync("public", { recursive: true });
   writeFileSync("public/tovary.html", renderTovary(model));

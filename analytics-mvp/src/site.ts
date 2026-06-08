@@ -67,8 +67,9 @@ const NAV: Array<[string, string, string]> = [
 
 // Общий движок: данные + витрины + период/сравнение. draw(cur,cmp) определяет страница.
 const ENGINE = `
-const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{};
+const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{}, CG=DATA.cogs||{};
 const catOf=s=>TX[s]?TX[s][0]:'', subOf=s=>TX[s]?TX[s][1]:'', modelOf=s=>TX[s]?TX[s][3]:SK[s][1];
+const cogsOf=s=>CG[s]||0;
 const rub=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 const mln=n=>(Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':rub(n));
 const pct=p=>(p>=0?'+':'')+(Math.round(p*1000)/10)+'%';
@@ -171,7 +172,7 @@ export function renderTovary(model: unknown): string {
   <h2>Товары · группировка по модели</h2>
   <div class="controls dates"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
   <div class="card" style="padding:0"><table><thead><tr>
-    <th>Модель / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">CR</th><th class="r">Ср.чек</th><th class="r">ABC·XYZ</th>
+    <th>Модель / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">Ср.чек</th><th class="r">Маржа вал.</th><th class="r">ABC·XYZ</th>
   </tr></thead><tbody id="rows"></tbody></table></div>
   <div class="note">клик по модели раскрывает SKU и дневной тренд. Фильтры из таксономии (покрытие ~92% SKU; без таксономии товар идёт под своей линией).</div>`;
   const js = `
@@ -179,8 +180,11 @@ function drawHeat(){const hm=heatmap();const maxU=Math.max(1,...hm.lines.flatMap
 function draw(cur,cmp){
   const tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
   const cro=c=>Math.round((c.views?c.units/c.views:0)*1000)/10,aov=c=>Math.round(c.units?c.rev/c.units:0);
-  document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,v=>v),kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('Возвраты',tc.ret,tp.ret,false,rub),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
   const views=skuViews(cur.from,cur.to),mx=matrix(views),cls=['A','B','C'],xs=['X','Y','Z'];
+  let gCur=0,rCov=0,rAll=0;for(const v of views){rAll+=v.rev;const c=cogsOf(v.sku);if(c>0){gCur+=v.rev-c*v.units;rCov+=v.rev;}}
+  const gmPct=rCov>0?Math.round(gCur/rCov*1000)/10:0,covPct=Math.round(rCov/(rAll||1)*100);
+  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gmPct+'%</div><div class="d sub">покрытие '+covPct+'% оборота</div></div>';
+  document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),marginCard,kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('Возвраты',tc.ret,tp.ret,false,rub),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
   const col=(a,x)=>{const s=(a==='A'?0:a==='B'?1:2)+(x==='X'?0:x==='Y'?1:2);return ['#173b2c','#1d4636','#3a3f1e','#46361e','#4a2a1e','#4a221f'][Math.min(s,5)];};
   let mh='<div class="maxis"></div>'+xs.map(x=>'<div class="maxis">'+x+'</div>').join('');cls.forEach(a=>{mh+='<div class="maxis">'+a+'</div>';xs.forEach(x=>{const c=mx[a+x];mh+='<div class="mcell" style="background:'+col(a,x)+'"><div class="c">'+c.count+'</div><div class="r num">'+mln(c.rev)+' ₽</div></div>';});});document.getElementById('matrix').innerHTML=mh;
   const bc=bcg(cur.from,cur.to,cmp.from,cmp.to),W=460,H=260,pad=34,maxShare=Math.max(10,...bc.map(d=>d.share)),gmax=Math.max(20,...bc.map(d=>Math.abs(d.growth))),X=s=>pad+(s/maxShare)*(W-pad-10),Y=g=>H/2-(g/gmax)*(H/2-20),qc={star:'#34D399',cow:'#6AA8FF',question:'#F2B544',dog:'#FF5A5F'};
@@ -194,7 +198,11 @@ function draw(cur,cmp){
   document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+fv.length;
   const spark=ser=>{const w=120,h=26,mx=Math.max(1,...ser),st=w/Math.max(1,ser.length-1);const p=ser.map((v,i)=>i*st+','+(h-(v/mx)*(h-3))).join(' ');return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#FF4438" stroke-width="1.6" points="'+p+'"/></svg>';};
   const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>';let rh='';
-  groups.forEach((g,li)=>{rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+(Math.round(g.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r"></td><td class="r"></td></tr>';g.sk.forEach(s=>{rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+s.conv+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="7" style="padding-top:0"><span class="sub">тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
+  groups.forEach((g,li)=>{let mg=0,mr=0;g.sk.forEach(s=>{const c=cogsOf(s.sku);if(c>0){mg+=s.rev-c*s.units;mr+=s.rev;}});const mm=mr>0?(Math.round(mg/mr*1000)/10)+'%':'-';
+    rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+(Math.round(g.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r num">'+mm+'</td><td class="r"></td></tr>';
+    g.sk.forEach(s=>{const c=cogsOf(s.sku);const sm=(c>0&&s.rev>0)?(Math.round((s.rev-c*s.units)/s.rev*1000)/10)+'%':'-';const cTxt=c>0?'С\\\\С '+rub(c)+' ₽':'нет С\\\\С';
+      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r num" title="'+cTxt+'">'+sm+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';
+      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="8" style="padding-top:0"><span class="sub">'+cTxt+' · тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
   document.getElementById('rows').innerHTML=rh;document.querySelectorAll('.line-row').forEach(tr=>tr.addEventListener('click',()=>{const li=tr.dataset.li;tr.classList.toggle('open');document.querySelectorAll('.sku-row[data-li="'+li+'"]').forEach(r=>{r.style.display=r.style.display==='none'?'table-row':'none';});}));
 }
 function initFilters(){

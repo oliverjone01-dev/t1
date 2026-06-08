@@ -12,7 +12,9 @@
     "backfill": "tsx src/scripts/backfill.ts",
     "ingest": "tsx src/scripts/ingest.ts",
     "report": "tsx src/scripts/report.ts",
-    "build:site": "tsx src/scripts/build-site.ts"
+    "build:site": "tsx src/scripts/build-site.ts",
+    "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",
+    "join:cogs": "tsx src/scripts/build-cogs-join.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

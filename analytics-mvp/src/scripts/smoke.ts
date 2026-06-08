@@ -50,6 +50,8 @@ for (const page of PAGES) {
   // краевой случай: инвертированные даты (FENIX B2)
   const cf = document.getElementById("cf"), ct = document.getElementById("ct");
   if (cf && ct) { cf.value = "2026-06-01"; ct.value = "2026-05-01"; const ac = document.getElementById("applyCustom"); if (ac) fire(ac, "click"); }
+  // краевой случай: пустая дата (FENIX L1)
+  if (cf) { cf.value = ""; const ac = document.getElementById("applyCustom"); if (ac) fire(ac, "click"); }
   // поиск числовых поломок в ВИДИМОМ тексте (без исходника <script>)
   const clone = document.body.cloneNode(true);
   clone.querySelectorAll("script").forEach((s: any) => s.remove());

@@ -1,5 +1,9 @@
 // Клиент OZON Seller API (api-seller.ozon.ru). Логика из DOC_02 §2.
-// Боевые вызовы подключаются на шаге S2. Чистые помощники покрыты тестами.
+// Все вызовы обёрнуты в retry/backoff (S3): переживают 429 OZON.
+
+import { withRetry, HttpError } from "../util/retry.js";
+import { lineOf } from "../util/line.js";
+import type { SkuDaily } from "../types.js";
 
 const SELLER_HOST = "https://api-seller.ozon.ru";
 
@@ -37,15 +41,42 @@ export class OzonSeller {
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${SELLER_HOST}${path}`, {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify(body),
+    return withRetry(async () => {
+      const res = await fetch(`${SELLER_HOST}${path}`, {
+        method: "POST",
+        headers: this.headers(),
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        throw new HttpError(res.status, `OZON Seller ${path} -> HTTP ${res.status}: ${await res.text()}`);
+      }
+      return (await res.json()) as T;
     });
-    if (!res.ok) {
-      throw new Error(`OZON Seller ${path} -> HTTP ${res.status}: ${await res.text()}`);
-    }
-    return (await res.json()) as T;
+  }
+
+  // Дневные строки по SKU за одну дату - основа исторического бэкфилла (S3).
+  // Запрашиваем один день, dimension sku, маппим в SkuDaily.
+  async skuDaily(date: string): Promise<SkuDaily[]> {
+    const rows = await this.analytics(date, date, "sku");
+    return rows
+      .filter((r) => r.id)
+      .map((r) => {
+        const m = r.metrics;
+        return {
+          date,
+          sku: r.id,
+          offer_id: null, // обогащается из stocks/таксономии отдельно
+          name: r.name,
+          line: lineOf(r.name),
+          revenue: m[0] ?? 0,
+          units: m[1] ?? 0,
+          views: m[2] ?? 0,
+          to_cart: m[3] ?? 0,
+          delivered: m[4] ?? 0,
+          returns: m[5] ?? 0,
+          cancellations: m[6] ?? 0,
+        };
+      });
   }
 
   // POST /v1/analytics/data, dimension day | sku

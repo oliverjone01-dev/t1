@@ -111,6 +111,24 @@ export class Store {
     return (this.db.prepare(`SELECT COUNT(*) AS n FROM fct_sku_daily`).get() as { n: number }).n;
   }
 
+  // Даты, по которым уже есть данные - чекпойнт для идемпотентного бэкфилла (S3).
+  distinctDates(): string[] {
+    return (this.db.prepare(`SELECT DISTINCT date FROM fct_sku_daily ORDER BY date`).all() as { date: string }[])
+      .map((r) => r.date);
+  }
+
+  // Вся история строк - для экспорта в текстовый снапшот (персистентность в Git).
+  allSkuDaily(): SkuDaily[] {
+    return this.db.prepare(`SELECT * FROM fct_sku_daily ORDER BY date, sku`).all() as SkuDaily[];
+  }
+
+  // Дневной оборот - для DQ-проверки на провал объёма.
+  dailyRevenue(): Array<{ date: string; revenue: number }> {
+    return this.db
+      .prepare(`SELECT date, SUM(revenue) AS revenue FROM fct_sku_daily GROUP BY date ORDER BY date`)
+      .all() as Array<{ date: string; revenue: number }>;
+  }
+
   close(): void {
     this.db.close();
   }

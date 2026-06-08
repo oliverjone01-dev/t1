@@ -3,6 +3,7 @@
 // десятичная запятая в суммах; батч кампаний не более 25.
 
 import { parseOzonNumber } from "../util/num.js";
+import { withRetry, HttpError } from "../util/retry.js";
 
 const PERF_HOST = "https://api-performance.ozon.ru";
 export const CAMPAIGN_BATCH = 25;
@@ -39,17 +40,19 @@ export class OzonPerformance {
   private async getToken(): Promise<string> {
     const now = Date.now();
     if (this.token && now < this.tokenExp) return this.token;
-    const res = await fetch(`${PERF_HOST}/api/client/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: this.creds.clientId,
-        client_secret: this.creds.clientSecret,
-        grant_type: "client_credentials",
-      }),
+    const j = await withRetry(async () => {
+      const res = await fetch(`${PERF_HOST}/api/client/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: this.creds.clientId,
+          client_secret: this.creds.clientSecret,
+          grant_type: "client_credentials",
+        }),
+      });
+      if (!res.ok) throw new HttpError(res.status, `OZON Perf token -> HTTP ${res.status}: ${await res.text()}`);
+      return (await res.json()) as { access_token: string; expires_in: number };
     });
-    if (!res.ok) throw new Error(`OZON Perf token -> HTTP ${res.status}: ${await res.text()}`);
-    const j = (await res.json()) as { access_token: string; expires_in: number };
     this.token = j.access_token;
     // обновляем за 60 с до истечения
     this.tokenExp = now + (j.expires_in - 60) * 1000;
@@ -57,12 +60,14 @@ export class OzonPerformance {
   }
 
   private async get<T>(path: string): Promise<T> {
-    const token = await this.getToken();
-    const res = await fetch(`${PERF_HOST}${path}`, {
-      headers: { Authorization: `Bearer ${token}` },
+    return withRetry(async () => {
+      const token = await this.getToken();
+      const res = await fetch(`${PERF_HOST}${path}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new HttpError(res.status, `OZON Perf ${path} -> HTTP ${res.status}: ${await res.text()}`);
+      return (await res.json()) as T;
     });
-    if (!res.ok) throw new Error(`OZON Perf ${path} -> HTTP ${res.status}: ${await res.text()}`);
-    return (await res.json()) as T;
   }
 
   async campaigns(): Promise<Array<{ id: string; title: string; state: string }>> {

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGLASS - аналитика OZON (MVP)</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#21262d; --txt:#e6edf3; --mut:#8b949e; --good:#3fb950; --bad:#f85149; --acc:#58a6ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; }
+  .wrap { max-width:1180px; margin:0 auto; padding:24px; }
+  header { display:flex; flex-wrap:wrap; align-items:baseline; gap:12px 18px; border-bottom:1px solid var(--line); padding-bottom:16px; }
+  h1 { font-size:20px; margin:0; }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; }
+  .badge { font-size:12px; padding:2px 8px; border-radius:6px; background:var(--panel); border:1px solid var(--line); color:var(--mut); }
+  .badge.live { color:var(--acc); border-color:#1f6feb55; }
+  .period { color:var(--mut); font-size:13px; }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.04em; color:var(--mut); margin:28px 0 12px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+  .kpi { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .kpi .label { color:var(--mut); font-size:12px; }
+  .kpi .val { font-size:22px; font-weight:600; margin-top:4px; }
+  .kpi .delta { font-size:12px; margin-top:4px; }
+  .up { color:var(--good); } .down { color:var(--bad); }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); font-size:13px; }
+  th { color:var(--mut); font-weight:500; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .bar { height:8px; border-radius:4px; background:var(--line); overflow:hidden; display:flex; }
+  .bar > span { display:block; height:100%; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .warn { background:#3d1d1d; border:1px solid var(--bad); color:#ffb3ae; border-radius:8px; padding:10px 14px; margin:12px 0; }
+  .note { color:var(--mut); font-size:12px; margin-top:8px; }
+  footer { margin-top:32px; border-top:1px solid var(--line); padding-top:14px; color:var(--mut); font-size:12px; }
+  code { background:var(--panel); padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>GENGLASS - аналитика OZON</h1>
+    <div class="badges">
+      <span class="badge live">оперативный слой T-1</span>
+      <span class="badge" id="fresh"></span>
+      <span class="badge">источник: <span id="src"></span></span>
+    </div>
+    <div class="period" id="period"></div>
+  </header>
+
+  <div id="violations"></div>
+
+  <h2>Срез периода (текущее окно против предыдущего)</h2>
+  <div class="grid" id="kpis"></div>
+
+  <h2>По линиям</h2>
+  <div class="panel"><table id="lines"><thead><tr>
+    <th>Линия</th><th class="num">Оборот</th><th class="num">Δ оборота</th><th class="num">Доля</th><th class="num">Заказы</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <h2>Позиционирование по цене (SKU против рынка)</h2>
+  <div class="panel" id="price"></div>
+
+  <h2>Карточки на ремонт - трафик есть, заказов мало</h2>
+  <div class="panel"><table id="cards"><thead><tr>
+    <th>Товар</th><th>Линия</th><th class="num">Показы</th><th class="num">CR заказ %</th><th class="num">Оборот</th>
+  </tr></thead><tbody></tbody></table></div>
+
+  <footer>
+    <div>Метки провенанса: все цифры выше - <b>[ДАННЫЕ]</b> из OZON API (оперативный слой). Чистая прибыль не показана: за незакрытый период запрещена (DOC_05 §1.2).</div>
+    <div class="note" id="adwarn"></div>
+    <div class="note">Сгенерировано: <span id="gen"></span>. Это MVP-срез из живого среза n8n; после S3 источником станет локальная история (SQLite).</div>
+  </footer>
+</div>
+
+<script>
+const M = {"generatedAt":"2026-06-08T13:12:26.458Z","freshness":"2026-06-07","windows":{"cur":{"from":"2026-05-09","to":"2026-06-07"},"cmp":{"from":"2026-04-09","to":"2026-05-08"}},"totals":{"revenue":{"cur":23978124,"cmp":28395838,"abs":-4417714,"pct":-0.15557610942843103},"units":{"cur":458,"cmp":550,"abs":-92,"pct":-0.16727272727272727},"views":{"cur":2567193,"cmp":3770424,"abs":-1203231,"pct":-0.31912352563000873},"cr_order":{"cur":0,"cmp":0,"abs":0,"pct":0},"aov":{"cur":52354,"cmp":51629,"abs":725,"pct":0.014042495496716961},"returns":{"cur":3,"cmp":15,"abs":-12,"pct":-0.8},"oos":{"cur":5,"cmp":6,"abs":-1,"pct":-0.16666666666666666},"ad_spend":{"cur":1768254,"cmp":2248290,"abs":-480036,"pct":-0.21351160215096807},"drr_total":{"cur":22.1,"cmp":17.4,"abs":4.700000000000003,"pct":0.2701149425287358},"sku_count":{"cur":181,"cmp":202,"abs":-21,"pct":-0.10396039603960396}},"byLine":[{"line":"TRUBIS","revenue":{"cur":11498243,"cmp":15575174,"abs":-4076931,"pct":-0.2617582956055579},"units":{"cur":193,"cmp":259,"abs":-66,"pct":-0.2548262548262548},"share_pct":48},{"line":"зеркала","revenue":{"cur":5282700,"cmp":4297736,"abs":984964,"pct":0.2291820623695825},"units":{"cur":119,"cmp":99,"abs":20,"pct":0.20202020202020202},"share_pct":22},{"line":"столы","revenue":{"cur":2549109,"cmp":2800982,"abs":-251873,"pct":-0.08992310553941439},"units":{"cur":48,"cmp":64,"abs":-16,"pct":-0.25},"share_pct":10.6},{"line":"NOLVIS","revenue":{"cur":1460291,"cmp":2597787,"abs":-1137496,"pct":-0.43787115725808157},"units":{"cur":31,"cmp":59,"abs":-28,"pct":-0.4745762711864407},"share_pct":6.1},{"line":"VIOLUR (перегородки)","revenue":{"cur":1391567,"cmp":934079,"abs":457488,"pct":0.48977441950841416},"units":{"cur":27,"cmp":20,"abs":7,"pct":0.35},"share_pct":5.8},{"line":"OSOLIS","revenue":{"cur":953355,"cmp":979331,"abs":-25976,"pct":-0.026524229295304652},"units":{"cur":21,"cmp":22,"abs":-1,"pct":-0.045454545454545456},"share_pct":4},{"line":"прочее","revenue":{"cur":842859,"cmp":1210749,"abs":-367890,"pct":-0.3038532346506171},"units":{"cur":19,"cmp":27,"abs":-8,"pct":-0.2962962962962963},"share_pct":3.5}],"cardsToFix":[{"sku":"3564827172","name":"GENGLASS Стол обеденный кухонный TRUBIS Wood 140х80 см","line":"TRUBIS","rev":614054,"units":11,"views":282116,"cart":358,"deliv":14,"ret":0,"canc":1,"convCart":0.1,"convOrd":0,"retp":0,"aov":55823,"offer":"GGT-03-1-5-E-14080","stock":94,"pidx":0.86,"pcol":"SUPER","oos":0},{"sku":"3579703930","name":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 180х90 см","line":"TRUBIS","rev":665388,"units":10,"views":199074,"cart":255,"deliv":6,"ret":0,"canc":4,"convCart":0.1,"convOrd":0,"retp":0,"aov":66539,"offer":"GGT-03-2-2-O-18090","stock":83,"pidx":1.11,"pcol":"RED","oos":0},{"sku":"3555657576","name":"GENGLASS Зеркало с подсветкой настенное KVANEL NF LED 220х80 см, для консоли, в прихожую","line":"зеркала","rev":722225,"units":16,"views":180341,"cart":525,"deliv":0,"ret":0,"canc":4,"convCart":0.3,"convOrd":0,"retp":0,"aov":45139,"offer":"GGL-08-2","stock":292,"pidx":0,"pcol":"WITHOUT_INDEX","oos":0},{"sku":"3564841366","name":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 160х80 см","line":"TRUBIS","rev":1173903,"units":20,"views":161723,"cart":506,"deliv":26,"ret":0,"canc":2,"convCart":0.3,"convOrd":0,"retp":0,"aov":58695,"offer":"GGT-03-3-3-E-16080","stock":186,"pidx":0.86,"pcol":"SUPER","oos":0},{"sku":"3734276157","name":"Стол кухонный раздвижной белый KONUX 100(180)х100х75 см, обеденный, раскладной","line":"столы","rev":1130654,"units":14,"views":153942,"cart":363,"deliv":5,"ret":0,"canc":2,"convCart":0.2,"convOrd":0,"retp":0,"aov":80761,"offer":"GGT-35-3-3-100-180","stock":191,"pidx":0,"pcol":"WITHOUT_INDEX","oos":0},{"sku":"3564831423","name":"GENGLASS Обеденный стол VIOLUR 160х80 см овальный","line":"VIOLUR (перегородки)","rev":291949,"units":6,"views":113450,"cart":146,"deliv":5,"ret":0,"canc":0,"convCart":0.1,"convOrd":0,"retp":0,"aov":48658,"offer":"GGT-20-2-3-16080","stock":197,"pidx":0,"pcol":"WITHOUT_INDEX","oos":0},{"sku":"3555672541","name":"GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для консоли, в прихожую","line":"OSOLIS","rev":953355,"units":21,"views":110601,"cart":399,"deliv":28,"ret":0,"canc":3,"convCart":0.4,"convOrd":0,"retp":0,"aov":45398,"offer":"GGL-09-2","stock":150,"pidx":0.98,"pcol":"GREEN","oos":0},{"sku":"3564832431","name":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D100 см","line":"TRUBIS","rev":148811,"units":3,"views":73905,"cart":157,"deliv":3,"ret":0,"canc":0,"convCart":0.2,"convOrd":0,"retp":0,"aov":49604,"offer":"GGT-03-3-3-L-100","stock":41,"pidx":1.1,"pcol":"RED","oos":0},{"sku":"3564846098","name":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D120 см","line":"TRUBIS","rev":263460,"units":5,"views":73495,"cart":213,"deliv":8,"ret":0,"canc":2,"convCart":0.3,"convOrd":0,"retp":0,"aov":52692,"offer":"GGT-03-3-3-L-120","stock":197,"pidx":0.84,"pcol":"SUPER","oos":0},{"sku":"3492802310","name":"GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L Black, интерьерное в черной раме","line":"зеркала","rev":764535,"units":16,"views":55547,"cart":88,"deliv":9,"ret":0,"canc":4,"convCart":0.2,"convOrd":0,"retp":0,"aov":47783,"offer":"GGM-18-2-2","stock":119,"pidx":0.81,"pcol":"SUPER","oos":0},{"sku":"3564827434","name":"GENGLASS Стол обеденный из керамогранита овальный TRUBIS Stone 160х80х77 см","line":"TRUBIS","rev":227250,"units":2,"views":55291,"cart":123,"deliv":6,"ret":0,"canc":0,"convCart":0.2,"convOrd":0,"retp":0,"aov":113625,"offer":"GGT-03-3-5-E-16080-K","stock":139,"pidx":1.09,"pcol":"RED","oos":0},{"sku":"3563474543","name":"GENGLASS Перегородка для зонирования ширма ZONIQUE 240х70 см черная с эффектом рифленого стекла","line":"прочее","rev":339708,"units":4,"views":45683,"cart":53,"deliv":0,"ret":0,"canc":1,"convCart":0.1,"convOrd":0,"retp":0,"aov":84927,"offer":"GGP-01-2-I-240-70","stock":95,"pidx":0,"pcol":"WITHOUT_INDEX","oos":0},{"sku":"3579703510","name":"GENGLASS Стол кухонный овальный TRUBIS Wood 200х90 см белый мрамор","line":"TRUBIS","rev":716485,"units":10,"views":41773,"cart":164,"deliv":3,"ret":0,"canc":3,"convCart":0.4,"convOrd":0,"retp":0,"aov":71649,"offer":"GGT-03-3-5-O-20090","stock":190,"pidx":0.85,"pcol":"SUPER","oos":0},{"sku":"3734277653","name":"Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной","line":"столы","rev":75900,"units":1,"views":38329,"cart":57,"deliv":2,"ret":0,"canc":1,"convCart":0.1,"convOrd":0,"retp":0,"aov":75900,"offer":"GGT-35-1-2-100-180","stock":200,"pidx":0,"pcol":"WITHOUT_INDEX","oos":0},{"sku":"3492813002","name":"GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, овальное","line":"зеркала","rev":108220,"units":3,"views":37115,"cart":86,"deliv":5,"ret":0,"canc":1,"convCart":0.2,"convOrd":0,"retp":0,"aov":36073,"offer":"GGM-02-1-2","stock":129,"pidx":1.14,"pcol":"RED","oos":0}],"price":{"cheaper":58,"even":1,"pricier":81,"noIndex":41},"violations":[{"name":"GENGLASS Обеденный стол овальный 180х90 см VIOLUR","line":"VIOLUR (перегородки)","rev":323400},{"name":"GENGLASS Обеденный стол VIOLUR 160х80 см овальный","line":"VIOLUR (перегородки)","rev":291949},{"name":"GENGLASS Стол обеденный кухонный овальный VIOLUR 200х90 см","line":"VIOLUR (перегородки)","rev":113700},{"name":"GENGLASS Кухонный овальный стол VIOLUR 180х90 см","line":"VIOLUR (перегородки)","rev":107800},{"name":"GENGLASS Кухонный обеденный стол VIOLUR Max 120(190)х80х75 см","line":"VIOLUR (перегородки)","rev":71426},{"name":"GENGLASS Кухонный овальный стол VIOLUR 200х90 см","line":"VIOLUR (перегородки)","rev":56419},{"name":"GENGLASS Стол овальный обеденный VIOLUR 200х90 см","line":"VIOLUR (перегородки)","rev":56378},{"name":"GENGLASS Кухонный стол VIOLUR 180х90 см","line":"VIOLUR (перегородки)","rev":53900},{"name":"GENGLASS Стол обеденный кухонный овальный VIOLUR 180 см","line":"VIOLUR (перегородки)","rev":53850},{"name":"GENGLASS Овальный стол кухонный VIOLUR черный 180х90 см","line":"VIOLUR (перегородки)","rev":51205},{"name":"GENGLASS Стол кухонный обеденный VIOLUR черный 140х80 см","line":"VIOLUR (перегородки)","rev":44900},{"name":"GENGLASS Стол обеденный кухонный 140х80 см овальный VIOLUR","line":"VIOLUR (перегородки)","rev":44660},{"name":"GENGLASS Кухонный стол VIOLUR овальный белый мрамор 140х80 см","line":"VIOLUR (перегородки)","rev":44660},{"name":"GENGLASS Обеденный стол 140х80 см овальный VIOLUR","line":"VIOLUR (перегородки)","rev":42856},{"name":"GENGLASS Ножки для стола VIOLUR","line":"VIOLUR (перегородки)","rev":34464}],"adByLineReliable":false,"source":"n8n live fixture"};
+const rub = n => new Intl.NumberFormat('ru-RU').format(Math.round(n));
+const pct = p => (p>=0?'+':'') + (Math.round(p*1000)/10) + '%';
+const cls = up => up ? 'up' : 'down';
+
+document.getElementById('fresh').textContent = 'свежесть: ' + M.freshness;
+document.getElementById('src').textContent = M.source;
+document.getElementById('period').textContent =
+  M.windows.cur.from + '..' + M.windows.cur.to + '  против  ' + M.windows.cmp.from + '..' + M.windows.cmp.to;
+document.getElementById('gen').textContent = M.generatedAt;
+
+// KPI: goodWhenUp задаёт окраску дельты
+const KPI = [
+  ['Оборот, ₽', 'revenue', true, rub],
+  ['Заказы, шт', 'units', true, rub],
+  ['CR показ-заказ, %', 'cr_order', true, v=>v],
+  ['Средний чек, ₽', 'aov', true, rub],
+  ['ДРР канала, %', 'drr_total', false, v=>v],
+  ['Возвраты, шт', 'returns', false, rub],
+  ['Склад 0 при продажах', 'oos', false, rub],
+  ['SKU с продажами', 'sku_count', true, rub],
+];
+document.getElementById('kpis').innerHTML = KPI.map(([label,key,goodUp,f])=>{
+  const m = M.totals[key];
+  const up = m.abs >= 0;
+  const good = goodUp ? up : !up;
+  return '<div class="kpi"><div class="label">'+label+'</div><div class="val">'+f(m.cur)+
+    '</div><div class="delta '+cls(good)+'">'+pct(m.pct)+' к пред. периоду</div></div>';
+}).join('');
+
+// По линиям
+document.querySelector('#lines tbody').innerHTML = M.byLine.map(l=>
+  '<tr><td>'+l.line+'</td><td class="num">'+rub(l.revenue.cur)+'</td><td class="num '+
+  cls(l.revenue.pct>=0)+'">'+pct(l.revenue.pct)+'</td><td class="num">'+l.share_pct+'%</td><td class="num">'+
+  rub(l.units.cur)+'</td></tr>').join('');
+
+// Цена
+const p = M.price, tot = p.cheaper+p.even+p.pricier+p.noIndex;
+const seg = (n,c)=> '<span style="width:'+(100*n/tot)+'%;background:'+c+'"></span>';
+document.getElementById('price').innerHTML =
+  '<div class="bar">'+seg(p.cheaper,'#3fb950')+seg(p.even,'#58a6ff')+seg(p.pricier,'#f85149')+seg(p.noIndex,'#30363d')+'</div>'+
+  '<div class="note">дешевле рынка: <b>'+p.cheaper+'</b> (можно поднять цену) &nbsp;|&nbsp; вровень: '+p.even+
+  ' &nbsp;|&nbsp; <span class="down">дороже рынка: '+p.pricier+'</span> (риск проседания) &nbsp;|&nbsp; без индекса: '+p.noIndex+'</div>';
+
+// Карточки на ремонт
+document.querySelector('#cards tbody').innerHTML = M.cardsToFix.length ? M.cardsToFix.map(s=>
+  '<tr><td>'+s.name+'</td><td>'+s.line+'</td><td class="num">'+rub(s.views)+'</td><td class="num down">'+
+  s.convOrd+'</td><td class="num">'+rub(s.rev)+'</td></tr>').join('')
+  : '<tr><td colspan="5" class="note">нет кандидатов по текущему порогу</td></tr>';
+
+// Нарушения бренда
+if (M.violations.length) {
+  document.getElementById('violations').innerHTML =
+    '<div class="warn"><b>Нарушение позиционирования:</b> на маркетплейсе обнаружены '+
+    M.violations.length+' позиций линии VIOLUR/VALONTI (не должны быть на МП). '+
+    M.violations.map(v=>v.name).slice(0,3).join('; ')+'</div>';
+}
+
+// Предупреждение по ДРР по линиям (G5)
+document.getElementById('adwarn').innerHTML = M.adByLineReliable ? '' :
+  'ДРР по линиям не показан как факт: таксономии рекламы и аналитики расходятся, надёжен только суммарный ДРР канала (DOC_05 §2, аудит G5).';
+</script>
+</body>
+</html>

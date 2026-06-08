@@ -17,7 +17,8 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);
-    font:14px/1.55 Inter,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+    font:14px/1.55 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",sans-serif;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
   .num{font-variant-numeric:tabular-nums}
   .wrap{max-width:1160px;margin:0 auto;padding:28px;position:relative;z-index:1}
 
@@ -36,7 +37,16 @@
 
   header{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:12px}
-  .logo{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;color:#0A0A0B;font-weight:800;font-size:14px}
+  .logo{width:40px;height:40px;border-radius:11px;background:#fff;display:grid;place-items:center;color:#0A0A0B;font-weight:800;font-size:15px;letter-spacing:-.02em}
+  /* варианты лого-квадрата */
+  .logos{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .logobox{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .logobox .lname{font-size:11px;color:var(--mut)}
+  .lg{width:56px;height:56px;border-radius:15px;display:grid;place-items:center;font-weight:800;font-size:21px;letter-spacing:-.03em}
+  .lg.white{background:#fff;color:#0A0A0B}
+  .lg.dark{background:#1E1E20;color:#fff;border:1px solid #34343a}
+  .lg.red{background:var(--brand);color:#fff;box-shadow:0 8px 24px rgba(255,68,56,.3)}
+  .lg.grad{background:linear-gradient(135deg,#FF4438,#8AA0FF);color:#fff}
   .chips{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
   .chip{padding:6px 13px;border-radius:999px;color:var(--mut);font-size:13px;cursor:pointer;border:0;background:transparent;font:inherit}
   .chip.on{background:var(--raised);color:var(--txt)}
@@ -115,6 +125,17 @@
 
   <div class="hero">Что реально<br><span class="dim">зарабатывает на OZON</span></div>
   <span class="tag">срез 09.05-07.06 против 09.04-08.05</span>
+
+  <h2>Лого GG в скруглённом квадрате - выбери вариант</h2>
+  <div class="card">
+    <div class="logos">
+      <div class="logobox"><div class="lg white">GG</div><div class="lname">белый</div></div>
+      <div class="logobox"><div class="lg dark">GG</div><div class="lname">тёмный</div></div>
+      <div class="logobox"><div class="lg red">GG</div><div class="lname">красный (акцент)</div></div>
+      <div class="logobox"><div class="lg grad">GG</div><div class="lname">градиент</div></div>
+    </div>
+    <div class="note">скругление 15px на 56px (радиус-к-стороне ~0.27, как иконки iOS). Шрифт GG - тот же SF Pro Display.</div>
+  </div>
 
   <h2>Палитра</h2>
   <div class="sw">

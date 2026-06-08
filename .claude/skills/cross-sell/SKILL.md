@@ -14,6 +14,16 @@ Two parallel systems for raising average order value (target +15-20% [ГИПОТ
 
 Systems work together: bundle discount applies to палитровые наборы; category matrix drives item selection within and across bundles.
 
+## Architectural choice - почему 1 skill, не 2 (resolves FENIX iter-1 open question #1)
+
+Альтернатива была: split на `cross-sell-matrix` (категорийная комплементарность) и `bundle-rules` (палитро-дисциплина). Отвергнута Иваном (2026-06-08) по 3 причинам:
+
+1. **Single activation context** - оба системы вызываются на один триггер «составить КП / cross-sell / комплект» в одной сделке Bitrix24. Разделение породит две auto-invocation которые конкурируют.
+2. **DRY с правилами совмещения** - bundle discount (8-12%) и designer commission (20%) - один регламент CFO, должен жить в одном месте. Split разнёс бы pricing rules между двумя skills с риском рассинхрона.
+3. **Менеджер думает зонами, не категориями** - в реальном диалоге продавец сначала выбирает зону (Прихожая) → потом палитру → потом артикулы. Это flow одного skill, не двух.
+
+Cross-domain parallel: **Bang & Olufsen room ensemble** - один configurator combines product compatibility (acoustic compatibility, не «category matrix» в нашем смысле, но functional analog) + price tier discipline (Beosound vs Beoplay tiers, аналог bundle discount). B&O **не разделяет** их на два tools - один configurator с двумя осями. То же решение здесь.
+
 ## When to invoke
 
 - Сделка в Bitrix24 на 1-2 артикула - возможен cross-sell до комплекта

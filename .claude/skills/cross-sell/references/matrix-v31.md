@@ -122,4 +122,4 @@ After Bitrix24 MCP coupling (Sprint 3+):
 
 `[ГИПОТЕЗА: автор v8 cross-sell skill, допущения: А=логика «одна зона интерьера» переносится в co-purchase, Б=price proximity 30-100% корректна для премиум-сегмента, В=клиент-дизайнер мыслит зонами а не одиночными покупками]`
 
-Reality-corrected expected uplift after matrix v3.2 validation: average-order +8-12% (не 15-20% v8 self-claim), `[РЕТРО-ОЦЕНКА: industry benchmark cross-sell furniture sector]`.
+Reality-corrected expected uplift after matrix v3.2 validation: average-order +8-12% (не 15-20% v8 self-claim), `[ГИПОТЕЗА без верифицированного benchmark: оценка ниже v8 self-claim на основе общей логики «product affinity без historical data не даёт top-end uplift». Проверить после Bitrix24 MCP coupling в Sprint 3+]`.

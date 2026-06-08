@@ -96,13 +96,20 @@ function main() {
   const skus: Record<string, [string, string]> = {};
   for (const r of rows) if (!skus[r.sku]) skus[r.sku] = [r.name, r.line];
 
+  // таксономия: sku -> [category, sub, line, model] (где есть джойн)
+  let tax: Record<string, [string, string, string, string]> = {};
+  try {
+    const t = JSON.parse(readFileSync("data/sku_taxonomy.json", "utf-8")) as Record<string, { category: string; sub: string; line: string; model: string }>;
+    for (const [sku, v] of Object.entries(t)) tax[sku] = [v.category, v.sub, v.line, v.model];
+  } catch { tax = {}; }
+
   // факт: [date, sku, rev, units, views, cart, deliv, ret, canc]
   const facts = rows.map((r) => [
     r.date, r.sku, Math.round(r.revenue), r.units, r.views, r.to_cart, r.delivered, r.returns, r.cancellations,
   ]);
 
   const dates = rows.map((r) => r.date).sort();
-  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED };
+  const model = { max: dates[dates.length - 1]!, floor: dates[0]!, skus, facts, closed: CLOSED, tax };
 
   mkdirSync("public", { recursive: true });
   writeFileSync("public/tovary.html", renderTovary(model));

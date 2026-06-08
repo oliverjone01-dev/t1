@@ -26,7 +26,7 @@ nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px soli
 .btn{padding:7px 13px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--surface);color:var(--txt);font:inherit;cursor:pointer;font-size:13px}
 .btn.on{border-color:var(--brand);color:#fff}
 .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
-input[type=date]{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
 .tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
@@ -67,7 +67,8 @@ const NAV: Array<[string, string, string]> = [
 
 // Общий движок: данные + витрины + период/сравнение. draw(cur,cmp) определяет страница.
 const ENGINE = `
-const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor;
+const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{};
+const catOf=s=>TX[s]?TX[s][0]:'', subOf=s=>TX[s]?TX[s][1]:'', modelOf=s=>TX[s]?TX[s][3]:SK[s][1];
 const rub=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 const mln=n=>(Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':rub(n));
 const pct=p=>(p>=0?'+':'')+(Math.round(p*1000)/10)+'%';
@@ -167,10 +168,12 @@ export function renderTovary(model: unknown): string {
     <div><h2>BCG по линиям (рост × доля)</h2><div class="card"><svg id="bcg" viewBox="0 0 460 260" width="100%" height="260"></svg></div></div>
   </div>
   <h2>Хитмап заказов · линия × месяц (вся история)</h2><div class="card" id="heatcard"></div>
-  <h2>Товары по линиям · клик раскрывает SKU и дневной тренд</h2>
+  <h2>Товары · группировка по модели</h2>
+  <div class="controls dates"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
   <div class="card" style="padding:0"><table><thead><tr>
-    <th>Линия / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">CR</th><th class="r">Ср.чек</th><th class="r">ABC·XYZ</th>
-  </tr></thead><tbody id="rows"></tbody></table></div>`;
+    <th>Модель / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">CR</th><th class="r">Ср.чек</th><th class="r">ABC·XYZ</th>
+  </tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="note">клик по модели раскрывает SKU и дневной тренд. Фильтры из таксономии (покрытие ~92% SKU; без таксономии товар идёт под своей линией).</div>`;
   const js = `
 function drawHeat(){const hm=heatmap();const maxU=Math.max(1,...hm.lines.flatMap(l=>Object.values(l.byMonth)));const shade=u=>{if(!u)return '#141416';const t=u/maxU,r=Math.round(40+t*215),g=Math.round(24+t*44),b=Math.round(22+t*26);return 'rgb('+r+','+g+','+b+')';};let h='<table><thead><tr><th>Линия</th>'+hm.months.map(m=>'<th class="r">'+m.slice(5)+'.'+m.slice(2,4)+'</th>').join('')+'<th class="r">Итого</th></tr></thead><tbody>';hm.lines.forEach(l=>{h+='<tr><td>'+l.line+'</td>'+hm.months.map(m=>{const u=l.byMonth[m]||0;return '<td class="r" style="background:'+shade(u)+';color:'+(u>maxU*0.4?'#0A0A0B':'#F5F5F6')+';font-weight:600;border-radius:6px">'+(u||'')+'</td>';}).join('')+'<td class="r num"><b>'+l.total+'</b></td></tr>';});document.getElementById('heatcard').innerHTML=h+'</tbody></table>';}
 function draw(cur,cmp){
@@ -182,12 +185,23 @@ function draw(cur,cmp){
   let mh='<div class="maxis"></div>'+xs.map(x=>'<div class="maxis">'+x+'</div>').join('');cls.forEach(a=>{mh+='<div class="maxis">'+a+'</div>';xs.forEach(x=>{const c=mx[a+x];mh+='<div class="mcell" style="background:'+col(a,x)+'"><div class="c">'+c.count+'</div><div class="r num">'+mln(c.rev)+' ₽</div></div>';});});document.getElementById('matrix').innerHTML=mh;
   const bc=bcg(cur.from,cur.to,cmp.from,cmp.to),W=460,H=260,pad=34,maxShare=Math.max(10,...bc.map(d=>d.share)),gmax=Math.max(20,...bc.map(d=>Math.abs(d.growth))),X=s=>pad+(s/maxShare)*(W-pad-10),Y=g=>H/2-(g/gmax)*(H/2-20),qc={star:'#34D399',cow:'#6AA8FF',question:'#F2B544',dog:'#FF5A5F'};
   let bs='<line x1="'+pad+'" y1="'+(H/2)+'" x2="'+W+'" y2="'+(H/2)+'" stroke="#2A2A2D"/><line x1="'+X(maxShare/2)+'" y1="6" x2="'+X(maxShare/2)+'" y2="'+(H-6)+'" stroke="#2A2A2D"/><text x="'+(W-6)+'" y="'+(H/2-6)+'" fill="#5E5E64" font-size="10" text-anchor="end">доля →</text><text x="'+(pad+4)+'" y="14" fill="#5E5E64" font-size="10">рост ↑</text>';bc.forEach(d=>{const cx=X(d.share),cy=Y(d.growth),r=Math.max(6,Math.min(26,Math.sqrt(d.rev)/120));bs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+qc[d.quadrant]+'" fill-opacity="0.35" stroke="'+qc[d.quadrant]+'"/><text x="'+cx+'" y="'+(cy-r-3)+'" fill="#F5F5F6" font-size="10" text-anchor="middle">'+d.line+'</text>';});document.getElementById('bcg').innerHTML=bs;
-  const lm=new Map();for(const v of views){let a=lm.get(v.line);if(!a){a=[];lm.set(v.line,a);}a.push(v);}const totRev=views.reduce((s,v)=>s+v.rev,0)||1;
-  const lines=[...lm.entries()].map(([line,sk])=>({line,sk,rev:sk.reduce((s,v)=>s+v.rev,0),units:sk.reduce((s,v)=>s+v.units,0)})).sort((a,b)=>b.rev-a.rev);
+  if(!window._fInit){initFilters();window._fInit=true;}
+  const fc=document.getElementById('fCat').value,fs=document.getElementById('fSub').value,fl=document.getElementById('fLine').value;
+  const fv=views.filter(v=>(!fc||catOf(v.sku)===fc)&&(!fs||subOf(v.sku)===fs)&&(!fl||(TX[v.sku]?TX[v.sku][2]:v.line)===fl));
+  const totRev=fv.reduce((s,v)=>s+v.rev,0)||1;
+  const lm=new Map();for(const v of fv){const mk=modelOf(v.sku);let a=lm.get(mk);if(!a){a=[];lm.set(mk,a);}a.push(v);}
+  const groups=[...lm.entries()].map(([model,sk])=>({model,sk,rev:sk.reduce((s,v)=>s+v.rev,0),units:sk.reduce((s,v)=>s+v.units,0)})).sort((a,b)=>b.rev-a.rev);
+  document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+fv.length;
   const spark=ser=>{const w=120,h=26,mx=Math.max(1,...ser),st=w/Math.max(1,ser.length-1);const p=ser.map((v,i)=>i*st+','+(h-(v/mx)*(h-3))).join(' ');return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#FF4438" stroke-width="1.6" points="'+p+'"/></svg>';};
   const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>';let rh='';
-  lines.forEach((l,li)=>{rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+l.line+'</b> <span class="sub">'+l.sk.length+' SKU</span></td><td class="r num">'+mln(l.rev)+'</td><td class="r num">'+(Math.round(l.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(l.units)+'</td><td class="r"></td><td class="r"></td><td class="r"></td></tr>';l.sk.forEach(s=>{rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+s.conv+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="7" style="padding-top:0"><span class="sub">тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
+  groups.forEach((g,li)=>{rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+(Math.round(g.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r"></td><td class="r"></td></tr>';g.sk.forEach(s=>{rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+s.conv+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="7" style="padding-top:0"><span class="sub">тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
   document.getElementById('rows').innerHTML=rh;document.querySelectorAll('.line-row').forEach(tr=>tr.addEventListener('click',()=>{const li=tr.dataset.li;tr.classList.toggle('open');document.querySelectorAll('.sku-row[data-li="'+li+'"]').forEach(r=>{r.style.display=r.style.display==='none'?'table-row':'none';});}));
+}
+function initFilters(){
+  const cats=new Set(),subs=new Set(),lines=new Set();
+  for(const k in TX){cats.add(TX[k][0]);subs.add(TX[k][1]);lines.add(TX[k][2]);}
+  const fill=(id,vals,label)=>{const el=document.getElementById(id);el.innerHTML='<option value="">'+label+'</option>'+[...vals].filter(Boolean).sort().map(v=>'<option>'+v+'</option>').join('');el.addEventListener('change',()=>draw(state.cur,state.cmp));};
+  fill('fCat',cats,'Все категории');fill('fSub',subs,'Все подкатегории');fill('fLine',lines,'Все линии');
 }
 boot(drawHeat);`;
   return shell("Товары", sections, js, JSON.stringify(model), FOOT_OPS + " Группировка по линии (модель-уровень - после джойна offer_id с таксономией).");

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gengroup.local/schemas/council-vote.json",
+  "title": "Council Vote Ballot (CC-09 / CC-12 / CC-13 / etc.)",
+  "description": "Single-agent vote ballot inside a Council session. SPARTAK aggregates ballots by tournament selection of weighted scores.",
+  "type": "object",
+  "required": ["voter", "council_id", "target_id", "scores", "weighted_total", "vote"],
+  "additionalProperties": false,
+  "properties": {
+    "voter": {
+      "type": "string",
+      "description": "Agent id casting the vote",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "council_id": {
+      "type": "string",
+      "description": "Council session id (matches knowledge/episodes/.../council-<id>.md)"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "Anonymized output being scored (Аноним A / B / C)"
+    },
+    "scores": {
+      "type": "object",
+      "description": "5-Criteria Matrix scores (same shape as audit-report)",
+      "required": ["accuracy", "actionability", "insight", "brand_fit", "risk_awareness"],
+      "properties": {
+        "accuracy":       { "type": "number", "minimum": 0, "maximum": 10 },
+        "actionability":  { "type": "number", "minimum": 0, "maximum": 10 },
+        "insight":        { "type": "number", "minimum": 0, "maximum": 10 },
+        "brand_fit":      { "type": "number", "minimum": 0, "maximum": 10 },
+        "risk_awareness": { "type": "number", "minimum": 0, "maximum": 10 }
+      }
+    },
+    "weighted_total": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "vote": {
+      "type": "string",
+      "enum": ["best", "second", "discard", "rework"],
+      "description": "Tournament selection signal"
+    },
+    "top_strength": {
+      "type": "string",
+      "description": "One sentence - what to STEAL THIS from the output"
+    },
+    "top_weakness": {
+      "type": "string",
+      "description": "One sentence - main gap"
+    },
+    "rank": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "council_lens": {
+      "type": "string",
+      "description": "Voter's perspective lens (e.g. 'adversarial', 'ca_mechanics', 'learning_effectiveness')"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

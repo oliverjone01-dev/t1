@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git show:*)",
+      "Bash(ls:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(file:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(jq:*)",
+      "Bash(python3 -c:*)",
+      "Bash(node -e:*)",
+      "Bash(date:*)",
+      "Bash(mkdir -p .claude/*)",
+      "Bash(mkdir -p knowledge/*)",
+      "Bash(mkdir -p traces/*)",
+      "Bash(chmod +x .claude/hooks/*)",
+      "WebFetch(domain:genglass.ru)",
+      "WebFetch(domain:valonti.com)",
+      "WebFetch(domain:gentero.ru)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/p9-trigger-detector.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/anti-slop-checker.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

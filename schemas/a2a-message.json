@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gengroup.local/schemas/a2a-message.json",
+  "title": "A2A Wire Message (Protocol 13)",
+  "description": "Standard envelope for all agent-to-agent messages in GENGROUP AI v9.0. Any message that does not validate is rejected by the receiving agent.",
+  "type": "object",
+  "required": ["from", "to", "intent", "thread_id"],
+  "additionalProperties": true,
+  "properties": {
+    "from": {
+      "type": "string",
+      "description": "Sender agent id (e.g. 'marco', 'feniks', 'spartak')",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "to": {
+      "type": "string",
+      "description": "Recipient agent id (single)",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "intent": {
+      "type": "string",
+      "description": "Verb_noun, snake_case. Examples: 'review_request', 'data_audit_response', 'plan_b_input', 'ca_mechanics_response'",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "thread_id": {
+      "type": "string",
+      "description": "UUID or correlation id for this multi-turn exchange"
+    },
+    "deliverable_ref": {
+      "type": "string",
+      "description": "Relative path to the artifact under review/discussion"
+    },
+    "context": {
+      "type": "object",
+      "description": "Free-form context (CC config, deadlines, P9 flag, etc)",
+      "properties": {
+        "tier": { "type": "string" },
+        "deadline": { "type": "string", "format": "date-time" },
+        "p9_required": { "type": "boolean" },
+        "cost_budget_usd": { "type": "number", "minimum": 0 },
+        "model_override": { "type": "string", "enum": ["haiku", "sonnet", "opus"] }
+      }
+    },
+    "payload": {
+      "description": "Intent-specific data. Schema depends on `intent`.",
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    },
+    "expected_output": {
+      "type": "string",
+      "description": "Name of the schema the response must conform to (e.g. 'audit-report')"
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "OpenTelemetry trace id for cross-agent observability"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

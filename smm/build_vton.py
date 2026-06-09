@@ -277,7 +277,7 @@ BODY = '''
     <div class="frame">
       <div class="f"><span class="m mk gold">▸</span><div>Время команды (примерно день в неделю на всех × 3 месяца × ставка ~1500 ₽/ч <span class="tag-inline hyp">ГИПОТЕЗА</span>) - <b>~55-90 000 ₽</b>, в смете берём середину ~70 000 ₽ · самая недооценённая статья</div></div>
       <div class="f"><span class="m mk gold">▸</span><div>Контент-продакшн под капсулу (съёмки, носители) - <b>~45 000 ₽</b></div></div>
-      <div class="f"><span class="m mk gold">▸</span><div>События и кросс-практикумы (доля наших затрат) - <b>~30 000 ₽</b></div></div>
+      <div class="f"><span class="m mk gold">▸</span><div>События и совместные практикумы (доля наших затрат) - <b>~30 000 ₽</b></div></div>
       <div class="f"><span class="m mk gold">▸</span><div>Образцы и обновление экспозиции - <b>~25 000 ₽</b></div></div>
       <div class="f"><span class="m mk gold">▸</span><div>Резерв 15% - <b>~30 000 ₽</b></div></div>
       <div class="f"><span class="m mk keep">=</span><div><b>Итого ~200 000 ₽ дополнительных трат.</b> Уже оплаченное резидентство считаем отдельно. Обязательно ручное утверждение Ивана.</div></div>

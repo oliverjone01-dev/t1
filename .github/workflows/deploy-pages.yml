@@ -1,11 +1,20 @@
 name: Deploy to GitHub Pages
 
-# Собирает сервис, прогоняет smoke-проверку контролов (gate) и публикует на Pages.
+# Две версии на одном сайте:
+#   корень  /          - БОЙ, собирается из ветки main (только одобренные правки)
+#   /preview/          - ПРЕВЬЮ, собирается из рабочей ветки (доработки на проверку)
+# Прод обновляется только при push в main. Превью можно обновлять вручную
+# (workflow_dispatch) после пуша в рабочую ветку - бой при этом не трогается.
+# Перед публикацией обе версии проходят smoke-гейт контролов (jsdom).
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      preview_ref:
+        description: "Ветка/реф для сборки в /preview/"
+        default: "claude/focused-davinci-tKJCt"
   push:
-    branches: [claude/focused-davinci-tKJCt]
-    paths: [analytics-mvp/**]
+    branches: [main]
+    paths: [analytics-mvp/**, .github/workflows/deploy-pages.yml]
 
 permissions:
   contents: read
@@ -22,23 +31,50 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: analytics-mvp
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm ci
-      - run: npm run build:site
-      - name: Smoke (контролы)
-        run: npm run smoke
+
+      # БОЙ: сборка из main в корень сайта. Smoke-гейт обязателен (hard gate).
+      - name: Build prod (main)
+        working-directory: analytics-mvp
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build:site
+          npm run smoke
+      - name: Stage prod to site root
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp -r analytics-mvp/public/. _site/
+
+      # ПРЕВЬЮ: сборка из рабочей ветки в /preview/. Если падает - бой всё равно
+      # публикуется (continue-on-error), а в логах прогона видно поломку.
+      - name: Build preview (working branch)
+        continue-on-error: true
+        env:
+          PREVIEW_REF: ${{ github.event.inputs.preview_ref || 'claude/focused-davinci-tKJCt' }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$PREVIEW_REF"
+          git worktree add /tmp/preview FETCH_HEAD
+          cd /tmp/preview/analytics-mvp
+          npm ci
+          npm run build:site
+          npm run smoke
+          mkdir -p "$GITHUB_WORKSPACE/_site/preview"
+          cp -r public/. "$GITHUB_WORKSPACE/_site/preview/"
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: analytics-mvp/public
+          path: _site
       - id: deploy
         uses: actions/deploy-pages@v4

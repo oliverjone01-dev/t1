@@ -1,0 +1,74 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGLASS · Кампании</title><style>
+:root{--bg:#0A0A0B;--surface:#161617;--raised:#1E1E20;--line:#2A2A2D;--txt:#F5F5F6;--mut:#8A8A90;--mut2:#5E5E64;--brand:#FF4438;--good:#34D399;--bad:#FF5A5F;--warn:#F2B544;--info:#6AA8FF;--r-card:16px;--r-ctl:10px;--pad:22px;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.55 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1200px;margin:0 auto;padding:24px;position:relative;z-index:1}
+.aurora{position:fixed;inset:-22% 0 auto 0;height:480px;z-index:0;pointer-events:none;background:radial-gradient(60% 120% at 50% 0%, transparent 40%, rgba(255,120,40,.45) 47%, rgba(255,60,120,.4) 55%, rgba(120,90,255,.36) 63%, rgba(70,170,255,.32) 71%, transparent 80%);filter:blur(40px);opacity:.42;transform:scaleY(.7)}
+header{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:#1E1E20;border:1px solid #34343a;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.02em}
+h1{font-size:19px;margin:0;font-weight:680;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:12.5px}
+nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tab{padding:9px 14px;border-radius:10px 10px 0 0;color:var(--mut);font-size:13.5px;text-decoration:none;border:1px solid transparent;border-bottom:none}
+.tab.on{color:var(--txt);background:var(--surface);border-color:var(--line)}
+.tab.soon{opacity:.45}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0}
+.chips{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.chip{padding:6px 13px;border-radius:999px;color:var(--mut);font-size:13px;cursor:pointer;border:0;background:transparent;font:inherit}
+.chip.on{background:var(--raised);color:var(--txt)}
+.btn{padding:7px 13px;border-radius:var(--r-ctl);border:1px solid var(--line);background:var(--surface);color:var(--txt);font:inherit;cursor:pointer;font-size:13px}
+.btn.on{border-color:var(--brand);color:#fff}
+.dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
+input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+.tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);position:relative;overflow:hidden}
+.kpi .lab{color:var(--mut);font-size:12px}.kpi .val{font-size:26px;font-weight:680;margin-top:6px;letter-spacing:-.02em}.kpi .d{font-size:12.5px;margin-top:5px}
+.up{color:var(--good)}.down{color:var(--bad)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:13px}@media(max-width:820px){.two{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700}
+.matrix{display:grid;grid-template-columns:30px repeat(3,1fr);gap:6px}
+.mcell{border-radius:9px;padding:10px;min-height:62px;border:1px solid var(--line)}.mcell .c{font-size:18px;font-weight:680}.mcell .r{font-size:11px;opacity:.8}
+.maxis{color:var(--mut);font-size:11px;display:grid;place-items:center}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;text-align:left}
+th{color:var(--mut);font-weight:500;font-size:12px}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.line-row{cursor:pointer}tr.line-row:hover{background:var(--raised)}
+tr.sku-row td{background:#121214;font-size:12.5px;color:var(--mut)}tr.sku-row .nm{color:var(--txt)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:9px;vertical-align:middle}
+.b-A{background:rgba(52,211,153,.16);color:var(--good)}.b-B{background:rgba(106,168,255,.16);color:var(--info)}.b-C{background:rgba(138,138,144,.18);color:#a8a8ad}
+.b-X{background:rgba(52,211,153,.16);color:var(--good)}.b-Y{background:rgba(242,181,68,.16);color:var(--warn)}.b-Z{background:rgba(255,90,95,.16);color:var(--bad)}
+.note{color:var(--mut);font-size:12px;margin-top:9px}
+.caret{display:inline-block;width:14px;color:var(--mut);transition:transform .15s}.open .caret{transform:rotate(90deg)}
+.funnel-row{display:grid;grid-template-columns:130px 1fr 150px;align-items:center;gap:12px;margin:8px 0}
+.funnel-bar{height:34px;border-radius:8px;background:linear-gradient(90deg,#FF4438,#b5392f);display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:680;font-size:14px;min-width:46px}
+.funnel-conv{color:var(--mut);font-size:12px}
+footer{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:12px}
+</style></head>
+<body><div class="aurora"></div><div class="wrap">
+  <header><div class="brand"><div class="logo">GG</div>
+    <div><h1>GENGLASS · аналитика OZON</h1><div class="sub">снимок рекламы за 30 дней</div></div></div>
+    <span class="tag">оперативный слой · снимок</span></header>
+  <nav><a class="tab" href="obzor.html">Обзор</a><a class="tab" href="tovary.html">Товары</a><a class="tab" href="voronka.html">Воронка</a><a class="tab" href="marketing.html">Маркетинг и цена</a><a class="tab on" href="campaigns.html">Кампании</a><a class="tab" href="cards.html">Карточки</a><a class="tab" href="money.html">Деньги</a><a class="tab" href="assistant.html">Ассистент</a></nav>
+  
+  <h2>Срез периода 2026-05-09..2026-06-07</h2>
+  <div class="grid">
+    <div class="card kpi"><div class="lab">ДРР канала, %</div><div class="val num">23%</div></div>
+    <div class="card kpi"><div class="lab">Расход, ₽</div><div class="val num">1.77 М</div></div>
+    <div class="card kpi"><div class="lab">Заказов с рекламы</div><div class="val num">141</div></div>
+    <div class="card kpi"><div class="lab">CPO, ₽</div><div class="val num">12 541</div></div>
+    <div class="card kpi"><div class="lab">Активных</div><div class="val num">44 / 119</div></div>
+  </div>
+  <h2>Сливы бюджета · кандидаты на отключение</h2>
+  <div class="card" style="padding:0"><table><thead><tr><th>Кампания (offer)</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody><tr><td>GGM-26</td><td class="sub">зеркала/металл</td><td class="r num">76 299</td><td class="r num">0</td><td class="r num down">0 заказов</td></tr><tr><td>GGT-03-3-5-14080-K</td><td class="sub">столы</td><td class="r num">66 234</td><td class="r num">0</td><td class="r num down">0 заказов</td></tr><tr><td>GGT-03-3-5-O-20090</td><td class="sub">столы</td><td class="r num">55 187</td><td class="r num">1</td><td class="r num down">79.5%</td></tr><tr><td>GGM-20-1</td><td class="sub">зеркала/металл</td><td class="r num">45 289</td><td class="r num">2</td><td class="r num down">72.6%</td></tr><tr><td>GGM-24-2</td><td class="sub">зеркала/металл</td><td class="r num">44 746</td><td class="r num">1</td><td class="r num down">99.7%</td></tr><tr><td>Оплата за заказ - все товары</td><td class="sub">прочее</td><td class="r num">40 055</td><td class="r num">0</td><td class="r num down">0 заказов</td></tr><tr><td>GGM-02-2-2</td><td class="sub">зеркала/металл</td><td class="r num">38 989</td><td class="r num">1</td><td class="r num down">97.7%</td></tr><tr><td>GGM-02-1-2</td><td class="sub">зеркала/металл</td><td class="r num">37 505</td><td class="r num">1</td><td class="r num down">121.4%</td></tr></tbody></table></div>
+  <div class="note">сливы: расход от 3000 ₽ при нуле заказов или ДРР от 40%. Потенциал возврата от отключения нулевых: <b>182 588 ₽</b> <span class="pill b-Y">[ГИПОТЕЗА]</span> (допущение: спрос не переедет на другие кампании).</div>
+  <h2>Топ по расходу</h2>
+  <div class="card" style="padding:0"><table><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody><tr><td>GGT-03-3-3-E-16080</td><td class="sub">столы</td><td class="r num">135 087</td><td class="r num">17</td><td class="r num up">13.7%</td><td class="r num">7.3x</td></tr><tr><td>GGT-03-1-5-E-14080</td><td class="sub">столы</td><td class="r num">128 421</td><td class="r num">16</td><td class="r num up">14.3%</td><td class="r num">7x</td></tr><tr><td>GGT-03-3-3-L-100</td><td class="sub">столы</td><td class="r num">103 920</td><td class="r num">11</td><td class="r num up">18.8%</td><td class="r num">5.3x</td></tr><tr><td>GGM-18-2-2</td><td class="sub">зеркала/металл</td><td class="r num">99 583</td><td class="r num">7</td><td class="r num ">30.1%</td><td class="r num">3.3x</td></tr><tr><td>GGT-03-2-2-O-18090</td><td class="sub">столы</td><td class="r num">88 588</td><td class="r num">6</td><td class="r num ">21.7%</td><td class="r num">4.6x</td></tr><tr><td>GGL-08-2</td><td class="sub">свет</td><td class="r num">84 799</td><td class="r num">12</td><td class="r num up">15.4%</td><td class="r num">6.5x</td></tr><tr><td>GGT-20-2-3-16080</td><td class="sub">столы</td><td class="r num">77 871</td><td class="r num">4</td><td class="r num ">39.7%</td><td class="r num">2.5x</td></tr><tr><td>GGM-26</td><td class="sub">зеркала/металл</td><td class="r num">76 299</td><td class="r num">0</td><td class="r num ">0%</td><td class="r num">0x</td></tr><tr><td>GGT-35-3-3-100-180</td><td class="sub">столы</td><td class="r num">75 104</td><td class="r num">4</td><td class="r num ">24.1%</td><td class="r num">4.2x</td></tr><tr><td>GGT-03-3-5-14080-K</td><td class="sub">столы</td><td class="r num">66 234</td><td class="r num">0</td><td class="r num ">0%</td><td class="r num">0x</td></tr></tbody></table></div>
+  <footer>ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.</footer>
+</div></body></html>

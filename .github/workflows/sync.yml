@@ -1,0 +1,64 @@
+name: OZON daily sync
+
+# Боевой синк крутится здесь: у GitHub Actions открыт интернет к OZON,
+# в отличие от dev-контейнера. Идемпотентно догружает новые дни в снапшот.
+
+on:
+  schedule:
+    - cron: "0 5 * * *" # ежедневно ~08:00 МСК
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "Дата начала бэкфилла (YYYY-MM-DD), пусто = пол данных"
+        required: false
+      to:
+        description: "Дата конца (YYYY-MM-DD), пусто = вчера"
+        required: false
+
+concurrency:
+  group: ozon-data # общий с update-snapshots.yml - без гонки за push (FENIX G5)
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        run: npm ci
+
+      - name: Run sync
+        env:
+          OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+          OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+          OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+          OZON_PERF_CLIENT_SECRET: ${{ secrets.OZON_PERF_CLIENT_SECRET }}
+          DATA_FLOOR: "2026-02-01"
+        run: |
+          npm run backfill -- \
+            ${{ github.event.inputs.from && format('--from {0}', github.event.inputs.from) || '' }} \
+            ${{ github.event.inputs.to && format('--to {0}', github.event.inputs.to) || '' }}
+
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add analytics-mvp/data/history.ndjson
+          if git diff --staged --quiet; then
+            echo "Нет новых данных - коммит не нужен"
+          else
+            git commit -m "data: ежедневный синк OZON $(date -u +%F)"
+            git push
+          fi
+        working-directory: .

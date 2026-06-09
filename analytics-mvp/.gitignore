@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.db
+*.db-journal
+*.sqlite
+.env
+.env.local
+data/*.db
+public/data.json
+# data/history.ndjson - текстовый снапшот истории, КОММИТИТСЯ (персистентность синка)

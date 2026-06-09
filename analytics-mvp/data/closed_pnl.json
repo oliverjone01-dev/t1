@@ -1,0 +1,8 @@
+{
+  "updated": "2026-04-30",
+  "months": [
+    { "month": "2026-02", "label": "Февраль 2026", "realization": 1200000, "profit": -370000 },
+    { "month": "2026-03", "label": "Март 2026", "realization": 8970000, "profit": 1260000 },
+    { "month": "2026-04", "label": "Апрель 2026", "realization": 14660000, "profit": 3840000 }
+  ]
+}

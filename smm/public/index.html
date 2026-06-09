@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGROUP · SMM-стратегия</title>
+<style>
+:root{--bg:#0A0A0B;--surface:#161617;--raised:#1E1E20;--line:#2A2A2D;--txt:#F5F5F6;--mut:#8A8A90;--brand:#FF4438;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.55 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+.aurora{position:fixed;inset:-22% 0 auto 0;height:480px;z-index:0;pointer-events:none;background:radial-gradient(60% 120% at 50% 0%, transparent 40%, rgba(255,120,40,.45) 47%, rgba(255,60,120,.4) 55%, rgba(120,90,255,.36) 63%, rgba(70,170,255,.32) 71%, transparent 80%);filter:blur(40px);opacity:.42;transform:scaleY(.7)}
+.wrap{max-width:920px;margin:0 auto;padding:24px;position:relative;z-index:1}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:#1E1E20;border:1px solid #34343a;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;letter-spacing:-.02em}
+h1{font-size:19px;margin:0;font-weight:680;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:12.5px}
+.tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;margin-left:auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:26px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:0 0 14px;font-weight:600}
+.lead{font-size:16px;line-height:1.5;margin:0 0 8px}
+.brands{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+.brand{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-weight:600}
+.brand span{display:block;color:var(--mut);font-size:11.5px;font-weight:400;margin-top:3px}
+.note{color:var(--mut);font-size:12px;margin-top:18px}
+a{color:var(--brand);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="wrap">
+  <header>
+    <div class="logo">GG</div>
+    <div><h1>GENGROUP · SMM-стратегия</h1><div class="sub">рабочее пространство проекта</div></div>
+    <span class="tag">в разработке</span>
+  </header>
+
+  <div class="card">
+    <h2>Статус</h2>
+    <p class="lead">Каркас проекта поднят. Сам сайт стратегии собирается в отдельной сессии, чтобы не смешивать контекст с аналитикой OZON.</p>
+    <p class="note">Изоляция: своя папка <b>smm/</b>, общая база знаний GENGROUP в корне репозитория, публикация в подпапку <b>/smm/</b> через единый сборщик сайта со smoke-гейтом.</p>
+  </div>
+
+  <div class="card">
+    <h2>Бренды холдинга</h2>
+    <div class="brands">
+      <div class="brand">GENGLASS<span>стекло, декор</span></div>
+      <div class="brand">VALONTI<span>перегородки</span></div>
+      <div class="brand">GENTERO<span>мебель</span></div>
+      <div class="brand">Metal-GM<span>металл</span></div>
+      <div class="brand">GLASS-MEMORY<span>память в стекле</span></div>
+    </div>
+  </div>
+
+  <p class="note">Аналитика OZON - отдельный сервис: <a href="../">вернуться к аналитике</a></p>
+</div>
+</body>
+</html>

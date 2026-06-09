@@ -1,20 +1,23 @@
 name: Deploy to GitHub Pages
 
-# Две версии на одном сайте:
-#   корень  /          - БОЙ, собирается из ветки main (только одобренные правки)
-#   /preview/          - ПРЕВЬЮ, собирается из рабочей ветки (доработки на проверку)
-# Прод обновляется только при push в main. Превью можно обновлять вручную
-# (workflow_dispatch) после пуша в рабочую ветку - бой при этом не трогается.
-# Перед публикацией обе версии проходят smoke-гейт контролов (jsdom).
+# Единый сборщик сайта GENGROUP. На репозиторий - один Pages-сайт, поэтому ВСЕ
+# проекты собираются одним воркфлоу и раскладываются по подпапкам:
+#   /                  - Аналитика OZON, БОЙ (из ветки main)
+#   /preview/          - Аналитика OZON, ПРЕВЬЮ (из рабочей ветки)
+#   /smm/              - SMM-стратегия, БОЙ (из ветки main)
+#   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
+# Прод (корни /, /smm/) меняется только при push в main. Превью можно гонять
+# вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
+# Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
 on:
   workflow_dispatch:
     inputs:
       preview_ref:
-        description: "Ветка/реф для сборки в /preview/"
+        description: "Ветка/реф для сборки превью-версий"
         default: "claude/focused-davinci-tKJCt"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, .github/workflows/deploy-pages.yml]
 
 permissions:
   contents: read
@@ -39,22 +42,26 @@ jobs:
         with:
           node-version: "22"
 
-      # БОЙ: сборка из main в корень сайта. Smoke-гейт обязателен (hard gate).
-      - name: Build prod (main)
+      # === БОЙ (из main) ===
+      # Аналитика: сборка + smoke-гейт (hard gate), раскладка в корень.
+      - name: Build analytics prod (main)
         working-directory: analytics-mvp
         run: |
           set -euo pipefail
           npm ci
           npm run build:site
           npm run smoke
-      - name: Stage prod to site root
+      - name: Assemble site (prod)
         run: |
           set -euo pipefail
           mkdir -p _site
           cp -r analytics-mvp/public/. _site/
+          # SMM: статика-плейсхолдер (свой build добавляется в сессии SMM)
+          mkdir -p _site/smm
+          cp -r smm/public/. _site/smm/
 
-      # ПРЕВЬЮ: сборка из рабочей ветки в /preview/. Если падает - бой всё равно
-      # публикуется (continue-on-error), а в логах прогона видно поломку.
+      # === ПРЕВЬЮ (из рабочей ветки) ===
+      # Если падает - бой всё равно публикуется (continue-on-error), поломка видна в логах.
       - name: Build preview (working branch)
         continue-on-error: true
         env:
@@ -63,12 +70,13 @@ jobs:
           set -euo pipefail
           git fetch origin "$PREVIEW_REF"
           git worktree add /tmp/preview FETCH_HEAD
-          cd /tmp/preview/analytics-mvp
-          npm ci
-          npm run build:site
-          npm run smoke
+          # аналитика-превью
+          ( cd /tmp/preview/analytics-mvp && npm ci && npm run build:site && npm run smoke )
           mkdir -p "$GITHUB_WORKSPACE/_site/preview"
-          cp -r public/. "$GITHUB_WORKSPACE/_site/preview/"
+          cp -r /tmp/preview/analytics-mvp/public/. "$GITHUB_WORKSPACE/_site/preview/"
+          # smm-превью
+          mkdir -p "$GITHUB_WORKSPACE/_site/smm/preview"
+          cp -r /tmp/preview/smm/public/. "$GITHUB_WORKSPACE/_site/smm/preview/"
 
       - uses: actions/configure-pages@v5
         with:

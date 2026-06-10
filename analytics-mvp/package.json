@@ -14,6 +14,7 @@
     "report": "tsx src/scripts/report.ts",
     "fetch:live": "tsx src/scripts/fetch-live.ts",
     "build:site": "tsx src/scripts/build-site.ts",
+    "katya": "tsx src/scripts/build-katya.ts",
     "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",
     "join:cogs": "tsx src/scripts/build-cogs-join.ts",
     "smoke": "tsx src/scripts/smoke.ts"

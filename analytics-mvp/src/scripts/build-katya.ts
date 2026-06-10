@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number };
 const RUMON = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
 const mln = (n: number) => Math.round((n / 1e6) * 1000) / 1000;
-const slug = (s: string) => "s_" + s.toLowerCase().replace(/[^a-zа-я0-9]+/gi, "_").replace(/^_|_$/g, "").slice(0, 18);
+const slug = (s: string) => "s_" + s.toLowerCase().replace(/[^a-zа-я0-9]+/gi, "_").replace(/^_|_$/g, "").slice(0, 60);
 
 // --- данные ---
 const facts: Fact[] = readFileSync("data/history.ndjson", "utf-8").trim().split("\n").map((l) => JSON.parse(l));
@@ -80,6 +80,14 @@ for (const sk of allSkus) {
   gr.get(s)!.push(sk);
 }
 const subIdOf = (g: string, sub: string) => slug("c_" + g + "_" + sub);
+{ // защита от коллизий id (раньше slice(0,18) задваивал «Зеркала»)
+  const seen = new Set<string>();
+  for (const [g, gr] of groups) for (const sub of gr.keys()) {
+    const id = slug("c_" + g + "_" + sub);
+    if (seen.has(id)) throw new Error("Коллизия id подкатегории: " + id + " (" + g + "/" + sub + ")");
+    seen.add(id);
+  }
+}
 const grIdOf = (g: string) => slug("g_" + g);
 
 function abcMap(items: { k: string; rev: number }[]): Record<string, string> {
@@ -203,6 +211,11 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
     "DAILY_REV_CAT[sub.id] = __SUB_D_R[sub.id] || buildDailyFromMonths(monthlyRev);");
   out = out.replace(/DAILY_ORD_CAT\[sub\.id\] = DAILY_REV_CAT\[sub\.id\]\.map\(r => Math\.round\(r \* 1000 \/ AVG_PRICE\)\);/g,
     "DAILY_ORD_CAT[sub.id] = __SUB_D_O[sub.id] || DAILY_REV_CAT[sub.id].map(r => Math.round(r * 1000 / AVG_PRICE));");
+  // форма v55: из CAT_MONTHLY
+  out = out.replace(/DAILY_REV_CAT\[sub\.id\] = buildDailyFromMonths\(cm\.r\);/g,
+    "DAILY_REV_CAT[sub.id] = __SUB_D_R[sub.id] || buildDailyFromMonths(cm.r);");
+  out = out.replace(/DAILY_ORD_CAT\[sub\.id\] = buildDailyFromMonths\(cm\.o\)\.map\(v => Math\.round\(v\)\);/g,
+    "DAILY_ORD_CAT[sub.id] = __SUB_D_O[sub.id] || buildDailyFromMonths(cm.o).map(v => Math.round(v));");
   if (opts.products) {
     out = out.replace(/items\.forEach\(it=> it\.daily=buildDailyFromMonths\(it\.mo\)\);/g,
       "const __PD = window.__PRODUCT_DAILY || {}; items.forEach(it=> it.daily = __PD[it.label] || buildDailyFromMonths(it.mo));");

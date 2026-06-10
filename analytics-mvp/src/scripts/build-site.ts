@@ -8,19 +8,23 @@ const ru = (n: number) => new Intl.NumberFormat("ru-RU").format(Math.round(n));
 const mln = (n: number) => (Math.abs(n) >= 1e6 ? (n / 1e6).toFixed(2) + " М" : ru(n));
 const kpiC = (lab: string, val: string) => `<div class="card kpi"><div class="lab">${lab}</div><div class="val num">${val}</div></div>`;
 
-// Сайт на Pages публичный, скрытые линии нельзя светить (кредо Ивана; TZ v2 1.1).
-// Утечка шла через сериализацию модели в <script>, поэтому маска применяется к
-// ФИНАЛЬНОМУ HTML при записи - покрывает и DATA, и видимый текст. fixtures/data не трогаются.
-const BRAND_MASK: Array<[RegExp, string]> = [
-  [/VIOLUR/gi, "V-Line"],
-  [/VALONTI/gi, "VL-Group"],
+// VIOLUR - это столы GENGLASS, открыто продаются на OZON (решение Ивана), не маскируем.
+// Маскируется только VALONTI (перегородки, не для МП). Маска применяется к финальному
+// HTML при записи - покрывает и DATA, и видимый текст. fixtures/data не трогаются.
+// Санитайзер финального HTML: маскирует скрытый бренд и чинит ошибочную подпись.
+// Один проход покрывает и видимый текст, и сериализованный DATA, и статичные страницы.
+const HTML_FIX: Array<[RegExp, string]> = [
+  [/VALONTI/gi, "VL-Group"],                       // скрытая линия перегородок - не для МП
+  [/VIOLUR \(перегородки\)/gi, "VIOLUR (столы)"],   // VIOLUR это столы, эвристика ошибалась
 ];
-function maskBrand(html: string): string {
+function sanitize(html: string): string {
   let out = html;
-  for (const [re, alias] of BRAND_MASK) out = out.replace(re, alias);
+  for (const [re, alias] of HTML_FIX) out = out.replace(re, alias);
   return out;
 }
-const writePage = (path: string, html: string) => writeFileSync(path, maskBrand(html));
+const writePage = (path: string, html: string) => writeFileSync(path, sanitize(html));
+
+const fixLine = (l: string) => (l === "VIOLUR (перегородки)" ? "VIOLUR (столы)" : l);
 
 // Плашка «фиксированный снимок» для статичных страниц (TZ v2 1.9)
 const snapNote = (from: string, to: string) =>
@@ -45,10 +49,10 @@ function buildMarketing(): string {
     `<tr><td>${l.line}</td><td class="r num">${mln(l.rev)}</td><td class="r num">${Math.round((l.rev / t.rev) * 1000) / 10}%</td></tr>`).join("");
   const adsLine = ads.by_line.map((l: any) =>
     `<tr><td>${l.line}</td><td class="r num">${mln(l.sp)}</td><td class="r num ${l.drr > 30 ? "down" : ""}">${l.drr}%</td></tr>`).join("");
-  // детект нарушения остаётся (бизнес-логика), формулировка без бренд-слова - публичный сайт
-  const violations = skus.sku_table.filter((s: any) => /VIOLUR|VALONTI/i.test(s.line) || /VIOLUR|VALONTI/i.test(s.name));
+  // нарушение позиционирования - только VALONTI (перегородки, не для МП). VIOLUR - легальные столы.
+  const violations = skus.sku_table.filter((s: any) => /VALONTI/i.test(s.line) || /VALONTI/i.test(s.name));
   const violBlock = violations.length
-    ? `<div class="card" style="border-color:#FF5A5F;background:#2a1414"><b>Нарушение позиционирования:</b> на маркетплейсе ${violations.length} позиций скрытой линии (перегородки/бренд не должны продаваться на МП). Список - во внутреннем отчёте.</div>`
+    ? `<div class="card" style="border-color:#FF5A5F;background:#2a1414"><b>Нарушение позиционирования:</b> на маркетплейсе ${violations.length} позиций скрытой линии (перегородки не должны продаваться на МП). Список - во внутреннем отчёте.</div>`
     : "";
   return `
   ${snapNote(skus.dateFrom, skus.dateTo)}
@@ -131,7 +135,7 @@ function main() {
     .filter((r) => r.sku !== "__empty__");
 
   const skus: Record<string, [string, string]> = {};
-  for (const r of rows) if (!skus[r.sku]) skus[r.sku] = [r.name, r.line];
+  for (const r of rows) if (!skus[r.sku]) skus[r.sku] = [r.name, fixLine(r.line)];
 
   // таксономия: sku -> [category, sub, line, model] (где есть джойн)
   let tax: Record<string, [string, string, string, string]> = {};

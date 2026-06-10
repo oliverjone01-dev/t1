@@ -58,8 +58,9 @@ for (const page of PAGES) {
   const body = clone.textContent || "";
   if (/-?Infinity|NaN|undefined ₽/.test(body)) errors.push("в выводе Infinity/NaN/undefined");
 
-  // FENIX BLOCKER-2: скрытые линии не светим - ни в тексте, ни в DATA (сырой HTML целиком)
-  if (/violur|valonti/i.test(html)) errors.push("утечка бренда скрытой линии в HTML/DATA");
+  // FENIX BLOCKER-2: скрытая линия VALONTI (перегородки) не светится - ни в тексте, ни в DATA.
+  // VIOLUR (столы) - легальный бренд, показывается открыто (решение Ивана).
+  if (/valonti/i.test(html)) errors.push("утечка бренда скрытой линии VALONTI в HTML/DATA");
   // FENIX BLOCKER-1, структурно: jsdom не рендерит CSS-layout, поэтому проверяем только
   // наличие скролл-обёрток у таблиц; визуальная читаемость на 390px - ручной просмотр (DoD)
   const tAll = document.querySelectorAll("table").length;

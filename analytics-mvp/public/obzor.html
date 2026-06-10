@@ -88,7 +88,7 @@ th,td{white-space:nowrap;padding:8px 10px}
 
   <div class="note" id="dq"></div>
   
-  <h2>Срез периода</h2><div class="grid" id="kpis"></div>
+  <h2>Срез периода</h2><div class="grid" id="kpis"></div><div class="note cmpnote"></div>
   <h2>Риск out-of-stock · остаток 0 при живых продажах <span class="pill b-Z">снимок 30д</span></h2>
   <div class="card" style="padding:0"><div class="tscroll" id="oos"></div></div>
   <div class="note" id="oosNote"></div>
@@ -128,13 +128,31 @@ function dailyRev(from,to){const ds=between(from,to);const m=new Map();for(const
 function series(sku,from,to){const ds=between(from,to);const m=new Map();for(const f of F)if(f[1]===sku&&f[0]>=from&&f[0]<=to)m.set(f[0],(m.get(f[0])||0)+f[3]);return ds.map(d=>m.get(d)||0);}
 function prevEqual(from,to){const len=between(from,to).length;const pt=ad(from,-1);let pf=ad(pt,-(len-1)),clip=false;if(pf<FLOOR){pf=FLOOR;clip=true;}return{from:pf,to:pt,clip};}
 function periodFor(kind){const to=MAX;let from;if(kind==='7')from=ad(to,-6);else if(kind==='30')from=ad(to,-29);else if(kind==='90')from=ad(to,-89);else from=FLOOR;if(from<FLOOR)from=FLOOR;return{from,to};}
-function areaSvg(vals,stroke){const w=460,h=150,max=Math.max(1,...vals),n=vals.length,st=w/Math.max(1,n-1);const pts=vals.map((v,i)=>(i*st).toFixed(1)+','+(h-(v/max)*(h-14)).toFixed(1));const line='M'+pts.join(' L');const area=line+' L'+w+','+h+' L0,'+h+' Z';return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+stroke+'" stop-opacity=".30"/><stop offset="1" stop-color="'+stroke+'" stop-opacity="0"/></linearGradient></defs><path d="'+area+'" fill="url(#ag)"/><path d="'+line+'" fill="none" stroke="'+stroke+'" stroke-width="2.2"/></svg>';}
+function areaSvg(vals,stroke,labels,unit){const w=460,h=150,max=Math.max(1,...vals),n=vals.length,st=w/Math.max(1,n-1);const xy=vals.map((v,i)=>[i*st,h-(v/max)*(h-14)]);const pts=xy.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1));const line='M'+pts.join(' L');const area=line+' L'+w+','+h+' L0,'+h+' Z';
+  const dots=labels?xy.map((p,i)=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3.2" fill="'+stroke+'" fill-opacity="0.85"><title>'+labels[i]+' · '+rub(Math.round(vals[i]))+(unit||'')+'</title></circle>').join(''):'';
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+stroke+'" stop-opacity=".30"/><stop offset="1" stop-color="'+stroke+'" stop-opacity="0"/></linearGradient></defs><path d="'+area+'" fill="url(#ag)"/><path d="'+line+'" fill="none" stroke="'+stroke+'" stroke-width="2.2"/>'+dots+'</svg>';}
 let state={kind:'30',cur:null,cmp:null,compare:false};
+// Проброс периода между страницами: выбор хранится в localStorage и восстанавливается на каждой странице.
+const PKEY='gg_period_v1';
+const gv=id=>{const el=document.getElementById(id);return el?el.value:'';};
+function saveState(){try{localStorage.setItem(PKEY,JSON.stringify({kind:state.kind,compare:state.compare,cf:gv('cf'),ct:gv('ct'),pf:gv('pf'),pt:gv('pt')}));}catch(e){}}
+function restoreState(){let s=null;try{s=JSON.parse(localStorage.getItem(PKEY)||'null');}catch(e){}if(!s||!s.kind)return;
+  state.kind=s.kind;state.compare=!!s.compare;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.k===s.kind));
+  const cr=document.getElementById('customRow');if(cr)cr.style.display=s.kind==='custom'?'flex':'none';
+  if(s.cf&&document.getElementById('cf'))document.getElementById('cf').value=s.cf;
+  if(s.ct&&document.getElementById('ct'))document.getElementById('ct').value=s.ct;
+  const cb=document.getElementById('cmpBtn'),cm=document.getElementById('cmpRow');
+  if(cb)cb.classList.toggle('on',state.compare);if(cm)cm.style.display=state.compare?'flex':'none';
+  if(s.pf&&document.getElementById('pf'))document.getElementById('pf').value=s.pf;
+  if(s.pt&&document.getElementById('pt'))document.getElementById('pt').value=s.pt;}
 function swap(w){if(w&&w.from&&w.to&&w.from>w.to){const t=w.from;w.from=w.to;w.to=t;}return w;}
-function apply(){let cur,cmp;if(state.kind==='custom')cur=swap({from:document.getElementById('cf').value,to:document.getElementById('ct').value});else cur=periodFor(state.kind);if(!cur.from||!cur.to){document.getElementById('period').textContent='укажите обе даты периода';return;}if(state.compare){cmp=swap({from:document.getElementById('pf').value,to:document.getElementById('pt').value});if(!cmp.from||!cmp.to)cmp=prevEqual(cur.from,cur.to);}else cmp=prevEqual(cur.from,cur.to);state.cur=cur;state.cmp=cmp;document.getElementById('period').textContent=cur.from+'..'+cur.to+'  против  '+cmp.from+'..'+cmp.to+(cmp.clip?' · неполная база сравнения (обрезана началом истории '+FLOOR+')':'');draw(cur,cmp);}
+function apply(){let cur,cmp;if(state.kind==='custom')cur=swap({from:document.getElementById('cf').value,to:document.getElementById('ct').value});else cur=periodFor(state.kind);if(!cur.from||!cur.to){document.getElementById('period').textContent='укажите обе даты периода';return;}if(state.compare){cmp=swap({from:document.getElementById('pf').value,to:document.getElementById('pt').value});if(!cmp.from||!cmp.to)cmp=prevEqual(cur.from,cur.to);}else cmp=prevEqual(cur.from,cur.to);state.cur=cur;state.cmp=cmp;document.getElementById('period').textContent=cur.from+'..'+cur.to+'  против  '+cmp.from+'..'+cmp.to+(cmp.clip?' · неполная база сравнения (обрезана началом истории '+FLOOR+')':'');saveState();draw(cur,cmp);
+  const note='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to+(cmp.clip?' (обрезано началом истории)':'');
+  document.querySelectorAll('.cmpnote').forEach(e=>{e.textContent=note;});}
 function initControls(){const cr=document.getElementById('customRow'),cm=document.getElementById('cmpRow');document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');state.kind=c.dataset.k;if(cr)cr.style.display=state.kind==='custom'?'flex':'none';apply();}));document.getElementById('cmpBtn').addEventListener('click',()=>{state.compare=!state.compare;document.getElementById('cmpBtn').classList.toggle('on',state.compare);if(cm)cm.style.display=state.compare?'flex':'none';if(state.compare){const pe=prevEqual(state.cur.from,state.cur.to);document.getElementById('pf').value=pe.from;document.getElementById('pt').value=pe.to;}apply();});const ac=document.getElementById('applyCustom');if(ac)ac.addEventListener('click',apply);const am=document.getElementById('applyCmp');if(am)am.addEventListener('click',apply);const c30=periodFor('30');if(document.getElementById('cf')){document.getElementById('cf').value=c30.from;document.getElementById('ct').value=c30.to;}}
 function kpiCard(lab,cur,prev,goodUp,fmt){if(!prev){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num">'+fmt(cur)+'</div><div class="d sub">нет базы сравнения</div></div>';}const d=(cur-prev)/prev;const up=d>=0,good=goodUp?up:!up;return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num">'+fmt(cur)+'</div><div class="d '+(good?'up':'down')+'">'+(up?'▲':'▼')+' '+pct(d)+'</div></div>';}
-function boot(staticFn){if(staticFn)staticFn();const dq=document.getElementById('dq');if(dq){const fr=DATA.fresh||{};dq.textContent='история по '+MAX+' (слой T-1)'+(fr.partial?' · последний день может быть неполным - сравнение занижает текущий период':'');}initControls();apply();}
+function boot(staticFn){if(staticFn)staticFn();const dq=document.getElementById('dq');if(dq){const fr=DATA.fresh||{};dq.textContent='история по '+MAX+' (слой T-1)'+(fr.partial?' · последний день может быть неполным - сравнение занижает текущий период':'');}initControls();restoreState();apply();}
 
 
 function draw(cur,cmp){
@@ -144,7 +162,7 @@ function draw(cur,cmp){
   const gm=rCov>0?Math.round(gC/rCov*1000)/10:0,cov=Math.round(rCov/(tc.rev||1)*100);
   const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\С</span></div><div class="val num">'+gm+'%</div><div class="d" style="color:'+(cov<80?'#F2B544':'#34D399')+'">покрытие С\\С: '+cov+'% оборота</div><div class="d sub">остальные '+(100-cov)+'% без С\\С - не экстраполировать</div></div>';
   document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),marginCard,kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,v=>v),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
-  const dr=dailyRev(cur.from,cur.to);document.getElementById('trend').innerHTML=areaSvg(dr.map(d=>d.rev),tc.rev>=tp.rev?'#34D399':'#FF4438');
+  const dr=dailyRev(cur.from,cur.to);document.getElementById('trend').innerHTML=areaSvg(dr.map(d=>d.rev),tc.rev>=tp.rev?'#34D399':'#FF4438',dr.map(d=>d.date),' ₽');
   document.getElementById('trendNote').textContent='с '+cur.from+' по '+cur.to+(dr.length?' · пик дня '+mln(Math.max(...dr.map(d=>d.rev)))+' ₽':' · нет данных');
   const lmarg=l=>vbl[l]&&vbl[l].rc>0?(Math.round(vbl[l].g/vbl[l].rc*1000)/10)+'%':'-';
   const lg=linesGrowth(cur.from,cur.to,cmp.from,cmp.to).sort((a,b)=>b.growth-a.growth);

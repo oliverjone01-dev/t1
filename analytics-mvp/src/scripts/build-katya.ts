@@ -245,10 +245,35 @@ function patchMarginHonesty(html: string): string {
 
 function banner(active: "obzor" | "tovary"): string {
   const snap = `${MONTHS[11]?.m || ""}-${MONTHS[15]?.m || ""}`;
-  const lnk = (href: string, label: string, on: boolean) =>
-    on ? `<b style="color:#22D3EE">${label}</b>` : `<a style="color:#22D3EE" href="${href}">${label}</a>`;
-  return `<div style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.5 system-ui;padding:8px 18px;text-align:center">Вид Кати на ЖИВЫХ данных OZON (через n8n) · реальные числа - канал <b>Озон</b> (${snap}), прочие каналы/клиенты/план - нет данных · ${lnk("katya.html", "Обзор", active === "obzor")} · ${lnk("katya-tovary.html", "Товары и заказы", active === "tovary")} · <a style="color:#22D3EE" href="./">← основной дашборд</a></div>`;
+  const k = (href: string, label: string, on: boolean) =>
+    `<a href="${href}" style="color:${on ? "#0B0F15" : "#22D3EE"};background:${on ? "#22D3EE" : "transparent"};border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">${label}</a>`;
+  const m = (href: string, label: string) =>
+    `<a href="${href}" style="color:#9fb6c6;border:1px solid #2a3a4a;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">${label}</a>`;
+  const mainPages: [string, string][] = [["obzor.html", "Обзор"], ["tovary.html", "Товары"], ["voronka.html", "Воронка"], ["marketing.html", "Маркетинг"], ["campaigns.html", "Кампании"], ["cards.html", "Карточки"], ["money.html", "Деньги"], ["assistant.html", "Ассистент"]];
+  return `<div style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
+  <div style="text-align:center;margin-bottom:6px">Вид Кати на ЖИВЫХ данных OZON (через n8n) · реальные числа - канал <b>Озон</b> (${snap}), прочие каналы/клиенты/план - нет данных</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
+    <span style="color:#5d7484">Вид Кати:</span> ${k("katya.html", "Обзор", active === "obzor")} ${k("katya-tovary.html", "Товары и заказы", active === "tovary")}
+    <span style="color:#5d7484;margin-left:10px">Основной:</span> ${mainPages.map(([h, l]) => m(h, l)).join(" ")}
+  </div></div>`;
 }
+
+// Проброс периода между katya-страницами: клики по кнопкам периода/диапазона/сравнения
+// сохраняются в localStorage и воспроизводятся при загрузке другой страницы.
+const PERSIST_JS = `<script>(function(){var K='gg_katya_period';
+function save(o){try{localStorage.setItem(K,JSON.stringify(o));}catch(e){}}
+function read(){try{return JSON.parse(localStorage.getItem(K)||'null');}catch(e){return null;}}
+function gv(id){var el=document.getElementById(id);return el?el.value:'';}
+function sv(id,v){var el=document.getElementById(id);if(el&&v)el.value=v;}
+document.querySelectorAll('.pb[data-p]').forEach(function(b){b.addEventListener('click',function(){save({p:b.dataset.p});});});
+var ra=document.getElementById('range-apply');if(ra)ra.addEventListener('click',function(){save({p:'range',from:gv('range-from'),to:gv('range-to')});});
+var ca=document.getElementById('cmp-apply');if(ca)ca.addEventListener('click',function(){var s=read()||{};s.cmp={af:gv('cmp-a-from'),at:gv('cmp-a-to'),bf:gv('cmp-b-from'),bt:gv('cmp-b-to')};save(s);});
+var co=document.getElementById('cmp-off');if(co)co.addEventListener('click',function(){var s=read()||{};delete s.cmp;save(s);});
+var s=read();if(!s)return;
+if(s.p==='range'&&s.from&&s.to){sv('range-from',s.from);sv('range-to',s.to);if(ra)ra.click();}
+else if(s.p){var b=document.querySelector('.pb[data-p="'+s.p+'"]');if(b)b.click();}
+if(s.cmp&&ca){sv('cmp-a-from',s.cmp.af);sv('cmp-a-to',s.cmp.at);sv('cmp-b-from',s.cmp.bf);sv('cmp-b-to',s.cmp.bt);ca.click();}
+})();</script>`;
 
 const J = (x: unknown) => JSON.stringify(x);
 
@@ -264,6 +289,7 @@ const J = (x: unknown) => JSON.stringify(x);
   for (const [n, lit] of repl) html = replaceConst(html, n, lit);
   html = patchMarginHonesty(html);
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor"));
+  html = html.replace("</body>", PERSIST_JS + "\n</body>");
   writeFileSync("public/katya.html", html);
 }
 
@@ -279,6 +305,7 @@ const J = (x: unknown) => JSON.stringify(x);
   for (const [n, lit] of repl) html = replaceConst(html, n, lit);
   html = patchMarginHonesty(html);
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("tovary"));
+  html = html.replace("</body>", PERSIST_JS + "\n</body>");
   writeFileSync("public/katya-tovary.html", html);
 }
 

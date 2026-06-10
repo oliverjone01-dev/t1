@@ -429,6 +429,58 @@ else if(s.p){var b=document.querySelector('.pb[data-p="'+s.p+'"]');if(b)b.click(
 if(s.cmp&&ca){sv('cmp-a-from',s.cmp.af);sv('cmp-a-to',s.cmp.at);sv('cmp-b-from',s.cmp.bf);sv('cmp-b-to',s.cmp.bt);ca.click();}
 })();</script>`;
 
+// --- Универсальный слой подсказок-глоссария (всплывашки до мельчайших деталей) ---
+// Наводишь на термин маркетплейса - получаешь человеческое объяснение. Работает на всех страницах.
+const GLOSSARY: Record<string, string> = {
+  "ДРР": "Доля рекламных расходов: сколько процентов выручки съедает реклама. Главное правило: ДРР должен быть НИЖЕ маржи, иначе реклама работает в минус.",
+  "ROAS": "Окупаемость рекламы: сколько рублей выручки приносит 1 рубль рекламы. ROAS 5x = на 1 ₽ рекламы 5 ₽ продаж.",
+  "CPO": "Стоимость заказа из рекламы: рекламный расход делить на число заказов с рекламы.",
+  "GMV": "Валовый оборот: вся сумма заказов до вычета сборов OZON. Это не прибыль, а верхняя строка.",
+  "ABC": "Деление товаров по вкладу в оборот: A - локомотивы (80% выручки), B - середняки, C - длинный хвост. Бьём по A.",
+  "XYZ": "Деление по стабильности спроса: X - ровный, Y - сезонный, Z - рваный. AX - идеал, держим на складе всегда.",
+  "OTIF": "Доставлено вовремя и в полном объёме (On Time In Full). Падает - страдает рейтинг и буст карточки.",
+  "OOS": "Нет на складе (Out Of Stock). Локомотив в OOS - прямая потеря оборота и просадка позиций.",
+  "индекс цены": "Наша цена против рынка: меньше 1 - мы дешевле, больше 1 - дороже. Дороже рынка - теряем буст и продажи.",
+  "конверсия": "Какая доля посетителей доходит до цели. Показ в корзину, корзина в заказ. Падает - проблема с ценой, карточкой или трафиком.",
+  "маржа после сборов": "Что остаётся после комиссии и логистики OZON. Реальная база для прибыли, а не голый оборот.",
+  "средний чек": "Оборот делить на заказы. Растёт - продаём дороже или комплектами.",
+  "реализация": "Сумма проданного по подписанным Актам OZON за закрытый месяц.",
+  "к выплате": "Сколько OZON перечислит после удержания комиссии, логистики и услуг.",
+  "возврат": "Покупатель вернул товар. Съедает маржу дважды: логистика туда и обратно.",
+  "отмена": "Заказ отменён до выдачи. Высокий процент бьёт по рейтингу продавца.",
+};
+const HELP_JS = `<style>
+.gloss{border-bottom:1px dotted rgba(34,211,238,.6);cursor:help}
+#gg-tip{position:fixed;z-index:9500;max-width:280px;background:#0c1520;border:1px solid #22D3EE;border-radius:9px;padding:9px 11px;font:12px/1.5 system-ui;color:#dfe9f0;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none;display:none}
+</style><script>(function(){
+var G=${JSON.stringify(GLOSSARY)};
+var terms=Object.keys(G).sort(function(a,b){return b.length-a.length;});
+var tip=document.createElement('div');tip.id='gg-tip';document.body.appendChild(tip);
+function show(e,t){tip.textContent=t;tip.style.display='block';var x=e.clientX+14,y=e.clientY+14;if(x+290>innerWidth)x=e.clientX-290;if(y+120>innerHeight)y=e.clientY-120;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hide(){tip.style.display='none';}
+var SEL='.kt-k,.card-sub,.card-title,.kt-note,.oh-note,th,.kpi-k,.lab,.sub,.mx-total-h,.pt-filter-lbl';
+var seen=0;
+function scan(){
+  document.querySelectorAll(SEL).forEach(function(el){
+    if(el.getAttribute('data-gl'))return;el.setAttribute('data-gl','1');
+    var html=el.innerHTML;var changed=false;
+    terms.forEach(function(t){
+      if(el.querySelector('.gloss'))return;
+      var re=new RegExp('(?<![\\\\w>])('+t.replace(/[.*+?^()|[\\]\\\\]/g,'\\\\$&')+')(?![\\\\w<])','');
+      if(re.test(html)&&html.indexOf('class="gloss"')<0){html=html.replace(re,'<span class="gloss" data-t="'+t+'">$1</span>');changed=true;}
+    });
+    if(changed){el.innerHTML=html;seen++;}
+  });
+  document.querySelectorAll('.gloss[data-t]').forEach(function(s){
+    if(s.getAttribute('data-b'))return;s.setAttribute('data-b','1');
+    var t=G[s.getAttribute('data-t')];
+    s.addEventListener('mousemove',function(e){show(e,t);});
+    s.addEventListener('mouseleave',hide);
+  });
+}
+scan();setInterval(scan,2000);
+})();</script>`;
+
 const J = (x: unknown) => JSON.stringify(x);
 
 // --- Оболочка новых страниц в дизайн-системе Кати: её CSS + topbar с периодами ---
@@ -496,6 +548,7 @@ ${pageJs}
 applyPeriod();
 </script>
 ${GURU_JS}
+${HELP_JS}
 </body></html>`;
 }
 
@@ -526,7 +579,7 @@ for (const f of facts) {
   html = patchMarginHonesty(html);
   html = patchRealDaily(html, {});
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor") + REAL_DAILY_JS(false) + `<script>window.__GG_MAXD='${maxD}'</script>`);
-  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n</body>");
+  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n</body>");
   writeFileSync("public/katya.html", html);
 }
 
@@ -543,7 +596,7 @@ for (const f of facts) {
   html = patchMarginHonesty(html);
   html = patchRealDaily(html, { products: true });
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("tovary") + REAL_DAILY_JS(true) + `<script>window.__GG_MAXD='${maxD}'</script>`);
-  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n</body>");
+  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n</body>");
   writeFileSync("public/katya-tovary.html", html);
 }
 

@@ -650,7 +650,7 @@
 </style></head><body>
 <div style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
-    <a href="katya.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Обзор</a> <a href="katya-tovary.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Товары и заказы</a> <a href="katya-voronka.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Воронка</a> <a href="katya-marketing.html" style="color:#0B0F15;background:#22D3EE;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Маркетинг</a> <a href="katya-money.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Деньги</a>
+    <a href="katya-command.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Командный центр</a> <a href="katya.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Обзор</a> <a href="katya-tovary.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Товары и заказы</a> <a href="katya-voronka.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Воронка</a> <a href="katya-marketing.html" style="color:#0B0F15;background:#22D3EE;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Маркетинг</a> <a href="katya-money.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Деньги</a>
     <span style="color:#5d7484;margin-left:8px">живой OZON (Фев 26-Июн 26) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>
 <header class="topbar" style="position:relative">
@@ -684,6 +684,7 @@ const MAXD='2026-06-09', FLOOR='2026-02-06';
 const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};
 const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
+function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
 const dlt=(c,p,goodUp=true)=>{if(!p)return '<span class="kt-d na">нет базы</span>';const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
 function periodDates(p){
@@ -797,6 +798,7 @@ function ask(q,page){
     msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
     busy=false;});
 }
+window.__guruAsk=ask;
 var inp=document.getElementById('gg-guru-q');
 document.getElementById('gg-guru-s').onclick=function(){var q=inp.value.trim();inp.value='';ask(q);};
 inp.addEventListener('keydown',function(e){if(e.key==='Enter'){var q=inp.value.trim();inp.value='';ask(q);}});

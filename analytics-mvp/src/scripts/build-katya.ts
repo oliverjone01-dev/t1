@@ -309,6 +309,7 @@ function patchMarginHonesty(html: string): string {
 
 // Шапка инструмента: только новые страницы (решение Ивана - старые из шапки убраны).
 const KPAGES: [string, string, string][] = [
+  ["katya-command.html", "Командный центр", "command"],
   ["katya.html", "Обзор", "obzor"],
   ["katya-tovary.html", "Товары и заказы", "tovary"],
   ["katya-voronka.html", "Воронка", "voronka"],
@@ -389,6 +390,7 @@ function ask(q,page){
     msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
     busy=false;});
 }
+window.__guruAsk=ask;
 var inp=document.getElementById('gg-guru-q');
 document.getElementById('gg-guru-s').onclick=function(){var q=inp.value.trim();inp.value='';ask(q);};
 inp.addEventListener('keydown',function(e){if(e.key==='Enter'){var q=inp.value.trim();inp.value='';ask(q);}});
@@ -469,6 +471,7 @@ const MAXD='${maxD}', FLOOR='2026-02-06';
 const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};
 const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
+function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
 const dlt=(c,p,goodUp=true)=>{if(!p)return '<span class="kt-d na">нет базы</span>';const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
 function periodDates(p){
@@ -707,4 +710,90 @@ function render(cur,cmp){
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }
 
-console.log(`katya: обзор + товары · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length} (${CAT_TREE.map(g => g.name).join(", ")}), окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);
+// --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
+{
+  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  // per-SKU разрежённый дневной ряд за окно (для движений по периоду)
+  const skuMeta: Record<string, { nm: string; line: string }> = {};
+  const tmpR: Record<string, Record<number, number>> = {}, tmpU: Record<string, Record<number, number>> = {};
+  for (const f of facts) {
+    const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
+    const sk = String(f.sku);
+    skuMeta[sk] ||= { nm: (skuName[sk] || sk).replace(/^GENGLASS\s*/, ""), line: catOf(sk) };
+    (tmpR[sk] ||= {})[i] = ((tmpR[sk] ||= {})[i] || 0) + f.revenue;
+    (tmpU[sk] ||= {})[i] = ((tmpU[sk] ||= {})[i] || 0) + f.units;
+  }
+  const SKUS = Object.keys(skuMeta).map((sk) => {
+    const d: number[][] = [];
+    for (const k in tmpR[sk]) d.push([+k, Math.round(tmpR[sk]![+k]!), tmpU[sk]![+k] || 0]);
+    return { sku: sk, nm: skuMeta[sk]!.nm, line: skuMeta[sk]!.line, d };
+  });
+  const LIVE = (live.sku_table || []).map((s: any) => ({ sku: String(s.sku), nm: String(s.name || "").replace(/^GENGLASS\s*/, ""), line: s.line, rev: s.rev, units: s.units, stock: s.stock, oos: s.oos, pidx: s.pidx, pcol: s.pcol, conv: s.convCart, ret: s.retp }));
+  const body = `
+  <section class="card" id="alerts-card"><div class="card-h"><div><div class="card-title">Что горит прямо сейчас</div><div class="card-sub">алёрты по живому снимку OZON (остатки, индекс цены, реклама за 30 дн). Клик по алёрту - разбор у Гуру</div></div></div><div id="alerts"></div></section>
+  <section class="kt-kpi" id="kpis"></section>
+  <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px" class="kt-two">
+    <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.</div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub">кто прибавил и кто просел по обороту против базы сравнения</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
+  </div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  const pageJs = `
+const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
+const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};
+const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
+const idxOf=dt=>Math.round((Date.parse(dt+'T00:00Z')-BASE0)/86400000);
+const sW=(arr,w)=>{let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;};
+const skuW=(sk,w)=>{let r=0,u=0;const a=idxOf(w.from),b=idxOf(w.to);sk.d.forEach(p=>{if(p[0]>=a&&p[0]<=b){r+=p[1];u+=p[2];}});return {r,u};};
+function tip(t){return ' title="'+t.replace(/"/g,'&quot;')+'"';}
+function render(cur,cmp){
+  const v=k=>sW(D[k],cur),p=k=>sW(D[k],cmp);
+  const gmv=v('rev'),gmvP=p('rev'),u=v('units'),uP=p('units'),vw=v('views'),vwP=p('views');
+  const cro=vw?u/vw:0,croP=vwP?uP/vwP:0,aov=u?gmv/u:0,aovP=uP?gmvP/uP:0;
+  // KPI
+  const kpi=(lab,val,dd,tp)=>'<div class="card"'+tip(tp)+'><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div>'+dd+'</div>';
+  document.getElementById('kpis').innerHTML=[
+    kpi('Оборот, ₽',fMln(gmv),dlt(gmv,gmvP),'GMV за период. Дельта к равному предыдущему окну.'),
+    kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
+    kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
+    kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
+    kpi('ДРР канала',(ADS.totals.drr||0)+'%','<span class="kt-d na">снимок 30 дн</span>','Доля рекламы в выручке за 30 дн. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
+    kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false),'Возвраты съедают маржу. Рост - смотри качество и описание.')
+  ].join('');
+  document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
+  // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)
+  const dV=(vw-vwP)*croP*aovP, dC=vw*(cro-croP)*aovP, dA=vw*cro*(aov-aovP);
+  const bars=[['Было',gmvP,'#5d7484'],['Трафик',dV,dV>=0?'#34D399':'#FF5A5F'],['Конверсия',dC,dC>=0?'#34D399':'#FF5A5F'],['Чек',dA,dA>=0?'#34D399':'#FF5A5F'],['Стало',gmv,'#22D3EE']];
+  const mx=Math.max(gmvP,gmv,1);
+  document.getElementById('bridge').innerHTML='<div style="display:flex;align-items:flex-end;gap:8px;height:170px;padding:10px 0">'+bars.map(b=>{const h=Math.max(4,Math.abs(b[1])/mx*130);const sign=(b[0]==='Было'||b[0]==='Стало')?'':(b[1]>=0?'+':'');return '<div style="flex:1;text-align:center;font-size:11px;color:var(--ink-3)"'+tip(b[0]+': '+sign+fMln(b[1])+' ₽')+'><div style="background:'+b[2]+';border-radius:6px 6px 0 0;height:'+h+'px;margin-bottom:4px"></div>'+b[0]+'<br><b style="color:var(--ink-1)">'+sign+fMln(b[1])+'</b></div>';}).join('')+'</div>';
+  // Движения
+  const mv=SKUS.map(s=>{const c=skuW(s,cur),b=skuW(s,cmp);return {nm:s.nm,line:s.line,r:c.r,d:c.r-b.r};}).filter(x=>x.r>0||x.d!==0);
+  const up=mv.slice().sort((a,b)=>b.d-a.d).slice(0,5),dn=mv.slice().sort((a,b)=>a.d-b.d).slice(0,5);
+  const row=x=>'<tr><td>'+esc(x.nm.slice(0,46))+'<span style="color:var(--ink-3)"> · '+x.line+'</span></td><td class="r">'+fMln(x.r)+'</td><td class="r" style="color:'+(x.d>=0?'var(--up)':'var(--dn)')+'">'+(x.d>=0?'+':'')+fMln(x.d)+'</td></tr>';
+  document.getElementById('movers').innerHTML=up.map(row).join('')+'<tr><td colspan="3" style="height:6px;border:0"></td></tr>'+dn.filter(x=>x.d<0).map(row).join('');
+  // Локомотивы (ABC периода) + риск из live
+  const liveBy={};LIVE.forEach(l=>liveBy[l.sku]=l);
+  const per=SKUS.map(s=>({...s,r:skuW(s,cur).r})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);
+  const tot=per.reduce((s,x)=>s+x.r,0)||1;let cum=0;const A=[];
+  for(const x of per){cum+=x.r;A.push(x);if(cum/tot>=0.8)break;}
+  document.getElementById('loco').innerHTML=A.slice(0,14).map(x=>{const l=liveBy[x.sku]||{};const oos=l.oos>0||l.stock===0;const pricey=l.pidx>1;const risk=[];if(oos)risk.push('<span style="color:var(--dn)">OOS</span>');if(pricey)risk.push('<span style="color:var(--warn)">дороже рынка</span>');
+    return '<tr><td>'+esc(x.nm.slice(0,44))+'</td><td style="color:var(--ink-3)">'+x.line+'</td><td class="r">'+fMln(x.r)+'</td><td class="r">'+(x.r/tot*100).toFixed(1)+'%</td><td class="r"'+tip('остаток на складе, шт (снимок)')+'>'+(l.stock!=null?fmtRu(l.stock):'н/д')+'</td><td class="r"'+tip('индекс цены к рынку: <1 дешевле, >1 дороже')+' style="color:'+(pricey?'var(--dn)':l.pidx?'var(--up)':'inherit')+'">'+(l.pidx||'н/д')+'</td><td>'+(risk.join(' ')||'<span style="color:var(--up)">ок</span>')+'</td></tr>';}).join('');
+  // Алёрты
+  const al=[];
+  const oosLoco=A.map(x=>liveBy[x.sku]).filter(l=>l&&(l.oos>0||l.stock===0));
+  if(oosLoco.length)al.push({c:'dn',t:oosLoco.length+' локомотив(ов) в OOS',s:'A-товары без остатка - прямая потеря оборота. '+oosLoco.slice(0,3).map(l=>l.nm.slice(0,30)).join('; '),q:'Какие топовые товары в OOS и сколько оборота я теряю?'});
+  const burn=(ADS.burners||[]).filter(b=>b.sp>=3000);
+  if(burn.length)al.push({c:'dn',t:burn.length+' рекламных слива',s:'кампании жгут бюджет при нуле заказов или ДРР 40%+: '+burn.slice(0,3).map(b=>b.off).join('; '),q:'Где я сливаю рекламный бюджет и сколько можно сэкономить?'});
+  const hotLines=(ADS.by_line||[]).filter(l=>l.drr>30);
+  if(hotLines.length)al.push({c:'warn',t:'ДРР выше 30% по '+hotLines.length+' линии(ям)',s:hotLines.map(l=>l.line+' '+l.drr+'%').join(', ')+' - проверь, не выше ли маржи',q:'По каким линиям реклама дороже маржи?'});
+  const pricey=LIVE.filter(l=>l.pidx>1.05&&l.rev>0);
+  if(pricey.length)al.push({c:'warn',t:pricey.length+' товаров дороже рынка',s:'индекс цены выше 1.05 - рискуем потерять буст и продажи',q:'Какие товары дороже рынка и чем это грозит?'});
+  if(!al.length)al.push({c:'ok',t:'Критичных алёртов нет',s:'OOS на локомотивах, рекламных сливов и ценовых рисков сейчас не видно',q:''});
+  document.getElementById('alerts').innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">'+al.map((a,i)=>{const col=a.c==='dn'?'#FF5A5F':a.c==='warn'?'#E0A100':'#34D399';
+    return '<div class="alert-card" data-q="'+esc(a.q)+'" style="border:1px solid '+col+'55;border-left:3px solid '+col+';border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02);cursor:'+(a.q?'pointer':'default')+'"><div style="font-weight:700;color:'+col+';font-size:13px;margin-bottom:3px">'+a.t+'</div><div style="font-size:11.5px;color:var(--ink-2);line-height:1.45">'+esc(a.s)+'</div>'+(a.q?'<div style="font-size:10.5px;color:#22D3EE;margin-top:5px">разобрать у Гуру →</div>':'')+'</div>';}).join('')+'</div>';
+  document.querySelectorAll('.alert-card[data-q]').forEach(c=>{const q=c.getAttribute('data-q');if(q)c.onclick=()=>{if(window.__guruAsk)window.__guruAsk(q,'Командный центр, алёрт: '+c.querySelector('div').textContent);};});
+}`;
+  writeFileSync("public/katya-command.html", kshell("Командный центр", "command", body, pageJs));
+}
+
+console.log(`katya: командный центр + 5 страниц · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);

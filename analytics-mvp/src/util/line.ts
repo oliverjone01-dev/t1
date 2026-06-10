@@ -5,7 +5,7 @@
 export function lineOf(name: string): string {
   const n = (name || "").toUpperCase();
   if (n.includes("TRUBIS")) return "TRUBIS";
-  if (n.includes("VIOLUR")) return "VIOLUR (перегородки)";
+  if (n.includes("VIOLUR")) return "VIOLUR (столы)";
   if (n.includes("NOLVIS")) return "NOLVIS";
   if (n.includes("OSOLIS")) return "OSOLIS";
   if (n.includes("ЗЕРКАЛ")) return "зеркала";

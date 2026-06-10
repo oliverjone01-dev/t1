@@ -6,7 +6,7 @@ import { parseTaxonomy, offerIndex } from "../taxonomy.js";
 function main() {
   const tax = parseTaxonomy(readFileSync("fixtures/taxonomy.csv", "utf-8"));
   const oi = offerIndex(tax);
-  const skus = JSON.parse(readFileSync("fixtures/skus_live_30d.json", "utf-8"));
+  const skus = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
 
   const map: Record<string, { offer: string; category: string; sub: string; line: string; model: string }> = {};
   let matched = 0, total = 0, revMatched = 0, revTotal = 0;

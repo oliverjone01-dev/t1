@@ -100,9 +100,10 @@ export function priceDistribution(a: SkusPayload) {
   return { cheaper, even, pricier, noIndex };
 }
 
-// Флаг нарушения позиционирования: VIOLUR/VALONTI не должны быть на МП (DOC_05 §1.6).
+// Флаг нарушения позиционирования: VALONTI (перегородки) не должна быть на МП (DOC_05 §1.6).
+// VIOLUR - это столы GENGLASS, легально продаются, нарушением не считается (решение Ивана).
 export function brandViolations(a: SkusPayload): SkuRow[] {
-  return a.sku_table.filter((s) => /VIOLUR|VALONTI/i.test(s.line) || /VIOLUR|VALONTI/i.test(s.name));
+  return a.sku_table.filter((s) => /VALONTI/i.test(s.line) || /VALONTI/i.test(s.name));
 }
 
 function round1(n: number): number {

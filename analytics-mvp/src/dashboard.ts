@@ -146,7 +146,7 @@ document.querySelector('#cards tbody').innerHTML = M.cardsToFix.length ? M.cards
 if (M.violations.length) {
   document.getElementById('violations').innerHTML =
     '<div class="warn"><b>Нарушение позиционирования:</b> на маркетплейсе обнаружены '+
-    M.violations.length+' позиций линии VIOLUR/VALONTI (не должны быть на МП). '+
+    M.violations.length+' позиций линии VALONTI (перегородки, не для МП). '+
     M.violations.map(v=>v.name).slice(0,3).join('; ')+'</div>';
 }
 

@@ -24,6 +24,9 @@ nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px soli
 .btn.on{border-color:var(--brand);color:#fff}
 .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
 input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+input[type=search]{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;color-scheme:dark;min-width:230px}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.sc{color:var(--warn);font-weight:700}
+.na{color:var(--mut)}
 .tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
@@ -50,31 +53,45 @@ tr.sku-row td{background:#121214;font-size:12.5px;color:var(--mut)}tr.sku-row .n
 .funnel-bar{height:34px;border-radius:8px;background:linear-gradient(90deg,#FF4438,#b5392f);display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:680;font-size:14px;min-width:46px}
 .funnel-conv{color:var(--mut);font-size:12px}
 footer{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:12px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lnk{color:var(--mut);text-decoration:none;font-size:12px}.lnk:hover{color:var(--brand)}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px}
+@media(max-width:760px){
+.wrap{padding:14px}:root{--pad:16px}
+.grid{grid-template-columns:1fr 1fr}
+.kpi .val{font-size:21px}
+h1{font-size:16px}
+.tscroll table{min-width:620px}
+th,td{white-space:nowrap;padding:8px 10px}
+.funnel-row{grid-template-columns:84px 1fr 96px}
+.wgrid{grid-template-columns:1fr 1fr}
+}
 </style></head>
 <body><div class="aurora"></div><div class="wrap">
   <header><div class="brand"><div class="logo">GG</div>
     <div><h1>GENGLASS · аналитика OZON</h1><div class="sub">снимок рекламы и цен за 30 дней</div></div></div>
     <span class="tag">оперативный слой · снимок</span></header>
-  <nav><a class="tab" href="obzor.html">Обзор</a><a class="tab" href="tovary.html">Товары</a><a class="tab" href="voronka.html">Воронка</a><a class="tab on" href="marketing.html">Маркетинг и цена</a><a class="tab" href="campaigns.html">Кампании</a><a class="tab" href="cards.html">Карточки</a><a class="tab" href="money.html">Деньги</a><a class="tab" href="assistant.html">Ассистент</a></nav>
+  <nav><a class="tab" href="obzor.html">Обзор</a><a class="tab" href="tovary.html">Товары</a><a class="tab" href="voronka.html">Воронка</a><a class="tab on" href="marketing.html">Маркетинг и цена</a><a class="tab" href="campaigns.html">Кампании</a><a class="tab" href="cards.html">Карточки</a><a class="tab" href="money.html">Деньги</a><a class="tab" href="assistant.html">Ассистент</a><a class="tab" href="katya.html">Вид Кати</a></nav>
   
-  <h2>Срез периода 2026-05-09..2026-06-07</h2>
+  <div class="card" style="border-color:#3a3a40"><b>Фиксированный снимок 30 дней</b> (2026-05-11..2026-06-09) - период на этой странице не переключается. Интерактивный период - на страницах Обзор / Товары / Воронка / Карточки / Деньги.</div>
+  <h2>Срез периода 2026-05-11..2026-06-09</h2>
   <div class="grid">
-    <div class="card kpi"><div class="lab">ДРР канала, %</div><div class="val num">23%</div></div>
-    <div class="card kpi"><div class="lab">Расход рекламы, ₽</div><div class="val num">1.77 М</div></div>
-    <div class="card kpi"><div class="lab">Выручка с рекламы, ₽</div><div class="val num">7.70 М</div></div>
-    <div class="card kpi"><div class="lab">ROAS</div><div class="val num">4.4x</div></div>
-    <div class="card kpi"><div class="lab">Активных кампаний</div><div class="val num">44 / 119</div></div>
+    <div class="card kpi"><div class="lab">ДРР канала, %</div><div class="val num">24.1%</div></div>
+    <div class="card kpi"><div class="lab">Расход рекламы, ₽</div><div class="val num">1.82 М</div></div>
+    <div class="card kpi"><div class="lab">Выручка с рекламы, ₽</div><div class="val num">7.55 М</div></div>
+    <div class="card kpi"><div class="lab">ROAS</div><div class="val num">4.1x</div></div>
+    <div class="card kpi"><div class="lab">Активных кампаний</div><div class="val num">42 / 120</div></div>
   </div>
-  <div class="card" style="border-color:#FF5A5F;background:#2a1414"><b>Нарушение позиционирования:</b> на маркетплейсе 15 позиций линии VIOLUR/VALONTI (перегородки/бренд не должны быть на МП).</div>
+  
   <h2>Позиционирование по цене (SKU против рынка)</h2>
   <div class="card">
-    <div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line)"><span style="width:32.04419889502763%;background:#34D399;display:block;height:100%"></span><span style="width:0.5524861878453039%;background:#6AA8FF;display:block;height:100%"></span><span style="width:44.751381215469614%;background:#FF5A5F;display:block;height:100%"></span><span style="width:22.65193370165746%;background:#3a3a40;display:block;height:100%"></span></div>
-    <div class="note"><span style="color:#34D399">дешевле рынка: 58</span> (можно поднять цену) &nbsp;·&nbsp; вровень: 1 &nbsp;·&nbsp; <span style="color:#FF5A5F">дороже рынка: 81</span> (риск проседания) &nbsp;·&nbsp; без индекса: 41</div>
+    <div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--line)"><span style="width:37.2972972972973%;background:#34D399;display:block;height:100%"></span><span style="width:1.0810810810810811%;background:#6AA8FF;display:block;height:100%"></span><span style="width:37.2972972972973%;background:#FF5A5F;display:block;height:100%"></span><span style="width:24.324324324324323%;background:#3a3a40;display:block;height:100%"></span></div>
+    <div class="note"><span style="color:#34D399">дешевле рынка: 69</span> (можно поднять цену) &nbsp;·&nbsp; вровень: 2 &nbsp;·&nbsp; <span style="color:#FF5A5F">дороже рынка: 69</span> (риск проседания) &nbsp;·&nbsp; без индекса: 45</div>
   </div>
   <div class="two">
-    <div><h2>Доля выручки по линиям</h2><div class="card" style="padding:0"><table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th></tr></thead><tbody><tr><td>TRUBIS</td><td class="r num">11.50 М</td><td class="r num">48%</td></tr><tr><td>зеркала</td><td class="r num">5.28 М</td><td class="r num">22%</td></tr><tr><td>столы</td><td class="r num">2.55 М</td><td class="r num">10.6%</td></tr><tr><td>NOLVIS</td><td class="r num">1.46 М</td><td class="r num">6.1%</td></tr><tr><td>VIOLUR (перегородки)</td><td class="r num">1.39 М</td><td class="r num">5.8%</td></tr><tr><td>OSOLIS</td><td class="r num">953 355</td><td class="r num">4%</td></tr><tr><td>прочее</td><td class="r num">842 859</td><td class="r num">3.5%</td></tr></tbody></table></div></div>
-    <div><h2>ДРР по линиям <span class="pill b-Y">ориентир</span></h2><div class="card" style="padding:0"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody><tr><td>столы</td><td class="r num">946 794</td><td class="r num ">19.9%</td></tr><tr><td>зеркала/металл</td><td class="r num">478 121</td><td class="r num down">53.5%</td></tr><tr><td>свет</td><td class="r num">235 270</td><td class="r num ">17.9%</td></tr><tr><td>прочее</td><td class="r num">108 068</td><td class="r num ">14.6%</td></tr></tbody></table></div>
-      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). Достоверен только суммарный ДРР канала 23%.</div></div>
+    <div><h2>Доля выручки по линиям</h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th></tr></thead><tbody><tr><td>TRUBIS</td><td class="r num">12.01 М</td><td class="r num">48.3%</td></tr><tr><td>зеркала</td><td class="r num">5.47 М</td><td class="r num">22%</td></tr><tr><td>столы</td><td class="r num">2.35 М</td><td class="r num">9.5%</td></tr><tr><td>VIOLUR (столы)</td><td class="r num">1.61 М</td><td class="r num">6.5%</td></tr><tr><td>NOLVIS</td><td class="r num">1.49 М</td><td class="r num">6%</td></tr><tr><td>прочее</td><td class="r num">965 737</td><td class="r num">3.9%</td></tr><tr><td>OSOLIS</td><td class="r num">953 355</td><td class="r num">3.8%</td></tr></tbody></table></div></div></div>
+    <div><h2>ДРР по линиям <span class="pill b-Y">ориентир</span></h2><div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody><tr><td>столы</td><td class="r num">965 822</td><td class="r num ">20%</td></tr><tr><td>зеркала/металл</td><td class="r num">470 861</td><td class="r num down">62.4%</td></tr><tr><td>свет</td><td class="r num">222 453</td><td class="r num ">16.9%</td></tr><tr><td>прочее</td><td class="r num">163 237</td><td class="r num ">25.4%</td></tr></tbody></table></div></div>
+      <div class="note">ДРР по линиям - ненадёжно (таксономии рекламы и аналитики расходятся, G5). Достоверен только суммарный ДРР канала 24.1%.</div></div>
   </div>
   <footer>ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.</footer>
 </div></body></html>

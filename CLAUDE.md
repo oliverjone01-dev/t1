@@ -202,6 +202,7 @@
 
 ## 14. Sources of Truth
 
+- **Аналитика OZON (живые данные):** `analytics-mvp/` - n8n-вебхуки (`gengroup-ozon-ads|skus|pnl|pnl-sku`) → `fetch:live` → `data/` → дашборды. `fixtures/` - только референс, в отчёты не подавать. Мультиплатформа (WB/ЯМ) - новыми n8n-workflow в едином контракте данных, см. `knowledge/episodes/2026-06/feniks-veto-uploaded-docs-20260610.md`
 - **Глоссарий брендов:** `glossary.md` + лендинг `index.html`
 - **Master System v9 manifesto:** `agents-v9/MASTER_SYSTEM_v9.md`
 - **Agent definitions:** `.claude/agents/*.md`

@@ -27,6 +27,9 @@ nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px soli
 .btn.on{border-color:var(--brand);color:#fff}
 .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
 input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+input[type=search]{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;color-scheme:dark;min-width:230px}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.sc{color:var(--warn);font-weight:700}
+.na{color:var(--mut)}
 .tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
@@ -53,6 +56,19 @@ tr.sku-row td{background:#121214;font-size:12.5px;color:var(--mut)}tr.sku-row .n
 .funnel-bar{height:34px;border-radius:8px;background:linear-gradient(90deg,#FF4438,#b5392f);display:flex;align-items:center;padding-left:12px;color:#fff;font-weight:680;font-size:14px;min-width:46px}
 .funnel-conv{color:var(--mut);font-size:12px}
 footer{margin-top:36px;border-top:1px solid var(--line);padding-top:14px;color:var(--mut);font-size:12px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lnk{color:var(--mut);text-decoration:none;font-size:12px}.lnk:hover{color:var(--brand)}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px}
+@media(max-width:760px){
+.wrap{padding:14px}:root{--pad:16px}
+.grid{grid-template-columns:1fr 1fr}
+.kpi .val{font-size:21px}
+h1{font-size:16px}
+.tscroll table{min-width:620px}
+th,td{white-space:nowrap;padding:8px 10px}
+.funnel-row{grid-template-columns:84px 1fr 96px}
+.wgrid{grid-template-columns:1fr 1fr}
+}
 `;
 
 const NAV: Array<[string, string, string]> = [
@@ -64,11 +80,15 @@ const NAV: Array<[string, string, string]> = [
   ["Карточки", "cards.html", "Карточки"],
   ["Деньги", "money.html", "Деньги"],
   ["Ассистент", "assistant.html", "Ассистент"],
+  ["Вид Кати", "katya.html", "Вид Кати"],
 ];
 
 // Общий движок: данные + витрины + период/сравнение. draw(cur,cmp) определяет страница.
 const ENGINE = `
-const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{}, CG=DATA.cogs||{}, TXS=DATA.txsku||{};
+const F=DATA.facts, SK=DATA.skus, MAX=DATA.max, FLOOR=DATA.floor, TX=DATA.tax||{}, CG=DATA.cogs||{}, TXS=DATA.txsku||{}, OFF=DATA.offers||{};
+const ozUrl=s=>'https://www.ozon.ru/product/'+s;
+const cabUrl=s=>OFF[s]?'https://seller.ozon.ru/app/products?search='+encodeURIComponent(OFF[s]):null;
+const skuLinks=s=>' <a class="lnk" target="_blank" rel="noopener" title="публичная карточка OZON" href="'+ozUrl(s)+'">&#8599;</a>'+(cabUrl(s)?' <a class="lnk" target="_blank" rel="noopener" title="поиск по артикулу в кабинете продавца" href="'+cabUrl(s)+'">&#9881;</a>':'');
 const catOf=s=>TX[s]?TX[s][0]:'', subOf=s=>TX[s]?TX[s][1]:'', modelOf=s=>TX[s]?TX[s][3]:SK[s][1];
 const cogsOf=s=>CG[s]||0;
 const txTake=s=>{const t=TXS[s];return (t&&t.accruals>0)?Math.round(t.amount/t.accruals*1000)/10:null;};
@@ -90,15 +110,15 @@ function linesGrowth(cf,ct,pf,pt){const a=aggLine(win(cf,ct)),b=aggLine(win(pf,p
 function heatmap(){const ms=new Set(),lm=new Map();for(const f of F){const mo=f[0].slice(0,7);ms.add(mo);const ln=SK[f[1]][1];let bm=lm.get(ln);if(!bm){bm={};lm.set(ln,bm);}bm[mo]=(bm[mo]||0)+f[3];}const months=[...ms].sort();const lines=[...lm.entries()].map(([line,byMonth])=>({line,byMonth,total:Object.values(byMonth).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);return{months,lines};}
 function dailyRev(from,to){const ds=between(from,to);const m=new Map();for(const f of F)if(f[0]>=from&&f[0]<=to){const e=m.get(f[0])||{rev:0,units:0};e.rev+=f[2];e.units+=f[3];m.set(f[0],e);}return ds.map(d=>({date:d,rev:(m.get(d)||{}).rev||0,units:(m.get(d)||{}).units||0}));}
 function series(sku,from,to){const ds=between(from,to);const m=new Map();for(const f of F)if(f[1]===sku&&f[0]>=from&&f[0]<=to)m.set(f[0],(m.get(f[0])||0)+f[3]);return ds.map(d=>m.get(d)||0);}
-function prevEqual(from,to){const len=between(from,to).length;const pt=ad(from,-1);let pf=ad(pt,-(len-1));if(pf<FLOOR)pf=FLOOR;return{from:pf,to:pt};}
+function prevEqual(from,to){const len=between(from,to).length;const pt=ad(from,-1);let pf=ad(pt,-(len-1)),clip=false;if(pf<FLOOR){pf=FLOOR;clip=true;}return{from:pf,to:pt,clip};}
 function periodFor(kind){const to=MAX;let from;if(kind==='7')from=ad(to,-6);else if(kind==='30')from=ad(to,-29);else if(kind==='90')from=ad(to,-89);else from=FLOOR;if(from<FLOOR)from=FLOOR;return{from,to};}
 function areaSvg(vals,stroke){const w=460,h=150,max=Math.max(1,...vals),n=vals.length,st=w/Math.max(1,n-1);const pts=vals.map((v,i)=>(i*st).toFixed(1)+','+(h-(v/max)*(h-14)).toFixed(1));const line='M'+pts.join(' L');const area=line+' L'+w+','+h+' L0,'+h+' Z';return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" height="150" preserveAspectRatio="none"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+stroke+'" stop-opacity=".30"/><stop offset="1" stop-color="'+stroke+'" stop-opacity="0"/></linearGradient></defs><path d="'+area+'" fill="url(#ag)"/><path d="'+line+'" fill="none" stroke="'+stroke+'" stroke-width="2.2"/></svg>';}
 let state={kind:'30',cur:null,cmp:null,compare:false};
 function swap(w){if(w&&w.from&&w.to&&w.from>w.to){const t=w.from;w.from=w.to;w.to=t;}return w;}
-function apply(){let cur,cmp;if(state.kind==='custom')cur=swap({from:document.getElementById('cf').value,to:document.getElementById('ct').value});else cur=periodFor(state.kind);if(!cur.from||!cur.to){document.getElementById('period').textContent='укажите обе даты периода';return;}if(state.compare){cmp=swap({from:document.getElementById('pf').value,to:document.getElementById('pt').value});if(!cmp.from||!cmp.to)cmp=prevEqual(cur.from,cur.to);}else cmp=prevEqual(cur.from,cur.to);state.cur=cur;state.cmp=cmp;document.getElementById('period').textContent=cur.from+'..'+cur.to+'  против  '+cmp.from+'..'+cmp.to;draw(cur,cmp);}
+function apply(){let cur,cmp;if(state.kind==='custom')cur=swap({from:document.getElementById('cf').value,to:document.getElementById('ct').value});else cur=periodFor(state.kind);if(!cur.from||!cur.to){document.getElementById('period').textContent='укажите обе даты периода';return;}if(state.compare){cmp=swap({from:document.getElementById('pf').value,to:document.getElementById('pt').value});if(!cmp.from||!cmp.to)cmp=prevEqual(cur.from,cur.to);}else cmp=prevEqual(cur.from,cur.to);state.cur=cur;state.cmp=cmp;document.getElementById('period').textContent=cur.from+'..'+cur.to+'  против  '+cmp.from+'..'+cmp.to+(cmp.clip?' · неполная база сравнения (обрезана началом истории '+FLOOR+')':'');draw(cur,cmp);}
 function initControls(){const cr=document.getElementById('customRow'),cm=document.getElementById('cmpRow');document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');state.kind=c.dataset.k;if(cr)cr.style.display=state.kind==='custom'?'flex':'none';apply();}));document.getElementById('cmpBtn').addEventListener('click',()=>{state.compare=!state.compare;document.getElementById('cmpBtn').classList.toggle('on',state.compare);if(cm)cm.style.display=state.compare?'flex':'none';if(state.compare){const pe=prevEqual(state.cur.from,state.cur.to);document.getElementById('pf').value=pe.from;document.getElementById('pt').value=pe.to;}apply();});const ac=document.getElementById('applyCustom');if(ac)ac.addEventListener('click',apply);const am=document.getElementById('applyCmp');if(am)am.addEventListener('click',apply);const c30=periodFor('30');if(document.getElementById('cf')){document.getElementById('cf').value=c30.from;document.getElementById('ct').value=c30.to;}}
 function kpiCard(lab,cur,prev,goodUp,fmt){if(!prev){return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num">'+fmt(cur)+'</div><div class="d sub">нет базы сравнения</div></div>';}const d=(cur-prev)/prev;const up=d>=0,good=goodUp?up:!up;return '<div class="card kpi"><div class="lab">'+lab+'</div><div class="val num">'+fmt(cur)+'</div><div class="d '+(good?'up':'down')+'">'+(up?'▲':'▼')+' '+pct(d)+'</div></div>';}
-function boot(staticFn){if(staticFn)staticFn();initControls();apply();}
+function boot(staticFn){if(staticFn)staticFn();const dq=document.getElementById('dq');if(dq){const fr=DATA.fresh||{};dq.textContent='история по '+MAX+' (слой T-1)'+(fr.partial?' · последний день может быть неполным - сравнение занижает текущий период':'');}initControls();apply();}
 `;
 
 const CONTROLS = `
@@ -131,6 +151,7 @@ function shell(active: string, sections: string, pageJs: string, dataJson: strin
     <span class="tag">оперативный слой T-1</span></header>
   <nav>${nav}</nav>
   ${CONTROLS}
+  <div class="note" id="dq"></div>
   ${sections}
   <footer>${footer}</footer>
 </div>
@@ -171,13 +192,13 @@ export function renderTovary(model: unknown): string {
       <div class="note">строки - вклад в оборот (A/B/C), столбцы - стабильность спроса (X ровный · Y переменный · Z рваный). Лево-верх = опора, право-низ = случайные.</div></div></div>
     <div><h2>BCG по линиям (рост × доля)</h2><div class="card"><svg id="bcg" viewBox="0 0 460 260" width="100%" height="260"></svg></div></div>
   </div>
-  <h2>Хитмап заказов · линия × месяц (вся история)</h2><div class="card" id="heatcard"></div>
+  <h2>Хитмап заказов · линия × месяц (вся история)</h2><div class="card" style="padding:0"><div class="tscroll" id="heatcard"></div></div>
   <h2>Товары · группировка по модели</h2>
-  <div class="controls dates"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
-  <div class="card" style="padding:0"><table><thead><tr>
-    <th>Модель / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">Ср.чек</th><th class="r">Маржа вал.</th><th class="r">После сборов</th><th class="r">ABC·XYZ</th>
-  </tr></thead><tbody id="rows"></tbody></table></div>
-  <div class="note">клик по модели раскрывает SKU и дневной тренд. <b>Маржа вал.</b> = (выручка-С\\С)/выручка, реагирует на период (покрытие С\\С зависит от периода - см. карточку «Валовая маржа»). <b>После сборов</b> = к начислению / выручка начисленная по транзакциям: после комиссии и услуг операции; НЕ включает канальную логистику/эквайринг, поэтому выше полного М3 на странице Деньги. Снимок 30 дней (не пересчитывается под период). Покрытие: валовая маржа - 143 SKU (С\\С), после сборов - 172 SKU (транзакции); комплектные продажи не разнесены.</div>`;
+  <div class="controls dates"><input id="qTov" type="search" placeholder="поиск: модель, артикул, SKU" autocomplete="off"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr id="tovHead">
+    <th>Модель / SKU</th><th class="r sortable" data-s="rev">Оборот<span class="sc"></span></th><th class="r sortable" data-s="share">Доля<span class="sc"></span></th><th class="r sortable" data-s="units">Заказы<span class="sc"></span></th><th class="r">Ср.чек</th><th class="r sortable" data-s="margin">Маржа вал.<span class="sc"></span></th><th class="r sortable" data-s="after">После сборов<span class="sc"></span></th><th class="r">ABC·XYZ</th>
+  </tr></thead><tbody id="rows"></tbody></table></div></div>
+  <div class="note">клик по модели раскрывает SKU и дневной тренд; &#8599; - публичная карточка OZON, &#9881; - поиск по артикулу в кабинете продавца (где артикул известен). На телефоне таблица скроллится горизонтально. <b>Маржа вал.</b> = (выручка-С\\С)/выручка, реагирует на период (покрытие С\\С зависит от периода - см. карточку «Валовая маржа»). <b>После сборов</b> = к начислению / выручка начисленная по транзакциям: после комиссии и услуг операции; НЕ включает канальную логистику/эквайринг, поэтому выше полного М3 на странице Деньги. Снимок 30 дней (не пересчитывается под период). Покрытие: валовая маржа - 143 SKU (С\\С), после сборов - 172 SKU (транзакции); комплектные продажи не разнесены.</div>`;
   const js = `
 function drawHeat(){const hm=heatmap();const maxU=Math.max(1,...hm.lines.flatMap(l=>Object.values(l.byMonth)));const shade=u=>{if(!u)return '#141416';const t=u/maxU,r=Math.round(40+t*215),g=Math.round(24+t*44),b=Math.round(22+t*26);return 'rgb('+r+','+g+','+b+')';};let h='<table><thead><tr><th>Линия</th>'+hm.months.map(m=>'<th class="r">'+m.slice(5)+'.'+m.slice(2,4)+'</th>').join('')+'<th class="r">Итого</th></tr></thead><tbody>';hm.lines.forEach(l=>{h+='<tr><td>'+l.line+'</td>'+hm.months.map(m=>{const u=l.byMonth[m]||0;return '<td class="r" style="background:'+shade(u)+';color:'+(u>maxU*0.4?'#0A0A0B':'#F5F5F6')+';font-weight:600;border-radius:6px">'+(u||'')+'</td>';}).join('')+'<td class="r num"><b>'+l.total+'</b></td></tr>';});document.getElementById('heatcard').innerHTML=h+'</tbody></table>';}
 function draw(cur,cmp){
@@ -186,7 +207,7 @@ function draw(cur,cmp){
   const views=skuViews(cur.from,cur.to),mx=matrix(views),cls=['A','B','C'],xs=['X','Y','Z'];
   let gCur=0,rCov=0,rAll=0;for(const v of views){rAll+=v.rev;const c=cogsOf(v.sku);if(c>0){gCur+=v.rev-c*v.units;rCov+=v.rev;}}
   const gmPct=rCov>0?Math.round(gCur/rCov*1000)/10:0,covPct=Math.round(rCov/(rAll||1)*100);
-  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gmPct+'%</div><div class="d sub">покрытие '+covPct+'% оборота</div></div>';
+  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gmPct+'%</div><div class="d" style="color:'+(covPct<80?'#F2B544':'#34D399')+'">покрытие С\\\\С: '+covPct+'% оборота</div><div class="d sub">остальные '+(100-covPct)+'% без С\\\\С - не экстраполировать</div></div>';
   document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),marginCard,kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('Возвраты',tc.ret,tp.ret,false,rub),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
   const col=(a,x)=>{const s=(a==='A'?0:a==='B'?1:2)+(x==='X'?0:x==='Y'?1:2);return ['#173b2c','#1d4636','#3a3f1e','#46361e','#4a2a1e','#4a221f'][Math.min(s,5)];};
   let mh='<div class="maxis"></div>'+xs.map(x=>'<div class="maxis">'+x+'</div>').join('');cls.forEach(a=>{mh+='<div class="maxis">'+a+'</div>';xs.forEach(x=>{const c=mx[a+x];mh+='<div class="mcell" style="background:'+col(a,x)+'"><div class="c">'+c.count+'</div><div class="r num">'+mln(c.rev)+' ₽</div></div>';});});document.getElementById('matrix').innerHTML=mh;
@@ -197,14 +218,19 @@ function draw(cur,cmp){
   const fv=views.filter(v=>(!fc||catOf(v.sku)===fc)&&(!fs||subOf(v.sku)===fs)&&(!fl||(TX[v.sku]?TX[v.sku][2]:v.line)===fl));
   const totRev=fv.reduce((s,v)=>s+v.rev,0)||1;
   const lm=new Map();for(const v of fv){const mk=modelOf(v.sku);let a=lm.get(mk);if(!a){a=[];lm.set(mk,a);}a.push(v);}
-  const groups=[...lm.entries()].map(([model,sk])=>({model,sk,rev:sk.reduce((s,v)=>s+v.rev,0),units:sk.reduce((s,v)=>s+v.units,0)})).sort((a,b)=>b.rev-a.rev);
-  document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+fv.length;
+  let groups=[...lm.entries()].map(([model,sk])=>{let mg=0,mr=0,ta=0,tac=0;sk.forEach(s=>{const c=cogsOf(s.sku);if(c>0){mg+=s.rev-c*s.units;mr+=s.rev;}const t=TXS[s.sku];if(t&&t.accruals>0){ta+=t.amount;tac+=t.accruals;}});const rev=sk.reduce((s,v)=>s+v.rev,0),units=sk.reduce((s,v)=>s+v.units,0);return{model,sk,rev,units,share:Math.round(rev/totRev*1000)/10,margin:mr>0?Math.round(mg/mr*1000)/10:null,after:tac>0?Math.round(ta/tac*1000)/10:null};});
+  const q=(window._tovQ||'').trim().toLowerCase();
+  if(q)groups=groups.filter(g=>g.model.toLowerCase().indexOf(q)>=0||g.sk.some(s=>(s.name||'').toLowerCase().indexOf(q)>=0||(OFF[s.sku]||'').toLowerCase().indexOf(q)>=0||String(s.sku).indexOf(q)>=0));
+  const so=window._tovSort||{col:'rev',dir:-1},nv=v=>v==null?-Infinity:v;groups.sort((a,b)=>(nv(a[so.col])-nv(b[so.col]))*so.dir);
+  document.querySelectorAll('#tovHead .sortable').forEach(th=>{const sc=th.querySelector('.sc');if(sc)sc.textContent=th.dataset.s===so.col?(so.dir<0?' ▾':' ▴'):'';});
+  document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+groups.reduce((s,g)=>s+g.sk.length,0)+(q?' · фильтр «'+q+'»':'');
   const spark=ser=>{const w=120,h=26,mx=Math.max(1,...ser),st=w/Math.max(1,ser.length-1);const p=ser.map((v,i)=>i*st+','+(h-(v/mx)*(h-3))).join(' ');return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#FF4438" stroke-width="1.6" points="'+p+'"/></svg>';};
-  const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>';let rh='';
-  groups.forEach((g,li)=>{let mg=0,mr=0,ta=0,tac=0;g.sk.forEach(s=>{const c=cogsOf(s.sku);if(c>0){mg+=s.rev-c*s.units;mr+=s.rev;}const t=TXS[s.sku];if(t&&t.accruals>0){ta+=t.amount;tac+=t.accruals;}});const mm=mr>0?(Math.round(mg/mr*1000)/10)+'%':'-';const tm=tac>0?(Math.round(ta/tac*1000)/10)+'%':'-';
-    rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+(Math.round(g.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r num">'+mm+'</td><td class="r num">'+tm+'</td><td class="r"></td></tr>';
-    g.sk.forEach(s=>{const c=cogsOf(s.sku);const sm=(c>0&&s.rev>0)?(Math.round((s.rev-c*s.units)/s.rev*1000)/10)+'%':'-';const cTxt=c>0?'С\\\\С '+rub(c)+' ₽':'нет С\\\\С';const tt=txTake(s.sku);
-      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r num" title="'+cTxt+'">'+sm+'</td><td class="r num">'+(tt!=null?tt+'%':'-')+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';
+  const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>',na='<span class="na">н/д</span>';let rh='';
+  if(!groups.length)rh='<tr><td colspan="8" class="note">ничего не найдено'+(q?' по запросу «'+q+'»':'')+'</td></tr>';
+  groups.forEach((g,li)=>{const mm=g.margin!=null?g.margin+'%':na,tm=g.after!=null?g.after+'%':na;
+    rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+g.share+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r num">'+mm+'</td><td class="r num">'+tm+'</td><td class="r"></td></tr>';
+    g.sk.forEach(s=>{const c=cogsOf(s.sku);const sm=(c>0&&s.rev>0)?(Math.round((s.rev-c*s.units)/s.rev*1000)/10)+'%':na;const cTxt=c>0?'С\\\\С '+rub(c)+' ₽':'нет С\\\\С';const tt=txTake(s.sku);
+      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+skuLinks(s.sku)+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r num" title="'+cTxt+'">'+sm+'</td><td class="r num">'+(tt!=null?tt+'%':na)+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';
       rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="9" style="padding-top:0"><span class="sub">'+cTxt+' · тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
   document.getElementById('rows').innerHTML=rh;document.querySelectorAll('.line-row').forEach(tr=>tr.addEventListener('click',()=>{const li=tr.dataset.li;tr.classList.toggle('open');document.querySelectorAll('.sku-row[data-li="'+li+'"]').forEach(r=>{r.style.display=r.style.display==='none'?'table-row':'none';});}));
 }
@@ -213,6 +239,8 @@ function initFilters(){
   for(const k in TX){cats.add(TX[k][0]);subs.add(TX[k][1]);lines.add(TX[k][2]);}
   const fill=(id,vals,label)=>{const el=document.getElementById(id);el.innerHTML='<option value="">'+label+'</option>'+[...vals].filter(Boolean).sort().map(v=>'<option>'+v+'</option>').join('');el.addEventListener('change',()=>draw(state.cur,state.cmp));};
   fill('fCat',cats,'Все категории');fill('fSub',subs,'Все подкатегории');fill('fLine',lines,'Все линии');
+  const qi=document.getElementById('qTov');if(qi)qi.addEventListener('input',()=>{window._tovQ=qi.value;draw(state.cur,state.cmp);});
+  document.querySelectorAll('#tovHead .sortable').forEach(th=>th.addEventListener('click',()=>{const col=th.dataset.s,cur=window._tovSort||{col:'rev',dir:-1};window._tovSort=(cur.col===col)?{col,dir:-cur.dir}:{col,dir:-1};draw(state.cur,state.cmp);}));
 }
 boot(drawHeat);`;
   return shell("Товары", sections, js, JSON.stringify(model), FOOT_OPS + " Группировка по линии (модель-уровень - после джойна offer_id с таксономией).");
@@ -222,9 +250,12 @@ boot(drawHeat);`;
 export function renderOverview(model: unknown): string {
   const sections = `
   <h2>Срез периода</h2><div class="grid" id="kpis"></div>
+  <h2>Риск out-of-stock · остаток 0 при живых продажах <span class="pill b-Z">снимок 30д</span></h2>
+  <div class="card" style="padding:0"><div class="tscroll" id="oos"></div></div>
+  <div class="note" id="oosNote"></div>
   <div class="two">
     <div><h2>Оборот по дням</h2><div class="card"><div id="trend"></div><div class="note" id="trendNote"></div></div></div>
-    <div><h2>Движения по линиям (рост к пред. периоду)</h2><div class="card" id="movers"></div></div>
+    <div><h2>Движения по линиям (рост к пред. периоду)</h2><div class="card" style="padding:0"><div class="tscroll" id="movers"></div></div></div>
   </div>
   <h2>Оборот по линиям за период</h2><div class="card" id="lineBars"></div>`;
   const js = `
@@ -233,7 +264,7 @@ function draw(cur,cmp){
   const cro=c=>Math.round((c.views?c.units/c.views:0)*1000)/10,aov=c=>Math.round(c.units?c.rev/c.units:0);
   const views=skuViews(cur.from,cur.to);let gC=0,rCov=0;const vbl={};for(const v of views){const c=cogsOf(v.sku);if(c>0){gC+=v.rev-c*v.units;rCov+=v.rev;let e=vbl[v.line];if(!e){e={g:0,rc:0};vbl[v.line]=e;}e.g+=v.rev-c*v.units;e.rc+=v.rev;}}
   const gm=rCov>0?Math.round(gC/rCov*1000)/10:0,cov=Math.round(rCov/(tc.rev||1)*100);
-  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gm+'%</div><div class="d sub">покрытие '+cov+'%</div></div>';
+  const marginCard='<div class="card kpi"><div class="lab">Валовая маржа, % <span class="pill b-Y">по С\\\\С</span></div><div class="val num">'+gm+'%</div><div class="d" style="color:'+(cov<80?'#F2B544':'#34D399')+'">покрытие С\\\\С: '+cov+'% оборота</div><div class="d sub">остальные '+(100-cov)+'% без С\\\\С - не экстраполировать</div></div>';
   document.getElementById('kpis').innerHTML=[kpiCard('Оборот, ₽',tc.rev,tp.rev,true,mln),kpiCard('Заказы',tc.units,tp.units,true,rub),marginCard,kpiCard('Средний чек, ₽',aov(tc),aov(tp),true,rub),kpiCard('CR показ-заказ, %',cro(tc),cro(tp),true,v=>v),kpiCard('SKU с продажами',tc.sku,tp.sku,true,rub)].join('');
   const dr=dailyRev(cur.from,cur.to);document.getElementById('trend').innerHTML=areaSvg(dr.map(d=>d.rev),tc.rev>=tp.rev?'#34D399':'#FF4438');
   document.getElementById('trendNote').textContent='с '+cur.from+' по '+cur.to+(dr.length?' · пик дня '+mln(Math.max(...dr.map(d=>d.rev)))+' ₽':' · нет данных');
@@ -242,7 +273,13 @@ function draw(cur,cmp){
   let mh='<table><thead><tr><th>Линия</th><th class="r">Оборот</th><th class="r">Рост</th><th class="r">Маржа</th></tr></thead><tbody>';lg.forEach(d=>{const up=d.growth>=0;mh+='<tr><td>'+d.line+'</td><td class="r num">'+mln(d.rev)+'</td><td class="r '+(up?'up':'down')+'">'+pct(d.growth)+'</td><td class="r num">'+lmarg(d.line)+'</td></tr>';});mh+='</tbody></table>';document.getElementById('movers').innerHTML=mh;
   const a=aggLine(win(cur.from,cur.to));const arr=[...a.values()].sort((x,y)=>y.rev-x.rev);const max=Math.max(1,...arr.map(x=>x.rev));let lb='';arr.forEach(x=>{lb+='<div style="display:grid;grid-template-columns:120px 1fr 90px;align-items:center;gap:10px;margin:7px 0"><div class="sub">'+x.line+'</div><div style="background:#1E1E20;border-radius:7px;overflow:hidden"><div style="height:22px;width:'+(x.rev/max*100)+'%;background:linear-gradient(90deg,#FF4438,#b5392f);border-radius:7px"></div></div><div class="r num">'+mln(x.rev)+' ₽</div></div>';});document.getElementById('lineBars').innerHTML=lb;
 }
-boot();`;
+function drawOos(){const o=DATA.oos||[];const el=document.getElementById('oos'),nt=document.getElementById('oosNote');
+  if(!o.length){el.innerHTML='<div class="note" style="padding:14px">по снимку 30д все продающиеся SKU с остатком - риска нет</div>';nt.textContent='';return;}
+  let h='<table><thead><tr><th>Товар</th><th>Линия</th><th class="r">Заказы 30д</th><th class="r">Остаток</th></tr></thead><tbody>';
+  o.forEach(x=>{h+='<tr><td>'+x.name+skuLinks(x.sku)+'</td><td class="sub">'+x.line+'</td><td class="r num">'+x.units+'</td><td class="r num down">0 · нет в наличии</td></tr>';});
+  el.innerHTML=h+'</tbody></table>';
+  nt.textContent='карточка с нулевым остатком выпадает из выдачи OZON за часы, а реклама типа «вывод в топ» может продолжать тратить бюджет. Упущенный оборот не считаем - истории остатков по дням пока нет (поток P1).';}
+boot(drawOos);`;
   return shell("Обзор", sections, js, JSON.stringify(model), FOOT_OPS);
 }
 
@@ -253,7 +290,7 @@ export function renderFunnel(model: unknown): string {
   <h2>Воронка: показ → корзина → заказ → доставка</h2>
   <div class="card" id="funnel"></div>
   <h2>Потери</h2><div class="grid" id="leaks"></div>
-  <h2>Возвраты по линиям</h2><div class="card" id="retLines"></div>`;
+  <h2>Возвраты по линиям</h2><div class="card" style="padding:0"><div class="tscroll" id="retLines"></div></div>`;
   const js = `
 function draw(cur,cmp){
   const tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
@@ -275,14 +312,14 @@ export function renderCards(model: unknown): string {
   const sections = `
   <h2>Срез периода</h2><div class="grid" id="kpis"></div>
   <h2>Карточки на ремонт · трафик есть, заказов мало</h2>
-  <div class="card" style="padding:0"><table><thead><tr>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr>
     <th>Товар</th><th>Линия</th><th class="r">Показы</th><th class="r">Заказы</th><th class="r">CR заказ</th><th class="r">Оборот</th>
-  </tr></thead><tbody id="fix"></tbody></table></div>
-  <div class="note">кандидаты: показов выше медианы, конверсия в заказ ниже 0,2%. Чинить фото/описание/цену.</div>
+  </tr></thead><tbody id="fix"></tbody></table></div></div>
+  <div class="note">кандидаты: показов выше медианы, конверсия в заказ ниже 0,2%. Чинить фото/описание/цену. &#8599; - публичная карточка OZON, &#9881; - поиск по артикулу в кабинете (где артикул известен).</div>
   <h2>Высокие возвраты</h2>
-  <div class="card" style="padding:0"><table><thead><tr>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr>
     <th>Товар</th><th>Линия</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">Возврат %</th>
-  </tr></thead><tbody id="ret"></tbody></table></div>`;
+  </tr></thead><tbody id="ret"></tbody></table></div></div>`;
   const js = `
 function draw(cur,cmp){
   const v=skuViews(cur.from,cur.to),tc=totals(win(cur.from,cur.to)),tp=totals(win(cmp.from,cmp.to));
@@ -296,8 +333,8 @@ function draw(cur,cmp){
     kpiCard('Возвраты, шт',tc.ret,tp.ret,false,rub),
     '<div class="card kpi"><div class="lab">Показов суммарно</div><div class="val num">'+rub(tc.views)+'</div></div>'
   ].join('');
-  document.getElementById('fix').innerHTML=fix.length?fix.map(x=>'<tr><td>'+x.name+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.views)+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num down">'+x.conv+'</td><td class="r num">'+mln(x.rev)+'</td></tr>').join(''):'<tr><td colspan="6" class="note">нет кандидатов в этом периоде</td></tr>';
-  document.getElementById('ret').innerHTML=ret.length?ret.map(x=>'<tr><td>'+x.name+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num">'+rub(x.ret)+'</td><td class="r num '+(x.rr>5?'down':'')+'">'+x.rr+'%</td></tr>').join(''):'<tr><td colspan="5" class="note">возвратов в этом периоде нет</td></tr>';
+  document.getElementById('fix').innerHTML=fix.length?fix.map(x=>'<tr><td>'+x.name+skuLinks(x.sku)+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.views)+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num down">'+x.conv+'</td><td class="r num">'+mln(x.rev)+'</td></tr>').join(''):'<tr><td colspan="6" class="note">нет кандидатов в этом периоде</td></tr>';
+  document.getElementById('ret').innerHTML=ret.length?ret.map(x=>'<tr><td>'+x.name+skuLinks(x.sku)+'</td><td class="sub">'+x.line+'</td><td class="r num">'+rub(x.units)+'</td><td class="r num">'+rub(x.ret)+'</td><td class="r num '+(x.rr>5?'down':'')+'">'+x.rr+'%</td></tr>').join(''):'<tr><td colspan="5" class="note">возвратов в этом периоде нет</td></tr>';
 }
 boot();`;
   return shell("Карточки", sections, js, JSON.stringify(model), FOOT_OPS + " Индекс цены (дороже/дешевле рынка) - на странице Маркетинг, после подтяжки цен.");
@@ -308,10 +345,11 @@ export function renderMoney(model: unknown): string {
   const sections = `
   <h2>Сверенный P&L · закрытые месяцы (из подписанных Актов OZON)</h2>
   <div class="grid" id="pnl"></div>
+  <div class="note" id="pnlMeta"></div>
   <div class="note">Сверенный слой. За незакрытые месяцы (май-июнь) чистая прибыль не показывается - не выдумывается (DOC_05 §1.2). Метод разнесения Акта - открытый риск G3 (двойной счёт "Базовое вознаграждение"), цифры с оговоркой.</div>
   <h2>Операционный P&L по транзакциям · 30 дней (реальные сборы OZON)</h2>
   <div class="card" id="txpnl"></div>
-  <div class="note">Реальные сборы из /v3/finance/transaction (комиссия, логистика, эквайринг, подписки). Это канальный водопад М1→М3, работает и для незакрытого периода. С\С и реклама тут НЕ вычитаются: базис единиц у начисления и заказов разный, чистая прибыль - только из Актов. Маржа по С\С - на странице Товары.</div>
+  <div class="note">Реальные сборы из /v3/finance/transaction (комиссия, логистика, эквайринг, подписки). Это канальный водопад М1→М3, работает и для незакрытого периода. С\С и реклама тут НЕ вычитаются: базис единиц у начисления и заказов разный, чистая прибыль - только из Актов. Маржа по С\С - на странице Товары. Декомпозиция строки «Прочие удержания» не документирована отчётом OZON - уточняется по детальному финотчёту (задача оперблоку, до закрытия цифра с оговоркой).</div>
   <h2>Оборот по месяцам · оперативный слой (GMV, не прибыль)</h2>
   <div class="card" id="gmv"></div>
   <h2>Оборот за выбранный период (для контекста)</h2>
@@ -326,7 +364,8 @@ function drawStatic(){
   C.forEach(m=>{cum+=m.profit;const margin=Math.round(m.profit/m.realization*1000)/10;const pos=m.profit>=0;ph+='<div class="card"><div class="sub">'+m.label+'</div><div class="val num" style="font-size:24px;font-weight:680;color:'+(pos?'#34D399':'#FF5A5F')+'">'+mln(m.profit)+' ₽</div><div class="sub" style="margin-top:6px">реализация '+mln(m.realization)+' · маржа '+margin+'%</div></div>';});
   ph+='<div class="card" style="border-color:#34343a"><div class="sub">Накоплено (фев-апр)</div><div class="val num" style="font-size:24px;font-weight:680">'+mln(cum)+' ₽</div><div class="sub" style="margin-top:6px">чистая прибыль</div></div>';
   document.getElementById('pnl').innerHTML=ph;
-  const P=DATA.opnl;if(P&&P.accruals){let feesAbs=0;for(const k in (P.breakdown||{}))feesAbs+=Math.abs(P.breakdown[k]);const totalDed=P.accruals-P.payout;const other=Math.max(0,Math.round(totalDed-feesAbs));const f=n=>Math.round(n/P.accruals*1000)/10;let w='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:14px">'+'<div class="card kpi"><div class="lab">Выручка начисленная (М1)</div><div class="val num">'+mln(P.accruals)+' ₽</div><div class="sub">'+P.dateFrom+'..'+P.dateTo+'</div></div>'+'<div class="card kpi"><div class="lab">Сборы OZON (комиссия+услуги)</div><div class="val num" style="color:#FF5A5F">-'+mln(feesAbs)+' ₽</div><div class="sub">'+f(feesAbs)+'% выручки</div></div>'+'<div class="card kpi"><div class="lab">Прочие удержания (реклама/прочее)</div><div class="val num" style="color:#F2B544">-'+mln(other)+' ₽</div><div class="sub">'+f(other)+'% выручки</div></div>'+'<div class="card kpi"><div class="lab">К начислению (М3)</div><div class="val num" style="color:#34D399">'+mln(P.payout)+' ₽</div><div class="sub">'+f(P.payout)+'% выручки</div></div></div>';w+='<table><thead><tr><th>Статья сбора</th><th class="r">Сумма</th><th class="r">% выручки</th></tr></thead><tbody>';for(const k in (P.breakdown||{})){const v=P.breakdown[k];w+='<tr><td>'+k+'</td><td class="r num down">'+mln(v)+' ₽</td><td class="r num">'+f(Math.abs(v))+'%</td></tr>';}w+='<tr><td class="sub">Прочие удержания (реклама и пр., вне комиссии за продажу)</td><td class="r num down">-'+mln(other)+' ₽</td><td class="r num">'+f(other)+'%</td></tr><tr><td><b>Итого удержано</b></td><td class="r num down"><b>-'+mln(totalDed)+' ₽</b></td><td class="r num">'+f(totalDed)+'%</td></tr></tbody></table>';document.getElementById('txpnl').innerHTML=w;}
+  const M=DATA.closedMeta||{};document.getElementById('pnlMeta').innerHTML='Последний закрытый месяц: <b>'+(M.lastLabel||'-')+'</b> · Акты обновлены '+(M.updated||'-')+(M.stale?' <span class="pill b-Z">Актам больше 45 дней - сверенный слой устарел, запросить закрытие месяца</span>':'');
+  const P=DATA.opnl;if(P&&P.accruals){let feesAbs=0;for(const k in (P.breakdown||{}))feesAbs+=Math.abs(P.breakdown[k]);const totalDed=P.accruals-P.payout;const other=Math.max(0,Math.round(totalDed-feesAbs));const f=n=>Math.round(n/P.accruals*1000)/10;let w='<div class="wgrid">'+'<div class="card kpi"><div class="lab">Выручка начисленная (М1)</div><div class="val num">'+mln(P.accruals)+' ₽</div><div class="sub">'+P.dateFrom+'..'+P.dateTo+'</div></div>'+'<div class="card kpi"><div class="lab">Сборы OZON (комиссия+услуги)</div><div class="val num" style="color:#FF5A5F">-'+mln(feesAbs)+' ₽</div><div class="sub">'+f(feesAbs)+'% выручки</div></div>'+'<div class="card kpi"><div class="lab">Прочие удержания (реклама/прочее)</div><div class="val num" style="color:#F2B544">-'+mln(other)+' ₽</div><div class="sub">'+f(other)+'% выручки · декомпозиция уточняется</div></div>'+'<div class="card kpi"><div class="lab">К начислению (М3)</div><div class="val num" style="color:#34D399">'+mln(P.payout)+' ₽</div><div class="sub">'+f(P.payout)+'% выручки</div></div></div>';w+='<div class="tscroll"><table><thead><tr><th>Статья сбора</th><th class="r">Сумма</th><th class="r">% выручки</th></tr></thead><tbody>';for(const k in (P.breakdown||{})){const v=P.breakdown[k];w+='<tr><td>'+k+'</td><td class="r num down">'+mln(v)+' ₽</td><td class="r num">'+f(Math.abs(v))+'%</td></tr>';}w+='<tr><td class="sub">Прочие удержания (реклама и пр., вне комиссии за продажу)</td><td class="r num down">-'+mln(other)+' ₽</td><td class="r num">'+f(other)+'%</td></tr><tr><td><b>Итого удержано</b></td><td class="r num down"><b>-'+mln(totalDed)+' ₽</b></td><td class="r num">'+f(totalDed)+'%</td></tr></tbody></table></div>';document.getElementById('txpnl').innerHTML=w;}
   const bm={};for(const f of F){const mo=f[0].slice(0,7);bm[mo]=(bm[mo]||0)+f[2];}const ms=Object.keys(bm).sort();const max=Math.max(1,...Object.values(bm));
   let g='';ms.forEach(m=>{g+='<div style="display:grid;grid-template-columns:80px 1fr 110px;align-items:center;gap:10px;margin:8px 0"><div class="sub">'+m+'</div><div style="background:#1E1E20;border-radius:7px"><div style="height:24px;width:'+(bm[m]/max*100)+'%;background:linear-gradient(90deg,#8AA0FF,#6377d6);border-radius:7px"></div></div><div class="r num">'+mln(bm[m])+' ₽</div></div>';});document.getElementById('gmv').innerHTML=g;
 }
@@ -355,8 +394,8 @@ export function renderAssistant(model: unknown): string {
   <div id="answer"></div>`;
   const js = `
 let lastQ='Сводка за период';
-function badge(){return '<span class="pill b-A">[ДАННЫЕ]</span>';}
-function ansCard(title,html){return '<div class="card" style="margin-top:13px"><div style="font-weight:680;margin-bottom:8px">'+title+' '+badge()+'</div>'+html+'</div>';}
+function badge(mix){return mix?'<span class="pill b-Y">[СМЕШАННЫЙ СЛОЙ: факт + гипотеза]</span>':'<span class="pill b-A">[ДАННЫЕ]</span>';}
+function ansCard(title,html,mix){return '<div class="card" style="margin-top:13px"><div style="font-weight:680;margin-bottom:8px">'+title+' '+badge(mix)+'</div><div class="tscroll">'+html+'</div></div>';}
 function gmFor(cur){const v=skuViews(cur.from,cur.to);let g=0,rc=0;for(const x of v){const c=cogsOf(x.sku);if(c>0){g+=x.rev-c*x.units;rc+=x.rev;}}return rc>0?{gm:Math.round(g/rc*1000)/10,cov:Math.round(rc/(v.reduce((s,y)=>s+y.rev,0)||1)*100)}:{gm:0,cov:0};}
 function answer(q){
   const cur=state.cur,cmp=state.cmp;const per=cur.from+'..'+cur.to;
@@ -372,9 +411,9 @@ function answer(q){
   const known=nHit>0||/сводк|итог|как дела|обзор/.test(q)||q.trim()==='';
   if(!known)pre='<div class="note">Не распознал вопрос точно - показываю сводку. Умею: реклама/ДРР, маржа, возвраты, карточки, динамика.</div>';
   if(/реклам|дрр|слив|кампан|бюджет/.test(q)){
-    const burn=(A.burners||[]).slice(0,5);const wasted=(A.burners||[]).reduce((s,b)=>s+(b.o===0?b.sp:0),0);
-    let h='<div class="sub">ДРР канала <b>'+(At.drr||0)+'%</b> · расход '+mln(At.spend||0)+' ₽ · ROAS '+((At.adRevenue/At.spend)||0).toFixed(1)+'x (снимок 30 дней)</div><table style="margin-top:8px"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+burn.map(b=>'<tr><td>'+b.off+'</td><td class="r num">'+rub(b.sp)+'</td><td class="r num">'+b.o+'</td><td class="r num down">'+(b.drr||'0 зак.')+'</td></tr>').join('')+'</tbody></table><div class="note">Потенциал возврата от отключения нулевых: <b>'+mln(wasted)+' ₽</b> <span class="pill b-Y">[ГИПОТЕЗА]</span> (без учёта лага атрибуции OZON и органики)</div>';
-    return pre+ansCard('Реклама за снимок 30 дней',h);
+    const burn=(A.burners||[]).slice(0,5);const freed=(A.burners||[]).reduce((s,b)=>s+(b.o===0&&b.line!=='прочее'?b.sp:0),0);
+    let h='<div class="sub">ДРР канала <b>'+(At.drr||0)+'%</b> · расход '+mln(At.spend||0)+' ₽ · ROAS '+((At.adRevenue/At.spend)||0).toFixed(1)+'x (снимок 30 дней)</div><table style="margin-top:8px"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+burn.map(b=>'<tr><td>'+b.off+'</td><td class="r num">'+rub(b.sp)+'</td><td class="r num">'+b.o+'</td><td class="r num down">'+(b.drr||'0 зак.')+'</td></tr>').join('')+'</tbody></table><div class="note">Высвобождение бюджета от отключения нулевых товарных кампаний: <b>'+mln(freed)+' ₽/мес</b> <span class="pill b-Y">[ГИПОТЕЗА]</span> - это прекращение расхода, не «возврат денег». Допущения: спрос не переедет в органику; атрибуция last-click не видит ассист-касаний; кампания-агрегатор «оплата за заказ» исключена. Пилот: 2 кампании, 14 дней, чекпоинт 23.06.</div>';
+    return pre+ansCard('Реклама за снимок 30 дней',h,true);
   }
   if(/маржа|прибыл|зарабат|себес|рентаб/.test(q)){
     const g=gmFor(cur);const vbl={};const v=skuViews(cur.from,cur.to);for(const x of v){const c=cogsOf(x.sku);if(c>0){let e=vbl[x.line];if(!e){e={g:0,rc:0};vbl[x.line]=e;}e.g+=x.rev-c*x.units;e.rc+=x.rev;}}

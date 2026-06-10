@@ -58,6 +58,23 @@ for (const page of PAGES) {
   const body = clone.textContent || "";
   if (/-?Infinity|NaN|undefined ₽/.test(body)) errors.push("в выводе Infinity/NaN/undefined");
 
+  // FENIX BLOCKER-2: скрытая линия VALONTI (перегородки) не светится - ни в тексте, ни в DATA.
+  // VIOLUR (столы) - легальный бренд, показывается открыто (решение Ивана).
+  if (/valonti/i.test(html)) errors.push("утечка бренда скрытой линии VALONTI в HTML/DATA");
+  // FENIX BLOCKER-1, структурно: jsdom не рендерит CSS-layout, поэтому проверяем только
+  // наличие скролл-обёрток у таблиц; визуальная читаемость на 390px - ручной просмотр (DoD)
+  // katya.html - сторонний макет Кати (своя вёрстка), GENGLASS-гейты к нему не применяем;
+  // держим только универсальное: грузится без jsdomError, нет утечки VALONTI, нет видимого NaN.
+  const isKatya = page === "katya.html";
+  const tAll = document.querySelectorAll("table").length;
+  const tWrap = document.querySelectorAll(".tscroll table").length;
+  if (!isKatya && tAll !== tWrap) errors.push(`таблиц без скролл-обёртки .tscroll: ${tAll - tWrap} из ${tAll}`);
+  if (page === "obzor.html") {
+    if (!/max-width:760px/.test(html)) errors.push("нет мобильного media-query");
+    if (!document.getElementById("oos")) errors.push("нет OOS-блока на Обзоре");
+  }
+  if (page === "money.html" && !/закрытый месяц/i.test(body)) errors.push("нет даты последнего закрытого месяца");
+
   // проверка, что ключевые контейнеры заполнены (не пустые)
   const checks: Array<[string, string]> = [];
   if (document.getElementById("kpis")) checks.push(["#kpis", document.getElementById("kpis").innerHTML]);

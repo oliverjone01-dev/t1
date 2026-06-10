@@ -27,6 +27,9 @@ nav{display:flex;gap:4px;margin:20px 0 6px;flex-wrap:wrap;border-bottom:1px soli
 .btn.on{border-color:var(--brand);color:#fff}
 .dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--mut);font-size:12.5px}
 input[type=date],select{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px;color-scheme:dark}
+input[type=search]{background:var(--surface);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;color-scheme:dark;min-width:230px}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--txt)}.sc{color:var(--warn);font-weight:700}
+.na{color:var(--mut)}
 .tag{display:inline-block;padding:4px 11px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--mut);font-size:11.5px;font-weight:500}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:30px 0 13px;font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:13px}
@@ -190,9 +193,9 @@ export function renderTovary(model: unknown): string {
   </div>
   <h2>Хитмап заказов · линия × месяц (вся история)</h2><div class="card" style="padding:0"><div class="tscroll" id="heatcard"></div></div>
   <h2>Товары · группировка по модели</h2>
-  <div class="controls dates"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
-  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr>
-    <th>Модель / SKU</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Заказы</th><th class="r">Ср.чек</th><th class="r">Маржа вал.</th><th class="r">После сборов</th><th class="r">ABC·XYZ</th>
+  <div class="controls dates"><input id="qTov" type="search" placeholder="поиск: модель, артикул, SKU" autocomplete="off"><select id="fCat"></select><select id="fSub"></select><select id="fLine"></select><span class="sub" id="found"></span></div>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr id="tovHead">
+    <th>Модель / SKU</th><th class="r sortable" data-s="rev">Оборот<span class="sc"></span></th><th class="r sortable" data-s="share">Доля<span class="sc"></span></th><th class="r sortable" data-s="units">Заказы<span class="sc"></span></th><th class="r">Ср.чек</th><th class="r sortable" data-s="margin">Маржа вал.<span class="sc"></span></th><th class="r sortable" data-s="after">После сборов<span class="sc"></span></th><th class="r">ABC·XYZ</th>
   </tr></thead><tbody id="rows"></tbody></table></div></div>
   <div class="note">клик по модели раскрывает SKU и дневной тренд; &#8599; - публичная карточка OZON, &#9881; - поиск по артикулу в кабинете продавца (где артикул известен). На телефоне таблица скроллится горизонтально. <b>Маржа вал.</b> = (выручка-С\\С)/выручка, реагирует на период (покрытие С\\С зависит от периода - см. карточку «Валовая маржа»). <b>После сборов</b> = к начислению / выручка начисленная по транзакциям: после комиссии и услуг операции; НЕ включает канальную логистику/эквайринг, поэтому выше полного М3 на странице Деньги. Снимок 30 дней (не пересчитывается под период). Покрытие: валовая маржа - 143 SKU (С\\С), после сборов - 172 SKU (транзакции); комплектные продажи не разнесены.</div>`;
   const js = `
@@ -214,14 +217,19 @@ function draw(cur,cmp){
   const fv=views.filter(v=>(!fc||catOf(v.sku)===fc)&&(!fs||subOf(v.sku)===fs)&&(!fl||(TX[v.sku]?TX[v.sku][2]:v.line)===fl));
   const totRev=fv.reduce((s,v)=>s+v.rev,0)||1;
   const lm=new Map();for(const v of fv){const mk=modelOf(v.sku);let a=lm.get(mk);if(!a){a=[];lm.set(mk,a);}a.push(v);}
-  const groups=[...lm.entries()].map(([model,sk])=>({model,sk,rev:sk.reduce((s,v)=>s+v.rev,0),units:sk.reduce((s,v)=>s+v.units,0)})).sort((a,b)=>b.rev-a.rev);
-  document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+fv.length;
+  let groups=[...lm.entries()].map(([model,sk])=>{let mg=0,mr=0,ta=0,tac=0;sk.forEach(s=>{const c=cogsOf(s.sku);if(c>0){mg+=s.rev-c*s.units;mr+=s.rev;}const t=TXS[s.sku];if(t&&t.accruals>0){ta+=t.amount;tac+=t.accruals;}});const rev=sk.reduce((s,v)=>s+v.rev,0),units=sk.reduce((s,v)=>s+v.units,0);return{model,sk,rev,units,share:Math.round(rev/totRev*1000)/10,margin:mr>0?Math.round(mg/mr*1000)/10:null,after:tac>0?Math.round(ta/tac*1000)/10:null};});
+  const q=(window._tovQ||'').trim().toLowerCase();
+  if(q)groups=groups.filter(g=>g.model.toLowerCase().indexOf(q)>=0||g.sk.some(s=>(s.name||'').toLowerCase().indexOf(q)>=0||(OFF[s.sku]||'').toLowerCase().indexOf(q)>=0||String(s.sku).indexOf(q)>=0));
+  const so=window._tovSort||{col:'rev',dir:-1},nv=v=>v==null?-Infinity:v;groups.sort((a,b)=>(nv(a[so.col])-nv(b[so.col]))*so.dir);
+  document.querySelectorAll('#tovHead .sortable').forEach(th=>{const sc=th.querySelector('.sc');if(sc)sc.textContent=th.dataset.s===so.col?(so.dir<0?' ▾':' ▴'):'';});
+  document.getElementById('found').textContent='моделей '+groups.length+' · SKU '+groups.reduce((s,g)=>s+g.sk.length,0)+(q?' · фильтр «'+q+'»':'');
   const spark=ser=>{const w=120,h=26,mx=Math.max(1,...ser),st=w/Math.max(1,ser.length-1);const p=ser.map((v,i)=>i*st+','+(h-(v/mx)*(h-3))).join(' ');return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><polyline fill="none" stroke="#FF4438" stroke-width="1.6" points="'+p+'"/></svg>';};
-  const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>';let rh='';
-  groups.forEach((g,li)=>{let mg=0,mr=0,ta=0,tac=0;g.sk.forEach(s=>{const c=cogsOf(s.sku);if(c>0){mg+=s.rev-c*s.units;mr+=s.rev;}const t=TXS[s.sku];if(t&&t.accruals>0){ta+=t.amount;tac+=t.accruals;}});const mm=mr>0?(Math.round(mg/mr*1000)/10)+'%':'-';const tm=tac>0?(Math.round(ta/tac*1000)/10)+'%':'-';
-    rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+(Math.round(g.rev/totRev*1000)/10)+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r num">'+mm+'</td><td class="r num">'+tm+'</td><td class="r"></td></tr>';
-    g.sk.forEach(s=>{const c=cogsOf(s.sku);const sm=(c>0&&s.rev>0)?(Math.round((s.rev-c*s.units)/s.rev*1000)/10)+'%':'-';const cTxt=c>0?'С\\\\С '+rub(c)+' ₽':'нет С\\\\С';const tt=txTake(s.sku);
-      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+skuLinks(s.sku)+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r num" title="'+cTxt+'">'+sm+'</td><td class="r num">'+(tt!=null?tt+'%':'-')+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';
+  const bg=(t,c)=>'<span class="pill b-'+c+'">'+t+'</span>',na='<span class="na">н/д</span>';let rh='';
+  if(!groups.length)rh='<tr><td colspan="8" class="note">ничего не найдено'+(q?' по запросу «'+q+'»':'')+'</td></tr>';
+  groups.forEach((g,li)=>{const mm=g.margin!=null?g.margin+'%':na,tm=g.after!=null?g.after+'%':na;
+    rh+='<tr class="line-row" data-li="'+li+'"><td><span class="caret">▸</span><span class="dot" style="background:#FF4438"></span><b>'+g.model+'</b> <span class="sub">'+g.sk.length+' SKU</span></td><td class="r num">'+mln(g.rev)+'</td><td class="r num">'+g.share+'%</td><td class="r num">'+rub(g.units)+'</td><td class="r"></td><td class="r num">'+mm+'</td><td class="r num">'+tm+'</td><td class="r"></td></tr>';
+    g.sk.forEach(s=>{const c=cogsOf(s.sku);const sm=(c>0&&s.rev>0)?(Math.round((s.rev-c*s.units)/s.rev*1000)/10)+'%':na;const cTxt=c>0?'С\\\\С '+rub(c)+' ₽':'нет С\\\\С';const tt=txTake(s.sku);
+      rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td class="nm">'+s.name+skuLinks(s.sku)+'</td><td class="r num">'+mln(s.rev)+'</td><td class="r num">'+s.share+'%</td><td class="r num">'+rub(s.units)+'</td><td class="r num">'+rub(s.aov)+'</td><td class="r num" title="'+cTxt+'">'+sm+'</td><td class="r num">'+(tt!=null?tt+'%':na)+'</td><td class="r">'+bg(s.abc,s.abc)+' '+bg(s.xyz,s.xyz)+'</td></tr>';
       rh+='<tr class="sku-row" data-li="'+li+'" style="display:none"><td colspan="9" style="padding-top:0"><span class="sub">'+cTxt+' · тренд заказов по дням: </span>'+spark(series(s.sku,cur.from,cur.to))+'</td></tr>';});});
   document.getElementById('rows').innerHTML=rh;document.querySelectorAll('.line-row').forEach(tr=>tr.addEventListener('click',()=>{const li=tr.dataset.li;tr.classList.toggle('open');document.querySelectorAll('.sku-row[data-li="'+li+'"]').forEach(r=>{r.style.display=r.style.display==='none'?'table-row':'none';});}));
 }
@@ -230,6 +238,8 @@ function initFilters(){
   for(const k in TX){cats.add(TX[k][0]);subs.add(TX[k][1]);lines.add(TX[k][2]);}
   const fill=(id,vals,label)=>{const el=document.getElementById(id);el.innerHTML='<option value="">'+label+'</option>'+[...vals].filter(Boolean).sort().map(v=>'<option>'+v+'</option>').join('');el.addEventListener('change',()=>draw(state.cur,state.cmp));};
   fill('fCat',cats,'Все категории');fill('fSub',subs,'Все подкатегории');fill('fLine',lines,'Все линии');
+  const qi=document.getElementById('qTov');if(qi)qi.addEventListener('input',()=>{window._tovQ=qi.value;draw(state.cur,state.cmp);});
+  document.querySelectorAll('#tovHead .sortable').forEach(th=>th.addEventListener('click',()=>{const col=th.dataset.s,cur=window._tovSort||{col:'rev',dir:-1};window._tovSort=(cur.col===col)?{col,dir:-cur.dir}:{col,dir:-1};draw(state.cur,state.cmp);}));
 }
 boot(drawHeat);`;
   return shell("Товары", sections, js, JSON.stringify(model), FOOT_OPS + " Группировка по линии (модель-уровень - после джойна offer_id с таксономией).");

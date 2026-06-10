@@ -54,11 +54,12 @@ describe("priceDistribution - позиционирование по цене", (
   });
 });
 
-describe("brandViolations - VIOLUR/VALONTI на МП", () => {
-  it("ловит линию-нарушитель", () => {
+describe("brandViolations - VALONTI на МП", () => {
+  it("ловит VALONTI (перегородки), но не VIOLUR (столы)", () => {
     const a = payload({
       sku_table: [
-        { name: "Перегородка VIOLUR", line: "VIOLUR (перегородки)" } as any,
+        { name: "Перегородка VALONTI", line: "VALONTI" } as any,
+        { name: "Стол VIOLUR овальный", line: "VIOLUR (столы)" } as any,
         { name: "Стол TRUBIS", line: "TRUBIS" } as any,
       ],
     });

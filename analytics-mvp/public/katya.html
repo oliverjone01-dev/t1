@@ -3569,23 +3569,25 @@ function period(){
 }
 function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 var busy=false;
+var TEMP=/сравн|вчера|недел|месяц|квартал|январ|феврал|март|апрел|\bмая\b|\bмай\b|июн|июл|август|сентябр|октябр|ноябр|декабр|начал|серед|конц|конец|период|динамик/i;
 function ask(q,page){
   if(busy||!q)return;busy=true;
   box.classList.add('open');
   msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="w" id="gg-wait">Гуру тянет живые данные OZON и думает (20-60 сек)...</div>');
   msgs.scrollTop=msgs.scrollHeight;
-  var p=period();var body={question:q,sessionId:sid};
-  if(p.curFrom){body.curFrom=p.curFrom;body.curTo=p.curTo;}
-  if(p.cmpFrom){body.cmpFrom=p.cmpFrom;body.cmpTo=p.cmpTo;}
+  var body={question:q,sessionId:sid};
+  if(!TEMP.test(q)){var p=period();if(p.curFrom){body.curFrom=p.curFrom;body.curTo=p.curTo;}if(p.cmpFrom){body.cmpFrom=p.cmpFrom;body.cmpTo=p.cmpTo;}}
   if(page)body.page=page;
-  fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  var ctrl=('AbortController' in window)?new AbortController():null;
+  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},90000);
+  fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined})
+  .then(function(r){clearTimeout(tid);return r.text().then(function(t){if(!r.ok)throw new Error('сервис вернул '+r.status);if(!t)throw new Error('пустой ответ (Гуру не успел вовремя)');var j;try{j=JSON.parse(t);}catch(e){throw new Error('ответ не распознан');}return j;});})
   .then(function(j){var w=document.getElementById('gg-wait');if(w)w.remove();
     var a=(j&&j.analysis)||'(пустой ответ)';
-    msgs.insertAdjacentHTML('beforeend','<div class="a">'+esc(a)+(j&&j.curFrom?'<div class="w">период данных: '+j.curFrom+'..'+j.curTo+'</div>':'')+'</div>');
+    msgs.insertAdjacentHTML('beforeend','<div class="a">'+esc(a)+(j&&j.curFrom?'<div class="w">период данных: '+j.curFrom+'..'+j.curTo+(j.period?' ('+j.period+')':'')+'</div>':'')+'</div>');
     msgs.scrollTop=msgs.scrollHeight;busy=false;})
-  .catch(function(e){var w=document.getElementById('gg-wait');if(w)w.remove();
-    msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. n8n недоступен или долго отвечает - попробуй ещё раз.</div>');
+  .catch(function(e){clearTimeout(tid);var w=document.getElementById('gg-wait');if(w)w.remove();
+    msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
     busy=false;});
 }
 var inp=document.getElementById('gg-guru-q');

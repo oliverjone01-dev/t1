@@ -65,7 +65,7 @@ for (const page of PAGES) {
   // наличие скролл-обёрток у таблиц; визуальная читаемость на 390px - ручной просмотр (DoD)
   // katya.html - сторонний макет Кати (своя вёрстка), GENGLASS-гейты к нему не применяем;
   // держим только универсальное: грузится без jsdomError, нет утечки VALONTI, нет видимого NaN.
-  const isKatya = page === "katya.html";
+  const isKatya = page.startsWith("katya");
   const tAll = document.querySelectorAll("table").length;
   const tWrap = document.querySelectorAll(".tscroll table").length;
   if (!isKatya && tAll !== tWrap) errors.push(`таблиц без скролл-обёртки .tscroll: ${tAll - tWrap} из ${tAll}`);

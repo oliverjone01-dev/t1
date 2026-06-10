@@ -9,7 +9,7 @@ function main() {
   const idx = buildCogsIndex(cogs);
   const tax = parseTaxonomy(readFileSync("fixtures/taxonomy.csv", "utf-8"));
   const oi = offerIndex(tax);
-  const skus = JSON.parse(readFileSync("fixtures/skus_live_30d.json", "utf-8"));
+  const skus = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
 
   // кэш матча по имени модели
   const modelCost = new Map<string, number | null>();

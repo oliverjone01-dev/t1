@@ -10,7 +10,7 @@ const kpiC = (lab: string, val: string) => `<div class="card kpi"><div class="la
 
 // VIOLUR - это столы GENGLASS, открыто продаются на OZON (решение Ивана), не маскируем.
 // Маскируется только VALONTI (перегородки, не для МП). Маска применяется к финальному
-// HTML при записи - покрывает и DATA, и видимый текст. fixtures/data не трогаются.
+// HTML при записи - покрывает и DATA, и видимый текст. Источники в data/ не трогаются.
 // Санитайзер финального HTML: маскирует скрытый бренд и чинит ошибочную подпись.
 // Один проход покрывает и видимый текст, и сериализованный DATA, и статичные страницы.
 const HTML_FIX: Array<[RegExp, string]> = [
@@ -32,8 +32,8 @@ const snapNote = (from: string, to: string) =>
 
 // Маркетинг и цена: индекс цены + ДРР канала + доли линий. Снимок 30 дней.
 function buildMarketing(): string {
-  const skus = JSON.parse(readFileSync("fixtures/skus_live_30d.json", "utf-8"));
-  const ads = JSON.parse(readFileSync("fixtures/ads_30d.json", "utf-8"));
+  const skus = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
+  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
   const t = skus.totals;
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   for (const s of skus.sku_table) {
@@ -79,7 +79,7 @@ function buildMarketing(): string {
 
 // Кампании: расход, ДРР, сливы, топ по расходу. Снимок 30 дней.
 function buildCampaigns(): string {
-  const ads = JSON.parse(readFileSync("fixtures/ads_30d.json", "utf-8"));
+  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
   const t = ads.totals;
   const burn = ads.burners.map((b: any) =>
     `<tr><td>${b.off}</td><td class="sub">${b.line}</td><td class="r num">${ru(b.sp)}</td><td class="r num">${b.o}</td><td class="r num ${b.drr === 0 || b.drr > 40 ? "down" : ""}">${b.drr ? b.drr + "%" : "0 заказов"}</td></tr>`).join("");
@@ -155,21 +155,21 @@ function main() {
 
   // операционный P&L по транзакциям (снимок 30 дней, реальные сборы OZON)
   let opnl: unknown = {};
-  try { opnl = JSON.parse(readFileSync("fixtures/pnl_30d.json", "utf-8")); } catch { opnl = {}; }
+  try { opnl = JSON.parse(readFileSync("data/pnl_30d.json", "utf-8")); } catch { opnl = {}; }
 
   // per-SKU транзакции (снимок 30 дней): sku -> {accruals, commission, amount}
   let txsku: Record<string, { accruals: number; commission: number; amount: number }> = {};
-  try { txsku = JSON.parse(readFileSync("fixtures/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { txsku = {}; }
+  try { txsku = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { txsku = {}; }
 
   // реклама (снимок 30 дней) - для ассистента
   let ads: unknown = {};
-  try { ads = JSON.parse(readFileSync("fixtures/ads_30d.json", "utf-8")); } catch { ads = {}; }
+  try { ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8")); } catch { ads = {}; }
 
   // снимок живых SKU: артикулы для ссылок в кабинет + OOS-сигнал (TZ v2 1.6/1.7)
   const offers: Record<string, string> = {};
   let oos: Array<{ sku: string; offer: string; name: string; line: string; units: number }> = [];
   try {
-    const live = JSON.parse(readFileSync("fixtures/skus_live_30d.json", "utf-8"));
+    const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
     for (const s of live.sku_table || []) {
       if (s.offer && String(s.offer).trim()) offers[String(s.sku)] = String(s.offer).trim();
     }

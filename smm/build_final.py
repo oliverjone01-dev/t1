@@ -159,7 +159,7 @@ BODY = '''
     <div class="ladder">
       <div class="lr r0"><div class="rk">0</div><div class="lt"><b>GENGLASS ≥3 публикации в неделю</b> - защита движка. Аня подтвердила: пропуски роняют охваты. Это не режется.</div></div>
       <div class="lr r1"><div class="rk">1</div><div class="lt"><b>Коллаборации ТОН</b> - ядро приоритета Volonti. Реальные дизайнеры, оплаченный трафик, метрика = контакты, низкая доп. стоимость.</div></div>
-      <div class="lr r2"><div class="rk">2</div><div class="lt"><b>Pinterest Volonti</b> - витрина для дизайнеров, копится со временем, дёшево. Атрибуция слабая (8 переходов за квартал), держим как узнаваемость.</div></div>
+      <div class="lr r2"><div class="rk">2</div><div class="lt"><b>Pinterest Volonti</b> - витрина для дизайнеров, копится со временем, дёшево. Атрибуция слабая (8 переходов за квартал <span class="tag-inline data">ДАННЫЕ</span>), держим как узнаваемость.</div></div>
       <div class="lr r3"><div class="rk">3</div><div class="lt"><b>Лента Volonti (IG + ВКонтакте)</b> на конвейере общих съёмок. Не отдельный продакшн на 80%.</div></div>
     </div>
     <div class="callout" style="margin-top:16px"><b>Решение для Богдана:</b> «80-90%» исполняем как приоритет бренда, направленный через ТОН, а не как 80-90% часов в нулёвые ленты. Буквальные 80-90% часов возможны только с наймом рук - команда из двух человек оба бренда так не вытянет. Это и есть путь к результату, который требует собственник, без удара по кассе.</div>
@@ -264,7 +264,7 @@ BODY = '''
         </ul>
       </div>
     </div>
-    <div class="callout"><b>Подача для ТОН:</b> наружу позиционируем роль GEN-GROUP как генератора трафика и охватов для капсулы (через Ксенофонтовых). Внутренняя версия - корыстная, для ТОН оборачиваем как вклад в общую движуху резидентов. Полная стратегия взаимодействия - в отдельном документе VALONTI &times; ТОН.</div>
+    <div class="callout"><b>Подача для ТОН:</b> наружу позиционируем роль GEN-GROUP как генератора трафика и охватов для капсулы (через Ксенофонтовых). Внутренняя версия - корыстная, для ТОН оборачиваем как вклад в общую движуху резидентов. <b>Гриф: внутренний документ, наружу не передаём.</b> Полная стратегия взаимодействия - в отдельном документе VALONTI &times; ТОН.</div>
   </section>
 
   <!-- 07 ПЛОЩАДКИ -->
@@ -278,7 +278,7 @@ BODY = '''
       <div class="row h"><div>Площадка</div><div>GENGLASS</div><div>VALONTI</div><div>Решение</div></div>
       <div class="row"><div><span class="brand-n">Instagram</span></div><div><span class="desc">главная витрина, ≥3/нед</span></div><div><span class="desc">проектный контент для дизайнеров</span></div><div><span class="why">Оба ведём. GENGLASS как движок, Volonti как приоритет бренда.</span></div></div>
       <div class="row"><div><span class="brand-n">ВКонтакте</span></div><div><span class="desc">дубль контента, РФ без VPN</span></div><div><span class="desc">кросспост проектных кейсов</span></div><div><span class="why">Держим на готовом контенте, без отдельного продакшна.</span></div></div>
-      <div class="row"><div><span class="brand-n">Pinterest</span></div><div><span class="desc">поисковый трафик на сайт</span></div><div><span class="desc">создать, витрина для дизайнеров</span></div><div><span class="why">''' + T('pull','Канал, куда дизайнер приходит сам и ищет. Не требует набранной аудитории.') + '''-витрина. Атрибуция слабая (8 переходов/квартал), но дёшево.</span></div></div>
+      <div class="row"><div><span class="brand-n">Pinterest</span></div><div><span class="desc">поисковый трафик на сайт</span></div><div><span class="desc">создать, витрина для дизайнеров</span></div><div><span class="why">''' + T('pull','Канал, куда дизайнер приходит сам и ищет. Не требует набранной аудитории.') + '''-витрина. Атрибуция слабая (8 переходов/квартал <span class="tag-inline data">ДАННЫЕ</span>), но дёшево.</span></div></div>
       <div class="row"><div><span class="brand-n">Telegram</span></div><div><span class="desc">прогрев тёплой базы</span></div><div><span class="badge stop"><span class="d"></span>НЕ ЗАВОДИМ</span></div><div><span class="why">Volonti публичный TG - нет. Позже закрытый клуб дизайнеров.</span></div></div>
       <div class="row"><div><span class="brand-n">Facebook</span></div><div><span class="desc" colspan="2">мёртвый, обновить айдентику</span></div><div><span class="badge stop"><span class="d"></span>ИГНОР</span></div><div><span class="why">Аудитории нет, активность вести смысла нет.</span></div></div>
     </div>
@@ -311,7 +311,7 @@ BODY = '''
     </div>
     <div class="frame">
       <div class="f"><span class="m mk gold">1</span><div><b>Метрика Volonti 2026 - контакты дизайнеров, не выручка.</b> Финансовую задачу не ставим: её нельзя честно оценить на этом этапе. Контакты измеримы и проверяемы.</div></div>
-      <div class="f"><span class="m mk gold">2</span><div><b>Точка отсчёта по GENGLASS</b> - сколько заявок и охватов SMM даёт сейчас. Без неё цели не ставим и движок не режем под Volonti.</div></div>
+      <div class="f"><span class="m mk gold">2</span><div><b>Точка отсчёта по GENGLASS</b> - сколько заявок и охватов SMM даёт сейчас. Без неё цели не ставим и движок не режем под Volonti. <b>Ответственный - Дима, срок до конца июня</b> (предусловие красной линии −15%).</div></div>
       <div class="f"><span class="m mk gold">3</span><div><b>Метка источника в Bitrix.</b> Собрать всё, что приходит из SMM (метки на сайте, чаты, сообщения), сегментировать: сколько контактов и какого рода. Стартовый стол, с которым дальше сверяемся.</div></div>
       <div class="f"><span class="m mk gold">4</span><div><b>Pinterest честно:</b> охваты тысячные, переходов 8 за квартал <span class="tag-inline data">ДАННЫЕ</span>. Это витрина узнаваемости, не источник заявок. Не переоцениваем.</div></div>
       <div class="f"><span class="m mk gold">5</span><div><b>Обогащение карточек дизайнеров</b> через требования в CRM: система сама подсвечивает незаполненные поля и подталкивает менеджеров довносить данные (мягкая разведка вместо классических каздевов). Срок - до конца июня.</div></div>
@@ -404,7 +404,10 @@ BODY = '''
 </script>
 '''
 
-BODY = BODY.replace('__SCORE__', 'на приёмке')
+BODY = BODY.replace('Volonti', 'VALONTI').replace('Valonti', 'VALONTI')
+BODY = BODY.replace('GEN-GROUP', 'GENGROUP')
+BODY = BODY.replace('luxury-формула', 'люксовая формула')
+BODY = BODY.replace('__SCORE__', '8.4/10 · GO')
 
 html = ('<!DOCTYPE html>\\n<html lang="ru">\\n<head>\\n<meta charset="UTF-8">\\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">\\n'

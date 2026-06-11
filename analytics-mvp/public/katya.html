@@ -2547,6 +2547,12 @@ function renderABCXYZ(){
   const ABC_EXCLUDE = new Set(['g_nonstd','g_komplekty','g_other']);
   const skus = aggregateModels().filter(sk => !ABC_EXCLUDE.has(sk.groupId));
   const classified = classifyABC(skus).map(sk => ({...sk, ...classifyXYZ(sk)}));
+  const _cvS = classified.filter(s=>typeof s.cv==='number'&&s.cv>0).map(s=>s.cv).sort((a,b)=>a-b);
+  const _cvQ = q => _cvS.length ? _cvS[Math.min(_cvS.length-1, Math.floor(q*_cvS.length))] : Infinity;
+  const _cvP33 = _cvQ(1/3), _cvP67 = _cvQ(2/3);
+  for(let _i=classified.length-1;_i>=0;_i--){ const s=classified[_i];
+    if(!(typeof s.cv==='number'&&s.cv>0)){ classified.splice(_i,1); continue; }
+    s.xyz = (s.cv<=_cvP33)?'X':(s.cv<=_cvP67?'Y':'Z'); }
   const grandRev = classified.reduce((s,sk) => s + sk.rev, 0);
 
   // Группируем по ячейке (AX, AY, ..., CZ)

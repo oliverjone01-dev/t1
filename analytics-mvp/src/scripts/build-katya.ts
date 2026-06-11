@@ -270,6 +270,24 @@ function replaceConst(src: string, name: string, literal: string): string {
 }
 
 // --- честность маржи в шаблоне: непокрытое = «н/д» серым, без выдуманного фоллбэка 35% ---
+// Фикс матрицы ABC×XYZ (порт из v57 Кати + поправка по аудиту ФЕНИКСА).
+// Абсолютные пороги cv<0.10/0.25 на разреженных данных МП валят почти все в Z.
+// НО перцентили по ВСЕМ моделям тоже врут: модели с 1 месяцем продаж имеют cv=0 и забивают X.
+// Поэтому: cv=0 (меньше 2 месяцев данных - о стабильности судить нельзя) ИСКЛЮЧАЕМ из матрицы;
+// перцентили p33/p67 считаем ТОЛЬКО по моделям с реальной вариативностью (cv>0).
+function patchXyzMatrix(html: string): string {
+  return html.replace(
+    /const classified = classifyABC\(skus\)\.map\(sk => \(\{\.\.\.sk, \.\.\.classifyXYZ\(sk\)\}\)\);/g,
+    "const classified = classifyABC(skus).map(sk => ({...sk, ...classifyXYZ(sk)}));\n" +
+    "  const _cvS = classified.filter(s=>typeof s.cv==='number'&&s.cv>0).map(s=>s.cv).sort((a,b)=>a-b);\n" +
+    "  const _cvQ = q => _cvS.length ? _cvS[Math.min(_cvS.length-1, Math.floor(q*_cvS.length))] : Infinity;\n" +
+    "  const _cvP33 = _cvQ(1/3), _cvP67 = _cvQ(2/3);\n" +
+    "  for(let _i=classified.length-1;_i>=0;_i--){ const s=classified[_i];\n" +
+    "    if(!(typeof s.cv==='number'&&s.cv>0)){ classified.splice(_i,1); continue; }\n" +
+    "    s.xyz = (s.cv<=_cvP33)?'X':(s.cv<=_cvP67?'Y':'Z'); }"
+  );
+}
+
 function patchMarginHonesty(html: string): string {
   let out = html;
   // ячейка без маржи - графит, не «красная低»
@@ -577,6 +595,7 @@ for (const f of facts) {
   ];
   for (const [n, lit] of repl) html = replaceConst(html, n, lit);
   html = patchMarginHonesty(html);
+  html = patchXyzMatrix(html);
   html = patchRealDaily(html, {});
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor") + REAL_DAILY_JS(false) + `<script>window.__GG_MAXD='${maxD}'</script>`);
   html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n</body>");

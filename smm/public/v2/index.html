@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GEN / SMM - Стратегия v2 · Valonti by GENGLASS</title>
+<title>GEN / SMM - Стратегия v2 · понятная версия · Valonti by GENGLASS</title>
 <style>
 :root{
   --bg:#0A0A0A;--bg-2:#0F0E0C;--card:#16140F;--card-2:#1A1813;--line:#262320;--line-2:#33302A;
@@ -17,7 +17,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body{
-  font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-weight:400;
+  font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.72;font-weight:400;
   letter-spacing:.005em;overflow-x:hidden;
   background-image:radial-gradient(1100px 520px at 82% -8%, rgba(200,169,81,.10), transparent 60%),radial-gradient(900px 500px at -10% 12%, rgba(126,156,196,.05), transparent 55%);
   background-attachment:fixed;
@@ -38,15 +38,15 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opa
 .nav .tag{color:var(--ink-3);margin-right:5px}
 
 .wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
-section{padding:56px 0;border-top:1px solid var(--line)}
+section{padding:88px 0;border-top:1px solid var(--line)}
 section:first-of-type{border-top:none}
-.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:30px;flex-wrap:wrap}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:42px;flex-wrap:wrap}
 .sec-num{font-size:13px;font-weight:700;letter-spacing:.2em;color:var(--gold);border:1px solid var(--line-2);border-radius:7px;padding:5px 10px;background:var(--gold-soft)}
 .sec-title{font-size:clamp(22px,3.3vw,33px);font-weight:700;letter-spacing:-.02em;line-height:1.12}
 .sec-sub{color:var(--ink-2);font-size:15px;max-width:820px;margin-top:8px;font-weight:400}
 .sec-title .em{color:var(--gold)}
 
-.hero{padding:78px 0 60px;border:none}
+.hero{padding:100px 0 80px;border:none}
 .kicker{display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:.22em;color:var(--gold);margin-bottom:26px}
 .kicker .bar{width:34px;height:1px;background:var(--gold)}
 .hero h1{font-size:clamp(33px,6vw,60px);font-weight:800;line-height:1.04;letter-spacing:-.035em;max-width:17ch}
@@ -75,7 +75,7 @@ section:first-of-type{border-top:none}
 .tldr{background:linear-gradient(180deg,var(--card-2),var(--card));border:1px solid var(--line-2);border-radius:18px;padding:30px 30px 14px;box-shadow:var(--shadow)}
 .tldr h3{font-size:13px;letter-spacing:.16em;font-weight:700;color:var(--gold);margin-bottom:20px}
 .tldr ul{list-style:none}
-.tldr li{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px;align-items:flex-start}
+.tldr li{display:flex;gap:14px;padding:17px 0;border-bottom:1px solid var(--line);font-size:15.5px;align-items:flex-start}
 .tldr li:last-child{border-bottom:none}
 .tldr .ic{flex:none;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-weight:800;font-size:13px;margin-top:1px}
 .ic.keep{background:var(--keep-bg);color:var(--keep);border:1px solid rgba(111,174,123,.35)}
@@ -110,7 +110,7 @@ section:first-of-type{border-top:none}
 .row .desc{font-size:13px;color:var(--ink-2)}.row .why{font-size:12.5px;color:var(--ink-3);line-height:1.45}
 
 /* engines / matrix */
-.engines{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.engines{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 .eng{border-radius:18px;padding:26px;border:1px solid var(--line-2);position:relative;overflow:hidden;background:var(--card)}
 .eng.a{border-top:3px solid var(--keep)}.eng.b{border-top:3px solid var(--invest)}
 .eng .tag{font-size:11px;font-weight:700;letter-spacing:.12em;margin-bottom:6px}
@@ -135,7 +135,7 @@ section:first-of-type{border-top:none}
 .mcol li b{color:var(--ink);font-weight:600}
 
 /* trap cards */
-.traps{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.traps{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .trap{border-radius:var(--radius);background:var(--card);border:1px solid var(--line);border-left:3px solid var(--stop);padding:24px}
 .trap .tnum{font-size:11px;letter-spacing:.1em;font-weight:700;color:var(--stop);margin-bottom:9px}
 .trap h4{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:11px;line-height:1.25}
@@ -144,7 +144,7 @@ section:first-of-type{border-top:none}
 .trap .fix b{color:var(--keep);font-weight:800}
 
 /* generic info cards */
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .icard{border-radius:var(--radius);background:var(--card);border:1px solid var(--line);padding:22px 24px;transition:.3s var(--ease)}
 .icard:hover{border-color:var(--line-2);transform:translateY(-3px);box-shadow:var(--shadow)}
 .icard .n{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:10px}
@@ -170,7 +170,7 @@ section:first-of-type{border-top:none}
 .rcard p{font-size:13px;color:var(--ink-2)}.rcard p b{color:var(--ink);font-weight:600}
 
 /* MEDIA PLAN */
-.pgroup{margin-bottom:30px}
+.pgroup{margin-bottom:52px}
 .pgroup .ph{display:flex;align-items:center;gap:13px;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .pgroup .ph .picon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:12px;flex:none}
 .pgroup .ph .pname{font-size:15px;font-weight:700;letter-spacing:.04em}
@@ -180,7 +180,7 @@ section:first-of-type{border-top:none}
 .plat.vk{background:linear-gradient(135deg,#16202e,#0f161c);color:#7FA8D9;border:1px solid var(--line-2)}
 .plat.pin{background:linear-gradient(135deg,#2e1618,#1c0f10);color:#D9694C;border:1px solid var(--line-2)}
 .plat.fb{background:linear-gradient(135deg,#1c1f28,#12141a);color:#7F8BA8;border:1px solid var(--line-2)}
-.media{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.media{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .macc{border-radius:16px;background:var(--card);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
 .macc .head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
 .macc .name{font-size:16px;font-weight:800;letter-spacing:-.01em}
@@ -268,7 +268,7 @@ section:first-of-type{border-top:none}
 
 <header class="topbar">
   <div class="topbar-in">
-    <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;SMM <span>· Стратегия v2</span></div>
+    <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;SMM <span>· понятная версия</span></div>
     <nav class="nav">
       <a href="#s1"><span class="tag">01</span>Решение</a>
       <a href="#s2"><span class="tag">02</span>Экономика</a>
@@ -296,13 +296,13 @@ section:first-of-type{border-top:none}
     <p class="lead">
       Решение стратсессии: VALONTI не строим с нуля как отдельный бренд - его растят на узнаваемости и трафике GENGLASS по модели
       <span class="t" data-tip="Материнский бренд поддерживает дочерний своим авторитетом, оставаясь за кадром. Как Toyota за Lexus." tabindex="0">эндорсмента</span> Toyota&nbsp;&rarr;&nbsp;Lexus.
-      Это <b>верное решение</b> в режиме экономии. Дальше - как исполнить так, чтобы не сжечь кэш-движок GENGLASS и не размыть премиум VALONTI. Ниже - все критические детали и медиаплан по реальным <b>8 аккаунтам</b>.
+      Это <b>верное решение</b> в режиме экономии. Дальше - как исполнить так, чтобы не сжечь <span class="t" data-tip="Бизнес, который реально приносит живые деньги прямо сейчас - GENGLASS." tabindex="0">кэш-движок</span> GENGLASS и не размыть премиум VALONTI. Ниже - все критические детали и медиаплан по реальным <b>8 аккаунтам</b>.
     </p>
     <div class="stamp">
       <div class="s owner">Владелец канала: <b>Аня Емельяненко</b></div>
       <div class="s">Прошло <b>Protocol&nbsp;9</b></div>
       <div class="s">ФЕНИКС <b>9.2/10 · GO</b></div>
-      <div class="s">Версия <b>v2 · пилот до baseline</b></div>
+      <div class="s">Версия <b>v2 · понятная версия для коллег</b></div>
     </div>
   </section>
 
@@ -312,7 +312,7 @@ section:first-of-type{border-top:none}
       <h3>СУТЬ ЗА 30 СЕКУНД</h3>
       <ul>
         <li><span class="ic keep">✓</span><div><b>Архитектура: Valonti by GENGLASS.</b> GENGLASS репостит VALONTI и ведёт туда аудиторию. Направление поддержки только в эту сторону - как Toyota к Lexus, не наоборот.</div></li>
-        <li><span class="ic keep">✓</span><div><b>Владелец канала закреплён - Аня Емельяненко (SMM-спец).</b> Один человек на воронку и метрики. Главный gap закрыт.</div></li>
+        <li><span class="ic keep">✓</span><div><b>Владелец канала закреплён - Аня Емельяненко (SMM-спец).</b> Один человек на воронку и метрики. Главное слабое место закрыто.</div></li>
         <li><span class="ic stop">✕</span><div><b>«by GENGLASS» не выносим в публичный контент.</b> Lexus нигде не «Lexus by Toyota». Иначе ломаем позиционирование, которое хотим защитить.</div></li>
         <li><span class="ic stop">✕</span><div><b>Репосты VALONTI на ленту GENGLASS - дисциплинированно.</b> Каждый такой пост не ведёт лиды кэш-движка. Это скрытая цена.</div></li>
         <li><span class="ic inv">◆</span><div><b>VALONTI - бренд-инвестиция, не выручка 2026.</b> Топливо: капсула ЗИЛАРТ + резиденты Тона + Богдан 1-2/мес. Едет на общих съёмках.</div></li>
@@ -333,7 +333,7 @@ section:first-of-type{border-top:none}
       <div class="node gg">
         <div class="role">ДВИГАТЕЛЬ · МАССОВАЯ АУДИТОРИЯ</div>
         <h4>GENGLASS</h4>
-        <p>D2C, потребитель. Готовая аудитория, трафик, накопленный контент, узнаваемость. Главный приоритет рук.</p>
+        <p><span class="t" data-tip="Продажи напрямую конечному покупателю, без посредников." tabindex="0">D2C</span>, потребитель. Готовая аудитория, трафик, накопленный контент, узнаваемость. Главный приоритет рук.</p>
       </div>
       <div class="flow">
         <div class="arrow">&rarr;</div>
@@ -405,14 +405,14 @@ section:first-of-type{border-top:none}
         <h4>«by GENGLASS» в публичном контенте убивает премиум</h4>
         <p>Lexus нигде не называется «Lexus by Toyota». Аналогия работает ровно потому, что эндорсмент <b>невидим покупателю</b>.</p>
         <p>Как только «by GENGLASS» становится подписью под постами VALONTI - вы субординируете премиум-бренд под средний+ и <b>каннибализируете позиционирование</b> (прямой запрет в брендовых ограждениях).</p>
-        <div class="fix"><b>Решение:</b> «Valonti by GENGLASS» - внутренняя архитектура и механизм роутинга аудитории. Контент VALONTI читается как VALONTI.</div>
+        <div class="fix"><b>Решение:</b> «Valonti by GENGLASS» - внутренняя архитектура и способ направлять аудиторию. Контент VALONTI читается как VALONTI.</div>
       </div>
       <div class="trap">
         <div class="tnum">КАПКАН 2 · СКРЫТАЯ ЦЕНА</div>
         <h4>Репост VALONTI на ленту GENGLASS стоит лидов</h4>
         <p>Аудитория GENGLASS - конечники (женщина 28-45, ремонт) <span class="tag-inline data">ДАННЫЕ</span>, не дизайнеры. Дизайнерский premium-контент там почти не конвертит.</p>
-        <p>Каждый репост VALONTI - это пост GENGLASS, который <b>не ведёт лиды кэш-движка</b>. То есть GENGLASS платит за поддержку VALONTI собственным конверсионным вниманием - <span class="t" data-tip="Упущенная выгода от того, что место в ленте занял не тот контент." tabindex="0">opportunity cost</span>.</p>
-        <div class="fix"><b>Решение:</b> репосты точечным гало, не заливом. Каденс держит владелец, эффект замеряется, а не игнорируется.</div>
+        <p>Каждый репост VALONTI - это пост GENGLASS, который <b>не ведёт лиды кэш-движка</b>. То есть GENGLASS платит за поддержку VALONTI собственным вниманием, которое могло бы привести заявки - <span class="t" data-tip="Упущенная выгода от того, что место в ленте занял не тот контент." tabindex="0">opportunity cost</span>.</p>
+        <div class="fix"><b>Решение:</b> репосты точечно, а не потоком. Частоту держит владелец, эффект замеряется, а не игнорируется.</div>
       </div>
     </div>
   </section>
@@ -463,7 +463,7 @@ section:first-of-type{border-top:none}
         <ul>
           <li><b>Проектные кейсы</b> - «реализовано в проекте студии X»</li>
           <li><b>Материалы и отделки</b> крупно, фактуры, премиальная съёмка</li>
-          <li><b>Кастом и bespoke</b> - процесс, сложные решения</li>
+          <li><b>Кастом и изделия на заказ</b> - процесс, сложные решения</li>
           <li><b>Экспертный контент</b> - решение болей дизайнера, не реклама</li>
           <li><b>Капсула ЗИЛАРТ как шоурум</b> + коллабы с резидентами Тона</li>
           <li><b>Интервью Богдана</b> в отраслевых медиа &rarr; нарезки</li>
@@ -486,7 +486,7 @@ section:first-of-type{border-top:none}
       <div class="icard">
         <div class="n">КТО ПОКУПАТЕЛЬ</div>
         <h4>Дизайнер и архитектор</h4>
-        <p>Профи, который специфицирует бренд для своего клиента. <b>Не массовый покупатель.</b></p>
+        <p>Профи, который закладывает бренд в проект клиента. <b>Не массовый покупатель.</b></p>
       </div>
       <div class="icard">
         <div class="n">СЕГМЕНТ</div>
@@ -500,17 +500,46 @@ section:first-of-type{border-top:none}
       </div>
     </div>
     <div class="callout">
-      Единственное, что осталось защитить: «Valonti by GENGLASS» работает как <b>внутренняя</b> архитектура. В маркет-фейсинг контенте VALONTI остаётся VALONTI - премиальным и самостоятельным по подаче. Это и есть корректный Toyota &rarr; Lexus.
+      Единственное, что осталось защитить: «Valonti by GENGLASS» работает как <b>внутренняя</b> архитектура. В публичном контенте, который видит клиент, VALONTI остаётся VALONTI - премиальным и самостоятельным по подаче. Это и есть корректный Toyota &rarr; Lexus.
     </div>
     <div class="spotlight" style="margin-top:18px">
       <div class="st">САЙТ valonti.ru · СЛОГАН ПОД ЗАМЕНУ</div>
       <h4>«Роскошь в каждой детали» - REJECT</h4>
-      <p>Текущий слоган сайта - median luxury-формула, его выдаст любой бренд от ванн до яхт, и он <b>противоречит позиционированию</b> middle+/premium. Слово «роскошь» отпугивает целевого дизайнера: он читает «дорого и пафосно, клиент не потянет». Замена - ось на материал и авторство, не на статус.</p>
+      <p>Текущий слоган сайта - шаблонная luxury-формула, какую лепит каждый второй, его выдаст любой бренд от ванн до яхт, и он <b>противоречит позиционированию</b> middle+/premium. Слово «роскошь» отпугивает целевого дизайнера: он читает «дорого и пафосно, клиент не потянет». Замена - ось на материал и авторство, не на статус.</p>
       <div class="grid3" style="margin-top:16px">
         <div class="icard" style="border-color:rgba(111,174,123,.4)"><div class="n" style="color:var(--keep)">РЕКОМЕНДОВАН</div><h4 style="font-size:15px;line-height:1.3">«Камень, металл, стекло. Работа с материалом для тех, кто проектирует.»</h4><p>Прямая адресация B2D, материал на первом месте.</p></div>
         <div class="icard"><div class="n">ВАРИАНТ 2</div><h4 style="font-size:15px;line-height:1.3">«Материал на первом месте.»</h4><p>Короткий манифест, нужен подзаголовок с категорией.</p></div>
         <div class="icard"><div class="n">ВАРИАНТ 3</div><h4 style="font-size:15px;line-height:1.3">«Дизайнерская мебель из камня и металла. Под проект.»</h4><p>Самый понятный для поиска, наименее авторский.</p></div>
       </div>
+    </div>
+    <div style="margin-top:30px">
+      <h3 style="font-size:19px;font-weight:700;margin:0 0 6px;color:var(--gold)">Разделение площадок: где живёт каждый бренд</h3>
+      <p class="sec-sub" style="margin:0 0 20px">Самое важное, что нужно показать коллегам - это два разных дома для двух разных покупателей. Одна площадка и один контент не обслуживают обоих сразу.</p>
+      <div class="matrix">
+        <div class="mcol gg">
+          <h4>GENGLASS - массовый покупатель</h4>
+          <div class="sub">движок денег · конечный клиент</div>
+          <ul>
+            <li><b>Instagram</b> - главная витрина, сюда максимум сил</li>
+            <li><b>ВКонтакте</b> - тот же контент для России без VPN</li>
+            <li><b>Telegram</b> - прогрев тех, кто уже знает бренд</li>
+            <li><b>Pinterest</b> - вечный поисковый трафик на сайт</li>
+            <li>Тон: понятный, быстрый, с ценами и кнопкой «оставить заявку»</li>
+          </ul>
+        </div>
+        <div class="mcol v">
+          <h4>VALONTI - дизайнер и архитектор</h4>
+          <div class="sub">движок репутации · профи-аудитория</div>
+          <ul>
+            <li><b>Instagram</b> - своя витрина проектов, без спешки</li>
+            <li><b>Pinterest</b> - дизайнеры сами ищут тут картинки (создаём)</li>
+            <li><b>ВКонтакте</b> - лёгкий дубль проектных кейсов</li>
+            <li><b>Публичный Telegram - нет.</b> Закрытый откроем позже</li>
+            <li>Тон: премиальный, про материал и авторскую работу</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout" style="background:var(--invest-bg);border-color:rgba(126,156,196,.3)"><b style="color:var(--invest)">Правило простыми словами:</b> GENGLASS подаёт VALONTI руку - репостит его и приводит людей. Но VALONTI обратно GENGLASS не репостит, иначе премиум превращается в массовый бренд. Поддержка идёт только сверху вниз.</div>
     </div>
   </section>
 
@@ -564,13 +593,13 @@ section:first-of-type{border-top:none}
     </div>
     <div class="role-hero">
       <div class="big">
-        VALONTI - это <b>премиальное эндорсмент-направление внутри экосистемы GENGLASS</b>, которое растят на заёмной инфраструктуре, а не строят с нуля. Задача в 2026 - не продать, а <b>застолбить узнаваемость в дизайн-среде</b> через капсулу и Богдана, не сжигая руки и не размывая кэш-движок.
+        VALONTI - это <b>премиальное <span class="t" data-tip="Бренд, который растят под крылом более крупного, не строя с нуля. Toyota растит Lexus." tabindex="0">эндорсмент</span>-направление в экосистеме GENGROUP</b>, которое растят на заёмной инфраструктуре, а не строят с нуля. Задача в 2026 - не продать, а <b>застолбить узнаваемость в дизайн-среде</b> через капсулу и Богдана, не сжигая руки и не размывая кэш-движок.
       </div>
       <div class="role-grid">
         <div class="rcard"><div class="rl">Статус</div><p>Пассажир. <b>GENGLASS - двигатель.</b></p></div>
         <div class="rcard"><div class="rl">Дом</div><p>Своя лента <b>IG + VK + Pinterest</b>, профи-аудитория.</p></div>
         <div class="rcard"><div class="rl">Топливо</div><p>Капсула, Тон, Богдан 1-2/мес, общие съёмки.</p></div>
-        <div class="rcard"><div class="rl">Метрика</div><p>Дизайн-лиды, пайплайн Club. <b>Не рубли.</b></p></div>
+        <div class="rcard"><div class="rl">Метрика</div><p>Дизайн-лиды, очередь сделок Club. <b>Не рубли.</b></p></div>
         <div class="rcard"><div class="rl">Горизонт</div><p>В самостоятельность - <b>когда наберёт базу.</b></p></div>
       </div>
     </div>
@@ -612,9 +641,9 @@ section:first-of-type{border-top:none}
             <dl class="kv">
               <dt>Контент</dt><dd>Reels до/после, лайфстайл, ценовые якоря, отработка страхов, прямой переход в заявку</dd>
               <dt>Частота</dt><dd>Высокая: 3-5 reels/нед + сторис ежедневно <span class="tag-inline hyp">ГИПОТЕЗА</span> - привязать к найму</dd>
-              <dt>Метрика</dt><dd>Лиды, CR заявка&rarr;сделка, CAC, выручка с метки</dd>
+              <dt>Метрика</dt><dd>Заявки, доля дошедших до сделки, цена привлечённого клиента, выручка с метки</dd>
             </dl>
-            <div class="verdict go"><b>ROI:</b> прямая атрибуция, максимальный возврат на час работы.</div>
+            <div class="verdict go"><b>Отдача:</b> прямая атрибуция, максимальный возврат на час работы.</div>
           </div>
         </div>
         <div class="macc inv">
@@ -622,11 +651,11 @@ section:first-of-type{border-top:none}
           <div class="body">
             <div class="dec">&rarr; ПЕРЕФОРМАТИРОВАТЬ из «красиво» в проектное.</div>
             <dl class="kv">
-              <dt>Контент</dt><dd>Проектные кейсы, материалы крупно, «specified by студия X», капсула-шоурум, коллабы Тона, Богдан</dd>
+              <dt>Контент</dt><dd>Проектные кейсы, материалы крупно, «заложен в проект студии X», капсула-шоурум, коллабы Тона, Богдан</dd>
               <dt>Частота</dt><dd>Низкая-средняя: 2-3 поста/нед. Качество важнее частоты</dd>
               <dt>Метрика</dt><dd>Охват дизайнеров, дизайн-лиды, сохранения, репосты дизайнерами</dd>
             </dl>
-            <div class="verdict inv"><b>ROI:</b> инвестиция в бренд. Отдача отложена, 2026 без обещаний выручки.</div>
+            <div class="verdict inv"><b>Отдача:</b> инвестиция в бренд. Отдача отложена, 2026 без обещаний выручки.</div>
           </div>
         </div>
       </div>
@@ -645,7 +674,7 @@ section:first-of-type{border-top:none}
               <dt>Частота</dt><dd>Средняя, синхронно с IG (без отдельного продакшна)</dd>
               <dt>Метрика</dt><dd>РФ-охват, лиды и заявки из VK</dd>
             </dl>
-            <div class="verdict hold"><b>ROI:</b> дешёвое расширение охвата на уже снятом контенте.</div>
+            <div class="verdict hold"><b>Отдача:</b> дешёвое расширение охвата на уже снятом контенте.</div>
           </div>
         </div>
         <div class="macc inv">
@@ -657,7 +686,7 @@ section:first-of-type{border-top:none}
               <dt>Частота</dt><dd>Низкая, на готовом материале</dd>
               <dt>Метрика</dt><dd>РФ-охват дизайн-аудитории</dd>
             </dl>
-            <div class="verdict inv"><b>ROI:</b> почти бесплатно на готовом контенте. Не отдельный продакшн.</div>
+            <div class="verdict inv"><b>Отдача:</b> почти бесплатно на готовом контенте. Не отдельный продакшн.</div>
           </div>
         </div>
       </div>
@@ -669,7 +698,7 @@ section:first-of-type{border-top:none}
       <div class="spotlight pos">
         <div class="st">КЛЮЧЕВАЯ РЕКОМЕНДАЦИЯ · НОВЫЙ РЫЧАГ</div>
         <h4>Pinterest VALONTI - создать. Это не противоречит «не раскручиваем нулёвки».</h4>
-        <p>Pinterest - <span class="t" data-tip="Канал, куда люди приходят сами и ищут. Не требует набранной аудитории - в отличие от push-канала." tabindex="0">pull-канал</span>: дизайнеры сами ищут тут визуал для подбора и мудбордов. <b>Нулевой аккаунт работает сразу</b>, потому что его находят через поиск, а не через подписчиков. Заливаем проектные фото и фактуры из общих съёмок - копеечная стоимость, высокий B2D-фит. Это противоположность TG VALONTI, который надо кормить в пустоту.</p>
+        <p>Pinterest - <span class="t" data-tip="Канал, куда люди приходят сами и ищут. Не требует набранной аудитории - в отличие от push-канала." tabindex="0">pull-канал</span>: дизайнеры сами ищут тут визуал для подбора и мудбордов. <b>Нулевой аккаунт работает сразу</b>, потому что его находят через поиск, а не через подписчиков. Заливаем проектные фото и фактуры из общих съёмок - копеечная стоимость, хорошо заходит дизайнерам. Это противоположность TG VALONTI, который надо кормить в пустоту.</p>
       </div>
       <div class="media">
         <div class="macc hold">
@@ -680,7 +709,7 @@ section:first-of-type{border-top:none}
               <dt>Контент</dt><dd>Проектные и продуктовые фото со ссылками на сайт</dd>
               <dt>Метрика</dt><dd>Переходы на сайт, сохранения</dd>
             </dl>
-            <div class="verdict hold"><b>ROI:</b> вечнозелёный поисковый трафик, дёшево.</div>
+            <div class="verdict hold"><b>Отдача:</b> вечнозелёный поисковый трафик, дёшево.</div>
           </div>
         </div>
         <div class="macc go">
@@ -691,7 +720,7 @@ section:first-of-type{border-top:none}
               <dt>Контент</dt><dd>Проекты, материалы, фактуры, премиум-интерьеры с VALONTI</dd>
               <dt>Метрика</dt><dd>Сохранения дизайнерами, переходы</dd>
             </dl>
-            <div class="verdict go"><b>ROI:</b> высокий B2D-фит при копеечной стоимости. Лучший недозагруженный актив VALONTI.</div>
+            <div class="verdict go"><b>Отдача:</b> хорошо заходит дизайнерам при копеечной стоимости. Лучший недозагруженный актив VALONTI.</div>
           </div>
         </div>
       </div>
@@ -709,7 +738,7 @@ section:first-of-type{border-top:none}
               <dt>Контент</dt><dd>Гайды по перегородкам и душевым, кейсы, дозаявки, акции</dd>
               <dt>Метрика</dt><dd>Удержание, повторные обращения, дозаявки</dd>
             </dl>
-            <div class="verdict hold"><b>ROI:</b> дешёвый прогрев. Не источник новых лидов.</div>
+            <div class="verdict hold"><b>Отдача:</b> дешёвый прогрев. Не источник новых лидов.</div>
           </div>
         </div>
         <div class="macc hold">
@@ -720,7 +749,7 @@ section:first-of-type{border-top:none}
               <dt>Контент</dt><dd>Возможности производства, сроки, отгрузки</dd>
               <dt>Метрика</dt><dd>Поддержание присутствия (HR, репутация)</dd>
             </dl>
-            <div class="verdict hold"><b>ROI:</b> ~0 продаж. Минимальное поддержание, без геройского продакшна.</div>
+            <div class="verdict hold"><b>Отдача:</b> ~0 продаж. Минимальное поддержание, без геройского продакшна.</div>
           </div>
         </div>
       </div>
@@ -733,7 +762,7 @@ section:first-of-type{border-top:none}
             <li>Дизайнеры не ищут бренды в холодных TG-каналах - они смотрят IG, Pinterest, портфолио, рекомендации.</li>
             <li>Публичный TG с нуля = постоянные затраты на контент при околонулевом охвате.</li>
           </ul>
-          <div class="instead"><b>Что вместо:</b> когда IG/Pinterest VALONTI наберут аудиторию и Club даст пайплайн - открыть <b>закрытый</b> TG для тёплых дизайн-лидов и резидентов Club (нёрчер), а не публичную вещалку. Пересмотр - после пилотного квартала.</div>
+          <div class="instead"><b>Что вместо:</b> когда IG/Pinterest VALONTI наберут аудиторию и Club даст пайплайн - открыть <b>закрытый</b> TG для тёплых дизайн-лидов и резидентов <span class="t" data-tip="Закрытый клуб дизайнеров и партнёров VALONTI." tabindex="0">Club</span> (прогрев тёплых контактов), а не публичную вещалку. Пересмотр - после пилотного квартала.</div>
         </div>
       </div>
     </div>
@@ -745,7 +774,7 @@ section:first-of-type{border-top:none}
         <div class="head"><div class="name">GEN-GROUP <small>есть · мёртвый</small></div><span class="badge stop"><span class="d"></span>ИГНОР</span></div>
         <div class="body">
           <div class="dec">&rarr; НЕ ТРАТИТЬ ВРЕМЯ. Разово обновить лого и забыть.</div>
-          <div class="verdict no"><b>ROI:</b> отрицательный при любом внимании. Аудитории нет, рук на оживление нет смысла тратить.</div>
+          <div class="verdict no"><b>Отдача:</b> отрицательный при любом внимании. Аудитории нет, рук на оживление нет смысла тратить.</div>
         </div>
       </div>
     </div>
@@ -766,14 +795,14 @@ section:first-of-type{border-top:none}
     <div class="sec-head">
       <span class="sec-num">09</span>
       <div><h2 class="sec-title">Владелец и команда: <span class="em">ответственность закреплена</span></h2>
-      <p class="sec-sub">Главный gap прошлой версии закрыт. У канала появился один хозяин воронки и метрик - не комитет.</p></div>
+      <p class="sec-sub">Главное слабое место прошлой версии закрыто. У канала появился один хозяин воронки и метрик - не комитет.</p></div>
     </div>
     <div class="owner-card">
       <div class="av">АЕ</div>
       <div class="ot">
         <div class="ol">ВЛАДЕЛЕЦ SMM-КАНАЛА</div>
         <div class="on">Аня Емельяненко</div>
-        <div class="od">SMM-спец. Держит воронку, метрики, продакшн-план и отчёт по эффективности. Точка операционной ответственности за оба движка.</div>
+        <div class="od">SMM-спец. Держит воронку, продакшн-план с системным выпуском. Точка операционной ответственности за оба движка.</div>
       </div>
       <div class="ostatus">✓ НАЗНАЧЕНА</div>
     </div>
@@ -801,32 +830,32 @@ section:first-of-type{border-top:none}
     <div class="sec-head">
       <span class="sec-num">10</span>
       <div><h2 class="sec-title">Финансовая дисциплина: <span class="em">baseline, мощность, потолок пилота</span></h2>
-      <p class="sec-sub">Архитектура опирается на трафик и аудиторию GENGLASS. Значит надо знать их фактическую цену, прежде чем тратить на амплификацию VALONTI. Protocol 9 блокирует рост-таргеты без точки отсчёта. Это пилот с потолком потерь, не открытый бюджет.</p></div>
+      <p class="sec-sub">Архитектура опирается на трафик и аудиторию GENGLASS. Значит надо знать их фактическую цену, прежде чем тратить на раскрутку VALONTI. Protocol 9 блокирует рост-таргеты без точки отсчёта. Это пилот с потолком потерь, не открытый бюджет.</p></div>
     </div>
     <div class="gate">
       <div class="step"><span class="k">1</span><div>Выгрузка из Bitrix24 / аналитики: <b>сколько выручки и лидов GENGLASS даёт SMM сейчас</b>, CR, CAC. Статус - <span class="tag-inline hyp">ДАННЫХ НЕТ, ЗАПРОСИТЬ</span>. Ответственная - Аня Емельяненко.</div></div>
-      <div class="step"><span class="k">2</span><div>Замерить <b>цену гало-репостов VALONTI</b> на ленте GENGLASS: сколько конверсионного внимания мы отдаём. Это вход для дисциплины каденса.</div></div>
-      <div class="step"><span class="k">3</span><div>Если вклад SMM <b>значим</b> &rarr; ставим количественные цели и привязываем частоту к найму. Если <b>мал</b> &rarr; SMM остаётся бренд + demand-gen без обещаний выручки, амбиция режется по факту.</div></div>
+      <div class="step"><span class="k">2</span><div>Замерить <b>цену гало-репостов VALONTI</b> на ленте GENGLASS: сколько продающего внимания мы отдаём. Это вход для дисциплины каденса.</div></div>
+      <div class="step"><span class="k">3</span><div>Если вклад SMM <b>значим</b> &rarr; ставим количественные цели и привязываем частоту к найму. Если <b>мал</b> &rarr; SMM остаётся имидж + генерация заявок без обещаний выручки, амбиция режется по факту.</div></div>
     </div>
 
-    <h3 style="font-size:18px;font-weight:700;margin:30px 0 14px;color:var(--gold)">6 выгрузок-предусловий (до старта амплификации)</h3>
+    <h3 style="font-size:18px;font-weight:700;margin:46px 0 16px;color:var(--gold)">6 выгрузок-предусловий (до старта раскрутки)</h3>
     <div class="frame">
       <div class="f"><span class="m mk gold">1</span><div>Сделки VALONTI 2025-2026 с полем «тип клиента» - <b>верифицировать B2D-гипотезу</b> (дизайнер или смешанная ЦА).</div></div>
       <div class="f"><span class="m mk gold">2</span><div>Заказы GENGLASS по годам и брендам из 1С - <b>снять расхождение по числу заказов</b> (каталог против агентных промптов).</div></div>
       <div class="f"><span class="m mk gold">3</span><div>Поля «источник» по лидам за 3 месяца - <b>есть ли вообще SMM-атрибуция</b>.</div></div>
       <div class="f"><span class="m mk gold">4</span><div>Клиенты-дизайнеры (тип/профессия) - baseline реестра партнёров VALONTI.</div></div>
       <div class="f"><span class="m mk gold">5</span><div>Текущая UTM-схема - что размечено, что нет.</div></div>
-      <div class="f"><span class="m mk gold">6</span><div>Фактическое число заказов GENGLASS 2018-2025 - <b>до публикации любого trust-band</b>.</div></div>
+      <div class="f"><span class="m mk gold">6</span><div>Фактическое число заказов GENGLASS 2018-2025 - <b>до публикации любой <span class="t" data-tip="Плашка с цифрой-аргументом на сайте, например «более 50 000 заказов». Усиливает доверие." tabindex="0">плашки доверия</span></b>.</div></div>
     </div>
 
-    <h3 style="font-size:18px;font-weight:700;margin:30px 0 14px;color:var(--gold)">Мощность команды: «две руки» против объёма</h3>
+    <h3 style="font-size:18px;font-weight:700;margin:46px 0 16px;color:var(--gold)">Мощность команды: «две руки» против объёма</h3>
     <div class="grid3">
-      <div class="icard" style="border-color:rgba(217,105,76,.4)"><div class="n" style="color:var(--stop)">ДРАФТ V1 · ПЕРЕГРУЗ</div><h4>~144%</h4><p>Спрос v1 ~65 ч/нед против ~45 ч мощности. Горлышко - крафт-продакшн VALONTI. <span class="tag-inline hyp">ГИПОТЕЗА</span> - нормативы часов требуют замера.</p></div>
-      <div class="icard" style="border-color:rgba(111,174,123,.4)"><div class="n" style="color:var(--keep)">ПЛАН V2 · В МОЩНОСТИ</div><h4>~100%</h4><p>GENGLASS 3/нед + repurpose, VALONTI 2/нед из общих съёмок, Metal-GM 1/мес, YouTube кормит оба. ~45 ч/нед.</p></div>
-      <div class="icard"><div class="n">РАЗРЕШЕНИЕ ГОРЛЫШКА</div><h4>Разовое - на подряд</h4><p>Вёрстка valonti.ru, копирайтинг, Pinterest-setup выводим из «двух рук» на фриланс и рабочую группу. Иначе поток обрушится.</p></div>
+      <div class="icard" style="border-color:rgba(217,105,76,.4)"><div class="n" style="color:var(--stop)">ДРАФТ V1 · ПЕРЕГРУЗ</div><h4>~144%</h4><p>Спрос v1 ~65 ч/нед против ~45 ч мощности. Узкое место - ручной продакшн VALONTI. <span class="tag-inline hyp">ГИПОТЕЗА</span> - нормативы часов требуют замера.</p></div>
+      <div class="icard" style="border-color:rgba(111,174,123,.4)"><div class="n" style="color:var(--keep)">ПЛАН V2 · В МОЩНОСТИ</div><h4>~100%</h4><p>GENGLASS 3/нед + нарезка готового, VALONTI 2/нед из общих съёмок, Metal-GM 1/мес, YouTube кормит оба. ~45 ч/нед.</p></div>
+      <div class="icard"><div class="n">РАЗГРУЗКА УЗКОГО МЕСТА</div><h4>Разовое - на подряд</h4><p>Вёрстка valonti.ru, копирайтинг, Pinterest-setup выводим из «двух рук» на фриланс и рабочую группу. Иначе поток обрушится.</p></div>
     </div>
 
-    <h3 style="font-size:18px;font-weight:700;margin:30px 0 14px;color:var(--gold)">P&amp;L пилота · потолок 200K ₽ <span class="tag-inline hyp">ГИПОТЕЗА - требует котировок</span></h3>
+    <h3 style="font-size:18px;font-weight:700;margin:46px 0 16px;color:var(--gold)">P&amp;L пилота · потолок 200K ₽ <span class="tag-inline hyp">ГИПОТЕЗА - требует котировок</span></h3>
     <div class="frame">
       <div class="f"><span class="m mk gold">▸</span><div>Съёмки Богдан / капсула ЗИЛАРТ ×4 - <b>~60 000 ₽</b></div></div>
       <div class="f"><span class="m mk gold">▸</span><div>valonti.ru: вёрстка 7 страниц + schema + sitemap - <b>~50 000 ₽</b></div></div>
@@ -834,10 +863,10 @@ section:first-of-type{border-top:none}
       <div class="f"><span class="m mk gold">▸</span><div>Pinterest setup + Google Business Profile + Houzz - <b>~10 000 ₽</b></div></div>
       <div class="f"><span class="m mk gold">▸</span><div>Банк контента (локации, реквизит) - <b>~15 000 ₽</b></div></div>
       <div class="f"><span class="m mk gold">▸</span><div>Резерв 20% - <b>~30 000 ₽</b></div></div>
-      <div class="f"><span class="m mk keep">=</span><div><b>Итого ~190 000 ₽</b> - под потолком 200K. HITL Ивана обязателен.</div></div>
+      <div class="f"><span class="m mk keep">=</span><div><b>Итого ~190 000 ₽</b> - под потолком 200K. Обязательно ручное утверждение Ивана.</div></div>
     </div>
 
-    <h3 style="font-size:18px;font-weight:700;margin:30px 0 14px;color:var(--stop)">Kill-criteria (вшиты до старта)</h3>
+    <h3 style="font-size:18px;font-weight:700;margin:46px 0 16px;color:var(--stop)">Критерии стоп-сигнала (когда жмём на тормоз)</h3>
     <div class="grid3">
       <div class="icard" style="border-color:rgba(217,105,76,.4)"><div class="n" style="color:var(--stop)">СТОП РЕПОСТОВ</div><h4>Лиды GENGLASS -15%</h4><p>Просадка лидов кэш-движка &gt;15% от baseline после старта репостов. Порог - стартовая гипотеза, пересматривается после первого снимка.</p></div>
       <div class="icard" style="border-color:rgba(217,105,76,.4)"><div class="n" style="color:var(--stop)">КАНАЛ НЕ РАБОТАЕТ</div><h4>0 контактов за 90 дней</h4><p>За 90 дней качественных контактов дизайнеров ≈ 0 при выполненном плане охвата.</p></div>
@@ -849,28 +878,28 @@ section:first-of-type{border-top:none}
   <section id="s10b" class="reveal">
     <div class="sec-head">
       <span class="sec-num">!</span>
-      <div><h2 class="sec-title">Риски: <span class="em">reversibility и bus-factor</span></h2>
+      <div><h2 class="sec-title">Риски: <span class="em">что необратимо и кто незаменим</span></h2>
       <p class="sec-sub">Где стратегия ломается и что необратимо. Без розовых очков.</p></div>
     </div>
     <div class="traps">
-      <div class="trap"><div class="tnum">BUS-FACTOR = 1</div><h4>Богдан - 4 функции на одном человеке</h4><p>Гендир + лицо съёмок + эксперт + партнёр ADDAWARDS. В июне ребёнок, 1-2 съёмки/мес.</p><div class="fix"><b>План Б:</b> мульти-персонажи (производство, офис) + технолог как второй экспертный голос + банк контента снять до 30.06. Если событие раньше - каденс держат мульти-персонажи и кросс-промо ТОН.</div></div>
-      <div class="trap"><div class="tnum">REVERSIBILITY = 0</div><h4>Эндорсмент и непроверенные цифры - необратимы</h4><p>Интернет помнит. Связка «by GENGLASS» в публичном виде и trust-band с неверифицированной цифрой откатить нельзя.</p><div class="fix"><b>Защита:</b> оба под блоком до верификации; чек-лист пре-публикации на утечку «by GENGLASS»; юр-проверка имени Богдана и договора ADDAWARDS.</div></div>
+      <div class="trap"><div class="tnum">ОДИН НЕЗАМЕНИМЫЙ ЧЕЛОВЕК</div><h4>Богдан - 4 функции на одном человеке</h4><p>Гендир + лицо съёмок + эксперт + партнёр ADDAWARDS. В июне ребёнок, 1-2 съёмки/мес.</p><div class="fix"><b>План Б:</b> мульти-персонажи (производство, офис) + технолог как второй экспертный голос + банк контента снять до 30.06. Если событие раньше - частоту держат мульти-персонажи и кросс-промо ТОН.</div></div>
+      <div class="trap"><div class="tnum">НЕЛЬЗЯ ОТКАТИТЬ НАЗАД</div><h4>Эндорсмент и непроверенные цифры - необратимы</h4><p>Интернет помнит. Связка «by GENGLASS» в публичном виде и плашка доверия с непроверённой цифрой откатить нельзя.</p><div class="fix"><b>Защита:</b> оба под блоком до верификации; чек-лист пре-публикации на утечку «by GENGLASS»; юр-проверка имени Богдана и договора ADDAWARDS.</div></div>
     </div>
-    <div class="callout" style="margin-top:18px"><b>Слепой период 0:</b> первые ~5 недель baseline собирается, kill-criteria не работают. Защита - ручной ежедневный контроль лидов GENGLASS владельцем, репосты не запускаются до сбора baseline.</div>
+    <div class="callout" style="margin-top:18px"><b>Слепой период 0:</b> первые ~5 недель собирается точка отсчёта, стоп-сигналы ещё не считаются. Защита - ручной ежедневный контроль лидов GENGLASS владельцем, репосты не запускаются до сбора baseline.</div>
   </section>
 
   <!-- ЭСКАЛАЦИЯ -->
   <section id="s10c" class="reveal">
     <div class="sec-head">
       <span class="sec-num">⚑</span>
-      <div><h2 class="sec-title">Эскалация Ивану: <span class="em">фантомный источник в ядре RAG</span></h2>
+      <div><h2 class="sec-title">Эскалация Ивану: <span class="em">выдуманный источник в базе знаний</span></h2>
       <p class="sec-sub">Находка вне рамок SMM-задачи. Вскрыта при инвентаризации цифр.</p></div>
     </div>
     <div class="spotlight">
       <div class="st">ТРЕБУЕТ РЕШЕНИЯ ВНЕ SMM</div>
       <h4>Цифра «27 000 заказов» цитируется как ДАННЫЕ со ссылкой на несуществующий файл</h4>
       <p>Файл <b>knowledge/semantic/sales-history-2018-2025.csv</b> физически отсутствует (папка пуста), но цифра проштампована как <span class="tag-inline data">ДАННЫЕ c=1.0</span> семью файлами агентов и скиллов. Каталог 2026 при этом даёт раздельно 54 500 (GENGLASS) и 27 000 (Metal-GM) <span class="tag-inline hyp">маркетинговый документ, не выгрузка</span>. Ни одна цифра не верифицирована.</p>
-      <p style="margin-top:10px"><b>Действие:</b> отдельный тикет на верификацию выгрузкой 1С. До верификации - пометить цифру ГИПОТЕЗА везде. Это гигиена ядра знаний, горит для trust-band всех брендов.</p>
+      <p style="margin-top:10px"><b>Действие:</b> отдельный тикет на верификацию выгрузкой 1С. До верификации - пометить цифру ГИПОТЕЗА везде. Это гигиена ядра знаний, горит для плашек доверия всех брендов.</p>
     </div>
   </section>
 

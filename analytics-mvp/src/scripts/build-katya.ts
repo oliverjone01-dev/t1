@@ -646,9 +646,12 @@ function render(cur,cmp){
   writeFileSync("public/katya-voronka.html", kshell("Воронка", "voronka", body, pageJs));
 }
 
-// --- страница 4: Маркетинг (ЖИВОЙ ads-вебхук по периоду, fallback - снимок) ---
+// --- страница 4: Маркетинг (период МГНОВЕННО из запечённых снимков 7/30/90 + живое обновление) ---
 {
   const adsSnap = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  let adsPeriods: any;
+  try { adsPeriods = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
+  catch { adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap }; }
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -668,9 +671,15 @@ function render(cur,cmp){
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от ${maxD} (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};
 const ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';
 let lastReq=0;
+// Запечённый снимок рекламы под выбранный период - показываем МГНОВЕННО реальные данные.
+function bakedFor(){
+  if(CURP==='7d'||CURP==='today')return PERIODS.p7||SNAP;
+  if(CURP==='90d'||CURP==='all')return PERIODS.p90||SNAP;
+  return PERIODS.p30||SNAP;
+}
 function paint(a,src){
   const t=a.totals||{};
   const kpi=(lab,val)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div></div>';
@@ -678,7 +687,7 @@ function paint(a,src){
     kpi('ДРР канала',(t.drr??0)+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
-  const badge=src==='live'?'<span class="kt-src live">живой запрос за период '+a.dateFrom+'..'+a.dateTo+'</span>':'<span class="kt-src">снимок 30 дн '+a.dateFrom+'..'+a.dateTo+' (живой запрос не удался)</span>';
+  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
   document.getElementById('top').innerHTML=(a.top_spend||[]).map(c=>'<tr><td>'+c.off+'</td><td style="color:var(--ink-3)">'+c.line+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+(c.drr>40?'var(--dn)':c.drr>0&&c.drr<20?'var(--up)':'inherit')+'">'+c.drr+'%</td><td class="r">'+(c.roas??'-')+'x</td></tr>').join('');
   document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
@@ -690,14 +699,17 @@ function paint(a,src){
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r">Индекс</th><th class="r">Оборот 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
 }
 function render(cur,cmp){
-  paint(SNAP,'snap');
+  // 1) мгновенно - запечённый снимок ИМЕННО за выбранный период (реальные числа)
+  const baked=bakedFor();paint(baked,'baked');
   if(typeof fetch==='undefined')return;
-  document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n <span class="kt-src">живой запрос за '+cur.from+'..'+cur.to+'...</span>';
+  // 2) живое уточнение за точные даты периода (для своего диапазона - единственный источник)
   const my=++lastReq;
-  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
-    .then(r=>{if(!r.ok)throw 0;return r.json();})
-    .then(a=>{if(my!==lastReq)return;if(a&&a.totals)paint(a,'live');})
-    .catch(()=>{if(my!==lastReq)return;paint(SNAP,'snap');});
+  var ctrl=('AbortController' in window)?new AbortController():null;
+  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
+  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to}),signal:ctrl?ctrl.signal:undefined})
+    .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
+    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0))paint(a,'live');else paint(baked,'baked2');})
+    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');});
 }`;
   writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }

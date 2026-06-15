@@ -52,13 +52,17 @@ jobs:
 
       - name: Commit snapshot
         run: |
+          set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/history.ndjson
-          if git diff --staged --quiet; then
-            echo "Нет новых данных - коммит не нужен"
-          else
-            git commit -m "data: ежедневный синк OZON $(date -u +%F)"
-            git push
-          fi
+          git add -A analytics-mvp/data
+          if git diff --staged --quiet; then echo "Нет новых данных - коммит не нужен"; exit 0; fi
+          git commit -m "data: ежедневный синк OZON $(date -u +%F)"
+          # Раньше был просто git push без rebase - падал non-fast-forward, если main ушёл вперёд.
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((2**i))
+          done
+          echo "push не удался после ретраев"; exit 1
         working-directory: .

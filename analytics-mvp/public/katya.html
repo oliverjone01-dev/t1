@@ -649,7 +649,7 @@
 </style>
 </head>
 <body>
-<div style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
+<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
     <a href="katya-command.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Командный центр</a> <a href="katya.html" style="color:#0B0F15;background:#22D3EE;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Обзор</a> <a href="katya-tovary.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Товары и заказы</a> <a href="katya-voronka.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Воронка</a> <a href="katya-marketing.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Маркетинг</a> <a href="katya-money.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Деньги</a>
     <span style="color:#5d7484;margin-left:8px">живой OZON (Фев 26-Июн 26) · прочие каналы/клиенты/план - нет данных</span>
@@ -3649,39 +3649,79 @@ function scan(){
 scan();setInterval(scan,2000);
 })();</script>
 <style>
-html,body{overflow-x:clip !important}
-.topbar{position:sticky;top:0;z-index:300}
-.gg-chan{display:inline-flex;align-items:center;gap:6px;margin-right:6px}
+html,body{overflow-x:clip}
+#gg-fixedtop{position:fixed;top:0;left:0;right:0;z-index:300;background:#0b0f17}
+#gg-fixedtop .topbar{position:static}
+.gg-chan{position:relative;display:inline-flex;align-items:center;gap:6px;margin-right:6px}
 .gg-chan-lbl{font:12px system-ui;color:#5d7484}
-.gg-chan select{background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:7px;padding:5px 9px;font:13px system-ui;cursor:pointer}
+.gg-chan-btn{background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:7px;padding:5px 11px;font:13px system-ui;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.gg-chan-pan{position:absolute;top:110%;left:0;z-index:320;background:#10161f;border:1px solid #2a3a4a;border-radius:9px;padding:6px;min-width:210px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.gg-chan-pan.open{display:block}
+.gg-chan-pan label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font:13px system-ui;color:#dfe9f0;cursor:pointer}
+.gg-chan-pan label:hover{background:rgba(255,255,255,.04)}
+.gg-chan-pan .nd{color:#5d7484;font-size:11px;margin-left:auto}
+.gg-chan-pan .sep{height:1px;background:#233242;margin:4px 0}
 #gg-chan-ovl{position:fixed;inset:0;z-index:250;background:rgba(7,12,18,.9);display:none;align-items:center;justify-content:center;text-align:center;padding:20px}
-#gg-chan-ovl .box{max-width:440px;color:#dfe9f0;font:15px/1.7 system-ui}
+#gg-chan-ovl .box{max-width:460px;color:#dfe9f0;font:15px/1.7 system-ui}
 #gg-chan-ovl b{color:#22D3EE}
 #gg-chan-ovl button{margin-top:16px;background:#22D3EE;color:#06121a;border:none;border-radius:8px;padding:10px 18px;font:700 13px system-ui;cursor:pointer}
 </style>
-<div id="gg-chan-ovl"><div class="box">Канал <b id="gg-chan-name"></b>: <b>нет данных</b>.<br>Живой канал сейчас - только <b>Озон</b> (прочие каналы пока не подключены к API).<br><button id="gg-chan-back">← Вернуться на Озон</button></div></div>
+<div id="gg-chan-ovl"><div class="box">Выбранные каналы (<b id="gg-chan-name"></b>): <b>нет данных</b>.<br>Живой канал сейчас - только <b>Озон</b> (прочие пока не подключены к API). Добавь Озон в выбор, чтобы увидеть данные.<br><button id="gg-chan-back">← Показать Озон</button></div></div>
 <script>(function(){
 var CH=[['ozon','Озон',1],['site','Сайт genglass.ru',0],['des','Дизайнеры',0],['dil','Дилеры',0],['wb','Wildberries',0],['show','Шоурум Домодедово',0],['ym','Яндекс Маркет',0]];
 var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
-var cur=LS.getItem('gg_channel')||'ozon';
+var sel; try{sel=JSON.parse(LS.getItem('gg_channels')||'null');}catch(e){} if(!sel||!sel.length)sel=['ozon'];
 function nameOf(id){for(var i=0;i<CH.length;i++)if(CH[i][0]===id)return CH[i][1];return id;}
+function save(){LS.setItem('gg_channels',JSON.stringify(sel));}
+// Железобетонное закрепление: nav + панель фильтров в fixed-обёртку, body получает отступ.
+function fixTop(){
+  if(document.getElementById('gg-fixedtop'))return;
+  var nav=document.getElementById('gg-nav'),top=document.querySelector('.topbar');
+  if(!top)return;
+  var w=document.createElement('div');w.id='gg-fixedtop';
+  var first=nav||top;first.parentNode.insertBefore(w,first);
+  if(nav)w.appendChild(nav); w.appendChild(top);
+  var pad=function(){document.body.style.paddingTop=w.offsetHeight+'px';};
+  pad();addEventListener('resize',pad);[120,400,900,1800].forEach(function(t){setTimeout(pad,t);});
+}
+function label(){
+  if(sel.length===CH.length)return 'Все каналы';
+  if(sel.length===1)return nameOf(sel[0]);
+  return nameOf(sel[0])+' +'+(sel.length-1);
+}
 function build(){
-  var per=document.querySelector('.periods'); if(!per||document.getElementById('gg-chan-sel'))return;
-  var w=document.createElement('span');w.className='gg-chan';
-  var l=document.createElement('span');l.className='gg-chan-lbl';l.textContent='Канал';w.appendChild(l);
-  var s=document.createElement('select');s.id='gg-chan-sel';
-  CH.forEach(function(c){var o=document.createElement('option');o.value=c[0];o.textContent=c[1]+(c[2]?'':' · нет данных');s.appendChild(o);});
-  s.value=cur;w.appendChild(s);per.insertBefore(w,per.firstChild);
-  s.addEventListener('change',function(){cur=s.value;LS.setItem('gg_channel',cur);apply();});
+  var per=document.querySelector('.periods'); if(!per||document.getElementById('gg-chan-wrap'))return;
+  var wrap=document.createElement('span');wrap.className='gg-chan';wrap.id='gg-chan-wrap';
+  var l=document.createElement('span');l.className='gg-chan-lbl';l.textContent='Канал';wrap.appendChild(l);
+  var btn=document.createElement('button');btn.className='gg-chan-btn';btn.id='gg-chan-btn';btn.innerHTML='<span id="gg-chan-cap"></span> ▾';wrap.appendChild(btn);
+  var pan=document.createElement('div');pan.className='gg-chan-pan';pan.id='gg-chan-pan';
+  var all=document.createElement('label');all.innerHTML='<input type="checkbox" id="gg-chan-all"> <b>Все каналы</b>';pan.appendChild(all);
+  var sep=document.createElement('div');sep.className='sep';pan.appendChild(sep);
+  CH.forEach(function(c){var lb=document.createElement('label');lb.innerHTML='<input type="checkbox" value="'+c[0]+'"> '+c[1]+(c[2]?'':'<span class="nd">нет данных</span>');pan.appendChild(lb);});
+  wrap.appendChild(pan);per.insertBefore(wrap,per.firstChild);
+  btn.addEventListener('click',function(e){e.stopPropagation();pan.classList.toggle('open');});
+  document.addEventListener('click',function(){pan.classList.remove('open');});
+  pan.addEventListener('click',function(e){e.stopPropagation();});
+  all.querySelector('input').addEventListener('change',function(e){ sel = e.target.checked ? CH.map(function(c){return c[0];}) : ['ozon']; save();sync();apply(); });
+  pan.querySelectorAll('input[value]').forEach(function(i){ i.addEventListener('change',function(){
+    var v=i.value; if(i.checked){ if(sel.indexOf(v)<0)sel.push(v); } else { sel=sel.filter(function(x){return x!==v;}); }
+    if(!sel.length)sel=['ozon']; save();sync();apply(); }); });
+  sync();
+}
+function sync(){
+  var pan=document.getElementById('gg-chan-pan'); if(!pan)return;
+  pan.querySelectorAll('input[value]').forEach(function(i){i.checked=sel.indexOf(i.value)>=0;});
+  var all=document.getElementById('gg-chan-all'); if(all)all.checked=(sel.length===CH.length);
+  var cap=document.getElementById('gg-chan-cap'); if(cap)cap.textContent=label();
 }
 function apply(){
   var ovl=document.getElementById('gg-chan-ovl');
-  if(cur!=='ozon'){document.getElementById('gg-chan-name').textContent=nameOf(cur);ovl.style.display='flex';}
+  var hasLive = sel.indexOf('ozon')>=0; // живые данные только у Озон
+  if(!hasLive){ document.getElementById('gg-chan-name').textContent=sel.map(nameOf).join(', '); ovl.style.display='flex'; }
   else ovl.style.display='none';
-  var s=document.getElementById('gg-chan-sel');if(s)s.value=cur;
 }
-var bk=document.getElementById('gg-chan-back');if(bk)bk.addEventListener('click',function(){cur='ozon';LS.setItem('gg_channel','ozon');apply();});
-build();apply();setInterval(build,2500);
+var bk=document.getElementById('gg-chan-back');if(bk)bk.addEventListener('click',function(){sel=['ozon'];save();sync();apply();});
+fixTop();build();apply();setInterval(function(){fixTop();build();},2000);
 })();</script>
 </body>
 </html>

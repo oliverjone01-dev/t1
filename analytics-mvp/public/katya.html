@@ -687,7 +687,7 @@
   </div>
   <div class="range-panel" id="range-panel">
     <div class="range-panel-title">Свой диапазон</div>
-    <div class="range-row"><label>с</label><input type="date" id="range-from" value="2025-01-01"></div>
+    <div class="range-row"><label>с</label><input type="date" id="range-from" value="2026-02-06"></div>
     <div class="range-row"><label>по</label><input type="date" id="range-to" value="2025-12-27"></div>
     <div class="range-actions">
       <button class="range-btn" id="range-cancel">Отмена</button>
@@ -700,7 +700,7 @@
     <div class="range-row"><label>по</label><input type="date" id="cmp-a-to" value="2025-12-27"></div>
     <hr>
     <div class="cmp-grp-title b">Период Б — для сравнения</div>
-    <div class="range-row"><label>с</label><input type="date" id="cmp-b-from" value="2025-01-01"></div>
+    <div class="range-row"><label>с</label><input type="date" id="cmp-b-from" value="2026-02-06"></div>
     <div class="range-row"><label>по</label><input type="date" id="cmp-b-to" value="2026-05-29"></div>
     <div class="cmp-actions">
       <button class="cmp-btn" id="cmp-off">Откл.</button>
@@ -778,7 +778,7 @@ const YEAR_START_IDX = MONTH_START_IDX[4];                    // 01.05.2025 — 
 // Общие дневные веса (будни / выходные / детерминированная вариация ±15%)
 const DAY_WEIGHTS = (() => {
   const out = [];
-  const start = new Date('2025-01-01T00:00:00Z');
+  const start = new Date('2025-03-01T00:00:00Z');
   for(let m = 0; m < DAYS_IN_MONTH_2025.length; m++){
     const days = DAYS_IN_MONTH_2025[m];
     for(let d = 0; d < days; d++){
@@ -834,7 +834,7 @@ function getPlanFactSeries(){
   else if(p === '30d'){ startIdx = refEnd - 29; endIdx = refEnd; }
   else if(p === '90d'){ startIdx = refEnd - 89; endIdx = refEnd; }
   else if(p === 'custom'){
-    const yearStart = new Date('2025-01-01T00:00:00Z');
+    const yearStart = new Date('2025-03-01T00:00:00Z');
     startIdx = Math.min(TODAY_IDX, Math.max(0, Math.round((new Date(state.customFrom) - yearStart) / 86400000)));
     endIdx = Math.min(TODAY_IDX, Math.max(0, Math.round((new Date(state.customTo) - yearStart) / 86400000)));
     if(startIdx > endIdx) startIdx = endIdx;
@@ -842,7 +842,7 @@ function getPlanFactSeries(){
 
   const daysCount = endIdx - startIdx + 1;
   const fmtDay = (idx) => {
-    const d = new Date('2025-01-01T00:00:00Z');
+    const d = new Date('2025-03-01T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + idx);
     return `${d.getUTCDate()}.${String(d.getUTCMonth()+1).padStart(2,'0')}`;
   };
@@ -994,7 +994,7 @@ function sumRange(daily, startIdx, endIdx){
 }
 // Хелпер: индекс дня относительно 2025-01-01
 function dayIndexOf(dateStr){
-  const yearStart = new Date('2025-01-01T00:00:00Z');
+  const yearStart = new Date('2025-03-01T00:00:00Z');
   return Math.round((new Date(dateStr) - yearStart) / 86400000);
 }
 // Выручка (млн ₽) за произвольный диапазон дат — по тому же ряду, что и блок План/Факт.
@@ -1033,7 +1033,7 @@ function getDateRange(){
   else if(p === 'year'){ startIdx = YEAR_START_IDX; endIdx = refEnd; }   // скользящие 12 мес
   else if(p === 'all'){ startIdx = 0; endIdx = refEnd; }                // вся история (16 мес)
   else if(p === 'custom'){
-    const yearStart = new Date('2025-01-01T00:00:00Z');
+    const yearStart = new Date('2025-03-01T00:00:00Z');
     startIdx = Math.min(TODAY_IDX, Math.max(0, Math.round((new Date(state.customFrom) - yearStart) / 86400000)));
     endIdx = Math.min(TODAY_IDX, Math.max(0, Math.round((new Date(state.customTo) - yearStart) / 86400000)));
     if(startIdx > endIdx) startIdx = endIdx;
@@ -1041,7 +1041,7 @@ function getDateRange(){
   return {startIdx, endIdx, days: endIdx - startIdx + 1};
 }
 function fmtDay(idx){
-  const d = new Date('2025-01-01T00:00:00Z');
+  const d = new Date('2025-03-01T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + idx);
   return `${d.getUTCDate()}.${String(d.getUTCMonth()+1).padStart(2,'0')}`;
 }
@@ -1116,14 +1116,14 @@ function getSeasonalitySeries(){
 /* ============ СОСТОЯНИЕ ============ */
 const state = {
   period: 'year',
-  customFrom: '2025-01-01',
+  customFrom: '2026-02-06',
   customTo: '2026-04-30',
   drillCategory: null,
   mx: { sortCol:'total', sortDir:'desc', expanded:new Set() },
   season: { measure:'rev', expanded:new Set() },
   ax: { selectedZone: null, drillSort: { col: 'rev', dir: 'desc' }, drillFilter: 'all' },
   clients: { selectedClass: null, sortCol: 'rev', sortDir: 'desc' },
-  compare: { active:false, aFrom:'2025-11-28', aTo:'2025-12-27', bFrom:'2025-01-01', bTo:'2026-05-29' }
+  compare: { active:false, aFrom:'2025-11-28', aTo:'2025-12-27', bFrom:'2026-02-06', bTo:'2026-05-29' }
 };
 
 /* ============ УТИЛИТЫ ============ */
@@ -2437,7 +2437,7 @@ function periodMonthWeights(){
   else if(p === '30d'){ s2 = refEnd - 29; e2 = refEnd; }
   else if(p === '90d'){ s2 = refEnd - 89; e2 = refEnd; }
   else if(p === 'custom'){
-    const ys = new Date('2025-01-01T00:00:00Z');
+    const ys = new Date('2025-03-01T00:00:00Z');
     s2 = Math.round((new Date(state.customFrom) - ys) / 86400000);
     e2 = Math.round((new Date(state.customTo) - ys) / 86400000);
   } else { s2 = refEnd - 29; e2 = refEnd; }

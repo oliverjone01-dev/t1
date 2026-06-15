@@ -2232,5 +2232,40 @@ function scan(){
 }
 scan();setInterval(scan,2000);
 })();</script>
+<style>
+html,body{overflow-x:clip !important}
+.topbar{position:sticky;top:0;z-index:300}
+.gg-chan{display:inline-flex;align-items:center;gap:6px;margin-right:6px}
+.gg-chan-lbl{font:12px system-ui;color:#5d7484}
+.gg-chan select{background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:7px;padding:5px 9px;font:13px system-ui;cursor:pointer}
+#gg-chan-ovl{position:fixed;inset:0;z-index:250;background:rgba(7,12,18,.9);display:none;align-items:center;justify-content:center;text-align:center;padding:20px}
+#gg-chan-ovl .box{max-width:440px;color:#dfe9f0;font:15px/1.7 system-ui}
+#gg-chan-ovl b{color:#22D3EE}
+#gg-chan-ovl button{margin-top:16px;background:#22D3EE;color:#06121a;border:none;border-radius:8px;padding:10px 18px;font:700 13px system-ui;cursor:pointer}
+</style>
+<div id="gg-chan-ovl"><div class="box">Канал <b id="gg-chan-name"></b>: <b>нет данных</b>.<br>Живой канал сейчас - только <b>Озон</b> (прочие каналы пока не подключены к API).<br><button id="gg-chan-back">← Вернуться на Озон</button></div></div>
+<script>(function(){
+var CH=[['ozon','Озон',1],['site','Сайт genglass.ru',0],['des','Дизайнеры',0],['dil','Дилеры',0],['wb','Wildberries',0],['show','Шоурум Домодедово',0],['ym','Яндекс Маркет',0]];
+var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
+var cur=LS.getItem('gg_channel')||'ozon';
+function nameOf(id){for(var i=0;i<CH.length;i++)if(CH[i][0]===id)return CH[i][1];return id;}
+function build(){
+  var per=document.querySelector('.periods'); if(!per||document.getElementById('gg-chan-sel'))return;
+  var w=document.createElement('span');w.className='gg-chan';
+  var l=document.createElement('span');l.className='gg-chan-lbl';l.textContent='Канал';w.appendChild(l);
+  var s=document.createElement('select');s.id='gg-chan-sel';
+  CH.forEach(function(c){var o=document.createElement('option');o.value=c[0];o.textContent=c[1]+(c[2]?'':' · нет данных');s.appendChild(o);});
+  s.value=cur;w.appendChild(s);per.insertBefore(w,per.firstChild);
+  s.addEventListener('change',function(){cur=s.value;LS.setItem('gg_channel',cur);apply();});
+}
+function apply(){
+  var ovl=document.getElementById('gg-chan-ovl');
+  if(cur!=='ozon'){document.getElementById('gg-chan-name').textContent=nameOf(cur);ovl.style.display='flex';}
+  else ovl.style.display='none';
+  var s=document.getElementById('gg-chan-sel');if(s)s.value=cur;
+}
+var bk=document.getElementById('gg-chan-back');if(bk)bk.addEventListener('click',function(){cur='ozon';LS.setItem('gg_channel','ozon');apply();});
+build();apply();setInterval(build,2500);
+})();</script>
 </body>
 </html>

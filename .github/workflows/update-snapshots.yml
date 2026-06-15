@@ -59,12 +59,19 @@ jobs:
           npx tsx src/scripts/validate-snapshot.ts pnlsku /tmp/pnlsku.json
           mv /tmp/pnlsku.json fixtures/pnl_sku_30d.json
 
-          # дневная история за вчера (пустой день допустим)
-          curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
-            -d "{\"dateFrom\":\"$Y\",\"dateTo\":\"$Y\"}" -o /tmp/daily.json
-          npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
+          # Дневная история: догружаем ВСЕ недостающие дни от последнего в истории до вчера.
+          # Самовосстановление после любого простоя синка (раньше тянули только вчера -> дыры).
+          LAST=$(node -e "let m='';for(const l of require('fs').readFileSync('data/history.ndjson','utf8').trim().split('\n')){try{const d=JSON.parse(l).date;if(d>m)m=d;}catch(e){}}console.log(m||'2026-02-05');")
+          cur=$(date -u -d "$LAST +1 day" +%F)
           BEFORE=$(wc -l < data/history.ndjson)
-          npm run ingest -- /tmp/daily.json
+          while [ "${cur//-/}" -le "${Y//-/}" ]; do
+            echo "догрузка дня $cur"
+            curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
+              -d "{\"dateFrom\":\"$cur\",\"dateTo\":\"$cur\"}" -o /tmp/daily.json || { echo "curl daily $cur failed"; exit 1; }
+            npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
+            npm run ingest -- /tmp/daily.json
+            cur=$(date -u -d "$cur +1 day" +%F)
+          done
           AFTER=$(wc -l < data/history.ndjson)
           if [ "$AFTER" -lt "$BEFORE" ]; then echo "history сократилась $BEFORE->$AFTER"; exit 1; fi
         env:

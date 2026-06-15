@@ -524,7 +524,7 @@
   </div>
   <div class="range-panel" id="range-panel">
     <div class="range-panel-title">Свой диапазон</div>
-    <div class="range-row"><label>с</label><input type="date" id="range-from" value="2025-01-01"></div>
+    <div class="range-row"><label>с</label><input type="date" id="range-from" value="2026-02-06"></div>
     <div class="range-row"><label>по</label><input type="date" id="range-to" value="2026-04-30"></div>
     <div class="range-actions">
       <button class="range-btn" id="range-cancel">Отмена</button>
@@ -533,7 +533,7 @@
   </div>
   <div class="range-panel" id="compare-panel">
     <div class="cmp-block-title">Период А — текущий</div>
-    <div class="range-row"><label>с</label><input type="date" id="cmp-a-from" value="2025-01-01"></div>
+    <div class="range-row"><label>с</label><input type="date" id="cmp-a-from" value="2026-02-06"></div>
     <div class="range-row"><label>по</label><input type="date" id="cmp-a-to"   value="2025-12-31"></div>
     <div class="cmp-block-title">Период Б — для сравнения</div>
     <div class="range-row"><label>с</label><input type="date" id="cmp-b-from" value="2026-01-01"></div>
@@ -678,7 +678,7 @@ const MONTH_START_IDX = (() => {
 // Общие дневные веса (будни / выходные / детерминированная вариация ±15%)
 const DAY_WEIGHTS = (() => {
   const out = [];
-  const start = new Date('2025-01-01T00:00:00Z');
+  const start = new Date('2025-03-01T00:00:00Z');
   for(let m = 0; m < NMONTHS; m++){
     const days = DAYS_IN_MONTH_2025[m];
     for(let d = 0; d < days; d++){
@@ -733,14 +733,14 @@ function getPlanFactSeries(){
   else if(p === '30d'){ startIdx = refEnd - 29; endIdx = refEnd; }
   else if(p === '90d'){ startIdx = refEnd - 89; endIdx = refEnd; }
   else if(p === 'custom'){
-    const yearStart = new Date('2025-01-01T00:00:00Z');
+    const yearStart = new Date('2025-03-01T00:00:00Z');
     startIdx = Math.max(0, Math.round((new Date(state.customFrom) - yearStart) / 86400000));
     endIdx = Math.min(364, Math.round((new Date(state.customTo) - yearStart) / 86400000));
   } else { startIdx = refEnd - 29; endIdx = refEnd; }
 
   const daysCount = endIdx - startIdx + 1;
   const fmtDay = (idx) => {
-    const d = new Date('2025-01-01T00:00:00Z');
+    const d = new Date('2025-03-01T00:00:00Z');
     d.setUTCDate(d.getUTCDate() + idx);
     return `${d.getUTCDate()}.${String(d.getUTCMonth()+1).padStart(2,'0')}`;
   };
@@ -867,7 +867,7 @@ function subRatiosForPeriod(){
 }
 // То же, но для произвольных дат (используется в режиме сравнения).
 function subRatiosForRange(fromStr, toStr){
-  const yearStart = new Date('2025-01-01T00:00:00Z');
+  const yearStart = new Date('2025-03-01T00:00:00Z');
   const startIdx = Math.max(0, Math.round((new Date(fromStr) - yearStart) / 86400000));
   const endIdx   = Math.min(NDAYS-1, Math.round((new Date(toStr) - yearStart) / 86400000));
   const ratios = {};
@@ -891,14 +891,14 @@ function getDateRange(){
   else if(p === 'year'){ startIdx = refEnd - 364; endIdx = refEnd; } // скользящие 12 мес от последнего дня данных
   else if(p === 'all'){ startIdx = 0; endIdx = NDAYS-1; }
   else if(p === 'custom'){
-    const yearStart = new Date('2025-01-01T00:00:00Z');
+    const yearStart = new Date('2025-03-01T00:00:00Z');
     startIdx = Math.max(0, Math.round((new Date(state.customFrom) - yearStart) / 86400000));
     endIdx = Math.min(NDAYS-1, Math.round((new Date(state.customTo) - yearStart) / 86400000));
   } else { startIdx = refEnd - 29; endIdx = refEnd; }
   return {startIdx, endIdx, days: endIdx - startIdx + 1};
 }
 function fmtDay(idx){
-  const d = new Date('2025-01-01T00:00:00Z');
+  const d = new Date('2025-03-01T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + idx);
   return `${d.getUTCDate()}.${String(d.getUTCMonth()+1).padStart(2,'0')}`;
 }
@@ -972,7 +972,7 @@ function getSeasonalitySeries(){
 /* ============ СОСТОЯНИЕ ============ */
 const state = {
   period: 'year',
-  customFrom: '2025-01-01',
+  customFrom: '2026-02-06',
   customTo: '2026-04-30',
   drillCategory: null,
   mx: { sortCol:'total', sortDir:'desc', expanded:new Set() },
@@ -1272,7 +1272,7 @@ function _cmpSeries_LEGACY(rows, startIdx, endIdx, N, salt){
 }
 function _periodAToDates(){
   if(state.compare.enabled){ const r = rangeFromDates(state.compare.aFrom, state.compare.aTo); return { start: r.startIdx, end: r.endIdx }; }
-  const yearStart = new Date('2025-01-01T00:00:00Z');
+  const yearStart = new Date('2025-03-01T00:00:00Z');
   const toIdx = d => Math.max(0, Math.min(NDAYS-1, Math.round((new Date(d) - yearStart) / 86400000)));
   if(state.period === 'custom') return { start: toIdx(state.customFrom), end: toIdx(state.customTo) };
   const r = getDateRange();
@@ -1280,7 +1280,7 @@ function _periodAToDates(){
 }
 function renderCompareChart(rows, view){
   if(rows.length === 0) return '<div class="cmp-empty">Нет данных под выбранными фильтрами</div>';
-  const yearStart = new Date('2025-01-01T00:00:00Z');
+  const yearStart = new Date('2025-03-01T00:00:00Z');
   const toIdx = d => Math.max(0, Math.min(NDAYS-1, Math.round((new Date(d) - yearStart) / 86400000)));
   const pa = _periodAToDates();
   const pb = { start: toIdx(state.compare.from), end: toIdx(state.compare.to) };
@@ -1445,7 +1445,7 @@ function productPeriod(p, range){
 }
 // Диапазон дней из произвольных дат (период Б в сравнении).
 function rangeFromDates(fromStr, toStr){
-  const yearStart = new Date('2025-01-01T00:00:00Z');
+  const yearStart = new Date('2025-03-01T00:00:00Z');
   let a = Math.round((new Date(fromStr) - yearStart) / 86400000);
   let b = Math.round((new Date(toStr)   - yearStart) / 86400000);
   if(isNaN(a) || isNaN(b)) return { startIdx: 0, endIdx: NDAYS-1 };
@@ -1847,7 +1847,7 @@ document.addEventListener('click', e => {
     $('#range-panel').classList.remove('open');
     if(!wasOpen){
       // Период А: либо из state.customFrom/To, либо вычисляем из state.period (getDateRange).
-      const yearStart = new Date('2025-01-01T00:00:00Z');
+      const yearStart = new Date('2025-03-01T00:00:00Z');
       const toISO = i => new Date(yearStart.getTime() + i*86400000).toISOString().slice(0,10);
       if(state.compare.aFrom && state.compare.aTo){
         $('#cmp-a-from').value = state.compare.aFrom;
@@ -2091,7 +2091,7 @@ function renderAll(){
       if(state.period === 'custom' && state.customFrom && state.customTo){
         aFrom = state.customFrom; aTo = state.customTo;
       } else {
-        const yearStart = new Date('2025-01-01T00:00:00Z');
+        const yearStart = new Date('2025-03-01T00:00:00Z');
         const r = getDateRange();
         const toISO = i => new Date(yearStart.getTime() + i*86400000).toISOString().slice(0,10);
         aFrom = toISO(r.startIdx); aTo = toISO(r.endIdx);

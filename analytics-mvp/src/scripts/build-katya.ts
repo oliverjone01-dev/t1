@@ -203,6 +203,15 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   let out = html;
   out = out.replace(/const TODAY_IDX = TOTAL_DAYS - 1;[^\n]*/g, `const TODAY_IDX = ${maxIdx}; // последний день реальных данных ${maxD}`);
   out = out.replace(/Date\.UTC\(2025, ?0, ?1\)/g, `Date.UTC(${BASE_Y},${BASE_M - 1},1)`);
+  // Строковая база дня-индекса. Шаблон считал индекс от 2025-01-01, а наши реальные дневные
+  // ряды индексируются от начала окна (WIN[0]). Из-за сдвига кастомный выбор даты давал не тот
+  // период. Выравниваем строковую базу с дневными рядами.
+  const baseDateStr = `${BASE_Y}-${String(BASE_M).padStart(2, "0")}-01`;
+  out = out.replace(/2025-01-01T00:00:00Z/g, `${baseDateStr}T00:00:00Z`);
+  out = out.replace(/customFrom: ?'2025-01-01'/g, "customFrom: '2026-02-06'");
+  // Дефолтные значения дат-пикеров (вне данных 2025-01-01) -> начало реальных данных.
+  out = out.replace(/value="2025-01-01"/g, 'value="2026-02-06"');
+  out = out.replace(/bFrom: ?'2025-01-01'/g, "bFrom:'2026-02-06'");
   out = out.replace(/const DAILY_REV = buildDailyFromMonths\(MONTHS\.map\(m => m\.r\)\);/g,
     "const DAILY_REV = (window.__DAILY_REV_REAL || buildDailyFromMonths(MONTHS.map(m => m.r)));");
   out = out.replace(/const DAILY_REV_CAT = \{\};/g,

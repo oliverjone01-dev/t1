@@ -208,6 +208,9 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   // период. Выравниваем строковую базу с дневными рядами.
   const baseDateStr = `${BASE_Y}-${String(BASE_M).padStart(2, "0")}-01`;
   out = out.replace(/2025-01-01T00:00:00Z/g, `${baseDateStr}T00:00:00Z`);
+  // «Сегодня» -> «Вчера»: за сегодня OZON ещё не отдал данные, кнопка показывает последний день (вчера).
+  out = out.replace(/>Сегодня</g, ">Вчера<");
+  out = out.replace(/label:'Сегодня'/g, "label:'Вчера'");
   out = out.replace(/customFrom: ?'2025-01-01'/g, "customFrom: '2026-02-06'");
   // Дефолтные значения дат-пикеров (вне данных 2025-01-01) -> начало реальных данных.
   out = out.replace(/value="2025-01-01"/g, 'value="2026-02-06"');
@@ -611,7 +614,7 @@ ${banner(activeKey)}
   <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · данные по ${snapTo}</div></div></div>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
-    <button class="pb" data-p="today">Сегодня</button>
+    <button class="pb" data-p="today">Вчера</button>
     <button class="pb" data-p="7d">7 дн</button>
     <button class="pb act" data-p="30d">30 дн</button>
     <button class="pb" data-p="90d">90 дн</button>
@@ -887,6 +890,9 @@ function render(cur,cmp){
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
 {
   const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  let adsPeriodsCC: any;
+  try { adsPeriodsCC = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
+  catch { adsPeriodsCC = { p7: ads, p30: ads, p90: ads }; }
   // per-SKU разрежённый дневной ряд за окно (для движений по периоду)
   const skuMeta: Record<string, { nm: string; line: string }> = {};
   const tmpR: Record<string, Record<number, number>> = {}, tmpU: Record<string, Record<number, number>> = {};
@@ -908,13 +914,15 @@ function render(cur,cmp){
   <section class="kt-kpi" id="kpis"></section>
   <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.</div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub">кто прибавил и кто просел по обороту против базы сравнения</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub" id="movers-sub">кто прибавил и кто просел по обороту против предыдущего равного периода</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
 const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
-const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};
+const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
+// ДРР за выбранный период (из запечённых снимков 7/30/90), а не статичный 30-дн.
+function adsForPeriod(){ if(CURP==='7d'||CURP==='today')return ADSP.p7||ADS; if(CURP==='90d'||CURP==='all')return ADSP.p90||ADS; if(CURP==='range'){var d=Math.round((Date.parse(periodDates('range').to)-Date.parse(periodDates('range').from))/864e5)+1; return d<=10?(ADSP.p7||ADS):d<=45?(ADSP.p30||ADS):(ADSP.p90||ADS);} return ADSP.p30||ADS; }
 const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=dt=>Math.round((Date.parse(dt+'T00:00Z')-BASE0)/86400000);
 const sW=(arr,w)=>{let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;};
@@ -931,7 +939,7 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
-    kpi('ДРР канала',(ADS.totals.drr||0)+'%','<span class="kt-d na">снимок 30 дн</span>','Доля рекламы в выручке за 30 дн. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
+    kpi('ДРР канала',((adsForPeriod().totals||{}).drr||0)+'%','<span class="kt-d na">за период</span>','Доля рекламы в выручке за выбранный период. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
@@ -940,11 +948,17 @@ function render(cur,cmp){
   const bars=[['Было',gmvP,'#5d7484'],['Трафик',dV,dV>=0?'#34D399':'#FF5A5F'],['Конверсия',dC,dC>=0?'#34D399':'#FF5A5F'],['Чек',dA,dA>=0?'#34D399':'#FF5A5F'],['Стало',gmv,'#22D3EE']];
   const mx=Math.max(gmvP,gmv,1);
   document.getElementById('bridge').innerHTML='<div style="display:flex;align-items:flex-end;gap:8px;height:170px;padding:10px 0">'+bars.map(b=>{const h=Math.max(4,Math.abs(b[1])/mx*130);const sign=(b[0]==='Было'||b[0]==='Стало')?'':(b[1]>=0?'+':'');return '<div style="flex:1;text-align:center;font-size:11px;color:var(--ink-3)"'+tip(b[0]+': '+sign+fMln(b[1])+' ₽')+'><div style="background:'+b[2]+';border-radius:6px 6px 0 0;height:'+h+'px;margin-bottom:4px"></div>'+b[0]+'<br><b style="color:var(--ink-1)">'+sign+fMln(b[1])+'</b></div>';}).join('')+'</div>';
-  // Движения
+  // Движения: сравнение с предыдущим равным окном. Если база до старта продаж (период сравнения
+  // целиком пустой, напр. «Всё время») - честно «нет базы», а не фейковая дельта = полный оборот.
+  const baseHasData = gmvP > 0;
   const mv=SKUS.map(s=>{const c=skuW(s,cur),b=skuW(s,cmp);return {nm:s.nm,line:s.line,r:c.r,d:c.r-b.r};}).filter(x=>x.r>0||x.d!==0);
-  const up=mv.slice().sort((a,b)=>b.d-a.d).slice(0,5),dn=mv.slice().sort((a,b)=>a.d-b.d).slice(0,5);
-  const row=x=>'<tr><td>'+esc(x.nm.slice(0,46))+'<span style="color:var(--ink-3)"> · '+x.line+'</span></td><td class="r">'+fMln(x.r)+'</td><td class="r" style="color:'+(x.d>=0?'var(--up)':'var(--dn)')+'">'+(x.d>=0?'+':'')+fMln(x.d)+'</td></tr>';
-  document.getElementById('movers').innerHTML=up.map(row).join('')+'<tr><td colspan="3" style="height:6px;border:0"></td></tr>'+dn.filter(x=>x.d<0).map(row).join('');
+  const dcell=x=>baseHasData?('<span style="color:'+(x.d>=0?'var(--up)':'var(--dn)')+'">'+(x.d>=0?'+':'')+fMln(x.d)+'</span>'):'<span class="kt-d na">нет базы</span>';
+  const row=x=>'<tr><td>'+esc(x.nm.slice(0,46))+'<span style="color:var(--ink-3)"> · '+x.line+'</span></td><td class="r">'+fMln(x.r)+'</td><td class="r">'+dcell(x)+'</td></tr>';
+  let mrows;
+  if(baseHasData){const up=mv.slice().sort((a,b)=>b.d-a.d).slice(0,5),dn=mv.slice().sort((a,b)=>a.d-b.d).slice(0,5);mrows=up.map(row).join('')+'<tr><td colspan="3" style="height:6px;border:0"></td></tr>'+dn.filter(x=>x.d<0).map(row).join('');}
+  else{mrows=mv.slice().sort((a,b)=>b.r-a.r).slice(0,10).map(row).join('');}
+  document.getElementById('movers').innerHTML=mrows;
+  var msub=document.getElementById('movers-sub'); if(msub)msub.textContent=baseHasData?('оборот за '+cur.from+'..'+cur.to+' против '+cmp.from+'..'+cmp.to):('период сравнения '+cmp.from+'..'+cmp.to+' до старта продаж - базы нет, показан топ по обороту');
   // Локомотивы (ABC периода) + риск из live
   const liveBy={};LIVE.forEach(l=>liveBy[l.sku]=l);
   const per=SKUS.map(s=>({...s,r:skuW(s,cur).r})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);

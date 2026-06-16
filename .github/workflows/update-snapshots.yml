@@ -7,6 +7,7 @@ name: Update OZON snapshots
 on:
   schedule:
     - cron: "30 5 * * *" # ~08:30 МСК
+    - cron: "0 12 * * *" # ~15:00 МСК - страховка, если GitHub пропустит утренний слот
   workflow_dispatch: {}
 
 concurrency:

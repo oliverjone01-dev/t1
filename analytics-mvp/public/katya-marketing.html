@@ -654,10 +654,10 @@
     <span style="color:#5d7484;margin-left:8px">живой OZON (Фев 26-Июн 26) · прочие каналы/клиенты/план - нет данных</span>
   </div></div>
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Маркетинг и реклама · живой OZON · данные по 2026-06-14</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Маркетинг и реклама · живой OZON · данные по 2026-06-15</div></div></div>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
-    <button class="pb" data-p="today">Сегодня</button>
+    <button class="pb" data-p="today">Вчера</button>
     <button class="pb" data-p="7d">7 дн</button>
     <button class="pb act" data-p="30d">30 дн</button>
     <button class="pb" data-p="90d">90 дн</button>
@@ -666,7 +666,7 @@
   </div>
   <div class="range-panel" id="range-panel" style="display:none;position:absolute;right:16px;top:58px;background:var(--bg-card);border:1px solid var(--bg-soft);border-radius:10px;padding:12px;z-index:50">
     <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">с</label><input type="date" id="range-from" value="2026-02-06"></div>
-    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">по</label><input type="date" id="range-to" value="2026-06-14"></div>
+    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">по</label><input type="date" id="range-to" value="2026-06-15"></div>
     <button class="pb" id="range-apply" style="margin-top:6px">Применить</button>
   </div>
 </header>
@@ -677,10 +677,10 @@
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по линиям</div><div class="card-sub">расход и ДРР за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
-  <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от 2026-06-14 (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от 2026-06-15 (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style></main>
-<script>window.__GG_MAXD='2026-06-14';
-const MAXD='2026-06-14', FLOOR='2026-02-06';
+<script>window.__GG_MAXD='2026-06-15';
+const MAXD='2026-06-15', FLOOR='2026-02-06';
 const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};
 const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));

@@ -122,13 +122,15 @@
       var sec = secs[a.section]; if (!sec || !a.rect) return;
       if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
       var rx = Math.max(1, Math.min(99, a.rect.x)), ry = Math.max(1, Math.min(99, a.rect.y));
+      var col = colorFor(a.author);
       if (OPEN_THREAD === a.id && a.rect.w > 1) {
         var reg = el('div', 'anno-region');
-        reg.style.cssText = 'left:' + a.rect.x + '%;top:' + a.rect.y + '%;width:' + a.rect.w + '%;height:' + a.rect.h + '%';
+        reg.style.cssText = 'left:' + a.rect.x + '%;top:' + a.rect.y + '%;width:' + a.rect.w + '%;height:' + a.rect.h + '%;border-color:' + col;
         sec.appendChild(reg);
       }
       var m = el('button', 'anno-marker' + (a.resolved ? ' done' : '') + (OPEN_THREAD === a.id ? ' active' : ''));
       m.style.left = rx + '%'; m.style.top = ry + '%';
+      if (!a.resolved) m.style.background = col;
       m.textContent = (i + 1);
       m.title = a.author + ': ' + (a.body || '').slice(0, 60);
       m.onclick = function (e) { e.stopPropagation(); openThread(a.id, true); };
@@ -136,7 +138,11 @@
     });
   }
 
-  /* ---------- панель ---------- */
+  /* ---------- цвет автора ---------- */
+  var PALETTE = ['#4f8cff', '#ff6b9d', '#5fd3a8', '#ffb24d', '#b88cff', '#42c5e0', '#ff7a59', '#8de04a', '#f25fae', '#6ee7ff'];
+  function colorFor(name) { name = name || '?'; var h = 0; for (var i = 0; i < name.length; i++) { h = (h * 31 + name.charCodeAt(i)) >>> 0; } return PALETTE[h % PALETTE.length]; }
+
+  /* ---------- панель: список + дерево ответов + поле ответа ---------- */
   var panel, toolbar;
   function renderPanel() {
     if (!panel) return;
@@ -145,35 +151,56 @@
     panel.querySelector('.anno-count').textContent = ps.length;
     if (!ps.length) { list.innerHTML = '<div class="anno-empty">Пока нет комментариев.<br>Нажмите «Комментировать» и выделите участок.</div>'; return; }
     list.innerHTML = '';
+    var me = getName();
     ps.forEach(function (a, i) {
-      var reps = repliesOf(a.id);
-      var item = el('div', 'anno-item' + (a.resolved ? ' done' : ''));
-      item.innerHTML =
-        '<div class="anno-item-h"><span class="anno-pin">' + (i + 1) + '</span>' +
-        '<b>' + esc(a.author) + '</b><span class="anno-time" title="' + fmtAbs(a.created_at) + '">' + fmtRel(a.created_at) + '</span></div>' +
+      var col = colorFor(a.author), reps = repliesOf(a.id);
+      var item = el('div', 'anno-item' + (a.resolved ? ' done' : '') + (OPEN_THREAD === a.id ? ' on' : ''));
+      item.setAttribute('data-id', a.id);
+      item.style.borderLeftColor = col;
+      var html = '<div class="anno-item-h">' +
+        '<span class="anno-av" style="background:' + col + '">' + (i + 1) + '</span>' +
+        '<b style="color:' + col + '">' + esc(a.author) + '</b>' +
+        '<span class="anno-time" title="' + fmtAbs(a.created_at) + '">' + fmtRel(a.created_at) + '</span>' +
+        '<span class="anno-row-act">' +
+        '<button class="anno-mini" data-do="resolve" title="' + (a.resolved ? 'Вернуть' : 'Решено') + '">' + (a.resolved ? '↺' : '✓') + '</button>' +
+        (a.author === me ? '<button class="anno-mini" data-do="del" title="Удалить">🗑</button>' : '') +
+        '</span></div>' +
         '<div class="anno-body">' + esc(a.body) + '</div>' +
-        '<div class="anno-meta">слайд ' + (a.section + 1) + (reps.length ? ' · ' + reps.length + ' отв.' : '') + (a.resolved ? ' · решено' : '') + '</div>';
-      item.onclick = function () { openThread(a.id, true); };
+        '<div class="anno-meta">слайд ' + (a.section + 1) + (a.resolved ? ' · решено' : '') + '</div>';
+      if (reps.length) {
+        html += '<div class="anno-tree">';
+        reps.forEach(function (r) {
+          var rc = colorFor(r.author);
+          html += '<div class="anno-rep"><div class="anno-rep-h"><span class="anno-dot" style="background:' + rc + '"></span><b style="color:' + rc + '">' + esc(r.author) + '</b><span class="anno-time" title="' + fmtAbs(r.created_at) + '">' + fmtRel(r.created_at) + '</span></div><div class="anno-rep-b">' + esc(r.body) + '</div></div>';
+        });
+        html += '</div>';
+      }
+      html += '<div class="anno-replybox"><textarea rows="1" placeholder="Ответить..."></textarea><button class="anno-mini send" data-do="send" title="Ответить">→</button></div>';
+      item.innerHTML = html;
+      item.querySelector('.anno-item-h').onclick = function (e) { if (e.target.closest('.anno-mini')) return; openThread(a.id, true); };
+      item.querySelector('.anno-body').onclick = function () { openThread(a.id, true); };
+      var rs = item.querySelector('[data-do=resolve]'); if (rs) rs.onclick = function (e) { e.stopPropagation(); STORE.update(a.id, { resolved: !a.resolved }).then(refresh); };
+      var dl = item.querySelector('[data-do=del]'); if (dl) dl.onclick = function (e) { e.stopPropagation(); if (confirm('Удалить комментарий и ответы?')) { if (OPEN_THREAD === a.id) OPEN_THREAD = null; STORE.remove(a.id).then(refresh); } };
+      var ta = item.querySelector('.anno-replybox textarea');
+      function send() { var v = ta.value.trim(); if (!v) return; ensureName(function (nm) { STORE.add({ id: uid(), page_key: PAGE, section: a.section, rect: a.rect, author: nm, body: v, parent_id: a.id, resolved: false, created_at: new Date().toISOString() }).then(refresh); }); }
+      item.querySelector('[data-do=send]').onclick = function (e) { e.stopPropagation(); send(); };
+      ta.onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+      ta.oninput = function () { ta.style.height = 'auto'; ta.style.height = Math.min(96, ta.scrollHeight) + 'px'; };
       list.appendChild(item);
     });
+    if (OPEN_THREAD) { var on = list.querySelector('[data-id="' + OPEN_THREAD + '"]'); if (on) on.scrollIntoView({ block: 'nearest' }); }
   }
 
-  /* ---------- тред (карточка комментария + ответы) ---------- */
-  var threadBox;
+  /* ---------- фокус треда: подсветка области на слайде + карточка в панели ---------- */
   function openThread(id, jump) {
-    OPEN_THREAD = id;
     var a = DATA.filter(function (x) { return x.id === id; })[0]; if (!a) return;
-    if (jump) {
-      var sec = sections()[a.section];
-      if (sec) { if (sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' }); }
-    }
+    OPEN_THREAD = id;
+    if (jump) { var sec = sections()[a.section]; if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' }); }
     renderMarkers();
-    if (threadBox) threadBox.remove();
-    threadBox = el('div', 'anno-thread');
-    drawThread(a);
-    document.body.appendChild(threadBox);
-    positionThread(a);
+    togglePanel(true);
+    renderPanel();
   }
+  var threadBox; // не используется для чтения (треды теперь в панели)
   function positionThread(a) {
     var sec = sections()[a.section]; if (!sec || !threadBox) return;
     var r = sec.getBoundingClientRect();
@@ -299,7 +326,9 @@
       var v = ta.value.trim(); if (!v) { ta.focus(); return; }
       ensureName(function (nm) {
         var item = { id: uid(), page_key: PAGE, section: secIdx, rect: rect, author: nm, body: v, parent_id: null, resolved: false, created_at: new Date().toISOString() };
-        STORE.add(item).then(refresh).then(function () { close(); openThread(item.id, false); if (!PANEL_OPEN) togglePanel(true); });
+        close();                 // карточка ввода исчезает сразу, не закрывая контент
+        OPEN_THREAD = item.id;
+        STORE.add(item).then(refresh).then(function () { togglePanel(true); });
       });
     };
     ta.onkeydown = function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') box.querySelector('[data-act=save]').click(); };
@@ -327,12 +356,10 @@
     panel.querySelector('[data-act=x]').onclick = function () { togglePanel(false); };
 
     window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { if (MODE) setMode(false); else if (OPEN_THREAD && threadBox) { OPEN_THREAD = null; threadBox.remove(); threadBox = null; renderMarkers(); } }
+      if (e.key === 'Escape') { if (MODE) setMode(false); else if (PANEL_OPEN) togglePanel(false); }
     });
     var rt;
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { renderMarkers(); if (OPEN_THREAD) { var a = DATA.filter(function (x) { return x.id === OPEN_THREAD; })[0]; if (a) positionThread(a); } }, 120); });
-    // следим за прокруткой дека, чтобы тред ехал за слайдом
-    document.addEventListener('scroll', function () { if (OPEN_THREAD) { var a = DATA.filter(function (x) { return x.id === OPEN_THREAD; })[0]; if (a) positionThread(a); } }, true);
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(renderMarkers, 120); });
   }
 
   /* ---------- стили ---------- */
@@ -368,6 +395,21 @@
     .anno-time{margin-left:auto;color:#6B665C;font-size:11px;font-weight:400}
     .anno-body{color:#A39E92;font-size:13px;margin-top:6px;line-height:1.45}
     .anno-meta{color:#6B665C;font-size:11px;margin-top:7px;letter-spacing:.02em}
+    .anno-av{flex:none;min-width:20px;height:20px;border-radius:10px;display:inline-grid;place-items:center;color:#fff;font-weight:800;font-size:11px;padding:0 5px;box-shadow:0 0 0 2px rgba(255,255,255,.18)}
+    .anno-row-act{margin-left:auto;display:flex;gap:4px}
+    .anno-mini{background:none;border:1px solid #2a2e38;color:#A39E92;border-radius:7px;min-width:24px;height:24px;cursor:pointer;font-size:12px;display:grid;place-items:center;transition:.15s}
+    .anno-mini:hover{border-color:#4f8cff;color:#fff}
+    .anno-mini.send{min-width:30px;color:#4f8cff;border-color:#4f8cff;font-size:15px}
+    .anno-item.on{border-color:#4f8cff;box-shadow:0 0 0 2px rgba(79,140,255,.35)}
+    .anno-tree{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+    .anno-rep{border-left:2px solid #2a2e38;padding:1px 0 1px 10px;margin-left:4px}
+    .anno-rep-h{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#F5F1E8}
+    .anno-rep-h .anno-dot{width:9px;height:9px;border-radius:50%;flex:none}
+    .anno-rep-h b{font-weight:700}
+    .anno-rep-b{color:#A39E92;font-size:12.5px;margin-top:3px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+    .anno-replybox{display:flex;gap:7px;margin-top:10px;align-items:flex-end}
+    .anno-replybox textarea{flex:1;background:#0d0f14;border:1px solid #2a2e38;border-radius:8px;color:#F5F1E8;font-family:inherit;font-size:12.5px;padding:7px 10px;resize:none;min-height:32px;line-height:1.35}
+    .anno-replybox textarea:focus{border-color:#4f8cff;outline:none}
     .anno-thread{position:fixed;z-index:8900;width:320px;max-width:calc(100vw - 24px);background:#0F1116;border:1px solid #2a2e38;border-top:3px solid #4f8cff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.65);font-family:inherit;overflow:hidden}
     .anno-th-head{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #262320;color:#F5F1E8;font-size:13.5px}
     .anno-th-actions{margin-left:auto;display:flex;gap:4px}

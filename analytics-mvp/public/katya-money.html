@@ -1,0 +1,939 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GENGLASS · Деньги</title><style>
+  :root{
+    --bg-deep:#07090D; --bg-base:#0B0F15; --bg-card:#131820;
+    --bg-elevated:#1A2029; --bg-soft:#232B36; --bg-hover:#1F2731;
+    --border:#1F2731; --border-soft:#161C24; --border-hot:#2B3441;
+    --ink:#F1F4F8; --ink-2:#A0AAB8; --ink-3:#6A7484; --ink-4:#3F4855;
+    --accent:#22D3EE; --accent-2:#06B6D4; --accent-deep:#0E7490;
+    --accent-soft:rgba(34,211,238,.10); --accent-line:rgba(34,211,238,.28);
+    --d1:#22D3EE; --d2:#6366F1; --d3:#10B981; --d4:#A78BFA; --d5:#F472B6; --d6:#FB923C;
+    --up:#10B981;   --up-soft:rgba(16,185,129,.12);
+    --dn:#F43F5E;   --dn-soft:rgba(244,63,94,.12);
+    --warn:#F59E0B; --warn-soft:rgba(245,158,11,.12);
+    --info:#A78BFA; --info-soft:rgba(167,139,250,.12);
+    --shadow:0 4px 16px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.20);
+    --shadow-lg:0 12px 40px rgba(0,0,0,.50), 0 4px 12px rgba(0,0,0,.30);
+    --radius:10px; --radius-lg:14px; --radius-xl:18px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --ease-out:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg-base);color:var(--ink);font-family:'Inter','Manrope',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  body{overflow-x:hidden;background:radial-gradient(ellipse 60% 40% at 50% -10%, rgba(34,211,238,.04), transparent 70%),var(--bg-base)}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  ::selection{background:var(--accent);color:var(--bg-deep)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--bg-soft);border-radius:5px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border-hot)}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;text-align:left;transition:all .2s var(--ease)}
+  input,select{font:inherit;color:inherit}
+
+  /* ============ ШАПКА ============ */
+  .topbar{padding:14px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.85);position:sticky;top:0;z-index:50;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-logo{width:34px;height:34px;background:linear-gradient(135deg,#22D3EE 0%,#0891B2 100%);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--bg-deep);font-family:'Manrope';font-weight:800;font-size:13px;letter-spacing:.04em}
+  .brand-name{font-family:'Manrope';font-weight:700;font-size:15px;letter-spacing:-0.01em;color:var(--ink)}
+  .brand-sub{font-size:11px;color:var(--ink-3);font-weight:500;margin-top:1px}
+  .topbar-spacer{flex:1}
+  .periods{display:inline-flex;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:3px;gap:1px}
+  .pb{padding:7px 11px;font-size:12px;color:var(--ink-2);border-radius:6px;font-weight:500;transition:all .2s var(--ease);white-space:nowrap}
+  .pb:hover:not(.act){color:var(--ink);background:var(--bg-elevated)}
+  .pb.act{background:var(--accent-soft);color:var(--accent);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent-line)}
+  .pb.range{border-left:1px solid var(--border);margin-left:2px;padding-left:12px;display:inline-flex;align-items:center;gap:5px}
+  .pb.range svg{width:12px;height:12px;flex:none}
+  .status{display:flex;align-items:center;gap:8px;padding:7px 11px;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;font-size:11.5px;color:var(--ink-2)}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--up);box-shadow:0 0 0 3px rgba(16,185,129,.18);animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+  #clock{font-family:'JetBrains Mono';font-weight:500;color:var(--ink);font-feature-settings:"tnum";font-size:10.5px}
+  .range-panel{display:none;position:absolute;top:calc(100% + 6px);right:24px;background:var(--bg-card);border:1px solid var(--border-hot);padding:12px;border-radius:10px;box-shadow:var(--shadow-lg);z-index:60;min-width:260px;flex-direction:column;gap:8px}
+  .range-panel.open{display:flex}
+  .range-panel-title{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .range-row{display:flex;gap:8px;align-items:center}
+  .range-row label{font-size:11.5px;color:var(--ink-2);min-width:24px}
+  .range-row input[type=date]{flex:1;background:var(--bg-elevated);border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-size:12.5px;color:var(--ink);font-family:'Inter';color-scheme:dark}
+  .range-actions{display:flex;gap:6px;margin-top:2px}
+  .range-btn{flex:1;padding:7px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:var(--bg-elevated);color:var(--ink-2);border:1px solid var(--border);text-align:center;cursor:pointer;transition:all .2s var(--ease)}
+  .range-btn:hover{color:var(--ink);background:var(--bg-soft)}
+  .range-btn.primary{background:var(--accent);color:var(--bg-deep);border-color:var(--accent)}
+
+  .main{padding:18px 24px 30px;max-width:1640px;margin:0 auto}
+
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;animation:fadeUp .6s var(--ease-out) both}
+  .card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:16px;flex-wrap:wrap}
+  .card-title{font-family:'Manrope';font-weight:700;font-size:16px;color:var(--ink);margin-bottom:3px}
+  .card-sub{font-size:11.5px;color:var(--ink-3)}
+  .card-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .tabs{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:2px;gap:1px}
+  .tab{padding:7px 12px;font-size:12px;color:var(--ink-2);border-radius:6px;font-weight:500;transition:all .2s var(--ease);white-space:nowrap}
+  .tab:hover:not(.act){color:var(--ink);background:var(--bg-card)}
+  .tab.act{background:var(--bg-card);color:var(--accent);font-weight:600;box-shadow:inset 0 0 0 1px var(--accent-line)}
+
+  /* ============ KPI strip ============ */
+  .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+  .kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;animation:fadeUp .5s var(--ease-out) both}
+  .kpi-cell:nth-child(1){animation-delay:.04s} .kpi-cell:nth-child(2){animation-delay:.08s}
+  .kpi-cell:nth-child(3){animation-delay:.12s} .kpi-cell:nth-child(4){animation-delay:.16s}
+  .kpi-cell:nth-child(5){animation-delay:.20s} .kpi-cell:nth-child(6){animation-delay:.24s}
+  .kpi-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:2px}
+  .kpi-cell.hero::before{background:linear-gradient(90deg,var(--accent),transparent)}
+  .kpi-cell.c-blue::before{background:linear-gradient(90deg,var(--d2),transparent)}
+  .kpi-cell.c-purple::before{background:linear-gradient(90deg,var(--d4),transparent)}
+  .kpi-cell.c-green::before{background:linear-gradient(90deg,var(--up),transparent)}
+  .kpi-cell.c-pink::before{background:linear-gradient(90deg,var(--d5),transparent)}
+  .kpi-cell.c-orange::before{background:linear-gradient(90deg,var(--d6),transparent)}
+  .kpi-k{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+  .kpi-v{font-family:'Manrope';font-weight:700;font-size:30px;letter-spacing:-0.025em;color:var(--ink);line-height:1}
+  .kpi-v .u{font-size:14px;color:var(--ink-3);font-weight:500;margin-left:4px}
+  .kpi-row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11.5px}
+  .badge-up,.badge-dn{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-weight:600;font-size:11.5px;font-variant-numeric:tabular-nums}
+  .badge-up{background:var(--up-soft);color:var(--up)}
+  .badge-dn{background:var(--dn-soft);color:var(--dn)}
+  .badge-up svg,.badge-dn svg{width:9px;height:9px}
+  .kpi-sub{color:var(--ink-3);font-size:11.5px}
+  .kpi-na{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;background:var(--bg-elevated);color:var(--ink-3);font-size:12px;font-weight:700}
+
+  /* ============ План vs Факт ============ */
+  .pf-svg{width:100%;height:280px;display:block}
+  .pf-stats{display:flex;gap:24px;flex-wrap:wrap}
+  .pf-stat{text-align:right;min-width:130px}
+  .pf-stat-k{font-size:10.5px;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .pf-stat-v{font-family:'Manrope';font-weight:700;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-0.015em;line-height:1}
+  .pf-stat-v.up{color:var(--up)} .pf-stat-v.warn{color:var(--warn)}
+  .pf-stat-sub{font-size:11px;color:var(--ink-3);margin-top:4px}
+  .pf-legend{display:flex;gap:18px;font-size:12px;color:var(--ink-2);margin-bottom:8px}
+  .pf-legend-item{display:flex;align-items:center;gap:7px}
+  .pf-leg-plan{width:12px;height:11px;border-radius:2px;background:rgba(167,139,250,.55);border:1px solid rgba(167,139,250,.8)}
+  .pf-leg-fact{width:12px;height:11px;border-radius:2px;background:#22D3EE}
+
+  /* ============ Сравнение периодов А/Б ============ */
+  .pb.compare-on{background:var(--info-soft);color:var(--info);font-weight:600;box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--info) 45%, transparent)}
+  .cmp-panel{display:none;position:absolute;top:calc(100% + 6px);right:24px;background:var(--bg-card);border:1px solid var(--border-hot);padding:14px;border-radius:10px;box-shadow:var(--shadow-lg);z-index:60;min-width:300px;flex-direction:column;gap:7px}
+  .cmp-panel.open{display:flex}
+  .cmp-grp-title{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin:4px 0 1px}
+  .cmp-grp-title.a{color:var(--accent)}
+  .cmp-grp-title.b{color:var(--info)}
+  .cmp-panel .range-row label{min-width:24px}
+  .cmp-panel hr{border:none;border-top:1px dashed var(--border-hot);margin:6px 0 2px}
+  .cmp-actions{display:flex;gap:6px;margin-top:6px}
+  .cmp-btn{flex:1;padding:7px 10px;border-radius:7px;font-size:11.5px;font-weight:600;background:var(--bg-elevated);color:var(--ink-2);border:1px solid var(--border);text-align:center;cursor:pointer;transition:all .2s var(--ease)}
+  .cmp-btn:hover{color:var(--ink);background:var(--bg-soft)}
+  .cmp-btn.primary{background:var(--info);color:var(--bg-deep);border-color:var(--info)}
+  /* блок сравнения внутри карточки План/Факт */
+  .cmp-bars{display:flex;flex-direction:column;gap:18px;margin-top:6px}
+  .cmp-row{display:flex;align-items:center;gap:14px}
+  .cmp-row-lbl{display:flex;flex-direction:column;gap:2px;min-width:148px}
+  .cmp-row-tag{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+  .cmp-row-tag.a{color:var(--accent)} .cmp-row-tag.b{color:var(--info)}
+  .cmp-row-dates{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .cmp-track{flex:1;height:34px;background:var(--bg-base);border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--border)}
+  .cmp-fill{height:100%;border-radius:7px;position:relative;transition:width 1.1s var(--ease-out)}
+  .cmp-fill.a{background:linear-gradient(90deg,var(--accent-deep),var(--accent))}
+  .cmp-fill.b{background:linear-gradient(90deg,#7C3AED,var(--info))}
+  .cmp-fill-val{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'Manrope';font-weight:700;font-size:15px;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 1px 3px rgba(0,0,0,.5);white-space:nowrap}
+  .cmp-delta-badge{display:inline-flex;align-items:baseline;gap:5px;padding:5px 12px;border-radius:8px;font-variant-numeric:tabular-nums}
+  .cmp-delta-badge.up{background:var(--up-soft)} .cmp-delta-badge.dn{background:var(--dn-soft)}
+  .cmp-delta-v{font-family:'Manrope';font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1}
+  .cmp-delta-badge.up .cmp-delta-v{color:var(--up)} .cmp-delta-badge.dn .cmp-delta-v{color:var(--dn)}
+  .cmp-delta-cap{font-size:11px;color:var(--ink-3);letter-spacing:.02em}
+  /* чип периодов вверху карточки сравнения */
+  .cmp-chip{display:inline-flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:6px 12px;font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:8px}
+  .cmp-chip-badge{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:5px;font-family:'Manrope';font-weight:800;font-size:11px}
+  .cmp-chip-badge.a{color:var(--info);background:var(--info-soft);border:1px solid color-mix(in srgb, var(--info) 30%, transparent)}
+  .cmp-chip-badge.b{color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line)}
+  .cmp-chip-dates{color:var(--ink);font-weight:600}
+  .cmp-chip-vs{color:var(--ink-4);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:0 1px}
+  /* чип периодов в топбаре рядом с кнопкой Сравнить */
+  .cmp-topchip{display:none;align-items:center;gap:7px;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:6px 11px;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cmp-topchip.show{display:inline-flex}
+  /* линия рентабельности (пунктир) в легенде */
+  .pf-leg-line{width:18px;height:0;border-top:2px dashed #F5B544;position:relative;display:inline-block}
+  .pf-leg-line-solid{width:18px;height:0;border-top:2px solid #F5B544;position:relative;display:inline-block}
+
+  /* ============ Drill-down treemap ============ */
+  .drill-card{position:relative}
+  .drill-back{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:7px;background:var(--bg-elevated);border:1px solid var(--border);font-size:12px;color:var(--ink-2);font-weight:500;transition:all .2s var(--ease)}
+  .drill-back:hover{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line)}
+  .drill-back svg{width:12px;height:12px}
+  .tm-canvas{position:relative;width:100%;height:400px;background:var(--bg-base);border-radius:var(--radius);padding:4px;overflow:hidden}
+  .tm-cell{position:absolute;border-radius:7px;padding:12px 14px;cursor:pointer;transition:all .25s var(--ease);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+  .tm-cell:hover{transform:scale(1.015);z-index:5;box-shadow:var(--shadow-lg);border-color:rgba(255,255,255,.20)}
+  .tm-cell.drillable::after{content:"";position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.15);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M4 2l4 4-4 4'/%3E%3C/svg%3E");background-size:11px;background-position:center;background-repeat:no-repeat;opacity:.7;transition:all .2s var(--ease)}
+  .tm-cell.drillable:hover::after{opacity:1;transform:translateX(2px)}
+  .tm-cell-name{font-family:'Manrope';font-weight:700;font-size:14px;color:rgba(255,255,255,.97);letter-spacing:-0.01em;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,.30)}
+  .tm-cell-sub{font-size:10.5px;color:rgba(255,255,255,.70);margin-top:3px;font-weight:500}
+  .tm-cell-val{font-family:'Manrope';font-weight:700;font-size:22px;color:rgba(255,255,255,.98);font-variant-numeric:tabular-nums;letter-spacing:-0.02em;text-shadow:0 1px 2px rgba(0,0,0,.30)}
+  .tm-cell-val .u{font-size:12px;font-weight:500;color:rgba(255,255,255,.75);margin-left:3px}
+  .tm-cell-meta{display:flex;align-items:center;gap:10px;margin-top:4px;font-size:11.5px;color:rgba(255,255,255,.80);font-weight:600}
+  .tm-cell.small .tm-cell-val{font-size:16px} .tm-cell.small .tm-cell-name{font-size:12px}
+  .tm-cell.small .tm-cell-sub{display:none}
+  .tm-cell.tiny .tm-cell-val,.tm-cell.tiny .tm-cell-meta,.tm-cell.tiny .tm-cell-sub{display:none}
+  .tm-cell.tiny .tm-cell-name{font-size:11px}
+  /* Адаптация для узких/плоских ячеек */
+  .tm-cell.narrow{padding:8px 10px}
+  .tm-cell.narrow .tm-cell-sub{display:none}
+  .tm-cell.narrow .tm-cell-name{font-size:11.5px}
+  .tm-cell.narrow .tm-cell-val{font-size:14px}
+  .tm-cell.narrow .tm-cell-meta{gap:4px;font-size:10px}
+  .tm-cell.short{flex-direction:row;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px}
+  .tm-cell.short>div:first-child{flex:1;min-width:0;overflow:hidden}
+  .tm-cell.short>div:last-child{flex:none;text-align:right}
+  .tm-cell.short .tm-cell-sub,.tm-cell.short .tm-cell-meta{display:none}
+  .tm-cell.short .tm-cell-name{font-size:12.5px}
+  .tm-cell.short .tm-cell-val{font-size:14px}
+  .tm-cell.short.drillable::after{top:50%;right:8px;transform:translateY(-50%);width:14px;height:14px;background-size:9px}
+  .tm-cell.short.narrow .tm-cell-name{font-size:11px}
+  .tm-cell.short.narrow .tm-cell-val{font-size:12px}
+  /* Очень мелкие ячейки — только цвет, контент в тултипе */
+  .tm-cell.empty{padding:0;cursor:help}
+  .tm-cell.empty > div{display:none}
+  .tm-cell.empty::after{display:none}
+  .tm-cell.empty:hover{transform:scale(1.04);z-index:6;box-shadow:var(--shadow-lg);border-color:rgba(255,255,255,.30)}
+  /* Средние по высоте ячейки — скрываем подпись и meta, оставляем имя и сумму */
+  .tm-cell.compact{padding:10px 12px;justify-content:space-between}
+  .tm-cell.compact .tm-cell-sub{display:none}
+  .tm-cell.compact .tm-cell-meta{font-size:10px;gap:6px;margin-top:2px}
+  .tm-cell.compact .tm-cell-val{font-size:18px}
+  .tm-cell.compact .tm-cell-name{font-size:13px}
+
+  /* ============ Категории × Каналы (МАТРИЦА) ============ */
+  .mx-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+  .mx-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:1200px}
+  .mx-table th,.mx-table td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums}
+  .mx-table th{
+    position:sticky;top:0;
+    background:var(--bg-card);
+    font-weight:600;color:var(--ink-3);font-size:11px;
+    text-transform:uppercase;letter-spacing:.04em;
+    cursor:pointer;user-select:none;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap
+  }
+  .mx-table th:hover{color:var(--ink)}
+  .mx-table th.sorted{color:var(--accent)}
+  .mx-table th.sorted::after{content:" ↓";font-size:10px}
+  .mx-table th.sorted.asc::after{content:" ↑"}
+  .mx-table th.mx-label-h{text-align:left;padding-left:12px;cursor:default;width:240px}
+  .mx-table th.mx-total-h{background:var(--bg-elevated);color:var(--ink);border-left:2px solid var(--border-hot)}
+  .mx-table th.mx-total-h.sorted{color:var(--accent)}
+  .mx-row{cursor:pointer;transition:background .15s var(--ease)}
+  .mx-row:hover{background:var(--bg-elevated)}
+  .mx-row.lvl1 td{font-weight:700;color:var(--ink);font-size:12.5px}
+  .mx-row.lvl1 td.mx-label::before{
+    content:"▶";display:inline-block;margin-right:8px;color:var(--ink-3);font-size:9px;
+    transition:transform .2s var(--ease)
+  }
+  .mx-row.lvl1.expanded td.mx-label::before{transform:rotate(90deg);color:var(--accent)}
+  .mx-row.lvl2{background:rgba(7,9,13,.4);cursor:default}
+  .mx-row.lvl2 td{color:var(--ink-2);font-size:12px;font-weight:500}
+  .mx-row.lvl2 td.mx-label{padding-left:30px;color:var(--ink);font-style:italic}
+  .mx-row.lvl2 td.mx-label::before{content:"·";display:inline-block;margin-right:8px;color:var(--ink-4)}
+  .mx-table td.mx-label{text-align:left;padding-left:12px}
+  .mx-table td.mx-cell{transition:background-color .25s var(--ease)}
+  .mx-toggle{display:inline-flex;gap:3px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:3px}
+  .mx-tg{padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-3);background:transparent;border:none;cursor:pointer;transition:all .18s var(--ease);white-space:nowrap}
+  .mx-tg:hover{color:var(--ink-2)}
+  .mx-tg.active{color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
+  /* ячейки-кнопки в режиме сравнения */
+  .mx-table td.mx-cellbtn{padding:3px 3px;background:transparent}
+  .mx-pill{display:block;border-radius:8px;padding:8px 4px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;transition:transform .15s var(--ease),filter .15s var(--ease)}
+  .mx-pill.empty{font-weight:500}
+  .mx-cellbtn:hover .mx-pill:not(.empty){transform:translateY(-1px);filter:brightness(1.12)}
+  .mx-table td.mx-total{
+    background:var(--bg-elevated);font-weight:700;color:var(--ink);
+    border-left:2px solid var(--border-hot)
+  }
+  .mx-table td.mx-orders{color:var(--ink-2);font-weight:600}
+  .mx-table td.mx-share{color:var(--accent);font-weight:700}
+  .mx-table td.mx-margin{font-weight:700;font-variant-numeric:tabular-nums}
+  .mx-table td.mx-margin.good{color:var(--up)}
+  .mx-table td.mx-margin.warn{color:var(--warn)}
+  .mx-table td.mx-margin.bad{color:var(--dn)}
+  .mx-foot td{
+    border-top:2px solid var(--border-hot);border-bottom:0;
+    font-weight:700;background:var(--bg-elevated);color:var(--ink);
+    font-size:12.5px;padding:11px 8px
+  }
+  .mx-foot td:first-child{color:var(--accent);text-transform:uppercase;font-size:11px;letter-spacing:.06em;text-align:left}
+
+  /* ============ ABC × XYZ анализ ============ */
+  .ax-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+  .ax-summary{display:flex;gap:18px;font-size:12px;color:var(--ink-3);align-items:center;flex-wrap:wrap}
+  .ax-summary b{color:var(--ink);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:4px}
+  .ax-summary b.good{color:var(--up)} .ax-summary b.warn{color:var(--warn)} .ax-summary b.bad{color:var(--dn)}
+  .ax-summary-sep{width:1px;height:18px;background:var(--border)}
+  .ax-body{display:block}
+  .ax-grid{display:flex;gap:16px;min-height:320px;max-height:360px;align-items:stretch}
+  @media (max-width:900px){.ax-grid{flex-direction:column;max-height:none}}
+  .ax-donut-wrap{flex:1 1 0;display:flex;align-items:center;justify-content:center;position:relative;padding:8px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);min-width:0}
+  @media (max-width:900px){.ax-donut-wrap{min-height:340px}}
+  .ax-donut-svg{width:100%;height:100%;max-height:340px;display:block}
+  .ax-donut-seg{cursor:pointer;transition:opacity .2s var(--ease),transform .25s var(--ease);transform-origin:center;transform-box:fill-box}
+  .ax-donut-seg:hover{opacity:.86}
+  .ax-donut-seg.selected{filter:drop-shadow(0 0 12px currentColor)}
+  .ax-donut-center-num{font-family:'Manrope';font-size:46px;font-weight:800;fill:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em;pointer-events:none}
+  .ax-donut-center-unit{font-family:'Manrope';font-size:13px;font-weight:600;fill:var(--ink-2);letter-spacing:.06em;pointer-events:none}
+  .ax-donut-center-lbl{font-size:10.5px;fill:var(--ink-3);letter-spacing:.08em;pointer-events:none}
+
+  .ax-legend{flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
+  .ax-legend-item{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;overflow:hidden;transition:all .2s var(--ease);box-shadow:0 2px 6px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);min-height:0}
+  .ax-legend-item::before{content:"";position:absolute;inset:0;opacity:.16;pointer-events:none;transition:opacity .2s var(--ease)}
+  .ax-legend-item::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 0%, rgba(255,255,255,.05), transparent 60%);pointer-events:none;mix-blend-mode:overlay}
+  .ax-legend-item:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06)}
+  .ax-legend-item:hover::before{opacity:.28}
+  .ax-legend-item.zone-green{border-color:color-mix(in srgb, var(--up) 50%, var(--border))}
+  .ax-legend-item.zone-green::before{background:var(--up)}
+  .ax-legend-item.zone-yellow{border-color:color-mix(in srgb, var(--warn) 50%, var(--border))}
+  .ax-legend-item.zone-yellow::before{background:var(--warn)}
+  .ax-legend-item.zone-gray{border-color:color-mix(in srgb, var(--ink-3) 40%, var(--border))}
+  .ax-legend-item.zone-gray::before{background:var(--ink-3);opacity:.12}
+  .ax-legend-item.zone-gray:hover::before{opacity:.22}
+  .ax-legend-item.zone-red{border-color:color-mix(in srgb, var(--dn) 50%, var(--border))}
+  .ax-legend-item.zone-red::before{background:var(--dn)}
+  .ax-legend-item.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 22px rgba(34,211,238,.22), inset 0 1px 0 rgba(255,255,255,.06)}
+  .ax-legend-item.selected::before{opacity:.42}
+  .ax-legend-item.empty{cursor:default;opacity:.4}
+  .ax-legend-item.empty:hover{transform:none}
+
+  .ax-leg-dot-col{position:relative;width:12px;height:12px;border-radius:50%;flex:0 0 12px;z-index:1}
+  .ax-legend-item.zone-green .ax-leg-dot-col{background:var(--up);box-shadow:0 0 8px var(--up)}
+  .ax-legend-item.zone-yellow .ax-leg-dot-col{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+  .ax-legend-item.zone-gray .ax-leg-dot-col{background:var(--ink-3);box-shadow:0 0 5px var(--ink-3);opacity:.7}
+  .ax-legend-item.zone-red .ax-leg-dot-col{background:var(--dn);box-shadow:0 0 8px var(--dn)}
+  .ax-leg-text{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+  .ax-leg-name{font-family:'Manrope';font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  .ax-legend-item.zone-green .ax-leg-name{color:var(--up)}
+  .ax-legend-item.zone-yellow .ax-leg-name{color:var(--warn)}
+  .ax-legend-item.zone-red .ax-leg-name{color:var(--dn)}
+  .ax-legend-item.zone-gray .ax-leg-name{color:var(--ink-2)}
+  .ax-leg-meta{font-size:10.5px;color:var(--ink-3);letter-spacing:.01em;font-variant-numeric:tabular-nums}
+  .ax-leg-meta b{color:var(--ink-2);font-weight:600}
+  .ax-leg-numcol{position:relative;z-index:1;text-align:right;display:flex;flex-direction:column;gap:1px;white-space:nowrap}
+  .ax-leg-count{font-family:'Manrope';font-size:20px;font-weight:800;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+  .ax-leg-count-u{font-size:9.5px;font-weight:600;color:var(--ink-2);margin-left:3px;letter-spacing:.04em}
+  .ax-leg-rev{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:10.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .ax-leg-rev b{color:var(--ink);font-weight:600}
+
+  /* ============ Рентабельность ============ */
+  .pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+  @media (max-width:1100px){.pr-grid{grid-template-columns:1fr}}
+  .pr-chart-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px 12px;position:relative;display:flex;flex-direction:column;min-height:340px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .pr-chart-title{font-size:10.5px;color:var(--ink-3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace}
+  .pr-svg{width:100%;flex:1;display:block}
+  .pr-axis-y, .pr-axis-x{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;fill:var(--ink-3);font-variant-numeric:tabular-nums}
+  .pr-axis-y{font-size:10px}
+  .pr-axis-x{font-size:9.5px}
+  .pr-grid-line{stroke:var(--border-soft);stroke-width:0.5;stroke-dasharray:2 3;opacity:.7}
+  .pr-line{fill:none;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+  .pr-line-rev{stroke:var(--warn)}
+  .pr-line-cost{stroke:var(--dn)}
+  .pr-area-rev{fill:var(--warn);opacity:.08}
+  .pr-area-cost{fill:var(--dn);opacity:.08}
+  .pr-dot{stroke-width:1.4}
+  .pr-dot-rev{fill:var(--warn);stroke:var(--bg-card)}
+  .pr-dot-cost{fill:var(--dn);stroke:var(--bg-card)}
+  .pr-bar-cost{fill:var(--dn);opacity:.85}
+  .pr-bar-profit{fill:var(--up);opacity:.85}
+  .pr-bar-cost:hover, .pr-bar-profit:hover{opacity:1}
+  .pr-legend{display:flex;gap:18px;justify-content:center;margin-top:8px;font-size:11px;color:var(--ink-2);padding-top:6px;border-top:1px solid var(--border-soft)}
+  .pr-leg-item{display:flex;align-items:center;gap:7px}
+  .pr-leg-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 10px}
+  .pr-leg-dot.rev{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+  .pr-leg-dot.cost{background:var(--dn);box-shadow:0 0 6px var(--dn)}
+  .pr-leg-dot.profit{background:var(--up);box-shadow:0 0 6px var(--up)}
+  /* Комиссии: столбики + линия % от выручки */
+  .pr-bar-comm{fill:#C99A3A;opacity:.88}
+  .pr-bar-comm:hover{opacity:1}
+  .pr-line-pct{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+  .pr-dot-pct{fill:var(--bg-card);stroke:var(--accent);stroke-width:1.8}
+  .pr-axis-pct{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;fill:var(--accent);opacity:.75;font-size:9.5px;font-variant-numeric:tabular-nums}
+  .pr-leg-dot.comm{background:#C99A3A;box-shadow:0 0 6px rgba(201,154,58,.6)}
+  .pr-leg-dot.pct{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+
+  /* ============ ABC-XYZ drill (продолжение) ============ */
+  .ax-drill{margin-top:18px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-elevated);overflow:hidden;animation:fadeUp .35s var(--ease-out)}
+  .ax-drill-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:var(--bg-card);border-bottom:1px solid var(--border-soft)}
+  .ax-drill-toolbar-lbl{font-size:10.5px;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+  .ax-chip{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:999px;cursor:pointer;transition:all .15s var(--ease);font-family:inherit;outline:none}
+  .ax-chip:hover{border-color:var(--border-hot);color:var(--ink)}
+  .ax-chip.active{background:var(--accent);border-color:var(--accent);color:#0a1118;font-weight:600}
+  .ax-pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.01em;border:1px solid transparent}
+  .ax-pill.good{background:color-mix(in srgb, var(--up) 18%, transparent);color:var(--up);border-color:color-mix(in srgb, var(--up) 35%, transparent)}
+  .ax-pill.warn{background:color-mix(in srgb, var(--warn) 18%, transparent);color:var(--warn);border-color:color-mix(in srgb, var(--warn) 35%, transparent)}
+  .ax-pill.bad{background:color-mix(in srgb, var(--dn) 18%, transparent);color:var(--dn);border-color:color-mix(in srgb, var(--dn) 35%, transparent)}
+  .ax-drill-h{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border-soft);background:var(--bg-card)}
+  .ax-drill-title{font-size:13px;font-weight:700;color:var(--ink)}
+  .ax-drill-close{cursor:pointer;font-size:11px;color:var(--ink-3);padding:4px 10px;border-radius:5px;background:var(--bg-elevated);border:1px solid var(--border)}
+  .ax-drill-close:hover{color:var(--ink);border-color:var(--border-hot)}
+  .ax-drill-scroll{overflow-x:auto;overflow-y:hidden}
+  .ax-drill-scroll::-webkit-scrollbar{height:8px}
+  .ax-drill-scroll::-webkit-scrollbar-track{background:var(--bg-elevated)}
+  .ax-drill-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .ax-drill-scroll::-webkit-scrollbar-thumb:hover{background:var(--border-hot)}
+  .ax-drill-table{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;min-width:1100px}
+  .ax-drill-table th,.ax-drill-table td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ax-drill-table th{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);position:sticky;top:0;cursor:pointer;user-select:none;transition:color .15s var(--ease)}
+  .ax-drill-table th:hover{color:var(--ink)}
+  .ax-drill-table th.sorted{color:var(--accent)}
+  .ax-drill-table th.sorted::after{content:" ↓";font-size:9px}
+  .ax-drill-table th.sorted.asc::after{content:" ↑"}
+  .ax-drill-table th.right,.ax-drill-table td.right{text-align:right}
+  .ax-drill-table tr:last-child td{border-bottom:none}
+  .ax-drill-table .ax-sku{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:11.5px;font-weight:500;color:var(--ink);letter-spacing:.01em}
+  .ax-drill-table .ax-parent{font-size:10.5px;color:var(--ink-3);margin-top:1px;white-space:normal;max-width:280px}
+  .ax-drill-cv{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10.5px;font-weight:600;background:var(--bg-elevated)}
+  .ax-drill-empty{padding:24px;text-align:center;color:var(--ink-3);font-size:12.5px}
+
+  /* ============ ABC по клиентам ============ */
+  .cl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+  .cl-summary{display:flex;gap:18px;font-size:12px;color:var(--ink-3);align-items:center;flex-wrap:wrap}
+  .cl-summary b{color:var(--ink);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:4px}
+  .cl-summary b.good{color:var(--up)} .cl-summary b.warn{color:var(--warn)} .cl-summary b.bad{color:var(--dn)}
+  .cl-summary-sep{width:1px;height:18px;background:var(--border)}
+  .cl-summary .cmp-d{font-size:12.5px;font-weight:700;margin-left:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cl-summary .cmp-d.good{color:var(--up)} .cl-summary .cmp-d.bad{color:var(--dn)}
+
+  .cl-body{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:18px;align-items:stretch}
+  @media (max-width:1100px){.cl-body{grid-template-columns:1fr}}
+
+  /* Парето */
+  .cl-pareto{border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card);padding:14px 16px 12px;display:flex;flex-direction:column}
+  .cl-pareto-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+  .cl-pareto-svg{width:100%;height:auto;display:block;flex:1}
+  .cl-pareto-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border-soft);font-size:11px;color:var(--ink-2)}
+  .cl-leg-item{display:inline-flex;align-items:center;gap:6px}
+  .cl-leg-sq{display:inline-block;width:10px;height:10px;border-radius:2px}
+  .cl-leg-line{display:inline-block;width:14px;height:2px;border-radius:2px}
+
+  /* Карточки A/B/C */
+  .cl-classes{display:flex;flex-direction:column;gap:10px}
+  .cl-class-card{border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card);padding:14px 16px;cursor:pointer;transition:all .2s var(--ease);position:relative;overflow:hidden}
+  .cl-class-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;transition:width .2s var(--ease)}
+  .cl-class-card.zone-green::before{background:var(--up)}
+  .cl-class-card.zone-warn::before{background:var(--warn)}
+  .cl-class-card.zone-gray::before{background:var(--ink-3)}
+  .cl-class-card:hover{border-color:var(--border-hot);transform:translateY(-1px)}
+  .cl-class-card:hover::before{width:6px}
+  .cl-class-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 24px rgba(34,211,238,.18)}
+  .cl-class-card.selected::before{width:6px}
+  .cl-class-h{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;margin-left:10px}
+  .cl-class-label{font-family:'Manrope';font-weight:800;font-size:24px;letter-spacing:.02em;color:var(--ink);line-height:1}
+  .cl-class-card.zone-green .cl-class-label{color:var(--up)}
+  .cl-class-card.zone-warn .cl-class-label{color:var(--warn)}
+  .cl-class-card.zone-gray .cl-class-label{color:var(--ink-2)}
+  .cl-class-sub{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .cl-class-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-left:10px;margin-bottom:8px}
+  .cl-cm-val{font-family:'Manrope';font-weight:700;font-size:18px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .cl-cm-val.good{color:var(--up)} .cl-cm-val.bad{color:var(--dn)} .cl-cm-val.mid{color:var(--ink)}
+  .cl-cm-u{font-size:11px;font-weight:500;color:var(--ink-3);margin-left:2px;letter-spacing:0}
+  .cl-cm-lbl{font-size:10.5px;color:var(--ink-3);margin-top:2px;letter-spacing:.02em}
+
+  /* === KPI-плитки A/B/C (Variant 2 — горизонтальный ряд) === */
+  .cl-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  @media (max-width:900px){.cl-kpi-row{grid-template-columns:1fr}}
+  .cl-kpi-tile{position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px 13px;cursor:pointer;transition:all .2s var(--ease);overflow:hidden}
+  .cl-kpi-tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;transition:width .2s var(--ease)}
+  .cl-kpi-tile.zone-green::before{background:var(--up)}
+  .cl-kpi-tile.zone-warn::before{background:var(--warn)}
+  .cl-kpi-tile.zone-gray::before{background:var(--ink-3)}
+  .cl-kpi-tile:hover{border-color:var(--border-hot);transform:translateY(-1px)}
+  .cl-kpi-tile:hover::before{width:5px}
+  .cl-kpi-tile.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 8px 24px rgba(34,211,238,.18)}
+  .cl-kpi-tile.selected::before{width:5px}
+
+  .cl-kpi-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-left:6px}
+  .cl-kpi-chip{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:11px;font-weight:600;padding:2px 9px;border-radius:5px;letter-spacing:.04em;line-height:1.4}
+  .cl-kpi-tile.zone-green .cl-kpi-chip{background:var(--up-soft);color:var(--up);border:1px solid color-mix(in srgb, var(--up) 30%, transparent)}
+  .cl-kpi-tile.zone-warn  .cl-kpi-chip{background:var(--warn-soft);color:var(--warn);border:1px solid color-mix(in srgb, var(--warn) 30%, transparent)}
+  .cl-kpi-tile.zone-gray  .cl-kpi-chip{background:var(--bg-elevated);color:var(--ink-2);border:1px solid var(--border)}
+  .cl-kpi-name{font-family:'Manrope';font-weight:700;font-size:13px;color:var(--ink);letter-spacing:-.005em}
+  .cl-kpi-sub{font-size:10.5px;color:var(--ink-3);margin-left:auto;letter-spacing:.01em;white-space:nowrap}
+
+  .cl-kpi-main{display:flex;align-items:baseline;gap:8px;padding-left:6px;margin-bottom:12px}
+  .cl-kpi-pct{font-family:'Manrope';font-weight:800;font-size:30px;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+  .cl-kpi-tile.zone-green .cl-kpi-pct{color:var(--up)}
+  .cl-kpi-tile.zone-warn  .cl-kpi-pct{color:var(--warn)}
+  .cl-kpi-tile.zone-gray  .cl-kpi-pct{color:var(--ink-2)}
+  .cl-kpi-amt{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:12.5px;color:var(--ink-3);font-weight:500;font-variant-numeric:tabular-nums}
+
+  .cl-kpi-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 0 0 6px;border-top:1px solid var(--border-soft)}
+  .cl-kpi-meta-col{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .cl-kpi-meta-lbl{font-size:10px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .cl-kpi-meta-val{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.005em}
+  .cl-kpi-meta-val.good{color:var(--up)}
+  .cl-kpi-meta-val.bad{color:var(--dn)}
+  .cl-kpi-meta-val.mid{color:var(--ink-2)}
+  /* сравнение клиентов по периодам: дамббелл «движение клиентов» */
+  .cl-db-legend{display:flex;gap:16px;align-items:center;font-size:11px;color:var(--ink-2);margin:4px 0 12px 2px;flex-wrap:wrap}
+  .cl-db-leg{display:inline-flex;align-items:center;gap:6px}
+  .cl-db-leg .d{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .cl-db-leg .d.a{background:var(--info)} .cl-db-leg .d.b{background:var(--accent)}
+  .cl-db-leg .ln{width:16px;height:3px;border-radius:2px;display:inline-block}
+  .cl-db-row{display:grid;grid-template-columns:168px 1fr 60px;align-items:center;gap:12px;padding:5px 6px;border-radius:7px;transition:background .15s var(--ease)}
+  .cl-db-row:hover{background:var(--bg-elevated)}
+  .cl-db-name{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cl-db-track{position:relative;height:16px}
+  .cl-db-line{position:absolute;top:50%;height:3px;transform:translateY(-50%);border-radius:2px;opacity:.85}
+  .cl-db-dot{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid var(--bg-card);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+  .cl-db-dot.a{background:var(--info)} .cl-db-dot.b{background:var(--accent)}
+  .cl-db-delta{font-size:11.5px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .cl-db-delta.good{color:var(--up)} .cl-db-delta.bad{color:var(--dn)}
+  .cl-db-axis{display:flex;justify-content:space-between;font-size:9.5px;color:var(--ink-3);margin:2px 60px 8px 180px;font-variant-numeric:tabular-nums}
+  /* back-to-back бары клиентов А/Б (подписи вплотную к барам, белым) */
+  .cl-bb-row{display:grid;grid-template-columns:150px 1fr 1fr 50px;align-items:center;gap:0;padding:3px 0}
+  .cl-bb-row:hover{background:var(--bg-elevated);border-radius:6px}
+  .cl-bb-name{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:10px;text-align:right}
+  .cl-bb-va{font-family:'Manrope';font-size:11px;font-weight:700;color:#FFFFFF;font-variant-numeric:tabular-nums}
+  .cl-bb-vb{font-family:'Manrope';font-size:11px;font-weight:700;color:#FFFFFF;font-variant-numeric:tabular-nums}
+  .cl-bb-left{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:3px}
+  .cl-bb-right{display:flex;align-items:center;justify-content:flex-start;gap:6px;padding-left:3px}
+  .cl-bb-left{display:flex;justify-content:flex-end;padding-right:3px}
+  .cl-bb-right{display:flex;justify-content:flex-start;padding-left:3px}
+  .cl-bb-bar{height:21px;min-width:3px;flex:0 0 auto}
+  .cl-bb-bar.a{background:linear-gradient(90deg,rgba(167,139,250,.55),rgba(167,139,250,.92));border-radius:4px 0 0 4px}
+  .cl-bb-bar.b{background:linear-gradient(90deg,#0E7490,#22D3EE);border-radius:0 4px 4px 0}
+  .cl-bb-delta{text-align:right;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;padding-left:10px}
+  .cl-bb-delta.good{color:var(--up)} .cl-bb-delta.bad{color:var(--dn)}
+
+  /* Расположение Парето на полную ширину — поверх старой 2-колоночной сетки */
+  .cl-body-v2{display:flex;flex-direction:column;gap:0}
+  .cl-body-v2 .cl-pareto{margin:0}
+
+  /* Drill таблица */
+  .cl-drill{margin-top:18px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-elevated);overflow:hidden;animation:fadeUp .35s var(--ease-out)}
+  .cl-drill-h{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border-soft);background:var(--bg-card)}
+  .cl-drill-title{font-size:13px;color:var(--ink-2)}
+  .cl-drill-title b{font-family:'Manrope';font-weight:800;margin:0 4px}
+  .cl-drill-title b.zone-green{color:var(--up)} .cl-drill-title b.zone-warn{color:var(--warn)} .cl-drill-title b.zone-gray{color:var(--ink-2)}
+  .cl-drill-close{cursor:pointer;font-size:11px;color:var(--ink-3);padding:4px 10px;border-radius:5px;background:var(--bg-elevated);border:1px solid var(--border)}
+  .cl-drill-close:hover{color:var(--ink);border-color:var(--border-hot)}
+  .cl-drill-scroll{overflow-x:auto}
+  .cl-drill-scroll::-webkit-scrollbar{height:8px}
+  .cl-drill-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+  .cl-drill-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:720px}
+  .cl-drill-table th,.cl-drill-table td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cl-drill-table th{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);position:sticky;top:0;cursor:pointer;user-select:none;transition:color .15s var(--ease)}
+  .cl-drill-table th:hover{color:var(--ink)}
+  .cl-drill-table th.sorted{color:var(--accent)}
+  .cl-drill-table th.sorted::after{content:" ↓";font-size:9px}
+  .cl-drill-table th.sorted.asc::after{content:" ↑"}
+  .cl-drill-table th.right,.cl-drill-table td.right{text-align:right}
+  .cl-drill-table tr:last-child td{border-bottom:none}
+  .cl-name{font-weight:600;color:var(--ink);font-size:12.5px}
+  .cl-since{font-size:10.5px;color:var(--ink-3);margin-top:1px}
+  .cl-type{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10.5px;font-weight:600;letter-spacing:.02em}
+  .cl-type-dealer{background:color-mix(in srgb, #6366f1 18%, transparent);color:#a5b4fc;border:1px solid color-mix(in srgb, #6366f1 30%, transparent)}
+  .cl-type-designer{background:color-mix(in srgb, #ec4899 16%, transparent);color:#f9a8d4;border:1px solid color-mix(in srgb, #ec4899 28%, transparent)}
+  .cl-type-horeca{background:color-mix(in srgb, var(--warn) 16%, transparent);color:var(--warn);border:1px solid color-mix(in srgb, var(--warn) 28%, transparent)}
+  .cl-type-office{background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 26%, transparent)}
+  .cl-type-retail{background:var(--bg-elevated);color:var(--ink-2);border:1px solid var(--border)}
+  .cl-pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+  .cl-pill.good{background:color-mix(in srgb, var(--up) 18%, transparent);color:var(--up);border:1px solid color-mix(in srgb, var(--up) 35%, transparent)}
+  .cl-pill.mid{background:var(--bg-elevated);color:var(--ink-2);border:1px solid var(--border)}
+  .cl-pill.bad{background:color-mix(in srgb, var(--dn) 18%, transparent);color:var(--dn);border:1px solid color-mix(in srgb, var(--dn) 35%, transparent)}
+
+  /* === Bar-диаграмма клиентов внутри класса === */
+  .cl-chart-body{padding:6px 14px 10px;background:var(--bg-elevated)}
+  .cl-chart-row{display:grid;grid-template-columns:220px 1fr 84px;gap:14px;align-items:center;padding:7px 6px;border-bottom:1px solid var(--border-soft);border-radius:4px;transition:background .15s var(--ease)}
+  .cl-chart-row:last-child{border-bottom:none}
+  .cl-chart-row:hover{background:var(--bg-card)}
+  .cl-chart-name-col{min-width:0}
+  .cl-chart-name{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cl-chart-sub{font-size:10.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .cl-chart-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.02em;line-height:1.4}
+  .cl-chart-tag.t-dealer{background:color-mix(in srgb, #6366f1 22%, transparent);color:#a5b4fc;border:1px solid color-mix(in srgb, #6366f1 30%, transparent)}
+  .cl-chart-tag.t-designer{background:color-mix(in srgb, #ec4899 18%, transparent);color:#f9a8d4;border:1px solid color-mix(in srgb, #ec4899 28%, transparent)}
+  .cl-chart-tag.t-horeca{background:color-mix(in srgb, var(--warn) 18%, transparent);color:var(--warn);border:1px solid color-mix(in srgb, var(--warn) 28%, transparent)}
+  .cl-chart-tag.t-office{background:color-mix(in srgb, var(--accent) 16%, transparent);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 26%, transparent)}
+  .cl-chart-tag.t-retail{background:var(--bg-card);color:var(--ink-2);border:1px solid var(--border)}
+  /* Каналы продаж (для бара и чипа в диаграмме клиентов) */
+  .cl-chart-tag.ch-site{background:color-mix(in srgb, #22d3ee 16%, transparent);color:#67e8f9;border:1px solid color-mix(in srgb, #22d3ee 30%, transparent)}
+  .cl-chart-tag.ch-des {background:color-mix(in srgb, #ec4899 18%, transparent);color:#f9a8d4;border:1px solid color-mix(in srgb, #ec4899 30%, transparent)}
+  .cl-chart-tag.ch-dil {background:color-mix(in srgb, #818cf8 22%, transparent);color:#c7d2fe;border:1px solid color-mix(in srgb, #818cf8 32%, transparent)}
+  .cl-chart-tag.ch-ozon{background:color-mix(in srgb, #0086ff 22%, transparent);color:#7cc5ff;border:1px solid color-mix(in srgb, #0086ff 34%, transparent)}
+  .cl-chart-tag.ch-wb  {background:color-mix(in srgb, #c026d3 22%, transparent);color:#f0abfc;border:1px solid color-mix(in srgb, #c026d3 32%, transparent)}
+  .cl-chart-tag.ch-show{background:color-mix(in srgb, #f59e0b 18%, transparent);color:#fcd34d;border:1px solid color-mix(in srgb, #f59e0b 30%, transparent)}
+  .cl-chart-tag.ch-ym  {background:color-mix(in srgb, #facc15 18%, transparent);color:#fde047;border:1px solid color-mix(in srgb, #facc15 32%, transparent)}
+  .cl-chart-orders{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .cl-chart-bar-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+  .cl-chart-bar{height:18px;border-radius:3px;flex:0 0 auto;min-width:2px;transform-origin:left center;animation:barGrow .5s var(--ease-out) both}
+  @keyframes barGrow{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+  .cl-chart-bar.t-dealer{background:rgba(99,102,241,.78)}
+  .cl-chart-bar.t-designer{background:rgba(236,72,153,.78)}
+  .cl-chart-bar.t-horeca{background:rgba(245,158,11,.82)}
+  .cl-chart-bar.t-office{background:rgba(34,211,238,.78)}
+  .cl-chart-bar.t-retail{background:rgba(106,116,132,.75)}
+  /* Каналы — цвет бара */
+  .cl-chart-bar.ch-site{background:rgba(34,211,238,.82)}
+  .cl-chart-bar.ch-des {background:rgba(236,72,153,.82)}
+  .cl-chart-bar.ch-dil {background:rgba(129,140,248,.82)}
+  .cl-chart-bar.ch-ozon{background:rgba(0,134,255,.85)}
+  .cl-chart-bar.ch-wb  {background:rgba(192,38,211,.82)}
+  .cl-chart-bar.ch-show{background:rgba(245,158,11,.85)}
+  .cl-chart-bar.ch-ym  {background:rgba(250,204,21,.85)}
+  .cl-chart-val{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-size:11.5px;font-weight:600;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-.005em}
+  .cl-chart-val .share{color:var(--ink-3);font-weight:500;margin-left:4px}
+  .cl-chart-delta-col{text-align:right}
+
+  /* ============ Сезонность ============ */
+  .sz-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+  .sz-table{width:100%;border-collapse:separate;border-spacing:3px;min-width:920px}
+  .sz-table th{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;padding:6px 4px;text-align:center;background:transparent}
+  .sz-table th:first-child{text-align:left;padding-left:8px;min-width:240px}
+  .sz-table td{padding:8px 4px;text-align:center;font-family:'Manrope';font-weight:600;font-size:12px;font-variant-numeric:tabular-nums;border-radius:5px;transition:transform .15s var(--ease);position:relative}
+  .sz-table td.label{background:transparent;text-align:left;padding-left:8px;color:var(--ink);font-family:'Inter';font-weight:500;font-size:13px;cursor:pointer}
+  /* Адаптивная плотность таблицы под количество столбцов */
+  .sz-table.sz-dense{border-spacing:2px}
+  .sz-table.sz-dense th{font-size:9.5px;padding:4px 2px;letter-spacing:.02em}
+  .sz-table.sz-dense td{padding:5px 2px;font-size:10.5px;border-radius:3px}
+  .sz-table.sz-dense th:first-child{min-width:180px}
+  .sz-table.sz-very-dense{border-spacing:1.5px;min-width:1200px}
+  .sz-table.sz-very-dense th{font-size:8.5px;padding:3px 1px;letter-spacing:0}
+  .sz-table.sz-very-dense td{padding:4px 1px;font-size:9.5px;border-radius:2px}
+  .sz-table.sz-very-dense th:first-child{min-width:160px}
+  .sz-table.sz-very-dense td.label{font-size:11.5px}
+  .sz-table tr.sz-row-grp td.label{font-weight:700;font-family:'Manrope';font-size:13px}
+  .sz-table tr.sz-row-grp td.label::before{content:"▶";display:inline-block;margin-right:8px;color:var(--ink-3);font-size:9px;transition:transform .2s var(--ease)}
+  .sz-table tr.sz-row-grp.expanded td.label::before{transform:rotate(90deg);color:var(--accent)}
+  /* Подкатегории — визуально "вложены": меньше, прозрачнее, сдвинуты вправо */
+  .sz-table tr.sz-row-sub td.label{padding-left:46px;color:var(--ink-2);font-size:11.5px;font-style:italic}
+  .sz-table tr.sz-row-sub td.label::before{content:"";display:inline-block;width:14px;height:1px;background:var(--ink-4);margin-right:8px;vertical-align:middle;transform:translateY(-1px)}
+  /* Ячейки-цифры — меньшие и слегка прозрачные, эффект "уровень глубже" */
+  .sz-table tr.sz-row-sub td.sz-cell{
+    padding:4px 6px;
+    font-size:10.5px;
+    opacity:.78;
+    transform:scale(0.92);
+    transform-origin:center;
+    border-radius:3px
+  }
+  .sz-table tr.sz-row-sub td.sz-cell:hover{opacity:1;transform:scale(1.05)}
+  /* Воздух перед первой и после последней подкатегории — отделяет блок */
+  .sz-table tr.sz-row-sub.sub-first td{padding-top:8px}
+  .sz-table tr.sz-row-sub.sub-last td{padding-bottom:10px}
+  .sz-cell{cursor:default}
+  .sz-cell:hover{transform:scale(1.08);z-index:5;box-shadow:var(--shadow);outline:1px solid rgba(255,255,255,.15)}
+  .sz-cell.peak{outline:1.5px solid rgba(255,255,255,.35)}
+  .sz-legend{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ink-3);margin-top:12px}
+  .sz-legend-bar{flex:0 0 200px;height:8px;border-radius:4px;background:linear-gradient(90deg, hsl(347,55%,32%) 0%, hsl(35,25%,32%) 50%, hsl(160,55%,38%) 100%)}
+
+  /* Анимации */
+  .anim-line{stroke-dasharray:3500;stroke-dashoffset:3500;animation:drawLine 1.8s var(--ease-out) .4s forwards}
+  @keyframes drawLine{to{stroke-dashoffset:0}}
+  .anim-fill{opacity:0;animation:fadeIn .7s var(--ease-out) 1.2s forwards}
+  @keyframes fadeIn{to{opacity:1}}
+  .anim-bar{transform-origin:bottom;animation:barUp .55s var(--ease-out) both}
+  @keyframes barUp{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* Tooltip */
+  .tip{position:fixed;pointer-events:none;z-index:200;background:#07090D;color:var(--ink);border:1px solid var(--border-hot);padding:9px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(4px);transition:opacity .15s var(--ease),transform .15s var(--ease);min-width:170px}
+  .tip.show{opacity:1;transform:translateY(0)}
+  .tip-title{font-weight:700;margin-bottom:4px;color:var(--ink);font-size:12px}
+  .tip-row{display:flex;justify-content:space-between;gap:14px;font-variant-numeric:tabular-nums}
+  .tip-row .v{font-weight:600;color:var(--accent)}
+
+  .footer{padding:14px 24px;border-top:1px solid var(--border-soft);text-align:center;color:var(--ink-4);font-size:10.5px;background:transparent}
+
+  @media (max-width:1400px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:760px){.main{padding:12px 12px 24px}.kpi-strip{grid-template-columns:repeat(2,1fr)}}
+
+.kt-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kt-kpi .card{padding:12px 14px}.kt-k{font-size:11.5px;color:var(--ink-3);margin-bottom:4px}.kt-v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}.kt-d{font-size:11.5px;margin-top:3px}.kt-d.up{color:var(--up)}.kt-d.dn{color:var(--dn)}.kt-d.na{color:var(--ink-3)}
+.kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
+.kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+.kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
+.kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
+.kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
+@media (max-width:700px){.kt-kpi{grid-template-columns:repeat(2,1fr)}.periods{flex-wrap:wrap}.main{padding:10px}}
+</style></head><body>
+<div id="gg-nav" style="background:#1a2330;border-bottom:1px solid #22d3ee;color:#cfe8ef;font:13px/1.6 system-ui;padding:8px 18px">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
+    <a href="katya-command.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Командный центр</a> <a href="katya.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Обзор</a> <a href="katya-tovary.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Товары и заказы</a> <a href="katya-voronka.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Воронка</a> <a href="katya-marketing.html" style="color:#22D3EE;background:transparent;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Маркетинг</a> <a href="katya-money.html" style="color:#0B0F15;background:#22D3EE;border:1px solid #22D3EE;border-radius:7px;padding:3px 10px;text-decoration:none;white-space:nowrap">Деньги</a>
+    <span style="color:#5d7484;margin-left:8px">живой OZON (Фев 26-Июн 26) · прочие каналы/клиенты/план - нет данных</span>
+  </div></div>
+<header class="topbar" style="position:relative">
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">Деньги · живой OZON · данные по 2026-06-15</div></div></div>
+  <div class="topbar-spacer"></div>
+  <div class="periods" id="periods">
+    <button class="pb" data-p="today">Вчера</button>
+    <button class="pb" data-p="7d">7 дн</button>
+    <button class="pb act" data-p="30d">30 дн</button>
+    <button class="pb" data-p="90d">90 дн</button>
+    <button class="pb" data-p="all">Всё время</button>
+    <button class="pb range" id="btn-range">Свой</button>
+  </div>
+  <div class="range-panel" id="range-panel" style="display:none;position:absolute;right:16px;top:58px;background:var(--bg-card);border:1px solid var(--bg-soft);border-radius:10px;padding:12px;z-index:50">
+    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">с</label><input type="date" id="range-from" value="2026-02-06"></div>
+    <div class="range-row" style="margin:4px 0"><label style="margin-right:6px">по</label><input type="date" id="range-to" value="2026-06-15"></div>
+    <button class="pb" id="range-apply" style="margin-top:6px">Применить</button>
+  </div>
+</header>
+<main class="main">
+  <section class="kt-kpi" id="kpis"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям; чистая прибыль - только по закрытым месяцам ниже.</div></section>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
+    <section class="card"><div class="card-h"><div><div class="card-title">Сборы по статьям</div><div class="card-sub">за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Статья</th><th class="r">Сумма, ₽</th></tr></thead><tbody id="fees"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
+  </div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style></main>
+<script>window.__GG_MAXD='2026-06-15';
+const MAXD='2026-06-15', FLOOR='2026-02-06';
+const ad=(d,n)=>{const t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);};
+const clampLo=d=>d<FLOOR?FLOOR:d;
+const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
+function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
+const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
+const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
+function periodDates(p){
+  if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
+  if(p==='all')return {from:FLOOR,to:MAXD};
+  const days={'today':1,'7d':7,'30d':30,'90d':90}[p]||30;
+  return {from:clampLo(ad(MAXD,-(days-1))),to:MAXD};
+}
+function prevEqual(w){const len=Math.round((Date.parse(w.to)-Date.parse(w.from))/86400000)+1;const pt=ad(w.from,-1);return {from:clampLo(ad(pt,-(len-1))),to:pt};}
+let CURP=(function(){try{const s=JSON.parse(localStorage.getItem('gg_katya_period')||'null');return s&&s.p?s.p:'30d';}catch(e){return '30d';}})();
+function applyPeriod(){
+  document.querySelectorAll('.pb[data-p]').forEach(b=>b.classList.toggle('act',b.dataset.p===CURP));
+  const cur=periodDates(CURP),cmp=prevEqual(cur);
+  window.__guruPeriod={curFrom:cur.from,curTo:cur.to,cmpFrom:cmp.from,cmpTo:cmp.to};
+  render(cur,cmp);
+}
+document.querySelectorAll('.pb[data-p]').forEach(b=>b.addEventListener('click',()=>{CURP=b.dataset.p;try{localStorage.setItem('gg_katya_period',JSON.stringify({p:CURP}));}catch(e){}applyPeriod();}));
+document.getElementById('btn-range').addEventListener('click',()=>{const rp=document.getElementById('range-panel');rp.style.display=rp.style.display==='none'?'block':'none';});
+document.getElementById('range-apply').addEventListener('click',()=>{CURP='range';try{localStorage.setItem('gg_katya_period',JSON.stringify({p:'range',from:document.getElementById('range-from').value,to:document.getElementById('range-to').value}));}catch(e){}document.getElementById('range-panel').style.display='none';applyPeriod();});
+(function(){try{const s=JSON.parse(localStorage.getItem('gg_katya_period')||'null');if(s&&s.p==='range'&&s.from){document.getElementById('range-from').value=s.from;document.getElementById('range-to').value=s.to;}}catch(e){}})();
+
+const SNAP={"dateFrom":"2026-05-18","dateTo":"2026-06-15","ops":3203,"accruals":21053044,"commission":-9334379,"payout":9260695,"breakdown":{"Комиссия за продажу":-9334379,"Эквайринг":-161825,"Логистика (прямая+возвратная)":-178312,"Бренд-комиссия":-213489,"Рассрочка":-43742,"Подписки (Stars/Premium/отзывы)":-266526,"Хранение":-7325,"Прочее":-6680}};const CLOSED={"updated":"2026-04-30","months":[{"month":"2026-02","label":"Февраль 2026","realization":1200000,"profit":-370000},{"month":"2026-03","label":"Март 2026","realization":8970000,"profit":1260000},{"month":"2026-04","label":"Апрель 2026","realization":14660000,"profit":3840000}]};const NAMES={"3492786359":"GENGLASS Зеркало в прихожую настенное EVELIX L White 180x50 см, овальн","3492790223":"GENGLASS Зеркало в прихожую настенное HALFEO White XL 200x100 см, прям","3492791015":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED L 180x60 см, ова","3492791592":"GENGLASS Зеркало напольное в полный рост EVELUM Black 163x55 см, интер","3492791902":"GENGLASS Зеркало напольное в полный рост овальное OZEVIS Black 165x45 ","3492793642":"GENGLASS Зеркало настенное NOLVIS Black M 135x50 см, овальное, интерье","3492794622":"GENGLASS Зеркало напольное в полный рост OZEVIS Gold 165x45 см, в прих","3492794689":"GENGLASS Зеркало настенное c подсветкой RAUNTEL NF LED L 100x100 см, к","3492794724":"GENGLASS Зеркало напольное в полный рост EVELUM Gold 163x55 см, в прих","3492795221":"GENGLASS Зеркало настенное полукруглое с подсветкой RONTUS NF LED XL 2","3492795772":"GENGLASS Зеркало с подсветкой настенное HALFEO Slim NF LED XL 200x80 с","3492796112":"GENGLASS Зеркало настенное NOLVIS Gold S 80x50 см, интерьерное, в раме","3492796383":"GENGLASS Зеркало настенное с подсветкой HALFEO NF LED S 120х80 см, пря","3492796662":"GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED M 135x50 см, ова","3492796838":"GENGLASS Зеркало настенное в полный рост ARKIS Gold 180х80 см, в прихо","3492797992":"GENGLASS Зеркало настенное в прихожую NOLVIS L Black 180х60 см, овальн","3492799566":"GENGLASS Зеркало настенное в прихожую EVELIX L Black 180x50 см, в полн","3492799589":"GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L","3492799869":"GENGLASS Зеркало в прихожую настенное в полный рост KVADEN XL Gold 200","3492800151":"GENGLASS Зеркало настенное с подсветкой HALFEO NF LED XL 200x100 см, п","3492801654":"GENGLASS Зеркало настенное в прихожую KVADEN XL Black 200x100 см, овал","3492802296":"GENGLASS Зеркало настенное в прихожую NOLVIS Black S 80x50 см, овально","3492802310":"GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L","3492802339":"GENGLASS Зеркало настенное с подсветкой ARKELO NF LED S 90x50 см, ароч","3492802417":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED M 135x50 см, ова","3492803052":"GENGLASS Зеркало с подсветкой настенное HALFEO Slim NF LED XL 200x80 с","3492803714":"GENGLASS Зеркало настенное в прихожую KUVINO Black M 150x50 см, прямоу","3492803806":"GENGLASS Зеркало напольное в полный рост овальное OZEVIS White 165x45 ","3492803949":"GENGLASS Зеркало с подсветкой настенное KUVINO NF LED L 180x55 см, пря","3492804359":"GENGLASS Зеркало настенное и напольное в полный рост ARKIS Black 180х8","3492805958":"GENGLASS Зеркало с подсветкой настенное ARKIS L LED 180х80, большое, в","3492807660":"GENGLASS Зеркало настенное в прихожую HALFEO Black XL Slim 200x80 см, ","3492809339":"GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L","3492809616":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED L 180x60 см, ова","3492810262":"GENGLASS Зеркало настенное с подсветкой HALFEO NF LED L 170х70 см, пря","3492810277":"GENGLASS Зеркало настенное HALFEO Black Slim Leg XL 220x80 см, в полны","3492810505":"GENGLASS Зеркало настенное в полный рост прямоугольное HALFEO Black XL","3492810837":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED S 80x50 см, овал","3492811273":"GENGLASS Зеркало в прихожую настенное RAUNTEL Gold M 80х80 см, круглое","3492811302":"GENGLASS Зеркало настенное с подсветкой KUVINO NF LED M 150x50 см, пря","3492811903":"GENGLASS Зеркало напольное ZELISO Black 185x45 см, в раме, прямоугольн","3492812710":"GENGLASS Зеркало настенное с подсветкой HALFEO Slim NF LED XL 200x80 с","3492813002":"GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, ова","3492813785":"GENGLASS Зеркало настенное в прихожую EVELIX S Black 100x50 см, овальн","3492814812":"GENGLASS Зеркало настенное в полный рост NOLVIS L Gold 180х60 см, инте","3492815039":"GENGLASS Зеркало настенное в прихожую KUVINO Gold M 150x50 см, прямоуг","3492815548":"GENGLASS Зеркало настенное с подсветкой KUVINO NF LED L 180x55 см, пря","3492816101":"GENGLASS Зеркало настенное с подсветкой ARKIS NF LED L 180x80 см, ароч","3492818750":"GENGLASS Зеркало настенное с подсветкой полукруглое RONTUS NF LED XL 2","3492818798":"GENGLASS Зеркало с подсветкой настенное HALFEO NF LED XL 200x100 см, п","3492818910":"GENGLASS Зеркало настенное в прихожую KVADEN L Gold 180x60 см, овально","3492819858":"GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED XL 200x100 см, о","3492822125":"GENGLASS Зеркало настенное в полный рост KVADEN L Black 180x60 см, ова","3492824859":"GENGLASS Зеркало настенное в прихожую с подсветкой NOLVIS M LED 135х50","3492825290":"GENGLASS Зеркало настенное в полный рост ARKIS Black M 160х60, черное","3492826260":"GENGLASS Зеркало с подсветкой настенное RAUNTEL NF LED M 80x80 см, кру","3492827722":"GENGLASS Зеркало настенное EVELIX S Gold 100x50 см, овальное, в прихож","3492828848":"GENGLASS Зеркало настенное в прихожую NOLVIS Gold M 135x50 см, интерье","3492829310":"GENGLASS Зеркало настенное в прихожую RONTUS M Gold 160х80 см, полукру","3492832594":"GENGLASS Зеркало в прихожую настенное HALFEO Black L Slim 170x70 см, в","3492834358":"GENGLASS Зеркало настенное в прихожую ARKELO Gold 100x50 см, в раме, з","3492835691":"GENGLASS Зеркало в прихожую настенное в полный рост NOLVIS L White 180","3492837337":"GENGLASS Зеркало с подсветкой настенное KUVINO NF LED M 150x50 см, пря","3496061323":"GENGLASS Зеркало напольное в полный рост EVELUM White 163x55 см, больш","3496071541":"GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED S 80x50 см, овал","3496311024":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED L 180x60 см, ова","3496311550":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED L 180x60 см овал","3496394792":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED M 135x50 см, ова","3496480746":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED XL 200x100 см, о","3496484927":"GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED XL 200x100 см, о","3496588674":"GENGLASS Зеркало с подсветкой настенное HALFEO Slim NF LED XL 200x80 с","3496594621":"GENGLASS Зеркало настенное с подсветкой HALFEO NF LED M 140x50 см, пря","3496613010":"GENGLASS Зеркало с подсветкой настенное ARKELO NF LED S 90x50 см, арка","3496613345":"GENGLASS Зеркало с подсветкой настенное RONTUS NF LED XL 200х100 см, п","3496735355":"GENGLASS Зеркало с подсветкой настенное KUVINO NF LED L 180x55 см, пря","3496736346":"GENGLASS Зеркало с подсветкой настенное KUVINO NF LED M 150x50 см, пря","3496738366":"GENGLASS Зеркало с подсветкой настенное KUVINO NF LED L 180x55 см, пря","3496741831":"GENGLASS Зеркало с подсветкой настенное RAUNTEL NF LED M 80x80 см, кру","3496742864":"GENGLASS Зеркало с подсветкой настенное RAUNTEL NF LED L 100x100 см, к","3496826493":"GENGLASS Зеркало с подсветкой настенное HALFEO NF LED XL 200x100 см, п","3496828001":"GENGLASS Зеркало с подсветкой настенное ARKIS NF LED L 180x80 см, арка","3497278750":"GENGLASS Зеркало настенное с подсветкой RAUNTEL NF LED M 80x80 см, кру","3497303545":"GENGLASS Зеркало настенное в прихожую KUVINO White M 150x50 см, интерь","3497335713":"GENGLASS Зеркало настенное и напольное в прихожую ARKIS White 180х80, ","3497336203":"GENGLASS Зеркало настенное в полный рост KVADEN XL White 200x100 см, и","3497337152":"GENGLASS Зеркало настенное в прихожую RAUNTEL Black M 80х80 см, кругло","3497337157":"GENGLASS Зеркало в прихожую настенное ARKELO Black 100x50 см, арка","3497337286":"GENGLASS Зеркало настенное в прихожую в полный рост ARKIS White M 160х","3497337718":"GENGLASS Зеркало напольное в полный рост HALFEO Gold Slim Leg XL 220x8","3497337738":"GENGLASS Зеркало в прихожую настенное RONTUS M Black 160х80 см, полукр","3497337784":"GENGLASS Зеркало настенное HALFEO Black S Slim 120x80 см, прямоугольно","3497337851":"GENGLASS Зеркало настенное HALFEO White L Slim 170x70 см, в полный рос","3497337960":"GENGLASS Зеркало настенное HALFEO Black M Slim 140x50 см, прямоугольно","3497338067":"GENGLASS Зеркало интерьерное настенное ARKIS Gold M 160х60, большое, в","3497338133":"GENGLASS Зеркало настенное в прихожую HALFEO Gold L Slim 170x70 см, пр","3497362889":"GENGLASS Зеркало с подсветкой настенное в прихожую ARKIS L LED 180х80,","3497362912":"GENGLASS Зеркало интерьерное с подсветкой NOLVIS L LED 180х60 см, в ра","3497363945":"GENGLASS Зеркало с подсветкой настенное NOLVIS L LED 180х60 см, овальн","3497363987":"GENGLASS Зеркало настенное в прихожую с подсветкой NOLVIS M LED 135х50","3497364016":"GENGLASS Зеркало полукруглое настенное с подсветкой RONTUS M LED 160х8","3497364205":"GENGLASS Зеркало настенное c подсветкой KUVINO M LED 150х50 см, прямоу","3501466983":"GENGLASS Зеркало напольное в полный рост ZELISO Gold 185x45 см, в прих","3501468573":"GENGLASS Зеркало напольное ZELISO White 185x45 см, в полный рост","3555657576":"GENGLASS Зеркало с подсветкой настенное KVANEL NF LED 220х80 см, для к","3555672541":"GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для к","3563467919":"GENGLASS Перегородка для зонирования лофт ZONIQUE 200х70 см стеклянная","3563469095":"GENGLASS Ширма перегородка для комнаты LATTIQUE V 240х100 см из металл","3563472748":"GENGLASS Перегородка в стиле лофт для зонирования комнаты ZONIQUE 240х","3563473000":"GENGLASS Ширма перегородка ZONIQUE 240x70 см рифленое стекло в белой р","3563473177":"GENGLASS Перегородка лофт для зонирования ZONIQUE 240х100 см стеклянна","3563473728":"GENGLASS Ширма перегородка для комнаты ZONIQUE 240х90 см рифленое стек","3563473757":"GENGLASS Перегородка для зонирования лофт ZONIQUE 220х70 см стеклянная","3563474226":"GENGLASS Перегородка для зонирования ZONIQUE 240х90 см стеклянная тони","3563474543":"GENGLASS Перегородка для зонирования ширма ZONIQUE 240х70 см черная с ","3563474595":"GENGLASS Ширма перегородка для комнаты LATTIQUE V 240х90 см из металла","3563474731":"GENGLASS Перегородка для зонирования ZONIQUE 200х100 см стеклянная","3563833037":"GENGLASS Пуфик в прихожую бежевый круглый металлический HORSIX","3563989644":"GENGLASS Ножки для стола VIOLUR","3563989751":"GENGLASS Подстолье металлическое TRUBIS 50х30 см белого цвета","3563989798":"GENGLASS Подстолье для столешницы TRUBIS 50х30 см, овальное, золотое","3563989849":"GENGLASS Подстолье для столешницы TRUBIS CLEVER золотое","3563990293":"GENGLASS Подстолье для стола TRUBIS 50х30 см, овальное, металлическое,","3563990351":"GENGLASS Подстолье металлическое для круглого стола TRUBIS трубчатое б","3564022054":"GENGLASS Столешница круглая ЛДСП черная D100","3564022318":"GENGLASS Столешница круглая ЛДСП темный мрамор D100","3564022607":"GENGLASS Столешница круглая ЛДСП белая D120","3564022730":"GENGLASS Столешница для стола овальная 120х80 см ЛДСП белая","3564022815":"GENGLASS Столешница для стола овальная 120х80 см ЛДСП белый мрамор","3564022831":"GENGLASS Столешница овальная ЛДСП белый мрамор 160х80 см","3564022917":"GENGLASS Столешница овальная ЛДСП белая 140х80 см","3564022989":"GENGLASS Столешница для стола овальная 120х80 см ЛДСП черная","3564023072":"GENGLASS Столешница круглая ЛДСП белая D80","3564023153":"GENGLASS Столешница овальная ЛДСП черная 140х80 см","3564023191":"GENGLASS Столешница овальная ЛДСП орех 140х80 см","3564023207":"GENGLASS Столешница овальная ЛДСП черный мрамор 200х90 см","3564023264":"GENGLASS Столешница овальная ЛДСП белый мрамор 200х90 см","3564023276":"GENGLASS Столешница овальная ЛДСП орех 160х80 см","3564023316":"GENGLASS Столешница овальная ЛДСП черный мрамор 180х90 см","3564023347":"GENGLASS Столешница круглая ЛДСП черная D120","3564023478":"GENGLASS Столешница овальная ЛДСП темный мрамор 140х80 см","3564023605":"GENGLASS Столешница круглая ЛДСП черная D110","3564815815":"GENGLASS Подстолье для стола металлическое чёрное трубчатое TRUBIS, кр","3564816068":"GENGLASS Стол раскладной TRUBIS R Max 120(160)х80 см, черный","3564816779":"GENGLASS Обеденный стол овальный 180х90 см VIOLUR","3564817123":"GENGLASS Подстолье для стола VIOLUR 60х32х73 см 2шт.","3564818585":"GENGLASS Вешалка в прихожую напольная EVESA Black163х54 см","3564819759":"GENGLASS Стол кухонный обеденный стеклянный BAAKIS 200х90х75 см, прямо","3564820696":"GENGLASS Столешница овальная ЛДСП белый мрамор 140х80 см","3564821455":"GENGLASS Стол обеденный кухонный TRUBIS Wood 140х80 см белый","3564821924":"GENGLASS Консоль черная VIOLUR 70х40х75 см","3564822409":"GENGLASS Обеденный стол овальный TRUBIS Wood 200х90 см","3564822657":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 140х80 см","3564823085":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D110 см","3564823254":"GENGLASS Стол кухонный мраморный овальный белый TRUBIS Wood 160х80 см","3564823483":"GENGLASS Стол обеденный кухонный TRUBIS Wood 200х90 см","3564823791":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 200х90 см","3564823847":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см","3564823848":"GENGLASS Стол кухонный обеденный VIOLUR черный 140х80 см","3564824197":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный","3564824198":"GENGLASS Стол обеденный кухонный TRUBIS Wood 120х80 см белый","3564825716":"GENGLASS Вешалка напольная для одежды металлическая EVESA Gold 163х54 ","3564825723":"GENGLASS Стол кухонный стеклянный BAAKIS 160х90х75 см, прямоугольный","3564825972":"GENGLASS Стол обеденный кухонный овальный VIOLUR 180 см","3564826342":"GENGLASS Стол обеденный круглый TRUBIS Wood L D120 см белый, черное ме","3564826357":"GENGLASS Вешалка напольная для одежды ZILOSI Gold 185х45 см, металличе","3564827172":"GENGLASS Стол обеденный кухонный TRUBIS Wood 140х80 см","3564827434":"GENGLASS Стол обеденный из керамогранита овальный TRUBIS Stone 160х80х","3564827455":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D120 см черный","3564827469":"GENGLASS Журнальный столик лофт RILONI, приставной, металлический, чер","3564827486":"GENGLASS Кухонный обеденный стол TRUBIS Wood 200х90 см","3564829537":"GENGLASS Консоль черная ARFEO 100х35х80 см, интерьерная","3564829835":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см","3564830121":"GENGLASS Стол обеденный кухонный TRUBIS Wood 180х90 см","3564830463":"GENGLASS Стол обеденный овальный TRUBIS Wood 120х80 см","3564830713":"GENGLASS Журнальный стол TRUBIS Wood M D60 металлический черный","3564830765":"GENGLASS Кухонный обеденный стол TRUBIS Wood 200х90 см","3564830777":"GENGLASS Стол обеденный кухонный овальный VIOLUR 200х90 см","3564831026":"GENGLASS Стол кухонный VIOLUR 140х80 см","3564831114":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 180х90 см","3564831252":"GENGLASS Столешница овальная ЛДСП черная 160х80 см","3564831423":"GENGLASS Обеденный стол VIOLUR 160х80 см овальный","3564831530":"GENGLASS Стол обеденный TRUBIS Wood 120х80 см белый мрамор","3564831550":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 200х90 см","3564831557":"GENGLASS Столешница круглая ЛДСП белая D110","3564831633":"GENGLASS Стол овальный обеденный VIOLUR 180х90 см","3564831688":"GENGLASS Стол кухонный раздвижной TRUBIS R Max 140(170)х90 см, белый","3564831766":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 200х90 см","3564832041":"GENGLASS Кухонный овальный стол VIOLUR 160х80 см","3564832431":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D100 см","3564832465":"GENGLASS Столик консольный туалетный ARFEO 120х40х80 см","3564832476":"GENGLASS Столешница круглая ЛДСП черная D90","3564832479":"GENGLASS Стол обеденный TRUBIS Wood 120х80 см овальный","3564832758":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D90 см","3564832864":"GENGLASS Мраморный стол овальный обеденный VIOLUR 160х80 см белый","3564832905":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см","3564833355":"GENGLASS Кухонный овальный стол VIOLUR 200х90 см","3564833771":"GENGLASS Кухонный обеденный стол TRUBIS Wood 160х80 см","3564833953":"GENGLASS Кухонный овальный стол VIOLUR 200х90 см","3564834089":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D110 см черный","3564834969":"GENGLASS Стол раскладной белый TRUBIS R Max 120(160)х80 см, прямоуголь","3564834978":"GENGLASS Кухонный стол TRUBIS Wood 200х90 см","3564835749":"GENGLASS Вешалка для одежды ZILOSI Black 185х45 см, металлическая, в п","3564835942":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D100 см черный","3564836245":"GENGLASS Кухонный обеденный стол TRUBIS Wood 140х80 см","3564836537":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 160х80 см","3564836550":"GENGLASS Обеденный стол TRUBIS Wood L D100 см, круглый","3564836726":"GENGLASS Магнитная доска на стену BASE 100х150 см, белая, стеклянная","3564837102":"GENGLASS Стол обеденный раздвижной TRUBIS L Max 90(120)х90х75 см","3564837455":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D90 см черный","3564837459":"GENGLASS Подстолье для столешницы TRUBIS 70х35 см, овальное, золотое","3564837519":"GENGLASS Стол кухонный овальный TRUBIS Wood 180х90 см","3564837534":"GENGLASS Консоль под телевизор черная ARFEO 120х40х80 см","3564837540":"GENGLASS Стол обеденный овальный TRUBIS Wood 160х80 см белый мрамор","3564837558":"GENGLASS Столешница овальная ЛДСП белая 180х90 см","3564837564":"GENGLASS Стол обеденный кухонный TRUBIS Wood 160х80 см","3564837574":"GENGLASS Кухонный стол TRUBIS Wood L D100 см, обеденный, нераскладной","3564837576":"GENGLASS Стол обеденный кухонный TRUBIS Wood 180х90 см","3564837592":"GENGLASS Доска маркерная BASE 100х200 см, на стену, стеклянная","3564837914":"GENGLASS Стол обеденный кухонный 140х80 см овальный VIOLUR","3564838131":"GENGLASS Столешница овальная ЛДСП белая 160х80 см","3564838192":"GENGLASS Овальный стол кухонный VIOLUR черный 180х90 см","3564838863":"Стол журнальный белый TRUBIS Wood M D60 с металлическим подстольем","3564839215":"GENGLASS Стол обеденный раздвижной TRUBIS L Max 90(120)х90х75 см с бел","3564839538":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 140х80 см","3564839549":"GENGLASS Стол обеденный раздвижной TRUBIS R Max 140(170)х90, прямоугол","3564840005":"GENGLASS Столешница круглая ЛДСП черная D80","3564840010":"GENGLASS Стол кухонный мраморный овальный черный TRUBIS Wood 140х80 см","3564840043":"GENGLASS Стол журнальный белый RILONI, прямоугольный, в стиле лофт","3564840087":"GENGLASS Стол кухонный обеденныйTRUBIS Wood 120х80 см","3564840182":"GENGLASS Кухонный стол TRUBIS Wood 180х90 см","3564840200":"GENGLASS Стол кухонный TRUBIS Wood L D100 см, круглый, белый мрамор","3564840205":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см овальный","3564840233":"GENGLASS Стол обеденный кухонный TRUBIS Wood 200х90 см","3564840306":"GENGLASS Обеденный стол прямоугольный ARFEO Duo 180х90 см черный","3564840623":"GENGLASS Стол обеденный овальный TRUBIS Wood 140х80 см","3564840998":"GENGLASS Стол кухонный керамогранит овальный TRUBIS Stone 160х80х76 см","3564841191":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D80 см","3564841231":"GENGLASS Кухонный овальный стол VIOLUR 180х90 см","3564841366":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 160х80 см","3564841393":"GENGLASS Столешница круглая ЛДСП белый мрамор D90","3564844613":"GENGLASS Подстолье для столешницы металлическое трубчатое черное TRUBI","3564844663":"GENGLASS Столешница для стола овальная 120х80 см ЛДСП темный мрамор","3564844924":"GENGLASS Стол кухонный овальный VIOLUR 160х80 см","3564845156":"GENGLASS Подстолье для стола TRUBIS 70х35 см, овальное, металлическое,","3564845365":"GENGLASS Подстолье металлическое TRUBIS 70х35 см белого цвета","3564845394":"GENGLASS Кухонный стол VIOLUR овальный белый мрамор 140х80 см","3564845410":"GENGLASS Стол кухонный овальный белый мрамор TRUBIS Wood 140х80 см","3564845411":"GENGLASS Стол обеденный кухонный TRUBIS Wood 140х80 см","3564845550":"GENGLASS Стол журнальный белый TRUBIS Wood M D80 с металлическим подст","3564845759":"GENGLASS Стол кухонный овальный белый TRUBIS Wood 180х90 см","3564845773":"GENGLASS Подстолье для столешницы металлическое ARFEO 25х45х78 см 1 шт","3564845774":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D80 см черный","3564845963":"GENGLASS Стол обеденный овальный TRUBIS Wood 200х90 см","3564846098":"GENGLASS Стол кухонный круглый белый TRUBIS Wood L D120 см","3564846907":"GENGLASS Стол обеденный овальный TRUBIS Wood 180х90 см","3564846960":"GENGLASS Вешалка напольная для одежды ZILOSI White 185х45 см, металлич","3564847079":"GENGLASS Доска магнитно-маркерная BASE 90х120 см, стеклянная","3564847171":"GENGLASS Консоль в прихожую черная ARFEO 80х35х80 см","3564847187":"GENGLASS Ножки для стола VIOLUR черные 2шт.","3564847550":"GENGLASS Кухонный обеденный стол TRUBIS Wood 140х80 см","3564847968":"GENGLASS Стол кухонный овальный TRUBIS Wood 180х90 см","3564848367":"GENGLASS Стол кухонный обеденный TRUBIS Wood 160х80 см","3564849231":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D100 см белый мрамор","3564849299":"GENGLASS Стол кухонный мраморный овальный VIOLUR 160х80 см","3564852116":"GENGLASS Стол обеденный кухонный TRUBIS Wood 160х80 см столешница мрам","3564852634":"GENGLASS Подстолье для стола ARFEO из металла черное 1шт.","3564857148":"GENGLASS Консольный столик ARFEO 80х35х80 см","3579700974":"GENGLASS Обеденный стол овальный VIOLUR 200х90 см","3579701037":"GENGLASS Стол овальный обеденный VIOLUR 200х90 см","3579701288":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D90 см черный с золотым","3579701389":"GENGLASS Обеденный стол овальный TRUBIS Wood 200х90 см","3579701429":"GENGLASS Обеденный стол овальный TRUBIS Wood 140х80 см","3579701434":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D110 см орех с белым по","3579701438":"GENGLASS Стол кухонный обеденный VIOLUR 200х90 см","3579701458":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D110 см мрамор белый","3579702607":"GENGLASS Стол обеденный кухонный TRUBIS Wood 160х80 см","3579702764":"GENGLASS Стол мраморный кухонный круглый белый TRUBIS Wood L D90 см","3579702767":"GENGLASS Стол обеденный TRUBIS Wood L D100 см, кухонный, круглый","3579702776":"GENGLASS Кухонный овальный стол VIOLUR 160х80 см","3579702780":"GENGLASS Стол обеденный кухонный TRUBIS Wood 120х80 см","3579702805":"GENGLASS Стол обеденный TRUBIS Wood 120х80 см","3579702941":"GENGLASS Стол обеденный кухонный TRUBIS Wood L D90 см белый с черной м","3579702963":"GENGLASS Мраморный стол обеденный круглый TRUBIS Wood L D120 см белый,","3579702995":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D80 см с белым металлич","3579703072":"GENGLASS Стол обеденный кухонный круглый TRUBIS Wood L D110 см","3579703094":"GENGLASS Стол кухонный овальный TRUBIS Wood 180х90 см","3579703099":"GENGLASS Кухонный стол VIOLUR 180х90 см","3579703108":"GENGLASS Стол кухонный обеденный со столешницей из керамогранита TRUBI","3579703160":"GENGLASS Стол кухонный обеденный TRUBIS Wood 160х80 см черный со столе","3579703196":"GENGLASS Стол кухонный мраморный круглый черный TRUBIS Wood L D90 см","3579703229":"GENGLASS Кухонный обеденный стол TRUBIS Wood 200х90 см","3579703240":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D90 см ореховый с чёрны","3579703276":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный мрамор","3579703289":"GENGLASS Стол обеденный овальный VIOLUR 160х80 см","3579703327":"GENGLASS Стол кухонный черный VIOLUR 200х90 см","3579703339":"GENGLASS Кухонный обеденный стол TRUBIS Wood 140х80 см","3579703342":"GENGLASS Кухонный обеденный стол VIOLUR Max 120(190)х80х75 см","3579703352":"GENGLASS Стол обеденный круглый TRUBIS Wood L D100 см мрамор белый, че","3579703362":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D110 см орех с черным п","3579703376":"GENGLASS Стол овальный обеденный VIOLUR 180х90 см","3579703382":"GENGLASS Стол кухонный круглый TRUBIS Wood L D120 см черный со столешн","3579703383":"GENGLASS Стол кухонный TRUBIS Wood 120х80 см","3579703392":"GENGLASS Стол обеденный кухонный TRUBIS Wood L D90 см черный с белым м","3579703459":"GENGLASS Стол кухонный мраморный круглый белый TRUBIS Wood L D120 см","3579703489":"GENGLASS Обеденный стол 140х80 см овальный VIOLUR","3579703492":"GENGLASS Кухонный стол TRUBIS Wood 200х90 см","3579703510":"GENGLASS Стол кухонный овальный TRUBIS Wood 200х90 см белый мрамор","3579703515":"GENGLASS Обеденный стол овальный TRUBIS Wood 160х80 см","3579703518":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D90 см белый с золотым ","3579703532":"GENGLASS Стол мраморный кухонный круглый белый TRUBIS Wood L D80 см","3579703571":"GENGLASS Кухонный обеденный стол TRUBIS Wood 160х80 см","3579703654":"GENGLASS Кухонный обеденный стол TRUBIS Wood L D110 см черный мрамор","3579703693":"GENGLASS Стол обеденный кухонный TRUBIS Wood L D120 см орех с белым ме","3579703832":"GENGLASS Кухонный обеденный стол TRUBIS Wood 180х90 см","3579703877":"GENGLASS Стол обеденный прямоугольный ARFEO Duo 200 см белый, золотое ","3579703930":"GENGLASS Стол кухонный овальный черный TRUBIS Wood 180х90 см","3584650594":"GENGLASS Стол обеденный овальный TRUBIS Wood 140х80 см белый мрамор","3584651520":"GENGLASS Стол обеденный овальный TRUBIS Wood 160х80 см","3589920409":"GENGLASS Стол журнальный белый TRUBIS Wood M D80 со столешницей мрамор","3589920479":"GENGLASS Стол журнальный круглый TRUBIS Wood M D120 черный","3589920766":"GENGLASS Журнальный стол круглый TRUBIS Wood M D60 металлический бежев","3590029114":"GENGLASS Консольный столик белый ARFEO 80х35х80 см","3590034731":"GENGLASS Столик туалетный ARFEO 100х35х80 см","3595055077":"GENGLASS Зеркало настенное с фронтальной подсветкой ILLUMORA NF LED 16","3595126858":"GENGLASS Зеркало настенное с фронтальной подсветкой ILLUMORA Duo NF LE","3681311254":"GENGLASS Стол журнальный лофт RILONI, прямоугольный","3734276021":"Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладн","3734276153":"Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладн","3734276157":"Стол кухонный раздвижной белый KONUX 100(180)х100х75 см, обеденный, ра","3734276712":"Стол кухонный раздвижной черный KONUX 100(180)х100х75 см, обеденный, р","3734277653":"Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладн","3800630459":"GENGLASS Зеркало настенное в полный рост KVADEN M Black 140x55 см","3800630878":"GENGLASS Зеркало настенное в прихожую KVADEN M Gold 140x55 см","3833379312":"GENGLASS Стол обеденный из керамогранита овальный TRUBIS Stone 180х90х","3931224608":"GENGLASS Зеркало настенное EVELIX L 180x50 см, овальное, в полный рост","3931864772":"GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L","3931902768":"GENGLASS Зеркало напольное в полный рост EVELUM 163x55 см, в прихожую","3931938079":"GENGLASS Зеркало напольное в полный рост овальное OZEVIS 165x45 см, бо","3932314355":"GENGLASS Стол кухонный круглый TRUBIS Wood L D100 см","3932374080":"GENGLASS Стол кухонный TRUBIS Wood L D100 см, круглый, белый мрамор","3943418669":"GENGLASS Стол кухонный круглый TRUBIS Wood L D120 см","3970565942":"GENGLASS Стол круглый кухонный из керамогранита SUNVIO 120х120х76 см","3970792393":"GENGLASS Стол обеденный круглый со столешницей из керамогранита SELENT","4392681293":"GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D80 см черный","4379586760":"GENGLASS Стол обеденный из керамогранита овальный TRUBIS Stone 140х80х"};
+const PNL_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl';
+const PSK_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl-sku';
+function catSvc(name){const n=name.toLowerCase();
+  if(n.includes('brand'))return 'Бренд-комиссия';if(n.includes('acquir'))return 'Эквайринг';if(n.includes('installment'))return 'Рассрочка';if(n.includes('storage'))return 'Хранение';
+  if(n.includes('membership')||n.includes('premium')||n.includes('subscription')||n.includes('stars'))return 'Подписки (Stars/Premium/отзывы)';
+  if(n.includes('logistic')||n.includes('dropoff')||n.includes('lastmile')||n.includes('deliverytohandover')||n.includes('returnspvz')||n.includes('courier'))return 'Логистика (прямая+возвратная)';
+  return 'Прочее';}
+function normalize(raw){if(raw.breakdown)return raw;const b={'Комиссия за продажу':Math.round(raw.commission||0)};for(const k in (raw.services||{})){const c=catSvc(k);b[c]=Math.round((b[c]||0)+raw.services[k]);}return {...raw,breakdown:b};}
+let lastReq=0;
+function paint(p,src){
+  p=normalize(p);
+  const kpi=(lab,val)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div></div>';
+  const commPct=p.accruals?Math.round(-(p.breakdown['Комиссия за продажу']||0)/p.accruals*1000)/10:0;
+  document.getElementById('kpis').innerHTML=[
+    kpi('Начислено, ₽',fMln(p.accruals||0)),kpi('Комиссия за продажу',commPct+'%'),kpi('К выплате, ₽',fMln(p.payout||0)),
+    kpi('Доля выплаты',(p.accruals?Math.round(p.payout/p.accruals*1000)/10:0)+'%'),kpi('Операций',fmtRu(p.ops||0))
+  ].join('');
+  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+p.dateFrom+'..'+p.dateTo+'</span>':'<span class="kt-src">снимок '+p.dateFrom+'..'+p.dateTo+'</span>';
+  document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list через n8n '+badge;
+  const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
+  const sumFees=fees.reduce((s,f)=>s+f[1],0);
+  const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat([['К выплате',p.payout,'#34D399']]);
+  const mx=Math.max(1,p.accruals||1);
+  document.getElementById('wf').innerHTML=steps.map(s=>{const h=Math.max(4,Math.abs(s[1])/mx*150);return '<div title="'+s[0]+': '+fmtRu(s[1])+' ₽"><div class="bar" style="height:'+h+'px;background:'+s[2]+'"></div>'+s[0].split(' ')[0]+'<br><b style="color:var(--ink-1)">'+fMln(s[1])+'</b></div>';}).join('');
+  document.getElementById('fees').innerHTML=fees.map(f=>'<tr><td>'+f[0]+'</td><td class="r" style="color:var(--dn)">'+fmtRu(f[1])+'</td></tr>').join('')+'<tr><td><b>Итого сборы</b></td><td class="r"><b>'+fmtRu(sumFees)+'</b></td></tr>';
+}
+function paintSku(t,src){
+  const rows=Object.entries(t.bySku||{}).map(([sku,v])=>({sku,...v})).filter(x=>x.accruals>0).sort((a,b)=>b.amount-a.amount).slice(0,15);
+  document.getElementById('src2').innerHTML='операции с одним товаром · '+(src==='live'?'<span class="kt-src live">живой запрос '+t.dateFrom+'..'+t.dateTo+'</span>':'<span class="kt-src">снимок</span>');
+  document.getElementById('tsku').innerHTML=rows.map(x=>'<tr><td>'+(NAMES[x.sku]||x.sku)+'</td><td class="r">'+fmtRu(x.accruals)+'</td><td class="r" style="color:var(--dn)">'+fmtRu(x.commission)+'</td><td class="r" style="color:var(--up)">'+fmtRu(x.amount)+'</td><td class="r">'+(x.accruals?Math.round(x.amount/x.accruals*100):0)+'%</td></tr>').join('');
+}
+document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'<tr><td>'+(m.label||m.month||'')+'</td><td class="r">'+fMln(m.realization??0)+'</td><td class="r" style="color:'+((m.profit??0)>=0?'var(--up)':'var(--dn)')+'">'+fMln(m.profit??0)+'</td></tr>').join('')||'<tr><td colspan="3" class="kt-note">нет закрытых месяцев</td></tr>';
+function render(cur,cmp){
+  paint(SNAP,'snap');
+  if(typeof fetch==='undefined'){paintSku({bySku:{},dateFrom:'',dateTo:''},'snap');return;}
+  const my=++lastReq;
+  fetch(PNL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(r=>{if(!r.ok)throw 0;return r.json();}).then(p=>{if(my===lastReq&&p&&p.accruals!=null)paint(p,'live');}).catch(()=>{});
+  fetch(PSK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(r=>{if(!r.ok)throw 0;return r.json();}).then(t=>{if(my===lastReq&&t&&t.bySku)paintSku(t,'live');}).catch(()=>{paintSku({bySku:{"3492802310":{"accruals":422779,"commission":-214742,"amount":169953,"ops":55},"3492814812":{"accruals":279105,"commission":-143250,"amount":115388,"ops":19},"3555672541":{"accruals":1257718,"commission":-660851,"amount":560500,"ops":104},"3564827172":{"accruals":658384,"commission":-269937,"amount":375848,"ops":42},"3564827434":{"accruals":551455,"commission":-226097,"amount":316943,"ops":13},"3564831423":{"accruals":246671,"commission":-101135,"amount":139795,"ops":17},"3564831766":{"accruals":1254059,"commission":-514164,"amount":719960,"ops":51},"3564836537":{"accruals":229457,"commission":-94077,"amount":128607,"ops":16},"3564840998":{"accruals":219250,"commission":-89892,"amount":122854,"ops":8},"3564841366":{"accruals":1209622,"commission":-495945,"amount":684334,"ops":76},"3564846098":{"accruals":411944,"commission":-168897,"amount":233175,"ops":24},"3579703459":{"accruals":207480,"commission":-85067,"amount":112753,"ops":27},"3579703930":{"accruals":467074,"commission":-191500,"amount":260732,"ops":34},"3734276153":{"accruals":593861,"commission":-237552,"amount":346838,"ops":23},"3734276157":{"accruals":375200,"commission":-153832,"amount":210935,"ops":24}},dateFrom:'',dateTo:''},'snap');});
+}
+applyPeriod();
+</script>
+<style>
+#gg-guru-btn{position:fixed;right:18px;bottom:18px;z-index:9000;width:56px;height:56px;border-radius:50%;background:#22D3EE;color:#06121a;border:none;font:700 13px/1 system-ui;cursor:pointer;box-shadow:0 6px 24px rgba(34,211,238,.45)}
+#gg-guru{position:fixed;right:18px;bottom:84px;z-index:9001;width:400px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:none;flex-direction:column;background:#10161f;border:1px solid #22D3EE;border-radius:14px;overflow:hidden;font:13.5px/1.55 system-ui;color:#dfe9f0}
+#gg-guru.open{display:flex}
+#gg-guru .gh{padding:10px 14px;background:#16202c;border-bottom:1px solid #233242;display:flex;justify-content:space-between;align-items:center}
+#gg-guru .gm{flex:1;overflow-y:auto;padding:12px 14px;white-space:pre-wrap}
+#gg-guru .gm .q{color:#22D3EE;margin:10px 0 4px;font-weight:700}
+#gg-guru .gm .a{color:#dfe9f0;margin-bottom:8px}
+#gg-guru .gm .w{color:#8aa0b0;font-style:italic}
+#gg-guru .gi{display:flex;gap:8px;padding:10px;border-top:1px solid #233242}
+#gg-guru .gi input{flex:1;background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:9px 11px;font:inherit}
+#gg-guru .gi button{background:#22D3EE;color:#06121a;border:none;border-radius:8px;padding:9px 14px;font:700 13px system-ui;cursor:pointer}
+.gg-ai-btn{margin-left:8px;background:transparent;border:1px solid #22D3EE;color:#22D3EE;border-radius:6px;padding:2px 8px;font:600 11px system-ui;cursor:pointer;vertical-align:middle}
+@media (max-width:640px){#gg-guru{right:8px;left:8px;width:auto}}
+</style>
+<button id="gg-guru-btn" title="Гуру-аналитик: вопрос по живым данным OZON">ИИ</button>
+<div id="gg-guru"><div class="gh"><b>Гуру-аналитик · живой OZON</b><button id="gg-guru-x" style="background:none;border:none;color:#8aa0b0;font-size:16px;cursor:pointer">×</button></div>
+<div class="gm" id="gg-guru-m"><div class="w">Спроси про продажи, рекламу, воронку, линии - отвечаю по живым данным OZON API за выбранный период. Помню контекст диалога. Кнопка «ИИ-разбор» у блоков даёт аналитику блока с учётом фильтров.</div></div>
+<div class="gi"><input id="gg-guru-q" placeholder="Например: что с продажами за неделю?"><button id="gg-guru-s">→</button></div></div>
+<script>(function(){
+var URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-guru';
+var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
+var sid=LS.getItem('gg_guru_sid');if(!sid){sid='s'+Date.now()+Math.random().toString(36).slice(2,8);LS.setItem('gg_guru_sid',sid);}
+var MAXD=window.__GG_MAXD||'', box=document.getElementById('gg-guru'), msgs=document.getElementById('gg-guru-m');
+document.getElementById('gg-guru-btn').onclick=function(){box.classList.toggle('open');};
+document.getElementById('gg-guru-x').onclick=function(){box.classList.remove('open');};
+function ad(d,n){var t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);}
+function period(){
+  if(window.__guruPeriod)return window.__guruPeriod;
+  var s=null;try{s=JSON.parse(LS.getItem('gg_katya_period')||'null');}catch(e){}
+  if(!s||!MAXD)return {};
+  if(s.p==='range'&&s.from&&s.to)return {curFrom:s.from,curTo:s.to};
+  var days={'today':1,'7d':7,'30d':30,'90d':90}[s.p];
+  if(!days)return {curFrom:'2026-02-06',curTo:MAXD};
+  return {curFrom:ad(MAXD,-(days-1)),curTo:MAXD};
+}
+function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+var busy=false;
+var TEMP=/сравн|вчера|недел|месяц|квартал|январ|феврал|март|апрел|\bмая\b|\bмай\b|июн|июл|август|сентябр|октябр|ноябр|декабр|начал|серед|конц|конец|период|динамик/i;
+function ask(q,page){
+  if(busy||!q)return;busy=true;
+  box.classList.add('open');
+  msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="w" id="gg-wait">Гуру тянет живые данные OZON и думает (20-60 сек)...</div>');
+  msgs.scrollTop=msgs.scrollHeight;
+  var body={question:q,sessionId:sid};
+  if(!TEMP.test(q)){var p=period();if(p.curFrom){body.curFrom=p.curFrom;body.curTo=p.curTo;}if(p.cmpFrom){body.cmpFrom=p.cmpFrom;body.cmpTo=p.cmpTo;}}
+  if(page)body.page=page;
+  var ctrl=('AbortController' in window)?new AbortController():null;
+  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},90000);
+  fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined})
+  .then(function(r){clearTimeout(tid);return r.text().then(function(t){if(!r.ok)throw new Error('сервис вернул '+r.status);if(!t)throw new Error('пустой ответ (Гуру не успел вовремя)');var j;try{j=JSON.parse(t);}catch(e){throw new Error('ответ не распознан');}return j;});})
+  .then(function(j){var w=document.getElementById('gg-wait');if(w)w.remove();
+    var a=(j&&j.analysis)||'(пустой ответ)';
+    msgs.insertAdjacentHTML('beforeend','<div class="a">'+esc(a)+(j&&j.curFrom?'<div class="w">период данных: '+j.curFrom+'..'+j.curTo+(j.period?' ('+j.period+')':'')+'</div>':'')+'</div>');
+    msgs.scrollTop=msgs.scrollHeight;busy=false;})
+  .catch(function(e){clearTimeout(tid);var w=document.getElementById('gg-wait');if(w)w.remove();
+    msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
+    busy=false;});
+}
+window.__guruAsk=ask;
+var inp=document.getElementById('gg-guru-q');
+document.getElementById('gg-guru-s').onclick=function(){var q=inp.value.trim();inp.value='';ask(q);};
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'){var q=inp.value.trim();inp.value='';ask(q);}});
+// «ИИ-разбор» у каждого блока: контекст = заголовок блока + активные фильтры страницы
+function filtersDigest(){
+  var out=[];document.querySelectorAll('select').forEach(function(s){if(s.value&&s.selectedIndex>0)out.push((s.options[s.selectedIndex]||{}).text);});
+  document.querySelectorAll('.dd-btn,.pb.act,.chip.on').forEach(function(b){var t=(b.textContent||'').trim();if(t&&t.length<40)out.push(t);});
+  return out.filter(Boolean).slice(0,8).join(', ');
+}
+function attach(){
+  document.querySelectorAll('.card-title,h2').forEach(function(h){
+    if(h.querySelector('.gg-ai-btn'))return;
+    var t=(h.childNodes[0]&&h.childNodes[0].textContent||h.textContent||'').trim();
+    if(!t||t.length>60)return;
+    var b=document.createElement('button');b.className='gg-ai-btn';b.textContent='ИИ-разбор';b.title='Объективная ИИ-аналитика этого блока по живым данным с учётом фильтров';
+    b.onclick=function(ev){ev.stopPropagation();ask('Дай объективную аналитику блока "'+t+'" дашборда: что в нём важно, что хорошо, что плохо, что делать.','Блок: '+t+'. Активные фильтры/период: '+(filtersDigest()||'по умолчанию'));};
+    h.appendChild(b);});
+}
+attach();setInterval(attach,2500);
+})();</script>
+<style>
+.gloss{border-bottom:1px dotted rgba(34,211,238,.6);cursor:help}
+#gg-tip{position:fixed;z-index:9500;max-width:280px;background:#0c1520;border:1px solid #22D3EE;border-radius:9px;padding:9px 11px;font:12px/1.5 system-ui;color:#dfe9f0;box-shadow:0 8px 24px rgba(0,0,0,.5);pointer-events:none;display:none}
+</style><script>(function(){
+var G={"ДРР":"Доля рекламных расходов: сколько процентов выручки съедает реклама. Главное правило: ДРР должен быть НИЖЕ маржи, иначе реклама работает в минус.","ROAS":"Окупаемость рекламы: сколько рублей выручки приносит 1 рубль рекламы. ROAS 5x = на 1 ₽ рекламы 5 ₽ продаж.","CPO":"Стоимость заказа из рекламы: рекламный расход делить на число заказов с рекламы.","GMV":"Валовый оборот: вся сумма заказов до вычета сборов OZON. Это не прибыль, а верхняя строка.","ABC":"Деление товаров по вкладу в оборот: A - локомотивы (80% выручки), B - середняки, C - длинный хвост. Бьём по A.","XYZ":"Деление по стабильности спроса: X - ровный, Y - сезонный, Z - рваный. AX - идеал, держим на складе всегда.","OTIF":"Доставлено вовремя и в полном объёме (On Time In Full). Падает - страдает рейтинг и буст карточки.","OOS":"Нет на складе (Out Of Stock). Локомотив в OOS - прямая потеря оборота и просадка позиций.","индекс цены":"Наша цена против рынка: меньше 1 - мы дешевле, больше 1 - дороже. Дороже рынка - теряем буст и продажи.","конверсия":"Какая доля посетителей доходит до цели. Показ в корзину, корзина в заказ. Падает - проблема с ценой, карточкой или трафиком.","маржа после сборов":"Что остаётся после комиссии и логистики OZON. Реальная база для прибыли, а не голый оборот.","средний чек":"Оборот делить на заказы. Растёт - продаём дороже или комплектами.","реализация":"Сумма проданного по подписанным Актам OZON за закрытый месяц.","к выплате":"Сколько OZON перечислит после удержания комиссии, логистики и услуг.","возврат":"Покупатель вернул товар. Съедает маржу дважды: логистика туда и обратно.","отмена":"Заказ отменён до выдачи. Высокий процент бьёт по рейтингу продавца."};
+var terms=Object.keys(G).sort(function(a,b){return b.length-a.length;});
+var tip=document.createElement('div');tip.id='gg-tip';document.body.appendChild(tip);
+function show(e,t){tip.textContent=t;tip.style.display='block';var x=e.clientX+14,y=e.clientY+14;if(x+290>innerWidth)x=e.clientX-290;if(y+120>innerHeight)y=e.clientY-120;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hide(){tip.style.display='none';}
+var SEL='.kt-k,.card-sub,.card-title,.kt-note,.oh-note,th,.kpi-k,.lab,.sub,.mx-total-h,.pt-filter-lbl';
+var seen=0;
+function scan(){
+  document.querySelectorAll(SEL).forEach(function(el){
+    if(el.getAttribute('data-gl'))return;el.setAttribute('data-gl','1');
+    var html=el.innerHTML;var changed=false;
+    terms.forEach(function(t){
+      if(el.querySelector('.gloss'))return;
+      var re=new RegExp('(?<![\\w>])('+t.replace(/[.*+?^()|[\]\\]/g,'\\$&')+')(?![\\w<])','');
+      if(re.test(html)&&html.indexOf('class="gloss"')<0){html=html.replace(re,'<span class="gloss" data-t="'+t+'">$1</span>');changed=true;}
+    });
+    if(changed){el.innerHTML=html;seen++;}
+  });
+  document.querySelectorAll('.gloss[data-t]').forEach(function(s){
+    if(s.getAttribute('data-b'))return;s.setAttribute('data-b','1');
+    var t=G[s.getAttribute('data-t')];
+    s.addEventListener('mousemove',function(e){show(e,t);});
+    s.addEventListener('mouseleave',hide);
+  });
+}
+scan();setInterval(scan,2000);
+})();</script>
+<style>
+html,body{overflow-x:clip}
+#gg-fixedtop{position:fixed;top:0;left:0;right:0;z-index:300;background:#0b0f17}
+#gg-fixedtop .topbar{position:static}
+.gg-chan{position:relative;display:inline-flex;align-items:center;gap:6px;margin-right:6px}
+.gg-chan-lbl{font:12px system-ui;color:#5d7484}
+.gg-chan-btn{background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:7px;padding:5px 11px;font:13px system-ui;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.gg-chan-pan{position:absolute;top:110%;left:0;z-index:320;background:#10161f;border:1px solid #2a3a4a;border-radius:9px;padding:6px;min-width:210px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.gg-chan-pan.open{display:block}
+.gg-chan-pan label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font:13px system-ui;color:#dfe9f0;cursor:pointer}
+.gg-chan-pan label:hover{background:rgba(255,255,255,.04)}
+.gg-chan-pan .nd{color:#5d7484;font-size:11px;margin-left:auto}
+.gg-chan-pan .sep{height:1px;background:#233242;margin:4px 0}
+#gg-chan-ovl{position:fixed;inset:0;z-index:250;background:rgba(7,12,18,.9);display:none;align-items:center;justify-content:center;text-align:center;padding:20px}
+#gg-chan-ovl .box{max-width:460px;color:#dfe9f0;font:15px/1.7 system-ui}
+#gg-chan-ovl b{color:#22D3EE}
+#gg-chan-ovl button{margin-top:16px;background:#22D3EE;color:#06121a;border:none;border-radius:8px;padding:10px 18px;font:700 13px system-ui;cursor:pointer}
+</style>
+<div id="gg-chan-ovl"><div class="box">Выбранные каналы (<b id="gg-chan-name"></b>): <b>нет данных</b>.<br>Живой канал сейчас - только <b>Озон</b> (прочие пока не подключены к API). Добавь Озон в выбор, чтобы увидеть данные.<br><button id="gg-chan-back">← Показать Озон</button></div></div>
+<script>(function(){
+var CH=[['ozon','Озон',1],['site','Сайт genglass.ru',0],['des','Дизайнеры',0],['dil','Дилеры',0],['wb','Wildberries',0],['show','Шоурум Домодедово',0],['ym','Яндекс Маркет',0]];
+var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
+var sel; try{sel=JSON.parse(LS.getItem('gg_channels')||'null');}catch(e){} if(!sel||!sel.length)sel=['ozon'];
+function nameOf(id){for(var i=0;i<CH.length;i++)if(CH[i][0]===id)return CH[i][1];return id;}
+function save(){LS.setItem('gg_channels',JSON.stringify(sel));}
+// Железобетонное закрепление: nav + панель фильтров в fixed-обёртку, body получает отступ.
+function fixTop(){
+  if(document.getElementById('gg-fixedtop'))return;
+  var nav=document.getElementById('gg-nav'),top=document.querySelector('.topbar');
+  if(!top)return;
+  var w=document.createElement('div');w.id='gg-fixedtop';
+  var first=nav||top;first.parentNode.insertBefore(w,first);
+  if(nav)w.appendChild(nav); w.appendChild(top);
+  var pad=function(){document.body.style.paddingTop=w.offsetHeight+'px';};
+  pad();addEventListener('resize',pad);[120,400,900,1800].forEach(function(t){setTimeout(pad,t);});
+}
+function label(){
+  if(sel.length===CH.length)return 'Все каналы';
+  if(sel.length===1)return nameOf(sel[0]);
+  return nameOf(sel[0])+' +'+(sel.length-1);
+}
+function build(){
+  var per=document.querySelector('.periods'); if(!per||document.getElementById('gg-chan-wrap'))return;
+  var wrap=document.createElement('span');wrap.className='gg-chan';wrap.id='gg-chan-wrap';
+  var l=document.createElement('span');l.className='gg-chan-lbl';l.textContent='Канал';wrap.appendChild(l);
+  var btn=document.createElement('button');btn.className='gg-chan-btn';btn.id='gg-chan-btn';btn.innerHTML='<span id="gg-chan-cap"></span> ▾';wrap.appendChild(btn);
+  var pan=document.createElement('div');pan.className='gg-chan-pan';pan.id='gg-chan-pan';
+  var all=document.createElement('label');all.innerHTML='<input type="checkbox" id="gg-chan-all"> <b>Все каналы</b>';pan.appendChild(all);
+  var sep=document.createElement('div');sep.className='sep';pan.appendChild(sep);
+  CH.forEach(function(c){var lb=document.createElement('label');lb.innerHTML='<input type="checkbox" value="'+c[0]+'"> '+c[1]+(c[2]?'':'<span class="nd">нет данных</span>');pan.appendChild(lb);});
+  wrap.appendChild(pan);per.insertBefore(wrap,per.firstChild);
+  btn.addEventListener('click',function(e){e.stopPropagation();pan.classList.toggle('open');});
+  document.addEventListener('click',function(){pan.classList.remove('open');});
+  pan.addEventListener('click',function(e){e.stopPropagation();});
+  all.querySelector('input').addEventListener('change',function(e){ sel = e.target.checked ? CH.map(function(c){return c[0];}) : ['ozon']; save();sync();apply(); });
+  pan.querySelectorAll('input[value]').forEach(function(i){ i.addEventListener('change',function(){
+    var v=i.value; if(i.checked){ if(sel.indexOf(v)<0)sel.push(v); } else { sel=sel.filter(function(x){return x!==v;}); }
+    if(!sel.length)sel=['ozon']; save();sync();apply(); }); });
+  sync();
+}
+function sync(){
+  var pan=document.getElementById('gg-chan-pan'); if(!pan)return;
+  pan.querySelectorAll('input[value]').forEach(function(i){i.checked=sel.indexOf(i.value)>=0;});
+  var all=document.getElementById('gg-chan-all'); if(all)all.checked=(sel.length===CH.length);
+  var cap=document.getElementById('gg-chan-cap'); if(cap)cap.textContent=label();
+}
+function apply(){
+  var ovl=document.getElementById('gg-chan-ovl');
+  var hasLive = sel.indexOf('ozon')>=0; // живые данные только у Озон
+  if(!hasLive){ document.getElementById('gg-chan-name').textContent=sel.map(nameOf).join(', '); ovl.style.display='flex'; }
+  else ovl.style.display='none';
+}
+var bk=document.getElementById('gg-chan-back');if(bk)bk.addEventListener('click',function(){sel=['ozon'];save();sync();apply();});
+fixTop();build();apply();setInterval(function(){fixTop();build();},2000);
+})();</script>
+</body></html>

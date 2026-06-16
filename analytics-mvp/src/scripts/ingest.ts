@@ -38,7 +38,7 @@ function main() {
   const raw = payload.rows || [];
 
   const mapped: SkuDaily[] = raw
-    .filter((r) => (r.rev || 0) > 0 || (r.units || 0) > 0) // только строки с продажами
+    .filter((r) => (r.rev || 0) > 0 || (r.units || 0) > 0 || (r.views || 0) > 0 || (r.cart || 0) > 0 || (r.ret || 0) > 0 || (r.canc || 0) > 0) // любой сигнал (не только продажи) - чтобы показы и возвраты не терялись
     .map((r) => ({
       date: r.date,
       sku: String(r.sku),

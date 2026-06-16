@@ -7,7 +7,13 @@ name: Update OZON snapshots
 on:
   schedule:
     - cron: "30 5 * * *" # ~08:30 МСК
-  workflow_dispatch: {}
+    - cron: "0 12 * * *" # ~15:00 МСК - страховка, если GitHub пропустит утренний слот
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Полная перезаливка истории с начала данных (для пересбора показов/возвратов без фильтра)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ozon-data # общий с sync.yml - не гонимся за push (FENIX G5)
@@ -59,12 +65,20 @@ jobs:
           npx tsx src/scripts/validate-snapshot.ts pnlsku /tmp/pnlsku.json
           mv /tmp/pnlsku.json fixtures/pnl_sku_30d.json
 
-          # дневная история за вчера (пустой день допустим)
-          curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
-            -d "{\"dateFrom\":\"$Y\",\"dateTo\":\"$Y\"}" -o /tmp/daily.json
-          npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
+          # Дневная история: догружаем ВСЕ недостающие дни от последнего в истории до вчера.
+          # Самовосстановление после любого простоя синка (раньше тянули только вчера -> дыры).
+          # full=true -> полная перезаливка с начала данных (ingest без фильтра пересоберёт показы/возвраты).
+          LAST=$(node -e "let m='';for(const l of require('fs').readFileSync('data/history.ndjson','utf8').trim().split('\n')){try{const d=JSON.parse(l).date;if(d>m)m=d;}catch(e){}}console.log(m||'2026-02-05');")
+          if [ "${{ github.event.inputs.full }}" = "true" ]; then cur="2026-02-06"; else cur=$(date -u -d "$LAST +1 day" +%F); fi
           BEFORE=$(wc -l < data/history.ndjson)
-          npm run ingest -- /tmp/daily.json
+          while [ "${cur//-/}" -le "${Y//-/}" ]; do
+            echo "догрузка дня $cur"
+            curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
+              -d "{\"dateFrom\":\"$cur\",\"dateTo\":\"$cur\"}" -o /tmp/daily.json || { echo "curl daily $cur failed"; exit 1; }
+            npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
+            npm run ingest -- /tmp/daily.json
+            cur=$(date -u -d "$cur +1 day" +%F)
+          done
           AFTER=$(wc -l < data/history.ndjson)
           if [ "$AFTER" -lt "$BEFORE" ]; then echo "history сократилась $BEFORE->$AFTER"; exit 1; fi
         env:
@@ -79,16 +93,17 @@ jobs:
       - name: Commit (pull --rebase, retry)
         working-directory: .
         run: |
-          set -euo pipefail
+          set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/data/history.ndjson analytics-mvp/fixtures/skus_live_30d.json \
-                  analytics-mvp/fixtures/ads_30d.json analytics-mvp/fixtures/pnl_30d.json \
-                  analytics-mvp/fixtures/pnl_sku_30d.json \
-                  analytics-mvp/data/sku_cogs.json analytics-mvp/public/*.html
+          # Стейджим ВСЁ под analytics-mvp (сборка трогает файлы вне старого списка add;
+          # *.db в .gitignore) - иначе остаются unstaged changes и pull --rebase падает.
+          git add -A analytics-mvp
           if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
           git commit -m "data: ежедневное обновление снимков OZON $(date -u +%F)"
-          for i in 1 2 3 4; do
-            git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0 || sleep $((2**i))
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((2**i))
           done
           echo "push не удался после ретраев"; exit 1

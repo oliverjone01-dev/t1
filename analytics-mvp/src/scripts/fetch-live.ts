@@ -64,6 +64,14 @@ async function main() {
   await pull("Реклама Performance", "ads_30d.json", async () =>
     fixViolur(await hit("gengroup-ozon-ads", { days: String(days) })));
 
+  // Реклама по стандартным периодам (7/30/90 дн) - чтобы дашборд переключал период
+  // МГНОВЕННО на реальные данные, а не ждал живой запрос (Performance API медленный).
+  await pull("Реклама по периодам", "ads_periods.json", async () => {
+    const out: Record<string, unknown> = {};
+    for (const d of [7, 30, 90]) out["p" + d] = fixViolur(await hit("gengroup-ozon-ads", window(d)));
+    return out;
+  });
+
   await pull("Товары (live SKU)", "skus_live_30d.json", async () =>
     fixViolur(await hit("gengroup-ozon-skus", { days: String(days) })));
 

@@ -922,14 +922,15 @@ function render(cur,cmp){
 const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
 const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
 const CC_ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';var ccAdsReq=0;
-// Живой ДРР за ТОЧНЫЙ выбранный период (вчера/диапазон), обновляет KPI поверх запечённого снимка.
-function ccLiveDrr(cur){
+// Живой Общая ДРР за ТОЧНЫЙ период: расход рекламы ÷ ВЕСЬ оборот периода (как в выгрузке OZON).
+function ccLiveDrr(cur,gmv){
   if(typeof fetch==='undefined')return; var my=++ccAdsReq;
   fetch(CC_ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
     .then(function(r){return r.ok?r.json():null;})
     .then(function(a){ if(my!==ccAdsReq||!a||!a.totals)return;
+      var sp=a.totals.spend||0; var odrr=gmv?Math.round(sp/gmv*1000)/10:0;
       var c=[].slice.call(document.querySelectorAll('#kpis .card')).filter(function(x){return x.textContent.indexOf('ДРР')>=0;})[0];
-      if(c){ c.querySelector('.kt-v').textContent=(a.totals.drr||0)+'%'; var s=c.querySelector('.kt-d'); if(s)s.textContent='живой за '+a.dateFrom+'..'+a.dateTo; }
+      if(c){ c.querySelector('.kt-v').textContent=odrr+'%'; var s=c.querySelector('.kt-d'); if(s)s.textContent='живой за '+a.dateFrom+'..'+a.dateTo; }
     }).catch(function(){});
 }
 // ДРР за выбранный период (из запечённых снимков 7/30/90), а не статичный 30-дн.
@@ -950,10 +951,10 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
-    kpi('ДРР канала',((adsForPeriod().totals||{}).drr||0)+'%','<span class="kt-d na">за период</span>','Доля рекламы в выручке за выбранный период. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
+    kpi('Общая ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как «Общая ДРР» в выгрузке OZON). Живой запрос уточняет по точным датам.'),
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
-  ccLiveDrr(cur); // уточняем ДРР живым запросом за точный период (вчера/диапазон)
+  ccLiveDrr(cur,gmv); // уточняем Общую ДРР (расход÷оборот) живым запросом за точный период
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
   // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)
   const dV=(vw-vwP)*croP*aovP, dC=vw*(cro-croP)*aovP, dA=vw*cro*(aov-aovP);

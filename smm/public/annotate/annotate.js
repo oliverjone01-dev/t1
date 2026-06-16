@@ -316,7 +316,7 @@
     toolbar.innerHTML =
       '<button class="anno-tb" data-act="mode"><i>✎</i><span>Комментировать</span></button>' +
       '<button class="anno-tb" data-act="panel"><i>☰</i> Комментарии</button>' +
-      '<span class="anno-store" title="' + (SHARED ? 'Комментарии общие для всех участников' : 'Комментарии видны только в этом браузере. Подключите облако для общего доступа.') + '">' + (SHARED ? '● общие' : '○ локально') + '</span>';
+      '<span class="anno-store" title="' + (SHARED ? 'Комментарии общие для всех участников' : 'Комментарии видны только в этом браузере. Подключите облако для общего доступа.') + '">' + (SHARED ? '<b style="color:#6FAE7B">●</b> общие' : '○ локально') + '</span>';
     document.body.appendChild(toolbar);
     toolbar.querySelector('[data-act=mode]').onclick = function () { ensureName(function () { setMode(!MODE); }); };
     toolbar.querySelector('[data-act=panel]').onclick = function () { togglePanel(); };
@@ -341,38 +341,38 @@
     var css = `
     .anno-toolbar{position:fixed;left:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:9000;display:flex;gap:8px;align-items:center;font-family:inherit}
     .anno-tb{display:inline-flex;align-items:center;gap:7px;background:rgba(22,20,15,.82);color:#F5F1E8;border:1px solid #33302A;border-radius:30px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px);transition:.2s}
-    .anno-tb i{font-style:normal;color:#C8A951}
-    .anno-tb:hover{border-color:#C8A951}
-    .anno-tb.on{background:#C8A951;color:#0A0A0A;border-color:#C8A951}.anno-tb.on i{color:#0A0A0A}
+    .anno-tb i{font-style:normal;color:#4f8cff}
+    .anno-tb:hover{border-color:#4f8cff}
+    .anno-tb.on{background:#4f8cff;color:#ffffff;border-color:#4f8cff}.anno-tb.on i{color:#ffffff}
     .anno-store{font-size:10.5px;color:#A39E92;border:1px solid #33302A;border-radius:20px;padding:5px 9px;background:rgba(10,10,10,.5)}
-    .anno-marker{position:absolute;transform:translate(-50%,-50%);min-width:24px;height:24px;padding:0 6px;border-radius:13px 13px 13px 2px;background:#C8A951;color:#0A0A0A;border:2px solid #0A0A0A;font-weight:800;font-size:12px;cursor:pointer;z-index:40;box-shadow:0 3px 10px rgba(0,0,0,.5);transition:transform .15s}
-    .anno-marker:hover,.anno-marker.active{transform:translate(-50%,-50%) scale(1.18);background:#D4A857}
+    .anno-marker{position:absolute;transform:translate(-50%,-50%);min-width:26px;height:26px;padding:0 7px;border-radius:14px 14px 14px 3px;background:#4f8cff;color:#ffffff;border:2px solid #ffffff;font-weight:800;font-size:12.5px;cursor:pointer;z-index:40;box-shadow:0 0 0 4px rgba(79,140,255,.28),0 4px 14px rgba(0,0,0,.55);transition:transform .15s}
+    .anno-marker:hover,.anno-marker.active{transform:translate(-50%,-50%) scale(1.22);background:#7aa9ff;box-shadow:0 0 0 5px rgba(79,140,255,.45),0 6px 18px rgba(0,0,0,.6)}
     .anno-marker.done{background:#6FAE7B;opacity:.7}
-    .anno-region{position:absolute;z-index:39;border:2px solid #C8A951;background:rgba(200,169,81,.14);border-radius:6px;pointer-events:none;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+    .anno-region{position:absolute;z-index:39;border:2px solid #4f8cff;background:rgba(79,140,255,.14);border-radius:6px;pointer-events:none;box-shadow:0 2px 12px rgba(0,0,0,.3)}
     .anno-overlay{position:fixed;inset:0;z-index:8000;cursor:crosshair;background:rgba(10,10,10,.04);touch-action:none}
     body.anno-commenting .deck,body.anno-commenting [data-annotate-root]{overflow:hidden !important}
     body.anno-commenting{cursor:crosshair}
-    .anno-draw{position:fixed;z-index:8500;border:2px solid #C8A951;background:rgba(200,169,81,.16);border-radius:4px;pointer-events:none}
-    .anno-panel{position:fixed;top:0;right:-360px;width:340px;max-width:88vw;height:100dvh;z-index:8800;background:#0F0E0C;border-left:1px solid #262320;box-shadow:-20px 0 50px rgba(0,0,0,.5);transition:right .3s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column;font-family:inherit}
+    .anno-draw{position:fixed;z-index:8500;border:2px solid #4f8cff;background:rgba(79,140,255,.16);border-radius:4px;pointer-events:none}
+    .anno-panel{position:fixed;top:0;right:-380px;width:348px;max-width:90vw;height:100dvh;z-index:8800;background:#0F1116;border-left:3px solid #4f8cff;box-shadow:-26px 0 70px rgba(0,0,0,.72);transition:right .3s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column;font-family:inherit}
     .anno-panel.open{right:0}
     .anno-panel-h{display:flex;align-items:center;gap:10px;padding:18px 18px 14px;border-bottom:1px solid #262320;color:#F5F1E8;font-size:15px}
-    .anno-panel-h .anno-count{background:#C8A951;color:#0A0A0A;border-radius:20px;font-size:11px;font-weight:800;padding:2px 8px}
+    .anno-panel-h .anno-count{background:#4f8cff;color:#ffffff;border-radius:20px;font-size:11px;font-weight:800;padding:2px 8px}
     .anno-panel-h .anno-ic{margin-left:auto}
     .anno-list{overflow-y:auto;padding:10px 12px;flex:1}
     .anno-empty{color:#6B665C;font-size:13px;text-align:center;padding:40px 16px;line-height:1.6}
-    .anno-item{background:#16140F;border:1px solid #262320;border-radius:12px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:.15s}
-    .anno-item:hover{border-color:#33302A}
+    .anno-item{background:#171a21;border:1px solid #2a2e38;border-left:3px solid #4f8cff;border-radius:10px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:.15s}
+    .anno-item:hover{border-color:#4f8cff}
     .anno-item.done{opacity:.6}
     .anno-item-h{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#F5F1E8}
-    .anno-pin{background:#C8A951;color:#0A0A0A;font-weight:800;font-size:11px;min-width:18px;height:18px;border-radius:9px;display:inline-grid;place-items:center;padding:0 5px}
+    .anno-pin{background:#4f8cff;color:#ffffff;font-weight:800;font-size:11px;min-width:18px;height:18px;border-radius:9px;display:inline-grid;place-items:center;padding:0 5px}
     .anno-time{margin-left:auto;color:#6B665C;font-size:11px;font-weight:400}
     .anno-body{color:#A39E92;font-size:13px;margin-top:6px;line-height:1.45}
     .anno-meta{color:#6B665C;font-size:11px;margin-top:7px;letter-spacing:.02em}
-    .anno-thread{position:fixed;z-index:8900;width:320px;max-width:calc(100vw - 24px);background:#0F0E0C;border:1px solid #33302A;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.6);font-family:inherit;overflow:hidden}
+    .anno-thread{position:fixed;z-index:8900;width:320px;max-width:calc(100vw - 24px);background:#0F1116;border:1px solid #2a2e38;border-top:3px solid #4f8cff;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.65);font-family:inherit;overflow:hidden}
     .anno-th-head{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #262320;color:#F5F1E8;font-size:13.5px}
     .anno-th-actions{margin-left:auto;display:flex;gap:4px}
     .anno-ic{background:none;border:1px solid #33302A;color:#A39E92;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px;display:grid;place-items:center;transition:.15s}
-    .anno-ic:hover{border-color:#C8A951;color:#C8A951}
+    .anno-ic:hover{border-color:#4f8cff;color:#4f8cff}
     .anno-th-body{max-height:46vh;overflow-y:auto;padding:6px 14px}
     .anno-msg{padding:11px 0;border-bottom:1px solid #1c1a16}
     .anno-msg:last-child{border-bottom:none}
@@ -384,11 +384,11 @@
     .anno-composer{padding:14px;width:340px}
     .anno-composer textarea{width:100%;margin:6px 0 12px}
     .anno-who{font-size:12px;color:#A39E92;margin-top:2px}.anno-who b{color:#F5F1E8}
-    .anno-link{background:none;border:none;color:#C8A951;cursor:pointer;font-size:12px;text-decoration:underline;padding:0}
+    .anno-link{background:none;border:none;color:#4f8cff;cursor:pointer;font-size:12px;text-decoration:underline;padding:0}
     .anno-modal-row{display:flex;gap:8px;justify-content:flex-end}
     .anno-btn{background:#16140F;border:1px solid #33302A;color:#F5F1E8;border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
-    .anno-btn:hover{border-color:#C8A951}
-    .anno-btn.primary{background:#C8A951;color:#0A0A0A;border-color:#C8A951}
+    .anno-btn:hover{border-color:#4f8cff}
+    .anno-btn.primary{background:#4f8cff;color:#ffffff;border-color:#4f8cff}
     .anno-modal-ov{position:fixed;inset:0;z-index:9500;background:rgba(5,5,5,.7);backdrop-filter:blur(6px);display:grid;place-items:center;font-family:inherit;padding:20px}
     .anno-modal{background:#0F0E0C;border:1px solid #33302A;border-radius:16px;padding:26px;width:380px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
     .anno-modal h3{color:#F5F1E8;font-size:20px;margin:0 0 8px}

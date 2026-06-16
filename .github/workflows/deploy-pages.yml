@@ -18,6 +18,11 @@ on:
   push:
     branches: [main]
     paths: [analytics-mvp/**, smm/**, .github/workflows/deploy-pages.yml]
+  # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
+  # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
+  workflow_run:
+    workflows: ["Update OZON snapshots"]
+    types: [completed]
 
 permissions:
   contents: read
@@ -30,6 +35,8 @@ concurrency:
 
 jobs:
   build-deploy:
+    # Для workflow_run деплоим только при успешном синке; для push/dispatch - всегда.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}

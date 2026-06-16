@@ -2,8 +2,11 @@
 :root{
   --bg:#0A0A0A;--bg2:#0d0c0a;--card:#16140F;--card2:#1A1813;--line:#262320;--line2:#33302A;
   --gold:#C8A951;--gold2:#D4A857;--gold-soft:rgba(200,169,81,.14);
-  --gg:#C8A951;--gg-soft:rgba(200,169,81,.12);            /* акцент GENGLASS (тёплый) */
-  --v:#9DB4D6;--v-soft:rgba(157,180,214,.12);             /* акцент VALONTI (прохладный, галерейный) */
+  --gg:#8FA6BC;--gg-soft:rgba(143,166,188,.13);           /* акцент GENGLASS (серый с голубым отливом, технологичный) */
+  --gg-ink:#AEC0D2;
+  --v:#C8A951;--v-soft:rgba(200,169,81,.13);              /* акцент VALONTI (золотистый, премиальный) */
+  --v-ink:#D8BE78;
+  --hyp-bg:rgba(120,116,104,.16);--hyp-ink:#B7B0A0;       /* нейтральный тег гипотез, вне бренд-логики */
   --ink:#F5F1E8;--ink2:#A39E92;--ink3:#6B665C;
   --keep:#6FAE7B;--stop:#D9694C;
   --radius:14px;--shadow:0 18px 50px rgba(0,0,0,.55);--ease:cubic-bezier(.22,.61,.36,1);
@@ -12,7 +15,7 @@
 html{scroll-behavior:smooth}
 body{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   background:var(--bg);color:var(--ink);line-height:1.6;letter-spacing:.005em;
-  background-image:radial-gradient(1100px 520px at 85% -8%,rgba(200,169,81,.08),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(157,180,214,.05),transparent 55%);
+  background-image:radial-gradient(1100px 520px at 85% -8%,rgba(200,169,81,.08),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(143,166,188,.06),transparent 55%);
   background-attachment:fixed}
 ::selection{background:var(--gold);color:#0A0A0A}
 a{color:inherit}
@@ -56,10 +59,10 @@ section:first-of-type{border-top:none}
 /* comparison column headers */
 .cmp-head{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px;position:sticky;top:54px;z-index:30}
 .ch{border-radius:12px;padding:14px 18px;border:1px solid var(--line2);backdrop-filter:blur(8px)}
-.ch.gg{background:linear-gradient(180deg,var(--gg-soft),rgba(10,10,10,.6));border-color:rgba(200,169,81,.4)}
-.ch.v{background:linear-gradient(180deg,var(--v-soft),rgba(10,10,10,.6));border-color:rgba(157,180,214,.4)}
+.ch.gg{background:linear-gradient(180deg,var(--gg-soft),rgba(10,10,10,.6));border-color:rgba(143,166,188,.4)}
+.ch.v{background:linear-gradient(180deg,var(--v-soft),rgba(10,10,10,.6));border-color:rgba(200,169,81,.4)}
 .ch .nm{font-size:18px;font-weight:800;letter-spacing:-.01em}
-.ch.gg .nm{color:var(--gg)}.ch.v .nm{color:var(--v)}
+.ch.gg .nm{color:var(--gg-ink)}.ch.v .nm{color:var(--v-ink)}
 .ch .role{font-size:11px;letter-spacing:.08em;color:var(--ink2);text-transform:uppercase;margin-top:2px}
 
 /* attribute block */
@@ -94,7 +97,7 @@ section:first-of-type{border-top:none}
 .ocard p{font-size:13px;color:var(--ink2);line-height:1.45}
 
 /* tag/hyp */
-.hyp{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;background:var(--v-soft);color:var(--v)}
+.hyp{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;background:var(--hyp-bg);color:var(--hyp-ink)}
 .tag{font-size:11px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;background:var(--gold-soft);color:var(--gold)}
 
 /* generic table */

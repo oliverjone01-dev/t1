@@ -39,8 +39,9 @@
 
   /* ---------- gviz: запрос и разбор ---------- */
   function gvizUrl(tab) {
+    // tab пустой -> читаем первую вкладку (на случай неизвестного имени листа).
     return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(CFG.sheetId) +
-      '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(tab) + '&_=' + Date.now();
+      '/gviz/tq?tqx=out:json&headers=1' + (tab ? '&sheet=' + encodeURIComponent(tab) : '') + '&_=' + Date.now();
   }
   function parseGviz(text) {
     var i = text.indexOf('setResponse('), j = text.lastIndexOf(')');
@@ -107,16 +108,23 @@
   }
   // Каждая вкладка тянется независимо: если одну переименовали/закрыли - падает
   // только она и подменяется резервом, остальная часть остаётся живой.
-  function loadTab(tab, mapper, seedArr) {
-    return fetchTab(tab).then(function (rows) {
-      var m = mapper(rows); return m.length ? { ok: true, data: m } : { ok: false, data: seedArr };
-    }).catch(function () { return { ok: false, data: seedArr }; });
+  // Пробуем имена вкладок по очереди (последним — первую вкладку, tab='').
+  function loadTab(tabs, mapper, seedArr) {
+    var list = tabs.slice();
+    function attempt() {
+      if (!list.length) return Promise.resolve({ ok: false, data: seedArr });
+      var t = list.shift();
+      return fetchTab(t).then(function (rows) {
+        var m = mapper(rows); return m.length ? { ok: true, data: m } : attempt();
+      }).catch(attempt);
+    }
+    return attempt();
   }
   function load() {
     if (!CFG || !CFG.sheetId || CFG.sheetId === 'PASTE_SHEET_ID') return fromSeed('таблица не настроена');
     return Promise.all([
-      loadTab(CFG.rubricTab || 'Рубрикатор', mapRubric, SEED.rubricator || []),
-      loadTab(CFG.planTab || 'Контент-план', mapPlan, SEED.plan || [])
+      loadTab([CFG.rubricTab || 'Рубрикатор'], mapRubric, SEED.rubricator || []),
+      loadTab([CFG.planTab || 'Контент-план', ''], mapPlan, SEED.plan || [])
     ]).then(function (r) {
       var anyLive = r[0].ok || r[1].ok;
       return {

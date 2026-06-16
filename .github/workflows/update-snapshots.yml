@@ -8,7 +8,12 @@ on:
   schedule:
     - cron: "30 5 * * *" # ~08:30 МСК
     - cron: "0 12 * * *" # ~15:00 МСК - страховка, если GitHub пропустит утренний слот
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Полная перезаливка истории с начала данных (для пересбора показов/возвратов без фильтра)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ozon-data # общий с sync.yml - не гонимся за push (FENIX G5)
@@ -62,8 +67,9 @@ jobs:
 
           # Дневная история: догружаем ВСЕ недостающие дни от последнего в истории до вчера.
           # Самовосстановление после любого простоя синка (раньше тянули только вчера -> дыры).
+          # full=true -> полная перезаливка с начала данных (ingest без фильтра пересоберёт показы/возвраты).
           LAST=$(node -e "let m='';for(const l of require('fs').readFileSync('data/history.ndjson','utf8').trim().split('\n')){try{const d=JSON.parse(l).date;if(d>m)m=d;}catch(e){}}console.log(m||'2026-02-05');")
-          cur=$(date -u -d "$LAST +1 day" +%F)
+          if [ "${{ github.event.inputs.full }}" = "true" ]; then cur="2026-02-06"; else cur=$(date -u -d "$LAST +1 day" +%F); fi
           BEFORE=$(wc -l < data/history.ndjson)
           while [ "${cur//-/}" -le "${Y//-/}" ]; do
             echo "догрузка дня $cur"

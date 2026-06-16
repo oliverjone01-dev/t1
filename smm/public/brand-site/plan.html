@@ -120,21 +120,13 @@
 
   <section class="reveal">
     <div class="sec-head">
-      <span class="sec-num">ПЛАН</span>
-      <h2 class="sec-title">Таблица-план <span class="em">(образец недели 1, дальше по логике)</span></h2>
-      <p class="sec-sub">Колонки фиксированы. Образец заполнения недели 1 - дальше команда тиражирует по банку идей. Слоты ситуатива оставлены пустыми с пометкой.</p>
+      <span class="sec-num">ПЛАН · КОНТРОЛЬ</span>
+      <h2 class="sec-title">Контент-план <span class="em">постами + контроль выполнения</span></h2>
+      <p class="sec-sub">Ведётся в Google-таблице: SMM меняет статус (в плане → готово → опубликовано) и вставляет ссылку на пост. Сайт подтягивает при загрузке. Сверху - сводка для контроля, ниже - посты по неделям. На любую карточку поста можно оставить комментарий (выдели её, кнопка справа внизу).</p>
     </div>
-    <div class="tbl" data-annotate-section><table>
-      <tr><th>Нед</th><th>Слот</th><th>Бренд</th><th>Канал</th><th>Формат</th><th>Рубрика</th><th>Идея</th><th>Хук</th><th>Цель</th><th>Ситуатив</th></tr>
-      <tr><td>1</td><td>Пн</td><td><span class="pill gg">GG</span></td><td>IG/VK</td><td>Reels</td><td>До/после</td><td>До/после ванной</td><td>«дешевле, чем подумаете»</td><td>охват</td><td>нет</td></tr>
-      <tr><td>1</td><td>Вт</td><td><span class="pill v">V</span></td><td>IG/Pin</td><td>Reels макро</td><td>Материал крупно</td><td>Срез Nero Marquina</td><td>«прожилку не повторить»</td><td>охват целевой</td><td>нет</td></tr>
-      <tr><td>1</td><td>Ср</td><td><span class="pill gg">GG</span></td><td>IG/VK/Pin</td><td>карусель</td><td>Этот VS тот</td><td>7 ошибок при выборе</td><td>«сохрани, если ремонт»</td><td>сохранения</td><td>нет</td></tr>
-      <tr><td>1</td><td>Чт</td><td><span class="pill v">V</span></td><td>YT-&gt;нарезки</td><td>длинное</td><td>Рождение изделия</td><td>Столешница, часть 1</td><td>«от блока до объекта»</td><td>доверие</td><td>нет</td></tr>
-      <tr><td>1</td><td>Пт</td><td><span class="pill gg">GG</span></td><td>IG/VK</td><td>Reels</td><td>ASMR-процесс</td><td>Резка стекла</td><td>«звук, который успокаивает»</td><td>охват</td><td>нет</td></tr>
-      <tr><td>1</td><td>Сб</td><td><span class="pill v">V</span></td><td>IG/Pin</td><td>карусель</td><td>Деталь</td><td>5 параметров ТЗ на камень</td><td>«сохраните в доску»</td><td>контакты</td><td>нет</td></tr>
-      <tr><td>1</td><td>-</td><td><span class="pill gg">GG</span></td><td>Stories</td><td>ситуатив</td><td>-</td><td>спецзаказ / тренд с колёс</td><td>-</td><td>вовлечение</td><td><b>да</b></td></tr>
-      <tr><td>1</td><td>-</td><td><span class="pill v">V</span></td><td>Stories</td><td>ситуатив</td><td>-</td><td>нестандарт с колёс</td><td>-</td><td>доверие</td><td><b>да</b></td></tr>
-    </table></div>
+    <p class="cms-source">загрузка…</p>
+    <div class="dash" data-annotate-section data-annotate-label="Сводка контроля плана"><div id="cms-dashboard"></div></div>
+    <div id="cms-plan"></div>
     <div class="note" data-annotate-section><b>Логика 2 месяцев:</b><br>
       <b>Месяц 1 (нед 1-4):</b> закрыть все рубрики хотя бы раз, чтобы измерить, какая зашла по KPI-сигналу.<br>
       <b>Месяц 2 (нед 5-8):</b> усилить рубрики-победители + запустить 1 многосерийный проект на бренд (GENGLASS «Ремонт за 5 серий», VALONTI «Рождение изделия в 4 частях»).<br>
@@ -155,6 +147,9 @@
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.06,rootMargin:'0px 0px -5% 0px'});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 </script>
+<script src="cms-seed.js" defer></script>
+<script src="cms-config.js" defer></script>
+<script src="cms.js" defer></script>
 <script src="../annotate/annotate-init.js" data-page="brand-site-plan" data-sections="[data-annotate-section]" defer></script>
 </body>
 </html>

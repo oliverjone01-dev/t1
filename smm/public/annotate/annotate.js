@@ -34,6 +34,14 @@
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
   function sections() { return Array.prototype.slice.call(document.querySelectorAll(SECTION_SEL)); }
+  // Стабильная привязка комментария к блоку. Если у блока есть data-annotate-key
+  // (например динамически отрендеренный пост из таблицы) - section = детерминир.
+  // хэш ключа (большое число), не зависит от порядка/вставок. Иначе - индекс
+  // (обратная совместимость со старыми страницами, где section хранился как 0..n).
+  function hashKey(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return 100000 + (h % 2000000000); }
+  function secIdentity(elm, idx) { var k = elm && elm.getAttribute && elm.getAttribute('data-annotate-key'); return k ? hashKey(k) : idx; }
+  function secByIdentity(S) { var ss = sections(); for (var i = 0; i < ss.length; i++) { if (secIdentity(ss[i], i) === S) return ss[i]; } return ss[S]; }
+  function secLabel(S) { var ss = sections(); for (var i = 0; i < ss.length; i++) { if (secIdentity(ss[i], i) === S) { var l = ss[i].getAttribute && ss[i].getAttribute('data-annotate-label'); return l || ('блок ' + (i + 1)); } } return 'блок ' + ((typeof S === 'number' ? S : 0) + 1); }
   function fmtAbs(iso) {
     var d = new Date(iso), p = function (n) { return (n < 10 ? '0' : '') + n; };
     return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
@@ -116,10 +124,9 @@
   /* ---------- маркеры на странице ---------- */
   function renderMarkers() {
     Array.prototype.slice.call(document.querySelectorAll('.anno-marker,.anno-region')).forEach(function (m) { m.remove(); });
-    var secs = sections();
     var ordered = parents();
     ordered.forEach(function (a, i) {
-      var sec = secs[a.section]; if (!sec || !a.rect) return;
+      var sec = secByIdentity(a.section); if (!sec || !a.rect) return;
       if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
       var rx = Math.max(1, Math.min(99, a.rect.x)), ry = Math.max(1, Math.min(99, a.rect.y));
       var col = colorFor(a.author);
@@ -166,7 +173,7 @@
         (a.author === me ? '<button class="anno-mini" data-do="del" title="Удалить">🗑</button>' : '') +
         '</span></div>' +
         '<div class="anno-body">' + esc(a.body) + '</div>' +
-        '<div class="anno-meta">слайд ' + (a.section + 1) + (a.resolved ? ' · решено' : '') + '</div>';
+        '<div class="anno-meta">' + esc(secLabel(a.section)) + (a.resolved ? ' · решено' : '') + '</div>';
       if (reps.length) {
         html += '<div class="anno-tree">';
         reps.forEach(function (r) {
@@ -195,14 +202,14 @@
   function openThread(id, jump) {
     var a = DATA.filter(function (x) { return x.id === id; })[0]; if (!a) return;
     OPEN_THREAD = id;
-    if (jump) { var sec = sections()[a.section]; if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' }); }
+    if (jump) { var sec = secByIdentity(a.section); if (sec && sec.scrollIntoView) sec.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' }); }
     renderMarkers();
     togglePanel(true);
     renderPanel();
   }
   var threadBox; // не используется для чтения (треды теперь в панели)
   function positionThread(a) {
-    var sec = sections()[a.section]; if (!sec || !threadBox) return;
+    var sec = secByIdentity(a.section); if (!sec || !threadBox) return;
     var r = sec.getBoundingClientRect();
     var x = r.left + r.width * a.rect.x / 100, y = r.top + r.height * a.rect.y / 100;
     var bw = 320, vw = window.innerWidth;
@@ -303,7 +310,7 @@
     };
     var sec = start.sec, idx = sections().indexOf(sec);
     if (drawRect) { drawRect.remove(); drawRect = null; } start = null;
-    openComposer(idx, rect, e.clientX, e.clientY);
+    openComposer(secIdentity(sec, idx), rect, e.clientX, e.clientY);
   }
   function openComposer(secIdx, rect, px, py) {
     setMode(false);
@@ -456,6 +463,9 @@
     if (SHARED) setInterval(refresh, POLL_MS);            // общий режим: подтягиваем чужие комментарии
     window.addEventListener('storage', function (e) { if (e.key === 'annotate:' + PAGE) refresh(); }); // локальный: меж-вкладки
   }
+  // Публичный хук: после динамического рендера (например постов из таблицы)
+  // вызвать window.ANNOTATE_REFRESH(), чтобы перепривязать маркеры к новым блокам.
+  window.ANNOTATE_REFRESH = function () { try { return refresh(); } catch (e) { } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 

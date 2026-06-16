@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VALONTI × ТОН - презентация для команды · GENGROUP</title>
+<style>
+:root{
+  --bg:#0A0A0A;--card:#16140F;--card-2:#1A1813;--line:#262320;--line-2:#33302A;
+  --gold:#C8A951;--gold-bright:#D4A857;--gold-soft:rgba(200,169,81,.14);
+  --ink:#F5F1E8;--ink-2:#A39E92;--ink-3:#6B665C;
+  --keep:#6FAE7B;--keep-bg:rgba(111,174,123,.12);
+  --stop:#D9694C;--stop-bg:rgba(217,105,76,.12);
+  --invest:#7E9CC4;--invest-bg:rgba(126,156,196,.12);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  background:var(--bg);color:var(--ink);overflow:hidden;letter-spacing:.005em;
+  background-image:radial-gradient(1100px 520px at 82% -8%, rgba(200,169,81,.10), transparent 60%),radial-gradient(900px 500px at -10% 12%, rgba(126,156,196,.05), transparent 55%);
+}
+::selection{background:var(--gold);color:#0A0A0A}
+
+/* progress + topbar */
+.prog{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-bright));z-index:60;transition:width .35s var(--ease)}
+.top{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:max(14px,env(safe-area-inset-top)) 20px 12px;pointer-events:none}
+.top .brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:.16em;font-size:11px;color:var(--ink-2)}
+.top .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.top .brand b{color:var(--ink)}
+.top .count{font-size:12px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;background:rgba(10,10,10,.5);padding:5px 10px;border-radius:20px;border:1px solid var(--line-2)}
+
+/* deck */
+.deck{display:flex;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none}
+.deck::-webkit-scrollbar{display:none}
+.slide{min-width:100vw;width:100vw;height:100dvh;scroll-snap-align:center;scroll-snap-stop:always;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:78px clamp(20px,6vw,90px) 96px;position:relative}
+.slide .inner{width:100%;max-width:920px;margin:0 auto}
+.snum{font-size:12px;font-weight:700;letter-spacing:.22em;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.snum .bar{width:30px;height:1px;background:var(--gold)}
+h1{font-size:clamp(30px,6.5vw,62px);font-weight:800;line-height:1.05;letter-spacing:-.035em}
+h1 .hl{color:var(--gold)}
+h2{font-size:clamp(24px,4.6vw,42px);font-weight:800;line-height:1.1;letter-spacing:-.025em;margin-bottom:8px}
+h2 .em{color:var(--gold)}
+.lead{font-size:clamp(15px,2.3vw,21px);color:var(--ink-2);line-height:1.6;margin-top:18px;max-width:46ch;font-weight:300}
+.lead b{color:var(--ink);font-weight:600}
+.sub{font-size:clamp(13.5px,1.8vw,16px);color:var(--ink-2);margin-top:8px;max-width:60ch}
+
+/* reusable bits */
+.rows{display:flex;flex-direction:column;gap:12px;margin-top:26px}
+.rw{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 18px}
+.rw .ic{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:13px;margin-top:1px}
+.ic.keep{background:var(--keep-bg);color:var(--keep);border:1px solid rgba(111,174,123,.35)}
+.ic.stop{background:var(--stop-bg);color:var(--stop);border:1px solid rgba(217,105,76,.35)}
+.ic.gold{background:var(--gold-soft);color:var(--gold);border:1px solid rgba(200,169,81,.35)}
+.ic.inv{background:var(--invest-bg);color:var(--invest);border:1px solid rgba(126,156,196,.35)}
+.rw .tx{font-size:clamp(14px,2vw,16.5px);color:var(--ink-2);line-height:1.5}
+.rw .tx b{color:var(--ink);font-weight:700}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px}
+.cd{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.cd .tag{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:10px;text-transform:uppercase}
+.cd h3{font-size:clamp(17px,2.4vw,21px);font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.cd p{font-size:clamp(13px,1.8vw,15px);color:var(--ink-2);line-height:1.5}
+.cd p+p{margin-top:8px}.cd p .said{color:var(--gold-bright);font-style:italic}
+.cd.hero{border-color:rgba(126,156,196,.45)}.cd.hero .tag{color:var(--invest)}
+.cd.proof{border-color:rgba(111,174,123,.4)}.cd.proof .tag{color:var(--keep)}
+
+.big-num{font-size:clamp(40px,9vw,86px);font-weight:800;color:var(--gold);letter-spacing:-.04em;line-height:1}
+.quote{font-size:clamp(18px,3vw,30px);font-weight:600;line-height:1.42;letter-spacing:-.015em}
+.quote b{color:var(--gold)}
+.quote .mark{color:var(--gold);font-weight:800}
+
+.pricerows{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+.pr{display:flex;align-items:center;gap:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px}
+.pr .v{flex:none;font-size:clamp(20px,4vw,30px);font-weight:800;color:var(--gold);min-width:130px;letter-spacing:-.02em}
+.pr .d{font-size:clamp(13.5px,1.9vw,16px);color:var(--ink-2);line-height:1.45}.pr .d b{color:var(--ink);font-weight:600}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+.box{border-radius:16px;padding:20px 22px}
+.box.no{background:var(--stop-bg);border:1px solid rgba(217,105,76,.32)}
+.box.yes{background:var(--keep-bg);border:1px solid rgba(111,174,123,.32)}
+.box .bh{font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:12px}
+.box.no .bh{color:var(--stop)}.box.yes .bh{color:var(--keep)}
+.box ul{list-style:none}.box li{font-size:clamp(13.5px,1.9vw,16px);padding:6px 0 6px 22px;position:relative;color:var(--ink);line-height:1.4}
+.box.no li::before{content:"✕";position:absolute;left:0;color:var(--stop);font-weight:700;font-size:12px;top:7px}
+.box.yes li::before{content:"✓";position:absolute;left:0;color:var(--keep);font-weight:700;font-size:12px;top:7px}
+
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.qi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.qi .q{font-size:clamp(14px,1.9vw,16px);font-weight:700;color:var(--gold);margin-bottom:7px}
+.qi .a{font-size:clamp(13px,1.7vw,14.5px);color:var(--ink-2);line-height:1.5}.qi .a b{color:var(--ink);font-weight:600}
+
+.filmstrip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:24px}
+.fr{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 12px;text-align:center}
+.fr .n{font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px}
+.fr p{font-size:clamp(11px,1.5vw,12.5px);color:var(--ink-2);line-height:1.4}
+
+.note{margin-top:24px;border-radius:14px;background:var(--gold-soft);border:1px solid rgba(200,169,81,.3);padding:16px 20px;font-size:clamp(13.5px,1.9vw,16px);color:var(--ink);line-height:1.5}
+.note.warn{background:var(--stop-bg);border-color:rgba(217,105,76,.35)}
+.note b{color:var(--gold)}.note.warn b{color:var(--stop)}
+
+.stamp{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.stamp .s{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--ink-2);border:1px solid var(--line-2);border-radius:30px;padding:7px 14px}
+.stamp .s b{color:var(--gold)}
+.hint{margin-top:26px;font-size:13px;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.hint .key{border:1px solid var(--line-2);border-radius:6px;padding:2px 8px;color:var(--ink-2);font-weight:600}
+
+/* controls */
+.dots{position:fixed;left:0;right:0;bottom:max(20px,env(safe-area-inset-bottom));z-index:50;display:flex;justify-content:center;gap:7px;pointer-events:none}
+.dots button{pointer-events:auto;width:8px;height:8px;border-radius:50%;border:none;background:var(--line-2);cursor:pointer;padding:0;transition:.3s var(--ease)}
+.dots button.on{background:var(--gold);width:22px;border-radius:5px}
+.arrow{position:fixed;top:50%;transform:translateY(-50%);z-index:50;width:46px;height:46px;border-radius:50%;
+  background:rgba(22,20,15,.7);border:1px solid var(--line-2);color:var(--gold);font-size:20px;cursor:pointer;
+  display:grid;place-items:center;backdrop-filter:blur(8px);transition:.25s var(--ease)}
+.arrow:hover{background:var(--card-2);border-color:var(--gold)}
+.arrow.prev{left:18px}.arrow.next{right:18px}
+.arrow:disabled{opacity:0;pointer-events:none}
+
+.reveal-s .inner>*{opacity:0;transform:translateY(16px)}
+.slide.active .inner>*{opacity:1;transform:none;transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.slide.active .inner>*:nth-child(2){transition-delay:.06s}
+.slide.active .inner>*:nth-child(3){transition-delay:.12s}
+.slide.active .inner>*:nth-child(4){transition-delay:.18s}
+.slide.active .inner>*:nth-child(5){transition-delay:.24s}
+
+@media(max-width:760px){
+  .slide{padding:74px 20px 92px;justify-content:flex-start;padding-top:90px;overflow-y:auto}
+  .cards,.qa,.split{grid-template-columns:1fr}
+  .filmstrip{grid-template-columns:1fr 1fr}
+  .arrow{display:none}
+  .pr{flex-direction:row;gap:12px}.pr .v{min-width:96px}
+  .lead{margin-top:14px}
+}
+@media(max-width:760px) and (max-height:680px){.slide{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="prog" id="prog"></div>
+<header class="top">
+  <div class="brand"><span class="dot"></span>VALONTI&nbsp;×&nbsp;ТОН&nbsp; <b>презентация для команды</b></div>
+  <div class="count" id="count">01 / 13</div>
+</header>
+
+<main class="deck" id="deck">
+
+  <!-- 1 COVER -->
+  <section class="slide reveal-s active"><div class="inner">
+    <div class="snum"><span class="bar"></span>ВНУТРЕННЯЯ ВЕРСИЯ · ДЛЯ ОЛИ И КОМАНДЫ МАРКЕТИНГА</div>
+    <h1>VALONTI × ТОН.<br><span class="hl">Как выступить, чтобы дизайнеры всё поняли.</span></h1>
+    <p class="lead">Завтра заходим к дизайнерам от <b>VALONTI</b>, а не от GENGLASS. Эта презентация - наша внутренняя подготовка: что говорить, что показать, чего не говорить. Коротко и по делу.</p>
+    <div class="stamp">
+      <div class="s">Спикер: <b>Оля</b></div>
+      <div class="s">Зал: <b>дизайнеры</b></div>
+      <div class="s">Проверено ФЕНИКСом: <b>9.6/10</b></div>
+    </div>
+    <div class="hint">Листайте <span class="key">→</span> стрелками, колесом или свайпом</div>
+  </div></section>
+
+  <!-- 2 СУТЬ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>СУТЬ ЗА ОДИН ЭКРАН</div>
+    <h2>Один герой - <span class="em">VALONTI.</span> Производство - наше доказательство.</h2>
+    <div class="rows">
+      <div class="rw"><span class="ic inv">◆</span><div class="tx"><b>Говорим про VALONTI - почти всё время.</b> Это лицо вечера, его и продаём.</div></div>
+      <div class="rw"><span class="ic keep">✓</span><div class="tx"><b>GENGLASS и группу упоминаем коротко</b> - только чтобы показать: за нами реальный завод и опытные мастера.</div></div>
+      <div class="rw"><span class="ic gold">★</span><div class="tx"><b>Цель вечера - собрать контакты дизайнеров,</b> а не продать со сцены. Сделка с дизайнером идёт 2-4 месяца.</div></div>
+    </div>
+  </div></section>
+
+  <!-- 3 КТО ЕСТЬ КТО -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>КТО ЕСТЬ КТО · ТРИ ИМЕНИ</div>
+    <h2>Три имени, <span class="em">три разные роли</span></h2>
+    <div class="cards">
+      <div class="cd"><div class="tag">Опора · 1 фраза</div><h3>GENGROUP</h3><p>Наша производственная группа. Своё производство, свои мастера, станки. Имя, которое снимает страх «а вы кто вообще».</p></div>
+      <div class="cd hero"><div class="tag">Герой · о нём говорим</div><h3>VALONTI</h3><p>Мебель и предметы из премиальных материалов под ваш проект. Нестандарт, который делают опытные мастера.</p></div>
+      <div class="cd proof"><div class="tag">Доказательство · упомянуть</div><h3>GENGLASS</h3><p>Серийные изделия хорошего качества для дома. Доказывает: руки и контроль качества у нас уже есть.</p></div>
+    </div>
+    <div class="note"><b>Связь простыми словами:</b> VALONTI - молодой, но за ним взрослое производство группы. Тот же завод, что делает серию, делает и ваш нестандарт. «Молодой» перестаёт пугать.</div>
+  </div></section>
+
+  <!-- 4 ПРАВИЛО -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ГЛАВНОЕ ПРАВИЛО ВЕЧЕРА</div>
+    <h2>Чтобы дизайнер <span class="em">не запутался в трёх именах</span></h2>
+    <p class="sub">У дизайнера на стенде меньше минуты. Если не понял, кто есть кто, - контакт потерян. Поэтому имена не равны.</p>
+    <div class="rows">
+      <div class="rw"><span class="ic inv">1</span><div class="tx"><b>Один герой - VALONTI.</b> О нём говорим, его показываем, его примеры и материалы.</div></div>
+      <div class="rw"><span class="ic keep">2</span><div class="tx"><b>Одно доказательство - GENGLASS.</b> Упомянуть пару раз: «серийное направление группы, уже стоит в домах». Без отдельных слайдов.</div></div>
+      <div class="rw"><span class="ic gold">3</span><div class="tx"><b>Одна опора - GENGROUP.</b> Один раз показать цех и станки. Дальше не возвращаемся.</div></div>
+    </div>
+    <div class="note"><b>Проверка:</b> если дизайнер пересказал коллеге одной фразой - «VALONTI делают нестандарт из премиальных материалов, за ними настоящее производство» - получилось.</div>
+  </div></section>
+
+  <!-- 5 ЧТО ГОВОРИМ / НЕ ГОВОРИМ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>СЛОВА, КОТОРЫЕ РЕШАЮТ</div>
+    <h2>Что говорим <span class="em">и что не говорим</span></h2>
+    <div class="split">
+      <div class="box yes"><div class="bh">ГОВОРИМ ПРО VALONTI ТАК</div><ul>
+        <li>«Премиальные материалы и ручная работа под ваш нестандартный проект»</li>
+        <li>Называем материал по имени: камень, латунь, брашированная сталь</li>
+        <li>Говорим про результат для дизайнера, а не про себя</li>
+      </ul></div>
+      <div class="box no"><div class="bh">НЕ ГОВОРИМ НИКОГДА</div><ul>
+        <li>«Роскошь» и «доступная роскошь» - пугает дизайнера и звучит как «дорого и пафосно»</li>
+        <li>«Индивидуальный подход», «высокое качество», «уникальный» - пустые слова</li>
+        <li>Не продаём GENGLASS параллельно и не перечисляем все бренды группы</li>
+      </ul></div>
+    </div>
+  </div></section>
+
+  <!-- 6 ПЕРЕХОД РЕЧЁВКА -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>КАК ОБЪЯСНИТЬ ПЕРЕХОД · РЕЧЁВКА ОЛИ</div>
+    <p class="quote"><span class="mark">«</span>Раньше нас знали как красивую витрину. Но дизайнеры приходили с задачей, которую серия не закрывает: нестандартный размер, своя геометрия, конкретный материал. Мы пошли за этим запросом. <b>VALONTI - это про материал, который вы выбираете, и руки, которые сделают по вашему чертежу.</b><span class="mark">»</span></p>
+    <div class="note">Мы не извиняемся и не говорим «мы передумали». Старое тихо снимаем, разговор переводим с «какой у вас бренд» на «что я могу с вами сделать». Для дизайнера второе сильнее.</div>
+  </div></section>
+
+  <!-- 7 ТРИ ПРИЧИНЫ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ЗА ЧТО ДИЗАЙНЕР ВЫБИРАЕТ VALONTI</div>
+    <h2>Материал → мастерство → <span class="em">ваш нестандарт</span></h2>
+    <div class="cards">
+      <div class="cd"><div class="tag">Материал</div><h3>Настоящий, не «похожий»</h3><p>Камень, металл, стекло. Дизайнеру не надо оправдываться за выбор поставщика.</p><p class="said">Заказчику: «это настоящий камень, пощупайте разницу».</p></div>
+      <div class="cd"><div class="tag">Мастерство</div><h3>Сложное решаем сами</h3><p>Стык камня и металла, кромка без скола, скрытое крепление - наша забота, а не ваша.</p><p class="said">Заказчику: «конструктив делают мастера, поэтому выглядит именно так».</p></div>
+      <div class="cd"><div class="tag">Под заказ</div><h3>Нестандарт - наш обычный режим</h3><p>Не доплата за головную боль. Делаем по вашему чертежу под конкретный проект.</p><p class="said">Заказчику: «сделано под вас, готового аналога нет».</p></div>
+    </div>
+  </div></section>
+
+  <!-- 8 ЦЕНЫ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>СКОЛЬКО ЭТО СТОИТ · ЧТО МОЖНО ГОВОРИТЬ</div>
+    <h2>Продаём <span class="em">лестницу,</span> не «всё с нуля»</h2>
+    <div class="pricerows">
+      <div class="pr"><div class="v">+5-15%</div><div class="d"><b>Нестандартный размер или отделка готовой модели.</b> Быстро, недели. Закрывает большинство запросов.</div></div>
+      <div class="pr"><div class="v">+15-30%</div><div class="d"><b>Авторская модель.</b> Базовый уровень VALONTI: материал и авторство держат премиум.</div></div>
+      <div class="pr"><div class="v">20-90 дней</div><div class="d"><b>Изделие с нуля по чертежам.</b> Верхняя полка - только под подтверждённый заказчиком бюджет.</div></div>
+    </div>
+    <div class="note"><b>Если спросят прайс:</b> «Прайса на заказ нет - цена считается под проект. Дам вилку надбавок и пришлю смету под ваш референс». Точные цены наугад не называем.</div>
+  </div></section>
+
+  <!-- 9 FAQ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ОТВЕТЫ НА ОСТРЫЕ ВОПРОСЫ</div>
+    <h2>Что точно <span class="em">спросят на стенде</span></h2>
+    <div class="qa">
+      <div class="qi"><div class="q">Вы новые - можно ли доверять?</div><div class="a">Имя новое, производство за ним - нет. Тот же завод и мастера, что делают серию GENGLASS. Риск - незнакомое имя, а не незнакомый исполнитель.</div></div>
+      <div class="qi"><div class="q">Чем отличаетесь от GENGLASS?</div><div class="a">GENGLASS - серия из каталога. VALONTI - нестандарт из премиальных материалов, когда готового решения нет. <b>Одно производство, два режима.</b></div></div>
+      <div class="qi"><div class="q">Дайте прайс прямо сейчас.</div><div class="a">Прайса на заказ нет. Вилка: нестандарт <b>+5-15%</b>, авторская <b>+15-30%</b>. Смету пришлю под ваш референс.</div></div>
+      <div class="qi"><div class="q">Чьи проекты вы уже сделали?</div><div class="a">Покажу 2-3 готовых примера здесь: фото, чертёж, результат. Громкими именами не торгуем - показываем работу.</div></div>
+    </div>
+  </div></section>
+
+  <!-- 10 РОЛИК -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>РОЛИК «РЕЗ» ПЕРЕД ВЫСТУПЛЕНИЕМ · 28 СЕК</div>
+    <h2>Показываем то, <span class="em">что дизайнер не покажет клиенту сам</span></h2>
+    <div class="filmstrip">
+      <div class="fr"><div class="n">0-3 с</div><p>Чёрный камень крупно, свет скользит по прожилкам</p></div>
+      <div class="fr"><div class="n">3-9 с</div><p>Струя воды режет камень, пыль в свете</p></div>
+      <div class="fr"><div class="n">9-14 с</div><p>Руки мастера снимают кромку, крупный план</p></div>
+      <div class="fr"><div class="n">14-24 с</div><p>Готовый предмет в свету, камера отъезжает в цех</p></div>
+      <div class="fr"><div class="n">24-28 с</div><p>Чёрный экран: VALONTI · камень, бронза, под заказ</p></div>
+      <div class="fr"><div class="n">внизу</div><p>тонко: производство GENGROUP</p></div>
+    </div>
+    <div class="note">Ведём не от логотипа, а от среза материала. Премиальность держим материалом, светом и тишиной, а не пафосом. Слова «роскошь» в ролике нет.</div>
+  </div></section>
+
+  <!-- 11 СТОП-КРАНЫ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ЧТОБЫ НЕ ПОТЕРЯТЬ ДЕНЬГИ</div>
+    <h2>Под заказ выгодно <span class="em">только при дисциплине</span></h2>
+    <p class="sub">Это для команды, не для сцены. Перед запуском потока заказов договариваемся о правилах, иначе просчёты съедят прибыль.</p>
+    <div class="rows">
+      <div class="rw"><span class="ic gold">▸</span><div class="tx"><b>Минимальный заказ.</b> Мелкие хотелки ниже порога не считаем как проект.</div></div>
+      <div class="rw"><span class="ic gold">▸</span><div class="tx"><b>Лимит бесплатных просчётов</b> на дизайнера. Дальше просчёт авансируется или идёт в заказ.</div></div>
+      <div class="rw"><span class="ic gold">▸</span><div class="tx"><b>Образцы - под конкретный проект,</b> а не «на посмотреть». Отмечаем дизайнера в базе.</div></div>
+      <div class="rw"><span class="ic gold">▸</span><div class="tx"><b>Считаем время на просчёты отдельно,</b> чтобы видеть реальную прибыль канала.</div></div>
+    </div>
+  </div></section>
+
+  <!-- 12 ПРОВЕРИТЬ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ПРОВЕРИТЬ ДО СЦЕНЫ</div>
+    <h2>Не сказать <span class="em">выдуманного</span></h2>
+    <div class="split">
+      <div class="box no"><div class="bh">НЕ ГОВОРИТЬ БЕЗ ПОДТВЕРЖДЕНИЯ</div><ul>
+        <li>Число проектов и годы опыта - подставить из 1С</li>
+        <li>Точность изготовления (миллиметры) - подтвердить у производства</li>
+        <li>Стартовые цены и процент партнёрской программы</li>
+        <li>Конкретный список камней и покрытий - сверить с наличием</li>
+      </ul></div>
+      <div class="box yes"><div class="bh">ПРИНЕСТИ НА СТЕНД</div><ul>
+        <li>Образцы материала, чтобы дать в руки</li>
+        <li>2-3 готовых примера: фото, чертёж, результат</li>
+        <li>Короткое видео цеха</li>
+        <li>Шпаргалку (слайды 2-9) и прогон 10 минут</li>
+      </ul></div>
+    </div>
+    <div class="note warn"><b>Честность - часть нашего образа.</b> Лучше сказать «уточню и пришлю», чем назвать цифру наугад. Дизайнер слышит фальшь за секунду.</div>
+  </div></section>
+
+  <!-- 13 ЦЕЛЬ -->
+  <section class="slide reveal-s"><div class="inner">
+    <div class="snum"><span class="bar"></span>ГЛАВНОЕ, РАДИ ЧЕГО ВЫХОДИМ</div>
+    <div class="big-num">контакты</div>
+    <h2 style="margin-top:14px">Цель вечера - <span class="em">снять контакты дизайнеров</span></h2>
+    <div class="rows">
+      <div class="rw"><span class="ic keep">✓</span><div class="tx"><b>Не продаём со сцены</b> - знакомимся и берём контакт под конкретный интерес.</div></div>
+      <div class="rw"><span class="ic gold">▸</span><div class="tx"><b>После стенда</b> горячий контакт берёт в работу менеджер за 1-2 дня, фиксирует запрос и метку «ТОН».</div></div>
+      <div class="rw"><span class="ic stop">!</span><div class="tx"><b>Контакт без следующего шага - потерянный контакт.</b></div></div>
+    </div>
+    <div class="hint">Готово. Можно прогонять <span class="key">←</span> назад по слайдам</div>
+  </div></section>
+
+</main>
+
+<button class="arrow prev" id="prev" aria-label="Назад">‹</button>
+<button class="arrow next" id="next" aria-label="Вперёд">›</button>
+<nav class="dots" id="dots"></nav>
+
+<script>
+(function(){
+  var deck=document.getElementById('deck');
+  var slides=Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var prog=document.getElementById('prog'),count=document.getElementById('count');
+  var prev=document.getElementById('prev'),next=document.getElementById('next');
+  var dotsWrap=document.getElementById('dots');
+  var n=slides.length,cur=0;
+  function pad(x){return (x<10?'0':'')+x;}
+  // dots
+  slides.forEach(function(_,i){
+    var b=document.createElement('button');b.setAttribute('aria-label','Слайд '+(i+1));
+    b.addEventListener('click',function(){go(i);});
+    dotsWrap.appendChild(b);
+  });
+  var dots=Array.prototype.slice.call(dotsWrap.children);
+  function go(i){i=Math.max(0,Math.min(n-1,i));deck.scrollTo({left:i*deck.clientWidth,behavior:'smooth'});}
+  function render(){
+    prog.style.width=((cur)/(n-1)*100)+'%';
+    count.textContent=pad(cur+1)+' / '+pad(n);
+    dots.forEach(function(d,i){d.classList.toggle('on',i===cur);});
+    slides.forEach(function(s,i){s.classList.toggle('active',i===cur);});
+    prev.disabled=cur===0;next.disabled=cur===n-1;
+  }
+  var raf;
+  deck.addEventListener('scroll',function(){
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(function(){
+      var i=Math.round(deck.scrollLeft/deck.clientWidth);
+      if(i!==cur){cur=i;render();}
+    });
+  },{passive:true});
+  prev.addEventListener('click',function(){go(cur-1);});
+  next.addEventListener('click',function(){go(cur+1);});
+  window.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();go(cur+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}
+    else if(e.key==='Home'){go(0);}else if(e.key==='End'){go(n-1);}
+  });
+  // desktop: vertical wheel -> horizontal slide step (debounced)
+  var wlock=false;
+  deck.addEventListener('wheel',function(e){
+    if(window.innerWidth<=760)return;
+    if(Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
+    e.preventDefault();
+    if(wlock)return;
+    if(Math.abs(e.deltaY)<8)return;
+    wlock=true;go(cur+(e.deltaY>0?1:-1));
+    setTimeout(function(){wlock=false;},520);
+  },{passive:false});
+  window.addEventListener('resize',function(){deck.scrollLeft=cur*deck.clientWidth;});
+  render();
+})();
+</script>
+</body>
+</html>

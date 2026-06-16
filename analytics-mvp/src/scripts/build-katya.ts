@@ -921,6 +921,17 @@ function render(cur,cmp){
   const pageJs = `
 const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
 const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
+const CC_ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';var ccAdsReq=0;
+// Живой ДРР за ТОЧНЫЙ выбранный период (вчера/диапазон), обновляет KPI поверх запечённого снимка.
+function ccLiveDrr(cur){
+  if(typeof fetch==='undefined')return; var my=++ccAdsReq;
+  fetch(CC_ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(a){ if(my!==ccAdsReq||!a||!a.totals)return;
+      var c=[].slice.call(document.querySelectorAll('#kpis .card')).filter(function(x){return x.textContent.indexOf('ДРР')>=0;})[0];
+      if(c){ c.querySelector('.kt-v').textContent=(a.totals.drr||0)+'%'; var s=c.querySelector('.kt-d'); if(s)s.textContent='живой за '+a.dateFrom+'..'+a.dateTo; }
+    }).catch(function(){});
+}
 // ДРР за выбранный период (из запечённых снимков 7/30/90), а не статичный 30-дн.
 function adsForPeriod(){ if(CURP==='7d'||CURP==='today')return ADSP.p7||ADS; if(CURP==='90d'||CURP==='all')return ADSP.p90||ADS; if(CURP==='range'){var d=Math.round((Date.parse(periodDates('range').to)-Date.parse(periodDates('range').from))/864e5)+1; return d<=10?(ADSP.p7||ADS):d<=45?(ADSP.p30||ADS):(ADSP.p90||ADS);} return ADSP.p30||ADS; }
 const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
@@ -942,6 +953,7 @@ function render(cur,cmp){
     kpi('ДРР канала',((adsForPeriod().totals||{}).drr||0)+'%','<span class="kt-d na">за период</span>','Доля рекламы в выручке за выбранный период. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
+  ccLiveDrr(cur); // уточняем ДРР живым запросом за точный период (вчера/диапазон)
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
   // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)
   const dV=(vw-vwP)*croP*aovP, dC=vw*(cro-croP)*aovP, dA=vw*cro*(aov-aovP);

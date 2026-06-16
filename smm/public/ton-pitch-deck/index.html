@@ -366,6 +366,7 @@ h2 .em{color:var(--gold)}
   // desktop: vertical wheel -> horizontal slide step (debounced)
   var wlock=false;
   deck.addEventListener('wheel',function(e){
+    if(document.body.classList.contains('anno-commenting'))return;
     if(window.innerWidth<=760)return;
     if(Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
     e.preventDefault();
@@ -378,5 +379,11 @@ h2 .em{color:var(--gold)}
   render();
 })();
 </script>
+
+<!-- Модуль комментирования выделенных областей (как в Figma / Google Drive).
+     storage:'local' = комментарии в этом браузере. Для общих комментариев у всех
+     участников замените storage на supabase-конфиг (см. annotate.js, низ файла). -->
+<script>window.ANNOTATE={pageKey:'ton-pitch-deck',sectionSelector:'.slide',storage:'local'};</script>
+<script src="../annotate/annotate.js" defer></script>
 </body>
 </html>

@@ -380,10 +380,8 @@ h2 .em{color:var(--gold)}
 })();
 </script>
 
-<!-- Модуль комментирования выделенных областей (как в Figma / Google Drive).
-     storage:'local' = комментарии в этом браузере. Для общих комментариев у всех
-     участников замените storage на supabase-конфиг (см. annotate.js, низ файла). -->
-<script>window.ANNOTATE={pageKey:'ton-pitch-deck',sectionSelector:'.slide',storage:{type:'supabase',url:'https://hyryostkfwkcvfkqmpel.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5cnlvc3RrZndrY3Zma3FtcGVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTIyMzYsImV4cCI6MjA5NzE2ODIzNn0.lz4BUgv8WeEUbGS2tr5Wcu2HGoKH2urL-cXVSHHc5oQ'}};</script>
-<script src="../annotate/annotate.js?v=5" defer></script>
+<!-- Комментарии: модуль annotate, встройка одной строкой через загрузчик.
+     Параметры в data-* (см. annotate/README.md). storage по умолчанию - общее облако. -->
+<script src="../annotate/annotate-init.js" data-page="ton-pitch-deck" data-sections=".slide" defer></script>
 </body>
 </html>

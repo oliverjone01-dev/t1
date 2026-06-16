@@ -632,7 +632,7 @@ const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
-const dlt=(c,p,goodUp=true)=>{if(!p)return '<span class="kt-d na">нет базы</span>';const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
+const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
 function periodDates(p){
   if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
   if(p==='all')return {from:FLOOR,to:MAXD};
@@ -735,8 +735,8 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(S('units')),dlt(S('units'),P('units'))),
     kpi('Показы',fMln(S('views')),dlt(S('views'),P('views'))),
     kpi('Конверсия показ→заказ',cr(S('units'),S('views')),dlt(S('units')/(S('views')||1),P('units')/(P('views')||1))),
-    kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false)),
-    kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false))
+    kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false,'шт')),
+    kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
   document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
   const stages=[['Показы',S('views')],['В корзину',S('cart')],['Заказы',S('units')],['Доставлено',S('deliv')]];
@@ -932,7 +932,7 @@ function render(cur,cmp){
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
     kpi('ДРР канала',(ADS.totals.drr||0)+'%','<span class="kt-d na">снимок 30 дн</span>','Доля рекламы в выручке за 30 дн. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
-    kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false),'Возвраты съедают маржу. Рост - смотри качество и описание.')
+    kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
   // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)

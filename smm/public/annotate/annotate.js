@@ -115,16 +115,22 @@
 
   /* ---------- маркеры на странице ---------- */
   function renderMarkers() {
-    Array.prototype.slice.call(document.querySelectorAll('.anno-marker')).forEach(function (m) { m.remove(); });
+    Array.prototype.slice.call(document.querySelectorAll('.anno-marker,.anno-region')).forEach(function (m) { m.remove(); });
     var secs = sections();
     var ordered = parents();
     ordered.forEach(function (a, i) {
-      var sec = secs[a.section]; if (!sec) return;
+      var sec = secs[a.section]; if (!sec || !a.rect) return;
       if (getComputedStyle(sec).position === 'static') sec.style.position = 'relative';
+      var rx = Math.max(1, Math.min(99, a.rect.x)), ry = Math.max(1, Math.min(99, a.rect.y));
+      if (OPEN_THREAD === a.id && a.rect.w > 1) {
+        var reg = el('div', 'anno-region');
+        reg.style.cssText = 'left:' + a.rect.x + '%;top:' + a.rect.y + '%;width:' + a.rect.w + '%;height:' + a.rect.h + '%';
+        sec.appendChild(reg);
+      }
       var m = el('button', 'anno-marker' + (a.resolved ? ' done' : '') + (OPEN_THREAD === a.id ? ' active' : ''));
-      m.style.left = a.rect.x + '%'; m.style.top = a.rect.y + '%';
+      m.style.left = rx + '%'; m.style.top = ry + '%';
       m.textContent = (i + 1);
-      m.title = a.author + ': ' + a.body.slice(0, 60);
+      m.title = a.author + ': ' + (a.body || '').slice(0, 60);
       m.onclick = function (e) { e.stopPropagation(); openThread(a.id, true); };
       sec.appendChild(m);
     });
@@ -223,7 +229,9 @@
       overlay.addEventListener('pointerdown', onDown);
     }
     if (overlay) overlay.style.display = on ? 'block' : 'none';
+    if (!on) cleanupDraw();
   }
+  function cleanupDraw() { if (drawRect) { drawRect.remove(); drawRect = null; } start = null; }
   function onDown(e) {
     overlay.style.pointerEvents = 'none';
     var under = document.elementFromPoint(e.clientX, e.clientY);
@@ -235,9 +243,16 @@
     start = { sec: sec, r: r, x: e.clientX, y: e.clientY };
     drawRect = el('div', 'anno-draw'); document.body.appendChild(drawRect);
     moveDraw(e);
-    overlay.setPointerCapture(e.pointerId);
+    try { overlay.setPointerCapture(e.pointerId); } catch (err) { }
     overlay.addEventListener('pointermove', moveDraw);
     overlay.addEventListener('pointerup', onUp);
+    overlay.addEventListener('pointercancel', onCancel);
+  }
+  function onCancel() {
+    overlay.removeEventListener('pointermove', moveDraw);
+    overlay.removeEventListener('pointerup', onUp);
+    overlay.removeEventListener('pointercancel', onCancel);
+    cleanupDraw();
   }
   function moveDraw(e) {
     if (!start) return;
@@ -248,6 +263,8 @@
   function onUp(e) {
     overlay.removeEventListener('pointermove', moveDraw);
     overlay.removeEventListener('pointerup', onUp);
+    overlay.removeEventListener('pointercancel', onCancel);
+    if (!start) { cleanupDraw(); return; }
     var r = start.r;
     var x0 = Math.min(e.clientX, start.x), y0 = Math.min(e.clientY, start.y);
     var w = Math.abs(e.clientX - start.x), h = Math.abs(e.clientY - start.y);
@@ -322,7 +339,7 @@
   function injectCSS() {
     var c = getComputedStyle(document.documentElement);
     var css = `
-    .anno-toolbar{position:fixed;right:16px;top:14px;z-index:9000;display:flex;gap:8px;align-items:center;font-family:inherit}
+    .anno-toolbar{position:fixed;left:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:9000;display:flex;gap:8px;align-items:center;font-family:inherit}
     .anno-tb{display:inline-flex;align-items:center;gap:7px;background:rgba(22,20,15,.82);color:#F5F1E8;border:1px solid #33302A;border-radius:30px;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;backdrop-filter:blur(8px);transition:.2s}
     .anno-tb i{font-style:normal;color:#C8A951}
     .anno-tb:hover{border-color:#C8A951}
@@ -331,7 +348,8 @@
     .anno-marker{position:absolute;transform:translate(-50%,-50%);min-width:24px;height:24px;padding:0 6px;border-radius:13px 13px 13px 2px;background:#C8A951;color:#0A0A0A;border:2px solid #0A0A0A;font-weight:800;font-size:12px;cursor:pointer;z-index:40;box-shadow:0 3px 10px rgba(0,0,0,.5);transition:transform .15s}
     .anno-marker:hover,.anno-marker.active{transform:translate(-50%,-50%) scale(1.18);background:#D4A857}
     .anno-marker.done{background:#6FAE7B;opacity:.7}
-    .anno-overlay{position:fixed;inset:0;z-index:8000;cursor:crosshair;background:rgba(10,10,10,.04)}
+    .anno-region{position:absolute;z-index:39;border:2px solid #C8A951;background:rgba(200,169,81,.14);border-radius:6px;pointer-events:none;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+    .anno-overlay{position:fixed;inset:0;z-index:8000;cursor:crosshair;background:rgba(10,10,10,.04);touch-action:none}
     body.anno-commenting .deck,body.anno-commenting [data-annotate-root]{overflow:hidden !important}
     body.anno-commenting{cursor:crosshair}
     .anno-draw{position:fixed;z-index:8500;border:2px solid #C8A951;background:rgba(200,169,81,.16);border-radius:4px;pointer-events:none}
@@ -377,7 +395,15 @@
     .anno-modal p{color:#A39E92;font-size:13.5px;margin:0 0 16px;line-height:1.5}
     .anno-modal input{width:100%;background:#16140F;border:1px solid #33302A;border-radius:10px;color:#F5F1E8;font-family:inherit;font-size:15px;padding:12px 14px;margin-bottom:16px}
     .anno-modal input.err{border-color:#D9694C}
-    @media(max-width:620px){.anno-toolbar{right:10px;top:10px}.anno-tb span{display:none}.anno-tb{padding:9px 11px}.anno-store{display:none}}
+    @media(max-width:620px){
+      .anno-toolbar{left:10px;bottom:calc(12px + env(safe-area-inset-bottom))}
+      .anno-tb{padding:9px 12px;font-size:12px}.anno-store{display:none}
+      .anno-thread{left:0 !important;right:0 !important;top:auto !important;bottom:0 !important;width:100% !important;max-width:100% !important;border-radius:18px 18px 0 0;max-height:84vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+      .anno-th-body{max-height:none;flex:1}
+      .anno-composer{width:100% !important;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+      .anno-panel{width:100%;max-width:100%}
+      .anno-marker{min-width:28px;height:28px;font-size:13px}
+    }
     `;
     var s = el('style'); s.textContent = css; document.head.appendChild(s);
   }

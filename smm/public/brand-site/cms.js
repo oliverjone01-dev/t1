@@ -106,15 +106,23 @@
   function fromSeed(reason) {
     return Promise.resolve({ src: 'seed', reason: reason || '', updated: SEED.updated || '', rubricator: SEED.rubricator || [], plan: SEED.plan || [] });
   }
+  // Распознаём форму вкладки по заголовкам, чтобы fallback на «первую вкладку»
+  // не подсунул рубрикатор вместо плана (у них пересекается колонка «рубрика»).
+  function has(rows, keys) { return rows.some(function (o) { return keys.some(function (k) { return k in o; }); }); }
+  function looksLikePlan(rows) { return has(rows, ['статус', 'status', 'неделя', 'week']); }
+  function looksLikeRubric(rows) { return has(rows, ['kpi', 'частота', 'freq', 'активна', 'active']); }
+
   // Каждая вкладка тянется независимо: если одну переименовали/закрыли - падает
-  // только она и подменяется резервом, остальная часть остаётся живой.
-  // Пробуем имена вкладок по очереди (последним — первую вкладку, tab='').
-  function loadTab(tabs, mapper, seedArr) {
+  // только она и подменяется резервом, остальная часть остаётся живой. Имена
+  // вкладок пробуем по очереди (последним - первую вкладку, tab=''), но принимаем
+  // её только если форма совпала (validator), иначе идём дальше / в резерв.
+  function loadTab(tabs, mapper, validator, seedArr) {
     var list = tabs.slice();
     function attempt() {
       if (!list.length) return Promise.resolve({ ok: false, data: seedArr });
       var t = list.shift();
       return fetchTab(t).then(function (rows) {
+        if (!validator(rows)) return attempt();
         var m = mapper(rows); return m.length ? { ok: true, data: m } : attempt();
       }).catch(attempt);
     }
@@ -123,8 +131,8 @@
   function load() {
     if (!CFG || !CFG.sheetId || CFG.sheetId === 'PASTE_SHEET_ID') return fromSeed('таблица не настроена');
     return Promise.all([
-      loadTab([CFG.rubricTab || 'Рубрикатор'], mapRubric, SEED.rubricator || []),
-      loadTab([CFG.planTab || 'Контент-план', ''], mapPlan, SEED.plan || [])
+      loadTab([CFG.rubricTab || 'Рубрикатор', ''], mapRubric, looksLikeRubric, SEED.rubricator || []),
+      loadTab([CFG.planTab || 'Контент-план', ''], mapPlan, looksLikePlan, SEED.plan || [])
     ]).then(function (r) {
       var anyLive = r[0].ok || r[1].ok;
       return {
@@ -222,7 +230,8 @@
       '<div class="dash-brands">' +
       '<div class="db gg"><b>GENGLASS</b> опубл. ' + cnt(g, 'опубликовано') + ' / ' + g.length + '</div>' +
       '<div class="db v"><b>VALONTI</b> опубл. ' + cnt(v, 'опубликовано') + ' / ' + v.length + '</div>' +
-      '</div>';
+      '</div>' +
+      '<div class="dash-note">% выполнения растёт по ходу периода: в начале месяца низкий процент - норма, смотрите темп по неделям ниже.</div>';
   }
 
   /* ---------- индикатор источника ---------- */

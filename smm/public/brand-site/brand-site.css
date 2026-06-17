@@ -7,7 +7,7 @@
   --v:#C8A951;--v-soft:rgba(200,169,81,.13);              /* акцент VALONTI (золотистый, премиальный) */
   --v-ink:#D8BE78;
   --hyp-bg:rgba(120,116,104,.16);--hyp-ink:#B7B0A0;       /* нейтральный тег гипотез, вне бренд-логики */
-  --ink:#F5F1E8;--ink2:#A39E92;--ink3:#6B665C;
+  --ink:#F5F1E8;--ink2:#A39E92;--ink3:#807A6E;
   --keep:#6FAE7B;--stop:#D9694C;
   --radius:14px;--shadow:0 18px 50px rgba(0,0,0,.55);--ease:cubic-bezier(.22,.61,.36,1);
 }
@@ -212,4 +212,26 @@ th:last-child,td:last-child{border-right:none}
   .rgrid{grid-template-columns:1fr}
   .dash-row{grid-template-columns:1fr 1fr}
   .dash-brands{grid-template-columns:1fr}
+}
+
+/* ============================================================================
+   HARDEN: доступность и устойчивость (focus, skip-link, reduced-motion, overflow)
+   ========================================================================== */
+/* видимый фокус для клавиатуры (WCAG 2.4.7) */
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--gold);outline-offset:3px;border-radius:6px}
+.nav a:focus-visible{outline-offset:1px}
+/* skip-link: первым табом увести на контент */
+.skip{position:absolute;left:12px;top:-48px;z-index:80;background:var(--gold);color:#0A0A0A;
+  font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px;transition:top .18s var(--ease)}
+.skip:focus{top:12px}
+/* перенос длинного текста из таблицы — не ломать сетку карточек */
+.pcard,.rcard{min-width:0}
+.pc-idea,.pc-hook,.pc-rub,.rc-idea,.rc-kpi,.rc-top h4,.pc-foot,.rc-meta,.chip{overflow-wrap:anywhere}
+.pc-link{word-break:break-word}
+/* уважать prefers-reduced-motion */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .reveal{opacity:1!important;transform:none!important}
 }

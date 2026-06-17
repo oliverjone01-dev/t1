@@ -89,6 +89,7 @@ jobs:
           set -euo pipefail
           npm run join:cogs
           npm run build:site
+          npm run katya # иначе katya-*.html в дате-коммите отстают от свежих данных
 
       - name: Commit (pull --rebase, retry)
         working-directory: .

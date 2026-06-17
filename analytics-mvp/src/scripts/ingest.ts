@@ -19,7 +19,9 @@ interface RawRow {
   deliv: number; ret: number; canc: number;
 }
 
-type DayTot = { date: string; revenue: number; units: number; views: number; to_cart: number; delivered: number; returns: number; cancellations: number };
+type DayTot = { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number };
+// День-уровень из OZON (dimension=day): истинные канальные показы, включая не привязанные к SKU.
+type RawTotal = { date: string; views: number; views_search: number; pdp_views: number; to_cart: number; ordered: number; revenue: number; delivered: number; returns: number; cancellations: number };
 
 function loadSnapshot(store: Store): number {
   if (!existsSync(SNAPSHOT)) return 0;
@@ -35,10 +37,11 @@ function saveSnapshot(store: Store): number {
   return rows.length;
 }
 
-// Дневные тоталы канала (показы/корзина/заказы/доставка/возвраты/отмены) - из ВСЕХ строк payload,
-// чтобы конверсия и возвраты считались по полным показам, а не только по дням-с-продажей.
-// Хранятся отдельно (1 строка/день), per-SKU история остаётся компактной (только продажи).
-function upsertTotals(raw: RawRow[]): { days: number; total: number } {
+// Дневные тоталы канала (показы/корзина/заказы/доставка/возвраты/отмены), 1 строка/день.
+// Источник по приоритету: day-уровень OZON (payload.totals, dimension=day) - истинные показы
+// канала, включая не привязанные к SKU (+ показы в поиске и посещения карточки). Если totals нет
+// (старый workflow) - фолбэк на сумму per-SKU строк (заниженные показы, как было раньше).
+function upsertTotals(raw: RawRow[], dayTotals: RawTotal[]): { days: number; total: number; source: string } {
   const map = new Map<string, DayTot>();
   if (existsSync(TOTALS)) {
     for (const l of readFileSync(TOTALS, "utf-8").split("\n").filter(Boolean)) {
@@ -46,20 +49,34 @@ function upsertTotals(raw: RawRow[]): { days: number; total: number } {
     }
   }
   const touched = new Set<string>();
-  for (const r of raw) {
-    if (!r.date) continue;
-    if (!touched.has(r.date)) { // день из payload перезаписываем заново (идемпотентно)
-      map.set(r.date, { date: r.date, revenue: 0, units: 0, views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0 });
-      touched.add(r.date);
+  let source = "per-SKU sum";
+  if (dayTotals.length) { // день-уровень: кладём как есть (истинный канальный тотал)
+    source = "day-level";
+    for (const d of dayTotals) {
+      if (!d.date) continue;
+      map.set(d.date, {
+        date: d.date, revenue: d.revenue || 0, units: d.ordered || 0, views: d.views || 0,
+        views_search: d.views_search || 0, pdp_views: d.pdp_views || 0, to_cart: d.to_cart || 0,
+        delivered: d.delivered || 0, returns: d.returns || 0, cancellations: d.cancellations || 0,
+      });
+      touched.add(d.date);
     }
-    const t = map.get(r.date)!;
-    t.revenue += r.rev || 0; t.units += r.units || 0; t.views += r.views || 0; t.to_cart += r.cart || 0;
-    t.delivered += r.deliv || 0; t.returns += r.ret || 0; t.cancellations += r.canc || 0;
+  } else { // фолбэк: сумма per-SKU строк (показы занижены - без непривязанных к SKU)
+    for (const r of raw) {
+      if (!r.date) continue;
+      if (!touched.has(r.date)) {
+        map.set(r.date, { date: r.date, revenue: 0, units: 0, views: 0, views_search: 0, pdp_views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0 });
+        touched.add(r.date);
+      }
+      const t = map.get(r.date)!;
+      t.revenue += r.rev || 0; t.units += r.units || 0; t.views += r.views || 0; t.to_cart += r.cart || 0;
+      t.delivered += r.deliv || 0; t.returns += r.ret || 0; t.cancellations += r.canc || 0;
+    }
   }
   const dates = [...map.keys()].sort();
   mkdirSync(dirname(TOTALS), { recursive: true });
   writeFileSync(TOTALS, dates.map((d) => JSON.stringify(map.get(d))).join("\n") + "\n");
-  return { days: touched.size, total: dates.length };
+  return { days: touched.size, total: dates.length, source };
 }
 
 type ViewRow = { date: string; sku: string; name: string; line: string; views: number; cart: number; units: number; deliv: number; ret: number; canc: number };
@@ -96,11 +113,12 @@ function upsertViews(raw: RawRow[]): { rows: number } {
 function main() {
   const path = process.argv[2];
   if (!path) throw new Error("Укажи путь к payload.json: npm run ingest -- <file>");
-  const payload = JSON.parse(readFileSync(path, "utf-8")) as { rows: RawRow[] };
+  const payload = JSON.parse(readFileSync(path, "utf-8")) as { rows: RawRow[]; totals?: RawTotal[] };
   const raw = payload.rows || [];
+  const dayTotals = payload.totals || [];
 
-  // 1) дневные тоталы из ВСЕХ строк (полные показы/возвраты)
-  const tot = upsertTotals(raw);
+  // 1) дневные тоталы канала: day-уровень OZON (истинные показы), иначе сумма per-SKU
+  const tot = upsertTotals(raw, dayTotals);
   // 1b) полные показы по SKU×день (для воронки по категориям)
   const vw = upsertViews(raw);
 
@@ -129,7 +147,7 @@ function main() {
   store.upsertSkuDaily(mapped);
   const after = saveSnapshot(store);
   const dates = [...new Set(raw.map((r) => r.date))].sort();
-  console.log(`Ингест: payload ${raw.length} строк. Тоталы: +${tot.days} дн (всего ${tot.total}). История(продажи) ${before}->${after}. Показы SKU×день: ${vw.rows}.`);
+  console.log(`Ингест: payload ${raw.length} строк. Тоталы(${tot.source}): +${tot.days} дн (всего ${tot.total}). История(продажи) ${before}->${after}. Показы SKU×день: ${vw.rows}.`);
   console.log(`Даты: ${dates[0]}..${dates[dates.length - 1]} (${dates.length} дней)`);
   store.close();
 }

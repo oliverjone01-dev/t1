@@ -703,7 +703,7 @@ ${CHANNEL_JS}
 // Воронка канала (показы/корзина/заказы/доставка/возвраты/отмены) - из дневных тоталов
 // data/daily_totals.ndjson (полные показы/возвраты, не только дни-с-продажей). Если файла нет -
 // фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
-const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
+const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
 const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[]; cart: number[]; rev: number[] }> = {};
 // Воронка в разрезе категорий и подкатегорий: показы/корзина/заказы/доставка по дням.
 // Источник - полные показы SKU×день (data/sku_views.ndjson, включая дни без продажи),
@@ -745,6 +745,7 @@ if (dailyTotals.length) {
   for (const t of dailyTotals) {
     const i = dayIdx(t.date); if (i < 0 || i >= TOTAL) continue;
     DAY_T.rev![i] = t.revenue || 0; DAY_T.units![i] = t.units || 0; DAY_T.views![i] = t.views || 0; DAY_T.cart![i] = t.to_cart || 0;
+    DAY_T.vsearch![i] = t.views_search || 0; DAY_T.pdp![i] = t.pdp_views || 0;
     DAY_T.deliv![i] = t.delivered || 0; DAY_T.ret![i] = t.returns || 0; DAY_T.canc![i] = t.cancellations || 0;
   }
 } else { // фолбэк: суммируем per-SKU историю
@@ -792,7 +793,7 @@ if (dailyTotals.length) {
 
 // --- страница 3: Воронка (реальные дни, динамика по периоду) ---
 {
-  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
+  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, vsearch: DAY_T.vsearch, pdp: DAY_T.pdp, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
   const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, canc: v.canc, cart: v.cart, rev: r4(v.rev.map((x) => x / 1e6)) }]));
   const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
   const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
@@ -841,11 +842,13 @@ function render(cur,cmp){
   document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
   renderCatFunnel(cur);
   // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
-  // Уровни «показы в поиске» и «посещения карточки» - отдельные метрики OZON, пока не тянем -> «нет данных».
+  // «Показы в поиске» (vsearch) и «Посещения карточки» (pdp) тянем день-уровнем OZON (dimension=day).
+  // Если за период их нет (старые дни до правки workflow) -> null -> «нет данных».
+  const nz=k=>{const s=S(k);return s>0?s:null;};
   const lv=[
     {n:'Показы, всего', v:S('views'), c:'из показов в поиск'},
-    {n:'Показы в поиске и каталоге', v:null, c:'из поиска в карточку'},
-    {n:'Посещения карточки товара', v:null, c:'из карточки в корзину'},
+    {n:'Показы в поиске и каталоге', v:nz('vsearch'), c:'из поиска в карточку'},
+    {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
     {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
     {n:'Выкуплено', v:S('deliv'), c:''}

@@ -67,8 +67,37 @@ for (const [ln, votes] of Object.entries(lineVote)) {
   if (top) LINE_CAT[ln] = top[0];
 }
 const NO_TAX_SUB = "Без таксономии";
-const catOf = (sku: string) => taxOf(sku).category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
-const subOf = (sku: string) => taxOf(sku).sub || NO_TAX_SUB;
+// --- автоген таксономии по названию товара (только канал OZON) ---
+// 167 SKU размечены вручную (data/sku_taxonomy.json), но в продажах 345 SKU -> 178 без подкатегории.
+// Достраиваем категорию/подкатегорию из названия (OZON-нейминг богат типом товара), словарь
+// подкатегорий совпадает с ручной разметкой. Это «автоген только для фильтра вверху Озон»:
+// прочие каналы пусты (нет данных) и не затрагиваются. Когда n8n вернёт дерево категорий
+// OZON (/v2/category/tree) - заменить эвристику на официальные категории.
+const _autoCache: Record<string, { category: string | null; sub: string | null }> = {};
+function autoTax(name: string): { category: string | null; sub: string | null } {
+  if (name in _autoCache) return _autoCache[name]!;
+  const n = (name || "").toLowerCase();
+  let category: string | null = null, sub: string | null = null;
+  if (/зеркал/.test(n)) {
+    category = "Зеркала";
+    if (/безрамн|без рамы/.test(n)) sub = "Зеркала безрамные";
+    else if (/в раме|в рамке/.test(n)) sub = "Зеркала в раме";
+    else if (/напольн/.test(n)) sub = "Зеркала напольные";
+    else if (/подсветк|led/.test(n)) sub = "Зеркала с подсветкой";
+    else sub = "Зеркала настенные";
+  } else if (/столешниц/.test(n)) { category = "Комплектующие"; sub = "Столешницы"; }
+  else if (/подстолье|опор[аы]|ножк/.test(n)) { category = "Комплектующие"; sub = "Подстолье"; }
+  else if (/перегородк|ширма/.test(n)) { category = "Перегородки"; sub = "Перегородки"; }
+  else if (/вешалк/.test(n)) { category = "Хранение"; sub = "Вешалки"; }
+  else if (/пуф|банкетк/.test(n)) { category = "Хранение"; sub = "Пуфы"; }
+  else if (/консол|тумб/.test(n)) { category = "Консоли/тумбы"; sub = "Консоли"; }
+  else if (/маркерн|доска/.test(n)) { category = "Маркерные доски"; sub = "Маркерные доски"; }
+  else if (/журнальн|кофейн/.test(n)) { category = "Столы"; sub = "Столы журнальные"; }
+  else if (/стол/.test(n)) { category = "Столы"; sub = "Столы обеденные"; }
+  return (_autoCache[name] = { category, sub });
+}
+const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || "").category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
+const subOf = (sku: string) => taxOf(sku).sub || autoTax(skuName[sku] || "").sub || NO_TAX_SUB;
 const modelOf = (sku: string) => taxOf(sku).model || taxOf(sku).offer || skuName[sku] || sku;
 
 // --- дерево категорий ---
@@ -675,7 +704,7 @@ ${CHANNEL_JS}
 // data/daily_totals.ndjson (полные показы/возвраты, не только дни-с-продажей). Если файла нет -
 // фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
 const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
-const lineDayOrd: Record<string, { units: number[]; ret: number[]; rev: number[] }> = {};
+const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[]; cart: number[]; rev: number[] }> = {};
 // Воронка в разрезе категорий и подкатегорий (из истории продаж): показы/корзина/заказы/доставка по дням.
 type Fun = { views: number[]; cart: number[]; units: number[]; deliv: number[] };
 const newFun = (): Fun => ({ views: zD(), cart: zD(), units: zD(), deliv: zD() });
@@ -686,8 +715,9 @@ for (const f of facts) {
   const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
   const fx: any = f; const sk = String(f.sku);
   const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
-  const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), rev: zD() });
-  L.units[i] = (L.units[i] ?? 0) + f.units; L.ret[i] = (L.ret[i] ?? 0) + (fx.returns || 0); L.rev[i] = (L.rev[i] ?? 0) + f.revenue;
+  const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), canc: zD(), cart: zD(), rev: zD() });
+  L.units[i] = (L.units[i] ?? 0) + f.units; L.ret[i] = (L.ret[i] ?? 0) + (fx.returns || 0);
+  L.canc[i] = (L.canc[i] ?? 0) + (fx.cancellations || 0); L.cart[i] = (L.cart[i] ?? 0) + (fx.to_cart || 0); L.rev[i] = (L.rev[i] ?? 0) + f.revenue;
   const cf = (catFun[cat] ||= newFun());
   cf.views[i] += fx.views || 0; cf.cart[i] += fx.to_cart || 0; cf.units[i] += f.units; cf.deliv[i] += fx.delivered || 0;
   const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
@@ -748,19 +778,19 @@ if (dailyTotals.length) {
 // --- страница 3: Воронка (реальные дни, динамика по периоду) ---
 {
   const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
-  const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, rev: r4(v.rev.map((x) => x / 1e6)) }]));
+  const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, canc: v.canc, cart: v.cart, rev: r4(v.rev.map((x) => x / 1e6)) }]));
   const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
   const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
   const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">конверсии показ→корзина→заказ→выкуп в разрезе категорий и подкатегорий за период (клик по категории - раскрыть). Показы - по товарам в дни продаж.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Доставлено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Потери</div><div class="card-sub">возвраты, отмены, брошенные корзины за период</div></div></div><div id="leaks"></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Возвраты по категориям</div><div class="card-sub">за период, к заказам категории</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возврата</th></tr></thead><tbody id="retl"></tbody></table></div></section>
-  </div>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}</style>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). Показы в поиске и посещения карточки OZON по категориям пока не отдаёт - «нет данных». Показы/корзина - по товарам в дни продаж.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r">Показы в поиске</th><th class="r">Посещения карточки</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Выкуплено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
+    <div id="leaks"></div>
+    <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
+  </section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}</style>`;
   const pageJs = `
 const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
@@ -769,14 +799,15 @@ function renderCatFunnel(cur){
   const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
   const sm=(o,k)=>sumW(o[k],cur);
   const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
-  const cell=x=>'<td class="r">'+fmtRu(x.views)+'</td><td class="r">'+fmtRu(x.cart)+'</td><td class="r">'+fmtRu(x.units)+'</td><td class="r">'+fmtRu(x.deliv)+'</td><td class="r">'+pct(x.cart,x.views)+'</td><td class="r" style="color:'+(x.cart&&x.units/x.cart<0.04?'var(--dn)':'inherit')+'">'+pct(x.units,x.cart)+'</td><td class="r">'+pct(x.deliv,x.units)+'</td>';
+  const nd='<td class="r cf-nd">нет данных</td>'; // показы в поиске и посещения карточки OZON по категориям не отдаёт
+  const cell=x=>'<td class="r">'+fmtRu(x.views)+'</td>'+nd+nd+'<td class="r">'+fmtRu(x.cart)+'</td><td class="r">'+fmtRu(x.units)+'</td><td class="r">'+fmtRu(x.deliv)+'</td><td class="r">'+pct(x.cart,x.views)+'</td><td class="r" style="color:'+(x.cart&&x.units/x.cart<0.04?'var(--dn)':'inherit')+'">'+pct(x.units,x.cart)+'</td><td class="r">'+pct(x.deliv,x.units)+'</td>';
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
     (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
       h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
   });
-  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
+  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="10" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
 function render(cur,cmp){
@@ -823,8 +854,9 @@ function render(cur,cmp){
     kpi('Возврат, % заказов',(S('units')?(S('ret')/S('units')*100).toFixed(1):0)+'%','')+
     kpi('Отмена, % заказов',(S('units')?(S('canc')/S('units')*100).toFixed(1):0)+'%','')+
     kpi('Брошено в корзине',cartDrop+'%','')+'</div>';
-  const rows=Object.entries(LD).map(([k,v])=>({k,u:sumW(v.units,cur),r:sumW(v.ret,cur)})).filter(x=>x.u>0||x.r>0).sort((a,b)=>b.u-a.u);
-  document.getElementById('retl').innerHTML=rows.map(x=>'<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+(x.u?(x.r/x.u*100).toFixed(1):'0')+'%</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">нет данных за период</td></tr>';
+  const rows=Object.entries(LD).map(([k,v])=>({k,u:sumW(v.units,cur),r:sumW(v.ret,cur),c:sumW(v.canc,cur),ct:sumW(v.cart,cur)})).filter(x=>x.u>0||x.r>0||x.c>0||x.ct>0).sort((a,b)=>b.u-a.u);
+  const p1=(a,b)=>b?(a/b*100).toFixed(1):'0'; // брошено = добавили в корзину, но не заказали
+  document.getElementById('retl').innerHTML=rows.map(x=>{const drop=Math.max(0,x.ct-x.u);return '<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+p1(x.r,x.u)+'%</td><td class="r">'+fmtRu(x.c)+'</td><td class="r" style="color:'+(x.u&&x.c/x.u>0.1?'var(--dn)':'inherit')+'">'+p1(x.c,x.u)+'%</td><td class="r">'+fmtRu(drop)+'</td><td class="r" style="color:'+(x.ct&&drop/x.ct>0.9?'var(--dn)':'inherit')+'">'+p1(drop,x.ct)+'%</td></tr>';}).join('')||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
 }`;
   writeFileSync("public/katya-voronka.html", kshell("Воронка", "voronka", body, pageJs));
 }

@@ -73,10 +73,16 @@ jobs:
           BEFORE=$(wc -l < data/history.ndjson)
           while [ "${cur//-/}" -le "${Y//-/}" ]; do
             echo "догрузка дня $cur"
-            curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
-              -d "{\"dateFrom\":\"$cur\",\"dateTo\":\"$cur\"}" -o /tmp/daily.json || { echo "curl daily $cur failed"; exit 1; }
-            npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json
-            npm run ingest -- /tmp/daily.json
+            # Ретраим день: n8n иногда отдаёт пустой ответ (флап). Раньше один пустой день
+            # ронял весь бэкофилл - теперь 3 попытки, потом пропуск с warning (не валим прогон).
+            ok=0
+            for attempt in 1 2 3; do
+              if curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-daily" "${AUTH[@]}" \
+                   -d "{\"dateFrom\":\"$cur\",\"dateTo\":\"$cur\"}" -o /tmp/daily.json \
+                 && npx tsx src/scripts/validate-snapshot.ts daily /tmp/daily.json; then ok=1; break; fi
+              echo "попытка $attempt за $cur не удалась, повтор через 5с"; sleep 5
+            done
+            if [ "$ok" = 1 ]; then npm run ingest -- /tmp/daily.json; else echo "::warning::день $cur пропущен (n8n вернул пусто/невалид после ретраев)"; fi
             cur=$(date -u -d "$cur +1 day" +%F)
           done
           AFTER=$(wc -l < data/history.ndjson)

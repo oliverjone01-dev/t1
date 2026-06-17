@@ -11,6 +11,7 @@ import type { SkuDaily } from "../types.js";
 
 const SNAPSHOT = "data/history.ndjson";
 const TOTALS = "data/daily_totals.ndjson";
+const VIEWS = "data/sku_views.ndjson"; // полные показы SKU×день (включая дни без продажи) - для воронки по категориям
 
 interface RawRow {
   date: string; sku: string; name: string;
@@ -61,6 +62,37 @@ function upsertTotals(raw: RawRow[]): { days: number; total: number } {
   return { days: touched.size, total: dates.length };
 }
 
+type ViewRow = { date: string; sku: string; name: string; line: string; views: number; cart: number; units: number; deliv: number; ret: number; canc: number };
+
+// Полные показы по SKU×день: ВСЕ строки payload с любой активностью (показ/корзина/заказ/возврат),
+// а не только дни-с-продажей. Идемпотентно: день из payload переписываем заново.
+// Нужен для воронки по категориям, где показы должны считаться по всем дням, а не только в дни продаж.
+function upsertViews(raw: RawRow[]): { rows: number } {
+  const map = new Map<string, ViewRow>();
+  if (existsSync(VIEWS)) {
+    for (const l of readFileSync(VIEWS, "utf-8").split("\n").filter(Boolean)) {
+      const r = JSON.parse(l) as ViewRow; map.set(r.date + "|" + r.sku, r);
+    }
+  }
+  const touched = new Set<string>();
+  for (const r of raw) {
+    if (!r.date) continue;
+    if (!touched.has(r.date)) { // чистим день перед перезаписью
+      for (const k of [...map.keys()]) if (k.startsWith(r.date + "|")) map.delete(k);
+      touched.add(r.date);
+    }
+    if (!((r.views || 0) > 0 || (r.cart || 0) > 0 || (r.units || 0) > 0 || (r.ret || 0) > 0 || (r.canc || 0) > 0)) continue;
+    map.set(r.date + "|" + String(r.sku), {
+      date: r.date, sku: String(r.sku), name: r.name || "", line: lineOf(r.name || ""),
+      views: r.views || 0, cart: r.cart || 0, units: r.units || 0, deliv: r.deliv || 0, ret: r.ret || 0, canc: r.canc || 0,
+    });
+  }
+  const keys = [...map.keys()].sort();
+  mkdirSync(dirname(VIEWS), { recursive: true });
+  writeFileSync(VIEWS, keys.map((k) => JSON.stringify(map.get(k))).join("\n") + "\n");
+  return { rows: keys.length };
+}
+
 function main() {
   const path = process.argv[2];
   if (!path) throw new Error("Укажи путь к payload.json: npm run ingest -- <file>");
@@ -69,6 +101,8 @@ function main() {
 
   // 1) дневные тоталы из ВСЕХ строк (полные показы/возвраты)
   const tot = upsertTotals(raw);
+  // 1b) полные показы по SKU×день (для воронки по категориям)
+  const vw = upsertViews(raw);
 
   // 2) per-SKU история - дни с продажей ЛИБО с возвратом/отменой (компактно, для разрезов по товарам).
   // Раньше держали только дни-с-продажей -> строки-возвраты в дни без продажи выпадали,
@@ -95,7 +129,7 @@ function main() {
   store.upsertSkuDaily(mapped);
   const after = saveSnapshot(store);
   const dates = [...new Set(raw.map((r) => r.date))].sort();
-  console.log(`Ингест: payload ${raw.length} строк. Тоталы: +${tot.days} дн (всего ${tot.total}). История(продажи) ${before}->${after}.`);
+  console.log(`Ингест: payload ${raw.length} строк. Тоталы: +${tot.days} дн (всего ${tot.total}). История(продажи) ${before}->${after}. Показы SKU×день: ${vw.rows}.`);
   console.log(`Даты: ${dates[0]}..${dates[dates.length - 1]} (${dates.length} дней)`);
   store.close();
 }

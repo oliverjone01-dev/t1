@@ -603,6 +603,13 @@ const EXTRA_CSS = `
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
+.vf{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.vf-lvl{width:100%;display:flex;flex-direction:column;align-items:center}
+.vf-name{font-size:12px;color:var(--ink-2);margin-bottom:3px;text-align:center}
+.vf-bar{height:36px;border-radius:8px;background:linear-gradient(180deg,#22D3EE,#0E7490);color:#06121a;font:800 14px/36px system-ui;text-align:center;min-width:74px;max-width:100%;box-shadow:0 2px 10px rgba(34,211,238,.18)}
+.vf-bar.nd{background:transparent;border:1px dashed var(--bg-soft);color:var(--ink-3);font-weight:500;box-shadow:none}
+.vf-conv{font-size:11.5px;color:#8aa0b0;margin:5px 0;text-align:center}
+.vf-conv b{color:#cfe8ef}
 @media (max-width:700px){.kt-kpi{grid-template-columns:repeat(2,1fr)}.periods{flex-wrap:wrap}.main{padding:10px}}
 `;
 function kshell(title: string, activeKey: string, body: string, pageJs: string): string {
@@ -757,11 +764,33 @@ function render(cur,cmp){
     kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
   document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
-  const stages=[['Показы',S('views')],['В корзину',S('cart')],['Заказы',S('units')],['Доставлено',S('deliv')]];
-  const mx=Math.max(1,stages[0][1]);
-  document.getElementById('funnel').innerHTML=stages.map((s,i)=>{
-    const conv=i>0&&stages[i-1][1]>0?' · CR '+ (s[1]/stages[i-1][1]*100).toFixed(1)+'%':'';
-    return '<div style="display:flex;align-items:center;gap:10px"><div style="width:90px;font-size:12px;color:var(--ink-3)">'+s[0]+'</div><div class="kt-fbar" style="width:'+Math.max(4,s[1]/mx*100)+'%" title="'+s[0]+': '+fmtRu(s[1])+conv+'">'+fmtRu(s[1])+conv+'</div></div>';}).join('');
+  // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
+  // Уровни «показы в поиске» и «посещения карточки» - отдельные метрики OZON, пока не тянем -> «нет данных».
+  const lv=[
+    {n:'Показы, всего', v:S('views'), c:'из показов в поиск'},
+    {n:'Показы в поиске и каталоге', v:null, c:'из поиска в карточку'},
+    {n:'Посещения карточки товара', v:null, c:'из карточки в корзину'},
+    {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
+    {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
+    {n:'Выкуплено', v:S('deliv'), c:''}
+  ];
+  const maxV=Math.max(1,...lv.map(x=>x.v).filter(x=>x!=null));
+  // ширины: известные пропорционально, неизвестные - линейно между соседями (только визуал)
+  const w=lv.map(x=>x.v!=null?Math.max(8,x.v/maxV*100):null);
+  for(let i=0;i<w.length;i++){ if(w[i]==null){ let p=i;while(p>=0&&w[p]==null)p--; let q=i;while(q<w.length&&w[q]==null)q++;
+    const pw=p>=0?w[p]:70, qw=q<w.length?w[q]:pw; w[i]=p>=0&&q<w.length?pw+(qw-pw)*(i-p)/(q-p):(pw||qw||70); } }
+  let fh='<div class="vf">';
+  lv.forEach((x,i)=>{
+    const nd=x.v==null;
+    const val=nd?'<span class="vf-nd">нет данных</span>':fmtRu(x.v);
+    fh+='<div class="vf-lvl"><div class="vf-name">'+x.n+'</div><div class="vf-bar'+(nd?' nd':'')+'" style="width:'+w[i].toFixed(1)+'%" title="'+x.n+': '+(nd?'нет данных':fmtRu(x.v))+'">'+val+'</div></div>';
+    if(i<lv.length-1){
+      const nv=lv[i+1].v; const cv=(x.v!=null&&nv!=null&&x.v>0)?'<b>'+(nv/x.v*100).toFixed(2)+'%</b>':'—';
+      fh+='<div class="vf-conv">↳ конверсия '+x.c+': '+cv+'</div>';
+    }
+  });
+  fh+='</div>';
+  document.getElementById('funnel').innerHTML=fh;
   const cartDrop=S('cart')>0?(100-S('units')/S('cart')*100).toFixed(1):'0';
   document.getElementById('leaks').innerHTML='<div class="kt-kpi">'+
     kpi('Возврат, % заказов',(S('units')?(S('ret')/S('units')*100).toFixed(1):0)+'%','')+

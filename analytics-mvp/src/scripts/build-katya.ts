@@ -705,23 +705,38 @@ ${CHANNEL_JS}
 // фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
 const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
 const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[]; cart: number[]; rev: number[] }> = {};
-// Воронка в разрезе категорий и подкатегорий (из истории продаж): показы/корзина/заказы/доставка по дням.
+// Воронка в разрезе категорий и подкатегорий: показы/корзина/заказы/доставка по дням.
+// Источник - полные показы SKU×день (data/sku_views.ndjson, включая дни без продажи),
+// иначе фолбэк на историю продаж (показы только в дни-с-продажей -> разрез занижен).
 type Fun = { views: number[]; cart: number[]; units: number[]; deliv: number[] };
 const newFun = (): Fun => ({ views: zD(), cart: zD(), units: zD(), deliv: zD() });
 const catFun: Record<string, Fun> = {};
 const subFun: Record<string, Fun & { name: string; cat: string }> = {};
 const catSubs: Record<string, Set<string>> = {};
-for (const f of facts) {
-  const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
-  const fx: any = f; const sk = String(f.sku);
+let viewRows: any[] = [];
+try { viewRows = readFileSync("data/sku_views.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
+const fromViews = viewRows.length > 0;
+const funSrc: any[] = fromViews ? viewRows : facts;
+for (const r of funSrc) {
+  const i = dayIdx(r.date); if (i < 0 || i >= TOTAL) continue;
+  const sk = String(r.sku);
+  if (!skuName[sk]) skuName[sk] = r.name || ""; // имя нужно автогену таксономии для SKU без продаж
+  if (!skuLine[sk] && r.line) skuLine[sk] = r.line;
+  const views = r.views || 0;
+  const cart = fromViews ? (r.cart || 0) : (r.to_cart || 0);
+  const units = r.units || 0;
+  const deliv = fromViews ? (r.deliv || 0) : (r.delivered || 0);
+  const ret = fromViews ? (r.ret || 0) : (r.returns || 0);
+  const canc = fromViews ? (r.canc || 0) : (r.cancellations || 0);
+  const rev = fromViews ? 0 : (r.revenue || 0); // rev в LINES_D не используется (показываем шт), но поле сохраняем
   const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
   const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), canc: zD(), cart: zD(), rev: zD() });
-  L.units[i] = (L.units[i] ?? 0) + f.units; L.ret[i] = (L.ret[i] ?? 0) + (fx.returns || 0);
-  L.canc[i] = (L.canc[i] ?? 0) + (fx.cancellations || 0); L.cart[i] = (L.cart[i] ?? 0) + (fx.to_cart || 0); L.rev[i] = (L.rev[i] ?? 0) + f.revenue;
+  L.units[i] = (L.units[i] ?? 0) + units; L.ret[i] = (L.ret[i] ?? 0) + ret;
+  L.canc[i] = (L.canc[i] ?? 0) + canc; L.cart[i] = (L.cart[i] ?? 0) + cart; L.rev[i] = (L.rev[i] ?? 0) + rev;
   const cf = (catFun[cat] ||= newFun());
-  cf.views[i] += fx.views || 0; cf.cart[i] += fx.to_cart || 0; cf.units[i] += f.units; cf.deliv[i] += fx.delivered || 0;
+  cf.views[i] += views; cf.cart[i] += cart; cf.units[i] += units; cf.deliv[i] += deliv;
   const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
-  sf.views[i] += fx.views || 0; sf.cart[i] += fx.to_cart || 0; sf.units[i] += f.units; sf.deliv[i] += fx.delivered || 0;
+  sf.views[i] += views; sf.cart[i] += cart; sf.units[i] += units; sf.deliv[i] += deliv;
   (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
@@ -785,7 +800,7 @@ if (dailyTotals.length) {
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). Показы в поиске и посещения карточки OZON по категориям пока не отдаёт - «нет данных». Показы/корзина - по товарам в дни продаж.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r">Показы в поиске</th><th class="r">Посещения карточки</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Выкуплено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). Показы в поиске и посещения карточки OZON по категориям пока не отдаёт - «нет данных». ${fromViews ? "Показы/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."}</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r">Показы в поиске</th><th class="r">Посещения карточки</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Выкуплено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>

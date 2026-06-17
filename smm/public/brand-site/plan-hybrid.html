@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Контент-план · Гибрид B+C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+/* применяем тему и вид ДО отрисовки - без мигания (FOUC) */
+(function(){var d=document.documentElement;
+  var v=localStorage.getItem('cp.view'); d.dataset.view=(v==='tiles'||v==='table')?v:'table';
+  var t=localStorage.getItem('cp.theme');
+  d.dataset.theme=(t==='light'||t==='dark')?t:((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+})();
+</script>
+<style>
+  :root[data-theme="light"]{
+    --bg:#F7F5F1;--s1:#FFFFFF;--s2:#F1EEE8;--line:#E4DFD6;--line2:#D2CBBE;
+    --ink:#1C1A17;--ink2:#5A554C;--ink3:#736C5E;
+    --gold:#B08A3E;--gold-ink:#795E1E;--gold-soft:rgba(176,138,62,.12);--steel:#4C6B82;--steel-soft:rgba(76,107,130,.12);
+    --pub:#2E7D5B;--pub-soft:rgba(46,125,91,.12);--rdy:#B08A3E;--rdy-soft:rgba(176,138,62,.14);--pln:#8A8378;--pln-soft:rgba(138,131,120,.12);
+    --cta:#1C1A17;--cta-ink:#F7F5F1;--danger:#C0492F;
+    --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px rgba(28,26,23,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#000000;--s1:#0C0C0D;--s2:#121214;--line:#26262A;--line2:#34343A;
+    --ink:#F2F0EC;--ink2:#A8A49C;--ink3:#847E72;
+    --gold:#D4AF5A;--gold-ink:#D4AF5A;--gold-soft:rgba(212,175,90,.14);--steel:#7FA8C6;--steel-soft:rgba(127,168,198,.14);
+    --pub:#3FB883;--pub-soft:rgba(63,184,131,.14);--rdy:#D4AF5A;--rdy-soft:rgba(212,175,90,.14);--pln:#7E776C;--pln-soft:rgba(126,119,108,.14);
+    --cta:#D4AF5A;--cta-ink:#000000;--danger:#E0644A;
+    --shadow:none;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;transition:background .2s,color .2s}
+  a{color:inherit}
+  a:focus-visible,button:focus-visible,th:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+  .skip{position:absolute;left:12px;top:-48px;z-index:90;background:var(--gold);color:var(--cta-ink);font-weight:700;font-size:13px;padding:9px 14px;border-radius:8px;transition:top .18s}
+  .skip:focus{top:12px}
+  /* version switch */
+  .vswitch{display:flex;gap:6px;align-items:center;padding:8px 20px;border-bottom:1px solid var(--line);font-size:12px;background:var(--s2);flex-wrap:wrap}
+  .vswitch b{letter-spacing:.16em;color:var(--ink2);font-weight:600;margin-right:8px}
+  .vswitch a{padding:5px 11px;border:1px solid var(--line2);border-radius:30px;color:var(--ink2);text-decoration:none}
+  .vswitch a.on{color:var(--cta-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+  /* header */
+  header.top{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .ttl .ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+  .ttl h1{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-top:2px}
+  .controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .seg{display:inline-flex;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
+  .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
+  .seg button .ic{width:14px;height:14px;display:inline-block;opacity:.8}
+  .src{max-width:1240px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--ink2)}
+  .src .ok{color:var(--pub);font-weight:700}.src .warn{color:var(--gold-ink);font-weight:700}
+  /* KPI */
+  .kpis{max-width:1240px;margin:0 auto;padding:14px 22px 6px;display:grid;grid-template-columns:repeat(4,1fr) 1.5fr;gap:12px}
+  .kpi{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:13px 16px;box-shadow:var(--shadow)}
+  .kpi .n{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .kpi.pub .n{color:var(--pub)}.kpi.rdy .n{color:var(--gold-ink)}.kpi.pln .n{color:var(--pln)}
+  .kpi .l{font-size:11.5px;color:var(--ink2);margin-top:4px}
+  .kpi.bar .barwrap{height:8px;background:var(--s2);border-radius:8px;margin:9px 0 5px;overflow:hidden}
+  .kpi.bar .barwrap i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--rdy))}
+  .kpi.bar .pct{font-size:13px;font-weight:800;color:var(--gold-ink)}
+  .brandbar{max-width:1240px;margin:0 auto;padding:4px 22px 0;display:flex;gap:9px;flex-wrap:wrap}
+  .bchip2{font-size:12.5px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:30px;padding:6px 13px}
+  .bchip2 b{font-weight:700}.bchip2.v b{color:var(--gold-ink)}.bchip2.g b{color:var(--steel)}
+  /* filters */
+  .filters{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .fg{display:flex;gap:4px;align-items:center}
+  .fg .lab{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+  .fbtn{font:inherit;font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 11px;cursor:pointer}
+  .fbtn.on{color:var(--cta-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+  .sortsel{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)}
+  .sortsel select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 9px}
+  .fcount{font-size:12px;color:var(--ink3)}
+  /* content */
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px 80px}
+  /* TABLE view */
+  :root[data-view="tiles"] #tableWrap{display:none}
+  :root[data-view="table"] #tilesWrap{display:none}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;min-width:940px;background:var(--s1)}
+  thead th{position:sticky;top:0;background:var(--s2);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);font-weight:700;padding:11px 12px;border-bottom:1px solid var(--line2);cursor:pointer;white-space:nowrap;user-select:none}
+  thead th .ar{margin-left:4px;opacity:0;color:var(--gold)}
+  thead th.sorted .ar{opacity:1}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--s2)}
+  tbody tr.sit{opacity:.6}
+  .bdot{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:6px}
+  .bdot.g{background:var(--steel-soft);color:var(--steel)}.bdot.v{background:var(--gold-soft);color:var(--gold-ink)}
+  .idea{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+  .hook{color:var(--ink3);font-style:italic;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+  .muted{color:var(--ink3)}
+  .stb{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;white-space:nowrap;padding:3px 10px;border-radius:30px}
+  .stb::before{content:"";width:7px;height:7px;border-radius:50%}
+  .stb.pub{color:var(--pub);background:var(--pub-soft)}.stb.pub::before{background:var(--pub)}
+  .stb.rdy{color:var(--gold-ink);background:var(--rdy-soft)}.stb.rdy::before{background:var(--rdy)}
+  .stb.pln{color:var(--pln);background:var(--pln-soft)}.stb.pln::before{background:transparent;box-shadow:inset 0 0 0 1.5px var(--pln)}
+  .open{color:var(--gold-ink);text-decoration:none;font-weight:700;white-space:nowrap}.open:hover{text-decoration:underline}
+  /* TILES view */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+  .wkband{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:6px}
+  .wkband h2{font-size:15px;font-weight:800}.wkband .pill{font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:30px;padding:4px 12px}
+  .wkband .ln{flex:1;height:1px;background:var(--line)}
+  .tile{position:relative;background:var(--s1);border:1px solid var(--line2);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;overflow:hidden;transition:transform .2s}
+  .tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
+  .tile:hover{transform:translateY(-3px)}
+  .tile.sit{border-style:dashed}
+  .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .slot{font-size:12px;font-weight:700;color:var(--ink3)}
+  .rub{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+  .tidea{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25;overflow-wrap:anywhere}
+  .thook{font-size:13px;color:var(--ink2);font-style:italic;overflow-wrap:anywhere}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .mchip{font-size:11px;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+  .topen{margin-top:auto;align-self:flex-start;font-size:12.5px;font-weight:700;color:var(--cta-ink);background:var(--cta);border-radius:9px;padding:7px 13px;text-decoration:none}
+  .empty{color:var(--ink3);padding:30px 4px}
+  .foot{max-width:1240px;margin:0 auto;padding:26px 22px 70px;color:var(--ink3);font-size:12.5px}
+  @media(max-width:820px){.kpis{grid-template-columns:1fr 1fr}.kpi.bar{grid-column:1/-1}.controls{margin-left:0;width:100%}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<div class="vswitch" aria-label="Версии дизайна">
+  <b>ВЕРСИЯ</b>
+  <a href="plan-a.html">A · Editorial</a>
+  <a href="plan-b.html">B · Control Room</a>
+  <a href="plan-c.html">C · Bento</a>
+  <a class="on" href="plan-hybrid.html">★ Гибрид B+C</a>
+  <a href="plan.html" style="margin-left:auto">текущая</a>
+</div>
+
+<header class="top">
+  <div class="top-in">
+    <div class="ttl"><div class="ey">GENGROUP · контроль</div><h1>Контент-план</h1></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Вид">
+        <button id="v-table" type="button"><span class="ic">▦</span>Таблица</button>
+        <button id="v-tiles" type="button"><span class="ic">▤</span>Плитки</button>
+      </div>
+      <div class="seg" role="group" aria-label="Тема">
+        <button id="t-light" type="button">☀ Светлая</button>
+        <button id="t-dark" type="button">☾ Тёмная</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="src" id="src">загрузка…</div>
+<div class="kpis" id="kpis" aria-label="Показатели"></div>
+<div class="brandbar" id="brandbar"></div>
+<div class="filters" id="filters" aria-label="Фильтры и сортировка"></div>
+
+<main class="wrap" id="main">
+  <div id="tableWrap" class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  <div id="tilesWrap"><div class="tiles" id="tiles"></div></div>
+</main>
+<div class="foot">GENGROUP · контент-план · гибрид B (таблица-диспетчерская) + C (плитки) · свет/тьма · данные из Google-таблицы SMM · метрика VALONTI = контакты дизайнеров, не охваты.</div>
+
+<script src="cms-seed.js"></script>
+<script src="cms-config.js"></script>
+<script src="cms-data.js"></script>
+<script>
+(function(){
+  var E=GGData.esc, R=document.documentElement;
+  var ALL=[], state={brand:'all',status:'all',week:'all',sort:'week',dir:1};
+  var COLS=[{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'format',t:'Формат'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Пост'}];
+  var STORD={'план':0,'готово':1,'опубликовано':2};
+  var stCls={'опубликовано':'pub','готово':'rdy','план':'pln'}, stLab={'опубликовано':'опубликовано','готово':'готово','план':'в плане'};
+
+  /* --- переключатели --- */
+  function syncToggles(){
+    document.getElementById('v-table').classList.toggle('on',R.dataset.view==='table');
+    document.getElementById('v-tiles').classList.toggle('on',R.dataset.view==='tiles');
+    document.getElementById('t-light').classList.toggle('on',R.dataset.theme==='light');
+    document.getElementById('t-dark').classList.toggle('on',R.dataset.theme==='dark');
+  }
+  function setView(v){R.dataset.view=v;localStorage.setItem('cp.view',v);syncToggles();render();}
+  function setTheme(t){R.dataset.theme=t;localStorage.setItem('cp.theme',t);syncToggles();}
+  document.getElementById('v-table').onclick=function(){setView('table');};
+  document.getElementById('v-tiles').onclick=function(){setView('tiles');};
+  document.getElementById('t-light').onclick=function(){setTheme('light');};
+  document.getElementById('t-dark').onclick=function(){setTheme('dark');};
+
+  /* --- сводка для Ромы --- */
+  function kpis(){
+    var real=ALL.filter(function(p){return !p.situational;});
+    function c(s){return real.filter(function(p){return p.status===s;}).length;}
+    var pub=c('опубликовано'),rdy=c('готово'),pln=c('план'),tot=real.length,pct=tot?Math.round(pub/tot*100):0;
+    document.getElementById('kpis').innerHTML=
+      '<div class="kpi"><div class="n">'+tot+'</div><div class="l">постов в плане</div></div>'+
+      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
+      '<div class="kpi rdy"><div class="n">'+rdy+'</div><div class="l">готово к выходу</div></div>'+
+      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в работе</div></div>'+
+      '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
+    var g=real.filter(function(p){return p.brand!=='V';}),v=real.filter(function(p){return p.brand==='V';});
+    document.getElementById('brandbar').innerHTML=
+      '<div class="bchip2 g">GENGLASS · опубл. <b>'+g.filter(function(p){return p.status==='опубликовано';}).length+' / '+g.length+'</b></div>'+
+      '<div class="bchip2 v">VALONTI · опубл. <b>'+v.filter(function(p){return p.status==='опубликовано';}).length+' / '+v.length+'</b></div>';
+  }
+
+  /* --- фильтры (+ сорт-селект для плиток) --- */
+  function filters(){
+    var weeks=Array.from(new Set(ALL.map(function(p){return p.week;}))).sort(function(a,b){return a-b;});
+    function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
+    var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
+      grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'готово',t:'готово'},{v:'план',t:'в плане'}])+
+      grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
+    html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
+    if(R.dataset.view==='tiles'){
+      html+='сортировка <select id="tsort">'+
+        [['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';
+    }
+    html+='</div>';
+    var f=document.getElementById('filters'); f.innerHTML=html;
+    Array.prototype.forEach.call(f.querySelectorAll('.fbtn'),function(b){b.onclick=function(){state[b.dataset.k]=b.dataset.v;render();};});
+    var ts=document.getElementById('tsort'); if(ts) ts.onchange=function(){state.sort=ts.value;state.dir=1;render();};
+  }
+
+  function applied(){
+    var d=ALL.filter(function(p){return (state.brand==='all'||p.brand===state.brand)&&(state.status==='all'||p.status===state.status)&&(state.week==='all'||String(p.week)===state.week);});
+    d.sort(function(a,b){var k=state.sort,va,vb;
+      if(k==='status'){va=STORD[a.status];vb=STORD[b.status];}
+      else if(k==='week'){va=a.week;vb=b.week;}
+      else{va=(a[k]||'').toString().toLowerCase();vb=(b[k]||'').toString().toLowerCase();}
+      if(va<vb)return -state.dir; if(va>vb)return state.dir; return a.week-b.week;});
+    return d;
+  }
+  function anno(p){return ' data-annotate-section data-annotate-key="post-'+E(p.id)+'" data-annotate-label="'+E((p.slot?p.slot+' · ':'')+(p.idea||p.rubric))+'"';}
+  function openLink(p,txt){return (p.status==='опубликовано'&&p.url)?'<a class="open" href="'+E(p.url)+'" target="_blank" rel="noopener">'+txt+'</a>':'';}
+
+  /* --- ТАБЛИЦА --- */
+  function renderTable(d){
+    document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
+    Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+    document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
+      return '<tr'+(p.situational?' class="sit"':'')+anno(p)+'>'+
+        '<td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
+        '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
+        '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+
+        '<td><div class="idea">'+E(p.idea||'-')+'</div>'+(p.hook&&p.hook!=='-'?'<div class="hook">'+E(p.hook)+'</div>':'')+'</td>'+
+        '<td class="muted">'+E(p.channel||'-')+'</td><td class="muted">'+E(p.format||'-')+'</td><td class="muted">'+E(p.goal||'-')+'</td><td class="muted">'+E(p.owner||'-')+'</td>'+
+        '<td><span class="stb '+cl+'">'+(stLab[p.status]||'в плане')+'</span></td>'+
+        '<td>'+(openLink(p,'↗ пост')||'<span class="muted">-</span>')+'</td></tr>';}).join('');
+  }
+  /* --- ПЛИТКИ --- */
+  function renderTiles(d){
+    var host=document.getElementById('tiles');
+    if(!d.length){host.innerHTML='<div class="empty">нет постов под фильтр</div>';return;}
+    var html='';
+    if(state.sort==='week'){
+      var wk={};d.forEach(function(p){(wk[p.week]=wk[p.week]||[]).push(p);});
+      Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).forEach(function(w){
+        var it=wk[w],pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
+        html+='<div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+it.map(tile).join('');
+      });
+    } else { html=d.map(tile).join(''); }
+    host.innerHTML=html;
+  }
+  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
+    return '<article class="tile '+b+(p.situational?' sit':'')+'"'+anno(p)+'>'+
+      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(p.slot?'<span class="slot">'+E(p.slot)+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'в плане')+'</span></div>'+
+      (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
+      '<div class="tidea">'+E(p.idea||'-')+'</div>'+
+      (p.hook&&p.hook!=='-'?'<div class="thook">'+E(p.hook)+'</div>':'')+
+      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+(p.owner?'<span class="mchip">'+E(p.owner)+'</span>':'')+'</div>'+
+      (openLink(p,'Открыть пост ↗')?'<a class="topen" href="'+E(p.url)+'" target="_blank" rel="noopener">Открыть пост ↗</a>':'')+
+    '</article>';
+  }
+
+  function render(){
+    filters();
+    var d=applied();
+    document.getElementById('fcount').textContent=d.length+' из '+ALL.length+' постов';
+    /* чистим неактивный вид, чтобы не было дублей data-annotate-key (комменты держатся за активный DOM) */
+    if(R.dataset.view==='tiles'){document.getElementById('tbody').innerHTML='';document.getElementById('thead').innerHTML='';renderTiles(d);}
+    else{document.getElementById('tiles').innerHTML='';renderTable(d);}
+    if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,60);
+  }
+  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet')el.innerHTML='<span class="ok">● связано с Google-таблицей</span> · обновляется при загрузке';else el.innerHTML='<span class="warn">○ резервные данные</span> · '+E(o.reason||'');}
+
+  syncToggles();
+  GGData.load().then(function(o){ALL=o.plan;srcMsg(o);kpis();render();});
+})();
+</script>
+<script src="../annotate/annotate-init.js" data-page="brand-site-plan-hybrid" data-sections="[data-annotate-section]" defer></script>
+</body>
+</html>

@@ -23,5 +23,6 @@
 window.GG_CMS_CONFIG = {
   sheetId: '1jBILpBeFh4WmMzVXpHBro25uVXqUhgKVPR7tFSOCRq8',
   rubricTab: 'Рубрикатор',
-  planTab: 'Контент-план'
+  planTab: 'Контент-план',
+  statsTab: 'Статистика'
 };

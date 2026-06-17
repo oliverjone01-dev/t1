@@ -4,12 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Контент-стратегия · GENGLASS × VALONTI · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'light');})();</script>
 <link rel="stylesheet" href="brand-site.css">
 <style>
   .tree{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
   .branch{border-radius:14px;padding:18px 20px;border:1px solid var(--line2)}
-  .branch.go{background:rgba(111,174,123,.1);border-color:rgba(111,174,123,.45)}
-  .branch.hold{background:rgba(107,102,92,.08);opacity:.85}
+  .branch.go{background:var(--pub-soft);border-color:var(--pub-soft)}
+  .branch.hold{background:var(--s2);opacity:.92}
   .branch .bl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
   .branch.go .bl{color:var(--keep)}.branch.hold .bl{color:var(--ink3)}
   .branch h4{font-size:17px;font-weight:800;margin-bottom:8px}
@@ -21,18 +24,20 @@
 </style>
 </head>
 <body>
-<div class="prog" id="prog"></div>
+<a class="skip" href="#main">К содержанию</a>
+<div class="prog" id="prog" aria-hidden="true"></div>
 <header class="top"><div class="top-in">
   <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;BRAND <span>· инструмент маркетинга</span></div>
-  <nav class="nav">
-    <a href="index.html"><span class="n">01</span>Платформа бренда</a>
-    <a href="audience.html"><span class="n">02</span>Аудитория</a>
-    <a class="on" href="content.html"><span class="n">03</span>Контент-стратегия</a>
-    <a href="plan.html"><span class="n">04</span>Контент-план</a>
+  <nav class="nav" aria-label="Разделы сайта">
+    <a href="plan.html"><span class="n">01</span>Контент-план</a>
+    <a href="index.html"><span class="n">02</span>Платформа бренда</a>
+    <a href="audience.html"><span class="n">03</span>Аудитория</a>
+    <a class="on" href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема">☀</button><button data-t="dark" type="button" aria-label="Тёмная тема">☾</button></div>
 </div></header>
 
-<div class="wrap">
+<div class="wrap" role="main" id="main">
 
   <section class="hero reveal">
     <div class="kicker"><span class="bar"></span>КОНТЕНТ-СТРАТЕГИЯ · РУБРИКАТОРЫ + КАНАЛЫ + YOUTUBE</div>
@@ -115,6 +120,7 @@
 <script src="cms-seed.js" defer></script>
 <script src="cms-config.js" defer></script>
 <script src="cms.js" defer></script>
+<script src="theme.js" defer></script>
 <script src="../annotate/annotate-init.js" data-page="brand-site-content" data-sections="[data-annotate-section]" defer></script>
 </body>
 </html>

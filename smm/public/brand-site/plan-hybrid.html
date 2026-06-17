@@ -23,7 +23,7 @@
     --pub:#1F6B4A;--pub-ink:#155539;--pub-soft:rgba(31,107,74,.14);
     --sgl:#C4761A;--sgl-ink:#8A4F0E;--sgl-soft:rgba(196,118,26,.16);
     --pln:#7C7568;--pln-ink:#5A554C;--pln-soft:rgba(124,117,104,.14);
-    --cta:#1A1814;--cta-ink:#FCFAF6;--danger:#B23E26;--link:#2C4B60;
+    --cta:#1A1814;--cta-ink:#FCFAF6;--gold-btn-ink:#1A1814;--danger:#B23E26;--link:#2C4B60;
     --shadow:0 1px 2px rgba(40,32,20,.06),0 8px 24px rgba(40,32,20,.10);
   }
   :root[data-theme="dark"]{
@@ -34,14 +34,14 @@
     --pub:#3FB883;--pub-ink:#3FB883;--pub-soft:rgba(63,184,131,.14);
     --sgl:#E0A23C;--sgl-ink:#E0A23C;--sgl-soft:rgba(224,162,60,.16);
     --pln:#7E776C;--pln-ink:#7E776C;--pln-soft:rgba(126,119,108,.14);
-    --cta:#D4AF5A;--cta-ink:#000000;--danger:#E0644A;--link:#7FA8C6;--shadow:none;
+    --cta:#D4AF5A;--cta-ink:#000000;--gold-btn-ink:#000000;--danger:#E0644A;--link:#7FA8C6;--shadow:none;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
     font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;transition:background .2s,color .2s}
   a{color:inherit}
   a:focus-visible,button:focus-visible,th:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
-  .skip{position:absolute;left:12px;top:-48px;z-index:90;background:var(--gold);color:var(--cta-ink);font-weight:700;font-size:13px;padding:9px 14px;border-radius:8px;transition:top .18s}
+  .skip{position:absolute;left:12px;top:-48px;z-index:90;background:var(--gold);color:var(--gold-btn-ink);font-weight:700;font-size:13px;padding:9px 14px;border-radius:8px;transition:top .18s}
   .skip:focus{top:12px}
   .muted{color:var(--ink3)}
   .ht{color:var(--link);font-weight:600}
@@ -49,7 +49,7 @@
   .vswitch{display:flex;gap:6px;align-items:center;padding:8px 20px;border-bottom:1px solid var(--line);font-size:12px;background:var(--s2);flex-wrap:wrap}
   .vswitch b{letter-spacing:.16em;color:var(--ink2);font-weight:600;margin-right:8px}
   .vswitch a{padding:5px 11px;border:1px solid var(--line2);border-radius:30px;color:var(--ink2);text-decoration:none}
-  .vswitch a.on{color:var(--cta-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+  .vswitch a.on{color:var(--gold-btn-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
   /* header */
   header.top{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
   .top-in{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
@@ -80,7 +80,7 @@
   .fg{display:flex;gap:4px;align-items:center}
   .fg .lab{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
   .fbtn{font:inherit;font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 11px;cursor:pointer}
-  .fbtn.on{color:var(--cta-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+  .fbtn.on{color:var(--gold-btn-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
   .sortsel{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)}
   .sortsel select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 9px}
   .fcount{font-size:12px;color:var(--ink3)}
@@ -427,7 +427,7 @@
   document.getElementById('howto').onclick=howto;
   document.getElementById('ht-x').onclick=function(){document.getElementById('ht-ov').classList.remove('open');};
   document.getElementById('ht-ov').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePost();document.getElementById('ht-ov').classList.remove('open');}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!document.body.classList.contains('anno-commenting'))closePost();document.getElementById('ht-ov').classList.remove('open');}});
 
   function render(){
     filters();

@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Платформа бренда · GENGLASS × VALONTI · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'light');})();</script>
 <link rel="stylesheet" href="brand-site.css">
 </head>
 <body>
@@ -12,11 +15,12 @@
 <header class="top"><div class="top-in">
   <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;BRAND <span>· инструмент маркетинга</span></div>
   <nav class="nav" aria-label="Разделы сайта">
-    <a class="on" href="index.html"><span class="n">01</span>Платформа бренда</a>
-    <a href="audience.html"><span class="n">02</span>Аудитория</a>
-    <a href="content.html"><span class="n">03</span>Контент-стратегия</a>
-    <a href="plan.html"><span class="n">04</span>Контент-план</a>
+    <a href="plan.html"><span class="n">01</span>Контент-план</a>
+    <a class="on" href="index.html"><span class="n">02</span>Платформа бренда</a>
+    <a href="audience.html"><span class="n">03</span>Аудитория</a>
+    <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема">☀</button><button data-t="dark" type="button" aria-label="Тёмная тема">☾</button></div>
 </div></header>
 
 <div class="wrap" role="main" id="main">
@@ -183,6 +187,7 @@
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -8% 0px'});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 </script>
+<script src="theme.js" defer></script>
 <script src="../annotate/annotate-init.js" data-page="brand-site-platform" data-sections="[data-annotate-section]" defer></script>
 </body>
 </html>

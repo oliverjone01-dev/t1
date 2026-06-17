@@ -103,7 +103,7 @@
 {"date":"2026-05-19","revenue":702171,"units":14,"views":136291,"to_cart":237,"delivered":6,"returns":0,"cancellations":3}
 {"date":"2026-05-20","revenue":436756,"units":10,"views":121780,"to_cart":216,"delivered":9,"returns":0,"cancellations":2}
 {"date":"2026-05-21","revenue":839041,"units":17,"views":126498,"to_cart":277,"delivered":21,"returns":0,"cancellations":2}
-{"date":"2026-05-22","revenue":895444,"units":17,"views":114396,"to_cart":256,"delivered":19,"returns":0,"cancellations":7}
+{"date":"2026-05-22","revenue":895444,"units":17,"views":114396,"to_cart":256,"delivered":20,"returns":0,"cancellations":7}
 {"date":"2026-05-23","revenue":522347,"units":10,"views":123118,"to_cart":281,"delivered":14,"returns":0,"cancellations":0}
 {"date":"2026-05-24","revenue":710334,"units":10,"views":127987,"to_cart":341,"delivered":11,"returns":0,"cancellations":3}
 {"date":"2026-05-25","revenue":302735,"units":6,"views":125943,"to_cart":266,"delivered":19,"returns":0,"cancellations":1}
@@ -128,3 +128,4 @@
 {"date":"2026-06-13","revenue":789095,"units":15,"views":158276,"to_cart":395,"delivered":15,"returns":0,"cancellations":4}
 {"date":"2026-06-14","revenue":651008,"units":11,"views":181781,"to_cart":416,"delivered":18,"returns":2,"cancellations":0}
 {"date":"2026-06-15","revenue":660606,"units":15,"views":188708,"to_cart":312,"delivered":11,"returns":0,"cancellations":6}
+{"date":"2026-06-16","revenue":973911,"units":23,"views":166398,"to_cart":269,"delivered":10,"returns":0,"cancellations":1}

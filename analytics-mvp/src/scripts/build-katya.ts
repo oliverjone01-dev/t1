@@ -664,17 +664,32 @@ ${CHANNEL_JS}
 }
 
 // --- дневные тоталы канала для Воронки (реальные дни) ---
+// Воронка канала (показы/корзина/заказы/доставка/возвраты/отмены) - из дневных тоталов
+// data/daily_totals.ndjson (полные показы/возвраты, не только дни-с-продажей). Если файла нет -
+// фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
 const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
 const lineDayOrd: Record<string, { units: number[]; ret: number[]; rev: number[] }> = {};
 for (const f of facts) {
   const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
   const fx: any = f;
-  const bump = (arr: number[], v: number) => { arr[i] = (arr[i] ?? 0) + v; };
-  bump(DAY_T.rev!, f.revenue); bump(DAY_T.units!, f.units); bump(DAY_T.views!, fx.views || 0); bump(DAY_T.cart!, fx.to_cart || 0);
-  bump(DAY_T.deliv!, fx.delivered || 0); bump(DAY_T.ret!, fx.returns || 0); bump(DAY_T.canc!, fx.cancellations || 0);
   const cat = catOf(String(f.sku));
   const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), rev: zD() });
-  bump(L.units, f.units); bump(L.ret, fx.returns || 0); bump(L.rev, f.revenue);
+  L.units[i] = (L.units[i] ?? 0) + f.units; L.ret[i] = (L.ret[i] ?? 0) + (fx.returns || 0); L.rev[i] = (L.rev[i] ?? 0) + f.revenue;
+}
+let dailyTotals: any[] = [];
+try { dailyTotals = readFileSync("data/daily_totals.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
+if (dailyTotals.length) {
+  for (const t of dailyTotals) {
+    const i = dayIdx(t.date); if (i < 0 || i >= TOTAL) continue;
+    DAY_T.rev![i] = t.revenue || 0; DAY_T.units![i] = t.units || 0; DAY_T.views![i] = t.views || 0; DAY_T.cart![i] = t.to_cart || 0;
+    DAY_T.deliv![i] = t.delivered || 0; DAY_T.ret![i] = t.returns || 0; DAY_T.canc![i] = t.cancellations || 0;
+  }
+} else { // фолбэк: суммируем per-SKU историю
+  for (const f of facts) {
+    const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue; const fx: any = f;
+    DAY_T.rev![i] += f.revenue; DAY_T.units![i] += f.units; DAY_T.views![i] += fx.views || 0; DAY_T.cart![i] += fx.to_cart || 0;
+    DAY_T.deliv![i] += fx.delivered || 0; DAY_T.ret![i] += fx.returns || 0; DAY_T.canc![i] += fx.cancellations || 0;
+  }
 }
 
 // --- страница 1: обзор (v55) ---

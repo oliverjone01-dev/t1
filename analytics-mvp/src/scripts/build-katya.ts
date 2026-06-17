@@ -676,12 +676,23 @@ ${CHANNEL_JS}
 // фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
 const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
 const lineDayOrd: Record<string, { units: number[]; ret: number[]; rev: number[] }> = {};
+// Воронка в разрезе категорий и подкатегорий (из истории продаж): показы/корзина/заказы/доставка по дням.
+type Fun = { views: number[]; cart: number[]; units: number[]; deliv: number[] };
+const newFun = (): Fun => ({ views: zD(), cart: zD(), units: zD(), deliv: zD() });
+const catFun: Record<string, Fun> = {};
+const subFun: Record<string, Fun & { name: string; cat: string }> = {};
+const catSubs: Record<string, Set<string>> = {};
 for (const f of facts) {
   const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
-  const fx: any = f;
-  const cat = catOf(String(f.sku));
+  const fx: any = f; const sk = String(f.sku);
+  const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
   const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), rev: zD() });
   L.units[i] = (L.units[i] ?? 0) + f.units; L.ret[i] = (L.ret[i] ?? 0) + (fx.returns || 0); L.rev[i] = (L.rev[i] ?? 0) + f.revenue;
+  const cf = (catFun[cat] ||= newFun());
+  cf.views[i] += fx.views || 0; cf.cart[i] += fx.to_cart || 0; cf.units[i] += f.units; cf.deliv[i] += fx.delivered || 0;
+  const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
+  sf.views[i] += fx.views || 0; sf.cart[i] += fx.to_cart || 0; sf.units[i] += f.units; sf.deliv[i] += fx.delivered || 0;
+  (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
 try { dailyTotals = readFileSync("data/daily_totals.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
@@ -738,18 +749,36 @@ if (dailyTotals.length) {
 {
   const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
   const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, rev: r4(v.rev.map((x) => x / 1e6)) }]));
+  const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
+  const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, cart: v.cart, units: v.units, deliv: v.deliv }]));
+  const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">конверсии показ→корзина→заказ→выкуп в разрезе категорий и подкатегорий за период (клик по категории - раскрыть). Показы - по товарам в дни продаж.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Доставлено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Потери</div><div class="card-sub">возвраты, отмены, брошенные корзины за период</div></div></div><div id="leaks"></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Возвраты по категориям</div><div class="card-sub">за период, к заказам категории</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возврата</th></tr></thead><tbody id="retl"></tbody></table></div></section>
   </div>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}</style>`;
   const pageJs = `
-const D=${J(FACTS_D)};const LD=${J(LINES_D)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
+const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
 function sumW(arr,w){let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;}
+function renderCatFunnel(cur){
+  const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
+  const sm=(o,k)=>sumW(o[k],cur);
+  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
+  const cell=x=>'<td class="r">'+fmtRu(x.views)+'</td><td class="r">'+fmtRu(x.cart)+'</td><td class="r">'+fmtRu(x.units)+'</td><td class="r">'+fmtRu(x.deliv)+'</td><td class="r">'+pct(x.cart,x.views)+'</td><td class="r" style="color:'+(x.cart&&x.units/x.cart<0.04?'var(--dn)':'inherit')+'">'+pct(x.units,x.cart)+'</td><td class="r">'+pct(x.deliv,x.units)+'</td>';
+  let h='';
+  cats.forEach((x,ci)=>{
+    h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
+    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
+      h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
+  });
+  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
+  document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
+}
 function render(cur,cmp){
   const S=k=>sumW(D[k],cur),P=k=>sumW(D[k],cmp);
   const rev=S('rev')*1e6,prev=P('rev')*1e6;
@@ -764,6 +793,7 @@ function render(cur,cmp){
     kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
   document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
+  renderCatFunnel(cur);
   // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
   // Уровни «показы в поиске» и «посещения карточки» - отдельные метрики OZON, пока не тянем -> «нет данных».
   const lv=[
@@ -774,11 +804,8 @@ function render(cur,cmp){
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
     {n:'Выкуплено', v:S('deliv'), c:''}
   ];
-  const maxV=Math.max(1,...lv.map(x=>x.v).filter(x=>x!=null));
-  // ширины: известные пропорционально, неизвестные - линейно между соседями (только визуал)
-  const w=lv.map(x=>x.v!=null?Math.max(8,x.v/maxV*100):null);
-  for(let i=0;i<w.length;i++){ if(w[i]==null){ let p=i;while(p>=0&&w[p]==null)p--; let q=i;while(q<w.length&&w[q]==null)q++;
-    const pw=p>=0?w[p]:70, qw=q<w.length?w[q]:pw; w[i]=p>=0&&q<w.length?pw+(qw-pw)*(i-p)/(q-p):(pw||qw||70); } }
+  // Форма воронки ФИКСИРОВАННАЯ - ровное сужение вниз, не зависит от значений (меняются только числа).
+  const w=lv.map((x,i)=>100-i*(58/(lv.length-1)));
   let fh='<div class="vf">';
   lv.forEach((x,i)=>{
     const nd=x.v==null;

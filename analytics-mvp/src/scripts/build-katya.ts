@@ -909,17 +909,23 @@ function render(cur,cmp){
   const SKU_ECON: Record<string, any> = {};
   for (const sku of Object.keys(econPnl)) {
     const p = econPnl[sku]; const accr = p.accruals || 0; if (accr <= 0) continue;
-    const com = Math.round((-(p.commission || 0) / accr) * 1000) / 10;
+    // FENIX G1: take-rate OZON = ВСЕ сборы = (начислено − к выплате amount), а не поле commission
+    // (оно = только комиссия за продажу, без логистики/эквайринга/хранения). amount = реальный payout.
+    const com = Math.round(((accr - (p.amount || 0)) / accr) * 1000) / 10;
     const cu = econCogs[sku] || 0; const units = econUnits[sku] || 0;
-    const cogsNA = !(cu > 0 && units > 0);
+    const ops = p.ops || 0;
+    const lowN = ops < 5; // FENIX G3: малая выборка ломает безубыток (с/с по брутто-units vs нетто-accruals)
+    const noCogs = !(cu > 0 && units > 0);
+    const cogsNA = noCogs || lowN;
     const cogsPct = cogsNA ? null : Math.round((cu * units / accr) * 1000) / 10;
     const be = cogsNA ? null : Math.round((100 - com - (cogsPct as number)) * 10) / 10;
-    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr) };
+    const why = lowN ? "мало данных (<5 операций)" : (noCogs ? "нет себестоимости" : null);
+    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr), why };
   }
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">безубыточная ДРР = 100% − комиссия OZON − себестоимость. Запас = безубыток − факт ДРР. Решение: 🟢 запас ≥7 п.п. жать газ · 🟡 0…7 держать · 🔴 &lt;0 резать. ДРР по рекламным заказам, маржа по продажам SKU - окна атрибуции различаются (светофор, не P&amp;L до копейки).</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Безубыт. ДРР</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">безубыточная ДРР = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение, из payout) − себестоимость. Запас = безубыток − факт ДРР. Решение: 🟢 запас ≥30% безубытка · 🟡 0…30% · 🔴 &lt;0. SKU агрегирован по всем кампаниям. Таблица - по данным Performance API (снимок/живой запрос). ДРР по рекламным заказам, маржа по продажам SKU - окна различаются: это светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Безубыт. ДРР</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по линиям</div><div class="card-sub">расход и ДРР за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -984,18 +990,23 @@ function paint(a,src){
 }
 function renderUecon(a){
   function stOf(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var b=bakedFor();var f=((b&&b.top_spend)||[]).filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];}
-  var rows=[];var naSp=0,total=0;
-  (a.top_spend||[]).forEach(function(c){stOf(c).forEach(function(s){total++;var e=ECON[String(s.sku)];var art=SKU_MAP[String(s.sku)]||s.sku;
-    if(!e||e.be==null){naSp+=s.sp||0;rows.push({camp:c.off,art:art,name:s.name,sp:s.sp,om:s.om,drr:s.drr,na:true,why:e?'нет себестоимости':'нет продаж за период'});return;}
-    var head=Math.round((e.be-(s.drr||0))*10)/10;var v=head>=7?'go':(head>=0?'edge':'cut');
-    rows.push({camp:c.off,art:art,name:s.name,sp:s.sp,om:s.om,drr:s.drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});});});
+  // FENIX G5: агрегируем по SKU через ВСЕ кампании (SKU в неск. кампаниях не двоится)
+  var bySku={};
+  (a.top_spend||[]).forEach(function(c){stOf(c).forEach(function(s){var k=String(s.sku);var b=bySku[k]||(bySku[k]={sku:k,name:s.name,camp:c.off,sp:0,om:0});b.sp+=s.sp||0;b.om+=s.om||0;});});
+  var keys=Object.keys(bySku);var total=keys.length;
+  var rows=[];var naSp=0;
+  keys.forEach(function(k){var b=bySku[k];var drr=b.om?Math.round(b.sp/b.om*1000)/10:0;var e=ECON[k];var art=SKU_MAP[k]||k;
+    if(!e||e.be==null){naSp+=b.sp||0;rows.push({camp:b.camp,art:art,name:b.name,sp:b.sp,om:b.om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
+    var head=Math.round((e.be-drr)*10)/10;var gt=Math.max(0,Math.round(e.be*0.3*10)/10); // FENIX G6: порог относительный (30% безубытка)
+    var v=head>=gt?'go':(head>=0?'edge':'cut');
+    rows.push({camp:b.camp,art:art,name:b.name,sp:b.sp,om:b.om,drr:drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});});
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
-  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">данные рекламы по SKU подгружаются при обновлении снимка (Performance API)</td></tr>';if(elk)elk.innerHTML='';return;}
+  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">таблица считается по данным Performance API (снимок/живой запрос) - сейчас пусто, дольётся при обновлении</td></tr>';if(elk)elk.innerHTML='';return;}
   var calc=rows.filter(function(r){return !r.na;});
   var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
   var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
   var kc=function(lab,val,col){return '<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v" style="color:'+(col||'inherit')+'">'+val+'</div></div>';};
-  if(elk)elk.innerHTML=kc('🟢 в плюс',nGo,'var(--up)')+kc('🟡 на грани',nEdge,'#E5B567')+kc('🔴 в минус',nCut,'var(--dn)')+kc('Чистая прибыль рекламы',(profit>=0?'+':'')+fMln(profit),'var(--up)')+kc('Burn рекламы',fMln(burn),'var(--dn)')+kc('Покрытие',calc.length+' из '+total+(naSp>0?' · н/д расход '+fMln(naSp):''),'inherit');
+  if(elk)elk.innerHTML=kc('🟢 в плюс',nGo,'var(--up)')+kc('🟡 на грани',nEdge,'#E5B567')+kc('🔴 в минус',nCut,'var(--dn)')+kc('Потенциал зелёных, ₽',(profit>=0?'+':'')+fMln(profit),'var(--up)')+kc('Перерасход по минусовым, ₽',fMln(burn),'var(--dn)')+kc('Покрытие',calc.length+' из '+total+(naSp>0?' · н/д расход '+fMln(naSp):''),'inherit');
   rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});
   var vlab={go:'🟢 жать газ',edge:'🟡 держать',cut:'🔴 резать'};var vact={go:'поднять ставку/бюджет',edge:'не масштабировать; ставка/цена',cut:'пауза/резать ставку 48ч'};
   el.innerHTML=rows.map(function(r){

@@ -680,6 +680,7 @@
   </div>
 </header>
 <main class="main">
+  <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">безубыточная ДРР = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение, из payout) − себестоимость. Запас = безубыток − факт ДРР. Решение: 🟢 запас ≥30% безубытка · 🟡 0…30% · 🔴 &lt;0. SKU агрегирован по всем кампаниям. Таблица - по данным Performance API (снимок/живой запрос). ДРР по рекламным заказам, маржа по продажам SKU - окна различаются: это светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Безубыт. ДРР</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
@@ -750,12 +751,14 @@ function paint(a,src){
     var main='<tr class="'+(has?'ad-exp':'')+'" data-i="'+ci+'"><td>'+(has?'<span class="cf-tg">▸ </span>':'')+'<b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
     var sub='';
     if(has){
-      var rowsH='';
+      var rowsH='';var omM=0,soM=0;
       st.forEach(function(s){
         var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
+        omM+=(s.omModel||0);soM+=(s.soldModel||0);
         rowsH+='<tr><td title="'+String(s.name||'').replace(/"/g,"&quot;")+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
       });
-      var inner='<div style="overflow-x:auto"><table class="kt-table" style="margin:0;min-width:560px"><thead><tr><th>SKU в продвижении</th><th>Инструмент</th><th>Место</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+rowsH+'</tbody></table></div>';
+      if(omM>0||soM>0){rowsH+='<tr><td style="color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+      var inner='<div style="overflow-x:auto"><table class="kt-table" style="margin:0;min-width:520px"><tbody>'+rowsH+'</tbody></table></div>';
       sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding:6px 10px 12px 24px">'+inner+'</td></tr>';
     }
     return main+sub;
@@ -799,19 +802,21 @@ function renderUecon(a){
     return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+r.com+'%</td><td class="r">'+r.cogs+'%</td><td class="r">'+bec+'</td><td class="r" style="color:'+hc+'"><b>'+(r.head>0?'+':'')+r.head+'</b></td><td style="color:'+hc+'">'+vlab[r.v]+' <span style="color:var(--ink-3);font-size:11px">· '+vact[r.v]+'</span></td></tr>';
   }).join('');
 }
+function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
 function render(cur,cmp){
   mCur=cur; // окно для Общей ДРР (расход÷оборот)
+  setAds('load','подгружаю данные рекламы по SKU… (~15 сек)');
   // 1) мгновенно - запечённый снимок ИМЕННО за выбранный период (реальные числа)
   const baked=bakedFor();paint(baked,'baked');
-  if(typeof fetch==='undefined')return;
+  if(typeof fetch==='undefined'){setAds('ok','готов к работе (снимок)');return;}
   // 2) живое уточнение за точные даты периода (для своего диапазона - единственный источник)
   const my=++lastReq;
   var ctrl=('AbortController' in window)?new AbortController():null;
   var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
   fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to,withSku:true}),signal:ctrl?ctrl.signal:undefined})
     .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
-    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0))paint(a,'live');else paint(baked,'baked2');})
-    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');});
+    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0)){paint(a,'live');setAds('ok','готов к работе · данные рекламы обновлены');}else{paint(baked,'baked2');setAds('warn','реклама пустая — показан снимок');}})
+    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');setAds('warn','реклама не загрузилась (таймаут/лимит OZON) — показан снимок');});
 }
 applyPeriod();
 </script>

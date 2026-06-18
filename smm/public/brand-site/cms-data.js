@@ -59,12 +59,12 @@
         owner: norm(pick(o, 'ответственный', 'owner')),
         situational: boolOf(pick(o, 'ситуатив', 'situational')),
         // тело поста
-        cover: norm(pick(o, 'картинка', 'обложка', 'cover', 'image')),
+        cover: norm(pick(o, 'картинка', 'обложка', 'фото', 'изображение', 'cover', 'image')),
         text: norm(pick(o, 'текст', 'текст_поста', 'text', 'caption')),
         media: low(pick(o, 'тип медиа', 'медиа', 'media')) || '',
         alt: norm(pick(o, 'alt', 'альт', 'описание картинки')),
         pubdate: fmtDate(pick(o, 'дата публикации', 'дата', 'pubdate', 'date')),
-        extraUrl: norm(pick(o, 'доп ссылка', 'доп.ссылка', 'extra', 'link2'))
+        extraUrl: norm(pick(o, 'доп ссылка', 'допссылка', 'доп.ссылка', 'extra', 'link2'))
       };
     }).filter(function (p) { return p.idea || p.rubric || p.text; });
   }

@@ -90,6 +90,12 @@ jobs:
         env:
           N8N_TOKEN: ${{ secrets.N8N_TOKEN }}
 
+      # Кэш per-SKU отчётов рекламы (обход 429 OZON): один отчёт на кампанию, раз в день.
+      # Не валим прогон, если OZON лимитирует - страница тогда тянет лениво вживую.
+      - name: Cache ad reports
+        continue-on-error: true
+        run: npm run cache:reports
+
       - name: Rejoin cogs and rebuild
         run: |
           set -euo pipefail

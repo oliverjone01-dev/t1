@@ -890,6 +890,8 @@ function render(cur,cmp){
   let adsPeriods: any;
   try { adsPeriods = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
   catch { adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap }; }
+  let adsReports: any = {};
+  try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -937,7 +939,7 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -946,8 +948,11 @@ let lastReq=0;
 // --- ленивая загрузка per-SKU отчётов (один отчёт на кампанию, чтобы влезть в лимит n8n 60с и не упереться в 429) ---
 var REPORTS={};var lastA=null;var expanded={};
 function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
-function repOf(id){var v=REPORTS[rptKey(id)];return v===undefined?null:v;} // null = не загружено, [] = загружено пусто
-function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}if(typeof fetch==='undefined'||!mCur){REPORTS[k]=[];if(cb)cb([]);return;}fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:String(id),dateFrom:mCur.from,dateTo:mCur.to})}).then(function(r){return r.json();}).then(function(d){REPORTS[k]=(d&&d.skuStats)||[];if(cb)cb(REPORTS[k]);}).catch(function(){REPORTS[k]=[];if(cb)cb([]);});}
+function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range')return null;return 'p30';}
+function cacheStats(id){var lb=curLabel();if(!lb||!RCACHE||!RCACHE[lb])return null;var r=RCACHE[lb].reports||{};var v=r[String(id)];return v===undefined?null:v;} // кэш (стандартный период)
+function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
+function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
+  if(typeof fetch==='undefined'||!mCur){REPORTS[k]=[];if(cb)cb([]);return;}fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:String(id),dateFrom:mCur.from,dateTo:mCur.to})}).then(function(r){return r.json();}).then(function(d){REPORTS[k]=(d&&d.skuStats)||[];if(cb)cb(REPORTS[k]);}).catch(function(){REPORTS[k]=[];if(cb)cb([]);});}
 var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
 var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
 var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};

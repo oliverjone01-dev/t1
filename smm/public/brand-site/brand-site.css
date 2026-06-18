@@ -5,43 +5,44 @@
    Цвет-токены (--gold/--gg/--v/--keep/--stop/--pln/--rdy) держим ТЕКСТ-БЕЗОПАСНЫМИ
    в каждой теме; фоны - через *-soft. Класс-имена прежние (страницы не ломаются).
    ========================================================================== */
+/* :REF-LIGHT */
 :root[data-theme="light"], :root:not([data-theme]){
-  --bg:#F4F6F9;--s1:#FFFFFF;--s2:#EEF1F5;--line:#E5E8EE;--line2:#D6DAE2;
-  --ink:#121620;--ink2:#535E70;--ink3:#667080;
-  --gold:#8A6614;--gold2:#A07A1E;--gold-soft:rgba(190,150,60,.16);    /* текст-золото */
-  --gold-fill:#C8A951;
-  --gg:#2C5377;--gg-ink:#2C5377;--gg-soft:rgba(70,110,150,.13);       /* GENGLASS сине-стальной */
-  --v:#8A6614;--v-ink:#8A6614;--v-soft:rgba(190,150,60,.16);          /* VALONTI золото (= gold) */
-  --keep:#1F7A52;--pub:#1F7A52;--pub-soft:rgba(31,122,82,.13);
-  --rdy:#9A5A12;--sgl:#9A5A12;--sgl-soft:rgba(196,118,26,.16);        /* на согл - амбер */
+  --bg:#EFEFF1;--s1:#FFFFFF;--s2:#F1F1F4;--s3:#E7E7EB;--line:#EAEAEE;--line2:#E0E0E5;
+  --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
+  --gold:#8A6514;--gold2:#A07A1E;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
+  --gg:#2C5377;--gg-ink:#2C5377;--gg-soft:rgba(70,110,150,.12);
+  --v:#8A6514;--v-ink:#8A6514;--v-soft:rgba(242,184,74,.18);
+  --keep:#1F7A52;--pub:#1F7A52;--pub-soft:rgba(31,122,82,.12);
+  --rdy:#9A5A12;--sgl:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
   --pln:#5E6776;--pln-soft:rgba(94,103,118,.12);
   --stop:#B23A28;--danger:#B23A28;
   --hyp-bg:rgba(120,124,136,.14);--hyp-ink:#5E6776;
-  --card:#FFFFFF;--card2:#EEF1F5;--bg2:#EEF1F5;
-  --top-bg:rgba(255,255,255,.82);--sel-bg:#121620;--sel-ink:#FFFFFF;
-  --shadow:0 1px 2px rgba(18,22,32,.05),0 6px 20px rgba(18,22,32,.08);
-  --shadow-lg:0 12px 34px rgba(18,22,32,.14);
-  --glow1:rgba(200,169,81,.10);--glow2:rgba(70,110,150,.08);
-  --radius:16px;--ease:cubic-bezier(.22,.61,.36,1);
+  --card:#FFFFFF;--card2:#F1F1F4;--bg2:#F1F1F4;
+  --top-bg:rgba(255,255,255,.82);--sel-bg:#1C1C1F;--sel-ink:#FFFFFF;
+  --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;
+  --shadow:0 1px 3px rgba(22,22,28,.05),0 10px 30px rgba(22,22,28,.07);
+  --shadow-lg:0 16px 44px rgba(22,22,28,.12);
+  --glow1:transparent;--glow2:transparent;
+  --radius:18px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 :root[data-theme="dark"]{
-  --bg:#0B0E11;--s1:#161A1F;--s2:#1C2127;--line:#262C34;--line2:#333B45;
-  --ink:#EAECEF;--ink2:#A7B0BD;--ink3:#868F9D;
-  --gold:#E2B95C;--gold2:#EBCB7E;--gold-soft:rgba(226,185,92,.15);
-  --gold-fill:#D4AF5A;
+  --bg:#0F1115;--s1:#181B21;--s2:#20242C;--s3:#2A2F38;--line:#262B33;--line2:#333A44;
+  --ink:#EDEEF0;--ink2:#A6ABB5;--ink3:#878D97;
+  --gold:#E6BE63;--gold2:#EBCB7E;--gold-soft:rgba(230,190,99,.14);--gold-fill:#E6BE63;--gold-border:#E6BE63;
   --gg:#7FA8C6;--gg-ink:#9DC0DA;--gg-soft:rgba(127,168,198,.15);
-  --v:#E2B95C;--v-ink:#EBCB7E;--v-soft:rgba(226,185,92,.15);
+  --v:#E6BE63;--v-ink:#EBCB7E;--v-soft:rgba(230,190,99,.14);
   --keep:#46C08A;--pub:#46C08A;--pub-soft:rgba(70,192,138,.15);
-  --rdy:#E0A23C;--sgl:#E6AE52;--sgl-soft:rgba(224,162,60,.16);
+  --rdy:#E6BE63;--sgl:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
   --pln:#8A93A0;--pln-soft:rgba(138,147,160,.14);
   --stop:#E0644A;--danger:#E0644A;
   --hyp-bg:rgba(140,148,160,.16);--hyp-ink:#9aa3b0;
-  --card:#161A1F;--card2:#1C2127;--bg2:#1C2127;
-  --top-bg:rgba(11,14,17,.78);--sel-bg:#E2B95C;--sel-ink:#0B0E11;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.5);
+  --card:#181B21;--card2:#20242C;--bg2:#20242C;
+  --top-bg:rgba(15,17,21,.8);--sel-bg:#E6BE63;--sel-ink:#15171B;
+  --cta:#E6BE63;--cta-ink:#15171B;--gold-btn-ink:#15171B;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.5);
   --shadow-lg:0 18px 46px rgba(0,0,0,.6);
-  --glow1:rgba(226,185,92,.10);--glow2:rgba(127,168,198,.07);
-  --radius:16px;--ease:cubic-bezier(.22,.61,.36,1);
+  --glow1:transparent;--glow2:transparent;
+  --radius:18px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
@@ -162,6 +163,7 @@ tr:last-child td{border-bottom:none}
 .reveal.in{opacity:1;transform:none}
 
 @media(max-width:820px){
+  .nav a,.tt button{min-height:40px;display:inline-flex;align-items:center}
   section{padding:42px 0}
   .cmp,.cmp-head,.overlap .og{grid-template-columns:1fr}
   .cmp-head{position:static}

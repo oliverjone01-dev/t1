@@ -901,15 +901,17 @@ function render(cur,cmp){
   const PRICE = { cheaper, even, pricier, noIdx, worst: worst.slice(0, 10).map((s) => ({ name: s.name, offer: s.offer, pidx: s.pidx, rev: s.rev })) };
   const body = `
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody id="top"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">Выручка</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody id="top"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по линиям</div><div class="card-sub">расход и ДРР за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от ${maxD} (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`;
+  const skuMap: Record<string, string> = {};
+  for (const s of live.sku_table) { if (s.sku != null) skuMap[String(s.sku)] = s.offer || s.name || String(s.sku); }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const SKU_MAP=${J(skuMap)};
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -931,7 +933,16 @@ function paint(a,src){
   ].join('');
   const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
-  document.getElementById('top').innerHTML=(a.top_spend||[]).map(c=>'<tr><td>'+c.off+'</td><td style="color:var(--ink-3)">'+c.line+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+(c.drr>40?'var(--dn)':c.drr>0&&c.drr<20?'var(--up)':'inherit')+'">'+c.drr+'%</td><td class="r">'+(c.roas??'-')+'x</td></tr>').join('');
+  document.getElementById('top').innerHTML=(a.top_spend||[]).map(function(c,ci){
+    var sk=c.skus||[]; var has=sk.length>0;
+    var drrC=c.drr>40?'var(--dn)':(c.drr>0&&c.drr<20?'var(--up)':'inherit');
+    var main='<tr class="'+(has?'ad-exp':'')+'" data-i="'+ci+'"><td>'+(has?'<span class="cf-tg">▸ </span>':'')+c.off+'</td><td style="color:var(--ink-3)">'+c.line+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+c.o+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r" style="color:'+drrC+'">'+c.drr+'%</td><td class="r">'+(c.roas??'-')+'x</td></tr>';
+    var sub='';
+    if(has){var arts=sk.map(function(s){return '<span class="ad-art">'+(SKU_MAP[s]||s)+'</span>';}).join('');
+      sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding:6px 10px 8px 24px"><span style="color:var(--ink-3);font-size:11.5px">Артикулы в кампании ('+sk.length+'): </span>'+arts+'</td></tr>';}
+    return main+sub;
+  }).join('');
+  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var s=document.querySelector('#top .ad-sku[data-p="'+i+'"]');if(!s)return;var open=s.style.display==='none';s.style.display=open?'':'none';var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=open?'▾ ':'▸ ';};});
   document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
   document.getElementById('lines').innerHTML=(a.by_line||[]).map(l=>'<tr><td>'+l.line+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>').join('');
   const tot=PRICE.cheaper+PRICE.even+PRICE.pricier+PRICE.noIdx||1;

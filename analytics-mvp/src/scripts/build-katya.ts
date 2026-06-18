@@ -928,7 +928,7 @@ function render(cur,cmp){
   <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">безубыточная ДРР = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение, из payout) − себестоимость. Запас = безубыток − факт ДРР. Решение: 🟢 запас ≥30% безубытка · 🟡 0…30% · 🔴 &lt;0. SKU агрегирован по всем кампаниям. Таблица - по данным Performance API (снимок/живой запрос). ДРР по рекламным заказам, маржа по продажам SKU - окна различаются: это светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Безубыт. ДРР</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия и с/с SKU - из снимка финансов за 30 дней (не за окно фильтра): это светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход и ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -1013,19 +1013,19 @@ function paint(a,src){
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r">Индекс</th><th class="r">Оборот 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
 }
 function renderUecon(a){
-  function stOf(c){return repOf(c.id)||[];}
-  // FENIX G5: агрегируем по SKU через ВСЕ кампании (SKU в неск. кампаниях не двоится)
-  var bySku={};
-  (a.top_spend||[]).forEach(function(c){stOf(c).forEach(function(s){var k=String(s.sku);var b=bySku[k]||(bySku[k]={sku:k,name:s.name,camp:c.id,sp:0,om:0});b.sp+=s.sp||0;b.om+=s.om||0;});});
-  var keys=Object.keys(bySku);var total=keys.length;
-  var rows=[];var naSp=0;
-  keys.forEach(function(k){var b=bySku[k];var drr=b.om?Math.round(b.sp/b.om*1000)/10:0;var e=ECON[k];var art=SKU_MAP[k]||k;
-    if(!e||e.be==null){naSp+=b.sp||0;rows.push({camp:b.camp,art:art,name:b.name,sp:b.sp,om:b.om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
-    var head=Math.round((e.be-drr)*10)/10;var gt=Math.max(0,Math.round(e.be*0.3*10)/10); // FENIX G6: порог относительный (30% безубытка)
+  // По КАМПАНИИ (не по отдельному SKU): расход/выручка/ДРР всей кампании, эконо-показатели
+  // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
+  var rows=[];var naSp=0,total=0;
+  (a.top_spend||[]).forEach(function(c){
+    var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
+    var art=SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0;
+    if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
+    var head=Math.round((e.be-drr)*10)/10;var gt=Math.max(0,Math.round(e.be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
     var v=head>=gt?'go':(head>=0?'edge':'cut');
-    rows.push({camp:b.camp,art:art,name:b.name,sp:b.sp,om:b.om,drr:drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});});
+    rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});
+  });
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
-  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">считается по живому запросу Performance API (~15 сек) - наполнится автоматически</td></tr>';if(elk)elk.innerHTML='<div class="kt-note">загрузка SKU-отчётов рекламы…</div>';return;}
+  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
   var calc=rows.filter(function(r){return !r.na;});
   var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
   var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
@@ -1034,7 +1034,7 @@ function renderUecon(a){
   rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});
   var vlab={go:'🟢 жать газ',edge:'🟡 держать',cut:'🔴 резать'};var vact={go:'поднять ставку/бюджет',edge:'не масштабировать; ставка/цена',cut:'пауза/резать ставку 48ч'};
   el.innerHTML=rows.map(function(r){
-    var nm='<td title="'+String(r.name||'').replace(/"/g,'&quot;')+'">'+r.camp+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
+    var nm='<td>'+r.camp+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
     if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="4" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
     var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
     var bec=r.be<0?'<span style="color:var(--dn)">убыток до рекл.</span>':'<b>'+r.be+'%</b>'; // FENIX N1: be<0 словом, не сырым %

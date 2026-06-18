@@ -19,7 +19,7 @@
     --bg:#EFEFF1;--s1:#FFFFFF;--s2:#F1F1F4;--s3:#E7E7EB;--line:#EAEAEE;--line2:#E0E0E5;
     --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
     --gold:#8A6514;--gold-ink:#8A6514;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
-    --steel:#2C5377;--steel-ink:#2C5377;--steel-soft:rgba(70,110,150,.12);
+    --steel:#4E5663;--steel-ink:#3C434E;--steel-soft:rgba(78,86,99,.12);
     --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.12);
     --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
     --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
@@ -30,7 +30,7 @@
     --bg:#0F1115;--s1:#181B21;--s2:#20242C;--s3:#2A2F38;--line:#262B33;--line2:#333A44;
     --ink:#EDEEF0;--ink2:#A6ABB5;--ink3:#878D97;
     --gold:#E6BE63;--gold-ink:#E6BE63;--gold-soft:rgba(230,190,99,.14);--gold-fill:#E6BE63;--gold-border:#E6BE63;
-    --steel:#7FA8C6;--steel-ink:#9DC0DA;--steel-soft:rgba(127,168,198,.15);
+    --steel:#9AA3AF;--steel-ink:#B4BCC6;--steel-soft:rgba(154,163,175,.15);
     --pub:#46C08A;--pub-ink:#46C08A;--pub-soft:rgba(70,192,138,.15);
     --sgl:#E6BE63;--sgl-ink:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
     --pln:#8A93A0;--pln-ink:#8A93A0;--pln-soft:rgba(138,147,160,.14);
@@ -56,7 +56,7 @@
   .nav::-webkit-scrollbar{display:none}
   .nav a{font-size:12.5px;font-weight:600;color:var(--ink2);text-decoration:none;padding:8px 13px;border-radius:10px;white-space:nowrap;transition:.2s}
   .nav a:hover{color:var(--ink);background:var(--s2)}
-  .nav a.on{color:var(--gold);background:var(--gold-soft)}
+  .nav a.on{color:var(--ink);background:var(--s1);box-shadow:var(--shadow)}
   .nav a .n{color:var(--ink3);margin-right:6px}
   .tt{display:inline-flex;gap:5px;background:var(--s2);border:1px solid transparent;border-radius:10px;padding:4px;margin-left:auto}
   .tt button{font:inherit;font-size:13px;color:var(--ink2);background:none;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;line-height:1}
@@ -64,13 +64,13 @@
   /* planbar: заголовок + вид + как работает */
   .planbar{position:sticky;top:0;z-index:49;border-bottom:1px solid var(--line);background:var(--bg)}
   .planbar-in{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .ttl .ey{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+  .ttl .ey{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:700}
   .ttl h2{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
   .controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .seg{display:inline-flex;background:var(--s2);border:1px solid transparent;border-radius:10px;padding:3px;gap:2px}
   .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer}
   .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
-  .howto{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);background:var(--s2);border:1px solid transparent;border-radius:10px;padding:8px 14px;cursor:pointer}.howto:hover{background:var(--s3)}
+  .howto{font:inherit;font-size:12.5px;font-weight:800;color:var(--cta-ink);background:var(--cta);border:none;border-radius:10px;padding:9px 15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;box-shadow:var(--shadow)}.howto:hover{filter:brightness(.97)}
   .src{max-width:1240px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--ink2)}
   .src .ok{color:var(--pub-ink);font-weight:700}.src .warn{color:var(--sgl-ink);font-weight:700}
   /* KPI */
@@ -231,7 +231,7 @@
 <div class="planbar"><div class="planbar-in">
   <div class="ttl"><div class="ey">GENGROUP · контроль</div><h2>Контент-план</h2></div>
   <div class="controls">
-    <button class="howto" id="howto" type="button">Как работает</button>
+    <a class="howto" href="howto.html">Как работает</a>
     <div class="seg" role="group" aria-label="Вид"><button id="v-tiles" type="button">▤ Плитки</button><button id="v-table" type="button">▦ Таблица</button></div>
   </div>
 </div></div>
@@ -251,7 +251,7 @@
 <!-- модалка поста -->
 <div class="ov" id="pm-ov" role="dialog" aria-modal="true" aria-label="Пост"><div class="modal" id="pm"></div></div>
 <!-- модалка инструкции -->
-<div class="ov" id="ht-ov" role="dialog" aria-modal="true" aria-label="Как работает"><div class="modal"><div class="modal-h"><h3>Как работает инструмент</h3><button class="x" id="ht-x" type="button" aria-label="Закрыть">✕</button></div><div class="ht-body" id="ht-body"></div></div></div>
+<!-- инструкция вынесена на отдельную страницу howto.html -->
 
 <script src="cms-seed.js"></script>
 <script src="cms-config.js"></script>
@@ -435,10 +435,7 @@
     document.getElementById('ht-ov').classList.add('open');
   }
   function step(n,t,p,mock){return '<div class="step"><div class="nu">'+n+'</div><h4>'+t+'</h4><p>'+p+'</p>'+(mock||'')+'</div>';}
-  document.getElementById('howto').onclick=howto;
-  document.getElementById('ht-x').onclick=function(){document.getElementById('ht-ov').classList.remove('open');};
-  document.getElementById('ht-ov').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!document.body.classList.contains('anno-commenting'))closePost();document.getElementById('ht-ov').classList.remove('open');}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.body.classList.contains('anno-commenting'))closePost();});
 
   function render(){
     filters();

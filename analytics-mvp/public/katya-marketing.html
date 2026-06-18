@@ -740,7 +740,7 @@ function paint(a,src){
   var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
   var bTop=function(){var b=bakedFor();return (b&&b.top_spend)||[];};
   var statsFor=function(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var f=bTop().filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];};
-  var aggOf=function(st){var sp=0,om=0,ord=0;st.forEach(function(s){sp+=s.sp||0;om+=(s.om||0)+(s.omModel||0);ord+=(s.sold||0)+(s.soldModel||0);});return {sp:sp,om:om,ord:ord,drr:om?Math.round(sp/om*1000)/10:0};};
+  var aggOf=function(st){var sp=0,om=0,ord=0;st.forEach(function(s){sp+=s.sp||0;om+=s.om||0;ord+=s.sold||0;});return {sp:sp,om:om,ord:ord,drr:om?Math.round(sp/om*1000)/10:0};};
   var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
   document.getElementById('top').innerHTML=(a.top_spend||[]).map(function(c,ci){
     var st=statsFor(c);var has=st.length>0;
@@ -752,11 +752,8 @@ function paint(a,src){
       st.forEach(function(s){
         var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
         rowsH+='<tr><td title="'+String(s.name||'').replace(/"/g,"&quot;")+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
-        if((s.omModel||0)>0||(s.soldModel||0)>0){
-          rowsH+='<tr><td style="padding-left:28px;color:var(--ink-3)">Объединённая карточка</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(s.omModel)+'</td><td class="r">'+(s.soldModel||0)+'</td><td class="r">—</td></tr>';
-        }
       });
-      var inner='<div style="overflow-x:auto"><table class="kt-table" style="margin:0;min-width:560px"><thead><tr><th>SKU в продвижении</th><th>Инструмент</th><th>Место</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+rowsH+'</tbody></table><div class="kt-note" style="padding:4px 0 0">«Объединённая карточка» - суммарные продажи в продвижении по другим SKU карточки (поштучную разбивку OZON в API не отдаёт).</div></div>';
+      var inner='<div style="overflow-x:auto"><table class="kt-table" style="margin:0;min-width:560px"><thead><tr><th>SKU в продвижении</th><th>Инструмент</th><th>Место</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody>'+rowsH+'</tbody></table></div>';
       sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding:6px 10px 12px 24px">'+inner+'</td></tr>';
     }
     return main+sub;

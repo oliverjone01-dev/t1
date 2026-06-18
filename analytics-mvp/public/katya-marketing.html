@@ -748,22 +748,21 @@ function paint(a,src){
   document.getElementById('top').innerHTML=(a.top_spend||[]).map(function(c,ci){
     var st=statsFor(c);var has=st.length>0;
     var ag=has?aggOf(st):{sp:c.sp,om:c.om||0,ord:c.o,drr:c.drr}; // строка = ВСЯ кампания (промо-SKU + продажи модели)
-    var main='<tr class="'+(has?'ad-exp':'')+'" data-i="'+ci+'"><td>'+(has?'<span class="cf-tg">▸ </span>':'')+'<b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
-    var sub='';
+    var main='<tr class="ad-exp" data-i="'+ci+'"><td><span class="cf-tg">▸ </span><b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
+    var sub='';var omM=0,soM=0;
     if(has){
-      var rowsH='';var omM=0,soM=0;
       st.forEach(function(s){
         var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
         omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        rowsH+='<tr><td title="'+String(s.name||'').replace(/"/g,"&quot;")+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
+        sub+='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,"&quot;")+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
       });
-      if(omM>0||soM>0){rowsH+='<tr><td style="color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-      var inner='<div style="overflow-x:auto"><table class="kt-table" style="margin:0;min-width:520px"><tbody>'+rowsH+'</tbody></table></div>';
-      sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding:6px 10px 12px 24px">'+inner+'</td></tr>';
+      if(omM>0||soM>0){sub+='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+    } else {
+      sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или данные ещё грузятся)</td></tr>';
     }
     return main+sub;
   }).join('');
-  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var s=document.querySelector('#top .ad-sku[data-p="'+i+'"]');if(!s)return;var open=s.style.display==='none';s.style.display=open?'':'none';var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=open?'▾ ':'▸ ';};});
+  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#top .ad-sku[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=open?'▾ ':'▸ ';};});
   document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
   document.getElementById('lines').innerHTML=(a.by_line||[]).map(l=>'<tr><td>'+l.line+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>').join('');
   renderUecon(a);

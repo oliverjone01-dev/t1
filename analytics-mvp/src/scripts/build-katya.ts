@@ -960,12 +960,13 @@ function paint(a,src){
   var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
   var bTop=function(){var b=bakedFor();return (b&&b.top_spend)||[];};
   var statsFor=function(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var f=bTop().filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];};
-  var aggOf=function(st){var sp=0,om=0,ord=0;st.forEach(function(s){sp+=s.sp||0;om+=s.om||0;ord+=s.sold||0;});return {sp:sp,om:om,ord:ord,drr:om?Math.round(sp/om*1000)/10:0};};
+  var aggOf=function(st){var sp=0,om=0,ord=0;st.forEach(function(s){sp+=s.sp||0;om+=(s.om||0)+(s.omModel||0);ord+=(s.sold||0)+(s.soldModel||0);});return {sp:sp,om:om,ord:ord,drr:om?Math.round(sp/om*1000)/10:0};};
   var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
+  var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
   document.getElementById('top').innerHTML=(a.top_spend||[]).map(function(c,ci){
     var st=statsFor(c);var has=st.length>0;
-    var ag=has?aggOf(st):{sp:c.sp,om:c.om||0,ord:c.o,drr:c.drr};
-    var main='<tr class="'+(has?'ad-exp':'')+'" data-i="'+ci+'"><td>'+(has?'<span class="cf-tg">▸ </span>':'')+'<b>'+c.off+'</b></td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
+    var ag=has?aggOf(st):{sp:c.sp,om:c.om||0,ord:c.o,drr:c.drr}; // строка = ВСЯ кампания (промо-SKU + продажи модели)
+    var main='<tr class="'+(has?'ad-exp':'')+'" data-i="'+ci+'"><td>'+(has?'<span class="cf-tg">▸ </span>':'')+'<b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
     var sub='';
     if(has){
       var rowsH='';

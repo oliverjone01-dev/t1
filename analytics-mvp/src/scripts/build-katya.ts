@@ -928,7 +928,7 @@ function render(cur,cmp){
   <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия и с/с SKU - из снимка финансов за 30 дней (не за окно фильтра): это светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия SKU - за окно фильтра (живой pnl-sku), себестоимость - снимок 30 дней. Светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход и ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -944,7 +944,16 @@ const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
 const ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';
+const PSK_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl-sku';
 let lastReq=0;
+// Комиссия по SKU за ОКНО ФИЛЬТРА (живой pnl-sku). С/с остаётся из снимка 30 дней (ECON).
+var COM_PERIOD={};var comReady=false;var comKey='';
+function loadCommission(cur){var k=cur.from+'_'+cur.to;if(comKey===k){if(comReady)renderUecon(lastA);return;}comKey=k;comReady=false;
+  if(typeof fetch==='undefined')return;
+  fetch(PSK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(function(r){return r.json();}).then(function(d){if(comKey!==k)return;var bs=(d&&d.bySku)||{};var m={};for(var s in bs){var x=bs[s];if(x&&x.accruals>0)m[s]=Math.round((x.accruals-x.amount)/x.accruals*1000)/10;}COM_PERIOD=m;comReady=true;renderUecon(lastA);})
+    .catch(function(){});
+}
 // --- ленивая загрузка per-SKU отчётов (один отчёт на кампанию, чтобы влезть в лимит n8n 60с и не упереться в 429) ---
 var REPORTS={};var lastA=null;var expanded={};
 function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
@@ -1020,9 +1029,11 @@ function renderUecon(a){
     var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
     var art=SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0;
     if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
-    var head=Math.round((e.be-drr)*10)/10;var gt=Math.max(0,Math.round(e.be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
+    var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок
+    var be=Math.round((100-com-e.cogs)*10)/10; // Лимит РК = 100 − комиссия(период) − с/с(снимок)
+    var head=Math.round((be-drr)*10)/10;var gt=Math.max(0,Math.round(be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
     var v=head>=gt?'go':(head>=0?'edge':'cut');
-    rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});
+    rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,be:be,head:head,v:v});
   });
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
   if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
@@ -1047,6 +1058,7 @@ function render(cur,cmp){
   setAds('load','подгружаю данные рекламы…');
   // 1) мгновенно - запечённый снимок кампаний за выбранный период (быстро, без per-SKU)
   const baked=bakedFor();paint(baked,'baked');
+  loadCommission(cur); // комиссия по SKU за окно фильтра (живой pnl-sku) -> юнит-экономика
   if(typeof fetch==='undefined'){setAds('ok','готов к работе (снимок)');return;}
   // 2) живое уточнение кампаний за точные даты периода (без withSku - быстро); per-SKU грузим лениво
   const my=++lastReq;

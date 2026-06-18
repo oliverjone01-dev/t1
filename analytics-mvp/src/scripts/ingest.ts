@@ -17,6 +17,7 @@ interface RawRow {
   date: string; sku: string; name: string;
   rev: number; units: number; views: number; cart: number;
   deliv: number; ret: number; canc: number;
+  vsearch?: number; pdp?: number;
 }
 
 type DayTot = { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number };
@@ -79,7 +80,7 @@ function upsertTotals(raw: RawRow[], dayTotals: RawTotal[]): { days: number; tot
   return { days: touched.size, total: dates.length, source };
 }
 
-type ViewRow = { date: string; sku: string; name: string; line: string; views: number; cart: number; units: number; deliv: number; ret: number; canc: number };
+type ViewRow = { date: string; sku: string; name: string; line: string; views: number; vsearch: number; pdp: number; cart: number; units: number; deliv: number; ret: number; canc: number };
 
 // Полные показы по SKU×день: ВСЕ строки payload с любой активностью (показ/корзина/заказ/возврат),
 // а не только дни-с-продажей. Идемпотентно: день из payload переписываем заново.
@@ -101,7 +102,8 @@ function upsertViews(raw: RawRow[]): { rows: number } {
     if (!((r.views || 0) > 0 || (r.cart || 0) > 0 || (r.units || 0) > 0 || (r.ret || 0) > 0 || (r.canc || 0) > 0)) continue;
     map.set(r.date + "|" + String(r.sku), {
       date: r.date, sku: String(r.sku), name: r.name || "", line: lineOf(r.name || ""),
-      views: r.views || 0, cart: r.cart || 0, units: r.units || 0, deliv: r.deliv || 0, ret: r.ret || 0, canc: r.canc || 0,
+      views: r.views || 0, vsearch: r.vsearch || 0, pdp: r.pdp || 0,
+      cart: r.cart || 0, units: r.units || 0, deliv: r.deliv || 0, ret: r.ret || 0, canc: r.canc || 0,
     });
   }
   const keys = [...map.keys()].sort();

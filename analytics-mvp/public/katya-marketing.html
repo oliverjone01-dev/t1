@@ -723,6 +723,41 @@ function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-M
 var mCur=null;
 const ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';
 let lastReq=0;
+// --- ленивая загрузка per-SKU отчётов (один отчёт на кампанию, чтобы влезть в лимит n8n 60с и не упереться в 429) ---
+var REPORTS={};var lastA=null;var expanded={};
+function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
+function repOf(id){var v=REPORTS[rptKey(id)];return v===undefined?null:v;} // null = не загружено, [] = загружено пусто
+function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}if(typeof fetch==='undefined'||!mCur){REPORTS[k]=[];if(cb)cb([]);return;}fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:String(id),dateFrom:mCur.from,dateTo:mCur.to})}).then(function(r){return r.json();}).then(function(d){REPORTS[k]=(d&&d.skuStats)||[];if(cb)cb(REPORTS[k]);}).catch(function(){REPORTS[k]=[];if(cb)cb([]);});}
+var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
+var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
+var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
+function renderTop(){var a=lastA;if(!a)return;
+  var html=(a.top_spend||[]).map(function(c,ci){
+    var rep=repOf(c.id);var loaded=rep!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+c.id+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var sub='';
+    if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
+    else if(rep.length){var omM=0,soM=0;
+      rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
+      if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания)</td></tr>';}
+    return main+sub;
+  }).join('');
+  document.getElementById('top').innerHTML=html;
+  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var id=tr.getAttribute('data-id');expanded[i]=!expanded[i];
+    document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.style.display=expanded[i]?'':'none';});
+    var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=expanded[i]?'▾ ':'▸ ';
+    if(expanded[i]&&repOf(id)===null){loadReport(id,function(){renderTop();renderUecon(lastA);});}
+  };});
+}
+function loadAllReports(){var a=lastA;if(!a||typeof fetch==='undefined')return;
+  var ids=(a.top_spend||[]).map(function(c){return String(c.id);}).filter(function(id){return repOf(id)===null;});
+  var n=ids.length;var done=0;if(!n){setAds('ok','готов к работе');renderUecon(lastA);return;}
+  setAds('load','подгружаю разбивку по SKU 0/'+n+'…');var k=0,run=0,CONC=3;
+  function step(){while(run<CONC&&k<n){run++;loadReport(ids[k++],function(){run--;done++;setAds(done>=n?'ok':'load',done>=n?'готов к работе · разбивка загружена':('подгружаю разбивку по SKU '+done+'/'+n+'…'));renderTop();renderUecon(lastA);if(done<n)step();});}}
+  step();
+}
 // Запечённый снимок рекламы под выбранный период - показываем МГНОВЕННО реальные данные.
 function bakedFor(){
   if(CURP==='7d'||CURP==='today')return PERIODS.p7||SNAP;
@@ -739,30 +774,7 @@ function paint(a,src){
   ].join('');
   const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
-  var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
-  var bTop=function(){var b=bakedFor();return (b&&b.top_spend)||[];};
-  var statsFor=function(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var f=bTop().filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];};
-  var aggOf=function(st){var sp=0,om=0,ord=0;st.forEach(function(s){sp+=s.sp||0;om+=(s.om||0)+(s.omModel||0);ord+=(s.sold||0)+(s.soldModel||0);});return {sp:sp,om:om,ord:ord,drr:om?Math.round(sp/om*1000)/10:0};};
-  var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
-  var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
-  document.getElementById('top').innerHTML=(a.top_spend||[]).map(function(c,ci){
-    var st=statsFor(c);var has=st.length>0;
-    var ag=has?aggOf(st):{sp:c.sp,om:c.om||0,ord:c.o,drr:c.drr}; // строка = ВСЯ кампания (промо-SKU + продажи модели)
-    var main='<tr class="ad-exp" data-i="'+ci+'"><td><span class="cf-tg">▸ </span><b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(ag.sp)+'</td><td class="r">'+fmtRu(ag.om)+'</td><td class="r">'+ag.ord+'</td><td class="r" style="color:'+drrCol(ag.drr)+'">'+ag.drr+'%</td></tr>';
-    var sub='';var omM=0,soM=0;
-    if(has){
-      st.forEach(function(s){
-        var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
-        omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,"&quot;")+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
-      });
-      if(omM>0||soM>0){sub+='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {
-      sub='<tr class="ad-sku" data-p="'+ci+'" style="display:none"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или данные ещё грузятся)</td></tr>';
-    }
-    return main+sub;
-  }).join('');
-  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#top .ad-sku[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=open?'▾ ':'▸ ';};});
+  lastA=a;renderTop();
   document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
   document.getElementById('lines').innerHTML=(a.by_line||[]).map(l=>'<tr><td>'+l.line+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>').join('');
   renderUecon(a);
@@ -773,7 +785,7 @@ function paint(a,src){
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r">Индекс</th><th class="r">Оборот 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
 }
 function renderUecon(a){
-  function stOf(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var b=bakedFor();var f=((b&&b.top_spend)||[]).filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];}
+  function stOf(c){return repOf(c.id)||[];}
   // FENIX G5: агрегируем по SKU через ВСЕ кампании (SKU в неск. кампаниях не двоится)
   var bySku={};
   (a.top_spend||[]).forEach(function(c){stOf(c).forEach(function(s){var k=String(s.sku);var b=bySku[k]||(bySku[k]={sku:k,name:s.name,camp:c.off,sp:0,om:0});b.sp+=s.sp||0;b.om+=s.om||0;});});
@@ -803,19 +815,19 @@ function renderUecon(a){
 }
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
 function render(cur,cmp){
-  mCur=cur; // окно для Общей ДРР (расход÷оборот)
-  setAds('load','подгружаю данные рекламы по SKU… (~15 сек)');
-  // 1) мгновенно - запечённый снимок ИМЕННО за выбранный период (реальные числа)
+  mCur=cur; // окно периода
+  setAds('load','подгружаю данные рекламы…');
+  // 1) мгновенно - запечённый снимок кампаний за выбранный период (быстро, без per-SKU)
   const baked=bakedFor();paint(baked,'baked');
   if(typeof fetch==='undefined'){setAds('ok','готов к работе (снимок)');return;}
-  // 2) живое уточнение за точные даты периода (для своего диапазона - единственный источник)
+  // 2) живое уточнение кампаний за точные даты периода (без withSku - быстро); per-SKU грузим лениво
   const my=++lastReq;
   var ctrl=('AbortController' in window)?new AbortController():null;
   var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
-  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to,withSku:true}),signal:ctrl?ctrl.signal:undefined})
+  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to}),signal:ctrl?ctrl.signal:undefined})
     .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
-    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0)){paint(a,'live');setAds('ok','готов к работе · данные рекламы обновлены');}else{paint(baked,'baked2');setAds('warn','реклама пустая — показан снимок');}})
-    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');setAds('warn','реклама не загрузилась (таймаут/лимит OZON) — показан снимок');});
+    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0)){paint(a,'live');}else{paint(baked,'baked2');}loadAllReports();})
+    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');loadAllReports();});
 }
 applyPeriod();
 </script>

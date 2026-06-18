@@ -899,9 +899,27 @@ function render(cur,cmp){
   }
   worst.sort((a, b) => b.pidx - a.pidx);
   const PRICE = { cheaper, even, pricier, noIdx, worst: worst.slice(0, 10).map((s) => ({ name: s.name, offer: s.offer, pidx: s.pidx, rev: s.rev })) };
+  // --- Юнит-экономика рекламы (модель Романа): безубыточная ДРР по SKU из комиссий+с/с ---
+  // ECON[sku] = {com: комиссия% OZON, cogs: с/с%, be: безубыточная ДРР%, accr: выручка}. be=null если нет с/с/продаж.
+  const econCogs: Record<string, number> = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8"));
+  let econPnl: Record<string, any> = {};
+  try { econPnl = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { econPnl = {}; }
+  const econUnits: Record<string, number> = {};
+  for (const s of live.sku_table) econUnits[String(s.sku)] = s.units || 0;
+  const SKU_ECON: Record<string, any> = {};
+  for (const sku of Object.keys(econPnl)) {
+    const p = econPnl[sku]; const accr = p.accruals || 0; if (accr <= 0) continue;
+    const com = Math.round((-(p.commission || 0) / accr) * 1000) / 10;
+    const cu = econCogs[sku] || 0; const units = econUnits[sku] || 0;
+    const cogsNA = !(cu > 0 && units > 0);
+    const cogsPct = cogsNA ? null : Math.round((cu * units / accr) * 1000) / 10;
+    const be = cogsNA ? null : Math.round((100 - com - (cogsPct as number)) * 10) / 10;
+    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr) };
+  }
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">безубыточная ДРР = 100% − комиссия OZON − себестоимость. Запас = безубыток − факт ДРР. Решение: 🟢 запас ≥7 п.п. жать газ · 🟡 0…7 держать · 🔴 &lt;0 резать. ДРР по рекламным заказам, маржа по продажам SKU - окна атрибуции различаются (светофор, не P&amp;L до копейки).</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Безубыт. ДРР</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по линиям</div><div class="card-sub">расход и ДРР за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -911,7 +929,7 @@ function render(cur,cmp){
   const skuMap: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) skuMap[String(s.sku)] = s.offer || s.name || String(s.sku); }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const SKU_MAP=${J(skuMap)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const SKU_MAP=${J(skuMap)};const ECON=${J(SKU_ECON)};
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -957,11 +975,35 @@ function paint(a,src){
   document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var s=document.querySelector('#top .ad-sku[data-p="'+i+'"]');if(!s)return;var open=s.style.display==='none';s.style.display=open?'':'none';var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=open?'▾ ':'▸ ';};});
   document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
   document.getElementById('lines').innerHTML=(a.by_line||[]).map(l=>'<tr><td>'+l.line+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>').join('');
+  renderUecon(a);
   const tot=PRICE.cheaper+PRICE.even+PRICE.pricier+PRICE.noIdx||1;
   const seg=(n,c,t2)=>'<span title="'+t2+': '+n+'" style="width:'+(100*n/tot)+'%;background:'+c+';display:block;height:100%"></span>';
   document.getElementById('price').innerHTML='<div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--bg-soft)">'+seg(PRICE.cheaper,'#34D399','дешевле рынка')+seg(PRICE.even,'#6AA8FF','вровень')+seg(PRICE.pricier,'#FF5A5F','дороже рынка')+seg(PRICE.noIdx,'#3a3a40','без индекса')+'</div>'+
    '<div class="kt-note"><span style="color:#34D399">дешевле рынка: '+PRICE.cheaper+'</span> · вровень: '+PRICE.even+' · <span style="color:#FF5A5F">дороже: '+PRICE.pricier+'</span> · без индекса: '+PRICE.noIdx+'</div>'+
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r">Индекс</th><th class="r">Оборот 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
+}
+function renderUecon(a){
+  function stOf(c){if(c.skuStats&&c.skuStats.length)return c.skuStats;var b=bakedFor();var f=((b&&b.top_spend)||[]).filter(function(x){return String(x.id)===String(c.id);})[0];return (f&&f.skuStats)||[];}
+  var rows=[];var naSp=0,total=0;
+  (a.top_spend||[]).forEach(function(c){stOf(c).forEach(function(s){total++;var e=ECON[String(s.sku)];var art=SKU_MAP[String(s.sku)]||s.sku;
+    if(!e||e.be==null){naSp+=s.sp||0;rows.push({camp:c.off,art:art,name:s.name,sp:s.sp,om:s.om,drr:s.drr,na:true,why:e?'нет себестоимости':'нет продаж за период'});return;}
+    var head=Math.round((e.be-(s.drr||0))*10)/10;var v=head>=7?'go':(head>=0?'edge':'cut');
+    rows.push({camp:c.off,art:art,name:s.name,sp:s.sp,om:s.om,drr:s.drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});});});
+  var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
+  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">данные рекламы по SKU подгружаются при обновлении снимка (Performance API)</td></tr>';if(elk)elk.innerHTML='';return;}
+  var calc=rows.filter(function(r){return !r.na;});
+  var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
+  var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
+  var kc=function(lab,val,col){return '<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v" style="color:'+(col||'inherit')+'">'+val+'</div></div>';};
+  if(elk)elk.innerHTML=kc('🟢 в плюс',nGo,'var(--up)')+kc('🟡 на грани',nEdge,'#E5B567')+kc('🔴 в минус',nCut,'var(--dn)')+kc('Чистая прибыль рекламы',(profit>=0?'+':'')+fMln(profit),'var(--up)')+kc('Burn рекламы',fMln(burn),'var(--dn)')+kc('Покрытие',calc.length+' из '+total+(naSp>0?' · н/д расход '+fMln(naSp):''),'inherit');
+  rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});
+  var vlab={go:'🟢 жать газ',edge:'🟡 держать',cut:'🔴 резать'};var vact={go:'поднять ставку/бюджет',edge:'не масштабировать; ставка/цена',cut:'пауза/резать ставку 48ч'};
+  el.innerHTML=rows.map(function(r){
+    var nm='<td title="'+String(r.name||'').replace(/"/g,'&quot;')+'">'+r.camp+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
+    if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="4" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
+    var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
+    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+r.com+'%</td><td class="r">'+r.cogs+'%</td><td class="r"><b>'+r.be+'%</b></td><td class="r" style="color:'+hc+'"><b>'+(r.head>0?'+':'')+r.head+'</b></td><td style="color:'+hc+'">'+vlab[r.v]+' <span style="color:var(--ink-3);font-size:11px">· '+vact[r.v]+'</span></td></tr>';
+  }).join('');
 }
 function render(cur,cmp){
   mCur=cur; // окно для Общей ДРР (расход÷оборот)

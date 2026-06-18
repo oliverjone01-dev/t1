@@ -3,153 +3,456 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Контент-план на 2 месяца · GENGROUP</title>
-<link rel="stylesheet" href="brand-site.css">
+<title>Контент-план · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+/* тема и вид ДО отрисовки - без мигания (FOUC). Дефолт: плитки + светлая (форсим). */
+(function(){var d=document.documentElement;
+  var v=localStorage.getItem('cp.view'); d.dataset.view=(v==='tiles'||v==='table')?v:'tiles';
+  var t=localStorage.getItem('gg.theme'); d.dataset.theme=(t==='light'||t==='dark')?t:'light';
+})();
+</script>
 <style>
-  .hooks{display:flex;flex-direction:column;gap:10px}
-  .hook{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .hook .hh{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin-bottom:5px}
-  .hook .hh .tags{margin-left:auto;display:flex;gap:5px}
-  .hook p{font-size:13.5px;color:var(--ink2);line-height:1.5}
-  .bdg{font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 7px;border-radius:6px}
-  .bdg.g{background:var(--gg-soft);color:var(--gg)}.bdg.v{background:var(--v-soft);color:var(--v)}
-  .ideas{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  .ibox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
-  .ibox.gg{border-top:3px solid var(--gg)}.ibox.v{border-top:3px solid var(--v)}
-  .ibox .il{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
-  .ibox.gg .il{color:var(--gg)}.ibox.v .il{color:var(--v)}
-  .ibox ol{margin:0;padding-left:20px}
-  .ibox li{font-size:13.5px;color:var(--ink2);margin-bottom:9px;line-height:1.45}
-  .ibox li b{color:var(--ink)}.ibox li .hk{color:var(--gold);font-style:italic}
-  .freq{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
-  .fcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
-  .fcard.gg{border-left:3px solid var(--gg)}.fcard.v{border-left:3px solid var(--v)}
-  .fcard h4{font-size:15px;font-weight:800;margin-bottom:8px}.fcard.gg h4{color:var(--gg)}.fcard.v h4{color:var(--v)}
-  .fcard p{font-size:13.5px;color:var(--ink2);line-height:1.5}
-  @media(max-width:820px){.ideas,.freq{grid-template-columns:1fr}}
+  :root[data-theme="light"], :root:not([data-theme]){
+    --bg:#F4F6F9;--s1:#FFFFFF;--s2:#EEF1F5;--line:#E5E8EE;--line2:#D6DAE2;
+    --ink:#121620;--ink2:#535E70;--ink3:#667080;
+    --gold:#8A6614;--gold-ink:#8A6614;--gold-soft:rgba(190,150,60,.16);--gold-fill:#C8A951;
+    --steel:#2C5377;--steel-ink:#2C5377;--steel-soft:rgba(70,110,150,.13);
+    --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.13);
+    --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(196,118,26,.16);
+    --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
+    --cta:#121620;--cta-ink:#FFFFFF;--gold-btn-ink:#121620;--danger:#B23A28;--link:#2C5377;
+    --shadow:0 1px 2px rgba(18,22,32,.05),0 6px 20px rgba(18,22,32,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0E11;--s1:#161A1F;--s2:#1C2127;--line:#262C34;--line2:#333B45;
+    --ink:#EAECEF;--ink2:#A7B0BD;--ink3:#868F9D;
+    --gold:#E2B95C;--gold-ink:#E2B95C;--gold-soft:rgba(226,185,92,.15);--gold-fill:#D4AF5A;
+    --steel:#7FA8C6;--steel-ink:#9DC0DA;--steel-soft:rgba(127,168,198,.15);
+    --pub:#46C08A;--pub-ink:#46C08A;--pub-soft:rgba(70,192,138,.15);
+    --sgl:#E6AE52;--sgl-ink:#E6AE52;--sgl-soft:rgba(224,162,60,.16);
+    --pln:#8A93A0;--pln-ink:#8A93A0;--pln-soft:rgba(138,147,160,.14);
+    --cta:#E2B95C;--cta-ink:#0B0E11;--gold-btn-ink:#0B0E11;--danger:#E0644A;--link:#7FA8C6;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;transition:background .2s,color .2s}
+  a{color:inherit}
+  a:focus-visible,button:focus-visible,th:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
+  .skip{position:absolute;left:12px;top:-48px;z-index:90;background:var(--ink);color:var(--bg);font-weight:700;font-size:13px;padding:9px 14px;border-radius:8px;transition:top .18s}
+  .skip:focus{top:12px}
+  .muted{color:var(--ink3)}
+  .ht{color:var(--link);font-weight:600}
+  /* topbar (единый с остальными страницами) */
+  header.top{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1240px;margin:0 auto;padding:11px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.14em;font-size:12px;white-space:nowrap}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--gold-fill)}
+  .brand span{color:var(--ink2);font-weight:500}
+  .nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{font-size:12.5px;font-weight:600;color:var(--ink2);text-decoration:none;padding:8px 13px;border-radius:10px;white-space:nowrap;transition:.2s}
+  .nav a:hover{color:var(--ink);background:var(--s2)}
+  .nav a.on{color:var(--gold);background:var(--gold-soft)}
+  .nav a .n{color:var(--ink3);margin-right:6px}
+  .tt{display:inline-flex;gap:5px;background:var(--s2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-left:auto}
+  .tt button{font:inherit;font-size:13px;color:var(--ink2);background:none;border:none;border-radius:7px;padding:5px 10px;cursor:pointer;line-height:1}
+  .tt button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
+  /* planbar: заголовок + вид + как работает */
+  .planbar{position:sticky;top:0;z-index:49;border-bottom:1px solid var(--line);background:var(--bg)}
+  .planbar-in{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ttl .ey{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+  .ttl h2{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
+  .controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .seg{display:inline-flex;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
+  .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer}
+  .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
+  .howto{font:inherit;font-size:12.5px;font-weight:700;color:var(--cta-ink);background:var(--cta);border:none;border-radius:10px;padding:8px 14px;cursor:pointer}
+  .src{max-width:1240px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--ink2)}
+  .src .ok{color:var(--pub-ink);font-weight:700}.src .warn{color:var(--sgl-ink);font-weight:700}
+  /* KPI */
+  .kpis{max-width:1240px;margin:0 auto;padding:14px 22px 6px;display:grid;grid-template-columns:repeat(4,1fr) 1.5fr;gap:12px}
+  .kpi{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:13px 16px;box-shadow:var(--shadow)}
+  .kpi .n{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .kpi.pub .n{color:var(--pub-ink)}.kpi.sgl .n{color:var(--sgl-ink)}.kpi.pln .n{color:var(--pln-ink)}
+  .kpi .l{font-size:11.5px;color:var(--ink2);margin-top:4px}
+  .kpi.bar .barwrap{height:8px;background:var(--s2);border-radius:8px;margin:9px 0 5px;overflow:hidden}
+  .kpi.bar .barwrap i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--sgl))}
+  .kpi.bar .pct{font-size:13px;font-weight:800;color:var(--gold-ink)}
+  .rowline{max-width:1240px;margin:0 auto;padding:6px 22px 0;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .rowline .cap{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-right:4px}
+  .chipm{font-size:12.5px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:30px;padding:6px 13px}
+  .chipm b{font-weight:800;color:var(--ink)}.chipm.v b{color:var(--gold-ink)}.chipm.g b{color:var(--steel-ink)}
+  /* filters */
+  .filters{max-width:1240px;margin:0 auto;padding:14px 22px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .fg{display:flex;gap:4px;align-items:center}
+  .fg .lab{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-right:2px}
+  .fbtn{font:inherit;font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 11px;cursor:pointer}
+  .fbtn.on{color:var(--gold-btn-ink);background:var(--gold);border-color:var(--gold);font-weight:700}
+  .sortsel{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3)}
+  .sortsel select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--s1);border:1px solid var(--line2);border-radius:7px;padding:5px 9px}
+  .fcount{font-size:12px;color:var(--ink3)}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px 80px}
+  :root[data-view="tiles"] #tableWrap{display:none}
+  :root[data-view="table"] #tilesWrap{display:none}
+  /* TABLE */
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  table{width:100%;border-collapse:collapse;min-width:1000px;background:var(--s1)}
+  thead th{position:sticky;top:0;background:var(--s2);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);font-weight:700;padding:11px 12px;border-bottom:1px solid var(--line2);cursor:pointer;white-space:nowrap;user-select:none}
+  thead th .ar{margin-left:4px;opacity:0;color:var(--gold-ink)}
+  thead th.sorted .ar{opacity:1}
+  tbody tr{cursor:pointer}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--s2)}
+  tbody tr.sit{opacity:.62}
+  .thumb{width:46px;height:34px;border-radius:7px;object-fit:cover;display:block;background:linear-gradient(135deg,var(--s2),var(--line))}
+  .thumb.ph{display:grid;place-items:center;color:var(--ink3);font-size:9px}
+  .bdot{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:6px}
+  .bdot.g{background:var(--steel-soft);color:var(--steel-ink)}.bdot.v{background:var(--gold-soft);color:var(--gold-ink)}
+  .idea{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+  .hook{color:var(--ink3);font-style:italic;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+  .stb{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;white-space:nowrap;padding:3px 10px;border-radius:30px}
+  .stb::before{content:"";width:7px;height:7px;border-radius:50%}
+  .stb.pub{color:var(--pub-ink);background:var(--pub-soft)}.stb.pub::before{background:var(--pub)}
+  .stb.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.stb.sgl::before{background:var(--sgl)}
+  .stb.pln{color:var(--pln-ink);background:var(--pln-soft)}.stb.pln::before{background:transparent;box-shadow:inset 0 0 0 1.5px var(--pln)}
+  .open{color:var(--gold-ink);text-decoration:none;font-weight:700;white-space:nowrap}.open:hover{text-decoration:underline}
+  .kv{font-size:12px;color:var(--ink3);white-space:nowrap}.kv b{color:var(--ink2);font-weight:700}
+  /* TILES */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+  .wkband{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:6px}
+  .wkband h2{font-size:15px;font-weight:800}.wkband .pill{font-size:12px;color:var(--ink2);background:var(--s1);border:1px solid var(--line2);border-radius:30px;padding:4px 12px}
+  .wkband .ln{flex:1;height:1px;background:var(--line)}
+  .tile{position:relative;background:var(--s1);border:1px solid var(--line2);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:transform .18s}
+  .tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:18px 0 0 18px}
+  .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
+  .tile:hover{transform:translateY(-3px)}
+  .tile.sit{border-style:dashed}
+  .tcover{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
+  .tcover img{width:100%;height:100%;object-fit:cover;display:block}
+  .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .slot{font-size:12px;font-weight:700;color:var(--ink3)}
+  .rub{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+  .tidea{font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.25;overflow-wrap:anywhere}
+  .thook{font-size:13px;color:var(--ink2);font-style:italic;overflow-wrap:anywhere}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .mchip{font-size:11px;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+  .tfoot{display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:4px}
+  .tstat{font-size:11.5px;color:var(--ink3)}.tstat b{color:var(--ink2)}
+  .empty{color:var(--ink3);padding:30px 4px}
+  .foot{max-width:1240px;margin:0 auto;padding:26px 22px 70px;color:var(--ink3);font-size:12.5px}
+  /* MODALS (под оверлеем комментариев annotate z8000) */
+  .ov{position:fixed;inset:0;z-index:6000;background:rgba(15,11,6,.55);backdrop-filter:blur(4px);display:none;place-items:center;padding:18px}
+  .ov.open{display:grid}
+  .modal{background:var(--bg);border:1px solid var(--line2);border-radius:20px;width:100%;max-width:940px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .modal-h{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line);z-index:2}
+  .modal-h h3{font-size:16px;font-weight:800}
+  .x{margin-left:auto;background:var(--s2);border:1px solid var(--line2);color:var(--ink);border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:16px}
+  .pm-grid{display:grid;grid-template-columns:1.05fr 1fr}
+  .pm-left{padding:18px 20px;border-right:1px solid var(--line)}
+  .pm-right{padding:18px 20px}
+  /* «как в ленте» превью = секция комментирования */
+  .feed{background:var(--s1);border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative;box-shadow:var(--shadow)}
+  .feed-h{display:flex;align-items:center;gap:9px;padding:11px 13px}
+  .av{width:30px;height:30px;border-radius:50%}.av.g{background:linear-gradient(135deg,var(--steel),var(--s2))}.av.v{background:linear-gradient(135deg,var(--gold),var(--s2))}
+  .feed-h .fn{font-size:13px;font-weight:800}.feed-h .fm{font-size:11px;color:var(--ink3)}
+  .feed-h .more{margin-left:auto;color:var(--ink3)}
+  .feed-cover{aspect-ratio:4/5;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:12px}
+  .feed-cover.noimg{aspect-ratio:auto;min-height:0;padding:13px;justify-items:start;font-style:italic}
+  .feed-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .feed-act{display:flex;gap:14px;padding:10px 13px 4px;font-size:17px;color:var(--ink2)}
+  .feed-act .sv{margin-left:auto}
+  .feed-cap{padding:2px 13px 14px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere}.feed-cap b{font-weight:800;margin-right:5px}
+  .pm-hint{font-size:11.5px;color:var(--ink3);margin-top:10px}
+  .statbox{margin-top:14px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .statbox .sh{background:var(--s2);padding:9px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:700;display:flex}
+  .statbox .sh .snap{margin-left:auto;color:var(--ink3);text-transform:none;letter-spacing:0}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  .statgrid .c{background:var(--s1);padding:11px 13px}
+  .statgrid .c .n{font-size:19px;font-weight:800}.statgrid .c.hl .n{color:var(--gold-ink)}
+  .statgrid .c .l{font-size:11px;color:var(--ink3);margin-top:1px}
+  .pm-nostat{margin-top:14px;font-size:12.5px;color:var(--ink3);border:1px dashed var(--line2);border-radius:12px;padding:13px}
+  .pm-meta{display:flex;flex-direction:column;gap:9px}
+  .pm-row{display:flex;gap:10px;font-size:13px}.pm-row .k{color:var(--ink3);min-width:96px}.pm-row .vv{color:var(--ink);font-weight:600}
+  .pm-idea{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.2;margin-bottom:2px}
+  .pm-open{display:inline-block;margin-top:6px;font-size:13px;font-weight:700;color:var(--cta-ink);background:var(--cta);border-radius:9px;padding:8px 14px;text-decoration:none}
+  /* HOWTO */
+  .ht-body{padding:20px}
+  .ht-lead{font-size:14px;color:var(--ink2);max-width:64ch;margin-bottom:16px}
+  .steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .step{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow);position:relative}
+  .step .nu{position:absolute;top:-10px;left:14px;width:26px;height:26px;border-radius:50%;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:13px;display:grid;place-items:center}
+  .step h4{font-size:14.5px;font-weight:800;margin:6px 0 5px}
+  .step p{font-size:13px;color:var(--ink2);line-height:1.5}.step code{background:var(--s2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+  .mock{margin-top:10px;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--bg)}
+  .mock-row{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:11px;color:var(--ink2)}
+  .mock-row .pl{width:3px;align-self:stretch;border-radius:3px}.pl.pub{background:var(--pub)}.pl.sgl{background:var(--sgl)}.pl.pln{background:var(--pln)}
+  .mock-row .cell{background:var(--s2);border-radius:4px;height:9px}
+  .mock-pill{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px}
+  .mock-pill.sgl{background:var(--sgl-soft);color:var(--sgl-ink)}.mock-pill.pub{background:var(--pub-soft);color:var(--pub-ink)}
+  .mock-card{padding:10px}.mock-card .cv{aspect-ratio:16/9;border:1px dashed var(--line2);border-radius:8px;display:grid;place-items:center;color:var(--ink3);font-size:10px;margin-bottom:8px}
+  .pipe{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 2px}
+  .pipe .p{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid var(--line2)}
+  .pipe .p.pln{color:var(--pln-ink);background:var(--pln-soft)}.pipe .p.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.pipe .p.pub{color:var(--pub-ink);background:var(--pub-soft)}
+  .pipe .ar{color:var(--ink3)}
+  @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi.bar{grid-column:1/-1}}
+  @media(max-width:880px){.pm-grid,.steps{grid-template-columns:1fr}.pm-left{border-right:none;border-bottom:1px solid var(--line)}}
+  @media(max-width:640px){
+    .top-in,.planbar-in,.kpis,.rowline,.filters,.src{padding-left:14px;padding-right:14px}
+    .wrap{padding-left:14px;padding-right:14px}
+    .planbar-in{gap:9px}.controls{margin-left:0;width:100%}
+    .kpis{grid-template-columns:1fr 1fr;gap:9px}.kpi{padding:11px 13px;border-radius:12px}.kpi .n{font-size:21px}
+    .tiles{grid-template-columns:1fr}
+    .ttl h2{font-size:16px}
+    .ov{padding:0}.modal{max-width:100%;max-height:100vh;min-height:100dvh;border:none;border-radius:0}
+    .modal-h{padding:14px 16px}.pm-left,.pm-right,.ht-body{padding:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div class="prog" id="prog"></div>
+<a class="skip" href="#main">К содержанию</a>
 <header class="top"><div class="top-in">
   <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;BRAND <span>· инструмент маркетинга</span></div>
-  <nav class="nav">
-    <a href="index.html"><span class="n">01</span>Платформа бренда</a>
-    <a href="audience.html"><span class="n">02</span>Аудитория</a>
-    <a href="content.html"><span class="n">03</span>Контент-стратегия</a>
-    <a class="on" href="plan.html"><span class="n">04</span>Контент-план</a>
+  <nav class="nav" aria-label="Разделы сайта">
+    <a class="on" href="plan.html"><span class="n">01</span>Контент-план</a>
+    <a href="index.html"><span class="n">02</span>Платформа бренда</a>
+    <a href="audience.html"><span class="n">03</span>Аудитория</a>
+    <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема">☀</button><button data-t="dark" type="button" aria-label="Тёмная тема">☾</button></div>
 </div></header>
+<div class="planbar"><div class="planbar-in">
+  <div class="ttl"><div class="ey">GENGROUP · контроль</div><h2>Контент-план</h2></div>
+  <div class="controls">
+    <button class="howto" id="howto" type="button">Как работает</button>
+    <div class="seg" role="group" aria-label="Вид"><button id="v-tiles" type="button">▤ Плитки</button><button id="v-table" type="button">▦ Таблица</button></div>
+  </div>
+</div></div>
 
-<div class="wrap">
+<div class="src" id="src">загрузка…</div>
+<div class="kpis" id="kpis" aria-label="Операционные показатели"></div>
+<div class="rowline" id="brandbar"></div>
+<div class="rowline" id="results"></div>
+<div class="filters" id="filters" aria-label="Фильтры и сортировка"></div>
 
-  <section class="hero reveal">
-    <div class="kicker"><span class="bar"></span>КОНТЕНТ-ПЛАН НА 2 МЕСЯЦА · ХУКИ · БАНК ИДЕЙ</div>
-    <h1>План на 8 недель <span class="hl">под «две руки» и конвейер.</span></h1>
-    <p class="lead">Логика конвейера: <b>один съёмочный день - серия нарезок</b>. Не плодим съёмки, доим каждую. Ниже - частота, правила слотов, виральные приёмы, банк готовых идей с хуками и таблица-план.</p>
-  </section>
+<main class="wrap" id="main">
+  <div id="tableWrap" class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+  <div id="tilesWrap"><div class="tiles" id="tiles"></div></div>
+</main>
+<div class="foot">GENGROUP · контент-план · гибрид B (таблица) + C (плитки) · свет/тьма · данные из Google-таблицы SMM · инструмент публичный по дизайну (ссылку не публиковать) · метрика VALONTI = контакты дизайнеров, не охваты.</div>
 
-  <section class="reveal">
-    <div class="sec-head">
-      <span class="sec-num">ЧАСТОТА</span>
-      <h2 class="sec-title">Реалистичный ритм <span class="em">+ правила слотов</span></h2>
-    </div>
-    <div class="freq" data-annotate-section data-annotate-key="plan-freq" data-annotate-label="Частота и ритм">
-      <div class="fcard gg"><h4>GENGLASS</h4><p>4-5 публикаций/нед в IG (полный дубль в VK), 2-3 пина/нед Pinterest, Shorts из нарезок, Stories 3-4 дня/нед. <b>1 большой съёмочный день/нед</b> (до/после, каталог, ASMR).</p></div>
-      <div class="fcard v"><h4>VALONTI</h4><p>3-4 публикации/нед в IG (дубль VK), 3-4 пина/нед Pinterest (главный pull для дизайнеров), 1 длинное видео/нед -&gt; 3-4 нарезки. <b>Богдан 1-2 съёмки/мес</b> + 1 цеховой день/нед на процесс/макро/мастера.</p></div>
-    </div>
-    <div class="note" data-annotate-section data-annotate-key="plan-slots" data-annotate-label="Правила слотов"><b>Правило заморозки:</b> не более 5 публикаций/день суммарно по обоим брендам, иначе «две руки» не вытянут монтаж.
-      <br><br><b>Ситуатив:</b> 2 пустых слота/нед на бренд (спецзаказы, нестандарт с колёс, тренд-аудио) - выпуск за 24-48 ч в Stories/Reels; нет ситуатива - закрывается резервной идеей из банка.
-      <br><br><b>Виральная карусель:</b> 1 гарантированный слот/нед на каждый бренд на каждый текстовый канал (IG, VK, Pinterest), написана под сохранение.
-      <br><br><b>Тренд-окно</b> для GENGLASS под непланируемое тренд-аудио - решение в день по актуальности звука.</div>
-    <div class="warn" data-annotate-section data-annotate-key="plan-failpoints" data-annotate-label="Точки отказа"><b>Точки отказа (заложить страховку).</b> Конвейер «1 съёмочный день -&gt; вся неделя» хрупок: сорванная съёмка обнуляет неделю. Держим <b>банк из 2-3 готовых нарезок про запас</b> на каждый бренд. Богдан - единственный спикер VALONTI (1-2 съёмки/мес): если выпал, «Авторский разбор» закрывается мультиперсонажем (мастер/технолог) или архивной нарезкой. Pinterest - главный pull VALONTI: при ограничении доступа резерв = Instagram-pull + прямой нетворк, не одноканальная ставка.</div>
-  </section>
+<!-- модалка поста -->
+<div class="ov" id="pm-ov" role="dialog" aria-modal="true" aria-label="Пост"><div class="modal" id="pm"></div></div>
+<!-- модалка инструкции -->
+<div class="ov" id="ht-ov" role="dialog" aria-modal="true" aria-label="Как работает"><div class="modal"><div class="modal-h"><h3>Как работает инструмент</h3><button class="x" id="ht-x" type="button" aria-label="Закрыть">✕</button></div><div class="ht-body" id="ht-body"></div></div></div>
 
-  <section class="reveal">
-    <div class="sec-head">
-      <span class="sec-num">ВИРАЛЬНЫЕ ПРИЁМЫ</span>
-      <h2 class="sec-title">Хуки, <span class="em">которые гонят шеры, сохранения, досмотры</span></h2>
-      <p class="sec-sub"><span class="bdg g">G</span> GENGLASS - масс, метрика охват/шеры. <span class="bdg v">V</span> VALONTI - узкий целевой, метрика сохранения/контакты. Для VALONTI 500 целевых сохранений дизайнерами ценнее 100К случайных просмотров.</p>
-    </div>
-    <div class="hooks" data-annotate-section data-annotate-key="plan-hooks" data-annotate-label="Виральные приёмы">
-      <div class="hook"><div class="hh">Кадр-результат вперёд<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>Сразу финальный объект или эффект, потом отмотка «как пришли». Алгоритм решает по retention первых секунд.</p></div>
-      <div class="hook"><div class="hh">Текст-обещание на 1-м кадре<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>«Это дешевле, чем кажется» [G] / «Этот стык не должен был получиться» [V]. Вербализует выгоду или интригу до того, как палец смахнул.</p></div>
-      <div class="hook"><div class="hh">Паттерн-прерывание<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>Неожиданный звук/действие (удар по камню, всплеск воды на полированной кромке) и разрыв ожидания («думаете это мрамор? нет»). Ломает скролл-инерцию.</p></div>
-      <div class="hook"><div class="hh">Открытые петли и серийность<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>«Доведём ли мы эту кромку до зеркала» [V], «Ремонт за 5 серий» [G]. Незакрытый гештальт держит до конца, серийность возвращает аудиторию.</p></div>
-      <div class="hook"><div class="hh">Сохрани, чтобы не потерять<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>Чек-лист в карусели: «7 ошибок при выборе» [G], «5 параметров в ТЗ на камень» [V]. Spec-карточка [V] -&gt; дизайнер сохраняет в доску проекта. Сохранение - сильнейший сигнал и маркер B2D-намерения.</p></div>
-      <div class="hook"><div class="hh">Провокация-вопрос<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>«Сколько по-вашему стоит эта столешница?» [G], «Стык или зазор - где ошибка мастера?» [V]. Поднимает comment-rate, который тянет охват.</p></div>
-      <div class="hook"><div class="hh">До/после<span class="tags"><span class="bdg g">G</span></span></div><p>Split-screen и свайп-переход: старая ванная -&gt; с нашим изделием. Самый шеримый формат в ремонтной нише. [V]-версия без ценников, акцент на трансформацию.</p></div>
-      <div class="hook"><div class="hh">ASMR-процессы камень/металл<span class="tags"><span class="bdg v">V</span><span class="bdg g">G</span></span></div><p>Чистый звук без музыки: резка, шлифовка, патинирование бронзы. Для VALONTI - легитимный способ получить охват без потери премиальности.</p></div>
-      <div class="hook"><div class="hh">Числовые заголовки + миф<span class="tags"><span class="bdg g">G</span><span class="bdg v">V</span></span></div><p>«3 причины», «5 деталей» + разрушение мифа («дешёвое не значит плохое» [G], «камень не нужно беречь» [V]). Конкретное число повышает CTR, спор гонит комментарии.</p></div>
-      <div class="hook"><div class="hh">Авторитет и лицо<span class="tags"><span class="bdg v">V</span></span></div><p>Богдан как эксперт-режиссёр процесса: говорящая голова + макро-вставки. Личный бренд эксперта строит доверие у дизайнеров быстрее безличного каталога.</p></div>
-    </div>
-  </section>
-
-  <section class="reveal">
-    <div class="sec-head">
-      <span class="sec-num">БАНК ИДЕЙ</span>
-      <h2 class="sec-title">Готовые идеи постов <span class="em">с хуками</span></h2>
-    </div>
-    <div class="ideas">
-      <div class="ibox gg" data-annotate-section data-annotate-key="plan-ideas-gg" data-annotate-label="Банк идей GENGLASS"><div class="il">GENGLASS · 10 идей</div><ol>
-        <li><b>До/после ванной.</b> <span class="hk">«Эта ванная стоила дешевле, чем вы подумаете».</span></li>
-        <li><b>Ценовой разбор.</b> <span class="hk">«Почему одно изделие дешевле, а соседнее дороже - в чём разница».</span></li>
-        <li><b>7 ошибок при выборе</b> (карусель). <span class="hk">«Сохрани, если делаешь ремонт в этом году».</span></li>
-        <li><b>ASMR-резка.</b> <span class="hk">Чистый звук, текст «звук, который успокаивает».</span></li>
-        <li><b>Этот VS тот</b> (split). <span class="hk">«Оба одинаковые. Один прослужит 2 года, второй 15».</span></li>
-        <li><b>Тренд-джек.</b> <span class="hk">Под актуальное аудио: «когда увидел смету ремонта».</span></li>
-        <li><b>Кейс клиента</b> (UGC). <span class="hk">«Семья делала кухню сами - вот что получилось».</span></li>
-        <li><b>Грабли монтажа.</b> <span class="hk">«Не повторяйте эту ошибку, она стоит переделки».</span></li>
-        <li><b>Каталог-листалка.</b> <span class="hk">«5 решений, которые не выглядят дёшево».</span></li>
-        <li><b>Миф.</b> <span class="hk">«Дешёвое = плохое - разбираем на примерах».</span></li>
-      </ol></div>
-      <div class="ibox v" data-annotate-section data-annotate-key="plan-ideas-v" data-annotate-label="Банк идей VALONTI"><div class="il">VALONTI · 10 идей</div><ol>
-        <li><b>Макро-срез камня.</b> <span class="hk">«Эту прожилку невозможно повторить - она одна в мире».</span></li>
-        <li><b>Рождение изделия</b> (длинное). <span class="hk">«От блока в сотни кг до объекта. Часть 1».</span></li>
-        <li><b>Богдан-разбор нестандарта.</b> <span class="hk">«Дизайнер сказал "так нельзя". Мы сделали».</span></li>
-        <li><b>Деталь, которую не видит заказчик.</b> <span class="hk">«Этот стык заказчик не заметит. Дизайнер - да».</span></li>
-        <li><b>Патинирование бронзы</b> (ASMR). <span class="hk">«Как металл стареет за 6 минут».</span></li>
-        <li><b>5 параметров в ТЗ на камень</b> (карусель). <span class="hk">«Сохраните в доску проекта, чтобы не переделывать».</span></li>
-        <li><b>Мастер за работой.</b> <span class="hk">«Ручная полировка ради одной кромки».</span></li>
-        <li><b>Spec drop</b> (Pinterest). <span class="hk">Новая фактура как образец под ТЗ.</span></li>
-        <li><b>Нестандарт под объект</b> (кейс). <span class="hk">«Радиус, который не делает почти никто. Решили за недели».</span></li>
-        <li><b>Миф премиум-ниши.</b> <span class="hk">«Натуральный камень капризен - почему это устаревшая правда».</span></li>
-      </ol></div>
-    </div>
-  </section>
-
-  <section class="reveal">
-    <div class="sec-head">
-      <span class="sec-num">ПЛАН · КОНТРОЛЬ</span>
-      <h2 class="sec-title">Контент-план <span class="em">постами + контроль выполнения</span></h2>
-      <p class="sec-sub">Ведётся в Google-таблице: SMM меняет статус (в плане → готово → опубликовано) и вставляет ссылку на пост. Сайт подтягивает при загрузке. Сверху - сводка для контроля, ниже - посты по неделям. На любую карточку поста можно оставить комментарий (выдели её, кнопка справа внизу).</p>
-    </div>
-    <p class="cms-source">загрузка…</p>
-    <div class="dash" data-annotate-section data-annotate-key="plan-dashboard" data-annotate-label="Сводка контроля плана"><div id="cms-dashboard"></div></div>
-    <div id="cms-plan"></div>
-    <div class="note" data-annotate-section data-annotate-key="plan-logic" data-annotate-label="Логика 2 месяцев"><b>Логика 2 месяцев:</b><br>
-      <b>Месяц 1 (нед 1-4):</b> закрыть все рубрики хотя бы раз, чтобы измерить, какая зашла по KPI-сигналу.<br>
-      <b>Месяц 2 (нед 5-8):</b> усилить рубрики-победители + запустить 1 многосерийный проект на бренд (GENGLASS «Ремонт за 5 серий», VALONTI «Рождение изделия в 4 частях»).<br>
-      Каждая неделя: 1 карусель/канал/бренд (обязательно) + 2 ситуатив-слота/бренд + остальное из банка. В плане помечать, из какого съёмочного дня рождён пост (трассировка конвейера).</div>
-    <div class="warn" data-annotate-section data-annotate-key="plan-antimedian" data-annotate-label="Anti-median тест"><b>Anti-median тест каждого поста:</b> убери логотип - понятно ли, что это GENGLASS или VALONTI, а не любой мебельный аккаунт? Если идею выдадут 5 агентств одинаково - это median, отклонить. Наши отличия: звук и фактура вместо рендера, конкретика цены вместо «премиум-сегмента», деталь и допуск вместо общего плана, лицо и авторство, провал/переделка как рубрика.</div>
-  </section>
-
-  <footer class="foot">
-    <div class="seal"><span class="d"></span>GENGROUP · контент-план на 2 месяца · хуки и банк идей</div>
-    <div style="margin-top:8px">Числа с меткой <span class="hyp">ГИПОТЕЗА</span> подставляет команда. Метрика VALONTI = контакты дизайнеров, не охваты.</div>
-  </footer>
-</div>
-
+<script src="cms-seed.js"></script>
+<script src="cms-config.js"></script>
+<script src="cms-data.js"></script>
 <script>
-  var prog=document.getElementById('prog');
-  function onScroll(){var h=document.documentElement;prog.style.width=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100+'%';}
-  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.06,rootMargin:'0px 0px -5% 0px'});
-  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+(function(){
+  var E=GGData.esc, R=document.documentElement, DI=GGData.driveImg;
+  var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1};
+  var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Пост'}];
+  var STORD={'план':0,'на согл':1,'опубликовано':2};
+  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане'};
+
+  /* ---- переключатели ---- */
+  function syncToggles(){
+    document.getElementById('v-tiles').classList.toggle('on',R.dataset.view==='tiles');
+    document.getElementById('v-table').classList.toggle('on',R.dataset.view==='table');
+  }
+  function setView(v){R.dataset.view=v;localStorage.setItem('cp.view',v);syncToggles();render();}
+  document.getElementById('v-tiles').onclick=function(){setView('tiles');};
+  document.getElementById('v-table').onclick=function(){setView('table');};
+
+  /* ---- KPI ---- */
+  function kpis(){
+    var real=ALL.filter(function(p){return !p.situational;});
+    function c(s){return real.filter(function(p){return p.status===s;}).length;}
+    var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=real.length,pct=tot?Math.round(pub/tot*100):0;
+    document.getElementById('kpis').innerHTML=
+      '<div class="kpi"><div class="n">'+tot+'</div><div class="l">постов в плане</div></div>'+
+      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
+      '<div class="kpi sgl"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></div>'+
+      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в работе</div></div>'+
+      '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
+    var g=real.filter(function(p){return p.brand!=='V';}),v=real.filter(function(p){return p.brand==='V';});
+    document.getElementById('brandbar').innerHTML='<span class="cap">по брендам</span>'+
+      '<div class="chipm g">GENGLASS · опубл. <b>'+g.filter(function(p){return p.status==='опубликовано';}).length+' / '+g.length+'</b></div>'+
+      '<div class="chipm v">VALONTI · опубл. <b>'+v.filter(function(p){return p.status==='опубликовано';}).length+' / '+v.length+'</b></div>';
+    results();
+  }
+  function results(){
+    var ws=ALL.filter(function(p){return p.stats;});
+    var host=document.getElementById('results');
+    if(!ws.length){ host.innerHTML='<span class="cap">результаты 7д</span><span class="muted" style="font-size:12.5px">статистика ещё не занесена (заносится через 7 дней после публикации)</span>'; return; }
+    var v=ws.filter(function(p){return p.brand==='V';}),g=ws.filter(function(p){return p.brand!=='V';});
+    function sum(a,f){return a.reduce(function(s,p){return s+(p.stats[f]||0);},0);}
+    var vContacts=sum(v,'contacts'), gReach=sum(g,'reach');
+    var ers=ws.map(function(p){return p.stats.er;}).filter(function(x){return x!=null;});
+    var avgER=ers.length?Math.round(ers.reduce(function(a,b){return a+b;},0)/ers.length*10)/10:null;
+    var perPost=v.length?Math.round(vContacts/v.length*10)/10:null;
+    host.innerHTML='<span class="cap">результаты 7д</span>'+
+      '<div class="chipm v">VALONTI контактов <b>'+vContacts+'</b></div>'+
+      (perPost!=null?'<div class="chipm v">контактов / пост <b>'+perPost+'</b></div>':'')+
+      '<div class="chipm g">GENGLASS охват <b>'+gReach.toLocaleString('ru')+'</b></div>'+
+      (avgER!=null?'<div class="chipm">средний ER <b>'+avgER+'%</b></div>':'');
+  }
+
+  /* ---- фильтры ---- */
+  function filters(){
+    var weeks=Array.from(new Set(ALL.map(function(p){return p.week;}))).sort(function(a,b){return a-b;});
+    function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
+    var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
+      grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'на согл',t:'на согл'},{v:'план',t:'в плане'}])+
+      grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
+    html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
+    if(R.dataset.view==='tiles'){html+='сортировка <select id="tsort">'+[['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';}
+    html+='</div>';
+    var f=document.getElementById('filters'); f.innerHTML=html;
+    Array.prototype.forEach.call(f.querySelectorAll('.fbtn'),function(b){b.onclick=function(){state[b.dataset.k]=b.dataset.v;render();};});
+    var ts=document.getElementById('tsort'); if(ts) ts.onchange=function(){state.sort=ts.value;state.dir=1;render();};
+  }
+  function applied(){
+    var d=ALL.filter(function(p){return (state.brand==='all'||p.brand===state.brand)&&(state.status==='all'||p.status===state.status)&&(state.week==='all'||String(p.week)===state.week);});
+    d.sort(function(a,b){var k=state.sort,va,vb;
+      if(k==='status'){va=STORD[a.status];vb=STORD[b.status];}else if(k==='week'){va=a.week;vb=b.week;}else{va=(a[k]||'').toString().toLowerCase();vb=(b[k]||'').toString().toLowerCase();}
+      if(va<vb)return -state.dir; if(va>vb)return state.dir; return a.week-b.week;});
+    return d;
+  }
+  function openLink(p,txt){return (p.status==='опубликовано'&&p.url)?'<a class="open" href="'+E(p.url)+'" target="_blank" rel="noopener" data-noopen>'+txt+'</a>':'';}
+  function thumb(p){
+    if(p.cover) return '<img class="thumb" src="'+E(DI(p.cover,90))+'" alt="" loading="lazy" onerror="this.classList.add(\'ph\');this.removeAttribute(\'src\');this.textContent=\'нет\'">';
+    return '<div class="thumb ph">нет</div>';
+  }
+
+  /* ---- ТАБЛИЦА ---- */
+  function renderTable(d){
+    document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
+    Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(k==='cover')return;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
+    document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
+      return '<tr'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
+        '<td>'+thumb(p)+'</td><td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
+        '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
+        '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+
+        '<td><div class="idea">'+E(p.idea||'-')+'</div>'+(p.hook&&p.hook!=='-'?'<div class="hook">'+E(p.hook)+'</div>':'')+'</td>'+
+        '<td class="muted">'+E(p.channel||'-')+'</td><td class="muted">'+E(p.goal||'-')+'</td><td class="muted">'+E(p.owner||'-')+'</td>'+
+        '<td><span class="stb '+cl+'">'+(stLab[p.status]||'В плане')+'</span></td>'+
+        '<td>'+(openLink(p,'↗ пост')||'<span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span>')+'</td></tr>';}).join('');
+  }
+  /* ---- ПЛИТКИ ---- */
+  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
+    var cov=p.cover?'<div class="tcover"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.remove()"></div>':'';
+    var st=p.stats?'<span class="tstat">'+(p.brand==='V'?'контакты <b>'+(p.stats.contacts||0)+'</b>':'охват <b>'+(p.stats.reach||0).toLocaleString('ru')+'</b>')+'</span>':'';
+    return '<article class="tile '+b+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
+      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(p.slot?'<span class="slot">'+E(p.slot)+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
+      (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
+      '<div class="tidea">'+E(p.idea||'-')+'</div>'+
+      (p.hook&&p.hook!=='-'?'<div class="thook">'+E(p.hook)+'</div>':'')+
+      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+'</div>'+
+      '<div class="tfoot">'+st+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
+    '</article>';
+  }
+  function renderTiles(d){
+    var host=document.getElementById('tiles');
+    if(!d.length){host.innerHTML='<div class="empty">нет постов под фильтр</div>';return;}
+    if(state.sort==='week'){
+      var wk={};d.forEach(function(p){(wk[p.week]=wk[p.week]||[]).push(p);});
+      host.innerHTML=Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
+        var it=wk[w],pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
+        return '<div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+it.map(tile).join('');
+      }).join('');
+    } else host.innerHTML=d.map(tile).join('');
+  }
+
+  /* ---- текст поста: переносы + хэштеги ---- */
+  function renderText(t){return E(t).replace(/\n/g,'<br>').replace(/(#[0-9A-Za-zА-Яа-яЁё_]+)/g,'<span class="ht">$1</span>');}
+  function statsBlock(s){
+    function c(n,l,hl){return '<div class="c'+(hl?' hl':'')+'"><div class="n">'+(n==null?'-':Number(n).toLocaleString('ru'))+'</div><div class="l">'+l+'</div></div>';}
+    return '<div class="statbox"><div class="sh">статистика поста<span class="snap">снэпшот '+E(s.snap||'-')+(s.date?' · '+E(s.date):'')+'</span></div>'+
+      '<div class="statgrid">'+c(s.reach,'охват')+c(s.contacts,'контакты',true)+c(s.saves,'сохранения')+c(s.clicks,'переходы')+'</div>'+
+      (s.er!=null?'<div class="sh" style="background:var(--s1)">ER <b style="color:var(--gold-ink);margin-left:6px">'+s.er+'%</b></div>':'')+'</div>';
+  }
+
+  /* ---- модалка поста ---- */
+  function openPost(id){
+    var p=byId[id]; if(!p) return;
+    var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
+    var cover=p.cover?'<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>':'<div class="feed-cover noimg">обложка не задана в таблице</div>';
+    var cap=p.text?renderText(p.text):'<span class="muted">текст поста не заполнен в таблице</span>';
+    var feed='<div class="feed" data-annotate-section data-annotate-key="post-'+E(p.id)+'" data-annotate-label="'+E((p.slot?p.slot+' · ':'')+(p.idea||p.rubric))+'">'+
+      '<div class="feed-h"><span class="av '+b+'"></span><div><div class="fn">'+GGData.brandName(p.brand)+'</div><div class="fm">'+E(p.channel||'')+(p.pubdate?' · '+E(p.pubdate):(p.slot?' · '+E(p.slot):''))+'</div></div><span class="more">···</span></div>'+
+      cover+
+      '<div class="feed-act"><span>♥</span><span>💬</span><span>↗</span><span class="sv">⤓</span></div>'+
+      '<div class="feed-cap"><b>'+GGData.brandName(p.brand).toLowerCase()+'</b>'+cap+'</div>'+
+    '</div>';
+    var stats=p.stats?statsBlock(p.stats):'<div class="pm-nostat">Статистика появится после заноса. Снэпшот делаем <b>через 7 дней</b> после публикации (48 часов - опционально): охват, сохранения, переходы, контакты.</div>';
+    function row(k,v){return v?'<div class="pm-row"><span class="k">'+k+'</span><span class="vv">'+E(v)+'</span></div>':'';}
+    var right='<div class="pm-idea">'+E(p.idea||'-')+'</div>'+(p.hook&&p.hook!=='-'?'<div class="muted" style="font-style:italic;margin-bottom:12px">'+E(p.hook)+'</div>':'')+
+      '<div class="pm-meta">'+row('Бренд',GGData.brandName(p.brand))+row('Статус',stLab[p.status])+row('Неделя / слот',(p.week?('Н'+p.week):'')+(p.slot&&p.slot!=='-'?' · '+p.slot:''))+row('Канал',p.channel)+row('Формат',p.format)+row('Рубрика',p.rubric&&p.rubric!=='-'?p.rubric:'')+row('Цель',p.goal&&p.goal!=='-'?p.goal:'')+row('Ответственный',p.owner)+row('Дата публикации',p.pubdate)+'</div>'+
+      ((p.status==='опубликовано'&&p.url)?'<a class="pm-open" href="'+E(p.url)+'" target="_blank" rel="noopener">Открыть пост в соцсети ↗</a>':'')+
+      (p.extraUrl?' <a class="pm-open" style="background:var(--s2);color:var(--ink)" href="'+E(p.extraUrl)+'" target="_blank" rel="noopener">Доп. ссылка ↗</a>':'');
+    document.getElementById('pm').innerHTML=
+      '<div class="modal-h"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span><span class="stb '+cl+'">'+stLab[p.status]+'</span><h3 style="font-size:14px;font-weight:700">'+E(p.idea||'Пост')+'</h3><button class="x" id="pm-x" type="button" aria-label="Закрыть">✕</button></div>'+
+      '<div class="pm-grid"><div class="pm-left">'+feed+'<div class="pm-hint">Комментарий к посту: нажми «Комментировать» слева внизу и выдели область на превью. Заметки видны команде.</div>'+stats+'</div>'+
+      '<div class="pm-right">'+right+'</div></div>';
+    document.getElementById('pm-x').onclick=closePost;
+    var ov=document.getElementById('pm-ov'); ov.classList.add('open');
+    if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,70);
+  }
+  function closePost(){document.getElementById('pm-ov').classList.remove('open');document.getElementById('pm').innerHTML='';if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,30);}
+  document.getElementById('pm-ov').addEventListener('click',function(e){if(e.target===this)closePost();});
+
+  /* делегирование клика по карточке/строке -> модалка (кроме ссылок) */
+  function bindOpen(host){host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)openPost(el.getAttribute('data-id'));});}
+  bindOpen(document.getElementById('tbody')); bindOpen(document.getElementById('tiles'));
+
+  /* ---- инструкция ---- */
+  function howto(){
+    document.getElementById('ht-body').innerHTML=
+      '<p class="ht-lead">Коротко: ведёшь посты в Google-таблице, инструмент показывает их планом и доской, считает выполнение для руководителя. Картинку и текст видно в карточке поста, комментарии - там же.</p>'+
+      '<div class="pipe"><span class="cap" style="font-size:11px;color:var(--ink3)">пайплайн статуса</span><span class="p pln">В плане</span><span class="ar">→</span><span class="p sgl">На согласовании</span><span class="ar">→</span><span class="p pub">Опубликовано</span></div>'+
+      '<div class="steps" style="margin-top:14px">'+
+      step(1,'Заведи строку','Вкладка «Контент-план», новая строка. Минимум: <code>дата</code>, <code>бренд</code> (G/V), <code>канал</code>, <code>статус</code> = «в плане», <code>идея</code>.',
+        '<div class="mock"><div class="mock-row"><span class="pl pln"></span><span class="cell" style="width:34px"></span><span class="mock-pill" style="background:var(--steel-soft);color:var(--steel-ink)">G</span><span class="cell" style="flex:1"></span><span class="mock-pill pln" style="background:var(--pln-soft);color:var(--pln-ink)">в плане</span></div></div>')+
+      step(2,'Двигай статус','Меняешь статус по мере работы: <code>в плане → на согл → опубликовано</code>. В таблице поставь выпадающий список (Данные → Проверка данных), чтобы не было опечаток.','')+
+      step(3,'Картинка','Колонка <code>картинка</code>: публичная ссылка или Google Drive (Доступ → «Все со ссылкой» → Просмотр). Сжимаем автоматически, в карточке покажем обложку.',
+        '<div class="mock"><div class="mock-card"><div class="cv">обложка 4:5</div></div></div>')+
+      step(4,'Текст поста','Колонка <code>текст</code>: пиши как в соцсети - эмодзи 🙂, хэштеги в конце #ремонт, перенос строки <code>Alt+Enter</code>. В карточке покажем «как в ленте».','')+
+      step(5,'Согласование','Готов черновик - ставь статус «на согл». Руководитель видит на доске, что ждёт его. Замечания оставляет комментарием на карточке.','')+
+      step(6,'Публикация','Опубликовал - статус «опубликовано», вставь <code>ссылку</code> на пост и <code>дату публикации</code>. На карточке появится кнопка «Открыть пост».','')+
+      step(7,'Статистика для KPI','Вкладка «Статистика»: <b>через 7 дней</b> после публикации заведи строку по <code>id</code> поста - охват, сохранения, переходы, <b>контакты</b> (для VALONTI это главное). 48 часов - по желанию.',
+        '<div class="mock"><div class="mock-row"><span class="cell" style="width:40px"></span><span class="cell" style="width:34px"></span><span class="cell" style="width:30px"></span><span class="mock-pill pub">7d</span></div></div>')+
+      step(8,'Комментарии','Открой карточку поста (клик) - откроется превью. Нажми «Комментировать» слева внизу, выдели область - заметка сохранится и будет видна всей команде.','')+
+      '</div>';
+    document.getElementById('ht-ov').classList.add('open');
+  }
+  function step(n,t,p,mock){return '<div class="step"><div class="nu">'+n+'</div><h4>'+t+'</h4><p>'+p+'</p>'+(mock||'')+'</div>';}
+  document.getElementById('howto').onclick=howto;
+  document.getElementById('ht-x').onclick=function(){document.getElementById('ht-ov').classList.remove('open');};
+  document.getElementById('ht-ov').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(!document.body.classList.contains('anno-commenting'))closePost();document.getElementById('ht-ov').classList.remove('open');}});
+
+  function render(){
+    filters();
+    var d=applied();
+    document.getElementById('fcount').textContent=d.length+' из '+ALL.length+' постов';
+    if(R.dataset.view==='tiles'){document.getElementById('tbody').innerHTML='';document.getElementById('thead').innerHTML='';renderTiles(d);}
+    else{document.getElementById('tiles').innerHTML='';renderTable(d);}
+  }
+  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet')el.innerHTML='<span class="ok">● связано с Google-таблицей</span> · обновляется при загрузке'+(o.statsLive?' · статистика live':'');else el.innerHTML='<span class="warn">○ резервные данные</span> · '+E(o.reason||'');}
+
+  syncToggles();
+  GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);kpis();render();});
+})();
 </script>
-<script src="cms-seed.js" defer></script>
-<script src="cms-config.js" defer></script>
-<script src="cms.js" defer></script>
-<script src="../annotate/annotate-init.js" data-page="brand-site-plan" data-sections="[data-annotate-section]" defer></script>
+<script src="theme.js" defer></script>
+<script src="../annotate/annotate-init.js" data-page="brand-site-plan-hybrid" data-sections="[data-annotate-section]" defer></script>
 </body>
 </html>

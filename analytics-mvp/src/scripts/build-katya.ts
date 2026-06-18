@@ -1001,7 +1001,7 @@ function renderUecon(a){
     var v=head>=gt?'go':(head>=0?'edge':'cut');
     rows.push({camp:b.camp,art:art,name:b.name,sp:b.sp,om:b.om,drr:drr,com:e.com,cogs:e.cogs,be:e.be,head:head,v:v});});
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
-  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">таблица считается по данным Performance API (снимок/живой запрос) - сейчас пусто, дольётся при обновлении</td></tr>';if(elk)elk.innerHTML='';return;}
+  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">считается по живому запросу Performance API (~15 сек) - наполнится автоматически</td></tr>';if(elk)elk.innerHTML='<div class="kt-note">загрузка SKU-отчётов рекламы…</div>';return;}
   var calc=rows.filter(function(r){return !r.na;});
   var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
   var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
@@ -1026,7 +1026,7 @@ function render(cur,cmp){
   const my=++lastReq;
   var ctrl=('AbortController' in window)?new AbortController():null;
   var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
-  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to}),signal:ctrl?ctrl.signal:undefined})
+  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to,withSku:true}),signal:ctrl?ctrl.signal:undefined})
     .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
     .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0))paint(a,'live');else paint(baked,'baked2');})
     .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');});

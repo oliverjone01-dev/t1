@@ -222,6 +222,7 @@ const DAILY_REV_REAL = zD();          // млн ₽/день, весь кана�
 const SUB_D_R: Record<string, number[]> = {};  // подкатегория -> млн ₽/день
 const SUB_D_O: Record<string, number[]> = {};  // подкатегория -> заказов/день
 const PRODUCT_DAILY: Record<string, number[]> = {}; // модель(nm)/артикул(label) -> заказов/день
+const PRODUCT_DAILY_REV: Record<string, number[]> = {}; // модель(nm)/артикул(label) -> млн ₽/день
 const skuSubId: Record<string, string> = {}, skuModel: Record<string, string> = {}, skuLabel: Record<string, string> = {};
 for (const sk of allSkus) { skuSubId[sk] = subIdOf(catOf(sk), subOf(sk)); skuModel[sk] = modelOf(sk); skuLabel[sk] = taxOf(sk).offer || sk; }
 for (const f of facts) {
@@ -233,9 +234,12 @@ for (const f of facts) {
   const a2 = (SUB_D_O[sid] ||= zD()); a2[i] = (a2[i] ?? 0) + f.units;
   const a3 = (PRODUCT_DAILY[skuModel[sk]!] ||= zD()); a3[i] = (a3[i] ?? 0) + f.units;
   const a4 = (PRODUCT_DAILY[skuLabel[sk]!] ||= zD()); a4[i] = (a4[i] ?? 0) + f.units;
+  const a5 = (PRODUCT_DAILY_REV[skuModel[sk]!] ||= zD()); a5[i] = (a5[i] ?? 0) + f.revenue / 1e6;
+  const a6 = (PRODUCT_DAILY_REV[skuLabel[sk]!] ||= zD()); a6[i] = (a6[i] ?? 0) + f.revenue / 1e6;
 }
 const r4 = (a: number[]) => a.map((x) => Math.round(x * 10000) / 10000);
 for (const k in SUB_D_R) SUB_D_R[k] = r4(SUB_D_R[k]!);
+for (const k in PRODUCT_DAILY_REV) PRODUCT_DAILY_REV[k] = r4(PRODUCT_DAILY_REV[k]!);
 
 // Патчи дневной достоверности: «сегодня» = последний день данных; день-0 = старт окна;
 // дневные ряды KPI/план-факта/хитмапа - реальные, не размазка месяцев.
@@ -277,7 +281,7 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   return out;
 }
 const REAL_DAILY_JS = (withProducts: boolean) =>
-  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};${withProducts ? `window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};` : ""}</script>`;
+  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};${withProducts ? `window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};window.__PRODUCT_DAILY_REV=${JSON.stringify(PRODUCT_DAILY_REV)};` : ""}</script>`;
 
 // --- дельты периодов из истории ---
 const ad = (d: string, n: number) => { const t = new Date(d + "T00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };

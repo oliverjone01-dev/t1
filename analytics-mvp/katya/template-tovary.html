@@ -1469,8 +1469,21 @@ function monthDayOverlap(range){
   }
   return f;
 }
-// Реальные rev/cost/orders модели за диапазон по помесячным рядам mr/mc/mo (млн ₽ / шт).
+// Реальные rev/cost/orders модели/артикула за диапазон.
+// Основной путь: реальные ДНЕВНЫЕ ряды OZON (выручка + заказы) за точное окно;
+// себестоимость периода = заказы периода × юнит-С/С (полная С/С ÷ полные заказы).
+// Фолбэк (нет дневного ряда): помесячная доля по дням окна (mr/mc/mo × overlap).
 function productPeriod(p, range){
+  const PDR = window.__PRODUCT_DAILY_REV, PDO = window.__PRODUCT_DAILY;
+  const key = (p.nm != null) ? p.nm : p.sku; // модель -> nm, вариант -> sku(артикул)
+  if(PDR && PDO && key != null && PDR[key]){
+    const rev = sumRange(PDR[key], range.startIdx, range.endIdx);     // млн ₽
+    const orders = sumRange(PDO[key], range.startIdx, range.endIdx);  // шт
+    const fullOrd = (p.mo ? p.mo.reduce((s,v)=>s+v,0) : 0);
+    const fullCost = (p.mc ? p.mc.reduce((s,v)=>s+v,0) : (p.cost||0));
+    const unitCost = fullOrd > 0 ? fullCost / fullOrd : 0;
+    return { rev, cost: orders * unitCost, orders };
+  }
   const f = monthDayOverlap(range);
   let rev = 0, cost = 0, orders = 0;
   const mr = p.mr || [], mc = p.mc || [], mo = p.mo || [];

@@ -12,9 +12,9 @@
   --gold:#8A6514;--gold2:#A07A1E;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
   --gg:#4E5663;--gg-ink:#3C434E;--gg-soft:rgba(78,86,99,.12);
   --v:#8A6514;--v-ink:#8A6514;--v-soft:rgba(242,184,74,.18);
-  --keep:#1F7A52;--pub:#1F7A52;--pub-soft:rgba(31,122,82,.12);
-  --rdy:#9A5A12;--sgl:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
-  --pln:#5E6776;--pln-soft:rgba(94,103,118,.12);--drf:#6B5FA6;--drf-soft:rgba(107,95,166,.13);
+  --keep:#1F7A52;--pub:#1F7A52;--pub-ink:#176B45;--pub-soft:rgba(31,122,82,.12);
+  --rdy:#9A5A12;--sgl:#9A5A12;--sgl-ink:#83500F;--sgl-soft:rgba(242,184,74,.20);
+  --pln:#5E6776;--pln-ink:#586271;--pln-soft:rgba(94,103,118,.12);--drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
   --stop:#B23A28;--danger:#B23A28;
   --hyp-bg:rgba(120,124,136,.14);--hyp-ink:#5E6776;
   --card:#FFFFFF;--card2:#F1F1F4;--bg2:#F1F1F4;
@@ -26,19 +26,19 @@
   --radius:10px;--radius-s:8px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 :root[data-theme="dark"]{
-  --bg:#0F1115;--s1:#181B21;--s2:#20242C;--s3:#2A2F38;--line:#262B33;--line2:#333A44;
-  --ink:#EDEEF0;--ink2:#A6ABB5;--ink3:#878D97;
-  --gold:#E6BE63;--gold2:#EBCB7E;--gold-soft:rgba(230,190,99,.14);--gold-fill:#E6BE63;--gold-border:#E6BE63;
-  --gg:#9AA3AF;--gg-ink:#B4BCC6;--gg-soft:rgba(154,163,175,.15);
-  --v:#E6BE63;--v-ink:#EBCB7E;--v-soft:rgba(230,190,99,.14);
-  --keep:#46C08A;--pub:#46C08A;--pub-soft:rgba(70,192,138,.15);
-  --rdy:#E6BE63;--sgl:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
-  --pln:#8A93A0;--pln-soft:rgba(138,147,160,.14);--drf:#B0A3E6;--drf-soft:rgba(176,163,230,.18);
-  --stop:#E0644A;--danger:#E0644A;
-  --hyp-bg:rgba(140,148,160,.16);--hyp-ink:#9aa3b0;
-  --card:#181B21;--card2:#20242C;--bg2:#20242C;
-  --top-bg:rgba(15,17,21,.8);--sel-bg:#E6BE63;--sel-ink:#15171B;
-  --cta:#E6BE63;--cta-ink:#15171B;--gold-btn-ink:#15171B;
+  --bg:#0A0C10;--s1:#161A21;--s2:#1E232C;--s3:#2A3039;--line:#2D333E;--line2:#3B4350;
+  --ink:#F4F5F7;--ink2:#B4BAC4;--ink3:#8B929D;
+  --gold:#EBC56E;--gold2:#EBCB7E;--gold-soft:rgba(235,197,110,.15);--gold-fill:#EBC56E;--gold-border:#EBC56E;
+  --gg:#A4ADB9;--gg-ink:#C2C9D3;--gg-soft:rgba(164,173,185,.16);
+  --v:#EBC56E;--v-ink:#EBCB7E;--v-soft:rgba(235,197,110,.15);
+  --keep:#4FCD95;--pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
+  --rdy:#EBC56E;--sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
+  --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);--drf:#9AA2B0;--drf-ink:#AEB6C2;--drf-soft:rgba(154,162,176,.16);
+  --stop:#E86A50;--danger:#E86A50;
+  --hyp-bg:rgba(140,148,160,.16);--hyp-ink:#AEB6C2;
+  --card:#161A21;--card2:#1E232C;--bg2:#1E232C;
+  --top-bg:rgba(10,12,16,.8);--sel-bg:#EBC56E;--sel-ink:#13151A;
+  --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;
   --shadow:0 1px 2px rgba(0,0,0,.35);
   --shadow-lg:0 10px 28px rgba(0,0,0,.5);
   --glow1:transparent;--glow2:transparent;

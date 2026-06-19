@@ -24,7 +24,7 @@
     --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.12);
     --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
     --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
-    --drf:#6B5FA6;--drf-ink:#574B8C;--drf-soft:rgba(107,95,166,.13);
+    --drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
     --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;--danger:#B23A28;--link:#2C5377;
     --shadow:0 1px 2px rgba(20,20,25,.05);--shadow-lg:0 8px 24px rgba(20,20,25,.12);
   }
@@ -36,7 +36,7 @@
     --pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
     --sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
     --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);
-    --drf:#B0A3E6;--drf-ink:#C2B6EE;--drf-soft:rgba(176,163,230,.18);
+    --drf:#9AA2B0;--drf-ink:#AEB6C2;--drf-soft:rgba(154,162,176,.16);
     --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;--danger:#E86A50;--link:#8FB6D4;
     --shadow:0 1px 2px rgba(0,0,0,.35);--shadow-lg:0 10px 28px rgba(0,0,0,.5);
   }
@@ -135,8 +135,7 @@
   .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
   .tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
   .tile.sit{border-style:dashed}
-  .tile.is-draft{border-style:dashed;border-color:color-mix(in srgb,var(--drf) 45%,var(--line))}
-  .tile.is-draft::after{background:var(--drf)}
+  .tile.is-draft{border-style:dashed;border-color:color-mix(in srgb,var(--drf) 40%,var(--line))}
   /* статус «черновик» */
   .stb.drf{color:var(--drf-ink);background:var(--drf-soft)}.stb.drf::before{background:var(--drf)}
   .kpi.drf .n{color:var(--drf-ink)}
@@ -164,7 +163,7 @@
   .calweek .slot{font-size:11px}
   .calweek .stb{font-size:10px;padding:2px 7px}
   .calweek .rub{font-size:10px}
-  .calweek .tidea{font-size:13px;line-height:1.22}
+  .calweek .tidea{font-size:12.5px;line-height:1.3;overflow-wrap:normal;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .tcover{aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
   .tcover img{width:100%;height:100%;object-fit:cover;display:block}
   .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -442,8 +441,10 @@
   }
 
   /* ---- модалка поста ---- */
+  var lastFocus=null;
   function openPost(id){
     var p=byId[id]; if(!p) return;
+    lastFocus=document.activeElement;
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
     var cover=p.cover?'<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>':'<div class="feed-cover noimg">обложка не задана в таблице</div>';
     var cap=p.text?renderText(p.text):'<span class="muted">текст поста не заполнен в таблице</span>';
@@ -464,10 +465,18 @@
       '<div class="pm-body">'+feed+'<div class="pm-hint">Комментарий к посту: нажми «Комментировать» слева внизу и выдели область на превью. Заметки видны команде.</div>'+right+stats+'</div>';
     document.getElementById('pm-x').onclick=closePost;
     var ov=document.getElementById('pm-ov'); ov.classList.add('open');
+    setTimeout(function(){var x=document.getElementById('pm-x'); if(x) x.focus();},0);
     if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,70);
   }
-  function closePost(){document.getElementById('pm-ov').classList.remove('open');document.getElementById('pm').innerHTML='';if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,30);}
+  function closePost(){document.getElementById('pm-ov').classList.remove('open');document.getElementById('pm').innerHTML='';if(lastFocus&&lastFocus.focus){lastFocus.focus();lastFocus=null;}if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,30);}
   document.getElementById('pm-ov').addEventListener('click',function(e){if(e.target===this)closePost();});
+  document.getElementById('pm-ov').addEventListener('keydown',function(e){
+    if(e.key!=='Tab'||!this.classList.contains('open'))return;
+    var f=Array.prototype.filter.call(this.querySelectorAll('a[href],button,[tabindex]:not([tabindex="-1"]),input,select,textarea'),function(el){return el.offsetParent!==null;});
+    if(!f.length)return; var first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  });
 
   /* делегирование клика по карточке/строке -> модалка (кроме ссылок) */
   function bindOpen(host){host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)openPost(el.getAttribute('data-id'));});}

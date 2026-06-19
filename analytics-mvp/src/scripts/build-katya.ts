@@ -626,7 +626,13 @@ const J = (x: unknown) => JSON.stringify(x);
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
 .kt-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.kt-kpi .card{padding:12px 14px}.kt-k{font-size:11.5px;color:var(--ink-3);margin-bottom:4px}.kt-v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}.kt-d{font-size:11.5px;margin-top:3px}.kt-d.up{color:var(--up)}.kt-d.dn{color:var(--dn)}.kt-d.na{color:var(--ink-3)}
+.kt-kpi .card{padding:14px 16px;position:relative;overflow:hidden}.kt-k{font-size:11px;color:var(--ink-3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}.kt-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}.kt-d{font-size:11.5px;margin-top:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-weight:700}.kt-d.up{color:var(--up);background:rgba(16,185,129,.22)}.kt-d.dn{color:var(--dn);background:rgba(244,63,94,.22)}.kt-d.na{color:var(--ink-3);background:var(--bg-soft)}.kt-cap{font-size:11px;color:var(--ink-3);margin-left:7px;font-variant-numeric:tabular-nums}
+.kt-kpi .card::before{content:"";position:absolute;left:0;right:0;top:0;bottom:auto;width:auto;height:2px;border-radius:0;background:linear-gradient(90deg,var(--accent),transparent)}
+.kt-kpi .card:nth-child(2)::before{background:linear-gradient(90deg,var(--d2),transparent)}
+.kt-kpi .card:nth-child(3)::before{background:linear-gradient(90deg,var(--d4),transparent)}
+.kt-kpi .card:nth-child(4)::before{background:linear-gradient(90deg,var(--d6),transparent)}
+.kt-kpi .card:nth-child(5)::before{background:linear-gradient(90deg,var(--d5),transparent)}
+.kt-kpi .card:nth-child(6)::before{background:linear-gradient(90deg,var(--up),transparent)}
 .kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
@@ -656,6 +662,7 @@ ${banner(activeKey)}
     <button class="pb" data-p="7d">7 дн</button>
     <button class="pb act" data-p="30d">30 дн</button>
     <button class="pb" data-p="90d">90 дн</button>
+    <button class="pb" data-p="year">Год</button>
     <button class="pb" data-p="all">Всё время</button>
     <button class="pb range" id="btn-range">Свой</button>
   </div>
@@ -673,11 +680,12 @@ const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
-const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
+const capRu=()=>({today:'к пред. дню','7d':'к пред. 7 дням','30d':'к пред. 30 дням','90d':'к пред. 90 дням',year:'к пред. году',all:'к пред. периоду',range:'к пред. периоду'}[CURP]||'к пред. периоду');
+const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span><span class="kt-cap">'+capRu()+'</span>';};
 function periodDates(p){
   if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
   if(p==='all')return {from:FLOOR,to:MAXD};
-  const days={'today':1,'7d':7,'30d':30,'90d':90}[p]||30;
+  const days={'today':1,'7d':7,'30d':30,'90d':90,'year':365}[p]||30;
   return {from:clampLo(ad(MAXD,-(days-1))),to:MAXD};
 }
 function prevEqual(w){const len=Math.round((Date.parse(w.to)-Date.parse(w.from))/86400000)+1;const pt=ad(w.from,-1);return {from:clampLo(ad(pt,-(len-1))),to:pt};}
@@ -805,12 +813,12 @@ if (dailyTotals.length) {
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r">Показы в поиске</th><th class="r">Посещения карточки</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Выкуплено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV). Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
   </section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}.kt-table td.cf-cv,.kt-table th.cf-cv{color:var(--ink-3);font-size:11.5px}.cf-cat td.cf-cv{font-weight:500}.cf-total td{font-weight:700;background:rgba(255,255,255,.03);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}.cf-total td.cf-cv{color:var(--ink-3);font-weight:600}</style>`;
   const pageJs = `
 const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
@@ -820,14 +828,34 @@ function renderCatFunnel(cur){
   const sm=(o,k)=>sumW(o[k],cur);
   const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
   const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
-  const cell=x=>'<td class="r">'+fmtRu(x.views)+'</td>'+(x.vsearch>0?'<td class="r">'+fmtRu(x.vsearch)+'</td>':ndc)+(x.pdp>0?'<td class="r">'+fmtRu(x.pdp)+'</td>':ndc)+'<td class="r">'+fmtRu(x.cart)+'</td><td class="r">'+fmtRu(x.units)+'</td><td class="r">'+fmtRu(x.deliv)+'</td><td class="r">'+pct(x.cart,x.views)+'</td><td class="r" style="color:'+(x.cart&&x.units/x.cart<0.04?'var(--dn)':'inherit')+'">'+pct(x.units,x.cart)+'</td><td class="r">'+pct(x.deliv,x.units)+'</td>';
+  // Канальный бенчмарк конверсии по каждому шагу (сумма по всем категориям периода).
+  // Цвет CV: зелёный - категория конвертит выше канала на этом шаге, красный - ниже.
+  const T={};['views','vsearch','pdp','cart','units','deliv'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
+  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?T.deliv/T.units:0};
+  const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
+  const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
+    return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views,BM.vs)
+      +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)
+      +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
+      +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(x.deliv,x.units,BM.dl)
+      +'<td class="r">'+fmtRu(x.deliv)+'</td>';};
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
     (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
       h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
   });
-  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="10" class="kt-note">нет данных за период</td></tr>';
+  // Итоговая строка = сумма по категориям (T). CV в ней нейтральный (серый) - это и есть бенчмарк.
+  const cvP=(a,b)=>'<td class="r cf-cv">'+(b>0?(a/b*100).toFixed(2)+'%':'—')+'</td>';
+  const totRow='<tr class="cf-total"><td>Итого по категориям</td>'
+    +'<td class="r">'+fmtRu(T.views)+'</td>'+cvP(T.vsearch,T.views)
+    +'<td class="r">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)
+    +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
+    +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
+    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(T.deliv,T.units)
+    +'<td class="r">'+fmtRu(T.deliv)+'</td></tr>';
+  document.getElementById('catfun').innerHTML=h?(totRow+h):'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
 function render(cur,cmp){
@@ -930,8 +958,8 @@ function render(cur,cmp){
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия SKU - за окно фильтра (живой pnl-sku), себестоимость - снимок 30 дней. Светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход и ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40% · клик - разбивка по SKU</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от ${maxD} (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`;
@@ -992,6 +1020,23 @@ function loadAllReports(){var a=lastA;if(!a||typeof fetch==='undefined')return;
   function step(){while(run<CONC&&k<n){run++;loadReport(ids[k++],function(){run--;done++;setAds(done>=n?'ok':'load',done>=n?'готов к работе · разбивка загружена':('подгружаю разбивку по SKU '+done+'/'+n+'…'));renderTop();renderUecon(lastA);if(done<n)step();});}}
   step();
 }
+var bexpanded={};
+function renderBurn(a){
+  var html=(a.burners||[]).map(function(b,bi){
+    var rep=b.id?repOf(b.id):null;var loaded=rep!==null;var open=!!bexpanded[bi];var disp=open?'':'display:none';
+    var main='<tr class="ad-exp" data-bi="'+bi+'" data-id="'+(b.id||'')+'"><td>'+(b.id?'<span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span>':'')+'<b>'+(b.id||b.off)+'</b></td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+fmtRu(b.om||0)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>';
+    var sub='';if(!b.id)return main;
+    if(!loaded){sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3)">загрузка разбивки…</td></tr>';}
+    else if(rep.length){var omM=0,soM=0;
+      rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
+        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
+      if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или лимит OZON)</td></tr>';}
+    return main+sub;
+  }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';
+  document.getElementById('burn').innerHTML=html;
+  document.querySelectorAll('#burn .ad-exp').forEach(function(tr){var id=tr.getAttribute('data-id');if(!id)return;tr.onclick=function(){var i=tr.getAttribute('data-bi');bexpanded[i]=!bexpanded[i];document.querySelectorAll('#burn .bn-sub[data-bi="'+i+'"]').forEach(function(s){s.style.display=bexpanded[i]?'':'none';});var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=bexpanded[i]?'▾ ':'▸ ';if(bexpanded[i]&&repOf(id)===null){loadReport(id,function(){renderBurn(lastA);});}};});
+}
 // Запечённый снимок рекламы под выбранный период - показываем МГНОВЕННО реальные данные.
 function bakedFor(){
   if(CURP==='7d'||CURP==='today')return PERIODS.p7||SNAP;
@@ -1009,11 +1054,11 @@ function paint(a,src){
   const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
   lastA=a;renderTop();
-  document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td><b>'+(b.id||b.off)+'</b></td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
+  renderBurn(a);
   // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
-  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=(c.skus&&c.skus[0])?String(c.skus[0]):null;var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0});g.sp+=c.sp||0;g.om+=c.om||0;});
-  var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
-  document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="3" class="kt-note">нет данных</td></tr>';
+  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=(c.skus&&c.skus[0])?String(c.skus[0]):null;var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
+  var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,om:g.om,o:g.o,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
+  document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r">'+fmtRu(l.om)+'</td><td class="r">'+l.o+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
   renderUecon(a);
   const tot=PRICE.cheaper+PRICE.even+PRICE.pricier+PRICE.noIdx||1;
   const seg=(n,c,t2)=>'<span title="'+t2+': '+n+'" style="width:'+(100*n/tot)+'%;background:'+c+';display:block;height:100%"></span>';
@@ -1027,13 +1072,13 @@ function renderUecon(a){
   var rows=[];var naSp=0,total=0;
   (a.top_spend||[]).forEach(function(c){
     var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
-    var art=SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0;
-    if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
+    var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
+    if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
     var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок
     var be=Math.round((100-com-e.cogs)*10)/10; // Лимит РК = 100 − комиссия(период) − с/с(снимок)
     var head=Math.round((be-drr)*10)/10;var gt=Math.max(0,Math.round(be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
     var v=head>=gt?'go':(head>=0?'edge':'cut');
-    rows.push({camp:c.id,art:art,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,be:be,head:head,v:v});
+    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,be:be,head:head,v:v});
   });
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
   if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
@@ -1045,7 +1090,8 @@ function renderUecon(a){
   rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});
   var vlab={go:'🟢 жать газ',edge:'🟡 держать',cut:'🔴 резать'};var vact={go:'поднять ставку/бюджет',edge:'не масштабировать; ставка/цена',cut:'пауза/резать ставку 48ч'};
   el.innerHTML=rows.map(function(r){
-    var nm='<td>'+r.camp+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
+    var act=r.status==='активна';var rowS=act?' style="border-left:3px solid #34D399"':'';
+    var nm='<td'+(act?' style="border-left:3px solid #34D399"':'')+'>'+r.camp+stBadge(r.status)+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
     if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="4" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
     var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
     var bec=r.be<0?'<span style="color:var(--dn)">убыток до рекл.</span>':'<b>'+r.be+'%</b>'; // FENIX N1: be<0 словом, не сырым %

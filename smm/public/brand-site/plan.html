@@ -12,7 +12,7 @@
 /* тема и вид ДО отрисовки - без мигания (FOUC). Дефолт: плитки + светлая (форсим). */
 (function(){var d=document.documentElement;
   var v=localStorage.getItem('cp.view'); d.dataset.view=(v==='tiles'||v==='table')?v:'tiles';
-  var t=localStorage.getItem('gg.theme'); d.dataset.theme=(t==='light'||t==='dark')?t:'light';
+  var t=localStorage.getItem('gg.theme'); d.dataset.theme=(t==='light'||t==='dark')?t:'dark';
 })();
 </script>
 <style>
@@ -24,18 +24,20 @@
     --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.12);
     --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
     --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
+    --drf:#6B5FA6;--drf-ink:#574B8C;--drf-soft:rgba(107,95,166,.13);
     --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;--danger:#B23A28;--link:#2C5377;
     --shadow:0 1px 2px rgba(20,20,25,.05);--shadow-lg:0 8px 24px rgba(20,20,25,.12);
   }
   :root[data-theme="dark"]{
-    --bg:#0F1115;--s1:#181B21;--s2:#20242C;--s3:#2A2F38;--line:#262B33;--line2:#333A44;
-    --ink:#EDEEF0;--ink2:#A6ABB5;--ink3:#878D97;
-    --gold:#E6BE63;--gold-ink:#E6BE63;--gold-soft:rgba(230,190,99,.14);--gold-fill:#E6BE63;--gold-border:#E6BE63;
-    --steel:#9AA3AF;--steel-ink:#B4BCC6;--steel-soft:rgba(154,163,175,.15);
-    --pub:#46C08A;--pub-ink:#46C08A;--pub-soft:rgba(70,192,138,.15);
-    --sgl:#E6BE63;--sgl-ink:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
-    --pln:#8A93A0;--pln-ink:#8A93A0;--pln-soft:rgba(138,147,160,.14);
-    --cta:#E6BE63;--cta-ink:#15171B;--gold-btn-ink:#15171B;--danger:#E0644A;--link:#7FA8C6;
+    --bg:#0A0C10;--s1:#161A21;--s2:#1E232C;--s3:#2A3039;--line:#2D333E;--line2:#3B4350;
+    --ink:#F4F5F7;--ink2:#B4BAC4;--ink3:#8B929D;
+    --gold:#EBC56E;--gold-ink:#EBC56E;--gold-soft:rgba(235,197,110,.15);--gold-fill:#EBC56E;--gold-border:#EBC56E;
+    --steel:#A4ADB9;--steel-ink:#C2C9D3;--steel-soft:rgba(164,173,185,.16);
+    --pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
+    --sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
+    --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);
+    --drf:#B0A3E6;--drf-ink:#C2B6EE;--drf-soft:rgba(176,163,230,.18);
+    --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;--danger:#E86A50;--link:#8FB6D4;
     --shadow:0 1px 2px rgba(0,0,0,.35);--shadow-lg:0 10px 28px rgba(0,0,0,.5);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -133,6 +135,36 @@
   .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
   .tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
   .tile.sit{border-style:dashed}
+  .tile.is-draft{border-style:dashed;border-color:color-mix(in srgb,var(--drf) 45%,var(--line))}
+  .tile.is-draft::after{background:var(--drf)}
+  /* статус «черновик» */
+  .stb.drf{color:var(--drf-ink);background:var(--drf-soft)}.stb.drf::before{background:var(--drf)}
+  .kpi.drf .n{color:var(--drf-ink)}
+  .kpi.drf.active{border-color:var(--drf);box-shadow:inset 0 0 0 1px var(--drf),var(--shadow)}
+  /* сегмент Черновики / В работе */
+  .seg.scope button b{margin-left:6px;font-weight:800;color:var(--ink3)}
+  .seg.scope button.on b{color:var(--drf-ink)}
+  /* underline-добивка: гасим авто-ссылки браузера в плитках/таблице/модалке */
+  #tiles a:not([class]),#tbody a:not([class]),#pm a:not([class]){color:inherit!important;text-decoration:none!important;overflow-wrap:anywhere;word-break:break-word}
+  /* КАЛЕНДАРНАЯ СЕТКА */
+  .calwrap{grid-column:1/-1;display:flex;flex-direction:column;gap:26px}
+  .calweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:start;margin-top:12px}
+  .calday{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .cdh{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink2);text-transform:uppercase;padding:0 2px 6px;border-bottom:1px solid var(--line2)}
+  .calday.off .cdh{color:var(--ink3);opacity:.55}
+  .cnone{color:var(--ink3);opacity:.35;text-align:center;font-size:14px;padding:6px 0}
+  .calextra{margin-top:14px}
+  .calextra>.cap{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
+  .calextra-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:8px}
+  /* компактная плитка в календаре: только суть, детали по клику */
+  .calweek .tile{padding:11px 12px;gap:7px;border-radius:9px}
+  .calweek .tcover,.calweek .thook,.calweek .meta,.calweek .tfoot{display:none}
+  .calweek .th{gap:6px}
+  .calweek .bdot{font-size:9px;padding:2px 6px}
+  .calweek .slot{font-size:11px}
+  .calweek .stb{font-size:10px;padding:2px 7px}
+  .calweek .rub{font-size:10px}
+  .calweek .tidea{font-size:13px;line-height:1.22}
   .tcover{aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
   .tcover img{width:100%;height:100%;object-fit:cover;display:block}
   .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -204,12 +236,16 @@
   .pipe .p{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid var(--line2)}
   .pipe .p.pln{color:var(--pln-ink);background:var(--pln-soft)}.pipe .p.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.pipe .p.pub{color:var(--pub-ink);background:var(--pub-soft)}
   .pipe .ar{color:var(--ink3)}
+  /* календарь: с 7 колонок мягко в группировку по дням */
+  @media(max-width:1100px){.calweek{grid-template-columns:repeat(4,1fr)}.calday.off{display:none}.calweek .tcover{display:none}}
+  @media(max-width:720px){.calweek{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.calweek{grid-template-columns:1fr;gap:8px}.calextra-g{grid-template-columns:1fr}}
   @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi.bar{grid-column:1/-1}}
   @media(max-width:880px){.pm-grid,.steps{grid-template-columns:1fr}.pm-left{border-right:none;border-bottom:1px solid var(--line)}}
   @media(max-width:640px){
     .top-in,.planbar-in,.kpis,.rowline,.filters,.src{padding-left:14px;padding-right:14px}
     .wrap{padding-left:14px;padding-right:14px}
-    .planbar-in{gap:9px}.controls{margin-left:0;width:100%}
+    .planbar-in{gap:9px}.controls{margin-left:0;width:100%;flex-wrap:wrap;gap:8px}.seg.scope{flex:1 1 100%}.seg.scope button{flex:1}
     .kpis{grid-template-columns:1fr 1fr;gap:9px}.kpi{padding:11px 13px;border-radius:10px}.kpi .n{font-size:21px}
     .tiles{grid-template-columns:1fr}
     .ttl h2{font-size:16px}
@@ -237,6 +273,7 @@
 <div class="planbar"><div class="planbar-in">
   <div class="ttl"><div class="ey">GENGROUP · контроль</div><h2>Контент-план</h2></div>
   <div class="controls">
+    <div class="seg scope" id="scopebar" role="group" aria-label="Раздел"></div>
     <a class="howto" href="howto.html">Как работает</a>
     <div class="seg" role="group" aria-label="Вид"><button id="v-tiles" type="button">▤ Плитки</button><button id="v-table" type="button">▦ Таблица</button></div>
   </div>
@@ -265,10 +302,11 @@
 <script>
 (function(){
   var E=GGData.esc, R=document.documentElement, DI=GGData.driveImg;
-  var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1};
+  var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1,scope:'draft'};
   var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Пост'}];
-  var STORD={'план':0,'на согл':1,'опубликовано':2};
-  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане'};
+  var STORD={'черновик':-1,'план':0,'на согл':1,'опубликовано':2};
+  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln','черновик':'drf'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане','черновик':'Черновик'};
+  function isDraft(p){return p.status==='черновик';}
 
   /* ---- переключатели ---- */
   function syncToggles(){
@@ -282,15 +320,17 @@
   /* ---- KPI ---- */
   function kpis(){
     var real=ALL.filter(function(p){return !p.situational;});
-    function c(s){return real.filter(function(p){return p.status===s;}).length;}
-    var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=real.length,pct=tot?Math.round(pub/tot*100):0;
+    var draftN=real.filter(isDraft).length;
+    var work=real.filter(function(p){return !isDraft(p);});
+    function c(s){return work.filter(function(p){return p.status===s;}).length;}
+    var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=work.length,pct=tot?Math.round(pub/tot*100):0;
     document.getElementById('kpis').innerHTML=
-      '<div class="kpi"><div class="n">'+tot+'</div><div class="l">постов в плане</div></div>'+
-      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
+      '<div class="kpi drf'+(state.scope==='draft'?' active':'')+'"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></div>'+
+      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в плане</div></div>'+
       '<div class="kpi sgl"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></div>'+
-      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в работе</div></div>'+
+      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
       '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
-    var g=real.filter(function(p){return p.brand!=='V';}),v=real.filter(function(p){return p.brand==='V';});
+    var g=work.filter(function(p){return p.brand!=='V';}),v=work.filter(function(p){return p.brand==='V';});
     document.getElementById('brandbar').innerHTML='<span class="cap">по брендам</span>'+
       '<div class="chipm g">GENGLASS · опубл. <b>'+g.filter(function(p){return p.status==='опубликовано';}).length+' / '+g.length+'</b></div>'+
       '<div class="chipm v">VALONTI · опубл. <b>'+v.filter(function(p){return p.status==='опубликовано';}).length+' / '+v.length+'</b></div>';
@@ -318,7 +358,7 @@
     var weeks=Array.from(new Set(ALL.map(function(p){return p.week;}))).sort(function(a,b){return a-b;});
     function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
     var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
-      grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'на согл',t:'на согл'},{v:'план',t:'в плане'}])+
+      (state.scope==='work'?grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'на согл',t:'на согл'},{v:'план',t:'в плане'}]):'')+
       grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
     html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
     if(R.dataset.view==='tiles'){html+='сортировка <select id="tsort">'+[['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';}
@@ -328,7 +368,11 @@
     var ts=document.getElementById('tsort'); if(ts) ts.onchange=function(){state.sort=ts.value;state.dir=1;render();};
   }
   function applied(){
-    var d=ALL.filter(function(p){return (state.brand==='all'||p.brand===state.brand)&&(state.status==='all'||p.status===state.status)&&(state.week==='all'||String(p.week)===state.week);});
+    var d=ALL.filter(function(p){
+      if(state.scope==='draft'){ if(!isDraft(p)) return false; }
+      else { if(isDraft(p)) return false; if(state.status!=='all'&&p.status!==state.status) return false; }
+      return (state.brand==='all'||p.brand===state.brand)&&(state.week==='all'||String(p.week)===state.week);
+    });
     d.sort(function(a,b){var k=state.sort,va,vb;
       if(k==='status'){va=STORD[a.status];vb=STORD[b.status];}else if(k==='week'){va=a.week;vb=b.week;}else{va=(a[k]||'').toString().toLowerCase();vb=(b[k]||'').toString().toLowerCase();}
       if(va<vb)return -state.dir; if(va>vb)return state.dir; return a.week-b.week;});
@@ -358,7 +402,7 @@
   function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
     var cov=p.cover?'<div class="tcover"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.remove()"></div>':'';
     var st=p.stats?'<span class="tstat">'+(p.brand==='V'?'контакты <b>'+(p.stats.contacts||0)+'</b>':'охват <b>'+(p.stats.reach||0).toLocaleString('ru')+'</b>')+'</span>':'';
-    return '<article class="tile '+b+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
+    return '<article class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
       '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(p.slot?'<span class="slot">'+E(p.slot)+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
       (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
@@ -367,15 +411,24 @@
       '<div class="tfoot">'+st+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
     '</article>';
   }
+  var DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   function renderTiles(d){
     var host=document.getElementById('tiles');
     if(!d.length){host.innerHTML='<div class="empty">нет постов под фильтр</div>';return;}
     if(state.sort==='week'){
       var wk={};d.forEach(function(p){(wk[p.week]=wk[p.week]||[]).push(p);});
-      host.innerHTML=Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
+      host.innerHTML='<div class="calwrap">'+Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
         var it=wk[w],pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
-        return '<div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+it.map(tile).join('');
-      }).join('');
+        var byday={},extra=[];
+        it.forEach(function(p){var i=DAYS.indexOf(p.slot);if(i>=0)(byday[i]=byday[i]||[]).push(p);else extra.push(p);});
+        var cols=DAYS.map(function(dn,i){
+          var posts=(byday[i]||[]).map(tile).join('');
+          return '<div class="calday'+(posts?'':' off')+'"><div class="cdh">'+dn+'</div>'+(posts||'<div class="cnone">·</div>')+'</div>';
+        }).join('');
+        var extraHtml=extra.length?'<div class="calextra"><span class="cap">ситуатив / без дня</span><div class="calextra-g">'+extra.map(tile).join('')+'</div></div>':'';
+        return '<section class="calblock"><div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+
+               '<div class="calweek">'+cols+'</div>'+extraHtml+'</section>';
+      }).join('')+'</div>';
     } else host.innerHTML=d.map(tile).join('');
   }
 
@@ -443,8 +496,17 @@
   function step(n,t,p,mock){return '<div class="step"><div class="nu">'+n+'</div><h4>'+t+'</h4><p>'+p+'</p>'+(mock||'')+'</div>';}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.body.classList.contains('anno-commenting'))closePost();});
 
+  function scopeBar(){
+    var real=ALL.filter(function(p){return !p.situational;});
+    var dn=real.filter(isDraft).length, wn=real.length-dn;
+    var host=document.getElementById('scopebar'); if(!host) return;
+    host.innerHTML=
+      '<button type="button" data-scope="draft" class="'+(state.scope==='draft'?'on':'')+'">Черновики <b>'+dn+'</b></button>'+
+      '<button type="button" data-scope="work" class="'+(state.scope==='work'?'on':'')+'">В работе <b>'+wn+'</b></button>';
+    Array.prototype.forEach.call(host.querySelectorAll('button'),function(b){b.onclick=function(){state.scope=b.dataset.scope;state.status='all';render();};});
+  }
   function render(){
-    filters();
+    scopeBar(); kpis(); filters();
     var d=applied();
     document.getElementById('fcount').textContent=d.length+' из '+ALL.length+' постов';
     if(R.dataset.view==='tiles'){document.getElementById('tbody').innerHTML='';document.getElementById('thead').innerHTML='';renderTiles(d);}
@@ -453,7 +515,9 @@
   function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet')el.innerHTML='<span class="ok">● связано с Google-таблицей</span> · обновляется при загрузке'+(o.statsLive?' · статистика live':'');else el.innerHTML='<span class="warn">○ резервные данные</span> · '+E(o.reason||'');}
 
   syncToggles();
-  GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);kpis();render();});
+  GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);
+    if(!ALL.some(isDraft)) state.scope='work';
+    render();});
 })();
 </script>
 <script src="theme.js" defer></script>

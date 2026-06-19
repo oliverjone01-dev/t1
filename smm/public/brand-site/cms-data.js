@@ -20,6 +20,7 @@
     var x = low(v);
     if (x.indexOf('опублик') === 0 || x === 'published' || x === 'live' || x === 'done') return 'опубликовано';
     if (x.indexOf('готов') === 0 || x.indexOf('на согл') === 0 || x.indexOf('согл') === 0 || x === 'ready' || x === 'review' || x === 'approval') return 'на согл';
+    if (x.indexOf('чернов') === 0 || x === 'draft' || x === 'drafts' || x.indexOf('вариант') === 0 || x === 'идея' || x === 'idea') return 'черновик';
     return 'план';
   }
   function pick(o) { for (var i = 1; i < arguments.length; i++) { var k = arguments[i]; if (o[k] != null && norm(o[k]) !== '') return o[k]; } return ''; }
@@ -118,6 +119,6 @@
   window.GGData = {
     load: load, esc: esc, num: num, driveImg: driveImg,
     brandName: function (b) { return b === 'V' ? 'VALONTI' : 'GENGLASS'; },
-    STATUS: { 'опубликовано': { cls: 'pub', label: 'Опубликовано' }, 'на согл': { cls: 'sgl', label: 'На согласовании' }, 'план': { cls: 'pln', label: 'В плане' } }
+    STATUS: { 'опубликовано': { cls: 'pub', label: 'Опубликовано' }, 'на согл': { cls: 'sgl', label: 'На согласовании' }, 'план': { cls: 'pln', label: 'В плане' }, 'черновик': { cls: 'drf', label: 'Черновик' } }
   };
 })();

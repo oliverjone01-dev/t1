@@ -14,7 +14,7 @@
   --v:#8A6514;--v-ink:#8A6514;--v-soft:rgba(242,184,74,.18);
   --keep:#1F7A52;--pub:#1F7A52;--pub-soft:rgba(31,122,82,.12);
   --rdy:#9A5A12;--sgl:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
-  --pln:#5E6776;--pln-soft:rgba(94,103,118,.12);
+  --pln:#5E6776;--pln-soft:rgba(94,103,118,.12);--drf:#6B5FA6;--drf-soft:rgba(107,95,166,.13);
   --stop:#B23A28;--danger:#B23A28;
   --hyp-bg:rgba(120,124,136,.14);--hyp-ink:#5E6776;
   --card:#FFFFFF;--card2:#F1F1F4;--bg2:#F1F1F4;
@@ -33,7 +33,7 @@
   --v:#E6BE63;--v-ink:#EBCB7E;--v-soft:rgba(230,190,99,.14);
   --keep:#46C08A;--pub:#46C08A;--pub-soft:rgba(70,192,138,.15);
   --rdy:#E6BE63;--sgl:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
-  --pln:#8A93A0;--pln-soft:rgba(138,147,160,.14);
+  --pln:#8A93A0;--pln-soft:rgba(138,147,160,.14);--drf:#B0A3E6;--drf-soft:rgba(176,163,230,.18);
   --stop:#E0644A;--danger:#E0644A;
   --hyp-bg:rgba(140,148,160,.16);--hyp-ink:#9aa3b0;
   --card:#181B21;--card2:#20242C;--bg2:#20242C;

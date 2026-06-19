@@ -20,7 +20,7 @@
   .mini h3{font-size:15.5px;font-weight:800;margin-bottom:5px}.mini p{font-size:13.5px;color:var(--ink2);line-height:1.5}
   .pipe{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
   .pchip{font-size:13px;font-weight:700;padding:7px 14px;border-radius:30px;min-height:40px;display:inline-flex;align-items:center}
-  .pchip.pln{color:var(--pln);background:var(--pln-soft)}.pchip.sgl{color:var(--sgl);background:var(--sgl-soft)}.pchip.pub{color:var(--pub);background:var(--pub-soft)}
+  .pchip.drf{color:var(--drf);background:var(--drf-soft)}.pchip.pln{color:var(--pln);background:var(--pln-soft)}.pchip.sgl{color:var(--sgl);background:var(--sgl-soft)}.pchip.pub{color:var(--pub);background:var(--pub-soft)}
   .pipe .ar{color:var(--ink3);font-weight:700}
   .steps2{display:grid;grid-template-columns:1fr 1fr;gap:16px;counter-reset:st}
   .stp{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:var(--radius);padding:20px 20px 18px;box-shadow:var(--shadow)}
@@ -32,7 +32,7 @@
   .legend{display:flex;gap:10px;flex-wrap:wrap}
   .lg{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink2);background:var(--s1);border:1px solid var(--line);border-radius:30px;padding:8px 15px;box-shadow:var(--shadow)}
   .lg .d{width:10px;height:10px;border-radius:50%}
-  .lg .d.pub{background:var(--pub)}.lg .d.sgl{background:var(--sgl)}.lg .d.pln{background:transparent;box-shadow:inset 0 0 0 2px var(--pln)}
+  .lg .d.pub{background:var(--pub)}.lg .d.sgl{background:var(--sgl)}.lg .d.pln{background:transparent;box-shadow:inset 0 0 0 2px var(--pln)}.lg .d.drf{background:var(--drf)}
   .warnote{background:var(--gold-soft);border-radius:var(--radius);padding:16px 20px;font-size:14.5px;color:var(--ink);margin-top:14px}
   .warnote b{color:var(--gold)}
   @media(max-width:820px){.cards3,.steps2{grid-template-columns:1fr}}
@@ -73,6 +73,7 @@
       <p class="sec-sub">Ставишь статус в колонке «статус». Руководитель видит, что ждёт согласования и что уже вышло.</p>
     </div>
     <div class="pipe">
+      <span class="pchip drf">Черновик</span><span class="ar">→</span>
       <span class="pchip pln">В плане</span><span class="ar">→</span>
       <span class="pchip sgl">На согласовании</span><span class="ar">→</span>
       <span class="pchip pub">Опубликовано</span>
@@ -82,8 +83,8 @@
   <section>
     <div class="sec-head"><h2 class="sec-title">Пошагово <span class="em">для SMM</span></h2></div>
     <div class="steps2">
-      <div class="stp"><h3>Заведи строку поста</h3><p>В листе <b>«Контент-план»</b> новая строка. Минимум: <span class="k">id</span> (уникальный, например <span class="k">w3-mon-g</span>), <span class="k">неделя</span>, <span class="k">бренд</span> (G или V), <span class="k">канал</span>, <span class="k">статус</span> = «в плане», <span class="k">идея</span>.</p><p>В колонке статус поставь <b>выпадающий список</b> (Данные → Проверка данных), чтобы не было опечаток.</p></div>
-      <div class="stp"><h3>Двигай статус по работе</h3><p>Готов черновик - меняешь статус на <b>«на согл»</b>. После выхода - <b>«опубликовано»</b>. По проценту опубликованных считается выполнение плана.</p></div>
+      <div class="stp"><h3>Заведи строку поста</h3><p>В листе <b>«Контент-план»</b> новая строка. Минимум: <span class="k">id</span> (уникальный, например <span class="k">w3-mon-g</span>), <span class="k">неделя</span>, <span class="k">бренд</span> (G или V), <span class="k">канал</span>, <span class="k">статус</span>, <span class="k">идея</span>.</p><p>Сырой набросок ставь как <b>«черновик»</b>. В колонке статус поставь <b>выпадающий список</b> (Данные → Проверка данных), чтобы не было опечаток.</p></div>
+      <div class="stp"><h3>Двигай статус по работе</h3><p>Маршрут поста: <b>черновик → в плане → на согл → опубликовано</b>. Дорабатываешь черновик и переводишь в <b>«в плане»</b>. Готов к показу руководителю - <b>«на согл»</b>. После выхода - <b>«опубликовано»</b>.</p><p>Черновики лежат в дашборде отдельной вкладкой <b>«Черновики»</b> и не мешаются с тем, что уже на согласовании и опубликовано. Вкладка <b>«В работе»</b> - это чистый пайплайн план/согл/опубл.</p></div>
       <div class="stp"><h3>Добавь картинку</h3><p>Колонка <span class="k">картинка</span>: вставь ссылку на изображение. Если это Google Drive - <b>обязательно открой доступ к самому файлу</b>: правый клик по файлу → «Открыть доступ» → «Все, у кого есть ссылка» → Читатель. Иначе картинка не загрузится.</p><p>Удобно сложить все обложки в одну папку и открыть доступ к папке разом.</p></div>
       <div class="stp"><h3>Напиши текст поста</h3><p>Колонка <span class="k">текст</span>: пиши как в соцсети - эмодзи, #хэштеги в конце, перенос строки <span class="k">Alt+Enter</span>. В карточке покажем «как в ленте».</p></div>
       <div class="stp"><h3>Отправь на согласование</h3><p>Поставь статус <b>«на согл»</b>. Руководитель открывает карточку и оставляет правки комментарием прямо на превью поста.</p></div>
@@ -121,9 +122,10 @@
   <section>
     <div class="sec-head"><h2 class="sec-title">Статусы <span class="em">цветом</span></h2></div>
     <div class="legend">
-      <span class="lg"><span class="d pub"></span>Опубликовано</span>
-      <span class="lg"><span class="d sgl"></span>На согласовании</span>
+      <span class="lg"><span class="d drf"></span>Черновик</span>
       <span class="lg"><span class="d pln"></span>В плане</span>
+      <span class="lg"><span class="d sgl"></span>На согласовании</span>
+      <span class="lg"><span class="d pub"></span>Опубликовано</span>
     </div>
   </section>
 

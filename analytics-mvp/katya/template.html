@@ -3560,16 +3560,21 @@ function renderProfitability(){
     });
   }
 
-  // Комиссия: % от выручки нормируем в диапазон 10–40% (для наглядности), сумма комиссии = выручка × %
-  (function(){
-    const raws = buckets.map(b => commPctRaw(b.start));
-    const rmin = Math.min(...raws), rmax = Math.max(...raws);
-    const span = (rmax - rmin) || 1;
-    buckets.forEach((b, i) => {
-      b.commPct = 10 + 30 * ((raws[i] - rmin) / span);   // 10..40 %
-      b.comm = b.rev * b.commPct / 100;                   // K ₽/день
+  // Комиссия OZON по подкатегориям (все сборы = accruals − amount, снимок pnl-sku),
+  // взвешенная выручкой бакета за период. commPct варьируется с миксом категорий.
+  const SUBCAT_COMM = window.__SUBCAT_COMM || {};
+  const hasComm = Object.keys(SUBCAT_COMM).length > 0;
+  buckets.forEach(b => {
+    const bEnd = b.start + b.len - 1;
+    let cr = 0, cc = 0; // покрытая выручка и комиссия (млн ₽) по подкат с известной ставкой
+    Object.keys(DAILY_REV_CAT).forEach(id => {
+      if(SUBCAT_COMM[id] === undefined) return;
+      const rv = sumRange(DAILY_REV_CAT[id], b.start, bEnd);
+      cr += rv; cc += rv * SUBCAT_COMM[id] / 100;
     });
-  })();
+    b.commPct = cr > 0 ? (cc / cr * 100) : 0;   // % от выручки (по покрытым подкат)
+    b.comm = b.rev * b.commPct / 100;            // K ₽/день
+  });
 
   // Y-масштаб: одинаковый для обоих графиков для визуального сопоставления.
   // Берём max по выручке (она всегда ≥ себестоимости) с запасом 12%.
@@ -3698,14 +3703,14 @@ function renderProfitability(){
     <div class="card-h">
       <div>
         <div class="card-title">Рентабельность</div>
-        <div class="card-sub">выручка и себестоимость · ${periodLabel()} · себестоимость — по достоверным строкам источника (≈74%) · комиссии — нет источника</div>
+        <div class="card-sub">выручка и себестоимость · ${periodLabel()} · себестоимость — по достоверным строкам источника (≈74%) · ${hasComm?'комиссия по подкатегориям (снимок pnl-sku)':'комиссии нет источника'}</div>
       </div>
       <div class="cl-summary">
         <div>Выручка: <b>${fmt(sumRev.rev,1)}</b> млн ₽</div>
         <div class="cl-summary-sep"></div>
         <div>Себестоимость: <b>${fmt(sumRev.cost,1)}</b> млн ₽</div>
         <div class="cl-summary-sep"></div>
-        <div>Комиссия: <b style="color:var(--ink-3)">нет данных</b></div>
+        <div>Комиссия: ${hasComm?`<b>${fmt(totalComm,1)}</b> млн ₽ · <b>${commShare.toFixed(1).replace('.',',')}%</b>`:'<b style="color:var(--ink-3)">нет данных</b>'}</div>
         <div class="cl-summary-sep"></div>
         <div>Маржа: <b>${fmt(sumRev.marginPct,1)}%</b></div>
       </div>
@@ -3721,11 +3726,15 @@ function renderProfitability(){
       </div>
       <div class="pr-chart-wrap">
         <div class="pr-chart-title">Комиссии и % от выручки</div>
-        <div style="min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-3);text-align:center">
+        ${hasComm ? `${rightSVG}
+        <div class="pr-legend">
+          <span class="pr-leg-item"><span class="pr-leg-dot" style="background:#22D3EE"></span>Комиссия, ₽</span>
+          <span class="pr-leg-item"><span class="pr-leg-dot" style="background:#A78BFA"></span>% от выручки</span>
+        </div>` : `<div style="min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink-3);text-align:center">
           <div style="font-size:28px;opacity:.55;margin-bottom:6px">∅</div>
           <div style="font-size:14px;font-weight:700;color:var(--ink-2)">Нет данных</div>
-          <div style="font-size:12px;margin-top:4px;max-width:300px">Ставки комиссий по площадкам — нет источника (нужны отчёты Ozon / WB / Я.Маркет или 1С)</div>
-        </div>
+          <div style="font-size:12px;margin-top:4px;max-width:300px">Ставки комиссий по площадкам: нет источника (нужны отчёты Ozon / WB / Я.Маркет или 1С)</div>
+        </div>`}
       </div>
     </div>
   `;

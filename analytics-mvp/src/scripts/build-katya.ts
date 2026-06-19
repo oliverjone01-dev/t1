@@ -626,7 +626,7 @@ const J = (x: unknown) => JSON.stringify(x);
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
 .kt-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.kt-kpi .card{padding:14px 16px}.kt-k{font-size:11px;color:var(--ink-3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}.kt-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}.kt-d{font-size:11.5px;margin-top:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-weight:700}.kt-d.up{color:var(--up);background:rgba(52,211,153,.13)}.kt-d.dn{color:var(--dn);background:rgba(255,90,95,.13)}.kt-d.na{color:var(--ink-3);background:var(--bg-soft)}
+.kt-kpi .card{padding:14px 16px}.kt-k{font-size:11px;color:var(--ink-3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}.kt-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}.kt-d{font-size:11.5px;margin-top:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-weight:700}.kt-d.up{color:var(--up);background:rgba(52,211,153,.13)}.kt-d.dn{color:var(--dn);background:rgba(255,90,95,.13)}.kt-d.na{color:var(--ink-3);background:var(--bg-soft)}.kt-cap{font-size:11px;color:var(--ink-3);margin-left:7px;font-variant-numeric:tabular-nums}
 .kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
@@ -674,7 +674,8 @@ const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
-const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
+const capRu=()=>({today:'к пред. дню','7d':'к пред. 7 дням','30d':'к пред. 30 дням','90d':'к пред. 90 дням',year:'к пред. году',all:'к пред. периоду',range:'к пред. периоду'}[CURP]||'к пред. периоду');
+const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span><span class="kt-cap">'+capRu()+'</span>';};
 function periodDates(p){
   if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
   if(p==='all')return {from:FLOOR,to:MAXD};
@@ -806,12 +807,12 @@ if (dailyTotals.length) {
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r">Показы в поиске</th><th class="r">Посещения карточки</th><th class="r">В корзину</th><th class="r">Заказано</th><th class="r">Выкуплено</th><th class="r">показ→корзина</th><th class="r">корзина→заказ</th><th class="r">заказ→выкуп</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального.</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
   </section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}.kt-table td.cf-cv,.kt-table th.cf-cv{color:var(--ink-3);font-size:11.5px}.cf-cat td.cf-cv{font-weight:500}</style>`;
   const pageJs = `
 const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
@@ -821,14 +822,22 @@ function renderCatFunnel(cur){
   const sm=(o,k)=>sumW(o[k],cur);
   const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
   const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
-  const cell=x=>'<td class="r">'+fmtRu(x.views)+'</td>'+(x.vsearch>0?'<td class="r">'+fmtRu(x.vsearch)+'</td>':ndc)+(x.pdp>0?'<td class="r">'+fmtRu(x.pdp)+'</td>':ndc)+'<td class="r">'+fmtRu(x.cart)+'</td><td class="r">'+fmtRu(x.units)+'</td><td class="r">'+fmtRu(x.deliv)+'</td><td class="r">'+pct(x.cart,x.views)+'</td><td class="r" style="color:'+(x.cart&&x.units/x.cart<0.04?'var(--dn)':'inherit')+'">'+pct(x.units,x.cart)+'</td><td class="r">'+pct(x.deliv,x.units)+'</td>';
+  // Серый столбец конверсии между двумя соседними метриками (— если знаменателя нет)
+  const cv=(a,b)=>'<td class="r cf-cv">'+(a!=null&&b!=null&&b>0?(a/b*100).toFixed(2)+'%':'—')+'</td>';
+  const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
+    return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views)
+      +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs)
+      +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd)
+      +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart)
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(x.deliv,x.units)
+      +'<td class="r">'+fmtRu(x.deliv)+'</td>';};
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
     (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
       h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
   });
-  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="10" class="kt-note">нет данных за период</td></tr>';
+  document.getElementById('catfun').innerHTML=h||'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
 function render(cur,cmp){

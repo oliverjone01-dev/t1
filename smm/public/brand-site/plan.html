@@ -246,7 +246,7 @@
     .ttl h2{font-size:16px}
     .ov{padding:0}.modal{max-width:100%;max-height:100vh;min-height:100dvh;border:none;border-radius:0}
     .modal-h{padding:14px 16px}.pm-left,.pm-right,.ht-body{padding:16px}
-    .fbtn,.seg button,.tt button,.howto,.nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+    .fbtn,.seg button,.tt button,.howto,.nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center}.kpi[data-scope]{min-height:40px}
     .sortsel select{min-height:40px;padding:8px 12px}
     .planbar{position:static}
   }
@@ -450,6 +450,7 @@
     lastFocus=document.activeElement;
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
     var cover;
+    // источник video - та же Google-таблица команды (доверенный), ссылка E()-экранирована; sandbox опущен ради Drive-плеера
     if(p.video){ cover='<div class="feed-video"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy" title="Видео поста"></iframe></div>'; }
     else if(p.cover){ cover='<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>'; }
     else { cover='<div class="feed-cover noimg">обложка не задана в таблице</div>'; }
@@ -488,27 +489,6 @@
   function bindOpen(host){host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)openPost(el.getAttribute('data-id'));});}
   bindOpen(document.getElementById('tbody')); bindOpen(document.getElementById('tiles'));
 
-  /* ---- инструкция ---- */
-  function howto(){
-    document.getElementById('ht-body').innerHTML=
-      '<p class="ht-lead">Коротко: ведёшь посты в Google-таблице, инструмент показывает их планом и доской, считает выполнение для руководителя. Картинку и текст видно в карточке поста, комментарии - там же.</p>'+
-      '<div class="pipe"><span class="cap" style="font-size:11px;color:var(--ink3)">пайплайн статуса</span><span class="p pln">В плане</span><span class="ar">→</span><span class="p sgl">На согласовании</span><span class="ar">→</span><span class="p pub">Опубликовано</span></div>'+
-      '<div class="steps" style="margin-top:14px">'+
-      step(1,'Заведи строку','Вкладка «Контент-план», новая строка. Минимум: <code>дата</code>, <code>бренд</code> (G/V), <code>канал</code>, <code>статус</code> = «в плане», <code>идея</code>.',
-        '<div class="mock"><div class="mock-row"><span class="pl pln"></span><span class="cell" style="width:34px"></span><span class="mock-pill" style="background:var(--steel-soft);color:var(--steel-ink)">G</span><span class="cell" style="flex:1"></span><span class="mock-pill pln" style="background:var(--pln-soft);color:var(--pln-ink)">в плане</span></div></div>')+
-      step(2,'Двигай статус','Меняешь статус по мере работы: <code>в плане → на согл → опубликовано</code>. В таблице поставь выпадающий список (Данные → Проверка данных), чтобы не было опечаток.','')+
-      step(3,'Картинка','Колонка <code>картинка</code>: публичная ссылка или Google Drive (Доступ → «Все со ссылкой» → Просмотр). Сжимаем автоматически, в карточке покажем обложку.',
-        '<div class="mock"><div class="mock-card"><div class="cv">обложка 4:5</div></div></div>')+
-      step(4,'Текст поста','Колонка <code>текст</code>: пиши как в соцсети - эмодзи 🙂, хэштеги в конце #ремонт, перенос строки <code>Alt+Enter</code>. В карточке покажем «как в ленте».','')+
-      step(5,'Согласование','Готов черновик - ставь статус «на согл». Руководитель видит на доске, что ждёт его. Замечания оставляет комментарием на карточке.','')+
-      step(6,'Публикация','Опубликовал - статус «опубликовано», вставь <code>ссылку</code> на пост и <code>дату публикации</code>. На карточке появится кнопка «Открыть пост».','')+
-      step(7,'Статистика для KPI','Вкладка «Статистика»: <b>через 7 дней</b> после публикации заведи строку по <code>id</code> поста - охват, сохранения, переходы, <b>контакты</b> (для VALONTI это главное). 48 часов - по желанию.',
-        '<div class="mock"><div class="mock-row"><span class="cell" style="width:40px"></span><span class="cell" style="width:34px"></span><span class="cell" style="width:30px"></span><span class="mock-pill pub">7d</span></div></div>')+
-      step(8,'Комментарии','Открой карточку поста (клик) - откроется превью. Нажми «Комментировать» слева внизу, выдели область - заметка сохранится и будет видна всей команде.','')+
-      '</div>';
-    document.getElementById('ht-ov').classList.add('open');
-  }
-  function step(n,t,p,mock){return '<div class="step"><div class="nu">'+n+'</div><h4>'+t+'</h4><p>'+p+'</p>'+(mock||'')+'</div>';}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.body.classList.contains('anno-commenting'))closePost();});
 
   function scopeBar(){

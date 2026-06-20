@@ -37,6 +37,15 @@
     if (m) return 'https://lh3.googleusercontent.com/d/' + m[1] + (w ? '=w' + w : '');
     return u;
   }
+  // Google Drive ссылка -> встраиваемый плеер (iframe /preview). YouTube -> embed.
+  function driveEmbed(url) {
+    var u = norm(url); if (!u) return '';
+    var m = u.match(/\/d\/([A-Za-z0-9_-]+)/) || u.match(/[?&]id=([A-Za-z0-9_-]+)/);
+    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    var y = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{6,})/);
+    if (y) return 'https://www.youtube.com/embed/' + y[1];
+    return u;
+  }
 
   function gvizUrl(tab) { return 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(CFG.sheetId) + '/gviz/tq?tqx=out:json&headers=1' + (tab ? '&sheet=' + encodeURIComponent(tab) : '') + '&_=' + Date.now(); }
   function parseGviz(text) { var i = text.indexOf('setResponse('), j = text.lastIndexOf(')'); if (i < 0 || j < 0) throw new Error('gviz'); var obj = JSON.parse(text.slice(i + 12, j)); if (!obj.table) throw new Error('no table'); var cols = (obj.table.cols || []).map(function (c) { return low(c.label || c.id); }); return (obj.table.rows || []).map(function (r) { var o = {}; (r.c || []).forEach(function (cell, k) { var key = cols[k]; if (key) o[key] = cell ? (cell.f != null ? cell.f : (cell.v == null ? '' : cell.v)) : ''; }); return o; }).filter(function (o) { return Object.keys(o).some(function (k) { return norm(o[k]) !== ''; }); }); }
@@ -65,6 +74,7 @@
         media: low(pick(o, 'тип медиа', 'медиа', 'media')) || '',
         alt: norm(pick(o, 'alt', 'альт', 'описание картинки')),
         pubdate: fmtDate(pick(o, 'дата публикации', 'дата', 'pubdate', 'date')),
+        video: norm(pick(o, 'видео', 'video', 'ролик', 'видео ссылка', 'видеоссылка')),
         extraUrl: norm(pick(o, 'доп ссылка', 'допссылка', 'доп.ссылка', 'extra', 'link2'))
       };
     }).filter(function (p) { return p.idea || p.rubric || p.text; });
@@ -117,7 +127,7 @@
   }
 
   window.GGData = {
-    load: load, esc: esc, num: num, driveImg: driveImg,
+    load: load, esc: esc, num: num, driveImg: driveImg, driveEmbed: driveEmbed,
     brandName: function (b) { return b === 'V' ? 'VALONTI' : 'GENGLASS'; },
     STATUS: { 'опубликовано': { cls: 'pub', label: 'Опубликовано' }, 'на согл': { cls: 'sgl', label: 'На согласовании' }, 'план': { cls: 'pln', label: 'В плане' }, 'черновик': { cls: 'drf', label: 'Черновик' } }
   };

@@ -73,8 +73,8 @@
   .seg{display:inline-flex;background:var(--s2);border:1px solid transparent;border-radius:8px;padding:3px;gap:2px}
   .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer}
   .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
-  .howto{font:inherit;font-size:12.5px;font-weight:800;color:var(--cta-ink);background:var(--cta);border:none;border-radius:8px;padding:9px 15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;box-shadow:var(--shadow)}.howto:hover{filter:brightness(.96)}.howto:active{filter:brightness(.92)}
-  .src{max-width:1240px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--ink2)}
+  .howto{font:inherit;font-size:15px;font-weight:800;color:var(--cta-ink);background:var(--cta);border:none;border-radius:8px;width:34px;height:34px;padding:0;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}.howto:hover{filter:brightness(.96)}.howto:active{filter:brightness(.92)}
+  .src{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30vw}
   .src .ok{color:var(--pub-ink);font-weight:700}.src .warn{color:var(--sgl-ink);font-weight:700}
   /* KPI */
   .kpis{max-width:1240px;margin:0 auto;padding:14px 22px 6px;display:grid;grid-template-columns:repeat(4,1fr) 1.5fr;gap:12px}
@@ -139,33 +139,25 @@
   /* статус «черновик» */
   .stb.drf{color:var(--drf-ink);background:var(--drf-soft)}.stb.drf::before{background:var(--drf)}
   .kpi.drf .n{color:var(--drf-ink)}
-  .kpi.drf.active{border-color:var(--drf);box-shadow:inset 0 0 0 1px var(--drf),var(--shadow)}
+  .kpi[data-scope]{font:inherit;text-align:left;width:100%;color:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+  .kpi[data-scope]:hover{border-color:var(--line2);transform:translateY(-1px)}
+  .kpi.active{border-color:var(--cta);box-shadow:inset 0 0 0 1.5px var(--cta),var(--shadow)}
+  .kpi[data-scope]:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
   /* сегмент Черновики / В работе */
   .seg.scope button b{margin-left:6px;font-weight:800;color:var(--ink3)}
   .seg.scope button.on b{color:var(--drf-ink)}
   /* underline-добивка: гасим авто-ссылки браузера в плитках/таблице/модалке */
   #tiles a:not([class]),#tbody a:not([class]),#pm a:not([class]){color:inherit!important;text-decoration:none!important;overflow-wrap:anywhere;word-break:break-word}
-  /* КАЛЕНДАРНАЯ СЕТКА */
+  /* НЕДЕЛЬНАЯ СЕТКА КРУПНЫХ КАРТОЧЕК (календарный ритм по неделям, дни на карточке) */
   .calwrap{grid-column:1/-1;display:flex;flex-direction:column;gap:26px}
-  .calweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:start;margin-top:12px}
-  .calday{display:flex;flex-direction:column;gap:8px;min-width:0}
-  .cdh{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink2);text-transform:uppercase;padding:0 2px 6px;border-bottom:1px solid var(--line2)}
-  .calday.off .cdh{color:var(--ink3);opacity:.55}
-  .cnone{color:var(--ink3);opacity:.35;text-align:center;font-size:14px;padding:6px 0}
-  .calextra{margin-top:14px}
-  .calextra>.cap{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
-  .calextra-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:8px}
-  /* компактная плитка в календаре: только суть, детали по клику */
-  .calweek .tile{padding:11px 12px;gap:7px;border-radius:9px}
-  .calweek .tcover,.calweek .thook,.calweek .meta,.calweek .tfoot{display:none}
-  .calweek .th{gap:6px}
-  .calweek .bdot{font-size:9px;padding:2px 6px}
-  .calweek .slot{font-size:11px}
-  .calweek .stb{font-size:10px;padding:2px 7px}
-  .calweek .rub{font-size:10px}
-  .calweek .tidea{font-size:12.5px;line-height:1.3;overflow-wrap:normal;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .tcover{aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
+  .weekgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px;margin-top:12px}
+  .tcover{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
   .tcover img{width:100%;height:100%;object-fit:cover;display:block}
+  .tcover.noimg{display:none}
+  .playb{width:42px;height:42px;border-radius:50%;background:rgba(15,15,20,.6);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px}
+  .tcover.hasvid .playb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.45)}
+  .tcover.vidph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,var(--s2),var(--s3))}
+  .tcover.vidph .vlab{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)}
   .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .slot{font-size:12px;font-weight:700;color:var(--ink3)}
   .rub{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
@@ -173,8 +165,11 @@
   .thook{font-size:13px;color:var(--ink2);font-style:italic;overflow-wrap:anywhere}
   .meta{display:flex;flex-wrap:wrap;gap:6px}
   .mchip{font-size:11px;color:var(--ink2);background:var(--s2);border:1px solid transparent;border-radius:20px;padding:3px 9px}
-  .tfoot{display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:4px}
-  .tstat{font-size:11.5px;color:var(--ink3)}.tstat b{color:var(--ink2)}
+  .mchip.vid{color:var(--ink);font-weight:700}
+  .tfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .tstat{font-size:11.5px;color:var(--ink3);display:inline-flex;align-items:center;gap:5px}.tstat b{color:var(--ink2)}
+  .tstat::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--ink3);flex:none}
+  .tstat.ic-r::before{background:var(--steel);border-radius:50%}.tstat.ic-c::before{background:var(--gold)}.tstat.ic-e::before{background:var(--pub)}
   .empty{color:var(--ink3);padding:30px 4px}
   .foot{max-width:1240px;margin:0 auto;padding:26px 22px 70px;color:var(--ink3);font-size:12.5px}
   /* MODALS (под оверлеем комментариев annotate z8000) */
@@ -197,12 +192,15 @@
   .feed-cover{aspect-ratio:4/5;max-height:46vh;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:12px}
   .feed-cover.noimg{aspect-ratio:auto;min-height:0;padding:13px;justify-items:start;font-style:italic}
   .feed-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .feed-video{position:relative;width:100%;aspect-ratio:4/5;max-height:56vh;background:#000}
+  .feed-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
   .feed-act{display:flex;gap:14px;padding:10px 13px 4px;font-size:17px;color:var(--ink2)}
   .feed-act .sv{margin-left:auto}
   .feed-cap{padding:2px 13px 14px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;white-space:normal}.feed-cap b{font-weight:800;margin-right:5px}
-  /* гасим авто-ссылки телефон/дата/адрес, которые мобильные браузеры навешивают на текст (подчёркивание + цвет + клиппинг) */
-  .modal a:not([class]){color:inherit!important;text-decoration:none!important;overflow-wrap:anywhere;word-break:break-word}
-  .modal .snap,.modal .statgrid .n,.modal .pm-row,.modal .stb,.modal .kv{overflow-wrap:anywhere;word-break:break-word}
+  /* ДЕФИНИТИВНО: ни одного подчёркивания в модалке (включая авто-ссылки браузера) + жёсткий перенос, текст не вылезает за область */
+  #pm *{text-decoration:none!important}
+  #pm a:not([class]){color:inherit!important}
+  #pm,.pm-body,.feed-cap,.pm-row,.pm-row>*,.feed-h>div,.pm-idea{min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .pm-hint{font-size:11.5px;color:var(--ink3);margin-top:10px}
   .statbox{margin-top:14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .statbox .sh{background:var(--s2);padding:9px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:700;display:flex}
@@ -236,9 +234,7 @@
   .pipe .p.pln{color:var(--pln-ink);background:var(--pln-soft)}.pipe .p.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.pipe .p.pub{color:var(--pub-ink);background:var(--pub-soft)}
   .pipe .ar{color:var(--ink3)}
   /* календарь: с 7 колонок мягко в группировку по дням */
-  @media(max-width:1100px){.calweek{grid-template-columns:repeat(4,1fr)}.calday.off{display:none}.calweek .tcover{display:none}}
-  @media(max-width:720px){.calweek{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:480px){.calweek{grid-template-columns:1fr;gap:8px}.calextra-g{grid-template-columns:1fr}}
+  @media(max-width:520px){.weekgrid{grid-template-columns:1fr;gap:10px}}
   @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi.bar{grid-column:1/-1}}
   @media(max-width:880px){.pm-grid,.steps{grid-template-columns:1fr}.pm-left{border-right:none;border-bottom:1px solid var(--line)}}
   @media(max-width:640px){
@@ -260,29 +256,29 @@
 <body>
 <a class="skip" href="#main">К содержанию</a>
 <header class="top"><div class="top-in">
-  <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;BRAND <span>· инструмент маркетинга</span></div>
+  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</div>
   <nav class="nav" aria-label="Разделы сайта">
     <a class="on" href="plan.html"><span class="n">01</span>Контент-план</a>
     <a href="index.html"><span class="n">02</span>Платформа бренда</a>
     <a href="audience.html"><span class="n">03</span>Аудитория</a>
     <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
+  <div class="src" id="src" title="источник данных">загрузка…</div>
   <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема">☀</button><button data-t="dark" type="button" aria-label="Тёмная тема">☾</button></div>
 </div></header>
 <div class="planbar"><div class="planbar-in">
-  <div class="ttl"><div class="ey">GENGROUP · контроль</div><h2>Контент-план</h2></div>
+  <div class="ttl"><div class="ey">GENGROUP · SMM</div><h2>Контент-план</h2></div>
+  <div class="seg scope" id="scopebar" role="group" aria-label="Раздел"></div>
   <div class="controls">
-    <div class="seg scope" id="scopebar" role="group" aria-label="Раздел"></div>
-    <a class="howto" href="howto.html">Как работает</a>
-    <div class="seg" role="group" aria-label="Вид"><button id="v-tiles" type="button">▤ Плитки</button><button id="v-table" type="button">▦ Таблица</button></div>
+    <a class="howto" href="howto.html" title="Как работает" aria-label="Как работает">?</a>
+    <div class="seg" id="viewseg" role="group" aria-label="Вид"><button id="v-tiles" type="button" title="Плитки" aria-label="Плитки">▤</button><button id="v-table" type="button" title="Таблица" aria-label="Таблица">▦</button></div>
   </div>
 </div></div>
 
-<div class="src" id="src">загрузка…</div>
-<div class="kpis" id="kpis" aria-label="Операционные показатели"></div>
+<div class="kpis" id="kpis" aria-label="Сводка плана"></div>
 <div class="rowline" id="brandbar"></div>
 <div class="rowline" id="results"></div>
-<div class="filters" id="filters" aria-label="Фильтры и сортировка"></div>
+<div class="filters" id="filters" aria-label="Фильтры"></div>
 
 <main class="wrap" id="main">
   <div id="tableWrap" class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -323,12 +319,15 @@
     var work=real.filter(function(p){return !isDraft(p);});
     function c(s){return work.filter(function(p){return p.status===s;}).length;}
     var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=work.length,pct=tot?Math.round(pub/tot*100):0;
+    var aDraft=state.scope==='draft'?' active':'';
+    function aSt(s){return (state.scope==='work'&&state.status===s)?' active':'';}
     document.getElementById('kpis').innerHTML=
-      '<div class="kpi drf'+(state.scope==='draft'?' active':'')+'"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></div>'+
-      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в плане</div></div>'+
-      '<div class="kpi sgl"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></div>'+
-      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
+      '<button type="button" class="kpi drf'+aDraft+'" data-scope="draft"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></button>'+
+      '<button type="button" class="kpi pln'+aSt('план')+'" data-scope="work" data-st="план"><div class="n">'+pln+'</div><div class="l">в плане</div></button>'+
+      '<button type="button" class="kpi sgl'+aSt('на согл')+'" data-scope="work" data-st="на согл"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></button>'+
+      '<button type="button" class="kpi pub'+aSt('опубликовано')+'" data-scope="work" data-st="опубликовано"><div class="n">'+pub+'</div><div class="l">опубликовано</div></button>'+
       '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
+    Array.prototype.forEach.call(document.querySelectorAll('#kpis .kpi[data-scope]'),function(b){b.onclick=function(){state.scope=b.dataset.scope;state.status=b.dataset.st||'all';render();};});
     var g=work.filter(function(p){return p.brand!=='V';}),v=work.filter(function(p){return p.brand==='V';});
     document.getElementById('brandbar').innerHTML='<span class="cap">по брендам</span>'+
       '<div class="chipm g">GENGLASS · опубл. <b>'+g.filter(function(p){return p.status==='опубликовано';}).length+' / '+g.length+'</b></div>'+
@@ -357,7 +356,6 @@
     var weeks=Array.from(new Set(ALL.map(function(p){return p.week;}))).sort(function(a,b){return a-b;});
     function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
     var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
-      (state.scope==='work'?grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'на согл',t:'на согл'},{v:'план',t:'в плане'}]):'')+
       grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
     html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
     if(R.dataset.view==='tiles'){html+='сортировка <select id="tsort">'+[['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';}
@@ -398,35 +396,40 @@
         '<td>'+(openLink(p,'↗ пост')||'<span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span>')+'</td></tr>';}).join('');
   }
   /* ---- ПЛИТКИ ---- */
-  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-    var cov=p.cover?'<div class="tcover"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.remove()"></div>':'';
-    var st=p.stats?'<span class="tstat">'+(p.brand==='V'?'контакты <b>'+(p.stats.contacts||0)+'</b>':'охват <b>'+(p.stats.reach||0).toLocaleString('ru')+'</b>')+'</span>':'';
+  function statChips(p){
+    if(!p.stats) return '';
+    var s=p.stats, out='';
+    if(p.brand==='V') out+='<span class="tstat ic-c"><b>'+(s.contacts||0)+'</b> контактов</span>';
+    else out+='<span class="tstat ic-r"><b>'+(s.reach||0).toLocaleString('ru')+'</b> охват</span>';
+    if(s.er!=null) out+='<span class="tstat ic-e"><b>'+s.er+'%</b> ER</span>';
+    return out;
+  }
+  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln',vid=!!p.video;
+    var cov='';
+    if(p.cover) cov='<div class="tcover'+(vid?' hasvid':'')+'"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">'+(vid?'<span class="playb" aria-hidden="true">▶</span>':'')+'</div>';
+    else if(vid) cov='<div class="tcover vidph"><span class="playb" aria-hidden="true">▶</span><span class="vlab">видео</span></div>';
+    var when=(p.slot&&p.slot!=='-'?E(p.slot):'')+(p.pubdate?((p.slot&&p.slot!=='-')?' · ':'')+E(p.pubdate):'');
     return '<article class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
-      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(p.slot?'<span class="slot">'+E(p.slot)+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
+      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(when?'<span class="slot">'+when+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
       (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
       (p.hook&&p.hook!=='-'?'<div class="thook">'+E(p.hook)+'</div>':'')+
-      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+'</div>'+
-      '<div class="tfoot">'+st+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
+      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+(vid?'<span class="mchip vid">▶ видео</span>':'')+'</div>'+
+      '<div class="tfoot">'+statChips(p)+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
     '</article>';
   }
   var DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  function dayIdx(p){var i=DAYS.indexOf(p.slot);return i<0?99:i;}
   function renderTiles(d){
     var host=document.getElementById('tiles');
     if(!d.length){host.innerHTML='<div class="empty">нет постов под фильтр</div>';return;}
     if(state.sort==='week'){
       var wk={};d.forEach(function(p){(wk[p.week]=wk[p.week]||[]).push(p);});
       host.innerHTML='<div class="calwrap">'+Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
-        var it=wk[w],pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
-        var byday={},extra=[];
-        it.forEach(function(p){var i=DAYS.indexOf(p.slot);if(i>=0)(byday[i]=byday[i]||[]).push(p);else extra.push(p);});
-        var cols=DAYS.map(function(dn,i){
-          var posts=(byday[i]||[]).map(tile).join('');
-          return '<div class="calday'+(posts?'':' off')+'"><div class="cdh">'+dn+'</div>'+(posts||'<div class="cnone">·</div>')+'</div>';
-        }).join('');
-        var extraHtml=extra.length?'<div class="calextra"><span class="cap">ситуатив / без дня</span><div class="calextra-g">'+extra.map(tile).join('')+'</div></div>':'';
+        var it=wk[w].slice().sort(function(a,b){return dayIdx(a)-dayIdx(b);});
+        var pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
         return '<section class="calblock"><div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+
-               '<div class="calweek">'+cols+'</div>'+extraHtml+'</section>';
+               '<div class="weekgrid">'+it.map(tile).join('')+'</div></section>';
       }).join('')+'</div>';
     } else host.innerHTML=d.map(tile).join('');
   }
@@ -446,7 +449,10 @@
     var p=byId[id]; if(!p) return;
     lastFocus=document.activeElement;
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
-    var cover=p.cover?'<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>':'<div class="feed-cover noimg">обложка не задана в таблице</div>';
+    var cover;
+    if(p.video){ cover='<div class="feed-video"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy" title="Видео поста"></iframe></div>'; }
+    else if(p.cover){ cover='<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>'; }
+    else { cover='<div class="feed-cover noimg">обложка не задана в таблице</div>'; }
     var cap=p.text?renderText(p.text):'<span class="muted">текст поста не заполнен в таблице</span>';
     var feed='<div class="feed" data-annotate-section data-annotate-key="post-'+E(p.id)+'" data-annotate-label="'+E((p.slot?p.slot+' · ':'')+(p.idea||p.rubric))+'">'+
       '<div class="feed-h"><span class="av '+b+'"></span><div><div class="fn">'+GGData.brandName(p.brand)+'</div><div class="fm">'+E(p.channel||'')+(p.pubdate?' · '+E(p.pubdate):(p.slot?' · '+E(p.slot):''))+'</div></div><span class="more">···</span></div>'+
@@ -521,7 +527,7 @@
     if(R.dataset.view==='tiles'){document.getElementById('tbody').innerHTML='';document.getElementById('thead').innerHTML='';renderTiles(d);}
     else{document.getElementById('tiles').innerHTML='';renderTable(d);}
   }
-  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet')el.innerHTML='<span class="ok">● связано с Google-таблицей</span> · обновляется при загрузке'+(o.statsLive?' · статистика live':'');else el.innerHTML='<span class="warn">○ резервные данные</span> · '+E(o.reason||'');}
+  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet'){el.innerHTML='<span class="ok">●</span> Google-таблица';el.title='Связано с Google-таблицей · обновляется при загрузке'+(o.statsLive?' · статистика live':'');}else{el.innerHTML='<span class="warn">○</span> резерв';el.title='Резервные данные · '+(o.reason||'');}}
 
   syncToggles();
   GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);

@@ -5,7 +5,7 @@
   'use strict';
   var R = document.documentElement;
   function sync() {
-    var t = R.getAttribute('data-theme') || 'light';
+    var t = R.getAttribute('data-theme') || 'dark';
     Array.prototype.forEach.call(document.querySelectorAll('.tt button'), function (b) {
       b.classList.toggle('on', b.getAttribute('data-t') === t);
     });

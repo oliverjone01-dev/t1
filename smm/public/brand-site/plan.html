@@ -312,7 +312,7 @@
 (function(){
   var E=GGData.esc, R=document.documentElement, DI=GGData.driveImg;
   var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1,scope:'draft'};
-  var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Пост'}];
+  var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Метрика'}];
   var STORD={'черновик':-1,'план':0,'на согл':1,'опубликовано':2};
   var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln','черновик':'drf'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане','черновик':'Черновик'};
   function isDraft(p){return p.status==='черновик';}
@@ -407,7 +407,7 @@
         '<td><div class="idea">'+E(p.idea||'-')+'</div>'+(p.hook&&p.hook!=='-'?'<div class="hook">'+E(p.hook)+'</div>':'')+'</td>'+
         '<td class="muted">'+E(p.channel||'-')+'</td><td class="muted">'+E(p.goal||'-')+'</td><td class="muted">'+E(p.owner||'-')+'</td>'+
         '<td><span class="stb '+cl+'">'+(stLab[p.status]||'В плане')+'</span></td>'+
-        '<td>'+(openLink(p,'↗ пост')||'<span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span>')+'</td></tr>';}).join('');
+        '<td><span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span></td></tr>';}).join('');
   }
   /* ---- ПЛИТКИ ---- */
   function statChips(p){
@@ -429,7 +429,7 @@
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
       (p.hook&&p.hook!=='-'?'<div class="thook">'+E(p.hook)+'</div>':'')+
       '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+(vid?'<span class="mchip vid">▶ видео</span>':'')+'</div>'+
-      '<div class="tfoot">'+statChips(p)+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
+      (statChips(p)?'<div class="tfoot">'+statChips(p)+'</div>':'')+
     '</article>';
   }
   var DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];

@@ -22,8 +22,8 @@
     --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
     --gold:#8A6514;--gold-ink:#8A6514;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
     --steel:#4E5663;--steel-ink:#3C434E;--steel-soft:rgba(78,86,99,.12);
-    --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.12);
-    --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
+    --pub:#1F7A52;--pub-ink:#176B45;--pub-soft:rgba(31,122,82,.12);
+    --sgl:#9A5A12;--sgl-ink:#83500F;--sgl-soft:rgba(242,184,74,.20);
     --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
     --drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
     --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;--danger:#B23A28;--link:#2C5377;
@@ -69,12 +69,12 @@
   .planbar{position:sticky;top:0;z-index:49;border-bottom:1px solid var(--line);background:var(--bg)}
   .planbar-in{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .ttl .ey{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:700}
-  .ttl h2{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
+  .ttl h1{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
   .controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .seg{display:inline-flex;background:var(--s2);border:1px solid transparent;border-radius:8px;padding:3px;gap:2px}
   .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer}
   .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
-  .howto{font:inherit;font-size:15px;font-weight:800;color:var(--cta-ink);background:var(--cta);border:none;border-radius:8px;width:34px;height:34px;padding:0;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}.howto:hover{filter:brightness(.96)}.howto:active{filter:brightness(.92)}
+  .howto{font:inherit;font-size:16px;font-weight:700;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:8px;width:40px;height:40px;padding:0;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.howto:hover{background:var(--s3);color:var(--ink)}
   .src{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30vw}
   .src .ok{color:var(--pub-ink);font-weight:700}.src .warn{color:var(--sgl-ink);font-weight:700}
   /* KPI */
@@ -245,7 +245,7 @@
     .planbar-in{gap:9px}.controls{margin-left:0;width:100%;flex-wrap:wrap;gap:8px}.seg.scope{flex:1 1 100%}.seg.scope button{flex:1}
     .kpis{grid-template-columns:1fr 1fr;gap:9px}.kpi{padding:11px 13px;border-radius:10px}.kpi .n{font-size:21px}
     .tiles{grid-template-columns:1fr}
-    .ttl h2{font-size:16px}
+    .ttl h1{font-size:16px}
     .ov{padding:0}.modal{max-width:100%;max-height:100vh;min-height:100dvh;border:none;border-radius:0}
     .modal-h{padding:14px 16px}.pm-left,.pm-right,.ht-body{padding:16px}
     .fbtn,.seg button,.tt button,.howto,.nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center}.kpi[data-scope]{min-height:40px}
@@ -253,11 +253,13 @@
     .planbar{position:static}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media(max-width:1024px){.nav a,.fbtn,.seg button,.tt button{min-height:40px;display:inline-flex;align-items:center;justify-content:center}}
+  .playb{box-shadow:0 0 0 1px rgba(255,255,255,.25),0 2px 12px rgba(0,0,0,.45)}
   /* ===== elevation (Design Award): пружина, премиум-глубина, фокус-свечение ===== */
   :root{--ease-spring:cubic-bezier(.34,1.28,.64,1)}
   :root[data-theme="dark"]{--glow1:rgba(235,197,110,.06);--glow2:rgba(110,140,180,.05)}
   :root[data-theme="light"]{--glow1:transparent;--glow2:transparent}
-  body{background-image:radial-gradient(1100px 520px at 88% -8%,var(--glow1,transparent),transparent 60%),radial-gradient(900px 480px at -8% 4%,var(--glow2,transparent),transparent 55%);background-attachment:fixed}
+  body{background-image:radial-gradient(1100px 520px at 88% -8%,var(--glow1,transparent),transparent 60%),radial-gradient(900px 480px at -8% 4%,var(--glow2,transparent),transparent 55%)}
   a:focus-visible,button:focus-visible,[tabindex]:focus-visible,select:focus-visible{box-shadow:0 0 0 4px var(--gold-soft)}
   .tile{transition:transform .2s var(--ease-spring),box-shadow .2s,border-color .2s}
   .kpi[data-scope]{transition:transform .18s var(--ease-spring),border-color .15s,box-shadow .15s}
@@ -275,11 +277,11 @@
     <a href="audience.html"><span class="n">03</span>Аудитория</a>
     <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
-  <div class="src" id="src" title="источник данных">загрузка…</div>
+  <div class="src" id="src" role="status" aria-live="polite" title="источник данных">загрузка…</div>
   <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
 </div></header>
 <div class="planbar"><div class="planbar-in">
-  <div class="ttl"><div class="ey">GENGROUP · SMM</div><h2>Контент-план</h2></div>
+  <div class="ttl"><div class="ey">GENGROUP · SMM</div><h1>Контент-план</h1></div>
   <div class="seg scope" id="scopebar" role="group" aria-label="Раздел"></div>
   <div class="controls">
     <a class="howto" href="howto.html" title="Как работает" aria-label="Как работает">?</a>
@@ -369,7 +371,7 @@
     function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
     var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
       grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
-    html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
+    html+='<div class="sortsel"><span class="fcount" id="fcount" aria-live="polite"></span>';
     if(R.dataset.view==='tiles'){html+='сортировка <select id="tsort">'+[['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';}
     html+='</div>';
     var f=document.getElementById('filters'); f.innerHTML=html;
@@ -398,7 +400,7 @@
     document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
     Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(k==='cover')return;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
     document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-      return '<tr tabindex="0" role="link"'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
+      return '<tr tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'"'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
         '<td>'+thumb(p)+'</td><td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
         '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
         '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+
@@ -421,7 +423,7 @@
     if(p.cover) cov='<div class="tcover'+(vid?' hasvid':'')+'"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">'+(vid?'<span class="playb" aria-hidden="true">▶</span>':'')+'</div>';
     else if(vid) cov='<div class="tcover vidph"><span class="playb" aria-hidden="true">▶</span><span class="vlab">видео</span></div>';
     var when=(p.slot&&p.slot!=='-'?E(p.slot):'')+(p.pubdate?((p.slot&&p.slot!=='-')?' · ':'')+E(p.pubdate):'');
-    return '<article tabindex="0" role="link" class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
+    return '<article tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'" class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
       '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(when?'<span class="slot">'+when+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
       (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
@@ -463,7 +465,7 @@
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
     var cover;
     // источник video - та же Google-таблица команды (доверенный), ссылка E()-экранирована; sandbox опущен ради Drive-плеера
-    if(p.video){ cover='<div class="feed-video"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen loading="lazy" title="Видео поста"></iframe></div>'; }
+    if(p.video){ cover='<div class="feed-video"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation" loading="lazy" title="Видео поста"></iframe></div>'; }
     else if(p.cover){ cover='<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>'; }
     else { cover='<div class="feed-cover noimg">обложка не задана в таблице</div>'; }
     var cap=p.text?renderText(p.text):'<span class="muted">текст поста не заполнен в таблице</span>';

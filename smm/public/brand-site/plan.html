@@ -388,7 +388,7 @@
     document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
     Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(k==='cover')return;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
     document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-      return '<tr'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
+      return '<tr tabindex="0" role="link"'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
         '<td>'+thumb(p)+'</td><td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
         '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
         '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+
@@ -411,7 +411,7 @@
     if(p.cover) cov='<div class="tcover'+(vid?' hasvid':'')+'"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">'+(vid?'<span class="playb" aria-hidden="true">▶</span>':'')+'</div>';
     else if(vid) cov='<div class="tcover vidph"><span class="playb" aria-hidden="true">▶</span><span class="vlab">видео</span></div>';
     var when=(p.slot&&p.slot!=='-'?E(p.slot):'')+(p.pubdate?((p.slot&&p.slot!=='-')?' · ':'')+E(p.pubdate):'');
-    return '<article class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
+    return '<article tabindex="0" role="link" class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
       '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(when?'<span class="slot">'+when+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
       (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
@@ -488,7 +488,11 @@
   });
 
   /* делегирование клика по карточке/строке -> модалка (кроме ссылок) */
-  function bindOpen(host){host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)openPost(el.getAttribute('data-id'));});}
+  function goPost(el){location.href='post.html?id='+encodeURIComponent(el.getAttribute('data-id'));}
+  function bindOpen(host){
+    host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)goPost(el);});
+    host.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var el=e.target.closest('[data-id]');if(el&&el===document.activeElement){e.preventDefault();goPost(el);}});
+  }
   bindOpen(document.getElementById('tbody')); bindOpen(document.getElementById('tiles'));
 
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.body.classList.contains('anno-commenting'))closePost();});

@@ -67,8 +67,37 @@ for (const [ln, votes] of Object.entries(lineVote)) {
   if (top) LINE_CAT[ln] = top[0];
 }
 const NO_TAX_SUB = "Без таксономии";
-const catOf = (sku: string) => taxOf(sku).category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
-const subOf = (sku: string) => taxOf(sku).sub || NO_TAX_SUB;
+// --- автоген таксономии по названию товара (только канал OZON) ---
+// 167 SKU размечены вручную (data/sku_taxonomy.json), но в продажах 345 SKU -> 178 без подкатегории.
+// Достраиваем категорию/подкатегорию из названия (OZON-нейминг богат типом товара), словарь
+// подкатегорий совпадает с ручной разметкой. Это «автоген только для фильтра вверху Озон»:
+// прочие каналы пусты (нет данных) и не затрагиваются. Когда n8n вернёт дерево категорий
+// OZON (/v2/category/tree) - заменить эвристику на официальные категории.
+const _autoCache: Record<string, { category: string | null; sub: string | null }> = {};
+function autoTax(name: string): { category: string | null; sub: string | null } {
+  if (name in _autoCache) return _autoCache[name]!;
+  const n = (name || "").toLowerCase();
+  let category: string | null = null, sub: string | null = null;
+  if (/зеркал/.test(n)) {
+    category = "Зеркала";
+    if (/безрамн|без рамы/.test(n)) sub = "Зеркала безрамные";
+    else if (/в раме|в рамке/.test(n)) sub = "Зеркала в раме";
+    else if (/напольн/.test(n)) sub = "Зеркала напольные";
+    else if (/подсветк|led/.test(n)) sub = "Зеркала с подсветкой";
+    else sub = "Зеркала настенные";
+  } else if (/столешниц/.test(n)) { category = "Комплектующие"; sub = "Столешницы"; }
+  else if (/подстолье|опор[аы]|ножк/.test(n)) { category = "Комплектующие"; sub = "Подстолье"; }
+  else if (/перегородк|ширма/.test(n)) { category = "Перегородки"; sub = "Перегородки"; }
+  else if (/вешалк/.test(n)) { category = "Хранение"; sub = "Вешалки"; }
+  else if (/пуф|банкетк/.test(n)) { category = "Пуфы"; sub = "Пуфы"; } // вытащены из Хранение - отдельная категория
+  else if (/консол|тумб/.test(n)) { category = "Консоли/тумбы"; sub = "Консоли"; }
+  else if (/маркерн|доска/.test(n)) { category = "Маркерные доски"; sub = "Маркерные доски"; }
+  else if (/журнальн|кофейн/.test(n)) { category = "Столы"; sub = "Столы журнальные"; }
+  else if (/стол/.test(n)) { category = "Столы"; sub = "Столы обеденные"; }
+  return (_autoCache[name] = { category, sub });
+}
+const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || "").category || LINE_CAT[skuLine[sku] || ""] || "Прочее";
+const subOf = (sku: string) => taxOf(sku).sub || autoTax(skuName[sku] || "").sub || NO_TAX_SUB;
 const modelOf = (sku: string) => taxOf(sku).model || taxOf(sku).offer || skuName[sku] || sku;
 
 // --- дерево категорий ---
@@ -208,6 +237,9 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   // период. Выравниваем строковую базу с дневными рядами.
   const baseDateStr = `${BASE_Y}-${String(BASE_M).padStart(2, "0")}-01`;
   out = out.replace(/2025-01-01T00:00:00Z/g, `${baseDateStr}T00:00:00Z`);
+  // «Сегодня» -> «Вчера»: за сегодня OZON ещё не отдал данные, кнопка показывает последний день (вчера).
+  out = out.replace(/>Сегодня</g, ">Вчера<");
+  out = out.replace(/label:'Сегодня'/g, "label:'Вчера'");
   out = out.replace(/customFrom: ?'2025-01-01'/g, "customFrom: '2026-02-06'");
   // Дефолтные значения дат-пикеров (вне данных 2025-01-01) -> начало реальных данных.
   out = out.replace(/value="2025-01-01"/g, 'value="2026-02-06"');
@@ -594,12 +626,27 @@ const J = (x: unknown) => JSON.stringify(x);
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
 .kt-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.kt-kpi .card{padding:12px 14px}.kt-k{font-size:11.5px;color:var(--ink-3);margin-bottom:4px}.kt-v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}.kt-d{font-size:11.5px;margin-top:3px}.kt-d.up{color:var(--up)}.kt-d.dn{color:var(--dn)}.kt-d.na{color:var(--ink-3)}
+.kt-kpi .card{padding:14px 16px;position:relative;overflow:hidden}.kt-k{font-size:11px;color:var(--ink-3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}.kt-v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}.kt-d{font-size:11.5px;margin-top:8px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;font-weight:700}.kt-d.up{color:var(--up);background:rgba(16,185,129,.22)}.kt-d.dn{color:var(--dn);background:rgba(244,63,94,.22)}.kt-d.na{color:var(--ink-3);background:var(--bg-soft)}.kt-cap{font-size:11px;color:var(--ink-3);margin-left:7px;font-variant-numeric:tabular-nums}
+.kt-kpi .card::before{content:"";position:absolute;left:0;right:0;top:0;bottom:auto;width:auto;height:2px;border-radius:0;background:linear-gradient(90deg,var(--accent),transparent)}
+.kt-kpi .card:nth-child(2)::before{background:linear-gradient(90deg,var(--d2),transparent)}
+.kt-kpi .card:nth-child(3)::before{background:linear-gradient(90deg,var(--d4),transparent)}
+.kt-kpi .card:nth-child(4)::before{background:linear-gradient(90deg,var(--d6),transparent)}
+.kt-kpi .card:nth-child(5)::before{background:linear-gradient(90deg,var(--d5),transparent)}
+.kt-kpi .card:nth-child(6)::before{background:linear-gradient(90deg,var(--up),transparent)}
 .kt-table{width:100%;border-collapse:collapse;font-size:12.5px}.kt-table th{color:var(--ink-3);font-weight:600;text-align:left;padding:7px 8px;border-bottom:1px solid var(--bg-soft)}.kt-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04)}.kt-table .r{text-align:right;font-variant-numeric:tabular-nums}
 .kt-scroll{overflow-x:auto}.kt-note{font-size:11.5px;color:var(--ink-3);margin-top:8px}
 .kt-fbar{height:30px;border-radius:7px;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:700 12.5px/30px system-ui;padding-left:10px;margin:4px 0;min-width:36px}
 .kt-src{display:inline-block;font-size:10.5px;border:1px solid var(--bg-soft);border-radius:6px;padding:2px 7px;color:var(--ink-3);margin-left:8px}.kt-src.live{border-color:#22D3EE;color:#22D3EE}
 .kt-wf{display:flex;align-items:flex-end;gap:6px;height:190px;padding:8px 4px}.kt-wf>div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-3)}.kt-wf .bar{border-radius:6px 6px 0 0;margin:0 auto;width:78%}
+.vf{display:flex;flex-direction:column;gap:2px;padding:8px 0}
+.vf-row{display:grid;grid-template-columns:minmax(140px,230px) 1fr;align-items:center;gap:14px}
+.vf-name{font-size:14px;font-weight:700;color:var(--ink);text-align:right;line-height:1.15}
+.vf-cv{font-size:11.5px;font-weight:600;color:var(--ink-3);text-align:right;line-height:1.1}
+.vf-track{display:flex;justify-content:flex-start}
+.vf-bar{height:26px;border-radius:0 7px 7px 0;background:linear-gradient(90deg,#0E7490,#22D3EE);color:#06121a;font:800 13px/26px system-ui;text-align:left;padding:0 12px;min-width:90px;max-width:100%;box-shadow:0 1px 8px rgba(34,211,238,.16);white-space:nowrap;overflow:hidden}
+.vf-bar.nd{background:transparent;border:1px dashed var(--bg-soft);color:var(--ink-3);font-weight:500;box-shadow:none;line-height:24px}
+.vf-conv{font-size:11.5px;color:#8aa0b0;padding:2px 0}
+.vf-conv b{color:#cfe8ef;font-size:12.5px}
 @media (max-width:700px){.kt-kpi{grid-template-columns:repeat(2,1fr)}.periods{flex-wrap:wrap}.main{padding:10px}}
 `;
 function kshell(title: string, activeKey: string, body: string, pageJs: string): string {
@@ -611,10 +658,11 @@ ${banner(activeKey)}
   <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · данные по ${snapTo}</div></div></div>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
-    <button class="pb" data-p="today">Сегодня</button>
+    <button class="pb" data-p="today">Вчера</button>
     <button class="pb" data-p="7d">7 дн</button>
     <button class="pb act" data-p="30d">30 дн</button>
     <button class="pb" data-p="90d">90 дн</button>
+    <button class="pb" data-p="year">Год</button>
     <button class="pb" data-p="all">Всё время</button>
     <button class="pb range" id="btn-range">Свой</button>
   </div>
@@ -632,11 +680,12 @@ const clampLo=d=>d<FLOOR?FLOOR:d;
 const fmtRu=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n));
 function esc(t){var dv=document.createElement('div');dv.textContent=(t==null?'':String(t));return dv.innerHTML;}
 const fMln=n=>Math.abs(n)>=1e6?(n/1e6).toFixed(2)+' М':fmtRu(n);
-const dlt=(c,p,goodUp=true)=>{if(!p)return '<span class="kt-d na">нет базы</span>';const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span>';};
+const capRu=()=>({today:'к пред. дню','7d':'к пред. 7 дням','30d':'к пред. 30 дням','90d':'к пред. 90 дням',year:'к пред. году',all:'к пред. периоду',range:'к пред. периоду'}[CURP]||'к пред. периоду');
+const dlt=(c,p,goodUp=true,unit)=>{if(!p){if(c&&unit){return '<span class="kt-d '+(goodUp?'up':'dn')+'">'+(c>0?'+':'')+fmtRu(c)+' '+unit+' (с нуля)</span>';}return '<span class="kt-d na">нет базы</span>';}const d=(c-p)/p;const up=d>=0;const good=goodUp?up:!up;return '<span class="kt-d '+(good?'up':'dn')+'">'+(up?'▲':'▼')+' '+(Math.abs(d)*100).toFixed(1)+'%</span><span class="kt-cap">'+capRu()+'</span>';};
 function periodDates(p){
   if(p==='range'){const f=document.getElementById('range-from').value,t=document.getElementById('range-to').value;return {from:clampLo(f<t?f:t),to:(f<t?t:f)>MAXD?MAXD:(f<t?t:f)};}
   if(p==='all')return {from:FLOOR,to:MAXD};
-  const days={'today':1,'7d':7,'30d':30,'90d':90}[p]||30;
+  const days={'today':1,'7d':7,'30d':30,'90d':90,'year':365}[p]||30;
   return {from:clampLo(ad(MAXD,-(days-1))),to:MAXD};
 }
 function prevEqual(w){const len=Math.round((Date.parse(w.to)-Date.parse(w.from))/86400000)+1;const pt=ad(w.from,-1);return {from:clampLo(ad(pt,-(len-1))),to:pt};}
@@ -661,17 +710,62 @@ ${CHANNEL_JS}
 }
 
 // --- дневные тоталы канала для Воронки (реальные дни) ---
-const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
-const lineDayOrd: Record<string, { units: number[]; ret: number[]; rev: number[] }> = {};
-for (const f of facts) {
-  const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue;
-  const fx: any = f;
-  const bump = (arr: number[], v: number) => { arr[i] = (arr[i] ?? 0) + v; };
-  bump(DAY_T.rev!, f.revenue); bump(DAY_T.units!, f.units); bump(DAY_T.views!, fx.views || 0); bump(DAY_T.cart!, fx.to_cart || 0);
-  bump(DAY_T.deliv!, fx.delivered || 0); bump(DAY_T.ret!, fx.returns || 0); bump(DAY_T.canc!, fx.cancellations || 0);
-  const cat = catOf(String(f.sku));
-  const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), rev: zD() });
-  bump(L.units, f.units); bump(L.ret, fx.returns || 0); bump(L.rev, f.revenue);
+// Воронка канала (показы/корзина/заказы/доставка/возвраты/отмены) - из дневных тоталов
+// data/daily_totals.ndjson (полные показы/возвраты, не только дни-с-продажей). Если файла нет -
+// фолбэк на сумму per-SKU истории (как раньше). Разрез по линиям - из истории продаж.
+const DAY_T: Record<string, number[]> = { rev: zD(), units: zD(), views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), deliv: zD(), ret: zD(), canc: zD() };
+const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[]; cart: number[]; rev: number[] }> = {};
+// Воронка в разрезе категорий и подкатегорий: показы/корзина/заказы/доставка по дням.
+// Источник - полные показы SKU×день (data/sku_views.ndjson, включая дни без продажи),
+// иначе фолбэк на историю продаж (показы только в дни-с-продажей -> разрез занижен).
+type Fun = { views: number[]; vsearch: number[]; pdp: number[]; cart: number[]; units: number[]; deliv: number[] };
+const newFun = (): Fun => ({ views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), units: zD(), deliv: zD() });
+const catFun: Record<string, Fun> = {};
+const subFun: Record<string, Fun & { name: string; cat: string }> = {};
+const catSubs: Record<string, Set<string>> = {};
+let viewRows: any[] = [];
+try { viewRows = readFileSync("data/sku_views.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
+const fromViews = viewRows.length > 0;
+const funSrc: any[] = fromViews ? viewRows : facts;
+for (const r of funSrc) {
+  const i = dayIdx(r.date); if (i < 0 || i >= TOTAL) continue;
+  const sk = String(r.sku);
+  if (!skuName[sk]) skuName[sk] = r.name || ""; // имя нужно автогену таксономии для SKU без продаж
+  if (!skuLine[sk] && r.line) skuLine[sk] = r.line;
+  const views = r.views || 0;
+  const vsearch = fromViews ? (r.vsearch || 0) : 0; // показы в поиске per-SKU (только из sku_views)
+  const pdp = fromViews ? (r.pdp || 0) : 0; // посещения карточки (сессии) per-SKU
+  const cart = fromViews ? (r.cart || 0) : (r.to_cart || 0);
+  const units = r.units || 0;
+  const deliv = fromViews ? (r.deliv || 0) : (r.delivered || 0);
+  const ret = fromViews ? (r.ret || 0) : (r.returns || 0);
+  const canc = fromViews ? (r.canc || 0) : (r.cancellations || 0);
+  const rev = fromViews ? 0 : (r.revenue || 0); // rev в LINES_D не используется (показываем шт), но поле сохраняем
+  const cat = catOf(sk), sub = subOf(sk), sid = subIdOf(cat, sub);
+  const L = (lineDayOrd[cat] ||= { units: zD(), ret: zD(), canc: zD(), cart: zD(), rev: zD() });
+  L.units[i] = (L.units[i] ?? 0) + units; L.ret[i] = (L.ret[i] ?? 0) + ret;
+  L.canc[i] = (L.canc[i] ?? 0) + canc; L.cart[i] = (L.cart[i] ?? 0) + cart; L.rev[i] = (L.rev[i] ?? 0) + rev;
+  const cf = (catFun[cat] ||= newFun());
+  cf.views[i] += views; cf.vsearch[i] += vsearch; cf.pdp[i] += pdp; cf.cart[i] += cart; cf.units[i] += units; cf.deliv[i] += deliv;
+  const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
+  sf.views[i] += views; sf.vsearch[i] += vsearch; sf.pdp[i] += pdp; sf.cart[i] += cart; sf.units[i] += units; sf.deliv[i] += deliv;
+  (catSubs[cat] ||= new Set()).add(sid);
+}
+let dailyTotals: any[] = [];
+try { dailyTotals = readFileSync("data/daily_totals.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
+if (dailyTotals.length) {
+  for (const t of dailyTotals) {
+    const i = dayIdx(t.date); if (i < 0 || i >= TOTAL) continue;
+    DAY_T.rev![i] = t.revenue || 0; DAY_T.units![i] = t.units || 0; DAY_T.views![i] = t.views || 0; DAY_T.cart![i] = t.to_cart || 0;
+    DAY_T.vsearch![i] = t.views_search || 0; DAY_T.pdp![i] = t.pdp_views || 0;
+    DAY_T.deliv![i] = t.delivered || 0; DAY_T.ret![i] = t.returns || 0; DAY_T.canc![i] = t.cancellations || 0;
+  }
+} else { // фолбэк: суммируем per-SKU историю
+  for (const f of facts) {
+    const i = dayIdx(f.date); if (i < 0 || i >= TOTAL) continue; const fx: any = f;
+    DAY_T.rev![i] += f.revenue; DAY_T.units![i] += f.units; DAY_T.views![i] += fx.views || 0; DAY_T.cart![i] += fx.to_cart || 0;
+    DAY_T.deliv![i] += fx.delivered || 0; DAY_T.ret![i] += fx.returns || 0; DAY_T.canc![i] += fx.cancellations || 0;
+  }
 }
 
 // --- страница 1: обзор (v55) ---
@@ -711,20 +805,59 @@ for (const f of facts) {
 
 // --- страница 3: Воронка (реальные дни, динамика по периоду) ---
 {
-  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
-  const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, rev: r4(v.rev.map((x) => x / 1e6)) }]));
+  const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, vsearch: DAY_T.vsearch, pdp: DAY_T.pdp, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
+  const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, canc: v.canc, cart: v.cart, rev: r4(v.rev.map((x) => x / 1e6)) }]));
+  const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv }]));
+  const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv }]));
+  const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Потери</div><div class="card-sub">возвраты, отмены, брошенные корзины за период</div></div></div><div id="leaks"></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Возвраты по категориям</div><div class="card-sub">за период, к заказам категории</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возврата</th></tr></thead><tbody id="retl"></tbody></table></div></section>
-  </div>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV). Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
+    <div id="leaks"></div>
+    <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
+  </section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.cf-cat td{font-weight:600}.cf-cat:hover{background:rgba(255,255,255,.03)}.cf-nd{color:var(--ink-3);font-size:11px}.kt-table td.cf-cv,.kt-table th.cf-cv{color:var(--ink-3);font-size:11.5px}.cf-cat td.cf-cv{font-weight:500}.cf-total td{font-weight:700;background:rgba(255,255,255,.03);border-top:1px solid var(--bg-soft);border-bottom:2px solid var(--accent-deep)}.cf-total td.cf-cv{color:var(--ink-3);font-weight:600}</style>`;
   const pageJs = `
-const D=${J(FACTS_D)};const LD=${J(LINES_D)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
+const D=${J(FACTS_D)};const LD=${J(LINES_D)};const CF=${J(CATFUN)};const SF=${J(SUBFUN)};const CS=${J(CATSUBS)};const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=d=>Math.round((Date.parse(d+'T00:00Z')-BASE0)/86400000);
 function sumW(arr,w){let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;}
+function renderCatFunnel(cur){
+  const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
+  const sm=(o,k)=>sumW(o[k],cur);
+  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
+  const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
+  // Канальный бенчмарк конверсии по каждому шагу (сумма по всем категориям периода).
+  // Цвет CV: зелёный - категория конвертит выше канала на этом шаге, красный - ниже.
+  const T={};['views','vsearch','pdp','cart','units','deliv'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
+  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?T.deliv/T.units:0};
+  const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
+  const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
+    return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views,BM.vs)
+      +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)
+      +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
+      +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(x.deliv,x.units,BM.dl)
+      +'<td class="r">'+fmtRu(x.deliv)+'</td>';};
+  let h='';
+  cats.forEach((x,ci)=>{
+    h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
+    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
+      h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
+  });
+  // Итоговая строка = сумма по категориям (T). CV в ней нейтральный (серый) - это и есть бенчмарк.
+  const cvP=(a,b)=>'<td class="r cf-cv">'+(b>0?(a/b*100).toFixed(2)+'%':'—')+'</td>';
+  const totRow='<tr class="cf-total"><td>Итого по категориям</td>'
+    +'<td class="r">'+fmtRu(T.views)+'</td>'+cvP(T.vsearch,T.views)
+    +'<td class="r">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)
+    +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
+    +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
+    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(T.deliv,T.units)
+    +'<td class="r">'+fmtRu(T.deliv)+'</td></tr>';
+  document.getElementById('catfun').innerHTML=h?(totRow+h):'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
+  document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
+}
 function render(cur,cmp){
   const S=k=>sumW(D[k],cur),P=k=>sumW(D[k],cmp);
   const rev=S('rev')*1e6,prev=P('rev')*1e6;
@@ -735,22 +868,46 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(S('units')),dlt(S('units'),P('units'))),
     kpi('Показы',fMln(S('views')),dlt(S('views'),P('views'))),
     kpi('Конверсия показ→заказ',cr(S('units'),S('views')),dlt(S('units')/(S('views')||1),P('units')/(P('views')||1))),
-    kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false)),
-    kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false))
+    kpi('Возвраты',fmtRu(S('ret')),dlt(S('ret'),P('ret'),false,'шт')),
+    kpi('Отмены',fmtRu(S('canc')),dlt(S('canc'),P('canc'),false,'шт'))
   ].join('');
   document.getElementById('fsub').textContent='период '+cur.from+'..'+cur.to+' · сравнение с '+cmp.from+'..'+cmp.to;
-  const stages=[['Показы',S('views')],['В корзину',S('cart')],['Заказы',S('units')],['Доставлено',S('deliv')]];
-  const mx=Math.max(1,stages[0][1]);
-  document.getElementById('funnel').innerHTML=stages.map((s,i)=>{
-    const conv=i>0&&stages[i-1][1]>0?' · CR '+ (s[1]/stages[i-1][1]*100).toFixed(1)+'%':'';
-    return '<div style="display:flex;align-items:center;gap:10px"><div style="width:90px;font-size:12px;color:var(--ink-3)">'+s[0]+'</div><div class="kt-fbar" style="width:'+Math.max(4,s[1]/mx*100)+'%" title="'+s[0]+': '+fmtRu(s[1])+conv+'">'+fmtRu(s[1])+conv+'</div></div>';}).join('');
+  renderCatFunnel(cur);
+  // Вертикальная воронка OZON, сужается вниз, конверсия между шагами (зависит от периода).
+  // «Показы в поиске» (vsearch) и «Посещения карточки» (pdp) тянем день-уровнем OZON (dimension=day).
+  // Если за период их нет (старые дни до правки workflow) -> null -> «нет данных».
+  const nz=k=>{const s=S(k);return s>0?s:null;};
+  const lv=[
+    {n:'Показы, всего', v:S('views'), c:'из показов в поиск'},
+    {n:'Показы в поиске и каталоге', v:nz('vsearch'), c:'из поиска в карточку'},
+    {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
+    {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
+    {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
+    {n:'Выкуплено', v:S('deliv'), c:''}
+  ];
+  // Форма воронки ФИКСИРОВАННАЯ - ровное сужение вниз, не зависит от значений (меняются только числа).
+  const w=lv.map((x,i)=>100-i*(58/(lv.length-1)));
+  // Односторонняя воронка: подпись уровня слева, плашка сужается вправо, между ними - только CV%.
+  let fh='<div class="vf">';
+  lv.forEach((x,i)=>{
+    const nd=x.v==null;
+    const val=nd?'нет данных':fmtRu(x.v);
+    fh+='<div class="vf-row"><div class="vf-name">'+x.n+'</div><div class="vf-track"><div class="vf-bar'+(nd?' nd':'')+'" style="width:'+w[i].toFixed(1)+'%" title="'+x.n+': '+val+'">'+val+'</div></div></div>';
+    if(i<lv.length-1){
+      const nv=lv[i+1].v; const cv=(x.v!=null&&nv!=null&&x.v>0)?(nv/x.v*100).toFixed(2)+'%':'—';
+      fh+='<div class="vf-row"><div class="vf-cv">CV '+cv+'</div><div class="vf-track"></div></div>';
+    }
+  });
+  fh+='</div>';
+  document.getElementById('funnel').innerHTML=fh;
   const cartDrop=S('cart')>0?(100-S('units')/S('cart')*100).toFixed(1):'0';
   document.getElementById('leaks').innerHTML='<div class="kt-kpi">'+
     kpi('Возврат, % заказов',(S('units')?(S('ret')/S('units')*100).toFixed(1):0)+'%','')+
     kpi('Отмена, % заказов',(S('units')?(S('canc')/S('units')*100).toFixed(1):0)+'%','')+
     kpi('Брошено в корзине',cartDrop+'%','')+'</div>';
-  const rows=Object.entries(LD).map(([k,v])=>({k,u:sumW(v.units,cur),r:sumW(v.ret,cur)})).filter(x=>x.u>0||x.r>0).sort((a,b)=>b.u-a.u);
-  document.getElementById('retl').innerHTML=rows.map(x=>'<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+(x.u?(x.r/x.u*100).toFixed(1):'0')+'%</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">нет данных за период</td></tr>';
+  const rows=Object.entries(LD).map(([k,v])=>({k,u:sumW(v.units,cur),r:sumW(v.ret,cur),c:sumW(v.canc,cur),ct:sumW(v.cart,cur)})).filter(x=>x.u>0||x.r>0||x.c>0||x.ct>0).sort((a,b)=>b.u-a.u);
+  const p1=(a,b)=>b?(a/b*100).toFixed(1):'0'; // брошено = добавили в корзину, но не заказали
+  document.getElementById('retl').innerHTML=rows.map(x=>{const drop=Math.max(0,x.ct-x.u);return '<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+p1(x.r,x.u)+'%</td><td class="r">'+fmtRu(x.c)+'</td><td class="r" style="color:'+(x.u&&x.c/x.u>0.1?'var(--dn)':'inherit')+'">'+p1(x.c,x.u)+'%</td><td class="r">'+fmtRu(drop)+'</td><td class="r" style="color:'+(x.ct&&drop/x.ct>0.9?'var(--dn)':'inherit')+'">'+p1(drop,x.ct)+'%</td></tr>';}).join('')||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
 }`;
   writeFileSync("public/katya-voronka.html", kshell("Воронка", "voronka", body, pageJs));
 }
@@ -761,6 +918,8 @@ function render(cur,cmp){
   let adsPeriods: any;
   try { adsPeriods = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
   catch { adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap }; }
+  let adsReports: any = {};
+  try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -770,19 +929,114 @@ function render(cur,cmp){
   }
   worst.sort((a, b) => b.pidx - a.pidx);
   const PRICE = { cheaper, even, pricier, noIdx, worst: worst.slice(0, 10).map((s) => ({ name: s.name, offer: s.offer, pidx: s.pidx, rev: s.rev })) };
+  // --- Юнит-экономика рекламы (модель Романа): безубыточная ДРР по SKU из комиссий+с/с ---
+  // ECON[sku] = {com: комиссия% OZON, cogs: с/с%, be: безубыточная ДРР%, accr: выручка}. be=null если нет с/с/продаж.
+  const econCogs: Record<string, number> = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8"));
+  let econPnl: Record<string, any> = {};
+  try { econPnl = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { econPnl = {}; }
+  const econUnits: Record<string, number> = {};
+  for (const s of live.sku_table) econUnits[String(s.sku)] = s.units || 0;
+  const SKU_ECON: Record<string, any> = {};
+  for (const sku of Object.keys(econPnl)) {
+    const p = econPnl[sku]; const accr = p.accruals || 0; if (accr <= 0) continue;
+    // FENIX G1: take-rate OZON = ВСЕ сборы = (начислено − к выплате amount), а не поле commission
+    // (оно = только комиссия за продажу, без логистики/эквайринга/хранения). amount = реальный payout.
+    const com = Math.round(((accr - (p.amount || 0)) / accr) * 1000) / 10;
+    const cu = econCogs[sku] || 0; const units = econUnits[sku] || 0;
+    const ops = p.ops || 0;
+    const lowN = ops < 5; // FENIX G3: малая выборка ломает безубыток (с/с по брутто-units vs нетто-accruals)
+    const noCogs = !(cu > 0 && units > 0);
+    const cogsNA = noCogs || lowN;
+    const cogsPct = cogsNA ? null : Math.round((cu * units / accr) * 1000) / 10;
+    const be = cogsNA ? null : Math.round((100 - com - (cogsPct as number)) * 10) / 10;
+    const why = lowN ? "мало данных (<5 операций)" : (noCogs ? "нет себестоимости" : null);
+    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr), why };
+  }
   const body = `
+  <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody id="top"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия SKU - за окно фильтра (живой pnl-sku), себестоимость - снимок 30 дней. Светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40%</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по линиям</div><div class="card-sub">расход и ДРР за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Линия</th><th class="r">Расход</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40% · клик - разбивка по SKU</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">live-снимок остатков/цен OZON от ${maxD} (индекс не историчен - всегда текущий)</div></div></div><div id="price"></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`;
+  const skuMap: Record<string, string> = {};
+  const skuCat: Record<string, string> = {};
+  for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};
+const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
+function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
+var mCur=null;
 const ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';
+const PSK_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl-sku';
 let lastReq=0;
+// Комиссия по SKU за ОКНО ФИЛЬТРА (живой pnl-sku). С/с остаётся из снимка 30 дней (ECON).
+var COM_PERIOD={};var comReady=false;var comKey='';
+function loadCommission(cur){var k=cur.from+'_'+cur.to;if(comKey===k){if(comReady)renderUecon(lastA);return;}comKey=k;comReady=false;
+  if(typeof fetch==='undefined')return;
+  fetch(PSK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(function(r){return r.json();}).then(function(d){if(comKey!==k)return;var bs=(d&&d.bySku)||{};var m={};for(var s in bs){var x=bs[s];if(x&&x.accruals>0)m[s]=Math.round((x.accruals-x.amount)/x.accruals*1000)/10;}COM_PERIOD=m;comReady=true;renderUecon(lastA);})
+    .catch(function(){});
+}
+// --- ленивая загрузка per-SKU отчётов (один отчёт на кампанию, чтобы влезть в лимит n8n 60с и не упереться в 429) ---
+var REPORTS={};var lastA=null;var expanded={};
+function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
+function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range')return null;return 'p30';}
+function cacheStats(id){var lb=curLabel();if(!lb||!RCACHE||!RCACHE[lb])return null;var r=RCACHE[lb].reports||{};var v=r[String(id)];return v===undefined?null:v;} // кэш (стандартный период)
+function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
+function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
+  if(typeof fetch==='undefined'||!mCur){REPORTS[k]=[];if(cb)cb([]);return;}fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:String(id),dateFrom:mCur.from,dateTo:mCur.to})}).then(function(r){return r.json();}).then(function(d){REPORTS[k]=(d&&d.skuStats)||[];if(cb)cb(REPORTS[k]);}).catch(function(){REPORTS[k]=[];if(cb)cb([]);});}
+var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
+var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
+var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
+function renderTop(){var a=lastA;if(!a)return;
+  var html=(a.top_spend||[]).map(function(c,ci){
+    var rep=repOf(c.id);var loaded=rep!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+c.id+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var sub='';
+    if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
+    else if(rep.length){var omM=0,soM=0;
+      rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
+      if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания)</td></tr>';}
+    return main+sub;
+  }).join('');
+  document.getElementById('top').innerHTML=html;
+  document.querySelectorAll('#top .ad-exp').forEach(function(tr){tr.onclick=function(){var i=tr.getAttribute('data-i');var id=tr.getAttribute('data-id');expanded[i]=!expanded[i];
+    document.querySelectorAll('#top .ad-sub[data-i="'+i+'"]').forEach(function(s){s.style.display=expanded[i]?'':'none';});
+    var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=expanded[i]?'▾ ':'▸ ';
+    if(expanded[i]&&repOf(id)===null){loadReport(id,function(){renderTop();renderUecon(lastA);});}
+  };});
+}
+function loadAllReports(){var a=lastA;if(!a||typeof fetch==='undefined')return;
+  var ids=(a.top_spend||[]).map(function(c){return String(c.id);}).filter(function(id){return repOf(id)===null;});
+  var n=ids.length;var done=0;if(!n){setAds('ok','готов к работе');renderUecon(lastA);return;}
+  setAds('load','подгружаю разбивку по SKU 0/'+n+'…');var k=0,run=0,CONC=3;
+  function step(){while(run<CONC&&k<n){run++;loadReport(ids[k++],function(){run--;done++;setAds(done>=n?'ok':'load',done>=n?'готов к работе · разбивка загружена':('подгружаю разбивку по SKU '+done+'/'+n+'…'));renderTop();renderUecon(lastA);if(done<n)step();});}}
+  step();
+}
+var bexpanded={};
+function renderBurn(a){
+  var html=(a.burners||[]).map(function(b,bi){
+    var rep=b.id?repOf(b.id):null;var loaded=rep!==null;var open=!!bexpanded[bi];var disp=open?'':'display:none';
+    var main='<tr class="ad-exp" data-bi="'+bi+'" data-id="'+(b.id||'')+'"><td>'+(b.id?'<span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span>':'')+'<b>'+(b.id||b.off)+'</b></td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+fmtRu(b.om||0)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>';
+    var sub='';if(!b.id)return main;
+    if(!loaded){sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3)">загрузка разбивки…</td></tr>';}
+    else if(rep.length){var omM=0,soM=0;
+      rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
+        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
+      if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
+    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или лимит OZON)</td></tr>';}
+    return main+sub;
+  }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';
+  document.getElementById('burn').innerHTML=html;
+  document.querySelectorAll('#burn .ad-exp').forEach(function(tr){var id=tr.getAttribute('data-id');if(!id)return;tr.onclick=function(){var i=tr.getAttribute('data-bi');bexpanded[i]=!bexpanded[i];document.querySelectorAll('#burn .bn-sub[data-bi="'+i+'"]').forEach(function(s){s.style.display=bexpanded[i]?'':'none';});var tg=tr.querySelector('.cf-tg');if(tg)tg.textContent=bexpanded[i]?'▾ ':'▸ ';if(bexpanded[i]&&repOf(id)===null){loadReport(id,function(){renderBurn(lastA);});}};});
+}
 // Запечённый снимок рекламы под выбранный период - показываем МГНОВЕННО реальные данные.
 function bakedFor(){
   if(CURP==='7d'||CURP==='today')return PERIODS.p7||SNAP;
@@ -791,34 +1045,75 @@ function bakedFor(){
 }
 function paint(a,src){
   const t=a.totals||{};
+  const gmv=mGmv(mCur); const odrr=gmv?Math.round((t.spend||0)/gmv*1000)/10:(t.drr??0);
   const kpi=(lab,val)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div></div>';
   document.getElementById('kpis').innerHTML=[
-    kpi('ДРР канала',(t.drr??0)+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
+    kpi('ДРР',odrr+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
   const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
-  document.getElementById('top').innerHTML=(a.top_spend||[]).map(c=>'<tr><td>'+c.off+'</td><td style="color:var(--ink-3)">'+c.line+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+(c.drr>40?'var(--dn)':c.drr>0&&c.drr<20?'var(--up)':'inherit')+'">'+c.drr+'%</td><td class="r">'+(c.roas??'-')+'x</td></tr>').join('');
-  document.getElementById('burn').innerHTML=(a.burners||[]).map(b=>'<tr><td>'+b.off+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>').join('')||'<tr><td colspan="4" class="kt-note">сливов нет</td></tr>';
-  document.getElementById('lines').innerHTML=(a.by_line||[]).map(l=>'<tr><td>'+l.line+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>').join('');
+  lastA=a;renderTop();
+  renderBurn(a);
+  // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
+  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=(c.skus&&c.skus[0])?String(c.skus[0]):null;var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
+  var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,om:g.om,o:g.o,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
+  document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r">'+fmtRu(l.om)+'</td><td class="r">'+l.o+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
+  renderUecon(a);
   const tot=PRICE.cheaper+PRICE.even+PRICE.pricier+PRICE.noIdx||1;
   const seg=(n,c,t2)=>'<span title="'+t2+': '+n+'" style="width:'+(100*n/tot)+'%;background:'+c+';display:block;height:100%"></span>';
   document.getElementById('price').innerHTML='<div style="display:flex;height:26px;border-radius:8px;overflow:hidden;border:1px solid var(--bg-soft)">'+seg(PRICE.cheaper,'#34D399','дешевле рынка')+seg(PRICE.even,'#6AA8FF','вровень')+seg(PRICE.pricier,'#FF5A5F','дороже рынка')+seg(PRICE.noIdx,'#3a3a40','без индекса')+'</div>'+
    '<div class="kt-note"><span style="color:#34D399">дешевле рынка: '+PRICE.cheaper+'</span> · вровень: '+PRICE.even+' · <span style="color:#FF5A5F">дороже: '+PRICE.pricier+'</span> · без индекса: '+PRICE.noIdx+'</div>'+
    '<div class="kt-scroll" style="margin-top:8px"><table class="kt-table"><thead><tr><th>Дороже рынка (риск)</th><th class="r">Индекс</th><th class="r">Оборот 30д</th></tr></thead><tbody>'+PRICE.worst.map(w=>'<tr><td>'+w.name+' <span style="color:var(--ink-3)">'+(w.offer||'')+'</span></td><td class="r" style="color:var(--dn)">'+w.pidx+'</td><td class="r">'+fMln(w.rev)+'</td></tr>').join('')+'</tbody></table></div>';
 }
+function renderUecon(a){
+  // По КАМПАНИИ (не по отдельному SKU): расход/выручка/ДРР всей кампании, эконо-показатели
+  // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
+  var rows=[];var naSp=0,total=0;
+  (a.top_spend||[]).forEach(function(c){
+    var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
+    var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
+    if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
+    var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок
+    var be=Math.round((100-com-e.cogs)*10)/10; // Лимит РК = 100 − комиссия(период) − с/с(снимок)
+    var head=Math.round((be-drr)*10)/10;var gt=Math.max(0,Math.round(be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
+    var v=head>=gt?'go':(head>=0?'edge':'cut');
+    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,be:be,head:head,v:v});
+  });
+  var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
+  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
+  var calc=rows.filter(function(r){return !r.na;});
+  var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
+  var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
+  var kc=function(lab,val,col){return '<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v" style="color:'+(col||'inherit')+'">'+val+'</div></div>';};
+  if(elk)elk.innerHTML=kc('🟢 в плюс',nGo,'var(--up)')+kc('🟡 на грани',nEdge,'#E5B567')+kc('🔴 в минус',nCut,'var(--dn)')+kc('Потенциал зелёных, ₽',(profit>=0?'+':'')+fMln(profit),'var(--up)')+kc('Перерасход по минусовым, ₽',fMln(burn),'var(--dn)')+kc('Покрытие',calc.length+' из '+total+(naSp>0?' · н/д расход '+fMln(naSp):''),'inherit');
+  rows.sort(function(x,y){if(x.na!==y.na)return x.na?1:-1;return (x.head==null?999:x.head)-(y.head==null?999:y.head);});
+  var vlab={go:'🟢 жать газ',edge:'🟡 держать',cut:'🔴 резать'};var vact={go:'поднять ставку/бюджет',edge:'не масштабировать; ставка/цена',cut:'пауза/резать ставку 48ч'};
+  el.innerHTML=rows.map(function(r){
+    var act=r.status==='активна';var rowS=act?' style="border-left:3px solid #34D399"':'';
+    var nm='<td'+(act?' style="border-left:3px solid #34D399"':'')+'>'+r.camp+stBadge(r.status)+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
+    if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="4" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
+    var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
+    var bec=r.be<0?'<span style="color:var(--dn)">убыток до рекл.</span>':'<b>'+r.be+'%</b>'; // FENIX N1: be<0 словом, не сырым %
+    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+r.com+'%</td><td class="r">'+r.cogs+'%</td><td class="r">'+bec+'</td><td class="r" style="color:'+hc+'"><b>'+(r.head>0?'+':'')+r.head+'</b></td><td style="color:'+hc+'">'+vlab[r.v]+' <span style="color:var(--ink-3);font-size:11px">· '+vact[r.v]+'</span></td></tr>';
+  }).join('');
+}
+function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
 function render(cur,cmp){
-  // 1) мгновенно - запечённый снимок ИМЕННО за выбранный период (реальные числа)
+  mCur=cur; // окно периода
+  setAds('load','подгружаю данные рекламы…');
+  // 1) мгновенно - запечённый снимок кампаний за выбранный период (быстро, без per-SKU)
   const baked=bakedFor();paint(baked,'baked');
-  if(typeof fetch==='undefined')return;
-  // 2) живое уточнение за точные даты периода (для своего диапазона - единственный источник)
+  loadCommission(cur); // комиссия по SKU за окно фильтра (живой pnl-sku) -> юнит-экономика
+  if(typeof fetch==='undefined'){setAds('ok','готов к работе (снимок)');return;}
+  // 2) живое уточнение кампаний за точные даты периода (без withSku - быстро); per-SKU грузим лениво
   const my=++lastReq;
   var ctrl=('AbortController' in window)?new AbortController():null;
   var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
   fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to}),signal:ctrl?ctrl.signal:undefined})
     .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
-    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0))paint(a,'live');else paint(baked,'baked2');})
-    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');});
+    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0)){paint(a,'live');}else{paint(baked,'baked2');}loadAllReports();})
+    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');loadAllReports();});
 }`;
   writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }
@@ -887,6 +1182,9 @@ function render(cur,cmp){
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
 {
   const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
+  let adsPeriodsCC: any;
+  try { adsPeriodsCC = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
+  catch { adsPeriodsCC = { p7: ads, p30: ads, p90: ads }; }
   // per-SKU разрежённый дневной ряд за окно (для движений по периоду)
   const skuMeta: Record<string, { nm: string; line: string }> = {};
   const tmpR: Record<string, Record<number, number>> = {}, tmpU: Record<string, Record<number, number>> = {};
@@ -908,13 +1206,27 @@ function render(cur,cmp){
   <section class="kt-kpi" id="kpis"></section>
   <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Декомпозиция оборота</div><div class="card-sub" id="bsub"></div></div></div><div id="bridge"></div><div class="kt-note">Оборот = трафик × конверсия в заказ × средний чек. Видно, какой из трёх рычагов дал прирост или просадку - туда и бить.</div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub">кто прибавил и кто просел по обороту против базы сравнения</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
+    <section class="card"><div class="card-h"><div><div class="card-title">Движения за период</div><div class="card-sub" id="movers-sub">кто прибавил и кто просел по обороту против предыдущего равного периода</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th class="r">Оборот</th><th class="r">Δ к базе</th></tr></thead><tbody id="movers"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Локомотивы и риск</div><div class="card-sub">A-товары (дают 80% оборота периода). Красный флаг - есть риск: OOS или дороже рынка</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Товар</th><th>Линия</th><th class="r">Оборот</th><th class="r">Доля</th><th class="r">Остаток</th><th class="r">Индекс цены</th><th>Риск</th></tr></thead><tbody id="loco"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
 const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
-const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};
+const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
+const CC_ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';var ccAdsReq=0;
+// Живой Общая ДРР за ТОЧНЫЙ период: расход рекламы ÷ ВЕСЬ оборот периода (как в выгрузке OZON).
+function ccLiveDrr(cur,gmv){
+  if(typeof fetch==='undefined')return; var my=++ccAdsReq;
+  fetch(CC_ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(a){ if(my!==ccAdsReq||!a||!a.totals)return;
+      var sp=a.totals.spend||0; var odrr=gmv?Math.round(sp/gmv*1000)/10:0;
+      var c=[].slice.call(document.querySelectorAll('#kpis .card')).filter(function(x){return x.textContent.indexOf('ДРР')>=0;})[0];
+      if(c){ c.querySelector('.kt-v').textContent=odrr+'%'; var s=c.querySelector('.kt-d'); if(s)s.textContent='живой за '+a.dateFrom+'..'+a.dateTo; }
+    }).catch(function(){});
+}
+// ДРР за выбранный период (из запечённых снимков 7/30/90), а не статичный 30-дн.
+function adsForPeriod(){ if(CURP==='7d'||CURP==='today')return ADSP.p7||ADS; if(CURP==='90d'||CURP==='all')return ADSP.p90||ADS; if(CURP==='range'){var d=Math.round((Date.parse(periodDates('range').to)-Date.parse(periodDates('range').from))/864e5)+1; return d<=10?(ADSP.p7||ADS):d<=45?(ADSP.p30||ADS):(ADSP.p90||ADS);} return ADSP.p30||ADS; }
 const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 const idxOf=dt=>Math.round((Date.parse(dt+'T00:00Z')-BASE0)/86400000);
 const sW=(arr,w)=>{let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[i]||0);return s;};
@@ -931,20 +1243,27 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
-    kpi('ДРР канала',(ADS.totals.drr||0)+'%','<span class="kt-d na">снимок 30 дн</span>','Доля рекламы в выручке за 30 дн. Сравнивай с маржой: ДРР выше маржи - реклама в минус.'),
-    kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false),'Возвраты съедают маржу. Рост - смотри качество и описание.')
+    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Живой запрос уточняет по точным датам.'),
+    kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
+  ccLiveDrr(cur,gmv); // уточняем Общую ДРР (расход÷оборот) живым запросом за точный период
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
   // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)
   const dV=(vw-vwP)*croP*aovP, dC=vw*(cro-croP)*aovP, dA=vw*cro*(aov-aovP);
   const bars=[['Было',gmvP,'#5d7484'],['Трафик',dV,dV>=0?'#34D399':'#FF5A5F'],['Конверсия',dC,dC>=0?'#34D399':'#FF5A5F'],['Чек',dA,dA>=0?'#34D399':'#FF5A5F'],['Стало',gmv,'#22D3EE']];
   const mx=Math.max(gmvP,gmv,1);
   document.getElementById('bridge').innerHTML='<div style="display:flex;align-items:flex-end;gap:8px;height:170px;padding:10px 0">'+bars.map(b=>{const h=Math.max(4,Math.abs(b[1])/mx*130);const sign=(b[0]==='Было'||b[0]==='Стало')?'':(b[1]>=0?'+':'');return '<div style="flex:1;text-align:center;font-size:11px;color:var(--ink-3)"'+tip(b[0]+': '+sign+fMln(b[1])+' ₽')+'><div style="background:'+b[2]+';border-radius:6px 6px 0 0;height:'+h+'px;margin-bottom:4px"></div>'+b[0]+'<br><b style="color:var(--ink-1)">'+sign+fMln(b[1])+'</b></div>';}).join('')+'</div>';
-  // Движения
+  // Движения: сравнение с предыдущим равным окном. Если база до старта продаж (период сравнения
+  // целиком пустой, напр. «Всё время») - честно «нет базы», а не фейковая дельта = полный оборот.
+  const baseHasData = gmvP > 0;
   const mv=SKUS.map(s=>{const c=skuW(s,cur),b=skuW(s,cmp);return {nm:s.nm,line:s.line,r:c.r,d:c.r-b.r};}).filter(x=>x.r>0||x.d!==0);
-  const up=mv.slice().sort((a,b)=>b.d-a.d).slice(0,5),dn=mv.slice().sort((a,b)=>a.d-b.d).slice(0,5);
-  const row=x=>'<tr><td>'+esc(x.nm.slice(0,46))+'<span style="color:var(--ink-3)"> · '+x.line+'</span></td><td class="r">'+fMln(x.r)+'</td><td class="r" style="color:'+(x.d>=0?'var(--up)':'var(--dn)')+'">'+(x.d>=0?'+':'')+fMln(x.d)+'</td></tr>';
-  document.getElementById('movers').innerHTML=up.map(row).join('')+'<tr><td colspan="3" style="height:6px;border:0"></td></tr>'+dn.filter(x=>x.d<0).map(row).join('');
+  const dcell=x=>baseHasData?('<span style="color:'+(x.d>=0?'var(--up)':'var(--dn)')+'">'+(x.d>=0?'+':'')+fMln(x.d)+'</span>'):'<span class="kt-d na">нет базы</span>';
+  const row=x=>'<tr><td>'+esc(x.nm.slice(0,46))+'<span style="color:var(--ink-3)"> · '+x.line+'</span></td><td class="r">'+fMln(x.r)+'</td><td class="r">'+dcell(x)+'</td></tr>';
+  let mrows;
+  if(baseHasData){const up=mv.slice().sort((a,b)=>b.d-a.d).slice(0,5),dn=mv.slice().sort((a,b)=>a.d-b.d).slice(0,5);mrows=up.map(row).join('')+'<tr><td colspan="3" style="height:6px;border:0"></td></tr>'+dn.filter(x=>x.d<0).map(row).join('');}
+  else{mrows=mv.slice().sort((a,b)=>b.r-a.r).slice(0,10).map(row).join('');}
+  document.getElementById('movers').innerHTML=mrows;
+  var msub=document.getElementById('movers-sub'); if(msub)msub.textContent=baseHasData?('оборот за '+cur.from+'..'+cur.to+' против '+cmp.from+'..'+cmp.to):('период сравнения '+cmp.from+'..'+cmp.to+' до старта продаж - базы нет, показан топ по обороту');
   // Локомотивы (ABC периода) + риск из live
   const liveBy={};LIVE.forEach(l=>liveBy[l.sku]=l);
   const per=SKUS.map(s=>({...s,r:skuW(s,cur).r})).filter(x=>x.r>0).sort((a,b)=>b.r-a.r);

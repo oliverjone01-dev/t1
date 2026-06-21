@@ -6,8 +6,6 @@ description: "UI/UX design intelligence. 67 styles, 96 palettes, 57 font pairing
 
 Comprehensive design guide for web and mobile applications. Contains 67 styles, 96 color palettes, 57 font pairings, 99 UX guidelines, and 25 chart types across 13 technology stacks. Searchable database with priority-based recommendations.
 
-> Внимание (GENGROUP): скрипты в `scripts/` это сторонний Python из Claude Design Kit. Запускаются только при явном вызове и упираются в HITL-гейт. Состав, происхождение и риски: `.claude/skills/CLAUDE_DESIGN_KIT_SOURCE.md`.
-
 ## When to Apply
 
 Reference these guidelines when:
@@ -136,7 +134,7 @@ Extract key information from user request:
 **Always start with `--design-system`** to get comprehensive recommendations with reasoning:
 
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system [-p "Project Name"]
+python3 skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system [-p "Project Name"]
 ```
 
 This command:
@@ -147,7 +145,7 @@ This command:
 
 **Example:**
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service" --design-system -p "Serenity Spa"
+python3 skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service" --design-system -p "Serenity Spa"
 ```
 
 ### Step 2b: Persist Design System (Master + Overrides Pattern)
@@ -155,7 +153,7 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness serv
 To save the design system for hierarchical retrieval across sessions, add `--persist`:
 
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "Project Name"
+python3 skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "Project Name"
 ```
 
 This creates:
@@ -164,7 +162,7 @@ This creates:
 
 **With page-specific override:**
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "Project Name" --page "dashboard"
+python3 skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persist -p "Project Name" --page "dashboard"
 ```
 
 ### Step 3: Supplement with Detailed Searches (as needed)
@@ -172,7 +170,7 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system
 After getting the design system, use domain searches to get additional details:
 
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <domain> [-n <max_results>]
+python3 skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <domain> [-n <max_results>]
 ```
 
 **When to use detailed searches:**
@@ -190,7 +188,7 @@ python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <dom
 Get implementation-specific best practices. If user doesn't specify a stack, **default to `html-tailwind`**.
 
 ```bash
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
+python3 skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
 ```
 
 Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`, `react-native`, `flutter`, `shadcn`, `jetpack-compose`
@@ -237,10 +235,10 @@ The `--design-system` flag supports two output formats:
 
 ```bash
 # ASCII box (default) - best for terminal display
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system
+python3 skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system
 
 # Markdown - best for documentation
-python3 .claude/skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system -f markdown
+python3 skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system -f markdown
 ```
 
 ---

@@ -10,12 +10,19 @@ import { lineOf } from "../util/line.js";
 import type { SkuDaily } from "../types.js";
 
 const SNAPSHOT = "data/history.ndjson";
+const TOTALS = "data/daily_totals.ndjson";
+const VIEWS = "data/sku_views.ndjson"; // полные показы SKU×день (включая дни без продажи) - для воронки по категориям
 
 interface RawRow {
   date: string; sku: string; name: string;
   rev: number; units: number; views: number; cart: number;
   deliv: number; ret: number; canc: number;
+  vsearch?: number; pdp?: number;
 }
+
+type DayTot = { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number };
+// День-уровень из OZON (dimension=day): истинные канальные показы, включая не привязанные к SKU.
+type RawTotal = { date: string; views: number; views_search: number; pdp_views: number; to_cart: number; ordered: number; revenue: number; delivered: number; returns: number; cancellations: number };
 
 function loadSnapshot(store: Store): number {
   if (!existsSync(SNAPSHOT)) return 0;
@@ -31,14 +38,97 @@ function saveSnapshot(store: Store): number {
   return rows.length;
 }
 
+// Дневные тоталы канала (показы/корзина/заказы/доставка/возвраты/отмены), 1 строка/день.
+// Источник по приоритету: day-уровень OZON (payload.totals, dimension=day) - истинные показы
+// канала, включая не привязанные к SKU (+ показы в поиске и посещения карточки). Если totals нет
+// (старый workflow) - фолбэк на сумму per-SKU строк (заниженные показы, как было раньше).
+function upsertTotals(raw: RawRow[], dayTotals: RawTotal[]): { days: number; total: number; source: string } {
+  const map = new Map<string, DayTot>();
+  if (existsSync(TOTALS)) {
+    for (const l of readFileSync(TOTALS, "utf-8").split("\n").filter(Boolean)) {
+      const t = JSON.parse(l) as DayTot; map.set(t.date, t);
+    }
+  }
+  const touched = new Set<string>();
+  let source = "per-SKU sum";
+  if (dayTotals.length) { // день-уровень: кладём как есть (истинный канальный тотал)
+    source = "day-level";
+    for (const d of dayTotals) {
+      if (!d.date) continue;
+      map.set(d.date, {
+        date: d.date, revenue: d.revenue || 0, units: d.ordered || 0, views: d.views || 0,
+        views_search: d.views_search || 0, pdp_views: d.pdp_views || 0, to_cart: d.to_cart || 0,
+        delivered: d.delivered || 0, returns: d.returns || 0, cancellations: d.cancellations || 0,
+      });
+      touched.add(d.date);
+    }
+  } else { // фолбэк: сумма per-SKU строк (показы занижены - без непривязанных к SKU)
+    for (const r of raw) {
+      if (!r.date) continue;
+      if (!touched.has(r.date)) {
+        map.set(r.date, { date: r.date, revenue: 0, units: 0, views: 0, views_search: 0, pdp_views: 0, to_cart: 0, delivered: 0, returns: 0, cancellations: 0 });
+        touched.add(r.date);
+      }
+      const t = map.get(r.date)!;
+      t.revenue += r.rev || 0; t.units += r.units || 0; t.views += r.views || 0; t.to_cart += r.cart || 0;
+      t.delivered += r.deliv || 0; t.returns += r.ret || 0; t.cancellations += r.canc || 0;
+    }
+  }
+  const dates = [...map.keys()].sort();
+  mkdirSync(dirname(TOTALS), { recursive: true });
+  writeFileSync(TOTALS, dates.map((d) => JSON.stringify(map.get(d))).join("\n") + "\n");
+  return { days: touched.size, total: dates.length, source };
+}
+
+type ViewRow = { date: string; sku: string; name: string; line: string; views: number; vsearch: number; pdp: number; cart: number; units: number; deliv: number; ret: number; canc: number };
+
+// Полные показы по SKU×день: ВСЕ строки payload с любой активностью (показ/корзина/заказ/возврат),
+// а не только дни-с-продажей. Идемпотентно: день из payload переписываем заново.
+// Нужен для воронки по категориям, где показы должны считаться по всем дням, а не только в дни продаж.
+function upsertViews(raw: RawRow[]): { rows: number } {
+  const map = new Map<string, ViewRow>();
+  if (existsSync(VIEWS)) {
+    for (const l of readFileSync(VIEWS, "utf-8").split("\n").filter(Boolean)) {
+      const r = JSON.parse(l) as ViewRow; map.set(r.date + "|" + r.sku, r);
+    }
+  }
+  const touched = new Set<string>();
+  for (const r of raw) {
+    if (!r.date) continue;
+    if (!touched.has(r.date)) { // чистим день перед перезаписью
+      for (const k of [...map.keys()]) if (k.startsWith(r.date + "|")) map.delete(k);
+      touched.add(r.date);
+    }
+    if (!((r.views || 0) > 0 || (r.cart || 0) > 0 || (r.units || 0) > 0 || (r.ret || 0) > 0 || (r.canc || 0) > 0)) continue;
+    map.set(r.date + "|" + String(r.sku), {
+      date: r.date, sku: String(r.sku), name: r.name || "", line: lineOf(r.name || ""),
+      views: r.views || 0, vsearch: r.vsearch || 0, pdp: r.pdp || 0,
+      cart: r.cart || 0, units: r.units || 0, deliv: r.deliv || 0, ret: r.ret || 0, canc: r.canc || 0,
+    });
+  }
+  const keys = [...map.keys()].sort();
+  mkdirSync(dirname(VIEWS), { recursive: true });
+  writeFileSync(VIEWS, keys.map((k) => JSON.stringify(map.get(k))).join("\n") + "\n");
+  return { rows: keys.length };
+}
+
 function main() {
   const path = process.argv[2];
   if (!path) throw new Error("Укажи путь к payload.json: npm run ingest -- <file>");
-  const payload = JSON.parse(readFileSync(path, "utf-8")) as { rows: RawRow[] };
+  const payload = JSON.parse(readFileSync(path, "utf-8")) as { rows: RawRow[]; totals?: RawTotal[] };
   const raw = payload.rows || [];
+  const dayTotals = payload.totals || [];
 
+  // 1) дневные тоталы канала: day-уровень OZON (истинные показы), иначе сумма per-SKU
+  const tot = upsertTotals(raw, dayTotals);
+  // 1b) полные показы по SKU×день (для воронки по категориям)
+  const vw = upsertViews(raw);
+
+  // 2) per-SKU история - дни с продажей ЛИБО с возвратом/отменой (компактно, для разрезов по товарам).
+  // Раньше держали только дни-с-продажей -> строки-возвраты в дни без продажи выпадали,
+  // и возвраты/отмены в разрезе категорий недосчитывались против тотала канала (2 вместо 7).
   const mapped: SkuDaily[] = raw
-    .filter((r) => (r.rev || 0) > 0 || (r.units || 0) > 0) // только строки с продажами
+    .filter((r) => (r.rev || 0) > 0 || (r.units || 0) > 0 || (r.ret || 0) > 0 || (r.canc || 0) > 0)
     .map((r) => ({
       date: r.date,
       sku: String(r.sku),
@@ -58,8 +148,8 @@ function main() {
   const before = loadSnapshot(store);
   store.upsertSkuDaily(mapped);
   const after = saveSnapshot(store);
-  const dates = [...new Set(mapped.map((r) => r.date))].sort();
-  console.log(`Ингест: payload ${raw.length} строк -> с продажами ${mapped.length}. Снапшот ${before} -> ${after}.`);
+  const dates = [...new Set(raw.map((r) => r.date))].sort();
+  console.log(`Ингест: payload ${raw.length} строк. Тоталы(${tot.source}): +${tot.days} дн (всего ${tot.total}). История(продажи) ${before}->${after}. Показы SKU×день: ${vw.rows}.`);
   console.log(`Даты: ${dates[0]}..${dates[dates.length - 1]} (${dates.length} дней)`);
   store.close();
 }

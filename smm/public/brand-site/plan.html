@@ -132,8 +132,10 @@
   .wkband h2{font-size:15px;font-weight:800}.wkband .pill{font-size:12px;color:var(--ink2);background:var(--s2);border:1px solid transparent;border-radius:30px;padding:4px 12px}
   .wkband .ln{flex:1;height:1px;background:var(--line)}
   .tile{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:transform .18s,box-shadow .18s}
-  .tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px}
-  .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
+  .tile::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(158deg,var(--_tt,transparent),transparent 38%);opacity:.4}
+  .tile.g{--_tt:var(--steel-soft)}.tile.v{--_tt:var(--gold-soft)}
+  .tile.g:hover{border-color:color-mix(in srgb,var(--steel) 38%,var(--line))}.tile.v:hover{border-color:color-mix(in srgb,var(--gold) 38%,var(--line))}
+  .tile>*{position:relative}
   .tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
   .tile.sit{border-style:dashed}
   .tile.is-draft{border-style:dashed;border-color:color-mix(in srgb,var(--drf) 40%,var(--line))}

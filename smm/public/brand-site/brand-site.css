@@ -40,8 +40,8 @@
   --top-bg:rgba(10,12,16,.8);--sel-bg:#EBC56E;--sel-ink:#13151A;
   --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;
   --shadow:0 1px 2px rgba(0,0,0,.35);
-  --shadow-lg:0 10px 28px rgba(0,0,0,.5);
-  --glow1:transparent;--glow2:transparent;
+  --shadow-lg:0 12px 32px rgba(0,0,0,.55);
+  --glow1:rgba(235,197,110,.06);--glow2:rgba(110,140,180,.05);
   --radius:10px;--radius-s:8px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -215,3 +215,35 @@ a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visi
   *,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
   .reveal{opacity:1!important;transform:none!important}
 }
+
+/* ===================================================================
+   Design Award elevation - motion, depth, micro-interactions (аддитивно)
+   =================================================================== */
+:root{--ease-out:cubic-bezier(.22,.61,.36,1);--ease-spring:cubic-bezier(.34,1.28,.64,1)}
+
+@media (prefers-reduced-motion:no-preference){
+  body{animation:gg-fade .4s ease both}
+  @keyframes gg-fade{from{opacity:0}to{opacity:1}}
+  @keyframes gg-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .hero,.sec-head,.col,.rcard,.ch,.attr .what,.stamp .s,.ocard,.feedcard,.panel{animation:gg-rise .6s var(--ease-out) both}
+  .rgrid>*:nth-child(2),.cards3>*:nth-child(2),.col.mini:nth-child(2){animation-delay:.06s}
+  .rgrid>*:nth-child(3),.cards3>*:nth-child(3),.col.mini:nth-child(3){animation-delay:.12s}
+  .rgrid>*:nth-child(n+4),.cards3>*:nth-child(n+4){animation-delay:.17s}
+  .panel+.panel{animation-delay:.1s}
+}
+
+/* фокус: акцентное кольцо с мягким свечением */
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visible,select:focus-visible{
+  outline:2px solid var(--gold-fill);outline-offset:2px;border-radius:8px;box-shadow:0 0 0 4px var(--gold-soft)}
+
+/* карточки: пружинный подъём + акцентная граница на hover */
+.col,.rcard,.ocard,.feedcard,.panel{transition:transform .22s var(--ease-spring),box-shadow .22s var(--ease-out),border-color .22s}
+.col:hover,.rcard:hover,.ocard:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
+
+/* плавность интерактива */
+.stamp .s,.chip,.tt button{transition:.2s var(--ease-out)}
+
+/* типографика: баланс крупных заголовков */
+.hero h1,.sec-title,.ch .nm,.ptitle{text-wrap:balance}
+
+.tt button svg{display:block;width:15px;height:15px}

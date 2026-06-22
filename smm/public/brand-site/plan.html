@@ -113,11 +113,18 @@
   tbody td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
   tbody tr:last-child td{border-bottom:none}
   tbody tr:hover{background:var(--s2)}
+  tbody tr.tr-v td:first-child{box-shadow:inset 4px 0 0 var(--gold-fill)}
+  tbody tr.tr-g td:first-child{box-shadow:inset 4px 0 0 var(--steel)}
+  tbody tr.tr-v:hover{background:color-mix(in srgb,var(--gold-fill) 14%,var(--s1))}
+  tbody tr.tr-g:hover{background:color-mix(in srgb,var(--steel) 14%,var(--s1))}
+  tbody tr.tr-v:hover td:first-child{box-shadow:inset 4px 0 0 var(--gold-fill),inset 0 0 0 99px color-mix(in srgb,var(--gold-fill) 6%,transparent)}
+  tbody tr.tr-g:hover td:first-child{box-shadow:inset 4px 0 0 var(--steel),inset 0 0 0 99px color-mix(in srgb,var(--steel) 6%,transparent)}
   tbody tr.sit{opacity:.62}
   .thumb{width:46px;height:34px;border-radius:7px;object-fit:cover;display:block;background:linear-gradient(135deg,var(--s2),var(--line))}
   .thumb.ph{display:grid;place-items:center;color:var(--ink3);font-size:9px}
   .bdot{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;padding:2px 8px;border-radius:6px}
-  .bdot.g{background:var(--steel-soft);color:var(--steel-ink)}.bdot.v{background:var(--gold-soft);color:var(--gold-ink)}
+  .bdot.g{background:color-mix(in srgb,var(--steel) 20%,transparent);color:var(--steel-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--steel) 40%,transparent)}
+  .bdot.v{background:color-mix(in srgb,var(--gold-fill) 26%,transparent);color:var(--gold-ink);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold-fill) 44%,transparent)}
   .idea{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
   .hook{color:var(--ink3);font-style:italic;font-size:12px;margin-top:2px;overflow-wrap:anywhere}
   .stb{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;white-space:nowrap;padding:3px 10px;border-radius:30px}
@@ -403,7 +410,7 @@
     document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
     Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(k==='cover')return;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
     document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-      return '<tr tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'"'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
+      return '<tr tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'" class="tr-'+b+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+
         '<td>'+thumb(p)+'</td><td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
         '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
         '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+

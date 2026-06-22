@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="google" content="notranslate">
+<title>Пост · Контент-план · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
+<link rel="stylesheet" href="brand-site.css">
+<style>
+  /* ----- страница поста: чистая типографика, без модалок, без подчёркиваний ----- */
+  .pwrap{max-width:1060px;margin:0 auto;padding:22px 22px 80px}
+  .back{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--ink2);text-decoration:none;background:var(--s2);border-radius:8px;padding:9px 14px;min-height:40px;margin-bottom:18px}
+  .back:hover{background:var(--s3);color:var(--ink)}
+  .back svg{width:15px;height:15px}
+  .phead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .bchip{font-size:11px;font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:6px}
+  .bchip.g{background:var(--gg-soft);color:var(--gg-ink)}.bchip.v{background:var(--gold-soft);color:var(--gold)}
+  .schip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 12px;border-radius:30px}
+  .schip::before{content:"";width:7px;height:7px;border-radius:50%}
+  .schip.drf{color:var(--drf-ink);background:var(--drf-soft)}.schip.drf::before{background:var(--drf)}
+  .schip.pln{color:var(--pln-ink);background:var(--pln-soft)}.schip.pln::before{background:transparent;box-shadow:inset 0 0 0 1.5px var(--pln)}
+  .schip.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.schip.sgl::before{background:var(--sgl)}
+  .schip.pub{color:var(--pub-ink);background:var(--pub-soft)}.schip.pub::before{background:var(--pub)}
+  .ptitle{font-size:clamp(22px,3.4vw,32px);font-weight:800;letter-spacing:-.02em;line-height:1.12;margin:6px 0 4px}
+  .psub{color:var(--ink2);font-size:15px;font-style:italic;margin-bottom:22px}
+  .pgrid{display:grid;grid-template-columns:1.35fr 1fr;gap:26px;align-items:start}
+  /* левая колонка: медиа + текст «как в ленте» */
+  .feedcard{background:var(--s1);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  .fc-h{display:flex;align-items:center;gap:10px;padding:13px 15px}
+  .fc-av{width:32px;height:32px;border-radius:50%}.fc-av.g{background:linear-gradient(135deg,var(--gg),var(--s2))}.fc-av.v{background:linear-gradient(135deg,var(--gold-fill),var(--s2))}
+  .fc-hn{font-size:13.5px;font-weight:800;color:var(--ink)}.fc-hm{font-size:11.5px;color:var(--ink3)}
+  .pmedia{position:relative;width:100%;background:#000;aspect-ratio:4/5;max-height:64vh}
+  .pmedia img{width:100%;height:100%;object-fit:cover;display:block}
+  .pmedia iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+  .pmedia.noimg{aspect-ratio:auto;background:linear-gradient(135deg,var(--s2),var(--s3));display:grid;place-items:center;color:var(--ink3);font-size:13px;padding:30px;font-style:italic}
+  .pcap{padding:14px 16px 18px;font-size:14px;line-height:1.62;color:var(--ink);text-decoration:none;overflow-wrap:anywhere;word-break:break-word}
+  .pcap *{text-decoration:none!important}
+  .pcap .hn{font-weight:800;margin-right:6px;color:var(--ink)}
+  .pcap .ht{color:var(--ink3);font-weight:600}
+  .pcap b{font-weight:700}
+  .hint{margin-top:14px;font-size:12px;color:var(--ink3);background:var(--s2);border-radius:10px;padding:11px 13px;line-height:1.5}
+  /* правая колонка: мета + статистика */
+  .panel{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow)}
+  .panel+.panel{margin-top:16px}
+  .panel-t{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+  .mrow{display:flex;gap:12px;font-size:13.5px;padding:7px 0;border-top:1px solid var(--line)}
+  .mrow:first-of-type{border-top:none}
+  .mrow .k{color:var(--ink3);min-width:118px;flex:none}
+  .mrow .v{color:var(--ink);font-weight:600;min-width:0;overflow-wrap:anywhere}
+  .plink{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:14px;min-height:44px;font-size:14px;font-weight:700;color:var(--cta-ink);background:var(--cta);border-radius:10px;text-decoration:none}
+  .plink:hover{filter:brightness(.96)}
+  .plink.sec{color:var(--ink);background:var(--s2);margin-top:9px}.plink.sec:hover{background:var(--s3);filter:none}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .scell{background:var(--s1);padding:13px 14px}
+  .scell .n{font-size:21px;font-weight:800;color:var(--ink);line-height:1}
+  .scell .l{font-size:11.5px;color:var(--ink3);margin-top:3px;display:inline-flex;align-items:center;gap:6px}
+  .scell .l::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--ink3)}
+  .scell.reach .l::before{background:var(--gg);border-radius:50%}.scell.contacts .l::before{background:var(--gold-fill)}
+  .scell.saves .l::before{background:var(--pub)}.scell.clicks .l::before{background:var(--sgl)}
+  .scell.hl .n{color:var(--gold)}
+  .nostat{font-size:12.5px;color:var(--ink3);border:1px dashed var(--line2);border-radius:10px;padding:13px;line-height:1.5}
+  .loadwrap{padding:60px 0;text-align:center;color:var(--ink3)}
+  @media(max-width:840px){.pgrid{grid-template-columns:1fr;gap:18px}}
+  @media(max-width:520px){.pwrap{padding:16px 14px 64px}.mrow .k{min-width:96px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="top"><div class="top-in">
+  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</div>
+  <nav class="nav" aria-label="Разделы сайта">
+    <a href="plan.html"><span class="n">01</span>Контент-план</a>
+    <a href="index.html"><span class="n">02</span>Платформа бренда</a>
+    <a href="audience.html"><span class="n">03</span>Аудитория</a>
+    <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
+  </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
+</div></header>
+
+<main class="pwrap" id="main">
+  <a class="back" href="plan.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Контент-план</a>
+  <div id="post"><div class="loadwrap">загрузка поста…</div></div>
+</main>
+
+<script src="cms-seed.js"></script>
+<script src="cms-config.js"></script>
+<script src="cms-data.js"></script>
+<script>
+(function(){
+  'use strict';
+  var E=GGData.esc, DI=GGData.driveImg;
+  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln','черновик':'drf'};
+  var stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане','черновик':'Черновик'};
+  function qp(k){try{return new URLSearchParams(location.search).get(k);}catch(e){return null;}}
+  function renderText(t){return E(t).replace(/\n/g,'<br>').replace(/(#[0-9A-Za-zА-Яа-яЁё_]+)/g,'<span class="ht">$1</span>');}
+  function num(n){return (n==null?0:n).toLocaleString('ru');}
+
+  function media(p){
+    if(p.video) return '<div class="pmedia"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation" loading="lazy" title="Видео поста"></iframe></div>';
+    if(p.cover) return '<div class="pmedia"><img src="'+E(DI(p.cover,1000))+'" alt="'+E(p.alt||p.idea||'обложка поста')+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна (откройте доступ к файлу на Google Drive)\'"></div>';
+    return '<div class="pmedia noimg">обложка не задана в таблице</div>';
+  }
+  function stats(p){
+    if(!p.stats) return '<div class="panel"><div class="panel-t">статистика поста</div><div class="nostat">Появится после заноса. Снэпшот делаем <b>через 7 дней</b> после публикации (48 часов - по желанию): охват, сохранения, переходы, контакты.</div></div>';
+    var s=p.stats, vV=p.brand==='V';
+    function c(cls,n,l,hl){return '<div class="scell '+cls+(hl?' hl':'')+'"><div class="n">'+num(n)+'</div><div class="l">'+l+'</div></div>';}
+    return '<div class="panel"><div class="panel-t">статистика поста · снэпшот '+E(s.snap||'-')+(s.date?' · '+E(s.date):'')+'</div>'+
+      '<div class="statgrid">'+
+      c('reach',s.reach,'охват')+c('contacts',s.contacts,'контакты',vV)+c('saves',s.saves,'сохранения')+c('clicks',s.clicks,'переходы')+
+      '</div>'+(s.er!=null?'<div class="mrow" style="border-top:none;padding-top:11px"><span class="k">ER</span><span class="v" style="color:var(--gold)">'+s.er+'%</span></div>':'')+'</div>';
+  }
+  function render(p){
+    var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
+    function row(k,v){return v?'<div class="mrow"><span class="k">'+k+'</span><span class="v">'+E(v)+'</span></div>':'';}
+    var when=(p.week?('Н'+p.week):'')+(p.slot&&p.slot!=='-'?' · '+p.slot:'');
+    var links='';
+    if(p.status==='опубликовано'&&p.url) links+='<a class="plink" href="'+E(p.url)+'" target="_blank" rel="noopener">Открыть пост в соцсети ↗</a>';
+    if(p.extraUrl) links+='<a class="plink sec" href="'+E(p.extraUrl)+'" target="_blank" rel="noopener">Доп. ссылка ↗</a>';
+
+    var left='<div class="feedcard" data-annotate-section data-annotate-key="post-'+E(p.id)+'" data-annotate-label="'+E((p.slot?p.slot+' · ':'')+(p.idea||p.rubric||''))+'">'+
+        '<div class="fc-h"><span class="fc-av '+b+'"></span><div><div class="fc-hn">'+GGData.brandName(p.brand)+'</div><div class="fc-hm">'+E(p.channel||'')+(p.pubdate?' · '+E(p.pubdate):'')+'</div></div></div>'+
+        media(p)+
+        '<div class="pcap"><span class="hn">'+GGData.brandName(p.brand).toLowerCase()+'</span>'+(p.text?renderText(p.text):'<span style="color:var(--ink3)">текст поста не заполнен в таблице</span>')+'</div>'+
+      '</div>'+
+      '<div class="hint">Комментарий к посту: нажми «Комментировать» слева внизу и выдели область на превью. Заметки видны команде.</div>';
+
+    var right='<div class="panel"><div class="panel-t">карточка поста</div>'+
+        row('Бренд',GGData.brandName(p.brand))+row('Статус',stLab[p.status])+row('Неделя / слот',when)+
+        row('Канал',p.channel)+row('Формат',p.format)+row('Рубрика',p.rubric&&p.rubric!=='-'?p.rubric:'')+
+        row('Цель',p.goal&&p.goal!=='-'?p.goal:'')+row('Ответственный',p.owner)+row('Дата публикации',p.pubdate)+
+        links+'</div>'+stats(p);
+
+    document.getElementById('post').innerHTML=
+      '<div class="phead"><span class="bchip '+b+'">'+GGData.brandName(p.brand)+'</span><span class="schip '+cl+'">'+stLab[p.status]+'</span></div>'+
+      '<h1 class="ptitle">'+E(p.idea||'Пост')+'</h1>'+
+      (p.hook&&p.hook!=='-'?'<div class="psub">'+E(p.hook)+'</div>':'<div style="height:10px"></div>')+
+      '<div class="pgrid">'+left+right+'</div>';
+    document.title=(p.idea||'Пост')+' · Контент-план · GENGROUP';
+    if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,80);
+  }
+  function notFound(id){
+    document.getElementById('post').innerHTML='<div class="loadwrap"><p style="font-size:16px;color:var(--ink);font-weight:600;margin-bottom:8px">Пост не найден</p><p>'+(id?'ID «'+E(id)+'» нет в таблице. ':'')+'Вернитесь в контент-план и откройте пост заново.</p><a class="plink sec" style="max-width:240px;margin:16px auto 0" href="plan.html">← В контент-план</a></div>';
+  }
+  var id=qp('id');
+  if(!id){ notFound(''); }
+  else GGData.load().then(function(o){
+    var p=(o.plan||[]).filter(function(x){return String(x.id)===String(id);})[0];
+    if(p) render(p); else notFound(id);
+  }).catch(function(){ notFound(id); });
+})();
+</script>
+<script src="theme.js" defer></script>
+<script src="../annotate/annotate-init.js" data-page="brand-site-post" data-sections="[data-annotate-section]" defer></script>
+</body>
+</html>

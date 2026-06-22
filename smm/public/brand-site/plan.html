@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" translate="no" class="notranslate">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="google" content="notranslate">
 <title>Контент-план · GENGROUP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +13,7 @@
 /* тема и вид ДО отрисовки - без мигания (FOUC). Дефолт: плитки + светлая (форсим). */
 (function(){var d=document.documentElement;
   var v=localStorage.getItem('cp.view'); d.dataset.view=(v==='tiles'||v==='table')?v:'tiles';
-  var t=localStorage.getItem('gg.theme'); d.dataset.theme=(t==='light'||t==='dark')?t:'light';
+  var t=localStorage.getItem('gg.theme'); d.dataset.theme=(t==='light'||t==='dark')?t:'dark';
 })();
 </script>
 <style>
@@ -21,21 +22,23 @@
     --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
     --gold:#8A6514;--gold-ink:#8A6514;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
     --steel:#4E5663;--steel-ink:#3C434E;--steel-soft:rgba(78,86,99,.12);
-    --pub:#1F7A52;--pub-ink:#1F7A52;--pub-soft:rgba(31,122,82,.12);
-    --sgl:#9A5A12;--sgl-ink:#9A5A12;--sgl-soft:rgba(242,184,74,.20);
+    --pub:#1F7A52;--pub-ink:#176B45;--pub-soft:rgba(31,122,82,.12);
+    --sgl:#9A5A12;--sgl-ink:#83500F;--sgl-soft:rgba(242,184,74,.20);
     --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
+    --drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
     --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;--danger:#B23A28;--link:#2C5377;
     --shadow:0 1px 2px rgba(20,20,25,.05);--shadow-lg:0 8px 24px rgba(20,20,25,.12);
   }
   :root[data-theme="dark"]{
-    --bg:#0F1115;--s1:#181B21;--s2:#20242C;--s3:#2A2F38;--line:#262B33;--line2:#333A44;
-    --ink:#EDEEF0;--ink2:#A6ABB5;--ink3:#878D97;
-    --gold:#E6BE63;--gold-ink:#E6BE63;--gold-soft:rgba(230,190,99,.14);--gold-fill:#E6BE63;--gold-border:#E6BE63;
-    --steel:#9AA3AF;--steel-ink:#B4BCC6;--steel-soft:rgba(154,163,175,.15);
-    --pub:#46C08A;--pub-ink:#46C08A;--pub-soft:rgba(70,192,138,.15);
-    --sgl:#E6BE63;--sgl-ink:#E6BE63;--sgl-soft:rgba(230,190,99,.16);
-    --pln:#8A93A0;--pln-ink:#8A93A0;--pln-soft:rgba(138,147,160,.14);
-    --cta:#E6BE63;--cta-ink:#15171B;--gold-btn-ink:#15171B;--danger:#E0644A;--link:#7FA8C6;
+    --bg:#0A0C10;--s1:#161A21;--s2:#1E232C;--s3:#2A3039;--line:#2D333E;--line2:#3B4350;
+    --ink:#F4F5F7;--ink2:#B4BAC4;--ink3:#8B929D;
+    --gold:#EBC56E;--gold-ink:#EBC56E;--gold-soft:rgba(235,197,110,.15);--gold-fill:#EBC56E;--gold-border:#EBC56E;
+    --steel:#A4ADB9;--steel-ink:#C2C9D3;--steel-soft:rgba(164,173,185,.16);
+    --pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
+    --sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
+    --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);
+    --drf:#9AA2B0;--drf-ink:#AEB6C2;--drf-soft:rgba(154,162,176,.16);
+    --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;--danger:#E86A50;--link:#8FB6D4;
     --shadow:0 1px 2px rgba(0,0,0,.35);--shadow-lg:0 10px 28px rgba(0,0,0,.5);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -66,13 +69,13 @@
   .planbar{position:sticky;top:0;z-index:49;border-bottom:1px solid var(--line);background:var(--bg)}
   .planbar-in{max-width:1240px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .ttl .ey{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);font-weight:700}
-  .ttl h2{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
+  .ttl h1{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:1px}
   .controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .seg{display:inline-flex;background:var(--s2);border:1px solid transparent;border-radius:8px;padding:3px;gap:2px}
   .seg button{font:inherit;font-size:12.5px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:6px 12px;cursor:pointer}
   .seg button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
-  .howto{font:inherit;font-size:12.5px;font-weight:800;color:var(--cta-ink);background:var(--cta);border:none;border-radius:8px;padding:9px 15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;box-shadow:var(--shadow)}.howto:hover{filter:brightness(.96)}.howto:active{filter:brightness(.92)}
-  .src{max-width:1240px;margin:0 auto;padding:8px 22px 0;font-size:12.5px;color:var(--ink2)}
+  .howto{font:inherit;font-size:16px;font-weight:700;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:8px;width:40px;height:40px;padding:0;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.howto:hover{background:var(--s3);color:var(--ink)}
+  .src{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30vw}
   .src .ok{color:var(--pub-ink);font-weight:700}.src .warn{color:var(--sgl-ink);font-weight:700}
   /* KPI */
   .kpis{max-width:1240px;margin:0 auto;padding:14px 22px 6px;display:grid;grid-template-columns:repeat(4,1fr) 1.5fr;gap:12px}
@@ -129,12 +132,35 @@
   .wkband h2{font-size:15px;font-weight:800}.wkband .pill{font-size:12px;color:var(--ink2);background:var(--s2);border:1px solid transparent;border-radius:30px;padding:4px 12px}
   .wkband .ln{flex:1;height:1px;background:var(--line)}
   .tile{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:transform .18s,box-shadow .18s}
-  .tile::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px}
-  .tile.g::after{background:var(--steel)}.tile.v::after{background:var(--gold)}
+  .tile::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(158deg,var(--_tt,transparent),transparent 38%);opacity:.4}
+  .tile.g{--_tt:var(--steel-soft)}.tile.v{--_tt:var(--gold-soft)}
+  .tile.g:hover{border-color:color-mix(in srgb,var(--steel) 38%,var(--line))}.tile.v:hover{border-color:color-mix(in srgb,var(--gold) 38%,var(--line))}
+  .tile>*{position:relative}
   .tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
   .tile.sit{border-style:dashed}
-  .tcover{aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
+  .tile.is-draft{border-style:dashed;border-color:color-mix(in srgb,var(--drf) 40%,var(--line))}
+  /* статус «черновик» */
+  .stb.drf{color:var(--drf-ink);background:var(--drf-soft)}.stb.drf::before{background:var(--drf)}
+  .kpi.drf .n{color:var(--drf-ink)}
+  .kpi[data-scope]{font:inherit;text-align:left;width:100%;color:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+  .kpi[data-scope]:hover{border-color:var(--line2);transform:translateY(-1px)}
+  .kpi.active{border-color:var(--cta);box-shadow:inset 0 0 0 1.5px var(--cta),var(--shadow)}
+  .kpi[data-scope]:focus-visible{outline:2px solid var(--cta);outline-offset:2px}
+  /* сегмент Черновики / В работе */
+  .seg.scope button b{margin-left:6px;font-weight:800;color:var(--ink3)}
+  .seg.scope button.on b{color:var(--drf-ink)}
+  /* underline-добивка: гасим авто-ссылки браузера в плитках/таблице/модалке */
+  #tiles a:not([class]),#tbody a:not([class]),#pm a:not([class]){color:inherit!important;text-decoration:none!important;overflow-wrap:anywhere;word-break:break-word}
+  /* НЕДЕЛЬНАЯ СЕТКА КРУПНЫХ КАРТОЧЕК (календарный ритм по неделям, дни на карточке) */
+  .calwrap{grid-column:1/-1;display:flex;flex-direction:column;gap:26px}
+  .weekgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px;margin-top:12px}
+  .tcover{position:relative;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:11px}
   .tcover img{width:100%;height:100%;object-fit:cover;display:block}
+  .tcover.noimg{display:none}
+  .playb{width:42px;height:42px;border-radius:50%;background:rgba(15,15,20,.6);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px}
+  .tcover.hasvid .playb{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 12px rgba(0,0,0,.45)}
+  .tcover.vidph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,var(--s2),var(--s3))}
+  .tcover.vidph .vlab{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)}
   .th{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .slot{font-size:12px;font-weight:700;color:var(--ink3)}
   .rub{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
@@ -142,8 +168,11 @@
   .thook{font-size:13px;color:var(--ink2);font-style:italic;overflow-wrap:anywhere}
   .meta{display:flex;flex-wrap:wrap;gap:6px}
   .mchip{font-size:11px;color:var(--ink2);background:var(--s2);border:1px solid transparent;border-radius:20px;padding:3px 9px}
-  .tfoot{display:flex;align-items:center;gap:10px;margin-top:auto;padding-top:4px}
-  .tstat{font-size:11.5px;color:var(--ink3)}.tstat b{color:var(--ink2)}
+  .mchip.vid{color:var(--ink);font-weight:700}
+  .tfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .tstat{font-size:11.5px;color:var(--ink3);display:inline-flex;align-items:center;gap:5px}.tstat b{color:var(--ink2)}
+  .tstat::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--ink3);flex:none}
+  .tstat.ic-r::before{background:var(--steel);border-radius:50%}.tstat.ic-c::before{background:var(--gold)}.tstat.ic-e::before{background:var(--pub)}
   .empty{color:var(--ink3);padding:30px 4px}
   .foot{max-width:1240px;margin:0 auto;padding:26px 22px 70px;color:var(--ink3);font-size:12.5px}
   /* MODALS (под оверлеем комментариев annotate z8000) */
@@ -166,12 +195,16 @@
   .feed-cover{aspect-ratio:4/5;max-height:46vh;overflow:hidden;background:linear-gradient(135deg,var(--s2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:12px}
   .feed-cover.noimg{aspect-ratio:auto;min-height:0;padding:13px;justify-items:start;font-style:italic}
   .feed-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .feed-video{position:relative;width:100%;aspect-ratio:4/5;max-height:56vh;background:#000}
+  .feed-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
   .feed-act{display:flex;gap:14px;padding:10px 13px 4px;font-size:17px;color:var(--ink2)}
   .feed-act .sv{margin-left:auto}
   .feed-cap{padding:2px 13px 14px;font-size:13.5px;line-height:1.5;overflow-wrap:anywhere;word-break:break-word;white-space:normal}.feed-cap b{font-weight:800;margin-right:5px}
-  /* гасим авто-ссылки телефон/дата/адрес, которые мобильные браузеры навешивают на текст (подчёркивание + цвет + клиппинг) */
-  .modal a:not([class]){color:inherit!important;text-decoration:none!important;overflow-wrap:anywhere;word-break:break-word}
-  .modal .snap,.modal .statgrid .n,.modal .pm-row,.modal .stb,.modal .kv{overflow-wrap:anywhere;word-break:break-word}
+  /* ДЕФИНИТИВНО: ни одного подчёркивания в модалке (включая авто-ссылки браузера) + жёсткий перенос, текст не вылезает за область */
+  #pm *{text-decoration:none!important}
+  #pm font,#pm [style*="text-decoration"]{color:inherit!important;text-decoration:none!important;background:transparent!important}
+  #pm a:not([class]){color:inherit!important}
+  #pm,.pm-body,.feed-cap,.pm-row,.pm-row>*,.feed-h>div,.pm-idea{min-width:0;overflow-wrap:anywhere;word-break:break-word}
   .pm-hint{font-size:11.5px;color:var(--ink3);margin-top:10px}
   .statbox{margin-top:14px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
   .statbox .sh{background:var(--s2);padding:9px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:700;display:flex}
@@ -204,49 +237,64 @@
   .pipe .p{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid var(--line2)}
   .pipe .p.pln{color:var(--pln-ink);background:var(--pln-soft)}.pipe .p.sgl{color:var(--sgl-ink);background:var(--sgl-soft)}.pipe .p.pub{color:var(--pub-ink);background:var(--pub-soft)}
   .pipe .ar{color:var(--ink3)}
+  /* календарь: с 7 колонок мягко в группировку по дням */
+  @media(max-width:520px){.weekgrid{grid-template-columns:1fr;gap:10px}}
   @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi.bar{grid-column:1/-1}}
   @media(max-width:880px){.pm-grid,.steps{grid-template-columns:1fr}.pm-left{border-right:none;border-bottom:1px solid var(--line)}}
   @media(max-width:640px){
     .top-in,.planbar-in,.kpis,.rowline,.filters,.src{padding-left:14px;padding-right:14px}
     .wrap{padding-left:14px;padding-right:14px}
-    .planbar-in{gap:9px}.controls{margin-left:0;width:100%}
+    .planbar-in{gap:9px}.controls{margin-left:0;width:100%;flex-wrap:wrap;gap:8px}.seg.scope{flex:1 1 100%}.seg.scope button{flex:1}
     .kpis{grid-template-columns:1fr 1fr;gap:9px}.kpi{padding:11px 13px;border-radius:10px}.kpi .n{font-size:21px}
     .tiles{grid-template-columns:1fr}
-    .ttl h2{font-size:16px}
+    .ttl h1{font-size:16px}
     .ov{padding:0}.modal{max-width:100%;max-height:100vh;min-height:100dvh;border:none;border-radius:0}
     .modal-h{padding:14px 16px}.pm-left,.pm-right,.ht-body{padding:16px}
-    .fbtn,.seg button,.tt button,.howto,.nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+    .fbtn,.seg button,.tt button,.howto,.nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center}.kpi[data-scope]{min-height:40px}
     .sortsel select{min-height:40px;padding:8px 12px}
     .planbar{position:static}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media(max-width:1024px){.nav a,.fbtn,.seg button,.tt button{min-height:40px;display:inline-flex;align-items:center;justify-content:center}}
+  .playb{box-shadow:0 0 0 1px rgba(255,255,255,.25),0 2px 12px rgba(0,0,0,.45)}
+  /* ===== elevation (Design Award): пружина, премиум-глубина, фокус-свечение ===== */
+  :root{--ease-spring:cubic-bezier(.34,1.28,.64,1)}
+  :root[data-theme="dark"]{--glow1:rgba(235,197,110,.06);--glow2:rgba(110,140,180,.05)}
+  :root[data-theme="light"]{--glow1:transparent;--glow2:transparent}
+  body{background-image:radial-gradient(1100px 520px at 88% -8%,var(--glow1,transparent),transparent 60%),radial-gradient(900px 480px at -8% 4%,var(--glow2,transparent),transparent 55%)}
+  a:focus-visible,button:focus-visible,[tabindex]:focus-visible,select:focus-visible{box-shadow:0 0 0 4px var(--gold-soft)}
+  .tile{transition:transform .2s var(--ease-spring),box-shadow .2s,border-color .2s}
+  .kpi[data-scope]{transition:transform .18s var(--ease-spring),border-color .15s,box-shadow .15s}
+  .howto,.fbtn,.seg button{transition:.18s var(--ease-spring)}
+  .tt button{display:inline-flex;align-items:center;justify-content:center}.tt button svg{display:block}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">К содержанию</a>
 <header class="top"><div class="top-in">
-  <div class="brand"><span class="dot"></span>GEN&nbsp;/&nbsp;BRAND <span>· инструмент маркетинга</span></div>
+  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</div>
   <nav class="nav" aria-label="Разделы сайта">
     <a class="on" href="plan.html"><span class="n">01</span>Контент-план</a>
     <a href="index.html"><span class="n">02</span>Платформа бренда</a>
     <a href="audience.html"><span class="n">03</span>Аудитория</a>
     <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
   </nav>
-  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема">☀</button><button data-t="dark" type="button" aria-label="Тёмная тема">☾</button></div>
+  <div class="src" id="src" role="status" aria-live="polite" title="источник данных">загрузка…</div>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
 </div></header>
 <div class="planbar"><div class="planbar-in">
-  <div class="ttl"><div class="ey">GENGROUP · контроль</div><h2>Контент-план</h2></div>
+  <div class="ttl"><div class="ey">GENGROUP · SMM</div><h1>Контент-план</h1></div>
+  <div class="seg scope" id="scopebar" role="group" aria-label="Раздел"></div>
   <div class="controls">
-    <a class="howto" href="howto.html">Как работает</a>
-    <div class="seg" role="group" aria-label="Вид"><button id="v-tiles" type="button">▤ Плитки</button><button id="v-table" type="button">▦ Таблица</button></div>
+    <a class="howto" href="howto.html" title="Как работает" aria-label="Как работает">?</a>
+    <div class="seg" id="viewseg" role="group" aria-label="Вид"><button id="v-tiles" type="button" title="Плитки" aria-label="Плитки">▤</button><button id="v-table" type="button" title="Таблица" aria-label="Таблица">▦</button></div>
   </div>
 </div></div>
 
-<div class="src" id="src">загрузка…</div>
-<div class="kpis" id="kpis" aria-label="Операционные показатели"></div>
+<div class="kpis" id="kpis" aria-label="Сводка плана"></div>
 <div class="rowline" id="brandbar"></div>
 <div class="rowline" id="results"></div>
-<div class="filters" id="filters" aria-label="Фильтры и сортировка"></div>
+<div class="filters" id="filters" aria-label="Фильтры"></div>
 
 <main class="wrap" id="main">
   <div id="tableWrap" class="tablewrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -255,7 +303,7 @@
 <div class="foot">GENGROUP · контент-план · гибрид B (таблица) + C (плитки) · свет/тьма · данные из Google-таблицы SMM · инструмент публичный по дизайну (ссылку не публиковать) · метрика VALONTI = контакты дизайнеров, не охваты.</div>
 
 <!-- модалка поста -->
-<div class="ov" id="pm-ov" role="dialog" aria-modal="true" aria-label="Пост"><div class="modal" id="pm"></div></div>
+<div class="ov notranslate" id="pm-ov" role="dialog" aria-modal="true" aria-label="Пост" translate="no"><div class="modal notranslate" id="pm" translate="no"></div></div>
 <!-- модалка инструкции -->
 <!-- инструкция вынесена на отдельную страницу howto.html -->
 
@@ -265,10 +313,11 @@
 <script>
 (function(){
   var E=GGData.esc, R=document.documentElement, DI=GGData.driveImg;
-  var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1};
-  var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Пост'}];
-  var STORD={'план':0,'на согл':1,'опубликовано':2};
-  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане'};
+  var ALL=[], byId={}, state={brand:'all',status:'all',week:'all',sort:'week',dir:1,scope:'draft'};
+  var COLS=[{k:'cover',t:''},{k:'week',t:'Нед'},{k:'slot',t:'Слот'},{k:'brand',t:'Бренд'},{k:'rubric',t:'Рубрика'},{k:'idea',t:'Идея / хук'},{k:'channel',t:'Канал'},{k:'goal',t:'Цель'},{k:'owner',t:'Ответств.'},{k:'status',t:'Статус'},{k:'url',t:'Метрика'}];
+  var STORD={'черновик':-1,'план':0,'на согл':1,'опубликовано':2};
+  var stCls={'опубликовано':'pub','на согл':'sgl','план':'pln','черновик':'drf'}, stLab={'опубликовано':'Опубликовано','на согл':'На согласовании','план':'В плане','черновик':'Черновик'};
+  function isDraft(p){return p.status==='черновик';}
 
   /* ---- переключатели ---- */
   function syncToggles(){
@@ -282,15 +331,20 @@
   /* ---- KPI ---- */
   function kpis(){
     var real=ALL.filter(function(p){return !p.situational;});
-    function c(s){return real.filter(function(p){return p.status===s;}).length;}
-    var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=real.length,pct=tot?Math.round(pub/tot*100):0;
+    var draftN=real.filter(isDraft).length;
+    var work=real.filter(function(p){return !isDraft(p);});
+    function c(s){return work.filter(function(p){return p.status===s;}).length;}
+    var pub=c('опубликовано'),sgl=c('на согл'),pln=c('план'),tot=work.length,pct=tot?Math.round(pub/tot*100):0;
+    var aDraft=state.scope==='draft'?' active':'';
+    function aSt(s){return (state.scope==='work'&&state.status===s)?' active':'';}
     document.getElementById('kpis').innerHTML=
-      '<div class="kpi"><div class="n">'+tot+'</div><div class="l">постов в плане</div></div>'+
-      '<div class="kpi pub"><div class="n">'+pub+'</div><div class="l">опубликовано</div></div>'+
-      '<div class="kpi sgl"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></div>'+
-      '<div class="kpi pln"><div class="n">'+pln+'</div><div class="l">в работе</div></div>'+
+      '<button type="button" class="kpi drf'+aDraft+'" data-scope="draft"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></button>'+
+      '<button type="button" class="kpi pln'+aSt('план')+'" data-scope="work" data-st="план"><div class="n">'+pln+'</div><div class="l">в плане</div></button>'+
+      '<button type="button" class="kpi sgl'+aSt('на согл')+'" data-scope="work" data-st="на согл"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></button>'+
+      '<button type="button" class="kpi pub'+aSt('опубликовано')+'" data-scope="work" data-st="опубликовано"><div class="n">'+pub+'</div><div class="l">опубликовано</div></button>'+
       '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
-    var g=real.filter(function(p){return p.brand!=='V';}),v=real.filter(function(p){return p.brand==='V';});
+    Array.prototype.forEach.call(document.querySelectorAll('#kpis .kpi[data-scope]'),function(b){b.onclick=function(){state.scope=b.dataset.scope;state.status=b.dataset.st||'all';render();};});
+    var g=work.filter(function(p){return p.brand!=='V';}),v=work.filter(function(p){return p.brand==='V';});
     document.getElementById('brandbar').innerHTML='<span class="cap">по брендам</span>'+
       '<div class="chipm g">GENGLASS · опубл. <b>'+g.filter(function(p){return p.status==='опубликовано';}).length+' / '+g.length+'</b></div>'+
       '<div class="chipm v">VALONTI · опубл. <b>'+v.filter(function(p){return p.status==='опубликовано';}).length+' / '+v.length+'</b></div>';
@@ -318,9 +372,8 @@
     var weeks=Array.from(new Set(ALL.map(function(p){return p.week;}))).sort(function(a,b){return a-b;});
     function grp(label,key,opts){return '<div class="fg"><span class="lab">'+label+'</span>'+opts.map(function(o){return '<button class="fbtn'+(state[key]==o.v?' on':'')+'" data-k="'+key+'" data-v="'+o.v+'">'+o.t+'</button>';}).join('')+'</div>';}
     var html=grp('бренд','brand',[{v:'all',t:'все'},{v:'G',t:'GENGLASS'},{v:'V',t:'VALONTI'}])+
-      grp('статус','status',[{v:'all',t:'все'},{v:'опубликовано',t:'опубл.'},{v:'на согл',t:'на согл'},{v:'план',t:'в плане'}])+
       grp('неделя','week',[{v:'all',t:'все'}].concat(weeks.map(function(w){return {v:String(w),t:'Н'+w};})));
-    html+='<div class="sortsel"><span class="fcount" id="fcount"></span>';
+    html+='<div class="sortsel"><span class="fcount" id="fcount" aria-live="polite"></span>';
     if(R.dataset.view==='tiles'){html+='сортировка <select id="tsort">'+[['week','неделя'],['status','статус'],['brand','бренд'],['idea','идея']].map(function(o){return '<option value="'+o[0]+'"'+(state.sort===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select>';}
     html+='</div>';
     var f=document.getElementById('filters'); f.innerHTML=html;
@@ -328,7 +381,11 @@
     var ts=document.getElementById('tsort'); if(ts) ts.onchange=function(){state.sort=ts.value;state.dir=1;render();};
   }
   function applied(){
-    var d=ALL.filter(function(p){return (state.brand==='all'||p.brand===state.brand)&&(state.status==='all'||p.status===state.status)&&(state.week==='all'||String(p.week)===state.week);});
+    var d=ALL.filter(function(p){
+      if(state.scope==='draft'){ if(!isDraft(p)) return false; }
+      else { if(isDraft(p)) return false; if(state.status!=='all'&&p.status!==state.status) return false; }
+      return (state.brand==='all'||p.brand===state.brand)&&(state.week==='all'||String(p.week)===state.week);
+    });
     d.sort(function(a,b){var k=state.sort,va,vb;
       if(k==='status'){va=STORD[a.status];vb=STORD[b.status];}else if(k==='week'){va=a.week;vb=b.week;}else{va=(a[k]||'').toString().toLowerCase();vb=(b[k]||'').toString().toLowerCase();}
       if(va<vb)return -state.dir; if(va>vb)return state.dir; return a.week-b.week;});
@@ -345,37 +402,51 @@
     document.getElementById('thead').innerHTML='<tr>'+COLS.map(function(c){return '<th tabindex="0" data-k="'+c.k+'" class="'+(state.sort===c.k?'sorted':'')+'">'+c.t+'<span class="ar">'+(state.dir>0?'▲':'▼')+'</span></th>';}).join('')+'</tr>';
     Array.prototype.forEach.call(document.querySelectorAll('#thead th'),function(th){function go(){var k=th.dataset.k;if(k==='cover')return;if(state.sort===k)state.dir=-state.dir;else{state.sort=k;state.dir=1;}render();}th.onclick=go;th.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};});
     document.getElementById('tbody').innerHTML=d.map(function(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-      return '<tr'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
+      return '<tr tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'"'+(p.situational?' class="sit"':'')+' data-id="'+E(p.id)+'">'+
         '<td>'+thumb(p)+'</td><td>'+(p.week||'-')+'</td><td>'+E(p.slot||'-')+'</td>'+
         '<td><span class="bdot '+b+'">'+(p.brand==='V'?'V':'G')+'</span></td>'+
         '<td>'+E(p.rubric||'-')+(p.situational?' <span class="muted">· ситуатив</span>':'')+'</td>'+
         '<td><div class="idea">'+E(p.idea||'-')+'</div>'+(p.hook&&p.hook!=='-'?'<div class="hook">'+E(p.hook)+'</div>':'')+'</td>'+
         '<td class="muted">'+E(p.channel||'-')+'</td><td class="muted">'+E(p.goal||'-')+'</td><td class="muted">'+E(p.owner||'-')+'</td>'+
         '<td><span class="stb '+cl+'">'+(stLab[p.status]||'В плане')+'</span></td>'+
-        '<td>'+(openLink(p,'↗ пост')||'<span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span>')+'</td></tr>';}).join('');
+        '<td><span class="kv">'+(p.stats?'ER '+(p.stats.er!=null?p.stats.er+'%':'-'):'-')+'</span></td></tr>';}).join('');
   }
   /* ---- ПЛИТКИ ---- */
-  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln';
-    var cov=p.cover?'<div class="tcover"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.remove()"></div>':'';
-    var st=p.stats?'<span class="tstat">'+(p.brand==='V'?'контакты <b>'+(p.stats.contacts||0)+'</b>':'охват <b>'+(p.stats.reach||0).toLocaleString('ru')+'</b>')+'</span>':'';
-    return '<article class="tile '+b+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
-      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(p.slot?'<span class="slot">'+E(p.slot)+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
+  function statChips(p){
+    if(!p.stats) return '';
+    var s=p.stats, out='';
+    if(p.brand==='V') out+='<span class="tstat ic-c"><b>'+(s.contacts||0)+'</b> контактов</span>';
+    else out+='<span class="tstat ic-r"><b>'+(s.reach||0).toLocaleString('ru')+'</b> охват</span>';
+    if(s.er!=null) out+='<span class="tstat ic-e"><b>'+s.er+'%</b> ER</span>';
+    return out;
+  }
+  function tile(p){var b=p.brand==='V'?'v':'g',cl=stCls[p.status]||'pln',vid=!!p.video;
+    var cov='';
+    if(p.cover) cov='<div class="tcover'+(vid?' hasvid':'')+'"><img src="'+E(DI(p.cover,600))+'" alt="'+E(p.alt||p.idea)+'" loading="lazy" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">'+(vid?'<span class="playb" aria-hidden="true">▶</span>':'')+'</div>';
+    else if(vid) cov='<div class="tcover vidph"><span class="playb" aria-hidden="true">▶</span><span class="vlab">видео</span></div>';
+    var when=(p.slot&&p.slot!=='-'?E(p.slot):'')+(p.pubdate?((p.slot&&p.slot!=='-')?' · ':'')+E(p.pubdate):'');
+    return '<article tabindex="0" role="button" aria-label="Открыть пост: '+E(p.idea||'пост')+'" class="tile '+b+(isDraft(p)?' is-draft':'')+(p.situational?' sit':'')+'" data-id="'+E(p.id)+'">'+cov+
+      '<div class="th"><span class="bdot '+b+'">'+GGData.brandName(p.brand)+'</span>'+(when?'<span class="slot">'+when+'</span>':'')+'<span class="stb '+cl+'" style="margin-left:auto">'+(stLab[p.status]||'В плане')+'</span></div>'+
       (p.rubric&&p.rubric!=='-'?'<div class="rub">'+E(p.rubric)+'</div>':'')+
       '<div class="tidea">'+E(p.idea||'-')+'</div>'+
       (p.hook&&p.hook!=='-'?'<div class="thook">'+E(p.hook)+'</div>':'')+
-      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+'</div>'+
-      '<div class="tfoot">'+st+(openLink(p,'Открыть пост ↗')||'')+'</div>'+
+      '<div class="meta">'+(p.channel?'<span class="mchip">'+E(p.channel)+'</span>':'')+(p.format?'<span class="mchip">'+E(p.format)+'</span>':'')+(vid?'<span class="mchip vid">▶ видео</span>':'')+'</div>'+
+      (statChips(p)?'<div class="tfoot">'+statChips(p)+'</div>':'')+
     '</article>';
   }
+  var DAYS=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  function dayIdx(p){var i=DAYS.indexOf(p.slot);return i<0?99:i;}
   function renderTiles(d){
     var host=document.getElementById('tiles');
     if(!d.length){host.innerHTML='<div class="empty">нет постов под фильтр</div>';return;}
     if(state.sort==='week'){
       var wk={};d.forEach(function(p){(wk[p.week]=wk[p.week]||[]).push(p);});
-      host.innerHTML=Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
-        var it=wk[w],pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
-        return '<div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+it.map(tile).join('');
-      }).join('');
+      host.innerHTML='<div class="calwrap">'+Object.keys(wk).map(Number).sort(function(a,b){return a-b;}).map(function(w){
+        var it=wk[w].slice().sort(function(a,b){return dayIdx(a)-dayIdx(b);});
+        var pub=it.filter(function(p){return p.status==='опубликовано';}).length,pl=it.filter(function(p){return !p.situational;}).length;
+        return '<section class="calblock"><div class="wkband"><h2>Неделя '+w+'</h2><span class="pill">'+pub+' из '+pl+' опубл.</span><span class="ln"></span></div>'+
+               '<div class="weekgrid">'+it.map(tile).join('')+'</div></section>';
+      }).join('')+'</div>';
     } else host.innerHTML=d.map(tile).join('');
   }
 
@@ -389,10 +460,16 @@
   }
 
   /* ---- модалка поста ---- */
+  var lastFocus=null;
   function openPost(id){
     var p=byId[id]; if(!p) return;
+    lastFocus=document.activeElement;
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
-    var cover=p.cover?'<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>':'<div class="feed-cover noimg">обложка не задана в таблице</div>';
+    var cover;
+    // источник video - та же Google-таблица команды (доверенный), ссылка E()-экранирована; sandbox опущен ради Drive-плеера
+    if(p.video){ cover='<div class="feed-video"><iframe src="'+E(GGData.driveEmbed(p.video))+'" allow="autoplay; encrypted-media; fullscreen" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation" loading="lazy" title="Видео поста"></iframe></div>'; }
+    else if(p.cover){ cover='<div class="feed-cover"><img src="'+E(DI(p.cover,900))+'" alt="'+E(p.alt||p.idea)+'" onerror="this.parentNode.classList.add(\'noimg\');this.parentNode.textContent=\'картинка недоступна\'"></div>'; }
+    else { cover='<div class="feed-cover noimg">обложка не задана в таблице</div>'; }
     var cap=p.text?renderText(p.text):'<span class="muted">текст поста не заполнен в таблице</span>';
     var feed='<div class="feed" data-annotate-section data-annotate-key="post-'+E(p.id)+'" data-annotate-label="'+E((p.slot?p.slot+' · ':'')+(p.idea||p.rubric))+'">'+
       '<div class="feed-h"><span class="av '+b+'"></span><div><div class="fn">'+GGData.brandName(p.brand)+'</div><div class="fm">'+E(p.channel||'')+(p.pubdate?' · '+E(p.pubdate):(p.slot?' · '+E(p.slot):''))+'</div></div><span class="more">···</span></div>'+
@@ -411,49 +488,51 @@
       '<div class="pm-body">'+feed+'<div class="pm-hint">Комментарий к посту: нажми «Комментировать» слева внизу и выдели область на превью. Заметки видны команде.</div>'+right+stats+'</div>';
     document.getElementById('pm-x').onclick=closePost;
     var ov=document.getElementById('pm-ov'); ov.classList.add('open');
+    setTimeout(function(){var x=document.getElementById('pm-x'); if(x) x.focus();},0);
     if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,70);
   }
-  function closePost(){document.getElementById('pm-ov').classList.remove('open');document.getElementById('pm').innerHTML='';if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,30);}
+  function closePost(){document.getElementById('pm-ov').classList.remove('open');document.getElementById('pm').innerHTML='';if(lastFocus&&lastFocus.focus){lastFocus.focus();lastFocus=null;}if(window.ANNOTATE_REFRESH) setTimeout(window.ANNOTATE_REFRESH,30);}
   document.getElementById('pm-ov').addEventListener('click',function(e){if(e.target===this)closePost();});
+  document.getElementById('pm-ov').addEventListener('keydown',function(e){
+    if(e.key!=='Tab'||!this.classList.contains('open'))return;
+    var f=Array.prototype.filter.call(this.querySelectorAll('a[href],button,[tabindex]:not([tabindex="-1"]),input,select,textarea'),function(el){return el.offsetParent!==null;});
+    if(!f.length)return; var first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  });
 
   /* делегирование клика по карточке/строке -> модалка (кроме ссылок) */
-  function bindOpen(host){host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)openPost(el.getAttribute('data-id'));});}
+  function goPost(el){location.href='post.html?id='+encodeURIComponent(el.getAttribute('data-id'));}
+  function bindOpen(host){
+    host.addEventListener('click',function(e){if(e.target.closest('a,[data-noopen]'))return;var el=e.target.closest('[data-id]');if(el)goPost(el);});
+    host.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var el=e.target.closest('[data-id]');if(el&&el===document.activeElement){e.preventDefault();goPost(el);}});
+  }
   bindOpen(document.getElementById('tbody')); bindOpen(document.getElementById('tiles'));
 
-  /* ---- инструкция ---- */
-  function howto(){
-    document.getElementById('ht-body').innerHTML=
-      '<p class="ht-lead">Коротко: ведёшь посты в Google-таблице, инструмент показывает их планом и доской, считает выполнение для руководителя. Картинку и текст видно в карточке поста, комментарии - там же.</p>'+
-      '<div class="pipe"><span class="cap" style="font-size:11px;color:var(--ink3)">пайплайн статуса</span><span class="p pln">В плане</span><span class="ar">→</span><span class="p sgl">На согласовании</span><span class="ar">→</span><span class="p pub">Опубликовано</span></div>'+
-      '<div class="steps" style="margin-top:14px">'+
-      step(1,'Заведи строку','Вкладка «Контент-план», новая строка. Минимум: <code>дата</code>, <code>бренд</code> (G/V), <code>канал</code>, <code>статус</code> = «в плане», <code>идея</code>.',
-        '<div class="mock"><div class="mock-row"><span class="pl pln"></span><span class="cell" style="width:34px"></span><span class="mock-pill" style="background:var(--steel-soft);color:var(--steel-ink)">G</span><span class="cell" style="flex:1"></span><span class="mock-pill pln" style="background:var(--pln-soft);color:var(--pln-ink)">в плане</span></div></div>')+
-      step(2,'Двигай статус','Меняешь статус по мере работы: <code>в плане → на согл → опубликовано</code>. В таблице поставь выпадающий список (Данные → Проверка данных), чтобы не было опечаток.','')+
-      step(3,'Картинка','Колонка <code>картинка</code>: публичная ссылка или Google Drive (Доступ → «Все со ссылкой» → Просмотр). Сжимаем автоматически, в карточке покажем обложку.',
-        '<div class="mock"><div class="mock-card"><div class="cv">обложка 4:5</div></div></div>')+
-      step(4,'Текст поста','Колонка <code>текст</code>: пиши как в соцсети - эмодзи 🙂, хэштеги в конце #ремонт, перенос строки <code>Alt+Enter</code>. В карточке покажем «как в ленте».','')+
-      step(5,'Согласование','Готов черновик - ставь статус «на согл». Руководитель видит на доске, что ждёт его. Замечания оставляет комментарием на карточке.','')+
-      step(6,'Публикация','Опубликовал - статус «опубликовано», вставь <code>ссылку</code> на пост и <code>дату публикации</code>. На карточке появится кнопка «Открыть пост».','')+
-      step(7,'Статистика для KPI','Вкладка «Статистика»: <b>через 7 дней</b> после публикации заведи строку по <code>id</code> поста - охват, сохранения, переходы, <b>контакты</b> (для VALONTI это главное). 48 часов - по желанию.',
-        '<div class="mock"><div class="mock-row"><span class="cell" style="width:40px"></span><span class="cell" style="width:34px"></span><span class="cell" style="width:30px"></span><span class="mock-pill pub">7d</span></div></div>')+
-      step(8,'Комментарии','Открой карточку поста (клик) - откроется превью. Нажми «Комментировать» слева внизу, выдели область - заметка сохранится и будет видна всей команде.','')+
-      '</div>';
-    document.getElementById('ht-ov').classList.add('open');
-  }
-  function step(n,t,p,mock){return '<div class="step"><div class="nu">'+n+'</div><h4>'+t+'</h4><p>'+p+'</p>'+(mock||'')+'</div>';}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!document.body.classList.contains('anno-commenting'))closePost();});
 
+  function scopeBar(){
+    var real=ALL.filter(function(p){return !p.situational;});
+    var dn=real.filter(isDraft).length, wn=real.length-dn;
+    var host=document.getElementById('scopebar'); if(!host) return;
+    host.innerHTML=
+      '<button type="button" data-scope="draft" class="'+(state.scope==='draft'?'on':'')+'">Черновики <b>'+dn+'</b></button>'+
+      '<button type="button" data-scope="work" class="'+(state.scope==='work'?'on':'')+'">В работе <b>'+wn+'</b></button>';
+    Array.prototype.forEach.call(host.querySelectorAll('button'),function(b){b.onclick=function(){state.scope=b.dataset.scope;state.status='all';render();};});
+  }
   function render(){
-    filters();
+    scopeBar(); kpis(); filters();
     var d=applied();
     document.getElementById('fcount').textContent=d.length+' из '+ALL.length+' постов';
     if(R.dataset.view==='tiles'){document.getElementById('tbody').innerHTML='';document.getElementById('thead').innerHTML='';renderTiles(d);}
     else{document.getElementById('tiles').innerHTML='';renderTable(d);}
   }
-  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet')el.innerHTML='<span class="ok">● связано с Google-таблицей</span> · обновляется при загрузке'+(o.statsLive?' · статистика live':'');else el.innerHTML='<span class="warn">○ резервные данные</span> · '+E(o.reason||'');}
+  function srcMsg(o){var el=document.getElementById('src');if(o.src==='sheet'){el.innerHTML='<span class="ok">●</span> Google-таблица';el.title='Связано с Google-таблицей · обновляется при загрузке'+(o.statsLive?' · статистика live':'');}else{el.innerHTML='<span class="warn">○</span> резерв';el.title='Резервные данные · '+(o.reason||'');}}
 
   syncToggles();
-  GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);kpis();render();});
+  GGData.load().then(function(o){ALL=o.plan;byId={};ALL.forEach(function(p){byId[p.id]=p;});srcMsg(o);
+    if(!ALL.some(isDraft)) state.scope='work';
+    render();});
 })();
 </script>
 <script src="theme.js" defer></script>

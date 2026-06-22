@@ -20,6 +20,7 @@
     var x = low(v);
     if (x.indexOf('опублик') === 0 || x === 'published' || x === 'live' || x === 'done') return 'опубликовано';
     if (x.indexOf('готов') === 0 || x.indexOf('на согл') === 0 || x.indexOf('согл') === 0 || x === 'ready' || x === 'review' || x === 'approval') return 'на согл';
+    if (x.indexOf('чернов') === 0 || x === 'draft' || x === 'drafts' || x.indexOf('вариант') === 0 || x === 'идея' || x === 'idea') return 'черновик';
     return 'план';
   }
   function pick(o) { for (var i = 1; i < arguments.length; i++) { var k = arguments[i]; if (o[k] != null && norm(o[k]) !== '') return o[k]; } return ''; }
@@ -34,6 +35,15 @@
     var u = norm(url); if (!u) return '';
     var m = u.match(/\/d\/([A-Za-z0-9_-]+)/) || u.match(/[?&]id=([A-Za-z0-9_-]+)/);
     if (m) return 'https://lh3.googleusercontent.com/d/' + m[1] + (w ? '=w' + w : '');
+    return u;
+  }
+  // Google Drive ссылка -> встраиваемый плеер (iframe /preview). YouTube -> embed.
+  function driveEmbed(url) {
+    var u = norm(url); if (!u) return '';
+    var m = u.match(/\/d\/([A-Za-z0-9_-]+)/) || u.match(/[?&]id=([A-Za-z0-9_-]+)/);
+    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    var y = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([A-Za-z0-9_-]{6,})/);
+    if (y) return 'https://www.youtube.com/embed/' + y[1];
     return u;
   }
 
@@ -64,6 +74,7 @@
         media: low(pick(o, 'тип медиа', 'медиа', 'media')) || '',
         alt: norm(pick(o, 'alt', 'альт', 'описание картинки')),
         pubdate: fmtDate(pick(o, 'дата публикации', 'дата', 'pubdate', 'date')),
+        video: norm(pick(o, 'видео', 'video', 'ролик', 'видео ссылка', 'видеоссылка')),
         extraUrl: norm(pick(o, 'доп ссылка', 'допссылка', 'доп.ссылка', 'extra', 'link2'))
       };
     }).filter(function (p) { return p.idea || p.rubric || p.text; });
@@ -116,8 +127,8 @@
   }
 
   window.GGData = {
-    load: load, esc: esc, num: num, driveImg: driveImg,
+    load: load, esc: esc, num: num, driveImg: driveImg, driveEmbed: driveEmbed,
     brandName: function (b) { return b === 'V' ? 'VALONTI' : 'GENGLASS'; },
-    STATUS: { 'опубликовано': { cls: 'pub', label: 'Опубликовано' }, 'на согл': { cls: 'sgl', label: 'На согласовании' }, 'план': { cls: 'pln', label: 'В плане' } }
+    STATUS: { 'опубликовано': { cls: 'pub', label: 'Опубликовано' }, 'на согл': { cls: 'sgl', label: 'На согласовании' }, 'план': { cls: 'pln', label: 'В плане' }, 'черновик': { cls: 'drf', label: 'Черновик' } }
   };
 })();

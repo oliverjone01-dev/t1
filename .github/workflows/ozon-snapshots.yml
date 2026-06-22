@@ -1,0 +1,83 @@
+name: OZON snapshots (прямой, без n8n)
+
+# Новый пайплайн снимков OZON БЕЗ n8n: прямые клиенты src/scripts/ozon/* + connector.
+# Креды - ТОЛЬКО из GitHub Secrets (FENIX G1: никаких workflow_dispatch input для кредов).
+# Пока ручной запуск и пишет в fixtures/ (как ночной синк). Сосуществует с update-snapshots.yml
+# (n8n) - cutover/отключение n8n отдельным решением (FENIX G8). Каждый снимок проходит
+# дельта-гейт перед заменой (FENIX G3): просадка ключевой метрики >40% -> снимок НЕ заменяется.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ozon-data # общий с update-snapshots/sync - не гонимся за один data/
+  cancel-in-progress: false
+
+env:
+  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+  OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+  OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+
+jobs:
+  snapshots:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить, что секреты OZON заданы
+        run: |
+          set -euo pipefail
+          if [ -z "${OZON_SELLER_API_KEY:-}" ] || [ -z "${OZON_SELLER_CLIENT_ID:-}" ]; then
+            echo "::error::Секреты OZON_SELLER_* не заданы. Settings > Secrets and variables > Actions."; exit 1
+          fi
+          echo "Seller-секреты на месте. Perf-секреты: ${OZON_PERF_CLIENT_ID:+есть}${OZON_PERF_CLIENT_ID:-нет (реклама пропустится)}"
+
+      - name: Снимки напрямую (с дельта-гейтом перед заменой)
+        run: |
+          set -euo pipefail
+          # validate-snapshot 3-м аргументом получает прошлый снимок -> дельта-гейт (FENIX G3).
+          # Пишем в data/ И fixtures/ (сборка читает то одно, то другое; точное выравнивание
+          # read-путей - часть cutover, Этап 3). put = validate+разложить в оба места.
+          put () { # tmp, type, name
+            local tmp="$1" type="$2" name="$3"
+            npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp" "fixtures/$name"
+            cp "$tmp" "data/$name"; cp "$tmp" "fixtures/$name"; rm -f "$tmp"
+          }
+          npx tsx src/scripts/ozon/pnl-sku.ts "" "" /tmp/pnlsku.json; put /tmp/pnlsku.json pnlsku pnl_sku_30d.json
+          npx tsx src/scripts/ozon/skus.ts 30 /tmp/skus.json;        put /tmp/skus.json   skus   skus_live_30d.json
+          # P&L канал: сырой -> snapshot-pnl пишет data/pnl_30d.json, дублируем в fixtures
+          npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json
+          npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
+          cp data/pnl_30d.json fixtures/pnl_30d.json
+          if [ -n "${OZON_PERF_CLIENT_ID:-}" ]; then
+            npx tsx src/scripts/ozon/ads.ts 30 /tmp/ads.json; put /tmp/ads.json ads ads_30d.json
+          else
+            echo "::warning::OZON_PERF_* нет - снимок рекламы пропущен"
+          fi
+
+      - name: Commit (если есть изменения)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/fixtures analytics-mvp/data
+          if git diff --staged --quiet; then echo "снимки без изменений"; exit 0; fi
+          git commit -m "data: прямые снимки OZON (без n8n) $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

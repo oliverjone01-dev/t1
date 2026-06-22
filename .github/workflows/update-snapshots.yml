@@ -47,12 +47,14 @@ jobs:
           AUTH=(-H "Content-Type: application/json" -H "X-Auth: ${N8N_TOKEN:-}")
           FROM=$(date -u -d "29 days ago" +%F); TO=$(date -u -d "yesterday" +%F); Y=$(date -u -d "yesterday" +%F)
 
-          fetch () { # url, body, type, dest
+          fetch () { # url, body, type, dest - ретраим флапы n8n (3 попытки), n8n иногда отдаёт пусто
             local url="$1" body="$2" type="$3" dest="$4" tmp; tmp=$(mktemp)
-            curl -sS --fail-with-body --max-time 90 -X POST "$N8N/$url" "${AUTH[@]}" -d "$body" -o "$tmp" \
-              || { echo "curl $url failed"; exit 1; }
-            npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp"
-            mv "$tmp" "$dest"
+            for attempt in 1 2 3; do
+              if curl -sS --fail-with-body --max-time 90 -X POST "$N8N/$url" "${AUTH[@]}" -d "$body" -o "$tmp" \
+                 && npx tsx src/scripts/validate-snapshot.ts "$type" "$tmp"; then mv "$tmp" "$dest"; return 0; fi
+              echo "fetch $url попытка $attempt не удалась, повтор через 5с"; sleep 5
+            done
+            echo "fetch $url не удался после 3 попыток"; exit 1
           }
 
           fetch gengroup-ozon-skus '{"days":30}' skus fixtures/skus_live_30d.json

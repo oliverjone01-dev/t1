@@ -1119,7 +1119,7 @@ const state = {
   customFrom: '2026-02-06',
   customTo: '2026-04-30',
   drillCategory: null,
-  mx: { sortCol:'total', sortDir:'desc', expanded:new Set() },
+  mx: { sortCol:'total', sortDir:'desc', expanded:new Set(), metric:'rev' },
   season: { measure:'rev', expanded:new Set() },
   ax: { selectedZone: null, drillSort: { col: 'rev', dir: 'desc' }, drillFilter: 'all' },
   clients: { selectedClass: null, sortCol: 'rev', sortDir: 'desc' },
@@ -2204,6 +2204,13 @@ function renderMatrix(){
   const dir = sortDir === 'desc' ? -1 : 1;
   const subRatios = subRatiosForPeriod();
   const ratioOf = id => subRatios[id] !== undefined ? subRatios[id] : 1;
+  // Метрика, отображаемая в ячейках каналов (кнопки над матрицей). Данные только по Озону.
+  const MM = state.mx.metric || 'rev';
+  const ozFmt = (rev, margin, orders, share) =>
+    MM === 'margin' ? (margin==null ? 'н/д' : fmt(margin,1)+'%')
+    : MM === 'orders' ? fmt0(orders)
+    : MM === 'share'  ? fmt(share,1)+'%'
+    : (rev>0 ? fmt(rev,1) : '—');
 
   // ===== Режим сравнения периодов: Δ-хитмап (Б−А)/А по ячейкам =====
   if(state.compare.active){ return renderMatrixCompare(); }
@@ -2288,7 +2295,7 @@ function renderMatrix(){
     const expanded = state.mx.expanded.has(g.id);
     const chCells = CHANNELS.map(ch =>
       ch.id === 'ozon'
-        ? `<td class="mx-cell" style="text-align:center" data-tip="${g.name} · Озон|Каналы|реальная выручка OZON за период">${g.byChRev['ozon']>0?fmt(g.byChRev['ozon'],1):'—'}</td>`
+        ? `<td class="mx-cell" style="text-align:center" data-tip="${g.name} · Озон|Каналы|реальные данные OZON за период">${ozFmt(g.byChRev['ozon'], g.margin, g.totalOrd, grandRev>0?g.totalRev/grandRev*100:0)}</td>`
         : `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${g.name} · ${ch.name}|Каналы|нет источника (нужен Roistat / Bitrix)">н/д</td>`
     ).join('');
     const sharePct = grandRev > 0 ? (g.totalRev/grandRev*100) : 0;
@@ -2326,7 +2333,7 @@ function renderMatrix(){
       subRows.forEach(s => {
         const sCells = CHANNELS.map(ch =>
           ch.id === 'ozon'
-            ? `<td class="mx-cell" style="text-align:center" data-tip="${s.name} · Озон|Каналы|реальная выручка OZON за период">${s.byCh['ozon']>0?fmt(s.byCh['ozon'],1):'—'}</td>`
+            ? `<td class="mx-cell" style="text-align:center" data-tip="${s.name} · Озон|Каналы|реальные данные OZON за период">${ozFmt(s.byCh['ozon'], s.margin, s.totalOrd, grandRev>0?s.revPeriod/grandRev*100:0)}</td>`
             : `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${s.name} · ${ch.name}|Каналы|нет источника">н/д</td>`
         ).join('');
         const subShare = grandRev > 0 ? (s.revPeriod/grandRev*100) : 0;
@@ -2347,7 +2354,7 @@ function renderMatrix(){
   CHANNELS.forEach(ch => { channelTotals[ch.id] = 0; });
   groupRows.forEach(g => CHANNELS.forEach(ch => { channelTotals[ch.id] += g.byChRev[ch.id]; }));
   const footChCells = CHANNELS.map(ch => ch.id === 'ozon'
-    ? `<td style="text-align:center"><span class="num">${channelTotals['ozon']>0?fmt(channelTotals['ozon'],1):'—'}</span></td>`
+    ? `<td style="text-align:center"><span class="num">${ozFmt(channelTotals['ozon'], grandMargin, grandOrd, 100)}</span></td>`
     : `<td style="color:var(--ink-3);text-align:center">н/д</td>`).join('');
   const totalOrdersAll = CHANNELS.reduce((s,ch) => s + ch.orders, 0);
 
@@ -2355,7 +2362,13 @@ function renderMatrix(){
     <div class="card-h">
       <div>
         <div class="card-title">Категории × Каналы</div>
-        <div class="card-sub">выручка, маржа, заказы и доля по категориям — реальные из OZON · разбивка по каналам: Озон — реальная, прочие каналы — нет источника (нужен Roistat / Bitrix)</div>
+        <div class="card-sub">метрика в ячейках каналов — по кнопкам справа · реальные из OZON · прочие каналы — нет источника (нужен Roistat / Bitrix)</div>
+      </div>
+      <div class="mx-toggle">
+        <button class="mx-tg ${MM==='rev'?'active':''}" data-mx-mainmetric="rev">Выручка</button>
+        <button class="mx-tg ${MM==='margin'?'active':''}" data-mx-mainmetric="margin">Маржа</button>
+        <button class="mx-tg ${MM==='orders'?'active':''}" data-mx-mainmetric="orders">Заказы</button>
+        <button class="mx-tg ${MM==='share'?'active':''}" data-mx-mainmetric="share">Доля</button>
       </div>
     </div>
     <div class="mx-wrap">
@@ -3432,6 +3445,13 @@ document.addEventListener('click', e => {
   const mxMetric = e.target.closest('[data-mx-metric]');
   if(mxMetric){
     state.mx.cmpMetric = mxMetric.dataset.mxMetric;
+    renderMatrix(); return;
+  }
+
+  // Категории × Каналы - переключатель метрики ячеек (Выручка / Маржа / Заказы / Доля)
+  const mxMain = e.target.closest('[data-mx-mainmetric]');
+  if(mxMain){
+    state.mx.metric = mxMain.dataset.mxMainmetric;
     renderMatrix(); return;
   }
 

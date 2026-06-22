@@ -652,6 +652,23 @@ function freshAds(name: string): any {
   return d || f;
 }
 
+// Мягкий страж свежести: пишет ::warning:: в лог сборки, если снимок устарел (>=2 дн от вчера).
+// Деплой НЕ валит - просто заметно в CI. Прошлые регрессии были из-за ТИХОГО устаревания снимков.
+function warnStale(): void {
+  const now = new Date();
+  const ystd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); ystd.setUTCDate(ystd.getUTCDate() - 1);
+  const daysOld = (d?: string): number | null => { if (!d || !/^\d{4}-\d\d-\d\d/.test(d)) return null; return Math.round((ystd.getTime() - new Date(d.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000); };
+  const checks: [string, string | undefined][] = [
+    ["дневная история", maxD],
+    ["реклама 30д", (freshAds("ads_30d.json") || {}).dateTo],
+    ["реклама по периодам (p30)", ((freshAds("ads_periods.json") || {}).p30 || {}).dateTo],
+  ];
+  let stale = 0;
+  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк/n8n.`); } }
+  console.log(stale ? `Страж свежести: устаревших снимков ${stale} (см. warnings выше).` : "Страж свежести: снимки актуальны (по вчера).");
+}
+warnStale();
+
 // --- Оболочка новых страниц в дизайн-системе Кати: её CSS + topbar с периодами ---
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
@@ -1023,6 +1040,8 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};
 function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
+// Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
+function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -1110,7 +1129,7 @@ function paint(a,src){
     kpi('ДРР',odrr+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
-  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
+  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>'+staleMark(a.dateTo):'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
   lastA=a;renderTop();
   renderBurn(a);

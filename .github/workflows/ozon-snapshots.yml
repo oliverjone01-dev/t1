@@ -5,6 +5,8 @@ name: OZON snapshots (прямой, без n8n)
 # Сосуществует с update-snapshots.yml (n8n). Каждый снимок проходит дельта-гейт перед заменой.
 
 on:
+  schedule:
+    - cron: "0 6 * * *" # ~09:00 МСК; работает после добавления OZON_* в Secrets
   workflow_dispatch:
     inputs:
       ozon_seller_client_id:

@@ -95,7 +95,10 @@ export class OzonPerformance {
   async dailyStats(campaignIds: string[], dateFrom: string, dateTo: string): Promise<DailyStatRow[]> {
     const out: DailyStatRow[] = [];
     for (const batch of batchCampaigns(campaignIds)) {
-      const qs = `campaignIds=${batch.join(",")}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+      // OZON Performance ждёт повторяющийся параметр campaignIds=id, НЕ список через запятую
+      // (запятая -> HTTP 400 parsing campaign_ids). Дату добавляем в конце.
+      const ids = batch.map((id) => `campaignIds=${encodeURIComponent(id)}`).join("&");
+      const qs = `${ids}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
       const data = await this.get<{ rows?: any[] }>(`/api/client/statistics/daily/json?${qs}`);
       for (const r of data.rows ?? []) {
         out.push({

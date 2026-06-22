@@ -637,6 +637,21 @@ fixTop();build();apply();setInterval(function(){fixTop();build();},2000);
 
 const J = (x: unknown) => JSON.stringify(x);
 
+// Снимок рекламы с полями id/status/skus: data/ обновляет только fetch:live на деплое и
+// может устареть (тогда в таблице кампаний «undefined»), а fixtures/ обновляет ежедневный
+// cron. Берём источник, где id есть; иначе что есть. Чинит «undefined»/пустую разбивку.
+const _adsHasId = (x: any): boolean => !!x && (
+  ((x.top_spend || [])[0] || {}).id !== undefined ||
+  (((x.p30 || {}).top_spend || [])[0] || {}).id !== undefined
+);
+function freshAds(name: string): any {
+  const rd = (p: string): any => { try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; } };
+  const d = rd(`data/${name}`), f = rd(`fixtures/${name}`);
+  if (_adsHasId(d)) return d;
+  if (_adsHasId(f)) return f;
+  return d || f;
+}
+
 // --- Оболочка новых страниц в дизайн-системе Кати: её CSS + topbar с периодами ---
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
@@ -929,10 +944,9 @@ function render(cur,cmp){
 
 // --- страница 4: Маркетинг (период МГНОВЕННО из запечённых снимков 7/30/90 + живое обновление) ---
 {
-  const adsSnap = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
-  let adsPeriods: any;
-  try { adsPeriods = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
-  catch { adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap }; }
+  const adsSnap = freshAds("ads_30d.json");
+  let adsPeriods: any = freshAds("ads_periods.json");
+  if (!_adsHasId(adsPeriods)) adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap };
   let adsReports: any = {};
   try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
@@ -1196,10 +1210,9 @@ function render(cur,cmp){
 
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
 {
-  const ads = JSON.parse(readFileSync("data/ads_30d.json", "utf-8"));
-  let adsPeriodsCC: any;
-  try { adsPeriodsCC = JSON.parse(readFileSync("data/ads_periods.json", "utf-8")); }
-  catch { adsPeriodsCC = { p7: ads, p30: ads, p90: ads }; }
+  const ads = freshAds("ads_30d.json");
+  let adsPeriodsCC: any = freshAds("ads_periods.json");
+  if (!_adsHasId(adsPeriodsCC)) adsPeriodsCC = { p7: ads, p30: ads, p90: ads };
   // per-SKU разрежённый дневной ряд за окно (для движений по периоду)
   const skuMeta: Record<string, { nm: string; line: string }> = {};
   const tmpR: Record<string, Record<number, number>> = {}, tmpU: Record<string, Record<number, number>> = {};

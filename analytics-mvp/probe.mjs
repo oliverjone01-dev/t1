@@ -1,0 +1,10 @@
+import { JSDOM, VirtualConsole } from "jsdom";
+import { readFileSync } from "node:fs";
+const html=readFileSync("public/katya-marketing.html","utf-8");
+const vc=new VirtualConsole();const errs=[];vc.on("jsdomError",e=>errs.push(e.message));
+const dom=new JSDOM(html,{runScripts:"dangerously",virtualConsole:vc,pretendToBeVisual:true,url:"https://x/"});
+const d=dom.window.document;
+const rows=[...d.querySelectorAll('#burn tr.ad-exp')].slice(0,4);
+console.log("Сливы rows:",rows.length);
+rows.forEach(r=>{const td=r.querySelector('td');console.log("  name:",td.textContent.trim().slice(0,30)," | badge:",/активна|закрыта/.test(r.textContent)?'да':'нет'," | expandable:",!!r.querySelector('.cf-tg'));});
+console.log("errs:",errs.slice(0,2));

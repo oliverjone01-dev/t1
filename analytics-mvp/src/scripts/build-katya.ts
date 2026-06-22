@@ -950,12 +950,17 @@ function render(cur,cmp){
     // Снимок по периодам устарел без id/skus, но per-period числа (расход/выручка по 7/30/90)
     // в нём ЕСТЬ. Не схлопываем всё в 30д: сохраняем периодные числа, доливаем id/skus из
     // свежего ads_30d по названию кампании (off). Иначе данные не меняются от периода.
-    const metaByOff: Record<string, { id: string; skus: string[] }> = {};
-    (adsSnap.top_spend || []).forEach((c: any) => { if (c && c.off && c.id) metaByOff[c.off] = { id: String(c.id), skus: c.skus || [] }; });
+    // Полные мета-поля кампании (id/status/instr/place/skus) из свежего ads_30d - и по кампаниям,
+    // и по сливам - чтобы у периодного снимка были ID, статусы, инструменты и разбивка.
+    const metaByOff: Record<string, any> = {};
+    const addMeta = (arr: any[]) => (arr || []).forEach((c: any) => { if (c && c.off && c.id && !metaByOff[c.off]) metaByOff[c.off] = { id: String(c.id), status: c.status, instr: c.instr, place: c.place, skus: c.skus || [] }; });
+    addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
+    const fix = (c: any) => { const m = metaByOff[c.off]; if (!m) return c; return { ...c, id: c.id || m.id, status: c.status || m.status, instr: c.instr || m.instr, place: c.place || m.place, skus: (c.skus && c.skus.length) ? c.skus : m.skus }; };
     const hydrate = (p: any): any => {
-      if (!p || !Array.isArray(p.top_spend)) return null;
+      if (!p) return null;
       let any = false;
-      p.top_spend = p.top_spend.map((c: any) => { const m = metaByOff[c.off]; if (m) { any = true; return { ...c, id: c.id || m.id, skus: (c.skus && c.skus.length) ? c.skus : m.skus }; } return c; });
+      if (Array.isArray(p.top_spend)) p.top_spend = p.top_spend.map((c: any) => { const f = fix(c); if (f !== c) any = true; return f; });
+      if (Array.isArray(p.burners)) p.burners = p.burners.map(fix);
       return any ? p : null;
     };
     const hp7 = hydrate(adsPeriods && adsPeriods.p7), hp30 = hydrate(adsPeriods && adsPeriods.p30), hp90 = hydrate(adsPeriods && adsPeriods.p90);

@@ -150,4 +150,26 @@ export class OzonSeller {
     } while (cursor);
     return out;
   }
+
+  // POST /v3/finance/transaction/list - все операции за период. Пагинация по page/page_count.
+  // Защита от «битого» page_count (OZON иногда отдаёт 1 при наличии данных): продолжаем,
+  // пока последняя страница ПОЛНАЯ (1000), даже если page_count это не отражает. withRetry
+  // покрывает 429/5xx постранично; невозвратные 4xx падают сразу (через HttpError).
+  async transactions(dateFrom: string, dateTo: string): Promise<any[]> {
+    const from = `${dateFrom}T00:00:00.000Z`, to = `${dateTo}T23:59:59.999Z`;
+    const ops: any[] = [];
+    let page = 1, pageCount = 1, lastSize = 0;
+    do {
+      const data = await this.post<any>("/v3/finance/transaction/list", {
+        filter: { date: { from, to }, transaction_type: "all" }, page, page_size: 1000,
+      });
+      const res = data.result ?? {};
+      const batch: any[] = res.operations ?? [];
+      for (const o of batch) ops.push(o);
+      pageCount = res.page_count ?? 1;
+      lastSize = batch.length;
+      page++;
+    } while ((page <= pageCount || lastSize === 1000) && page <= 500);
+    return ops;
+  }
 }

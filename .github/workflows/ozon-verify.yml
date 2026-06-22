@@ -1,0 +1,59 @@
+name: OZON direct verify (pnl-sku)
+
+# Этап 1 (proof): запускает прямой OZON-клиент pnl-sku.ts (без n8n) за период
+# зафиксированного снимка и сверяет bySku 1:1. Креды - из GitHub Secrets, либо
+# (для разового прогона) из inputs. Креды маскируются в логе. Ручной запуск.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ozon_client_id:
+        description: "OZON Seller Client-Id (пусто = из секрета OZON_SELLER_CLIENT_ID)"
+        required: false
+      ozon_api_key:
+        description: "OZON Seller Api-Key (пусто = из секрета OZON_SELLER_API_KEY)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    env:
+      OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID || github.event.inputs.ozon_client_id }}
+      OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY || github.event.inputs.ozon_api_key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Direct pnl-sku vs fixtures (1:1)
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$OZON_SELLER_API_KEY"; echo "::add-mask::$OZON_SELLER_CLIENT_ID"
+          FROM=$(node -pe "require('./fixtures/pnl_sku_30d.json').dateFrom")
+          TO=$(node -pe "require('./fixtures/pnl_sku_30d.json').dateTo")
+          echo "Сверяю период $FROM..$TO (прямой OZON против снимка n8n)"
+          npx tsx src/scripts/ozon/pnl-sku.ts "$FROM" "$TO" /tmp/direct.json
+          node -e '
+            const a=require("./fixtures/pnl_sku_30d.json").bySku;
+            const b=require("/tmp/direct.json").bySku;
+            const all=new Set([...Object.keys(a),...Object.keys(b)]);
+            let fieldsDiff=0, maxd=0, skuOnlyA=0, skuOnlyB=0;
+            for(const k of all){
+              if(!a[k]){skuOnlyB++;} if(!b[k]){skuOnlyA++;}
+              const x=a[k]||{}, y=b[k]||{};
+              for(const f of ["accruals","commission","amount","ops"]){const d=Math.abs((x[f]||0)-(y[f]||0));if(d>maxd)maxd=d;if(d>0)fieldsDiff++;}
+            }
+            console.log("SKU: снимок n8n",Object.keys(a).length,"| прямой",Object.keys(b).length);
+            console.log("только в n8n:",skuOnlyA,"| только в прямом:",skuOnlyB);
+            console.log("полей с расхождением:",fieldsDiff,"| макс |delta| (₽/шт):",maxd);
+            if(fieldsDiff===0){console.log("OK 1:1 СОВПАЛО - порт корректен");}
+            else{console.log("WARN есть расхождения (вероятно, OZON доначислил транзакции после снимка; см. цифры)");}
+          '

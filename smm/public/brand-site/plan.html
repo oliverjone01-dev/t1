@@ -17,29 +17,30 @@
 })();
 </script>
 <style>
+  /* guard: --gold/--danger на --s2 только bold/accent, для мелких текст-меток брать --gold-ink/--sgl-ink */
   :root[data-theme="light"], :root:not([data-theme]){
-    --bg:#EFEFF1;--s1:#FFFFFF;--s2:#F1F1F4;--s3:#E7E7EB;--line:#EAEAEE;--line2:#E0E0E5;
-    --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
-    --gold:#8A6514;--gold-ink:#8A6514;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
-    --steel:#4E5663;--steel-ink:#3C434E;--steel-soft:rgba(78,86,99,.12);
-    --pub:#1F7A52;--pub-ink:#176B45;--pub-soft:rgba(31,122,82,.12);
-    --sgl:#9A5A12;--sgl-ink:#83500F;--sgl-soft:rgba(242,184,74,.20);
-    --pln:#5E6776;--pln-ink:#5E6776;--pln-soft:rgba(94,103,118,.12);
-    --drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
-    --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;--danger:#B23A28;--link:#2C5377;
-    --shadow:0 1px 2px rgba(20,20,25,.05);--shadow-lg:0 8px 24px rgba(20,20,25,.12);
+    --bg:#FBF7F1;--s1:#FFFFFF;--s2:#F5EFE6;--s3:#ECE4D7;--line:#ECE2D4;--line2:#E1D6C3;
+    --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
+    --gold:#9A6A12;--gold-ink:#7E5510;--gold-soft:#FBEBCB;--gold-fill:#E7A93C;--gold-border:#E0A23A;
+    --steel:#41607E;--steel-ink:#33506C;--steel-soft:#E2EAF2;
+    --pub:#3E8E6E;--pub-ink:#2B7150;--pub-soft:#D7EFE3;
+    --sgl:#B8791E;--sgl-ink:#8A5410;--sgl-soft:#FBE9CF;
+    --pln:#7A6C5B;--pln-ink:#5E5345;--pln-soft:#EFE8DC;
+    --drf:#8A5BA6;--drf-ink:#774893;--drf-soft:#EEE2F3;
+    --cta:#E7A93C;--cta-ink:#3A2A07;--gold-btn-ink:#3A2A07;--danger:#C2452E;--link:#41607E;
+    --shadow:0 1px 2px rgba(120,92,52,.06),0 8px 22px rgba(120,92,52,.09);--shadow-lg:0 6px 14px rgba(120,92,52,.10),0 26px 48px rgba(120,92,52,.15);
   }
   :root[data-theme="dark"]{
-    --bg:#0A0C10;--s1:#161A21;--s2:#1E232C;--s3:#2A3039;--line:#2D333E;--line2:#3B4350;
-    --ink:#F4F5F7;--ink2:#B4BAC4;--ink3:#8B929D;
-    --gold:#EBC56E;--gold-ink:#EBC56E;--gold-soft:rgba(235,197,110,.15);--gold-fill:#EBC56E;--gold-border:#EBC56E;
-    --steel:#A4ADB9;--steel-ink:#C2C9D3;--steel-soft:rgba(164,173,185,.16);
-    --pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
-    --sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
-    --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);
-    --drf:#9AA2B0;--drf-ink:#AEB6C2;--drf-soft:rgba(154,162,176,.16);
-    --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;--danger:#E86A50;--link:#8FB6D4;
-    --shadow:0 1px 2px rgba(0,0,0,.35);--shadow-lg:0 10px 28px rgba(0,0,0,.5);
+    --bg:#17120D;--s1:#221B14;--s2:#2B231A;--s3:#362C20;--line:#342A1F;--line2:#443827;
+    --ink:#F6EFE3;--ink2:#C4B7A3;--ink3:#968871;
+    --gold:#F0C062;--gold-ink:#F2CB7E;--gold-soft:rgba(240,192,98,.16);--gold-fill:#F0C062;--gold-border:#F0C062;
+    --steel:#A9C4DD;--steel-ink:#BAD0E6;--steel-soft:rgba(143,176,206,.16);
+    --pub:#5FD09B;--pub-ink:#5FD09B;--pub-soft:rgba(95,208,155,.16);
+    --sgl:#E8A24E;--sgl-ink:#E8A24E;--sgl-soft:rgba(232,162,78,.17);
+    --pln:#A99A85;--pln-ink:#A99A85;--pln-soft:rgba(169,154,133,.15);
+    --drf:#BBA0DC;--drf-ink:#C9B4E8;--drf-soft:rgba(187,160,220,.17);
+    --cta:#F0C062;--cta-ink:#1A1408;--gold-btn-ink:#1A1408;--danger:#F08160;--link:#9FC0DE;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(5,3,1,.5);--shadow-lg:0 8px 18px rgba(0,0,0,.45),0 28px 52px rgba(5,3,1,.6);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
@@ -259,8 +260,8 @@
   .playb{box-shadow:0 0 0 1px rgba(255,255,255,.25),0 2px 12px rgba(0,0,0,.45)}
   /* ===== elevation (Design Award): пружина, премиум-глубина, фокус-свечение ===== */
   :root{--ease-spring:cubic-bezier(.34,1.28,.64,1)}
-  :root[data-theme="dark"]{--glow1:rgba(235,197,110,.06);--glow2:rgba(110,140,180,.05)}
-  :root[data-theme="light"]{--glow1:transparent;--glow2:transparent}
+  :root[data-theme="dark"]{--glow1:rgba(240,192,98,.07);--glow2:rgba(143,176,206,.05)}
+  :root[data-theme="light"]{--glow1:rgba(231,169,60,.10);--glow2:rgba(110,146,181,.08)}
   body{background-image:radial-gradient(1100px 520px at 88% -8%,var(--glow1,transparent),transparent 60%),radial-gradient(900px 480px at -8% 4%,var(--glow2,transparent),transparent 55%)}
   a:focus-visible,button:focus-visible,[tabindex]:focus-visible,select:focus-visible{box-shadow:0 0 0 4px var(--gold-soft)}
   .tile{transition:transform .2s var(--ease-spring),box-shadow .2s,border-color .2s}

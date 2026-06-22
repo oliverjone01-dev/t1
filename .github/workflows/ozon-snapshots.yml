@@ -1,10 +1,11 @@
 name: OZON snapshots (прямой, без n8n)
 
-# Новый пайплайн снимков OZON БЕЗ n8n: прямые клиенты src/scripts/ozon/* + connector.
-# Креды: GitHub Secrets, либо (по решению владельца, временно) workflow_dispatch input с маскировкой
-# (::add-mask:: в guard-шаге). Сосуществует с update-snapshots.yml (n8n) - cutover/отключение n8n
-# отдельным решением (FENIX G8). Каждый снимок проходит дельта-гейт перед заменой (FENIX G3):
-# просадка ключевой метрики >40% -> снимок НЕ заменяется.
+# Ночной пайплайн OZON БЕЗ n8n: прямые клиенты src/scripts/ozon/* + connector. ЗАМЕНЯЕТ
+# update-snapshots.yml (n8n, расписание отключено). Делает всё, что делал n8n-синк: снимки
+# (pnl-sku/skus/pnl/ads + ads_periods 7/30/90), дневную историю (backfill, прямой Seller),
+# пересборку сайта и коммит. Креды: GitHub Secrets, либо (временно, решение владельца)
+# workflow_dispatch input с маскировкой (::add-mask:: в guard-шаге). Каждый снимок проходит
+# дельта-гейт перед заменой (FENIX G3): просадка ключевой метрики >40% -> снимок НЕ заменяется.
 
 on:
   schedule:
@@ -80,9 +81,34 @@ jobs:
           cp data/pnl_30d.json fixtures/pnl_30d.json
           if [ -n "${OZON_PERF_CLIENT_ID:-}" ]; then
             npx tsx src/scripts/ozon/ads.ts 30 /tmp/ads.json; put /tmp/ads.json ads ads_30d.json
+            # Реклама по периодам 7/30/90 - период-точность снимка без живого запроса.
+            # Заменяем только при валидном p30 (есть id), иначе прошлый файл не трогаем.
+            AP=/tmp/ads_periods.json; echo '{}' > "$AP"
+            for d in 7 30 90; do
+              t=$(mktemp)
+              if npx tsx src/scripts/ozon/ads.ts "$d" "$t" && npx tsx src/scripts/validate-snapshot.ts ads "$t"; then
+                node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('$AP'));o['p$d']=JSON.parse(fs.readFileSync('$t'));fs.writeFileSync('$AP',JSON.stringify(o));"
+              else echo "::warning::ads_periods p$d не удался"; fi
+            done
+            if node -e "const a=require('$AP');process.exit((a.p30&&((a.p30.top_spend||[])[0]||{}).id!==undefined)?0:1)"; then
+              cp "$AP" data/ads_periods.json; cp "$AP" fixtures/ads_periods.json; echo "ads_periods обновлён"
+            else echo "::warning::ads_periods не обновлён (нет id в p30)"; fi
           else
-            echo "::warning::OZON_PERF_* нет - снимок рекламы пропущен"
+            echo "::warning::OZON_PERF_* нет - снимки рекламы пропущены"
           fi
+
+      - name: Дневная история (прямой Seller, догрузка недостающих дней)
+        run: |
+          set -euo pipefail
+          # backfill сам тянет от последнего дня истории до вчера (самовосстановление после простоя).
+          npm run backfill
+
+      - name: Пересборка сайта из свежих снимков
+        run: |
+          set -euo pipefail
+          npm run join:cogs
+          npm run build:site
+          npm run katya # иначе katya-*.html отстают от свежих данных в коммите
 
       - name: Commit (если есть изменения)
         working-directory: .
@@ -90,7 +116,8 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/fixtures analytics-mvp/data
+          # Стейджим весь analytics-mvp: снимки (data/+fixtures/), история, пересобранный сайт.
+          git add -A analytics-mvp
           if git diff --staged --quiet; then echo "снимки без изменений"; exit 0; fi
           git commit -m "data: прямые снимки OZON (без n8n) $(date -u +%F)"
           for i in 1 2 3 4 5; do

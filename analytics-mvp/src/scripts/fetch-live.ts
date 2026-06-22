@@ -1,92 +1,66 @@
-// Тянет ЖИВЫЕ данные OZON из n8n-вебхуков и кладёт в data/. Запуск перед build:site.
-// Источник правды - n8n (Иван). Никаких фикстур и выдуманных чисел: либо живой OZON,
-// либо последний удачный снимок из data/ (если n8n недоступен - сборку не валим).
-// Креды OZON живут в n8n, не в репозитории (Protocol 6: секреты только в vault).
-import { writeFileSync, existsSync } from "node:fs";
-import { normalizePnl, type RawPnl } from "../util/pnl.js";
+// СТРАЖ СНИМКОВ (без сети). Раньше тянул живые данные из n8n-вебхуков; после миграции на
+// прямые клиенты OZON (src/scripts/ozon/*) снимки кладёт ночной ozon-snapshots.yml и коммитит
+// в data/. Деплою больше НЕ нужно ходить в n8n - он собирает из закоммиченных снимков.
+// Этот скрипт лишь проверяет, что нужные снимки на месте и непустые, и логирует их свежесть.
+// Сборку НЕ валит из-за устаревания (мягкий страж): отсутствие файла - ошибка, старость - warning.
+import { existsSync, readFileSync } from "node:fs";
 
-const BASE = process.env.N8N_WEBHOOK_BASE || "https://gen-group.app.n8n.cloud/webhook";
-const DAYS = process.env.LIVE_DAYS || "30";
+const REQUIRED = [
+  "ads_30d.json",
+  "ads_periods.json",
+  "skus_live_30d.json",
+  "pnl_30d.json",
+  "pnl_sku_30d.json",
+];
 
-// Окно последних N дней до вчера, нижняя граница - старт аккаунта (DOC_02 §3).
-function window(days: number): { dateFrom: string; dateTo: string } {
-  const FLOOR = "2026-02-01";
+// Берём конец окна снимка (где он есть) и сравниваем с вчера - мягкая отметка устаревания.
+function snapshotEnd(j: any): string | null {
+  if (!j || typeof j !== "object") return null;
+  return (j.dateTo || j.generated_at?.slice(0, 10) || (j.p30 && j.p30.dateTo) || null) as string | null;
+}
+
+function daysOld(to: string | null): number | null {
+  if (!to) return null;
+  const t = new Date(`${to}T00:00:00Z`).getTime();
   const now = new Date();
   const y = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   y.setUTCDate(y.getUTCDate() - 1);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const to = fmt(y);
-  const f = new Date(y); f.setUTCDate(f.getUTCDate() - (days - 1));
-  let from = fmt(f);
-  if (from < FLOOR) from = FLOOR;
-  return { dateFrom: from, dateTo: to };
+  return Math.round((y.getTime() - t) / 86400000);
 }
 
-async function hit(path: string, body: Record<string, unknown>): Promise<any> {
-  const url = `${BASE}/${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120000),
-  });
-  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
-  const json = await res.json();
-  if (!json || (typeof json === "object" && Object.keys(json).length === 0)) throw new Error(`${path}: пустой ответ`);
-  return json;
-}
-
-// Эвристика n8n помечает столы VIOLUR как «перегородки» - чиним подпись (решение Ивана).
-function fixViolur<T>(obj: T): T {
-  const s = JSON.stringify(obj).replace(/VIOLUR \(перегородки\)/g, "VIOLUR (столы)");
-  return JSON.parse(s) as T;
-}
-
-// Пишем только при успешном живом ответе; иначе оставляем прошлый снимок в data/.
-async function pull(name: string, file: string, run: () => Promise<unknown>): Promise<boolean> {
-  try {
-    const data = run ? await run() : null;
-    writeFileSync(`data/${file}`, JSON.stringify(data, null, 2));
-    console.log(`OK   ${name} -> data/${file}`);
-    return true;
-  } catch (e) {
-    const keep = existsSync(`data/${file}`);
-    console.warn(`WARN ${name}: ${(e as Error).message}. ${keep ? "оставлен прошлый снимок" : "ФАЙЛА НЕТ"}`);
-    return false;
+function main() {
+  let missing = 0;
+  for (const f of REQUIRED) {
+    const path = `data/${f}`;
+    if (!existsSync(path)) {
+      console.error(`::error::снимок отсутствует: ${path} (ожидается от ozon-snapshots.yml)`);
+      missing++;
+      continue;
+    }
+    let j: any;
+    try {
+      j = JSON.parse(readFileSync(path, "utf-8"));
+    } catch (e) {
+      console.error(`::error::снимок повреждён: ${path}: ${(e as Error).message}`);
+      missing++;
+      continue;
+    }
+    if (!j || (typeof j === "object" && Object.keys(j).length === 0)) {
+      console.error(`::error::снимок пуст: ${path}`);
+      missing++;
+      continue;
+    }
+    const end = snapshotEnd(j);
+    const n = daysOld(end);
+    const fresh = n == null ? "дата окна неизвестна" : n <= 1 ? `свежий (${end})` : `устарел на ${n} дн (${end})`;
+    if (n != null && n >= 2) console.log(`::warning::снимок ${f} ${fresh} - проверь ночной синк ozon-snapshots.yml`);
+    console.log(`OK   ${f}: ${fresh}`);
   }
-}
-
-async function main() {
-  const days = parseInt(DAYS, 10) || 30;
-  const w = window(days);
-  let okFinance = true;
-
-  // withSku НЕ передаём: per-SKU отчёты медленные (report-loop -> таймаут вебхука -> снимок
-  // оставался устаревшим без id/instr/place -> «undefined» в таблице кампаний). Кампании,
-  // инструмент, площадка, статус и skus приходят и без withSku (быстро и надёжно), а per-SKU
-  // разбивка грузится лениво на странице + кэшируется в ads_reports.json (cache-reports.ts).
-  await pull("Реклама Performance", "ads_30d.json", async () =>
-    fixViolur(await hit("gengroup-ozon-ads", { days: String(days) })));
-
-  // Реклама по стандартным периодам (7/30/90 дн) - чтобы дашборд переключал период
-  // МГНОВЕННО на реальные данные, а не ждал живой запрос (Performance API медленный).
-  await pull("Реклама по периодам", "ads_periods.json", async () => {
-    const out: Record<string, unknown> = {};
-    for (const d of [7, 30, 90]) out["p" + d] = fixViolur(await hit("gengroup-ozon-ads", { ...window(d) }));
-    return out;
-  });
-
-  await pull("Товары (live SKU)", "skus_live_30d.json", async () =>
-    fixViolur(await hit("gengroup-ozon-skus", { days: String(days) })));
-
-  // P&L: явные даты обязательны (вебхук без них отдаёт OZON 400).
-  okFinance = await pull("P&L канал", "pnl_30d.json", async () =>
-    normalizePnl(await hit("gengroup-ozon-pnl", w) as RawPnl)) && okFinance;
-
-  okFinance = await pull("P&L по SKU", "pnl_sku_30d.json", async () =>
-    await hit("gengroup-ozon-pnl-sku", w)) && okFinance;
-
-  console.log(`Окно ${w.dateFrom}..${w.dateTo} · финансы ${okFinance ? "ОК" : "из прошлого снимка"}`);
+  if (missing) {
+    console.error(`Нет ${missing} обязательных снимков в data/. Запусти ozon-snapshots.yml (прямой OZON).`);
+    process.exit(1);
+  }
+  console.log("Все снимки на месте. Сборка идёт из закоммиченных данных (без n8n).");
 }
 
 main();

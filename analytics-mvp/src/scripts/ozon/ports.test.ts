@@ -4,7 +4,12 @@
 import { describe, it, expect } from "vitest";
 import { aggregateBySku } from "./pnl-sku.js";
 import { aggregateChannel } from "./pnl.js";
-import { adLineOf, instrOf, plOf, statusOf, dateWindows } from "./ads.js";
+import { adLineOf, instrOf, plOf, statusOf, dateWindows, aggregateAds } from "./ads.js";
+
+const C = (id: string, line: string, sp: number, o: number, om: number, status = "активна") => ({
+  id, title: id, sp, o, om, line, instr: "Оплата за клик", place: "Топ выдачи", status,
+  drr: om ? Math.round((sp / om) * 1000) / 10 : 0, cpo: o ? Math.round(sp / o) : 0, roas: sp ? Math.round((om / sp) * 10) / 10 : 0,
+});
 
 describe("aggregateBySku (pnl-sku)", () => {
   it("суммирует только операции с одним товаром, пропускает multi и sku=0", () => {
@@ -64,6 +69,38 @@ describe("ads классификаторы", () => {
     expect(plOf([])).toBe("-");
     expect(statusOf("CAMPAIGN_STATE_RUNNING")).toBe("активна");
     expect(statusOf("CAMPAIGN_STATE_STOPPED")).toBe("закрыта");
+  });
+});
+
+describe("aggregateAds (снимок рекламы)", () => {
+  const list = [
+    C("good", "столы", 100000, 15, 1000000),          // ДРР 10% - не слив
+    C("burnDrr", "столы", 50000, 5, 100000),           // ДРР 50% >=40 и расход>=3000 - слив
+    C("burnZero", "зеркала/металл", 40000, 0, 0),      // 0 заказов и расход>=3000 - слив
+    C("smallBurn", "свет", 2000, 0, 0),                // 0 заказов, но расход<3000 - НЕ слив
+    C("zeroSpend", "свет", 0, 0, 0),                   // расход 0 - вне spent
+  ];
+  const r = aggregateAds(list, 7, { good: ["111"], burnDrr: ["222"] });
+
+  it("totals считает только потраченные кампании", () => {
+    expect(r.totals.campaigns).toBe(7);
+    expect(r.totals.active).toBe(4); // good,burnDrr,burnZero,smallBurn (sp>0); zeroSpend вне
+    expect(r.totals.spend).toBe(192000);
+    expect(r.totals.adRevenue).toBe(1100000);
+  });
+  it("сливы: расход>=3000 и (0 заказов или ДРР>=40), по расходу", () => {
+    expect(r.burners.map((b) => b.id)).toEqual(["burnDrr", "burnZero"]); // smallBurn отсеян (<3000), good не слив
+    expect(r.burners[0]!.status).toBe("активна");
+  });
+  it("top_spend: топ по расходу + skus из objectsByCamp", () => {
+    expect(r.top_spend[0]!.id).toBe("good"); // макс расход
+    expect(r.top_spend[0]!.skus).toEqual(["111"]);
+    expect(r.top_spend.find((t) => t.id === "burnZero")!.skus).toEqual([]); // нет в objectsByCamp
+    expect(r.top_spend[0]!.skuStats).toEqual([]);
+  });
+  it("by_line агрегирует и сортирует по расходу", () => {
+    expect(r.by_line[0]!.line).toBe("столы"); // 100000+50000
+    expect(r.by_line[0]!.sp).toBe(150000);
   });
 });
 

@@ -86,26 +86,40 @@ export async function adsSnapshot(dateFrom: string, dateTo: string): Promise<any
       roas: a.sp ? Math.round((a.om / a.sp) * 10) / 10 : 0,
     };
   });
-  const spent = list.filter((a) => a.sp > 0);
 
+  // Объекты (продвигаемые SKU) тянем только для топ-10 по расходу.
+  const top10 = list.filter((a) => a.sp > 0).sort((x, y) => y.sp - x.sp).slice(0, 10);
+  const objectsByCamp: Record<string, string[]> = {};
+  for (const a of top10) objectsByCamp[a.id] = await perf.campaignObjects(a.id);
+
+  return { dateFrom, dateTo, generated_at: new Date().toISOString(), ...aggregateAds(list, camps.length, objectsByCamp) };
+}
+
+// Чистая агрегация снимка рекламы (тестируется без сети): totals, сливы, top_spend, по линиям.
+// Сливы: расход >=3000 и (0 заказов или ДРР>=40), топ-8 по расходу. top_spend: топ-10 по расходу.
+export function aggregateAds(
+  list: Array<{ id: string; title: string; sp: number; o: number; om: number; line: string; instr: string; place: string; status: string; drr: number; cpo: number; roas: number }>,
+  campaignsCount: number,
+  objectsByCamp: Record<string, string[]> = {},
+): { totals: any; burners: any[]; top_spend: any[]; by_line: any[] } {
+  const spent = list.filter((a) => a.sp > 0);
   const T = { spend: 0, om: 0, o: 0 }; spent.forEach((a) => { T.spend += a.sp; T.om += a.om; T.o += a.o; });
-  const totals = { spend: Math.round(T.spend), adRevenue: Math.round(T.om), orders: T.o, drr: T.om ? Math.round((T.spend / T.om) * 1000) / 10 : 0, cpo: T.o ? Math.round(T.spend / T.o) : 0, active: spent.length, campaigns: camps.length };
+  const totals = { spend: Math.round(T.spend), adRevenue: Math.round(T.om), orders: T.o, drr: T.om ? Math.round((T.spend / T.om) * 1000) / 10 : 0, cpo: T.o ? Math.round(T.spend / T.o) : 0, active: spent.length, campaigns: campaignsCount };
 
   const burners = spent.filter((a) => a.sp >= 3000 && (a.o === 0 || a.drr >= 40)).sort((x, y) => y.sp - x.sp).slice(0, 8)
     .map((a) => ({ off: a.title, id: a.id, line: a.line, status: a.status, sp: Math.round(a.sp), o: a.o, om: Math.round(a.om), drr: a.drr, cpo: a.cpo }));
 
-  const topCamps = spent.slice().sort((x, y) => y.sp - x.sp).slice(0, 10);
-  const top_spend: any[] = [];
-  for (const a of topCamps) {
-    const skus = await perf.campaignObjects(a.id);
-    top_spend.push({ off: a.title, id: a.id, line: a.line, instr: a.instr, place: a.place, status: a.status, sp: Math.round(a.sp), o: a.o, om: Math.round(a.om), drr: a.drr, cpo: a.cpo, roas: a.roas, skus, skuStats: [] });
-  }
+  const top_spend = spent.slice().sort((x, y) => y.sp - x.sp).slice(0, 10).map((a) => ({
+    off: a.title, id: a.id, line: a.line, instr: a.instr, place: a.place, status: a.status,
+    sp: Math.round(a.sp), o: a.o, om: Math.round(a.om), drr: a.drr, cpo: a.cpo, roas: a.roas,
+    skus: objectsByCamp[a.id] || [], skuStats: [],
+  }));
 
   const lm: Record<string, { line: string; sp: number; om: number; o: number }> = {};
   spent.forEach((a) => { const L = lm[a.line] || (lm[a.line] = { line: a.line, sp: 0, om: 0, o: 0 }); L.sp += a.sp; L.om += a.om; L.o += a.o; });
   const by_line = Object.values(lm).map((L) => ({ line: L.line, sp: Math.round(L.sp), om: Math.round(L.om), o: L.o, drr: L.om ? Math.round((L.sp / L.om) * 1000) / 10 : 0 })).sort((a, b) => b.sp - a.sp);
 
-  return { dateFrom, dateTo, generated_at: new Date().toISOString(), totals, burners, top_spend, by_line };
+  return { totals, burners, top_spend, by_line };
 }
 
 async function main() {

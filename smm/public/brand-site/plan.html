@@ -133,9 +133,9 @@
   .wkband h2{font-size:15px;font-weight:800}.wkband .pill{font-size:12px;color:var(--ink2);background:var(--s2);border:1px solid transparent;border-radius:30px;padding:4px 12px}
   .wkband .ln{flex:1;height:1px;background:var(--line)}
   .tile{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px;cursor:pointer;transition:transform .18s,box-shadow .18s}
-  .tile::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(158deg,var(--_tt,transparent),transparent 38%);opacity:.4}
-  .tile.g{--_tt:var(--steel-soft)}.tile.v{--_tt:var(--gold-soft)}
-  .tile.g:hover{border-color:color-mix(in srgb,var(--steel) 38%,var(--line))}.tile.v:hover{border-color:color-mix(in srgb,var(--gold) 38%,var(--line))}
+  .tile::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(158deg,var(--_tt,transparent),transparent 62%);opacity:1;transition:background .18s}
+  .tile.g{--_tt:color-mix(in srgb,var(--steel) 32%,transparent)}.tile.v{--_tt:color-mix(in srgb,var(--gold-fill) 34%,transparent)}
+  .tile.g:hover{--_tt:color-mix(in srgb,var(--steel) 46%,transparent);border-color:color-mix(in srgb,var(--steel) 50%,var(--line))}.tile.v:hover{--_tt:color-mix(in srgb,var(--gold-fill) 48%,transparent);border-color:color-mix(in srgb,var(--gold) 50%,var(--line))}
   .tile>*{position:relative}
   .tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
   .tile.sit{border-style:dashed}

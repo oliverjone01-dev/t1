@@ -7,6 +7,8 @@ name: OZON snapshots (прямой, без n8n)
 # дельта-гейт перед заменой (FENIX G3): просадка ключевой метрики >40% -> снимок НЕ заменяется.
 
 on:
+  schedule:
+    - cron: "0 6 * * *" # ~09:00 МСК; работает после добавления OZON_* в Secrets
   workflow_dispatch:
     inputs:
       ozon_seller_client_id:

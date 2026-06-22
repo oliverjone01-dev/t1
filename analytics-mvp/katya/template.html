@@ -3871,7 +3871,7 @@ function renderMatrixCompare(){
     <div class="card-h">
       <div>
         <div class="card-title">Категории × Каналы</div>
-        <div class="card-sub">Δ по категориям (Б−А)/А — реальные из Excel · разбивка по каналам — нет источника (нужен Roistat / Bitrix)</div>
+        <div class="card-sub">Δ по категориям (Б−А)/А — реальные из OZON · разбивка по каналам — нет источника (нужен Roistat / Bitrix)</div>
       </div>
       <div class="mx-toggle">
         <button class="mx-tg ${metric==='rev'?'active':''}" data-mx-metric="rev">Выручка ₽</button>
@@ -3993,7 +3993,9 @@ function renderMatrix(){
   groupRows.forEach(g => {
     const expanded = state.mx.expanded.has(g.id);
     const chCells = CHANNELS.map(ch =>
-      `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${g.name} · ${ch.name}|Каналы|нет источника (нужен Roistat / Bitrix)">н/д</td>`
+      ch.id === 'ozon'
+        ? `<td class="mx-cell" style="text-align:center" data-tip="${g.name} · Озон|Каналы|реальная выручка OZON за период">${g.byChRev['ozon']>0?fmt(g.byChRev['ozon'],1):'—'}</td>`
+        : `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${g.name} · ${ch.name}|Каналы|нет источника (нужен Roistat / Bitrix)">н/д</td>`
     ).join('');
     const sharePct = grandRev > 0 ? (g.totalRev/grandRev*100) : 0;
     bodyRows += `<tr class="mx-row lvl1 ${expanded?'expanded':''}" data-mx-toggle="${g.id}">
@@ -4029,7 +4031,9 @@ function renderMatrix(){
       });
       subRows.forEach(s => {
         const sCells = CHANNELS.map(ch =>
-          `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${s.name} · ${ch.name}|Каналы|нет источника">н/д</td>`
+          ch.id === 'ozon'
+            ? `<td class="mx-cell" style="text-align:center" data-tip="${s.name} · Озон|Каналы|реальная выручка OZON за период">${s.byCh['ozon']>0?fmt(s.byCh['ozon'],1):'—'}</td>`
+            : `<td class="mx-cell" style="color:var(--ink-3);text-align:center" data-tip="${s.name} · ${ch.name}|Каналы|нет источника">н/д</td>`
         ).join('');
         const subShare = grandRev > 0 ? (s.revPeriod/grandRev*100) : 0;
         bodyRows += `<tr class="mx-row lvl2">
@@ -4048,14 +4052,16 @@ function renderMatrix(){
   const channelTotals = {};
   CHANNELS.forEach(ch => { channelTotals[ch.id] = 0; });
   groupRows.forEach(g => CHANNELS.forEach(ch => { channelTotals[ch.id] += g.byChRev[ch.id]; }));
-  const footChCells = CHANNELS.map(ch => `<td style="color:var(--ink-3);text-align:center">н/д</td>`).join('');
+  const footChCells = CHANNELS.map(ch => ch.id === 'ozon'
+    ? `<td style="text-align:center"><span class="num">${channelTotals['ozon']>0?fmt(channelTotals['ozon'],1):'—'}</span></td>`
+    : `<td style="color:var(--ink-3);text-align:center">н/д</td>`).join('');
   const totalOrdersAll = CHANNELS.reduce((s,ch) => s + ch.orders, 0);
 
   $('#divergent').innerHTML = `
     <div class="card-h">
       <div>
         <div class="card-title">Категории × Каналы</div>
-        <div class="card-sub">выручка, маржа, заказы и доля по категориям — реальные из Excel · разбивка по каналам — нет источника (нужен Roistat / Bitrix)</div>
+        <div class="card-sub">выручка, маржа, заказы и доля по категориям — реальные из OZON · разбивка по каналам: Озон — реальная, прочие каналы — нет источника (нужен Roistat / Bitrix)</div>
       </div>
     </div>
     <div class="mx-wrap">
@@ -4496,7 +4502,7 @@ function renderABCXYZ(){
     <div class="card-h ax-head">
       <div>
         <div class="card-title">Товары</div>
-        <div class="card-sub">Модели по выручке (ABC) и стабильности спроса (XYZ) · период: ${PERIODS[state.period].label} · клик по зоне — список</div>
+        <div class="card-sub">Модели по выручке (ABC) и стабильности спроса (XYZ) · по всем данным OZON (ранг и стабильность от периода не зависят) · клик по зоне — список</div>
       </div>
       <div class="ax-summary">
         <div>Всего моделей: <b>${total}</b></div>

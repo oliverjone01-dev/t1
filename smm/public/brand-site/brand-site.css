@@ -7,8 +7,8 @@
    ========================================================================== */
 /* :REF-LIGHT - guard: --gold/--stop на --s2 только bold/accent, не normal body text. Для текстовых меток брать --gold-ink/--v-ink/--sgl-ink. */
 :root[data-theme="light"], :root:not([data-theme]){
-  --bg:#FBF7F1;--s1:#FFFFFF;--s2:#F5EFE6;--s3:#ECE4D7;--line:#ECE2D4;--line2:#E1D6C3;
-  --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
+  --bg:#FBF7F1;--s1:#FFFFFF;--s2:#F5EFE6;--s3:#ECE4D7;--line:#E6DBC9;--line2:#D6C8AE;
+  --ink:#241F18;--ink2:#574B3D;--ink3:#6B5D4D;
   --gold:#9A6A12;--gold2:#C98A26;--gold-soft:#FBEBCB;--gold-fill:#E7A93C;--gold-border:#E0A23A;
   --gg:#41607E;--gg-ink:#33506C;--gg-soft:#E2EAF2;
   --v:#9A6A12;--v-ink:#7E5510;--v-soft:#FBEBCB;
@@ -20,10 +20,10 @@
   --card:#FFFFFF;--card2:#F5EFE6;--bg2:#F3ECE0;
   --top-bg:rgba(251,247,241,.82);--sel-bg:#E7A93C;--sel-ink:#3A2A07;
   --cta:#E7A93C;--cta-ink:#3A2A07;--gold-btn-ink:#3A2A07;
-  --shadow:0 1px 2px rgba(120,92,52,.06),0 8px 22px rgba(120,92,52,.09);
-  --shadow-lg:0 6px 14px rgba(120,92,52,.10),0 26px 48px rgba(120,92,52,.15);
+  --shadow:0 1px 2px rgba(120,92,52,.06),0 12px 30px rgba(120,92,52,.11);
+  --shadow-lg:0 8px 18px rgba(120,92,52,.12),0 30px 60px rgba(120,92,52,.18);
   --glow1:rgba(231,169,60,.10);--glow2:rgba(110,146,181,.08);
-  --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
+  --radius:18px;--radius-s:12px;--radius-pill:999px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 :root[data-theme="dark"]{
   --bg:#15161A;--s1:#1E1F24;--s2:#26282E;--s3:#303239;--line:#2E3036;--line2:#3C3F47;
@@ -42,7 +42,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.55);
   --shadow-lg:0 8px 18px rgba(0,0,0,.45),0 28px 52px rgba(0,0,0,.6);
   --glow1:rgba(240,192,98,.06);--glow2:rgba(143,176,206,.05);
-  --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
+  --radius:18px;--radius-s:12px;--radius-pill:999px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
@@ -68,8 +68,8 @@ img{max-width:100%}
 .nav a.on{color:var(--ink);background:var(--s1);box-shadow:var(--shadow)}
 .nav a .n{color:var(--ink3);margin-right:6px}
 /* переключатель темы */
-.tt{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--line);border-radius:8px;padding:4px;cursor:pointer}
-.tt button{font:inherit;font-size:12px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:7px;padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;line-height:1}
+.tt{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:4px;cursor:pointer}
+.tt button{font:inherit;font-size:12px;font-weight:600;color:var(--ink2);background:none;border:none;border-radius:var(--radius-pill);padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;line-height:1}
 .tt button.on{background:var(--s1);color:var(--ink);box-shadow:var(--shadow)}
 
 .wrap{max-width:1240px;margin:0 auto;padding:0 22px;position:relative;z-index:2}

@@ -18,7 +18,7 @@
     --bg:#FBF5EA;--bg2:#F5ECDC;--card:#FFFDF8;--card2:#FBF4E8;
     --line:#ECE0CC;--line2:#E2D3BA;
     /* тёплый тёмный текст (не чёрный) */
-    --ink:#2C2620;--ink2:#6E6154;--ink3:#7A6C5B;
+    --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
     /* акценты */
     --gold:#9A6A12;--gold-ink:#7E5510;--gold-fill:#E7A93C;--gold-soft:#FBEBCB;     /* VALONTI - тёплое золото */
     --steel:#41607E;--steel-ink:#33506C;--steel-fill:#6E92B5;--steel-soft:#E2EAF2; /* GENGLASS - прохладная сталь */
@@ -133,6 +133,7 @@
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
   .stat{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--sh)}
   .stat .ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;margin-bottom:12px;font-weight:900;font-size:15px}
+  .stat .ic svg{width:20px;height:20px}
   .stat.a .ic{background:var(--plum-soft);color:var(--plum-ink)} .stat.b .ic{background:var(--steel-soft);color:var(--steel-ink)}
   .stat.c .ic{background:var(--gold-soft);color:var(--gold-ink)} .stat.d .ic{background:var(--mint-soft);color:var(--mint-ink)}
   .stat .n{font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1}
@@ -215,7 +216,7 @@
   <section id="plan">
     <div class="sh"><span class="tag">02 · контент-план</span><h2>Карточки постов</h2><p>Скруглённые, уютные, с лёгким наклоном на наведении.</p></div>
     <div class="grid">
-      <article class="post" tabindex="0" role="button" aria-label="Пост: До и после прихожей">
+      <article class="post">
         <div class="cover">обложка 16:10</div>
         <div class="post-b">
           <div class="post-h"><span class="chip g">GENGLASS</span><span class="when">Пн · 08.06</span><span class="st pub">опубл.</span></div>
@@ -226,7 +227,7 @@
           <div class="pfoot"><span class="reach"><span class="dot"></span> <b>18 420</b> охват</span><span class="er"><span class="dot"></span> <b>6.3%</b> ER</span></div>
         </div>
       </article>
-      <article class="post" tabindex="0" role="button" aria-label="Пост: Nero Marquina">
+      <article class="post">
         <div class="cover"><span class="play" aria-hidden="true">▶</span></div>
         <div class="post-b">
           <div class="post-h"><span class="chip v">VALONTI</span><span class="when">Вт · 09.06</span><span class="st pln">в плане</span></div>
@@ -236,7 +237,7 @@
           <div class="pmeta"><span class="mchip">IG / VK</span><span class="mchip">Reels макро</span><span class="mchip" style="color:var(--coral-ink)">▶ видео</span></div>
         </div>
       </article>
-      <article class="post" tabindex="0" role="button" aria-label="Пост: Авторский разбор">
+      <article class="post">
         <div class="post-b" style="padding-top:17px">
           <div class="post-h"><span class="chip v">VALONTI</span><span class="when">Чт · 11.06</span><span class="st drf">черновик</span></div>
           <div class="rub">Рождение изделия</div>
@@ -252,10 +253,10 @@
   <section id="kit">
     <div class="sh"><span class="tag">03 · система</span><h2>Компоненты и токены</h2><p>Что доразвили под тёплый язык: статистика, пайплайн, палитра.</p></div>
     <div class="kpis" style="margin-bottom:18px">
-      <div class="stat a"><div class="ic">✎</div><div class="n">12</div><div class="l">в черновиках</div></div>
-      <div class="stat b"><div class="ic">◷</div><div class="n">30</div><div class="l">в плане</div></div>
-      <div class="stat c"><div class="ic">◑</div><div class="n">8</div><div class="l">на согласовании</div></div>
-      <div class="stat d"><div class="ic">✓</div><div class="n">11</div><div class="l">опубликовано</div></div>
+      <div class="stat a"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="n">12</div><div class="l">в черновиках</div></div>
+      <div class="stat b"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div class="n">30</div><div class="l">в плане</div></div>
+      <div class="stat c"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="n">8</div><div class="l">на согласовании</div></div>
+      <div class="stat d"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><div class="n">11</div><div class="l">опубликовано</div></div>
     </div>
     <div class="pipe">
       <span class="pstep drf"><span class="dt"></span>Черновик</span><span class="pconn"></span>

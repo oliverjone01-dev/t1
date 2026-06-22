@@ -5,7 +5,7 @@
    Цвет-токены (--gold/--gg/--v/--keep/--stop/--pln/--rdy) держим ТЕКСТ-БЕЗОПАСНЫМИ
    в каждой теме; фоны - через *-soft. Класс-имена прежние (страницы не ломаются).
    ========================================================================== */
-/* :REF-LIGHT  — guard: --gold/--stop на --s2 только bold/accent, не normal body text. Для текстовых меток брать --gold-ink/--v-ink/--sgl-ink. */
+/* :REF-LIGHT - guard: --gold/--stop на --s2 только bold/accent, не normal body text. Для текстовых меток брать --gold-ink/--v-ink/--sgl-ink. */
 :root[data-theme="light"], :root:not([data-theme]){
   --bg:#FBF7F1;--s1:#FFFFFF;--s2:#F5EFE6;--s3:#ECE4D7;--line:#ECE2D4;--line2:#E1D6C3;
   --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
@@ -26,22 +26,22 @@
   --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 :root[data-theme="dark"]{
-  --bg:#17120D;--s1:#221B14;--s2:#2B231A;--s3:#362C20;--line:#342A1F;--line2:#443827;
-  --ink:#F6EFE3;--ink2:#C4B7A3;--ink3:#968871;
+  --bg:#15161A;--s1:#1E1F24;--s2:#26282E;--s3:#303239;--line:#2E3036;--line2:#3C3F47;
+  --ink:#F3F2EF;--ink2:#B7B7B5;--ink3:#8A8A88;
   --gold:#F0C062;--gold2:#F2CB7E;--gold-soft:rgba(240,192,98,.16);--gold-fill:#F0C062;--gold-border:#F0C062;
   --gg:#A9C4DD;--gg-ink:#BAD0E6;--gg-soft:rgba(143,176,206,.16);
   --v:#F0C062;--v-ink:#F2CB7E;--v-soft:rgba(240,192,98,.16);
   --keep:#5FD09B;--pub:#5FD09B;--pub-ink:#5FD09B;--pub-soft:rgba(95,208,155,.16);
   --rdy:#E8A24E;--sgl:#E8A24E;--sgl-ink:#E8A24E;--sgl-soft:rgba(232,162,78,.17);
-  --pln:#A99A85;--pln-ink:#A99A85;--pln-soft:rgba(169,154,133,.15);--drf:#BBA0DC;--drf-ink:#C9B4E8;--drf-soft:rgba(187,160,220,.17);
+  --pln:#A6A6A2;--pln-ink:#A6A6A2;--pln-soft:rgba(166,166,162,.15);--drf:#BBA0DC;--drf-ink:#C9B4E8;--drf-soft:rgba(187,160,220,.17);
   --stop:#F08160;--danger:#F08160;
-  --hyp-bg:rgba(169,154,133,.16);--hyp-ink:#C9B4E8;
-  --card:#221B14;--card2:#2B231A;--bg2:#201A13;
-  --top-bg:rgba(23,18,13,.82);--sel-bg:#F0C062;--sel-ink:#1A1408;
+  --hyp-bg:rgba(150,150,148,.16);--hyp-ink:#C9B4E8;
+  --card:#1E1F24;--card2:#26282E;--bg2:#1A1B1F;
+  --top-bg:rgba(21,22,26,.82);--sel-bg:#F0C062;--sel-ink:#1A1408;
   --cta:#F0C062;--cta-ink:#1A1408;--gold-btn-ink:#1A1408;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(5,3,1,.5);
-  --shadow-lg:0 8px 18px rgba(0,0,0,.45),0 28px 52px rgba(5,3,1,.6);
-  --glow1:rgba(240,192,98,.07);--glow2:rgba(143,176,206,.05);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.55);
+  --shadow-lg:0 8px 18px rgba(0,0,0,.45),0 28px 52px rgba(0,0,0,.6);
+  --glow1:rgba(240,192,98,.06);--glow2:rgba(143,176,206,.05);
   --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}

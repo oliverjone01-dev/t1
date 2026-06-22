@@ -402,9 +402,9 @@ function banner(active: string): string {
 }
 
 // --- Гуру-виджет: всплывающий ИИ-аналитик на каждой странице ---
-// Дёргает n8n «Гуру-аналитик v2»: живой OZON за выбранный период + GPT-4o с памятью диалога.
-// Кнопка «ИИ-разбор» у каждого блока шлёт контекст блока и активные фильтры.
-const GURU_URL = "https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-guru";
+// ВРЕМЕННО ОТКЛЮЧЁН (Этап 4 миграции с n8n): бэкенд чата жил на n8n-вебхуке с исчерпанной квотой.
+// Кнопка и виджет остаются на месте (решение Ивана), но запрос не идёт - показываем понятное
+// «временно недоступно». Вернём отдельным сервисом (Cloudflare Worker) как отдельный проект.
 const GURU_JS = `<style>
 #gg-guru-btn{position:fixed;right:18px;bottom:18px;z-index:9000;width:56px;height:56px;border-radius:50%;background:#22D3EE;color:#06121a;border:none;font:700 13px/1 system-ui;cursor:pointer;box-shadow:0 6px 24px rgba(34,211,238,.45)}
 #gg-guru{position:fixed;right:18px;bottom:84px;z-index:9001;width:400px;max-width:calc(100vw - 24px);height:min(560px,calc(100vh - 120px));display:none;flex-direction:column;background:#10161f;border:1px solid #22D3EE;border-radius:14px;overflow:hidden;font:13.5px/1.55 system-ui;color:#dfe9f0}
@@ -422,47 +422,19 @@ const GURU_JS = `<style>
 </style>
 <button id="gg-guru-btn" title="Гуру-аналитик: вопрос по живым данным OZON">ИИ</button>
 <div id="gg-guru"><div class="gh"><b>Гуру-аналитик · живой OZON</b><button id="gg-guru-x" style="background:none;border:none;color:#8aa0b0;font-size:16px;cursor:pointer">×</button></div>
-<div class="gm" id="gg-guru-m"><div class="w">Спроси про продажи, рекламу, воронку, линии - отвечаю по живым данным OZON API за выбранный период. Помню контекст диалога. Кнопка «ИИ-разбор» у блоков даёт аналитику блока с учётом фильтров.</div></div>
+<div class="gm" id="gg-guru-m"><div class="w">Гуру-аналитик временно отключён: идёт миграция аналитики с n8n на прямые клиенты OZON. Все числа на дашборде - из свежих ночных снимков напрямую. Интерактивный чат вернём отдельным сервисом.</div></div>
 <div class="gi"><input id="gg-guru-q" placeholder="Например: что с продажами за неделю?"><button id="gg-guru-s">→</button></div></div>
 <script>(function(){
-var URL='${GURU_URL}';
-var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
-var sid=LS.getItem('gg_guru_sid');if(!sid){sid='s'+Date.now()+Math.random().toString(36).slice(2,8);LS.setItem('gg_guru_sid',sid);}
-var MAXD=window.__GG_MAXD||'', box=document.getElementById('gg-guru'), msgs=document.getElementById('gg-guru-m');
+var box=document.getElementById('gg-guru'), msgs=document.getElementById('gg-guru-m');
 document.getElementById('gg-guru-btn').onclick=function(){box.classList.toggle('open');};
 document.getElementById('gg-guru-x').onclick=function(){box.classList.remove('open');};
-function ad(d,n){var t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);}
-function period(){
-  if(window.__guruPeriod)return window.__guruPeriod;
-  var s=null;try{s=JSON.parse(LS.getItem('gg_katya_period')||'null');}catch(e){}
-  if(!s||!MAXD)return {};
-  if(s.p==='range'&&s.from&&s.to)return {curFrom:s.from,curTo:s.to};
-  var days={'today':1,'7d':7,'30d':30,'90d':90}[s.p];
-  if(!days)return {curFrom:'2026-02-06',curTo:MAXD};
-  return {curFrom:ad(MAXD,-(days-1)),curTo:MAXD};
-}
 function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-var busy=false;
-var TEMP=/сравн|вчера|недел|месяц|квартал|январ|феврал|март|апрел|\\bмая\\b|\\bмай\\b|июн|июл|август|сентябр|октябр|ноябр|декабр|начал|серед|конц|конец|период|динамик/i;
+// Чат отключён на время миграции с n8n: запрос не уходит, показываем понятное уведомление.
 function ask(q,page){
-  if(busy||!q)return;busy=true;
+  if(!q)return;
   box.classList.add('open');
-  msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="w" id="gg-wait">Гуру тянет живые данные OZON и думает (20-60 сек)...</div>');
+  msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="a" style="color:#E5B567">Гуру-аналитик временно отключён: идёт миграция с n8n на прямые клиенты OZON. Числа на дашборде - из свежих ночных снимков напрямую. Интерактивный чат вернём отдельным сервисом.</div>');
   msgs.scrollTop=msgs.scrollHeight;
-  var body={question:q,sessionId:sid};
-  if(!TEMP.test(q)){var p=period();if(p.curFrom){body.curFrom=p.curFrom;body.curTo=p.curTo;}if(p.cmpFrom){body.cmpFrom=p.cmpFrom;body.cmpTo=p.cmpTo;}}
-  if(page)body.page=page;
-  var ctrl=('AbortController' in window)?new AbortController():null;
-  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},90000);
-  fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined})
-  .then(function(r){clearTimeout(tid);return r.text().then(function(t){if(!r.ok)throw new Error('сервис вернул '+r.status);if(!t)throw new Error('пустой ответ (Гуру не успел вовремя)');var j;try{j=JSON.parse(t);}catch(e){throw new Error('ответ не распознан');}return j;});})
-  .then(function(j){var w=document.getElementById('gg-wait');if(w)w.remove();
-    var a=(j&&j.analysis)||'(пустой ответ)';
-    msgs.insertAdjacentHTML('beforeend','<div class="a">'+esc(a)+(j&&j.curFrom?'<div class="w">период данных: '+j.curFrom+'..'+j.curTo+(j.period?' ('+j.period+')':'')+'</div>':'')+'</div>');
-    msgs.scrollTop=msgs.scrollHeight;busy=false;})
-  .catch(function(e){clearTimeout(tid);var w=document.getElementById('gg-wait');if(w)w.remove();
-    msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
-    busy=false;});
 }
 window.__guruAsk=ask;
 var inp=document.getElementById('gg-guru-q');
@@ -658,13 +630,22 @@ function warnStale(): void {
   const now = new Date();
   const ystd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); ystd.setUTCDate(ystd.getUTCDate() - 1);
   const daysOld = (d?: string): number | null => { if (!d || !/^\d{4}-\d\d-\d\d/.test(d)) return null; return Math.round((ystd.getTime() - new Date(d.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000); };
+  // Дата снимка из data/: dateTo (окно) или generated_at (когда снят). Не валим, если файла нет.
+  const snapDate = (file: string): string | undefined => {
+    try { const j = JSON.parse(readFileSync(`data/${file}`, "utf-8")); return j.dateTo || (j.generated_at ? String(j.generated_at).slice(0, 10) : undefined); }
+    catch { return undefined; }
+  };
   const checks: [string, string | undefined][] = [
     ["дневная история", maxD],
     ["реклама 30д", (freshAds("ads_30d.json") || {}).dateTo],
     ["реклама по периодам (p30)", ((freshAds("ads_periods.json") || {}).p30 || {}).dateTo],
+    ["P&L канал", snapDate("pnl_30d.json")],
+    ["P&L по SKU", snapDate("pnl_sku_30d.json")],
+    ["товары (skus)", snapDate("skus_live_30d.json")],
+    ["кэш per-SKU отчётов", snapDate("ads_reports.json")],
   ];
   let stale = 0;
-  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк/n8n.`); } }
+  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк ozon-snapshots.yml.`); } }
   console.log(stale ? `Страж свежести: устаревших снимков ${stale} (см. warnings выше).` : "Страж свежести: снимки актуальны (по вчера).");
 }
 warnStale();
@@ -1045,25 +1026,21 @@ function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
-const ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';
-const PSK_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl-sku';
-let lastReq=0;
-// Комиссия по SKU за ОКНО ФИЛЬТРА (живой pnl-sku). С/с остаётся из снимка 30 дней (ECON).
-var COM_PERIOD={};var comReady=false;var comKey='';
-function loadCommission(cur){var k=cur.from+'_'+cur.to;if(comKey===k){if(comReady)renderUecon(lastA);return;}comKey=k;comReady=false;
-  if(typeof fetch==='undefined')return;
-  fetch(PSK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
-    .then(function(r){return r.json();}).then(function(d){if(comKey!==k)return;var bs=(d&&d.bySku)||{};var m={};for(var s in bs){var x=bs[s];if(x&&x.accruals>0)m[s]=Math.round((x.accruals-x.amount)/x.accruals*1000)/10;}COM_PERIOD=m;comReady=true;renderUecon(lastA);})
-    .catch(function(){});
-}
-// --- ленивая загрузка per-SKU отчётов (один отчёт на кампанию, чтобы влезть в лимит n8n 60с и не упереться в 429) ---
+// Комиссия по SKU - из снимка 30 дней (ECON). Раньше уточнялась живым pnl-sku через n8n за окно
+// фильтра; после миграции живого источника нет - просто перерисовываем юнит-эк по снимку.
+function loadCommission(cur){renderUecon(lastA);}
+// --- per-SKU разбивка кампаний: только из кэша снимка (RCACHE). Живой отчёт жил на n8n; после
+// миграции его нет - разворот строки берёт кэш или показывает «разбивка недоступна». ---
 var REPORTS={};var lastA=null;var expanded={};
 function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
 function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range')return null;return 'p30';}
+// Дата кэша per-SKU отчётов: показываем рядом с разбивкой, чтобы устаревший кэш не выглядел свежим.
+var RCACHE_D=(RCACHE&&RCACHE.generated_at)?String(RCACHE.generated_at).slice(0,10):'';
 function cacheStats(id){var lb=curLabel();if(!lb||!RCACHE||!RCACHE[lb])return null;var r=RCACHE[lb].reports||{};var v=r[String(id)];return v===undefined?null:v;} // кэш (стандартный период)
 function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
 function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
-  if(typeof fetch==='undefined'||!mCur){REPORTS[k]=[];if(cb)cb([]);return;}fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report:String(id),dateFrom:mCur.from,dateTo:mCur.to})}).then(function(r){return r.json();}).then(function(d){REPORTS[k]=(d&&d.skuStats)||[];if(cb)cb(REPORTS[k]);}).catch(function(){REPORTS[k]=[];if(cb)cb([]);});}
+  // Живой per-SKU отчёт жил на n8n; после миграции - только кэш снимка (RCACHE) выше, иначе пусто.
+  REPORTS[k]=[];if(cb)cb([]);}
 var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
 var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
 var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
@@ -1074,10 +1051,11 @@ function renderTop(){var a=lastA;if(!a)return;
     var sub='';
     if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
+      if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из снимка per-SKU от '+RCACHE_D+' (на паузе на время миграции)</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
         sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания)</td></tr>';}
+    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;
   }).join('');
   document.getElementById('top').innerHTML=html;
@@ -1109,7 +1087,7 @@ function renderBurn(a){
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
         sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или лимит OZON)</td></tr>';}
+    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;
   }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';
   document.getElementById('burn').innerHTML=html;
@@ -1129,8 +1107,11 @@ function paint(a,src){
     kpi('ДРР',odrr+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
-  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>'+staleMark(a.dateTo):'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);
-  document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
+  // Прямой снимок OZON (без n8n). Для нестандартных периодов показываем ближайший снимок 7/30/90.
+  var exact=(CURP==='7d'||CURP==='30d'||CURP==='90d');
+  var near=exact?'':' <span style="color:#E5B567" title="Снимки есть для 7/30/90 дней. Для выбранного периода показан ближайший.">· ближайший снимок</span>';
+  const badge='<span class="kt-src">снимок за '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo)+near;
+  document.getElementById('src1').innerHTML='источник: OZON Performance API (прямой) '+badge;
   lastA=a;renderTop();
   renderBurn(a);
   // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
@@ -1152,7 +1133,7 @@ function renderUecon(a){
     var sku=campSku(c);if(!sku)return;total++;
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
     if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
-    var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок
+    var com=e.com; // комиссия из снимка 30 дней (живого уточнения за окно фильтра больше нет)
     var be=Math.round((100-com-e.cogs)*10)/10; // Лимит РК = 100 − комиссия(период) − с/с(снимок)
     var head=Math.round((be-drr)*10)/10;var gt=Math.max(0,Math.round(be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
     var v=head>=gt?'go':(head>=0?'edge':'cut');
@@ -1179,19 +1160,12 @@ function renderUecon(a){
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
 function render(cur,cmp){
   mCur=cur; // окно периода
-  setAds('load','подгружаю данные рекламы…');
-  // 1) мгновенно - запечённый снимок кампаний за выбранный период (быстро, без per-SKU)
+  setAds('load','готовлю снимок рекламы…');
+  // Запечённый снимок кампаний под выбранный период (прямой ночной синк OZON, без n8n).
   const baked=bakedFor();paint(baked,'baked');
-  loadCommission(cur); // комиссия по SKU за окно фильтра (живой pnl-sku) -> юнит-экономика
-  if(typeof fetch==='undefined'){setAds('ok','готов к работе (снимок)');return;}
-  // 2) живое уточнение кампаний за точные даты периода (без withSku - быстро); per-SKU грузим лениво
-  const my=++lastReq;
-  var ctrl=('AbortController' in window)?new AbortController():null;
-  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},75000);
-  fetch(ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to}),signal:ctrl?ctrl.signal:undefined})
-    .then(r=>{clearTimeout(tid);if(!r.ok)throw 0;return r.json();})
-    .then(a=>{if(my!==lastReq)return;if(a&&a.totals&&(a.totals.spend>0||a.totals.campaigns>0)){paint(a,'live');}else{paint(baked,'baked2');}loadAllReports();})
-    .catch(()=>{clearTimeout(tid);if(my!==lastReq)return;paint(baked,'baked2');loadAllReports();});
+  loadCommission(cur); // комиссия по SKU из снимка -> юнит-экономика
+  setAds('ok','готов к работе (снимок)');
+  loadAllReports(); // per-SKU разбивка из кэша снимка (живого источника больше нет)
 }`;
   writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }
@@ -1213,15 +1187,13 @@ function render(cur,cmp){
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
-const PNL_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl';
-const PSK_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-pnl-sku';
+const SKU_SNAP=${J(Object.fromEntries(Object.entries(JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku).filter(([, v]: any) => v.accruals > 0).sort((a: any, b: any) => b[1].amount - a[1].amount).slice(0, 15)))};
 function catSvc(name){const n=name.toLowerCase();
   if(n.includes('brand'))return 'Бренд-комиссия';if(n.includes('acquir'))return 'Эквайринг';if(n.includes('installment'))return 'Рассрочка';if(n.includes('storage'))return 'Хранение';
   if(n.includes('membership')||n.includes('premium')||n.includes('subscription')||n.includes('stars'))return 'Подписки (Stars/Premium/отзывы)';
   if(n.includes('logistic')||n.includes('dropoff')||n.includes('lastmile')||n.includes('deliverytohandover')||n.includes('returnspvz')||n.includes('courier'))return 'Логистика (прямая+возвратная)';
   return 'Прочее';}
 function normalize(raw){if(raw.breakdown)return raw;const b={'Комиссия за продажу':Math.round(raw.commission||0)};for(const k in (raw.services||{})){const c=catSvc(k);b[c]=Math.round((b[c]||0)+raw.services[k]);}return {...raw,breakdown:b};}
-let lastReq=0;
 function paint(p,src){
   p=normalize(p);
   const kpi=(lab,val)=>'<div class="card"><div class="kt-k">'+lab+'</div><div class="kt-v">'+val+'</div></div>';
@@ -1230,8 +1202,10 @@ function paint(p,src){
     kpi('Начислено, ₽',fMln(p.accruals||0)),kpi('Комиссия за продажу',commPct+'%'),kpi('К выплате, ₽',fMln(p.payout||0)),
     kpi('Доля выплаты',(p.accruals?Math.round(p.payout/p.accruals*1000)/10:0)+'%'),kpi('Операций',fmtRu(p.ops||0))
   ].join('');
-  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+p.dateFrom+'..'+p.dateTo+'</span>':'<span class="kt-src">снимок '+p.dateFrom+'..'+p.dateTo+'</span>';
-  document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list через n8n '+badge;
+  // P&L канала - прямой снимок за 30 дней (без n8n); не зависит от выбранного периода.
+  var note=(CURP==='30d')?'':' <span style="color:#E5B567" title="P&L канала считается по снимку за 30 дней и не меняется при смене периода.">· снимок 30 дн</span>';
+  const badge='<span class="kt-src">снимок '+p.dateFrom+'..'+p.dateTo+'</span>'+note;
+  document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list (прямой) '+badge;
   const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
   const sumFees=fees.reduce((s,f)=>s+f[1],0);
   const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat([['К выплате',p.payout,'#34D399']]);
@@ -1241,18 +1215,14 @@ function paint(p,src){
 }
 function paintSku(t,src){
   const rows=Object.entries(t.bySku||{}).map(([sku,v])=>({sku,...v})).filter(x=>x.accruals>0).sort((a,b)=>b.amount-a.amount).slice(0,15);
-  document.getElementById('src2').innerHTML='операции с одним товаром · '+(src==='live'?'<span class="kt-src live">живой запрос '+t.dateFrom+'..'+t.dateTo+'</span>':'<span class="kt-src">снимок</span>');
+  document.getElementById('src2').innerHTML='операции с одним товаром · <span class="kt-src">снимок 30 дн</span>';
   document.getElementById('tsku').innerHTML=rows.map(x=>'<tr><td>'+(NAMES[x.sku]||x.sku)+'</td><td class="r">'+fmtRu(x.accruals)+'</td><td class="r" style="color:var(--dn)">'+fmtRu(x.commission)+'</td><td class="r" style="color:var(--up)">'+fmtRu(x.amount)+'</td><td class="r">'+(x.accruals?Math.round(x.amount/x.accruals*100):0)+'%</td></tr>').join('');
 }
 document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'<tr><td>'+(m.label||m.month||'')+'</td><td class="r">'+fMln(m.realization??0)+'</td><td class="r" style="color:'+((m.profit??0)>=0?'var(--up)':'var(--dn)')+'">'+fMln(m.profit??0)+'</td></tr>').join('')||'<tr><td colspan="3" class="kt-note">нет закрытых месяцев</td></tr>';
 function render(cur,cmp){
+  // Прямой снимок 30 дней (без n8n). P&L канала фиксирован по снимку и не зависит от периода.
   paint(SNAP,'snap');
-  if(typeof fetch==='undefined'){paintSku({bySku:{},dateFrom:'',dateTo:''},'snap');return;}
-  const my=++lastReq;
-  fetch(PNL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
-    .then(r=>{if(!r.ok)throw 0;return r.json();}).then(p=>{if(my===lastReq&&p&&p.accruals!=null)paint(p,'live');}).catch(()=>{});
-  fetch(PSK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
-    .then(r=>{if(!r.ok)throw 0;return r.json();}).then(t=>{if(my===lastReq&&t&&t.bySku)paintSku(t,'live');}).catch(()=>{paintSku({bySku:${J(Object.fromEntries(Object.entries(JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku).filter(([, v]: any) => v.accruals > 0).sort((a: any, b: any) => b[1].amount - a[1].amount).slice(0, 15)))},dateFrom:'',dateTo:''},'snap');});
+  paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap');
 }`;
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }
@@ -1290,18 +1260,8 @@ function render(cur,cmp){
   const pageJs = `
 const D=${J({ rev: DAY_T.rev, units: DAY_T.units, views: DAY_T.views, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret })};
 const SKUS=${J(SKUS)};const LIVE=${J(LIVE)};const ADS=${J(ads)};const ADSP=${J(adsPeriodsCC)};
-const CC_ADS_URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-ads';var ccAdsReq=0;
-// Живой Общая ДРР за ТОЧНЫЙ период: расход рекламы ÷ ВЕСЬ оборот периода (как в выгрузке OZON).
-function ccLiveDrr(cur,gmv){
-  if(typeof fetch==='undefined')return; var my=++ccAdsReq;
-  fetch(CC_ADS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dateFrom:cur.from,dateTo:cur.to})})
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(a){ if(my!==ccAdsReq||!a||!a.totals)return;
-      var sp=a.totals.spend||0; var odrr=gmv?Math.round(sp/gmv*1000)/10:0;
-      var c=[].slice.call(document.querySelectorAll('#kpis .card')).filter(function(x){return x.textContent.indexOf('ДРР')>=0;})[0];
-      if(c){ c.querySelector('.kt-v').textContent=odrr+'%'; var s=c.querySelector('.kt-d'); if(s)s.textContent='живой за '+a.dateFrom+'..'+a.dateTo; }
-    }).catch(function(){});
-}
+// Общая ДРР - из запечённого снимка рекламы за период (расход÷оборот). Живого уточнения через
+// n8n больше нет (миграция): берём ближайший снимок 7/30/90 через adsForPeriod().
 // ДРР за выбранный период (из запечённых снимков 7/30/90), а не статичный 30-дн.
 function adsForPeriod(){ if(CURP==='7d'||CURP==='today')return ADSP.p7||ADS; if(CURP==='90d'||CURP==='all')return ADSP.p90||ADS; if(CURP==='range'){var d=Math.round((Date.parse(periodDates('range').to)-Date.parse(periodDates('range').from))/864e5)+1; return d<=10?(ADSP.p7||ADS):d<=45?(ADSP.p30||ADS):(ADSP.p90||ADS);} return ADSP.p30||ADS; }
 const BASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
@@ -1320,10 +1280,9 @@ function render(cur,cmp){
     kpi('Заказы, шт',fmtRu(u),dlt(u,uP),'Сколько штук заказали за период.'),
     kpi('Конверсия показ→заказ',(cro*100).toFixed(2)+'%',dlt(cro,croP),'Из скольких показов рождается заказ. Падает - проблема с карточкой/ценой/трафиком.'),
     kpi('Средний чек, ₽',fmtRu(aov),dlt(aov,aovP),'Оборот делить на заказы. Растёт - продаём дороже/комплектами.'),
-    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Живой запрос уточняет по точным датам.'),
+    kpi('ДРР',(gmv?(Math.round(((adsForPeriod().totals||{}).spend||0)/gmv*1000)/10):0)+'%','<span class="kt-d na">снимок · за период</span>','Расход рекламы ÷ ВЕСЬ оборот за период (как ДРР в выгрузке OZON). Из ближайшего снимка 7/30/90.'),
     kpi('Возвраты, шт',fmtRu(v('ret')),dlt(v('ret'),p('ret'),false,'шт'),'Возвраты съедают маржу. Рост - смотри качество и описание.')
   ].join('');
-  ccLiveDrr(cur,gmv); // уточняем Общую ДРР (расход÷оборот) живым запросом за точный период
   document.getElementById('bsub').textContent='период '+cur.from+'..'+cur.to+' · база '+cmp.from+'..'+cmp.to;
   // Мост: вклад трафика / конверсии / чека в ΔGMV (последовательная декомпозиция)
   const dV=(vw-vwP)*croP*aovP, dC=vw*(cro-croP)*aovP, dA=vw*cro*(aov-aovP);

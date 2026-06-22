@@ -831,47 +831,19 @@ applyPeriod();
 </style>
 <button id="gg-guru-btn" title="Гуру-аналитик: вопрос по живым данным OZON">ИИ</button>
 <div id="gg-guru"><div class="gh"><b>Гуру-аналитик · живой OZON</b><button id="gg-guru-x" style="background:none;border:none;color:#8aa0b0;font-size:16px;cursor:pointer">×</button></div>
-<div class="gm" id="gg-guru-m"><div class="w">Спроси про продажи, рекламу, воронку, линии - отвечаю по живым данным OZON API за выбранный период. Помню контекст диалога. Кнопка «ИИ-разбор» у блоков даёт аналитику блока с учётом фильтров.</div></div>
+<div class="gm" id="gg-guru-m"><div class="w">Гуру-аналитик временно отключён: идёт миграция аналитики с n8n на прямые клиенты OZON. Все числа на дашборде - из свежих ночных снимков напрямую. Интерактивный чат вернём отдельным сервисом.</div></div>
 <div class="gi"><input id="gg-guru-q" placeholder="Например: что с продажами за неделю?"><button id="gg-guru-s">→</button></div></div>
 <script>(function(){
-var URL='https://gen-group.app.n8n.cloud/webhook/gengroup-ozon-guru';
-var LS=(typeof localStorage!=='undefined')?localStorage:{getItem:function(){return null;},setItem:function(){}};
-var sid=LS.getItem('gg_guru_sid');if(!sid){sid='s'+Date.now()+Math.random().toString(36).slice(2,8);LS.setItem('gg_guru_sid',sid);}
-var MAXD=window.__GG_MAXD||'', box=document.getElementById('gg-guru'), msgs=document.getElementById('gg-guru-m');
+var box=document.getElementById('gg-guru'), msgs=document.getElementById('gg-guru-m');
 document.getElementById('gg-guru-btn').onclick=function(){box.classList.toggle('open');};
 document.getElementById('gg-guru-x').onclick=function(){box.classList.remove('open');};
-function ad(d,n){var t=new Date(d+'T00:00Z');t.setUTCDate(t.getUTCDate()+n);return t.toISOString().slice(0,10);}
-function period(){
-  if(window.__guruPeriod)return window.__guruPeriod;
-  var s=null;try{s=JSON.parse(LS.getItem('gg_katya_period')||'null');}catch(e){}
-  if(!s||!MAXD)return {};
-  if(s.p==='range'&&s.from&&s.to)return {curFrom:s.from,curTo:s.to};
-  var days={'today':1,'7d':7,'30d':30,'90d':90}[s.p];
-  if(!days)return {curFrom:'2026-02-06',curTo:MAXD};
-  return {curFrom:ad(MAXD,-(days-1)),curTo:MAXD};
-}
 function esc(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-var busy=false;
-var TEMP=/сравн|вчера|недел|месяц|квартал|январ|феврал|март|апрел|\bмая\b|\bмай\b|июн|июл|август|сентябр|октябр|ноябр|декабр|начал|серед|конц|конец|период|динамик/i;
+// Чат отключён на время миграции с n8n: запрос не уходит, показываем понятное уведомление.
 function ask(q,page){
-  if(busy||!q)return;busy=true;
+  if(!q)return;
   box.classList.add('open');
-  msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="w" id="gg-wait">Гуру тянет живые данные OZON и думает (20-60 сек)...</div>');
+  msgs.insertAdjacentHTML('beforeend','<div class="q">Вы: '+esc(q)+'</div><div class="a" style="color:#E5B567">Гуру-аналитик временно отключён: идёт миграция с n8n на прямые клиенты OZON. Числа на дашборде - из свежих ночных снимков напрямую. Интерактивный чат вернём отдельным сервисом.</div>');
   msgs.scrollTop=msgs.scrollHeight;
-  var body={question:q,sessionId:sid};
-  if(!TEMP.test(q)){var p=period();if(p.curFrom){body.curFrom=p.curFrom;body.curTo=p.curTo;}if(p.cmpFrom){body.cmpFrom=p.cmpFrom;body.cmpTo=p.cmpTo;}}
-  if(page)body.page=page;
-  var ctrl=('AbortController' in window)?new AbortController():null;
-  var tid=setTimeout(function(){if(ctrl)ctrl.abort();},90000);
-  fetch(URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl?ctrl.signal:undefined})
-  .then(function(r){clearTimeout(tid);return r.text().then(function(t){if(!r.ok)throw new Error('сервис вернул '+r.status);if(!t)throw new Error('пустой ответ (Гуру не успел вовремя)');var j;try{j=JSON.parse(t);}catch(e){throw new Error('ответ не распознан');}return j;});})
-  .then(function(j){var w=document.getElementById('gg-wait');if(w)w.remove();
-    var a=(j&&j.analysis)||'(пустой ответ)';
-    msgs.insertAdjacentHTML('beforeend','<div class="a">'+esc(a)+(j&&j.curFrom?'<div class="w">период данных: '+j.curFrom+'..'+j.curTo+(j.period?' ('+j.period+')':'')+'</div>':'')+'</div>');
-    msgs.scrollTop=msgs.scrollHeight;busy=false;})
-  .catch(function(e){clearTimeout(tid);var w=document.getElementById('gg-wait');if(w)w.remove();
-    msgs.insertAdjacentHTML('beforeend','<div class="a" style="color:#ff8a8e">Не получилось: '+esc(e.message)+'. Гуру дёргает живой OZON и GPT - это 20-60 сек; попробуй ещё раз или сократи вопрос.</div>');
-    busy=false;});
 }
 window.__guruAsk=ask;
 var inp=document.getElementById('gg-guru-q');

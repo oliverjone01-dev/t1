@@ -630,13 +630,22 @@ function warnStale(): void {
   const now = new Date();
   const ystd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); ystd.setUTCDate(ystd.getUTCDate() - 1);
   const daysOld = (d?: string): number | null => { if (!d || !/^\d{4}-\d\d-\d\d/.test(d)) return null; return Math.round((ystd.getTime() - new Date(d.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000); };
+  // Дата снимка из data/: dateTo (окно) или generated_at (когда снят). Не валим, если файла нет.
+  const snapDate = (file: string): string | undefined => {
+    try { const j = JSON.parse(readFileSync(`data/${file}`, "utf-8")); return j.dateTo || (j.generated_at ? String(j.generated_at).slice(0, 10) : undefined); }
+    catch { return undefined; }
+  };
   const checks: [string, string | undefined][] = [
     ["дневная история", maxD],
     ["реклама 30д", (freshAds("ads_30d.json") || {}).dateTo],
     ["реклама по периодам (p30)", ((freshAds("ads_periods.json") || {}).p30 || {}).dateTo],
+    ["P&L канал", snapDate("pnl_30d.json")],
+    ["P&L по SKU", snapDate("pnl_sku_30d.json")],
+    ["товары (skus)", snapDate("skus_live_30d.json")],
+    ["кэш per-SKU отчётов", snapDate("ads_reports.json")],
   ];
   let stale = 0;
-  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк/n8n.`); } }
+  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк ozon-snapshots.yml.`); } }
   console.log(stale ? `Страж свежести: устаревших снимков ${stale} (см. warnings выше).` : "Страж свежести: снимки актуальны (по вчера).");
 }
 warnStale();
@@ -1025,6 +1034,8 @@ function loadCommission(cur){renderUecon(lastA);}
 var REPORTS={};var lastA=null;var expanded={};
 function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
 function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range')return null;return 'p30';}
+// Дата кэша per-SKU отчётов: показываем рядом с разбивкой, чтобы устаревший кэш не выглядел свежим.
+var RCACHE_D=(RCACHE&&RCACHE.generated_at)?String(RCACHE.generated_at).slice(0,10):'';
 function cacheStats(id){var lb=curLabel();if(!lb||!RCACHE||!RCACHE[lb])return null;var r=RCACHE[lb].reports||{};var v=r[String(id)];return v===undefined?null:v;} // кэш (стандартный период)
 function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
 function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
@@ -1040,10 +1051,11 @@ function renderTop(){var a=lastA;if(!a)return;
     var sub='';
     if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
+      if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из снимка per-SKU от '+RCACHE_D+' (на паузе на время миграции)</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
         sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания)</td></tr>';}
+    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;
   }).join('');
   document.getElementById('top').innerHTML=html;
@@ -1075,7 +1087,7 @@ function renderBurn(a){
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
         sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или лимит OZON)</td></tr>';}
+    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;
   }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';
   document.getElementById('burn').innerHTML=html;

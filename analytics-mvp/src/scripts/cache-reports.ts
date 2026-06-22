@@ -1,9 +1,15 @@
-// Кэш per-SKU отчётов рекламы (обход 429 OZON и лимита n8n 60с).
-// Для стандартных периодов p7/p30/p90 тянет отчёты по топ-кампаниям ПО ОДНОМУ
-// (режим {report:id} вебхука - один отчёт за запрос, влезает в лимит code-node 60с),
-// складывает в data/ads_reports.json. Запускается update-snapshots раз в день.
-// Страница читает из кэша мгновенно, на каждый показ OZON не дёргает -> 429 уходит.
+// УСТАРЕЛ (n8n). Кэш per-SKU отчётов рекламы жил на n8n-вебхуке {report:id}; у n8n Cloud
+// исчерпана квота, источник мёртв. Прямой порт per-SKU отчёта (async statistics report OZON
+// Performance) - отдельная задача после ротации ключей; на дашборде разбивка помечена «на паузе»
+// и показывает дату последнего кэша (data/ads_reports.json). Скрипт НЕ запускается в ночном
+// синке (ozon-snapshots.yml). Чтобы случайный ручной запуск не молотил мёртвый n8n - выходим
+// сразу, если явно не разрешено N8N-обращение (CACHE_REPORTS_ALLOW_N8N=1).
 import { writeFileSync } from "node:fs";
+
+if (process.env.CACHE_REPORTS_ALLOW_N8N !== "1") {
+  console.warn("cache-reports УСТАРЕЛ: n8n-источник мёртв (квота). per-SKU кэш на паузе до прямого порта. Пропуск.");
+  process.exit(0);
+}
 
 const BASE = process.env.N8N_WEBHOOK_BASE || "https://gen-group.app.n8n.cloud/webhook";
 const FLOOR = "2026-02-01";

@@ -20,8 +20,9 @@ on:
     paths: [analytics-mvp/**, smm/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
+  # Прямой ночной синк (ozon-snapshots) - основной; n8n-синк оставлен на случай ручного отката.
   workflow_run:
-    workflows: ["Update OZON snapshots"]
+    workflows: ["OZON snapshots (прямой, без n8n)", "Update OZON snapshots (DEPRECATED - n8n)"]
     types: [completed]
 
 permissions:

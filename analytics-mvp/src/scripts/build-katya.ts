@@ -946,7 +946,21 @@ function render(cur,cmp){
 {
   const adsSnap = freshAds("ads_30d.json");
   let adsPeriods: any = freshAds("ads_periods.json");
-  if (!_adsHasId(adsPeriods)) adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap };
+  if (!_adsHasId(adsPeriods)) {
+    // Снимок по периодам устарел без id/skus, но per-period числа (расход/выручка по 7/30/90)
+    // в нём ЕСТЬ. Не схлопываем всё в 30д: сохраняем периодные числа, доливаем id/skus из
+    // свежего ads_30d по названию кампании (off). Иначе данные не меняются от периода.
+    const metaByOff: Record<string, { id: string; skus: string[] }> = {};
+    (adsSnap.top_spend || []).forEach((c: any) => { if (c && c.off && c.id) metaByOff[c.off] = { id: String(c.id), skus: c.skus || [] }; });
+    const hydrate = (p: any): any => {
+      if (!p || !Array.isArray(p.top_spend)) return null;
+      let any = false;
+      p.top_spend = p.top_spend.map((c: any) => { const m = metaByOff[c.off]; if (m) { any = true; return { ...c, id: c.id || m.id, skus: (c.skus && c.skus.length) ? c.skus : m.skus }; } return c; });
+      return any ? p : null;
+    };
+    const hp7 = hydrate(adsPeriods && adsPeriods.p7), hp30 = hydrate(adsPeriods && adsPeriods.p30), hp90 = hydrate(adsPeriods && adsPeriods.p90);
+    adsPeriods = (hp7 || hp30 || hp90) ? { p7: hp7 || adsSnap, p30: hp30 || adsSnap, p90: hp90 || adsSnap } : { p7: adsSnap, p30: adsSnap, p90: adsSnap };
+  }
   let adsReports: any = {};
   try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
   // Кампания -> продвигаемый SKU из снимка. Живой запрос иногда отдаёт skus:[] (лимит OZON

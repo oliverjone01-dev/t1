@@ -4,18 +4,14 @@ const html=readFileSync("public/katya-marketing.html","utf-8");
 const vc=new VirtualConsole();const errs=[];vc.on("jsdomError",e=>errs.push(e.message));
 const dom=new JSDOM(html,{runScripts:"dangerously",virtualConsole:vc,pretendToBeVisual:true,url:"https://x/"});
 const w=dom.window;const out=[];
-// build live data: real campaigns from SNAP but with skus emptied (simulate objOf fail), then renderUecon
-const res = w.eval(`(function(){
-  var base = (typeof PERIODS!=='undefined' && PERIODS.p30) ? PERIODS.p30 : SNAP;
-  out_base = (base.top_spend||[]).length;
-  var live = {dateFrom:'x',dateTo:'y',totals:{spend:1,campaigns:10,active:5},
-    top_spend:(base.top_spend||[]).map(function(c){var x={};for(var k in c)x[k]=c[k];x.skus=[];return x;}), burners:[], by_line:[]};
-  lastA=live; renderUecon(live);
-  var ue=document.getElementById('uecon');
-  return {base:out_base, rows: ue?ue.querySelectorAll('tr').length:0, first: ue?ue.querySelector('tr').textContent.replace(/\\s+/g,' ').trim().slice(0,50):''};
+const r=w.eval(`(function(){
+  function spend(p){var b=PERIODS[p]||{};var t=b.totals||{};return t.spend;}
+  return {p7:spend('p7'),p30:spend('p30'),p90:spend('p90'),
+    p7c:(PERIODS.p7.top_spend||[]).length,p30c:(PERIODS.p30.top_spend||[]).length,p90c:(PERIODS.p90.top_spend||[]).length,
+    p7id:((PERIODS.p7.top_spend||[])[0]||{}).id, p7sku:((PERIODS.p7.top_spend||[])[0]||{}).skus};
 })()`);
-out.push("baked campaigns: "+res.base);
-out.push("uecon rows after live with EMPTY skus (fallback test): "+res.rows);
-out.push("first row: "+res.first);
+out.push("spend p7/p30/p90: "+r.p7+" / "+r.p30+" / "+r.p90+"  (должны различаться)");
+out.push("campaigns p7/p30/p90: "+r.p7c+" / "+r.p30c+" / "+r.p90c);
+out.push("p7 first id: "+r.p7id+" | skus: "+JSON.stringify(r.p7sku));
 out.push("errs: "+errs.slice(0,2).join(" | "));
-writeFileSync("/tmp/pr2.txt",out.join("\n")+"\n");
+writeFileSync("/tmp/pr3.txt",out.join("\n")+"\n");

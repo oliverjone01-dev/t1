@@ -7,7 +7,20 @@ name: OZON snapshots (прямой, без n8n)
 # дельта-гейт перед заменой (FENIX G3): просадка ключевой метрики >40% -> снимок НЕ заменяется.
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      ozon_seller_client_id:
+        description: "OZON Seller Client-Id (пусто = из секрета)"
+        required: false
+      ozon_seller_api_key:
+        description: "OZON Seller Api-Key (пусто = из секрета)"
+        required: false
+      ozon_perf_client_id:
+        description: "OZON Performance client_id (пусто = из секрета)"
+        required: false
+      ozon_perf_secret:
+        description: "OZON Performance secret (пусто = из секрета)"
+        required: false
 
 permissions:
   contents: write
@@ -17,10 +30,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
-  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
-  OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
-  OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID || github.event.inputs.ozon_seller_client_id }}
+  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY || github.event.inputs.ozon_seller_api_key }}
+  OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID || github.event.inputs.ozon_perf_client_id }}
+  OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET || github.event.inputs.ozon_perf_secret }}
 
 jobs:
   snapshots:
@@ -36,13 +49,15 @@ jobs:
           node-version: "22"
       - run: npm ci
 
-      - name: Проверить, что секреты OZON заданы
+      - name: Маскировать креды и проверить наличие
         run: |
           set -euo pipefail
+          echo "::add-mask::$OZON_SELLER_API_KEY"; echo "::add-mask::$OZON_SELLER_CLIENT_ID"
+          echo "::add-mask::$OZON_PERF_SECRET"; echo "::add-mask::$OZON_PERF_CLIENT_ID"
           if [ -z "${OZON_SELLER_API_KEY:-}" ] || [ -z "${OZON_SELLER_CLIENT_ID:-}" ]; then
-            echo "::error::Секреты OZON_SELLER_* не заданы. Settings > Secrets and variables > Actions."; exit 1
+            echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
-          echo "Seller-секреты на месте. Perf-секреты: ${OZON_PERF_CLIENT_ID:+есть}${OZON_PERF_CLIENT_ID:-нет (реклама пропустится)}"
+          echo "Seller-креды на месте. Perf-креды: ${OZON_PERF_CLIENT_ID:+есть}${OZON_PERF_CLIENT_ID:-нет (реклама пропустится)}"
 
       - name: Снимки напрямую (с дельта-гейтом перед заменой)
         run: |

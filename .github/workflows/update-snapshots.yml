@@ -56,7 +56,23 @@ jobs:
           }
 
           fetch gengroup-ozon-skus '{"days":30}' skus fixtures/skus_live_30d.json
-          fetch gengroup-ozon-ads  '{"days":30,"withSku":true}' ads  fixtures/ads_30d.json
+          # Без withSku: per-SKU отчёты медленные (таймаут) и тут не нужны (грузятся лениво + cache:reports ниже).
+          fetch gengroup-ozon-ads  '{"days":30}' ads  fixtures/ads_30d.json
+
+          # Реклама по периодам (7/30/90) - чтобы Юнит-эк/маркетинг на снимке были период-точными
+          # БЕЗ ожидания живого запроса. Заменяем только при валидном p30 (есть id), иначе не трогаем.
+          AP=/tmp/ads_periods.json; echo '{}' > "$AP"
+          for d in 7 30 90; do
+            t=$(mktemp)
+            if curl -sS --fail-with-body --max-time 90 -X POST "$N8N/gengroup-ozon-ads" "${AUTH[@]}" -d "{\"days\":$d}" -o "$t" \
+               && npx tsx src/scripts/validate-snapshot.ts ads "$t"; then
+              node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('$AP'));o['p$d']=JSON.parse(fs.readFileSync('$t'));fs.writeFileSync('$AP',JSON.stringify(o));"
+            else echo "::warning::ads_periods p$d не удалось"; fi
+          done
+          if node -e "const a=require('$AP');process.exit((a.p30&&((a.p30.top_spend||[])[0]||{}).id!==undefined)?0:1)"; then
+            mv "$AP" fixtures/ads_periods.json; echo "ads_periods обновлён"
+          else echo "::warning::ads_periods не обновлён (нет id в p30)"; fi
+
           fetch gengroup-ozon-pnl  "{\"dateFrom\":\"$FROM\",\"dateTo\":\"$TO\"}" pnl /tmp/pnl_raw.json
           npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
           # per-SKU транзакции (маржа после сборов)

@@ -949,6 +949,12 @@ function render(cur,cmp){
   if (!_adsHasId(adsPeriods)) adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap };
   let adsReports: any = {};
   try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
+  // Кампания -> продвигаемый SKU из снимка. Живой запрос иногда отдаёт skus:[] (лимит OZON
+  // на /objects), и тогда Юнит-эк пустеет. Подстраховка: берём SKU кампании из снимка по id.
+  const skuByCamp: Record<string, string> = {};
+  const collectSkus = (ts: any[]) => (ts || []).forEach((c: any) => { if (c && c.id && c.skus && c.skus[0] && !skuByCamp[String(c.id)]) skuByCamp[String(c.id)] = String(c.skus[0]); });
+  collectSkus(adsSnap.top_spend);
+  for (const k of ["p7", "p30", "p90"]) collectSkus((adsPeriods[k] || {}).top_spend);
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -996,7 +1002,8 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};
+function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -1089,7 +1096,7 @@ function paint(a,src){
   lastA=a;renderTop();
   renderBurn(a);
   // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
-  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=(c.skus&&c.skus[0])?String(c.skus[0]):null;var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
+  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=campSku(c);var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
   var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,om:g.om,o:g.o,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
   document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r">'+fmtRu(l.om)+'</td><td class="r">'+l.o+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
   renderUecon(a);
@@ -1104,7 +1111,7 @@ function renderUecon(a){
   // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
   var rows=[];var naSp=0,total=0;
   (a.top_spend||[]).forEach(function(c){
-    var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
+    var sku=campSku(c);if(!sku)return;total++;
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
     if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
     var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок

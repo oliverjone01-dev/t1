@@ -61,15 +61,18 @@ async function main() {
   const w = window(days);
   let okFinance = true;
 
+  // withSku НЕ передаём: per-SKU отчёты медленные (report-loop -> таймаут вебхука -> снимок
+  // оставался устаревшим без id/instr/place -> «undefined» в таблице кампаний). Кампании,
+  // инструмент, площадка, статус и skus приходят и без withSku (быстро и надёжно), а per-SKU
+  // разбивка грузится лениво на странице + кэшируется в ads_reports.json (cache-reports.ts).
   await pull("Реклама Performance", "ads_30d.json", async () =>
-    fixViolur(await hit("gengroup-ozon-ads", { days: String(days), withSku: true })));
+    fixViolur(await hit("gengroup-ozon-ads", { days: String(days) })));
 
   // Реклама по стандартным периодам (7/30/90 дн) - чтобы дашборд переключал период
   // МГНОВЕННО на реальные данные, а не ждал живой запрос (Performance API медленный).
-  // withSku:true - запекаем per-SKU отчёты по кампаниям (живой запрос их не тянет, медленно).
   await pull("Реклама по периодам", "ads_periods.json", async () => {
     const out: Record<string, unknown> = {};
-    for (const d of [7, 30, 90]) out["p" + d] = fixViolur(await hit("gengroup-ozon-ads", { ...window(d), withSku: true }));
+    for (const d of [7, 30, 90]) out["p" + d] = fixViolur(await hit("gengroup-ozon-ads", { ...window(d) }));
     return out;
   });
 

@@ -754,7 +754,7 @@ var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style
 function renderTop(){var a=lastA;if(!a)return;
   var html=(a.top_spend||[]).map(function(c,ci){
     var rep=repOf(c.id);var loaded=rep!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+c.id+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+c.id+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
     var sub='';
     if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;

@@ -4179,13 +4179,21 @@ function periodMonthWeights(){
    окне стабильность из месячных данных не измерить). Модель без продаж в окне — не участвует. */
 function aggregateModels(){
   const wts = periodMonthWeights();
+  // Реальные дневные ряды OZON за выбранное окно (точный период). Фолбэк — помесячные веса.
+  const PDR = window.__PRODUCT_DAILY_REV, PDO = window.__PRODUCT_DAILY;
+  const _dr = (PDR && PDO) ? getDateRange() : null;
   const out = [];
   PRODUCTS.forEach(p => {
     const mr = p.mr || [], mo = p.mo || [];
     let wrev = 0, word = 0;
-    for(let m = 0; m < wts.length; m++){
-      const wt = wts[m] || 0; if(wt <= 0) continue;
-      wrev += (mr[m] || 0) * wt; word += (mo[m] || 0) * wt;
+    if(_dr && PDR[p.nm]){
+      wrev = sumRange(PDR[p.nm], _dr.startIdx, _dr.endIdx);
+      word = PDO[p.nm] ? sumRange(PDO[p.nm], _dr.startIdx, _dr.endIdx) : 0;
+    } else {
+      for(let m = 0; m < wts.length; m++){
+        const wt = wts[m] || 0; if(wt <= 0) continue;
+        wrev += (mr[m] || 0) * wt; word += (mo[m] || 0) * wt;
+      }
     }
     if(wrev <= 0) return;
     let sRev = 0, sCost = 0, stockQty = 0, retW = 0, leadW = 0;
@@ -4502,7 +4510,7 @@ function renderABCXYZ(){
     <div class="card-h ax-head">
       <div>
         <div class="card-title">Товары</div>
-        <div class="card-sub">Модели по выручке (ABC) и стабильности спроса (XYZ) · по всем данным OZON (ранг и стабильность от периода не зависят) · клик по зоне — список</div>
+        <div class="card-sub">Модели по выручке (ABC за выбранный период) и стабильности спроса (XYZ, годовая) · ${PERIODS[state.period].label} · клик по зоне — список</div>
       </div>
       <div class="ax-summary">
         <div>Всего моделей: <b>${total}</b></div>

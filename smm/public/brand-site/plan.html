@@ -346,10 +346,10 @@
     var aDraft=state.scope==='draft'?' active':'';
     function aSt(s){return (state.scope==='work'&&state.status===s)?' active':'';}
     document.getElementById('kpis').innerHTML=
-      '<button type="button" class="kpi drf'+aDraft+'" data-scope="draft"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></button>'+
       '<button type="button" class="kpi pln'+aSt('план')+'" data-scope="work" data-st="план"><div class="n">'+pln+'</div><div class="l">в плане</div></button>'+
       '<button type="button" class="kpi sgl'+aSt('на согл')+'" data-scope="work" data-st="на согл"><div class="n">'+sgl+'</div><div class="l">на согласовании</div></button>'+
       '<button type="button" class="kpi pub'+aSt('опубликовано')+'" data-scope="work" data-st="опубликовано"><div class="n">'+pub+'</div><div class="l">опубликовано</div></button>'+
+      '<button type="button" class="kpi drf'+aDraft+'" data-scope="draft"><div class="n">'+draftN+'</div><div class="l">в черновиках</div></button>'+
       '<div class="kpi bar"><div class="l">выполнение плана</div><div class="barwrap"><i style="width:'+pct+'%"></i></div><div class="pct">'+pct+'%</div></div>';
     Array.prototype.forEach.call(document.querySelectorAll('#kpis .kpi[data-scope]'),function(b){b.onclick=function(){state.scope=b.dataset.scope;state.status=b.dataset.st||'all';render();};});
     var g=work.filter(function(p){return p.brand!=='V';}),v=work.filter(function(p){return p.brand==='V';});
@@ -359,9 +359,9 @@
     results();
   }
   function results(){
-    var ws=ALL.filter(function(p){return p.stats;});
+    var ws=ALL.filter(function(p){return p.status==='опубликовано'&&p.stats;});
     var host=document.getElementById('results');
-    if(!ws.length){ host.innerHTML='<span class="cap">результаты 7д</span><span class="muted" style="font-size:12.5px">статистика ещё не занесена (заносится через 7 дней после публикации)</span>'; return; }
+    if(!ws.length){ host.innerHTML='<span class="cap">результаты 7д</span><span class="muted" style="font-size:12.5px">статистика появится после публикации (снэпшот через 7 дней)</span>'; return; }
     var v=ws.filter(function(p){return p.brand==='V';}),g=ws.filter(function(p){return p.brand!=='V';});
     function sum(a,f){return a.reduce(function(s,p){return s+(p.stats[f]||0);},0);}
     var vContacts=sum(v,'contacts'), gReach=sum(g,'reach');

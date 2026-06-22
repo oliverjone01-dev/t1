@@ -20,15 +20,14 @@ function window30(): { dateFrom: string; dateTo: string } {
 
 type Agg = { accruals: number; commission: number; amount: number; ops: number };
 
-export async function pnlBySku(dateFrom: string, dateTo: string): Promise<any> {
-  const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
-  if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
-  const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
+// Чистая агрегация транзакций по SKU (тестируется без сети). Только операции с ОДНИМ товаром,
+// sku "0"/пустой пропускаются, суммы округляются в конце (как n8n).
+export function aggregateBySku(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; bySku: Record<string, Agg> } {
   const bySku: Record<string, Agg> = {};
   let multi = 0, single = 0;
   for (const o of ops) {
     const items = o.items || [];
-    if (items.length !== 1) { if (items.length > 1) multi++; continue; } // только операции с одним товаром (как n8n)
+    if (items.length !== 1) { if (items.length > 1) multi++; continue; }
     single++;
     const sku = String((items[0] && items[0].sku) || "");
     if (!sku || sku === "0") continue;
@@ -36,7 +35,14 @@ export async function pnlBySku(dateFrom: string, dateTo: string): Promise<any> {
     a.accruals += o.accruals_for_sale || 0; a.commission += o.sale_commission || 0; a.amount += o.amount || 0; a.ops++;
   }
   for (const k in bySku) { bySku[k]!.accruals = Math.round(bySku[k]!.accruals); bySku[k]!.commission = Math.round(bySku[k]!.commission); bySku[k]!.amount = Math.round(bySku[k]!.amount); }
-  return { dateFrom, dateTo, skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, bySku };
+  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, bySku };
+}
+
+export async function pnlBySku(dateFrom: string, dateTo: string): Promise<any> {
+  const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
+  if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
+  const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
+  return { dateFrom, dateTo, ...aggregateBySku(ops) };
 }
 
 async function main() {

@@ -20,7 +20,7 @@ function window(days: number): { dateFrom: string; dateTo: string } {
 }
 
 // Классификаторы из n8n ads (свои, отличаются от util/line.ts - по артикулам кампаний).
-function adLineOf(s: string): string {
+export function adLineOf(s: string): string {
   s = (s || "").toUpperCase();
   if (s.includes("TRUBIS")) return "TRUBIS";
   if (s.includes("VIOLUR")) return "VIOLUR";
@@ -32,7 +32,7 @@ function adLineOf(s: string): string {
   if (s.includes("GGL")) return "свет";
   return "прочее";
 }
-function instrOf(t: string, pt: string): string {
+export function instrOf(t: string, pt: string): string {
   if (pt === "CPC") return "Оплата за клик";
   if (pt === "CPO") return "Оплата за заказ";
   if (t === "REF_VK") return "Внешний трафик (VK)";
@@ -45,11 +45,11 @@ const PLM: Record<string, string> = {
   PLACEMENT_SEARCH_AND_CATEGORY: "Поиск и рекомендации", PLACEMENT_PDP: "Карточка товара",
   PLACEMENT_TOP_PROMOTION: "Топ выдачи", PLACEMENT_OVERTOP: "Над топом",
 };
-function plOf(arr: string[]): string { return (arr || []).map((p) => PLM[p] || String(p).replace("PLACEMENT_", "")).join(", ") || "-"; }
-function statusOf(s: string): string { return s === "CAMPAIGN_STATE_RUNNING" ? "активна" : "закрыта"; }
+export function plOf(arr: string[]): string { return (arr || []).map((p) => PLM[p] || String(p).replace("PLACEMENT_", "")).join(", ") || "-"; }
+export function statusOf(s: string): string { return s === "CAMPAIGN_STATE_RUNNING" ? "активна" : "закрыта"; }
 
 // Дробим окно на куски <=60 дней (лимит диапазона daily-stats OZON), как в n8n dWins.
-function dateWindows(from: string, to: string, maxD = 60): Array<[string, string]> {
+export function dateWindows(from: string, to: string, maxD = 60): Array<[string, string]> {
   const out: Array<[string, string]> = [];
   let s = new Date(`${from}T00:00:00Z`); const end = new Date(`${to}T00:00:00Z`);
   while (s <= end) {

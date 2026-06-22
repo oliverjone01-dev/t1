@@ -17,10 +17,8 @@ function window30(): { dateFrom: string; dateTo: string } {
   return { dateFrom: from, dateTo: to };
 }
 
-export async function pnlChannel(dateFrom: string, dateTo: string): Promise<any> {
-  const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
-  if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
-  const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
+// Чистая агрегация канального P&L (тестируется без сети). fees = accruals - amount (все сборы).
+export function aggregateChannel(ops: any[]): any {
   const agg = { accruals: 0, commission: 0, delivery: 0, amount: 0, ops: 0 };
   const svc: Record<string, number> = {};
   for (const o of ops) {
@@ -31,13 +29,18 @@ export async function pnlChannel(dateFrom: string, dateTo: string): Promise<any>
     agg.amount += o.amount || 0;
     for (const s of (o.services || [])) { const n = s.name || "прочее"; svc[n] = (svc[n] || 0) + (s.price || 0); }
   }
-  const fees = agg.accruals - agg.amount;
   return {
-    dateFrom, dateTo, ops: agg.ops,
-    accruals: Math.round(agg.accruals), commission: Math.round(agg.commission),
+    ops: agg.ops, accruals: Math.round(agg.accruals), commission: Math.round(agg.commission),
     delivery: Math.round(agg.delivery), services: svc,
-    fees: Math.round(fees), payout: Math.round(agg.amount),
+    fees: Math.round(agg.accruals - agg.amount), payout: Math.round(agg.amount),
   };
+}
+
+export async function pnlChannel(dateFrom: string, dateTo: string): Promise<any> {
+  const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
+  if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
+  const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
+  return { dateFrom, dateTo, ...aggregateChannel(ops) };
 }
 
 async function main() {

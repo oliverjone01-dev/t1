@@ -89,9 +89,13 @@ jobs:
               # Прошлый p$d как база дельта-гейта (FENIX G4): просадка spend >40% -> снимок не берём.
               node -e "try{const a=require('./data/ads_periods.json');const p=a['p$d'];if(p)require('fs').writeFileSync('$prev',JSON.stringify(p));}catch(e){}"
               [ -s "$prev" ] || prev=""
-              if npx tsx src/scripts/ozon/ads.ts "$d" "$t" && npx tsx src/scripts/validate-snapshot.ts ads "$t" $prev; then
+              if ! npx tsx src/scripts/ozon/ads.ts "$d" "$t"; then
+                echo "::warning::ads_periods p$d: OZON не отдал снимок (прошлый p$d не трогаем)"
+              elif ! npx tsx src/scripts/validate-snapshot.ts ads "$t" $prev; then
+                echo "::warning::ads_periods p$d: дельта-гейт отсёк просадку >40% или снимок невалиден (прошлый p$d сохранён)"
+              else
                 node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('$AP'));o['p$d']=JSON.parse(fs.readFileSync('$t'));fs.writeFileSync('$AP',JSON.stringify(o));"
-              else echo "::warning::ads_periods p$d не удался (или дельта-гейт)"; fi
+              fi
             done
             if node -e "const a=require('$AP');process.exit((a.p30&&((a.p30.top_spend||[])[0]||{}).id!==undefined)?0:1)"; then
               cp "$AP" data/ads_periods.json; cp "$AP" fixtures/ads_periods.json; echo "ads_periods обновлён"

@@ -5,44 +5,44 @@
    Цвет-токены (--gold/--gg/--v/--keep/--stop/--pln/--rdy) держим ТЕКСТ-БЕЗОПАСНЫМИ
    в каждой теме; фоны - через *-soft. Класс-имена прежние (страницы не ломаются).
    ========================================================================== */
-/* :REF-LIGHT */
+/* :REF-LIGHT - guard: --gold/--stop на --s2 только bold/accent, не normal body text. Для текстовых меток брать --gold-ink/--v-ink/--sgl-ink. */
 :root[data-theme="light"], :root:not([data-theme]){
-  --bg:#EFEFF1;--s1:#FFFFFF;--s2:#F1F1F4;--s3:#E7E7EB;--line:#EAEAEE;--line2:#E0E0E5;
-  --ink:#1C1C1F;--ink2:#62626A;--ink3:#686870;
-  --gold:#8A6514;--gold2:#A07A1E;--gold-soft:rgba(242,184,74,.18);--gold-fill:#F2B84A;--gold-border:#E0A53A;
-  --gg:#4E5663;--gg-ink:#3C434E;--gg-soft:rgba(78,86,99,.12);
-  --v:#8A6514;--v-ink:#7E5A10;--v-soft:rgba(242,184,74,.18);
-  --keep:#1F7A52;--pub:#1F7A52;--pub-ink:#176B45;--pub-soft:rgba(31,122,82,.12);
-  --rdy:#9A5A12;--sgl:#9A5A12;--sgl-ink:#83500F;--sgl-soft:rgba(242,184,74,.20);
-  --pln:#5E6776;--pln-ink:#586271;--pln-soft:rgba(94,103,118,.12);--drf:#5B6470;--drf-ink:#4A525E;--drf-soft:rgba(91,100,112,.13);
-  --stop:#B23A28;--danger:#B23A28;
-  --hyp-bg:rgba(120,124,136,.14);--hyp-ink:#5E6776;
-  --card:#FFFFFF;--card2:#F1F1F4;--bg2:#F1F1F4;
-  --top-bg:rgba(255,255,255,.82);--sel-bg:#1C1C1F;--sel-ink:#FFFFFF;
-  --cta:#F2B84A;--cta-ink:#1C1C1F;--gold-btn-ink:#1C1C1F;
-  --shadow:0 1px 2px rgba(20,20,25,.05);
-  --shadow-lg:0 8px 24px rgba(20,20,25,.12);
-  --glow1:transparent;--glow2:transparent;
-  --radius:10px;--radius-s:8px;--ease:cubic-bezier(.22,.61,.36,1);
+  --bg:#FBF7F1;--s1:#FFFFFF;--s2:#F5EFE6;--s3:#ECE4D7;--line:#ECE2D4;--line2:#E1D6C3;
+  --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
+  --gold:#9A6A12;--gold2:#C98A26;--gold-soft:#FBEBCB;--gold-fill:#E7A93C;--gold-border:#E0A23A;
+  --gg:#41607E;--gg-ink:#33506C;--gg-soft:#E2EAF2;
+  --v:#9A6A12;--v-ink:#7E5510;--v-soft:#FBEBCB;
+  --keep:#3E8E6E;--pub:#3E8E6E;--pub-ink:#2B7150;--pub-soft:#D7EFE3;
+  --rdy:#B8791E;--sgl:#B8791E;--sgl-ink:#8A5410;--sgl-soft:#FBE9CF;
+  --pln:#7A6C5B;--pln-ink:#5E5345;--pln-soft:#EFE8DC;--drf:#8A5BA6;--drf-ink:#774893;--drf-soft:#EEE2F3;
+  --stop:#C2452E;--danger:#C2452E;
+  --hyp-bg:#EFE8DC;--hyp-ink:#6E6154;
+  --card:#FFFFFF;--card2:#F5EFE6;--bg2:#F3ECE0;
+  --top-bg:rgba(251,247,241,.82);--sel-bg:#E7A93C;--sel-ink:#3A2A07;
+  --cta:#E7A93C;--cta-ink:#3A2A07;--gold-btn-ink:#3A2A07;
+  --shadow:0 1px 2px rgba(120,92,52,.06),0 8px 22px rgba(120,92,52,.09);
+  --shadow-lg:0 6px 14px rgba(120,92,52,.10),0 26px 48px rgba(120,92,52,.15);
+  --glow1:rgba(231,169,60,.10);--glow2:rgba(110,146,181,.08);
+  --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 :root[data-theme="dark"]{
-  --bg:#0A0C10;--s1:#161A21;--s2:#1E232C;--s3:#2A3039;--line:#2D333E;--line2:#3B4350;
-  --ink:#F4F5F7;--ink2:#B4BAC4;--ink3:#8B929D;
-  --gold:#EBC56E;--gold2:#EBCB7E;--gold-soft:rgba(235,197,110,.15);--gold-fill:#EBC56E;--gold-border:#EBC56E;
-  --gg:#A4ADB9;--gg-ink:#C2C9D3;--gg-soft:rgba(164,173,185,.16);
-  --v:#EBC56E;--v-ink:#EBCB7E;--v-soft:rgba(235,197,110,.15);
-  --keep:#4FCD95;--pub:#4FCD95;--pub-ink:#4FCD95;--pub-soft:rgba(79,205,149,.16);
-  --rdy:#EBC56E;--sgl:#EBC56E;--sgl-ink:#EBC56E;--sgl-soft:rgba(235,197,110,.17);
-  --pln:#949CAA;--pln-ink:#949CAA;--pln-soft:rgba(148,156,170,.15);--drf:#9AA2B0;--drf-ink:#AEB6C2;--drf-soft:rgba(154,162,176,.16);
-  --stop:#E86A50;--danger:#E86A50;
-  --hyp-bg:rgba(140,148,160,.16);--hyp-ink:#AEB6C2;
-  --card:#161A21;--card2:#1E232C;--bg2:#1E232C;
-  --top-bg:rgba(10,12,16,.8);--sel-bg:#EBC56E;--sel-ink:#13151A;
-  --cta:#EBC56E;--cta-ink:#13151A;--gold-btn-ink:#13151A;
-  --shadow:0 1px 2px rgba(0,0,0,.35);
-  --shadow-lg:0 12px 32px rgba(0,0,0,.55);
-  --glow1:rgba(235,197,110,.06);--glow2:rgba(110,140,180,.05);
-  --radius:10px;--radius-s:8px;--ease:cubic-bezier(.22,.61,.36,1);
+  --bg:#15161A;--s1:#1E1F24;--s2:#26282E;--s3:#303239;--line:#2E3036;--line2:#3C3F47;
+  --ink:#F3F2EF;--ink2:#B7B7B5;--ink3:#8A8A88;
+  --gold:#F0C062;--gold2:#F2CB7E;--gold-soft:rgba(240,192,98,.16);--gold-fill:#F0C062;--gold-border:#F0C062;
+  --gg:#A9C4DD;--gg-ink:#BAD0E6;--gg-soft:rgba(143,176,206,.16);
+  --v:#F0C062;--v-ink:#F2CB7E;--v-soft:rgba(240,192,98,.16);
+  --keep:#5FD09B;--pub:#5FD09B;--pub-ink:#5FD09B;--pub-soft:rgba(95,208,155,.16);
+  --rdy:#E8A24E;--sgl:#E8A24E;--sgl-ink:#E8A24E;--sgl-soft:rgba(232,162,78,.17);
+  --pln:#A6A6A2;--pln-ink:#A6A6A2;--pln-soft:rgba(166,166,162,.15);--drf:#BBA0DC;--drf-ink:#C9B4E8;--drf-soft:rgba(187,160,220,.17);
+  --stop:#F08160;--danger:#F08160;
+  --hyp-bg:rgba(150,150,148,.16);--hyp-ink:#C9B4E8;
+  --card:#1E1F24;--card2:#26282E;--bg2:#1A1B1F;
+  --top-bg:rgba(21,22,26,.82);--sel-bg:#F0C062;--sel-ink:#1A1408;
+  --cta:#F0C062;--cta-ink:#1A1408;--gold-btn-ink:#1A1408;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.55);
+  --shadow-lg:0 8px 18px rgba(0,0,0,.45),0 28px 52px rgba(0,0,0,.6);
+  --glow1:rgba(240,192,98,.06);--glow2:rgba(143,176,206,.05);
+  --radius:14px;--radius-s:10px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}

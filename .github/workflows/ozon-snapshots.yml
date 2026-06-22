@@ -1,10 +1,10 @@
 name: OZON snapshots (прямой, без n8n)
 
 # Новый пайплайн снимков OZON БЕЗ n8n: прямые клиенты src/scripts/ozon/* + connector.
-# Креды - ТОЛЬКО из GitHub Secrets (FENIX G1: никаких workflow_dispatch input для кредов).
-# Пока ручной запуск и пишет в fixtures/ (как ночной синк). Сосуществует с update-snapshots.yml
-# (n8n) - cutover/отключение n8n отдельным решением (FENIX G8). Каждый снимок проходит
-# дельта-гейт перед заменой (FENIX G3): просадка ключевой метрики >40% -> снимок НЕ заменяется.
+# Креды: GitHub Secrets, либо (по решению владельца, временно) workflow_dispatch input с маскировкой
+# (::add-mask:: в guard-шаге). Сосуществует с update-snapshots.yml (n8n) - cutover/отключение n8n
+# отдельным решением (FENIX G8). Каждый снимок проходит дельта-гейт перед заменой (FENIX G3):
+# просадка ключевой метрики >40% -> снимок НЕ заменяется.
 
 on:
   schedule:

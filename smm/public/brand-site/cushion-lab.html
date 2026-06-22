@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="google" content="notranslate">
+<title>Дизайн-лаборатория · Cushion-стиль · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ===================================================================
+     GENGROUP × Cushion - тёплая, уютная, playful-premium дизайн-система.
+     Шрифт прежний (Inter). V = тёплое золото, G = прохладная сталь.
+     =================================================================== */
+  :root{
+    /* холст и поверхности - тёплый кремовый «бумажный» */
+    --bg:#FBF5EA;--bg2:#F5ECDC;--card:#FFFDF8;--card2:#FBF4E8;
+    --line:#ECE0CC;--line2:#E2D3BA;
+    /* тёплый тёмный текст (не чёрный) */
+    --ink:#2C2620;--ink2:#6E6154;--ink3:#6F6150;
+    /* акценты */
+    --gold:#9A6A12;--gold-ink:#7E5510;--gold-fill:#E7A93C;--gold-soft:#FBEBCB;     /* VALONTI - тёплое золото */
+    --steel:#41607E;--steel-ink:#33506C;--steel-fill:#6E92B5;--steel-soft:#E2EAF2; /* GENGLASS - прохладная сталь */
+    --coral:#D9543F;--coral-ink:#AE3A28;--coral-soft:#FBE0DA;     /* playful-акцент */
+    --mint:#3E8E6E;--mint-ink:#2B7150;--mint-soft:#D7EFE3;        /* «опубликовано» */
+    --plum:#8A5BA6;--plum-ink:#774893;--plum-soft:#EEE2F3;        /* «черновик/доп» */
+    --cta:#E7A93C;--cta-ink:#3A2A07;
+    /* мягкие ТЁПЛЫЕ тени (не серые) */
+    --sh:0 1px 2px rgba(120,92,52,.06),0 10px 26px rgba(120,92,52,.10);
+    --sh-lg:0 6px 14px rgba(120,92,52,.10),0 26px 50px rgba(120,92,52,.16);
+    --r:22px;--r-s:14px;--r-pill:999px;
+    --ease:cubic-bezier(.22,.61,.36,1);--spring:cubic-bezier(.34,1.3,.64,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.005em;overflow-x:hidden}
+  /* мягкие цветные «блобы» в фоне - playful-глубина */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(520px 420px at 84% -6%,rgba(231,169,60,.20),transparent 62%),
+      radial-gradient(560px 440px at 6% 8%,rgba(110,146,181,.16),transparent 60%),
+      radial-gradient(480px 420px at 92% 96%,rgba(217,84,63,.10),transparent 62%)}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%}
+  ::selection{background:var(--gold-fill);color:var(--cta-ink)}
+  :focus-visible{outline:3px solid var(--gold-fill);outline-offset:2px;border-radius:10px}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+  /* ---- topbar ---- */
+  .top{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(251,245,234,.78);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1160px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:-.01em;font-size:16px}
+  .logo .mk{width:30px;height:30px;border-radius:10px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:14px;font-weight:900;transform:rotate(-6deg)}
+  .logo span{color:var(--ink3);font-weight:600;letter-spacing:.04em;font-size:12px;text-transform:uppercase}
+  .tnav{margin-left:auto;display:flex;gap:4px}
+  .tnav a{font-size:14px;font-weight:600;color:var(--ink2);padding:8px 14px;border-radius:var(--r-pill);transition:.18s var(--ease)}
+  .tnav a:hover{background:var(--bg2);color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:800;font-size:14.5px;cursor:pointer;border:none;
+    background:var(--cta);color:var(--cta-ink);padding:12px 22px;border-radius:var(--r-pill);box-shadow:0 3px 0 #C98A26,0 8px 18px rgba(201,138,38,.28);transition:.14s var(--ease)}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 #C98A26,0 12px 22px rgba(201,138,38,.34)}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 #C98A26,0 4px 10px rgba(201,138,38,.3)}
+  .btn.ghost{background:var(--card);color:var(--ink);box-shadow:0 2px 0 var(--line2),0 6px 14px rgba(120,92,52,.08)}
+  .btn.ghost:hover{box-shadow:0 3px 0 var(--line2),0 9px 18px rgba(120,92,52,.12)}
+
+  /* ---- hero ---- */
+  .hero{padding:64px 0 30px;text-align:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-pill);
+    padding:7px 15px 7px 11px;font-size:12.5px;font-weight:700;color:var(--ink2);box-shadow:var(--sh);margin-bottom:22px}
+  .eyebrow .d{width:8px;height:8px;border-radius:50%;background:var(--coral)}
+  .hero h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.04;letter-spacing:-.035em;max-width:18ch;margin:0 auto}
+  .hero h1 .u{position:relative;white-space:nowrap}
+  .hero h1 .u svg{position:absolute;left:0;right:0;bottom:-.18em;width:100%;height:.34em;color:var(--gold-fill)}
+  .hero p{margin:20px auto 0;font-size:clamp(16px,2vw,19px);color:var(--ink2);max-width:56ch;line-height:1.55}
+  .hero .cta{margin-top:28px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+  /* ---- секции ---- */
+  section{padding:46px 0}
+  .sh{display:flex;align-items:flex-end;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .sh h2{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.03em;line-height:1.1}
+  .sh p{color:var(--ink2);font-size:15px;max-width:46ch}
+  .tag{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+
+  /* ---- бренд-дуо (V / G) ---- */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .brandcard{position:relative;border-radius:26px;padding:26px;border:1.5px solid var(--line);box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--spring),box-shadow .25s var(--ease)}
+  .brandcard:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+  .brandcard.v{background:linear-gradient(160deg,var(--gold-soft),var(--card) 58%)}
+  .brandcard.g{background:linear-gradient(160deg,var(--steel-soft),var(--card) 58%)}
+  .brandcard::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-50px;top:-60px;filter:blur(8px);opacity:.5}
+  .brandcard.v::after{background:radial-gradient(circle,var(--gold-fill),transparent 70%)}
+  .brandcard.g::after{background:radial-gradient(circle,var(--steel-fill),transparent 70%)}
+  .bc-top{display:flex;align-items:center;gap:14px;position:relative}
+  .mono{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:25px;font-weight:900;letter-spacing:-.04em;flex:none;color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 6px 14px rgba(0,0,0,.12)}
+  .brandcard.v .mono{background:linear-gradient(145deg,#F0BB58,var(--gold-fill))}
+  .brandcard.g .mono{background:linear-gradient(145deg,#86A7C6,var(--steel-fill))}
+  .bc-name{font-size:23px;font-weight:900;letter-spacing:-.02em}
+  .brandcard.v .bc-name{color:var(--gold-ink)}.brandcard.g .bc-name{color:var(--steel-ink)}
+  .bc-role{font-size:12.5px;font-weight:700;color:var(--ink3);margin-top:1px}
+  .bc-desc{margin-top:16px;font-size:15px;color:var(--ink2);line-height:1.55;position:relative}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;position:relative}
+  .pill{font-size:12px;font-weight:700;padding:7px 13px;border-radius:var(--r-pill);background:var(--card);border:1px solid var(--line)}
+  .brandcard.v .pill{color:var(--gold-ink)}.brandcard.g .pill{color:var(--steel-ink)}
+
+  /* ---- образцы карточек контент-плана ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+  .post{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:0;box-shadow:var(--sh);overflow:hidden;transition:transform .22s var(--spring),box-shadow .22s var(--ease);cursor:pointer}
+  .post:hover{transform:translateY(-4px) rotate(-.4deg);box-shadow:var(--sh-lg)}
+  .cover{aspect-ratio:16/10;background:linear-gradient(135deg,var(--bg2),var(--line));display:grid;place-items:center;color:var(--ink3);font-size:13px;font-weight:600;position:relative}
+  .cover .play{width:46px;height:46px;border-radius:50%;background:rgba(44,38,32,.7);color:#fff;display:grid;place-items:center;font-size:15px;padding-left:3px}
+  .post-b{padding:15px 16px 17px}
+  .post-h{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+  .chip{font-size:11px;font-weight:800;letter-spacing:.02em;padding:4px 10px;border-radius:var(--r-pill)}
+  .chip.v{background:var(--gold-soft);color:var(--gold-ink)}.chip.g{background:var(--steel-soft);color:var(--steel-ink)}
+  .when{font-size:12px;font-weight:600;color:var(--ink3)}
+  .st{margin-left:auto;font-size:11px;font-weight:800;padding:4px 11px;border-radius:var(--r-pill);display:inline-flex;align-items:center;gap:6px}
+  .st::before{content:"";width:7px;height:7px;border-radius:50%}
+  .st.pln{background:var(--bg2);color:var(--ink2)}.st.pln::before{background:transparent;box-shadow:inset 0 0 0 1.6px var(--ink3)}
+  .st.pub{background:var(--mint-soft);color:var(--mint-ink)}.st.pub::before{background:var(--mint)}
+  .st.drf{background:var(--plum-soft);color:var(--plum-ink)}.st.drf::before{background:var(--plum)}
+  .rub{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px}
+  .idea{font-size:17px;font-weight:800;letter-spacing:-.015em;line-height:1.22}
+  .hook{font-size:13.5px;color:var(--ink2);font-style:italic;margin-top:6px;line-height:1.45}
+  .pmeta{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+  .mchip{font-size:11.5px;font-weight:600;color:var(--ink2);background:var(--bg2);border-radius:var(--r-pill);padding:4px 11px}
+  .pfoot{display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:13px;border-top:1px dashed var(--line2);font-size:12.5px;color:var(--ink3)}
+  .pfoot b{color:var(--ink)}
+  .pfoot .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .pfoot .reach .dot{background:var(--steel-fill)}.pfoot .er .dot{background:var(--mint)}
+
+  /* ---- KPI stat cards (chunky) ---- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:18px 20px;box-shadow:var(--sh)}
+  .stat .ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;margin-bottom:12px;font-weight:900;font-size:15px}
+  .stat .ic svg{width:20px;height:20px}
+  .stat.a .ic{background:var(--plum-soft);color:var(--plum-ink)} .stat.b .ic{background:var(--steel-soft);color:var(--steel-ink)}
+  .stat.c .ic{background:var(--gold-soft);color:var(--gold-ink)} .stat.d .ic{background:var(--mint-soft);color:var(--mint-ink)}
+  .stat .n{font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1}
+  .stat .l{font-size:13px;color:var(--ink2);margin-top:5px;font-weight:600}
+
+  /* ---- pipeline (dotted connectors) ---- */
+  .pipe{display:flex;align-items:center;gap:0;flex-wrap:wrap;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh)}
+  .pstep{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;padding:8px 15px;border-radius:var(--r-pill)}
+  .pstep .dt{width:9px;height:9px;border-radius:50%}
+  .pstep.drf{background:var(--plum-soft);color:var(--plum-ink)}.pstep.drf .dt{background:var(--plum)}
+  .pstep.pln{background:var(--bg2);color:var(--ink2)}.pstep.pln .dt{box-shadow:inset 0 0 0 1.6px var(--ink3)}
+  .pstep.sgl{background:var(--gold-soft);color:var(--gold-ink)}.pstep.sgl .dt{background:var(--gold-fill)}
+  .pstep.pub{background:var(--mint-soft);color:var(--mint-ink)}.pstep.pub .dt{background:var(--mint)}
+  .pconn{flex:1;min-width:24px;height:0;border-top:2.5px dotted var(--line2);margin:0 6px}
+
+  /* ---- палитра (доразвитая система) ---- */
+  .sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+  .swatch{border:1.5px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card);box-shadow:var(--sh)}
+  .swatch .c{height:58px}
+  .swatch .t{padding:9px 11px;font-size:11.5px}
+  .swatch .t b{display:block;font-weight:800;font-size:12.5px}
+  .swatch .t span{color:var(--ink3);font-variant-numeric:tabular-nums}
+
+  .note{margin-top:30px;background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh)}
+  .note h3{font-size:15px;font-weight:900;margin-bottom:8px}
+  .note ul{list-style:none;display:grid;gap:7px}
+  .note li{font-size:14px;color:var(--ink2);padding-left:22px;position:relative;line-height:1.5}
+  .note li::before{content:"";position:absolute;left:0;top:8px;width:9px;height:9px;border-radius:3px;background:var(--gold-fill);transform:rotate(45deg)}
+  .note li b{color:var(--ink)}
+
+  .foot{padding:40px 0 70px;text-align:center;color:var(--ink3);font-size:13px}
+
+  @media(max-width:760px){
+    .duo,.kpis{grid-template-columns:1fr}
+    .tnav{display:none}
+    .hero{padding:44px 0 24px}
+    section{padding:36px 0}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo"><span class="mk">G</span>GENGROUP <span>· дизайн-лаборатория</span></div>
+  <nav class="tnav" aria-label="разделы">
+    <a href="#brands">Бренды</a>
+    <a href="#plan">Контент-план</a>
+    <a href="#kit">Система</a>
+  </nav>
+  <a class="btn ghost" href="plan.html" style="margin-left:auto">← К дашборду</a>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="eyebrow"><span class="d"></span>Тестовый макет · язык Cushion · шрифт Inter</span>
+    <h1>Контент-план, в котором <span class="u">приятно<svg viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8 C 40 2, 80 11, 120 5 S 180 3, 198 7" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></span> работать</h1>
+    <p>Та же логика и данные, но в тёплой, уютной системе: мягкие тени, скруглённые карточки, дружелюбные акценты. VALONTI остаётся золотым, GENGLASS - стальным.</p>
+    <div class="cta">
+      <button class="btn" type="button">Создать пост</button>
+      <button class="btn ghost" type="button">Смотреть план</button>
+    </div>
+  </section>
+
+  <section id="brands">
+    <div class="sh"><span class="tag">01 · бренды</span><h2>Два мира под одной крышей</h2><p>Тёплое золото против прохладной стали - различие читается мгновенно.</p></div>
+    <div class="duo">
+      <article class="brandcard v">
+        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">нестандарт · mid-premium · B2D</div></div></div>
+        <p class="bc-desc">Материалы и мастерство для дизайнеров, которым нужно создать пространство, за которое они готовы поставить своё имя. Покупатель тут не конечный клиент, а автор интерьера.</p>
+        <div class="pills"><span class="pill">камень</span><span class="pill">латунь</span><span class="pill">метрика: контакты</span><span class="pill">авторская работа</span></div>
+      </article>
+      <article class="brandcard g">
+        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">серия · средний сегмент · B2C</div></div></div>
+        <p class="bc-desc">Серийное производство с характером: металл и стекло, которые покупают за конкретный результат в интерьере, а не за историю бренда. Пришёл с задачей - закрыли быстро и понятно.</p>
+        <div class="pills"><span class="pill">зеркала</span><span class="pill">столы TRUBIS</span><span class="pill">метрика: охват</span><span class="pill">склад 1-3 дня</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="plan">
+    <div class="sh"><span class="tag">02 · контент-план</span><h2>Карточки постов</h2><p>Скруглённые, уютные, с лёгким наклоном на наведении.</p></div>
+    <div class="grid">
+      <article class="post">
+        <div class="cover">обложка 16:10</div>
+        <div class="post-b">
+          <div class="post-h"><span class="chip g">GENGLASS</span><span class="when">Пн · 08.06</span><span class="st pub">опубл.</span></div>
+          <div class="rub">До / после</div>
+          <div class="idea">Прихожая: до каркас, после NERO</div>
+          <div class="hook">«Вот что случилось с этой прихожей за 3 дня»</div>
+          <div class="pmeta"><span class="mchip">IG / VK</span><span class="mchip">Reels</span></div>
+          <div class="pfoot"><span class="reach"><span class="dot"></span> <b>18 420</b> охват</span><span class="er"><span class="dot"></span> <b>6.3%</b> ER</span></div>
+        </div>
+      </article>
+      <article class="post">
+        <div class="cover"><span class="play" aria-hidden="true">▶</span></div>
+        <div class="post-b">
+          <div class="post-h"><span class="chip v">VALONTI</span><span class="when">Вт · 09.06</span><span class="st pln">в плане</span></div>
+          <div class="rub">Материал крупно</div>
+          <div class="idea">Nero Marquina: прожилка под объективом</div>
+          <div class="hook">«Эту прожилку не нарисуют на фабрике»</div>
+          <div class="pmeta"><span class="mchip">IG / VK</span><span class="mchip">Reels макро</span><span class="mchip" style="color:var(--coral-ink)">▶ видео</span></div>
+        </div>
+      </article>
+      <article class="post">
+        <div class="post-b" style="padding-top:17px">
+          <div class="post-h"><span class="chip v">VALONTI</span><span class="when">Чт · 11.06</span><span class="st drf">черновик</span></div>
+          <div class="rub">Рождение изделия</div>
+          <div class="idea">Богдан: как я выбираю слэб для стола</div>
+          <div class="hook">«Я отклоняю примерно каждый третий слэб. Вот почему»</div>
+          <div class="pmeta"><span class="mchip">IG / VK</span><span class="mchip">длинное</span></div>
+          <div class="pfoot"><span><span class="dot" style="background:var(--gold-fill)"></span> <b>0</b> контактов</span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="kit">
+    <div class="sh"><span class="tag">03 · система</span><h2>Компоненты и токены</h2><p>Что доразвили под тёплый язык: статистика, пайплайн, палитра.</p></div>
+    <div class="kpis" style="margin-bottom:18px">
+      <div class="stat a"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><div class="n">12</div><div class="l">в черновиках</div></div>
+      <div class="stat b"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div class="n">30</div><div class="l">в плане</div></div>
+      <div class="stat c"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="n">8</div><div class="l">на согласовании</div></div>
+      <div class="stat d"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div><div class="n">11</div><div class="l">опубликовано</div></div>
+    </div>
+    <div class="pipe">
+      <span class="pstep drf"><span class="dt"></span>Черновик</span><span class="pconn"></span>
+      <span class="pstep pln"><span class="dt"></span>В плане</span><span class="pconn"></span>
+      <span class="pstep sgl"><span class="dt"></span>На согласовании</span><span class="pconn"></span>
+      <span class="pstep pub"><span class="dt"></span>Опубликовано</span>
+    </div>
+
+    <div class="sh" style="margin-top:34px"><span class="tag">палитра</span><h2 style="font-size:20px">Тёплые токены</h2></div>
+    <div class="sw">
+      <div class="swatch"><div class="c" style="background:#FBF5EA"></div><div class="t"><b>Холст</b><span>#FBF5EA</span></div></div>
+      <div class="swatch"><div class="c" style="background:#FFFDF8"></div><div class="t"><b>Карточка</b><span>#FFFDF8</span></div></div>
+      <div class="swatch"><div class="c" style="background:#E7A93C"></div><div class="t"><b>VALONTI</b><span>#E7A93C</span></div></div>
+      <div class="swatch"><div class="c" style="background:#6E92B5"></div><div class="t"><b>GENGLASS</b><span>#6E92B5</span></div></div>
+      <div class="swatch"><div class="c" style="background:#D9543F"></div><div class="t"><b>Коралл</b><span>#D9543F</span></div></div>
+      <div class="swatch"><div class="c" style="background:#3E8E6E"></div><div class="t"><b>Мята</b><span>#3E8E6E</span></div></div>
+      <div class="swatch"><div class="c" style="background:#8A5BA6"></div><div class="t"><b>Слива</b><span>#8A5BA6</span></div></div>
+      <div class="swatch"><div class="c" style="background:#2C2620"></div><div class="t"><b>Текст</b><span>#2C2620</span></div></div>
+    </div>
+
+    <div class="note">
+      <h3>Что доразвили под этот стиль (чего не хватало)</h3>
+      <ul>
+        <li><b>Тёплый кремовый холст</b> и тёплые тени вместо нейтрально-серых - «бумажное», уютное ощущение.</li>
+        <li><b>Chunky-кнопки</b> с нижним «бортиком» (3D-нажатие) и пилюли-стикеры вместо плоских чипов.</li>
+        <li><b>Дружелюбные детали:</b> мягкие цветные блобы в фоне, рукописное подчёркивание заголовка, пунктирные коннекторы пайплайна, лёгкий наклон карточки на hover.</li>
+        <li><b>Расширенная палитра:</b> добавлены коралл / мята / слива как playful-акценты для статусов, при сохранении V-золото / G-сталь.</li>
+        <li><b>Сохранено:</b> шрифт Inter, разделение брендов, вся логика и данные дашборда.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+<div class="foot wrap">GENGROUP · дизайн-лаборатория · тестовый макет в языке Cushion · не заменяет рабочий дашборд</div>
+</body>
+</html>

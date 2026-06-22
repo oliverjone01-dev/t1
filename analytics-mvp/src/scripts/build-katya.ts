@@ -652,6 +652,23 @@ function freshAds(name: string): any {
   return d || f;
 }
 
+// Мягкий страж свежести: пишет ::warning:: в лог сборки, если снимок устарел (>=2 дн от вчера).
+// Деплой НЕ валит - просто заметно в CI. Прошлые регрессии были из-за ТИХОГО устаревания снимков.
+function warnStale(): void {
+  const now = new Date();
+  const ystd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); ystd.setUTCDate(ystd.getUTCDate() - 1);
+  const daysOld = (d?: string): number | null => { if (!d || !/^\d{4}-\d\d-\d\d/.test(d)) return null; return Math.round((ystd.getTime() - new Date(d.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000); };
+  const checks: [string, string | undefined][] = [
+    ["дневная история", maxD],
+    ["реклама 30д", (freshAds("ads_30d.json") || {}).dateTo],
+    ["реклама по периодам (p30)", ((freshAds("ads_periods.json") || {}).p30 || {}).dateTo],
+  ];
+  let stale = 0;
+  for (const [name, d] of checks) { const n = daysOld(d); if (n != null && n >= 2) { stale++; console.log(`::warning::снимок «${name}» устарел: последний день ${d} (${n} дн от вчера). Проверь ночной синк/n8n.`); } }
+  console.log(stale ? `Страж свежести: устаревших снимков ${stale} (см. warnings выше).` : "Страж свежести: снимки актуальны (по вчера).");
+}
+warnStale();
+
 // --- Оболочка новых страниц в дизайн-системе Кати: её CSS + topbar с периодами ---
 const KCSS = (readFileSync("katya/template.html", "utf-8").match(/<style>([\s\S]*?)<\/style>/) || ["", ""])[1];
 const EXTRA_CSS = `
@@ -946,9 +963,34 @@ function render(cur,cmp){
 {
   const adsSnap = freshAds("ads_30d.json");
   let adsPeriods: any = freshAds("ads_periods.json");
-  if (!_adsHasId(adsPeriods)) adsPeriods = { p7: adsSnap, p30: adsSnap, p90: adsSnap };
+  if (!_adsHasId(adsPeriods)) {
+    // Снимок по периодам устарел без id/skus, но per-period числа (расход/выручка по 7/30/90)
+    // в нём ЕСТЬ. Не схлопываем всё в 30д: сохраняем периодные числа, доливаем id/skus из
+    // свежего ads_30d по названию кампании (off). Иначе данные не меняются от периода.
+    // Полные мета-поля кампании (id/status/instr/place/skus) из свежего ads_30d - и по кампаниям,
+    // и по сливам - чтобы у периодного снимка были ID, статусы, инструменты и разбивка.
+    const metaByOff: Record<string, any> = {};
+    const addMeta = (arr: any[]) => (arr || []).forEach((c: any) => { if (c && c.off && c.id && !metaByOff[c.off]) metaByOff[c.off] = { id: String(c.id), status: c.status, instr: c.instr, place: c.place, skus: c.skus || [] }; });
+    addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
+    const fix = (c: any) => { const m = metaByOff[c.off]; if (!m) return c; return { ...c, id: c.id || m.id, status: c.status || m.status, instr: c.instr || m.instr, place: c.place || m.place, skus: (c.skus && c.skus.length) ? c.skus : m.skus }; };
+    const hydrate = (p: any): any => {
+      if (!p) return null;
+      let any = false;
+      if (Array.isArray(p.top_spend)) p.top_spend = p.top_spend.map((c: any) => { const f = fix(c); if (f !== c) any = true; return f; });
+      if (Array.isArray(p.burners)) p.burners = p.burners.map(fix);
+      return any ? p : null;
+    };
+    const hp7 = hydrate(adsPeriods && adsPeriods.p7), hp30 = hydrate(adsPeriods && adsPeriods.p30), hp90 = hydrate(adsPeriods && adsPeriods.p90);
+    adsPeriods = (hp7 || hp30 || hp90) ? { p7: hp7 || adsSnap, p30: hp30 || adsSnap, p90: hp90 || adsSnap } : { p7: adsSnap, p30: adsSnap, p90: adsSnap };
+  }
   let adsReports: any = {};
   try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
+  // Кампания -> продвигаемый SKU из снимка. Живой запрос иногда отдаёт skus:[] (лимит OZON
+  // на /objects), и тогда Юнит-эк пустеет. Подстраховка: берём SKU кампании из снимка по id.
+  const skuByCamp: Record<string, string> = {};
+  const collectSkus = (ts: any[]) => (ts || []).forEach((c: any) => { if (c && c.id && c.skus && c.skus[0] && !skuByCamp[String(c.id)]) skuByCamp[String(c.id)] = String(c.skus[0]); });
+  collectSkus(adsSnap.top_spend);
+  for (const k of ["p7", "p30", "p90"]) collectSkus((adsPeriods[k] || {}).top_spend);
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -996,7 +1038,10 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};
+function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
+// Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
+function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
 const MREV=${J(DAY_T.rev)};const MBASE0=Date.UTC(${BASE_Y},${BASE_M - 1},1);
 function mGmv(w){if(!w)return 0;var a=Math.round((Date.parse(w.from+'T00:00Z')-MBASE0)/864e5),b=Math.round((Date.parse(w.to+'T00:00Z')-MBASE0)/864e5),s=0;for(var i=a;i<=b;i++)s+=(MREV[i]||0);return s;}
 var mCur=null;
@@ -1084,12 +1129,12 @@ function paint(a,src){
     kpi('ДРР',odrr+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
-  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>':'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>';
+  const badge=src==='live'?'<span class="kt-src live">живой запрос за '+a.dateFrom+'..'+a.dateTo+'</span>':src==='baked'?'<span class="kt-src">снимок за период '+a.dateFrom+'..'+a.dateTo+' · обновляю...</span>'+staleMark(a.dateTo):'<span class="kt-src">снимок за период '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo);
   document.getElementById('src1').innerHTML='источник: OZON Performance API через n8n '+badge;
   lastA=a;renderTop();
   renderBurn(a);
   // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
-  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=(c.skus&&c.skus[0])?String(c.skus[0]):null;var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
+  var catAgg={};(a.top_spend||[]).forEach(function(c){var sk=campSku(c);var cat=(sk&&SKU_CAT[sk])||'Прочее';var g=catAgg[cat]||(catAgg[cat]={cat:cat,sp:0,om:0,o:0});g.sp+=c.sp||0;g.om+=c.om||0;g.o+=c.o||0;});
   var catRows=Object.keys(catAgg).map(function(k){var g=catAgg[k];return {cat:k,sp:g.sp,om:g.om,o:g.o,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
   document.getElementById('lines').innerHTML=catRows.map(function(l){return '<tr><td>'+l.cat+'</td><td class="r">'+fmtRu(l.sp)+'</td><td class="r">'+fmtRu(l.om)+'</td><td class="r">'+l.o+'</td><td class="r" style="color:'+(l.drr>30?'var(--dn)':'inherit')+'">'+l.drr+'%</td></tr>';}).join('')||'<tr><td colspan="5" class="kt-note">нет данных</td></tr>';
   renderUecon(a);
@@ -1104,7 +1149,7 @@ function renderUecon(a){
   // продвигаемого SKU (комиссия+с/с -> лимит РК). Не зависит от per-SKU отчётов (429).
   var rows=[];var naSp=0,total=0;
   (a.top_spend||[]).forEach(function(c){
-    var sku=(c.skus&&c.skus[0])?String(c.skus[0]):null;if(!sku)return;total++;
+    var sku=campSku(c);if(!sku)return;total++;
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
     if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
     var com=(comReady&&COM_PERIOD[sku]!==undefined)?COM_PERIOD[sku]:e.com; // комиссия за окно фильтра, иначе снимок

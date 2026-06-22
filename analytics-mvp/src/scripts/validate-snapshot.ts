@@ -4,9 +4,23 @@
 // Код выхода != 0 => снимок плохой, фикстуру НЕ заменять, job упасть.
 import { readFileSync } from "node:fs";
 
+const DROP_GATE = 0.4; // просадка ключевой метрики >40% относительно прошлого снимка = блок (FENIX G3)
+
 function fail(msg: string): never {
   console.error(`SNAPSHOT INVALID: ${msg}`);
   process.exit(1);
+}
+
+// Ключевая метрика для дельта-гейта по типу снимка.
+function keyMetric(type: string, d: any): { name: string; val: number } | null {
+  switch (type) {
+    case "skus": return { name: "totals.rev", val: Number(d?.totals?.rev) || 0 };
+    case "ads": return { name: "totals.spend", val: Number(d?.totals?.spend) || 0 };
+    case "pnl": return { name: "accruals", val: Number(d?.accruals) || 0 };
+    case "pnlsku": return { name: "skuCount", val: d?.bySku ? Object.keys(d.bySku).length : 0 };
+    case "daily": return { name: "rows", val: Array.isArray(d?.rows) ? d.rows.length : 0 };
+    default: return null;
+  }
 }
 
 function main() {
@@ -49,6 +63,22 @@ function main() {
       break;
     default:
       fail(`неизвестный тип ${type}`);
+  }
+
+  // Дельта-гейт: сверка с прошлым снимком (4-й аргумент). Блокируем резкую просадку.
+  const prevFile = process.argv[4];
+  if (prevFile) {
+    try {
+      const prev = JSON.parse(readFileSync(prevFile, "utf-8"));
+      const km = keyMetric(type, data), kp = keyMetric(type, prev);
+      if (km && kp && kp.val > 0) {
+        const drop = (kp.val - km.val) / kp.val;
+        if (drop > DROP_GATE) fail(`дельта-гейт: ${km.name} упал ${Math.round(drop * 100)}% (${kp.val} -> ${km.val}) - похоже на частичные данные OZON, снимок НЕ заменяем`);
+        console.log(`дельта-гейт ${km.name}: ${kp.val} -> ${km.val} (${drop >= 0 ? "-" : "+"}${Math.abs(Math.round(drop * 100))}%) ОК`);
+      }
+    } catch (e) {
+      console.log(`дельта-гейт: прошлый снимок недоступен (${(e as Error).message}) - пропускаю`);
+    }
   }
   console.log(`OK ${type}: ${file}`);
 }

@@ -70,20 +70,35 @@ export class OzonPerformance {
     });
   }
 
-  async campaigns(): Promise<Array<{ id: string; title: string; state: string }>> {
+  async campaigns(): Promise<Array<{ id: string; title: string; state: string; advObjectType: string; placement: string[]; paymentType: string }>> {
     const data = await this.get<{ list?: any[] }>("/api/client/campaign");
     return (data.list ?? []).map((c) => ({
       id: String(c.id),
       title: String(c.title ?? ""),
       state: String(c.state ?? ""),
+      advObjectType: String(c.advObjectType ?? ""),
+      placement: Array.isArray(c.placement) ? c.placement.map((p: any) => String(p)) : [],
+      paymentType: String(c.PaymentType ?? c.paymentType ?? ""),
     }));
+  }
+
+  // GET /api/client/campaign/{id}/objects - продвигаемые SKU кампании.
+  async campaignObjects(id: string): Promise<string[]> {
+    try {
+      const data = await this.get<any>(`/api/client/campaign/${id}/objects`);
+      const arr = data.list ?? data.objects ?? data.result ?? [];
+      return Array.isArray(arr) ? arr.map((o: any) => String((o && (o.sku ?? o.id)) ?? o)).filter(Boolean) : [];
+    } catch { return []; }
   }
 
   // GET /api/client/statistics/daily/json - объединённый диапазон, батчи по 25.
   async dailyStats(campaignIds: string[], dateFrom: string, dateTo: string): Promise<DailyStatRow[]> {
     const out: DailyStatRow[] = [];
     for (const batch of batchCampaigns(campaignIds)) {
-      const qs = `campaignIds=${batch.join(",")}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+      // OZON Performance ждёт повторяющийся параметр campaignIds=id, НЕ список через запятую
+      // (запятая -> HTTP 400 parsing campaign_ids). Дату добавляем в конце.
+      const ids = batch.map((id) => `campaignIds=${encodeURIComponent(id)}`).join("&");
+      const qs = `${ids}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
       const data = await this.get<{ rows?: any[] }>(`/api/client/statistics/daily/json?${qs}`);
       for (const r of data.rows ?? []) {
         out.push({

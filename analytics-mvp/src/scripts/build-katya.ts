@@ -1048,14 +1048,13 @@ var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style
 function renderTop(){var a=lastA;if(!a)return;
   var html=(a.top_spend||[]).map(function(c,ci){
     var rep=repOf(c.id);var loaded=rep!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
-    var nm='<b>'+(c.off||c.id||'-')+'</b>'+((c.id&&c.off&&String(c.off)!==String(c.id))?' <span style="color:var(--ink-3);font-size:11px">#'+c.id+'</span>':'');
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span>'+nm+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
     var sub='';
     if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
       if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из снимка per-SKU от '+RCACHE_D+' (на паузе на время миграции)</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
     } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;
@@ -1082,13 +1081,12 @@ function renderBurn(a){
   var html=(a.burners||[]).map(function(b,bi){
     var bstatus=b.status||stMap[String(b.id)];
     var rep=b.id?repOf(b.id):null;var loaded=rep!==null;var open=!!bexpanded[bi];var disp=open?'':'display:none';
-    var bnm='<b>'+(b.off||b.id||'-')+'</b>'+((b.id&&b.off&&String(b.off)!==String(b.id))?' <span style="color:var(--ink-3);font-size:11px">#'+b.id+'</span>':'');
-    var main='<tr class="ad-exp" data-bi="'+bi+'" data-id="'+(b.id||'')+'"><td>'+(b.id?'<span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span>':'')+bnm+stBadge(bstatus)+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+fmtRu(b.om||0)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>';
+    var main='<tr class="ad-exp" data-bi="'+bi+'" data-id="'+(b.id||'')+'"><td>'+(b.id?'<span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span>':'')+'<b>'+(b.id||b.off)+'</b>'+stBadge(bstatus)+'</td><td class="r">'+fmtRu(b.sp)+'</td><td class="r">'+fmtRu(b.om||0)+'</td><td class="r">'+b.o+'</td><td class="r" style="color:var(--dn)">'+(b.drr?b.drr+'%':'0 заказов')+'</td></tr>';
     var sub='';if(!b.id)return main;
     if(!loaded){sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3)">загрузка разбивки…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
+        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
     } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или per-SKU кэш на паузе, миграция)</td></tr>';}
     return main+sub;

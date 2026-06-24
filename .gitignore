@@ -2,3 +2,9 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# Персональные override Claude Code (пин модели и т.п.), не коммитим
+.claude/settings.local.json
+
+# Дизайн-системы, сгенерированные ui-ux-pro-max --persist
+design-system/

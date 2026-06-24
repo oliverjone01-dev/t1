@@ -13,6 +13,7 @@
     "ingest": "tsx src/scripts/ingest.ts",
     "report": "tsx src/scripts/report.ts",
     "fetch:live": "tsx src/scripts/fetch-live.ts",
+    "import:competitors": "tsx src/scripts/competitors/import-sheet.ts",
     "build:site": "tsx src/scripts/build-site.ts",
     "katya": "tsx src/scripts/build-katya.ts",
     "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",

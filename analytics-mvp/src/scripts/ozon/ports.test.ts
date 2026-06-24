@@ -59,10 +59,12 @@ describe("ads классификаторы", () => {
     expect(adLineOf("что-то")).toBe("прочее");
   });
   it("instrOf по типу оплаты/объекта", () => {
-    expect(instrOf("SKU", "CPC")).toBe("Оплата за клик");
-    expect(instrOf("ALL_SKU_PROMO", "CPO")).toBe("Оплата за заказ");
+    expect(instrOf("SKU", "CPC")).toBe("Трафареты (за клик)");
+    expect(instrOf("SEARCH_PROMO", "CPC")).toBe("Продвижение в поиске (за клик)");
+    expect(instrOf("ALL_SKU_PROMO", "CPO")).toBe("Оплата за заказ (все товары)");
     expect(instrOf("SEARCH_PROMO", "")).toBe("Продвижение в поиске");
     expect(instrOf("SKU", "")).toBe("Трафареты");
+    expect(instrOf("", "CPC")).toBe("Оплата за клик");
   });
   it("plOf маппит площадки, statusOf - состояние", () => {
     expect(plOf(["PLACEMENT_TOP_PROMOTION", "PLACEMENT_PDP"])).toBe("Топ выдачи, Карточка товара");

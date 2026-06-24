@@ -192,6 +192,35 @@ h1,h2{ font-family:var(--display); letter-spacing:-.02em; line-height:1.04; font
 .s-image .cap .h-lg{ max-width:18ch; }
 .s-image .cap .sub{ margin-top:22px; max-width:26ch; }
 
+/* ===================== IMAGE SLOTS (photo / graphic) =====================
+   A slot is a fixed framed region. With NO file it renders a branded
+   placeholder + the art-direction brief (which doubles as the generation
+   prompt for Nano Banana 2). Drop a file into images/ (or paste a data URI)
+   and it shows automatically - no other edit needed.
+   <div class="imgslot"><img src="images/03.jpg" alt="" onerror="this.classList.add('missing')">
+        <div class="ph"><span class="tag">фото · бриф</span>
+          <div class="brief"><b>BRAND imagery:</b> ...описание кадра...</div>
+          <span class="dim">images/03.jpg · 1080×1350</span></div></div>                   */
+.imgslot{ position:relative; border-radius:18px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); }
+.imgslot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; }
+.imgslot img.missing{ display:none; }                  /* set by onerror when file absent */
+.imgslot .ph{ position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; justify-content:space-between; padding:30px; }
+.imgslot .ph .tag{ align-self:flex-start; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:7px 15px; }
+.imgslot .ph .brief{ font-size:25px; line-height:1.42; color:var(--muted); max-width:32ch; }
+.imgslot .ph .brief b{ color:var(--ink); font-weight:600; }
+.imgslot .ph .dim{ font-size:19px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.imgslot::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:repeating-linear-gradient(45deg, transparent 0 24px, rgba(127,127,127,.05) 24px 48px); }
+.imgslot .scrim{ position:absolute; inset:0; z-index:3; background:linear-gradient(0deg, rgba(0,0,0,.72), transparent 52%); }
+/* LAYOUT: full-bleed photo with caption */
+.s-photo{ padding:0; }
+.s-photo .imgslot{ position:absolute; inset:0; border:0; border-radius:0; }
+.s-photo .cap{ position:relative; z-index:4; margin-top:auto; padding:90px; }
+.s-photo .cap .h-lg{ max-width:18ch; } .s-photo .cap .sub{ margin-top:22px; max-width:26ch; }
+/* LAYOUT: inset image band above text */
+.s-inset .imgslot{ width:100%; height:540px; margin-bottom:42px; flex:none; }
+.s-inset .h-md{ margin-bottom:26px; max-width:20ch; }
+.s-inset .sub{ margin-top:20px; max-width:30ch; }
+
 /* ===================== SLIDE TYPE: CTA ===================== */
 .s-cta{ justify-content:center; align-items:flex-start; }
 .s-cta .eyebrow{ margin-bottom:34px; }
@@ -299,6 +328,25 @@ h1,h2{ font-family:var(--display); letter-spacing:-.02em; line-height:1.04; font
   <div class="brandbar">
     <div class="mark"><b>GEN</b>GLASS</div>
     <div class="right"><span class="handle">@genglass</span></div>
+  </div>
+</section>
+<!-- IMAGE SLOT REFERENCE (delete or adapt). Full-bleed photo with brief.
+     No file at images/cover.jpg -> branded placeholder + brief shows (this is the
+     "frame with description"). The brief is also the Nano Banana 2 prompt. Drop
+     your own OR a generated file at images/cover.jpg and it renders automatically. -->
+<section class="slide s-photo">
+  <div class="imgslot">
+    <img src="images/cover.jpg" alt="" onerror="this.classList.add('missing')">
+    <div class="ph">
+      <span class="tag">фото · бриф</span>
+      <div class="brief"><b>GENGLASS imagery:</b> лофт-перегородка из закалённого стекла, профиль RAL 9005, фронтальный кадр, холодный дневной свет, отражение в стекле, без людей. Style-lock: cool daylight, matte black, 50mm.</div>
+      <span class="dim">images/cover.jpg · 1080×1350</span>
+    </div>
+    <div class="scrim"></div>
+  </div>
+  <div class="cap">
+    <h2 class="h-lg">Стекло, которое <span class="hl">держит</span></h2>
+    <p class="sub">Подпись поверх фото читается за счёт скрима. Пока файла нет - виден бриф.</p>
   </div>
 </section>
 

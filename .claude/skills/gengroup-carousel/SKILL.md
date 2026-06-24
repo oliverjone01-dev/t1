@@ -21,7 +21,9 @@ description: >
 Turn a topic, tip, or article into a branded carousel: real HTML/CSS slides,
 exported to exact-size PNGs. The method is HTML to PNG via a headless browser -
 code is perfectly reproducible, so brand colors, type, and grid stay identical
-across every slide. No Figma, no image generators (they drift between slides).
+across every slide. No Figma. Data and diagrams stay CSS/SVG (zero drift); real
+photos go in image slots with a per-carousel style-lock so generated frames stay
+consistent - see `references/images.md`.
 
 ## Files in this skill
 
@@ -32,6 +34,9 @@ across every slide. No Figma, no image generators (they drift between slides).
 - `references/slide-types.md` - the 9 slide types + HTML each expects. Read when building.
 - `references/content-rules.md` - КЛИЕНТ-FIRST, hooks, anti-slop, brand tone,
   ФЕНИКС audit. Read before writing copy. This is what makes it not generic.
+- `references/images.md` - image slots, art-direction briefs, Nano Banana 2 /
+  own-upload sources, per-carousel style-lock, and "graphics stay CSS/SVG". Read
+  when a slide needs a photo or texture.
 
 ## Workflow
 
@@ -71,8 +76,12 @@ Read `references/content-rules.md` FIRST. Then write every slide:
   `slide-types.md`. Delete unused slide types.
 - Set the `.brandbar` wordmark and `@handle` for the brand. Update `.dots i.on`
   to the current slide index and `.pageno` to `NN / total` on each interior slide.
-- Photos: embed as base64 data URI only (see `design-system.md`), never a
-  relative path.
+- Photos and textures: use image slots (`references/images.md`). Each slot renders
+  a branded placeholder + art-direction brief until a file exists, so drafts export
+  immediately and the brief doubles as the Nano Banana 2 prompt. Drop your own OR a
+  generated file into `images/NN.jpg`, or embed a base64 data URI for a
+  self-contained final. Apply ONE style-lock across the carousel so frames do not
+  drift. Data and diagrams stay CSS/SVG, never raster.
 
 ### 5. Export to PNG
 Make sure deps exist, then run the exporter:

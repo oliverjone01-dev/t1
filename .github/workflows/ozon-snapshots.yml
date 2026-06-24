@@ -110,6 +110,13 @@ jobs:
           # backfill сам тянет от последнего дня истории до вчера (самовосстановление после простоя).
           npm run backfill
 
+      - name: per-SKU отчёт рекламы (прямой, без n8n)
+        run: |
+          set -euo pipefail
+          # Джойн топ-кампаний (ads_periods/ads_30d) с offer_id товаров -> data/ads_reports.json.
+          # Без сети и без n8n; «Основная карточка» обновляется вместе со снимком.
+          npx tsx src/scripts/ozon/ad-reports.ts || echo "::warning::per-SKU отчёт не собрался (нет снимков рекламы/SKU)"
+
       - name: Пересборка сайта из свежих снимков
         run: |
           set -euo pipefail

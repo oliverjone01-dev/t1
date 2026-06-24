@@ -1361,16 +1361,16 @@ function render(cur,cmp){
     <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
   </section>
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери наш стол - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
     <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label class="pt-filter-lbl" style="color:var(--ink-2)">Категория:</label>
       <select id="fCat" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:170px"></select>
-      <label class="pt-filter-lbl" style="color:var(--ink-2);margin-left:6px">Наш стол:</label>
+      <label class="pt-filter-lbl" style="color:var(--ink-2);margin-left:6px">Товар GG:</label>
       <select id="fGG" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:240px"></select>
       <span class="kt-note" id="fcount"></span>
     </div>
-    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент</th><th>Стол конкурента</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody><tfoot id="ctot"></tfoot></table></div>
-    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Кв.» - квалификация из input.json. «Наш стол» вынесен в фильтр. Нижняя строка - итоги/средние по отфильтрованному.</div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент</th><th>Стол конкурента</th><th>Артикул</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody><tfoot id="ctot"></tfoot></table></div>
+    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Артикул» - SKU конкурента на OZON. «Кв.» - квалификация из input.json. «Товар GG» вынесен в фильтр. Нижняя строка - итоги/средние по отфильтрованному.</div>
   </section>`;
 
   const pageJs = `
@@ -1382,7 +1382,7 @@ function rebuildGG(){
   const fc=document.getElementById('fCat').value;
   const pairs=DEMO.filter(d=>!fc||d.cat===fc).length;
   const sel=document.getElementById('fGG');
-  sel.innerHTML='<option value="">Все наши столы ('+pairs+' пар)</option>'+ggFor(fc).map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
+  sel.innerHTML='<option value="">Все товары GG ('+pairs+' пар)</option>'+ggFor(fc).map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
 }
 function paintTable(){
   const fc=document.getElementById('fCat').value, fg=document.getElementById('fGG').value;
@@ -1396,10 +1396,11 @@ function paintTable(){
     const av=d.available?'<span style="color:var(--up)">в наличии</span>':'<span style="color:var(--dn)">нет</span>';
     return '<tr><td><b>'+esc(d.seller)+'</b></td>'+
       '<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+
+      '<td><span style="color:#9fb3c0;font-variant-numeric:tabular-nums">'+esc(d.sku)+'</span></td>'+
       '<td>'+qpill(d.qual)+'</td>'+
       '<td class="r">'+fmtRu(d.ggPrice)+'</td><td class="r">'+fmtRu(d.compPrice)+'</td><td class="r">'+delta+'</td>'+
       '<td class="r">'+d.rating.toFixed(1)+'</td><td class="r">'+fmtRu(d.reviews)+'</td><td>'+av+'</td></tr>';
-  }).join('')||'<tr><td colspan="9" class="kt-note">нет пар по выбранному фильтру</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="kt-note">нет пар по выбранному фильтру</td></tr>';
   // Итоговая строка: средние цены/рейтинг, сумма отзывов, счёт по отфильтрованному.
   const tot=document.getElementById('ctot');
   if(rows.length){
@@ -1410,7 +1411,7 @@ function paintTable(){
     const avgR=Math.round(rows.reduce((s,d)=>s+d.rating,0)/n*10)/10;
     const sumRev=rows.reduce((s,d)=>s+d.reviews,0), inAv=rows.filter(d=>d.available).length;
     tot.innerHTML='<tr style="border-top:2px solid #2a3a4a;font-weight:700;background:rgba(255,255,255,.03)">'+
-      '<td>Итого / среднее</td><td>'+n+' пар · '+sl.size+' конкур.</td><td></td>'+
+      '<td>Итого / среднее</td><td>'+n+' пар · '+sl.size+' конкур.</td><td></td><td></td>'+
       '<td class="r">'+fmtRu(avgGG)+'</td><td class="r">'+fmtRu(avgC)+'</td>'+
       '<td class="r"><span style="color:var(--dn)">▲'+pricier+'</span> / <span style="color:var(--up)">▼'+cheaper+'</span></td>'+
       '<td class="r">'+avgR.toFixed(1)+'</td><td class="r">'+fmtRu(sumRev)+'</td><td>'+inAv+' в наличии</td></tr>';

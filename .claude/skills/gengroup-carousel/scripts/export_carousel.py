@@ -23,6 +23,7 @@ Dependencies: playwright (chromium installed), pillow.
 """
 import argparse
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -42,7 +43,17 @@ async def export(input_html: str, out_dir: str, prefix: str, scale: int, retina:
     from playwright.async_api import async_playwright
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(args=["--force-color-profile=srgb"])
+        # Portable launch: honor a system Chromium via env (containers/CI where the
+        # bundled download is blocked) and add --no-sandbox when running as root.
+        # On a normal machine no env is set -> default Playwright Chromium is used.
+        launch_args = ["--force-color-profile=srgb"]
+        if os.environ.get("PW_NO_SANDBOX") or (hasattr(os, "geteuid") and os.geteuid() == 0):
+            launch_args.append("--no-sandbox")
+        launch_kwargs = {"args": launch_args}
+        exe = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE")
+        if exe:
+            launch_kwargs["executable_path"] = exe
+        browser = await p.chromium.launch(**launch_kwargs)
         page = await browser.new_page(device_scale_factor=scale)
         await page.goto(in_path.as_uri(), wait_until="networkidle")
         # let webfonts settle (Montserrat/Georgia); critical for correct render

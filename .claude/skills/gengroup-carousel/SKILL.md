@@ -30,6 +30,8 @@ consistent - see `references/images.md`.
 - `assets/carousel-template.html` - master template. All slide types + 5 brand
   themes as CSS variables. You edit a copy of this, you do not write CSS from scratch.
 - `scripts/export_carousel.py` - renders each `.slide` to a PNG. Deterministic.
+- `scripts/generate_images.py` - fills image slots via Gemini/Nano Banana from each
+  slot's brief (or `--dry-run` prints the prompts). Needs `GEMINI_API_KEY`.
 - `references/design-system.md` - formats, brand tokens, typography. Read when theming.
 - `references/slide-types.md` - the 9 slide types + HTML each expects. Read when building.
 - `references/content-rules.md` - КЛИЕНТ-FIRST, hooks, anti-slop, brand tone,
@@ -82,6 +84,16 @@ Read `references/content-rules.md` FIRST. Then write every slide:
   generated file into `images/NN.jpg`, or embed a base64 data URI for a
   self-contained final. Apply ONE style-lock across the carousel so frames do not
   drift. Data and diagrams stay CSS/SVG, never raster.
+
+### 4b. Fill image slots (optional)
+If slides use image slots, either drop files into `images/` yourself, or generate:
+```bash
+export GEMINI_API_KEY=...    # Nano Banana 2: also set GEMINI_IMAGE_MODEL=<id>
+python scripts/generate_images.py ./carousel.html --style-lock "<one lock for the whole set>"
+```
+Without a key or with `--dry-run` it prints the per-slot prompts to paste into Nano
+Banana 2 by hand. Empty slots export as branded brief-placeholders, so this step is
+optional and the carousel still ships as a draft.
 
 ### 5. Export to PNG
 Make sure deps exist, then run the exporter:

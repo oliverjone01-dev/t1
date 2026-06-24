@@ -32,20 +32,14 @@ export function adLineOf(s: string): string {
   if (s.includes("GGL")) return "свет";
   return "прочее";
 }
-// «Инструмент» = тип рекламного объекта (Трафареты / Продвижение в поиске / ...), а модель
-// оплаты (за клик/заказ) - вторична и идёт в скобках. Раньше оплата перекрывала инструмент,
-// поэтому в колонке у всех CPC-кампаний стояло «Оплата за клик» вместо реального инструмента.
 export function instrOf(t: string, pt: string): string {
-  const tool =
-    t === "SEARCH_PROMO" ? "Продвижение в поиске" :
-    t === "SKU" ? "Трафареты" :
-    t === "ALL_SKU_PROMO" ? "Оплата за заказ (все товары)" :
-    t === "REF_VK" ? "Внешний трафик (VK)" :
-    (t || "");
-  const pay = pt === "CPC" ? "за клик" : pt === "CPO" ? "за заказ" : "";
-  if (tool && pay && t !== "ALL_SKU_PROMO") return `${tool} (${pay})`;
-  if (tool) return tool;
-  return pt === "CPC" ? "Оплата за клик" : pt === "CPO" ? "Оплата за заказ" : "-";
+  if (pt === "CPC") return "Оплата за клик";
+  if (pt === "CPO") return "Оплата за заказ";
+  if (t === "REF_VK") return "Внешний трафик (VK)";
+  if (t === "SEARCH_PROMO") return "Продвижение в поиске";
+  if (t === "ALL_SKU_PROMO") return "Оплата за заказ (все товары)";
+  if (t === "SKU") return "Трафареты";
+  return t || "-";
 }
 const PLM: Record<string, string> = {
   PLACEMENT_SEARCH_AND_CATEGORY: "Поиск и рекомендации", PLACEMENT_PDP: "Карточка товара",

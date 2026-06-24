@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru" translate="no" data-brand="all">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="google" content="notranslate">
+<title>Фабрика каруселей · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ===================================================================
+     ФАБРИКА КАРУСЕЛЕЙ · GENGROUP
+     Тёмная экстраполяция языка Cushion: near-black холст, крупная
+     типографика, синий primary, скруглённые карточки, бенто.
+     Бренд-акценты сохранены: G=сталь, V=золото, M=графит, GM=иней.
+     =================================================================== */
+  :root{
+    --bg:#0B0E13;--bg2:#11151C;--card:#161B23;--card2:#1C222B;
+    --line:#252C37;--line2:#333B48;
+    --ink:#F2F4F7;--ink2:#A9B0BC;--ink3:#79808D;
+    --cta:#4A9DF8;--cta-2:#2E86E6;--cta-ink:#04101F;          /* cushion-синий primary */
+    /* бренд-акценты */
+    --g:#6E92B5;--g-ink:#AEC8DE;--g-soft:rgba(110,146,181,.15);   /* GENGLASS - сталь */
+    --v:#E7A93C;--v-ink:#EFC976;--v-soft:rgba(231,169,60,.14);    /* VALONTI - золото */
+    --m:#9AA3AF;--m-ink:#C3CAD3;--m-soft:rgba(154,163,175,.14);   /* Metal-GM - графит */
+    --gm:#86B6C9;--gm-ink:#B4D6E3;--gm-soft:rgba(134,182,201,.14);/* GLASS-MEMORY - иней */
+    --mint:#46C998;--mint-soft:rgba(70,201,152,.15);
+    --rose:#E8755E;--rose-soft:rgba(232,117,94,.14);
+    --sh:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.35);
+    --sh-lg:0 8px 20px rgba(0,0,0,.45),0 30px 60px rgba(0,0,0,.5);
+    --r:20px;--r-s:13px;--r-pill:999px;
+    --ease:cubic-bezier(.22,.61,.36,1);--spring:cubic-bezier(.34,1.3,.64,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);
+    font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.006em;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(640px 480px at 86% -8%,rgba(74,157,248,.14),transparent 60%),
+      radial-gradient(560px 440px at 4% 4%,rgba(110,146,181,.10),transparent 60%),
+      radial-gradient(520px 460px at 96% 98%,rgba(231,169,60,.07),transparent 62%)}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--cta);color:var(--cta-ink)}
+  :focus-visible{outline:3px solid var(--cta);outline-offset:2px;border-radius:10px}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+
+  /* topbar */
+  .top{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,14,19,.72);border-bottom:1px solid var(--line)}
+  .top-in{max-width:1140px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:-.01em;font-size:15.5px}
+  .logo .mk{width:29px;height:29px;border-radius:9px;background:var(--cta);color:var(--cta-ink);display:grid;place-items:center;font-size:14px;font-weight:900}
+  .logo span{color:var(--ink3);font-weight:600;letter-spacing:.04em;font-size:11.5px;text-transform:uppercase}
+  .tnav{margin-left:auto;display:flex;gap:2px}
+  .tnav a{font-size:13.5px;font-weight:600;color:var(--ink2);padding:8px 13px;border-radius:var(--r-pill);transition:.18s var(--ease)}
+  .tnav a:hover{background:var(--bg2);color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:800;font-size:14px;cursor:pointer;border:none;
+    background:var(--cta);color:var(--cta-ink);padding:11px 20px;border-radius:var(--r-pill);box-shadow:0 4px 14px rgba(74,157,248,.4);transition:.15s var(--ease)}
+  .btn:hover{transform:translateY(-1px);background:var(--cta-2);box-shadow:0 8px 22px rgba(74,157,248,.5)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:var(--card2);color:var(--ink);box-shadow:none;border:1px solid var(--line2)}
+  .btn.ghost:hover{background:var(--card);border-color:var(--ink3)}
+
+  /* hero */
+  .hero{padding:70px 0 34px;text-align:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r-pill);
+    padding:7px 15px 7px 11px;font-size:12px;font-weight:700;color:var(--ink2);box-shadow:var(--sh);margin-bottom:22px}
+  .eyebrow .d{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 4px var(--mint-soft)}
+  .hero h1{font-size:clamp(36px,6.4vw,68px);font-weight:900;line-height:1.02;letter-spacing:-.04em;max-width:16ch;margin:0 auto}
+  .hero h1 em{font-style:normal;color:var(--cta)}
+  .hero p{margin:22px auto 0;font-size:clamp(16px,2vw,19px);color:var(--ink2);max-width:60ch;line-height:1.55}
+  .hero .cta{margin-top:30px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .hero .fine{margin-top:14px;font-size:12.5px;color:var(--ink3)}
+
+  /* brand switcher */
+  .bswitch{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:34px 0 0}
+  .bswitch button{font:inherit;font-size:13px;font-weight:700;color:var(--ink2);background:var(--card);border:1px solid var(--line);
+    padding:8px 15px;border-radius:var(--r-pill);cursor:pointer;transition:.16s var(--ease);display:inline-flex;align-items:center;gap:7px}
+  .bswitch button .d{width:9px;height:9px;border-radius:50%}
+  .bswitch button[data-b="all"] .d{background:var(--cta)}
+  .bswitch button[data-b="g"] .d{background:var(--g)} .bswitch button[data-b="v"] .d{background:var(--v)}
+  .bswitch button[data-b="m"] .d{background:var(--m)} .bswitch button[data-b="gm"] .d{background:var(--gm)}
+  .bswitch button:hover{color:var(--ink);border-color:var(--ink3)}
+  .bswitch button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+  /* sections */
+  section{padding:50px 0;scroll-margin-top:70px}
+  .sh{margin-bottom:26px}
+  .sh .tag{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cta)}
+  .sh h2{font-size:clamp(24px,3.4vw,36px);font-weight:900;letter-spacing:-.03em;line-height:1.08;margin-top:8px}
+  .sh p{color:var(--ink2);font-size:15.5px;max-width:60ch;margin-top:10px}
+
+  /* method - 7 steps */
+  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px;box-shadow:var(--sh);transition:transform .2s var(--spring),border-color .2s}
+  .step:hover{transform:translateY(-3px);border-color:var(--line2)}
+  .step .nm{width:34px;height:34px;border-radius:11px;background:var(--card2);color:var(--cta);display:grid;place-items:center;font-weight:900;font-size:15px;margin-bottom:12px}
+  .step.money .nm{background:var(--cta);color:var(--cta-ink)}
+  .step h3{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .step p{font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.5}
+  .step.money{border-color:var(--cta)}
+
+  /* slide arc */
+  .arc{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 14px;scroll-snap-type:x mandatory}
+  .slide{scroll-snap-align:start;flex:0 0 200px;aspect-ratio:4/5;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(165deg,var(--card2),var(--card));
+    padding:18px;display:flex;flex-direction:column;box-shadow:var(--sh);position:relative}
+  .slide .k{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--cta)}
+  .slide .big{font-size:18px;font-weight:900;letter-spacing:-.02em;line-height:1.15;margin-top:auto}
+  .slide .sm{font-size:12.5px;color:var(--ink2);margin-top:8px;line-height:1.45}
+  .slide.cta-s{background:linear-gradient(165deg,var(--cta),var(--cta-2));color:var(--cta-ink)}
+  .slide.cta-s .k{color:rgba(4,16,31,.65)} .slide.cta-s .sm{color:rgba(4,16,31,.78)}
+  .slide .num{position:absolute;top:14px;right:16px;font-size:12px;font-weight:800;color:var(--ink3)}
+  .slide.cta-s .num{color:rgba(4,16,31,.55)}
+
+  /* brand cards */
+  .brands{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .bc{position:relative;border-radius:24px;padding:24px;border:1px solid var(--line);box-shadow:var(--sh);overflow:hidden;
+    transition:transform .25s var(--spring),box-shadow .25s,opacity .25s}
+  .bc:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+  .bc::after{content:"";position:absolute;width:200px;height:200px;border-radius:50%;right:-60px;top:-70px;filter:blur(10px);opacity:.5}
+  .bc.g::after{background:radial-gradient(circle,var(--g),transparent 70%)} .bc.v::after{background:radial-gradient(circle,var(--v),transparent 70%)}
+  .bc.m::after{background:radial-gradient(circle,var(--m),transparent 70%)} .bc.gm::after{background:radial-gradient(circle,var(--gm),transparent 70%)}
+  .bc-top{display:flex;align-items:center;gap:13px;position:relative}
+  .mono{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:22px;font-weight:900;letter-spacing:-.04em;flex:none;color:#0B0E13}
+  .bc.g .mono{background:linear-gradient(145deg,#8FB0CF,var(--g))} .bc.v .mono{background:linear-gradient(145deg,#F0C264,var(--v))}
+  .bc.m .mono{background:linear-gradient(145deg,#BCC3CC,var(--m))} .bc.gm .mono{background:linear-gradient(145deg,#A9D0DD,var(--gm))}
+  .bc-name{font-size:20px;font-weight:900;letter-spacing:-.02em}
+  .bc.g .bc-name{color:var(--g-ink)} .bc.v .bc-name{color:var(--v-ink)} .bc.m .bc-name{color:var(--m-ink)} .bc.gm .bc-name{color:var(--gm-ink)}
+  .bc-role{font-size:12px;font-weight:700;color:var(--ink3);margin-top:2px}
+  .bc-facts{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px;position:relative}
+  .fact{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:var(--r-pill);background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+  .bc-hook{margin-top:16px;position:relative;border-left:3px solid;border-radius:0 12px 12px 0;background:var(--card2);padding:11px 14px}
+  .bc.g .bc-hook{border-color:var(--g)} .bc.v .bc-hook{border-color:var(--v)} .bc.m .bc-hook{border-color:var(--m)} .bc.gm .bc-hook{border-color:var(--gm)}
+  .bc-hook .lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+  .bc-hook .h{font-size:14px;font-weight:700;margin-top:3px;line-height:1.35;letter-spacing:-.01em}
+  .bc-no{margin-top:11px;font-size:12px;color:var(--ink3);position:relative;line-height:1.45}
+  .bc-no b{color:var(--rose)}
+  body[data-brand="g"] .bc:not(.g),body[data-brand="v"] .bc:not(.v),body[data-brand="m"] .bc:not(.m),body[data-brand="gm"] .bc:not(.gm){opacity:.28;filter:saturate(.4)}
+
+  /* prompt block */
+  .prompt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .prompt-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card2)}
+  .prompt-h .ttl{font-weight:800;font-size:14.5px}.prompt-h .v{font-size:11.5px;color:var(--ink3);font-weight:700}
+  .copy{margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;color:var(--cta);background:var(--g-soft);border:1px solid var(--line2);border-radius:var(--r-pill);padding:6px 13px;cursor:pointer}
+  .prompt pre{margin:0;padding:18px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:1.65;color:var(--ink2);white-space:pre-wrap;max-height:340px;overflow:auto}
+  .prompt pre b{color:var(--ink);font-weight:700}.prompt pre .hl{color:var(--cta)}
+
+  /* two-col lists (checklist / antipatterns) */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh)}
+  .panel h3{font-size:16px;font-weight:900;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .panel.good h3 .b{width:9px;height:9px;border-radius:3px;background:var(--mint);transform:rotate(45deg)}
+  .panel.bad h3 .b{width:9px;height:9px;border-radius:3px;background:var(--rose);transform:rotate(45deg)}
+  .panel ul{list-style:none;display:grid;gap:9px;margin-top:14px}
+  .panel li{font-size:13.5px;color:var(--ink2);padding-left:24px;position:relative;line-height:1.5}
+  .panel.good li::before{content:"✓";position:absolute;left:0;top:-1px;color:var(--mint);font-weight:900}
+  .panel.bad li::before{content:"✕";position:absolute;left:0;top:-1px;color:var(--rose);font-weight:900}
+  .panel li b{color:var(--ink)}
+
+  /* funnel / cases */
+  .funnel{display:flex;align-items:center;gap:0;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh)}
+  .fstep{display:inline-flex;flex-direction:column;gap:3px;padding:10px 16px;border-radius:var(--r-s);background:var(--card2);min-width:118px}
+  .fstep .fn{font-size:22px;font-weight:900;letter-spacing:-.02em}
+  .fstep .fl{font-size:12px;color:var(--ink2);font-weight:600}
+  .fstep .fh{font-size:10.5px;color:var(--ink3)}
+  .fconn{flex:1;min-width:18px;height:0;border-top:2.5px dotted var(--line2);margin:0 8px}
+  .p9{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--v-ink);background:var(--v-soft);border:1px solid var(--line2);border-radius:6px;padding:2px 7px;vertical-align:middle}
+  .disc{margin-top:14px;font-size:12.5px;color:var(--ink3);line-height:1.5}
+
+  .foot{padding:42px 0 80px;text-align:center;color:var(--ink3);font-size:13px;border-top:1px solid var(--line);margin-top:30px}
+  .foot b{color:var(--ink2)}
+
+  @media(max-width:820px){.brands,.cols{grid-template-columns:1fr}.tnav{display:none}}
+  @media(max-width:520px){.hero{padding:48px 0 24px}section{padding:38px 0}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="logo"><span class="mk">G</span>GENGROUP <span>· фабрика каруселей</span></div>
+  <nav class="tnav" aria-label="разделы">
+    <a href="#method">Метод</a><a href="#arc">Слайды</a><a href="#brands">Бренды</a>
+    <a href="#forge">Цех</a><a href="#cases">Цифры</a>
+  </nav>
+  <a class="btn" href="#cta" style="margin-left:auto">Собрать карусель</a>
+</div></header>
+
+<main class="wrap">
+
+  <!-- HERO / МАНИФЕСТ -->
+  <section class="hero">
+    <span class="eyebrow"><span class="d"></span>4 бренда · одна система · brand-safe виральность</span>
+    <h1>Карусель за 20 минут. <em>Не ценой бренда.</em></h1>
+    <p>Инженерный конвейер каруселей для GENGROUP. Виральные механики, адаптированные под премиум: считаем не сохранения, а путь <b>охват → лид → продажа</b>. Премиум не кричит «ШОК» - он показывает результат и материал.</p>
+    <div class="cta">
+      <a class="btn" href="#forge">Открыть цех</a>
+      <a class="btn ghost" href="#method">Как работает метод</a>
+    </div>
+    <p class="fine">Факты о брендах - из glossary v2.1 и brand-DNA репозитория. Метрики кейсов - фреймворк, не выдуманные числа.</p>
+    <div class="bswitch" role="group" aria-label="фильтр по бренду">
+      <button data-b="all" class="on"><span class="d"></span>Все</button>
+      <button data-b="g"><span class="d"></span>GENGLASS</button>
+      <button data-b="v"><span class="d"></span>VALONTI</button>
+      <button data-b="m"><span class="d"></span>Metal-GM</button>
+      <button data-b="gm"><span class="d"></span>GLASS-MEMORY</button>
+    </div>
+  </section>
+
+  <!-- МЕТОД -->
+  <section id="method">
+    <div class="sh"><span class="tag">01 · метод</span><h2>7 шагов цикла</h2>
+      <p>Главная ошибка - лезть сразу в продакшн (шаг 6), минуя 1-5. Тогда много действий, мало денег. Сначала фундамент, потом «ленивый» контент.</p></div>
+    <div class="steps">
+      <div class="step"><div class="nm">1</div><h3>Идентификация</h3><p>Кто бренд и какая бизнес-задача. GENGLASS продаёт результат, VALONTI - авторство. Это меняет всё.</p></div>
+      <div class="step"><div class="nm">2</div><h3>Целеполагание</h3><p>Для кого слайд. Дизайнер интерьера, прораб, конечный клиент или B2B-закупщик - разный язык.</p></div>
+      <div class="step"><div class="nm">3</div><h3>Контекст</h3><p>Информационный шум вокруг клиента: на кого ещё подписан, что уже видел.</p></div>
+      <div class="step"><div class="nm">4</div><h3>Разведка</h3><p>Что у конкурентов «залетает», а где тишина. Не копируем - анализируем рынок РФ.</p></div>
+      <div class="step money"><div class="nm">5</div><h3>Система (деньги)</h3><p>Куда человек идёт после слайда. Нет пути к лиду - нет смысла в посте. Это шаг, который защищает прибыль.</p></div>
+      <div class="step"><div class="nm">6</div><h3>Продакшн</h3><p>Только здесь «ленивый» контент: промпт + шаблон Design Kit + проверка. Единица смысла за минуты.</p></div>
+      <div class="step"><div class="nm">7</div><h3>Цикл</h3><p>Цифры → корректировка → повтор. Постоянство бьёт креатив и талант.</p></div>
+    </div>
+  </section>
+
+  <!-- СЛАЙД-АРКА -->
+  <section id="arc">
+    <div class="sh"><span class="tag">02 · структура</span><h2>Сюжетная арка из 8-10 слайдов</h2>
+      <p>Заголовок ≤40 символов, текст слайда ≤160. Один слайд = одна законченная мысль. Без банальностей вроде «а вы согласны?».</p></div>
+    <div class="arc">
+      <div class="slide"><span class="num">1</span><span class="k">Хук</span><div class="big">Останови скролл</div><p class="sm">Удар по задаче или неожиданный факт. Для премиума - не провокация, а конкретный результат/материал.</p></div>
+      <div class="slide"><span class="num">2</span><span class="k">Контекст</span><div class="big">Почему сейчас</div><p class="sm">Чем это касается читателя в его проекте прямо сейчас.</p></div>
+      <div class="slide"><span class="num">3-7</span><span class="k">Мясо</span><div class="big">Суть и доказательства</div><p class="sm">Инсайты, шаги, разбор. Репостабельные мысли. Цифры и материалы, а не вода.</p></div>
+      <div class="slide"><span class="num">8</span><span class="k">Вывод</span><div class="big">Финальная точка</div><p class="sm">Одна сильная мысль, которую запомнят.</p></div>
+      <div class="slide cta-s"><span class="num">9</span><span class="k">CTA</span><div class="big">Путь к лиду</div><p class="sm">Конкретное действие → воронка (консультация, расчёт, дилерство). Не «подпишись», а шаг к сделке.</p></div>
+    </div>
+  </section>
+
+  <!-- БРЕНДЫ -->
+  <section id="brands">
+    <div class="sh"><span class="tag">03 · бренды</span><h2>4 бренда - 4 голоса, не один кликбейт</h2>
+      <p>Один шаблон виральности, но тон, факты и запреты у каждого свои. Переключатель вверху приглушает остальные.</p></div>
+    <div class="brands">
+      <article class="bc g">
+        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">серия · средний+ · B2C/B2B · сталь</div></div></div>
+        <div class="bc-facts"><span class="fact">RAL 9005</span><span class="fact">16 000 м²</span><span class="fact">27 000 заказов</span><span class="fact">7 дней до отгрузки</span><span class="fact">палитры NERO/ORO/BIANCO</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Зонировали кухню-гостиную за 3 дня. Без капремонта»</div></div>
+        <div class="bc-no">Тон: профессиональная теплота, «коллега». <b>Нельзя:</b> «изысканный», «роскошный» без механики.</div>
+      </article>
+      <article class="bc v">
+        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · B2D · золото</div></div></div>
+        <div class="bc-facts"><span class="fact">Nero Marquina</span><span class="fact">Travertino</span><span class="fact">Onyx Miele</span><span class="fact">бронза · латунь</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Эту прожилку Nero Marquina не повторит ни одна фабрика»</div></div>
+        <div class="bc-no">Тон: скульптурная скупость, каждое предложение - экспонат. <b>Нельзя:</b> «современный дизайн», «модный тренд».</div>
+      </article>
+      <article class="bc m">
+        <div class="bc-top"><div class="mono">M</div><div><div class="bc-name">Metal-GM</div><div class="bc-role">контрактное производство · B2B · графит</div></div></div>
+        <div class="bc-facts"><span class="fact">любой RAL по ТЗ</span><span class="fact">партия от 50 шт</span><span class="fact">порошковая покраска</span><span class="fact">без линий и коллекций</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Партия 50 кронштейнов, любой RAL по ТЗ, без минималки на цвет»</div></div>
+        <div class="bc-no">Тон: инженер инженеру, сухая фактура. <b>Нельзя:</b> эпитеты, поэзия, «качество» без цифр.</div>
+      </article>
+      <article class="bc gm">
+        <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">мемориальные наборы · иней</div></div></div>
+        <div class="bc-facts"><span class="fact">Crystalvision +25%</span><span class="fact">набор: стела+накладка+подставка</span><span class="fact">формат комплекта</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Crystalvision держит гравировку на 25% дольше обычного стекла»</div></div>
+        <div class="bc-no">Тон: деликатность без манипуляций. <b>Нельзя:</b> «вечная память», триггеры скорби как продажный аргумент.</div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ЦЕХ / FORGE -->
+  <section id="forge">
+    <div class="sh"><span class="tag">04 · цех</span><h2>Генератор сценария</h2>
+      <p>Промпт-движок: вставляете тему и бренд - получаете сценарий 8-10 слайдов в тоне бренда. Дальше прогон через <b>humanizer-ru</b> и чек-лист.</p></div>
+    <div class="prompt">
+      <div class="prompt-h"><span class="ttl">Промпт · Генератор премиум-карусели</span><span class="v">v1 · GENGROUP</span><button class="copy" type="button" data-copy="prompt1">Копировать</button></div>
+      <pre id="prompt1"><b>РОЛЬ:</b> Ты главный редактор премиум-медиа GENGROUP. Ненавидишь воду и банальности.
+Задача: сценарий Instagram/VK-карусели (8-10 слайдов), которую не пролистнуть.
+
+<b>ВВОДНЫЕ:</b>
+  Бренд: <span class="hl">[GENGLASS | VALONTI | Metal-GM | GLASS-MEMORY]</span>
+  Тема: <span class="hl">[ТЕМА]</span>
+  Аудитория: <span class="hl">[дизайнер | прораб | конечный клиент | B2B-закупщик]</span>
+
+<b>ТОН ПО БРЕНДУ (строго):</b>
+  GENGLASS - профессиональная теплота, конкретика (RAL, м², сроки). «Коллега», не «друг».
+  VALONTI - скульптурная скупость. Имя автора + материал + одна идея.
+  Metal-GM - инженер инженеру. Марки сталей, допуски, RAL, партии. Без эпитетов.
+  GLASS-MEMORY - деликатно, без триггеров скорби. Факт, не пафос.
+
+<b>ЛИМИТЫ:</b> заголовок ≤40 симв (капс, жирно); текст слайда ≤160 симв; 1 слайд = 1 мысль.
+<b>ЗАПРЕЩЕНО:</b> «а вы согласны?», «важно понимать», «ШОК», «роскошный/изысканный» без механики,
+  «современный дизайн», «модный тренд», эмоциональные триггеры скорби.
+
+<b>СТРУКТУРА:</b> 1 Хук (результат/материал, не провокация) · 2 Контекст · 3-7 Мясо (доказательства,
+  цифры, материалы) · 8 Вывод · 9 CTA - путь к лиду (расчёт/консультация/дилерство), не «подпишись».
+
+<b>ВЫХОД:</b> по каждому слайду - {заголовок, текст, визуальная подсказка}. В конце - 1 строка:
+  какой шаг воронки закрывает этот пост (охват / лид / продажа).</pre>
+    </div>
+  </section>
+
+  <!-- ЧЕК-ЛИСТ + АНТИ-ПАТТЕРНЫ -->
+  <section id="check">
+    <div class="sh"><span class="tag">05 · контроль</span><h2>Чек-лист перед публикацией</h2>
+      <p>То, что отделяет премиум от инфобиза. Прогон обязателен - иначе карусель уносит охват, но роняет позиционирование.</p></div>
+    <div class="cols">
+      <div class="panel good">
+        <h3><span class="b"></span>Должно быть</h3>
+        <ul>
+          <li><b>Голос бренда</b> совпадает с DNA (тон, лексика) - проверка скиллом <b>brand</b>.</li>
+          <li>Прогон <b>humanizer-ru</b>: убраны AI-паттерны и канцелярит.</li>
+          <li>Каждая цифра - <b>факт из glossary/PRL</b>, не выдумка. Спорная - помечена как гипотеза.</li>
+          <li><b>CTA ведёт в воронку</b> (расчёт/консультация/дилер), а не в пустой «подпишись».</li>
+          <li>Терминология верна: <b>палитра ≠ линия ≠ коллекция ≠ комплект</b>; палитры не миксуются в одном комплекте.</li>
+          <li>Заголовок ≤40, текст слайда ≤160 символов.</li>
+        </ul>
+      </div>
+      <div class="panel bad">
+        <h3><span class="b"></span>Убивает премиум</h3>
+        <ul>
+          <li><b>Кликбейт «ШОК», «вы делали это неправильно»</b> - дешевит VALONTI и GENGLASS.</li>
+          <li><b>Vanity-метрики</b> как цель: гонимся за сохранениями вместо лидов и продаж.</li>
+          <li>Запрещённые слова бренда: «роскошный», «модный тренд», «вечная память».</li>
+          <li><b>Скорбь GLASS-MEMORY как продающий триггер</b> - запрещено.</li>
+          <li>Один шаблон тона на все 4 бренда - стирает позиционирование.</li>
+          <li>Генерик-эстетика «как у всех» (median-дизайн) - провал anti-slop.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ЦИФРЫ / ВОРОНКА -->
+  <section id="cases">
+    <div class="sh"><span class="tag">06 · цифры</span><h2>Считаем прибыль, а не лайки <span class="p9">Protocol 9</span></h2>
+      <p>Карусель - не цель, а вход в воронку. Метрика успеха - движение по пути, а не охват сам по себе.</p></div>
+    <div class="funnel">
+      <div class="fstep"><span class="fn">Охват</span><span class="fl">досмотры, репосты</span><span class="fh">верх воронки</span></div>
+      <div class="fconn"></div>
+      <div class="fstep"><span class="fn">Лид</span><span class="fl">переход, заявка, расчёт</span><span class="fh">CTA слайда 9</span></div>
+      <div class="fconn"></div>
+      <div class="fstep"><span class="fn">Продажа</span><span class="fl">сделка в Bitrix24</span><span class="fh">чистая прибыль</span></div>
+    </div>
+    <p class="disc">Конкретные числа здесь намеренно не проставлены: реальных метрик каруселей GENGROUP в репозитории нет. Это <b>фреймворк измерения</b> [ГИПОТЕЗА до сбора данных]. Реальные кейсы «было-стало» подключим, когда появится выгрузка из Bitrix24/аналитики (см. путь подключения B24, Council CC-13).</p>
+  </section>
+
+  <section id="cta" class="hero" style="padding:40px 0 10px">
+    <h1 style="font-size:clamp(26px,4vw,40px);max-width:22ch">Собрать первую карусель</h1>
+    <p>Выберите бренд и тему - движок выдаст сценарий, шаблон возьмёт токены Design Kit, чек-лист защитит позиционирование.</p>
+    <div class="cta"><a class="btn" href="#forge">К генератору</a><a class="btn ghost" href="#brands">Выбрать бренд</a></div>
+  </section>
+
+</main>
+<div class="foot wrap">GENGROUP · Фабрика каруселей · дизайн-система Design Kit, тёмная экстраполяция языка Cushion · факты: glossary v2.1 + brand-DNA · черновик на приёмку</div>
+
+<script>
+  (function(){
+    var body=document.body, btns=document.querySelectorAll('.bswitch button');
+    btns.forEach(function(b){ b.addEventListener('click',function(){
+      btns.forEach(function(x){x.classList.toggle('on',x===b);});
+      body.setAttribute('data-brand', b.getAttribute('data-b'));
+      if(b.getAttribute('data-b')!=='all'){ var s=document.getElementById('brands'); if(s) s.scrollIntoView({behavior:'smooth',block:'start'}); }
+    });});
+    document.querySelectorAll('.copy').forEach(function(c){ c.addEventListener('click',function(){
+      var el=document.getElementById(c.getAttribute('data-copy')); if(!el) return;
+      navigator.clipboard && navigator.clipboard.writeText(el.innerText).then(function(){ var t=c.textContent; c.textContent='Скопировано ✓'; setTimeout(function(){c.textContent=t;},1500); });
+    });});
+  })();
+</script>
+</body>
+</html>

@@ -68,6 +68,8 @@ Read `references/content-rules.md` FIRST. Then write every slide:
 - The hook slide is the one that matters - number or stake, one accent word.
 - One concrete number per slide minimum. Real GENGROUP facts only, never invented.
 - Match the brand's tone of voice.
+- MANDATORY «Скользкая горка»: every slide except the CTA ends on an open loop (a
+  `→` hook) that pulls to the next slide. See `content-rules.md`.
 - HARD RULE: no em dash "—" and no en dash "–". Hyphen "-" only.
 
 ### 4. Build the HTML

@@ -1,0 +1,62 @@
+name: Competitors pilot (OZON public cards)
+
+# ПИЛОТ сбора данных по конкурентам GG с публичных карточек OZON (composer-api).
+# Запускается ВРУЧНУЮ. В web-контейнере Claude ozon.ru закрыт сетевой политикой (403),
+# поэтому живой прогон - здесь (или локально с доступом к ozon.ru).
+# ВНИМАНИЕ: IP дата-центров (в т.ч. GitHub Actions) OZON часто режет анти-ботом. Если соберётся
+# 0 карточек - нужен резидентный прокси или платный сторонний API (MPSTATS/SalesFinder).
+# Для оценки «заказы/выручка за сутки» нужны ДВА прогона с разницей ~24ч (дельта отзывов/остатка).
+
+on:
+  workflow_dispatch:
+  # Раскомментировать для ежедневного снимка (нужно для суточной дельты):
+  # schedule:
+  #   - cron: "0 7 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: competitors-pilot
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/focused-davinci-tKJCt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Прогон пилота
+        run: npx tsx src/scripts/competitors/pilot.ts --out data/competitors
+
+      - name: Артефакт отчёта
+        uses: actions/upload-artifact@v4
+        with:
+          name: competitors-report
+          path: analytics-mvp/data/competitors/*.md
+          if-no-files-found: warn
+
+      - name: Коммит снимка (для суточной дельты)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/data/competitors
+          if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
+          git commit -m "data: пилот конкурентов OZON $(date -u +%F)"
+          for i in 1 2 3 4; do
+            if git pull --rebase origin claude/focused-davinci-tKJCt && git push; then exit 0; fi
+            sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

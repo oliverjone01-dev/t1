@@ -1335,6 +1335,14 @@ function render(cur,cmp){
 {
   let compInput: any[] = [];
   try { compInput = JSON.parse(readFileSync("src/scripts/competitors/input.json", "utf-8")).items || []; } catch { compInput = []; }
+  // Чистим имя стола конкурента от ведущего бренда (он дублирует продавца): "Лайфмебель Стол ..." -> "Стол ...".
+  const normБ = (s: string) => s.toLowerCase().replace(/ё/g, "е");
+  const stripBrand = (name: string, seller: string) => {
+    let n = (name || "").trim();
+    const fw = n.split(/\s+/)[0] || "";
+    if (seller && fw && normБ(fw).startsWith(normБ(seller).slice(0, 5))) n = n.slice(fw.length).trim();
+    return n || (name || "");
+  };
   const demo = compInput.map((it: any, idx: number) => {
     const seed = Number(String(it.sku).slice(-4)) || (1000 + idx);
     const compPrice = 12000 + (seed % 9000);                       // ДЕМО: 12k..21k ₽
@@ -1342,45 +1350,68 @@ function render(cur,cmp){
     const rating = Math.round((40 + (seed % 10))) / 10;             // ДЕМО: 4.0..4.9
     const reviews = 5 + (seed % 140);                               // ДЕМО
     const available = seed % 7 !== 0;                               // ДЕМО
-    return { sku: String(it.sku), seller: it.seller || "", name: it.competitor_name || "", gg: it.gg_product || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available };
+    return { sku: String(it.sku), seller: it.seller || "", stol: stripBrand(it.competitor_name || "", it.seller || ""), gg: it.gg_product || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available };
   });
+  const ggList = [...new Set(demo.map((d) => d.gg).filter(Boolean))];   // наши столы для фильтра
+  const sellerList = [...new Set(demo.map((d) => d.seller).filter(Boolean))]; // реальные конкуренты (2)
 
   const body = `
   <section class="card" style="border:1px solid #E0A10088;border-left:3px solid #E0A100;background:rgba(224,161,0,.06)">
     <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
-    <div class="card-sub">Цифры на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Имена и пары товаров - настоящие (из <code>input.json</code>), цены/рейтинги/отзывы выдуманы детерминированно. Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
+    <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
   </section>
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">наша демо-цена против демо-цены конкурента по каждой паре. <span style="color:var(--up)">зелёный</span> - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
-    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент (продавец)</th><th>Наш товар GG</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody></table></div>
-    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Кв.» - квалификация конкурента из input.json.</div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери наш стол - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
+    <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label class="pt-filter-lbl" style="color:var(--ink-2)">Наш стол:</label>
+      <select id="fGG" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:240px"></select>
+      <span class="kt-note" id="fcount"></span>
+    </div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент</th><th>Стол конкурента</th><th>Наш стол</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody></table></div>
+    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Кв.» - квалификация из input.json. «Конкурент» - продавец, «Стол конкурента» - его карточка.</div>
   </section>`;
 
   const pageJs = `
 const DEMO=${J(demo)};
-function render(cur,cmp){
-  const n=DEMO.length;
-  const avgComp=n?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/n):0;
-  const avgRat=n?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/n*10)/10:0;
-  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
-  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
-  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
-  document.getElementById('kpis').innerHTML=[
-    kpi('Конкурентов в мониторинге',fmtRu(n),'пары из input.json'),
-    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
-    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
-    kpi('Где мы дороже',pricier+' из '+n,cheaper+' дешевле')
-  ].join('');
+const GGLIST=${J(ggList)};
+const NSELLERS=${sellerList.length};
+function paintTable(){
+  const sel=document.getElementById('fGG'); const f=sel?sel.value:'';
+  const rows=DEMO.filter(d=>!f||d.gg===f);
+  const sl=new Set(rows.map(d=>d.seller));
+  document.getElementById('fcount').textContent='пар: '+rows.length+' · конкурентов: '+sl.size+(f?'':' · все наши столы');
   const qpill=q=>{const c=/горяч/i.test(q)?'#FF5A5F':/тёпл|тепл/i.test(q)?'#E0A100':'#5d7484';return q?'<span style="color:'+c+';font-weight:700;font-size:11px">'+esc(q)+'</span>':'';};
-  document.getElementById('ctab').innerHTML=DEMO.map(d=>{
+  const html=rows.map(d=>{
     const up=d.ggPrice>d.compPrice; const diff=Math.abs(d.ggPrice-d.compPrice);
     const delta='<span style="color:'+(up?'var(--dn)':'var(--up)')+'">'+(up?'▲ +':'▼ -')+fmtRu(diff)+'</span>';
     const av=d.available?'<span style="color:var(--up)">в наличии</span>':'<span style="color:var(--dn)">нет</span>';
-    return '<tr><td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.name.slice(0,56))+' &#8599;</a><div class="sub" style="color:#5d7484;font-size:11px">'+esc(d.seller)+'</div></td>'+
+    return '<tr><td><b>'+esc(d.seller)+'</b></td>'+
+      '<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+
       '<td>'+esc(d.gg)+'</td><td>'+qpill(d.qual)+'</td>'+
       '<td class="r">'+fmtRu(d.ggPrice)+'</td><td class="r">'+fmtRu(d.compPrice)+'</td><td class="r">'+delta+'</td>'+
       '<td class="r">'+d.rating.toFixed(1)+'</td><td class="r">'+fmtRu(d.reviews)+'</td><td>'+av+'</td></tr>';
   }).join('');
+  document.getElementById('ctab').innerHTML=html||'<tr><td colspan="10" class="kt-note">нет пар по выбранному столу</td></tr>';
+}
+function render(cur,cmp){
+  const pairs=DEMO.length;
+  const avgComp=pairs?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/pairs):0;
+  const avgRat=pairs?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/pairs*10)/10:0;
+  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
+  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
+  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
+  document.getElementById('kpis').innerHTML=[
+    kpi('Конкурентов в мониторинге',fmtRu(NSELLERS),'пар столов: '+pairs),
+    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
+    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
+    kpi('Где мы дороже',pricier+' из '+pairs,cheaper+' дешевле')
+  ].join('');
+  const sel=document.getElementById('fGG');
+  if(sel && !sel.options.length){
+    sel.innerHTML='<option value="">Все наши столы ('+pairs+' пар)</option>'+GGLIST.map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
+    sel.addEventListener('change',paintTable);
+  }
+  paintTable();
 }`;
   writeFileSync("public/katya-competitors.html", kshell("Конкуренты", "competitors", body, pageJs));
 }

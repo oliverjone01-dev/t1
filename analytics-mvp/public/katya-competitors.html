@@ -689,12 +689,17 @@
 <main class="main">
   <section class="card" style="border:1px solid #E0A10088;border-left:3px solid #E0A100;background:rgba(224,161,0,.06)">
     <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
-    <div class="card-sub">Цифры на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Имена и пары товаров - настоящие (из <code>input.json</code>), цены/рейтинги/отзывы выдуманы детерминированно. Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
+    <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
   </section>
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">наша демо-цена против демо-цены конкурента по каждой паре. <span style="color:var(--up)">зелёный</span> - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
-    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент (продавец)</th><th>Наш товар GG</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody></table></div>
-    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Кв.» - квалификация конкурента из input.json.</div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери наш стол - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
+    <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label class="pt-filter-lbl" style="color:var(--ink-2)">Наш стол:</label>
+      <select id="fGG" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:240px"></select>
+      <span class="kt-note" id="fcount"></span>
+    </div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент</th><th>Стол конкурента</th><th>Наш стол</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody></table></div>
+    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Кв.» - квалификация из input.json. «Конкурент» - продавец, «Стол конкурента» - его карточка.</div>
   </section></main>
 <script>window.__GG_MAXD='2026-06-18';
 const MAXD='2026-06-18', FLOOR='2026-02-06';
@@ -724,30 +729,46 @@ document.getElementById('btn-range').addEventListener('click',()=>{const rp=docu
 document.getElementById('range-apply').addEventListener('click',()=>{CURP='range';try{localStorage.setItem('gg_katya_period',JSON.stringify({p:'range',from:document.getElementById('range-from').value,to:document.getElementById('range-to').value}));}catch(e){}document.getElementById('range-panel').style.display='none';applyPeriod();});
 (function(){try{const s=JSON.parse(localStorage.getItem('gg_katya_period')||'null');if(s&&s.p==='range'&&s.from){document.getElementById('range-from').value=s.from;document.getElementById('range-to').value=s.to;}}catch(e){}})();
 
-const DEMO=[{"sku":"2272994591","seller":"ЛайфМебель","name":"Лайфмебель Стол кухонный обеденный Барон О 200 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 200х90 см","qual":"Горячий","compPrice":16591,"ggPrice":17089,"rating":4.1,"reviews":116,"available":true},{"sku":"2272983488","seller":"ЛайфМебель","name":"Лайфмебель Стол кухонный обеденный Барон О 180 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 180х90 см","qual":"Горячий","compPrice":15488,"ggPrice":14249,"rating":4.8,"reviews":133,"available":true},{"sku":"2272984779","seller":"ЛайфМебель","name":"Деревянный Кухонный стол Барон О 160 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 160х80 см","qual":"Горячий","compPrice":16779,"ggPrice":17115,"rating":4.9,"reviews":24,"available":true},{"sku":"2157653027","seller":"OpenDesing","name":"Стол овальный 140х80 см","gg":"Стол TRUBIS Wood 140х80 см","qual":"Горячий","compPrice":15027,"ggPrice":13975,"rating":4.7,"reviews":92,"available":true},{"sku":"3486895303","seller":"OpenDesing","name":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":17303,"ggPrice":17476,"rating":4.3,"reviews":128,"available":true},{"sku":"3038842473","seller":"OpenDesing","name":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":14473,"ggPrice":15341,"rating":4.3,"reviews":98,"available":true},{"sku":"3812066727","seller":"OpenDesing","name":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":18727,"ggPrice":18165,"rating":4.7,"reviews":12,"available":false},{"sku":"1604806784","seller":"ЛайфМебель","name":"Стол круглый д120 см","gg":"Стол TRUBIS Wood L D120","qual":"Горячий","compPrice":18784,"ggPrice":17093,"rating":4.4,"reviews":69,"available":true},{"sku":"1861823723","seller":"ЛайфМебель","name":"Лайфмебель Стол кухонный обеденный круглый Барел 100 белый / белый","gg":"Стол TRUBIS Wood L D100","qual":"Горячий","compPrice":15723,"ggPrice":15094,"rating":4.3,"reviews":88,"available":true},{"sku":"3486897457","seller":"OpenDesing","name":"Стол круглый д100 см","gg":"Стол TRUBIS Wood L D100","qual":"Горячий","compPrice":19457,"ggPrice":17900,"rating":4.7,"reviews":42,"available":true},{"sku":"2364313990","seller":"ЛайфМебель","name":"Лайфмебель Стол кухонный Барел 89 белый / белый","gg":"Стол TRUBIS Wood L D90","qual":"Горячий","compPrice":15990,"ggPrice":14391,"rating":4,"reviews":75,"available":false},{"sku":"3486895764","seller":"OpenDesing","name":"Стол круглый д90 см","gg":"Стол TRUBIS Wood L D90","qual":"Горячий","compPrice":17764,"ggPrice":17764,"rating":4.4,"reviews":29,"available":true},{"sku":"2272993695","seller":"ЛайфМебель","name":"Лайфмебель Стол кухонный деревянный Хьюго О 160 х 90 белая шагрень пленка / белый","gg":"Стол VIOLUR 140х80 см","qual":"Горячий","compPrice":15695,"ggPrice":17265,"rating":4.5,"reviews":60,"available":true}];
-function render(cur,cmp){
-  const n=DEMO.length;
-  const avgComp=n?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/n):0;
-  const avgRat=n?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/n*10)/10:0;
-  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
-  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
-  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
-  document.getElementById('kpis').innerHTML=[
-    kpi('Конкурентов в мониторинге',fmtRu(n),'пары из input.json'),
-    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
-    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
-    kpi('Где мы дороже',pricier+' из '+n,cheaper+' дешевле')
-  ].join('');
+const DEMO=[{"sku":"2272994591","seller":"ЛайфМебель","stol":"Стол кухонный обеденный Барон О 200 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 200х90 см","qual":"Горячий","compPrice":16591,"ggPrice":17089,"rating":4.1,"reviews":116,"available":true},{"sku":"2272983488","seller":"ЛайфМебель","stol":"Стол кухонный обеденный Барон О 180 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 180х90 см","qual":"Горячий","compPrice":15488,"ggPrice":14249,"rating":4.8,"reviews":133,"available":true},{"sku":"2272984779","seller":"ЛайфМебель","stol":"Деревянный Кухонный стол Барон О 160 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 160х80 см","qual":"Горячий","compPrice":16779,"ggPrice":17115,"rating":4.9,"reviews":24,"available":true},{"sku":"2157653027","seller":"OpenDesing","stol":"Стол овальный 140х80 см","gg":"Стол TRUBIS Wood 140х80 см","qual":"Горячий","compPrice":15027,"ggPrice":13975,"rating":4.7,"reviews":92,"available":true},{"sku":"3486895303","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":17303,"ggPrice":17476,"rating":4.3,"reviews":128,"available":true},{"sku":"3038842473","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":14473,"ggPrice":15341,"rating":4.3,"reviews":98,"available":true},{"sku":"3812066727","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","qual":"Горячий","compPrice":18727,"ggPrice":18165,"rating":4.7,"reviews":12,"available":false},{"sku":"1604806784","seller":"ЛайфМебель","stol":"Стол круглый д120 см","gg":"Стол TRUBIS Wood L D120","qual":"Горячий","compPrice":18784,"ggPrice":17093,"rating":4.4,"reviews":69,"available":true},{"sku":"1861823723","seller":"ЛайфМебель","stol":"Стол кухонный обеденный круглый Барел 100 белый / белый","gg":"Стол TRUBIS Wood L D100","qual":"Горячий","compPrice":15723,"ggPrice":15094,"rating":4.3,"reviews":88,"available":true},{"sku":"3486897457","seller":"OpenDesing","stol":"Стол круглый д100 см","gg":"Стол TRUBIS Wood L D100","qual":"Горячий","compPrice":19457,"ggPrice":17900,"rating":4.7,"reviews":42,"available":true},{"sku":"2364313990","seller":"ЛайфМебель","stol":"Стол кухонный Барел 89 белый / белый","gg":"Стол TRUBIS Wood L D90","qual":"Горячий","compPrice":15990,"ggPrice":14391,"rating":4,"reviews":75,"available":false},{"sku":"3486895764","seller":"OpenDesing","stol":"Стол круглый д90 см","gg":"Стол TRUBIS Wood L D90","qual":"Горячий","compPrice":17764,"ggPrice":17764,"rating":4.4,"reviews":29,"available":true},{"sku":"2272993695","seller":"ЛайфМебель","stol":"Стол кухонный деревянный Хьюго О 160 х 90 белая шагрень пленка / белый","gg":"Стол VIOLUR 140х80 см","qual":"Горячий","compPrice":15695,"ggPrice":17265,"rating":4.5,"reviews":60,"available":true}];
+const GGLIST=["Стол TRUBIS Wood 200х90 см","Стол TRUBIS Wood 180х90 см","Стол TRUBIS Wood 160х80 см","Стол TRUBIS Wood 140х80 см","Стол KONUX 100(180)х100х75 см","Стол TRUBIS Wood L D120","Стол TRUBIS Wood L D100","Стол TRUBIS Wood L D90","Стол VIOLUR 140х80 см"];
+const NSELLERS=2;
+function paintTable(){
+  const sel=document.getElementById('fGG'); const f=sel?sel.value:'';
+  const rows=DEMO.filter(d=>!f||d.gg===f);
+  const sl=new Set(rows.map(d=>d.seller));
+  document.getElementById('fcount').textContent='пар: '+rows.length+' · конкурентов: '+sl.size+(f?'':' · все наши столы');
   const qpill=q=>{const c=/горяч/i.test(q)?'#FF5A5F':/тёпл|тепл/i.test(q)?'#E0A100':'#5d7484';return q?'<span style="color:'+c+';font-weight:700;font-size:11px">'+esc(q)+'</span>':'';};
-  document.getElementById('ctab').innerHTML=DEMO.map(d=>{
+  const html=rows.map(d=>{
     const up=d.ggPrice>d.compPrice; const diff=Math.abs(d.ggPrice-d.compPrice);
     const delta='<span style="color:'+(up?'var(--dn)':'var(--up)')+'">'+(up?'▲ +':'▼ -')+fmtRu(diff)+'</span>';
     const av=d.available?'<span style="color:var(--up)">в наличии</span>':'<span style="color:var(--dn)">нет</span>';
-    return '<tr><td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.name.slice(0,56))+' &#8599;</a><div class="sub" style="color:#5d7484;font-size:11px">'+esc(d.seller)+'</div></td>'+
+    return '<tr><td><b>'+esc(d.seller)+'</b></td>'+
+      '<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+
       '<td>'+esc(d.gg)+'</td><td>'+qpill(d.qual)+'</td>'+
       '<td class="r">'+fmtRu(d.ggPrice)+'</td><td class="r">'+fmtRu(d.compPrice)+'</td><td class="r">'+delta+'</td>'+
       '<td class="r">'+d.rating.toFixed(1)+'</td><td class="r">'+fmtRu(d.reviews)+'</td><td>'+av+'</td></tr>';
   }).join('');
+  document.getElementById('ctab').innerHTML=html||'<tr><td colspan="10" class="kt-note">нет пар по выбранному столу</td></tr>';
+}
+function render(cur,cmp){
+  const pairs=DEMO.length;
+  const avgComp=pairs?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/pairs):0;
+  const avgRat=pairs?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/pairs*10)/10:0;
+  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
+  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
+  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
+  document.getElementById('kpis').innerHTML=[
+    kpi('Конкурентов в мониторинге',fmtRu(NSELLERS),'пар столов: '+pairs),
+    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
+    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
+    kpi('Где мы дороже',pricier+' из '+pairs,cheaper+' дешевле')
+  ].join('');
+  const sel=document.getElementById('fGG');
+  if(sel && !sel.options.length){
+    sel.innerHTML='<option value="">Все наши столы ('+pairs+' пар)</option>'+GGLIST.map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
+    sel.addEventListener('change',paintTable);
+  }
+  paintTable();
 }
 applyPeriod();
 </script>

@@ -691,7 +691,9 @@
     <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
     <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
   </section>
-  <section class="kt-kpi" id="kpis"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Сводка по категориям <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">ключевые цифры в разрезе категорий (общий итог - нижней строкой). Клик по категории - фильтр таблицы ниже.</div></div></div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Пар</th><th class="r">Конкурентов</th><th class="r">Ср. цена конкур., ₽</th><th class="r">Ср. рейтинг</th><th class="r">Где мы дороже</th></tr></thead><tbody id="catsum"></tbody><tfoot id="catsumtot"></tfoot></table></div>
+  </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
     <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label class="pt-filter-lbl" style="color:var(--ink-2)">Категория:</label>
@@ -733,7 +735,6 @@ document.getElementById('range-apply').addEventListener('click',()=>{CURP='range
 
 const DEMO=[{"sku":"2272994591","seller":"ЛайфМебель","stol":"Стол кухонный обеденный Барон О 200 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 200х90 см","cat":"Стол обеденный","qual":"Горячий","compPrice":16591,"ggPrice":17089,"rating":4.1,"reviews":116,"available":true},{"sku":"2272983488","seller":"ЛайфМебель","stol":"Стол кухонный обеденный Барон О 180 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 180х90 см","cat":"Стол обеденный","qual":"Горячий","compPrice":15488,"ggPrice":14249,"rating":4.8,"reviews":133,"available":true},{"sku":"2272984779","seller":"ЛайфМебель","stol":"Деревянный Кухонный стол Барон О 160 х 90 белая пленка шагрень / белый","gg":"Стол TRUBIS Wood 160х80 см","cat":"Стол обеденный","qual":"Горячий","compPrice":16779,"ggPrice":17115,"rating":4.9,"reviews":24,"available":true},{"sku":"2157653027","seller":"OpenDesing","stol":"Стол овальный 140х80 см","gg":"Стол TRUBIS Wood 140х80 см","cat":"Стол обеденный","qual":"Горячий","compPrice":15027,"ggPrice":13975,"rating":4.7,"reviews":92,"available":true},{"sku":"3486895303","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","cat":"Стол обеденный","qual":"Горячий","compPrice":17303,"ggPrice":17476,"rating":4.3,"reviews":128,"available":true},{"sku":"3038842473","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","cat":"Стол обеденный","qual":"Горячий","compPrice":14473,"ggPrice":15341,"rating":4.3,"reviews":98,"available":true},{"sku":"3812066727","seller":"OpenDesing","stol":"Стол раздвижной 100-180 см","gg":"Стол KONUX 100(180)х100х75 см","cat":"Стол обеденный","qual":"Горячий","compPrice":18727,"ggPrice":18165,"rating":4.7,"reviews":12,"available":false},{"sku":"1604806784","seller":"ЛайфМебель","stol":"Стол круглый д120 см","gg":"Стол TRUBIS Wood L D120","cat":"Стол обеденный","qual":"Горячий","compPrice":18784,"ggPrice":17093,"rating":4.4,"reviews":69,"available":true},{"sku":"1861823723","seller":"ЛайфМебель","stol":"Стол кухонный обеденный круглый Барел 100 белый / белый","gg":"Стол TRUBIS Wood L D100","cat":"Стол обеденный","qual":"Горячий","compPrice":15723,"ggPrice":15094,"rating":4.3,"reviews":88,"available":true},{"sku":"3486897457","seller":"OpenDesing","stol":"Стол круглый д100 см","gg":"Стол TRUBIS Wood L D100","cat":"Стол обеденный","qual":"Горячий","compPrice":19457,"ggPrice":17900,"rating":4.7,"reviews":42,"available":true},{"sku":"2364313990","seller":"ЛайфМебель","stol":"Стол кухонный Барел 89 белый / белый","gg":"Стол TRUBIS Wood L D90","cat":"Стол обеденный","qual":"Горячий","compPrice":15990,"ggPrice":14391,"rating":4,"reviews":75,"available":false},{"sku":"3486895764","seller":"OpenDesing","stol":"Стол круглый д90 см","gg":"Стол TRUBIS Wood L D90","cat":"Стол обеденный","qual":"Горячий","compPrice":17764,"ggPrice":17764,"rating":4.4,"reviews":29,"available":true},{"sku":"2272993695","seller":"ЛайфМебель","stol":"Стол кухонный деревянный Хьюго О 160 х 90 белая шагрень пленка / белый","gg":"Стол VIOLUR 140х80 см","cat":"Стол обеденный","qual":"Горячий","compPrice":15695,"ggPrice":17265,"rating":4.5,"reviews":60,"available":true}];
 const CATLIST=["Стол обеденный"];
-const NSELLERS=2;
 function ggFor(cat){return [...new Set(DEMO.filter(d=>!cat||d.cat===cat).map(d=>d.gg).filter(Boolean))];}
 function rebuildGG(){
   const fc=document.getElementById('fCat').value;
@@ -774,26 +775,42 @@ function paintTable(){
       '<td class="r">'+avgR.toFixed(1)+'</td><td class="r">'+fmtRu(sumRev)+'</td><td>'+inAv+' в наличии</td></tr>';
   } else { tot.innerHTML=''; }
 }
+// Агрегаты по набору строк: пар, конкурентов, средняя цена/рейтинг, где мы дороже.
+function agg(rows){
+  const n=rows.length||0;
+  const sellers=new Set(rows.map(d=>d.seller));
+  const avgC=n?Math.round(rows.reduce((s,d)=>s+d.compPrice,0)/n):0;
+  const avgR=n?Math.round(rows.reduce((s,d)=>s+d.rating,0)/n*10)/10:0;
+  const pricier=rows.filter(d=>d.ggPrice>d.compPrice).length;
+  return {n,sellers:sellers.size,avgC,avgR,pricier};
+}
+function paintCatSummary(){
+  const fc=document.getElementById('fCat').value;
+  const cats=CATLIST.length?CATLIST:[...new Set(DEMO.map(d=>d.cat||'(без категории)'))];
+  const cell=a=>'<td class="r">'+a.n+'</td><td class="r">'+a.sellers+'</td><td class="r">'+fmtRu(a.avgC)+'</td><td class="r">'+a.avgR.toFixed(1)+'</td><td class="r">'+a.pricier+' из '+a.n+'</td>';
+  document.getElementById('catsum').innerHTML=cats.map(c=>{
+    const a=agg(DEMO.filter(d=>(d.cat||'(без категории)')===c));
+    const on=fc===c;
+    return '<tr data-cat="'+esc(c)+'" style="cursor:pointer'+(on?';background:rgba(34,211,238,.10)':'')+'"><td>'+(on?'▸ ':'')+'<b>'+esc(c)+'</b></td>'+cell(a)+'</tr>';
+  }).join('');
+  const t=agg(DEMO);
+  document.getElementById('catsumtot').innerHTML='<tr style="border-top:2px solid #2a3a4a;font-weight:700;background:rgba(255,255,255,.03)"><td>Итого (все категории)</td>'+cell(t)+'</tr>';
+  document.querySelectorAll('#catsum tr[data-cat]').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      const c=tr.getAttribute('data-cat'); const sel=document.getElementById('fCat');
+      sel.value=(sel.value===c)?'':c; rebuildGG(); paintTable(); paintCatSummary();
+    });
+  });
+}
 function render(cur,cmp){
-  const pairs=DEMO.length;
-  const avgComp=pairs?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/pairs):0;
-  const avgRat=pairs?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/pairs*10)/10:0;
-  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
-  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
-  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
-  document.getElementById('kpis').innerHTML=[
-    kpi('Конкурентов в мониторинге',fmtRu(NSELLERS),'пар столов: '+pairs),
-    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
-    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
-    kpi('Где мы дороже',pricier+' из '+pairs,cheaper+' дешевле')
-  ].join('');
   const fcat=document.getElementById('fCat');
   if(fcat && !fcat.options.length){
     fcat.innerHTML='<option value="">Все категории</option>'+CATLIST.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
-    fcat.addEventListener('change',()=>{rebuildGG();paintTable();});
+    fcat.addEventListener('change',()=>{rebuildGG();paintTable();paintCatSummary();});
     rebuildGG();
     document.getElementById('fGG').addEventListener('change',paintTable);
   }
+  paintCatSummary();
   paintTable();
 }
 applyPeriod();

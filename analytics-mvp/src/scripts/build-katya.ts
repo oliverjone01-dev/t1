@@ -1352,7 +1352,6 @@ function render(cur,cmp){
     const available = seed % 7 !== 0;                               // ДЕМО
     return { sku: String(it.sku), seller: it.seller || "", stol: stripBrand(it.competitor_name || "", it.seller || ""), gg: it.gg_product || "", cat: it.category || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available };
   });
-  const sellerList = [...new Set(demo.map((d) => d.seller).filter(Boolean))]; // реальные конкуренты (2)
   const catList = [...new Set(demo.map((d) => d.cat).filter(Boolean))];        // категории для фильтра
 
   const body = `
@@ -1360,7 +1359,9 @@ function render(cur,cmp){
     <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
     <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
   </section>
-  <section class="kt-kpi" id="kpis"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Сводка по категориям <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">ключевые цифры в разрезе категорий (общий итог - нижней строкой). Клик по категории - фильтр таблицы ниже.</div></div></div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Пар</th><th class="r">Конкурентов</th><th class="r">Ср. цена конкур., ₽</th><th class="r">Ср. рейтинг</th><th class="r">Где мы дороже</th></tr></thead><tbody id="catsum"></tbody><tfoot id="catsumtot"></tfoot></table></div>
+  </section>
   <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
     <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label class="pt-filter-lbl" style="color:var(--ink-2)">Категория:</label>
@@ -1376,7 +1377,6 @@ function render(cur,cmp){
   const pageJs = `
 const DEMO=${J(demo)};
 const CATLIST=${J(catList)};
-const NSELLERS=${sellerList.length};
 function ggFor(cat){return [...new Set(DEMO.filter(d=>!cat||d.cat===cat).map(d=>d.gg).filter(Boolean))];}
 function rebuildGG(){
   const fc=document.getElementById('fCat').value;
@@ -1417,26 +1417,42 @@ function paintTable(){
       '<td class="r">'+avgR.toFixed(1)+'</td><td class="r">'+fmtRu(sumRev)+'</td><td>'+inAv+' в наличии</td></tr>';
   } else { tot.innerHTML=''; }
 }
+// Агрегаты по набору строк: пар, конкурентов, средняя цена/рейтинг, где мы дороже.
+function agg(rows){
+  const n=rows.length||0;
+  const sellers=new Set(rows.map(d=>d.seller));
+  const avgC=n?Math.round(rows.reduce((s,d)=>s+d.compPrice,0)/n):0;
+  const avgR=n?Math.round(rows.reduce((s,d)=>s+d.rating,0)/n*10)/10:0;
+  const pricier=rows.filter(d=>d.ggPrice>d.compPrice).length;
+  return {n,sellers:sellers.size,avgC,avgR,pricier};
+}
+function paintCatSummary(){
+  const fc=document.getElementById('fCat').value;
+  const cats=CATLIST.length?CATLIST:[...new Set(DEMO.map(d=>d.cat||'(без категории)'))];
+  const cell=a=>'<td class="r">'+a.n+'</td><td class="r">'+a.sellers+'</td><td class="r">'+fmtRu(a.avgC)+'</td><td class="r">'+a.avgR.toFixed(1)+'</td><td class="r">'+a.pricier+' из '+a.n+'</td>';
+  document.getElementById('catsum').innerHTML=cats.map(c=>{
+    const a=agg(DEMO.filter(d=>(d.cat||'(без категории)')===c));
+    const on=fc===c;
+    return '<tr data-cat="'+esc(c)+'" style="cursor:pointer'+(on?';background:rgba(34,211,238,.10)':'')+'"><td>'+(on?'▸ ':'')+'<b>'+esc(c)+'</b></td>'+cell(a)+'</tr>';
+  }).join('');
+  const t=agg(DEMO);
+  document.getElementById('catsumtot').innerHTML='<tr style="border-top:2px solid #2a3a4a;font-weight:700;background:rgba(255,255,255,.03)"><td>Итого (все категории)</td>'+cell(t)+'</tr>';
+  document.querySelectorAll('#catsum tr[data-cat]').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      const c=tr.getAttribute('data-cat'); const sel=document.getElementById('fCat');
+      sel.value=(sel.value===c)?'':c; rebuildGG(); paintTable(); paintCatSummary();
+    });
+  });
+}
 function render(cur,cmp){
-  const pairs=DEMO.length;
-  const avgComp=pairs?Math.round(DEMO.reduce((s,d)=>s+d.compPrice,0)/pairs):0;
-  const avgRat=pairs?Math.round(DEMO.reduce((s,d)=>s+d.rating,0)/pairs*10)/10:0;
-  const pricier=DEMO.filter(d=>d.ggPrice>d.compPrice).length;
-  const cheaper=DEMO.filter(d=>d.ggPrice<d.compPrice).length;
-  const kpi=(lab,val,sub)=>'<div class="card"><div class="kt-k">'+lab+' <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="kt-v">'+val+'</div>'+(sub?'<div class="kt-d na">'+sub+'</div>':'')+'</div>';
-  document.getElementById('kpis').innerHTML=[
-    kpi('Конкурентов в мониторинге',fmtRu(NSELLERS),'пар столов: '+pairs),
-    kpi('Средняя цена конкур., ₽',fmtRu(avgComp),'демо'),
-    kpi('Средний рейтинг конкур.',avgRat.toFixed(1),'демо'),
-    kpi('Где мы дороже',pricier+' из '+pairs,cheaper+' дешевле')
-  ].join('');
   const fcat=document.getElementById('fCat');
   if(fcat && !fcat.options.length){
     fcat.innerHTML='<option value="">Все категории</option>'+CATLIST.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
-    fcat.addEventListener('change',()=>{rebuildGG();paintTable();});
+    fcat.addEventListener('change',()=>{rebuildGG();paintTable();paintCatSummary();});
     rebuildGG();
     document.getElementById('fGG').addEventListener('change',paintTable);
   }
+  paintCatSummary();
   paintTable();
 }`;
   writeFileSync("public/katya-competitors.html", kshell("Конкуренты", "competitors", body, pageJs));

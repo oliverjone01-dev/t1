@@ -142,7 +142,7 @@
   .prompt{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
   .prompt-h{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--card2)}
   .prompt-h .ttl{font-weight:800;font-size:14.5px}.prompt-h .v{font-size:11.5px;color:var(--ink3);font-weight:700}
-  .copy{margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;color:var(--cta);background:var(--g-soft);border:1px solid var(--line2);border-radius:var(--r-pill);padding:6px 13px;cursor:pointer}
+  .copy{margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;color:var(--cta);background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-pill);padding:6px 13px;cursor:pointer}
   .prompt pre{margin:0;padding:18px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:1.65;color:var(--ink2);white-space:pre-wrap;max-height:340px;overflow:auto}
   .prompt pre b{color:var(--ink);font-weight:700}.prompt pre .hl{color:var(--cta)}
 
@@ -241,14 +241,14 @@
       <p>Один шаблон виральности, но тон, факты и запреты у каждого свои. Переключатель вверху приглушает остальные.</p></div>
     <div class="brands">
       <article class="bc g">
-        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">серия · средний+ · B2C/B2B · сталь</div></div></div>
+        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">палитры + линия TRUBIS · mid-premium · B2C/B2B · сталь</div></div></div>
         <div class="bc-facts"><span class="fact">RAL 9005</span><span class="fact">16 000 м²</span><span class="fact">27 000 заказов</span><span class="fact">7 дней до отгрузки</span><span class="fact">палитры NERO/ORO/BIANCO</span></div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Зонировали кухню-гостиную за 3 дня. Без капремонта»</div></div>
         <div class="bc-no">Тон: профессиональная теплота, «коллега». <b>Нельзя:</b> «изысканный», «роскошный» без механики.</div>
       </article>
       <article class="bc v">
-        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · B2D · золото</div></div></div>
-        <div class="bc-facts"><span class="fact">Nero Marquina</span><span class="fact">Travertino</span><span class="fact">Onyx Miele</span><span class="fact">бронза · латунь</span></div>
+        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · B2D (для дизайнеров) · золото</div></div></div>
+        <div class="bc-facts"><span class="fact">Nero Marquina</span><span class="fact">Travertino Navona</span><span class="fact">Onyx Miele</span><span class="fact">бронза · латунь</span></div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Эту прожилку Nero Marquina не повторит ни одна фабрика»</div></div>
         <div class="bc-no">Тон: скульптурная скупость, каждое предложение - экспонат. <b>Нельзя:</b> «современный дизайн», «модный тренд».</div>
       </article>
@@ -259,7 +259,7 @@
         <div class="bc-no">Тон: инженер инженеру, сухая фактура. <b>Нельзя:</b> эпитеты, поэзия, «качество» без цифр.</div>
       </article>
       <article class="bc gm">
-        <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">мемориальные наборы · иней</div></div></div>
+        <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">мемориальные наборы · родственники, ритуальные агентства · иней</div></div></div>
         <div class="bc-facts"><span class="fact">Crystalvision +25%</span><span class="fact">набор: стела+накладка+подставка</span><span class="fact">формат комплекта</span></div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Crystalvision держит гравировку на 25% дольше обычного стекла»</div></div>
         <div class="bc-no">Тон: деликатность без манипуляций. <b>Нельзя:</b> «вечная память», триггеры скорби как продажный аргумент.</div>
@@ -269,8 +269,8 @@
 
   <!-- ЦЕХ / FORGE -->
   <section id="forge">
-    <div class="sh"><span class="tag">04 · цех</span><h2>Генератор сценария</h2>
-      <p>Промпт-движок: вставляете тему и бренд - получаете сценарий 8-10 слайдов в тоне бренда. Дальше прогон через <b>humanizer-ru</b> и чек-лист.</p></div>
+    <div class="sh"><span class="tag">04 · цех</span><h2>Промпт-генератор сценария</h2>
+      <p>Готовый промпт-шаблон: вставляете тему и бренд, копируете в свою модель (ChatGPT/Claude) - получаете сценарий 8-10 слайдов в тоне бренда. Дальше прогон через <b>humanizer-ru</b> и чек-лист. Живой генерации на странице нет - это шаблон-источник.</p></div>
     <div class="prompt">
       <div class="prompt-h"><span class="ttl">Промпт · Генератор премиум-карусели</span><span class="v">v1 · GENGROUP</span><button class="copy" type="button" data-copy="prompt1">Копировать</button></div>
       <pre id="prompt1"><b>РОЛЬ:</b> Ты главный редактор премиум-медиа GENGROUP. Ненавидишь воду и банальности.
@@ -345,7 +345,7 @@
 
   <section id="cta" class="hero" style="padding:40px 0 10px">
     <h1 style="font-size:clamp(26px,4vw,40px);max-width:22ch">Собрать первую карусель</h1>
-    <p>Выберите бренд и тему - движок выдаст сценарий, шаблон возьмёт токены Design Kit, чек-лист защитит позиционирование.</p>
+    <p>Вставьте бренд и тему в промпт, ваша модель выдаст сценарий, шаблон возьмёт токены Design Kit, чек-лист защитит позиционирование. Лид → продажа подключим к воронке Bitrix24 (см. Council CC-13).</p>
     <div class="cta"><a class="btn" href="#forge">К генератору</a><a class="btn ghost" href="#brands">Выбрать бренд</a></div>
   </section>
 

@@ -25,7 +25,7 @@ permissions:
 
 concurrency:
   group: b24-rop-data
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}

@@ -14,6 +14,10 @@ const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
 const OUT = "rop/data/rop.json";
 const DATE_FROM = process.env.ROP_DATE_FROM || "";
+// Дашборд v1: одна воронка сделок (49 = Заказы GG RF) + лиды всех направлений кроме Glass Memory.
+const DEAL_CATEGORY = process.env.ROP_DEAL_CATEGORY || "49";
+const EXCLUDE_LEAD_DIRS = (process.env.ROP_EXCLUDE_LEAD_DIRS || "glass-memory")
+  .split(",").map((s) => s.trim()).filter(Boolean);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -124,41 +128,37 @@ async function main() {
   const leadDirMap = enumMap(leadFields[UF_LEAD_DIR]);
   console.log(`Справочники: стадий ${Object.keys(stageName).length}, источников ${Object.keys(sourceName).length}, менеджеров ${users.length}, воронок ${cats.length}`);
 
-  // --- Сделки: все воронки (0 + все категории) ---
+  // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
-  const catIds = ["0", ...cats.map((c) => String(c.ID))];
-  const deals: any[] = [];
-  for (const cat of catIds) {
-    const rows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: cat, ...dateFilter } });
-    for (const d of rows) {
-      const sid = String(d.STAGE_ID || "");
-      deals.push({
-        id: d.ID,
-        title: d.TITLE || "",
-        mgr: mgrName[String(d.ASSIGNED_BY_ID)] || `id${d.ASSIGNED_BY_ID}`,
-        category: Number(cat),
-        categoryName: catName[cat] || cat,
-        stage: stageName[sid] || sid,
-        stageCode: sid,
-        won: /:WON$|^WON$/.test(sid),
-        lost: /:(LOSE|APOLOGY)$|^(LOSE|APOLOGY)$/.test(sid),
-        budget: Number(d.OPPORTUNITY) || 0,
-        created: d10(d.DATE_CREATE),
-        closed: d10(d.CLOSEDATE),
-        cycle: dayDiff(d.DATE_CREATE, d.CLOSEDATE),
-        source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",
-        client: clientMap[String(d[UF.client])] || "нет данных",
-        assort: assortMap[String(d[UF.assort])] || "нет данных",
-        reason: reasonMap[String(d[UF.reason])] || "не указана",
-        dir: dirMap[String(d[UF.dir])] || "не указано",
-      });
-    }
-    console.log(`  воронка ${cat} (${catName[cat] || ""}): ${rows.length}`);
-  }
+  const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
+  const deals = dealRows.map((d) => {
+    const sid = String(d.STAGE_ID || "");
+    return {
+      id: d.ID,
+      title: d.TITLE || "",
+      mgr: mgrName[String(d.ASSIGNED_BY_ID)] || `id${d.ASSIGNED_BY_ID}`,
+      category: Number(DEAL_CATEGORY),
+      categoryName: catName[DEAL_CATEGORY] || DEAL_CATEGORY,
+      stage: stageName[sid] || sid,
+      stageCode: sid,
+      won: /:WON$|^WON$/.test(sid),
+      lost: /:(LOSE|APOLOGY)$|^(LOSE|APOLOGY)$/.test(sid),
+      budget: Number(d.OPPORTUNITY) || 0,
+      created: d10(d.DATE_CREATE),
+      closed: d10(d.CLOSEDATE),
+      cycle: dayDiff(d.DATE_CREATE, d.CLOSEDATE),
+      source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",
+      client: clientMap[String(d[UF.client])] || "нет данных",
+      assort: assortMap[String(d[UF.assort])] || "нет данных",
+      reason: reasonMap[String(d[UF.reason])] || "не указана",
+      dir: dirMap[String(d[UF.dir])] || "не указано",
+    };
+  });
+  console.log(`Сделки воронка ${DEAL_CATEGORY} (${catName[DEAL_CATEGORY] || ""}): ${deals.length}`);
 
-  // --- Лиды: все ---
+  // --- Лиды: все направления, КРОМЕ Glass Memory ---
   const leadSelect = ["ID", "TITLE", "STATUS_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "DATE_CLOSED", "SOURCE_ID", UF_LEAD_DIR];
   const leadRows = await listAll("crm.lead.list", { select: leadSelect, filter: { ...dateFilter } });
@@ -178,7 +178,8 @@ async function main() {
       source: sourceName[String(l.SOURCE_ID)] || l.SOURCE_ID || "не указан",
       dir: leadDirMap[String(l[UF_LEAD_DIR])] || "не указано",
     };
-  });
+  }).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));
+  console.log(`Лиды (кроме ${EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
 
   const out = {
     generated_at: new Date().toISOString(),

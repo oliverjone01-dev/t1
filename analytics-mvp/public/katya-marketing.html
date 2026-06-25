@@ -777,8 +777,8 @@ function renderTop(){var a=lastA;if(!a)return;
       if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка - из отчёта продвижения OZON от '+RCACHE_D+' (ближайшее окно)</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
         sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
-        var omO=(s.omModel||0)-(s.om||0),soO=(s.soldModel||0)-(s.sold||0);
-        if(omO>0||soO>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="продажи объединённой карточки минус основная (заказы модели)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}});
+        var omO=(s.omModel||0),soO=(s.soldModel||0);
+        if(omO>0||soO>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="продажи в продвижении с заказов модели (другие SKU объединённой карточки)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}});
     } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или нет в отчёте продвижения)</td></tr>';}
     return main+sub;
   }).join('');
@@ -804,7 +804,7 @@ function renderBurn(a){
     else if(rep.length){
       rep.forEach(function(s){
         sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+(SKU_MAP[s.sku]||s.sku)+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';
-        var omO=(s.omModel||0)-(s.om||0),soO=(s.soldModel||0)-(s.sold||0);
+        var omO=(s.omModel||0),soO=(s.soldModel||0);
         if(omO>0||soO>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}});
     } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или нет в отчёте продвижения)</td></tr>';}
     return main+sub;

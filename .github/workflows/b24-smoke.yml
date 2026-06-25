@@ -1,8 +1,7 @@
 name: B24 webhook smoke (read-only)
 
-# Read-only разведка портала Bitrix перед написанием коннектора РОП.
-# Проверяет секрет, auth, scope, воронки, сущность лидов, объёмы и UF-поля.
-# Значение секрета GitHub автомаскирует. Только чтение (.list/.fields), никаких записей.
+# Read-only разведка портала Bitrix (только счётчики и стадии — компактный вывод).
+# Значение секрета GitHub автомаскирует. Никаких записей.
 
 on:
   workflow_dispatch:
@@ -17,66 +16,35 @@ jobs:
     env:
       B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
     steps:
-      - name: Секрет присутствует?
+      - name: Разведка (лиды vs категория 69, объёмы, стадии)
         run: |
-          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
-            echo "::error::Секрет B24_WEBHOOK_URL не задан."; exit 1
-          fi
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
           echo "::add-mask::$B24_WEBHOOK_URL"
-          echo "B24_WEBHOOK_URL присутствует, длина ${#B24_WEBHOOK_URL}."
-
-      - name: Auth + scope
-        run: |
           base="${B24_WEBHOOK_URL%/}"
-          curl -sS --max-time 30 "$base/profile.json" -o /tmp/p.json
-          curl -sS --max-time 30 "$base/scope.json" -o /tmp/s.json
-          node -e 'const p=require("/tmp/p.json").result||{};const s=require("/tmp/s.json").result||[];console.log("Владелец:",[p.NAME,p.LAST_NAME].filter(Boolean).join(" "),"| ADMIN:",p.ADMIN,"| scope:",JSON.stringify(s));'
+          post(){ curl -sS --max-time 30 -X POST "$base/$1.json" -H 'Content-Type: application/json' -d "$2"; }
 
-      - name: Воронка лидов = classic crm.lead?
-        run: |
-          base="${B24_WEBHOOK_URL%/}"
-          # объём классических лидов
-          curl -sS --max-time 30 -X POST "$base/crm.lead.list.json" \
-            -H 'Content-Type: application/json' -d '{"select":["ID"],"start":0}' -o /tmp/lead.json || true
-          # статусы лидов (стадии воронки лидов)
-          curl -sS --max-time 30 -X POST "$base/crm.status.list.json" \
-            -H 'Content-Type: application/json' -d '{"filter":{"ENTITY_ID":"STATUS"}}' -o /tmp/lst.json || true
-          node -e '
-            let L={}; try{L=require("/tmp/lead.json")}catch(e){}
-            let S={}; try{S=require("/tmp/lst.json")}catch(e){}
-            if(L.error){console.log("crm.lead -> error:",L.error_description||L.error,"(classic-лиды, видимо, выключены)");}
-            else{console.log("classic crm.lead: total =", L.total);}
-            const st=(S.result||[]).map(x=>x.STATUS_ID+":"+x.NAME);
-            console.log("Стадии воронки лидов (STATUS):", st.length?st.join(" | "):"(нет — лиды отключены?)");
-          '
+          echo "== Классические лиды (crm.lead) =="
+          post crm.lead.list '{"select":["ID"],"start":0}' > /tmp/lead.json || true
+          node -e 'let j={};try{j=require("/tmp/lead.json")}catch(e){};console.log(j.error?("error: "+(j.error_description||j.error)):("total = "+j.total));'
 
-      - name: Объёмы сделок (воронка 49 vs категория 69 «GG Лиды»)
-        run: |
-          base="${B24_WEBHOOK_URL%/}"
-          for cat in 49 69; do
-            curl -sS --max-time 30 -X POST "$base/crm.deal.list.json" \
-              -H 'Content-Type: application/json' -d "{\"filter\":{\"CATEGORY_ID\":$cat},\"select\":[\"ID\"],\"start\":0}" -o /tmp/d$cat.json || true
-            node -e "let d={};try{d=require('/tmp/d$cat.json')}catch(e){};console.log('CATEGORY_ID=$cat -> total =', d.total!==undefined?d.total:('error: '+(d.error_description||d.error)));"
+          echo "== Стадии воронки лидов (ENTITY_ID=STATUS) =="
+          post crm.status.list '{"filter":{"ENTITY_ID":"STATUS"}}' > /tmp/ls.json || true
+          node -e 'let j={};try{j=require("/tmp/ls.json")}catch(e){};console.log((j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | ")||"(нет)");'
+
+          echo "== Сделки по категориям 49 (GG RF) и 69 (GG Лиды) =="
+          for c in 49 69; do
+            post crm.deal.list "{\"filter\":{\"CATEGORY_ID\":$c},\"select\":[\"ID\"],\"start\":0}" > /tmp/d.json || true
+            node -e "let j={};try{j=require('/tmp/d.json')}catch(e){};console.log('CATEGORY_ID=$c total =', j.total!==undefined?j.total:('error '+(j.error_description||j.error)));"
           done
-          # стадии воронки 49
-          curl -sS --max-time 30 "$base/crm.dealcategory.stage.list.json?id=49" -o /tmp/st49.json || true
-          node -e 'let j={};try{j=require("/tmp/st49.json")}catch(e){};const s=(j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME);console.log("Стадии воронки 49:", s.join(" | "));'
 
-      - name: UF-поля сделок и лидов (для маппинга assort/dir/reason)
-        run: |
-          base="${B24_WEBHOOK_URL%/}"
-          curl -sS --max-time 30 "$base/crm.deal.fields.json" -o /tmp/df.json || true
-          curl -sS --max-time 30 "$base/crm.lead.fields.json" -o /tmp/lf.json || true
-          node -e '
-            function dump(file,label){
-              let j={};try{j=require(file)}catch(e){}
-              const f=j.result||{};
-              const uf=Object.keys(f).filter(k=>k.indexOf("UF_")===0);
-              console.log("=== "+label+" UF-поля: "+uf.length+" ===");
-              uf.forEach(k=>{
-                const x=f[k]; const items=(x.items||[]).slice(0,8).map(i=>i.ID+"="+i.VALUE).join(", ");
-                console.log(k+" | "+(x.title||x.formLabel||"")+" | "+x.type+(items?(" | {"+items+"}"):""));
-              });
-            }
-            dump("/tmp/df.json","DEAL"); dump("/tmp/lf.json","LEAD");
-          '
+          echo "== Стадии воронки 49 (GG RF Заказы) =="
+          curl -sS --max-time 30 "$base/crm.dealcategory.stage.list.json?id=49" > /tmp/s49.json || true
+          node -e 'let j={};try{j=require("/tmp/s49.json")}catch(e){};console.log((j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | "));'
+
+          echo "== Источники (SOURCE) и тип клиента (для маппинга) =="
+          post crm.status.list '{"filter":{"ENTITY_ID":"SOURCE"}}' > /tmp/src.json || true
+          node -e 'let j={};try{j=require("/tmp/src.json")}catch(e){};console.log("SOURCE:",(j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | "));'
+
+          echo "== Лиды genglass (UF бренд=2319) — объём =="
+          post crm.lead.list '{"filter":{"UF_CRM_1772609158":2319},"select":["ID"],"start":0}' > /tmp/lg.json || true
+          node -e 'let j={};try{j=require("/tmp/lg.json")}catch(e){};console.log(j.error?("error "+(j.error_description||j.error)):("genglass-лиды total = "+j.total));'

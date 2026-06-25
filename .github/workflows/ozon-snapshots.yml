@@ -79,8 +79,11 @@ jobs:
           npx tsx src/scripts/ozon/pnl.ts "" "" /tmp/pnl_raw.json
           npx tsx src/scripts/snapshot-pnl.ts /tmp/pnl_raw.json
           cp data/pnl_30d.json fixtures/pnl_30d.json
-          if [ -n "${OZON_PERF_CLIENT_ID:-}" ]; then
-            npx tsx src/scripts/ozon/ads.ts 30 /tmp/ads.json; put /tmp/ads.json ads ads_30d.json
+          # Реклама - "мягкая": если Performance не авторизовал (401 invalid_client) или
+          # OZON_PERF_* пусты - warning и продолжаем (продажи/финансы уже собраны). Под set -e
+          # команда в условии if НЕ валит скрипт, поэтому битая реклама не рушит весь синк.
+          if [ -n "${OZON_PERF_CLIENT_ID:-}" ] && npx tsx src/scripts/ozon/ads.ts 30 /tmp/ads.json; then
+            put /tmp/ads.json ads ads_30d.json
             # Реклама по периодам 7/30/90 - период-точность снимка без живого запроса.
             # Заменяем только при валидном p30 (есть id), иначе прошлый файл не трогаем.
             AP=/tmp/ads_periods.json; echo '{}' > "$AP"
@@ -101,7 +104,7 @@ jobs:
               cp "$AP" data/ads_periods.json; cp "$AP" fixtures/ads_periods.json; echo "ads_periods обновлён"
             else echo "::warning::ads_periods не обновлён (нет id в p30)"; fi
           else
-            echo "::warning::OZON_PERF_* нет - снимки рекламы пропущены"
+            echo "::warning::реклама пропущена: OZON Performance не авторизовал (401 invalid_client) или OZON_PERF_* пусты - проверь секреты OZON_PERF_CLIENT_ID/OZON_PERF_SECRET. Продажи и финансы собраны."
           fi
 
       - name: Дневная история (прямой Seller, догрузка недостающих дней)

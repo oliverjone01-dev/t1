@@ -20,11 +20,11 @@ function arg(flag: string): string | undefined {
 }
 
 function resolveUrl(): string {
-  const gid = arg("--gid") || process.env.COMPETITORS_SHEET_GID || "0";
+  const gid = arg("--gid") || process.env.COMPETITORS_SHEET_GID || "";
   const direct = arg("--url") || process.env.COMPETITORS_SHEET_URL;
   if (direct) return toCsvExportUrl(direct, gid);
   const id = arg("--id") || process.env.COMPETITORS_SHEET_ID;
-  if (id) return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+  if (id) return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv${gid ? `&gid=${gid}` : ""}`;
   throw new Error("источник не задан: --url <ссылка> | --id <sheetId> | env COMPETITORS_SHEET_URL/ID");
 }
 

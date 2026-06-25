@@ -231,6 +231,22 @@
   .cnt{font-size:11px;font-weight:800;color:var(--ink3);margin-left:auto;font-variant-numeric:tabular-nums}
   .cnt.over{color:var(--rose)}
   .edhint{font-size:11.5px;color:var(--ink3);line-height:1.45;margin-bottom:4px}
+  /* drafts library */
+  .drafts{background:var(--card2);border:1px solid var(--line2);border-radius:14px;padding:14px 16px}
+  .drafts .dh{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:800}
+  .drafts .dh .hint{margin-left:auto;font-weight:700}
+  .drow{display:flex;gap:8px;margin-top:10px}
+  .drow input{flex:1;font:inherit;font-size:13.5px;color:var(--ink);background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:9px 12px;outline:none}
+  .drow input:focus{border-color:var(--cta)}
+  .dlist{display:grid;gap:6px;margin-top:10px}
+  .ditem{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px}
+  .ditem .dn{font-weight:700;color:var(--ink)}
+  .ditem .dd{color:var(--ink3);font-size:11px}
+  .ditem .da{margin-left:auto;display:flex;gap:6px}
+  .ditem .da button{font:inherit;font-size:11.5px;font-weight:700;border:1px solid var(--line2);background:var(--card2);border-radius:var(--r-pill);padding:4px 11px;cursor:pointer;color:var(--cta)}
+  .ditem .da button.del{color:var(--rose)}
+  .ditem .da button:hover{border-color:currentColor}
+  .dempty{font-size:12px;color:var(--ink3)}
   @media(max-width:820px){.brands,.cols{grid-template-columns:1fr}.tnav{display:none}}
   @media(max-width:520px){.hero{padding:48px 0 24px}section{padding:38px 0}}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -334,6 +350,15 @@
       <p>Бриф → промпт → вставляете ответ ИИ обратно, и студия раскладывает его на готовые слайды, брифы картинок и подпись. Правьте текст прямо в карточках - счётчики символов и хэштегов считают вживую, готовое забираете кнопкой копирования или одним файлом .txt. Ручного разбора ноль.</p></div>
 
     <div class="studio">
+      <!-- 0. ЧЕРНОВИКИ -->
+      <div class="drafts" id="g-drafts">
+        <div class="dh">Черновики <span class="hint" id="g-draft-cnt"></span></div>
+        <div class="drow">
+          <input id="g-draft-name" type="text" autocomplete="off" placeholder="название черновика (напр. GENGLASS · перегородки)">
+          <button class="cmini" id="g-draft-save" type="button">Сохранить</button>
+        </div>
+        <div class="dlist" id="g-draft-list"></div>
+      </div>
       <!-- 1. БРИФ -->
       <div class="stp"><span class="sn">1</span> Бриф</div>
       <div class="gen-form">
@@ -518,6 +543,38 @@
   ['g-topic','g-brand','g-fmt','g-goal','g-hook','g-aud','g-count','g-paste'].forEach(function(id){var el=$(id);if(el){el.addEventListener('input',save);el.addEventListener('change',save);}});
   $('g-viz').addEventListener('click',save);
   restore();
+  /* ЧЕРНОВИКИ: SMM ведёт много каруселей - именованные снимки брифа в localStorage */
+  var DLS='gg_carousel_drafts';
+  function getDrafts(){try{return JSON.parse(localStorage.getItem(DLS)||'[]');}catch(e){return [];}}
+  function setDrafts(a){try{localStorage.setItem(DLS,JSON.stringify(a));}catch(e){}}
+  function snapshot(){return {t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,p:$('g-paste').value};}
+  function applySnap(s){if(!s)return;
+    $('g-topic').value=s.t||'';$('g-brand').value=s.b||'genglass';$('g-fmt').value=s.f||'4:5';$('g-goal').value=s.g||'reach';$('g-hook').value=s.h||'auto';$('g-aud').value=s.a||'';$('g-count').value=s.c||'7';$('g-paste').value=s.p||'';
+    if(s.v){viz=s.v;Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')===viz);});$('g-viz-h').textContent=VIZ[viz].h;}
+    renderChips();renderArc();save();}
+  function dstamp(ts){try{var d=new Date(ts),z=function(n){return ('0'+n).slice(-2);};return z(d.getDate())+'.'+z(d.getMonth()+1)+' '+z(d.getHours())+':'+z(d.getMinutes());}catch(e){return '';}}
+  function renderDrafts(){
+    var a=getDrafts(),L=$('g-draft-list');if(!L)return;
+    if($('g-draft-cnt'))$('g-draft-cnt').textContent=a.length?(a.length+' сохранено'):'';
+    if(!a.length){L.innerHTML='<div class="dempty">Пусто. Заполни бриф и сохрани - вернёшься к нему позже.</div>';return;}
+    L.innerHTML='';
+    a.slice().reverse().forEach(function(d){
+      var row=document.createElement('div');row.className='ditem';
+      row.innerHTML='<span class="dn"></span><span class="dd"></span><span class="da"><button class="ld" type="button">Загрузить</button><button class="del" type="button">Удалить</button></span>';
+      row.querySelector('.dn').textContent=d.name;
+      row.querySelector('.dd').textContent=((d.data&&BR[d.data.b])?BR[d.data.b].name+' · ':'')+dstamp(d.ts);
+      row.querySelector('.ld').addEventListener('click',function(){applySnap(d.data);if(d.data&&d.data.p){$('g-out').hidden=false;$('g-asm').hidden=false;}$('g-topic').scrollIntoView({behavior:'smooth',block:'center'});});
+      row.querySelector('.del').addEventListener('click',function(){setDrafts(getDrafts().filter(function(x){return x.id!==d.id;}));renderDrafts();});
+      L.appendChild(row);
+    });
+  }
+  if($('g-draft-save'))$('g-draft-save').addEventListener('click',function(){
+    var nm=($('g-draft-name').value||'').trim()||($('g-topic').value||'').trim()||'Без названия';
+    var a=getDrafts();a.push({id:'d'+Date.now()+'_'+Math.floor(Math.random()*1e4),name:nm,ts:Date.now(),data:snapshot()});
+    setDrafts(a);$('g-draft-name').value='';renderDrafts();
+    var b=this,o=b.textContent;b.textContent='✓';setTimeout(function(){b.textContent=o;},1000);
+  });
+  renderDrafts();
   function build(){
     var topic=($('g-topic').value||'').trim(),b=BR[$('g-brand').value],count=$('g-count').value;
     var aud=($('g-aud').value||'').trim()||'определи по теме',gk=$('g-goal').value,goal=GOAL[gk]+((gk==='lead'||gk==='sale')&&b.cta?(' · CTA-якорь бренда: '+b.cta):''),hook=HOOK[$('g-hook').value],fmt=FMT[$('g-fmt').value];
@@ -528,7 +585,7 @@
 'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА: '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
 'ПРАВИЛА:\n- Клиент-first: от боли клиента, не от продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA под цель.\n- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA кончается открытой петлёй, крючком на «→».\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст до 160; один слайд = одна мысль. На слайд минимум одна конкретная цифра - из фактуры бренда выше или из данных SMM. Непроверенные числа не выдавай за факт, ничего не выдумывать.\n- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
 'ВИЗУАЛИЗАЦИЯ: '+vn+' фото-слота. На каждый отдельный арт-бриф (Nano Banana / GPT Image): объект, ракурс, свет, обработка, «без людей, без текста», размер под '+fmt+'. Единый STYLE-LOCK на всю карусель. Данные и диаграммы делай графикой, не фото.\n\n'+
-'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
+'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nВАРИАНТЫ ХУКА: три альтернативных заголовка слайда 1 для A/B, каждый с новой строки в формате H1: ... / H2: ... / H3: ...\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
     $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn;
     $('g-out').hidden=false;$('g-asm').hidden=false;$('g-out').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -543,8 +600,29 @@
   });
   function cbtn(label,txt){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
     b.addEventListener('click',function(){var t=(typeof txt==='function')?txt():txt;if(!navigator.clipboard)return;navigator.clipboard.writeText(t).then(function(){var o=b.textContent;b.textContent='✓';setTimeout(function(){b.textContent=o;},1200);});});return b;}
-  function dlbtn(label,name,getTxt){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
-    b.addEventListener('click',function(){try{var blob=new Blob([getTxt()],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}catch(e){}});return b;}
+  function dlbtn(label,name,getTxt,mime){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
+    b.addEventListener('click',function(){try{var blob=new Blob([getTxt()],{type:mime||'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}catch(e){}});return b;}
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  /* CSS для самодостаточной HTML-карусели под рендер скиллом gengroup-carousel
+     (export_carousel.py скриншотит каждый .slide в PNG). Токены брендов из design-system.md. */
+  var CAROUSEL_CSS='*{margin:0;padding:0;box-sizing:border-box}body{background:#000;font-family:Montserrat,Arial,sans-serif}'+
+    '.theme-genglass{--bg:#0F0E0C;--accent:#C8A951;--ink:#F5F1E8;--muted:#9A958A;--soft:rgba(200,169,81,.14)}'+
+    '.theme-valonti{--bg:#F5F0EB;--accent:#B8943D;--ink:#1A1814;--muted:#8A8278;--soft:rgba(184,148,61,.12)}'+
+    '.theme-metalgm{--bg:#121110;--accent:#E8712B;--ink:#F0EEEA;--muted:#928D85;--soft:rgba(232,113,43,.14)}'+
+    '.theme-glassmemory{--bg:#0C1620;--accent:#86B6C9;--ink:#EAEFF3;--muted:#8597A5;--soft:rgba(134,182,201,.14)}'+
+    '.format-ig-portrait{--w:1080px;--h:1350px}.format-ig-square{--w:1080px;--h:1080px}.format-story{--w:1080px;--h:1920px}.format-pinterest{--w:1000px;--h:1500px}'+
+    '.slide{width:var(--w);height:var(--h);background:var(--bg);color:var(--ink);position:relative;overflow:hidden;display:flex;flex-direction:column;padding:96px 90px 86px;margin:0 auto 40px}'+
+    '.slide::before{content:"";position:absolute;inset:0;opacity:.6;background:radial-gradient(120% 80% at 100% 0%,var(--soft),transparent 55%)}'+
+    '.slide>*{position:relative;z-index:1}'+
+    '.kick{font-size:24px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--accent)}'+
+    '.big{font-size:92px;font-weight:900;line-height:1.03;letter-spacing:-.03em;margin-top:auto}'+
+    '.body{font-size:40px;font-weight:500;line-height:1.3;margin-top:30px}'+
+    '.s-mid .h{font-size:62px;font-weight:800;line-height:1.08;letter-spacing:-.02em;margin-top:auto}.s-mid .body{color:var(--muted)}'+
+    '.arrow{margin-top:42px;font-size:44px;color:var(--accent);font-weight:700}'+
+    '.brandbar{margin-top:auto;display:flex;align-items:center;gap:14px;font-size:26px;font-weight:700;color:var(--muted)}.brandbar b{color:var(--accent)}'+
+    '.pageno{position:absolute;top:70px;right:90px;font-size:26px;font-weight:800;color:var(--muted)}.pageno b{color:var(--accent)}'+
+    '.s-cta{justify-content:center}.s-cta .big{margin-top:0}'+
+    '.button{align-self:flex-start;margin-top:50px;display:inline-flex;align-items:center;gap:16px;background:var(--accent);color:var(--bg);font-weight:800;font-size:34px;padding:24px 44px;border-radius:14px}';
   function warnFor(title,text,isCta){var w=[];if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(title+' '+text))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');return w;}
   function slideTxt(card){var h=card.querySelector('h4'),p=card.querySelector('p');var t=(h?h.textContent.trim():''),x=(p?p.textContent.trim():'');return (t?t+'\n':'')+x;}
   function recount(card){var h=card.querySelector('h4'),p=card.querySelector('p');var title=h?h.textContent.trim():'',text=p?p.textContent.trim():'';var w=warnFor(title,text,card.getAttribute('data-cta')==='1');var wd=card.querySelector('.warn2');if(!wd)return;if(w.length){wd.hidden=false;wd.textContent='⚠ '+w.join(' · ');}else{wd.hidden=true;wd.textContent='';}}
@@ -579,10 +657,29 @@
     });
     if(!blocks.length){var fb=document.createElement('div');fb.className='block';fb.innerHTML='<div class="bh">Не распознал разметку слайдов (показываю сырой ответ)</div><p></p>';fb.querySelector('p').textContent=raw.trim();fb.querySelector('.bh').appendChild(cbtn('Копировать всё',raw.trim()));wrap.appendChild(fb);return;}
     var lock=((raw.match(/STYLE[- ]?LOCK[:\s]*([^\n]+)/i)||[])[1]||'').trim();
+    var hooks=((raw.match(/ВАРИАНТ[ЫЇ]*\s*ХУКА[:\s]*([\s\S]*?)(?=\n\s*(?:ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]||'').trim();
     var cap=((raw.match(/ПОДПИСЬ[:\s]*([\s\S]*?)(?=\n\s*ХЭШ|$)/i)||[])[1]||'').trim();
     var tagSec=(raw.match(/ХЭШТЕГИ[:\s]*([\s\S]*)$/i)||[])[1]||raw;var tags=(tagSec.match(/#[A-Za-zА-Яа-яёЁ0-9_]{2,}/g)||[]).join(' ');
     var briefsTxt=(lock?'STYLE-LOCK: '+lock+'\n\n':'')+allBriefs.join('\n');
     function allTextNow(){return cardEls.map(slideTxt).filter(function(s){return s.trim();}).join('\n\n');}
+    function buildCarouselHTML(){
+      var themeMap={genglass:'theme-genglass',valonti:'theme-valonti',metalgm:'theme-metalgm',glassmemory:'theme-glassmemory'};
+      var fmtMap={'4:5':'format-ig-portrait','1:1':'format-ig-square','9:16':'format-story','2:3':'format-pinterest'};
+      var bk=$('g-brand').value,theme=themeMap[bk]||'theme-genglass',fmt=fmtMap[$('g-fmt').value]||'format-ig-portrait';
+      var bn=BR[bk].name,handle='@'+BR[bk].handle,n=cardEls.length,sl='';
+      cardEls.forEach(function(card,i){
+        var h=card.querySelector('h4'),p=card.querySelector('p');
+        var title=esc(h?h.textContent.trim():''),text=esc(p?p.textContent.trim():'');
+        var pg='<div class="pageno"><b>'+(i+1)+'</b>/'+n+'</div>';
+        if(i===0){sl+='<section class="slide s-cover">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="arrow">→</div></section>';}
+        else if(i===n-1){sl+='<section class="slide s-cta">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="button">'+esc(handle)+' →</div></section>';}
+        else{var num=(i+1<10?'0'+(i+1):''+(i+1));sl+='<section class="slide s-mid">'+pg+'<div class="kick">'+num+'</div><div class="h">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="brandbar"><b>'+esc(bn)+'</b> '+esc(handle)+'</div></section>';}
+      });
+      return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>'+esc(bn)+' carousel</title>'+
+        '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
+        '<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800;900&display=swap" rel="stylesheet">'+
+        '<style>'+CAROUSEL_CSS+'</style></head><body class="'+theme+' '+fmt+'">'+sl+'</body></html>';
+    }
     function block(title,body){var d=document.createElement('div');d.className='block';d.innerHTML='<div class="bh">'+title+'</div><p></p>';d.querySelector('p').textContent=body;d.querySelector('.bh').appendChild(cbtn('Копировать',body));wrap.appendChild(d);}
     function liveBlock(title,body,ph,limit,counter){
       var d=document.createElement('div');d.className='block';
@@ -593,6 +690,7 @@
       d.querySelector('.bh').appendChild(cbtn('Копировать',function(){return p.textContent.trim();}));
       wrap.appendChild(d);return p;
     }
+    if(hooks)block('Варианты хука для A/B',hooks);
     if(allBriefs.length)block('Брифы картинок ('+allBriefs.length+')',briefsTxt);
     /* Лимиты Instagram на 2026-06: подпись 2200 символов, хэштегов 30. Meta меняет без анонса - сверять при сбоях. */
     var capP=cap?liveBlock('Подпись к посту',cap,'Подпись поста',2200,function(s){return s.trim().length;}):null;
@@ -603,8 +701,9 @@
     if(allBriefs.length)bar.appendChild(cbtn('Скопировать все брифы',briefsTxt));
     bar.appendChild(cbtn('Скопировать всё одним блоком',everythingNow));
     bar.appendChild(dlbtn('Скачать .txt','carousel-'+$('g-brand').value+'.txt',everythingNow));
+    bar.appendChild(dlbtn('Скачать HTML для рендера','carousel-'+$('g-brand').value+'.html',buildCarouselHTML,'text/html;charset=utf-8'));
     wrap.insertBefore(bar,wrap.firstChild);
-    var hint=document.createElement('div');hint.className='edhint';hint.textContent='Карточки, подпись и хэштеги редактируются прямо здесь - счётчики и предупреждения обновляются вживую. Лимиты Instagram: подпись 2200, хэштегов 30.';
+    var hint=document.createElement('div');hint.className='edhint';hint.textContent='Карточки, подпись и хэштеги правятся прямо здесь, счётчики и предупреждения вживую (лимиты IG: подпись 2200, хэштегов 30). «Скачать HTML для рендера» отдаёт готовую карусель скиллу gengroup-carousel: export_carousel.py превращает её в PNG-слайды.';
     wrap.insertBefore(hint,wrap.firstChild);
   }
   $('g-parse').addEventListener('click',parse);

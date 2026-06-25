@@ -127,6 +127,13 @@ jobs:
           # Без PERF-кредов сам пропускается; не валит синк.
           npx tsx src/scripts/ozon/ads-daily.ts || echo "::warning::реклама по дням не обновлена (OZON Performance недоступен)"
 
+      - name: Финансы по дням (для произвольного периода)
+        run: |
+          set -euo pipefail
+          # Транзакции по дням -> data/pnl_daily.ndjson (весь ряд от 01.02 до вчера; финоперации
+          # до-постируются задним числом, поэтому перезапись). Без Seller-кредов синк уже упал выше.
+          npx tsx src/scripts/ozon/pnl-daily.ts || echo "::warning::финансы по дням не обновлены"
+
       - name: Пересборка сайта из свежих снимков
         run: |
           set -euo pipefail

@@ -19,7 +19,8 @@
     "join:taxonomy": "tsx src/scripts/build-taxonomy-join.ts",
     "join:cogs": "tsx src/scripts/build-cogs-join.ts",
     "smoke": "tsx src/scripts/smoke.ts",
-    "ads:reports": "tsx src/scripts/ozon/ad-reports.ts"
+    "ads:reports": "tsx src/scripts/ozon/ad-reports.ts",
+    "import:cards": "tsx src/scripts/ozon/import-card-groups.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

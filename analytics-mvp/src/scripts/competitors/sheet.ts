@@ -98,13 +98,17 @@ export function rowsToItems(rows: string[][]): { items: CompItem[]; warnings: st
   return { items, warnings };
 }
 
-// Любую ссылку на Google-таблицу превращаем в URL CSV-экспорта нужной вкладки.
-export function toCsvExportUrl(input: string, fallbackGid = "0"): string {
+// Любую ссылку на Google-таблицу превращаем в URL CSV-экспорта.
+// gid подставляем ТОЛЬКО если он есть в ссылке или передан явно: иначе экспортируем
+// первую вкладку (export?format=csv без gid). Подстановка gid=0 по умолчанию ломала
+// таблицы, где первая вкладка не нулевая (Google отвечает HTTP 400).
+export function toCsvExportUrl(input: string, fallbackGid = ""): string {
   const u = input.trim();
   if (/export\?format=csv/i.test(u)) return u; // уже готовый CSV-URL
   const m = u.match(/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
   const id = m ? m[1] : (/^[a-zA-Z0-9_-]{20,}$/.test(u) ? u : "");
   if (!id) return u; // не распознали - вернём как есть, пусть решает вызывающий
   const gid = (u.match(/[#&?]gid=(\d+)/) || [])[1] || fallbackGid;
-  return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+  const base = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv`;
+  return gid ? `${base}&gid=${gid}` : base;
 }

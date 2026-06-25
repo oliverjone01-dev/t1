@@ -54,7 +54,8 @@ describe("toCsvExportUrl", () => {
     const u = "https://docs.google.com/spreadsheets/d/ABC123/export?format=csv&gid=0";
     expect(toCsvExportUrl(u)).toBe(u);
   });
-  it("из голого ID собирает URL с gid по умолчанию", () => {
-    expect(toCsvExportUrl("ABCDEFGHIJKLMNOPQRSTUVWX")).toBe("https://docs.google.com/spreadsheets/d/ABCDEFGHIJKLMNOPQRSTUVWX/export?format=csv&gid=0");
+  it("без gid в ссылке экспортирует первую вкладку (без &gid)", () => {
+    expect(toCsvExportUrl("ABCDEFGHIJKLMNOPQRSTUVWX")).toBe("https://docs.google.com/spreadsheets/d/ABCDEFGHIJKLMNOPQRSTUVWX/export?format=csv");
+    expect(toCsvExportUrl("https://docs.google.com/spreadsheets/d/XYZ/edit?usp=sharing")).toBe("https://docs.google.com/spreadsheets/d/XYZ/export?format=csv");
   });
 });

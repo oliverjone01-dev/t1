@@ -1214,6 +1214,9 @@ function render(cur,cmp){
 // --- страница 5: Деньги (ЖИВЫЕ P&L-вебхуки по периоду, fallback - снимок) ---
 {
   const pnlSnap = JSON.parse(readFileSync("data/pnl_30d.json", "utf-8"));
+  // Фаза 2b: дневной ряд P&L канала (pnl_daily.ndjson) - агрегат за ЛЮБОЙ период.
+  let pnlDaily: any[] = [];
+  try { pnlDaily = readFileSync("data/pnl_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
   const closed = JSON.parse(readFileSync("data/closed_pnl.json", "utf-8"));
   const skuNames: Record<string, string> = {};
   for (const sk of allSkus) skuNames[sk] = (skuName[sk] || sk).slice(0, 70);
@@ -1227,7 +1230,16 @@ function render(cur,cmp){
   <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
   const pageJs = `
-const SNAP=${J(pnlSnap)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
+const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
+// Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
+// логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
+function aggPnlDaily(from,to){
+  var accr=0,comm=0,deliv=0,fees=0,pay=0,ops=0;
+  for(var i=0;i<PNL_DAILY.length;i++){var r=PNL_DAILY[i];if(r.d<from||r.d>to)continue;accr+=r.accruals;comm+=r.commission;deliv+=r.delivery;fees+=r.fees;pay+=r.payout;ops+=r.ops;}
+  var other=-fees-comm-deliv; // прочие услуги = -(все сборы) - комиссия - логистика
+  var breakdown={'Комиссия за продажу':comm};if(deliv)breakdown['Логистика']=deliv;if(other)breakdown['Прочие услуги OZON']=other;
+  return {accruals:accr,commission:comm,payout:pay,ops:ops,fees:fees,breakdown:breakdown,dateFrom:from,dateTo:to,daily:true};
+}
 const SKU_SNAP=${J(Object.fromEntries(Object.entries(JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku).filter(([, v]: any) => v.accruals > 0).sort((a: any, b: any) => b[1].amount - a[1].amount).slice(0, 15)))};
 function catSvc(name){const n=name.toLowerCase();
   if(n.includes('brand'))return 'Бренд-комиссия';if(n.includes('acquir'))return 'Эквайринг';if(n.includes('installment'))return 'Рассрочка';if(n.includes('storage'))return 'Хранение';
@@ -1243,9 +1255,9 @@ function paint(p,src){
     kpi('Начислено, ₽',fMln(p.accruals||0)),kpi('Комиссия за продажу',commPct+'%'),kpi('К выплате, ₽',fMln(p.payout||0)),
     kpi('Доля выплаты',(p.accruals?Math.round(p.payout/p.accruals*1000)/10:0)+'%'),kpi('Операций',fmtRu(p.ops||0))
   ].join('');
-  // P&L канала - прямой снимок за 30 дней (без n8n); не зависит от выбранного периода.
-  var note=(CURP==='30d')?'':' <span style="color:#E5B567" title="P&L канала считается по снимку за 30 дней и не меняется при смене периода.">· снимок 30 дн</span>';
-  const badge='<span class="kt-src">снимок '+p.dateFrom+'..'+p.dateTo+'</span>'+note;
+  // Фаза 2b: при дневном ряде P&L точный за период (p.daily). Иначе - снимок 30 дн.
+  var note=p.daily?'':((CURP==='30d')?'':' <span style="color:#E5B567" title="P&L канала по снимку 30 дней.">· снимок 30 дн</span>');
+  const badge='<span class="kt-src">'+(p.daily?'за период ':'снимок ')+p.dateFrom+'..'+p.dateTo+'</span>'+note;
   document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list (прямой) '+badge;
   const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
   const sumFees=fees.reduce((s,f)=>s+f[1],0);
@@ -1261,9 +1273,10 @@ function paintSku(t,src){
 }
 document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'<tr><td>'+(m.label||m.month||'')+'</td><td class="r">'+fMln(m.realization??0)+'</td><td class="r" style="color:'+((m.profit??0)>=0?'var(--up)':'var(--dn)')+'">'+fMln(m.profit??0)+'</td></tr>').join('')||'<tr><td colspan="3" class="kt-note">нет закрытых месяцев</td></tr>';
 function render(cur,cmp){
-  // Прямой снимок 30 дней (без n8n). P&L канала фиксирован по снимку и не зависит от периода.
-  paint(SNAP,'snap');
-  paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap');
+  // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.
+  var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
+  paint(p,p.daily?'daily':'snap');
+  paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap'); // топ SKU - снимок 30 дн
 }`;
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }

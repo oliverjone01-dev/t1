@@ -609,7 +609,7 @@
     '.theme-genglass{--bg:#0F0E0C;--accent:#C8A951;--ink:#F5F1E8;--muted:#9A958A;--soft:rgba(200,169,81,.14)}'+
     '.theme-valonti{--bg:#F5F0EB;--accent:#B8943D;--ink:#1A1814;--muted:#8A8278;--soft:rgba(184,148,61,.12)}'+
     '.theme-metalgm{--bg:#121110;--accent:#E8712B;--ink:#F0EEEA;--muted:#928D85;--soft:rgba(232,113,43,.14)}'+
-    '.theme-glassmemory{--bg:#0C1620;--accent:#86B6C9;--ink:#EAEFF3;--muted:#8597A5;--soft:rgba(134,182,201,.14)}'+
+    '.theme-glassmemory{--bg:#0C1620;--accent:#C8A951;--ink:#EAEFF3;--muted:#8597A5;--soft:rgba(200,169,81,.14)}'+
     '.format-ig-portrait{--w:1080px;--h:1350px}.format-ig-square{--w:1080px;--h:1080px}.format-story{--w:1080px;--h:1920px}.format-pinterest{--w:1000px;--h:1500px}'+
     '.slide{width:var(--w);height:var(--h);background:var(--bg);color:var(--ink);position:relative;overflow:hidden;display:flex;flex-direction:column;padding:96px 90px 86px;margin:0 auto 40px}'+
     '.slide::before{content:"";position:absolute;inset:0;opacity:.6;background:radial-gradient(120% 80% at 100% 0%,var(--soft),transparent 55%)}'+
@@ -622,7 +622,9 @@
     '.brandbar{margin-top:auto;display:flex;align-items:center;gap:14px;font-size:26px;font-weight:700;color:var(--muted)}.brandbar b{color:var(--accent)}'+
     '.pageno{position:absolute;top:70px;right:90px;font-size:26px;font-weight:800;color:var(--muted)}.pageno b{color:var(--accent)}'+
     '.s-cta{justify-content:center}.s-cta .big{margin-top:0}'+
-    '.button{align-self:flex-start;margin-top:50px;display:inline-flex;align-items:center;gap:16px;background:var(--accent);color:var(--bg);font-weight:800;font-size:34px;padding:24px 44px;border-radius:14px}';
+    '.button{align-self:flex-start;margin-top:50px;display:inline-flex;align-items:center;gap:16px;background:var(--accent);color:#15120B;font-weight:800;font-size:34px;padding:24px 44px;border-radius:14px}'+
+    /* VALONTI - светлая тема: золото на кремовом фоне тусклое, поднимаем контраст текста-на-светлом >=3.0 */
+    '.theme-valonti .kick{color:#7A5F1E}.theme-valonti .arrow{color:#7A5F1E}.theme-valonti .pageno b{color:#7A5F1E}.theme-valonti .brandbar b{color:#7A5F1E}';
   function warnFor(title,text,isCta){var w=[];if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(title+' '+text))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');return w;}
   function slideTxt(card){var h=card.querySelector('h4'),p=card.querySelector('p');var t=(h?h.textContent.trim():''),x=(p?p.textContent.trim():'');return (t?t+'\n':'')+x;}
   function recount(card){var h=card.querySelector('h4'),p=card.querySelector('p');var title=h?h.textContent.trim():'',text=p?p.textContent.trim():'';var w=warnFor(title,text,card.getAttribute('data-cta')==='1');var wd=card.querySelector('.warn2');if(!wd)return;if(w.length){wd.hidden=false;wd.textContent='⚠ '+w.join(' · ');}else{wd.hidden=true;wd.textContent='';}}

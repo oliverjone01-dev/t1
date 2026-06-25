@@ -4,7 +4,7 @@ name: B24 snapshots (РОП, прямой Bitrix)
 # По образцу ozon-snapshots.yml: бежит в GitHub Actions (есть сеть к Bitrix), креды в Secrets.
 # Тянет ВСЕ сделки (все воронки) и ВСЕ лиды, резолвит ID в имена.
 #
-# ROP_DATE_FROM: пусто = всё. Сейчас 2026-03-01 для первой валидации (форма + объёмы).
+# ROP_DATE_FROM: пусто = вся история с момента создания воронок (выбор Ивана 2026-06-25).
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ concurrency:
 
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
-  ROP_DATE_FROM: ${{ github.event.inputs.date_from || '2026-03-01' }}
+  ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
 
 jobs:
   snapshot:

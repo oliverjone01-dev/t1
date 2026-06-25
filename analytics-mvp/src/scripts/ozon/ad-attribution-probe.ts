@@ -30,14 +30,16 @@ async function main() {
   console.log("probe: UUID =", uuid || "(пусто)");
   if (!uuid) return;
 
-  let state: any = null;
-  for (let i = 0; i < 20; i++) {
+  let state: any = null, ready = false;
+  for (let i = 0; i < 50; i++) {
     try { state = await perf.statisticsState(uuid); } catch (e) { console.error("probe state FAILED:", (e as Error).message); break; }
-    const s = JSON.stringify(state).slice(0, 300);
-    console.log(`probe state[${i}]:`, s);
-    if (/\b(ok|done|success|ready)\b/i.test(JSON.stringify(state.state ?? state.status ?? ""))) break;
-    await sleep(3000);
+    const st = String(state.state ?? state.status ?? "");
+    if (i % 5 === 0 || /\b(ok|done|success|ready|error|fail)\b/i.test(st)) console.log(`probe state[${i}]: ${st}`);
+    if (/\b(ok|done|success|ready)\b/i.test(st)) { ready = true; break; }
+    if (/\b(error|fail)\b/i.test(st)) { console.error("probe: отчёт в ошибке:", JSON.stringify(state).slice(0, 300)); break; }
+    await sleep(6000); // отчёт OZON генерится минутами
   }
+  if (!ready) { console.warn("probe: отчёт не готов за ~5 мин (статус не OK) - скачивание пропущено"); return; }
 
   try {
     const raw = await perf.downloadStatistics(uuid);

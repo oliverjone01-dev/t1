@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENGROUP Carousel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Georgia&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   GENGROUP CAROUSEL TEMPLATE
+   - Each .slide is rendered to one PNG by scripts/export_carousel.py
+   - Theme via <body class="theme-genglass format-ig-portrait">
+   - Brand tokens: see references/design-system.md
+   - HARD RULE: never use em dash "—" or en dash "–". Hyphen "-" only.
+   ========================================================================= */
+
+/* ---- FORMATS: set slide canvas size (output PNG = these dims) ---- */
+.format-ig-portrait{ --slide-w:1080px; --slide-h:1350px; }  /* default, 4:5 */
+.format-ig-square  { --slide-w:1080px; --slide-h:1080px; }  /* 1:1 */
+.format-pinterest  { --slide-w:1000px; --slide-h:1500px; }  /* 2:3 */
+.format-story      { --slide-w:1080px; --slide-h:1920px; }  /* 9:16 */
+
+/* ---- THEMES (5 brands). VALONTI is LIGHT; the rest are DARK ---- */
+.theme-genglass{
+  --bg:#0F0E0C; --surface:#161512; --surface-2:#1E1C18;
+  --accent:#C8A951; --accent-soft:rgba(200,169,81,.14);
+  --ink:#F5F1E8; --muted:#9A958A; --line:#2A2823;
+  --display:'Montserrat'; --body:'Montserrat'; --serif:'Georgia';
+  --brand-name:'GENGLASS'; --handle:'@genglass';
+}
+.theme-valonti{
+  --bg:#F5F0EB; --surface:#FFFFFF; --surface-2:#EDE7DF;
+  --accent:#B8943D; --accent-soft:rgba(184,148,61,.12);
+  --ink:#1A1814; --muted:#8A8278; --line:#DED7CD;
+  --display:'Montserrat'; --body:'Montserrat'; --serif:'Georgia';
+  --brand-name:'VALONTI'; --handle:'@valonti';
+}
+.theme-gentero{
+  --bg:#0E1318; --surface:#141B22; --surface-2:#1C262F;
+  --accent:#C8A951; --accent-2:#2A4D6E; --accent-soft:rgba(200,169,81,.14);
+  --ink:#F2F4F6; --muted:#8B97A3; --line:#222D36;
+  --display:'Montserrat'; --body:'Montserrat'; --serif:'Georgia';
+  --brand-name:'GENTERO'; --handle:'@gentero';
+}
+.theme-metalgm{
+  --bg:#121110; --surface:#1A1917; --surface-2:#232220;
+  --accent:#E8712B; --accent-soft:rgba(232,113,43,.14);
+  --ink:#F0EEEA; --muted:#928D85; --line:#2C2A27;
+  --display:'Montserrat'; --body:'Montserrat'; --serif:'Georgia';
+  --brand-name:'METAL-GM'; --handle:'@metal.gm';
+}
+.theme-glassmemory{
+  --bg:#0C1620; --surface:#11202C; --surface-2:#182C3A;
+  --accent:#C8A951; --accent-2:#1A3A5C; --accent-soft:rgba(200,169,81,.12);
+  --ink:#EAEFF3; --muted:#8597A5; --line:#1C3140;
+  --display:'Montserrat'; --body:'Montserrat'; --serif:'Georgia';
+  --brand-name:'GLASS-MEMORY'; --handle:'@glass.memory';
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{ background:#000; }
+
+/* ---- SLIDE CANVAS ---- */
+.slide{
+  width:var(--slide-w); height:var(--slide-h);
+  background:var(--bg); color:var(--ink);
+  font-family:var(--body),Arial,sans-serif;
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+  padding:96px 90px 86px;
+  margin:0 auto 40px;
+}
+/* faint texture, brand-safe */
+.slide::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:radial-gradient(120% 80% at 100% 0%, var(--accent-soft), transparent 55%);
+}
+.slide > *{ position:relative; z-index:1; }
+
+/* ---- shared type ---- */
+.eyebrow{
+  font-family:var(--display); font-weight:600; font-size:24px;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--accent);
+}
+.kicker{ font-size:22px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); font-weight:500; }
+h1,h2{ font-family:var(--display); letter-spacing:-.02em; line-height:1.04; font-weight:800; }
+.h-hero{ font-size:104px; font-weight:900; line-height:.98; }
+.h-lg{ font-size:72px; }
+.h-md{ font-size:56px; line-height:1.08; }
+.lead{ font-size:34px; line-height:1.45; color:var(--ink); font-weight:400; }
+.sub{ font-size:30px; line-height:1.5; color:var(--muted); font-weight:400; }
+.hl{ color:var(--accent); }
+.spacer{ flex:1; }
+
+/* ---- footer brand mark (on every slide) ---- */
+.brandbar{
+  display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid var(--line); padding-top:26px; margin-top:32px;
+}
+.brandbar .mark{ font-family:var(--display); font-weight:800; font-size:26px; letter-spacing:.04em; color:var(--ink); }
+.brandbar .mark b{ color:var(--accent); }
+.brandbar .right{ display:flex; align-items:center; gap:18px; }
+.brandbar .handle{ font-size:24px; color:var(--muted); font-weight:500; }
+.dots{ display:flex; gap:9px; }
+.dots i{ width:11px; height:11px; border-radius:50%; background:var(--line); display:block; }
+.dots i.on{ background:var(--accent); }
+.pageno{ font-family:var(--display); font-size:24px; font-weight:700; color:var(--muted); }
+.pageno b{ color:var(--accent); }
+
+/* ===================== SLIDE TYPE: COVER / HOOK ===================== */
+.s-cover .eyebrow{ margin-bottom:40px; }
+.s-cover .h-hero{ max-width:14ch; }
+.s-cover .lead{ margin-top:40px; max-width:24ch; }
+.s-cover .arrow{ margin-top:auto; font-size:30px; color:var(--accent); font-weight:700; letter-spacing:.04em; }
+
+/* ===================== SLIDE TYPE: STATEMENT ===================== */
+.s-statement{ justify-content:center; }
+.s-statement .badge{ margin-bottom:34px; }
+.s-statement .h-lg{ max-width:18ch; }
+.s-statement .sub{ margin-top:34px; max-width:30ch; }
+
+/* badge (numbered) */
+.badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:var(--display); font-weight:700; font-size:30px;
+  width:74px; height:74px; border-radius:50%;
+  border:2px solid var(--accent); color:var(--accent);
+}
+.badge.solid{ background:var(--accent); color:var(--bg); border-color:var(--accent); }
+
+/* ===================== SLIDE TYPE: LIST ===================== */
+.s-list .h-md{ margin-bottom:48px; max-width:20ch; }
+.lst{ list-style:none; display:flex; flex-direction:column; gap:30px; }
+.lst li{ display:flex; gap:26px; align-items:flex-start; font-size:32px; line-height:1.4; color:var(--ink); }
+.lst li .n{ font-family:var(--display); font-weight:800; font-size:34px; color:var(--accent); min-width:46px; }
+.lst li .tx b{ font-weight:700; }
+.lst li .tx span{ display:block; font-size:26px; color:var(--muted); margin-top:6px; line-height:1.4; }
+
+/* ===================== SLIDE TYPE: STAT (big number) ===================== */
+.s-stat{ justify-content:center; align-items:flex-start; }
+.s-stat .kicker{ margin-bottom:30px; }
+.s-stat .big{ font-family:var(--display); font-weight:900; font-size:200px; line-height:.85; color:var(--accent); letter-spacing:-.04em; }
+.s-stat .cap{ font-size:38px; color:var(--ink); margin-top:30px; max-width:22ch; line-height:1.3; font-weight:600; }
+.s-stat .note{ font-size:26px; color:var(--muted); margin-top:22px; max-width:30ch; line-height:1.4; }
+.statgrid{ display:grid; grid-template-columns:1fr 1fr; gap:54px 60px; width:100%; }
+.statgrid .item .v{ font-family:var(--display); font-weight:900; font-size:108px; line-height:.9; color:var(--accent); letter-spacing:-.03em; }
+.statgrid .item .l{ font-size:28px; color:var(--muted); margin-top:14px; line-height:1.35; }
+
+/* ===================== SLIDE TYPE: PROCESS / STEPS ===================== */
+.s-process .h-md{ margin-bottom:50px; max-width:20ch; }
+.proc{ display:flex; flex-direction:column; gap:0; }
+.proc .step{ display:flex; gap:30px; padding:28px 0; align-items:flex-start; position:relative; }
+.proc .step:not(:last-child){ border-bottom:1px solid var(--line); }
+.proc .step .num{ font-family:var(--display); font-weight:800; font-size:30px; color:var(--bg); background:var(--accent); min-width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+.proc .step .body .t{ font-size:34px; font-weight:700; color:var(--ink); }
+.proc .step .body .d{ font-size:27px; color:var(--muted); margin-top:8px; line-height:1.4; }
+
+/* ===================== SLIDE TYPE: COMPARISON (pro/con or A/B) ===================== */
+.s-compare .h-md{ margin-bottom:44px; max-width:20ch; }
+.cols{ display:grid; grid-template-columns:1fr 1fr; gap:28px; flex:1; }
+.col{ border-radius:18px; padding:38px 34px; border:1px solid var(--line); background:var(--surface); }
+.col.bad{ border-color:rgba(216,92,74,.4); }
+.col.good{ border-color:var(--accent); }
+.col .ch{ font-family:var(--display); font-weight:700; font-size:30px; margin-bottom:24px; }
+.col.bad .ch{ color:#D85C4A; }
+.col.good .ch{ color:var(--accent); }
+.col ul{ list-style:none; display:flex; flex-direction:column; gap:20px; }
+.col li{ font-size:27px; line-height:1.35; color:var(--ink); padding-left:42px; position:relative; }
+.col.bad li::before{ content:"✕"; position:absolute; left:0; top:0; color:#D85C4A; font-weight:700; }
+.col.good li::before{ content:"✓"; position:absolute; left:0; top:0; color:var(--accent); font-weight:700; }
+
+/* ===================== SLIDE TYPE: CHECKLIST ===================== */
+.s-check .h-md{ margin-bottom:46px; max-width:20ch; }
+.chk{ list-style:none; display:flex; flex-direction:column; gap:30px; }
+.chk li{ display:flex; gap:24px; align-items:flex-start; font-size:32px; line-height:1.35; color:var(--ink); }
+.chk li .box{ min-width:48px; height:48px; border-radius:12px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:800; font-size:28px; }
+
+/* ===================== SLIDE TYPE: QUOTE ===================== */
+.s-quote{ justify-content:center; }
+.s-quote .q{ font-family:var(--serif),Georgia,serif; font-style:italic; font-size:54px; line-height:1.3; color:var(--ink); max-width:24ch; }
+.s-quote .q::before{ content:"“"; font-size:120px; color:var(--accent); line-height:0; display:block; height:60px; }
+.s-quote .by{ margin-top:40px; font-size:30px; color:var(--accent); font-weight:700; }
+.s-quote .by span{ display:block; color:var(--muted); font-weight:400; font-size:26px; margin-top:6px; }
+
+/* ===================== SLIDE TYPE: IMAGE (photo + text) ===================== */
+.s-image{ padding:0; }
+.s-image .photo{ position:absolute; inset:0; background-size:cover; background-position:center; }
+.s-image .scrim{ position:absolute; inset:0; background:linear-gradient(0deg, var(--bg) 6%, rgba(0,0,0,.25) 55%, transparent 100%); }
+.s-image .cap{ position:relative; z-index:2; margin-top:auto; padding:90px; }
+.s-image .cap .h-lg{ max-width:18ch; }
+.s-image .cap .sub{ margin-top:22px; max-width:26ch; }
+
+/* ===================== IMAGE SLOTS (photo / graphic) =====================
+   A slot is a fixed framed region. With NO file it renders a branded
+   placeholder + the art-direction brief (which doubles as the generation
+   prompt for Nano Banana 2). Drop a file into images/ (or paste a data URI)
+   and it shows automatically - no other edit needed.
+   <div class="imgslot"><img src="images/03.jpg" alt="" onerror="this.classList.add('missing')">
+        <div class="ph"><span class="tag">фото · бриф</span>
+          <div class="brief"><b>BRAND imagery:</b> ...описание кадра...</div>
+          <span class="dim">images/03.jpg · 1080×1350</span></div></div>                   */
+.imgslot{ position:relative; border-radius:18px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); }
+.imgslot img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:2; }
+.imgslot img.missing{ display:none; }                  /* set by onerror when file absent */
+.imgslot .ph{ position:absolute; inset:0; z-index:1; display:flex; flex-direction:column; justify-content:space-between; padding:30px; }
+.imgslot .ph .tag{ align-self:flex-start; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:7px 15px; }
+.imgslot .ph .brief{ font-size:25px; line-height:1.42; color:var(--muted); max-width:32ch; }
+.imgslot .ph .brief b{ color:var(--ink); font-weight:600; }
+.imgslot .ph .dim{ font-size:19px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.imgslot::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:repeating-linear-gradient(45deg, transparent 0 24px, rgba(127,127,127,.05) 24px 48px); }
+.imgslot .scrim{ position:absolute; inset:0; z-index:3; background:linear-gradient(0deg, rgba(0,0,0,.72), transparent 52%); }
+/* LAYOUT: full-bleed photo with caption */
+.s-photo{ padding:0; }
+.s-photo .imgslot{ position:absolute; inset:0; border:0; border-radius:0; }
+.s-photo .cap{ position:relative; z-index:4; margin-top:auto; padding:90px; }
+.s-photo .cap .h-lg{ max-width:18ch; } .s-photo .cap .sub{ margin-top:22px; max-width:26ch; }
+/* LAYOUT: inset image band above text */
+.s-inset .imgslot{ width:100%; height:540px; margin-bottom:42px; flex:none; }
+.s-inset .h-md{ margin-bottom:26px; max-width:20ch; }
+.s-inset .sub{ margin-top:20px; max-width:30ch; }
+
+/* ===================== SLIDE TYPE: CTA ===================== */
+.s-cta{ justify-content:center; align-items:flex-start; }
+.s-cta .eyebrow{ margin-bottom:34px; }
+.s-cta .h-lg{ max-width:18ch; }
+.s-cta .sub{ margin-top:30px; max-width:28ch; }
+.s-cta .button{ margin-top:54px; display:inline-flex; align-items:center; gap:18px; background:var(--accent); color:var(--bg); font-family:var(--display); font-weight:800; font-size:34px; padding:26px 46px; border-radius:14px; letter-spacing:.01em; }
+.s-cta .swipe{ margin-top:36px; font-size:28px; color:var(--muted); }
+</style>
+</head>
+
+<!-- ===========================================================================
+     EDIT BELOW. Keep <body class="theme-XXX format-XXX">.
+     Each <section class="slide s-TYPE"> becomes one PNG, in order.
+     7-slide default arc: cover → problem → 3x value → proof → CTA.
+     Fill brandbar .mark / .handle per brand, set .dots .on to current index.
+     Delete slide types you do not use. This sample = GENGLASS, IG portrait.
+     =========================================================================== -->
+<body class="theme-genglass format-ig-portrait">
+
+<!-- SLIDE 1 - COVER / HOOK -->
+<section class="slide s-cover">
+  <div class="eyebrow">Гид по выбору</div>
+  <h1 class="h-hero">3 ошибки в <span class="hl">стеклянной</span> перегородке</h1>
+  <p class="lead">Из-за них переделывают монтаж и теряют деньги. Разбираем на пальцах.</p>
+  <div class="arrow">Листай →</div>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><span class="handle">@genglass</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 2 - STATEMENT / PROBLEM -->
+<section class="slide s-statement">
+  <div class="badge">01</div>
+  <h2 class="h-lg">Берут <span class="hl">тонкое стекло</span> ради цены</h2>
+  <p class="sub">6 мм вместо 8 на большом пролёте - дверь играет, петли разбалтываются за месяц. Экономия 4 000 ₽ оборачивается заменой за 30 000 ₽.</p>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div><span class="pageno"><b>02</b> / 07</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 3 - STAT -->
+<section class="slide s-stat">
+  <div class="kicker">Запас прочности</div>
+  <div class="big">8&nbsp;мм</div>
+  <p class="cap">Минимум для пролёта от 90 см</p>
+  <p class="note">Закалённое стекло 8 мм держит распашную створку без провисания. Это норма цеха, а не маркетинг.</p>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div><span class="pageno"><b>03</b> / 07</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 4 - LIST -->
+<section class="slide s-list">
+  <h2 class="h-md">Что проверить до заказа</h2>
+  <ul class="lst">
+    <li><span class="n">1</span><span class="tx"><b>Толщину стекла</b><span>8 мм от пролёта 90 см, 10 мм от 120 см</span></span></li>
+    <li><span class="n">2</span><span class="tx"><b>Тип петель</b><span>Доводчик в петле, а не отдельная пружина</span></span></li>
+    <li><span class="n">3</span><span class="tx"><b>Зазор у пола</b><span>8-12 мм, иначе цепляет при сезонной усадке</span></span></li>
+  </ul>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i></div><span class="pageno"><b>04</b> / 07</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 5 - COMPARISON -->
+<section class="slide s-compare">
+  <h2 class="h-md">Дёшево против <span class="hl">правильно</span></h2>
+  <div class="cols">
+    <div class="col bad">
+      <div class="ch">Экономия в лоб</div>
+      <ul><li>Стекло 6 мм</li><li>Пружина отдельно</li><li>Замер на глаз</li><li>Переделка через месяц</li></ul>
+    </div>
+    <div class="col good">
+      <div class="ch">Как надо</div>
+      <ul><li>Стекло 8-10 мм</li><li>Петля с доводчиком</li><li>Лазерный замер</li><li>Гарантия на узлы</li></ul>
+    </div>
+  </div>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div><span class="pageno"><b>05</b> / 07</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 6 - QUOTE / PROOF -->
+<section class="slide s-quote">
+  <p class="q">Поставили 8 мм по их замеру. Год прошёл - дверь как в первый день.</p>
+  <p class="by">Клиент GENGLASS<span>Перегородка в санузел, Москва</span></p>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div><span class="pageno"><b>06</b> / 07</span></div>
+  </div>
+</section>
+
+<!-- SLIDE 7 - CTA -->
+<section class="slide s-cta">
+  <div class="eyebrow">Бесплатно</div>
+  <h2 class="h-lg">Пришлём расчёт под ваш проём за 24 часа</h2>
+  <p class="sub">Замер, толщина, фурнитура и цена. Без воды.</p>
+  <div class="button">Написать в Direct →</div>
+  <p class="swipe">Сохрани, чтобы не потерять</p>
+  <div class="brandbar">
+    <div class="mark"><b>GEN</b>GLASS</div>
+    <div class="right"><span class="handle">@genglass</span></div>
+  </div>
+</section>
+<!-- IMAGE SLOT REFERENCE (delete or adapt). Full-bleed photo with brief.
+     No file at images/cover.jpg -> branded placeholder + brief shows (this is the
+     "frame with description"). The brief is also the Nano Banana 2 prompt. Drop
+     your own OR a generated file at images/cover.jpg and it renders automatically. -->
+<section class="slide s-photo">
+  <div class="imgslot">
+    <img src="images/cover.jpg" alt="" onerror="this.classList.add('missing')">
+    <div class="ph">
+      <span class="tag">фото · бриф</span>
+      <div class="brief"><b>GENGLASS imagery:</b> лофт-перегородка из закалённого стекла, профиль RAL 9005, фронтальный кадр, холодный дневной свет, отражение в стекле, без людей. Style-lock: cool daylight, matte black, 50mm.</div>
+      <span class="dim">images/cover.jpg · 1080×1350</span>
+    </div>
+    <div class="scrim"></div>
+  </div>
+  <div class="cap">
+    <h2 class="h-lg">Стекло, которое <span class="hl">держит</span></h2>
+    <p class="sub">Подпись поверх фото читается за счёт скрима. Пока файла нет - виден бриф.</p>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+name: Probe attribution-отчёта OZON (разведка формата)
+
+# Разовая разведка: запрашивает attribution-отчёт OZON Performance по одной кампании и
+# выгружает сырой ответ в лог - чтобы подтвердить эндпоинт/формат (per-SKU «продажи в
+# продвижении» + объединённая карточка). Из web-контейнера OZON закрыт, поэтому здесь.
+# Ничего не коммитит. Запуск вручную.
+
+on:
+  workflow_dispatch:
+    inputs:
+      campaign_id:
+        description: "ID кампании (пусто = топ-1 из ads_30d)"
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  OZON_PERF_CLIENT_ID: ${{ secrets.OZON_PERF_CLIENT_ID }}
+  OZON_PERF_SECRET: ${{ secrets.OZON_PERF_SECRET }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe attribution-отчёта
+        run: npx tsx src/scripts/ozon/ad-attribution-probe.ts "${{ github.event.inputs.campaign_id }}"

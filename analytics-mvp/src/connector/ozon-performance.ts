@@ -115,4 +115,43 @@ export class OzonPerformance {
     }
     return out;
   }
+
+  // --- Async statistics report (per-SKU «продажи в продвижении» + объединённая карточка) ---
+  // POST запрос отчёта -> UUID; затем опрос статуса; затем скачивание (CSV/ZIP). Точная схема
+  // тела/ответа подтверждается probe-прогоном в Actions (из контейнера OZON закрыт).
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    return withRetry(async () => {
+      const token = await this.getToken();
+      const res = await fetch(`${PERF_HOST}${path}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new HttpError(res.status, `OZON Perf POST ${path} -> HTTP ${res.status}: ${await res.text()}`);
+      return (await res.json()) as T;
+    });
+  }
+
+  async requestStatistics(campaigns: string[], dateFrom: string, dateTo: string, groupBy = "NO_GROUP_BY"): Promise<string> {
+    const data = await this.post<any>("/api/client/statistics", {
+      campaigns, from: `${dateFrom}T00:00:00.000Z`, to: `${dateTo}T23:59:59.000Z`, groupBy,
+    });
+    return String(data.UUID ?? data.uuid ?? data.id ?? "");
+  }
+
+  async statisticsState(uuid: string): Promise<any> {
+    return this.get<any>(`/api/client/statistics/${encodeURIComponent(uuid)}`);
+  }
+
+  // Сырой текст отчёта (CSV или содержимое ZIP) - разбор отдельно после probe.
+  async downloadStatistics(uuid: string): Promise<string> {
+    return withRetry(async () => {
+      const token = await this.getToken();
+      const res = await fetch(`${PERF_HOST}/api/client/statistics/report?UUID=${encodeURIComponent(uuid)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new HttpError(res.status, `OZON Perf report -> HTTP ${res.status}: ${await res.text()}`);
+      return res.text();
+    });
+  }
 }

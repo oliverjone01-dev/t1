@@ -11,7 +11,7 @@ on:
     inputs:
       sheet_url:
         description: "Ссылка на Google-таблицу (или готовый CSV-export URL)"
-        default: "https://docs.google.com/spreadsheets/d/1TzAF_fZw099e5W-7Yyf88u1J32TQxZxJVPDdJMTfOxc/edit?gid=1392017382#gid=1392017382"
+        default: "https://docs.google.com/spreadsheets/d/1JJ8mc6azoKycf3aPghkWBH5jouk2A6ZieBZLLX3CHg0/edit?usp=sharing"
   # schedule:
   #   - cron: "0 5 * * *"   # ежедневно 08:00 МСК - обновлять список из таблицы
 
@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SHEET_URL: ${{ github.event.inputs.sheet_url || 'https://docs.google.com/spreadsheets/d/1TzAF_fZw099e5W-7Yyf88u1J32TQxZxJVPDdJMTfOxc/edit?gid=1392017382#gid=1392017382' }}
+  SHEET_URL: ${{ github.event.inputs.sheet_url || 'https://docs.google.com/spreadsheets/d/1JJ8mc6azoKycf3aPghkWBH5jouk2A6ZieBZLLX3CHg0/edit?usp=sharing' }}
 
 jobs:
   import:
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: claude/focused-davinci-tKJCt
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -59,7 +59,7 @@ jobs:
           if git diff --staged --quiet; then echo "список без изменений"; exit 0; fi
           git commit -m "data: импорт конкурентов из Google-таблицы $(date -u +%F)"
           for i in 1 2 3 4; do
-            if git pull --rebase origin claude/focused-davinci-tKJCt && git push; then exit 0; fi
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
             sleep $((2**i))
           done
           echo "push не удался"; exit 1

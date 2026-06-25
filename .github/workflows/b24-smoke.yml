@@ -1,0 +1,55 @@
+name: B24 webhook smoke (read-only)
+
+# Разовая проверка: секрет B24_WEBHOOK_URL присутствует и вебхук Bitrix живой.
+# Только чтение (profile/scope). Значение секрета GitHub автомаскирует в логах.
+# Запускается на push этого файла и вручную (workflow_dispatch).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-smoke.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+    steps:
+      - name: Секрет присутствует?
+        run: |
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан в репозитории (Settings -> Secrets -> Actions)."
+            exit 1
+          fi
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          echo "B24_WEBHOOK_URL присутствует, длина ${#B24_WEBHOOK_URL} символов."
+          case "$B24_WEBHOOK_URL" in
+            https://*/rest/*) echo "Формат похож на REST-вебхук.";;
+            *) echo "::warning::Формат не похож на https://<portal>/rest/<id>/<token>/";;
+          esac
+
+      - name: Bitrix profile.json (проверка auth)
+        run: |
+          base="${B24_WEBHOOK_URL%/}"
+          code=$(curl -sS -o /tmp/p.json -w '%{http_code}' --max-time 30 "$base/profile.json" || echo "000")
+          echo "profile.json -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Bitrix не ответил 200 (код $code). Проверь URL вебхука и доступность портала."
+            head -c 400 /tmp/p.json || true
+            exit 1
+          fi
+          node -e 'const j=require("/tmp/p.json");const r=j.result||{};if(j.error){console.error("Bitrix error:",j.error_description||j.error);process.exit(1);}console.log("OK. Владелец вебхука:",[r.NAME,r.LAST_NAME].filter(Boolean).join(" ")||"(имя скрыто)","| ADMIN:",r.ADMIN);'
+
+      - name: Bitrix scope.json (какие права выданы)
+        run: |
+          base="${B24_WEBHOOK_URL%/}"
+          curl -sS --max-time 30 "$base/scope.json" -o /tmp/s.json || true
+          node -e 'try{const j=require("/tmp/s.json");console.log("Scope вебхука:",JSON.stringify(j.result||j));}catch(e){console.log("scope.json не распарсился");}'
+
+      - name: Bitrix crm.dealcategory.list (видны ли воронки)
+        run: |
+          base="${B24_WEBHOOK_URL%/}"
+          curl -sS --max-time 30 "$base/crm.dealcategory.list.json" -o /tmp/c.json || true
+          node -e 'try{const j=require("/tmp/c.json");const c=(j.result||[]).map(x=>x.ID+":"+x.NAME);console.log("Воронки сделок:",c.length?c.join(" | "):"(пусто или нет прав crm)");}catch(e){console.log("crm.dealcategory.list не распарсился");}'

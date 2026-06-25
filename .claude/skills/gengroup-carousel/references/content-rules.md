@@ -52,9 +52,13 @@ same line without GENGROUP context, rewrite it.
 Rules:
 1. **One concrete number per slide minimum.** mm, ₽, %, days, m², count.
    "8 мм от пролёта 90 см", not "качественное стекло".
-2. **Real GENGROUP facts** when relevant: 16 000 m² production (Домодедово),
-   13 500+ orders, 160+ projects, 320+ dealers (GLASS-MEMORY). Zero invented
-   stats - if you do not have the number, do not fabricate it, ask or omit.
+2. **GENGROUP facts** when relevant: 16 000 m² production (Домодедово) is verified.
+   Trust-band company figures - около 27 000 orders since 2018, 350+ projects
+   (the repo-wide canon used by brand/SKILL.md, content-factory, geo-aeo) - are
+   NOT yet verified by a 1С export: the cited source file is missing (see the
+   escalation block in smm/public/index.html). Treat them as estimates to confirm
+   before publishing, not as hard [ДАННЫЕ]. Zero invented stats - if you do not
+   have the number, do not fabricate it, ask or omit.
 3. **Factory-floor specificity**: name the actual failure mode, the real spec,
    the installation edge case. This is the voice of someone who makes the thing.
 4. **Extractable**: each slide is a self-contained unit that makes sense alone.

@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-05-26",
   "dateTo": "2026-06-24",
-  "generated_at": "2026-06-25T09:26:25.952Z",
+  "generated_at": "2026-06-25T13:43:16.966Z",
   "totals": {
     "rev": 33903224,
     "units": 630,
@@ -137,7 +137,7 @@
       "retp": 0,
       "aov": 74688,
       "offer": "GGT-03-3-3-O-20090",
-      "stock": 191,
+      "stock": 190,
       "pidx": 0.89,
       "pcol": "SUPER",
       "oos": 0
@@ -389,7 +389,7 @@
       "retp": 0,
       "aov": 39864,
       "offer": "GGM-01-1",
-      "stock": 235,
+      "stock": 234,
       "pidx": 0.99,
       "pcol": "GREEN",
       "oos": 0
@@ -516,7 +516,7 @@
       "aov": 51756,
       "offer": "GGT-03-3-5-L-120",
       "stock": 38,
-      "pidx": 1.21,
+      "pidx": 1.43,
       "pcol": "RED",
       "oos": 0
     },
@@ -536,7 +536,7 @@
       "retp": 8.3,
       "aov": 31731,
       "offer": "GGK-02-2-2-80",
-      "stock": 298,
+      "stock": 297,
       "pidx": 0.74,
       "pcol": "SUPER",
       "oos": 0
@@ -557,7 +557,7 @@
       "retp": 0,
       "aov": 57922,
       "offer": "GGT-03-3-3-E-14080",
-      "stock": 144,
+      "stock": 143,
       "pidx": 1.05,
       "pcol": "YELLOW",
       "oos": 0

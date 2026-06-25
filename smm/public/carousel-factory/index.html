@@ -504,7 +504,7 @@
 (function(){
   var BR={
     genglass:{name:'GENGLASS',handle:'genglass',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'16 000 м² производства (Домодедово). Trust-band компании (сверять с выгрузкой 1С перед публикацией, источник на верификации): около 27 000 заказов с 2018 и 350+ проектов. Стекло 8-10 мм, палитры NERO/ORO/BIANCO. Непроверенные числа не выдавать за факт, новых не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики',cta:'расчёт перегородки под ваш проём или подбор палитры за 24 часа',aud:['дизайнер интерьера','прораб','конечный клиент','застройщик'],topics:['Алюминий или сталь в перегородке','3 ошибки при заказе стекла','Сколько стоит перегородка под ключ','Зонировать студию без капремонта']},
-    valonti:{name:'VALONTI',handle:'valonti',accent:'#C8A951',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа для дизайнеров и архитекторов. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',cta:'запрос авторской работы или консультация декоратору',aud:['дизайнер-декоратор','архитектор','частный коллекционер'],topics:['Как выбрать слэб Nero Marquina','Травертин против оникса в интерьере','Авторский стол: от слэба до сборки','Латунь или бронза в каркасе']},
+    valonti:{name:'VALONTI',handle:'valonti',accent:'#B8943D',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа для дизайнеров и архитекторов. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',cta:'запрос авторской работы или консультация декоратору',aud:['дизайнер-декоратор','архитектор','частный коллекционер'],topics:['Как выбрать слэб Nero Marquina','Травертин против оникса в интерьере','Авторский стол: от слэба до сборки','Латунь или бронза в каркасе']},
     metalgm:{name:'Metal-GM',handle:'metal.gm',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр',cta:'расчёт партии от 50 шт по ТЗ',aud:['снабженец','производственник','подрядчик'],topics:['Партия кронштейнов от 50 шт','Любой RAL по ТЗ: как заказать','Гибка, сварка, покраска за 10 дней','Контрактное производство или склад']},
     glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',accent:'#86B6C9',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (премиум, +25% по spec-листу - формулировку уточнить до публикации), керамическая печать, мемориальные наборы (стела, накладка, подставка). Дилерская сеть по РФ (число уточнить).',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби',cta:'подбор мемориального набора через дилера',aud:['родственники','ритуальные агентства','дилеры'],topics:['Crystalvision или обычное стекло','Из чего состоит мемориальный набор','Керамическая печать: что важно','Как выбрать стелу: 4 критерия']}
   };
@@ -624,8 +624,16 @@
     '.s-cta{justify-content:center}.s-cta .big{margin-top:0}'+
     '.button{align-self:flex-start;margin-top:50px;display:inline-flex;align-items:center;gap:16px;background:var(--accent);color:#15120B;font-weight:800;font-size:34px;padding:24px 44px;border-radius:14px}'+
     /* VALONTI - светлая тема: золото на кремовом фоне тусклое, поднимаем контраст текста-на-светлом >=3.0 */
-    '.theme-valonti .kick{color:#7A5F1E}.theme-valonti .arrow{color:#7A5F1E}.theme-valonti .pageno b{color:#7A5F1E}.theme-valonti .brandbar b{color:#7A5F1E}';
-  function warnFor(title,text,isCta){var w=[];if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(title+' '+text))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');return w;}
+    '.theme-valonti .kick{color:#7A5F1E}.theme-valonti .arrow{color:#7A5F1E}.theme-valonti .pageno b{color:#7A5F1E}.theme-valonti .brandbar b{color:#7A5F1E}'+
+    /* ФОТО-СЛОТ: бриф-кадр доезжает до рендера. Файла нет -> бренд-плейсхолдер + бриф (как в скилле). Файл есть -> картинка. */
+    '.imgslot{position:relative;flex:0 0 42%;width:100%;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.05);margin:28px 0}'+
+    '.imgslot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.imgslot img.missing{display:none}'+
+    '.imgslot img:not(.missing)~.ph{display:none}'+
+    '.imgslot .ph{position:absolute;inset:0;display:flex;flex-direction:column;gap:16px;padding:40px;background:linear-gradient(140deg,var(--soft),transparent 70%)}'+
+    '.imgslot .tag{align-self:flex-start;font-size:18px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:6px 15px}'+
+    '.imgslot .brief{font-size:25px;line-height:1.3;color:var(--ink);opacity:.86}.imgslot .dim{margin-top:auto;font-size:17px;color:var(--muted)}'+
+    '.s-cover.has-img .big,.s-mid.has-img .h{margin-top:24px}.s-mid.has-img .brandbar{margin-top:auto}';
+  function warnFor(title,text,isCta){var w=[],s=title+' '+text;if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(s))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');if(/27\s?000|350\s?\+|13\s?500|16\s?000\s*м/i.test(s))w.push('сверь цифру с 1С');return w;}
   function slideTxt(card){var h=card.querySelector('h4'),p=card.querySelector('p');var t=(h?h.textContent.trim():''),x=(p?p.textContent.trim():'');return (t?t+'\n':'')+x;}
   function recount(card){var h=card.querySelector('h4'),p=card.querySelector('p');var title=h?h.textContent.trim():'',text=p?p.textContent.trim():'';var w=warnFor(title,text,card.getAttribute('data-cta')==='1');var wd=card.querySelector('.warn2');if(!wd)return;if(w.length){wd.hidden=false;wd.textContent='⚠ '+w.join(' · ');}else{wd.hidden=true;wd.textContent='';}}
   function parse(){
@@ -642,7 +650,7 @@
       if(!title&&!text)return;
       if(brief)allBriefs.push('Слайд '+(i+1)+': '+brief);
       var isCta=/cta|призыв/i.test(type)||i===blocks.length-1;
-      var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');
+      var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');if(brief)card.setAttribute('data-brief',brief);
       card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span></div>'+
         '<h4 contenteditable="true" data-ph="Заголовок (до 40)"></h4>'+
         '<p contenteditable="true" data-ph="Текст слайда (до 160, кончай на →)"></p>'+
@@ -672,10 +680,13 @@
       cardEls.forEach(function(card,i){
         var h=card.querySelector('h4'),p=card.querySelector('p');
         var title=esc(h?h.textContent.trim():''),text=esc(p?p.textContent.trim():'');
+        var brief=card.getAttribute('data-brief')||'',nn=(i+1<10?'0'+(i+1):''+(i+1));
         var pg='<div class="pageno"><b>'+(i+1)+'</b>/'+n+'</div>';
-        if(i===0){sl+='<section class="slide s-cover">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="arrow">→</div></section>';}
+        var slot=brief?('<div class="imgslot"><img src="images/'+nn+'.jpg" alt="" onerror="this.classList.add(\'missing\')"><div class="ph"><span class="tag">фото · бриф</span><div class="brief">'+esc(brief)+'</div><span class="dim">images/'+nn+'.jpg</span></div></div>'):'';
+        var hi=brief?' has-img':'';
+        if(i===0){sl+='<section class="slide s-cover'+hi+'">'+pg+'<div class="kick">'+esc(bn)+'</div>'+slot+'<div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="arrow">→</div></section>';}
         else if(i===n-1){sl+='<section class="slide s-cta">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="button">'+esc(handle)+' →</div></section>';}
-        else{var num=(i+1<10?'0'+(i+1):''+(i+1));sl+='<section class="slide s-mid">'+pg+'<div class="kick">'+num+'</div><div class="h">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="brandbar"><b>'+esc(bn)+'</b> '+esc(handle)+'</div></section>';}
+        else{sl+='<section class="slide s-mid'+hi+'">'+pg+'<div class="kick">'+nn+'</div>'+slot+'<div class="h">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="brandbar"><b>'+esc(bn)+'</b> '+esc(handle)+'</div></section>';}
       });
       return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>'+esc(bn)+' carousel</title>'+
         '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+

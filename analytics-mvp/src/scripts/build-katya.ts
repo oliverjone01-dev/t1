@@ -967,6 +967,21 @@ function render(cur,cmp){
   }
   let adsReports: any = {};
   try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
+  // Объединённые карточки (карта из Google-таблицы): sku -> {модель, состав др. SKU}.
+  // Состыковка кампания -> карточка: в развороте показываем состав карточки (факт),
+  // ad-attributed дробление не выдумываем (его в прямом API нет).
+  let cardBySku: Record<string, { model: string; others: Array<{ sku: string; offer: string }> }> = {};
+  try {
+    const cg = JSON.parse(readFileSync("data/card_groups.json", "utf-8"));
+    for (const g of cg.groups || []) {
+      for (const s of g.skus || []) {
+        cardBySku[String(s.sku)] = {
+          model: g.model,
+          others: (g.skus || []).filter((x: any) => String(x.sku) !== String(s.sku)).map((x: any) => ({ sku: String(x.sku), offer: x.offer || "" })),
+        };
+      }
+    }
+  } catch { cardBySku = {}; }
   // Кампания -> продвигаемый SKU из снимка. Живой запрос иногда отдаёт skus:[] (лимит OZON
   // на /objects), и тогда Юнит-эк пустеет. Подстраховка: берём SKU кампании из снимка по id.
   const skuByCamp: Record<string, string> = {};
@@ -1020,7 +1035,7 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};
 function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
 // Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
 function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
@@ -1054,7 +1069,7 @@ function renderTop(){var a=lastA;if(!a)return;
     else if(rep.length){var omM=0,soM=0;
       if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из прямого снимка OZON от '+RCACHE_D+'</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';var cg=CARDG[String(s.sku)];if(cg&&cg.others&&cg.others.length){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:40px;color:var(--ink-3);font-size:11px">↳ объединённая карточка «'+esc(cg.model)+'» · др. SKU: '+cg.others.map(function(o){return esc(o.offer||o.sku);}).join(", ")+'</td></tr>';}});
       if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
     } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания - offer не сматчен с товаром)</td></tr>';}
     return main+sub;
@@ -1086,7 +1101,7 @@ function renderBurn(a){
     if(!loaded){sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3)">загрузка разбивки…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
+        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';var cg=CARDG[String(s.sku)];if(cg&&cg.others&&cg.others.length){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:38px;color:var(--ink-3);font-size:11px">↳ объединённая карточка «'+esc(cg.model)+'» · др. SKU: '+cg.others.map(function(o){return esc(o.offer||o.sku);}).join(", ")+'</td></tr>';}});
       if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
     } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная - offer не сматчен)</td></tr>';}
     return main+sub;

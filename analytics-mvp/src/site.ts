@@ -77,6 +77,7 @@ const NAV: Array<[string, string, string]> = [
   ["Воронка", "voronka.html", "Воронка"],
   ["Маркетинг и цена", "marketing.html", "Маркетинг и цена"],
   ["Кампании", "campaigns.html", "Кампании"],
+  ["Конкуренты", "competitors.html", "Конкуренты"],
   ["Карточки", "cards.html", "Карточки"],
   ["Деньги", "money.html", "Деньги"],
   ["Ассистент", "assistant.html", "Ассистент"],

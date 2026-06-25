@@ -389,6 +389,7 @@ const KPAGES: [string, string, string][] = [
   ["katya-voronka.html", "Воронка", "voronka"],
   ["katya-marketing.html", "Маркетинг", "marketing"],
   ["katya-money.html", "Деньги", "money"],
+  ["katya-competitors.html", "Конкуренты", "competitors"],
 ];
 function banner(active: string): string {
   const snap = `${MONTHS[11]?.m || ""}-${MONTHS[15]?.m || ""}`;
@@ -1051,11 +1052,11 @@ function renderTop(){var a=lastA;if(!a)return;
     var sub='';
     if(!loaded){sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3)">загрузка разбивки по SKU…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
-      if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из снимка per-SKU от '+RCACHE_D+' (на паузе на время миграции)</td></tr>';
+      if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка по SKU - из прямого снимка OZON от '+RCACHE_D+'</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная '+art+'</td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или per-SKU кэш на паузе, миграция)</td></tr>';}
+    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания - offer не сматчен с товаром)</td></tr>';}
     return main+sub;
   }).join('');
   document.getElementById('top').innerHTML=html;
@@ -1085,9 +1086,9 @@ function renderBurn(a){
     if(!loaded){sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3)">загрузка разбивки…</td></tr>';}
     else if(rep.length){var omM=0,soM=0;
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;omM+=(s.omModel||0);soM+=(s.soldModel||0);
-        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная '+art+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
+        sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';});
       if(omM>0||soM>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omM)+'</td><td class="r">'+soM+'</td><td class="r">—</td></tr>';}
-    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или per-SKU кэш на паузе, миграция)</td></tr>';}
+    } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная - offer не сматчен)</td></tr>';}
     return main+sub;
   }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';
   document.getElementById('burn').innerHTML=html;
@@ -1325,4 +1326,136 @@ function render(cur,cmp){
   writeFileSync("public/katya-command.html", kshell("Командный центр", "command", body, pageJs));
 }
 
-console.log(`katya: командный центр + 5 страниц · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);
+// --- страница 7: Конкуренты (ДЕМО-заглушка) ---
+// ВНИМАНИЕ: цифры на этой странице - ДЕМО (заглушка для оценки вида), НЕ реальные.
+// Решение Ивана: проставить облачными/демо-данными только тут, чтобы увидеть вёрстку,
+// потом переделать на реальный снимок пилота (data/competitors/*.json).
+// Демо детерминировано выводится из SKU (без Math.random - воспроизводимость), имена/пары
+// товаров - настоящие из input.json, чтобы вид был правдоподобным. Все числа помечены ДЕМО.
+{
+  let compInput: any[] = [];
+  try { compInput = JSON.parse(readFileSync("src/scripts/competitors/input.json", "utf-8")).items || []; } catch { compInput = []; }
+  // Чистим имя стола конкурента от ведущего бренда (он дублирует продавца): "Лайфмебель Стол ..." -> "Стол ...".
+  const normБ = (s: string) => s.toLowerCase().replace(/ё/g, "е");
+  const stripBrand = (name: string, seller: string) => {
+    let n = (name || "").trim();
+    const fw = n.split(/\s+/)[0] || "";
+    if (seller && fw && normБ(fw).startsWith(normБ(seller).slice(0, 5))) n = n.slice(fw.length).trim();
+    return n || (name || "");
+  };
+  const demo = compInput.map((it: any, idx: number) => {
+    const seed = Number(String(it.sku).slice(-4)) || (1000 + idx);
+    const compPrice = 12000 + (seed % 9000);                       // ДЕМО: 12k..21k ₽
+    const ggPrice = Math.round((compPrice * (90 + (seed % 21))) / 100); // ДЕМО: 0.90..1.10 от конкурента
+    const rating = Math.round((40 + (seed % 10))) / 10;             // ДЕМО: 4.0..4.9
+    const reviews = 5 + (seed % 140);                               // ДЕМО
+    const available = seed % 7 !== 0;                               // ДЕМО
+    return { sku: String(it.sku), seller: it.seller || "", stol: stripBrand(it.competitor_name || "", it.seller || ""), gg: it.gg_product || "", cat: it.category || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available };
+  });
+  const catList = [...new Set(demo.map((d) => d.cat).filter(Boolean))];        // категории для фильтра
+
+  const body = `
+  <section class="card" style="border:1px solid #E0A10088;border-left:3px solid #E0A100;background:rgba(224,161,0,.06)">
+    <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
+    <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
+  </section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Сводка по категориям <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">ключевые цифры в разрезе категорий (общий итог - нижней строкой). Клик по категории - фильтр таблицы ниже.</div></div></div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Пар</th><th class="r">Конкурентов</th><th class="r">Ср. цена конкур., ₽</th><th class="r">Ср. рейтинг</th><th class="r">Где мы дороже</th></tr></thead><tbody id="catsum"></tbody><tfoot id="catsumtot"></tfoot></table></div>
+  </section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
+    <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label class="pt-filter-lbl" style="color:var(--ink-2)">Категория:</label>
+      <select id="fCat" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:170px"></select>
+      <label class="pt-filter-lbl" style="color:var(--ink-2);margin-left:6px">Товар GG:</label>
+      <select id="fGG" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:240px"></select>
+      <span class="kt-note" id="fcount"></span>
+    </div>
+    <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Конкурент</th><th>Стол конкурента</th><th>Артикул</th><th>Кв.</th><th class="r">Наша цена ₽</th><th class="r">Цена конкур. ₽</th><th class="r">Δ</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th>Наличие</th></tr></thead><tbody id="ctab"></tbody><tfoot id="ctot"></tfoot></table></div>
+    <div class="kt-note">⚠ всё в таблице - ДЕМО. &#8599; ведёт на реальную карточку OZON. «Артикул» - SKU конкурента на OZON. «Кв.» - квалификация из input.json. «Товар GG» вынесен в фильтр. Нижняя строка - итоги/средние по отфильтрованному.</div>
+  </section>`;
+
+  const pageJs = `
+const DEMO=${J(demo)};
+const CATLIST=${J(catList)};
+function ggFor(cat){return [...new Set(DEMO.filter(d=>!cat||d.cat===cat).map(d=>d.gg).filter(Boolean))];}
+function rebuildGG(){
+  const fc=document.getElementById('fCat').value;
+  const pairs=DEMO.filter(d=>!fc||d.cat===fc).length;
+  const sel=document.getElementById('fGG');
+  sel.innerHTML='<option value="">Все товары GG ('+pairs+' пар)</option>'+ggFor(fc).map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
+}
+function paintTable(){
+  const fc=document.getElementById('fCat').value, fg=document.getElementById('fGG').value;
+  const rows=DEMO.filter(d=>(!fc||d.cat===fc)&&(!fg||d.gg===fg));
+  const sl=new Set(rows.map(d=>d.seller));
+  document.getElementById('fcount').textContent='пар: '+rows.length+' · конкурентов: '+sl.size;
+  const qpill=q=>{const c=/горяч/i.test(q)?'#FF5A5F':/тёпл|тепл/i.test(q)?'#E0A100':'#5d7484';return q?'<span style="color:'+c+';font-weight:700;font-size:11px">'+esc(q)+'</span>':'';};
+  document.getElementById('ctab').innerHTML=rows.map(d=>{
+    const up=d.ggPrice>d.compPrice; const diff=Math.abs(d.ggPrice-d.compPrice);
+    const delta='<span style="color:'+(up?'var(--dn)':'var(--up)')+'">'+(up?'▲ +':'▼ -')+fmtRu(diff)+'</span>';
+    const av=d.available?'<span style="color:var(--up)">в наличии</span>':'<span style="color:var(--dn)">нет</span>';
+    return '<tr><td><b>'+esc(d.seller)+'</b></td>'+
+      '<td><a href="https://www.ozon.ru/product/'+esc(d.sku)+'" target="_blank" rel="noopener" style="color:#22D3EE;text-decoration:none">'+esc(d.stol.slice(0,60))+' &#8599;</a></td>'+
+      '<td><span style="color:#9fb3c0;font-variant-numeric:tabular-nums">'+esc(d.sku)+'</span></td>'+
+      '<td>'+qpill(d.qual)+'</td>'+
+      '<td class="r">'+fmtRu(d.ggPrice)+'</td><td class="r">'+fmtRu(d.compPrice)+'</td><td class="r">'+delta+'</td>'+
+      '<td class="r">'+d.rating.toFixed(1)+'</td><td class="r">'+fmtRu(d.reviews)+'</td><td>'+av+'</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="kt-note">нет пар по выбранному фильтру</td></tr>';
+  // Итоговая строка: средние цены/рейтинг, сумма отзывов, счёт по отфильтрованному.
+  const tot=document.getElementById('ctot');
+  if(rows.length){
+    const n=rows.length;
+    const avgGG=Math.round(rows.reduce((s,d)=>s+d.ggPrice,0)/n);
+    const avgC=Math.round(rows.reduce((s,d)=>s+d.compPrice,0)/n);
+    const pricier=rows.filter(d=>d.ggPrice>d.compPrice).length, cheaper=rows.filter(d=>d.ggPrice<d.compPrice).length;
+    const avgR=Math.round(rows.reduce((s,d)=>s+d.rating,0)/n*10)/10;
+    const sumRev=rows.reduce((s,d)=>s+d.reviews,0), inAv=rows.filter(d=>d.available).length;
+    tot.innerHTML='<tr style="border-top:2px solid #2a3a4a;font-weight:700;background:rgba(255,255,255,.03)">'+
+      '<td>Итого / среднее</td><td>'+n+' пар · '+sl.size+' конкур.</td><td></td><td></td>'+
+      '<td class="r">'+fmtRu(avgGG)+'</td><td class="r">'+fmtRu(avgC)+'</td>'+
+      '<td class="r"><span style="color:var(--dn)">▲'+pricier+'</span> / <span style="color:var(--up)">▼'+cheaper+'</span></td>'+
+      '<td class="r">'+avgR.toFixed(1)+'</td><td class="r">'+fmtRu(sumRev)+'</td><td>'+inAv+' в наличии</td></tr>';
+  } else { tot.innerHTML=''; }
+}
+// Агрегаты по набору строк: пар, конкурентов, средняя цена/рейтинг, где мы дороже.
+function agg(rows){
+  const n=rows.length||0;
+  const sellers=new Set(rows.map(d=>d.seller));
+  const avgC=n?Math.round(rows.reduce((s,d)=>s+d.compPrice,0)/n):0;
+  const avgR=n?Math.round(rows.reduce((s,d)=>s+d.rating,0)/n*10)/10:0;
+  const pricier=rows.filter(d=>d.ggPrice>d.compPrice).length;
+  return {n,sellers:sellers.size,avgC,avgR,pricier};
+}
+function paintCatSummary(){
+  const fc=document.getElementById('fCat').value;
+  const cats=CATLIST.length?CATLIST:[...new Set(DEMO.map(d=>d.cat||'(без категории)'))];
+  const cell=a=>'<td class="r">'+a.n+'</td><td class="r">'+a.sellers+'</td><td class="r">'+fmtRu(a.avgC)+'</td><td class="r">'+a.avgR.toFixed(1)+'</td><td class="r">'+a.pricier+' из '+a.n+'</td>';
+  document.getElementById('catsum').innerHTML=cats.map(c=>{
+    const a=agg(DEMO.filter(d=>(d.cat||'(без категории)')===c));
+    const on=fc===c;
+    return '<tr data-cat="'+esc(c)+'" style="cursor:pointer'+(on?';background:rgba(34,211,238,.10)':'')+'"><td>'+(on?'▸ ':'')+'<b>'+esc(c)+'</b></td>'+cell(a)+'</tr>';
+  }).join('');
+  const t=agg(DEMO);
+  document.getElementById('catsumtot').innerHTML='<tr style="border-top:2px solid #2a3a4a;font-weight:700;background:rgba(255,255,255,.03)"><td>Итого (все категории)</td>'+cell(t)+'</tr>';
+  document.querySelectorAll('#catsum tr[data-cat]').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      const c=tr.getAttribute('data-cat'); const sel=document.getElementById('fCat');
+      sel.value=(sel.value===c)?'':c; rebuildGG(); paintTable(); paintCatSummary();
+    });
+  });
+}
+function render(cur,cmp){
+  const fcat=document.getElementById('fCat');
+  if(fcat && !fcat.options.length){
+    fcat.innerHTML='<option value="">Все категории</option>'+CATLIST.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+    fcat.addEventListener('change',()=>{rebuildGG();paintTable();paintCatSummary();});
+    rebuildGG();
+    document.getElementById('fGG').addEventListener('change',paintTable);
+  }
+  paintCatSummary();
+  paintTable();
+}`;
+  writeFileSync("public/katya-competitors.html", kshell("Конкуренты", "competitors", body, pageJs));
+}
+
+console.log(`katya: командный центр + 5 страниц + конкуренты(ДЕМО) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);

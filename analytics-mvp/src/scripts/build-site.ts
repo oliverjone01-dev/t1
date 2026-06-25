@@ -1,6 +1,6 @@
 // Собирает страницы сервиса со встроенной историей и клиентским движком.
 // Период и сравнение считаются в браузере. Запуск: npm run build:site
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import type { SkuDaily } from "../types.js";
 import { renderTovary, renderOverview, renderFunnel, renderCards, renderMoney, renderAssistant, staticPage } from "../site.js";
 
@@ -105,6 +105,136 @@ function buildCampaigns(): string {
   <div class="note">сливы: расход от 3000 ₽ при нуле заказов или ДРР от 40%. Высвобождение бюджета от отключения нулевых <b>товарных</b> кампаний: <b>${mln(freed)} ₽/мес</b> <span class="pill b-Y">[ГИПОТЕЗА]</span>. Это не «возврат денег», а расход, который прекратится. Допущения: спрос не переедет в органику этих SKU; атрибуция OZON last-click не видит ассистирующих касаний; кампании не включат обратно. Кампания-агрегатор «оплата за заказ» (${mln(aggZero)} ₽) в слив не включена - она покрывает весь каталог. Пилот: отключение двух нулевых, замер 14 дней, чекпоинт 23.06.</div>
   <h2>Топ по расходу</h2>
   <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr><th>Кампания</th><th>Линия</th><th class="r">Расход</th><th class="r">Заказы</th><th class="r">ДРР</th><th class="r">ROAS</th></tr></thead><tbody>${top}</tbody></table></div></div>`;
+}
+
+// Конкуренты: лист дашборда поверх снимков пилота (data/competitors/competitors_YYYY-MM-DD.json).
+// Все поля - публичные с карточки OZON (цена/база/рейтинг/отзывы/наличие/остаток), это [ДАННЫЕ].
+// Заказы/выручку конкурента OZON не отдаёт - на странице их НЕТ (решение Ивана).
+// Лист переживает «пустой прогон»: если снимков нет или анти-бот всё срезал - показываем
+// честный страж-баннер, а не пустую/выдуманную таблицу.
+const COMP_DIR = "data/competitors";
+const COMP_FILL_MIN = 0.6; // порог заполненности: ниже - считаем прогон подозрительным (анти-бот)
+
+function listCompetitorSnaps(): string[] {
+  try {
+    return readdirSync(COMP_DIR)
+      .filter((f) => /^competitors_\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .sort();
+  } catch { return []; }
+}
+
+const compDate = (f: string) => f.slice("competitors_".length, "competitors_".length + 10);
+const daysBetween = (a: string, b: string) => Math.round((Date.parse(b) - Date.parse(a)) / 86_400_000);
+
+// Пустое состояние: пилот ещё не дал живых данных. Объясняем, не выдумываем.
+function competitorsEmpty(reason: string): string {
+  return `
+  <div class="card" style="border-color:#3a3a40"><b>Лист «Конкуренты»</b> - снимки публичных карточек OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт, поэтому их здесь нет - только факт с карточки.</div>
+  <div class="card" style="border-color:#F2B544;background:#2a2414">
+    <b style="color:#F2B544">Данных пока нет.</b> ${reason}
+    <div class="note" style="margin-top:8px">Лист наполнится, как только пилот отработает там, где открыт <code>ozon.ru</code> (локально с домашнего IP или из Actions). Запуск: <code>npx tsx src/scripts/competitors/pilot.ts --out data/competitors</code>, затем <code>npm run build:site</code>. Из дата-центра (в т.ч. GitHub Actions) OZON часто режет сбор анти-ботом - если соберётся 0 карточек, нужен резидентный прокси или платный API.</div>
+  </div>
+  <div class="card">
+    <b>Что покажет лист, когда данные появятся</b>
+    <div class="note" style="margin-top:8px">по каждому конкуренту (из <code>input.json</code>, ${(() => { try { return JSON.parse(readFileSync("src/scripts/competitors/input.json", "utf-8")).items.length; } catch { return "?"; } })()} позиций): текущая цена и база, рейтинг, число отзывов, наличие и остаток - в паре с нашим товаром GG. При ежедневном прогоне рядом с ценой встанет дельта к прошлому снимку (история цен конкурента во времени). Сверху - страж заполненности: если живых карточек меньше ${Math.round(COMP_FILL_MIN * 100)}%, лист краснеет «возможен анти-бот», а не делает вид, что цены просто не изменились.</div>
+  </div>`;
+}
+
+function buildCompetitors(refDate: string): string {
+  const files = listCompetitorSnaps();
+  if (!files.length) return competitorsEmpty("Пилот ещё ни разу не сохранил снимок в <code>data/competitors/</code>.");
+
+  const latestFile = files[files.length - 1]!;
+  const snap = JSON.parse(readFileSync(`${COMP_DIR}/${latestFile}`, "utf-8"));
+  const rows: any[] = Array.isArray(snap.rows) ? snap.rows : [];
+  const snapDate: string = snap.date || compDate(latestFile);
+  const total = rows.length || Number(snap.total) || 0;
+  const ok = Number(snap.ok) || rows.filter((r) => r.ok).length;
+  const blocked = Number(snap.blocked) || rows.filter((r) => r.blocked).length;
+  const fill = total ? ok / total : 0;
+  const fillPct = Math.round(fill * 100);
+
+  if (ok === 0) {
+    return competitorsEmpty(`Последний прогон (${snapDate}) собрал <b>0 из ${total}</b> карточек - похоже, OZON срезал сбор анти-ботом по IP дата-центра.`);
+  }
+
+  // дельта цены к предыдущему снимку (история цен) - если он есть
+  let prevDate = "";
+  const prevPrice = new Map<string, number>();
+  if (files.length > 1) {
+    try {
+      const prevFile = files[files.length - 2]!;
+      const prev = JSON.parse(readFileSync(`${COMP_DIR}/${prevFile}`, "utf-8"));
+      prevDate = prev.date || compDate(prevFile);
+      for (const r of (prev.rows || [])) if (r.price != null) prevPrice.set(String(r.sku), r.price);
+    } catch { /* нет предыдущего - дельты не будет */ }
+  }
+
+  const age = daysBetween(snapDate, refDate);
+  const ageNote = age <= 1 ? "свежий" : `снимку ${age} дн.`;
+  const guard = fill < COMP_FILL_MIN;
+  const guardBar = `
+  <div class="card" style="border-color:${guard ? "#FF5A5F;background:#2a1414" : "#34D399"}">
+    <b style="color:${guard ? "#FF5A5F" : "#34D399"}">${guard ? "Данные неполные" : "Данные собраны"}:</b>
+    живых карточек <b>${ok} из ${total}</b> (${fillPct}%)${blocked ? `, заблокировано ${blocked}` : ""}.
+    ${guard ? `Это ниже порога ${Math.round(COMP_FILL_MIN * 100)}% - часть цен могла не загрузиться (анти-бот OZON). Решения по неполному срезу - с осторожностью.` : "Срез репрезентативен."}
+    <div style="display:flex;height:10px;border-radius:6px;overflow:hidden;border:1px solid var(--line);margin-top:8px">
+      <span style="width:${fillPct}%;background:${guard ? "#FF5A5F" : "#34D399"};display:block;height:100%"></span>
+      <span style="width:${100 - fillPct}%;background:#3a3a40;display:block;height:100%"></span>
+    </div>
+  </div>`;
+
+  const qPill = (q: string) => {
+    const c = /горяч/i.test(q) ? "Z" : /тёпл|тепл/i.test(q) ? "Y" : "C";
+    return q ? `<span class="pill b-${c}">${q}</span>` : "";
+  };
+  const na = '<span class="na">н/д</span>';
+  const rub = (v: any) => (v == null ? na : ru(v) + " ₽");
+  const priceCell = (r: any) => {
+    if (r.price == null) return na;
+    const pp = prevPrice.get(String(r.sku));
+    let delta = "";
+    if (pp != null && pp !== r.price) {
+      // конкурент поднял цену = мы относительно дешевле = хорошо для GG (зелёный);
+      // срезал цену = подвинул нас = плохо (красный). Цвет = выгода нам, стрелка = движение цены.
+      const up = r.price > pp;
+      delta = ` <span class="${up ? "up" : "down"}" title="к ${prevDate}: было ${ru(pp)} ₽">${up ? "▲" : "▼"} ${ru(Math.abs(r.price - pp))}</span>`;
+    }
+    return `${ru(r.price)} ₽${delta}`;
+  };
+  const avail = (r: any) => (r.available == null ? na : r.available ? '<span class="up">в наличии</span>' : '<span class="down">нет</span>');
+
+  // сортировка: сначала собранные карточки, внутри - «горячие» конкуренты выше
+  const sorted = [...rows].sort((a, b) => Number(b.ok) - Number(a.ok) || (/горяч/i.test(b.qualification || "") ? 1 : 0) - (/горяч/i.test(a.qualification || "") ? 1 : 0));
+  const body = sorted.map((r) => {
+    const cName = String(r.competitor_name || r.title || r.sku).slice(0, 64);
+    const fail = !r.ok ? ` <span class="pill b-Z" title="${(r.error || "не собрано").replace(/"/g, "")}">не собрано</span>` : "";
+    return `<tr>
+      <td><a class="lnk" target="_blank" rel="noopener" href="https://www.ozon.ru/product/${r.sku}">${cName}</a>${fail}<div class="sub">${r.seller || ""}</div></td>
+      <td>${r.gg_product || ""}</td>
+      <td>${qPill(r.qualification || "")}</td>
+      <td class="r num">${priceCell(r)}</td>
+      <td class="r num">${rub(r.priceBase)}</td>
+      <td class="r num">${r.rating == null ? na : r.rating}</td>
+      <td class="r num">${r.reviews == null ? na : ru(r.reviews)}</td>
+      <td class="r num">${r.stock == null ? na : ru(r.stock)}</td>
+      <td class="r">${avail(r)}</td>
+    </tr>`;
+  }).join("");
+
+  const deltaNote = prevDate
+    ? `Дельта цены - к снимку ${prevDate}: <span class="up">▲ зелёный</span> = конкурент поднял цену (мы относительно дешевле), <span class="down">▼ красный</span> = срезал (подвинул нас). Чем чаще прогон, тем полнее история цен конкурентов.`
+    : `Дельта цены появится со второго снимка (нужен повторный прогон пилота).`;
+
+  return `
+  <div class="card" style="border-color:#3a3a40"><b>Снимок публичных карточек OZON · ${snapDate}</b> <span class="pill b-A">[ДАННЫЕ]</span> <span class="sub">${ageNote}</span>. Цена / база / рейтинг / отзывы / наличие - факт с карточки. Заказы и выручку конкурента OZON не отдаёт - их здесь нет (решение Ивана).</div>
+  ${guardBar}
+  <h2>Конкуренты GG · ${ok}/${total} карточек</h2>
+  <div class="card" style="padding:0"><div class="tscroll"><table><thead><tr>
+    <th>Конкурент (продавец)</th><th>Наш товар GG</th><th>Кв.</th>
+    <th class="r">Цена ₽</th><th class="r">База ₽</th><th class="r">Рейтинг</th><th class="r">Отзывы</th><th class="r">Остаток</th><th class="r">Наличие</th>
+  </tr></thead><tbody>${body}</tbody></table></div></div>
+  <div class="note">&#8599; - публичная карточка OZON. «Кв.» - квалификация конкурента из <code>input.json</code> (горячий / тёплый). ${deltaNote} Остаток OZON показывает редко, поэтому часто «н/д». ${blocked ? `Заблокировано анти-ботом: ${blocked}.` : ""}</div>`;
 }
 
 // Сверенный P&L по закрытым месяцам - из подписанных Актов OZON (DOC_02 §2.2, §7).
@@ -226,7 +356,13 @@ function main() {
   const footMkt = `ДРР канала - <b>[ДАННЫЕ]</b>, надёжен. ДРР по линиям - ориентир (G5). Индекс цены - снимок OZON. Реклама/цены не в дневной истории, поэтому страница - снимок за 30 дней, без интерактивного периода.`;
   writePage("public/marketing.html", staticPage("Маркетинг и цена", "снимок рекламы и цен за 30 дней", buildMarketing(), footMkt));
   writePage("public/campaigns.html", staticPage("Кампании", "снимок рекламы за 30 дней", buildCampaigns(), footMkt));
-  console.log(`Готово: obzor · tovary · voronka · cards · money · marketing · campaigns (+index-redirect)`);
+
+  const footComp = `Все поля - <b>[ДАННЫЕ]</b> с публичной карточки OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт - не оцениваем. Лист - снимок последнего прогона пилота; страж заполненности краснеет, если анти-бот срезал сбор.`;
+  const compSnaps = listCompetitorSnaps();
+  const compLabel = compSnaps.length ? `снимок конкурентов ${compDate(compSnaps[compSnaps.length - 1]!)}` : "конкуренты - данных пока нет";
+  writePage("public/competitors.html", staticPage("Конкуренты", compLabel, buildCompetitors(maxDate), footComp));
+
+  console.log(`Готово: obzor · tovary · voronka · cards · money · marketing · campaigns · competitors (+index-redirect)`);
   console.log(`Фактов ${facts.length} · SKU ${Object.keys(skus).length} · ${model.floor}..${model.max} · OOS ${oos.length} · закрытые Акты до ${closedMeta.lastLabel}${closedMeta.stale ? " (УСТАРЕЛИ)" : ""}`);
 }
 

@@ -130,6 +130,8 @@
   .bc-role{font-size:12px;font-weight:700;color:var(--ink3);margin-top:2px}
   .bc-facts{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px;position:relative}
   .fact{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:var(--r-pill);background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+  .fact.unv{opacity:.62;border-style:dashed;border-color:var(--line2)}
+  .bc-unv{font-size:10.5px;color:var(--ink3);margin-top:7px;position:relative;line-height:1.4}
   .bc-hook{margin-top:16px;position:relative;border-left:3px solid;border-radius:0 12px 12px 0;background:var(--card2);padding:11px 14px}
   .bc.g .bc-hook{border-color:var(--g)} .bc.v .bc-hook{border-color:var(--v)} .bc.m .bc-hook{border-color:var(--m)} .bc.gm .bc-hook{border-color:var(--gm)}
   .bc-hook .lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
@@ -219,7 +221,16 @@
   .block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
   .block .bh{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;margin-bottom:8px}
   .block .bh .cmini{margin-left:auto}
+  .block .bh .cnt+.cmini{margin-left:8px}
   .block p{font-size:13.5px;color:var(--ink2);line-height:1.5;white-space:pre-wrap;margin:0}
+  /* inline editing + live counters */
+  .scard h4[contenteditable],.scard p[contenteditable],.block p[contenteditable]{cursor:text;outline:none;border-radius:7px;padding:2px 5px;margin-left:-5px;margin-right:-5px;transition:background .15s,box-shadow .15s}
+  .scard [contenteditable]:hover,.block p[contenteditable]:hover{background:var(--card2)}
+  .scard [contenteditable]:focus,.block [contenteditable]:focus{background:var(--card2);box-shadow:inset 0 0 0 1px var(--cta)}
+  .scard [contenteditable]:empty::before,.block [contenteditable]:empty::before{content:attr(data-ph);color:var(--ink3);pointer-events:none}
+  .cnt{font-size:11px;font-weight:800;color:var(--ink3);margin-left:auto;font-variant-numeric:tabular-nums}
+  .cnt.over{color:var(--rose)}
+  .edhint{font-size:11.5px;color:var(--ink3);line-height:1.45;margin-bottom:4px}
   @media(max-width:820px){.brands,.cols{grid-template-columns:1fr}.tnav{display:none}}
   @media(max-width:520px){.hero{padding:48px 0 24px}section{padding:38px 0}}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -290,13 +301,14 @@
       <p>Один шаблон виральности, но тон, факты и запреты у каждого свои. Переключатель вверху приглушает остальные.</p></div>
     <div class="brands">
       <article class="bc g">
-        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">палитры + линия TRUBIS · mid-premium · B2C/B2B · сталь</div></div></div>
-        <div class="bc-facts"><span class="fact">RAL 9005</span><span class="fact">16 000 м²</span><span class="fact">27 000 заказов</span><span class="fact">350+ проектов</span><span class="fact">7 дней до отгрузки</span><span class="fact">палитры NERO/ORO/BIANCO</span></div>
+        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">палитры + линия TRUBIS · B2C/B2B · сталь</div></div></div>
+        <div class="bc-facts"><span class="fact">RAL 9005</span><span class="fact">16 000 м²</span><span class="fact unv" title="на верификации выгрузкой 1С">27 000 заказов*</span><span class="fact unv" title="на верификации выгрузкой 1С">350+ проектов*</span><span class="fact">7 дней до отгрузки</span><span class="fact">палитры NERO/ORO/BIANCO</span></div>
+        <div class="bc-unv">* trust-band компании, на верификации выгрузкой 1С - сверять перед публикацией</div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Зонировали кухню-гостиную за 3 дня. Без капремонта»</div></div>
         <div class="bc-no">Тон: профессиональная теплота, «коллега». <b>Нельзя:</b> «изысканный», «роскошный» без механики.</div>
       </article>
       <article class="bc v">
-        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · B2D (для дизайнеров) · золото</div></div></div>
+        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · для дизайнеров интерьера · золото</div></div></div>
         <div class="bc-facts"><span class="fact">Nero Marquina</span><span class="fact">Travertino Navona</span><span class="fact">Onyx Miele</span><span class="fact">бронза · латунь</span></div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Эту прожилку Nero Marquina не повторит ни одна фабрика»</div></div>
         <div class="bc-no">Тон: скульптурная скупость, каждое предложение - экспонат. <b>Нельзя:</b> «современный дизайн», «модный тренд».</div>
@@ -309,7 +321,7 @@
       </article>
       <article class="bc gm">
         <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">мемориальные наборы · родственники, ритуальные агентства · иней</div></div></div>
-        <div class="bc-facts"><span class="fact">Crystalvision +25%</span><span class="fact">набор: стела+накладка+подставка</span><span class="fact">формат комплекта</span></div>
+        <div class="bc-facts"><span class="fact">Crystalvision (premium)</span><span class="fact">набор: стела+накладка+подставка</span><span class="fact">формат комплекта</span></div>
         <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Crystalvision или обычное стекло: что выбрать под гравировку»</div></div>
         <div class="bc-no">Тон: деликатность без манипуляций. <b>Нельзя:</b> «вечная память», триггеры скорби как продажный аргумент.</div>
       </article>
@@ -319,14 +331,15 @@
   <!-- ЦЕХ / FORGE -->
   <section id="forge">
     <div class="sh"><span class="tag">04 · студия</span><h2>Студия каруселей</h2>
-      <p>Бриф → промпт → вставляете ответ ИИ обратно, и студия раскладывает его на готовые слайды, брифы картинок и подпись с кнопками копирования. Ручного разбора ноль.</p></div>
+      <p>Бриф → промпт → вставляете ответ ИИ обратно, и студия раскладывает его на готовые слайды, брифы картинок и подпись. Правьте текст прямо в карточках - счётчики символов и хэштегов считают вживую, готовое забираете кнопкой копирования или одним файлом .txt. Ручного разбора ноль.</p></div>
 
     <div class="studio">
       <!-- 1. БРИФ -->
       <div class="stp"><span class="sn">1</span> Бриф</div>
       <div class="gen-form">
         <label class="fld"><span>Тема карусели</span>
-          <input id="g-topic" type="text" autocomplete="off" placeholder="напр. Алюминиевая или стальная перегородка"></label>
+          <input id="g-topic" type="text" autocomplete="off" placeholder="напр. Алюминиевая или стальная перегородка">
+          <span class="chips" id="g-topic-chips"></span></label>
         <div class="row2">
           <label class="fld"><span>Бренд</span>
             <select id="g-brand">
@@ -373,7 +386,10 @@
         </div>
         <div class="fld"><span>Живой превью арки <em id="g-viz-h">3-4 фото-слота</em></span>
           <div class="arcprev" id="arcprev"></div></div>
-        <button class="btn gen-go" id="g-go" type="button">Собрать промпт →</button>
+        <div class="copyrow gen-go" style="margin-top:2px">
+          <button class="btn" id="g-go" type="button">Собрать промпт →</button>
+          <button class="btn ghost" id="g-reset" type="button">Очистить</button>
+        </div>
       </div>
 
       <!-- 2. ПРОМПТ -->
@@ -462,10 +478,10 @@
 <script>
 (function(){
   var BR={
-    genglass:{name:'GENGLASS',handle:'genglass',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'Реальные факты: 16 000 м² производства (Домодедово), 27 000 заказов с 2018, 350+ крупных проектов, стекло 8-10 мм, палитры NERO/ORO/BIANCO. Цифры не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики',cta:'расчёт перегородки под ваш проём или подбор палитры за 24 часа',aud:['дизайнер интерьера','прораб','конечный клиент','застройщик']},
-    valonti:{name:'VALONTI',handle:'valonti',accent:'#C8A951',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа, B2D. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',cta:'запрос авторской работы или консультация декоратору',aud:['дизайнер-декоратор','архитектор','частный коллекционер']},
-    metalgm:{name:'Metal-GM',handle:'metal.gm',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр',cta:'расчёт партии от 50 шт по ТЗ',aud:['снабженец','производственник','подрядчик']},
-    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',accent:'#86B6C9',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (премиум, +25% по spec-листу - формулировку уточнить до публикации), керамическая печать, мемориальные наборы (стела, накладка, подставка). Дилерская сеть по РФ (число уточнить).',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби',cta:'подбор мемориального набора через дилера',aud:['родственники','ритуальные агентства','дилеры']}
+    genglass:{name:'GENGLASS',handle:'genglass',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'16 000 м² производства (Домодедово). Trust-band компании (сверять с выгрузкой 1С перед публикацией, источник на верификации): около 27 000 заказов с 2018 и 350+ проектов. Стекло 8-10 мм, палитры NERO/ORO/BIANCO. Непроверенные числа не выдавать за факт, новых не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики',cta:'расчёт перегородки под ваш проём или подбор палитры за 24 часа',aud:['дизайнер интерьера','прораб','конечный клиент','застройщик'],topics:['Алюминий или сталь в перегородке','3 ошибки при заказе стекла','Сколько стоит перегородка под ключ','Зонировать студию без капремонта']},
+    valonti:{name:'VALONTI',handle:'valonti',accent:'#C8A951',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа для дизайнеров и архитекторов. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',cta:'запрос авторской работы или консультация декоратору',aud:['дизайнер-декоратор','архитектор','частный коллекционер'],topics:['Как выбрать слэб Nero Marquina','Травертин против оникса в интерьере','Авторский стол: от слэба до сборки','Латунь или бронза в каркасе']},
+    metalgm:{name:'Metal-GM',handle:'metal.gm',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр',cta:'расчёт партии от 50 шт по ТЗ',aud:['снабженец','производственник','подрядчик'],topics:['Партия кронштейнов от 50 шт','Любой RAL по ТЗ: как заказать','Гибка, сварка, покраска за 10 дней','Контрактное производство или склад']},
+    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',accent:'#86B6C9',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (премиум, +25% по spec-листу - формулировку уточнить до публикации), керамическая печать, мемориальные наборы (стела, накладка, подставка). Дилерская сеть по РФ (число уточнить).',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби',cta:'подбор мемориального набора через дилера',aud:['родственники','ритуальные агентства','дилеры'],topics:['Crystalvision или обычное стекло','Из чего состоит мемориальный набор','Керамическая печать: что важно','Как выбрать стелу: 4 критерия']}
   };
   var VIZ={low:{n:'1-2',img:2,h:'1-2 фото-слота'},mid:{n:'3-4',img:4,h:'3-4 фото-слота'},high:{n:'5-6',img:6,h:'5-6 фото-слотов'}};
   var GOAL={reach:'охват и виральность (досмотры, репосты, сохранения)',lead:'лиды: заявка/расчёт/консультация, CTA максимально конкретный и низкопороговый',sale:'продажа и дожим: оффер и причина действовать сейчас',warm:'прогрев и экспертность: доверие, мягкий CTA'};
@@ -486,12 +502,13 @@
     var cards=$('arcprev').querySelectorAll('.ac');
     a.forEach(function(s,i){cards[i].querySelector('.ab').textContent=s.t;if(s.k==='cover')cards[i].style.borderColor=acc;});
   }
-  function renderChips(){var b=BR[$('g-brand').value],h='';b.aud.forEach(function(a){h+='<b data-a="'+a+'">'+a+'</b>';});$('g-aud-chips').innerHTML=h;}
+  function renderChips(){var b=BR[$('g-brand').value],h='';b.aud.forEach(function(a){h+='<b data-a="'+a+'">'+a+'</b>';});$('g-aud-chips').innerHTML=h;var th='';(b.topics||[]).forEach(function(t){th+='<b data-t="'+t+'">'+t+'</b>';});if($('g-topic-chips'))$('g-topic-chips').innerHTML=th;}
   $('g-viz').addEventListener('click',function(e){var bn=e.target.closest('button');if(!bn)return;viz=bn.getAttribute('data-v');
     Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===bn);});$('g-viz-h').textContent=VIZ[viz].h;renderArc();});
   $('g-brand').addEventListener('change',function(){renderChips();renderArc();});
   $('g-count').addEventListener('change',renderArc);
   $('g-aud-chips').addEventListener('click',function(e){var b=e.target.closest('b');if(b)$('g-aud').value=b.getAttribute('data-a');});
+  $('g-topic-chips').addEventListener('click',function(e){var b=e.target.closest('b');if(b)$('g-topic').value=b.getAttribute('data-t');});
   var LS='gg_carousel_v2';
   function save(){try{localStorage.setItem(LS,JSON.stringify({t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,p:$('g-paste').value}));}catch(e){}}
   function restore(){var s={};try{s=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){}
@@ -509,59 +526,86 @@
 'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+'. Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
 'ЗАДАЧА: сценарий карусели на '+count+' слайдов, которую невозможно пролистнуть.\nТема: «'+topic+'»\nАудитория: '+aud+'\nЦель: '+goal+'\nФормат: '+fmt+'\nХук: '+hook+'.\n\n'+
 'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА: '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
-'ПРАВИЛА:\n- Клиент-first: от боли клиента, не от продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA под цель.\n- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA кончается открытой петлёй, крючком на «→».\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст до 160; один слайд = одна мысль. Минимум одна конкретная цифра на слайд. Реальные факты, ничего не выдумывать.\n- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
+'ПРАВИЛА:\n- Клиент-first: от боли клиента, не от продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA под цель.\n- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA кончается открытой петлёй, крючком на «→».\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст до 160; один слайд = одна мысль. На слайд минимум одна конкретная цифра - из фактуры бренда выше или из данных SMM. Непроверенные числа не выдавай за факт, ничего не выдумывать.\n- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
 'ВИЗУАЛИЗАЦИЯ: '+vn+' фото-слота. На каждый отдельный арт-бриф (Nano Banana / GPT Image): объект, ракурс, свет, обработка, «без людей, без текста», размер под '+fmt+'. Единый STYLE-LOCK на всю карусель. Данные и диаграммы делай графикой, не фото.\n\n'+
 'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
     $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn;
     $('g-out').hidden=false;$('g-asm').hidden=false;$('g-out').scrollIntoView({behavior:'smooth',block:'start'});
   }
   $('g-go').addEventListener('click',build);
+  $('g-reset').addEventListener('click',function(){
+    ['g-topic','g-aud','g-paste'].forEach(function(id){$(id).value='';});
+    $('g-brand').value='genglass';$('g-fmt').value='4:5';$('g-goal').value='reach';$('g-hook').value='auto';$('g-count').value='7';
+    viz='mid';Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')==='mid');});$('g-viz-h').textContent=VIZ.mid.h;
+    $('g-cards').innerHTML='';$('g-out').hidden=true;$('g-asm').hidden=true;
+    try{localStorage.removeItem(LS);}catch(e){}
+    renderChips();renderArc();$('g-topic').focus();
+  });
   function cbtn(label,txt){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
-    b.addEventListener('click',function(){if(!navigator.clipboard)return;navigator.clipboard.writeText(txt).then(function(){var o=b.textContent;b.textContent='✓';setTimeout(function(){b.textContent=o;},1200);});});return b;}
+    b.addEventListener('click',function(){var t=(typeof txt==='function')?txt():txt;if(!navigator.clipboard)return;navigator.clipboard.writeText(t).then(function(){var o=b.textContent;b.textContent='✓';setTimeout(function(){b.textContent=o;},1200);});});return b;}
+  function dlbtn(label,name,getTxt){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
+    b.addEventListener('click',function(){try{var blob=new Blob([getTxt()],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}catch(e){}});return b;}
+  function warnFor(title,text,isCta){var w=[];if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(title+' '+text))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');return w;}
+  function slideTxt(card){var h=card.querySelector('h4'),p=card.querySelector('p');var t=(h?h.textContent.trim():''),x=(p?p.textContent.trim():'');return (t?t+'\n':'')+x;}
+  function recount(card){var h=card.querySelector('h4'),p=card.querySelector('p');var title=h?h.textContent.trim():'',text=p?p.textContent.trim():'';var w=warnFor(title,text,card.getAttribute('data-cta')==='1');var wd=card.querySelector('.warn2');if(!wd)return;if(w.length){wd.hidden=false;wd.textContent='⚠ '+w.join(' · ');}else{wd.hidden=true;wd.textContent='';}}
   function parse(){
     var raw=$('g-paste').value||'';if(!raw.trim())return;
     var wrap=$('g-cards');wrap.innerHTML='';
     var clean=function(s){return (s||'').replace(/\*+/g,'').replace(/^#+\s*/,'').replace(/\s+/g,' ').trim();};
     var blocks=raw.split(/(?=(?:^|\n)\s*(?:#{0,4}\s*)?\*{0,2}\s*Слайд\s*№?\s*\d+)/i).filter(function(x){return /Слайд\s*№?\s*\d+/i.test(x);});
-    var allText=[],allBriefs=[];
+    var allBriefs=[],cardEls=[];
     blocks.forEach(function(bl,i){
       var type=clean((bl.match(/\[\s*(?:тип[:\s]*)?([^\]]+)\]/i)||[])[1]);
       var title=clean((bl.match(/Заголовок[:\s]*([^\n]+)/i)||[])[1]);
       var text=clean((bl.match(/Текст[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Бриф|Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
       var brief=clean((bl.match(/Бриф[^:\n]*[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
       if(!title&&!text)return;
-      allText.push((title?title+'\n':'')+text);
       if(brief)allBriefs.push('Слайд '+(i+1)+': '+brief);
-      var isCta=/cta|призыв/i.test(type)||i===blocks.length-1, w=[];
-      if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');
-      if((title||text)&&!/\d/.test(title+' '+text))w.push('нет цифры');
-      if(title.length>40)w.push('заголовок '+title.length+'/40');
-      if(text.length>160)w.push('текст '+text.length+'/160');
-      var card=document.createElement('div');card.className='scard';
-      card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span></div>'+(title?'<h4></h4>':'')+(text?'<p></p>':'')+(brief?'<div class="brf"></div>':'')+(w.length?'<div class="warn2"></div>':'');
+      var isCta=/cta|призыв/i.test(type)||i===blocks.length-1;
+      var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');
+      card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span></div>'+
+        '<h4 contenteditable="true" data-ph="Заголовок (до 40)"></h4>'+
+        '<p contenteditable="true" data-ph="Текст слайда (до 160, кончай на →)"></p>'+
+        (brief?'<div class="brf"></div>':'')+
+        '<div class="warn2" hidden></div>';
       card.querySelector('.stype').textContent=type;
-      if(title)card.querySelector('h4').textContent=title;
-      if(text)card.querySelector('p').textContent=text;
+      card.querySelector('h4').textContent=title;
+      card.querySelector('p').textContent=text;
       if(brief)card.querySelector('.brf').textContent='Бриф: '+brief;
-      if(w.length)card.querySelector('.warn2').textContent='⚠ '+w.join(' · ');
-      card.querySelector('.s2h').appendChild(cbtn('Копировать',(title?title+'\n':'')+text));
-      wrap.appendChild(card);
+      card.querySelector('.s2h').appendChild(cbtn('Копировать',function(){return slideTxt(card);}));
+      card.addEventListener('input',function(){recount(card);});
+      recount(card);
+      wrap.appendChild(card);cardEls.push(card);
     });
     if(!blocks.length){var fb=document.createElement('div');fb.className='block';fb.innerHTML='<div class="bh">Не распознал разметку слайдов (показываю сырой ответ)</div><p></p>';fb.querySelector('p').textContent=raw.trim();fb.querySelector('.bh').appendChild(cbtn('Копировать всё',raw.trim()));wrap.appendChild(fb);return;}
     var lock=((raw.match(/STYLE[- ]?LOCK[:\s]*([^\n]+)/i)||[])[1]||'').trim();
     var cap=((raw.match(/ПОДПИСЬ[:\s]*([\s\S]*?)(?=\n\s*ХЭШ|$)/i)||[])[1]||'').trim();
     var tagSec=(raw.match(/ХЭШТЕГИ[:\s]*([\s\S]*)$/i)||[])[1]||raw;var tags=(tagSec.match(/#[A-Za-zА-Яа-яёЁ0-9_]{2,}/g)||[]).join(' ');
     var briefsTxt=(lock?'STYLE-LOCK: '+lock+'\n\n':'')+allBriefs.join('\n');
+    function allTextNow(){return cardEls.map(slideTxt).filter(function(s){return s.trim();}).join('\n\n');}
     function block(title,body){var d=document.createElement('div');d.className='block';d.innerHTML='<div class="bh">'+title+'</div><p></p>';d.querySelector('p').textContent=body;d.querySelector('.bh').appendChild(cbtn('Копировать',body));wrap.appendChild(d);}
+    function liveBlock(title,body,ph,limit,counter){
+      var d=document.createElement('div');d.className='block';
+      d.innerHTML='<div class="bh">'+title+' <span class="cnt"></span></div><p contenteditable="true" data-ph="'+ph+'"></p>';
+      var p=d.querySelector('p'),cnt=d.querySelector('.cnt');p.textContent=body;
+      function upd(){var n=counter(p.textContent);cnt.textContent=n+'/'+limit;cnt.classList.toggle('over',n>limit);}
+      p.addEventListener('input',upd);upd();
+      d.querySelector('.bh').appendChild(cbtn('Копировать',function(){return p.textContent.trim();}));
+      wrap.appendChild(d);return p;
+    }
     if(allBriefs.length)block('Брифы картинок ('+allBriefs.length+')',briefsTxt);
-    if(cap)block('Подпись к посту',cap);
-    if(tags)block('Хэштеги',tags);
+    /* Лимиты Instagram на 2026-06: подпись 2200 символов, хэштегов 30. Meta меняет без анонса - сверять при сбоях. */
+    var capP=cap?liveBlock('Подпись к посту',cap,'Подпись поста',2200,function(s){return s.trim().length;}):null;
+    var tagP=tags?liveBlock('Хэштеги',tags,'#хэштеги',30,function(s){return (s.match(/#[A-Za-zА-Яа-яёЁ0-9_]{2,}/g)||[]).length;}):null;
+    function everythingNow(){return allTextNow()+(allBriefs.length?'\n\n=== БРИФЫ ===\n'+briefsTxt:'')+(capP?'\n\n=== ПОДПИСЬ ===\n'+capP.textContent.trim():'')+(tagP?'\n\n'+tagP.textContent.trim():'');}
     var bar=document.createElement('div');bar.className='copyrow';
-    bar.appendChild(cbtn('Скопировать весь текст',allText.join('\n\n')));
+    bar.appendChild(cbtn('Скопировать весь текст',allTextNow));
     if(allBriefs.length)bar.appendChild(cbtn('Скопировать все брифы',briefsTxt));
-    var everything=allText.join('\n\n')+(allBriefs.length?'\n\n=== БРИФЫ ===\n'+briefsTxt:'')+(cap?'\n\n=== ПОДПИСЬ ===\n'+cap:'')+(tags?'\n\n'+tags:'');
-    bar.appendChild(cbtn('Скопировать всё одним блоком',everything));
+    bar.appendChild(cbtn('Скопировать всё одним блоком',everythingNow));
+    bar.appendChild(dlbtn('Скачать .txt','carousel-'+$('g-brand').value+'.txt',everythingNow));
     wrap.insertBefore(bar,wrap.firstChild);
+    var hint=document.createElement('div');hint.className='edhint';hint.textContent='Карточки, подпись и хэштеги редактируются прямо здесь - счётчики и предупреждения обновляются вживую. Лимиты Instagram: подпись 2200, хэштегов 30.';
+    wrap.insertBefore(hint,wrap.firstChild);
   }
   $('g-parse').addEventListener('click',parse);
   $('g-copy').addEventListener('click',function(){var t=$('g-prompt').textContent;if(!navigator.clipboard)return;

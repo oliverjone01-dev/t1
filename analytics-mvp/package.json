@@ -21,6 +21,7 @@
     "smoke": "tsx src/scripts/smoke.ts",
     "ads:reports": "tsx src/scripts/ozon/ad-reports.ts",
     "ads:daily": "tsx src/scripts/ozon/ads-daily.ts",
+    "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "import:cards": "tsx src/scripts/ozon/import-card-groups.ts"
   },
   "dependencies": {

@@ -1,8 +1,8 @@
 name: B24 webhook smoke (read-only)
 
-# Разовая проверка: секрет B24_WEBHOOK_URL присутствует и вебхук Bitrix живой.
-# Только чтение (profile/scope). Значение секрета GitHub автомаскирует в логах.
-# Запускается на push этого файла и вручную (workflow_dispatch).
+# Read-only разведка портала Bitrix перед написанием коннектора РОП.
+# Проверяет секрет, auth, scope, воронки, сущность лидов, объёмы и UF-поля.
+# Значение секрета GitHub автомаскирует. Только чтение (.list/.fields), никаких записей.
 
 on:
   workflow_dispatch:
@@ -20,36 +20,63 @@ jobs:
       - name: Секрет присутствует?
         run: |
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then
-            echo "::error::Секрет B24_WEBHOOK_URL не задан в репозитории (Settings -> Secrets -> Actions)."
-            exit 1
+            echo "::error::Секрет B24_WEBHOOK_URL не задан."; exit 1
           fi
           echo "::add-mask::$B24_WEBHOOK_URL"
-          echo "B24_WEBHOOK_URL присутствует, длина ${#B24_WEBHOOK_URL} символов."
-          case "$B24_WEBHOOK_URL" in
-            https://*/rest/*) echo "Формат похож на REST-вебхук.";;
-            *) echo "::warning::Формат не похож на https://<portal>/rest/<id>/<token>/";;
-          esac
+          echo "B24_WEBHOOK_URL присутствует, длина ${#B24_WEBHOOK_URL}."
 
-      - name: Bitrix profile.json (проверка auth)
+      - name: Auth + scope
         run: |
           base="${B24_WEBHOOK_URL%/}"
-          code=$(curl -sS -o /tmp/p.json -w '%{http_code}' --max-time 30 "$base/profile.json" || echo "000")
-          echo "profile.json -> HTTP $code"
-          if [ "$code" != "200" ]; then
-            echo "::error::Bitrix не ответил 200 (код $code). Проверь URL вебхука и доступность портала."
-            head -c 400 /tmp/p.json || true
-            exit 1
-          fi
-          node -e 'const j=require("/tmp/p.json");const r=j.result||{};if(j.error){console.error("Bitrix error:",j.error_description||j.error);process.exit(1);}console.log("OK. Владелец вебхука:",[r.NAME,r.LAST_NAME].filter(Boolean).join(" ")||"(имя скрыто)","| ADMIN:",r.ADMIN);'
+          curl -sS --max-time 30 "$base/profile.json" -o /tmp/p.json
+          curl -sS --max-time 30 "$base/scope.json" -o /tmp/s.json
+          node -e 'const p=require("/tmp/p.json").result||{};const s=require("/tmp/s.json").result||[];console.log("Владелец:",[p.NAME,p.LAST_NAME].filter(Boolean).join(" "),"| ADMIN:",p.ADMIN,"| scope:",JSON.stringify(s));'
 
-      - name: Bitrix scope.json (какие права выданы)
+      - name: Воронка лидов = classic crm.lead?
         run: |
           base="${B24_WEBHOOK_URL%/}"
-          curl -sS --max-time 30 "$base/scope.json" -o /tmp/s.json || true
-          node -e 'try{const j=require("/tmp/s.json");console.log("Scope вебхука:",JSON.stringify(j.result||j));}catch(e){console.log("scope.json не распарсился");}'
+          # объём классических лидов
+          curl -sS --max-time 30 -X POST "$base/crm.lead.list.json" \
+            -H 'Content-Type: application/json' -d '{"select":["ID"],"start":0}' -o /tmp/lead.json || true
+          # статусы лидов (стадии воронки лидов)
+          curl -sS --max-time 30 -X POST "$base/crm.status.list.json" \
+            -H 'Content-Type: application/json' -d '{"filter":{"ENTITY_ID":"STATUS"}}' -o /tmp/lst.json || true
+          node -e '
+            let L={}; try{L=require("/tmp/lead.json")}catch(e){}
+            let S={}; try{S=require("/tmp/lst.json")}catch(e){}
+            if(L.error){console.log("crm.lead -> error:",L.error_description||L.error,"(classic-лиды, видимо, выключены)");}
+            else{console.log("classic crm.lead: total =", L.total);}
+            const st=(S.result||[]).map(x=>x.STATUS_ID+":"+x.NAME);
+            console.log("Стадии воронки лидов (STATUS):", st.length?st.join(" | "):"(нет — лиды отключены?)");
+          '
 
-      - name: Bitrix crm.dealcategory.list (видны ли воронки)
+      - name: Объёмы сделок (воронка 49 vs категория 69 «GG Лиды»)
         run: |
           base="${B24_WEBHOOK_URL%/}"
-          curl -sS --max-time 30 "$base/crm.dealcategory.list.json" -o /tmp/c.json || true
-          node -e 'try{const j=require("/tmp/c.json");const c=(j.result||[]).map(x=>x.ID+":"+x.NAME);console.log("Воронки сделок:",c.length?c.join(" | "):"(пусто или нет прав crm)");}catch(e){console.log("crm.dealcategory.list не распарсился");}'
+          for cat in 49 69; do
+            curl -sS --max-time 30 -X POST "$base/crm.deal.list.json" \
+              -H 'Content-Type: application/json' -d "{\"filter\":{\"CATEGORY_ID\":$cat},\"select\":[\"ID\"],\"start\":0}" -o /tmp/d$cat.json || true
+            node -e "let d={};try{d=require('/tmp/d$cat.json')}catch(e){};console.log('CATEGORY_ID=$cat -> total =', d.total!==undefined?d.total:('error: '+(d.error_description||d.error)));"
+          done
+          # стадии воронки 49
+          curl -sS --max-time 30 "$base/crm.dealcategory.stage.list.json?id=49" -o /tmp/st49.json || true
+          node -e 'let j={};try{j=require("/tmp/st49.json")}catch(e){};const s=(j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME);console.log("Стадии воронки 49:", s.join(" | "));'
+
+      - name: UF-поля сделок и лидов (для маппинга assort/dir/reason)
+        run: |
+          base="${B24_WEBHOOK_URL%/}"
+          curl -sS --max-time 30 "$base/crm.deal.fields.json" -o /tmp/df.json || true
+          curl -sS --max-time 30 "$base/crm.lead.fields.json" -o /tmp/lf.json || true
+          node -e '
+            function dump(file,label){
+              let j={};try{j=require(file)}catch(e){}
+              const f=j.result||{};
+              const uf=Object.keys(f).filter(k=>k.indexOf("UF_")===0);
+              console.log("=== "+label+" UF-поля: "+uf.length+" ===");
+              uf.forEach(k=>{
+                const x=f[k]; const items=(x.items||[]).slice(0,8).map(i=>i.ID+"="+i.VALUE).join(", ");
+                console.log(k+" | "+(x.title||x.formLabel||"")+" | "+x.type+(items?(" | {"+items+"}"):""));
+              });
+            }
+            dump("/tmp/df.json","DEAL"); dump("/tmp/lf.json","LEAD");
+          '

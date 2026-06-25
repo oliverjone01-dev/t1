@@ -1,5 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { dailyChannel } from "./pnl-daily.js";
+import { dailyChannel, monthWindows } from "./pnl-daily.js";
+
+describe("monthWindows (лимит OZON - один месяц за запрос)", () => {
+  it("режет диапазон на календарные месяцы, хвост обрезан по to", () => {
+    expect(monthWindows("2026-02-01", "2026-06-24")).toEqual([
+      ["2026-02-01", "2026-02-28"],
+      ["2026-03-01", "2026-03-31"],
+      ["2026-04-01", "2026-04-30"],
+      ["2026-05-01", "2026-05-31"],
+      ["2026-06-01", "2026-06-24"],
+    ]);
+  });
+  it("одно неполное окно в пределах месяца", () => {
+    expect(monthWindows("2026-06-10", "2026-06-24")).toEqual([["2026-06-10", "2026-06-24"]]);
+  });
+});
 
 const op = (date: string, accr: number, comm: number, amount: number, svc = 0) =>
   ({ operation_date: `${date} 12:30:00`, accruals_for_sale: accr, sale_commission: comm, amount, services: svc ? [{ name: "Логистика", price: svc }] : [] });

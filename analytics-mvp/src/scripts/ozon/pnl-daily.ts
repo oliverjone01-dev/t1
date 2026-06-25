@@ -29,11 +29,29 @@ export function dailyChannel(ops: any[]): DailyPnl[] {
 const fmt = (dt: Date) => dt.toISOString().slice(0, 10);
 function yesterday(): string { const d = new Date(); d.setUTCDate(d.getUTCDate() - 1); return fmt(d); }
 
+// OZON /v3/finance/transaction/list разрешает максимум ОДИН МЕСЯЦ за запрос -> режем диапазон
+// на календарные месяцы [from..конец месяца], последнее окно обрезаем по to. Чистое, тестируется.
+export function monthWindows(from: string, to: string): Array<[string, string]> {
+  const out: Array<[string, string]> = [];
+  if (from > to) return out;
+  let y = Number(from.slice(0, 4)), m = Number(from.slice(5, 7)), cur = from;
+  while (cur <= to) {
+    let wEnd = fmt(new Date(Date.UTC(y, m, 0))); // последний день месяца m (1-based)
+    if (wEnd > to) wEnd = to;
+    out.push([cur, wEnd]);
+    m++; if (m > 12) { m = 1; y++; }
+    cur = `${y}-${String(m).padStart(2, "0")}-01`;
+  }
+  return out;
+}
+
 async function main() {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
   if (!clientId || !apiKey) { console.warn("pnl-daily: OZON_SELLER_* нет - пропуск"); return; }
   const to = yesterday();
-  const ops = await new OzonSeller({ clientId, apiKey }).transactions(FLOOR, to);
+  const seller = new OzonSeller({ clientId, apiKey });
+  const ops: any[] = [];
+  for (const [wf, wt] of monthWindows(FLOOR, to)) ops.push(...(await seller.transactions(wf, wt)));
   const rows = dailyChannel(ops);
   if (!rows.length) { console.log(`pnl-daily: OZON не отдал операций за ${FLOOR}..${to}`); return; }
   writeFileSync(OUT, rows.map((r) => JSON.stringify(r)).join("\n") + "\n");

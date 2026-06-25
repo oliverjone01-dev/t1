@@ -191,6 +191,11 @@
   .gen-out .prompt pre{max-height:440px}
   @media(max-width:560px){.row2{grid-template-columns:1fr}}
   /* STUDIO v2 */
+  .pipe{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:18px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+  .pstep{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--ink2);background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-pill);padding:7px 13px}
+  .pstep b{width:19px;height:19px;border-radius:6px;background:var(--card);color:var(--cta);display:grid;place-items:center;font-size:11px;font-weight:900;flex:none}
+  .pstep.money{background:var(--cta);color:var(--cta-ink);border-color:var(--cta)}.pstep.money b{background:rgba(4,16,31,.18);color:var(--cta-ink)}
+  .parr{color:var(--ink3);font-weight:800}
   .studio{display:grid;gap:16px}
   .stp{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:8px}
   .stp .sn{width:30px;height:30px;border-radius:9px;background:var(--cta);color:var(--cta-ink);display:grid;place-items:center;font-size:15px;font-weight:900;flex:none}
@@ -317,28 +322,27 @@
       <p>Один шаблон виральности, но тон, факты и запреты у каждого свои. Переключатель вверху приглушает остальные.</p></div>
     <div class="brands">
       <article class="bc g">
-        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">палитры + линия TRUBIS · B2C/B2B · сталь</div></div></div>
-        <div class="bc-facts"><span class="fact">RAL 9005</span><span class="fact">16 000 м²</span><span class="fact unv" title="на верификации выгрузкой 1С">27 000 заказов*</span><span class="fact unv" title="на верификации выгрузкой 1С">350+ проектов*</span><span class="fact">7 дней до отгрузки</span><span class="fact">палитры NERO/ORO/BIANCO</span></div>
-        <div class="bc-unv">* trust-band компании, на верификации выгрузкой 1С - сверять перед публикацией</div>
-        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Зонировали кухню-гостиную за 3 дня. Без капремонта»</div></div>
-        <div class="bc-no">Тон: профессиональная теплота, «коллега». <b>Нельзя:</b> «изысканный», «роскошный» без механики.</div>
+        <div class="bc-top"><div class="mono">G</div><div><div class="bc-name">GENGLASS</div><div class="bc-role">дизайнерская мебель из стекла и металла · mid-premium · B2C/B2B</div></div></div>
+        <div class="bc-facts"><span class="fact">14 линеек</span><span class="fact">TRUBIS · TUBARIS · FLYIOT</span><span class="fact">срок 20-35 дней</span><span class="fact">двойной ОТК</span><span class="fact">стаж мастеров 7 лет</span><span class="fact">рассрочка Сплит</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Стол TUBARIS 200×90, тёмный мрамор: 174 900 ₽, 25-30 дней»</div></div>
+        <div class="bc-no">Тон: профессиональная теплота, «коллега». <b>Нельзя:</b> «изысканный», «роскошный» без механики; чужие цифры Metal-GM.</div>
       </article>
       <article class="bc v">
-        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская галерея · для дизайнеров интерьера · золото</div></div></div>
-        <div class="bc-facts"><span class="fact">Nero Marquina</span><span class="fact">Travertino Navona</span><span class="fact">Onyx Miele</span><span class="fact">бронза · латунь</span></div>
-        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Эту прожилку Nero Marquina не повторит ни одна фабрика»</div></div>
-        <div class="bc-no">Тон: скульптурная скупость, каждое предложение - экспонат. <b>Нельзя:</b> «современный дизайн», «модный тренд».</div>
+        <div class="bc-top"><div class="mono">V</div><div><div class="bc-name">VALONTI</div><div class="bc-role">авторская премиум-мебель полного цикла · архитекторы</div></div></div>
+        <div class="bc-facts"><span class="fact">камень · оптич. стекло · металл</span><span class="fact">132 комбинации</span><span class="fact">352 проекта</span><span class="fact">1 250 bespoke</span><span class="fact">2-4 недели</span><span class="fact">КП за 4 часа</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«КП с визуализацией за 4 часа. Изготовление 2-4 недели, не 5-8 месяцев»</div></div>
+        <div class="bc-no">Тон: скульптурная скупость, каждое предложение - экспонат. <b>Нельзя:</b> «современный дизайн», «модный тренд», МДФ/имитации.</div>
       </article>
       <article class="bc m">
-        <div class="bc-top"><div class="mono">M</div><div><div class="bc-name">Metal-GM</div><div class="bc-role">контрактное производство · B2B · графит</div></div></div>
-        <div class="bc-facts"><span class="fact">любой RAL по ТЗ</span><span class="fact">партия от 50 шт</span><span class="fact">порошковая покраска</span><span class="fact">без линий и коллекций</span></div>
-        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Партия 50 кронштейнов, любой RAL по ТЗ, без минималки на цвет»</div></div>
+        <div class="bc-top"><div class="mono">M</div><div><div class="bc-name">Metal-GM</div><div class="bc-role">контрактное металлопроизводство под ключ · B2B</div></div></div>
+        <div class="bc-facts"><span class="fact">3 500 м² цех</span><span class="fact">27 000+ заказов с 2018</span><span class="fact">350+ проектов</span><span class="fact">любой RAL</span><span class="fact">от 30 000 ₽ компонент</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«1 подрядчик, 1 дедлайн: резка, гибка, сварка, покраска RAL в одном цеху»</div></div>
         <div class="bc-no">Тон: инженер инженеру, сухая фактура. <b>Нельзя:</b> эпитеты, поэзия, «качество» без цифр.</div>
       </article>
       <article class="bc gm">
-        <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">мемориальные наборы · родственники, ритуальные агентства · иней</div></div></div>
-        <div class="bc-facts"><span class="fact">Crystalvision (premium)</span><span class="fact">набор: стела+накладка+подставка</span><span class="fact">формат комплекта</span></div>
-        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Crystalvision или обычное стекло: что выбрать под гравировку»</div></div>
+        <div class="bc-top"><div class="mono">GM</div><div><div class="bc-name">GLASS-MEMORY</div><div class="bc-role">ритуальная продукция из стекла · через дилеров</div></div></div>
+        <div class="bc-facts"><span class="fact">керамическая печать</span><span class="fact">закалённое 4-34 мм</span><span class="fact">320+ дилеров</span><span class="fact">с 2016</span><span class="fact">7 650 отреставрировано</span></div>
+        <div class="bc-hook"><div class="lbl">Brand-safe хук</div><div class="h">«Керамическая печать впекается в стекло. УФ-печать выцветает за 3-5 лет, эта - нет»</div></div>
         <div class="bc-no">Тон: деликатность без манипуляций. <b>Нельзя:</b> «вечная память», триггеры скорби как продажный аргумент.</div>
       </article>
     </div>
@@ -347,7 +351,15 @@
   <!-- ЦЕХ / FORGE -->
   <section id="forge">
     <div class="sh"><span class="tag">04 · студия</span><h2>Студия каруселей</h2>
-      <p>Бриф → промпт → вставляете ответ ИИ обратно, и студия раскладывает его на готовые слайды, брифы картинок и подпись. Правьте текст прямо в карточках - счётчики символов и хэштегов считают вживую, готовое забираете кнопкой копирования или одним файлом .txt. Ручного разбора ноль.</p></div>
+      <p>Автономный конвейер: бриф → промпт → ответ ИИ → редактируемые слайды → готовый HTML, который навык <b>gengroup-carousel</b> печатает в PNG на бренд-токенах Design Kit. Факты брендов строго из GENGROUP_BASE, рендер фотореалистичный, текст по «скользкой горке». Ручного разбора ноль.</p></div>
+
+    <div class="pipe" aria-label="конвейер">
+      <span class="pstep"><b>1</b> Бриф + бренд</span><span class="parr">→</span>
+      <span class="pstep"><b>2</b> Промпт (фото 8K + виральность)</span><span class="parr">→</span>
+      <span class="pstep"><b>3</b> Ответ ИИ → слайды</span><span class="parr">→</span>
+      <span class="pstep"><b>4</b> Картинки в Nano Banana / GPT Image</span><span class="parr">→</span>
+      <span class="pstep money"><b>5</b> HTML → навык gengroup-carousel → PNG</span>
+    </div>
 
     <div class="studio">
       <!-- 0. ЧЕРНОВИКИ -->
@@ -407,6 +419,19 @@
               <button type="button" data-v="low">Мало</button>
               <button type="button" data-v="mid" class="on">Средне</button>
               <button type="button" data-v="high">Много</button>
+            </div></div>
+        </div>
+        <div class="row2">
+          <div class="fld"><span>Люди в кадре <em>(фотореализм)</em></span>
+            <div class="seg" id="g-people" role="group" aria-label="люди в кадре">
+              <button type="button" data-p="no" class="on">Без людей</button>
+              <button type="button" data-p="yes">С людьми</button>
+              <button type="button" data-p="auto">Авто</button>
+            </div></div>
+          <div class="fld"><span>Реализм рендера</span>
+            <div class="seg" id="g-real" role="group" aria-label="реализм">
+              <button type="button" data-r="photo" class="on">Фото 8K</button>
+              <button type="button" data-r="editorial">Editorial</button>
             </div></div>
         </div>
         <div class="fld"><span>Живой превью арки <em id="g-viz-h">3-4 фото-слота</em></span>
@@ -502,18 +527,23 @@
 </script>
 <script>
 (function(){
+  /* ПРЕСЕТЫ БРЕНДОВ - строго по GENGROUP_BASE/GENGROUP_PRL_v5_Brands_v1.0.md (верифицировано по сайтам брендов, Май 2026).
+     Никаких выдуманных цифр. 27 000 заказов и 350+ проектов - это Metal-GM, НЕ GENGLASS. 16 000 м² - площадь всей группы. */
   var BR={
-    genglass:{name:'GENGLASS',handle:'genglass',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'16 000 м² производства (Домодедово). Trust-band компании (сверять с выгрузкой 1С перед публикацией, источник на верификации): около 27 000 заказов с 2018 и 350+ проектов. Стекло 8-10 мм, палитры NERO/ORO/BIANCO. Непроверенные числа не выдавать за факт, новых не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики',cta:'расчёт перегородки под ваш проём или подбор палитры за 24 часа',aud:['дизайнер интерьера','прораб','конечный клиент','застройщик'],topics:['Алюминий или сталь в перегородке','3 ошибки при заказе стекла','Сколько стоит перегородка под ключ','Зонировать студию без капремонта']},
-    valonti:{name:'VALONTI',handle:'valonti',accent:'#B8943D',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа для дизайнеров и архитекторов. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',cta:'запрос авторской работы или консультация декоратору',aud:['дизайнер-декоратор','архитектор','частный коллекционер'],topics:['Как выбрать слэб Nero Marquina','Травертин против оникса в интерьере','Авторский стол: от слэба до сборки','Латунь или бронза в каркасе']},
-    metalgm:{name:'Metal-GM',handle:'metal.gm',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр',cta:'расчёт партии от 50 шт по ТЗ',aud:['снабженец','производственник','подрядчик'],topics:['Партия кронштейнов от 50 шт','Любой RAL по ТЗ: как заказать','Гибка, сварка, покраска за 10 дней','Контрактное производство или склад']},
-    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',accent:'#C8A951',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (премиум, +25% по spec-листу - формулировку уточнить до публикации), керамическая печать, мемориальные наборы (стела, накладка, подставка). Дилерская сеть по РФ (число уточнить).',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби',cta:'подбор мемориального набора через дилера',aud:['родственники','ритуальные агентства','дилеры'],topics:['Crystalvision или обычное стекло','Из чего состоит мемориальный набор','Керамическая печать: что важно','Как выбрать стелу: 4 критерия']}
+    genglass:{name:'GENGLASS',handle:'genglass',seg:'mid-premium · B2C + дилеры + B2B',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, размеры в мм/см, сроки в днях, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'Российский бренд дизайнерской мебели из стекла, металла, дерева, камня, керамики; mid-premium, слоган «Доступное премиальное качество». 7 категорий каталога, 14 линеек (TRUBIS, KONUX, KALURIS, TUBARIS, DEFALE, ETAZIUM, CUBISSO, SELMUS, FLYIOT, ZONIQUE, VERUF, WINDIX, SOLVANOR, HORSIX). Срок изготовления 20-35 дней, двойной ОТК, средний стаж мастеров 7 лет, рассрочка Сплит. Реальные цены genglass.ru: стол TUBARIS 200x90 - 174 900 ₽, стеллаж TRUBIS - 64 900 ₽, перегородка FLYIOT - от 344 900 ₽. Производство группы 16 000 м² в Домодедово. Только реальные цифры, новых не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без механики; чужие цифры Metal-GM (27 000 заказов - это не GENGLASS); выдуманные числа',cta:'расчёт изделия под ваш размер или подбор из каталога genglass.ru',aud:['дизайнер интерьера','архитектурное бюро','конечный клиент (дом, квартира)','строительная компания'],topics:['Алюминий или сталь в перегородке','Линейка TRUBIS: трубчатый каркас и дерево','3 ошибки при заказе стекла на заказ','Зонировать студию без капремонта']},
+    valonti:{name:'VALONTI',handle:'valonti',seg:'premium / lux · архитекторы, частные клиенты',accent:'#B8943D',tone:'скульптурная скупость на слова, каждое предложение - экспонат. Материал плюс форма плюс одна идея. Никогда не громко и не продающе.',facts:'Авторская премиум-мебель полного цикла, слоган «Дизайн, который побеждает время». Материалы только камень (слэбы без изъянов), оптическое стекло, металл ручной обработки - без МДФ, ЛДСП, шпона, имитаций. 132 комбинации материалов. Линейки: Agisu (обеденный стол), Boteuf (зеркало), Aranix (стеллаж). Цифры valonti.ru: 4 цеха, 34 конструктора и промдизайнера, 352 реализованных проекта, 1 250 bespoke-изделий. Срок 2-4 недели против импорта 5-8 месяцев, КП с визуализацией за 4 часа, смета за 24 часа, гарантия 12 месяцев, White-Glove монтаж, персональный арт-куратор, Sample-box.',forbid:'современный дизайн, модный тренд, универсальное решение; МДФ/ЛДСП/имитации; кричащий тон',cta:'запрос авторского проекта через арт-куратора (КП с визуализацией за 4 часа)',aud:['архитектор','дизайнер интерьера','архитектурное бюро','частный клиент премиум-сегмента'],topics:['Почему только камень, стекло и металл','2-4 недели против импорта 5-8 месяцев','Что делает арт-куратор VALONTI','Sample-box: попасть в оттенок до запуска']},
+    metalgm:{name:'Metal-GM',handle:'metal.gm',seg:'B2B контрактное производство',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Операции, RAL, сроки, форматы и рубли. Без эпитетов и поэзии.',facts:'Контрактное металлопроизводство под ключ B2B, слоган «Эстетика видимого металла», tagline «1 подрядчик, 1 дедлайн, готовый продукт». 3 500 м² цеха (Домодедово, Интегра), 27 000+ заказов с 2018, 350+ коммерческих проектов, 7+ лет в видимом металле. Резка, гибка, сварка (TIG и лазерная), зачистка, порошковая покраска RAL, сборка, упаковка - всё в одном цеху. Форматы: КОМПОНЕНТЫ от 30 000 ₽, ПОД КЛЮЧ от 50 000 ₽, СЕРИЙНОЕ NDA от 100 000 ₽/мес. Категории: мебельные каркасы (~50%), интерьерный металл (~25%), коммерческие изделия (~15%), OEM (~10%). Линий и коллекций нет - это контракт.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр; партии «в штуках» (минимум в рублях)',cta:'расчёт по ТЗ: компонент от 30 000 ₽ или под ключ от 50 000 ₽',aud:['мебельный бренд','интерьерный подрядчик (fit-out)','OEM / White Label заказчик','производство без своего металлоцеха'],topics:['Свой металлоцех или контракт: считаем CAPEX','Один подрядчик на весь цикл металла','Любой RAL: порошковая покраска по ТЗ','OEM под NDA: серия под вашим брендом']},
+    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',seg:'ритуальная ниша · через дилеров',accent:'#C8A951',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём. Говорим о технологии и долговечности, не давим на горе.',facts:'Ритуальная продукция из стекла, лидер ниши в РФ, слоган «Эксклюзивные памятники из стекла, керамическая печать». С 2016 года (10 лет), 320+ дилеров по РФ, 2 500 м² установленных памятников, 7 650 отреставрировано. Закалённое стекло 4-34 мм, триплекс для цветников и ограждений, осветлённое стекло 12 мм без зеленоватого оттенка. Керамическая печать впекается в стекло при закалке - не выцветает (УФ-печать конкурентов выцветает за 3-5 лет). 7 категорий: памятники (прямоугольные, фасонные, наборные), фото из стекла, фото на подставке, реставрационные накладки, ограждения, цветники. Срок 25-30 дней. Франшиза: паушал 100 000 ₽, помещение 2-15 м². Главный конкурент - ПРОМСТЕКЛО (УФ-печать).',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби как продающий аргумент; выдуманные марки премиум-стекла, которых нет в GENGROUP_BASE',cta:'подбор изделия через ближайшего дилера glass-memory.ru',aud:['конечный клиент через дилера','дилер / франчайзи','ритуальное агентство'],topics:['Стекло или гранит: что долговечнее','Керамическая печать против УФ: почему не выцветает','Закалённое стекло 4-34 мм: как выбрать толщину','Франшиза GLASS-MEMORY: вход от 100 000 ₽']}
   };
   var VIZ={low:{n:'1-2',img:2,h:'1-2 фото-слота'},mid:{n:'3-4',img:4,h:'3-4 фото-слота'},high:{n:'5-6',img:6,h:'5-6 фото-слотов'}};
   var GOAL={reach:'охват и виральность (досмотры, репосты, сохранения)',lead:'лиды: заявка/расчёт/консультация, CTA максимально конкретный и низкопороговый',sale:'продажа и дожим: оффер и причина действовать сейчас',warm:'прогрев и экспертность: доверие, мягкий CTA'};
   var HOOK={auto:'подбери сильнейший хук под тему',number:'хук через число и ставку',contra:'контрарный хук, ломающий ожидание',question:'хук-вопрос к страху или задаче клиента',result:'хук через конкретный результат'};
   var FMT={'4:5':'портрет 4:5 (1080×1350)','1:1':'квадрат 1:1 (1080×1080)','9:16':'stories 9:16 (1080×1920)','2:3':'pinterest 2:3 (1000×1500)'};
-  var viz='mid', $=function(id){return document.getElementById(id);};
+  var viz='mid', peopleMode='no', realMode='photo', $=function(id){return document.getElementById(id);};
   if(!$('g-viz'))return;
+  function segPick(id,attr){var el=$(id);if(!el)return;el.addEventListener('click',function(e){var bn=e.target.closest('button');if(!bn)return;
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===bn);});
+    if(id==='g-people')peopleMode=bn.getAttribute(attr);if(id==='g-real')realMode=bn.getAttribute(attr);save();});}
   var MID=['Проблема','Факт','Что делать','Сравнение','Доказательство','Цифры','Список','Кейс'];
   function arc(c){var a=[{t:'Хук',k:'cover'}];for(var i=0;i<c-2;i++)a.push({t:MID[i%MID.length],k:'mid'});a.push({t:'CTA',k:'cta'});return a;}
   function renderArc(){
@@ -534,11 +564,14 @@
   $('g-count').addEventListener('change',renderArc);
   $('g-aud-chips').addEventListener('click',function(e){var b=e.target.closest('b');if(b)$('g-aud').value=b.getAttribute('data-a');});
   $('g-topic-chips').addEventListener('click',function(e){var b=e.target.closest('b');if(b)$('g-topic').value=b.getAttribute('data-t');});
+  function segApply(id,attr,val){var el=$(id);if(!el)return;Array.prototype.forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute(attr)===val);});}
+  segPick('g-people','data-p');segPick('g-real','data-r');
   var LS='gg_carousel_v2';
-  function save(){try{localStorage.setItem(LS,JSON.stringify({t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,p:$('g-paste').value}));}catch(e){}}
+  function save(){try{localStorage.setItem(LS,JSON.stringify({t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value}));}catch(e){}}
   function restore(){var s={};try{s=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){}
     if(s.t)$('g-topic').value=s.t;if(s.b)$('g-brand').value=s.b;if(s.f)$('g-fmt').value=s.f;if(s.g)$('g-goal').value=s.g;if(s.h)$('g-hook').value=s.h;if(s.a)$('g-aud').value=s.a;if(s.c)$('g-count').value=s.c;if(s.p)$('g-paste').value=s.p;
     if(s.v){viz=s.v;Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')===viz);});$('g-viz-h').textContent=VIZ[viz].h;}
+    if(s.pm){peopleMode=s.pm;segApply('g-people','data-p',peopleMode);}if(s.rm){realMode=s.rm;segApply('g-real','data-r',realMode);}
     renderChips();renderArc();}
   ['g-topic','g-brand','g-fmt','g-goal','g-hook','g-aud','g-count','g-paste'].forEach(function(id){var el=$(id);if(el){el.addEventListener('input',save);el.addEventListener('change',save);}});
   $('g-viz').addEventListener('click',save);
@@ -547,10 +580,11 @@
   var DLS='gg_carousel_drafts';
   function getDrafts(){try{return JSON.parse(localStorage.getItem(DLS)||'[]');}catch(e){return [];}}
   function setDrafts(a){try{localStorage.setItem(DLS,JSON.stringify(a));}catch(e){}}
-  function snapshot(){return {t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,p:$('g-paste').value};}
+  function snapshot(){return {t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value};}
   function applySnap(s){if(!s)return;
     $('g-topic').value=s.t||'';$('g-brand').value=s.b||'genglass';$('g-fmt').value=s.f||'4:5';$('g-goal').value=s.g||'reach';$('g-hook').value=s.h||'auto';$('g-aud').value=s.a||'';$('g-count').value=s.c||'7';$('g-paste').value=s.p||'';
     if(s.v){viz=s.v;Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')===viz);});$('g-viz-h').textContent=VIZ[viz].h;}
+    peopleMode=s.pm||'no';segApply('g-people','data-p',peopleMode);realMode=s.rm||'photo';segApply('g-real','data-r',realMode);
     renderChips();renderArc();save();}
   function dstamp(ts){try{var d=new Date(ts),z=function(n){return ('0'+n).slice(-2);};return z(d.getDate())+'.'+z(d.getMonth()+1)+' '+z(d.getHours())+':'+z(d.getMinutes());}catch(e){return '';}}
   function renderDrafts(){
@@ -579,14 +613,25 @@
     var topic=($('g-topic').value||'').trim(),b=BR[$('g-brand').value],count=$('g-count').value;
     var aud=($('g-aud').value||'').trim()||'определи по теме',gk=$('g-goal').value,goal=GOAL[gk]+((gk==='lead'||gk==='sale')&&b.cta?(' · CTA-якорь бренда: '+b.cta):''),hook=HOOK[$('g-hook').value],fmt=FMT[$('g-fmt').value];
     if(!topic){$('g-topic').focus();return;}
-    var vn=VIZ[viz].n,p=
-'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+'. Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
+    var vn=VIZ[viz].n;
+    var realLine=(realMode==='photo')
+      ? 'ultra-photorealistic, physically based, 8K, неотличимо от снимка профессионального фотографа; натуральные цвета, без CGI-глянца и пластика, без артефактов'
+      : 'премиальный editorial-кадр уровня интерьерного журнала (AD, Elle Decor): кинематографичный свет, чистая композиция, дорогая фактура, неотличимо от настоящей съёмки';
+    var peopleLine,peopleClause;
+    if(peopleMode==='yes'){peopleLine='- ЖИВЫЕ АТРИБУТЫ: в кадре люди и признаки жизни - естественные позы и руки, взаимодействие с изделием, обжитой интерьер, лёгкое движение, бытовой реквизит; лица живые, без стоковых улыбок; этично и уместно бренду.';peopleClause='с людьми и живыми атрибутами';}
+    else if(peopleMode==='auto'){peopleLine='- ЛЮДИ ПО УМЕСТНОСТИ: добавляй человека там, где кадр выигрывает (масштаб, взаимодействие, жизнь интерьера), иначе чистая премиум-предметка; без стоковых улыбок.';peopleClause='люди по уместности';}
+    else{peopleLine='- БЕЗ ЛЮДЕЙ: премиум-предметка, фокус на изделии, материале и свете.';peopleClause='без людей';}
+    if($('g-brand').value==='glassmemory')peopleLine+=' Для GLASS-MEMORY: без сцен скорби, без лиц у мемориала и траурной атрибутики как приёма; люди только нейтрально (напр. рука мастера у станка).';
+    var p=
+'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+' ('+(b.seg||'')+'). Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
 'ЗАДАЧА: сценарий карусели на '+count+' слайдов, которую невозможно пролистнуть.\nТема: «'+topic+'»\nАудитория: '+aud+'\nЦель: '+goal+'\nФормат: '+fmt+'\nХук: '+hook+'.\n\n'+
-'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА: '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
-'ПРАВИЛА:\n- Клиент-first: от боли клиента, не от продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA под цель.\n- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA кончается открытой петлёй, крючком на «→».\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст до 160; один слайд = одна мысль. На слайд минимум одна конкретная цифра - из фактуры бренда выше или из данных SMM. Непроверенные числа не выдавай за факт, ничего не выдумывать.\n- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
-'ВИЗУАЛИЗАЦИЯ: '+vn+' фото-слота. На каждый отдельный арт-бриф (Nano Banana / GPT Image): объект, ракурс, свет, обработка, «без людей, без текста», размер под '+fmt+'. Единый STYLE-LOCK на всю карусель. Данные и диаграммы делай графикой, не фото.\n\n'+
+'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА (только эти факты, верифицированы по GENGROUP_BASE): '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
+'ВИРАЛЬНОСТЬ (выжимай максимум, но без дешёвого кликбейта, который дешевит премиум):\n- СКОЛЬЗКАЯ ГОРКА Шугармана (ОБЯЗАТЕЛЬНО): хук затягивает в первый слайд, каждый слайд кроме CTA кончается открытой петлёй и крючком на «→» - читатель физически не может остановиться.\n- Curiosity gap: хук обещает ответ и НЕ отдаёт его сразу, разрыв любопытства держит до финала.\n- Pattern interrupt: неожиданный факт, цифра или контр-тезис ломает ожидание (для премиума - не «ШОК», а острая конкретика).\n- Specificity: точные числа, размеры, сроки, рубли вместо общих слов - они репостабельны и дают доверие.\n- Контрасты на отдельных слайдах: до/после, ошибка/решение, миф/факт.\n- Social proof через факт из фактуры (проекты, годы, объёмы), без хвастовства.\n- Один слайд = одна мысль плюс микро-клиффхэнгер в конце.\n- Финал: сильный вывод, затем CTA в воронку под цель (не «подпишись», а шаг к расчёту/проекту/дилеру).\n\n'+
+'ПРАВИЛА ТЕКСТА:\n- Клиент-first: от боли и задачи клиента, не от продукта.\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст слайда до 160; одна мысль на слайд. Минимум одна конкретная цифра на слайд - строго из ФАКТУРЫ выше или из данных SMM. Непроверенные числа не выдавай за факт, новых не выдумывай.\n- Терминология бренда точная (линейка ≠ коллекция ≠ комплект). Без AI-канцелярита и длинного тире, только дефис.\n\n'+
+'ВИЗУАЛИЗАЦИЯ - '+vn+' фото-слотов. КАЖДЫЙ арт-бриф (для Nano Banana / GPT Image / Midjourney) обязан давать беспрецедентно крутой кадр:\n- Реализм: '+realLine+'; без водяных знаков, без текста и логотипов на самой картинке.\n- Камера и оптика: назови камеру/объектив и параметры (напр. 50mm f/1.8, 85mm f/1.4, для предметки 100mm macro), глубину резкости и боке.\n- Свет: конкретная схема (мягкий дневной из окна, золотой час, студийный softbox), направление, тени, рефлексы на металле/стекле/камне.\n- Материал и фактура: реальная поверхность (муар на стали, прожилки камня, кромка и блик стекла, RAL-покрытие, керамическая печать), микродетали - чтобы читалось как настоящий материал, не CGI.\n'+peopleLine+'\n- Единый STYLE-LOCK на всю карусель (свет + палитра + оптика + обработка), чтобы кадры не дрейфовали между слайдами.\n- Каждый бриф одной плотной строкой: объект, ракурс, свет, оптика, материал/фактура, обработка, '+peopleClause+', размер под '+fmt+'.\n- Данные, цифры, схемы, сравнения - ГРАФИКОЙ слайда (её рендерит студия), НЕ фотографией.\n\n'+
 'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nВАРИАНТЫ ХУКА: три альтернативных заголовка слайда 1 для A/B, каждый с новой строки в формате H1: ... / H2: ... / H3: ...\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
-    $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn;
+    var pmL={no:'без людей',yes:'с людьми',auto:'люди авто'}[peopleMode],rmL={photo:'фото 8K',editorial:'editorial'}[realMode];
+    $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn+' · '+pmL+' · '+rmL;
     $('g-out').hidden=false;$('g-asm').hidden=false;$('g-out').scrollIntoView({behavior:'smooth',block:'start'});
   }
   $('g-go').addEventListener('click',build);
@@ -594,6 +639,7 @@
     ['g-topic','g-aud','g-paste'].forEach(function(id){$(id).value='';});
     $('g-brand').value='genglass';$('g-fmt').value='4:5';$('g-goal').value='reach';$('g-hook').value='auto';$('g-count').value='7';
     viz='mid';Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')==='mid');});$('g-viz-h').textContent=VIZ.mid.h;
+    peopleMode='no';segApply('g-people','data-p','no');realMode='photo';segApply('g-real','data-r','photo');
     $('g-cards').innerHTML='';$('g-out').hidden=true;$('g-asm').hidden=true;
     try{localStorage.removeItem(LS);}catch(e){}
     renderChips();renderArc();$('g-topic').focus();

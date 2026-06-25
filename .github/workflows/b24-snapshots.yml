@@ -58,7 +58,13 @@ jobs:
         run: |
           set -euo pipefail
           npx tsx src/scripts/b24/fetch-rop.ts
-          echo "Размер: $(du -h rop/data/rop.json | cut -f1)"
+          echo "Размер данных: $(du -h rop/data/rop.json | cut -f1)"
+
+      - name: Запечь дашборд (build-rop) -> public/rop-command.html
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/build-rop.ts
+          echo "Дашборд: $(du -h public/rop-command.html | cut -f1)"
 
       - name: Commit (если есть изменения)
         working-directory: .
@@ -66,9 +72,9 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/rop/data
+          git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
           if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
-          git commit -m "data(rop): снимок Bitrix24 (сделки+лиды) $(date -u +%F)"
+          git commit -m "data(rop): снимок Bitrix24 + дашборд $(date -u +%F)"
           for i in 1 2 3 4 5; do
             if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
             git rebase --abort 2>/dev/null || true; sleep $((2**i))

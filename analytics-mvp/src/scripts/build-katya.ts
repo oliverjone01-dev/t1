@@ -988,6 +988,14 @@ function render(cur,cmp){
   const collectSkus = (ts: any[]) => (ts || []).forEach((c: any) => { if (c && c.id && c.skus && c.skus[0] && !skuByCamp[String(c.id)]) skuByCamp[String(c.id)] = String(c.skus[0]); });
   collectSkus(adsSnap.top_spend);
   for (const k of ["p7", "p30", "p90"]) collectSkus((adsPeriods[k] || {}).top_spend);
+  // Фаза 1b: дневной ряд рекламы (ads_daily.ndjson) + мета кампаний (line/instr/place/status
+  // из снимка - в дневном ряду их нет). Дашборд агрегирует ЛЮБОЙ период из дневного ряда.
+  let adsDaily: any[] = [];
+  try { adsDaily = readFileSync("data/ads_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { adsDaily = []; }
+  const campMeta: Record<string, { off: string; line: string; instr: string; place: string; status: string }> = {};
+  const addMeta = (list: any[]) => (list || []).forEach((c: any) => { if (c && c.id && !campMeta[String(c.id)]) campMeta[String(c.id)] = { off: c.off || "", line: c.line || "прочее", instr: c.instr || "", place: c.place || "-", status: c.status || "" }; });
+  addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
+  for (const k of ["p7", "p30", "p90"]) { addMeta((adsPeriods[k] || {}).top_spend); addMeta((adsPeriods[k] || {}).burners); }
   const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
@@ -1035,7 +1043,22 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const CAMP_META=${J(campMeta)};
+// Фаза 1b: агрегат рекламы за ПРОИЗВОЛЬНЫЙ период из дневного ряда (как продажи из history).
+// Форма 1:1 со снимком (totals/top_spend/burners/by_line), чтобы paint/renderTop/renderBurn не менять.
+function aggFromDaily(from,to){
+  var m={};
+  for(var i=0;i<ADS_DAILY.length;i++){var r=ADS_DAILY[i];if(r.d<from||r.d>to)continue;var a=m[r.id]||(m[r.id]={id:r.id,off:r.off,sp:0,o:0,om:0});a.sp+=r.sp;a.o+=r.o;a.om+=r.om;}
+  var list=Object.keys(m).map(function(k){var c=m[k];var meta=CAMP_META[k]||{};var sp=Math.round(c.sp),om=Math.round(c.om);
+    return {id:c.id,off:meta.off||c.off,line:meta.line||'прочее',instr:meta.instr||'',place:meta.place||'-',status:meta.status||'',sp:sp,o:c.o,om:om,drr:om?Math.round(sp/om*1000)/10:0,cpo:c.o?Math.round(sp/c.o):0,roas:sp?Math.round(om/sp*10)/10:0};});
+  var spend=0,om=0,orders=0,active=0;list.forEach(function(c){spend+=c.sp;om+=c.om;orders+=c.o;if(c.sp>0)active++;});
+  var totals={spend:spend,adRevenue:om,orders:orders,drr:om?Math.round(spend/om*1000)/10:0,cpo:orders?Math.round(spend/orders):0,active:active,campaigns:list.length};
+  var top_spend=list.slice().sort(function(x,y){return y.sp-x.sp;}).slice(0,10);
+  var burners=list.filter(function(c){return c.sp>=3000&&(c.o===0||c.drr>=40);}).sort(function(x,y){return y.sp-x.sp;}).slice(0,8);
+  var lm={};list.forEach(function(c){var g=lm[c.line]||(lm[c.line]={line:c.line,sp:0,om:0});g.sp+=c.sp;g.om+=c.om;});
+  var by_line=Object.keys(lm).map(function(k){var g=lm[k];return {line:k,sp:g.sp,om:g.om,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
+  return {dateFrom:from,dateTo:to,totals:totals,top_spend:top_spend,burners:burners,by_line:by_line,daily:true};
+}
 function campSku(c){return (c.skus&&c.skus[0])?String(c.skus[0]):(SKUS_BY_CAMP[String(c.id)]||null);}
 // Пометка устаревания снимка (мягкий страж): если конец периода старше вчера на >=2 дн.
 function staleMark(to){try{if(!to)return '';var t=new Date(String(to).slice(0,10)+'T00:00Z'),n=new Date();var y=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));y.setUTCDate(y.getUTCDate()-1);var dd=Math.round((y-t)/864e5);return dd>=2?' <span style="color:#FF8A5A;font-weight:700" title="Снимок не обновлялся. Свежесть держит ночной синк OZON.">⚠ устарело '+dd+' дн</span>':'';}catch(e){return '';}}
@@ -1123,11 +1146,11 @@ function paint(a,src){
     kpi('ДРР',odrr+'%'),kpi('Расход, ₽',fMln(t.spend||0)),kpi('Выручка с рекламы, ₽',fMln(t.adRevenue||0)),
     kpi('Заказы с рекламы',fmtRu(t.orders||0)),kpi('CPO, ₽',fmtRu(t.cpo||0)),kpi('Активных кампаний',(t.active||0)+' / '+(t.campaigns||0))
   ].join('');
-  // Прямой снимок OZON (без n8n). Для нестандартных периодов показываем ближайший снимок 7/30/90.
-  var exact=(CURP==='7d'||CURP==='30d'||CURP==='90d');
+  // Фаза 1b: при дневном ряде период точный (a.daily). Иначе - ближайший снимок 7/30/90.
+  var exact=a.daily||(CURP==='7d'||CURP==='30d'||CURP==='90d');
   var near=exact?'':' <span style="color:#E5B567" title="Снимки есть для 7/30/90 дней. Для выбранного периода показан ближайший.">· ближайший снимок</span>';
-  const badge='<span class="kt-src">снимок за '+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo)+near;
-  document.getElementById('src1').innerHTML='источник: OZON Performance API (прямой) '+badge;
+  const badge='<span class="kt-src">'+(a.daily?'за период ':'снимок за ')+(a.dateFrom||'')+'..'+(a.dateTo||'')+'</span>'+staleMark(a.dateTo)+near;
+  document.getElementById('src1').innerHTML='источник: OZON Performance API (прямой'+(a.daily?', дневной ряд':'')+') '+badge;
   lastA=a;renderTop();
   renderBurn(a);
   // Реклама по категориям: группируем топ-кампании по категории продвигаемого SKU
@@ -1176,12 +1199,13 @@ function renderUecon(a){
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
 function render(cur,cmp){
   mCur=cur; // окно периода
-  setAds('load','готовлю снимок рекламы…');
-  // Запечённый снимок кампаний под выбранный период (прямой ночной синк OZON, без n8n).
-  const baked=bakedFor();paint(baked,'baked');
+  setAds('load','считаю рекламу за период…');
+  // Фаза 1b: агрегат за ТОЧНЫЙ период из дневного ряда. Фолбэк на снимок, если ряда нет.
+  var a=(ADS_DAILY&&ADS_DAILY.length)?aggFromDaily(cur.from,cur.to):bakedFor();
+  paint(a,a.daily?'daily':'baked');
   loadCommission(cur); // комиссия по SKU из снимка -> юнит-экономика
-  setAds('ok','готов к работе (снимок)');
-  loadAllReports(); // per-SKU разбивка из кэша снимка (живого источника больше нет)
+  setAds('ok','готов к работе');
+  loadAllReports(); // per-SKU разбивка из кэша снимка (ближайший 7/30/90)
 }`;
   writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }

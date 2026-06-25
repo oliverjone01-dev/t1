@@ -188,6 +188,37 @@
   .gen-out{margin-top:18px}
   .gen-out .prompt pre{max-height:440px}
   @media(max-width:560px){.row2{grid-template-columns:1fr}}
+  /* STUDIO v2 */
+  .studio{display:grid;gap:16px}
+  .stp{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:800;letter-spacing:-.01em;margin-top:8px}
+  .stp .sn{width:30px;height:30px;border-radius:9px;background:var(--cta);color:var(--cta-ink);display:grid;place-items:center;font-size:15px;font-weight:900;flex:none}
+  .stp .meta{font-size:12.5px;font-weight:600;color:var(--ink3);margin-left:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .chips b{font-weight:600;font-size:12px;color:var(--ink2);background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-pill);padding:5px 11px;cursor:pointer;transition:.14s var(--ease)}
+  .chips b:hover{border-color:var(--cta);color:var(--ink)}
+  .arcprev{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px}
+  .ac{flex:0 0 66px;aspect-ratio:4/5;border-radius:10px;border:1px solid var(--line2);background:var(--card2);padding:8px;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+  .ac .at{font-size:8.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink3);line-height:1.15}
+  .ac .ab{font-size:9px;color:var(--ink2);line-height:1.2}
+  .ac.cover{border-color:var(--cta)} .ac.cta{background:var(--cta)} .ac.cta .at,.ac.cta .ab{color:var(--cta-ink)}
+  .ac.photo::after{content:"IMG";position:absolute;top:6px;right:6px;font-size:7px;font-weight:800;color:var(--cta);letter-spacing:.05em}
+  #g-paste{font:inherit;font-size:13.5px;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px;min-height:140px;width:100%;resize:vertical;outline:none}
+  #g-paste:focus{border-color:var(--cta)}
+  #g-cards{display:grid;gap:12px;margin-top:14px}
+  .copyrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+  .scard .s2h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
+  .scard .sn2{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--cta)}
+  .scard .stype{font-size:11px;color:var(--ink3)}
+  .scard h4{font-size:15.5px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
+  .scard p{font-size:13.5px;color:var(--ink2);line-height:1.45;margin:0}
+  .scard .brf{margin-top:9px;font-size:12.5px;color:var(--gm-ink);background:var(--gm-soft);border-radius:9px;padding:8px 11px;line-height:1.4}
+  .cmini{font:inherit;font-size:11.5px;font-weight:700;color:var(--cta);background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-pill);padding:5px 12px;cursor:pointer;white-space:nowrap}
+  .cmini:hover{border-color:var(--cta)} .scard .s2h .cmini{margin-left:auto}
+  .block{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+  .block .bh{display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;margin-bottom:8px}
+  .block .bh .cmini{margin-left:auto}
+  .block p{font-size:13.5px;color:var(--ink2);line-height:1.5;white-space:pre-wrap;margin:0}
   @media(max-width:820px){.brands,.cols{grid-template-columns:1fr}.tnav{display:none}}
   @media(max-width:520px){.hero{padding:48px 0 24px}section{padding:38px 0}}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
@@ -286,41 +317,80 @@
 
   <!-- ЦЕХ / FORGE -->
   <section id="forge">
-    <div class="sh"><span class="tag">04 · генератор</span><h2>Соберите виральную карусель</h2>
-      <p>Тема, бренд и сколько визуала - получаете готовый промпт. Вставляете в ChatGPT/Claude/Gemini → тексты слайдов + брифы картинок. Картинки генерите в Nano Banana / GPT Image по брифам, сборку в PNG делает скилл gengroup-carousel.</p></div>
-    <div class="gen">
+    <div class="sh"><span class="tag">04 · студия</span><h2>Студия каруселей</h2>
+      <p>Бриф → промпт → вставляете ответ ИИ обратно, и студия раскладывает его на готовые слайды, брифы картинок и подпись с кнопками копирования. Ручного разбора ноль.</p></div>
+
+    <div class="studio">
+      <!-- 1. БРИФ -->
+      <div class="stp"><span class="sn">1</span> Бриф</div>
       <div class="gen-form">
         <label class="fld"><span>Тема карусели</span>
           <input id="g-topic" type="text" autocomplete="off" placeholder="напр. Алюминиевая или стальная перегородка"></label>
         <div class="row2">
           <label class="fld"><span>Бренд</span>
             <select id="g-brand">
-              <option value="genglass">GENGLASS</option>
-              <option value="valonti">VALONTI</option>
-              <option value="metalgm">Metal-GM</option>
-              <option value="glassmemory">GLASS-MEMORY</option>
+              <option value="genglass">GENGLASS</option><option value="valonti">VALONTI</option>
+              <option value="metalgm">Metal-GM</option><option value="glassmemory">GLASS-MEMORY</option>
             </select></label>
+          <label class="fld"><span>Формат</span>
+            <select id="g-fmt">
+              <option value="4:5">IG лента 4:5 · 1080×1350</option>
+              <option value="1:1">Квадрат 1:1 · 1080×1080</option>
+              <option value="9:16">Stories 9:16 · 1080×1920</option>
+              <option value="2:3">Pinterest 2:3 · 1000×1500</option>
+            </select></label>
+        </div>
+        <div class="row2">
+          <label class="fld"><span>Цель поста</span>
+            <select id="g-goal">
+              <option value="reach">Охват / виральность</option>
+              <option value="lead">Лиды (заявки, расчёт)</option>
+              <option value="sale">Продажа / дожим</option>
+              <option value="warm">Прогрев / экспертность</option>
+            </select></label>
+          <label class="fld"><span>Стиль хука</span>
+            <select id="g-hook">
+              <option value="auto">Авто (по теме)</option>
+              <option value="number">Число + ставка</option>
+              <option value="contra">Контрарный</option>
+              <option value="question">Вопрос к страху</option>
+              <option value="result">Конкретный результат</option>
+            </select></label>
+        </div>
+        <label class="fld"><span>Аудитория</span>
+          <input id="g-aud" type="text" autocomplete="off" placeholder="кому пост">
+          <span class="chips" id="g-aud-chips"></span></label>
+        <div class="row2">
           <label class="fld"><span>Слайдов</span>
             <select id="g-count"><option>5</option><option selected>7</option><option>10</option></select></label>
+          <div class="fld"><span>Визуализация <em>(уточняем до текста)</em></span>
+            <div class="seg" id="g-viz" role="group" aria-label="объём визуализации">
+              <button type="button" data-v="low">Мало</button>
+              <button type="button" data-v="mid" class="on">Средне</button>
+              <button type="button" data-v="high">Много</button>
+            </div></div>
         </div>
-        <label class="fld"><span>Аудитория (опционально)</span>
-          <input id="g-aud" type="text" autocomplete="off" placeholder="дизайнер · прораб · конечный клиент · B2B-закупщик"></label>
-        <div class="fld"><span>Сколько визуализации <em>(уточняем до текста)</em></span>
-          <div class="seg" id="g-viz" role="group" aria-label="объём визуализации">
-            <button type="button" data-v="low">Мало</button>
-            <button type="button" data-v="mid" class="on">Средне</button>
-            <button type="button" data-v="high">Много</button>
-          </div>
-          <span class="hint" id="g-viz-h">3-4 фото-слота + графика</span>
-        </div>
-        <button class="btn gen-go" id="g-go" type="button">Сгенерировать промпт →</button>
+        <div class="fld"><span>Живой превью арки <em id="g-viz-h">3-4 фото-слота</em></span>
+          <div class="arcprev" id="arcprev"></div></div>
+        <button class="btn gen-go" id="g-go" type="button">Собрать промпт →</button>
       </div>
+
+      <!-- 2. ПРОМПТ -->
       <div class="gen-out" id="g-out" hidden>
+        <div class="stp"><span class="sn">2</span> Промпт <span class="meta" id="g-meta"></span></div>
         <div class="prompt">
-          <div class="prompt-h"><span class="ttl">Промпт карусели</span><span class="v" id="g-meta"></span><button class="copy" type="button" id="g-copy">Копировать текст</button></div>
+          <div class="prompt-h"><span class="ttl">Промпт карусели</span><button class="copy" type="button" id="g-copy">Копировать</button></div>
           <pre id="g-prompt"></pre>
         </div>
-        <p class="disc">Вставьте этот промпт в ChatGPT / Claude / Gemini → получите тексты слайдов и брифы картинок. Брифы → в Nano Banana / GPT Image (фото). Финальную сборку в PNG делает скилл <b>gengroup-carousel</b> в Claude Code.</p>
+        <p class="disc">Вставьте промпт в ChatGPT / Claude / Gemini. Ответ модели целиком вставьте в шаг 3 - студия разложит его на карточки.</p>
+      </div>
+
+      <!-- 3. РАЗОБРАТЬ ОТВЕТ ИИ -->
+      <div class="gen-out" id="g-asm" hidden>
+        <div class="stp"><span class="sn">3</span> Разобрать ответ ИИ</div>
+        <textarea id="g-paste" placeholder="Вставьте сюда ответ модели целиком (слайды, брифы, подпись, хэштеги)..."></textarea>
+        <button class="btn ghost" id="g-parse" type="button">Разложить на слайды и брифы</button>
+        <div id="g-cards"></div>
       </div>
     </div>
   </section>
@@ -395,52 +465,93 @@
 <script>
 (function(){
   var BR={
-    genglass:{name:'GENGLASS',handle:'genglass',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'Реальные факты: 16 000 м² производства (Домодедово), 13 500+ заказов, 160+ проектов, стекло 8-10 мм, палитры NERO/ORO/BIANCO. Цифры не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики'},
-    valonti:{name:'VALONTI',handle:'valonti',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа, B2D (для дизайнеров). Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение'},
-    metalgm:{name:'Metal-GM',handle:'metal.gm',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций. Гибка, сварка, покраска от чертежа до отгрузки.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр'},
-    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (+25% стойкость), керамическая печать, мемориальные наборы (стела плюс накладка плюс подставка) формат комплекта, 320+ дилеров.',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби'}
+    genglass:{name:'GENGLASS',handle:'genglass',accent:'#C8A951',tone:'профессиональная теплота, конкретика (RAL, м², мм, сроки, рубли). Тон коллега, не друг. Голос мастера у станка.',facts:'Реальные факты: 16 000 м² производства (Домодедово), 13 500+ заказов, 160+ проектов, стекло 8-10 мм, палитры NERO/ORO/BIANCO. Цифры не выдумывать.',forbid:'изысканный, роскошный, эксклюзивный без описания механики',aud:['дизайнер интерьера','прораб','конечный клиент','застройщик']},
+    valonti:{name:'VALONTI',handle:'valonti',accent:'#C8A951',tone:'скульптурная скупость на слова, каждое предложение экспонат. Имя автора плюс материал плюс одна формальная идея. Никогда не громко и не продающе.',facts:'Материалы: Nero Marquina, Travertino Navona, Onyx Miele, бронза, латунь. Авторская работа, B2D. Не на маркетплейсах.',forbid:'современный дизайн, модный тренд, универсальное решение',aud:['дизайнер-декоратор','архитектор','частный коллекционер']},
+    metalgm:{name:'Metal-GM',handle:'metal.gm',accent:'#E8712B',tone:'инженер инженеру, сухая фактура, specs first. Марки сталей, толщины, допуски, RAL, объёмы партий.',facts:'Любой RAL по ТЗ, партия от 50 шт, порошковая покраска, контрактное производство B2B. Без линий и коллекций.',forbid:'маркетинговые эпитеты, поэзия, качество без цифр',aud:['снабженец','производственник','подрядчик']},
+    glassmemory:{name:'GLASS-MEMORY',handle:'glass.memory',accent:'#86B6C9',tone:'деликатность без манипуляций, достоинство. Скорбь не используется как продающий приём.',facts:'Стекло обычное и Crystalvision (+25% стойкость), керамическая печать, мемориальные наборы (стела, накладка, подставка), 320+ дилеров.',forbid:'вечная память, единственный шанс, эмоциональные триггеры скорби',aud:['родственники','ритуальные агентства','дилеры']}
   };
-  var VIZ={low:{n:'1-2',h:'1-2 фото-слота + графика'},mid:{n:'3-4',h:'3-4 фото-слота + графика'},high:{n:'5-6',h:'5-6 фото-слотов + графика'}};
-  var viz='mid';
-  var seg=document.getElementById('g-viz');
-  if(!seg)return;
-  seg.addEventListener('click',function(e){var bn=e.target.closest('button');if(!bn)return;viz=bn.getAttribute('data-v');
-    Array.prototype.forEach.call(seg.querySelectorAll('button'),function(x){x.classList.toggle('on',x===bn);});
-    document.getElementById('g-viz-h').textContent=VIZ[viz].h;});
-  function build(){
-    var topic=(document.getElementById('g-topic').value||'').trim();
-    var b=BR[document.getElementById('g-brand').value];
-    var count=document.getElementById('g-count').value;
-    var aud=(document.getElementById('g-aud').value||'').trim()||'определи по теме';
-    if(!topic){document.getElementById('g-topic').focus();return;}
-    var vn=VIZ[viz].n;
-    var p=
-'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+'. Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
-'ЗАДАЧА: сценарий Instagram/VK-карусели на '+count+' слайдов, которую невозможно пролистнуть. Тема:\n«'+topic+'»\nАудитория: '+aud+'.\n\n'+
-'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА: '+b.facts+'\nЗАПРЕЩЕНО для бренда: '+b.forbid+'.\n\n'+
-'ПРАВИЛА:\n'+
-'- Клиент-first: начинай с боли/задачи клиента, не с продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA (путь к лиду, не подпишись).\n'+
-'- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA заканчивается открытой петлёй, крючком на «→», который тянет к следующему слайду.\n'+
-'- Хук (слайд 1) обещает ответ, не даёт его. Один акцент в заголовке.\n'+
-'- Лимиты: заголовок до 40 символов; текст слайда до 160; один слайд равно одна мысль. Минимум одна конкретная цифра на слайд. Реальные факты, ничего не выдумывать.\n'+
-'- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
-'ВИЗУАЛИЗАЦИЯ: размести в карусели '+vn+' фото-слота. На каждый дай отдельный арт-бриф для генерации (Nano Banana / GPT Image): объект, ракурс, свет, обработка, «без людей, без текста», и размер (портрет 4:5 или ландшафт 2:1). Единый STYLE-LOCK на всю карусель (свет, палитра, оптика), чтобы кадры не дрейфовали. Данные и диаграммы делай графикой и текстом, не фото.\n\n'+
-'ФОРМАТ ВЫХОДА. Для каждого слайда:\n'+
-'  Слайд N [тип: cover/stat/list/compare/quote/photo/cta]\n'+
-'  Заголовок: ...\n'+
-'  Текст: ... (кончается на «→» если это не CTA)\n'+
-'  Бриф картинки: ... (только для фото-слотов)\n'+
-'В конце: STYLE-LOCK одной строкой; готовая подпись к посту (повтор хука, раскрытие одной мысли, CTA, @'+b.handle+'); 8-15 хэштегов.';
-    document.getElementById('g-prompt').textContent=p;
-    document.getElementById('g-meta').textContent=b.name+' · '+count+' слайдов · визуал '+vn;
-    var out=document.getElementById('g-out'); out.hidden=false; out.scrollIntoView({behavior:'smooth',block:'start'});
+  var VIZ={low:{n:'1-2',img:2,h:'1-2 фото-слота'},mid:{n:'3-4',img:4,h:'3-4 фото-слота'},high:{n:'5-6',img:6,h:'5-6 фото-слотов'}};
+  var GOAL={reach:'охват и виральность (досмотры, репосты, сохранения)',lead:'лиды: заявка/расчёт/консультация, CTA максимально конкретный и низкопороговый',sale:'продажа и дожим: оффер и причина действовать сейчас',warm:'прогрев и экспертность: доверие, мягкий CTA'};
+  var HOOK={auto:'подбери сильнейший хук под тему',number:'хук через число и ставку',contra:'контрарный хук, ломающий ожидание',question:'хук-вопрос к страху или задаче клиента',result:'хук через конкретный результат'};
+  var FMT={'4:5':'портрет 4:5 (1080×1350)','1:1':'квадрат 1:1 (1080×1080)','9:16':'stories 9:16 (1080×1920)','2:3':'pinterest 2:3 (1000×1500)'};
+  var viz='mid', $=function(id){return document.getElementById(id);};
+  if(!$('g-viz'))return;
+  var MID=['Проблема','Факт','Что делать','Сравнение','Доказательство','Цифры','Список','Кейс'];
+  function arc(c){var a=[{t:'Хук',k:'cover'}];for(var i=0;i<c-2;i++)a.push({t:MID[i%MID.length],k:'mid'});a.push({t:'CTA',k:'cta'});return a;}
+  function renderArc(){
+    var c=parseInt($('g-count').value,10),a=arc(c),img=Math.min(VIZ[viz].img,c-1),acc=BR[$('g-brand').value].accent;
+    var photo={},idxs=[0],step=Math.max(1,Math.floor((c-1)/img));
+    for(var j=1;j<c-1&&idxs.length<img;j+=step)idxs.push(j);
+    idxs.forEach(function(x){photo[x]=1;});
+    var html='';a.forEach(function(s,i){var cls='ac'+(s.k==='cover'?' cover':'')+(s.k==='cta'?' cta':'')+(photo[i]&&s.k!=='cta'?' photo':'');
+      html+='<div class="'+cls+'"><div class="at">'+(i+1)+'</div><div class="ab"></div></div>';});
+    $('arcprev').innerHTML=html;
+    var cards=$('arcprev').querySelectorAll('.ac');
+    a.forEach(function(s,i){cards[i].querySelector('.ab').textContent=s.t;if(s.k==='cover')cards[i].style.borderColor=acc;});
   }
-  document.getElementById('g-go').addEventListener('click',build);
-  document.getElementById('g-topic').addEventListener('keydown',function(e){if(e.key==='Enter')build();});
-  document.getElementById('g-copy').addEventListener('click',function(){
-    var t=document.getElementById('g-prompt').textContent; if(!navigator.clipboard)return;
-    navigator.clipboard.writeText(t).then(function(){var bt=document.getElementById('g-copy');var o=bt.textContent;bt.textContent='Скопировано ✓';setTimeout(function(){bt.textContent=o;},1500);});
-  });
+  function renderChips(){var b=BR[$('g-brand').value],h='';b.aud.forEach(function(a){h+='<b data-a="'+a+'">'+a+'</b>';});$('g-aud-chips').innerHTML=h;}
+  $('g-viz').addEventListener('click',function(e){var bn=e.target.closest('button');if(!bn)return;viz=bn.getAttribute('data-v');
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===bn);});$('g-viz-h').textContent=VIZ[viz].h;renderArc();});
+  $('g-brand').addEventListener('change',function(){renderChips();renderArc();});
+  $('g-count').addEventListener('change',renderArc);
+  $('g-aud-chips').addEventListener('click',function(e){var b=e.target.closest('b');if(b)$('g-aud').value=b.getAttribute('data-a');});
+  renderChips();renderArc();
+  function build(){
+    var topic=($('g-topic').value||'').trim(),b=BR[$('g-brand').value],count=$('g-count').value;
+    var aud=($('g-aud').value||'').trim()||'определи по теме',goal=GOAL[$('g-goal').value],hook=HOOK[$('g-hook').value],fmt=FMT[$('g-fmt').value];
+    if(!topic){$('g-topic').focus();return;}
+    var vn=VIZ[viz].n,p=
+'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+'. Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
+'ЗАДАЧА: сценарий карусели на '+count+' слайдов, которую невозможно пролистнуть.\nТема: «'+topic+'»\nАудитория: '+aud+'\nЦель: '+goal+'\nФормат: '+fmt+'\nХук: '+hook+'.\n\n'+
+'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА: '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
+'ПРАВИЛА:\n- Клиент-first: от боли клиента, не от продукта. Арка: хук, проблема, факт, что делать, сравнение/доказательство, соц.пруф, CTA под цель.\n- СКОЛЬЗКАЯ ГОРКА (обязательно): каждый слайд кроме CTA кончается открытой петлёй, крючком на «→».\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст до 160; один слайд = одна мысль. Минимум одна конкретная цифра на слайд. Реальные факты, ничего не выдумывать.\n- Без AI-канцелярита и длинного тире, только дефис.\n\n'+
+'ВИЗУАЛИЗАЦИЯ: '+vn+' фото-слота. На каждый отдельный арт-бриф (Nano Banana / GPT Image): объект, ракурс, свет, обработка, «без людей, без текста», размер под '+fmt+'. Единый STYLE-LOCK на всю карусель. Данные и диаграммы делай графикой, не фото.\n\n'+
+'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
+    $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn;
+    $('g-out').hidden=false;$('g-asm').hidden=false;$('g-out').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  $('g-go').addEventListener('click',build);
+  function cbtn(label,txt){var b=document.createElement('button');b.className='cmini';b.type='button';b.textContent=label;
+    b.addEventListener('click',function(){if(!navigator.clipboard)return;navigator.clipboard.writeText(txt).then(function(){var o=b.textContent;b.textContent='✓';setTimeout(function(){b.textContent=o;},1200);});});return b;}
+  function parse(){
+    var raw=$('g-paste').value||'';if(!raw.trim())return;
+    var wrap=$('g-cards');wrap.innerHTML='';
+    var blocks=raw.split(/(?=Слайд\s*\d+)/i).filter(function(x){return /Слайд\s*\d+/i.test(x);});
+    var allText=[],allBriefs=[];
+    blocks.forEach(function(bl,i){
+      var type=((bl.match(/\[\s*(?:тип[:\s]*)?([^\]]+)\]/i)||[])[1]||'').trim();
+      var title=((bl.match(/Заголовок[:\s]*([^\n]+)/i)||[])[1]||'').trim();
+      var text=((bl.match(/Текст[:\s]*([\s\S]*?)(?=\n\s*(?:Бриф|Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]||'').trim();
+      var brief=((bl.match(/Бриф[^:\n]*[:\s]*([^\n]+)/i)||[])[1]||'').trim();
+      if(!title&&!text)return;
+      allText.push((title?title+'\n':'')+text);
+      if(brief)allBriefs.push('Слайд '+(i+1)+': '+brief);
+      var card=document.createElement('div');card.className='scard';
+      card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span></div>'+(title?'<h4></h4>':'')+(text?'<p></p>':'')+(brief?'<div class="brf"></div>':'');
+      card.querySelector('.stype').textContent=type;
+      if(title)card.querySelector('h4').textContent=title;
+      if(text)card.querySelector('p').textContent=text;
+      if(brief)card.querySelector('.brf').textContent='Бриф: '+brief;
+      card.querySelector('.s2h').appendChild(cbtn('Копировать',(title?title+'\n':'')+text));
+      wrap.appendChild(card);
+    });
+    if(!blocks.length){wrap.innerHTML='<p class="disc">Не нашёл слайды. Нужны строки вида «Слайд N», «Заголовок:», «Текст:».</p>';return;}
+    var lock=((raw.match(/STYLE[- ]?LOCK[:\s]*([^\n]+)/i)||[])[1]||'').trim();
+    var cap=((raw.match(/ПОДПИСЬ[:\s]*([\s\S]*?)(?=\n\s*ХЭШ|$)/i)||[])[1]||'').trim();
+    var tags=(raw.match(/#[^\s#]+/g)||[]).join(' ');
+    var briefsTxt=(lock?'STYLE-LOCK: '+lock+'\n\n':'')+allBriefs.join('\n');
+    function block(title,body){var d=document.createElement('div');d.className='block';d.innerHTML='<div class="bh">'+title+'</div><p></p>';d.querySelector('p').textContent=body;d.querySelector('.bh').appendChild(cbtn('Копировать',body));wrap.appendChild(d);}
+    if(allBriefs.length)block('Брифы картинок ('+allBriefs.length+')',briefsTxt);
+    if(cap)block('Подпись к посту',cap);
+    if(tags)block('Хэштеги',tags);
+    var bar=document.createElement('div');bar.className='copyrow';
+    bar.appendChild(cbtn('Скопировать весь текст',allText.join('\n\n')));
+    if(allBriefs.length)bar.appendChild(cbtn('Скопировать все брифы',briefsTxt));
+    wrap.insertBefore(bar,wrap.firstChild);
+  }
+  $('g-parse').addEventListener('click',parse);
+  $('g-copy').addEventListener('click',function(){var t=$('g-prompt').textContent;if(!navigator.clipboard)return;
+    navigator.clipboard.writeText(t).then(function(){var b=$('g-copy');var o=b.textContent;b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=o;},1500);});});
 })();
 </script>
 </body>

@@ -67,7 +67,12 @@ async function main() {
   const clientId = process.env.OZON_PERF_CLIENT_ID || "", clientSecret = process.env.OZON_PERF_SECRET || "";
   if (!clientId || !clientSecret) { console.warn("ad-attr-daily: OZON_PERF_* нет - пропуск (атрибуция по дням не обновлена)"); return; }
   const last = lastDate();
-  const from = last ? nextDay(last) : FLOOR;
+  // Первичный бэкфилл ограничиваем 1 окном (≈BACKFILL_DAYS дней): DATE-отчёты OZON
+  // генерятся медленно (минуты), много окон не успеть за один прогон. Ряд дорастает
+  // ночными догрузками; для более старых периодов работает fallback на снимок RCACHE.
+  const BACKFILL_DAYS = 55;
+  const recent = (() => { const d = new Date(); d.setUTCDate(d.getUTCDate() - BACKFILL_DAYS); return fmt(d) < FLOOR ? FLOOR : fmt(d); })();
+  const from = last ? nextDay(last) : recent;
   const to = yesterday();
   if (from > to) { console.log(`ad-attr-daily: ряд уже по ${last} (вчера ${to}) - догружать нечего`); return; }
 

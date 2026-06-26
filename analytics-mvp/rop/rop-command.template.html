@@ -7,8 +7,8 @@
 --ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;--accent:#22D3EE;--accent-2:#06B6D4;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
 --d1:#22D3EE;--d2:#6366F1;--d3:#10B981;--d4:#A78BFA;--d5:#F472B6;--d6:#FB923C;--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;
 --radius:10px;--radius-lg:14px;--ease:cubic-bezier(.22,.61,.36,1);--ease-out:cubic-bezier(.16,1,.3,1);}
-*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
-body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
+body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:clip}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -213,6 +213,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="logo">GG</div>
   <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span></div>
   <div class="tb-spacer"></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
 </div>
 <div class="controls">
@@ -266,7 +267,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -294,9 +295,15 @@ const SOLD=d=>S.revMode==='won'?d.won:(REV_SET.has(d.stageCode)&&!d.lost);
 // = дата входа в стадию предоплаты (из истории стадий). Нужна, чтобы считать продажи/выручку
 // по дате ИСХОДА, а не по дате создания сделки (решение Ивана 2026-06-26).
 function soldDate(d){if(S.revMode==='won')return d.closed;for(const h of(d.hist||[]))if(REV_SET.has(h[0]))return h[1];return d.closed;}
-// Наборы по дате исхода в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
-function soldSet(a,b){a=a||S.start;b=b||S.end;return flt(AD,true).filter(d=>{if(!SOLD(d))return false;const sd=soldDate(d);return sd&&sd>=a&&sd<=b;});}
-function lostSet(a,b){a=a||S.start;b=b||S.end;return flt(AD,true).filter(d=>d.lost&&d.closed&&d.closed>=a&&d.closed<=b);}
+// Тумблер периода S.dateBasis: 'created' (по дате СОЗДАНИЯ, как было - дефолт) или
+// 'outcome' (по дате ИСХОДА - продажи/потери считаются когда они состоялись).
+// Наборы продаж/потерь в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
+function soldSet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{if(!SOLD(d))return false;const sd=soldDate(d);return sd&&sd>=a&&sd<=b;});
+  return flt(AD,true).filter(d=>SOLD(d)&&d.created>=a&&d.created<=b);}
+function lostSet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>d.lost&&d.closed&&d.closed>=a&&d.closed<=b);
+  return flt(AD,true).filter(d=>d.lost&&d.created>=a&&d.created<=b);}
 // metrics. D/L = когорта по дате СОЗДАНИЯ (intake: лиды, создано сделок, конверсии).
 // so/lo = продажи/потери по дате ИСХОДА в периоде (деньги/результат). Если не переданы -
 // откат к когортному расчёту (обратная совместимость).
@@ -310,7 +317,7 @@ function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
     conv:D.length?so.length/D.length:0,
     lost:lo.length,lostM,
     qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
-    lostShare:closed?lo.length/closed:0};}
+    lostShare:D.length?lo.length/D.length:0};}
 // TOOLTIP
 const tip=document.getElementById('tip');
 function tipShow(html,x,y){tip.innerHTML=html;tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
@@ -428,7 +435,9 @@ const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:P
 const STORD={};FORDER.forEach((c,i)=>{const nm=DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[c];if(nm)STORD[nm]=i;});
 const ddiffJS=(a,b)=>{const t1=Date.parse(a),t2=Date.parse(b);return isNaN(t1)||isNaN(t2)?null:(t2-t1)/864e5;};
 function funnelChart(){
-  const mode=S.funnelMode||'created',prepay=S.revMode!=='won';
+  // Труба привязана к общему тумблеру «Период по»: дата создания -> когорта created,
+  // дата продажи (исход) -> активные в периоде.
+  const mode=S.dateBasis==='outcome'?'active':'created',prepay=S.revMode!=='won';
   const inSet=d=>mode==='created'?(d.created>=S.start&&d.created<=S.end):(d.created<=S.end&&(!d.closed||d.closed>=S.start));
   const DD=flt(AD,true).filter(inSet);
   const ord={};FORDER.forEach((c,i)=>ord[c]=i);
@@ -464,9 +473,8 @@ function funnelChart(){
     labels+=`<text x="${cx(i)}" y="26" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l1}</text>`+(l2?`<text x="${cx(i)}" y="40" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l2}</text>`:'');
     labels+=`<text x="${cx(i)}" y="${moneyY}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">${fmtK(f.money)} ₽</text>`;
     if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-30}" y="${pillY}" width="60" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`;}});
-  const subTxt=(mode==='created'?'когорта по дате создания в периоде':'активные на стадиях в периоде + новые')+' · '+(prepay?'продажи = от предоплаты':'успех = WON')+' · конверсия/сумма/медианный срок на этапе';
-  const segBtns=`<div class="seg" id="funMode"><button data-f="created" class="${mode==='created'?'on':''}">По дате создания</button><button data-f="active" class="${mode==='active'?'on':''}">Активные в периоде</button></div>`;
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Воронка прохождения сделок (труба)</div><div class="card-sub">${subTxt}</div></div>${segBtns}</div>
+  const subTxt=(mode==='created'?'когорта по дате создания в периоде':'активные на стадиях в периоде + новые')+' · '+(prepay?'продажи = от предоплаты':'успех = WON')+' · конверсия/сумма/медианный срок на этапе · режим задаётся тумблером «Период по» сверху';
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Воронка прохождения сделок (труба)</div><div class="card-sub">${subTxt}</div></div></div>
     <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px">${defs?`<defs>${defs}</defs>`:''}${conns}${nodes}${labels}</svg></div>
     <div class="note" style="margin-top:12px">Срок на этапе: <b style="color:#10B981">&lt; 10 дн</b> · <b style="color:#FB923C">10–21</b> · <b style="color:#F43F5E">&gt; 21 дн</b>. Воронка реагирует на диапазон дат, режим и тумблер выручки.</div></div>`;
 }
@@ -659,7 +667,7 @@ function render(){
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда — план-факт ${qm(1)}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · меняй метрику и план - всё пересчитается</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${qm(1)}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':'по дате продажи'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -751,7 +759,8 @@ function render(){
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)));wireDQ();
+  // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){
@@ -961,7 +970,8 @@ function buildShell(){
   document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.getElementById('sec'+b.dataset.i).scrollIntoView({behavior:'smooth'});});}
   const _rs=document.getElementById('revSeg');
   if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
-  document.addEventListener('click',e=>{const fb=e.target.closest('#funMode button');if(fb){S.funnelMode=fb.dataset.f;render();}});
+  const _ds=document.getElementById('dateSeg');
+  if(_ds)_ds.querySelectorAll('button').forEach(b=>b.onclick=()=>{_ds.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.dateBasis=b.dataset.b;render();});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
   document.addEventListener('click',e=>{const mb=e.target.closest('#mgrMetricSeg button');if(mb){S.loadMetric=mb.dataset.m;render();}});
   document.addEventListener('click',e=>{const onBtn=e.target.closest('#lossMgrBtn'),inPanel=e.target.closest('#lossMgrPanel');if(onBtn){S.lossMgrOpen=!S.lossMgrOpen;render();return;}if(S.lossMgrOpen&&!inPanel){S.lossMgrOpen=false;render();}});

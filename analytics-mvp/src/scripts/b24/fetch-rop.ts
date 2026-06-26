@@ -91,30 +91,23 @@ async function listHistory(category: string): Promise<any[]> {
 }
 
 // Касания: crm.activity.list по сделкам (OWNER_TYPE_ID=2) -> на сделку {real, all}.
-// «Реальное касание клиента» (разведка 2026-06-26 на портале):
-//   звонок (TYPE_ID 2 / VOXIMPLANT_CALL), письмо (4 / CRM_EMAIL), встреча (1),
-//   чат открытой линии (6 / IMOPENLINES_SESSION), СМС (6 / CRM_SMS).
-// НЕ касание (внутреннее): задачи CRM_TASKS_TASK, туду CRM_TODO, комментарии,
-//   складские документы STORE_DOCUMENT. touchAll считает всё, touchReal - только контакты.
-const REAL_PROV = new Set(["IMOPENLINES_SESSION", "CRM_SMS"]);
-const isRealTouch = (a: any): boolean => {
-  const t = Number(a.TYPE_ID);
-  return t === 1 || t === 2 || t === 4 || (t === 6 && REAL_PROV.has(a.PROVIDER_ID));
-};
+// Решение Ивана 2026-06-26: касанием считаем ЛЮБУЮ активность по сделке - звонок,
+// письмо, встреча, чат, СМС, а также задачи/туду/комментарии/складские документы.
+// touchReal == touchAll (различия по типам сейчас не делаем).
 async function activityCounts(): Promise<Record<string, { real: number; all: number }>> {
   const m: Record<string, { real: number; all: number }> = {};
   let lastId = 0, total = 0;
   for (;;) {
     const j = await call("crm.activity.list", {
-      select: ["ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID"],
+      select: ["ID", "OWNER_ID"],
       filter: { OWNER_TYPE_ID: 2, ">ID": lastId }, order: { ID: "ASC" }, start: -1,
     });
     const batch: any[] = j.result || [];
     if (!batch.length) break;
     for (const a of batch) {
       const k = String(a.OWNER_ID);
-      (m[k] ||= { real: 0, all: 0 }).all++;
-      if (isRealTouch(a)) m[k].real++;
+      const e = (m[k] ||= { real: 0, all: 0 });
+      e.all++; e.real++;
     }
     total += batch.length;
     lastId = Number(batch[batch.length - 1].ID);

@@ -81,22 +81,23 @@ async function main() {
   if (!ids.length) { console.warn("ad-attr-daily: нет кампаний дашборда (ads_periods пуст) - пропуск"); return; }
   let total = 0, allDays = new Set<string>();
   for (const [wf, wt] of windows(from, to)) {
-    // фаза 1: запрос DATE-отчётов (каталожные -> 400 forbidden, пропуск)
-    const jobs: Array<{ id: string; uuid: string }> = [];
-    for (const id of ids) {
-      try { const uuid = await perf.requestStatistics([id], wf, wt, "DATE"); if (uuid) jobs.push({ id, uuid }); }
-      catch { /* каталожная/недоступна */ }
-    }
-    // фаза 2: опрос + скачивание + разбор; пишем ПО ОКНУ (устойчиво к обрыву)
+    // OZON Performance: МАКСИМУМ 1 активный запрос отчёта. Поэтому строго последовательно:
+    // запрос -> опрос -> скачивание (закрывает активный слот) -> следующая кампания.
     const recs: AttrDailyRec[] = [];
-    for (const j of jobs) {
-      for (const r of await reportRows(perf, j.uuid)) {
+    let ok = 0;
+    for (const id of ids) {
+      let uuid = "";
+      try { uuid = await perf.requestStatistics([id], wf, wt, "DATE"); } catch { continue; } // каталожная/недоступна
+      if (!uuid) continue;
+      const rows = await reportRows(perf, uuid); // дожидаемся OK и качаем -> слот освобождён
+      if (rows.length) ok++;
+      for (const r of rows) {
         if (r.date < from || r.date > to) continue;
-        recs.push({ d: r.date, id: j.id, sku: r.sku, nm: r.name, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldModel, omM: r.omModel });
+        recs.push({ d: r.date, id, sku: r.sku, nm: r.name, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldModel, omM: r.omModel });
       }
     }
     if (recs.length) { appendFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n"); total += recs.length; recs.forEach((r) => allDays.add(r.d)); }
-    console.log(`ad-attr-daily: окно ${wf}..${wt} - кампаний ${ids.length}, отчётов ${jobs.length}, строк ${recs.length}`);
+    console.log(`ad-attr-daily: окно ${wf}..${wt} - кампаний ${ids.length}, с данными ${ok}, строк ${recs.length}`);
   }
   if (!total) { console.log(`ad-attr-daily: OZON не отдал строк за ${from}..${to}`); return; }
   console.log(`ad-attr-daily: +${total} строк за ${allDays.size} дн (${from}..${to}) -> ${OUT}`);

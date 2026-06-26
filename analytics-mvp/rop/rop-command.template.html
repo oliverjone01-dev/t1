@@ -252,7 +252,7 @@ const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage'};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage',lossMgr:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -648,12 +648,13 @@ function render(){
   const lrr=mrr; // for matrix
   const recent=lost.filter(d=>d.reasonText).sort((a,b)=>(b.lostDate||b.created||'').localeCompare(a.lostDate||a.created||'')).slice(0,30);
   const txtCount=lost.filter(d=>d.reasonText).length;
-  const B_lossReasons=`<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в сделках</div><div class="card-sub">${lost.length} проигранных сделок · топ-5 причин + «Прочее». Причина почти всегда не в поле-списке (заполнено 7%), а в тексте комментария - распознаю её в категорию. Сырые формулировки - в «Свежие комментарии» справа.</div></div>
-      <button class="lossbtn" onclick="tgl('lossRecent')">Свежие комментарии (${txtCount}) ▾</button></div>
-    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><div style="flex:0 0 200px">`+donut(mrr5,fmt(lost.length),'ОТКАЗОВ')+`</div><div style="flex:1;min-width:260px">`+barRows(mrr5)+`</div></div>
-    <div id="lossRecent" style="display:none;margin-top:14px;border-top:1px solid var(--border-soft);padding-top:12px">
-      <div class="card-sub" style="margin-bottom:8px">Последние ${recent.length} комментариев менеджеров (из них формируются причины выше; «не распознано» - кандидаты на новую категорию):</div>
-      <div style="max-height:300px;overflow:auto">`+recent.map(d=>{const rb=mergedReason(d);return `<div style="display:flex;gap:12px;padding:6px 2px;border-bottom:1px solid var(--border-soft);font-size:11.5px"><span style="color:var(--ink-4);flex:0 0 46px">${(d.lostDate||d.created||'').slice(5)}</span><span style="color:var(--ink-3);flex:0 0 140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(d.mgr)}</span><span style="flex:1;color:var(--ink)">${esc(d.reasonText)}</span><span style="flex:0 0 130px;text-align:right;color:${rb.startsWith('Другое')?'var(--ink-4)':'var(--accent)'};font-weight:600">${rb}</span></div>`;}).join('')+`</div></div></div>`;
+  const lossMgrs=[...new Set(lost.map(d=>d.mgr))].sort();
+  const lossList=lost.filter(d=>!S.lossMgr||d.mgr===S.lossMgr).sort((a,b)=>(b.closed||b.created||'').localeCompare(a.closed||a.created||''));
+  const B24D='https://glassmemory.bitrix24.ru/crm/deal/details/';
+  const B_lossReasons=`<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в сделках</div><div class="card-sub">${lost.length} отказных сделок · слева топ причин · справа список отказов со ссылкой на сделку и причиной (фильтр по менеджеру). Причина из поля Б24 (заполнено ~7%, остальное «не указана»).</div></div></div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><div style="flex:0 0 190px">`+donut(mrr5,fmt(lost.length),'ОТКАЗОВ')+`</div><div style="flex:1;min-width:240px">`+barRows(mrr5)+`</div></div>
+    <div class="card-h" style="border-top:1px solid var(--border-soft);padding-top:10px"><div><div class="card-title" style="font-size:13px">Отказные сделки (${lossList.length})</div><div class="card-sub">ссылка на сделку · дата · менеджер · причина · сумма</div></div><div style="display:flex;align-items:center;gap:8px"><span class="ctl-lbl">Менеджер</span><select id="lossMgr"><option value="">Все менеджеры</option>${lossMgrs.map(m=>`<option${S.lossMgr===m?' selected':''}>${esc(m)}</option>`).join('')}</select></div></div>
+    <div style="max-height:360px;overflow:auto;margin-top:8px">`+(lossList.length?lossList.slice(0,400).map(d=>`<div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border-soft);font-size:11.5px;align-items:center"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="flex:0 0 86px;color:var(--accent);text-decoration:none;font-weight:600">#${d.id} ↗</a><span style="flex:0 0 84px;color:var(--ink-3)">${(d.closed||d.created||'').slice(0,10)}</span><span style="flex:0 0 150px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.mgr)}">${esc(d.mgr)}</span><span style="flex:1;min-width:120px;color:var(--ink)">${esc(d.reason&&d.reason!=='не указана'?d.reason:d.mreason)}</span><span style="flex:0 0 92px;text-align:right;color:var(--ink-3)">${fmtK(d.budget)} ₽</span></div>`).join(''):'<div class="card-sub">нет отказных сделок по фильтру</div>')+`</div></div>`;
   /* 4. МЕНЕДЖЕРЫ */
   /* уровни собираются в конце */
   const MM=byManager(D,L);const col=k=>MM.map(x=>x[k]);
@@ -693,7 +694,7 @@ function render(){
 
   const G=(a,b)=>`<div class="grid2">`+a+b+`</div>`;
   h = divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
-    + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_teamPlan+G(B_dynLeads,B_quality)+B_leadStrip+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
+    + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_avgCheck+B_mgrDwell;
   document.getElementById('root').innerHTML=h;
   // post-render wiring
@@ -904,6 +905,7 @@ function buildShell(){
   if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
   document.addEventListener('click',e=>{const fb=e.target.closest('#funMode button');if(fb){S.funnelMode=fb.dataset.f;render();}});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
+  document.addEventListener('change',e=>{if(e.target&&e.target.id==='lossMgr'){S.lossMgr=e.target.value;render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

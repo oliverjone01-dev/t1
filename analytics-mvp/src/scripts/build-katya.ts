@@ -747,8 +747,8 @@ const lineDayOrd: Record<string, { units: number[]; ret: number[]; canc: number[
 // Воронка в разрезе категорий и подкатегорий: показы/корзина/заказы/доставка по дням.
 // Источник - полные показы SKU×день (data/sku_views.ndjson, включая дни без продажи),
 // иначе фолбэк на историю продаж (показы только в дни-с-продажей -> разрез занижен).
-type Fun = { views: number[]; vsearch: number[]; pdp: number[]; cart: number[]; units: number[]; deliv: number[] };
-const newFun = (): Fun => ({ views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), units: zD(), deliv: zD() });
+type Fun = { views: number[]; vsearch: number[]; pdp: number[]; cart: number[]; units: number[]; deliv: number[]; ret: number[] };
+const newFun = (): Fun => ({ views: zD(), vsearch: zD(), pdp: zD(), cart: zD(), units: zD(), deliv: zD(), ret: zD() });
 const catFun: Record<string, Fun> = {};
 const subFun: Record<string, Fun & { name: string; cat: string }> = {};
 const catSubs: Record<string, Set<string>> = {};
@@ -775,9 +775,9 @@ for (const r of funSrc) {
   L.units[i] = (L.units[i] ?? 0) + units; L.ret[i] = (L.ret[i] ?? 0) + ret;
   L.canc[i] = (L.canc[i] ?? 0) + canc; L.cart[i] = (L.cart[i] ?? 0) + cart; L.rev[i] = (L.rev[i] ?? 0) + rev;
   const cf = (catFun[cat] ||= newFun());
-  cf.views[i] += views; cf.vsearch[i] += vsearch; cf.pdp[i] += pdp; cf.cart[i] += cart; cf.units[i] += units; cf.deliv[i] += deliv;
+  cf.views[i] += views; cf.vsearch[i] += vsearch; cf.pdp[i] += pdp; cf.cart[i] += cart; cf.units[i] += units; cf.deliv[i] += deliv; cf.ret[i] += ret;
   const sf = (subFun[sid] ||= Object.assign(newFun(), { name: sub, cat }));
-  sf.views[i] += views; sf.vsearch[i] += vsearch; sf.pdp[i] += pdp; sf.cart[i] += cart; sf.units[i] += units; sf.deliv[i] += deliv;
+  sf.views[i] += views; sf.vsearch[i] += vsearch; sf.pdp[i] += pdp; sf.cart[i] += cart; sf.units[i] += units; sf.deliv[i] += deliv; sf.ret[i] += ret;
   (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
@@ -836,13 +836,13 @@ if (dailyTotals.length) {
 {
   const FACTS_D = { rev: r4(DAY_T.rev!.map((x) => x / 1e6)), units: DAY_T.units, views: DAY_T.views, vsearch: DAY_T.vsearch, pdp: DAY_T.pdp, cart: DAY_T.cart, deliv: DAY_T.deliv, ret: DAY_T.ret, canc: DAY_T.canc };
   const LINES_D = Object.fromEntries(Object.entries(lineDayOrd).map(([k, v]) => [k, { units: v.units, ret: v.ret, canc: v.canc, cart: v.cart, rev: r4(v.rev.map((x) => x / 1e6)) }]));
-  const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv }]));
-  const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv }]));
+  const CATFUN = Object.fromEntries(Object.entries(catFun).map(([k, v]) => [k, { views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret }]));
+  const SUBFUN = Object.fromEntries(Object.entries(subFun).map(([k, v]) => [k, { name: v.name, cat: v.cat, views: v.views, vsearch: v.vsearch, pdp: v.pdp, cart: v.cart, units: v.units, deliv: v.deliv, ret: v.ret }]));
   const CATSUBS = Object.fromEntries(Object.entries(catSubs).map(([k, v]) => [k, [...v]]));
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Воронка продаж</div><div class="card-sub" id="fsub"></div></div></div><div id="funnel"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV). Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Воронка по категориям</div><div class="card-sub">те же метрики и конверсии, что в воронке продаж, но в разрезе категорий/подкатегорий за период (клик по категории - раскрыть). ${fromViews ? "Показы/в поиске/корзина - по всем дням (полный разрез)." : "Показы/корзина - по товарам в дни продаж (неполно)."} Посещения карточки - сессии per-SKU, между товарами пересекаются, поэтому сумма по категориям выше канального уникального. CV, % (серые шапки) - конверсия между соседними шагами: <span style="color:var(--up)">зелёный</span> - категория конвертит выше канала на этом шаге, <span style="color:var(--dn)">красный</span> - ниже. Строка «Итого» = сумма по категориям (она же бенчмарк для раскраски CV). Показы всего и «Посещения карточки» по категориям не сходятся с «Воронкой продаж»: последняя берёт дедуплицированные канальные итоги OZON, а тут - сумма per-SKU (одна сессия на нескольких карточках считается несколько раз).</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория / подкатегория</th><th class="r">Показы всего</th><th class="r cf-cv">CV, %</th><th class="r">Показы в поиске</th><th class="r cf-cv">CV, %</th><th class="r">Посещения карточки</th><th class="r cf-cv">CV, %</th><th class="r">В корзину</th><th class="r cf-cv">CV, %</th><th class="r">Заказано</th><th class="r cf-cv">CV, %</th><th class="r" title="Выкуплено = Доставлено − Возвраты">Выкуплено</th></tr></thead><tbody id="catfun"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Потери и возвраты</div><div class="card-sub">возвраты, отмены, брошенные корзины за период - сводно и по категориям. Меняется по периоду и фильтрам вверху.</div></div></div>
     <div id="leaks"></div>
     <div class="kt-scroll" style="margin-top:14px"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Заказы</th><th class="r">Возвраты</th><th class="r">% возв.</th><th class="r">Отмены</th><th class="r">% отмен</th><th class="r">Брошено в корзине</th><th class="r">% брош.</th></tr></thead><tbody id="retl"></tbody></table></div>
@@ -855,24 +855,24 @@ function sumW(arr,w){let s=0;for(let i=idxOf(w.from);i<=idxOf(w.to);i++)s+=(arr[
 function renderCatFunnel(cur){
   const pct=(a,b)=>b?((a/b*100).toFixed(2)+'%'):'—';
   const sm=(o,k)=>sumW(o[k],cur);
-  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
+  const cats=Object.keys(CF).map(c=>{const o=CF[c];return {c,views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret')};}).filter(x=>x.units>0||x.cart>0).sort((a,b)=>b.units-a.units);
   const ndc='<td class="r cf-nd">нет данных</td>'; // для старых дней без vsearch/pdp в sku_views
   // Канальный бенчмарк конверсии по каждому шагу (сумма по всем категориям периода).
   // Цвет CV: зелёный - категория конвертит выше канала на этом шаге, красный - ниже.
-  const T={};['views','vsearch','pdp','cart','units','deliv'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
-  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?T.deliv/T.units:0};
+  const T={};['views','vsearch','pdp','cart','units','deliv','ret'].forEach(k=>T[k]=cats.reduce((s,x)=>s+(x[k]||0),0));
+  const BM={vs:T.views?T.vsearch/T.views:0,pd:T.vsearch?T.pdp/T.vsearch:0,ct:T.pdp?T.cart/T.pdp:0,un:T.cart?T.units/T.cart:0,dl:T.units?(T.deliv-T.ret)/T.units:0};
   const cv=(a,b,bm)=>{if(a==null||b==null||b<=0)return '<td class="r cf-cv">—</td>';const r=a/b;const col=(bm&&bm>0)?(r>=bm?'var(--up)':'var(--dn)'):'var(--ink-3)';return '<td class="r cf-cv" style="color:'+col+'">'+(r*100).toFixed(2)+'%</td>';};
   const cell=x=>{const vs=x.vsearch>0?x.vsearch:null,pd=x.pdp>0?x.pdp:null;
     return '<td class="r">'+fmtRu(x.views)+'</td>'+cv(vs,x.views,BM.vs)
       +(vs!=null?'<td class="r">'+fmtRu(vs)+'</td>':ndc)+cv(pd,vs,BM.pd)
       +(pd!=null?'<td class="r">'+fmtRu(pd)+'</td>':ndc)+cv(x.cart,pd,BM.ct)
       +'<td class="r">'+fmtRu(x.cart)+'</td>'+cv(x.units,x.cart,BM.un)
-      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(x.deliv,x.units,BM.dl)
-      +'<td class="r">'+fmtRu(x.deliv)+'</td>';};
+      +'<td class="r">'+fmtRu(x.units)+'</td>'+cv(Math.max(0,x.deliv-(x.ret||0)),x.units,BM.dl)
+      +'<td class="r">'+fmtRu(Math.max(0,x.deliv-(x.ret||0)))+'</td>';};
   let h='';
   cats.forEach((x,ci)=>{
     h+='<tr class="cf-cat" data-i="'+ci+'"><td>▸ '+esc(x.c)+'</td>'+cell(x)+'</tr>';
-    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv')};if(s.units<=0&&s.cart<=0)return;
+    (CS[x.c]||[]).forEach(sid=>{const o=SF[sid];if(!o)return;const s={views:sm(o,'views'),vsearch:sm(o,'vsearch'),pdp:sm(o,'pdp'),cart:sm(o,'cart'),units:sm(o,'units'),deliv:sm(o,'deliv'),ret:sm(o,'ret')};if(s.units<=0&&s.cart<=0)return;
       h+='<tr class="cf-sub" data-p="'+ci+'" style="display:none"><td style="padding-left:24px;color:var(--ink-3)">'+esc(o.name)+'</td>'+cell(s)+'</tr>';});
   });
   // Итоговая строка = сумма по категориям (T). CV в ней нейтральный (серый) - это и есть бенчмарк.
@@ -882,8 +882,8 @@ function renderCatFunnel(cur){
     +'<td class="r">'+fmtRu(T.vsearch)+'</td>'+cvP(T.pdp,T.vsearch)
     +'<td class="r">'+fmtRu(T.pdp)+'</td>'+cvP(T.cart,T.pdp)
     +'<td class="r">'+fmtRu(T.cart)+'</td>'+cvP(T.units,T.cart)
-    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(T.deliv,T.units)
-    +'<td class="r">'+fmtRu(T.deliv)+'</td></tr>';
+    +'<td class="r">'+fmtRu(T.units)+'</td>'+cvP(Math.max(0,T.deliv-T.ret),T.units)
+    +'<td class="r">'+fmtRu(Math.max(0,T.deliv-T.ret))+'</td></tr>';
   document.getElementById('catfun').innerHTML=h?(totRow+h):'<tr><td colspan="12" class="kt-note">нет данных за период</td></tr>';
   document.querySelectorAll('#catfun .cf-cat').forEach(tr=>tr.onclick=function(){var i=tr.getAttribute('data-i');var open=false;document.querySelectorAll('#catfun .cf-sub[data-p="'+i+'"]').forEach(function(s){s.style.display=s.style.display==='none'?'':'none';open=s.style.display!=='none';});tr.querySelector('td').textContent=(open?'▾ ':'▸ ')+tr.querySelector('td').textContent.replace(/^[▸▾]\\s*/,'');});
 }
@@ -912,7 +912,7 @@ function render(cur,cmp){
     {n:'Посещения карточки товара', v:nz('pdp'), c:'из карточки в корзину'},
     {n:'Добавления в корзину', v:S('cart'), c:'из корзины в заказ'},
     {n:'Заказано товаров', v:S('units'), c:'из заказа в выкуп'},
-    {n:'Выкуплено', v:S('deliv'), c:''}
+    {n:'Выкуплено', v:Math.max(0,S('deliv')-S('ret')), c:''}
   ];
   // Форма воронки ФИКСИРОВАННАЯ - ровное сужение вниз, не зависит от значений (меняются только числа).
   const w=lv.map((x,i)=>100-i*(58/(lv.length-1)));

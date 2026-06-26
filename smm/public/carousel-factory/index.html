@@ -209,14 +209,24 @@
   .ac .ab{font-size:9px;color:var(--ink2);line-height:1.2}
   .ac.cover{border-color:var(--cta)} .ac.cta{background:var(--cta)} .ac.cta .at,.ac.cta .ab{color:var(--cta-ink)}
   .ac.photo::after{content:"IMG";position:absolute;top:6px;right:6px;font-size:7px;font-weight:800;color:var(--cta);letter-spacing:.05em}
-  #g-paste{font:inherit;font-size:13.5px;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px;min-height:140px;width:100%;resize:vertical;outline:none}
-  #g-paste:focus{border-color:var(--cta)}
-  #g-cards{display:grid;gap:12px;margin-top:14px}
+  #g-paste,#ix-paste,#xr-paste,#xr-comp{font:inherit;font-size:13.5px;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:14px;min-height:140px;width:100%;resize:vertical;outline:none}
+  #g-paste:focus,#ix-paste:focus,#xr-paste:focus,#xr-comp:focus{border-color:var(--cta)}
+  #g-cards,#ix-cards,#xr-cards{display:grid;gap:12px;margin-top:14px}
+  .ixpanel .gen-out{margin-top:18px}
+  .idea-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+  .idea-card .ih{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+  .idea-card .iangle{font-size:11px;font-weight:800;color:var(--cta);background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-pill);padding:3px 9px}
+  .idea-card .itype{font-size:11px;color:var(--ink3)}
+  .idea-card h4{font-size:15px;font-weight:800;margin:0 0 3px}
+  .idea-card p{font-size:13px;color:var(--ink2);line-height:1.45;margin:0}
+  .idea-card .take{margin-left:auto}
   .copyrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
   .scard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
   .scard .s2h{display:flex;align-items:center;gap:9px;margin-bottom:7px}
   .scard .sn2{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--cta)}
   .scard .stype{font-size:11px;color:var(--ink3)}
+  .scard .pull{font-size:10.5px;font-weight:800;color:var(--mint);background:var(--mint-soft);border-radius:6px;padding:2px 7px;margin-left:8px}
+  .scard .pull.low{color:#E8B04A;background:rgba(232,176,74,.14)}
   .scard h4{font-size:15.5px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
   .scard p{font-size:13.5px;color:var(--ink2);line-height:1.45;margin:0}
   .scard .brf{margin-top:9px;font-size:12.5px;color:var(--gm-ink);background:var(--gm-soft);border-radius:9px;padding:8px 11px;line-height:1.4}
@@ -262,7 +272,7 @@
   <div class="logo"><span class="mk">G</span>GENGROUP <span>· фабрика каруселей</span></div>
   <nav class="tnav" aria-label="разделы">
     <a href="#method">Метод</a><a href="#arc">Слайды</a><a href="#brands">Бренды</a>
-    <a href="#forge">Цех</a><a href="#cases">Цифры</a>
+    <a href="#forge">Цех</a><a href="#ideas">Идеи</a><a href="#cases">Цифры</a>
   </nav>
   <a class="btn" href="#cta" style="margin-left:auto">Собрать карусель</a>
 </div></header>
@@ -462,6 +472,52 @@
     </div>
   </section>
 
+  <!-- ИДЕИ И РАЗВЕДКА -->
+  <section id="ideas">
+    <div class="sh"><span class="tag">05 · идеи и разведка</span><h2>Идеи на неделю и рентген конкурента</h2>
+      <p>Два режима сверх карусели: контент-план на неделю по 10 углам подачи и разбор чужой карусели с переносом виральной механики на наш бренд (не копия формы).</p></div>
+    <div class="seg" id="ix-mode" role="group" aria-label="режим" style="margin-bottom:16px">
+      <button type="button" data-m="ideas" class="on">Идеи на неделю</button>
+      <button type="button" data-m="xray">Рентген конкурента</button>
+    </div>
+
+    <div class="ixpanel" id="ix-ideas">
+      <div class="gen-form">
+        <div class="row2">
+          <label class="fld"><span>Бренд</span><select id="ix-brand"></select></label>
+          <label class="fld"><span>Контекст / период <em>(необязательно)</em></span>
+            <input id="ix-ctx" type="text" autocomplete="off" placeholder="напр. сезон ремонтов, новинка, акция"></label>
+        </div>
+        <button class="btn gen-go" id="ix-go" type="button">Собрать промпт идей →</button>
+      </div>
+      <div class="gen-out" id="ix-out" hidden>
+        <div class="stp"><span class="sn">→</span> Промпт идей на неделю</div>
+        <div class="prompt"><div class="prompt-h"><span class="ttl">7 тем · 10 углов</span><button class="copy" type="button" id="ix-copy">Копировать</button></div><pre id="ix-prompt"></pre></div>
+        <p class="disc">Вставьте промпт в ChatGPT / Claude / Gemini, ответ целиком вставьте ниже - студия разложит идеи с кнопкой «взять в карусель».</p>
+        <textarea id="ix-paste" placeholder="Вставьте список тем из модели..."></textarea>
+        <button class="btn ghost" id="ix-parse" type="button">Разложить идеи</button>
+        <div id="ix-cards"></div>
+      </div>
+    </div>
+
+    <div class="ixpanel" id="ix-xray" hidden>
+      <div class="gen-form">
+        <label class="fld"><span>Бренд-приёмник</span><select id="xr-brand"></select></label>
+        <label class="fld"><span>Карусель конкурента <em>(текст слайдов или описание)</em></span>
+          <textarea id="xr-comp" placeholder="Вставьте текст или описание чужой карусели: хук, слайды, CTA..."></textarea></label>
+        <button class="btn gen-go" id="xr-go" type="button">Собрать промпт разбора →</button>
+      </div>
+      <div class="gen-out" id="xr-out" hidden>
+        <div class="stp"><span class="sn">→</span> Промпт рентгена</div>
+        <div class="prompt"><div class="prompt-h"><span class="ttl">механика → адаптация</span><button class="copy" type="button" id="xr-copy">Копировать</button></div><pre id="xr-prompt"></pre></div>
+        <p class="disc">Вставьте промпт в модель, ответ целиком вставьте ниже - студия покажет разбор и готовую тему для карусели.</p>
+        <textarea id="xr-paste" placeholder="Вставьте разбор из модели..."></textarea>
+        <button class="btn ghost" id="xr-parse" type="button">Показать разбор</button>
+        <div id="xr-cards"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ЧЕК-ЛИСТ + АНТИ-ПАТТЕРНЫ -->
   <section id="check">
     <div class="sh"><span class="tag">05 · контроль</span><h2>Чек-лист перед публикацией</h2>
@@ -626,10 +682,10 @@
 'РОЛЬ: Ты главный редактор виральных каруселей премиум-бренда '+b.name+' ('+(b.seg||'')+'). Ненавидишь воду, банальности и кликбейт, который дешевит премиум.\n\n'+
 'ЗАДАЧА: сценарий карусели на '+count+' слайдов, которую невозможно пролистнуть.\nТема: «'+topic+'»\nАудитория: '+aud+'\nЦель: '+goal+'\nФормат: '+fmt+'\nХук: '+hook+'.\n\n'+
 'ГОЛОС БРЕНДА ('+b.name+'): '+b.tone+'\nФАКТУРА (только эти факты, верифицированы по GENGROUP_BASE): '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
-'ВИРАЛЬНОСТЬ (выжимай максимум, но без дешёвого кликбейта, который дешевит премиум):\n- СКОЛЬЗКАЯ ГОРКА Шугармана (ОБЯЗАТЕЛЬНО): хук затягивает в первый слайд, каждый слайд кроме CTA кончается открытой петлёй и крючком на «→» - читатель физически не может остановиться.\n- Curiosity gap: хук обещает ответ и НЕ отдаёт его сразу - но ОБЯЗАН выплатиться. К финалу дай конкретный критерий, цифру или правило выбора (а не слей в «закажите расчёт»). Дразнилка без выплаты для эксперт-бренда запрещена.\n- Pattern interrupt: неожиданный факт, цифра или контр-тезис ломает ожидание (для премиума - не «ШОК», а острая конкретика).\n- Specificity: точные числа, размеры, сроки, рубли вместо общих слов - они репостабельны и дают доверие.\n- Контрасты на отдельных слайдах: до/после, ошибка/решение, миф/факт.\n- Social proof через факт из фактуры (проекты, годы, объёмы), без хвастовства.\n- Один слайд = одна мысль плюс микро-клиффхэнгер в конце.\n- Финал: сильный вывод с конкретикой из выплаты выше, затем CTA называет конкретный шаг и канал в воронку под цель (не «подпишись», а расчёт/проект/дилер).\n\n'+
-'ПРАВИЛА ТЕКСТА:\n- Клиент-first: от боли и задачи клиента, не от продукта.\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст слайда до 160; одна мысль на слайд. Минимум одна конкретная цифра на слайд - строго из ФАКТУРЫ выше или из данных SMM. Непроверенные числа не выдавай за факт, новых не выдумывай.\n- Техническая точность: не называй верное утверждение «мифом» и не передёргивай факт ради хука. Голос мастера у станка - это точность: верный тезис уточняй нюансом (напр. «сталь крепче, но решает не прочность»), а не отрицай.\n- Терминология бренда точная (линейка ≠ коллекция ≠ комплект). Без AI-канцелярита и длинного тире, только дефис.\n\n'+
-'ВИЗУАЛИЗАЦИЯ - '+vn+' фото-слотов. КАЖДЫЙ арт-бриф (для Nano Banana / GPT Image / Midjourney) обязан давать беспрецедентно крутой кадр:\n- Реализм: '+realLine+'; без водяных знаков, без текста и логотипов на самой картинке.\n- ОДНА камера и ОДИН объектив на ВСЮ карусель (зафиксируй в STYLE-LOCK, напр. 50mm f/1.8, 85mm f/1.4, для предметки 100mm macro): повтори их дословно в каждом брифе, НЕ меняй от слайда к слайду.\n- ОДНА световая схема на ВСЮ карусель (зафиксируй в STYLE-LOCK: мягкий дневной из окна / золотой час / студийный softbox): тот же свет, направление и палитра в каждом брифе; рефлексы на металле/стекле/камне.\n- Материал и фактура: реальная поверхность (муар на стали, прожилки камня, кромка и блик стекла, RAL-покрытие, керамическая печать), микродетали - чтобы читалось как настоящий материал, не CGI.\n'+peopleLine+'\n- STYLE-LOCK = единый замок (камера + объектив + свет + палитра + обработка) одной строкой; КАЖДЫЙ бриф НАЧИНАЕТСЯ с дословного повтора этого замка, меняется только объект и ракурс. Иначе кадры дрейфуют - для премиума это провал.\n- Распредели фото-слоты равномерно по карусели, без дыр и без скоплений подряд.\n- Каждый бриф одной плотной строкой: STYLE-LOCK дословно, затем объект, ракурс, материал/фактура, '+peopleClause+', размер под '+fmt+'.\n- Данные, цифры, схемы, сравнения - ГРАФИКОЙ слайда (её рендерит студия), НЕ фотографией.\n\n'+
-'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nВАРИАНТЫ ХУКА: три альтернативных заголовка слайда 1 для A/B, каждый с новой строки в формате H1: ... / H2: ... / H3: ...\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
+'ВИРАЛЬНОСТЬ (выжимай максимум, но без дешёвого кликбейта, который дешевит премиум):\n- СКОЛЬЗКАЯ ГОРКА Шугармана (ОБЯЗАТЕЛЬНО): хук затягивает в первый слайд, каждый слайд кроме CTA кончается открытой петлёй и крючком на «→» - читатель физически не может остановиться.\n- Curiosity gap: хук обещает ответ и НЕ отдаёт его сразу - но ОБЯЗАН выплатиться. К финалу дай конкретный критерий, цифру или правило выбора (а не слей в «закажите расчёт»). Дразнилка без выплаты для эксперт-бренда запрещена.\n- Pattern interrupt: неожиданный факт, цифра или контр-тезис ломает ожидание (для премиума - не «ШОК», а острая конкретика).\n- Specificity: точные числа, размеры, сроки, рубли вместо общих слов - они репостабельны и дают доверие.\n- Контрасты на отдельных слайдах: до/после, ошибка/решение, миф/факт.\n- Social proof через факт из фактуры (проекты, годы, объёмы), без хвастовства.\n- Один слайд = одна мысль плюс микро-клиффхэнгер в конце.\n- РЕПОСТ И СОХРАНЕНИЕ - главная цель (виральность растёт с пересылок и сохранений, не лайков): ключевые слайды делай репостабельными цитатами; тест на каждый слайд - перешлёт ли это человек другу и что это о нём скажет; в карусели есть мысль, к которой хочется вернуться и сохранить.\n- ВТОРОЙ ХУК на финале: последний слайд не просто CTA, а пере-зацеп с явной выгодой и продуктом (читатель пришёл со своей задачей, слабый финал листают мимо).\n- Финал: сильный вывод с конкретикой из выплаты выше, затем CTA называет конкретный шаг и канал в воронку под цель (не «подпишись», а расчёт/проект/дилер).\n\n'+
+'ПРАВИЛА ТЕКСТА:\n- Клиент-first: от боли и задачи клиента, не от продукта.\n- Хук обещает ответ, не даёт его. Один акцент в заголовке.\n- Лимиты: заголовок до 40 символов; текст слайда до 160; одна мысль на слайд. Минимум одна конкретная цифра на слайд - строго из ФАКТУРЫ выше или из данных SMM. Непроверенные числа не выдавай за факт, новых не выдумывай.\n- ТЕСТ 3 СЕКУНДЫ: если человек увидит ТОЛЬКО этот слайд на 3 секунды - листнёт ли дальше? Если нет - переделай.\n- Плотность: на каждом слайде реальная ценность, не пустой «один шаг - один пустой слайд». Мало ценного на слайде - не сохранят.\n- Техническая точность: не называй верное утверждение «мифом» и не передёргивай факт ради хука. Голос мастера у станка - это точность: верный тезис уточняй нюансом (напр. «сталь крепче, но решает не прочность»), а не отрицай.\n- Терминология бренда точная (линейка ≠ коллекция ≠ комплект). Без AI-канцелярита и длинного тире, только дефис.\n\n'+
+'ВИЗУАЛИЗАЦИЯ - '+vn+' фото-слотов. КАЖДЫЙ арт-бриф (для Nano Banana / GPT Image / Midjourney) обязан давать беспрецедентно крутой кадр:\n- Реализм: '+realLine+'; без водяных знаков, без текста и логотипов на самой картинке.\n- ОДНА камера и ОДИН объектив на ВСЮ карусель (зафиксируй в STYLE-LOCK, напр. 50mm f/1.8, 85mm f/1.4, для предметки 100mm macro): повтори их дословно в каждом брифе, НЕ меняй от слайда к слайду.\n- ОДНА световая схема на ВСЮ карусель (зафиксируй в STYLE-LOCK: мягкий дневной из окна / золотой час / студийный softbox): тот же свет, направление и палитра в каждом брифе; рефлексы на металле/стекле/камне.\n- Материал и фактура: реальная поверхность (муар на стали, прожилки камня, кромка и блик стекла, RAL-покрытие, керамическая печать), микродетали - чтобы читалось как настоящий материал, не CGI.\n- Без буквализма и баннерной слепоты: не иллюстрируй в лоб клише (стоковая «грустная девушка у окна», «фура» для логистики). Кадр связан с мыслью слайда, а не просто красивая картинка рядом.\n'+peopleLine+'\n- STYLE-LOCK = единый замок (камера + объектив + свет + палитра + обработка) одной строкой; КАЖДЫЙ бриф НАЧИНАЕТСЯ с дословного повтора этого замка, меняется только объект и ракурс. Иначе кадры дрейфуют - для премиума это провал.\n- Распредели фото-слоты равномерно по карусели, без дыр и без скоплений подряд.\n- Каждый бриф одной плотной строкой: STYLE-LOCK дословно, затем объект, ракурс, материал/фактура, '+peopleClause+', размер под '+fmt+'.\n- Данные, цифры, схемы, сравнения - ГРАФИКОЙ слайда (её рендерит студия), НЕ фотографией.\n\n'+
+'ФОРМАТ ОТВЕТА строго так (чтобы студия разобрала автоматически):\nСлайд 1 [тип: cover]\nЗаголовок: ...\nТекст: ...\nТяга: N/10 (честная самооценка силы тяги слайда по тесту 3 секунд; слабее 7 - переделай слайд до отправки)\nБриф картинки: ... (если фото-слот)\n\n(и так каждый слайд)\n\nSTYLE-LOCK: ... (одной строкой)\nВАРИАНТЫ ХУКА: три альтернативных заголовка слайда 1 для A/B, каждый с новой строки в формате H1: ... / H2: ... / H3: ...\nПОДПИСЬ: ... (повтор хука, раскрытие, CTA, @'+b.handle+')\nХЭШТЕГИ: #... (8-15 штук)';
     var pmL={no:'без людей',yes:'с людьми',auto:'люди авто'}[peopleMode],rmL={photo:'фото 8K',editorial:'editorial'}[realMode];
     $('g-prompt').textContent=p;$('g-meta').textContent=b.name+' · '+count+' сл. · '+$('g-fmt').value+' · визуал '+vn+' · '+pmL+' · '+rmL;
     $('g-out').hidden=false;$('g-asm').hidden=false;$('g-out').scrollIntoView({behavior:'smooth',block:'start'});
@@ -691,17 +747,19 @@
     blocks.forEach(function(bl,i){
       var type=clean((bl.match(/\[\s*(?:тип[:\s]*)?([^\]]+)\]/i)||[])[1]);
       var title=clean((bl.match(/Заголовок[:\s]*([^\n]+)/i)||[])[1]);
-      var text=clean((bl.match(/Текст[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Бриф|Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
+      var text=clean((bl.match(/Текст[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Тяга|Бриф|Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
+      var pull=((bl.match(/Тяга[:\s]*(\d{1,2})/i)||[])[1]||'');
       var brief=clean((bl.match(/Бриф[^:\n]*[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
       if(!title&&!text)return;
       if(brief)allBriefs.push('Слайд '+(i+1)+': '+brief);
       var isCta=/cta|призыв/i.test(type)||i===blocks.length-1;
-      var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');if(brief)card.setAttribute('data-brief',brief);
-      card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span></div>'+
+      var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');if(brief)card.setAttribute('data-brief',brief);if(pull)card.setAttribute('data-pull',pull);
+      card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span>'+(pull?'<span class="pull"></span>':'')+'</div>'+
         '<h4 contenteditable="true" data-ph="Заголовок (до 40)"></h4>'+
         '<p contenteditable="true" data-ph="Текст слайда (до 160, кончай на →)"></p>'+
         (brief?'<div class="brf"></div>':'')+
         '<div class="warn2" hidden></div>';
+      if(pull){var pb=card.querySelector('.pull');pb.textContent='тяга '+pull+'/10';if(+pull<7)pb.classList.add('low');}
       card.querySelector('.stype').textContent=type;
       card.querySelector('h4').textContent=title;
       card.querySelector('p').textContent=text;
@@ -768,6 +826,74 @@
   $('g-parse').addEventListener('click',parse);
   $('g-copy').addEventListener('click',function(){var t=$('g-prompt').textContent;if(!navigator.clipboard)return;
     navigator.clipboard.writeText(t).then(function(){var b=$('g-copy');var o=b.textContent;b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=o;},1500);});});
+
+  // ===== РЕЖИМЫ: «Идеи на неделю» + «Рентген конкурента» =====
+  if($('ix-brand')){
+    var ANGLES='🔥 Провокация, 😱 Страх, 🎁 Польза, 🤯 Инсайт, 📖 История, 🧪 Эксперимент, ❌ Ошибки, ✅ Инструкция, 🆚 Сравнение, 💬 Мнение';
+    function fillBrandSel(id){var s=$(id);if(!s)return;var h='';Object.keys(BR).forEach(function(k){h+='<option value="'+k+'">'+BR[k].name+'</option>';});s.innerHTML=h;}
+    fillBrandSel('ix-brand');fillBrandSel('xr-brand');
+    function copyPre(btnId,preId){var b=$(btnId);if(!b)return;b.addEventListener('click',function(){var t=$(preId).textContent;if(!navigator.clipboard)return;navigator.clipboard.writeText(t).then(function(){var o=b.textContent;b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=o;},1500);});});}
+    copyPre('ix-copy','ix-prompt');copyPre('xr-copy','xr-prompt');
+    $('ix-mode').addEventListener('click',function(e){var bn=e.target.closest('button');if(!bn)return;var m=bn.getAttribute('data-m');
+      Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===bn);});
+      $('ix-ideas').hidden=(m!=='ideas');$('ix-xray').hidden=(m!=='xray');});
+    function takeTopic(topic,brandKey){if(topic)$('g-topic').value=topic;if(brandKey&&BR[brandKey])$('g-brand').value=brandKey;
+      renderChips();renderArc();save();var f=document.getElementById('forge');if(f)f.scrollIntoView({behavior:'smooth',block:'start'});$('g-topic').focus();}
+    function takeBtn(topic,brandSelId){var tb=document.createElement('button');tb.className='cmini take';tb.type='button';tb.textContent='Взять в карусель →';
+      tb.addEventListener('click',function(){takeTopic(topic,$(brandSelId).value);});return tb;}
+    // ----- Идеи на неделю -----
+    function buildIdeas(){var b=BR[$('ix-brand').value],ctx=($('ix-ctx').value||'').trim();
+      var p='РОЛЬ: Контент-стратег виральных каруселей бренда '+b.name+' ('+(b.seg||'')+'). Думаешь репостами и сохранениями, не лайками.\n\n'+
+      'ЗАДАЧА: дай РОВНО 7 тем каруселей на неделю под этот бренд'+(ctx?' (контекст: '+ctx+')':'')+'. Не 30, именно 7, без воды.\n\n'+
+      'ГОЛОС: '+b.tone+'\nФАКТУРА (только реальные факты по GENGROUP_BASE): '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
+      'РАСКЛАДКА 7 тем: 2 на боль клиента, 2 на пользу и экспертизу, 2 личные (история, закулисье производства), 1 на мягкую продажу.\n'+
+      'Каждой теме - один угол подачи из 10: '+ANGLES+'.\n'+
+      'Темы конкретные под реальную фактуру выше, без выдуманных цифр. Хук до 40 символов, цепляет ЦА.\n\n'+
+      'ФОРМАТ строго так (чтобы студия разобрала):\nТема 1 | угол: <угол> | тип: <боль/польза/личное/продажа>\nХук: <заголовок 1-го слайда до 40 символов>\nПочему зайдёт: <одна строка про ЦА и репостабельность>\n\n(и так все 7 тем)';
+      $('ix-prompt').textContent=p;$('ix-out').hidden=false;$('ix-out').scrollIntoView({behavior:'smooth',block:'start'});}
+    $('ix-go').addEventListener('click',buildIdeas);
+    function parseIdeas(){var raw=$('ix-paste').value||'',wrap=$('ix-cards');wrap.innerHTML='';if(!raw.trim())return;
+      var cl=function(s){return (s||'').replace(/\*+/g,'').replace(/\s+/g,' ').trim();};
+      var blocks=raw.split(/(?=(?:^|\n)\s*(?:#{0,4}\s*)?\*{0,2}\s*Тема\s*\d+)/i).filter(function(x){return /Тема\s*\d+/i.test(x);});
+      blocks.forEach(function(bl){
+        var head=cl((bl.match(/Тема\s*\d+[^\n|]*/i)||[])[0]);
+        var angle=cl((bl.match(/угол[:\s]*([^|\n]+)/i)||[])[1]);
+        var typ=cl((bl.match(/тип[:\s]*([^|\n]+)/i)||[])[1]);
+        var hook=cl((bl.match(/Хук[:\s]*([^\n]+)/i)||[])[1]);
+        var why=cl((bl.match(/Почему[^:\n]*[:\s]*([^\n]+)/i)||[])[1]);
+        if(!hook&&!head)return;
+        var d=document.createElement('div');d.className='idea-card';
+        d.innerHTML='<div class="ih">'+(angle?'<span class="iangle"></span>':'')+(typ?'<span class="itype"></span>':'')+'</div><h4></h4>'+(why?'<p></p>':'');
+        if(angle)d.querySelector('.iangle').textContent=angle;if(typ)d.querySelector('.itype').textContent=typ;
+        d.querySelector('h4').textContent=hook||head;if(why)d.querySelector('p').textContent=why;
+        d.querySelector('.ih').appendChild(takeBtn(hook||head,'ix-brand'));
+        wrap.appendChild(d);
+      });
+      if(!blocks.length){var fb=document.createElement('div');fb.className='block';fb.innerHTML='<div class="bh">Не распознал темы (показываю сырой ответ)</div><p></p>';fb.querySelector('p').textContent=raw.trim();wrap.appendChild(fb);}
+    }
+    $('ix-parse').addEventListener('click',parseIdeas);
+    // ----- Рентген конкурента -----
+    function buildXray(){var b=BR[$('xr-brand').value],comp=($('xr-comp').value||'').trim();if(!comp){$('xr-comp').focus();return;}
+      var p='РОЛЬ: Аналитик-разведчик виральных каруселей. Снимаешь МЕХАНИКУ чужой карусели и переносишь на бренд '+b.name+', НЕ копируя её форму, тему и факты.\n\n'+
+      'ЧУЖАЯ КАРУСЕЛЬ (вход):\n"""\n'+comp+'\n"""\n\n'+
+      'БРЕНД-ПРИЁМНИК: '+b.name+' ('+(b.seg||'')+').\nГОЛОС: '+b.tone+'\nФАКТУРА (только это, по GENGROUP_BASE): '+b.facts+'\nЗАПРЕЩЕНО: '+b.forbid+'.\n\n'+
+      'ЗАДАЧА:\n1. РАЗБОР: какой хук, какая виральная механика (скользкая горка, curiosity gap, контраст, провокация, pattern interrupt), структура по слайдам, какой CTA, почему держит внимание.\n'+
+      '2. МЕХАНИКА К ПЕРЕНОСУ: 2-3 приёма, переносимых на наш бренд (копируем механику, НЕ форму и не чужие факты).\n'+
+      '3. АДАПТАЦИЯ: 3 идеи карусели под '+b.name+' на этой механике (не копия темы конкурента), каждая с хуком и углом подачи.\n'+
+      '4. ГОТОВАЯ ТЕМА: лучшую идею оформи ОДНОЙ строкой как тему для генератора карусели.\n\n'+
+      'Правила: только наша реальная фактура, чужие факты и цифры конкурента не тащить. Без длинного тире, только дефис.\n\n'+
+      'ФОРМАТ:\nРАЗБОР: ...\nМЕХАНИКА К ПЕРЕНОСУ: ...\nИДЕИ (3): ...\nГОТОВАЯ ТЕМА: <одна строка темы>';
+      $('xr-prompt').textContent=p;$('xr-out').hidden=false;$('xr-out').scrollIntoView({behavior:'smooth',block:'start'});}
+    $('xr-go').addEventListener('click',buildXray);
+    function parseXray(){var raw=$('xr-paste').value||'',wrap=$('xr-cards');wrap.innerHTML='';if(!raw.trim())return;
+      var d=document.createElement('div');d.className='block';d.innerHTML='<div class="bh">Разбор конкурента</div><p></p>';
+      d.querySelector('p').textContent=raw.trim();d.querySelector('.bh').appendChild(cbtn('Копировать',raw.trim()));wrap.appendChild(d);
+      var theme=((raw.match(/ГОТОВАЯ\s*ТЕМА[:\s]*([^\n]+)/i)||[])[1]||'').replace(/\*+/g,'').trim();
+      if(theme){var t=document.createElement('div');t.className='idea-card';t.innerHTML='<div class="ih"><span class="iangle">готовая тема</span></div><h4></h4>';
+        t.querySelector('h4').textContent=theme;t.querySelector('.ih').appendChild(takeBtn(theme,'xr-brand'));wrap.insertBefore(t,wrap.firstChild);}
+    }
+    $('xr-parse').addEventListener('click',parseXray);
+  }
 })();
 </script>
 </body>

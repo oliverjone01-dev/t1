@@ -1035,13 +1035,17 @@ function render(cur,cmp){
     const cogsPct = cogsNA ? null : Math.round((cu * units / accr) * 1000) / 10;
     const be = cogsNA ? null : Math.round((100 - com - (cogsPct as number)) * 10) / 10;
     const why = lowN ? "мало данных (<5 операций)" : (noCogs ? "нет себестоимости" : null);
-    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr), why };
+    // Per-unit (₽): средняя цена = выручка/штуки, комиссия ₽/шт = цена×com%, себестоимость ₽/шт = с/с за штуку.
+    const price = units > 0 ? Math.round(accr / units) : null;
+    const comRub = units > 0 ? Math.round((accr * com) / 100 / units) : null;
+    const cogsRub = cu > 0 ? Math.round(cu) : null;
+    SKU_ECON[sku] = { com, cogs: cogsPct, be, accr: Math.round(accr), why, price, comRub, cogsRub };
   }
   const body = `
   <div id="ads-status" style="display:flex;align-items:center;gap:8px;padding:7px 12px;margin-bottom:10px;border-radius:9px;background:var(--bg-soft);font-size:12.5px;color:var(--ink-2)"><span id="ads-dot" style="width:9px;height:9px;border-radius:50%;background:#E5B567;display:inline-block"></span><span id="ads-msg">подгружаю данные рекламы…</span></div>
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Кампании: топ расхода</div><div class="card-sub" id="src1"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th>Инструмент</th><th>Место размещения</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="top"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия SKU - за окно фильтра (живой pnl-sku), себестоимость - снимок 30 дней. Светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r">Комис.</th><th class="r">С/с</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Юнит-экономика рекламы: ДРР vs безубыток</div><div class="card-sub">Лимит РК (безубыточная ДРР) = 100% − все сборы OZON (комиссия+логистика+эквайринг+хранение) − себестоимость продвигаемого SKU. Запас = Лимит РК − фактическая ДРР кампании. Решение: 🟢 запас ≥30% лимита · 🟡 0…30% · 🔴 &lt;0. Расход/выручка/ДРР - по всей кампании. Комиссия SKU - за окно фильтра (живой pnl-sku), себестоимость - снимок 30 дней. Ср. цена / Комис., ₽ / С/с, ₽ - на единицу (снимок 30д): цена = выручка ÷ штуки, комиссия ₽/шт = цена × комис.%, с/с ₽/шт - себестоимость единицы. Светофор приоритизации «газ/режь», не P&amp;L до копейки.</div></div></div><div class="kt-kpi" id="uecon-kpi" style="margin-bottom:10px"></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания / SKU</th><th class="r">Расход</th><th class="r">Выручка рекл.</th><th class="r">ДРР</th><th class="r" title="средняя цена продажи = выручка ÷ штуки (снимок 30д)">Ср. цена</th><th class="r" title="комиссия OZON на единицу, ₽">Комис., ₽</th><th class="r">Комис., %</th><th class="r" title="себестоимость единицы, ₽">С/с, ₽</th><th class="r">С/с, %</th><th class="r">Лимит РК</th><th class="r">Запас, п.п.</th><th>Решение</th></tr></thead><tbody id="uecon"></tbody></table></div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сливы бюджета</div><div class="card-sub">расход от 3000 ₽ при нуле заказов или ДРР от 40% · клик - разбивка по SKU</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Кампания</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="burn"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
@@ -1195,10 +1199,10 @@ function renderUecon(a){
     var be=Math.round((100-com-e.cogs)*10)/10; // Лимит РК = 100 − комиссия(период) − с/с(снимок)
     var head=Math.round((be-drr)*10)/10;var gt=Math.max(0,Math.round(be*0.3*10)/10); // FENIX G6: порог относительный (30% лимита)
     var v=head>=gt?'go':(head>=0?'edge':'cut');
-    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,be:be,head:head,v:v});
+    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,com:com,cogs:e.cogs,price:e.price,comRub:e.comRub,cogsRub:e.cogsRub,be:be,head:head,v:v});
   });
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
-  if(!total){el.innerHTML='<tr><td colspan="9" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
+  if(!total){el.innerHTML='<tr><td colspan="12" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
   var calc=rows.filter(function(r){return !r.na;});
   var nGo=calc.filter(function(r){return r.v==='go';}).length,nEdge=calc.filter(function(r){return r.v==='edge';}).length,nCut=calc.filter(function(r){return r.v==='cut';}).length;
   var profit=0,burn=0;calc.forEach(function(r){var p=Math.round((r.om||0)*r.head/100);if(p>=0)profit+=p;else burn+=p;});
@@ -1209,10 +1213,10 @@ function renderUecon(a){
   el.innerHTML=rows.map(function(r){
     var act=r.status==='активна';var rowS=act?' style="border-left:3px solid #34D399"':'';
     var nm='<td'+(act?' style="border-left:3px solid #34D399"':'')+'>'+r.camp+stBadge(r.status)+' <span style="color:var(--ink-3)">'+r.art+'</span></td>';
-    if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="4" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
+    if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="7" style="color:var(--ink-3)">⚪ н/д: '+r.why+'</td><td>не считаем</td></tr>';
     var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
     var bec=r.be<0?'<span style="color:var(--dn)">убыток до рекл.</span>':'<b>'+r.be+'%</b>'; // FENIX N1: be<0 словом, не сырым %
-    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+r.com+'%</td><td class="r">'+r.cogs+'%</td><td class="r">'+bec+'</td><td class="r" style="color:'+hc+'"><b>'+(r.head>0?'+':'')+r.head+'</b></td><td style="color:'+hc+'">'+vlab[r.v]+' <span style="color:var(--ink-3);font-size:11px">· '+vact[r.v]+'</span></td></tr>';
+    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+(r.price==null?'—':fmtRu(r.price))+'</td><td class="r">'+(r.comRub==null?'—':fmtRu(r.comRub))+'</td><td class="r">'+r.com+'%</td><td class="r">'+(r.cogsRub==null?'—':fmtRu(r.cogsRub))+'</td><td class="r">'+r.cogs+'%</td><td class="r">'+bec+'</td><td class="r" style="color:'+hc+'"><b>'+(r.head>0?'+':'')+r.head+'</b></td><td style="color:'+hc+'">'+vlab[r.v]+' <span style="color:var(--ink-3);font-size:11px">· '+vact[r.v]+'</span></td></tr>';
   }).join('');
 }
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}

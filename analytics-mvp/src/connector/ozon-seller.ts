@@ -18,6 +18,21 @@ export const ANALYTICS_METRICS = [
   "cancellations",
 ] as const;
 
+// Полный набор для канальной воронки (daily_totals): + показы в поиске и посещения карточки.
+export const TOTALS_METRICS = [
+  "revenue",
+  "ordered_units",
+  "hits_view",
+  "hits_view_search",
+  "session_view_pdp",
+  "hits_tocart",
+  "delivered_units",
+  "returns",
+  "cancellations",
+] as const;
+
+export interface DayTotals { date: string; revenue: number; units: number; views: number; views_search: number; pdp_views: number; to_cart: number; delivered: number; returns: number; cancellations: number; }
+
 export interface SellerCreds {
   clientId: string;
   apiKey: string;
@@ -99,6 +114,27 @@ export class OzonSeller {
       name: String(r.dimensions?.[0]?.name ?? ""),
       metrics: (r.metrics ?? []).map((x: any) => Number(x) || 0),
     }));
+  }
+
+  // Канальные дневные тоталы (dimension=day, дедуплицированные итоги OZON - как в UI).
+  // Пытаемся с показами в поиске/карточке; если OZON не примет такие метрики - фолбэк на базовые.
+  async dayTotals(dateFrom: string, dateTo: string): Promise<DayTotals[]> {
+    const fetchM = async (metrics: readonly string[]) => {
+      const data = await this.post<{ result?: { data?: any[] } }>("/v1/analytics/data", {
+        date_from: dateFrom, date_to: dateTo, metrics, dimension: ["day"], limit: 1000, sort: [{ key: "revenue", order: "DESC" }],
+      });
+      return data.result?.data ?? [];
+    };
+    let rows: any[]; let ext = true;
+    try { rows = await fetchM(TOTALS_METRICS); }
+    catch { ext = false; rows = await fetchM(ANALYTICS_METRICS); } // OZON отверг расширенные метрики
+    return rows.map((r: any) => {
+      const m = (r.metrics ?? []).map((x: any) => Number(x) || 0);
+      const date = String(r.dimensions?.[0]?.id ?? "");
+      return ext
+        ? { date, revenue: m[0] || 0, units: m[1] || 0, views: m[2] || 0, views_search: m[3] || 0, pdp_views: m[4] || 0, to_cart: m[5] || 0, delivered: m[6] || 0, returns: m[7] || 0, cancellations: m[8] || 0 }
+        : { date, revenue: m[0] || 0, units: m[1] || 0, views: m[2] || 0, views_search: 0, pdp_views: 0, to_cart: m[3] || 0, delivered: m[4] || 0, returns: m[5] || 0, cancellations: m[6] || 0 };
+    }).filter((r) => r.date);
   }
 
   // POST /v4/product/info/stocks - пагинация по last_id

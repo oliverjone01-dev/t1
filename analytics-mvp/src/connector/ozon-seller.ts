@@ -177,8 +177,10 @@ export class OzonSeller {
       for (const it of items) {
         const ext = it.price_indexes?.external_index_data ?? {};
         const pr = it.price ?? {};
-        // Цена для клиента: marketing_price (с учётом акций OZON), иначе обычная price.
-        const clientPrice = Number(pr.marketing_price) || Number(pr.price) || null;
+        // Цена для клиента = marketing_seller_price (цена с учётом акций продавца - её видит
+        // покупатель на витрине), иначе обычная price. Поля marketing_price в ответе нет;
+        // price - это цена продавца ДО акций (≈ зачёркнутая), поэтому она завышена.
+        const clientPrice = Number(pr.marketing_seller_price) || Number(pr.price) || null;
         out.push({
           offer_id: String(it.offer_id ?? ""),
           price_index_value: ext.price_index_value != null ? Number(ext.price_index_value) : null,

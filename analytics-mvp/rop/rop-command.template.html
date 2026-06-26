@@ -195,16 +195,21 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .pf-pct{font-size:13px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
 .pf-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin:2px 0 12px}
 .pf-leg{display:flex;align-items:center;gap:5px}.pf-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:8px}
+.rev-toggle{display:flex;align-items:center;gap:7px}
+.dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 8px;font:inherit;font-size:11.5px}
+.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer}
 </style></head><body>
 <div id="tip"></div>
 <div class="topbar">
   <div class="logo">GG</div>
   <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span></div>
-  <div class="nav" id="nav"></div><div class="tb-spacer"></div>
-  <div class="seg" id="period"></div>
+  <div class="tb-spacer"></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
 </div>
 <div class="controls">
-  <span class="ctl-lbl">Период</span><span style="font-size:11px;color:var(--ink-2)" id="periodLabel"></span>
+  <span class="ctl-lbl">Период</span><div class="seg" id="period"></div>
+  <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
+  <span style="font-size:11px;color:var(--ink-3)" id="periodLabel"></span>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
   <span class="ctl-lbl">Менеджер</span><select id="fMgr"></select>
   <span class="ctl-lbl">Источник</span><select id="fSrc"></select>
@@ -247,7 +252,7 @@ const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay'};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -268,8 +273,10 @@ function buckets(g){const a=new Date(S.start),b=new Date(S.end),keys=[];
   if(g==='month'){let d=new Date(a.getFullYear(),a.getMonth(),1);while(d<=b){keys.push(d.toISOString().slice(0,7));d.setMonth(d.getMonth()+1);}}
   else if(g==='week'){let d=new Date(a);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}}
   else{let d=new Date(a);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}}return keys;}
+const REV_SET=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
+const SOLD=d=>S.revMode==='won'?d.won:(REV_SET.has(d.stageCode)&&!d.lost);
 // metrics
-function mtr(D,L){const won=D.filter(d=>d.won),rev=won.reduce((s,d)=>s+d.budget,0),lost=D.filter(d=>d.lost).length;
+function mtr(D,L){const won=D.filter(SOLD),rev=won.reduce((s,d)=>s+d.budget,0),lost=D.filter(d=>d.lost).length;
   return {leads:L.length,deals:D.length,won:won.length,rev,conv:D.length?won.length/D.length:0,check:won.length?rev/won.length:0,lost,
     qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,lostShare:D.length?lost/D.length:0};}
 // TOOLTIP
@@ -372,7 +379,7 @@ function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
   const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
   return `<div class="kpi-trend ${cls}">${ar} ${pct(Math.abs(dl))}<small>к пред. периоду</small></div>`;}
-function kstrip(items){return `<div class="kpi-strip" style="--cols:${Math.min(items.length,6)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
+function kstrip(items){return `<div class="kpi-strip" style="--cols:${Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
   const qty=x.qty!=null?`<div class="kpi-qty"><b>${x.qty}</b><span>${x.qtyLabel||'шт'}</span></div>`:'';
   const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3);margin-top:7px">${x.sub}</div>`:'');
@@ -444,20 +451,25 @@ function render(){
   let h='';
   const snap=SNAP();
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=D.filter(d=>d.lost).reduce((s,d)=>s+(d.budget||0),0);
+  const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
   const B_kpi=kstrip([
-    {k:'Лидов поступило',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
-    {k:'CV2 · в продажу',v:pct(m.conv),ac:'#22D3EE',trend:trendChip(m.conv,pm.conv)},
-    {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',qty:fmt(m.won),qtyLabel:'продаж',trend:trendChip(m.rev,pm.rev)},
+    {k:'Всего сделок',v:fmt(m.deals),ac:'accent',trend:trendChip(m.deals,pm.deals),sub:'из '+fmt(m.leads)+' лидов · CR1 '+pct(cr1)},
+    {k:'В продажу · CR2',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продажи ÷ сделки'},
+    {k:'Продажи',v:fmt(m.won),ac:'#10B981',qty:fmt(m.deals),qtyLabel:'сделок',trend:trendChip(m.won,pm.won)},
+    {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',qty:fmt(snap.filter(d=>!d.won&&!d.lost).length),qtyLabel:'сделок',sub:'открытый пайплайн'},
     {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
   ]);
-  const planRevP=S.planRev*periodLen()/30||1;const planConv=.15,planQ=.5;const Pg=planModel(D,L,m);
-  const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана</div><div class="card-sub">% выполнения плана · белая отсечка «план» = 100% · перевыполнение уходит за неё · цели CV1/CV2 - <span class="tag">заглушки</span></div></div></div><div class="gauges">`+
-    gauge({label:'План выручки',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`факт <b>${fmtK(m.rev)}</b> · план <b>${fmtK(planRevP)}</b> ₽`})+
-    gauge({label:'Сделки',att:Pg.targets.deals?m.deals/Pg.targets.deals:0,good:true,fact:m.deals,plan:Pg.targets.deals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(Pg.targets.deals),note:`факт <b>${fmt(m.deals)}</b> · план <b>${fmt(Pg.targets.deals)}</b>`})+
-    gauge({label:'CV2 · в продажу',att:m.conv/planConv,good:true,fact:m.conv,plan:planConv,kind:'pct',factDisp:pct(m.conv),planDisp:pct(planConv),note:`факт <b>${pct(m.conv)}</b> · цель <b>${pct(planConv)}</b>`})+
-    gauge({label:'CV1 · в квал',att:m.qrate/planQ,good:true,fact:m.qrate,plan:planQ,kind:'pct',factDisp:pct(m.qrate),planDisp:pct(planQ),note:`факт <b>${pct(m.qrate)}</b> · цель <b>${pct(planQ)}</b>`})+`</div></div>`;
+  const planRevP=S.planRev*periodLen()/30||1;const Pg=planModel(D,L,m);
+  const planLeads=Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round((m.won||1)*1.15),planCR1=.5,planCR2=.15;
+  const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана</div><div class="card-sub">% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)</div></div></div><div class="gauges">`+
+    gauge({label:'Лиды',att:m.leads/planLeads,good:true,fact:m.leads,plan:planLeads,kind:'count',factDisp:fmt(m.leads),planDisp:fmt(planLeads),note:`факт <b>${fmt(m.leads)}</b> · план <b>${fmt(planLeads)}</b>`})+
+    gauge({label:'CR1 · в сделку',att:cr1/planCR1,good:true,fact:cr1,plan:planCR1,kind:'pct',factDisp:pct(cr1),planDisp:pct(planCR1),note:`факт <b>${pct(cr1)}</b> · цель <b>${pct(planCR1)}</b>`})+
+    gauge({label:'Сделки',att:planDeals?m.deals/planDeals:0,good:true,fact:m.deals,plan:planDeals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(planDeals),note:`факт <b>${fmt(m.deals)}</b> · план <b>${fmt(planDeals)}</b>`})+
+    gauge({label:'CR2 · в продажу',att:m.conv/planCR2,good:true,fact:m.conv,plan:planCR2,kind:'pct',factDisp:pct(m.conv),planDisp:pct(planCR2),note:`факт <b>${pct(m.conv)}</b> · цель <b>${pct(planCR2)}</b>`})+
+    gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`факт <b>${fmt(m.won)}</b> · план <b>${fmt(planSales)}</b>`})+
+    gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`факт <b>${fmtK(m.rev)}</b> · план <b>${fmtK(planRevP)}</b> ₽`})+`</div></div>`;
   // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
   const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.won;
   const _cv1=m.qrate,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
@@ -865,8 +877,13 @@ function wirePF(D,L,m){
 /* shell */
 const SECS=['Компания','Отдел продаж','Менеджеры'];
 function buildShell(){
-  document.getElementById('nav').innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
-  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.getElementById('sec'+b.dataset.i).scrollIntoView({behavior:'smooth'});});
+  const _nv=document.getElementById('nav');
+  if(_nv){_nv.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
+  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.getElementById('sec'+b.dataset.i).scrollIntoView({behavior:'smooth'});});}
+  const _rs=document.getElementById('revSeg');
+  if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
+  const _ac=document.getElementById('applyCustom');
+  if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});

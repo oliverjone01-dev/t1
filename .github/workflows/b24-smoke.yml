@@ -14,6 +14,41 @@ jobs:
     env:
       B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
     steps:
+      - name: crm.activity.list разведка (касания)
+        run: |
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          base="${B24_WEBHOOK_URL%/}"
+          post(){ curl -sS --max-time 40 -X POST "$base/$1.json" -H 'Content-Type: application/json' -d "$2"; }
+
+          echo "== crm.activity.list по сделкам (OWNER_TYPE_ID=2): total + поля первого =="
+          post crm.activity.list '{"filter":{"OWNER_TYPE_ID":2},"order":{"ID":"ASC"},"start":0}' > /tmp/a.json || true
+          node -e 'let j={};try{j=require("/tmp/a.json")}catch(e){};
+            if(j.error){console.log("error:",j.error_description||j.error);process.exit(0);}
+            console.log("total активностей по сделкам =", j.total);
+            const r=j.result||[];console.log("ключи:", r[0]?Object.keys(r[0]).join(","):"—");
+            console.log("первый:", JSON.stringify(r[0]));'
+
+          echo "== сэмпл ~500 активностей: распределение TYPE_ID / PROVIDER_ID / DIRECTION / COMPLETED / год-месяц =="
+          : > /tmp/all.ndjson
+          for s in 0 50 100 150 200 250 300 350 400 450; do
+            post crm.activity.list "{\"select\":[\"ID\",\"OWNER_ID\",\"TYPE_ID\",\"PROVIDER_ID\",\"PROVIDER_TYPE_ID\",\"DIRECTION\",\"COMPLETED\",\"CREATED\"],\"filter\":{\"OWNER_TYPE_ID\":2},\"order\":{\"ID\":\"ASC\"},\"start\":$s}" \
+              | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{let j={};try{j=JSON.parse(d)}catch(e){};(j.result||[]).forEach(x=>console.log(JSON.stringify(x)))})' >> /tmp/all.ndjson || true
+            sleep 0.6
+          done
+          node -e '
+            const fs=require("fs");const ls=fs.readFileSync("/tmp/all.ndjson","utf8").trim().split("\n").filter(Boolean).map(JSON.parse);
+            console.log("собрано:",ls.length);
+            const tally=(f)=>{const m={};ls.forEach(x=>{const k=String(x[f]);m[k]=(m[k]||0)+1});return JSON.stringify(m);};
+            const TYPE={1:"встреча",2:"звонок",3:"задача",4:"email",5:"?",6:"REST/иное"};
+            console.log("TYPE_ID:",tally("TYPE_ID"),"(1встреча 2звонок 3задача 4email 6иное)");
+            console.log("PROVIDER_ID:",tally("PROVIDER_ID"));
+            console.log("DIRECTION:",tally("DIRECTION"),"(1вход 2исход)");
+            console.log("COMPLETED:",tally("COMPLETED"));
+            const ym={};ls.forEach(x=>{const k=String(x.CREATED||"").slice(0,7);ym[k]=(ym[k]||0)+1});
+            console.log("год-месяц (есть ли активность ДО переезда 2026-03?):",JSON.stringify(ym));
+          '
+
       - name: stagehistory разведка
         run: |
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi

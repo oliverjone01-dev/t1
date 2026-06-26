@@ -274,7 +274,8 @@ function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 function FL(){return flt(AL,false).filter(l=>inP(l.created));}
 function SNAP(){return flt(AD,true);} // current pipeline, ignores period
 // previous-window sets
-function PD(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);const a=ps.toISOString().slice(0,10),b=pe.toISOString().slice(0,10);return flt(AD,true).filter(d=>d.created>=a&&d.created<=b);}
+function prevWin(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);return [ps.toISOString().slice(0,10),pe.toISOString().slice(0,10)];}
+function PD(){const[a,b]=prevWin();return flt(AD,true).filter(d=>d.created>=a&&d.created<=b);}
 function PL(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);const a=ps.toISOString().slice(0,10),b=pe.toISOString().slice(0,10);return flt(AL,false).filter(l=>l.created>=a&&l.created<=b);}
 // buckets
 function bkey(ds,g){if(g==='day')return ds;if(g==='month')return ds.slice(0,7);const dt=new Date(ds);const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return dt.toISOString().slice(0,10);}
@@ -289,10 +290,27 @@ function buckets(g){const a=new Date(S.start),b=new Date(S.end),keys=[];
   else{let d=new Date(a);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}}return keys;}
 const REV_SET=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
 const SOLD=d=>S.revMode==='won'?d.won:(REV_SET.has(d.stageCode)&&!d.lost);
-// metrics
-function mtr(D,L){const won=D.filter(SOLD),rev=won.reduce((s,d)=>s+d.budget,0),lost=D.filter(d=>d.lost).length;
-  return {leads:L.length,deals:D.length,won:won.length,rev,conv:D.length?won.length/D.length:0,check:won.length?rev/won.length:0,lost,
-    qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,lostShare:D.length?lost/D.length:0};}
+// Дата, когда продажа СОСТОЯЛАСЬ: в режиме «успех» = дата закрытия; в режиме «предоплата»
+// = дата входа в стадию предоплаты (из истории стадий). Нужна, чтобы считать продажи/выручку
+// по дате ИСХОДА, а не по дате создания сделки (решение Ивана 2026-06-26).
+function soldDate(d){if(S.revMode==='won')return d.closed;for(const h of(d.hist||[]))if(REV_SET.has(h[0]))return h[1];return d.closed;}
+// Наборы по дате исхода в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
+function soldSet(a,b){a=a||S.start;b=b||S.end;return flt(AD,true).filter(d=>{if(!SOLD(d))return false;const sd=soldDate(d);return sd&&sd>=a&&sd<=b;});}
+function lostSet(a,b){a=a||S.start;b=b||S.end;return flt(AD,true).filter(d=>d.lost&&d.closed&&d.closed>=a&&d.closed<=b);}
+// metrics. D/L = когорта по дате СОЗДАНИЯ (intake: лиды, создано сделок, конверсии).
+// so/lo = продажи/потери по дате ИСХОДА в периоде (деньги/результат). Если не переданы -
+// откат к когортному расчёту (обратная совместимость).
+function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
+  so=so||cohortWon;lo=lo||D.filter(d=>d.lost);
+  const rev=so.reduce((s,d)=>s+(d.budget||0),0),revCohort=cohortWon.reduce((s,d)=>s+(d.budget||0),0);
+  const lostM=lo.reduce((s,d)=>s+(d.budget||0),0),closed=so.length+lo.length;
+  return {leads:L.length,deals:D.length,
+    won:so.length,rev,check:so.length?rev/so.length:0,
+    wonCohort:cohortWon.length,revCohort,
+    conv:D.length?so.length/D.length:0,
+    lost:lo.length,lostM,
+    qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
+    lostShare:closed?lo.length/closed:0};}
 // TOOLTIP
 const tip=document.getElementById('tip');
 function tipShow(html,x,y){tip.innerHTML=html;tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
@@ -388,9 +406,12 @@ function tipColumn(label,totalLabel,total,rows,money,totColor){const f=v=>money?
 function rankColor(arr,v,inv){const a=arr.filter(x=>x!=null);if(!a.length||v==null)return '';const mn=Math.min(...a),mx=Math.max(...a);let t=mx===mn?.5:(v-mn)/(mx-mn);if(inv)t=1-t;const c=t>=.66?'16,185,129':t>=.33?'245,158,11':'244,63,94';return `background:rgba(${c},${(.05+t*.20).toFixed(3)})`;}
 // per-manager agg over a deal/lead set
 function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>l.mgr)])].filter(n=>isOP(n));
-  return names.map(m=>{const dd=D.filter(d=>d.mgr===m),ll=L.filter(l=>l.mgr===m),won=dd.filter(d=>d.won);const rev=won.reduce((s,x)=>s+x.budget,0);
+  // лиды/сделки - по дате создания (intake); успех/выручка/чек/потери - по дате ИСХОДА в периоде.
+  const so=soldSet(),lo=lostSet();
+  return names.map(m=>{const dd=D.filter(d=>d.mgr===m),ll=L.filter(l=>l.mgr===m);
+    const won=so.filter(d=>d.mgr===m),lst=lo.filter(d=>d.mgr===m);const rev=won.reduce((s,x)=>s+(x.budget||0),0);
     const cyc=median(dd.filter(d=>d.cycle!=null).map(d=>d.cycle));const tr=dd.length?dd.reduce((s,d)=>s+(d.touchReal||0),0)/dd.length:0;
-    return {mgr:m,leads:ll.length,deals:dd.length,won:won.length,conv:dd.length?won.length/dd.length:0,rev,check:won.length?rev/won.length:0,lost:dd.filter(d=>d.lost).length,cycle:cyc,touch:tr};});}
+    return {mgr:m,leads:ll.length,deals:dd.length,won:won.length,conv:dd.length?won.length/dd.length:0,rev,check:won.length?rev/won.length:0,lost:lst.length,cycle:cyc,touch:tr};});}
 
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
@@ -484,10 +505,11 @@ function mgrDwellHeat(deals){
   return html;
 }
 function render(){
-  const D=FD(),L=FL(),PDd=PD(),PLd=PL();const m=mtr(D,L),pm=mtr(PDd,PLd);
+  const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
+  const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
   let h='';
   const snap=SNAP();
-  const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=D.filter(d=>d.lost).reduce((s,d)=>s+(d.budget||0),0);
+  const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
   const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
   const B_kpi=kstrip([
     {k:'Всего сделок',v:fmt(m.deals),ac:'accent',trend:trendChip(m.deals,pm.deals),sub:'из '+fmt(m.leads)+' лидов · CR1 '+pct(cr1)},
@@ -508,9 +530,11 @@ function render(){
     gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`факт <b>${fmt(m.won)}</b> · план <b>${fmt(planSales)}</b>`})+
     gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`факт <b>${fmtK(m.rev)}</b> · план <b>${fmtK(planRevP)}</b> ₽`})+`</div></div>`;
   // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
-  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.won;
+  // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
+  // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
+  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort;
   const _cv1=m.qrate,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
-  const _wonRev=m.rev,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
+  const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
   const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
@@ -625,7 +649,7 @@ function render(){
     const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
-  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,D,_lm,_mkeys);
+  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys);
   const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=_lm!=='leads';
   const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
@@ -635,7 +659,7 @@ function render(){
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда — план-факт ${qm(1)}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · меняй метрику и план - всё пересчитается</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${qm(1)}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':'по дате закрытия'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':'по дате продажи'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -707,9 +731,9 @@ function render(){
   const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки</div><div class="card-sub">медиана дней, что открытые сделки менеджера лежат на этапе · ячейка = дни·сделок · красное = дольше · скан по столбцу: у кого краснее, тот бросает и забывает</div></div></div>`+mgrDwellHeat(snap)+`</div>`;
   /* 5. ДЕНЬГИ */
   /* уровни собираются в конце */
-  const won=D.filter(d=>d.won);
+  const won=soldSet(); // продажи по дате исхода в периоде (для бубликов выручки)
   const openDeals=snap.filter(d=>!d.won&&!d.lost);const openMoney=openDeals.reduce((s,d)=>s+d.budget,0);
-  const lostMoney=D.filter(d=>d.lost).reduce((s,d)=>s+d.budget,0);
+  const lostMoney=lostSet().reduce((s,d)=>s+(d.budget||0),0);
   /* money KPI-стрип объединён в «Главные цифры» наверху */
   const B_dynRev=`<div class="card"><div class="card-h" style="flex-wrap:nowrap;align-items:center"><div class="card-title">Динамика отдела ${qm(2)}</div><div class="seg" id="rdSeg" style="flex:0 0 auto"></div></div><div class="card-sub" id="rdh" style="margin:-6px 0 14px"></div><div id="rdyn"></div></div>`;
   const B_avgCheck=`<div class="card"><div class="card-h"><div><div class="card-title">Средний чек по менеджерам</div><div class="card-sub">по успешным сделкам, ₽</div></div></div>`+barRows(byManager(D,L).filter(x=>x.won>0).sort((a,b)=>b.check-a.check).map(x=>[x.mgr,x.check]),true)+`</div>`;
@@ -726,7 +750,8 @@ function render(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
   document.getElementById('root').innerHTML=h;
   // post-render wiring
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(D);wireDQ();
+  // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)));wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){
@@ -761,7 +786,7 @@ function mgrPF(L,D,metric,keys){const A={};
   const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};
   L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
   D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
-    if(d.won){a.won++;a.rev+=(d.budget||0);const kw=bkey(d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
+    if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
   const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
   const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='won')return a.ww;
     const w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});return w;};

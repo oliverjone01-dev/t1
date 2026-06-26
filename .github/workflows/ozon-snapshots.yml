@@ -113,6 +113,13 @@ jobs:
           # backfill сам тянет от последнего дня истории до вчера (самовосстановление после простоя).
           npm run backfill
 
+      - name: Канальный дневной ряд воронки/тоталов (прямой OZON, без n8n)
+        run: |
+          set -euo pipefail
+          # daily_totals.ndjson напрямую из OZON (dimension=day). Раньше писал n8n (удалён),
+          # из-за чего воронка/тоталы замораживались. Догрузка от последнего дня до вчера.
+          npm run totals:daily || echo "::warning::daily-totals не собрался (OZON Seller недоступен)"
+
       - name: per-SKU attribution по дням (основная/объединённая, любой период)
         run: |
           set -euo pipefail

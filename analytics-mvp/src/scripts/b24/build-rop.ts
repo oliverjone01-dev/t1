@@ -20,13 +20,23 @@ const tpl = readFileSync(TPL, "utf-8");
 
 const DIRS = ["genglass", "glass-memory", "metal_gm", "gen-group", "gentero", "valonti"];
 const sum = (arr: any[], f: (x: any) => number) => arr.reduce((s, x) => s + (f(x) || 0), 0);
+const ddiff = (a?: string, b?: string): number | null => {
+  if (!a || !b) return null; const t1 = Date.parse(a), t2 = Date.parse(b);
+  return isNaN(t1) || isNaN(t2) ? null : Math.round((t2 - t1) / 86400000 * 100) / 100;
+};
+// dwellCur = дней в текущей стадии (для открытых сделок), из истории стадий.
+const dwellOf = (d: any): number | null => {
+  if (d.won || d.lost) return null;
+  const h = d.hist || []; const at = h.length ? h[h.length - 1][1] : d.created;
+  return ddiff(at, TODAY);
+};
 
-// --- deals -> схема MVP (+ touch* = 0, фаза 2) ---
+// --- deals -> схема MVP (+ hist/dwellCur из истории стадий; касания = фаза 2) ---
 const deals = rop.deals.map((d: any) => ({
   id: d.id, mgr: d.mgr, stage: d.stage, won: d.won, lost: d.lost, budget: d.budget,
   created: d.created, closed: d.closed, source: d.source, client: d.client,
   assort: d.assort, reason: d.reason, touchReal: 0, touchAll: 0, cycle: d.cycle,
-  stageCode: d.stageCode, dir: d.dir,
+  stageCode: d.stageCode, dir: d.dir, hist: d.hist || [], dwellCur: dwellOf(d),
 }));
 
 // --- leads -> схема MVP (+ qual) ---

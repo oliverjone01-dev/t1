@@ -252,7 +252,7 @@ const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay'};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created'};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -386,8 +386,23 @@ function kstrip(items){return `<div class="kpi-strip" style="--cols:${Math.min(i
   return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}${foot}</div>`;}).join('')+'</div>';}
 function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
 
+const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
+const ddiffJS=(a,b)=>{const t1=Date.parse(a),t2=Date.parse(b);return isNaN(t1)||isNaN(t2)?null:(t2-t1)/864e5;};
 function funnelChart(){
-  const F=DATA.funnel;const n=F.length;
+  const mode=S.funnelMode||'created',prepay=S.revMode!=='won';
+  const inSet=d=>mode==='created'?(d.created>=S.start&&d.created<=S.end):(d.created<=S.end&&(!d.closed||d.closed>=S.start));
+  const DD=flt(AD,true).filter(inSet);
+  const ord={};FORDER.forEach((c,i)=>ord[c]=i);
+  const reachedOrd=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&ord[e[0]]!=null&&ord[e[0]]>mo)mo=ord[e[0]];}if(!h.length&&ord[d.stageCode]!=null)mo=ord[d.stageCode];if(d.won&&ord['C49:WON']>mo)mo=ord['C49:WON'];return mo;};
+  const reached=DD.map(reachedOrd);
+  const FUN=prepay
+    ?[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Продажи (от предоплаты)','C49:EXECUTING']]
+    :[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Предоплата','C49:EXECUTING'],['В производстве','C49:FINAL_INVOICE'],['В логистике','C49:2'],['Успешно','C49:WON']];
+  const F=FUN.map(([name,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>reached[i]>=th);
+    const dws=[];DD.forEach(d=>{const h=d.hist||[];for(let k=0;k<h.length;k++){if(h[k][0]===code){const nxt=h[k+1]?h[k+1][1]:((d.won||d.lost)?d.closed:DATA.to);const dd=ddiffJS(h[k][1],nxt);if(dd!=null&&dd>=0)dws.push(dd);}}});
+    return {name,count:sub.length,money:sub.reduce((s,d)=>s+(d.budget||0),0),dwell:median(dws)};});
+  F.forEach((f,k)=>f.conv=k===0?1:(F[k-1].count?f.count/F[k-1].count:0));
+  const n=F.length;
   const W=1380,H=384,bandH=200,midY=80+bandH/2,moneyY=H-46,pillY=H-32;
   const colW=W/n,nodeW=colW*0.5,maxC=F[0].count||1;
   const COL=['#22D3EE','#38BDF8','#60A5FA','#818CF8','#A78BFA','#C084FC','#2DD4BF','#34D399','#10B981'];
@@ -396,12 +411,12 @@ function funnelChart(){
   let defs='',conns='',nodes='',labels='';
   for(let i=0;i<n-1;i++){const h0=hOf(F[i].count),h1=hOf(F[i+1].count),x0=nodeX(i)+nodeW,x1=nodeX(i+1);
     const t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='fc'+i;
-    defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${COL[i]}" stop-opacity=".45"/><stop offset="1" stop-color="${COL[i+1]}" stop-opacity=".45"/></linearGradient>`;
+    defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${COL[i%COL.length]}" stop-opacity=".45"/><stop offset="1" stop-color="${COL[(i+1)%COL.length]}" stop-opacity=".45"/></linearGradient>`;
     const td=dt(F[i].name+' → '+F[i+1].name,[['Конверсия',pct(F[i+1].conv)],['Прошло дальше',fmt(F[i+1].count)],['Отвалилось',fmt(F[i].count-F[i+1].count)]]).replace(/"/g,'&quot;');
     conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`;
     const mxp=(x0+x1)/2,cv=F[i+1].conv,cc=cv<.6?'#F43F5E':cv<.85?'#FB923C':'#22D3EE';
     conns+=`<rect x="${mxp-19}" y="${midY-9}" width="38" height="18" rx="9" fill="rgba(7,9,13,.9)" stroke="${cc}" stroke-opacity=".55"/><text x="${mxp}" y="${midY+3.5}" text-anchor="middle" font-size="10" font-weight="700" fill="${cc}" pointer-events="none">${Math.round(cv*100)}%</text>`;}
-  F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i];
+  F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
     const td=dt(f.name,[['Дошло сделок',fmt(f.count)],['Сумма',fmt(f.money)+' ₽'],['Медиана на этапе',f.dwell!=null?d1(f.dwell)+' дн':'—'],['Конверсия с пред.',pct(f.conv)]]).replace(/"/g,'&quot;');
     nodes+=`<rect class="seg-anim" style="animation-delay:${i*.06}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}"/>`;
     if(h>=24)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
@@ -410,9 +425,11 @@ function funnelChart(){
     labels+=`<text x="${cx(i)}" y="26" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l1}</text>`+(l2?`<text x="${cx(i)}" y="40" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l2}</text>`:'');
     labels+=`<text x="${cx(i)}" y="${moneyY}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">${fmtK(f.money)} ₽</text>`;
     if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-30}" y="${pillY}" width="60" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`;}});
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Воронка прохождения сделок (труба)</div><div class="card-sub">сколько сделок дошло до этапа · конверсия между этапами · сумма · медианный срок на этапе (наведи на сегмент)</div></div></div>
+  const subTxt=(mode==='created'?'когорта по дате создания в периоде':'активные на стадиях в периоде + новые')+' · '+(prepay?'продажи = от предоплаты':'успех = WON')+' · конверсия/сумма/медианный срок на этапе';
+  const segBtns=`<div class="seg" id="funMode"><button data-f="created" class="${mode==='created'?'on':''}">По дате создания</button><button data-f="active" class="${mode==='active'?'on':''}">Активные в периоде</button></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Воронка прохождения сделок (труба)</div><div class="card-sub">${subTxt}</div></div>${segBtns}</div>
     <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px">${defs?`<defs>${defs}</defs>`:''}${conns}${nodes}${labels}</svg></div>
-    <div class="note" style="margin-top:12px">Срок на этапе: <b style="color:#10B981">&lt; 10 дн</b> · <b style="color:#FB923C">10–21</b> · <b style="color:#F43F5E">&gt; 21 дн</b>. Самая большая утечка - переход «Предложение отправлено → Принимают решение» (≈половина сделок).</div></div>`;
+    <div class="note" style="margin-top:12px">Срок на этапе: <b style="color:#10B981">&lt; 10 дн</b> · <b style="color:#FB923C">10–21</b> · <b style="color:#F43F5E">&gt; 21 дн</b>. Воронка реагирует на диапазон дат, режим и тумблер выручки.</div></div>`;
 }
 
 function dwellByStage(deals){
@@ -882,6 +899,7 @@ function buildShell(){
   document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.getElementById('sec'+b.dataset.i).scrollIntoView({behavior:'smooth'});});}
   const _rs=document.getElementById('revSeg');
   if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
+  document.addEventListener('click',e=>{const fb=e.target.closest('#funMode button');if(fb){S.funnelMode=fb.dataset.f;render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

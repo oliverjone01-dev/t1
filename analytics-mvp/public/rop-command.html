@@ -538,7 +538,7 @@ function render(){
     const td=dt(name,[['Всего лидов',fmt(total),'hl'],['Доля от всех лидов',pct(total/dq.leadTotal),'hl'],['Квал',fmt(s),'dim'],['Отказ',fmt(f),'dim'],['В работе',fmt(p),'dim']]).replace(/"/g,'&quot;');
     return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:96px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" title="CR1 направления (квал÷лиды), нейтральный показатель">${pct(total?s/total:0)}</div></div>`;}).join('');
   // ===== метрика блока «Качество разметки» управляется тем же тогглом (loadSeg) =====
-  const QM=S.loadMetric||'leads';
+  const QM=(S.loadMetric==='conv'||S.loadMetric==='check')?'deals':(S.loadMetric||'leads');
   const _wonByDir={},_revByDir={};DATA.deals.forEach(d=>{if(d.won){const k=d.dir||'не указано';_wonByDir[k]=(_wonByDir[k]||0)+1;_revByDir[k]=(_revByDir[k]||0)+(d.budget||0);}});
   const _noDir=o=>Object.fromEntries(Object.entries(o||{}).filter(([k])=>k!=='не указано'));
   const _sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
@@ -608,11 +608,11 @@ function render(){
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
   const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,D,_lm,_mkeys);
-  const _mN=OP.size||_marr.length||1,_factTot=_marr.reduce((a,x)=>a+x.tot,0),_attain=_lm!=='leads';
-  const _mPlanTot=_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
-  const _mPlanMgr=_mPlanTot/_mN,_mPlanCell=_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=_lm!=='leads';
+  const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
+  const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
-  const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=_lm==='rev'?(v=>fmtK(v)+' ₽'):(v=>fmt(v));
+  const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
   const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};border-radius:11px;transition:width .8s var(--ease-out)"></div><span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>${_lm==='leads'?`<div style="flex-basis:100%;font-size:11.5px;color:var(--ink-3);margin-top:2px">распределение факта: ~<b style="color:var(--ink-2)">${fmt(Math.round(_mPlanMgr))}</b> лидов/менеджера · <b style="color:#CC5867">${_nOver}</b> перегруж. · <b style="color:#C2873C">${_nUnder}</b> недогруж.</div>`:''}`;
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда — план-факт ${qm(1)}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · меняй метрику и план - всё пересчитается</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
@@ -729,11 +729,16 @@ function mgrHeatmap(L){
   const rows=arr.map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell;const bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)';const col=t>0.55?'#06121a':'var(--ink-2)';const td=dt(x.m+' · '+blabel(k,S.gran),[['Лидов',fmt(v),'hl']]).replace(/"/g,'&quot;');return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?(v||''):''}</div>`;}).join('');
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot">${fmt(x.t)}</div></div>`;}).join('');
   return `<div class="hm" style="--wk:${keys.length}">${head}${rows}</div>`;}
-function mgrPF(L,D,metric,keys){const A={},gk=(metric==='leads'||metric==='deals')?(x=>x.created):(x=>x.closed||x.created);
-  const src=metric==='leads'?L.filter(l=>isOP(l.mgr)):metric==='deals'?D.filter(d=>isOP(d.mgr)):D.filter(d=>d.won&&isOP(d.mgr));
-  src.forEach(x=>{const a=A[x.mgr]=A[x.mgr]||{tot:0,w:{}};const v=metric==='rev'?(x.budget||0):1;a.tot+=v;const k=bkey(gk(x),S.gran);a.w[k]=(a.w[k]||0)+v;});
-  return Object.entries(A).map(([m,a])=>({m,tot:a.tot,w:a.w})).sort((x,y)=>y.tot-x.tot);}
-function mgrPlanFactBars(arr,planMgr,metric,attain){const money=metric==='rev',fM=v=>money?fmtK(v):fmt(v);
+function mgrPF(L,D,metric,keys){const A={};
+  const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};
+  L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
+  D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+    if(d.won){a.won++;a.rev+=(d.budget||0);const kw=bkey(d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
+  const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
+  const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='won')return a.ww;
+    const w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});return w;};
+  return Object.entries(A).map(([m,a])=>({m,tot:tot(a),w:wof(a)})).sort((x,y)=>y.tot-x.tot);}
+function mgrPlanFactBars(arr,planMgr,metric,attain){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=arr.length;
   const maxV=Math.max(planMgr,...arr.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
@@ -745,7 +750,7 @@ function mgrPlanFactBars(arr,planMgr,metric,attain){const money=metric==='rev',f
     labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="var(--ink-3)" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${x.m.split(' ')[0]}</text>`;});
   const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=metric==='rev',fM=v=>money?fmtK(v):fmt(v),showNum=keys.length<=14;
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
@@ -756,7 +761,7 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=metric==
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fM(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
   return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
-  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
   const inp=document.getElementById('planInp');if(inp)inp.onchange=()=>{const v=+inp.value;if(v>0){S.planRev=v;render();}};}
 function leadFunnel(L){const order=['Новые заявки','Разобрать','В работе','Создание сделки','Некачественный лид','СПАМ','Дубль','Отказ'];const c={};L.forEach(l=>c[l.status]=(c[l.status]||0)+1);

@@ -71,6 +71,25 @@ async function listAll(method: string, params: any): Promise<any[]> {
   return all;
 }
 
+// История стадий (crm.stagehistory.list): result.items, пагинация по ID. Для воронки/dwell.
+async function listHistory(category: string): Promise<any[]> {
+  const all: any[] = [];
+  let lastId = 0;
+  for (;;) {
+    const j = await call("crm.stagehistory.list", {
+      entityTypeId: 2,
+      filter: { CATEGORY_ID: Number(category), ">ID": lastId },
+      order: { ID: "ASC" }, start: -1,
+    });
+    const batch: any[] = (j.result && j.result.items) || [];
+    if (!batch.length) break;
+    all.push(...batch);
+    lastId = Number(batch[batch.length - 1].ID);
+    if (batch.length < 50) break;
+  }
+  return all;
+}
+
 // Обычная пагинация через next (для user.get).
 async function pageAll(method: string, params: any): Promise<any[]> {
   const all: any[] = [];
@@ -133,6 +152,15 @@ async function main() {
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
+  // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
+  const histRows = await listHistory(DEAL_CATEGORY);
+  const histByDeal: Record<string, [string, string][]> = {};
+  for (const h of histRows) {
+    const oid = String(h.OWNER_ID);
+    (histByDeal[oid] ||= []).push([String(h.STAGE_ID), d10(h.CREATED_TIME) || ""]);
+  }
+  for (const k in histByDeal) histByDeal[k].sort((a, b) => (a[1] < b[1] ? -1 : 1));
+  console.log(`История стадий: ${histRows.length} записей на ${Object.keys(histByDeal).length} сделок`);
   const deals = dealRows.map((d) => {
     const sid = String(d.STAGE_ID || "");
     return {
@@ -154,6 +182,7 @@ async function main() {
       assort: assortMap[String(d[UF.assort])] || "нет данных",
       reason: reasonMap[String(d[UF.reason])] || "не указана",
       dir: dirMap[String(d[UF.dir])] || "не указано",
+      hist: histByDeal[String(d.ID)] || [],
     };
   });
   console.log(`Сделки воронка ${DEAL_CATEGORY} (${catName[DEAL_CATEGORY] || ""}): ${deals.length}`);

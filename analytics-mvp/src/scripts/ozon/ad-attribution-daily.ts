@@ -79,13 +79,18 @@ async function main() {
   const perf = new OzonPerformance({ clientId, clientSecret });
   const ids = dashboardCampaignIds();
   if (!ids.length) { console.warn("ad-attr-daily: нет кампаний дашборда (ads_periods пуст) - пропуск"); return; }
-  let total = 0, allDays = new Set<string>();
+  // Бюджет времени: OZON генерит отчёты медленно и по одному. Чтобы НЕ блокировать ночной
+  // снимок (он должен дойти до коммита - там же свежая цена/остатки), ограничиваем шаг.
+  // Ряд самовосстанавливающийся: что не успели - догрузит следующий прогон.
+  const START = Date.now(); const BUDGET_MS = 9 * 60 * 1000;
+  let total = 0, allDays = new Set<string>(), budgetHit = false;
   for (const [wf, wt] of windows(from, to)) {
     // OZON Performance: МАКСИМУМ 1 активный запрос отчёта. Поэтому строго последовательно:
     // запрос -> опрос -> скачивание (закрывает активный слот) -> следующая кампания.
     const recs: AttrDailyRec[] = [];
     let ok = 0;
     for (const id of ids) {
+      if (Date.now() - START > BUDGET_MS) { budgetHit = true; break; }
       let uuid = "";
       try { uuid = await perf.requestStatistics([id], wf, wt, "DATE"); } catch { continue; } // каталожная/недоступна
       if (!uuid) continue;
@@ -98,6 +103,7 @@ async function main() {
     }
     if (recs.length) { appendFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n"); total += recs.length; recs.forEach((r) => allDays.add(r.d)); }
     console.log(`ad-attr-daily: окно ${wf}..${wt} - кампаний ${ids.length}, с данными ${ok}, строк ${recs.length}`);
+    if (budgetHit) { console.log(`ad-attr-daily: бюджет ~${BUDGET_MS / 60000} мин исчерпан - остановка, догрузим в следующий прогон`); break; }
   }
   if (!total) { console.log(`ad-attr-daily: OZON не отдал строк за ${from}..${to}`); return; }
   console.log(`ad-attr-daily: +${total} строк за ${allDays.size} дн (${from}..${to}) -> ${OUT}`);

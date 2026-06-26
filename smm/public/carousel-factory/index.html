@@ -16,17 +16,19 @@
      Бренд-акценты сохранены: G=сталь, V=золото, M=графит, GM=иней.
      =================================================================== */
   :root{
-    --bg:#0B0E13;--bg2:#11151C;--card:#161B23;--card2:#1C222B;
-    --line:#252C37;--line2:#333B48;
-    --ink:#F2F4F7;--ink2:#A9B0BC;--ink3:#79808D;
-    --cta:#4A9DF8;--cta-2:#2E86E6;--cta-ink:#04101F;          /* cushion-синий primary */
-    /* бренд-акценты */
+    /* ЕДИНЫЙ СТАНДАРТ GENGROUP dark (источник: brand-site/plan.html, доведено до премиум).
+       Нейтрально-тёплая тёмная гамма + золото-primary вместо прежнего синего cushion. */
+    --bg:#131418;--bg2:#191B20;--card:#1E2025;--card2:#26282E;
+    --line:#2E3036;--line2:#3C3F47;
+    --ink:#F3F2EF;--ink2:#B4B6B8;--ink3:#888A8D;
+    --cta:#E3BD72;--cta-2:#D2AB5C;--cta-ink:#1A1408;          /* премиум-золото primary (из plan.html, refined) */
+    /* бренд-акценты (идентичность брендов, не трогаем) */
     --g:#6E92B5;--g-ink:#AEC8DE;--g-soft:rgba(110,146,181,.15);   /* GENGLASS - сталь */
     --v:#E7A93C;--v-ink:#EFC976;--v-soft:rgba(231,169,60,.14);    /* VALONTI - золото */
     --m:#9AA3AF;--m-ink:#C3CAD3;--m-soft:rgba(154,163,175,.14);   /* Metal-GM - графит */
     --gm:#86B6C9;--gm-ink:#B4D6E3;--gm-soft:rgba(134,182,201,.14);/* GLASS-MEMORY - иней */
-    --mint:#46C998;--mint-soft:rgba(70,201,152,.15);
-    --rose:#E8755E;--rose-soft:rgba(232,117,94,.14);
+    --mint:#5FD09B;--mint-soft:rgba(95,208,155,.16);
+    --rose:#E8805F;--rose-soft:rgba(232,128,95,.15);
     --sh:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.35);
     --sh-lg:0 8px 20px rgba(0,0,0,.45),0 30px 60px rgba(0,0,0,.5);
     --r:20px;--r-s:13px;--r-pill:999px;
@@ -38,9 +40,9 @@
     font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.006em;overflow-x:hidden}
   body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
     background:
-      radial-gradient(640px 480px at 86% -8%,rgba(74,157,248,.14),transparent 60%),
-      radial-gradient(560px 440px at 4% 4%,rgba(110,146,181,.10),transparent 60%),
-      radial-gradient(520px 460px at 96% 98%,rgba(231,169,60,.07),transparent 62%)}
+      radial-gradient(640px 480px at 86% -8%,rgba(227,189,114,.12),transparent 60%),
+      radial-gradient(560px 440px at 4% 4%,rgba(110,146,181,.08),transparent 60%),
+      radial-gradient(520px 460px at 96% 98%,rgba(231,169,60,.06),transparent 62%)}
   a{color:inherit;text-decoration:none}
   ::selection{background:var(--cta);color:var(--cta-ink)}
   :focus-visible{outline:3px solid var(--cta);outline-offset:2px;border-radius:10px}
@@ -56,8 +58,8 @@
   .tnav a{font-size:13.5px;font-weight:600;color:var(--ink2);padding:8px 13px;border-radius:var(--r-pill);transition:.18s var(--ease)}
   .tnav a:hover{background:var(--bg2);color:var(--ink)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:800;font-size:14px;cursor:pointer;border:none;
-    background:var(--cta);color:var(--cta-ink);padding:11px 20px;border-radius:var(--r-pill);box-shadow:0 4px 14px rgba(74,157,248,.4);transition:.15s var(--ease)}
-  .btn:hover{transform:translateY(-1px);background:var(--cta-2);box-shadow:0 8px 22px rgba(74,157,248,.5)}
+    background:var(--cta);color:var(--cta-ink);padding:11px 20px;border-radius:var(--r-pill);box-shadow:0 4px 14px rgba(227,189,114,.3);transition:.15s var(--ease)}
+  .btn:hover{transform:translateY(-1px);background:var(--cta-2);box-shadow:0 8px 22px rgba(227,189,114,.42)}
   .btn:active{transform:translateY(1px)}
   .btn.ghost{background:var(--card2);color:var(--ink);box-shadow:none;border:1px solid var(--line2)}
   .btn.ghost:hover{background:var(--card);border-color:var(--ink3)}
@@ -122,7 +124,7 @@
   .bc.g::after{background:radial-gradient(circle,var(--g),transparent 70%)} .bc.v::after{background:radial-gradient(circle,var(--v),transparent 70%)}
   .bc.m::after{background:radial-gradient(circle,var(--m),transparent 70%)} .bc.gm::after{background:radial-gradient(circle,var(--gm),transparent 70%)}
   .bc-top{display:flex;align-items:center;gap:13px;position:relative}
-  .mono{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:22px;font-weight:900;letter-spacing:-.04em;flex:none;color:#0B0E13}
+  .mono{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:22px;font-weight:900;letter-spacing:-.04em;flex:none;color:#131418}
   .bc.g .mono{background:linear-gradient(145deg,#8FB0CF,var(--g))} .bc.v .mono{background:linear-gradient(145deg,#F0C264,var(--v))}
   .bc.m .mono{background:linear-gradient(145deg,#BCC3CC,var(--m))} .bc.gm .mono{background:linear-gradient(145deg,#A9D0DD,var(--gm))}
   .bc-name{font-size:20px;font-weight:900;letter-spacing:-.02em}

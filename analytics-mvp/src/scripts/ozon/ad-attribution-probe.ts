@@ -25,8 +25,10 @@ async function main() {
   const from = new Date(to); from.setUTCDate(from.getUTCDate() - 29);
   console.log(`probe: кампания ${id}, окно ${fmt(from)}..${fmt(to)}, groupBy=${groupBy}`);
 
+  const ids = id.split(",").map((s) => s.trim()).filter(Boolean);
+  console.log(`probe: кампаний в запросе - ${ids.length}`);
   let uuid = "";
-  try { uuid = await perf.requestStatistics([id], fmt(from), fmt(to), groupBy); }
+  try { uuid = await perf.requestStatistics(ids, fmt(from), fmt(to), groupBy); }
   catch (e) { console.error("probe requestStatistics FAILED:", (e as Error).message); return; }
   console.log("probe: UUID =", uuid || "(пусто)");
   if (!uuid) return;
@@ -44,7 +46,10 @@ async function main() {
 
   try {
     const raw = await perf.downloadStatistics(uuid);
-    console.log(`probe: report длиной ${raw.length}. Первые 3000 символов:\n----8<----\n${raw.slice(0, 3000)}\n----8<----`);
+    const head = raw.slice(0, 4).split("").map((ch) => ch.charCodeAt(0));
+    const isZip = head[0] === 0x50 && head[1] === 0x4b; // 'PK' - ZIP-архив
+    console.log(`probe: report длиной ${raw.length}, первые байты [${head}] ${isZip ? "= ZIP-архив (multi-campaign)" : "= текст/CSV"}`);
+    console.log(`Первые 3000 символов:\n----8<----\n${raw.slice(0, 3000)}\n----8<----`);
     writeFileSync("data/_attribution_probe.txt", raw.slice(0, 50000));
     console.log("probe: сырой отчёт сохранён -> data/_attribution_probe.txt");
   } catch (e) { console.error("probe download FAILED:", (e as Error).message); }

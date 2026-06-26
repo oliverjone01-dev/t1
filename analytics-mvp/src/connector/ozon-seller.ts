@@ -191,6 +191,12 @@ export class OzonSeller {
     return out;
   }
 
+  // Сырые элементы первой страницы /v5/product/info/prices - для probe (разведка полей цены).
+  async pricesRaw(): Promise<any[]> {
+    const data = await this.post<any>("/v5/product/info/prices", { filter: { visibility: "ALL" }, limit: 100, cursor: "" });
+    return data.items ?? data.result?.items ?? [];
+  }
+
   // POST /v3/finance/transaction/list - все операции за период. Пагинация по page/page_count.
   // Защита от «битого» page_count (OZON иногда отдаёт 1 при наличии данных): продолжаем,
   // пока последняя страница ПОЛНАЯ (1000), даже если page_count это не отражает. withRetry

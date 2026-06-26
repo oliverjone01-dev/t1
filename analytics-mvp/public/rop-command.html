@@ -606,7 +606,7 @@ function render(){
   const inwork=(lc['Новые заявки']||0)+(lc['Разобрать']||0)+(lc['В работе']||0);
   const refCats=[['Некачественный лид',lc['Некачественный лид']||0],['СПАМ',lc['СПАМ']||0],['Дубль',lc['Дубль']||0],['Отказ',lc['Отказ']||0]];
   const refused=refCats.reduce((s,x)=>s+x[1],0)||1;
-  const fb=[['Всего лидов',ltot,'#3DAEC2'],['Квалифицированы → сделка',success,'#2E9E74'],['Отказы',refused,'#CC5867'],['В работе',inwork,'#C2873C']];
+  const fb=[['Всего лидов',ltot,'#3DAEC2'],['В работе',inwork,'#C2873C'],['Сделки',success,'#2E9E74'],['Отказ',refused,'#CC5867']];
   const lbars=fb.map(([nm,v,c])=>{const p=ltot?v/ltot*100:0;const td=dt(nm,[['Лидов',fmt(v),'hl'],['Доля от всех',pct(p/100),'hl']]).replace(/"/g,'&quot;');return `<div class="lf-bar"><div class="lf-name">${nm}</div><div class="lf-track" data-tip="${td}"><div class="lf-fill" style="width:${p.toFixed(1)}%;background:${c}"></div></div><div class="lf-meta"><span class="lf-val" style="color:${c}">${fmt(v)}</span><span class="lf-pct">${p.toFixed(1)}%</span></div></div>`;}).join('');
   const refColors={'Некачественный лид':'#F472B6','СПАМ':'#FB923C','Дубль':'#A78BFA','Отказ':'#F43F5E'};
   const dData=refCats.map(([nm,v])=>[nm,v,refColors[nm]||'#6A7484']);

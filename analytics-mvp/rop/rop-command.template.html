@@ -212,18 +212,15 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 <div class="topbar">
   <div class="logo">GG</div>
   <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span></div>
-  <div class="tb-spacer"></div>
-  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
-  <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
 </div>
 <div class="controls">
-  <span class="ctl-lbl">Период</span><div class="seg" id="period"></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
+  <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
+  <div class="tb-spacer"></div>
+  <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
   <span style="font-size:11px;color:var(--ink-3)" id="periodLabel"></span>
-  <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
-  <span class="ctl-lbl">Менеджер</span><select id="fMgr"></select>
-  <span class="ctl-lbl">Источник</span><select id="fSrc"></select>
-  <span class="ctl-lbl">Тип клиента</span><select id="fCli"></select>
 </div>
 <div class="wrap" id="root"></div>
 <div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
@@ -980,15 +977,18 @@ function buildShell(){
   document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
-  document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
+  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
-  const mgrs=[...new Set([...AD.map(d=>d.mgr),...AL.map(l=>l.mgr)])].sort();
-  fill('fMgr',mgrs,'Все менеджеры','fMgr');fill('fSrc',[...new Set(AD.map(d=>d.source))].sort(),'Все источники','fSrc');fill('fCli',[...new Set(AD.map(d=>d.client))].sort(),'Все типы','fCli');
   // scroll-spy
   addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
 }
 function fill(id,arr,allLabel,key){const el=document.getElementById(id);el.innerHTML=`<option value="">${allLabel}</option>`+arr.map(a=>`<option>${a}</option>`).join('');el.onchange=()=>{S[key]=el.value;render();};}
-function setPeriod(p){if(p==='all'){S.start=DATA.from;}else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p));S.start=e.toISOString().slice(0,10);}S.end=DATA.to;document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
+function setPeriod(p){
+  if(p==='all'){S.start=DATA.from;S.end=DATA.to;}
+  else if(p==='today'){S.start=S.end=DATA.to;}
+  else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
+  else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p));S.start=e.toISOString().slice(0,10);S.end=DATA.to;}
+  document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
 setPeriod('30');buildShell();render();
 </script></body></html>

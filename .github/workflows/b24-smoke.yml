@@ -1,8 +1,6 @@
 name: B24 webhook smoke (read-only)
 
-# Read-only разведка портала Bitrix (только счётчики и стадии — компактный вывод).
-# Значение секрета GitHub автомаскирует. Никаких записей.
-
+# Разведка crm.stagehistory.list (история стадий) перед фазой 2: поля, объём, сэмпл.
 on:
   workflow_dispatch:
   push:
@@ -16,35 +14,29 @@ jobs:
     env:
       B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
     steps:
-      - name: Разведка (лиды vs категория 69, объёмы, стадии)
+      - name: stagehistory разведка
         run: |
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
           echo "::add-mask::$B24_WEBHOOK_URL"
           base="${B24_WEBHOOK_URL%/}"
           post(){ curl -sS --max-time 30 -X POST "$base/$1.json" -H 'Content-Type: application/json' -d "$2"; }
 
-          echo "== Классические лиды (crm.lead) =="
-          post crm.lead.list '{"select":["ID"],"start":0}' > /tmp/lead.json || true
-          node -e 'let j={};try{j=require("/tmp/lead.json")}catch(e){};console.log(j.error?("error: "+(j.error_description||j.error)):("total = "+j.total));'
+          echo "== crm.stagehistory.list entityTypeId=2 (сделки), сэмпл + total =="
+          post crm.stagehistory.list '{"entityTypeId":2,"order":{"ID":"ASC"},"start":0}' > /tmp/sh.json || true
+          node -e 'let j={};try{j=require("/tmp/sh.json")}catch(e){};
+            if(j.error){console.log("error:",j.error_description||j.error);process.exit(0);}
+            console.log("total =", j.total);
+            const r=(j.result&&j.result.items)||j.result||[];
+            console.log("первый элемент:", JSON.stringify(r[0]));
+            console.log("ключи:", r[0]?Object.keys(r[0]).join(","):"—");'
 
-          echo "== Стадии воронки лидов (ENTITY_ID=STATUS) =="
-          post crm.status.list '{"filter":{"ENTITY_ID":"STATUS"}}' > /tmp/ls.json || true
-          node -e 'let j={};try{j=require("/tmp/ls.json")}catch(e){};console.log((j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | ")||"(нет)");'
+          echo "== только воронка 49 (фильтр CATEGORY_ID) =="
+          post crm.stagehistory.list '{"entityTypeId":2,"filter":{"CATEGORY_ID":49},"order":{"ID":"ASC"},"start":0}' > /tmp/sh49.json || true
+          node -e 'let j={};try{j=require("/tmp/sh49.json")}catch(e){};console.log(j.error?("error: "+(j.error_description||j.error)):("cat49 total = "+j.total));'
 
-          echo "== Сделки по категориям 49 (GG RF) и 69 (GG Лиды) =="
-          for c in 49 69; do
-            post crm.deal.list "{\"filter\":{\"CATEGORY_ID\":$c},\"select\":[\"ID\"],\"start\":0}" > /tmp/d.json || true
-            node -e "let j={};try{j=require('/tmp/d.json')}catch(e){};console.log('CATEGORY_ID=$c total =', j.total!==undefined?j.total:('error '+(j.error_description||j.error)));"
-          done
-
-          echo "== Стадии воронки 49 (GG RF Заказы) =="
-          curl -sS --max-time 30 "$base/crm.dealcategory.stage.list.json?id=49" > /tmp/s49.json || true
-          node -e 'let j={};try{j=require("/tmp/s49.json")}catch(e){};console.log((j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | "));'
-
-          echo "== Источники (SOURCE) и тип клиента (для маппинга) =="
-          post crm.status.list '{"filter":{"ENTITY_ID":"SOURCE"}}' > /tmp/src.json || true
-          node -e 'let j={};try{j=require("/tmp/src.json")}catch(e){};console.log("SOURCE:",(j.result||[]).map(x=>x.STATUS_ID+":"+x.NAME).join(" | "));'
-
-          echo "== Лиды genglass (UF бренд=2319) — объём =="
-          post crm.lead.list '{"filter":{"UF_CRM_1772609158":2319},"select":["ID"],"start":0}' > /tmp/lg.json || true
-          node -e 'let j={};try{j=require("/tmp/lg.json")}catch(e){};console.log(j.error?("error "+(j.error_description||j.error)):("genglass-лиды total = "+j.total));'
+          echo "== сэмпл истории по одной сделке (OWNER_ID первой записи) =="
+          node -e 'let j={};try{j=require("/tmp/sh.json")}catch(e){};const r=(j.result&&j.result.items)||j.result||[];const oid=r[0]&&(r[0].OWNER_ID||r[0].ownerId);require("fs").writeFileSync("/tmp/oid.txt",String(oid||""));'
+          oid=$(cat /tmp/oid.txt)
+          echo "OWNER_ID=$oid"
+          post crm.stagehistory.list "{\"entityTypeId\":2,\"filter\":{\"OWNER_ID\":$oid},\"order\":{\"ID\":\"ASC\"}}" > /tmp/sho.json || true
+          node -e 'let j={};try{j=require("/tmp/sho.json")}catch(e){};const r=(j.result&&j.result.items)||j.result||[];console.log("записей у сделки:",r.length);r.slice(0,12).forEach(x=>console.log("  ",x.CREATED_TIME,"|",x.STAGE_ID,"|",x.STAGE_SEMANTIC_ID));'

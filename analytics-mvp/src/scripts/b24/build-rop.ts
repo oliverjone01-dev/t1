@@ -18,6 +18,20 @@ const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 const rop = JSON.parse(readFileSync(SRC, "utf-8"));
 const tpl = readFileSync(TPL, "utf-8");
 
+// --- Исключения (решение Ивана 2026-06-26): из дашборда РОП убираем ---
+//  - системные аккаунты (Системный пользователь GG/MGM/KZ/V) - не люди;
+//  - сотрудников Glass Memory (очередь/распределение лидов, не продавцы ОП):
+//    Виктория Преснякова, Денис Белов, Юлия Мавлина (профиль: много лидов, ~0 сделок);
+//  - направление бизнеса Glass Memory (dir = glass-memory).
+// Остальных (вкл. миграционные аккаунты) оставляем - период-фильтр их прячет.
+const GM_STAFF = new Set(["Виктория Преснякова", "Денис Белов", "Юлия Мавлина"]);
+const excludeMgr = (name: string) => /^Системный пользователь/i.test(name) || GM_STAFF.has(name);
+const keepRec = (r: any) => !excludeMgr(r.mgr) && r.dir !== "glass-memory";
+const _dBefore = rop.deals.length, _lBefore = rop.leads.length;
+rop.deals = rop.deals.filter(keepRec);
+rop.leads = rop.leads.filter(keepRec);
+console.log(`Исключения GM/системные: сделок -${_dBefore - rop.deals.length} (осталось ${rop.deals.length}), лидов -${_lBefore - rop.leads.length} (осталось ${rop.leads.length})`);
+
 const DIRS = ["genglass", "glass-memory", "metal_gm", "gen-group", "gentero", "valonti"];
 const sum = (arr: any[], f: (x: any) => number) => arr.reduce((s, x) => s + (f(x) || 0), 0);
 const ddiff = (a?: string, b?: string): number | null => {

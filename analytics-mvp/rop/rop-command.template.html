@@ -252,7 +252,7 @@ const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created'};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage'};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -379,7 +379,7 @@ function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
   const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
   return `<div class="kpi-trend ${cls}">${ar} ${pct(Math.abs(dl))}<small>к пред. периоду</small></div>`;}
-function kstrip(items){return `<div class="kpi-strip" style="--cols:${Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
+function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols||Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
   const qty=x.qty!=null?`<div class="kpi-qty"><b>${x.qty}</b><span>${x.qtyLabel||'шт'}</span></div>`:'';
   const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3);margin-top:7px">${x.sub}</div>`:'');
@@ -387,6 +387,7 @@ function kstrip(items){return `<div class="kpi-strip" style="--cols:${Math.min(i
 function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
+const STORD={};FORDER.forEach((c,i)=>{const nm=DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[c];if(nm)STORD[nm]=i;});
 const ddiffJS=(a,b)=>{const t1=Date.parse(a),t2=Date.parse(b);return isNaN(t1)||isNaN(t2)?null:(t2-t1)/864e5;};
 function funnelChart(){
   const mode=S.funnelMode||'created',prepay=S.revMode!=='won';
@@ -435,7 +436,8 @@ function funnelChart(){
 function dwellByStage(deals){
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null);
   const by={};op.forEach(d=>{(by[d.stage]=by[d.stage]||[]).push(d);});
-  const rows=Object.entries(by).map(([st,xs])=>{const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);const med=a.length?a[Math.floor(a.length/2)]:0;const nt=xs.filter(x=>(x.touchReal||0)===0).length;return {st,med,n:xs.length,nt};}).sort((a,b)=>b.med-a.med);
+  const rows=Object.entries(by).map(([st,xs])=>{const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);const med=a.length?a[Math.floor(a.length/2)]:0;const nt=xs.filter(x=>(x.touchReal||0)===0).length;return {st,med,n:xs.length,nt,code:xs[0].stageCode};});
+  const _ds=S.dwellSort||'stage';rows.sort((a,b)=>_ds==='dwell'?b.med-a.med:_ds==='count'?b.n-a.n:((FORDER.indexOf(a.code)+1||99)-(FORDER.indexOf(b.code)+1||99)));
   if(!rows.length)return '<div class="card-sub">нет открытых сделок</div>';
   const mx=Math.max(...rows.map(r=>r.med),1);
   return '<div class="lf-bars" style="margin-top:4px">'+rows.map(r=>{const w=(r.med/mx*100).toFixed(1);const c=r.med>=28?'#CC5867':r.med>=14?'#C2873C':'#2E9E74';
@@ -567,14 +569,15 @@ function render(){
       {k:_qMeta.titleAll+' (все бренды)',v:_qfV(_qMeta.total),ac:'#6366F1',sub:'за 3 мес'},
       ...dirTiles,
       {k:'❗ '+_qMeta.lab+' без направления',v:_qfV(_qMeta.empty),ac: _qMeta.empty?'#F43F5E':'#10B981',sub:pct(_qMeta.empty/_qTotal)+' от '+_qMeta.unit},
-    ])+
+    ], Math.ceil((dirTiles.length+2)/2))+
     `<div class="card-sub" style="margin:6px 0 8px;font-weight:600;color:var(--ink-2)">${_qCap}</div>`+
     dirBarM+
     `<div class="note" style="margin:12px 0 0">Источник заполняется не всегда - по нему терялось ~78% GG-лидов. Поэтому беру направление; источник остаётся вторым признаком, а отдел продаж/системный - третьим для добивки пустых.</div></div>`;
   const lf=leadFunnel(L);
   const B_leadStrip=kstrip([
-    {k:'Поступило',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
-    {k:'Квалифицировано',v:fmt(m.qual),ac:'#10B981',trend:trendChip(m.qual,pm.qual)},
+    {k:'Поступило лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
+    {k:'Конверсия в сделку',v:pct(m.qrate),ac:'#22D3EE',trend:trendChip(m.qrate,pm.qrate),sub:'сделок ÷ лидов (CR1)'},
+    {k:'Сделок',v:fmt(m.qual),ac:'#10B981',trend:trendChip(m.qual,pm.qual)},
     {k:'Неквал',v:fmt(L.filter(l=>l.qual==='неквал').length),ac:'#F43F5E',trend:trendChip(L.filter(l=>l.qual==='неквал').length,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(L.filter(l=>l.qual==='в работе').length),ac:'#F59E0B',sub:'не доведены до исхода'},
     {k:'CV1 · в квал (SQL)',v:pct(m.qrate),ac:'#6366F1',trend:trendChip(m.qrate,pm.qrate)},
@@ -628,7 +631,7 @@ function render(){
   /* 3. ПРОДАЖИ */
   /* уровни собираются в конце */
   const B_truba=funnelChart();
-  const B_dwellStage=`<div class="card"><div class="card-h"><div><div class="card-title">Скорость по этапам</div><div class="card-sub">медиана дней, что открытые сделки лежат на этапе сейчас · красное = застряли · «без кас.» = без касаний клиента (Б24 фиксирует только касания, залогированные в карточке)</div></div></div>`+dwellByStage(snap)+`</div>`;
+  const B_dwellStage=`<div class="card"><div class="card-h"><div><div class="card-title">Скорость по этапам</div><div class="card-sub">медиана дней, что открытые сделки лежат на этапе сейчас · красное = застряли · «без кас.» = без касаний клиента (Б24 фиксирует только касания, залогированные в карточке)</div></div><div class="seg" id="dwellSort"><button data-s="stage" class="${(S.dwellSort||'stage')==='stage'?'on':''}">Этапы</button><button data-s="dwell" class="${S.dwellSort==='dwell'?'on':''}">Срок</button><button data-s="count" class="${S.dwellSort==='count'?'on':''}">Сделок</button></div></div>`+dwellByStage(snap)+`</div>`;
   const gTotC=snap.length||1,gTotM=snap.reduce((s,d)=>s+d.budget,0)||1;
   /* блок «Где сейчас сделки» убран - дублирует трубу */
   /* «Динамика сделок» убрана (линейный график) */
@@ -900,6 +903,7 @@ function buildShell(){
   const _rs=document.getElementById('revSeg');
   if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
   document.addEventListener('click',e=>{const fb=e.target.closest('#funMode button');if(fb){S.funnelMode=fb.dataset.f;render();}});
+  document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

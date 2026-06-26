@@ -1,0 +1,38 @@
+name: Probe транзакций OZON (реальная цена «доставлено клиенту»)
+
+on:
+  workflow_dispatch:
+    inputs:
+      sku:
+        description: "SKU или часть оффера/названия (фильтр доставок)"
+        required: false
+        default: "TRUBIS"
+      days:
+        description: "За сколько последних дней"
+        required: false
+        default: "14"
+
+permissions:
+  contents: read
+
+env:
+  OZON_SELLER_CLIENT_ID: ${{ secrets.OZON_SELLER_CLIENT_ID }}
+  OZON_SELLER_API_KEY: ${{ secrets.OZON_SELLER_API_KEY }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe транзакций
+        run: npx tsx src/scripts/ozon/tx-probe.ts "${{ github.event.inputs.sku }}" "${{ github.event.inputs.days }}"

@@ -11,6 +11,47 @@ const num = (s: string): number => {
 };
 const norm = (s: string) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
+// Парсер DATE-формата (groupBy=DATE): те же колонки + ведущая «День» (ДД.ММ.ГГГГ).
+// Даёт per-(день, SKU) ряд атрибуции -> агрегация любого периода на дашборде.
+export interface AttrDailyRow extends SkuStat { date: string; }
+
+export function parseAttributionDaily(text: string): AttrDailyRow[] {
+  const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
+  const hIdx = lines.findIndex((l) => /(^|;)\s*sku\s*;/i.test(l) && /продажи в продвижении/i.test(l));
+  if (hIdx < 0) return [];
+  const header = lines[hIdx]!.split(";").map(norm);
+  const find = (pred: (h: string) => boolean) => header.findIndex(pred);
+  const ci = {
+    date: find((h) => (h === "день" || h === "дата") || (h.includes("дата") && !h.includes("добавлен"))),
+    sku: find((h) => h === "sku"),
+    name: find((h) => h.includes("название товара")),
+    sp: find((h) => h.startsWith("расход")),
+    sold: find((h) => h === "продано товаров"),
+    om: find((h) => h.includes("продажи в продвижении") && !h.includes("модели")),
+    soldModel: find((h) => h.includes("продано товаров модели")),
+    omModel: find((h) => h.includes("продажи в продвижении") && h.includes("модели")),
+  };
+  if (ci.date < 0 || ci.sku < 0 || ci.om < 0) return [];
+
+  const out: AttrDailyRow[] = [];
+  for (let i = hIdx + 1; i < lines.length; i++) {
+    const c = lines[i]!.split(";");
+    const sku = (c[ci.sku] ?? "").replace(/[^\d]/g, "");
+    const dm = /(\d{2})\.(\d{2})\.(\d{4})/.exec(c[ci.date] ?? "");
+    if (!sku || !dm || /^всего$/i.test((c[ci.sku] ?? "").trim())) continue;
+    out.push({
+      date: `${dm[3]}-${dm[2]}-${dm[1]}`,
+      sku,
+      name: (c[ci.name] ?? "").trim(),
+      sp: num(c[ci.sp] ?? ""), sold: num(c[ci.sold] ?? ""), om: num(c[ci.om] ?? ""),
+      soldModel: ci.soldModel >= 0 ? num(c[ci.soldModel] ?? "") : 0,
+      omModel: ci.omModel >= 0 ? num(c[ci.omModel] ?? "") : 0,
+      drr: 0,
+    });
+  }
+  return out;
+}
+
 export function parseAttributionCsv(text: string): SkuStat[] {
   const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
   const hIdx = lines.findIndex((l) => /(^|;)\s*sku\s*;/i.test(l) && /продажи в продвижении/i.test(l));

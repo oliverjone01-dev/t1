@@ -113,13 +113,16 @@ jobs:
           # backfill сам тянет от последнего дня истории до вчера (самовосстановление после простоя).
           npm run backfill
 
-      - name: per-SKU attribution-отчёт (основная/объединённая карточка)
+      - name: per-SKU attribution по дням (основная/объединённая, любой период)
         run: |
           set -euo pipefail
-          # Реальный attribution-отчёт OZON Performance по топ-кампаниям (p7/p30/p90) ->
-          # data/ads_reports.json: продажи в продвижении основной карточки + модели.
-          # Async-отчёт генерится минутами, поэтому шаг небыстрый; мягкий (не валит синк).
-          npx tsx src/scripts/ozon/ad-attribution.ts || echo "::warning::attribution-отчёт не собрался (OZON Performance недоступен)"
+          # Дневной ряд per-SKU атрибуции (groupBy=DATE) -> data/ads_attr_daily.ndjson:
+          # продажи в продвижении основной карточки + модели ПО ДНЯМ. Дашборд агрегирует
+          # любой выбранный период точно. Догрузка от последнего дня (самовосстановление).
+          # Async-отчёты генерятся минутами -> шаг небыстрый; мягкий (не валит синк).
+          npx tsx src/scripts/ozon/ad-attribution-daily.ts || echo "::warning::attribution по дням не собрался (OZON Performance недоступен)"
+          # Окно-снимок (ads_reports.json) - запасной источник разбивки, если дневного ряда нет.
+          npx tsx src/scripts/ozon/ad-attribution.ts || echo "::warning::attribution-снимок не собрался"
 
       - name: Реклама по дням (для произвольного периода)
         run: |

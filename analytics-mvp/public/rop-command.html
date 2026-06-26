@@ -664,7 +664,7 @@ function render(){
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда — план-факт ${qm(1)}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · меняй метрику и план - всё пересчитается</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${qm(1)}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -809,8 +809,9 @@ function mgrPlanFactBars(arr,planMgr,metric,attain){const money=(metric==='rev'|
     labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="var(--ink-3)" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${x.m.split(' ')[0]}</text>`;});
   const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
+  const isR=(metric==='conv'||metric==='check');
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
   const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
@@ -818,7 +819,12 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=(metric=
       return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?fM(v):''}</div>`;}).join('');
     const att=planMgr?x.tot/planMgr:0,ac=planTone(att);
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fM(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
-  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}</div>`;}
+  // Итог: суммы по колонкам (для счётных/денежных метрик) + командные факт/план/%.
+  const _tf=teamFact!=null?teamFact:arr.reduce((s,x)=>s+x.tot,0),_tp=teamPlan!=null?teamPlan:planMgr*arr.length;
+  const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
+  const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
+  const totRow=`<div class="hm-row hm-total" style="border-top:2px solid var(--border-hot);margin-top:3px;padding-top:3px"><div class="hm-name" style="font-weight:800;color:var(--ink)">Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--ink)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
+  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
   seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
@@ -874,6 +880,9 @@ function wireMgr(MM,D,L,lost,reasons){
   const tot=m=>cols.reduce((s,r)=>s+cnt[m][r],0);mgrs.sort((a,b)=>tot(b)-tot(a));
   let mh='<table class="mx"><thead><tr><th class="lh">Менеджер</th>'+cols.map(r=>`<th>${r}</th>`).join('')+'<th class="toth">Σ</th></tr></thead><tbody>';
   mgrs.forEach(m=>{const t=tot(m);if(!t)return;mh+=`<tr><td class="lc">${m}</td>`+cols.map(r=>{const v=cnt[m][r];const sh=t?v/t:0;const td=dt(m+' · '+r,[['Сделок',v],['Доля в строке',pct(sh)]]).replace(/"/g,'&quot;');return `<td data-tip="${td}" style="${v?`background:rgba(244,63,94,${(.05+sh*.55).toFixed(3)})`:''}">${v||'·'}</td>`;}).join('')+`<td class="tot">${t}</td></tr>`;});
+  // Итог по столбцам
+  const colTot=cols.map(r=>mgrs.reduce((s,m)=>s+cnt[m][r],0)),grand=colTot.reduce((s,v)=>s+v,0);
+  mh+=`<tr class="total"><td class="lc" style="font-weight:800">Итог</td>`+colTot.map(v=>`<td style="font-weight:800">${v||'·'}</td>`).join('')+`<td class="tot" style="font-weight:800">${grand}</td></tr>`;
   document.getElementById('mxBox').innerHTML=mh+'</tbody></table>';}
 function drawMgrDyn(D,L){const keys=buckets(S.gran);const money=S.mgrMetric==='rev';
   let set;

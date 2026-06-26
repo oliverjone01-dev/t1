@@ -20,12 +20,13 @@ async function main() {
   }
   if (!id) { console.error("probe: нет id кампании (data/ads_30d.json пуст и не передан аргументом)"); return; }
 
+  const groupBy = process.argv[3] || "NO_GROUP_BY";
   const now = new Date(); const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())); to.setUTCDate(to.getUTCDate() - 1);
   const from = new Date(to); from.setUTCDate(from.getUTCDate() - 29);
-  console.log(`probe: кампания ${id}, окно ${fmt(from)}..${fmt(to)}`);
+  console.log(`probe: кампания ${id}, окно ${fmt(from)}..${fmt(to)}, groupBy=${groupBy}`);
 
   let uuid = "";
-  try { uuid = await perf.requestStatistics([id], fmt(from), fmt(to)); }
+  try { uuid = await perf.requestStatistics([id], fmt(from), fmt(to), groupBy); }
   catch (e) { console.error("probe requestStatistics FAILED:", (e as Error).message); return; }
   console.log("probe: UUID =", uuid || "(пусто)");
   if (!uuid) return;

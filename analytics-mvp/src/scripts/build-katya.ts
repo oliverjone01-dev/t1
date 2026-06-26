@@ -1086,6 +1086,8 @@ function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||
 var RCACHE_D=(RCACHE&&RCACHE.generated_at)?String(RCACHE.generated_at).slice(0,10):'';
 function cacheStats(id){if(!RCACHE)return null;var order=[curLabel(),'p30','p7','p90'];for(var i=0;i<order.length;i++){var lb=order[i];if(lb&&RCACHE[lb]&&RCACHE[lb].reports){var v=RCACHE[lb].reports[String(id)];if(v!==undefined)return v;}}return null;} // кэш: предпочтит. окно, иначе ближайшее доступное
 function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
+function dShort(s){return s?(String(s).slice(8,10)+'.'+String(s).slice(5,7)):'';}
+function repWin(id){if(!RCACHE)return null;var order=[curLabel(),'p30','p7','p90'];for(var i=0;i<order.length;i++){var lb=order[i];if(lb&&RCACHE[lb]&&RCACHE[lb].reports&&RCACHE[lb].reports[String(id)]!==undefined)return {from:RCACHE[lb].dateFrom,to:RCACHE[lb].dateTo};}return null;} // окно отчёта, использованное для id
 function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
   // Живой per-SKU отчёт жил на n8n; после миграции - только кэш снимка (RCACHE) выше, иначе пусто.
   REPORTS[k]=[];if(cb)cb([]);}
@@ -1098,7 +1100,8 @@ function renderTop(){var a=lastA;if(!a)return;
     var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
     var sub='';
     if(loaded&&rep.length){
-      if(RCACHE_D)sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка - из отчёта продвижения OZON от '+RCACHE_D+' (ближайшее окно)</td></tr>';
+      var rw=repWin(c.id);var winTxt=rw?('за '+dShort(rw.from)+'–'+dShort(rw.to)):'';
+      sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">разбивка: «продажи в продвижении» (атрибуция OZON) '+winTxt+'. Итог кампании — за выбранный период, поэтому суммы не совпадают. «Объединённая» = продажи модели, приписанные этой рекламе - пересекается с основными других SKU, в сумму НЕ входит.</td></tr>';
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
         sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
         var omO=(s.omModel||0),soO=(s.soldModel||0);

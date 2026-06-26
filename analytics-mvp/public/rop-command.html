@@ -23,6 +23,15 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .seg{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
 .seg button.on{background:var(--accent-soft);color:var(--accent)}
+.msel{position:relative;display:inline-block}
+.msel-btn{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--ink-2);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.msel-panel{position:absolute;right:0;top:calc(100% + 4px);z-index:40;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:8px;min-width:210px;max-height:300px;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.msel-panel label{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);padding:4px 6px;border-radius:5px;cursor:pointer;white-space:nowrap}
+.msel-panel label:hover{background:var(--bg-elevated)}
+.msel-foot{border-top:1px solid var(--border-soft);margin-top:6px;padding-top:6px;text-align:right}
+.msel-foot button{background:transparent;border:0;color:var(--accent);font:inherit;font-size:11px;cursor:pointer}
+.lsort{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11px;font-weight:600;cursor:pointer;padding:0;text-align:left}
+.lsort.on{color:var(--accent)}
 .controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.55);position:sticky;top:55px;z-index:55;backdrop-filter:blur(16px)}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
 select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:210px}
@@ -250,9 +259,14 @@ const isSys=n=>/систем|^id\s?\d/i.test(n||'');
 const OP=new Set(DATA.opUsers||[]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
 const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
+// Дата переезда CRM из AmoCRM в Битрикс24: вся история сделок залита одним днём
+// (см. данные: 94% сделок имеют created/closed = этой дате). Данные по сделкам в этот
+// день недостоверны - показываем плашку и красный флажок на графиках.
+const MIGDATE='2026-03-05';
+const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage',lossMgr:''};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',funnelMode:'created',dwellSort:'stage',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -337,6 +351,9 @@ function multiline(series,keys,g,money,el){
   const w=640,h=270,pl=48,pr=14,pt=14,pb=32;const labs=keys.map(k=>blabel(k,g));const gid='g'+(_mlid++);
   let mx=0;series.forEach(s=>{if(!S.hidden[s.name])s.vals.forEach(v=>{if(v>mx)mx=v;});});mx=mx*1.12||1;
   const X=i=>pl+(w-pl-pr)*i/(keys.length-1||1),Y=v=>h-pb-(h-pt-pb)*v/mx;
+  // красный флажок «переезд CRM» на бакете с датой миграции (ложный всплеск)
+  let migMark='';{const mi=keys.indexOf(bkey(MIGDATE,g));if(mi>=0){const mxp=X(mi),lx=Math.max(pl,Math.min(mxp-33,w-pr-66));
+    migMark=`<line x1="${mxp}" y1="${pt}" x2="${mxp}" y2="${h-pb}" stroke="#F43F5E" stroke-width="1.4" stroke-dasharray="4 3" opacity=".9"/><g transform="translate(${lx},${pt-1})"><rect x="0" y="0" width="66" height="13" rx="3" fill="#F43F5E"/><text x="33" y="9.5" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">⚑ переезд CRM</text></g>`;}}
   let grid='';for(let i=0;i<=4;i++){const yy=pt+(h-pt-pb)*i/4,vv=mx*(1-i/4);grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border-soft)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink-4)">${money?fmtK(vv):Math.round(vv)}</text>`;}
   let xl='';labs.forEach((d,i)=>{const step=Math.ceil(labs.length/9);if(i%step===0||i===labs.length-1)xl+=`<text x="${X(i)}" y="${h-pb+15}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${d}</text>`;});
   const defs=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".20"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient></defs>`;
@@ -358,7 +375,7 @@ function multiline(series,keys,g,money,el){
     cols+=`<rect x="${x0}" y="${pt}" width="${ww}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tip}"/>`;}
   const xhair=`<line class="xhair" x1="0" y1="${pt}" x2="0" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="4 5" opacity="0" pointer-events="none"/>`;
   const leg=hasTotal?[series.find(s=>s.total),...series.filter(s=>!s.total)]:series;
-  el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%">${defs}${grid}${xhair}${paths}${cols}${xl}</svg>`+
+  el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%">${defs}${grid}${migMark}${xhair}${paths}${cols}${xl}</svg>`+
     '<div class="lgd">'+leg.map(s=>`<div class="${S.hidden[s.name]?'off':''}" data-n="${s.name}" style="${s.total?'font-weight:700':''}"><i style="background:${s.color};${s.total||s.dash?'width:14px;height:4px;border-radius:2px':''}"></i>${s.name}</div>`).join('')+'</div>';
   const svg=el.querySelector('svg');const xh=svg.querySelector('.xhair');
   svg.querySelectorAll('rect[data-cx]').forEach(r=>r.addEventListener('mousemove',()=>{const cx=r.getAttribute('data-cx');xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('opacity','0.5');}));
@@ -442,7 +459,8 @@ function dwellByStage(deals){
   const mx=Math.max(...rows.map(r=>r.med),1);
   return '<div class="lf-bars" style="margin-top:4px">'+rows.map(r=>{const w=(r.med/mx*100).toFixed(1);const c=r.med>=28?'#CC5867':r.med>=14?'#C2873C':'#2E9E74';
     const td=dt(r.st,[['Медиана лежания',d1(r.med)+' дн','hl'],['Открытых сделок',fmt(r.n),'dim'],['Из них без касаний',fmt(r.nt),'dim']]).replace(/"/g,'&quot;');
-    return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}"><div style="height:100%;width:${w}%;min-width:48px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;transform-origin:left;animation:grow .8s var(--ease-out) both">${d1(r.med)} дн</div></div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
+    const inside=+w>=30;
+    return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}" style="display:flex;align-items:center"><div style="height:100%;flex:0 0 ${w}%;min-width:6px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both">${inside?d1(r.med)+' дн':''}</div>${inside?'':`<span style="flex:0 0 auto;margin-left:7px;font-size:11px;font-weight:800;color:${c};white-space:nowrap">${d1(r.med)} дн</span>`}</div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
 }
 function mgrDwellHeat(deals){
   const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
@@ -617,7 +635,7 @@ function render(){
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда — план-факт ${qm(1)}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · меняй метрику и план - всё пересчитается</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${qm(1)}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':'по дате закрытия'} · переключай метрику сверху ↑</div></div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':'по дате закрытия'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -642,19 +660,26 @@ function render(){
   // key-stage dwell+touch
   /* блок «Зависшие сделки и касания» убран по запросу */
   // loss
-  const lost=D.filter(d=>d.lost);lost.forEach(d=>d.mreason=mergedReason(d));
-  const mr={};lost.forEach(d=>{mr[d.mreason]=(mr[d.mreason]||0)+1;});const mrr=Object.entries(mr).sort((a,b)=>b[1]-a[1]);
+  const lost=D.filter(d=>d.lost);
+  // Причина отказа берётся из поля Б24 как есть. Пусто/«не указана» = менеджер не проставил причину.
+  const NOREASON='Причина не проставлена';
+  lost.forEach(d=>{d.rsn=(d.reason&&d.reason!=='не указана')?d.reason:null;d.mreason=mergedReason(d);});
+  const mr={};lost.forEach(d=>{const k=d.rsn||NOREASON;mr[k]=(mr[k]||0)+1;});const mrr=Object.entries(mr).sort((a,b)=>b[1]-a[1]);
   const mrr5=mrr.length>5?mrr.slice(0,5).concat([['Прочее',mrr.slice(5).reduce((s,x)=>s+x[1],0)]]):mrr;
   const lrr=mrr; // for matrix
-  const recent=lost.filter(d=>d.reasonText).sort((a,b)=>(b.lostDate||b.created||'').localeCompare(a.lostDate||a.created||'')).slice(0,30);
-  const txtCount=lost.filter(d=>d.reasonText).length;
   const lossMgrs=[...new Set(lost.map(d=>d.mgr))].sort();
-  const lossList=lost.filter(d=>!S.lossMgr||d.mgr===S.lossMgr).sort((a,b)=>(b.closed||b.created||'').localeCompare(a.closed||a.created||''));
+  const _lsel=S.lossMgrSel||[];
+  const _lasc=S.lossAsc?1:-1;const _lsk=S.lossSort||'date';
+  const _lcmp=(a,b)=>{let r;if(_lsk==='id')r=(+a.id||0)-(+b.id||0);else if(_lsk==='mgr')r=(a.mgr||'').localeCompare(b.mgr||'');else if(_lsk==='reason')r=(a.rsn||'яяя').localeCompare(b.rsn||'яяя');else if(_lsk==='sum')r=(a.budget||0)-(b.budget||0);else r=(a.closed||a.created||'').localeCompare(b.closed||b.created||'');return r*_lasc;};
+  const lossList=lost.filter(d=>!_lsel.length||_lsel.includes(d.mgr)).sort(_lcmp);
   const B24D='https://glassmemory.bitrix24.ru/crm/deal/details/';
-  const B_lossReasons=`<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в сделках</div><div class="card-sub">${lost.length} отказных сделок · слева топ причин · справа список отказов со ссылкой на сделку и причиной (фильтр по менеджеру). Причина из поля Б24 (заполнено ~7%, остальное «не указана»).</div></div></div>
+  const _harr=ar=>_lsk===ar?(S.lossAsc?' ↑':' ↓'):'';const _hcls=ar=>'lsort'+(_lsk===ar?' on':'');
+  const _mgrLbl=_lsel.length?(_lsel.length+' выбрано'):'Все менеджеры';
+  const B_lossReasons=`<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в сделках</div><div class="card-sub">${lost.length} отказных сделок · слева топ причин · справа список со ссылкой на сделку. Причина из поля Б24 «Причина отказа»; где менеджер её не проставил - помечено <span style="color:#CC5867">красным</span>.</div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><div style="flex:0 0 190px">`+donut(mrr5,fmt(lost.length),'ОТКАЗОВ')+`</div><div style="flex:1;min-width:240px">`+barRows(mrr5)+`</div></div>
-    <div class="card-h" style="border-top:1px solid var(--border-soft);padding-top:10px"><div><div class="card-title" style="font-size:13px">Отказные сделки (${lossList.length})</div><div class="card-sub">ссылка на сделку · дата · менеджер · причина · сумма</div></div><div style="display:flex;align-items:center;gap:8px"><span class="ctl-lbl">Менеджер</span><select id="lossMgr"><option value="">Все менеджеры</option>${lossMgrs.map(m=>`<option${S.lossMgr===m?' selected':''}>${esc(m)}</option>`).join('')}</select></div></div>
-    <div style="max-height:360px;overflow:auto;margin-top:8px">`+(lossList.length?lossList.slice(0,400).map(d=>`<div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border-soft);font-size:11.5px;align-items:center"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="flex:0 0 86px;color:var(--accent);text-decoration:none;font-weight:600">#${d.id} ↗</a><span style="flex:0 0 84px;color:var(--ink-3)">${(d.closed||d.created||'').slice(0,10)}</span><span style="flex:0 0 150px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.mgr)}">${esc(d.mgr)}</span><span style="flex:1;min-width:120px;color:var(--ink)">${esc(d.reason&&d.reason!=='не указана'?d.reason:d.mreason)}</span><span style="flex:0 0 92px;text-align:right;color:var(--ink-3)">${fmtK(d.budget)} ₽</span></div>`).join(''):'<div class="card-sub">нет отказных сделок по фильтру</div>')+`</div></div>`;
+    <div class="card-h" style="border-top:1px solid var(--border-soft);padding-top:10px"><div><div class="card-title" style="font-size:13px">Отказные сделки (${lossList.length})</div></div><div class="msel"><button class="msel-btn" id="lossMgrBtn">${esc(_mgrLbl)} ▾</button><div class="msel-panel" id="lossMgrPanel" style="display:${S.lossMgrOpen?'block':'none'}">${lossMgrs.map(m=>`<label><input type="checkbox" data-lmgr="${esc(m)}" ${_lsel.includes(m)?'checked':''}>${esc(m)}</label>`).join('')}<div class="msel-foot"><button id="lossMgrClear">Сбросить</button></div></div></div></div>
+    <div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border);margin-top:6px"><button class="${_hcls('id')}" data-ls="id" style="flex:0 0 86px">Сделка${_harr('id')}</button><button class="${_hcls('date')}" data-ls="date" style="flex:0 0 84px">Дата${_harr('date')}</button><button class="${_hcls('mgr')}" data-ls="mgr" style="flex:0 0 150px">Менеджер${_harr('mgr')}</button><button class="${_hcls('reason')}" data-ls="reason" style="flex:1;min-width:120px">Причина отказа${_harr('reason')}</button><button class="${_hcls('sum')}" data-ls="sum" style="flex:0 0 92px;text-align:right;justify-content:flex-end">Сумма${_harr('sum')}</button></div>
+    <div style="max-height:360px;overflow:auto;margin-top:2px">`+(lossList.length?lossList.slice(0,400).map(d=>`<div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border-soft);font-size:11.5px;align-items:center"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="flex:0 0 86px;color:var(--accent);text-decoration:none;font-weight:600">#${d.id} ↗</a><span style="flex:0 0 84px;color:var(--ink-3)">${(d.closed||d.created||'').slice(0,10)}</span><span style="flex:0 0 150px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.mgr)}">${esc(d.mgr)}</span><span style="flex:1;min-width:120px;${d.rsn?'color:var(--ink)':'color:#CC5867;font-weight:600'}">${d.rsn?esc(d.rsn):'не проставлена причина отказа'}</span><span style="flex:0 0 92px;text-align:right;color:var(--ink-3)">${fmtK(d.budget)} ₽</span></div>`).join(''):'<div class="card-sub">нет отказных сделок по фильтру</div>')+`</div></div>`;
   /* 4. МЕНЕДЖЕРЫ */
   /* уровни собираются в конце */
   const MM=byManager(D,L);const col=k=>MM.map(x=>x[k]);
@@ -693,7 +718,10 @@ function render(){
   /* «Средний чек» перенесён в левую колонку Денег под график */
 
   const G=(a,b)=>`<div class="grid2">`+a+b+`</div>`;
-  h = divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
+  const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
+    `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
+    `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
+  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
   document.getElementById('root').innerHTML=h;
@@ -761,7 +789,7 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain){const money=(metric=
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fM(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
   return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
-  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
   const inp=document.getElementById('planInp');if(inp)inp.onchange=()=>{const v=+inp.value;if(v>0){S.planRev=v;render();}};}
 function leadFunnel(L){const order=['Новые заявки','Разобрать','В работе','Создание сделки','Некачественный лид','СПАМ','Дубль','Отказ'];const c={};L.forEach(l=>c[l.status]=(c[l.status]||0)+1);
@@ -910,7 +938,11 @@ function buildShell(){
   if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
   document.addEventListener('click',e=>{const fb=e.target.closest('#funMode button');if(fb){S.funnelMode=fb.dataset.f;render();}});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
-  document.addEventListener('change',e=>{if(e.target&&e.target.id==='lossMgr'){S.lossMgr=e.target.value;render();}});
+  document.addEventListener('click',e=>{const mb=e.target.closest('#mgrMetricSeg button');if(mb){S.loadMetric=mb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const onBtn=e.target.closest('#lossMgrBtn'),inPanel=e.target.closest('#lossMgrPanel');if(onBtn){S.lossMgrOpen=!S.lossMgrOpen;render();return;}if(S.lossMgrOpen&&!inPanel){S.lossMgrOpen=false;render();}});
+  document.addEventListener('change',e=>{const cb=e.target&&e.target.closest&&e.target.closest('#lossMgrPanel input[data-lmgr]');if(cb){const m=cb.dataset.lmgr;const s=new Set(S.lossMgrSel||[]);if(cb.checked)s.add(m);else s.delete(m);S.lossMgrSel=[...s];render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});
+  document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

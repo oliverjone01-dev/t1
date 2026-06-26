@@ -49,7 +49,7 @@ const dwellOf = (d: any): number | null => {
 const deals = rop.deals.map((d: any) => ({
   id: d.id, mgr: d.mgr, stage: d.stage, won: d.won, lost: d.lost, budget: d.budget,
   created: d.created, closed: d.closed, source: d.source, client: d.client,
-  assort: d.assort, reason: d.reason, touchReal: 0, touchAll: 0, cycle: d.cycle,
+  assort: d.assort, reason: d.reason, touchReal: d.touchReal || 0, touchAll: d.touchAll || 0, cycle: d.cycle,
   stageCode: d.stageCode, dir: d.dir, hist: d.hist || [], dwellCur: dwellOf(d),
 }));
 

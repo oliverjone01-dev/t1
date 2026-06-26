@@ -90,6 +90,40 @@ async function listHistory(category: string): Promise<any[]> {
   return all;
 }
 
+// Касания: crm.activity.list по сделкам (OWNER_TYPE_ID=2) -> на сделку {real, all}.
+// «Реальное касание клиента» (разведка 2026-06-26 на портале):
+//   звонок (TYPE_ID 2 / VOXIMPLANT_CALL), письмо (4 / CRM_EMAIL), встреча (1),
+//   чат открытой линии (6 / IMOPENLINES_SESSION), СМС (6 / CRM_SMS).
+// НЕ касание (внутреннее): задачи CRM_TASKS_TASK, туду CRM_TODO, комментарии,
+//   складские документы STORE_DOCUMENT. touchAll считает всё, touchReal - только контакты.
+const REAL_PROV = new Set(["IMOPENLINES_SESSION", "CRM_SMS"]);
+const isRealTouch = (a: any): boolean => {
+  const t = Number(a.TYPE_ID);
+  return t === 1 || t === 2 || t === 4 || (t === 6 && REAL_PROV.has(a.PROVIDER_ID));
+};
+async function activityCounts(): Promise<Record<string, { real: number; all: number }>> {
+  const m: Record<string, { real: number; all: number }> = {};
+  let lastId = 0, total = 0;
+  for (;;) {
+    const j = await call("crm.activity.list", {
+      select: ["ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID"],
+      filter: { OWNER_TYPE_ID: 2, ">ID": lastId }, order: { ID: "ASC" }, start: -1,
+    });
+    const batch: any[] = j.result || [];
+    if (!batch.length) break;
+    for (const a of batch) {
+      const k = String(a.OWNER_ID);
+      (m[k] ||= { real: 0, all: 0 }).all++;
+      if (isRealTouch(a)) m[k].real++;
+    }
+    total += batch.length;
+    lastId = Number(batch[batch.length - 1].ID);
+    if (batch.length < 50) break;
+  }
+  console.log(`Касания: ${total} активностей по сделкам на ${Object.keys(m).length} сделок`);
+  return m;
+}
+
 // Обычная пагинация через next (для user.get).
 async function pageAll(method: string, params: any): Promise<any[]> {
   const all: any[] = [];
@@ -161,7 +195,10 @@ async function main() {
   }
   for (const k in histByDeal) histByDeal[k].sort((a, b) => (a[1] < b[1] ? -1 : 1));
   console.log(`История стадий: ${histRows.length} записей на ${Object.keys(histByDeal).length} сделок`);
+  // Касания (звонки/письма/встречи/чаты) по каждой сделке.
+  const acts = await activityCounts();
   const deals = dealRows.map((d) => {
+    const ac = acts[String(d.ID)] || { real: 0, all: 0 };
     const sid = String(d.STAGE_ID || "");
     return {
       id: d.ID,
@@ -183,6 +220,7 @@ async function main() {
       reason: reasonMap[String(d[UF.reason])] || "не указана",
       dir: dirMap[String(d[UF.dir])] || "не указано",
       hist: histByDeal[String(d.ID)] || [],
+      touchReal: ac.real, touchAll: ac.all,
     };
   });
   console.log(`Сделки воронка ${DEAL_CATEGORY} (${catName[DEAL_CATEGORY] || ""}): ${deals.length}`);

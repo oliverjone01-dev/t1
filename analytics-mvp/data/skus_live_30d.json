@@ -1,7 +1,7 @@
 {
   "dateFrom": "2026-05-27",
   "dateTo": "2026-06-25",
-  "generated_at": "2026-06-26T13:52:30.953Z",
+  "generated_at": "2026-06-26T14:10:33.873Z",
   "totals": {
     "rev": 34636254,
     "units": 642,
@@ -98,7 +98,7 @@
       "stock": 166,
       "pidx": 0.89,
       "pcol": "SUPER",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -120,7 +120,7 @@
       "stock": 178,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 151900,
+      "price": 84640,
       "oos": 0
     },
     {
@@ -142,7 +142,7 @@
       "stock": 190,
       "pidx": 0.88,
       "pcol": "SUPER",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -164,7 +164,7 @@
       "stock": 185,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 151900,
+      "price": 84640,
       "oos": 0
     },
     {
@@ -186,7 +186,7 @@
       "stock": 239,
       "pidx": 0.99,
       "pcol": "GREEN",
-      "price": 67250,
+      "price": 48900,
       "oos": 0
     },
     {
@@ -208,7 +208,7 @@
       "stock": 98,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -230,7 +230,7 @@
       "stock": 188,
       "pidx": 0.87,
       "pcol": "SUPER",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -252,7 +252,7 @@
       "stock": 97,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 93900,
+      "price": 49900,
       "oos": 0
     },
     {
@@ -274,7 +274,7 @@
       "stock": 240,
       "pidx": 0.81,
       "pcol": "SUPER",
-      "price": 123475,
+      "price": 82900,
       "oos": 0
     },
     {
@@ -296,7 +296,7 @@
       "stock": 80,
       "pidx": 0.85,
       "pcol": "SUPER",
-      "price": 43900,
+      "price": 30254,
       "oos": 0
     },
     {
@@ -340,7 +340,7 @@
       "stock": 287,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 72250,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -360,9 +360,9 @@
       "aov": 40876,
       "offer": "GGM-01-1",
       "stock": 234,
-      "pidx": 0.76,
+      "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -384,7 +384,7 @@
       "stock": 135,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 90475,
+      "price": 61900,
       "oos": 0
     },
     {
@@ -406,7 +406,7 @@
       "stock": 139,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 55860,
       "oos": 0
     },
     {
@@ -428,7 +428,7 @@
       "stock": 99,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 93900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -450,7 +450,7 @@
       "stock": 143,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59287,
       "oos": 0
     },
     {
@@ -472,7 +472,7 @@
       "stock": 116,
       "pidx": 0.87,
       "pcol": "SUPER",
-      "price": 76725,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -494,7 +494,7 @@
       "stock": 99,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -516,7 +516,7 @@
       "stock": 117,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 73975,
+      "price": 50900,
       "oos": 0
     },
     {
@@ -538,7 +538,7 @@
       "stock": 297,
       "pidx": 0.8,
       "pcol": "SUPER",
-      "price": 73900,
+      "price": 34900,
       "oos": 0
     },
     {
@@ -560,7 +560,7 @@
       "stock": 137,
       "pidx": 0.71,
       "pcol": "SUPER",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -582,7 +582,7 @@
       "stock": 81,
       "pidx": 0.76,
       "pcol": "SUPER",
-      "price": 43900,
+      "price": 30251,
       "oos": 0
     },
     {
@@ -604,7 +604,7 @@
       "stock": 137,
       "pidx": 1.08,
       "pcol": "RED",
-      "price": 79750,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -626,7 +626,7 @@
       "stock": 142,
       "pidx": 0.93,
       "pcol": "SUPER",
-      "price": 189900,
+      "price": 145800,
       "oos": 0
     },
     {
@@ -648,7 +648,7 @@
       "stock": 296,
       "pidx": 0.8,
       "pcol": "SUPER",
-      "price": 42250,
+      "price": 31512,
       "oos": 0
     },
     {
@@ -670,7 +670,7 @@
       "stock": 143,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56654,
       "oos": 0
     },
     {
@@ -714,7 +714,7 @@
       "stock": 92,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 142900,
+      "price": 65900,
       "oos": 0
     },
     {
@@ -736,7 +736,7 @@
       "stock": 129,
       "pidx": 1.14,
       "pcol": "RED",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -780,7 +780,7 @@
       "stock": 140,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 61900,
       "oos": 0
     },
     {
@@ -802,7 +802,7 @@
       "stock": 124,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 62250,
+      "price": 46900,
       "oos": 0
     },
     {
@@ -824,7 +824,7 @@
       "stock": 81,
       "pidx": 0.76,
       "pcol": "SUPER",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -846,7 +846,7 @@
       "stock": 126,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -868,7 +868,7 @@
       "stock": 94,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 87250,
+      "price": 63347,
       "oos": 0
     },
     {
@@ -890,7 +890,7 @@
       "stock": 140,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -912,7 +912,7 @@
       "stock": 38,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -934,7 +934,7 @@
       "stock": 297,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -956,7 +956,7 @@
       "stock": 45,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 88900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -978,7 +978,7 @@
       "stock": 48,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -1000,7 +1000,7 @@
       "stock": 94,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -1022,7 +1022,7 @@
       "stock": 117,
       "pidx": 0.83,
       "pcol": "SUPER",
-      "price": 73975,
+      "price": 50900,
       "oos": 0
     },
     {
@@ -1044,7 +1044,7 @@
       "stock": 96,
       "pidx": 0.64,
       "pcol": "SUPER",
-      "price": 104900,
+      "price": 49726,
       "oos": 0
     },
     {
@@ -1066,7 +1066,7 @@
       "stock": 197,
       "pidx": 1.06,
       "pcol": "RED",
-      "price": 84750,
+      "price": 63900,
       "oos": 0
     },
     {
@@ -1088,7 +1088,7 @@
       "stock": 194,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -1110,7 +1110,7 @@
       "stock": 196,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -1132,7 +1132,7 @@
       "stock": 137,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 90475,
+      "price": 61900,
       "oos": 0
     },
     {
@@ -1154,7 +1154,7 @@
       "stock": 195,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 62250,
+      "price": 37350,
       "oos": 0
     },
     {
@@ -1176,7 +1176,7 @@
       "stock": 139,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -1198,7 +1198,7 @@
       "stock": 196,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -1220,7 +1220,7 @@
       "stock": 198,
       "pidx": 0.72,
       "pcol": "SUPER",
-      "price": 79750,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -1242,7 +1242,7 @@
       "stock": 100,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 98900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -1264,7 +1264,7 @@
       "stock": 146,
       "pidx": 0.76,
       "pcol": "SUPER",
-      "price": 90475,
+      "price": 61900,
       "oos": 0
     },
     {
@@ -1286,7 +1286,7 @@
       "stock": 145,
       "pidx": 0.89,
       "pcol": "SUPER",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -1308,7 +1308,7 @@
       "stock": 145,
       "pidx": 1,
       "pcol": "GREEN",
-      "price": 123475,
+      "price": 82900,
       "oos": 0
     },
     {
@@ -1330,7 +1330,7 @@
       "stock": 247,
       "pidx": 0.81,
       "pcol": "SUPER",
-      "price": 123475,
+      "price": 82900,
       "oos": 0
     },
     {
@@ -1352,7 +1352,7 @@
       "stock": 42,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 88900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -1374,7 +1374,7 @@
       "stock": 47,
       "pidx": 0.92,
       "pcol": "SUPER",
-      "price": 85900,
+      "price": 39401,
       "oos": 0
     },
     {
@@ -1396,7 +1396,7 @@
       "stock": 147,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -1418,7 +1418,7 @@
       "stock": 146,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -1440,7 +1440,7 @@
       "stock": 101,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 89775,
+      "price": 71900,
       "oos": 0
     },
     {
@@ -1462,7 +1462,7 @@
       "stock": 89,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -1484,7 +1484,7 @@
       "stock": 49,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -1528,7 +1528,7 @@
       "stock": 143,
       "pidx": 0.86,
       "pcol": "SUPER",
-      "price": 65725,
+      "price": 45900,
       "oos": 0
     },
     {
@@ -1550,7 +1550,7 @@
       "stock": 139,
       "pidx": 0.83,
       "pcol": "SUPER",
-      "price": 68475,
+      "price": 46900,
       "oos": 0
     },
     {
@@ -1594,7 +1594,7 @@
       "stock": 134,
       "pidx": 0.85,
       "pcol": "SUPER",
-      "price": 65725,
+      "price": 45900,
       "oos": 0
     },
     {
@@ -1616,7 +1616,7 @@
       "stock": 143,
       "pidx": 0.84,
       "pcol": "SUPER",
-      "price": 62975,
+      "price": 43900,
       "oos": 0
     },
     {
@@ -1638,7 +1638,7 @@
       "stock": 143,
       "pidx": 0.82,
       "pcol": "SUPER",
-      "price": 62975,
+      "price": 42357,
       "oos": 0
     },
     {
@@ -1660,7 +1660,7 @@
       "stock": 197,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 62250,
+      "price": 44900,
       "oos": 0
     },
     {
@@ -1682,7 +1682,7 @@
       "stock": 15,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 74580,
+      "price": 61020,
       "oos": 0
     },
     {
@@ -1704,7 +1704,7 @@
       "stock": 198,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -1726,7 +1726,7 @@
       "stock": 197,
       "pidx": 0.78,
       "pcol": "SUPER",
-      "price": 45730,
+      "price": 40350,
       "oos": 0
     },
     {
@@ -1748,7 +1748,7 @@
       "stock": 145,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -1770,7 +1770,7 @@
       "stock": 140,
       "pidx": 0.82,
       "pcol": "SUPER",
-      "price": 59750,
+      "price": 45900,
       "oos": 0
     },
     {
@@ -1792,7 +1792,7 @@
       "stock": 147,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -1814,7 +1814,7 @@
       "stock": 138,
       "pidx": 0.88,
       "pcol": "SUPER",
-      "price": 189900,
+      "price": 117900,
       "oos": 0
     },
     {
@@ -1836,7 +1836,7 @@
       "stock": 246,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 54750,
+      "price": 38297,
       "oos": 0
     },
     {
@@ -1858,7 +1858,7 @@
       "stock": 142,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 87725,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -1880,7 +1880,7 @@
       "stock": 48,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 98900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -1902,7 +1902,7 @@
       "stock": 147,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -1924,7 +1924,7 @@
       "stock": 148,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -1946,7 +1946,7 @@
       "stock": 148,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -1968,7 +1968,7 @@
       "stock": 142,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 33390,
+      "price": 27900,
       "oos": 0
     },
     {
@@ -1990,7 +1990,7 @@
       "stock": 145,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -2034,7 +2034,7 @@
       "stock": 9,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 133800,
+      "price": 101253,
       "oos": 0
     },
     {
@@ -2056,7 +2056,7 @@
       "stock": 48,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 88900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -2078,7 +2078,7 @@
       "stock": 145,
       "pidx": 0.95,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 34868,
       "oos": 0
     },
     {
@@ -2100,7 +2100,7 @@
       "stock": 146,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 74750,
+      "price": 55900,
       "oos": 0
     },
     {
@@ -2122,7 +2122,7 @@
       "stock": 147,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 76725,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -2144,7 +2144,7 @@
       "stock": 198,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 87900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -2166,7 +2166,7 @@
       "stock": 198,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 151900,
+      "price": 84900,
       "oos": 0
     },
     {
@@ -2188,7 +2188,7 @@
       "stock": 197,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 87900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -2210,7 +2210,7 @@
       "stock": 146,
       "pidx": 0.66,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 30252,
       "oos": 0
     },
     {
@@ -2232,7 +2232,7 @@
       "stock": 140,
       "pidx": 1,
       "pcol": "GREEN",
-      "price": 37590,
+      "price": 30900,
       "oos": 0
     },
     {
@@ -2276,7 +2276,7 @@
       "stock": 198,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 151900,
+      "price": 84900,
       "oos": 0
     },
     {
@@ -2298,7 +2298,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 33390,
+      "price": 27900,
       "oos": 0
     },
     {
@@ -2320,7 +2320,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 123475,
+      "price": 82900,
       "oos": 0
     },
     {
@@ -2342,7 +2342,7 @@
       "stock": 147,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -2364,7 +2364,7 @@
       "stock": 245,
       "pidx": 0.71,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 38563,
       "oos": 0
     },
     {
@@ -2408,7 +2408,7 @@
       "stock": 98,
       "pidx": 0.62,
       "pcol": "SUPER",
-      "price": 74900,
+      "price": 38900,
       "oos": 0
     },
     {
@@ -2430,7 +2430,7 @@
       "stock": 199,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -2452,7 +2452,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -2474,7 +2474,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -2496,7 +2496,7 @@
       "stock": 49,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 162900,
+      "price": 73970,
       "oos": 0
     },
     {
@@ -2518,7 +2518,7 @@
       "stock": 109,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 114900,
+      "price": 74900,
       "oos": 0
     },
     {
@@ -2540,7 +2540,7 @@
       "stock": 108,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 114900,
+      "price": 74900,
       "oos": 0
     },
     {
@@ -2562,7 +2562,7 @@
       "stock": 46,
       "pidx": 1.1,
       "pcol": "YELLOW",
-      "price": 79900,
+      "price": 37711,
       "oos": 0
     },
     {
@@ -2584,7 +2584,7 @@
       "stock": 144,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -2606,7 +2606,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 89775,
+      "price": 71900,
       "oos": 0
     },
     {
@@ -2628,7 +2628,7 @@
       "stock": 198,
       "pidx": 0.89,
       "pcol": "SUPER",
-      "price": 62250,
+      "price": 37350,
       "oos": 0
     },
     {
@@ -2650,7 +2650,7 @@
       "stock": 50,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -2672,7 +2672,7 @@
       "stock": 149,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -2694,7 +2694,7 @@
       "stock": 299,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -2716,7 +2716,7 @@
       "stock": 48,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 156900,
+      "price": 71900,
       "oos": 0
     },
     {
@@ -2738,7 +2738,7 @@
       "stock": 300,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -2760,7 +2760,7 @@
       "stock": 145,
       "pidx": 0.66,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 30510,
       "oos": 0
     },
     {
@@ -2782,7 +2782,7 @@
       "stock": 99,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 111900,
+      "price": 72900,
       "oos": 0
     },
     {
@@ -2804,7 +2804,7 @@
       "stock": 146,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 116900,
+      "price": 75900,
       "oos": 0
     },
     {
@@ -2826,7 +2826,7 @@
       "stock": 197,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -2848,7 +2848,7 @@
       "stock": 106,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 85275,
+      "price": 68900,
       "oos": 0
     },
     {
@@ -2870,7 +2870,7 @@
       "stock": 141,
       "pidx": 0.86,
       "pcol": "SUPER",
-      "price": 47250,
+      "price": 35900,
       "oos": 0
     },
     {
@@ -2892,7 +2892,7 @@
       "stock": 146,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 49750,
+      "price": 35774,
       "oos": 0
     },
     {
@@ -2914,7 +2914,7 @@
       "stock": 48,
       "pidx": 0.95,
       "pcol": "SUPER",
-      "price": 102900,
+      "price": 64900,
       "oos": 0
     },
     {
@@ -2936,7 +2936,7 @@
       "stock": 199,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 102900,
+      "price": 62900,
       "oos": 0
     },
     {
@@ -2958,7 +2958,7 @@
       "stock": 48,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 83900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -2980,7 +2980,7 @@
       "stock": 102,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 74580,
+      "price": 61900,
       "oos": 0
     },
     {
@@ -3002,7 +3002,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 82900,
+      "price": 48900,
       "oos": 0
     },
     {
@@ -3024,7 +3024,7 @@
       "stock": 95,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 128900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -3046,7 +3046,7 @@
       "stock": 142,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -3068,7 +3068,7 @@
       "stock": 199,
       "pidx": 1.05,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 59900,
       "oos": 0
     },
     {
@@ -3090,7 +3090,7 @@
       "stock": 142,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 97900,
+      "price": 58900,
       "oos": 0
     },
     {
@@ -3112,7 +3112,7 @@
       "stock": 48,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 91900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -3134,7 +3134,7 @@
       "stock": 143,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 37590,
+      "price": 30900,
       "oos": 0
     },
     {
@@ -3156,7 +3156,7 @@
       "stock": 49,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 98900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -3178,7 +3178,7 @@
       "stock": 199,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 98900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -3200,7 +3200,7 @@
       "stock": 199,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 98900,
+      "price": 57900,
       "oos": 0
     },
     {
@@ -3222,7 +3222,7 @@
       "stock": 48,
       "pidx": 1,
       "pcol": "GREEN",
-      "price": 98900,
+      "price": 57299,
       "oos": 0
     },
     {
@@ -3244,7 +3244,7 @@
       "stock": 198,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -3266,7 +3266,7 @@
       "stock": 199,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 93900,
+      "price": 56900,
       "oos": 0
     },
     {
@@ -3288,7 +3288,7 @@
       "stock": 149,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 55584,
       "oos": 0
     },
     {
@@ -3310,7 +3310,7 @@
       "stock": 148,
       "pidx": 1.02,
       "pcol": "YELLOW",
-      "price": 93900,
+      "price": 55584,
       "oos": 0
     },
     {
@@ -3332,7 +3332,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 35800,
+      "price": 32900,
       "oos": 0
     },
     {
@@ -3354,7 +3354,7 @@
       "stock": 148,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 48900,
+      "price": 27222,
       "oos": 0
     },
     {
@@ -3376,7 +3376,7 @@
       "stock": 48,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 89900,
+      "price": 55900,
       "oos": 0
     },
     {
@@ -3398,7 +3398,7 @@
       "stock": 148,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 82225,
+      "price": 55900,
       "oos": 0
     },
     {
@@ -3420,7 +3420,7 @@
       "stock": 49,
       "pidx": 0.77,
       "pcol": "SUPER",
-      "price": 93900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -3442,7 +3442,7 @@
       "stock": 49,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 93900,
+      "price": 53900,
       "oos": 0
     },
     {
@@ -3464,7 +3464,7 @@
       "stock": 49,
       "pidx": 0.92,
       "pcol": "SUPER",
-      "price": 88900,
+      "price": 47297,
       "oos": 0
     },
     {
@@ -3486,7 +3486,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 88900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -3508,7 +3508,7 @@
       "stock": 148,
       "pidx": 0.68,
       "pcol": "SUPER",
-      "price": 87725,
+      "price": 53861,
       "oos": 0
     },
     {
@@ -3530,7 +3530,7 @@
       "stock": 4,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 40975,
+      "price": 24975,
       "oos": 0
     },
     {
@@ -3552,7 +3552,7 @@
       "stock": 149,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 82225,
+      "price": 55900,
       "oos": 0
     },
     {
@@ -3574,7 +3574,7 @@
       "stock": 41,
       "pidx": 1.01,
       "pcol": "GREEN",
-      "price": 88900,
+      "price": 53377,
       "oos": 0
     },
     {
@@ -3596,7 +3596,7 @@
       "stock": 145,
       "pidx": 0.81,
       "pcol": "SUPER",
-      "price": 76725,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -3618,7 +3618,7 @@
       "stock": 149,
       "pidx": 0.68,
       "pcol": "SUPER",
-      "price": 69750,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -3640,7 +3640,7 @@
       "stock": 149,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 69750,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -3662,7 +3662,7 @@
       "stock": 147,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 76725,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -3684,7 +3684,7 @@
       "stock": 99,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 87900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -3706,7 +3706,7 @@
       "stock": 45,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 83900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -3728,7 +3728,7 @@
       "stock": 48,
       "pidx": 0.89,
       "pcol": "SUPER",
-      "price": 88900,
+      "price": 54900,
       "oos": 0
     },
     {
@@ -3750,7 +3750,7 @@
       "stock": 199,
       "pidx": 0.61,
       "pcol": "SUPER",
-      "price": 79750,
+      "price": 50508,
       "oos": 0
     },
     {
@@ -3772,7 +3772,7 @@
       "stock": 145,
       "pidx": 0.83,
       "pcol": "SUPER",
-      "price": 73975,
+      "price": 50900,
       "oos": 0
     },
     {
@@ -3794,7 +3794,7 @@
       "stock": 49,
       "pidx": 1.04,
       "pcol": "YELLOW",
-      "price": 83900,
+      "price": 51900,
       "oos": 0
     },
     {
@@ -3816,7 +3816,7 @@
       "stock": 49,
       "pidx": 0.91,
       "pcol": "SUPER",
-      "price": 79900,
+      "price": 42035,
       "oos": 0
     },
     {
@@ -3860,7 +3860,7 @@
       "stock": 47,
       "pidx": 1.06,
       "pcol": "RED",
-      "price": 79900,
+      "price": 48900,
       "oos": 0
     },
     {
@@ -3882,7 +3882,7 @@
       "stock": 147,
       "pidx": 0.72,
       "pcol": "SUPER",
-      "price": 68475,
+      "price": 40410,
       "oos": 0
     },
     {
@@ -3904,7 +3904,7 @@
       "stock": 149,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 89700,
+      "price": 50900,
       "oos": 0
     },
     {
@@ -3926,7 +3926,7 @@
       "stock": 147,
       "pidx": 0.63,
       "pcol": "SUPER",
-      "price": 82225,
+      "price": 44393,
       "oos": 0
     },
     {
@@ -3948,7 +3948,7 @@
       "stock": 141,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 76725,
+      "price": 52900,
       "oos": 0
     },
     {
@@ -3970,7 +3970,7 @@
       "stock": 140,
       "pidx": 0.78,
       "pcol": "SUPER",
-      "price": 59750,
+      "price": 45900,
       "oos": 0
     },
     {
@@ -3992,7 +3992,7 @@
       "stock": 199,
       "pidx": 0.79,
       "pcol": "SUPER",
-      "price": 45730,
+      "price": 40900,
       "oos": 0
     },
     {
@@ -4014,7 +4014,7 @@
       "stock": 149,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 48180,
+      "price": 35910,
       "oos": 0
     },
     {
@@ -4036,7 +4036,7 @@
       "stock": 146,
       "pidx": 0.74,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -4058,7 +4058,7 @@
       "stock": 49,
       "pidx": 0.92,
       "pcol": "SUPER",
-      "price": 85900,
+      "price": 39401,
       "oos": 0
     },
     {
@@ -4080,7 +4080,7 @@
       "stock": 49,
       "pidx": 0.93,
       "pcol": "SUPER",
-      "price": 85900,
+      "price": 39900,
       "oos": 0
     },
     {
@@ -4102,7 +4102,7 @@
       "stock": 198,
       "pidx": 0.82,
       "pcol": "SUPER",
-      "price": 23800,
+      "price": 17900,
       "oos": 0
     },
     {
@@ -4124,7 +4124,7 @@
       "stock": 144,
       "pidx": 0.84,
       "pcol": "SUPER",
-      "price": 51975,
+      "price": 36900,
       "oos": 0
     },
     {
@@ -4146,7 +4146,7 @@
       "stock": 146,
       "pidx": 0.75,
       "pcol": "SUPER",
-      "price": 54750,
+      "price": 41900,
       "oos": 0
     },
     {
@@ -4168,7 +4168,7 @@
       "stock": 48,
       "pidx": 0,
       "pcol": "WITHOUT_INDEX",
-      "price": 44750,
+      "price": 34561,
       "oos": 0
     },
     {
@@ -4190,7 +4190,7 @@
       "stock": 146,
       "pidx": 0.8,
       "pcol": "SUPER",
-      "price": 42250,
+      "price": 33900,
       "oos": 0
     },
     {
@@ -4212,7 +4212,7 @@
       "stock": 143,
       "pidx": 0.84,
       "pcol": "SUPER",
-      "price": 42250,
+      "price": 32900,
       "oos": 0
     },
     {
@@ -4234,7 +4234,7 @@
       "stock": 99,
       "pidx": 0.57,
       "pcol": "SUPER",
-      "price": 59900,
+      "price": 28106,
       "oos": 0
     },
     {
@@ -4256,7 +4256,7 @@
       "stock": 149,
       "pidx": 1.1,
       "pcol": "RED",
-      "price": 48900,
+      "price": 29900,
       "oos": 0
     },
     {
@@ -4278,7 +4278,7 @@
       "stock": 140,
       "pidx": 1.03,
       "pcol": "YELLOW",
-      "price": 33390,
+      "price": 27900,
       "oos": 0
     },
     {
@@ -4300,7 +4300,7 @@
       "stock": 148,
       "pidx": 0.66,
       "pcol": "SUPER",
-      "price": 42250,
+      "price": 30151,
       "oos": 0
     },
     {
@@ -4344,7 +4344,7 @@
       "stock": 100,
       "pidx": 0.95,
       "pcol": "SUPER",
-      "price": 27800,
+      "price": 20900,
       "oos": 0
     },
     {
@@ -4366,7 +4366,7 @@
       "stock": 199,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 27800,
+      "price": 20900,
       "oos": 0
     },
     {
@@ -4388,7 +4388,7 @@
       "stock": 100,
       "pidx": 0.99,
       "pcol": "GREEN",
-      "price": 25800,
+      "price": 19900,
       "oos": 0
     },
     {
@@ -4410,7 +4410,7 @@
       "stock": 199,
       "pidx": 0.99,
       "pcol": "GREEN",
-      "price": 25800,
+      "price": 19900,
       "oos": 0
     },
     {
@@ -4432,7 +4432,7 @@
       "stock": 199,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 23800,
+      "price": 17900,
       "oos": 0
     },
     {
@@ -4454,7 +4454,7 @@
       "stock": 198,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 23800,
+      "price": 17900,
       "oos": 0
     },
     {
@@ -4476,7 +4476,7 @@
       "stock": 198,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 19800,
+      "price": 14900,
       "oos": 0
     },
     {
@@ -4498,7 +4498,7 @@
       "stock": 199,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 17800,
+      "price": 13350,
       "oos": 0
     },
     {
@@ -4520,7 +4520,7 @@
       "stock": 198,
       "pidx": 0.96,
       "pcol": "GREEN",
-      "price": 17800,
+      "price": 13350,
       "oos": 0
     }
   ]

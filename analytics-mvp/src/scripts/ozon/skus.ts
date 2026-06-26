@@ -56,18 +56,19 @@ export async function skusLive(dateFrom: string, dateTo: string): Promise<any> {
       os[s.offer_id] = (os[s.offer_id] || 0) + (s.present - s.reserved);
     }
   } catch { /* остатки не критичны */ }
-  const pm: Record<string, { pidx: number | null; pcol: string }> = {};
+  const pm: Record<string, { pidx: number | null; pcol: string; price: number | null }> = {};
   try {
     for (const p of await seller.prices()) {
-      pm[p.offer_id] = { pidx: p.price_index_value != null ? Math.round(p.price_index_value * 100) / 100 : null, pcol: p.color_index || "" };
+      pm[p.offer_id] = { pidx: p.price_index_value != null ? Math.round(p.price_index_value * 100) / 100 : null, pcol: p.color_index || "", price: p.price != null ? Math.round(p.price) : null };
     }
-  } catch { /* индекс не критичен */ }
+  } catch { /* индекс/цена не критичны */ }
   for (const s of skus) {
     const off = so[s.sku] || "";
     s.offer = off; s.stock = off ? (os[off] || 0) : 0;
     const p = off ? (pm[off] || {}) : {};
     s.pidx = (p as any).pidx != null ? (p as any).pidx : null;
     s.pcol = (p as any).pcol || "";
+    s.price = (p as any).price != null ? (p as any).price : null; // текущая цена с витрины, ₽
     s.oos = (s.units > 0 && s.stock <= 0) ? 1 : 0;
   }
 

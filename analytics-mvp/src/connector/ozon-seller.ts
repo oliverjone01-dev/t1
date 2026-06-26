@@ -128,8 +128,8 @@ export class OzonSeller {
   }
 
   // POST /v5/product/info/prices - пагинация по cursor
-  async prices(): Promise<Array<{ offer_id: string; price_index_value: number | null; color_index: string | null }>> {
-    const out: Array<{ offer_id: string; price_index_value: number | null; color_index: string | null }> = [];
+  async prices(): Promise<Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null }>> {
+    const out: Array<{ offer_id: string; price_index_value: number | null; color_index: string | null; price: number | null }> = [];
     let cursor = "";
     do {
       const data = await this.post<any>("/v5/product/info/prices", {
@@ -140,10 +140,14 @@ export class OzonSeller {
       const items = data.items ?? data.result?.items ?? [];
       for (const it of items) {
         const ext = it.price_indexes?.external_index_data ?? {};
+        const pr = it.price ?? {};
+        // Цена для клиента: marketing_price (с учётом акций OZON), иначе обычная price.
+        const clientPrice = Number(pr.marketing_price) || Number(pr.price) || null;
         out.push({
           offer_id: String(it.offer_id ?? ""),
           price_index_value: ext.price_index_value != null ? Number(ext.price_index_value) : null,
           color_index: it.price_indexes?.color_index ?? null,
+          price: clientPrice,
         });
       }
       cursor = data.cursor ?? "";

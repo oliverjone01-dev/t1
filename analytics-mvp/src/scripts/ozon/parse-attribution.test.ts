@@ -1,5 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { parseAttributionCsv } from "./parse-attribution.js";
+import { parseAttributionCsv, parseAttributionDaily } from "./parse-attribution.js";
+
+// Реальный DATE-формат (groupBy=DATE) из probe кампании 28003260.
+const CSV_DATE = [
+  ";Кампания по продвижению товаров № 28003260, период 27.05.2026-26.06.2026",
+  "День;sku;Название товара;Цена товара, ₽;Показы;Клики;CTR, %;Добавления в корзину;Средняя стоимость клика, ₽;Расход, ₽, с НДС;Продано товаров;Продажи в продвижении, ₽;Продано товаров модели;Продажи в продвижении с заказов модели, ₽;ДРР в продвижении, %;Заказано на сумму, ₽;ДРР (общий), %;Дата добавления",
+  "27.05.2026;3734276157;Стол KONUX;84640,00;2849;151;5,30;6;32,82;4956,53;0;0,00;1;84900,00;5,8;0,00;0,0;01.01.0001",
+  "28.05.2026;3734276157;Стол KONUX;84640,00;2948;176;5,97;6;31,85;5605,72;1;84900,00;0;0,00;6,6;169800,00;3,3;01.01.0001",
+].join("\n");
+
+describe("parseAttributionDaily", () => {
+  it("разбирает per-(день, SKU) ряд с датой ISO и колонками модели", () => {
+    const rows = parseAttributionDaily(CSV_DATE);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ date: "2026-05-27", sku: "3734276157", sp: 4957, sold: 0, om: 0, soldModel: 1, omModel: 84900 });
+    expect(rows[1]).toMatchObject({ date: "2026-05-28", sku: "3734276157", sp: 5606, sold: 1, om: 84900, soldModel: 0, omModel: 0 });
+  });
+  it("не-DATE формат (без «День») -> []", () => {
+    expect(parseAttributionDaily("sku;Продажи в продвижении\n1;10")).toEqual([]);
+  });
+});
 
 // Реальный формат из probe-прогона (кампания 24324877).
 const CSV = [
@@ -26,5 +46,21 @@ describe("parseAttributionCsv", () => {
   it("пустой/мусорный отчёт -> []", () => {
     expect(parseAttributionCsv("")).toEqual([]);
     expect(parseAttributionCsv("нет данных")).toEqual([]);
+  });
+});
+
+import { windows } from "./ad-attribution-daily.js";
+describe("windows (нарезка периода для DATE-отчёта)", () => {
+  it("режет на окна <=60 дней без нахлёста и пропусков", () => {
+    const w = windows("2026-02-01", "2026-06-25");
+    expect(w[0]![0]).toBe("2026-02-01");
+    expect(w[w.length - 1]![1]).toBe("2026-06-25");
+    for (let i = 1; i < w.length; i++) {
+      const prevEnd = new Date(w[i - 1]![1] + "T00:00:00Z"); prevEnd.setUTCDate(prevEnd.getUTCDate() + 1);
+      expect(w[i]![0]).toBe(prevEnd.toISOString().slice(0, 10)); // стык день-в-день
+    }
+  });
+  it("короткий период -> одно окно", () => {
+    expect(windows("2026-06-20", "2026-06-25")).toEqual([["2026-06-20", "2026-06-25"]]);
   });
 });

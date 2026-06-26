@@ -1081,10 +1081,10 @@ function loadCommission(cur){renderUecon(lastA);}
 // миграции его нет - разворот строки берёт кэш или показывает «разбивка недоступна». ---
 var REPORTS={};var lastA=null;var expanded={};
 function rptKey(id){return String(id)+'@'+(mCur?(mCur.from+'_'+mCur.to):'');}
-function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range')return null;return 'p30';}
+function curLabel(){if(CURP==='7d'||CURP==='today')return 'p7';if(CURP==='90d'||CURP==='all')return 'p90';if(CURP==='range'){var rd=periodDates('range');var d=Math.round((Date.parse(rd.to)-Date.parse(rd.from))/864e5)+1;return d<=10?'p7':d<=45?'p30':'p90';}return 'p30';}
 // Дата кэша per-SKU отчётов: показываем рядом с разбивкой, чтобы устаревший кэш не выглядел свежим.
 var RCACHE_D=(RCACHE&&RCACHE.generated_at)?String(RCACHE.generated_at).slice(0,10):'';
-function cacheStats(id){var lb=curLabel();if(!lb||!RCACHE||!RCACHE[lb])return null;var r=RCACHE[lb].reports||{};var v=r[String(id)];return v===undefined?null:v;} // кэш (стандартный период)
+function cacheStats(id){if(!RCACHE)return null;var order=[curLabel(),'p30','p7','p90'];for(var i=0;i<order.length;i++){var lb=order[i];if(lb&&RCACHE[lb]&&RCACHE[lb].reports){var v=RCACHE[lb].reports[String(id)];if(v!==undefined)return v;}}return null;} // кэш: предпочтит. окно, иначе ближайшее доступное
 function repOf(id){var v=REPORTS[rptKey(id)];if(v!==undefined)return v;var c=cacheStats(id);return c===null?null:c;} // живая загрузка > кэш
 function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
   // Живой per-SKU отчёт жил на n8n; после миграции - только кэш снимка (RCACHE) выше, иначе пусто.
@@ -1102,7 +1102,8 @@ function renderTop(){var a=lastA;if(!a)return;
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
         sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
         var omO=(s.omModel||0),soO=(s.soldModel||0);
-        if(omO>0||soO>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="продажи в продвижении с заказов модели (другие SKU объединённой карточки)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}});
+        if(omO>0||soO>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="продажи в продвижении с заказов модели (другие SKU объединённой карточки)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}
+        var cg=CARDG[String(s.sku)];if(cg&&cg.others&&cg.others.length){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:40px;color:var(--ink-3);font-size:11px">↳ объединённая «'+esc(cg.model)+'» · др. SKU: '+cg.others.map(function(o){return esc(o.offer||o.sku);}).join(", ")+'</td></tr>';}});
     } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или нет в отчёте продвижения)</td></tr>';}
     return main+sub;
   }).join('');
@@ -1129,7 +1130,8 @@ function renderBurn(a){
       rep.forEach(function(s){
         sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px">Основная карточка <span style="color:var(--ink-3)">'+(SKU_MAP[s.sku]||s.sku)+'</span></td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r"></td></tr>';
         var omO=(s.omModel||0),soO=(s.soldModel||0);
-        if(omO>0||soO>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}});
+        if(omO>0||soO>0){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td style="padding-left:24px;color:var(--ink-3)">Объединённая карточка (др. SKU)</td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}
+        var cg=CARDG[String(s.sku)];if(cg&&cg.others&&cg.others.length){sub+='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:38px;color:var(--ink-3);font-size:11px">↳ объединённая «'+esc(cg.model)+'» · др. SKU: '+cg.others.map(function(o){return esc(o.offer||o.sku);}).join(", ")+'</td></tr>';}});
     } else {sub='<tr class="bn-sub" data-bi="'+bi+'" style="'+disp+'"><td colspan="5" style="padding-left:24px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная или нет в отчёте продвижения)</td></tr>';}
     return main+sub;
   }).join('')||'<tr><td colspan="5" class="kt-note">сливов нет</td></tr>';

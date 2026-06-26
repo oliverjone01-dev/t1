@@ -32,6 +32,17 @@ export function windows(from: string, to: string): Array<[string, string]> {
   return out;
 }
 
+// Кампании дашборда (top_spend + сливы по окнам), а не ВСЕ - резко меньше отчётов.
+function dashboardCampaignIds(): string[] {
+  const ids = new Set<string>();
+  try {
+    const p = JSON.parse(readFileSync("data/ads_periods.json", "utf-8"));
+    for (const lb of ["p7", "p30", "p90"]) for (const k of ["top_spend", "burners"]) for (const c of (p[lb]?.[k] || [])) if (c?.id) ids.add(String(c.id));
+  } catch { /* */ }
+  if (!ids.size) { try { for (const c of (JSON.parse(readFileSync("data/ads_30d.json", "utf-8")).top_spend || [])) if (c?.id) ids.add(String(c.id)); } catch { /* */ } }
+  return [...ids];
+}
+
 function lastDate(): string | null {
   if (!existsSync(OUT)) return null;
   let max: string | null = null;
@@ -61,8 +72,9 @@ async function main() {
   if (from > to) { console.log(`ad-attr-daily: ряд уже по ${last} (вчера ${to}) - догружать нечего`); return; }
 
   const perf = new OzonPerformance({ clientId, clientSecret });
-  const ids = (await perf.campaigns()).map((c) => c.id);
-  const recs: AttrDailyRec[] = [];
+  const ids = dashboardCampaignIds();
+  if (!ids.length) { console.warn("ad-attr-daily: нет кампаний дашборда (ads_periods пуст) - пропуск"); return; }
+  let total = 0, allDays = new Set<string>();
   for (const [wf, wt] of windows(from, to)) {
     // фаза 1: запрос DATE-отчётов (каталожные -> 400 forbidden, пропуск)
     const jobs: Array<{ id: string; uuid: string }> = [];
@@ -70,18 +82,19 @@ async function main() {
       try { const uuid = await perf.requestStatistics([id], wf, wt, "DATE"); if (uuid) jobs.push({ id, uuid }); }
       catch { /* каталожная/недоступна */ }
     }
-    // фаза 2: опрос + скачивание + разбор
+    // фаза 2: опрос + скачивание + разбор; пишем ПО ОКНУ (устойчиво к обрыву)
+    const recs: AttrDailyRec[] = [];
     for (const j of jobs) {
       for (const r of await reportRows(perf, j.uuid)) {
         if (r.date < from || r.date > to) continue;
         recs.push({ d: r.date, id: j.id, sku: r.sku, nm: r.name, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldModel, omM: r.omModel });
       }
     }
+    if (recs.length) { appendFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n"); total += recs.length; recs.forEach((r) => allDays.add(r.d)); }
+    console.log(`ad-attr-daily: окно ${wf}..${wt} - кампаний ${ids.length}, отчётов ${jobs.length}, строк ${recs.length}`);
   }
-  if (!recs.length) { console.log(`ad-attr-daily: OZON не отдал строк за ${from}..${to}`); return; }
-  appendFileSync(OUT, recs.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  const days = new Set(recs.map((r) => r.d)).size;
-  console.log(`ad-attr-daily: +${recs.length} строк за ${days} дн (${from}..${to}) -> ${OUT}`);
+  if (!total) { console.log(`ad-attr-daily: OZON не отдал строк за ${from}..${to}`); return; }
+  console.log(`ad-attr-daily: +${total} строк за ${allDays.size} дн (${from}..${to}) -> ${OUT}`);
 }
 
 if (process.argv[1] && /ad-attribution-daily\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("ad-attr-daily FAILED:", (e as Error).message); process.exit(0); });

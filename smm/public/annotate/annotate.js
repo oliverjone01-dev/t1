@@ -34,6 +34,8 @@
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
   function sections() { return Array.prototype.slice.call(document.querySelectorAll(SECTION_SEL)); }
+  function nearestSection(x, y) { var ss = sections(), best = null, bd = Infinity; for (var i = 0; i < ss.length; i++) { var r = ss[i].getBoundingClientRect(); if (r.width < 2 || r.height < 2) continue; var dx = x < r.left ? r.left - x : (x > r.right ? x - r.right : 0); var dy = y < r.top ? r.top - y : (y > r.bottom ? y - r.bottom : 0); var d = dx * dx + dy * dy; if (d < bd) { bd = d; best = ss[i]; } } return best; }
+  function safeAdd(item, after) { try { localStorage.setItem('annotate_pending', JSON.stringify(item)); } catch (e) {} return STORE.add(item).then(function (r) { try { localStorage.removeItem('annotate_pending'); } catch (e) {} return (after ? after(r) : r); }).catch(function (err) { try { var bk = JSON.parse(localStorage.getItem('annotate_backup') || '[]'); bk.push(item); localStorage.setItem('annotate_backup', JSON.stringify(bk)); } catch (e) {} alert('Сеть недоступна - комментарий сохранён локально и отправится позже. Текст не потерян.'); DATA.push(item); renderMarkers(); renderPanel(); }); }
   // Стабильная привязка комментария к блоку. Если у блока есть data-annotate-key
   // (например динамически отрендеренный пост из таблицы) - section = детерминир.
   // хэш ключа (большое число), не зависит от порядка/вставок. Иначе - индекс
@@ -41,7 +43,7 @@
   function hashKey(s) { var h = 0; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return 100000 + (h % 2000000000); }
   function secIdentity(elm, idx) { var k = elm && elm.getAttribute && elm.getAttribute('data-annotate-key'); return k ? hashKey(k) : idx; }
   function secByIdentity(S) { var ss = sections(); for (var i = 0; i < ss.length; i++) { if (secIdentity(ss[i], i) === S) return ss[i]; } return ss[S]; }
-  function secLabel(S) { var ss = sections(); for (var i = 0; i < ss.length; i++) { if (secIdentity(ss[i], i) === S) { var l = ss[i].getAttribute && ss[i].getAttribute('data-annotate-label'); return l || ('блок ' + (i + 1)); } } return 'блок ' + ((typeof S === 'number' ? S : 0) + 1); }
+  function secLabel(S) { if (S === -1) return 'вся страница'; var ss = sections(); for (var i = 0; i < ss.length; i++) { if (secIdentity(ss[i], i) === S) { var l = ss[i].getAttribute && ss[i].getAttribute('data-annotate-label'); return l || ('блок ' + (i + 1)); } } return 'блок ' + ((typeof S === 'number' ? S : 0) + 1); }
   function fmtAbs(iso) {
     var d = new Date(iso), p = function (n) { return (n < 10 ? '0' : '') + n; };
     return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
@@ -93,14 +95,15 @@
     return {
       list: function () {
         return fetch(base + '?page_key=eq.' + encodeURIComponent(page) + '&order=created_at.asc', { headers: h })
-          .then(function (r) { return r.json(); }).then(function (rows) { return (rows || []).map(row2item); });
+          .then(function (r) { if (!r.ok) throw new Error('list ' + r.status); return r.json(); }).then(function (rows) { return (rows || []).map(row2item); });
       },
       add: function (item) {
-        return fetch(base, { method: 'POST', headers: Object.assign({ 'Prefer': 'return=representation' }, h), body: JSON.stringify(item) })
-          .then(function (r) { return r.json(); }).then(function (rows) { return rows[0]; });
+        var col = { id: item.id, page_key: item.page_key, section: item.section, rect: item.rect, author: item.author, body: item.body, parent_id: item.parent_id, resolved: item.resolved, created_at: item.created_at };
+        return fetch(base, { method: 'POST', headers: Object.assign({ 'Prefer': 'return=representation' }, h), body: JSON.stringify(col) })
+          .then(function (r) { if (!r.ok) throw new Error('add ' + r.status); return r.json(); }).then(function (rows) { return rows[0]; });
       },
-      update: function (id, patch) { return fetch(base + '?id=eq.' + id, { method: 'PATCH', headers: h, body: JSON.stringify(patch) }); },
-      remove: function (id) { return fetch(base + '?id=eq.' + id, { method: 'DELETE', headers: h }).then(function () { return fetch(base + '?parent_id=eq.' + id, { method: 'DELETE', headers: h }); }); },
+      update: function (id, patch) { return fetch(base + '?id=eq.' + id, { method: 'PATCH', headers: h, body: JSON.stringify(patch) }).then(function (r) { if (!r.ok) throw new Error('update ' + r.status); return r; }); },
+      remove: function (id) { return fetch(base + '?id=eq.' + id, { method: 'DELETE', headers: h }).then(function (r) { if (!r.ok) throw new Error('del ' + r.status); return fetch(base + '?parent_id=eq.' + id, { method: 'DELETE', headers: h }); }); },
       realtime: false
     };
   }
@@ -117,8 +120,9 @@
   function parents() { return DATA.filter(function (x) { return !x.parent_id; }).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); }); }
   function repliesOf(id) { return DATA.filter(function (x) { return x.parent_id === id; }).sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); }); }
 
+  function annoTyping() { var a = document.activeElement; return !!(a && a.tagName === 'TEXTAREA' && a.closest && a.closest('.anno-panel,.anno-thread')); }
   function refresh() {
-    return STORE.list().then(function (rows) { DATA = rows || []; renderMarkers(); renderPanel(); });
+    return STORE.list().then(function (rows) { DATA = rows || []; renderMarkers(); if (!annoTyping()) renderPanel(); }).catch(function () { /* сеть/Supabase сбой - оставляем текущие DATA, не падаем, не теряем ввод */ });
   }
 
   /* ---------- маркеры на странице ---------- */
@@ -195,8 +199,8 @@
       var rs = item.querySelector('[data-do=resolve]'); if (rs) rs.onclick = function (e) { e.stopPropagation(); STORE.update(a.id, { resolved: !a.resolved }).then(refresh); };
       var dl = item.querySelector('[data-do=del]'); if (dl) dl.onclick = function (e) { e.stopPropagation(); if (confirm('Удалить комментарий и ответы?')) { if (OPEN_THREAD === a.id) OPEN_THREAD = null; STORE.remove(a.id).then(refresh); } };
       var ta = item.querySelector('.anno-replybox textarea');
-      function send() { var v = ta.value.trim(); if (!v) return; ensureName(function (nm) { STORE.add({ id: uid(), page_key: PAGE, section: a.section, rect: a.rect, author: nm, body: v, parent_id: a.id, resolved: false, created_at: new Date().toISOString() }).then(refresh); }); }
-      item.querySelector('[data-do=send]').onclick = function (e) { e.stopPropagation(); send(); };
+      function send() { var v = ta.value.trim(); if (!v) return; ensureName(function (nm) { ta.value=''; safeAdd({ id: uid(), page_key: PAGE, page_url: location.pathname + location.search, section: a.section, rect: a.rect, author: nm, body: v, parent_id: a.id, resolved: false, created_at: new Date().toISOString() }, refresh); }); }
+      item.querySelector('[data-do=send]').onclick = function (e) { e.stopPropagation(); var b = this; if (b.disabled) return; b.disabled = true; send(); setTimeout(function () { b.disabled = false; }, 1200); };
       ta.onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
       ta.oninput = function () { ta.style.height = 'auto'; ta.style.height = Math.min(96, ta.scrollHeight) + 'px'; };
       list.appendChild(item);
@@ -277,10 +281,11 @@
     var under = document.elementFromPoint(e.clientX, e.clientY);
     overlay.style.pointerEvents = '';
     var sec = under && under.closest(SECTION_SEL);
-    if (!sec) return;
+    if (!sec) sec = nearestSection(e.clientX, e.clientY);
     e.preventDefault();
-    var r = sec.getBoundingClientRect();
-    start = { sec: sec, r: r, x: e.clientX, y: e.clientY };
+    var pageLevel = !sec;
+    var r = sec ? sec.getBoundingClientRect() : { left: 0, top: 0, width: Math.max(1, window.innerWidth), height: Math.max(1, window.innerHeight) };
+    start = { sec: sec, r: r, x: e.clientX, y: e.clientY, page: pageLevel };
     drawRect = el('div', 'anno-draw'); document.body.appendChild(drawRect);
     moveDraw(e);
     try { overlay.setPointerCapture(e.pointerId); } catch (err) { }
@@ -314,9 +319,9 @@
       y: Math.max(0, Math.min(100, (y0 - r.top) / r.height * 100)),
       w: Math.min(100, w / r.width * 100), h: Math.min(100, h / r.height * 100)
     };
-    var sec = start.sec, idx = sections().indexOf(sec);
+    var sec = start.sec, idx = sec ? sections().indexOf(sec) : -1, pageLevel = start.page;
     if (drawRect) { drawRect.remove(); drawRect = null; } start = null;
-    openComposer(secIdentity(sec, idx), rect, e.clientX, e.clientY);
+    openComposer(pageLevel ? -1 : secIdentity(sec, idx), rect, e.clientX, e.clientY);
   }
   function openComposer(secIdx, rect, px, py) {
     setMode(false);
@@ -338,10 +343,10 @@
     box.querySelector('[data-act=save]').onclick = function () {
       var v = ta.value.trim(); if (!v) { ta.focus(); return; }
       ensureName(function (nm) {
-        var item = { id: uid(), page_key: PAGE, section: secIdx, rect: rect, author: nm, body: v, parent_id: null, resolved: false, created_at: new Date().toISOString() };
+        var item = { id: uid(), page_key: PAGE, page_url: location.pathname + location.search, section: secIdx, rect: rect, author: nm, body: v, parent_id: null, resolved: false, created_at: new Date().toISOString() };
         close();                 // карточка ввода исчезает сразу, не закрывая контент
         OPEN_THREAD = item.id;
-        STORE.add(item).then(refresh).then(function () { togglePanel(true); });
+        safeAdd(item, function () { return refresh().then(function () { togglePanel(true); }); });
       });
     };
     ta.onkeydown = function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') box.querySelector('[data-act=save]').click(); };

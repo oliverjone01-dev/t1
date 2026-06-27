@@ -625,12 +625,14 @@
   function segApply(id,attr,val){var el=$(id);if(!el)return;Array.prototype.forEach.call(el.querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute(attr)===val);});}
   segPick('g-people','data-p');segPick('g-real','data-r');
   var LS='gg_carousel_v2';
-  function save(){try{localStorage.setItem(LS,JSON.stringify({t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value}));}catch(e){}}
+  function curCards(){var out=[];Array.prototype.forEach.call(document.querySelectorAll('#g-cards .scard'),function(c){var h=c.querySelector('h4'),p=c.querySelector('p');out.push({t:h?h.textContent:'',x:p?p.textContent:''});});return out;}
+  function save(){try{localStorage.setItem(LS,JSON.stringify({t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value,cards:curCards()}));}catch(e){}}
   function restore(){var s={};try{s=JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){}
     if(s.t)$('g-topic').value=s.t;if(s.b)$('g-brand').value=s.b;if(s.f)$('g-fmt').value=s.f;if(s.g)$('g-goal').value=s.g;if(s.h)$('g-hook').value=s.h;if(s.a)$('g-aud').value=s.a;if(s.c)$('g-count').value=s.c;if(s.p)$('g-paste').value=s.p;
     if(s.v){viz=s.v;Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')===viz);});$('g-viz-h').textContent=VIZ[viz].h;}
     if(s.pm){peopleMode=s.pm;segApply('g-people','data-p',peopleMode);}if(s.rm){realMode=s.rm;segApply('g-real','data-r',realMode);}
-    renderChips();renderArc();}
+    renderChips();renderArc();
+    if(s.p&&s.p.trim()){try{parse(true);}catch(e){}overlayCards(s.cards);}}
   ['g-topic','g-brand','g-fmt','g-goal','g-hook','g-aud','g-count','g-paste'].forEach(function(id){var el=$(id);if(el){el.addEventListener('input',save);el.addEventListener('change',save);}});
   $('g-viz').addEventListener('click',save);
   restore();
@@ -638,12 +640,15 @@
   var DLS='gg_carousel_drafts';
   function getDrafts(){try{return JSON.parse(localStorage.getItem(DLS)||'[]');}catch(e){return [];}}
   function setDrafts(a){try{localStorage.setItem(DLS,JSON.stringify(a));}catch(e){}}
-  function snapshot(){return {t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value};}
+  function overlayCards(cards){if(!cards||!cards.length)return;var cs=document.querySelectorAll('#g-cards .scard');cards.forEach(function(cd,i){if(cs[i]){var hh=cs[i].querySelector('h4'),pp=cs[i].querySelector('p');if(hh&&cd.t!=null)hh.textContent=cd.t;if(pp&&cd.x!=null)pp.textContent=cd.x;if(typeof recount==='function')recount(cs[i]);}});}
+  function snapshot(){return {t:$('g-topic').value,b:$('g-brand').value,f:$('g-fmt').value,g:$('g-goal').value,h:$('g-hook').value,a:$('g-aud').value,c:$('g-count').value,v:viz,pm:peopleMode,rm:realMode,p:$('g-paste').value,cards:curCards()};}
   function applySnap(s){if(!s)return;
     $('g-topic').value=s.t||'';$('g-brand').value=s.b||'genglass';$('g-fmt').value=s.f||'4:5';$('g-goal').value=s.g||'reach';$('g-hook').value=s.h||'auto';$('g-aud').value=s.a||'';$('g-count').value=s.c||'7';$('g-paste').value=s.p||'';
     if(s.v){viz=s.v;Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')===viz);});$('g-viz-h').textContent=VIZ[viz].h;}
     peopleMode=s.pm||'no';segApply('g-people','data-p',peopleMode);realMode=s.rm||'photo';segApply('g-real','data-r',realMode);
-    renderChips();renderArc();save();}
+    renderChips();renderArc();
+    if(s.p&&s.p.trim()){try{parse(true);}catch(e){}overlayCards(s.cards);}
+    save();}
   function dstamp(ts){try{var d=new Date(ts),z=function(n){return ('0'+n).slice(-2);};return z(d.getDate())+'.'+z(d.getMonth()+1)+' '+z(d.getHours())+':'+z(d.getMinutes());}catch(e){return '';}}
   function renderDrafts(){
     var a=getDrafts(),L=$('g-draft-list');if(!L)return;
@@ -694,6 +699,7 @@
   }
   $('g-go').addEventListener('click',build);
   $('g-reset').addEventListener('click',function(){
+    if(($('g-paste').value.trim()||document.querySelector('#g-cards .scard'))&&!confirm('Очистить всё? Введённый бриф, ответ ИИ и карточки будут удалены.'))return;
     ['g-topic','g-aud','g-paste'].forEach(function(id){$(id).value='';});
     $('g-brand').value='genglass';$('g-fmt').value='4:5';$('g-goal').value='reach';$('g-hook').value='auto';$('g-count').value='7';
     viz='mid';Array.prototype.forEach.call($('g-viz').querySelectorAll('button'),function(x){x.classList.toggle('on',x.getAttribute('data-v')==='mid');});$('g-viz-h').textContent=VIZ.mid.h;
@@ -740,11 +746,14 @@
   function warnFor(title,text,isCta){var w=[],s=title+' '+text;if(!isCta&&text&&text.indexOf('→')<0)w.push('нет крючка →');if((title||text)&&!/\d/.test(s))w.push('нет цифры');if(title.length>40)w.push('заголовок '+title.length+'/40');if(text.length>160)w.push('текст '+text.length+'/160');if(/27\s?000|350\s?\+|16\s?000\s*м|320\s?\+|7\s?650|1\s?250|3\s?500|2\s?500/i.test(s))w.push('сверь крупную цифру с источником');return w;}
   function slideTxt(card){var h=card.querySelector('h4'),p=card.querySelector('p');var t=(h?h.textContent.trim():''),x=(p?p.textContent.trim():'');return (t?t+'\n':'')+x;}
   function recount(card){var h=card.querySelector('h4'),p=card.querySelector('p');var title=h?h.textContent.trim():'',text=p?p.textContent.trim():'';var w=warnFor(title,text,card.getAttribute('data-cta')==='1');var wd=card.querySelector('.warn2');if(!wd)return;if(w.length){wd.hidden=false;wd.textContent='⚠ '+w.join(' · ');}else{wd.hidden=true;wd.textContent='';}}
-  function parse(){
+  function parse(silent){
     var raw=$('g-paste').value||'';if(!raw.trim())return;
-    var wrap=$('g-cards');wrap.innerHTML='';
+    var wrap=$('g-cards');
+    if(!silent && wrap.querySelector('.scard') && !confirm('Перерисовать карточки из ответа ИИ? Ручные правки в карточках будут потеряны.'))return;
+    wrap.innerHTML='';
     var clean=function(s){return (s||'').replace(/\*+/g,'').replace(/^#+\s*/,'').replace(/\s+/g,' ').trim();};
-    var blocks=raw.split(/(?=(?:^|\n)\s*(?:#{0,4}\s*)?\*{0,2}\s*Слайд\s*№?\s*\d+)/i).filter(function(x){return /Слайд\s*№?\s*\d+/i.test(x);});
+    var blocks=raw.split(/(?=(?:^|\n)\s*(?:#{0,4}\s*)?\*{0,2}\s*(?:Слайд|Slide|СЛАЙД)\s*[№#]?\s*\d+)/i).filter(function(x){return /(?:Слайд|Slide|СЛАЙД)\s*[№#]?\s*\d+/i.test(x);});
+    if(blocks.length<2){var alt=raw.split(/(?=(?:^|\n)\s*\d+[.)]\s)/).filter(function(x){return /^\s*\d+[.)]\s/.test(x)&&x.trim().length>3;});if(alt.length>blocks.length)blocks=alt;}
     var allBriefs=[],cardEls=[];
     blocks.forEach(function(bl,i){
       var type=clean((bl.match(/\[\s*(?:тип[:\s]*)?([^\]]+)\]/i)||[])[1]);
@@ -752,13 +761,14 @@
       var text=clean((bl.match(/Текст[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Тяга|Бриф|Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
       var pull=((bl.match(/Тяга[:\s]*(\d{1,2})/i)||[])[1]||'');
       var brief=clean((bl.match(/Бриф[^:\n]*[:\s]*([\s\S]*?)(?=\n\s*\*{0,2}(?:Слайд|STYLE|ПОДПИСЬ|ХЭШ)|$)/i)||[])[1]);
+      if(!title&&!text){text=clean(bl.replace(/^[\s\S]*?(?:(?:Слайд|Slide|СЛАЙД)\s*[№#]?\s*\d+|\d+[.)])\s*[:\-]?\s*/i,''));}
       if(!title&&!text)return;
       if(brief)allBriefs.push('Слайд '+(i+1)+': '+brief);
       var isCta=/cta|призыв/i.test(type)||i===blocks.length-1;
       var card=document.createElement('div');card.className='scard';card.setAttribute('data-cta',isCta?'1':'');if(brief)card.setAttribute('data-brief',brief);if(pull)card.setAttribute('data-pull',pull);
       card.innerHTML='<div class="s2h"><span class="sn2">Слайд '+(i+1)+'</span><span class="stype"></span>'+(pull?'<span class="pull"></span>':'')+'</div>'+
-        '<h4 contenteditable="true" data-ph="Заголовок (до 40)"></h4>'+
-        '<p contenteditable="true" data-ph="Текст слайда (до 160, кончай на →)"></p>'+
+        '<h4 contenteditable="plaintext-only" data-ph="Заголовок (до 40)"></h4>'+
+        '<p contenteditable="plaintext-only" data-ph="Текст слайда (до 160, кончай на →)"></p>'+
         (brief?'<div class="brf"></div>':'')+
         '<div class="warn2" hidden></div>';
       if(pull){var pb=card.querySelector('.pull');pb.textContent='тяга '+pull+'/10';if(+pull<7)pb.classList.add('low');}
@@ -767,7 +777,7 @@
       card.querySelector('p').textContent=text;
       if(brief)card.querySelector('.brf').textContent='Бриф: '+brief;
       card.querySelector('.s2h').appendChild(cbtn('Копировать',function(){return slideTxt(card);}));
-      card.addEventListener('input',function(){recount(card);});
+      card.addEventListener('input',function(){recount(card);save();});
       recount(card);
       wrap.appendChild(card);cardEls.push(card);
     });
@@ -783,16 +793,19 @@
       var fmtMap={'4:5':'format-ig-portrait','1:1':'format-ig-square','9:16':'format-story','2:3':'format-pinterest'};
       var bk=$('g-brand').value,theme=themeMap[bk]||'theme-genglass',fmt=fmtMap[$('g-fmt').value]||'format-ig-portrait';
       var bn=BR[bk].name,handle='@'+BR[bk].handle,n=cardEls.length,sl='';
+      var slotNum=0;
       cardEls.forEach(function(card,i){
         var h=card.querySelector('h4'),p=card.querySelector('p');
         var title=esc(h?h.textContent.trim():''),text=esc(p?p.textContent.trim():'');
-        var brief=card.getAttribute('data-brief')||'',nn=(i+1<10?'0'+(i+1):''+(i+1));
+        var isCta=card.getAttribute('data-cta')==='1';
+        var brief=card.getAttribute('data-brief')||'',num=(i+1<10?'0'+(i+1):''+(i+1)),fileN='',slot='';
+        if(brief && !isCta){slotNum++;fileN=(slotNum<10?'0'+slotNum:''+slotNum);
+          slot='<div class="imgslot"><img src="images/'+fileN+'.jpg" alt="" onerror="this.classList.add(\'missing\')"><div class="ph"><span class="tag">фото · бриф · images/'+fileN+'.jpg</span><div class="brief">'+esc(brief)+'</div><span class="dim">сохрани картинку как images/'+fileN+'.jpg</span></div></div>';}
+        var hi=slot?' has-img':'';
         var pg='<div class="pageno"><b>'+(i+1)+'</b>/'+n+'</div>';
-        var slot=brief?('<div class="imgslot"><img src="images/'+nn+'.jpg" alt="" onerror="this.classList.add(\'missing\')"><div class="ph"><span class="tag">фото · бриф</span><div class="brief">'+esc(brief)+'</div><span class="dim">images/'+nn+'.jpg</span></div></div>'):'';
-        var hi=brief?' has-img':'';
         if(i===0){sl+='<section class="slide s-cover'+hi+'">'+pg+'<div class="kick">'+esc(bn)+'</div>'+slot+'<div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="arrow">→</div></section>';}
-        else if(i===n-1){sl+='<section class="slide s-cta">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="button">'+esc(handle)+' →</div></section>';}
-        else{sl+='<section class="slide s-mid'+hi+'">'+pg+'<div class="kick">'+nn+'</div>'+slot+'<div class="h">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="brandbar"><b>'+esc(bn)+'</b> '+esc(handle)+'</div></section>';}
+        else if(isCta){sl+='<section class="slide s-cta">'+pg+'<div class="kick">'+esc(bn)+'</div><div class="big">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="button">'+esc(handle)+' →</div></section>';}
+        else{sl+='<section class="slide s-mid'+hi+'">'+pg+'<div class="kick">'+num+'</div>'+slot+'<div class="h">'+title+'</div>'+(text?'<div class="body">'+text+'</div>':'')+'<div class="brandbar"><b>'+esc(bn)+'</b> '+esc(handle)+'</div></section>';}
       });
       return '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>'+esc(bn)+' carousel</title>'+
         '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
@@ -802,7 +815,7 @@
     function block(title,body){var d=document.createElement('div');d.className='block';d.innerHTML='<div class="bh">'+title+'</div><p></p>';d.querySelector('p').textContent=body;d.querySelector('.bh').appendChild(cbtn('Копировать',body));wrap.appendChild(d);}
     function liveBlock(title,body,ph,limit,counter){
       var d=document.createElement('div');d.className='block';
-      d.innerHTML='<div class="bh">'+title+' <span class="cnt"></span></div><p contenteditable="true" data-ph="'+ph+'"></p>';
+      d.innerHTML='<div class="bh">'+title+' <span class="cnt"></span></div><p contenteditable="plaintext-only" data-ph="'+ph+'"></p>';
       var p=d.querySelector('p'),cnt=d.querySelector('.cnt');p.textContent=body;
       function upd(){var n=counter(p.textContent);cnt.textContent=n+'/'+limit;cnt.classList.toggle('over',n>limit);}
       p.addEventListener('input',upd);upd();
@@ -825,7 +838,7 @@
     var hint=document.createElement('div');hint.className='edhint';hint.textContent='Карточки, подпись и хэштеги правятся прямо здесь, счётчики и предупреждения вживую (лимиты IG: подпись 2200, хэштегов 30). «Скачать HTML для рендера» отдаёт готовую карусель скиллу gengroup-carousel: export_carousel.py превращает её в PNG-слайды.';
     wrap.insertBefore(hint,wrap.firstChild);
   }
-  $('g-parse').addEventListener('click',parse);
+  $('g-parse').addEventListener('click',function(){parse();});
   $('g-copy').addEventListener('click',function(){var t=$('g-prompt').textContent;if(!navigator.clipboard)return;
     navigator.clipboard.writeText(t).then(function(){var b=$('g-copy');var o=b.textContent;b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=o;},1500);});});
 

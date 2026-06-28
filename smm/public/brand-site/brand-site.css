@@ -181,6 +181,8 @@ tr:last-child td{border-bottom:none}
 
 @media(max-width:820px){
   .nav a,.tt button{min-height:40px;display:inline-flex;align-items:center}
+  /* единый мобильный шаблон шапки: бренд+тумблер в строке 1, нав — прокручиваемая строка 2 */
+  .nav{order:3;flex-basis:100%;-webkit-overflow-scrolling:touch}
   section{padding:42px 0}
   .cmp,.cmp-head,.overlap .og{grid-template-columns:1fr}
   .cmp-head{position:static}

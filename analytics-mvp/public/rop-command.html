@@ -506,9 +506,9 @@ function dwellStageChart(deals){
   const BUCK=[['свежие · до 14 дн',d=>d<14,'#2E9E74'],['тёплые · 14-30 дн',d=>d>=14&&d<30,'#C2873C'],['застряли · 30+ дн',d=>d>=30,'#CC5867']];
   const vOf=xs=>mode==='money'?xs.reduce((s,x)=>s+(x.budget||0),0):xs.length;
   const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);
-    const segs=BUCK.map(([lbl,f,c])=>{const sub=xs.filter(x=>f(x.dwellCur));return {lbl,c,v:vOf(sub),n:sub.length};});
-    const total=vOf(xs),stuck=vOf(xs.filter(x=>x.dwellCur>=30));
-    return {lab:lab[st],n:xs.length,total,segs,med:med(xs),stuckShare:total?stuck/total:0};});
+    const segs=BUCK.map(([lbl,f,c])=>{const sub=xs.filter(x=>f(x.dwellCur));return {lbl,c,v:vOf(sub),n:sub.length,money:sub.reduce((s,x)=>s+(x.budget||0),0)};});
+    const total=vOf(xs),money=xs.reduce((s,x)=>s+(x.budget||0),0),stuck=vOf(xs.filter(x=>x.dwellCur>=30));
+    return {lab:lab[st],n:xs.length,total,money,segs,med:med(xs),stuckShare:total?stuck/total:0};});
   const mx=Math.max(...data.map(d=>d.total),1);
   const W=760,H=320,pl=10,pr=10,pt=30,pb=60,n=data.length,gap=24,bw=(W-pl-pr-gap*(n-1))/n;
   const fV=v=>mode==='money'?fmtK(v)+' ₽':fmt(v);
@@ -516,13 +516,15 @@ function dwellStageChart(deals){
   let bars=`<line x1="${pl}" y1="${baseY}" x2="${W-pr}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
   data.forEach((d,i)=>{const x=pl+i*(bw+gap);const Hbar=(H-pt-pb)*d.total/mx;let yCur=baseY;
     d.segs.forEach(sg=>{if(!sg.v)return;const sh=(H-pt-pb)*sg.v/mx;yCur-=sh;
-      const td=dt(d.lab+' · '+sg.lbl,[[mode==='money'?'Сумма':'Сделок',fV(sg.v),'hl'],['Сделок',fmt(sg.n),'dim'],['Доля этапа',pct(d.total?sg.v/d.total:0),'dim']]).replace(/"/g,'&quot;');
-      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" data-tip="${td}"/>`;});
+      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" pointer-events="none"/>`;});
     const topY=baseY-Hbar;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(topY-10).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14.5" fill="var(--ink)">${fV(d.total)}</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+21).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-2)">${d.lab}</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;});
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(topY-10).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14.5" fill="var(--ink)" pointer-events="none">${fV(d.total)}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+21).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-2)" pointer-events="none">${d.lab}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" pointer-events="none">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" pointer-events="none" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;
+    // Прозрачная зона на всю высоту столбца: наведение в любом месте колонки -> полный тултип этапа.
+    const ftip=dt(d.lab+' · открытые на этапе',[['Сделок',fmt(d.n),'hl'],['Сумма пайплайна',fmtK(d.money)+' ₽','hl'],['Медиана срока',d.med==null?'—':d1(d.med)+' дн','dim'],['свежие до 14 дн',fmtK(d.segs[0].money)+' ₽ · '+fmt(d.segs[0].n)+' сд','dim'],['тёплые 14-30 дн',fmtK(d.segs[1].money)+' ₽ · '+fmt(d.segs[1].n)+' сд','dim'],['застряли 30+ дн',fmtK(d.segs[2].money)+' ₽ · '+fmt(d.segs[2].n)+' сд','hl'],['доля застрявших',pct(d.stuckShare),'hl']]).replace(/"/g,'&quot;');
+    bars+=`<rect x="${(x-gap/2).toFixed(1)}" y="${pt}" width="${(bw+gap).toFixed(1)}" height="${(baseY-pt+56).toFixed(1)}" fill="transparent" data-tip="${ftip}" style="cursor:pointer"/>`;});
   const leg=BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join('');
   return `<div>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:10px">

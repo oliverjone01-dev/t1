@@ -490,27 +490,42 @@ function dwellByStage(deals){
     const inside=+w>=30;
     return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}" style="display:flex;align-items:center"><div style="height:100%;flex:0 0 ${w}%;min-width:6px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both">${inside?d1(r.med)+' дн':''}</div>${inside?'':`<span style="flex:0 0 auto;margin-left:7px;font-size:11px;font-weight:800;color:${c};white-space:nowrap">${d1(r.med)} дн</span>`}</div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
 }
-// Вертикальные столбцы по этапам: сколько денег (или сделок) зависло на каждом этапе,
-// высота = ₽/шт (тумблер), цвет = медиана срока, подписи = кол-во + медиана дней.
+// Сегментированные столбцы по этапам: высота = деньги (или сделки), сегменты по сроку
+// (свежие <14д / тёплые 14-30д / застрявшие >30д). Видно где заперт пайплайн И что протухает.
 function dwellStageChart(deals){
   const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
   const lab={'Из Взят в работу/Квалифицирован':'Квал','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
   if(!op.length)return '';
   const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
-  const cO=d=>d==null?'#3F4855':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
   const mode=S.dhChartMode||'money';
-  const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);return {lab:lab[st],n:xs.length,money:xs.reduce((s,x)=>s+(x.budget||0),0),med:med(xs)};});
-  const val=d=>mode==='money'?d.money:d.n;const mx=Math.max(...data.map(val),1);
-  const W=700,H=230,pl=8,pr=8,pt=26,pb=46,n=data.length,gap=18,bw=(W-pl-pr-gap*(n-1))/n;
+  const BUCK=[['свежие · до 14 дн',d=>d<14,'#2E9E74'],['тёплые · 14-30 дн',d=>d>=14&&d<30,'#C2873C'],['застряли · 30+ дн',d=>d>=30,'#CC5867']];
+  const vOf=xs=>mode==='money'?xs.reduce((s,x)=>s+(x.budget||0),0):xs.length;
+  const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);
+    const segs=BUCK.map(([lbl,f,c])=>{const sub=xs.filter(x=>f(x.dwellCur));return {lbl,c,v:vOf(sub),n:sub.length};});
+    const total=vOf(xs),stuck=vOf(xs.filter(x=>x.dwellCur>=30));
+    return {lab:lab[st],n:xs.length,total,segs,med:med(xs),stuckShare:total?stuck/total:0};});
+  const mx=Math.max(...data.map(d=>d.total),1);
+  const W=760,H=320,pl=10,pr=10,pt=30,pb=60,n=data.length,gap=24,bw=(W-pl-pr-gap*(n-1))/n;
   const fV=v=>mode==='money'?fmtK(v)+' ₽':fmt(v);
-  let bars='';data.forEach((d,i)=>{const v=val(d),h=Math.max((H-pt-pb)*v/mx,2),x=pl+i*(bw+gap),y=H-pb-h,c=cO(d.med);
-    const td=dt(d.lab,[['Зависло денег',fmtK(d.money)+' ₽','hl'],['Открытых сделок',fmt(d.n),'dim'],['Медиана срока',d.med==null?'—':d1(d.med)+' дн','dim']]).replace(/"/g,'&quot;');
-    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="6" fill="${c}" data-tip="${td}" style="transform-origin:bottom;animation:grow .8s var(--ease-out) both"/>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="13" fill="var(--ink)">${fV(v)}</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(H-pb+18).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink-2)">${d.lab}</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(H-pb+33).toFixed(1)}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;});
-  return `<div style="margin-top:16px;border-top:1px solid var(--border-soft);padding-top:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px"><div class="card-sub" style="margin:0">Где зависли ${mode==='money'?'деньги':'сделки'} · высота = ${mode==='money'?'сумма ₽':'кол-во'} открытых на этапе · цвет = медиана срока</div><div class="seg" id="dhChartSeg"><button data-c="money" class="${mode==='money'?'on':''}">₽</button><button data-c="count" class="${mode==='count'?'on':''}">шт</button></div></div><svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg></div>`;
+  const baseY=H-pb;
+  let bars=`<line x1="${pl}" y1="${baseY}" x2="${W-pr}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
+  data.forEach((d,i)=>{const x=pl+i*(bw+gap);const Hbar=(H-pt-pb)*d.total/mx;let yCur=baseY;
+    d.segs.forEach(sg=>{if(!sg.v)return;const sh=(H-pt-pb)*sg.v/mx;yCur-=sh;
+      const td=dt(d.lab+' · '+sg.lbl,[[mode==='money'?'Сумма':'Сделок',fV(sg.v),'hl'],['Сделок',fmt(sg.n),'dim'],['Доля этапа',pct(d.total?sg.v/d.total:0),'dim']]).replace(/"/g,'&quot;');
+      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" data-tip="${td}"/>`;});
+    const topY=baseY-Hbar;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(topY-10).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14.5" fill="var(--ink)">${fV(d.total)}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+21).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-2)">${d.lab}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;});
+  const leg=BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join('');
+  return `<div style="margin-top:16px;border-top:1px solid var(--border-soft);padding-top:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-weight:700;color:var(--ink);font-size:13.5px">Где заперт пайплайн</div><div class="card-sub" style="margin:2px 0 0">высота столбца = ${mode==='money'?'сумма денег ₽':'кол-во'} открытых сделок · сегменты = срок лежания · «застряло» = доля 30+ дней</div></div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">${leg}<div class="seg" id="dhChartSeg"><button data-c="money" class="${mode==='money'?'on':''}">₽</button><button data-c="count" class="${mode==='count'?'on':''}">шт</button></div></div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg></div>`;
 }
 function mgrDwellHeat(deals){
   const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];

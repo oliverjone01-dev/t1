@@ -597,7 +597,7 @@ function render(){
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
   const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
   const B_kpi=kstrip([
-    {k:'Квал лид',v:fmt(m.qual),ac:'accent',trend:trendChip(m.qual,pm.qual),sub:'из '+fmt(m.leads)+' лидов · вход от маркетинга'},
+    {k:'Всего лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads),sub:'вход от маркетинга · квал = конвертированы в сделку'},
     {k:'CR1 · % в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'лид → сделка'},
     {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
     {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},

@@ -31,6 +31,8 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .msel-foot{border-top:1px solid var(--border-soft);margin-top:6px;padding-top:6px;text-align:right}
 .msel-foot button{background:transparent;border:0;color:var(--accent);font:inherit;font-size:11px;cursor:pointer}
 .lsort{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11px;font-weight:600;cursor:pointer;padding:0;text-align:left}
+.dhh{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;width:100%;text-align:center}
+.dhh.l{text-align:left}.dhh.on{color:var(--accent)}
 .lsort.on{color:var(--accent)}
 .controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.55);position:sticky;top:55px;z-index:55;backdrop-filter:blur(16px)}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
@@ -264,7 +266,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -498,14 +500,23 @@ function mgrDwellHeat(deals){
   const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
   const tot=m=>stages.reduce((s,st)=>s+cell[m][st].length,0);
   const ntTot=m=>stages.reduce((s,st)=>s+cell[m][st].filter(x=>(x.touchReal||0)===0).length,0);
-  mgrs.sort((a,b)=>tot(b)-tot(a));
+  // сортировка по клику на заголовок (по столбцу): по медиане этапа / по «Висит» / «Без кас.» / имени
+  const _ds=S.dhSort||'tot',_asc=S.dhAsc?1:-1;
+  const _key=m=>{if(_ds==='mgr')return m;if(_ds==='tot')return tot(m);if(_ds==='nt')return ntTot(m);const v=med(cell[m][_ds]);return v==null?-1:v;};
+  mgrs.sort((a,b)=>{const va=_key(a),vb=_key(b);return _ds==='mgr'?String(va).localeCompare(String(vb))*_asc:(va-vb)*_asc;});
   const cO=d=>d==null?'transparent':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
-  let html='<div class="scroll"><table class="mx"><thead><tr><th class="lh">Менеджер</th>'+stages.map(st=>`<th>${lab[st]}</th>`).join('')+'<th class="toth">Висит</th><th class="toth">Без кас.</th></tr></thead><tbody>';
+  const _arr=k=>S.dhSort===k?(S.dhAsc?' ↑':' ↓'):'';const _hb=(k,lbl,cls)=>`<button class="dhh${S.dhSort===k?' on':''}${cls?' '+cls:''}" data-dh="${k}">${lbl}${_arr(k)}</button>`;
+  let html='<div class="scroll"><table class="mx"><thead><tr><th class="lh">'+_hb('mgr','Менеджер','l')+'</th>'+stages.map(st=>`<th>${_hb(st,lab[st])}</th>`).join('')+`<th class="toth">${_hb('tot','Висит')}</th><th class="toth">${_hb('nt','Без кас.')}</th></tr></thead><tbody>`;
   mgrs.forEach(m=>{const t=tot(m);if(!t)return;
     html+=`<tr><td class="lc">${m}</td>`+stages.map(st=>{const xs=cell[m][st];const md=med(xs);const nt=xs.filter(x=>(x.touchReal||0)===0).length;
       if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
       const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
       return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${xs.length}</span></td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
+  // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
+  const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length;
+  const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
+  html+=`<tr class="total" style="border-top:2px solid var(--border-hot)"><td class="lc" style="font-weight:800">Итог · медиана отдела</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${c}</span></td>`;}).join('')+`<td class="tot" style="font-weight:800">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800">${dNt}</td></tr>`;
   html+='</tbody></table></div>';
   return html;
 }
@@ -1004,6 +1015,7 @@ function buildShell(){
   document.addEventListener('change',e=>{const cb=e.target&&e.target.closest&&e.target.closest('#lossMgrPanel input[data-lmgr]');if(cb){const m=cb.dataset.lmgr;const s=new Set(S.lossMgrSel||[]);if(cb.checked)s.add(m);else s.delete(m);S.lossMgrSel=[...s];render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});
   document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
+  document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

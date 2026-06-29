@@ -597,14 +597,16 @@ function render(){
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
   const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
   const B_kpi=kstrip([
-    {k:'Всего сделок',v:fmt(m.deals),ac:'accent',trend:trendChip(m.deals,pm.deals),sub:'из '+fmt(m.leads)+' лидов · CR1 '+pct(cr1)},
-    {k:'В продажу · CR2',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продажи ÷ сделки'},
+    {k:'Квал лид',v:fmt(m.qual),ac:'accent',trend:trendChip(m.qual,pm.qual),sub:'из '+fmt(m.leads)+' лидов · вход от маркетинга'},
+    {k:'CR1 · % в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'лид → сделка'},
+    {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
+    {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
     {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
-  ]);
+  ],9);
   const planRevP=S.planRev*periodLen()/30||1;const Pg=planModel(D,L,m);
   const planLeads=Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round((m.won||1)*1.15),planCR1=.5,planCR2=.15;
   const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана</div><div class="card-sub">% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)</div></div></div><div class="gauges">`+

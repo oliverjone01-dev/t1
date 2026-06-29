@@ -270,7 +270,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhChartMode:'money',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
@@ -502,37 +502,37 @@ function dwellStageChart(deals){
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
   if(!op.length)return '';
   const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
-  const mode=S.dhChartMode||'money';
+  const metric=S.dhMetric||'term';const isSeg=(metric!=='term');
+  const cO=d=>d==null?'#3F4855':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
   const BUCK=[['свежие · до 14 дн',d=>d<14,'#2E9E74'],['тёплые · 14-30 дн',d=>d>=14&&d<30,'#C2873C'],['застряли · 30+ дн',d=>d>=30,'#CC5867']];
-  const vOf=xs=>mode==='money'?xs.reduce((s,x)=>s+(x.budget||0),0):xs.length;
-  const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);
+  const vOf=xs=>metric==='money'?xs.reduce((s,x)=>s+(x.budget||0),0):xs.length;
+  const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);const md=med(xs);
     const segs=BUCK.map(([lbl,f,c])=>{const sub=xs.filter(x=>f(x.dwellCur));return {lbl,c,v:vOf(sub),n:sub.length,money:sub.reduce((s,x)=>s+(x.budget||0),0)};});
-    const total=vOf(xs),money=xs.reduce((s,x)=>s+(x.budget||0),0),stuck=vOf(xs.filter(x=>x.dwellCur>=30));
-    return {lab:lab[st],n:xs.length,total,money,segs,med:med(xs),stuckShare:total?stuck/total:0};});
+    const money=xs.reduce((s,x)=>s+(x.budget||0),0),nAll=xs.length,stuck=xs.filter(x=>x.dwellCur>=30);
+    const total=metric==='term'?(md||0):vOf(xs);
+    return {lab:lab[st],n:nAll,total,money,segs,med:md,stuckShare:nAll?(metric==='money'?(money?vOf(stuck)/money:0):stuck.length/nAll):0};});
   const mx=Math.max(...data.map(d=>d.total),1);
   const W=760,H=320,pl=10,pr=10,pt=30,pb=60,n=data.length,gap=24,bw=(W-pl-pr-gap*(n-1))/n;
-  const fV=v=>mode==='money'?fmtK(v)+' ₽':fmt(v);
+  const fV=v=>metric==='money'?fmtK(v)+' ₽':metric==='count'?fmt(v):d1(v)+' дн';
   const baseY=H-pb;
   let bars=`<line x1="${pl}" y1="${baseY}" x2="${W-pr}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
-  data.forEach((d,i)=>{const x=pl+i*(bw+gap);const Hbar=(H-pt-pb)*d.total/mx;let yCur=baseY;
-    d.segs.forEach(sg=>{if(!sg.v)return;const sh=(H-pt-pb)*sg.v/mx;yCur-=sh;
-      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" pointer-events="none"/>`;});
-    const topY=baseY-Hbar;
+  data.forEach((d,i)=>{const x=pl+i*(bw+gap);const Hbar=Math.max((H-pt-pb)*d.total/mx,2);const topY=baseY-Hbar;
+    if(isSeg){let yCur=baseY;d.segs.forEach(sg=>{if(!sg.v)return;const sh=(H-pt-pb)*sg.v/mx;yCur-=sh;
+      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" pointer-events="none"/>`;});}
+    else bars+=`<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${bw.toFixed(1)}" height="${Hbar.toFixed(1)}" rx="5" fill="${cO(d.med)}" pointer-events="none"/>`;
     bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(topY-10).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14.5" fill="var(--ink)" pointer-events="none">${fV(d.total)}</text>`;
     bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+21).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-2)" pointer-events="none">${d.lab}</text>`;
-    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" pointer-events="none">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" pointer-events="none">${fmt(d.n)} сд${isSeg?' · мед '+(d.med==null?'—':d1(d.med))+' дн':''}</text>`;
     bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" pointer-events="none" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;
-    // Прозрачная зона на всю высоту столбца: наведение в любом месте колонки -> полный тултип этапа.
     const ftip=dt(d.lab+' · открытые на этапе',[['Сделок',fmt(d.n),'hl'],['Сумма пайплайна',fmtK(d.money)+' ₽','hl'],['Медиана срока',d.med==null?'—':d1(d.med)+' дн','dim'],['свежие до 14 дн',fmtK(d.segs[0].money)+' ₽ · '+fmt(d.segs[0].n)+' сд','dim'],['тёплые 14-30 дн',fmtK(d.segs[1].money)+' ₽ · '+fmt(d.segs[1].n)+' сд','dim'],['застряли 30+ дн',fmtK(d.segs[2].money)+' ₽ · '+fmt(d.segs[2].n)+' сд','hl'],['доля застрявших',pct(d.stuckShare),'hl']]).replace(/"/g,'&quot;');
     bars+=`<rect x="${(x-gap/2).toFixed(1)}" y="${pt}" width="${(bw+gap).toFixed(1)}" height="${(baseY-pt+56).toFixed(1)}" fill="transparent" data-tip="${ftip}" style="cursor:pointer"/>`;});
-  const leg=BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join('');
+  const title=metric==='term'?'Срок лежания по этапам':'Где заперт пайплайн';
+  const sub=metric==='term'?'высота = медиана срока (дн) · цвет = насколько долго · «застряло» = доля 30+ дней':('высота = '+(metric==='money'?'сумма ₽':'кол-во')+' открытых · сегменты = срок · «застряло» = доля 30+ дней');
+  const leg=isSeg?BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join(''):'';
   return `<div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:10px">
-      <div><div style="font-weight:700;color:var(--ink);font-size:13.5px">Где заперт пайплайн</div><div class="card-sub" style="margin:2px 0 0">высота = ${mode==='money'?'сумма ₽':'кол-во'} открытых · сегменты = срок · «застряло» = доля 30+ дней</div></div>
-      <div class="seg" id="dhChartSeg"><button data-c="money" class="${mode==='money'?'on':''}">₽</button><button data-c="count" class="${mode==='count'?'on':''}">шт</button></div>
-    </div>
+    <div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink);font-size:13.5px">${title}</div><div class="card-sub" style="margin:2px 0 0">${sub}</div></div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center">${leg}</div></div>`;
+    ${leg?`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center">${leg}</div>`:''}</div>`;
 }
 function mgrDwellHeat(deals){
   const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
@@ -549,18 +549,23 @@ function mgrDwellHeat(deals){
   const _key=m=>{if(_ds==='mgr')return m;if(_ds==='tot')return tot(m);if(_ds==='nt')return ntTot(m);const v=med(cell[m][_ds]);return v==null?-1:v;};
   mgrs.sort((a,b)=>{const va=_key(a),vb=_key(b);return _ds==='mgr'?String(va).localeCompare(String(vb))*_asc:(va-vb)*_asc;});
   const cO=d=>d==null?'transparent':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
+  // значение ячейки по общему тумблеру: Сроки (медиана дн) / Шт / Деньги. Цвет ВСЕГДА по сроку.
+  const mny=xs=>xs.reduce((s,x)=>s+(x.budget||0),0);
+  const _sub=t=>`<span style="font-size:9px;opacity:.85;font-weight:600">${t}</span>`;
+  const cellVal=(md,cnt,money)=>S.dhMetric==='count'?`${fmt(cnt)}${_sub('·'+(md==null?'':d1(md)+'д'))}`:S.dhMetric==='money'?`${fmtK(money)}${_sub('·'+fmt(cnt))}`:`${d1(md)}${_sub('·'+fmt(cnt))}`;
   const _arr=k=>S.dhSort===k?(S.dhAsc?' ↑':' ↓'):'';const _hb=(k,lbl,cls)=>`<button class="dhh${S.dhSort===k?' on':''}${cls?' '+cls:''}" data-dh="${k}">${lbl}${_arr(k)}</button>`;
   let html='<div class="scroll"><table class="mx"><thead><tr><th class="lh">'+_hb('mgr','Менеджер','l')+'</th>'+stages.map(st=>`<th>${_hb(st,lab[st])}</th>`).join('')+`<th class="toth">${_hb('tot','Висит')}</th><th class="toth">${_hb('nt','Без кас.')}</th></tr></thead><tbody>`;
   mgrs.forEach(m=>{const t=tot(m);if(!t)return;
     html+=`<tr><td class="lc">${m}</td>`+stages.map(st=>{const xs=cell[m][st];const md=med(xs);const nt=xs.filter(x=>(x.touchReal||0)===0).length;
       if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
-      const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
-      return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${xs.length}</span></td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
+      const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
+      return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
   // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
-  const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length;
+  const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length,dMny=st=>mny(op.filter(d=>d.stage===st));
   const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
-  html+=`<tr class="total" style="border-top:3px solid var(--accent);background:var(--accent-soft)"><td class="lc" style="font-weight:800;color:var(--accent);font-size:12.5px">Σ Итог по отделу · медиана</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
-    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--accent)">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${c}</span></td>`;}).join('')+`<td class="tot" style="font-weight:800;color:var(--accent)">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800;text-align:right">${dNt}</td></tr>`;
+  const _itLab=S.dhMetric==='count'?'кол-во':S.dhMetric==='money'?'деньги':'медиана';
+  html+=`<tr class="total" style="border-top:3px solid var(--accent);background:var(--accent-soft)"><td class="lc" style="font-weight:800;color:var(--accent);font-size:12.5px">Σ Итог по отделу · ${_itLab}</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--accent)">${cellVal(md,c,dMny(st))}</td>`;}).join('')+`<td class="tot" style="font-weight:800;color:var(--accent)">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800;text-align:right">${dNt}</td></tr>`;
   html+='</tbody></table></div>';
   return html;
 }
@@ -808,7 +813,8 @@ function render(){
   // matrix
   const _lf=lost.length?Math.round(lost.filter(d=>{const r=d.reason;return r&&r!=='не указана'&&r!=='Другое';}).length/lost.length*100):0;
   const B_mgrRejMatrix=`<div class="card"><div class="card-h"><div><div class="card-title">Матрица: менеджер × причина отказа</div><div class="card-sub">все провалы периода · доля внутри строки · «Прочее» = редкие причины вне топа · причина в CRM-поле заполнена лишь у <b>${_lf}%</b> (остальное распознано из текста)</div></div></div><div class="scroll" id="mxBox"></div></div>`;
-  const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки</div><div class="card-sub">медиана дней, что открытые сделки менеджера лежат на этапе · ячейка = дни·сделок · красное = дольше · скан по столбцу: у кого краснее, тот бросает и забывает</div></div></div>`+`<div class="dwell-split"><div class="dw-tbl">`+mgrDwellHeat(snap)+`</div><div class="dw-chart">`+dwellStageChart(snap)+`</div></div></div>`;
+  const _dmLab=S.dhMetric==='count'?'кол-во открытых сделок':S.dhMetric==='money'?'сумма денег открытых сделок':'медиана дней лежания';
+  const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки</div><div class="card-sub">${_dmLab} по этапам · цвет = насколько долго лежит (красное = дольше) · скан по столбцу: у кого краснее, тот бросает и забывает</div></div><div class="seg" id="dhMetricSeg"><button data-m="term" class="${(S.dhMetric||'term')==='term'?'on':''}">Сроки</button><button data-m="count" class="${S.dhMetric==='count'?'on':''}">Шт</button><button data-m="money" class="${S.dhMetric==='money'?'on':''}">В деньгах</button></div></div>`+`<div class="dwell-split"><div class="dw-tbl">`+mgrDwellHeat(snap)+`</div><div class="dw-chart">`+dwellStageChart(snap)+`</div></div></div>`;
   /* 5. ДЕНЬГИ */
   /* уровни собираются в конце */
   const won=soldSet(); // продажи по дате исхода в периоде (для бубликов выручки)
@@ -1060,7 +1066,7 @@ function buildShell(){
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});
   document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
-  document.addEventListener('click',e=>{const cb=e.target.closest('#dhChartSeg button');if(cb){S.dhChartMode=cb.dataset.c;render();}});
+  document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

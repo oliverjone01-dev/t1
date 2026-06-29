@@ -557,8 +557,8 @@ function mgrDwellHeat(deals){
   // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
   const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length;
   const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
-  html+=`<tr class="total" style="border-top:2px solid var(--border-hot)"><td class="lc" style="font-weight:800">Итог · медиана отдела</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
-    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${c}</span></td>`;}).join('')+`<td class="tot" style="font-weight:800">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800">${dNt}</td></tr>`;
+  html+=`<tr class="total" style="border-top:3px solid var(--accent);background:var(--accent-soft)"><td class="lc" style="font-weight:800;color:var(--accent);font-size:12.5px">Σ Итог по отделу · медиана</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--accent)">${d1(md)}<span style="font-size:9px;opacity:.85;font-weight:600">·${c}</span></td>`;}).join('')+`<td class="tot" style="font-weight:800;color:var(--accent)">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800;text-align:right">${dNt}</td></tr>`;
   html+='</tbody></table></div>';
   return html;
 }
@@ -896,7 +896,7 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan){co
   const _tf=teamFact!=null?teamFact:arr.reduce((s,x)=>s+x.tot,0),_tp=teamPlan!=null?teamPlan:planMgr*arr.length;
   const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
   const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
-  const totRow=`<div class="hm-row hm-total" style="border-top:2px solid var(--border-hot);margin-top:3px;padding-top:3px"><div class="hm-name" style="font-weight:800;color:var(--ink)">Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--ink)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
+  const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
   return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
   seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');

@@ -33,6 +33,10 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .lsort{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11px;font-weight:600;cursor:pointer;padding:0;text-align:left}
 .dhh{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;width:100%;text-align:center}
 .dhh.l{text-align:left}.dhh.on{color:var(--accent)}
+.dwell-split{display:flex;gap:20px;align-items:stretch}
+.dwell-split .dw-tbl{flex:1.35;min-width:0}
+.dwell-split .dw-chart{flex:1;min-width:0;border-left:1px solid var(--border-soft);padding-left:20px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:1150px){.dwell-split{flex-direction:column}.dwell-split .dw-chart{border-left:0;padding-left:0;border-top:1px solid var(--border-soft);padding-top:14px}}
 .lsort.on{color:var(--accent)}
 .controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.55);position:sticky;top:55px;z-index:55;backdrop-filter:blur(16px)}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
@@ -520,12 +524,13 @@ function dwellStageChart(deals){
     bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmt(d.n)} сд · мед ${d.med==null?'—':d1(d.med)} дн</text>`;
     bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;});
   const leg=BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join('');
-  return `<div style="margin-top:16px;border-top:1px solid var(--border-soft);padding-top:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px">
-      <div><div style="font-weight:700;color:var(--ink);font-size:13.5px">Где заперт пайплайн</div><div class="card-sub" style="margin:2px 0 0">высота столбца = ${mode==='money'?'сумма денег ₽':'кол-во'} открытых сделок · сегменты = срок лежания · «застряло» = доля 30+ дней</div></div>
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">${leg}<div class="seg" id="dhChartSeg"><button data-c="money" class="${mode==='money'?'on':''}">₽</button><button data-c="count" class="${mode==='count'?'on':''}">шт</button></div></div>
+  return `<div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:10px">
+      <div><div style="font-weight:700;color:var(--ink);font-size:13.5px">Где заперт пайплайн</div><div class="card-sub" style="margin:2px 0 0">высота = ${mode==='money'?'сумма ₽':'кол-во'} открытых · сегменты = срок · «застряло» = доля 30+ дней</div></div>
+      <div class="seg" id="dhChartSeg"><button data-c="money" class="${mode==='money'?'on':''}">₽</button><button data-c="count" class="${mode==='count'?'on':''}">шт</button></div>
     </div>
-    <svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg></div>`;
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center">${leg}</div></div>`;
 }
 function mgrDwellHeat(deals){
   const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
@@ -801,7 +806,7 @@ function render(){
   // matrix
   const _lf=lost.length?Math.round(lost.filter(d=>{const r=d.reason;return r&&r!=='не указана'&&r!=='Другое';}).length/lost.length*100):0;
   const B_mgrRejMatrix=`<div class="card"><div class="card-h"><div><div class="card-title">Матрица: менеджер × причина отказа</div><div class="card-sub">все провалы периода · доля внутри строки · «Прочее» = редкие причины вне топа · причина в CRM-поле заполнена лишь у <b>${_lf}%</b> (остальное распознано из текста)</div></div></div><div class="scroll" id="mxBox"></div></div>`;
-  const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки</div><div class="card-sub">медиана дней, что открытые сделки менеджера лежат на этапе · ячейка = дни·сделок · красное = дольше · скан по столбцу: у кого краснее, тот бросает и забывает</div></div></div>`+mgrDwellHeat(snap)+dwellStageChart(snap)+`</div>`;
+  const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки</div><div class="card-sub">медиана дней, что открытые сделки менеджера лежат на этапе · ячейка = дни·сделок · красное = дольше · скан по столбцу: у кого краснее, тот бросает и забывает</div></div></div>`+`<div class="dwell-split"><div class="dw-tbl">`+mgrDwellHeat(snap)+`</div><div class="dw-chart">`+dwellStageChart(snap)+`</div></div></div>`;
   /* 5. ДЕНЬГИ */
   /* уровни собираются в конце */
   const won=soldSet(); // продажи по дате исхода в периоде (для бубликов выручки)

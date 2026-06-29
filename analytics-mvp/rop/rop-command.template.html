@@ -275,12 +275,16 @@ function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
-function FL(){return flt(AL,false).filter(l=>inP(l.created));}
+// Лиды завязаны на тумблер «Период по» (решение Ивана): по дате создания - входящий
+// поток; по дате продажи - новые в периоде ∪ существующие, закрытые/конвертированные в периоде.
+function inLeadP(l,a,b){a=a||S.start;b=b||S.end;const cr=l.created>=a&&l.created<=b;
+  if(S.dateBasis==='outcome')return cr||(l.closed&&l.closed>=a&&l.closed<=b);return cr;}
+function FL(){return flt(AL,false).filter(l=>inLeadP(l));}
 function SNAP(){return flt(AD,true);} // current pipeline, ignores period
 // previous-window sets
 function prevWin(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);return [ps.toISOString().slice(0,10),pe.toISOString().slice(0,10)];}
 function PD(){const[a,b]=prevWin();return flt(AD,true).filter(d=>d.created>=a&&d.created<=b);}
-function PL(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);const a=ps.toISOString().slice(0,10),b=pe.toISOString().slice(0,10);return flt(AL,false).filter(l=>l.created>=a&&l.created<=b);}
+function PL(){const[a,b]=prevWin();return flt(AL,false).filter(l=>inLeadP(l,a,b));}
 // buckets
 function bkey(ds,g){if(g==='day')return ds;if(g==='month')return ds.slice(0,7);const dt=new Date(ds);const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return dt.toISOString().slice(0,10);}
 function blabel(k,g){if(g==='month'){const[y,m]=k.split('-');return MON[+m-1]+' '+y.slice(2);}return k.slice(8,10)+'.'+k.slice(5,7);}

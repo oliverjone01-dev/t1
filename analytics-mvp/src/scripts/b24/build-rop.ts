@@ -58,7 +58,7 @@ const qualOf = (sc: string) =>
   sc === "CONVERTED" ? "квал" : (["JUNK", "1", "2", "3"].includes(sc) ? "неквал" : "в работе");
 const leads = rop.leads.map((l: any) => ({
   id: l.id, mgr: l.mgr, status: l.status, qual: qualOf(l.statusCode),
-  created: l.created, source: l.source, dir: l.dir,
+  created: l.created, closed: l.closed, source: l.source, dir: l.dir,
 }));
 
 // --- from / to ---

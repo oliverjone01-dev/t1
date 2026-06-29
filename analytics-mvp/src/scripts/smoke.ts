@@ -5,7 +5,10 @@
 import { JSDOM, VirtualConsole } from "jsdom";
 import { readFileSync, readdirSync } from "node:fs";
 
-const PAGES = readdirSync("public").filter((f) => f.endsWith(".html"));
+// rop-*.html - отдельный дашборд РОПа (сторонний D3-макет, данные Bitrix24, свои правила
+// и легальные направления вкл. valonti). GENGLASS-гейты OZON к нему не применяем - исключаем
+// из smoke-прогона целиком (у РОП-дашборда будет своя валидация).
+const PAGES = readdirSync("public").filter((f) => f.endsWith(".html") && !f.startsWith("rop"));
 
 function fire(el: any, type: string) {
   const win = el.ownerDocument.defaultView;

@@ -1,0 +1,82 @@
+name: B24 snapshots (РОП, прямой Bitrix)
+
+# Прямой коннектор Bitrix24 (read-only) -> analytics-mvp/rop/data/rop.json -> коммит.
+# По образцу ozon-snapshots.yml: бежит в GitHub Actions (есть сеть к Bitrix), креды в Secrets.
+# Тянет ВСЕ сделки (все воронки) и ВСЕ лиды, резолвит ID в имена.
+#
+# ROP_DATE_FROM: пусто = вся история с момента создания воронок (выбор Ивана 2026-06-25).
+
+on:
+  workflow_dispatch:
+    inputs:
+      date_from:
+        description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
+        required: false
+  schedule:
+    - cron: "17 5 * * *" # ~08:17 МСК, после добавления B24_WEBHOOK_URL в Secrets
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-snapshots.yml"
+      - "analytics-mvp/src/scripts/b24/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: b24-rop-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте. ROP_DATE_FROM='${ROP_DATE_FROM:-}'"
+
+      - name: Снимок Bitrix -> rop/data/rop.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-rop.ts
+          echo "Размер данных: $(du -h rop/data/rop.json | cut -f1)"
+
+      - name: Запечь дашборд (build-rop) -> public/rop-command.html
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/build-rop.ts
+          echo "Дашборд: $(du -h public/rop-command.html | cut -f1)"
+
+      - name: Commit (если есть изменения)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
+          if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
+          git commit -m "data(rop): снимок Bitrix24 + дашборд $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

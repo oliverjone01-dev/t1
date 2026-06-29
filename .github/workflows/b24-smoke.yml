@@ -1,0 +1,77 @@
+name: B24 webhook smoke (read-only)
+
+# Разведка crm.stagehistory.list (история стадий) перед фазой 2: поля, объём, сэмпл.
+on:
+  workflow_dispatch:
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-smoke.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+    steps:
+      - name: crm.activity.list разведка (касания)
+        run: |
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          base="${B24_WEBHOOK_URL%/}"
+          post(){ curl -sS --max-time 40 -X POST "$base/$1.json" -H 'Content-Type: application/json' -d "$2"; }
+
+          echo "== crm.activity.list по сделкам (OWNER_TYPE_ID=2): total + поля первого =="
+          post crm.activity.list '{"filter":{"OWNER_TYPE_ID":2},"order":{"ID":"ASC"},"start":0}' > /tmp/a.json || true
+          node -e 'let j={};try{j=require("/tmp/a.json")}catch(e){};
+            if(j.error){console.log("error:",j.error_description||j.error);process.exit(0);}
+            console.log("total активностей по сделкам =", j.total);
+            const r=j.result||[];console.log("ключи:", r[0]?Object.keys(r[0]).join(","):"—");
+            console.log("первый:", JSON.stringify(r[0]));'
+
+          echo "== сэмпл ~500 активностей: распределение TYPE_ID / PROVIDER_ID / DIRECTION / COMPLETED / год-месяц =="
+          : > /tmp/all.ndjson
+          for s in 0 50 100 150 200 250 300 350 400 450; do
+            post crm.activity.list "{\"select\":[\"ID\",\"OWNER_ID\",\"TYPE_ID\",\"PROVIDER_ID\",\"PROVIDER_TYPE_ID\",\"DIRECTION\",\"COMPLETED\",\"CREATED\"],\"filter\":{\"OWNER_TYPE_ID\":2},\"order\":{\"ID\":\"ASC\"},\"start\":$s}" \
+              | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{let j={};try{j=JSON.parse(d)}catch(e){};(j.result||[]).forEach(x=>console.log(JSON.stringify(x)))})' >> /tmp/all.ndjson || true
+            sleep 0.6
+          done
+          node -e '
+            const fs=require("fs");const ls=fs.readFileSync("/tmp/all.ndjson","utf8").trim().split("\n").filter(Boolean).map(JSON.parse);
+            console.log("собрано:",ls.length);
+            const tally=(f)=>{const m={};ls.forEach(x=>{const k=String(x[f]);m[k]=(m[k]||0)+1});return JSON.stringify(m);};
+            const TYPE={1:"встреча",2:"звонок",3:"задача",4:"email",5:"?",6:"REST/иное"};
+            console.log("TYPE_ID:",tally("TYPE_ID"),"(1встреча 2звонок 3задача 4email 6иное)");
+            console.log("PROVIDER_ID:",tally("PROVIDER_ID"));
+            console.log("DIRECTION:",tally("DIRECTION"),"(1вход 2исход)");
+            console.log("COMPLETED:",tally("COMPLETED"));
+            const ym={};ls.forEach(x=>{const k=String(x.CREATED||"").slice(0,7);ym[k]=(ym[k]||0)+1});
+            console.log("год-месяц (есть ли активность ДО переезда 2026-03?):",JSON.stringify(ym));
+          '
+
+      - name: stagehistory разведка
+        run: |
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          base="${B24_WEBHOOK_URL%/}"
+          post(){ curl -sS --max-time 30 -X POST "$base/$1.json" -H 'Content-Type: application/json' -d "$2"; }
+
+          echo "== crm.stagehistory.list entityTypeId=2 (сделки), сэмпл + total =="
+          post crm.stagehistory.list '{"entityTypeId":2,"order":{"ID":"ASC"},"start":0}' > /tmp/sh.json || true
+          node -e 'let j={};try{j=require("/tmp/sh.json")}catch(e){};
+            if(j.error){console.log("error:",j.error_description||j.error);process.exit(0);}
+            console.log("total =", j.total);
+            const r=(j.result&&j.result.items)||j.result||[];
+            console.log("первый элемент:", JSON.stringify(r[0]));
+            console.log("ключи:", r[0]?Object.keys(r[0]).join(","):"—");'
+
+          echo "== только воронка 49 (фильтр CATEGORY_ID) =="
+          post crm.stagehistory.list '{"entityTypeId":2,"filter":{"CATEGORY_ID":49},"order":{"ID":"ASC"},"start":0}' > /tmp/sh49.json || true
+          node -e 'let j={};try{j=require("/tmp/sh49.json")}catch(e){};console.log(j.error?("error: "+(j.error_description||j.error)):("cat49 total = "+j.total));'
+
+          echo "== сэмпл истории по одной сделке (OWNER_ID первой записи) =="
+          node -e 'let j={};try{j=require("/tmp/sh.json")}catch(e){};const r=(j.result&&j.result.items)||j.result||[];const oid=r[0]&&(r[0].OWNER_ID||r[0].ownerId);require("fs").writeFileSync("/tmp/oid.txt",String(oid||""));'
+          oid=$(cat /tmp/oid.txt)
+          echo "OWNER_ID=$oid"
+          post crm.stagehistory.list "{\"entityTypeId\":2,\"filter\":{\"OWNER_ID\":$oid},\"order\":{\"ID\":\"ASC\"}}" > /tmp/sho.json || true
+          node -e 'let j={};try{j=require("/tmp/sho.json")}catch(e){};const r=(j.result&&j.result.items)||j.result||[];console.log("записей у сделки:",r.length);r.slice(0,12).forEach(x=>console.log("  ",x.CREATED_TIME,"|",x.STAGE_ID,"|",x.STAGE_SEMANTIC_ID));'

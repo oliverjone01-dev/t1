@@ -539,10 +539,10 @@ function render(){
   const B_kpi=kstrip([
     {k:'Всего сделок',v:fmt(m.deals),ac:'accent',trend:trendChip(m.deals,pm.deals),sub:'из '+fmt(m.leads)+' лидов · CR1 '+pct(cr1)},
     {k:'В продажу · CR2',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продажи ÷ сделки'},
-    {k:'Продажи',v:fmt(m.won),ac:'#10B981',qty:fmt(m.deals),qtyLabel:'сделок',trend:trendChip(m.won,pm.won)},
+    {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
-    {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',qty:fmt(snap.filter(d=>!d.won&&!d.lost).length),qtyLabel:'сделок',sub:'снимок на сегодня · все открытые, вне фильтра периода'},
+    {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
     {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
   ]);
   const planRevP=S.planRev*periodLen()/30||1;const Pg=planModel(D,L,m);

@@ -275,16 +275,15 @@ function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5
 const inP=d=>d>=S.start&&d<=S.end;
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
-// Лиды завязаны на тумблер «Период по» (решение Ивана): по дате создания - входящий
-// поток; по дате продажи - новые в периоде ∪ существующие, закрытые/конвертированные в периоде.
-function inLeadP(l,a,b){a=a||S.start;b=b||S.end;const cr=l.created>=a&&l.created<=b;
-  if(S.dateBasis==='outcome')return cr||(l.closed&&l.closed>=a&&l.closed<=b);return cr;}
-function FL(){return flt(AL,false).filter(l=>inLeadP(l));}
+// Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
+// конверсии осмысленны только в одной когорте. Тумблер «Период по» меняет только
+// исходы сделок (продажи/выручка/потери), но не входной поток воронки.
+function FL(){return flt(AL,false).filter(l=>inP(l.created));}
 function SNAP(){return flt(AD,true);} // current pipeline, ignores period
 // previous-window sets
 function prevWin(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);return [ps.toISOString().slice(0,10),pe.toISOString().slice(0,10)];}
 function PD(){const[a,b]=prevWin();return flt(AD,true).filter(d=>d.created>=a&&d.created<=b);}
-function PL(){const[a,b]=prevWin();return flt(AL,false).filter(l=>inLeadP(l,a,b));}
+function PL(){const[a,b]=prevWin();return flt(AL,false).filter(l=>l.created>=a&&l.created<=b);}
 // buckets
 function bkey(ds,g){if(g==='day')return ds;if(g==='month')return ds.slice(0,7);const dt=new Date(ds);const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return dt.toISOString().slice(0,10);}
 function blabel(k,g){if(g==='month'){const[y,m]=k.split('-');return MON[+m-1]+' '+y.slice(2);}return k.slice(8,10)+'.'+k.slice(5,7);}
@@ -321,7 +320,7 @@ function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
   return {leads:L.length,deals:D.length,
     won:so.length,rev,check:so.length?rev/so.length:0,
     wonCohort:cohortWon.length,revCohort,
-    conv:D.length?so.length/D.length:0,
+    conv:D.length?cohortWon.length/D.length:0,
     lost:lo.length,lostM,
     qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
     lostShare:D.length?lo.length/D.length:0};}

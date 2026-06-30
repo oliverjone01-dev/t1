@@ -1,7 +1,7 @@
 # Push playbooks: 5 ритуалов + hard talk + PIP template
 
 **Owner:** sales-director skill
-**Source:** 15-letний опыт + Mark Roberge + Trish Bertuzzi + калибровка под GENGROUP voice
+**Source:** Mark Roberge «Sales Acceleration Formula» 2015 + Trish Bertuzzi «Sales Development Playbook» 2016 + HBR «Why PIPs Fail» 2023 + sales-management literature. GENGROUP-anchored через Костины кейсы 2026-06.
 
 ## Ритуал 1: Morning huddle (9:15, 15 минут, стоя)
 

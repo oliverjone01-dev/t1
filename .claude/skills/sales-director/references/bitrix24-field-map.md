@@ -152,7 +152,7 @@ const PIPE = [
 | CR1 | 36% (с шумом 182 системных) | 55% | -19pp | [ДАННЫЕ: rop.json CR1 calc; вопрос Димы про вычитание 182 системных не закрыт] |
 | CR2 | 14% | 16% | -2pp | [ДАННЫЕ: rop.json] |
 | Speed-to-lead median | ~6 часов | <1 час | -5 часов | [ГИПОТЕЗА: estimate, требует cross-check через crm.activity.list] |
-| Средний чек | 80K | 80K | 0 | [ДАННЫЕ: plan.json check field, константа по плану] |
+| Средний чек | 80K (план, не факт) | 80K | требует измерения | [ГИПОТЕЗА: 80K из plan.json check field это plan-targets, не cohort-WON median. Требует cohort-WON median через build-rop.ts по сегменту и бренду] |
 | Zombie ratio (медианно) | ~28% | <10% | -18pp | [ГИПОТЕЗА: estimate из текстов Кости + dwellCur по PIPE; точный query не выполнен] |
 
 **Conversion squeeze math** (top-3 рычага):

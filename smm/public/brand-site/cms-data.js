@@ -75,9 +75,26 @@
         alt: norm(pick(o, 'alt', 'альт', 'описание картинки')),
         pubdate: fmtDate(pick(o, 'дата публикации', 'дата', 'pubdate', 'date')),
         video: norm(pick(o, 'видео', 'video', 'ролик', 'видео ссылка', 'видеоссылка')),
-        extraUrl: norm(pick(o, 'доп ссылка', 'допссылка', 'доп.ссылка', 'extra', 'link2'))
+        extraUrl: norm(pick(o, 'доп ссылка', 'допссылка', 'доп.ссылка', 'extra', 'link2')),
+        // карточка съёмки (операторский слой): что/как снять, референс, участники, этапы+сроки
+        shot: norm(pick(o, 'что снять', 'что снимать', 'шот', 'shot', 'кадры')),
+        howto: norm(pick(o, 'как снять', 'как снимать', 'howto', 'спека', 'формат-спека')),
+        ref: norm(pick(o, 'референс', 'reference', 'ref', 'пример')),
+        participants: norm(pick(o, 'участники', 'кто участвует', 'participants', 'герои')),
+        stages: parseStages(pick(o, 'этапы', 'этап', 'stages', 'raci', 'производство'))
       };
     }).filter(function (p) { return p.idea || p.rubric || p.text; });
+  }
+  // "сценарий:Аня@30.06; съёмка:Аня@02.07" -> [{label,who,due}]. Толерантно к пропускам.
+  function parseStages(v) {
+    var s = norm(v); if (!s) return [];
+    return s.split(/[;\n]+/).map(function (chunk) {
+      var c = norm(chunk); if (!c) return null;
+      var due = '', m = c.match(/@\s*([^@]+)$/); if (m) { due = norm(m[1]); c = norm(c.slice(0, m.index)); }
+      var who = '', i = c.indexOf(':'); var label = c;
+      if (i >= 0) { label = norm(c.slice(0, i)); who = norm(c.slice(i + 1)); }
+      return label ? { label: label, who: who, due: due } : null;
+    }).filter(Boolean);
   }
   function looksLikePlan(p) { return p.some(function (x) { return x.status || x.week; }); }
   // seed-посты хранят сырой статус ('готово') - нормализуем как и из таблицы

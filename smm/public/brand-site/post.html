@@ -63,6 +63,17 @@
   .scell.saves .l::before{background:var(--pub)}.scell.clicks .l::before{background:var(--sgl)}
   .scell.hl .n{color:var(--gold)}
   .nostat{font-size:12.5px;color:var(--ink3);border:1px dashed var(--line2);border-radius:10px;padding:13px;line-height:1.5}
+  /* карточка съёмки + этапы (операторский слой) */
+  .shot-f{padding:9px 0;border-top:1px solid var(--line)}.shot-f:first-child{border-top:none;padding-top:0}
+  .shot-k{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+  .shot-v{font-size:13.5px;color:var(--ink);line-height:1.52;overflow-wrap:anywhere}
+  .shot-v a{color:var(--gold);font-weight:600;text-decoration:none}
+  .stages{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .stage{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;background:var(--s1);padding:9px 12px;font-size:13px}
+  .st-l{font-weight:600;color:var(--ink)}.st-w{color:var(--ink2);font-weight:600}
+  .st-d{color:var(--gold);font-weight:700;font-size:12px;white-space:nowrap}
+  .roles-hint{margin-top:11px;font-size:11.5px;color:var(--ink3);line-height:1.55}
+  .roles-hint code,.nostat code{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:var(--s2);padding:1px 5px;border-radius:5px;color:var(--ink2);overflow-wrap:anywhere}
   .loadwrap{padding:60px 0;text-align:center;color:var(--ink3)}
   @media(max-width:840px){.pgrid{grid-template-columns:1fr;gap:18px}}
   @media(max-width:520px){.pwrap{padding:16px 14px 64px}.mrow .k{min-width:96px}}
@@ -114,6 +125,34 @@
       c('reach',s.reach,'охват')+c('contacts',s.contacts,'контакты',vV)+c('saves',s.saves,'сохранения')+c('clicks',s.clicks,'переходы')+
       '</div>'+(s.er!=null?'<div class="mrow" style="border-top:none;padding-top:11px"><span class="k">ER</span><span class="v" style="color:var(--gold)">'+s.er+'%</span></div>':'')+'</div>';
   }
+  function shotField(label,val){
+    if(!val) return '';
+    // референс может быть ссылкой ИЛИ текстовым описанием (напр. «архетип: ...»). Ссылку детектим по http(s)://
+    var isUrl=/^https?:\/\//.test(String(val).trim());
+    var v=isUrl?'<a href="'+E(val)+'" target="_blank" rel="noopener">открыть пример ↗</a>':E(val).replace(/\n/g,'<br>');
+    return '<div class="shot-f"><div class="shot-k">'+label+'</div><div class="shot-v">'+v+'</div></div>';
+  }
+  function shootCard(p){
+    var body;
+    if(p.shot||p.howto||p.participants||p.ref){
+      body=shotField('Что снять',p.shot)+shotField('Как снять · формат-спека',p.howto)+shotField('Участники',p.participants)+shotField('Референс',p.ref);
+    } else {
+      body='<div class="nostat">Карточка съёмки не заполнена. В таблице добавь столбцы <code>что снять</code>, <code>как снять</code>, <code>участники</code>, <code>референс</code> - тогда оператор откроет пост и сразу знает, что и как снимать.</div>';
+    }
+    return '<div class="panel" data-annotate-section data-annotate-key="shot-'+E(p.id)+'" data-annotate-label="Карточка съёмки"><div class="panel-t">карточка съёмки</div>'+body+'</div>';
+  }
+  function stagesPanel(p){
+    var st=p.stages||[], rows;
+    if(st.length){
+      rows='<div class="stages">'+st.map(function(s){
+        return '<div class="stage"><span class="st-l">'+E(s.label)+'</span><span class="st-w">'+(s.who?E(s.who):'-')+'</span><span class="st-d">'+(s.due?E(s.due):'')+'</span></div>';
+      }).join('')+'</div>';
+    } else {
+      rows='<div class="nostat">Этапы и сроки не заданы. В таблице столбец <code>этапы</code>: <code>сценарий:Аня@30.06; съёмка:Аня@02.07; монтаж:Аня@04.07; обложка:Кирилл@05.07; согл:Иван@06.07</code></div>';
+    }
+    var legend='<div class="roles-hint">Роли по умолчанию: сценарий и съёмка - Аня · монтаж - Аня или подрядчик · обложка и визуал - Кирилл · согласование смысла - Иван (новые форматы, цена, публичные заявления) · публикация и занос статистики - SMM.</div>';
+    return '<div class="panel"><div class="panel-t">этапы и сроки</div>'+rows+legend+'</div>';
+  }
   function render(p){
     var b=p.brand==='V'?'v':'g', cl=stCls[p.status]||'pln';
     function row(k,v){return v?'<div class="mrow"><span class="k">'+k+'</span><span class="v">'+E(v)+'</span></div>':'';}
@@ -129,7 +168,8 @@
       '</div>'+
       '<div class="hint">Комментарий к посту: нажми «Комментировать» слева внизу и выдели область на превью. Заметки видны команде.</div>';
 
-    var right='<div class="panel"><div class="panel-t">карточка поста</div>'+
+    var right=shootCard(p)+stagesPanel(p)+
+      '<div class="panel"><div class="panel-t">карточка поста</div>'+
         row('Бренд',GGData.brandName(p.brand))+row('Статус',stLab[p.status])+row('Неделя / слот',when)+
         row('Канал',p.channel)+row('Формат',p.format)+row('Рубрика',p.rubric&&p.rubric!=='-'?p.rubric:'')+
         row('Цель',p.goal&&p.goal!=='-'?p.goal:'')+row('Ответственный',p.owner)+row('Дата публикации',p.pubdate)+

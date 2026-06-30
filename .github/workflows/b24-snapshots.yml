@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: write
+  actions: write # чтобы после свежего снимка дёрнуть deploy-pages (публикация /rop/)
 
 concurrency:
   group: b24-rop-data
@@ -67,16 +68,30 @@ jobs:
           echo "Дашборд: $(du -h public/rop-command.html | cut -f1)"
 
       - name: Commit (если есть изменения)
+        id: commit
         working-directory: .
         run: |
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
-          if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(rop): снимок Bitrix24 + дашборд $(date -u +%F)"
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
             git rebase --abort 2>/dev/null || true; sleep $((2**i))
           done
           echo "push не удался"; exit 1
+
+      # Свежие данные доехали в ветку - сразу публикуем /rop/ (deploy-pages живёт на main).
+      # Без этого страница обновлялась бы лишь побочно от OZON-синка (разрыв доставки B2).
+      - name: Триггер деплоя /rop/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация /rop/ запрошена (deploy-pages, ref=main)."

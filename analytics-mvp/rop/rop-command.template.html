@@ -301,6 +301,10 @@ const SOLD=d=>S.revMode==='won'?d.won:(REV_SET.has(d.stageCode)&&!d.lost);
 // = дата входа в стадию предоплаты (из истории стадий). Нужна, чтобы считать продажи/выручку
 // по дате ИСХОДА, а не по дате создания сделки (решение Ивана 2026-06-26).
 function soldDate(d){if(S.revMode==='won')return d.closed;for(const h of(d.hist||[]))if(REV_SET.has(h[0]))return h[1];return d.closed;}
+// Дата для бакетизации продажи: в режиме «по дате продажи» - когда признана (soldDate),
+// в режиме «по дате создания» - дата создания. Едина для KPI-выручки и кривой графика.
+function saleKey(d){return S.dateBasis==='outcome'?(soldDate(d)||d.closed||d.created):d.created;}
+function closeKey(d){return S.dateBasis==='outcome'?(d.closed||d.created):d.created;}
 // Тумблер периода S.dateBasis: 'created' (по дате СОЗДАНИЯ, как было - дефолт) или
 // 'outcome' (по дате ИСХОДА - продажи/потери считаются когда они состоялись).
 // Наборы продаж/потерь в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
@@ -323,7 +327,7 @@ function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
     conv:D.length?cohortWon.length/D.length:0,
     lost:lo.length,lostM,
     qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
-    lostShare:D.length?lo.length/D.length:0};}
+    lostShare:(so.length+lo.length)?lo.length/(so.length+lo.length):0};}
 // TOOLTIP
 const tip=document.getElementById('tip');
 function tipShow(html,x,y){tip.innerHTML=html;tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
@@ -984,20 +988,27 @@ function drawMgrDyn(D,L){const keys=buckets(S.gran);const money=S.mgrMetric==='r
   series.push({name:'Итого',total:true,color:'#22D3EE',vals:keys.map(k=>valFor(set,k))});
   multiline(series,keys,S.gran,money,document.getElementById('mdyn'));
   document.getElementById('mdh').textContent=(S.mgrMetric==='leads'?'Лиды - все ответственные':S.mgrMetric==='deals'?'Сделки = сконвертированные лиды':'Выручка')+' · '+granLabel();}
-function revSeries(deals,keys,metric){const won=deals.filter(d=>d.won),wb=k=>won.filter(x=>bkey(x.closed||x.created,S.gran)===k);
+function revSeries(deals,keys,metric){const won=deals.filter(SOLD),wb=k=>won.filter(x=>bkey(saleKey(x),S.gran)===k);
   if(metric==='rev')return keys.map(k=>wb(k).reduce((s,x)=>s+x.budget,0));
   if(metric==='deals')return keys.map(k=>wb(k).length);
   if(metric==='check')return keys.map(k=>{const w=wb(k);return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;});
-  return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(d.closed||d.created,S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
+  return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(closeKey(d),S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
   const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
   const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}
-  const vals=revSeries(D,keys,metric);
+  // Текущий и прошлый периоды строятся ОДНИМ правилом (win), чтобы стрелка ▲▼ была сопоставима.
+  // «По дате продажи»: продажи по дате признания (soldDate), потери по дате закрытия, в окне.
+  // «По дате создания»: всё созданное в окне. Уважает revMode через SOLD и фильтры flt().
+  const win=(a,b)=>S.dateBasis==='outcome'
+    ? flt(AD,true).filter(d=>{if(SOLD(d)){const s=soldDate(d);if(s&&s>=a&&s<=b)return true;}return d.lost&&d.closed&&d.closed>=a&&d.closed<=b;})
+    : flt(AD,true).filter(d=>d.created>=a&&d.created<=b);
+  const Dc=win(S.start,S.end);
+  const vals=revSeries(Dc,keys,metric);
   const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);
   const pa=ps.toISOString().slice(0,10),pb=pe.toISOString().slice(0,10);
-  const PDl=flt(AD,true).filter(d=>(d.closed||d.created)>=pa&&(d.closed||d.created)<=pb),pkeys=bucketsR(pa,pb,S.gran),praw=revSeries(PDl,pkeys,metric),prev=keys.map((_,i)=>praw[i]||0);
-  const agg=ds=>{const w=ds.filter(d=>d.won);if(metric==='rev')return w.reduce((s,x)=>s+x.budget,0);if(metric==='deals')return w.length;if(metric==='check')return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;const cl=ds.filter(d=>d.won||d.lost);return cl.length?Math.round(cl.filter(d=>d.won).length/cl.length*1000)/10:0;};
-  const cur=agg(D),prevT=agg(PDl),dl=prevT?(cur-prevT)/Math.abs(prevT):null;
+  const PDl=win(pa,pb),pkeys=bucketsR(pa,pb,S.gran),praw=revSeries(PDl,pkeys,metric),prev=keys.map((_,i)=>praw[i]||0);
+  const agg=ds=>{const w=ds.filter(SOLD);if(metric==='rev')return w.reduce((s,x)=>s+x.budget,0);if(metric==='deals')return w.length;if(metric==='check')return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;const cl=ds.filter(d=>d.won||d.lost);return cl.length?Math.round(cl.filter(d=>d.won).length/cl.length*1000)/10:0;};
+  const cur=agg(Dc),prevT=agg(PDl),dl=prevT?(cur-prevT)/Math.abs(prevT):null;
   const fmtV=v=>META.p?pct(v/100):META.m?fmtK(v)+' ₽':fmt(v);
   multiline([{name:META.l,total:true,color:META.c,vals},{name:'Пред. период',color:'#7E8796',dash:true,noArea:true,vals:prev}],keys,S.gran,META.m,document.getElementById('rdyn'));
   const ar=dl==null?'':dl>=0?'▲':'▼',dc=dl==null?'var(--ink-3)':dl>=0?'#2E9E74':'#CC5867';

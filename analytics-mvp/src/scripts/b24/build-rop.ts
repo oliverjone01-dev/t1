@@ -13,6 +13,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 const TPL = "rop/rop-command.template.html";
 const SRC = "rop/data/rop.json";
 const PLAN = "rop/plan/plan.json"; // помесячный план (из Google Таблицы); опционален
+const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY";
 const OUT = "public/rop-command.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
@@ -140,6 +141,9 @@ const DATA = {
   generatedAt: rop.generated_at || null,
   // Помесячный план (из Google Таблицы через plan-to-json). null = ручное поле плана.
   plan: plan || null,
+  // Ссылки на таблицу плана: edit - открыть; csv (gviz, CORS-дружелюбный) - живое чтение кнопкой.
+  planUrl: `https://docs.google.com/spreadsheets/d/${PLAN_ID}/edit`,
+  planCsv: `https://docs.google.com/spreadsheets/d/${PLAN_ID}/gviz/tq?tqx=out:csv`,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

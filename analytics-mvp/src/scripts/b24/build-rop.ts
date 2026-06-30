@@ -132,6 +132,8 @@ const opUsers = Object.values(staff)
 const DATA = {
   from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
   sysUsers: [], deptOf: {},
+  // Метка свежести: когда данные сняты из Bitrix (для видимого штампа на странице).
+  generatedAt: rop.generated_at || null,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

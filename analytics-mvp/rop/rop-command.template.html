@@ -280,7 +280,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -442,6 +442,38 @@ function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>
     // CR2 (conv) - строго когортный: и числитель, и знаменатель по сделкам, СОЗДАННЫМ в периоде.
     // Иначе в режиме «по дате продажи» outcome-числитель / cohort-знаменатель давал >100%.
     return {mgr:m,leads:ll.length,deals:dd.length,won:won.length,conv:dd.length?dd.filter(SOLD).length/dd.length:0,rev,check:won.length?rev/won.length:0,lost:lst.length,cycle:cyc,touch:tr};});}
+// Блок «Нераспределённые: разбор» - открытые лиды/сделки, что СЕЙЧАС висят на не-ОП
+// (по текущему ответственному, вне фильтра периода). Таблица + сроки ожидания + держатели.
+function unassignedBlock(){
+  const dim=S.unDim||'leads';
+  const Lr=flt(AL,false).filter(l=>!isOP(l.mgr)&&!JUNKST.has(l.status)&&l.status!=='Создание сделки');
+  const Dr=flt(AD,true).filter(d=>!isOP(d.mgr)&&!d.won&&!d.lost);
+  const rows=(dim==='leads'?Lr:Dr).map(r=>{const o=Object.assign({},r);o._age=Math.max(0,Math.round(ageDays(r.created)));return o;});
+  const sk=S.unSort||'age',asc=S.unAsc?1:-1,gv=r=>sk==='age'?r._age:sk==='budget'?(r.budget||0):sk==='mgr'?r.mgr:sk==='dir'?(r.dir||'я'):r.created;
+  rows.sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*asc;});
+  const at=d=>d>=30?'#B0414F':d>=14?'#CC5867':d>=7?'#C2873C':'#2E9E74';
+  const bk=[['0-3д',0,3],['4-7д',4,7],['8-14д',8,14],['15-30д',15,30],['30+д',31,1e9]],tot=rows.length||1;
+  const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">`+bk.map(([l,a,b])=>{const c=rows.filter(r=>r._age>=a&&r._age<=b).length;if(!c)return '';const w=(c/tot*100).toFixed(1);return `<div data-tip="${l}: ${c}" style="width:${w}%;background:${at(a)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0">${c/tot>0.06?c:''}</div>`;}).join('')+`</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">`+bk.map(x=>`<span>${x[0]}</span>`).join('')+`</div>`;
+  const hold={};rows.forEach(r=>hold[r.mgr]=(hold[r.mgr]||0)+1);
+  const topH=Object.entries(hold).sort((a,b)=>b[1]-a[1]).slice(0,6),hMax=topH.length?topH[0][1]:1;
+  const holdBars=topH.map(([n,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:140px;font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(c/hMax*100).toFixed(1)}%;background:#6A7484"></div></div><div style="width:34px;font-size:11px;font-weight:800;color:var(--ink-2)">${c}</div></div>`).join('')||'<div class="card-sub">нет</div>';
+  const portal=DATA.b24Portal||'',idCell=r=>portal?`<a href="${portal}/crm/${dim==='leads'?'lead':'deal'}/details/${r.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${r.id}</a>`:r.id;
+  const sh=(k,l)=>`<th class="r ${S.unSort===k?'sorted'+(S.unAsc?' asc':''):''}" data-un="${k}" style="cursor:pointer">${l}</th>`;
+  const head=dim==='leads'
+    ?`<tr>${sh('id','ID')}<th>Напр.</th>${sh('mgr','Ответственный')}<th>Источник</th><th>Статус</th>${sh('created','Создан')}${sh('age','Дней ждёт')}</tr>`
+    :`<tr>${sh('id','ID')}<th>Напр.</th>${sh('mgr','Ответственный')}<th>Источник</th><th>Стадия</th>${sh('budget','Сумма')}${sh('created','Создан')}${sh('age','Дней ждёт')}<th>Кас.</th></tr>`;
+  const body=rows.slice(0,100).map(r=>{const ac=at(r._age),dn=DIRLAB[r.dir]||r.dir||'-';
+    return dim==='leads'
+      ?`<tr><td>${idCell(r)}</td><td>${dn}</td><td class="name">${r.mgr}</td><td>${r.source||'-'}</td><td>${r.status||'-'}</td><td class="r">${r.created}</td><td class="r" style="color:${ac};font-weight:800">${r._age}</td></tr>`
+      :`<tr><td>${idCell(r)}</td><td>${dn}</td><td class="name">${r.mgr}</td><td>${r.source||'-'}</td><td>${r.stage||'-'}</td><td class="r">${fmtK(r.budget||0)}</td><td class="r">${r.created}</td><td class="r" style="color:${ac};font-weight:800">${r._age}</td><td class="r">${r.touchReal||0}</td></tr>`;}).join('');
+  const more=rows.length>100?`<div class="card-sub" style="margin-top:6px">показаны первые 100 из ${fmt(rows.length)} (по сортировке) - сузь фильтром направления</div>`:'';
+  const open=!!S.unOpen,sumB=dim==='deals'?Dr.reduce((s,d)=>s+(d.budget||0),0):0;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Нераспределённые: разбор ${info('Открытые лиды/сделки, которые СЕЙЧАС висят на системных/не-продажных аккаунтах (по текущему ответственному, вне фильтра периода). «Дней ждёт» = дней с создания. Вопрос: что забрать первым. Вывод: красное (старше 14-30 дней) и крупные суммы - в работу первыми. ID кликабельны при заданном домене портала.')}</div><div class="card-sub">текущий backlog без продавца-владельца · «Дней ждёт» = дней с создания · действует фильтр направления сверху${dim==='deals'&&sumB?' · сумма в работе: '+fmtK(sumB)+' ₽':''}${portal?'':' · ID станут ссылками после ввода домена портала'}</div></div><div class="seg" id="unDimSeg"><button data-u="leads" class="${dim==='leads'?'on':''}">Лиды (${fmt(Lr.length)})</button><button data-u="deals" class="${dim==='deals'?'on':''}">Сделки (${fmt(Dr.length)})</button></div></div>`+
+    `<div class="grid2" style="margin-top:10px"><div><div class="card-sub" style="margin-bottom:5px">по сроку ожидания</div>${ageBar}</div><div><div class="card-sub" style="margin-bottom:5px">на ком висят (топ-6)</div>${holdBars}</div></div>`+
+    `<button id="unToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть таблицу':'Показать таблицу ('+fmt(rows.length)+')'}</button>`+
+    (open?`<div class="scroll" style="margin-top:10px;max-height:480px"><table class="tbl" id="unTbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>${more}`:'')+
+    `</div>`;
+}
 
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
@@ -875,7 +907,7 @@ function render(){
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1175,6 +1207,9 @@ function buildShell(){
   document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
+  document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

@@ -196,7 +196,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .hm-pct-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .6s var(--ease-out)}
 .hm-pct span{position:relative;font-size:10px;font-weight:800;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.55)}
 .hm-name{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-right:5px}
-.hm-cell{height:23px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.hm-cell{height:23px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .hm-cell-h{font-size:9px;color:var(--ink-4);text-align:center;overflow:hidden;white-space:nowrap}
 .hm-tot{font-size:11.5px;font-weight:800;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .churn-row{margin-top:13px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
@@ -253,6 +253,8 @@ const GROUPS=[
 ];
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+' млн':n>=1e3?Math.round(n/1e3)+' тыс':fmt(n);
+// компактный формат для узких ячеек матрицы: 1.63 млн -> «1,6м», 612 тыс -> «612к»
+const fmtKc=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+'м':n>=1e3?Math.round(n/1e3)+'к':fmt(n);
 const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
 const CVDEF={1:'CR1 — квалификация: квал-лиды ÷ все лиды. Какая доля входящих заявок дошла до квала (статус «Создание сделки» в Б24).',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
 const qm=n=>`<span class="qm" data-tip="${CVDEF[n].replace(/"/g,'&quot;')}">?</span>`;
@@ -934,7 +936,7 @@ function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric===
     labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]}</text>`;});
   const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),showNum=keys.length<=14;
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const isR=(metric==='conv'||metric==='check');
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));

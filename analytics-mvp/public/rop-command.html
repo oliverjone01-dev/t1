@@ -576,6 +576,11 @@ function mgrDwellHeat(deals){
       if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
       const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
       return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
+  // серая строка «Нераспределённые»: открытые сделки на не-ОП аккаунтах (орфаны без владельца).
+  const unop=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&!isOP(d.mgr)&&stages.includes(d.stage));
+  const ucell={};stages.forEach(st=>ucell[st]=unop.filter(d=>d.stage===st));
+  const utot=stages.reduce((s,st)=>s+ucell[st].length,0),unt=stages.reduce((s,st)=>s+ucell[st].filter(x=>(x.touchReal||0)===0).length,0);
+  if(utot)html+=`<tr style="opacity:.9"><td class="lc" style="color:#8A94A6" title="Нераспределённые - открытые сделки без владельца из отдела продаж">Нераспределённые</td>`+stages.map(st=>{const xs=ucell[st],md=med(xs);if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';const td=dt('Нераспределённые · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim']]).replace(/"/g,'&quot;');return `<td data-tip="${td}" style="text-align:center;background:#3A4250;color:#C7CED9;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot" style="color:#8A94A6">${utot}</td><td class="r" style="color:#8A94A6;font-weight:700">${unt}</td></tr>`;
   // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
   const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length,dMny=st=>mny(op.filter(d=>d.stage===st));
   const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
@@ -831,7 +836,10 @@ function render(){
     `<td class="r" style="${rankColor(col('cycle'),x.cycle,true)}">${x.cycle!=null?d1(x.cycle)+'д':'—'}</td>`+
     `<td class="r" style="${rankColor(col('touch'),x.touch)}">${x.touch.toFixed(1)}</td>`+
     `<td class="r" style="${rankColor(col('lost'),x.lost,true)}">${x.lost}</td></tr>`;});
-  tb+=`<tr class="total"><td>ИТОГО</td><td class="r">${m.leads}</td><td class="r">${m.deals}</td><td class="r">${pct(m.conv)}</td><td class="r">${m.won}</td><td class="r">${fmt(m.rev)}</td><td class="r">${fmt(m.check)}</td><td class="r">—</td><td class="r">—</td><td class="r">${m.lost}</td></tr></tbody></table></div></div>`;
+  const _noN=L.filter(l=>!isOP(l.mgr)).length,_noDl=D.filter(d=>!isOP(d.mgr)),_noSo=soldSet().filter(d=>!isOP(d.mgr)),_noLoN=lostSet().filter(d=>!isOP(d.mgr)).length;
+  const _noRev=_noSo.reduce((s,x)=>s+(x.budget||0),0),_noConv=_noDl.length?_noDl.filter(SOLD).length/_noDl.length:0,_noChk=_noSo.length?_noRev/_noSo.length:0;
+  const _noRowH=(_noN||_noDl.length)?`<tr style="color:#8A94A6" title="Нераспределённые: системные/не-продажные, в план не входят"><td class="name" style="color:#8A94A6">Нераспределённые</td><td class="r">${_noN}</td><td class="r">${_noDl.length}</td><td class="r">${pct(_noConv)}</td><td class="r">${_noSo.length}</td><td class="r">${fmt(_noRev)}</td><td class="r">${_noChk?fmt(_noChk):'-'}</td><td class="r">-</td><td class="r">-</td><td class="r">${_noLoN}</td></tr>`:'';
+  tb+=_noRowH+`<tr class="total"><td>ИТОГО</td><td class="r">${m.leads}</td><td class="r">${m.deals}</td><td class="r">${pct(m.conv)}</td><td class="r">${m.won}</td><td class="r">${fmt(m.rev)}</td><td class="r">${fmt(m.check)}</td><td class="r">—</td><td class="r">—</td><td class="r">${m.lost}</td></tr></tbody></table></div></div>`;
   const B_rating=tb;
   /* командный план-факт объединён с парой в разделе Лиды */
   /* «Динамика по менеджерам» (спагетти) убрана */

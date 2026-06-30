@@ -12,11 +12,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const TPL = "rop/rop-command.template.html";
 const SRC = "rop/data/rop.json";
+const PLAN = "rop/plan/plan.json"; // помесячный план (из Google Таблицы); опционален
 const OUT = "public/rop-command.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
 const rop = JSON.parse(readFileSync(SRC, "utf-8"));
 const tpl = readFileSync(TPL, "utf-8");
+// План - необязателен: если файла нет, дашборд откатывается к ручному полю «План выручки/мес».
+let plan: any = null;
+try { plan = JSON.parse(readFileSync(PLAN, "utf-8")); } catch { plan = null; }
 
 // --- Исключения (решение Ивана 2026-06-26, уточнено): из дашборда РОП убираем ТОЛЬКО ---
 //  - сотрудников Glass Memory: Виктория Преснякова, Денис Белов, Юлия Мавлина;
@@ -134,6 +138,8 @@ const DATA = {
   sysUsers: [], deptOf: {},
   // Метка свежести: когда данные сняты из Bitrix (для видимого штампа на странице).
   generatedAt: rop.generated_at || null,
+  // Помесячный план (из Google Таблицы через plan-to-json). null = ручное поле плана.
+  plan: plan || null,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

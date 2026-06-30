@@ -616,9 +616,11 @@ function render(){
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
     {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
   ],9);
-  const planRevP=S.planRev*periodLen()/30||1;const Pg=planModel(D,L,m);
-  const planLeads=Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round((m.won||1)*1.15),planCR1=.5,planCR2=.15;
-  const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана ${info('Спидометры % выполнения плана по ключевым метрикам за период (белая отсечка = 100%). Вопрос: по каким метрикам отдел отстаёт или перевыполняет. Вывод: красные/недотянутые - туда давить. Внимание: планы пока заглушки, нужны реальные числа по месяцам.')}</div><div class="card-sub">% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)</div></div></div><div class="gauges">`+
+  const Pg=planModel(D,L,m),fromSheet=!!Pg.fromSheet;
+  const planRevP=Pg.planRevP||1;
+  const planLeads=Pg.targets.leads||Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round(Pg.winT)||Math.round((m.won||1)*1.15),planCR1=fromSheet?Pg.lpr:.5,planCR2=fromSheet?Pg.conv:.15;
+  const _planSub=fromSheet?`план из таблицы · помесячные цели по выручке, чеку и CR, день-взвешенно за период${DATA.plan&&DATA.plan.generatedAt?' · обновлён '+DATA.plan.generatedAt.slice(0,10):''}`:`% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)`;
+  const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана ${info('Спидометры % выполнения плана за период (белая отсечка = 100%). '+(fromSheet?'План берётся из таблицы помесячно и режется пропорционально дням периода.':'Планы пока заглушки, нужны реальные числа по месяцам.')+' Вопрос: по каким метрикам отдел отстаёт. Вывод: красные/недотянутые - туда давить.')}</div><div class="card-sub">${_planSub}</div></div></div><div class="gauges">`+
     gauge({label:'Лиды',att:m.leads/planLeads,good:true,fact:m.leads,plan:planLeads,kind:'count',factDisp:fmt(m.leads),planDisp:fmt(planLeads),note:`факт <b>${fmt(m.leads)}</b> · план <b>${fmt(planLeads)}</b>`})+
     gauge({label:'CR1 · в сделку',att:cr1/planCR1,good:true,fact:cr1,plan:planCR1,kind:'pct',factDisp:pct(cr1),planDisp:pct(planCR1),note:`факт <b>${pct(cr1)}</b> · цель <b>${pct(planCR1)}</b>`})+
     gauge({label:'Сделки',att:planDeals?m.deals/planDeals:0,good:true,fact:m.deals,plan:planDeals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(planDeals),note:`факт <b>${fmt(m.deals)}</b> · план <b>${fmt(planDeals)}</b>`})+
@@ -1028,13 +1030,35 @@ function wireDealDyn(D){const seg=document.getElementById('ddSeg');if(!seg)retur
     {name:'Всего',total:true,color:'#22D3EE',vals:keys.map(k=>cnt(D,k))}];}
   multiline(series,keys,S.gran,false,document.getElementById('ddyn'));}
 function granLabel(){return S.gran==='day'?'по дням':S.gran==='month'?'по месяцам':'по неделям';}
+// План за период из помесячной таблицы (DATA.plan): для каждого месяца берём долю дней,
+// попавших в [a,b], и день-взвешенно складываем цели. Цели по сделкам/лидам - из целевых
+// чека и CR месяца (или явные План лидов/сделок, если заданы). null = таблицы нет.
+function planForPeriod(a,b){
+  const P=DATA.plan&&DATA.plan.months;if(!P||!P.length)return null;
+  let rev=0,sales=0,deals=0,leads=0,hit=false;
+  for(const mo of P){const[Y,M]=mo.month.split('-').map(Number);if(!Y||!M)continue;
+    const dim=new Date(Y,M,0).getDate(),mStart=mo.month+'-01',mEnd=mo.month+'-'+String(dim).padStart(2,'0');
+    const s=a>mStart?a:mStart,e=b<mEnd?b:mEnd;if(s>e)continue;
+    const od=Math.round((new Date(e)-new Date(s))/864e5)+1;if(od<=0)continue;hit=true;
+    const w=od/dim,chk=mo.check||80000,cr2=mo.cr2||0.16,cr1=mo.cr1||0.55;
+    const mSales=chk?mo.rev/chk:0,mDeals=mo.deals!=null?mo.deals:(cr2?mSales/cr2:0),mLeads=mo.leads!=null?mo.leads:(cr1?mDeals/cr1:0);
+    rev+=mo.rev*w;sales+=mSales*w;deals+=mDeals*w;leads+=mLeads*w;}
+  return hit?{rev:Math.round(rev),sales,deals:Math.round(deals),leads:Math.round(leads)}:null;
+}
 function planModel(D,L,m){
-  const days=periodLen();const planRevP=Math.round(S.planRev*days/30);
+  const days=periodLen();
+  const pf=planForPeriod(S.start,S.end);
+  if(pf&&pf.rev>0){
+    const check=pf.sales?pf.rev/pf.sales:(m.check||80000),conv=pf.deals?pf.sales/pf.deals:0.16,lpr=pf.leads?pf.deals/pf.leads:0.55;
+    return {days,planRevP:pf.rev,check,conv,lpr,lprApprox:false,winT:pf.sales,fromSheet:true,
+      targets:{rev:pf.rev,deals:pf.deals,leads:pf.leads},facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
+  }
+  const planRevP=Math.round(S.planRev*days/30);
   const check=m.check||60000,conv=m.conv||0.12;
   let lpr=(m.deals&&m.leads)?m.deals/m.leads:0;
   let lprApprox=false;if(!(lpr>0&&lpr<=0.95)){lpr=m.qrate>0?m.qrate:0.5;lprApprox=true;}
   const winT=planRevP/check,dealT=winT/(conv||1),leadT=dealT/(lpr||1);
-  return {days,planRevP,check,conv,lpr,lprApprox,winT,
+  return {days,planRevP,check,conv,lpr,lprApprox,winT,fromSheet:false,
     targets:{rev:planRevP,deals:Math.round(dealT),leads:Math.round(leadT)},
     facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
 }
@@ -1047,7 +1071,8 @@ function monthForecast(){
   const elapsed=Math.max(1,Math.round((new Date(upTo)-new Date(mStart))/864e5)+1);
   const sold=soldSet(mStart,upTo),mtd=sold.reduce((s,d)=>s+(d.budget||0),0),cnt=sold.length;
   const complete=today>=mEnd,proj=complete?mtd:Math.round(mtd/elapsed*dim);
-  const plan=S.planRev||0,att=plan?proj/plan:0,ac=planTone(att),perDay=Math.round(mtd/elapsed),monLabel=MON[M-1]+' '+String(Y).slice(2);
+  const planMo=(DATA.plan&&DATA.plan.months||[]).find(x=>x.month===Y+'-'+p2(M));
+  const plan=planMo?planMo.rev:(S.planRev||0),att=plan?proj/plan:0,ac=planTone(att),perDay=Math.round(mtd/elapsed),monLabel=MON[M-1]+' '+String(Y).slice(2);
   const tip='Прогноз линейным темпом: выручка с начала месяца ('+fmtK(mtd)+' ₽ за '+elapsed+' дн) делится на прошедшие дни и умножается на полное число дней месяца ('+dim+'). [ГИПОТЕЗА] - допущение: темп до конца месяца не меняется. Уважает оба тумблера (дата признания и режим выручки). План - поле «План выручки/мес» в блоке ниже.';
   const head=complete?('Факт за '+monLabel):('Прогноз на конец '+monLabel+' по темпу');
   return `<div class="card"><div class="card-h"><div><div class="card-title">${head} ${info(tip)}</div>`+

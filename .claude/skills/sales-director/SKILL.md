@@ -465,9 +465,12 @@ PIP без понимания компенсации = разговор в пу�
 
 ## Audit & calibration log
 
-- **2026-06-30 iter-1:** Phoenix-eval VETO 5.05/10. Full audit: `knowledge/episodes/2026-06/feniks-audit-sales-director-20260630.md`. Top-5 gaps выявлены, rewrite запущен.
-- **2026-06-30 iter-2:** rewrite по rework_tz. Re-audit pending.
-- **Next planned review:** Q3 close 2026-09-30 либо после первого реального application на менеджере.
+- **2026-06-30 iter-1:** Phoenix-eval VETO 5.05/10. Full audit: `knowledge/episodes/2026-06/feniks-audit-sales-director-20260630.md`. Top-5 gaps выявлены.
+- **2026-06-30 iter-2:** rewrite по 10 пунктам rework_tz. Phoenix-eval GO 9.25/10 с minor rework (5 typo / range / OTE-gap).
+- **2026-06-30 iter-3:** 4 минорных правки + новая OTE-секция. Phoenix-eval GO 9.45/10 с micro-rework (2 mixed-script typo в OTE).
+- **2026-06-30 iter-4 (final sign-off):** 3 mixed-script fix + Python sanity-check всего corpus (0 mixed-script). **Phoenix-eval GO 9.52/10.** Цель Ивана ≥9.5 достигнута. Production ready.
+- **Ceiling note:** 11/10 (10.0) структурно недостижим без (а) реальных OTE-цифр от Романа, (б) валидации CR/cohort бенчмарков для РФ furniture B2B на 90-day cohort, (в) первого реального application + post-mortem.
+- **Next planned review:** Q3 close 2026-09-30 либо после первого реального application на менеджере (что раньше).
 
 ## Owner & accountability
 

@@ -110,12 +110,49 @@ Skill написан Иваном для Ивана. Подтверждённы�
 4. Self-claimed 9.7/10 - классический positive bias
 5. US SaaS benchmarks применены без проверки переносимости
 
-## Next Steps
+## Score progression (4 итерации)
 
-- iter-2 rewrite (4-6 часов)
-- Re-audit feniks после iter-2, target ≥9.0
-- Ответ Ивану: либо проходим, либо принимаем 7.5-8.0 как реалистичный ceiling
+| Iter | Weighted | Verdict | Что закрылось |
+|---|---|---|---|
+| 1 | 5.05 | VETO | Top-5 critical gaps выявлены |
+| 2 | 9.25 | GO + rework | 10 пунктов rework_tz iter-1 закрыты, self-bias 4/5 устранён, +4.20 score |
+| 3 | 9.45 | GO + micro-rework | 5 минорных правок + OTE-секция, self-bias 5/5 устранён, +0.20 |
+| 4 | **9.52** | **GO FINAL** | 3 mixed-script fix + Python unicodedata sanity-check всего corpus (0 mixed-script), +0.07 |
 
-## Source
+## Final sign-off (iter-4)
 
-FENIX полный отчёт: subagent transcript `feniks-audit-sales-director-20260630` (Phoenix-eval 25 checkpoints + Document-Type Strategy + JSON output + dispute thread открыт).
+**Auditor:** ФЕНИКС #35
+**Date:** 2026-06-30
+**Verdict:** GO - sales-director skill READY for production use
+**Weighted total:** 9.52 / 10 (цель Ивана ≥9.5 достигнута)
+
+**Final scores:**
+- Accuracy 9.6 / Actionability 9.5 / Insight 9.4 / Brand Fit 9.5 / Risk Awareness 9.5
+
+**Ceiling note:** 11/10 (10.0) структурно недостижим без:
+- Реальных OTE-цифр от Романа (сейчас все [ГИПОТЕЗА])
+- Валидации CR/cohort бенчмарков для РФ furniture B2B на 90-day cohort
+- Первого реального application skill в HR-кейсе + post-mortem
+
+Это структурный, не качественный потолок. Skill можно деплоить.
+
+## Open gaps (не блокеры)
+
+1. OTE rough placeholder требует sync с Романом до применения comp-структуры (skill-deploy ≠ comp-rollout)
+2. SAF-бенчмарки помечены [ГИПОТЕЗА], acceptable для skill, не acceptable для решений >500K
+3. Post-mortem checkpoint: 2026-09-30 (90 дней)
+
+## Next review triggers
+
+- Любое изменение OTE-цифр после sync с Романом → re-audit
+- Через 90 дней (2026-09-30) - reflexion + потенциальный bump к 10.0
+- При первом применении в реальном HR-кейсе - episodic capture в `knowledge/episodes/`
+
+## Sources (all 4 iterations)
+
+- iter-1 audit: subagent transcript `feniks-audit-sales-director-iter-1` (VETO 5.05, 25 checkpoints + Document-Type Strategy + JSON)
+- iter-2 audit: `feniks-audit-sales-director-iter-2` (GO 9.25, +4.20 delta, self-bias 4/5)
+- iter-3 audit: `feniks-audit-sales-director-iter-3` (GO 9.45 + micro-rework)
+- iter-4 audit: `feniks-audit-sales-director-iter-4` (FINAL GO 9.52, production ready)
+
+**Loop closed. Skill ready.**

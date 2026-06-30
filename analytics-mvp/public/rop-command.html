@@ -842,7 +842,7 @@ function render(){
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
-  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
+  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+monthForecast()+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
   document.getElementById('root').innerHTML=h;
@@ -1037,6 +1037,29 @@ function planModel(D,L,m){
   return {days,planRevP,check,conv,lpr,lprApprox,winT,
     targets:{rev:planRevP,deals:Math.round(dealT),leads:Math.round(leadT)},
     facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
+}
+// Прогноз выручки на конец календарного месяца по текущему темпу (линейная экстраполяция).
+// Месяц берётся из конца выбранного периода. Уважает тумблеры даты/режима через soldSet.
+function monthForecast(){
+  const parts=S.end.split('-'),Y=+parts[0],M=+parts[1],p2=n=>String(n).padStart(2,'0');
+  const mStart=Y+'-'+p2(M)+'-01',dim=new Date(Y,M,0).getDate(),mEnd=Y+'-'+p2(M)+'-'+p2(dim);
+  const today=DATA.to;let upTo=today<mEnd?today:mEnd;if(upTo<mStart)upTo=mStart;
+  const elapsed=Math.max(1,Math.round((new Date(upTo)-new Date(mStart))/864e5)+1);
+  const sold=soldSet(mStart,upTo),mtd=sold.reduce((s,d)=>s+(d.budget||0),0),cnt=sold.length;
+  const complete=today>=mEnd,proj=complete?mtd:Math.round(mtd/elapsed*dim);
+  const plan=S.planRev||0,att=plan?proj/plan:0,ac=planTone(att),perDay=Math.round(mtd/elapsed),monLabel=MON[M-1]+' '+String(Y).slice(2);
+  const tip='Прогноз линейным темпом: выручка с начала месяца ('+fmtK(mtd)+' ₽ за '+elapsed+' дн) делится на прошедшие дни и умножается на полное число дней месяца ('+dim+'). [ГИПОТЕЗА] - допущение: темп до конца месяца не меняется. Уважает оба тумблера (дата признания и режим выручки). План - поле «План выручки/мес» в блоке ниже.';
+  const head=complete?('Факт за '+monLabel):('Прогноз на конец '+monLabel+' по темпу');
+  return `<div class="card"><div class="card-h"><div><div class="card-title">${head} ${info(tip)}</div>`+
+    `<div class="card-sub">${complete?'месяц завершён':('прошло '+elapsed+' из '+dim+' дней')} · ГИПОТЕЗА: линейный темп · ${S.revMode==='won'?'успех = WON':'выручка от предоплаты'}</div></div></div>`+
+    `<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;padding:6px 2px 2px">`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">${complete?'выручка месяца':'прогноз месяца'}</div><div style="font-size:26px;font-weight:800;color:${ac}">${fmtK(proj)} ₽</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">факт с начала месяца</div><div style="font-size:17px;font-weight:700">${fmtK(mtd)} ₽ · ${fmt(cnt)} прод.</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">темп</div><div style="font-size:17px;font-weight:700">${fmtK(perDay)} ₽/день</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">план / мес</div><div style="font-size:17px;font-weight:700">${fmtK(plan)} ₽</div></div>`+
+    `<div style="min-width:130px;flex:1"><div style="font-size:11px;color:var(--ink-3)">${complete?'выполнение плана':'прогноз к плану'}</div>`+
+      `<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:9px;background:var(--bg-elevated);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div></div><b style="color:${ac};font-size:15px">${pct(att)}</b></div></div>`+
+    `</div></div>`;
 }
 function planFactBlock(D,L,m){
   const P=planModel(D,L,m);const mt=S.pfMetric,money=mt==='rev';

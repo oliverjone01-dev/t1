@@ -131,8 +131,16 @@ for (const l of leads) ensure(l.mgr).leads++;
 const intStaff = Object.values(staff);
 
 // --- opUsers (продавцы: менеджеры со сделками, по убыванию) ---
+// НЕ сотрудники отдела продаж: системные аккаунты + владелец + не-продажные роли.
+// Данные НЕ удаляем (их лиды/сделки остаются и попадают в «нераспределённые»),
+// но из ростера ОП убираем, чтобы план-факт делился только на реальных продавцов.
+const NOT_OP = new Set(["Дмитрий Янчоглов", "Алиса Алексеева"]);
+const isSysName = (n: string) => /систем|^id\s?\d/i.test(n || "");
+const isSalesRep = (s: any) => !NOT_OP.has(s.name) && !isSysName(s.name);
 const opUsers = Object.values(staff)
-  .filter((s: any) => s.deals > 0).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
+  .filter((s: any) => s.deals > 0 && isSalesRep(s)).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
+const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && !isSalesRep(s)).map((s: any) => s.name);
+console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (нераспределённые): ${_excluded.join(", ") || "-"}`);
 
 const DATA = {
   from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,

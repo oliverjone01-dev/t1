@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLASS MEMORY. Рассылка партнёрам: металл с лазерной резкой</title>
+<meta name="description" content="Шаблон партнёрской рассылки GLASS MEMORY. Стальные ограды, памятники и элементы мемориальных комплексов с лазерной резкой. Полный цикл на собственном производстве.">
+<!--[preheader]-->
+<style>
+/* ---- Токены светлой темы (нужны модулю комментариев для контраста на белом) ---- */
+:root{
+  --brand:#2E665B; --brand-2:#24544B; --leaf:#3DA35D; --brand-soft:#EAF1EF;
+  --bg:#EEF1F0; --card:#FFFFFF; --card2:#F2F5F4; --bg2:#F4F6F5;
+  --ink:#1A211F; --ink2:#43514D; --ink3:#6B7A75;
+  --line:#E2E7E5; --line2:#CBD5D1;
+  --gold:#1F5C50;                 /* акцент-текст модуля: тёмный, проходит контраст на белом */
+  --cta:#2E665B; --cta-ink:#FFFFFF;
+  --mint:#3DA35D; --rose:#C25B6B;
+  --radius:14px; --radius-s:9px; --radius-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+  padding:28px 14px 80px;
+}
+.preheader{display:none!important;visibility:hidden;opacity:0;height:0;width:0;overflow:hidden;font-size:1px;color:transparent}
+.wrap{max-width:640px;margin:0 auto}
+.email{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 10px 40px rgba(20,40,36,.07)}
+
+/* header */
+.head{background:#F0F2F1;border-bottom:1px solid var(--line);padding:22px 28px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;justify-content:center}
+.logo svg{display:block}
+.logo .name{font-weight:800;letter-spacing:.01em;font-size:19px;color:#20302C}
+.logo .name b{color:var(--leaf)}
+.logo .tag{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-top:3px;font-weight:600}
+
+/* generic */
+.pad{padding:30px 28px}
+h1{font-size:25px;line-height:1.22;margin:0 0 12px;letter-spacing:-.01em;color:#17211E}
+h2{font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--brand);margin:0 0 12px;font-weight:800}
+p{margin:0 0 14px;font-size:15.5px;color:var(--ink2)}
+p b{color:var(--ink)}
+.lead{font-size:16px;color:var(--ink2)}
+
+/* hero / photo placeholders */
+.photo{position:relative;background:
+   linear-gradient(135deg,#DCE6E3 0%,#C7D6D1 55%,#B7CAC4 100%);
+   min-height:230px;display:flex;align-items:flex-end;justify-content:flex-start}
+.photo.small{min-height:150px}
+.photo .cap{font-size:11.5px;letter-spacing:.04em;color:#20302C;background:rgba(255,255,255,.82);
+   padding:6px 11px;border-radius:8px;margin:12px;font-weight:600}
+.photo .ph{position:absolute;top:12px;right:14px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#4C5F5A;opacity:.7;font-weight:700}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--line)}
+
+/* teal band */
+.band{background:linear-gradient(180deg,var(--brand) 0%,var(--brand-2) 100%);color:#EAF3F0;padding:30px 28px}
+.band h2{color:#BFE0D7}
+.band p{color:#DCEBE7}
+.band p b{color:#FFFFFF}
+
+/* bullet specs */
+.specs{list-style:none;margin:6px 0 0;padding:0}
+.specs li{position:relative;padding:9px 0 9px 22px;border-top:1px solid rgba(255,255,255,.14);font-size:14.5px;color:#DCEBE7}
+.specs li:first-child{border-top:0}
+.specs li:before{content:"";position:absolute;left:2px;top:16px;width:8px;height:8px;border-radius:2px;background:var(--leaf)}
+.specs li b{color:#fff}
+
+/* product list on white */
+.plist{list-style:none;margin:4px 0 0;padding:0}
+.plist li{padding:10px 0 10px 24px;border-top:1px solid var(--line);font-size:15px;color:var(--ink);position:relative}
+.plist li:first-child{border-top:0}
+.plist li:before{content:"";position:absolute;left:2px;top:16px;width:9px;height:9px;border-radius:50%;border:2px solid var(--leaf)}
+
+/* partner stats */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:6px 0 4px}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .n{font-size:21px;font-weight:800;color:var(--brand);line-height:1}
+.stat .l{font-size:12.5px;color:var(--ink3);margin-top:6px}
+
+/* cta */
+.cta-wrap{padding:30px 28px;text-align:center;background:var(--brand-soft);border-top:1px solid var(--line)}
+.cta-wrap p{color:var(--ink2)}
+.btn{display:inline-block;background:var(--cta);color:#fff;text-decoration:none;font-weight:700;font-size:15px;
+   padding:14px 28px;border-radius:10px;letter-spacing:.01em;box-shadow:0 6px 18px rgba(46,102,91,.28)}
+
+/* footer */
+.foot{padding:26px 28px;color:var(--ink3);font-size:13px;border-top:1px solid var(--line)}
+.foot a{color:var(--brand);text-decoration:none;font-weight:600}
+.foot .row{margin:3px 0}
+.foot .soc{margin-top:14px;display:flex;gap:10px;align-items:center}
+.foot .soc span{width:30px;height:30px;border-radius:8px;background:var(--card2);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--brand);font-weight:700}
+.foot .unsub{margin-top:14px;font-size:12px;color:var(--ink3)}
+.foot .unsub a{color:var(--ink3);text-decoration:underline;font-weight:400}
+
+/* review note */
+.note{max-width:640px;margin:14px auto 0;font-size:12.5px;color:var(--ink3);text-align:center;line-height:1.5}
+@media(max-width:480px){.stats{grid-template-columns:1fr}.pad,.band,.cta-wrap,.foot{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+<div class="preheader">Новое направление для вашего прайса: стальные ограды, памятники и элементы комплексов с лазерной резкой. Полный цикл на собственном производстве.</div>
+
+<div class="wrap">
+  <div class="email">
+
+    <!-- HEADER -->
+    <div class="head" data-annotate-section>
+      <div class="logo">
+        <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3C10 8 7 12 7 17a9 9 0 0 0 18 0c0-5-3-9-9-14z" fill="#3DA35D"/>
+          <path d="M16 3C10 8 7 12 7 17a9 9 0 0 0 9 9V3z" fill="#2E665B"/>
+        </svg>
+        <span>
+          <span class="name">Glass <b>Memory</b></span>
+          <span class="tag">производственная компания</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="photo" data-annotate-section>
+      <span class="ph">фото</span>
+      <span class="cap">Стальной памятник с лазерной резкой и стеклянным портретом</span>
+    </div>
+
+    <div class="pad" data-annotate-section>
+      <h1>Металл с лазерной резкой для вашего ассортимента</h1>
+      <p class="lead">Полный цикл металлообработки на собственном производстве в Домодедово: от чертежа до готового изделия. Ограды, стальные памятники, вазы, скамейки и элементы мемориальных комплексов под вашим брендом.</p>
+      <p>Работаем с дилерами и мастерскими по всей России. Вы добавляете стальное направление в прайс, мы производим и отгружаем. Принимаем и штучные, и серийные заказы под ваш проект.</p>
+    </div>
+
+    <!-- TECH BAND -->
+    <div class="band" data-annotate-section>
+      <h2>Технология</h2>
+      <p>Два станка ЧПУ на нашем производстве: труболазер режет профильную трубу насквозь, листовой лазер вырезает декоративные панели любой сложности. <b>Точность реза 0.1 мм.</b> Жёсткая геометрия, ровная линия, ремонтопригодность, без грубых сварных декоров.</p>
+      <ul class="specs">
+        <li><b>Профильная труба</b> 40×20, 40×40, 60×30 мм: несущая основа.</li>
+        <li><b>Стальной лист 2-4 мм:</b> декоративные панели, монограммы, ажур.</li>
+        <li><b>Нержавеющая сталь AISI 304:</b> матовая или полированная, не корродирует.</li>
+        <li><b>Орнамент под эскиз:</b> дерево жизни, дубовые листья, лоза, розы, голубь с крестом, восточный узор или ваш рисунок.</li>
+      </ul>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="duo" data-annotate-section>
+      <div class="photo small"><span class="ph">фото</span><span class="cap">Ограда, листовой лазер</span></div>
+      <div class="photo small"><span class="ph">фото</span><span class="cap">Стальной памятник, ажур</span></div>
+    </div>
+
+    <!-- PRODUCT LINE -->
+    <div class="pad" data-annotate-section>
+      <h2>Что вы добавите в прайс</h2>
+      <ul class="plist">
+        <li>Стальные ограды с лазерной резкой</li>
+        <li>Стальные памятники: нержавейка AISI 304 плюс стеклянный портрет с керамопечатью</li>
+        <li>Вазы, столики и скамейки</li>
+        <li>Элементы мемориальных комплексов в едином дизайн-коде</li>
+      </ul>
+      <p style="margin-top:16px">Серийное производство под заказ: собираем партию под ваш проект на одной площадке, с контролем качества на каждом этапе.</p>
+    </div>
+
+    <!-- PARTNER ECONOMICS -->
+    <div class="pad" style="padding-top:6px" data-annotate-section>
+      <h2>Партнёрам</h2>
+      <div class="stats">
+        <div class="stat"><div class="n">0 ₽</div><div class="l">вход в дилерство</div></div>
+        <div class="stat"><div class="n">80-150%</div><div class="l">наценка партнёра</div></div>
+        <div class="stat"><div class="n">35-45 000 ₽</div><div class="l">средний чек</div></div>
+        <div class="stat"><div class="n">полный цикл</div><div class="l">от чертежа до изделия</div></div>
+      </div>
+      <p style="margin-top:14px">Поддержка старта: образец, 3D-визуализация проекта, обучение продавцов, доставка ТК по всей России.</p>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap" data-annotate-section>
+      <p>Обсудим ваш ассортимент и серийные заказы. Оставьте заявку, и менеджер пришлёт прайс для партнёров и образец изделия.</p>
+      <a class="btn" href="#">Получить прайс для партнёров</a>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="foot" data-annotate-section>
+      <div class="row"><a href="mailto:info@glass-memory.ru">info@glass-memory.ru</a></div>
+      <div class="row">+7 (495) 955-16-79</div>
+      <div class="row">+7 (916) 331-16-41</div>
+      <div class="row">+7 (985) 011-75-81</div>
+      <div class="row" style="margin-top:8px">г. Домодедово, ул. Текстильщиков, 2Б</div>
+      <div class="soc"><span>GM</span><span>TG</span><span>VK</span></div>
+      <div class="unsub">Если вы не хотите больше получать наши письма, <a href="#">отпишитесь по ссылке</a>.</div>
+    </div>
+
+  </div>
+  <div class="note">Рабочий макет партнёрской рассылки. Выделите любой участок, чтобы оставить комментарий. Он сохранится и будет виден всей команде. Фото отмечены как плейсхолдеры, заменяются на реальные снимки изделий.</div>
+</div>
+
+<!-- Наша последняя версия комментариев (общее облако, видно всем, сохраняется у всех) -->
+<script src="../annotate/annotate-init.js"
+        data-page="gm-newsletter-lazer-steel-v2"
+        data-sections="[data-annotate-section]"
+        defer></script>
+</body>
+</html>

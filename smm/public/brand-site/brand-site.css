@@ -47,7 +47,7 @@
   --radius:20px;--radius-s:13px;--radius-pill:999px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;--ease-spring:cubic-bezier(.34,1.3,.64,1);--ease-out:cubic-bezier(.22,.61,.36,1)}
 body{font-family:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
   background:var(--bg);color:var(--ink);line-height:1.55;letter-spacing:.005em;
   -webkit-font-smoothing:antialiased;transition:background .25s,color .25s;
@@ -63,6 +63,7 @@ img{max-width:100%}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.14em;font-size:12px;white-space:nowrap}
 .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--gold-fill)}
 .brand span{color:var(--ink2);font-weight:500}
+a.brand{color:inherit;text-decoration:none;transition:opacity .15s var(--ease)}a.brand:hover{opacity:.82}
 .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nav a{font-size:13.5px;font-weight:600;letter-spacing:.02em;color:var(--ink2);text-decoration:none;padding:8px 13px;border-radius:var(--radius-pill);white-space:nowrap;transition:.18s var(--ease)}
@@ -181,7 +182,7 @@ tr:last-child td{border-bottom:none}
 
 @media(max-width:820px){
   .nav a,.tt button{min-height:40px;display:inline-flex;align-items:center}
-  /* единый мобильный шаблон шапки: бренд+тумблер в строке 1, нав — прокручиваемая строка 2 */
+  /* единый мобильный шаблон шапки: бренд+тумблер в строке 1, нав в прокручиваемой строке 2 */
   .nav{order:3;flex-basis:100%;-webkit-overflow-scrolling:touch}
   section{padding:42px 0}
   .cmp,.cmp-head,.overlap .og{grid-template-columns:1fr}
@@ -264,3 +265,130 @@ a:focus-visible,button:focus-visible,[tabindex]:focus-visible,summary:focus-visi
 .hero h1,.sec-title,.ch .nm,.ptitle{text-wrap:balance}
 
 .tt button svg{display:block;width:15px;height:15px}
+
+/* ============================================================================
+   BRAND-PLATFORM elevation - web-графика на токенах (только переменные выше).
+   Радиальный gold-glow за H1, градиентные хайрлайны, нумерованный eyebrow,
+   SVG-мотивы, золотые чипы, брендовые тинты. Уважает prefers-reduced-motion.
+   ========================================================================== */
+
+/* hero: радиальный gold-glow за заголовком */
+.hero{position:relative}
+.hero .glow{position:absolute;left:-6%;top:-14%;width:min(560px,82%);height:340px;pointer-events:none;z-index:0;
+  background:radial-gradient(closest-side,var(--glow1),transparent 72%);filter:blur(12px);opacity:.9}
+.hero>*{position:relative;z-index:1}
+.hero .hl{position:relative}
+
+/* нумерованный eyebrow с градиентным подчёркиванием */
+.sec-head .eyebrow{display:inline-flex;align-items:baseline;gap:9px;margin-bottom:13px}
+.sec-head .eyebrow .idx{font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--gold);
+  font-variant-numeric:tabular-nums}
+.sec-head .eyebrow .lbl{font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--ink3);text-transform:uppercase}
+.sec-head .eyebrow::after{content:none}
+.sec-head .eyebrow .rule{display:block;height:2px;flex:0 0 44px;border-radius:2px;align-self:center;
+  background:linear-gradient(90deg,var(--gold-fill),transparent)}
+
+/* тонкий градиентный хайрлайн-разделитель между секциями */
+.hairline{height:1px;border:none;margin:0;
+  background:linear-gradient(90deg,transparent,var(--line2) 22%,var(--line2) 78%,transparent)}
+section.reveal>.hairline:first-child{margin-bottom:26px}
+
+/* SVG-мотив в углу карточки-интро (аккуратный, тихий) */
+.attr .what .motif{position:absolute;right:12px;top:11px;width:30px;height:30px;opacity:.5;color:var(--gold);z-index:1}
+.attr .what .motif svg{display:block;width:100%;height:100%}
+.attr .what .t,.attr .what p{padding-right:38px}
+
+/* золотые чипы (метки атрибута) */
+.goldchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.gchip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.02em;
+  color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-border);
+  border-radius:var(--radius-pill);padding:4px 11px;line-height:1.2}
+.gchip svg{width:12px;height:12px;display:block}
+
+/* формула-позиционирование: слоты «для кого / что / в отличие / верить» */
+.formula{display:grid;gap:10px;margin-top:6px}
+.formula .frow{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+  padding:11px 14px;border-radius:var(--radius-s);background:var(--s2)}
+.formula .frow .k{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold);white-space:nowrap;padding-top:3px}
+.formula .frow .val{font-size:14.5px;color:var(--ink)}
+.col.gg .formula .frow .k{color:var(--gg-ink)}
+
+/* JTBD-строки: функциональный / эмоциональный */
+.jtbd{margin-top:4px}
+.jtbd .jrow{border-left:2px solid var(--line2);padding:2px 0 2px 13px;margin-bottom:11px}
+.jtbd .jrow:last-child{margin-bottom:0}
+.col.gg .jtbd .jrow{border-color:var(--gg)}
+.col.v .jtbd .jrow{border-color:var(--gold-fill)}
+.jtbd .jk{display:block;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:3px}
+.jtbd .jv{font-size:14.5px;color:var(--ink2)}
+.jtbd .jv b{color:var(--ink)}
+
+/* блок тона: что говорим (say) / чего не говорим (dont) */
+.tone2{display:grid;gap:10px;margin-top:6px}
+.toneblk{border-radius:var(--radius-s);padding:11px 14px}
+.toneblk.say{background:var(--pub-soft)}
+.toneblk.dont{background:var(--sgl-soft)}
+.toneblk .th{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;margin-bottom:7px}
+.toneblk.say .th{color:var(--pub-ink)}
+.toneblk.dont .th{color:var(--rdy)}
+.toneblk .th svg{width:14px;height:14px;display:block}
+.toneblk p{font-size:14px;color:var(--ink2);margin:0}
+.toneblk p b{color:var(--ink)}
+
+/* 5 прилагательных тона - чипы */
+.adjset{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.adj{font-size:12.5px;font-weight:700;letter-spacing:.01em;padding:5px 12px;border-radius:var(--radius-pill)}
+.col.gg .adj{color:var(--gg-ink);background:var(--gg-soft)}
+.col.v .adj{color:var(--v-ink);background:var(--gold-soft)}
+
+/* NO-GO анти-позиционирование */
+.nogo{list-style:none;margin-top:4px}
+.nogo li{position:relative;font-size:14px;color:var(--ink2);padding:6px 0 6px 26px;line-height:1.45}
+.nogo li+li{border-top:1px dashed var(--line2)}
+.nogo li b{color:var(--ink);font-weight:600}
+.nogo li .x{position:absolute;left:0;top:7px;width:16px;height:16px;color:var(--stop)}
+.nogo li .x svg{display:block;width:100%;height:100%}
+
+/* регламент передачи лида: шаги со стрелкой */
+.handoff{display:grid;gap:12px}
+.flow{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;
+  background:var(--s1);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.flow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gg),var(--gold-fill))}
+.flow .badge{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:var(--gold-soft);color:var(--gold);flex:none}
+.flow .badge svg{width:20px;height:20px;display:block}
+.flow .fbody .ft{font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.flow .fbody .fd{font-size:13.5px;color:var(--ink2)}
+.flow .fbody .fd b{color:var(--ink)}
+.brandflow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:12px}
+.brandflow .tg{padding:3px 10px;border-radius:var(--radius-pill)}
+.brandflow .tg.g{color:var(--gg-ink);background:var(--gg-soft)}
+.brandflow .tg.v{color:var(--v-ink);background:var(--gold-soft)}
+.brandflow .arw{color:var(--gold);width:20px;height:14px}
+.brandflow .arw svg{display:block;width:100%;height:100%}
+
+/* дифференциаторы против премиум-импорта: 2-колоночная сетка мини-карт */
+.diffgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:2px}
+.diffcol{position:relative;background:var(--s1);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);overflow:hidden}
+.diffcol::before{content:"";position:absolute;top:-30px;left:-26px;width:150px;height:150px;border-radius:50%;filter:blur(34px);opacity:.7;pointer-events:none}
+.diffcol.gg::before{background:var(--gg-soft)}.diffcol.v::before{background:var(--gold-soft)}
+.diffcol>*{position:relative}
+.diffcol .lab{display:inline-flex;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 11px;border-radius:var(--radius-pill);margin-bottom:12px}
+.diffcol.gg .lab{color:var(--gg-ink);background:var(--gg-soft)}.diffcol.v .lab{color:var(--v-ink);background:var(--gold-soft)}
+.diffrow{display:grid;grid-template-columns:auto 1fr;gap:11px;padding:9px 0}
+.diffrow+.diffrow{border-top:1px solid var(--line)}
+.diffrow .vs{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--s2);
+  font-size:9px;font-weight:800;letter-spacing:.03em;color:var(--ink3);flex:none}
+.diffrow .dtxt{font-size:14px;color:var(--ink2);line-height:1.45}
+.diffrow .dtxt b{color:var(--ink);font-weight:600}
+
+@media(max-width:820px){
+  .diffgrid{grid-template-columns:1fr}
+  .hero .glow{width:118%;left:-9%}
+  .formula .frow{grid-template-columns:1fr}
+  .formula .frow .k{padding-top:0}
+}

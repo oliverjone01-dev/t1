@@ -6,15 +6,20 @@ name: Deploy to GitHub Pages
 #   /preview/          - Аналитика OZON, ПРЕВЬЮ (из рабочей ветки)
 #   /smm/              - SMM-стратегия, БОЙ (из ветки main)
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
-# Прод (корни /, /smm/) меняется только при push в main. Превью можно гонять
-# вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
+#   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
+#   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
+# Прод (корни /, /smm/, /rop/) меняется только при push в main / rop-dashboard-v1.
+# Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
 on:
   workflow_dispatch:
     inputs:
       preview_ref:
-        description: "Ветка/реф для сборки превью-версий"
+        description: "Ветка/реф для сборки превью-версий OZON и SMM"
         default: "claude/focused-davinci-tKJCt"
+      rop_preview_ref:
+        description: "Ветка/реф для сборки превью РОП-дашборда"
+        default: "ozon-dashboard-dima-fork"
   push:
     branches: [main]
     paths: [analytics-mvp/**, smm/**, .github/workflows/deploy-pages.yml]
@@ -101,6 +106,24 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/rop"
           cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop/index.html"
           echo "РОП опубликован в /rop/ ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+
+      # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
+      # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
+      # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при
+      # каждом deploy главного сайта (push в main / workflow_run OZON-снимков / manual dispatch).
+      # continue-on-error: true - если preview сломался, /rop/ и остальной сайт не страдают.
+      # Для срочной актуализации превью запусти workflow_dispatch с input rop_preview_ref.
+      - name: Build ROP preview (isolated, /rop-preview/)
+        continue-on-error: true
+        env:
+          ROP_PREVIEW_REF: ${{ github.event.inputs.rop_preview_ref || 'ozon-dashboard-dima-fork' }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$ROP_PREVIEW_REF"
+          git worktree add /tmp/rop-preview FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop-preview"
+          cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/index.html"
+          echo "РОП превью опубликовано в /rop-preview/ ($(du -h /tmp/rop-preview/analytics-mvp/public/rop-command.html | cut -f1)) из ветки $ROP_PREVIEW_REF"
 
       - uses: actions/configure-pages@v5
         with:

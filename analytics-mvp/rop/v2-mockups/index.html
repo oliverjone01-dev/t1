@@ -13,8 +13,9 @@
 .hero-index .stamp{margin-top:20px;font-size:12px;color:var(--ink-4)}
 .hero-index .stamp b{color:var(--warn)}
 
-.screens-grid{max-width:1200px;margin:0 auto;padding:0 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:900px){.screens-grid{grid-template-columns:1fr}}
+.screens-grid{max-width:1400px;margin:0 auto;padding:0 24px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1200px){.screens-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.screens-grid{grid-template-columns:1fr}}
 .screen-card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   padding:24px;text-decoration:none;color:inherit;
@@ -28,6 +29,9 @@
 }
 .screen-num.perf{background:rgba(167,139,250,.14);color:var(--info)}
 .screen-num.strat{background:rgba(16,185,129,.14);color:var(--up)}
+.screen-num.crisis{background:rgba(244,63,94,.14);color:var(--dn)}
+.screen-card.crisis-card{border-color:rgba(244,63,94,.25)}
+.screen-card.crisis-card:hover{border-color:var(--dn);box-shadow:0 12px 40px rgba(244,63,94,.08)}
 .screen-title{font-family:'Manrope';font-weight:800;font-size:20px;margin-bottom:6px}
 .screen-role{font-size:12px;color:var(--ink-3);margin-bottom:14px}
 .screen-role b{color:var(--ink-2)}
@@ -63,13 +67,14 @@
     <a href="screen-1-morning.html">1. Утро</a>
     <a href="screen-2-team.html">2. Команда</a>
     <a href="screen-3-strategy.html">3. Стратегия</a>
+    <a href="screen-4-crisis.html" style="color:var(--dn)">! Crisis</a>
   </div>
 </div>
 
 <section class="hero-index">
-  <h1>РОП v2 · <span class="accent">3 экрана вместо одного</span></h1>
-  <p>Sales-director assessment текущего дашборда: <b>5.5/10</b>. Отвечает на «что произошло», не на «что делать сейчас». Пересборка на архитектуру action / performance / strategy делит рабочий день РОПа по контексту: утро - тушу пожары, понедельник - разбираю команду, стратегические сессии - копаю причины.</p>
-  <p class="stamp"><b>Все данные в mockups фейковые</b> и подобраны под реалистичный GENGROUP-контекст (25 менеджеров, 22K сделок в C49, план 30M/мес). Живой дашборд не тронут.</p>
+  <h1>РОП v2 · <span class="accent">3 экрана + Crisis-toggle</span></h1>
+  <p>Sales-director assessment текущего дашборда: <b>5.5/10</b> [ГИПОТЕЗА: subjective, confidence 0.78, не калиброван на evaluation-rubric]. Отвечает на «что произошло», не на «что делать сейчас». Пересборка на архитектуру action / performance / strategy + crisis-режим делит рабочий день РОПа по контексту: утро - тушу пожары, понедельник - разбираю команду, стратегические сессии - копаю причины, кризис - buy time на 48 часов.</p>
+  <p class="stamp"><b>Все данные в mockups фейковые</b>, подобраны под реалистичный GENGROUP-контекст (25 менеджеров, 22K сделок в C49, план 30M/мес). Живой дашборд не тронут. <b>Iter-2 после FENIX-консилиума</b>: <a href="SPEC.md" style="color:var(--accent)">полный SPEC с Metrics of success, альтернативами A/B/C, downside-сценариями</a>.</p>
 </section>
 
 <section class="screens-grid">
@@ -113,6 +118,20 @@
       <li>Data quality panel</li>
     </ul>
     <div class="screen-cta">Открыть экран →</div>
+  </a>
+
+  <a href="screen-4-crisis.html" class="screen-card crisis-card">
+    <div class="screen-num crisis">!</div>
+    <div class="screen-title">Crisis</div>
+    <div class="screen-role"><b>Триггер:</b> Protocol 8 active. Auto-toggle либо ручное включение при кризисе</div>
+    <ul class="screen-list">
+      <li>Топ-5 сделок на закрытие завтра (buy-time)</li>
+      <li>Топ-3 менеджера-помощника</li>
+      <li>Прямые линии Roman + Иван</li>
+      <li>3 OK-signals (что controlled)</li>
+      <li>Скрыто: Zombie, Sparklines, Scoreboard</li>
+    </ul>
+    <div class="screen-cta" style="background:rgba(244,63,94,.14);color:var(--dn)">Открыть Crisis-view →</div>
   </a>
 </section>
 

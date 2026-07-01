@@ -1,0 +1,254 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>РОП v2 · CRISIS · Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+body{background:radial-gradient(ellipse 80% 60% at 50% -8%,rgba(244,63,94,.10),transparent 70%),var(--bg-base)}
+.crisis-banner{
+  background:linear-gradient(90deg,rgba(244,63,94,.20),rgba(244,63,94,.08));
+  border:1px solid rgba(244,63,94,.4);border-radius:12px;
+  padding:16px 20px;margin-bottom:18px;
+  display:flex;align-items:center;gap:16px;animation:fadeUp .4s var(--ease-out) both
+}
+.crisis-icon{
+  width:44px;height:44px;border-radius:11px;background:rgba(244,63,94,.20);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:var(--dn);animation:pulse 2s ease-in-out infinite
+}
+.crisis-txt b{font-family:'Manrope';font-size:16px;color:var(--dn)}
+.crisis-txt span{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
+.crisis-toggle{
+  margin-left:auto;background:var(--bg-elevated);border:1px solid var(--border);
+  color:var(--ink-2);border-radius:8px;padding:8px 14px;
+  font:inherit;font-size:12px;font-weight:700;cursor:pointer
+}
+.crisis-toggle:hover{color:var(--ink);border-color:var(--border-hot)}
+
+.hero-crisis{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+@media(max-width:900px){.hero-crisis{grid-template-columns:1fr}}
+.hero-crisis .hero-card::before{background:linear-gradient(90deg,var(--dn),transparent)}
+
+.action-btn{
+  display:block;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:10px;text-decoration:none;color:inherit;transition:.15s;margin-bottom:10px
+}
+.action-btn:hover{border-color:var(--dn);transform:translateY(-1px)}
+.action-btn.hot{border-left:3px solid var(--dn)}
+.action-btn.warn{border-left:3px solid var(--warn)}
+.action-btn.ok{border-left:3px solid var(--up)}
+.action-btn b{font-family:'Manrope';font-size:14px;color:var(--ink);display:block}
+.action-btn span{font-size:11.5px;color:var(--ink-3);display:block;margin-top:4px}
+
+.esc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.esc-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:11px;
+  padding:16px 18px;display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;
+  transition:.15s;cursor:pointer
+}
+.esc-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.esc-card.hot:hover{border-color:var(--dn)}
+.esc-ic{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:16px;flex-shrink:0}
+.esc-ic.roman{background:rgba(245,158,11,.14);color:var(--warn)}
+.esc-ic.ivan{background:rgba(244,63,94,.14);color:var(--dn)}
+.esc-body b{font-family:'Manrope';font-size:14px;color:var(--ink);display:block}
+.esc-body span{font-size:11.5px;color:var(--ink-3);display:block;margin-top:3px}
+.esc-body span.hot{color:var(--dn);font-weight:700}
+
+.sim-ok{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:10px
+}
+.sim-ok .sim-h{font-size:12px;color:var(--up);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sim-ok b{font-family:'Manrope';font-size:14px;color:var(--ink);display:block;margin-bottom:2px}
+.sim-ok span{font-size:11.5px;color:var(--ink-3)}
+</style>
+</head><body>
+
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Командный центр РОПа</b><span>v2 · CRISIS-VIEW</span></div>
+  <span class="brand-mock">MOCKUP</span>
+  <div class="tb-spacer"></div>
+  <div class="screen-nav">
+    <a href="index.html">Обзор</a>
+    <a href="screen-1-morning.html">1. Утро</a>
+    <a href="screen-2-team.html">2. Команда</a>
+    <a href="screen-3-strategy.html">3. Стратегия</a>
+    <a href="screen-4-crisis.html" class="on" style="color:var(--dn);background:rgba(244,63,94,.14)">! Crisis</a>
+  </div>
+  <span class="stamp">Data: 2026-07-01 09:04 МСК · Protocol 8 [ГИПОТЕЗА simulated]</span>
+</div>
+
+<div class="wrap">
+
+<!-- CRISIS BANNER -->
+<div class="crisis-banner">
+  <div class="crisis-icon">!</div>
+  <div class="crisis-txt">
+    <b>Protocol 8 active · режим кризиса</b>
+    <span>Триггер: <b style="color:var(--dn)">выручка &lt;80% × 2 недели подряд</b> [ДАННЫЕ: rop.json rolling 14d = 68% плана]. Auto-suggested toggle на Crisis-view. Скрыто: Zombie, Sparklines, Scoreboard (нужен фокус, не distraction).</span>
+  </div>
+  <button class="crisis-toggle">← Выйти из Crisis (вернуть 3 экрана)</button>
+</div>
+
+<!-- HERO CRISIS -->
+<div class="hero-crisis">
+  <div class="hero-card" style="--ac:#F43F5E">
+    <div class="hero-k">Выручка июля vs план 30M</div>
+    <div class="hero-v">8.2<span class="u">M ₽</span></div>
+    <div class="hero-sub">Осталось до плана <b>21.8M ₽</b> · <b style="color:var(--dn)">gap растёт 5 дней подряд</b></div>
+    <div class="hero-trend dn">↓ 68% плана · тренд ускоряет отставание</div>
+  </div>
+  <div class="hero-card" style="--ac:#F59E0B">
+    <div class="hero-k">Forecast к концу месяца [ГИПОТЕЗА]</div>
+    <div class="hero-v">17.8<span class="u">M ₽</span></div>
+    <div class="hero-sub">Confidence <b>±22%</b> · при текущей скорости gap к плану <b>12M ₽</b></div>
+    <div class="hero-trend warn">! Требует решения к 04.07 (48 часов)</div>
+  </div>
+</div>
+
+<!-- SEC 1: BUY TIME ACTIONS -->
+<div class="sec">
+  <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">1</div>
+  <h2>Топ-5 сделок на закрытие ЗАВТРА (buy-time)</h2>
+  <div class="ln"></div>
+  <span class="hint">Сегодня работаем над договорённостью, оплата и WON завтра. Даём себе 48 часов манёвра.</span>
+</div>
+
+<div class="card">
+  <a class="action-btn hot" href="#">
+    <b>1. Апартаменты Спиридоновка · 1.4M ₽ · Ольга Лысенко</b>
+    <span>DM: Марина + Роман · Дата решения сегодня · commit-категория · <b style="color:var(--dn)">action:</b> звонок 15:00 сегодня, подпись завтра</span>
+  </a>
+  <a class="action-btn hot" href="#">
+    <b>2. HoReCa кофейня · 780K ₽ · Оля М</b>
+    <span>DM: франчайзи + бренд-менеджер · виза получена · <b style="color:var(--dn)">action:</b> контракт сегодня, оплата 02.07</span>
+  </a>
+  <a class="action-btn warn" href="#">
+    <b>3. Загородный дом Раменское · 320K ₽ · Алёна Кубанова</b>
+    <span>DM: дизайнер интерьера · счёт готов · <b style="color:var(--warn)">action:</b> подтвердить оплату сегодня, WON завтра</span>
+  </a>
+  <a class="action-btn warn" href="#">
+    <b>4. Дилер Уфа · перезаказ 380K ₽ · Татьяна</b>
+    <span>Производство обещало на 03.07 · <b style="color:var(--warn)">action:</b> Roman подтверждение сроков + скидка 5%</span>
+  </a>
+  <a class="action-btn ok" href="#">
+    <b>5. Столы под дизайнера · 210K ₽ · Оля М</b>
+    <span>Ждёт подтверждения размеров от клиента · <b style="color:var(--up)">action:</b> ping-message сегодня, contract завтра если +</span>
+  </a>
+
+  <div style="margin-top:16px;padding:12px 14px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.25);border-radius:9px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--up)">Если все 5 закрываются:</b> +3.09M ₽ · gap к плану уменьшается на 14% · forecast улучшается до 20.9M
+  </div>
+</div>
+
+<!-- SEC 2: HELPER MANAGERS -->
+<div class="sec">
+  <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">2</div>
+  <h2>Топ-3 менеджера-помощника</h2>
+  <div class="ln"></div>
+  <span class="hint">Кого подсадить на сложные сделки. Не new-lead работа, только rescue уже открытых.</span>
+</div>
+
+<div class="grid3">
+  <div class="card" style="border-color:rgba(16,185,129,.3)">
+    <div style="font-size:11px;color:var(--up);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Best cohort</div>
+    <div style="font-family:'Manrope';font-size:18px;font-weight:800">Ольга Лысенко</div>
+    <div style="font-size:12px;color:var(--ink-3);margin-top:4px">B2B GENGLASS · CR2 18% · опыт с крупными сделками</div>
+    <div style="margin-top:14px;padding:10px 12px;background:var(--bg-elevated);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+      <b style="color:var(--up)">Может подсобить:</b> сделки Кубанова #4, Юля Л #7 (обе &gt;500K, sales-director-approve по её specialty)
+    </div>
+    <a href="#" style="display:block;margin-top:12px;text-align:center;padding:8px;background:var(--accent-soft);color:var(--accent);border-radius:8px;text-decoration:none;font-weight:700;font-size:12px">→ подсадить</a>
+  </div>
+
+  <div class="card" style="border-color:rgba(16,185,129,.3)">
+    <div style="font-size:11px;color:var(--up);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Backup</div>
+    <div style="font-family:'Manrope';font-size:18px;font-weight:800">Оля М</div>
+    <div style="font-size:12px;color:var(--ink-3);margin-top:4px">B2B GENTERO · CR2 14% · speed-to-lead 0.4ч (лидер отдела)</div>
+    <div style="margin-top:14px;padding:10px 12px;background:var(--bg-elevated);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+      <b style="color:var(--up)">Может подсобить:</b> follow-up на «Отправлено КП» с ускорением. Скрипт запроса «дата решения» через 30 сек SMS
+    </div>
+    <a href="#" style="display:block;margin-top:12px;text-align:center;padding:8px;background:var(--accent-soft);color:var(--accent);border-radius:8px;text-decoration:none;font-weight:700;font-size:12px">→ подсадить</a>
+  </div>
+
+  <div class="card" style="border-color:rgba(167,139,250,.3)">
+    <div style="font-size:11px;color:var(--info);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Skill: возражения</div>
+    <div style="font-family:'Manrope';font-size:18px;font-weight:800">Алёна Кубанова</div>
+    <div style="font-size:12px;color:var(--ink-3);margin-top:4px">B2C VALONTI · CR2 10% · пишет живые скрипты «дорого»</div>
+    <div style="margin-top:14px;padding:10px 12px;background:var(--bg-elevated);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+      <b style="color:var(--info)">Может подсобить:</b> сделки где reason «дорого» (Безмащук #4 с 15% gap, Лакомова 6 таких сделок)
+    </div>
+    <a href="#" style="display:block;margin-top:12px;text-align:center;padding:8px;background:var(--accent-soft);color:var(--accent);border-radius:8px;text-decoration:none;font-weight:700;font-size:12px">→ подсадить</a>
+  </div>
+</div>
+
+<!-- SEC 3: ESCALATION LINES -->
+<div class="sec">
+  <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">3</div>
+  <h2>Прямые линии эскалации</h2>
+  <div class="ln"></div>
+  <span class="hint">Один клик = звонок / Slack / телега</span>
+</div>
+
+<div class="card">
+  <div class="esc-grid">
+    <a class="esc-card hot" href="#">
+      <div class="esc-ic roman">R</div>
+      <div class="esc-body">
+        <b>Roman · CFO emergency</b>
+        <span>Маржа-approve на неожиданные скидки >5% в crisis-mode. Приоритетное окно 15 мин</span>
+        <span class="hot" style="color:var(--warn);margin-top:5px">3 сделки уже ждут approve · сегодня</span>
+      </div>
+    </a>
+    <a class="esc-card hot" href="#">
+      <div class="esc-ic ivan">И</div>
+      <div class="esc-body">
+        <b>Иван · CMO эскалация</b>
+        <span>Структурные решения (дисконт >10%, kill-switch продукта, найм emergency)</span>
+        <span class="hot">1 архитектурный вопрос: Metal-GM kill/relaunch</span>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- SEC 4: SANITY OK-SIGNALS -->
+<div class="sec">
+  <div class="sec-num" style="background:rgba(16,185,129,.14);color:var(--up)">4</div>
+  <h2>OK-signals (не всё горит)</h2>
+  <div class="ln"></div>
+  <span class="hint">3 участка где ситуация controlled. Не отвлекать РОПа на них.</span>
+</div>
+
+<div class="grid3">
+  <div class="sim-ok">
+    <div class="sim-h">✓ Speed-to-lead top-3</div>
+    <b>Оля М 0.4ч · Кубанова 0.9ч · Юля Л 1.6ч</b>
+    <span>3 менеджера ниже 2ч median. Не трогать, работают</span>
+  </div>
+  <div class="sim-ok">
+    <div class="sim-h">✓ Производство EXECUTING</div>
+    <b>31 сделка в предоплате, cycle 12д median</b>
+    <span>Нет накопления в C49:EXECUTING. Производство держит ритм</span>
+  </div>
+  <div class="sim-ok">
+    <div class="sim-h">✓ Дилер-сегмент стабилен</div>
+    <b>Q2 дилерская выручка 100% плана</b>
+    <span>Основной кризис в розничном B2B/B2C сегменте. Дилер не тронут</span>
+  </div>
+</div>
+
+<div style="margin-top:24px;padding:14px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--ink-2)">
+  <div style="font-weight:700;color:var(--ink);margin-bottom:6px">Crisis-view · дизайн-логика</div>
+  <div style="line-height:1.6">
+    <b>Что скрыто в Crisis:</b> Zombie-block (24 сделки чтобы просто выделять фокус), Sparklines (12-week тренды вне scope сейчас), Manager scoreboard (личные разборки после кризиса).
+    <br><b>Что показано:</b> 5 конкретных действий на 48 часов, 3 helper-менеджера, 2 линии эскалации, 3 OK-signals для sanity.
+    <br><b>Возврат в normal:</b> кнопка «Выйти из Crisis» либо auto-toggle когда выручка &gt;80% × 3 дня подряд.
+  </div>
+</div>
+
+<div class="foot">Экран 4 · CRISIS · Mockup fake data · <a href="index.html" style="color:var(--accent)">← Обзор</a> · <a href="screen-1-morning.html" style="color:var(--accent)">Утро →</a></div>
+
+</div>
+</body></html>

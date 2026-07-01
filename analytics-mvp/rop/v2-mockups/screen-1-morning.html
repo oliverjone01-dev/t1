@@ -1,0 +1,344 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>РОП v2 · Утро · Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+</head><body>
+
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Командный центр РОПа</b><span>v2 · Экран Утро</span></div>
+  <span class="brand-mock">MOCKUP</span>
+  <div class="tb-spacer"></div>
+  <div class="screen-nav">
+    <a href="index.html">Обзор</a>
+    <a href="screen-1-morning.html" class="on">1. Утро</a>
+    <a href="screen-2-team.html">2. Команда</a>
+    <a href="screen-3-strategy.html">3. Стратегия</a>
+  </div>
+  <span class="stamp">Data: 2026-07-01 09:04 МСК · Bitrix24 C49</span>
+</div>
+
+<div class="filters">
+  <span class="lbl">Сегмент</span>
+  <select><option>Всё</option><option>B2B</option><option>B2C</option><option>Дилер</option></select>
+  <span class="lbl">Бренд</span>
+  <select><option>Все бренды</option><option>GENGLASS</option><option>VALONTI</option><option>GENTERO</option><option>Metal-GM</option></select>
+  <span class="lbl">Период</span>
+  <select><option>Июль (текущий)</option><option>7 дней</option><option>30 дней</option></select>
+  <div class="alert">! 12 critical items</div>
+</div>
+
+<div class="wrap">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-card" style="--ac:#22D3EE">
+    <div class="hero-k">Выручка июля · план 30M</div>
+    <div class="hero-v">8.2<span class="u">M ₽</span></div>
+    <div class="hero-sub">Осталось до плана <b>21.8M ₽</b> · 21 рабочий день впереди · темп сегодня <b>390K/день</b>, нужно <b>1.04M/день</b></div>
+    <div class="hero-trend dn">↓ 27% ниже темпа за такой же день Q2</div>
+  </div>
+  <div class="hero-card" style="--ac:#A78BFA">
+    <div class="hero-k">Forecast конец месяца</div>
+    <div class="hero-v">21.4<span class="u">M ₽</span></div>
+    <div class="hero-sub">Confidence <b>±18%</b> · Commit <b>14.2M</b>, Best-case +5.7M, Possible +1.5M</div>
+    <div class="hero-trend warn">! Gap к плану 8.6M, требует action</div>
+  </div>
+  <div class="hero-card" style="--ac:#F43F5E">
+    <div class="hero-k">Zombie pipeline</div>
+    <div class="hero-v">4.8<span class="u">M ₽</span></div>
+    <div class="hero-sub"><b>14 сделок</b> без движения >7 дней · медиана dwell <b>42 дня</b></div>
+    <div class="hero-trend dn">Уничтожить сегодня 5 из 14 = +3.2M освобождённого фокуса</div>
+  </div>
+</div>
+
+<!-- MINI KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi-cell" style="--ac:#22D3EE"><div class="kpi-k">Лиды 30д</div><div class="kpi-v">247<span class="u">шт</span></div><div class="kpi-delta up">↑ 12% MoM</div></div>
+  <div class="kpi-cell" style="--ac:#6366F1"><div class="kpi-k">Сделки создано</div><div class="kpi-v">89<span class="u">шт</span></div><div class="kpi-delta up">↑ 4% MoM</div></div>
+  <div class="kpi-cell" style="--ac:#10B981"><div class="kpi-k">CR1 квал</div><div class="kpi-v">36<span class="u">%</span></div><div class="kpi-delta dn">↓ -19pp vs target 55%</div></div>
+  <div class="kpi-cell" style="--ac:#F59E0B"><div class="kpi-k">CR2 в WON</div><div class="kpi-v">14<span class="u">%</span></div><div class="kpi-delta dn">↓ -2pp vs target 16%</div></div>
+  <div class="kpi-cell" style="--ac:#F43F5E"><div class="kpi-k">Средний чек</div><div class="kpi-v">87<span class="u">K ₽</span></div><div class="kpi-delta flat">→ близко к плану 80K</div></div>
+</div>
+
+<!-- SEC 1: ZOMBIE PIPELINE -->
+<div class="sec">
+  <div class="sec-num">1</div>
+  <h2>Zombie pipeline · утренний расчёт</h2>
+  <div class="ln"></div>
+  <span class="hint">Сделки без касания >7 дней. Каждое утро список менеджерам на разбор.</span>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Топ-10 висящих сделок <span class="badge hot">4.8M ₽ заморожено</span></div>
+      <div class="card-sub">Правило: либо next-step до пятницы, либо в «Связаться позже» с датой</div>
+    </div>
+    <div><span class="lbl" style="font-size:10px;color:var(--ink-4);text-transform:uppercase">Сортировка</span> <select style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:5px 10px;font:inherit;font-size:12px"><option>По budget</option><option>По dwell</option><option>По менеджеру</option></select></div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:40px">#</th>
+      <th>Сделка / клиент</th>
+      <th>Менеджер</th>
+      <th>Стадия</th>
+      <th class="r">Budget</th>
+      <th class="r">Dwell</th>
+      <th>Last touch</th>
+      <th>Reason</th>
+      <th class="r">Action</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td class="name">Балчуг · ЖК премиум · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Ольга Лысенко</td>
+        <td><span class="pill pill-hot">Принимают решение</span></td>
+        <td class="r">1 250K</td>
+        <td class="r"><span class="days">105</span></td>
+        <td>15.06 · комментарий</td>
+        <td>нет даты решения</td>
+        <td class="r"><a class="link" href="#">Позвонить</a></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td class="name">Сделка №8 · заказ-свалка · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Ольга Маслова</td>
+        <td><span class="pill pill-hot">Принимают решение</span></td>
+        <td class="r">2 100K</td>
+        <td class="r"><span class="days">229</span></td>
+        <td>02.06 · письмо</td>
+        <td>несколько запросов внутри</td>
+        <td class="r"><a class="link" href="#">Раздробить</a></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td class="name">Стройбренд · офис · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Алёна Кубанова</td>
+        <td><span class="pill pill-warn">Отправлено КП</span></td>
+        <td class="r">850K</td>
+        <td class="r"><span class="days">67</span></td>
+        <td>22.06 · звонок</td>
+        <td>«прошу прощения, готовим»</td>
+        <td class="r"><a class="link" href="#">Ping DM</a></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td class="name">Сделка №157 · возражение · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Владислав Безмащук</td>
+        <td><span class="pill pill-hot">Принимают решение</span></td>
+        <td class="r">450K</td>
+        <td class="r"><span class="days">89</span></td>
+        <td>24.06 · «дорого»</td>
+        <td>discovery не сделан</td>
+        <td class="r"><a class="link" href="#">Скрипт «дорого»</a></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td class="name">ЖК Прибрежный · перегородки · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Юля Л</td>
+        <td><span class="pill pill-warn">Отправлено КП</span></td>
+        <td class="r">620K</td>
+        <td class="r"><span class="days warn">18</span></td>
+        <td>27.06 · WhatsApp вне CRM</td>
+        <td>нет фиксации диалога</td>
+        <td class="r"><a class="link" href="#">Заполнить</a></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td class="name">Дилер Уфа · перезаказ · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Татьяна</td>
+        <td><span class="pill pill-neutral">Формируется КП</span></td>
+        <td class="r">380K</td>
+        <td class="r"><span class="days">33</span></td>
+        <td>18.06 · SLA пропущен</td>
+        <td>задержка от производства</td>
+        <td class="r"><a class="link" href="#">Roman эскалация</a></td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td class="name">Столы под дизайнера · <a class="link" href="#">→ Bitrix</a></td>
+        <td>Оля М</td>
+        <td><span class="pill pill-warn">Принимают решение</span></td>
+        <td class="r">210K</td>
+        <td class="r"><span class="days">12</span></td>
+        <td>29.06 · без ответа 2 дня</td>
+        <td>размытый срок</td>
+        <td class="r"><a class="link" href="#">Callback</a></td>
+      </tr>
+      <tr style="opacity:.7">
+        <td>8-14</td>
+        <td class="name" colspan="6" style="color:var(--ink-3)">Ещё 7 сделок с dwell 7-15 дней. Итого 14 zombie.</td>
+        <td class="r"><a class="link" href="#">Развернуть</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SEC 2: SPEED + TOP-3 -->
+<div class="sec">
+  <div class="sec-num">2</div>
+  <h2>Speed сегодня + Топ-3 на закрытие</h2>
+  <div class="ln"></div>
+  <span class="hint">Real-time из crm.activity + weight ≥0.75 forecast</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Speed-to-lead <span class="badge hot">4 медленных</span></div>
+      <div class="card-sub">Часов до первого касания · target &lt;1 · сегодня 9:00-14:00</div>
+    </div>
+  </div>
+  <div class="bars">
+    <div class="bar-row"><div class="bar-name">Оля М</div><div class="bar-track"><div class="bar-fill ok" style="width:12%">0.4ч</div></div><div class="bar-val">12 лидов</div></div>
+    <div class="bar-row"><div class="bar-name">Алёна Кубанова</div><div class="bar-track"><div class="bar-fill ok" style="width:22%">0.9ч</div></div><div class="bar-val">8</div></div>
+    <div class="bar-row"><div class="bar-name">Юля Л</div><div class="bar-track"><div class="bar-fill accent" style="width:35%">1.6ч</div></div><div class="bar-val">7</div></div>
+    <div class="bar-row"><div class="bar-name">Ольга Лысенко</div><div class="bar-track"><div class="bar-fill accent" style="width:52%">2.4ч</div></div><div class="bar-val">11</div></div>
+    <div class="bar-row"><div class="bar-name">Оля Маслова</div><div class="bar-track"><div class="bar-fill warn" style="width:75%">4.1ч</div></div><div class="bar-val">9</div></div>
+    <div class="bar-row"><div class="bar-name">Татьяна Лакомова</div><div class="bar-track"><div class="bar-fill red" style="width:92%">6.8ч</div></div><div class="bar-val">6</div></div>
+    <div class="bar-row"><div class="bar-name">Богдан</div><div class="bar-track"><div class="bar-fill red" style="width:98%">8.2ч</div></div><div class="bar-val">3</div></div>
+    <div class="bar-row"><div class="bar-name">Владислав</div><div class="bar-track"><div class="bar-fill red" style="width:100%">12+ч</div></div><div class="bar-val">2</div></div>
+  </div>
+  <div style="margin-top:14px;font-size:11px;color:var(--ink-3);padding-top:12px;border-top:1px solid var(--border-soft)">Медиана отдела: <b style="color:var(--ink)">3.1 часа</b> · target &lt;1 · <span style="color:var(--dn)">4 менеджера над красным порогом 6ч</span></div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Топ-3 на закрытие сегодня <span class="badge new">weight ≥0.75</span></div>
+      <div class="card-sub">Commit-категория, есть Дата решения ≤7 дней + DM зафиксирован + бюджет подтверждён</div>
+    </div>
+  </div>
+  <div class="watch">
+    <div class="watch-item">
+      <div class="watch-icon">1</div>
+      <div>
+        <div class="watch-title">Апартаменты Спиридоновка · перегородки GENGLASS · 1.4M ₽</div>
+        <div class="watch-meta">Менеджер: <b>Ольга Лысенко</b> · DM: Марина (заказчик) + Роман (архитектор) · Дата решения: <b>сегодня</b></div>
+      </div>
+      <div class="watch-action">→ звонок 15:00</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">2</div>
+      <div>
+        <div class="watch-title">Загородный дом Раменское · зеркала VALONTI · 320K ₽</div>
+        <div class="watch-meta">Менеджер: <b>Алёна Кубанова</b> · DM: дизайнер интерьера · Дата решения: <b>завтра</b> · счёт готов</div>
+      </div>
+      <div class="watch-action">→ подтвердить оплату</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">3</div>
+      <div>
+        <div class="watch-title">HoReCa кофейня · GENTERO · 780K ₽</div>
+        <div class="watch-meta">Менеджер: <b>Оля М</b> · DM: франчайзи + бренд-менеджер · Дата решения: <b>02.07</b> · получили визирование</div>
+      </div>
+      <div class="watch-action">→ send контракт</div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px 12px;background:var(--accent-soft);border:1px solid rgba(34,211,238,.25);border-radius:8px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--accent)">Если все три закрываются</b> = +2.5M выручки к 12M gap-у месяца · <b style="color:var(--accent)">Если ни одна</b> = forecast 21.4M сдвигается на 18.9M
+  </div>
+</div>
+
+</div>
+
+<!-- SEC 3: WATCHLIST + KEY STAGES -->
+<div class="sec">
+  <div class="sec-num">3</div>
+  <h2>Watchlist Ивана + ключевые стадии</h2>
+  <div class="ln"></div>
+  <span class="hint">Ручной watchlist для персонального контроля + drill в топ-10 висящих на 3 ключевых стадиях</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Watchlist Ивана</div>
+      <div class="card-sub">4 сделки на личном контроле CMO</div>
+    </div>
+    <button style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 12px;font:inherit;font-size:11.5px;cursor:pointer">+ Добавить</button>
+  </div>
+  <div class="watch">
+    <div class="watch-item">
+      <div class="watch-icon hot">★</div>
+      <div>
+        <div class="watch-title">Дилер Санкт-Петербург · переход на eur-прайс</div>
+        <div class="watch-meta">Owner: <b>Ольга Лысенко</b> + Roman consultation · критично к 05.07 · <b style="color:var(--dn)">3 дня без движения</b></div>
+      </div>
+      <div class="watch-action">→ Roman meeting</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">★</div>
+      <div>
+        <div class="watch-title">Metal-GM запуск сегмента · pilot заказчик</div>
+        <div class="watch-meta">Owner: <b>?</b> (MGM без owner-a) · план был 1.5M май-факт 0₽ · <b style="color:var(--warn)">решение kill/relaunch</b></div>
+      </div>
+      <div class="watch-action">→ решить</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">★</div>
+      <div>
+        <div class="watch-title">Владислав Безмащук возвращение на позицию</div>
+        <div class="watch-meta">Owner: <b>РОП Оля</b> · ноябрь 2025 показал 279% плана, с января молчит · <b style="color:var(--warn)">1-on-1 запланирован</b></div>
+      </div>
+      <div class="watch-action">→ 04.07 14:00</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">★</div>
+      <div>
+        <div class="watch-title">Ritualka GM реорг · Юлия vs Виктория</div>
+        <div class="watch-meta">Owner: <b>trener + sales-director</b> · Q3 план 4M/мес · факт 1.3M медиана · <b style="color:var(--info)">GM-dashboard в roadmap</b></div>
+      </div>
+      <div class="watch-action">→ отдельный skill</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">3 ключевые стадии · drill-down</div>
+      <div class="card-sub">Клик по стадии открывает список сделок с owner + last-touch</div>
+    </div>
+  </div>
+  <div class="gauges">
+    <div class="gauge" onclick="alert('Drill: список 14 сделок КП отправлено с медианой 12 дней')">
+      <h4>Отправлено КП</h4>
+      <div class="gval">14</div>
+      <div class="gmoney">6.8M ₽</div>
+      <div class="gnote">Медиана dwell: <b>12 дней</b><br>Распределение: 6/&lt;7д, 5/7-30д, <b style="color:var(--dn)">3/&gt;30д</b></div>
+      <div class="gdrill">→ раскрыть 3 висящих</div>
+    </div>
+    <div class="gauge" onclick="alert('Drill: список 22 сделок Принимают решение с медианой 45 дней')">
+      <h4>Принимают решение</h4>
+      <div class="gval">22</div>
+      <div class="gmoney">11.4M ₽</div>
+      <div class="gnote">Медиана dwell: <b style="color:var(--warn)">45 дней</b><br>Распределение: 8/&lt;30д, 6/30-90д, <b style="color:var(--dn)">8/&gt;90д</b></div>
+      <div class="gdrill">→ раскрыть 8 zombie</div>
+    </div>
+    <div class="gauge" onclick="alert('Drill: список 4 долгостроев с производственной задержкой')">
+      <h4>Долгострой</h4>
+      <div class="gval">4</div>
+      <div class="gmoney">2.1M ₽</div>
+      <div class="gnote">Медиана dwell: <b style="color:var(--dn)">78 дней</b><br>Причины: <b>3 задержки производства, 1 брак-возврат</b></div>
+      <div class="gdrill">→ эскалация Roman</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="foot">Экран 1 · Утро · Mockup fake data · <a href="index.html" style="color:var(--accent)">Обзор</a> · <a href="screen-2-team.html" style="color:var(--accent)">Команда →</a></div>
+
+</div>
+</body></html>

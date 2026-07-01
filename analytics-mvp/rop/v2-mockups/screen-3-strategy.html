@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>РОП v2 · Стратегия · Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+</head><body>
+
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Командный центр РОПа</b><span>v2 · Экран Стратегия</span></div>
+  <span class="brand-mock">MOCKUP</span>
+  <div class="tb-spacer"></div>
+  <div class="screen-nav">
+    <a href="index.html">Обзор</a>
+    <a href="screen-1-morning.html">1. Утро</a>
+    <a href="screen-2-team.html">2. Команда</a>
+    <a href="screen-3-strategy.html" class="on">3. Стратегия</a>
+  </div>
+  <span class="stamp">Data: 2026-07-01 · Q2 close · Иван + Roman</span>
+</div>
+
+<div class="filters">
+  <span class="lbl">Сегмент</span>
+  <select><option>B2B GENGLASS</option><option>B2C VALONTI</option><option>B2B GENTERO</option><option>Дилер Metal-GM</option></select>
+  <span class="lbl">Период</span>
+  <select><option>Q2-2026 (90д)</option><option>H1-2026</option><option>Rolling 180д</option></select>
+  <span class="lbl">Compare vs</span>
+  <select><option>Q1-2026</option><option>Q2-2025</option><option>Q4-2025</option></select>
+  <div class="alert">! 2 системные проблемы</div>
+</div>
+
+<div class="wrap">
+
+<!-- SEC 1: FUNNEL BY COHORT -->
+<div class="sec">
+  <div class="sec-num">1</div>
+  <h2>Funnel by cohort · B2B GENGLASS Q2-2026</h2>
+  <div class="ln"></div>
+  <span class="hint">Одна общая воронка врёт. Cohort-разрез показывает где конкретно теряем.</span>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">B2B GENGLASS воронка <span class="badge new">cohort-режим</span></div>
+      <div class="card-sub">72 сделок за 90 дней · CR2 итог 18% · vs cohort median 22% (HubSpot bench)</div>
+    </div>
+  </div>
+
+  <div class="cf">
+    <div class="cf-step">
+      <div class="cf-name">Новая</div>
+      <div class="cf-track"><div class="cf-fill" style="width:100%;background:linear-gradient(90deg,#67E8F9,#22D3EE)"></div></div>
+      <div class="cf-val">140</div>
+    </div>
+    <div class="cf-conv"><span>→ 51% квалификация</span><b>-69 dropped</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Квалификация</div>
+      <div class="cf-track"><div class="cf-fill" style="width:82%;background:linear-gradient(90deg,#67E8F9,#22D3EE)"></div></div>
+      <div class="cf-val">115</div>
+    </div>
+    <div class="cf-conv"><span>→ 87% формируется КП</span><b>-15 dropped</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Формируется КП</div>
+      <div class="cf-track"><div class="cf-fill" style="width:71%;background:linear-gradient(90deg,#67E8F9,#22D3EE)"></div></div>
+      <div class="cf-val">100</div>
+    </div>
+    <div class="cf-conv"><span>→ 89% отправлено КП</span><b>-11</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Отправлено КП</div>
+      <div class="cf-track"><div class="cf-fill" style="width:63%;background:linear-gradient(90deg,#67E8F9,#22D3EE)"></div></div>
+      <div class="cf-val">89</div>
+    </div>
+    <div class="cf-conv key"><span>! КРИТИЧЕСКИЙ ПЕРЕХОД → 47% принимают решение</span><b>-47 dropped (53%)</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Принимают</div>
+      <div class="cf-track"><div class="cf-fill" style="width:30%;background:linear-gradient(90deg,#FBBF24,#F59E0B)"></div></div>
+      <div class="cf-val">42</div>
+    </div>
+    <div class="cf-conv"><span>→ 74% предоплата</span><b>-11 dropped</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Предоплата</div>
+      <div class="cf-track"><div class="cf-fill" style="width:22%;background:linear-gradient(90deg,#34D399,#10B981)"></div></div>
+      <div class="cf-val">31</div>
+    </div>
+    <div class="cf-conv"><span>→ 88% производство</span><b>-4</b></div>
+    <div class="cf-step">
+      <div class="cf-name">Производство</div>
+      <div class="cf-track"><div class="cf-fill" style="width:19%;background:linear-gradient(90deg,#34D399,#10B981)"></div></div>
+      <div class="cf-val">27</div>
+    </div>
+    <div class="cf-conv"><span>→ 96% WON</span><b>-1</b></div>
+    <div class="cf-step">
+      <div class="cf-name">WON</div>
+      <div class="cf-track"><div class="cf-fill" style="width:18%;background:linear-gradient(90deg,#34D399,#10B981)"></div></div>
+      <div class="cf-val">26</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding:14px 16px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.25);border-radius:9px">
+    <div style="font-size:12px;font-weight:800;color:var(--dn);margin-bottom:6px">Главная утечка: 53% теряется между «Отправлено КП» и «Принимают решение»</div>
+    <div style="font-size:12px;color:var(--ink-2);line-height:1.6">
+      Гипотеза 1: клиенты игнорят следующее касание (Speed-to-Ping &gt;5 дней · нет робота-эскалации).<br>
+      Гипотеза 2: КП без discovery-based персонализации, шаблон.<br>
+      Гипотеза 3: цены слишком высокие для сегмента (пересечь Roman + прайс-analytic).<br>
+      <b style="color:var(--accent)">Приоритет №1</b> для sales-director + Marco Q3 test.
+    </div>
+  </div>
+</div>
+
+<!-- SEC 2: LOSS REASON DEEP-DIVE -->
+<div class="sec">
+  <div class="sec-num">2</div>
+  <h2>Loss reason deep-dive · 3D разбивка</h2>
+  <div class="ln"></div>
+  <span class="hint">Reason × сегмент × median dwell до потери</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Топ причин потерь · B2B GENGLASS 90д</div>
+      <div class="card-sub">47 lost · median dwell до потери 68 дней</div>
+    </div>
+  </div>
+  <div class="bars">
+    <div class="bar-row"><div class="bar-name">Дорого</div><div class="bar-track"><div class="bar-fill red" style="width:38%">18</div></div><div class="bar-val">38%</div></div>
+    <div class="bar-row"><div class="bar-name">Сроки</div><div class="bar-track"><div class="bar-fill warn" style="width:23%">11</div></div><div class="bar-val">23%</div></div>
+    <div class="bar-row"><div class="bar-name">Конкурент</div><div class="bar-track"><div class="bar-fill warn" style="width:15%">7</div></div><div class="bar-val">15%</div></div>
+    <div class="bar-row"><div class="bar-name">Передумал</div><div class="bar-track"><div class="bar-fill accent" style="width:11%">5</div></div><div class="bar-val">11%</div></div>
+    <div class="bar-row"><div class="bar-name">Маркетплейс</div><div class="bar-track"><div class="bar-fill accent" style="width:9%">4</div></div><div class="bar-val">9%</div></div>
+    <div class="bar-row"><div class="bar-name">Другое / не указана</div><div class="bar-track"><div class="bar-fill accent" style="width:4%">2</div></div><div class="bar-val">4%</div></div>
+  </div>
+  <div style="margin-top:12px;padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+    <b style="color:var(--accent)">Discipline:</b> «Другое» только 4% = менеджеры дисциплинированно заполняют поле после робота-валидатора boris'а
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">«Дорого» деталка · где реально теряем</div>
+      <div class="card-sub">18 сделок с reason=Дорого · разбивка по менеджеру и median gap к прайсу</div>
+    </div>
+  </div>
+  <table class="tbl">
+    <thead><tr>
+      <th>Менеджер</th>
+      <th class="r">Кол-во</th>
+      <th class="r">Median gap</th>
+      <th class="r">Median budget</th>
+      <th class="r">Median dwell</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="name">Лакомова</td><td class="r"><span class="pill pill-hot">6</span></td><td class="r">-9%</td><td class="r">220K</td><td class="r"><span class="days warn">72д</span></td></tr>
+      <tr><td class="name">Маслова</td><td class="r"><span class="pill pill-warn">4</span></td><td class="r">-12%</td><td class="r">180K</td><td class="r"><span class="days">128д</span></td></tr>
+      <tr><td class="name">Безмащук</td><td class="r"><span class="pill pill-warn">3</span></td><td class="r">-15%</td><td class="r">450K</td><td class="r"><span class="days">45д</span></td></tr>
+      <tr><td class="name">Юля Л</td><td class="r">2</td><td class="r">-6%</td><td class="r">380K</td><td class="r">38д</td></tr>
+      <tr><td class="name">Прочие</td><td class="r">3</td><td class="r">-8%</td><td class="r">290K</td><td class="r">55д</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px;padding:10px 12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.25);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+    <b style="color:var(--warn)">Sales-director insight:</b> 3 менеджера дают 72% всех «дорого». У Безмащук gap 15% = не работает с возражением. Скрипт «дорого» → viktor + emma.
+  </div>
+</div>
+
+</div>
+
+<!-- SEC 3: MANAGER EFFICIENCY SCATTER + FORECAST -->
+<div class="sec">
+  <div class="sec-num">3</div>
+  <h2>Manager efficiency · Forecast waterfall</h2>
+  <div class="ln"></div>
+  <span class="hint">Кто эффективен, а кто просто «сделки коллекционирует» · плюс прогноз выручки с confidence</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Efficiency scatter</div>
+      <div class="card-sub">X = активные сделки · Y = CR2 % · идеал top-right</div>
+    </div>
+  </div>
+  <div class="scatter">
+    <span class="ylbl">CR2 %</span>
+    <span class="xlbl">активных сделок</span>
+    <div class="grid-line" style="top:60px"></div>
+    <div class="grid-line" style="top:130px"></div>
+    <div class="grid-line" style="top:200px"></div>
+    <div class="ax x"></div>
+    <div class="ax y"></div>
+    <div style="position:absolute;left:60%;right:20px;top:20px;bottom:50%;background:rgba(16,185,129,.06);border-radius:0 10px 0 0"></div>
+    <span style="position:absolute;right:30px;top:30px;font-size:10px;color:var(--up);font-weight:700">STAR ZONE</span>
+    <div style="position:absolute;left:60%;right:20px;top:50%;bottom:30px;background:rgba(244,63,94,.06);border-radius:0 0 10px 0"></div>
+    <span style="position:absolute;right:30px;bottom:40px;font-size:10px;color:var(--dn);font-weight:700">коллекционер сделок</span>
+    <div class="dot-p" style="left:20%;top:16%;background:var(--up)"><span class="lbl">Лысенко (28 deals, 18%)</span></div>
+    <div class="dot-p" style="left:70%;top:22%;background:var(--up)"><span class="lbl">Оля М (52 deals, 14%)</span></div>
+    <div class="dot-p" style="left:18%;top:44%;background:var(--warn)"><span class="lbl">Кубанова (26, 10%)</span></div>
+    <div class="dot-p" style="left:44%;top:58%;background:var(--warn)"><span class="lbl">Юля Ш-Б (32, 11%)</span></div>
+    <div class="dot-p" style="left:34%;top:62%;background:var(--warn)"><span class="lbl">Юля Л (30, 8%)</span></div>
+    <div class="dot-p" style="left:66%;top:76%;background:var(--dn)"><span class="lbl">Маслова (58, 4.8%)</span></div>
+    <div class="dot-p" style="left:56%;top:78%;background:var(--dn)"><span class="lbl">Лакомова (48, 7%)</span></div>
+    <div class="dot-p" style="left:38%;top:82%;background:var(--dn)"><span class="lbl">Безмащук (34, 5.2%)</span></div>
+  </div>
+  <div style="margin-top:12px;padding:10px 12px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.25);border-radius:8px;font-size:11.5px;color:var(--ink-2)">
+    <b style="color:var(--dn)">Красная зона (много сделок + низкий CR2):</b> Маслова 58 сделок / 4.8% = «коллекционирует». Не работает pipeline, не chuckит. Тот же паттерн у Лакомовой и Безмащука.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Forecast waterfall июль</div>
+      <div class="card-sub">Weighted pipeline по стадиям · confidence в скобках</div>
+    </div>
+  </div>
+  <table class="tbl">
+    <thead><tr>
+      <th>Категория</th>
+      <th class="r">Deals</th>
+      <th class="r">Budget</th>
+      <th class="r">Weight</th>
+      <th class="r">Forecast</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">Commit</td>
+        <td class="r">18</td>
+        <td class="r">15.8M</td>
+        <td class="r">0.90</td>
+        <td class="r"><b>14.2M</b></td>
+      </tr>
+      <tr>
+        <td class="name">Best-case</td>
+        <td class="r">14</td>
+        <td class="r">11.4M</td>
+        <td class="r">0.50</td>
+        <td class="r">5.7M</td>
+      </tr>
+      <tr>
+        <td class="name">Possible</td>
+        <td class="r">22</td>
+        <td class="r">6.2M</td>
+        <td class="r">0.25</td>
+        <td class="r">1.5M</td>
+      </tr>
+      <tr style="background:var(--bg-elevated);border-top:1px solid var(--border-hot)">
+        <td class="name"><b>Итого forecast</b></td>
+        <td class="r"><b>54</b></td>
+        <td class="r"><b>33.4M</b></td>
+        <td class="r"></td>
+        <td class="r"><b style="color:var(--accent)">21.4M ±18%</b></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:14px;padding:12px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:9px;font-size:12px;color:var(--ink-2)">
+    <div style="font-weight:700;color:var(--warn);margin-bottom:4px">План 30M vs Forecast 21.4M = gap 8.6M ₽</div>
+    <div style="line-height:1.6">
+      Даже upside best-case до 27M не закрывает gap. Реалистичный сценарий: либо признаём план завышен (пересмотр Q3), либо запускаем 3 конкретные кампании (marco + emma) на закрытие 47 possible-сделок.
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- SEC 4: DATA QUALITY -->
+<div class="sec">
+  <div class="sec-num">4</div>
+  <h2>Data quality panel</h2>
+  <div class="ln"></div>
+  <span class="hint">Что не заполнено · где считается «на глазок» · Boris fix-приоритеты</span>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Полнота полей CRM</div>
+      <div class="card-sub">Данные, без которых dashboard-метрики неточные</div>
+    </div>
+  </div>
+  <table class="tbl">
+    <thead><tr>
+      <th>Поле</th>
+      <th class="r">Заполнено</th>
+      <th class="r">Priority</th>
+      <th>Влияет на</th>
+      <th>Владелец fix</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td class="name">Дата решения клиента</td>
+        <td class="r"><span class="pill pill-hot">не заведено</span></td>
+        <td class="r">P1</td>
+        <td>Forecast weighted, zombie detection</td>
+        <td>boris</td>
+      </tr>
+      <tr>
+        <td class="name">Дата следующего контакта</td>
+        <td class="r"><span class="pill pill-hot">не заведено</span></td>
+        <td class="r">P1</td>
+        <td>Стадия «Связаться позже», алгоритм 3 касаний</td>
+        <td>boris</td>
+      </tr>
+      <tr>
+        <td class="name">Причина отказа (enum)</td>
+        <td class="r"><span class="pill pill-warn">62%</span></td>
+        <td class="r">P1</td>
+        <td>Loss reason deep-dive (сейчас слепо)</td>
+        <td>boris (робот-валидатор)</td>
+      </tr>
+      <tr>
+        <td class="name">client B2B/B2C/Дилер</td>
+        <td class="r"><span class="pill pill-ok">94%</span></td>
+        <td class="r">P0</td>
+        <td>Cohort filters (уже работает)</td>
+        <td>заполнено</td>
+      </tr>
+      <tr>
+        <td class="name">assort ассортимент</td>
+        <td class="r"><span class="pill pill-ok">89%</span></td>
+        <td class="r">P0</td>
+        <td>Mix shift analysis (для profit lens)</td>
+        <td>заполнено</td>
+      </tr>
+      <tr>
+        <td class="name">dir бренд</td>
+        <td class="r"><span class="pill pill-ok">98%</span></td>
+        <td class="r">P0</td>
+        <td>Cohort по бренду (уже работает)</td>
+        <td>заполнено</td>
+      </tr>
+      <tr>
+        <td class="name">Decision-maker (имя + роль)</td>
+        <td class="r"><span class="pill pill-hot">не заведено</span></td>
+        <td class="r">P2</td>
+        <td>Multi-threading, B2B &gt;300K</td>
+        <td>boris (после P1)</td>
+      </tr>
+      <tr>
+        <td class="name">Discount % (auto-calc)</td>
+        <td class="r"><span class="pill pill-warn">50%</span></td>
+        <td class="r">P1</td>
+        <td>Discount heatmap, margin analytics</td>
+        <td>boris + roman (прайс-снимок)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:14px;padding:12px 14px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.25);border-radius:9px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--accent)">Sales-director takeaway:</b> P0 (сегмент/бренд/ассорт) уже 89-98% = mockup экранов Утро/Команда/Стратегия можно запускать сейчас. P1 (Дата решения / Причина отказа / Discount) блокирует forecast, discount-heatmap, loss deep-dive. Boris-workstream 1-2 недели работы. После P1 полноценно живём.
+  </div>
+</div>
+
+<div class="foot">Экран 3 · Стратегия · Mockup fake data · <a href="screen-2-team.html" style="color:var(--accent)">← Команда</a> · <a href="index.html" style="color:var(--accent)">Обзор</a></div>
+
+</div>
+</body></html>

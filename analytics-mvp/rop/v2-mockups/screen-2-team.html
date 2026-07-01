@@ -1,0 +1,362 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>РОП v2 · Команда · Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+</head><body>
+
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Командный центр РОПа</b><span>v2 · Экран Команда</span></div>
+  <span class="brand-mock">MOCKUP</span>
+  <div class="tb-spacer"></div>
+  <div class="screen-nav">
+    <a href="index.html">Обзор</a>
+    <a href="screen-1-morning.html">1. Утро</a>
+    <a href="screen-2-team.html" class="on">2. Команда</a>
+    <a href="screen-3-strategy.html">3. Стратегия</a>
+  </div>
+  <span class="stamp">Data: 2026-07-01 09:04 МСК · 25 менеджеров активных</span>
+</div>
+
+<div class="filters">
+  <span class="lbl">Сегмент</span>
+  <select><option>Всё</option><option>B2B</option><option>B2C</option><option>Дилер</option></select>
+  <span class="lbl">Бренд</span>
+  <select><option>Все бренды</option><option>GENGLASS</option><option>VALONTI</option><option>GENTERO</option><option>Metal-GM</option></select>
+  <span class="lbl">Период</span>
+  <select><option>60 дней rolling</option><option>Q2-2026</option><option>H1-2026</option></select>
+  <div class="alert">! 3 PIP-кандидата</div>
+</div>
+
+<div class="wrap">
+
+<!-- SEC 1: MANAGER SCOREBOARD -->
+<div class="sec">
+  <div class="sec-num">1</div>
+  <h2>Manager scoreboard · cohort-нормализация</h2>
+  <div class="ln"></div>
+  <span class="hint">Ранжировано по WON-выручке 60 дней. Verdict color по evaluation-rubric.md (9 параметров, weighted).</span>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">10 менеджеров ранжировано <span class="badge new">cohort-normalized</span></div>
+      <div class="card-sub">Sales-director verdict: 4 зелёных, 3 жёлтых, 2 оранжевых, 1 красный</div>
+    </div>
+    <div><span style="font-size:10px;color:var(--ink-4);text-transform:uppercase">Сегмент</span> <select style="background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:5px 10px;font:inherit;font-size:12px"><option>Все</option><option>B2B GENGLASS</option><option>B2C VALONTI</option><option>Дилер</option></select></div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr>
+      <th style="width:36px">#</th>
+      <th>Менеджер</th>
+      <th>Сегмент</th>
+      <th class="r">WON 60д</th>
+      <th class="r">CR2</th>
+      <th class="r">Ср.чек</th>
+      <th class="r">Speed-to-lead</th>
+      <th class="r">Zombie %</th>
+      <th class="r">Discount</th>
+      <th class="r">Score</th>
+      <th>Тренд 12 недель</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td class="name"><span class="verdict verdict-green"></span>Ольга Лысенко</td>
+        <td>B2B GENGLASS</td>
+        <td class="r">3.2M</td>
+        <td class="r">18%</td>
+        <td class="r">340K</td>
+        <td class="r"><span class="pill pill-ok">2.4ч</span></td>
+        <td class="r">15%</td>
+        <td class="r">4.2%</td>
+        <td class="r"><b>7.8</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path class="up" d="M0,22 L15,18 L30,20 L45,14 L60,15 L75,10 L90,8 L105,6 L120,4"/><circle class="last up" cx="120" cy="4" r="3"/></svg></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td class="name"><span class="verdict verdict-green"></span>Оля М</td>
+        <td>B2B GENTERO</td>
+        <td class="r">2.9M</td>
+        <td class="r">14%</td>
+        <td class="r">420K</td>
+        <td class="r"><span class="pill pill-ok">0.4ч</span></td>
+        <td class="r">12%</td>
+        <td class="r">3.1%</td>
+        <td class="r"><b>7.5</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path class="up" d="M0,18 L15,20 L30,16 L45,14 L60,12 L75,10 L90,8 L105,7 L120,6"/><circle class="last up" cx="120" cy="6" r="3"/></svg></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td class="name"><span class="verdict verdict-green"></span>Алёна Кубанова</td>
+        <td>B2C VALONTI</td>
+        <td class="r">1.4M</td>
+        <td class="r">10%</td>
+        <td class="r">115K</td>
+        <td class="r"><span class="pill pill-ok">0.9ч</span></td>
+        <td class="r">18%</td>
+        <td class="r">5.8%</td>
+        <td class="r"><b>7.0</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path d="M0,16 L15,14 L30,17 L45,12 L60,15 L75,13 L90,11 L105,12 L120,10"/><circle class="last" cx="120" cy="10" r="3"/></svg></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td class="name"><span class="verdict verdict-yellow"></span>Юля Л</td>
+        <td>B2C VALONTI</td>
+        <td class="r">1.1M</td>
+        <td class="r">8%</td>
+        <td class="r">95K</td>
+        <td class="r"><span class="pill pill-ok">1.6ч</span></td>
+        <td class="r"><span class="pill pill-warn">28%</span></td>
+        <td class="r">7.2%</td>
+        <td class="r"><b>6.4</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path d="M0,10 L15,12 L30,14 L45,13 L60,18 L75,15 L90,20 L105,18 L120,22"/><circle class="last dn" cx="120" cy="22" r="3"/></svg></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td class="name"><span class="verdict verdict-yellow"></span>Юля Ш-Б</td>
+        <td>B2C VALONTI</td>
+        <td class="r">0.9M</td>
+        <td class="r">11%</td>
+        <td class="r">78K</td>
+        <td class="r"><span class="pill pill-neutral">3.2ч</span></td>
+        <td class="r">22%</td>
+        <td class="r">6.4%</td>
+        <td class="r"><b>6.2</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path d="M0,16 L15,15 L30,14 L45,13 L60,14 L75,12 L90,11 L105,12 L120,11"/><circle class="last" cx="120" cy="11" r="3"/></svg></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td class="name"><span class="verdict verdict-yellow"></span>Татьяна Лакомова</td>
+        <td>B2C VALONTI</td>
+        <td class="r">0.7M</td>
+        <td class="r">7%</td>
+        <td class="r">82K</td>
+        <td class="r"><span class="pill pill-hot">6.8ч</span></td>
+        <td class="r">31%</td>
+        <td class="r">8.1%</td>
+        <td class="r"><b>5.6</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path d="M0,12 L15,14 L30,15 L45,17 L60,18 L75,17 L90,19 L105,20 L120,21"/><circle class="last dn" cx="120" cy="21" r="3"/></svg></td>
+      </tr>
+      <tr style="background:rgba(251,146,60,.05)">
+        <td>7</td>
+        <td class="name"><span class="verdict verdict-orange"></span>Ольга Маслова</td>
+        <td>B2C VALONTI</td>
+        <td class="r">0.5M</td>
+        <td class="r">4.8%</td>
+        <td class="r">63K</td>
+        <td class="r"><span class="pill pill-warn">4.1ч</span></td>
+        <td class="r"><span class="pill pill-hot">49%</span></td>
+        <td class="r">9.3%</td>
+        <td class="r"><b>4.8</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path class="dn" d="M0,10 L15,12 L30,14 L45,15 L60,17 L75,18 L90,20 L105,22 L120,24"/><circle class="last dn" cx="120" cy="24" r="3"/></svg></td>
+      </tr>
+      <tr style="background:rgba(251,146,60,.05)">
+        <td>8</td>
+        <td class="name"><span class="verdict verdict-orange"></span>Владислав Безмащук</td>
+        <td>B2B GENGLASS</td>
+        <td class="r">0.4M</td>
+        <td class="r">5.2%</td>
+        <td class="r">180K</td>
+        <td class="r"><span class="pill pill-hot">12+ч</span></td>
+        <td class="r"><span class="pill pill-hot">44%</span></td>
+        <td class="r">11.2%</td>
+        <td class="r"><b>5.2</b></td>
+        <td><svg class="spark" viewBox="0 0 120 28"><path class="dn" d="M0,4 L15,6 L30,8 L45,14 L60,20 L75,22 L90,24 L105,25 L120,26"/><circle class="last dn" cx="120" cy="26" r="3"/></svg></td>
+      </tr>
+      <tr style="background:rgba(244,63,94,.05)">
+        <td>9</td>
+        <td class="name"><span class="verdict verdict-red"></span>Богдан</td>
+        <td>без плана</td>
+        <td class="r">0.66M</td>
+        <td class="r">?%</td>
+        <td class="r">?K</td>
+        <td class="r"><span class="pill pill-hot">8.2ч</span></td>
+        <td class="r">?</td>
+        <td class="r">?</td>
+        <td class="r"><b style="color:var(--dn)">не оценен</b></td>
+        <td><span style="font-size:10.5px;color:var(--dn)">нет плана · CRM-артефакт</span></td>
+      </tr>
+      <tr style="opacity:.55">
+        <td>10-25</td>
+        <td class="name" colspan="8" style="color:var(--ink-3)">Ещё 16 менеджеров (маркеты Катя/Саша/Диана + мелкие). Показать →</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);padding-top:12px;border-top:1px solid var(--border-soft)">
+    <span><span class="verdict verdict-green"></span> Green: score ≥7.5</span>
+    <span><span class="verdict verdict-yellow"></span> Yellow: 6.0-7.4</span>
+    <span><span class="verdict verdict-orange"></span> Orange: 4.5-5.9 (PIP-кандидат)</span>
+    <span><span class="verdict verdict-red"></span> Red: не оценен либо &lt;4.5</span>
+    <span style="margin-left:auto"><b style="color:var(--warn)">Sales-director takeaway:</b> 3 orange = enhanced coaching, не PIP-конвейер</span>
+  </div>
+</div>
+
+<!-- SEC 2: SPEED SCATTER + DISCOUNT HEATMAP -->
+<div class="sec">
+  <div class="sec-num">2</div>
+  <h2>Speed-to-lead · Discount discipline</h2>
+  <div class="ln"></div>
+  <span class="hint">Куда режется маржа и где теряется CR2 в самом начале воронки</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Speed-to-lead scatter</div>
+      <div class="card-sub">X = медиана часов до первого касания · Y = CR2 % · red-зона X&gt;6</div>
+    </div>
+  </div>
+  <div class="scatter">
+    <span class="ylbl">CR2 %</span>
+    <span class="xlbl">часы до касания</span>
+    <div class="grid-line" style="top:60px"></div>
+    <div class="grid-line" style="top:130px"></div>
+    <div class="grid-line" style="top:200px"></div>
+    <div class="ax x"></div>
+    <div class="ax y"></div>
+    <!-- danger zone -->
+    <div style="position:absolute;left:60%;right:20px;top:20px;bottom:30px;background:rgba(244,63,94,.05);border-left:1px dashed rgba(244,63,94,.3);border-radius:0 10px 10px 0"></div>
+    <span style="position:absolute;right:30px;top:25px;font-size:10px;color:var(--dn);font-weight:700">DANGER &gt;6ч</span>
+    <!-- points -->
+    <div class="dot-p" style="left:12%;top:12%;background:var(--up)"><span class="lbl">Оля М (0.4ч, 14%)</span></div>
+    <div class="dot-p" style="left:22%;top:32%;background:var(--up)"><span class="lbl">Лысенко (2.4ч, 18%)</span></div>
+    <div class="dot-p" style="left:20%;top:52%;background:var(--up)"><span class="lbl">Кубанова (0.9ч, 10%)</span></div>
+    <div class="dot-p" style="left:32%;top:58%;background:var(--warn)"><span class="lbl">Юля Л (1.6ч, 8%)</span></div>
+    <div class="dot-p" style="left:44%;top:44%;background:var(--warn)"><span class="lbl">Юля Ш-Б (3.2ч, 11%)</span></div>
+    <div class="dot-p" style="left:58%;top:68%;background:var(--warn)"><span class="lbl">Маслова (4.1ч, 4.8%)</span></div>
+    <div class="dot-p" style="left:76%;top:70%;background:var(--dn)"><span class="lbl">Лакомова (6.8ч, 7%)</span></div>
+    <div class="dot-p" style="left:88%;top:78%;background:var(--dn)"><span class="lbl">Безмащук (12+ч, 5.2%)</span></div>
+  </div>
+  <div style="margin-top:12px;padding:10px 12px;background:var(--accent-soft);border:1px solid rgba(34,211,238,.25);border-radius:8px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--accent)">Insight:</b> корреляция Speed vs CR2 читается визуально (top-left cluster всех green-верных). 3 менеджера в red-зоне X&gt;6 = следующий 1-on-1 фокус
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Discount heatmap <span class="badge hot">flag &gt;5%</span></div>
+      <div class="card-sub">Медиана % дисконта на WON-сделках 60 дней. Roman sign-off на &gt;5%.</div>
+    </div>
+  </div>
+  <div class="bars">
+    <div class="bar-row"><div class="bar-name">Оля М</div><div class="bar-track"><div class="bar-fill ok" style="width:31%">3.1%</div></div><div class="bar-val">18 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Ольга Лысенко</div><div class="bar-track"><div class="bar-fill ok" style="width:42%">4.2%</div></div><div class="bar-val">12 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Алёна Кубанова</div><div class="bar-track"><div class="bar-fill accent" style="width:58%">5.8%</div></div><div class="bar-val">14 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Юля Ш-Б</div><div class="bar-track"><div class="bar-fill accent" style="width:64%">6.4%</div></div><div class="bar-val">11 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Юля Л</div><div class="bar-track"><div class="bar-fill warn" style="width:72%">7.2%</div></div><div class="bar-val">12 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Татьяна Лакомова</div><div class="bar-track"><div class="bar-fill warn" style="width:81%">8.1%</div></div><div class="bar-val">9 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Ольга Маслова</div><div class="bar-track"><div class="bar-fill red" style="width:93%">9.3%</div></div><div class="bar-val">8 WON</div></div>
+    <div class="bar-row"><div class="bar-name">Владислав Безмащук</div><div class="bar-track"><div class="bar-fill red" style="width:100%">11.2%</div></div><div class="bar-val">5 WON</div></div>
+  </div>
+  <div style="margin-top:12px;padding:10px 12px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.25);border-radius:8px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--dn)">Alert:</b> 4 менеджера дисконтят выше 5% без sign-off · маржа -3-6pp за квартал · разговор с Roman о процессе
+  </div>
+</div>
+
+</div>
+
+<!-- SEC 3: 1-on-1 due + Trend row -->
+<div class="sec">
+  <div class="sec-num">3</div>
+  <h2>Weekly cadence · 1-on-1 due</h2>
+  <div class="ln"></div>
+  <span class="hint">Tier-разделение из sales-director skill (junior weekly / mid bi-weekly / senior monthly)</span>
+</div>
+
+<div class="grid2">
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">1-on-1 расписание</div>
+      <div class="card-sub">Просрочки красным · 2 просрочены &gt;14 дней</div>
+    </div>
+    <button style="background:var(--accent-soft);border:1px solid rgba(34,211,238,.3);color:var(--accent);border-radius:8px;padding:6px 12px;font:inherit;font-size:11.5px;cursor:pointer;font-weight:700">+ Назначить</button>
+  </div>
+  <div class="watch">
+    <div class="watch-item" style="border-color:rgba(244,63,94,.35)">
+      <div class="watch-icon hot">!</div>
+      <div>
+        <div class="watch-title">Ольга Маслова · оранжевый score</div>
+        <div class="watch-meta">Tier: <b>mid</b> · последний 1-on-1: <b style="color:var(--dn)">21 день назад</b> · план: разбор сделки-свалки 229 дней</div>
+      </div>
+      <div class="watch-action">→ сегодня 16:00</div>
+    </div>
+    <div class="watch-item" style="border-color:rgba(244,63,94,.35)">
+      <div class="watch-icon hot">!</div>
+      <div>
+        <div class="watch-title">Владислав Безмащук · оранжевый score</div>
+        <div class="watch-meta">Tier: <b>mid</b> · последний 1-on-1: <b style="color:var(--dn)">19 дней назад</b> · план: 3 сделки-призрака + speed-to-lead</div>
+      </div>
+      <div class="watch-action">→ 04.07 14:00</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">→</div>
+      <div>
+        <div class="watch-title">Ольга Лысенко · зелёный, RОП-кандидат</div>
+        <div class="watch-meta">Tier: <b>senior</b> · последний: 12 дней · план: карьерный разговор + маркеты-стратегия</div>
+      </div>
+      <div class="watch-action">→ 03.07 11:00</div>
+    </div>
+    <div class="watch-item">
+      <div class="watch-icon">→</div>
+      <div>
+        <div class="watch-title">Алёна Кубанова · зелёный</div>
+        <div class="watch-meta">Tier: <b>mid</b> · последний: 8 дней · план: orthography-check + humanizer-ru скрипт</div>
+      </div>
+      <div class="watch-action">→ 05.07 10:00</div>
+    </div>
+    <div class="watch-item" style="opacity:.5">
+      <div class="watch-icon">✓</div>
+      <div>
+        <div class="watch-title">Оля М · зелёный · этой недели закрыт</div>
+        <div class="watch-meta">30.06 · план на следующий 14.07 · рост MoM 22%</div>
+      </div>
+      <div class="watch-action">Done</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h">
+    <div>
+      <div class="card-title">Cadence tier-нагрузка на РОПа</div>
+      <div class="card-sub">Sanity check: 13.65ч/week на ритуалы = 31% полной нагрузки</div>
+    </div>
+  </div>
+  <div class="bars" style="margin-top:8px">
+    <div class="bar-row"><div class="bar-name">Daily huddle 5×15м</div><div class="bar-track"><div class="bar-fill accent" style="width:9%">1.25ч</div></div><div class="bar-val">9%</div></div>
+    <div class="bar-row"><div class="bar-name">Weekly pipeline 60м</div><div class="bar-track"><div class="bar-fill accent" style="width:7%">1.0ч</div></div><div class="bar-val">7%</div></div>
+    <div class="bar-row"><div class="bar-name">1-on-1 × 25 (bi-w)</div><div class="bar-track"><div class="bar-fill warn" style="width:69%">9.4ч</div></div><div class="bar-val">69%</div></div>
+    <div class="bar-row"><div class="bar-name">SD-1on1 + scoreboard</div><div class="bar-track"><div class="bar-fill accent" style="width:15%">2.0ч</div></div><div class="bar-val">15%</div></div>
+  </div>
+  <div style="margin-top:16px;padding:12px 14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--ink-2)">
+    <b style="color:var(--warn)">Рекомендация sales-director:</b> tier-разделение (junior weekly / senior monthly) снижает 1-on-1 нагрузку с 9.4ч до <b style="color:var(--ink)">~6.5ч/week</b>. При росте отдела &gt;30 менеджеров — Team-РОП.
+  </div>
+  <div style="margin-top:14px">
+    <div style="font-size:11px;color:var(--ink-3);margin-bottom:8px;font-weight:600">Распределение по tier сейчас:</div>
+    <div style="display:flex;gap:8px;font-size:11.5px">
+      <span style="padding:4px 10px;background:var(--accent-soft);color:var(--accent);border-radius:6px;font-weight:700">Junior 8</span>
+      <span style="padding:4px 10px;background:rgba(167,139,250,.14);color:var(--info);border-radius:6px;font-weight:700">Mid 12</span>
+      <span style="padding:4px 10px;background:rgba(16,185,129,.14);color:var(--up);border-radius:6px;font-weight:700">Senior 5</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="foot">Экран 2 · Команда · Mockup fake data · <a href="screen-1-morning.html" style="color:var(--accent)">← Утро</a> · <a href="index.html" style="color:var(--accent)">Обзор</a> · <a href="screen-3-strategy.html" style="color:var(--accent)">Стратегия →</a></div>
+
+</div>
+</body></html>

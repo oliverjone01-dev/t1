@@ -1,0 +1,187 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>РОП v2 · Mockups · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+.hero-index{max-width:900px;margin:60px auto 40px;padding:0 24px;text-align:center}
+.hero-index h1{font-family:'Manrope';font-weight:800;font-size:44px;letter-spacing:-.03em;margin-bottom:14px}
+.hero-index h1 .accent{background:linear-gradient(90deg,#22D3EE,#A78BFA);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-index p{color:var(--ink-2);font-size:15px;line-height:1.6;max-width:640px;margin:0 auto}
+.hero-index .stamp{margin-top:20px;font-size:12px;color:var(--ink-4)}
+.hero-index .stamp b{color:var(--warn)}
+
+.screens-grid{max-width:1200px;margin:0 auto;padding:0 24px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.screens-grid{grid-template-columns:1fr}}
+.screen-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
+  padding:24px;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;transition:.2s;cursor:pointer
+}
+.screen-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 12px 40px rgba(34,211,238,.08)}
+.screen-num{
+  width:44px;height:44px;border-radius:11px;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Manrope';font-weight:800;font-size:20px;margin-bottom:16px
+}
+.screen-num.perf{background:rgba(167,139,250,.14);color:var(--info)}
+.screen-num.strat{background:rgba(16,185,129,.14);color:var(--up)}
+.screen-title{font-family:'Manrope';font-weight:800;font-size:20px;margin-bottom:6px}
+.screen-role{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+.screen-role b{color:var(--ink-2)}
+.screen-list{list-style:none;font-size:12.5px;color:var(--ink-2);line-height:1.7;margin-bottom:16px}
+.screen-list li{padding-left:16px;position:relative}
+.screen-list li::before{content:"→";position:absolute;left:0;color:var(--accent);font-weight:800}
+.screen-cta{
+  margin-top:auto;padding:10px 14px;background:var(--accent-soft);color:var(--accent);
+  border-radius:8px;font-size:12px;font-weight:700;text-align:center
+}
+
+.compare{max-width:1200px;margin:20px auto 60px;padding:0 24px}
+.compare h2{font-family:'Manrope';font-weight:800;font-size:22px;margin-bottom:20px;text-align:center}
+.compare-tbl{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:8px;overflow-x:auto}
+.compare-tbl table{width:100%;border-collapse:separate;border-spacing:0}
+.compare-tbl th{background:var(--bg-elevated);padding:12px 16px;text-align:left;font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.compare-tbl td{padding:14px 16px;border-top:1px solid var(--border-soft);font-size:13px}
+.compare-tbl td.old{color:var(--ink-3)}
+.compare-tbl td.new{color:var(--ink)}
+.compare-tbl td.new b{color:var(--accent)}
+.compare-tbl .tag-old{font-size:9.5px;padding:2px 6px;border-radius:4px;background:var(--bg-elevated);color:var(--ink-3);font-weight:700}
+.compare-tbl .tag-new{font-size:9.5px;padding:2px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent);font-weight:700}
+</style>
+</head><body>
+
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>РОП v2 mockups</b><span>Wireframe · GENGROUP</span></div>
+  <span class="brand-mock">MOCKUP · fake data</span>
+  <div class="tb-spacer"></div>
+  <div class="screen-nav">
+    <a href="index.html" class="on">Обзор</a>
+    <a href="screen-1-morning.html">1. Утро</a>
+    <a href="screen-2-team.html">2. Команда</a>
+    <a href="screen-3-strategy.html">3. Стратегия</a>
+  </div>
+</div>
+
+<section class="hero-index">
+  <h1>РОП v2 · <span class="accent">3 экрана вместо одного</span></h1>
+  <p>Sales-director assessment текущего дашборда: <b>5.5/10</b>. Отвечает на «что произошло», не на «что делать сейчас». Пересборка на архитектуру action / performance / strategy делит рабочий день РОПа по контексту: утро - тушу пожары, понедельник - разбираю команду, стратегические сессии - копаю причины.</p>
+  <p class="stamp"><b>Все данные в mockups фейковые</b> и подобраны под реалистичный GENGROUP-контекст (25 менеджеров, 22K сделок в C49, план 30M/мес). Живой дашборд не тронут.</p>
+</section>
+
+<section class="screens-grid">
+  <a href="screen-1-morning.html" class="screen-card">
+    <div class="screen-num">1</div>
+    <div class="screen-title">Утро</div>
+    <div class="screen-role"><b>Кто открывает:</b> менеджер + РОП, ежедневно 09:00</div>
+    <ul class="screen-list">
+      <li>Hero: revenue месяца, forecast, gap</li>
+      <li>Zombie-alert: сделки без движения >7 дней</li>
+      <li>Speed-to-lead сегодня</li>
+      <li>Топ-3 на закрытие сегодня</li>
+      <li>Watchlist Ивана / РОПа</li>
+    </ul>
+    <div class="screen-cta">Открыть экран →</div>
+  </a>
+
+  <a href="screen-2-team.html" class="screen-card">
+    <div class="screen-num perf">2</div>
+    <div class="screen-title">Команда</div>
+    <div class="screen-role"><b>Кто открывает:</b> РОП + sales-director, weekly pipeline review</div>
+    <ul class="screen-list">
+      <li>Manager scoreboard ранжированный</li>
+      <li>Speed-to-lead scatter по менеджерам</li>
+      <li>Discount heatmap</li>
+      <li>1-on-1 due / просрочки</li>
+      <li>Trend sparklines 12 недель</li>
+    </ul>
+    <div class="screen-cta">Открыть экран →</div>
+  </a>
+
+  <a href="screen-3-strategy.html" class="screen-card">
+    <div class="screen-num strat">3</div>
+    <div class="screen-title">Стратегия</div>
+    <div class="screen-role"><b>Кто открывает:</b> Иван + sales-director + Roman, 1-2 раза в неделю</div>
+    <ul class="screen-list">
+      <li>Funnel by cohort (B2B/B2C/Дилер/бренд)</li>
+      <li>Loss reason deep-dive</li>
+      <li>Manager efficiency scatter</li>
+      <li>Forecast waterfall по стадиям</li>
+      <li>Data quality panel</li>
+    </ul>
+    <div class="screen-cta">Открыть экран →</div>
+  </a>
+</section>
+
+<section class="compare">
+  <h2>Что меняется относительно текущего дашборда</h2>
+  <div class="compare-tbl"><table>
+    <thead><tr>
+      <th style="width:30%">Блок</th>
+      <th style="width:35%">Сейчас</th>
+      <th style="width:35%">v2</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><b>KPI-strip</b></td>
+        <td class="old">6 плоских карточек равного веса. Что главное - не видно</td>
+        <td class="new"><b>Hero-dominance:</b> revenue + forecast + gap большие, остальное маленькое</td>
+      </tr>
+      <tr>
+        <td><b>Воронка</b></td>
+        <td class="old">Одна общая, усредняет B2B / B2C</td>
+        <td class="new"><b>By cohort:</b> переключатель сегмент × бренд</td>
+      </tr>
+      <tr>
+        <td><b>Key stage gauges</b></td>
+        <td class="old">3 gauge, только median dwell. Клик не ведёт никуда</td>
+        <td class="new">3 gauge + <b>drill-down в топ-10 висящих</b> со сделками</td>
+      </tr>
+      <tr>
+        <td><b>Таблица менеджеров</b></td>
+        <td class="old">Плоский лист LEAD / DEALS / WON</td>
+        <td class="new"><b>Ранжированный scoreboard</b> с cohort-нормализацией + verdict color</td>
+      </tr>
+      <tr>
+        <td><b>Хитмап план/факт</b></td>
+        <td class="old">Клетки по неделям, читается плохо</td>
+        <td class="new"><b>Sparkline тренд</b> 12 недель на менеджера + %-плана</td>
+      </tr>
+      <tr>
+        <td><b>Zombie-pipeline</b></td>
+        <td class="old"><span class="tag-old">НЕТ</span> самое важное не показывается</td>
+        <td class="new"><b>Экран 1, первая позиция</b> - сделки без касания >7 дней</td>
+      </tr>
+      <tr>
+        <td><b>Speed-to-lead</b></td>
+        <td class="old"><span class="tag-old">НЕТ</span> касания есть, время до - нет</td>
+        <td class="new"><b>Scatter + median</b> по менеджерам, red >6 часов</td>
+      </tr>
+      <tr>
+        <td><b>Discount visibility</b></td>
+        <td class="old"><span class="tag-old">НЕТ</span> creep -8pp/квартал незаметно</td>
+        <td class="new"><b>Heatmap</b> % дисконта WON, flag >5%</td>
+      </tr>
+      <tr>
+        <td><b>Action items</b></td>
+        <td class="old"><span class="tag-old">НЕТ</span> «CR2 = 14%» не подсказывает что делать</td>
+        <td class="new"><b>Топ-3 на закрытие сегодня</b> + watchlist + owner + next-step</td>
+      </tr>
+      <tr>
+        <td><b>Forecast</b></td>
+        <td class="old">Отсутствует либо факт вчера</td>
+        <td class="new"><b>Weighted waterfall</b> по стадиям с confidence</td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+
+<div class="foot">
+  Mockup · fake data · не для production ·
+  <a href="https://github.com/oliverjone01-dev/t1/tree/ozon-dashboard-dima-fork/analytics-mvp/rop/v2-mockups" style="color:var(--accent)">source в fork-ветке</a>
+</div>
+
+</body></html>

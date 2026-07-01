@@ -770,6 +770,7 @@ function render(){
     {k:'CR1 · в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'сделок ÷ лидов'},
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
+    {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},
     {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
   ]);

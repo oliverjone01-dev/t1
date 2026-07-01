@@ -35,6 +35,31 @@
 - Anti-pattern: не «продлить ещё на 30 дней» — sales-director hard rule
 - Root-cause postmortem с trener + marco
 
+### Preliminary ₽-эффект (требует Roman sanity к финалу spec-approve)
+
+[ГИПОТЕЗА: сквозная оценка на основе Metrics of success + baseline план 30M/mes; требует Roman подтверждения unit-эк]:
+
+| Metric shift | Механика | Квартал ₽ |
+|---|---|---|
+| **CR2 14% → 16%** | 2pp × ~250 квалифицированных сделок/квартал × средний чек 80K | ~+4.0M ₽/квартал [ГИПОТЕЗА] |
+| **Zombie ratio 28% → <15%** | Освобождение ~13pp × 25 менеджеров × ~15 часов зомби-работы/мес | ~+30% времени РОПа на реальные сделки (не деньги напрямую, но capacity gain) |
+| **Speed-to-lead 6ч → 3ч** | 50% сокращение задержки × ~250 лидов/квартал × +3pp qualification uplift | ~+1.5M ₽/квартал [ГИПОТЕЗА, эффект хвостовой] |
+| **РОП-adoption ≥80%** | Не деньги, а leading indicator: если РОП не использует — CR2 не растёт | Non-monetary метрика |
+
+**Суммарно [ГИПОТЕЗА]:** ~+5-6M ₽/квартал при достижении всех metrics. При плане 30M/mes = ~5-7% roi на квартал только от улучшения инструмента.
+
+**Sanity check требует Roman:**
+- Средний чек 80K это plan, cohort-WON median может быть другим (см. bitrix24-field-map.md baseline)
+- 250 квалифицированных сделок/квартал — extrapolation по июнь-снимку rop.json, требует rolling calibration
+- Uplift +3pp на speed-to-lead в РФ furniture — не valido US SaaS Lead Response Study напрямую, коэффициент 0.3-0.5 более realistic
+
+**Cost of dashboard v2:**
+- P0+P1 dev: ~14 календарных дней × ставка dev-owner = ~150-250K ₽ [ГИПОТЕЗА: зависит от того кто dev]
+- FZ-152 workstream (trener + boris): ~2 дня × ставки = ~30-50K ₽ [ГИПОТЕЗА]
+- Suммарно: ~180-300K ₽ разово
+
+**Ratio revenue upside / cost:** ~5.5M / 240K = **~23x за квартал** [ШИРОКИЙ ДИАПАЗОН — НЕПРОВЕРЕНО: base-case, требует Roman]. Даже при downside 50% (эффект вдвое меньше) — ratio ~11x, что выше industry-benchmark для internal-tool investments.
+
 ## 2. Альтернативы (пункт 5 из rework_tz)
 
 Три сценария рассмотрены. Выбираем C с обоснованием.
@@ -186,7 +211,7 @@
   - Скрыты: Zombie-block (нужен фокус, не distraction), sparkline тренды (long-term вне scope), Scoreboard (personal — вне scope)
   - Показаны: 3 текущих sim-сделки где ситуация ок-controlled
 
-## 7. Feniks Step 12.5 gate (пункт 10 из rework_tz)
+## 7. Feniks Step 12.5 gate (пункт 10 из rework_tz) + Rollback path
 
 **Обязательный feniks audit не только на spec (этот документ), но и на готовый v2 код перед merge в main.**
 
@@ -197,6 +222,25 @@
 - Логирование в `knowledge/episodes/2026-07/feniks-audit-rop-v2-code-<date>.md`
 
 **Iter-2 не считается закрытым пока feniks audit на код не пройден.**
+
+### Rollback path (техническая процедура)
+
+Kill criteria § 1 включаются если 2+ metric FAIL к 60-му дню. Процедура retract:
+
+**Feature flag на CI-уровне (recommended):**
+- Env variable `DASHBOARD_V2_ENABLED=false` в `.github/workflows/deploy-pages.yml`
+- Если true — deploy собирает v2 в `_site/rop-preview/`
+- Если false — deploy откатывается на копирование `rop-command.html` из последнего pre-v2 tag
+- Toggle через workflow_dispatch без изменения кода репозитория. Rollback <10 минут
+
+**Git-tag rollback (fallback):**
+- Перед merge v2 в main создаётся tag `rop-v1-frozen`
+- При retract: `git checkout rop-v1-frozen -- analytics-mvp/rop/ && commit + push`
+- Deploy восстанавливает /rop/ на v1 при следующем push
+
+**Owner:** dev-owner (см. §4). Sales-director skill не пишет rollback, но контролирует что процедура задокументирована до старта P0.
+
+**Что запрещено:** rollback без Иван notification (даже если kill criteria formally triggered), rollback силами одного менеджера без РОП + sales-director sign-off.
 
 ## 8. Что переносится из iter-1 без изменений
 

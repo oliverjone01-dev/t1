@@ -434,7 +434,7 @@ PIP без понимания компенсации = разговор в пу�
 - Roomers / Twenty First Century - retail, цикл 6-9 мес., decision-maker = дизайнер
 - Mr.Doors / Hoff - дилерская модель, маржа дилера диапазон 15-30% [ШИРОКИЙ ДИАПАЗОН - НЕПРОВЕРЕНО: P9 hard rule, разброс 2x, требует cohort split (новый дилер vs устоявшийся, регион)]
 - Moon - direct-to-consumer, hyperlocal Москва+СПб
-- Cassina / B&B Italia РФ дилеры - длинный цикл, премиум, 60% выручки приносят 20% клиентов
+- Cassina / B&B Italia РФ дилеры - длинный цикл, премиум, 60% выручки приносят 20% клиентов [ГИПОТЕЗА: Pareto extrapolation, не Cassina-specific data, требует source либо признания как industry-heuristic]
 
 **Цифровая часть** [ГИПОТЕЗА: US SaaS benchmarks, не furniture-РФ]:
 - HubSpot benchmarks B2B Pro CR2 диапазон 15-25%

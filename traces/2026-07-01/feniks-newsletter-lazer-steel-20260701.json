@@ -1,0 +1,62 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "feniks-gm-newsletter-01",
+  "timestamp": "2026-07-01T00:00:00+03:00",
+  "deliverable_ref": "email-newsletter/GLASS-MEMORY-lazernaya-rezka-vmesto-kovki (screens 1-4)",
+  "audience": "B2B: дилеры ритуалки, гранитные мастерские, партнёры",
+  "sources_of_truth": [
+    "P2 master product deck (136 стр, текст извлечён)",
+    "P3 B2B dealer pitch deck (68 стр, текст извлечён)",
+    "P1 B2B dealer flyer (2 стр, отрендерено как изображение)"
+  ],
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 2,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 0,
+    "actionability_8_resources_listed": 1,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 0,
+    "insight_11_nontrivial": 0,
+    "insight_12_second_order": 0,
+    "insight_13_alternatives_analyzed": 1,
+    "insight_14_anti_median": 0,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 1,
+    "brand_17_anti_slop": 0,
+    "brand_18_no_em_dash": 0,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 0,
+    "risk_22_p9_hard_rules": 2,
+    "risk_23_crisis_scenarios": 0,
+    "risk_24_dependencies": 0,
+    "risk_25_reversibility": 0
+  },
+  "scores": {
+    "accuracy": 8.0,
+    "actionability": 3.0,
+    "insight": 1.0,
+    "brand_fit": 3.0,
+    "risk_awareness": 2.0
+  },
+  "weighted_total": 3.7,
+  "verdict": "veto",
+  "escalate_to": "Иван Раюшкин",
+  "primary_gap": "ЦА-mismatch: B2C-оффер отправлен B2B-аудитории. Ни маржи, ни дилерских условий, ни экономики партнёрства из P1/P3.",
+  "gaps": [
+    "Оффер продаёт продукт конечному покупателю, а не партнёрскую выгоду дилеру (нет наценки 80-150%, ср. чека 35-45К, 0 руб входа, повторных продаж x3-5)",
+    "CTA Запросить цену / расчёт стоимости - это B2C-действие на один проект, а не дилерский путь (образец, прайс дилера, договор)",
+    "Первая рассылка ведёт узким продуктом (стальные ограды), а не партнёрским предложением всего ассортимента",
+    "Em dash по всему письму - нарушение конституции (§7, §13)",
+    "Anti-slop: мощная комбинация, безупречно ровные, безупречные материалы, изящный ажур, выразительные - значимость без механики",
+    "Потеряна сильнейшая проверяемая цифра 0.1 мм точность (заменена на вагон высокоточным)",
+    "Нет риск-осознания: канальный конфликт (дилер думает, что завод продаёт напрямую его клиентам)"
+  ],
+  "iteration": 1,
+  "confidence": 0.86
+}

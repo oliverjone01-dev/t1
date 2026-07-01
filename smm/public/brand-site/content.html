@@ -10,40 +10,104 @@
 <script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
 <link rel="stylesheet" href="brand-site.css">
 <style>
+  /* ============================================================
+     content.html - визуальный слой поверх brand-site.css токенов
+     ============================================================ */
+
+  /* hero: радиальный gold-glow за H1 */
+  .hero{position:relative}
+  .hero::before{content:"";position:absolute;left:-4%;top:-8%;width:min(560px,72%);height:320px;
+    background:radial-gradient(closest-side,var(--glow1),transparent 72%);
+    filter:blur(6px);opacity:.9;pointer-events:none;z-index:0}
+  .hero>*{position:relative;z-index:1}
+
+  /* градиентный хайрлайн-разделитель между секциями */
+  section{position:relative}
+  section+section::before{content:"";position:absolute;left:0;right:0;top:-1px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold-border),transparent);opacity:.5}
+
+  /* нумерованный eyebrow с градиентным подчёркиванием */
+  .sec-num{position:relative}
+  .sec-num::after{content:"";position:absolute;left:11px;right:11px;bottom:-4px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold-fill),transparent)}
+
+  /* ---- YouTube решение: ветка go / hold выразительнее ---- */
   .tree{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
-  .branch{border-radius:14px;padding:18px 20px;border:1px solid var(--line2)}
-  .branch.go{background:var(--pub-soft);border-color:var(--pub-soft)}
-  .branch.hold{background:var(--s2);opacity:.92}
-  .branch .bl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
-  .branch.go .bl{color:var(--keep)}.branch.hold .bl{color:var(--ink3)}
-  .branch h4{font-size:17px;font-weight:800;margin-bottom:8px}
+  .branch{position:relative;border-radius:var(--radius);padding:20px 22px;border:1px solid var(--line2);
+    box-shadow:var(--shadow);overflow:hidden;transition:transform .22s var(--ease),box-shadow .22s}
+  .branch:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .branch::after{content:"";position:absolute;top:-40px;right:-30px;width:150px;height:150px;border-radius:50%;
+    filter:blur(34px);opacity:.6;pointer-events:none}
+  .branch.go{background:var(--pub-soft);border-color:color-mix(in srgb,var(--keep) 34%,transparent)}
+  .branch.go::after{background:var(--pub-soft)}
+  .branch.hold{background:var(--s2)}
+  .branch.hold::after{background:var(--sgl-soft)}
+  .branch>*{position:relative}
+  .branch .bl{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:10px;padding:5px 11px;border-radius:var(--radius-pill)}
+  .branch.go .bl{color:var(--keep);background:color-mix(in srgb,var(--keep) 14%,transparent)}
+  .branch.hold .bl{color:var(--rdy);background:var(--sgl-soft)}
+  .branch .bl svg{display:block;flex:none}
+  .branch h4{font-size:17px;font-weight:800;margin-bottom:8px;letter-spacing:-.015em}
   .branch p{font-size:14px;color:var(--ink2);margin-bottom:7px}.branch p b{color:var(--ink)}
-  .types{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
-  .typ{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .typ .tn{font-size:14px;font-weight:700;margin-bottom:4px}.typ p{font-size:12.5px;color:var(--ink2);line-height:1.45}
-  .spec{list-style:none;margin:9px 0 0;padding:9px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:5px}
-  .spec li{font-size:12px;color:var(--ink2);line-height:1.4}.spec li b{color:var(--ink);font-weight:700}
+  .branch p:last-child{margin-bottom:0}
+
+  /* ---- спеки форматов: карточки-спеки с иконкой ---- */
+  .types{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .typ{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;box-shadow:var(--shadow);overflow:hidden;transition:transform .22s var(--ease-spring),box-shadow .22s var(--ease-out),border-color .22s}
+  .typ:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
+  .typ::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:3px;
+    background:linear-gradient(180deg,var(--gold-fill),transparent)}
+  .typ-head{display:flex;align-items:center;gap:11px;margin-bottom:5px}
+  .typ-ic{flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+    background:var(--gold-soft);color:var(--gold);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold-fill) 30%,transparent)}
+  .typ-ic svg{display:block;width:18px;height:18px}
+  .typ .tn{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+  .typ p{font-size:12.5px;color:var(--ink2);line-height:1.45}
+  .spec{list-style:none;margin:11px 0 0;padding:11px 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+  .spec li{font-size:12px;color:var(--ink2);line-height:1.42;padding-left:18px;position:relative}
+  .spec li b{color:var(--ink);font-weight:700}
+  .spec li::before{content:"";position:absolute;left:2px;top:6px;width:6px;height:6px;border-radius:50%;
+    background:var(--gold-fill);opacity:.75}
   .spec li.err b{color:var(--rdy)}
-  /* референсы: равняемся / не равняемся */
+  .spec li.err::before{background:var(--rdy);border-radius:1px;opacity:.9}
+
+  /* ---- референсы: равняемся / не равняемся ---- */
   .refgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
   @media(max-width:820px){.refgrid{grid-template-columns:1fr}}
-  .refcol{border:1px solid var(--line2);border-radius:14px;padding:16px 18px}
-  .refcol.g{background:var(--gg-soft)}.refcol.v{background:var(--gold-soft)}
-  .refcol h4{font-size:15px;font-weight:800;margin-bottom:10px}
-  .refsub{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:12px 0 6px}
-  .refsub.yes{color:var(--keep)}.refsub.no{color:var(--rdy)}
-  .refcol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
-  .refcol li{font-size:12.8px;color:var(--ink2);line-height:1.45;padding-left:16px;position:relative}
-  .refcol li::before{position:absolute;left:0;top:0}
-  .refsub.yes ~ ul li::before{content:"✓";color:var(--keep);font-weight:800}
-  .refsub.no ~ ul li::before{content:"✕";color:var(--rdy);font-weight:800}
+  .refcol{position:relative;border:1px solid var(--line2);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:var(--shadow);overflow:hidden;transition:transform .22s var(--ease-spring),box-shadow .22s var(--ease-out)}
+  .refcol:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .refcol::after{content:"";position:absolute;top:-40px;right:-30px;width:160px;height:160px;border-radius:50%;
+    filter:blur(36px);opacity:.7;pointer-events:none}
+  .refcol.g{background:var(--gg-soft)}.refcol.g::after{background:var(--gg-soft)}
+  .refcol.v{background:var(--gold-soft)}.refcol.v::after{background:var(--gold-soft)}
+  .refcol>*{position:relative}
+  .refcol h4{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:800;margin-bottom:10px;letter-spacing:-.01em}
+  .refcol.g h4{color:var(--gg-ink)}.refcol.v h4{color:var(--v-ink)}
+  .refcol h4::before{content:"";width:9px;height:9px;border-radius:50%;flex:none}
+  .refcol.g h4::before{background:var(--gg)}.refcol.v h4::before{background:var(--gold-fill)}
+  .refsub{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.05em;
+    text-transform:uppercase;margin:14px 0 8px;padding:4px 10px;border-radius:var(--radius-pill)}
+  .refsub.yes{color:var(--keep);background:color-mix(in srgb,var(--keep) 13%,transparent)}
+  .refsub.no{color:var(--rdy);background:var(--sgl-soft)}
+  .refcol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .refcol li{font-size:12.8px;color:var(--ink2);line-height:1.45;padding-left:20px;position:relative}
+  .refcol li::before{position:absolute;left:0;top:0;font-weight:800}
+  .refsub.yes ~ ul li::before{content:"✓";color:var(--keep)}
+  .refsub.no ~ ul li::before{content:"✕";color:var(--rdy)}
   .refcol li b{color:var(--ink);font-weight:700}
-  /* глоссарий */
+
+  /* ---- глоссарий ---- */
   .gloss{columns:2;column-gap:26px;margin-top:6px}
   @media(max-width:720px){.gloss{columns:1}}
-  .gloss dt{font-weight:800;font-size:13.5px;color:var(--ink);margin-top:12px;break-after:avoid}
+  .gloss dt{font-weight:800;font-size:13.5px;color:var(--ink);margin-top:14px;break-after:avoid;
+    padding-left:13px;position:relative}
+  .gloss dt::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:3px;border-radius:3px;background:var(--gold-fill)}
   .gloss dt:first-child{margin-top:0}
-  .gloss dd{margin:2px 0 0;font-size:12.8px;color:var(--ink2);line-height:1.5;break-inside:avoid}
+  .gloss dd{margin:3px 0 0 13px;font-size:12.8px;color:var(--ink2);line-height:1.5;break-inside:avoid}
+
   @media(max-width:820px){.tree,.types{grid-template-columns:1fr}}
 </style>
 </head>
@@ -51,7 +115,7 @@
 <a class="skip" href="#main">К содержанию</a>
 <div class="prog" id="prog" aria-hidden="true"></div>
 <header class="top"><div class="top-in">
-  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</div>
+  <a class="brand" href="plan.html" style="text-decoration:none" aria-label="GENGROUP SMM - к контент-плану"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</a>
   <nav class="nav" aria-label="Разделы сайта">
     <a href="plan.html"><span class="n">01</span>Контент-план</a>
     <a href="index.html"><span class="n">02</span>Платформа бренда</a>
@@ -78,14 +142,14 @@
     </div>
     <div class="tree" data-annotate-section data-annotate-key="content-youtube" data-annotate-label="Решение по YouTube">
       <div class="branch go">
-        <div class="bl">✓ Выбрано · делаем сейчас</div>
+        <div class="bl"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Выбрано · делаем сейчас</div>
         <h4>Один канал на базе GENGLASS</h4>
         <p><b>Ведём YouTube/RuTube под GENGLASS</b> как базу длинного видео. Из него режем вертикальные нарезки под Instagram / VK / TG.</p>
         <p><b>VALONTI подсвечиваем ВНУТРИ</b> этой базы (рубрика про кастом, мастеров, материалы) - отдельный канал не открываем.</p>
         <p>Почему: GENGLASS массовее, быстрее набирает базу и окупает съёмочный цикл, кормит нарезки всех каналов. VALONTI-контент внутри = демонстрация производственной мощи группы (якорь доверия).</p>
       </div>
       <div class="branch hold">
-        <div class="bl">○ Отложено · по триггеру</div>
+        <div class="bl"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Отложено · по триггеру</div>
         <h4>Отдельный канал VALONTI</h4>
         <p>Откроем при выполнении любого условия (порог - <span class="hyp">ГИПОТЕЗА</span>, заполняет команда):</p>
         <p>- GENGLASS-канал стабильно набрал базу за 6+ месяцев;<br>- накоплено достаточно VALONTI-кейсов под отдельную сетку;<br>- запущен закрытый клуб VALONTI, которому нужен закрытый видеоформат.</p>
@@ -101,17 +165,17 @@
     </div>
     <p class="sec-sub" style="margin:-6px 0 14px">Это не просто список, а спека: формат, длительность и правило хука. Открываешь карточку поста на «Контент-плане» - там поле «как снять» с такой же спекой под конкретный пост.</p>
     <div class="types" data-annotate-section data-annotate-key="content-types" data-annotate-label="Виды контента и спеки">
-      <div class="typ"><div class="tn">Reels / вертикаль</div><p>Нарезки из длинного, до/после, монтаж, скорость, эффект.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="m10.5 9 4 3-4 3z" fill="currentColor" stroke="none"/></svg></span><div class="tn">Reels / вертикаль</div></div><p>Нарезки из длинного, до/после, монтаж, скорость, эффект.</p>
         <ul class="spec"><li><b>Формат:</b> 9:16, 15-30с (макс 90)</li><li><b>Хук:</b> сильный кадр или звук в первые 3с</li><li><b>Можно:</b> чистый звук процесса, субтитры, тренд-аудио (GENGLASS)</li><li class="err"><b>Ошибка:</b> главное показали на 10-й секунде - досмотра нет</li></ul></div>
-      <div class="typ"><div class="tn">Карусели</div><p>«Как выбрать», разбор материала, сравнение, гайды под сохранение.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="4" width="10" height="16" rx="2"/><path d="M4 7v10M20 7v10"/></svg></span><div class="tn">Карусели</div></div><p>«Как выбрать», разбор материала, сравнение, гайды под сохранение.</p>
         <ul class="spec"><li><b>Формат:</b> 4:5, 6-10 слайдов</li><li><b>Хук:</b> первый слайд - повод сохранить</li><li><b>Можно:</b> чек-лист, сравнение, одна мысль на слайд</li><li class="err"><b>Ошибка:</b> мелкий текст, слайды-простыни</li></ul></div>
-      <div class="typ"><div class="tn">Stories</div><p>FAQ, backstage, опросы, статусы заказа, оперативка.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke-dasharray="3.4 2.6"/><circle cx="12" cy="12" r="3.5"/></svg></span><div class="tn">Stories</div></div><p>FAQ, backstage, опросы, статусы заказа, оперативка.</p>
         <ul class="spec"><li><b>Формат:</b> 9:16, 5-15с на кадр, живут 24ч</li><li><b>Можно:</b> стикеры-опросы, обратный отсчёт, статус заказа</li><li class="err"><b>Ошибка:</b> важное только в Stories - исчезнет, дублируй в хайлайт</li></ul></div>
-      <div class="typ"><div class="tn">Длинное видео</div><p>Только GENGLASS-база: процесс, производство, обзоры, мастера.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="m10 9.5 5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg></span><div class="tn">Длинное видео</div></div><p>Только GENGLASS-база: процесс, производство, обзоры, мастера.</p>
         <ul class="spec"><li><b>Формат:</b> 16:9, YouTube/RuTube, 5-15 мин</li><li><b>Хук:</b> зацепка в первые 15с</li><li><b>Можно:</b> сразу режем на 3-5 вертикальных нарезок</li><li class="err"><b>Ошибка:</b> снимать без плана нарезок - материал не разойдётся</li></ul></div>
-      <div class="typ"><div class="tn">Ситуатив / спецзаказы</div><p>Нестандартные реализации с колёс, топливо VALONTI-кейсов.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4.5 13H11l-1 9 8.5-11H12z" fill="currentColor" stroke="none"/></svg></span><div class="tn">Ситуатив / спецзаказы</div></div><p>Нестандартные реализации с колёс, топливо VALONTI-кейсов.</p>
         <ul class="spec"><li><b>Формат:</b> любой, скорость важнее полировки</li><li><b>Можно:</b> снять «с колёс» нестандартный заказ, инфоповод</li><li class="err"><b>Ошибка:</b> ждать идеального света и упустить момент</li></ul></div>
-      <div class="typ"><div class="tn">Pinterest-пины</div><p>Статичная эстетика интерьеров. Pull-канал, особенно для B2D.</p>
+      <div class="typ"><div class="typ-head"><span class="typ-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M4 15l4-4 3.5 3.5L16 10l4 4"/><circle cx="9" cy="8" r="1.4" fill="currentColor" stroke="none"/></svg></span><div class="tn">Pinterest-пины</div></div><p>Статичная эстетика интерьеров. Pull-канал, особенно для B2D.</p>
         <ul class="spec"><li><b>Формат:</b> 2:3 (1000×1500), статика</li><li><b>Можно:</b> spec-карточка материала под сохранение в доску</li><li class="err"><b>Ошибка:</b> пин без подписи и без ссылки на сайт</li></ul></div>
     </div>
   </section>

@@ -10,38 +10,92 @@
 <script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
 <link rel="stylesheet" href="brand-site.css">
 <style>
-  details.seg{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
-  details.seg>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  /* hero: радиальный gold-glow за H1 */
+  .hero{position:relative}
+  .hero::before{content:"";position:absolute;z-index:-1;top:-90px;left:-6%;width:min(560px,78%);height:340px;
+    background:radial-gradient(closest-side,var(--glow1),transparent 72%);filter:blur(14px);pointer-events:none;opacity:.9}
+  .hero .lead{position:relative}
+
+  /* тонкие градиентные хайрлайн-разделители между секциями */
+  section{position:relative}
+  section:not(:first-of-type){border-top:none}
+  section:not(:first-of-type)::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--line2) 18%,var(--line2) 82%,transparent);opacity:.85}
+
+  /* нумерованный eyebrow с градиентным подчёркиванием */
+  .sec-num{position:relative;background:linear-gradient(180deg,color-mix(in srgb,var(--gold-soft) 92%,transparent),var(--gold-soft));
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold-fill) 26%,transparent)}
+  .sec-num::after{content:"";position:absolute;left:11px;right:11px;bottom:-6px;height:2px;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold-fill),transparent);opacity:.8}
+
+  /* сегменты: мягкая тень + hover-подъём + брендовый глоу-мотив */
+  details.seg{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;
+    box-shadow:var(--shadow);transition:transform .22s var(--ease-spring),box-shadow .22s var(--ease-out),border-color .22s}
+  details.seg:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line2)}
+  details.seg[open]{border-color:var(--line2)}
+  details.seg>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;gap:11px;font-weight:700;font-size:15px}
   details.seg>summary::-webkit-details-marker{display:none}
-  details.seg>summary .chev{margin-left:auto;color:var(--ink3);transition:.2s}
-  details.seg[open]>summary .chev{transform:rotate(90deg)}
+  details.seg>summary .sdot{flex:0 0 auto;width:8px;height:8px;border-radius:50%}
+  details.seg.gg>summary .sdot{background:var(--gg);box-shadow:0 0 0 4px var(--gg-soft)}
+  details.seg.v>summary .sdot{background:var(--gold-fill);box-shadow:0 0 0 4px var(--gold-soft)}
+  details.seg>summary .chev{margin-left:auto;color:var(--ink3);transition:transform .25s var(--ease)}
+  details.seg[open]>summary .chev{transform:rotate(90deg);color:var(--gold)}
   details.seg.gg>summary{background-image:linear-gradient(90deg,var(--gg-soft),transparent 55%)} details.seg.v>summary{background-image:linear-gradient(90deg,var(--gold-soft),transparent 55%)}
-  .seg-body{padding:0 16px 14px;font-size:13.5px;color:var(--ink2)}
-  .seg-body .row{margin-top:8px}.seg-body .row .k{color:var(--ink);font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+  .seg-body{padding:2px 16px 14px;font-size:13.5px;color:var(--ink2)}
+  .seg-body .row{margin-top:9px;padding-left:13px;position:relative}
+  .seg-body .row::before{content:"";position:absolute;left:0;top:6px;width:5px;height:5px;border-radius:50%;background:var(--line2)}
+  details.seg.gg .seg-body .row::before{background:var(--gg)}
+  details.seg.v .seg-body .row::before{background:var(--gold-fill)}
+  .seg-body .row .k{color:var(--ink);font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
   .cjm td .a{color:var(--ink);font-weight:600}.cjm td .e{color:var(--v);font-size:12.5px}.cjm td .t{color:var(--ink3);font-size:12.5px}
-  .mood{font-size:12px;color:var(--ink3);margin-top:6px}
+  .cjm table tr td:first-child b{position:relative}
+  .mood{font-size:12px;color:var(--ink3);margin-top:8px;padding:9px 13px;border-radius:var(--radius-s);
+    background:var(--s2);box-shadow:inset 0 0 0 1px var(--line)}
   .og.two{grid-template-columns:repeat(2,1fr)}
   @media(max-width:640px){.og.two{grid-template-columns:1fr}}
   .ocard h5,.ocard p{overflow-wrap:anywhere;word-break:break-word}
+  .ocard{position:relative;overflow:hidden}
+  .ocard::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:linear-gradient(180deg,var(--gold-fill),transparent);opacity:.5}
+
+  /* CJM: заголовки дорожек с брендовым маркером */
+  .cjm-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;margin:0 0 12px}
+  .cjm-title .bd{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+  .cjm-title.g{color:var(--gg)}.cjm-title.g .bd{background:var(--gg);box-shadow:0 0 0 4px var(--gg-soft)}
+  .cjm-title.v{color:var(--v)}.cjm-title.v .bd{background:var(--gold-fill);box-shadow:0 0 0 4px var(--gold-soft)}
+
   /* библиотека болей: боль -> вопрос -> что закрывает */
-  .painbrand{font-size:15px;font-weight:800;margin:24px 0 10px;display:flex;align-items:center;gap:9px}
-  .painbrand .bd{width:9px;height:9px;border-radius:50%}.painbrand.g .bd{background:var(--gg)}.painbrand.v .bd{background:var(--gold-fill)}
-  .painlib{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .painbrand{font-size:15px;font-weight:800;margin:24px 0 12px;display:flex;align-items:center;gap:9px}
+  .painbrand .bd{width:9px;height:9px;border-radius:50%}
+  .painbrand.g .bd{background:var(--gg);box-shadow:0 0 0 4px var(--gg-soft)}.painbrand.v .bd{background:var(--gold-fill);box-shadow:0 0 0 4px var(--gold-soft)}
+  .painlib{border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:var(--s1)}
   .painhead,.painrow{display:grid;grid-template-columns:1fr 1.15fr .95fr;gap:14px;padding:11px 16px}
   .painhead{background:var(--s2);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3)}
-  .painrow{border-top:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:start}
+  .painrow{border-top:1px solid var(--line);font-size:13.5px;line-height:1.5;align-items:start;transition:background .18s var(--ease)}
   .painrow:nth-of-type(even){background:var(--s1)}
-  .p-pain{color:var(--ink2)}.p-q{color:var(--ink);font-style:italic}.p-close{color:var(--ink2)}.p-close b{color:var(--ink);font-style:normal}
-  @media(max-width:760px){.painhead{display:none}.painrow{grid-template-columns:1fr;gap:6px;padding:13px 15px}
+  .painrow:hover{background:var(--s2)}
+  .p-pain{color:var(--ink2)}
+  /* акцент на вопросе клиента: тонкая цитата-планка */
+  .p-q{color:var(--ink);font-style:italic;position:relative;padding-left:12px}
+  .p-q::after{content:"";position:absolute;left:0;top:2px;bottom:2px;width:2px;border-radius:2px;background:var(--gold-fill);opacity:.55}
+  /* тонкая иконка-стрелка боль -> закрытие */
+  .p-close{color:var(--ink2);display:flex;gap:8px;align-items:flex-start}
+  .p-close .arw{flex:0 0 auto;margin-top:2px;color:var(--gold);opacity:.9}
+  .p-close b{color:var(--ink);font-style:normal}
+  @media(max-width:760px){.painhead{display:none}.painrow{grid-template-columns:1fr;gap:7px;padding:14px 15px}
+    .p-q{padding-left:11px}
     .p-q::before{content:"Вопрос клиента: ";font-style:normal;color:var(--ink3);font-size:11px;font-weight:700}
-    .p-close::before{content:"Закрывает: ";color:var(--ink3);font-size:11px;font-weight:700}}
+    .p-close::before{content:"Закрывает: ";color:var(--ink3);font-size:11px;font-weight:700;flex-basis:100%}}
+
+  /* мотив-разделитель между брендами внутри болей */
+  .painsplit{height:1px;margin:34px 0 4px;background:linear-gradient(90deg,transparent,var(--line2),transparent);opacity:.7}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">К содержанию</a>
 <div class="prog" id="prog" aria-hidden="true"></div>
 <header class="top"><div class="top-in">
-  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</div>
+  <a class="brand" href="plan.html" aria-label="GENGROUP SMM - к контент-плану" style="text-decoration:none"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</a>
   <nav class="nav" aria-label="Разделы сайта">
     <a href="plan.html"><span class="n">01</span>Контент-план</a>
     <a href="index.html"><span class="n">02</span>Платформа бренда</a>
@@ -58,6 +112,16 @@
     <div class="kicker"><span class="bar"></span>ЦЕЛЕВАЯ АУДИТОРИЯ · СЕГМЕНТЫ + ПЕРЕСЕЧЕНИЕ + ПУТЬ КЛИЕНТА</div>
     <h1>Для кого мы делаем контент. <span class="hl">Серьёзная сегментация в сравнении.</span></h1>
     <p class="lead">Нажми на сегмент - раскроется <b>JTBD</b> (работа, на которую нанимают бренд), боли, триггеры и возражения. Слева B2C-сегменты GENGLASS, справа B2D-сегменты VALONTI, в центре - зона пересечения. Где аудитория совпадает - это не конкуренция, а лестница.</p>
+    <svg class="hero-motif" viewBox="0 0 220 60" width="220" height="60" fill="none" aria-hidden="true" style="margin-top:24px;overflow:visible">
+      <circle cx="34" cy="30" r="26" fill="var(--gg-soft)" stroke="var(--gg)" stroke-width="1.4" opacity=".9"/>
+      <circle cx="72" cy="30" r="26" fill="var(--gold-soft)" stroke="var(--gold-fill)" stroke-width="1.4" opacity=".9"/>
+      <text x="20" y="34" font-size="11" font-weight="800" fill="var(--gg-ink)">G</text>
+      <text x="82" y="34" font-size="11" font-weight="800" fill="var(--v-ink)">V</text>
+      <path d="M108 30h96" stroke="var(--line2)" stroke-width="1.4" stroke-dasharray="2 5" stroke-linecap="round"/>
+      <path d="M198 24l8 6-8 6" stroke="var(--gold)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="112" y="20" font-size="9" font-weight="700" letter-spacing=".08em" fill="var(--ink3)">ЛЕСТНИЦА</text>
+      <text x="112" y="46" font-size="9" font-weight="600" fill="var(--ink3)">серия → кастом</text>
+    </svg>
   </section>
 
   <section class="reveal">
@@ -72,25 +136,25 @@
     </div>
     <div class="cmp" data-annotate-section>
       <div>
-        <details class="seg gg" open><summary>Финишер ремонта <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg gg" open><summary><span class="sdot" aria-hidden="true"></span>Финишер ремонта <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> закрыть ремонт красивой надёжной вещью без эпопеи.</div>
           <div class="row"><span class="k">Боли:</span> долго искал, боится брака, устал от стройки.</div>
           <div class="row"><span class="k">Триггеры:</span> финальная стадия отделки, насмотренность в Reels/Pinterest, дедлайн заезда.</div>
           <div class="row"><span class="k">Возражения:</span> «вдруг не привезут / сколется», «сколько стоит монтаж».</div>
         </div></details>
-        <details class="seg gg"><summary>Апгрейдер интерьера <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg gg"><summary><span class="sdot" aria-hidden="true"></span>Апгрейдер интерьера <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> обновить зону, не ломая весь интерьер.</div>
           <div class="row"><span class="k">Боли:</span> не уверен, что подойдёт к текущему.</div>
           <div class="row"><span class="k">Триггеры:</span> сезон, акция, насмотренность в ленте.</div>
           <div class="row"><span class="k">Возражения:</span> «впишется ли по размеру и стилю».</div>
         </div></details>
-        <details class="seg gg"><summary>Загородный дом <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg gg"><summary><span class="sdot" aria-hidden="true"></span>Загородный дом <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> оснастить дом долговечным серийным решением.</div>
           <div class="row"><span class="k">Боли:</span> большие площади, нестандартные проёмы.</div>
           <div class="row"><span class="k">Триггеры:</span> этап чистовой отделки дома.</div>
           <div class="row"><span class="k">Возражения:</span> «хватит ли серийных размеров».</div>
         </div></details>
-        <details class="seg gg"><summary>Практичный рациональный <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg gg"><summary><span class="sdot" aria-hidden="true"></span>Практичный рациональный <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> хорошее исполнение за честную цену без переплаты за имя.</div>
           <div class="row"><span class="k">Боли:</span> не хочет переплачивать за «бренд».</div>
           <div class="row"><span class="k">Триггеры:</span> сравнение карточек на маркетплейсе, отзывы.</div>
@@ -98,25 +162,25 @@
         </div></details>
       </div>
       <div>
-        <details class="seg v" open><summary>Дизайнер-партнёр Tier 1 <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg v" open><summary><span class="sdot" aria-hidden="true"></span>Дизайнер-партнёр Tier 1 <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> реализовать замысел в премиум-материалах руками мастеров, без компромисса.</div>
           <div class="row"><span class="k">Боли:</span> фабрики режут нестандарт, срывают сроки, портят подачу.</div>
           <div class="row"><span class="k">Триггеры:</span> новый проект под конкретное ТЗ, рекомендация коллеги.</div>
           <div class="row"><span class="k">Возражения:</span> «сделаете ли точно по чертежу», «не подведёте по срокам», «бонус партнёру».</div>
         </div></details>
-        <details class="seg v"><summary>Архитектор / студия <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg v"><summary><span class="sdot" aria-hidden="true"></span>Архитектор / студия <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> производство под кастом, которое держит геометрию и материал.</div>
           <div class="row"><span class="k">Боли:</span> мало кто берёт сложную геометрию.</div>
           <div class="row"><span class="k">Триггеры:</span> стадия рабочей документации.</div>
           <div class="row"><span class="k">Возражения:</span> «покажите похожие реализованные», «допуски».</div>
         </div></details>
-        <details class="seg v"><summary>Декоратор / стилист <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg v"><summary><span class="sdot" aria-hidden="true"></span>Декоратор / стилист <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> закрыть штучную позицию, которой нет в серии.</div>
           <div class="row"><span class="k">Боли:</span> серия не даёт нужного образа.</div>
           <div class="row"><span class="k">Триггеры:</span> финальная комплектация объекта.</div>
           <div class="row"><span class="k">Возражения:</span> «минимальный заказ», «сроки на штуку».</div>
         </div></details>
-        <details class="seg v"><summary>Вектор роста: B2B (HoReCa / премиум-офис) <span class="chev">›</span></summary><div class="seg-body">
+        <details class="seg v"><summary><span class="sdot" aria-hidden="true"></span>Вектор роста: B2B (HoReCa / премиум-офис) <span class="chev">›</span></summary><div class="seg-body">
           <div class="row"><span class="k">JTBD:</span> кастом под объект по ТЗ и тендеру.</div>
           <div class="row"><span class="k">Заметка:</span> цикл длинный, ЛПР = архитектор + заказчик + бухгалтер. Пока не основной, показываем как направление роста.</div>
         </div></details>
@@ -134,35 +198,36 @@
     <h3 class="painbrand g"><span class="bd"></span>GENGLASS · B2C · 12 болей</h3>
     <div class="painlib" data-annotate-section data-annotate-key="pains-g" data-annotate-label="Библиотека болей GENGLASS">
       <div class="painhead"><span>Боль</span><span>Вопрос в голове клиента</span><span>Закрывает</span></div>
-      <div class="painrow"><div class="p-pain">Боится, что стеклянная перегородка или зеркало приедет со сколом или треснет в дороге</div><div class="p-q">«А если разобьётся при доставке - кто отвечает и за чей счёт переделка?»</div><div class="p-close"><b>Грабли ремонта</b> · говорящая голова + b-roll</div></div>
-      <div class="painrow"><div class="p-pain">Не понимает финальную цену: в карточке одна сумма, а монтаж, замер и доставка отдельно</div><div class="p-q">«Сколько в итоге выйдет с монтажом, а не только ценник на сайте?»</div><div class="p-close"><b>Сколько стоит на самом деле</b> · карусель + Reels</div></div>
-      <div class="painrow"><div class="p-pain">Проём нестандартный, боится что серийная перегородка не встанет по размеру</div><div class="p-q">«У меня проём не 2000, влезет ли ваша перегородка или нужен только заказ?»</div><div class="p-close"><b>Этот VS тот</b> · карусель, split Reels</div></div>
-      <div class="painrow"><div class="p-pain">Сравнивает с дешёвыми аналогами на маркетплейсе и не видит, за что переплата</div><div class="p-q">«Чем ваше зеркало за 40 тысяч лучше такого же за 12?»</div><div class="p-close"><b>Этот VS тот</b> · карусель, split Reels</div></div>
-      <div class="painrow"><div class="p-pain">Устал от ремонта, не верит обещанным срокам - уже ждал у других и сорвалось</div><div class="p-q">«За сколько реально изготовят, а не "в кратчайшие сроки"?»</div><div class="p-close"><b>Грабли ремонта</b> · говорящая голова + b-roll</div></div>
-      <div class="painrow"><div class="p-pain">Не уверен, что новый предмет впишется к уже сделанному интерьеру</div><div class="p-q">«Подойдёт ли золотая рама к моей плитке и текущему свету?»</div><div class="p-close"><b>До/после</b> · Reels, split-screen</div></div>
-      <div class="painrow"><div class="p-pain">Сомневается в гарантии: купит, а через полгода отвалится крепёж или потускнеет</div><div class="p-q">«Какая гарантия и что делаете, если брак вылез после монтажа?»</div><div class="p-close"><b>Отзыв / кейс клиента</b> · UGC Reels + Stories</div></div>
-      <div class="painrow"><div class="p-pain">Не понимает, как крепится - боится сверлить плитку, портить стену</div><div class="p-q">«Как это вешается и не треснет ли стена или плитка от монтажа?»</div><div class="p-close"><b>Каталог в кадре</b> · Reels-листалка, Stories</div></div>
-      <div class="painrow"><div class="p-pain">Загородный дом, большие площади и высокие потолки - боится, что серийных размеров не хватит</div><div class="p-q">«Перегородка под потолок 3 метра у вас серийная или только индивидуально?»</div><div class="p-close"><b>Каталог в кадре</b> · Reels-листалка, Stories</div></div>
-      <div class="painrow"><div class="p-pain">Не доверяет фото на сайте, подозревает что вживую материал дешевит</div><div class="p-q">«Как реально выглядит рифлёное стекло и керамическая столешница, а не в рекламе?»</div><div class="p-close"><b>ASMR-процесс</b> · Reels, чистый звук</div></div>
-      <div class="painrow"><div class="p-pain">Выбирает между готовым из каталога и заказом по своим размерам, не понимает разницы</div><div class="p-q">«Взять готовый стол TUBARIS или заказать под мой размер - что быстрее и дороже?»</div><div class="p-close"><b>Сколько стоит на самом деле</b> · карусель + Reels</div></div>
-      <div class="painrow"><div class="p-pain">Тревога ожидания после оплаты: деньги отдал, а что с заказом - непонятно</div><div class="p-q">«Я оплатил, на каком этапе мой заказ и когда привезут?»</div><div class="p-close"><b>Отзыв / кейс клиента</b> · UGC Reels + Stories</div></div>
+      <div class="painrow"><div class="p-pain">Боится, что стеклянная перегородка или зеркало приедет со сколом или треснет в дороге</div><div class="p-q">«А если разобьётся при доставке - кто отвечает и за чей счёт переделка?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Грабли ремонта</b> · говорящая голова + b-roll</span></div></div>
+      <div class="painrow"><div class="p-pain">Не понимает финальную цену: в карточке одна сумма, а монтаж, замер и доставка отдельно</div><div class="p-q">«Сколько в итоге выйдет с монтажом, а не только ценник на сайте?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Сколько стоит на самом деле</b> · карусель + Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Проём нестандартный, боится что серийная перегородка не встанет по размеру</div><div class="p-q">«У меня проём не 2000, влезет ли ваша перегородка или нужен только заказ?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Этот VS тот</b> · карусель, split Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Сравнивает с дешёвыми аналогами на маркетплейсе и не видит, за что переплата</div><div class="p-q">«Чем ваше зеркало за 40 тысяч лучше такого же за 12?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Этот VS тот</b> · карусель, split Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Устал от ремонта, не верит обещанным срокам - уже ждал у других и сорвалось</div><div class="p-q">«За сколько реально изготовят, а не "в кратчайшие сроки"?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Грабли ремонта</b> · говорящая голова + b-roll</span></div></div>
+      <div class="painrow"><div class="p-pain">Не уверен, что новый предмет впишется к уже сделанному интерьеру</div><div class="p-q">«Подойдёт ли золотая рама к моей плитке и текущему свету?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>До/после</b> · Reels, split-screen</span></div></div>
+      <div class="painrow"><div class="p-pain">Сомневается в гарантии: купит, а через полгода отвалится крепёж или потускнеет</div><div class="p-q">«Какая гарантия и что делаете, если брак вылез после монтажа?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Отзыв / кейс клиента</b> · UGC Reels + Stories</span></div></div>
+      <div class="painrow"><div class="p-pain">Не понимает, как крепится - боится сверлить плитку, портить стену</div><div class="p-q">«Как это вешается и не треснет ли стена или плитка от монтажа?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Каталог в кадре</b> · Reels-листалка, Stories</span></div></div>
+      <div class="painrow"><div class="p-pain">Загородный дом, большие площади и высокие потолки - боится, что серийных размеров не хватит</div><div class="p-q">«Перегородка под потолок 3 метра у вас серийная или только индивидуально?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Каталог в кадре</b> · Reels-листалка, Stories</span></div></div>
+      <div class="painrow"><div class="p-pain">Не доверяет фото на сайте, подозревает что вживую материал дешевит</div><div class="p-q">«Как реально выглядит рифлёное стекло и керамическая столешница, а не в рекламе?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>ASMR-процесс</b> · Reels, чистый звук</span></div></div>
+      <div class="painrow"><div class="p-pain">Выбирает между готовым из каталога и заказом по своим размерам, не понимает разницы</div><div class="p-q">«Взять готовый стол TUBARIS или заказать под мой размер - что быстрее и дороже?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Сколько стоит на самом деле</b> · карусель + Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Тревога ожидания после оплаты: деньги отдал, а что с заказом - непонятно</div><div class="p-q">«Я оплатил, на каком этапе мой заказ и когда привезут?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Отзыв / кейс клиента</b> · UGC Reels + Stories</span></div></div>
     </div>
 
+    <div class="painsplit" aria-hidden="true"></div>
     <h3 class="painbrand v"><span class="bd"></span>VALONTI · B2D · 12 болей <span style="font-weight:600;color:var(--ink3);font-size:12.5px">(KPI = контакты дизайнеров, не охваты)</span></h3>
     <div class="painlib" data-annotate-section data-annotate-key="pains-v" data-annotate-label="Библиотека болей VALONTI">
       <div class="painhead"><span>Боль</span><span>Вопрос в голове дизайнера</span><span>Закрывает</span></div>
-      <div class="painrow"><div class="p-pain">Фабрики режут нестандарт, упрощают геометрию под свой станок - проект теряет замысел</div><div class="p-q">«Сделаете точно по моему чертежу или предложите "как у нас принято"?»</div><div class="p-close"><b>Нестандарт под объект</b> · кейс-карусель + Reels</div></div>
-      <div class="painrow"><div class="p-pain">Страх срыва срока: дизайнер подписал клиенту дату сдачи, а подрядчик подведёт</div><div class="p-q">«Реально уложитесь в 2-4 недели на bespoke или это маркетинг?»</div><div class="p-close"><b>Рождение изделия</b> · длинное → нарезки</div></div>
-      <div class="painrow"><div class="p-pain">Не верит, что производство потянет сложный материал (оникс, тонкий honed-камень) без сколов кромки</div><div class="p-q">«Вы реально работаете с ониксом или только с агломератом?»</div><div class="p-close"><b>Материал крупно</b> · Reels макро, чистый звук</div></div>
-      <div class="painrow"><div class="p-pain">Боится за стык слэбов и совпадение рисунка камня - на объекте будет виден шов</div><div class="p-q">«Как стыкуете слэбы, чтобы прожилка шла единым узором, а не в разнобой?»</div><div class="p-close"><b>Деталь, которую не видит заказчик</b> · макро Reels + текст</div></div>
-      <div class="painrow"><div class="p-pain">Нужно согласовать материал с заказчиком, а по фото с экрана оттенок и фактуру не передать</div><div class="p-q">«Дадите образцы материалов в руки, чтобы я показал клиенту до запуска?»</div><div class="p-close"><b>Spec / palette drop</b> · Pinterest-пины + карусель</div></div>
-      <div class="painrow"><div class="p-pain">Монтажники-подрядчики царапают финишные покрытия и пол на готовом объекте</div><div class="p-q">«Кто монтирует и отвечаете ли за царапины на финише при установке?»</div><div class="p-close"><b>Мастер за работой</b> · Reels, драматичный свет</div></div>
-      <div class="painrow"><div class="p-pain">Просит подтверждение опыта - "покажите похожий реализованный объект", а не рендеры</div><div class="p-q">«Что вы уже сделали в таком масштабе и под такое ТЗ?»</div><div class="p-close"><b>Нестандарт под объект</b> · кейс-карусель + Reels</div></div>
-      <div class="painrow"><div class="p-pain">Не понимает допуски и металл: "покрытие" может оказаться обычной покраской, которая облезет</div><div class="p-q">«У вас PVD-осаждение или крашеный металл, который сотрётся за год?»</div><div class="p-close"><b>Деталь, которую не видит заказчик</b> · макро Reels + текст</div></div>
-      <div class="painrow"><div class="p-pain">Важна предсказуемость расчёта - сколько ждать смету и КП, чтобы вписать в тайминг проекта</div><div class="p-q">«За сколько посчитаете смету и пришлёте КП с визуализацией?»</div><div class="p-close"><b>Авторский разбор от Богдана</b> · говорящая голова, галерейный свет</div></div>
-      <div class="painrow"><div class="p-pain">Не доверяет молодому бренду - кто это вообще делает руками, есть ли реальное производство</div><div class="p-q">«За этим стоит реальный цех и мастера или перепродажа под красивым именем?»</div><div class="p-close"><b>Рождение изделия</b> · длинное → нарезки</div></div>
-      <div class="painrow"><div class="p-pain">Штучная позиция декоратору - боится высокого минимального заказа</div><div class="p-q">«Возьмёте один предмет под объект или работаете только от комплекта?»</div><div class="p-close"><b>Нестандарт под объект</b> · кейс-карусель + Reels</div></div>
-      <div class="painrow"><div class="p-pain">Нужен партнёрский бонус и понятные условия, чтобы заложить в проект клиента</div><div class="p-q">«Какие условия для дизайнеров - бонус, приоритет, визуализация?»</div><div class="p-close"><b>Авторский разбор от Богдана</b> · говорящая голова, галерейный свет</div></div>
+      <div class="painrow"><div class="p-pain">Фабрики режут нестандарт, упрощают геометрию под свой станок - проект теряет замысел</div><div class="p-q">«Сделаете точно по моему чертежу или предложите "как у нас принято"?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Нестандарт под объект</b> · кейс-карусель + Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Страх срыва срока: дизайнер подписал клиенту дату сдачи, а подрядчик подведёт</div><div class="p-q">«Реально уложитесь в 2-4 недели на bespoke или это маркетинг?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Рождение изделия</b> · длинное → нарезки</span></div></div>
+      <div class="painrow"><div class="p-pain">Не верит, что производство потянет сложный материал (оникс, тонкий honed-камень) без сколов кромки</div><div class="p-q">«Вы реально работаете с ониксом или только с агломератом?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Материал крупно</b> · Reels макро, чистый звук</span></div></div>
+      <div class="painrow"><div class="p-pain">Боится за стык слэбов и совпадение рисунка камня - на объекте будет виден шов</div><div class="p-q">«Как стыкуете слэбы, чтобы прожилка шла единым узором, а не в разнобой?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Деталь, которую не видит заказчик</b> · макро Reels + текст</span></div></div>
+      <div class="painrow"><div class="p-pain">Нужно согласовать материал с заказчиком, а по фото с экрана оттенок и фактуру не передать</div><div class="p-q">«Дадите образцы материалов в руки, чтобы я показал клиенту до запуска?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Spec / palette drop</b> · Pinterest-пины + карусель</span></div></div>
+      <div class="painrow"><div class="p-pain">Монтажники-подрядчики царапают финишные покрытия и пол на готовом объекте</div><div class="p-q">«Кто монтирует и отвечаете ли за царапины на финише при установке?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Мастер за работой</b> · Reels, драматичный свет</span></div></div>
+      <div class="painrow"><div class="p-pain">Просит подтверждение опыта - "покажите похожий реализованный объект", а не рендеры</div><div class="p-q">«Что вы уже сделали в таком масштабе и под такое ТЗ?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Нестандарт под объект</b> · кейс-карусель + Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Не понимает допуски и металл: "покрытие" может оказаться обычной покраской, которая облезет</div><div class="p-q">«У вас PVD-осаждение или крашеный металл, который сотрётся за год?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Деталь, которую не видит заказчик</b> · макро Reels + текст</span></div></div>
+      <div class="painrow"><div class="p-pain">Важна предсказуемость расчёта - сколько ждать смету и КП, чтобы вписать в тайминг проекта</div><div class="p-q">«За сколько посчитаете смету и пришлёте КП с визуализацией?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Авторский разбор от Богдана</b> · говорящая голова, галерейный свет</span></div></div>
+      <div class="painrow"><div class="p-pain">Не доверяет молодому бренду - кто это вообще делает руками, есть ли реальное производство</div><div class="p-q">«За этим стоит реальный цех и мастера или перепродажа под красивым именем?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Рождение изделия</b> · длинное → нарезки</span></div></div>
+      <div class="painrow"><div class="p-pain">Штучная позиция декоратору - боится высокого минимального заказа</div><div class="p-q">«Возьмёте один предмет под объект или работаете только от комплекта?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Нестандарт под объект</b> · кейс-карусель + Reels</span></div></div>
+      <div class="painrow"><div class="p-pain">Нужен партнёрский бонус и понятные условия, чтобы заложить в проект клиента</div><div class="p-q">«Какие условия для дизайнеров - бонус, приоритет, визуализация?»</div><div class="p-close"><svg class="arw" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg><span><b>Авторский разбор от Богдана</b> · говорящая голова, галерейный свет</span></div></div>
     </div>
     <div class="note" style="margin-top:14px"><b>Как пользоваться:</b> это меню тем, не обязательный список на неделю. Берёте боль, которая сейчас актуальна, открываете «Конструктор» или ставите пост в «Контент-план» с уже готовым вопросом-хуком. Для VALONTI помните: цель - контакт дизайнера (запрос Sample-box, сметы, прайса), а не охват.</div>
   </section>
@@ -220,7 +285,7 @@
     </div>
 
     <div data-annotate-section>
-    <h3 style="font-size:17px;font-weight:800;margin:0 0 12px;color:var(--gg)">GENGLASS · «Финишер ремонта» (B2C)</h3>
+    <h3 class="cjm-title g"><span class="bd" aria-hidden="true"></span>GENGLASS · «Финишер ремонта» (B2C)</h3>
     <div class="tbl cjm"><table>
       <tr><th>Этап</th><th>Делает</th><th>Чувствует</th><th>Касание SMM</th></tr>
       <tr><td><b>Осознание</b></td><td><span class="a">нужна вещь на финал ремонта</span></td><td><span class="e">усталость + «хочу красиво»</span></td><td><span class="t">Reels/Pinterest с готовыми интерьерами</span></td></tr>
@@ -234,7 +299,7 @@
     </div>
 
     <div style="margin-top:28px" data-annotate-section>
-    <h3 style="font-size:17px;font-weight:800;margin:0 0 12px;color:var(--v)">VALONTI · «Дизайнер-партнёр Tier 1» (B2D)</h3>
+    <h3 class="cjm-title v"><span class="bd" aria-hidden="true"></span>VALONTI · «Дизайнер-партнёр Tier 1» (B2D)</h3>
     <div class="tbl cjm"><table>
       <tr><th>Этап</th><th>Делает</th><th>Чувствует</th><th>Касание SMM</th></tr>
       <tr><td><b>Осознание</b></td><td><span class="a">получил ТЗ клиента, ищет под кастом</span></td><td><span class="e">азарт + риск</span></td><td><span class="t">Pinterest pull, IG-кейсы, рекомендация</span></td></tr>

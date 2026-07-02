@@ -1,700 +1,660 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GENGLASS · Командный центр РОПа v2</title>
+<title>GENGROUP · Отдел продаж · Командный центр</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-/* v2 shared design tokens (наследует v1 dark theme + cyan accent) */
 :root{
   --bg-base:#0B0F15;--bg-card:#131820;--bg-elevated:#1A2029;--bg-soft:#232B36;
   --border:#1F2731;--border-soft:#161C24;--border-hot:#2B3441;
   --ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;
-  --accent:#22D3EE;--accent-2:#06B6D4;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
-  --up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;--hot:#F43F5E;
+  --accent:#22D3EE;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
+  --up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;
   --radius:10px;--radius-lg:14px;--ease-out:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
 body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:clip}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
-
-/* TOPBAR */
-.topbar{position:sticky;top:0;z-index:60;padding:11px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.92);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar{position:sticky;top:0;z-index:60;padding:11px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.94);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
 .brand b{font-family:'Manrope';font-weight:800;font-size:14px}
 .brand span{display:block;font-size:10.5px;color:var(--ink-3)}
-.badge-v2{font-size:9px;background:rgba(34,211,238,.14);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:800;margin-left:6px;letter-spacing:.05em}
-
-/* TAB NAV */
 .tabs{display:flex;gap:3px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:3px}
 .tabs button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:7px;cursor:pointer;transition:.15s}
 .tabs button.on{background:var(--accent-soft);color:var(--accent)}
 .tabs button:hover:not(.on){color:var(--ink)}
-.tabs button.crisis{color:var(--dn)}
-.tabs button.crisis.on{background:rgba(244,63,94,.14);color:var(--dn)}
-
 .tb-spacer{flex:1}
-.stamp{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums}
-
-/* FILTERS */
-.filters{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
-.filters .lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-8px}
-.filters select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer}
-.filters .alert{margin-left:auto;font-size:11px;color:var(--dn);background:rgba(244,63,94,.14);padding:4px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(244,63,94,.3)}
-
+.stamp{font-size:11px;color:var(--ink-4)}
+.stamp b{color:var(--ink-3)}
+.controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em}
+.seg{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:220px}
+.dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 8px;font:inherit;font-size:11.5px}
+.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer}
+.qm{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);color:var(--ink-3);font-size:9px;font-weight:700;line-height:12px;text-align:center;margin-left:5px;cursor:help;font-style:normal;vertical-align:middle}
+#tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid var(--border-hot);border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:300px}
 .wrap{max-width:1660px;margin:0 auto;padding:16px 24px 80px}
-
-/* CARDS */
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;animation:fadeUp .45s var(--ease-out) both}
 .card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;gap:16px;flex-wrap:wrap}
 .card-title{font-family:'Manrope';font-weight:700;font-size:15px;margin-bottom:2px}
 .card-sub{font-size:11px;color:var(--ink-3)}
-.card-title .tag{font-size:9.5px;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.14);color:var(--warn);font-weight:700;margin-left:8px}
-.card-title .tag.new{background:rgba(34,211,238,.14);color:var(--accent)}
-.card-title .tag.hot{background:rgba(244,63,94,.14);color:var(--dn)}
-
+.tag{font-size:9.5px;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.14);color:var(--warn);font-weight:700;margin-left:8px}
+.tag.hot{background:rgba(244,63,94,.14);color:var(--dn)}
+.tag.ok{background:rgba(16,185,129,.14);color:var(--up)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
-
-/* HERO */
-.hero{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.hero{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:14px;margin-bottom:14px}
 @media(max-width:1100px){.hero{grid-template-columns:1fr}}
-.hero-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;position:relative;overflow:hidden}
+.hero-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;position:relative;overflow:hidden;animation:fadeUp .4s var(--ease-out) both}
 .hero-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--accent)),transparent)}
 .hero-k{font-size:10.5px;color:var(--ink-3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
-.hero-v{font-family:'Manrope';font-weight:800;font-size:42px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
-.hero-v .u{font-size:16px;color:var(--ink-3);font-weight:600;margin-left:4px}
+.hero-v{font-family:'Manrope';font-weight:800;font-size:38px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.hero-v .u{font-size:15px;color:var(--ink-3);font-weight:600;margin-left:4px}
 .hero-sub{margin-top:10px;font-size:12px;color:var(--ink-2)}
 .hero-sub b{color:var(--ink);font-weight:700}
 .hero-trend{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:3px 9px;border-radius:6px;margin-top:8px}
 .hero-trend.dn{color:var(--dn);background:rgba(244,63,94,.12)}
 .hero-trend.up{color:var(--up);background:rgba(16,185,129,.12)}
 .hero-trend.warn{color:var(--warn);background:rgba(245,158,11,.12)}
-
-/* MINI KPI */
-.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
 @media(max-width:1100px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
-.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden}
+.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden;animation:fadeUp .4s var(--ease-out) both}
 .kpi-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--accent))}
-.kpi-k{font-size:9.5px;color:var(--ink-3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.kpi-k{font-size:9.5px;color:var(--ink-3);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
 .kpi-v{font-family:'Manrope';font-weight:800;font-size:20px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .kpi-v .u{font-size:10px;color:var(--ink-3);font-weight:600;margin-left:3px}
-.kpi-delta{font-size:10.5px;font-weight:700;margin-top:4px}
-.kpi-delta.up{color:var(--up)}.kpi-delta.dn{color:var(--dn)}.kpi-delta.flat{color:var(--ink-3)}
-
-/* TABLES */
+.kpi-note{font-size:10.5px;color:var(--ink-4);margin-top:4px}
 .tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
 .tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tbl th{font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);text-align:left;cursor:pointer;user-select:none}
-.tbl th:hover{color:var(--ink)}.tbl th.sorted{color:var(--accent)}
+.tbl th{font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);text-align:left}
 .tbl th.r,.tbl td.r{text-align:right}
 .tbl td.name{font-weight:600;color:var(--ink)}
 .tbl tr:hover td{background:rgba(34,211,238,.03)}
-.tbl .link{color:var(--accent);text-decoration:none;font-size:11px;font-weight:600}
-.tbl .verdict{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.verdict-green{background:var(--up)}.verdict-yellow{background:var(--warn)}.verdict-orange{background:#FB923C}.verdict-red{background:var(--dn)}
+.tbl tr.click{cursor:pointer}
 .tbl .pill{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700}
 .pill-hot{background:rgba(244,63,94,.14);color:var(--dn)}
 .pill-warn{background:rgba(245,158,11,.14);color:var(--warn)}
 .pill-ok{background:rgba(16,185,129,.14);color:var(--up)}
 .pill-neutral{background:var(--bg-elevated);color:var(--ink-2)}
-.tbl .days{font-family:'Manrope';font-weight:800;color:var(--dn)}
-.tbl .days.warn{color:var(--warn)}
-.tbl .days.ok{color:var(--up)}
-
-/* GAUGES */
+.days{font-family:'Manrope';font-weight:800;color:var(--dn)}
+.days.warn{color:var(--warn)}.days.ok{color:var(--up)}
+.verdict{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.verdict-green{background:var(--up)}.verdict-yellow{background:var(--warn)}.verdict-orange{background:#FB923C}.verdict-red{background:var(--dn)}
 .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:1100px){.gauges{grid-template-columns:1fr}}
-.gauge{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;text-align:center;cursor:pointer;transition:.15s}
-.gauge:hover{border-color:var(--border-hot);transform:translateY(-1px)}
+.gauge{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
 .gauge h4{font-size:10.5px;color:var(--ink-3);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
-.gauge .gval{font-family:'Manrope';font-weight:800;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
+.gauge .gval{font-family:'Manrope';font-weight:800;font-size:28px;font-variant-numeric:tabular-nums}
 .gauge .gmoney{font-size:12px;color:var(--ink-2);margin-top:4px;font-weight:600}
 .gauge .gnote{font-size:10.5px;color:var(--ink-4);margin-top:6px}
 .gauge .gnote b{color:var(--ink-2)}
-.gauge .gdrill{font-size:10px;color:var(--accent);margin-top:8px;font-weight:600}
-
-/* SPARKLINE */
-.spark{width:120px;height:28px;vertical-align:middle}
-.spark path{fill:none;stroke:var(--accent);stroke-width:1.5}
-.spark path.dn{stroke:var(--dn)}
-.spark path.up{stroke:var(--up)}
-.spark .last{fill:var(--accent)}
-.spark .last.dn{fill:var(--dn)}
-.spark .last.up{fill:var(--up)}
-
-/* BARS */
 .bars{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.bar-row{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:11px}
+.bar-row{display:grid;grid-template-columns:170px 1fr 64px;align-items:center;gap:11px}
 .bar-name{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar-track{height:22px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.bar-fill{height:100%;border-radius:5px;transform-origin:left;animation:grow .8s var(--ease-out) both;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#06121a}
+.bar-fill{height:100%;border-radius:5px;transform-origin:left;animation:grow .8s var(--ease-out) both;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#06121a;min-width:2px}
 .bar-fill.red{background:linear-gradient(90deg,#FB7185,#F43F5E)}
 .bar-fill.warn{background:linear-gradient(90deg,#FBBF24,#F59E0B)}
 .bar-fill.ok{background:linear-gradient(90deg,#34D399,#10B981)}
 .bar-fill.accent{background:linear-gradient(90deg,#67E8F9,#22D3EE)}
-.bar-val{font-size:12px;font-weight:800;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
-
-/* SECTION DIVIDER */
+.bar-val{font-size:12px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.cf{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.cf-step{display:grid;grid-template-columns:200px 1fr 120px;align-items:center;gap:12px}
+.cf-name{font-size:12px;color:var(--ink-2);text-align:right}
+.cf-track{height:24px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.cf-fill{height:100%;border-radius:5px;transform-origin:left;animation:grow .8s var(--ease-out) both;min-width:2px}
+.cf-val{font-family:'Manrope';font-size:14px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.cf-val small{font-size:10px;color:var(--ink-3);font-weight:600}
+.cf-conv{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-3);padding:4px 0 4px 212px}
+.cf-conv b{color:var(--ink);font-weight:800;font-size:12.5px}
 .sec{display:flex;align-items:center;gap:12px;margin:22px 0 10px}
 .sec:first-of-type{margin-top:6px}
 .sec-num{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:12px}
 .sec h2{font-family:'Manrope';font-weight:800;font-size:17px;letter-spacing:-.01em}
 .sec .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--border-hot),transparent)}
 .sec .hint{font-size:11px;color:var(--ink-3)}
-
-/* WATCH */
-.watch{display:flex;flex-direction:column;gap:10px}
-.watch-item{background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;cursor:pointer;transition:.15s}
-.watch-item:hover{border-color:var(--accent);transform:translateY(-1px)}
-.watch-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Manrope'}
-.watch-icon.hot{background:rgba(244,63,94,.14);color:var(--dn)}
-.watch-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
-.watch-meta{font-size:11px;color:var(--ink-3)}
-.watch-meta b{color:var(--ink-2)}
-.watch-action{font-size:11px;color:var(--accent);font-weight:700;text-align:right}
-
-/* SCREEN */
-.screen{display:none}
-.screen.on{display:block}
-
-/* CRISIS */
-.crisis-banner{background:linear-gradient(90deg,rgba(244,63,94,.20),rgba(244,63,94,.08));border:1px solid rgba(244,63,94,.4);border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;animation:fadeUp .4s var(--ease-out) both}
-.crisis-icon{width:44px;height:44px;border-radius:11px;background:rgba(244,63,94,.20);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--dn);animation:pulse 2s ease-in-out infinite}
-.crisis-txt b{font-family:'Manrope';font-size:16px;color:var(--dn)}
-.crisis-txt span{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
-
-/* PLACEHOLDER для P1 блоков (требуют новых Bitrix-полей) */
-.p1-placeholder{background:var(--bg-elevated);border:1px dashed var(--border-hot);border-radius:10px;padding:20px;text-align:center;color:var(--ink-3);font-size:12.5px}
-.p1-placeholder b{color:var(--warn);display:block;margin-bottom:4px}
-.p1-placeholder small{font-size:10.5px;color:var(--ink-4);display:block;margin-top:6px}
-
-/* CONSENT-GATE (FZ-152 feature flag) */
-.consent-gate{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11.5px;color:var(--ink-2)}
-.consent-gate b{color:var(--warn)}
-
+.screen{display:none}.screen.on{display:block}
+.back-btn{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 14px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px}
+.back-btn:hover{color:var(--accent);border-color:var(--border-hot)}
+.sd-review{background:linear-gradient(135deg,rgba(34,211,238,.06),rgba(167,139,250,.05));border:1px solid rgba(34,211,238,.25);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:14px}
+.sd-review h3{font-family:'Manrope';font-weight:800;font-size:16px;margin-bottom:4px}
+.sd-review .sd-sub{font-size:11px;color:var(--ink-3);margin-bottom:14px}
+.sd-review .sd-verdict{display:inline-block;font-family:'Manrope';font-weight:800;font-size:14px;padding:5px 14px;border-radius:8px;margin-bottom:12px}
+.sd-review p{font-size:13px;color:var(--ink-2);line-height:1.65;margin-bottom:10px}
+.sd-review p b{color:var(--ink)}
+.sd-review ul{margin:0 0 10px 20px;font-size:13px;color:var(--ink-2);line-height:1.7}
+.sd-review ul b{color:var(--ink)}
+.mrow{cursor:pointer}
+.alert-chip{margin-left:auto;font-size:11px;color:var(--dn);background:rgba(244,63,94,.14);padding:4px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(244,63,94,.3)}
 .foot{text-align:center;color:var(--ink-4);font-size:11px;margin-top:28px}
+.note{font-size:11px;color:var(--ink-3);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px}
 </style></head><body>
+<div id="tip"></div>
 
-<!-- ================== TOPBAR ================== -->
 <div class="topbar">
   <div class="logo">GG</div>
-  <div class="brand"><b>Командный центр РОПа</b><span>v2 · воронка «GG Заказы РФ»<span class="badge-v2">v2 PREVIEW</span></span></div>
+  <div class="brand"><b>GENGROUP · Отдел продаж</b><span>Командный центр · живые данные Битрикс24 · <span id="freshTag">-</span></span></div>
   <div class="tabs" id="tabs">
-    <button data-s="morning" class="on">1. Утро</button>
-    <button data-s="team">2. Команда</button>
-    <button data-s="strategy">3. Стратегия</button>
-    <button data-s="crisis" class="crisis">! Crisis</button>
+    <button data-s="today" class="on">Сегодня</button>
+    <button data-s="team">Команда</button>
+    <button data-s="company">Компания</button>
   </div>
   <div class="tb-spacer"></div>
-  <span class="stamp" id="stamp">Data: <span id="freshTag">-</span></span>
+  <span class="stamp" id="periodLabel"></span>
 </div>
 
-<!-- ================== FILTERS (universal) ================== -->
-<div class="filters">
-  <span class="lbl">Сегмент</span>
-  <select id="fSeg"><option value="">Все</option><option value="Маркетплейс">Маркетплейс</option><option value="Конечный клиент B2C">B2C</option><option value="Конечный клиент B2B">B2B</option><option value="Дилер">Дилер</option><option value="нет данных">Не указано</option></select>
-  <span class="lbl">Бренд</span>
-  <select id="fDir"><option value="">Все</option><option value="genglass">GENGLASS</option><option value="valonti">VALONTI</option><option value="gentero">GENTERO</option><option value="metal_gm">Metal-GM</option><option value="glass-memory">Glass Memory</option><option value="не указано">Не указан</option></select>
-  <span class="lbl">Период</span>
-  <select id="fPer"><option value="30">30 дней</option><option value="60" selected>60 дней</option><option value="90">Q (90д)</option><option value="180">180 дней</option><option value="365">Год</option></select>
-  <div class="alert" id="alertCount">! calculating</div>
+<div class="controls">
+  <span class="ctl-lbl">Период</span>
+  <div class="seg" id="period"></div>
+  <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">-</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
+  <span class="ctl-lbl">Тип клиента</span>
+  <select id="fSeg"><option value="">Все</option></select>
+  <span class="ctl-lbl">Направление</span>
+  <select id="fDir"><option value="">Все направления</option></select>
+  <div class="alert-chip" id="alertCount"></div>
 </div>
 
 <div class="wrap">
 
-<!-- ================== SCREEN 1: MORNING ================== -->
-<div class="screen on" data-s="morning" id="scr-morning">
+<!-- ЭКРАН: СЕГОДНЯ -->
+<div class="screen on" data-s="today" id="scr-today">
+  <div class="hero" id="hero-today"></div>
+  <div class="kpi-strip" id="kpi-today"></div>
 
-  <!-- HERO -->
-  <div class="hero" id="hero-morning"></div>
-
-  <!-- MINI KPI STRIP -->
-  <div class="kpi-strip" id="kpi-morning"></div>
-
-  <!-- ZOMBIE PIPELINE -->
-  <div class="sec">
-    <div class="sec-num">1</div>
-    <h2>Zombie pipeline · утренний расчёт</h2>
-    <div class="ln"></div>
-    <span class="hint">Сделки без касания >7 дней. Разбор с менеджерами.</span>
-  </div>
+  <div class="sec"><div class="sec-num">1</div><h2>Висящие сделки - разобрать в первую очередь</h2><div class="ln"></div><span class="hint">Открытые сделки, по которым давно нет движения. Деньги, которые ждут звонка.</span></div>
   <div class="card" id="zombie-card"></div>
 
-  <!-- KEY STAGES DRILL -->
-  <div class="sec">
-    <div class="sec-num">2</div>
-    <h2>3 ключевые стадии · drill-down</h2>
-    <div class="ln"></div>
-    <span class="hint">Клик по стадии открывает список сделок</span>
-  </div>
-  <div class="card"><div class="gauges" id="stages-gauges"></div></div>
+  <div class="sec"><div class="sec-num">2</div><h2>Три главных этапа воронки</h2><div class="ln"></div><span class="hint">Где чаще всего застревают сделки. Нажмите на этап, чтобы увидеть список.</span></div>
+  <div class="card"><div class="gauges" id="stages-gauges"></div><div id="stage-drill"></div></div>
 
-  <!-- TOP-3 CLOSING TODAY (P1 placeholder до поля «Дата решения клиента») -->
-  <div class="sec">
-    <div class="sec-num">3</div>
-    <h2>Топ-3 на закрытие сегодня</h2>
-    <div class="ln"></div>
-    <span class="hint">Weight ≥0.75 forecast</span>
-  </div>
-  <div class="p1-placeholder">
-    <b>Ожидает P1: поле «Дата решения клиента» в Bitrix24</b>
-    Без этого поля forecast weight не считается. Boris workstream в процессе.
-    <small>После активации поля: топ-3 сделки с датой решения ≤7 дней + DM зафиксирован + бюджет подтверждён</small>
-  </div>
-
-  <!-- SPEED-TO-LEAD (P1 placeholder до activity timestamps) -->
-  <div class="sec">
-    <div class="sec-num">4</div>
-    <h2>Speed-to-lead · медиана до первого касания</h2>
-    <div class="ln"></div>
-    <span class="hint">P1 функция, ожидает FZ-152 consent</span>
-  </div>
-  <div class="consent-gate" id="consent-status"><b>FZ-152 gate:</b> личные метрики менеджеров активируются после подписи каждым согласия. Trener готовит consent-letter, boris проверяет legal.</div>
-  <div class="p1-placeholder">
-    <b>Ожидает P1: fetch activity timestamps + consent коллектив ≥80%</b>
-    Требует расширение fetch-rop.ts на crm.activity.list (batch + incremental для rate limits).
-    <small>После активации: scatter по менеджерам, target &lt;3ч, red >6ч</small>
-  </div>
-
+  <div class="sec"><div class="sec-num">3</div><h2>Крупные сделки близко к оплате</h2><div class="ln"></div><span class="hint">Открытые сделки с самыми большими суммами на этапах «Предложение отправлено» и «Принимают решение»</span></div>
+  <div class="card" id="hot-deals"></div>
 </div>
 
-<!-- ================== SCREEN 2: TEAM ================== -->
+<!-- ЭКРАН: КОМАНДА -->
 <div class="screen" data-s="team" id="scr-team">
-  <div class="sec">
-    <div class="sec-num">1</div>
-    <h2>Manager scoreboard · cohort-нормализация</h2>
-    <div class="ln"></div>
-    <span class="hint">Ранжировано по WON-выручке. Verdict color по evaluation-rubric.md (9 параметров).</span>
-  </div>
-  <div class="consent-gate"><b>FZ-152 gate:</b> personal-metrics колонки (Speed, Discount, Zombie %) скрыты пока consent не подписан. WON-выручка и CR2 показываются, они не персональные.</div>
-  <div class="card"><div id="scoreboard"></div></div>
+  <div class="sec"><div class="sec-num">1</div><h2>Рейтинг менеджеров</h2><div class="ln"></div><span class="hint">Нажмите на строку менеджера - откроется его личная страница с разбором</span></div>
+  <div class="card" id="scoreboard-card"></div>
 
-  <div class="sec">
-    <div class="sec-num">2</div>
-    <h2>Trend sparklines · 12 недель по менеджерам</h2>
-    <div class="ln"></div>
-    <span class="hint">Замена хитмапа v1 на sparkline (лучшая читаемость трендов)</span>
-  </div>
-  <div class="card"><div id="sparklines"></div></div>
-
-  <div class="p1-placeholder">
-    <b>Speed-to-lead scatter + Discount heatmap — P1 после Boris</b>
-    <small>Активируются при готовности activity timestamps + price_listed snapshot</small>
-  </div>
+  <div class="sec"><div class="sec-num">2</div><h2>У кого висят сделки</h2><div class="ln"></div><span class="hint">Количество открытых сделок без движения больше 7 дней, по каждому менеджеру</span></div>
+  <div class="card" id="team-zombie"></div>
 </div>
 
-<!-- ================== SCREEN 3: STRATEGY ================== -->
-<div class="screen" data-s="strategy" id="scr-strategy">
-  <div class="sec">
-    <div class="sec-num">1</div>
-    <h2>Funnel by cohort · <span id="cohort-label">B2B GENGLASS</span></h2>
-    <div class="ln"></div>
-    <span class="hint">Cohort-разрез вместо усреднённой воронки v1</span>
-  </div>
-  <div class="card"><div id="cohort-funnel"></div></div>
+<!-- ЭКРАН: КОМПАНИЯ -->
+<div class="screen" data-s="company" id="scr-company">
+  <div class="sec"><div class="sec-num">1</div><h2>Путь сделки: от заявки до продажи</h2><div class="ln"></div><span class="hint">Сколько сделок дошло до каждого этапа за выбранный период</span></div>
+  <div class="card" id="funnel-card"></div>
 
-  <div class="sec">
-    <div class="sec-num">2</div>
-    <h2>Loss reason deep-dive · 3D разбивка</h2>
-    <div class="ln"></div>
-    <span class="hint">Reason × сегмент × median dwell до потери</span>
-  </div>
+  <div class="sec"><div class="sec-num">2</div><h2>Почему теряем сделки</h2><div class="ln"></div><span class="hint">Причины, по которым сделки закрылись без продажи</span></div>
   <div class="grid2">
-    <div class="card"><div id="loss-reasons"></div></div>
-    <div class="card"><div id="loss-details"></div></div>
+    <div class="card" id="loss-reasons"></div>
+    <div class="card" id="loss-by-mgr"></div>
   </div>
 
-  <div class="sec">
-    <div class="sec-num">3</div>
-    <h2>Manager efficiency scatter</h2>
-    <div class="ln"></div>
-    <span class="hint">X = активные сделки · Y = CR2 % · star-zone top-right</span>
-  </div>
-  <div class="card"><div id="efficiency-scatter"></div></div>
-
-  <div class="sec">
-    <div class="sec-num">4</div>
-    <h2>Forecast waterfall</h2>
-    <div class="ln"></div>
-    <span class="hint">Weighted pipeline по стадиям с confidence</span>
-  </div>
-  <div class="p1-placeholder">
-    <b>Forecast waterfall — P1 после поля «Дата решения клиента»</b>
-    <small>Без этого поля weight-per-stage не откалиброван. См. SPEC.md §5 Forecast methodology</small>
-  </div>
+  <div class="sec"><div class="sec-num">3</div><h2>План и факт по месяцам</h2><div class="ln"></div><span class="hint">План из Google-таблицы, факт из Битрикс24 (по продажам с предоплатой и выше)</span></div>
+  <div class="card" id="plan-fact"></div>
 </div>
 
-<!-- ================== SCREEN 4: CRISIS ================== -->
-<div class="screen" data-s="crisis" id="scr-crisis">
-  <div class="crisis-banner">
-    <div class="crisis-icon">!</div>
-    <div class="crisis-txt">
-      <b>Protocol 8 · режим кризиса</b>
-      <span id="crisis-trigger">Триггер: <b style="color:var(--dn)">выручка <80% × 2 недели подряд</b> либо ручное включение. Скрыто: Zombie, Sparklines, Scoreboard.</span>
-    </div>
-  </div>
-
-  <div class="sec">
-    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">1</div>
-    <h2>Топ-5 сделок на закрытие ЗАВТРА (buy-time)</h2>
-    <div class="ln"></div>
-    <span class="hint">Сегодня договорённость, оплата и WON завтра. 48 часов манёвра.</span>
-  </div>
-  <div class="card"><div id="crisis-deals"></div></div>
-
-  <div class="sec">
-    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">2</div>
-    <h2>Топ-3 менеджера-помощника</h2>
-    <div class="ln"></div>
-    <span class="hint">Кого подсадить на сложные сделки</span>
-  </div>
-  <div class="card"><div id="crisis-helpers"></div></div>
-
-  <div class="sec">
-    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">3</div>
-    <h2>Прямые линии эскалации</h2>
-    <div class="ln"></div>
-    <span class="hint">Один клик = связь</span>
-  </div>
-  <div class="grid2">
-    <div class="card" style="border-color:rgba(245,158,11,.3)">
-      <div class="card-title">Roman · CFO emergency</div>
-      <div class="card-sub">Маржа-approve на скидки >5%. Приоритетное окно 15 мин.</div>
-    </div>
-    <div class="card" style="border-color:rgba(244,63,94,.3)">
-      <div class="card-title">Иван · CMO эскалация</div>
-      <div class="card-sub">Структурные решения (>10% дисконт, kill-switch, найм emergency).</div>
-    </div>
-  </div>
+<!-- ЭКРАН: ЛИЧНАЯ СТРАНИЦА МЕНЕДЖЕРА -->
+<div class="screen" data-s="manager" id="scr-manager">
+  <button class="back-btn" onclick="showScreen('team')">← Назад к команде</button>
+  <div id="mgr-content"></div>
 </div>
 
-<div class="foot">© GENGROUP · GENGLASS · РОП v2 · fork ozon-dashboard-dima-fork · feature flag DASHBOARD_V2_ENABLED · Feniks Step 12.5 pending</div>
-
+<div class="foot">GENGROUP · Отдел продаж · данные Битрикс24 обновляются ежедневно · версия 2</div>
 </div>
 
 <script>
-/* ================== v2 CORE LOGIC ================== */
-const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};
-const AD=DATA.deals||[], AL=DATA.leads||[], KSS=DATA.keyStageStats||[];
+/* ================================================================
+   ДАННЫЕ. build-rop-v2.ts заменяет DATA на живой снимок Битрикс24.
+   ================================================================ */
+const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null,"plan":null,"refs":{}};
+const AD=DATA.deals||[], AL=DATA.leads||[];
+const OP=new Set(DATA.opUsers||[]);
+/* План из Google-таблицы: массив месяцев -> удобная мапа {'2026-06': {rev,...}} */
+const PLAN_M={};(DATA.plan&&DATA.plan.months||[]).forEach(m=>{if(m&&m.month)PLAN_M[m.month]=m;});
+const isOP=n=>OP.has(n);
 
-/* v2 config (Иван-tunable) */
-const CFG={
-  zombieDwellDays: 7,
-  planMonthly: 30_000_000,
-  monthlyWorkDays: 21,
-  cohortDefault: 'B2B GENGLASS',
-  crisisThreshold: 0.80, // <80% плана × 2 недели = crisis mode
-  featureFlag: {
-    v2Enabled: true,
-    personalMetricsShown: false, // FZ-152 gate, default OFF
-  }
-};
-
-/* Filters state */
-const S={seg:'',dir:'',period:60,scr:'morning'};
-
-/* Helpers */
+/* ---------- helpers ---------- */
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
-const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'K':fmt(n);
+const fmtM=n=>n>=1e6?(n/1e6).toFixed(2).replace('.',',')+' млн':n>=1e3?Math.round(n/1e3).toLocaleString('ru-RU')+' тыс':fmt(n);
 const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
+const pct0=x=>Math.round(x*100)+'%';
 const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const NOWD=DATA.to?new Date(DATA.to+'T23:59:00+03:00'):new Date();
 const DAYMS=864e5;
-const ageDays=ds=>ds?(NOWD-new Date(ds))/DAYMS:null;
-const isOP=n=>(DATA.opUsers||[]).includes(n);
+const iso=d=>d.toISOString().slice(0,10);
+const TODAY=DATA.to||iso(new Date());
 
-/* Filter apply (сегмент + направление, работает на deals) */
-function filtered(D){
-  return D.filter(d=>{
-    if(S.seg && d.client!==S.seg) return false;
-    if(S.dir && d.dir!==S.dir) return false;
-    return true;
-  });
+/* Классификация причин потерь по ключевым словам (как в основном дашборде) */
+const KW=[['Дорого',/дорог|цена|дешевл|бюджет|выгодн|деньг|стоим/],['Долгие сроки',/долг|срок|быстр|ждать|времен|успе|поздно/],['Ушёл к конкуренту',/конкурент|у других|нашл|заказал.? у|взяли у|у них/],['Дубль заявки',/дубл/],['Спам / ошибка',/спам|реклам|ошибочн|тест/],['Клиент замолчал',/не отвеч|недозвон|тишин|не выход|игнор|не берет|пропал|не на связи/],['Передумал',/передум|не актуал|отпал|отказал|не нужн|не будем|раздум|пока не|потом/],['Купил на маркетплейсе',/озон|ozon|маркетплейс|вайлд|wb|ягодк/]];
+function lossReason(d){let r=d.reason;if(!r||r==='не указана'||r==='Другое'){const t=(d.reasonText||'').toLowerCase();for(const[k,rx]of KW)if(rx.test(t))return k;return r&&r!=='не указана'?r:'Причина не записана';}return r;}
+
+/* Стадии воронки: внутренний код -> понятное название */
+const STAGE_RU={'C49:NEW':'Новая заявка','C49:UC_LRFLH9':'Взята в работу','C49:PREPARATION':'Готовим предложение','C49:UC_OGZUU0':'Расчёт','C49:PREPAYMENT_INVOIC':'Предложение отправлено','C49:3':'Клиент принимает решение','C49:UC_8JTBV2':'Затянувшаяся сделка','C49:EXECUTING':'Получена предоплата','C49:FINAL_INVOICE':'Заказ в производстве','C49:1':'Заказ произведён','C49:2':'Заказ отправлен','C49:WON':'Продано','C49:LOSE':'Не купил','C49:APOLOGY':'Не купил'};
+const stageRu=d=>STAGE_RU[d.stageCode]||d.stage||'-';
+/* Продажа признаётся с момента предоплаты (как договорились с Димой: возвраты 3-5%, бизнес считает эти деньги своими) */
+const SOLD_SET=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
+const isSold=d=>d.won||(SOLD_SET.has(d.stageCode)&&!d.lost);
+function soldDate(d){if(d.won&&d.closed)return d.closed;for(const h of(d.hist||[]))if(SOLD_SET.has(h[0]))return h[1];return d.closed||d.created;}
+
+/* ---------- состояние фильтров ---------- */
+let S={start:'',end:TODAY,seg:'',dir:'',screen:'today',curMgr:null,stageOpen:null};
+function setPeriod(p){
+  const t=new Date(TODAY);
+  if(p==='today'){S.start=TODAY;S.end=TODAY;}
+  else if(p==='yest'){const y=new Date(t);y.setDate(y.getDate()-1);S.start=iso(y);S.end=iso(y);}
+  else if(p==='all'){S.start=DATA.from||'2020-01-01';S.end=TODAY;}
+  else{const s=new Date(t);s.setDate(s.getDate()-parseInt(p)+1);S.start=iso(s);S.end=TODAY;}
 }
+setPeriod('30');
+const inP=(ds)=>ds&&ds>=S.start&&ds<=S.end;
+const fltBase=d=>(!S.seg||d.client===S.seg)&&(!S.dir||d.dir===S.dir);
+/* Заявки и созданные сделки - по дате создания. Продажи и деньги - по дате, когда продажа состоялась. */
+const dealsCreated=()=>AD.filter(d=>fltBase(d)&&inP(d.created));
+const leadsCreated=()=>AL.filter(l=>(!S.dir||l.dir===S.dir)&&inP(l.created));
+const dealsSold=()=>AD.filter(d=>fltBase(d)&&isSold(d)&&inP(soldDate(d)));
+const dealsLost=()=>AD.filter(d=>fltBase(d)&&d.lost&&inP(d.closed));
+const openDeals=()=>AD.filter(d=>fltBase(d)&&!d.won&&!d.lost&&!SOLD_SET.has(d.stageCode));
+const zombies=()=>openDeals().filter(d=>(d.dwellCur||0)>7);
 
-/* Deals within period rolling from NOWD */
-function inPeriod(d, field){
-  const dt=d[field||'created'];
-  if(!dt) return false;
-  const age=ageDays(dt);
-  return age!==null && age <= S.period;
-}
+/* ---------- tooltip ---------- */
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t){tip.innerHTML=t.getAttribute('data-tip');tip.style.opacity=1;let x=e.clientX+14,y=e.clientY+14;if(x+tip.offsetWidth>innerWidth)x=e.clientX-tip.offsetWidth-14;if(y+tip.offsetHeight>innerHeight)y=e.clientY-tip.offsetHeight-14;tip.style.left=x+'px';tip.style.top=y+'px';}else tip.style.opacity=0;});
+const qm=t=>`<span class="qm" data-tip="${esc(t)}">?</span>`;
 
-/* KEY STAGES (из keyStageStats уже готово в rop.json) */
-const KEY_STAGES=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'];
-const STAGE_NAMES={
-  'C49:PREPAYMENT_INVOIC':'Отправлено КП',
-  'C49:3':'Принимают решение',
-  'C49:UC_8JTBV2':'Долгострой'
-};
+/* ================================================================
+   ЭКРАН «СЕГОДНЯ»
+   ================================================================ */
+function renderToday(){
+  const sold=dealsSold(), created=dealsCreated(), leads=leadsCreated();
+  const rev=sold.reduce((s,d)=>s+(d.budget||0),0);
+  const zo=zombies();
+  const zoMoney=zo.reduce((s,d)=>s+(d.budget||0),0);
+  /* план текущего месяца из Google-таблицы (если есть) */
+  const mKey=TODAY.slice(0,7);
+  const mPlan=PLAN_M[mKey]?PLAN_M[mKey].rev:null;
+  const mSold=AD.filter(d=>fltBase(d)&&isSold(d)&&String(soldDate(d)).slice(0,7)===mKey);
+  const mRev=mSold.reduce((s,d)=>s+(d.budget||0),0);
+  const planPart=mPlan?`План месяца <b>${fmtM(mPlan)} ₽</b> · выполнено <b>${pct0(mRev/mPlan)}</b>`:`С начала месяца продано на <b>${fmtM(mRev)} ₽</b>`;
+  const planTrend=mPlan?(mRev/mPlan>=0.9?'up':mRev/mPlan>=0.6?'warn':'dn'):'warn';
+  const planTrendTxt=mPlan?(mRev/mPlan>=0.9?'идём по плану':mRev/mPlan>=0.6?'отстаём, догоняем':'сильно отстаём от плана'):'план на месяц не задан';
 
-/* ================== RENDERS ================== */
-
-function renderHero(){
-  const D=filtered(AD).filter(d=>d.won && inPeriod(d, 'closed'));
-  const rev=D.reduce((s,d)=>s+(d.budget||0),0);
-  const gap=CFG.planMonthly-rev;
-  const daysLeft=CFG.monthlyWorkDays-Math.min(CFG.monthlyWorkDays, new Date().getDate());
-  const forecast=Math.round(rev + gap*0.5); // rough placeholder
-  const zombieCount=filtered(AD).filter(d=>{const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays && !d.won && !d.lost;}).length;
-  const zombieMoney=filtered(AD).filter(d=>{const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays && !d.won && !d.lost;}).reduce((s,d)=>s+(d.budget||0),0);
-
-  document.getElementById('hero-morning').innerHTML=`
+  document.getElementById('hero-today').innerHTML=`
     <div class="hero-card" style="--ac:#22D3EE">
-      <div class="hero-k">Выручка периода · план ${fmtK(CFG.planMonthly)} ₽</div>
-      <div class="hero-v">${fmtK(rev)}<span class="u">₽</span></div>
-      <div class="hero-sub">Осталось до плана <b>${fmtK(gap)} ₽</b> · осталось ~${daysLeft} рабочих дней</div>
-      <div class="hero-trend ${gap>0?'dn':'up'}">${gap>0?'↓ отстаём от плана':'↑ план выполнен'}</div>
+      <div class="hero-k">Продано за период ${qm('Сделки, по которым получена предоплата или больше. Деньги считаем с момента предоплаты - возвратов мало, бизнес считает эти деньги своими.')}</div>
+      <div class="hero-v">${fmtM(rev)}<span class="u">₽</span></div>
+      <div class="hero-sub">${sold.length} ${plural(sold.length,'продажа','продажи','продаж')} · ${planPart}</div>
+      <div class="hero-trend ${planTrend}">${planTrendTxt}</div>
     </div>
     <div class="hero-card" style="--ac:#A78BFA">
-      <div class="hero-k">Forecast [ГИПОТЕЗА без «Даты решения»]</div>
-      <div class="hero-v">${fmtK(forecast)}<span class="u">₽</span></div>
-      <div class="hero-sub">Confidence <b>±25%</b> · rough estimate до P1</div>
-      <div class="hero-trend warn">! требует поля Bitrix P1</div>
+      <div class="hero-k">Новые заявки и сделки</div>
+      <div class="hero-v">${fmt(leads.length)}<span class="u">заявок</span></div>
+      <div class="hero-sub">Из них создано <b>${fmt(created.length)}</b> ${plural(created.length,'сделка','сделки','сделок')} за период</div>
     </div>
     <div class="hero-card" style="--ac:#F43F5E">
-      <div class="hero-k">Zombie pipeline</div>
-      <div class="hero-v">${fmtK(zombieMoney)}<span class="u">₽</span></div>
-      <div class="hero-sub"><b>${zombieCount} сделок</b> без движения >${CFG.zombieDwellDays} дней</div>
-      <div class="hero-trend dn">Разобрать сегодня</div>
+      <div class="hero-k">Висящие сделки ${qm('Открытые сделки, по которым больше 7 дней ничего не происходило. Клиент ждёт или уже забыл про нас.')}</div>
+      <div class="hero-v">${fmt(zo.length)}<span class="u">шт</span></div>
+      <div class="hero-sub">В них заморожено <b>${fmtM(zoMoney)} ₽</b> возможных продаж</div>
+      <div class="hero-trend dn">разобрать в первую очередь</div>
     </div>`;
-}
 
-function renderKpiStrip(){
-  const D=filtered(AD).filter(d=>inPeriod(d,'created'));
-  const won=D.filter(d=>d.won);
-  const lost=D.filter(d=>d.lost);
-  const L=filtered(AL||[]).filter(l=>inPeriod(l,'created'));
-  const qualified=L.filter(l=>l.qual==='квал').length;
-  const cr1=L.length?qualified/L.length:0;
-  const cr2=D.length?won.length/D.length:0;
-  const rev=won.reduce((s,d)=>s+(d.budget||0),0);
-  const avgCheck=won.length?rev/won.length:0;
+  const qual=leads.filter(l=>l.qual==='квал').length;
+  const soldOfCreated=created.filter(isSold).length;
+  const checks=sold.map(d=>d.budget||0).filter(x=>x>0);
+  const medCheck=median(checks)||0;
+  const cycles=sold.map(d=>d.cycle).filter(x=>x!=null&&x>=0);
+  const medCycle=median(cycles);
 
-  document.getElementById('kpi-morning').innerHTML=[
-    {ac:'#22D3EE',k:'Лиды',v:fmt(L.length),u:'шт'},
-    {ac:'#6366F1',k:'Сделки',v:fmt(D.length),u:'шт'},
-    {ac:'#10B981',k:'CR1 квал',v:pct(cr1),u:'',delta:'target 55%'},
-    {ac:'#F59E0B',k:'CR2 в WON',v:pct(cr2),u:'',delta:'target 16%'},
-    {ac:'#F43F5E',k:'Средний чек',v:fmtK(avgCheck),u:'₽',delta:'plan 80K'}
-  ].map(x=>`<div class="kpi-cell" style="--ac:${x.ac}">
-    <div class="kpi-k">${x.k}</div>
-    <div class="kpi-v">${x.v}<span class="u">${x.u}</span></div>
-    ${x.delta?`<div class="kpi-delta flat">${x.delta}</div>`:''}
-  </div>`).join('');
-}
+  document.getElementById('kpi-today').innerHTML=[
+    {ac:'#22D3EE',k:'Заявок пришло',v:fmt(leads.length),u:'',note:'обращения клиентов'},
+    {ac:'#6366F1',k:'Взято в работу',v:leads.length?pct0(qual/leads.length):'-',u:'',note:`${fmt(qual)} из ${fmt(leads.length)} заявок`},
+    {ac:'#10B981',k:'Создано сделок',v:fmt(created.length),u:'',note:'за период'},
+    {ac:'#F59E0B',k:'Доведено до продажи',v:created.length?pct0(soldOfCreated/created.length):'-',u:'',note:'из созданных за период'},
+    {ac:'#F472B6',k:'Средняя продажа',v:medCheck?fmtM(medCheck):'-',u:medCheck?'₽':'',note:'типичная сумма одной продажи'},
+    {ac:'#A78BFA',k:'Срок сделки',v:medCycle!=null?Math.round(medCycle):'-',u:medCycle!=null?'дней':'',note:'от заявки до продажи, типично'}
+  ].map(x=>`<div class="kpi-cell" style="--ac:${x.ac}"><div class="kpi-k">${x.k}</div><div class="kpi-v">${x.v}<span class="u">${x.u}</span></div><div class="kpi-note">${x.note}</div></div>`).join('');
 
-function renderZombie(){
-  const zombies=filtered(AD).filter(d=>{
-    if(d.won||d.lost) return false;
-    const dw=ageDays(d.created);
-    return dw && dw>CFG.zombieDwellDays;
-  }).sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,10);
+  /* Висящие сделки: топ-12 по сумме */
+  const zt=zo.slice().sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,12);
+  document.getElementById('zombie-card').innerHTML=zt.length?`
+    <div class="card-h"><div><div class="card-title">Самые дорогие висящие сделки <span class="tag hot">${fmtM(zt.reduce((s,d)=>s+(d.budget||0),0))} ₽ ждут звонка</span></div>
+    <div class="card-sub">Правило: по каждой - либо конкретный следующий шаг до пятницы, либо честно переносим на потом</div></div></div>
+    <table class="tbl"><thead><tr><th>#</th><th>Сделка</th><th>Менеджер</th><th>На каком этапе</th><th class="r">Сумма</th><th class="r">Дней без движения</th></tr></thead><tbody>
+    ${zt.map((d,i)=>{const dw=Math.round(d.dwellCur||0);const cls=dw>60?'':dw>21?'warn':'ok';
+      return `<tr class="click" onclick="openMgr('${esc(d.mgr)}')"><td>${i+1}</td><td class="name">${esc((d.title||('Сделка #'+d.id)).slice(0,45))}</td><td>${esc(d.mgr)}</td><td><span class="pill pill-neutral">${stageRu(d)}</span></td><td class="r">${d.budget?fmtM(d.budget)+' ₽':'-'}</td><td class="r"><span class="days ${cls}">${dw}</span></td></tr>`;}).join('')}
+    </tbody></table>
+    <div class="note" style="margin-top:12px;margin-bottom:0">Всего висящих: <b>${fmt(zo.length)}</b>. Нажмите на строку - откроется страница менеджера.</div>`
+  :`<div class="card-h"><div><div class="card-title">Висящих сделок нет <span class="tag ok">отлично</span></div><div class="card-sub">Все открытые сделки в движении. Так держать.</div></div></div>`;
 
-  if(!zombies.length){
-    document.getElementById('zombie-card').innerHTML=`
-      <div class="card-h"><div><div class="card-title">Zombie pipeline <span class="tag new">чисто</span></div><div class="card-sub">Нет сделок без движения >${CFG.zombieDwellDays} дней. Держим темп.</div></div></div>`;
-    return;
-  }
-
-  const rows=zombies.map((d,i)=>{
-    const dw=Math.round(ageDays(d.created));
-    const dwClass=dw>60?'':dw>30?'warn':'ok';
-    const stageName=(DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[d.stage])||d.stage||'?';
-    const reasonPill=dw>90?'pill-hot':dw>30?'pill-warn':'pill-neutral';
-    return `<tr>
-      <td>${i+1}</td>
-      <td class="name">${d.title||'#'+d.id}</td>
-      <td>${d.mgr||'?'}</td>
-      <td><span class="pill ${reasonPill}">${stageName}</span></td>
-      <td class="r">${fmtK(d.budget||0)}₽</td>
-      <td class="r"><span class="days ${dwClass}">${dw}д</span></td>
-      <td>${d.reason||'нет даты решения'}</td>
-    </tr>`;
+  /* 3 ключевых этапа */
+  const KEY=[['C49:PREPAYMENT_INVOIC','Предложение отправлено','Клиент получил цену и думает. Наша задача - не дать ему забыть о нас.'],['C49:3','Клиент принимает решение','Самый ответственный этап: решается, будут деньги или нет.'],['C49:UC_8JTBV2','Затянувшиеся сделки','Сделки, которые застряли надолго. Требуют отдельного разговора.']];
+  document.getElementById('stages-gauges').innerHTML=KEY.map(([code,name,tipTxt])=>{
+    const inS=openDeals().filter(d=>d.stageCode===code);
+    const money=inS.reduce((s,d)=>s+(d.budget||0),0);
+    const dws=inS.map(d=>d.dwellCur).filter(x=>x!=null);
+    const md=median(dws);
+    const hang=inS.filter(d=>(d.dwellCur||0)>30).length;
+    return `<div class="gauge" style="cursor:pointer" onclick="drillStage('${code}')" data-tip="${esc(tipTxt)}">
+      <h4>${name}</h4><div class="gval">${fmt(inS.length)}</div>
+      <div class="gmoney">на ${fmtM(money)} ₽</div>
+      <div class="gnote">обычно здесь: <b>${md!=null?Math.round(md)+' дней':'-'}</b><br><b style="color:${hang?'var(--dn)':'var(--ink-2)'}">${hang?fmt(hang)+' застряли дольше месяца':'застрявших нет'}</b></div>
+      <div style="font-size:10px;color:var(--accent);margin-top:8px;font-weight:600">нажмите - покажу список</div>
+    </div>`;
   }).join('');
+  document.getElementById('stage-drill').innerHTML=S.stageOpen?renderStageDrill(S.stageOpen):'';
 
-  const totalMoney=zombies.reduce((s,d)=>s+(d.budget||0),0);
-  document.getElementById('zombie-card').innerHTML=`
-    <div class="card-h">
-      <div>
-        <div class="card-title">Топ-10 висящих <span class="tag hot">${fmtK(totalMoney)} ₽ заморожено</span></div>
-        <div class="card-sub">Правило: либо next-step до пятницы, либо в «Связаться позже» с датой</div>
+  /* Крупные сделки близко к оплате */
+  const hot=openDeals().filter(d=>['C49:PREPAYMENT_INVOIC','C49:3'].includes(d.stageCode)&&(d.budget||0)>0)
+    .sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,8);
+  document.getElementById('hot-deals').innerHTML=hot.length?`
+    <table class="tbl"><thead><tr><th>#</th><th>Сделка</th><th>Менеджер</th><th>Этап</th><th class="r">Сумма</th><th class="r">Дней на этапе</th><th class="r">Контактов с клиентом</th></tr></thead><tbody>
+    ${hot.map((d,i)=>`<tr class="click" onclick="openMgr('${esc(d.mgr)}')"><td>${i+1}</td><td class="name">${esc((d.title||('Сделка #'+d.id)).slice(0,45))}</td><td>${esc(d.mgr)}</td><td><span class="pill ${d.stageCode==='C49:3'?'pill-warn':'pill-neutral'}">${stageRu(d)}</span></td><td class="r"><b>${fmtM(d.budget)} ₽</b></td><td class="r">${d.dwellCur!=null?Math.round(d.dwellCur):'-'}</td><td class="r">${d.touchReal||0}</td></tr>`).join('')}
+    </tbody></table>`
+  :`<div class="card-sub">Нет открытых сделок на этих этапах за выбранные фильтры.</div>`;
+}
+
+function renderStageDrill(code){
+  const inS=openDeals().filter(d=>d.stageCode===code).sort((a,b)=>(b.dwellCur||0)-(a.dwellCur||0)).slice(0,10);
+  if(!inS.length)return '';
+  return `<div style="margin-top:16px;border-top:1px solid var(--border-soft);padding-top:14px">
+    <div class="card-sub" style="margin-bottom:10px">Топ-10 по времени на этапе «${STAGE_RU[code]}»:</div>
+    <table class="tbl"><thead><tr><th>Сделка</th><th>Менеджер</th><th class="r">Сумма</th><th class="r">Дней на этапе</th></tr></thead><tbody>
+    ${inS.map(d=>`<tr class="click" onclick="openMgr('${esc(d.mgr)}')"><td class="name">${esc((d.title||('#'+d.id)).slice(0,50))}</td><td>${esc(d.mgr)}</td><td class="r">${d.budget?fmtM(d.budget)+' ₽':'-'}</td><td class="r"><span class="days ${(d.dwellCur||0)>60?'':'warn'}">${Math.round(d.dwellCur||0)}</span></td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+function drillStage(code){S.stageOpen=S.stageOpen===code?null:code;document.getElementById('stage-drill').innerHTML=S.stageOpen?renderStageDrill(S.stageOpen):'';}
+
+/* ================================================================
+   ЭКРАН «КОМАНДА»
+   ================================================================ */
+function mgrStats(name){
+  const created=dealsCreated().filter(d=>d.mgr===name);
+  const sold=dealsSold().filter(d=>d.mgr===name);
+  const lost=dealsLost().filter(d=>d.mgr===name);
+  const open=openDeals().filter(d=>d.mgr===name);
+  const zo=open.filter(d=>(d.dwellCur||0)>7);
+  const leads=leadsCreated().filter(l=>l.mgr===name);
+  const rev=sold.reduce((s,d)=>s+(d.budget||0),0);
+  const conv=created.length?created.filter(isSold).length/created.length:null;
+  const checks=sold.map(d=>d.budget||0).filter(x=>x>0);
+  return {name,leads:leads.length,created:created.length,sold:sold.length,lost:lost.length,rev,conv,open:open.length,zombie:zo.length,zombieShare:open.length?zo.length/open.length:0,medCheck:median(checks)||0,touch:open.length?open.reduce((s,d)=>s+(d.touchReal||0),0)/open.length:0};
+}
+function teamRows(){
+  return [...OP].map(mgrStats).filter(m=>m.created>0||m.sold>0||m.leads>0||m.open>0).sort((a,b)=>b.rev-a.rev);
+}
+function renderTeam(){
+  const rows=teamRows();
+  const convs=rows.map(m=>m.conv).filter(x=>x!=null&&x>0);
+  const medConv=median(convs)||0;
+  document.getElementById('scoreboard-card').innerHTML=rows.length?`
+    <table class="tbl"><thead><tr><th>#</th><th>Менеджер</th><th class="r">Продано на сумму</th><th class="r">Продаж</th><th class="r">Доведено до продажи ${qm('Сколько сделок из созданных за период доведено до продажи. Средняя по отделу: '+pct(medConv))}</th><th class="r">Средняя продажа</th><th class="r">В работе</th><th class="r">Из них висят</th></tr></thead><tbody>
+    ${rows.map((m,i)=>{
+      const v=m.conv==null?'neutral':m.conv>=medConv*1.2?'green':m.conv>=medConv*0.8?'yellow':m.conv>=medConv*0.4?'orange':'red';
+      return `<tr class="click mrow" onclick="openMgr('${esc(m.name)}')">
+        <td>${i+1}</td>
+        <td class="name"><span class="verdict verdict-${v==='neutral'?'yellow':v}"></span>${esc(m.name)}</td>
+        <td class="r"><b>${m.rev?fmtM(m.rev)+' ₽':'-'}</b></td>
+        <td class="r">${m.sold}</td>
+        <td class="r">${m.conv!=null?pct0(m.conv):'-'}</td>
+        <td class="r">${m.medCheck?fmtM(m.medCheck)+' ₽':'-'}</td>
+        <td class="r">${m.open}</td>
+        <td class="r">${m.zombie?`<span class="pill ${m.zombieShare>0.4?'pill-hot':m.zombieShare>0.2?'pill-warn':'pill-neutral'}">${m.zombie}</span>`:'0'}</td>
+      </tr>`;}).join('')}
+    </tbody></table>
+    <div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);padding-top:12px;border-top:1px solid var(--border-soft)">
+      <span><span class="verdict verdict-green"></span> заметно лучше среднего</span>
+      <span><span class="verdict verdict-yellow"></span> около среднего</span>
+      <span><span class="verdict verdict-orange"></span> ниже среднего</span>
+      <span><span class="verdict verdict-red"></span> сильно ниже - нужен разговор</span>
+      <span style="margin-left:auto">Сравнение честное: каждый менеджер против средней по отделу за этот же период</span>
+    </div>`
+  :`<div class="card-sub">За выбранный период у менеджеров нет активности. Расширьте период.</div>`;
+
+  const zrows=rows.filter(m=>m.open>0).sort((a,b)=>b.zombie-a.zombie).slice(0,12);
+  const mx=Math.max(...zrows.map(m=>m.zombie),1);
+  document.getElementById('team-zombie').innerHTML=zrows.length?`<div class="bars">
+    ${zrows.map(m=>{const cls=m.zombieShare>0.4?'red':m.zombieShare>0.2?'warn':'ok';
+      return `<div class="bar-row" style="cursor:pointer" onclick="openMgr('${esc(m.name)}')"><div class="bar-name">${esc(m.name)}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${(m.zombie/mx*100).toFixed(0)}%">${m.zombie||''}</div></div><div class="bar-val">${m.open?pct0(m.zombieShare):'-'} ${qm('Доля висящих среди его открытых сделок')}</div></div>`;}).join('')}
+    </div>`
+  :`<div class="card-sub">Нет открытых сделок за фильтры.</div>`;
+}
+
+/* ================================================================
+   ЛИЧНАЯ СТРАНИЦА МЕНЕДЖЕРА + разбор за июнь 2026
+   ================================================================ */
+function openMgr(name){
+  if(!name)return;
+  S.curMgr=name;
+  showScreen('manager');
+  renderMgr(name);
+  try{window.scrollTo({top:0});}catch(e){}
+}
+/* Метрики за фиксированный месяц (для разбора за июнь 2026) */
+function mgrMonth(name,ym){
+  const created=AD.filter(d=>d.mgr===name&&String(d.created).slice(0,7)===ym);
+  const sold=AD.filter(d=>d.mgr===name&&isSold(d)&&String(soldDate(d)).slice(0,7)===ym);
+  const lost=AD.filter(d=>d.mgr===name&&d.lost&&String(d.closed).slice(0,7)===ym);
+  const leads=AL.filter(l=>l.mgr===name&&String(l.created).slice(0,7)===ym);
+  const rev=sold.reduce((s,d)=>s+(d.budget||0),0);
+  const reasons={};lost.forEach(d=>{const r=lossReason(d);reasons[r]=(reasons[r]||0)+1;});
+  const topReason=Object.entries(reasons).sort((a,b)=>b[1]-a[1])[0];
+  return {created:created.length,sold:sold.length,lost:lost.length,leads:leads.length,rev,
+    conv:created.length?created.filter(isSold).length/created.length:null,
+    medCheck:median(sold.map(d=>d.budget||0).filter(x=>x>0))||0,topReason,
+    reasons};
+}
+function deptMonthMedianConv(ym){
+  const convs=[...OP].map(n=>{
+    const created=AD.filter(d=>d.mgr===n&&String(d.created).slice(0,7)===ym);
+    return created.length>=3?created.filter(isSold).length/created.length:null;
+  }).filter(x=>x!=null);
+  return median(convs)||0;
+}
+/* Разбор от директора по продажам: генерируется из живых цифр Битрикс24 */
+function sdReview(name){
+  const ym='2026-06';
+  const m=mgrMonth(name,ym);
+  const dMed=deptMonthMedianConv(ym);
+  const zoNow=AD.filter(d=>d.mgr===name&&!d.won&&!d.lost&&!SOLD_SET.has(d.stageCode)&&(d.dwellCur||0)>7);
+  const zoM=zoNow.reduce((s,d)=>s+(d.budget||0),0);
+  const openNow=AD.filter(d=>d.mgr===name&&!d.won&&!d.lost&&!SOLD_SET.has(d.stageCode));
+  const zShare=openNow.length?zoNow.length/openNow.length:0;
+
+  /* вердикт по фактам июня */
+  let v,vc,vbg;
+  const hasActivity=m.created>0||m.sold>0||m.leads>0;
+  if(!hasActivity){v='В июне активности не было';vc='var(--ink-3)';vbg='var(--bg-elevated)';}
+  else if(m.conv!=null&&dMed>0&&m.conv>=dMed*1.2&&m.sold>=2){v='Сильный месяц';vc='var(--up)';vbg='rgba(16,185,129,.14)';}
+  else if(m.conv!=null&&dMed>0&&m.conv<dMed*0.5){v='Слабый месяц - нужен план действий';vc='var(--dn)';vbg='rgba(244,63,94,.14)';}
+  else if(m.sold===0&&m.created>0){v='Месяц без продаж - разбираемся почему';vc='var(--dn)';vbg='rgba(244,63,94,.14)';}
+  else{v='Рабочий месяц, есть что улучшить';vc='var(--warn)';vbg='rgba(245,158,11,.14)';}
+
+  /* сильная сторона */
+  let strong='';
+  if(m.sold>0&&m.rev>0)strong=`<li><b>Продажи есть:</b> ${m.sold} ${plural(m.sold,'продажа','продажи','продаж')} на ${fmtM(m.rev)} ₽${m.medCheck?`, типичная продажа ${fmtM(m.medCheck)} ₽`:''}.</li>`;
+  else if(m.created>0)strong=`<li><b>Работа велась:</b> создано ${m.created} ${plural(m.created,'сделка','сделки','сделок')} за месяц.</li>`;
+  else if(m.leads>0)strong=`<li><b>Заявки обрабатывались:</b> ${m.leads} за месяц.</li>`;
+
+  /* зоны роста */
+  let growth='';
+  if(m.conv!=null&&dMed>0&&m.conv<dMed)growth+=`<li><b>Доведение до продажи ниже среднего:</b> ${pct0(m.conv)} против ${pct0(dMed)} у отдела. Каждая пятая упущенная сделка - это реальные деньги. Разобрать с руководителем 3 конкретные потерянные сделки июня: где потеряли клиента.</li>`;
+  if(m.topReason&&m.lost>=2)growth+=`<li><b>Главная причина потерь в июне - «${esc(m.topReason[0])}»</b> (${m.topReason[1]} из ${m.lost}). Это то, с чем надо работать в первую очередь: если причина «дорого» - учимся объяснять ценность, если «клиент замолчал» - звоним раньше и чаще.</li>`;
+  if(zoNow.length>0)growth+=`<li><b>Сейчас висит ${zoNow.length} ${plural(zoNow.length,'сделка','сделки','сделок')}</b> без движения больше недели, в них ${fmtM(zoM)} ₽. ${zShare>0.4?'Это больше 40% всех открытых сделок - так работать нельзя, воронка мертвеет.':'По каждой - следующий шаг до конца недели.'}</li>`;
+  if(m.sold===0&&m.created>0)growth+=`<li><b>Ноль продаж при ${m.created} созданных сделках.</b> Либо сделки июня ещё зреют - тогда покажи по каждой дату следующего контакта, либо теряем клиентов на середине пути.</li>`;
+  if(!growth)growth='<li>Явных провалов по цифрам июня не видно. Держать темп и не копить висящие.</li>';
+
+  /* действия */
+  let actions='';
+  if(zoNow.length>0)actions+=`<li>До пятницы: по каждой висящей сделке - звонок клиенту и запись следующего шага. Приоритет - самые дорогие.</li>`;
+  if(m.conv!=null&&dMed>0&&m.conv<dMed)actions+=`<li>Разбор с руководителем: 3 потерянные сделки июня, по каждой - что можно было сделать иначе.</li>`;
+  if(m.topReason&&m.topReason[0]==='Дорого')actions+=`<li>Отработать ответ на «дорого»: не скидка, а объяснение, за что клиент платит. Попросить скрипт у руководителя.</li>`;
+  if(m.topReason&&m.topReason[0]==='Клиент замолчал')actions+=`<li>Ввести правило трёх касаний: клиент молчит - звоним через 2 дня, потом через 5, потом переносим на потом с датой.</li>`;
+  if(!actions)actions='<li>Продолжать в том же темпе. Следующий разбор - по итогам июля.</li>';
+
+  return `<div class="sd-review">
+    <h3>Разбор работы за июнь 2026 · от директора по продажам</h3>
+    <div class="sd-sub">Все цифры - из Битрикс24 за 01.06-30.06.2026. Сравнение - со средней по отделу за тот же месяц. Это рабочий разбор, не приговор: цель - больше продаж в июле.</div>
+    <div class="sd-verdict" style="color:${vc};background:${vbg}">${v}</div>
+    <p><b>Цифры июня:</b> заявок ${m.leads} · создано сделок ${m.created} · продано ${m.sold} на ${fmtM(m.rev)} ₽${m.conv!=null?` · доведение до продажи ${pct0(m.conv)} (средняя по отделу ${pct0(dMed)})`:''}${m.lost?` · потеряно сделок: ${m.lost}`:''}.</p>
+    <p><b>Что хорошо:</b></p><ul>${strong||'<li>-</li>'}</ul>
+    <p><b>Над чем работать:</b></p><ul>${growth}</ul>
+    <p><b>Действия на июль:</b></p><ul>${actions}</ul>
+  </div>`;
+}
+
+function renderMgr(name){
+  const m=mgrStats(name);
+  const myOpen=openDeals().filter(d=>d.mgr===name).sort((a,b)=>(b.budget||0)-(a.budget||0));
+  const myZo=myOpen.filter(d=>(d.dwellCur||0)>7);
+  const myLost=dealsLost().filter(d=>d.mgr===name);
+  const reasons={};myLost.forEach(d=>{const r=lossReason(d);reasons[r]=(reasons[r]||0)+1;});
+  const rArr=Object.entries(reasons).sort((a,b)=>b[1]-a[1]);
+  const rTot=rArr.reduce((s,x)=>s+x[1],0);
+  const rows=teamRows();const rank=rows.findIndex(r=>r.name===name)+1;
+
+  document.getElementById('mgr-content').innerHTML=`
+    <div class="hero" style="grid-template-columns:1.35fr 1fr 1fr">
+      <div class="hero-card" style="--ac:#22D3EE">
+        <div class="hero-k">${esc(name)}</div>
+        <div class="hero-v" style="font-size:30px">${m.rev?fmtM(m.rev):'0'}<span class="u">₽ продано</span></div>
+        <div class="hero-sub">${m.sold} ${plural(m.sold,'продажа','продажи','продаж')} за период · место в рейтинге: <b>${rank>0?rank+' из '+rows.length:'-'}</b></div>
+      </div>
+      <div class="hero-card" style="--ac:#A78BFA">
+        <div class="hero-k">Сделки в работе</div>
+        <div class="hero-v" style="font-size:30px">${m.open}<span class="u">шт</span></div>
+        <div class="hero-sub">заявок за период: <b>${m.leads}</b> · создано сделок: <b>${m.created}</b></div>
+      </div>
+      <div class="hero-card" style="--ac:#F43F5E">
+        <div class="hero-k">Из них висят</div>
+        <div class="hero-v" style="font-size:30px">${m.zombie}<span class="u">шт</span></div>
+        <div class="hero-sub">${m.open?'это '+pct0(m.zombieShare)+' открытых сделок':'открытых сделок нет'}</div>
       </div>
     </div>
-    <table class="tbl"><thead><tr><th>#</th><th>Сделка</th><th>Менеджер</th><th>Стадия</th><th class="r">Budget</th><th class="r">Dwell</th><th>Reason</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+    ${sdReview(name)}
+
+    <div class="sec"><div class="sec-num">1</div><h2>Сделки в работе</h2><div class="ln"></div><span class="hint">Отсортированы по сумме. Красным - дни без движения, если их больше 7</span></div>
+    <div class="card">${myOpen.length?`
+      <table class="tbl"><thead><tr><th>Сделка</th><th>Этап</th><th class="r">Сумма</th><th class="r">Дней без движения</th><th class="r">Контактов</th></tr></thead><tbody>
+      ${myOpen.slice(0,15).map(d=>{const dw=Math.round(d.dwellCur||0);
+        return `<tr><td class="name">${esc((d.title||('Сделка #'+d.id)).slice(0,50))}</td><td><span class="pill ${d.stageCode==='C49:3'?'pill-warn':'pill-neutral'}">${stageRu(d)}</span></td><td class="r">${d.budget?fmtM(d.budget)+' ₽':'-'}</td><td class="r">${dw>7?`<span class="days ${dw>30?'':'warn'}">${dw}</span>`:dw}</td><td class="r">${d.touchReal||0}</td></tr>`;}).join('')}
+      </tbody></table>${myOpen.length>15?`<div class="note" style="margin-top:10px;margin-bottom:0">Показаны 15 самых крупных из ${myOpen.length}.</div>`:''}`
+    :'<div class="card-sub">Открытых сделок нет за выбранные фильтры.</div>'}</div>
+
+    <div class="sec"><div class="sec-num">2</div><h2>Почему теряются сделки</h2><div class="ln"></div><span class="hint">Причины закрытых без продажи сделок за выбранный период</span></div>
+    <div class="card">${rArr.length?`<div class="bars">
+      ${rArr.slice(0,7).map(([r,c],i)=>`<div class="bar-row"><div class="bar-name">${esc(r)}</div><div class="bar-track"><div class="bar-fill ${i===0?'red':i===1?'warn':'accent'}" style="width:${(c/rArr[0][1]*100).toFixed(0)}%">${c}</div></div><div class="bar-val">${pct0(c/rTot)}</div></div>`).join('')}
+      </div>`
+    :'<div class="card-sub">Потерянных сделок за период нет.</div>'}</div>`;
 }
 
-function renderKeyStages(){
-  const el=document.getElementById('stages-gauges');
-  const stageData=KEY_STAGES.map(sc=>{
-    const inStage=filtered(AD).filter(d=>d.stage===sc && !d.won && !d.lost);
-    const money=inStage.reduce((s,d)=>s+(d.budget||0),0);
-    const dwells=inStage.map(d=>ageDays(d.created)).filter(x=>x!==null);
-    const medDw=median(dwells);
-    const hangCount=inStage.filter(d=>ageDays(d.created)>30).length;
-    return {sc, count:inStage.length, money, medDw, hangCount};
-  });
-  el.innerHTML=stageData.map(s=>`
-    <div class="gauge">
-      <h4>${STAGE_NAMES[s.sc]}</h4>
-      <div class="gval">${s.count}</div>
-      <div class="gmoney">${fmtK(s.money)} ₽</div>
-      <div class="gnote">Медиана: <b>${s.medDw?Math.round(s.medDw)+' дней':'—'}</b><br><b style="color:${s.hangCount>0?'var(--dn)':'var(--ink-2)'}">${s.hangCount} висящих >30д</b></div>
-      <div class="gdrill">→ раскрыть</div>
-    </div>
-  `).join('');
+/* ================================================================
+   ЭКРАН «КОМПАНИЯ»
+   ================================================================ */
+function renderCompany(){
+  /* Воронка: до какого этапа дошли сделки, созданные за период */
+  const DD=dealsCreated();
+  const PIPE=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
+  const ord={};PIPE.forEach((c,i)=>ord[c]=i);
+  const reached=d=>{let mo=-1;for(const h of(d.hist||[]))if(ord[h[0]]!=null&&ord[h[0]]>mo)mo=ord[h[0]];if(mo<0&&ord[d.stageCode]!=null)mo=ord[d.stageCode];if(d.won)mo=ord['C49:WON'];return mo;};
+  const RR=DD.map(reached);
+  const FUN=[['Новая заявка','C49:NEW'],['Взята в работу','C49:UC_LRFLH9'],['Готовим предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Клиент принимает решение','C49:3'],['Получена предоплата','C49:EXECUTING'],['Продано','C49:WON']];
+  const F=FUN.map(([nm,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>RR[i]>=th);return {nm,count:sub.length,money:sub.reduce((s,d)=>s+(d.budget||0),0)};});
+  const mx=F[0].count||1;
+  const COL=['#22D3EE','#38BDF8','#60A5FA','#F472B6','#FB923C','#6366F1','#10B981'];
+  document.getElementById('funnel-card').innerHTML=DD.length?`
+    <div class="card-sub" style="margin-bottom:10px">Сделки, созданные за период: ${fmt(DD.length)}. Смотрим, до какого этапа они дошли (включая уже закрытые).</div>
+    <div class="cf">${F.map((f,i)=>{
+      const conv=i===0?null:(F[i-1].count?f.count/F[i-1].count:0);
+      return `${i>0?`<div class="cf-conv"><span>перешло с прошлого этапа</span><b>${pct0(conv)}</b></div>`:''}
+      <div class="cf-step"><div class="cf-name">${f.nm}</div><div class="cf-track"><div class="cf-fill" style="width:${(f.count/mx*100).toFixed(1)}%;background:linear-gradient(90deg,${COL[i]}88,${COL[i]})"></div></div><div class="cf-val">${fmt(f.count)} <small>· ${fmtM(f.money)} ₽</small></div></div>`;}).join('')}
+    </div>`
+  :'<div class="card-sub">За период не создано ни одной сделки. Расширьте период.</div>';
+
+  /* Потери: причины */
+  const lost=dealsLost();
+  const reasons={};lost.forEach(d=>{const r=lossReason(d);reasons[r]=(reasons[r]||0)+1;});
+  const rArr=Object.entries(reasons).sort((a,b)=>b[1]-a[1]);
+  const rTot=rArr.reduce((s,x)=>s+x[1],0)||1;
+  document.getElementById('loss-reasons').innerHTML=`
+    <div class="card-h"><div><div class="card-title">Причины потерь</div><div class="card-sub">${fmt(lost.length)} сделок закрыто без продажи за период</div></div></div>
+    ${rArr.length?`<div class="bars">${rArr.slice(0,8).map(([r,c],i)=>`<div class="bar-row"><div class="bar-name">${esc(r)}</div><div class="bar-track"><div class="bar-fill ${i===0?'red':i===1?'warn':'accent'}" style="width:${(c/rArr[0][1]*100).toFixed(0)}%">${c}</div></div><div class="bar-val">${pct0(c/rTot)}</div></div>`).join('')}</div>`:'<div class="card-sub">Потерь нет.</div>'}`;
+
+  /* Потери: у кого */
+  const byMgr={};lost.forEach(d=>{if(isOP(d.mgr))byMgr[d.mgr]=(byMgr[d.mgr]||0)+1;});
+  const mArr=Object.entries(byMgr).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  document.getElementById('loss-by-mgr').innerHTML=`
+    <div class="card-h"><div><div class="card-title">У кого теряются</div><div class="card-sub">Нажмите на менеджера - его страница с разбором</div></div></div>
+    ${mArr.length?`<div class="bars">${mArr.map(([n,c],i)=>`<div class="bar-row" style="cursor:pointer" onclick="openMgr('${esc(n)}')"><div class="bar-name">${esc(n)}</div><div class="bar-track"><div class="bar-fill ${i===0?'red':'warn'}" style="width:${(c/mArr[0][1]*100).toFixed(0)}%">${c}</div></div><div class="bar-val">шт</div></div>`).join('')}</div>`:'<div class="card-sub">Потерь нет.</div>'}`;
+
+  /* План/факт по месяцам */
+  const months={};
+  AD.filter(d=>fltBase(d)&&isSold(d)).forEach(d=>{const k=String(soldDate(d)).slice(0,7);if(k>='2026-01')months[k]=(months[k]||0)+(d.budget||0);});
+  const keys=Object.keys(months).sort();
+  const planM=PLAN_M;
+  document.getElementById('plan-fact').innerHTML=keys.length?`
+    <table class="tbl"><thead><tr><th>Месяц</th><th class="r">План</th><th class="r">Факт (продано)</th><th class="r">Выполнение</th></tr></thead><tbody>
+    ${keys.map(k=>{const p=planM[k]?planM[k].rev:null;const f=months[k];const att=p?f/p:null;
+      const MON=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+      const nm=MON[parseInt(k.slice(5,7))-1]+' '+k.slice(0,4);
+      return `<tr><td class="name">${nm}</td><td class="r">${p?fmtM(p)+' ₽':'-'}</td><td class="r"><b>${fmtM(f)} ₽</b></td><td class="r">${att!=null?`<span class="pill ${att>=0.95?'pill-ok':att>=0.7?'pill-warn':'pill-hot'}">${pct0(att)}</span>`:'-'}</td></tr>`;}).join('')}
+    </tbody></table>
+    <div class="note" style="margin-top:10px;margin-bottom:0">Факт считается по дате, когда получена предоплата (или продажа закрыта). План - из Google-таблицы руководителя.</div>`
+  :'<div class="card-sub">Нет продаж 2026 года за выбранные фильтры.</div>';
 }
 
-function renderScoreboard(){
-  const D=filtered(AD).filter(d=>inPeriod(d,'closed'));
-  const managers={};
-  D.forEach(d=>{
-    if(!d.mgr||!isOP(d.mgr)) return;
-    if(!managers[d.mgr]) managers[d.mgr]={mgr:d.mgr, deals:0, won:0, rev:0, dir:d.dir};
-    managers[d.mgr].deals++;
-    if(d.won){managers[d.mgr].won++; managers[d.mgr].rev+=(d.budget||0);}
-  });
-  const arr=Object.values(managers).sort((a,b)=>b.rev-a.rev);
-
-  if(!arr.length){
-    document.getElementById('scoreboard').innerHTML='<div class="p1-placeholder"><b>Ждём данных из Bitrix</b><small>После загрузки rop.json ростер отобразится тут</small></div>';
-    return;
-  }
-
-  const rows=arr.map((m,i)=>{
-    const cr2=m.deals?m.won/m.deals:0;
-    const check=m.won?m.rev/m.won:0;
-    const verdict=cr2>=0.16?'green':cr2>=0.10?'yellow':cr2>=0.05?'orange':'red';
-    return `<tr>
-      <td>${i+1}</td>
-      <td class="name"><span class="verdict verdict-${verdict}"></span>${m.mgr}</td>
-      <td>${m.dir||'?'}</td>
-      <td class="r">${fmtK(m.rev)}₽</td>
-      <td class="r">${pct(cr2)}</td>
-      <td class="r">${fmtK(check)}₽</td>
-      <td class="r"><b>${(cr2*10*0.6+3).toFixed(1)}</b></td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('scoreboard').innerHTML=`
-    <table class="tbl"><thead><tr><th style="width:36px">#</th><th>Менеджер</th><th>Бренд</th><th class="r">WON ₽</th><th class="r">CR2</th><th class="r">Ср.чек</th><th class="r">Score</th></tr></thead><tbody>${rows}</tbody></table>
-    <div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);padding-top:12px;border-top:1px solid var(--border-soft)">
-      <span><span class="verdict verdict-green"></span> Green: CR2 ≥16%</span>
-      <span><span class="verdict verdict-yellow"></span> Yellow: 10-15%</span>
-      <span><span class="verdict verdict-orange"></span> Orange: 5-9% (PIP-кандидат)</span>
-      <span><span class="verdict verdict-red"></span> Red: <5%</span>
-    </div>`;
+/* ================================================================
+   КАРКАС: вкладки, периоды, фильтры
+   ================================================================ */
+function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c;}
+function showScreen(s){
+  S.screen=s;
+  document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('on',x.dataset.s===s));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
 }
-
-function renderSparklines(){
-  document.getElementById('sparklines').innerHTML=`<div class="p1-placeholder"><b>P0 skeleton</b><small>Sparklines по 12-недельному тренду будут отрисованы после расширения агрегации в build-rop.ts. См. SPEC.md §5.</small></div>`;
-}
-
-function renderCohortFunnel(){
-  const el=document.getElementById('cohort-funnel');
-  el.innerHTML=`<div class="p1-placeholder"><b>Cohort funnel</b><small>После выбора фильтров сегмент+бренд воронка перестроится. Логика в разработке (день 6 worklog).</small></div>`;
-}
-
-function renderLossReasons(){
-  const el=document.getElementById('loss-reasons');
-  const lostD=filtered(AD).filter(d=>d.lost && inPeriod(d,'closed'));
-  const bucket={};
-  lostD.forEach(d=>{
-    const r=d.reason||'Не указана';
-    bucket[r]=(bucket[r]||0)+1;
-  });
-  const arr=Object.entries(bucket).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const total=arr.reduce((s,x)=>s+x[1],0);
-  el.innerHTML=`
-    <div class="card-h"><div><div class="card-title">Топ причин потерь</div><div class="card-sub">${total} lost за период</div></div></div>
-    <div class="bars">${arr.map((x,i)=>{
-      const w=total?x[1]/total*100:0;
-      const cls=i===0?'red':i===1?'warn':i<=3?'accent':'accent';
-      return `<div class="bar-row"><div class="bar-name">${x[0]}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${w.toFixed(1)}%">${x[1]}</div></div><div class="bar-val">${w.toFixed(0)}%</div></div>`;
-    }).join('')}</div>`;
-}
-
-function renderLossDetails(){
-  document.getElementById('loss-details').innerHTML=`<div class="p1-placeholder"><b>Loss deep-dive per manager</b><small>3D разбивка reason × сегмент × dwell до потери. Расширение агрегации (день 6).</small></div>`;
-}
-
-function renderEfficiencyScatter(){
-  document.getElementById('efficiency-scatter').innerHTML=`<div class="p1-placeholder"><b>Manager efficiency scatter</b><small>X = активные сделки, Y = CR2. Реализуется день 6 worklog.</small></div>`;
-}
-
-function renderCrisisDeals(){
-  document.getElementById('crisis-deals').innerHTML=`<div class="p1-placeholder"><b>Топ-5 сделок на закрытие завтра</b><small>Требует поля «Дата решения клиента». Пока P0 skeleton.</small></div>`;
-}
-
-function renderCrisisHelpers(){
-  // top-3 по WON-выручке из scoreboard
-  const D=filtered(AD).filter(d=>d.won && inPeriod(d,'closed'));
-  const managers={};
-  D.forEach(d=>{
-    if(!d.mgr||!isOP(d.mgr)) return;
-    if(!managers[d.mgr]) managers[d.mgr]={mgr:d.mgr, rev:0};
-    managers[d.mgr].rev+=(d.budget||0);
-  });
-  const top3=Object.values(managers).sort((a,b)=>b.rev-a.rev).slice(0,3);
-
-  document.getElementById('crisis-helpers').innerHTML=`
-    <div class="grid3">${top3.map((m,i)=>`
-      <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-        <div style="font-size:11px;color:var(--up);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Помощник #${i+1}</div>
-        <div style="font-family:'Manrope';font-size:16px;font-weight:800">${m.mgr}</div>
-        <div style="font-size:12px;color:var(--ink-3);margin-top:4px">WON: ${fmtK(m.rev)} ₽ за период</div>
-      </div>
-    `).join('')}</div>`;
-}
-
-/* ================== ALERT COUNT + STAMP ================== */
-function updateAlerts(){
-  const zombies=filtered(AD).filter(d=>{if(d.won||d.lost)return false;const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays;}).length;
-  const alertEl=document.getElementById('alertCount');
-  alertEl.textContent=`! ${zombies} zombie сделок`;
-  document.getElementById('freshTag').textContent=DATA.generatedAt||'—';
-}
-
-/* ================== TAB SWITCHER ================== */
 document.getElementById('tabs').addEventListener('click',e=>{
   const b=e.target.closest('button[data-s]');if(!b)return;
-  document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');
-  const s=b.dataset.s;S.scr=s;
-  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on'));
-  document.querySelector('.screen[data-s="'+s+'"]').classList.add('on');
+  showScreen(b.dataset.s);renderAll();
 });
-
-/* Filter change */
-['fSeg','fDir','fPer'].forEach(id=>{
-  document.getElementById(id).addEventListener('change',e=>{
-    if(id==='fSeg') S.seg=e.target.value;
-    if(id==='fDir') S.dir=e.target.value;
-    if(id==='fPer') S.period=parseInt(e.target.value);
-    renderAll();
-  });
+/* Меню периодов (как в основном дашборде) */
+document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
+document.getElementById('period').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-p]');if(!b)return;
+  document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');setPeriod(b.dataset.p);renderAll();
 });
+document.getElementById('applyCustom').addEventListener('click',()=>{
+  const f=document.getElementById('cf').value,t=document.getElementById('ct').value;
+  if(f&&t&&f<=t){S.start=f;S.end=t;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));renderAll();}
+});
+/* Фильтры: значения из живых данных */
+(function initFilters(){
+  const segs=[...new Set(AD.map(d=>d.client).filter(x=>x&&x!=='нет данных'))].sort();
+  document.getElementById('fSeg').innerHTML='<option value="">Все</option>'+segs.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')+'<option value="нет данных">Не указан</option>';
+  const dirRu={genglass:'GENGLASS (стекло)',valonti:'VALONTI (мебель)',gentero:'GENTERO (HoReCa)',metal_gm:'Metal-GM (металл)','gen-group':'GEN GROUP','не указано':'Направление не указано'};
+  const dirs=[...new Set(AD.map(d=>d.dir).filter(Boolean))].sort();
+  document.getElementById('fDir').innerHTML='<option value="">Все направления</option>'+dirs.map(d=>`<option value="${esc(d)}">${esc(dirRu[d]||d)}</option>`).join('');
+})();
+document.getElementById('fSeg').addEventListener('change',e=>{S.seg=e.target.value;renderAll();});
+document.getElementById('fDir').addEventListener('change',e=>{S.dir=e.target.value;renderAll();});
 
-/* ================== RENDER ALL ================== */
 function renderAll(){
-  updateAlerts();
-  renderHero();
-  renderKpiStrip();
-  renderZombie();
-  renderKeyStages();
-  renderScoreboard();
-  renderSparklines();
-  renderCohortFunnel();
-  renderLossReasons();
-  renderLossDetails();
-  renderEfficiencyScatter();
-  renderCrisisDeals();
-  renderCrisisHelpers();
+  const zo=zombies();
+  document.getElementById('alertCount').textContent=zo.length?`висящих сделок: ${zo.length}`:'висящих нет';
+  document.getElementById('periodLabel').innerHTML=`<b>${S.start.split('-').reverse().join('.')}</b> - <b>${S.end.split('-').reverse().join('.')}</b>`;
+  const g=DATA.generatedAt?new Date(DATA.generatedAt):null;
+  document.getElementById('freshTag').textContent=g?('снимок от '+g.toLocaleDateString('ru-RU')+' '+g.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})):'-';
+  if(S.screen==='today')renderToday();
+  else if(S.screen==='team')renderTeam();
+  else if(S.screen==='company')renderCompany();
+  else if(S.screen==='manager'&&S.curMgr)renderMgr(S.curMgr);
 }
-
-/* Bootstrap */
 renderAll();
 </script>
 </body></html>

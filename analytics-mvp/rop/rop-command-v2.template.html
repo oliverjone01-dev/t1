@@ -1,0 +1,700 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGLASS · Командный центр РОПа v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* v2 shared design tokens (наследует v1 dark theme + cyan accent) */
+:root{
+  --bg-base:#0B0F15;--bg-card:#131820;--bg-elevated:#1A2029;--bg-soft:#232B36;
+  --border:#1F2731;--border-soft:#161C24;--border-hot:#2B3441;
+  --ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;
+  --accent:#22D3EE;--accent-2:#06B6D4;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
+  --up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;--hot:#F43F5E;
+  --radius:10px;--radius-lg:14px;--ease-out:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
+body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:clip}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:60;padding:11px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.92);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
+.brand b{font-family:'Manrope';font-weight:800;font-size:14px}
+.brand span{display:block;font-size:10.5px;color:var(--ink-3)}
+.badge-v2{font-size:9px;background:rgba(34,211,238,.14);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:800;margin-left:6px;letter-spacing:.05em}
+
+/* TAB NAV */
+.tabs{display:flex;gap:3px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:3px}
+.tabs button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-weight:700;font-size:12.5px;padding:8px 14px;border-radius:7px;cursor:pointer;transition:.15s}
+.tabs button.on{background:var(--accent-soft);color:var(--accent)}
+.tabs button:hover:not(.on){color:var(--ink)}
+.tabs button.crisis{color:var(--dn)}
+.tabs button.crisis.on{background:rgba(244,63,94,.14);color:var(--dn)}
+
+.tb-spacer{flex:1}
+.stamp{font-size:11px;color:var(--ink-4);font-variant-numeric:tabular-nums}
+
+/* FILTERS */
+.filters{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.filters .lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-8px}
+.filters select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer}
+.filters .alert{margin-left:auto;font-size:11px;color:var(--dn);background:rgba(244,63,94,.14);padding:4px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(244,63,94,.3)}
+
+.wrap{max-width:1660px;margin:0 auto;padding:16px 24px 80px}
+
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;animation:fadeUp .45s var(--ease-out) both}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;gap:16px;flex-wrap:wrap}
+.card-title{font-family:'Manrope';font-weight:700;font-size:15px;margin-bottom:2px}
+.card-sub{font-size:11px;color:var(--ink-3)}
+.card-title .tag{font-size:9.5px;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.14);color:var(--warn);font-weight:700;margin-left:8px}
+.card-title .tag.new{background:rgba(34,211,238,.14);color:var(--accent)}
+.card-title .tag.hot{background:rgba(244,63,94,.14);color:var(--dn)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:1100px){.hero{grid-template-columns:1fr}}
+.hero-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;position:relative;overflow:hidden}
+.hero-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--accent)),transparent)}
+.hero-k{font-size:10.5px;color:var(--ink-3);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.hero-v{font-family:'Manrope';font-weight:800;font-size:42px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.hero-v .u{font-size:16px;color:var(--ink-3);font-weight:600;margin-left:4px}
+.hero-sub{margin-top:10px;font-size:12px;color:var(--ink-2)}
+.hero-sub b{color:var(--ink);font-weight:700}
+.hero-trend{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:3px 9px;border-radius:6px;margin-top:8px}
+.hero-trend.dn{color:var(--dn);background:rgba(244,63,94,.12)}
+.hero-trend.up{color:var(--up);background:rgba(16,185,129,.12)}
+.hero-trend.warn{color:var(--warn);background:rgba(245,158,11,.12)}
+
+/* MINI KPI */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:1100px){.kpi-strip{grid-template-columns:repeat(2,1fr)}}
+.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden}
+.kpi-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac,var(--accent))}
+.kpi-k{font-size:9.5px;color:var(--ink-3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.kpi-v{font-family:'Manrope';font-weight:800;font-size:20px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi-v .u{font-size:10px;color:var(--ink-3);font-weight:600;margin-left:3px}
+.kpi-delta{font-size:10.5px;font-weight:700;margin-top:4px}
+.kpi-delta.up{color:var(--up)}.kpi-delta.dn{color:var(--dn)}.kpi-delta.flat{color:var(--ink-3)}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl th{font-size:10px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);text-align:left;cursor:pointer;user-select:none}
+.tbl th:hover{color:var(--ink)}.tbl th.sorted{color:var(--accent)}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl td.name{font-weight:600;color:var(--ink)}
+.tbl tr:hover td{background:rgba(34,211,238,.03)}
+.tbl .link{color:var(--accent);text-decoration:none;font-size:11px;font-weight:600}
+.tbl .verdict{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.verdict-green{background:var(--up)}.verdict-yellow{background:var(--warn)}.verdict-orange{background:#FB923C}.verdict-red{background:var(--dn)}
+.tbl .pill{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:700}
+.pill-hot{background:rgba(244,63,94,.14);color:var(--dn)}
+.pill-warn{background:rgba(245,158,11,.14);color:var(--warn)}
+.pill-ok{background:rgba(16,185,129,.14);color:var(--up)}
+.pill-neutral{background:var(--bg-elevated);color:var(--ink-2)}
+.tbl .days{font-family:'Manrope';font-weight:800;color:var(--dn)}
+.tbl .days.warn{color:var(--warn)}
+.tbl .days.ok{color:var(--up)}
+
+/* GAUGES */
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:1100px){.gauges{grid-template-columns:1fr}}
+.gauge{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 12px;text-align:center;cursor:pointer;transition:.15s}
+.gauge:hover{border-color:var(--border-hot);transform:translateY(-1px)}
+.gauge h4{font-size:10.5px;color:var(--ink-3);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px}
+.gauge .gval{font-family:'Manrope';font-weight:800;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
+.gauge .gmoney{font-size:12px;color:var(--ink-2);margin-top:4px;font-weight:600}
+.gauge .gnote{font-size:10.5px;color:var(--ink-4);margin-top:6px}
+.gauge .gnote b{color:var(--ink-2)}
+.gauge .gdrill{font-size:10px;color:var(--accent);margin-top:8px;font-weight:600}
+
+/* SPARKLINE */
+.spark{width:120px;height:28px;vertical-align:middle}
+.spark path{fill:none;stroke:var(--accent);stroke-width:1.5}
+.spark path.dn{stroke:var(--dn)}
+.spark path.up{stroke:var(--up)}
+.spark .last{fill:var(--accent)}
+.spark .last.dn{fill:var(--dn)}
+.spark .last.up{fill:var(--up)}
+
+/* BARS */
+.bars{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.bar-row{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:11px}
+.bar-name{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{height:22px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transform-origin:left;animation:grow .8s var(--ease-out) both;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#06121a}
+.bar-fill.red{background:linear-gradient(90deg,#FB7185,#F43F5E)}
+.bar-fill.warn{background:linear-gradient(90deg,#FBBF24,#F59E0B)}
+.bar-fill.ok{background:linear-gradient(90deg,#34D399,#10B981)}
+.bar-fill.accent{background:linear-gradient(90deg,#67E8F9,#22D3EE)}
+.bar-val{font-size:12px;font-weight:800;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+
+/* SECTION DIVIDER */
+.sec{display:flex;align-items:center;gap:12px;margin:22px 0 10px}
+.sec:first-of-type{margin-top:6px}
+.sec-num{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:12px}
+.sec h2{font-family:'Manrope';font-weight:800;font-size:17px;letter-spacing:-.01em}
+.sec .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--border-hot),transparent)}
+.sec .hint{font-size:11px;color:var(--ink-3)}
+
+/* WATCH */
+.watch{display:flex;flex-direction:column;gap:10px}
+.watch-item{background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;cursor:pointer;transition:.15s}
+.watch-item:hover{border-color:var(--accent);transform:translateY(-1px)}
+.watch-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:'Manrope'}
+.watch-icon.hot{background:rgba(244,63,94,.14);color:var(--dn)}
+.watch-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.watch-meta{font-size:11px;color:var(--ink-3)}
+.watch-meta b{color:var(--ink-2)}
+.watch-action{font-size:11px;color:var(--accent);font-weight:700;text-align:right}
+
+/* SCREEN */
+.screen{display:none}
+.screen.on{display:block}
+
+/* CRISIS */
+.crisis-banner{background:linear-gradient(90deg,rgba(244,63,94,.20),rgba(244,63,94,.08));border:1px solid rgba(244,63,94,.4);border-radius:12px;padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;animation:fadeUp .4s var(--ease-out) both}
+.crisis-icon{width:44px;height:44px;border-radius:11px;background:rgba(244,63,94,.20);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--dn);animation:pulse 2s ease-in-out infinite}
+.crisis-txt b{font-family:'Manrope';font-size:16px;color:var(--dn)}
+.crisis-txt span{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
+
+/* PLACEHOLDER для P1 блоков (требуют новых Bitrix-полей) */
+.p1-placeholder{background:var(--bg-elevated);border:1px dashed var(--border-hot);border-radius:10px;padding:20px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.p1-placeholder b{color:var(--warn);display:block;margin-bottom:4px}
+.p1-placeholder small{font-size:10.5px;color:var(--ink-4);display:block;margin-top:6px}
+
+/* CONSENT-GATE (FZ-152 feature flag) */
+.consent-gate{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11.5px;color:var(--ink-2)}
+.consent-gate b{color:var(--warn)}
+
+.foot{text-align:center;color:var(--ink-4);font-size:11px;margin-top:28px}
+</style></head><body>
+
+<!-- ================== TOPBAR ================== -->
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Командный центр РОПа</b><span>v2 · воронка «GG Заказы РФ»<span class="badge-v2">v2 PREVIEW</span></span></div>
+  <div class="tabs" id="tabs">
+    <button data-s="morning" class="on">1. Утро</button>
+    <button data-s="team">2. Команда</button>
+    <button data-s="strategy">3. Стратегия</button>
+    <button data-s="crisis" class="crisis">! Crisis</button>
+  </div>
+  <div class="tb-spacer"></div>
+  <span class="stamp" id="stamp">Data: <span id="freshTag">-</span></span>
+</div>
+
+<!-- ================== FILTERS (universal) ================== -->
+<div class="filters">
+  <span class="lbl">Сегмент</span>
+  <select id="fSeg"><option value="">Все</option><option value="B2B">B2B</option><option value="B2C">B2C</option><option value="Дилер">Дилер</option></select>
+  <span class="lbl">Бренд</span>
+  <select id="fDir"><option value="">Все</option><option value="genglass">GENGLASS</option><option value="valonti">VALONTI</option><option value="gentero">GENTERO</option><option value="metal_gm">Metal-GM</option></select>
+  <span class="lbl">Период</span>
+  <select id="fPer"><option value="30">30 дней</option><option value="60" selected>60 дней</option><option value="90">Q</option></select>
+  <div class="alert" id="alertCount">! calculating</div>
+</div>
+
+<div class="wrap">
+
+<!-- ================== SCREEN 1: MORNING ================== -->
+<div class="screen on" data-s="morning" id="scr-morning">
+
+  <!-- HERO -->
+  <div class="hero" id="hero-morning"></div>
+
+  <!-- MINI KPI STRIP -->
+  <div class="kpi-strip" id="kpi-morning"></div>
+
+  <!-- ZOMBIE PIPELINE -->
+  <div class="sec">
+    <div class="sec-num">1</div>
+    <h2>Zombie pipeline · утренний расчёт</h2>
+    <div class="ln"></div>
+    <span class="hint">Сделки без касания >7 дней. Разбор с менеджерами.</span>
+  </div>
+  <div class="card" id="zombie-card"></div>
+
+  <!-- KEY STAGES DRILL -->
+  <div class="sec">
+    <div class="sec-num">2</div>
+    <h2>3 ключевые стадии · drill-down</h2>
+    <div class="ln"></div>
+    <span class="hint">Клик по стадии открывает список сделок</span>
+  </div>
+  <div class="card"><div class="gauges" id="stages-gauges"></div></div>
+
+  <!-- TOP-3 CLOSING TODAY (P1 placeholder до поля «Дата решения клиента») -->
+  <div class="sec">
+    <div class="sec-num">3</div>
+    <h2>Топ-3 на закрытие сегодня</h2>
+    <div class="ln"></div>
+    <span class="hint">Weight ≥0.75 forecast</span>
+  </div>
+  <div class="p1-placeholder">
+    <b>Ожидает P1: поле «Дата решения клиента» в Bitrix24</b>
+    Без этого поля forecast weight не считается. Boris workstream в процессе.
+    <small>После активации поля: топ-3 сделки с датой решения ≤7 дней + DM зафиксирован + бюджет подтверждён</small>
+  </div>
+
+  <!-- SPEED-TO-LEAD (P1 placeholder до activity timestamps) -->
+  <div class="sec">
+    <div class="sec-num">4</div>
+    <h2>Speed-to-lead · медиана до первого касания</h2>
+    <div class="ln"></div>
+    <span class="hint">P1 функция, ожидает FZ-152 consent</span>
+  </div>
+  <div class="consent-gate" id="consent-status"><b>FZ-152 gate:</b> личные метрики менеджеров активируются после подписи каждым согласия. Trener готовит consent-letter, boris проверяет legal.</div>
+  <div class="p1-placeholder">
+    <b>Ожидает P1: fetch activity timestamps + consent коллектив ≥80%</b>
+    Требует расширение fetch-rop.ts на crm.activity.list (batch + incremental для rate limits).
+    <small>После активации: scatter по менеджерам, target &lt;3ч, red >6ч</small>
+  </div>
+
+</div>
+
+<!-- ================== SCREEN 2: TEAM ================== -->
+<div class="screen" data-s="team" id="scr-team">
+  <div class="sec">
+    <div class="sec-num">1</div>
+    <h2>Manager scoreboard · cohort-нормализация</h2>
+    <div class="ln"></div>
+    <span class="hint">Ранжировано по WON-выручке. Verdict color по evaluation-rubric.md (9 параметров).</span>
+  </div>
+  <div class="consent-gate"><b>FZ-152 gate:</b> personal-metrics колонки (Speed, Discount, Zombie %) скрыты пока consent не подписан. WON-выручка и CR2 показываются, они не персональные.</div>
+  <div class="card"><div id="scoreboard"></div></div>
+
+  <div class="sec">
+    <div class="sec-num">2</div>
+    <h2>Trend sparklines · 12 недель по менеджерам</h2>
+    <div class="ln"></div>
+    <span class="hint">Замена хитмапа v1 на sparkline (лучшая читаемость трендов)</span>
+  </div>
+  <div class="card"><div id="sparklines"></div></div>
+
+  <div class="p1-placeholder">
+    <b>Speed-to-lead scatter + Discount heatmap — P1 после Boris</b>
+    <small>Активируются при готовности activity timestamps + price_listed snapshot</small>
+  </div>
+</div>
+
+<!-- ================== SCREEN 3: STRATEGY ================== -->
+<div class="screen" data-s="strategy" id="scr-strategy">
+  <div class="sec">
+    <div class="sec-num">1</div>
+    <h2>Funnel by cohort · <span id="cohort-label">B2B GENGLASS</span></h2>
+    <div class="ln"></div>
+    <span class="hint">Cohort-разрез вместо усреднённой воронки v1</span>
+  </div>
+  <div class="card"><div id="cohort-funnel"></div></div>
+
+  <div class="sec">
+    <div class="sec-num">2</div>
+    <h2>Loss reason deep-dive · 3D разбивка</h2>
+    <div class="ln"></div>
+    <span class="hint">Reason × сегмент × median dwell до потери</span>
+  </div>
+  <div class="grid2">
+    <div class="card"><div id="loss-reasons"></div></div>
+    <div class="card"><div id="loss-details"></div></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-num">3</div>
+    <h2>Manager efficiency scatter</h2>
+    <div class="ln"></div>
+    <span class="hint">X = активные сделки · Y = CR2 % · star-zone top-right</span>
+  </div>
+  <div class="card"><div id="efficiency-scatter"></div></div>
+
+  <div class="sec">
+    <div class="sec-num">4</div>
+    <h2>Forecast waterfall</h2>
+    <div class="ln"></div>
+    <span class="hint">Weighted pipeline по стадиям с confidence</span>
+  </div>
+  <div class="p1-placeholder">
+    <b>Forecast waterfall — P1 после поля «Дата решения клиента»</b>
+    <small>Без этого поля weight-per-stage не откалиброван. См. SPEC.md §5 Forecast methodology</small>
+  </div>
+</div>
+
+<!-- ================== SCREEN 4: CRISIS ================== -->
+<div class="screen" data-s="crisis" id="scr-crisis">
+  <div class="crisis-banner">
+    <div class="crisis-icon">!</div>
+    <div class="crisis-txt">
+      <b>Protocol 8 · режим кризиса</b>
+      <span id="crisis-trigger">Триггер: <b style="color:var(--dn)">выручка <80% × 2 недели подряд</b> либо ручное включение. Скрыто: Zombie, Sparklines, Scoreboard.</span>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">1</div>
+    <h2>Топ-5 сделок на закрытие ЗАВТРА (buy-time)</h2>
+    <div class="ln"></div>
+    <span class="hint">Сегодня договорённость, оплата и WON завтра. 48 часов манёвра.</span>
+  </div>
+  <div class="card"><div id="crisis-deals"></div></div>
+
+  <div class="sec">
+    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">2</div>
+    <h2>Топ-3 менеджера-помощника</h2>
+    <div class="ln"></div>
+    <span class="hint">Кого подсадить на сложные сделки</span>
+  </div>
+  <div class="card"><div id="crisis-helpers"></div></div>
+
+  <div class="sec">
+    <div class="sec-num" style="background:rgba(244,63,94,.14);color:var(--dn)">3</div>
+    <h2>Прямые линии эскалации</h2>
+    <div class="ln"></div>
+    <span class="hint">Один клик = связь</span>
+  </div>
+  <div class="grid2">
+    <div class="card" style="border-color:rgba(245,158,11,.3)">
+      <div class="card-title">Roman · CFO emergency</div>
+      <div class="card-sub">Маржа-approve на скидки >5%. Приоритетное окно 15 мин.</div>
+    </div>
+    <div class="card" style="border-color:rgba(244,63,94,.3)">
+      <div class="card-title">Иван · CMO эскалация</div>
+      <div class="card-sub">Структурные решения (>10% дисконт, kill-switch, найм emergency).</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">© GENGROUP · GENGLASS · РОП v2 · fork ozon-dashboard-dima-fork · feature flag DASHBOARD_V2_ENABLED · Feniks Step 12.5 pending</div>
+
+</div>
+
+<script>
+/* ================== v2 CORE LOGIC ================== */
+const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};
+const AD=DATA.deals||[], AL=DATA.leads||[], KSS=DATA.keyStageStats||[];
+
+/* v2 config (Иван-tunable) */
+const CFG={
+  zombieDwellDays: 7,
+  planMonthly: 30_000_000,
+  monthlyWorkDays: 21,
+  cohortDefault: 'B2B GENGLASS',
+  crisisThreshold: 0.80, // <80% плана × 2 недели = crisis mode
+  featureFlag: {
+    v2Enabled: true,
+    personalMetricsShown: false, // FZ-152 gate, default OFF
+  }
+};
+
+/* Filters state */
+const S={seg:'',dir:'',period:60,scr:'morning'};
+
+/* Helpers */
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'K':fmt(n);
+const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
+const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const NOWD=DATA.to?new Date(DATA.to+'T23:59:00+03:00'):new Date();
+const DAYMS=864e5;
+const ageDays=ds=>ds?(NOWD-new Date(ds))/DAYMS:null;
+const isOP=n=>(DATA.opUsers||[]).includes(n);
+
+/* Filter apply (сегмент + направление, работает на deals) */
+function filtered(D){
+  return D.filter(d=>{
+    if(S.seg && d.client!==S.seg) return false;
+    if(S.dir && d.dir!==S.dir) return false;
+    return true;
+  });
+}
+
+/* Deals within period rolling from NOWD */
+function inPeriod(d, field){
+  const dt=d[field||'created'];
+  if(!dt) return false;
+  const age=ageDays(dt);
+  return age!==null && age <= S.period;
+}
+
+/* KEY STAGES (из keyStageStats уже готово в rop.json) */
+const KEY_STAGES=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'];
+const STAGE_NAMES={
+  'C49:PREPAYMENT_INVOIC':'Отправлено КП',
+  'C49:3':'Принимают решение',
+  'C49:UC_8JTBV2':'Долгострой'
+};
+
+/* ================== RENDERS ================== */
+
+function renderHero(){
+  const D=filtered(AD).filter(d=>d.won && inPeriod(d, 'closed'));
+  const rev=D.reduce((s,d)=>s+(d.budget||0),0);
+  const gap=CFG.planMonthly-rev;
+  const daysLeft=CFG.monthlyWorkDays-Math.min(CFG.monthlyWorkDays, new Date().getDate());
+  const forecast=Math.round(rev + gap*0.5); // rough placeholder
+  const zombieCount=filtered(AD).filter(d=>{const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays && !d.won && !d.lost;}).length;
+  const zombieMoney=filtered(AD).filter(d=>{const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays && !d.won && !d.lost;}).reduce((s,d)=>s+(d.budget||0),0);
+
+  document.getElementById('hero-morning').innerHTML=`
+    <div class="hero-card" style="--ac:#22D3EE">
+      <div class="hero-k">Выручка периода · план ${fmtK(CFG.planMonthly)} ₽</div>
+      <div class="hero-v">${fmtK(rev)}<span class="u">₽</span></div>
+      <div class="hero-sub">Осталось до плана <b>${fmtK(gap)} ₽</b> · осталось ~${daysLeft} рабочих дней</div>
+      <div class="hero-trend ${gap>0?'dn':'up'}">${gap>0?'↓ отстаём от плана':'↑ план выполнен'}</div>
+    </div>
+    <div class="hero-card" style="--ac:#A78BFA">
+      <div class="hero-k">Forecast [ГИПОТЕЗА без «Даты решения»]</div>
+      <div class="hero-v">${fmtK(forecast)}<span class="u">₽</span></div>
+      <div class="hero-sub">Confidence <b>±25%</b> · rough estimate до P1</div>
+      <div class="hero-trend warn">! требует поля Bitrix P1</div>
+    </div>
+    <div class="hero-card" style="--ac:#F43F5E">
+      <div class="hero-k">Zombie pipeline</div>
+      <div class="hero-v">${fmtK(zombieMoney)}<span class="u">₽</span></div>
+      <div class="hero-sub"><b>${zombieCount} сделок</b> без движения >${CFG.zombieDwellDays} дней</div>
+      <div class="hero-trend dn">Разобрать сегодня</div>
+    </div>`;
+}
+
+function renderKpiStrip(){
+  const D=filtered(AD).filter(d=>inPeriod(d,'created'));
+  const won=D.filter(d=>d.won);
+  const lost=D.filter(d=>d.lost);
+  const L=filtered(AL||[]).filter(l=>inPeriod(l,'created'));
+  const qualified=L.filter(l=>l.qual==='квал').length;
+  const cr1=L.length?qualified/L.length:0;
+  const cr2=D.length?won.length/D.length:0;
+  const rev=won.reduce((s,d)=>s+(d.budget||0),0);
+  const avgCheck=won.length?rev/won.length:0;
+
+  document.getElementById('kpi-morning').innerHTML=[
+    {ac:'#22D3EE',k:'Лиды',v:fmt(L.length),u:'шт'},
+    {ac:'#6366F1',k:'Сделки',v:fmt(D.length),u:'шт'},
+    {ac:'#10B981',k:'CR1 квал',v:pct(cr1),u:'',delta:'target 55%'},
+    {ac:'#F59E0B',k:'CR2 в WON',v:pct(cr2),u:'',delta:'target 16%'},
+    {ac:'#F43F5E',k:'Средний чек',v:fmtK(avgCheck),u:'₽',delta:'plan 80K'}
+  ].map(x=>`<div class="kpi-cell" style="--ac:${x.ac}">
+    <div class="kpi-k">${x.k}</div>
+    <div class="kpi-v">${x.v}<span class="u">${x.u}</span></div>
+    ${x.delta?`<div class="kpi-delta flat">${x.delta}</div>`:''}
+  </div>`).join('');
+}
+
+function renderZombie(){
+  const zombies=filtered(AD).filter(d=>{
+    if(d.won||d.lost) return false;
+    const dw=ageDays(d.created);
+    return dw && dw>CFG.zombieDwellDays;
+  }).sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,10);
+
+  if(!zombies.length){
+    document.getElementById('zombie-card').innerHTML=`
+      <div class="card-h"><div><div class="card-title">Zombie pipeline <span class="tag new">чисто</span></div><div class="card-sub">Нет сделок без движения >${CFG.zombieDwellDays} дней. Держим темп.</div></div></div>`;
+    return;
+  }
+
+  const rows=zombies.map((d,i)=>{
+    const dw=Math.round(ageDays(d.created));
+    const dwClass=dw>60?'':dw>30?'warn':'ok';
+    const stageName=(DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[d.stage])||d.stage||'?';
+    const reasonPill=dw>90?'pill-hot':dw>30?'pill-warn':'pill-neutral';
+    return `<tr>
+      <td>${i+1}</td>
+      <td class="name">${d.title||'#'+d.id}</td>
+      <td>${d.mgr||'?'}</td>
+      <td><span class="pill ${reasonPill}">${stageName}</span></td>
+      <td class="r">${fmtK(d.budget||0)}₽</td>
+      <td class="r"><span class="days ${dwClass}">${dw}д</span></td>
+      <td>${d.reason||'нет даты решения'}</td>
+    </tr>`;
+  }).join('');
+
+  const totalMoney=zombies.reduce((s,d)=>s+(d.budget||0),0);
+  document.getElementById('zombie-card').innerHTML=`
+    <div class="card-h">
+      <div>
+        <div class="card-title">Топ-10 висящих <span class="tag hot">${fmtK(totalMoney)} ₽ заморожено</span></div>
+        <div class="card-sub">Правило: либо next-step до пятницы, либо в «Связаться позже» с датой</div>
+      </div>
+    </div>
+    <table class="tbl"><thead><tr><th>#</th><th>Сделка</th><th>Менеджер</th><th>Стадия</th><th class="r">Budget</th><th class="r">Dwell</th><th>Reason</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderKeyStages(){
+  const el=document.getElementById('stages-gauges');
+  const stageData=KEY_STAGES.map(sc=>{
+    const inStage=filtered(AD).filter(d=>d.stage===sc && !d.won && !d.lost);
+    const money=inStage.reduce((s,d)=>s+(d.budget||0),0);
+    const dwells=inStage.map(d=>ageDays(d.created)).filter(x=>x!==null);
+    const medDw=median(dwells);
+    const hangCount=inStage.filter(d=>ageDays(d.created)>30).length;
+    return {sc, count:inStage.length, money, medDw, hangCount};
+  });
+  el.innerHTML=stageData.map(s=>`
+    <div class="gauge">
+      <h4>${STAGE_NAMES[s.sc]}</h4>
+      <div class="gval">${s.count}</div>
+      <div class="gmoney">${fmtK(s.money)} ₽</div>
+      <div class="gnote">Медиана: <b>${s.medDw?Math.round(s.medDw)+' дней':'—'}</b><br><b style="color:${s.hangCount>0?'var(--dn)':'var(--ink-2)'}">${s.hangCount} висящих >30д</b></div>
+      <div class="gdrill">→ раскрыть</div>
+    </div>
+  `).join('');
+}
+
+function renderScoreboard(){
+  const D=filtered(AD).filter(d=>inPeriod(d,'closed'));
+  const managers={};
+  D.forEach(d=>{
+    if(!d.mgr||!isOP(d.mgr)) return;
+    if(!managers[d.mgr]) managers[d.mgr]={mgr:d.mgr, deals:0, won:0, rev:0, dir:d.dir};
+    managers[d.mgr].deals++;
+    if(d.won){managers[d.mgr].won++; managers[d.mgr].rev+=(d.budget||0);}
+  });
+  const arr=Object.values(managers).sort((a,b)=>b.rev-a.rev);
+
+  if(!arr.length){
+    document.getElementById('scoreboard').innerHTML='<div class="p1-placeholder"><b>Ждём данных из Bitrix</b><small>После загрузки rop.json ростер отобразится тут</small></div>';
+    return;
+  }
+
+  const rows=arr.map((m,i)=>{
+    const cr2=m.deals?m.won/m.deals:0;
+    const check=m.won?m.rev/m.won:0;
+    const verdict=cr2>=0.16?'green':cr2>=0.10?'yellow':cr2>=0.05?'orange':'red';
+    return `<tr>
+      <td>${i+1}</td>
+      <td class="name"><span class="verdict verdict-${verdict}"></span>${m.mgr}</td>
+      <td>${m.dir||'?'}</td>
+      <td class="r">${fmtK(m.rev)}₽</td>
+      <td class="r">${pct(cr2)}</td>
+      <td class="r">${fmtK(check)}₽</td>
+      <td class="r"><b>${(cr2*10*0.6+3).toFixed(1)}</b></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('scoreboard').innerHTML=`
+    <table class="tbl"><thead><tr><th style="width:36px">#</th><th>Менеджер</th><th>Бренд</th><th class="r">WON ₽</th><th class="r">CR2</th><th class="r">Ср.чек</th><th class="r">Score</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);padding-top:12px;border-top:1px solid var(--border-soft)">
+      <span><span class="verdict verdict-green"></span> Green: CR2 ≥16%</span>
+      <span><span class="verdict verdict-yellow"></span> Yellow: 10-15%</span>
+      <span><span class="verdict verdict-orange"></span> Orange: 5-9% (PIP-кандидат)</span>
+      <span><span class="verdict verdict-red"></span> Red: <5%</span>
+    </div>`;
+}
+
+function renderSparklines(){
+  document.getElementById('sparklines').innerHTML=`<div class="p1-placeholder"><b>P0 skeleton</b><small>Sparklines по 12-недельному тренду будут отрисованы после расширения агрегации в build-rop.ts. См. SPEC.md §5.</small></div>`;
+}
+
+function renderCohortFunnel(){
+  const el=document.getElementById('cohort-funnel');
+  el.innerHTML=`<div class="p1-placeholder"><b>Cohort funnel</b><small>После выбора фильтров сегмент+бренд воронка перестроится. Логика в разработке (день 6 worklog).</small></div>`;
+}
+
+function renderLossReasons(){
+  const el=document.getElementById('loss-reasons');
+  const lostD=filtered(AD).filter(d=>d.lost && inPeriod(d,'closed'));
+  const bucket={};
+  lostD.forEach(d=>{
+    const r=d.reason||'Не указана';
+    bucket[r]=(bucket[r]||0)+1;
+  });
+  const arr=Object.entries(bucket).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  const total=arr.reduce((s,x)=>s+x[1],0);
+  el.innerHTML=`
+    <div class="card-h"><div><div class="card-title">Топ причин потерь</div><div class="card-sub">${total} lost за период</div></div></div>
+    <div class="bars">${arr.map((x,i)=>{
+      const w=total?x[1]/total*100:0;
+      const cls=i===0?'red':i===1?'warn':i<=3?'accent':'accent';
+      return `<div class="bar-row"><div class="bar-name">${x[0]}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${w.toFixed(1)}%">${x[1]}</div></div><div class="bar-val">${w.toFixed(0)}%</div></div>`;
+    }).join('')}</div>`;
+}
+
+function renderLossDetails(){
+  document.getElementById('loss-details').innerHTML=`<div class="p1-placeholder"><b>Loss deep-dive per manager</b><small>3D разбивка reason × сегмент × dwell до потери. Расширение агрегации (день 6).</small></div>`;
+}
+
+function renderEfficiencyScatter(){
+  document.getElementById('efficiency-scatter').innerHTML=`<div class="p1-placeholder"><b>Manager efficiency scatter</b><small>X = активные сделки, Y = CR2. Реализуется день 6 worklog.</small></div>`;
+}
+
+function renderCrisisDeals(){
+  document.getElementById('crisis-deals').innerHTML=`<div class="p1-placeholder"><b>Топ-5 сделок на закрытие завтра</b><small>Требует поля «Дата решения клиента». Пока P0 skeleton.</small></div>`;
+}
+
+function renderCrisisHelpers(){
+  // top-3 по WON-выручке из scoreboard
+  const D=filtered(AD).filter(d=>d.won && inPeriod(d,'closed'));
+  const managers={};
+  D.forEach(d=>{
+    if(!d.mgr||!isOP(d.mgr)) return;
+    if(!managers[d.mgr]) managers[d.mgr]={mgr:d.mgr, rev:0};
+    managers[d.mgr].rev+=(d.budget||0);
+  });
+  const top3=Object.values(managers).sort((a,b)=>b.rev-a.rev).slice(0,3);
+
+  document.getElementById('crisis-helpers').innerHTML=`
+    <div class="grid3">${top3.map((m,i)=>`
+      <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
+        <div style="font-size:11px;color:var(--up);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Помощник #${i+1}</div>
+        <div style="font-family:'Manrope';font-size:16px;font-weight:800">${m.mgr}</div>
+        <div style="font-size:12px;color:var(--ink-3);margin-top:4px">WON: ${fmtK(m.rev)} ₽ за период</div>
+      </div>
+    `).join('')}</div>`;
+}
+
+/* ================== ALERT COUNT + STAMP ================== */
+function updateAlerts(){
+  const zombies=filtered(AD).filter(d=>{if(d.won||d.lost)return false;const dw=ageDays(d.created);return dw && dw>CFG.zombieDwellDays;}).length;
+  const alertEl=document.getElementById('alertCount');
+  alertEl.textContent=`! ${zombies} zombie сделок`;
+  document.getElementById('freshTag').textContent=DATA.generatedAt||'—';
+}
+
+/* ================== TAB SWITCHER ================== */
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-s]');if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  const s=b.dataset.s;S.scr=s;
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on'));
+  document.querySelector('.screen[data-s="'+s+'"]').classList.add('on');
+});
+
+/* Filter change */
+['fSeg','fDir','fPer'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',e=>{
+    if(id==='fSeg') S.seg=e.target.value;
+    if(id==='fDir') S.dir=e.target.value;
+    if(id==='fPer') S.period=parseInt(e.target.value);
+    renderAll();
+  });
+});
+
+/* ================== RENDER ALL ================== */
+function renderAll(){
+  updateAlerts();
+  renderHero();
+  renderKpiStrip();
+  renderZombie();
+  renderKeyStages();
+  renderScoreboard();
+  renderSparklines();
+  renderCohortFunnel();
+  renderLossReasons();
+  renderLossDetails();
+  renderEfficiencyScatter();
+  renderCrisisDeals();
+  renderCrisisHelpers();
+}
+
+/* Bootstrap */
+renderAll();
+</script>
+</body></html>

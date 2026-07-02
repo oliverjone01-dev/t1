@@ -1,0 +1,1186 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGLASS · Командный центр РОПа</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg-base:#0B0F15;--bg-card:#131820;--bg-elevated:#1A2029;--bg-soft:#232B36;--border:#1F2731;--border-soft:#161C24;--border-hot:#2B3441;
+--ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;--accent:#22D3EE;--accent-2:#06B6D4;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
+--d1:#22D3EE;--d2:#6366F1;--d3:#10B981;--d4:#A78BFA;--d5:#F472B6;--d6:#FB923C;--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;
+--radius:10px;--radius-lg:14px;--ease:cubic-bezier(.22,.61,.36,1);--ease-out:cubic-bezier(.16,1,.3,1);}
+*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
+body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:clip}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.hdr{position:sticky;top:0;z-index:60}
+.topbar{padding:11px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.92);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
+.brand b{font-family:'Manrope';font-weight:800;font-size:14px}.brand span{display:block;font-size:10.5px;color:var(--ink-3)}
+.nav{display:flex;gap:3px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:3px}
+.nav button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-weight:600;font-size:12.5px;padding:7px 13px;border-radius:7px;cursor:pointer;transition:.15s}
+.nav button.on{background:var(--accent-soft);color:var(--accent)}.nav button:hover:not(.on){color:var(--ink)}
+.tb-spacer{flex:1}
+.seg{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button.on{background:var(--accent-soft);color:var(--accent)}
+.msel{position:relative;display:inline-block}
+.msel-btn{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--ink-2);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.msel-panel{position:absolute;right:0;top:calc(100% + 4px);z-index:40;background:var(--bg-card);border:1px solid var(--border);border-radius:9px;padding:8px;min-width:210px;max-height:300px;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.msel-panel label{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-2);padding:4px 6px;border-radius:5px;cursor:pointer;white-space:nowrap}
+.msel-panel label:hover{background:var(--bg-elevated)}
+.msel-foot{border-top:1px solid var(--border-soft);margin-top:6px;padding-top:6px;text-align:right}
+.msel-foot button{background:transparent;border:0;color:var(--accent);font:inherit;font-size:11px;cursor:pointer}
+.lsort{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11px;font-weight:600;cursor:pointer;padding:0;text-align:left}
+.dhh{background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;padding:0;width:100%;text-align:center}
+.dhh.l{text-align:left}.dhh.on{color:var(--accent)}
+.dwell-split{display:flex;gap:20px;align-items:stretch}
+.dwell-split .dw-tbl{flex:1.35;min-width:0}
+.dwell-split .dw-chart{flex:1;min-width:0;border-left:1px solid var(--border-soft);padding-left:20px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:1150px){.dwell-split{flex-direction:column}.dwell-split .dw-chart{border-left:0;padding-left:0;border-top:1px solid var(--border-soft);padding-top:14px}}
+.lsort.on{color:var(--accent)}
+.controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
+select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:210px}
+.wrap{max-width:1660px;margin:0 auto;padding:8px 24px 80px}
+.sec-div{display:flex;align-items:center;gap:14px;margin:30px 0 14px;scroll-margin-top:120px}
+.sec-div:first-child{margin-top:14px}
+.sec-num{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:14px;flex-shrink:0}
+.sec-div h2{font-family:'Manrope';font-weight:800;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
+.sec-div .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--border-hot),transparent)}
+.sec-div .hint{font-size:11px;color:var(--ink-3)}
+.kpi-strip{display:grid;grid-template-columns:repeat(var(--cols,6),1fr);gap:14px;margin-bottom:14px}
+@media(max-width:1200px){.kpi-strip{grid-template-columns:repeat(3,1fr)}}
+.kpi-qty{position:absolute;top:12px;right:14px;text-align:right;line-height:1.05}
+.kpi-qty b{font-family:'Manrope';font-weight:800;font-size:18px;color:var(--ink-2)}
+.kpi-qty span{display:block;font-size:9px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;animation:fadeUp .4s var(--ease-out) both}
+.kpi-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--accent)),transparent)}
+.kpi-k{font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
+.kpi-v{font-family:'Manrope';font-weight:800;font-size:25px;letter-spacing:-.025em;line-height:1}
+.kpi-v .u{font-size:12px;color:var(--ink-3);font-weight:600;margin-left:3px}
+.kpi-money{font-family:'Manrope';font-weight:700;font-size:14px;color:var(--ink-2);margin-top:6px}
+.kpi-money b{color:var(--ink)}
+.kpi-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;margin-top:8px;padding:2px 7px;border-radius:6px}
+.kpi-trend.up{color:var(--up);background:rgba(16,185,129,.12)}.kpi-trend.dn{color:var(--dn);background:rgba(244,63,94,.12)}.kpi-trend.flat{color:var(--ink-3);background:var(--bg-elevated)}
+.kpi-trend small{color:var(--ink-4);font-weight:500;margin-left:2px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:14px;animation:fadeUp .45s var(--ease-out) both}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;gap:16px;flex-wrap:wrap}
+.card-title{font-family:'Manrope';font-weight:700;font-size:15px;margin-bottom:2px}
+.card-sub{font-size:11px;color:var(--ink-3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:1100px){.gauges{grid-template-columns:repeat(2,1fr)}}
+.gauge{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:14px 10px 10px;text-align:center}
+.gauge h4{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.gauge .gnote{font-size:10px;color:var(--ink-4);margin-top:2px}.gauge .gnote b{color:var(--ink-2)}
+.grp{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:1100px){.grp{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.grp{grid-template-columns:repeat(2,1fr)}}
+.grp-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;position:relative;overflow:hidden;cursor:default}
+.grp-card::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gc)}
+.grp-card .gn{font-size:10.5px;color:var(--ink-3);font-weight:600;margin-bottom:7px}
+.grp-card .gc{font-family:'Manrope';font-weight:800;font-size:24px}
+.grp-card .gm{font-size:11.5px;color:var(--ink-2);margin-top:3px;font-weight:600}
+.grp-card .gd{font-size:9.5px;color:var(--ink-3);margin-top:5px;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl th{font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--bg-card);cursor:pointer;user-select:none}
+.tbl th:hover{color:var(--ink)}.tbl th.sorted{color:var(--accent)}.tbl th.sorted::after{content:" ↓";font-size:9px}.tbl th.sorted.asc::after{content:" ↑"}
+.tbl th.r,.tbl td.r{text-align:right}.tbl tr:last-child td{border-bottom:none}.tbl td.name{font-weight:600;color:var(--ink)}
+.tbl tr.total td{background:var(--bg-elevated);font-weight:700;color:var(--ink);border-top:1px solid var(--border-hot)}
+.fbar{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.fbar .fl{width:185px;font-size:11.5px;color:var(--ink-2);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbar .ft{flex:1;height:24px;background:var(--bg-elevated);border-radius:6px;overflow:hidden}
+.fbar .ff{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;color:#06121a;transform-origin:left;animation:grow .8s var(--ease-out) both}
+.fbar .fv{width:128px;font-size:11px;color:var(--ink-3);flex-shrink:0}.fbar .fv b{color:var(--ink);font-weight:700}
+.lgd{display:flex;flex-wrap:wrap;gap:7px 13px;margin-top:11px}.lgd div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2);cursor:pointer;user-select:none;transition:.15s}
+.lgd i{width:9px;height:9px;border-radius:2px}.lgd div.off{opacity:.32}
+.mx{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px}
+.mx th,.mx td{padding:7px 7px;text-align:right;border-bottom:1px solid var(--border-soft);font-variant-numeric:tabular-nums}
+.mx th{font-size:9.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;background:var(--bg-card);white-space:nowrap}
+.mx th.lh,.mx td.lc{text-align:left}.mx td.lc{font-weight:600;color:var(--ink)}
+.mx td.tot,.mx th.toth{background:var(--bg-elevated);font-weight:700;color:var(--ink);border-left:2px solid var(--border-hot)}
+.scroll{overflow-x:auto}.foot{text-align:center;color:var(--ink-4);font-size:11px;margin-top:28px}
+.tag{font-size:9.5px;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.14);color:var(--warn);font-weight:600}
+.tag.bad{background:rgba(244,63,94,.14);color:var(--dn)}
+.note{font-size:11px;color:var(--ink-3);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px}
+.lossbtn{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:7px 13px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s}
+.lossbtn:hover{color:var(--accent);border-color:var(--border-hot)}
+.plan-inp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;font-weight:700;width:120px;font-variant-numeric:tabular-nums}
+.plan-inp:focus{outline:none;border-color:var(--accent)}
+.seg-anim{transform-box:fill-box;transform-origin:center;animation:pop .5s var(--ease-out) both}
+.line-anim{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.1s var(--ease-out) forwards}
+.dpath{cursor:pointer}.dpath:hover{opacity:1!important;filter:drop-shadow(0 0 8px currentColor)}
+#tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid var(--border-hot);border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:280px}
+#tip b{font-family:'Manrope'}#tip .tl{color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+#tip .tr{display:flex;justify-content:space-between;gap:16px;padding:1px 0}#tip .tr span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+#tip .tip-tot{display:flex;justify-content:space-between;gap:20px;align-items:baseline;font-family:'Manrope';margin:3px 0 7px;padding-bottom:6px;border-bottom:1px solid var(--border-hot)}
+#tip .tip-tot span:first-child{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+#tip .tip-tot span:last-child{font-size:19px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.kbox{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:1000px){.kbox{grid-template-columns:1fr}}
+.kstat{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:15px 16px}
+.kstat h5{font-family:'Manrope';font-weight:700;font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.kstat .row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+.kstat .row:last-child{border:0}.kstat .row b{font-variant-numeric:tabular-nums;font-weight:700}
+.dot{width:8px;height:8px;border-radius:50%}
+
+.lf-bars{display:flex;flex-direction:column;gap:13px;margin-top:16px}
+.lf-bar{display:grid;grid-template-columns:210px 1fr 122px;align-items:center;gap:14px}
+.lf-name{font-size:12.5px;color:var(--ink-2);text-align:right}
+.lf-track{height:28px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.lf-fill{height:100%;border-radius:6px 0 0 6px;min-width:3px;transform-origin:left;animation:grow .85s var(--ease-out) both}
+.lf-meta{display:flex;align-items:baseline;gap:8px}
+.lf-val{font-family:'Manrope';font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.lf-pct{font-size:12px;font-weight:700;color:var(--ink-3)}
+.ro-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:22px}
+.ro-sub{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);font-weight:700;margin:0 0 12px}
+.ro-dwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.ro-donut{width:180px;flex:0 0 auto}
+.ro-legend{display:flex;flex-direction:column;gap:7px;flex:1;min-width:160px}
+.ro-lg{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:4px 0}
+.ro-lg .dot{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.ro-lg .nm{flex:1;color:var(--ink)}
+.ro-lg .vl{font-weight:700;color:var(--ink)}
+.ro-lg .pc{color:var(--ink-3);font-size:11.5px;min-width:42px;text-align:right}
+.ro-lg.hl{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.25);border-radius:9px;padding:6px 9px;margin:-2px 0}
+.ro-lg.hl .nm{font-weight:700}
+.ro-lg.dim{opacity:.58}
+.ro-reason{display:flex;flex-direction:column;gap:10px}
+.ro-badge{font-size:10px;font-weight:700;color:var(--dn);background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);border-radius:7px;padding:3px 8px;align-self:flex-start}
+.ro-line{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.ro-rank{font-size:11px;color:var(--ink-4);width:15px;text-align:right;font-variant-numeric:tabular-nums}
+.ro-rname{font-size:12.5px;flex:0 0 auto;max-width:215px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.ro-track{flex:1;height:8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:5px;overflow:hidden;min-width:40px}
+.ro-fill{height:100%;background:linear-gradient(90deg,#FB7185,#F43F5E);border-radius:5px}
+.ro-count{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+.ro-rpct{font-size:11px;color:var(--ink-3);margin-left:6px;font-weight:600}
+.note code{background:var(--bg-base);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:11px;color:var(--accent)}
+@media(max-width:860px){.lf-bar{grid-template-columns:120px 1fr 92px;gap:9px}.ro-grid{grid-template-columns:1fr}}
+.mg-list{display:flex;flex-direction:column;gap:9px}
+.mg-row{display:grid;grid-template-columns:130px 1fr 44px;align-items:center;gap:11px}
+.mg-name{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mg-track{height:20px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.mg-bar{display:flex;height:100%;min-width:24px;border-radius:5px;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both}
+.mg-tot{font-size:13px;font-weight:800;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.ov2grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:stretch;margin-bottom:14px}
+@media(max-width:1000px){.ov2grid{grid-template-columns:1fr}}
+.ov2grid>.card{margin-bottom:0}
+.cf{display:flex;flex-direction:column;gap:0;margin-top:6px}
+.cf-step{display:grid;grid-template-columns:78px 1fr 50px;align-items:center;gap:10px}
+.cf-name{font-size:12px;color:var(--ink-2);text-align:right}
+.cf-track{height:22px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.cf-fill{height:100%;border-radius:5px 0 0 5px;min-width:2px;transform-origin:left;animation:grow .8s var(--ease-out) both}
+.cf-val{font-family:'Manrope';font-size:15px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.cf-conv{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ink-3);padding:5px 0 5px 88px}
+.cf-conv b{color:var(--ink);font-weight:800;font-size:13px;font-variant-numeric:tabular-nums}
+.cf-conv.key{background:var(--accent-soft);border:1px solid rgba(34,211,238,.28);border-radius:8px;padding:6px 11px;margin:3px 0}
+.cf-conv.key span{color:var(--accent);font-weight:600}
+.cf-conv.key b{color:var(--accent);font-size:14px}
+.cf-e2e{margin-top:9px;padding:9px 12px;border-radius:9px;background:var(--bg-elevated);border:1px solid var(--border-hot);display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--ink-2)}
+.cf-e2e b{color:var(--ink);font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
+.oi-h{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:700;margin:16px 0 9px}
+.oi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.oi-tile{background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:10px 11px}
+.oi-v{font-family:'Manrope';font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.oi-l{font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+.qm{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--bg-soft);border:1px solid var(--border);color:var(--ink-3);font-size:9px;font-weight:700;line-height:12px;text-align:center;margin-left:5px;cursor:help;font-style:normal;vertical-align:middle}
+.hm{display:flex;flex-direction:column;gap:3px;margin-top:10px}
+.hm-row{display:grid;grid-template-columns:114px repeat(var(--wk,5),1fr) 34px;gap:3px;align-items:center}
+.hm-pf .hm-row{grid-template-columns:96px repeat(var(--wk,5),1fr) 62px 58px 80px}
+.hm-pf .hm-tot{white-space:nowrap}
+.hm-sum{font-weight:800;color:var(--ink)}
+.hm-plan{color:var(--ink-3);font-weight:600;font-size:10.5px}
+.hm-pct{position:relative;height:19px;background:var(--bg-elevated);border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hm-pct-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .6s var(--ease-out)}
+.hm-pct span{position:relative;font-size:10px;font-weight:800;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.55)}
+.hm-name{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-right:5px}
+.hm-cell{height:23px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.hm-cell-h{font-size:9px;color:var(--ink-4);text-align:center;overflow:hidden;white-space:nowrap}
+.hm-tot{font-size:11.5px;font-weight:800;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.churn-row{margin-top:13px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
+.churn-row b{color:var(--ink-2);font-weight:800;font-size:13px}
+.churn-sub{color:var(--ink-4);font-size:10.5px}
+.pf-row{display:grid;grid-template-columns:148px 1fr 80px 54px;align-items:center;gap:12px;margin-bottom:9px}
+.pf-name{font-size:12px;color:var(--ink-2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-track{position:relative;height:24px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:7px;overflow:hidden}
+.pf-fill{height:100%;border-radius:6px 0 0 6px;min-width:2px;transform-origin:left;animation:grow .8s var(--ease-out) both}
+.pf-100{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-2);box-shadow:0 0 0 1px var(--bg-card)}
+.pf-fact{font-size:11.5px;color:var(--ink);font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.pf-pct{font-size:13px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.pf-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin:2px 0 12px}
+.pf-leg{display:flex;align-items:center;gap:5px}.pf-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:8px}
+.rev-toggle{display:flex;align-items:center;gap:7px}
+.dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 8px;font:inherit;font-size:11.5px}
+.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer}
+</style></head><body>
+<div id="tip"></div>
+<div class="hdr">
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span></div>
+</div>
+<div class="controls">
+  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
+  <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
+  <div class="tb-spacer"></div>
+  <div class="seg" id="period"></div>
+  <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
+  <span style="font-size:11px;color:var(--ink-3)" id="periodLabel"></span>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <button id="planRefresh" class="dbtn" title="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
+    <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" title="Открыть таблицу плана в Google">↗ Таблица плана</a>
+  </div>
+</div>
+</div>
+<div class="wrap" id="root"></div>
+<div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
+<script>
+const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};const AD=DATA.deals,AL=DATA.leads,KSS=DATA.keyStageStats;
+const GROUPS=[
+ ['Новые и квалификация',['C49:NEW','C49:UC_LRFLH9'],'#22D3EE'],
+ ['Формируется предложение',['C49:PREPARATION','C49:UC_OGZUU0'],'#60A5FA'],
+ ['Предложение отправлено',['C49:PREPAYMENT_INVOIC'],'#F472B6'],
+ ['Принимают решение',['C49:3'],'#FB923C'],
+ ['Долгострой',['C49:UC_8JTBV2'],'#A78BFA'],
+ ['Предоплата',['C49:EXECUTING'],'#6366F1'],
+ ['В производстве',['C49:FINAL_INVOICE','C49:1'],'#2DD4BF'],
+ ['В логистике',['C49:2'],'#C084FC'],
+ ['Закрыто успешно',['C49:WON'],'#10B981'],
+ ['Закрыто провал',['C49:LOSE'],'#F43F5E'],
+];
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+' млн':n>=1e3?Math.round(n/1e3)+' тыс':fmt(n);
+const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
+const CVDEF={1:'CR1 — квалификация: квал-лиды ÷ все лиды. Какая доля входящих заявок дошла до квала (статус «Создание сделки» в Б24).',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
+const qm=n=>`<span class="qm" data-tip="${CVDEF[n].replace(/"/g,'&quot;')}">?</span>`;
+const info=t=>`<span class="qm" data-tip="${String(t).replace(/"/g,'&quot;')}">?</span>`;
+const d1=x=>x==null?'—':x.toFixed(1).replace('.',',');
+const PAL=['#22D3EE','#6366F1','#10B981','#A78BFA','#F472B6','#FB923C','#F59E0B','#34D399','#60A5FA','#F87171','#2DD4BF','#C084FC'];
+const MON=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KW=[['Дорого',/дорог|цена|дешевл|бюджет|выгодн|деньг|стоим/],['Сроки',/долг|срок|быстр|ждать|времен|успе|поздно/],['Конкурент',/конкурент|у других|нашл|заказал.? у|взяли у|у них/],['Дубль',/дубл/],['Спам',/спам|реклам|ошибочн|тест/],['Нет ответа',/не отвеч|недозвон|тишин|не выход|игнор|не берет|пропал|не на связи/],['Передумал/неактуально',/передум|не актуал|отпал|отказал|не нужн|не будем|раздум|пока не|потом/],['Ушёл на маркетплейс',/озон|ozon|маркетплейс|вайлд|wb|ягодк/]];
+function classifyText(t){t=(t||'').toLowerCase();for(const[k,rx]of KW)if(rx.test(t))return k;return null;}
+function mergedReason(d){let r=d.reason;if(r==='не указана'||r==='Другое'||!r){const dv=classifyText(d.reasonText);r=dv||'Другое (не распознано)';}return r;}
+function tgl(id){const e=document.getElementById(id);if(e)e.style.display=e.style.display==='none'?'block':'none';}
+const isSys=n=>/систем|^id\s?\d/i.test(n||'');
+const OP=new Set(DATA.opUsers||[]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
+const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
+const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
+// Дата переезда CRM из AmoCRM в Битрикс24: вся история сделок залита одним днём
+// (см. данные: 94% сделок имеют created/closed = этой дате). Данные по сделкам в этот
+// день недостоверны - показываем плашку и красный флажок на графиках.
+const MIGDATE='2026-03-05';
+const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
+const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
+const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
+const inP=d=>d>=S.start&&d<=S.end;
+const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
+function FD(){return flt(AD,true).filter(d=>inP(d.created));}
+// Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
+// конверсии осмысленны только в одной когорте. Тумблер «Период по» меняет только
+// исходы сделок (продажи/выручка/потери), но не входной поток воронки.
+function FL(){return flt(AL,false).filter(l=>inP(l.created));}
+function SNAP(){return flt(AD,true);} // current pipeline, ignores period
+// previous-window sets
+function prevWin(){const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);return [ps.toISOString().slice(0,10),pe.toISOString().slice(0,10)];}
+function PD(){const[a,b]=prevWin();return flt(AD,true).filter(d=>d.created>=a&&d.created<=b);}
+function PL(){const[a,b]=prevWin();return flt(AL,false).filter(l=>l.created>=a&&l.created<=b);}
+// buckets
+function bkey(ds,g){if(g==='day')return ds;if(g==='month')return ds.slice(0,7);const dt=new Date(ds);const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return dt.toISOString().slice(0,10);}
+function blabel(k,g){if(g==='month'){const[y,m]=k.split('-');return MON[+m-1]+' '+y.slice(2);}return k.slice(8,10)+'.'+k.slice(5,7);}
+function bucketsR(a0,b0,g){const a=new Date(a0),b=new Date(b0),keys=[];
+  if(g==='month'){let d=new Date(a.getFullYear(),a.getMonth(),1);while(d<=b){keys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));d.setMonth(d.getMonth()+1);}}
+  else if(g==='week'){let d=new Date(a);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}}
+  else{let d=new Date(a);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}}return keys;}
+function buckets(g){const a=new Date(S.start),b=new Date(S.end),keys=[];
+  if(g==='month'){let d=new Date(a.getFullYear(),a.getMonth(),1);while(d<=b){keys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));d.setMonth(d.getMonth()+1);}}
+  else if(g==='week'){let d=new Date(a);const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}}
+  else{let d=new Date(a);while(d<=b){keys.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);}}return keys;}
+const REV_SET=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
+const SOLD=d=>S.revMode==='won'?d.won:(REV_SET.has(d.stageCode)&&!d.lost);
+// Дата, когда продажа СОСТОЯЛАСЬ: в режиме «успех» = дата закрытия; в режиме «предоплата»
+// = дата входа в стадию предоплаты (из истории стадий). Нужна, чтобы считать продажи/выручку
+// по дате ИСХОДА, а не по дате создания сделки (решение Ивана 2026-06-26).
+function soldDate(d){if(S.revMode==='won')return d.closed;for(const h of(d.hist||[]))if(REV_SET.has(h[0]))return h[1];return d.closed;}
+// Дата для бакетизации продажи: в режиме «по дате продажи» - когда признана (soldDate),
+// в режиме «по дате создания» - дата создания. Едина для KPI-выручки и кривой графика.
+function saleKey(d){return S.dateBasis==='outcome'?(soldDate(d)||d.closed||d.created):d.created;}
+function closeKey(d){return S.dateBasis==='outcome'?(d.closed||d.created):d.created;}
+// Тумблер периода S.dateBasis: 'created' (по дате СОЗДАНИЯ, как было - дефолт) или
+// 'outcome' (по дате ИСХОДА - продажи/потери считаются когда они состоялись).
+// Наборы продаж/потерь в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
+function soldSet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{if(!SOLD(d))return false;const sd=soldDate(d);return sd&&sd>=a&&sd<=b;});
+  return flt(AD,true).filter(d=>SOLD(d)&&d.created>=a&&d.created<=b);}
+function lostSet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>d.lost&&d.closed&&d.closed>=a&&d.closed<=b);
+  return flt(AD,true).filter(d=>d.lost&&d.created>=a&&d.created<=b);}
+// metrics. D/L = когорта по дате СОЗДАНИЯ (intake: лиды, создано сделок, конверсии).
+// so/lo = продажи/потери по дате ИСХОДА в периоде (деньги/результат). Если не переданы -
+// откат к когортному расчёту (обратная совместимость).
+function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
+  so=so||cohortWon;lo=lo||D.filter(d=>d.lost);
+  const rev=so.reduce((s,d)=>s+(d.budget||0),0),revCohort=cohortWon.reduce((s,d)=>s+(d.budget||0),0);
+  const lostM=lo.reduce((s,d)=>s+(d.budget||0),0),closed=so.length+lo.length;
+  return {leads:L.length,deals:D.length,
+    won:so.length,rev,check:so.length?rev/so.length:0,
+    wonCohort:cohortWon.length,revCohort,
+    conv:D.length?cohortWon.length/D.length:0,
+    lost:lo.length,lostM,
+    qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
+    lostShare:(so.length+lo.length)?lo.length/(so.length+lo.length):0};}
+// TOOLTIP
+const tip=document.getElementById('tip');
+function tipShow(html,x,y){tip.innerHTML=html;tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
+function tipHide(){tip.style.opacity=0;}
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t){tipShow(t.getAttribute('data-tip'),e.clientX,e.clientY);}else tipHide();});
+function dt(title,rows){return `<div class="tl">${title}</div>`+rows.map(r=>{const st=r[2]==='dim'?' style="opacity:.45;font-size:10px"':r[2]==='hl'?' style="font-weight:800"':'';return `<div class="tr"${st}><span>${r[0]}</span><span>${r[1]}</span></div>`;}).join('');}
+// CHARTS
+let _g=0;
+function planTone(att){return att>=1.05?'#2E9E74':att>=0.95?'#6A7484':'#CC5867';}
+function gauge(o){const cap=1.5;const att=o.att||0;const f=Math.max(0,Math.min(1,att/cap));const planFrac=1/cap;
+  const R=64,cx=90,cy=90,st=-220,en=40,sw=en-st;
+  const xy=(a,r)=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)];
+  const arc=(a0,a1,r,w,c,cls,tipd)=>{const[x0,y0]=xy(a0,r),[x1,y1]=xy(a1,r);const laf=(a1-a0)>180?1:0;return `<path d="M${x0} ${y0} A${r} ${r} 0 ${laf} 1 ${x1} ${y1}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${cls||''} ${tipd||''}/>`;};
+  const va=st+sw*f;const gid='gg'+(++_g);
+  const col=o.good?(att>=1.05?'var(--up)':att>=.95?'var(--ink-3)':'var(--dn)'):(att<=0.95?'var(--up)':att<=1.05?'var(--ink-3)':'var(--dn)');
+  const kindFmt=v=>o.kind==='money'?fmtK(v)+' ₽':o.kind==='pct'?pct(v):fmt(v);
+  let capTxt=o.good?'выполнение':'от лимита',capCol='var(--ink-3)',deltaRow=null;
+  if(o.fact!=null&&o.plan!=null){
+    if(att>=1){deltaRow=['Перевыполнение','+'+kindFmt(o.fact-o.plan)];capTxt='▲ план +'+pct(att-1);capCol='var(--up)';}
+    else{deltaRow=['Остаток до плана',kindFmt(o.plan-o.fact)];capTxt='▼ '+pct(1-att)+' до плана';capCol=col;}
+  }
+  const tipRows=[['Факт',o.factDisp],['План / цель',o.planDisp],[o.good?'Выполнение':'От лимита',pct(att)]];if(deltaRow)tipRows.push(deltaRow);
+  const tip=dt(o.label,tipRows).replace(/"/g,'&quot;');
+  let s=`<svg viewBox="0 0 180 116" style="width:100%;max-width:178px">`;
+  s+=`<defs><filter id="${gid}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="${col}" flood-opacity="0.6"/></filter></defs>`;
+  s+=arc(st,en,R,12,'var(--bg-soft)');
+  s+=arc(st,va,R,12,col,`class="line-anim" pathLength="1" filter="url(#${gid})"`);
+  const na=st+sw*planFrac;const[nx0,ny0]=xy(na,R-10),[nx1,ny1]=xy(na,R+10),[lx,ly]=xy(na,R+18);
+  s+=`<line x1="${nx0}" y1="${ny0}" x2="${nx1}" y2="${ny1}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><circle cx="${nx1}" cy="${ny1}" r="2.2" fill="var(--ink)"/><text x="${lx}" y="${ly}" text-anchor="middle" font-size="7.5" font-weight="700" fill="var(--ink-2)">план</text>`;
+  s+=`<g><line x1="${cx}" y1="${cy}" x2="${xy(va,R-5)[0]}" y2="${xy(va,R-5)[1]}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="${st-va} ${cx} ${cy}" to="0 ${cx} ${cy}" dur=".9s" fill="freeze" calcMode="spline" keySplines=".16 1 .3 1" keyTimes="0;1" values="${st-va} ${cx} ${cy};0 ${cx} ${cy}"/></line><circle cx="${cx}" cy="${cy}" r="5" fill="${col}"/></g>`;
+  s+=`<text x="${cx}" y="${cy-15}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="24" fill="${col}" filter="url(#${gid})">${pct(att)}</text>`;
+  s+=`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${capCol}">${capTxt}</text>`;
+  s+=`<rect x="0" y="0" width="180" height="116" fill="transparent" data-tip="${tip}" style="cursor:help"/></svg>`;
+  return `<div class="gauge"><h4>${o.label}</h4>${s}<div class="gnote">${o.note}</div></div>`;}
+function donut(data,cv,cl,money){const tot=data.reduce((s,d)=>s+d[1],0)||1;const R=80,r=50,cx=100,cy=100;let a=-90;
+  const xy=(deg,rad)=>[cx+rad*Math.cos(deg*Math.PI/180),cy+rad*Math.sin(deg*Math.PI/180)];let seg='';
+  data.forEach((d,i)=>{const an=d[1]/tot*360;const a1=a,a2=a+an;const[x0,y0]=xy(a1,R),[x1,y1]=xy(a2,R),[x2,y2]=xy(a2,r),[x3,y3]=xy(a1,r);const laf=an>180?1:0;const c=d[2]||PAL[i%PAL.length];
+    const td=dt(d[0],[['Значение',money?fmt(d[1])+' ₽':fmt(d[1])],['Доля',pct(d[1]/tot)]]).replace(/"/g,'&quot;');
+    seg+=`<path class="dpath seg-anim" style="animation-delay:${i*.05}s;color:${c}" data-tip="${td}" d="M${x0} ${y0} A${R} ${R} 0 ${laf} 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 ${laf} 0 ${x3} ${y3} Z" fill="${c}" opacity=".92"/>`;a=a2;});
+  return `<svg viewBox="0 0 200 200" style="width:100%;max-width:210px">${seg}<text x="100" y="96" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="25" fill="var(--ink)">${cv}</text><text x="100" y="115" text-anchor="middle" font-size="10" fill="var(--ink-3)">${cl}</text></svg>`;}
+function legend(data){const t=data.reduce((s,d)=>s+d[1],0)||1;return '<div class="lgd">'+data.map((d,i)=>`<div><i style="background:${d[2]||PAL[i%PAL.length]}"></i>${d[0]} · ${pct(d[1]/t)}</div>`).join('')+'</div>';}
+function barRows(data,money){const mx=Math.max(...data.map(d=>d[1]))||1,t=data.reduce((s,d)=>s+d[1],0)||1;
+  return data.map((d,i)=>{const c=d[2]||PAL[i%PAL.length];const td=dt(d[0],[['Значение',money?fmt(d[1])+' ₽':fmt(d[1])],['Доля',pct(d[1]/t)]]).replace(/"/g,'&quot;');
+    return `<div class="fbar"><div class="fl">${d[0]}</div><div class="ft" data-tip="${td}"><div class="ff" style="width:${(d[1]/mx*100).toFixed(1)}%;background:${c};animation-delay:${i*.04}s">${(d[1]/mx)>=0.14?(money?fmtK(d[1]):fmt(d[1])):''}</div></div><div class="fv"><b>${pct(d[1]/t)}</b> доля</div></div>`;}).join('');}
+let _mlid=0;
+function smoothPath(pts){if(!pts.length)return '';if(pts.length<3)return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6,c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+=` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;}
+  return d;}
+function multiline(series,keys,g,money,el){
+  series=series.slice();
+  if(series.length>1 && !series.some(s=>s.total)){const tv=keys.map((_,i)=>series.reduce((a,s)=>a+(s.vals[i]||0),0));series.push({name:'Итого',color:'#22D3EE',total:true,vals:tv});}
+  const hasTotal=series.some(s=>s.total);
+  const w=640,h=270,pl=48,pr=14,pt=14,pb=32;const labs=keys.map(k=>blabel(k,g));const gid='g'+(_mlid++);
+  let mx=0;series.forEach(s=>{if(!S.hidden[s.name])s.vals.forEach(v=>{if(v>mx)mx=v;});});mx=mx*1.12||1;
+  const X=i=>pl+(w-pl-pr)*i/(keys.length-1||1),Y=v=>h-pb-(h-pt-pb)*v/mx;
+  // красный флажок «переезд CRM» на бакете с датой миграции (ложный всплеск)
+  let migMark='';{const mi=keys.indexOf(bkey(MIGDATE,g));if(mi>=0){const mxp=X(mi),lx=Math.max(pl,Math.min(mxp-33,w-pr-66));
+    migMark=`<line x1="${mxp}" y1="${pt}" x2="${mxp}" y2="${h-pb}" stroke="#F43F5E" stroke-width="1.4" stroke-dasharray="4 3" opacity=".9"/><g transform="translate(${lx},${pt-1})"><rect x="0" y="0" width="66" height="13" rx="3" fill="#F43F5E"/><text x="33" y="9.5" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">⚑ переезд CRM</text></g>`;}}
+  let grid='';for(let i=0;i<=4;i++){const yy=pt+(h-pt-pb)*i/4,vv=mx*(1-i/4);grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border-soft)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink-4)">${money?fmtK(vv):Math.round(vv)}</text>`;}
+  let xl='';labs.forEach((d,i)=>{const step=Math.ceil(labs.length/9);if(i%step===0||i===labs.length-1)xl+=`<text x="${X(i)}" y="${h-pb+15}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${d}</text>`;});
+  const defs=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".20"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient></defs>`;
+  const draw=[...series].sort((a,b)=>(a.total?1:0)-(b.total?1:0)); // total drawn last (on top)
+  let paths='';
+  draw.forEach(s=>{if(S.hidden[s.name])return;const isT=!!s.total;const op=hasTotal&&!isT?0.32:1;const wdt=isT?2.4:1.5;const dash=s.dash?' stroke-dasharray="6 5"':'';
+    const pts=s.vals.map((v,i)=>[X(i),Y(v)]);const line=smoothPath(pts);
+    if(isT&&!s.noArea){const area=line+` L${X(keys.length-1)} ${h-pb} L${X(0)} ${h-pb} Z`;paths+=`<path d="${area}" fill="url(#${gid})"/>`;}
+    paths+=`<path class="line-anim" pathLength="1" d="${line}" fill="none" stroke="${s.color}" stroke-width="${wdt}"${dash} stroke-linecap="round" stroke-linejoin="round" opacity="${op}"/>`;
+    paths+=pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${isT?2.6:1.9}" fill="${s.color}" opacity="${op}" pointer-events="none"/>`).join('');});
+  const totSeries=series.find(s=>s.total);const visNon=series.filter(s=>!s.total&&!S.hidden[s.name]);const totLabel=totSeries?totSeries.name:'Итого',totColor=totSeries?totSeries.color:'#22D3EE';
+  const bw=(w-pl-pr)/(keys.length-1||1);let cols='';
+  for(let i=0;i<keys.length;i++){
+    const total=(totSeries&&!S.hidden[totSeries.name])?totSeries.vals[i]:visNon.reduce((a,s)=>a+s.vals[i],0);
+    let rows=visNon.map(s=>({name:s.name,color:s.color,v:s.vals[i]})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
+    if(!totSeries&&rows.length<=1)rows=[];
+    const tip=tipColumn(labs[i],totLabel,total,rows,money,totColor);
+    const x0=Math.max(pl,X(i)-bw/2),ww=Math.min(bw,w-pr-x0);
+    cols+=`<rect x="${x0}" y="${pt}" width="${ww}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tip}"/>`;}
+  const xhair=`<line class="xhair" x1="0" y1="${pt}" x2="0" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="4 5" opacity="0" pointer-events="none"/>`;
+  const leg=hasTotal?[series.find(s=>s.total),...series.filter(s=>!s.total)]:series;
+  el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%">${defs}${grid}${migMark}${xhair}${paths}${cols}${xl}</svg>`+
+    '<div class="lgd">'+leg.map(s=>`<div class="${S.hidden[s.name]?'off':''}" data-n="${s.name}" style="${s.total?'font-weight:700':''}"><i style="background:${s.color};${s.total||s.dash?'width:14px;height:4px;border-radius:2px':''}"></i>${s.name}</div>`).join('')+'</div>';
+  const svg=el.querySelector('svg');const xh=svg.querySelector('.xhair');
+  svg.querySelectorAll('rect[data-cx]').forEach(r=>r.addEventListener('mousemove',()=>{const cx=r.getAttribute('data-cx');xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('opacity','0.5');}));
+  svg.addEventListener('mouseleave',()=>xh.setAttribute('opacity','0'));
+  el.querySelectorAll('.lgd div').forEach(d=>d.onclick=()=>{S.hidden[d.dataset.n]=!S.hidden[d.dataset.n];multiline(series,keys,g,money,el);});}
+function tipColumn(label,totalLabel,total,rows,money,totColor){const f=v=>money?fmt(v)+' ₽':fmt(v);
+  let h=`<div class='tl'>${label}</div><div class='tip-tot'><span>${totColor?`<i style='display:inline-block;width:9px;height:9px;border-radius:2px;background:${totColor};margin-right:7px;vertical-align:middle'></i>`:''}${totalLabel}</span><span>${f(total)}</span></div>`;
+  if(rows.length)h+=rows.map(r=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${r.color};margin-right:6px'></i>${esc(r.name)}</span><span>${f(r.v)}</span></div>`).join('');
+  return h;}
+function rankColor(arr,v,inv){const a=arr.filter(x=>x!=null);if(!a.length||v==null)return '';const mn=Math.min(...a),mx=Math.max(...a);let t=mx===mn?.5:(v-mn)/(mx-mn);if(inv)t=1-t;const c=t>=.66?'16,185,129':t>=.33?'245,158,11':'244,63,94';return `background:rgba(${c},${(.05+t*.20).toFixed(3)})`;}
+// per-manager agg over a deal/lead set
+function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>l.mgr)])].filter(n=>isOP(n));
+  // лиды/сделки - по дате создания (intake); успех/выручка/чек/потери - по дате ИСХОДА в периоде.
+  const so=soldSet(),lo=lostSet();
+  return names.map(m=>{const dd=D.filter(d=>d.mgr===m),ll=L.filter(l=>l.mgr===m);
+    const won=so.filter(d=>d.mgr===m),lst=lo.filter(d=>d.mgr===m);const rev=won.reduce((s,x)=>s+(x.budget||0),0);
+    const cyc=median(dd.filter(d=>d.cycle!=null).map(d=>d.cycle));const tr=dd.length?dd.reduce((s,d)=>s+(d.touchReal||0),0)/dd.length:0;
+    // CR2 (conv) - строго когортный: и числитель, и знаменатель по сделкам, СОЗДАННЫМ в периоде.
+    // Иначе в режиме «по дате продажи» outcome-числитель / cohort-знаменатель давал >100%.
+    return {mgr:m,leads:ll.length,deals:dd.length,won:won.length,conv:dd.length?dd.filter(SOLD).length/dd.length:0,rev,check:won.length?rev/won.length:0,lost:lst.length,cycle:cyc,touch:tr};});}
+
+/* ============ RENDER ============ */
+function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
+  const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
+  return `<div class="kpi-trend ${cls}">${ar} ${pct(Math.abs(dl))}<small>к пред. периоду</small></div>`;}
+function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols||Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
+  const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
+  const qty=x.qty!=null?`<div class="kpi-qty"><b>${x.qty}</b><span>${x.qtyLabel||'шт'}</span></div>`:'';
+  const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3);margin-top:7px">${x.sub}</div>`:'');
+  return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}${foot}</div>`;}).join('')+'</div>';}
+function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
+
+const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
+const STORD={};FORDER.forEach((c,i)=>{const nm=DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[c];if(nm)STORD[nm]=i;});
+const ddiffJS=(a,b)=>{const t1=Date.parse(a),t2=Date.parse(b);return isNaN(t1)||isNaN(t2)?null:(t2-t1)/864e5;};
+function funnelChart(){
+  // Труба привязана к общему тумблеру «Период по»: дата создания -> когорта created,
+  // дата продажи (исход) -> активные в периоде.
+  const mode=S.dateBasis==='outcome'?'active':'created',prepay=S.revMode!=='won';
+  const inSet=d=>mode==='created'?(d.created>=S.start&&d.created<=S.end):(d.created<=S.end&&(!d.closed||d.closed>=S.start));
+  const DD=flt(AD,true).filter(inSet);
+  const ord={};FORDER.forEach((c,i)=>ord[c]=i);
+  const reachedOrd=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&ord[e[0]]!=null&&ord[e[0]]>mo)mo=ord[e[0]];}if(!h.length&&ord[d.stageCode]!=null)mo=ord[d.stageCode];if(d.won&&ord['C49:WON']>mo)mo=ord['C49:WON'];return mo;};
+  const reached=DD.map(reachedOrd);
+  const FUN=prepay
+    ?[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Продажи (от предоплаты)','C49:EXECUTING']]
+    :[['Новая сделка','C49:NEW'],['Квалификация','C49:UC_LRFLH9'],['Формируется предложение','C49:PREPARATION'],['Предложение отправлено','C49:PREPAYMENT_INVOIC'],['Принимают решение','C49:3'],['Предоплата','C49:EXECUTING'],['В производстве','C49:FINAL_INVOICE'],['В логистике','C49:2'],['Успешно','C49:WON']];
+  const F=FUN.map(([name,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>reached[i]>=th);
+    const dws=[];DD.forEach(d=>{const h=d.hist||[];for(let k=0;k<h.length;k++){if(h[k][0]===code){const nxt=h[k+1]?h[k+1][1]:((d.won||d.lost)?d.closed:DATA.to);const dd=ddiffJS(h[k][1],nxt);if(dd!=null&&dd>=0)dws.push(dd);}}});
+    return {name,count:sub.length,money:sub.reduce((s,d)=>s+(d.budget||0),0),dwell:median(dws)};});
+  F.forEach((f,k)=>f.conv=k===0?1:(F[k-1].count?f.count/F[k-1].count:0));
+  const n=F.length;
+  const W=1380,H=384,bandH=200,midY=80+bandH/2,moneyY=H-46,pillY=H-32;
+  const colW=W/n,nodeW=colW*0.5,maxC=F[0].count||1;
+  const COL=['#22D3EE','#38BDF8','#60A5FA','#818CF8','#A78BFA','#C084FC','#2DD4BF','#34D399','#10B981'];
+  const cx=i=>colW*i+colW/2,hOf=c=>Math.max(7,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;
+  const dwellCol=dl=>dl>=21?'#F43F5E':dl>=10?'#FB923C':'#10B981';
+  let defs='',conns='',nodes='',labels='';
+  for(let i=0;i<n-1;i++){const h0=hOf(F[i].count),h1=hOf(F[i+1].count),x0=nodeX(i)+nodeW,x1=nodeX(i+1);
+    const t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='fc'+i;
+    defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${COL[i%COL.length]}" stop-opacity=".45"/><stop offset="1" stop-color="${COL[(i+1)%COL.length]}" stop-opacity=".45"/></linearGradient>`;
+    const td=dt(F[i].name+' → '+F[i+1].name,[['Конверсия',pct(F[i+1].conv)],['Прошло дальше',fmt(F[i+1].count)],['Отвалилось',fmt(F[i].count-F[i+1].count)]]).replace(/"/g,'&quot;');
+    conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`;
+    const mxp=(x0+x1)/2,cv=F[i+1].conv,cc=cv<.6?'#F43F5E':cv<.85?'#FB923C':'#22D3EE';
+    conns+=`<rect x="${mxp-19}" y="${midY-9}" width="38" height="18" rx="9" fill="rgba(7,9,13,.9)" stroke="${cc}" stroke-opacity=".55"/><text x="${mxp}" y="${midY+3.5}" text-anchor="middle" font-size="10" font-weight="700" fill="${cc}" pointer-events="none">${Math.round(cv*100)}%</text>`;}
+  F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
+    const td=dt(f.name,[['Дошло сделок',fmt(f.count)],['Сумма',fmt(f.money)+' ₽'],['Медиана на этапе',f.dwell!=null?d1(f.dwell)+' дн':'—'],['Конверсия с пред.',pct(f.conv)]]).replace(/"/g,'&quot;');
+    nodes+=`<rect class="seg-anim" style="animation-delay:${i*.06}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}"/>`;
+    if(h>=24)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
+    else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="13" fill="${c}">${fmt(f.count)}</text>`;
+    const ws=f.name.split(' ');let l1=ws[0],l2='';for(let k=1;k<ws.length;k++){if((l1+' '+ws[k]).length<=15&&!l2)l1+=' '+ws[k];else l2+=(l2?' ':'')+ws[k];}
+    labels+=`<text x="${cx(i)}" y="26" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l1}</text>`+(l2?`<text x="${cx(i)}" y="40" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink-2)">${l2}</text>`:'');
+    labels+=`<text x="${cx(i)}" y="${moneyY}" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--ink)">${fmtK(f.money)} ₽</text>`;
+    if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-30}" y="${pillY}" width="60" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`;}});
+  const subTxt=(mode==='created'?'когорта по дате создания в периоде':'активные на стадиях в периоде + новые')+' · '+(prepay?'продажи = от предоплаты':'успех = WON')+' · конверсия/сумма/медианный срок на этапе · режим задаётся тумблером «Период по» сверху';
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Воронка прохождения сделок (труба) ${info('Накопительная воронка по дате создания: из сделок, созданных за период, сколько дошло (коснулось) каждого этапа. Пример: создано 276, до «Успешно» дошли 12 - это НЕ значит, что остальные в отказе: многие ещё в работе на промежуточных стадиях (длинный цикл). Вопрос: где сделки массово застревают или отваливаются между этапами. Вывод: этап с резким падением конверсии = узкое горло, туда внимание.')}</div><div class="card-sub">${subTxt}</div></div></div>
+    <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px">${defs?`<defs>${defs}</defs>`:''}${conns}${nodes}${labels}</svg></div>
+    <div class="note" style="margin-top:12px">Срок на этапе: <b style="color:#10B981">&lt; 10 дн</b> · <b style="color:#FB923C">10–21</b> · <b style="color:#F43F5E">&gt; 21 дн</b>. Воронка реагирует на диапазон дат, режим и тумблер выручки.</div></div>`;
+}
+
+function dwellByStage(deals){
+  const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null);
+  const by={};op.forEach(d=>{(by[d.stage]=by[d.stage]||[]).push(d);});
+  const rows=Object.entries(by).map(([st,xs])=>{const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);const med=a.length?a[Math.floor(a.length/2)]:0;const nt=xs.filter(x=>(x.touchReal||0)===0).length;return {st,med,n:xs.length,nt,code:xs[0].stageCode};});
+  const _ds=S.dwellSort||'stage';rows.sort((a,b)=>_ds==='dwell'?b.med-a.med:_ds==='count'?b.n-a.n:((FORDER.indexOf(a.code)+1||99)-(FORDER.indexOf(b.code)+1||99)));
+  if(!rows.length)return '<div class="card-sub">нет открытых сделок</div>';
+  const mx=Math.max(...rows.map(r=>r.med),1);
+  return '<div class="lf-bars" style="margin-top:4px">'+rows.map(r=>{const w=(r.med/mx*100).toFixed(1);const c=r.med>=28?'#CC5867':r.med>=14?'#C2873C':'#2E9E74';
+    const td=dt(r.st,[['Медиана лежания',d1(r.med)+' дн','hl'],['Открытых сделок',fmt(r.n),'dim'],['Из них без касаний',fmt(r.nt),'dim']]).replace(/"/g,'&quot;');
+    const inside=+w>=30;
+    return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}" style="display:flex;align-items:center"><div style="height:100%;flex:0 0 ${w}%;min-width:6px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both">${inside?d1(r.med)+' дн':''}</div>${inside?'':`<span style="flex:0 0 auto;margin-left:7px;font-size:11px;font-weight:800;color:${c};white-space:nowrap">${d1(r.med)} дн</span>`}</div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
+}
+// Сегментированные столбцы по этапам: высота = деньги (или сделки), сегменты по сроку
+// (свежие <14д / тёплые 14-30д / застрявшие >30д). Видно где заперт пайплайн И что протухает.
+function dwellStageChart(deals){
+  const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
+  const lab={'Из Взят в работу/Квалифицирован':'Квал','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
+  const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
+  if(!op.length)return '';
+  const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
+  const metric=S.dhMetric||'term';const isSeg=(metric!=='term');
+  const cO=d=>d==null?'#3F4855':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
+  const BUCK=[['свежие · до 14 дн',d=>d<14,'#2E9E74'],['тёплые · 14-30 дн',d=>d>=14&&d<30,'#C2873C'],['застряли · 30+ дн',d=>d>=30,'#CC5867']];
+  const vOf=xs=>metric==='money'?xs.reduce((s,x)=>s+(x.budget||0),0):xs.length;
+  const data=stages.map(st=>{const xs=op.filter(d=>d.stage===st);const md=med(xs);
+    const segs=BUCK.map(([lbl,f,c])=>{const sub=xs.filter(x=>f(x.dwellCur));return {lbl,c,v:vOf(sub),n:sub.length,money:sub.reduce((s,x)=>s+(x.budget||0),0)};});
+    const money=xs.reduce((s,x)=>s+(x.budget||0),0),nAll=xs.length,stuck=xs.filter(x=>x.dwellCur>=30);
+    const total=metric==='term'?(md||0):vOf(xs);
+    return {lab:lab[st],n:nAll,total,money,segs,med:md,stuckShare:nAll?(metric==='money'?(money?vOf(stuck)/money:0):stuck.length/nAll):0};});
+  const mx=Math.max(...data.map(d=>d.total),1);
+  const W=760,H=320,pl=10,pr=10,pt=30,pb=60,n=data.length,gap=24,bw=(W-pl-pr-gap*(n-1))/n;
+  const fV=v=>metric==='money'?fmtK(v)+' ₽':metric==='count'?fmt(v):d1(v)+' дн';
+  const baseY=H-pb;
+  let bars=`<line x1="${pl}" y1="${baseY}" x2="${W-pr}" y2="${baseY}" stroke="var(--border)" stroke-width="1"/>`;
+  data.forEach((d,i)=>{const x=pl+i*(bw+gap);const Hbar=Math.max((H-pt-pb)*d.total/mx,2);const topY=baseY-Hbar;
+    if(isSeg){let yCur=baseY;d.segs.forEach(sg=>{if(!sg.v)return;const sh=(H-pt-pb)*sg.v/mx;yCur-=sh;
+      bars+=`<rect x="${x.toFixed(1)}" y="${(yCur+1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(sh-1,1).toFixed(1)}" rx="3" fill="${sg.c}" pointer-events="none"/>`;});}
+    else bars+=`<rect x="${x.toFixed(1)}" y="${topY.toFixed(1)}" width="${bw.toFixed(1)}" height="${Hbar.toFixed(1)}" rx="5" fill="${cO(d.med)}" pointer-events="none"/>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(topY-10).toFixed(1)}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14.5" fill="var(--ink)" pointer-events="none">${fV(d.total)}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+21).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink-2)" pointer-events="none">${d.lab}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+37).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)" pointer-events="none">${fmt(d.n)} сд${isSeg?' · мед '+(d.med==null?'—':d1(d.med))+' дн':''}</text>`;
+    bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${(baseY+52).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" pointer-events="none" fill="${d.stuckShare>=.5?'#F87171':d.stuckShare>=.25?'#E0A33A':'var(--ink-3)'}">${pct(d.stuckShare)} застряло</text>`;
+    const ftip=dt(d.lab+' · открытые на этапе',[['Сделок',fmt(d.n),'hl'],['Сумма пайплайна',fmtK(d.money)+' ₽','hl'],['Медиана срока',d.med==null?'—':d1(d.med)+' дн','dim'],['свежие до 14 дн',fmtK(d.segs[0].money)+' ₽ · '+fmt(d.segs[0].n)+' сд','dim'],['тёплые 14-30 дн',fmtK(d.segs[1].money)+' ₽ · '+fmt(d.segs[1].n)+' сд','dim'],['застряли 30+ дн',fmtK(d.segs[2].money)+' ₽ · '+fmt(d.segs[2].n)+' сд','hl'],['доля застрявших',pct(d.stuckShare),'hl']]).replace(/"/g,'&quot;');
+    bars+=`<rect x="${(x-gap/2).toFixed(1)}" y="${pt}" width="${(bw+gap).toFixed(1)}" height="${(baseY-pt+56).toFixed(1)}" fill="transparent" data-tip="${ftip}" style="cursor:pointer"/>`;});
+  const title=metric==='term'?'Срок лежания по этапам':'Где заперт пайплайн';
+  const sub=metric==='term'?'высота = медиана срока (дн) · цвет = насколько долго · «застряло» = доля 30+ дней':('высота = '+(metric==='money'?'сумма ₽':'кол-во')+' открытых · сегменты = срок · «застряло» = доля 30+ дней');
+  const leg=isSeg?BUCK.map(([lbl,f,c])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:11px;height:11px;border-radius:3px;background:${c};display:inline-block"></i>${lbl}</span>`).join(''):'';
+  return `<div>
+    <div style="margin-bottom:10px"><div style="font-weight:700;color:var(--ink);font-size:13.5px">${title}</div><div class="card-sub" style="margin:2px 0 0">${sub}</div></div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%">${bars}</svg>
+    ${leg?`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;justify-content:center">${leg}</div>`:''}</div>`;
+}
+function mgrDwellHeat(deals){
+  const stages=['Из Взят в работу/Квалифицирован','Расчёт','КП отправлено','Принимают решение','Долгострой'];
+  const lab={'Из Взят в работу/Квалифицирован':'Квал','Расчёт':'Расчёт','КП отправлено':'КП','Принимают решение':'Решение','Долгострой':'Долгострой'};
+  const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&isOP(d.mgr)&&stages.includes(d.stage));
+  if(!op.length)return '<div class="card-sub">нет открытых сделок на этих этапах</div>';
+  const mgrs=[...new Set(op.map(d=>d.mgr))];
+  const cell={};mgrs.forEach(m=>{cell[m]={};stages.forEach(st=>cell[m][st]=op.filter(d=>d.mgr===m&&d.stage===st));});
+  const med=xs=>{if(!xs.length)return null;const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);return a[Math.floor(a.length/2)];};
+  const tot=m=>stages.reduce((s,st)=>s+cell[m][st].length,0);
+  const ntTot=m=>stages.reduce((s,st)=>s+cell[m][st].filter(x=>(x.touchReal||0)===0).length,0);
+  // сортировка по клику на заголовок (по столбцу): по медиане этапа / по «Висит» / «Без кас.» / имени
+  const _ds=S.dhSort||'tot',_asc=S.dhAsc?1:-1;
+  const _key=m=>{if(_ds==='mgr')return m;if(_ds==='tot')return tot(m);if(_ds==='nt')return ntTot(m);const v=med(cell[m][_ds]);return v==null?-1:v;};
+  mgrs.sort((a,b)=>{const va=_key(a),vb=_key(b);return _ds==='mgr'?String(va).localeCompare(String(vb))*_asc:(va-vb)*_asc;});
+  const cO=d=>d==null?'transparent':d>=35?'#B0414F':d>=21?'#CC5867':d>=10?'#C2873C':'#2E9E74';
+  // значение ячейки по общему тумблеру: Сроки (медиана дн) / Шт / Деньги. Цвет ВСЕГДА по сроку.
+  const mny=xs=>xs.reduce((s,x)=>s+(x.budget||0),0);
+  const _sub=t=>`<span style="font-size:9px;opacity:.85;font-weight:600">${t}</span>`;
+  const cellVal=(md,cnt,money)=>S.dhMetric==='count'?`${fmt(cnt)}${_sub('·'+(md==null?'':d1(md)+'д'))}`:S.dhMetric==='money'?`${fmtK(money)}${_sub('·'+fmt(cnt))}`:`${d1(md)}${_sub('·'+fmt(cnt))}`;
+  const _arr=k=>S.dhSort===k?(S.dhAsc?' ↑':' ↓'):'';const _hb=(k,lbl,cls)=>`<button class="dhh${S.dhSort===k?' on':''}${cls?' '+cls:''}" data-dh="${k}">${lbl}${_arr(k)}</button>`;
+  let html='<div class="scroll"><table class="mx"><thead><tr><th class="lh">'+_hb('mgr','Менеджер','l')+'</th>'+stages.map(st=>`<th>${_hb(st,lab[st])}</th>`).join('')+`<th class="toth">${_hb('tot','Висит')}</th><th class="toth">${_hb('nt','Без кас.')}</th></tr></thead><tbody>`;
+  mgrs.forEach(m=>{const t=tot(m);if(!t)return;
+    html+=`<tr><td class="lc">${m}</td>`+stages.map(st=>{const xs=cell[m][st];const md=med(xs);const nt=xs.filter(x=>(x.touchReal||0)===0).length;
+      if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+      const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
+      return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
+  // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
+  const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length,dMny=st=>mny(op.filter(d=>d.stage===st));
+  const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
+  const _itLab=S.dhMetric==='count'?'кол-во':S.dhMetric==='money'?'деньги':'медиана';
+  html+=`<tr class="total" style="border-top:3px solid var(--accent);background:var(--accent-soft)"><td class="lc" style="font-weight:800;color:var(--accent);font-size:12.5px">Σ Итог по отделу · ${_itLab}</td>`+stages.map(st=>{const md=dMed(st),c=dCnt(st);if(!c)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
+    return `<td style="text-align:center;background:${cO(md)};color:#fff;font-weight:800;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--accent)">${cellVal(md,c,dMny(st))}</td>`;}).join('')+`<td class="tot" style="font-weight:800;color:var(--accent)">${dTot}</td><td class="r" style="color:#CC5867;font-weight:800;text-align:right">${dNt}</td></tr>`;
+  html+='</tbody></table></div>';
+  return html;
+}
+// Качество разметки за ВЫБРАННЫЙ ПЕРИОД (та же форма, что DATA.dq, но по D/L периода).
+// Иначе блок показывал всю историю (вкл. свалку миграции 05.03 - ~21k сделок без направления).
+function periodDQ(D,L){
+  const DIRS=(DATA.dq&&DATA.dq.dirList)||[];
+  const z=()=>{const m={};DIRS.forEach(x=>m[x]=0);return m;};
+  const leadByDir=z(),dealByDir=z(),leadQualByDir=z();
+  const leadStatByDir={};DIRS.forEach(x=>leadStatByDir[x]={s:0,f:0,p:0,conv:0});
+  let leadEmpty=0,leadQualEmpty=0;
+  for(const l of L){
+    const d=(l.dir&&l.dir!=='не указано')?l.dir:null;
+    if(l.dir==='не указано')leadEmpty++;
+    if(d&&leadByDir[d]!=null)leadByDir[d]++;
+    const bucket=l.qual==='квал'?'s':l.qual==='неквал'?'f':'p';
+    if(d&&leadStatByDir[d]){leadStatByDir[d][bucket]++;if(l.qual==='квал'){leadStatByDir[d].conv++;leadQualByDir[d]++;}}
+    else if(l.qual==='квал')leadQualEmpty++;
+  }
+  for(const dd of D){if(dd.dir&&dd.dir!=='не указано'&&dealByDir[dd.dir]!=null)dealByDir[dd.dir]++;}
+  dealByDir['не указано']=D.filter(d=>d.dir==='не указано').length;
+  return {leadTotal:L.length,leadEmpty,leadByDir,dealTotal:D.length,dealByDir,leadQualByDir,leadQualEmpty,dirList:DIRS,leadStatByDir};
+}
+function render(){
+  const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
+  const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
+  let h='';
+  const snap=SNAP();
+  const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
+  const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
+  const B_kpi=kstrip([
+    {k:'Всего лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads),sub:'вход от маркетинга · квал = конвертированы в сделку'},
+    {k:'CR1 · % в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'лид → сделка'},
+    {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
+    {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
+    {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
+    {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
+    {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
+    {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
+    {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
+  ],9);
+  const Pg=planModel(D,L,m),fromSheet=!!Pg.fromSheet;
+  const planRevP=Pg.planRevP||1;
+  const planLeads=Pg.targets.leads||Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round(Pg.winT)||Math.round((m.won||1)*1.15),planCR1=fromSheet?Pg.lpr:.5,planCR2=fromSheet?Pg.conv:.15;
+  const _planSub=fromSheet?`план из таблицы · помесячные цели по выручке, чеку и CR, день-взвешенно за период${DATA.plan&&DATA.plan.generatedAt?' · обновлён '+DATA.plan.generatedAt.slice(0,10):''}`:`% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)`;
+  const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана ${info('Спидометры % выполнения плана за период (белая отсечка = 100%). '+(fromSheet?'План берётся из таблицы помесячно и режется пропорционально дням периода.':'Планы пока заглушки, нужны реальные числа по месяцам.')+' Вопрос: по каким метрикам отдел отстаёт. Вывод: красные/недотянутые - туда давить.')}</div><div class="card-sub">${_planSub}</div></div></div><div class="gauges">`+
+    gauge({label:'Лиды',att:m.leads/planLeads,good:true,fact:m.leads,plan:planLeads,kind:'count',factDisp:fmt(m.leads),planDisp:fmt(planLeads),note:`факт <b>${fmt(m.leads)}</b> · план <b>${fmt(planLeads)}</b>`})+
+    gauge({label:'CR1 · в сделку',att:cr1/planCR1,good:true,fact:cr1,plan:planCR1,kind:'pct',factDisp:pct(cr1),planDisp:pct(planCR1),note:`факт <b>${pct(cr1)}</b> · цель <b>${pct(planCR1)}</b>`})+
+    gauge({label:'Сделки',att:planDeals?m.deals/planDeals:0,good:true,fact:m.deals,plan:planDeals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(planDeals),note:`факт <b>${fmt(m.deals)}</b> · план <b>${fmt(planDeals)}</b>`})+
+    gauge({label:'CR2 · в продажу',att:m.conv/planCR2,good:true,fact:m.conv,plan:planCR2,kind:'pct',factDisp:pct(m.conv),planDisp:pct(planCR2),note:`факт <b>${pct(m.conv)}</b> · цель <b>${pct(planCR2)}</b>`})+
+    gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`факт <b>${fmt(m.won)}</b> · план <b>${fmt(planSales)}</b>`})+
+    gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`факт <b>${fmtK(m.rev)}</b> · план <b>${fmtK(planRevP)}</b> ₽`})+`</div></div>`;
+  // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
+  // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
+  // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
+  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort;
+  const _cv1=m.qrate,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
+  const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
+  const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
+  const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
+  const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
+    const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=stg[0][1]||1,n=3,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_leadN?_wonN/_leadN:0;
+    let defs='',conns='',nodes='',labels='';
+    for(let i=0;i<n-1;i++){const h0=hOf(stg[i][1]),h1=hOf(stg[i+1][1]),x0=nodeX(i)+nodeW,x1=nodeX(i+1),t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='cvf'+i;
+      defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${stg[i][2]}" stop-opacity=".4"/><stop offset="1" stop-color="${stg[i+1][2]}" stop-opacity=".4"/></linearGradient>`;
+      conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})"/>`;
+      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?'Заявка → квал':'Квал → продажа · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
+      conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${pct(cvs[i])}</text>`;}
+    stg.forEach((s,i)=>{const hh=hOf(s[1]),t=midY-hh/2;
+      nodes+=`<rect class="seg-anim" style="animation-delay:${i*.07}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${hh}" rx="6" fill="${s[2]}"/>`;
+      if(hh>38)nodes+=`<text x="${cx(i)}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(s[1])}</text>`;
+      else labels+=`<text x="${cx(i)}" y="${t-6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="${s[2]}">${fmt(s[1])}</text>`;
+      labels+=`<text x="${cx(i)}" y="20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-2)">${s[0]}</text>`;});
+    const bx0=nodeX(0),bx1=nodeX(n-1)+nodeW,bmid=(bx0+bx1)/2,by=150;
+    const brk=`<path d="M${bx0} ${by} L${bx0} ${by+5} L${bmid-7} ${by+5} L${bmid} ${by+12} L${bmid+7} ${by+5} L${bx1} ${by+5} L${bx1} ${by}" fill="none" stroke="var(--ink-4)" stroke-width="1.3"/><text x="${bmid}" y="${by+30}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">сквозная заявка→продажа<tspan font-weight="800" fill="#3DAEC2" font-size="15" dx="6">${pct(e2e)}</tspan></text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${defs?`<defs>${defs}</defs>`:''}${conns}${nodes}${labels}${brk}</svg>`;})();
+  const _oi=`<div class="oi-h">Деньги по исходу сделок (период)</div><div class="oi">`+
+    `<div class="oi-tile"><div class="oi-v" style="color:#10B981">${fmtK(_wonRev)} ₽</div><div class="oi-l">Выиграно</div></div>`+
+    `<div class="oi-tile"><div class="oi-v" style="color:#60A5FA">${fmtK(_openRev)} ₽</div><div class="oi-l">В работе</div></div>`+
+    `<div class="oi-tile"><div class="oi-v" style="color:#F43F5E">${fmtK(_lostRev)} ₽</div><div class="oi-l">Упущено</div></div></div>`;
+  const _cvBody = S.cvView==='dyn'
+    ? `<div id="cvDyn"></div><div class="note" style="margin:12px 0 0">Конверсии по неделям, %. <b>Жирная линия</b> - сквозная заявка→продажа. Последние недели занижены циклом сделки (~33 дн): свежие квал-лиды ещё не закрылись (сидят в «В работе»).</div>`
+    : `${_cvFunnel}${_churn}${_oi}`;
+  const B_dynLeads=`<div class="card"><div class="card-h"><div><div class="card-title">Динамика заявок ${info('Поток лидов по неделям: квал / неквал / итого во времени. Вопрос: растёт ли входящий поток и его качество, есть ли провалы. Вывод: спад «итого» - вопрос к маркетингу и каналам; рост «неквал» - падает качество трафика.')}</div><div class="card-sub">поток лидов по неделям · вкладки: сводка (квал/неквал), офис-менеджеры, менеджеры ОП</div></div><div style="display:flex;align-items:center;gap:9px"><span class="ctl-lbl">Разрез</span><div class="seg" id="dimSeg"></div></div></div><div id="dynBox"></div></div>`;
+  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды - Продажи и конверсии между ними. Вопрос: на каком переходе теряем больше - лид в квал или квал в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">путь заявка → квал → продажа; продажа = выигранная сделка</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
+  /* 2. ЛИДЫ */
+  /* уровни собираются в конце */
+  // data-quality: атрибуция направления ЗА ВЫБРАННЫЙ ПЕРИОД - направления берутся из поля динамически
+  const dq=periodDQ(D,L);
+  const dealByDir=dq.dealByDir||{};const dDealEmpty=dealByDir['не указано']||0;
+  const palDir=['#22D3EE','#A78BFA','#10B981','#F472B6','#FB923C','#6366F1','#34D399','#60A5FA','#C084FC','#2DD4BF','#F59E0B','#F87171'];
+  const dirList=dq.dirList||Object.keys(dq.leadByDir||{});
+  const dirOf={};dirList.forEach((nm,i)=>{dirOf[nm]=nm==='genglass'?'#22D3EE':palDir[i%palDir.length];});dirOf['не указано']='#F43F5E';
+  const stByDir=dq.leadStatByDir||{};
+  const dirRows=dirList.concat(['не указано']).map(nm=>{const x=stByDir[nm]||{s:(nm==='не указано'?dq.leadQualEmpty:dq.leadQualByDir[nm])||0,f:0,p:0};const tot=(x.s||0)+(x.f||0)+(x.p||0);return [nm,tot,x.s||0,x.f||0,x.p||0];})
+    .filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
+  const dmax=Math.max(...dirRows.map(r=>r[1]))||1;
+  const dirBar=dirRows.map(r=>{const[name,total,s,f,p]=r;const w=(total/dmax*100).toFixed(1);
+    const parts=[[s,'#2E9E74','#06121a'],[f,'#CC5867','#fff'],[p,'#C2873C','#06121a']].filter(x=>x[0]>0);
+    const segs=parts.map((x,i)=>{const wd=(x[0]/total*100).toFixed(1);const rad=parts.length===1?'6px':i===0?'6px 0 0 6px':i===parts.length-1?'0 6px 6px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:${x[2]};white-space:nowrap;overflow:visible">${(x[0]/total)>=0.1?fmt(x[0]):""}</div>`;}).join('');
+    const td=dt(name,[['Всего лидов',fmt(total),'hl'],['Доля от всех лидов',pct(total/dq.leadTotal),'hl'],['Квал',fmt(s),'dim'],['Отказ',fmt(f),'dim'],['В работе',fmt(p),'dim']]).replace(/"/g,'&quot;');
+    return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:96px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" title="CR1 направления (квал÷лиды), нейтральный показатель">${pct(total?s/total:0)}</div></div>`;}).join('');
+  // ===== метрика блока «Качество разметки» управляется тем же тогглом (loadSeg) =====
+  const QM=(S.loadMetric==='conv'||S.loadMetric==='check')?'deals':(S.loadMetric||'leads');
+  const _wonByDir={},_revByDir={};D.forEach(d=>{if(d.won){const k=d.dir||'не указано';_wonByDir[k]=(_wonByDir[k]||0)+1;_revByDir[k]=(_revByDir[k]||0)+(d.budget||0);}});
+  const _noDir=o=>Object.fromEntries(Object.entries(o||{}).filter(([k])=>k!=='не указано'));
+  const _sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
+  const _qMeta={
+    leads:{lab:'Лиды',unit:'лидов',titleAll:'Всего лидов',map:dq.leadByDir||{},empty:dq.leadEmpty||0,total:dq.leadTotal||0,money:false},
+    deals:{lab:'Сделки',unit:'сделок',titleAll:'Всего сделок',map:_noDir(dq.dealByDir),empty:(dq.dealByDir||{})['не указано']||0,total:dq.dealTotal||_sum(dq.dealByDir),money:false},
+    won:{lab:'Продажи',unit:'продаж',titleAll:'Всего продаж',map:_noDir(_wonByDir),empty:_wonByDir['не указано']||0,total:_sum(_wonByDir),money:false},
+    rev:{lab:'Выручка',unit:'выручки',titleAll:'Выручка, всего',map:_noDir(_revByDir),empty:_revByDir['не указано']||0,total:_sum(_revByDir),money:true}
+  }[QM];
+  const _qfV=v=>_qMeta.money?fmtK(v)+' ₽':fmt(v);
+  const _qTotal=_qMeta.total||1;
+  const _qTop=dirList.map(nm=>[nm,_qMeta.map[nm]||0]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const dirTiles=_qTop.map(r=>({k:r[0]==='genglass'?'genglass (наш)':r[0],v:_qfV(r[1]),ac:r[0]==='genglass'?'accent':(dirOf[r[0]]||'#6366F1'),sub:pct(r[1]/_qTotal)+' от '+_qMeta.unit}));
+  let dirBarM;
+  if(QM==='leads'){dirBarM=dirBar;}
+  else{
+    const _rows=dirList.concat(['не указано']).map(nm=>[nm,nm==='не указано'?_qMeta.empty:(_qMeta.map[nm]||0)]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
+    const _mx=Math.max(...(_rows.map(r=>r[1])),1);
+    dirBarM=_rows.map(([name,val])=>{const w=Math.max((val/_mx*100),4).toFixed(1),col=name==='не указано'?'#F43F5E':(dirOf[name]||'#6366F1');
+      const td=dt(name,[[_qMeta.lab,_qfV(val),'hl'],['Доля от Σ',pct(val/_qTotal),'hl']]).replace(/"/g,'&quot;');
+      return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:64px;background:${col};border-radius:6px;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10.5px;font-weight:800;color:#06121a;transform-origin:left;animation:grow .8s var(--ease-out) both">${_qfV(val)}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right">${pct(val/_qTotal)}</div></div>`;}).join('');
+  }
+  const _qCap = QM==='leads'
+    ? `Лиды по направлению: <span style="color:#2E9E74">квал</span> · <span style="color:#CC5867">отказ</span> · <span style="color:#C2873C">в работе</span> · числа в сегментах · справа CR1 (квал÷лиды) ${info('CR1 направления - квал-лиды ÷ все лиды этого направления. Нейтральная справка, не оценка: высокий CR1 у «не указано» не значит «хорошо».')}. «Не указано» = дыра`
+    : `${_qMeta.lab} по направлению · значение на полосе · справа доля от Σ${QM==='rev'?' '+info('Выручка считается только с успешной (выигранной) стадии сделки - won. Предоплата на стадии перед производством в выручку НЕ входит: учитывается лишь закрытая выигранная сделка.'):QM==='won'?' '+info('Продажи - только выигранные сделки (won), по всем направлениям.'):QM==='deals'?' '+info('Сделки - все созданные сделки в воронке: выигранные + проигранные + открытые.'):''} · «Не указано» = дыра атрибуции`;
+  const B_quality=`<div class="card"><div class="card-h"><div><div class="card-title">Качество разметки ${info('Доля сделок/лидов за период без проставленного направления (атрибуция из поля Б24). Вопрос: чисто ли менеджеры заполняют направление. Вывод: большая доля «не указано» - дыра в данных, аналитика по направлениям врёт, чинить дисциплину заполнения.')}</div><div class="card-sub">за выбранный период, все направления · показатель ${_qMeta.lab} (тоггл сверху ↑) · направления берутся из поля Б24 (новые подхватятся автоматически) · атрибуция: 1) поле «направление» → 2) отдел/системный → 3) источник. Пустое = не определено, цель — 0%.</div></div></div>`+
+    kstrip([
+      {k:_qMeta.titleAll,v:_qfV(_qMeta.total),ac:'#6366F1',sub:'за период'},
+      ...dirTiles,
+      {k:'❗ '+_qMeta.lab+' без направления',v:_qfV(_qMeta.empty),ac: _qMeta.empty?'#F43F5E':'#10B981',sub:pct(_qMeta.empty/_qTotal)+' от '+_qMeta.unit},
+    ], Math.ceil((dirTiles.length+2)/2))+
+    `<div class="card-sub" style="margin:6px 0 8px;font-weight:600;color:var(--ink-2)">${_qCap}</div>`+
+    dirBarM+
+    `<div class="note" style="margin:12px 0 0">Источник заполняется не всегда - по нему терялось ~78% GG-лидов. Поэтому беру направление; источник остаётся вторым признаком, а отдел продаж/системный - третьим для добивки пустых.</div></div>`;
+  const lf=leadFunnel(L);
+  const _nekv=L.filter(l=>l.qual==='неквал').length,_vrab=L.filter(l=>l.qual==='в работе').length;
+  const B_leadStrip=kstrip([
+    {k:'Поступило лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
+    {k:'CR1 · в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'сделок ÷ лидов'},
+    {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
+    {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
+    {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
+    {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
+  ]);
+  // ===== воронка лидов (4-bar) | структура отказов (донат) + нагрузка ОП (full-width) =====
+  const lc={};L.forEach(l=>lc[l.status]=(lc[l.status]||0)+1);const ltot=L.length||1;
+  const success=lc['Создание сделки']||0;
+  const inwork=(lc['Новые заявки']||0)+(lc['Разобрать']||0)+(lc['В работе']||0);
+  const refCats=[['Некачественный лид',lc['Некачественный лид']||0],['СПАМ',lc['СПАМ']||0],['Дубль',lc['Дубль']||0],['Отказ',lc['Отказ']||0]];
+  const refused=refCats.reduce((s,x)=>s+x[1],0)||1;
+  const fb=[['Всего лидов',ltot,'#3DAEC2'],['В работе',inwork,'#C2873C'],['Сделки',success,'#2E9E74'],['Отказ',refused,'#CC5867']];
+  const lbars=fb.map(([nm,v,c])=>{const p=ltot?v/ltot*100:0;const td=dt(nm,[['Лидов',fmt(v),'hl'],['Доля от всех',pct(p/100),'hl']]).replace(/"/g,'&quot;');return `<div class="lf-bar"><div class="lf-name">${nm}</div><div class="lf-track" data-tip="${td}"><div class="lf-fill" style="width:${p.toFixed(1)}%;background:${c}"></div></div><div class="lf-meta"><span class="lf-val" style="color:${c}">${fmt(v)}</span><span class="lf-pct">${p.toFixed(1)}%</span></div></div>`;}).join('');
+  const refColors={'Некачественный лид':'#F472B6','СПАМ':'#FB923C','Дубль':'#A78BFA','Отказ':'#F43F5E'};
+  const dData=refCats.map(([nm,v])=>[nm,v,refColors[nm]||'#6A7484']);
+  let dA=-90,dPaths='';
+  dData.forEach(d=>{const an=d[1]/refused*360;const a1=dA,a2=dA+an;const xy=(deg,rad)=>[100+rad*Math.cos(deg*Math.PI/180),100+rad*Math.sin(deg*Math.PI/180)];const R=74,r=50;const[x0,y0]=xy(a1,R),[x1,y1]=xy(a2,R),[x2,y2]=xy(a2,r),[x3,y3]=xy(a1,r);const laf=an>180?1:0;const td=dt(d[0],[['Отказов',fmt(d[1]),'hl'],['Доля',pct(d[1]/refused),'hl']]).replace(/"/g,'&quot;');dPaths+=`<path class="dpath seg-anim" data-tip="${td}" d="M${x0} ${y0} A${R} ${R} 0 ${laf} 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 ${laf} 0 ${x3} ${y3} Z" fill="${d[2]}" opacity=".9"/>`;dA=a2;});
+  const dSvg=`<svg viewBox="0 0 200 200" style="width:100%;max-width:166px">${dPaths}<text x="100" y="95" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="27" fill="var(--ink)">${fmt(refused)}</text><text x="100" y="114" text-anchor="middle" font-size="10" fill="var(--ink-3)">отказов</text></svg>`;
+  const dLeg=dData.map(d=>`<div class="ro-lg"><span class="dot" style="background:${d[2]}"></span><span class="nm">${d[0]}</span><span class="vl">${fmt(d[1])}</span><span class="pc">${pct(d[1]/refused)}</span></div>`).join('');
+  const B_leadFunnelPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Воронка лидов ${info('Все лиды периода по исходу: в работе / сделки (квал) / отказ. Вопрос: какая доля входящих доходит до сделки, сколько отваливается. Вывод: большой «отказ» или много зависших «в работе» - проблема обработки лидов на входе.')}</div><div class="card-sub">из ${fmt(ltot)} лидов genglass: <b style="color:#2E9E74">${fmt(success)} квал</b> (CR1 ${pct(ltot?success/ltot:0)}) · ${fmt(refused)} отказ · ${fmt(inwork)} в работе</div></div></div><div class="lf-bars">${lbars}</div></div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в лидах ${info('Почему лиды не дошли до сделки: некачественный / спам / дубль / отказ. Вопрос: главная причина потери лидов на входе. Вывод: много «некачественный/спам» - проблема в каналах трафика, а не в продажах.')}</div><div class="card-sub">${fmt(refused)} отказных лидов по статусу. Внутри «Некачественный лид» причину пишет менеджер: чаще всего игнор, тест, пустой, звонок по заказу. Подпричины «Отказа» в выгрузке пока нет.</div></div></div><div class="ro-dwrap" style="margin-top:10px"><div class="ro-donut">${dSvg}</div><div class="ro-legend">${dLeg}</div></div></div></div>`;
+  // нагрузка по менеджерам ОП (full-width)
+  const mgA={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=mgA[l.mgr]=mgA[l.mgr]||{t:0,q:0,f:0,p:0};a.t++;if(l.qual==='квал')a.q++;else if(l.qual==='в работе')a.p++;else a.f++;});
+  const mgTop=Object.entries(mgA).sort((a,b)=>b[1].t-a[1].t).slice(0,12);
+  const mgMax=mgTop.length?mgTop[0][1].t:1;
+  const mgRows=mgTop.length?mgTop.map(([nm,a])=>{const w=(a.t/mgMax*100).toFixed(1);
+    const parts=[[a.q,'#2E9E74','#06121a'],[a.f,'#CC5867','#fff'],[a.p,'#C2873C','#06121a']].filter(x=>x[0]>0);
+    const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
+    const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
+    return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
+  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys);
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=_lm!=='leads';
+  const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
+  const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
+  const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
+  const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
+  const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};border-radius:11px;transition:width .8s var(--ease-out)"></div><span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>${_lm==='leads'?`<div style="flex-basis:100%;font-size:11.5px;color:var(--ink-3);margin-top:2px">распределение факта: ~<b style="color:var(--ink-2)">${fmt(Math.round(_mPlanMgr))}</b> лидов/менеджера · <b style="color:#CC5867">${_nOver}</b> перегруж. · <b style="color:#C2873C">${_nUnder}</b> недогруж.</div>`:''}`;
+  const _noL=L.filter(l=>!isOP(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)),_noMap={};
+  _noL.forEach(l=>{(_noMap[l.mgr]=_noMap[l.mgr]||{l:0,d:0}).l++;});_noD.forEach(d=>{(_noMap[d.mgr]=_noMap[d.mgr]||{l:0,d:0}).d++;});
+  const _noBear=Object.entries(_noMap).sort((a,b)=>(b[1].l+b[1].d)-(a[1].l+a[1].d)).slice(0,5).map(([n,v])=>`${n} <span style="color:var(--ink-4)">(${v.l}л/${v.d}с)</span>`).join(' · ');
+  const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">вне распределения плана (не отдел продаж): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок · на: ${_noBear}</div>`:'';
+  const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже.')}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · план берётся из таблицы по выбранному диапазону, на стыке месяцев режется по дням</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" title="Открыть таблицу плана в Google">↗ Таблица</a><div class="seg" id="loadSeg"></div></div></div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}${_noHTML}</div></div>`;
+  const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan)}</div></div>`;
+  // распределение лидов (системные = нераспределённые)
+  const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
+  const notOpL=L.filter(l=>!isOP(l.mgr));
+  const queueL=notOpL.filter(l=>l.status==='Новые заявки');
+  const orphanL=notOpL.filter(l=>l.status!=='Новые заявки'&&l.status!=='Создание сделки'&&!JUNKST.has(l.status));
+  const notOpDeals=SNAP().filter(d=>!isOP(d.mgr));const orphanDeals=notOpDeals.filter(d=>d.stageCode!=='C49:NEW');
+  const waiting=queueL.concat(orphanL);const ageMed=median(waiting.map(l=>ageDays(l.created)));
+  const intByName=Object.entries(intL.reduce((a,l)=>{a[l.mgr]=(a[l.mgr]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]);
+  /* блок «Распределение лидов» убран по запросу */
+  // карта «Нагрузка по лидам — отдел продаж» убрана: объём теперь на пузырьках, динамика — на теплокарте выше
+  /* 3. ПРОДАЖИ */
+  /* уровни собираются в конце */
+  const B_truba=funnelChart();
+  const B_dwellStage=`<div class="card"><div class="card-h"><div><div class="card-title">Скорость по этапам ${info('Медиана дней, что открытые сделки лежат на каждом этапе СЕЙЧАС. Вопрос: на каком этапе сделки маринуются дольше всего. Вывод: красные этапы (более 21 дн) - где буксует процесс; «без касаний» = брошенные, никто не ведёт.')}</div><div class="card-sub">медиана дней, что открытые сделки лежат на этапе сейчас · красное = застряли · «без кас.» = без касаний клиента (Б24 фиксирует только касания, залогированные в карточке)</div></div><div class="seg" id="dwellSort"><button data-s="stage" class="${(S.dwellSort||'stage')==='stage'?'on':''}">Этапы</button><button data-s="dwell" class="${S.dwellSort==='dwell'?'on':''}">Срок</button><button data-s="count" class="${S.dwellSort==='count'?'on':''}">Сделок</button></div></div>`+dwellByStage(snap)+`</div>`;
+  const gTotC=snap.length||1,gTotM=snap.reduce((s,d)=>s+d.budget,0)||1;
+  /* блок «Где сейчас сделки» убран - дублирует трубу */
+  /* «Динамика сделок» убрана (линейный график) */
+  // full funnel
+  const order=['Новая сделка','Из Взят в работу/Квалифицирован','Формирование ТЗ','Расчёт','КП отправлено','Принимают решение','Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен','Сделка успешна','Долгострой','Сделка провалена'];
+  const cc={};D.forEach(d=>cc[d.stage]=(cc[d.stage]||0)+1);const frows=order.filter(s=>cc[s]).map(s=>[s,cc[s]]);
+  /* «Воронка по этапам» убрана (дублирует трубу) */
+  // key-stage dwell+touch
+  /* блок «Зависшие сделки и касания» убран по запросу */
+  // loss
+  const lost=D.filter(d=>d.lost);
+  // Причина отказа берётся из поля Б24 как есть. Пусто/«не указана» = менеджер не проставил причину.
+  const NOREASON='Причина не проставлена';
+  lost.forEach(d=>{d.rsn=(d.reason&&d.reason!=='не указана')?d.reason:null;d.mreason=mergedReason(d);});
+  const mr={};lost.forEach(d=>{const k=d.rsn||NOREASON;mr[k]=(mr[k]||0)+1;});const mrr=Object.entries(mr).sort((a,b)=>b[1]-a[1]);
+  const mrr5=mrr.length>5?mrr.slice(0,5).concat([['Прочее',mrr.slice(5).reduce((s,x)=>s+x[1],0)]]):mrr;
+  const lrr=mrr; // for matrix
+  const lossMgrs=[...new Set(lost.map(d=>d.mgr))].sort();
+  const _lsel=S.lossMgrSel||[];
+  const _lasc=S.lossAsc?1:-1;const _lsk=S.lossSort||'date';
+  const _lcmp=(a,b)=>{let r;if(_lsk==='id')r=(+a.id||0)-(+b.id||0);else if(_lsk==='mgr')r=(a.mgr||'').localeCompare(b.mgr||'');else if(_lsk==='reason')r=(a.rsn||'яяя').localeCompare(b.rsn||'яяя');else if(_lsk==='sum')r=(a.budget||0)-(b.budget||0);else r=(a.closed||a.created||'').localeCompare(b.closed||b.created||'');return r*_lasc;};
+  const lossList=lost.filter(d=>!_lsel.length||_lsel.includes(d.mgr)).sort(_lcmp);
+  const B24D='https://glassmemory.bitrix24.ru/crm/deal/details/';
+  const _harr=ar=>_lsk===ar?(S.lossAsc?' ↑':' ↓'):'';const _hcls=ar=>'lsort'+(_lsk===ar?' on':'');
+  const _mgrLbl=_lsel.length?(_lsel.length+' выбрано'):'Все менеджеры';
+  const B_lossReasons=`<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в сделках ${info('Почему уже созданные сделки ушли в отказ (поле Б24 «Причина отказа»). Вопрос: главные причины проигрышей и у кого. Вывод: много «дорого» - вопрос к цене и ценности; «не проставлено» - менеджеры не фиксируют причину, чинить дисциплину.')}</div><div class="card-sub">${lost.length} отказных сделок · слева топ причин · справа список со ссылкой на сделку. Причина из поля Б24 «Причина отказа»; где менеджер её не проставил - помечено <span style="color:#CC5867">красным</span>.</div></div></div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:8px"><div style="flex:0 0 190px">`+donut(mrr5,fmt(lost.length),'ОТКАЗОВ')+`</div><div style="flex:1;min-width:240px">`+barRows(mrr5)+`</div></div>
+    <div class="card-h" style="border-top:1px solid var(--border-soft);padding-top:10px"><div><div class="card-title" style="font-size:13px">Отказные сделки (${lossList.length})</div></div><div class="msel"><button class="msel-btn" id="lossMgrBtn">${esc(_mgrLbl)} ▾</button><div class="msel-panel" id="lossMgrPanel" style="display:${S.lossMgrOpen?'block':'none'}">${lossMgrs.map(m=>`<label><input type="checkbox" data-lmgr="${esc(m)}" ${_lsel.includes(m)?'checked':''}>${esc(m)}</label>`).join('')}<div class="msel-foot"><button id="lossMgrClear">Сбросить</button></div></div></div></div>
+    <div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border);margin-top:6px"><button class="${_hcls('id')}" data-ls="id" style="flex:0 0 86px">Сделка${_harr('id')}</button><button class="${_hcls('date')}" data-ls="date" style="flex:0 0 84px">Дата${_harr('date')}</button><button class="${_hcls('mgr')}" data-ls="mgr" style="flex:0 0 150px">Менеджер${_harr('mgr')}</button><button class="${_hcls('reason')}" data-ls="reason" style="flex:1;min-width:120px">Причина отказа${_harr('reason')}</button><button class="${_hcls('sum')}" data-ls="sum" style="flex:0 0 92px;text-align:right;justify-content:flex-end">Сумма${_harr('sum')}</button></div>
+    <div style="max-height:360px;overflow:auto;margin-top:2px">`+(lossList.length?lossList.slice(0,400).map(d=>`<div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid var(--border-soft);font-size:11.5px;align-items:center"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="flex:0 0 86px;color:var(--accent);text-decoration:none;font-weight:600">#${d.id} ↗</a><span style="flex:0 0 84px;color:var(--ink-3)">${(d.closed||d.created||'').slice(0,10)}</span><span style="flex:0 0 150px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.mgr)}">${esc(d.mgr)}</span><span style="flex:1;min-width:120px;${d.rsn?'color:var(--ink)':'color:#CC5867;font-weight:600'}">${d.rsn?esc(d.rsn):'не проставлена причина отказа'}</span><span style="flex:0 0 92px;text-align:right;color:var(--ink-3)">${fmtK(d.budget)} ₽</span></div>`).join(''):'<div class="card-sub">нет отказных сделок по фильтру</div>')+`</div></div>`;
+  /* 4. МЕНЕДЖЕРЫ */
+  /* уровни собираются в конце */
+  const MM=byManager(D,L);const col=k=>MM.map(x=>x[k]);
+  MM.sort((a,b)=>{const x=a[S.mtSort],y=b[S.mtSort];if(x==null)return 1;if(y==null)return -1;return S.mtAsc?(x>y?1:-1):(x>y?-1:1);});
+  const cols=[['mgr','Менеджер',0],['leads','Лиды',1],['deals','Сделки',1],['conv','CR2%',1],['won','Успех',1],['rev','Выручка ₽',1],['check','Ср.чек ₽',1],['cycle','Мед.цикл',1],['touch','Касаний/сд',1],['lost','Потери',1]];
+  let tb=`<div class="card"><div class="card-h"><div><div class="card-title">Рейтинг менеджеров ${info('Сводка по каждому менеджеру: лиды, сделки, CR2, продажи, выручка, чек, цикл, касания, потери (клик по заголовку = сортировка). Вопрос: кто результативнее по деньгам и конверсии. Вывод: сравнивай по CR2 и выручке, а не по объёму - важно кто эффективнее, а не просто загруженнее.')}</div><div class="card-sub">клик по заголовку — сортировка · «Мед.цикл» = медиана дней создание→успех · «Касаний/сд» = реальные касания клиента на сделку</div></div></div><div class="scroll"><table class="tbl" id="mt"><thead><tr>`+
+    cols.map(c=>`<th class="${c[2]?'r':''} ${S.mtSort===c[0]?'sorted'+(S.mtAsc?' asc':''):''}" data-k="${c[0]}">${c[1]}${c[0]==='conv'?qm(2):''}${c[0]==='cycle'?info('Мед.цикл - медиана числа дней от создания сделки до успешного закрытия. Показывает, сколько в среднем длится путь сделки до продажи; чем меньше, тем быстрее цикл.'):''}${c[0]==='touch'?info('Касаний/сд - среднее число реальных касаний клиента (звонок, письмо, сообщение) на одну сделку. Внутренние задачи и TODO не считаются. Б24 фиксирует касание, только если оно залогировано в карточке: переписка в личном мессенджере мимо Б24 не видна.'):''}</th>`).join('')+`</tr></thead><tbody>`;
+  MM.forEach(x=>{tb+=`<tr><td class="name">${x.mgr}</td>`+
+    `<td class="r" style="${rankColor(col('leads'),x.leads)}">${x.leads}</td>`+
+    `<td class="r" style="${rankColor(col('deals'),x.deals)}">${x.deals}</td>`+
+    `<td class="r" style="${rankColor(col('conv'),x.conv)}">${pct(x.conv)}</td>`+
+    `<td class="r" style="${rankColor(col('won'),x.won)}">${x.won}</td>`+
+    `<td class="r" style="${rankColor(col('rev'),x.rev)}">${fmt(x.rev)}</td>`+
+    `<td class="r">${x.check?fmt(x.check):'—'}</td>`+
+    `<td class="r" style="${rankColor(col('cycle'),x.cycle,true)}">${x.cycle!=null?d1(x.cycle)+'д':'—'}</td>`+
+    `<td class="r" style="${rankColor(col('touch'),x.touch)}">${x.touch.toFixed(1)}</td>`+
+    `<td class="r" style="${rankColor(col('lost'),x.lost,true)}">${x.lost}</td></tr>`;});
+  tb+=`<tr class="total"><td>ИТОГО</td><td class="r">${m.leads}</td><td class="r">${m.deals}</td><td class="r">${pct(m.conv)}</td><td class="r">${m.won}</td><td class="r">${fmt(m.rev)}</td><td class="r">${fmt(m.check)}</td><td class="r">—</td><td class="r">—</td><td class="r">${m.lost}</td></tr></tbody></table></div></div>`;
+  const B_rating=tb;
+  /* командный план-факт объединён с парой в разделе Лиды */
+  /* «Динамика по менеджерам» (спагетти) убрана */
+  // matrix
+  const _lf=lost.length?Math.round(lost.filter(d=>{const r=d.reason;return r&&r!=='не указана'&&r!=='Другое';}).length/lost.length*100):0;
+  const B_mgrRejMatrix=`<div class="card"><div class="card-h"><div><div class="card-title">Матрица: менеджер × причина отказа</div><div class="card-sub">все провалы периода · доля внутри строки · «Прочее» = редкие причины вне топа · причина в CRM-поле заполнена лишь у <b>${_lf}%</b> (остальное распознано из текста)</div></div></div><div class="scroll" id="mxBox"></div></div>`;
+  const _dmLab=S.dhMetric==='count'?'кол-во открытых сделок':S.dhMetric==='money'?'сумма денег открытых сделок':'медиана дней лежания';
+  const B_mgrDwell=`<div class="card"><div class="card-h"><div><div class="card-title">Кто маринует сделки ${info('Медиана срока (или шт/деньги - тумблер) открытых сделок на этапах по менеджерам + где заперт пайплайн. Вопрос: кто бросает сделки лежать и где застряли деньги. Вывод: красные ячейки и высокая доля «застряло 30+ дн» - менеджер/этап, тормозящий выручку.')}</div><div class="card-sub">${_dmLab} по этапам · цвет = насколько долго лежит (красное = дольше) · скан по столбцу: у кого краснее, тот бросает и забывает</div></div><div class="seg" id="dhMetricSeg"><button data-m="term" class="${(S.dhMetric||'term')==='term'?'on':''}">Сроки</button><button data-m="count" class="${S.dhMetric==='count'?'on':''}">Шт</button><button data-m="money" class="${S.dhMetric==='money'?'on':''}">В деньгах</button></div></div>`+`<div class="dwell-split"><div class="dw-tbl">`+mgrDwellHeat(snap)+`</div><div class="dw-chart">`+dwellStageChart(snap)+`</div></div></div>`;
+  /* 5. ДЕНЬГИ */
+  /* уровни собираются в конце */
+  const won=soldSet(); // продажи по дате исхода в периоде (для бубликов выручки)
+  const openDeals=snap.filter(d=>!d.won&&!d.lost);const openMoney=openDeals.reduce((s,d)=>s+d.budget,0);
+  const lostMoney=lostSet().reduce((s,d)=>s+(d.budget||0),0);
+  /* money KPI-стрип объединён в «Главные цифры» наверху */
+  const B_dynRev=`<div class="card"><div class="card-h" style="flex-wrap:nowrap;align-items:center"><div class="card-title">Динамика отдела ${info('Деньги отдела по неделям: выручка/продажи/чек/конверсия во времени, сравнение с прошлым равным периодом. Вопрос: растём или падаем по деньгам, где провалы. Вывод: устойчивый спад к прошлому периоду - сигнал разобраться, всплеск - понять что сработало и повторить.')}</div><div class="seg" id="rdSeg" style="flex:0 0 auto"></div></div><div class="card-sub" id="rdh" style="margin:-6px 0 14px"></div><div id="rdyn"></div></div>`;
+  const B_avgCheck=`<div class="card"><div class="card-h"><div><div class="card-title">Средний чек по менеджерам</div><div class="card-sub">по успешным сделкам, ₽</div></div></div>`+barRows(byManager(D,L).filter(x=>x.won>0).sort((a,b)=>b.check-a.check).map(x=>[x.mgr,x.check]),true)+`</div>`;
+  const sBy=f=>{const c={};won.forEach(x=>c[x[f]]=(c[x[f]]||0)+x.budget);return Object.entries(c).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);};
+  const B_donuts=`<div class="grid3">`+['dir:По направлению','assort:По ассортименту','client:По типу клиента'].map(b=>{const[f,t]=b.split(':');const dd=sBy(f).slice(0,8);const tot=dd.reduce((s,d)=>s+d[1],0);return `<div class="card"><div class="card-sub" style="font-weight:600;color:var(--ink-2);text-align:center;margin-bottom:6px">${t}</div><div style="text-align:center">`+donut(dd,fmtK(tot).split(' ')[0],(fmtK(tot).split(' ')[1]||'').toUpperCase()+' ₽',true)+`</div>`+legend(dd)+`</div>`;}).join('')+`</div>`;
+  /* «Средний чек» перенесён в левую колонку Денег под график */
+
+  const G=(a,b)=>`<div class="grid2">`+a+b+`</div>`;
+  const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
+    `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
+    `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
+  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
+    + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
+  document.getElementById('root').innerHTML=h;
+  // post-render wiring
+  // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
+  // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wireDQ();
+  document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
+}
+function mgrScatter(L){
+  const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,q:0};a.t++;if(l.qual==='квал')a.q++;});
+  const arr=Object.entries(A).map(([m,a])=>({m,t:a.t,q:a.q,cv:a.t?a.q/a.t:0})).filter(x=>x.t>0).sort((a,b)=>b.t-a.t);
+  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">в периоде нет лидов на менеджерах ОП</div>';
+  const W=560,H=336,pl=40,pr=72,pt=16,pb=42;
+  const maxT=Math.max(...arr.map(x=>x.t))*1.12||1;
+  const X=v=>pl+(W-pl-pr)*v/maxT,Y=cv=>H-pb-(H-pt-pb)*Math.min(1,cv);
+  const medT=median(arr.map(x=>x.t))||0,target=0.5;
+  let grid='';for(let i=0;i<=4;i++){const yy=pt+(H-pt-pb)*i/4,vv=1-i/4;grid+=`<line x1="${pl}" y1="${yy.toFixed(1)}" x2="${W-pr}" y2="${yy.toFixed(1)}" stroke="var(--border-soft)"/><text x="${pl-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-4)">${Math.round(vv*100)}%</text>`;}
+  let xg='';for(let i=0;i<=4;i++){const xx=pl+(W-pl-pr)*i/4,vv=maxT*i/4;xg+=`<text x="${xx.toFixed(1)}" y="${H-pb+15}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${Math.round(vv)}</text>`;}
+  const refV=`<line x1="${X(medT).toFixed(1)}" y1="${pt}" x2="${X(medT).toFixed(1)}" y2="${H-pb}" stroke="var(--ink-4)" stroke-dasharray="4 4" opacity=".55"/><text x="${X(medT).toFixed(1)}" y="${pt-4}" text-anchor="middle" font-size="8.5" fill="var(--ink-3)">медиана объёма</text>`;
+  const refH=`<line x1="${pl}" y1="${Y(target).toFixed(1)}" x2="${W-pr}" y2="${Y(target).toFixed(1)}" stroke="#2E9E74" stroke-dasharray="4 4" opacity=".5"/><text x="${W-pr+4}" y="${(Y(target)+3).toFixed(1)}" font-size="8.5" fill="#2E9E74">цель CR1 50%</text>`;
+  const rOf=q=>Math.max(5,Math.min(21,Math.sqrt(q)*4));
+  let pts='';arr.forEach((x,i)=>{const cx=X(x.t),cy=Y(x.cv),r=rOf(x.q),c=x.cv>=.5?'#2E9E74':x.cv>=.3?'#C2873C':'#CC5867';
+    const td=dt(x.m,[['Лидов',fmt(x.t),'hl'],['Квал',fmt(x.q),'dim'],['CR1',pct(x.cv),'hl']]).replace(/"/g,'&quot;');
+    pts+=`<circle class="seg-anim" style="animation-delay:${(i*.04).toFixed(2)}s;transform-box:fill-box;transform-origin:center" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity=".48" stroke="${c}" stroke-width="1.5" data-tip="${td}"/>`;
+    pts+=`<text x="${cx.toFixed(1)}" y="${(cy-r-3).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--ink-2)" pointer-events="none">${x.m.split(' ')[0]}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${grid}${xg}${refV}${refH}${pts}<text x="${((pl+W-pr)/2).toFixed(0)}" y="${H-4}" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">объём лидов, шт →</text></svg>`;}
+function mgrHeatmap(L){
+  const keys=buckets(S.gran);const showNum=keys.length<=14;
+  const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,w:{}};a.t++;const k=bkey(l.created,S.gran);a.w[k]=(a.w[k]||0)+1;});
+  const arr=Object.entries(A).map(([m,a])=>({m,t:a.t,w:a.w})).sort((x,y)=>y.t-x.t).slice(0,12);
+  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">в периоде нет лидов на менеджерах ОП</div>';
+  let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
+  const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot"></div></div>`;
+  const rows=arr.map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell;const bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)';const col=t>0.55?'#06121a':'var(--ink-2)';const td=dt(x.m+' · '+blabel(k,S.gran),[['Лидов',fmt(v),'hl']]).replace(/"/g,'&quot;');return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?(v||''):''}</div>`;}).join('');
+    return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot">${fmt(x.t)}</div></div>`;}).join('');
+  return `<div class="hm" style="--wk:${keys.length}">${head}${rows}</div>`;}
+function mgrPF(L,D,metric,keys){const A={};
+  const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};
+  L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
+  D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+    if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
+  const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
+  const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='won')return a.ww;
+    const w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});return w;};
+  return Object.entries(A).map(([m,a])=>({m,tot:tot(a),w:wof(a)})).sort((x,y)=>y.tot-x.tot);}
+function mgrPlanFactBars(arr,planMgr,metric,attain){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
+  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
+  const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=arr.length;
+  const maxV=Math.max(planMgr,...arr.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
+  let bars='',labels='';
+  arr.forEach((x,i)=>{const cx=pl+gap*i+gap/2,att=planMgr?x.tot/planMgr:0,c=planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
+    const td=dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fM(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
+    bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}" data-tip="${td}"/>`;
+    if(h>14)bars+=`<text x="${cx.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${c}">${fM(x.tot)}</text>`;
+    labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="var(--ink-3)" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${x.m.split(' ')[0]}</text>`;});
+  const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
+  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
+  const isR=(metric==='conv'||metric==='check');
+  let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
+  const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
+  const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
+      const td=dt(x.m+' · '+blabel(k,S.gran),[['Факт',fM(v),'hl'],['План на период',fM(planCell),'dim']]).replace(/"/g,'&quot;');
+      return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?fM(v):''}</div>`;}).join('');
+    const att=planMgr?x.tot/planMgr:0,ac=planTone(att);
+    return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fM(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
+  // Итог: суммы по колонкам (для счётных/денежных метрик) + командные факт/план/%.
+  const _tf=teamFact!=null?teamFact:arr.reduce((s,x)=>s+x.tot,0),_tp=teamPlan!=null?teamPlan:planMgr*arr.length;
+  const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
+  const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
+  const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
+  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}</div>`;}
+function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
+  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
+  const inp=document.getElementById('planInp');if(inp)inp.onchange=()=>{const v=+inp.value;if(v>0){S.planRev=v;render();}};}
+function leadFunnel(L){const order=['Новые заявки','Разобрать','В работе','Создание сделки','Некачественный лид','СПАМ','Дубль','Отказ'];const c={};L.forEach(l=>c[l.status]=(c[l.status]||0)+1);
+  return order.filter(s=>c[s]).map(s=>[s,c[s]]).concat(Object.entries(c).filter(([s])=>!order.includes(s)));}
+function wireDyn(D,L){
+  const seg=document.getElementById('dimSeg');
+  seg.innerHTML=[['qual','Сводка'],['mgr','Офис-менеджеры'],['dealmgr','Менеджеры ОП']].map(x=>`<button data-d="${x[0]}" class="${S.dynDim===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.dynDim=b.dataset.d;S.hidden={};render();});
+  drawDyn(D,L);}
+function respSeries(set,keys){const tot={};set.forEach(x=>{tot[x.mgr]=(tot[x.mgr]||0)+1;});
+  const names=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const series=names.map((name,i)=>({name,color:PAL[i%PAL.length],vals:keys.map(k=>set.filter(x=>x.mgr===name&&bkey(x.created,S.gran)===k).length)}));
+  series.push({name:'Итого',total:true,color:'#22D3EE',vals:keys.map(k=>set.filter(x=>bkey(x.created,S.gran)===k).length)});
+  return series;}
+function drawDyn(D,L){const keys=buckets(S.gran);let series=[];
+  const cnt=(set,key)=>set.filter(x=>bkey(x.created,S.gran)===key).length;
+  if(S.dynDim==='dealmgr'){
+    series=respSeries(L.filter(l=>l.status==='Создание сделки'),keys);
+  }else if(S.dynDim==='mgr'){
+    series=respSeries(L,keys);
+  }else{
+    series=[{name:'Квал',color:'#10B981',vals:keys.map(k=>L.filter(l=>l.qual==='квал'&&bkey(l.created,S.gran)===k).length)},
+            {name:'Неквал',color:'#F43F5E',vals:keys.map(k=>L.filter(l=>l.qual==='неквал'&&bkey(l.created,S.gran)===k).length)},
+            {name:'Итого',total:true,color:'#22D3EE',vals:keys.map(k=>cnt(L,k))}];}
+  multiline(series,keys,S.gran,false,document.getElementById('dynBox'));}
+function wireCv(L,D){
+  const seg=document.getElementById('cvSeg');if(!seg)return;
+  seg.innerHTML=[['funnel','Воронка'],['dyn','Динамика']].map(x=>`<button data-v="${x[0]}" class="${S.cvView===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.cvView=b.dataset.v;S.hidden={};render();});
+  if(S.cvView!=='dyn')return;
+  const keys=buckets(S.gran);
+  const lc=keys.map(k=>L.filter(l=>bkey(l.created,S.gran)===k).length);
+  const qc=keys.map(k=>L.filter(l=>l.qual==='квал'&&bkey(l.created,S.gran)===k).length);
+  const wc=keys.map(k=>D.filter(d=>d.won&&bkey(d.created,S.gran)===k).length);
+  const r=(num,den)=>keys.map((_,i)=>den[i]?+(num[i]/den[i]*100).toFixed(1):0);
+  multiline([
+    {name:'CR1 · % в сделку',color:'#10B981',vals:r(qc,lc)},
+    {name:'CR2 · % в продажу',color:'#22D3EE',vals:r(wc,qc)},
+    {name:'Сквозная · заявка→продажа, %',total:true,noArea:true,color:'#A78BFA',vals:r(wc,lc)}
+  ],keys,S.gran,false,document.getElementById('cvDyn'));}
+function wireLeadDyn(L){const keys=buckets(S.gran);
+  const q=keys.map(k=>L.filter(x=>x.qual==='квал'&&bkey(x.created,S.gran)===k).length);
+  const n=keys.map(k=>L.filter(x=>x.qual==='неквал'&&bkey(x.created,S.gran)===k).length);
+  const t=keys.map(k=>L.filter(x=>bkey(x.created,S.gran)===k).length);
+  multiline([{name:'Квал',color:'#10B981',vals:q},{name:'Неквал',color:'#F43F5E',vals:n},{name:'Итого',total:true,color:'#22D3EE',vals:t}],keys,S.gran,false,document.getElementById('ldyn'));
+  document.getElementById('ldh').textContent=granLabel();}
+function wireMgr(MM,D,L,lost,reasons){
+  /* #mSeg + drawMgrDyn убраны вместе с «Динамикой по менеджерам» */
+  // matrix
+  const cols=reasons.concat(['Прочее']);const mgrs=[...new Set(lost.map(d=>d.mgr))];const cnt={};mgrs.forEach(m=>{cnt[m]={};cols.forEach(r=>cnt[m][r]=0);});lost.forEach(d=>{const rr=d.mreason||d.reason;if(!cnt[d.mgr])return;if(rr in cnt[d.mgr])cnt[d.mgr][rr]++;else cnt[d.mgr]['Прочее']++;});
+  const tot=m=>cols.reduce((s,r)=>s+cnt[m][r],0);mgrs.sort((a,b)=>tot(b)-tot(a));
+  let mh='<table class="mx"><thead><tr><th class="lh">Менеджер</th>'+cols.map(r=>`<th>${r}</th>`).join('')+'<th class="toth">Σ</th></tr></thead><tbody>';
+  mgrs.forEach(m=>{const t=tot(m);if(!t)return;mh+=`<tr><td class="lc">${m}</td>`+cols.map(r=>{const v=cnt[m][r];const sh=t?v/t:0;const td=dt(m+' · '+r,[['Сделок',v],['Доля в строке',pct(sh)]]).replace(/"/g,'&quot;');return `<td data-tip="${td}" style="${v?`background:rgba(244,63,94,${(.05+sh*.55).toFixed(3)})`:''}">${v||'·'}</td>`;}).join('')+`<td class="tot">${t}</td></tr>`;});
+  // Итог по столбцам
+  const colTot=cols.map(r=>mgrs.reduce((s,m)=>s+cnt[m][r],0)),grand=colTot.reduce((s,v)=>s+v,0);
+  mh+=`<tr class="total"><td class="lc" style="font-weight:800">Итог</td>`+colTot.map(v=>`<td style="font-weight:800">${v||'·'}</td>`).join('')+`<td class="tot" style="font-weight:800">${grand}</td></tr>`;
+  document.getElementById('mxBox').innerHTML=mh+'</tbody></table>';}
+function drawMgrDyn(D,L){const keys=buckets(S.gran);const money=S.mgrMetric==='rev';
+  let set;
+  if(S.mgrMetric==='leads')set=L;
+  else if(S.mgrMetric==='deals')set=L.filter(l=>l.status==='Создание сделки');
+  else set=D.filter(d=>d.won);
+  const tot={};set.forEach(x=>{tot[x.mgr]=(tot[x.mgr]||0)+1;});
+  const names=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const valFor=(s,k)=>money?s.filter(d=>bkey(d.closed||d.created,S.gran)===k).reduce((a,d)=>a+d.budget,0):s.filter(d=>bkey(d.created,S.gran)===k).length;
+  const series=names.map((name,i)=>({name,color:PAL[i%PAL.length],vals:keys.map(k=>valFor(set.filter(x=>x.mgr===name),k))}));
+  series.push({name:'Итого',total:true,color:'#22D3EE',vals:keys.map(k=>valFor(set,k))});
+  multiline(series,keys,S.gran,money,document.getElementById('mdyn'));
+  document.getElementById('mdh').textContent=(S.mgrMetric==='leads'?'Лиды - все ответственные':S.mgrMetric==='deals'?'Сделки = сконвертированные лиды':'Выручка')+' · '+granLabel();}
+function revSeries(deals,keys,metric){const won=deals.filter(SOLD),wb=k=>won.filter(x=>bkey(saleKey(x),S.gran)===k);
+  if(metric==='rev')return keys.map(k=>wb(k).reduce((s,x)=>s+x.budget,0));
+  if(metric==='deals')return keys.map(k=>wb(k).length);
+  if(metric==='check')return keys.map(k=>{const w=wb(k);return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;});
+  return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(closeKey(d),S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
+function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
+  const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
+  const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}
+  // Текущий и прошлый периоды строятся ОДНИМ правилом (win), чтобы стрелка ▲▼ была сопоставима.
+  // «По дате продажи»: продажи по дате признания (soldDate), потери по дате закрытия, в окне.
+  // «По дате создания»: всё созданное в окне. Уважает revMode через SOLD и фильтры flt().
+  const win=(a,b)=>S.dateBasis==='outcome'
+    ? flt(AD,true).filter(d=>{if(SOLD(d)){const s=soldDate(d);if(s&&s>=a&&s<=b)return true;}return d.lost&&d.closed&&d.closed>=a&&d.closed<=b;})
+    : flt(AD,true).filter(d=>d.created>=a&&d.created<=b);
+  const Dc=win(S.start,S.end);
+  const vals=revSeries(Dc,keys,metric);
+  const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);
+  const pa=ps.toISOString().slice(0,10),pb=pe.toISOString().slice(0,10);
+  const PDl=win(pa,pb),pkeys=bucketsR(pa,pb,S.gran),praw=revSeries(PDl,pkeys,metric),prev=keys.map((_,i)=>praw[i]||0);
+  const agg=ds=>{const w=ds.filter(SOLD);if(metric==='rev')return w.reduce((s,x)=>s+x.budget,0);if(metric==='deals')return w.length;if(metric==='check')return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;const cl=ds.filter(d=>d.won||d.lost);return cl.length?Math.round(cl.filter(d=>d.won).length/cl.length*1000)/10:0;};
+  const cur=agg(Dc),prevT=agg(PDl),dl=prevT?(cur-prevT)/Math.abs(prevT):null;
+  const fmtV=v=>META.p?pct(v/100):META.m?fmtK(v)+' ₽':fmt(v);
+  multiline([{name:META.l,total:true,color:META.c,vals},{name:'Пред. период',color:'#7E8796',dash:true,noArea:true,vals:prev}],keys,S.gran,META.m,document.getElementById('rdyn'));
+  const ar=dl==null?'':dl>=0?'▲':'▼',dc=dl==null?'var(--ink-3)':dl>=0?'#2E9E74':'#CC5867';
+  document.getElementById('rdh').innerHTML=`${META.l} отдела · по дате закрытия · ${granLabel()} · период <b style="color:var(--ink)">${fmtV(cur)}</b> vs пред. <b style="color:var(--ink-2)">${fmtV(prevT)}</b>`+(dl==null?'':` <b style="color:${dc}">${ar} ${pct(Math.abs(dl))}</b>`)+(metric==='check'||metric==='conv'?' · пустая неделя без продаж = 0':'');}
+function wireDQ(){const seg=document.getElementById('dqSeg');if(!seg)return;
+  seg.innerHTML=[['leads','Всего лиды'],['qual','Квал'],['deals','Сделки']].map(x=>`<button data-d="${x[0]}" class="${S.dqDim===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.dqDim=b.dataset.d;render();});}
+function wireDealDyn(D){const seg=document.getElementById('ddSeg');if(!seg)return;
+  seg.innerHTML=[['sum','Сводка'],['mgr','Менеджеры ОП']].map(x=>`<button data-d="${x[0]}" class="${S.dlDim===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.dlDim=b.dataset.d;render();});
+  const keys=buckets(S.gran);const cnt=(set,k)=>set.filter(x=>bkey(x.created,S.gran)===k).length;let series;
+  if(S.dlDim==='mgr'){series=respSeries(D,keys);
+  }else{series=[
+    {name:'Успешные',color:'#10B981',vals:keys.map(k=>D.filter(d=>d.won&&bkey(d.created,S.gran)===k).length)},
+    {name:'Отказы',color:'#F43F5E',vals:keys.map(k=>D.filter(d=>d.lost&&bkey(d.created,S.gran)===k).length)},
+    {name:'В работе',color:'#F59E0B',vals:keys.map(k=>D.filter(d=>!d.won&&!d.lost&&bkey(d.created,S.gran)===k).length)},
+    {name:'Всего',total:true,color:'#22D3EE',vals:keys.map(k=>cnt(D,k))}];}
+  multiline(series,keys,S.gran,false,document.getElementById('ddyn'));}
+function granLabel(){return S.gran==='day'?'по дням':S.gran==='month'?'по месяцам':'по неделям';}
+// План за период из помесячной таблицы (DATA.plan): для каждого месяца берём долю дней,
+// попавших в [a,b], и день-взвешенно складываем цели. Цели по сделкам/лидам - из целевых
+// чека и CR месяца (или явные План лидов/сделок, если заданы). null = таблицы нет.
+function planForPeriod(a,b){
+  const P=DATA.plan&&DATA.plan.months;if(!P||!P.length)return null;
+  let rev=0,sales=0,deals=0,leads=0,hit=false;
+  for(const mo of P){const[Y,M]=mo.month.split('-').map(Number);if(!Y||!M)continue;
+    const dim=new Date(Y,M,0).getDate(),mStart=mo.month+'-01',mEnd=mo.month+'-'+String(dim).padStart(2,'0');
+    const s=a>mStart?a:mStart,e=b<mEnd?b:mEnd;if(s>e)continue;
+    const od=Math.round((new Date(e)-new Date(s))/864e5)+1;if(od<=0)continue;hit=true;
+    const w=od/dim,chk=mo.check||80000,cr2=mo.cr2||0.16,cr1=mo.cr1||0.55;
+    const mSales=chk?mo.rev/chk:0,mDeals=mo.deals!=null?mo.deals:(cr2?mSales/cr2:0),mLeads=mo.leads!=null?mo.leads:(cr1?mDeals/cr1:0);
+    rev+=mo.rev*w;sales+=mSales*w;deals+=mDeals*w;leads+=mLeads*w;}
+  return hit?{rev:Math.round(rev),sales,deals:Math.round(deals),leads:Math.round(leads)}:null;
+}
+function planModel(D,L,m){
+  const days=periodLen();
+  const pf=planForPeriod(S.start,S.end);
+  if(pf&&pf.rev>0){
+    const check=pf.sales?pf.rev/pf.sales:(m.check||80000),conv=pf.deals?pf.sales/pf.deals:0.16,lpr=pf.leads?pf.deals/pf.leads:0.55;
+    return {days,planRevP:pf.rev,check,conv,lpr,lprApprox:false,winT:pf.sales,fromSheet:true,
+      targets:{rev:pf.rev,deals:pf.deals,leads:pf.leads},facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
+  }
+  const planRevP=Math.round(S.planRev*days/30);
+  const check=m.check||60000,conv=m.conv||0.12;
+  let lpr=(m.deals&&m.leads)?m.deals/m.leads:0;
+  let lprApprox=false;if(!(lpr>0&&lpr<=0.95)){lpr=m.qrate>0?m.qrate:0.5;lprApprox=true;}
+  const winT=planRevP/check,dealT=winT/(conv||1),leadT=dealT/(lpr||1);
+  return {days,planRevP,check,conv,lpr,lprApprox,winT,fromSheet:false,
+    targets:{rev:planRevP,deals:Math.round(dealT),leads:Math.round(leadT)},
+    facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
+}
+// Прогноз выручки на конец календарного месяца по текущему темпу (линейная экстраполяция).
+// Месяц берётся из конца выбранного периода. Уважает тумблеры даты/режима через soldSet.
+function monthForecast(){
+  const parts=S.end.split('-'),Y=+parts[0],M=+parts[1],p2=n=>String(n).padStart(2,'0');
+  const mStart=Y+'-'+p2(M)+'-01',dim=new Date(Y,M,0).getDate(),mEnd=Y+'-'+p2(M)+'-'+p2(dim);
+  const today=DATA.to;let upTo=today<mEnd?today:mEnd;if(upTo<mStart)upTo=mStart;
+  const elapsed=Math.max(1,Math.round((new Date(upTo)-new Date(mStart))/864e5)+1);
+  const sold=soldSet(mStart,upTo),mtd=sold.reduce((s,d)=>s+(d.budget||0),0),cnt=sold.length;
+  const complete=today>=mEnd,proj=complete?mtd:Math.round(mtd/elapsed*dim);
+  const planMo=(DATA.plan&&DATA.plan.months||[]).find(x=>x.month===Y+'-'+p2(M));
+  const plan=planMo?planMo.rev:(S.planRev||0),att=plan?proj/plan:0,ac=planTone(att),perDay=Math.round(mtd/elapsed),monLabel=MON[M-1]+' '+String(Y).slice(2);
+  const tip='Прогноз линейным темпом: выручка с начала месяца ('+fmtK(mtd)+' ₽ за '+elapsed+' дн) делится на прошедшие дни и умножается на полное число дней месяца ('+dim+'). [ГИПОТЕЗА] - допущение: темп до конца месяца не меняется. Уважает оба тумблера (дата признания и режим выручки). План - поле «План выручки/мес» в блоке ниже.';
+  const head=complete?('Факт за '+monLabel):('Прогноз на конец '+monLabel+' по темпу');
+  return `<div class="card"><div class="card-h"><div><div class="card-title">${head} ${info(tip)}</div>`+
+    `<div class="card-sub">${complete?'месяц завершён':('прошло '+elapsed+' из '+dim+' дней')} · ГИПОТЕЗА: линейный темп · ${S.revMode==='won'?'успех = WON':'выручка от предоплаты'}</div></div></div>`+
+    `<div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-end;padding:6px 2px 2px">`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">${complete?'выручка месяца':'прогноз месяца'}</div><div style="font-size:26px;font-weight:800;color:${ac}">${fmtK(proj)} ₽</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">факт с начала месяца</div><div style="font-size:17px;font-weight:700">${fmtK(mtd)} ₽ · ${fmt(cnt)} прод.</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">темп</div><div style="font-size:17px;font-weight:700">${fmtK(perDay)} ₽/день</div></div>`+
+    `<div><div style="font-size:11px;color:var(--ink-3)">план / мес</div><div style="font-size:17px;font-weight:700">${fmtK(plan)} ₽</div></div>`+
+    `<div style="min-width:130px;flex:1"><div style="font-size:11px;color:var(--ink-3)">${complete?'выполнение плана':'прогноз к плану'}</div>`+
+      `<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:9px;background:var(--bg-elevated);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div></div><b style="color:${ac};font-size:15px">${pct(att)}</b></div></div>`+
+    `</div></div>`;
+}
+function planFactBlock(D,L,m){
+  const P=planModel(D,L,m);const mt=S.pfMetric,money=mt==='rev';
+  const MM=byManager(D,L).filter(x=>x.leads>0||x.deals>0);const N=MM.length||1;
+  const factOf=x=>mt==='rev'?x.rev:mt==='deals'?x.deals:x.leads;
+  const planEach=P.targets[mt]/N;MM.sort((a,b)=>factOf(b)-factOf(a));
+  const teamFact=P.facts[mt],teamPlan=P.targets[mt],teamPct=teamPlan?teamFact/teamPlan:0;
+  const tc=teamPct>=1?'#10B981':teamPct>=.7?'#FB923C':'#F43F5E';
+  const fM=v=>money?fmtK(v)+' ₽':fmt(v);
+  const att=x=>planEach?factOf(x)/planEach:0;MM.sort((a,b)=>att(b)-att(a));
+  const cap=Math.max(1.2,...MM.map(att))||1.2;const hundred=(1/cap*100).toFixed(1);
+  const bars=MM.map(x=>{const a=att(x),f=factOf(x),c=a>=1?'#2E9E74':a>=.7?'#C2873C':'#CC5867';const fw=Math.min(100,a/cap*100).toFixed(1);
+    const td=dt(x.mgr,[['Факт',fM(f),'hl'],['Личный план',fM(planEach),'dim'],['Выполнение плана',pct(a),'hl']]).replace(/"/g,'&quot;');
+    return `<div class="pf-row"><div class="pf-name">${esc(x.mgr)}</div><div class="pf-track" data-tip="${td}"><div class="pf-fill" style="width:${fw}%;background:${c}"></div><div class="pf-100" style="left:${hundred}%"></div></div><div class="pf-fact">${fM(f)}</div><div class="pf-pct" style="color:${c}">${pct(a)}</div></div>`;}).join('');
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана — команда</div><div class="card-sub">сводный план-факт команды · детальная разбивка по менеджерам - в блоке «План-факт» (раздел Лиды) · меняй план - цели пересчитаются</div></div>
+    <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="pfSeg"></div></div></div>
+    <div class="note" style="margin-bottom:14px">План на период (${P.days} дн) = <b>${fmtK(P.planRevP)} ₽</b> · ср.чек <b>${fmt(P.check)} ₽</b> → нужно <b>${Math.round(P.winT)}</b> продаж · конверсия в продажу <b>${pct(P.conv)}</b> → создать <b>${P.targets.deals}</b> сделок · лид→сделка <b>${pct(P.lpr)}${P.lprApprox?' (оцен.)':''}</b> → нужно <b>${P.targets.leads}</b> лидов.${P.lprApprox?' Лид→сделка оценочная (лиды размечены не для всех каналов) - цель по лидам приблизительная.':''} Меняй план - цели и проценты пересчитаются.</div>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">
+      <div style="font-size:12px;color:var(--ink-2)">Команда · ${mt==='rev'?'Выручка':mt==='deals'?'Сделки':'Лиды'}: Факт <b style="color:var(--ink)">${fM(teamFact)}</b> / План <b style="color:var(--ink)">${fM(teamPlan)}</b></div>
+      <div style="flex:1;min-width:200px;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="width:${Math.min(100,teamPct*100).toFixed(1)}%;height:100%;background:${tc};transition:width .8s var(--ease-out)"></div></div>
+      <div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${tc}">${pct(teamPct)}</div></div>
+    </div>`;
+}
+function wirePF(D,L,m){
+  const seg=document.getElementById('pfSeg');if(!seg)return;
+  seg.innerHTML=[['rev','Выручка'],['leads','Лиды'],['deals','Сделки']].map(x=>`<button data-m="${x[0]}" class="${S.pfMetric===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.pfMetric=b.dataset.m;render();});
+  const inp=document.getElementById('planInp');if(inp)inp.onchange=()=>{const v=+inp.value;if(v>0){S.planRev=v;render();}};
+}
+
+/* shell */
+const SECS=['Компания','Отдел продаж','Менеджеры'];
+function buildShell(){
+  const _nv=document.getElementById('nav');
+  if(_nv){_nv.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
+  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.getElementById('sec'+b.dataset.i).scrollIntoView({behavior:'smooth'});});}
+  const _rs=document.getElementById('revSeg');
+  if(_rs)_rs.querySelectorAll('button').forEach(b=>b.onclick=()=>{_rs.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.revMode=b.dataset.r;render();});
+  const _ds=document.getElementById('dateSeg');
+  if(_ds)_ds.querySelectorAll('button').forEach(b=>b.onclick=()=>{_ds.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.dateBasis=b.dataset.b;render();});
+  document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
+  document.addEventListener('click',e=>{const mb=e.target.closest('#mgrMetricSeg button');if(mb){S.loadMetric=mb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const onBtn=e.target.closest('#lossMgrBtn'),inPanel=e.target.closest('#lossMgrPanel');if(onBtn){S.lossMgrOpen=!S.lossMgrOpen;render();return;}if(S.lossMgrOpen&&!inPanel){S.lossMgrOpen=false;render();}});
+  document.addEventListener('change',e=>{const cb=e.target&&e.target.closest&&e.target.closest('#lossMgrPanel input[data-lmgr]');if(cb){const m=cb.dataset.lmgr;const s=new Set(S.lossMgrSel||[]);if(cb.checked)s.add(m);else s.delete(m);S.lossMgrSel=[...s];render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});
+  document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
+  document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
+  document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
+  const _ac=document.getElementById('applyCustom');
+  if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
+  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
+  document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
+  document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
+  // scroll-spy
+  addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
+}
+function fill(id,arr,allLabel,key){const el=document.getElementById(id);el.innerHTML=`<option value="">${allLabel}</option>`+arr.map(a=>`<option>${a}</option>`).join('');el.onchange=()=>{S[key]=el.value;render();};}
+function setPeriod(p){
+  if(p==='all'){S.start=DATA.from;S.end=DATA.to;}
+  else if(p==='today'){S.start=S.end=DATA.to;}
+  else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
+  else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p));S.start=e.toISOString().slice(0,10);S.end=DATA.to;}
+  document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
+function freshStamp(){const el=document.getElementById('freshTag');if(!el)return;
+  if(!DATA.generatedAt){el.textContent='';return;}
+  const g=new Date(DATA.generatedAt),ageH=(new Date()-g)/36e5,p2=n=>String(n).padStart(2,'0');
+  const m=new Date(g.getTime()+3*36e5); // показываем по Москве (UTC+3)
+  const t=p2(m.getUTCDate())+'.'+p2(m.getUTCMonth()+1)+' '+p2(m.getUTCHours())+':'+p2(m.getUTCMinutes());
+  let col='var(--accent)',pre='данные на';
+  if(ageH>48){col='#F43F5E';pre='данные устарели, на';}else if(ageH>30){col='#F59E0B';pre='данные на';}
+  el.textContent=pre+' '+t+' МСК';el.style.color=col;}
+function showToast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:9999;background:#0E2A22;color:#E6F0EA;border:1px solid #2E9E74;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:540px;text-align:center;opacity:0;transition:opacity .25s';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},6000);}
+function parsePlanCSV(text){const num=s=>{s=(s||'').replace(/"/g,'').replace(/[^\d.,-]/g,'').replace(/\s/g,'');if(!s)return null;if(s.indexOf(',')>=0&&s.indexOf('.')<0)s=s.replace(',','.');else s=s.replace(/,/g,'');const v=parseFloat(s);return isNaN(v)?null:v;};
+  const pc=s=>{const n=num(s);return n==null?null:(n>1.5?n/100:n);};
+  const months=[];for(const line of text.split(/\r?\n/)){const c=line.split(',');const mm=(c[0]||'').replace(/"/g,'').trim();if(!/^\d{4}-\d{2}$/.test(mm))continue;const rev=num(c[1]);if(rev==null)continue;
+    months.push({month:mm,rev:Math.round(rev),check:num(c[2])?Math.round(num(c[2])):null,cr2:pc(c[3]),cr1:pc(c[4]),leads:num(c[5])?Math.round(num(c[5])):null,deals:num(c[6])?Math.round(num(c[6])):null});}
+  return months;}
+async function refreshPlan(){const url=DATA.planCsv;if(!url){showToast('В сборке нет ссылки на таблицу плана');return;}
+  showToast('Читаю таблицу плана...');
+  try{const res=await fetch(url,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
+    const months=parsePlanCSV(await res.text());if(!months.length)throw new Error('строк-месяцев не найдено');
+    DATA.plan=Object.assign({},DATA.plan||{},{months});render();
+    showToast('План обновлён из таблицы: '+months.length+' мес');
+  }catch(e){showToast('Не удалось прочитать таблицу онлайн ('+e.message+'). Нужно: файл сохранён как Google Таблица + доступ по ссылке. Иначе скажи мне - обновлю вручную.');}}
+function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;}
+setPeriod('30');buildShell();render();freshStamp();wirePlanBtns();
+</script></body></html>

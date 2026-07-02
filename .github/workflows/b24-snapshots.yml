@@ -31,6 +31,7 @@ concurrency:
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
   ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru # домен портала для кликабельных ID (не секрет)
 
 jobs:
   snapshot:

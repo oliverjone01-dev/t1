@@ -196,7 +196,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .hm-pct-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .6s var(--ease-out)}
 .hm-pct span{position:relative;font-size:10px;font-weight:800;color:var(--ink);text-shadow:0 1px 2px rgba(0,0,0,.55)}
 .hm-name{font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;padding-right:5px}
-.hm-cell{height:23px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+.hm-cell{height:23px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
 .hm-cell-h{font-size:9px;color:var(--ink-4);text-align:center;overflow:hidden;white-space:nowrap}
 .hm-tot{font-size:11.5px;font-weight:800;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .churn-row{margin-top:13px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--ink-3);flex-wrap:wrap}
@@ -225,6 +225,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
+  <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px" title="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
@@ -253,6 +254,8 @@ const GROUPS=[
 ];
 const fmt=n=>Math.round(n).toLocaleString('ru-RU');
 const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+' млн':n>=1e3?Math.round(n/1e3)+' тыс':fmt(n);
+// компактный формат для узких ячеек матрицы: 1.63 млн -> «1,6м», 612 тыс -> «612к»
+const fmtKc=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+'м':n>=1e3?Math.round(n/1e3)+'к':fmt(n);
 const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
 const CVDEF={1:'CR1 — квалификация: квал-лиды ÷ все лиды. Какая доля входящих заявок дошла до квала (статус «Создание сделки» в Б24).',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
 const qm=n=>`<span class="qm" data-tip="${CVDEF[n].replace(/"/g,'&quot;')}">?</span>`;
@@ -277,10 +280,11 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
-const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(withCli? (!S.fCli||x.client===S.fCli):true));
+const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
+const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 // Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
 // конверсии осмысленны только в одной когорте. Тумблер «Период по» меняет только
@@ -438,6 +442,40 @@ function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>
     // CR2 (conv) - строго когортный: и числитель, и знаменатель по сделкам, СОЗДАННЫМ в периоде.
     // Иначе в режиме «по дате продажи» outcome-числитель / cohort-знаменатель давал >100%.
     return {mgr:m,leads:ll.length,deals:dd.length,won:won.length,conv:dd.length?dd.filter(SOLD).length/dd.length:0,rev,check:won.length?rev/won.length:0,lost:lst.length,cycle:cyc,touch:tr};});}
+// Блок «Нераспределённые: разбор» - открытые лиды/сделки, что СЕЙЧАС висят на не-ОП
+// (по текущему ответственному, вне фильтра периода). Таблица + сроки ожидания + держатели.
+function unassignedBlock(){
+  const dim=S.unDim||'leads';
+  const Lr=flt(AL,false).filter(l=>!isOP(l.mgr)&&!JUNKST.has(l.status)&&l.status!=='Создание сделки');
+  const Dr=flt(AD,true).filter(d=>!isOP(d.mgr)&&!d.won&&!d.lost);
+  const rows=(dim==='leads'?Lr:Dr).map(r=>{const o=Object.assign({},r);o._age=Math.max(0,Math.round(ageDays(r.created)));return o;});
+  const sk=S.unSort||'age',asc=S.unAsc?1:-1,gv=r=>sk==='age'?r._age:sk==='budget'?(r.budget||0):sk==='mgr'?r.mgr:sk==='dir'?(r.dir||'я'):r.created;
+  rows.sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*asc;});
+  const at=d=>d>=30?'#B0414F':d>=14?'#CC5867':d>=7?'#C2873C':'#2E9E74';
+  const bk=[['0-3д',0,3],['4-7д',4,7],['8-14д',8,14],['15-30д',15,30],['30+д',31,1e9]],tot=rows.length||1;
+  const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">`+bk.map(([l,a,b])=>{const c=rows.filter(r=>r._age>=a&&r._age<=b).length;if(!c)return '';const w=(c/tot*100).toFixed(1);return `<div data-tip="${l}: ${c}" style="width:${w}%;background:${at(a)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0">${c/tot>0.06?c:''}</div>`;}).join('')+`</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">`+bk.map(x=>`<span>${x[0]}</span>`).join('')+`</div>`;
+  const hold={};rows.forEach(r=>hold[r.mgr]=(hold[r.mgr]||0)+1);
+  const topH=Object.entries(hold).sort((a,b)=>b[1]-a[1]).slice(0,6),hMax=topH.length?topH[0][1]:1;
+  const holdBars=topH.map(([n,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:140px;font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(c/hMax*100).toFixed(1)}%;background:#6A7484"></div></div><div style="width:34px;font-size:11px;font-weight:800;color:var(--ink-2)">${c}</div></div>`).join('')||'<div class="card-sub">нет</div>';
+  const portal=DATA.b24Portal||'',idCell=r=>portal?`<a href="${portal}/crm/${dim==='leads'?'lead':'deal'}/details/${r.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${r.id}</a>`:r.id;
+  const sh=(k,l)=>`<th class="r ${S.unSort===k?'sorted'+(S.unAsc?' asc':''):''}" data-un="${k}" style="cursor:pointer">${l}</th>`;
+  const head=dim==='leads'
+    ?`<tr>${sh('id','ID')}<th>Напр.</th>${sh('mgr','Ответственный')}<th>Источник</th><th>Статус</th>${sh('created','Создан')}${sh('age','Дней ждёт')}</tr>`
+    :`<tr>${sh('id','ID')}<th>Напр.</th>${sh('mgr','Ответственный')}<th>Источник</th><th>Стадия</th>${sh('budget','Сумма')}${sh('created','Создан')}${sh('age','Дней ждёт')}<th>Кас.</th></tr>`;
+  const body=rows.slice(0,100).map(r=>{const ac=at(r._age),dn=DIRLAB[r.dir]||r.dir||'-';
+    return dim==='leads'
+      ?`<tr><td>${idCell(r)}</td><td>${dn}</td><td class="name">${r.mgr}</td><td>${r.source||'-'}</td><td>${r.status||'-'}</td><td class="r">${r.created}</td><td class="r" style="color:${ac};font-weight:800">${r._age}</td></tr>`
+      :`<tr><td>${idCell(r)}</td><td>${dn}</td><td class="name">${r.mgr}</td><td>${r.source||'-'}</td><td>${r.stage||'-'}</td><td class="r">${fmtK(r.budget||0)}</td><td class="r">${r.created}</td><td class="r" style="color:${ac};font-weight:800">${r._age}</td><td class="r">${r.touchReal||0}</td></tr>`;}).join('');
+  const more=rows.length>100?`<div class="card-sub" style="margin-top:6px">показаны первые 100 из ${fmt(rows.length)} (по сортировке) - сузь фильтром направления</div>`:'';
+  const open=!!S.unOpen,sumB=dim==='deals'?Dr.reduce((s,d)=>s+(d.budget||0),0):0;
+  const over14=rows.filter(r=>r._age>14).length,over30=rows.filter(r=>r._age>30).length,riskB=dim==='deals'?rows.filter(r=>r._age>14).reduce((s,r)=>s+(r.budget||0),0):0;
+  const alert=over14?`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);border-radius:9px;font-size:12.5px;color:#F8717A;font-weight:700"><span style="font-size:15px">⚠</span><span><b>${fmt(over14)}</b> ${dim==='leads'?'лидов':'сделок'} ждут дольше <b>${over30===over14?'30':'14'} дней</b>${over30&&over30<over14?` · из них <b>${fmt(over30)}</b> дольше 30 дней`:''}${riskB>=1000?` · зависло <b style="color:#fff">${fmtK(riskB)} ₽</b>`:''}</span></div>`:'';
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Нераспределённые: разбор ${info('Открытые лиды/сделки, которые СЕЙЧАС висят на системных/не-продажных аккаунтах (по текущему ответственному, вне фильтра периода). «Дней ждёт» = дней с создания. Вопрос: что забрать первым. Вывод: красное (старше 14-30 дней) и крупные суммы - в работу первыми. ID кликабельны при заданном домене портала.')}</div><div class="card-sub">текущий backlog без продавца-владельца · «Дней ждёт» = дней с создания · действует фильтр направления сверху${dim==='deals'&&sumB>=1000?' · сумма в работе: '+fmtK(sumB)+' ₽':''}${portal?'':' · ID станут ссылками после ввода домена портала'}</div></div><div class="seg" id="unDimSeg"><button data-u="leads" class="${dim==='leads'?'on':''}">Лиды (${fmt(Lr.length)})</button><button data-u="deals" class="${dim==='deals'?'on':''}">Сделки (${fmt(Dr.length)})</button></div></div>`+
+    alert+`<div class="grid2" style="margin-top:10px"><div><div class="card-sub" style="margin-bottom:5px">по сроку ожидания</div>${ageBar}</div><div><div class="card-sub" style="margin-bottom:5px">на ком висят (топ-6)</div>${holdBars}</div></div>`+
+    `<button id="unToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть таблицу':'Показать таблицу ('+fmt(rows.length)+')'}</button>`+
+    (open?`<div class="scroll" style="margin-top:10px;max-height:480px"><table class="tbl" id="unTbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>${more}`:'')+
+    `</div>`;
+}
 
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
@@ -576,6 +614,11 @@ function mgrDwellHeat(deals){
       if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';
       const td=dt(m+' · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim'],['Без касаний',fmt(nt),'dim']]).replace(/"/g,'&quot;');
       return `<td data-tip="${td}" style="text-align:center;background:${cO(md)};color:#fff;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot">${t}</td><td class="r" style="color:#CC5867;font-weight:700">${ntTot(m)}</td></tr>`;});
+  // серая строка «Нераспределённые»: открытые сделки на не-ОП аккаунтах (орфаны без владельца).
+  const unop=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null&&!isOP(d.mgr)&&stages.includes(d.stage));
+  const ucell={};stages.forEach(st=>ucell[st]=unop.filter(d=>d.stage===st));
+  const utot=stages.reduce((s,st)=>s+ucell[st].length,0),unt=stages.reduce((s,st)=>s+ucell[st].filter(x=>(x.touchReal||0)===0).length,0);
+  if(utot)html+=`<tr style="opacity:.9"><td class="lc" style="color:#8A94A6" title="Нераспределённые - открытые сделки без владельца из отдела продаж">Нераспределённые</td>`+stages.map(st=>{const xs=ucell[st],md=med(xs);if(!xs.length)return '<td style="text-align:center;color:var(--ink-4)">·</td>';const td=dt('Нераспределённые · '+lab[st],[['Медиана лежания',d1(md)+' дн','hl'],['Открытых',fmt(xs.length),'dim'],['Сумма',fmtK(mny(xs))+' ₽','dim']]).replace(/"/g,'&quot;');return `<td data-tip="${td}" style="text-align:center;background:#3A4250;color:#C7CED9;font-weight:700;border-radius:4px">${cellVal(md,xs.length,mny(xs))}</td>`;}).join('')+`<td class="tot" style="color:#8A94A6">${utot}</td><td class="r" style="color:#8A94A6;font-weight:700">${unt}</td></tr>`;
   // Итог по отделу: медиана лежания на этапе по ВСЕМ открытым сделкам (устойчиво к выбросам) + суммы.
   const dMed=st=>med(op.filter(d=>d.stage===st)),dCnt=st=>op.filter(d=>d.stage===st).length,dMny=st=>mny(op.filter(d=>d.stage===st));
   const dTot=op.length,dNt=op.filter(d=>(d.touchReal||0)===0).length;
@@ -727,6 +770,7 @@ function render(){
     {k:'CR1 · в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'сделок ÷ лидов'},
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
+    {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},
     {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
   ]);
@@ -755,21 +799,26 @@ function render(){
     const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
-  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys);
+  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys);
   const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=_lm!=='leads';
   const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
   const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
-  const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};border-radius:11px;transition:width .8s var(--ease-out)"></div><span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>${_lm==='leads'?`<div style="flex-basis:100%;font-size:11.5px;color:var(--ink-3);margin-top:2px">распределение факта: ~<b style="color:var(--ink-2)">${fmt(Math.round(_mPlanMgr))}</b> лидов/менеджера · <b style="color:#CC5867">${_nOver}</b> перегруж. · <b style="color:#C2873C">${_nUnder}</b> недогруж.</div>`:''}`;
+  const _unTot=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0,_allTot=_teamFact+_unTot,_unShare=_allTot?_unTot/_allTot:0;
+  const _greenPct=Math.min(100,_teamPct*100),_greyPct=(_unTot&&_teamPlan)?Math.min(Math.max(0,100-_greenPct),_unTot/_teamPlan*100):0;
+  const _greySeg=_greyPct>0.3?`<div style="position:absolute;left:${_greenPct.toFixed(1)}%;top:0;height:100%;width:${_greyPct.toFixed(1)}%;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 5px,#2C333E 5px,#2C333E 10px);opacity:.92" data-tip="Нераспределённые ${_fMt(_unTot)} · ${pct(_unShare)} от всех ${_mLab.toLowerCase()} · вне плана"></div>`:'';
+  const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};transition:width .8s var(--ease-out)"></div>${_greySeg}<span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>`;
   const _noL=L.filter(l=>!isOP(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)),_noMap={};
   _noL.forEach(l=>{(_noMap[l.mgr]=_noMap[l.mgr]||{l:0,d:0}).l++;});_noD.forEach(d=>{(_noMap[d.mgr]=_noMap[d.mgr]||{l:0,d:0}).d++;});
   const _noBear=Object.entries(_noMap).sort((a,b)=>(b[1].l+b[1].d)-(a[1].l+a[1].d)).slice(0,5).map(([n,v])=>`${n} <span style="color:var(--ink-4)">(${v.l}л/${v.d}с)</span>`).join(' · ');
-  const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">вне распределения плана (не отдел продаж): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок · на: ${_noBear}</div>`:'';
+  const _unLab={leads:'лидов',deals:'сделок',won:'продаж',rev:'выручки'}[_lm];
+  const _noSwatch=`<span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 3px,#2C333E 3px,#2C333E 6px);vertical-align:-1px;margin-right:6px"></span>`;
+  const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">${_noSwatch}Нераспределённые (вне плана): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок${_unTot&&_unLab?` · <b style="color:var(--ink-3)">${pct(_unShare)}</b> от всех ${_unLab} за период`:''} · на: ${_noBear}</div>`:'';
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже.')}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · план берётся из таблицы по выбранному диапазону, на стыке месяцев режется по дням</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" title="Открыть таблицу плана в Google">↗ Таблица</a><div class="seg" id="loadSeg"></div></div></div>
-    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}${_noHTML}</div></div>`;
-  const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan)}</div></div>`;
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
+  const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned)}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -831,7 +880,10 @@ function render(){
     `<td class="r" style="${rankColor(col('cycle'),x.cycle,true)}">${x.cycle!=null?d1(x.cycle)+'д':'—'}</td>`+
     `<td class="r" style="${rankColor(col('touch'),x.touch)}">${x.touch.toFixed(1)}</td>`+
     `<td class="r" style="${rankColor(col('lost'),x.lost,true)}">${x.lost}</td></tr>`;});
-  tb+=`<tr class="total"><td>ИТОГО</td><td class="r">${m.leads}</td><td class="r">${m.deals}</td><td class="r">${pct(m.conv)}</td><td class="r">${m.won}</td><td class="r">${fmt(m.rev)}</td><td class="r">${fmt(m.check)}</td><td class="r">—</td><td class="r">—</td><td class="r">${m.lost}</td></tr></tbody></table></div></div>`;
+  const _noN=L.filter(l=>!isOP(l.mgr)).length,_noDl=D.filter(d=>!isOP(d.mgr)),_noSo=soldSet().filter(d=>!isOP(d.mgr)),_noLoN=lostSet().filter(d=>!isOP(d.mgr)).length;
+  const _noRev=_noSo.reduce((s,x)=>s+(x.budget||0),0),_noConv=_noDl.length?_noDl.filter(SOLD).length/_noDl.length:0,_noChk=_noSo.length?_noRev/_noSo.length:0;
+  const _noRowH=(_noN||_noDl.length)?`<tr style="color:#8A94A6" title="Нераспределённые: системные/не-продажные, в план не входят"><td class="name" style="color:#8A94A6">Нераспределённые</td><td class="r">${_noN}</td><td class="r">${_noDl.length}</td><td class="r">${pct(_noConv)}</td><td class="r">${_noSo.length}</td><td class="r">${fmt(_noRev)}</td><td class="r">${_noChk?fmt(_noChk):'-'}</td><td class="r">-</td><td class="r">-</td><td class="r">${_noLoN}</td></tr>`:'';
+  tb+=_noRowH+`<tr class="total"><td>ИТОГО</td><td class="r">${m.leads}</td><td class="r">${m.deals}</td><td class="r">${pct(m.conv)}</td><td class="r">${m.won}</td><td class="r">${fmt(m.rev)}</td><td class="r">${fmt(m.check)}</td><td class="r">—</td><td class="r">—</td><td class="r">${m.lost}</td></tr></tbody></table></div></div>`;
   const B_rating=tb;
   /* командный план-факт объединён с парой в разделе Лиды */
   /* «Динамика по менеджерам» (спагетти) убрана */
@@ -858,7 +910,7 @@ function render(){
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell;
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -903,19 +955,30 @@ function mgrPF(L,D,metric,keys){const A={};
   const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='won')return a.ww;
     const w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});return w;};
   return Object.entries(A).map(([m,a])=>({m,tot:tot(a),w:wof(a)})).sort((x,y)=>y.tot-x.tot);}
-function mgrPlanFactBars(arr,planMgr,metric,attain){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
-  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
-  const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=arr.length;
-  const maxV=Math.max(planMgr,...arr.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
+// Агрегат «Нераспределённые»: все НЕ-ОП (системные, владелец, не-продажные) одной строкой.
+// Показывается серым, но в распределение плана не входит (план делится только на ОП).
+function unassignedAgg(L,D,metric,keys){const a={leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};let any=false;
+  L.filter(l=>!isOP(l.mgr)).forEach(l=>{any=true;a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
+  D.filter(d=>!isOP(d.mgr)).forEach(d=>{any=true;a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+    if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
+  if(!any)return null;
+  const tot=metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
+  let w;if(metric==='leads')w=a.lw;else if(metric==='deals')w=a.dw;else if(metric==='rev')w=a.rw;else if(metric==='won')w=a.ww;else{w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});}
+  return {m:'Нераспределённые',tot,w,unassigned:true};}
+function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
+  const all=(extra&&metric!=='conv'&&metric!=='check')?arr.concat([extra]):arr;
+  if(!all.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
+  const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=all.length;
+  const maxV=Math.max(planMgr,...all.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
   let bars='',labels='';
-  arr.forEach((x,i)=>{const cx=pl+gap*i+gap/2,att=planMgr?x.tot/planMgr:0,c=planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
-    const td=dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fM(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
-    bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}" data-tip="${td}"/>`;
+  all.forEach((x,i)=>{const cx=pl+gap*i+gap/2,un=!!x.unassigned,att=planMgr?x.tot/planMgr:0,c=un?'#6A7484':planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
+    const td=un?dt('Нераспределённые',[['Факт',fM(x.tot),'hl'],['План','не начисляется','dim']]).replace(/"/g,'&quot;'):dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fM(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
+    bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}"${un?' opacity=".5"':''} data-tip="${td}"/>`;
     if(h>14)bars+=`<text x="${cx.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${c}">${fM(x.tot)}</text>`;
-    labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="var(--ink-3)" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${x.m.split(' ')[0]}</text>`;});
+    labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]}</text>`;});
   const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),showNum=keys.length<=14;
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),showNum=keys.length<=14;
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const isR=(metric==='conv'||metric==='check');
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
@@ -930,7 +993,9 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan){co
   const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
   const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
   const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
-  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}</div>`;}
+  // Серая строка «Нераспределённые» (не-ОП): видна, но в план не входит (план/% = «-»).
+  const extraRow=(extra&&metric!=='conv'&&metric!=='check')?`<div class="hm-row" style="opacity:.9;margin-top:4px"><div class="hm-name" style="color:#8A94A6" title="Нераспределённые - системные/не-продажные, в план не входят">Нераспределённые</div>${keys.map(k=>{const v=extra.w[k]||0;return `<div class="hm-cell" style="background:var(--bg-elevated);color:#8A94A6">${showNum?(fM(v)||''):''}</div>`;}).join('')}<div class="hm-tot hm-sum" style="color:#8A94A6">${fM(extra.tot)}</div><div class="hm-tot hm-plan" style="color:var(--ink-4)">-</div><div class="hm-pct"><span style="color:var(--ink-4);font-size:10px">вне плана</span></div></div>`:'';
+  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}${extraRow}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
   seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
@@ -1145,11 +1210,19 @@ function buildShell(){
   document.addEventListener('click',e=>{const hb=e.target.closest('[data-ls]');if(hb){const c=hb.dataset.ls;if(S.lossSort===c)S.lossAsc=!S.lossAsc;else{S.lossSort=c;S.lossAsc=(c==='mgr'||c==='reason');}render();}});
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
+  document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
+  const _dirSel=document.getElementById('dirSel');
+  if(_dirSel){const _ord=['genglass','metal_gm','valonti','gentero','gen-group','не указано'];
+    const _present=[...new Set([...AD,...AL].map(x=>x.dir).filter(Boolean))].sort((a,b)=>(_ord.indexOf(a)+1||99)-(_ord.indexOf(b)+1||99));
+    _dirSel.innerHTML='<option value="">Все направления</option>'+_present.map(d=>`<option value="${d}"${S.fDir===d?' selected':''}>${DIRLAB[d]||d}</option>`).join('');
+    _dirSel.onchange=()=>{S.fDir=_dirSel.value;render();};}
   // scroll-spy
   addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
 }

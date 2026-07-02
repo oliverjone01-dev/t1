@@ -74,13 +74,24 @@ def scan(path: str):
             is_table = bool(TABLE_ROW.match(line))
             if is_table and TABLE_SEP.match(line):
                 continue  # разделитель |---|
-            # тег засчитывается в контексте: до 3 строк вверх (преамбула таблицы / прошлая строка)
-            ctx = "\n".join(lines[max(0, i - 4):i - 1])
-            if TAG.search(ctx):
-                continue
-            if is_table or not SKIP_LINE.match(line):
-                kind_note = "цена в таблице" if is_table else "цифра"
-                findings.append((i, "UNTAGGED", f"{kind_note} без [ДАННЫЕ]/[ГИПОТЕЗА]: {line.strip()[:80]}"))
+            # Scope тег-suppression (урок delta-audit iter-4: не-scoped окно глушило
+            # untagged цифры в ПРОЗЕ на 3 строки ниже любого тега - false negative):
+            #  - проза: тег только в предыдущей строке (как в оригинале)
+            #  - таблица: тег в преамбуле = до 3 непустых строк над НАЧАЛОМ таблицы
+            #    (а не над текущей строкой - иначе пустая строка перед таблицей ломала окно)
+            if is_table:
+                start = i - 1  # индекс 0-based текущей строки
+                while start > 0 and TABLE_ROW.match(lines[start - 1]):
+                    start -= 1
+                preamble = [x for x in lines[max(0, start - 3):start] if x.strip()]
+                if any(TAG.search(x) for x in preamble):
+                    continue
+                findings.append((i, "UNTAGGED", f"цена в таблице без [ДАННЫЕ]/[ГИПОТЕЗА]: {line.strip()[:80]}"))
+            else:
+                prev = lines[i - 2] if i >= 2 else ""
+                if TAG.search(prev) or SKIP_LINE.match(line):
+                    continue
+                findings.append((i, "UNTAGGED", f"цифра без [ДАННЫЕ]/[ГИПОТЕЗА]: {line.strip()[:80]}"))
     return findings
 
 

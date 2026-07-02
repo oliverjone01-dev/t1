@@ -113,6 +113,12 @@ jobs:
       # каждом deploy главного сайта (push в main / workflow_run OZON-снимков / manual dispatch).
       # continue-on-error: true - если preview сломался, /rop/ и остальной сайт не страдают.
       # Для срочной актуализации превью запусти workflow_dispatch с input rop_preview_ref.
+      #
+      # Раскладка /rop-preview/ после iter-2 rework (FENIX GO 9.125):
+      #   /rop-preview/           = v2 (3-экрана + Crisis, sales-director assessment)
+      #   /rop-preview/v1.html    = v1 boy backup (тот же что живёт в /rop/)
+      #   /rop-preview/v2.html    = синоним основного v2 (для явных ссылок)
+      # Feature flag на уровне URL: v2 default, v1 доступен для сравнения.
       - name: Build ROP preview (isolated, /rop-preview/)
         continue-on-error: true
         env:
@@ -122,8 +128,19 @@ jobs:
           git fetch origin "$ROP_PREVIEW_REF"
           git worktree add /tmp/rop-preview FETCH_HEAD
           mkdir -p "$GITHUB_WORKSPACE/_site/rop-preview"
-          cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/index.html"
-          echo "РОП превью опубликовано в /rop-preview/ ($(du -h /tmp/rop-preview/analytics-mvp/public/rop-command.html | cut -f1)) из ветки $ROP_PREVIEW_REF"
+          # v2 - основной (замена index.html)
+          if [ -f /tmp/rop-preview/analytics-mvp/public/rop-command-v2.html ]; then
+            cp /tmp/rop-preview/analytics-mvp/public/rop-command-v2.html "$GITHUB_WORKSPACE/_site/rop-preview/index.html"
+            cp /tmp/rop-preview/analytics-mvp/public/rop-command-v2.html "$GITHUB_WORKSPACE/_site/rop-preview/v2.html"
+            echo "РОП v2 опубликован в /rop-preview/ и /rop-preview/v2.html ($(du -h /tmp/rop-preview/analytics-mvp/public/rop-command-v2.html | cut -f1))"
+          else
+            # Fallback: если v2 ещё не собран - оставляем v1 в index.html
+            cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/index.html"
+            echo "v2 не найден, fallback на v1"
+          fi
+          # v1 - всегда доступен как /rop-preview/v1.html для сравнения
+          cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/v1.html"
+          echo "v1 backup доступен в /rop-preview/v1.html из ветки $ROP_PREVIEW_REF"
 
       - uses: actions/configure-pages@v5
         with:

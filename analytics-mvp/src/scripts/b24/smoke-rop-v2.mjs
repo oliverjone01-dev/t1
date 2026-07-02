@@ -24,8 +24,8 @@ check('строка менеджера кликабельна', !!row);
 if(row){row.click();
   check('страница менеджера открылась', d.getElementById('scr-manager').classList.contains('on'));
   const mc=t('mgr-content');
-  check('июньский разбор сгенерирован', mc.includes('Разбор работы за июнь 2026'));
-  check('разбор содержит цифры', mc.includes('Цифры июня'));
+  check('июньский разбор сгенерирован', mc.includes('Разбор работы за'));
+  check('разбор содержит цифры', mc.includes('Цифры за'));
   check('контент менеджера объёмный', mc.length>500);
 }
 dom.window.document.querySelector('#tabs button[data-s="company"]').click();

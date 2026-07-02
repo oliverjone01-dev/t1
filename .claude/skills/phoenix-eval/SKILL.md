@@ -3,21 +3,53 @@ name: phoenix-eval
 description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), produces score 0.0-10.0 and JSON audit report.
 ---
 
-# Phoenix-Eval - Adversarial Audit Checklist (25 points)
+# Phoenix-Eval - Adversarial Audit Checklist (25 points) · v2.1
 
 ## Invocation
 
 Используется агентом ФЕНИКС или вручную через `/feniks <path>`.
 
+## Stage 0: Mechanical gate (ПЕРЕД LLM-аудитом, обязательно)
+
+Машина проверяет форму, LLM проверяет смысл. Запуск скрипта - первое действие любого аудита:
+
+```bash
+python3 .claude/skills/phoenix-eval/scripts/mechanical-gate.py <files>
+```
+
+Ловит за секунду: em/en dash + minus, латиницу в кириллических словах (класс ошибки: латинские буквы внутри русской фамилии), anti-slop blocklist CLAUDE.md §7, деньги/проценты без меток [ДАННЫЕ]/[ГИПОТЕЗА].
+
+- **GATE FAIL** (hard findings) -> deliverable возвращается автору БЕЗ полного скоринга. Экономия: 30-45 минут LLM-аудита не тратятся на то, что чинится за 2 минуты.
+- **GATE PASS** -> LLM-аудит стартует; чекпоинты 1 (метки) и 18 (dash) считаются машинно-подтверждёнными, LLM их только spot-checks.
+
+Урок 2026-07-02: hook поймал 3 реальных em dash, которые два LLM-скана пропустили. А этот скрипт при первом же запуске нашёл 15 en dash в самом phoenix-eval. Форму проверяет машина.
+
+## SLA & Time-budget
+
+| Режим | Состав | Лимит |
+|---|---|---|
+| Full pass (default) | Stage 0 + Pre-Score + 25 чекпоинтов + doc-type checklist | 30-45 мин |
+| Delta-audit (iter-2+) | Stage 0 + полный аудит ИЗМЕНЁННЫХ секций + spot-check 3 случайных неизменённых | 15-20 мин |
+| Crisis-mode (Protocol 8 active) | Stage 0 + чекпоинты 1, 2, 3, 6, 9, 21, 22, 25 (8 критичных) | 10 мин |
+| Dispute round | один раунд аргументации | 60 мин max |
+
+**Delta-audit правило:** повторные итерации НЕ перечитывают всё (урок 4-iter цикла sales-director: перечитывали corpus 4 раза). Аудитим diff + spot-check. Исключение: финальный iter перед production - всегда full pass.
+
+## Early-exit rules
+
+- Чекпоинты 1+2+3 (Accuracy core) в сумме 0/6 -> immediate VETO, остальное не скорим
+- Pre-Score Block: автор не отвечает на 5/5 вопросов -> immediate VETO
+- Stage 0 GATE FAIL -> return без скоринга (не VETO - это форма, не содержание)
+
 ## 5 Criteria × weights
 
 | Criterion | Weight | Range |
 |---|---|---|
-| Accuracy (точность) | 25% | 0.0–10.0 |
-| Actionability (исполнимость) | 25% | 0.0–10.0 |
-| Insight (глубина) | 20% | 0.0–10.0 |
-| Brand Fit (соответствие бренду) | 15% | 0.0–10.0 |
-| Risk Awareness (риски) | 15% | 0.0–10.0 |
+| Accuracy (точность) | 25% | 0.0-10.0 |
+| Actionability (исполнимость) | 25% | 0.0-10.0 |
+| Insight (глубина) | 20% | 0.0-10.0 |
+| Brand Fit (соответствие бренду) | 15% | 0.0-10.0 |
+| Risk Awareness (риски) | 15% | 0.0-10.0 |
 
 **Weighted total** = Σ (score × weight)
 
@@ -57,7 +89,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 ### Risk Awareness (5 чекпоинтов, по 2 балла)
 
-21. **Downside озвучен** - что при −50%, что теряем
+21. **Downside озвучен** - что при -50%, что теряем
 22. **P9 hard rules не нарушены** - H1-H10 из protocol-9-runner
 23. **Crisis scenarios учтены** - что если триггер Protocol 8?
 24. **Зависимости от других задач/команд** - явно перечислены
@@ -77,9 +109,48 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 | Score | Verdict | Action |
 |---|---|---|
 | ≥9.0 | go | Deliver as-is, log to traces |
-| 7.5–8.9 | go | Deliver + note gaps for next iteration |
-| 6.0–7.4 | return | Send back with rework_tz, max 3 iterations |
+| 7.5-8.9 | go | Deliver + note gaps for next iteration |
+| 6.0-7.4 | return | Send back with rework_tz, max 3 iterations |
 | <6.0 | veto | Escalate to Иван, do not deliver |
+
+**Tie-breaker (score в пределах ±0.15 от порога):** пересчитать 3 самых спорных чекпоинта с явной аргументацией за оба балла. Если score остаётся в зоне - вердикт в пользу более строгого (ниже порога). Прецедент: iter-3 sales-director 9.45 при цели 9.5 - не округлили вверх, отправили на micro-rework. Это правило, не вкус.
+
+**Confidence threshold:** verdict «go» требует confidence ≥0.7. При 0.5-0.7 - downgrade к «return» с пометкой «low-confidence». При <0.5 - эскалация Ивану без вердикта.
+
+**Iteration cap:** максимум 3 итерации return. 4-я итерация не запускается - автоматическая эскалация Ивану с историей всех раундов. Альтернатива до эскалации: dispute round (см. Dispute Template), который может скорректировать score без нового rework (прецедент: консилиум 2026-07-01, 4.50 -> 5.25 за 5 раундов).
+
+## Retract (отзыв ошибочного вердикта)
+
+Если post-deployment факты показывают, что «go» был ошибкой (deliverable провалился в проде):
+
+1. Лог в `knowledge/reflexion/YYYY-MM.md` с тегом RETRACT + разбор какие чекпоинты недооценили риск
+2. Notify Иван + автор (без поиска виноватых: инструмент откалиброван неидеально, чиним инструмент)
+3. Если один и тот же класс ошибки прошёл через «go» дважды - обязательное обновление соответствующего чекпоинта (Inter-Skill Feedback, Protocol 15)
+
+Симметрично: ошибочный VETO (deliverable был годным) - тот же процесс. Прецедент dispute-механики: VETO 4.50 скорректирован до RETURN 5.25 аргументами, не отменой правил.
+
+## Calibration anchors (реальные проскоренные кейсы)
+
+Вместо абстрактной шкалы - реальные документы этой системы с известными score. Новый аудит сверяется: «этот deliverable ближе к какому anchor?»
+
+| Anchor | Score | Что характерно | Где лежит |
+|---|---|---|---|
+| sales-director dashboard-работа iter-1 | 4.50 VETO | Цифры без источников, нет метрики успеха, одно-сценарное мышление, self-claimed audit | dispute-log 2026-07-01 |
+| та же работа после диспута | 5.25 RETURN | Аргументы закрыли часть gaps без изменения артефакта | тот же лог |
+| та же работа iter-2 (rework 10 пунктов) | 9.125 GO | Метки на всех цифрах, 3 альтернативы, downside-планы, crisis-mode, rollback path | SPEC.md v2-mockups |
+| sales-director SKILL iter-4 | 9.52 GO | Полный corpus чист, safety-rules, честный ceiling note | .claude/skills/sales-director/ |
+
+Re-calibration: при накоплении 3+ новых кейсов с расхождением «anchor-прогноз vs фактический score» >1.0 балла - пересмотр весов через Иван.
+
+## Требование к автору (симметрия)
+
+Автор обязан прогнать свой Pre-delivery checklist ДО подачи на аудит (пример: sales-director SKILL.md, секция «Pre-delivery checklist», 10 пунктов). Deliverable, поданный без самопроверки и заваливший Stage 0, возвращается с пометкой «checklist не пройден» - это Actionability-сигнал в следующем скоринге автора.
+
+Цель распределения ролей: автор + машина ловят известные классы ошибок, ФЕНИКС ищет только новые.
+
+## Perspective-diverse verify (для критических deliverables)
+
+Для решений >500K ₽, изменений CLAUDE.md, PIP/hire/fire: не один аудит, а 2-3 независимых прохода разными линзами (correctness / risk / business-механика), вердикт по majority. Разные линзы ловят разные классы ошибок лучше, чем два одинаковых прохода. Для рутинных deliverables - обычный один pass, диверсификация не бесплатна.
 
 ## Output JSON (по `schemas/audit-report.json`)
 
@@ -141,15 +212,22 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 | Канал | ROMI typical | CR funnel | Cycle |
 |---|---|---|---|
-| Контекст РФ | 3–8x | 1–3% | 1–4 нед |
-| Дизайнерский | 15–30x | 8–15% | 2–4 мес |
-| Маркетплейсы | 2–6x | 2–5% | 3–14 дн |
-| Тендеры B2B | 10–20x | 5–20% | 3–12 мес |
-| Реферальная | 5–15x | n/a | varies |
-| SEO органический | 8–25x | 2–4% | 1–6 мес |
-| Email retention | 20–50x | 5–15% | varies |
+| Контекст РФ | 3-8x | 1-3% | 1-4 нед |
+| Дизайнерский | 15-30x | 8-15% | 2-4 мес |
+| Маркетплейсы | 2-6x | 2-5% | 3-14 дн |
+| Тендеры B2B | 10-20x | 5-20% | 3-12 мес |
+| Реферальная | 5-15x | n/a | varies |
+| SEO органический | 8-25x | 2-4% | 1-6 мес |
+| Email retention | 20-50x | 5-15% | varies |
 
 Любая заявленная цифра, выходящая за диапазон в 2x от benchmark → флаг для проверки.
+
+## Формат отчёта (паттерны из audit/critique skills)
+
+1. **Verdict first.** Первая строка отчёта: score + verdict + одно предложение почему. Иван читает вердикт за 5 секунд, детали по желанию.
+2. **Каждый gap с fix-owner.** Не «нет метрики успеха», а «нет метрики успеха -> автор добавляет секцию Metrics of success, шаблон в sales-director SKILL.md». Gap без владельца и следующего шага - это жалоба, не находка.
+3. **Positive findings обязательны.** 2-3 пункта что сделано сильно, с конкретикой. Это не комплимент - это калибровка: автор должен знать что сохранять в rework, иначе выкинет вместе с плохим.
+4. **Gaps ранжированы по impact на score.** Топ-gap первым, с оценкой «+X балла если закрыть».
 
 ## Anti-patterns (что в твоей оценке быть НЕ должно)
 
@@ -157,7 +235,9 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 - ❌ Verdict «go» при <7.5
 - ❌ «В целом неплохо» - твоя задача найти gaps, а не комплимент
 - ❌ Принимать оправдания «не было времени» - это часть actionability score
-- ❌ Em dash в твоём отчёте
+- ❌ Em dash в твоём отчёте (и прогони свой отчёт через mechanical-gate.py перед отправкой - прецедент: 15 en dash жили в самом phoenix-eval)
+- ❌ Полный re-read на iter-2+ вместо delta-audit
+- ❌ LLM-скан формы вместо запуска Stage 0 скрипта
 
 ## Dispute Template (если автор не согласен)
 

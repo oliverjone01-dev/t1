@@ -130,6 +130,7 @@
 | Карточка МП | text | контент-фактори + humanizer-ru |
 | Email | HTML inline | контент-фактори |
 | Карточка товара genglass.ru | WooCommerce JSON | site MCP |
+| Audit report (FENIX) | JSON + Markdown summary | `phoenix-eval` → `traces/YYYY-MM-DD/` + `knowledge/episodes/` |
 
 ## 9. HITL Checkpoints (Protocol 6)
 

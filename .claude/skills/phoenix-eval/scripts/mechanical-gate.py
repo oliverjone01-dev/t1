@@ -26,11 +26,18 @@ BLOCKLIST = [  # CLAUDE.md §7 Anti-Slop v2
 ]
 
 # Цифры, которые обязаны иметь метку [ДАННЫЕ]/[ГИПОТЕЗА] в той же строке либо строкой выше:
-# деньги (₽, млн, K), проценты, ROMI-множители. Голые счётчики/даты не трогаем.
-MONEY_PCT = re.compile(r"\d[\d\s.,]*\s*(?:₽|млн|млрд|тыс\.?|[KМM]\s*₽|%|pp|x\b)", re.IGNORECASE)
+# деньги (₽, руб, млн, K), проценты, ROMI-множители. Голые счётчики/даты не трогаем.
+MONEY_PCT = re.compile(r"\d[\d\s.,]*\s*(?:₽|руб\.?|млн|млрд|тыс\.?|[KkКк]\s*₽|%|pp|x\b)", re.IGNORECASE)
 TAG = re.compile(r"\[(?:ДАННЫЕ|ГИПОТЕЗА|ШИРОКИЙ ДИАПАЗОН|ЦИТАТА)")
 
-SKIP_LINE = re.compile(r"^\s*(?:[|#>]|```|\d+\.\s|[-*]\s+`)")  # таблицы шапок, код, заголовки не спамим
+SKIP_LINE = re.compile(r"^\s*(?:[#>]|```|\d+\.\s|[-*]\s+`)")  # код, заголовки не спамим
+TABLE_ROW = re.compile(r"^\s*\|")
+TABLE_SEP = re.compile(r"^\s*\|[\s:|-]+\|?\s*$")  # |---|---| разделитель
+# Урок self-audit iter-3: SKIP_LINE глотал `|`-строки целиком, и КП с ценами
+# 45000₽/12% в таблице проходил gate без флагов. Таблицы - главный носитель
+# цен в КП, поэтому теперь: деньги в ячейках проверяются; тег засчитывается,
+# если стоит в самой ячейке, в строке таблицы, либо в блоке-преамбуле
+# непосредственно над таблицей (до 3 строк вверх, включая заголовок таблицы).
 
 
 def mixed_script_words(line: str):
@@ -64,9 +71,16 @@ def scan(path: str):
             if phrase in low:
                 findings.append((i, "SLOP", f"«{phrase}»"))
         if MONEY_PCT.search(line) and not TAG.search(line):
-            prev = lines[i - 2] if i >= 2 else ""
-            if not TAG.search(prev) and not SKIP_LINE.match(line):
-                findings.append((i, "UNTAGGED", f"цифра без [ДАННЫЕ]/[ГИПОТЕЗА]: {line.strip()[:80]}"))
+            is_table = bool(TABLE_ROW.match(line))
+            if is_table and TABLE_SEP.match(line):
+                continue  # разделитель |---|
+            # тег засчитывается в контексте: до 3 строк вверх (преамбула таблицы / прошлая строка)
+            ctx = "\n".join(lines[max(0, i - 4):i - 1])
+            if TAG.search(ctx):
+                continue
+            if is_table or not SKIP_LINE.match(line):
+                kind_note = "цена в таблице" if is_table else "цифра"
+                findings.append((i, "UNTAGGED", f"{kind_note} без [ДАННЫЕ]/[ГИПОТЕЗА]: {line.strip()[:80]}"))
     return findings
 
 

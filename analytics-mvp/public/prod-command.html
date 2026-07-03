@@ -685,14 +685,16 @@ function render(){
     const gTone=r=>r>1.3?'#F43F5E':r>1?'#FB923C':'#2E9E74';
     const rowHtml=r=>{
       const H=r.primary?30:17, alpha=r.primary?1:0.62, fs=r.primary?10.5:9;
+      const mx=Math.max(1,...r.q.filter(v=>v!=null)); // максимум строки за период - точка отсчёта теплоты
+      const heat=t=>t>=.75?`rgba(244,63,94,${(Math.min(.3+t*.5,.85)*alpha).toFixed(2)})`:t>=.4?`rgba(251,146,60,${((.25+t*.5)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.16+t*.9)*alpha).toFixed(2)})`;
       const cells=r.q.map((v,i)=>{
         if(v==null)return `<div class="cal-c" style="height:${H}px;background:var(--elev);opacity:.35"></div>`;
-        const ratio=r.norm>0?v/r.norm:0;
-        const bg=v===0?'var(--elev)':ratio>1.3?`rgba(244,63,94,${(Math.min(.25+ratio*.2,.85)*alpha).toFixed(2)})`:ratio>1?`rgba(251,146,60,${(Math.min(.3+ratio*.3,.8)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.18+ratio*.6)*alpha).toFixed(2)})`;
+        const ratio=r.norm>0?v/r.norm:0, t=r.stock?Math.min(ratio/1.6,1):v/mx;
+        const bg=v===0?'var(--elev)':r.stock?(ratio>1.3?`rgba(244,63,94,${(Math.min(.25+ratio*.2,.85)*alpha).toFixed(2)})`:ratio>1?`rgba(251,146,60,${(Math.min(.3+ratio*.3,.8)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.18+ratio*.6)*alpha).toFixed(2)})`):heat(t);
         const td=r.stock
           ?attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>В работе, изд.</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Средний уровень, изд.</span><span>${d1(r.norm)}</span></div><div class='tr'><span>К среднему</span><span>${r.norm?pct(ratio):'—'}</span></div>`)
-          :attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Норма, изд.</span><span>${d1(r.norm)}</span></div><div class='tr'><span>Загрузка</span><span>${r.norm?pct(ratio):'—'}</span></div>`);
-        return `<div class="cal-c" data-tip="${td}" style="height:${H}px;background:${bg};color:${v&&ratio>.45?'#06121a':'var(--ink3)'};font-size:${fs}px">${(showN||(r.primary&&showP))&&v?v:''}</div>`}).join('');
+          :attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Максимум строки</span><span>${fmt(mx)}</span></div><div class='tr'><span>Теплота (от макс.)</span><span>${pct(v/mx)}</span></div><div class='tr'><span>Ср. пропускная, изд.</span><span>${d1(r.norm)}</span></div>`);
+        return `<div class="cal-c" data-tip="${td}" style="height:${H}px;background:${bg};color:${v&&t>.45?'#06121a':'var(--ink3)'};font-size:${fs}px">${(showN||(r.primary&&showP))&&v?v:''}</div>`}).join('');
       const load=r.stock?(r.norm>0?r.sum/r.norm:null):(r.norm>0?r.sum/(r.norm*keys.length):null);
       const lc=load==null?'#5a6672':gTone(load);
       return `<div class="cal-row"><div class="cal-nm" style="${r.primary?'font-size:12.5px;color:var(--ink)':'font-size:11px;color:var(--ink3)'}">${r.nm}</div><div class="cal-cells" style="gap:${gap}px">${cells}</div><div class="cal-sum" style="${r.primary?'':'font-weight:600;color:var(--ink3)'}">${fmt(r.sum)}${r.stock?'<span style="font-weight:400;color:var(--ink4);font-size:9px"> сейчас</span>':''}</div><div class="cal-norm">${d1(r.norm)}</div><div class="cal-pct" style="color:${lc};background:${lc}1c">${load!=null?pct0(load):'—'}</div></div>`};
@@ -702,7 +704,7 @@ function render(){
     const primary=rows.filter(r=>r.primary).map(rowHtml).join('');
     const secondary=rows.filter(r=>!r.primary).map(rowHtml).join('');
     const divider=`<div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink4)">Участки · входы изделий (второстепенно)</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`;
-    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>в норме (ярче = больше)</span><span><i style="background:rgba(251,146,60,.6)"></i>100-130% нормы</span><span><i style="background:rgba(244,63,94,.6)"></i>130%+ (перегруз)</span><span style="color:var(--ink4)">все цифры = ИЗДЕЛИЯ (кол-во из товарных строк; карточка без строк = 1) · позиции - в подсказке · норма = средняя пропускная ${S.gran==='d'?'в день':S.gran==='m'?'в месяц':'в неделю'} из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, норма = средний уровень, краснее = выше среднего (копим)</span></div>`;
+    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>тихие ${S.gran==='d'?'дни':'периоды'} (до 40% макс.)</span><span><i style="background:rgba(251,146,60,.6)"></i>40-75% макс.</span><span><i style="background:rgba(244,63,94,.6)"></i>пиковые (75%+ от максимума строки)</span><span style="color:var(--ink4)">цвет = теплота к МАКСИМУМУ своей строки за период (пиковый ${S.gran==='d'?'день':'период'} = красный, 1 изделие при максимуме 5 = зелёный) · все цифры = ИЗДЕЛИЯ (карточка без товарных строк = 1), позиции - в подсказке · % справа = объём строки к средней пропускной из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, краснее = выше среднего (копим)</span></div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
@@ -726,7 +728,7 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div><div class="seg" id="consSortSeg">${[['money','₽'],['days','Дни'],['cnt','Шт']].map(x=>`<button data-v="${x[0]}" class="${(S.consSort||'money')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${consScatter}</div>`+
     `<div class="sec"><div class="n">4</div><h2>Производственный календарь</h2><div class="ln"></div><div class="hint">факт против пропускной способности: где и когда цех был загружен, перегружен или простаивал</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в изделиях</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ИЗДЕЛИЙ (шт), позиции в подсказке · цвет = загрузка к норме пропускной способности · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в изделиях</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ИЗДЕЛИЙ (шт), позиции в подсказке · цвет = теплота к максимуму своей строки (пик = красный) · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
   document.getElementById('periodLabel').textContent=perLbl;
   wireCharts();
 

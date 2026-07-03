@@ -1,0 +1,91 @@
+name: PROD snapshots cron (планировщик на main)
+
+# GitHub запускает расписание (cron) ТОЛЬКО из воркфлоу на дефолтной ветке (main).
+# Данные дашборда Производство живут на ветке prod-dashboard-v1, поэтому prod-snapshot.yml
+# там по крону не срабатывает. Этот планировщик живёт на main: по расписанию чекаутит
+# prod-dashboard-v1, снимает СП «Производство GG» (1086), запекает build-prod, коммитит
+# свежие данные туда и дёргает публикацию /prod/ (deploy-pages). Аналог b24-cron.yml.
+# Ручной запуск - через workflow_dispatch.
+
+on:
+  schedule:
+    - cron: "37 5 * * *" # ~08:37 МСК (смещён от РОП 08:17, чтобы не биться за раннер)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write # для dispatch deploy-pages
+
+concurrency:
+  group: prod-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru # домен портала для кликабельных ID (не секрет)
+  DATA_BRANCH: prod-dashboard-v1
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: prod-dashboard-v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте."
+
+      - name: Снимок СП Производство -> prod/data/prod.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-prod.ts
+          echo "Размер данных: $(du -h prod/data/prod.json | cut -f1)"
+
+      - name: Запечь дашборд (build-prod) -> public/prod-command.html
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/build-prod.ts
+          echo "Дашборд: $(du -h public/prod-command.html | cut -f1)"
+
+      - name: Commit + push в prod-dashboard-v1
+        id: commit
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/prod/data analytics-mvp/public/prod-command.html
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "data(prod): ночной снимок СП Производство $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1
+
+      - name: Триггер деплоя /prod/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация /prod/ запрошена."

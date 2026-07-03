@@ -529,20 +529,26 @@ function render(){
     const rows=Object.values(m).sort((a,b)=>keyF(b)-keyF(a)).slice(0,10);
     const allRow={n:'Все конструкторы',tot:pts.length,sum:sum(pts,p=>p.b),cyc:pts.map(p=>p.c),bk:[[],[],[]]};
     pts.forEach(p=>allRow.bk[bkOf(p.b)].push(p));
-    // ширина полосы = деньги ячейки относительно самой дорогой ячейки колонки (приоритет = деньги)
-    const colMax=[0,1,2].map(k=>Math.max(1,...rows.concat([allRow]).map(r=>sum(r.bk[k],p=>p.b))));
+    // выбранная метрика (₽/Дни/Шт) задаёт и ширину гистограммы, и главную цифру ячейки
+    const cellVal=(arr)=>srt==='days'?(med(arr.map(p=>p.c))||0):srt==='cnt'?arr.length:sum(arr,p=>p.b);
+    const colMax=[0,1,2].map(k=>Math.max(1e-9,...rows.concat([allRow]).map(r=>r.bk[k].length?cellVal(r.bk[k]):0)));
     const cell=(r,k)=>{const arr=r.bk[k];if(!arr.length)return `<div class="pr-cell"><span style="color:var(--ink4)">—</span></div>`;
       const share=arr.length/r.tot, mc=med(arr.map(p=>p.c)), col=toneC(mc||0), money=sum(arr,p=>p.b);
-      const w=Math.max(money/colMax[k]*100,4);
+      const w=Math.max(cellVal(arr)/colMax[k]*100,4);
+      const parts={money:`${fmtK(money)} ₽`,cnt:`${arr.length} шт`,days:`${d1(mc)} дн`};
+      const main=srt==='days'?parts.days:srt==='cnt'?parts.cnt:parts.money;
+      const rest=['money','cnt','days'].filter(x=>x!==(srt==='days'?'days':srt==='cnt'?'cnt':'money')).map(x=>parts[x]).join(' · ');
       const td=attr(`<div class='tl'>${esc(r.n)} · ${BK[k][0]}</div><div class='tr'><span>Деньги</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Заказов</span><span>${fmt(arr.length)} (${pct(share)} его заказов)</span></div><div class='tr'><span>Медиана срока</span><span>${d1(mc)} дн</span></div>`);
-      return `<div class="pr-cell" data-tip="${td}"><i style="width:${w.toFixed(1)}%;background:${col}30;border-right:2px solid ${col}"></i><span><b style="color:${col}">${fmtK(money)} ₽</b>&nbsp;<span style="color:var(--ink3)">· ${arr.length} шт · ${d1(mc)} дн</span></span></div>`};
-    const totCell=(r)=>{const md=med(r.cyc);return `<div class="pr-tot"><b>${fmtK(r.sum)}</b> ₽ · ${r.tot} шт · <span style="color:${toneC(md||0)}">${d1(md)} дн</span></div>`};
+      return `<div class="pr-cell" data-tip="${td}"><i style="width:${w.toFixed(1)}%;background:${col}30;border-right:2px solid ${col}"></i><span><b style="color:${col}">${main}</b>&nbsp;<span style="color:var(--ink3)">· ${rest}</span></span></div>`};
+    const totCell=(r)=>{const md=med(r.cyc);const parts={money:`<b>${fmtK(r.sum)}</b> ₽`,cnt:`<b>${r.tot}</b> шт`,days:`<b style="color:${toneC(md||0)}">${d1(md)} дн</b>`};
+      const key=srt==='days'?'days':srt==='cnt'?'cnt':'money';
+      return `<div class="pr-tot">${parts[key]} · ${['money','cnt','days'].filter(x=>x!==key).map(x=>parts[x].replace(/<\/?b[^>]*>/g,'')).join(' · ')}</div>`};
     const row=(r,hl)=>`<div class="pr-row"${hl?' style="border-bottom:1px solid var(--border2);padding-bottom:10px;margin-bottom:4px"':''}>
       <div class="pr-nm"${hl?' style="color:var(--ink3)"':''}>${esc(r.n)}</div>${cell(r,0)}${cell(r,1)}${cell(r,2)}${totCell(r)}</div>`;
     const head=`<div class="pr-row" style="margin-bottom:2px"><div></div>${BK.map(([l])=>`<div class="pr-head">${l}</div>`).join('')}<div class="pr-head" style="text-align:right">Итого</div></div>`;
     return head+row(allRow,true)+rows.map(r=>row(r)).join('')+
       `<div class="legend"><span><i style="background:#2E9E74"></i>быстро (до 15 дн)</span><span><i style="background:#F59E0B"></i>15-25 дн</span><span><i style="background:#FB923C"></i>25-40 дн</span><span><i style="background:#F43F5E"></i>40+ дн (возится)</span></div>`+
-      `<div class="note">Читается по строке: <b>длина полосы</b> = сколько денег лежит в этой ценовой категории у конструктора (относительно самой дорогой ячейки колонки), <b>цвет</b> = медиана срока (краснее - дольше возится). Самая длинная и красная полоса = дорогая очередь, туда приоритет. Сортировка сверху: по деньгам, срокам или штукам. Первая строка - весь цех для сравнения. Наведи на ячейку - детали.</div>`;
+      `<div class="note">Переключатель сверху (₽ / Дни / Шт) меняет и гистограммы, и главную цифру ячеек, и сортировку строк. <b>Длина полосы</b> = выбранная метрика относительно максимума колонки, <b>цвет</b> = медиана срока (краснее - дольше). Самая длинная и красная = приоритетная очередь. Первая строка - весь цех. Наведи на ячейку - детали.</div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;

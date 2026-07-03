@@ -553,7 +553,7 @@ function render(){
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
-    `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · метки «сейчас» = моментальный снимок, остальное = за период</div></div>`+kpis+
+    `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
     syncBlock+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
     `<div class="grid2">`+

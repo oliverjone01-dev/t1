@@ -186,12 +186,45 @@ async function main() {
     };
   });
 
+  // Просчёты: открытые сделки воронки 49 на стадиях расчёта - потенциал производства
+  // (Расчёт, Формирование ТЗ, КП отправлено, Принимают решение, Долгострой).
+  const QUOTE_STAGES: Record<string, string> = {
+    "C49:UC_OGZUU0": "Расчёт",
+    "C49:PREPARATION": "Формирование ТЗ",
+    "C49:PREPAYMENT_INVOIC": "КП отправлено",
+    "C49:3": "Принимают решение",
+    "C49:UC_8JTBV2": "Долгострой",
+  };
+  const quoteDeals: any[] = [];
+  {
+    let start = 0;
+    for (;;) {
+      const j = await call("crm.deal.list", {
+        select: ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE"],
+        filter: { CATEGORY_ID: 49, CLOSED: "N", STAGE_ID: Object.keys(QUOTE_STAGES) },
+        start,
+      });
+      const batch: any[] = j.result || [];
+      for (const d of batch) quoteDeals.push({
+        id: Number(d.ID), title: d.TITLE || "",
+        budget: Number(d.OPPORTUNITY) || 0,
+        mgr: userName[String(d.ASSIGNED_BY_ID)] || null,
+        stage: QUOTE_STAGES[String(d.STAGE_ID)] || String(d.STAGE_ID),
+        created: d10(d.DATE_CREATE),
+      });
+      if (j.next === undefined || !batch.length) break;
+      start = j.next;
+    }
+  }
+  console.log(`Просчёты (потенциал): ${quoteDeals.length} сделок на ${Math.round(quoteDeals.reduce((s, d) => s + d.budget, 0))} ₽`);
+
   const out = {
     generated_at: new Date().toISOString(),
     source: "bitrix24:glassmemory:sp1086",
     entityTypeId: ETID,
-    counts: { items: items.length },
+    counts: { items: items.length, quotes: quoteDeals.length },
     refs: { stageName, stageSem, stageOrder, dirs: dirMap, assort: assortMap, productType: prodTypeMap },
+    quotes: { stages: QUOTE_STAGES, deals: quoteDeals },
     items,
   };
   mkdirSync("prod/data", { recursive: true });

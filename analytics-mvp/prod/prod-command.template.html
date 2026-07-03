@@ -1,5 +1,6 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GENGLASS · Командный центр производства</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0a0e13;--bg-1:#0f141b;--card:#131a22;--card2:#0f151c;--elev:#1a222c;--soft:#182029;
 --ink:#eaf1f6;--ink2:#c2ccd6;--ink3:#8593a0;--ink4:#5a6672;--border:#212b36;--border2:#2c3a47;
@@ -8,17 +9,26 @@
 html,body{min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:clip}
 b{font-weight:700}
-.hdr{position:sticky;top:0;z-index:60;background:rgba(10,14,19,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
-.topbar{padding:11px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#2E9E74,#22D3EE);display:flex;align-items:center;justify-content:center;font-weight:800;color:#06121a}
-.brand b{font-size:15px}.brand span{display:block;font-size:11.5px;color:var(--ink3)}
-.brand #fresh{display:block;font-size:10px;font-weight:700;margin-top:2px}
-.controls{padding:9px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);background:rgba(19,26,34,.5);font-size:12px;color:var(--ink3)}
-.seg{display:inline-flex;background:var(--elev);border:1px solid var(--border);border-radius:9px;padding:3px}
-.seg button{background:transparent;border:0;color:var(--ink3);font:inherit;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer}
-.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
-.ctl-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink4)}
-select.ctl,input.ctl{background:var(--elev);border:1px solid var(--border);border-radius:8px;color:var(--ink2);font:inherit;font-size:12px;padding:6px 8px;color-scheme:dark}
+/* хедер и блок меню - один-в-один со стилем дашборда РОП */
+.hdr{position:sticky;top:0;z-index:60}
+.topbar{padding:11px 24px;border-bottom:1px solid #161C24;background:rgba(11,15,21,.92);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#22D3EE,#0E7490);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
+.brand b{font-family:'Manrope',sans-serif;font-weight:800;font-size:14px}.brand span{display:block;font-size:10.5px;color:var(--ink3)}
+.brand #fresh{display:block;font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px}
+.controls{padding:10px 24px;border-bottom:1px solid #161C24;display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px);font-size:12px;color:var(--ink3)}
+.seg{display:inline-flex;background:#1A2029;border:1px solid #1F2731;border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--ink3);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button.on{background:rgba(34,211,238,.10);color:#22D3EE}
+.ctl-lbl{font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
+.rev-toggle{display:flex;align-items:center;gap:7px}
+.tb-spacer{flex:1}
+.dinp{background:#1A2029;border:1px solid #1F2731;color:var(--ink2);border-radius:7px;padding:5px 8px;font:inherit;font-size:11.5px;color-scheme:dark}
+.dbtn{background:rgba(34,211,238,.10);border:1px solid #1F2731;color:#22D3EE;border-radius:7px;padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer}
+.qm{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--soft);border:1px solid var(--border);color:var(--ink3);font-size:9px;font-weight:700;line-height:12px;text-align:center;margin-left:5px;cursor:help;font-style:normal;vertical-align:middle}
+#tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:300px}
+#tip b{font-family:'Manrope',sans-serif}#tip .tl{color:var(--ink3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+#tip .tr{display:flex;justify-content:space-between;gap:16px;padding:1px 0}#tip .tr span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+.foot{text-align:center;color:var(--ink4);font-size:11px;margin-top:28px}
 .tag{font-size:10px;background:var(--elev);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink3)}
 .wrap{padding:20px 24px 60px;max-width:1720px;margin:0 auto}
 .sec{display:flex;align-items:center;gap:14px;margin:28px 0 14px}
@@ -30,7 +40,7 @@ select.ctl,input.ctl{background:var(--elev);border:1px solid var(--border);borde
 .card-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px;flex-wrap:wrap}
 .card-t{font-size:15px;font-weight:800}
 .card-s{font-size:11.5px;color:var(--ink3);margin-top:2px;line-height:1.5}
-.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px}
 @media(max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}}
 .kpi{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:13px;padding:14px 15px;position:relative;overflow:hidden}
 .kpi .bar{position:absolute;top:0;left:0;right:0;height:3px}
@@ -64,32 +74,32 @@ select.ctl,input.ctl{background:var(--elev);border:1px solid var(--border);borde
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink3);margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .note{font-size:11px;color:var(--ink4);background:var(--soft);border:1px dashed var(--border2);border-radius:8px;padding:8px 11px;margin-top:10px}
-/* проходимость участков */
-.flow-row{display:grid;grid-template-columns:112px 1fr 150px 84px;gap:10px;align-items:center;margin:6px 0}
-.flow-row .fnm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right}
-.flow-row .fbar{height:22px;border-radius:6px;background:var(--elev);overflow:hidden;position:relative}
-.flow-row .fbar>i{display:block;height:100%;border-radius:6px 0 0 6px}
-.flow-row .fnum{font-size:12px;font-variant-numeric:tabular-nums}
-.flow-row .fwip{font-size:11px;font-weight:800;text-align:right;white-space:nowrap}
+/* проходимость участков: центрированная воронка */
+.fun-row{display:grid;grid-template-columns:110px 1fr 230px;gap:12px;align-items:center;margin:7px 0}
+.fun-nm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right}
+.fun-tr{position:relative;height:27px;background:repeating-linear-gradient(90deg,transparent,transparent 6px,rgba(255,255,255,.015) 6px,rgba(255,255,255,.015) 12px)}
+.fun-bar{position:absolute;left:50%;top:0;transform:translateX(-50%);height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;white-space:nowrap;cursor:help;min-width:0;transition:width .35s var(--ease)}
+.fun-st{font-size:11px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
 a{color:var(--cyan)}
 </style></head><body>
 <div class="hdr">
-  <div class="topbar">
-    <div class="logo">GG</div>
-    <div class="brand"><b>GENGLASS · Производство</b><span>Командный центр производства · смарт-процесс «Производство GG»</span><span id="fresh"></span></div>
-    <div style="margin-left:auto;font-size:11px;color:var(--ink4)">MVP · данные из Bitrix24 · фильтры активные</div>
-  </div>
-  <div class="controls">
-    <span class="ctl-lbl">Срез по</span><div class="seg" id="modeSeg"><button data-v="start" class="on">дате запуска</button><button data-v="done">дате готовности</button></div>
-    <span class="ctl-lbl">Гранулярность</span><div class="seg" id="granSeg"><button data-v="d">День</button><button data-v="w" class="on">Неделя</button><button data-v="m">Месяц</button></div>
-    <span class="ctl-lbl">Направление</span><select class="ctl" id="dirSel"><option value="">Все</option></select>
-    <span class="ctl-lbl">С</span><input class="ctl" type="date" id="dFrom">
-    <span class="ctl-lbl">По</span><input class="ctl" type="date" id="dTo">
-    <span style="flex:1"></span>
-    <div class="seg" id="presetSeg"><button data-v="7">7 дн</button><button data-v="30">30 дн</button><button data-v="90">90 дн</button><button data-v="all" class="on">Всё</button></div>
-  </div>
+<div class="topbar">
+  <div class="logo">GG</div>
+  <div class="brand"><b>GENGLASS · Производство</b><span>Командный центр производства · смарт-процесс «Производство GG»</span><span id="fresh" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span></div>
+</div>
+<div class="controls">
+  <div class="rev-toggle"><span class="ctl-lbl">Срез по</span><div class="seg" id="modeSeg"><button data-v="start" class="on">дате запуска</button><button data-v="done">дате готовности</button></div><span class="qm" data-tip="«По дате запуска»: структурные блоки (проходимость, менеджеры, конструкторы, ассортимент) считаются по заказам, ПЕРЕДАННЫМ в производство в выбранном периоде. «По дате готовности»: по заказам, ставшим готовыми в периоде. KPI запуска и выпуска всегда считаются по своей естественной дате.">?</span></div>
+  <span class="ctl-lbl">Гранулярность</span><div class="seg" id="granSeg"><button data-v="d">День</button><button data-v="w" class="on">Неделя</button><button data-v="m">Месяц</button></div>
+  <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px"><option value="">Все</option></select>
+  <div class="tb-spacer"></div>
+  <div class="seg" id="presetSeg"><button data-v="7">7 дн</button><button data-v="30">30 дн</button><button data-v="90">90 дн</button><button data-v="all" class="on">Всё</button></div>
+  <input type="date" id="dFrom" class="dinp"><span style="color:var(--ink4)">–</span><input type="date" id="dTo" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
+  <span style="font-size:11px;color:var(--ink3)" id="periodLabel"></span>
+</div>
 </div>
 <div class="wrap" id="root"></div>
+<div class="foot">© GENGROUP · GENGLASS · дашборд Производство · живые данные Bitrix24 · MVP</div>
+<div id="tip"></div>
 <script>
 const DATA={"items":[],"refs":{},"generatedAt":null,"b24Portal":"","entityTypeId":1086};
 const IT=DATA.items||[], REF=DATA.refs||{}, PORTAL=DATA.b24Portal||'';
@@ -169,6 +179,15 @@ function prevWin(){const a=D(S.from),b=D(S.to);const len=Math.round((b-a)/864e5)
 function trend(cur,prev,inv){if(prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up;const cls=Math.abs(dl)<.005?'flat':good?'up':'dn';return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`}
 
 // ===== графики =====
+// сглаживание линий (Catmull-Rom -> Безье), как в дашборде РОП
+function smoothPath(pts){if(!pts.length)return '';if(pts.length<3)return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6,c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6;
+    d+=` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`}
+  return d}
+const esc=s=>String(s).replace(/</g,'&lt;').replace(/"/g,'&quot;'); // для имён из Bitrix
+const attr=s=>String(s).replace(/"/g,'&quot;'); // HTML подсказки в data-tip: экранируем только кавычки
 function chartSVG(series,keys,opt){
   opt=opt||{};const w=opt.w||640,h=opt.h||190,pl=44,pr=12,pt=12,pb=26;
   let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));mx=mx*1.15||1;
@@ -179,14 +198,40 @@ function chartSVG(series,keys,opt){
   let body='';
   series.forEach(s=>{
     if(s.type==='bar'){const bw=Math.max(3,(w-pl-pr)/(n*1.6));
-      body+=s.vals.map((v,i)=>v==null?'':`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity=".85"/>`).join('');}
+      body+=s.vals.map((v,i)=>v==null?'':`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity=".85" pointer-events="none"/>`).join('');}
     else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);
-      let dd='',pen=false;pts.forEach(p=>{if(!p){pen=false;return}dd+=(pen?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);pen=true});
-      if(s.area){let ad=dd;const fp=pts.filter(Boolean);if(fp.length>1){ad+='L'+fp[fp.length-1][0].toFixed(1)+' '+(h-pb)+'L'+fp[0][0].toFixed(1)+' '+(h-pb)+'Z';body+=`<path d="${ad}" fill="${s.c}" opacity=".10"/>`}}
-      body+=`<path d="${dd}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.filter(Boolean).map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.3" fill="${s.c}"/>`).join('');}
+      // рвём линию на сегменты по null и сглаживаем каждый
+      const segs=[];let cur=[];pts.forEach(p=>{if(p)cur.push(p);else if(cur.length){segs.push(cur);cur=[]}});if(cur.length)segs.push(cur);
+      segs.forEach(sp=>{const dd=smoothPath(sp);
+        if(s.area&&sp.length>1)body+=`<path d="${dd} L${sp[sp.length-1][0].toFixed(1)} ${h-pb} L${sp[0][0].toFixed(1)} ${h-pb} Z" fill="${s.c}" opacity=".10" pointer-events="none"/>`;
+        body+=`<path d="${dd}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`});
+      body+=pts.filter(Boolean).map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.3" fill="${s.c}" pointer-events="none"/>`).join('');}
   });
+  // ховер: вертикальный пунктир + подсказка по бакету
+  const xhair=`<line class="xhair" x1="0" y1="${pt}" x2="0" y2="${h-pb}" stroke="var(--ink2)" stroke-width="1" stroke-dasharray="4 5" opacity="0" pointer-events="none"/>`;
+  const bw2=(w-pl-pr)/(n-1||1);let cols='';
+  for(let i=0;i<n;i++){
+    const rows=series.filter(s=>s.name&&s.vals[i]!=null).map(s=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.c};margin-right:6px'></i>${esc(s.name)}</span><span>${opt.money?fmt(s.vals[i])+' ₽':(opt.fmtY?opt.fmtY(s.vals[i]):fmt(s.vals[i]))}</span></div>`).join('');
+    const tipHtml=attr(`<div class='tl'>${blabel(keys[i])}</div>`+rows);
+    const x0=Math.max(pl,X(i)-bw2/2),ww=Math.min(bw2,w-pr-x0);
+    cols+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${ww.toFixed(1)}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tipHtml}"/>`}
   const leg=series.filter(s=>s.name).map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('');
-  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${body}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
+  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
+}
+// бублик: сегменты с подсказками, итог в центре (стиль РОП)
+function donut(data,total,pal,centerLabel){
+  const R=62,r=38,cx=80,cy=80;let a=-Math.PI/2,s='';
+  const tot=data.reduce((x,[,c])=>x+c,0)||1;
+  data.forEach(([nm,c],i)=>{const frac=c/tot,a2=a+frac*2*Math.PI;
+    const laf=frac>.5?1:0,col=pal[i%pal.length];
+    const x0=cx+R*Math.cos(a),y0=cy+R*Math.sin(a),x1=cx+R*Math.cos(a2),y1=cy+R*Math.sin(a2);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2),x3=cx+r*Math.cos(a),y3=cy+r*Math.sin(a);
+    const td=attr(`<div class='tl'>${esc(nm)}</div><div class='tr'><span>Заказов</span><span>${fmt(c)}</span></div><div class='tr'><span>Доля</span><span>${pct(frac)}</span></div>`);
+    if(frac>0)s+=`<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${laf} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${r} ${r} 0 ${laf} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z" fill="${col}" opacity=".92" data-tip="${td}" style="cursor:help"/>`;
+    a=a2});
+  const svg=`<svg viewBox="0 0 160 160" style="width:150px;flex:none">${s}<text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="20" font-weight="800" fill="var(--ink)" font-family="Manrope">${fmt(tot)}</text><text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="8.5" fill="var(--ink3)">${centerLabel}</text></svg>`;
+  const leg=data.map(([nm,c],i)=>`<div style="display:flex;align-items:center;gap:7px;font-size:11.5px;margin:3px 0"><i style="width:9px;height:9px;border-radius:2px;background:${pal[i%pal.length]};flex:none"></i><span style="color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px">${nm}</span><b style="margin-left:auto">${fmt(c)}</b><span style="color:var(--ink4);width:44px;text-align:right">${pct(c/(tot||1))}</span></div>`).join('');
+  return `<div style="display:flex;gap:14px;align-items:center"><div>${svg}</div><div style="flex:1;min-width:0">${leg}</div></div>`;
 }
 // серия «сумма по бакетам» для дат
 function seriesBy(items,dateFn,keys,valFn){const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);
@@ -261,25 +306,35 @@ function render(){
   // ===== ДИНАМИКА: деньги запуска =====
   const dynMoney=chartSVG([{name:'Запущено в производство, ₽ (суммы сделок)',c:'#22D3EE',vals:seriesBy(all,startDate,keys,moneyOf),type:'bar'}],keys,{});
 
-  // ===== ПРОХОДИМОСТЬ УЧАСТКОВ (вместо «моста») =====
+  // ===== ПРОХОДИМОСТЬ УЧАСТКОВ: центрированная воронка =====
+  // ширина = доля заказов через участок · цвет = медиана времени НА участке (перегруз краснеет)
   const flowBlock=(()=>{
     const base=cut.length?cut:[];
+    const total=base.length||1;
+    const stayBy={};STATIONS.forEach(([nm])=>stayBy[nm]=[]);
+    base.forEach(i=>{const h=i.hist||[];
+      for(let j=0;j<h.length;j++){const st=stationOf(h[j][0]);if(!st)continue;
+        const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);
+        const dur=end!=null?days(h[j][1],end):null;
+        if(dur!=null&&dur>=0)stayBy[st].push(dur)}});
     const rows=STATIONS.map(([nm])=>{
       const passed=base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm)).length;
-      const w=wipBy2(nm);return {nm,passed,w}});
-    function wipBy2(nm){let c=0,dws=[];wip.forEach(i=>{if(stationOf(i.stageCode)===nm){c++;const d=dwellNow(i);if(d!=null)dws.push(d)}});return {c,m:med(dws)}}
-    const total=base.length||1;
-    const PAL=['#38BDF8','#22D3EE','#2DD4BF','#2E9E74','#4ADE80','#A3E635','#FACC15','#FB923C','#A78BFA','#34D399'];
-    const body=rows.map((r,idx)=>{
-      const share=r.passed/total;
-      const wipTag=r.nm==='Готово'?'':(r.w.c?`<span style="color:${tone(r.w.m||0)}">сейчас: ${r.w.c}${r.w.m!=null?' · '+d1(r.w.m)+' дн':''}</span>`:`<span style="color:var(--ink4)">сейчас: 0</span>`);
-      return `<div class="flow-row">
-        <div class="fnm">${r.nm}</div>
-        <div class="fbar"><i style="width:${Math.max(share*100,r.passed?2:0).toFixed(1)}%;background:${PAL[idx%PAL.length]}"></i></div>
-        <div class="fnum"><b>${fmt(r.passed)}</b> из ${fmt(total)} · <b>${pct0(share)}</b></div>
-        <div class="fwip">${wipTag}</div>
+      let c=0,dws=[];wip.forEach(i=>{if(stationOf(i.stageCode)===nm){c++;const d=dwellNow(i);if(d!=null)dws.push(d)}});
+      return {nm,passed,stay:med(stayBy[nm]),wc:c,wm:med(dws)}});
+    const body=rows.map(r=>{
+      const share=r.passed/total, isFin=r.nm==='Готово';
+      const col=isFin?'#2E9E74':(r.passed?tone(r.stay||0):'#3a4450');
+      const wpct=Math.max(share*100,r.passed?6:1.2).toFixed(1);
+      const inTxt=share>=0.12?`${fmt(r.passed)} · ${pct0(share)}`:(r.passed?fmt(r.passed):'');
+      const stTxt=isFin?`выпуск за период`:(r.passed?`⏱ ${d1(r.stay)} дн на участке`:'не используется')
+        +(r.wc?` · <b style="color:${tone(r.wm||0)}">сейчас: ${r.wc}</b>`:' · сейчас: 0');
+      const td=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>Прошло за период</span><span>${fmt(r.passed)} из ${fmt(total)} (${pct(share)})</span></div><div class='tr'><span>Медиана времени на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div><div class='tr'><span>Сейчас на участке</span><span>${r.wc}${r.wm!=null?' · лежат '+d1(r.wm)+' дн':''}</span></div>`);
+      return `<div class="fun-row">
+        <div class="fun-nm">${r.nm}</div>
+        <div class="fun-tr"><div class="fun-bar" data-tip="${td}" style="width:${wpct}%;background:${col}26;border:1px solid ${col};color:${col}">${inTxt}</div></div>
+        <div class="fun-st">${stTxt}</div>
       </div>`}).join('');
-    return `${body}<div class="note">Каждая полоса = доля заказов (${modeLbl}: <b>${fmt(total)}</b> шт), прошедших через участок. Производство - не воронка, а трубы: заказ идёт только по нужным участкам, поэтому полосы не обязаны убывать. Читается так: короткая полоса = участок используется редко; справа «сейчас» = очередь на участке в данный момент, красное = лежит долго (затор).</div>`;
+    return `${body}<div class="legend"><span><i style="background:#2E9E74"></i>быстро (до 5 дн)</span><span><i style="background:#F59E0B"></i>5-10 дн</span><span><i style="background:#FB923C"></i>10-21 дн</span><span><i style="background:#F43F5E"></i>21+ дн (перегруз)</span></div><div class="note">Воронка по участкам: ширина = сколько заказов периода (${modeLbl}: <b>${fmt(total)}</b> шт) проходит через участок, цвет = медиана времени на участке. Широкая и красная = перегруз, время растёт. Узкая = недогруз, участок простаивает. Заказ идёт только по нужным участкам, поэтому ширины не обязаны убывать сверху вниз.</div>`;
   })();
 
   // ===== УЧАСТКИ таблица =====
@@ -302,37 +357,69 @@ function render(){
     return `<div>${body}</div><div class="note">Доработка/Перекрас = заказы, возвращавшиеся на участок повторно (в выбранном периоде). Всего событий: <b>${tot}</b>. Высокий столбец = проблемный участок по качеству.</div>`;
   })();
 
-  // ===== МЕНЕДЖЕРЫ (кто запускает производство) =====
+  // ===== МЕНЕДЖЕРЫ: запуски (шт и ₽) + просчёты (потенциал производства) =====
   const mgrBlock=(()=>{
-    const m={};cut.forEach(i=>{const n=mgrOf(i);(m[n]=m[n]||{n,tot:0,done:0,wip:0,cyc:[],sum:0,rew:0});
+    const m={};cut.forEach(i=>{const n=mgrOf(i);(m[n]=m[n]||{n,tot:0,done:0,wip:0,cyc:[],sum:0});
       m[n].tot++;if(isDone(i))m[n].done++;if(isWip(i))m[n].wip++;
       const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);
-      m[n].sum+=moneyOf(i);if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
-    const rows=Object.values(m).sort((a,b)=>b.sum-a.sum);
-    const mxS=rows.length?Math.max(...rows.map(r=>r.sum),1):1;
+      m[n].sum+=moneyOf(i)});
+    // просчёты: открытые сделки на стадиях расчёта (снимок «сейчас», приходит из fetch-prod)
+    const QT=(DATA.quotes&&DATA.quotes.deals)||null;
+    const q={};let qTot=0,qSum=0;
+    if(QT)QT.forEach(d=>{const n=d.mgr||'—';(q[n]=q[n]||{cnt:0,sum:0});q[n].cnt++;q[n].sum+=d.budget||0;qTot++;qSum+=d.budget||0;
+      if(!m[n])m[n]={n,tot:0,done:0,wip:0,cyc:[],sum:0}});
+    const rows=Object.values(m).sort((a,b)=>b.sum-a.sum||((q[b.n]||{}).sum||0)-((q[a.n]||{}).sum||0));
     const totS=sum(rows,r=>r.sum);
-    const body=rows.slice(0,14).map(r=>`<tr><td class="nm">${r.n}</td><td>${r.tot}</td><td>${r.wip}</td><td>${r.done}</td>
+    const body=rows.slice(0,16).map(r=>{const qq=q[r.n];
+      return `<tr><td class="nm">${esc(r.n)}</td><td><b>${r.tot}</b></td><td><b>${fmtK(r.sum)} ₽</b></td><td style="color:var(--ink4)">${totS?pct(r.sum/totS):'—'}</td><td>${r.done}</td>
       <td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="hbar" style="width:90px"><i style="width:${(r.sum/mxS*100).toFixed(0)}%;background:#22D3EE"></i></div><b>${fmtK(r.sum)} ₽</b></div></td>
-      <td style="color:var(--ink4)">${totS?pct(r.sum/totS):'—'}</td></tr>`).join('');
-    return `<table class="tbl"><thead><tr><th>Менеджер</th><th>Заказов</th><th>В работе</th><th>Готово</th><th>Ср.срок</th><th>Сумма сделок</th><th>Доля ₽</th></tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). Сумма = бюджеты сделок, привязанных к заказам производства. Заказов без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}.</div>`;
+      <td style="color:${qq?'var(--cyan)':'var(--ink4)'}">${qq?qq.cnt:QT?0:'—'}</td>
+      <td style="color:${qq?'var(--cyan)':'var(--ink4)'};font-weight:${qq?700:400}">${qq?fmtK(qq.sum)+' ₽':QT?'0 ₽':'—'}</td></tr>`}).join('');
+    const qNote=QT
+      ?`Просчёты<span class="now-badge">сейчас</span> = открытые сделки на стадиях Расчёт / Формирование ТЗ / КП отправлено / Принимают решение / Долгострой: потенциал цеха <b>${fmt(qTot)}</b> сделок на <b>${fmtK(qSum)} ₽</b>. Снимок текущего момента, на фильтр периода не реагирует.`
+      :`Просчёты появятся после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором).`;
+    return `<table class="tbl"><thead><tr><th>Менеджер</th><th>Запусков</th><th>Запуски ₽</th><th>Доля ₽</th><th>Готово</th><th>Ср.срок</th><th>Просчёты</th><th>Потенциал ₽</th></tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). Запуски ₽ = бюджеты сделок, привязанных к заказам производства. Без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}. ${qNote}</div>`;
   })();
 
-  // ===== ЧТО ПРОИЗВОДИМ =====
+  // ===== ЧТО ПРОИЗВОДИМ: два бублика =====
   const mixBlock=(()=>{
     const base=cut;
     const by=(key)=>{const m={};base.forEach(i=>{const v=i[key]||'не указано';m[v]=(m[v]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
-    const bars=(data,pal)=>{const mx=data[0]?data[0][1]:1;return data.map(([n,c],idx)=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><div style="width:120px;font-size:11.5px;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:${pal[idx%pal.length]}"></i></div><div style="width:60px;font-size:11.5px;font-weight:700">${c} <span style="color:var(--ink4);font-weight:400">${base.length?pct(c/base.length):''}</span></div></div>`).join('')||'<div class="card-s">нет заказов в выбранном периоде</div>'};
-    const PAL=['#22D3EE','#2E9E74','#A78BFA','#F59E0B','#F43F5E','#38BDF8','#10B981'];
-    return `<div class="grid2"><div><div class="card-s" style="margin-bottom:6px">По ассортименту</div>${bars(by('assort'),PAL)}</div><div><div class="card-s" style="margin-bottom:6px">По направлению бренда</div>${bars(by('dir'),PAL)}</div></div>`;
+    const PAL=['#22D3EE','#2E9E74','#A78BFA','#F59E0B','#F43F5E','#38BDF8','#10B981','#FB923C'];
+    if(!base.length)return '<div class="card-s">нет заказов в выбранном периоде</div>';
+    return `<div class="grid2"><div><div class="card-s" style="margin-bottom:8px">По ассортименту</div>${donut(by('assort'),base.length,PAL,'заказов')}</div><div><div class="card-s" style="margin-bottom:8px">По направлению бренда</div>${donut(by('dir'),base.length,PAL,'заказов')}</div></div>`;
   })();
 
   // ===== КОНСТРУКТОРЫ =====
   const consTable=(()=>{
     const m={};cut.forEach(i=>{const n=i.constructor||'—';(m[n]=m[n]||{n,tot:0,done:0,cyc:[],sum:0,rew:0});m[n].tot++;if(isDone(i))m[n].done++;const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);m[n].sum+=moneyOf(i);if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
     const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,12);
-    const body=rows.map(r=>`<tr><td class="nm">${r.n}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td><td>${r.rew}</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="6" class="card-s">нет заказов в периоде</td></tr>';
-    return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
+    const body=rows.map(r=>`<tr><td class="nm">${esc(r.n)}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td><td>${r.rew}</td><td>${r.tot?fmtK(r.sum/r.tot):'—'} ₽</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="7" class="card-s">нет заказов в периоде</td></tr>';
+    return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Ср.чек</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
+  })();
+
+  // ===== КОНСТРУКТОРЫ: чек vs срок (кто берёт дешёвое и возится, кто делает дорогое быстро) =====
+  const consScatter=(()=>{
+    const pts=cut.filter(i=>isDone(i)&&moneyOf(i)>0).map(i=>({b:moneyOf(i),c:cycleOf(i),n:i.constructor||'—',t:i.title||('#'+i.id)})).filter(p=>p.c!=null&&p.c>=0);
+    if(pts.length<5)return '<div class="card-s">мало готовых заказов с чеком в периоде, точек недостаточно</div>';
+    const cnt={};pts.forEach(p=>cnt[p.n]=(cnt[p.n]||0)+1);
+    const tops=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n])=>n);
+    const PAL=['#22D3EE','#2E9E74','#A78BFA','#F59E0B','#F472B6','#38BDF8'];
+    const colOf=n=>{const i=tops.indexOf(n);return i>=0?PAL[i]:'#5a6672'};
+    const w=1240,h=300,pl=52,pr=16,pt=14,pb=34;
+    const bmax=Math.max(...pts.map(p=>p.b)),cmax=Math.max(...pts.map(p=>p.c))*1.1||1;
+    const SX=v=>pl+(w-pl-pr)*Math.sqrt(v/bmax);   // сжимаем длинный хвост чеков
+    const SY=v=>h-pb-(h-pt-pb)*v/cmax;
+    const mB=med(pts.map(p=>p.b)),mC=med(pts.map(p=>p.c));
+    let grid='';[0,.25,.5,.75,1].forEach(g=>{const yy=pt+(h-pt-pb)*g;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${Math.round(cmax*(1-g))}</text>`});
+    const ticks=[5e4,1e5,25e4,5e5,1e6,2e6,4e6].filter(t=>t<bmax*.96);
+    let xl=ticks.map(t=>`<text x="${SX(t).toFixed(0)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${fmtK(t)}</text><line x1="${SX(t).toFixed(0)}" y1="${h-pb}" x2="${SX(t).toFixed(0)}" y2="${h-pb+3}" stroke="var(--border2)"/>`).join('');
+    const med2=`<line x1="${SX(mB).toFixed(0)}" y1="${pt}" x2="${SX(mB).toFixed(0)}" y2="${h-pb}" stroke="var(--ink4)" stroke-dasharray="4 5"/><line x1="${pl}" y1="${SY(mC).toFixed(0)}" x2="${w-pr}" y2="${SY(mC).toFixed(0)}" stroke="var(--ink4)" stroke-dasharray="4 5"/>`;
+    const quad=`<text x="${pl+8}" y="${pt+12}" font-size="9.5" fill="var(--ink4)">дёшево · долго</text><text x="${w-pr-8}" y="${pt+12}" text-anchor="end" font-size="9.5" fill="var(--ink4)">дорого · долго</text><text x="${pl+8}" y="${h-pb-6}" font-size="9.5" fill="var(--ink4)">дёшево · быстро</text><text x="${w-pr-8}" y="${h-pb-6}" text-anchor="end" font-size="9.5" fill="var(--ink4)">дорого · быстро</text>`;
+    const dots=pts.map(p=>{const td=attr(`<div class='tl'>${esc(p.t)}</div><div class='tr'><span>Конструктор</span><span>${esc(p.n)}</span></div><div class='tr'><span>Чек сделки</span><span>${fmtK(p.b)} ₽</span></div><div class='tr'><span>Срок производства</span><span>${d1(p.c)} дн</span></div>`);
+      return `<circle cx="${SX(p.b).toFixed(1)}" cy="${SY(p.c).toFixed(1)}" r="4" fill="${colOf(p.n)}" opacity=".75" stroke="rgba(0,0,0,.35)" data-tip="${td}" style="cursor:help"/>`}).join('');
+    const leg=tops.map((n,i)=>`<span><i style="background:${PAL[i]}"></i>${esc(n)}</span>`).join('')+`<span><i style="background:#5a6672"></i>остальные</span>`;
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${h}" style="width:100%;min-width:700px">${grid}${med2}${quad}${dots}${xl}<text x="${w-pr}" y="${h-4}" text-anchor="end" font-size="9" fill="var(--ink4)">чек сделки, ₽ (сжатая шкала)</text><text x="${pl}" y="${pt-4}" font-size="9" fill="var(--ink4)">срок, дн</text></svg></div><div class="legend">${leg}</div><div class="note">Каждая точка = готовый заказ периода: по горизонтали чек сделки, по вертикали срок производства. Пунктир = медианы, они делят поле на 4 квадранта. Скопление точек конструктора слева-сверху = берёт дешёвые и возится; справа-снизу = делает дорогие быстро. Наведи на точку - детали заказа.</div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
@@ -351,8 +438,11 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов (${modeLbl}) · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
     `<div class="sec"><div class="n">3</div><h2>Сотрудники</h2><div class="ln"></div><div class="hint">кто заводит объём и кто его производит</div></div>`+
-    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: кто запускает производство</div><div class="card-s">количество и деньги заказов, заведённых в цех (${modeLbl})</div></div></div>${mgrBlock}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, сумма связанных сделок (${modeLbl})</div></div></div>${consTable}</div></div>`;
+    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: запуски и просчёты</div><div class="card-s">запуски производства в штуках и деньгах (${modeLbl}) + просчёты как потенциал цеха</div></div></div>${mgrBlock}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div></div>${consScatter}</div>`;
+  document.getElementById('periodLabel').textContent=perLbl;
+  wireCharts();
 
   // freshness
   const fr=document.getElementById('fresh');
@@ -360,6 +450,17 @@ function render(){
     const ageH=(new Date()-g)/36e5,col=ageH>48?'#F43F5E':ageH>30?'#F59E0B':'#2E9E74';
     fr.textContent='данные на '+p(m.getUTCDate())+'.'+p(m.getUTCMonth()+1)+' '+p(m.getUTCHours())+':'+p(m.getUTCMinutes())+' МСК';fr.style.color=col}
 }
+
+// ===== подсказки (как в РОП): плавающий тултип + вертикальный пунктир на графиках =====
+const tipEl=document.getElementById('tip');
+function tipShow(html,x,y){tipEl.innerHTML=html;tipEl.style.opacity=1;let nx=x+14,ny=y+14;
+  if(nx+tipEl.offsetWidth>innerWidth)nx=x-tipEl.offsetWidth-14;if(ny+tipEl.offsetHeight>innerHeight)ny=y-tipEl.offsetHeight-14;
+  tipEl.style.left=nx+'px';tipEl.style.top=ny+'px'}
+function tipHide(){tipEl.style.opacity=0}
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t)tipShow(t.getAttribute('data-tip'),e.clientX,e.clientY);else tipHide()});
+function wireCharts(){document.querySelectorAll('svg.xh-chart').forEach(svg=>{const xh=svg.querySelector('.xhair');if(!xh)return;
+  svg.querySelectorAll('rect[data-cx]').forEach(r=>r.addEventListener('mousemove',()=>{const cx=r.getAttribute('data-cx');xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('opacity','0.5')}));
+  svg.addEventListener('mouseleave',()=>xh.setAttribute('opacity','0'))})}
 
 // ===== контролы =====
 function segWire(id,key){const seg=document.getElementById(id);seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -376,9 +477,10 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
   df.value=S.from;dt.value=S.to;
-  const custom=()=>{if(df.value)S.from=df.value;if(dt.value)S.to=dt.value;
-    document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));render()};
-  df.addEventListener('change',custom);dt.addEventListener('change',custom);
+  document.getElementById('applyCustom').addEventListener('click',()=>{
+    if(df.value)S.from=df.value;if(dt.value)S.to=dt.value;
+    if(S.from>S.to){const t=S.from;S.from=S.to;S.to=t;df.value=S.from;dt.value=S.to}
+    document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));render()});
   render();
 })();
 </script></body></html>

@@ -17,6 +17,7 @@ const DATA = {
   b24Portal: PORTAL,
   entityTypeId: prod.entityTypeId,
   refs: prod.refs || {},
+  quotes: prod.quotes || null, // просчёты (потенциал производства); null у старых снимков
   items: prod.items || [],
 };
 

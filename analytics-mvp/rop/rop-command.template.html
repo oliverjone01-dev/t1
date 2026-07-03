@@ -406,7 +406,7 @@ function smoothPath(pts){if(!pts.length)return '';if(pts.length<3)return pts.map
   return d;}
 function multiline(series,keys,g,money,el){
   series=series.slice();
-  if(series.length>1 && !series.some(s=>s.total)){const tv=keys.map((_,i)=>series.reduce((a,s)=>a+(s.vals[i]||0),0));series.push({name:'Итого',color:'#22D3EE',total:true,vals:tv});}
+  if(series.length>1 && !series.some(s=>s.total) && !series.some(s=>s.noTotal)){const tv=keys.map((_,i)=>series.reduce((a,s)=>a+(s.vals[i]||0),0));series.push({name:'Итого',color:'#22D3EE',total:true,vals:tv});}
   const hasTotal=series.some(s=>s.total);
   const w=640,h=270,pl=48,pr=14,pt=14,pb=32;const labs=keys.map(k=>blabel(k,g));const gid='g'+(_mlid++);
   let mx=0;series.forEach(s=>{if(!S.hidden[s.name])s.vals.forEach(v=>{if(v>mx)mx=v;});});mx=mx*1.12||1;
@@ -669,6 +669,7 @@ function render(){
   const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
   const _prodN=prodSet().length,_prodP=prodSet(_pw[0],_pw[1]).length;
   const _prepN=prepaySet().length,_prepP=prepaySet(_pw[0],_pw[1]).length;
+  const _queue=flt(AD,true).filter(d=>!d.won&&!d.lost&&d.stageCode==='C49:EXECUTING'),_queueM=_queue.reduce((s,d)=>s+(d.budget||0),0);
   let h='';
   const snap=SNAP();
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
@@ -923,6 +924,13 @@ function render(){
   const B_dynRev=`<div class="card"><div class="card-h" style="flex-wrap:nowrap;align-items:center"><div class="card-title">Динамика отдела ${info('Деньги отдела по неделям: выручка/продажи/чек/конверсия во времени, сравнение с прошлым равным периодом. Вопрос: растём или падаем по деньгам, где провалы. Вывод: устойчивый спад к прошлому периоду - сигнал разобраться, всплеск - понять что сработало и повторить.')}</div><div class="seg" id="rdSeg" style="flex:0 0 auto"></div></div><div class="card-sub" id="rdh" style="margin:-6px 0 14px"></div><div id="rdyn"></div></div>`;
   const B_avgCheck=`<div class="card"><div class="card-h"><div><div class="card-title">Средний чек по менеджерам</div><div class="card-sub">по успешным сделкам, ₽</div></div></div>`+barRows(byManager(D,L).filter(x=>x.won>0).sort((a,b)=>b.check-a.check).map(x=>[x.mgr,x.check]),true)+`</div>`;
   const sBy=f=>{const c={};won.forEach(x=>c[x[f]]=(c[x[f]]||0)+x.budget);return Object.entries(c).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);};
+  const B_prepProd=`<div class="card"><div class="card-h"><div><div class="card-title">Предоплаты → Производство ${info('Две кривые по периодам: сколько предоплат получено (вход в «Предоплата получена») и сколько сделок передано в производство. Вопрос: растёт или падает передача в цех и успевает ли она за оплатами. Вывод: предоплаты стабильно выше - копится очередь оплаченных заказов перед цехом; кривые сходятся - поток здоровый. Тот же узел сверки виден в дашборде производства.')}</div><div class="card-sub">⇄ <b style="color:#2DD4BF">точка стыковки с производством</b> - те же цифры в <a href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener">дашборде цеха</a> · за период: предоплат <b>${fmt(_prepN)}</b> → в производство <b>${fmt(_prodN)}</b> · ${_prepN>_prodN?'<span style="color:#F59E0B">очередь перед цехом растёт (+'+fmt(_prepN-_prodN)+')</span>':'цех успевает за оплатами'}</div></div></div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:11px 14px;background:var(--bg-elevated);border:1px solid rgba(245,158,11,.35);border-radius:10px;margin-bottom:10px" data-tip="Открытые сделки, стоящие СЕЙЧАС в стадии «Предоплата получена»: деньги взяты, в производство ещё не переданы. Это входящий пакет цеха - производство видит эту же цифру у себя.">
+      <span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3)">На подходе к цеху · сейчас</span>
+      <b style="font-family:'Manrope';font-size:20px;color:#F59E0B">${fmt(_queue.length)} сд</b>
+      <span style="font-size:13px;font-weight:700;color:var(--ink-2)">${fmtK(_queueM)} ₽</span>
+      <span style="font-size:11px;color:var(--ink-4)">оплачено, ждёт передачи в производство</span>
+    </div><div id="ppChart"></div></div>`;
   const B_donuts=`<div class="grid3">`+['dir:По направлению','assort:По ассортименту','client:По типу клиента'].map(b=>{const[f,t]=b.split(':');const dd=sBy(f).slice(0,8);const tot=dd.reduce((s,d)=>s+d[1],0);return `<div class="card"><div class="card-sub" style="font-weight:600;color:var(--ink-2);text-align:center;margin-bottom:6px">${t}</div><div style="text-align:center">`+donut(dd,fmtK(tot).split(' ')[0],(fmtK(tot).split(' ')[1]||'').toUpperCase()+' ₽',true)+`</div>`+legend(dd)+`</div>`;}).join('')+`</div>`;
   /* «Средний чек» перенесён в левую колонку Денег под график */
 
@@ -930,14 +938,14 @@ function render(){
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
-  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
+  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_prepProd+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
   // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wireDQ();
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){
@@ -1097,6 +1105,11 @@ function revSeries(deals,keys,metric){const won=deals.filter(SOLD),wb=k=>won.fil
   if(metric==='deals')return keys.map(k=>wb(k).length);
   if(metric==='check')return keys.map(k=>{const w=wb(k);return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;});
   return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(closeKey(d),S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
+function wirePrepProd(){const el=document.getElementById('ppChart');if(!el)return;
+  const keys=buckets(S.gran);
+  const cnt=(set,keyFn)=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);set.forEach(d=>{const k=bkey(keyFn(d),S.gran);if(k in ki)v[ki[k]]++});return v};
+  const prepV=cnt(prepaySet(),prepayKey),prodV=cnt(prodSet(),prodKey);
+  multiline([{name:'Предоплат получено',color:'#A78BFA',noTotal:true,vals:prepV},{name:'В производство',color:'#2DD4BF',vals:prodV}],keys,S.gran,false,el);}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
   const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},prod:{l:'В производство',m:false,p:false,c:'#2DD4BF'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
   const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['prod','В пр-во'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}

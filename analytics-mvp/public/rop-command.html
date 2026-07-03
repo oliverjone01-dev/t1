@@ -54,7 +54,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .kpi-qty{position:absolute;top:12px;right:14px;text-align:right;line-height:1.05}
 .kpi-qty b{font-family:'Manrope';font-weight:800;font-size:18px;color:var(--ink-2)}
 .kpi-qty span{display:block;font-size:9px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;animation:fadeUp .4s var(--ease-out) both}
+.kpi-cell{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;animation:fadeUp .4s var(--ease-out) both;display:flex;flex-direction:column;align-items:flex-start}
 .kpi-cell::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac,var(--accent)),transparent)}
 .kpi-k{font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:7px}
 .kpi-v{font-family:'Manrope';font-weight:800;font-size:25px;letter-spacing:-.025em;line-height:1}
@@ -499,8 +499,8 @@ function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==nu
 function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols||Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
   const qty=x.qty!=null?`<div class="kpi-qty"><b>${x.qty}</b><span>${x.qtyLabel||'шт'}</span></div>`:'';
-  const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3);margin-top:7px">${x.sub}</div>`:'');
-  return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}${foot}</div>`;}).join('')+'</div>';}
+  const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3)">${x.sub}</div>`:'');
+  return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}<div class="kpi-foot" style="margin-top:auto;padding-top:8px">${foot}</div></div>`;}).join('')+'</div>';}
 function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];

@@ -18,6 +18,7 @@ b{font-weight:700}
 .seg button{background:transparent;border:0;color:var(--ink3);font:inherit;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer}
 .seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
 .ctl-lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink4)}
+select.ctl,input.ctl{background:var(--elev);border:1px solid var(--border);border-radius:8px;color:var(--ink2);font:inherit;font-size:12px;padding:6px 8px;color-scheme:dark}
 .tag{font-size:10px;background:var(--elev);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink3)}
 .wrap{padding:20px 24px 60px;max-width:1720px;margin:0 auto}
 .sec{display:flex;align-items:center;gap:14px;margin:28px 0 14px}
@@ -34,9 +35,10 @@ b{font-weight:700}
 .kpi{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:13px;padding:14px 15px;position:relative;overflow:hidden}
 .kpi .bar{position:absolute;top:0;left:0;right:0;height:3px}
 .kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3);margin-bottom:8px}
-.kpi .v{font-size:26px;font-weight:800;font-family:'Manrope',sans-serif;letter-spacing:-.02em}
+.kpi .v{font-size:25px;font-weight:800;font-family:'Manrope',sans-serif;letter-spacing:-.02em}
 .kpi .u{font-size:13px;color:var(--ink3);font-weight:600}
 .kpi .sub{font-size:10.5px;color:var(--ink4);margin-top:6px}
+.now-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--amber);background:rgba(245,158,11,.12);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 .trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;margin-top:6px;padding:2px 7px;border-radius:6px}
 .up{color:#34d399;background:rgba(52,211,153,.12)}.dn{color:#fb7185;background:rgba(251,113,133,.12)}.flat{color:var(--ink4);background:var(--elev)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -61,24 +63,30 @@ b{font-weight:700}
 .pill{display:inline-block;padding:2px 8px;border-radius:7px;font-size:11px;font-weight:700}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink3);margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.funnel{display:flex;gap:0;align-items:stretch}
-.fn{flex:1;position:relative;text-align:center;padding:14px 6px;color:#06121a;font-weight:800;clip-path:polygon(0 0,100% 0,92% 100%,0 100%)}
-.fn .fv{font-size:22px;font-family:'Manrope',sans-serif}.fn .fl{font-size:10.5px;font-weight:700;margin-top:2px;opacity:.85}
 .note{font-size:11px;color:var(--ink4);background:var(--soft);border:1px dashed var(--border2);border-radius:8px;padding:8px 11px;margin-top:10px}
+/* проходимость участков */
+.flow-row{display:grid;grid-template-columns:112px 1fr 150px 84px;gap:10px;align-items:center;margin:6px 0}
+.flow-row .fnm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right}
+.flow-row .fbar{height:22px;border-radius:6px;background:var(--elev);overflow:hidden;position:relative}
+.flow-row .fbar>i{display:block;height:100%;border-radius:6px 0 0 6px}
+.flow-row .fnum{font-size:12px;font-variant-numeric:tabular-nums}
+.flow-row .fwip{font-size:11px;font-weight:800;text-align:right;white-space:nowrap}
 a{color:var(--cyan)}
 </style></head><body>
 <div class="hdr">
   <div class="topbar">
     <div class="logo">GG</div>
     <div class="brand"><b>GENGLASS · Производство</b><span>Командный центр производства · смарт-процесс «Производство GG»</span><span id="fresh"></span></div>
-    <div style="margin-left:auto;font-size:11px;color:var(--ink4)">MVP · данные из Bitrix24 · фильтры визуальные (в разработке)</div>
+    <div style="margin-left:auto;font-size:11px;color:var(--ink4)">MVP · данные из Bitrix24 · фильтры активные</div>
   </div>
   <div class="controls">
-    <span class="ctl-lbl">Период по</span><div class="seg"><button class="on">дате создания</button><button>дате готовности</button></div>
-    <span class="ctl-lbl">Гранулярность</span><div class="seg"><button>День</button><button class="on">Неделя</button><button>Месяц</button></div>
-    <span class="ctl-lbl">Направление</span><div class="seg"><button class="on">Все</button></div>
-    <span class="tb-spacer" style="flex:1"></span>
-    <div class="seg"><button class="on">Сегодня</button><button>Вчера</button><button>7 дн</button><button>30 дн</button><button>Всё</button></div>
+    <span class="ctl-lbl">Срез по</span><div class="seg" id="modeSeg"><button data-v="start" class="on">дате запуска</button><button data-v="done">дате готовности</button></div>
+    <span class="ctl-lbl">Гранулярность</span><div class="seg" id="granSeg"><button data-v="d">День</button><button data-v="w" class="on">Неделя</button><button data-v="m">Месяц</button></div>
+    <span class="ctl-lbl">Направление</span><select class="ctl" id="dirSel"><option value="">Все</option></select>
+    <span class="ctl-lbl">С</span><input class="ctl" type="date" id="dFrom">
+    <span class="ctl-lbl">По</span><input class="ctl" type="date" id="dTo">
+    <span style="flex:1"></span>
+    <div class="seg" id="presetSeg"><button data-v="7">7 дн</button><button data-v="30">30 дн</button><button data-v="90">90 дн</button><button data-v="all" class="on">Всё</button></div>
   </div>
 </div>
 <div class="wrap" id="root"></div>
@@ -92,7 +100,9 @@ const fmt=n=>{n=Math.round(n||0);return String(n).replace(/\B(?=(\d{3})+(?!\d))/
 const fmtK=n=>{n=n||0;return n>=1e6?(n/1e6).toFixed(2).replace('.',',')+' млн':n>=1e3?Math.round(n/1e3)+' тыс':fmt(n)};
 const d1=x=>x==null?'—':(Math.round(x*10)/10).toString().replace('.',',');
 const pct=x=>((x||0)*100).toFixed(1).replace('.',',')+'%';
+const pct0=x=>Math.round((x||0)*100)+'%';
 const D=s=>s?new Date(String(s).slice(0,10)+'T12:00:00'):null;
+const iso=dt=>{const p=n=>String(n).padStart(2,'0');return dt.getFullYear()+'-'+p(dt.getMonth()+1)+'-'+p(dt.getDate())};
 const days=(a,b)=>{a=D(a);b=D(b);return a&&b?Math.round((b-a)/864e5):null};
 const med=a=>{a=a.filter(x=>x!=null).sort((p,q)=>p-q);if(!a.length)return null;const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
 const sum=(a,f)=>a.reduce((s,x)=>s+(f(x)||0),0);
@@ -113,133 +123,236 @@ const stMap={};STATIONS.forEach(([nm,codes])=>codes.forEach(c=>stMap[c]=nm));
 const stationOf=c=>stMap[c]||null;
 const isDone=i=>i.sem==='S', isWip=i=>i.sem==='P';
 const firstHist=i=>i.hist&&i.hist.length?i.hist[0][1]:i.created;
-const successDate=i=>{if(!i.hist)return null;for(const h of i.hist)if(h[0]===P+'SUCCESS')return h[1];return i.close};
-const cycleOf=i=>days(i.dateToProd||firstHist(i),successDate(i));
+const successDate=i=>{if(!i.hist)return null;for(const h of i.hist)if(h[0]===P+'SUCCESS')return h[1];return isDone(i)?i.close:null};
+const startDate=i=>i.dateToProd||firstHist(i);
+const cycleOf=i=>days(startDate(i),successDate(i));
 const dwellNow=i=>days(i.moved||firstHist(i),NOWS);
-// бакеты недель
-function wkey(ds){const dt=D(ds);if(!dt)return null;const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return dt.toISOString().slice(0,10)}
-function wlabel(k){return k.slice(8,10)+'.'+k.slice(5,7)}
+const mgrOf=i=>i.dealMgr||i.sourceMgr||'—';
+const moneyOf=i=>i.dealBudget||0;
 function tone(dw){return dw>=21?'#F43F5E':dw>=10?'#FB923C':dw>=5?'#F59E0B':'#2E9E74'}
-// тренд: за последние 30 дн vs предыдущие 30
-function inWin(ds,a,b){const t=D(ds);return t&&t>=a&&t<=b}
-const w30a=new Date(NOW-30*864e5),w30b=NOW,w60a=new Date(NOW-60*864e5),w60b=new Date(NOW-30*864e5-1);
+
+// ===== состояние фильтров =====
+const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all'};
+
+// бакеты по гранулярности (локальные компоненты - без TZ-сдвигов)
+function bkey(ds){const dt=D(ds);if(!dt)return null;
+  if(S.gran==='d')return iso(dt);
+  if(S.gran==='m')return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return iso(dt)}
+function blabel(k){if(S.gran==='m')return MON[+k.slice(5,7)-1];return k.slice(8,10)+'.'+k.slice(5,7)}
+function bkeysInRange(){const keys=[];let dt=D(S.from);const end=D(S.to);if(!dt||!end)return keys;
+  let k=bkey(iso(dt));while(k){keys.push(k);
+    if(S.gran==='d')dt.setDate(dt.getDate()+1);
+    else if(S.gran==='w')dt.setDate(dt.getDate()+7);
+    else dt.setMonth(dt.getMonth()+1);
+    const nk=bkey(iso(dt));if(nk===k)break;k=nk;if(dt>end&&keys.includes(bkey(iso(end))))break;
+    if(keys.length>400)break}
+  return keys.filter((v,i,a)=>a.indexOf(v)===i)}
+// конец бакета (для точечных метрик «на конец периода»)
+function bend(k){if(S.gran==='m'){const dt=new Date(+k.slice(0,4),+k.slice(5,7),0,12);return iso(dt)}
+  if(S.gran==='w'){const dt=D(k);dt.setDate(dt.getDate()+6);return iso(dt)}return k}
+const inRange=ds=>ds&&ds>=S.from&&ds<=S.to;
+const dirOk=i=>!S.dir||i.dir===S.dir;
+
+// когорты: запуск / готовность в выбранном периоде (+направление)
+function cohorts(){
+  const all=IT.filter(dirOk);
+  const started=all.filter(i=>inRange(startDate(i)));
+  const finished=all.filter(i=>isDone(i)&&inRange(successDate(i)));
+  const cut=S.mode==='start'?started:finished; // срез для структурных блоков
+  return {all,started,finished,cut};
+}
+// предыдущее окно той же длины (для трендов)
+function prevWin(){const a=D(S.from),b=D(S.to);const len=Math.round((b-a)/864e5)+1;
+  const pb=new Date(a-864e5),pa=new Date(a-len*864e5);return [iso(pa),iso(pb)]}
 function trend(cur,prev,inv){if(prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up;const cls=Math.abs(dl)<.005?'flat':good?'up':'dn';return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`}
 
-function multiline(series,keys){
-  const w=680,h=200,pl=34,pr=12,pt=12,pb=26;let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v>mx)mx=v}));mx=mx*1.15||1;
-  const X=i=>pl+(w-pl-pr)*i/(keys.length-1||1),Y=v=>h-pb-(h-pt-pb)*v/mx;
-  let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${Math.round(mx*(1-g/3))}</text>`}
-  let xl='';keys.forEach((k,i)=>{const step=Math.ceil(keys.length/8);if(i%step===0||i===keys.length-1)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${wlabel(k)}</text>`});
-  let paths='';series.forEach(s=>{const pts=s.vals.map((v,i)=>[X(i),Y(v)]);const dd=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-    paths+=`<path d="${dd}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.4" fill="${s.c}"/>`).join('')});
-  const leg=series.map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('');
-  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${h}" style="width:100%;min-width:520px">${grid}${paths}${xl}</svg></div><div class="legend">${leg}</div>`;
+// ===== графики =====
+function chartSVG(series,keys,opt){
+  opt=opt||{};const w=opt.w||640,h=opt.h||190,pl=44,pr=12,pt=12,pb=26;
+  let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));mx=mx*1.15||1;
+  const n=keys.length,X=i=>pl+(w-pl-pr)*(n>1?i/(n-1):.5),Y=v=>h-pb-(h-pt-pb)*v/mx;
+  const fv=opt.fmtY||(v=>fmtK(Math.round(v)));
+  let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${fv(mx*(1-g/3))}</text>`}
+  let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);if(i%step===0||i===n-1)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
+  let body='';
+  series.forEach(s=>{
+    if(s.type==='bar'){const bw=Math.max(3,(w-pl-pr)/(n*1.6));
+      body+=s.vals.map((v,i)=>v==null?'':`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity=".85"/>`).join('');}
+    else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);
+      let dd='',pen=false;pts.forEach(p=>{if(!p){pen=false;return}dd+=(pen?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);pen=true});
+      if(s.area){let ad=dd;const fp=pts.filter(Boolean);if(fp.length>1){ad+='L'+fp[fp.length-1][0].toFixed(1)+' '+(h-pb)+'L'+fp[0][0].toFixed(1)+' '+(h-pb)+'Z';body+=`<path d="${ad}" fill="${s.c}" opacity=".10"/>`}}
+      body+=`<path d="${dd}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.filter(Boolean).map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.3" fill="${s.c}"/>`).join('');}
+  });
+  const leg=series.filter(s=>s.name).map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('');
+  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${body}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
 }
+// серия «сумма по бакетам» для дат
+function seriesBy(items,dateFn,keys,valFn){const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);
+  items.forEach(i=>{const k=bkey(dateFn(i));if(k in ki)v[ki[k]]+=(valFn?valFn(i):1)});return v}
 
 function render(){
-  const done=IT.filter(isDone),wip=IT.filter(isWip);
-  // KPI
-  const cyc=done.map(cycleOf).filter(x=>x!=null&&x>=0);
+  const {all,started,finished,cut}=cohorts();
+  const wip=all.filter(isWip),done=all.filter(isDone);
+  const keys=bkeysInRange();
+  const [pa,pb]=prevWin();
+  const inWinP=(ds)=>ds&&ds>=pa&&ds<=pb;
+  const modeLbl=S.mode==='start'?'запущенные в периоде':'готовые в периоде';
+
+  // ===== KPI (за период, кроме помеченных «сейчас») =====
+  const startedPrev=IT.filter(dirOk).filter(i=>inWinP(startDate(i))).length;
+  const finishedPrev=IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i))).length;
+  const moneyStarted=sum(started,moneyOf), moneyStartedPrev=sum(IT.filter(dirOk).filter(i=>inWinP(startDate(i))),moneyOf);
+  const cyc=finished.map(cycleOf).filter(x=>x!=null&&x>=0);
   const stuck=wip.filter(i=>(dwellNow(i)||0)>14);
-  const dealSum=sum(IT,i=>i.dealBudget||0);
-  const reworkItems=IT.filter(i=>i.hist&&i.hist.some(h=>REWORK.has(h[0])));
-  // приток/выпуск тренды
-  const inNow=IT.filter(i=>inWin(i.dateToProd||i.created,w30a,w30b)).length, inPrev=IT.filter(i=>inWin(i.dateToProd||i.created,w60a,w60b)).length;
-  const outNow=done.filter(i=>inWin(successDate(i),w30a,w30b)).length, outPrev=done.filter(i=>inWin(successDate(i),w60a,w60b)).length;
+  const rewCut=cut.filter(i=>(i.hist||[]).some(h=>REWORK.has(h[0])));
   const kdef=[
-    ['Заказов всего',fmt(IT.length),'','var(--cyan)','за всю историю СП',''],
-    ['В производстве сейчас',fmt(wip.length),'','var(--amber)','открытых на участках',''],
-    ['Готово',fmt(done.length),'','var(--accent)','дошли до «Успех»',''],
-    ['Средний срок производства',d1(med(cyc)),' дн','var(--violet)','медиана: передача → готово',''],
-    ['Зависло >14 дней',fmt(stuck.length),'','var(--red)','из тех, что в работе',''],
-    ['Приток за 30 дн',fmt(inNow),'','var(--cyan)','передано в производство',trend(inNow,inPrev)],
-    ['Выпуск за 30 дн',fmt(outNow),'','var(--accent)','готово за период',trend(outNow,outPrev)],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)','передано в производство',trend(started.length,startedPrev)],
+    ['Готово за период',fmt(finished.length),'','var(--accent)','дошли до «Успех»',trend(finished.length,finishedPrev)],
+    ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','сумма сделок запущенных заказов',trend(moneyStarted,moneyStartedPrev)],
+    ['Средний срок',d1(med(cyc)),' дн','var(--violet)','медиана готовых за период: запуск → готово',''],
+    ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
+    ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
+    ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
   ];
   const kpis=`<div class="kpis">`+kdef.map(k=>`<div class="kpi"><div class="bar" style="background:${k[3]}"></div><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')+`</div>`;
 
-  // КОНВЕЙЕР: по каждому участку - WIP сейчас + медиана срока + прошло всего
+  // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
   const conv=(()=>{
-    const wipByStation={},passByStation={},dwByStation={};
-    STATIONS.forEach(([nm])=>{wipByStation[nm]=0;passByStation[nm]=0;dwByStation[nm]=[]});
-    wip.forEach(i=>{const st=stationOf(i.stageCode);if(st){wipByStation[st]++;const dw=dwellNow(i);if(dw!=null)dwByStation[st].push(dw)}});
-    IT.forEach(i=>{const seen=new Set();(i.hist||[]).forEach(h=>{const st=stationOf(h[0]);if(st&&!seen.has(st)){seen.add(st);passByStation[st]++}})});
-    const maxWip=Math.max(1,...STATIONS.map(([nm])=>wipByStation[nm]));
-    const nodes=STATIONS.map(([nm],idx)=>{const c=wipByStation[nm],mdw=med(dwByStation[nm]),col=c?tone(mdw||0):'var(--ink4)';
+    const wipBy={},passBy={},dwBy={};
+    STATIONS.forEach(([nm])=>{wipBy[nm]=0;passBy[nm]=0;dwBy[nm]=[]});
+    wip.forEach(i=>{const st=stationOf(i.stageCode);if(st){wipBy[st]++;const dw=dwellNow(i);if(dw!=null)dwBy[st].push(dw)}});
+    all.forEach(i=>{const seen=new Set();(i.hist||[]).forEach(h=>{const st=stationOf(h[0]);if(st&&!seen.has(st)&&inRange(h[1])){seen.add(st);passBy[st]++}})});
+    const nodes=STATIONS.map(([nm],idx)=>{
+      const isFin=nm==='Готово';
+      const c=isFin?passBy[nm]:wipBy[nm],mdw=med(dwBy[nm]);
+      const col=isFin?'#2E9E74':(c?tone(mdw||0):'var(--ink4)');
       return `<div class="st"><div class="node" style="border-color:${c?col:'var(--border)'};background:${c?col+'22':'var(--elev)'}">
         <div class="cnt" style="color:${c?col:'var(--ink4)'}">${c}</div>
         <div class="nm">${nm}</div>
-        <div class="dw" style="color:${c?col:'var(--ink4)'}">${c?(mdw!=null?d1(mdw)+' дн':''):'—'}</div>
-        <div class="thru">прошло ${fmt(passByStation[nm])}</div>
+        <div class="dw" style="color:${c?col:'var(--ink4)'}">${isFin?'за период':c?(mdw!=null?d1(mdw)+' дн':''):'транзит'}</div>
+        <div class="thru">${isFin?'всего готово '+fmt(done.length):'за период: '+fmt(passBy[nm])}</div>
       </div>${idx<STATIONS.length-1?'<div class="arrow">›</div>':''}</div>`}).join('');
-    return `<div class="conv">${nodes}</div><div class="legend"><span><i style="background:#2E9E74"></i>до 5 дн</span><span><i style="background:#F59E0B"></i>5-10</span><span><i style="background:#FB923C"></i>10-21</span><span><i style="background:#F43F5E"></i>21+ дн (застряло)</span><span style="color:var(--ink4)">крупное число + красный = узкое горло</span></div>`;
+    return `<div class="conv">${nodes}</div><div class="legend"><span><i style="background:#2E9E74"></i>до 5 дн</span><span><i style="background:#F59E0B"></i>5-10</span><span><i style="background:#FB923C"></i>10-21</span><span><i style="background:#F43F5E"></i>21+ дн (застряло)</span><span style="color:var(--ink4)">крупное число = заказы на участке СЕЙЧАС · «за период» = входы на участок в выбранных датах · 0 у транзитных участков = сейчас пусто, поток шёл (см. «за период»)</span></div>`;
   })();
 
-  // ДИНАМИКА приток vs выпуск по неделям
-  const dyn=(()=>{
-    const keys=[...new Set(IT.flatMap(i=>[wkey(i.dateToProd||i.created),wkey(successDate(i))]).filter(Boolean))].sort().slice(-12);
-    const ki={};keys.forEach((k,i)=>ki[k]=i);
-    const inV=keys.map(()=>0),outV=keys.map(()=>0);
-    IT.forEach(i=>{const wk=wkey(i.dateToProd||i.created);if(wk in ki)inV[ki[wk]]++;});
-    done.forEach(i=>{const wk=wkey(successDate(i));if(wk in ki)outV[ki[wk]]++;});
-    return multiline([{name:'Передано в производство',c:'#22D3EE',vals:inV},{name:'Готово (выпуск)',c:'#2E9E74',vals:outV}],keys);
+  // ===== ДИНАМИКА: запуск vs выпуск =====
+  const dynFlow=chartSVG([
+    {name:'Передано в производство',c:'#22D3EE',vals:seriesBy(all,startDate,keys)},
+    {name:'Готово (выпуск)',c:'#2E9E74',vals:seriesBy(done,successDate,keys)},
+  ],keys,{fmtY:v=>fmt(v)});
+
+  // ===== ДИНАМИКА: WIP и зависло на конец бакета =====
+  const wipVals=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;
+    return all.filter(i=>{const s=startDate(i);if(!s||s>t)return false;const f=successDate(i);return !(f&&f<=t)}).length});
+  const stuckVals=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;
+    return all.filter(i=>{const s=startDate(i);if(!s||s>t)return false;const f=successDate(i);if(f&&f<=t)return false;
+      let last=s;(i.hist||[]).forEach(h=>{if(h[1]&&h[1]<=t&&h[1]>last)last=h[1]});return days(last,t)>14}).length});
+  const dynWip=chartSVG([
+    {name:'В производстве (на конец периода)',c:'#F59E0B',vals:wipVals,area:true},
+    {name:'из них зависло >14 дн',c:'#F43F5E',vals:stuckVals},
+  ],keys,{fmtY:v=>fmt(v)});
+
+  // ===== ДИНАМИКА: средний срок готовых =====
+  const cycVals=keys.map(k=>{const arr=done.filter(i=>bkey(successDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
+  const dynCyc=chartSVG([{name:'Медиана срока производства готовых, дн',c:'#A78BFA',vals:cycVals}],keys,{fmtY:v=>d1(v)});
+
+  // ===== ДИНАМИКА: деньги запуска =====
+  const dynMoney=chartSVG([{name:'Запущено в производство, ₽ (суммы сделок)',c:'#22D3EE',vals:seriesBy(all,startDate,keys,moneyOf),type:'bar'}],keys,{});
+
+  // ===== ПРОХОДИМОСТЬ УЧАСТКОВ (вместо «моста») =====
+  const flowBlock=(()=>{
+    const base=cut.length?cut:[];
+    const rows=STATIONS.map(([nm])=>{
+      const passed=base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm)).length;
+      const w=wipBy2(nm);return {nm,passed,w}});
+    function wipBy2(nm){let c=0,dws=[];wip.forEach(i=>{if(stationOf(i.stageCode)===nm){c++;const d=dwellNow(i);if(d!=null)dws.push(d)}});return {c,m:med(dws)}}
+    const total=base.length||1;
+    const PAL=['#38BDF8','#22D3EE','#2DD4BF','#2E9E74','#4ADE80','#A3E635','#FACC15','#FB923C','#A78BFA','#34D399'];
+    const body=rows.map((r,idx)=>{
+      const share=r.passed/total;
+      const wipTag=r.nm==='Готово'?'':(r.w.c?`<span style="color:${tone(r.w.m||0)}">сейчас: ${r.w.c}${r.w.m!=null?' · '+d1(r.w.m)+' дн':''}</span>`:`<span style="color:var(--ink4)">сейчас: 0</span>`);
+      return `<div class="flow-row">
+        <div class="fnm">${r.nm}</div>
+        <div class="fbar"><i style="width:${Math.max(share*100,r.passed?2:0).toFixed(1)}%;background:${PAL[idx%PAL.length]}"></i></div>
+        <div class="fnum"><b>${fmt(r.passed)}</b> из ${fmt(total)} · <b>${pct0(share)}</b></div>
+        <div class="fwip">${wipTag}</div>
+      </div>`}).join('');
+    return `${body}<div class="note">Каждая полоса = доля заказов (${modeLbl}: <b>${fmt(total)}</b> шт), прошедших через участок. Производство - не воронка, а трубы: заказ идёт только по нужным участкам, поэтому полосы не обязаны убывать. Читается так: короткая полоса = участок используется редко; справа «сейчас» = очередь на участке в данный момент, красное = лежит долго (затор).</div>`;
   })();
 
-  // УЧАСТКИ таблица
+  // ===== УЧАСТКИ таблица =====
   const stTable=(()=>{
     const rows=STATIONS.filter(([nm])=>nm!=='Готово').map(([nm])=>{
       const w=wip.filter(i=>stationOf(i.stageCode)===nm),dws=w.map(dwellNow).filter(x=>x!=null),m=med(dws),mx=dws.length?Math.max(...dws):0;
-      let pass=0;IT.forEach(i=>{if((i.hist||[]).some(h=>stationOf(h[0])===nm))pass++});
+      let pass=0;all.forEach(i=>{if((i.hist||[]).some(h=>stationOf(h[0])===nm&&inRange(h[1])))pass++});
       return {nm,wip:w.length,m,mx,pass}}).sort((a,b)=>b.wip-a.wip||(b.m||0)-(a.m||0));
     const body=rows.map(r=>`<tr><td class="nm">${r.nm}</td><td>${r.wip}</td><td style="color:${tone(r.m||0)};font-weight:700">${r.m!=null?d1(r.m)+' дн':'—'}</td><td>${r.mx?r.mx+' дн':'—'}</td><td>${fmt(r.pass)}</td></tr>`).join('');
-    return `<table class="tbl"><thead><tr><th>Участок</th><th>В работе</th><th>Медиана срока</th><th>Макс</th><th>Прошло всего</th></tr></thead><tbody>${body}</tbody></table>`;
+    return `<table class="tbl"><thead><tr><th>Участок</th><th>В работе сейчас</th><th>Медиана срока</th><th>Макс</th><th>Прошло за период</th></tr></thead><tbody>${body}</tbody></table>`;
   })();
 
-  // ДОРАБОТКИ по участкам
+  // ===== ДОРАБОТКИ =====
   const reworkBlock=(()=>{
     const map={};STATIONS.forEach(([nm])=>map[nm]=0);let tot=0;
-    IT.forEach(i=>{const seen=new Set();(i.hist||[]).forEach(h=>{if(REWORK.has(h[0])){const st=stationOf(h[0]);if(st&&!seen.has(st)){seen.add(st);map[st]++;tot++}}})});
+    all.forEach(i=>{const seen=new Set();(i.hist||[]).forEach(h=>{if(REWORK.has(h[0])&&inRange(h[1])){const st=stationOf(h[0]);if(st&&!seen.has(st)){seen.add(st);map[st]++;tot++}}})});
     const rows=Object.entries(map).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]);
     const mx=rows.length?rows[0][1]:1;
-    const body=rows.map(([nm,c])=>`<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><div style="width:110px;font-size:12px;color:var(--ink2);text-align:right">${nm}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:#FB923C"></i></div><div style="width:34px;font-weight:700;font-size:12px">${c}</div></div>`).join('')||'<div class="card-s">возвратов на доработку не зафиксировано</div>';
-    return `<div>${body}</div><div class="note">Доработка/Перекрас = сколько заказов возвращалось на участок повторно. Всего событий: <b>${tot}</b>. Высокий столбец = проблемный участок по качеству.</div>`;
+    const body=rows.map(([nm,c])=>`<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><div style="width:110px;font-size:12px;color:var(--ink2);text-align:right">${nm}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:#FB923C"></i></div><div style="width:34px;font-weight:700;font-size:12px">${c}</div></div>`).join('')||'<div class="card-s">возвратов на доработку в выбранном периоде не зафиксировано</div>';
+    return `<div>${body}</div><div class="note">Доработка/Перекрас = заказы, возвращавшиеся на участок повторно (в выбранном периоде). Всего событий: <b>${tot}</b>. Высокий столбец = проблемный участок по качеству.</div>`;
   })();
 
-  // КОНСТРУКТОРЫ
-  const consTable=(()=>{
-    const m={};IT.forEach(i=>{const n=i.constructor||'—';(m[n]=m[n]||{n,tot:0,done:0,cyc:[],sum:0,rew:0});m[n].tot++;if(isDone(i))m[n].done++;const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);m[n].sum+=i.dealBudget||0;if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
-    const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,12);
-    const body=rows.map(r=>`<tr><td class="nm">${r.n}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td><td>${r.rew}</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('');
-    return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
+  // ===== МЕНЕДЖЕРЫ (кто запускает производство) =====
+  const mgrBlock=(()=>{
+    const m={};cut.forEach(i=>{const n=mgrOf(i);(m[n]=m[n]||{n,tot:0,done:0,wip:0,cyc:[],sum:0,rew:0});
+      m[n].tot++;if(isDone(i))m[n].done++;if(isWip(i))m[n].wip++;
+      const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);
+      m[n].sum+=moneyOf(i);if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
+    const rows=Object.values(m).sort((a,b)=>b.sum-a.sum);
+    const mxS=rows.length?Math.max(...rows.map(r=>r.sum),1):1;
+    const totS=sum(rows,r=>r.sum);
+    const body=rows.slice(0,14).map(r=>`<tr><td class="nm">${r.n}</td><td>${r.tot}</td><td>${r.wip}</td><td>${r.done}</td>
+      <td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><div class="hbar" style="width:90px"><i style="width:${(r.sum/mxS*100).toFixed(0)}%;background:#22D3EE"></i></div><b>${fmtK(r.sum)} ₽</b></div></td>
+      <td style="color:var(--ink4)">${totS?pct(r.sum/totS):'—'}</td></tr>`).join('');
+    return `<table class="tbl"><thead><tr><th>Менеджер</th><th>Заказов</th><th>В работе</th><th>Готово</th><th>Ср.срок</th><th>Сумма сделок</th><th>Доля ₽</th></tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). Сумма = бюджеты сделок, привязанных к заказам производства. Заказов без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}.</div>`;
   })();
 
-  // МОСТ Продажи → Производство
-  const bridge=(()=>{
-    const withDeal=IT.filter(i=>i.dealId).length, inProd=IT.length, wipN=wip.length, doneN=done.length;
-    const stages=[['Заказ в производстве',inProd,'#22D3EE'],['Привязан к сделке',withDeal,'#38BDF8'],['В работе сейчас',wipN,'#F59E0B'],['Готово',doneN,'#2E9E74']];
-    const mx=stages[0][1]||1;
-    const fns=stages.map((s,i)=>`<div class="fn" style="background:${s[2]};flex:${(0.5+s[1]/mx).toFixed(2)}"><div class="fv">${fmt(s[1])}</div><div class="fl">${s[0]}</div></div>`).join('');
-    return `<div class="funnel">${fns}</div><div class="note">262 карточки производства, из них 252 связаны со сделкой воронки «GG Заказы РФ» (parentId2). Это мост: что продано - дошло до цеха, где сейчас и сколько готово.</div>`;
-  })();
-
-  // АССОРТИМЕНТ + НАПРАВЛЕНИЕ (что производим)
+  // ===== ЧТО ПРОИЗВОДИМ =====
   const mixBlock=(()=>{
-    const by=(key)=>{const m={};IT.forEach(i=>{const v=i[key]||'не указано';m[v]=(m[v]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
-    const bars=(data,pal)=>{const mx=data[0]?data[0][1]:1;return data.map(([n,c],idx)=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><div style="width:120px;font-size:11.5px;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:${pal[idx%pal.length]}"></i></div><div style="width:60px;font-size:11.5px;font-weight:700">${c} <span style="color:var(--ink4);font-weight:400">${pct(c/IT.length)}</span></div></div>`).join('')};
+    const base=cut;
+    const by=(key)=>{const m={};base.forEach(i=>{const v=i[key]||'не указано';m[v]=(m[v]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1])};
+    const bars=(data,pal)=>{const mx=data[0]?data[0][1]:1;return data.map(([n,c],idx)=>`<div style="display:flex;align-items:center;gap:10px;margin:4px 0"><div style="width:120px;font-size:11.5px;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:${pal[idx%pal.length]}"></i></div><div style="width:60px;font-size:11.5px;font-weight:700">${c} <span style="color:var(--ink4);font-weight:400">${base.length?pct(c/base.length):''}</span></div></div>`).join('')||'<div class="card-s">нет заказов в выбранном периоде</div>'};
     const PAL=['#22D3EE','#2E9E74','#A78BFA','#F59E0B','#F43F5E','#38BDF8','#10B981'];
     return `<div class="grid2"><div><div class="card-s" style="margin-bottom:6px">По ассортименту</div>${bars(by('assort'),PAL)}</div><div><div class="card-s" style="margin-bottom:6px">По направлению бренда</div>${bars(by('dir'),PAL)}</div></div>`;
   })();
 
+  // ===== КОНСТРУКТОРЫ =====
+  const consTable=(()=>{
+    const m={};cut.forEach(i=>{const n=i.constructor||'—';(m[n]=m[n]||{n,tot:0,done:0,cyc:[],sum:0,rew:0});m[n].tot++;if(isDone(i))m[n].done++;const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);m[n].sum+=moneyOf(i);if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
+    const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,12);
+    const body=rows.map(r=>`<tr><td class="nm">${r.n}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td><td>${r.rew}</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="6" class="card-s">нет заказов в периоде</td></tr>';
+    return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
+  })();
+
+  const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
-    `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">здоровье цеха: сколько в работе, где затор, растём или падаем</div></div>`+kpis+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">сколько заказов сейчас на каждом участке (крупное число) · цвет и «дн» = медиана срока на участке · «прошло» = сколько всего прошло через участок. Вопрос: где очередь и застой. Вывод: крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
-    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Приток vs выпуск по неделям</div><div class="card-s">синяя = передано в производство, зелёная = готово. Если синяя выше зелёной - незавершёнка растёт (не успеваем). Сходятся - баланс.</div></div></div>${dyn}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Мост: Продажи → Производство</div><div class="card-s">что из проданного дошло до цеха и где оно сейчас</div></div></div>${bridge}</div></div>`+
+    `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · метки «сейчас» = моментальный снимок, остальное = за период</div></div>`+kpis+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
+    `<div class="grid2">`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div></div>${dynFlow}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по заказам, готовым в каждом периоде. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск в деньгах</div><div class="card-s">суммы сделок по заказам, переданным в производство в каждом периоде.</div></div></div>${dynMoney}</div>`+
+    `</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Проходимость участков</div><div class="card-s">сколько заказов периода проходит через каждый участок - в штуках и долях · справа очередь «сейчас»</div></div></div>${flowBlock}</div>`+
     `<div class="sec"><div class="n">2</div><h2>Участки</h2><div class="ln"></div><div class="hint">где заказы лежат дольше всего и где страдает качество</div></div>`+
-    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли. Скан сверху: у кого больше и краснее - там тормоз.</div></div></div>${stTable}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">сколько заказов возвращалось на участок повторно - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов по ассортименту и бренду · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
-    `<div class="sec"><div class="n">3</div><h2>Сотрудники</h2><div class="ln"></div><div class="hint">кто тянет объём и с каким качеством/скоростью</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, средний срок производства, доработки, сумма связанных сделок</div></div></div>${consTable}</div>`;
+    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли</div></div></div>${stTable}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов (${modeLbl}) · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
+    `<div class="sec"><div class="n">3</div><h2>Сотрудники</h2><div class="ln"></div><div class="hint">кто заводит объём и кто его производит</div></div>`+
+    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: кто запускает производство</div><div class="card-s">количество и деньги заказов, заведённых в цех (${modeLbl})</div></div></div>${mgrBlock}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, сумма связанных сделок (${modeLbl})</div></div></div>${consTable}</div></div>`;
 
   // freshness
   const fr=document.getElementById('fresh');
@@ -247,5 +360,25 @@ function render(){
     const ageH=(new Date()-g)/36e5,col=ageH>48?'#F43F5E':ageH>30?'#F59E0B':'#2E9E74';
     fr.textContent='данные на '+p(m.getUTCDate())+'.'+p(m.getUTCMonth()+1)+' '+p(m.getUTCHours())+':'+p(m.getUTCMinutes())+' МСК';fr.style.color=col}
 }
-render();
+
+// ===== контролы =====
+function segWire(id,key){const seg=document.getElementById(id);seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));S[key]=b.dataset.v;
+  if(key==='preset'){applyPreset(b.dataset.v)}render()})}
+function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;const a=new Date(NOW-(n-1)*864e5);S.from=iso(a);S.to=NOWS}
+  document.getElementById('dFrom').value=S.from;document.getElementById('dTo').value=S.to}
+(function init(){
+  // направления из данных
+  const dirs=[...new Set(IT.map(i=>i.dir).filter(v=>v&&v!=='не указано'))].sort();
+  const sel=document.getElementById('dirSel');
+  dirs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o)});
+  sel.addEventListener('change',()=>{S.dir=sel.value;render()});
+  segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
+  const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
+  df.value=S.from;dt.value=S.to;
+  const custom=()=>{if(df.value)S.from=df.value;if(dt.value)S.to=dt.value;
+    document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));render()};
+  df.addEventListener('change',custom);dt.addEventListener('change',custom);
+  render();
+})();
 </script></body></html>

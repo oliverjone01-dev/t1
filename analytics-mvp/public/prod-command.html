@@ -155,7 +155,14 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money'};
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',
+  mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false}};
+// кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
+function thRow(tbl,st,defs){return defs.map(([k,l])=>k
+  ?`<th data-tbl="${tbl}" data-sk="${k}" style="cursor:pointer;user-select:none${k===st.k?';color:#22D3EE':''}">${l}${k===st.k?(st.a?' ▲':' ▼'):''}</th>`
+  :`<th>${l}</th>`).join('')}
+function sortRows(rows,st,get){const f=get[st.k]||get.sum;rows.sort((a,b)=>{const va=f(a),vb=f(b);
+  const d=(typeof va==='string')?String(va).localeCompare(String(vb),'ru'):((vb??-1)-(va??-1));return st.a?-d:d})}
 
 // бакеты по гранулярности (локальные компоненты - без TZ-сдвигов)
 function bkey(ds){const dt=D(ds);if(!dt)return null;
@@ -421,7 +428,9 @@ function render(){
     const q={};let qTot=0,qSum=0;
     if(QT)QT.forEach(d=>{const n=d.mgr||'—';(q[n]=q[n]||{cnt:0,sum:0});q[n].cnt++;q[n].sum+=d.budget||0;qTot++;qSum+=d.budget||0;
       if(!m[n])m[n]={n,tot:0,done:0,wip:0,cyc:[],sum:0}});
-    const rows=Object.values(m).sort((a,b)=>b.sum-a.sum||((q[b.n]||{}).sum||0)-((q[a.n]||{}).sum||0));
+    const rows=Object.values(m);
+    rows.forEach(r=>{r.cycM=med(r.cyc);r.q=(q[r.n]||{}).cnt||0;r.qm=(q[r.n]||{}).sum||0});
+    sortRows(rows,S.mgrSort,{n:r=>r.n,tot:r=>r.tot,sum:r=>r.sum,done:r=>r.done,cyc:r=>r.cycM,q:r=>r.q,qm:r=>r.qm});
     const totS=sum(rows,r=>r.sum);
     const body=rows.slice(0,16).map(r=>{const qq=q[r.n];
       return `<tr><td class="nm">${esc(r.n)}</td><td><b>${r.tot}</b></td><td><b>${fmtK(r.sum)} ₽</b></td><td style="color:var(--ink4)">${totS?pct(r.sum/totS):'—'}</td><td>${r.done}</td>
@@ -431,7 +440,7 @@ function render(){
     const qNote=QT
       ?`Просчёты<span class="now-badge">сейчас</span> = открытые сделки на стадиях Расчёт / Формирование ТЗ / КП отправлено / Принимают решение / Долгострой: потенциал цеха <b>${fmt(qTot)}</b> сделок на <b>${fmtK(qSum)} ₽</b>. Снимок текущего момента, на фильтр периода не реагирует.`
       :`Просчёты появятся после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором).`;
-    return `<table class="tbl"><thead><tr><th>Менеджер</th><th>Запусков</th><th>Запуски ₽</th><th>Доля ₽</th><th>Готово</th><th>Ср.срок</th><th>Просчёты</th><th>Потенциал ₽</th></tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). Запуски ₽ = бюджеты сделок, привязанных к заказам производства. Без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}. ${qNote}</div>`;
+    return `<table class="tbl"><thead><tr>${thRow('mgr',S.mgrSort,[['n','Менеджер'],['tot','Запусков'],['sum','Запуски ₽'],[null,'Доля ₽'],['done','Готово'],['cyc','Ср.срок'],['q','Просчёты'],['qm','Потенциал ₽']])}</tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). Запуски ₽ = бюджеты сделок, привязанных к заказам производства. Без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}. ${qNote}</div>`;
   })();
 
   // ===== ЧТО ПРОИЗВОДИМ: два бублика =====
@@ -446,9 +455,11 @@ function render(){
   // ===== КОНСТРУКТОРЫ =====
   const consTable=(()=>{
     const m={};cut.forEach(i=>{const n=i.constructor||'—';(m[n]=m[n]||{n,tot:0,done:0,cyc:[],sum:0,rew:0});m[n].tot++;if(isDone(i))m[n].done++;const c=cycleOf(i);if(c!=null&&c>=0&&isDone(i))m[n].cyc.push(c);m[n].sum+=moneyOf(i);if((i.hist||[]).some(h=>REWORK.has(h[0])))m[n].rew++});
-    const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,12);
-    const body=rows.map(r=>`<tr><td class="nm">${esc(r.n)}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(med(r.cyc)||0)}">${med(r.cyc)!=null?d1(med(r.cyc))+' дн':'—'}</td><td>${r.rew}</td><td>${r.tot?fmtK(r.sum/r.tot):'—'} ₽</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="7" class="card-s">нет заказов в периоде</td></tr>';
-    return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Ср.чек</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
+    const rows=Object.values(m);
+    rows.forEach(r=>{r.cycM=med(r.cyc);r.avg=r.tot?r.sum/r.tot:0});
+    sortRows(rows,S.conSort,{n:r=>r.n,tot:r=>r.tot,done:r=>r.done,cyc:r=>r.cycM,rew:r=>r.rew,avg:r=>r.avg,sum:r=>r.sum});
+    const body=rows.slice(0,12).map(r=>`<tr><td class="nm">${esc(r.n)}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(r.cycM||0)}">${r.cycM!=null?d1(r.cycM)+' дн':'—'}</td><td>${r.rew}</td><td>${r.tot?fmtK(r.avg):'—'} ₽</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="7" class="card-s">нет заказов в периоде</td></tr>';
+    return `<table class="tbl"><thead><tr>${thRow('con',S.conSort,[['n','Конструктор'],['tot','Заказов'],['done','Готово'],['cyc','Ср.срок'],['rew','Доработок'],['avg','Ср.чек'],['sum','Сумма']])}</tr></thead><tbody>${body}</tbody></table>`;
   })();
 
   // ===== КОНСТРУКТОРЫ: профиль по чекам, сортировка ₽/дни/шт =====
@@ -533,7 +544,9 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   dirs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o)});
   sel.addEventListener('change',()=>{S.dir=sel.value;render()});
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
-  document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render()}});
+  document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render();return}
+    const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:S.conSort;
+      if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
   df.value=S.from;dt.value=S.to;
   document.getElementById('applyCustom').addEventListener('click',()=>{

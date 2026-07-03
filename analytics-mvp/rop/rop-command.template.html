@@ -280,7 +280,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'stage',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -540,13 +540,15 @@ function dwellByStage(deals){
   const op=deals.filter(d=>!d.won&&!d.lost&&d.dwellCur!=null);
   const by={};op.forEach(d=>{(by[d.stage]=by[d.stage]||[]).push(d);});
   const rows=Object.entries(by).map(([st,xs])=>{const a=xs.map(x=>x.dwellCur).sort((p,q)=>p-q);const med=a.length?a[Math.floor(a.length/2)]:0;const nt=xs.filter(x=>(x.touchReal||0)===0).length;return {st,med,n:xs.length,nt,code:xs[0].stageCode};});
-  const _ds=S.dwellSort||'stage';rows.sort((a,b)=>_ds==='dwell'?b.med-a.med:_ds==='count'?b.n-a.n:((FORDER.indexOf(a.code)+1||99)-(FORDER.indexOf(b.code)+1||99)));
+  // позиции этапов зафиксированы порядком воронки; вкладки меняют МЕТРИКУ полосы, не порядок
+  rows.sort((a,b)=>((FORDER.indexOf(a.code)+1||99)-(FORDER.indexOf(b.code)+1||99)));
   if(!rows.length)return '<div class="card-sub">нет открытых сделок</div>';
-  const mx=Math.max(...rows.map(r=>r.med),1);
-  return '<div class="lf-bars" style="margin-top:4px">'+rows.map(r=>{const w=(r.med/mx*100).toFixed(1);const c=r.med>=28?'#CC5867':r.med>=14?'#C2873C':'#2E9E74';
+  const _dm=(S.dwellSort==='count')?'count':'dwell';
+  const mx=_dm==='count'?Math.max(...rows.map(r=>r.n),1):Math.max(...rows.map(r=>r.med),1);
+  return '<div class="lf-bars" style="margin-top:4px">'+rows.map(r=>{const _v=_dm==='count'?r.n:r.med;const w=(_v/mx*100).toFixed(1);const c=r.med>=28?'#CC5867':r.med>=14?'#C2873C':'#2E9E74';
     const td=dt(r.st,[['Медиана лежания',d1(r.med)+' дн','hl'],['Открытых сделок',fmt(r.n),'dim'],['Из них без касаний',fmt(r.nt),'dim']]).replace(/"/g,'&quot;');
-    const inside=+w>=30;
-    return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}" style="display:flex;align-items:center"><div style="height:100%;flex:0 0 ${w}%;min-width:6px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both">${inside?d1(r.med)+' дн':''}</div>${inside?'':`<span style="flex:0 0 auto;margin-left:7px;font-size:11px;font-weight:800;color:${c};white-space:nowrap">${d1(r.med)} дн</span>`}</div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
+    const inside=+w>=30;const _lab=_dm==='count'?fmt(r.n)+' сд':d1(r.med)+' дн';
+    return `<div class="fbar"><div class="fl" title="${esc(r.st)}">${r.st}</div><div class="ft" data-tip="${td}" style="display:flex;align-items:center"><div style="height:100%;flex:0 0 ${w}%;min-width:6px;background:${c};border-radius:6px;display:flex;align-items:center;padding:0 9px;font-size:11px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;transform-origin:left;animation:grow .8s var(--ease-out) both">${inside?_lab:''}</div>${inside?'':`<span style="flex:0 0 auto;margin-left:7px;font-size:11px;font-weight:800;color:${c};white-space:nowrap">${_lab}</span>`}</div><div style="width:140px;font-size:10.5px;color:var(--ink-3);text-align:right">${fmt(r.n)} сд · <span style="color:#CC5867">${fmt(r.nt)} без кас.</span></div></div>`;}).join('')+'</div>';
 }
 // Сегментированные столбцы по этапам: высота = деньги (или сделки), сегменты по сроку
 // (свежие <14д / тёплые 14-30д / застрявшие >30д). Видно где заперт пайплайн И что протухает.
@@ -832,7 +834,7 @@ function render(){
   /* 3. ПРОДАЖИ */
   /* уровни собираются в конце */
   const B_truba=funnelChart();
-  const B_dwellStage=`<div class="card"><div class="card-h"><div><div class="card-title">Скорость по этапам ${info('Медиана дней, что открытые сделки лежат на каждом этапе СЕЙЧАС. Вопрос: на каком этапе сделки маринуются дольше всего. Вывод: красные этапы (более 21 дн) - где буксует процесс; «без касаний» = брошенные, никто не ведёт.')}</div><div class="card-sub">медиана дней, что открытые сделки лежат на этапе сейчас · красное = застряли · «без кас.» = без касаний клиента (Б24 фиксирует только касания, залогированные в карточке)</div></div><div class="seg" id="dwellSort"><button data-s="stage" class="${(S.dwellSort||'stage')==='stage'?'on':''}">Этапы</button><button data-s="dwell" class="${S.dwellSort==='dwell'?'on':''}">Срок</button><button data-s="count" class="${S.dwellSort==='count'?'on':''}">Сделок</button></div></div>`+dwellByStage(snap)+`</div>`;
+  const B_dwellStage=`<div class="card"><div class="card-h"><div><div class="card-title">Скорость по этапам ${info('Медиана дней, что открытые сделки лежат на каждом этапе СЕЙЧАС. Вопрос: на каком этапе сделки маринуются дольше всего. Вывод: красные этапы (более 21 дн) - где буксует процесс; «без касаний» = брошенные, никто не ведёт.')}</div><div class="card-sub">медиана дней, что открытые сделки лежат на этапе сейчас · красное = застряли · «без кас.» = без касаний клиента (Б24 фиксирует только касания, залогированные в карточке)</div></div><div class="seg" id="dwellSort"><button data-s="dwell" class="${(S.dwellSort||'dwell')!=='count'?'on':''}">Срок</button><button data-s="count" class="${S.dwellSort==='count'?'on':''}">Сделок</button></div></div>`+dwellByStage(snap)+`</div>`;
   const gTotC=snap.length||1,gTotM=snap.reduce((s,d)=>s+d.budget,0)||1;
   /* блок «Где сейчас сделки» убран - дублирует трубу */
   /* «Динамика сделок» убрана (линейный график) */

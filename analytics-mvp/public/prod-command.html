@@ -27,7 +27,7 @@ b{font-weight:700}
 .qm{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--soft);border:1px solid var(--border);color:var(--ink3);font-size:9px;font-weight:700;line-height:12px;text-align:center;margin-left:5px;cursor:help;font-style:normal;vertical-align:middle}
 #tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:300px}
 #tip b{font-family:'Manrope',sans-serif}#tip .tl{color:var(--ink3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
-#tip .tr{display:flex;justify-content:space-between;gap:16px;padding:1px 0}#tip .tr span:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+#tip .tr{display:flex;justify-content:space-between;gap:16px;padding:1px 0}#tip .tr span:last-child{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .foot{text-align:center;color:var(--ink4);font-size:11px;margin-top:28px}
 .tag{font-size:10px;background:var(--elev);border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--ink3)}
 .wrap{padding:20px 24px 60px;max-width:1720px;margin:0 auto}
@@ -155,7 +155,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -219,8 +219,10 @@ function chartSVG(series,keys,opt){
     if(s.type==='bar'){const bw=Math.max(3,(w-pl-pr)/(n*1.6));
       body+=s.vals.map((v,i)=>v==null?'':`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity=".85" pointer-events="none"/>`).join('');}
     else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);
-      // рвём линию на сегменты по null и сглаживаем каждый
-      const segs=[];let cur=[];pts.forEach(p=>{if(p)cur.push(p);else if(cur.length){segs.push(cur);cur=[]}});if(cur.length)segs.push(cur);
+      // join: одна непрерывная линия через непустые точки (для редких значений, напр. по дням)
+      // иначе рвём линию на сегменты по null и сглаживаем каждый
+      const segs=[];if(s.join){const fp=pts.filter(Boolean);if(fp.length)segs.push(fp)}
+      else{let cur=[];pts.forEach(p=>{if(p)cur.push(p);else if(cur.length){segs.push(cur);cur=[]}});if(cur.length)segs.push(cur)}
       segs.forEach(sp=>{const dd=smoothPath(sp);
         if(s.area&&sp.length>1)body+=`<path d="${dd} L${sp[sp.length-1][0].toFixed(1)} ${h-pb} L${sp[0][0].toFixed(1)} ${h-pb} Z" fill="${s.c}" opacity=".10" pointer-events="none"/>`;
         body+=`<path d="${dd}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`});
@@ -335,11 +337,12 @@ function render(){
     return `<div class="conv">${nodes}</div><div class="legend"><span><i style="background:#2E9E74"></i>до 5 дн</span><span><i style="background:#F59E0B"></i>5-10</span><span><i style="background:#FB923C"></i>10-21</span><span><i style="background:#F43F5E"></i>21+ дн (застряло)</span><span style="color:var(--ink4)">крупное число = заказы на участке СЕЙЧАС · «за период» = входы на участок в выбранных датах · 0 у транзитных участков = сейчас пусто, поток шёл (см. «за период»)</span></div>`;
   })();
 
-  // ===== ДИНАМИКА: запуск vs выпуск =====
+  // ===== ДИНАМИКА: запуск vs выпуск (шт или ₽) =====
+  const _money=S.dynUnit==='money';
   const dynFlow=chartSVG([
-    {name:'Передано в производство',c:'#22D3EE',vals:seriesBy(all,startDate,keys)},
-    {name:'Готово (выпуск)',c:'#2E9E74',vals:seriesBy(done,successDate,keys)},
-  ],keys,{fmtY:v=>fmt(v)});
+    {name:'Передано в производство',c:'#22D3EE',vals:seriesBy(all,startDate,keys,_money?moneyOf:null)},
+    {name:'Готово (выпуск)',c:'#2E9E74',vals:seriesBy(done,successDate,keys,_money?moneyOf:null)},
+  ],keys,_money?{money:true}:{fmtY:v=>fmt(v)});
 
   // ===== ДИНАМИКА: WIP и зависло на конец бакета =====
   const wipVals=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;
@@ -354,10 +357,10 @@ function render(){
 
   // ===== ДИНАМИКА: средний срок готовых =====
   const cycVals=keys.map(k=>{const arr=done.filter(i=>bkey(successDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
-  const dynCyc=chartSVG([{name:'Медиана срока производства готовых, дн',c:'#A78BFA',vals:cycVals}],keys,{fmtY:v=>d1(v)});
+  const dynCyc=chartSVG([{name:'Медиана срока производства готовых, дн',c:'#A78BFA',vals:cycVals,join:true}],keys,{fmtY:v=>d1(v)});
 
   // ===== ДИНАМИКА: деньги запуска =====
-  const dynMoney=chartSVG([{name:'Запущено в производство, ₽ (суммы сделок)',c:'#22D3EE',vals:seriesBy(all,startDate,keys,moneyOf),type:'bar'}],keys,{});
+  const dynMoney=chartSVG([{name:'Запущено в производство, ₽ (суммы сделок)',c:'#22D3EE',vals:seriesBy(all,startDate,keys,moneyOf),type:'bar'}],keys,{money:true});
 
   // ===== ПРОХОДИМОСТЬ УЧАСТКОВ: центрированная воронка =====
   // ширина = доля заказов через участок · цвет = медиана времени НА участке (перегруз краснеет)
@@ -496,7 +499,7 @@ function render(){
     syncBlock+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
     `<div class="grid2">`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div></div>${dynFlow}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по заказам, готовым в каждом периоде. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск в деньгах</div><div class="card-s">суммы сделок по заказам, переданным в производство в каждом периоде.</div></div></div>${dynMoney}</div>`+
@@ -545,6 +548,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   sel.addEventListener('change',()=>{S.dir=sel.value;render()});
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
   document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render();return}
+    const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');

@@ -159,6 +159,21 @@ async function main() {
   }
   console.log(`Связь со сделками: ${Object.keys(dealInfo).length} из ${dealIds.length}`);
 
+  // Товарные строки карточек: количество изделий в позиции.
+  // ownerType динамического типа = 'T' + entityTypeId в hex (1086 -> 'T43e').
+  const OWNER_T = "T" + ETID.toString(16);
+  const qtyByItem: Record<string, number> = {};
+  let prTotal = 0, qtyTotal = 0;
+  for (const r of rows) {
+    try {
+      const j = await call("crm.item.productrow.list", { filter: { "=ownerId": r.id, "=ownerType": OWNER_T } });
+      const prs: any[] = (j.result && j.result.productRows) || [];
+      const q = prs.reduce((x, y) => x + (Number(y.quantity) || 0), 0);
+      if (q > 0) { qtyByItem[String(r.id)] = q; prTotal += prs.length; qtyTotal += q; }
+    } catch { /* карточка без товарных строк */ }
+  }
+  console.log(`Товарные строки (${OWNER_T}): ${prTotal} строк, изделий ${Math.round(qtyTotal)} на ${Object.keys(qtyByItem).length} карточках из ${rows.length}`);
+
   const un = (v: any) => (v ? userName[String(v)] || `id${v}` : null);
   const items = rows.map((r) => {
     const did = r.parentId2 ? String(r.parentId2) : null;
@@ -182,6 +197,7 @@ async function main() {
       shopHead1: un(r[UF.shopHead1]), shopHead2: un(r[UF.shopHead2]),
       otk: un(r[UF.otk]), technolog: un(r[UF.technolog]), smetchik: un(r[UF.smetchik]),
       assignedBy: un(r.assignedById),
+      qty: qtyByItem[String(r.id)] || null, // изделий в карточке (из товарных строк); null = нет строк
       hist: histByItem[String(r.id)] || [],
     };
   });

@@ -168,6 +168,10 @@ const startDate=i=>i.dateToProd||firstHist(i);
 const cycleOf=i=>days(startDate(i),successDate(i));
 const dwellNow=i=>days(i.moved||firstHist(i),NOWS);
 const mgrOf=i=>i.dealMgr||i.sourceMgr||'—';
+// изделий в карточке: из товарных строк СП; нет строк = считаем 1
+const qtyOf=i=>Number(i.qty)>0?Number(i.qty):1;
+const qtySum=arr=>sum(arr,qtyOf);
+const hasQty=IT.some(i=>Number(i.qty)>1);
 const moneyOf=i=>i.dealBudget||0;
 // в сделке бывает несколько карточек-изделий: деньги считаем по УНИКАЛЬНЫМ сделкам
 const uniqByDeal=arr=>{const seen=new Set(),out=[];arr.forEach(i=>{if(!i.dealId||seen.has(i.dealId))return;seen.add(i.dealId);out.push(i)});return out};
@@ -302,16 +306,16 @@ function render(){
   const stuck=wip.filter(i=>(dwellNow(i)||0)>14);
   const rewCut=cut.filter(i=>(i.hist||[]).some(h=>REWORK.has(h[0])));
   const kdef=isStart?[
-    ['Запущено за период',fmt(started.length),'','var(--cyan)','передано в производство',trend(started.length,startedPrev)],
-    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',started.length?pct(cohortDone.length/started.length)+' когорты запуска дошло до «Успех»':'—',''],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('позиций · изделий: '+fmt(qtySum(started))):'передано в производство',trend(started.length,startedPrev)],
+    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',(started.length?pct(cohortDone.length/started.length)+' когорты':'—')+(hasQty?' · изделий: '+fmt(qtySum(cohortDone)):''),''],
     ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','уникальные сделки запущенных',trend(moneyStarted,moneyStartedPrev)],
     ['Средний срок',d1(med(cycCohort)),' дн','var(--violet)','медиана готовых ИЗ запущенных в периоде',''],
     ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
     ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
     ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
   ]:[
-    ['Готово за период',fmt(finished.length),'','var(--accent)','дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
-    ['Запущено за период',fmt(started.length),'','var(--cyan)','передано в производство (событие)',trend(started.length,startedPrev)],
+    ['Готово за период',fmt(finished.length),'','var(--accent)',hasQty?('позиций · изделий: '+fmt(qtySum(finished))):'дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('позиций · изделий: '+fmt(qtySum(started))):'передано в производство (событие)',trend(started.length,startedPrev)],
     ['Выпущено в деньгах',fmtK(moneyFinished),' ₽','var(--accent)','уникальные сделки готовых',trend(moneyFinished,moneyFinishedPrev)],
     ['Средний срок',d1(med(cyc)),' дн','var(--violet)','медиана готовых за период: запуск → готово',''],
     ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
@@ -400,7 +404,7 @@ function render(){
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
     F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
       const money=dealMoney(f.items);
-      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий коснулось</span><span>${fmt(f.count)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(base.length||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Позиций коснулось</span><span>${fmt(f.count)}</span></div>${hasQty?`<div class='tr'><span>Изделий (шт)</span><span>${fmt(qtySum(f.items))}</span></div>`:''}<div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(base.length||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
       nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
       if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
       else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;

@@ -1,0 +1,114 @@
+name: B24 SPA probe (смарт-процесс Производство, read-only)
+
+# Разведка смарт-процесса «Производство GG»: типы, категории/воронки, этапы,
+# поля карточки (стандартные + UF), пример элемента, связи со сделкой (parentId2).
+# Только чтение. Запуск: workflow_dispatch или push этого файла.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-spa-probe.yml"
+
+permissions:
+  contents: read
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Разведка смарт-процесса
+        run: |
+          set -uo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          cat > /tmp/spa.mjs <<'MJS'
+          const base = (process.env.B24_WEBHOOK_URL || '').replace(/\/+$/,'');
+          const call = async (m,p={}) => {
+            const r = await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+            let j={}; try{j=await r.json();}catch(e){j={error:'parse',raw:String(e)};}
+            return j;
+          };
+          const short = (s,n=2000)=>{const t=JSON.stringify(s,null,1);return t.length>n?t.slice(0,n)+' …[обрезано]':t;};
+          (async()=>{
+            // 1) Все смарт-процессы
+            const types = await call('crm.type.list');
+            if(types.error){console.log('crm.type.list error:',types.error_description||types.error);}
+            const list = (types.result&&types.result.types)||[];
+            console.log('=== СМАРТ-ПРОЦЕССЫ (crm.type.list) ===');
+            list.forEach(t=>console.log(`entityTypeId=${t.entityTypeId} | «${t.title}» | категории:${t.isCategoriesEnabled} этапы:${t.isStagesEnabled}`));
+
+            // 2) Ищем Производство
+            let prod = list.find(t=>/произв|production|производ/i.test(t.title||''));
+            if(!prod){ console.log('\n!! Не нашёл смарт-процесс по названию «Производ*». Список выше - укажи нужный entityTypeId, повторю прицельно.'); return; }
+            const eid = prod.entityTypeId;
+            console.log(`\n===== ПРОИЗВОДСТВО: «${prod.title}» entityTypeId=${eid} =====`);
+
+            // 3) Категории/направления
+            const cats = await call('crm.category.list',{entityTypeId:eid});
+            const catList = (cats.result&&cats.result.categories)||[];
+            console.log('\n--- КАТЕГОРИИ (воронки/направления) ---');
+            catList.forEach(c=>console.log(`id=${c.id} | «${c.name}»${c.isDefault?' (по умолч.)':''}`));
+
+            // 4) Поля карточки
+            const f = await call('crm.item.fields',{entityTypeId:eid});
+            const fields = (f.result&&f.result.fields)||{};
+            console.log(`\n--- ПОЛЯ КАРТОЧКИ (${Object.keys(fields).length}) ---`);
+            for(const [k,v] of Object.entries(fields)){
+              const enums = v.items ? ' | enum: '+v.items.slice(0,8).map(x=>`${x.ID||x.id}:${x.VALUE||x.value||x.NAME}`).join(', ')+(v.items.length>8?' …':'') : '';
+              console.log(`${k} | type=${v.type} | «${v.title||v.formLabel||''}»${v.isRequired?' | обяз.':''}${v.isMultiple?' | множ.':''}${v.isReadOnly?' | ro':''}${enums}`);
+            }
+
+            // 4b) Этапы (из stageId + по категориям через crm.status.list)
+            if(fields.stageId && fields.stageId.items){
+              console.log('\n--- ЭТАПЫ (fields.stageId) ---');
+              fields.stageId.items.forEach(s=>console.log(`${s.ID||s.id} | «${s.VALUE||s.value||s.NAME}»`));
+            }
+            for(const c of catList){
+              const st = await call('crm.status.list',{filter:{ENTITY_ID:`DYNAMIC_${eid}_STAGE_${c.id}`},order:{SORT:'ASC'}});
+              const arr = st.result||[];
+              if(arr.length){ console.log(`\n--- Этапы категории ${c.id} «${c.name}» ---`); arr.forEach(s=>console.log(`${s.STATUS_ID} | «${s.NAME}» | semantics=${s.SEMANTICS||'-'}`)); }
+            }
+
+            // 5) Пример элемента + total
+            const items = await call('crm.item.list',{entityTypeId:eid,select:['*','uf_*'],order:{id:'DESC'},start:0});
+            const arr = (items.result&&items.result.items)||[];
+            console.log(`\n--- ВСЕГО ЭЛЕМЕНТОВ: ${items.total} | пример (последний) ---`);
+            console.log(short(arr[0]||{},3000));
+
+            // 6) Связи со сделкой
+            const parentKeys = Object.keys(fields).filter(k=>/^parentId\d+$/i.test(k));
+            console.log('\n--- PARENT-ПОЛЯ (связи с сущностями; 2=сделка, 1=лид, 3=контакт, 4=компания) ---');
+            parentKeys.forEach(k=>console.log(`${k} | «${fields[k].title||''}»`));
+            const it0 = arr[0]||{};
+            const dealId = it0.parentId2 || it0.parentid2;
+            console.log('\nВ примере parentId2 (сделка) =', dealId);
+            if(dealId){
+              const dl = await call('crm.deal.get',{id:dealId});
+              if(dl.result){ const d=dl.result; console.log(`Связанная сделка: ID=${d.ID} | CATEGORY_ID=${d.CATEGORY_ID} (49=GG Заказы РФ) | «${d.TITLE}» | STAGE_ID=${d.STAGE_ID}`); }
+              else console.log('crm.deal.get:', dl.error_description||dl.error||'нет');
+            }
+
+            // 7) Насколько связаны с cat 49: по выборке
+            console.log('\n--- Связь выборки со сделками cat 49 ---');
+            let with2=0, cat49=0, checked=0;
+            for(const it of arr.slice(0,30)){
+              const pid = it.parentId2||it.parentid2;
+              if(pid){ with2++; if(checked<10){ const dl=await call('crm.deal.get',{id:pid}); checked++; if(dl.result && String(dl.result.CATEGORY_ID)==='49') cat49++; } }
+            }
+            console.log(`из первых 30 элементов: с привязкой к сделке (parentId2) = ${with2}; из проверенных ${checked} в cat 49 = ${cat49}`);
+
+            // 8) Конфиг связей (если доступно)
+            const rel = await call('crm.type.get',{id:prod.id});
+            console.log('\n--- crm.type.get (конфиг типа, relations/settings) ---');
+            console.log(short(rel.result&&rel.result.type?rel.result.type:rel.result||rel.error,2500));
+          })().catch(e=>console.log('FATAL',e && e.message));
+          MJS
+          node /tmp/spa.mjs

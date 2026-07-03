@@ -80,6 +80,15 @@ b{font-weight:700}
 .fun-tr{position:relative;height:27px;background:repeating-linear-gradient(90deg,transparent,transparent 6px,rgba(255,255,255,.015) 6px,rgba(255,255,255,.015) 12px)}
 .fun-bar{position:absolute;left:50%;top:0;transform:translateX(-50%);height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;white-space:nowrap;cursor:help;min-width:0;transition:width .35s var(--ease)}
 .fun-st{font-size:11px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
+/* профиль конструкторов по чекам */
+.pr-row{display:grid;grid-template-columns:150px 1fr 1fr 1fr 150px;gap:10px;align-items:center;margin:7px 0}
+.pr-nm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-head{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink4)}
+.pr-cell{position:relative;height:30px;background:var(--elev);border-radius:7px;overflow:hidden;cursor:help}
+.pr-cell>i{position:absolute;left:0;top:0;bottom:0;border-radius:7px 0 0 7px}
+.pr-cell>span{position:absolute;inset:0;display:flex;align-items:center;padding:0 10px;font-size:11px;color:var(--ink2);white-space:nowrap}
+.pr-tot{font-size:11.5px;color:var(--ink3);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:1100px){.pr-row{grid-template-columns:110px 1fr 1fr 1fr 120px}}
 a{color:var(--cyan)}
 </style></head><body>
 <div class="hdr">
@@ -140,6 +149,7 @@ const dwellNow=i=>days(i.moved||firstHist(i),NOWS);
 const mgrOf=i=>i.dealMgr||i.sourceMgr||'—';
 const moneyOf=i=>i.dealBudget||0;
 function tone(dw){return dw>=21?'#F43F5E':dw>=10?'#FB923C':dw>=5?'#F59E0B':'#2E9E74'}
+function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E74'} // полный цикл: медиана цеха ~24 дн
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
@@ -398,28 +408,27 @@ function render(){
     return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Ср.чек</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
   })();
 
-  // ===== КОНСТРУКТОРЫ: чек vs срок (кто берёт дешёвое и возится, кто делает дорогое быстро) =====
+  // ===== КОНСТРУКТОРЫ: профиль по чекам (что берёт и как быстро делает) =====
   const consScatter=(()=>{
-    const pts=cut.filter(i=>isDone(i)&&moneyOf(i)>0).map(i=>({b:moneyOf(i),c:cycleOf(i),n:i.constructor||'—',t:i.title||('#'+i.id)})).filter(p=>p.c!=null&&p.c>=0);
-    if(pts.length<5)return '<div class="card-s">мало готовых заказов с чеком в периоде, точек недостаточно</div>';
-    const cnt={};pts.forEach(p=>cnt[p.n]=(cnt[p.n]||0)+1);
-    const tops=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n])=>n);
-    const PAL=['#22D3EE','#2E9E74','#A78BFA','#F59E0B','#F472B6','#38BDF8'];
-    const colOf=n=>{const i=tops.indexOf(n);return i>=0?PAL[i]:'#5a6672'};
-    const w=1240,h=300,pl=52,pr=16,pt=14,pb=34;
-    const bmax=Math.max(...pts.map(p=>p.b)),cmax=Math.max(...pts.map(p=>p.c))*1.1||1;
-    const SX=v=>pl+(w-pl-pr)*Math.sqrt(v/bmax);   // сжимаем длинный хвост чеков
-    const SY=v=>h-pb-(h-pt-pb)*v/cmax;
-    const mB=med(pts.map(p=>p.b)),mC=med(pts.map(p=>p.c));
-    let grid='';[0,.25,.5,.75,1].forEach(g=>{const yy=pt+(h-pt-pb)*g;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${Math.round(cmax*(1-g))}</text>`});
-    const ticks=[5e4,1e5,25e4,5e5,1e6,2e6,4e6].filter(t=>t<bmax*.96);
-    let xl=ticks.map(t=>`<text x="${SX(t).toFixed(0)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${fmtK(t)}</text><line x1="${SX(t).toFixed(0)}" y1="${h-pb}" x2="${SX(t).toFixed(0)}" y2="${h-pb+3}" stroke="var(--border2)"/>`).join('');
-    const med2=`<line x1="${SX(mB).toFixed(0)}" y1="${pt}" x2="${SX(mB).toFixed(0)}" y2="${h-pb}" stroke="var(--ink4)" stroke-dasharray="4 5"/><line x1="${pl}" y1="${SY(mC).toFixed(0)}" x2="${w-pr}" y2="${SY(mC).toFixed(0)}" stroke="var(--ink4)" stroke-dasharray="4 5"/>`;
-    const quad=`<text x="${pl+8}" y="${pt+12}" font-size="9.5" fill="var(--ink4)">дёшево · долго</text><text x="${w-pr-8}" y="${pt+12}" text-anchor="end" font-size="9.5" fill="var(--ink4)">дорого · долго</text><text x="${pl+8}" y="${h-pb-6}" font-size="9.5" fill="var(--ink4)">дёшево · быстро</text><text x="${w-pr-8}" y="${h-pb-6}" text-anchor="end" font-size="9.5" fill="var(--ink4)">дорого · быстро</text>`;
-    const dots=pts.map(p=>{const td=attr(`<div class='tl'>${esc(p.t)}</div><div class='tr'><span>Конструктор</span><span>${esc(p.n)}</span></div><div class='tr'><span>Чек сделки</span><span>${fmtK(p.b)} ₽</span></div><div class='tr'><span>Срок производства</span><span>${d1(p.c)} дн</span></div>`);
-      return `<circle cx="${SX(p.b).toFixed(1)}" cy="${SY(p.c).toFixed(1)}" r="4" fill="${colOf(p.n)}" opacity=".75" stroke="rgba(0,0,0,.35)" data-tip="${td}" style="cursor:help"/>`}).join('');
-    const leg=tops.map((n,i)=>`<span><i style="background:${PAL[i]}"></i>${esc(n)}</span>`).join('')+`<span><i style="background:#5a6672"></i>остальные</span>`;
-    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${w} ${h}" style="width:100%;min-width:700px">${grid}${med2}${quad}${dots}${xl}<text x="${w-pr}" y="${h-4}" text-anchor="end" font-size="9" fill="var(--ink4)">чек сделки, ₽ (сжатая шкала)</text><text x="${pl}" y="${pt-4}" font-size="9" fill="var(--ink4)">срок, дн</text></svg></div><div class="legend">${leg}</div><div class="note">Каждая точка = готовый заказ периода: по горизонтали чек сделки, по вертикали срок производства. Пунктир = медианы, они делят поле на 4 квадранта. Скопление точек конструктора слева-сверху = берёт дешёвые и возится; справа-снизу = делает дорогие быстро. Наведи на точку - детали заказа.</div>`;
+    const pts=cut.filter(i=>isDone(i)&&moneyOf(i)>0).map(i=>({b:moneyOf(i),c:cycleOf(i),n:i.constructor||'—'})).filter(p=>p.c!=null&&p.c>=0);
+    if(pts.length<5)return '<div class="card-s">мало готовых заказов с чеком в периоде</div>';
+    const BK=[['Дешёвые · до 100 тыс',0,1e5],['Средние · 100-300 тыс',1e5,3e5],['Дорогие · от 300 тыс',3e5,Infinity]];
+    const bkOf=b=>BK.findIndex(([,a,z])=>b>=a&&b<z);
+    const m={};pts.forEach(p=>{(m[p.n]=m[p.n]||{n:p.n,tot:0,sum:0,bk:[[],[],[]]});m[p.n].tot++;m[p.n].sum+=p.b;m[p.n].bk[bkOf(p.b)].push(p)});
+    const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,10);
+    const allRow={n:'Все конструкторы',tot:pts.length,sum:sum(pts,p=>p.b),bk:[[],[],[]]};
+    pts.forEach(p=>allRow.bk[bkOf(p.b)].push(p));
+    const cell=(r,k)=>{const arr=r.bk[k];if(!arr.length)return `<div class="pr-cell"><span style="color:var(--ink4)">—</span></div>`;
+      const share=arr.length/r.tot, mc=med(arr.map(p=>p.c)), col=toneC(mc||0), money=sum(arr,p=>p.b);
+      const td=attr(`<div class='tl'>${esc(r.n)} · ${BK[k][0]}</div><div class='tr'><span>Заказов</span><span>${fmt(arr.length)} (${pct(share)} его заказов)</span></div><div class='tr'><span>Медиана срока</span><span>${d1(mc)} дн</span></div><div class='tr'><span>Деньги</span><span>${fmtK(money)} ₽</span></div>`);
+      return `<div class="pr-cell" data-tip="${td}"><i style="width:${Math.max(share*100,4).toFixed(1)}%;background:${col}30;border-right:2px solid ${col}"></i><span><b style="color:${col}">${arr.length} шт</b>&nbsp;· ${d1(mc)} дн</span></div>`};
+    const row=(r,hl)=>`<div class="pr-row"${hl?' style="border-bottom:1px solid var(--border2);padding-bottom:10px;margin-bottom:4px"':''}>
+      <div class="pr-nm"${hl?' style="color:var(--ink3)"':''}>${esc(r.n)}</div>${cell(r,0)}${cell(r,1)}${cell(r,2)}
+      <div class="pr-tot"><b>${r.tot}</b> шт · <b>${fmtK(r.sum)}</b> ₽</div></div>`;
+    const head=`<div class="pr-row" style="margin-bottom:2px"><div></div>${BK.map(([l])=>`<div class="pr-head">${l}</div>`).join('')}<div class="pr-head" style="text-align:right">Итого</div></div>`;
+    return head+row(allRow,true)+rows.map(r=>row(r)).join('')+
+      `<div class="legend"><span><i style="background:#2E9E74"></i>быстро (до 15 дн)</span><span><i style="background:#F59E0B"></i>15-25 дн</span><span><i style="background:#FB923C"></i>25-40 дн</span><span><i style="background:#F43F5E"></i>40+ дн (возится)</span></div>`+
+      `<div class="note">Читается по строке: <b>длина полосы</b> = какую долю своих заказов конструктор берёт в этой ценовой категории (чаще берёт - длиннее), <b>цифра и цвет</b> = сколько штук и медиана срока (краснее - дольше возится). Пример: длинная полоса в «Дешёвых» + красный срок = берёт дешёвые и долго делает; короткая полоса в «Дорогих» + зелёный срок = дорогие делает быстро, но берёт их редко. Первая строка - средняя картина по цеху для сравнения. Наведи на ячейку - деньги и детали.</div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;

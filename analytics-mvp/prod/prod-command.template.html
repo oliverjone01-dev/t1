@@ -281,17 +281,29 @@ function render(){
   const inWinP=(ds)=>ds&&ds>=pa&&ds<=pb;
   const modeLbl=S.mode==='start'?'запущенные в периоде':'готовые в периоде';
 
-  // ===== KPI (за период, кроме помеченных «сейчас») =====
+  // ===== KPI: когортные - реагируют на срез =====
+  const isStart=S.mode==='start';
   const startedPrev=IT.filter(dirOk).filter(i=>inWinP(startDate(i))).length;
   const finishedPrev=IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i))).length;
   const moneyStarted=dealMoney(started), moneyStartedPrev=dealMoney(IT.filter(dirOk).filter(i=>inWinP(startDate(i))));
+  const moneyFinished=dealMoney(finished), moneyFinishedPrev=dealMoney(IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i))));
+  const cohortDone=started.filter(isDone); // из запущенных в периоде уже готовы
+  const cycCohort=cohortDone.map(cycleOf).filter(x=>x!=null&&x>=0);
   const cyc=finished.map(cycleOf).filter(x=>x!=null&&x>=0);
   const stuck=wip.filter(i=>(dwellNow(i)||0)>14);
   const rewCut=cut.filter(i=>(i.hist||[]).some(h=>REWORK.has(h[0])));
-  const kdef=[
+  const kdef=isStart?[
     ['Запущено за период',fmt(started.length),'','var(--cyan)','передано в производство',trend(started.length,startedPrev)],
-    ['Готово за период',fmt(finished.length),'','var(--accent)','дошли до «Успех»',trend(finished.length,finishedPrev)],
-    ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','суммы уникальных сделок (без задвоения по изделиям)',trend(moneyStarted,moneyStartedPrev)],
+    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',started.length?pct(cohortDone.length/started.length)+' когорты запуска дошло до «Успех»':'—',''],
+    ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','уникальные сделки запущенных',trend(moneyStarted,moneyStartedPrev)],
+    ['Средний срок',d1(med(cycCohort)),' дн','var(--violet)','медиана готовых ИЗ запущенных в периоде',''],
+    ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
+    ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
+    ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
+  ]:[
+    ['Готово за период',fmt(finished.length),'','var(--accent)','дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)','передано в производство (событие)',trend(started.length,startedPrev)],
+    ['Выпущено в деньгах',fmtK(moneyFinished),' ₽','var(--accent)','уникальные сделки готовых',trend(moneyFinished,moneyFinishedPrev)],
     ['Средний срок',d1(med(cyc)),' дн','var(--violet)','медиана готовых за период: запуск → готово',''],
     ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
     ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
@@ -392,12 +404,14 @@ function render(){
     {name:'из них зависло >14 дн',c:'#F43F5E',vals:stuckVals},
   ],keys,{fmtY:v=>fmt(v)});
 
-  // ===== ДИНАМИКА: средний срок готовых =====
-  const cycVals=keys.map(k=>{const arr=done.filter(i=>bkey(successDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
-  const dynCyc=chartSVG([{name:'Медиана срока производства готовых, дн',c:'#A78BFA',vals:cycVals,join:true}],keys,{fmtY:v=>d1(v)});
+  // ===== ДИНАМИКА: средний срок готовых (группировка по дате среза) =====
+  const cycVals=keys.map(k=>{const arr=done.filter(i=>bkey(isStart?startDate(i):successDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
+  const dynCyc=chartSVG([{name:`Медиана срока готовых, дн · по дате ${isStart?'запуска':'готовности'}`,c:'#A78BFA',vals:cycVals,join:true}],keys,{fmtY:v=>d1(v)});
 
   // ===== ДИНАМИКА: деньги запуска =====
-  const dynMoney=chartSVG([{name:'Запущено в производство, ₽ (уникальные сделки)',c:'#22D3EE',vals:seriesBy(uniqByDeal(all),startDate,keys,moneyOf),type:'bar'}],keys,{money:true});
+  const dynMoney=isStart
+    ?chartSVG([{name:'Запущено в производство, ₽ (уникальные сделки)',c:'#22D3EE',vals:seriesBy(uniqByDeal(all),startDate,keys,moneyOf),type:'bar'}],keys,{money:true})
+    :chartSVG([{name:'Выпущено (готово), ₽ (уникальные сделки)',c:'#2E9E74',vals:seriesBy(uniqByDeal(done),successDate,keys,moneyOf),type:'bar'}],keys,{money:true});
 
   // ===== ОЦЕНКА УЧАСТКОВ: загрузка сейчас × пропускная способность (из истории) × разгрузка =====
   const stationsBlock=(()=>{
@@ -581,8 +595,8 @@ function render(){
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по заказам, готовым в каждом периоде. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск в деньгах</div><div class="card-s">суммы сделок по заказам, переданным в производство в каждом периоде.</div></div></div>${dynMoney}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по готовым заказам, сгруппированным по дате ${isStart?'запуска':'готовности'}. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">${isStart?'Запуск':'Выпуск'} в деньгах</div><div class="card-s">суммы уникальных сделок по заказам, ${isStart?'переданным в производство':'ставшим готовыми'} в каждом периоде.</div></div></div>${dynMoney}</div>`+
     `</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Оценка участков: загрузка × мощность × разгрузка</div><div class="card-s">по модели: 1) сколько в работе сейчас · 2) пропускная способность из истории · 3) за сколько дней разгребётся очередь · сортировка от узкого горла</div></div></div>${stationsBlock}</div>`+
     `<div class="sec"><div class="n">2</div><h2>Участки</h2><div class="ln"></div><div class="hint">где заказы лежат дольше всего и где страдает качество</div></div>`+

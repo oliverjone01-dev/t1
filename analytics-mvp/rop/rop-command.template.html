@@ -1028,34 +1028,34 @@ function unassignedAgg(L,D,metric,keys){const a={leads:0,deals:0,won:0,rev:0,pro
   const tot=metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='prod'?a.prod:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
   let w;if(metric==='leads')w=a.lw;else if(metric==='deals')w=a.dw;else if(metric==='rev')w=a.rw;else if(metric==='prod')w=a.pw;else if(metric==='won')w=a.ww;else{w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});}
   return {m:'Нераспределённые',tot,w,unassigned:true};}
-function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
+function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtK(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v));
   const all=(extra&&metric!=='conv'&&metric!=='check')?arr.concat([extra]):arr;
   if(!all.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=all.length;
   const maxV=Math.max(planMgr,...all.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
   let bars='',labels='';
   all.forEach((x,i)=>{const cx=pl+gap*i+gap/2,un=!!x.unassigned,att=planMgr?x.tot/planMgr:0,c=un?'#6A7484':planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
-    const td=un?dt('Нераспределённые',[['Факт',fM(x.tot),'hl'],['План','не начисляется','dim']]).replace(/"/g,'&quot;'):dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fM(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
+    const td=un?dt('Нераспределённые',[['Факт',fM(x.tot),'hl'],['План','не начисляется','dim']]).replace(/"/g,'&quot;'):dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fP(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
     bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}"${un?' opacity=".5"':''} data-tip="${td}"/>`;
     if(h>14)bars+=`<text x="${cx.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${c}">${fM(x.tot)}</text>`;
     labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]}</text>`;});
-  const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fM(planMgr)} / менеджера</text>`;
+  const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fP(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),showNum=keys.length<=14;
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtKc(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v)),showNum=keys.length<=14;
   if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const isR=(metric==='conv'||metric==='check');
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
   const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
-      const td=dt(x.m+' · '+blabel(k,S.gran),[['Факт',fM(v),'hl'],['План на период',fM(planCell),'dim']]).replace(/"/g,'&quot;');
+      const td=dt(x.m+' · '+blabel(k,S.gran),[['Факт',fM(v),'hl'],['План на период',fP(planCell),'dim']]).replace(/"/g,'&quot;');
       return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?fM(v):''}</div>`;}).join('');
     const att=planMgr?x.tot/planMgr:0,ac=planTone(att);
-    return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fM(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
+    return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fP(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
   // Итог: суммы по колонкам (для счётных/денежных метрик) + командные факт/план/%.
   const _tf=teamFact!=null?teamFact:arr.reduce((s,x)=>s+x.tot,0),_tp=teamPlan!=null?teamPlan:planMgr*arr.length;
   const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
   const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
-  const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fM(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
+  const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fP(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
   // Серая строка «Нераспределённые» (не-ОП): видна, но в план не входит (план/% = «-»).
   const extraRow=(extra&&metric!=='conv'&&metric!=='check')?`<div class="hm-row" style="opacity:.9;margin-top:4px"><div class="hm-name" style="color:#8A94A6" title="Нераспределённые - системные/не-продажные, в план не входят">Нераспределённые</div>${keys.map(k=>{const v=extra.w[k]||0;return `<div class="hm-cell" style="background:var(--bg-elevated);color:#8A94A6">${showNum?(fM(v)||''):''}</div>`;}).join('')}<div class="hm-tot hm-sum" style="color:#8A94A6">${fM(extra.tot)}</div><div class="hm-tot hm-plan" style="color:var(--ink-4)">-</div><div class="hm-pct"><span style="color:var(--ink-4);font-size:10px">вне плана</span></div></div>`:'';
   return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}${extraRow}</div>`;}

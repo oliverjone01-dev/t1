@@ -275,6 +275,33 @@ function render(){
   ];
   const kpis=`<div class="kpis">`+kdef.map(k=>`<div class="kpi"><div class="bar" style="background:${k[3]}"></div><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')+`</div>`;
 
+  // ===== УЗЕЛ СВЕРКИ: Предоплата (CRM) -> Производство (цех) =====
+  // Общие цифры с дашбордом РОПа - одна точка истины для разговора продаж и цеха.
+  const syncBlock=(()=>{
+    const PP=DATA.prepay&&DATA.prepay.deals;
+    if(!PP)return `<div class="card"><div class="card-h"><div><div class="card-t">Узел сверки: Предоплата → Производство</div><div class="card-s">появится после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором)</div></div></div></div>`;
+    // сверка глобальная (сделки не несут направление) - считаем по ВСЕМ заказам, без фильтра направления
+    const startedAll=IT.filter(i=>inRange(startDate(i)));
+    const prepPer=PP.filter(d=>inRange(d.date));
+    const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=sum(startedAll,moneyOf);
+    const gap=prepPer.length-startedAll.length;
+    const linked=new Set(IT.map(i=>i.dealId).filter(Boolean));
+    const stuckPaid=PP.filter(d=>d.open&&/EXECUTING/.test(d.stage)&&!linked.has(String(d.id)));
+    const stuckMoney=sum(stuckPaid,d=>d.budget||0);
+    const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
+    const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
+    const chart=chartSVG([{name:'Предоплат получено (CRM)',c:'#38BDF8',vals:prepVals},{name:'Передано в производство (цех)',c:'#22D3EE',vals:startVals}],keys,{fmtY:v=>fmt(v)});
+    const box=(lbl,n,money,col)=>`<div style="flex:1;min-width:210px;background:var(--elev);border:1px solid ${col}44;border-radius:11px;padding:12px 14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3)">${lbl}</div><div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${col};margin-top:4px">${fmt(n)}</div><div style="font-size:11px;color:var(--ink4);margin-top:2px">${fmtK(money)} ₽</div></div>`;
+    const pair=`<div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;margin:6px 0 10px">
+      ${box('Предоплат получено · CRM',prepPer.length,prepMoney,'#38BDF8')}
+      <div style="display:flex;align-items:center;font-size:22px;color:var(--ink4)">→</div>
+      ${box('Передано в производство · цех',startedAll.length,startMoney,'#22D3EE')}
+      <div style="flex:1;min-width:210px;background:var(--elev);border:1px solid ${gap>0?'var(--amber)':'var(--accent)'}44;border-radius:11px;padding:12px 14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3)">Разрыв за период</div><div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${gap>0?'var(--amber)':'var(--accent)'};margin-top:4px">${gap>0?'+'+fmt(gap):fmt(gap)}</div><div style="font-size:11px;color:var(--ink4);margin-top:2px">${gap>0?'оплачено больше, чем запущено':'цех запускает всё оплаченное'}</div></div>
+    </div>`;
+    const stuckNote=stuckPaid.length?`<div class="note" style="border-color:var(--amber)">⚠ <b style="color:var(--amber)">Оплачено, но не в цехе сейчас: ${fmt(stuckPaid.length)} сделок на ${fmtK(stuckMoney)} ₽</b> - открытые сделки в стадии «Предоплата получена» без карточки производства. Первый кандидат на разбор продажи↔цех.</div>`:'';
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Узел сверки: Предоплата → Производство</div><div class="card-s">одни и те же цифры видят РОП и производство - по ним стыкуются отдел продаж и цех · предоплата = вход сделки в «Предоплата получена» · без фильтра направления</div></div></div>${pair}${chart}${stuckNote}</div>`;
+  })();
+
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
   const conv=(()=>{
     const wipBy={},passBy={},dwBy={};
@@ -443,6 +470,7 @@ function render(){
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · метки «сейчас» = моментальный снимок, остальное = за период</div></div>`+kpis+
+    syncBlock+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div></div>${dynFlow}</div>`+

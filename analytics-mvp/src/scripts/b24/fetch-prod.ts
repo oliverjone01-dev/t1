@@ -218,6 +218,45 @@ async function main() {
   }
   console.log(`Просчёты (потенциал): ${quoteDeals.length} сделок на ${Math.round(quoteDeals.reduce((s, d) => s + d.budget, 0))} ₽`);
 
+  // Предоплаты: события входа сделок в C49:EXECUTING (история стадий, фильтр на сервере).
+  // Узел сверки «Продажи -> Производство»: предоплата получена vs передано в цех.
+  const prepayEvents: { dealId: string; date: string | null }[] = [];
+  {
+    let lastId = 0;
+    for (;;) {
+      const j = await call("crm.stagehistory.list", {
+        entityTypeId: 2,
+        filter: { STAGE_ID: "C49:EXECUTING", ">ID": lastId },
+        order: { ID: "ASC" }, start: -1,
+      });
+      const batch: any[] = (j.result && j.result.items) || j.result || [];
+      if (!batch.length) break;
+      for (const h of batch) prepayEvents.push({ dealId: String(h.OWNER_ID ?? h.ownerId), date: d10(h.CREATED_TIME ?? h.createdTime) });
+      lastId = Number(batch[batch.length - 1].ID ?? batch[batch.length - 1].id);
+      if (batch.length < 50) break;
+    }
+  }
+  // первый вход на сделку
+  const firstPrepay: Record<string, string> = {};
+  for (const e of prepayEvents) if (e.date && (!firstPrepay[e.dealId] || e.date < firstPrepay[e.dealId])) firstPrepay[e.dealId] = e.date;
+  const prepIds = Object.keys(firstPrepay);
+  const prepInfo: Record<string, any> = {};
+  for (let i = 0; i < prepIds.length; i += 50) {
+    const chunk = prepIds.slice(i, i + 50);
+    const dl: any[] = (await call("crm.deal.list", { select: ["ID", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "CLOSED"], filter: { ID: chunk }, start: -1 })).result || [];
+    for (const d of dl) prepInfo[String(d.ID)] = d;
+  }
+  const prepayDeals = prepIds.map((id) => {
+    const d = prepInfo[id] || {};
+    return {
+      id: Number(id), date: firstPrepay[id],
+      budget: Number(d.OPPORTUNITY) || 0,
+      mgr: userName[String(d.ASSIGNED_BY_ID)] || null,
+      stage: String(d.STAGE_ID || ""), open: d.CLOSED === "N",
+    };
+  });
+  console.log(`Предоплаты: ${prepayDeals.length} сделок (событий ${prepayEvents.length})`);
+
   const out = {
     generated_at: new Date().toISOString(),
     source: "bitrix24:glassmemory:sp1086",
@@ -225,6 +264,7 @@ async function main() {
     counts: { items: items.length, quotes: quoteDeals.length },
     refs: { stageName, stageSem, stageOrder, dirs: dirMap, assort: assortMap, productType: prodTypeMap },
     quotes: { stages: QUOTE_STAGES, deals: quoteDeals },
+    prepay: { deals: prepayDeals },
     items,
   };
   mkdirSync("prod/data", { recursive: true });

@@ -18,6 +18,7 @@ const DATA = {
   entityTypeId: prod.entityTypeId,
   refs: prod.refs || {},
   quotes: prod.quotes || null, // просчёты (потенциал производства); null у старых снимков
+  prepay: prod.prepay || null, // предоплаты (узел сверки с продажами); null у старых снимков
   items: prod.items || [],
 };
 

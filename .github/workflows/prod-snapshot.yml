@@ -1,0 +1,77 @@
+name: PROD snapshot (СП Производство, прямой Bitrix)
+
+# Снимок смарт-процесса «Производство GG» (1086) -> analytics-mvp/prod/data/prod.json,
+# запекание дашборда (build-prod, если есть) -> public/prod-command.html, коммит в ветку.
+# Планировщик по расписанию живёт на main (prod-cron.yml). Тут - push/ручной запуск.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [prod-dashboard-v1]
+    paths:
+      - ".github/workflows/prod-snapshot.yml"
+      - "analytics-mvp/src/scripts/b24/fetch-prod.ts"
+      - "analytics-mvp/src/scripts/b24/build-prod.ts"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: prod-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет B24_WEBHOOK_URL"; exit 1; fi
+
+      - name: Снимок производства -> prod/data/prod.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-prod.ts
+          echo "Размер: $(du -h prod/data/prod.json | cut -f1)"
+
+      - name: Запечь дашборд (если есть build-prod)
+        run: |
+          set -euo pipefail
+          if [ -f src/scripts/b24/build-prod.ts ] && [ -f prod/prod-command.template.html ]; then
+            npx tsx src/scripts/b24/build-prod.ts
+            echo "Дашборд собран."
+          else
+            echo "build-prod/template ещё нет - только данные."
+          fi
+
+      - name: Commit
+        id: commit
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/prod
+          if git diff --staged --quiet; then echo "без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "data(prod): снимок СП Производство $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin prod-dashboard-v1 && git push origin HEAD:prod-dashboard-v1; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

@@ -290,10 +290,10 @@ function render(){
     const stuckMoney=sum(stuckPaid,d=>d.budget||0);
     const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
     const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
-    const chart=chartSVG([{name:'Предоплат получено (CRM)',c:'#38BDF8',vals:prepVals},{name:'Передано в производство (цех)',c:'#22D3EE',vals:startVals}],keys,{fmtY:v=>fmt(v)});
+    const chart=chartSVG([{name:'Предоплат получено (CRM)',c:'#A78BFA',vals:prepVals},{name:'Передано в производство (цех)',c:'#22D3EE',vals:startVals}],keys,{fmtY:v=>fmt(v)});
     const box=(lbl,n,money,col)=>`<div style="flex:1;min-width:210px;background:var(--elev);border:1px solid ${col}44;border-radius:11px;padding:12px 14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3)">${lbl}</div><div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${col};margin-top:4px">${fmt(n)}</div><div style="font-size:11px;color:var(--ink4);margin-top:2px">${fmtK(money)} ₽</div></div>`;
     const pair=`<div style="display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;margin:6px 0 10px">
-      ${box('Предоплат получено · CRM',prepPer.length,prepMoney,'#38BDF8')}
+      ${box('Предоплат получено · CRM',prepPer.length,prepMoney,'#A78BFA')}
       <div style="display:flex;align-items:center;font-size:22px;color:var(--ink4)">→</div>
       ${box('Передано в производство · цех',startedAll.length,startMoney,'#22D3EE')}
       <div style="flex:1;min-width:210px;background:var(--elev);border:1px solid ${gap>0?'var(--amber)':'var(--accent)'}44;border-radius:11px;padding:12px 14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3)">Разрыв за период</div><div style="font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;color:${gap>0?'var(--amber)':'var(--accent)'};margin-top:4px">${gap>0?'+'+fmt(gap):fmt(gap)}</div><div style="font-size:11px;color:var(--ink4);margin-top:2px">${gap>0?'оплачено больше, чем запущено':'цех запускает всё оплаченное'}</div></div>

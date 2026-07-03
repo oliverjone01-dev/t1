@@ -569,21 +569,23 @@ function render(){
     rows.forEach(r=>{r.cycM=med(r.cyc);r.q=(q[r.n]||{}).cnt||0;r.qm=(q[r.n]||{}).sum||0});
     sortRows(rows,S.mgrSort,{n:r=>r.n,tot:r=>r.tot,sum:r=>r.sum,done:r=>r.done,cyc:r=>r.cycM,q:r=>r.q,qm:r=>r.qm});
     const totS=sum(rows,r=>r.sum);
-    // зоны: рабочая (запуски/выпуск) - бирюзовый фон, плановая (просчёты/потенциал) - синий
-    const WZ='rgba(45,212,191,.16)',WB='rgba(45,212,191,.045)',PZ='rgba(34,211,238,.14)',PB='rgba(34,211,238,.045)';
+    // три зоны: запуски - синий, выпуск - зелёный, потенциал - фиолетовый
+    const LZ='rgba(34,211,238,.16)',LB='rgba(34,211,238,.05)';   // запуски
+    const WZ='rgba(46,158,116,.18)',WB='rgba(46,158,116,.05)';   // выпуск
+    const PZ='rgba(167,139,250,.16)',PB='rgba(167,139,250,.05)'; // потенциал
     const mxT=Math.max(1,...rows.map(r=>r.tot)),mxS=Math.max(1,...rows.map(r=>r.sum)),mxD=Math.max(1,...rows.map(r=>r.done)),mxQ=Math.max(1,...rows.map(r=>r.q)),mxQM=Math.max(1,...rows.map(r=>r.qm));
     const zb=(v,mx,col,base)=>{if(!v)return `background:${base};`;const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,${base} ${w}%);`};
     const body=rows.slice(0,16).map(r=>{const qq=q[r.n];
       return `<tr><td class="nm">${esc(r.n)}</td>
-      <td style="${zb(r.tot,mxT,WZ,WB)}"><b>${r.tot}</b></td><td style="${zb(r.sum,mxS,WZ,WB)}"><b>${fmtK(r.sum)} ₽</b></td><td style="color:var(--ink4);${zb(r.sum,mxS,WZ,WB)}">${totS?pct(r.sum/totS):'—'}</td>
+      <td style="${zb(r.tot,mxT,LZ,LB)}"><b>${r.tot}</b></td><td style="${zb(r.sum,mxS,LZ,LB)}"><b>${fmtK(r.sum)} ₽</b></td><td style="color:var(--ink4);${zb(r.sum,mxS,LZ,LB)}">${totS?pct(r.sum/totS):'—'}</td>
       <td style="${zb(r.done,mxD,WZ,WB)}">${r.done}</td>
       <td style="color:${tone(r.cycM||0)};background:${WB}">${r.cycM!=null?d1(r.cycM)+' дн':'—'}</td>
-      <td style="color:${r.q?'var(--cyan)':'var(--ink4)'};${zb(r.q,mxQ,PZ,PB)}">${r.q||(QT?0:'—')}</td>
-      <td style="color:${r.qm?'var(--cyan)':'var(--ink4)'};font-weight:${r.qm?700:400};${zb(r.qm,mxQM,PZ,PB)}">${r.qm?fmtK(r.qm)+' ₽':QT?'0 ₽':'—'}</td></tr>`}).join('');
+      <td style="color:${r.q?'#A78BFA':'var(--ink4)'};${zb(r.q,mxQ,PZ,PB)}">${r.q||(QT?0:'—')}</td>
+      <td style="color:${r.qm?'#A78BFA':'var(--ink4)'};font-weight:${r.qm?700:400};${zb(r.qm,mxQM,PZ,PB)}">${r.qm?fmtK(r.qm)+' ₽':QT?'0 ₽':'—'}</td></tr>`}).join('');
     const qNote=QT
       ?`Просчёты<span class="now-badge">сейчас</span> = открытые сделки на стадиях Расчёт / Формирование ТЗ / КП отправлено / Принимают решение / Долгострой: потенциал цеха <b>${fmt(qTot)}</b> сделок на <b>${fmtK(qSum)} ₽</b>. Снимок текущего момента, на фильтр периода не реагирует.`
       :`Просчёты появятся после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором).`;
-    return `<table class="tbl"><thead><tr><th></th><th colspan="5" style="text-align:center;color:#2DD4BF;background:rgba(45,212,191,.07);font-size:10px;letter-spacing:.05em;border-radius:6px 6px 0 0">РАБОЧАЯ ЗОНА · запуски и выпуск за период</th><th colspan="2" style="text-align:center;color:var(--cyan);background:rgba(34,211,238,.07);font-size:10px;letter-spacing:.05em;border-radius:6px 6px 0 0">ПЛАНОВАЯ · просчёты сейчас</th></tr><tr>${thRow('mgr',S.mgrSort,[['n','Менеджер'],['tot','Запусков'],['sum','Запуски ₽'],[null,'Доля ₽'],['done','Выпущено'],['cyc','Ср.срок'],['q','Просчёты'],['qm','Потенциал ₽']])}</tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). <b style="color:#2DD4BF">Рабочая зона</b>: Запуски = позиции, ушедшие в цех; <b>Выпущено</b> = из них уже ВЫШЛО из производства (дошло до «Успех»); Ср.срок = медиана их цикла. <b style="color:var(--cyan)">Плановая зона</b> = будущий поток: открытые сделки в просчёте. Запуски ₽ = бюджеты уникальных сделок (изделия одной сделки не задваивают деньги). Без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}. ${qNote}</div>`;
+    return `<table class="tbl"><thead><tr><th></th><th colspan="3" style="text-align:center;color:var(--cyan);background:rgba(34,211,238,.07);font-size:10px;letter-spacing:.05em;border-radius:6px 6px 0 0">ЗАПУСКИ · за период</th><th colspan="2" style="text-align:center;color:#2E9E74;background:rgba(46,158,116,.08);font-size:10px;letter-spacing:.05em;border-radius:6px 6px 0 0">ВЫПУСК</th><th colspan="2" style="text-align:center;color:#A78BFA;background:rgba(167,139,250,.08);font-size:10px;letter-spacing:.05em;border-radius:6px 6px 0 0">ПОТЕНЦИАЛ · сейчас</th></tr><tr>${thRow('mgr',S.mgrSort,[['n','Менеджер'],['tot','Запусков'],['sum','Запуски ₽'],[null,'Доля ₽'],['done','Выпущено'],['cyc','Ср.срок'],['q','Просчёты'],['qm','Потенциал ₽']])}</tr></thead><tbody>${body}</tbody></table><div class="note">Менеджер = ответственный связанной сделки (${modeLbl}). <b style="color:var(--cyan)">Запуски</b> = позиции, ушедшие в цех за период; <b style="color:#2E9E74">Выпуск</b>: «Выпущено» = из них уже ВЫШЛО из производства (дошло до «Успех»), Ср.срок = медиана их цикла; <b style="color:#A78BFA">Потенциал</b> = будущий поток: открытые сделки в просчёте (сейчас). Запуски ₽ = бюджеты уникальных сделок (изделия одной сделки не задваивают деньги). Без привязки к сделке: <b>${fmt(cut.filter(i=>!i.dealId).length)}</b> из ${fmt(cut.length)}. ${qNote}</div>`;
   })();
 
   // ===== ЧТО ПРОИЗВОДИМ: два бублика =====

@@ -376,6 +376,40 @@ function render(){
     return `<div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: передачи и потенциал</div><div class="card-s">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div style="overflow-x:auto"><table class="tbl"><thead><tr>${thRow('sm',S.smSort,[['n','Менеджер'],['c','Передано'],[null,'Доля шт'],['m','₽'],[null,'Доля ₽'],['q','В расчётах'],['qm','Потенциал ₽']])}</tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
 
+  // ===== ТРУБА ПРОИЗВОДСТВА (визуал РОПа): каких участков коснулись изделия когорты =====
+  const prodTruba=(()=>{
+    const base=cut; if(!base.length)return '<div class="card-s">нет заказов в выбранном периоде</div>';
+    const doneBase=base.filter(isDone);
+    // время на участке по когорте
+    const stayOf=nm=>{const a=[];base.forEach(i=>{const h=i.hist||[];for(let j=0;j<h.length;j++){if(stationOf(h[j][0])!==nm)continue;const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);const d=end!=null?days(h[j][1],end):null;if(d!=null&&d>=0)a.push(d)}});return med(a)};
+    const touch=nm=>base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm));
+    const F=[{name:'Запущено',count:base.length,dwell:null,items:base}];
+    STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:t.length,dwell:stayOf(nm),items:t})});
+    F.push({name:'Готово',count:doneBase.length,dwell:null,items:doneBase});
+    const n=F.length,W=1380,H=330,bandH=190,midY=64+bandH/2,pillY=H-30,pctY=H-48;
+    const colW=W/n,nodeW=colW*0.52,maxC=F[0].count||1;
+    const COL=['#22D3EE','#38BDF8','#60A5FA','#818CF8','#A78BFA','#C084FC','#2DD4BF','#34D399','#10B981','#2E9E74'];
+    const cx=i=>colW*i+colW/2,hOf=c=>Math.max(6,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;
+    const dwellCol=dl=>dl>=10?'#F43F5E':dl>=5?'#FB923C':'#10B981';
+    let defs='',conns='',nodes='',labels='';
+    for(let i=0;i<n-1;i++){const h0=hOf(F[i].count),h1=hOf(F[i+1].count),x0=nodeX(i)+nodeW,x1=nodeX(i+1);
+      const t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='pc'+i;
+      defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${COL[i%COL.length]}" stop-opacity=".4"/><stop offset="1" stop-color="${COL[(i+1)%COL.length]}" stop-opacity=".4"/></linearGradient>`;
+      const both=F[i+1].items.filter(x=>F[i].items.includes(x)).length;
+      const td=attr(`<div class='tl'>${F[i].name} → ${F[i+1].name}</div><div class='tr'><span>Прошли оба участка</span><span>${fmt(both)}</span></div>`);
+      conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
+    F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
+      const money=dealMoney(f.items);
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий коснулось</span><span>${fmt(f.count)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(base.length||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
+      if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
+      else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;
+      labels+=`<text x="${cx(i)}" y="24" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink2)">${f.name}</text>`;
+      labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(base.length||1))}</text>`;
+      if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-27}" y="${pillY}" width="54" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`}});
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько изделий когорты (${modeLbl}: <b>${fmt(base.length)}</b>) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
+  })();
+
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
   const conv=(()=>{
     const wipBy={},passBy={},dwBy={};
@@ -633,7 +667,7 @@ function render(){
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
     `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: из изделий среза - сколько прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+

@@ -929,22 +929,39 @@ function render(){
   const _qDeals=flt(AD,true).filter(d=>!d.won&&!d.lost&&QUOTE_SET.has(d.stageCode)),_qM=_qDeals.reduce((x,d)=>x+(d.budget||0),0);
   const _pdCur=prodSet(),_pdPrev=prodSet(_pw[0],_pw[1]);
   const _pdM=_pdCur.reduce((x,d)=>x+(d.budget||0),0),_pdMPrev=_pdPrev.reduce((x,d)=>x+(d.budget||0),0);
+  // «сейчас»-метрики сравниваем со снимком на конец прошлого периода (восстановлен из истории стадий)
+  const _pe=_pw[1];
+  const _stageAt=(d,t)=>{let st=null;(d.hist||[]).forEach(h=>{if(h[1]&&h[1]<=t)st=h[0]});return st};
+  const _openAt=(d,t)=>d.created<=t&&!(d.closed&&d.closed<=t);
+  const _queueP=flt(AD,true).filter(d=>_openAt(d,_pe)&&_stageAt(d,_pe)==='C49:EXECUTING').length;
+  const _qPrevN=flt(AD,true).filter(d=>_openAt(d,_pe)&&QUOTE_SET.has(_stageAt(d,_pe))).length;
+  const _sub=t=>`<div style="font-size:10.5px;color:var(--ink-3);margin-top:7px">${t}</div>`;
   const B_prodKpi=kstrip([
-    {k:'Передано за период',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'сделок ушло в цех'},
+    {k:'Передано за период',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP)+_sub('сделок ушло в цех')},
     {k:'Передано в деньгах',v:fmtK(_pdM),u:'₽',ac:'#2DD4BF',trend:trendChip(_pdM,_pdMPrev)},
-    {k:'Доля от предоплат',v:_prepN?pct(_prodN/_prepN):'—',ac:'#38BDF8',sub:`передано ÷ предоплачено (${fmt(_prodN)} из ${fmt(_prepN)})`},
-    {k:'Средний чек передачи',v:_prodN?fmtK(_pdM/_prodN):'—',u:'₽',ac:'#A78BFA',sub:'деньги передач ÷ штуки'},
-    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',sub:fmtK(_queueM)+' ₽ · оплачено, не передано · сейчас'},
-    {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',sub:fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас'},
+    {k:'Доля от предоплат',v:_prepN?pct(_prodN/_prepN):'—',ac:'#38BDF8',trend:trendChip(_prepN?_prodN/_prepN:0,_prepP?_prodP/_prepP:0)+_sub(`передано ÷ предоплачено (${fmt(_prodN)} из ${fmt(_prepN)})`)},
+    {k:'Средний чек передачи',v:_prodN?fmtK(_pdM/_prodN):'—',u:'₽',ac:'#A78BFA',trend:trendChip(_prodN?_pdM/_prodN:0,_prodP?_pdMPrev/_prodP:0)+_sub('деньги передач ÷ штуки')},
+    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',trend:trendChip(_queue.length,_queueP,true)+_sub(fmtK(_queueM)+' ₽ · оплачено, не передано · сейчас vs конец пред. периода')},
+    {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',trend:trendChip(_qDeals.length,_qPrevN)+_sub(fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас vs конец пред. периода')},
   ]);
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Деньги переданных в производство сделок по периодам (бюджеты сделок, вошедших в производственные стадии). Вопрос: растёт или падает поток заказов в цех в деньгах. Вывод: спад при растущих предоплатах - копится очередь перед производством, смотри плашку «На подходе».')}</div><div class="card-sub">суммы сделок, переданных в производство · ${S.dateBasis==='outcome'?'по дате передачи':'по дате создания сделки'}</div></div></div><div id="prodSecChart"></div><div class="card-sub" style="margin:14px 0 4px;border-top:1px dashed var(--border);padding-top:12px">предоплаты vs передачи, шт · ⇄ те же цифры в <a href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener">дашборде цеха</a> · за период: предоплат <b>${fmt(_prepN)}</b> → в производство <b>${fmt(_prodN)}</b>${_prepN>_prodN?' · <span style="color:#F59E0B">очередь перед цехом растёт (+'+fmt(_prepN-_prodN)+')</span>':''}</div><div id="ppChart"></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">предоплат получено vs передано в производство, шт · ${S.dateBasis==='outcome'?'по дате события':'по дате создания сделки'} · ⇄ <a href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener">дашборд цеха</a></div></div></div><div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
     _qDeals.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].q++;M[n].qm+=(d.budget||0);});
     const rows=Object.values(M).sort((a,b)=>b.m-a.m||b.qm-a.qm);
-    const body=rows.slice(0,14).map(r=>`<tr><td class="nm" style="text-align:left;font-weight:600">${esc(r.n)}</td><td>${r.c||'·'}</td><td>${_prodN?pct(r.c/_prodN):'·'}</td><td><b>${r.m?fmtKc(r.m):'·'}</b></td><td style="color:var(--ink-3)">${_pdM&&r.m?pct(r.m/_pdM):'·'}</td><td style="color:#22D3EE">${r.q||'·'}</td><td style="color:#22D3EE">${r.qm?fmtKc(r.qm):'·'}</td></tr>`).join('');
-    const foot=`<tr class="total"><td style="text-align:left;font-weight:800">Отдел</td><td style="font-weight:800">${fmt(_prodN)}</td><td>100%</td><td style="font-weight:800">${fmtKc(_pdM)}</td><td>100%</td><td style="font-weight:800;color:#22D3EE">${fmt(_qDeals.length)}</td><td style="font-weight:800;color:#22D3EE">${fmtKc(_qM)}</td></tr>`;
+    // полупрозрачная гистограммка внутри ячейки: заливка слева на долю от максимума колонки
+    const mxC=Math.max(1,...rows.map(r=>r.c)),mxM=Math.max(1,...rows.map(r=>r.m)),mxQ=Math.max(1,...rows.map(r=>r.q)),mxQM=Math.max(1,...rows.map(r=>r.qm));
+    const bg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
+    const T='rgba(45,212,191,.14)',Q='rgba(34,211,238,.12)';
+    const body=rows.slice(0,14).map(r=>`<tr><td class="nm" style="text-align:left;font-weight:600">${esc(r.n)}</td>
+      <td style="${bg(r.c,mxC,T)}">${r.c||'·'}</td><td style="${bg(r.c,mxC,T)}">${_prodN?pct(r.c/_prodN):'·'}</td>
+      <td style="${bg(r.m,mxM,T)}"><b>${r.m?fmtKc(r.m):'·'}</b></td><td style="color:var(--ink-3);${bg(r.m,mxM,T)}">${_pdM&&r.m?pct(r.m/_pdM):'·'}</td>
+      <td style="color:#22D3EE;${bg(r.q,mxQ,Q)}">${r.q||'·'}</td><td style="color:#22D3EE;${bg(r.qm,mxQM,Q)}">${r.qm?fmtKc(r.qm):'·'}</td></tr>`).join('');
+    const foot=`<tr class="total"><td style="text-align:left;font-weight:800">Отдел</td>
+      <td style="font-weight:800;${bg(1,1,T)}">${fmt(_prodN)}</td><td style="${bg(1,1,T)}">100%</td>
+      <td style="font-weight:800;${bg(1,1,T)}">${fmtKc(_pdM)}</td><td style="${bg(1,1,T)}">100%</td>
+      <td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmt(_qDeals.length)}</td><td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmtKc(_qM)}</td></tr>`;
     return `<div class="card"><div class="card-h"><div><div class="card-title">Менеджеры: передачи и потенциал ${info('Кто передаёт заказы в производство (шт, доля, деньги за период) и у кого сколько сейчас в расчётах (открытые сделки на стадиях Расчёт/ТЗ/КП/Принимают решение/Долгострой - будущие передачи). Вопрос: кто кормит цех и чей потенциал не конвертируется в передачи. Вывод: большие «в расчётах» при малых передачах - разбирать пайплайн менеджера.')}</div><div class="card-sub">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div class="scroll"><table class="tbl"><thead><tr><th style="text-align:left">Менеджер</th><th>Передано</th><th>Доля шт</th><th>₽</th><th>Доля ₽</th><th>В расчётах</th><th>Потенциал ₽</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
@@ -958,7 +975,7 @@ function render(){
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
   // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireProdSec();wireDQ();
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){

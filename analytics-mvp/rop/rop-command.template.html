@@ -935,17 +935,41 @@ function render(){
   /* «Средний чек» перенесён в левую колонку Денег под график */
 
   const G=(a,b)=>`<div class="grid2">`+a+b+`</div>`;
+  // ===== раздел «В производство»: метрики отдела + график + менеджеры =====
+  const QUOTE_SET=new Set(['C49:UC_OGZUU0','C49:PREPARATION','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2']);
+  const _qDeals=flt(AD,true).filter(d=>!d.won&&!d.lost&&QUOTE_SET.has(d.stageCode)),_qM=_qDeals.reduce((x,d)=>x+(d.budget||0),0);
+  const _pdCur=prodSet(),_pdPrev=prodSet(_pw[0],_pw[1]);
+  const _pdM=_pdCur.reduce((x,d)=>x+(d.budget||0),0),_pdMPrev=_pdPrev.reduce((x,d)=>x+(d.budget||0),0);
+  const B_prodKpi=kstrip([
+    {k:'Передано за период',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'сделок ушло в цех'},
+    {k:'Передано в деньгах',v:fmtK(_pdM),u:'₽',ac:'#2DD4BF',trend:trendChip(_pdM,_pdMPrev)},
+    {k:'Доля от предоплат',v:_prepN?pct(_prodN/_prepN):'—',ac:'#38BDF8',sub:`передано ÷ предоплачено (${fmt(_prodN)} из ${fmt(_prepN)})`},
+    {k:'Средний чек передачи',v:_prodN?fmtK(_pdM/_prodN):'—',u:'₽',ac:'#A78BFA',sub:'деньги передач ÷ штуки'},
+    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',sub:fmtK(_queueM)+' ₽ · оплачено, не передано · сейчас'},
+    {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',sub:fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас'},
+  ]);
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Деньги переданных в производство сделок по периодам (бюджеты сделок, вошедших в производственные стадии). Вопрос: растёт или падает поток заказов в цех в деньгах. Вывод: спад при растущих предоплатах - копится очередь перед производством, смотри плашку «На подходе».')}</div><div class="card-sub">суммы сделок, переданных в производство · ${S.dateBasis==='outcome'?'по дате передачи':'по дате создания сделки'}</div></div></div><div id="prodSecChart"></div></div>`;
+  const B_prodMgr=(()=>{
+    const M={};
+    _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
+    _qDeals.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].q++;M[n].qm+=(d.budget||0);});
+    const rows=Object.values(M).sort((a,b)=>b.m-a.m||b.qm-a.qm);
+    const body=rows.slice(0,14).map(r=>`<tr><td class="nm" style="text-align:left;font-weight:600">${esc(r.n)}</td><td>${r.c||'·'}</td><td>${_prodN?pct(r.c/_prodN):'·'}</td><td><b>${r.m?fmtKc(r.m):'·'}</b></td><td style="color:var(--ink-3)">${_pdM&&r.m?pct(r.m/_pdM):'·'}</td><td style="color:#22D3EE">${r.q||'·'}</td><td style="color:#22D3EE">${r.qm?fmtKc(r.qm):'·'}</td></tr>`).join('');
+    const foot=`<tr class="total"><td style="text-align:left;font-weight:800">Отдел</td><td style="font-weight:800">${fmt(_prodN)}</td><td>100%</td><td style="font-weight:800">${fmtKc(_pdM)}</td><td>100%</td><td style="font-weight:800;color:#22D3EE">${fmt(_qDeals.length)}</td><td style="font-weight:800;color:#22D3EE">${fmtKc(_qM)}</td></tr>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-title">Менеджеры: передачи и потенциал ${info('Кто передаёт заказы в производство (шт, доля, деньги за период) и у кого сколько сейчас в расчётах (открытые сделки на стадиях Расчёт/ТЗ/КП/Принимают решение/Долгострой - будущие передачи). Вопрос: кто кормит цех и чей потенциал не конвертируется в передачи. Вывод: большие «в расчётах» при малых передачах - разбирать пайплайн менеджера.')}</div><div class="card-sub">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div class="scroll"><table class="tbl"><thead><tr><th style="text-align:left">Менеджер</th><th>Передано</th><th>Доля шт</th><th>₽</th><th>Доля ₽</th><th>В расчётах</th><th>Потенциал ₽</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
+  })();
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_prepProd+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock();
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
+    + divider(4,'В производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr);
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
   // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireDQ();
+  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireProdSec();wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){
@@ -1105,6 +1129,11 @@ function revSeries(deals,keys,metric){const won=deals.filter(SOLD),wb=k=>won.fil
   if(metric==='deals')return keys.map(k=>wb(k).length);
   if(metric==='check')return keys.map(k=>{const w=wb(k);return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;});
   return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(closeKey(d),S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
+function wireProdSec(){const el=document.getElementById('prodSecChart');if(!el)return;
+  const keys=buckets(S.gran),ki={};keys.forEach((k,i)=>ki[k]=i);
+  const mv=keys.map(()=>0),cv=keys.map(()=>0);
+  prodSet().forEach(d=>{const k=bkey(prodKey(d),S.gran);if(k in ki){mv[ki[k]]+=(d.budget||0);cv[ki[k]]++}});
+  multiline([{name:'Передано, ₽',color:'#2DD4BF',vals:mv}],keys,S.gran,true,el);}
 function wirePrepProd(){const el=document.getElementById('ppChart');if(!el)return;
   const keys=buckets(S.gran);
   const cnt=(set,keyFn)=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);set.forEach(d=>{const k=bkey(keyFn(d),S.gran);if(k in ki)v[ki[k]]++});return v};
@@ -1231,7 +1260,7 @@ function wirePF(D,L,m){
 }
 
 /* shell */
-const SECS=['Компания','Отдел продаж','Менеджеры'];
+const SECS=['Компания','Отдел продаж','Менеджеры','В производство'];
 function buildShell(){
   const _nv=document.getElementById('nav');
   if(_nv){_nv.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');

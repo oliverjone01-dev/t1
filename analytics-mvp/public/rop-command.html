@@ -316,6 +316,14 @@ function soldDate(d){if(S.revMode==='won')return d.closed;for(const h of(d.hist|
 // в режиме «по дате создания» - дата создания. Едина для KPI-выручки и кривой графика.
 function saleKey(d){return S.dateBasis==='outcome'?(soldDate(d)||d.closed||d.created):d.created;}
 function closeKey(d){return S.dateBasis==='outcome'?(d.closed||d.created):d.created;}
+// «Передано в производство»: первый вход сделки в производственные стадии
+// (Заказ в производстве / произведён / отправлен - по истории стадий).
+const PROD_STAGES=['C49:FINAL_INVOICE','C49:1','C49:2'];
+function prodDate(d){for(const h of(d.hist||[]))if(PROD_STAGES.includes(h[0]))return h[1];return null;}
+function prodKey(d){return S.dateBasis==='outcome'?(prodDate(d)||d.created):d.created;}
+function prodSet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{const pd=prodDate(d);return pd&&pd>=a&&pd<=b;});
+  return flt(AD,true).filter(d=>prodDate(d)&&d.created>=a&&d.created<=b);}
 // Тумблер периода S.dateBasis: 'created' (по дате СОЗДАНИЯ, как было - дефолт) или
 // 'outcome' (по дате ИСХОДА - продажи/потери считаются когда они состоялись).
 // Наборы продаж/потерь в окне [a,b] (по умолчанию текущий период). Уважают фильтры flt().
@@ -653,6 +661,7 @@ function periodDQ(D,L){
 function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
+  const _prodN=prodSet().length,_prodP=prodSet(_pw[0],_pw[1]).length;
   let h='';
   const snap=SNAP();
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
@@ -663,6 +672,7 @@ function render(){
     {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
     {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
+    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'заказов передано в цех'},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
@@ -730,7 +740,7 @@ function render(){
     const td=dt(name,[['Всего лидов',fmt(total),'hl'],['Доля от всех лидов',pct(total/dq.leadTotal),'hl'],['Квал',fmt(s),'dim'],['Отказ',fmt(f),'dim'],['В работе',fmt(p),'dim']]).replace(/"/g,'&quot;');
     return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:96px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" title="CR1 направления (квал÷лиды), нейтральный показатель">${pct(total?s/total:0)}</div></div>`;}).join('');
   // ===== метрика блока «Качество разметки» управляется тем же тогглом (loadSeg) =====
-  const QM=(S.loadMetric==='conv'||S.loadMetric==='check')?'deals':(S.loadMetric||'leads');
+  const QM=(S.loadMetric==='conv'||S.loadMetric==='check'||S.loadMetric==='prod')?'deals':(S.loadMetric||'leads');
   const _wonByDir={},_revByDir={};D.forEach(d=>{if(d.won){const k=d.dir||'не указано';_wonByDir[k]=(_wonByDir[k]||0)+1;_revByDir[k]=(_revByDir[k]||0)+(d.budget||0);}});
   const _noDir=o=>Object.fromEntries(Object.entries(o||{}).filter(([k])=>k!=='не указано'));
   const _sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
@@ -773,6 +783,7 @@ function render(){
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
     {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},
+    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'заказов передано в цех'},
     {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
   ]);
@@ -801,10 +812,10 @@ function render(){
     const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
-  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():D,_lm,_mkeys);
-  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=_lm!=='leads';
-  const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
-  const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
+  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=(_lm!=='leads'&&_lm!=='prod');
+  const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):(_lm==='leads'||_lm==='prod')?_factTot:_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
+  const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',prod:'В производство',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
   const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
   const _unTot=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0,_allTot=_teamFact+_unTot,_unShare=_allTot?_unTot/_allTot:0;
@@ -814,13 +825,13 @@ function render(){
   const _noL=L.filter(l=>!isOP(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)),_noMap={};
   _noL.forEach(l=>{(_noMap[l.mgr]=_noMap[l.mgr]||{l:0,d:0}).l++;});_noD.forEach(d=>{(_noMap[d.mgr]=_noMap[d.mgr]||{l:0,d:0}).d++;});
   const _noBear=Object.entries(_noMap).sort((a,b)=>(b[1].l+b[1].d)-(a[1].l+a[1].d)).slice(0,5).map(([n,v])=>`${n} <span style="color:var(--ink-4)">(${v.l}л/${v.d}с)</span>`).join(' · ');
-  const _unLab={leads:'лидов',deals:'сделок',won:'продаж',rev:'выручки'}[_lm];
+  const _unLab={leads:'лидов',deals:'сделок',won:'продаж',prod:'запусков производства',rev:'выручки'}[_lm];
   const _noSwatch=`<span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 3px,#2C333E 3px,#2C333E 6px);vertical-align:-1px;margin-right:6px"></span>`;
   const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">${_noSwatch}Нераспределённые (вне плана): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок${_unTot&&_unLab?` · <b style="color:var(--ink-3)">${pct(_unShare)}</b> от всех ${_unLab} за период`:''} · на: ${_noBear}</div>`:'';
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже.')}</div><div class="card-sub">сводный план команды + разбивка по менеджерам ниже · план берётся из таблицы по выбранному диапазону, на стыке месяцев режется по дням</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" title="Открыть таблицу плана в Google">↗ Таблица</a><div class="seg" id="loadSeg"></div></div></div>
     <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 14px;background:var(--bg-elevated);border-radius:10px">${_teamHTML}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">столбец = факт (${_mLab.toLowerCase()}) · пунктир = ${_attain?`план на менеджера (общий ÷ ${_mN})`:`норма нагрузки (объём ÷ ${_mN}, поровну)`} · <span style="color:#2E9E74">сверх плана</span> / <span style="color:#6A7484">в плане ±5%</span> / <span style="color:#CC5867">ниже плана</span></div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">по ${_mGran} · ярче = больше · Σ / план / % справа · ${_lm==='leads'?'по дате заявки':(_lm==='deals'||_lm==='conv')?'по дате создания':_lm==='prod'?(S.dateBasis==='outcome'?'по дате передачи в производство':'по дате создания'):(S.dateBasis==='outcome'?'по дате продажи':'по дате создания')}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -949,23 +960,25 @@ function mgrHeatmap(L){
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot">${fmt(x.t)}</div></div>`;}).join('');
   return `<div class="hm" style="--wk:${keys.length}">${head}${rows}</div>`;}
 function mgrPF(L,D,metric,keys){const A={};
-  const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};
+  const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,prod:0,lw:{},dw:{},ww:{},rw:{},pw:{}};
   L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
   D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+    if(prodDate(d)){a.prod++;const kp=bkey(prodKey(d),S.gran);a.pw[kp]=(a.pw[kp]||0)+1;}
     if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
-  const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
-  const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='won')return a.ww;
+  const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='prod'?a.prod:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
+  const wof=a=>{if(metric==='leads')return a.lw;if(metric==='deals')return a.dw;if(metric==='rev')return a.rw;if(metric==='prod')return a.pw;if(metric==='won')return a.ww;
     const w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});return w;};
   return Object.entries(A).map(([m,a])=>({m,tot:tot(a),w:wof(a)})).sort((x,y)=>y.tot-x.tot);}
 // Агрегат «Нераспределённые»: все НЕ-ОП (системные, владелец, не-продажные) одной строкой.
 // Показывается серым, но в распределение плана не входит (план делится только на ОП).
-function unassignedAgg(L,D,metric,keys){const a={leads:0,deals:0,won:0,rev:0,lw:{},dw:{},ww:{},rw:{}};let any=false;
+function unassignedAgg(L,D,metric,keys){const a={leads:0,deals:0,won:0,rev:0,prod:0,lw:{},dw:{},ww:{},rw:{},pw:{}};let any=false;
   L.filter(l=>!isOP(l.mgr)).forEach(l=>{any=true;a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
   D.filter(d=>!isOP(d.mgr)).forEach(d=>{any=true;a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+    if(prodDate(d)){a.prod++;const kp=bkey(prodKey(d),S.gran);a.pw[kp]=(a.pw[kp]||0)+1;}
     if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
   if(!any)return null;
-  const tot=metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
-  let w;if(metric==='leads')w=a.lw;else if(metric==='deals')w=a.dw;else if(metric==='rev')w=a.rw;else if(metric==='won')w=a.ww;else{w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});}
+  const tot=metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='prod'?a.prod:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
+  let w;if(metric==='leads')w=a.lw;else if(metric==='deals')w=a.dw;else if(metric==='rev')w=a.rw;else if(metric==='prod')w=a.pw;else if(metric==='won')w=a.ww;else{w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});}
   return {m:'Нераспределённые',tot,w,unassigned:true};}
 function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v);
   const all=(extra&&metric!=='conv'&&metric!=='check')?arr.concat([extra]):arr;
@@ -999,7 +1012,7 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,ext
   const extraRow=(extra&&metric!=='conv'&&metric!=='check')?`<div class="hm-row" style="opacity:.9;margin-top:4px"><div class="hm-name" style="color:#8A94A6" title="Нераспределённые - системные/не-продажные, в план не входят">Нераспределённые</div>${keys.map(k=>{const v=extra.w[k]||0;return `<div class="hm-cell" style="background:var(--bg-elevated);color:#8A94A6">${showNum?(fM(v)||''):''}</div>`;}).join('')}<div class="hm-tot hm-sum" style="color:#8A94A6">${fM(extra.tot)}</div><div class="hm-tot hm-plan" style="color:var(--ink-4)">-</div><div class="hm-pct"><span style="color:var(--ink-4);font-size:10px">вне плана</span></div></div>`:'';
   return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}${extraRow}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
-  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
+  seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});
   const inp=document.getElementById('planInp');if(inp)inp.onchange=()=>{const v=+inp.value;if(v>0){S.planRev=v;render();}};}
 function leadFunnel(L){const order=['Новые заявки','Разобрать','В работе','Создание сделки','Некачественный лид','СПАМ','Дубль','Отказ'];const c={};L.forEach(l=>c[l.status]=(c[l.status]||0)+1);
@@ -1070,24 +1083,25 @@ function drawMgrDyn(D,L){const keys=buckets(S.gran);const money=S.mgrMetric==='r
   multiline(series,keys,S.gran,money,document.getElementById('mdyn'));
   document.getElementById('mdh').textContent=(S.mgrMetric==='leads'?'Лиды - все ответственные':S.mgrMetric==='deals'?'Сделки = сконвертированные лиды':'Выручка')+' · '+granLabel();}
 function revSeries(deals,keys,metric){const won=deals.filter(SOLD),wb=k=>won.filter(x=>bkey(saleKey(x),S.gran)===k);
+  if(metric==='prod'){const pr=deals.filter(d=>prodDate(d));return keys.map(k=>pr.filter(x=>bkey(prodKey(x),S.gran)===k).length);}
   if(metric==='rev')return keys.map(k=>wb(k).reduce((s,x)=>s+x.budget,0));
   if(metric==='deals')return keys.map(k=>wb(k).length);
   if(metric==='check')return keys.map(k=>{const w=wb(k);return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;});
   return keys.map(k=>{const cl=deals.filter(d=>(d.won||d.lost)&&bkey(closeKey(d),S.gran)===k),w=cl.filter(d=>d.won).length;return cl.length?Math.round(w/cl.length*1000)/10:0;});}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
-  const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
-  const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}
+  const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},prod:{l:'В производство',m:false,p:false,c:'#2DD4BF'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
+  const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['prod','В пр-во'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}
   // Текущий и прошлый периоды строятся ОДНИМ правилом (win), чтобы стрелка ▲▼ была сопоставима.
   // «По дате продажи»: продажи по дате признания (soldDate), потери по дате закрытия, в окне.
   // «По дате создания»: всё созданное в окне. Уважает revMode через SOLD и фильтры flt().
   const win=(a,b)=>S.dateBasis==='outcome'
     ? flt(AD,true).filter(d=>{if(SOLD(d)){const s=soldDate(d);if(s&&s>=a&&s<=b)return true;}return d.lost&&d.closed&&d.closed>=a&&d.closed<=b;})
     : flt(AD,true).filter(d=>d.created>=a&&d.created<=b);
-  const Dc=win(S.start,S.end);
+  const Dc=metric==='prod'?prodSet(S.start,S.end):win(S.start,S.end);
   const vals=revSeries(Dc,keys,metric);
   const len=periodLen();const pe=new Date(S.start);pe.setDate(pe.getDate()-1);const ps=new Date(pe);ps.setDate(ps.getDate()-len+1);
   const pa=ps.toISOString().slice(0,10),pb=pe.toISOString().slice(0,10);
-  const PDl=win(pa,pb),pkeys=bucketsR(pa,pb,S.gran),praw=revSeries(PDl,pkeys,metric),prev=keys.map((_,i)=>praw[i]||0);
+  const PDl=metric==='prod'?prodSet(pa,pb):win(pa,pb),pkeys=bucketsR(pa,pb,S.gran),praw=revSeries(PDl,pkeys,metric),prev=keys.map((_,i)=>praw[i]||0);
   const agg=ds=>{const w=ds.filter(SOLD);if(metric==='rev')return w.reduce((s,x)=>s+x.budget,0);if(metric==='deals')return w.length;if(metric==='check')return w.length?Math.round(w.reduce((s,x)=>s+x.budget,0)/w.length):0;const cl=ds.filter(d=>d.won||d.lost);return cl.length?Math.round(cl.filter(d=>d.won).length/cl.length*1000)/10:0;};
   const cur=agg(Dc),prevT=agg(PDl),dl=prevT?(cur-prevT)/Math.abs(prevT):null;
   const fmtV=v=>META.p?pct(v/100):META.m?fmtK(v)+' ₽':fmt(v);

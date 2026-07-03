@@ -75,7 +75,9 @@ b{font-weight:700}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .note{font-size:11px;color:var(--ink4);background:var(--soft);border:1px dashed var(--border2);border-radius:8px;padding:8px 11px;margin-top:10px}
 /* проходимость участков: центрированная воронка */
-.fun-row{display:grid;grid-template-columns:110px 1fr 230px;gap:12px;align-items:center;margin:7px 0}
+.fun-row{display:grid;grid-template-columns:110px 1fr 150px;gap:12px;align-items:center;margin:7px 0}
+.fun-dial{display:flex;align-items:center;gap:8px;cursor:help}
+.fun-dial b{font-size:11.5px;font-variant-numeric:tabular-nums}
 .fun-nm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right}
 .fun-tr{position:relative;height:27px;background:repeating-linear-gradient(90deg,transparent,transparent 6px,rgba(255,255,255,.015) 6px,rgba(255,255,255,.015) 12px)}
 .fun-bar{position:absolute;left:50%;top:0;transform:translateX(-50%);height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;white-space:nowrap;cursor:help;min-width:0;transition:width .35s var(--ease)}
@@ -336,8 +338,15 @@ function render(){
       const col=isFin?'#2E9E74':(r.passed?tone(r.stay||0):'#3a4450');
       const wpct=Math.max(share*100,r.passed?6:1.2).toFixed(1);
       const inTxt=share>=0.12?`${fmt(r.passed)} · ${pct0(share)}`:(r.passed?fmt(r.passed):'');
-      const stTxt=isFin?`выпуск за период`:(r.passed?`⏱ ${d1(r.stay)} дн на участке`:'не используется')
-        +(r.wc?` · <b style="color:${tone(r.wm||0)}">сейчас: ${r.wc}</b>`:' · сейчас: 0');
+      // циферблат: сегмент = доля медианного времени участка от полного цикла производства
+      const cycMed=med(finished.map(cycleOf).filter(x=>x!=null&&x>=0))||1;
+      const frac=Math.max(0,Math.min(1,(r.stay||0)/cycMed));
+      const RR=12,CC=2*Math.PI*RR,dcol=r.passed?tone(r.stay||0):'#3a4450';
+      const dialTd=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>Медиана на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div><div class='tr'><span>Доля полного цикла (${d1(cycMed)} дн)</span><span>${pct(frac)}</span></div>`);
+      const dial=`<svg width="30" height="30" viewBox="0 0 30 30" style="flex:none"><circle cx="15" cy="15" r="${RR}" fill="none" stroke="var(--elev)" stroke-width="5"/><circle cx="15" cy="15" r="${RR}" fill="none" stroke="${dcol}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(frac*CC).toFixed(1)} ${CC.toFixed(1)}" transform="rotate(-90 15 15)"/></svg>`;
+      const stTxt=isFin?`<span style="color:var(--ink4);font-size:11px">выпуск за период</span>`:(r.passed
+        ?`<span class="fun-dial" data-tip="${dialTd}">${dial}<b style="color:${dcol}">${d1(r.stay)} дн</b> <span style="color:var(--ink4)">· ${pct0(frac)} цикла</span></span>`
+        :`<span style="color:var(--ink4);font-size:11px">не используется</span>`);
       const td=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>Прошло за период</span><span>${fmt(r.passed)} из ${fmt(total)} (${pct(share)})</span></div><div class='tr'><span>Медиана времени на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div><div class='tr'><span>Сейчас на участке</span><span>${r.wc}${r.wm!=null?' · лежат '+d1(r.wm)+' дн':''}</span></div>`);
       return `<div class="fun-row">
         <div class="fun-nm">${r.nm}</div>
@@ -441,7 +450,7 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по заказам, готовым в каждом периоде. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск в деньгах</div><div class="card-s">суммы сделок по заказам, переданным в производство в каждом периоде.</div></div></div>${dynMoney}</div>`+
     `</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Проходимость участков</div><div class="card-s">сколько заказов периода проходит через каждый участок - в штуках и долях · справа очередь «сейчас»</div></div></div>${flowBlock}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Проходимость участков</div><div class="card-s">сколько заказов периода проходит через каждый участок - в штуках и долях · справа циферблат: сколько времени (по медиане) заказ тратит на участке и какая это доля полного цикла</div></div></div>${flowBlock}</div>`+
     `<div class="sec"><div class="n">2</div><h2>Участки</h2><div class="ln"></div><div class="hint">где заказы лежат дольше всего и где страдает качество</div></div>`+
     `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли</div></div></div>${stTable}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+

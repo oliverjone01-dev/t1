@@ -680,8 +680,6 @@ function render(){
     {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
     {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
-    {k:'Предоплат получено',v:fmt(_prepN),ac:'#38BDF8',trend:trendChip(_prepN,_prepP),sub:'вход в «Предоплата получена»'},
-    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:_prepN?('из '+fmt(_prepN)+' предоплат · '+pct(_prodN/_prepN)):'заказов передано в цех'},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
@@ -792,8 +790,6 @@ function render(){
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
     {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},
-    {k:'Предоплат получено',v:fmt(_prepN),ac:'#38BDF8',trend:trendChip(_prepN,_prepP),sub:'вход в «Предоплата получена»'},
-    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:_prepN?('из '+fmt(_prepN)+' предоплат · '+pct(_prodN/_prepN)):'заказов передано в цех'},
     {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
   ]);
@@ -924,13 +920,6 @@ function render(){
   const B_dynRev=`<div class="card"><div class="card-h" style="flex-wrap:nowrap;align-items:center"><div class="card-title">Динамика отдела ${info('Деньги отдела по неделям: выручка/продажи/чек/конверсия во времени, сравнение с прошлым равным периодом. Вопрос: растём или падаем по деньгам, где провалы. Вывод: устойчивый спад к прошлому периоду - сигнал разобраться, всплеск - понять что сработало и повторить.')}</div><div class="seg" id="rdSeg" style="flex:0 0 auto"></div></div><div class="card-sub" id="rdh" style="margin:-6px 0 14px"></div><div id="rdyn"></div></div>`;
   const B_avgCheck=`<div class="card"><div class="card-h"><div><div class="card-title">Средний чек по менеджерам</div><div class="card-sub">по успешным сделкам, ₽</div></div></div>`+barRows(byManager(D,L).filter(x=>x.won>0).sort((a,b)=>b.check-a.check).map(x=>[x.mgr,x.check]),true)+`</div>`;
   const sBy=f=>{const c={};won.forEach(x=>c[x[f]]=(c[x[f]]||0)+x.budget);return Object.entries(c).filter(e=>e[1]>0).sort((a,b)=>b[1]-a[1]);};
-  const B_prepProd=`<div class="card"><div class="card-h"><div><div class="card-title">Предоплаты → Производство ${info('Две кривые по периодам: сколько предоплат получено (вход в «Предоплата получена») и сколько сделок передано в производство. Вопрос: растёт или падает передача в цех и успевает ли она за оплатами. Вывод: предоплаты стабильно выше - копится очередь оплаченных заказов перед цехом; кривые сходятся - поток здоровый. Тот же узел сверки виден в дашборде производства.')}</div><div class="card-sub">⇄ <b style="color:#2DD4BF">точка стыковки с производством</b> - те же цифры в <a href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener">дашборде цеха</a> · за период: предоплат <b>${fmt(_prepN)}</b> → в производство <b>${fmt(_prodN)}</b> · ${_prepN>_prodN?'<span style="color:#F59E0B">очередь перед цехом растёт (+'+fmt(_prepN-_prodN)+')</span>':'цех успевает за оплатами'}</div></div></div>
-    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:11px 14px;background:var(--bg-elevated);border:1px solid rgba(245,158,11,.35);border-radius:10px;margin-bottom:10px" data-tip="Открытые сделки, стоящие СЕЙЧАС в стадии «Предоплата получена»: деньги взяты, в производство ещё не переданы. Это входящий пакет цеха - производство видит эту же цифру у себя.">
-      <span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3)">На подходе к цеху · сейчас</span>
-      <b style="font-family:'Manrope';font-size:20px;color:#F59E0B">${fmt(_queue.length)} сд</b>
-      <span style="font-size:13px;font-weight:700;color:var(--ink-2)">${fmtK(_queueM)} ₽</span>
-      <span style="font-size:11px;color:var(--ink-4)">оплачено, ждёт передачи в производство</span>
-    </div><div id="ppChart"></div></div>`;
   const B_donuts=`<div class="grid3">`+['dir:По направлению','assort:По ассортименту','client:По типу клиента'].map(b=>{const[f,t]=b.split(':');const dd=sBy(f).slice(0,8);const tot=dd.reduce((s,d)=>s+d[1],0);return `<div class="card"><div class="card-sub" style="font-weight:600;color:var(--ink-2);text-align:center;margin-bottom:6px">${t}</div><div style="text-align:center">`+donut(dd,fmtK(tot).split(' ')[0],(fmtK(tot).split(' ')[1]||'').toUpperCase()+' ₽',true)+`</div>`+legend(dd)+`</div>`;}).join('')+`</div>`;
   /* «Средний чек» перенесён в левую колонку Денег под график */
 
@@ -948,7 +937,7 @@ function render(){
     {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',sub:fmtK(_queueM)+' ₽ · оплачено, не передано · сейчас'},
     {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',sub:fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас'},
   ]);
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Деньги переданных в производство сделок по периодам (бюджеты сделок, вошедших в производственные стадии). Вопрос: растёт или падает поток заказов в цех в деньгах. Вывод: спад при растущих предоплатах - копится очередь перед производством, смотри плашку «На подходе».')}</div><div class="card-sub">суммы сделок, переданных в производство · ${S.dateBasis==='outcome'?'по дате передачи':'по дате создания сделки'}</div></div></div><div id="prodSecChart"></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Деньги переданных в производство сделок по периодам (бюджеты сделок, вошедших в производственные стадии). Вопрос: растёт или падает поток заказов в цех в деньгах. Вывод: спад при растущих предоплатах - копится очередь перед производством, смотри плашку «На подходе».')}</div><div class="card-sub">суммы сделок, переданных в производство · ${S.dateBasis==='outcome'?'по дате передачи':'по дате создания сделки'}</div></div></div><div id="prodSecChart"></div><div class="card-sub" style="margin:14px 0 4px;border-top:1px dashed var(--border);padding-top:12px">предоплаты vs передачи, шт · ⇄ те же цифры в <a href="https://oliverjone01-dev.github.io/t1/prod/" target="_blank" rel="noopener">дашборде цеха</a> · за период: предоплат <b>${fmt(_prepN)}</b> → в производство <b>${fmt(_prodN)}</b>${_prepN>_prodN?' · <span style="color:#F59E0B">очередь перед цехом растёт (+'+fmt(_prepN-_prodN)+')</span>':''}</div><div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
@@ -961,10 +950,10 @@ function render(){
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
-  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_prepProd+B_donuts
+  h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
-    + divider(4,'В производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr);
+    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr);
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1260,7 +1249,7 @@ function wirePF(D,L,m){
 }
 
 /* shell */
-const SECS=['Компания','Отдел продаж','Менеджеры','В производство'];
+const SECS=['Компания','Отдел продаж','Менеджеры','Передача в производство'];
 function buildShell(){
   const _nv=document.getElementById('nav');
   if(_nv){_nv.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');

@@ -257,7 +257,7 @@ const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+' млн':n>=1e3?Math.round(n/1e3)+' т�
 // компактный формат для узких ячеек матрицы: 1.63 млн -> «1,6м», 612 тыс -> «612к»
 const fmtKc=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+'м':n>=1e3?Math.round(n/1e3)+'к':fmt(n);
 const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
-const CVDEF={1:'CR1 — квалификация: квал-лиды ÷ все лиды. Какая доля входящих заявок дошла до квала (статус «Создание сделки» в Б24).',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
+const CVDEF={1:'CR1 — в сделку: созданные сделки ÷ все заявки. Стандарт: квал-лид = созданная сделка, поэтому CR1 одинаков в шапке, «Выполнении плана» и сквозной воронке.',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
 const qm=n=>`<span class="qm" data-tip="${CVDEF[n].replace(/"/g,'&quot;')}">?</span>`;
 const info=t=>`<span class="qm" data-tip="${String(t).replace(/"/g,'&quot;')}">?</span>`;
 const d1=x=>x==null?'—':x.toFixed(1).replace('.',',');
@@ -700,18 +700,19 @@ function render(){
   // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
   // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
   // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
-  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort;
-  const _cv1=m.qrate,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
+  // стандарт Ивана: квал-лид = СОЗДАННАЯ СДЕЛКА, поэтому средняя ступень = m.deals (бьётся с CR1 в шапке)
+  const _leadN=m.leads||1,_qualN=m.deals,_wonN=m.wonCohort;
+  const _cv1=m.leads?m.deals/m.leads:0,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
-  const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
+  const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=stg[0][1]||1,n=3,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_leadN?_wonN/_leadN:0;
     let defs='',conns='',nodes='',labels='';
     for(let i=0;i<n-1;i++){const h0=hOf(stg[i][1]),h1=hOf(stg[i+1][1]),x0=nodeX(i)+nodeW,x1=nodeX(i+1),t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='cvf'+i;
       defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${stg[i][2]}" stop-opacity=".4"/><stop offset="1" stop-color="${stg[i+1][2]}" stop-opacity=".4"/></linearGradient>`;
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})"/>`;
-      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?'Заявка → квал':'Квал → продажа · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
+      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?'Заявка → сделка (CR1)':'Сделка → продажа (CR2) · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
       conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${pct(cvs[i])}</text>`;}
     stg.forEach((s,i)=>{const hh=hOf(s[1]),t=midY-hh/2;
       nodes+=`<rect class="seg-anim" style="animation-delay:${i*.07}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${hh}" rx="6" fill="${s[2]}"/>`;
@@ -726,10 +727,10 @@ function render(){
     `<div class="oi-tile"><div class="oi-v" style="color:#60A5FA">${fmtK(_openRev)} ₽</div><div class="oi-l">В работе</div></div>`+
     `<div class="oi-tile"><div class="oi-v" style="color:#F43F5E">${fmtK(_lostRev)} ₽</div><div class="oi-l">Упущено</div></div></div>`;
   const _cvBody = S.cvView==='dyn'
-    ? `<div id="cvDyn"></div><div class="note" style="margin:12px 0 0">Конверсии по неделям, %. <b>Жирная линия</b> - сквозная заявка→продажа. Последние недели занижены циклом сделки (~33 дн): свежие квал-лиды ещё не закрылись (сидят в «В работе»).</div>`
+    ? `<div id="cvDyn"></div><div class="note" style="margin:12px 0 0">Конверсии по неделям, %. <b>Жирная линия</b> - сквозная заявка→продажа. Последние недели занижены циклом сделки (~33 дн): свежие сделки ещё не закрылись (сидят в «В работе»).</div>`
     : `${_cvFunnel}${_churn}${_oi}`;
   const B_dynLeads=`<div class="card"><div class="card-h"><div><div class="card-title">Динамика заявок ${info('Поток лидов по неделям: квал / неквал / итого во времени. Вопрос: растёт ли входящий поток и его качество, есть ли провалы. Вывод: спад «итого» - вопрос к маркетингу и каналам; рост «неквал» - падает качество трафика.')}</div><div class="card-sub">поток лидов по неделям · вкладки: сводка (квал/неквал), офис-менеджеры, менеджеры ОП</div></div><div style="display:flex;align-items:center;gap:9px"><span class="ctl-lbl">Разрез</span><div class="seg" id="dimSeg"></div></div></div><div id="dynBox"></div></div>`;
-  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды - Продажи и конверсии между ними. Вопрос: на каком переходе теряем больше - лид в квал или квал в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">путь заявка → квал → продажа; продажа = выигранная сделка</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
+  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">путь заявка → сделка → продажа · квал-лид = созданная сделка · продажа = выигранная сделка</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
   /* 2. ЛИДЫ */
   /* уровни собираются в конце */
   // data-quality: атрибуция направления ЗА ВЫБРАННЫЙ ПЕРИОД - направления берутся из поля динамически
@@ -746,7 +747,7 @@ function render(){
     const parts=[[s,'#2E9E74','#06121a'],[f,'#CC5867','#fff'],[p,'#C2873C','#06121a']].filter(x=>x[0]>0);
     const segs=parts.map((x,i)=>{const wd=(x[0]/total*100).toFixed(1);const rad=parts.length===1?'6px':i===0?'6px 0 0 6px':i===parts.length-1?'0 6px 6px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:${x[2]};white-space:nowrap;overflow:visible">${(x[0]/total)>=0.1?fmt(x[0]):""}</div>`;}).join('');
     const td=dt(name,[['Всего лидов',fmt(total),'hl'],['Доля от всех лидов',pct(total/dq.leadTotal),'hl'],['Квал',fmt(s),'dim'],['Отказ',fmt(f),'dim'],['В работе',fmt(p),'dim']]).replace(/"/g,'&quot;');
-    return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:96px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" title="CR1 направления (квал÷лиды), нейтральный показатель">${pct(total?s/total:0)}</div></div>`;}).join('');
+    return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:96px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" title="Квал % направления (лиды со статусом «квал» ÷ все лиды направления), нейтральный показатель. Не CR1: CR1 = созданные сделки ÷ заявки.">${pct(total?s/total:0)}</div></div>`;}).join('');
   // ===== метрика блока «Качество разметки» управляется тем же тогглом (loadSeg) =====
   const QM=(S.loadMetric==='conv'||S.loadMetric==='check'||S.loadMetric==='prod')?'deals':(S.loadMetric||'leads');
   const _wonByDir={},_revByDir={};D.forEach(d=>{if(d.won){const k=d.dir||'не указано';_wonByDir[k]=(_wonByDir[k]||0)+1;_revByDir[k]=(_revByDir[k]||0)+(d.budget||0);}});
@@ -772,7 +773,7 @@ function render(){
       return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:64px;background:${col};border-radius:6px;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10.5px;font-weight:800;color:#06121a;transform-origin:left;animation:grow .8s var(--ease-out) both">${_qfV(val)}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right">${pct(val/_qTotal)}</div></div>`;}).join('');
   }
   const _qCap = QM==='leads'
-    ? `Лиды по направлению: <span style="color:#2E9E74">квал</span> · <span style="color:#CC5867">отказ</span> · <span style="color:#C2873C">в работе</span> · числа в сегментах · справа CR1 (квал÷лиды) ${info('CR1 направления - квал-лиды ÷ все лиды этого направления. Нейтральная справка, не оценка: высокий CR1 у «не указано» не значит «хорошо».')}. «Не указано» = дыра`
+    ? `Лиды по направлению: <span style="color:#2E9E74">квал</span> · <span style="color:#CC5867">отказ</span> · <span style="color:#C2873C">в работе</span> · числа в сегментах · справа квал % ${info('Квал % направления - лиды со статусом «квал» ÷ все лиды направления. Нейтральная справка, не оценка. Не путать с CR1 (созданные сделки ÷ заявки).')}. «Не указано» = дыра`
     : `${_qMeta.lab} по направлению · значение на полосе · справа доля от Σ${QM==='rev'?' '+info('Выручка считается только с успешной (выигранной) стадии сделки - won. Предоплата на стадии перед производством в выручку НЕ входит: учитывается лишь закрытая выигранная сделка.'):QM==='won'?' '+info('Продажи - только выигранные сделки (won), по всем направлениям.'):QM==='deals'?' '+info('Сделки - все созданные сделки в воронке: выигранные + проигранные + открытые.'):''} · «Не указано» = дыра атрибуции`;
   const B_quality=`<div class="card"><div class="card-h"><div><div class="card-title">Качество разметки ${info('Доля сделок/лидов за период без проставленного направления (атрибуция из поля Б24). Вопрос: чисто ли менеджеры заполняют направление. Вывод: большая доля «не указано» - дыра в данных, аналитика по направлениям врёт, чинить дисциплину заполнения.')}</div><div class="card-sub">за выбранный период, все направления · показатель ${_qMeta.lab} (тоггл сверху ↑) · направления берутся из поля Б24 (новые подхватятся автоматически) · атрибуция: 1) поле «направление» → 2) отдел/системный → 3) источник. Пустое = не определено, цель — 0%.</div></div></div>`+
     kstrip([
@@ -808,7 +809,7 @@ function render(){
   dData.forEach(d=>{const an=d[1]/refused*360;const a1=dA,a2=dA+an;const xy=(deg,rad)=>[100+rad*Math.cos(deg*Math.PI/180),100+rad*Math.sin(deg*Math.PI/180)];const R=74,r=50;const[x0,y0]=xy(a1,R),[x1,y1]=xy(a2,R),[x2,y2]=xy(a2,r),[x3,y3]=xy(a1,r);const laf=an>180?1:0;const td=dt(d[0],[['Отказов',fmt(d[1]),'hl'],['Доля',pct(d[1]/refused),'hl']]).replace(/"/g,'&quot;');dPaths+=`<path class="dpath seg-anim" data-tip="${td}" d="M${x0} ${y0} A${R} ${R} 0 ${laf} 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 ${laf} 0 ${x3} ${y3} Z" fill="${d[2]}" opacity=".9"/>`;dA=a2;});
   const dSvg=`<svg viewBox="0 0 200 200" style="width:100%;max-width:166px">${dPaths}<text x="100" y="95" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="27" fill="var(--ink)">${fmt(refused)}</text><text x="100" y="114" text-anchor="middle" font-size="10" fill="var(--ink-3)">отказов</text></svg>`;
   const dLeg=dData.map(d=>`<div class="ro-lg"><span class="dot" style="background:${d[2]}"></span><span class="nm">${d[0]}</span><span class="vl">${fmt(d[1])}</span><span class="pc">${pct(d[1]/refused)}</span></div>`).join('');
-  const B_leadFunnelPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Воронка лидов ${info('Все лиды периода по исходу: в работе / сделки (квал) / отказ. Вопрос: какая доля входящих доходит до сделки, сколько отваливается. Вывод: большой «отказ» или много зависших «в работе» - проблема обработки лидов на входе.')}</div><div class="card-sub">из ${fmt(ltot)} лидов genglass: <b style="color:#2E9E74">${fmt(success)} квал</b> (CR1 ${pct(ltot?success/ltot:0)}) · ${fmt(refused)} отказ · ${fmt(inwork)} в работе</div></div></div><div class="lf-bars">${lbars}</div></div>`+
+  const B_leadFunnelPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Воронка лидов ${info('Все лиды периода по исходу: в работе / сделки (квал) / отказ. Вопрос: какая доля входящих доходит до сделки, сколько отваливается. Вывод: большой «отказ» или много зависших «в работе» - проблема обработки лидов на входе.')}</div><div class="card-sub">из ${fmt(ltot)} лидов genglass: <b style="color:#2E9E74">${fmt(success)} квал</b> (квал % ${pct(ltot?success/ltot:0)}) · ${fmt(refused)} отказ · ${fmt(inwork)} в работе</div></div></div><div class="lf-bars">${lbars}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в лидах ${info('Почему лиды не дошли до сделки: некачественный / спам / дубль / отказ. Вопрос: главная причина потери лидов на входе. Вывод: много «некачественный/спам» - проблема в каналах трафика, а не в продажах.')}</div><div class="card-sub">${fmt(refused)} отказных лидов по статусу. Внутри «Некачественный лид» причину пишет менеджер: чаще всего игнор, тест, пустой, звонок по заказу. Подпричины «Отказа» в выгрузке пока нет.</div></div></div><div class="ro-dwrap" style="margin-top:10px"><div class="ro-donut">${dSvg}</div><div class="ro-legend">${dLeg}</div></div></div></div>`;
   // нагрузка по менеджерам ОП (full-width)
   const mgA={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=mgA[l.mgr]=mgA[l.mgr]||{t:0,q:0,f:0,p:0};a.t++;if(l.qual==='квал')a.q++;else if(l.qual==='в работе')a.p++;else a.f++;});
@@ -817,7 +818,7 @@ function render(){
   const mgRows=mgTop.length?mgTop.map(([nm,a])=>{const w=(a.t/mgMax*100).toFixed(1);
     const parts=[[a.q,'#2E9E74','#06121a'],[a.f,'#CC5867','#fff'],[a.p,'#C2873C','#06121a']].filter(x=>x[0]>0);
     const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
-    const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['CR1',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
+    const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['Квал %',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" title="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
   const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
   const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=(_lm!=='leads'&&_lm!=='prod');
@@ -994,10 +995,10 @@ function mgrScatter(L){
   let grid='';for(let i=0;i<=4;i++){const yy=pt+(H-pt-pb)*i/4,vv=1-i/4;grid+=`<line x1="${pl}" y1="${yy.toFixed(1)}" x2="${W-pr}" y2="${yy.toFixed(1)}" stroke="var(--border-soft)"/><text x="${pl-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-4)">${Math.round(vv*100)}%</text>`;}
   let xg='';for(let i=0;i<=4;i++){const xx=pl+(W-pl-pr)*i/4,vv=maxT*i/4;xg+=`<text x="${xx.toFixed(1)}" y="${H-pb+15}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${Math.round(vv)}</text>`;}
   const refV=`<line x1="${X(medT).toFixed(1)}" y1="${pt}" x2="${X(medT).toFixed(1)}" y2="${H-pb}" stroke="var(--ink-4)" stroke-dasharray="4 4" opacity=".55"/><text x="${X(medT).toFixed(1)}" y="${pt-4}" text-anchor="middle" font-size="8.5" fill="var(--ink-3)">медиана объёма</text>`;
-  const refH=`<line x1="${pl}" y1="${Y(target).toFixed(1)}" x2="${W-pr}" y2="${Y(target).toFixed(1)}" stroke="#2E9E74" stroke-dasharray="4 4" opacity=".5"/><text x="${W-pr+4}" y="${(Y(target)+3).toFixed(1)}" font-size="8.5" fill="#2E9E74">цель CR1 50%</text>`;
+  const refH=`<line x1="${pl}" y1="${Y(target).toFixed(1)}" x2="${W-pr}" y2="${Y(target).toFixed(1)}" stroke="#2E9E74" stroke-dasharray="4 4" opacity=".5"/><text x="${W-pr+4}" y="${(Y(target)+3).toFixed(1)}" font-size="8.5" fill="#2E9E74">цель квал 50%</text>`;
   const rOf=q=>Math.max(5,Math.min(21,Math.sqrt(q)*4));
   let pts='';arr.forEach((x,i)=>{const cx=X(x.t),cy=Y(x.cv),r=rOf(x.q),c=x.cv>=.5?'#2E9E74':x.cv>=.3?'#C2873C':'#CC5867';
-    const td=dt(x.m,[['Лидов',fmt(x.t),'hl'],['Квал',fmt(x.q),'dim'],['CR1',pct(x.cv),'hl']]).replace(/"/g,'&quot;');
+    const td=dt(x.m,[['Лидов',fmt(x.t),'hl'],['Квал',fmt(x.q),'dim'],['Квал %',pct(x.cv),'hl']]).replace(/"/g,'&quot;');
     pts+=`<circle class="seg-anim" style="animation-delay:${(i*.04).toFixed(2)}s;transform-box:fill-box;transform-origin:center" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${c}" fill-opacity=".48" stroke="${c}" stroke-width="1.5" data-tip="${td}"/>`;
     pts+=`<text x="${cx.toFixed(1)}" y="${(cy-r-3).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--ink-2)" pointer-events="none">${x.m.split(' ')[0]}</text>`;});
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${grid}${xg}${refV}${refH}${pts}<text x="${((pl+W-pr)/2).toFixed(0)}" y="${H-4}" text-anchor="middle" font-size="9.5" fill="var(--ink-3)">объём лидов, шт →</text></svg>`;}
@@ -1097,7 +1098,8 @@ function wireCv(L,D){
   if(S.cvView!=='dyn')return;
   const keys=buckets(S.gran);
   const lc=keys.map(k=>L.filter(l=>bkey(l.created,S.gran)===k).length);
-  const qc=keys.map(k=>L.filter(l=>l.qual==='квал'&&bkey(l.created,S.gran)===k).length);
+  // квал-лид = созданная сделка (единый стандарт с CR1 шапки и воронкой)
+  const qc=keys.map(k=>D.filter(d=>bkey(d.created,S.gran)===k).length);
   const wc=keys.map(k=>D.filter(d=>d.won&&bkey(d.created,S.gran)===k).length);
   const r=(num,den)=>keys.map((_,i)=>den[i]?+(num[i]/den[i]*100).toFixed(1):0);
   multiline([

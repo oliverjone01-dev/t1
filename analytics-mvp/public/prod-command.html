@@ -213,7 +213,9 @@ function chartSVG(series,keys,opt){
   const n=keys.length,X=i=>pl+(w-pl-pr)*(n>1?i/(n-1):.5),Y=v=>h-pb-(h-pt-pb)*v/mx;
   const fv=opt.fmtY||(v=>fmtK(Math.round(v)));
   let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${fv(mx*(1-g/3))}</text>`}
-  let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);if(i%step===0||i===n-1)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
+  let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);
+    const isLast=i===n-1, regular=i%step===0&&(n-1-i)>=step*0.6; // не рисуем подпись, налезающую на последнюю
+    if(regular||isLast)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
   let body='';
   series.forEach(s=>{
     if(s.type==='bar'){const bw=Math.max(3,(w-pl-pr)/(n*1.6));

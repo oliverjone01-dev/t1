@@ -280,7 +280,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -950,7 +950,11 @@ function render(){
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
     _qDeals.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].q++;M[n].qm+=(d.budget||0);});
-    const rows=Object.values(M).sort((a,b)=>b.m-a.m||b.qm-a.qm);
+    const rows=Object.values(M);
+    const _ps=S.pmSort||{k:'m',a:false};
+    const _pg={n:r=>r.n,c:r=>r.c,m:r=>r.m,q:r=>r.q,qm:r=>r.qm}[_ps.k]||(r=>r.m);
+    rows.sort((a,b)=>{const x=_pg(a),y=_pg(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y??-1)-(x??-1));return _ps.a?-d:d});
+    const _pth=(k,l)=>k?`<th data-pm="${k}" style="cursor:pointer;user-select:none${k===_ps.k?';color:#22D3EE':''}">${l}${k===_ps.k?(_ps.a?' ▲':' ▼'):''}</th>`:`<th>${l}</th>`;
     // полупрозрачная гистограммка внутри ячейки: заливка слева на долю от максимума колонки
     const mxC=Math.max(1,...rows.map(r=>r.c)),mxM=Math.max(1,...rows.map(r=>r.m)),mxQ=Math.max(1,...rows.map(r=>r.q)),mxQM=Math.max(1,...rows.map(r=>r.qm));
     const bg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
@@ -963,7 +967,7 @@ function render(){
       <td style="font-weight:800;${bg(1,1,T)}">${fmt(_prodN)}</td><td style="${bg(1,1,T)}">100%</td>
       <td style="font-weight:800;${bg(1,1,T)}">${fmtKc(_pdM)}</td><td style="${bg(1,1,T)}">100%</td>
       <td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmt(_qDeals.length)}</td><td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmtKc(_qM)}</td></tr>`;
-    return `<div class="card"><div class="card-h"><div><div class="card-title">Менеджеры: передачи и потенциал ${info('Кто передаёт заказы в производство (шт, доля, деньги за период) и у кого сколько сейчас в расчётах (открытые сделки на стадиях Расчёт/ТЗ/КП/Принимают решение/Долгострой - будущие передачи). Вопрос: кто кормит цех и чей потенциал не конвертируется в передачи. Вывод: большие «в расчётах» при малых передачах - разбирать пайплайн менеджера.')}</div><div class="card-sub">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div class="scroll"><table class="tbl"><thead><tr><th style="text-align:left">Менеджер</th><th>Передано</th><th>Доля шт</th><th>₽</th><th>Доля ₽</th><th>В расчётах</th><th>Потенциал ₽</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-title">Менеджеры: передачи и потенциал ${info('Кто передаёт заказы в производство (шт, доля, деньги за период) и у кого сколько сейчас в расчётах (открытые сделки на стадиях Расчёт/ТЗ/КП/Принимают решение/Долгострой - будущие передачи). Вопрос: кто кормит цех и чей потенциал не конвертируется в передачи. Вывод: большие «в расчётах» при малых передачах - разбирать пайплайн менеджера.')}</div><div class="card-sub">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div class="scroll"><table class="tbl"><thead><tr>${_pth('n','Менеджер').replace('<th ','<th style="text-align:left" ').replace('cursor:pointer','cursor:pointer;text-align:left')}${_pth('c','Передано')}${_pth(null,'Доля шт')}${_pth('m','₽')}${_pth(null,'Доля ₽')}${_pth('q','В расчётах')}${_pth('qm','Потенциал ₽')}</tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
@@ -1285,6 +1289,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
   document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
+  document.addEventListener('click',e=>{const th=e.target.closest('th[data-pm]');if(th){const st=S.pmSort;if(st.k===th.dataset.pm)st.a=!st.a;else{st.k=th.dataset.pm;st.a=false}render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');

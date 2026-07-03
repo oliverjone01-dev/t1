@@ -155,7 +155,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all'};
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money'};
 
 // бакеты по гранулярности (локальные компоненты - без TZ-сдвигов)
 function bkey(ds){const dt=D(ds);if(!dt)return null;
@@ -451,27 +451,32 @@ function render(){
     return `<table class="tbl"><thead><tr><th>Конструктор</th><th>Заказов</th><th>Готово</th><th>Ср.срок</th><th>Доработок</th><th>Ср.чек</th><th>Сумма</th></tr></thead><tbody>${body}</tbody></table>`;
   })();
 
-  // ===== КОНСТРУКТОРЫ: профиль по чекам (что берёт и как быстро делает) =====
+  // ===== КОНСТРУКТОРЫ: профиль по чекам, сортировка ₽/дни/шт =====
   const consScatter=(()=>{
     const pts=cut.filter(i=>isDone(i)&&moneyOf(i)>0).map(i=>({b:moneyOf(i),c:cycleOf(i),n:i.constructor||'—'})).filter(p=>p.c!=null&&p.c>=0);
     if(pts.length<5)return '<div class="card-s">мало готовых заказов с чеком в периоде</div>';
     const BK=[['Дешёвые · до 100 тыс',0,1e5],['Средние · 100-300 тыс',1e5,3e5],['Дорогие · от 300 тыс',3e5,Infinity]];
     const bkOf=b=>BK.findIndex(([,a,z])=>b>=a&&b<z);
-    const m={};pts.forEach(p=>{(m[p.n]=m[p.n]||{n:p.n,tot:0,sum:0,bk:[[],[],[]]});m[p.n].tot++;m[p.n].sum+=p.b;m[p.n].bk[bkOf(p.b)].push(p)});
-    const rows=Object.values(m).sort((a,b)=>b.tot-a.tot).slice(0,10);
-    const allRow={n:'Все конструкторы',tot:pts.length,sum:sum(pts,p=>p.b),bk:[[],[],[]]};
+    const m={};pts.forEach(p=>{(m[p.n]=m[p.n]||{n:p.n,tot:0,sum:0,cyc:[],bk:[[],[],[]]});m[p.n].tot++;m[p.n].sum+=p.b;m[p.n].cyc.push(p.c);m[p.n].bk[bkOf(p.b)].push(p)});
+    const srt=S.consSort||'money';
+    const keyF=srt==='days'?(r=>med(r.cyc)||0):srt==='cnt'?(r=>r.tot):(r=>r.sum);
+    const rows=Object.values(m).sort((a,b)=>keyF(b)-keyF(a)).slice(0,10);
+    const allRow={n:'Все конструкторы',tot:pts.length,sum:sum(pts,p=>p.b),cyc:pts.map(p=>p.c),bk:[[],[],[]]};
     pts.forEach(p=>allRow.bk[bkOf(p.b)].push(p));
+    // ширина полосы = деньги ячейки относительно самой дорогой ячейки колонки (приоритет = деньги)
+    const colMax=[0,1,2].map(k=>Math.max(1,...rows.concat([allRow]).map(r=>sum(r.bk[k],p=>p.b))));
     const cell=(r,k)=>{const arr=r.bk[k];if(!arr.length)return `<div class="pr-cell"><span style="color:var(--ink4)">—</span></div>`;
       const share=arr.length/r.tot, mc=med(arr.map(p=>p.c)), col=toneC(mc||0), money=sum(arr,p=>p.b);
-      const td=attr(`<div class='tl'>${esc(r.n)} · ${BK[k][0]}</div><div class='tr'><span>Заказов</span><span>${fmt(arr.length)} (${pct(share)} его заказов)</span></div><div class='tr'><span>Медиана срока</span><span>${d1(mc)} дн</span></div><div class='tr'><span>Деньги</span><span>${fmtK(money)} ₽</span></div>`);
-      return `<div class="pr-cell" data-tip="${td}"><i style="width:${Math.max(share*100,4).toFixed(1)}%;background:${col}30;border-right:2px solid ${col}"></i><span><b style="color:${col}">${arr.length} шт</b>&nbsp;· ${d1(mc)} дн&nbsp;<span style="color:var(--ink3)">· ${fmtK(money)} ₽</span></span></div>`};
+      const w=Math.max(money/colMax[k]*100,4);
+      const td=attr(`<div class='tl'>${esc(r.n)} · ${BK[k][0]}</div><div class='tr'><span>Деньги</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Заказов</span><span>${fmt(arr.length)} (${pct(share)} его заказов)</span></div><div class='tr'><span>Медиана срока</span><span>${d1(mc)} дн</span></div>`);
+      return `<div class="pr-cell" data-tip="${td}"><i style="width:${w.toFixed(1)}%;background:${col}30;border-right:2px solid ${col}"></i><span><b style="color:${col}">${fmtK(money)} ₽</b>&nbsp;<span style="color:var(--ink3)">· ${arr.length} шт · ${d1(mc)} дн</span></span></div>`};
+    const totCell=(r)=>{const md=med(r.cyc);return `<div class="pr-tot"><b>${fmtK(r.sum)}</b> ₽ · ${r.tot} шт · <span style="color:${toneC(md||0)}">${d1(md)} дн</span></div>`};
     const row=(r,hl)=>`<div class="pr-row"${hl?' style="border-bottom:1px solid var(--border2);padding-bottom:10px;margin-bottom:4px"':''}>
-      <div class="pr-nm"${hl?' style="color:var(--ink3)"':''}>${esc(r.n)}</div>${cell(r,0)}${cell(r,1)}${cell(r,2)}
-      <div class="pr-tot"><b>${r.tot}</b> шт · <b>${fmtK(r.sum)}</b> ₽</div></div>`;
+      <div class="pr-nm"${hl?' style="color:var(--ink3)"':''}>${esc(r.n)}</div>${cell(r,0)}${cell(r,1)}${cell(r,2)}${totCell(r)}</div>`;
     const head=`<div class="pr-row" style="margin-bottom:2px"><div></div>${BK.map(([l])=>`<div class="pr-head">${l}</div>`).join('')}<div class="pr-head" style="text-align:right">Итого</div></div>`;
     return head+row(allRow,true)+rows.map(r=>row(r)).join('')+
       `<div class="legend"><span><i style="background:#2E9E74"></i>быстро (до 15 дн)</span><span><i style="background:#F59E0B"></i>15-25 дн</span><span><i style="background:#FB923C"></i>25-40 дн</span><span><i style="background:#F43F5E"></i>40+ дн (возится)</span></div>`+
-      `<div class="note">Читается по строке: <b>длина полосы</b> = какую долю своих заказов конструктор берёт в этой ценовой категории (чаще берёт - длиннее), <b>цифра и цвет</b> = сколько штук и медиана срока (краснее - дольше возится). Пример: длинная полоса в «Дешёвых» + красный срок = берёт дешёвые и долго делает; короткая полоса в «Дорогих» + зелёный срок = дорогие делает быстро, но берёт их редко. Деньги в ячейке = сумма сделок этой категории у конструктора: где больше ₽ и краснее срок - туда приоритет, это дорогая очередь. Первая строка - средняя картина по цеху для сравнения.</div>`;
+      `<div class="note">Читается по строке: <b>длина полосы</b> = сколько денег лежит в этой ценовой категории у конструктора (относительно самой дорогой ячейки колонки), <b>цвет</b> = медиана срока (краснее - дольше возится). Самая длинная и красная полоса = дорогая очередь, туда приоритет. Сортировка сверху: по деньгам, срокам или штукам. Первая строка - весь цех для сравнения. Наведи на ячейку - детали.</div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
@@ -493,7 +498,7 @@ function render(){
     `<div class="sec"><div class="n">3</div><h2>Сотрудники</h2><div class="ln"></div><div class="hint">кто заводит объём и кто его производит</div></div>`+
     `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: запуски и просчёты</div><div class="card-s">запуски производства в штуках и деньгах (${modeLbl}) + просчёты как потенциал цеха</div></div></div>${mgrBlock}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div></div>${consScatter}</div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div><div class="seg" id="consSortSeg">${[['money','₽'],['days','Дни'],['cnt','Шт']].map(x=>`<button data-v="${x[0]}" class="${(S.consSort||'money')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${consScatter}</div>`;
   document.getElementById('periodLabel').textContent=perLbl;
   wireCharts();
 
@@ -528,6 +533,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   dirs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o)});
   sel.addEventListener('change',()=>{S.dir=sel.value;render()});
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
+  document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
   df.value=S.from;dt.value=S.to;
   document.getElementById('applyCustom').addEventListener('click',()=>{

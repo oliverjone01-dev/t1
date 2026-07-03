@@ -8,7 +8,8 @@ name: Deploy to GitHub Pages
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
-# Прод (корни /, /smm/, /rop/) меняется только при push в main / rop-dashboard-v1.
+#   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
+# Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
 on:
@@ -106,6 +107,20 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/rop"
           cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop/index.html"
           echo "РОП опубликован в /rop/ ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+
+      # === ПРОИЗВОДСТВО (ИЗОЛИРОВАННО, из ветки prod-dashboard-v1, в /prod/) ===
+      # Аналог /rop/: дашборд самодостаточный (данные Bitrix СП 1086 запечены build-prod),
+      # копируем готовый HTML - без npm/smoke. Падение не валит остальной сайт
+      # (continue-on-error). Данные обновляет prod-cron.yml (ночью) -> prod-dashboard-v1.
+      - name: Build PROD dashboard (isolated, /prod/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin prod-dashboard-v1
+          git worktree add /tmp/prod FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/prod"
+          cp /tmp/prod/analytics-mvp/public/prod-command.html "$GITHUB_WORKSPACE/_site/prod/index.html"
+          echo "Производство опубликовано в /prod/ ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

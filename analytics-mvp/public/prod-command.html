@@ -83,12 +83,12 @@ b{font-weight:700}
 .fun-bar{position:absolute;left:50%;top:0;transform:translateX(-50%);height:100%;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;white-space:nowrap;cursor:help;min-width:0;transition:width .35s var(--ease)}
 .fun-st{font-size:11px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
 /* оценка участков: мощность/загрузка/разгрузка */
-.stx-row{display:grid;grid-template-columns:110px 1fr 330px;gap:12px;align-items:center;margin:8px 0;cursor:help}
+.stx-row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;margin:8px 0;cursor:help}
 .stx-nm{font-size:12px;font-weight:700;color:var(--ink2);text-align:right}
-.stx-tr{height:27px;position:relative}
+.stx-tr{height:27px;display:flex;align-items:center;gap:9px}
 .stx-cap{position:relative;height:100%;background:var(--elev);border:1px solid var(--border2);border-radius:7px;overflow:hidden;min-width:70px}
 .stx-cap>i{position:absolute;left:0;top:0;bottom:0;border-radius:6px 0 0 6px}
-.stx-cap>u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink3);opacity:.6}
+.stx-pill{flex:none;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:7px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .stx-cap>span{position:absolute;inset:0;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:700;color:var(--ink2);white-space:nowrap}
 .stx-st{font-size:11px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
 @media(max-width:1100px){.stx-row{grid-template-columns:90px 1fr 200px}}
@@ -397,23 +397,20 @@ function render(){
     }).sort((a,b)=>((b.clear==null?99:b.clear))-((a.clear==null?99:a.clear)));
     const mxMax=Math.max(1,...rows.map(r=>r.maxW));
     const body=rows.map(r=>{
-      if(!r.used)return `<div class="stx-row"><div class="stx-nm">${r.nm}</div><div class="stx-tr"><span style="color:var(--ink4);font-size:11px">участок не используется</span></div><div class="stx-st"></div></div>`;
+      if(!r.used)return `<div class="stx-row"><div class="stx-nm">${r.nm}</div><div class="stx-tr"><span style="color:var(--ink4);font-size:11px">участок не используется</span></div></div>`;
       const col=r.wipN?toneClear(r.clear):'#3a4450';
       const trackW=Math.max(r.maxW/mxMax*100,16);
       const fillW=r.maxW?Math.min(r.wipN/r.maxW,1.25)*100:0;
-      const notch=r.maxW?Math.min(r.avgW/r.maxW,1)*100:0;
       const over=r.maxW&&r.wipN>r.maxW;
       const td=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>В работе сейчас</span><span>${r.wipN} изд.</span></div><div class='tr'><span>Пропускная способность</span><span>до ${fmt(r.maxW)} изд./нед (макс из истории)</span></div><div class='tr'><span>Средний поток</span><span>${d1(r.avgW)} изд./нед</span></div><div class='tr'><span>Разгрузка очереди</span><span>${r.clear!=null?'~'+d1(r.clear)+' дн':'нет данных о скорости'}</span></div><div class='tr'><span>Медиана времени на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div>`);
       return `<div class="stx-row" data-tip="${td}">
         <div class="stx-nm">${r.nm}</div>
         <div class="stx-tr"><div class="stx-cap" style="width:${trackW.toFixed(1)}%">
           <i style="width:${fillW.toFixed(1)}%;background:${col}33;border-right:2.5px solid ${col}"></i>
-          <u style="left:${notch.toFixed(1)}%"></u>
           <span>${r.wipN?r.wipN+' в работе':'пусто'}${over?' · <b style="color:#F43F5E">сверх мощности</b>':''}</span>
-        </div></div>
-        <div class="stx-st"><b style="color:${col}">разгрузка ${r.clear!=null?'~'+d1(r.clear)+' дн':'?'}</b> · мощность до ${fmt(r.maxW)}/нед · на участке ${r.stay!=null?d1(r.stay)+' дн':'—'}</div>
+        </div><b class="stx-pill" style="color:${col};background:${col}1c;border:1px solid ${col}55">${r.clear!=null?'~'+d1(r.clear)+' дн':'?'}</b></div>
       </div>`}).join('');
-    return `${body}<div class="legend"><span><i style="background:#2E9E74"></i>разгрузка до 3 дн</span><span><i style="background:#F59E0B"></i>3-7 дн</span><span><i style="background:#FB923C"></i>7-14 дн</span><span><i style="background:#F43F5E"></i>14+ дн или скорость неизвестна (узкое горло)</span></div><div class="note"><b>Как читать:</b> длина серой полосы = мощность участка (максимум изделий за неделю по всей истории), заливка = очередь сейчас относительно этой мощности, засечка = средний недельный поток. Главная цифра справа - <b>разгрузка</b>: за сколько дней участок разгребёт текущую очередь при своей средней скорости. Красное и длинное = узкое горло; пустая полоса = недогруз. Считаем по карточкам производства (= изделие/позиция, поля «количество» в карточке нет).</div><div class="note">Предложение по визуализации (варианты, скажи какой добавить): <b>Б)</b> тепловая матрица «участок × неделя» - видно волны загрузки и недели, когда участок захлёбывался; <b>В)</b> «стаканы» - два столбика рядом на участок: мощность и текущая очередь; <b>Г)</b> переключатель «Заказы / Изделия» - появится, если завести в карточке СП поле «количество изделий» (сейчас партия внутри карточки видна как 1).</div>`;
+    return `${body}<div class="legend"><span><i style="background:#2E9E74"></i>разгрузка до 3 дн</span><span><i style="background:#F59E0B"></i>3-7 дн</span><span><i style="background:#FB923C"></i>7-14 дн</span><span><i style="background:#F43F5E"></i>14+ дн (узкое горло)</span><span style="color:var(--ink4)">полоса = мощность участка · заливка = очередь сейчас · бейдж = дней на разгрузку · детали - при наведении</span></div><div class="note">Считаем по карточкам производства (= изделие/позиция; поля «количество» в карточке нет). Предложение по визуализации: <b>Б)</b> тепловая матрица «участок × неделя» (волны загрузки) · <b>В)</b> «стаканы»: мощность и очередь двумя столбиками · <b>Г)</b> переключатель «Заказы / Изделия» после добавления поля «количество» в СП.</div>`;
   })();
 
   // ===== ПРОХОДИМОСТЬ УЧАСТКОВ: центрированная воронка =====

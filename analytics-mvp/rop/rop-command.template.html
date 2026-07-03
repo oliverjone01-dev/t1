@@ -319,6 +319,12 @@ function closeKey(d){return S.dateBasis==='outcome'?(d.closed||d.created):d.crea
 // «Передано в производство»: первый вход сделки в производственные стадии
 // (Заказ в производстве / произведён / отправлен - по истории стадий).
 const PROD_STAGES=['C49:FINAL_INVOICE','C49:1','C49:2'];
+// «Предоплата получена»: первый вход сделки в стадию C49:EXECUTING.
+function prepayDate(d){for(const h of(d.hist||[]))if(h[0]==='C49:EXECUTING')return h[1];return null;}
+function prepayKey(d){return S.dateBasis==='outcome'?(prepayDate(d)||d.created):d.created;}
+function prepaySet(a,b){a=a||S.start;b=b||S.end;
+  if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>{const pd=prepayDate(d);return pd&&pd>=a&&pd<=b;});
+  return flt(AD,true).filter(d=>prepayDate(d)&&d.created>=a&&d.created<=b);}
 function prodDate(d){for(const h of(d.hist||[]))if(PROD_STAGES.includes(h[0]))return h[1];return null;}
 function prodKey(d){return S.dateBasis==='outcome'?(prodDate(d)||d.created):d.created;}
 function prodSet(a,b){a=a||S.start;b=b||S.end;
@@ -662,6 +668,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
   const _prodN=prodSet().length,_prodP=prodSet(_pw[0],_pw[1]).length;
+  const _prepN=prepaySet().length,_prepP=prepaySet(_pw[0],_pw[1]).length;
   let h='';
   const snap=SNAP();
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
@@ -672,7 +679,8 @@ function render(){
     {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
     {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
-    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'заказов передано в цех'},
+    {k:'Предоплат получено',v:fmt(_prepN),ac:'#38BDF8',trend:trendChip(_prepN,_prepP),sub:'вход в «Предоплата получена»'},
+    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:_prepN?('из '+fmt(_prepN)+' предоплат · '+pct(_prodN/_prepN)):'заказов передано в цех'},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
@@ -783,7 +791,8 @@ function render(){
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
     {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},
-    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:'заказов передано в цех'},
+    {k:'Предоплат получено',v:fmt(_prepN),ac:'#38BDF8',trend:trendChip(_prepN,_prepP),sub:'вход в «Предоплата получена»'},
+    {k:'В производство',v:fmt(_prodN),ac:'#2DD4BF',trend:trendChip(_prodN,_prodP),sub:_prepN?('из '+fmt(_prepN)+' предоплат · '+pct(_prodN/_prepN)):'заказов передано в цех'},
     {k:'Неквал',v:fmt(_nekv),ac:'#F43F5E',trend:trendChip(_nekv,PLd.filter(l=>l.qual==='неквал').length,true)},
     {k:'В работе',v:fmt(_vrab),ac:'#F59E0B',sub:'лиды не доведены до исхода'},
   ]);

@@ -169,7 +169,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
 const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',
-  mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false}};
+  mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
   ?`<th data-tbl="${tbl}" data-sk="${k}" style="cursor:pointer;user-select:none${k===st.k?';color:#22D3EE':''}">${l}${k===st.k?(st.a?' ▲':' ▼'):''}</th>`
@@ -330,6 +330,29 @@ function render(){
       </div>
     </div>`;
     return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех по периодам</div><div class="card-s">предоплат получено vs передано в производство, шт · по дате события</div></div></div>${pair}${chart}</div>`;
+  })();
+
+  // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====
+  const syncMgrCard=(()=>{
+    const uniq=uniqByDeal(IT.filter(i=>inRange(startDate(i))));
+    const M={};uniq.forEach(i=>{const n=mgrOf(i);(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=i.dealBudget||0});
+    const QT=(DATA.quotes&&DATA.quotes.deals)||[];
+    QT.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].q++;M[n].qm+=d.budget||0});
+    const rows=Object.values(M);
+    sortRows(rows,S.smSort,{n:r=>r.n,c:r=>r.c,m:r=>r.m,q:r=>r.q,qm:r=>r.qm});
+    const totC=sum(rows,r=>r.c),totM=sum(rows,r=>r.m),totQ=sum(rows,r=>r.q),totQM=sum(rows,r=>r.qm);
+    const mxC=Math.max(1,...rows.map(r=>r.c)),mxM=Math.max(1,...rows.map(r=>r.m)),mxQ=Math.max(1,...rows.map(r=>r.q)),mxQM=Math.max(1,...rows.map(r=>r.qm));
+    const bg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
+    const T='rgba(45,212,191,.14)',Q='rgba(34,211,238,.12)';
+    const body=rows.slice(0,14).map(r=>`<tr><td class="nm">${esc(r.n)}</td>
+      <td style="${bg(r.c,mxC,T)}">${r.c||'·'}</td><td style="${bg(r.c,mxC,T)}">${totC?pct(r.c/totC):'·'}</td>
+      <td style="${bg(r.m,mxM,T)}"><b>${r.m?fmtK(r.m):'·'}</b></td><td style="color:var(--ink3);${bg(r.m,mxM,T)}">${totM&&r.m?pct(r.m/totM):'·'}</td>
+      <td style="color:var(--cyan);${bg(r.q,mxQ,Q)}">${r.q||'·'}</td><td style="color:var(--cyan);${bg(r.qm,mxQM,Q)}">${r.qm?fmtK(r.qm):'·'}</td></tr>`).join('');
+    const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Отдел</td>
+      <td style="font-weight:800;${bg(1,1,T)}">${fmt(totC)}</td><td style="${bg(1,1,T)}">100%</td>
+      <td style="font-weight:800;${bg(1,1,T)}">${fmtK(totM)}</td><td style="${bg(1,1,T)}">100%</td>
+      <td style="font-weight:800;color:var(--cyan);${bg(1,1,Q)}">${fmt(totQ)}</td><td style="font-weight:800;color:var(--cyan);${bg(1,1,Q)}">${fmtK(totQM)}</td></tr>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: передачи и потенциал</div><div class="card-s">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div style="overflow-x:auto"><table class="tbl"><thead><tr>${thRow('sm',S.smSort,[['n','Менеджер'],['c','Передано'],[null,'Доля шт'],['m','₽'],[null,'Доля ₽'],['q','В расчётах'],['qm','Потенциал ₽']])}</tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
 
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
@@ -553,7 +576,7 @@ function render(){
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
-    syncBlock+
+    `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конвейер производства</div><div class="card-s">крупное число = заказы на участке СЕЙЧАС · цвет и «дн» = медиана лежания · «за период» = сколько входов на участок в выбранных датах. Крупный красный узел = узкое горло, туда мощности.</div></div></div>${conv}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
@@ -606,7 +629,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
   document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render();return}
     const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
-    const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:S.conSort;
+    const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
   df.value=S.from;dt.value=S.to;

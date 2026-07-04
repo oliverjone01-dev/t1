@@ -242,10 +242,13 @@ function chartSVG(series,keys,opt){
   const fv=opt.fmtY||(v=>fmtK(Math.round(v)));
   let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${fv(mx*(1-g/3))}</text>`}
   let ref='';if(opt.refLine&&opt.refLine.v>0){const ry=Y(opt.refLine.v);ref=`<line x1="${pl}" y1="${ry.toFixed(1)}" x2="${w-pr}" y2="${ry.toFixed(1)}" stroke="${opt.refLine.c||'#F59E0B'}" stroke-width="1.4" stroke-dasharray="6 5" opacity=".8"/><text x="${w-pr-4}" y="${(ry-5).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${opt.refLine.c||'#F59E0B'}">${opt.refLine.label||''}</text>`}
-  // refSteps: дискретный пунктир - своя горизонтальная риска на каждый бакет (меняющийся во времени уровень)
+  // refSteps: ломаная-ступенька пунктиром - горизонталь на уровне бакета + вертикальный переход к следующему
   if(opt.refSteps&&opt.refSteps.vals){const rs=opt.refSteps,half=(w-pl-pr)/(keys.length-1||1)/2;
-    rs.vals.forEach((v,i)=>{if(v==null||!(v>0))return;const ry=Y(v),x1=Math.max(pl,X(i)-half*.82),x2=Math.min(w-pr,X(i)+half*.82);
-      ref+=`<line x1="${x1.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${ry.toFixed(1)}" stroke="${rs.c||'#F59E0B'}" stroke-width="1.6" stroke-dasharray="5 4" opacity=".85" pointer-events="none"/>`});
+    let d='',pen=false;
+    rs.vals.forEach((v,i)=>{if(v==null||!(v>0)){pen=false;return}
+      const ry=Y(v),x1=Math.max(pl,X(i)-half),x2=Math.min(w-pr,X(i)+half);
+      d+=(pen?` L${x1.toFixed(1)} ${ry.toFixed(1)}`:` M${x1.toFixed(1)} ${ry.toFixed(1)}`)+` L${x2.toFixed(1)} ${ry.toFixed(1)}`;pen=true});
+    if(d)ref+=`<path d="${d.trim()}" fill="none" stroke="${rs.c||'#F59E0B'}" stroke-width="1.6" stroke-dasharray="5 4" opacity=".85" pointer-events="none"/>`;
     let li=-1;rs.vals.forEach((v,i)=>{if(v!=null&&v>0)li=i});
     if(li>=0)ref+=`<text x="${w-pr-4}" y="${(Y(rs.vals[li])-6).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${rs.c||'#F59E0B'}">${rs.label||''}</text>`;}
   let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);

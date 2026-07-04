@@ -183,8 +183,9 @@ function gauge(title,fact,plan,unit,noteTxt){const att=plan>0?fact/plan:0;const 
   g+=`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${col}">${capTxt}</text>`;
   g+=`<rect x="0" y="0" width="180" height="116" fill="transparent" data-tip="${tip}" style="cursor:help"/></svg>`;
   return `<div class="gauge"><h4>${title}</h4>${g}<div class="gnote"><b>${fmt(fact)}</b> из <b>${fmt(plan)}</b> ${unit}${noteTxt?' · '+noteTxt:''}</div></div>`}
+/* правило Ивана: цвет = направление. Рост - вверх и зелёная, падение - вниз и красная */
 const trend=(cur,prev,inv)=>{if(prev==null||!isFinite(prev)||prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;
-  const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up,cls=Math.abs(dl)<.005?'flat':good?'up':'dn';
+  const dl=(cur-prev)/prev,up=dl>=0,cls=Math.abs(dl)<.005?'flat':up?'up':'dn';
   return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`};
 /* ===== метрики отдела за окно ===== */
 function stats(a,b){

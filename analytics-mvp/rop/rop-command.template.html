@@ -1010,7 +1010,7 @@ function render(){
     v+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(startM)} ₽</text>`;
     v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка ПО ДАТАМ СОБЫТИЙ: предоплаты → сделки → изделия (карточки) → штуки (цифры = дашборд производства) · ниже динамика: предоплат vs передано, шт · ${S.dateBasis==='outcome'?'по дате события':'по дате создания сделки'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка ПО ДАТАМ СОБЫТИЙ: предоплаты → сделки → изделия (карточки) → штуки (цифры = дашборд производства) · ниже динамика: предоплат vs передано, шт · всегда по датам событий (тумблер периода не влияет)</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
@@ -1212,9 +1212,19 @@ function wireProdSec(){const el=document.getElementById('prodSecChart');if(!el)r
   prodSet().forEach(d=>{const k=bkey(prodKey(d),S.gran);if(k in ki){mv[ki[k]]+=(d.budget||0);cv[ki[k]]++}});
   multiline([{name:'Передано, ₽',color:'#2DD4BF',vals:mv}],keys,S.gran,true,el);}
 function wirePrepProd(){const el=document.getElementById('ppChart');if(!el)return;
+  // Узел сверки с цехом: ВСЕГДА по датам событий (предоплата получена / первый запуск карточки),
+  // тумблер «период по…» не влияет - иначе кривые не совпадут с дашбордом производства.
   const keys=buckets(S.gran);
-  const cnt=(set,keyFn)=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);set.forEach(d=>{const k=bkey(keyFn(d),S.gran);if(k in ki)v[ki[k]]++});return v};
-  const prepV=cnt(prepaySet(),prepayKey),prodV=cnt(prodSet(),prodKey);
+  const ki={};keys.forEach((k,i)=>ki[k]=i);
+  const mk=()=>keys.map(()=>0);
+  const prepV=mk();AD.forEach(d=>{const pd=prepayDate(d);if(!pd)return;const k=bkey(pd,S.gran);if(k in ki)prepV[ki[k]]++});
+  const prodV=mk();
+  if(DATA.prodItems&&DATA.prodItems.length){
+    const dealStart={};DATA.prodItems.forEach(i=>{if(!i.start)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealStart[k]||i.start<dealStart[k])dealStart[k]=i.start});
+    Object.values(dealStart).forEach(st=>{const k=bkey(st,S.gran);if(k in ki)prodV[ki[k]]++});
+  }else{
+    AD.forEach(d=>{const pd=prodDate(d);if(!pd)return;const k=bkey(pd,S.gran);if(k in ki)prodV[ki[k]]++});
+  }
   multiline([{name:'Предоплат получено',color:'#A78BFA',noTotal:true,vals:prepV},{name:'В производство',color:'#2DD4BF',vals:prodV}],keys,S.gran,false,el);}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
   const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},prod:{l:'В производство',m:false,p:false,c:'#2DD4BF'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];

@@ -108,7 +108,11 @@ jobs:
           cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop/index.html"
           # /rop2/ - зеркало для обхода упрямых кэшей (прокси/CDN, игнорирующих query string)
           cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop2/index.html"
-          echo "РОП опубликован в /rop/ и /rop2/ ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+          # v.txt = штамп сборки: страница сверяет его со своим DATA.bakedAt и сама
+          # перезагружается с кэш-бастером, если браузеру отдали устаревший HTML
+          STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/rop/analytics-mvp/public/rop-command.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/rop/v.txt" > "$GITHUB_WORKSPACE/_site/rop2/v.txt"
+          echo "РОП опубликован в /rop/ и /rop2/, сборка $STAMP ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
 
       # === ПРОИЗВОДСТВО (ИЗОЛИРОВАННО, из ветки prod-dashboard-v1, в /prod/) ===
       # Аналог /rop/: дашборд самодостаточный (данные Bitrix СП 1086 запечены build-prod),
@@ -124,7 +128,10 @@ jobs:
           cp /tmp/prod/analytics-mvp/public/prod-command.html "$GITHUB_WORKSPACE/_site/prod/index.html"
           # /prod2/ - зеркало для обхода упрямых кэшей
           cp /tmp/prod/analytics-mvp/public/prod-command.html "$GITHUB_WORKSPACE/_site/prod2/index.html"
-          echo "Производство опубликовано в /prod/ и /prod2/ ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
+          # v.txt = штамп сборки для авто-обновления страницы при устаревшем кэше
+          STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/prod/analytics-mvp/public/prod-command.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/prod/v.txt" > "$GITHUB_WORKSPACE/_site/prod2/v.txt"
+          echo "Производство опубликовано в /prod/ и /prod2/, сборка $STAMP ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

@@ -269,8 +269,24 @@ async function main() {
       budget: Number(d.OPPORTUNITY) || 0,
       mgr: userName[String(d.ASSIGNED_BY_ID)] || null,
       stage: String(d.STAGE_ID || ""), open: d.CLOSED === "N",
+      pcs: null as number | null, // штук по товарным строкам СДЕЛКИ (заполняется ниже для открытых в EXECUTING)
     };
   });
+  // Штуки «на подходе»: товарные строки самих СДЕЛОК, стоящих сейчас в «Предоплата получена».
+  // Карточек производства у них ещё нет, но если ОП заполнил товары в сделке - количество уже известно.
+  {
+    const incoming = prepayDeals.filter((d) => d.open && /EXECUTING/.test(d.stage));
+    let filled = 0, pcsTotal = 0;
+    for (const d of incoming) {
+      try {
+        const j = await call("crm.item.productrow.list", { filter: { "=ownerId": d.id, "=ownerType": "D" } });
+        const prs: any[] = (j.result && j.result.productRows) || [];
+        const q = prs.reduce((x, y) => x + (Number(y.quantity) || 0), 0);
+        if (q > 0) { d.pcs = q; filled++; pcsTotal += q; }
+      } catch { /* у сделки нет товарных строк */ }
+    }
+    console.log(`Входящий пакет: ${incoming.length} сделок в «Предоплате», товарные строки заполнены у ${filled}, штук ${Math.round(pcsTotal)}`);
+  }
   console.log(`Предоплаты: ${prepayDeals.length} сделок (событий ${prepayEvents.length})`);
 
   const out = {

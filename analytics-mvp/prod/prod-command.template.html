@@ -181,7 +181,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'izd',
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -306,16 +306,16 @@ function render(){
   const stuck=wip.filter(i=>(dwellNow(i)||0)>14);
   const rewCut=cut.filter(i=>(i.hist||[]).some(h=>REWORK.has(h[0])));
   const kdef=isStart?[
-    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('позиций · изделий: '+fmt(qtySum(started))):'передано в производство',trend(started.length,startedPrev)],
-    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',(started.length?pct(cohortDone.length/started.length)+' когорты':'—')+(hasQty?' · изделий: '+fmt(qtySum(cohortDone)):''),''],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('изделий (карточек) · штук: '+fmt(qtySum(started))):'передано в производство',trend(started.length,startedPrev)],
+    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',(started.length?pct(cohortDone.length/started.length)+' когорты':'—')+(hasQty?' · штук: '+fmt(qtySum(cohortDone)):''),''],
     ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','уникальные сделки запущенных',trend(moneyStarted,moneyStartedPrev)],
     ['Средний срок',d1(med(cycCohort)),' дн','var(--violet)','медиана готовых ИЗ запущенных в периоде',''],
     ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
     ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
     ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
   ]:[
-    ['Готово за период',fmt(finished.length),'','var(--accent)',hasQty?('позиций · изделий: '+fmt(qtySum(finished))):'дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
-    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('позиций · изделий: '+fmt(qtySum(started))):'передано в производство (событие)',trend(started.length,startedPrev)],
+    ['Готово за период',fmt(finished.length),'','var(--accent)',hasQty?('позиций · штук: '+fmt(qtySum(finished))):'дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
+    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('изделий (карточек) · штук: '+fmt(qtySum(started))):'передано в производство (событие)',trend(started.length,startedPrev)],
     ['Выпущено в деньгах',fmtK(moneyFinished),' ₽','var(--accent)','уникальные сделки готовых',trend(moneyFinished,moneyFinishedPrev)],
     ['Средний срок',d1(med(cyc)),' дн','var(--violet)','медиана готовых за период: запуск → готово',''],
     ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
@@ -340,6 +340,12 @@ function render(){
     const linked=new Set(IT.map(i=>i.dealId).filter(Boolean));
     const incoming=PP.filter(d=>d.open&&/EXECUTING/.test(d.stage));
     const incMoney=sum(incoming,d=>d.budget||0);
+    const _pcsK=incoming.filter(d=>Number(d.pcs)>0),_pcsN=sum(_pcsK,d=>d.pcs);
+    const _pcsInfo=incoming.length&&incoming[0]&&incoming[0].pcs===undefined
+      ?'штук: появится после ближайшего снимка'
+      :_pcsK.length
+        ?`штук на подходе: ${fmt(_pcsN)}${_pcsK.length<incoming.length?` (товары заполнены у ${fmt(_pcsK.length)} из ${fmt(incoming.length)} сделок)`:''}`
+        :'штук: неизвестно - товары в сделках не заполнены (заполнять на этапе КП)';
     const stuckPaid=incoming.filter(d=>!linked.has(String(d.id)));
     const stuckMoney=sum(stuckPaid,d=>d.budget||0);
     const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
@@ -358,7 +364,7 @@ function render(){
       const maxC=Math.max(N1,N2,nPos,nIzd,1),hOf=c=>Math.max(16,c/maxC*bandH);
       const h1=hOf(N1),t1=midY-h1/2,b1=midY+h1/2;
       const passH=h1*(N1?Math.min(N2/N1,1):0),leakH=h1-passH;
-      const COLS=[['Сделок передано',N2,'#2DD4BF'],['Позиций (карточек)',nPos,'#60A5FA'],['Изделий (шт)',nIzd,'#A78BFA']];
+      const COLS=[['Сделок передано',N2,'#2DD4BF'],['Изделий (карточек)',nPos,'#60A5FA'],['Штук',nIzd,'#A78BFA']];
       let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:860px;margin:0 auto;display:block"><defs>`;
       s+=`<linearGradient id="pfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".36"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".4"/></linearGradient>`;
       s+=`<linearGradient id="pfZ" x1="0" x2="1"><stop offset="0" stop-color="#F59E0B" stop-opacity=".22"/><stop offset="1" stop-color="#F59E0B" stop-opacity="0"/></linearGradient>`;
@@ -383,11 +389,11 @@ function render(){
       const pill=(x,y,txt,col,td,w)=>`<rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${col}" stroke-opacity=".6" data-tip="${td}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${col}" pointer-events="none">${txt}</text>`;
       const p1x=(nodeX(0)+nw+nodeX(1))/2,p1y=((t1+passH/2)+(tt[0]+hh[0]/2))/2;
       s+=pill(p1x,p1y,N1?pct(N2/N1):'—','#2DD4BF',attr(`<div class='tl'>Предоплата → цех · за период</div><div class='tr'><span>Передано</span><span>${fmt(N2)} из ${fmt(N1)}</span></div><div class='tr'><span>Конверсия</span><span>${N1?pct(N2/N1):'—'}</span></div>`),58);
-      s+=pill((nodeX(1)+nw+nodeX(2))/2,midY,'×'+d1(N2?nPos/N2:0),'#60A5FA',attr(`<div class='tl'>Сделка → позиции</div><div class='tr'><span>В среднем</span><span>${d1(N2?nPos/N2:0)} позиции на сделку</span></div>`),52);
-      s+=pill((nodeX(2)+nw+nodeX(3))/2,midY,'×'+d1(nPos?nIzd/nPos:0),'#A78BFA',attr(`<div class='tl'>Позиция → изделия</div><div class='tr'><span>В среднем</span><span>${d1(nPos?nIzd/nPos:0)} изделия на позицию</span></div><div class='tn'>Кол-во из товарных строк (карточка без строк = 1)</div>`),52);
+      s+=pill((nodeX(1)+nw+nodeX(2))/2,midY,'×'+d1(N2?nPos/N2:0),'#60A5FA',attr(`<div class='tl'>Сделка → изделия</div><div class='tr'><span>В среднем</span><span>${d1(N2?nPos/N2:0)} изделия (карточки) на сделку</span></div>`),52);
+      s+=pill((nodeX(2)+nw+nodeX(3))/2,midY,'×'+d1(nPos?nIzd/nPos:0),'#A78BFA',attr(`<div class='tl'>Изделие → штуки</div><div class='tr'><span>В среднем</span><span>${d1(nPos?nIzd/nPos:0)} штуки на изделие</span></div><div class='tn'>Кол-во из товарных строк (карточка без строк = 1)</div>`),52);
       // узел предоплат: фиолетовый = передано, оранжевый = не передано, тег на стыке
       const tdN1p=attr(`<div class='tl'>Передано в цех (из предоплат периода)</div><div class='tr'><span>Сделок</span><span>${fmt(Math.min(N2,N1))}</span></div><div class='tr'><span>Всего предоплат</span><span>${fmt(N1)} · ${fmtK(prepMoney)} ₽</span></div><div class='tn'>Событие: вход сделки в «Предоплата получена»</div>`);
-      const tdN1l=attr(`<div class='tl'>Не передано в цех</div><div class='tr'><span>Разрыв за период</span><span>+${fmt(NL)}</span></div><div class='tr'><span>Ждут сейчас (входящий пакет)</span><span>${fmt(incoming.length)} · ${fmtK(incMoney)} ₽</span></div><div class='tn'>Почему числа разные: разрыв - события периода, пакет - снимок открытых сейчас (включая старые предоплаты)</div>`);
+      const tdN1l=attr(`<div class='tl'>Не передано в цех</div><div class='tr'><span>Разрыв за период</span><span>+${fmt(NL)}</span></div><div class='tr'><span>Ждут сейчас (входящий пакет)</span><span>${fmt(incoming.length)} · ${fmtK(incMoney)} ₽</span></div><div class='tr'><span>Штук на подходе</span><span>${_pcsK.length?fmt(_pcsN):'—'}</span></div><div class='tn'>Штуки на подходе - из товарных строк самих СДЕЛОК (карточек цеха ещё нет). Почему числа разные: разрыв - события периода, пакет - снимок открытых сейчас (включая старые предоплаты)</div>`);
       s+=`<g clip-path="url(#pfN1c)"><rect x="${nodeX(0)}" y="${t1}" width="${nw}" height="${Math.max(passH,0)}" fill="#A78BFA" data-tip="${tdN1p}" style="cursor:help"/>`+
          (leakH>0.5?`<rect x="${nodeX(0)}" y="${t1+passH}" width="${nw}" height="${leakH}" fill="#F59E0B" data-tip="${tdN1l}" style="cursor:help"/>`:'')+`</g>`;
       if(passH>26)s+=`<text x="${cx(0)}" y="${t1+passH/2+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#06121a" pointer-events="none">${fmt(Math.min(N2,N1))}</text>`;
@@ -397,8 +403,8 @@ function render(){
       // узлы 1..3
       const tds=[
         attr(`<div class='tl'>Передано в производство · цех</div><div class='tr'><span>Сделок за период</span><span>${fmt(N2)}</span></div><div class='tr'><span>Деньги</span><span>${fmtK(startMoney)} ₽</span></div><div class='tn'>Событие: первый запуск карточки сделки в цех</div>`),
-        attr(`<div class='tl'>Позиции переданных сделок</div><div class='tr'><span>Карточек</span><span>${fmt(nPos)}</span></div><div class='tr'><span>На сделку</span><span>${d1(N2?nPos/N2:0)}</span></div><div class='tn'>Тип товара в сделке = отдельная карточка цеха</div>`),
-        attr(`<div class='tl'>Изделия переданных сделок</div><div class='tr'><span>Изделий</span><span>${fmt(nIzd)}</span></div><div class='tr'><span>На позицию</span><span>${d1(nPos?nIzd/nPos:0)}</span></div><div class='tn'>Кол-во из товарных строк (карточка без строк = 1)</div>`)];
+        attr(`<div class='tl'>Изделия переданных сделок</div><div class='tr'><span>Карточек</span><span>${fmt(nPos)}</span></div><div class='tr'><span>На сделку</span><span>${d1(N2?nPos/N2:0)}</span></div><div class='tn'>Тип товара в сделке = отдельное изделие (карточка цеха)</div>`),
+        attr(`<div class='tl'>Штуки переданных сделок</div><div class='tr'><span>Штук</span><span>${fmt(nIzd)}</span></div><div class='tr'><span>На изделие</span><span>${d1(nPos?nIzd/nPos:0)}</span></div><div class='tn'>Кол-во из товарных строк (карточка без строк = 1)</div>`)];
       COLS.forEach((c,i)=>{const X=nodeX(i+1),T=tt[i],HH=hh[i];
         s+=`<rect x="${X}" y="${T}" width="${nw}" height="${HH}" rx="7" fill="${c[2]}" data-tip="${tds[i]}" style="cursor:help"/>`;
         if(HH>32)s+=`<text x="${cx(i+1)}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="16" fill="#06121a" pointer-events="none">${fmt(c[1])}</text>`;
@@ -407,9 +413,9 @@ function render(){
       s+=`<text x="${cx(0)}" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="#aeb9c6">Предоплаты в ОП</text>`;
       s+=`<text x="${cx(0)}" y="${b1+16}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(prepMoney)} ₽</text>`;
       s+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
-      s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · изделия непереданных сделок станут видны после создания карточек</text>`;
+      s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · ${_pcsInfo}</text>`;
       s+=`</svg>`;return s})();
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → позиции → изделия · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====
@@ -442,8 +448,8 @@ function render(){
     // время на участке по когорте
     const stayOf=nm=>{const a=[];base.forEach(i=>{const h=i.hist||[];for(let j=0;j<h.length;j++){if(stationOf(h[j][0])!==nm)continue;const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);const d=end!=null?days(h[j][1],end):null;if(d!=null&&d>=0)a.push(d)}});return med(a)};
     const touch=nm=>base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm));
-    // единица тумблером: ИЗДЕЛИЯ (qty из товарных строк, дефолт) или ПОЗИЦИИ (карточки)
-    const UP=S.trubaUnit==='pos',mea=arr=>UP?arr.length:qtySum(arr);
+    // единица тумблером: ИЗДЕЛИЯ = карточки-наряды (дефолт), ПО ШТУЧНО = штуки (изделия x количество из товарных строк)
+    const PCS=S.trubaUnit==='pcs',mea=arr=>PCS?qtySum(arr):arr.length;
     const F=[{name:'Запущено',count:mea(base),pos:base.length,izd:qtySum(base),dwell:null,items:base}];
     STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:mea(t),pos:t.length,izd:qtySum(t),dwell:stayOf(nm),items:t})});
     F.push({name:'Готово',count:mea(doneBase),pos:doneBase.length,izd:qtySum(doneBase),dwell:null,items:doneBase});
@@ -461,14 +467,14 @@ function render(){
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
     F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
       const money=dealMoney(f.items);
-      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(f.izd)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Штук (с количеством)</span><span>${fmt(f.izd)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
       nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
       if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
       else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;
       labels+=`<text x="${cx(i)}" y="24" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink2)">${f.name}</text>`;
       labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(F[0].count||1))}</text>`;
       if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-27}" y="${pillY}" width="54" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`}});
-    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ${UP?'ПОЗИЦИЙ (карточек)':'ИЗДЕЛИЙ'} когорты (${modeLbl}: <b>${fmt(qtySum(base))}</b> изд. в <b>${fmt(base.length)}</b> позициях) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Вторая единица - в подсказке столбика, тумблер сверху переключает. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ${PCS?'ШТУК (изделия × количество внутри карточек)':'ИЗДЕЛИЙ (карточек)'} когорты (${modeLbl}: <b>${fmt(base.length)}</b> изделий, <b>${fmt(qtySum(base))}</b> штук) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Вторая единица - в подсказке столбика, тумблер сверху переключает. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
   })();
 
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
@@ -749,27 +755,27 @@ function render(){
         const ratio=r.norm>0?v/r.norm:0, t=r.stock?Math.min(ratio/1.6,1):v/mx;
         const bg=v===0?'var(--elev)':r.stock?(ratio>1.3?`rgba(244,63,94,${(Math.min(.25+ratio*.2,.85)*alpha).toFixed(2)})`:ratio>1?`rgba(251,146,60,${(Math.min(.3+ratio*.3,.8)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.18+ratio*.6)*alpha).toFixed(2)})`):heat(t);
         const td=r.stock
-          ?attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>В работе, изд.</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Средний уровень, изд.</span><span>${d1(r.norm)}</span></div><div class='tr'><span>К среднему</span><span>${r.norm?pct(ratio):'—'}</span></div>`)
-          :attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Максимум строки</span><span>${fmt(mx)}</span></div><div class='tr'><span>Теплота (от макс.)</span><span>${pct(v/mx)}</span></div><div class='tr'><span>Ср. пропускная, изд.</span><span>${d1(r.norm)}</span></div>`);
+          ?attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>В работе, шт</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Средний уровень, шт</span><span>${d1(r.norm)}</span></div><div class='tr'><span>К среднему</span><span>${r.norm?pct(ratio):'—'}</span></div>`)
+          :attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>Штук</span><span>${fmt(v)}</span></div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Максимум строки, шт</span><span>${fmt(mx)}</span></div><div class='tr'><span>Теплота (от макс.)</span><span>${pct(v/mx)}</span></div><div class='tr'><span>Ср. пропускная, изд.</span><span>${d1(r.norm)}</span></div>`);
         return `<div class="cal-c" data-tip="${td}" style="height:${H}px;background:${bg};color:${v&&t>.45?'#06121a':'var(--ink3)'};font-size:${fs}px">${(showN||(r.primary&&showP))&&v?v:''}</div>`}).join('');
       const load=r.stock?(r.norm>0?r.sum/r.norm:null):(r.norm>0?r.sum/(r.norm*keys.length):null);
       const lc=load==null?'#5a6672':gTone(load);
       return `<div class="cal-row"><div class="cal-nm" style="${r.primary?'font-size:12.5px;color:var(--ink)':'font-size:11px;color:var(--ink3)'}">${r.nm}</div><div class="cal-cells" style="gap:${gap}px">${cells}</div><div class="cal-sum" style="${r.primary?'':'font-weight:600;color:var(--ink3)'}">${fmt(r.sum)}${r.stock?'<span style="font-weight:400;color:var(--ink4);font-size:9px"> сейчас</span>':''}</div><div class="cal-norm">${d1(r.norm)}</div><div class="cal-pct" style="color:${lc};background:${lc}1c">${load!=null?pct0(load):'—'}</div></div>`};
     const step=Math.ceil(keys.length/12);
     const heads=keys.map((k,i)=>`<div class="cal-head" style="flex:1">${(i%step===0||i===keys.length-1)?blabel(k):''}</div>`).join('');
-    const headRow=`<div class="cal-row" style="margin-bottom:0"><div></div><div class="cal-cells">${heads}</div><div class="cal-head" style="text-align:right">Σ изд.</div><div class="cal-head" style="text-align:right">норма</div><div class="cal-head">%</div></div>`;
+    const headRow=`<div class="cal-row" style="margin-bottom:0"><div></div><div class="cal-cells">${heads}</div><div class="cal-head" style="text-align:right">Σ шт.</div><div class="cal-head" style="text-align:right">норма</div><div class="cal-head">%</div></div>`;
     const primary=rows.filter(r=>r.primary).map(rowHtml).join('');
     const secondary=rows.filter(r=>!r.primary).map(rowHtml).join('');
-    const divider=`<div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink4)">Участки · входы изделий (второстепенно)</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`;
-    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>тихие ${S.gran==='d'?'дни':'периоды'} (до 40% макс.)</span><span><i style="background:rgba(251,146,60,.6)"></i>40-75% макс.</span><span><i style="background:rgba(244,63,94,.6)"></i>пиковые (75%+ от максимума строки)</span><span style="color:var(--ink4)">цвет = теплота к МАКСИМУМУ своей строки за период (пиковый ${S.gran==='d'?'день':'период'} = красный, 1 изделие при максимуме 5 = зелёный) · все цифры = ИЗДЕЛИЯ (карточка без товарных строк = 1), позиции - в подсказке · % справа = объём строки к средней пропускной из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, краснее = выше среднего (копим)</span></div>`;
+    const divider=`<div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink4)">Участки · входы, шт (второстепенно)</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`;
+    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>тихие ${S.gran==='d'?'дни':'периоды'} (до 40% макс.)</span><span><i style="background:rgba(251,146,60,.6)"></i>40-75% макс.</span><span><i style="background:rgba(244,63,94,.6)"></i>пиковые (75%+ от максимума строки)</span><span style="color:var(--ink4)">цвет = теплота к МАКСИМУМУ своей строки за период (пиковый ${S.gran==='d'?'день':'период'} = красный, 1 штука при максимуме 5 = зелёная) · все цифры = ИЗДЕЛИЯ (карточка без товарных строк = 1), позиции - в подсказке · % справа = объём строки к средней пропускной из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, краснее = выше среднего (копим)</span></div>`;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
-    `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">КАРТОЧКА-позиция</b> - создаётся при передаче в цех, по одной на тип изделия, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ИЗДЕЛИЯ (шт)</b> - количество в товарных строках карточки, именно оно грузит участки</div>`+
+    `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">ИЗДЕЛИЕ (карточка)</b> - создаётся при передаче в цех, по одному на тип изделия в заказе, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ШТУКИ</b> - количество из товарных строк карточки (изделие × кол-во), именно штуки грузят участки</div>`+
     `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: сколько ${S.trubaUnit==='pos'?'КАРТОЧЕК-нарядов (по штучно: каждая позиция = один наряд, без умножения на количество)':'ИЗДЕЛИЙ (шт, с учётом количества в товарных строках)'} среза прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div><div class="seg" id="trubaSeg"><button data-v="izd" class="${S.trubaUnit!=='pos'?'on':''}">Изделия</button><button data-v="pos" class="${S.trubaUnit==='pos'?'on':''}">По штучно</button></div></div>${prodTruba}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: сколько ${S.trubaUnit==='pcs'?'ШТУК (изделия × количество внутри карточек, из товарных строк)':'ИЗДЕЛИЙ (карточек-нарядов)'} среза прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div><div class="seg" id="trubaSeg"><button data-v="cards" class="${S.trubaUnit!=='pcs'?'on':''}">Изделия</button><button data-v="pcs" class="${S.trubaUnit==='pcs'?'on':''}">По штучно</button></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+
@@ -786,7 +792,7 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div><div class="seg" id="consSortSeg">${[['money','₽'],['days','Дни'],['cnt','Шт']].map(x=>`<button data-v="${x[0]}" class="${(S.consSort||'money')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${consScatter}</div>`+
     `<div class="sec"><div class="n">4</div><h2>Производственный календарь</h2><div class="ln"></div><div class="hint">факт против пропускной способности: где и когда цех был загружен, перегружен или простаивал</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в изделиях</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ИЗДЕЛИЙ (шт), позиции в подсказке · цвет = теплота к максимуму своей строки (пик = красный) · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в штуках</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ШТУК, изделия (карточки) в подсказке · цвет = теплота к максимуму своей строки (пик = красный) · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
   document.getElementById('periodLabel').textContent=perLbl;
   wireCharts();
 

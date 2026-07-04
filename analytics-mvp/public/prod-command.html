@@ -244,10 +244,12 @@ function chartSVG(series,keys,opt){
     const isLast=i===n-1, regular=i%step===0&&(n-1-i)>=step*0.6; // не рисуем подпись, налезающую на последнюю
     if(regular||isLast)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
   let body='';
-  const _barS=series.filter(x=>x.type==='bar');
+  const oneB=n===1; // один бакет: линии не видны - все серии столбиками по центру
+  const _barS=series.filter(x=>x.type==='bar'||oneB);
   series.forEach(s=>{
-    if(s.type==='bar'){const nb=_barS.length,bi=_barS.indexOf(s);const slot=Math.max(4,(w-pl-pr)/(n*1.35)),bw=Math.max(2.5,slot/nb);
-      body+=s.vals.map((v,i)=>v==null||!v?'':`<rect x="${(X(i)-slot/2+bi*bw).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity="${s.op!=null?s.op:.85}" pointer-events="none"/>`).join('');}
+    if(s.type==='bar'||oneB){const nb=_barS.length||1,bi=_barS.indexOf(s);
+      const slot=oneB?Math.min(150,40*nb):Math.max(4,(w-pl-pr)/(n*1.35)),bw=Math.max(2.5,slot/nb);
+      body+=s.vals.map((v,i)=>v==null||!v?'':`<rect x="${(X(i)-slot/2+bi*bw).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity="${s.op!=null?s.op:.85}" pointer-events="none"/>`+(oneB?`<text x="${(X(i)-slot/2+bi*bw+bw/2).toFixed(1)}" y="${(Y(v)-5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="${s.c}">${opt.money?fmtK(v):(opt.fmtY?opt.fmtY(v):fmt(v))}</text>`:'')).join('');}
     else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);
       // join: одна непрерывная линия через непустые точки (для редких значений, напр. по дням)
       // иначе рвём линию на сегменты по null и сглаживаем каждый

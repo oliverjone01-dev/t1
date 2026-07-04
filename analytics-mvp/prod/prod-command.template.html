@@ -244,9 +244,10 @@ function chartSVG(series,keys,opt){
     const isLast=i===n-1, regular=i%step===0&&(n-1-i)>=step*0.6; // не рисуем подпись, налезающую на последнюю
     if(regular||isLast)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
   let body='';
+  const _barS=series.filter(x=>x.type==='bar');
   series.forEach(s=>{
-    if(s.type==='bar'){const bw=Math.max(3,(w-pl-pr)/(n*1.6));
-      body+=s.vals.map((v,i)=>v==null?'':`<rect x="${(X(i)-bw/2).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity=".85" pointer-events="none"/>`).join('');}
+    if(s.type==='bar'){const nb=_barS.length,bi=_barS.indexOf(s);const slot=Math.max(4,(w-pl-pr)/(n*1.35)),bw=Math.max(2.5,slot/nb);
+      body+=s.vals.map((v,i)=>v==null||!v?'':`<rect x="${(X(i)-slot/2+bi*bw).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity="${s.op!=null?s.op:.85}" pointer-events="none"/>`).join('');}
     else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]);
       // join: одна непрерывная линия через непустые точки (для редких значений, напр. по дням)
       // иначе рвём линию на сегменты по null и сглаживаем каждый
@@ -357,7 +358,10 @@ function render(){
     const stuckMoney=sum(stuckPaid,d=>d.budget||0);
     const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
     const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);Object.values(dealStart).forEach(s=>{const k=bkey(s);if(k in ki)v[ki[k]]++});return v})();
-    const chart=chartSVG([{name:'Предоплат получено',c:'#A78BFA',vals:prepVals},{name:'В производство',c:'#2DD4BF',vals:startVals}],keys,{fmtY:v=>fmt(v)});
+    // «стаканы»: физическая загрузка цеха по датам запуска карточек - изделия (карточки) и штуки
+    const posVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
+    const pcsVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]+=qtyOf(i)});return v})();
+    const chart=chartSVG([{name:'Штук запущено',c:'#8B7BF0',vals:pcsVals,type:'bar',op:.30},{name:'Изделий запущено (карточек)',c:'#3E7BD6',vals:posVals,type:'bar',op:.55},{name:'Предоплат получено',c:'#A78BFA',vals:prepVals},{name:'В производство (сделки)',c:'#2DD4BF',vals:startVals}],keys,{fmtY:v=>fmt(v)});
     // сквозная воронка: Предоплаты (с сегментом «не передано») -> Сделок передано -> Позиций -> Изделий
     const funnelViz=(()=>{
       const N1=prepPer.length,N2=startedDealsN,NL=Math.max(gap,0);
@@ -422,7 +426,7 @@ function render(){
       s+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
       s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · ${_pcsInfo}</text>`;
       s+=`</svg>`;return s})();
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ${S.syncDir==='gg'?'GG без Glass Memory (= РОП в режиме «по дате события»)':S.syncDir==='gm'?'только Glass Memory (их цех - отдельный процесс, карточек тут нет)':'все направления'} · ниже динамика по датам событий</div></div><div class="seg" id="syncDirSeg"><button data-v="all" class="${S.syncDir==='all'?'on':''}">Все</button><button data-v="gg" class="${S.syncDir==='gg'?'on':''}">GG</button><button data-v="gm" class="${S.syncDir==='gm'?'on':''}">GM</button></div></div>${funnelViz}${chart}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ${S.syncDir==='gg'?'GG без Glass Memory (= РОП в режиме «по дате события»)':S.syncDir==='gm'?'только Glass Memory (их цех - отдельный процесс, карточек тут нет)':'все направления'} · ниже динамика по датам событий: линии = сделки, стаканы = изделия и штуки, запущенные в цех</div></div><div class="seg" id="syncDirSeg"><button data-v="all" class="${S.syncDir==='all'?'on':''}">Все</button><button data-v="gg" class="${S.syncDir==='gg'?'on':''}">GG</button><button data-v="gm" class="${S.syncDir==='gm'?'on':''}">GM</button></div></div>${funnelViz}${chart}</div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====

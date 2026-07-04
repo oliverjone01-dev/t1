@@ -969,7 +969,7 @@ function render(){
     const maxC=Math.max(N1,N2,nPos,nIzd,1),hOf=c=>Math.max(16,c/maxC*bandH);
     const h1=hOf(N1),t1=midY-h1/2,b1=midY+h1/2;
     const passH=h1*(N1?Math.min(N2/N1,1):0),leakH=h1-passH;
-    const COLS=[['Сделок передано',N2,'#2DD4BF'],['Позиций (карточек)',nPos,'#60A5FA'],['Изделий (шт)',nIzd,'#A78BFA']];
+    const COLS=[['Сделок передано',N2,'#2DD4BF'],['Изделий (карточек)',nPos,'#60A5FA'],['Штук',nIzd,'#A78BFA']];
     const q=t=>String(t).replace(/"/g,'&quot;');
     let v=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:860px;margin:0 auto 4px;display:block"><defs>`;
     v+=`<linearGradient id="rpfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".36"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".4"/></linearGradient>`;
@@ -989,8 +989,8 @@ function render(){
     const pill=(x,y,txt,col,td,w)=>`<rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${col}" stroke-opacity=".6" data-tip="${td}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${col}" pointer-events="none">${txt}</text>`;
     const p1x=(nodeX(0)+nw+nodeX(1))/2,p1y=((t1+passH/2)+(tt[0]+hh[0]/2))/2;
     v+=pill(p1x,p1y,N1?pct(N2/N1):'—','#2DD4BF',q(dt('Предоплата → цех · за период',[['Передано',fmt(N2)+' из '+fmt(N1),'hl'],['Конверсия',N1?pct(N2/N1):'—','hl']])),58);
-    v+=pill((nodeX(1)+nw+nodeX(2))/2,midY,'×'+d1(N2?nPos/N2:0),'#60A5FA',q(dt('Сделка → позиции',[['В среднем',d1(N2?nPos/N2:0)+' позиции на сделку','hl']])),52);
-    v+=pill((nodeX(2)+nw+nodeX(3))/2,midY,'×'+d1(nPos?nIzd/nPos:0),'#A78BFA',q(dt('Позиция → изделия',[['В среднем',d1(nPos?nIzd/nPos:0)+' изделия на позицию','hl'],['Откуда','товарные строки карточек','dim']])),52);
+    v+=pill((nodeX(1)+nw+nodeX(2))/2,midY,'×'+d1(N2?nPos/N2:0),'#60A5FA',q(dt('Сделка → изделия',[['В среднем',d1(N2?nPos/N2:0)+' изделия (карточки) на сделку','hl']])),52);
+    v+=pill((nodeX(2)+nw+nodeX(3))/2,midY,'×'+d1(nPos?nIzd/nPos:0),'#A78BFA',q(dt('Изделие → штуки',[['В среднем',d1(nPos?nIzd/nPos:0)+' штуки на изделие','hl'],['Откуда','товарные строки карточек','dim']])),52);
     v+=`<g clip-path="url(#rpfN1c)"><rect x="${nodeX(0)}" y="${t1}" width="${nw}" height="${Math.max(passH,0)}" fill="#A78BFA" data-tip="${q(dt('Передано в цех (из предоплат периода)',[['Сделок',fmt(Math.min(N2,N1)),'hl'],['Всего предоплат',fmt(N1)+' · '+fmtK(prepM)+' ₽','dim']]))}" style="cursor:help"/>`+
       (leakH>0.5?`<rect x="${nodeX(0)}" y="${t1+passH}" width="${nw}" height="${leakH}" fill="#F59E0B" data-tip="${q(dt('Не передано в цех',[['Разрыв за период','+'+fmt(NL),'hl'],['Ждут сейчас',fmt(_queue.length)+' · '+fmtK(_queueM)+' ₽','dim']]))}" style="cursor:help"/>`:'')+`</g>`;
     if(passH>26)v+=`<text x="${cx(0)}" y="${t1+passH/2+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#06121a" pointer-events="none">${fmt(Math.min(N2,N1))}</text>`;
@@ -998,8 +998,8 @@ function render(){
     v+=`<g data-tip="${q(dt('Всего предоплат за период',[['Сделок',fmt(N1),'hl'],['Деньги',fmtK(prepM)+' ₽','dim'],['Из них в цех',fmt(Math.min(N2,N1)),'dim'],['Не передано',fmt(NL),'dim']]))}" style="cursor:help"><rect x="${cx(0)-25}" y="${t1+passH-11}" width="50" height="22" rx="11" fill="rgba(7,9,13,.94)" stroke="#A78BFA" stroke-opacity=".7"/><text x="${cx(0)}" y="${t1+passH+4}" text-anchor="middle" font-family="Manrope" font-size="12" font-weight="800" fill="#A78BFA" pointer-events="none">${fmt(N1)}</text></g>`;
     const tds=[
       q(dt('Передано в производство',[['Сделок за период',fmt(N2),'hl'],['Деньги',fmtK(startM)+' ₽','dim'],['Считаем','первый запуск карточки сделки в цех','dim']])),
-      q(dt('Позиции переданных сделок',[['Карточек',fmt(nPos),'hl'],['На сделку',d1(N2?nPos/N2:0),'dim']])),
-      q(dt('Изделия переданных сделок',[['Изделий',fmt(nIzd),'hl'],['На позицию',d1(nPos?nIzd/nPos:0),'dim']]))];
+      q(dt('Изделия переданных сделок',[['Карточек',fmt(nPos),'hl'],['На сделку',d1(N2?nPos/N2:0),'dim']])),
+      q(dt('Штуки переданных сделок',[['Штук',fmt(nIzd),'hl'],['На изделие',d1(nPos?nIzd/nPos:0),'dim']]))];
     COLS.forEach((c,i)=>{const X=nodeX(i+1),T=tt[i],HH=hh[i];
       v+=`<rect x="${X}" y="${T}" width="${nw}" height="${HH}" rx="7" fill="${c[2]}" data-tip="${tds[i]}" style="cursor:help"/>`;
       if(HH>32)v+=`<text x="${cx(i+1)}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="16" fill="#06121a" pointer-events="none">${fmt(c[1])}</text>`;
@@ -1008,9 +1008,9 @@ function render(){
     v+=`<text x="${cx(0)}" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink-2)">Предоплаты в ОП</text>`;
     v+=`<text x="${cx(0)}" y="${b1+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(prepM)} ₽</text>`;
     v+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(startM)} ₽</text>`;
-    v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в КАРТОЧКИ-позиции · в карточках ИЗДЕЛИЯ (шт), которые грузят участки</text>`;
+    v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка ПО ДАТАМ СОБЫТИЙ: предоплаты → сделки → позиции → изделия (цифры = дашборд производства) · ниже динамика: предоплат vs передано, шт · ${S.dateBasis==='outcome'?'по дате события':'по дате создания сделки'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка ПО ДАТАМ СОБЫТИЙ: предоплаты → сделки → изделия (карточки) → штуки (цифры = дашборд производства) · ниже динамика: предоплат vs передано, шт · ${S.dateBasis==='outcome'?'по дате события':'по дате создания сделки'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});

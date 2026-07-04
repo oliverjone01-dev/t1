@@ -670,7 +670,7 @@ function render(){
       let queue=0,qPos=0;wip.forEach(i=>{if(stationOf(i.stageCode)===nm){queue+=qtyOf(i);qPos++}});
       const clear=queue?(avgW>0?queue/(avgW/7):null):0;
       return {nm,avgW,maxW,queue,qPos,stay:med(stayAll[nm]),clear,used:maxW>0};
-    }).sort((a,b)=>((b.clear==null?99:b.clear))-((a.clear==null?99:a.clear)));
+    }); // порядок = как стадии в смарт-процессе (STATIONS), без пересортировки
     const mx=Math.max(1,...rows.map(r=>Math.max(r.avgW,r.queue)));
     const bar=(w,col,txt,tcol)=>`<div style="height:16px;border-radius:5px;background:${col};width:${Math.max(w,2).toFixed(1)}%;min-width:${txt?'54px':'2px'};display:flex;align-items:center;padding:0 7px;font-size:10px;font-weight:700;color:${tcol};white-space:nowrap">${txt}</div>`;
     const body=rows.map(r=>{
@@ -732,7 +732,7 @@ function render(){
     const rows=STATIONS.filter(([nm])=>nm!=='Готово').map(([nm])=>{
       const w=wip.filter(i=>stationOf(i.stageCode)===nm),dws=w.map(dwellNow).filter(x=>x!=null),m=med(dws),mx=dws.length?Math.max(...dws):0;
       let pass=0;all.forEach(i=>{if((i.hist||[]).some(h=>stationOf(h[0])===nm&&inRange(h[1])))pass++});
-      return {nm,wip:w.length,m,mx,pass}}).sort((a,b)=>b.wip-a.wip||(b.m||0)-(a.m||0));
+      return {nm,wip:w.length,m,mx,pass}}); // порядок = как стадии в смарт-процессе
     const body=rows.map(r=>`<tr><td class="nm">${r.nm}</td><td>${r.wip}</td><td style="color:${tone(r.m||0)};font-weight:700">${r.m!=null?d1(r.m)+' дн':'—'}</td><td>${r.mx?r.mx+' дн':'—'}</td><td>${fmt(r.pass)}</td></tr>`).join('');
     return `<table class="tbl"><thead><tr><th>Участок</th><th>В работе сейчас</th><th>Медиана срока</th><th>Макс</th><th>Прошло за период</th></tr></thead><tbody>${body}</tbody></table>`;
   })();
@@ -912,9 +912,9 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по готовым заказам, сгруппированным по дате ${isStart?'запуска':'готовности'}. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">${isStart?'Запуск':'Выпуск'} в деньгах</div><div class="card-s">суммы уникальных сделок по заказам, ${isStart?'переданным в производство':'ставшим готовыми'} в каждом периоде.</div></div></div>${dynMoney}</div>`+
     `</div>`+
-    pedalsBlock+`<div class="card"><div class="card-h"><div><div class="card-t">Стаканы участков: мощность vs очередь</div><div class="card-s">на каждый участок два столбика: мощность (шт/нед из истории) и очередь сейчас (шт) · бейдж = за сколько дней разгребётся · сортировка от узкого горла</div></div></div>${stationsBlock}</div>`+
+    pedalsBlock+`<div class="card"><div class="card-h"><div><div class="card-t">Стаканы участков: мощность vs очередь</div><div class="card-s">на каждый участок два столбика: мощность (шт/нед из истории) и очередь сейчас (шт) · бейдж = за сколько дней разгребётся · порядок участков = как в смарт-процессе</div></div></div>${stationsBlock}</div>`+
     `<div class="sec"><div class="n">2</div><h2>Участки</h2><div class="ln"></div><div class="hint">где заказы лежат дольше всего и где страдает качество</div></div>`+
-    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли</div></div></div>${stTable}</div>`+
+    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли · порядок = как в смарт-процессе</div></div></div>${stTable}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов (${modeLbl}) · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
     `<div class="sec"><div class="n">3</div><h2>Конструкторы</h2><div class="ln"></div><div class="hint">кто проектирует объём цеха: скорость, качество, чеки</div></div>`+

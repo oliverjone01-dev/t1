@@ -327,7 +327,10 @@ function render(){
   // ===== УЗЕЛ СВЕРКИ: Предоплата (CRM) -> Производство (цех) =====
   // Общие цифры с дашбордом РОПа - одна точка истины для разговора продаж и цеха.
   const syncBlock=(()=>{
-    const PP=DATA.prepay&&DATA.prepay.deals;
+    const PP0=DATA.prepay&&DATA.prepay.deals;
+    // Сквозность с РОПом: из узла сверки исключаем Glass Memory (те же исключения, что в дашборде РОПа)
+    const GM_EX=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);
+    const PP=PP0&&PP0.filter(d=>!GM_EX.has(d.mgr||'')&&d.dir!=='glass-memory');
     if(!PP)return `<div class="card"><div class="card-h"><div><div class="card-t">Узел сверки: Предоплата → Производство</div><div class="card-s">появится после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором)</div></div></div></div>`;
     // сверка глобальная (сделки не несут направление) - считаем по ВСЕМ заказам, без фильтра направления
     const startedAll=IT.filter(i=>inRange(startDate(i)));
@@ -415,7 +418,7 @@ function render(){
       s+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
       s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · ${_pcsInfo}</text>`;
       s+=`</svg>`;return s})();
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · без Glass Memory (как у РОПа) · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====

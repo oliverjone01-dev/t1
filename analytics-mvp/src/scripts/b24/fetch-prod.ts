@@ -119,6 +119,10 @@ async function main() {
   for (const u of users) userName[String(u.ID)] = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim() || `id${u.ID}`;
 
   const f: any = (await call("crm.item.fields", { entityTypeId: ETID })).result?.fields || {};
+  // Направление сделки (enum воронки 49) - для сквозности исключений Glass Memory с дашбордом РОПа.
+  const DEAL_UF_DIR = "UF_CRM_69A7F70A18816";
+  const dealFields: any = (await call("crm.deal.fields", {})).result || {};
+  const dealDirMap = enumMap(dealFields[DEAL_UF_DIR]);
   const dirMap = enumMap(f[UF.dir]);
   const assortMap = enumMap(f[UF.assort]);
   const prodTypeMap = enumMap(f[UF.productType]);
@@ -259,7 +263,7 @@ async function main() {
   const prepInfo: Record<string, any> = {};
   for (let i = 0; i < prepIds.length; i += 50) {
     const chunk = prepIds.slice(i, i + 50);
-    const dl: any[] = (await call("crm.deal.list", { select: ["ID", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "CLOSED"], filter: { ID: chunk }, start: -1 })).result || [];
+    const dl: any[] = (await call("crm.deal.list", { select: ["ID", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "CLOSED", DEAL_UF_DIR], filter: { ID: chunk }, start: -1 })).result || [];
     for (const d of dl) prepInfo[String(d.ID)] = d;
   }
   const prepayDeals = prepIds.map((id) => {
@@ -269,6 +273,7 @@ async function main() {
       budget: Number(d.OPPORTUNITY) || 0,
       mgr: userName[String(d.ASSIGNED_BY_ID)] || null,
       stage: String(d.STAGE_ID || ""), open: d.CLOSED === "N",
+      dir: dealDirMap[String(d[DEAL_UF_DIR])] || "не указано",
       pcs: null as number | null, // штук по товарным строкам СДЕЛКИ (заполняется ниже для открытых в EXECUTING)
     };
   });

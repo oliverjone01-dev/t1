@@ -328,15 +328,23 @@ function render(){
   const pcsOut=qtySum(finished),pcsOutPrev=qtySum(IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i))));
   const _rate=pcsOut/_days;
   const _cycMain=isStart?med(cycCohort):med(cyc);
+  // динамика для сроков и незавершёнки: прошлое равное окно; для «в работе» - снимок на его конец
+  const _prevLaunch=IT.filter(dirOk).filter(i=>inWinP(startDate(i)));
+  const _prevDoneFin=IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i)));
+  const _prevBase=isStart?_prevLaunch.filter(isDone):_prevDoneFin;
+  const _cycPrev=med(_prevBase.map(cycleOf).filter(x=>x!=null&&x>=0));
+  const _perPcPrev=_prevBase.map(i=>{const c=cycleOf(i),q=qtyOf(i);return c!=null&&c>=0&&q>0?c/q:null}).filter(x=>x!=null);
+  const _wipPrevQ=qtySum(IT.filter(dirOk).filter(i=>{const st=startDate(i);if(!st||st>pb)return false;const f=successDate(i);return !(f&&f<=pb)}));
+  const trOpt=(c,p,inv)=>(c!=null&&p!=null&&isFinite(p)&&p>0)?trend(c,p,inv):'';
   const kdef=[
     ['Сделок в производство',fmt(dealsStarted),'','var(--cyan)','первый запуск карточки сделки в периоде',trend(dealsStarted,dealsStartedPrev)],
     ['Изделий (карточек)',fmt(cohCards.length),'','#60A5FA','запущено карточек-нарядов за период',trend(cohCards.length,cohCardsPrev.length)],
     ['Штук',fmt(qtySum(cohCards)),'','var(--violet)','изделия × количество из товарных строк',trend(qtySum(cohCards),qtySum(cohCardsPrev))],
     ['Направлено денег',fmtK(dealMoney(cohCards)),' ₽','var(--cyan)','бюджеты уникальных сделок запущенных',trend(dealMoney(cohCards),dealMoney(cohCardsPrev))],
     ['Выпущено штук',fmt(pcsOut),'','var(--accent)',`готово за период · темп: ${d1(_rate)} шт/день`,trend(pcsOut,pcsOutPrev)],
-    ['Срок выпуска',d1(_cycMain),' дн','var(--violet)',isStart?'медиана «запуск → готово» по готовым ИЗ запущенных':'медиана «запуск → готово» готовых за период',''],
-    ['Дней на штуку',_perPc.length?d1(med(_perPc)):'—',' дн','#8B7BF0','медиана: цикл заказа ÷ штук в заказе',''],
-    ['В работе<span class="now-badge">сейчас</span>',fmt(qtySum(wip)),'','var(--amber)',`штук на участках (${fmt(wip.length)} карточек) · зависло >14 дн: ${fmt(stuck.length)}`,''],
+    ['Срок выпуска',d1(_cycMain),' дн','var(--violet)',isStart?'медиана «запуск → готово» по готовым ИЗ запущенных':'медиана «запуск → готово» готовых за период',trOpt(_cycMain,_cycPrev,true)],
+    ['Дней на штуку',_perPc.length?d1(med(_perPc)):'—',' дн','#8B7BF0','медиана: цикл заказа ÷ штук в заказе',trOpt(_perPc.length?med(_perPc):null,_perPcPrev.length?med(_perPcPrev):null,true)],
+    ['В работе<span class="now-badge">сейчас</span>',fmt(qtySum(wip)),'','var(--amber)',`штук на участках (${fmt(wip.length)} карточек) · зависло >14 дн: ${fmt(stuck.length)}`,trOpt(qtySum(wip),_wipPrevQ,true)],
   ];
   const kpis=`<div class="kpis">`+kdef.map(k=>`<div class="kpi"><div class="bar" style="background:${k[3]}"></div><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')+`</div>`;
 

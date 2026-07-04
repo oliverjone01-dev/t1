@@ -182,7 +182,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},mgrOpen:{},
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -236,10 +236,11 @@ const esc=s=>String(s).replace(/</g,'&lt;').replace(/"/g,'&quot;'); // для и
 const attr=s=>String(s).replace(/"/g,'&quot;'); // HTML подсказки в data-tip: экранируем только кавычки
 function chartSVG(series,keys,opt){
   opt=opt||{};const w=opt.w||640,h=opt.h||190,pl=44,pr=12,pt=12,pb=26;
-  let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));mx=mx*1.15||1;
+  let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));if(opt.refLine&&opt.refLine.v>mx)mx=opt.refLine.v;mx=mx*1.15||1;
   const n=keys.length,X=i=>pl+(w-pl-pr)*(n>1?i/(n-1):.5),Y=v=>h-pb-(h-pt-pb)*v/mx;
   const fv=opt.fmtY||(v=>fmtK(Math.round(v)));
   let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${fv(mx*(1-g/3))}</text>`}
+  let ref='';if(opt.refLine&&opt.refLine.v>0){const ry=Y(opt.refLine.v);ref=`<line x1="${pl}" y1="${ry.toFixed(1)}" x2="${w-pr}" y2="${ry.toFixed(1)}" stroke="${opt.refLine.c||'#F59E0B'}" stroke-width="1.4" stroke-dasharray="6 5" opacity=".8"/><text x="${w-pr-4}" y="${(ry-5).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${opt.refLine.c||'#F59E0B'}">${opt.refLine.label||''}</text>`}
   let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);
     const isLast=i===n-1, regular=i%step===0&&(n-1-i)>=step*0.6; // не рисуем подпись, налезающую на последнюю
     if(regular||isLast)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
@@ -273,7 +274,7 @@ function chartSVG(series,keys,opt){
     const tipHtml=attr(`<div class='tl'>${blabel(keys[i])}</div>`+(empty?`<div class='tn'>${isFuture?'период ещё не наступил - данных пока нет':'событий в этом периоде не было (запусков/выпусков нет)'}</div>`:rows));
     cols+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${ww.toFixed(1)}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tipHtml}"/>`}
   const leg=series.filter(s=>s.name).map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('');
-  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${shade}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
+  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${shade}${ref}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
 }
 // бублик: сегменты с подсказками, итог в центре (стиль РОП)
 function donut(data,total,pal,centerLabel){
@@ -478,18 +479,28 @@ function render(){
     const row=(r,isDep)=>{const nm=isDep?`<b>${r.dep==='GG'?'GENGLASS (GG)':'GLASS MEMORY (GM)'}</b>`:`<span style="padding-left:22px">${esc(r.mgr)}</span>`;
       const idle=!isDep&&!r.tD&&(r.qN||r.inN);
       const mx=isDep?mxDep:mxMgr;
-      return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:''}>
-        <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):''}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
+      const canOpen=!isDep&&r.qN>0;
+      return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:(canOpen?`data-mgr="${r.dep}|${esc(r.mgr)}" style="cursor:pointer"`:'')}>
+        <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):(canOpen?(S.mgrOpen&&S.mgrOpen[r.dep+'|'+r.mgr]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mx.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tM,mx.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mx.tPos,B)}">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPcs,mx.tPcs,V)}">${r.tPcs||'<span style="color:var(--ink4)">·</span>'}</td>
         ${cell(r.inN,r.inM,'var(--amber)',mx.inM,AMB)}
         ${cell(r.qN,r.qM,'#A78BFA',mx.qM,PU)}</tr>`};
-    let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])body+=a.ms.map(m=>row(m,false)).join('')});
+    // второй уровень: сделки менеджера в просчёте (потенциал, лежащий у конкретного человека)
+    const qtBy={};QT.forEach(d=>{const k=(d.mgr||'—');(qtBy[k]=qtBy[k]||[]).push(d)});
+    const portal=DATA.b24Portal||'';
+    const mgrDetail=m=>{const list=(qtBy[m.mgr]||[]).slice().sort((a,b)=>(b.budget||0)-(a.budget||0));
+      if(!list.length)return '';
+      const rowsQ=list.slice(0,40).map(d=>{const age=d.created?Math.max(0,Math.round(days(d.created,NOWS))):null;
+        const idl=portal?`<a href="${portal}/crm/deal/details/${d.id}/" target="_blank" rel="noopener" style="color:#3DAEC2" onclick="event.stopPropagation()">${d.id}</a>`:d.id;
+        return `<tr style="font-size:11px"><td style="padding-left:44px">${idl}</td><td>${esc(d.stage||'-')}</td><td style="text-align:right">${fmtK(d.budget||0)} ₽</td><td style="text-align:center;color:${age>30?'#CC5867':age>14?'#C2873C':'var(--ink3)'}">${age!=null?age+' дн в просчёте':'—'}</td></tr>`}).join('');
+      return `<tr><td colspan="7" style="padding:0"><table class="tbl" style="margin:2px 0 8px"><tbody>${rowsQ}</tbody></table>${list.length>40?`<div class="card-s" style="padding-left:44px;margin-bottom:6px">показаны 40 из ${fmt(list.length)} (по сумме)</div>`:''}</td></tr>`};
+    let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])a.ms.forEach(m=>{body+=row(m,false);if(S.mgrOpen&&S.mgrOpen[a.dep+'|'+m.mgr])body+=mgrDetail(m)})});
     const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
     const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал</div><div class="card-s">точка совещания ОП и цеха: клик по отделу разворачивает менеджеров · «передано» = за период (когорта воронки) · пакет и потенциал = снимок сейчас · бейдж «не передаёт» = потенциал/пакет есть, передач в периоде нет</div></div></div>
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал</div><div class="card-s">точка совещания ОП и цеха: клик по отделу разворачивает менеджеров, клик по менеджеру - его сделки в просчёте (что и сколько лежит) · «передано» = за период (когорта воронки) · пакет и потенциал = снимок сейчас · бейдж «не передаёт» = потенциал/пакет есть, передач в периоде нет</div></div></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Отдел / менеджер</th><th style="text-align:center">Передано сделок</th><th style="text-align:center">₽ передано</th><th style="text-align:center">Изделий</th><th style="text-align:center">Штук</th><th style="text-align:center">Пакет · сейчас</th><th style="text-align:center">Потенциал · сейчас</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
 
@@ -598,40 +609,79 @@ function render(){
     ?chartSVG([{name:'Запущено в производство, ₽ (уникальные сделки)',c:'#22D3EE',vals:seriesBy(uniqByDeal(all),startDate,keys,moneyOf),type:'bar'}],keys,{money:true})
     :chartSVG([{name:'Выпущено (готово), ₽ (уникальные сделки)',c:'#2E9E74',vals:seriesBy(uniqByDeal(done),successDate,keys,moneyOf),type:'bar'}],keys,{money:true});
 
+  // ===== ДВЕ ПЕДАЛИ ЦЕХА: вход vs мощность -> очередь или сроки =====
+  const pedalsBlock=(()=>{
+    if(!keys.length)return '';
+    const ki={};keys.forEach((k,i)=>ki[k]=i);const mk=()=>keys.map(()=>0);
+    const inP=mk(),outP=mk();
+    IT.filter(dirOk).forEach(i=>{const k1=bkey(startDate(i));if(k1 in ki)inP[ki[k1]]+=qtyOf(i);
+      if(isDone(i)&&successDate(i)){const k2=bkey(successDate(i));if(k2 in ki)outP[ki[k2]]+=qtyOf(i)}});
+    // мощность: средний выпуск штук в неделю по всей истории, приведённый к грануляции
+    const wkOf=ds=>{const dt=D(ds);if(!dt)return null;const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return iso(dt)};
+    const w={};IT.forEach(i=>{if(!isDone(i)||!successDate(i))return;const k=wkOf(successDate(i));if(k)w[k]=(w[k]||0)+qtyOf(i)});
+    const weeks=Object.values(w),scale=S.gran==='d'?1/7:S.gran==='m'?30.4/7:1;
+    const cap=(weeks.length?weeks.reduce((a,b)=>a+b,0)/weeks.length:0)*scale;
+    // следствия: незавершёнка (шт, конец бакета) и срок когорты запуска
+    const wipP=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;let q=0;IT.filter(dirOk).forEach(i=>{const st=startDate(i);if(!st||st>t)return;const f=successDate(i);if(f&&f<=t)return;q+=qtyOf(i)});return q});
+    const cycB=keys.map(k=>{const arr=IT.filter(dirOk).filter(i=>isDone(i)&&bkey(startDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
+    const gl=S.gran==='d'?'день':S.gran==='m'?'мес':'нед';
+    const top=chartSVG([
+      {name:'Вход в цех, штук',c:'#8B7BF0',vals:inP,type:'bar',op:.45},
+      {name:'Выпуск, штук',c:'#2DD4BF',vals:outP}
+    ],keys,{fmtY:v=>fmt(v),refLine:{v:cap,label:'мощность ~'+d1(cap)+' шт/'+gl,c:'#F59E0B'}});
+    const nowK=bkey(NOWS);
+    const lastCyc=i=>{let j=i-1;while(j>=0&&cycB[j]==null)j--;return j>=0?cycB[j]:null};
+    const diag=keys.map((k,i)=>{
+      if(k>nowK)return {c:'#232c38',t:'период ещё не наступил'};
+      if(!inP[i]&&!outP[i])return {c:'#232c38',t:'событий не было'};
+      const over=cap>0&&inP[i]>cap*1.05;
+      if(!over)return {c:'#2E9E74',t:'штатный режим: вход в пределах мощности'};
+      const dw=(wipP[i]!=null&&i>0&&wipP[i-1]!=null)?wipP[i]-wipP[i-1]:0;
+      const pc=lastCyc(i),dc=(cycB[i]!=null&&pc!=null)?cycB[i]-pc:0;
+      if(dc>1.5)return {c:'#F43F5E',t:'педаль «СРОКИ»: вход выше мощности, срок когорты растёт - двигаются обещания клиентам'};
+      if(dw>0)return {c:'#F59E0B',t:'педаль «ОЧЕРЕДЬ»: вход выше мощности, темп держим - копится незавершёнка'};
+      return {c:'#F59E0B',t:'вход выше мощности'};
+    });
+    const strip=`<div style="display:flex;gap:2px;margin:0 12px 10px 44px">`+diag.map((d,i)=>`<div data-tip="${attr(`<div class='tl'>Диагноз · ${blabel(keys[i])}</div><div class='tr'><span>Вход, шт</span><span>${fmt(inP[i])}</span></div><div class='tr'><span>Мощность, шт/${gl}</span><span>${d1(cap)}</span></div><div class='tr'><span>Выпуск, шт</span><span>${fmt(outP[i])}</span></div><div class='tr'><span>Незавершёнка на конец, шт</span><span>${wipP[i]!=null?fmt(wipP[i]):'—'}</span></div><div class='tr'><span>Срок когорты запуска</span><span>${cycB[i]!=null?d1(cycB[i])+' дн':'ещё не готовы'}</span></div><div class='tn'>${d.t}</div>`)}" style="flex:1;height:11px;border-radius:3px;background:${d.c};cursor:help"></div>`).join('')+`</div>`;
+    const botWip=chartSVG([{name:'Незавершёнка на конец периода, штук',c:'#F59E0B',vals:wipP,area:true}],keys,{fmtY:v=>fmt(v),h:150});
+    const botCyc=chartSVG([{name:'Срок когорты запуска, дн (готовые)',c:'#A78BFA',vals:cycB,join:true}],keys,{fmtY:v=>d1(v),h:150});
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки</div><div class="card-s">вход штук против мощности (пунктир) · полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь», красное = педаль «сроки» · наведи на сегмент - все цифры периода</div></div></div>${top}${strip}<div class="grid2"><div>${botWip}</div><div>${botCyc}</div></div><div class="note">Когда вход штук выше мощности, у цеха две педали: <b style="color:#F59E0B">держать темп на заказ</b> - тогда копится незавершёнка и растёт «на подходе», или <b style="color:#F43F5E">растягивать сроки</b> - тогда двигаются обещания клиентам и сделки зависают в «В производстве». Диагноз считается по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки».</div></div>`;
+  })();
+
   // ===== ОЦЕНКА УЧАСТКОВ: загрузка сейчас × пропускная способность (из истории) × разгрузка =====
   const stationsBlock=(()=>{
     const wkOf=ds=>{const dt=D(ds);if(!dt)return null;const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return iso(dt)};
     const wk={},stayAll={};STATIONS.forEach(([nm])=>{wk[nm]={};stayAll[nm]=[]});
-    IT.forEach(i=>{const h=i.hist||[];
+    IT.forEach(i=>{const h=i.hist||[];const q=qtyOf(i);
       for(let j=0;j<h.length;j++){const st=stationOf(h[j][0]);if(!st)continue;
-        const k=wkOf(h[j][1]);if(k)wk[st][k]=(wk[st][k]||0)+1;
+        const k=wkOf(h[j][1]);if(k)wk[st][k]=(wk[st][k]||0)+q;
         const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);
         const dur=end!=null?days(h[j][1],end):null;if(dur!=null&&dur>=0)stayAll[st].push(dur)}});
     const toneClear=c=>c==null?'#F43F5E':c>=14?'#F43F5E':c>=7?'#FB923C':c>=3?'#F59E0B':'#2E9E74';
     const rows=STATIONS.filter(([nm])=>nm!=='Готово').map(([nm])=>{
       const weeks=Object.values(wk[nm]);
-      const maxW=weeks.length?Math.max(...weeks):0;
       const avgW=weeks.length?weeks.reduce((a,b)=>a+b,0)/weeks.length:0;
-      let wipN=0;wip.forEach(i=>{if(stationOf(i.stageCode)===nm)wipN++});
-      const clear=wipN?(avgW>0?wipN/(avgW/7):null):0; // за сколько дней разгребёт очередь при своей скорости
-      return {nm,maxW,avgW,wipN,stay:med(stayAll[nm]),clear,used:maxW>0};
+      const maxW=weeks.length?Math.max(...weeks):0;
+      let queue=0,qPos=0;wip.forEach(i=>{if(stationOf(i.stageCode)===nm){queue+=qtyOf(i);qPos++}});
+      const clear=queue?(avgW>0?queue/(avgW/7):null):0;
+      return {nm,avgW,maxW,queue,qPos,stay:med(stayAll[nm]),clear,used:maxW>0};
     }).sort((a,b)=>((b.clear==null?99:b.clear))-((a.clear==null?99:a.clear)));
-    const mxMax=Math.max(1,...rows.map(r=>r.maxW));
+    const mx=Math.max(1,...rows.map(r=>Math.max(r.avgW,r.queue)));
+    const bar=(w,col,txt,tcol)=>`<div style="height:16px;border-radius:5px;background:${col};width:${Math.max(w,2).toFixed(1)}%;min-width:${txt?'54px':'2px'};display:flex;align-items:center;padding:0 7px;font-size:10px;font-weight:700;color:${tcol};white-space:nowrap">${txt}</div>`;
     const body=rows.map(r=>{
-      if(!r.used)return `<div class="stx-row"><div class="stx-nm">${r.nm}</div><div class="stx-tr"><span style="color:var(--ink4);font-size:11px">участок не используется</span></div></div>`;
-      const col=r.wipN?toneClear(r.clear):'#3a4450';
-      const trackW=Math.max(r.maxW/mxMax*100,16);
-      const fillW=r.maxW?Math.min(r.wipN/r.maxW,1.25)*100:0;
-      const over=r.maxW&&r.wipN>r.maxW;
-      const td=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>В работе сейчас</span><span>${r.wipN} изд.</span></div><div class='tr'><span>Пропускная способность</span><span>до ${fmt(r.maxW)} изд./нед (макс из истории)</span></div><div class='tr'><span>Средний поток</span><span>${d1(r.avgW)} изд./нед</span></div><div class='tr'><span>Разгрузка очереди</span><span>${r.clear!=null?'~'+d1(r.clear)+' дн':'нет данных о скорости'}</span></div><div class='tr'><span>Медиана времени на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div>`);
-      return `<div class="stx-row" data-tip="${td}">
-        <div class="stx-nm">${r.nm}</div>
-        <div class="stx-tr"><div class="stx-cap" style="width:${trackW.toFixed(1)}%">
-          <i style="width:${fillW.toFixed(1)}%;background:${col}33;border-right:2.5px solid ${col}"></i>
-          <span>${r.wipN?r.wipN+' в работе':'пусто'}${over?' · <b style="color:#F43F5E">сверх мощности</b>':''}</span>
-        </div><b class="stx-pill" style="color:${col};background:${col}1c;border:1px solid ${col}55">${r.clear!=null?'~'+d1(r.clear)+' дн':'?'}</b></div>
+      if(!r.used)return `<div style="display:grid;grid-template-columns:110px 1fr 66px;gap:10px;align-items:center;margin:7px 0"><div style="text-align:right;font-size:11.5px;font-weight:700;color:var(--ink4)">${r.nm}</div><span style="color:var(--ink4);font-size:11px">участок не используется</span><span></span></div>`;
+      const col=r.queue?toneClear(r.clear):'#3a4450';
+      const over=r.avgW&&r.queue>r.avgW;
+      const td=attr(`<div class='tl'>${r.nm}</div><div class='tr'><span>Очередь сейчас</span><span>${fmt(r.queue)} шт (${fmt(r.qPos)} изделий)</span></div><div class='tr'><span>Мощность (средняя)</span><span>${d1(r.avgW)} шт/нед</span></div><div class='tr'><span>Мощность (пиковая)</span><span>${fmt(r.maxW)} шт/нед</span></div><div class='tr'><span>Разгрузка очереди</span><span>${r.clear!=null?'~'+d1(r.clear)+' дн':'нет данных о скорости'}</span></div><div class='tr'><span>Медиана времени на участке</span><span>${r.stay!=null?d1(r.stay)+' дн':'—'}</span></div>`);
+      return `<div data-tip="${td}" style="display:grid;grid-template-columns:110px 1fr 66px;gap:10px;align-items:center;margin:7px 0;cursor:help">
+        <div style="text-align:right;font-size:11.5px;font-weight:700;color:var(--ink2)">${r.nm}</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          ${bar(r.avgW/mx*100,'rgba(62,123,214,.30)','мощность: '+d1(r.avgW)+' шт/нед','#9db9dd')}
+          ${bar(r.queue/mx*100,col+'40',r.queue?('очередь: '+fmt(r.queue)+' шт'+(over?' · выше мощности':'')):'очередь пуста',r.queue?col:'var(--ink4)')}
+        </div>
+        <b class="stx-pill" style="color:${col};background:${col}1c;border:1px solid ${col}55;justify-self:start">${r.clear!=null?'~'+d1(r.clear)+' дн':'?'}</b>
       </div>`}).join('');
-    return `${body}<div class="legend"><span><i style="background:#2E9E74"></i>разгрузка до 3 дн</span><span><i style="background:#F59E0B"></i>3-7 дн</span><span><i style="background:#FB923C"></i>7-14 дн</span><span><i style="background:#F43F5E"></i>14+ дн (узкое горло)</span><span style="color:var(--ink4)">полоса = мощность участка · заливка = очередь сейчас · бейдж = дней на разгрузку · детали - при наведении</span></div><div class="note">Считаем по карточкам производства (= изделие/позиция; поля «количество» в карточке нет). Предложение по визуализации: <b>Б)</b> тепловая матрица «участок × неделя» (волны загрузки) · <b>В)</b> «стаканы»: мощность и очередь двумя столбиками · <b>Г)</b> переключатель «Заказы / Изделия» после добавления поля «количество» в СП.</div>`;
+    return `${body}<div class="legend"><span><i style="background:#2E9E74"></i>разгрузка до 3 дн</span><span><i style="background:#F59E0B"></i>3-7 дн</span><span><i style="background:#FB923C"></i>7-14 дн</span><span><i style="background:#F43F5E"></i>14+ дн (узкое горло)</span><span style="color:var(--ink4)">два стакана на участок: синий = мощность (шт/нед из истории), цветной = очередь сейчас (шт) · очередь длиннее мощности = копится больше, чем участок делает за неделю · бейдж = дней на разгрузку</span></div>`;
   })();
 
   // ===== ПРОХОДИМОСТЬ УЧАСТКОВ: центрированная воронка =====
@@ -857,14 +907,14 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Средний срок производства</div><div class="card-s">медиана «запуск → готово» по готовым заказам, сгруппированным по дате ${isStart?'запуска':'готовности'}. Рост = производим медленнее.</div></div></div>${dynCyc}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">${isStart?'Запуск':'Выпуск'} в деньгах</div><div class="card-s">суммы уникальных сделок по заказам, ${isStart?'переданным в производство':'ставшим готовыми'} в каждом периоде.</div></div></div>${dynMoney}</div>`+
     `</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Оценка участков: загрузка × мощность × разгрузка</div><div class="card-s">по модели: 1) сколько в работе сейчас · 2) пропускная способность из истории · 3) за сколько дней разгребётся очередь · сортировка от узкого горла</div></div></div>${stationsBlock}</div>`+
+    pedalsBlock+`<div class="card"><div class="card-h"><div><div class="card-t">Стаканы участков: мощность vs очередь</div><div class="card-s">на каждый участок два столбика: мощность (шт/нед из истории) и очередь сейчас (шт) · бейдж = за сколько дней разгребётся · сортировка от узкого горла</div></div></div>${stationsBlock}</div>`+
     `<div class="sec"><div class="n">2</div><h2>Участки</h2><div class="ln"></div><div class="hint">где заказы лежат дольше всего и где страдает качество</div></div>`+
     `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли</div></div></div>${stTable}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов (${modeLbl}) · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
     `<div class="sec"><div class="n">3</div><h2>Конструкторы</h2><div class="ln"></div><div class="hint">кто проектирует объём цеха: скорость, качество, чеки</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">позиции, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div><div class="seg" id="consSortSeg">${[['money','₽'],['days','Дни'],['cnt','Шт']].map(x=>`<button data-v="${x[0]}" class="${(S.consSort||'money')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${consScatter}</div>`+
+    
     `<div class="sec"><div class="n">4</div><h2>Производственный календарь</h2><div class="ln"></div><div class="hint">факт против пропускной способности: где и когда цех был загружен, перегружен или простаивал</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в штуках</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ШТУК, изделия (карточки) в подсказке · цвет = теплота к максимуму своей строки (пик = красный) · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
   document.getElementById('periodLabel').textContent=perLbl;
@@ -906,6 +956,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
     const tu=e.target.closest('#trubaSeg button');if(tu){S.trubaUnit=tu.dataset.v;render();return}
     const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
     const dr=e.target.closest('tr[data-dept]');if(dr){const k=dr.dataset.dept;S.deptOpen[k]=!S.deptOpen[k];render();return}
+    const mr=e.target.closest('tr[data-mgr]');if(mr&&!e.target.closest('a')){const k=mr.dataset.mgr;S.mgrOpen[k]=!S.mgrOpen[k];render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   applyPreset('30');S.preset='30'; // дефолт: 30 дней (решение Ивана, как у РОПа)

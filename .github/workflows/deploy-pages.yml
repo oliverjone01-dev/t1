@@ -104,9 +104,11 @@ jobs:
           set -euo pipefail
           git fetch origin rop-dashboard-v1
           git worktree add /tmp/rop FETCH_HEAD
-          mkdir -p "$GITHUB_WORKSPACE/_site/rop"
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop" "$GITHUB_WORKSPACE/_site/rop2"
           cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop/index.html"
-          echo "РОП опубликован в /rop/ ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+          # /rop2/ - зеркало для обхода упрямых кэшей (прокси/CDN, игнорирующих query string)
+          cp /tmp/rop/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop2/index.html"
+          echo "РОП опубликован в /rop/ и /rop2/ ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
 
       # === ПРОИЗВОДСТВО (ИЗОЛИРОВАННО, из ветки prod-dashboard-v1, в /prod/) ===
       # Аналог /rop/: дашборд самодостаточный (данные Bitrix СП 1086 запечены build-prod),
@@ -118,9 +120,11 @@ jobs:
           set -euo pipefail
           git fetch origin prod-dashboard-v1
           git worktree add /tmp/prod FETCH_HEAD
-          mkdir -p "$GITHUB_WORKSPACE/_site/prod"
+          mkdir -p "$GITHUB_WORKSPACE/_site/prod" "$GITHUB_WORKSPACE/_site/prod2"
           cp /tmp/prod/analytics-mvp/public/prod-command.html "$GITHUB_WORKSPACE/_site/prod/index.html"
-          echo "Производство опубликовано в /prod/ ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
+          # /prod2/ - зеркало для обхода упрямых кэшей
+          cp /tmp/prod/analytics-mvp/public/prod-command.html "$GITHUB_WORKSPACE/_site/prod2/index.html"
+          echo "Производство опубликовано в /prod/ и /prod2/ ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

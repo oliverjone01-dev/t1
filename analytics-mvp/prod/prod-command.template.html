@@ -181,7 +181,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'izd',
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -442,10 +442,11 @@ function render(){
     // время на участке по когорте
     const stayOf=nm=>{const a=[];base.forEach(i=>{const h=i.hist||[];for(let j=0;j<h.length;j++){if(stationOf(h[j][0])!==nm)continue;const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);const d=end!=null?days(h[j][1],end):null;if(d!=null&&d>=0)a.push(d)}});return med(a)};
     const touch=nm=>base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm));
-    // высоты и цифры трубы - в ИЗДЕЛИЯХ (qty из товарных строк); позиции остаются в подсказке
-    const F=[{name:'Запущено',count:qtySum(base),pos:base.length,dwell:null,items:base}];
-    STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:qtySum(t),pos:t.length,dwell:stayOf(nm),items:t})});
-    F.push({name:'Готово',count:qtySum(doneBase),pos:doneBase.length,dwell:null,items:doneBase});
+    // единица тумблером: ИЗДЕЛИЯ (qty из товарных строк, дефолт) или ПОЗИЦИИ (карточки)
+    const UP=S.trubaUnit==='pos',mea=arr=>UP?arr.length:qtySum(arr);
+    const F=[{name:'Запущено',count:mea(base),pos:base.length,izd:qtySum(base),dwell:null,items:base}];
+    STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:mea(t),pos:t.length,izd:qtySum(t),dwell:stayOf(nm),items:t})});
+    F.push({name:'Готово',count:mea(doneBase),pos:doneBase.length,izd:qtySum(doneBase),dwell:null,items:doneBase});
     const n=F.length,W=1380,H=330,bandH=190,midY=64+bandH/2,pillY=H-30,pctY=H-48;
     const colW=W/n,nodeW=colW*0.52,maxC=F[0].count||1;
     const COL=['#22D3EE','#38BDF8','#60A5FA','#818CF8','#A78BFA','#C084FC','#2DD4BF','#34D399','#10B981','#2E9E74'];
@@ -460,14 +461,14 @@ function render(){
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
     F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
       const money=dealMoney(f.items);
-      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(f.count)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Доля от запущенных изд.</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(f.izd)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
       nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
       if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
       else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;
       labels+=`<text x="${cx(i)}" y="24" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink2)">${f.name}</text>`;
       labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(F[0].count||1))}</text>`;
       if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-27}" y="${pillY}" width="54" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`}});
-    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ИЗДЕЛИЙ когорты (${modeLbl}: <b>${fmt(qtySum(base))}</b> изд. в <b>${fmt(base.length)}</b> позициях) коснулось участка за свой маршрут, % = доля от запущенных изделий, пилюля = медиана времени на участке. Позиции - в подсказке столбика. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ${UP?'ПОЗИЦИЙ (карточек)':'ИЗДЕЛИЙ'} когорты (${modeLbl}: <b>${fmt(qtySum(base))}</b> изд. в <b>${fmt(base.length)}</b> позициях) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Вторая единица - в подсказке столбика, тумблер сверху переключает. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
   })();
 
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
@@ -768,7 +769,7 @@ function render(){
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
     `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">КАРТОЧКА-позиция</b> - создаётся при передаче в цех, по одной на тип изделия, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ИЗДЕЛИЯ (шт)</b> - количество в товарных строках карточки, именно оно грузит участки</div>`+
     `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: из изделий среза - сколько прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div></div>${prodTruba}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков ${S.trubaUnit==='pos'?'коснулись позиции':'коснулись изделия'}</div><div class="card-s">как воронка сделок у РОПа, но для цеха: сколько ${S.trubaUnit==='pos'?'КАРТОЧЕК-позиций':'ИЗДЕЛИЙ (шт)'} среза прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div><div class="seg" id="trubaSeg"><button data-v="izd" class="${S.trubaUnit!=='pos'?'on':''}">Изделия</button><button data-v="pos" class="${S.trubaUnit==='pos'?'on':''}">Позиции</button></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Незавершёнка и заторы</div><div class="card-s">оранжевая = сколько заказов было в производстве на конец каждого периода, красная = из них без движения >14 дн. Рост красной = копятся заторы.</div></div></div>${dynWip}</div>`+
@@ -822,6 +823,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
   document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render();return}
     const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
+    const tu=e.target.closest('#trubaSeg button');if(tu){S.trubaUnit=tu.dataset.v;render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');

@@ -285,7 +285,7 @@ const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -1137,28 +1137,54 @@ function render(){
     v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
   const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: линии = сделки (предоплат vs передано), стаканы = изделия и штуки, запущенные в цех · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
+  // Отдел продаж → менеджеры → сделки в просчёте: иерархия как на дашборде производства
   const B_prodMgr=(()=>{
-    const M={};
-    _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
-    _qDeals.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].q++;M[n].qm+=(d.budget||0);});
-    const rows=Object.values(M);
-    const _ps=S.pmSort||{k:'m',a:false};
-    const _pg={n:r=>r.n,c:r=>r.c,m:r=>r.m,q:r=>r.q,qm:r=>r.qm}[_ps.k]||(r=>r.m);
-    rows.sort((a,b)=>{const x=_pg(a),y=_pg(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y??-1)-(x??-1));return _ps.a?-d:d});
-    const _pth=(k,l)=>k?`<th data-pm="${k}" style="cursor:pointer;user-select:none${k===_ps.k?';color:#22D3EE':''}">${l}${k===_ps.k?(_ps.a?' ▲':' ▼'):''}</th>`:`<th>${l}</th>`;
-    // полупрозрачная гистограммка внутри ячейки: заливка слева на долю от максимума колонки
-    const mxC=Math.max(1,...rows.map(r=>r.c)),mxM=Math.max(1,...rows.map(r=>r.m)),mxQ=Math.max(1,...rows.map(r=>r.q)),mxQM=Math.max(1,...rows.map(r=>r.qm));
-    const bg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
-    const T='rgba(45,212,191,.14)',Q='rgba(34,211,238,.12)';
-    const body=rows.slice(0,14).map(r=>`<tr><td class="nm" style="text-align:left;font-weight:600">${esc(r.n)}</td>
-      <td style="${bg(r.c,mxC,T)}">${r.c||'·'}</td><td style="${bg(r.c,mxC,T)}">${_prodN?pct(r.c/_prodN):'·'}</td>
-      <td style="${bg(r.m,mxM,T)}"><b>${r.m?fmtKc(r.m):'·'}</b></td><td style="color:var(--ink-3);${bg(r.m,mxM,T)}">${_pdM&&r.m?pct(r.m/_pdM):'·'}</td>
-      <td style="color:#22D3EE;${bg(r.q,mxQ,Q)}">${r.q||'·'}</td><td style="color:#22D3EE;${bg(r.qm,mxQM,Q)}">${r.qm?fmtKc(r.qm):'·'}</td></tr>`).join('');
-    const foot=`<tr class="total"><td style="text-align:left;font-weight:800">Отдел</td>
-      <td style="font-weight:800;${bg(1,1,T)}">${fmt(_prodN)}</td><td style="${bg(1,1,T)}">100%</td>
-      <td style="font-weight:800;${bg(1,1,T)}">${fmtKc(_pdM)}</td><td style="${bg(1,1,T)}">100%</td>
-      <td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmt(_qDeals.length)}</td><td style="font-weight:800;color:#22D3EE;${bg(1,1,Q)}">${fmtKc(_qM)}</td></tr>`;
-    return `<div class="card"><div class="card-h"><div><div class="card-title">Менеджеры: передачи и потенциал ${info('Кто передаёт заказы в производство (шт, доля, деньги за период) и у кого сколько сейчас в расчётах (открытые сделки на стадиях Расчёт/ТЗ/КП/Принимают решение/Долгострой - будущие передачи). Вопрос: кто кормит цех и чей потенциал не конвертируется в передачи. Вывод: большие «в расчётах» при малых передачах - разбирать пайплайн менеджера.')}</div><div class="card-sub">передачи за период · «в расчётах» = снимок сейчас, будущий поток в цех</div></div></div><div class="scroll"><table class="tbl"><thead><tr>${_pth('n','Менеджер').replace('<th ','<th style="text-align:left" ').replace('cursor:pointer','cursor:pointer;text-align:left')}${_pth('c','Передано')}${_pth(null,'Доля шт')}${_pth('m','₽')}${_pth(null,'Доля ₽')}${_pth('q','В расчётах')}${_pth('qm','Потенциал ₽')}</tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
+    const M={};const ent=n=>M[n]=M[n]||{mgr:n,tD:0,tM:0,tPos:0,tPcs:0,inN:0,inM:0,qN:0,qM:0};
+    // передачи за период (учитывают тумблер «период по…»)
+    _pdCur.forEach(d=>{const e=ent(d.mgr||'—');e.tD++;e.tM+=(d.budget||0)});
+    // изделия и штуки: карточки СП «Производство GG», привязанные к переданным сделкам
+    const _pdIds=new Set(_pdCur.map(d=>String(d.id)));
+    const _mgrOfDeal={};_pdCur.forEach(d=>_mgrOfDeal[String(d.id)]=d.mgr||'—');
+    ((DATA.prodItems)||[]).forEach(i=>{const k=String(i.dealId||'');if(!_pdIds.has(k))return;
+      const e=ent(_mgrOfDeal[k]);e.tPos++;e.tPcs+=(Number(i.qty)>0?Number(i.qty):1)});
+    // пакет сейчас: открытые сделки на стадии «В производстве»
+    _queue.forEach(d=>{const e=ent(d.mgr||'—');e.inN++;e.inM+=(d.budget||0)});
+    // потенциал сейчас: открытые сделки в просчёте (Расчёт/ТЗ/КП/Принимают решение/Долгострой)
+    _qDeals.forEach(d=>{const e=ent(d.mgr||'—');e.qN++;e.qM+=(d.budget||0)});
+    const ms=Object.values(M);
+    if(!ms.length)return '';
+    const DS=S.rdSort||{k:'qM',a:false};
+    const _gv={nm:r=>r.mgr,tD:r=>r.tD,tM:r=>r.tM,tPos:r=>r.tPos,tPcs:r=>r.tPcs,inM:r=>r.inM,qM:r=>r.qM}[DS.k]||(r=>r.qM);
+    const msS=ms.slice().sort((a,b)=>{const x=_gv(a),y=_gv(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y||0)-(x||0));return DS.a?-d:d});
+    const dep={mgr:'GENGLASS (GG)'};['tD','tM','tPos','tPcs','inN','inM','qN','qM'].forEach(k=>dep[k]=ms.reduce((s,m)=>s+m[k],0));
+    const mxOf=f=>Math.max(1e-9,...ms.map(f));
+    const mx={tD:mxOf(r=>r.tD),tM:mxOf(r=>r.tM),tPos:mxOf(r=>r.tPos),tPcs:mxOf(r=>r.tPcs),inM:mxOf(r=>r.inM),qM:mxOf(r=>r.qM)};
+    const hg=(v,m2,col)=>{if(!v)return '';const w=Math.max(v/m2*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
+    const T='rgba(45,212,191,.14)',BB='rgba(96,165,250,.14)',V='rgba(139,123,240,.14)',AMB='rgba(245,158,11,.12)',PU='rgba(167,139,250,.13)';
+    const cell=(v,m2,col,mxV,bgc)=>`<td style="text-align:center;${hg(m2,mxV,bgc)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink-3)"> · ${fmtK(m2)} ₽</span>`:'<span style="color:var(--ink-3)">·</span>'}</td>`;
+    const row=(r,isDep)=>{const opn=isDep?(S.rdeptOpen&&S.rdeptOpen.GG):(S.rmgrOpen&&S.rmgrOpen[r.mgr]);
+      const canOpen=!isDep&&r.qN>0;
+      const idle=!isDep&&!r.tD&&(r.qN||r.inN);
+      const mm=isDep?{tD:Math.max(r.tD,1e-9),tM:Math.max(r.tM,1e-9),tPos:Math.max(r.tPos,1e-9),tPcs:Math.max(r.tPcs,1e-9),inM:Math.max(r.inM,1e-9),qM:Math.max(r.qM,1e-9)}:mx;
+      return `<tr ${isDep?`data-rdept="GG" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid rgba(148,163,184,.25)"`:(canOpen?`data-rmgr="${esc(r.mgr)}" style="cursor:pointer"`:'')}>
+        <td class="nm" style="text-align:left;font-weight:${isDep?800:600}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px">${esc(r.mgr)}</span>`}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:#F59E0B;border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
+        <td style="text-align:center;${hg(r.tD,mm.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink-3)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tM,mm.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink-3)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tPos,mm.tPos,BB)}">${r.tPos||'<span style="color:var(--ink-3)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tPcs,mm.tPcs,V)}">${r.tPcs||'<span style="color:var(--ink-3)">·</span>'}</td>
+        ${cell(r.inN,r.inM,'#F59E0B',mm.inM,AMB)}
+        ${cell(r.qN,r.qM,'#A78BFA',mm.qM,PU)}</tr>`};
+    // третий уровень: сделки менеджера в просчёте, по сумме
+    const qtBy={};_qDeals.forEach(d=>{const k=d.mgr||'—';(qtBy[k]=qtBy[k]||[]).push(d)});
+    const mgrDetail=m=>{const list=(qtBy[m.mgr]||[]).slice().sort((a,b)=>(b.budget||0)-(a.budget||0));
+      if(!list.length)return '';
+      const rowsQ=list.slice(0,40).map(d=>{const t=new Date(d.created).getTime();const age=isFinite(t)?Math.max(0,Math.round((NOWD.getTime()-t)/DAYMS)):null;
+        return `<tr style="font-size:11px"><td style="padding-left:44px;text-align:left"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="color:#3DAEC2" onclick="event.stopPropagation()">${d.id}</a></td><td style="text-align:center">${esc(d.stage||'-')}</td><td style="text-align:center">${fmtK(d.budget||0)} ₽</td><td style="text-align:center;color:${age>30?'#CC5867':age>14?'#C2873C':'var(--ink-3)'}">${age!=null?age+' дн в просчёте':'—'}</td></tr>`}).join('');
+      return `<tr><td colspan="7" style="padding:0"><table class="tbl" style="margin:2px 0 8px"><tbody>${rowsQ}</tbody></table>${list.length>40?`<div class="card-sub" style="padding-left:44px;margin-bottom:6px">показаны 40 из ${fmt(list.length)} (по сумме)</div>`:''}</td></tr>`};
+    let body=row(dep,true);
+    if(S.rdeptOpen&&S.rdeptOpen.GG)msS.forEach(m=>{body+=row(m,false);if(S.rmgrOpen&&S.rmgrOpen[m.mgr])body+=mgrDetail(m)});
+    const dth=(k,l,left)=>`<th data-rdk="${k}" style="${left?'text-align:left;':'text-align:center;'}cursor:pointer;user-select:none${DS.k===k?';color:#22D3EE':''}">${l}${DS.k===k?(DS.a?' ▲':' ▼'):''}</th>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-title">Отдел продаж: передачи и потенциал ${info('Иерархия как на дашборде производства: отдел → менеджеры → сделки. Клик по отделу разворачивает менеджеров, клик по менеджеру - его открытые сделки в просчёте (будущие передачи, со ссылками на Б24). «Передано» = за период с учётом тумблера «период по…». Пакет = открытые сделки на стадии «В производстве» сейчас. Потенциал = открытые сделки в просчёте сейчас. Вопрос: кто кормит цех и чей потенциал лежит без движения.')}</div><div class="card-sub">клик по отделу - менеджеры, по менеджеру - его сделки в просчёте · сортировка кликом по заголовку · GM ведётся отдельно, смотри дашборд производства</div></div></div><div class="scroll"><table class="tbl"><thead><tr>${dth('nm','Отдел / менеджер',true)}${dth('tD','Передано сделок')}${dth('tM','₽ передано')}${dth('tPos','Изделий')}${dth('tPcs','Штук')}${dth('inM','Пакет · сейчас')}${dth('qM','Потенциал · сейчас')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
   })();
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
@@ -1166,7 +1192,7 @@ function render(){
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
-    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr)+noCardBlock()
+    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
@@ -1505,7 +1531,9 @@ function buildShell(){
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
   document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
-  document.addEventListener('click',e=>{const th=e.target.closest('th[data-pm]');if(th){const st=S.pmSort;if(st.k===th.dataset.pm)st.a=!st.a;else{st.k=th.dataset.pm;st.a=false}render();}});
+  document.addEventListener('click',e=>{const th=e.target.closest('th[data-rdk]');if(th){const st=S.rdSort;if(st.k===th.dataset.rdk)st.a=!st.a;else{st.k=th.dataset.rdk;st.a=false}render();return}
+    const dr=e.target.closest('tr[data-rdept]');if(dr){S.rdeptOpen.GG=!S.rdeptOpen.GG;render();return}
+    const mr=e.target.closest('tr[data-rmgr]');if(mr&&!e.target.closest('a')){const k=mr.dataset.rmgr;S.rmgrOpen[k]=!S.rmgrOpen[k];render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='ncToggle'){S.ncOpen=!S.ncOpen;render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='dscToggle'){S.dscOpen=!S.dscOpen;render();}});

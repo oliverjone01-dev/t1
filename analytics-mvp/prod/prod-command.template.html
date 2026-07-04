@@ -442,9 +442,10 @@ function render(){
     // время на участке по когорте
     const stayOf=nm=>{const a=[];base.forEach(i=>{const h=i.hist||[];for(let j=0;j<h.length;j++){if(stationOf(h[j][0])!==nm)continue;const end=j+1<h.length?h[j+1][1]:(isWip(i)?NOWS:null);const d=end!=null?days(h[j][1],end):null;if(d!=null&&d>=0)a.push(d)}});return med(a)};
     const touch=nm=>base.filter(i=>(i.hist||[]).some(h=>stationOf(h[0])===nm));
-    const F=[{name:'Запущено',count:base.length,dwell:null,items:base}];
-    STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:t.length,dwell:stayOf(nm),items:t})});
-    F.push({name:'Готово',count:doneBase.length,dwell:null,items:doneBase});
+    // высоты и цифры трубы - в ИЗДЕЛИЯХ (qty из товарных строк); позиции остаются в подсказке
+    const F=[{name:'Запущено',count:qtySum(base),pos:base.length,dwell:null,items:base}];
+    STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{const t=touch(nm);F.push({name:nm,count:qtySum(t),pos:t.length,dwell:stayOf(nm),items:t})});
+    F.push({name:'Готово',count:qtySum(doneBase),pos:doneBase.length,dwell:null,items:doneBase});
     const n=F.length,W=1380,H=330,bandH=190,midY=64+bandH/2,pillY=H-30,pctY=H-48;
     const colW=W/n,nodeW=colW*0.52,maxC=F[0].count||1;
     const COL=['#22D3EE','#38BDF8','#60A5FA','#818CF8','#A78BFA','#C084FC','#2DD4BF','#34D399','#10B981','#2E9E74'];
@@ -454,19 +455,19 @@ function render(){
     for(let i=0;i<n-1;i++){const h0=hOf(F[i].count),h1=hOf(F[i+1].count),x0=nodeX(i)+nodeW,x1=nodeX(i+1);
       const t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='pc'+i;
       defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${COL[i%COL.length]}" stop-opacity=".4"/><stop offset="1" stop-color="${COL[(i+1)%COL.length]}" stop-opacity=".4"/></linearGradient>`;
-      const both=F[i+1].items.filter(x=>F[i].items.includes(x)).length;
-      const td=attr(`<div class='tl'>${F[i].name} → ${F[i+1].name}</div><div class='tr'><span>Прошли оба участка</span><span>${fmt(both)}</span></div>`);
+      const bothArr=F[i+1].items.filter(x=>F[i].items.includes(x));
+      const td=attr(`<div class='tl'>${F[i].name} → ${F[i+1].name}</div><div class='tr'><span>Прошли оба участка, изд.</span><span>${fmt(qtySum(bothArr))}</span></div><div class='tr'><span>Позиций</span><span>${fmt(bothArr.length)}</span></div>`);
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
     F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
       const money=dealMoney(f.items);
-      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Позиций коснулось</span><span>${fmt(f.count)}</span></div>${hasQty?`<div class='tr'><span>Изделий (шт)</span><span>${fmt(qtySum(f.items))}</span></div>`:''}<div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(base.length||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (шт)</span><span>${fmt(f.count)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Доля от запущенных изд.</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
       nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
       if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
       else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;
       labels+=`<text x="${cx(i)}" y="24" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink2)">${f.name}</text>`;
-      labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(base.length||1))}</text>`;
+      labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(F[0].count||1))}</text>`;
       if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-27}" y="${pillY}" width="54" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`}});
-    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько изделий когорты (${modeLbl}: <b>${fmt(base.length)}</b>) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ИЗДЕЛИЙ когорты (${modeLbl}: <b>${fmt(qtySum(base))}</b> изд. в <b>${fmt(base.length)}</b> позициях) коснулось участка за свой маршрут, % = доля от запущенных изделий, пилюля = медиана времени на участке. Позиции - в подсказке столбика. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
   })();
 
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
@@ -669,7 +670,7 @@ function render(){
     const body=rows.slice(0,12).map(r=>`<tr><td class="nm">${esc(r.n)}</td><td>${r.tot}</td><td>${r.done}</td><td style="color:${tone(r.cycM||0)}">${r.cycM!=null?d1(r.cycM)+' дн':'—'}</td><td>${r.rew}</td><td>${r.tot?fmtK(r.avg):'—'} ₽</td><td>${fmtK(r.sum)} ₽</td></tr>`).join('')||'<tr><td colspan="7" class="card-s">нет заказов в периоде</td></tr>';
     const tTot=sum(rows,r=>r.tot),tDone=sum(rows,r=>r.done),tRew=sum(rows,r=>r.rew),tSum=sum(rows,r=>r.sum),tCyc=med(rows.flatMap(r=>r.cyc));
     const foot=rows.length?`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="font-weight:800">${fmt(tTot)}</td><td style="font-weight:800">${fmt(tDone)}</td><td style="color:${tone(tCyc||0)}">${tCyc!=null?d1(tCyc)+' дн':'—'}</td><td style="font-weight:800">${fmt(tRew)}</td><td>${tTot?fmtK(tSum/tTot):'—'} ₽</td><td style="font-weight:800">${fmtK(tSum)} ₽</td></tr>`:'';
-    return `<table class="tbl"><thead><tr>${thRow('con',S.conSort,[['n','Конструктор'],['tot','Заказов'],['done','Готово'],['cyc','Ср.срок'],['rew','Доработок'],['avg','Ср.чек'],['sum','Сумма']])}</tr></thead><tbody>${body}${foot}</tbody></table>`;
+    return `<table class="tbl"><thead><tr>${thRow('con',S.conSort,[['n','Конструктор'],['tot','Позиций'],['done','Готово'],['cyc','Ср.срок'],['rew','Доработок'],['avg','Ср.чек'],['sum','Сумма']])}</tr></thead><tbody>${body}${foot}</tbody></table>`;
   })();
 
   // ===== КОНСТРУКТОРЫ: профиль по чекам, сортировка ₽/дни/шт =====
@@ -765,6 +766,7 @@ function render(){
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
+    `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">КАРТОЧКА-позиция</b> - создаётся при передаче в цех, по одной на тип изделия, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ИЗДЕЛИЯ (шт)</b> - количество в товарных строках карточки, именно оно грузит участки</div>`+
     `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: из изделий среза - сколько прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+

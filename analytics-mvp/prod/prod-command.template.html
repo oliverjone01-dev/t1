@@ -1010,15 +1010,19 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
     document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));render()});
   render();
   // Анти-кэш для боевого адреса /prod/: деплой кладёт рядом v.txt со штампом сборки.
-  // Если сервер отдал нам устаревший HTML - перезагружаемся один раз с кэш-бастером.
+  // Проверяем при загрузке, при возврате на вкладку и раз в 15 минут: давно открытая
+  // вкладка тоже подтянет свежую сборку. Перезагрузка одна на версию (sessionStorage).
   (function(){try{
     if(location.protocol==='file:'||!DATA.bakedAt)return;
-    fetch('v.txt?_='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(v=>{
+    const chk=()=>{fetch('v.txt?_='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(v=>{
       v=(v||'').trim();if(!v||v===DATA.bakedAt)return;
       if(v<DATA.bakedAt)return; // на сервере не новее нашей - не дёргаемся
       if(sessionStorage.getItem('_vchk')===v)return; // защита от цикла, если кэш упрямый
       sessionStorage.setItem('_vchk',v);location.replace(location.pathname+'?v='+encodeURIComponent(v));
-    }).catch(()=>{});
+    }).catch(()=>{})};
+    chk();
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});
+    setInterval(chk,9e5);
   }catch(e){}})();
 })();
 </script></body></html>

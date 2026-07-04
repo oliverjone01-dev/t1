@@ -526,6 +526,65 @@ function noCardBlock(){
     `</div>`;
 }
 
+// Блок «Дисциплина ведения сделок»: чистота заполнения карточек сделок/лидов.
+// От неё зависит точность ВСЕХ цифр дашбордов: направление, клиент, ассортимент, бюджет,
+// источник, причина отказа (для проигранных), карточка СП (для переданных в производство).
+function disciplineBlock(){
+  const _p0=x=>Math.round(x*100)+'%';
+  const _inP=c=>c>=S.start&&c<=S.end;
+  const Ds=flt(AD,true).filter(d=>d.created&&_inP(d.created));
+  const Ls=flt(AL,false).filter(l=>l.created&&_inP(l.created));
+  const linkedSP=new Set(((DATA.prodItems)||[]).map(i=>i.dealId).filter(Boolean));
+  const hasSP=!!(DATA.prodItems&&DATA.prodItems.length);
+  const dealChecks=d=>{const ch=[
+    ['направление',d.dir!=='не указано'],
+    ['тип клиента',d.client!=='нет данных'],
+    ['ассортимент',d.assort!=='нет данных'],
+    ['бюджет',(d.budget||0)>0],
+    ['источник',!!d.source&&d.source!=='не указан'&&d.source!=='-'],
+  ];
+    if(d.lost)ch.push(['причина отказа',!!d.reason&&d.reason!=='не указана']);
+    if(hasSP&&prodDate(d))ch.push(['карточка СП',linkedSP.has(String(d.id))]);
+    return ch;};
+  const leadChecks=l=>[['направление',l.dir!=='не указано'],['источник',!!l.source&&l.source!=='не указан']];
+  let dF=0,dT=0,lF=0,lT=0,rzF=0,rzT=0,spF=0,spT=0;
+  const perM={};
+  Ds.forEach(d=>{const ch=dealChecks(d);const f=ch.filter(x=>x[1]).length;dF+=f;dT+=ch.length;
+    const m=perM[d.mgr]=perM[d.mgr]||{n:d.mgr,dc:0,df:0,dt:0,lc:0,lf:0,lt:0,noRz:0,noSp:0,miss:0};
+    m.dc++;m.df+=f;m.dt+=ch.length;if(f<ch.length)m.miss++;
+    if(d.lost){rzT++;const ok=!!d.reason&&d.reason!=='не указана';if(ok)rzF++;else m.noRz++;}
+    if(hasSP&&prodDate(d)){spT++;const ok=linkedSP.has(String(d.id));if(ok)spF++;else m.noSp++;}});
+  Ls.forEach(l=>{const ch=leadChecks(l);const f=ch.filter(x=>x[1]).length;lF+=f;lT+=ch.length;
+    const m=perM[l.mgr]=perM[l.mgr]||{n:l.mgr,dc:0,df:0,dt:0,lc:0,lf:0,lt:0,noRz:0,noSp:0,miss:0};
+    m.lc++;m.lf+=f;m.lt+=ch.length;});
+  if(!Ds.length&&!Ls.length)return '';
+  const zc=p=>p>=.9?'#2E9E74':p>=.7?'#C2873C':'#CC5867';
+  const mini=(lbl,f,t,sub)=>{const pr=t?f/t:null;const col=pr==null?'#5a6672':zc(pr);
+    return `<div style="flex:1;min-width:150px;max-width:190px;text-align:center">${donut(t?[['Заполнено',f,col],['Пусто',Math.max(t-f,0),'rgba(204,88,103,.28)']]:[['нет данных',1,'#3a4350']],pr==null?'—':_p0(pr),lbl.toUpperCase())}<div class="card-sub" style="margin-top:2px">${sub}</div></div>`;};
+  const donuts=`<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between">
+    ${mini('сделки',dF,dT,`полнота полей · ${fmt(Ds.length)} сделок периода`)}
+    ${mini('лиды',lF,lT,`полнота полей · ${fmt(Ls.length)} лидов периода`)}
+    ${mini('причина отказа',rzF,rzT,rzT?`проставлена у ${fmt(rzF)} из ${fmt(rzT)} проигранных`:'проигранных в периоде нет')}
+    ${mini('карточка СП',spF,spT,spT?`создана у ${fmt(spF)} из ${fmt(spT)} переданных`:'передач в периоде нет')}
+  </div>`;
+  const rows=Object.values(perM).map(m=>{m.dp=m.dt?m.df/m.dt:null;m.lp=m.lt?m.lf/m.lt:null;return m;})
+    .filter(m=>m.dc||m.lc).sort((a,b)=>((a.dp==null?1:a.dp)-(b.dp==null?1:b.dp)));
+  const pcCell=p=>p==null?'<td style="text-align:center;color:var(--ink-4)">—</td>':`<td style="text-align:center;font-weight:800;color:${zc(p)};background:linear-gradient(90deg,${zc(p)}22 ${(p*100).toFixed(0)}%,transparent ${(p*100).toFixed(0)}%)">${_p0(p)}</td>`;
+  const mgrTbl=`<div class="scroll" style="max-height:340px"><table class="tbl"><thead><tr><th>Менеджер</th><th style="text-align:center">Сделок</th><th style="text-align:center">Полнота сделок</th><th style="text-align:center">Лидов</th><th style="text-align:center">Полнота лидов</th><th style="text-align:center">Отказы без причины</th><th style="text-align:center">Без карточки СП</th></tr></thead><tbody>`+
+    rows.map(m=>`<tr><td class="name">${m.n}</td><td style="text-align:center">${m.dc||'·'}</td>${pcCell(m.dp)}<td style="text-align:center">${m.lc||'·'}</td>${pcCell(m.lp)}<td style="text-align:center;color:${m.noRz?'#CC5867':'var(--ink-4)'};font-weight:${m.noRz?800:400}">${m.noRz||'·'}</td><td style="text-align:center;color:${m.noSp?'#CC5867':'var(--ink-4)'};font-weight:${m.noSp?800:400}">${m.noSp||'·'}</td></tr>`).join('')+`</tbody></table></div>`;
+  // проблемные сделки со ссылками: что именно не заполнено
+  const portal=DATA.b24Portal||'',idCell=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
+  const probs=Ds.map(d=>{const misses=dealChecks(d).filter(x=>!x[1]).map(x=>x[0]);return misses.length?{d,misses}:null}).filter(Boolean)
+    .sort((a,b)=>b.misses.length-a.misses.length);
+  const open=!!S.dscOpen;
+  const probTbl=open?`<div class="scroll" style="margin-top:10px;max-height:420px"><table class="tbl"><thead><tr><th style="text-align:center">ID</th><th>Менеджер</th><th>Не заполнено</th><th style="text-align:center">Создана</th><th>Стадия</th></tr></thead><tbody>`+
+    probs.slice(0,150).map(x=>`<tr><td style="text-align:center">${idCell(x.d.id)}</td><td class="name">${x.d.mgr}</td><td style="color:#CC5867">${x.misses.join(', ')}</td><td style="text-align:center">${x.d.created}</td><td>${x.d.stage||'-'}</td></tr>`).join('')+`</tbody></table>${probs.length>150?`<div class="card-sub" style="margin-top:6px">показаны первые 150 из ${fmt(probs.length)}</div>`:''}</div>`:'';
+  const totP=dT?dF/dT:0;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Дисциплина ведения сделок ${info('Полнота заполнения карточек сделок и лидов, созданных в выбранном периоде: направление, тип клиента, ассортимент, бюджет, источник; у проигранных - причина отказа; у переданных в производство - карточка СП. От этого зависит точность ВСЕХ дашбордов: пустое направление ломает разрезы, нулевой бюджет - деньги, отсутствие причины - аналитику проигрышей, отсутствие карточки СП - загрузку цеха. Зелёное 90%+, янтарное 70-90%, красное ниже 70%.')}</div><div class="card-sub">чистота данных = точность дашбордов · слева отдел целиком, справа по менеджерам (худшие сверху) · сделки/лиды созданы в периоде, действуют фильтры сверху</div></div></div>
+    <div class="grid2" style="align-items:start">${donuts}${mgrTbl}</div>
+    <button id="dscToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть проблемные сделки':'Показать проблемные сделки ('+fmt(probs.length)+')'}</button>${probTbl}</div>`;
+}
+
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
   const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
@@ -1083,7 +1142,8 @@ function render(){
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
-    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr)+noCardBlock();
+    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr)+noCardBlock()
+    + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1424,6 +1484,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const th=e.target.closest('th[data-pm]');if(th){const st=S.pmSort;if(st.k===th.dataset.pm)st.a=!st.a;else{st.k=th.dataset.pm;st.a=false}render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='ncToggle'){S.ncOpen=!S.ncOpen;render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='dscToggle'){S.dscOpen=!S.dscOpen;render();}});
   document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');

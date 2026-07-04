@@ -1587,4 +1587,15 @@ async function refreshPlan(){const url=DATA.planCsv;if(!url){showToast('В сб�
   }catch(e){showToast('Не удалось прочитать таблицу онлайн ('+e.message+'). Нужно: файл сохранён как Google Таблица + доступ по ссылке. Иначе скажи мне - обновлю вручную.');}}
 function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;}
 setPeriod('30');buildShell();render();freshStamp();wirePlanBtns();
+// Анти-кэш для боевого адреса /rop/: деплой кладёт рядом v.txt со штампом сборки.
+// Если сервер отдал нам устаревший HTML - перезагружаемся один раз с кэш-бастером.
+(function(){try{
+  if(location.protocol==='file:'||!DATA.bakedAt)return;
+  fetch('v.txt?_='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(v=>{
+    v=(v||'').trim();if(!v||v===DATA.bakedAt)return;
+    if(v<DATA.bakedAt)return; // на сервере не новее нашей - не дёргаемся
+    if(sessionStorage.getItem('_vchk')===v)return; // защита от цикла, если кэш упрямый
+    sessionStorage.setItem('_vchk',v);location.replace(location.pathname+'?v='+encodeURIComponent(v));
+  }).catch(()=>{});
+}catch(e){}})();
 </script></body></html>

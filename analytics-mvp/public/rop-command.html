@@ -493,6 +493,35 @@ function unassignedBlock(){
     `</div>`;
 }
 
+// Блок «Передано без карточки СП»: сделки, ушедшие в производственные стадии,
+// у которых НЕТ карточек в СП «Производство GG» - цех делает их «вслепую».
+function noCardBlock(){
+  const IT=DATA.prodItems;
+  if(!IT||!IT.length)return '';
+  const linked=new Set(IT.map(i=>i.dealId).filter(Boolean));
+  const rows=prodSet().filter(d=>!linked.has(String(d.id))).map(d=>{const o=Object.assign({},d);o._pd=prodDate(d)||d.created;o._age=Math.max(0,Math.round(ageDays(o._pd)));return o});
+  const sumB=rows.reduce((x,d)=>x+(d.budget||0),0);
+  if(!rows.length)return `<div class="card"><div class="card-h"><div><div class="card-title">Передано без карточки СП</div><div class="card-sub" style="color:#2E9E74">у всех сделок, переданных в производство в выбранном периоде, карточки СП созданы - цех видит весь объём</div></div></div></div>`;
+  const sk=S.ncSort||'age',asc=S.ncAsc?1:-1,gv=r=>sk==='age'?r._age:sk==='budget'?(r.budget||0):sk==='mgr'?r.mgr:sk==='pd'?r._pd:r.id;
+  rows.sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*asc;});
+  const at=d=>d>=14?'#B0414F':d>=7?'#CC5867':d>=3?'#C2873C':'#2E9E74';
+  const hold={};rows.forEach(r=>hold[r.mgr]=(hold[r.mgr]||0)+1);
+  const topH=Object.entries(hold).sort((a,b)=>b[1]-a[1]).slice(0,6),hMax=topH.length?topH[0][1]:1;
+  const holdBars=topH.map(([n,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:140px;font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(c/hMax*100).toFixed(1)}%;background:#C2873C"></div></div><div style="width:34px;font-size:11px;font-weight:800;color:var(--ink-2)">${c}</div></div>`).join('');
+  const portal=DATA.b24Portal||'',idCell=r=>portal?`<a href="${portal}/crm/deal/details/${r.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${r.id}</a>`:r.id;
+  const sh=(k,l)=>`<th class="r ${S.ncSort===k?'sorted'+(S.ncAsc?' asc':''):''}" data-nc="${k}" style="cursor:pointer">${l}</th>`;
+  const head=`<tr>${sh('id','ID')}<th>Напр.</th>${sh('mgr','Ответственный')}<th>Стадия</th>${sh('budget','Сумма')}${sh('pd','Передана')}${sh('age','Дней без карточки')}</tr>`;
+  const body=rows.slice(0,100).map(r=>{const ac=at(r._age),dn=DIRLAB[r.dir]||r.dir||'-';
+    return `<tr><td>${idCell(r)}</td><td>${dn}</td><td class="name">${r.mgr}</td><td>${r.stage||'-'}</td><td class="r">${fmtK(r.budget||0)}</td><td class="r">${r._pd}</td><td class="r" style="color:${ac};font-weight:800">${r._age}</td></tr>`;}).join('');
+  const open=!!S.ncOpen;
+  const alert=`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);border-radius:9px;font-size:12.5px;color:#F8717A;font-weight:700"><span style="font-size:15px">⚠</span><span><b>${fmt(rows.length)}</b> сделок переданы в производство БЕЗ карточки СП${sumB>=1000?` · <b style="color:#fff">${fmtK(sumB)} ₽</b> цех делает «вслепую»`:''} - изделий и штук по ним нет ни в загрузке участков, ни в календаре</span></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Передано без карточки СП ${info('Сделки, переведённые в стадии производства (Заказ в производстве / произведён / отправлен) в выбранном периоде, у которых НЕТ карточки в смарт-процессе «Производство GG». Их изделия и штуки не видны цеху: ни загрузки участков, ни календаря, ни маршрута. Правило: передача в производство = создание карточки, а не перенос стадии. ID кликабельны - открой сделку и создай карточку.')}</div><div class="card-sub">переданы в выбранном периоде (уважает тумблер «период по…» и фильтры сверху) · «Дней без карточки» = дней с передачи · сортировка по заголовкам</div></div></div>`+
+    alert+`<div class="grid2" style="margin-top:10px"><div><div class="card-sub" style="margin-bottom:5px">на ком висят (топ-6)</div>${holdBars}</div><div></div></div>`+
+    `<button id="ncToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть таблицу':'Показать таблицу ('+fmt(rows.length)+')'}</button>`+
+    (open?`<div class="scroll" style="margin-top:10px;max-height:480px"><table class="tbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`:'')+
+    `</div>`;
+}
+
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
   const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
@@ -1050,7 +1079,7 @@ function render(){
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
-    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr);
+    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+G(B_prodChart,B_prodMgr)+noCardBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1383,6 +1412,8 @@ function buildShell(){
   document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
   document.addEventListener('click',e=>{const th=e.target.closest('th[data-pm]');if(th){const st=S.pmSort;if(st.k===th.dataset.pm)st.a=!st.a;else{st.k=th.dataset.pm;st.a=false}render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='ncToggle'){S.ncOpen=!S.ncOpen;render();}});
+  document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};

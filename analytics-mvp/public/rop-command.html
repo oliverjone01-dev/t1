@@ -418,9 +418,13 @@ function multiline(series,keys,g,money,el){
   let grid='';for(let i=0;i<=4;i++){const yy=pt+(h-pt-pb)*i/4,vv=mx*(1-i/4);grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border-soft)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink-4)">${money?fmtK(vv):Math.round(vv)}</text>`;}
   let xl='';labs.forEach((d,i)=>{const step=Math.ceil(labs.length/9);if(i%step===0||i===labs.length-1)xl+=`<text x="${X(i)}" y="${h-pb+15}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${d}</text>`;});
   const defs=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".20"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient></defs>`;
-  const draw=[...series].sort((a,b)=>(a.total?1:0)-(b.total?1:0)); // total drawn last (on top)
+  const draw=[...series].sort((a,b)=>((a.bar?0:1)+(a.total?2:0))-((b.bar?0:1)+(b.total?2:0))); // бары под линиями, total сверху
   let paths='';
-  draw.forEach(s=>{if(S.hidden[s.name])return;const isT=!!s.total;const op=hasTotal&&!isT?0.32:1;const wdt=isT?2.4:1.5;const dash=s.dash?' stroke-dasharray="6 5"':'';
+  const _bars=draw.filter(x=>x.bar&&!S.hidden[x.name]);
+  draw.forEach(s=>{if(S.hidden[s.name])return;
+    if(s.bar){const nb=_bars.length||1,bi=_bars.indexOf(s);const slot=Math.max(4,(w-pl-pr)/(keys.length*1.35)),bwd=Math.max(2.5,slot/nb);
+      paths+=s.vals.map((v,i)=>!v?'':`<rect x="${(X(i)-slot/2+bi*bwd).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bwd.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.color}" opacity="${s.op!=null?s.op:.5}" pointer-events="none"/>`).join('');return;}
+    const isT=!!s.total;const op=hasTotal&&!isT?0.32:1;const wdt=isT?2.4:1.5;const dash=s.dash?' stroke-dasharray="6 5"':'';
     const pts=s.vals.map((v,i)=>[X(i),Y(v)]);const line=smoothPath(pts);
     if(isT&&!s.noArea){const area=line+` L${X(keys.length-1)} ${h-pb} L${X(0)} ${h-pb} Z`;paths+=`<path d="${area}" fill="url(#${gid})"/>`;}
     paths+=`<path class="line-anim" pathLength="1" d="${line}" fill="none" stroke="${s.color}" stroke-width="${wdt}"${dash} stroke-linecap="round" stroke-linejoin="round" opacity="${op}"/>`;
@@ -1047,9 +1051,9 @@ function render(){
     v+=`<text x="${cx(0)}" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink-2)">Предоплаты в ОП</text>`;
     v+=`<text x="${cx(0)}" y="${b1+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(prepM)} ₽</text>`;
     v+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(startM)} ₽</text>`;
-    v+=noCard?`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" font-weight="700" fill="#F59E0B">⚠ у ${fmt(noCard)} из ${fmt(N2)} переданных сделок НЕТ карточек в СП «Производство GG» - их изделия и штуки посчитать нельзя (сделку перевели в стадию руками, карточку не создали)</text>`:`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
+    v+=noCard?`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#F59E0B">⚠ у ${fmt(noCard)} из ${fmt(N2)} переданных сделок нет карточек СП - изделия и штуки не видны · детали в блоке «Передано без карточки СП» ниже</text>`:`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: предоплат vs передано, шт · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: линии = сделки (предоплат vs передано), стаканы = изделия и штуки, запущенные в цех · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{
     const M={};
     _pdCur.forEach(d=>{const n=d.mgr||'—';(M[n]=M[n]||{n,c:0,m:0,q:0,qm:0});M[n].c++;M[n].m+=(d.budget||0);});
@@ -1270,7 +1274,14 @@ function wirePrepProd(){const el=document.getElementById('ppChart');if(!el)retur
     const cnt=(set,keyFn)=>{const v=mk();set.forEach(d=>{const k=bkey(keyFn(d),S.gran);if(k in ki)v[ki[k]]++});return v};
     prepV=cnt(prepaySet(),prepayKey);prodV=cnt(prodSet(),prodKey);
   }
-  multiline([{name:'Предоплат получено',color:'#A78BFA',noTotal:true,vals:prepV},{name:'В производство',color:'#2DD4BF',vals:prodV}],keys,S.gran,false,el);}
+  // «стаканы»: физический вход в цех - изделия (карточки) и штуки по датам запуска (не зависят от тумблера периода)
+  let series=[{name:'Предоплат получено',color:'#A78BFA',noTotal:true,vals:prepV},{name:'В производство (сделки)',color:'#2DD4BF',vals:prodV}];
+  if(DATA.prodItems&&DATA.prodItems.length){
+    const posV=mk(),pcsV=mk();
+    DATA.prodItems.forEach(i=>{if(!i.start)return;const k=bkey(i.start,S.gran);if(k in ki){posV[ki[k]]++;pcsV[ki[k]]+=(Number(i.qty)>0?Number(i.qty):1)}});
+    series=[{name:'Штук запущено',color:'#8B7BF0',bar:true,op:.30,noTotal:true,vals:pcsV},{name:'Изделий запущено (карточек)',color:'#3E7BD6',bar:true,op:.55,noTotal:true,vals:posV}].concat(series);
+  }
+  multiline(series,keys,S.gran,false,el);}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
   const META={rev:{l:'Выручка',m:true,p:false,c:'#A78BFA'},deals:{l:'Продажи',m:false,p:false,c:'#22D3EE'},prod:{l:'В производство',m:false,p:false,c:'#2DD4BF'},check:{l:'Средний чек',m:true,p:false,c:'#10B981'},conv:{l:'Конверсия (win-rate)',m:false,p:true,c:'#F59E0B'}}[metric];
   const seg=document.getElementById('rdSeg');if(seg){seg.innerHTML=[['rev','Выручка'],['deals','Продажи'],['prod','В пр-во'],['check','Ср. чек'],['conv','Конверсия']].map(x=>`<button data-m="${x[0]}" class="${metric===x[0]?'on':''}">${x[1]}</button>`).join('');seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.revMetric=b.dataset.m;render();});}

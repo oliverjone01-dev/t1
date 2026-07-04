@@ -75,15 +75,17 @@ jobs:
           set -euo pipefail
           git -C "$GITHUB_WORKSPACE" fetch origin office-dashboard-v1
           git -C "$GITHUB_WORKSPACE" worktree add /tmp/office origin/office-dashboard-v1
-          mkdir -p /tmp/office/analytics-mvp/rop/data
+          mkdir -p /tmp/office/analytics-mvp/rop/data /tmp/office/analytics-mvp/rop/plan
           cp rop/data/rop.json /tmp/office/analytics-mvp/rop/data/rop.json
+          # план выручки ОП (для декомпозиции плана офис-менеджера) - если есть в РОП-ветке
+          cp rop/plan/plan.json /tmp/office/analytics-mvp/rop/plan/plan.json 2>/dev/null || true
           cd /tmp/office/analytics-mvp
           npm ci
           npx tsx src/scripts/b24/build-office.ts
           cd /tmp/office
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add analytics-mvp/rop/data/rop.json analytics-mvp/public/office-command.html
+          git add analytics-mvp/rop/data/rop.json analytics-mvp/rop/plan analytics-mvp/public/office-command.html
           if git diff --staged --quiet; then echo "офис: снимок без изменений"; exit 0; fi
           git commit -m "data(office): снимок лидов Bitrix24 $(date -u +%F)"
           for i in 1 2 3 4 5; do

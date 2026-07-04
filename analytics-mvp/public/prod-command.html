@@ -307,22 +307,29 @@ function render(){
   const cyc=finished.map(cycleOf).filter(x=>x!=null&&x>=0);
   const stuck=wip.filter(i=>(dwellNow(i)||0)>14);
   const rewCut=cut.filter(i=>(i.hist||[]).some(h=>REWORK.has(h[0])));
-  const kdef=isStart?[
-    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('изделий (карточек) · штук: '+fmt(qtySum(started))):'передано в производство',trend(started.length,startedPrev)],
-    ['Из них готово',fmt(cohortDone.length),'','var(--accent)',(started.length?pct(cohortDone.length/started.length)+' когорты':'—')+(hasQty?' · штук: '+fmt(qtySum(cohortDone)):''),''],
-    ['Запущено в деньгах',fmtK(moneyStarted),' ₽','var(--cyan)','уникальные сделки запущенных',trend(moneyStarted,moneyStartedPrev)],
-    ['Средний срок',d1(med(cycCohort)),' дн','var(--violet)','медиана готовых ИЗ запущенных в периоде',''],
-    ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
-    ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
-    ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
-  ]:[
-    ['Готово за период',fmt(finished.length),'','var(--accent)',hasQty?('позиций · штук: '+fmt(qtySum(finished))):'дошли до «Успех» в периоде',trend(finished.length,finishedPrev)],
-    ['Запущено за период',fmt(started.length),'','var(--cyan)',hasQty?('изделий (карточек) · штук: '+fmt(qtySum(started))):'передано в производство (событие)',trend(started.length,startedPrev)],
-    ['Выпущено в деньгах',fmtK(moneyFinished),' ₽','var(--accent)','уникальные сделки готовых',trend(moneyFinished,moneyFinishedPrev)],
-    ['Средний срок',d1(med(cyc)),' дн','var(--violet)','медиана готовых за период: запуск → готово',''],
-    ['В производстве<span class="now-badge">сейчас</span>',fmt(wip.length),'','var(--amber)','открыто на участках в данный момент',''],
-    ['Зависло >14 дн<span class="now-badge">сейчас</span>',fmt(stuck.length),'','var(--red)','без движения по стадии >14 дней',''],
-    ['Доля с доработками',cut.length?pct(rewCut.length/cut.length):'—','','var(--amber)',`${fmt(rewCut.length)} из ${fmt(cut.length)} (${modeLbl})`,''],
+  // Сделки в цех: первый запуск любой карточки сделки в периоде (та же логика, что в воронке передач)
+  const _ds={};IT.filter(dirOk).forEach(i=>{const st=startDate(i);if(!st)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!_ds[k]||st<_ds[k])_ds[k]=st});
+  const _dsKey=i=>i.dealId?String(i.dealId):'c'+i.id;
+  const _cohNow=new Set(Object.keys(_ds).filter(k=>inRange(_ds[k]))),_cohPrev=new Set(Object.keys(_ds).filter(k=>inWinP(_ds[k])));
+  const dealsStarted=_cohNow.size,dealsStartedPrev=_cohPrev.size;
+  // изделия/штуки/деньги - по той же когорте, что и воронка передач (сделки с первым запуском в периоде)
+  const cohCards=IT.filter(dirOk).filter(i=>inRange(startDate(i))&&_cohNow.has(_dsKey(i)));
+  const cohCardsPrev=IT.filter(dirOk).filter(i=>inWinP(startDate(i))&&_cohPrev.has(_dsKey(i)));
+  const _days=Math.max(1,Math.round((D(S.to)-D(S.from))/864e5)+1);
+  // срок на штуку: медиана (цикл заказа / штук в заказе) по готовым; темп = выпущено штук в день
+  const _perPc=(isStart?cohortDone:finished).map(i=>{const c=cycleOf(i),q=qtyOf(i);return c!=null&&c>=0&&q>0?c/q:null}).filter(x=>x!=null);
+  const pcsOut=qtySum(finished),pcsOutPrev=qtySum(IT.filter(dirOk).filter(i=>isDone(i)&&inWinP(successDate(i))));
+  const _rate=pcsOut/_days;
+  const _cycMain=isStart?med(cycCohort):med(cyc);
+  const kdef=[
+    ['Сделок в производство',fmt(dealsStarted),'','var(--cyan)','первый запуск карточки сделки в периоде',trend(dealsStarted,dealsStartedPrev)],
+    ['Изделий (карточек)',fmt(cohCards.length),'','#60A5FA','запущено карточек-нарядов за период',trend(cohCards.length,cohCardsPrev.length)],
+    ['Штук',fmt(qtySum(cohCards)),'','var(--violet)','изделия × количество из товарных строк',trend(qtySum(cohCards),qtySum(cohCardsPrev))],
+    ['Направлено денег',fmtK(dealMoney(cohCards)),' ₽','var(--cyan)','бюджеты уникальных сделок запущенных',trend(dealMoney(cohCards),dealMoney(cohCardsPrev))],
+    ['Выпущено штук',fmt(pcsOut),'','var(--accent)',`готово за период · темп: ${d1(_rate)} шт/день`,trend(pcsOut,pcsOutPrev)],
+    ['Срок выпуска',d1(_cycMain),' дн','var(--violet)',isStart?'медиана «запуск → готово» по готовым ИЗ запущенных':'медиана «запуск → готово» готовых за период',''],
+    ['Дней на штуку',_perPc.length?d1(med(_perPc)):'—',' дн','#8B7BF0','медиана: цикл заказа ÷ штук в заказе',''],
+    ['В работе<span class="now-badge">сейчас</span>',fmt(qtySum(wip)),'','var(--amber)',`штук на участках (${fmt(wip.length)} карточек) · зависло >14 дн: ${fmt(stuck.length)}`,''],
   ];
   const kpis=`<div class="kpis">`+kdef.map(k=>`<div class="kpi"><div class="bar" style="background:${k[3]}"></div><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')+`</div>`;
 
@@ -343,7 +350,9 @@ function render(){
     // вся воронка В СДЕЛКАХ: запуск сделки = первый запуск любой её карточки (карточка без сделки = отдельная единица)
     const dealStart={};IT.forEach(i=>{const s=startDate(i);if(!s)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealPass(k))return;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
     const startedDealsN=Object.values(dealStart).filter(s=>inRange(s)).length;
-    const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(startedAll);
+    // деньги передач - по когорте воронки (сделки с первым запуском в периоде), чтобы биться с KPI-стрипом
+    const _sc=new Set(Object.keys(dealStart).filter(k=>inRange(dealStart[k])));
+    const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(IT.filter(i=>inRange(startDate(i))&&_sc.has(i.dealId?String(i.dealId):'c'+i.id)&&dealPass(i.dealId?String(i.dealId):'c'+i.id)));
     const gap=prepPer.length-startedDealsN;
     const linked=new Set(IT.map(i=>i.dealId).filter(Boolean));
     const incoming=PP.filter(d=>d.open&&/EXECUTING/.test(d.stage));
@@ -785,7 +794,7 @@ function render(){
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
     `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">ИЗДЕЛИЕ (карточка)</b> - создаётся при передаче в цех, по одному на тип изделия в заказе, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ШТУКИ</b> - количество из товарных строк карточки (изделие × кол-во), именно штуки грузят участки</div>`+
-    `<div class="grid2">${syncBlock}${syncMgrCard}</div>`+
+    syncBlock+
     `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: сколько ${S.trubaUnit==='pcs'?'ШТУК (изделия × количество внутри карточек, из товарных строк)':'ИЗДЕЛИЙ (карточек-нарядов)'} среза прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div><div class="seg" id="trubaSeg"><button data-v="cards" class="${S.trubaUnit!=='pcs'?'on':''}">Изделия</button><button data-v="pcs" class="${S.trubaUnit==='pcs'?'on':''}">По штучно</button></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
@@ -798,9 +807,8 @@ function render(){
     `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Скорость по участкам</div><div class="card-s">в работе сейчас + медиана/макс срока лежания · красное = застряли</div></div></div>${stTable}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Доработки и перекрас (качество)</div><div class="card-s">возвраты на участок повторно в выбранном периоде - индикатор брака</div></div></div>${reworkBlock}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Что производим</div><div class="card-s">структура заказов (${modeLbl}) · «не указано» = дыра в заполнении карточек</div></div></div>${mixBlock}</div>`+
-    `<div class="sec"><div class="n">3</div><h2>Сотрудники</h2><div class="ln"></div><div class="hint">кто заводит объём и кто его производит</div></div>`+
-    `<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-t">Менеджеры: запуски и просчёты</div><div class="card-s">запуски производства в штуках и деньгах (${modeLbl}) + просчёты как потенциал цеха</div></div></div>${mgrBlock}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">объём, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
+    `<div class="sec"><div class="n">3</div><h2>Конструкторы</h2><div class="ln"></div><div class="hint">кто проектирует объём цеха: скорость, качество, чеки</div></div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы</div><div class="card-s">позиции, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы: чек vs срок</div><div class="card-s">кто берёт дешёвые заказы и долго возится, а кто делает дорогие быстро · готовые заказы периода</div></div><div class="seg" id="consSortSeg">${[['money','₽'],['days','Дни'],['cnt','Шт']].map(x=>`<button data-v="${x[0]}" class="${(S.consSort||'money')===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${consScatter}</div>`+
     `<div class="sec"><div class="n">4</div><h2>Производственный календарь</h2><div class="ln"></div><div class="hint">факт против пропускной способности: где и когда цех был загружен, перегружен или простаивал</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в штуках</div><div class="card-s">завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупно) · ниже участки как второстепенные · ячейка = ШТУК, изделия (карточки) в подсказке · цвет = теплота к максимуму своей строки (пик = красный) · Σ / норма / % справа</div></div></div>${calBlock}</div>`;

@@ -5,11 +5,13 @@
 <style>
 :root{--bg-base:#0B0F15;--bg-card:#131820;--bg-elevated:#1A2029;--border:#1F2731;--border-soft:#161C24;--border-hot:#2B3441;
 --ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;--accent:#22D3EE;--accent-deep:#0E7490;--accent-soft:rgba(34,211,238,.10);
---up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;--radius:10px;--radius-lg:14px;--ease-out:cubic-bezier(.16,1,.3,1)}
+--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;--bg-soft:#232B36;--radius:10px;--radius-lg:14px;--ease-out:cubic-bezier(.16,1,.3,1)}
 *{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%}
 body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),transparent 70%),var(--bg-base);color:var(--ink);font-family:'Inter',Helvetica,Arial,sans-serif;font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow-x:clip}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+.line-anim{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.1s var(--ease-out) forwards}
 .topbar{position:sticky;top:0;z-index:60;padding:11px 24px;border-bottom:1px solid var(--border-soft);background:rgba(11,15,21,.92);backdrop-filter:blur(20px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
 .brand b{font-family:'Manrope';font-weight:800;font-size:14px}.brand span{display:block;font-size:10.5px;color:var(--ink-3)}
@@ -133,12 +135,18 @@ function chart(series,keys,opt){opt=opt||{};const w=opt.w||640,h=opt.h||200,pl=4
   const n=keys.length,X=i=>pl+(w-pl-pr)*(n>1?i/(n-1):.5),Y=v=>h-pb-(h-pt-pb)*v/mx;
   let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink-4)">${fmt(mx*(1-g/3))}</text>`}
   let xl='';const step=Math.ceil(n/9);keys.forEach((k,i)=>{if(i%step===0||i===n-1)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink-4)">${dm(k)}</text>`});
+  const smooth=pts=>{if(pts.length<3)return pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+      const c1x=p1[0]+(p2[0]-p0[0])/6,c1y=p1[1]+(p2[1]-p0[1])/6,c2x=p2[0]-(p3[0]-p1[0])/6,c2y=p2[1]-(p3[1]-p1[1])/6;
+      d+=` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`}
+    return d};
   let body='';const oneB=n===1;const bars=series.filter(s=>s.bar||oneB);
   series.forEach(s=>{
-    if(s.bar||oneB){const nb=bars.length||1,bi=bars.indexOf(s),slot=oneB?Math.min(120,40*nb):Math.max(3,(w-pl-pr)/(n*1.4)),bw=Math.max(2.5,slot/nb);
+    if(s.bar||oneB){const nb=bars.length||1,bi=bars.indexOf(s),slot=oneB?Math.min(120,40*nb):Math.max(2.5,(w-pl-pr)/(n*2.1)),bw=Math.max(2.5,slot/nb);
       body+=s.vals.map((v,i)=>!v?'':`<rect x="${(X(i)-slot/2+bi*bw).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.c}" opacity="${s.op!=null?s.op:.8}" pointer-events="none"/>`+(oneB?`<text x="${(X(i)-slot/2+bi*bw+bw/2).toFixed(1)}" y="${(Y(v)-5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="${s.c}">${fmt(v)}</text>`:'')).join('')}
     else{const pts=s.vals.map((v,i)=>v==null?null:[X(i),Y(v)]).filter(Boolean);
-      if(pts.length>1){let d='M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
+      if(pts.length>1){const d=smooth(pts);
         if(s.area)body+=`<path d="${d} L${pts[pts.length-1][0].toFixed(1)} ${h-pb} L${pts[0][0].toFixed(1)} ${h-pb} Z" fill="${s.c}" opacity=".08" pointer-events="none"/>`;
         body+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`}
       body+=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.4" fill="${s.c}" pointer-events="none"/>`).join('')}});
@@ -155,14 +163,26 @@ function donut(rows,center,label){const tot=rows.reduce((s,r)=>s+r[1],0)||1;let 
     segs+=`<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${an>180?1:0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${r[2]}" stroke-width="15" data-tip="${attr(`<div class='tl'>${esc(r[0])}</div><div class='tr'><span>Кол-во</span><span>${fmt(r[1])}</span></div><div class='tr'><span>Доля</span><span>${pct(r[1]/tot)}</span></div>`)}"/>`;a0=a1});
   return `<div style="display:flex;gap:16px;align-items:center"><svg viewBox="0 0 128 128" style="width:128px;flex-shrink:0">${segs}<text x="64" y="60" text-anchor="middle" font-size="20" font-weight="800" fill="var(--ink)" font-family="Manrope">${center}</text><text x="64" y="76" text-anchor="middle" font-size="8" fill="var(--ink-3)" style="text-transform:uppercase;letter-spacing:.05em">${label}</text></svg>
   <div style="flex:1;min-width:0">${rows.map(r=>{const p=r[1]/tot;return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><i style="width:9px;height:9px;border-radius:2px;background:${r[2]};flex-shrink:0"></i><span style="flex:1;font-size:11.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r[0])}</span><b style="font-size:11.5px">${fmt(r[1])}</b><span style="width:40px;text-align:right;font-size:10.5px;color:var(--ink-3)">${pct(p)}</span></div>`}).join('')}</div></div>`}
-function gauge(title,fact,plan,unit,noteTxt){const p=plan>0?fact/plan:null;const col=p==null?'#5a6672':p>=1?'var(--up)':p>=.7?'var(--warn)':'var(--dn)';
-  const R=46,C=60,a=p==null?0:Math.min(p,1)*180,rad=x=>(x-180)*Math.PI/180;
-  const x0=C+R*Math.cos(rad(0)),y0=C+R*Math.sin(rad(0)),x1=C+R*Math.cos(rad(a)),y1=C+R*Math.sin(rad(a));
-  const arc=a>0?`<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${a>180?1:0} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round"/>`:'';
-  return `<div class="gauge"><h4>${title}</h4><svg viewBox="0 0 120 68" style="width:150px;max-width:100%">
-    <path d="M14 60 A46 46 0 0 1 106 60" fill="none" stroke="var(--border)" stroke-width="11" stroke-linecap="round"/>${arc}
-    <text x="60" y="52" text-anchor="middle" font-size="19" font-weight="800" fill="var(--ink)" font-family="Manrope">${p==null?'—':pct(p)}</text></svg>
-    <div class="gnote"><b>${fmt(fact)}</b> из <b>${fmt(plan)}</b> ${unit}${noteTxt?' · '+noteTxt:''}</div></div>`}
+let _g=0;
+function gauge(title,fact,plan,unit,noteTxt){const att=plan>0?fact/plan:0;const cap=1.5;const f=Math.max(0,Math.min(1,att/cap));
+  const R=64,cx=90,cy=90,st=-220,en=40,sw=en-st;
+  const xy=(a,r)=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)];
+  const arc=(a0,a1,r,w,c,cls)=>{const[x0,y0]=xy(a0,r),[x1,y1]=xy(a1,r);const laf=(a1-a0)>180?1:0;return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${laf} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${cls||''}/>`};
+  const va=st+sw*f,gid='gg'+(++_g);
+  const col=att>=1.05?'var(--up)':att>=.95?'var(--ink-3)':att>=.7?'var(--warn)':'var(--dn)';
+  const capTxt=plan>0?(att>=1?'▲ план +'+pct(att-1):'▼ '+pct(1-att)+' до плана'):'план не задан';
+  const tip=attr(`<div class='tl'>${title}</div><div class='tr'><span>Факт</span><span>${fmt(fact)}</span></div><div class='tr'><span>План</span><span>${fmt(plan)} ${unit}</span></div><div class='tr'><span>Выполнение</span><span>${plan>0?pct(att):'—'}</span></div>`);
+  let g=`<svg viewBox="0 0 180 116" style="width:100%;max-width:178px">`;
+  g+=`<defs><filter id="${gid}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="${col}" flood-opacity="0.6"/></filter></defs>`;
+  g+=arc(st,en,R,12,'var(--bg-soft)');
+  if(f>0)g+=arc(st,va,R,12,col,`class="line-anim" pathLength="1" filter="url(#${gid})"`);
+  const na=st+sw*(1/cap);const[nx0,ny0]=xy(na,R-10),[nx1,ny1]=xy(na,R+10),[lx,ly]=xy(na,R+18);
+  g+=`<line x1="${nx0.toFixed(1)}" y1="${ny0.toFixed(1)}" x2="${nx1.toFixed(1)}" y2="${ny1.toFixed(1)}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><circle cx="${nx1.toFixed(1)}" cy="${ny1.toFixed(1)}" r="2.2" fill="var(--ink)"/><text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-size="7.5" font-weight="700" fill="var(--ink-2)">план</text>`;
+  g+=`<g><line x1="${cx}" y1="${cy}" x2="${xy(va,R-5)[0].toFixed(1)}" y2="${xy(va,R-5)[1].toFixed(1)}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="${col}"/></g>`;
+  g+=`<text x="${cx}" y="${cy-15}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="24" fill="${col}" filter="url(#${gid})">${plan>0?pct(att):'—'}</text>`;
+  g+=`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${col}">${capTxt}</text>`;
+  g+=`<rect x="0" y="0" width="180" height="116" fill="transparent" data-tip="${tip}" style="cursor:help"/></svg>`;
+  return `<div class="gauge"><h4>${title}</h4>${g}<div class="gnote"><b>${fmt(fact)}</b> из <b>${fmt(plan)}</b> ${unit}${noteTxt?' · '+noteTxt:''}</div></div>`}
 const trend=(cur,prev,inv)=>{if(prev==null||!isFinite(prev)||prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;
   const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up,cls=Math.abs(dl)<.005?'flat':good?'up':'dn';
   return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`};
@@ -202,15 +222,23 @@ function render(){
   else{reco=`✅ Штатный темп: очередь под контролем (<b>${fmt(waiting.length)}</b> ждут, старшая ${fmt(oldest)} дн) - можно работать на качество квалификации`;recoC='#10B981'}
   const recoBar=`<div class="reco" style="border-color:${recoC}55;background:${recoC}12;color:var(--ink)">${reco}</div>`;
 
-  /* 1. Сегодня */
+  /* 1. Главное: статусы воронки сейчас + поток и «В сделке» за период с планами.
+     Планы масштабируются под выбранный период: Сегодня = дневной план, 30 дн = месячный. */
+  const stNow=st=>allOpen.filter(l=>l.status===st).length;
+  const nNew=stNow('Новые заявки'),nRz=stNow('Разобрать'),nWork=stNow('В работе');
+  const nRzFresh=waiting.filter(l=>l.status==='Разобрать').length;
+  const planInP=Math.ceil(NEED.rz/WDM*wd); // план входа/разбора на выбранный период
+  const perLbl=S.preset==='1'?'план на день':S.preset==='y'?'план на день':S.preset==='30'?'план на месяц (по раб.дням)':'план на '+wd+' раб.дн';
   const k1=[
-    ['Заявки сегодня',fmt(tod.inflow.length),'','#22D3EE','входящие лиды GG за сегодня',trend(tod.inflow.length,yest.inflow.length)],
-    ['Разобрано сегодня',fmt(tod.closed.length),'','#10B981',`план на день: ${fmt(PLAN.rz)}`,trend(tod.closed.length,yest.closed.length)],
-    ['Квал-лидов сегодня',fmt(tod.kval.length),'','#A78BFA',`план на день: ${fmt(PLAN.kv)} · передано в ОП`,trend(tod.kval.length,yest.kval.length)],
-    ['Ждут разбора<span class="now-badge">сейчас</span>',fmt(waiting.length),'','#F59E0B',`старшая заявка: ${fmt(oldest)} дн${tailN?` · архивный хвост: ${fmt(tailN)}`:''}`,''],
+    ['Новые заявки<span class="now-badge">сейчас</span>',fmt(nNew),'','#22D3EE','ждут первого касания',''],
+    ['Разобрать<span class="now-badge">сейчас</span>',fmt(nRz),'','#F59E0B',`свежих (до 30 дн): ${fmt(nRzFresh)} · архив: ${fmt(nRz-nRzFresh)}`,''],
+    ['В работе<span class="now-badge">сейчас</span>',fmt(nWork),'','#3DAEC2','взяты в разбор, ещё не закрыты',''],
+    ['Заявки за период',fmt(cur.inflow.length),'','#6366F1',`${perLbl}: ${fmt(planInP)}`,trend(cur.inflow.length,prev.inflow.length)],
+    ['В сделке',fmt(cur.kval.length),'','#A78BFA',`передано в ОП · ${perLbl}: ${fmt(planKvP)}`,trend(cur.kval.length,prev.kval.length)],
+    ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`план CR1: ${pct(PP.cr1)} · прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr)],
   ];
   const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')}</div>`;
-  const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · сегодня',tod.closed.length,PLAN.rz,'лидов','')}${gauge('Квал-лиды · сегодня',tod.kval.length,PLAN.kv,'передано','')}${gauge('Разбор · период',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('Квал-лиды · период',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
+  const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · факт vs план',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('В сделке · факт vs план',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
   /* цепочка декомпозиции: выручка -> продажи -> квал-лиды -> разборы (месяц и в день) */
   const fmtM=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
   const chainTile=(lbl,v,sub,c,arrow)=>`${arrow?`<div style="align-self:center;color:var(--ink-4);font-size:16px;flex-shrink:0">→</div>`:''}<div style="flex:1;min-width:170px;background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid ${c};border-radius:10px;padding:11px 13px"><div style="font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${lbl}</div><div style="font-family:Manrope;font-weight:800;font-size:19px;color:${c}">${v}</div><div style="font-size:10px;color:var(--ink-3);margin-top:3px">${sub}</div></div>`;
@@ -218,23 +246,20 @@ function render(){
   const planChain=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px" data-tip="${attr('Декомпозиция: выручка ÷ средний чек ('+fmtM(PP.check)+') = продажи; продажи ÷ CR2 ('+pct(PP.cr2)+') = квал-лиды; квал-лиды ÷ CR1 ('+pct(PP.cr1)+') = заявки разобрать. Рабочих дней в месяце: '+WDM)}">
     ${chainTile('План выручки · '+mLbl,fmtM(PP.rev),PP.has?'из таблицы планов РОПа':'дефолтный ориентир','#22D3EE',false)}
     ${chainTile('Продаж нужно',fmt(Math.ceil(NEED.sales)),'÷ средний чек '+fmtM(PP.check),'#10B981',true)}
-    ${chainTile('Квал-лидов нужно',fmt(Math.ceil(NEED.kval)),'÷ CR2 '+pct(PP.cr2)+' · '+fmt(PLAN.kv)+'/день','#A78BFA',true)}
+    ${chainTile('В сделке нужно',fmt(Math.ceil(NEED.kval)),'÷ CR2 '+pct(PP.cr2)+' · '+fmt(PLAN.kv)+'/день','#A78BFA',true)}
     ${chainTile('Заявок разобрать',fmt(Math.ceil(NEED.rz)),'÷ CR1 '+pct(PP.cr1)+' · '+fmt(PLAN.rz)+'/день','#F59E0B',true)}
   </div>`;
 
   /* 2. Период KPI */
   const k2=[
-    ['Заявки за период',fmt(cur.inflow.length),'','#22D3EE',`входящие GG · ${d1(perDayIn)}/день`,trend(cur.inflow.length,prev.inflow.length)],
-    ['Разобрано',fmt(cur.closed.length),'','#10B981','закрыто: квал + отсев',trend(cur.closed.length,prev.closed.length)],
-    ['Квал-лиды',fmt(cur.kval.length),'','#A78BFA','дошли до «Создание сделки»',trend(cur.kval.length,prev.kval.length)],
-    ['CR в квал',cur.cr!=null?pct(cur.cr):'—','','#22D3EE',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr)],
+    ['Разобрано',fmt(cur.closed.length),'','#10B981',`закрыто: в сделку + отсев · ${perLbl}: ${fmt(planRzP)}`,trend(cur.closed.length,prev.closed.length)],
     ['Отсев (брак)',cur.closed.length?pct(cur.junk.length/cur.closed.length):'—','','#F43F5E','СПАМ, дубли, некачественные, отказы',trend(cur.closed.length?cur.junk.length/cur.closed.length:null,prev.closed.length?prev.junk.length/prev.closed.length:null,true)],
     ['Скорость разбора',cur.speed!=null?d1(cur.speed):'—',' дн','#F59E0B','медиана «создан → закрыт»',trend(cur.speed,prev.speed,true)],
   ];
 
   /* 3. Картина по этапам */
   const stC={'Новые заявки':0,'Разобрать':0,'В работе':0};waiting.forEach(l=>{if(stC[l.status]!=null)stC[l.status]++;else stC[l.status]=(stC[l.status]||0)+1});
-  const outc=[['Квалифицирован → сделка',cur.kval.length,'#10B981'],['Отказ',cur.closed.filter(l=>l.status==='Отказ').length,'#F59E0B'],['Некачественный лид',cur.closed.filter(l=>l.status==='Некачественный лид').length,'#FB923C'],['Дубль',cur.closed.filter(l=>l.status==='Дубль').length,'#6A7484'],['СПАМ',cur.closed.filter(l=>l.status==='СПАМ').length,'#F43F5E']];
+  const outc=[['В сделке (создана сделка)',cur.kval.length,'#10B981'],['Отказ',cur.closed.filter(l=>l.status==='Отказ').length,'#F59E0B'],['Некачественный лид',cur.closed.filter(l=>l.status==='Некачественный лид').length,'#FB923C'],['Дубль',cur.closed.filter(l=>l.status==='Дубль').length,'#6A7484'],['СПАМ',cur.closed.filter(l=>l.status==='СПАМ').length,'#F43F5E']];
   const mxO=Math.max(1,...outc.map(o=>o[1]),cur.inflow.length,cur.closed.length);
   const fb=(l,v,c,base,extra)=>`<div class="fbar"><div class="fl">${l}</div><div class="ft"><div class="ff" style="width:${Math.max(v/mxO*100,v?4:0).toFixed(1)}%;background:${c}">${v||''}</div></div><div class="fv"><b>${fmt(v)}</b>${base?` · ${pct(v/base)}`:''}${extra||''}</div></div>`;
   const stages=fb('Заявки за период',cur.inflow.length,'#22D3EE',null)
@@ -252,7 +277,7 @@ function render(){
   const dyn=chart([
     {name:'Заявки, шт',c:'#22D3EE',vals:vIn,bar:true,op:.45},
     {name:'Разобрано, шт',c:'#10B981',vals:vCl},
-    {name:'Квал-лиды, шт',c:'#A78BFA',vals:vKv}
+    {name:'В сделке, шт',c:'#A78BFA',vals:vKv}
   ],keys,{tipExtra:i=>`<div class='tr'><span>CR дня</span><span>${vCl[i]?pct(vKv[i]/vCl[i]):'—'}</span></div><div class='tr'><span>План разбора</span><span>${[0,6].includes(D(keys[i]).getDay())?'выходной':fmt(PLAN.rz)}</span></div>`});
 
   /* 5. Пончики: источники и исходы */
@@ -280,16 +305,16 @@ function render(){
     ${bench('Разборов в день (темп)',perDayCl,prev.closed.length/Math.max(span,1),d1)}
     ${bench('CR в квал-лид',cur.cr,prev.cr,pct)}
     ${bench('Скорость разбора, дн (медиана)',cur.speed,prev.speed,d1,true)}
-    ${bench('Квал-лидов передано',cur.kval.length,prev.kval.length,fmt)}
+    ${bench('Передано в сделку',cur.kval.length,prev.kval.length,fmt)}
   </tbody></table>
   <div class="note" style="margin-top:12px;margin-bottom:0">Как читать: поток <b>${d1(perDayIn)} заявок/день</b> против темпа разбора <b>${d1(perDayCl)}/день</b>. Поток выше темпа - очередь растёт, день на скорость; темп успевает - день на качество: вытаскивать CR и не плодить «некачественных» без прозвона.</div>`;
 
   document.getElementById('root').innerHTML=
-    `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Сегодня</h2><div class="ln"></div><div class="hint">${dm(TODAY)} · сравнение с вчера · план/факт по разбору и передаче квал-лидов</div></div>`
-    +recoBar+kpiRow(k1,4)
-    +`<div class="card"><div class="card-h"><div><div class="card-title">План / факт · декомпозиция от плана выручки ОП ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж за текущий месяц по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; квал-лидов нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = квал-лиды ÷ CR1 (заявка -> сделка). План на день = месячная потребность ÷ рабочие дни месяца. Зелёная шкала = план сделан.')}</div><div class="card-sub">план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · передать <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> квал-лидов · на неделю: ${fmt(PLAN.rz*5)} / ${fmt(PLAN.kv*5)} · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'}</div></div></div>${planChain}${gaugesDay}</div>`
+    `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Главное</h2><div class="ln"></div><div class="hint">статусы воронки = снимок сейчас · планы и стрелки = выбранный период (${dm(a)} - ${dm(b)})</div></div>`
+    +recoBar+kpiRow(k1,6)
+    +`<div class="card"><div class="card-h"><div><div class="card-title">План / факт · декомпозиция от плана выручки ОП ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж за текущий месяц по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; в сделку нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = квал-лиды ÷ CR1 (заявка -> сделка). План на день = месячная потребность ÷ рабочие дни месяца. Зелёная шкала = план сделан.')}</div><div class="card-sub">план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · в сделку <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> · на неделю: ${fmt(PLAN.rz*5)} / ${fmt(PLAN.kv*5)} · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'}</div></div></div>${planChain}${gaugesDay}</div>`
     +`<div class="sec-div" id="sec2"><div class="sec-num">2</div><h2>Период</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
-    +kpiRow(k2,6)
+    +kpiRow(k2,3)
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Верхние две полосы - поток за период: сколько заявок пришло и сколько закрыто. Ветки ↳ - исходы разбора (% от разобранных). Оранжевые внизу - очередь ПРЯМО СЕЙЧАС по статусам: это не за период, а моментальный снимок.')}</div><div class="card-sub">поток за период → исходы разбора · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`
     +`<div class="card"><div class="card-h"><div><div class="card-title">Динамика по дням ${info('Голубые столбики - входящие заявки по дате создания. Зелёная линия - разобрано (закрыто) в этот день, фиолетовая - из них квал-лиды. Наведи на день - все цифры и CR дня.')}</div><div class="card-sub">заявки · разобрано · квал-лиды по дням</div></div></div>${dyn}</div></div>`
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Откуда заявки</div><div class="card-sub">источники входящих за период</div></div></div>${dSrc}</div>`
@@ -303,7 +328,7 @@ function render(){
 /* ===== обвязка ===== */
 function wire(){
   /* меню секций как у РОПа: клик - плавный скролл к разделу */
-  const SECS=['Сегодня','Период','Очередь','Ориентиры'];
+  const SECS=['Главное','Период','Очередь','Ориентиры'];
   const nav=document.getElementById('nav');
   nav.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
   nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;

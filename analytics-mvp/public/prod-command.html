@@ -346,36 +346,36 @@ function render(){
     const funnelViz=(()=>{
       const N1=prepPer.length,N2=startedAll.length,NL=Math.max(gap,0);
       if(!N1&&!N2)return '<div class="card-s">нет событий в периоде</div>';
-      const W=680,H=246,bandH=140,midY=32+bandH/2,nw=52,x1=52,x2=W-52-nw;
+      const W=680,H=212,bandH=140,midY=34+bandH/2,nw=56,x1=150,x2=W-52-nw;
       const maxC=Math.max(N1,N2,1),hOf=c=>Math.max(16,c/maxC*bandH);
       const h1=hOf(N1),h2=hOf(N2),t1=midY-h1/2,b1=midY+h1/2,t2=midY-h2/2;
-      const passH=h1*(N1?Math.min(N2/N1,1):0),mp=(x1+nw+x2)/2;
+      const passH=h1*(N1?Math.min(N2/N1,1):0),leakH=h1-passH,mp=(x1+nw+x2)/2;
       let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:780px;margin:0 auto;display:block">`;
-      s+=`<defs><linearGradient id="pfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".38"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".42"/></linearGradient><linearGradient id="pfL" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".3"/><stop offset="1" stop-color="#F59E0B" stop-opacity=".26"/></linearGradient></defs>`;
+      s+=`<defs><linearGradient id="pfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".38"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".42"/></linearGradient><clipPath id="pfN1c"><rect x="${x1}" y="${t1}" width="${nw}" height="${h1}" rx="7"/></clipPath></defs>`;
+      // поток: только переданная (фиолетовая) часть узла течёт в цех
       s+=`<path d="M${x1+nw} ${t1} L${x2} ${t2} L${x2} ${t2+h2} L${x1+nw} ${t1+passH} Z" fill="url(#pfM)"/>`;
       const pyc=((t1+passH/2)+(t2+h2/2))/2;
       const tdPass=attr(`<div class='tl'>Предоплата → цех · за период</div><div class='tr'><span>Передано</span><span>${fmt(N2)} из ${fmt(N1)}</span></div><div class='tr'><span>Конверсия</span><span>${N1?pct(N2/N1):'—'}</span></div>`);
       s+=`<rect x="${mp-34}" y="${pyc-12}" width="68" height="24" rx="12" fill="rgba(7,9,13,.92)" stroke="#2DD4BF" stroke-opacity=".65" data-tip="${tdPass}"/><text x="${mp}" y="${pyc+4.5}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#2DD4BF" pointer-events="none">${N1?pct(N2/N1):'—'}</text>`;
-      if(NL>0){
-        const lb={x:mp-108,y:H-52,w:216,h:38};
-        s+=`<path d="M${x1+nw} ${t1+passH} L${lb.x} ${lb.y+5} L${lb.x} ${lb.y+lb.h-5} L${x1+nw} ${b1} Z" fill="url(#pfL)"/>`;
-        const tdL=attr(`<div class='tl'>Не передано в цех</div><div class='tr'><span>Разрыв за период</span><span>+${fmt(NL)}</span></div><div class='tr'><span>Ждут сейчас (входящий пакет)</span><span>${fmt(incoming.length)} · ${fmtK(incMoney)} ₽</span></div><div class='tr'><span>Почему числа разные</span><span>разрыв - события периода, пакет - снимок открытых сейчас (включая старые предоплаты)</span></div>`);
-        s+=`<rect x="${lb.x}" y="${lb.y}" width="${lb.w}" height="${lb.h}" rx="9" fill="rgba(245,158,11,.1)" stroke="#F59E0B" stroke-opacity=".55" data-tip="${tdL}"/>`;
-        s+=`<text x="${mp}" y="${lb.y+16}" text-anchor="middle" font-size="12" font-weight="800" fill="#F59E0B" pointer-events="none">ещё не передано: ${fmt(NL)}</text>`;
-        s+=`<text x="${mp}" y="${lb.y+30}" text-anchor="middle" font-size="9.5" fill="#8b97a5" pointer-events="none">сейчас ждут: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено</text>`;
-      }else{
-        s+=`<text x="${mp}" y="${H-30}" text-anchor="middle" font-size="11" fill="var(--accent)">цех запускает всё оплаченное · входящий пакет сейчас: ${fmt(incoming.length)} (${fmtK(incMoney)} ₽)</text>`;
-      }
-      const tdN1=attr(`<div class='tl'>Предоплат получено · CRM</div><div class='tr'><span>Сделок за период</span><span>${fmt(N1)}</span></div><div class='tr'><span>Деньги</span><span>${fmtK(prepMoney)} ₽</span></div><div class='tr'><span>Событие</span><span>вход сделки в «Предоплата получена»</span></div>`);
+      // узел 63: верх фиолетовый = передано, низ оранжевый = не передано (один столбик, без хвоста)
+      const tdN1p=attr(`<div class='tl'>Передано в цех (из предоплат периода)</div><div class='tr'><span>Заказов</span><span>${fmt(Math.min(N2,N1))}</span></div><div class='tr'><span>Всего предоплат</span><span>${fmt(N1)} · ${fmtK(prepMoney)} ₽</span></div><div class='tr'><span>Событие</span><span>вход сделки в «Предоплата получена»</span></div>`);
+      const tdN1l=attr(`<div class='tl'>Не передано в цех</div><div class='tr'><span>Разрыв за период</span><span>+${fmt(NL)}</span></div><div class='tr'><span>Ждут сейчас (входящий пакет)</span><span>${fmt(incoming.length)} · ${fmtK(incMoney)} ₽</span></div><div class='tr'><span>Почему числа разные</span><span>разрыв - события периода, пакет - снимок открытых сейчас (включая старые предоплаты)</span></div>`);
+      s+=`<g clip-path="url(#pfN1c)"><rect x="${x1}" y="${t1}" width="${nw}" height="${Math.max(passH,0)}" fill="#A78BFA" data-tip="${tdN1p}" style="cursor:help"/>`+
+         (leakH>0.5?`<rect x="${x1}" y="${t1+passH}" width="${nw}" height="${leakH}" fill="#F59E0B" data-tip="${tdN1l}" style="cursor:help"/>`:'')+`</g>`;
       const tdN2=attr(`<div class='tl'>Передано в производство · цех</div><div class='tr'><span>Заказов за период</span><span>${fmt(N2)}</span></div><div class='tr'><span>Деньги</span><span>${fmtK(startMoney)} ₽</span></div><div class='tr'><span>Событие</span><span>запуск карточки в цех</span></div>`);
-      s+=`<rect x="${x1}" y="${t1}" width="${nw}" height="${h1}" rx="7" fill="#A78BFA" data-tip="${tdN1}" style="cursor:help"/>`;
       s+=`<rect x="${x2}" y="${t2}" width="${nw}" height="${h2}" rx="7" fill="#2DD4BF" data-tip="${tdN2}" style="cursor:help"/>`;
-      const num=(cx,ty,hh,v,col)=>hh>32?`<text x="${cx}" y="${ty+hh/2+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(v)}</text>`:`<text x="${cx}" y="${ty-7}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="${col}">${fmt(v)}</text>`;
-      s+=num(x1+nw/2,t1,h1,N1,'#A78BFA')+num(x2+nw/2,t2,h2,N2,'#2DD4BF');
-      s+=`<text x="${x1+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">Предоплат получено</text><text x="${x1+nw/2}" y="${b1+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(prepMoney)} ₽</text>`;
+      // цифры сегментов: в фиолетовом - передано, в оранжевом - не передано; итог 63 над узлом
+      if(passH>26)s+=`<text x="${x1+nw/2}" y="${t1+passH/2+5.5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(Math.min(N2,N1))}</text>`;
+      if(leakH>22)s+=`<text x="${x1+nw/2}" y="${t1+passH+leakH/2+5.5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(NL)}</text>`;
+      if(h2>32)s+=`<text x="${x2+nw/2}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(N2)}</text>`;else s+=`<text x="${x2+nw/2}" y="${t2-7}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#2DD4BF">${fmt(N2)}</text>`;
+      // подписи слева от сегментов
+      if(leakH>0.5)s+=`<text x="${x1-8}" y="${t1+passH+leakH/2+3.5}" text-anchor="end" font-size="10.5" font-weight="700" fill="#F59E0B">не передано: ${fmt(NL)}</text>`;
+      s+=`<text x="${x1-8}" y="${t1+Math.max(passH,1)/2+3.5}" text-anchor="end" font-size="10.5" font-weight="700" fill="#A78BFA">в цех: ${fmt(Math.min(N2,N1))}</text>`;
+      s+=`<text x="${x1+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">Предоплат получено · <tspan font-family="Manrope" font-weight="800" font-size="13" fill="#dfe7ee">${fmt(N1)}</tspan></text><text x="${x1+nw/2}" y="${b1+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(prepMoney)} ₽</text>`;
       s+=`<text x="${x2+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">В производстве</text><text x="${x2+nw/2}" y="${t2+h2+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
+      s+=`<text x="${mp}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено</text>`;
       s+=`</svg>`;return s})();
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех по периодам</div><div class="card-s">воронка периода: предоплат получено → передано в цех, «не передано» уходит вниз · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех по периодам</div><div class="card-s">воронка периода: предоплат получено → передано в цех · оранжевый сегмент столбика = ещё не передано · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====

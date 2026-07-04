@@ -346,7 +346,7 @@ function render(){
     const funnelViz=(()=>{
       const N1=prepPer.length,N2=startedAll.length,NL=Math.max(gap,0);
       if(!N1&&!N2)return '<div class="card-s">нет событий в периоде</div>';
-      const W=680,H=212,bandH=140,midY=34+bandH/2,nw=56,x1=150,x2=W-52-nw;
+      const W=680,H=212,bandH=140,midY=34+bandH/2,nw=56,x1=66,x2=W-52-nw;
       const maxC=Math.max(N1,N2,1),hOf=c=>Math.max(16,c/maxC*bandH);
       const h1=hOf(N1),h2=hOf(N2),t1=midY-h1/2,b1=midY+h1/2,t2=midY-h2/2;
       const passH=h1*(N1?Math.min(N2/N1,1):0),leakH=h1-passH,mp=(x1+nw+x2)/2;
@@ -375,10 +375,11 @@ function render(){
       if(passH>26)s+=`<text x="${x1+nw/2}" y="${t1+passH/2+5.5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(Math.min(N2,N1))}</text>`;
       if(leakH>22)s+=`<text x="${x1+nw/2}" y="${t1+passH+leakH/2+5.5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(NL)}</text>`;
       if(h2>32)s+=`<text x="${x2+nw/2}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(N2)}</text>`;else s+=`<text x="${x2+nw/2}" y="${t2-7}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#2DD4BF">${fmt(N2)}</text>`;
-      // подписи слева от сегментов
-      if(leakH>0.5)s+=`<text x="${x1-8}" y="${t1+passH+leakH/2+3.5}" text-anchor="end" font-size="10.5" font-weight="700" fill="#F59E0B">не передано: ${fmt(NL)}</text>`;
-      s+=`<text x="${x1-8}" y="${t1+Math.max(passH,1)/2+3.5}" text-anchor="end" font-size="10.5" font-weight="700" fill="#A78BFA">в цех: ${fmt(Math.min(N2,N1))}</text>`;
-      s+=`<text x="${x1+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">Предоплат получено · <tspan font-family="Manrope" font-weight="800" font-size="13" fill="#dfe7ee">${fmt(N1)}</tspan></text><text x="${x1+nw/2}" y="${b1+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(prepMoney)} ₽</text>`;
+      // тег «всего предоплат» на развилке потоков (детали сегментов - в подсказках плашками)
+      const fu=0.14,fx=x1+nw+(x2-(x1+nw))*fu,fy=(t1+passH)+((t2+h2)-(t1+passH))*fu;
+      const tdF=attr(`<div class='tl'>Всего предоплат за период</div><div class='tr'><span>Сделок</span><span>${fmt(N1)}</span></div><div class='tr'><span>Деньги</span><span>${fmtK(prepMoney)} ₽</span></div><div class='tr'><span>Из них в цех</span><span>${fmt(Math.min(N2,N1))}</span></div><div class='tr'><span>Не передано</span><span>${fmt(NL)}</span></div>`);
+      s+=`<g data-tip="${tdF}" style="cursor:help"><rect x="${fx-27}" y="${fy-12}" width="54" height="24" rx="12" fill="rgba(7,9,13,.94)" stroke="#A78BFA" stroke-opacity=".7"/><text x="${fx}" y="${fy+4.5}" text-anchor="middle" font-family="Manrope" font-size="12.5" font-weight="800" fill="#A78BFA" pointer-events="none">${fmt(N1)}</text></g>`;
+      s+=`<text x="${x1+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">Предоплаты в ОП</text><text x="${x1+nw/2}" y="${b1+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(prepMoney)} ₽</text>`;
       s+=`<text x="${x2+nw/2}" y="18" text-anchor="middle" font-size="11.5" font-weight="600" fill="#aeb9c6">В производстве</text><text x="${x2+nw/2}" y="${t2+h2+17}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
       s+=`<text x="${mp}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено</text>`;
       s+=`</svg>`;return s})();

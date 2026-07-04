@@ -103,7 +103,11 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .mx th{font-size:9.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;background:var(--bg-card);white-space:nowrap}
 .mx th.lh,.mx td.lc{text-align:left}.mx td.lc{font-weight:600;color:var(--ink)}
 .mx td.tot,.mx th.toth{background:var(--bg-elevated);font-weight:700;color:var(--ink);border-left:2px solid var(--border-hot)}
-.scroll{overflow-x:auto}.foot{text-align:center;color:var(--ink-4);font-size:11px;margin-top:28px}
+.scroll{overflow-x:auto;scrollbar-width:thin;scrollbar-color:#2e3947 var(--bg-base)}
+.scroll::-webkit-scrollbar{width:9px;height:9px}
+.scroll::-webkit-scrollbar-track{background:var(--bg-base);border-radius:5px}
+.scroll::-webkit-scrollbar-thumb{background:#2e3947;border-radius:5px;border:2px solid var(--bg-base)}
+.scroll::-webkit-scrollbar-thumb:hover{background:#3d4a5c}.foot{text-align:center;color:var(--ink-4);font-size:11px;margin-top:28px}
 .tag{font-size:9.5px;padding:2px 7px;border-radius:5px;background:rgba(245,158,11,.14);color:var(--warn);font-weight:600}
 .tag.bad{background:rgba(244,63,94,.14);color:var(--dn)}
 .note{font-size:11px;color:var(--ink-3);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:14px}
@@ -581,11 +585,14 @@ function disciplineBlock(){
     ${mini('причина отказа',rzF,rzT,rzT?`проставлена у ${fmt(rzF)} из ${fmt(rzT)} проигранных`:'проигранных в периоде нет')}
     ${mini('карточка СП',spF,spT,spT?`создана у ${fmt(spF)} из ${fmt(spT)} переданных`:'передач в периоде нет')}
   </div>`;
+  const dsk=(S.dsSort&&S.dsSort.k)||'dp',dsa=(S.dsSort&&S.dsSort.a!=null)?S.dsSort.a:true;
+  const gv=m=>dsk==='n'?m.n:dsk==='dc'?m.dc:dsk==='dp'?(m.dp==null?2:m.dp):dsk==='lc'?m.lc:dsk==='lp'?(m.lp==null?2:m.lp):dsk==='noRz'?m.noRz:m.noSp;
   const rows=Object.values(perM).map(m=>{m.dp=m.dt?m.df/m.dt:null;m.lp=m.lt?m.lf/m.lt:null;return m;})
-    .filter(m=>m.dc||m.lc).sort((a,b)=>((a.dp==null?1:a.dp)-(b.dp==null?1:b.dp)));
+    .filter(m=>m.dc||m.lc).sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*(dsa?1:-1);});
   const pcCell=p=>p==null?'<td style="text-align:center;color:var(--ink-4)">—</td>':`<td style="text-align:center;font-weight:800;color:${zc(p)};background:linear-gradient(90deg,${zc(p)}22 ${(p*100).toFixed(0)}%,transparent ${(p*100).toFixed(0)}%)">${_p0(p)}</td>`;
-  const mgrTbl=`<div class="scroll" style="max-height:340px"><table class="tbl"><thead><tr><th>Менеджер</th><th style="text-align:center">Сделок</th><th style="text-align:center">Полнота сделок</th><th style="text-align:center">Лидов</th><th style="text-align:center">Полнота лидов</th><th style="text-align:center">Отказы без причины</th><th style="text-align:center">Без карточки СП</th></tr></thead><tbody>`+
-    rows.map(m=>`<tr><td class="name">${m.n}</td><td style="text-align:center">${m.dc||'·'}</td>${pcCell(m.dp)}<td style="text-align:center">${m.lc||'·'}</td>${pcCell(m.lp)}<td style="text-align:center;color:${m.noRz?'#CC5867':'var(--ink-4)'};font-weight:${m.noRz?800:400}">${m.noRz||'·'}</td><td style="text-align:center;color:${m.noSp?'#CC5867':'var(--ink-4)'};font-weight:${m.noSp?800:400}">${m.noSp||'·'}</td></tr>`).join('')+`</tbody></table></div>`;
+  const dsh=(k,l,al)=>`<th data-ds="${k}" style="text-align:${al||'center'};cursor:pointer;white-space:normal;line-height:1.25;padding:6px 5px;font-size:9px${dsk===k?';color:#3DAEC2':''}">${l}${dsk===k?(dsa?' ↑':' ↓'):''}</th>`;
+  const mgrTbl=`<div class="scroll" style="max-height:340px;overflow-x:hidden"><table class="tbl" style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:10%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup><thead><tr>${dsh('n','Менеджер','left')}${dsh('dc','Сделок')}${dsh('dp','Полнота сделок')}${dsh('lc','Лидов')}${dsh('lp','Полнота лидов')}${dsh('noRz','Отказы без причины')}${dsh('noSp','Без карточки СП')}</tr></thead><tbody>`+
+    rows.map(m=>`<tr style="font-size:11px"><td class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.n}</td><td style="text-align:center">${m.dc||'·'}</td>${pcCell(m.dp)}<td style="text-align:center">${m.lc||'·'}</td>${pcCell(m.lp)}<td style="text-align:center;color:${m.noRz?'#CC5867':'var(--ink-4)'};font-weight:${m.noRz?800:400}">${m.noRz||'·'}</td><td style="text-align:center;color:${m.noSp?'#CC5867':'var(--ink-4)'};font-weight:${m.noSp?800:400}">${m.noSp||'·'}</td></tr>`).join('')+`</tbody></table></div>`;
   // проблемные сделки со ссылками: что именно не заполнено
   const portal=DATA.b24Portal||'',idCell=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const probs=Ds.map(d=>{const misses=dealChecks(d).filter(x=>!x[1]).map(x=>x[0]);return misses.length?{d,misses}:null}).filter(Boolean)
@@ -1502,6 +1509,7 @@ function buildShell(){
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='unToggle'){S.unOpen=!S.unOpen;render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='ncToggle'){S.ncOpen=!S.ncOpen;render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='dscToggle'){S.dscOpen=!S.dscOpen;render();}});
+  document.addEventListener('click',e=>{const ds=e.target.closest('[data-ds]');if(ds){const k=ds.dataset.ds;if(!S.dsSort)S.dsSort={};if(S.dsSort.k===k)S.dsSort.a=!S.dsSort.a;else{S.dsSort.k=k;S.dsSort.a=(k==='dp'||k==='lp'||k==='n');}render();}});
   document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-un]');if(su){const k=su.dataset.un;if(S.unSort===k)S.unAsc=!S.unAsc;else{S.unSort=k;S.unAsc=(k==='created'||k==='mgr'||k==='dir'||k==='id');}render();}});
   const _ac=document.getElementById('applyCustom');

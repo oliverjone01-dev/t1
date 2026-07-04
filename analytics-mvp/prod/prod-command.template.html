@@ -273,7 +273,7 @@ function chartSVG(series,keys,opt){
 function donut(data,total,pal,centerLabel){
   const R=62,r=38,cx=80,cy=80;let a=-Math.PI/2,s='';
   const tot=data.reduce((x,[,c])=>x+c,0)||1;
-  data.forEach(([nm,c],i)=>{const frac=c/tot,a2=a+frac*2*Math.PI;
+  data.forEach(([nm,c],i)=>{const frac=c/tot,a2=a+Math.min(frac,0.99994)*2*Math.PI; // 100% не вырождается в точку
     const laf=frac>.5?1:0,col=pal[i%pal.length];
     const x0=cx+R*Math.cos(a),y0=cy+R*Math.sin(a),x1=cx+R*Math.cos(a2),y1=cy+R*Math.sin(a2);
     const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2),x3=cx+r*Math.cos(a),y3=cy+r*Math.sin(a);

@@ -113,14 +113,6 @@ jobs:
           STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/rop/analytics-mvp/public/rop-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/rop/v.txt" > "$GITHUB_WORKSPACE/_site/rop2/v.txt"
           echo "РОП опубликован в /rop/ и /rop2/, сборка $STAMP ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
-          # /office/ - личный дашборд офис-менеджера (квалификация лидов GG), живёт в той же ветке
-          if [ -f /tmp/rop/analytics-mvp/public/office-command.html ]; then
-            mkdir -p "$GITHUB_WORKSPACE/_site/office"
-            cp /tmp/rop/analytics-mvp/public/office-command.html "$GITHUB_WORKSPACE/_site/office/index.html"
-            OSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/rop/analytics-mvp/public/office-command.html | head -1 | cut -d'"' -f4)
-            printf '%s' "$OSTAMP" > "$GITHUB_WORKSPACE/_site/office/v.txt"
-            echo "Офис-менеджер опубликован в /office/, сборка $OSTAMP"
-          fi
 
       # === ПРОИЗВОДСТВО (ИЗОЛИРОВАННО, из ветки prod-dashboard-v1, в /prod/) ===
       # Аналог /rop/: дашборд самодостаточный (данные Bitrix СП 1086 запечены build-prod),
@@ -140,6 +132,21 @@ jobs:
           STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/prod/analytics-mvp/public/prod-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/prod/v.txt" > "$GITHUB_WORKSPACE/_site/prod2/v.txt"
           echo "Производство опубликовано в /prod/ и /prod2/, сборка $STAMP ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
+
+      # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
+      # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,
+      # копируем без npm/smoke, падение не валит остальной сайт.
+      - name: Build OFFICE dashboard (isolated, /office/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin office-dashboard-v1
+          git worktree add /tmp/office FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/office"
+          cp /tmp/office/analytics-mvp/public/office-command.html "$GITHUB_WORKSPACE/_site/office/index.html"
+          OSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/office/analytics-mvp/public/office-command.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$OSTAMP" > "$GITHUB_WORKSPACE/_site/office/v.txt"
+          echo "Офис-менеджер опубликован в /office/, сборка $OSTAMP"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

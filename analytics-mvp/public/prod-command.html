@@ -386,8 +386,8 @@ function render(){
       if(leakH>0.5){
         s+=`<path d="M${nodeX(0)+nw} ${t1+passH} L${nodeX(1)} ${tt[0]+hh[0]} L${nodeX(1)} ${tt[0]+hh[0]+1.5} L${nodeX(0)+nw} ${b1} Z" fill="url(#pfZ)"/>`;
         const zx=(nodeX(0)+nw+nodeX(1))/2,zy=((t1+passH+b1)/2+(tt[0]+hh[0]))/2+7;
-        const tdZ=attr(`<div class='tl'>Не передано → цех</div><div class='tr'><span>Дошло до производства</span><span>0 из ${fmt(NL)}</span></div>`);
-        s+=`<rect x="${zx-21}" y="${zy-10}" width="42" height="20" rx="10" fill="rgba(7,9,13,.85)" stroke="#F59E0B" stroke-opacity=".45" data-tip="${tdZ}"/><text x="${zx}" y="${zy+3.5}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#F59E0B" opacity=".85" pointer-events="none">0%</text>`;
+        const tdZ=attr(`<div class='tl'>Не передано в цех</div><div class='tr'><span>Не передано</span><span>${fmt(NL)} из ${fmt(N1)}</span></div><div class='tr'><span>Доля от предоплат</span><span>${N1?pct(NL/N1):'—'}</span></div><div class='tr'><span>Дошло до производства</span><span>0</span></div>`);
+        s+=`<rect x="${zx-26}" y="${zy-10}" width="52" height="20" rx="10" fill="rgba(7,9,13,.85)" stroke="#F59E0B" stroke-opacity=".45" data-tip="${tdZ}"/><text x="${zx}" y="${zy+3.5}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#F59E0B" opacity=".85" pointer-events="none">${N1?pct(NL/N1):'—'}</text>`;
       }
       // потоки сделки -> позиции -> изделия
       s+=`<path d="M${nodeX(1)+nw} ${tt[0]} L${nodeX(2)} ${tt[1]} L${nodeX(2)} ${tt[1]+hh[1]} L${nodeX(1)+nw} ${tt[0]+hh[0]} Z" fill="url(#pfB)"/>`;

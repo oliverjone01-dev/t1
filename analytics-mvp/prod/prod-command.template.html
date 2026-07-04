@@ -181,7 +181,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -328,15 +328,18 @@ function render(){
   // Общие цифры с дашбордом РОПа - одна точка истины для разговора продаж и цеха.
   const syncBlock=(()=>{
     const PP0=DATA.prepay&&DATA.prepay.deals;
-    // Сквозность с РОПом: из узла сверки исключаем Glass Memory (те же исключения, что в дашборде РОПа)
+    // Тумблер направлений: Все / GG (без Glass Memory - как у РОПа) / GM (только Glass Memory)
     const GM_EX=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);
-    const PP=PP0&&PP0.filter(d=>!GM_EX.has(d.mgr||'')&&d.dir!=='glass-memory');
+    const isGM=d=>GM_EX.has(d.mgr||'')||d.dir==='glass-memory';
+    const gmDeals=new Set((PP0||[]).filter(isGM).map(d=>String(d.id)));
+    const dealPass=k=>S.syncDir==='all'?true:(S.syncDir==='gm'?gmDeals.has(k):!gmDeals.has(k)); // 'c...'-псевдосделки без CRM-сделки считаем GG
+    const PP=PP0&&PP0.filter(d=>S.syncDir==='all'?true:(S.syncDir==='gm'?isGM(d):!isGM(d)));
     if(!PP)return `<div class="card"><div class="card-h"><div><div class="card-t">Узел сверки: Предоплата → Производство</div><div class="card-s">появится после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором)</div></div></div></div>`;
     // сверка глобальная (сделки не несут направление) - считаем по ВСЕМ заказам, без фильтра направления
-    const startedAll=IT.filter(i=>inRange(startDate(i)));
+    const startedAll=IT.filter(i=>inRange(startDate(i))&&dealPass(i.dealId?String(i.dealId):'c'+i.id));
     const prepPer=PP.filter(d=>inRange(d.date));
     // вся воронка В СДЕЛКАХ: запуск сделки = первый запуск любой её карточки (карточка без сделки = отдельная единица)
-    const dealStart={};IT.forEach(i=>{const s=startDate(i);if(!s)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
+    const dealStart={};IT.forEach(i=>{const s=startDate(i);if(!s)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealPass(k))return;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
     const startedDealsN=Object.values(dealStart).filter(s=>inRange(s)).length;
     const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(startedAll);
     const gap=prepPer.length-startedDealsN;
@@ -418,7 +421,7 @@ function render(){
       s+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="#8b97a5">${fmtK(startMoney)} ₽</text>`;
       s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · ${_pcsInfo}</text>`;
       s+=`</svg>`;return s})();
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · без Glass Memory (как у РОПа) · ниже динамика по датам событий</div></div></div>${funnelViz}${chart}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ${S.syncDir==='gg'?'GG без Glass Memory (= РОП в режиме «по дате события»)':S.syncDir==='gm'?'только Glass Memory (их цех - отдельный процесс, карточек тут нет)':'все направления'} · ниже динамика по датам событий</div></div><div class="seg" id="syncDirSeg"><button data-v="all" class="${S.syncDir==='all'?'on':''}">Все</button><button data-v="gg" class="${S.syncDir==='gg'?'on':''}">GG</button><button data-v="gm" class="${S.syncDir==='gm'?'on':''}">GM</button></div></div>${funnelViz}${chart}</div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====
@@ -833,6 +836,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
   document.addEventListener('click',e=>{const b=e.target.closest('#consSortSeg button');if(b){S.consSort=b.dataset.v;render();return}
     const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
     const tu=e.target.closest('#trubaSeg button');if(tu){S.trubaUnit=tu.dataset.v;render();return}
+    const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');

@@ -461,20 +461,28 @@ function render(){
       const agg={dep,tD:sum(ms,m=>m.tD),tM:sum(ms,m=>m.tM),tPos:sum(ms,m=>m.tPos),tPcs:sum(ms,m=>m.tPcs),inN:sum(ms,m=>m.inN),inM:sum(ms,m=>m.inM),qN:sum(ms,m=>m.qN),qM:sum(ms,m=>m.qM),ms:ms.sort((a,b)=>(b.qM+b.inM)-(a.qM+a.inM))};
       return agg}).filter(a=>a.tD||a.inN||a.qN);
     if(!deps.length)return '';
-    const cell=(v,m,col)=>`<td style="text-align:center">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink4)"> · ${fmtK(m)} ₽</span>`:'<span style="color:var(--ink4)">·</span>'}</td>`;
+    // прозрачные гистограммы в ячейках: объёмы видно с одного взгляда; отделы и менеджеры масштабируются каждый в своей группе
+    const allM=Object.values(M);
+    const mxOf=(arr,f)=>Math.max(1e-9,...arr.map(f));
+    const mxDep={tD:mxOf(deps,r=>r.tD),tM:mxOf(deps,r=>r.tM),tPos:mxOf(deps,r=>r.tPos),tPcs:mxOf(deps,r=>r.tPcs),inM:mxOf(deps,r=>r.inM),qM:mxOf(deps,r=>r.qM)};
+    const mxMgr={tD:mxOf(allM,r=>r.tD),tM:mxOf(allM,r=>r.tM),tPos:mxOf(allM,r=>r.tPos),tPcs:mxOf(allM,r=>r.tPcs),inM:mxOf(allM,r=>r.inM),qM:mxOf(allM,r=>r.qM)};
+    const hg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
+    const T='rgba(45,212,191,.14)',B='rgba(96,165,250,.14)',V='rgba(139,123,240,.14)',AMB='rgba(245,158,11,.12)',PU='rgba(167,139,250,.13)';
+    const cell=(v,m,col,mx,bg)=>`<td style="text-align:center;${hg(m,mx,bg)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink4)"> · ${fmtK(m)} ₽</span>`:'<span style="color:var(--ink4)">·</span>'}</td>`;
     const row=(r,isDep)=>{const nm=isDep?`<b>${r.dep==='GG'?'GENGLASS (GG)':'GLASS MEMORY (GM)'}</b>`:`<span style="padding-left:22px">${esc(r.mgr)}</span>`;
       const idle=!isDep&&!r.tD&&(r.qN||r.inN);
+      const mx=isDep?mxDep:mxMgr;
       return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:''}>
         <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):''}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
-        <td style="text-align:center">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
-        <td style="text-align:center">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
-        <td style="text-align:center">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>
-        <td style="text-align:center">${r.tPcs||'<span style="color:var(--ink4)">·</span>'}</td>
-        ${cell(r.inN,r.inM,'var(--amber)')}
-        ${cell(r.qN,r.qM,'#A78BFA')}</tr>`};
+        <td style="text-align:center;${hg(r.tD,mx.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tM,mx.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tPos,mx.tPos,B)}">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center;${hg(r.tPcs,mx.tPcs,V)}">${r.tPcs||'<span style="color:var(--ink4)">·</span>'}</td>
+        ${cell(r.inN,r.inM,'var(--amber)',mx.inM,AMB)}
+        ${cell(r.qN,r.qM,'#A78BFA',mx.qM,PU)}</tr>`};
     let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])body+=a.ms.map(m=>row(m,false)).join('')});
     const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
-    const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)')}${cell(tot.qN,tot.qM,'#A78BFA')}</tr>`;
+    const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
     return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал</div><div class="card-s">точка совещания ОП и цеха: клик по отделу разворачивает менеджеров · «передано» = за период (когорта воронки) · пакет и потенциал = снимок сейчас · бейдж «не передаёт» = потенциал/пакет есть, передач в периоде нет</div></div></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Отдел / менеджер</th><th style="text-align:center">Передано сделок</th><th style="text-align:center">₽ передано</th><th style="text-align:center">Изделий</th><th style="text-align:center">Штук</th><th style="text-align:center">Пакет · сейчас</th><th style="text-align:center">Потенциал · сейчас</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();

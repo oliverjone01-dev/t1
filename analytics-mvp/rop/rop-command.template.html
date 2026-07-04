@@ -958,13 +958,15 @@ function render(){
     if(!IT||!IT.length)return `<div class="card-sub" style="margin:4px 0 8px">сквозная воронка (сделки → изделия → штуки) появится после ближайшего ночного снимка данных</div>`;
     const inW=x=>x&&x>=S.start&&x<=S.end;
     const dealStart={};IT.forEach(i=>{if(!i.start)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealStart[k]||i.start<dealStart[k])dealStart[k]=i.start});
-    let cohort,cards;
+    let cohort,cards,noCard=0;
     if(EV){
       cohort=new Set(Object.keys(dealStart).filter(k=>inW(dealStart[k])));
       cards=IT.filter(i=>inW(i.start)&&cohort.has(i.dealId?String(i.dealId):'c'+i.id));
     }else{
       cohort=new Set(prodSet().map(d=>String(d.id)));
       cards=IT.filter(i=>i.start&&i.dealId&&cohort.has(String(i.dealId)));
+      const withCard=new Set(cards.map(i=>String(i.dealId)));
+      noCard=[...cohort].filter(k=>!withCard.has(k)).length; // сделка в стадии производства, а карточки в СП нет - дыра процесса
     }
     const N2=cohort.size,nPos=cards.length,nIzd=cards.reduce((x,i)=>x+(Number(i.qty)>0?Number(i.qty):1),0);
     const NL=Math.max(N1-N2,0);
@@ -1005,7 +1007,7 @@ function render(){
     v+=`<g data-tip="${q(dt('Всего предоплат за период',[['Сделок',fmt(N1),'hl'],['Деньги',fmtK(prepM)+' ₽','dim'],['Из них в цех',fmt(Math.min(N2,N1)),'dim'],['Не передано',fmt(NL),'dim']]))}" style="cursor:help"><rect x="${cx(0)-25}" y="${t1+passH-11}" width="50" height="22" rx="11" fill="rgba(7,9,13,.94)" stroke="#A78BFA" stroke-opacity=".7"/><text x="${cx(0)}" y="${t1+passH+4}" text-anchor="middle" font-family="Manrope" font-size="12" font-weight="800" fill="#A78BFA" pointer-events="none">${fmt(N1)}</text></g>`;
     const tds=[
       q(dt('Передано в производство',[['Сделок за период',fmt(N2),'hl'],['Деньги',fmtK(startM)+' ₽','dim'],['Считаем','первый запуск карточки сделки в цех','dim']])),
-      q(dt('Изделия переданных сделок',[['Карточек',fmt(nPos),'hl'],['На сделку',d1(N2?nPos/N2:0),'dim']])),
+      q(dt('Изделия переданных сделок',[['Карточек',fmt(nPos),'hl'],['На сделку',d1(N2?nPos/N2:0),'dim']].concat(noCard?[['Сделок БЕЗ карточек',fmt(noCard),'hl']]:[]))),
       q(dt('Штуки переданных сделок',[['Штук',fmt(nIzd),'hl'],['На изделие',d1(nPos?nIzd/nPos:0),'dim']]))];
     COLS.forEach((c,i)=>{const X=nodeX(i+1),T=tt[i],HH=hh[i];
       v+=`<rect x="${X}" y="${T}" width="${nw}" height="${HH}" rx="7" fill="${c[2]}" data-tip="${tds[i]}" style="cursor:help"/>`;
@@ -1015,7 +1017,7 @@ function render(){
     v+=`<text x="${cx(0)}" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink-2)">Предоплаты в ОП</text>`;
     v+=`<text x="${cx(0)}" y="${b1+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(prepM)} ₽</text>`;
     v+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(startM)} ₽</text>`;
-    v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
+    v+=noCard?`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" font-weight="700" fill="#F59E0B">⚠ у ${fmt(noCard)} из ${fmt(N2)} переданных сделок НЕТ карточек в СП «Производство GG» - их изделия и штуки посчитать нельзя (сделку перевели в стадию руками, карточку не создали)</text>`:`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
   const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: предоплат vs передано, шт · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div>${prodFunnel}<div id="ppChart"></div></div>`;
   const B_prodMgr=(()=>{

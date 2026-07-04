@@ -581,9 +581,10 @@ function disciplineBlock(){
   const zc=p=>p>=.9?'#2E9E74':p>=.7?'#C2873C':'#CC5867';
   const mini=(lbl,f,t,sub)=>{const pr=t?f/t:null;const col=pr==null?'#5a6672':zc(pr);
     return `<div style="flex:1;min-width:150px;max-width:190px;text-align:center">${donut(t?[['Заполнено',f,col],['Пусто',Math.max(t-f,0),'rgba(204,88,103,.28)']]:[['нет данных',1,'#3a4350']],pr==null?'—':_p0(pr),lbl.toUpperCase())}<div class="card-sub" style="margin-top:2px">${sub}</div></div>`;};
+  // порядок слева направо = путь клиента: лиды -> сделки -> смарт-процесс (карточка СП)
   const donuts=`<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between">
-    ${mini('сделки',dF,dT,`полнота полей · ${fmt(Ds.length)} сделок периода`)}
     ${mini('лиды',lF,lT,`полнота полей · ${fmt(Ls.length)} лидов периода`)}
+    ${mini('сделки',dF,dT,`полнота полей · ${fmt(Ds.length)} сделок периода`)}
     ${mini('причина отказа',rzF,rzT,rzT?`проставлена у ${fmt(rzF)} из ${fmt(rzT)} проигранных`:'проигранных в периоде нет')}
     ${mini('карточка СП',spF,spT,spT?`создана у ${fmt(spF)} из ${fmt(spT)} переданных`:'передач в периоде нет')}
   </div>`;
@@ -593,8 +594,8 @@ function disciplineBlock(){
     .filter(m=>m.dc||m.lc).sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*(dsa?1:-1);});
   const pcCell=p=>p==null?'<td style="text-align:center;color:var(--ink-4)">—</td>':`<td style="text-align:center;font-weight:800;color:${zc(p)};background:linear-gradient(90deg,${zc(p)}22 ${(p*100).toFixed(0)}%,transparent ${(p*100).toFixed(0)}%)">${_p0(p)}</td>`;
   const dsh=(k,l,al)=>`<th data-ds="${k}" style="text-align:${al||'center'};cursor:pointer;white-space:normal;line-height:1.25;padding:6px 5px;font-size:9px${dsk===k?';color:#3DAEC2':''}">${l}${dsk===k?(dsa?' ↑':' ↓'):''}</th>`;
-  const mgrTbl=`<div class="scroll" style="max-height:340px;overflow-x:hidden"><table class="tbl" style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:10%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup><thead><tr>${dsh('n','Менеджер','left')}${dsh('dc','Сделок')}${dsh('dp','Полнота сделок')}${dsh('lc','Лидов')}${dsh('lp','Полнота лидов')}${dsh('noRz','Отказы без причины')}${dsh('noSp','Без карточки СП')}</tr></thead><tbody>`+
-    rows.map(m=>`<tr style="font-size:11px"><td class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.n}</td><td style="text-align:center">${m.dc||'·'}</td>${pcCell(m.dp)}<td style="text-align:center">${m.lc||'·'}</td>${pcCell(m.lp)}<td style="text-align:center;color:${m.noRz?'#CC5867':'var(--ink-4)'};font-weight:${m.noRz?800:400}">${m.noRz||'·'}</td><td style="text-align:center;color:${m.noSp?'#CC5867':'var(--ink-4)'};font-weight:${m.noSp?800:400}">${m.noSp||'·'}</td></tr>`).join('')+`</tbody></table></div>`;
+  const mgrTbl=`<div class="scroll" style="max-height:340px;overflow-x:hidden"><table class="tbl" style="table-layout:fixed;width:100%"><colgroup><col style="width:24%"><col style="width:10%"><col style="width:14%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup><thead><tr>${dsh('n','Менеджер','left')}${dsh('lc','Лидов')}${dsh('lp','Полнота лидов')}${dsh('dc','Сделок')}${dsh('dp','Полнота сделок')}${dsh('noRz','Отказы без причины')}${dsh('noSp','Без карточки СП')}</tr></thead><tbody>`+
+    rows.map(m=>`<tr style="font-size:11px"><td class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.n}</td><td style="text-align:center">${m.lc||'·'}</td>${pcCell(m.lp)}<td style="text-align:center">${m.dc||'·'}</td>${pcCell(m.dp)}<td style="text-align:center;color:${m.noRz?'#CC5867':'var(--ink-4)'};font-weight:${m.noRz?800:400}">${m.noRz||'·'}</td><td style="text-align:center;color:${m.noSp?'#CC5867':'var(--ink-4)'};font-weight:${m.noSp?800:400}">${m.noSp||'·'}</td></tr>`).join('')+`</tbody></table></div>`;
   // проблемные сделки со ссылками: что именно не заполнено
   const portal=DATA.b24Portal||'',idCell=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const probs=Ds.map(d=>{const misses=dealChecks(d).filter(x=>!x[1]).map(x=>x[0]);return misses.length?{d,misses}:null}).filter(Boolean)

@@ -241,6 +241,59 @@ async function main() {
   }).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));
   console.log(`Лиды (кроме ${EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
 
+  // --- Карточки производства (СП 1086): id, сделка, дата запуска, изделий ---
+  // Нужны сквозной воронке «предоплаты -> сделки -> позиции -> изделия» (раздел 4).
+  // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
+  const ETID = 1086, OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
+  const spRows: any[] = [];
+  {
+    let lastId = 0;
+    for (;;) {
+      const j = await call("crm.item.list", {
+        entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
+        filter: { ">id": lastId }, order: { id: "ASC" }, start: -1,
+      });
+      const batch: any[] = (j.result && j.result.items) || [];
+      if (!batch.length) break;
+      spRows.push(...batch);
+      lastId = Number(batch[batch.length - 1].id);
+      if (batch.length < 50) break;
+    }
+  }
+  const spFirst: Record<string, string> = {};
+  {
+    let lastId = 0;
+    for (;;) {
+      const j = await call("crm.stagehistory.list", { entityTypeId: ETID, filter: { ">ID": lastId }, order: { ID: "ASC" }, start: -1 });
+      const batch: any[] = (j.result && j.result.items) || [];
+      if (!batch.length) break;
+      for (const h of batch) {
+        const oid = String(h.OWNER_ID ?? h.ownerId), dt = d10(h.CREATED_TIME ?? h.createdTime) || "";
+        if (dt && (!spFirst[oid] || dt < spFirst[oid])) spFirst[oid] = dt;
+      }
+      lastId = Number(batch[batch.length - 1].ID);
+      if (batch.length < 50) break;
+    }
+  }
+  const prodItems: any[] = [];
+  let spQtyTotal = 0;
+  for (const r of spRows) {
+    let qty: number | null = null;
+    try {
+      const j = await call("crm.item.productrow.list", { filter: { "=ownerId": r.id, "=ownerType": OWNER_T } });
+      const prs: any[] = (j.result && j.result.productRows) || [];
+      const q = prs.reduce((x, y) => x + (Number(y.quantity) || 0), 0);
+      if (q > 0) { qty = q; spQtyTotal += q; }
+    } catch { /* карточка без товарных строк */ }
+    prodItems.push({
+      id: r.id,
+      dealId: r.parentId2 ? String(r.parentId2) : null,
+      start: d10(r[UF_D2P]) || spFirst[String(r.id)] || d10(r.createdTime),
+      qty,
+    });
+  }
+  console.log(`Карточки производства: ${prodItems.length}, изделий из товарных строк ${Math.round(spQtyTotal)}`);
+
   const out = {
     generated_at: new Date().toISOString(),
     source: "bitrix24:glassmemory",
@@ -255,6 +308,7 @@ async function main() {
     },
     deals,
     leads,
+    prodItems,
   };
   mkdirSync("rop/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));

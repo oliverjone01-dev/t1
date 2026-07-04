@@ -147,6 +147,8 @@ const DATA = {
   sysUsers: [], deptOf: {},
   // Метка свежести: когда данные сняты из Bitrix (для видимого штампа на странице).
   generatedAt: rop.generated_at || null,
+  // Карточки производства (СП 1086): сквозная воронка сделки->позиции->изделия. null = старый снимок.
+  prodItems: rop.prodItems || null,
   // Помесячный план (из Google Таблицы через plan-to-json). null = ручное поле плана.
   plan: plan || null,
   // Ссылки на таблицу плана: edit - открыть; csv (gviz, CORS-дружелюбный) - живое чтение кнопкой.

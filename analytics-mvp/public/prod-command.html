@@ -122,7 +122,7 @@ a{color:var(--cyan)}
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="granSeg"><button data-v="d">День</button><button data-v="w" class="on">Неделя</button><button data-v="m">Месяц</button></div>
   <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px"><option value="">Все</option></select>
   <div class="tb-spacer"></div>
-  <div class="seg" id="presetSeg"><button data-v="7">7 дн</button><button data-v="30">30 дн</button><button data-v="90">90 дн</button><button data-v="all" class="on">Всё</button></div>
+  <div class="seg" id="presetSeg"><button data-v="7">7 дн</button><button data-v="30" class="on">30 дн</button><button data-v="90">90 дн</button><button data-v="all">Всё</button></div>
   <input type="date" id="dFrom" class="dinp"><span style="color:var(--ink4)">–</span><input type="date" id="dTo" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
   <span style="font-size:11px;color:var(--ink3)" id="periodLabel"></span>
 </div>
@@ -839,6 +839,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
     const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
+  applyPreset('30');S.preset='30'; // дефолт: 30 дней (решение Ивана, как у РОПа)
   const df=document.getElementById('dFrom'),dt=document.getElementById('dTo');
   df.value=S.from;dt.value=S.to;
   document.getElementById('applyCustom').addEventListener('click',()=>{

@@ -351,9 +351,16 @@ function render(){
       const h1=hOf(N1),h2=hOf(N2),t1=midY-h1/2,b1=midY+h1/2,t2=midY-h2/2;
       const passH=h1*(N1?Math.min(N2/N1,1):0),leakH=h1-passH,mp=(x1+nw+x2)/2;
       let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:780px;margin:0 auto;display:block">`;
-      s+=`<defs><linearGradient id="pfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".38"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".42"/></linearGradient><clipPath id="pfN1c"><rect x="${x1}" y="${t1}" width="${nw}" height="${h1}" rx="7"/></clipPath></defs>`;
+      s+=`<defs><linearGradient id="pfM" x1="0" x2="1"><stop offset="0" stop-color="#A78BFA" stop-opacity=".38"/><stop offset="1" stop-color="#2DD4BF" stop-opacity=".42"/></linearGradient><linearGradient id="pfZ" x1="0" x2="1"><stop offset="0" stop-color="#F59E0B" stop-opacity=".22"/><stop offset="1" stop-color="#F59E0B" stop-opacity="0"/></linearGradient><clipPath id="pfN1c"><rect x="${x1}" y="${t1}" width="${nw}" height="${h1}" rx="7"/></clipPath></defs>`;
       // поток: только переданная (фиолетовая) часть узла течёт в цех
       s+=`<path d="M${x1+nw} ${t1} L${x2} ${t2} L${x2} ${t2+h2} L${x1+nw} ${t1+passH} Z" fill="url(#pfM)"/>`;
+      // полупрозрачный «нулевой» поток от оранжевого сегмента: сходится в ноль у низа узла цеха - полноценная воронка
+      if(leakH>0.5){
+        s+=`<path d="M${x1+nw} ${t1+passH} L${x2} ${t2+h2} L${x2} ${t2+h2+1.5} L${x1+nw} ${b1} Z" fill="url(#pfZ)"/>`;
+        const zx=(x1+nw+x2)/2,zy=((t1+passH+b1)/2+(t2+h2))/2+8;
+        const tdZ=attr(`<div class='tl'>Не передано → цех</div><div class='tr'><span>Дошло до производства</span><span>0 из ${fmt(NL)}</span></div><div class='tr'><span>Конверсия</span><span>0%</span></div>`);
+        s+=`<rect x="${zx-25}" y="${zy-11}" width="50" height="22" rx="11" fill="rgba(7,9,13,.85)" stroke="#F59E0B" stroke-opacity=".45" data-tip="${tdZ}"/><text x="${zx}" y="${zy+4}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#F59E0B" opacity=".85" pointer-events="none">0%</text>`;
+      }
       const pyc=((t1+passH/2)+(t2+h2/2))/2;
       const tdPass=attr(`<div class='tl'>Предоплата → цех · за период</div><div class='tr'><span>Передано</span><span>${fmt(N2)} из ${fmt(N1)}</span></div><div class='tr'><span>Конверсия</span><span>${N1?pct(N2/N1):'—'}</span></div>`);
       s+=`<rect x="${mp-34}" y="${pyc-12}" width="68" height="24" rx="12" fill="rgba(7,9,13,.92)" stroke="#2DD4BF" stroke-opacity=".65" data-tip="${tdPass}"/><text x="${mp}" y="${pyc+4.5}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#2DD4BF" pointer-events="none">${N1?pct(N2/N1):'—'}</text>`;

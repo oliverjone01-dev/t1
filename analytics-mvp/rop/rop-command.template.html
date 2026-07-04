@@ -411,7 +411,7 @@ function multiline(series,keys,g,money,el){
   const hasTotal=series.some(s=>s.total);
   const w=640,h=270,pl=48,pr=14,pt=14,pb=32;const labs=keys.map(k=>blabel(k,g));const gid='g'+(_mlid++);
   let mx=0;series.forEach(s=>{if(!S.hidden[s.name])s.vals.forEach(v=>{if(v>mx)mx=v;});});mx=mx*1.12||1;
-  const X=i=>pl+(w-pl-pr)*i/(keys.length-1||1),Y=v=>h-pb-(h-pt-pb)*v/mx;
+  const X=i=>keys.length>1?pl+(w-pl-pr)*i/(keys.length-1):pl+(w-pl-pr)/2,Y=v=>h-pb-(h-pt-pb)*v/mx; // один бакет - точка в центре
   // красный флажок «переезд CRM» на бакете с датой миграции (ложный всплеск)
   let migMark='';{const mi=keys.indexOf(bkey(MIGDATE,g));if(mi>=0){const mxp=X(mi),lx=Math.max(pl,Math.min(mxp-33,w-pr-66));
     migMark=`<line x1="${mxp}" y1="${pt}" x2="${mxp}" y2="${h-pb}" stroke="#F43F5E" stroke-width="1.4" stroke-dasharray="4 3" opacity=".9"/><g transform="translate(${lx},${pt-1})"><rect x="0" y="0" width="66" height="13" rx="3" fill="#F43F5E"/><text x="33" y="9.5" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">⚑ переезд CRM</text></g>`;}}
@@ -420,10 +420,12 @@ function multiline(series,keys,g,money,el){
   const defs=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".20"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0"/></linearGradient></defs>`;
   const draw=[...series].sort((a,b)=>((a.bar?0:1)+(a.total?2:0))-((b.bar?0:1)+(b.total?2:0))); // бары под линиями, total сверху
   let paths='';
-  const _bars=draw.filter(x=>x.bar&&!S.hidden[x.name]);
+  const _one=keys.length===1; // диапазон в один бакет (Сегодня/Вчера): линии не видны - рисуем центрованные столбики
+  const _bars=draw.filter(x=>(x.bar||_one)&&!S.hidden[x.name]);
   draw.forEach(s=>{if(S.hidden[s.name])return;
-    if(s.bar){const nb=_bars.length||1,bi=_bars.indexOf(s);const slot=Math.max(4,(w-pl-pr)/(keys.length*1.35)),bwd=Math.max(2.5,slot/nb);
-      paths+=s.vals.map((v,i)=>!v?'':`<rect x="${(X(i)-slot/2+bi*bwd).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bwd.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="2" fill="${s.color}" opacity="${s.op!=null?s.op:.5}" pointer-events="none"/>`).join('');return;}
+    if(s.bar||_one){const nb=_bars.length||1,bi=_bars.indexOf(s);
+      const slot=_one?Math.min(150,44*nb):Math.max(4,(w-pl-pr)/(keys.length*1.35)),bwd=Math.max(2.5,slot/nb);
+      paths+=s.vals.map((v,i)=>!v?'':`<rect x="${(X(i)-slot/2+bi*bwd).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bwd.toFixed(1)}" height="${(h-pb-Y(v)).toFixed(1)}" rx="3" fill="${s.color}" opacity="${s.op!=null?s.op:(s.bar?.5:.85)}" pointer-events="none"/>`+(_one?`<text x="${(X(i)-slot/2+bi*bwd+bwd/2).toFixed(1)}" y="${(Y(v)-5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="${s.color}">${money?fmtK(v):fmt(v)}</text>`:'')).join('');return;}
     const isT=!!s.total;const op=hasTotal&&!isT?0.32:1;const wdt=isT?2.4:1.5;const dash=s.dash?' stroke-dasharray="6 5"':'';
     const pts=s.vals.map((v,i)=>[X(i),Y(v)]);const line=smoothPath(pts);
     if(isT&&!s.noArea){const area=line+` L${X(keys.length-1)} ${h-pb} L${X(0)} ${h-pb} Z`;paths+=`<path d="${area}" fill="url(#${gid})"/>`;}

@@ -236,11 +236,18 @@ const esc=s=>String(s).replace(/</g,'&lt;').replace(/"/g,'&quot;'); // для и
 const attr=s=>String(s).replace(/"/g,'&quot;'); // HTML подсказки в data-tip: экранируем только кавычки
 function chartSVG(series,keys,opt){
   opt=opt||{};const w=opt.w||640,h=opt.h||190,pl=44,pr=12,pt=12,pb=26;
-  let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));if(opt.refLine&&opt.refLine.v>mx)mx=opt.refLine.v;mx=mx*1.15||1;
+  let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));if(opt.refLine&&opt.refLine.v>mx)mx=opt.refLine.v;
+  if(opt.refSteps&&opt.refSteps.vals)opt.refSteps.vals.forEach(v=>{if(v!=null&&v>mx)mx=v});mx=mx*1.15||1;
   const n=keys.length,X=i=>pl+(w-pl-pr)*(n>1?i/(n-1):.5),Y=v=>h-pb-(h-pt-pb)*v/mx;
   const fv=opt.fmtY||(v=>fmtK(Math.round(v)));
   let grid='';for(let g=0;g<=3;g++){const yy=pt+(h-pt-pb)*g/3;grid+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--border)"/><text x="${pl-5}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--ink4)">${fv(mx*(1-g/3))}</text>`}
   let ref='';if(opt.refLine&&opt.refLine.v>0){const ry=Y(opt.refLine.v);ref=`<line x1="${pl}" y1="${ry.toFixed(1)}" x2="${w-pr}" y2="${ry.toFixed(1)}" stroke="${opt.refLine.c||'#F59E0B'}" stroke-width="1.4" stroke-dasharray="6 5" opacity=".8"/><text x="${w-pr-4}" y="${(ry-5).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${opt.refLine.c||'#F59E0B'}">${opt.refLine.label||''}</text>`}
+  // refSteps: дискретный пунктир - своя горизонтальная риска на каждый бакет (меняющийся во времени уровень)
+  if(opt.refSteps&&opt.refSteps.vals){const rs=opt.refSteps,half=(w-pl-pr)/(keys.length-1||1)/2;
+    rs.vals.forEach((v,i)=>{if(v==null||!(v>0))return;const ry=Y(v),x1=Math.max(pl,X(i)-half*.82),x2=Math.min(w-pr,X(i)+half*.82);
+      ref+=`<line x1="${x1.toFixed(1)}" y1="${ry.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${ry.toFixed(1)}" stroke="${rs.c||'#F59E0B'}" stroke-width="1.6" stroke-dasharray="5 4" opacity=".85" pointer-events="none"/>`});
+    let li=-1;rs.vals.forEach((v,i)=>{if(v!=null&&v>0)li=i});
+    if(li>=0)ref+=`<text x="${w-pr-4}" y="${(Y(rs.vals[li])-6).toFixed(1)}" text-anchor="end" font-size="9" font-weight="700" fill="${rs.c||'#F59E0B'}">${rs.label||''}</text>`;}
   let xl='';keys.forEach((k,i)=>{const step=Math.ceil(n/9);
     const isLast=i===n-1, regular=i%step===0&&(n-1-i)>=step*0.6; // не рисуем подпись, налезающую на последнюю
     if(regular||isLast)xl+=`<text x="${X(i)}" y="${h-pb+14}" text-anchor="middle" font-size="9" fill="var(--ink4)">${blabel(k)}</text>`});
@@ -629,11 +636,17 @@ function render(){
     const inP=mk(),outP=mk();
     IT.filter(dirOk).forEach(i=>{const k1=bkey(startDate(i));if(k1 in ki)inP[ki[k1]]+=qtyOf(i);
       if(isDone(i)&&successDate(i)){const k2=bkey(successDate(i));if(k2 in ki)outP[ki[k2]]+=qtyOf(i)}});
-    // мощность: средний выпуск штук в неделю по всей истории, приведённый к грануляции
+    // мощность: НЕ константа, а скользящая - средний выпуск шт/нед за 8 недель ДО начала бакета.
+    // Чем больше цех реально выпускал в последнее время, тем выше риска; просел - риска съезжает.
     const wkOf=ds=>{const dt=D(ds);if(!dt)return null;const w=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-w);return iso(dt)};
     const w={};IT.forEach(i=>{if(!isDone(i)||!successDate(i))return;const k=wkOf(successDate(i));if(k)w[k]=(w[k]||0)+qtyOf(i)});
-    const weeks=Object.values(w),scale=S.gran==='d'?1/7:S.gran==='m'?30.4/7:1;
-    const cap=(weeks.length?weeks.reduce((a,b)=>a+b,0)/weeks.length:0)*scale;
+    const wkList=Object.keys(w).sort(),weeks=wkList.map(k=>w[k]),scale=S.gran==='d'?1/7:S.gran==='m'?30.4/7:1;
+    const capAll=(weeks.length?weeks.reduce((a,b)=>a+b,0)/weeks.length:0)*scale;
+    const capB=keys.map(k=>{const wkk=wkOf(k);const prev=wkList.filter(x=>x<wkk).slice(-8);
+      return prev.length?prev.reduce((a,x)=>a+w[x],0)/prev.length*scale:(capAll||null)});
+    const capI=i=>capB[i]!=null?capB[i]:capAll;
+    const capMax=(weeks.length?Math.max(...weeks):0)*scale; // пик: лучшая неделя в истории - потолок цеха
+    const cap=capAll;
     // следствия: незавершёнка (шт, конец бакета) и срок когорты запуска
     const wipP=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;let q=0;IT.filter(dirOk).forEach(i=>{const st=startDate(i);if(!st||st>t)return;const f=successDate(i);if(f&&f<=t)return;q+=qtyOf(i)});return q});
     const cycB=keys.map(k=>{const arr=IT.filter(dirOk).filter(i=>isDone(i)&&bkey(startDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
@@ -641,13 +654,15 @@ function render(){
     const top=chartSVG([
       {name:'Вход в цех, штук',c:'#8B7BF0',vals:inP,type:'bar',op:.45},
       {name:'Выпуск, штук',c:'#2DD4BF',vals:outP}
-    ],keys,{fmtY:v=>fmt(v),refLine:{v:cap,label:'мощность ~'+d1(cap)+' шт/'+gl,c:'#F59E0B'}});
+    ],keys,{fmtY:v=>fmt(v),
+      refSteps:{vals:capB,label:'мощность · скользящая 8 нед, шт/'+gl,c:'#F59E0B'},
+      refLine:capMax>0?{v:capMax,label:'пик мощности ~'+d1(capMax)+' шт/'+gl,c:'#F43F5E'}:null});
     const nowK=bkey(NOWS);
     const lastCyc=i=>{let j=i-1;while(j>=0&&cycB[j]==null)j--;return j>=0?cycB[j]:null};
     const diag=keys.map((k,i)=>{
       if(k>nowK)return {c:'#232c38',t:'период ещё не наступил'};
       if(!inP[i]&&!outP[i])return {c:'#232c38',t:'событий не было'};
-      const over=cap>0&&inP[i]>cap*1.05;
+      const over=capI(i)>0&&inP[i]>capI(i)*1.05;
       if(!over)return {c:'#2E9E74',t:'штатный режим: вход в пределах мощности'};
       const dw=(wipP[i]!=null&&i>0&&wipP[i-1]!=null)?wipP[i]-wipP[i-1]:0;
       const pc=lastCyc(i),dc=(cycB[i]!=null&&pc!=null)?cycB[i]-pc:0;
@@ -655,10 +670,16 @@ function render(){
       if(dw>0)return {c:'#F59E0B',t:'педаль «ОЧЕРЕДЬ»: вход выше мощности, темп держим - копится незавершёнка'};
       return {c:'#F59E0B',t:'вход выше мощности'};
     });
-    const strip=`<div style="display:flex;gap:2px;margin:0 12px 10px 44px">`+diag.map((d,i)=>`<div data-tip="${attr(`<div class='tl'>Диагноз · ${blabel(keys[i])}</div><div class='tr'><span>Вход, шт</span><span>${fmt(inP[i])}</span></div><div class='tr'><span>Мощность, шт/${gl}</span><span>${d1(cap)}</span></div><div class='tr'><span>Выпуск, шт</span><span>${fmt(outP[i])}</span></div><div class='tr'><span>Незавершёнка на конец, шт</span><span>${wipP[i]!=null?fmt(wipP[i]):'—'}</span></div><div class='tr'><span>Срок когорты запуска</span><span>${cycB[i]!=null?d1(cycB[i])+' дн':'ещё не готовы'}</span></div><div class='tn'>${d.t}</div>`)}" style="flex:1;height:11px;border-radius:3px;background:${d.c};cursor:help"></div>`).join('')+`</div>`;
+    const strip=`<div style="display:flex;gap:2px;margin:0 12px 10px 44px">`+diag.map((d,i)=>{const gap=capI(i)-inP[i];
+      return `<div data-tip="${attr(`<div class='tl'>Диагноз · ${blabel(keys[i])}</div><div class='tr'><span>Вход, шт</span><span>${fmt(inP[i])}</span></div><div class='tr'><span>Мощность периода, шт/${gl}</span><span>${d1(capI(i))}</span></div><div class='tr'><span>${gap>=0?'Свободный запас':'Перегруз входа'}</span><span>${d1(Math.abs(gap))} шт</span></div><div class='tr'><span>Пик мощности, шт/${gl}</span><span>${d1(capMax)}</span></div><div class='tr'><span>Выпуск, шт</span><span>${fmt(outP[i])}</span></div><div class='tr'><span>Незавершёнка на конец, шт</span><span>${wipP[i]!=null?fmt(wipP[i]):'—'}</span></div><div class='tr'><span>Срок когорты запуска</span><span>${cycB[i]!=null?d1(cycB[i])+' дн':'ещё не готовы'}</span></div><div class='tn'>${d.t}</div>`)}" style="flex:1;height:11px;border-radius:3px;background:${d.c};cursor:help"></div>`}).join('')+`</div>`;
     const botWip=chartSVG([{name:'Незавершёнка на конец периода, штук',c:'#F59E0B',vals:wipP,area:true}],keys,{fmtY:v=>fmt(v),h:150});
     const botCyc=chartSVG([{name:'Срок когорты запуска, дн (готовые)',c:'#A78BFA',vals:cycB,join:true}],keys,{fmtY:v=>d1(v),h:150});
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки</div><div class="card-s">вход штук против мощности (пунктир) · полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь», красное = педаль «сроки» · наведи на сегмент - все цифры периода</div></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:center"><div>${top}${strip}</div><div>${botWip}${botCyc}</div></div><div class="note">Когда вход штук выше мощности, у цеха две педали: <b style="color:#F59E0B">держать темп на заказ</b> - тогда копится незавершёнка и растёт «на подходе», или <b style="color:#F43F5E">растягивать сроки</b> - тогда двигаются обещания клиентам и сделки зависают в «В производстве». Диагноз считается по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки».</div></div>`;
+    // сводные плашки: мощность сейчас (скользящая), потолок цеха и средний срок производства за период
+    const capNow=(()=>{const prev=wkList.slice(-8);return prev.length?prev.reduce((a,x)=>a+w[x],0)/prev.length*scale:capAll})();
+    const cycPeriod=med(IT.filter(dirOk).filter(i=>isDone(i)&&inRange(successDate(i))).map(cycleOf).filter(x=>x!=null&&x>=0));
+    const chip=(l,v,c,tip)=>`<div data-tip="${attr(tip)}" style="display:flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border2);border-radius:8px;background:rgba(148,163,184,.04);cursor:help"><span style="width:8px;height:8px;border-radius:2px;background:${c}"></span><span style="font-size:10.5px;color:var(--ink3)">${l}</span><b style="font-size:12px;color:${c}">${v}</b></div>`;
+    const chips=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${chip('мощность сейчас','~'+d1(capNow)+' шт/'+gl,'#F59E0B','средний выпуск за последние 8 недель, приведённый к грануляции. Это реальный темп цеха: вход выше него = очередь или сдвиг сроков')}${chip('пик мощности','~'+d1(capMax)+' шт/'+gl,'#F43F5E','лучшая неделя цеха за всю историю. Потолок: грузить выше пика = гарантированный сдвиг по дням')}${chip('средний срок производства','' + (cycPeriod!=null?d1(cycPeriod)+' дн':'—'),'#A78BFA','медиана «запуск - готово» по заказам, выпущенным в выбранном периоде')}</div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки</div><div class="card-s">оранжевый пунктир = мощность периода (скользящая по факту 8 недель, меняется во времени) · красный пунктир = пик мощности (потолок цеха) · полоса-диагноз: зелёное = штатный режим, янтарное = педаль «очередь», красное = педаль «сроки», тёмное = не было событий или период не наступил · наведи на сегмент - все цифры периода</div></div></div>${chips}<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:center"><div>${top}${strip}</div><div>${botWip}${botCyc}</div></div><div class="note">Когда вход штук выше мощности, у цеха две педали: <b style="color:#F59E0B">держать темп на заказ</b> - тогда копится незавершёнка и растёт «на подходе», или <b style="color:#F43F5E">растягивать сроки</b> - тогда двигаются обещания клиентам и сделки зависают в «В производстве». Диагноз считается по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки». Мощность не константа: это скользящий средний выпуск за 8 недель до периода, поэтому пунктир гуляет вместе с реальным темпом цеха.</div></div>`;
   })();
 
   // ===== ОЦЕНКА УЧАСТКОВ: загрузка сейчас × пропускная способность (из истории) × разгрузка =====

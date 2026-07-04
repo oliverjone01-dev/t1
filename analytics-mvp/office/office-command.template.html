@@ -79,13 +79,10 @@ input[type=date]{background:var(--bg-elevated);border:1px solid var(--border);co
 <div class="topbar"><div class="logo">GG</div><div class="brand"><b>GENGLASS · Офис-менеджер</b><span>квалификация лидов · воронка GG · один экран на отдел · <span id="fresh"></span></span></div>
 <div class="tb-spacer"></div><div class="nav" id="nav"></div></div>
 <div class="controls">
-  <span class="ctl-lbl">Период</span><div class="seg" id="presetSeg"><button data-p="1">Сегодня</button><button data-p="7">7 дн</button><button data-p="30" class="on">30 дн</button><button data-p="all">Всё</button></div>
-  <input type="date" id="dFrom"><span style="color:var(--ink-4)">-</span><input type="date" id="dTo"><button id="applyCustom" class="seg" style="padding:6px 12px;color:var(--accent);cursor:pointer;border:1px solid var(--border);background:var(--bg-elevated);border-radius:8px;font:inherit;font-size:11.5px">OK</button>
-  <span style="flex:1"></span>
-  <span class="ctl-lbl">План/день: разбор</span><input type="number" min="1" class="plan-inp" id="planRz">
-  <span class="ctl-lbl">квал-лиды</span><input type="number" min="1" class="plan-inp" id="planKv">
-  <span class="qm" data-tip="План отдела на РАБОЧИЙ день: сколько лидов разобрать (закрыть: квалифицировать или отсеять) и сколько квал-лидов передать (лид дошёл до «Создание сделки»). План на период = план/день × рабочих дней (пн-пт). Сохраняется в этом браузере.">?</span>
+  <span class="ctl-lbl">Период</span><div class="seg" id="presetSeg"><button data-p="1">Сегодня</button><button data-p="y">Вчера</button><button data-p="7">7 дн</button><button data-p="30" class="on">30 дн</button><button data-p="60">60 дн</button><button data-p="all">Всё</button></div>
   <span id="periodLabel" style="font-size:11.5px;color:var(--ink-3)"></span>
+  <span style="flex:1"></span>
+  <input type="date" id="dFrom"><span style="color:var(--ink-4)">-</span><input type="date" id="dTo"><button id="applyCustom" style="padding:6px 12px;color:var(--accent);cursor:pointer;border:1px solid var(--border);background:var(--bg-elevated);border-radius:8px;font:inherit;font-size:11.5px">OK</button>
 </div>
 <div class="wrap" id="root"></div>
 <div id="tip"></div>
@@ -114,11 +111,22 @@ const GG=DATA.leads.filter(l=>l.dir!=='metal_gm'&&!GM_M.has(l.mgr));
 const OPEN=l=>!l.closed&&!l.conv&&!l.junk;
 const MIND=GG.reduce((m,l)=>l.created&&l.created<m?l.created:m,TODAY);
 /* ===== состояние ===== */
-const PLANLS='officePlanGG';
-let PLAN={rz:20,kv:8};try{PLAN=Object.assign(PLAN,JSON.parse(localStorage.getItem(PLANLS)||'{}'))}catch(e){}
 let S={from:'',to:'',preset:'30'};
-function setPeriod(p){const e=D(TODAY);if(p==='all'){S.from=MIND;S.to=TODAY}else{const s=new Date(e.getTime());s.setDate(s.getDate()-(+p-1));S.from=iso(s);S.to=TODAY}S.preset=p}
+function setPeriod(p){const e=D(TODAY);
+  if(p==='all'){S.from=MIND;S.to=TODAY}
+  else if(p==='y'){S.from=YESTER;S.to=YESTER}
+  else{const s=new Date(e.getTime());s.setDate(s.getDate()-(+p-1));S.from=iso(s);S.to=TODAY}S.preset=p}
 const workdays=(a,b)=>{let n=0;for(let d=D(a);d<=D(b);d=new Date(d.getTime()+DAYMS)){const w=d.getDay();if(w!==0&&w!==6)n++}return Math.max(n,1)};
+/* ===== план офис-менеджера: декомпозиция от плана выручки ОП =====
+   План выручки месяца (Google Таблица РОПа) -> продаж нужно (rev/чек) ->
+   квал-лидов нужно (продажи/CR2) -> заявок разобрать (квал/CR1). В день = /раб.дни месяца. */
+const PMON=TODAY.slice(0,7);
+const _pm=((DATA.plan&&DATA.plan.months)||[]).find(m=>m.month===PMON)||null;
+const PP={rev:_pm&&_pm.rev||4e6,check:_pm&&_pm.check||8e4,cr2:_pm&&_pm.cr2||.16,cr1:_pm&&_pm.cr1||.55,has:!!_pm};
+const _mEnd=(()=>{const y=+PMON.slice(0,4),mo=+PMON.slice(5,7);const ld=new Date(Date.UTC(y,mo,0)).getUTCDate();return PMON+'-'+String(ld).padStart(2,'0')})();
+const WDM=workdays(PMON+'-01',_mEnd);
+const NEED={sales:PP.rev/PP.check};NEED.kval=NEED.sales/PP.cr2;NEED.rz=NEED.kval/PP.cr1;
+const PLAN={rz:Math.ceil(NEED.rz/WDM),kv:Math.ceil(NEED.kval/WDM)};
 /* ===== графика ===== */
 function chart(series,keys,opt){opt=opt||{};const w=opt.w||640,h=opt.h||200,pl=40,pr=10,pt=12,pb=24;
   let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));mx=mx*1.15||1;
@@ -203,6 +211,16 @@ function render(){
   ];
   const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')}</div>`;
   const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · сегодня',tod.closed.length,PLAN.rz,'лидов','')}${gauge('Квал-лиды · сегодня',tod.kval.length,PLAN.kv,'передано','')}${gauge('Разбор · период',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('Квал-лиды · период',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
+  /* цепочка декомпозиции: выручка -> продажи -> квал-лиды -> разборы (месяц и в день) */
+  const fmtM=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
+  const chainTile=(lbl,v,sub,c,arrow)=>`${arrow?`<div style="align-self:center;color:var(--ink-4);font-size:16px;flex-shrink:0">→</div>`:''}<div style="flex:1;min-width:170px;background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid ${c};border-radius:10px;padding:11px 13px"><div style="font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${lbl}</div><div style="font-family:Manrope;font-weight:800;font-size:19px;color:${c}">${v}</div><div style="font-size:10px;color:var(--ink-3);margin-top:3px">${sub}</div></div>`;
+  const mLbl=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][+PMON.slice(5,7)-1];
+  const planChain=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px" data-tip="${attr('Декомпозиция: выручка ÷ средний чек ('+fmtM(PP.check)+') = продажи; продажи ÷ CR2 ('+pct(PP.cr2)+') = квал-лиды; квал-лиды ÷ CR1 ('+pct(PP.cr1)+') = заявки разобрать. Рабочих дней в месяце: '+WDM)}">
+    ${chainTile('План выручки · '+mLbl,fmtM(PP.rev),PP.has?'из таблицы планов РОПа':'дефолтный ориентир','#22D3EE',false)}
+    ${chainTile('Продаж нужно',fmt(Math.ceil(NEED.sales)),'÷ средний чек '+fmtM(PP.check),'#10B981',true)}
+    ${chainTile('Квал-лидов нужно',fmt(Math.ceil(NEED.kval)),'÷ CR2 '+pct(PP.cr2)+' · '+fmt(PLAN.kv)+'/день','#A78BFA',true)}
+    ${chainTile('Заявок разобрать',fmt(Math.ceil(NEED.rz)),'÷ CR1 '+pct(PP.cr1)+' · '+fmt(PLAN.rz)+'/день','#F59E0B',true)}
+  </div>`;
 
   /* 2. Период KPI */
   const k2=[
@@ -269,7 +287,7 @@ function render(){
   document.getElementById('root').innerHTML=
     `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Сегодня</h2><div class="ln"></div><div class="hint">${dm(TODAY)} · сравнение с вчера · план/факт по разбору и передаче квал-лидов</div></div>`
     +recoBar+kpiRow(k1,4)
-    +`<div class="card"><div class="card-h"><div><div class="card-title">План / факт ${info('Два главных показателя офис-менеджера: РАЗБОР (закрыть лид: квалифицировать или отсеять) и ПЕРЕДАЧА КВАЛ-ЛИДОВ (лид дошёл до «Создание сделки» - из него рождается сделка ОП). План на день задаётся сверху, план периода = план/день × рабочих дней. Зелёная шкала = план сделан.')}</div><div class="card-sub">сегодня и накопленно за период · рабочих дней в периоде: ${wd}</div></div></div>${gaugesDay}</div>`
+    +`<div class="card"><div class="card-h"><div><div class="card-title">План / факт · декомпозиция от плана выручки ОП ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж за текущий месяц по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; квал-лидов нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = квал-лиды ÷ CR1 (заявка -> сделка). План на день = месячная потребность ÷ рабочие дни месяца. Зелёная шкала = план сделан.')}</div><div class="card-sub">план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · передать <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> квал-лидов · на неделю: ${fmt(PLAN.rz*5)} / ${fmt(PLAN.kv*5)} · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'}</div></div></div>${planChain}${gaugesDay}</div>`
     +`<div class="sec-div" id="sec2"><div class="sec-num">2</div><h2>Период</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
     +kpiRow(k2,6)
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Верхние две полосы - поток за период: сколько заявок пришло и сколько закрыто. Ветки ↳ - исходы разбора (% от разобранных). Оранжевые внизу - очередь ПРЯМО СЕЙЧАС по статусам: это не за период, а моментальный снимок.')}</div><div class="card-sub">поток за период → исходы разбора · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`
@@ -299,10 +317,6 @@ function wire(){
   window.syncDates=syncDates;
   document.getElementById('applyCustom').onclick=()=>{if(df.value)S.from=df.value;if(dt.value)S.to=dt.value;
     if(S.from>S.to){const t=S.from;S.from=S.to;S.to=t}document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));syncDates();render()};
-  const pr=document.getElementById('planRz'),pk=document.getElementById('planKv');
-  pr.value=PLAN.rz;pk.value=PLAN.kv;
-  const savePlan=()=>{PLAN.rz=Math.max(1,+pr.value||1);PLAN.kv=Math.max(1,+pk.value||1);try{localStorage.setItem(PLANLS,JSON.stringify(PLAN))}catch(e){};render()};
-  pr.onchange=savePlan;pk.onchange=savePlan;
   /* подсказки */
   const tip=document.getElementById('tip');
   document.addEventListener('mousemove',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');

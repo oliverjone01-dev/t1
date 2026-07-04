@@ -17,8 +17,14 @@ const leads = (rop.leads || []).map((l: any) => ({
   source: l.source || "не указан", dir: l.dir || "не указано", t: (l.title || "").slice(0, 80),
 }));
 
+// Помесячный план ОП (Google Таблица -> plan-to-json): rev/check/cr2/cr1.
+// Из него дашборд декомпозирует план офис-менеджера по разбору и квал-лидам.
+let plan: any = null;
+try { plan = JSON.parse(readFileSync("rop/plan/plan.json", "utf-8")); } catch { plan = null; }
+
 const DATA = {
   leads,
+  plan,
   generatedAt: rop.generated_at || null,
   bakedAt: new Date().toISOString(),
   b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),

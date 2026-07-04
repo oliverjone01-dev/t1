@@ -42,7 +42,7 @@ b{font-weight:700}
 .card-s{font-size:11.5px;color:var(--ink3);margin-top:2px;line-height:1.5}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
 @media(max-width:1200px){.kpis{grid-template-columns:repeat(4,1fr)}}
-.kpi{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:13px;padding:14px 15px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start}
+.kpi{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:13px;padding:14px 15px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;text-align:center}
 .kpi .bar{position:absolute;top:0;left:0;right:0;height:3px}
 .kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink3);margin-bottom:8px}
 .kpi .v{font-size:25px;font-weight:800;font-family:'Manrope',sans-serif;letter-spacing:-.02em}
@@ -228,7 +228,8 @@ function cohorts(){
 // предыдущее окно той же длины (для трендов)
 function prevWin(){const a=D(S.from),b=D(S.to);const len=Math.round((b-a)/864e5)+1;
   const pb=new Date(a-864e5),pa=new Date(a-len*864e5);return [iso(pa),iso(pb)]}
-function trend(cur,prev,inv){if(prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up;const cls=Math.abs(dl)<.005?'flat':good?'up':'dn';return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`}
+// Правило Ивана: цвет = направление. Рост - стрелка вверх и зелёная, падение - вниз и красная.
+function trend(cur,prev,inv){if(prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;const dl=(cur-prev)/prev,up=dl>=0;const cls=Math.abs(dl)<.005?'flat':up?'up':'dn';return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`}
 
 // ===== графики =====
 // сглаживание линий (Catmull-Rom -> Безье), как в дашборде РОП

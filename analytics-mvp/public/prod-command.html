@@ -182,7 +182,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',
+const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -436,6 +436,47 @@ function render(){
       s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="#8b97a5">сейчас ждут передачи: ${fmt(incoming.length)} · ${fmtK(incMoney)} ₽ оплачено · ${_pcsInfo}</text>`;
       s+=`</svg>`;return s})();
     return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">сквозная воронка периода: предоплаты (оранжевым - ещё не передано) → сделки в цехе → изделия (карточки) → штуки · ${S.syncDir==='gg'?'GG без Glass Memory (= РОП в режиме «по дате события»)':S.syncDir==='gm'?'только Glass Memory (их цех - отдельный процесс, карточек тут нет)':'все направления'} · ниже динамика по датам событий: линии = сделки, стаканы = изделия и штуки, запущенные в цех</div></div><div class="seg" id="syncDirSeg"><button data-v="all" class="${S.syncDir==='all'?'on':''}">Все</button><button data-v="gg" class="${S.syncDir==='gg'?'on':''}">GG</button><button data-v="gm" class="${S.syncDir==='gm'?'on':''}">GM</button></div></div>${funnelViz}${chart}</div>`;
+  })();
+
+  // ===== ОТДЕЛЫ ПРОДАЖ: GG и GM с разворотом по менеджерам =====
+  // Точка совещаний ОП <-> цех: кто передаёт объём, а у кого потенциал лежит без передач.
+  const deptBlock=(()=>{
+    const PP0=DATA.prepay&&DATA.prepay.deals;const QT=(DATA.quotes&&DATA.quotes.deals)||[];
+    if(!PP0&&!QT.length)return '';
+    const GM_M=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);
+    const gmDirDeal=new Set((PP0||[]).filter(d=>d.dir==='glass-memory').map(d=>String(d.id)));
+    const depOf=(mgr,dealId)=>GM_M.has(mgr||'')||(dealId&&gmDirDeal.has(String(dealId)))?'GM':'GG';
+    const M={};const ent=(mgr,dep)=>{const k=dep+'|'+(mgr||'—');return M[k]=M[k]||{mgr:mgr||'—',dep,tD:0,tM:0,tPos:0,tPcs:0,inN:0,inM:0,qN:0,qM:0}};
+    // передачи периода: когорта первых запусков (как воронка и KPI)
+    const dstart={};IT.forEach(i=>{const st=startDate(i);if(!st)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dstart[k]||st<dstart[k])dstart[k]=st});
+    const coh=new Set(Object.keys(dstart).filter(k=>inRange(dstart[k])));
+    const byDeal={};IT.forEach(i=>{const k=i.dealId?String(i.dealId):'c'+i.id;if(!coh.has(k))return;if(!inRange(startDate(i)))return;(byDeal[k]=byDeal[k]||[]).push(i)});
+    Object.entries(byDeal).forEach(([k,cards])=>{const mgr=cards[0].dealMgr||cards[0].sourceMgr||'—';const e=ent(mgr,depOf(mgr,k.startsWith('c')?null:k));
+      e.tD++;e.tM+=cards[0].dealBudget||0;e.tPos+=cards.length;e.tPcs+=qtySum(cards)});
+    // входящий пакет (сейчас)
+    (PP0||[]).filter(d=>d.open&&/EXECUTING/.test(d.stage)).forEach(d=>{const e=ent(d.mgr,depOf(d.mgr,d.id));e.inN++;e.inM+=d.budget||0});
+    // потенциал в расчётах (сейчас)
+    QT.forEach(d=>{const e=ent(d.mgr,depOf(d.mgr,null));e.qN++;e.qM+=d.budget||0});
+    const deps=['GG','GM'].map(dep=>{const ms=Object.values(M).filter(m=>m.dep===dep);
+      const agg={dep,tD:sum(ms,m=>m.tD),tM:sum(ms,m=>m.tM),tPos:sum(ms,m=>m.tPos),tPcs:sum(ms,m=>m.tPcs),inN:sum(ms,m=>m.inN),inM:sum(ms,m=>m.inM),qN:sum(ms,m=>m.qN),qM:sum(ms,m=>m.qM),ms:ms.sort((a,b)=>(b.qM+b.inM)-(a.qM+a.inM))};
+      return agg}).filter(a=>a.tD||a.inN||a.qN);
+    if(!deps.length)return '';
+    const cell=(v,m,col)=>`<td style="text-align:center">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink4)"> · ${fmtK(m)} ₽</span>`:'<span style="color:var(--ink4)">·</span>'}</td>`;
+    const row=(r,isDep)=>{const nm=isDep?`<b>${r.dep==='GG'?'GENGLASS (GG)':'GLASS MEMORY (GM)'}</b>`:`<span style="padding-left:22px">${esc(r.mgr)}</span>`;
+      const idle=!isDep&&!r.tD&&(r.qN||r.inN);
+      return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:''}>
+        <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):''}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
+        <td style="text-align:center">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center">${r.tPcs||'<span style="color:var(--ink4)">·</span>'}</td>
+        ${cell(r.inN,r.inM,'var(--amber)')}
+        ${cell(r.qN,r.qM,'#A78BFA')}</tr>`};
+    let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])body+=a.ms.map(m=>row(m,false)).join('')});
+    const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
+    const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)')}${cell(tot.qN,tot.qM,'#A78BFA')}</tr>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал</div><div class="card-s">точка совещания ОП и цеха: клик по отделу разворачивает менеджеров · «передано» = за период (когорта воронки) · пакет и потенциал = снимок сейчас · бейдж «не передаёт» = потенциал/пакет есть, передач в периоде нет</div></div></div>
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Отдел / менеджер</th><th style="text-align:center">Передано сделок</th><th style="text-align:center">₽ передано</th><th style="text-align:center">Изделий</th><th style="text-align:center">Штук</th><th style="text-align:center">Пакет · сейчас</th><th style="text-align:center">Потенциал · сейчас</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====
@@ -794,7 +835,7 @@ function render(){
   document.getElementById('root').innerHTML=
     `<div class="sec"><div class="n">1</div><h2>Производство</h2><div class="ln"></div><div class="hint">период: <b>${perLbl}</b>${S.dir?' · '+S.dir:''} · срез: <b style="color:#22D3EE">${modeLbl}</b> (влияет на состав, менеджеров, конструкторов; KPI запуска и выпуска всегда по своим датам) · «сейчас» = моментальный снимок</div></div>`+kpis+
     `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 12px;padding:9px 14px;background:var(--elev);border:1px solid var(--border);border-radius:10px;font-size:11.5px;color:var(--ink3)"><b style="color:#A78BFA">СДЕЛКА</b> - ей управляет отдел продаж (деньги, менеджер) <span style="color:var(--ink4)">→</span> <b style="color:#60A5FA">ИЗДЕЛИЕ (карточка)</b> - создаётся при передаче в цех, по одному на тип изделия в заказе, ходит по участкам <span style="color:var(--ink4)">→</span> <b style="color:#2DD4BF">ШТУКИ</b> - количество из товарных строк карточки (изделие × кол-во), именно штуки грузят участки</div>`+
-    syncBlock+
+    syncBlock+deptBlock+
     `<div class="card"><div class="card-h"><div><div class="card-t">Труба производства: каких участков коснулись изделия</div><div class="card-s">как воронка сделок у РОПа, но для цеха: сколько ${S.trubaUnit==='pcs'?'ШТУК (изделия × количество внутри карточек, из товарных строк)':'ИЗДЕЛИЙ (карточек-нарядов)'} среза прошло через каждый участок · очередь «сейчас» смотри в «Оценке участков» ниже</div></div><div class="seg" id="trubaSeg"><button data-v="cards" class="${S.trubaUnit!=='pcs'?'on':''}">Изделия</button><button data-v="pcs" class="${S.trubaUnit==='pcs'?'on':''}">По штучно</button></div></div>${prodTruba}</div>`+
     `<div class="grid2">`+
     `<div class="card"><div class="card-h"><div><div class="card-t">Запуск vs выпуск</div><div class="card-s">синяя = передано в производство, зелёная = готово${S.dynUnit==='money'?' (суммы сделок, ₽)':''}. Синяя стабильно выше - незавершёнка копится, цех не успевает.</div></div><div class="seg" id="dynUnitSeg"><button data-v="cnt" class="${S.dynUnit!=='money'?'on':''}">Шт</button><button data-v="money" class="${S.dynUnit==='money'?'on':''}">₽</button></div></div>${dynFlow}</div>`+
@@ -850,6 +891,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
     const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
     const tu=e.target.closest('#trubaSeg button');if(tu){S.trubaUnit=tu.dataset.v;render();return}
     const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
+    const dr=e.target.closest('tr[data-dept]');if(dr){const k=dr.dataset.dept;S.deptOpen[k]=!S.deptOpen[k];render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   applyPreset('30');S.preset='30'; // дефолт: 30 дней (решение Ивана, как у РОПа)

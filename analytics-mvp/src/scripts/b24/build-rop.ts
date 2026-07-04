@@ -155,8 +155,8 @@ const DATA = {
   // Ссылки на таблицу плана: edit - открыть; csv (gviz, CORS-дружелюбный) - живое чтение кнопкой.
   planUrl: `https://docs.google.com/spreadsheets/d/${PLAN_ID}/edit`,
   planCsv: `https://docs.google.com/spreadsheets/d/${PLAN_ID}/gviz/tq?tqx=out:csv`,
-  // Домен портала Bitrix для кликабельных ID (не секрет; задаётся env B24_PORTAL).
-  b24Portal: (process.env.B24_PORTAL || "").replace(/\/+$/, ""),
+  // Домен портала Bitrix для кликабельных ID (не секрет; переопределяется env B24_PORTAL).
+  b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

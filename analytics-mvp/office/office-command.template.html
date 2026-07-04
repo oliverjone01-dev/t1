@@ -14,6 +14,9 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;color:#06121a;font-size:14px;box-shadow:0 0 18px rgba(34,211,238,.35)}
 .brand b{font-family:'Manrope';font-weight:800;font-size:14px}.brand span{display:block;font-size:10.5px;color:var(--ink-3)}
 .tb-spacer{flex:1}
+.nav{display:flex;gap:3px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:3px}
+.nav button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-weight:600;font-size:12.5px;padding:7px 13px;border-radius:7px;cursor:pointer;transition:.15s}
+.nav button.on{background:var(--accent-soft);color:var(--accent)}.nav button:hover:not(.on){color:var(--ink)}
 .controls{position:sticky;top:55px;z-index:50;padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
 select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:230px}
@@ -24,7 +27,7 @@ input[type=date]{background:var(--bg-elevated);border:1px solid var(--border);co
 .plan-inp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink);border-radius:8px;padding:5px 9px;font:inherit;font-size:12px;font-weight:700;width:64px;font-variant-numeric:tabular-nums}
 .plan-inp:focus{outline:none;border-color:var(--accent)}
 .wrap{max-width:1500px;margin:0 auto;padding:8px 24px 70px}
-.sec-div{display:flex;align-items:center;gap:14px;margin:26px 0 14px}
+.sec-div{display:flex;align-items:center;gap:14px;margin:26px 0 14px;scroll-margin-top:118px}
 .sec-div:first-child{margin-top:14px}
 .sec-num{width:30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Manrope';font-weight:800;font-size:14px;flex-shrink:0}
 .sec-div h2{font-family:'Manrope';font-weight:800;font-size:19px;letter-spacing:-.01em;white-space:nowrap}
@@ -73,15 +76,15 @@ input[type=date]{background:var(--bg-elevated);border:1px solid var(--border);co
 .gauge h4{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
 .gauge .gnote{font-size:10.5px;color:var(--ink-3);margin-top:2px}.gauge .gnote b{color:var(--ink-2)}
 </style></head><body>
-<div class="topbar"><div class="logo">GG</div><div class="brand"><b>GENGLASS · Офис-менеджер</b><span>личный дашборд квалификации лидов · воронка GG · <span id="fresh"></span></span></div>
-<div class="tb-spacer"></div><span class="ctl-lbl">Менеджер</span><select id="mgrSel"></select></div>
+<div class="topbar"><div class="logo">GG</div><div class="brand"><b>GENGLASS · Офис-менеджер</b><span>квалификация лидов · воронка GG · один экран на отдел · <span id="fresh"></span></span></div>
+<div class="tb-spacer"></div><div class="nav" id="nav"></div></div>
 <div class="controls">
   <span class="ctl-lbl">Период</span><div class="seg" id="presetSeg"><button data-p="1">Сегодня</button><button data-p="7">7 дн</button><button data-p="30" class="on">30 дн</button><button data-p="all">Всё</button></div>
   <input type="date" id="dFrom"><span style="color:var(--ink-4)">-</span><input type="date" id="dTo"><button id="applyCustom" class="seg" style="padding:6px 12px;color:var(--accent);cursor:pointer;border:1px solid var(--border);background:var(--bg-elevated);border-radius:8px;font:inherit;font-size:11.5px">OK</button>
   <span style="flex:1"></span>
   <span class="ctl-lbl">План/день: разбор</span><input type="number" min="1" class="plan-inp" id="planRz">
   <span class="ctl-lbl">квал-лиды</span><input type="number" min="1" class="plan-inp" id="planKv">
-  <span class="qm" data-tip="Личный план на РАБОЧИЙ день: сколько лидов разобрать (закрыть: квалифицировать или отсеять) и сколько квал-лидов передать (лид дошёл до «Создание сделки»). План на период = план/день × рабочих дней (пн-пт). Сохраняется в этом браузере.">?</span>
+  <span class="qm" data-tip="План отдела на РАБОЧИЙ день: сколько лидов разобрать (закрыть: квалифицировать или отсеять) и сколько квал-лидов передать (лид дошёл до «Создание сделки»). План на период = план/день × рабочих дней (пн-пт). Сохраняется в этом браузере.">?</span>
   <span id="periodLabel" style="font-size:11.5px;color:var(--ink-3)"></span>
 </div>
 <div class="wrap" id="root"></div>
@@ -110,15 +113,10 @@ const GM_M=new Set(['Виктория Преснякова','Денис Бело
 const GG=DATA.leads.filter(l=>l.dir!=='metal_gm'&&!GM_M.has(l.mgr));
 const OPEN=l=>!l.closed&&!l.conv&&!l.junk;
 const MIND=GG.reduce((m,l)=>l.created&&l.created<m?l.created:m,TODAY);
-/* менеджеры-разборщики: у кого есть закрытые лиды за последние 90 дней */
-const _cut90=iso(new Date(D(TODAY)-90*DAYMS));
-const _mc={};GG.forEach(l=>{if(l.closed&&l.closed>=_cut90)_mc[l.mgr]=(_mc[l.mgr]||0)+1});
-const MGRS=Object.entries(_mc).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).slice(0,20);
-if(!MGRS.includes('Анна Турченко')&&GG.some(l=>l.mgr==='Анна Турченко'))MGRS.unshift('Анна Турченко');
 /* ===== состояние ===== */
 const PLANLS='officePlanGG';
-let PLAN={rz:10,kv:3};try{PLAN=Object.assign(PLAN,JSON.parse(localStorage.getItem(PLANLS)||'{}'))}catch(e){}
-let S={mgr:MGRS.includes('Анна Турченко')?'Анна Турченко':(MGRS[0]||'—'),from:'',to:'',preset:'30'};
+let PLAN={rz:20,kv:8};try{PLAN=Object.assign(PLAN,JSON.parse(localStorage.getItem(PLANLS)||'{}'))}catch(e){}
+let S={from:'',to:'',preset:'30'};
 function setPeriod(p){const e=D(TODAY);if(p==='all'){S.from=MIND;S.to=TODAY}else{const s=new Date(e.getTime());s.setDate(s.getDate()-(+p-1));S.from=iso(s);S.to=TODAY}S.preset=p}
 const workdays=(a,b)=>{let n=0;for(let d=D(a);d<=D(b);d=new Date(d.getTime()+DAYMS)){const w=d.getDay();if(w!==0&&w!==6)n++}return Math.max(n,1)};
 /* ===== графика ===== */
@@ -160,24 +158,26 @@ function gauge(title,fact,plan,unit,noteTxt){const p=plan>0?fact/plan:null;const
 const trend=(cur,prev,inv)=>{if(prev==null||!isFinite(prev)||prev===0)return cur>0?`<span class="trend up">▲ новый</span>`:`<span class="trend flat">—</span>`;
   const dl=(cur-prev)/prev,up=dl>=0,good=inv?!up:up,cls=Math.abs(dl)<.005?'flat':good?'up':'dn';
   return `<span class="trend ${cls}">${Math.abs(dl)<.005?'→':up?'▲':'▼'} ${pct(Math.abs(dl))}</span>`};
-/* ===== метрики за окно ===== */
-function stats(mgr,a,b){const my=l=>mgr?l.mgr===mgr:true;
-  const inflow=GG.filter(l=>my(l)&&l.created&&l.created>=a&&l.created<=b);
-  const closed=GG.filter(l=>my(l)&&l.closed&&l.closed>=a&&l.closed<=b);
+/* ===== метрики отдела за окно ===== */
+function stats(a,b){
+  const inflow=GG.filter(l=>l.created&&l.created>=a&&l.created<=b);
+  const closed=GG.filter(l=>l.closed&&l.closed>=a&&l.closed<=b);
   const kval=closed.filter(l=>l.conv),junk=closed.filter(l=>l.junk);
   const speed=closed.map(l=>days(l.created,l.closed)).filter(x=>x!=null&&x>=0);
   return {inflow,closed,kval,junk,cr:closed.length?kval.length/closed.length:null,speed:med(speed)}}
 /* ===== рендер ===== */
 function render(){
-  const M=S.mgr,a=S.from,b=S.to;
-  const cur=stats(M,a,b);
+  const a=S.from,b=S.to;
+  const cur=stats(a,b);
   const span=Math.round((D(b)-D(a))/DAYMS)+1;
   const pa=iso(new Date(D(a)-span*DAYMS)),pb2=iso(new Date(D(b)-span*DAYMS));
-  const prev=stats(M,pa,pb2);
-  const dept=stats(null,a,b),deptPrev=stats(null,pa,pb2);
-  const tod=stats(M,TODAY,TODAY),yest=stats(M,YESTER,YESTER);
-  const deptTod=stats(null,TODAY,TODAY);
-  const waiting=GG.filter(l=>l.mgr===M&&OPEN(l)).sort((x,y)=>(x.created||'')<(y.created||'')?-1:1);
+  const prev=stats(pa,pb2);
+  const tod=stats(TODAY,TODAY),yest=stats(YESTER,YESTER);
+  /* очередь: рабочая (заявки младше 30 дн) и архивный хвост (старше - разбирать планово) */
+  const allOpen=GG.filter(OPEN).sort((x,y)=>(x.created||'')<(y.created||'')?-1:1);
+  const wCut=iso(new Date(D(TODAY)-30*DAYMS));
+  const waiting=allOpen.filter(l=>l.created&&l.created>=wCut);
+  const tailN=allOpen.length-waiting.length;
   const wAge=l=>Math.max(0,days(l.created,TODAY)||0);
   const oldest=waiting.length?wAge(waiting[0]):0;
   const wd=workdays(a,b);
@@ -185,32 +185,33 @@ function render(){
   const portal=DATA.b24Portal||'';
   const lid=l=>portal?`<a href="${portal}/crm/lead/details/${l.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${l.id}</a>`:l.id;
 
-  /* рекомендация дня */
+  /* рекомендация дня - по отделу */
+  const perDayIn=cur.inflow.length/Math.max(span,1);
   let reco,recoC;
-  if(waiting.length>15||oldest>2){reco=`⚡ День на скорость: в очереди <b>${fmt(waiting.length)}</b> заявок, старшая ждёт <b>${fmt(oldest)} дн</b> - сначала разгреби хвост, потом качество`;recoC='#F43F5E'}
-  else if(cur.cr!=null&&dept.cr!=null&&cur.cr<dept.cr*.85&&cur.closed.length>=10){reco=`🎯 День на качество: твоя конверсия в квал <b>${pct(cur.cr)}</b> ниже отдела (<b>${pct(dept.cr)}</b>) - копай глубже в каждую заявку`;recoC='#F59E0B'}
-  else if(deptTod.inflow.length>dept.inflow.length/Math.max(span,1)*1.3){reco=`🌊 Пиковый входящий поток сегодня (<b>${fmt(deptTod.inflow.length)}</b> заявок по отделу) - держи темп разбора, хвост не должен вырасти`;recoC='#22D3EE'}
+  if(waiting.length>25||oldest>2){reco=`⚡ День на скорость: в рабочей очереди <b>${fmt(waiting.length)}</b> заявок, старшая ждёт <b>${fmt(oldest)} дн</b> - сначала разгрести хвост, потом качество`;recoC='#F43F5E'}
+  else if(cur.cr!=null&&prev.cr!=null&&cur.cr<prev.cr*.85&&cur.closed.length>=15){reco=`🎯 День на качество: конверсия в квал <b>${pct(cur.cr)}</b> просела к прошлому периоду (<b>${pct(prev.cr)}</b>) - копать глубже в каждую заявку`;recoC='#F59E0B'}
+  else if(tod.inflow.length>perDayIn*1.3&&tod.inflow.length>=5){reco=`🌊 Пиковый входящий поток сегодня (<b>${fmt(tod.inflow.length)}</b> заявок при обычных ${d1(perDayIn)}/день) - держать темп разбора, хвост не должен вырасти`;recoC='#22D3EE'}
   else{reco=`✅ Штатный темп: очередь под контролем (<b>${fmt(waiting.length)}</b> ждут, старшая ${fmt(oldest)} дн) - можно работать на качество квалификации`;recoC='#10B981'}
   const recoBar=`<div class="reco" style="border-color:${recoC}55;background:${recoC}12;color:var(--ink)">${reco}</div>`;
 
   /* 1. Сегодня */
   const k1=[
-    ['Заявки сегодня',fmt(tod.inflow.length),'','#22D3EE','создано лидов на мне сегодня',trend(tod.inflow.length,yest.inflow.length)],
+    ['Заявки сегодня',fmt(tod.inflow.length),'','#22D3EE','входящие лиды GG за сегодня',trend(tod.inflow.length,yest.inflow.length)],
     ['Разобрано сегодня',fmt(tod.closed.length),'','#10B981',`план на день: ${fmt(PLAN.rz)}`,trend(tod.closed.length,yest.closed.length)],
     ['Квал-лидов сегодня',fmt(tod.kval.length),'','#A78BFA',`план на день: ${fmt(PLAN.kv)} · передано в ОП`,trend(tod.kval.length,yest.kval.length)],
-    ['Ждут разбора<span class="now-badge">сейчас</span>',fmt(waiting.length),'','#F59E0B',`старшая заявка: ${fmt(oldest)} дн`,''],
+    ['Ждут разбора<span class="now-badge">сейчас</span>',fmt(waiting.length),'','#F59E0B',`старшая заявка: ${fmt(oldest)} дн${tailN?` · архивный хвост: ${fmt(tailN)}`:''}`,''],
   ];
   const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')}</div>`;
   const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · сегодня',tod.closed.length,PLAN.rz,'лидов','')}${gauge('Квал-лиды · сегодня',tod.kval.length,PLAN.kv,'передано','')}${gauge('Разбор · период',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('Квал-лиды · период',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
 
   /* 2. Период KPI */
   const k2=[
-    ['Заявки за период',fmt(cur.inflow.length),'','#22D3EE','создано лидов на мне',trend(cur.inflow.length,prev.inflow.length)],
+    ['Заявки за период',fmt(cur.inflow.length),'','#22D3EE',`входящие GG · ${d1(perDayIn)}/день`,trend(cur.inflow.length,prev.inflow.length)],
     ['Разобрано',fmt(cur.closed.length),'','#10B981','закрыто: квал + отсев',trend(cur.closed.length,prev.closed.length)],
     ['Квал-лиды',fmt(cur.kval.length),'','#A78BFA','дошли до «Создание сделки»',trend(cur.kval.length,prev.kval.length)],
-    ['CR в квал',cur.cr!=null?pct(cur.cr):'—','','#22D3EE',`отдел GG: ${dept.cr!=null?pct(dept.cr):'—'}`,trend(cur.cr,prev.cr)],
+    ['CR в квал',cur.cr!=null?pct(cur.cr):'—','','#22D3EE',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr)],
     ['Отсев (брак)',cur.closed.length?pct(cur.junk.length/cur.closed.length):'—','','#F43F5E','СПАМ, дубли, некачественные, отказы',trend(cur.closed.length?cur.junk.length/cur.closed.length:null,prev.closed.length?prev.junk.length/prev.closed.length:null,true)],
-    ['Скорость разбора',cur.speed!=null?d1(cur.speed):'—',' дн','#F59E0B',`медиана «создан → закрыт» · отдел: ${dept.speed!=null?d1(dept.speed)+' дн':'—'}`,trend(cur.speed,prev.speed,true)],
+    ['Скорость разбора',cur.speed!=null?d1(cur.speed):'—',' дн','#F59E0B','медиана «создан → закрыт»',trend(cur.speed,prev.speed,true)],
   ];
 
   /* 3. Картина по этапам */
@@ -227,7 +228,7 @@ function render(){
   const keys=[];for(let d=D(a);d<=D(b);d=new Date(d.getTime()+DAYMS))keys.push(iso(d));
   const ki={};keys.forEach((k,i)=>ki[k]=i);
   const vIn=keys.map(()=>0),vCl=keys.map(()=>0),vKv=keys.map(()=>0);
-  GG.forEach(l=>{if(l.mgr!==M)return;
+  GG.forEach(l=>{
     if(l.created&&l.created in ki)vIn[ki[l.created]]++;
     if(l.closed&&l.closed in ki){vCl[ki[l.closed]]++;if(l.conv)vKv[ki[l.closed]]++}});
   const dyn=chart([
@@ -252,40 +253,44 @@ function render(){
   const wRows=waiting.slice(0,12).map(l=>`<tr><td style="text-align:center">${lid(l)}</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis">${esc(l.t||'-')}</td><td>${esc((l.source||'').replace(/\s*\(не является источником\)\s*/,''))}</td><td style="text-align:center">${esc(l.status)}</td><td style="text-align:center">${l.created}</td><td style="text-align:center;font-weight:800;color:${wAge(l)>2?'#F43F5E':wAge(l)>0?'#F59E0B':'#2E9E74'}">${fmt(wAge(l))} дн</td></tr>`).join('');
   const wTbl=waiting.length?`<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th style="text-align:center">ID</th><th>Заявка</th><th>Источник</th><th style="text-align:center">Статус</th><th style="text-align:center">Создан</th><th style="text-align:center">Ждёт</th></tr></thead><tbody>${wRows}</tbody></table>${waiting.length>12?`<div class="card-sub" style="margin-top:6px">показаны 12 старейших из ${fmt(waiting.length)}</div>`:''}</div>`:'';
 
-  /* 7. Ориентиры отдела */
-  const perDayDept=dept.inflow.length/Math.max(span,1);
-  const myShare=dept.closed.length?cur.closed.length/dept.closed.length:0;
-  const bench=(l,mine,dep,fmtF,invGood)=>{const better=mine!=null&&dep!=null?(invGood?mine<=dep:mine>=dep):null;
-    return `<tr><td style="font-weight:600">${l}</td><td style="text-align:center;font-weight:800;color:${better==null?'var(--ink-2)':better?'#10B981':'#F43F5E'}">${mine!=null?fmtF(mine):'—'}</td><td style="text-align:center;color:var(--ink-2)">${dep!=null?fmtF(dep):'—'}</td></tr>`};
-  const benchTbl=`<table class="tbl"><thead><tr><th>Показатель</th><th style="text-align:center">Я</th><th style="text-align:center">Отдел GG</th></tr></thead><tbody>
-    ${bench('CR в квал-лид',cur.cr,dept.cr,pct)}
-    ${bench('Скорость разбора, дн (медиана)',cur.speed,dept.speed,d1,true)}
-    ${bench('Разобрано лидов',cur.closed.length,dept.closed.length,fmt)}
-    ${bench('Квал-лидов передано',cur.kval.length,dept.kval.length,fmt)}
+  /* 7. Ориентиры: этот период против прошлого - прогноз темпа */
+  const perDayCl=cur.closed.length/Math.max(span,1),perDayInPrev=prev.inflow.length/Math.max(span,1);
+  const bench=(l,now,was,fmtF,invGood)=>{const better=now!=null&&was!=null?(invGood?now<=was:now>=was):null;
+    return `<tr><td style="font-weight:600">${l}</td><td style="text-align:center;font-weight:800;color:${better==null?'var(--ink-2)':better?'#10B981':'#F43F5E'}">${now!=null?fmtF(now):'—'}</td><td style="text-align:center;color:var(--ink-2)">${was!=null?fmtF(was):'—'}</td></tr>`};
+  const benchTbl=`<table class="tbl"><thead><tr><th>Показатель</th><th style="text-align:center">Этот период</th><th style="text-align:center">Прошлый период</th></tr></thead><tbody>
+    ${bench('Заявок в день (поток)',perDayIn,perDayInPrev,d1)}
+    ${bench('Разборов в день (темп)',perDayCl,prev.closed.length/Math.max(span,1),d1)}
+    ${bench('CR в квал-лид',cur.cr,prev.cr,pct)}
+    ${bench('Скорость разбора, дн (медиана)',cur.speed,prev.speed,d1,true)}
+    ${bench('Квал-лидов передано',cur.kval.length,prev.kval.length,fmt)}
   </tbody></table>
-  <div class="note" style="margin-top:12px;margin-bottom:0">Поток отдела: <b>${d1(perDayDept)} заявок/день</b> за период · твоя доля разборов: <b>${pct(myShare)}</b> · CR отдела за прошлый период: ${deptPrev.cr!=null?pct(deptPrev.cr):'—'}. Если поток растёт - ускоряйся (хвост не должен жить дольше суток); если поток спокойный - работай размеренно и вытаскивай CR выше отдела.</div>`;
+  <div class="note" style="margin-top:12px;margin-bottom:0">Как читать: поток <b>${d1(perDayIn)} заявок/день</b> против темпа разбора <b>${d1(perDayCl)}/день</b>. Поток выше темпа - очередь растёт, день на скорость; темп успевает - день на качество: вытаскивать CR и не плодить «некачественных» без прозвона.</div>`;
 
   document.getElementById('root').innerHTML=
-    `<div class="sec-div"><div class="sec-num">1</div><h2>Мой день</h2><div class="ln"></div><div class="hint">${dm(TODAY)} · сравнение с вчера · план/факт по разбору и передаче квал-лидов</div></div>`
+    `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Сегодня</h2><div class="ln"></div><div class="hint">${dm(TODAY)} · сравнение с вчера · план/факт по разбору и передаче квал-лидов</div></div>`
     +recoBar+kpiRow(k1,4)
     +`<div class="card"><div class="card-h"><div><div class="card-title">План / факт ${info('Два главных показателя офис-менеджера: РАЗБОР (закрыть лид: квалифицировать или отсеять) и ПЕРЕДАЧА КВАЛ-ЛИДОВ (лид дошёл до «Создание сделки» - из него рождается сделка ОП). План на день задаётся сверху, план периода = план/день × рабочих дней. Зелёная шкала = план сделан.')}</div><div class="card-sub">сегодня и накопленно за период · рабочих дней в периоде: ${wd}</div></div></div>${gaugesDay}</div>`
-    +`<div class="sec-div"><div class="sec-num">2</div><h2>Мой период</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
+    +`<div class="sec-div" id="sec2"><div class="sec-num">2</div><h2>Период</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
     +kpiRow(k2,6)
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Верхние две полосы - поток за период: сколько заявок пришло и сколько закрыто. Ветки ↳ - исходы разбора (% от разобранных). Оранжевые внизу - очередь ПРЯМО СЕЙЧАС по статусам: это не за период, а моментальный снимок.')}</div><div class="card-sub">поток за период → исходы разбора · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`
     +`<div class="card"><div class="card-h"><div><div class="card-title">Динамика по дням ${info('Голубые столбики - входящие заявки по дате создания. Зелёная линия - разобрано (закрыто) в этот день, фиолетовая - из них квал-лиды. Наведи на день - все цифры и CR дня.')}</div><div class="card-sub">заявки · разобрано · квал-лиды по дням</div></div></div>${dyn}</div></div>`
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Откуда заявки</div><div class="card-sub">источники входящих за период</div></div></div>${dSrc}</div>`
     +`<div class="card"><div class="card-h"><div><div class="card-title">Исходы разбора</div><div class="card-sub">куда ушли закрытые за период лиды</div></div></div>${dOut}</div></div>`
-    +`<div class="sec-div"><div class="sec-num">3</div><h2>Очередь сейчас</h2><div class="ln"></div><div class="hint">что разобрать первым - старые заявки сверху</div></div>`
-    +`<div class="card"><div class="card-h"><div><div class="card-title">Ждут разбора: ${fmt(waiting.length)} ${info('Открытые лиды на мне прямо сейчас (Новые заявки / Разобрать / В работе). Возрастная шкала: зелёное - сегодняшние, красное - ждут больше недели. Правило: заявка не должна ночевать дважды.')}</div><div class="card-sub">свежая заявка конвертируется лучше всего в первые сутки</div></div></div>${ageBar}${wTbl}</div>`
-    +`<div class="sec-div"><div class="sec-num">4</div><h2>Я и отдел</h2><div class="ln"></div><div class="hint">ориентиры: где ускориться, а где работать на качество</div></div>`
-    +`<div class="card"><div class="card-h"><div><div class="card-title">Мои показатели против отдела GG ${info('Сравнение с отделом за тот же период: зелёное - ты не хуже отдела, красное - есть куда расти. CR ниже отдела при спокойной очереди = день на качество. Очередь растёт при потоке выше среднего = день на скорость.')}</div><div class="card-sub">отдел GG = все разборщики воронки лидов GG за этот же период</div></div></div>${benchTbl}</div>`
-    +`<div class="foot">GENGROUP · личный дашборд офис-менеджера · данные Bitrix24, снимок 2 раза в день</div>`;
+    +`<div class="sec-div" id="sec3"><div class="sec-num">3</div><h2>Очередь сейчас</h2><div class="ln"></div><div class="hint">что разобрать первым - старые заявки сверху</div></div>`
+    +`<div class="card"><div class="card-h"><div><div class="card-title">Ждут разбора: ${fmt(waiting.length)} ${info('Открытые лиды GG прямо сейчас (Новые заявки / Разобрать / В работе), созданные за последние 30 дней - рабочая очередь. Возрастная шкала: зелёное - сегодняшние, красное - ждут больше недели. Правило: заявка не должна ночевать дважды. Заявки старше 30 дней вынесены в архивный хвост - их разбирают планово, отдельно от свежего потока.')}</div><div class="card-sub">свежая заявка конвертируется лучше всего в первые сутки${tailN?` · архивный хвост: ${fmt(tailN)} заявок старше 30 дн - разобрать планово`:''}</div></div></div>${ageBar}${wTbl}</div>`
+    +`<div class="sec-div" id="sec4"><div class="sec-num">4</div><h2>Ориентиры</h2><div class="ln"></div><div class="hint">поток против темпа: где ускориться, а где работать на качество</div></div>`
+    +`<div class="card"><div class="card-h"><div><div class="card-title">Этот период против прошлого ${info('Зелёное - показатель не хуже прошлого равного периода, красное - просел. Главная пара: поток заявок/день против темпа разборов/день. Поток выше темпа = очередь копится, нужен темп. Темп успевает = можно вкладываться в качество квалификации.')}</div><div class="card-sub">равные окна: ${dm(a)} - ${dm(b)} против ${dm(pa)} - ${dm(pb2)}</div></div></div>${benchTbl}</div>`
+    +`<div class="foot">GENGROUP · дашборд офис-менеджера GG · данные Bitrix24, снимок 2 раза в день</div>`;
 }
 /* ===== обвязка ===== */
 function wire(){
-  const sel=document.getElementById('mgrSel');
-  sel.innerHTML=MGRS.map(m=>`<option${m===S.mgr?' selected':''}>${esc(m)}</option>`).join('');
-  sel.onchange=()=>{S.mgr=sel.value;render()};
+  /* меню секций как у РОПа: клик - плавный скролл к разделу */
+  const SECS=['Сегодня','Период','Очередь','Ориентиры'];
+  const nav=document.getElementById('nav');
+  nav.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
+  nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    nav.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    const t=document.getElementById('sec'+b.dataset.i);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
   document.getElementById('presetSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
     setPeriod(b.dataset.p);syncDates();render()});

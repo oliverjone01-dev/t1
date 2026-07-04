@@ -183,7 +183,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
 const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},mgrOpen:{},
-  mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false}};
+  mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false},dSort:{k:'qM',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
   ?`<th data-tbl="${tbl}" data-sk="${k}" style="cursor:pointer;user-select:none${k===st.k?';color:#22D3EE':''}">${l}${k===st.k?(st.a?' ▲':' ▼'):''}</th>`
@@ -464,9 +464,13 @@ function render(){
     (PP0||[]).filter(d=>d.open&&/EXECUTING/.test(d.stage)).forEach(d=>{const e=ent(d.mgr,depOf(d.mgr,d.id));e.inN++;e.inM+=d.budget||0});
     // потенциал в расчётах (сейчас)
     QT.forEach(d=>{const e=ent(d.mgr,depOf(d.mgr,null));e.qN++;e.qM+=d.budget||0});
-    const deps=['GG','GM'].map(dep=>{const ms=Object.values(M).filter(m=>m.dep===dep);
-      const agg={dep,tD:sum(ms,m=>m.tD),tM:sum(ms,m=>m.tM),tPos:sum(ms,m=>m.tPos),tPcs:sum(ms,m=>m.tPcs),inN:sum(ms,m=>m.inN),inM:sum(ms,m=>m.inM),qN:sum(ms,m=>m.qN),qM:sum(ms,m=>m.qM),ms:ms.sort((a,b)=>(b.qM+b.inM)-(a.qM+a.inM))};
-      return agg}).filter(a=>a.tD||a.inN||a.qN);
+    // сортировка по клику на заголовок: применяется и к отделам, и к менеджерам внутри отдела
+    const DS=S.dSort||{k:'qM',a:false};
+    const _gv={nm:r=>r.mgr||r.dep||'',tD:r=>r.tD,tM:r=>r.tM,tPos:r=>r.tPos,tPcs:r=>r.tPcs,inM:r=>r.inM,qM:r=>r.qM}[DS.k]||(r=>r.qM);
+    const srt=arr=>arr.slice().sort((a,b)=>{const x=_gv(a),y=_gv(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y||0)-(x||0));return DS.a?-d:d});
+    const deps=srt(['GG','GM'].map(dep=>{const ms=Object.values(M).filter(m=>m.dep===dep);
+      const agg={dep,tD:sum(ms,m=>m.tD),tM:sum(ms,m=>m.tM),tPos:sum(ms,m=>m.tPos),tPcs:sum(ms,m=>m.tPcs),inN:sum(ms,m=>m.inN),inM:sum(ms,m=>m.inM),qN:sum(ms,m=>m.qN),qM:sum(ms,m=>m.qM),ms:srt(ms)};
+      return agg}).filter(a=>a.tD||a.inN||a.qN));
     if(!deps.length)return '';
     // прозрачные гистограммы в ячейках: объёмы видно с одного взгляда; отделы и менеджеры масштабируются каждый в своей группе
     const allM=Object.values(M);
@@ -497,11 +501,12 @@ function render(){
         const idl=portal?`<a href="${portal}/crm/deal/details/${d.id}/" target="_blank" rel="noopener" style="color:#3DAEC2" onclick="event.stopPropagation()">${d.id}</a>`:d.id;
         return `<tr style="font-size:11px"><td style="padding-left:44px">${idl}</td><td>${esc(d.stage||'-')}</td><td style="text-align:right">${fmtK(d.budget||0)} ₽</td><td style="text-align:center;color:${age>30?'#CC5867':age>14?'#C2873C':'var(--ink3)'}">${age!=null?age+' дн в просчёте':'—'}</td></tr>`}).join('');
       return `<tr><td colspan="7" style="padding:0"><table class="tbl" style="margin:2px 0 8px"><tbody>${rowsQ}</tbody></table>${list.length>40?`<div class="card-s" style="padding-left:44px;margin-bottom:6px">показаны 40 из ${fmt(list.length)} (по сумме)</div>`:''}</td></tr>`};
+    const dth=(k,l,left)=>`<th data-dsk="${k}" style="${left?'':'text-align:center;'}cursor:pointer;user-select:none${DS.k===k?';color:#22D3EE':''}">${l}${DS.k===k?(DS.a?' ▲':' ▼'):''}</th>`;
     let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])a.ms.forEach(m=>{body+=row(m,false);if(S.mgrOpen&&S.mgrOpen[a.dep+'|'+m.mgr])body+=mgrDetail(m)})});
     const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
     const foot=`<tr style="border-top:2px solid var(--border2)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
     return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал</div><div class="card-s">точка совещания ОП и цеха: клик по отделу разворачивает менеджеров, клик по менеджеру - его сделки в просчёте (что и сколько лежит) · «передано» = за период (когорта воронки) · пакет и потенциал = снимок сейчас · бейдж «не передаёт» = потенциал/пакет есть, передач в периоде нет</div></div></div>
-      <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Отдел / менеджер</th><th style="text-align:center">Передано сделок</th><th style="text-align:center">₽ передано</th><th style="text-align:center">Изделий</th><th style="text-align:center">Штук</th><th style="text-align:center">Пакет · сейчас</th><th style="text-align:center">Потенциал · сейчас</th></tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
+      <div style="overflow-x:auto"><table class="tbl"><thead><tr>${dth('nm','Отдел / менеджер',true)}${dth('tD','Передано сделок')}${dth('tM','₽ передано')}${dth('tPos','Изделий')}${dth('tPcs','Штук')}${dth('inM','Пакет · сейчас')}${dth('qM','Потенциал · сейчас')}</tr></thead><tbody>${body}${foot}</tbody></table></div></div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: ПЕРЕДАЧИ И ПОТЕНЦИАЛ (как в дашборде РОПа) =====
@@ -645,7 +650,7 @@ function render(){
     const strip=`<div style="display:flex;gap:2px;margin:0 12px 10px 44px">`+diag.map((d,i)=>`<div data-tip="${attr(`<div class='tl'>Диагноз · ${blabel(keys[i])}</div><div class='tr'><span>Вход, шт</span><span>${fmt(inP[i])}</span></div><div class='tr'><span>Мощность, шт/${gl}</span><span>${d1(cap)}</span></div><div class='tr'><span>Выпуск, шт</span><span>${fmt(outP[i])}</span></div><div class='tr'><span>Незавершёнка на конец, шт</span><span>${wipP[i]!=null?fmt(wipP[i]):'—'}</span></div><div class='tr'><span>Срок когорты запуска</span><span>${cycB[i]!=null?d1(cycB[i])+' дн':'ещё не готовы'}</span></div><div class='tn'>${d.t}</div>`)}" style="flex:1;height:11px;border-radius:3px;background:${d.c};cursor:help"></div>`).join('')+`</div>`;
     const botWip=chartSVG([{name:'Незавершёнка на конец периода, штук',c:'#F59E0B',vals:wipP,area:true}],keys,{fmtY:v=>fmt(v),h:150});
     const botCyc=chartSVG([{name:'Срок когорты запуска, дн (готовые)',c:'#A78BFA',vals:cycB,join:true}],keys,{fmtY:v=>d1(v),h:150});
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки</div><div class="card-s">вход штук против мощности (пунктир) · полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь», красное = педаль «сроки» · наведи на сегмент - все цифры периода</div></div></div>${top}${strip}<div class="grid2"><div>${botWip}</div><div>${botCyc}</div></div><div class="note">Когда вход штук выше мощности, у цеха две педали: <b style="color:#F59E0B">держать темп на заказ</b> - тогда копится незавершёнка и растёт «на подходе», или <b style="color:#F43F5E">растягивать сроки</b> - тогда двигаются обещания клиентам и сделки зависают в «В производстве». Диагноз считается по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки».</div></div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки</div><div class="card-s">вход штук против мощности (пунктир) · полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь», красное = педаль «сроки» · наведи на сегмент - все цифры периода</div></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:center"><div>${top}${strip}</div><div>${botWip}${botCyc}</div></div><div class="note">Когда вход штук выше мощности, у цеха две педали: <b style="color:#F59E0B">держать темп на заказ</b> - тогда копится незавершёнка и растёт «на подходе», или <b style="color:#F43F5E">растягивать сроки</b> - тогда двигаются обещания клиентам и сделки зависают в «В производстве». Диагноз считается по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки».</div></div>`;
   })();
 
   // ===== ОЦЕНКА УЧАСТКОВ: загрузка сейчас × пропускная способность (из истории) × разгрузка =====
@@ -958,6 +963,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}else{const n=+v;cons
     const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
     const dr=e.target.closest('tr[data-dept]');if(dr){const k=dr.dataset.dept;S.deptOpen[k]=!S.deptOpen[k];render();return}
     const mr=e.target.closest('tr[data-mgr]');if(mr&&!e.target.closest('a')){const k=mr.dataset.mgr;S.mgrOpen[k]=!S.mgrOpen[k];render();return}
+    const dh=e.target.closest('th[data-dsk]');if(dh){const st=S.dSort;if(st.k===dh.dataset.dsk)st.a=!st.a;else{st.k=dh.dataset.dsk;st.a=false}render();return}
     const th=e.target.closest('th[data-sk]');if(th){const st=th.dataset.tbl==='mgr'?S.mgrSort:th.dataset.tbl==='sm'?S.smSort:S.conSort;
       if(st.k===th.dataset.sk)st.a=!st.a;else{st.k=th.dataset.sk;st.a=false}render()}});
   applyPreset('30');S.preset='30'; // дефолт: 30 дней (решение Ивана, как у РОПа)

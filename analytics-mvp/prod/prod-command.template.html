@@ -262,14 +262,18 @@ function chartSVG(series,keys,opt){
   });
   // ховер: вертикальный пунктир + подсказка по бакету
   const xhair=`<line class="xhair" x1="0" y1="${pt}" x2="0" y2="${h-pb}" stroke="var(--ink2)" stroke-width="1" stroke-dasharray="4 5" opacity="0" pointer-events="none"/>`;
-  const bw2=(w-pl-pr)/(n-1||1);let cols='';
+  const bw2=(w-pl-pr)/(n-1||1);let cols='',shade='';
   for(let i=0;i<n;i++){
     const rows=series.filter(s=>s.name&&s.vals[i]!=null).map(s=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.c};margin-right:6px'></i>${esc(s.name)}</span><span>${opt.money?fmt(s.vals[i])+' ₽':(opt.fmtY?opt.fmtY(s.vals[i]):fmt(s.vals[i]))}</span></div>`).join('');
-    const tipHtml=attr(`<div class='tl'>${blabel(keys[i])}</div>`+rows);
+    // пустой бакет: ни в одной серии нет значения - подкрашиваем прозрачным и объясняем в подсказке
+    const empty=series.every(sr=>!sr.name||sr.vals[i]==null||sr.vals[i]===0);
+    const isFuture=keys[i]>NOWS;
     const x0=Math.max(pl,X(i)-bw2/2),ww=Math.min(bw2,w-pr-x0);
+    if(empty)shade+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${ww.toFixed(1)}" height="${h-pb-pt}" fill="rgba(148,163,184,.06)"/>`;
+    const tipHtml=attr(`<div class='tl'>${blabel(keys[i])}</div>`+(empty?`<div class='tn'>${isFuture?'период ещё не наступил - данных пока нет':'событий в этом периоде не было (запусков/выпусков нет)'}</div>`:rows));
     cols+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${ww.toFixed(1)}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tipHtml}"/>`}
   const leg=series.filter(s=>s.name).map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('');
-  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
+  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${shade}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
 }
 // бублик: сегменты с подсказками, итог в центре (стиль РОП)
 function donut(data,total,pal,centerLabel){

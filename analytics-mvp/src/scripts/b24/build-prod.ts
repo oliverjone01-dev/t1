@@ -14,6 +14,7 @@ const tpl = readFileSync(TPL, "utf-8");
 
 const DATA = {
   generatedAt: prod.generated_at || null,
+  bakedAt: new Date().toISOString(), // штамп сборки: отличать свежую версию от кэша
   b24Portal: PORTAL,
   entityTypeId: prod.entityTypeId,
   refs: prod.refs || {},

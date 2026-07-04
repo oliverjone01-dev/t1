@@ -924,7 +924,8 @@ function render(){
   const fr=document.getElementById('fresh');
   if(DATA.generatedAt){const g=new Date(DATA.generatedAt),m=new Date(g.getTime()+3*36e5),p=n=>String(n).padStart(2,'0');
     const ageH=(new Date()-g)/36e5,col=ageH>48?'#F43F5E':ageH>30?'#F59E0B':'#2E9E74';
-    fr.textContent='данные на '+p(m.getUTCDate())+'.'+p(m.getUTCMonth()+1)+' '+p(m.getUTCHours())+':'+p(m.getUTCMinutes())+' МСК';fr.style.color=col}
+    fr.textContent='данные на '+p(m.getUTCDate())+'.'+p(m.getUTCMonth()+1)+' '+p(m.getUTCHours())+':'+p(m.getUTCMinutes())+' МСК';fr.style.color=col;
+    if(DATA.bakedAt){const bkd=new Date(new Date(DATA.bakedAt).getTime()+3*36e5);fr.textContent+=' · сборка '+p(bkd.getUTCDate())+'.'+p(bkd.getUTCMonth()+1)+' '+p(bkd.getUTCHours())+':'+p(bkd.getUTCMinutes())}}
 }
 
 // ===== подсказки (как в РОП): плавающий тултип + вертикальный пунктир на графиках =====

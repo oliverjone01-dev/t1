@@ -222,7 +222,7 @@
         <p class="sc-sense">Дизайнер считывает GENGLASS как быстрый и предсказуемый инструмент для типовых позиций проекта - без сюрпризов.</p>
         <div class="titles"><span class="cap">Титры на экране</span>
           <span class="ttl-chip">GENGLASS: серийные модели</span>
-          <span class="ttl-chip">Сроки 5-30 дней, склад топ-позиций</span>
+          <span class="ttl-chip">Сроки 5-30 дней, ходовые модели на складе</span>
           <span class="ttl-chip">Размер и цвет RAL/NCS в рамках каталога</span>
         </div>
         <div class="dirgrid">
@@ -327,7 +327,7 @@
             <div class="srcs"><span class="src-chip fab">Цех · ОТК</span><span class="src-chip life">Фото проектов</span><span class="src-chip">Доставка · монтаж</span><span class="src-chip gfx">Графика</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
-            <p>Темп возвращается к среднему, уверенному. Замер: цифра допуска «±0.1 мм» появляется у губок штангенциркуля технической выноской-линией. Проекты - галерея: 4-5 фото горизонтальным потоком или сеткой 2×3, держится 1.5 сек (доказательная масса). Белые перчатки - крупно на 1 сек. Переходы - чистые cut'ы и один wipe.</p>
+            <p>Темп возвращается к среднему, уверенному. Замер: у губок штангенциркуля появляется техническая выноска-линия без числа - жест точности без спорных заявлений (численный допуск на экран не выводим, пока производство не подтвердит его ОТК-документом). Проекты - галерея: 4-5 фото горизонтальным потоком или сеткой 2×3, держится 1.5 сек (доказательная масса). Белые перчатки - крупно на 1 сек. Переходы - чистые cut'ы и один wipe.</p>
           </div>
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Объединяющий нейтраль 4500K: ни в синь, ни в золото - это GENGROUP-слой. Руки и перчатки - естественный тон кожи. Фото проектов привести к единому грейду, чтобы разнобой съёмок не рвал блок. Чисто, честно, документально.</p>
@@ -347,7 +347,7 @@
         </div>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Полностью графика на графитовом фоне (опционально - финальный макро-блик по стали). Формула: GENGROUP над чертой, под ней два столбца - GENGLASS (серия, сроки, RAL) в стальном и VALONTI (камень, авторское) в золоте. CTA: контакт и QR для дизайнеров - «станьте партнёром / запросите sample-box».</p>
+            <p>Полностью графика на графитовом фоне (опционально - финальный макро-блик по стали). Формула: GENGROUP над чертой, под ней два столбца - GENGLASS (серия, сроки, RAL) в стальном и VALONTI (камень, авторское) в золоте. CTA-блок: титр «Запросите sample-box в шоуруме», QR ведёт на valonti.ru (партнёрская программа для дизайнеров), подпись мелким кеглем: genglass.ru · valonti.ru · шоурум GENGROUP, Домодедово. Финальный URL и UTM-метку QR подтверждает GENGROUP на сдаче чернового монтажа. Дикторского голоса в ролике нет.</p>
             <div class="srcs"><span class="src-chip gfx">Графика</span><span class="src-chip mac">Макро (опция)</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
@@ -363,6 +363,37 @@
   </section>
 
   <section>
+    <div class="sec-head"><h2 class="sec-title">Инвентарь исходников <span class="em">asset-matrix</span></h2><p>Сверяется на кик-оффе с моушен-дизайнером: статус каждого шота подтверждается по его библиотеке подсъёмок до начала монтажа. Для рискованных зависимостей указан fallback - ролик собирается при любом статусе.</p></div>
+    <div class="tablewrap" style="overflow-x:auto;border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow)">
+      <table style="width:100%;border-collapse:collapse;min-width:760px;background:var(--s1);font-size:13px">
+        <thead><tr>
+          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Сцена</th>
+          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Шот</th>
+          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Статус</th>
+          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Fallback, если шота нет</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">01</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Искра лазерной резки, high-speed 300-400 fps</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">проверить в библиотеке</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">обычная съёмка 50-100 fps + AI-интерполяция замедления, либо макро без slow-mo и планы короче</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">01, 06</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Макро камня: полировка кромки, прожилка Nero Marquina, травертин, оникс на просвет</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">образцы из sample-box, стол, один направленный свет - съёмка за полдня; основа V-блока, стоком не заменять</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">02, 04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Цех: проезд, лазер, сварка, порошковая покраска, сборка</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (подсъёмки цеха)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">цельный проезд собирается из 3 планов единого направления (см. сцену 02)</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">03, 04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Склад серийных моделей, проезд вдоль стеллажей</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">проверить в библиотеке</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">статичные кадры склада + параллакс 2.5D в монтаже</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">03</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Изделие из камня на тёмном подиуме, медленный orbit</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в шоуруме</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">3D-рендер изделия (рендеры есть, см. сцену 07)</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Веер образцов RAL в руках, пролистывание</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">простая предметка: стол, руки, веер - 30 минут съёмки</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">05</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Офис: руки, монитор с проектом, отправка КП</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в офисе</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">полдня съёмки; интерфейс сметы можно целиком собрать графикой поверх нейтрального кадра</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">06</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Лайфстайл: вечер, консоль Nero Marquina, бокал, книга, рука</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">постановка в шоуруме</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">вечерняя постановочная съёмка в шоуруме (изделие + реквизит + лампа), либо фотореалистичный 3D-рендер интерьера</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">07</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Sample-box: руки открывают кейс, выкладка образцов</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">совместить со съёмкой макро камня (тот же стол и свет)</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">07</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">3D-визуализация изделия в интерьере (экран/планшет)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (рендеры производства)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">рендеры передаёт GENGROUP при кик-оффе</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Штангенциркуль на кромке, руки мастера</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в цехе</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">10 минут съёмки на участке ОТК</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Фото завершённых проектов (4-5 интерьеров)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (портфолио проектов)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">фотографии проектов с genglass.ru и архива, привести к единому грейду</td></tr>
+          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Доставка и белый монтаж: упаковка, переноска, установка</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (подсъёмки доставки)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">снять на ближайшем монтаже, 1 выезд</td></tr>
+          <tr><td style="padding:10px 14px;font-weight:700">09</td><td style="padding:10px 14px">Финальная графика формулы + QR</td><td style="padding:10px 14px;color:var(--drf-ink);font-weight:700">графика</td><td style="padding:10px 14px;color:var(--ink2)">собирает моушен-дизайнер по граф-киту ниже</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote"><b>Кик-офф до монтажа:</b> моушен-дизайнер сверяет статусы по своей библиотеке, GENGROUP передаёт архив: вектор-локапы GENGROUP / GENGLASS / VALONTI (SVG или AI, не перерисовывать), 3D-рендеры, фото проектов. Съёмочные дозаказы группируются в 2 смены: предметная (макро камня + RAL + sample-box, один стол и свет) и объектная (офис + ОТК + шоурум-постановка).</div>
+  </section>
+
+  <section>
     <div class="sec-head"><h2 class="sec-title">Стайл-гайд <span class="em">ролика</span></h2></div>
     <div class="style2">
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></span>Темп и ритм</h3>
@@ -372,7 +403,12 @@
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h6l2-7 4 14 2-7h2"/></svg></span>Переходы</h3>
         <p><b>G-блок:</b> жёсткие cut'ы в бит, match-cut, мультипликация в сетку. <b>V-блок:</b> только slow dissolve и match на фактуре, паузы-затемнения. <b>GENGROUP:</b> чистые cut'ы, tracking-шоты, AR-разметка, привязанная к пространству. Wipe - для сплит-скрина сцены 03. Запрещены: glow-вспышки, вращающиеся 3D-кубы, whip-pan ради whip-pan.</p></div>
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>Музыка и звук</h3>
-        <p>Единый трек с тремя динамиками. Основа - минималистичный электронно-акустический бит с металлической перкуссией (звук цеха ритмизован). GENGLASS - плотный ритм, отчётливый пульс. VALONTI - трек разрежается, атмосфера и фортепианная нота, паузы. Финал собирается обратно. Диегетический звук (искра, полировка, щелчок штангенциркуля) вплетён в микс. Без эпик-трейлерных брассов и лаунж-клише. Ролик обязан работать и без звука.</p></div>
+        <p>Единый трек с тремя динамиками. Основа - минималистичный электронно-акустический бит с металлической перкуссией (звук цеха ритмизован), <b>90-100 BPM</b>, длительность от 100 сек. GENGLASS - плотный ритм, отчётливый пульс. VALONTI - трек разрежается, атмосфера и фортепианная нота, паузы. Финал собирается обратно. Диегетический звук (искра, полировка, щелчок штангенциркуля) вплетён в микс. <b>Источник и лицензия:</b> сток-библиотека с коммерческой лицензией (Artlist или Epidemic Sound), покрытие - публичный показ в шоуруме; кандидат-трек моушен-дизайнер присылает на согласование GENGROUP до чистового монтажа. Без эпик-трейлерных брассов и лаунж-клише. Ролик обязан работать и без звука.</p></div>
+      <div class="stcard" style="grid-column:1/-1"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></span>Граф-кит: цвета и шрифтовая спека</h3>
+        <p><b>Цвета графики и титров</b> (HEX для оверлеев; цветовые температуры в сценах относятся к грейду света, не к графике):
+        фон-графит <b>#14171A</b> · титры GENGROUP нейтраль <b>#F3F2EF</b> · сталь GENGLASS основная <b>#A9C4DD</b>, глубокая (подчёркивания, линии) <b>#41607E</b> · золото VALONTI основное <b>#F0C062</b>, глубокое <b>#C98A26</b> · серый импорта в сравнении сцены 07 <b>#6F6F6F</b> (намеренно обесцвечен). Другие цвета в графику не вводить.</p>
+        <p><b>Типографика Inter:</b> числа - Bold 700; подписи - Regular 400, кегль 1:3 от числа; титры VALONTI - Light 300 с трекингом +8...+12%. Заголовочные титры до 9 слов, одна мысль на титр. Минимальный кегль с учётом просмотра с 4-5 метров: не мельче 28 px в мастере 1080p (56 px в UHD).</p>
+        <p><b>Лого:</b> вектор-локапы GENGROUP / GENGLASS / VALONTI передаёт GENGROUP архивом на кик-оффе (SVG или AI). Не перерисовывать, не менять пропорции, появление лого - только приёмом «блик по стали» из сцен 01 и 09.</p></div>
       <div class="stcard dont" style="grid-column:1/-1"><h3><span class="di" style="background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>Запрещено (anti-median)</h3>
         <ul>
           <li>Стоковые сцены «современная гостиная» и люди-модели в полный рост в лайфстайле - только руки и фрагменты.</li>
@@ -394,7 +430,7 @@
       <div class="tk"><div class="n">ProRes 422 HQ + H.264</div><div class="l">мастер + прокси для шоурум-плеера</div></div>
       <div class="tk"><div class="n">Inter</div><div class="l">единственный шрифт титров</div></div>
       <div class="tk"><div class="n">Титры в safe-zone</div><div class="l">5% от краёв, читаемость с 4-5 метров</div></div>
-      <div class="tk"><div class="n">Без субтитров</div><div class="l">титры сцен несут полный смысл без звука</div></div>
+      <div class="tk"><div class="n">Немой ролик</div><div class="l">без диктора и субтитров: титры сцен несут полный смысл</div></div>
       <div class="tk"><div class="n">Финал: QR + контакт</div><div class="l">статично не менее 3 сек</div></div>
     </div>
     <div class="footnote"><b>Сдача:</b> черновой монтаж по сценам 01-09 на согласование, затем чистовой с грейдингом и звуком. Все цифры в титрах - только из этого ТЗ, ничего не добавлять и не округлять. Формулировки титров менять нельзя без согласования с GENGROUP (позиционирование выверено: у GENGLASS нет слова «кастом», у VALONTI нет слова «эксклюзив»).</div>

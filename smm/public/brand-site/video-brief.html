@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <meta name="robots" content="noindex">
-<title>ТЗ и раскадровка ролика · GENGROUP для дизайнеров</title>
+<title>ТЗ и раскадровка ролика · GEN-GROUP для дизайнеров</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
 <link rel="stylesheet" href="brand-site.css">
 <style>
-  /* ===== раскадровка: страница-ТЗ для моушен-дизайнера ===== */
+  /* ===== страница-ТЗ для моушен-дизайнера ===== */
   .vb-hero{padding:52px 0 26px;border:none}
   .vb-hero .ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:700}
   .vb-hero h1{font-size:clamp(28px,4.6vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-top:8px}
@@ -54,14 +54,58 @@
   .scene.mix .sc-brand{color:var(--pub-ink);background:var(--pub-soft)}
   .sc-title{width:100%;font-size:19px;font-weight:800;letter-spacing:-.01em;margin-top:2px}
   .sc-sense{padding:6px 22px 0;font-size:14px;color:var(--ink2);line-height:1.55;max-width:78ch}
-  .sc-sense b{color:var(--ink)}
-  /* титры на экране */
-  .titles{display:flex;flex-direction:column;gap:7px;padding:14px 22px 2px}
+  /* ===== схематичные кадры 16:9 ===== */
+  .frames{display:flex;gap:14px;overflow-x:auto;padding:16px 22px 8px;scrollbar-width:thin}
+  .fr{flex:0 0 320px;max-width:320px}
+  .frame{aspect-ratio:16/9;background:#14171A;border-radius:10px;position:relative;overflow:hidden;border:1px solid #33363D;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .fcap{font-size:11.5px;color:var(--ink3);margin-top:7px;line-height:1.5}
+  .fcap b{color:var(--ink2)}
+  /* зона футажа: штриховка */
+  .fz{position:absolute;background:repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 7px,transparent 7px 14px);display:grid;place-items:center;border:1px dashed rgba(243,242,239,.22);border-radius:4px}
+  .fz span{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:rgba(243,242,239,.55);font-weight:700;text-align:center;padding:2px 6px;line-height:1.5}
+  .fz.warm{background:repeating-linear-gradient(45deg,rgba(240,192,98,.07) 0 7px,rgba(240,192,98,.015) 7px 14px);border-color:rgba(240,192,98,.3)}
+  .fz.cool{background:repeating-linear-gradient(45deg,rgba(169,196,221,.07) 0 7px,rgba(169,196,221,.015) 7px 14px);border-color:rgba(169,196,221,.3)}
+  /* титры внутри кадра */
+  .ftt{position:absolute;color:#F3F2EF;font-weight:800;line-height:1.2;letter-spacing:-.01em;z-index:3}
+  .ftt.sub{font-weight:600;color:rgba(243,242,239,.75)}
+  .ftt.steel{color:#A9C4DD}.ftt.gold{color:#F0C062}
+  .ftt.vlight{font-weight:300;letter-spacing:.09em;color:#F0C062}
+  .ftt .u{border-bottom:2px solid #41607E;padding-bottom:1px}
+  .fchips{position:absolute;display:flex;gap:4px;flex-wrap:wrap;z-index:3}
+  .fchip{font-size:7.5px;font-weight:700;letter-spacing:.04em;color:#F3F2EF;background:rgba(243,242,239,.12);border:1px solid rgba(243,242,239,.25);border-radius:20px;padding:2px 7px;line-height:1.4}
+  .fchip.gold{color:#F0C062;background:rgba(240,192,98,.12);border-color:rgba(240,192,98,.35)}
+  .fchip.steel{color:#A9C4DD;background:rgba(169,196,221,.12);border-color:rgba(169,196,221,.35)}
+  /* сплит и служебные элементы кадров */
+  .fseam{position:absolute;top:0;bottom:0;left:50%;width:2px;background:linear-gradient(rgba(243,242,239,.0),rgba(243,242,239,.6),rgba(243,242,239,.0));z-index:2}
+  .fgrid{position:absolute;display:grid;gap:3px;z-index:2}
+  .fcell{background:rgba(169,196,221,.13);border:1px solid rgba(169,196,221,.32);border-radius:2px}
+  .fcell.hot{background:rgba(169,196,221,.3)}
+  .fmx{position:absolute;display:grid;grid-template-columns:repeat(12,1fr);gap:2px;z-index:2}
+  .fmx i{aspect-ratio:1;border-radius:50%;background:rgba(240,192,98,.35)}
+  .fmx i:nth-child(3n){background:rgba(240,192,98,.6)}
+  .fbar{position:absolute;height:9px;border-radius:5px;z-index:3}
+  .fbar.gold{background:linear-gradient(90deg,#C98A26,#F0C062)}
+  .fbar.grey{background:#4A4C50}
+  .fbl{position:absolute;font-size:8px;font-weight:700;color:rgba(243,242,239,.7);z-index:3;letter-spacing:.03em}
+  .fstamp{position:absolute;font-weight:800;color:#F0C062;border:2px solid #F0C062;border-radius:6px;padding:3px 9px;transform:rotate(-4deg);z-index:3;letter-spacing:.02em}
+  .fqr{position:absolute;background:#F3F2EF;border-radius:4px;z-index:3;background-image:repeating-linear-gradient(0deg,#14171A 0 3px,transparent 3px 6px),repeating-linear-gradient(90deg,#14171A 0 3px,transparent 3px 6px);background-size:70% 70%;background-position:center;background-repeat:no-repeat;box-shadow:inset 0 0 0 3px #F3F2EF}
+  .fline{position:absolute;background:rgba(243,242,239,.5);z-index:2}
+  .fglow{position:absolute;border-radius:50%;filter:blur(14px);z-index:1}
+  .fcallout{position:absolute;font-size:7.5px;color:#A9C4DD;border-left:1px solid #A9C4DD;padding-left:5px;line-height:1.5;z-index:3}
+  .fral{position:absolute;display:flex;gap:3px;z-index:3}
+  .fral i{width:13px;height:13px;border-radius:3px;border:1px solid rgba(243,242,239,.4)}
+  /* раскрывающийся режиссёрский бриф */
+  details.brief{border-top:1px dashed var(--line2)}
+  details.brief>summary{cursor:pointer;list-style:none;padding:13px 22px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:center;gap:9px;user-select:none;transition:background .15s}
+  details.brief>summary:hover{background:var(--s2);color:var(--ink)}
+  details.brief>summary::-webkit-details-marker{display:none}
+  details.brief>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .18s;flex:none;margin-top:-2px}
+  details.brief[open]>summary::before{transform:rotate(45deg);margin-top:-5px}
+  .titles{display:flex;flex-direction:column;gap:7px;padding:6px 22px 16px}
   .ttl-chip{align-self:flex-start;font-size:14px;font-weight:700;color:var(--ink);background:var(--s2);border-left:3px solid var(--_dot,var(--ink3));border-radius:8px;padding:8px 14px;line-height:1.4}
   .titles .cap,.dir .cap{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
-  /* режиссёрские блоки */
-  .dirgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-top:1px dashed var(--line2);margin-top:16px}
-  .dir{padding:16px 22px 20px;border-right:1px dashed var(--line2)}
+  .dirgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+  .dir{padding:14px 22px 20px;border-right:1px dashed var(--line2)}
   .dir:last-child{border-right:none}
   .dir p{margin-top:8px;font-size:13.5px;color:var(--ink2);line-height:1.6}
   .dir p b{color:var(--ink)}
@@ -71,7 +115,10 @@
   .src-chip.mac{background:var(--gold-soft);color:var(--v-ink)}
   .src-chip.fab{background:var(--gg-soft);color:var(--gg-ink)}
   .src-chip.life{background:var(--pub-soft);color:var(--pub-ink)}
-  /* стайл-гайд */
+  .expander{margin:0 0 16px;display:flex;justify-content:flex-end}
+  .expander button{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:8px 16px;cursor:pointer}
+  .expander button:hover{background:var(--s3);color:var(--ink)}
+  /* стайл-гайд, матрица, техтребования */
   .style2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .stcard{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
   .stcard h3{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}
@@ -82,7 +129,14 @@
   .dont{background:color-mix(in srgb,var(--danger) 7%,var(--s1))}
   .dont ul{margin:9px 0 0;padding-left:18px}
   .dont li{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-top:4px}
-  /* техтребования */
+  .amx{overflow-x:auto;border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .amx table{width:100%;border-collapse:collapse;min-width:760px;background:var(--s1);font-size:13px}
+  .amx th{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+  .amx td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  .amx tr:last-child td{border-bottom:none}
+  .amx td:first-child{font-weight:700}
+  .st-ok{color:var(--pub-ink);font-weight:700}.st-chk{color:var(--sgl-ink);font-weight:700}.st-gfx{color:var(--drf-ink);font-weight:700}
+  .amx td.mut{color:var(--ink2)}
   .tech{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
   .tk{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius-s);padding:15px 17px;box-shadow:var(--shadow)}
   .tk .n{font-size:16px;font-weight:800}
@@ -90,13 +144,13 @@
   .footnote{margin-top:16px;background:var(--gold-soft);border-radius:var(--radius-s);padding:14px 18px;font-size:13.5px;color:var(--ink);line-height:1.6}
   .footnote b{color:var(--v-ink)}
   @media(max-width:960px){.pos3,.dirgrid{grid-template-columns:1fr}.dir{border-right:none;border-bottom:1px dashed var(--line2)}.dir:last-child{border-bottom:none}.style2{grid-template-columns:1fr}.tech{grid-template-columns:1fr 1fr}}
-  @media(max-width:640px){.sb{padding-left:18px}.scene::after{left:-18px;width:10px;height:10px}.sc-head,.sc-sense,.titles{padding-left:16px;padding-right:16px}.dir{padding:14px 16px 16px}}
+  @media(max-width:640px){.sb{padding-left:18px}.scene::after{left:-18px;width:10px;height:10px}.sc-head,.sc-sense,.titles{padding-left:16px;padding-right:16px}.dir{padding:14px 16px 16px}.frames{padding:14px 16px 6px}.fr{flex:0 0 272px}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">К содержанию</a>
 <header class="top"><div class="top-in">
-  <div class="brand"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;PRODUCTION</div>
+  <div class="brand"><span class="dot"></span>GEN-GROUP&nbsp;/&nbsp;PRODUCTION</div>
   <nav class="nav" aria-label="Разделы">
     <a href="plan.html"><span class="n">↩</span>SMM-инструменты</a>
   </nav>
@@ -106,15 +160,15 @@
 <main class="wrap" id="main">
 
   <section class="vb-hero">
-    <span class="ey">ТЗ для моушен-дизайнера · июль 2026</span>
-    <h1>Ролик для шоурума:<br>GENGROUP перед дизайнерами</h1>
-    <p>Горизонтальный презентационный ролик для выступлений в шоуруме GENGROUP перед дизайнерами и архитекторами. Задача - за 95 секунд создать доверие к GENGROUP как производственному партнёру и развести два бренда: серийные модели GENGLASS и индивидуальные изделия VALONTI. Монтаж на реальных подсъёмках (цех, изделия, интерьеры) с моушен-графикой поверх. Ролик обязан работать и без звука: титры несут полный смысл.</p>
+    <span class="ey">ТЗ для моушен-дизайнера · июль 2026 · ревизия 3</span>
+    <h1>Ролик для шоурума:<br>GEN-GROUP перед дизайнерами</h1>
+    <p>Горизонтальный презентационный ролик для выступлений в шоуруме GEN-GROUP перед дизайнерами и архитекторами. Задача - за 95 секунд создать доверие к GEN-GROUP как производственному партнёру и развести два бренда: серийные модели GENGLASS и индивидуальные изделия VALONTI. Монтаж на реальных подсъёмках и материалах презентации GEN-GROUP с моушен-графикой поверх. Ролик обязан работать и без звука: титры несут полный смысл. Факты сверены с крайней презентацией GEN-GROUP (56 стр.); позиционирование GENGLASS/VALONTI - по финальной ревизии июля 2026.</p>
     <div class="specrow">
       <span class="spec">16:9 <i>горизонталь</i></span>
       <span class="spec">~95 сек <i>хронометраж</i></span>
-      <span class="spec">9 сцен <i>раскадровка</i></span>
+      <span class="spec">9 сцен · 27 кадров <i>раскадровка</i></span>
       <span class="spec">Дизайнеры и архитекторы <i>аудитория</i></span>
-      <span class="spec">Шоурум GENGROUP <i>площадка</i></span>
+      <span class="spec">Шоурум GEN-GROUP <i>площадка</i></span>
     </div>
   </section>
 
@@ -122,14 +176,14 @@
     <div class="sec-head"><h2 class="sec-title">Позиционирование <span class="em">в ролике</span></h2></div>
     <div class="pos3">
       <div class="pos gr">
-        <span class="tag">GENGROUP</span>
+        <span class="tag">GEN-GROUP</span>
         <h3>Производственная база</h3>
-        <p>16 000 м² в Домодедово, полный цикл: металл, стекло, зеркало, порошковая покраска, сборка. 27 000+ заказов с 2018 года. Стабильность качества и сервис уровня европейских брендов.</p>
+        <p>16 000 м² в Домодедово, полный цикл: лазерная резка, сварка, стекло и зеркала, двойная порошковая покраска, сборка, многослойная упаковка. Более 54 500 заказов с 2018 года. Стабильность качества и сервис уровня европейских брендов. В группе также GENTERO и Metal-GM.</p>
       </div>
       <div class="pos g">
         <span class="tag">GENGLASS · серия</span>
         <h3>Серийные модели</h3>
-        <p>Готовые модели со склада и адаптация серийной модели: размер и цвет RAL/NCS в рамках каталога. Сроки 5-30 дней, КП за 24 часа. Слово «кастом» в блоке GENGLASS не используется.</p>
+        <p>Готовые модели со склада и адаптация серийной модели: размер и цвет в рамках каталога. Серийные цвета: белый, чёрный, золото; под заказ - любой RAL/NCS. Сроки 5-30 дней, LED-зеркала стандартных размеров за 2-3 дня, КП за 24 часа. Слово «кастом» в блоке GENGLASS не используется.</p>
       </div>
       <div class="pos v">
         <span class="tag">VALONTI · авторское</span>
@@ -141,22 +195,44 @@
   </section>
 
   <section>
-    <div class="sec-head"><h2 class="sec-title">Раскадровка <span class="em">по сценам</span></h2><p>Каждая сцена: титры на экране, смысл для зрителя-дизайнера и три режиссёрских блока - футаж (что снято / что графика), моушен и грейдинг. Цвет метки сцены = бренд-слой: серый GENGROUP, синий GENGLASS, золотой VALONTI, зелёный - объединяющий блок доверия.</p></div>
+    <div class="sec-head"><h2 class="sec-title">Раскадровка <span class="em">27 кадров · 9 сцен</span></h2><p>Кадры ниже - схема вёрстки: где футаж (штриховая зона), где титры и графика, в каком цвете и в каком углу. Пропорции и позиции соблюдать, диагональная штриховка = живая съёмка или фото. Полный режиссёрский бриф каждой сцены (футаж, моушен, грейдинг) раскрывается по клику.</p></div>
+    <div class="expander"><button type="button" id="expall">Развернуть все брифы</button></div>
 
     <div class="sb">
 
-      <!-- 1 -->
+      <!-- ============ СЦЕНА 1 ============ -->
       <article class="scene gr">
-        <div class="sc-head"><span class="sc-num">Сцена 01</span><span class="sc-tc">0:00-0:06</span><span class="sc-brand">GENGROUP · cold open</span>
+        <div class="sc-head"><span class="sc-num">Сцена 01</span><span class="sc-tc">0:00-0:06</span><span class="sc-brand">GEN-GROUP · cold open</span>
           <h3 class="sc-title">Материя раньше слов</h3></div>
         <p class="sc-sense">Дизайнер на макросъёмке материала считывает физическое качество производства раньше любых слов - масштаб и серьёзность без единого титра.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">GENGROUP</span>
-          <span class="ttl-chip">Металл. Стекло. Камень. Свет.</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Макро slow-mo: искра лазерной резки, брызги дугой в темноту</span></div>
+              <div class="fglow" style="width:60px;height:40px;background:rgba(255,140,40,.5);right:18%;top:30%"></div>
+            </div>
+            <p class="fcap"><b>1а · 0:00-0:03.</b> Полный кадр, без титров. Единственное тёплое пятно - искра (оранж 3200K) на графите.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz warm" style="inset:0"><span>Макро: полировка кромки Nero Marquina, проступает зеркало и белая прожилка</span></div>
+              <div class="fline" style="left:12%;top:58%;width:40%;height:1px;transform:rotate(-8deg)"></div>
+            </div>
+            <p class="fcap"><b>1б · 0:03-0:05.</b> Жёсткий cut в бит. Холодный rim-свет, титров нет.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:0;right:0;top:38%;text-align:center;font-size:17px;letter-spacing:.14em">GEN-GROUP</div>
+              <div class="fline" style="left:30%;top:47%;width:40%;height:1px;opacity:.35"></div>
+              <div class="ftt sub" style="left:0;right:0;top:56%;text-align:center;font-size:9px;letter-spacing:.08em">Металл. Стекло. Камень. Свет.</div>
+            </div>
+            <p class="fcap"><b>1в · 0:05-0:06.</b> Лого проявляется бликом слева направо (0.6 сек) по стали, не fade. Подпись мельче, по центру.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Только реальная макросъёмка, без графики. Первые 3 сек - искра лазерной резки на высокой частоте кадров (300-400 fps): луч входит в лист стали 3 мм, брызги дугой в темноту. Жёсткая склейка - макро полировки кромки Nero Marquina: из матовой поверхности проступает зеркало и белая прожилка. Лого GENGROUP появляется не на пустом фоне, а «вытравленным» светом на самой стали - блик скользит по буквам.</p>
+            <p>Только реальная макросъёмка, без графики. Первые 3 сек - искра лазерной резки на высокой частоте кадров (300-400 fps): луч входит в лист стали 3 мм, брызги дугой в темноту. Жёсткая склейка - макро полировки кромки Nero Marquina: из матовой поверхности проступает зеркало и белая прожилка. Лого GEN-GROUP появляется не на пустом фоне, а «вытравленным» светом на самой стали - блик скользит по буквам.</p>
             <div class="srcs"><span class="src-chip mac">Макро</span><span class="src-chip fab">Цех</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
@@ -165,45 +241,87 @@
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Графит #14171A в тенях. Искры - единственное тёплое пятно (3200K оранж). Полировка камня - нейтраль с холодным rim-светом. Высокий контраст, глубокий чёрный без подъёма теней, зерно минимальное: чистая инженерная картинка.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 2 -->
+      <!-- ============ СЦЕНА 2 ============ -->
       <article class="scene gr">
-        <div class="sc-head"><span class="sc-num">Сцена 02</span><span class="sc-tc">0:06-0:16</span><span class="sc-brand">GENGROUP · база</span>
+        <div class="sc-head"><span class="sc-num">Сцена 02</span><span class="sc-tc">0:06-0:16</span><span class="sc-brand">GEN-GROUP · база</span>
           <h3 class="sc-title">Производственная база в цифрах</h3></div>
         <p class="sc-sense">Дизайнер понимает: это собственная производственная база, а не посредник - за качество и сроки отвечают напрямую.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">16 000 м² в Домодедово</span>
-          <span class="ttl-chip">Полный цикл: металл, стекло, зеркало, покраска, сборка</span>
-          <span class="ttl-chip">27 000+ заказов с 2018</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Цех: tracking-проезд, вход через пролёт, лазер в глубине</span></div>
+              <div class="ftt" style="left:7%;bottom:14%;font-size:20px">16 000 м²</div>
+              <div class="ftt sub" style="left:7%;bottom:6%;font-size:8px">в Домодедово</div>
+            </div>
+            <p class="fcap"><b>2а · 0:06-0:10.</b> Число «прилипает» к полу цеха (AR-разметка), уходит из кадра с параллаксом камеры. Счётчик от 0 за 0.8 сек.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Цех: проезд продолжается, сварочная вспышка в расфокусе</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:9%">
+                <span class="fchip">лазерная резка</span><span class="fchip">сварка</span><span class="fchip">стекло · зеркала</span><span class="fchip">двойная покраска</span><span class="fchip">сборка</span><span class="fchip">упаковка</span>
+              </div>
+            </div>
+            <p class="fcap"><b>2б · 0:10-0:13.</b> Этапы полного цикла появляются пилюлями по ходу проезда, каждая - у своего участка.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Цех: участок сборки, руки мастеров</span></div>
+              <div class="ftt" style="right:7%;top:16%;font-size:17px;text-align:right">54 500+</div>
+              <div class="ftt sub" style="right:7%;top:40%;font-size:8px;text-align:right">заказов с 2018 года</div>
+            </div>
+            <p class="fcap"><b>2в · 0:13-0:16.</b> Второе число - к стене справа. Кегль числа 3:1 к подписи (Inter Bold / Regular).</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Проезд по цеху одним длинным движением (слайдер/гимбал): вход через пролёт, мимо лазера, мимо сварочного поста (вспышка дуги в глубине, расфокус), к участку сборки. Если цельного проезда нет - собрать из 3 планов с единым направлением слева направо. Цифры - графика, впечатанная в пространство цеха как AR-разметка на полу и колоннах, не плашки в углу.</p>
+            <p>Проезд по цеху одним длинным движением (слайдер/гимбал): вход через пролёт, мимо лазера, мимо сварочного поста (вспышка дуги в глубине, расфокус), к участку сборки. Если цельного проезда нет - собрать из 3 планов с единым направлением слева направо. Цифры - графика, впечатанная в пространство цеха как AR-разметка на полу и колоннах, не плашки в углу. Цифры по презентации: 16 000 м², более 54 500 заказов с 2018; этапы цикла: лазерная резка, сварка, стекло и зеркала, двойная порошковая покраска, сборка, многослойная упаковка.</p>
             <div class="srcs"><span class="src-chip fab">Цех</span><span class="src-chip gfx">Графика</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
             <p>Один непрерывный tracking-шот. Титры-цифры «прилипают» к плоскостям цеха и реагируют на параллакс камеры: камера едет - цифра остаётся привязанной к точке пространства и уходит из кадра вместе с ней. Inter Bold для числа, Inter Regular для подписи, число крупно (кегль 3:1 к подписи). Счётчик 16 000 отщёлкивает от нуля за 0.8 сек. Длинный дышащий план, движение медленное и уверенное.</p>
           </div>
           <div class="dir"><span class="cap">Грейдинг</span>
-            <p>Холодный индустриальный 5000-5600K, лёгкий стальной оттенок в тенях цеха, но без тотальной синевы (это ещё нейтральный GENGROUP-слой, синий придёт в блоке GENGLASS). Сварочная дуга - контролируемый пересвет-акцент в глубине. Бетонный пол - нейтральный серый.</p>
+            <p>Холодный индустриальный 5000-5600K, лёгкий стальной оттенок в тенях цеха, но без тотальной синевы (это ещё нейтральный GEN-GROUP-слой, синий придёт в блоке GENGLASS). Сварочная дуга - контролируемый пересвет-акцент в глубине. Бетонный пол - нейтральный серый.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 3 -->
+      <!-- ============ СЦЕНА 3 ============ -->
       <article class="scene mix">
         <div class="sc-head"><span class="sc-num">Сцена 03</span><span class="sc-tc">0:16-0:24</span><span class="sc-brand">Мост · сплит G/V</span>
           <h3 class="sc-title">Одна фабрика - два бренда</h3></div>
         <p class="sc-sense">Дизайнер видит логику: один производственный стандарт закрывает два разных типа задач его проекта.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">Одна фабрика - два бренда</span>
-          <span class="ttl-chip">GENGLASS · VALONTI</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz cool" style="left:0;top:0;bottom:0;width:50%"><span>Склад: ряд серийных изделий, степ-монтаж</span></div>
+              <div class="fz warm" style="right:0;top:0;bottom:0;width:50%"><span>Изделие из камня на подиуме, медленный orbit</span></div>
+              <div class="fseam"></div>
+            </div>
+            <p class="fcap"><b>3а · 0:16-0:20.</b> Кадр цеха разрезается wipe-маской от центра. Слева ритм и сетка, справа один плавный orbit. Правая половина темнее.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz cool" style="left:0;top:0;bottom:0;width:50%;opacity:.6"><span></span></div>
+              <div class="fz warm" style="right:0;top:0;bottom:0;width:50%;opacity:.6"><span></span></div>
+              <div class="fseam"></div>
+              <div class="ftt" style="left:0;right:0;top:12%;text-align:center;font-size:11px">Одна фабрика - два бренда</div>
+              <div class="ftt steel" style="left:8%;top:44%;font-size:12px">GENGLASS<br><span class="ftt sub" style="position:static;font-size:8px">серия</span></div>
+              <div class="ftt vlight" style="right:8%;top:44%;font-size:12px;text-align:right">VALONTI<br><span style="font-size:8px;letter-spacing:.06em">авторское</span></div>
+              <div class="ftt sub" style="left:0;right:0;bottom:7%;text-align:center;font-size:7px;opacity:.6">в группе также GENTERO · Metal-GM</div>
+            </div>
+            <p class="fcap"><b>3б · 0:20-0:24.</b> Титры входят каждый в своём характере: G - степом, V - fade с разрядкой. Мелкая подпись про GENTERO и Metal-GM внизу по центру.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Сплит-скрин вертикальной линией по центру. Слева (G): сетка одинаковых готовых изделий на складе, проезд вдоль ряда - серийность. Справа (V): одно изделие из камня на тёмном подиуме, медленный orbit, воздух вокруг. Обе половины - реальные подсъёмки. Линия раздела - не статичная планка, а физический стык: слева уходит в тень, справа подсвечен золотом.</p>
+            <p>Сплит-скрин вертикальной линией по центру. Слева (G): сетка одинаковых готовых изделий на складе, проезд вдоль ряда - серийность. Справа (V): одно изделие из камня на тёмном подиуме, медленный orbit, воздух вокруг. Обе половины - реальные подсъёмки. Линия раздела - не статичная планка, а физический стык: слева уходит в тень, справа подсвечен золотом. Внизу мелкая подпись «в группе также GENTERO · Metal-GM» - группу показываем, но не отвлекаем от двух героев ролика.</p>
             <div class="srcs"><span class="src-chip fab">Склад</span><span class="src-chip mac">Изделие</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
@@ -212,47 +330,98 @@
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Раздельный грейд в одном кадре: левая половина - стальной-синий (тени сине-графитовые, холодные хайлайты), правая - тёплая: латунь/золото 2900-3200K, глубокие теневые провалы, направленный боковой свет. Яркость правой половины ниже: тихая роскошь - меньше света, больше тени.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 4 -->
+      <!-- ============ СЦЕНА 4 ============ -->
       <article class="scene g">
         <div class="sc-head"><span class="sc-num">Сцена 04</span><span class="sc-tc">0:24-0:40</span><span class="sc-brand">GENGLASS · серия</span>
           <h3 class="sc-title">Серийные модели: быстро и предсказуемо</h3></div>
         <p class="sc-sense">Дизайнер считывает GENGLASS как быстрый и предсказуемый инструмент для типовых позиций проекта - без сюрпризов.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">GENGLASS: серийные модели</span>
-          <span class="ttl-chip">Сроки 5-30 дней, ходовые модели на складе</span>
-          <span class="ttl-chip">Размер и цвет RAL/NCS в рамках каталога</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz cool" style="inset:0"><span>Склад: проезд вдоль стеллажей с серийными моделями</span></div>
+              <div class="ftt" style="left:7%;bottom:12%;font-size:12px"><span class="u">GENGLASS</span>: серийные модели</div>
+            </div>
+            <p class="fcap"><b>4а · 0:24-0:28.</b> Титр внизу слева со стальным подчёркиванием. Темп монтажа поднимается, склейки в бит.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fgrid" style="left:26%;top:16%;width:48%;height:62%;grid-template-columns:repeat(3,1fr)">
+                <div class="fcell hot"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div>
+              </div>
+              <div class="ftt sub" style="left:0;right:0;bottom:6%;text-align:center;font-size:8px">одно изделие × сетка каталога × обратно в одно</div>
+            </div>
+            <p class="fcap"><b>4б · 0:28-0:31.</b> Мультипликация: изделие (яркая ячейка) размножается в сетку 3×3, затем 6×6, и схлопывается обратно - «серия, но твоя».</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz cool" style="left:8%;top:12%;width:54%;height:58%"><span>Изделие: цвет переключается щелчками</span></div>
+              <div class="fral" style="left:8%;bottom:11%"><i style="background:#ECECEC"></i><i style="background:#1B1B1B"></i><i style="background:#C9A24B"></i><i style="background:#6E7B8A"></i><i style="background:#8AA6A0"></i></div>
+              <div class="ftt sub" style="right:6%;top:22%;font-size:8px;text-align:right;max-width:30%">серийные цвета:<br>белый · чёрный · золото</div>
+              <div class="ftt steel" style="right:6%;bottom:14%;font-size:9px;text-align:right;max-width:32%">под заказ - любой RAL/NCS</div>
+            </div>
+            <p class="fcap"><b>4в · 0:31-0:35.</b> Веер RAL внизу; цвет изделия щёлкает синхронно с пролистыванием (4-5 смен за секунду).</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Готовое изделие в реальном интерьере (фото из презентации)</span></div>
+              <div class="fstamp" style="right:8%;top:18%;font-size:13px">5-30 дней</div>
+              <div class="ftt steel" style="left:7%;bottom:10%;font-size:8.5px">LED-зеркала стандартных размеров: 2-3 дня</div>
+            </div>
+            <p class="fcap"><b>4г · 0:35-0:40.</b> Штамп срока впечатывается с микро-встряской. Вторая строка - скорость LED-зеркал, мельче.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Последовательность: (1) склад - проезд вдоль стеллажей с серийными моделями, каталожная плотность; (2) порошковая покраска - изделие въезжает в камеру и выезжает цветным; (3) макро адаптации - веер образцов RAL в руках, палец пролистывает; (4) готовое изделие в реальном интерьере. Сроки и «размер под проём / любой RAL» - графика.</p>
-            <div class="srcs"><span class="src-chip fab">Склад</span><span class="src-chip fab">Цех</span><span class="src-chip mac">Макро RAL</span><span class="src-chip life">Интерьер</span></div>
+            <p>Последовательность: (1) склад - проезд вдоль стеллажей с серийными моделями, каталожная плотность; (2) порошковая покраска - изделие въезжает в камеру и выезжает цветным (окрашивание двойное - можно показать два прохода); (3) макро адаптации - веер образцов RAL в руках, палец пролистывает; (4) готовое изделие в реальном интерьере - фото серийных моделей есть в презентации GEN-GROUP (столы TRUBIS/VIOLUR/ATLAS, зеркала EVELIX/RAUNTEL/HALFEO/KUVINO, перегородки). Сроки и цвета - графика.</p>
+            <div class="srcs"><span class="src-chip fab">Склад</span><span class="src-chip fab">Цех</span><span class="src-chip mac">Макро RAL</span><span class="src-chip life">Интерьер · преза</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
-            <p>Ритм выше, чем в GENGROUP-блоке: планы 1.5-2.5 сек, склейки в бит. Приём серийности: одно изделие мультиплицируется в сетку 3×3, затем 6×6 (каталог) и схлопывается обратно в одно - «серия, но твоя». RAL: цвет изделия переключается щелчками синхронно с пролистыванием веера (4-5 смен цвета за секунду). Титр «5-30 дней» впечатывается как штамп с микро-встряской. Стальные подчёркивания под ключевыми словами.</p>
+            <p>Ритм выше, чем в GEN-GROUP-блоке: планы 1.5-2.5 сек, склейки в бит. Приём серийности: одно изделие мультиплицируется в сетку 3×3, затем 6×6 (каталог) и схлопывается обратно в одно - «серия, но твоя». RAL: цвет изделия переключается щелчками синхронно с пролистыванием веера (4-5 смен цвета за секунду). Титр «5-30 дней» впечатывается как штамп с микро-встряской. Стальные подчёркивания под ключевыми словами.</p>
           </div>
           <div class="dir"><span class="cap">Грейдинг</span>
-            <p>Стальной-синий акцент на полную: тени сине-графит, холодные металлик-хайлайты, контраст жёстче GENGROUP-блока. Момент появления цвета в покраске - единственная точка насыщенного цвета в сцене (сам RAL изделия). Чисто, точно, «мастер».</p>
+            <p>Стальной-синий акцент на полную: тени сине-графит, холодные металлик-хайлайты, контраст жёстче GEN-GROUP-блока. Момент появления цвета в покраске - единственная точка насыщенного цвета в сцене (сам RAL изделия). Чисто, точно, «мастер».</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 5 -->
+      <!-- ============ СЦЕНА 5 ============ -->
       <article class="scene g">
         <div class="sc-head"><span class="sc-num">Сцена 05</span><span class="sc-tc">0:40-0:48</span><span class="sc-brand">GENGLASS · сервис</span>
           <h3 class="sc-title">Для дизайнера: КП за 24 часа</h3></div>
         <p class="sc-sense">Дизайнер чувствует, что с ним работают в его темпе и дают материалы для защиты проекта перед клиентом.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">КП за 24 часа</span>
-          <span class="ttl-chip">Закалённое стекло AGC, сталь премиум-класса</span>
-          <span class="ttl-chip">Библиотека образцов</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="left:42%;top:0;bottom:0;right:0"><span>Офис: руки, монитор с проектом, отправка КП</span></div>
+              <div class="fgrid" style="left:7%;top:18%;width:28%;height:40%;grid-template-columns:1fr;gap:5px">
+                <div class="fcell" style="background:rgba(169,196,221,.2)"></div><div class="fcell" style="background:rgba(169,196,221,.14)"></div><div class="fcell" style="background:rgba(169,196,221,.09)"></div>
+              </div>
+              <div class="fbar grey" style="left:7%;bottom:26%;width:28%"></div>
+              <div class="fbar gold" style="left:7%;bottom:26%;width:19%;background:linear-gradient(90deg,#41607E,#A9C4DD)"></div>
+              <div class="ftt steel" style="left:7%;bottom:12%;font-size:13px">КП за 24 часа</div>
+            </div>
+            <p class="fcap"><b>5а · 0:40-0:44.</b> Слева интерфейс: строки сметы набираются сами (typing-on), линия-прогресс из 24 делений схлопывается в «24 ч».</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fgrid" style="left:8%;top:16%;width:84%;height:44%;grid-template-columns:repeat(4,1fr)">
+                <div class="fcell"></div><div class="fcell"></div><div class="fcell"></div><div class="fcell"></div>
+              </div>
+              <div class="ftt sub" style="left:8%;top:64%;font-size:8px">быстрые позиции проекта: стол · зеркало · перегородка · консоль</div>
+              <div class="ftt" style="left:8%;bottom:9%;font-size:9.5px">Закалённое стекло AGC · сталь премиум-класса · библиотека образцов</div>
+            </div>
+            <p class="fcap"><b>5б · 0:44-0:48.</b> Раскладка серийных изделий как готовый набор под объект. Match-cut из сцены 04: изделие → его превью в мониторе.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Реальная подсъёмка офиса: руки за столом, монитор с проектом и чертежом, отправка КП. Крупно: пальцы на клавиатуре, курсор собирает строку сметы, кнопка отправки. Плюс кадр «быстрые позиции проекта»: раскладка нескольких серийных изделий как готовый набор под объект. «24 часа» - графика поверх интерфейса.</p>
-            <div class="srcs"><span class="src-chip">Офис</span><span class="src-chip gfx">Графика</span></div>
+            <p>Реальная подсъёмка офиса: руки за столом, монитор с проектом и чертежом, отправка КП. Крупно: пальцы на клавиатуре, курсор собирает строку сметы, кнопка отправки. Плюс кадр «быстрые позиции проекта»: раскладка нескольких серийных изделий как готовый набор под объект (фото моделей - из презентации). «24 часа» - графика поверх интерфейса.</p>
+            <div class="srcs"><span class="src-chip">Офис</span><span class="src-chip gfx">Графика</span><span class="src-chip life">Преза</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
             <p>Деловой средний темп. Таймер не банальный циферблат: линия-прогресс от «запрос» до «КП» проходит 24 деления и схлопывается в «24 ч». Смета набирается сама (typing-on строк), итоговая сумма - лёгким счётчиком. Переход из сцены 04 - match-cut с готового изделия на его превью в мониторе менеджера.</p>
@@ -260,22 +429,53 @@
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Офис теплее цеха: 4300-4800K на руках и лицах, чтобы не мертвенно, но фирменный холод в экранах (интерфейсы сине-стальные). Стальной остаётся акцентом графики. Светло, чисто, без цеховой драмы - это сервисный блок.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 6 -->
+      <!-- ============ СЦЕНА 6 ============ -->
       <article class="scene v">
         <div class="sc-head"><span class="sc-num">Сцена 06</span><span class="sc-tc">0:48-1:06</span><span class="sc-brand">VALONTI · камень</span>
           <h3 class="sc-title">Индивидуальные изделия и камень</h3></div>
         <p class="sc-sense">Дизайнер видит пространство для авторского решения и глубину палитры под сложный интерьер. Самый длинный и медленный блок ролика.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">VALONTI: индивидуальные изделия и камень</span>
-          <span class="ttl-chip">11 видов камня × 12 отделок металла = 132+ комбинации</span>
-          <span class="ttl-chip">Nero Marquina · Travertino Navona · Onyx Miele</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz warm" style="inset:0"><span>Макро Nero Marquina: белая прожилка по чёрному зеркалу</span></div>
+              <div class="ftt vlight" style="left:7%;bottom:11%;font-size:10px">VALONTI: индивидуальные изделия и камень</div>
+            </div>
+            <p class="fcap"><b>6а · 0:48-0:52.</b> Полный кадр макро. Титр Inter Light с разрядкой, появляется fade. Ритм падает: планы 3-5 сек.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz warm" style="inset:0"><span>Оникс на просвет: камень светится изнутри</span></div>
+              <div class="fglow" style="width:110px;height:70px;background:rgba(240,192,98,.4);left:30%;top:24%"></div>
+              <div class="ftt vlight" style="left:0;right:0;bottom:10%;text-align:center;font-size:8.5px">Nero Marquina · Travertino Navona · Onyx Miele</div>
+            </div>
+            <p class="fcap"><b>6б · 0:52-0:57.</b> Перед этим кадром - травертин скользящим светом (3 сек). Оникс - самое яркое пятно блока.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fmx" style="left:14%;top:20%;width:72%;height:42%">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="ftt vlight" style="left:0;right:0;bottom:14%;text-align:center;font-size:9.5px">11 видов камня × 12 отделок металла = 132+ комбинации</div>
+            </div>
+            <p class="fcap"><b>6в · 0:57-1:01.</b> Матрица комбинаций проступает тонкой сеткой сэмплов и растворяется. Титр тонкий, с разрядкой.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz warm" style="inset:0"><span>Лайфстайл: вечер, консоль Nero Marquina, рука ставит бокал, тёплая лампа</span></div>
+              <div class="fglow" style="width:70px;height:70px;background:rgba(240,170,60,.35);right:12%;top:16%"></div>
+            </div>
+            <p class="fcap"><b>6г · 1:01-1:06.</b> Без титров - воздух. Перед кадром 0.5 сек затемнения. Людей в полный рост нет: только кисть руки.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>(1) Макро камня по 3-4 сек: Nero Marquina - белая прожилка по чёрному зеркалу; травертин - пористая матовая фактура скользящим светом; оникс - подсветка на просвет, камень светится изнутри. (2) Лайфстайл (реальные интерьеры клиентов): вечер, консоль из Nero Marquina у стены, бокал вина и раскрытая книга, тёплый свет лампы. Людей в полный рост нет - только кисть руки, ставящая бокал, поворачивающая страницу. (3) Общий план интерьера с изделием: воздух, паузы. «11 × 12» - деликатная графика.</p>
+            <p>(1) Макро камня по 3-4 сек: Nero Marquina - белая прожилка идёт по чёрному зеркалу; травертин - пористая матовая фактура скользящим светом; оникс - подсветка на просвет, камень светится изнутри. (2) Лайфстайл (реальные интерьеры клиентов): вечер, консоль из Nero Marquina у стены, бокал вина и раскрытая книга, тёплый свет лампы. Людей в полный рост нет - только кисть руки, ставящая бокал, поворачивающая страницу. (3) Общий план интерьера с изделием: воздух, паузы. «11 × 12» - деликатная графика.</p>
             <div class="srcs"><span class="src-chip mac">Макро камня</span><span class="src-chip life">Лайфстайл</span><span class="src-chip gfx">Графика</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
@@ -284,19 +484,41 @@
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Тёплый низкий ключ 2700-3000K, глубокие теневые провалы (референс - арт-каталоги Boffi/Cassina), направленный драматичный свет, часть кадра в тени. Золото и латунь - в бликах металла и свете лампы, не в графике. Оникс на просвет - самое яркое пятно блока. Вино - глубокий гранат, не кислотный красный.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 7 -->
+      <!-- ============ СЦЕНА 7 ============ -->
       <article class="scene v">
         <div class="sc-head"><span class="sc-num">Сцена 07</span><span class="sc-tc">1:06-1:16</span><span class="sc-brand">VALONTI · сервис</span>
           <h3 class="sc-title">Сервис дизайнеру: sample-box, 3D, сроки</h3></div>
         <p class="sc-sense">Дизайнер понимает выгоду против итальянского импорта: по срокам, деньгам клиента и собственному доходу.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">Sample-box, 3D/CAD, комиссия 15-20%</span>
-          <span class="ttl-chip">Срок 2-6 недель против 16-24 у импорта</span>
-          <span class="ttl-chip">Цена ниже на 20-40%</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz warm" style="left:8%;top:12%;width:56%;height:64%"><span>Sample-box: руки открывают кейс, выкладка образцов стоп-моушном</span></div>
+              <div class="ftt vlight" style="right:6%;top:24%;font-size:9px;text-align:right;max-width:28%">Sample-box<br>3D/CAD<br>комиссия 15-20%</div>
+            </div>
+            <p class="fcap"><b>7а · 1:06-1:10.</b> Выкладка образцов - стоп-моушн-щелчки (единственное ускорение в медленном блоке). Титры справа тонкие.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fbl" style="left:8%;top:26%">VALONTI · 2-6 недель</div>
+              <div class="fbar gold" style="left:8%;top:36%;width:26%"></div>
+              <div class="fbl" style="left:8%;top:52%;color:rgba(243,242,239,.45)">импорт · 16-24 недели</div>
+              <div class="fbar grey" style="left:8%;top:62%;width:78%"></div>
+              <div class="ftt vlight" style="left:8%;bottom:9%;font-size:9.5px">Цена ниже на 20-40%</div>
+            </div>
+            <p class="fcap"><b>7б · 1:10-1:13.</b> Таймлайн-сравнение: обе полосы заполняются слева направо, золотая финиширует, пока серая ползёт. Разрыв читается без цифр.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="left:26%;top:14%;width:48%;height:60%;border-radius:6px"><span>Планшет: 3D-рендер изделия в интерьере, вращение 360°</span></div>
+              <div class="ftt vlight" style="left:0;right:0;bottom:10%;text-align:center;font-size:8.5px">3D-визуализация в проект дизайнера</div>
+            </div>
+            <p class="fcap"><b>7в · 1:13-1:16.</b> Рендер плавно делает 360° за проход. Экран нейтральный, стол тёплый.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
             <p>(1) Sample-box: руки открывают кейс с образцами камня и металла, выкладывают на стол, свет скользит по фактурам. (2) 3D-визуализация: экран или планшет с рендером изделия в интерьере, вращение. (3) Комиссия и сроки - графика. Сравнение сроков с импортом - ключевой информационный момент сцены.</p>
@@ -308,115 +530,162 @@
           <div class="dir"><span class="cap">Грейдинг</span>
             <p>Тёплый, как в сцене 06, но чуть светлее (сервис, не арт): 3000-3300K. Металл образцов ловит золотой блик. Экран рендера - нейтральный, чтобы не спорил с тёплым столом. Полоса импорта в сравнении намеренно обесцвечена.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 8 -->
+      <!-- ============ СЦЕНА 8 ============ -->
       <article class="scene mix">
-        <div class="sc-head"><span class="sc-num">Сцена 08</span><span class="sc-tc">1:16-1:26</span><span class="sc-brand">Доверие · GENGROUP</span>
+        <div class="sc-head"><span class="sc-num">Сцена 08</span><span class="sc-tc">1:16-1:26</span><span class="sc-brand">Доверие · GEN-GROUP</span>
           <h3 class="sc-title">Контроль, гарантия, реальные проекты</h3></div>
-        <p class="sc-sense">Дизайнер получает основания доверять: ответственность именная, сервис доведён до объекта.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">Контроль качества на каждом этапе</span>
-          <span class="ttl-chip">Гарантия 12-24 месяца, белый монтаж</span>
-          <span class="ttl-chip">Именная бирка мастера</span>
+        <p class="sc-sense">Дизайнер получает основания доверять: контроль двойной, сборка ручная, сервис доведён до объекта.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="left:10%;top:14%;width:52%;height:60%"><span>Макро: штангенциркуль на кромке, руки мастера</span></div>
+              <div class="fline" style="left:56%;top:30%;width:18%;height:1px;background:#A9C4DD"></div>
+              <div class="fcallout" style="right:5%;top:22%;max-width:26%">двойной контроль:<br>после окраски<br>и на сборке</div>
+              <div class="ftt" style="left:10%;bottom:9%;font-size:9.5px">Контроль качества на каждом этапе</div>
+            </div>
+            <p class="fcap"><b>8а · 1:16-1:19.</b> Техническая выноска-линия у губок штангенциркуля, без численного значения допуска.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fgrid" style="left:8%;top:12%;width:84%;height:56%;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr)">
+                <div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div><div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div><div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div><div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div><div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div><div class="fcell" style="background:rgba(243,242,239,.1);border-color:rgba(243,242,239,.28)"></div>
+              </div>
+              <div class="ftt" style="left:8%;bottom:10%;font-size:9.5px">Реальные проекты · единый грейд галереи</div>
+            </div>
+            <p class="fcap"><b>8б · 1:19-1:22.</b> Галерея фото проектов сеткой 2×3 (или горизонтальным потоком), держится 1.5 сек - доказательная масса.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Доставка и монтаж: упаковка, переноска, установка, белые перчатки крупно</span></div>
+              <div class="ftt" style="left:7%;bottom:20%;font-size:9.5px">Гарантия 12 месяцев · белый монтаж</div>
+              <div class="ftt sub" style="left:7%;bottom:9%;font-size:8px">сборка вручную · средний стаж мастеров 15 лет</div>
+            </div>
+            <p class="fcap"><b>8в · 1:22-1:26.</b> Белые перчатки - крупно на 1 сек. Два титра: гарантия и стаж (Inter Bold + Regular).</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>(1) Контроль качества: руки мастера со штангенциркулем на кромке, замер, макро. (2) Фото реальных завершённых проектов - серия кадров интерьеров с нашей мебелью. (3) Доставка и белый монтаж: упаковка, бережная переноска, установка на объекте, монтажники в перчатках. Гарантия - графика: строгий значок, без китча.</p>
+            <p>(1) Контроль качества: руки мастера со штангенциркулем на кромке, замер, макро. По презентации контроль двойной: после окрашивания и на этапе сборки - это и выносим. (2) Фото реальных завершённых проектов - серия кадров интерьеров с нашей мебелью (есть в презентации и портфолио). (3) Доставка и белый монтаж: многослойная упаковка, бережная переноска, установка на объекте, монтажники в перчатках. Гарантия 12 месяцев на всю продукцию - графика: строгий значок, без китча. Сборка ручная, средний стаж мастеров 15 лет.</p>
             <div class="srcs"><span class="src-chip fab">Цех · ОТК</span><span class="src-chip life">Фото проектов</span><span class="src-chip">Доставка · монтаж</span><span class="src-chip gfx">Графика</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
             <p>Темп возвращается к среднему, уверенному. Замер: у губок штангенциркуля появляется техническая выноска-линия без числа - жест точности без спорных заявлений (численный допуск на экран не выводим, пока производство не подтвердит его ОТК-документом). Проекты - галерея: 4-5 фото горизонтальным потоком или сеткой 2×3, держится 1.5 сек (доказательная масса). Белые перчатки - крупно на 1 сек. Переходы - чистые cut'ы и один wipe.</p>
           </div>
           <div class="dir"><span class="cap">Грейдинг</span>
-            <p>Объединяющий нейтраль 4500K: ни в синь, ни в золото - это GENGROUP-слой. Руки и перчатки - естественный тон кожи. Фото проектов привести к единому грейду, чтобы разнобой съёмок не рвал блок. Чисто, честно, документально.</p>
+            <p>Объединяющий нейтраль 4500K: ни в синь, ни в золото - это GEN-GROUP-слой. Руки и перчатки - естественный тон кожи. Фото проектов привести к единому грейду, чтобы разнобой съёмок не рвал блок. Чисто, честно, документально.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
-      <!-- 9 -->
+      <!-- ============ СЦЕНА 9 ============ -->
       <article class="scene gr">
         <div class="sc-head"><span class="sc-num">Сцена 09</span><span class="sc-tc">1:26-1:35</span><span class="sc-brand">Закрытие · CTA</span>
           <h3 class="sc-title">Формула брендов и приглашение</h3></div>
         <p class="sc-sense">Дизайнер уходит с простым правилом маршрутизации и понятным следующим шагом к сотрудничеству.</p>
-        <div class="titles"><span class="cap">Титры на экране</span>
-          <span class="ttl-chip">Камень или изделие от 100K - VALONTI. Остальное - GENGLASS.</span>
-          <span class="ttl-chip">Итальянское качество. Российская скорость.</span>
-          <span class="ttl-chip">Шоурум GENGROUP - приходите с проектом</span>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:0;right:0;top:12%;text-align:center;font-size:12px;letter-spacing:.1em">GEN-GROUP</div>
+              <div class="fline" style="left:50%;top:26%;width:1px;height:12%"></div>
+              <div class="fline" style="left:28%;top:38%;width:44%;height:1px"></div>
+              <div class="fline" style="left:28%;top:38%;width:1px;height:10%"></div>
+              <div class="fline" style="left:72%;top:38%;width:1px;height:10%"></div>
+              <div class="ftt steel" style="left:10%;top:52%;font-size:10px;text-align:center;width:36%">GENGLASS<br><span style="font-size:7px;font-weight:600">серия · 5-30 дней · RAL</span></div>
+              <div class="ftt vlight" style="right:10%;top:52%;font-size:10px;text-align:center;width:36%">VALONTI<br><span style="font-size:7px;letter-spacing:.05em">камень · авторское · от 100K</span></div>
+            </div>
+            <p class="fcap"><b>9а · 1:26-1:29.</b> Формула собирается сверху вниз: линии прочерчиваются от GEN-GROUP к брендам (рифма со сценой 03). G - степом, V - fade.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:8%;right:8%;top:30%;text-align:center;font-size:10.5px;line-height:1.5">Камень или изделие от 100K - VALONTI.<br>Остальное - GENGLASS.</div>
+              <div class="ftt vlight" style="left:0;right:0;bottom:22%;text-align:center;font-size:9px">Итальянское качество. Российская скорость.</div>
+            </div>
+            <p class="fcap"><b>9б · 1:29-1:32.</b> Правило маршрутизации - главный вынос, по центру. Слоган VALONTI ниже, тонкий.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:7%;top:16%;font-size:10px">Запросите sample-box в шоуруме</div>
+              <div class="ftt sub" style="left:7%;top:38%;font-size:7.5px;line-height:1.7">Шоурум GEN-GROUP · Домодедово, территория Интегра, стр. 3<br>+7 495 120-75-35<br>gen-group.ru · genglass.ru · valonti.ru</div>
+              <div class="fqr" style="right:8%;top:26%;width:44px;height:44px"></div>
+              <div class="ftt sub" style="left:7%;bottom:8%;font-size:7px;opacity:.65">«Наша продукция повышает ценность любых пространств» - Богдан Валайко, генеральный директор</div>
+            </div>
+            <p class="fcap"><b>9в · 1:32-1:35.</b> CTA и QR держатся статично минимум 3 сек. Финал - лого-блик по стали, закольцовка со сценой 01.</p>
+          </div>
         </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
         <div class="dirgrid">
           <div class="dir"><span class="cap">Футаж</span>
-            <p>Полностью графика на графитовом фоне (опционально - финальный макро-блик по стали). Формула: GENGROUP над чертой, под ней два столбца - GENGLASS (серия, сроки, RAL) в стальном и VALONTI (камень, авторское) в золоте. CTA-блок: титр «Запросите sample-box в шоуруме», QR ведёт на valonti.ru (партнёрская программа для дизайнеров), подпись мелким кеглем: genglass.ru · valonti.ru · шоурум GENGROUP, Домодедово. Финальный URL и UTM-метку QR подтверждает GENGROUP на сдаче чернового монтажа. Дикторского голоса в ролике нет.</p>
+            <p>Полностью графика на графитовом фоне (опционально - финальный макро-блик по стали). Формула: GEN-GROUP над чертой, под ней два столбца - GENGLASS (серия, сроки, RAL) в стальном и VALONTI (камень, авторское) в золоте. CTA-блок: титр «Запросите sample-box в шоуруме», QR ведёт на valonti.ru (партнёрская программа для дизайнеров), контакты по презентации: Домодедово, территория Интегра, строение 3; +7 495 120-75-35; gen-group.ru · genglass.ru · valonti.ru. Опциональный финальный титр - цитата генерального директора Богдана Валайко из презентации. Финальный URL и UTM-метку QR подтверждает GEN-GROUP на сдаче чернового монтажа. Дикторского голоса в ролике нет.</p>
             <div class="srcs"><span class="src-chip gfx">Графика</span><span class="src-chip mac">Макро (опция)</span></div>
           </div>
           <div class="dir"><span class="cap">Моушен</span>
-            <p>Сборка формулы: сверху появляется GENGROUP, из него вниз прочерчиваются две линии к брендам - визуальная рифма со сценой 03. G-столбец собирается ритмичными степами, V-столбец проявляется fade с разрядкой: каждый в своём характере. CTA и QR въезжают последними и держатся статично минимум 3 секунды. Лого GENGROUP в финале - тот же световой блик по стали, что в сцене 01 (закольцовка).</p>
+            <p>Сборка формулы: сверху появляется GEN-GROUP, из него вниз прочерчиваются две линии к брендам - визуальная рифма со сценой 03. G-столбец собирается ритмичными степами, V-столбец проявляется fade с разрядкой: каждый в своём характере. CTA и QR въезжают последними и держатся статично минимум 3 секунды. Лого GEN-GROUP в финале - тот же световой блик по стали, что в сцене 01 (закольцовка).</p>
           </div>
           <div class="dir"><span class="cap">Грейдинг</span>
-            <p>Графит #14171A. G-блок - стальное свечение, V-блок - тёплое золото, линия GENGROUP - нейтрально-белая. Финал: два акцента на тёмном, чисто, инженерно. QR - белый на графите, максимальная читаемость.</p>
+            <p>Графит #14171A. G-блок - стальное свечение, V-блок - тёплое золото, линия GEN-GROUP - нейтрально-белая. Финал: два акцента на тёмном, чисто, инженерно. QR - белый на графите, максимальная читаемость.</p>
           </div>
-        </div>
+        </div></details>
       </article>
 
     </div>
   </section>
 
   <section>
-    <div class="sec-head"><h2 class="sec-title">Инвентарь исходников <span class="em">asset-matrix</span></h2><p>Сверяется на кик-оффе с моушен-дизайнером: статус каждого шота подтверждается по его библиотеке подсъёмок до начала монтажа. Для рискованных зависимостей указан fallback - ролик собирается при любом статусе.</p></div>
-    <div class="tablewrap" style="overflow-x:auto;border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow)">
-      <table style="width:100%;border-collapse:collapse;min-width:760px;background:var(--s1);font-size:13px">
-        <thead><tr>
-          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Сцена</th>
-          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Шот</th>
-          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Статус</th>
-          <th style="text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)">Fallback, если шота нет</th>
-        </tr></thead>
+    <div class="sec-head"><h2 class="sec-title">Инвентарь исходников <span class="em">asset-matrix</span></h2><p>Сверяется на кик-оффе с моушен-дизайнером: статус каждого шота подтверждается по его библиотеке подсъёмок до начала монтажа. Для рискованных зависимостей указан fallback - ролик собирается при любом статусе. Каталожные фото серийных моделей, образцы отделок металла и стёкол - в презентации GEN-GROUP (56 стр.), она передаётся в архиве кик-оффа.</p></div>
+    <div class="amx">
+      <table>
+        <thead><tr><th>Сцена</th><th>Шот</th><th>Статус</th><th>Fallback, если шота нет</th></tr></thead>
         <tbody>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">01</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Искра лазерной резки, high-speed 300-400 fps</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">проверить в библиотеке</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">обычная съёмка 50-100 fps + AI-интерполяция замедления, либо макро без slow-mo и планы короче</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">01, 06</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Макро камня: полировка кромки, прожилка Nero Marquina, травертин, оникс на просвет</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">образцы из sample-box, стол, один направленный свет - съёмка за полдня; основа V-блока, стоком не заменять</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">02, 04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Цех: проезд, лазер, сварка, порошковая покраска, сборка</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (подсъёмки цеха)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">цельный проезд собирается из 3 планов единого направления (см. сцену 02)</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">03, 04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Склад серийных моделей, проезд вдоль стеллажей</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">проверить в библиотеке</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">статичные кадры склада + параллакс 2.5D в монтаже</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">03</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Изделие из камня на тёмном подиуме, медленный orbit</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в шоуруме</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">3D-рендер изделия (рендеры есть, см. сцену 07)</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">04</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Веер образцов RAL в руках, пролистывание</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">простая предметка: стол, руки, веер - 30 минут съёмки</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">05</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Офис: руки, монитор с проектом, отправка КП</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в офисе</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">полдня съёмки; интерфейс сметы можно целиком собрать графикой поверх нейтрального кадра</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">06</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Лайфстайл: вечер, консоль Nero Marquina, бокал, книга, рука</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">постановка в шоуруме</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">вечерняя постановочная съёмка в шоуруме (изделие + реквизит + лампа), либо фотореалистичный 3D-рендер интерьера</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">07</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Sample-box: руки открывают кейс, выкладка образцов</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять предметно</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">совместить со съёмкой макро камня (тот же стол и свет)</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">07</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">3D-визуализация изделия в интерьере (экран/планшет)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (рендеры производства)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">рендеры передаёт GENGROUP при кик-оффе</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Штангенциркуль на кромке, руки мастера</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--sgl-ink);font-weight:700">доснять в цехе</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">10 минут съёмки на участке ОТК</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Фото завершённых проектов (4-5 интерьеров)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (портфолио проектов)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">фотографии проектов с genglass.ru и архива, привести к единому грейду</td></tr>
-          <tr><td style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700">08</td><td style="padding:10px 14px;border-bottom:1px solid var(--line)">Доставка и белый монтаж: упаковка, переноска, установка</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--pub-ink);font-weight:700">есть (подсъёмки доставки)</td><td style="padding:10px 14px;border-bottom:1px solid var(--line);color:var(--ink2)">снять на ближайшем монтаже, 1 выезд</td></tr>
-          <tr><td style="padding:10px 14px;font-weight:700">09</td><td style="padding:10px 14px">Финальная графика формулы + QR</td><td style="padding:10px 14px;color:var(--drf-ink);font-weight:700">графика</td><td style="padding:10px 14px;color:var(--ink2)">собирает моушен-дизайнер по граф-киту ниже</td></tr>
+          <tr><td>01</td><td>Искра лазерной резки, high-speed 300-400 fps</td><td class="st-chk">проверить в библиотеке</td><td class="mut">обычная съёмка 50-100 fps + AI-интерполяция замедления, либо макро без slow-mo и планы короче</td></tr>
+          <tr><td>01, 06</td><td>Макро камня: полировка кромки, прожилка Nero Marquina, травертин, оникс на просвет</td><td class="st-chk">доснять предметно</td><td class="mut">образцы из sample-box, стол, один направленный свет - съёмка за полдня; основа V-блока, стоком не заменять</td></tr>
+          <tr><td>02, 04</td><td>Цех: проезд, лазер, сварка, двойная порошковая покраска, сборка</td><td class="st-ok">есть (подсъёмки цеха)</td><td class="mut">цельный проезд собирается из 3 планов единого направления (см. сцену 02)</td></tr>
+          <tr><td>03, 04</td><td>Склад серийных моделей, проезд вдоль стеллажей</td><td class="st-chk">проверить в библиотеке</td><td class="mut">статичные кадры склада + параллакс 2.5D в монтаже</td></tr>
+          <tr><td>03</td><td>Изделие из камня на тёмном подиуме, медленный orbit</td><td class="st-chk">доснять в шоуруме</td><td class="mut">3D-рендер изделия (рендеры есть, см. сцену 07)</td></tr>
+          <tr><td>04</td><td>Веер образцов RAL в руках, пролистывание</td><td class="st-chk">доснять предметно</td><td class="mut">простая предметка: стол, руки, веер - 30 минут съёмки</td></tr>
+          <tr><td>04, 05</td><td>Каталожные фото серийных моделей (TRUBIS, VIOLUR, ATLAS, EVELIX, RAUNTEL, HALFEO, KUVINO, перегородки) и образцы отделок</td><td class="st-ok">есть (презентация GEN-GROUP)</td><td class="mut">выгрузка страниц презентации в исходном качестве, единый грейд</td></tr>
+          <tr><td>05</td><td>Офис: руки, монитор с проектом, отправка КП</td><td class="st-chk">доснять в офисе</td><td class="mut">полдня съёмки; интерфейс сметы можно целиком собрать графикой поверх нейтрального кадра</td></tr>
+          <tr><td>06</td><td>Лайфстайл: вечер, консоль Nero Marquina, бокал, книга, рука</td><td class="st-chk">постановка в шоуруме</td><td class="mut">вечерняя постановочная съёмка в шоуруме (изделие + реквизит + лампа), либо фотореалистичный 3D-рендер интерьера</td></tr>
+          <tr><td>07</td><td>Sample-box: руки открывают кейс, выкладка образцов</td><td class="st-chk">доснять предметно</td><td class="mut">совместить со съёмкой макро камня (тот же стол и свет)</td></tr>
+          <tr><td>07</td><td>3D-визуализация изделия в интерьере (экран/планшет)</td><td class="st-ok">есть (рендеры производства)</td><td class="mut">рендеры передаёт GEN-GROUP при кик-оффе</td></tr>
+          <tr><td>08</td><td>Штангенциркуль на кромке, руки мастера</td><td class="st-chk">доснять в цехе</td><td class="mut">10 минут съёмки на участке ОТК</td></tr>
+          <tr><td>08</td><td>Фото завершённых проектов (4-5 интерьеров)</td><td class="st-ok">есть (презентация + портфолио)</td><td class="mut">фотографии проектов из презентации и с genglass.ru, привести к единому грейду</td></tr>
+          <tr><td>08</td><td>Доставка и белый монтаж: упаковка, переноска, установка</td><td class="st-ok">есть (подсъёмки доставки)</td><td class="mut">снять на ближайшем монтаже, 1 выезд</td></tr>
+          <tr><td>09</td><td>Финальная графика формулы + QR</td><td class="st-gfx">графика</td><td class="mut">собирает моушен-дизайнер по граф-киту ниже</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="footnote"><b>Кик-офф до монтажа:</b> моушен-дизайнер сверяет статусы по своей библиотеке, GENGROUP передаёт архив: вектор-локапы GENGROUP / GENGLASS / VALONTI (SVG или AI, не перерисовывать), 3D-рендеры, фото проектов. Съёмочные дозаказы группируются в 2 смены: предметная (макро камня + RAL + sample-box, один стол и свет) и объектная (офис + ОТК + шоурум-постановка).</div>
+    <div class="footnote"><b>Кик-офф до монтажа:</b> моушен-дизайнер сверяет статусы по своей библиотеке, GEN-GROUP передаёт архив: презентацию GEN-GROUP (56 стр., каталожные фото и материалы), вектор-локапы GEN-GROUP / GENGLASS / VALONTI (SVG или AI, не перерисовывать), 3D-рендеры, фото проектов. Съёмочные дозаказы группируются в 2 смены: предметная (макро камня + RAL + sample-box, один стол и свет) и объектная (офис + ОТК + шоурум-постановка).</div>
   </section>
 
   <section>
     <div class="sec-head"><h2 class="sec-title">Стайл-гайд <span class="em">ролика</span></h2></div>
     <div class="style2">
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></span>Темп и ритм</h3>
-        <p>Три ритмические зоны. <b>GENGROUP</b> - средний уверенный (планы 2-4 сек). <b>GENGLASS</b> - быстрый ритмичный в бит (1.5-2.5 сек, серийность, степы). <b>VALONTI</b> - медленный дышащий (3-5 сек, паузы, воздух). Ролик дышит: разгон в G, замедление в V. Один темп на все 95 секунд не держать.</p></div>
+        <p>Три ритмические зоны. <b>GEN-GROUP</b> - средний уверенный (планы 2-4 сек). <b>GENGLASS</b> - быстрый ритмичный в бит (1.5-2.5 сек, серийность, степы). <b>VALONTI</b> - медленный дышащий (3-5 сек, паузы, воздух). Ролик дышит: разгон в G, замедление в V. Один темп на все 95 секунд не держать.</p></div>
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8"/></svg></span>Режиссура и типографика</h3>
         <p>Документально-инженерная режиссура на реальных подсъёмках; графика - только как разметка поверх материала и в закрытии. Материал (сталь, камень) - главный герой, макро-фактуры несут смысл. Референс: арт-каталог Boffi/Cassina для V, промышленная точность для G. Шрифт только <b>Inter</b>: Bold - число, Regular - подпись, Light с разрядкой - VALONTI. Титры живут в пространстве кадра, не на плашках в углу.</p></div>
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h6l2-7 4 14 2-7h2"/></svg></span>Переходы</h3>
-        <p><b>G-блок:</b> жёсткие cut'ы в бит, match-cut, мультипликация в сетку. <b>V-блок:</b> только slow dissolve и match на фактуре, паузы-затемнения. <b>GENGROUP:</b> чистые cut'ы, tracking-шоты, AR-разметка, привязанная к пространству. Wipe - для сплит-скрина сцены 03. Запрещены: glow-вспышки, вращающиеся 3D-кубы, whip-pan ради whip-pan.</p></div>
+        <p><b>G-блок:</b> жёсткие cut'ы в бит, match-cut, мультипликация в сетку. <b>V-блок:</b> только slow dissolve и match на фактуре, паузы-затемнения. <b>GEN-GROUP:</b> чистые cut'ы, tracking-шоты, AR-разметка, привязанная к пространству. Wipe - для сплит-скрина сцены 03. Запрещены: glow-вспышки, вращающиеся 3D-кубы, whip-pan ради whip-pan.</p></div>
       <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>Музыка и звук</h3>
-        <p>Единый трек с тремя динамиками. Основа - минималистичный электронно-акустический бит с металлической перкуссией (звук цеха ритмизован), <b>90-100 BPM</b>, длительность от 100 сек. GENGLASS - плотный ритм, отчётливый пульс. VALONTI - трек разрежается, атмосфера и фортепианная нота, паузы. Финал собирается обратно. Диегетический звук (искра, полировка, щелчок штангенциркуля) вплетён в микс. <b>Источник и лицензия:</b> сток-библиотека с коммерческой лицензией (Artlist или Epidemic Sound), покрытие - публичный показ в шоуруме; кандидат-трек моушен-дизайнер присылает на согласование GENGROUP до чистового монтажа. Без эпик-трейлерных брассов и лаунж-клише. Ролик обязан работать и без звука.</p></div>
+        <p>Единый трек с тремя динамиками. Основа - минималистичный электронно-акустический бит с металлической перкуссией (звук цеха ритмизован), <b>90-100 BPM</b>, длительность от 100 сек. GENGLASS - плотный ритм, отчётливый пульс. VALONTI - трек разрежается, атмосфера и фортепианная нота, паузы. Финал собирается обратно. Диегетический звук (искра, полировка, щелчок штангенциркуля) вплетён в микс. <b>Источник и лицензия:</b> сток-библиотека с коммерческой лицензией (Artlist или Epidemic Sound), покрытие - публичный показ в шоуруме; кандидат-трек моушен-дизайнер присылает на согласование GEN-GROUP до чистового монтажа. Без эпик-трейлерных брассов и лаунж-клише. Ролик обязан работать и без звука.</p></div>
       <div class="stcard" style="grid-column:1/-1"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></span>Граф-кит: цвета и шрифтовая спека</h3>
         <p><b>Цвета графики и титров</b> (HEX для оверлеев; цветовые температуры в сценах относятся к грейду света, не к графике):
-        фон-графит <b>#14171A</b> · титры GENGROUP нейтраль <b>#F3F2EF</b> · сталь GENGLASS основная <b>#A9C4DD</b>, глубокая (подчёркивания, линии) <b>#41607E</b> · золото VALONTI основное <b>#F0C062</b>, глубокое <b>#C98A26</b> · серый импорта в сравнении сцены 07 <b>#6F6F6F</b> (намеренно обесцвечен). Другие цвета в графику не вводить.</p>
+        фон-графит <b>#14171A</b> · титры GEN-GROUP нейтраль <b>#F3F2EF</b> · сталь GENGLASS основная <b>#A9C4DD</b>, глубокая (подчёркивания, линии) <b>#41607E</b> · золото VALONTI основное <b>#F0C062</b>, глубокое <b>#C98A26</b> · серый импорта в сравнении сцены 07 <b>#6F6F6F</b> (намеренно обесцвечен). Другие цвета в графику не вводить.</p>
         <p><b>Типографика Inter:</b> числа - Bold 700; подписи - Regular 400, кегль 1:3 от числа; титры VALONTI - Light 300 с трекингом +8...+12%. Заголовочные титры до 9 слов, одна мысль на титр. Минимальный кегль с учётом просмотра с 4-5 метров: не мельче 28 px в мастере 1080p (56 px в UHD).</p>
-        <p><b>Лого:</b> вектор-локапы GENGROUP / GENGLASS / VALONTI передаёт GENGROUP архивом на кик-оффе (SVG или AI). Не перерисовывать, не менять пропорции, появление лого - только приёмом «блик по стали» из сцен 01 и 09.</p></div>
+        <p><b>Лого:</b> вектор-локапы GEN-GROUP / GENGLASS / VALONTI передаёт GEN-GROUP архивом на кик-оффе (SVG или AI). Не перерисовывать, не менять пропорции, появление лого - только приёмом «блик по стали» из сцен 01 и 09. Написание группы - <b>GEN-GROUP</b> (через дефис), по крайней презентации.</p></div>
       <div class="stcard dont" style="grid-column:1/-1"><h3><span class="di" style="background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>Запрещено (anti-median)</h3>
         <ul>
           <li>Стоковые сцены «современная гостиная» и люди-модели в полный рост в лайфстайле - только руки и фрагменты.</li>
           <li>Золотые вензели, блёстки, гламур-glow в VALONTI: Bottega Veneta, не Versace.</li>
-          <li>Тотальная синяя заливка в GENGROUP-слое - синий только как акцент GENGLASS.</li>
+          <li>Тотальная синяя заливка в GEN-GROUP-слое - синий только как акцент GENGLASS.</li>
           <li>Микс стального и золотого акцента в одной сцене - кроме сплит-скрина 03 и нейтрали 08.</li>
           <li>Плашки-титры в углу экрана, em dash в титрах, восклицательные знаки.</li>
           <li>Равномерный flat-свет в VALONTI - нужны теневые провалы; кислотные цвета - кроме контролируемого RAL и оникса на просвет.</li>
+          <li>Слово «кастом» в блоке GENGLASS; «эксклюзивный», «уникальный», «премиальный» без подтверждения - в любых титрах.</li>
         </ul></div>
     </div>
   </section>
@@ -433,13 +702,26 @@
       <div class="tk"><div class="n">Немой ролик</div><div class="l">без диктора и субтитров: титры сцен несут полный смысл</div></div>
       <div class="tk"><div class="n">Финал: QR + контакт</div><div class="l">статично не менее 3 сек</div></div>
     </div>
-    <div class="footnote"><b>Сдача:</b> черновой монтаж по сценам 01-09 на согласование, затем чистовой с грейдингом и звуком. Все цифры в титрах - только из этого ТЗ, ничего не добавлять и не округлять. Формулировки титров менять нельзя без согласования с GENGROUP (позиционирование выверено: у GENGLASS нет слова «кастом», у VALONTI нет слова «эксклюзив»).</div>
+    <div class="footnote"><b>Сдача:</b> черновой монтаж по сценам 01-09 на согласование, затем чистовой с грейдингом и звуком. Все цифры в титрах - только из этого ТЗ (факты сверены с презентацией GEN-GROUP: 16 000 м², 54 500+ заказов с 2018, гарантия 12 месяцев, двойной контроль качества, стаж мастеров в среднем 15 лет, LED-зеркала 2-3 дня). Ничего не добавлять и не округлять. Формулировки титров менять нельзя без согласования с GEN-GROUP: у GENGLASS нет слова «кастом», у VALONTI нет слова «эксклюзив», написание группы - GEN-GROUP.</div>
   </section>
 
   <footer class="foot">
-    <div class="seal"><span class="d"></span>GENGROUP · ТЗ и раскадровка ролика для шоурума · июль 2026 · внутренний документ, ссылку не публиковать</div>
+    <div class="seal"><span class="d"></span>GEN-GROUP · ТЗ и раскадровка ролика для шоурума · июль 2026 · ревизия 3 · внутренний документ, ссылку не публиковать</div>
   </footer>
 </main>
 <script src="theme.js" defer></script>
+<script>
+(function(){
+  var btn=document.getElementById('expall'); if(!btn) return;
+  function allOpen(){var d=document.querySelectorAll('details.brief');for(var i=0;i<d.length;i++){if(!d[i].open)return false;}return true;}
+  function sync(){btn.textContent=allOpen()?'Свернуть все брифы':'Развернуть все брифы';}
+  btn.addEventListener('click',function(){
+    var open=!allOpen(), d=document.querySelectorAll('details.brief');
+    for(var i=0;i<d.length;i++){d[i].open=open;}
+    sync();
+  });
+  document.addEventListener('toggle',function(){sync();},true);
+})();
+</script>
 </body>
 </html>

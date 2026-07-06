@@ -126,7 +126,7 @@ function cstats(a,b){const inP=x=>x&&x>=a&&x<=b;
 const OPEN=l=>!l.closed&&!l.conv&&!l.junk;
 const MIND=GG.reduce((m,l)=>l.created&&l.created<m?l.created:m,TODAY);
 /* ===== состояние ===== */
-let S={from:'',to:'',preset:'30',gran:'d',qAge:null};
+let S={from:'',to:'',preset:'30',gran:'d',qAge:null,qStat:null};
 function setPeriod(p){const e=D(TODAY);
   if(p==='all'){S.from=MIND;S.to=TODAY}
   else if(p==='y'){S.from=YESTER;S.to=YESTER}
@@ -247,22 +247,45 @@ function render(){
         <div style="position:absolute;left:${mark.toFixed(2)}%;top:-2.5px;bottom:-2.5px;width:2px;background:var(--ink);border-radius:1px" data-tip="план · 100%"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px"><span style="color:${col};font-weight:800">${pct(att)}</span><span>план ${F(plan)}</span></div></div>`};
+  /* спидометр v2 (решение Ивана): цветовые зоны 0-70-95-150%, деления, красная стрелка с противовесом и ступицей */
+  const gauge2=(fact,plan,F)=>{if(!(plan>0)||fact==null)return '';const Ff=F||fmt;
+    const att=fact/plan,cap=1.5,fr=Math.max(0,Math.min(1,att/cap));
+    const W=190,H=110,cx=95,cy=96,R=64;
+    const A=f=>-180+180*f, PT=(ang,r)=>[cx+r*Math.cos(ang*Math.PI/180),cy+r*Math.sin(ang*Math.PI/180)];
+    const arc=(f0,f1,r,w,c,op)=>{const[x0,y0]=PT(A(f0),r),[x1,y1]=PT(A(f1),r);return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="butt"${op?` opacity="${op}"`:''}/>`};
+    window._g2n=(window._g2n||0)+1;const gid='gg2'+window._g2n;
+    const z1=.7/cap,z2=.95/cap;
+    let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:200px;margin-top:8px">`;
+    g+=`<defs><filter id="${gid}s" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity=".5"/></filter><radialGradient id="${gid}h"><stop offset="0" stop-color="#E9EEF5"/><stop offset=".55" stop-color="#8A94A6"/><stop offset="1" stop-color="#343B48"/></radialGradient></defs>`;
+    g+=arc(0,1,R,13,'var(--bg-soft)');
+    g+=arc(0,z1,R,13,'#F43F5E','.72')+arc(z1,z2,R,13,'#F59E0B','.78')+arc(z2,1,R,13,'#10B981','.78');
+    for(let k=0;k<=12;k++){const f=k*.125/cap;if(f>1)break;const big=k%2===0;
+      const[x0,y0]=PT(A(f),R-9),[x1,y1]=PT(A(f),R-(big?16:12.5));
+      g+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="rgba(233,238,245,${big?'.5':'.25'})" stroke-width="${big?1.5:1}"/>`}
+    {const[x0,y0]=PT(A(1/cap),R-19),[x1,y1]=PT(A(1/cap),R+8),[lx,ly]=PT(A(1/cap),R+16);
+     g+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="#F1F4F8" stroke-width="2.2" stroke-linecap="round"/><text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="middle" font-size="7.5" font-weight="800" fill="var(--ink-2)">план</text>`}
+    const col=att>=.95?'#10B981':att>=.7?'#F59E0B':'#F43F5E';
+    {const a=A(fr);const[tx,ty]=PT(a,R-5);const[bx,by]=PT(a+180,15);const[w1x,w1y]=PT(a+90,2.7),[w2x,w2y]=PT(a-90,2.7);
+     g+=`<g filter="url(#${gid}s)"><polygon points="${tx.toFixed(1)},${ty.toFixed(1)} ${w1x.toFixed(1)},${w1y.toFixed(1)} ${bx.toFixed(1)},${by.toFixed(1)} ${w2x.toFixed(1)},${w2y.toFixed(1)}" fill="#E5484D"/><circle cx="${cx}" cy="${cy}" r="7.5" fill="url(#${gid}h)"/><circle cx="${cx}" cy="${cy}" r="2.5" fill="#22272F"/></g>`}
+    g+=`<text x="${cx}" y="${cy-26}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="20" fill="${col}">${pct(att)}</text></svg>`;
+    const tip=attr(`<div class='tl'>Выполнение плана</div><div class='tr'><span>План</span><span>${Ff(plan)}</span></div><div class='tr'><span>Факт</span><span>${Ff(fact)}</span></div><div class='tr'><span>Выполнение</span><span>${pct(att)}</span></div>`);
+    return `<div style="width:100%;display:flex;flex-direction:column;align-items:center" data-tip="${tip}">${g}<div style="font-size:9.5px;color:var(--ink-4);margin-top:-2px">план ${Ff(plan)} · факт ${Ff(fact)}</div></div>`};
 
   /* 1. Главное: статусы воронки сейчас + поток и «В сделке» за период с планами.
      Планы масштабируются под выбранный период: Сегодня = дневной план, 30 дн = месячный. */
   const stNow=st=>allOpen.filter(l=>l.status===st).length;
   const nWork=stNow('В работе');
   const kC=[
-    ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev),pbar(co.rev,planRevP,fmtRub)],
-    ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales),pbar(co.sales,Math.ceil(planSalesP))],
+    ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev),gauge2(co.rev,planRevP,fmtRub)],
+    ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales),gauge2(co.sales,Math.ceil(planSalesP))],
     ['Передано в производство',fmt(co.prod),'','#8B7BF0','сделок ушло в цех',trend(co.prod,coPrev.prod)],
-    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)})`,trend(coCr,coCrPrev),pbar(coCr,PP.cr2,pct)],
+    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)})`,trend(coCr,coCrPrev),gauge2(coCr,PP.cr2,pct)],
   ];
   const k1=[
-    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),pbar(cur.inflow.length,planRzP)],
+    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),gauge2(cur.inflow.length,planRzP)],
     ['В работе<span class="now-badge">сейчас</span>',fmt(nWork),'','#3DAEC2','взяты в разбор, ещё не закрыты','',`<div style="width:100%;margin-top:8px;font-size:9px;color:var(--ink-4)" data-tip="${attr('Моментальный снимок очереди: сколько лидов взято в разбор и ещё не закрыто прямо сейчас. План к снимку не применяется - планы считаются на поток за период (разобрать, передать в сделку).')}">снимок «сейчас» - без плана</div>`],
-    ['В сделке',fmt(cur.kval.length),'','#A78BFA','передано в ОП',trend(cur.kval.length,prev.kval.length),pbar(cur.kval.length,planKvP)],
-    ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr),pbar(cur.cr,PP.cr1,pct)],
+    ['В сделке',fmt(cur.kval.length),'','#A78BFA','передано в ОП',trend(cur.kval.length,prev.kval.length),gauge2(cur.kval.length,planKvP)],
+    ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr),gauge2(cur.cr,PP.cr1,pct)],
   ];
   const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}${k[6]||''}</div>`).join('')}</div>`;
   /* цепочка декомпозиции: выручка -> продажи -> квал-лиды -> разборы (месяц и в день) */
@@ -318,7 +341,9 @@ function render(){
   const wTot=waiting.length||1;
   /* сегменты шкалы - кликабельные фильтры таблицы; повторный клик снимает */
   const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${bk.map(([l,x,y,c],bi)=>{const n=waiting.filter(w=>wAge(w)>=x&&wAge(w)<=y).length;if(!n)return '';const on=S.qAge===bi;return `<div data-qa="${bi}" data-tip="${l}: ${n} · клик = ${on?'снять фильтр':'показать только их в таблице'}" style="width:${(n/wTot*100).toFixed(1)}%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0;cursor:pointer;${S.qAge!=null&&!on?'opacity:.30':''}${on?'box-shadow:inset 0 0 0 2px #F1F4F8':''}">${n/wTot>0.07?n:''}</div>`}).join('')}</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">${bk.map(x=>`<span>${x[0]}</span>`).join('')}</div>`;
-  const wSel=S.qAge!=null?waiting.filter(w=>wAge(w)>=bk[S.qAge][1]&&wAge(w)<=bk[S.qAge][2]):waiting;
+  const cntAll={};allOpen.forEach(l=>{cntAll[l.status]=(cntAll[l.status]||0)+1});
+  const wSel=S.qStat?(S.qStat==='Разобрать'?allOpen:waiting).filter(l=>l.status===S.qStat)
+    :(S.qAge!=null?waiting.filter(w=>wAge(w)>=bk[S.qAge][1]&&wAge(w)<=bk[S.qAge][2]):waiting);
   const wRows=wSel.slice(0,12).map(l=>`<tr><td style="text-align:center">${lid(l)}</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis">${esc(l.t||'-')}</td><td>${esc((l.source||'').replace(/\s*\(не является источником\)\s*/,''))}</td><td style="text-align:center">${esc(l.status)}</td><td style="text-align:center">${l.created}</td><td style="text-align:center;font-weight:800;color:${wAge(l)>2?'#F43F5E':wAge(l)>0?'#F59E0B':'#2E9E74'}">${fmt(wAge(l))} дн</td></tr>`).join('');
   const wFiltChip=S.qAge!=null?`<span data-qa="${S.qAge}" data-tip="фильтр по возрасту заявки · клик - снять" style="display:inline-flex;align-items:center;gap:6px;margin-left:10px;padding:2px 11px;border-radius:20px;background:${bk[S.qAge][3]}26;border:1px solid ${bk[S.qAge][3]};color:${bk[S.qAge][3]};font-size:11px;font-weight:800;cursor:pointer;vertical-align:3px">${bk[S.qAge][0]} ✕</span>`:'';
   const wTbl=waiting.length?`<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th style="text-align:center">ID</th><th>Заявка</th><th>Источник</th><th style="text-align:center">Статус</th><th style="text-align:center">Создан</th><th style="text-align:center">Ждёт</th></tr></thead><tbody>${wRows||`<tr><td colspan="6" class="card-sub">в этом срезе заявок нет</td></tr>`}</tbody></table><div class="card-sub" style="margin-top:6px">показаны ${fmt(Math.min(12,wSel.length))} старейших из ${fmt(wSel.length)}</div></div>`:'';
@@ -351,12 +376,14 @@ function render(){
   /* мой план/факт за период: 4 KPI ровным рядом */
   const kPF=[
     k1[0], /* Поступило заявок */
-    ['Разобрано',fmt(cur.closed.length),'','#3DAEC2','закрыто: в сделку + отсев',trend(cur.closed.length,prev.closed.length),pbar(cur.closed.length,planRzP)],
+    ['Разобрано',fmt(cur.closed.length),'','#3DAEC2','закрыто: в сделку + отсев',trend(cur.closed.length,prev.closed.length),gauge2(cur.closed.length,planRzP)],
     k1[2], /* В сделке */
     k1[3]  /* Конверсия в сделку */
   ];
   /* очередь по этапам - второстепенная строка над таблицей */
-  const queueStrip=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${Object.entries(stC).filter(([,v])=>v>0).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:8px;background:var(--bg-elevated);border:1px solid var(--border);font-size:12px;color:var(--ink-2)">⏳ ${k}<b style="color:var(--ink);font-size:13px">${fmt(v)}</b></span>`).join('')}<span style="display:inline-flex;align-items:center;padding:5px 12px;font-size:11px;color:var(--ink-4)">снимок сейчас · это и есть «осталось в работе»</span></div>`;
+  const chip=(name,n,extra,tipTxt)=>{const on=S.qStat===name;
+    return `<span data-qs="${name}" data-tip="${attr(tipTxt||('клик - показать в таблице только «'+name+'»'))}" style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:8px;background:${on?'rgba(34,211,238,.12)':'var(--bg-elevated)'};border:1px solid ${on?'#22D3EE':'var(--border)'};font-size:12px;color:var(--ink-2);cursor:pointer">⏳ ${name}<b style="color:var(--ink);font-size:13px">${fmt(n)}</b>${extra||''}${on?' <span style="color:#22D3EE">✕</span>':''}</span>`};
+  const queueStrip=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:center">${chip('Новые заявки',stC['Новые заявки']||0,'','Свежие лиды без взятия в работу: брать отсюда, робот Б24 меняет ответственного. Клик - фильтр таблицы')}${chip('В работе',stC['В работе']||0,'','Взятые в разбор, ещё не закрытые. Клик - фильтр таблицы')}${chip('Разобрать',cntAll['Разобрать']||0,`<span style="padding:1px 8px;border-radius:10px;background:rgba(244,63,94,.16);border:1px solid #F43F5E;color:#F43F5E;font-size:10px;font-weight:800">добить до нуля</span>`,'Отстойник старых неразмеченных лидов. Разобрать до нуля - потом этап удаляется, заброс на него запрещается. Клик - показать этап в таблице (старейшие сверху)')}<span style="font-size:11px;color:var(--ink-4)">снимок сейчас · это и есть «осталось в работе»</span></div>`;
   document.getElementById('root').innerHTML=
     `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Компания</h2><div class="ln"></div><div class="hint">полярная звезда: цель компании и отдела продаж · период ${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
     +kpiRow(kC,4)
@@ -366,7 +393,7 @@ function render(){
     +todayCard
     +`<div class="sec-div" id="sec4"><div class="sec-num">4</div><h2>В работе · со сроками</h2><div class="ln"></div><div class="hint">главное: новые квалифицируем сразу, старые проверяем на актуальность запроса</div></div>`
     +queueStrip
-    +`<div class="card"><div class="card-h"><div><div class="card-title">Ждут разбора: ${fmt(waiting.length)}${wFiltChip} ${info('Открытые лиды GG прямо сейчас (Новые заявки / Разобрать / В работе), созданные за последние 30 дней - рабочая очередь. Возрастная шкала: зелёное - сегодняшние, красное - ждут больше недели; клик по сегменту фильтрует таблицу. Правило: заявка не должна ночевать дважды. Заявки старше 30 дней - архивный хвост: проходить по ним планово с проверкой актуальности запроса. Вопрос: что разобрать первым прямо сейчас? Вывод: красные строки - в работу сегодня; растёт архивный хвост - выделять регулярный слот на проверку актуальности.')}</div><div class="card-sub">свежая заявка конвертируется лучше всего в первые сутки${tailN?` · архивный хвост: ${fmt(tailN)} заявок старше 30 дн - проверить актуальность запроса`:''}</div></div></div>${ageBar}${wTbl}</div>`
+    +`<div class="card"><div class="card-h"><div><div class="card-title">Ждут разбора: ${fmt(waiting.length)}${wFiltChip} ${info('Берутся ВСЕ открытые лиды воронки GG (этапы «Новые заявки», «В работе», «Разобрать» - без Metal-GM): созданные за последние 30 дней - рабочая очередь, старше - архивный хвост. Этап «Разобрать» - отстойник старых неразмеченных лидов: разбираем до нуля (чип с красной меткой, клик показывает его в таблице), после чего этап удаляется и заброс на него запрещается; новые лиды берутся в работу с этапа «Новые заявки» с автосменой ответственного (робот Б24). Возрастная шкала: зелёное - сегодняшние, красное - ждут больше недели; клик по сегменту фильтрует таблицу. Правило: заявка не должна ночевать дважды. Заявки старше 30 дней - архивный хвост: проходить по ним планово с проверкой актуальности запроса. Вопрос: что разобрать первым прямо сейчас? Вывод: красные строки - в работу сегодня; растёт архивный хвост - выделять регулярный слот на проверку актуальности.')}</div><div class="card-sub">свежая заявка конвертируется лучше всего в первые сутки${tailN?` · архивный хвост: ${fmt(tailN)} заявок старше 30 дн - почти весь лежит на этапе «Разобрать»`:''}</div></div></div>${ageBar}${wTbl}</div>`
     +`<div class="foot">GENGROUP · дашборд офис-менеджера GG · данные Bitrix24, снимок 2 раза в день</div>`;
 }
 /* ===== обвязка ===== */
@@ -378,7 +405,8 @@ function wire(){
   nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     nav.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
     const t=document.getElementById('sec'+b.dataset.i);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
-  document.addEventListener('click',e=>{const qa=e.target.closest('[data-qa]');if(qa){const i=+qa.dataset.qa;S.qAge=S.qAge===i?null:i;render();return}
+  document.addEventListener('click',e=>{const qs=e.target.closest('[data-qs]');if(qs){const st=qs.dataset.qs;S.qStat=S.qStat===st?null:st;S.qAge=null;render();return}
+    const qa=e.target.closest('[data-qa]');if(qa){const i=+qa.dataset.qa;S.qAge=S.qAge===i?null:i;S.qStat=null;render();return}
     const gb=e.target.closest('#granSeg button');if(gb){S.gran=gb.dataset.g;render()}});
 
   document.getElementById('presetSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;

@@ -107,14 +107,14 @@ const attr=s=>String(s).replace(/"/g,'&quot;');
 const info=t=>`<span class="qm" data-tip="${attr(t)}">?</span>`;
 const med=a=>{a=a.filter(x=>x!=null).sort((p,q)=>p-q);if(!a.length)return null;const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
 const DAYMS=864e5;
-const iso=d=>d.toISOString().slice(0,10);
+const iso=d=>new Date(d.getTime()+3*36e5).toISOString().slice(0,10); // дата по МСК, симметрично D()
 const D=s=>s?new Date(s+'T00:00:00+03:00'):null;
 const days=(a,b)=>a&&b?Math.round((D(b)-D(a))/DAYMS):null;
 const dm=s=>s?s.slice(8,10)+'.'+s.slice(5,7):'';
 /* «сегодня» = дата снимка данных (МСК) - живём по данным, не по часам браузера */
 const GEN=DATA.generatedAt?new Date(DATA.generatedAt):new Date();
-const TODAY=iso(new Date(GEN.getTime()+3*36e5));
-const YESTER=iso(new Date(GEN.getTime()+3*36e5-DAYMS));
+const TODAY=iso(GEN);
+const YESTER=iso(new Date(GEN.getTime()-DAYMS));
 /* ===== GG-поток: без GM ===== */
 const GM_M=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);
 const GG=DATA.leads.filter(l=>l.dir!=='metal_gm'&&!GM_M.has(l.mgr));

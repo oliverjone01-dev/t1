@@ -88,9 +88,17 @@ jobs:
           git add analytics-mvp/rop/data/rop.json analytics-mvp/rop/plan analytics-mvp/public/office-command.html
           if git diff --staged --quiet; then echo "офис: снимок без изменений"; exit 0; fi
           git commit -m "data(office): снимок лидов Bitrix24 $(date -u +%F)"
+          # при гонке: сброс на origin, свежие данные обратно, пересборка на актуальном шаблоне
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin office-dashboard-v1 && git push origin HEAD:office-dashboard-v1; then exit 0; fi
-            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            if git push origin HEAD:office-dashboard-v1; then exit 0; fi
+            git fetch origin office-dashboard-v1
+            git reset --hard origin/office-dashboard-v1
+            cp "$GITHUB_WORKSPACE/analytics-mvp/rop/data/rop.json" analytics-mvp/rop/data/rop.json
+            cp "$GITHUB_WORKSPACE/analytics-mvp/rop/plan/plan.json" analytics-mvp/rop/plan/plan.json 2>/dev/null || true
+            (cd analytics-mvp && npx tsx src/scripts/b24/build-office.ts)
+            git add analytics-mvp/rop/data/rop.json analytics-mvp/rop/plan analytics-mvp/public/office-command.html
+            git diff --staged --quiet || git commit -m "data(office): снимок лидов Bitrix24 $(date -u +%F)"
+            sleep $((2**i))
           done
           echo "office push не удался"; exit 1
 
@@ -104,9 +112,19 @@ jobs:
           git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
           if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(rop): ночной снимок Bitrix24 $(date -u +%F)"
+          # Гонка с ручными правками ветки: rebase всегда конфликтует на запечённом HTML.
+          # Поэтому при отказе пуша сбрасываемся на свежий origin, возвращаем СВЕЖИЕ данные,
+          # пересобираем на АКТУАЛЬНОМ шаблоне и коммитим заново.
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            if git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            cp analytics-mvp/rop/data/rop.json /tmp/rop-fresh.json
+            git fetch origin "$DATA_BRANCH"
+            git reset --hard "origin/$DATA_BRANCH"
+            cp /tmp/rop-fresh.json analytics-mvp/rop/data/rop.json
+            (cd analytics-mvp && npx tsx src/scripts/b24/build-rop.ts)
+            git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
+            git diff --staged --quiet || git commit -m "data(rop): снимок Bitrix24 $(date -u +%F)"
+            sleep $((2**i))
           done
           echo "push не удался"; exit 1
 

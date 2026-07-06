@@ -288,7 +288,11 @@ function chartSVG(series,keys,opt){
   const bw2=(w-pl-pr)/(n-1||1);let cols='',shade='';
   for(let i=0;i<n;i++){
     const _mkT=s2=>(s2.type==='bar'||oneB)?`<i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${s2.c};margin-right:6px'></i>`:`<i style='display:inline-block;width:13px;height:3px;border-radius:2px;background:${s2.c};margin-right:6px;vertical-align:3px'></i>`;
-    const rows=series.filter(s=>s.name&&s.vals[i]!=null).map(s=>`<div class='tr'><span>${_mkT(s)}${esc(s.name)}</span><span>${opt.money?fmt(s.vals[i])+' ₽':(opt.fmtY?opt.fmtY(s.vals[i]):fmt(s.vals[i]))}</span></div>`).join('');
+    let rows=series.filter(s=>s.name&&s.vals[i]!=null).map(s=>`<div class='tr'><span>${_mkT(s)}${esc(s.name)}</span><span>${opt.money?fmt(s.vals[i])+' ₽':(opt.fmtY?opt.fmtY(s.vals[i]):fmt(s.vals[i]))}</span></div>`).join('');
+    // уровни-пунктиры (мощность периода, пик) - в подсказку каждого бакета
+    const _dashT=c=>`<i style='display:inline-block;width:13px;height:3px;margin-right:6px;vertical-align:3px;background:repeating-linear-gradient(90deg,${c} 0 4px,transparent 4px 7px)'></i>`;
+    if(opt.refSteps&&opt.refSteps.vals&&opt.refSteps.vals[i]!=null)rows+=`<div class='tr'><span>${_dashT(opt.refSteps.c||'#F59E0B')}${esc(opt.refSteps.tipLabel||opt.refSteps.label||'уровень')}</span><span>${d1(opt.refSteps.vals[i])}</span></div>`;
+    if(opt.refLine&&opt.refLine.v>0)rows+=`<div class='tr'><span>${_dashT(opt.refLine.c||'#F59E0B')}${esc(opt.refLine.tipLabel||opt.refLine.label||'уровень')}</span><span>${d1(opt.refLine.v)}</span></div>`;
     // пустой бакет: ни в одной серии нет значения - подкрашиваем прозрачным и объясняем в подсказке
     const empty=series.every(sr=>!sr.name||sr.vals[i]==null||sr.vals[i]===0);
     const isFuture=keys[i]>NOWS;
@@ -302,7 +306,7 @@ function chartSVG(series,keys,opt){
   const _dashMk=c=>`<i style="background:repeating-linear-gradient(90deg,${c} 0 4px,transparent 4px 7px);height:3px;width:16px;vertical-align:3px"></i>`;
   if(opt.refSteps&&opt.refSteps.label)leg+=`<span>${_dashMk(opt.refSteps.c||'#F59E0B')}${opt.refSteps.label}</span>`;
   if(opt.refLine&&opt.refLine.label)leg+=`<span>${_dashMk(opt.refLine.c||'#F59E0B')}${opt.refLine.label}</span>`;
-  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${shade}${ref}${xhair}${body}${cols}${xl}</svg></div>${leg?`<div class="legend">${leg}</div>`:''}`;
+  return `<div style="overflow-x:auto"><svg class="xh-chart" viewBox="0 0 ${w} ${h}" style="width:100%;min-width:460px">${grid}${shade}${ref}${xhair}${body}${cols}${xl}</svg></div>${leg&&!opt.noLegend?`<div class="legend">${leg}</div>`:''}`;
 }
 // бублик: сегменты с подсказками, итог в центре (стиль РОП)
 function donut(data,total,pal,centerLabel){
@@ -602,7 +606,7 @@ function render(){
       labels+=`<text x="${cx(i)}" y="24" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink2)">${f.name}</text>`;
       labels+=`<text x="${cx(i)}" y="${pctY}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--ink3)">${pct0(f.count/(F[0].count||1))}</text>`;
       if(f.dwell!=null){const dc=dwellCol(f.dwell);labels+=`<rect x="${cx(i)-27}" y="${pillY}" width="54" height="16" rx="8" fill="${dc}22" stroke="${dc}" stroke-opacity=".5"/><text x="${cx(i)}" y="${pillY+11.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${dc}" pointer-events="none">${d1(f.dwell)} дн</text>`}});
-    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="note">Столбик = сколько ${PCS?'ШТУК (изделия × количество внутри карточек)':'ИЗДЕЛИЙ (карточек)'} когорты (${modeLbl}: <b>${fmt(base.length)}</b> изделий, <b>${fmt(qtySum(base))}</b> штук) коснулось участка за свой маршрут, % = доля от запущенных, пилюля = медиана времени на участке. Вторая единица - в подсказке столбика, тумблер сверху переключает. Производство - труба с ветками: изделие проходит только НУЖНЫЕ участки (зеркалу не нужна столярка), поэтому столбики не обязаны убывать слева направо, а «Готово» не равно сумме участков. Провала «мимо производства» нет: каждый готовый прошёл свой набор участков.</div>`;
+    return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:1000px"><defs>${defs}</defs>${conns}${nodes}${labels}</svg></div><div class="card-sub" style="margin-top:6px">когорта (${modeLbl}): <b style="color:var(--ink2)">${fmt(base.length)}</b> изделий · <b style="color:var(--ink2)">${fmt(qtySum(base))}</b> штук · % = доля от запущенных · пилюля = медиана времени на участке</div>`;
   })();
 
   // ===== КОНВЕЙЕР: сейчас на участке + прошло за период =====
@@ -678,8 +682,9 @@ function render(){
       {name:'Вход в цех, штук',c:'#8B7BF0',vals:inP,type:'bar',op:.45},
       {name:'Выпуск, штук',c:'#2DD4BF',vals:outP}
     ],keys,{fmtY:v=>fmt(v),
-      refSteps:{vals:capB,label:'мощность · скользящая 8 нед, шт/'+gl,c:'#F59E0B'},
-      refLine:capMax>0?{v:capMax,label:'пик мощности ~'+d1(capMax)+' шт/'+gl,c:'#F43F5E'}:null});
+      noLegend:true,
+      refSteps:{vals:capB,label:'мощность · скользящая 8 нед, шт/'+gl,tipLabel:'Мощность периода, шт/'+gl,c:'#F59E0B'},
+      refLine:capMax>0?{v:capMax,label:'пик мощности ~'+d1(capMax)+' шт/'+gl,tipLabel:'Пик мощности, шт/'+gl,c:'#F43F5E'}:null});
     const nowK=bkey(NOWS);
     const lastCyc=i=>{let j=i-1;while(j>=0&&cycB[j]==null)j--;return j>=0?cycB[j]:null};
     const diag=keys.map((k,i)=>{
@@ -697,12 +702,7 @@ function render(){
       return `<div data-tip="${attr(`<div class='tl'>Диагноз · ${blabel(keys[i])}</div><div class='tr'><span>Вход, шт</span><span>${fmt(inP[i])}</span></div><div class='tr'><span>Мощность периода, шт/${gl}</span><span>${d1(capI(i))}</span></div><div class='tr'><span>${gap>=0?'Свободный запас':'Перегруз входа'}</span><span>${d1(Math.abs(gap))} шт</span></div><div class='tr'><span>Пик мощности, шт/${gl}</span><span>${d1(capMax)}</span></div><div class='tr'><span>Выпуск, шт</span><span>${fmt(outP[i])}</span></div><div class='tr'><span>Незавершёнка на конец, шт</span><span>${wipP[i]!=null?fmt(wipP[i]):'—'}</span></div><div class='tr'><span>Срок когорты запуска</span><span>${cycB[i]!=null?d1(cycB[i])+' дн':'ещё не готовы'}</span></div><div class='tn'>${d.t}</div>`)}" style="flex:1;height:11px;border-radius:3px;background:${d.c};cursor:help"></div>`}).join('')+`</div>`;
     const botWip=chartSVG([{name:'Незавершёнка на конец периода, штук',c:'#F59E0B',vals:wipP,area:true}],keys,{fmtY:v=>fmt(v),h:150});
     const botCyc=chartSVG([{name:'Срок когорты запуска, дн (готовые)',c:'#A78BFA',vals:cycB,join:true}],keys,{fmtY:v=>d1(v),h:150});
-    // сводные плашки: мощность сейчас (скользящая), потолок цеха и средний срок производства за период
-    const capNow=(()=>{const prev=wkList.slice(-8);return prev.length?prev.reduce((a,x)=>a+w[x],0)/prev.length*scale:capAll})();
-    const cycPeriod=med(IT.filter(dirOk).filter(i=>isDone(i)&&inRange(successDate(i))).map(cycleOf).filter(x=>x!=null&&x>=0));
-    const chip=(l,v,c,tip)=>`<div data-tip="${attr(tip)}" style="display:flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border2);border-radius:8px;background:rgba(148,163,184,.04);cursor:help"><span style="width:8px;height:8px;border-radius:2px;background:${c}"></span><span style="font-size:10.5px;color:var(--ink3)">${l}</span><b style="font-size:12px;color:${c}">${v}</b></div>`;
-    const chips=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${chip('мощность сейчас','~'+d1(capNow)+' шт/'+gl,'#F59E0B','средний выпуск за последние 8 недель, приведённый к грануляции. Это реальный темп цеха: вход выше него = очередь или сдвиг сроков')}${chip('пик мощности','~'+d1(capMax)+' шт/'+gl,'#F43F5E','лучшая неделя цеха за всю историю. Потолок: грузить выше пика = гарантированный сдвиг по дням')}${chip('средний срок производства','' + (cycPeriod!=null?d1(cycPeriod)+' дн':'—'),'#A78BFA','медиана «запуск - готово» по заказам, выпущенным в выбранном периоде')}</div>`;
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки <span class="qm" data-tip="Оранжевый пунктир = мощность периода (скользящий средний выпуск за 8 недель до него, меняется во времени). Красный пунктир = пик мощности, лучшая неделя в истории - потолок цеха. Полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь» (вход выше мощности, копится незавершёнка), красное = педаль «сроки» (растёт срок когорты), тёмное = не было событий или период не наступил. Наведи на сегмент - все цифры периода. Логика: когда вход штук выше мощности, у цеха две педали: держать темп на заказ (копится незавершёнка и растёт «на подходе») или растягивать сроки (двигаются обещания клиентам, сделки зависают в «В производстве»). Диагноз по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки». Мощность не константа - скользящий средний выпуск за 8 недель до периода. Вопрос: цех в штатном режиме или уже жмёт одну из педалей - копит очередь или двигает сроки клиентам? Вывод: янтарные плитки подряд - усиливать мощность или притормаживать запуски; красные - обещанные сроки уже едут, предупреждать клиентов заранее.">?</span></div><div class="card-s">вход штук против мощности · полоса-диагноз под графиком</div></div></div>${chips}<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:center"><div>${top}${strip}</div><div>${botWip}${botCyc}</div></div></div>`;
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Две педали цеха: очередь или сроки <span class="qm" data-tip="Оранжевый пунктир = мощность периода (скользящий средний выпуск за 8 недель до него, меняется во времени). Красный пунктир = пик мощности, лучшая неделя в истории - потолок цеха. Полоса-диагноз под графиком: зелёное = штатный режим, янтарное = педаль «очередь» (вход выше мощности, копится незавершёнка), красное = педаль «сроки» (растёт срок когорты), тёмное = не было событий или период не наступил. Наведи на сегмент - все цифры периода. Логика: когда вход штук выше мощности, у цеха две педали: держать темп на заказ (копится незавершёнка и растёт «на подходе») или растягивать сроки (двигаются обещания клиентам, сделки зависают в «В производстве»). Диагноз по факту: перегруз входа + рост незавершёнки = «очередь», перегруз + рост срока когорты = «сроки». Мощность не константа - скользящий средний выпуск за 8 недель до периода. Вопрос: цех в штатном режиме или уже жмёт одну из педалей - копит очередь или двигает сроки клиентам? Вывод: янтарные плитки подряд - усиливать мощность или притормаживать запуски; красные - обещанные сроки уже едут, предупреждать клиентов заранее.">?</span></div><div class="card-s">вход штук против мощности · полоса-диагноз под графиком</div></div></div><div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:center"><div>${top}${strip}</div><div>${botWip}${botCyc}</div></div></div>`;
   })();
 
   // ===== ОЦЕНКА УЧАСТКОВ: загрузка сейчас × пропускная способность (из истории) × разгрузка =====
@@ -796,7 +796,7 @@ function render(){
     const rows=Object.entries(map).filter(([,c])=>c>0).sort((a,b)=>b[1]-a[1]);
     const mx=rows.length?rows[0][1]:1;
     const body=rows.map(([nm,c])=>`<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><div style="width:110px;font-size:12px;color:var(--ink2);text-align:right">${nm}</div><div class="hbar" style="flex:1"><i style="width:${(c/mx*100).toFixed(0)}%;background:#FB923C"></i></div><div style="width:34px;font-weight:700;font-size:12px">${c}</div></div>`).join('')||'<div class="card-s">возвратов на доработку в выбранном периоде не зафиксировано</div>';
-    return `<div>${body}</div><div class="note">Доработка/Перекрас = заказы, возвращавшиеся на участок повторно (в выбранном периоде). Всего событий: <b>${tot}</b>. Высокий столбец = проблемный участок по качеству.</div>`;
+    return `<div>${body}</div><div class="card-sub" style="margin-top:6px">всего событий за период: <b style="color:var(--ink2)">${fmt(tot)}</b></div>`;
   })();
 
   // ===== МЕНЕДЖЕРЫ: запуски (шт и ₽) + просчёты (потенциал производства) =====

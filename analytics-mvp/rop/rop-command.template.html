@@ -449,26 +449,28 @@ function multiline(series,keys,g,money,el){
   const bw=(w-pl-pr)/(keys.length-1||1);let cols='',shade='';
   for(let i=0;i<keys.length;i++){
     const total=(totSeries&&!S.hidden[totSeries.name])?totSeries.vals[i]:visNon.reduce((a,s)=>a+s.vals[i],0);
-    let rows=visNon.map(s=>({name:s.name,color:s.color,v:s.vals[i]})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
-    if(!totSeries&&rows.length<=1)rows=[];
+    const _mixed=series.some(s=>s.noTotal); // разные единицы (сделки/изделия/штуки): «итого» не имеет смысла
+    let rows=visNon.map(s=>({name:s.name,color:s.color,bar:!!(s.bar||_one),v:s.vals[i]}));
+    if(!_mixed){rows=rows.filter(r=>r.v>0).sort((a,b)=>b.v-a.v);if(!totSeries&&rows.length<=1)rows=[];}
     const x0=Math.max(pl,X(i)-bw/2),ww=Math.min(bw,w-pr-x0);
     // пустой бакет: ни одна серия не дала значения - затеняем и объясняем, почему пусто
     const _empty=series.every(sr=>S.hidden[sr.name]||!sr.vals[i]);
     const _future=keys[i]>bkey(DATA.to,g);
     if(_empty){shade+=`<rect x="${x0}" y="${pt}" width="${ww}" height="${h-pb-pt}" fill="rgba(148,163,184,.06)" pointer-events="none"/>`;}
-    const tip=_empty?`<div class='tl'>${labs[i]}</div><div class='tn'>${_future?'период ещё не наступил - данных пока нет':'событий в этом периоде не было'}</div>`.replace(/"/g,'&quot;'):tipColumn(labs[i],totLabel,total,rows,money,totColor);
+    const tip=_empty?`<div class='tl'>${labs[i]}</div><div class='tn'>${_future?'период ещё не наступил - данных пока нет':'событий в этом периоде не было'}</div>`.replace(/"/g,'&quot;'):(_mixed?(`<div class='tl'>${labs[i]}</div>`+rows.map(r=>`<div class='tr'><span>${_tipMk(r)}${esc(r.name)}</span><span>${money?fmt(r.v)+' ₽':fmt(r.v)}</span></div>`).join('')).replace(/"/g,'&quot;'):tipColumn(labs[i],totLabel,total,rows,money,totColor));
     cols+=`<rect x="${x0}" y="${pt}" width="${ww}" height="${h-pb-pt}" fill="transparent" data-cx="${X(i).toFixed(1)}" data-tip="${tip}"/>`;}
   const xhair=`<line class="xhair" x1="0" y1="${pt}" x2="0" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="4 5" opacity="0" pointer-events="none"/>`;
   const leg=hasTotal?[series.find(s=>s.total),...series.filter(s=>!s.total)]:series;
   el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="width:100%">${defs}${grid}${shade}${migMark}${xhair}${paths}${cols}${xl}</svg>`+
-    '<div class="lgd">'+leg.map(s=>`<div class="${S.hidden[s.name]?'off':''}" data-n="${s.name}" style="${s.total?'font-weight:700':''}"><i style="background:${s.color};${s.total||s.dash?'width:14px;height:4px;border-radius:2px':''}"></i>${s.name}</div>`).join('')+'</div>';
+    '<div class="lgd">'+leg.map(s=>`<div class="${S.hidden[s.name]?'off':''}" data-n="${s.name}" style="${s.total?'font-weight:700':''}"><i style="background:${s.color};${s.bar?'':'width:14px;height:4px;border-radius:2px'}"></i>${s.name}</div>`).join('')+'</div>';
   const svg=el.querySelector('svg');const xh=svg.querySelector('.xhair');
   svg.querySelectorAll('rect[data-cx]').forEach(r=>r.addEventListener('mousemove',()=>{const cx=r.getAttribute('data-cx');xh.setAttribute('x1',cx);xh.setAttribute('x2',cx);xh.setAttribute('opacity','0.5');}));
   svg.addEventListener('mouseleave',()=>xh.setAttribute('opacity','0'));
   el.querySelectorAll('.lgd div').forEach(d=>d.onclick=()=>{S.hidden[d.dataset.n]=!S.hidden[d.dataset.n];multiline(series,keys,g,money,el);});}
+function _tipMk(r){return r.bar?`<i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${r.color};margin-right:6px'></i>`:`<i style='display:inline-block;width:13px;height:3px;border-radius:2px;background:${r.color};margin-right:6px;vertical-align:3px'></i>`}
 function tipColumn(label,totalLabel,total,rows,money,totColor){const f=v=>money?fmt(v)+' ₽':fmt(v);
   let h=`<div class='tl'>${label}</div><div class='tip-tot'><span>${totColor?`<i style='display:inline-block;width:9px;height:9px;border-radius:2px;background:${totColor};margin-right:7px;vertical-align:middle'></i>`:''}${totalLabel}</span><span>${f(total)}</span></div>`;
-  if(rows.length)h+=rows.map(r=>`<div class='tr'><span><i style='display:inline-block;width:8px;height:8px;border-radius:2px;background:${r.color};margin-right:6px'></i>${esc(r.name)}</span><span>${f(r.v)}</span></div>`).join('');
+  if(rows.length)h+=rows.map(r=>`<div class='tr'><span>${_tipMk(r)}${esc(r.name)}</span><span>${f(r.v)}</span></div>`).join('');
   return h;}
 function rankColor(arr,v,inv){const a=arr.filter(x=>x!=null);if(!a.length||v==null)return '';const mn=Math.min(...a),mx=Math.max(...a);let t=mx===mn?.5:(v-mn)/(mx-mn);if(inv)t=1-t;const c=t>=.66?'16,185,129':t>=.33?'245,158,11':'244,63,94';return `background:rgba(${c},${(.05+t*.20).toFixed(3)})`;}
 // per-manager agg over a deal/lead set

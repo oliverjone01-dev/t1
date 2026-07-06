@@ -8,3 +8,4 @@ __pycache__/
 
 # Дизайн-системы, сгенерированные ui-ux-pro-max --persist
 design-system/
+node_modules

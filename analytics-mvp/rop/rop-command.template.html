@@ -1154,9 +1154,8 @@ function render(){
     v+=`<text x="${cx(0)}" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink-2)">Предоплаты в ОП</text>`;
     v+=`<text x="${cx(0)}" y="${b1+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(prepM)} ₽</text>`;
     v+=`<text x="${cx(1)}" y="${tt[0]+hh[0]+16}" text-anchor="middle" font-size="10.5" fill="var(--ink-3)">${fmtK(startM)} ₽</text>`;
-    v+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">ОП управляет СДЕЛКАМИ · при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха) · в карточках ШТУКИ (кол-во), которые грузят участки</text>`;
     return v+`</svg>`;})();
-  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: линии = сделки (предоплат vs передано), стаканы = изделия и штуки, запущенные в цех · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div><div class="grid2" style="align-items:center"><div>${prodFunnel}</div><div id="ppChart"></div></div></div>`;
+  const B_prodChart=`<div class="card"><div class="card-h"><div><div class="card-title">Передачи в цех по периодам ${info('Две кривые: сколько предоплат получено и сколько сделок передано в производство по периодам. Вопрос: растёт или падает поток заказов в цех и успевает ли он за оплатами. Вывод: фиолетовая стабильно выше - копится очередь оплаченных перед цехом, смотри плашку «На подходе». Те же цифры видит производство в своём дашборде. Язык узла: ОП управляет СДЕЛКАМИ; при передаче сделка разворачивается в ИЗДЕЛИЯ (карточки цеха); в карточках ШТУКИ (кол-во), которые грузят участки.')}</div><div class="card-sub">сквозная воронка: предоплаты → сделки → изделия (карточки) → штуки · ${S.dateBasis==='outcome'?'по датам событий - цифры = дашборд производства (режим GG)':'по дате создания сделки'} · ниже динамика: линии = сделки (предоплат vs передано), стаканы = изделия и штуки, запущенные в цех · ${S.dateBasis==='outcome'?'по датам событий (= дашборд производства)':'по дате создания сделки (когорта ОП)'}</div></div></div><div class="grid2" style="align-items:center"><div>${prodFunnel}</div><div id="ppChart"></div></div></div>`;
   // Отдел продаж → менеджеры → сделки в просчёте: иерархия как на дашборде производства
   const B_prodMgr=(()=>{
     const M={};const ent=n=>M[n]=M[n]||{mgr:n,tD:0,tM:0,tPos:0,tPcs:0,inN:0,inM:0,qN:0,qM:0};
@@ -1409,7 +1408,7 @@ function wirePrepProd(){const el=document.getElementById('ppChart');if(!el)retur
   if(DATA.prodItems&&DATA.prodItems.length){
     const posV=mk(),pcsV=mk();
     DATA.prodItems.forEach(i=>{if(!i.start)return;const k=bkey(i.start,S.gran);if(k in ki){posV[ki[k]]++;pcsV[ki[k]]+=(Number(i.qty)>0?Number(i.qty):1)}});
-    series=[{name:'Штук запущено',color:'#8B7BF0',bar:true,op:.30,noTotal:true,vals:pcsV},{name:'Изделий запущено (карточек)',color:'#3E7BD6',bar:true,op:.55,noTotal:true,vals:posV}].concat(series);
+    series=[{name:'Изделий запущено (карточек)',color:'#3E7BD6',bar:true,op:.55,noTotal:true,vals:posV},{name:'Штук запущено',color:'#8B7BF0',bar:true,op:.30,noTotal:true,vals:pcsV}].concat(series);
   }
   multiline(series,keys,S.gran,false,el);}
 function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';

@@ -273,7 +273,7 @@ function render(){
   const k2=[
     ['Разобрано',fmt(cur.closed.length),'','#10B981','закрыто: в сделку + отсев',trend(cur.closed.length,prev.closed.length),pbar(cur.closed.length,planRzP)],
     ['Отсев (брак)',cur.closed.length?pct(cur.junk.length/cur.closed.length):'—','','#F43F5E','СПАМ, дубли, некачественные, отказы',trend(cur.closed.length?cur.junk.length/cur.closed.length:null,prev.closed.length?prev.junk.length/prev.closed.length:null,true)],
-    ['Скорость разбора',cur.speedH!=null?(cur.speedH<48?d1(cur.speedH):d1(cur.speedH/24)):(cur.speed!=null?(cur.speed===0?'<1':d1(cur.speed)):'—'),cur.speedH!=null&&cur.speedH<48?' ч':' дн','#F59E0B','медиана «создан → закрыт»',trend(cur.speedH!=null?cur.speedH:cur.speed,prev.speedH!=null?prev.speedH:prev.speed,true)],
+    ['Скорость разбора',cur.speedH!=null?(cur.speedH<1?'<1':cur.speedH<48?d1(cur.speedH):d1(cur.speedH/24)):(cur.speed!=null?(cur.speed===0?'<1':d1(cur.speed)):'—'),cur.speedH!=null&&cur.speedH<48?' ч':' дн','#F59E0B','медиана «создан → закрыт»',trend(cur.speedH!=null?cur.speedH:cur.speed,prev.speedH!=null?prev.speedH:prev.speed,true)],
   ];
 
   /* 3. Картина по этапам */

@@ -13,7 +13,7 @@ const tpl = readFileSync(TPL, "utf-8");
 // Только нужные поля лида - страница остаётся лёгкой
 const leads = (rop.leads || []).map((l: any) => ({
   id: l.id, mgr: l.mgr || "—", status: l.status || "-", code: l.statusCode || "",
-  conv: !!l.converted, junk: !!l.junk, created: l.created || null, closed: l.closed || null,
+  conv: !!l.converted, junk: !!l.junk, created: l.created || null, closed: l.closed || null, cycleH: l.cycleH ?? null,
   source: l.source || "не указан", dir: l.dir || "не указано", t: (l.title || "").slice(0, 80),
 }));
 

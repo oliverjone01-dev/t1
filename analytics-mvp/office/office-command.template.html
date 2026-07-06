@@ -126,7 +126,7 @@ function cstats(a,b){const inP=x=>x&&x>=a&&x<=b;
 const OPEN=l=>!l.closed&&!l.conv&&!l.junk;
 const MIND=GG.reduce((m,l)=>l.created&&l.created<m?l.created:m,TODAY);
 /* ===== состояние ===== */
-let S={from:'',to:'',preset:'30'};
+let S={from:'',to:'',preset:'30',qAge:null};
 function setPeriod(p){const e=D(TODAY);
   if(p==='all'){S.from=MIND;S.to=TODAY}
   else if(p==='y'){S.from=YESTER;S.to=YESTER}
@@ -325,9 +325,12 @@ function render(){
   /* 6. Очередь сейчас: возраст + старейшие */
   const bk=[['сегодня',0,0,'#2E9E74'],['1-2 дн',1,2,'#F59E0B'],['3-7 дн',3,7,'#FB923C'],['7+ дн',8,1e9,'#F43F5E']];
   const wTot=waiting.length||1;
-  const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${bk.map(([l,x,y,c])=>{const n=waiting.filter(w=>wAge(w)>=x&&wAge(w)<=y).length;if(!n)return '';return `<div data-tip="${l}: ${n}" style="width:${(n/wTot*100).toFixed(1)}%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0">${n/wTot>0.07?n:''}</div>`}).join('')}</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">${bk.map(x=>`<span>${x[0]}</span>`).join('')}</div>`;
-  const wRows=waiting.slice(0,12).map(l=>`<tr><td style="text-align:center">${lid(l)}</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis">${esc(l.t||'-')}</td><td>${esc((l.source||'').replace(/\s*\(не является источником\)\s*/,''))}</td><td style="text-align:center">${esc(l.status)}</td><td style="text-align:center">${l.created}</td><td style="text-align:center;font-weight:800;color:${wAge(l)>2?'#F43F5E':wAge(l)>0?'#F59E0B':'#2E9E74'}">${fmt(wAge(l))} дн</td></tr>`).join('');
-  const wTbl=waiting.length?`<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th style="text-align:center">ID</th><th>Заявка</th><th>Источник</th><th style="text-align:center">Статус</th><th style="text-align:center">Создан</th><th style="text-align:center">Ждёт</th></tr></thead><tbody>${wRows}</tbody></table>${waiting.length>12?`<div class="card-sub" style="margin-top:6px">показаны 12 старейших из ${fmt(waiting.length)}</div>`:''}</div>`:'';
+  /* сегменты шкалы - кликабельные фильтры таблицы; повторный клик снимает */
+  const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">${bk.map(([l,x,y,c],bi)=>{const n=waiting.filter(w=>wAge(w)>=x&&wAge(w)<=y).length;if(!n)return '';const on=S.qAge===bi;return `<div data-qa="${bi}" data-tip="${l}: ${n} · клик = ${on?'снять фильтр':'показать только их в таблице'}" style="width:${(n/wTot*100).toFixed(1)}%;background:${c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0;cursor:pointer;${S.qAge!=null&&!on?'opacity:.30':''}${on?'box-shadow:inset 0 0 0 2px #F1F4F8':''}">${n/wTot>0.07?n:''}</div>`}).join('')}</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">${bk.map(x=>`<span>${x[0]}</span>`).join('')}</div>`;
+  const wSel=S.qAge!=null?waiting.filter(w=>wAge(w)>=bk[S.qAge][1]&&wAge(w)<=bk[S.qAge][2]):waiting;
+  const wRows=wSel.slice(0,12).map(l=>`<tr><td style="text-align:center">${lid(l)}</td><td style="max-width:340px;overflow:hidden;text-overflow:ellipsis">${esc(l.t||'-')}</td><td>${esc((l.source||'').replace(/\s*\(не является источником\)\s*/,''))}</td><td style="text-align:center">${esc(l.status)}</td><td style="text-align:center">${l.created}</td><td style="text-align:center;font-weight:800;color:${wAge(l)>2?'#F43F5E':wAge(l)>0?'#F59E0B':'#2E9E74'}">${fmt(wAge(l))} дн</td></tr>`).join('');
+  const wFiltNote=S.qAge!=null?` · фильтр: <b style="color:var(--ink)">${bk[S.qAge][0]}</b> <span data-qa="${S.qAge}" style="color:#3DAEC2;cursor:pointer">✕ снять</span>`:'';
+  const wTbl=waiting.length?`<div class="scroll" style="margin-top:12px"><table class="tbl"><thead><tr><th style="text-align:center">ID</th><th>Заявка</th><th>Источник</th><th style="text-align:center">Статус</th><th style="text-align:center">Создан</th><th style="text-align:center">Ждёт</th></tr></thead><tbody>${wRows||`<tr><td colspan="6" class="card-sub">в этом срезе заявок нет</td></tr>`}</tbody></table><div class="card-sub" style="margin-top:6px">показаны ${fmt(Math.min(12,wSel.length))} старейших из ${fmt(wSel.length)}${wFiltNote}</div></div>`:'';
 
   /* 7. Ориентиры: этот период против прошлого - прогноз темпа */
   const perDayCl=cur.closed.length/Math.max(span,1),perDayInPrev=prev.inflow.length/Math.max(span,1);
@@ -370,6 +373,7 @@ function wire(){
   nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     nav.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
     const t=document.getElementById('sec'+b.dataset.i);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
+  document.addEventListener('click',e=>{const qa=e.target.closest('[data-qa]');if(qa){const i=+qa.dataset.qa;S.qAge=S.qAge===i?null:i;render()}});
   document.getElementById('presetSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
     document.querySelectorAll('#presetSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
     setPeriod(b.dataset.p);syncDates();render()});

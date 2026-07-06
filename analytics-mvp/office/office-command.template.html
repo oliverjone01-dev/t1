@@ -280,11 +280,39 @@ function render(){
   const stC={'Новые заявки':0,'Разобрать':0,'В работе':0};waiting.forEach(l=>{if(stC[l.status]!=null)stC[l.status]++;else stC[l.status]=(stC[l.status]||0)+1});
   const outc=[['В сделке (создана сделка)',cur.kval.length,'#10B981'],['Отказ',cur.closed.filter(l=>l.status==='Отказ').length,'#F59E0B'],['Некачественный лид',cur.closed.filter(l=>l.status==='Некачественный лид').length,'#FB923C'],['Дубль',cur.closed.filter(l=>l.status==='Дубль').length,'#6A7484'],['СПАМ',cur.closed.filter(l=>l.status==='СПАМ').length,'#F43F5E']];
   const mxO=Math.max(1,...outc.map(o=>o[1]),cur.inflow.length,cur.closed.length);
-  const fb=(l,v,c,base,extra)=>`<div class="fbar"><div class="fl">${l}</div><div class="ft"><div class="ff" style="width:${Math.max(v/mxO*100,v?4:0).toFixed(1)}%;background:${c}">${v||''}</div></div><div class="fv"><b>${fmt(v)}</b>${base?` · ${pct(v/base)}`:''}${extra||''}</div></div>`;
-  const stages=fb('Заявки за период',cur.inflow.length,'#22D3EE',null)
-    +fb('Разобрано за период',cur.closed.length,'#3DAEC2',null,' <span style="color:var(--ink-4)">закрытые</span>')
-    +outc.map(o=>fb('↳ '+o[0],o[1],o[2],cur.closed.length||null)).join('');
-  const queueRows=Object.entries(stC).filter(([,v])=>v>0).map(([k,v])=>fb('⏳ '+k+' (сейчас)',v,'#F59E0B',null)).join('')||'<div class="card-sub">очередь пуста 🎉</div>';
+  const fb=(l,v,c,base,extra,mx)=>`<div class="fbar"><div class="fl">${l}</div><div class="ft"><div class="ff" style="width:${Math.max(v/(mx||mxO)*100,v?4:0).toFixed(1)}%;background:${c}">${v||''}</div></div><div class="fv"><b>${fmt(v)}</b>${base?` · ${pct(v/base)}`:''}${extra||''}</div></div>`;
+  /* два конуса: успешная воронка и отказная (решение Ивана) */
+  const cone=(title,tc,rows)=>{
+    const mxV=Math.max(1,...rows.map(r=>r.v));
+    const wOf=v=>Math.max(v/mxV*100,v?14:6);
+    const segs=rows.map((r,i)=>{
+      const topW=r.b!=null?wOf(r.v):(i?wOf(rows[i-1].v):wOf(rows[0].v)), botW=wOf(r.v);
+      const ti=((100-topW)/2).toFixed(2), bi=((100-botW)/2).toFixed(2);
+      const prev=i?rows[r.b!=null?r.b:i-1]:null;
+      const td=attr(`<div class='tl'>${r.l}</div><div class='tr'><span>Лидов</span><span>${fmt(r.v)}</span></div>`+(prev&&prev.v?`<div class='tr'><span>От «${prev.l}»</span><span>${pct(r.v/prev.v)}</span></div>`:'')+(rows[0].v&&i&&(r.b!=null?r.b:i-1)!==0?`<div class='tr'><span>От «${rows[0].l}»</span><span>${pct(r.v/rows[0].v)}</span></div>`:''));
+      return `<div style="display:flex;align-items:center;gap:10px;margin:0 0 3px">
+        <div style="width:118px;font-size:10.5px;color:var(--ink-3);text-align:right;line-height:1.15">${r.l}</div>
+        <div style="flex:1;height:34px" data-tip="${td}">
+          <div style="width:100%;height:100%;background:${r.c};clip-path:polygon(${ti}% 0,${100-parseFloat(ti)}% 0,${100-parseFloat(bi)}% 100%,${bi}% 100%);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#06121a">${r.v||''}</div>
+        </div>
+        <div style="width:52px;font-size:10.5px;color:var(--ink-3)">${prev&&prev.v?pct(r.v/prev.v):''}</div>
+      </div>`}).join('');
+    return `<div><div style="font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:${tc};margin-bottom:8px;text-align:center">${title}</div>${segs}</div>`};
+  const nOts=cur.junk.length+cur.closed.filter(l=>l.status==='Отказ').length;
+  const vOf=st=>cur.closed.filter(l=>l.status===st).length;
+  const coneOk=cone('Успешная воронка','#10B981',[
+    {l:'Заявки за период',v:cur.inflow.length,c:'#22D3EE'},
+    {l:'Разобрано',v:cur.closed.length,c:'#3DAEC2'},
+    {l:'В сделке',v:cur.kval.length,c:'#10B981'}]);
+  const coneNo=cone('Отказная воронка (отсев)','#F43F5E',[
+    {l:'Разобрано',v:cur.closed.length,c:'#3DAEC2'},
+    {l:'Отсев всего',v:nOts,c:'#F59E0B'},
+    {l:'Отказ',v:vOf('Отказ'),c:'#FB923C',b:1},
+    {l:'Некачественный',v:vOf('Некачественный лид'),c:'#F472B6',b:1},
+    {l:'Дубль',v:vOf('Дубль'),c:'#6A7484',b:1},
+    {l:'СПАМ',v:vOf('СПАМ'),c:'#F43F5E',b:1}]);
+  const stages=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start">${coneOk}${coneNo}</div>`;
+  const mxQ=Math.max(1,...Object.values(stC));const queueRows=Object.entries(stC).filter(([,v])=>v>0).map(([k,v])=>fb('⏳ '+k+' (сейчас)',v,'#F59E0B',null,'',mxQ)).join('')||'<div class="card-sub">очередь пуста 🎉</div>';
 
   /* 4. Динамика: дни/недели/месяцы по S.gran */
   const bko=ds=>{if(S.gran==='m')return ds.slice(0,7);if(S.gran==='w'){const dt=D(ds);const wo=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-wo);return iso(dt)}return ds};
@@ -325,42 +353,46 @@ function render(){
 
   /* 7. Ориентиры: этот период против прошлого - прогноз темпа */
   const perDayCl=cur.closed.length/Math.max(span,1),perDayInPrev=prev.inflow.length/Math.max(span,1);
-  const BENCH=[
-    ['Заявок в день (поток)',perDayIn,perDayInPrev,d1],
-    ['Разборов в день (темп)',perDayCl,prev.closed.length/Math.max(span,1),d1],
-    ['CR в квал-лид',cur.cr,prev.cr,pct],
-    ['Скорость разбора, дн (медиана)',cur.speed,prev.speed,d1],
-    ['Передано в сделку',cur.kval.length,prev.kval.length,fmt]];
-  const benchTbl=BENCH.map(([l,now,was,fF])=>{
-    const mx=Math.max(now||0,was||0)||1;
-    const dl=(now!=null&&was)?(now-was)/was:null;
-    const c=dl==null?'#6A7484':dl>=0?'#10B981':'#F43F5E';
-    const chip=dl!=null?`<span style="font-size:10.5px;font-weight:800;color:${c}">${dl>=0?'▲':'▼'} ${pct(Math.abs(dl))}</span>`:'<span style="font-size:10px;color:var(--ink-4)">— нет базы</span>';
-    const bar=(v,col,lab,h)=>`<div style="display:flex;align-items:center;gap:8px;margin:2.5px 0"><div style="width:88px;font-size:9.5px;color:var(--ink-4);text-align:right;text-transform:uppercase;letter-spacing:.04em">${lab}</div><div style="flex:1;height:${h}px;background:var(--bg-base);border-radius:4px;overflow:hidden"><div style="width:${(v!=null?Math.max(v/mx*100,v?3:0):0).toFixed(1)}%;height:100%;background:${col};border-radius:4px;animation:grow .7s var(--ease-out) both;transform-origin:left"></div></div><div style="width:66px;font-size:11.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums">${v!=null?fF(v):'—'}</div></div>`;
-    return `<div style="padding:9px 0 7px;border-bottom:1px solid var(--border)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:3px"><div style="flex:1;font-size:12px;font-weight:600;color:var(--ink-2)">${l}</div>${chip}</div>${bar(now,dl==null?'#3DAEC2':c,'этот',13)}${bar(was,'#3F4855','прошлый',8)}</div>`;
-  }).join('');
+  const dayVerdict=perDayIn>perDayCl?'поток выше темпа - день на скорость':'темп успевает - день на качество';
 
   document.getElementById('root').innerHTML=
     `<div class="sec-div" id="sec1"><div class="sec-num">1</div><h2>Компания</h2><div class="ln"></div><div class="hint">полярная звезда: цель компании и отдела продаж · период ${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
     +kpiRow(kC,4)
     +`<div class="sec-div" id="sec2"><div class="sec-num">2</div><h2>Мои метрики</h2><div class="ln"></div><div class="hint">воронка квалификации GG · план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · в сделку <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'} ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; в сделку нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = в сделку ÷ CR1 (заявка -> сделка). План на день = месячная потребность ÷ рабочие дни месяца. План выбранного периода (белые риски на полосах KPI) режется по месяцам по долям календарных дней - ровно та же логика, что план периода на дашборде РОПа, поэтому цифры сходятся. Вопрос: сколько заявок разобрать и передать в сделку, чтобы отдел сделал план выручки? Вывод: полосы разбора и «В сделке» красные при зелёной выручке - план тянут крупные чеки, а не поток: хрупко, наращивать разбор; красное всё - эскалировать нехватку потока маркетингу.')}</div></div>`
     +kpiRow(k1,4)
-    +`<div class="sec-div" id="sec3"><div class="sec-num">3</div><h2>Динамика</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
+    +(()=>{ /* Мой день: сегодняшний факт против личного дневного плана + динамика 14 дней */
+      const _tCl=GG.filter(l=>l.closed===TODAY),_tKv=_tCl.filter(l=>l.conv).length;
+      const left=`<div style="display:flex;flex-direction:column;gap:14px">
+        <div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:2px">Разобрать сегодня</div><div style="font-family:Manrope;font-weight:800;font-size:22px;color:var(--ink)">${fmt(_tCl.length)} <span style="font-size:12px;font-weight:600;color:var(--ink-3)">из ${fmt(PLAN.rz)}</span></div>${pbar(_tCl.length,PLAN.rz)}</div>
+        <div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:2px">Передать в сделку сегодня</div><div style="font-family:Manrope;font-weight:800;font-size:22px;color:var(--ink)">${fmt(_tKv)} <span style="font-size:12px;font-weight:600;color:var(--ink-3)">из ${fmt(PLAN.kv)}</span></div>${pbar(_tKv,PLAN.kv)}</div></div>`;
+      const _ds=[];for(let i=13;i>=0;i--)_ds.push(iso(new Date(D(TODAY).getTime()-i*DAYMS)));
+      const _dCl={},_dKv={};GG.forEach(l=>{if(l.closed&&_ds.indexOf(l.closed)>=0){_dCl[l.closed]=(_dCl[l.closed]||0)+1;if(l.conv)_dKv[l.closed]=(_dKv[l.closed]||0)+1}});
+      const _mxD=Math.max(PLAN.rz,..._ds.map(d2=>_dCl[d2]||0),1);
+      const _plY=PLAN.rz/_mxD*78;
+      const bars=_ds.map(dd=>{const wk=[0,6].includes(D(dd).getDay());const v=_dCl[dd]||0;const att=PLAN.rz?v/PLAN.rz:0;
+        const c=wk?'#3F4855':att>=1?'#10B981':att>=.7?'#F59E0B':'#F43F5E';
+        const h=Math.max(v/_mxD*78,v?3:1.5);
+        const td=attr(`<div class='tl'>${dm(dd)}${wk?' · выходной':''}</div><div class='tr'><span>План разбора</span><span>${wk?'-':fmt(PLAN.rz)}</span></div><div class='tr'><span>Разобрано</span><span>${fmt(v)}</span></div><div class='tr'><span>В сделку</span><span>${fmt(_dKv[dd]||0)}</span></div>${wk?'':`<div class='tr'><span>Выполнение</span><span>${pct(att)}</span></div>`}`);
+        return `<div data-tip="${td}" style="flex:1;height:${h.toFixed(1)}px;background:${c};border-radius:3px 3px 0 0;${wk?'opacity:.45;':''}"></div>`}).join('');
+      const right=`<div><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);margin-bottom:8px">Выполнение дневного плана разбора · последние 14 дней</div>
+        <div style="position:relative;height:92px;display:flex;align-items:flex-end;gap:3px;padding-bottom:0">
+          <div style="position:absolute;left:0;right:0;bottom:${_plY.toFixed(1)}px;border-top:2px dashed rgba(148,163,184,.55)" data-tip="${attr('дневной план разбора · '+fmt(PLAN.rz))}"></div>${bars}</div>
+        <div style="display:flex;gap:3px;font-size:8.5px;color:var(--ink-4);margin-top:3px">${_ds.map(dd=>`<div style="flex:1;text-align:center">${dd.slice(8,10)}</div>`).join('')}</div></div>`;
+      return `<div class="card"><div class="card-h"><div><div class="card-title">Мой день ${info('План компании живёт в секции «Компания», а здесь - твой личный дневной план, выведенный из него: сколько заявок разобрать и передать в сделку сегодня. Слева - сегодняшний счёт против плана. Справа - как выполнялся дневной план последние две недели: зелёный столбик - план сделан, янтарный - близко, красный - недобор, серый - выходной, пунктир - уровень плана. Вопрос: успеваю ли я сегодня и держу ли темп изо дня в день? Вывод: подряд красные будни - темп системно ниже плана: смотреть поток и скорость разбора, эскалировать маркетингу или ускоряться.')}</div><div class="card-sub">сегодня против личного плана · динамика успехов за две недели</div></div></div><div style="display:grid;grid-template-columns:250px 1fr;gap:24px;align-items:center">${left}${right}</div></div>`})()
+    +`<div class="sec-div" id="sec3"><div class="sec-num">3</div><h2>Динамика</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду · <b style="color:var(--ink)">${dayVerdict}</b> (${d1(perDayIn)} заявок/день против ${d1(perDayCl)} разборов/день)</div></div>`
     +kpiRow(k2,3)
-    +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Верхние две полосы - поток за период: сколько заявок пришло и сколько закрыто. Ветки ↳ - исходы разбора (% от разобранных). Оранжевые внизу - очередь ПРЯМО СЕЙЧАС по статусам: это не за период, а моментальный снимок. Вопрос: куда уходит входящий поток и на чём теряем? Вывод: растёт доля СПАМ/некачественных - чистить источники (сверь с пончиком «Откуда заявки»); растёт очередь внизу - ускоряться.')}</div><div class="card-sub">поток за период → исходы разбора · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`
+    +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Два конуса. Слева успешная воронка: заявки пришли - разобраны - переданы в сделку; ширина ступени = объём, процент справа = переход со ступени на ступень. Справа отказная: из разобранных - весь отсев и из чего он состоит (отказ, некачественный, дубль, СПАМ). Разобрано может быть больше заявок - в разбор попадают и хвосты прошлых дней. Оранжевые полосы внизу - очередь прямо сейчас, моментальный снимок. Вопрос: куда уходит входящий поток и на чём теряем? Вывод: растёт доля СПАМ и некачественных - чистить источники (сверь с «Откуда заявки»); растёт очередь внизу - ускоряться.')}</div><div class="card-sub">успешная воронка и отсев · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`
     +`<div class="card"><div class="card-h" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1 1 auto;min-width:0"><div class="card-title">Динамика по ${S.gran==='d'?'дням':S.gran==='w'?'неделям':'месяцам'} ${info('Голубые столбики - входящие заявки по дате создания. Зелёная линия - разобрано (закрыто), фиолетовая - из них ушли в сделку. Срез (дни/недели/месяцы) переключается кнопками справа на карточке. Наведи на период - все цифры, CR и план разбора. Вопрос: успеваю ли я за потоком? Вывод: голубые столбики систематически выше зелёной линии - хвост растёт, нужен темп; провалы линии в будни - смотреть, чем был занят день.')}</div><div class="card-sub">заявки · разобрано · в сделке</div></div><div class="seg" id="granSeg" style="flex:none">${[['d','Дни'],['w','Недели'],['m','Месяцы']].map(x=>`<button data-g="${x[0]}" class="${S.gran===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${dyn}</div></div>`
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Откуда заявки ${info('Источники входящих заявок за период с долями. Вопрос: какие каналы дают поток и какие - мусор? Вывод: сопоставь с «Исходами разбора»: канал с большой долей и высоким отсевом - чистить или отключать; канал с высоким CR - усиливать.')}</div><div class="card-sub">источники входящих за период</div></div></div>${dSrc}</div>`
     +`<div class="card"><div class="card-h"><div><div class="card-title">Исходы разбора ${info('Во что превратились закрытые за период заявки: сделка, отказ, некачественный, дубль, СПАМ. Вопрос: какая доля потока доходит до сделки и что съедает остальное? Вывод: доля «в сделку» упала к прошлому периоду - вопрос к качеству потока или глубине квалификации; много дублей - проверить склейку в CRM.')}</div><div class="card-sub">куда ушли закрытые за период лиды</div></div></div>${dOut}</div></div>`
     +`<div class="sec-div" id="sec4"><div class="sec-num">4</div><h2>Очередь сейчас</h2><div class="ln"></div><div class="hint">что разобрать первым - старые заявки сверху</div></div>`
     +`<div class="card"><div class="card-h"><div><div class="card-title">Ждут разбора: ${fmt(waiting.length)}${wFiltChip} ${info('Открытые лиды GG прямо сейчас (Новые заявки / Разобрать / В работе), созданные за последние 30 дней - рабочая очередь. Возрастная шкала: зелёное - сегодняшние, красное - ждут больше недели. Правило: заявка не должна ночевать дважды. Заявки старше 30 дней вынесены в архивный хвост - их разбирают планово, отдельно от свежего потока. Вопрос: что разобрать первым прямо сейчас? Вывод: красные строки - в работу сегодня: заявка не должна ночевать дважды; растёт архивный хвост - выделять регулярный слот на плановый разбор.')}</div><div class="card-sub">свежая заявка конвертируется лучше всего в первые сутки${tailN?` · архивный хвост: ${fmt(tailN)} заявок старше 30 дн - разобрать планово`:''}</div></div></div>${ageBar}${wTbl}</div>`
-    +`<div class="sec-div" id="sec5"><div class="sec-num">5</div><h2>Ориентиры</h2><div class="ln"></div><div class="hint">поток против темпа: где ускориться, а где работать на качество</div></div>`
-    +`<div class="card"><div class="card-h"><div><div class="card-title">Этот период против прошлого ${info('Сравнение этого периода с прошлым таким же окном: по каждому показателю две полосы - цветная (этот период) и серая (прошлый), стрелка показывает направление. Главная пара - поток заявок в день против темпа разбора в день. Поток выше темпа - очередь растёт, день строим на скорость; темп успевает - день на качество: поднимать конверсию в сделку и не плодить «некачественных» без прозвона. Вопрос: каким будет завтрашний день - на скорость или на качество? Вывод: смотри пару «поток vs темп» и решай, куда направить усилия сегодня.')}</div><div class="card-sub">равные окна: ${dm(a)} - ${dm(b)} против ${dm(pa)} - ${dm(pb2)}</div></div></div>${benchTbl}</div>`
     +`<div class="foot">GENGROUP · дашборд офис-менеджера GG · данные Bitrix24, снимок 2 раза в день</div>`;
 }
 /* ===== обвязка ===== */
 function wire(){
   /* меню секций как у РОПа: клик - плавный скролл к разделу */
-  const SECS=['Компания','Мои метрики','Динамика','Очередь','Ориентиры'];
+  const SECS=['Компания','Мои метрики','Динамика','Очередь'];
   const nav=document.getElementById('nav');
   nav.innerHTML=SECS.map((s,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${s}</button>`).join('');
   nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;

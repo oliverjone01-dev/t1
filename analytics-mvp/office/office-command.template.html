@@ -142,6 +142,20 @@ const _mEnd=(()=>{const y=+PMON.slice(0,4),mo=+PMON.slice(5,7);const ld=new Date
 const WDM=workdays(PMON+'-01',_mEnd);
 const NEED={sales:PP.rev/PP.check};NEED.kval=NEED.sales/PP.cr2;NEED.rz=NEED.kval/PP.cr1;
 const PLAN={rz:Math.ceil(NEED.rz/WDM),kv:Math.ceil(NEED.kval/WDM)};
+/* План выбранного периода - ровно как planForPeriod на дашборде РОПа: каждый месяц,
+   попавший в период, входит долей своих календарных дней; продажи/в сделку/разобрать
+   выводятся из выручки месяца по его чеку, CR2 и CR1. Одна цифра плана на все блоки. */
+function planForPeriod(a,b){
+  const P=(DATA.plan&&DATA.plan.months)||[];let rev=0,sales=0,kval=0,rz=0,hit=false;
+  for(const mo of P){if(!mo.month||!(mo.rev>0))continue;
+    const y=+mo.month.slice(0,4),m=+mo.month.slice(5,7);
+    const dim=new Date(Date.UTC(y,m,0)).getUTCDate(),ms=mo.month+'-01',me=mo.month+'-'+String(dim).padStart(2,'0');
+    const s=a>ms?a:ms,e=b<me?b:me;if(s>e)continue;
+    const od=Math.round((D(e)-D(s))/DAYMS)+1;if(od<=0)continue;hit=true;
+    const w=od/dim,chk=mo.check||8e4,cr2=mo.cr2||.16,cr1=mo.cr1||.55;
+    const mS=mo.rev/chk;
+    rev+=mo.rev*w;sales+=mS*w;kval+=mS/cr2*w;rz+=mS/cr2/cr1*w}
+  return hit?{rev,sales,kval,rz}:null}
 /* ===== графика ===== */
 function chart(series,keys,opt){opt=opt||{};const w=opt.w||640,h=opt.h||200,pl=40,pr=10,pt=12,pb=24;
   let mx=0;series.forEach(s=>s.vals.forEach(v=>{if(v!=null&&v>mx)mx=v}));mx=mx*1.15||1;
@@ -232,7 +246,9 @@ function render(){
   const wAge=l=>Math.max(0,days(l.created,TODAY)||0);
   const oldest=waiting.length?wAge(waiting[0]):0;
   const wd=workdays(a,b);
-  const planRzP=PLAN.rz*wd,planKvP=PLAN.kv*wd;
+  const _pf=planForPeriod(a,b); // вне месяцев таблицы - фолбэк на старое масштабирование по раб.дням
+  const planRevP=_pf?_pf.rev:PP.rev/WDM*wd, planSalesP=_pf?_pf.sales:NEED.sales/WDM*wd;
+  const planKvP=Math.round(_pf?_pf.kval:NEED.kval/WDM*wd), planRzP=Math.round(_pf?_pf.rz:NEED.rz/WDM*wd);
   const portal=DATA.b24Portal||'';
   const lid=l=>portal?`<a href="${portal}/crm/lead/details/${l.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${l.id}</a>`:l.id;
 
@@ -255,9 +271,6 @@ function render(){
      Планы масштабируются под выбранный период: Сегодня = дневной план, 30 дн = месячный. */
   const stNow=st=>allOpen.filter(l=>l.status===st).length;
   const nWork=stNow('В работе');
-  const planInP=Math.ceil(NEED.rz/WDM*wd); // план входа/разбора на выбранный период
-  const perLbl=S.preset==='1'?'план на день':S.preset==='y'?'план на день':S.preset==='30'?'план на месяц (по раб.дням)':'план на '+wd+' раб.дн';
-  const planRevP=PP.rev/WDM*wd,planSalesP=NEED.sales/WDM*wd;
   const kC=[
     ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev),pbar(co.rev,planRevP,fmtRub)],
     ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales),pbar(co.sales,Math.ceil(planSalesP))],
@@ -265,23 +278,16 @@ function render(){
     ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)})`,trend(coCr,coCrPrev),pbar(coCr,PP.cr2,pct)],
   ];
   const k1=[
-    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),pbar(cur.inflow.length,planInP)],
-    ['В работе<span class="now-badge">сейчас</span>',fmt(nWork),'','#3DAEC2','взяты в разбор, ещё не закрыты',''],
+    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),pbar(cur.inflow.length,planRzP)],
+    ['В работе<span class="now-badge">сейчас</span>',fmt(nWork),'','#3DAEC2','взяты в разбор, ещё не закрыты','',`<div style="width:100%;margin-top:8px;font-size:9px;color:var(--ink-4)" data-tip="${attr('Моментальный снимок очереди: сколько лидов взято в разбор и ещё не закрыто прямо сейчас. План к снимку не применяется - планы считаются на поток за период (разобрать, передать в сделку).')}">снимок «сейчас» - без плана</div>`],
     ['В сделке',fmt(cur.kval.length),'','#A78BFA','передано в ОП',trend(cur.kval.length,prev.kval.length),pbar(cur.kval.length,planKvP)],
     ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr),pbar(cur.cr,PP.cr1,pct)],
   ];
   const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}${k[6]||''}</div>`).join('')}</div>`;
-  const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · факт vs план',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('В сделке · факт vs план',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
+  const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · факт vs план',cur.closed.length,planRzP,'лидов','за '+span+' дн')}${gauge('В сделке · факт vs план',cur.kval.length,planKvP,'передано','за '+span+' дн')}</div>`;
   /* цепочка декомпозиции: выручка -> продажи -> квал-лиды -> разборы (месяц и в день) */
   const fmtM=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
-  const chainTile=(lbl,v,sub,c,arrow)=>`${arrow?`<div style="align-self:center;color:var(--ink-4);font-size:16px;flex-shrink:0">→</div>`:''}<div style="flex:1;min-width:170px;background:var(--bg-elevated);border:1px solid var(--border);border-left:3px solid ${c};border-radius:10px;padding:11px 13px"><div style="font-size:9.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">${lbl}</div><div style="font-family:Manrope;font-weight:800;font-size:19px;color:${c}">${v}</div><div style="font-size:10px;color:var(--ink-3);margin-top:3px">${sub}</div></div>`;
   const mLbl=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][+PMON.slice(5,7)-1];
-  const planChain=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px" data-tip="${attr('Декомпозиция: выручка ÷ средний чек ('+fmtM(PP.check)+') = продажи; продажи ÷ CR2 ('+pct(PP.cr2)+') = квал-лиды; квал-лиды ÷ CR1 ('+pct(PP.cr1)+') = заявки разобрать. Рабочих дней в месяце: '+WDM)}">
-    ${chainTile('План выручки · '+mLbl,fmtM(PP.rev),PP.has?'из таблицы планов РОПа':'дефолтный ориентир','#22D3EE',false)}
-    ${chainTile('Продаж нужно',fmt(Math.ceil(NEED.sales)),'÷ средний чек '+fmtM(PP.check),'#10B981',true)}
-    ${chainTile('В сделке нужно',fmt(Math.ceil(NEED.kval)),'÷ CR2 '+pct(PP.cr2)+' · '+fmt(PLAN.kv)+'/день','#A78BFA',true)}
-    ${chainTile('Заявок разобрать',fmt(Math.ceil(NEED.rz)),'÷ CR1 '+pct(PP.cr1)+' · '+fmt(PLAN.rz)+'/день','#F59E0B',true)}
-  </div>`;
 
   /* 2. Период KPI */
   const k2=[
@@ -351,7 +357,7 @@ function render(){
     +`<div class="sec-div" id="sec2"><div class="sec-num">2</div><h2>Мои метрики</h2><div class="ln"></div><div class="hint">воронка квалификации GG · планы масштабируются под выбранный период</div></div>`
     +kpiRow(k1,4)
     +`<div class="sec-div" id="sec3"><div class="sec-num">3</div><h2>План / факт</h2><div class="ln"></div><div class="hint">декомпозиция от плана выручки ОП · выполнение как на дашборде РОПа</div></div>`
-    +`<div class="card"><div class="card-h"><div><div class="card-title">Декомпозиция и выполнение ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж за текущий месяц по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; в сделку нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = в сделку ÷ CR1 (заявка -> сделка). План на день = месячная потребность ÷ рабочие дни месяца. Спидометры: стрелка - выполнение плана выбранного периода, риска - 100% плана. Вопрос: сколько заявок разобрать и передать в сделку, чтобы отдел сделал план выручки? Вывод: спидометры красные при зелёной выручке - план тянут крупные чеки, а не поток: хрупко, наращивать разбор; красное всё - эскалировать нехватку потока маркетингу.')}</div><div class="card-sub">план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · в сделку <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> · на неделю: ${fmt(PLAN.rz*5)} / ${fmt(PLAN.kv*5)} · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'}</div></div></div>${planChain}${gaugesDay}</div>`
+    +`<div class="card"><div class="card-h"><div><div class="card-title">Декомпозиция и выполнение ${info('План офис-менеджера НЕ задаётся руками - он выводится из плана выручки отдела продаж по конверсиям из планов РОПа: продаж нужно = выручка ÷ средний чек; в сделку нужно = продажи ÷ CR2 (сделка -> продажа); заявок разобрать = в сделку ÷ CR1 (заявка -> сделка). Эти же цифры стоят планами в полосах KPI сверху и в спидометрах - отдельного блока с цепочкой нет, логика одна. План на день = месячная потребность ÷ рабочие дни месяца. План выбранного периода (полосы KPI, спидометры) режется по месяцам по долям календарных дней - ровно та же логика, что план периода на дашборде РОПа, поэтому цифры сходятся. Спидометры: стрелка - выполнение плана выбранного периода, риска - 100% плана. Вопрос: сколько заявок разобрать и передать в сделку, чтобы отдел сделал план выручки? Вывод: спидометры красные при зелёной выручке - план тянут крупные чеки, а не поток: хрупко, наращивать разбор; красное всё - эскалировать нехватку потока маркетингу.')}</div><div class="card-sub">план на день: разобрать <b style="color:var(--ink)">${fmt(PLAN.rz)}</b> · в сделку <b style="color:var(--ink)">${fmt(PLAN.kv)}</b> · на неделю: ${fmt(PLAN.rz*5)} / ${fmt(PLAN.kv*5)} · на месяц: ${fmt(Math.ceil(NEED.rz))} / ${fmt(Math.ceil(NEED.kval))}${PP.has?'':' · план месяца в таблице не найден, взяты дефолтные ориентиры'}</div></div></div>${gaugesDay}</div>`
     +`<div class="sec-div" id="sec4"><div class="sec-num">4</div><h2>Динамика</h2><div class="ln"></div><div class="hint">${dm(a)} - ${dm(b)} · стрелки = к прошлому равному периоду</div></div>`
     +kpiRow(k2,3)
     +`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Картина по этапам ${info('Верхние две полосы - поток за период: сколько заявок пришло и сколько закрыто. Ветки ↳ - исходы разбора (% от разобранных). Оранжевые внизу - очередь ПРЯМО СЕЙЧАС по статусам: это не за период, а моментальный снимок. Вопрос: куда уходит входящий поток и на чём теряем? Вывод: растёт доля СПАМ/некачественных - чистить источники (сверь с пончиком «Откуда заявки»); растёт очередь внизу - ускоряться.')}</div><div class="card-sub">поток за период → исходы разбора · внизу очередь сейчас</div></div></div>${stages}<div style="height:8px"></div>${queueRows}</div>`

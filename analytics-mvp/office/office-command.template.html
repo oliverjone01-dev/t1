@@ -163,13 +163,17 @@ function chart(series,keys,opt){opt=opt||{};const w=opt.w||640,h=opt.h||200,pl=4
         if(s.area)body+=`<path d="${d} L${pts[pts.length-1][0].toFixed(1)} ${h-pb} L${pts[0][0].toFixed(1)} ${h-pb} Z" fill="${s.c}" opacity=".08" pointer-events="none"/>`;
         body+=`<path d="${d}" fill="none" stroke="${s.c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>`}
       body+=pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.4" fill="${s.c}" pointer-events="none"/>`).join('')}});
-  /* колонки-ховеры с подсказкой по дню */
-  const bw2=(w-pl-pr)/(n-1||1);let cols='';
+  /* колонки-ховеры с подсказкой по дню; пустые дни затеняем и объясняем */
+  const bw2=(w-pl-pr)/(n-1||1);let cols='',shade='';
   keys.forEach((k,i)=>{const rows=series.map(s=>`<div class='tr'><span>${s.name}</span><span>${s.vals[i]!=null?fmt(s.vals[i]):'—'}</span></div>`).join('');
     const extra=opt.tipExtra?opt.tipExtra(i):'';
-    cols+=`<rect x="${(X(i)-bw2/2).toFixed(1)}" y="${pt}" width="${bw2.toFixed(1)}" height="${h-pt-pb}" fill="transparent" data-tip="${attr(`<div class='tl'>${dm(k)}</div>${rows}${extra}`)}"/>`});
+    const empty=series.every(s=>!s.vals[i]);
+    const x0=Math.max(pl,X(i)-bw2/2);
+    if(empty)shade+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${bw2.toFixed(1)}" height="${h-pt-pb}" fill="rgba(148,163,184,.07)" pointer-events="none"/>`;
+    const tipH=empty?`<div class='tl'>${dm(k)}</div><div class='tn'>${k>TODAY?'день ещё не наступил - данных пока нет':'событий в этот день не было: ни заявок, ни разборов'}</div>`:`<div class='tl'>${dm(k)}</div>${rows}${extra}`;
+    cols+=`<rect x="${x0.toFixed(1)}" y="${pt}" width="${bw2.toFixed(1)}" height="${h-pt-pb}" fill="transparent" data-tip="${attr(tipH)}"/>`});
   const legend=`<div class="legend">${series.map(s=>`<span><i style="background:${s.c}"></i>${s.name}</span>`).join('')}</div>`;
-  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%">${grid}${body}${cols}${xl}</svg>`+legend}
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%">${grid}${shade}${body}${cols}${xl}</svg>`+legend}
 function donut(rows,center,label){const tot=rows.reduce((s,r)=>s+r[1],0)||1;let a0=-90,segs='';
   const R=52,C=64;rows.forEach(r=>{const frac=r[1]/tot;if(frac<=0)return;const an=Math.min(frac*360,359.98);
     const a1=a0+an,rad=x=>x*Math.PI/180,x0=C+R*Math.cos(rad(a0)),y0=C+R*Math.sin(rad(a0)),x1=C+R*Math.cos(rad(a1)),y1=C+R*Math.sin(rad(a1));

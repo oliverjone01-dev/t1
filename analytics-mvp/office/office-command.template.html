@@ -227,6 +227,15 @@ function render(){
   const co=cstats(a,b),coPrev=cstats(pa,pb2);
   const coCr=co.deals?co.sales/co.deals:null,coCrPrev=coPrev.deals?coPrev.sales/coPrev.deals:null;
   const fmtRub=n=>n>=1e6?(n/1e6).toFixed(2).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
+  /* прогресс-бар выполнения плана: шкала до 150%, белая риска = 100% плана */
+  const pbar=(fact,plan,fF)=>{if(!(plan>0)||fact==null)return '';const att=fact/plan;const col=att>=1?'var(--up)':att>=.7?'var(--warn)':'var(--dn)';
+    const w=Math.min(att/1.5,1)*100,mark=100/1.5;const F=fF||fmt;
+    return `<div style="width:100%;margin-top:8px" data-tip="${attr(`<div class='tl'>Выполнение плана</div><div class='tr'><span>Факт</span><span>${F(fact)}</span></div><div class='tr'><span>План периода</span><span>${F(plan)}</span></div><div class='tr'><span>Выполнение</span><span>${pct(att)}</span></div>`)}">
+      <div style="position:relative;height:7px;border-radius:4px;background:var(--bg-soft)">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:${w.toFixed(1)}%;border-radius:4px;background:${col};transform-origin:left;animation:grow .7s var(--ease-out) both"></div>
+        <div style="position:absolute;left:${mark.toFixed(2)}%;top:-2.5px;bottom:-2.5px;width:2px;background:var(--ink);border-radius:1px" data-tip="план · 100%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px"><span style="color:${col};font-weight:800">${pct(att)}</span><span>план ${F(plan)}</span></div></div>`};
 
   /* 1. Главное: статусы воронки сейчас + поток и «В сделке» за период с планами.
      Планы масштабируются под выбранный период: Сегодня = дневной план, 30 дн = месячный. */
@@ -234,19 +243,20 @@ function render(){
   const nWork=stNow('В работе');
   const planInP=Math.ceil(NEED.rz/WDM*wd); // план входа/разбора на выбранный период
   const perLbl=S.preset==='1'?'план на день':S.preset==='y'?'план на день':S.preset==='30'?'план на месяц (по раб.дням)':'план на '+wd+' раб.дн';
+  const planRevP=PP.rev/WDM*wd,planSalesP=NEED.sales/WDM*wd;
   const kC=[
-    ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev)],
-    ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales)],
+    ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev),pbar(co.rev,planRevP,fmtRub)],
+    ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales),pbar(co.sales,Math.ceil(planSalesP))],
     ['Передано в производство',fmt(co.prod),'','#8B7BF0','сделок ушло в цех',trend(co.prod,coPrev.prod)],
-    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)}) · план CR2: ${pct(PP.cr2)}`,trend(coCr,coCrPrev)],
+    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)})`,trend(coCr,coCrPrev),pbar(coCr,PP.cr2,pct)],
   ];
   const k1=[
-    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE',`${perLbl}: ${fmt(planInP)}`,trend(cur.inflow.length,prev.inflow.length)],
+    ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),pbar(cur.inflow.length,planInP)],
     ['В работе<span class="now-badge">сейчас</span>',fmt(nWork),'','#3DAEC2','взяты в разбор, ещё не закрыты',''],
-    ['В сделке',fmt(cur.kval.length),'','#A78BFA',`передано в ОП · ${perLbl}: ${fmt(planKvP)}`,trend(cur.kval.length,prev.kval.length)],
-    ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`план CR1: ${pct(PP.cr1)} · прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr)],
+    ['В сделке',fmt(cur.kval.length),'','#A78BFA','передано в ОП',trend(cur.kval.length,prev.kval.length),pbar(cur.kval.length,planKvP)],
+    ['Конверсия в сделку',cur.cr!=null?pct(cur.cr):'—','','#10B981',`прошлый период: ${prev.cr!=null?pct(prev.cr):'—'}`,trend(cur.cr,prev.cr),pbar(cur.cr,PP.cr1,pct)],
   ];
-  const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}</div>`).join('')}</div>`;
+  const kpiRow=(arr,cols)=>`<div class="kpis" style="--cols:${cols}">${arr.map(k=>`<div class="kpi" style="--ac:${k[3]}"><div class="k">${k[0]}</div><div class="v">${k[1]}<span class="u">${k[2]}</span></div><div class="sub">${k[4]}</div>${k[5]||''}${k[6]||''}</div>`).join('')}</div>`;
   const gaugesDay=`<div class="gauge-wrap">${gauge('Разбор · факт vs план',cur.closed.length,planRzP,'лидов',wd+' раб.дн')}${gauge('В сделке · факт vs план',cur.kval.length,planKvP,'передано',wd+' раб.дн')}</div>`;
   /* цепочка декомпозиции: выручка -> продажи -> квал-лиды -> разборы (месяц и в день) */
   const fmtM=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
@@ -261,7 +271,7 @@ function render(){
 
   /* 2. Период KPI */
   const k2=[
-    ['Разобрано',fmt(cur.closed.length),'','#10B981',`закрыто: в сделку + отсев · ${perLbl}: ${fmt(planRzP)}`,trend(cur.closed.length,prev.closed.length)],
+    ['Разобрано',fmt(cur.closed.length),'','#10B981','закрыто: в сделку + отсев',trend(cur.closed.length,prev.closed.length),pbar(cur.closed.length,planRzP)],
     ['Отсев (брак)',cur.closed.length?pct(cur.junk.length/cur.closed.length):'—','','#F43F5E','СПАМ, дубли, некачественные, отказы',trend(cur.closed.length?cur.junk.length/cur.closed.length:null,prev.closed.length?prev.junk.length/prev.closed.length:null,true)],
     ['Скорость разбора',cur.speed!=null?d1(cur.speed):'—',' дн','#F59E0B','медиана «создан → закрыт»',trend(cur.speed,prev.speed,true)],
   ];

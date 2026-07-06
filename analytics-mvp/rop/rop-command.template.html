@@ -801,6 +801,9 @@ function render(){
   let h='';
   const snap=SNAP();
   const _openM=snap.filter(d=>!d.won&&!d.lost).reduce((s,d)=>s+(d.budget||0),0),_lostM=m.lostM;
+  // динамика снимка пайплайна: против восстановленного снимка на конец прошлого окна
+  const _peK=_pw[1];
+  const _openMPrev=flt(AD,true).filter(d=>d.created<=_peK&&!(d.closed&&d.closed<=_peK)).reduce((s,d)=>s+(d.budget||0),0);
   const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
   const B_kpi=kstrip([
     {k:'Всего лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads),sub:'вход от маркетинга · квал = конвертированы в сделку'},
@@ -810,8 +813,8 @@ function render(){
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
-    {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
-    {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',sub:pct(m.lostShare)+' доля потерь'},
+    {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',trend:trendChip(_openM,_openMPrev),sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
+    {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',trend:trendChip(_lostM,pm.lostM),sub:pct(m.lostShare)+' доля потерь'},
   ],9);
   const Pg=planModel(D,L,m),fromSheet=!!Pg.fromSheet;
   const planRevP=Pg.planRevP||1;

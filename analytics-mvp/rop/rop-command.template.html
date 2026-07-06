@@ -377,30 +377,36 @@ function dt(title,rows){return `<div class="tl">${title}</div>`+rows.map(r=>{con
 // CHARTS
 let _g=0;
 function planTone(att){return att>=1.05?'#2E9E74':att>=0.95?'#6A7484':'#CC5867';}
-function gauge(o){const cap=1.5;const att=o.att||0;const f=Math.max(0,Math.min(1,att/cap));const planFrac=1/cap;
-  const R=64,cx=90,cy=90,st=-220,en=40,sw=en-st;
-  const xy=(a,r)=>[cx+r*Math.cos(a*Math.PI/180),cy+r*Math.sin(a*Math.PI/180)];
-  const arc=(a0,a1,r,w,c,cls,tipd)=>{const[x0,y0]=xy(a0,r),[x1,y1]=xy(a1,r);const laf=(a1-a0)>180?1:0;return `<path d="M${x0} ${y0} A${r} ${r} 0 ${laf} 1 ${x1} ${y1}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" ${cls||''} ${tipd||''}/>`;};
-  const va=st+sw*f;const gid='gg'+(++_g);
-  const col=o.good?(att>=1.05?'var(--up)':att>=.95?'var(--ink-3)':'var(--dn)'):(att<=0.95?'var(--up)':att<=1.05?'var(--ink-3)':'var(--dn)');
+function gauge(o){/* спидометр v2 (дизайн Ивана): цветовые зоны, деления, красная стрелка с противовесом */
+  const cap=1.5;const att=o.att||0;const fr=Math.max(0,Math.min(1,att/cap));
+  const W=190,H=112,cx=95,cy=98,R=64;
+  const A=f=>-180+180*f, PT=(ang,r)=>[cx+r*Math.cos(ang*Math.PI/180),cy+r*Math.sin(ang*Math.PI/180)];
+  const arc=(f0,f1,r,w,c,op)=>{const[x0,y0]=PT(A(f0),r),[x1,y1]=PT(A(f1),r);return `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="butt"${op?` opacity="${op}"`:''}/>`};
+  const gid='gg'+(++_g);
   const kindFmt=v=>o.kind==='money'?fmtK(v)+' ₽':o.kind==='pct'?pct(v):fmt(v);
-  let capTxt=o.good?'выполнение':'от лимита',capCol='var(--ink-3)',deltaRow=null;
+  const col=att>=.95?'#10B981':att>=.7?'#F59E0B':'#F43F5E';
+  let capTxt='выполнение',capCol='var(--ink-3)',deltaRow=null;
   if(o.fact!=null&&o.plan!=null){
     if(att>=1){deltaRow=['Перевыполнение','+'+kindFmt(o.fact-o.plan)];capTxt='▲ план +'+pct(att-1);capCol='var(--up)';}
     else{deltaRow=['Остаток до плана',kindFmt(o.plan-o.fact)];capTxt='▼ '+pct(1-att)+' до плана';capCol=col;}
   }
-  const tipRows=[['План / цель',o.planDisp],['Факт',o.factDisp],[o.good?'Выполнение':'От лимита',pct(att)]];if(deltaRow)tipRows.push(deltaRow);
+  const tipRows=[['План / цель',o.planDisp],['Факт',o.factDisp],['Выполнение',pct(att)]];if(deltaRow)tipRows.push(deltaRow);
   const tip=dt(o.label,tipRows).replace(/"/g,'&quot;');
-  let s=`<svg viewBox="0 0 180 116" style="width:100%;max-width:178px">`;
-  s+=`<defs><filter id="${gid}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="${col}" flood-opacity="0.6"/></filter></defs>`;
-  s+=arc(st,en,R,12,'var(--bg-soft)');
-  s+=arc(st,va,R,12,col,`class="line-anim" pathLength="1" filter="url(#${gid})"`);
-  const na=st+sw*planFrac;const[nx0,ny0]=xy(na,R-10),[nx1,ny1]=xy(na,R+10),[lx,ly]=xy(na,R+18);
-  s+=`<line x1="${nx0}" y1="${ny0}" x2="${nx1}" y2="${ny1}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><circle cx="${nx1}" cy="${ny1}" r="2.2" fill="var(--ink)"/><text x="${lx}" y="${ly}" text-anchor="middle" font-size="7.5" font-weight="700" fill="var(--ink-2)">план</text>`;
-  s+=`<g><line x1="${cx}" y1="${cy}" x2="${xy(va,R-5)[0]}" y2="${xy(va,R-5)[1]}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="${st-va} ${cx} ${cy}" to="0 ${cx} ${cy}" dur=".9s" fill="freeze" calcMode="spline" keySplines=".16 1 .3 1" keyTimes="0;1" values="${st-va} ${cx} ${cy};0 ${cx} ${cy}"/></line><circle cx="${cx}" cy="${cy}" r="5" fill="${col}"/></g>`;
-  s+=`<text x="${cx}" y="${cy-15}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="24" fill="${col}" filter="url(#${gid})">${pct(att)}</text>`;
-  s+=`<text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${capCol}">${capTxt}</text>`;
-  s+=`<rect x="0" y="0" width="180" height="116" fill="transparent" data-tip="${tip}" style="cursor:help"/></svg>`;
+  const z1=.7/cap,z2=.95/cap;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:200px">`;
+  s+=`<defs><filter id="${gid}s" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000" flood-opacity=".5"/></filter><radialGradient id="${gid}h"><stop offset="0" stop-color="#E9EEF5"/><stop offset=".55" stop-color="#8A94A6"/><stop offset="1" stop-color="#343B48"/></radialGradient></defs>`;
+  s+=arc(0,1,R,13,'var(--bg-base)');
+  s+=arc(0,z1,R,13,'#F43F5E','.72')+arc(z1,z2,R,13,'#F59E0B','.78')+arc(z2,1,R,13,'#10B981','.78');
+  for(let k=0;k<=12;k++){const f=k*.125/cap;if(f>1)break;const big=k%2===0;
+    const[x0,y0]=PT(A(f),R-9),[x1,y1]=PT(A(f),R-(big?16:12.5));
+    s+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="rgba(233,238,245,${big?'.5':'.25'})" stroke-width="${big?1.5:1}"/>`}
+  {const[x0,y0]=PT(A(1/cap),R-19),[x1,y1]=PT(A(1/cap),R+8),[lx,ly]=PT(A(1/cap),R+16);
+   s+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="#F1F4F8" stroke-width="2.2" stroke-linecap="round"/><text x="${lx.toFixed(1)}" y="${(ly+3).toFixed(1)}" text-anchor="middle" font-size="7.5" font-weight="800" fill="var(--ink-2)">план</text>`}
+  {const ang=A(fr);const[tx,ty]=PT(ang,R-5);const[bx,by]=PT(ang+180,15);const[w1x,w1y]=PT(ang+90,2.7),[w2x,w2y]=PT(ang-90,2.7);
+   s+=`<g filter="url(#${gid}s)"><polygon points="${tx.toFixed(1)},${ty.toFixed(1)} ${w1x.toFixed(1)},${w1y.toFixed(1)} ${bx.toFixed(1)},${by.toFixed(1)} ${w2x.toFixed(1)},${w2y.toFixed(1)}" fill="#E5484D"/><circle cx="${cx}" cy="${cy}" r="7.5" fill="url(#${gid}h)"/><circle cx="${cx}" cy="${cy}" r="2.5" fill="#22272F"/></g>`}
+  s+=`<text x="${cx}" y="${cy-28}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="20" fill="${col}">${pct(att)}</text>`;
+  s+=`<text x="${cx}" y="${cy-14}" text-anchor="middle" font-size="8" font-weight="700" fill="${capCol}">${capTxt}</text>`;
+  s+=`<rect x="0" y="0" width="${W}" height="${H}" fill="transparent" data-tip="${tip}" style="cursor:help"/></svg>`;
   return `<div class="gauge"><h4>${o.label}</h4>${s}<div class="gnote">${o.note}</div></div>`;}
 function donut(data,cv,cl,money){const tot=data.reduce((s,d)=>s+d[1],0)||1;const R=80,r=50,cx=100,cy=100;let a=-90;
   const xy=(deg,rad)=>[cx+rad*Math.cos(deg*Math.PI/180),cy+rad*Math.sin(deg*Math.PI/180)];let seg='';

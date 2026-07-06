@@ -77,9 +77,18 @@ jobs:
           git add -A analytics-mvp/prod/data analytics-mvp/public/prod-command.html
           if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(prod): ночной снимок СП Производство $(date -u +%F)"
+          # гонка с ручными правками: rebase конфликтует на запечённом HTML - вместо этого
+          # сброс на origin, свежие данные обратно, пересборка на актуальном шаблоне
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+            if git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            cp analytics-mvp/prod/data/prod.json /tmp/prod-fresh.json 2>/dev/null || true
+            git fetch origin "$DATA_BRANCH"
+            git reset --hard "origin/$DATA_BRANCH"
+            cp /tmp/prod-fresh.json analytics-mvp/prod/data/prod.json 2>/dev/null || true
+            (cd analytics-mvp && npx tsx src/scripts/b24/build-prod.ts)
+            git add -A analytics-mvp/prod/data analytics-mvp/public/prod-command.html
+            git diff --staged --quiet || git commit -m "data(prod): снимок СП Производство $(date -u +%F)"
+            sleep $((2**i))
           done
           echo "push не удался"; exit 1
 

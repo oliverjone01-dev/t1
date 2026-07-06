@@ -389,7 +389,7 @@ function gauge(o){const cap=1.5;const att=o.att||0;const f=Math.max(0,Math.min(1
     if(att>=1){deltaRow=['Перевыполнение','+'+kindFmt(o.fact-o.plan)];capTxt='▲ план +'+pct(att-1);capCol='var(--up)';}
     else{deltaRow=['Остаток до плана',kindFmt(o.plan-o.fact)];capTxt='▼ '+pct(1-att)+' до плана';capCol=col;}
   }
-  const tipRows=[['Факт',o.factDisp],['План / цель',o.planDisp],[o.good?'Выполнение':'От лимита',pct(att)]];if(deltaRow)tipRows.push(deltaRow);
+  const tipRows=[['План / цель',o.planDisp],['Факт',o.factDisp],[o.good?'Выполнение':'От лимита',pct(att)]];if(deltaRow)tipRows.push(deltaRow);
   const tip=dt(o.label,tipRows).replace(/"/g,'&quot;');
   let s=`<svg viewBox="0 0 180 116" style="width:100%;max-width:178px">`;
   s+=`<defs><filter id="${gid}" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3.2" flood-color="${col}" flood-opacity="0.6"/></filter></defs>`;
@@ -825,12 +825,12 @@ function render(){
   const planLeads=Pg.targets.leads||Math.round((m.leads||1)*1.15),planDeals=Pg.targets.deals||Math.round((m.deals||1)*1.15),planSales=Math.round(Pg.winT)||Math.round((m.won||1)*1.15),planCR1=fromSheet?Pg.lpr:.5,planCR2=fromSheet?Pg.conv:.15;
   const _planSub=fromSheet?`план из таблицы · помесячные цели по выручке, чеку и CR, день-взвешенно за период${DATA.plan&&DATA.plan.generatedAt?' · обновлён '+DATA.plan.generatedAt.slice(0,10):''}`:`% выполнения плана · белая отсечка «план» = 100% · цели/планы - <span class="tag">заглушки</span> (нужны реальные числа)`;
   const B_gauges=`<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана ${info('Спидометры % выполнения плана за период (белая отсечка = 100%). '+(fromSheet?'План берётся из таблицы помесячно и режется пропорционально дням периода.':'Планы пока заглушки, нужны реальные числа по месяцам.')+' Вопрос: по каким метрикам отдел отстаёт. Вывод: красные/недотянутые - туда давить.')}</div><div class="card-sub">${_planSub}</div></div></div><div class="gauges">`+
-    gauge({label:'Лиды',att:m.leads/planLeads,good:true,fact:m.leads,plan:planLeads,kind:'count',factDisp:fmt(m.leads),planDisp:fmt(planLeads),note:`факт <b>${fmt(m.leads)}</b> · план <b>${fmt(planLeads)}</b>`})+
-    gauge({label:'CR1 · в сделку',att:cr1/planCR1,good:true,fact:cr1,plan:planCR1,kind:'pct',factDisp:pct(cr1),planDisp:pct(planCR1),note:`факт <b>${pct(cr1)}</b> · цель <b>${pct(planCR1)}</b>`})+
-    gauge({label:'Сделки',att:planDeals?m.deals/planDeals:0,good:true,fact:m.deals,plan:planDeals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(planDeals),note:`факт <b>${fmt(m.deals)}</b> · план <b>${fmt(planDeals)}</b>`})+
-    gauge({label:'CR2 · в продажу',att:m.conv/planCR2,good:true,fact:m.conv,plan:planCR2,kind:'pct',factDisp:pct(m.conv),planDisp:pct(planCR2),note:`факт <b>${pct(m.conv)}</b> · цель <b>${pct(planCR2)}</b>`})+
-    gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`факт <b>${fmt(m.won)}</b> · план <b>${fmt(planSales)}</b>`})+
-    gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`факт <b>${fmtK(m.rev)}</b> · план <b>${fmtK(planRevP)}</b> ₽`})+`</div></div>`;
+    gauge({label:'Лиды',att:m.leads/planLeads,good:true,fact:m.leads,plan:planLeads,kind:'count',factDisp:fmt(m.leads),planDisp:fmt(planLeads),note:`план <b>${fmt(planLeads)}</b> · факт <b>${fmt(m.leads)}</b>`})+
+    gauge({label:'CR1 · в сделку',att:cr1/planCR1,good:true,fact:cr1,plan:planCR1,kind:'pct',factDisp:pct(cr1),planDisp:pct(planCR1),note:`цель <b>${pct(planCR1)}</b> · факт <b>${pct(cr1)}</b>`})+
+    gauge({label:'Сделки',att:planDeals?m.deals/planDeals:0,good:true,fact:m.deals,plan:planDeals,kind:'count',factDisp:fmt(m.deals),planDisp:fmt(planDeals),note:`план <b>${fmt(planDeals)}</b> · факт <b>${fmt(m.deals)}</b>`})+
+    gauge({label:'CR2 · в продажу',att:m.conv/planCR2,good:true,fact:m.conv,plan:planCR2,kind:'pct',factDisp:pct(m.conv),planDisp:pct(planCR2),note:`цель <b>${pct(planCR2)}</b> · факт <b>${pct(m.conv)}</b>`})+
+    gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`план <b>${fmt(planSales)}</b> · факт <b>${fmt(m.won)}</b>`})+
+    gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`план <b>${fmtK(planRevP)}</b> ₽ · факт <b>${fmtK(m.rev)}</b>`})+`</div></div>`;
   // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
   // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
   // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
@@ -1276,7 +1276,7 @@ function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric===
   const maxV=Math.max(planMgr,...all.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
   let bars='',labels='';
   all.forEach((x,i)=>{const cx=pl+gap*i+gap/2,un=!!x.unassigned,att=planMgr?x.tot/planMgr:0,c=un?'#6A7484':planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
-    const td=un?dt('Нераспределённые',[['Факт',fM(x.tot),'hl'],['План','не начисляется','dim']]).replace(/"/g,'&quot;'):dt(x.m,[['Факт',fM(x.tot),'hl'],['План на менеджера',fP(planMgr),'dim'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
+    const td=un?dt('Нераспределённые',[['План','не начисляется','dim'],['Факт',fM(x.tot),'hl']]).replace(/"/g,'&quot;'):dt(x.m,[['План на менеджера',fP(planMgr),'dim'],['Факт',fM(x.tot),'hl'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
     bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}"${un?' opacity=".5"':''} data-tip="${td}"/>`;
     if(h>14)bars+=`<text x="${cx.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${c}">${fM(x.tot)}</text>`;
     labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]}</text>`;});
@@ -1288,7 +1288,7 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,ext
   let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
   const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
-      const td=dt(x.m+' · '+blabel(k,S.gran),[['Факт',fM(v),'hl'],['План на период',fP(planCell),'dim']]).replace(/"/g,'&quot;');
+      const td=dt(x.m+' · '+blabel(k,S.gran),[['План на период',fP(planCell),'dim'],['Факт',fM(v),'hl']]).replace(/"/g,'&quot;');
       return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?fM(v):''}</div>`;}).join('');
     const att=planMgr?x.tot/planMgr:0,ac=planTone(att);
     return `<div class="hm-row"><div class="hm-name" title="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot hm-sum">${fM(x.tot)}</div><div class="hm-tot hm-plan">${fP(planMgr)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(att*100,100).toFixed(0)}%;background:${ac}"></div><span>${pct(att)}</span></div></div>`;}).join('');
@@ -1513,7 +1513,7 @@ function planFactBlock(D,L,m){
   const att=x=>planEach?factOf(x)/planEach:0;MM.sort((a,b)=>att(b)-att(a));
   const cap=Math.max(1.2,...MM.map(att))||1.2;const hundred=(1/cap*100).toFixed(1);
   const bars=MM.map(x=>{const a=att(x),f=factOf(x),c=a>=1?'#2E9E74':a>=.7?'#C2873C':'#CC5867';const fw=Math.min(100,a/cap*100).toFixed(1);
-    const td=dt(x.mgr,[['Факт',fM(f),'hl'],['Личный план',fM(planEach),'dim'],['Выполнение плана',pct(a),'hl']]).replace(/"/g,'&quot;');
+    const td=dt(x.mgr,[['Личный план',fM(planEach),'dim'],['Факт',fM(f),'hl'],['Выполнение плана',pct(a),'hl']]).replace(/"/g,'&quot;');
     return `<div class="pf-row"><div class="pf-name">${esc(x.mgr)}</div><div class="pf-track" data-tip="${td}"><div class="pf-fill" style="width:${fw}%;background:${c}"></div><div class="pf-100" style="left:${hundred}%"></div></div><div class="pf-fact">${fM(f)}</div><div class="pf-pct" style="color:${c}">${pct(a)}</div></div>`;}).join('');
   return `<div class="card"><div class="card-h"><div><div class="card-title">Выполнение плана — команда</div><div class="card-sub">сводный план-факт команды · детальная разбивка по менеджерам - в блоке «План-факт» (раздел Лиды) · меняй план - цели пересчитаются</div></div>
     <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План выручки / мес</span><input class="plan-inp" id="planInp" type="number" step="100000" value="${S.planRev}"><div class="seg" id="pfSeg"></div></div></div>

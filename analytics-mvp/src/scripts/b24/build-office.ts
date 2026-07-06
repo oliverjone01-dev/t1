@@ -17,6 +17,18 @@ const leads = (rop.leads || []).map((l: any) => ({
   source: l.source || "не указан", dir: l.dir || "не указано", t: (l.title || "").slice(0, 80),
 }));
 
+// Сделки ОП - компактно, для «полярной звезды» компании на экране офис-менеджера:
+// выручка/продажи по предоплатам (переход в C49:EXECUTING), передачи в цех, конверсия ОП.
+const PROD_STAGES = new Set(["C49:FINAL_INVOICE", "C49:1", "C49:2"]);
+const deals = (rop.deals || []).map((d: any) => {
+  let prepay: string | null = null, prod: string | null = null;
+  for (const h of (d.hist || [])) {
+    if (!prepay && h[0] === "C49:EXECUTING") prepay = h[1];
+    if (!prod && PROD_STAGES.has(h[0])) prod = h[1];
+  }
+  return { created: d.created || null, prepay, prod, won: !!d.won, budget: d.budget || 0 };
+});
+
 // Помесячный план ОП (Google Таблица -> plan-to-json): rev/check/cr2/cr1.
 // Из него дашборд декомпозирует план офис-менеджера по разбору и квал-лидам.
 let plan: any = null;
@@ -24,6 +36,7 @@ try { plan = JSON.parse(readFileSync("rop/plan/plan.json", "utf-8")); } catch { 
 
 const DATA = {
   leads,
+  deals,
   plan,
   generatedAt: rop.generated_at || null,
   bakedAt: new Date().toISOString(),

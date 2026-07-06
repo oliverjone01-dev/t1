@@ -625,7 +625,7 @@ function disciplineBlock(){
 
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
-  const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
+  const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const cls=Math.abs(dl)<0.005?'flat':up?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
   return `<div class="kpi-trend ${cls}">${ar} ${pct(Math.abs(dl))}<small>к пред. периоду</small></div>`;}
 function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols||Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
@@ -1080,7 +1080,7 @@ function render(){
     {k:'Передано в деньгах',v:fmtK(_pdM),u:'₽',ac:'#2DD4BF',trend:trendChip(_pdM,_pdMPrev)},
     {k:'Доля от предоплат',v:_prepN?pct(_prodN/_prepN):'—',ac:'#38BDF8',trend:trendChip(_prepN?_prodN/_prepN:0,_prepP?_prodP/_prepP:0)+_sub(`передано ÷ предоплачено (${fmt(_prodN)} из ${fmt(_prepN)})`)},
     {k:'Средний чек передачи',v:_prodN?fmtK(_pdM/_prodN):'—',u:'₽',ac:'#A78BFA',trend:trendChip(_prodN?_pdM/_prodN:0,_prodP?_pdMPrev/_prodP:0)+_sub('деньги передач ÷ штуки')},
-    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',trend:trendChip(_queue.length,_queueP,true)+_sub(fmtK(_queueM)+' ₽ · оплачено, не передано · сейчас vs конец пред. периода')},
+    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',trend:trendChip(_queue.length,_queueP)+_sub(fmtK(_queueM)+' ₽ · предоплата получена, в цех ещё не передано · сейчас vs конец пред. периода')},
     {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',trend:trendChip(_qDeals.length,_qPrevN)+_sub(fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас vs конец пред. периода')},
   ]);
   // Сквозная воронка «от предоплат до изделий» - копия дашборда производства (те же цифры).

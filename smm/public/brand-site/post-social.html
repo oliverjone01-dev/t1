@@ -14,30 +14,38 @@
   .vb-hero{padding:52px 0 26px;border:none}
   .vb-hero .ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:700}
   .vb-hero h1{font-size:clamp(27px,4.4vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1.09;margin-top:8px}
-  .vb-hero p{margin-top:14px;color:var(--ink2);font-size:16px;line-height:1.6;max-width:66ch}
+  .vb-hero p{margin-top:14px;color:var(--ink2);font-size:16px;line-height:1.6;max-width:68ch}
   .stagebar{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
   .stg{font-size:12.5px;font-weight:700;padding:8px 15px;border-radius:var(--radius-pill);border:1px solid var(--line2);color:var(--ink3)}
   .stg.on{background:var(--gold-soft);color:var(--v-ink);border-color:transparent}
   .stg.done{background:var(--pub-soft);color:var(--pub-ink);border-color:transparent}
   .twocol{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-  /* карусель IG (превью слайдов) */
-  .carou{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x mandatory}
-  .slide{flex:0 0 300px;scroll-snap-align:start}
+  /* карусель */
+  .carou{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 12px;scroll-snap-type:x mandatory}
+  .slide{flex:0 0 288px;scroll-snap-align:start}
   .sq{aspect-ratio:4/5;border-radius:16px;overflow:hidden;position:relative;background:#141019;box-shadow:0 14px 40px rgba(0,0,0,.3);border:1px solid var(--line)}
   .sq img{width:100%;height:100%;object-fit:cover;display:block}
-  .sq .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,12,.05),rgba(10,8,12,.72))}
+  .sq .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,12,.12),rgba(10,8,12,.82))}
   .sq .cap{position:absolute;left:18px;right:18px;bottom:16px;z-index:2;color:#fff}
-  .sq .cap .k{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#E3C98A}
-  .sq .cap .t{font-size:19px;font-weight:800;line-height:1.15;margin-top:7px;letter-spacing:-.01em}
-  .sq .cap .s{font-size:12.5px;color:rgba(255,255,255,.82);margin-top:7px;line-height:1.4}
-  .sq .num{position:absolute;top:12px;right:14px;z-index:2;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.4);border-radius:20px;padding:3px 9px}
-  .sq.cta{display:grid;place-items:center;text-align:center;background:linear-gradient(160deg,#221A2E,#141019)}
-  .sq.cta .box{padding:0 22px}
-  .sq.cta .big{font-size:23px;font-weight:800;color:#F3ECDD;line-height:1.15;letter-spacing:-.01em}
-  .sq.cta .go{margin-top:16px;display:inline-block;background:linear-gradient(180deg,#D9B86A,#C29A44);color:#241803;font-weight:800;font-size:13px;padding:11px 20px;border-radius:var(--radius-pill)}
-  .sq.cta .adr{margin-top:14px;font-size:11px;color:#A99BB4;line-height:1.5}
-  .slabel{font-size:12px;color:var(--ink3);margin-top:8px;font-weight:600}
-  /* блок текста поста / телеграм-превью */
+  .sq .cap .k{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#E3C98A}
+  .sq .cap .t{font-size:18px;font-weight:800;line-height:1.18;margin-top:7px;letter-spacing:-.01em}
+  .sq .cap .s{font-size:12px;color:rgba(255,255,255,.82);margin-top:8px;line-height:1.4;font-weight:600}
+  .sq .num{position:absolute;top:12px;right:14px;z-index:2;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.42);border-radius:20px;padding:3px 9px}
+  /* слайд-петля (текст) */
+  .sq.stmt{display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(160deg,#251D33,#141019);padding:22px 20px}
+  .sq.stmt .k{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#E3C98A}
+  .sq.stmt .big{font-size:21px;font-weight:800;color:#F4EEE2;line-height:1.2;letter-spacing:-.015em;margin-top:12px}
+  .sq.stmt .sub{font-size:13px;color:#B9AEC6;line-height:1.5;margin-top:12px}
+  .sq.stmt .nudge{font-size:11.5px;font-weight:800;color:#C9A24B;letter-spacing:.08em;text-transform:uppercase;margin-top:auto}
+  .sq.cta{display:grid;place-items:center;text-align:center;background:linear-gradient(160deg,#2A2038,#141019)}
+  .sq.cta .box{padding:0 20px}
+  .sq.cta .big{font-size:22px;font-weight:800;color:#F3ECDD;line-height:1.15;letter-spacing:-.01em}
+  .sq.cta .go{margin-top:15px;display:inline-block;background:linear-gradient(180deg,#D9B86A,#C29A44);color:#241803;font-weight:800;font-size:13px;padding:11px 20px;border-radius:var(--radius-pill)}
+  .sq.cta .adr{margin-top:13px;font-size:11px;color:#A99BB4;line-height:1.55}
+  .sq.cta .save{margin-top:11px;font-size:11px;font-weight:700;color:#E3C98A}
+  .slabel{font-size:11.5px;color:var(--ink3);margin-top:8px;font-weight:600;line-height:1.4}
+  .slabel.loop{color:var(--v-ink)}
+  /* ТГ-превью */
   .tgcard{max-width:520px;background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
   .tgcard .cover{aspect-ratio:16/10;overflow:hidden}
   .tgcard .cover img{width:100%;height:100%;object-fit:cover;display:block}
@@ -75,7 +83,7 @@
   <section class="vb-hero">
     <span class="ey">Этап 2 из 3 · финал</span>
     <h1>Пост в наши ТГ и IG:<br>анонс встречи в ТОН</h1>
-    <p>Анонс для наших каналов: зовём дизайнеров на камерную встречу 8 июля в ТОН. Формат IG - карусель из 4 кадров, формат ТГ - обложка плюс текст со ссылкой. Фото реальные, из папки события. Ниже - превью слайдов, превью ТГ-поста и готовые тексты под обе площадки.</p>
+    <p>Карусель построена по «скользкой горке» Шугармана: единственная задача каждого слайда - заставить смахнуть на следующий. Хук вскрывает петлю, слайды-петли задают вопрос и толкают дальше, фото-слайды дают выплату, финал закрывает на регистрацию. Восемь слайдов, три сильных кадра (все разные) и четыре текст-петли, которые ведут палец до конца.</p>
     <div class="stagebar">
       <span class="stg done">1 · Email по базе</span>
       <span class="stg on">2 · Пост ТГ + IG наш</span>
@@ -84,46 +92,96 @@
   </section>
 
   <section>
-    <div class="sec-head"><h2 class="sec-title">Карусель IG <span class="em">4 слайда · 4:5</span></h2><p>Свайп-карусель для Instagram. Первый кадр останавливает ленту, дальше - изделие, зонирование и приглашение с деталями. Формат 4:5 (вертикаль, максимум площади в ленте).</p></div>
+    <div class="sec-head"><h2 class="sec-title">Карусель IG <span class="em">8 слайдов · скользкая горка</span></h2><p>Читается как одна мысль, разрезанная на свайпы. Синим отмечены слайды-петли (текст, без фото) - они держат интригу между кадрами. Формат 4:5.</p></div>
     <div class="carou">
+
       <div class="slide">
         <div class="sq">
-          <span class="num">1 / 4</span>
+          <span class="num">1 / 8</span>
           <img src="assets/ton/dsc3228.jpg" alt="Премиум-интерьер с изделиями GEN-GROUP">
           <div class="ov"></div>
-          <div class="cap"><div class="k">8 июля · ТОН</div><div class="t">8 июля можно потрогать то, что обычно видно только на рендере</div><div class="s">Встреча для дизайнеров. Без посредников.</div></div>
+          <div class="cap"><div class="k">8 июля · встреча в ТОН</div><div class="t">Рендер покажет форму. Не покажет, как это на ощупь.</div><div class="s">Листайте - что видно только вживую →</div></div>
         </div>
-        <div class="slabel">Кадр 1 - обложка (dsc3228, наш стол и зеркала в интерьере)</div>
+        <div class="slabel">Кадр 1 - хук (интерьер dsc3228). Вскрывает петлю: «что только вживую?»</div>
       </div>
+
+      <div class="slide">
+        <div class="sq stmt">
+          <span class="num">2 / 8</span>
+          <div class="k">Почему вживую</div>
+          <div class="big">Четыре материала. Четыре места, где проект спотыкается.</div>
+          <div class="sub">Металл. Стекло. Камень. Зеркало. На рендере гладко - в жизни всё решают детали.</div>
+          <div class="nudge">дальше →</div>
+        </div>
+        <div class="slabel loop">Кадр 2 - петля (текст). Обещает разбор по материалам.</div>
+      </div>
+
       <div class="slide">
         <div class="sq">
-          <span class="num">2 / 4</span>
-          <img src="assets/ton/table-agisum.jpg" alt="Обеденный стол: чёрный мрамор на латунном основании">
+          <span class="num">3 / 8</span>
+          <img src="assets/ton/table-agisum.jpg" alt="Стол: чёрный мрамор Nero Marquina на латунном основании">
           <div class="ov"></div>
-          <div class="cap"><div class="k">Наши изделия</div><div class="t">Камень на металле под ваш проект</div><div class="s">Столы, консоли, стеллажи, зеркала.</div></div>
+          <div class="cap"><div class="k">Камень на металле</div><div class="t">Столешницу на рендере не отличить. В руках - сразу.</div><div class="s">Nero Marquina, травертин, оникс →</div></div>
         </div>
-        <div class="slabel">Кадр 2 - изделие (стол: чёрный мрамор + латунь)</div>
+        <div class="slabel">Кадр 3 - выплата (стол: мрамор + латунь). Закрывает «камень», открывает «а как делят пространство?»</div>
       </div>
+
+      <div class="slide">
+        <div class="sq stmt">
+          <span class="num">4 / 8</span>
+          <div class="k">Зонирование</div>
+          <div class="big">Перегородка делит пространство и держит акцент одновременно.</div>
+          <div class="sub">Свет проходит насквозь, а взгляд задерживается. Сталь или алюминий, любой вид стекла.</div>
+          <div class="nudge">а мокрые зоны? →</div>
+        </div>
+        <div class="slabel loop">Кадр 4 - петля (перегородка). Толкает к теме стекла в душевой.</div>
+      </div>
+
+      <div class="slide">
+        <div class="sq stmt">
+          <span class="num">5 / 8</span>
+          <div class="k">Стекло</div>
+          <div class="big">Душевая, где стекло становится архитектурой, а не техпомещением.</div>
+          <div class="sub">Закалённое, триплекс, матовое или рифлёное - под геометрию вашей планировки.</div>
+          <div class="nudge">а цвет металла? →</div>
+        </div>
+        <div class="slabel loop">Кадр 5 - петля (душевая). Ведёт к нитриду и цвету.</div>
+      </div>
+
       <div class="slide">
         <div class="sq">
-          <span class="num">3 / 4</span>
+          <span class="num">6 / 8</span>
           <img src="assets/ton/vl2-main.jpg" alt="Стеллаж из металла, стекла и камня">
           <div class="ov"></div>
-          <div class="cap"><div class="k">Зонирование и акцент</div><div class="t">Стеллажи и перегородки держат пространство</div><div class="s">Металл и стекло на зонирование.</div></div>
+          <div class="cap"><div class="k">Металл и стекло</div><div class="t">Стеллаж, который работает как зонирование.</div><div class="s">Каркас, полки, камень - под проект →</div></div>
         </div>
-        <div class="slabel">Кадр 3 - изделие (стеллаж, зонирование)</div>
+        <div class="slabel">Кадр 6 - выплата (стеллаж). Закрывает «зонирование», открывает «цвет и кейс».</div>
       </div>
+
+      <div class="slide">
+        <div class="sq stmt">
+          <span class="num">7 / 8</span>
+          <div class="k">Цвет и кейс</div>
+          <div class="big">Цвет металла - не только золото и хром.</div>
+          <div class="sub">Нитрид: десятки оттенков, которые держатся годами. Плюс на встрече разберём реальный кейс - запрос дизайнера превращаем в изделие при вас.</div>
+          <div class="nudge">когда и где →</div>
+        </div>
+        <div class="slabel loop">Кадр 7 - петля (нитрид + кейс). Последний вопрос перед закрытием.</div>
+      </div>
+
       <div class="slide">
         <div class="sq cta">
-          <span class="num">4 / 4</span>
+          <span class="num">8 / 8</span>
           <div class="box">
             <div class="big">Приходите с проектом</div>
             <span class="go">Регистрация по ссылке</span>
             <div class="adr">8 июля, 15:00<br>Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2<br>пространство ТОН</div>
+            <div class="save">Сохраните, чтобы не потерять дату</div>
           </div>
         </div>
-        <div class="slabel">Кадр 4 - CTA (графика, детали и регистрация)</div>
+        <div class="slabel">Кадр 8 - CTA (графика). Закрывает на регистрацию.</div>
       </div>
+
     </div>
   </section>
 
@@ -135,46 +193,53 @@
           <div class="cover"><img src="assets/ton/dsc3276.webp" alt="Интерьер с изделиями GEN-GROUP"></div>
           <div class="body">
             <div class="ch"><span class="av">GG</span> GEN-GROUP</div>
-            <div class="tgtext"><b>8 июля мы в ТОН. Приходите трогать материалы руками.</b><br><br>Камерная встреча «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - металл, стекло и зеркала. Покажем перегородки и зонирование, столы и стеллажи, зеркала и нитрид, разберём реальный кейс от запроса дизайнера до готового изделия.<br><br>15:00, Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2. Мест немного, регистрация по ссылке.</div>
+            <div class="tgtext"><b>Рендер покажет форму. Не покажет, как это на ощупь.</b><br><br>8 июля собираем дизайнеров в ТОН на камерную встречу «Премиальные решения для интерьера». Три производителя без посредников. Наш блок - металл, стекло и зеркала: перегородки и зонирование, столы и стеллажи из камня, зеркала и нитрид, душевые из закалённого стекла. Разберём реальный кейс - от запроса дизайнера до готового изделия, с образцами в руках.<br><br>15:00, Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2. Мест немного, регистрация по ссылке.</div>
           </div>
         </div>
       </div>
       <div>
         <div class="sec-head" style="margin-bottom:16px"><h2 class="sec-title">Тексты <span class="em">под площадки</span></h2></div>
         <div class="copyb">
-          <h3><span class="tag tg">Telegram</span> обложка dsc3276 + текст</h3>
-          <pre><b>8 июля мы в ТОН. Приходите трогать материалы руками.</b>
+          <h3><span class="tag ig">Instagram</span> подписи к 8 слайдам + текст поста</h3>
+          <pre><b>Слайды карусели (текст на кадрах):</b>
+1. Рендер покажет форму. Не покажет, как это на ощупь. Листайте →
+2. Четыре материала. Четыре места, где проект спотыкается.
+3. Камень на металле: столешницу на рендере не отличить, в руках - сразу.
+4. Перегородка делит пространство и держит акцент одновременно.
+5. Душевая, где стекло становится архитектурой, а не техпомещением.
+6. Стеллаж, который работает как зонирование.
+7. Цвет металла - не только золото и хром. Нитрид и разбор кейса.
+8. Приходите с проектом. Регистрация по ссылке.
 
-Камерная встреча «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - металл, стекло и зеркала.
+<b>Подпись под каруселью:</b>
+Рендер показывает форму, но не фактуру. 8 июля в ТОН можно потрогать то, что обычно живёт только в 3D: камень на металле, стекло в перегородке и душевой, цвет нитрида.
 
-Что покажем:
-- перегородки и зонирующие системы;
-- столы, стеллажи, зеркала на заказ под проект;
-- нитрид: цветовая палитра на металле;
-- разбор реального кейса: запрос дизайнера переходит в готовое изделие.
-
-Живые образцы, технические параметры, ответы на вопросы напрямую.
-
-8 июля, 15:00
-Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2 (пространство ТОН)
-Мест немного, регистрация по ссылке: https://yoursdesign.ru/events/premium-mebel-metall-steklo-spa</pre>
-        </div>
-        <div class="copyb">
-          <h3><span class="tag ig">Instagram</span> карусель 4:5 + подпись</h3>
-          <pre>Металл, стекло и зеркала для ваших проектов. 8 июля покажем вживую в ТОН.
-
-Камерная встреча для дизайнеров «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - перегородки и зонирование, столы и стеллажи, зеркала и нитрид. Разберём реальный кейс от запроса дизайнера до готового изделия.
-
-Живые образцы, технические параметры, ответы напрямую.
+Камерная встреча для дизайнеров «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - металл, стекло и зеркала. Разберём реальный кейс от запроса дизайнера до изделия.
 
 8 июля, 15:00. Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2.
 Регистрация - ссылка в шапке профиля.
 Сохраните, чтобы не потерять дату.</pre>
           <div class="tags"><span>#дизайнинтерьера</span><span>#интерьердизайнер</span><span>#зонирование</span><span>#перегородки</span><span>#зеркаловраме</span><span>#мебельназаказ</span><span>#металлистекло</span><span>#дизайнмосква</span><span>#ТОН</span><span>#мероприятиедлядизайнеров</span></div>
         </div>
+        <div class="copyb">
+          <h3><span class="tag tg">Telegram</span> обложка dsc3276 + текст</h3>
+          <pre><b>Рендер покажет форму. Не покажет, как это на ощупь.</b>
+
+8 июля собираем дизайнеров в ТОН на камерную встречу «Премиальные решения для интерьера». Три производителя без посредников. Наш блок - металл, стекло и зеркала:
+- перегородки и зонирование;
+- столы и стеллажи из камня;
+- зеркала и цвет нитрида;
+- душевые из закалённого стекла.
+
+Разберём реальный кейс - от запроса дизайнера до готового изделия, с образцами в руках.
+
+8 июля, 15:00
+Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2 (пространство ТОН)
+Мест немного, регистрация: https://yoursdesign.ru/events/premium-mebel-metall-steklo-spa</pre>
+        </div>
       </div>
     </div>
-    <div class="note"><b>Ссылки в IG некликабельны:</b> в подписи ведём на «ссылку в шапке профиля», перед публикацией поставьте в bio ссылку на регистрацию ТОН. В ТГ ссылка кликабельна - оставил прямую. Материал финальный.</div>
+    <div class="note"><b>Как работает горка:</b> слайды 2, 4, 5, 7 - текст-петли: каждая закрывает один материал и заканчивается вопросом-стрелкой к следующему («а мокрые зоны?», «а цвет металла?»). Фото-слайды 1, 3, 6 - выплаты, все три разные. Финал закрывает на регистрацию и сохранение. В IG ссылка некликабельна - ведём на «ссылку в шапке», в ТГ ссылка прямая.</div>
   </section>
 
   <footer class="foot">

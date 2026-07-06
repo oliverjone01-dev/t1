@@ -910,42 +910,56 @@ function render(){
     const ki={};keys.forEach((k,i)=>ki[k]=i);
     // события: {d:дата, q:изделий, p:позиций}
     const mkRow=(nm,evts,primary)=>{
-      const q=keys.map(()=>0),pp=keys.map(()=>0),wk={};
-      evts.forEach(e=>{const k=bkey(e.d);if(k in ki){q[ki[k]]+=e.q;pp[ki[k]]++}const wkk=wkOf(e.d);if(wkk)wk[wkk]=(wk[wkk]||0)+e.q});
-      const weeks=Object.values(wk);
-      const norm=(weeks.length?weeks.reduce((a,b)=>a+b,0)/weeks.length:0)*scale;
-      return {nm,q,pp,norm,sum:q.reduce((a,b)=>a+b,0),psum:pp.reduce((a,b)=>a+b,0),primary}};
+      const q=keys.map(()=>0),pp=keys.map(()=>0),wk={},bi={};
+      evts.forEach(e=>{const k=bkey(e.d);if(k in ki){q[ki[k]]+=e.q;pp[ki[k]]++;if(e.it)(bi[k]=bi[k]||[]).push(e.it)}const wkk=wkOf(e.d);if(wkk)wk[wkk]=(wk[wkk]||0)+e.q});
+      // норма = средняя по ПОСЛЕДНИМ 8 АКТИВНЫМ неделям: пустые ранние недели истории не занижают ориентир
+      const wkKeys=Object.keys(wk).sort().slice(-8);
+      const norm=(wkKeys.length?wkKeys.reduce((a,k2)=>a+wk[k2],0)/wkKeys.length:0)*scale;
+      return {nm,q,pp,norm,bi,sum:q.reduce((a,b)=>a+b,0),psum:pp.reduce((a,b)=>a+b,0),primary}};
     const rows=[];
-    rows.push(mkRow('▶ Запуск в цех',IT.filter(dirOk).filter(i=>startDate(i)).map(i=>({d:startDate(i),q:qtyOf(i)})),true));
+    rows.push(mkRow('▶ Запуск в цех',IT.filter(dirOk).filter(i=>startDate(i)).map(i=>({d:startDate(i),q:qtyOf(i),it:i})),true));
     // остаток «в работе» на конец каждого бакета: запущено <= конца и ещё не готово (в изделиях)
     rows.push((()=>{
-      const q=keys.map(()=>null),pp=keys.map(()=>null);
+      const q=keys.map(()=>null),pp=keys.map(()=>null),bi={};
       keys.forEach((k,ix)=>{const t=bend(k);if(t>NOWS)return;let qq=0,pc=0;
-        IT.filter(dirOk).forEach(i=>{const s=startDate(i);if(!s||s>t)return;const f=successDate(i);if(f&&f<=t)return;qq+=qtyOf(i);pc++});
+        IT.filter(dirOk).forEach(i=>{const s=startDate(i);if(!s||s>t)return;const f=successDate(i);if(f&&f<=t)return;qq+=qtyOf(i);pc++;(bi[k]=bi[k]||[]).push(i)});
         q[ix]=qq;pp[ix]=pc});
-      const vals=q.filter(v=>v!=null);
-      const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+      // норма = средний остаток за ПОСЛЕДНИЕ 8 недель (скользящий ориентир, как мощность в педалях),
+      // а не среднее выбранного окна - иначе завал в начале периода задирает норму и 29 выглядит как 25%
+      const _refPts=[];for(let dd=0;dd<56;dd+=7){const t=iso(new Date(D(NOWS)-dd*864e5));let qq=0;
+        IT.filter(dirOk).forEach(i=>{const s2=startDate(i);if(!s2||s2>t)return;const f=successDate(i);if(f&&f<=t)return;qq+=qtyOf(i)});_refPts.push(qq)}
+      const avg=_refPts.length?_refPts.reduce((a,b)=>a+b,0)/_refPts.length:0;
       let nowQ=0,nowP=0;IT.filter(dirOk).forEach(i=>{const s=startDate(i);if(!s||s>NOWS)return;const f=successDate(i);if(f&&f<=NOWS)return;nowQ+=qtyOf(i);nowP++});
-      return {nm:'⏳ В работе',q,pp,norm:avg,sum:nowQ,psum:nowP,primary:true,stock:true};
+      return {nm:'⏳ В работе',q,pp,norm:avg,bi,sum:nowQ,psum:nowP,primary:true,stock:true};
     })());
-    rows.push(mkRow('✔ Выпуск (готово)',done.filter(i=>successDate(i)).map(i=>({d:successDate(i),q:qtyOf(i)})),true));
+    rows.push(mkRow('✔ Выпуск (готово)',done.filter(i=>successDate(i)).map(i=>({d:successDate(i),q:qtyOf(i),it:i})),true));
     STATIONS.filter(([nm])=>nm!=='Передано'&&nm!=='Готово').forEach(([nm])=>{
-      const evts=[];IT.filter(dirOk).forEach(i=>(i.hist||[]).forEach(h=>{if(stationOf(h[0])===nm&&h[1])evts.push({d:h[1],q:qtyOf(i)})}));
+      const evts=[];IT.filter(dirOk).forEach(i=>(i.hist||[]).forEach(h=>{if(stationOf(h[0])===nm&&h[1])evts.push({d:h[1],q:qtyOf(i),it:i})}));
       if(evts.length)rows.push(mkRow(nm,evts,false))});
     const showN=keys.length<=14, showP=keys.length<=40, gap=keys.length>60?1:2;
     const gTone=r=>r>1.3?'#F43F5E':r>1?'#FB923C':'#2E9E74';
     const rowHtml=r=>{
+      const ri=rows.indexOf(r);
       const H=r.primary?30:17, alpha=r.primary?1:0.62, fs=r.primary?10.5:9;
       const mx=Math.max(1,...r.q.filter(v=>v!=null)); // максимум строки за период - точка отсчёта теплоты
       const heat=t=>t>=.75?`rgba(244,63,94,${(Math.min(.3+t*.5,.85)*alpha).toFixed(2)})`:t>=.4?`rgba(251,146,60,${((.25+t*.5)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.16+t*.9)*alpha).toFixed(2)})`;
       const cells=r.q.map((v,i)=>{
         if(v==null)return `<div class="cal-c" style="height:${H}px;background:var(--elev);opacity:.35"></div>`;
+        const k=keys[i], wknd=S.gran==='d'&&(D(k).getDay()===0||D(k).getDay()===6);
+        if(v===0&&!r.stock){
+          const fut=bend(k)>NOWS;
+          const td0=attr(`<div class='tl'>${r.nm} · ${blabel(k)}${wknd?' · выходной':''}</div><div class='tn'>${fut?'период ещё не наступил':'событий не было'}</div>`);
+          const bg0=wknd?'repeating-linear-gradient(45deg,var(--elev),var(--elev) 4px,rgba(148,163,184,.10) 4px,rgba(148,163,184,.10) 8px)':'var(--elev)';
+          return `<div class="cal-c" data-tip="${td0}" style="height:${H}px;background:${bg0};${wknd?'opacity:.55':''}"></div>`}
         const ratio=r.norm>0?v/r.norm:0, t=r.stock?Math.min(ratio/1.6,1):v/mx;
         const bg=v===0?'var(--elev)':r.stock?(ratio>1.3?`rgba(244,63,94,${(Math.min(.25+ratio*.2,.85)*alpha).toFixed(2)})`:ratio>1?`rgba(251,146,60,${(Math.min(.3+ratio*.3,.8)*alpha).toFixed(2)})`:`rgba(46,158,116,${((.18+ratio*.6)*alpha).toFixed(2)})`):heat(t);
+        const canClick=!!(r.bi&&r.bi[k]&&r.bi[k].length);
+        const sel=S.calSel&&S.calSel.r===ri&&S.calSel.k===k;
+        const clickTn=canClick?`<div class='tn'>клик - список изделий</div>`:'';
         const td=r.stock
-          ?attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>В работе, шт</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Средний уровень, шт</span><span>${d1(r.norm)}</span></div><div class='tr'><span>К среднему</span><span>${r.norm?pct(ratio):'—'}</span></div>`)
-          :attr(`<div class='tl'>${r.nm} · ${blabel(keys[i])}</div><div class='tr'><span>Штук</span><span>${fmt(v)}</span></div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Максимум строки, шт</span><span>${fmt(mx)}</span></div><div class='tr'><span>Теплота (от макс.)</span><span>${pct(v/mx)}</span></div><div class='tr'><span>Ср. пропускная, изд.</span><span>${d1(r.norm)}</span></div>`);
-        return `<div class="cal-c" data-tip="${td}" style="height:${H}px;background:${bg};color:${v&&t>.45?'#06121a':'var(--ink3)'};font-size:${fs}px">${(showN||(r.primary&&showP))&&v?v:''}</div>`}).join('');
+          ?attr(`<div class='tl'>${r.nm} · ${blabel(k)}${wknd?' · выходной':''}</div><div class='tr'><span>В работе, шт</span><span>${fmt(v)}</span></div><div class='tr'><span>Позиций (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Норма: ср. остаток за 8 нед, шт</span><span>${d1(r.norm)}</span></div><div class='tr'><span>К норме</span><span>${r.norm?pct(ratio):'—'}</span></div>`+clickTn)
+          :attr(`<div class='tl'>${r.nm} · ${blabel(k)}${wknd?' · выходной':''}</div><div class='tr'><span>Штук</span><span>${fmt(v)}</span></div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(r.pp[i])}</span></div><div class='tr'><span>Максимум строки, шт</span><span>${fmt(mx)}</span></div><div class='tr'><span>Теплота (от макс.)</span><span>${pct(v/mx)}</span></div><div class='tr'><span>Ср. пропускная, изд.</span><span>${d1(r.norm)}</span></div>`+clickTn);
+        return `<div class="cal-c"${canClick?` data-crow="${ri}" data-ck="${k}"`:''} data-tip="${td}" style="height:${H}px;background:${bg};color:${v&&t>.45?'#06121a':'var(--ink3)'};font-size:${fs}px${canClick?';cursor:pointer':''}${sel?';box-shadow:inset 0 0 0 2px #22D3EE':''}">${(showN||(r.primary&&showP))&&v?v:''}</div>`}).join('');
       const load=r.stock?(r.norm>0?r.sum/r.norm:null):(r.norm>0?r.sum/(r.norm*keys.length):null);
       const lc=load==null?'#5a6672':gTone(load);
       return `<div class="cal-row"><div class="cal-nm" style="${r.primary?'font-size:12.5px;color:var(--ink)':'font-size:11px;color:var(--ink3)'}">${r.nm}</div><div class="cal-cells" style="gap:${gap}px">${cells}</div><div class="cal-sum" style="${r.primary?'':'font-weight:600;color:var(--ink3)'}">${fmt(r.sum)}${r.stock?'<span style="font-weight:400;color:var(--ink4);font-size:9px"> сейчас</span>':''}</div><div class="cal-norm">${d1(r.norm)}</div><div class="cal-pct" style="color:${lc};background:${lc}1c">${load!=null?pct0(load):'—'}</div></div>`};
@@ -955,7 +969,20 @@ function render(){
     const primary=rows.filter(r=>r.primary).map(rowHtml).join('');
     const secondary=rows.filter(r=>!r.primary).map(rowHtml).join('');
     const divider=`<div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px"><span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink4)">Участки · входы, шт (второстепенно)</span><div style="flex:1;height:1px;background:var(--border)"></div></div>`;
-    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>тихие ${S.gran==='d'?'дни':'периоды'} (до 40% макс.)</span><span><i style="background:rgba(251,146,60,.6)"></i>40-75% макс.</span><span><i style="background:rgba(244,63,94,.6)"></i>пиковые (75%+ от максимума строки)</span><span style="color:var(--ink4)">цвет = теплота к МАКСИМУМУ своей строки за период (пиковый ${S.gran==='d'?'день':'период'} = красный, 1 штука при максимуме 5 = зелёная) · все цифры = ИЗДЕЛИЯ (карточка без товарных строк = 1), позиции - в подсказке · % справа = объём строки к средней пропускной из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, краснее = выше среднего (копим)</span></div>`;
+    const calDetail=(()=>{
+      if(!S.calSel)return '';
+      const r=rows[S.calSel.r];const its=r&&r.bi&&r.bi[S.calSel.k];
+      if(!its||!its.length)return '';
+      const qsum=its.reduce((a,i2)=>a+qtyOf(i2),0);
+      const lnk=(href,txt)=>`<a href="${href}" target="_blank" rel="noopener" style="color:#3DAEC2">${txt}</a>`;
+      const body=its.slice(0,30).map(i2=>{
+        const card=PORTAL?lnk(`${PORTAL}/crm/type/${DATA.entityTypeId||1086}/details/${i2.id}/`,i2.id):i2.id;
+        const deal=i2.dealId?(PORTAL?lnk(`${PORTAL}/crm/deal/details/${i2.dealId}/`,i2.dealId):i2.dealId):'—';
+        return `<tr><td>${card}</td><td class="nm" style="max-width:430px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(i2.title||'—')}</td><td>${fmt(qtyOf(i2))}</td><td>${deal}</td><td>${esc(i2.stage||'—')}</td><td>${esc(mgrOf(i2))}</td></tr>`}).join('');
+      const more=its.length>30?`<div class="card-s" style="margin-top:6px">показаны первые 30 из ${fmt(its.length)}</div>`:'';
+      return `<div style="margin-top:12px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--elev)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px">${r.nm} · ${blabel(S.calSel.k)}</b><span class="card-s">изделий: ${fmt(its.length)} · штук: ${fmt(qsum)}</span><span style="flex:1"></span><button data-calclose style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--ink3);cursor:pointer;font-size:11px;padding:2px 8px">✕ закрыть</button></div><table class="tbl"><thead><tr><th>Карточка</th><th>Изделие</th><th>Шт</th><th>Сделка</th><th>Стадия</th><th>Менеджер</th></tr></thead><tbody>${body}</tbody></table>${more}</div>`;
+    })();
+    return headRow+primary+divider+secondary+`<div class="legend"><span><i style="background:rgba(46,158,116,.6)"></i>тихие ${S.gran==='d'?'дни':'периоды'} (до 40% макс.)</span><span><i style="background:rgba(251,146,60,.6)"></i>40-75% макс.</span><span><i style="background:rgba(244,63,94,.6)"></i>пиковые (75%+ от максимума строки)</span><span style="color:var(--ink4)">цвет = теплота к МАКСИМУМУ своей строки за период (пиковый ${S.gran==='d'?'день':'период'} = красный, 1 штука при максимуме 5 = зелёная) · все цифры = ИЗДЕЛИЯ (карточка без товарных строк = 1), позиции - в подсказке · % справа = объём строки к средней пропускной из истории · строка «В работе» = остаток на конец периода: Σ = сейчас, краснее = выше нормы (ср. остаток за 8 нед) · клик по ячейке с данными = список изделий со ссылками в Б24</span></div>`+calDetail;
   })();
 
   const perLbl=`${S.from.split('-').reverse().join('.')} - ${S.to.split('-').reverse().join('.')}`;
@@ -979,7 +1006,7 @@ function render(){
     `<div class="card"><div class="card-h"><div><div class="card-t">Конструкторы <span class="qm" data-tip="Позиции, готовность, срок, доработки, средний чек и сумма по каждому конструктору. Вопрос: кто проектирует объём цеха и у кого сроки или доработки хуже? Вывод: длинный срок и доработки у одного человека - проверять сложность его заказов или качество проектирования; Итого - вклад отдела целиком.">?</span></div><div class="card-s">позиции, готово, срок, доработки, средний чек, сумма (${modeLbl})</div></div></div>${consTable}</div></div>`+
     
     `<div class="sec" id="sec4"><div class="n">4</div><h2>Производственный календарь</h2><div class="ln"></div><div class="hint">факт против пропускной способности: где и когда цех был загружен, перегружен или простаивал</div></div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в штуках <span class="qm" data-tip="Завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупные строки), ниже участки как второстепенные. Ячейка = ШТУК, изделия (карточки) в подсказке. Цвет = теплота к максимуму своей строки за период: пиковый день красный, тихий зелёный. Справа Σ за период, норма (средняя пропускная из истории) и % к ней. Строка «В работе» - остаток на конец периода: Σ = сейчас, краснее = выше среднего. Вопрос: в какие дни цех перегружен, когда простаивает и копится ли остаток? Вывод: красные ячейки запуска при зелёном выпуске - вход неравномерный: планировать запуски ровнее; краснеющая строка «В работе» - выпуск отстаёт от входа.">?</span></div><div class="card-s">завели → накопили → выдали · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-t">Запуск, в работе и выпуск по ${S.gran==='d'?'дням':S.gran==='m'?'месяцам':'неделям'} · в штуках <span class="qm" data-tip="Завели → накопили → выдали: запуск в цех, остаток в работе и выпуск (крупные строки), ниже участки как второстепенные. Ячейка = ШТУК, изделия (карточки) в подсказке. Цвет = теплота к максимуму своей строки за период: пиковый день красный, тихий зелёный. Справа Σ за период, норма (средняя пропускная из истории) и % к ней. Строка «В работе» - остаток на конец периода: Σ = сейчас, краснее = выше нормы (ср. остаток за последние 8 недель). Красный пик на «Выпуске» - сознательно: вышел большой объём, станки освобождаются - сигнал отделу продаж ускорить запуски. Вопрос: в какие дни цех перегружен, когда простаивает и копится ли остаток? Вывод: красные ячейки запуска при зелёном выпуске - вход неравномерный: планировать запуски ровнее; краснеющая строка «В работе» - выпуск отстаёт от входа.">?</span></div><div class="card-s">завели → накопили → выдали · Σ / норма / % справа</div></div></div>${calBlock}</div>`;
   document.getElementById('periodLabel').textContent=perLbl;
   wireCharts();
 
@@ -1032,6 +1059,8 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}
     const u=e.target.closest('#dynUnitSeg button');if(u){S.dynUnit=u.dataset.v;render();return}
     const tu=e.target.closest('#trubaSeg button');if(tu){S.trubaUnit=tu.dataset.v;render();return}
     const sd=e.target.closest('#syncDirSeg button');if(sd){S.syncDir=sd.dataset.v;render();return}
+    const cc=e.target.closest('[data-calclose]');if(cc){S.calSel=null;render();return}
+    const cl=e.target.closest('.cal-c[data-crow]');if(cl){const rr=+cl.dataset.crow,kk=cl.dataset.ck;S.calSel=(S.calSel&&S.calSel.r===rr&&S.calSel.k===kk)?null:{r:rr,k:kk};render();return}
     const dr=e.target.closest('tr[data-dept]');if(dr){const k=dr.dataset.dept;S.deptOpen[k]=!S.deptOpen[k];render();return}
     const mr=e.target.closest('tr[data-mgr]');if(mr&&!e.target.closest('a')){const k=mr.dataset.mgr;S.mgrOpen[k]=!S.mgrOpen[k];render();return}
     const dh=e.target.closest('th[data-dsk]');if(dh){const st=S.dSort;if(st.k===dh.dataset.dsk)st.a=!st.a;else{st.k=dh.dataset.dsk;st.a=false}render();return}

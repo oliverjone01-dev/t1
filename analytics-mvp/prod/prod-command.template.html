@@ -663,12 +663,14 @@ function render(){
     const wipP=keys.map(k=>{const t=bend(k);if(t>NOWS)return null;let q=0;IT.filter(dirOk).forEach(i=>{const st=startDate(i);if(!st||st>t)return;const f=successDate(i);if(f&&f<=t)return;q+=qtyOf(i)});return q});
     const cycB=keys.map(k=>{const arr=IT.filter(dirOk).filter(i=>isDone(i)&&bkey(startDate(i))===k).map(cycleOf).filter(x=>x!=null&&x>=0);return arr.length?med(arr):null});
     const gl=S.gran==='d'?'день':S.gran==='m'?'мес':'нед';
+    // текущая мощность = ступенька последнего наступившего бакета: подпись на графике совпадает с подсказкой
+    const _nowIdx=(()=>{const nk=bkey(NOWS);let j=keys.length-1;while(j>0&&keys[j]>nk)j--;return j})();
+    const _capNow=capI(_nowIdx);
     const top=chartSVG([
       {name:'Вход в цех, штук',c:'#8B7BF0',vals:inP,type:'bar',op:.45},
       {name:'Выпуск, штук',c:'#2DD4BF',vals:outP}
     ],keys,{fmtY:v=>fmt(v),
-      noLegend:true,
-      refSteps:{vals:capB,label:'мощность · скользящая 8 нед, шт/'+gl,tipLabel:'Мощность периода, шт/'+gl,c:'#F59E0B'},
+      refSteps:{vals:capB,label:'мощность сейчас ~'+d1(_capNow)+' шт/'+gl,tipLabel:'Мощность периода, шт/'+gl,c:'#F59E0B'},
       refLine:capMax>0?{v:capMax,label:'пик мощности ~'+d1(capMax)+' шт/'+gl,tipLabel:'Пик мощности, шт/'+gl,c:'#F43F5E'}:null});
     const nowK=bkey(NOWS);
     const lastCyc=i=>{let j=i-1;while(j>=0&&cycB[j]==null)j--;return j>=0?cycB[j]:null};

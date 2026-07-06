@@ -143,6 +143,8 @@ const dayDiff = (a?: string, b?: string): number | null => {
   return Math.round(((t2 - t1) / 86400000) * 100) / 100;
 };
 const d10 = (s?: string) => (s ? String(s).slice(0, 10) : null);
+// часы «создан → закрыт»: для лидов, которые закрывают в тот же день (медиана в днях = 0)
+const hourDiff = (a?: string, b?: string) => (a && b ? Math.max(0, Math.round((Date.parse(b) - Date.parse(a)) / 36e5)) : null);
 
 async function main() {
   console.log(`Bitrix -> ${OUT}${DATE_FROM ? ` (с ${DATE_FROM})` : " (всё)"}`);
@@ -235,6 +237,7 @@ async function main() {
       budget: Number(l.OPPORTUNITY) || 0,
       created: d10(l.DATE_CREATE),
       closed: d10(l.DATE_CLOSED),
+      cycleH: hourDiff(l.DATE_CREATE, l.DATE_CLOSED),
       source: sourceName[String(l.SOURCE_ID)] || l.SOURCE_ID || "не указан",
       dir: leadDirMap[String(l[UF_LEAD_DIR])] || "не указано",
     };

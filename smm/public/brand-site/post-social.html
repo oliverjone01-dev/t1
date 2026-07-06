@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="robots" content="noindex">
+<title>Этап 2 · Пост ТГ + IG · Встреча в ТОН · 8 июля</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
+<link rel="stylesheet" href="brand-site.css">
+<style>
+  .vb-hero{padding:52px 0 26px;border:none}
+  .vb-hero .ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:700}
+  .vb-hero h1{font-size:clamp(27px,4.4vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1.09;margin-top:8px}
+  .vb-hero p{margin-top:14px;color:var(--ink2);font-size:16px;line-height:1.6;max-width:66ch}
+  .stagebar{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .stg{font-size:12.5px;font-weight:700;padding:8px 15px;border-radius:var(--radius-pill);border:1px solid var(--line2);color:var(--ink3)}
+  .stg.on{background:var(--gold-soft);color:var(--v-ink);border-color:transparent}
+  .stg.done{background:var(--pub-soft);color:var(--pub-ink);border-color:transparent}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  /* карусель IG (превью слайдов) */
+  .carou{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;scroll-snap-type:x mandatory}
+  .slide{flex:0 0 300px;scroll-snap-align:start}
+  .sq{aspect-ratio:4/5;border-radius:16px;overflow:hidden;position:relative;background:#141019;box-shadow:0 14px 40px rgba(0,0,0,.3);border:1px solid var(--line)}
+  .sq img{width:100%;height:100%;object-fit:cover;display:block}
+  .sq .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,12,.05),rgba(10,8,12,.72))}
+  .sq .cap{position:absolute;left:18px;right:18px;bottom:16px;z-index:2;color:#fff}
+  .sq .cap .k{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#E3C98A}
+  .sq .cap .t{font-size:19px;font-weight:800;line-height:1.15;margin-top:7px;letter-spacing:-.01em}
+  .sq .cap .s{font-size:12.5px;color:rgba(255,255,255,.82);margin-top:7px;line-height:1.4}
+  .sq .num{position:absolute;top:12px;right:14px;z-index:2;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.4);border-radius:20px;padding:3px 9px}
+  .sq.cta{display:grid;place-items:center;text-align:center;background:linear-gradient(160deg,#221A2E,#141019)}
+  .sq.cta .box{padding:0 22px}
+  .sq.cta .big{font-size:23px;font-weight:800;color:#F3ECDD;line-height:1.15;letter-spacing:-.01em}
+  .sq.cta .go{margin-top:16px;display:inline-block;background:linear-gradient(180deg,#D9B86A,#C29A44);color:#241803;font-weight:800;font-size:13px;padding:11px 20px;border-radius:var(--radius-pill)}
+  .sq.cta .adr{margin-top:14px;font-size:11px;color:#A99BB4;line-height:1.5}
+  .slabel{font-size:12px;color:var(--ink3);margin-top:8px;font-weight:600}
+  /* блок текста поста / телеграм-превью */
+  .tgcard{max-width:520px;background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .tgcard .cover{aspect-ratio:16/10;overflow:hidden}
+  .tgcard .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .tgcard .body{padding:16px 18px 18px}
+  .tgcard .ch{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;color:var(--ink)}
+  .tgcard .ch .av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--gold-fill),var(--gold2));display:grid;place-items:center;color:#241803;font-size:11px;font-weight:900}
+  .tgtext{font-size:14px;line-height:1.62;color:var(--ink2);margin-top:12px}
+  .tgtext b{color:var(--ink)}
+  .copyb{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
+  .copyb h3{font-size:13px;font-weight:800;letter-spacing:.04em;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--s2);color:var(--ink);display:flex;align-items:center;gap:9px}
+  .copyb .tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+  .copyb .tag.tg{background:var(--gg-soft);color:var(--gg-ink)}
+  .copyb .tag.ig{background:var(--gold-soft);color:var(--v-ink)}
+  .copyb pre{margin:0;padding:16px 18px;font-family:Inter,sans-serif;font-size:13.5px;line-height:1.64;color:var(--ink2);white-space:pre-wrap;word-break:break-word}
+  .copyb pre b{color:var(--ink);font-weight:700}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;padding:0 18px 16px}
+  .tags span{font-size:12px;font-weight:600;color:var(--gg-ink);background:var(--gg-soft);border-radius:20px;padding:4px 11px}
+  .note{margin-top:16px;background:var(--gold-soft);border-radius:var(--radius-s);padding:14px 18px;font-size:13.5px;color:var(--ink);line-height:1.6}
+  .note b{color:var(--v-ink)}
+  @media(max-width:820px){.twocol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="top"><div class="top-in">
+  <div class="brand"><span class="dot"></span>GEN-GROUP&nbsp;/&nbsp;SMM</div>
+  <nav class="nav" aria-label="Разделы">
+    <a href="email-invite.html"><span class="n">↩</span>Этап 1 · Email</a>
+  </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
+</div></header>
+
+<main class="wrap" id="main">
+
+  <section class="vb-hero">
+    <span class="ey">Этап 2 из 3 · на утверждение</span>
+    <h1>Пост в наши ТГ и IG:<br>анонс встречи в ТОН</h1>
+    <p>Анонс для наших каналов: зовём дизайнеров на камерную встречу 8 июля в ТОН. Формат IG - карусель из 4 кадров, формат ТГ - обложка плюс текст со ссылкой. Фото реальные, из папки события. Ниже - превью слайдов, превью ТГ-поста и готовые тексты под обе площадки.</p>
+    <div class="stagebar">
+      <span class="stg done">1 · Email по базе</span>
+      <span class="stg on">2 · Пост ТГ + IG наш</span>
+      <span class="stg">3 · Пост ТГ в ТОН</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Карусель IG <span class="em">4 слайда · 4:5</span></h2><p>Свайп-карусель для Instagram. Первый кадр останавливает ленту, дальше - продукт, палитра и приглашение с деталями. Формат 4:5 (вертикаль, максимум площади в ленте).</p></div>
+    <div class="carou">
+      <div class="slide">
+        <div class="sq">
+          <span class="num">1 / 4</span>
+          <img src="assets/ton/dsc3228.jpg" alt="Премиум-интерьер с изделиями GEN-GROUP">
+          <div class="ov"></div>
+          <div class="cap"><div class="k">8 июля · ТОН</div><div class="t">Металл, стекло и зеркала для ваших проектов</div><div class="s">Встреча для дизайнеров. Без посредников.</div></div>
+        </div>
+        <div class="slabel">Кадр 1 - обложка (dsc3228, наш стол и зеркала в интерьере)</div>
+      </div>
+      <div class="slide">
+        <div class="sq">
+          <span class="num">2 / 4</span>
+          <img src="assets/ton/vl2-1.jpg" alt="Стеллаж из металла, стекла и камня">
+          <div class="ov"></div>
+          <div class="cap"><div class="k">На заказ под проект</div><div class="t">Перегородки, столы, стеллажи, зеркала</div><div class="s">Размер, вид стекла, цвет по каталогу.</div></div>
+        </div>
+        <div class="slabel">Кадр 2 - продукт (vl2-1, стеллаж хром/стекло/камень)</div>
+      </div>
+      <div class="slide">
+        <div class="sq">
+          <span class="num">3 / 4</span>
+          <img src="assets/ton/nitrid.jpg" alt="Образцы нитрида: цветовая палитра металла">
+          <div class="ov"></div>
+          <div class="cap"><div class="k">Живые образцы</div><div class="t">Нитрид: палитра цвета на металле</div><div class="s">Потрогать можно будет на встрече.</div></div>
+        </div>
+        <div class="slabel">Кадр 3 - фактура (nitrid, палитра нитрид-образцов)</div>
+      </div>
+      <div class="slide">
+        <div class="sq cta">
+          <span class="num">4 / 4</span>
+          <div class="box">
+            <div class="big">Приходите с проектом</div>
+            <span class="go">Регистрация по ссылке</span>
+            <div class="adr">8 июля, 15:00<br>Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2<br>пространство ТОН</div>
+          </div>
+        </div>
+        <div class="slabel">Кадр 4 - CTA (графика, детали и регистрация)</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="twocol">
+      <div>
+        <div class="sec-head" style="margin-bottom:16px"><h2 class="sec-title">Превью <span class="em">ТГ-поста</span></h2></div>
+        <div class="tgcard">
+          <div class="cover"><img src="assets/ton/dsc3276.webp" alt="Интерьер с изделиями GEN-GROUP"></div>
+          <div class="body">
+            <div class="ch"><span class="av">GG</span> GEN-GROUP</div>
+            <div class="tgtext"><b>8 июля мы в ТОН. Приходите трогать материалы руками.</b><br><br>Камерная встреча «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - металл, стекло и зеркала. Покажем перегородки и зонирование, столы и стеллажи, зеркала и нитрид, разберём реальный кейс от запроса дизайнера до готового изделия.<br><br>15:00, Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2. Мест немного, регистрация по ссылке.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="sec-head" style="margin-bottom:16px"><h2 class="sec-title">Тексты <span class="em">под площадки</span></h2></div>
+        <div class="copyb">
+          <h3><span class="tag tg">Telegram</span> обложка dsc3276 + текст</h3>
+          <pre><b>8 июля мы в ТОН. Приходите трогать материалы руками.</b>
+
+Камерная встреча «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - металл, стекло и зеркала.
+
+Что покажем:
+- перегородки и зонирующие системы;
+- столы, стеллажи, зеркала на заказ под проект;
+- нитрид: цветовая палитра на металле;
+- разбор реального кейса: запрос дизайнера переходит в готовое изделие.
+
+Живые образцы, технические параметры, ответы на вопросы напрямую.
+
+8 июля, 15:00
+Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2 (пространство ТОН)
+Мест немного, регистрация по ссылке: https://yoursdesign.ru/events/premium-mebel-metall-steklo-spa</pre>
+        </div>
+        <div class="copyb">
+          <h3><span class="tag ig">Instagram</span> карусель 4:5 + подпись</h3>
+          <pre>Металл, стекло и зеркала для ваших проектов. 8 июля покажем вживую в ТОН.
+
+Камерная встреча для дизайнеров «Премиальные решения для интерьера»: три производителя без посредников. Наш блок - перегородки и зонирование, столы и стеллажи, зеркала и нитрид. Разберём реальный кейс от запроса дизайнера до готового изделия.
+
+Живые образцы, технические параметры, ответы напрямую.
+
+8 июля, 15:00. Москва, ЗИЛ, ул. Архитектора Щусева, 4 к2.
+Регистрация - ссылка в шапке профиля.</pre>
+          <div class="tags"><span>#дизайнинтерьера</span><span>#интерьердизайнер</span><span>#зонирование</span><span>#перегородки</span><span>#зеркаловраме</span><span>#мебельназаказ</span><span>#металлистекло</span><span>#премиуминтерьер</span><span>#ТОН</span><span>#мероприятиедлядизайнеров</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><b>Ссылки в IG некликабельны:</b> в подписи ведём на «ссылку в шапке профиля», перед публикацией поставьте в bio ссылку на регистрацию ТОН. В ТГ ссылка кликабельна - оставил прямую. Даёте ОК - перехожу к Этапу 3 (пост для ТГ ТОН).</div>
+  </section>
+
+  <footer class="foot">
+    <div class="seal"><span class="d"></span>GEN-GROUP · Этап 2 из 3 · пост ТГ + IG · встреча в ТОН · июль 2026 · внутренний документ, ссылку не публиковать</div>
+  </footer>
+</main>
+<script src="theme.js" defer></script>
+</body>
+</html>

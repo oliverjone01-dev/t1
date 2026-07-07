@@ -27,10 +27,10 @@
 | 2.4 | Разметка confirmed/estimated/missing + confidence | protocol-9-runner | Cross-domain подтверждение нашей дисциплины (growth-практик пришёл к тому же) | queued (нота) |
 | 4.3 | Anti-AI-slop для экспертного блога | humanizer-ru/phoenix-eval | Аргумент в защиту бюджета на humanizer перед Иваном (не код) | нота |
 
-**Применено сейчас:** правки в `geo-aeo` (ядровой скилл проекта, домен semyon).
-**Queued:** атомы в скиллы других агентов (content-factory - maks/marco,
-competitor-intel - marco, protocol-9 - data, semyon.md). Трогают чужой периметр,
-поэтому применяю после подтверждения Ивана + прогон feniks Step 12.5.
+**Применено (подтверждение Ивана получено 07.07):** все 15 NOW-атомов внесены в
+скиллы - `geo-aeo` (6), `content-factory` (3), `competitor-intel` (2),
+`protocol-9-runner` (1), `semyon.md` (2 + синхрон CC-09), `humanizer-ru` (1 нота).
+Прогнано через feniks Step 12.5 (вердикт в конце файла).
 
 ## LATER - полезно, не сейчас
 
@@ -48,7 +48,8 @@ competitor-intel - marco, protocol-9 - data, semyon.md). Трогают чужо
 ## SKIP - не берём (конфликт с дисциплиной или вне мандата)
 
 Чёрные/серые тактики - прямой конфликт с Anti-Slop, Protocol 9, Comprehension Gate,
-премиум-доверием GENGLASS:
+премиум-доверием GENGLASS. **Не выброшены, а вынесены в разведотчёт с оценкой
+эффективности и риска:** `knowledge/grey-tactics-intel.md` (архив, не для исполнения).
 
 | Атом | Почему не берём |
 |---|---|

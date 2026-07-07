@@ -123,8 +123,10 @@ const GG=DATA.leads.filter(l=>!GM_M.has(l.mgr));
 const DD=DATA.deals||[]; // сделки ОП (воронка GG Заказы РФ): полярная звезда компании
 function cstats(a,b){const inP=x=>x&&x>=a&&x<=b;
   const pre=DD.filter(d=>inP(d.prepay));
+  const created=DD.filter(d=>inP(d.created));
   return {rev:pre.reduce((s,d)=>s+(d.budget||0),0),sales:pre.length,
-    prod:DD.filter(d=>inP(d.prod)).length,deals:DD.filter(d=>inP(d.created)).length}}
+    prod:DD.filter(d=>inP(d.prod)).length,deals:created.length,
+    soldC:created.filter(d=>d.prepay).length}} // сделки периода, дошедшие до предоплаты (когортно, <=100%)
 const OPEN=l=>!l.closed&&!l.conv&&!l.junk;
 const MIND=GG.reduce((m,l)=>l.created&&l.created<m?l.created:m,TODAY);
 /* ===== состояние ===== */
@@ -238,7 +240,7 @@ function render(){
   const perDayIn=cur.inflow.length/Math.max(span,1);
   /* полярная звезда: метрики компании за выбранный период + динамика */
   const co=cstats(a,b),coPrev=cstats(pa,pb2);
-  const coCr=co.deals?co.sales/co.deals:null,coCrPrev=coPrev.deals?coPrev.sales/coPrev.deals:null;
+  const coCr=co.deals?co.soldC/co.deals:null,coCrPrev=coPrev.deals?coPrev.soldC/coPrev.deals:null; // когортная CR: продано из созданных в периоде
   const fmtRub=n=>n>=1e6?(n/1e6).toFixed(2).replace('.',',')+' млн ₽':Math.round(n/1e3)+' тыс ₽';
   /* прогресс-бар выполнения плана: шкала до 150%, белая риска = 100% плана */
   const pbar=(fact,plan,fF)=>{if(!(plan>0)||fact==null)return '';const att=fact/plan;const col=att>=1?'var(--up)':att>=.7?'var(--warn)':'var(--dn)';
@@ -281,7 +283,7 @@ function render(){
     ['Выручка',fmtRub(co.rev),'','#22D3EE','по предоплатам за период',trend(co.rev,coPrev.rev),gauge2(co.rev,planRevP,fmtRub)],
     ['Продажи',fmt(co.sales),'','#10B981','сделок получили предоплату',trend(co.sales,coPrev.sales),gauge2(co.sales,Math.ceil(planSalesP))],
     ['Передано в производство',fmt(co.prod),'','#8B7BF0','сделок ушло в цех',trend(co.prod,coPrev.prod),gauge2(co.prod,Math.ceil(planSalesP))],
-    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`продажи ÷ новые сделки (${fmt(co.deals)})`,trend(coCr,coCrPrev),gauge2(coCr,PP.cr2,pct)],
+    ['Конверсия ОП',coCr!=null?pct(coCr):'—','','#F59E0B',`из ${fmt(co.deals)} созданных дошли до предоплаты`,trend(coCr,coCrPrev),gauge2(coCr,PP.cr2,pct)],
   ];
   const k1=[
     ['Поступило заявок',fmt(cur.inflow.length),'','#22D3EE','входящие лиды GG за период',trend(cur.inflow.length,prev.inflow.length),gauge2(cur.inflow.length,planRzP)],

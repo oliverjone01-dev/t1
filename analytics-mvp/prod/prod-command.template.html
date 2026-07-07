@@ -352,7 +352,7 @@ function render(){
   const _ds={};IT.filter(dirOk).forEach(i=>{const st=startDate(i);if(!st)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!_ds[k]||st<_ds[k])_ds[k]=st});
   const _dsKey=i=>i.dealId?String(i.dealId):'c'+i.id;
   const _cohNow=new Set(Object.keys(_ds).filter(k=>inRange(_ds[k]))),_cohPrev=new Set(Object.keys(_ds).filter(k=>inWinP(_ds[k])));
-  const dealsStarted=_cohNow.size,dealsStartedPrev=_cohPrev.size;
+  const dealsStarted=[..._cohNow].filter(k=>!k.startsWith('c')).length,dealsStartedPrev=[..._cohPrev].filter(k=>!k.startsWith('c')).length; // только карточки с реальной сделкой (без 'c'-псевдо)
   // изделия/штуки/деньги - по той же когорте, что и воронка передач (сделки с первым запуском в периоде)
   const cohCards=IT.filter(dirOk).filter(i=>inRange(startDate(i))&&_cohNow.has(_dsKey(i)));
   const cohCardsPrev=IT.filter(dirOk).filter(i=>inWinP(startDate(i))&&_cohPrev.has(_dsKey(i)));
@@ -371,7 +371,7 @@ function render(){
   const _wipPrevQ=qtySum(IT.filter(dirOk).filter(i=>{const st=startDate(i);if(!st||st>pb)return false;const f=successDate(i);return !(f&&f<=pb)}));
   const trOpt=(c,p,inv)=>(c!=null&&p!=null&&isFinite(p)&&p>0)?trend(c,p,inv):'';
   const kdef=[
-    ['Сделок в производство',fmt(dealsStarted),'','var(--cyan)','первый запуск карточки сделки в периоде',trend(dealsStarted,dealsStartedPrev)],
+    ['Сделок в производство',fmt(dealsStarted),'','var(--cyan)','первый запуск карточки со сделкой (без сделки = 0)',trend(dealsStarted,dealsStartedPrev)],
     ['Изделий (карточек)',fmt(cohCards.length),'','#60A5FA','запущено карточек-нарядов за период',trend(cohCards.length,cohCardsPrev.length)],
     ['Штук',fmt(qtySum(cohCards)),'','var(--violet)','изделия × количество из товарных строк',trend(qtySum(cohCards),qtySum(cohCardsPrev))],
     ['Направлено денег',fmtK(dealMoney(cohCards)),' ₽','var(--cyan)','бюджеты уникальных сделок запущенных',trend(dealMoney(cohCards),dealMoney(cohCardsPrev))],
@@ -385,6 +385,7 @@ function render(){
   // ===== УЗЕЛ СВЕРКИ: Предоплата (CRM) -> Производство (цех) =====
   // Общие цифры с дашбордом РОПа - одна точка истины для разговора продаж и цеха.
   const syncBlock=(()=>{
+    if(S.dealF==='nodeal')return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">блок про поток СДЕЛОК в цех</div></div></div><div class="card-s" style="padding:14px 2px">Выбран фильтр «Изделия: Без сделки» - у этих карточек сделки нет, поэтому воронка предоплаты → сделки здесь неприменима. Переключи на «Все» или «Со сделкой», чтобы увидеть поток сделок в цех.</div></div>`;
     const PP0=DATA.prepay&&DATA.prepay.deals;
     // Тумблер направлений: Все / GG (без Glass Memory - как у РОПа) / GM (только Glass Memory)
     const GM_EX=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);

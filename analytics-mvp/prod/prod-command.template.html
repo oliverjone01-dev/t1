@@ -386,6 +386,7 @@ function render(){
   // Общие цифры с дашбордом РОПа - одна точка истины для разговора продаж и цеха.
   const syncBlock=(()=>{
     if(S.dealF==='nodeal')return `<div class="card"><div class="card-h"><div><div class="card-t">Передачи в цех: от предоплат до изделий</div><div class="card-s">блок про поток СДЕЛОК в цех</div></div></div><div class="card-s" style="padding:14px 2px">Выбран фильтр «Изделия: Без сделки» - у этих карточек сделки нет, поэтому воронка предоплаты → сделки здесь неприменима. Переключи на «Все» или «Со сделкой», чтобы увидеть поток сделок в цех.</div></div>`;
+    const ITd=IT.filter(i=>i.dealId); // воронка от предоплат = только карточки со сделкой (расчётные/без сделки не считаем)
     const PP0=DATA.prepay&&DATA.prepay.deals;
     // Тумблер направлений: Все / GG (без Glass Memory - как у РОПа) / GM (только Glass Memory)
     const GM_EX=new Set(['Виктория Преснякова','Денис Белов','Юлия Мавлина','Системный пользователь MGM']);
@@ -395,14 +396,14 @@ function render(){
     const PP=PP0&&PP0.filter(d=>S.syncDir==='all'?true:(S.syncDir==='gm'?isGM(d):!isGM(d)));
     if(!PP)return `<div class="card"><div class="card-h"><div><div class="card-t">Узел сверки: Предоплата → Производство</div><div class="card-s">появится после ближайшего снимка данных (нужен ночной сбор с обновлённым коннектором)</div></div></div></div>`;
     // сверка глобальная (сделки не несут направление) - считаем по ВСЕМ заказам, без фильтра направления
-    const startedAll=IT.filter(i=>inRange(startDate(i))&&dealPass(i.dealId?String(i.dealId):'c'+i.id));
+    const startedAll=ITd.filter(i=>inRange(startDate(i))&&dealPass(String(i.dealId)));
     const prepPer=PP.filter(d=>inRange(d.date));
     // вся воронка В СДЕЛКАХ: запуск сделки = первый запуск любой её карточки (карточка без сделки = отдельная единица)
-    const dealStart={};IT.forEach(i=>{const s=startDate(i);if(!s)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealPass(k))return;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
+    const dealStart={};ITd.forEach(i=>{const s=startDate(i);if(!s)return;const k=String(i.dealId);if(!dealPass(k))return;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
     const startedDealsN=Object.values(dealStart).filter(s=>inRange(s)).length;
     // деньги передач - по когорте воронки (сделки с первым запуском в периоде), чтобы биться с KPI-стрипом
     const _sc=new Set(Object.keys(dealStart).filter(k=>inRange(dealStart[k])));
-    const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(IT.filter(i=>inRange(startDate(i))&&_sc.has(i.dealId?String(i.dealId):'c'+i.id)&&dealPass(i.dealId?String(i.dealId):'c'+i.id)));
+    const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(ITd.filter(i=>inRange(startDate(i))&&_sc.has(String(i.dealId))&&dealPass(String(i.dealId))));
     const gap=prepPer.length-startedDealsN;
     const linked=new Set(IT.map(i=>i.dealId).filter(Boolean));
     const incoming=PP.filter(d=>d.open&&/EXECUTING/.test(d.stage));
@@ -418,8 +419,8 @@ function render(){
     const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
     const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);Object.values(dealStart).forEach(s=>{const k=bkey(s);if(k in ki)v[ki[k]]++});return v})();
     // «стаканы»: физическая загрузка цеха по датам запуска карточек - изделия (карточки) и штуки
-    const posVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
-    const pcsVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);IT.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]+=qtyOf(i)});return v})();
+    const posVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);ITd.forEach(i=>{if(!dealPass(String(i.dealId)))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
+    const pcsVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);ITd.forEach(i=>{if(!dealPass(String(i.dealId)))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]+=qtyOf(i)});return v})();
     const chart=chartSVG([{name:'Изделий запущено (карточек)',c:'#3E7BD6',vals:posVals,type:'bar',op:.55},{name:'Штук запущено',c:'#8B7BF0',vals:pcsVals,type:'bar',op:.30},{name:'Предоплат получено',c:'#A78BFA',vals:prepVals},{name:'В производство (сделки)',c:'#2DD4BF',vals:startVals}],keys,{fmtY:v=>fmt(v)});
     // сквозная воронка: Предоплаты (с сегментом «не передано») -> Сделок передано -> Позиций -> Изделий
     const funnelViz=(()=>{
@@ -427,7 +428,7 @@ function render(){
       if(!N1&&!N2)return '<div class="card-s">нет событий в периоде</div>';
       // расшивка той же когорты: карточки сделок, переданных в периоде
       const cohort=new Set(Object.keys(dealStart).filter(k=>inRange(dealStart[k])));
-      const cohortCards=IT.filter(i=>inRange(startDate(i))&&cohort.has(i.dealId?String(i.dealId):'c'+i.id));
+      const cohortCards=ITd.filter(i=>inRange(startDate(i))&&cohort.has(String(i.dealId)));
       const nPos=cohortCards.length,nIzd=qtySum(cohortCards);
       const W=760,H=224,bandH=136,midY=36+bandH/2,nw=50,n=4,colW=W/n;
       const cx=i=>colW*i+colW/2,nodeX=i=>cx(i)-nw/2;

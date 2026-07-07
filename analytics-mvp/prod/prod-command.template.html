@@ -133,6 +133,7 @@ a{color:var(--cyan)}
   <div class="rev-toggle"><span class="ctl-lbl">Срез по</span><div class="seg" id="modeSeg"><button data-v="start" class="on">дате запуска</button><button data-v="done">дате готовности</button></div><span class="qm" data-tip="«По дате запуска»: структурные блоки (проходимость, менеджеры, конструкторы, ассортимент) считаются по заказам, ПЕРЕДАННЫМ в производство в выбранном периоде. «По дате готовности»: по заказам, ставшим готовыми в периоде. KPI запуска и выпуска всегда считаются по своей естественной дате.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="granSeg"><button data-v="d">День</button><button data-v="w" class="on">Неделя</button><button data-v="m">Месяц</button></div>
   <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px"><option value="">Все</option></select>
+  <span class="ctl-lbl">Изделия</span><div class="seg" id="dealSeg"><button data-v="all" class="on">Все</button><button data-v="deal">Со сделкой</button><button data-v="nodeal">Без сделки</button></div><span class="qm" data-tip="Фильтр по всей аналитике производства (запуски, выпуск, в работе, педали, календарь, участки). «Со сделкой» - только карточки, привязанные к сделке (подтверждённые заказы). «Без сделки» - расчётные и внутренние карточки без сделки (например, ретроактивные оценки, задирающие нагрузку). «Все» - как есть.">?</span>
   <div class="tb-spacer"></div>
   <div class="seg" id="presetSeg"><button data-v="1">Сегодня</button><button data-v="y">Вчера</button><button data-v="7">7 дн</button><button data-v="30" class="on">30 дн</button><button data-v="90">90 дн</button><button data-v="all">Всё</button></div>
   <input type="date" id="dFrom" class="dinp"><span style="color:var(--ink4)">–</span><input type="date" id="dTo" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
@@ -193,7 +194,7 @@ function toneC(c){return c>=40?'#F43F5E':c>=25?'#FB923C':c>=15?'#F59E0B':'#2E9E7
 
 // ===== состояние фильтров =====
 const MIND=IT.length?IT.map(startDate).filter(Boolean).sort()[0]:NOWS;
-const S={mode:'start',gran:'w',dir:'',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},mgrOpen:{},
+const S={mode:'start',gran:'w',dir:'',dealF:'all',from:MIND,to:NOWS,preset:'all',consSort:'money',dynUnit:'cnt',trubaUnit:'cards',syncDir:'all',deptOpen:{},mgrOpen:{},
   mgrSort:{k:'sum',a:false},conSort:{k:'tot',a:false},smSort:{k:'m',a:false},dSort:{k:'qM',a:false}};
 // кликабельные заголовки таблиц: data-tbl + data-sk, активная колонка подсвечена
 function thRow(tbl,st,defs){return defs.map(([k,l])=>k
@@ -220,7 +221,8 @@ function bkeysInRange(){const keys=[];let dt=D(S.from);const end=D(S.to);if(!dt|
 function bend(k){if(S.gran==='m'){const dt=new Date(+k.slice(0,4),+k.slice(5,7),0,12);return iso(dt)}
   if(S.gran==='w'){const dt=D(k);dt.setDate(dt.getDate()+6);return iso(dt)}return k}
 const inRange=ds=>ds&&ds>=S.from&&ds<=S.to;
-const dirOk=i=>!S.dir||i.dir===S.dir;
+const dealOk=i=>S.dealF==='all'||(S.dealF==='deal'?!!i.dealId:!i.dealId);
+const dirOk=i=>(!S.dir||i.dir===S.dir)&&dealOk(i);
 
 // когорты: запуск / готовность в выбранном периоде (+направление)
 function cohorts(){
@@ -1040,7 +1042,7 @@ function applyPreset(v){if(v==='all'){S.from=MIND;S.to=NOWS}
   const sel=document.getElementById('dirSel');
   dirs.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o)});
   sel.addEventListener('change',()=>{S.dir=sel.value;render()});
-  segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');
+  segWire('modeSeg','mode');segWire('granSeg','gran');segWire('presetSeg','preset');segWire('dealSeg','dealF');
   const SECS=['Производство','Участки','Подготовка','Календарь'];
   const nav=document.getElementById('nav');
   if(nav){nav.innerHTML=SECS.map((t,i)=>`<button data-i="${i+1}" class="${i===0?'on':''}">${t}</button>`).join('');

@@ -11,8 +11,12 @@
 
 ## Этап 1 - Наполнение хаба живыми данными (цель: 2 недели)
 
-- [ ] `data/clusters.json` - реальная карта кластеров pillar/satellite из единой
-      Google-таблицы контент-плана (импорт по образцу `competitors-import.yml`)
+- [ ] `data/semcore/` - частотность запросов из Yandex Wordstat (скрипт
+      `scripts/wordstat.mjs` + workflow `wordstat-semcore.yml`, сиды в
+      `data/seed-phrases.json`). Готово к запуску, ждёт секреты Яндекса (см.
+      `docs/WORDSTAT_API.md`). Собирает семантическое ядро на проекты.
+- [ ] `data/clusters.json` - карта кластеров pillar/satellite: частота из Wordstat
+      (`[ДАННЫЕ]` с датой) + интент из единой Google-таблицы контент-плана
 - [ ] `data/citations.json` - baseline замер: цитирует ли ChatGPT/Perplexity/YandexGPT
       бренд по 20 целевым запросам (владелец: semyon + data, каждая цифра с датой)
 - [ ] Хаб читает JSON, а не хардкод в HTML
@@ -68,3 +72,6 @@ Drive MCP-коннектор): дать доступ подключённому 
 
 - Ссылку на единую Google-таблицу контент-плана, открытую «по ссылке - Читатель»
   (см. «Доступы Google» в Этапе 1).
+- Секреты Яндекса для сбора частот (один набор, см. `docs/WORDSTAT_API.md`):
+  вариант A (AI Studio) - `YANDEX_SEARCH_API_KEY` + `YANDEX_FOLDER_ID`;
+  вариант B (standalone) - `YANDEX_OAUTH_TOKEN`. Плюс подтвердить, какой доступ есть.

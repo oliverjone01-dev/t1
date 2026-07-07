@@ -1,0 +1,14 @@
+{
+  "_note": "Сиды семантического ядра по брендам. Ведёт Семён. Скрипт scripts/wordstat.mjs берёт каждый seed, тянет Wordstat top -> data/semcore/<brand>/<slug>.json. Регион per-seed переопределяет дефолт WORDSTAT_REGIONS.",
+  "updated": "2026-07-07",
+  "default_regions": [213, 225],
+  "seeds": [
+    { "brand": "GENGLASS", "slug": "steklyannye-peregorodki", "phrase": "стеклянные перегородки", "intent": "commercial" },
+    { "brand": "GENGLASS", "slug": "peregorodka-kuhnya-gostinaya", "phrase": "перегородка кухня гостиная", "intent": "commercial" },
+    { "brand": "GENGLASS", "slug": "razdvizhnye-peregorodki", "phrase": "раздвижные стеклянные перегородки", "intent": "commercial" },
+    { "brand": "GENGLASS", "slug": "zerkalo-v-metallicheskoy-rame", "phrase": "зеркало в металлической раме", "intent": "commercial" },
+    { "brand": "GENGLASS", "slug": "dushevye-peregorodki", "phrase": "стеклянные душевые перегородки", "intent": "commercial" },
+    { "brand": "GLASS-MEMORY", "slug": "steklyannye-pamyatniki", "phrase": "стеклянные памятники", "intent": "commercial" },
+    { "brand": "VALONTI", "slug": "dizaynerskaya-mebel", "phrase": "дизайнерская мебель на заказ", "intent": "commercial" }
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: phoenix-eval
-description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), produces score 0.0-10.0 and JSON audit report.
+description: Adversarial audit checklist for FENIX (#35). Use when reviewing any GENGROUP deliverable (Roadmap entry, KP, content piece, strategy doc, landing copy). Runs a mandatory Comprehension Gate (человекочитаемость - текст понятен неспециалисту за 1 секунду, жаргон переведён) plus a 25-point check across 5 weighted criteria (Accuracy 25% / Actionability 25% / Insight 20% / Brand Fit 15% / Risk Awareness 15%), produces score 0.0-10.0 and JSON audit report.
 ---
 
 # Phoenix-Eval - Adversarial Audit Checklist (25 points)
@@ -20,6 +20,25 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 | Risk Awareness (риски) | 15% | 0.0–10.0 |
 
 **Weighted total** = Σ (score × weight)
+
+## Comprehension Gate (человекочитаемость) - ОБЯЗАТЕЛЬНО для любого клиентского/публичного контента
+
+Запускается ДО скоринга на любом тексте, который увидит человек снаружи: пост, карусель, лендинг, письмо, слайд, подпись, КП, объявление. Проверяется КАЖДЫЙ самостоятельный смысловой блок (слайд, заголовок, абзац, подпись к фото) по тесту «1 секунда / две аудитории».
+
+**Главное правило: читай как НЕ-эксперт.** Если ловишь себя на мысли «ну это же очевидно» - это и есть твоё слепое пятно. Помечай как дефект, а не прощай. Эксперт понимает жаргон; карусель листает и обыватель.
+
+Чек-лист (каждый пункт - пройдено/дефект):
+
+1. **Тест двух аудиторий.** Прочитай блок дважды: глазами (а) целевого профи и (б) неспециалиста-обывателя. Если обыватель за 1 секунду не понимает, о чём блок и что ему предлагают - дефект.
+2. **Жаргон переведён.** Любой спец-термин (нитрид, триплекс, PVD, Super Mirror, Nero Marquina, RAL/NCS, ER, CR2, ROMI, EBITDA и т.п.) в клиентском тексте идёт с расшифровкой в 2-4 слова ИЛИ заменён человеческим словом. Непереведённый термин в тексте «наружу» - дефект. Во внутренних документах для профи - допустимо.
+3. **Заголовок = один ясный смысл.** Одна мысль, считываемая мгновенно. «Умные» двусмысленности, требующие расшифровки («цвет тоньше», «сделано дорого»), - дефект.
+4. **Нет мутных сравнительных без базы.** «тоньше», «лучше», «выше», «дороже» без «чем / на сколько / по сравнению с чем» - дефект.
+5. **Фактическая точность бытового утверждения.** Ни одна фраза не должна быть технически ложной ради красоты («триплекс держит вес» у душевого стекла и т.п.) - дефект.
+6. **Подпись не спорит с картинкой.** Реальное фото не называем «рендером» и наоборот; текст описывает то, что на кадре.
+7. **Связки читаются (нарратив/карусель).** Стрелка/петля/«дальше» ведёт на ту тему, что идёт следующим блоком, а не в сторону.
+8. **Категории не путаются.** Продукт не выдаётся за сырьё и наоборот (зеркало - изделие, не «материал»); обещание «N пунктов» закрыто ровно N раз.
+
+**Санкция за провал:** любой дефект Comprehension Gate роняет Brand Fit до ≤ 6.0 и не даёт verdict выше `return`, пока не исправлено. Каждый дефект выносится в `gaps` с ДОСЛОВНОЙ проблемной фразой и предложенной заменой, читаемой обывателем.
 
 ## 25 Checkpoints
 
@@ -53,7 +72,7 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 17. **Anti-Slop clean** - ни одного запрещённого выражения из CLAUDE.md §7
 18. **Em dash отсутствует** - `-` нигде
 19. **Структура соответствует output routing** - формат deliverable по Protocol 10
-20. **Tone соответствует ЦА** - premium-but-warm для дизайнеров; B2B-precision для GENTERO
+20. **Tone соответствует ЦА + прошёл Comprehension Gate** - premium-but-warm для дизайнеров; B2B-precision для GENTERO; и текст читается неспециалистом за 1 секунду, жаргон переведён (см. Comprehension Gate выше). Провал гейта = 0 по этому пункту
 
 ### Risk Awareness (5 чекпоинтов, по 2 балла)
 
@@ -90,6 +109,13 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
   "task_id": "<uuid>",
   "timestamp": "<ISO>",
   "deliverable_ref": "<path>",
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "Слайд 7: «Цвет металла тоньше золота и хрома» - «тоньше» мутно; «нитрид» без расшифровки. Замена: «Цвет металла - не только золото и хром. Нитрид - стойкое цветное покрытие стали.»"
+    ]
+  },
   "checkpoints": {
     "accuracy_1_figures_tagged": 2,
     "accuracy_2_sources_verifiable": 2,
@@ -158,6 +184,8 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 - ❌ «В целом неплохо» - твоя задача найти gaps, а не комплимент
 - ❌ Принимать оправдания «не было времени» - это часть actionability score
 - ❌ Em dash в твоём отчёте
+- ❌ Пропустить непереведённый жаргон или мутную формулировку в клиентском тексте, потому что «эксперту и так понятно» - ты читаешь как обыватель (Comprehension Gate)
+- ❌ Похвалить строку как сильную, не проверив, поймёт ли её неспециалист за 1 секунду
 
 ## Dispute Template (если автор не согласен)
 

@@ -267,7 +267,7 @@ const fmtK=n=>n>=1e6?(n/1e6).toFixed(2)+' млн':n>=1e3?Math.round(n/1e3)+' т�
 // компактный формат для узких ячеек матрицы: 1.63 млн -> «1,6м», 612 тыс -> «612к»
 const fmtKc=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+'м':n>=1e3?Math.round(n/1e3)+'к':fmt(n);
 const pct=x=>(x*100).toFixed(1).replace('.',',')+'%';
-const CVDEF={1:'CR1 — в сделку: созданные сделки ÷ все заявки. Стандарт: квал-лид = созданная сделка, поэтому CR1 одинаков в шапке, «Выполнении плана» и сквозной воронке.',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
+const CVDEF={1:'CR1 — в сделку: квал-лиды ÷ все заявки. Квал-лид = заявка, доведённая до успешной стадии («Создание сделки»). Считаем именно квал-лиды, а НЕ число сделок: сделку менеджер может создать вручную без заявки, и тогда «сделки ÷ заявки» вылетают за 100%. Одинаков в шапке, «Выполнении плана» и сквозной воронке.',2:'CR2 — в продажу: выигранные сделки ÷ все созданные сделки. Доля сделок, доведённых до победы.'};
 const qm=n=>`<span class="qm" data-tip="${CVDEF[n].replace(/"/g,'&quot;')}">?</span>`;
 const info=t=>`<span class="qm" data-tip="${String(t).replace(/"/g,'&quot;')}">?</span>`;
 const d1=x=>x==null?'—':x.toFixed(1).replace('.',',');
@@ -816,10 +816,10 @@ function render(){
   // динамика снимка пайплайна: против восстановленного снимка на конец прошлого окна
   const _peK=_pw[1];
   const _openMPrev=flt(AD,true).filter(d=>d.created<=_peK&&!(d.closed&&d.closed<=_peK)).reduce((s,d)=>s+(d.budget||0),0);
-  const cr1=m.leads?m.deals/m.leads:0,pcr1=pm.leads?pm.deals/pm.leads:0;
+  const cr1=m.leads?m.qual/m.leads:0,pcr1=pm.leads?pm.qual/pm.leads:0; // квал-лиды ÷ заявки (успешная стадия лида, не число сделок)
   const B_kpi=kstrip([
     {k:'Всего лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads),sub:'вход от маркетинга · квал = конвертированы в сделку'},
-    {k:'CR1 · % в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'лид → сделка'},
+    {k:'CR1 · % в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'заявка → квал-лид'},
     {k:'Всего сделок',v:fmt(m.deals),ac:'#6366F1',trend:trendChip(m.deals,pm.deals),sub:'создано за период'},
     {k:'CR2 · % в продажу',v:pct(m.conv),ac:'#34D399',trend:trendChip(m.conv,pm.conv),sub:'сделка → продажа'},
     {k:'Продажи',v:fmt(m.won),ac:'#10B981',trend:trendChip(m.won,pm.won)},
@@ -843,8 +843,8 @@ function render(){
   // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
   // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
   // стандарт Ивана: квал-лид = СОЗДАННАЯ СДЕЛКА, поэтому средняя ступень = m.deals (бьётся с CR1 в шапке)
-  const _leadN=m.leads||1,_qualN=m.deals,_wonN=m.wonCohort;
-  const _cv1=m.leads?m.deals/m.leads:0,_cvQS=_qualN?_wonN/_qualN:0,_cvE2E=_leadN?_wonN/_leadN:0;
+  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort; // квал-лид = успешная стадия лида, а не создание сделки
+  const _cv1=m.leads?m.qual/m.leads:0,_cvQS=_qualN?Math.min(_wonN/_qualN,1):0,_cvE2E=_leadN?_wonN/_leadN:0;
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
@@ -933,7 +933,7 @@ function render(){
   const _nekv=L.filter(l=>l.qual==='неквал').length,_vrab=L.filter(l=>l.qual==='в работе').length;
   const B_leadStrip=kstrip([
     {k:'Поступило лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
-    {k:'CR1 · в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'сделок ÷ лидов'},
+    {k:'CR1 · в сделку',v:pct(cr1),ac:'#22D3EE',trend:trendChip(cr1,pcr1),sub:'квал-лиды ÷ заявок'},
     {k:'Сделок',v:fmt(m.deals),ac:'#10B981',trend:trendChip(m.deals,pm.deals)},
     {k:'CR2 · в продажу',v:pct(m.conv),ac:'#6366F1',trend:trendChip(m.conv,pm.conv),sub:'продаж ÷ сделок'},
     {k:'Продажи',v:fmt(m.won),ac:'#2E9E74',trend:trendChip(m.won,pm.won),sub:'успешно закрыто в периоде'},

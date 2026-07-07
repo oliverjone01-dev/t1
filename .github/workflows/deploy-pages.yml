@@ -6,6 +6,7 @@ name: Deploy to GitHub Pages
 #   /preview/          - Аналитика OZON, ПРЕВЬЮ (из рабочей ветки)
 #   /smm/              - SMM-стратегия, БОЙ (из ветки main)
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
+#   /seo/              - GG-SEO/GEO Монстр, БОЙ (из ветки main, статика public/)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
@@ -23,7 +24,7 @@ on:
         default: "ozon-dashboard-dima-fork"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -75,6 +76,9 @@ jobs:
           # SMM: статика-плейсхолдер (свой build добавляется в сессии SMM)
           mkdir -p _site/smm
           cp -r smm/public/. _site/smm/
+          # SEO/GEO Монстр: статика public/, без npm/smoke (самодостаточный HTML)
+          mkdir -p _site/seo
+          cp -r gg-seo-geo-monster/public/. _site/seo/
 
       # === ПРЕВЬЮ (из рабочей ветки) ===
       # Если падает - бой всё равно публикуется (continue-on-error), поломка видна в логах.

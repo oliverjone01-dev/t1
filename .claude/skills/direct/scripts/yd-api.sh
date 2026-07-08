@@ -5,40 +5,26 @@
 
 set -euo pipefail
 
-SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 API_BASE="https://api.direct.yandex.com/json/v5"
 
-# Credentials priority: (1) env vars (web env config) > (2) repo-local .env
-# (gitignored) > (3) ~/.secrets file. Real tokens never live in git.
-OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
-CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
-
-if [[ -z "$OAUTH_TOKEN" ]]; then
-    ENV_FILE="${YANDEX_DIRECT_ENV_FILE:-}"
-    if [[ -z "$ENV_FILE" ]]; then
-        REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
-        [[ -n "$REPO_ROOT" && -f "$REPO_ROOT/yandex-direct/.env" ]] && ENV_FILE="$REPO_ROOT/yandex-direct/.env"
-    fi
-    if [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
-        set -a; source "$ENV_FILE"; set +a
-        OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
-        CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
-    fi
-fi
-
-if [[ -z "$OAUTH_TOKEN" && -f "$SECRETS_FILE" ]]; then
-    OAUTH_TOKEN=$(jq -r '.oauth_token // empty' "$SECRETS_FILE")
-    CLIENT_LOGIN=$(jq -r '.client_login // empty' "$SECRETS_FILE")
-fi
-
-if [[ -z "$OAUTH_TOKEN" || "$OAUTH_TOKEN" == "null" ]]; then
-    echo "ERROR: token not found. Set env var YANDEX_DIRECT_TOKEN, or add oauth_token to $SECRETS_FILE" >&2
-    exit 1
-fi
+# Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
+source "$(dirname "${BASH_SOURCE[0]}")/yd-creds.sh"
 
 SERVICE="${1:?Usage: yd-api.sh <service> <method> [json_params]}"
 METHOD="${2:?Usage: yd-api.sh <service> <method> [json_params]}"
-PARAMS="${3:-{}}"
+
+# Protocol 6 (Trust by Design): этот wrapper - READ-ONLY.
+# Любая мутация кабинета (add/update/delete/suspend/resume/setBids/...) идёт
+# только через yd-api-write.sh, который требует HITL-апрув Ивана (approval-файл).
+if [[ "$METHOD" != "get" ]]; then
+    echo "BLOCKED: yd-api.sh - read-only wrapper, метод '$METHOD' запрещён." >&2
+    echo "Мутации кабинета - через yd-api-write.sh после HITL-апрува Ивана (Protocol 6)." >&2
+    exit 3
+fi
+# Note: do NOT write ${3:-{}} — bash closes the expansion on the first "}",
+# leaving a stray "}" appended to $3 and breaking jq --argjson.
+PARAMS="${3:-}"
+[[ -z "$PARAMS" ]] && PARAMS='{}'
 
 # Build request body
 REQUEST_BODY=$(jq -n \
@@ -46,17 +32,11 @@ REQUEST_BODY=$(jq -n \
     --argjson params "$PARAMS" \
     '{method: $method, params: $params}')
 
-# Optional Client-Login header (required for agency accounts)
-LOGIN_HEADER=()
-if [[ -n "${CLIENT_LOGIN:-}" ]]; then
-    LOGIN_HEADER=(-H "Client-Login: ${CLIENT_LOGIN}")
-fi
-
 # Make API call
 RESPONSE=$(curl -s -X POST \
     "${API_BASE}/${SERVICE}" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
-    "${LOGIN_HEADER[@]}" \
+    ${CLIENT_LOGIN:+-H "Client-Login: ${CLIENT_LOGIN}"} \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -d "$REQUEST_BODY")

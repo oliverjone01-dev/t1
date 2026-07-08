@@ -18,3 +18,6 @@ design-system/
 .secrets/
 **/.secrets/
 yandex-direct.json
+
+# HITL-апрувы мутаций (Protocol 6) - действуют один день, в git не попадают
+.claude/approvals/

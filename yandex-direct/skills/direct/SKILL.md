@@ -1,5 +1,6 @@
 ---
 name: direct
+owner: timur
 description: >
   Yandex Direct (API v5) advertising audit, management, and optimization.
   Full account audits, campaign management, keyword operations, reporting,

@@ -26,6 +26,10 @@
       "Bash(mkdir -p knowledge/*)",
       "Bash(mkdir -p traces/*)",
       "Bash(chmod +x .claude/hooks/*)",
+      "Bash(.claude/skills/direct/scripts/yd-api.sh:*)",
+      "Bash(bash .claude/skills/direct/scripts/yd-api.sh:*)",
+      "Bash(.claude/skills/direct/scripts/yd-report.sh:*)",
+      "Bash(bash .claude/skills/direct/scripts/yd-report.sh:*)",
       "WebFetch(domain:genglass.ru)",
       "WebFetch(domain:valonti.com)",
       "WebFetch(domain:gentero.ru)"
@@ -56,6 +60,15 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/anti-slop-checker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/direct-write-gate.sh"
           }
         ]
       }

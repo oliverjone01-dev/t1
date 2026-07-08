@@ -1,5 +1,6 @@
 ---
 name: direct
+owner: timur
 description: >
   Yandex Direct (API v5) advertising audit, management, and optimization.
   Full account audits, campaign management, keyword operations, reporting,
@@ -37,10 +38,10 @@ management, reporting, optimization, and budget analysis.
 
 ## API Configuration
 
-Credentials: `~/.secrets/yandex-direct.json`
-```json
-{ "client_id": "...", "client_secret": "...", "oauth_token": "..." }
-```
+Credentials are resolved by `scripts/yd-creds.sh` in priority order:
+1. Env vars `YANDEX_DIRECT_TOKEN` (+ optional `YANDEX_DIRECT_LOGIN`) - default for Claude Code on the web
+2. `yandex-direct/.env` (gitignored) with the same variables
+3. `~/.secrets/yandex-direct.json` - `{ "oauth_token": "...", "client_login": "..." }`
 
 Endpoint: `https://api.direct.yandex.com/json/v5/`
 Auth: `Authorization: Bearer {oauth_token}`
@@ -50,7 +51,7 @@ API wrapper script: `scripts/yd-api.sh`
 ## Orchestration Logic
 
 ### `/direct audit`
-1. Load credentials from `~/.secrets/yandex-direct.json`
+1. Load credentials via `scripts/yd-creds.sh` (env → `yandex-direct/.env` → `~/.secrets`)
 2. Fetch all campaigns via API (`campaigns` service)
 3. Fetch ad groups, keywords, ads, sitelinks for each campaign
 4. Run 50+ checks from `references/yandex-audit.md`

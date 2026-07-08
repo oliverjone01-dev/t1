@@ -82,7 +82,52 @@ footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:
 </style></head><body>
 <div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
 <nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html">Сверка</a><a href="audit.html" class="on">Аудит</a></nav><div class="stamp">данные: 2026-06-08 .. 2026-07-07 · собрано 2026-07-08 15:37 UTC</div></div>
-<div class="wrap"><h1>Атомный аудит кабинета</h1><div class="sub">скоринг по методике skill direct (55 проверок, веса категорий)</div><div class="note">Атомный аудит выполняется агентом ТИМУР. Файл audit-summary.json ещё не создан - пересоберите сайт после завершения аудита: <code>node yandex-direct/dashboard/build.mjs</code></div></div>
+<div class="wrap"><h1>Атомный аудит кабинета</h1><div class="sub">скоринг по методике skill direct (55 проверок, веса категорий)</div>
+<div class="hero">
+<div class="card hl ">
+<div class="lab">Скоринг кабинета</div><div class="hv">75<small>/100 · грейд B</small></div>
+<div class="hnote">55 проверок YD01-YD55 · 2026-07-08</div></div>
+<div class="card"><div class="lab">Категории</div><table>
+<tr><td>Конверсии и Метрика</td><td class="n">83.8</td><td class="n mut">вес 25%</td></tr><tr><td>Слив бюджета / минус-слова</td><td class="n">66</td><td class="n mut">вес 20%</td></tr><tr><td>Структура аккаунта</td><td class="n">69.1</td><td class="n mut">вес 15%</td></tr><tr><td>Ключевые слова и качество</td><td class="n">92.5</td><td class="n mut">вес 15%</td></tr><tr><td>Объявления и расширения</td><td class="n">69.4</td><td class="n mut">вес 15%</td></tr><tr><td>Настройки и таргетинг</td><td class="n">62.5</td><td class="n mut">вес 10%</td></tr>
+</table></div>
+<div class="card"><div class="lab">Issues по приоритету</div>
+<div class="hv">1<small> P0</small> 5<small> P1</small> 4<small> P2</small></div></div>
+</div>
+<div class="sec">Все findings</div>
+<div class="card tblwrap"><table><tr><th>Check</th><th>Приоритет</th><th>Проблема</th><th>Evidence</th><th class="n">Потери, ₽ <span class="badge b-h">[ГИПОТЕЗА]</span></th></tr>
+<tr><td class="mut">P0-attribution</td>
+<td><span class="pill p-hot">P0</span></td>
+<td>Улика по разрыву атрибуции: utm_source=abdm составляет 70-75 из 112 визитов engine=Yandex:Direct за 2026-07-07, не связанных с кампаниями кабинета</td><td class="mut">Metrika stat/v1/data, dimensions=lastsignAdvEngine,lastsignUTMSource, date=2026-07-07; abdm/peregorodki 30d=3801 visits/30 goal487033158</td>
+<td class="n">-</td></tr><tr><td class="mut">YD02/report-conversions</td>
+<td><span class="pill p-warn">P1</span></td>
+<td>Конверсии кабинета завышены относительно CRM-лидов в ~102 раза (817 vs 8 за 30 дней)</td><td class="mut">CAMPAIGN_PERFORMANCE_REPORT 2026-06-08..2026-07-08 vs Metrika goal487033158reaches by lastsignUTMCampaign</td>
+<td class="n">-</td></tr><tr><td class="mut">YD49</td>
+<td><span class="pill p-warn">P1</span></td>
+<td>Стратегия WB_MAXIMUM_CLICKS (максимум кликов) не соответствует приоритетной цели CRM-лида 487033158</td><td class="mut">campaigns.get: TextCampaign.BiddingStrategy.Search.BiddingStrategyType=WB_MAXIMUM_CLICKS; PriorityGoals=[487033158]</td>
+<td class="n">-</td></tr><tr><td class="mut">YD55</td>
+<td><span class="pill p-warn">P1</span></td>
+<td>72.2% расхода (74 604 руб. из 103 330 руб. за 30д) уходит в автотаргетинг, часть сегментов CTR&lt;1.5% при &gt;100 показах</td><td class="mut">CRITERIA_PERFORMANCE_REPORT 2026-06-08..2026-07-08, Criteria=---autotargeting</td>
+<td class="n">74 604</td></tr><tr><td class="mut">YD36/YD46</td>
+<td><span class="pill p-warn">P1</span></td>
+<td>0 A/B тестирования объявлений: 42 группы, 42 объявления, соотношение 1:1</td><td class="mut">ads.get + adgroups.get, campaign ids 710747853,710919957</td>
+<td class="n">-</td></tr><tr><td class="mut">YD24</td>
+<td><span class="pill p-warn">P1</span></td>
+<td>Кампания 710919957 (20000 руб/нед, 74.5% кликов с мобильных, CPC 108.64 руб против 190.55 руб на десктопе) не имеет ни одной мобильной корректировки ставок</td><td class="mut">CAMPAIGN_PERFORMANCE_REPORT dimension Device 2026-06-08..2026-07-08; bidmodifiers.get Levels=AD_GROUP</td>
+<td class="n">-</td></tr><tr><td class="mut">YD42</td>
+<td><span class="pill p-mut">P2</span></td>
+<td>Нет визитки (vCard) ни на одном из 42 объявлений</td><td class="mut">ads.get TextAd.VCardId=null для всех 42 объявлений</td>
+<td class="n">-</td></tr><tr><td class="mut">YD38/YD40</td>
+<td><span class="pill p-mut">P2</span></td>
+<td>Заголовок 2 = статичный 'GENGLASS' вместо УТП во всех объявлениях; уточнения содержат промо-клише и опечатку 'Премиальное качесвто' (Id 43237648)</td><td class="mut">ads.get TextAd.Title2; adextensions.get CalloutText</td>
+<td class="n">-</td></tr><tr><td class="mut">YD11</td>
+<td><span class="pill p-mut">P2</span></td>
+<td>Нет общего набора минус-слов - идентичный список ~190 слов продублирован вручную в 2 кампаниях</td><td class="mut">campaigns.get TextCampaign.NegativeKeywordSharedSetIds=[] на обеих кампаниях</td>
+<td class="n">-</td></tr><tr><td class="mut">YD22/YD51/YD01</td>
+<td><span class="pill p-mut">P2</span></td>
+<td>2 группы перегружены (40 и 79 ключей вместо 1-15); нет BidCeiling на клик-максимизирующей стратегии; второй счётчик Метрики (94601229, карточка Яндекс.Карт) привязан к кампании 710919957 без объяснения</td><td class="mut">adgroups.get+keywords.get; campaigns.get BiddingStrategy; management/v1/counter/94601229</td>
+<td class="n">-</td></tr>
+</table></div>
+<div class="hnote" style="margin-top:14px">Полный отчёт: <code>yandex-direct/audit/2026-07-08-atomic-audit.md</code> в репозитории. Рекомендации - к апруву Ивана, мутации кабинета заблокированы до закрытия P0.</div></div>
 <div class="chart-tip" id="tip"></div>
 <footer><span>[ДАННЫЕ] = цифра из API с источником · [ГИПОТЕЗА] = оценка с допущениями</span>
 <span>Слой: оперативный T-1 (несверенный с CRM)</span><span>Директ GENGROUP · Protocol 9 discipline</span></footer>

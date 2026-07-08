@@ -375,7 +375,7 @@ ${MET.by_utm.slice(0, 12).map(u => {
     : cid ? '<span class="pill p-warn">ID не из этого кабинета</span>'
     : '<span class="pill p-hot">без ID кампании - источник P0</span>'}</td></tr>`; }).join('')}
 </table>
-<div class="hnote" style="margin-top:10px">Гипотезы источника (проверять по порядку): 1) старая кампания/кабинет с utm_campaign=peregorodki без ID; 2) агентский кабинет eLama (в кабинете есть архивная «Системная кампания eLama»); 3) ручная разметка ссылок в объявлениях другого аккаунта. Все три - [ГИПОТЕЗА] до проверки.</div></div>
+<div class="hnote" style="margin-top:10px"><b>Улика найдена (атомный аудит TIMUR-001, [ДАННЫЕ]):</b> из визитов с engine «Yandex: Direct» только ~37/день несут utm_source=yandex (разметка кабинета e-20085264, сходится с его кликами). Остальные 70-75/день размечены utm_source=abdm или без разметки; за 30 дней abdm-источник дал 3801 визит и 30 CRM-лидов - больше собственного объёма кабинета. Следующий шаг (человеку): выяснить, какой сервис/кабинет ставит utm_source=abdm (вероятен сторонний сервис автопометки или второй кабинет). До этого P0 открыта.</div></div>
 <div class="sec">Все источники трафика (контекст)</div>
 <div class="card tblwrap"><table><tr><th>Источник</th><th class="n">Визиты</th><th class="n">Отказы</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
 ${MET.by_source.map(s => `<tr><td>${esc(s.source)}</td><td class="n">${fmt(s.visits)}</td>

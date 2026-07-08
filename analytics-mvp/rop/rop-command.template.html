@@ -1188,7 +1188,7 @@ function render(){
     const mx={tD:mxOf(r=>r.tD),tM:mxOf(r=>r.tM),tPos:mxOf(r=>r.tPos),tPcs:mxOf(r=>r.tPcs),inM:mxOf(r=>r.inM),qM:mxOf(r=>r.qM)};
     const hg=(v,m2,col)=>{if(!v)return '';const w=Math.max(v/m2*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
     const T='rgba(45,212,191,.14)',BB='rgba(96,165,250,.14)',V='rgba(139,123,240,.14)',AMB='rgba(245,158,11,.12)',PU='rgba(167,139,250,.13)';
-    const cell=(v,m2,col,mxV,bgc)=>`<td style="text-align:center;${hg(m2,mxV,bgc)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink-3)"> · ${fmtK(m2)} ₽</span>`:'<span style="color:var(--ink-3)">·</span>'}</td>`;
+    const cell=(v,m2,col,mxV,bgc)=>`<td style="text-align:center;white-space:nowrap;${hg(m2,mxV,bgc)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink-3)"> · ${fmtK(m2)} ₽</span>`:'<span style="color:var(--ink-3)">·</span>'}</td>`;
     const row=(r,isDep)=>{const opn=isDep?(S.rdeptOpen&&S.rdeptOpen.GG):(S.rmgrOpen&&S.rmgrOpen[r.mgr]);
       const canOpen=!isDep&&r.qN>0;
       const idle=!isDep&&!r.tD&&(r.qN||r.inN);
@@ -1196,7 +1196,7 @@ function render(){
       return `<tr ${isDep?`data-rdept="GG" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid rgba(148,163,184,.25)"`:(canOpen?`data-rmgr="${esc(r.mgr)}" style="cursor:pointer"`:'')}>
         <td class="nm" style="text-align:left;font-weight:${isDep?800:600}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px">${esc(r.mgr)}</span>`}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:#F59E0B;border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mm.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink-3)">·</span>'}</td>
-        <td style="text-align:center;${hg(r.tM,mm.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink-3)">·</span>'}</td>
+        <td style="text-align:center;white-space:nowrap;${hg(r.tM,mm.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mm.tPos,BB)}">${r.tPos||'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPcs,mm.tPcs,V)}">${r.tPcs||'<span style="color:var(--ink-3)">·</span>'}</td>
         ${cell(r.inN,r.inM,'#F59E0B',mm.inM,AMB)}

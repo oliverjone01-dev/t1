@@ -375,7 +375,7 @@ function render(){
     ['Изделий (карточек)',fmt(cohCards.length),'','#60A5FA','запущено карточек-нарядов за период',trend(cohCards.length,cohCardsPrev.length)],
     ['Штук',fmt(qtySum(cohCards)),'','var(--violet)','изделия × количество из товарных строк',trend(qtySum(cohCards),qtySum(cohCardsPrev))],
     ['Направлено денег',fmtK(dealMoney(cohCards)),' ₽','var(--cyan)','бюджеты уникальных сделок запущенных',trend(dealMoney(cohCards),dealMoney(cohCardsPrev))],
-    ['Выпущено штук',fmt(pcsOut),'','var(--accent)',`готово за период · темп: ${d1(_rate)} шт/день`,trend(pcsOut,pcsOutPrev)],
+    ['Выпущено штук',fmt(pcsOut),'','var(--accent)',`готово за период по дате выпуска (независимо от даты запуска) · темп: ${d1(_rate)} шт/день`,trend(pcsOut,pcsOutPrev)],
     ['Срок выпуска',d1(_cycMain),' дн','var(--violet)',isStart?'медиана «запуск → готово» по готовым ИЗ запущенных':'медиана «запуск → готово» готовых за период',trOpt(_cycMain,_cycPrev,true)],
     ['Дней на штуку',_perPc.length?d1(med(_perPc)):'—',' дн','#8B7BF0','медиана: цикл заказа ÷ штук в заказе',trOpt(_perPc.length?med(_perPc):null,_perPcPrev.length?med(_perPcPrev):null,true)],
     ['В работе<span class="now-badge">сейчас</span>',fmt(qtySum(wip)),'','var(--amber)',`штук на участках (${fmt(wip.length)} карточек) · зависло >14 дн: ${fmt(stuck.length)}`,trOpt(qtySum(wip),_wipPrevQ,true)],
@@ -603,7 +603,8 @@ function render(){
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})" data-tip="${td}"/>`}
     F.forEach((f,i)=>{const h=hOf(f.count),t=midY-h/2,c=COL[i%COL.length];
       const money=dealMoney(f.items);
-      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Штук (с количеством)</span><span>${fmt(f.izd)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`);
+      const doneNote=f.name==='Готово'?`<div class='tn'>${isStart?'готово ИЗ запущенных за период (когорта запуска). KPI «Выпущено штук» считает по дате выпуска, поэтому может быть больше - в него попадают заказы, запущенные ещё до периода. Совпадёт при срезе «по дате готовности».':'все выпущенные за период - совпадает с KPI «Выпущено штук»'}</div>`:'';
+      const td=attr(`<div class='tl'>${f.name}</div><div class='tr'><span>Изделий (карточек)</span><span>${fmt(f.pos)}</span></div><div class='tr'><span>Штук (с количеством)</span><span>${fmt(f.izd)}</span></div><div class='tr'><span>Доля от запущенных</span><span>${pct(f.count/(F[0].count||1))}</span></div><div class='tr'><span>Деньги (уник. сделки)</span><span>${fmtK(money)} ₽</span></div><div class='tr'><span>Медиана на участке</span><span>${f.dwell!=null?d1(f.dwell)+' дн':'—'}</span></div>`+doneNote);
       nodes+=`<rect x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${h}" rx="5" fill="${c}" data-tip="${td}" style="cursor:help"/>`;
       if(h>=22)nodes+=`<text x="${cx(i)}" y="${midY+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="15" fill="#06121a" pointer-events="none">${fmt(f.count)}</text>`;
       else labels+=`<text x="${cx(i)}" y="${t-5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="12" fill="${c}">${fmt(f.count)}</text>`;

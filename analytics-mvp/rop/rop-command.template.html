@@ -289,6 +289,9 @@ const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 const MIGDATE='2026-03-05';
 const migInRange=()=>S.start<=MIGDATE&&MIGDATE<=S.end;
 const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Некачественный лид','Некачественный']);
+// «Без ответственного» = системный/служебный аккаунт (не человек): Системный пользователь*,
+// Расчёты, id{N}. Уволенный/действующий сотрудник - это ЕСТЬ ответственный, сюда не входит.
+const noOwner=n=>/систем|^id\s?\d|^расч[её]т/i.test(n||'');
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
 let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
@@ -494,8 +497,12 @@ function byManager(D,L){const names=[...new Set([...D.map(d=>d.mgr),...L.map(l=>
 function unassignedBlock(){
   const dim=S.unDim||'leads';
   const _inP=c=>c>=S.start&&c<=S.end;
-  const Lr=flt(AL,false).filter(l=>!isOP(l.mgr)&&!JUNKST.has(l.status)&&l.status!=='Создание сделки'&&_inP(l.created));
-  const Dr=flt(AD,true).filter(d=>!isOP(d.mgr)&&!d.won&&!d.lost&&_inP(d.created));
+  const allTime=S.unScope==='all';const inScope=c=>allTime||_inP(c); // «Всё время» показывает и старые заявки
+  // Отказные статусы (Дубль/СПАМ/Отказ/Некачественный) сюда НЕ попадают - это терминальный отказ,
+  // он учитывается в конверсии CR1 (лид->сделка), но в очередь на разбор не подсвечивается.
+  const Lr=flt(AL,false).filter(l=>!isOP(l.mgr)&&!JUNKST.has(l.status)&&l.status!=='Создание сделки'&&inScope(l.created));
+  const Dr=flt(AD,true).filter(d=>!isOP(d.mgr)&&!d.won&&!d.lost&&inScope(d.created));
+  const mgrCell=n=>noOwner(n)?`<span title="${esc(n)} - системный аккаунт" style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:#F43F5E;background:rgba(244,63,94,.14);border:1px solid rgba(244,63,94,.45);border-radius:5px;padding:1px 7px">без ответственного</span>`:esc(n);
   const rows=(dim==='leads'?Lr:Dr).map(r=>{const o=Object.assign({},r);o._age=Math.max(0,Math.round(ageDays(r.created)));return o;});
   const sk=S.unSort||'age',asc=S.unAsc?1:-1,gv=r=>sk==='age'?r._age:sk==='budget'?(r.budget||0):sk==='mgr'?r.mgr:sk==='dir'?(r.dir||'я'):r.created;
   rows.sort((a,b)=>{const x=gv(a),y=gv(b);return (x>y?1:x<y?-1:0)*asc;});
@@ -504,7 +511,7 @@ function unassignedBlock(){
   const ageBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">`+bk.map(([l,a,b])=>{const c=rows.filter(r=>r._age>=a&&r._age<=b).length;if(!c)return '';const w=(c/tot*100).toFixed(1);return `<div data-tip="${l}: ${c}" style="width:${w}%;background:${at(a)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0">${c/tot>0.06?c:''}</div>`;}).join('')+`</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ink-4);margin-top:3px">`+bk.map(x=>`<span>${x[0]}</span>`).join('')+`</div>`;
   const hold={};rows.forEach(r=>hold[r.mgr]=(hold[r.mgr]||0)+1);
   const topH=Object.entries(hold).sort((a,b)=>b[1]-a[1]).slice(0,6),hMax=topH.length?topH[0][1]:1;
-  const holdBars=topH.map(([n,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:140px;font-size:11px;color:var(--ink-3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(c/hMax*100).toFixed(1)}%;background:#6A7484"></div></div><div style="width:34px;font-size:11px;font-weight:800;color:var(--ink-2)">${c}</div></div>`).join('')||'<div class="card-sub">нет</div>';
+  const holdBars=topH.map(([n,c])=>{const no=noOwner(n),bc=no?'#F43F5E':'#6A7484';return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:150px;font-size:11px;color:${no?'#F8717A':'var(--ink-3)'};font-weight:${no?700:400};text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${no?esc(n)+' - без ответственного (системный аккаунт)':esc(n)}">${no?'⚑ '+esc(n):esc(n)}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(c/hMax*100).toFixed(1)}%;background:${bc}"></div></div><div style="width:34px;font-size:11px;font-weight:800;color:var(--ink-2)">${c}</div></div>`;}).join('')||'<div class="card-sub">нет</div>';
   const portal=DATA.b24Portal||'',idCell=r=>portal?`<a href="${portal}/crm/${dim==='leads'?'lead':'deal'}/details/${r.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${r.id}</a>`:r.id;
   const C='text-align:center';
   const sh=(k,l)=>`<th class="${S.unSort===k?'sorted'+(S.unAsc?' asc':''):''}" data-un="${k}" style="cursor:pointer;${C}">${l}</th>`;
@@ -514,13 +521,14 @@ function unassignedBlock(){
     :`<tr>${sh('id','ID')}${th('Напр.')}${sh('mgr','Ответственный')}${th('Источник')}${th('Стадия')}${sh('budget','Сумма')}${sh('created','Создан')}${sh('age','Дней ждёт')}${th('Кас.')}</tr>`;
   const body=rows.slice(0,100).map(r=>{const ac=at(r._age),dn=DIRLAB[r.dir]||r.dir||'-';
     return dim==='leads'
-      ?`<tr><td style="${C}">${idCell(r)}</td><td style="${C}">${dn}</td><td class="name" style="${C}">${r.mgr}</td><td style="${C}">${r.source||'-'}</td><td style="${C}">${r.status||'-'}</td><td style="${C}">${r.created}</td><td style="${C};color:${ac};font-weight:800">${r._age}</td></tr>`
-      :`<tr><td style="${C}">${idCell(r)}</td><td style="${C}">${dn}</td><td class="name" style="${C}">${r.mgr}</td><td style="${C}">${r.source||'-'}</td><td style="${C}">${r.stage||'-'}</td><td style="${C}">${fmtK(r.budget||0)}</td><td style="${C}">${r.created}</td><td style="${C};color:${ac};font-weight:800">${r._age}</td><td style="${C}">${r.touchReal||0}</td></tr>`;}).join('');
+      ?`<tr${noOwner(r.mgr)?' style="background:rgba(244,63,94,.05)"':''}><td style="${C}">${idCell(r)}</td><td style="${C}">${dn}</td><td class="name" style="${C}">${mgrCell(r.mgr)}</td><td style="${C}">${r.source||'-'}</td><td style="${C}">${r.status||'-'}</td><td style="${C}">${r.created}</td><td style="${C};color:${ac};font-weight:800">${r._age}</td></tr>`
+      :`<tr${noOwner(r.mgr)?' style="background:rgba(244,63,94,.05)"':''}><td style="${C}">${idCell(r)}</td><td style="${C}">${dn}</td><td class="name" style="${C}">${mgrCell(r.mgr)}</td><td style="${C}">${r.source||'-'}</td><td style="${C}">${r.stage||'-'}</td><td style="${C}">${fmtK(r.budget||0)}</td><td style="${C}">${r.created}</td><td style="${C};color:${ac};font-weight:800">${r._age}</td><td style="${C}">${r.touchReal||0}</td></tr>`;}).join('');
   const more=rows.length>100?`<div class="card-sub" style="margin-top:6px">показаны первые 100 из ${fmt(rows.length)} (по сортировке) - сузь фильтром направления</div>`:'';
   const open=!!S.unOpen,sumB=dim==='deals'?Dr.reduce((s,d)=>s+(d.budget||0),0):0;
+  const noOwnN=rows.filter(r=>noOwner(r.mgr)).length; // из них без ответственного (системный аккаунт)
   const over14=rows.filter(r=>r._age>14).length,over30=rows.filter(r=>r._age>30).length,riskB=dim==='deals'?rows.filter(r=>r._age>14).reduce((s,r)=>s+(r.budget||0),0):0;
   const alert=over14?`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);border-radius:9px;font-size:12.5px;color:#F8717A;font-weight:700"><span style="font-size:15px">⚠</span><span><b>${fmt(over14)}</b> ${dim==='leads'?'лидов':'сделок'} ждут дольше <b>${over30===over14?'30':'14'} дней</b>${over30&&over30<over14?` · из них <b>${fmt(over30)}</b> дольше 30 дней`:''}${riskB>=1000?` · зависло <b style="color:#fff">${fmtK(riskB)} ₽</b>`:''}</span></div>`:'';
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Нераспределённые: разбор ${info('Открытые лиды/сделки, созданные в выбранном периоде и висящие на системных/не-продажных аккаунтах (по текущему ответственному). «Дней ждёт» = дней с создания. Вопрос: что забрать первым. Вывод: красное (старше 14-30 дней) и крупные суммы - в работу первыми. ID кликабельны: откроют лид/сделку в Битрикс24.')}</div><div class="card-sub">заявки без владельца - раздать продавцам</div></div><div class="seg" id="unDimSeg"><button data-u="leads" class="${dim==='leads'?'on':''}">Лиды (${fmt(Lr.length)})</button><button data-u="deals" class="${dim==='deals'?'on':''}">Сделки (${fmt(Dr.length)})</button></div></div>`+
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Нераспределённые: разбор ${info('Открытые лиды/сделки не на продавце (по текущему ответственному). Красный флажок ⚑ и бейдж «без ответственного» = лид на системном аккаунте (Системный пользователь, Расчёты, id) - живого владельца нет. «Дней ждёт» = дней с создания. Отказные статусы (Дубль/СПАМ/Отказ/Некачественный) сюда НЕ входят: это терминальный отказ, он учитывается в конверсии CR1, но разбирать его не нужно. Тумблер «За период / Всё время» - чтобы поднять и старые заявки. ID кликабельны: откроют в Битрикс24.')}</div><div class="card-sub">не на продавце - раздать · <span style="color:#F8717A;font-weight:700">без ответственного: ${fmt(noOwnN)}</span></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><div class="seg" id="unScopeSeg"><button data-s="period" class="${allTime?'':'on'}">За период</button><button data-s="all" class="${allTime?'on':''}">Всё время</button></div><div class="seg" id="unDimSeg"><button data-u="leads" class="${dim==='leads'?'on':''}">Лиды (${fmt(Lr.length)})</button><button data-u="deals" class="${dim==='deals'?'on':''}">Сделки (${fmt(Dr.length)})</button></div></div></div>`+
     alert+`<div class="grid2" style="margin-top:10px"><div><div class="card-sub" style="margin-bottom:5px">по сроку ожидания</div>${ageBar}</div><div><div class="card-sub" style="margin-bottom:5px">на ком висят (топ-6)</div>${holdBars}</div></div>`+
     `<button id="unToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть таблицу':'Показать таблицу ('+fmt(rows.length)+')'}</button>`+
     (open?`<div class="scroll" style="margin-top:10px;max-height:480px"><table class="tbl" id="unTbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>${more}`:'')+
@@ -536,7 +544,7 @@ function razborBlock(){
   const FIRED=new Set(DATA.firedManagers||[]);
   const isSys=n=>/систем|^id\s?\d|расчёт|расчет/i.test(n||'');
   const stOf=n=>FIRED.has(n)?'fired':isSys(n)?'sys':'act';
-  const stMeta={fired:{l:'уволен',c:'#F43F5E'},sys:{l:'система',c:'#8A94A6'},act:{l:'действующий',c:'#2E9E74'}};
+  const stMeta={fired:{l:'уволен',c:'#F43F5E'},sys:{l:'без ответственного',c:'#8A94A6'},act:{l:'действующий',c:'#2E9E74'}};
   const total=RZ.length;
   const g={};RZ.forEach(l=>{const o=g[l.mgr]||(g[l.mgr]={n:0,ages:[],dirs:new Set(),oldest:l.created});o.n++;o.ages.push(Math.max(0,ageDays(l.created)));o.dirs.add(l.dir||'-');if(l.created&&l.created<o.oldest)o.oldest=l.created;});
   const rows=Object.entries(g).map(([n,v])=>({mgr:n,n:v.n,med:Math.round(median(v.ages)||0),oldest:v.oldest,dirs:[...v.dirs],st:stOf(n)})).sort((a,b)=>b.n-a.n);
@@ -549,11 +557,19 @@ function razborBlock(){
   const ownersTbl=`<div class="scroll" style="margin-top:10px;max-height:440px"><table class="tbl"><thead><tr><th style="text-align:left">Владелец</th><th>Статус</th><th>Лидов</th><th>Медиана ожид., дн</th><th>Старейший</th><th style="text-align:left">Направления</th></tr></thead><tbody>${trs}</tbody></table></div>`;
   const firedAlert=firedN?`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);border-radius:9px;font-size:12.5px;color:#F8717A;font-weight:700"><span style="font-size:15px">⚠</span><span><b>${fmt(firedN)}</b> лидов висят на уволенных - их никто не ведёт, забрать первыми</span></div>`:'';
   const known=Array.isArray(DATA.firedManagers);
-  const dataNote=known?'':`<div class="card-sub" style="margin-top:8px;color:var(--ink-4)">Признак «уволен» подтянется после ближайшего ночного снимка Bitrix (добавлено поле ACTIVE). Сейчас различаются «система» и «сотрудник».</div>`;
-  return `<div class="card" style="border-color:rgba(244,63,94,.25)"><div class="card-h"><div><div class="card-title">Стадия «Разобрать»: расчистка перед удалением ${info('ВСЕ лиды в стадии «Разобрать», БЕЗ фильтра периода (в т.ч. старые). Этап технический, под удаление: заявки нужно разобрать и раздать продавцам. Владельцы помечены: уволен (красный - лид мёртв, никто не ведёт), система (аккаунт-приёмник), действующий сотрудник. Реагирует на фильтр направления в шапке. Приоритет: уволенные и самые старые по медиане ожидания.')}</div><div class="card-sub">${fmt(total)} лидов в стадии - разобрать все, приоритет уволенным и старым</div></div></div>`
+  const dataNote=known?'':`<div class="card-sub" style="margin-top:8px;color:var(--ink-4)">Признак «уволен» подтянется после ближайшего ночного снимка Bitrix (добавлено поле ACTIVE). Сейчас различаются «без ответственного» и «сотрудник».</div>`;
+  // список лидов стадии со ссылками в Битрикс (по сроку ожидания), раскрывается кнопкой
+  const portal=DATA.b24Portal||'',lead=r=>portal?`<a href="${portal}/crm/lead/details/${r.id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${r.id}</a>`:r.id;
+  const at=d=>d>=30?'#B0414F':d>=14?'#CC5867':d>=7?'#C2873C':'#2E9E74',open=!!S.rzOpen;
+  const leadRows=RZ.map(l=>Object.assign({_age:Math.max(0,Math.round(ageDays(l.created)))},l)).sort((a,b)=>b._age-a._age);
+  const rzBody=leadRows.slice(0,150).map(l=>{const m=stMeta[stOf(l.mgr)],dn=DIRLAB[l.dir]||l.dir||'-';return `<tr${stOf(l.mgr)==='fired'?' style="background:rgba(244,63,94,.06)"':''}><td style="text-align:center">${lead(l)}</td><td class="name" style="text-align:left">${esc(l.mgr)}</td><td style="text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:9.5px;font-weight:700;color:${m.c};background:${m.c}22;border:1px solid ${m.c}66;border-radius:5px;padding:1px 6px">${m.l}</span></td><td style="text-align:center">${esc(l.source||'-')}</td><td style="text-align:center">${dn}</td><td style="text-align:center;color:var(--ink-4)">${l.created}</td><td style="text-align:center;color:${at(l._age)};font-weight:800">${l._age}</td></tr>`;}).join('');
+  const rzMore=leadRows.length>150?`<div class="card-sub" style="margin-top:6px">показаны первые 150 из ${fmt(leadRows.length)} (по сроку ожидания) - сузь фильтром направления</div>`:'';
+  const leadTbl=`<button id="rzToggle" class="dbtn" style="margin-top:12px">${open?'Скрыть список лидов':'Показать список лидов ('+fmt(leadRows.length)+')'}</button>`+(open?`<div class="scroll" style="margin-top:10px;max-height:480px"><table class="tbl"><thead><tr><th>ID</th><th style="text-align:left">Ответственный</th><th>Статус влад.</th><th>Источник</th><th>Напр.</th><th>Создан</th><th>Дней ждёт</th></tr></thead><tbody>${rzBody}</tbody></table></div>${rzMore}`:'');
+  return `<div class="card" style="border-color:rgba(244,63,94,.25)"><div class="card-h"><div><div class="card-title">Стадия «Разобрать»: расчистка перед удалением ${info('ВСЕ лиды в стадии «Разобрать», БЕЗ фильтра периода (в т.ч. старые). Этап технический, под удаление: заявки нужно разобрать и раздать продавцам. Владельцы помечены: уволен (красный - лид мёртв, никто не ведёт), без ответственного (системный аккаунт-приёмник), действующий сотрудник. Реагирует на фильтр направления в шапке. Кнопка ниже открывает список лидов со ссылками в Битрикс24. Приоритет: уволенные и самые старые.')}</div><div class="card-sub">${fmt(total)} лидов в стадии - разобрать все, приоритет уволенным и старым</div></div></div>`
     +firedAlert
-    +`<div style="margin-top:10px"><div class="card-sub" style="margin-bottom:5px">на ком висят (действующие / уволенные / системные)</div>${splitBar}</div>`
+    +`<div style="margin-top:10px"><div class="card-sub" style="margin-bottom:5px">на ком висят (действующие / уволенные / без ответственного)</div>${splitBar}</div>`
     +ownersTbl
+    +leadTbl
     +dataNote
     +`</div>`;
 }
@@ -1589,6 +1605,8 @@ function buildShell(){
   document.addEventListener('click',e=>{const dh=e.target.closest('[data-dh]');if(dh){const c=dh.dataset.dh;if(S.dhSort===c)S.dhAsc=!S.dhAsc;else{S.dhSort=c;S.dhAsc=(c==='mgr');}render();}});
   document.addEventListener('click',e=>{const cb=e.target.closest('#dhMetricSeg button');if(cb){S.dhMetric=cb.dataset.m;render();}});
   document.addEventListener('click',e=>{const u=e.target.closest('#unDimSeg button');if(u){S.unDim=u.dataset.u;render();}});
+  document.addEventListener('click',e=>{const s=e.target.closest('#unScopeSeg button');if(s){S.unScope=s.dataset.s;render();}});
+  document.addEventListener('click',e=>{const s=e.target.closest('#rzScopeSeg button');if(s){S.rzScope=s.dataset.s;render();}if(e.target&&e.target.id==='rzToggle'){S.rzOpen=!S.rzOpen;render();}});
   document.addEventListener('click',e=>{const th=e.target.closest('th[data-rdk]');if(th){const st=S.rdSort;if(st.k===th.dataset.rdk)st.a=!st.a;else{st.k=th.dataset.rdk;st.a=false}render();return}
     const dr=e.target.closest('tr[data-rdept]');if(dr){S.rdeptOpen.GG=!S.rdeptOpen.GG;render();return}
     const mr=e.target.closest('tr[data-rmgr]');if(mr&&!e.target.closest('a')){const k=mr.dataset.rmgr;S.rmgrOpen[k]=!S.rmgrOpen[k];render();}});

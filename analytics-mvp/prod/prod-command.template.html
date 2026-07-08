@@ -399,7 +399,7 @@ function render(){
     const prepPer=PP.filter(d=>inRange(d.date));
     // вся воронка В СДЕЛКАХ: запуск сделки = первый запуск любой её карточки (карточка без сделки = отдельная единица)
     const dealStart={};ITd.forEach(i=>{const s=startDate(i);if(!s)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dealPass(k))return;if(!dealStart[k]||s<dealStart[k])dealStart[k]=s});
-    const startedDealsN=Object.values(dealStart).filter(s=>inRange(s)).length;
+    const startedDealsN=Object.keys(dealStart).filter(k=>!k.startsWith('c')&&inRange(dealStart[k])).length; // только реальные сделки (без 'c'-псевдо)
     // деньги передач - по когорте воронки (сделки с первым запуском в периоде), чтобы биться с KPI-стрипом
     const _sc=new Set(Object.keys(dealStart).filter(k=>inRange(dealStart[k])));
     const prepMoney=sum(prepPer,d=>d.budget||0), startMoney=dealMoney(ITd.filter(i=>inRange(startDate(i))&&_sc.has(i.dealId?String(i.dealId):'c'+i.id)&&dealPass(i.dealId?String(i.dealId):'c'+i.id)));
@@ -424,11 +424,11 @@ function render(){
     // сквозная воронка: Предоплаты (с сегментом «не передано») -> Сделок передано -> Позиций -> Изделий
     const funnelViz=(()=>{
       const N1=prepPer.length,N2=startedDealsN,NL=Math.max(gap,0);
-      if(!N1&&!N2)return '<div class="card-s">нет событий в периоде</div>';
-      // расшивка той же когорты: карточки сделок, переданных в периоде
+      // расшивка той же когорты: карточки, запущенные в периоде (в т.ч. без сделки при фильтре «Без сделки»)
       const cohort=new Set(Object.keys(dealStart).filter(k=>inRange(dealStart[k])));
       const cohortCards=ITd.filter(i=>inRange(startDate(i))&&cohort.has(i.dealId?String(i.dealId):'c'+i.id));
       const nPos=cohortCards.length,nIzd=qtySum(cohortCards);
+      if(!N1&&!N2&&!nPos)return '<div class="card-s">нет событий в периоде</div>';
       const W=760,H=224,bandH=136,midY=36+bandH/2,nw=50,n=4,colW=W/n;
       const cx=i=>colW*i+colW/2,nodeX=i=>cx(i)-nw/2;
       const maxC=Math.max(N1,N2,nPos,nIzd,1),hOf=c=>Math.max(16,c/maxC*bandH);
@@ -459,7 +459,7 @@ function render(){
       const pill=(x,y,txt,col,td,w)=>`<rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${col}" stroke-opacity=".6" data-tip="${td}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${col}" pointer-events="none">${txt}</text>`;
       const p1x=(nodeX(0)+nw+nodeX(1))/2,p1y=((t1+passH/2)+(tt[0]+hh[0]/2))/2;
       s+=pill(p1x,p1y,N1?pct(N2/N1):'—','#2DD4BF',attr(`<div class='tl'>Предоплата → цех · за период</div><div class='tr'><span>Передано</span><span>${fmt(N2)} из ${fmt(N1)}</span></div><div class='tr'><span>Конверсия</span><span>${N1?pct(N2/N1):'—'}</span></div>`),58);
-      s+=pill((nodeX(1)+nw+nodeX(2))/2,midY,'×'+d1(N2?nPos/N2:0),'#60A5FA',attr(`<div class='tl'>Сделка → изделия</div><div class='tr'><span>В среднем</span><span>${d1(N2?nPos/N2:0)} изделия (карточки) на сделку</span></div>`),52);
+      s+=pill((nodeX(1)+nw+nodeX(2))/2,midY,N2?'×'+d1(nPos/N2):'—','#60A5FA',attr(`<div class='tl'>Сделка → изделия</div><div class='tr'><span>В среднем</span><span>${N2?d1(nPos/N2)+' изделия (карточки) на сделку':'нет сделок (карточки без сделки)'}</span></div>`),52);
       s+=pill((nodeX(2)+nw+nodeX(3))/2,midY,'×'+d1(nPos?nIzd/nPos:0),'#A78BFA',attr(`<div class='tl'>Изделие → штуки</div><div class='tr'><span>В среднем</span><span>${d1(nPos?nIzd/nPos:0)} штуки на изделие</span></div><div class='tn'>Кол-во из товарных строк (карточка без строк = 1)</div>`),52);
       // узел предоплат: фиолетовый = передано, оранжевый = не передано, тег на стыке
       const tdN1p=attr(`<div class='tl'>Передано в цех (из предоплат периода)</div><div class='tr'><span>Сделок</span><span>${fmt(Math.min(N2,N1))}</span></div><div class='tr'><span>Всего предоплат</span><span>${fmt(N1)} · ${fmtK(prepMoney)} ₽</span></div><div class='tn'>Событие: вход сделки в «Предоплата получена»</div>`);

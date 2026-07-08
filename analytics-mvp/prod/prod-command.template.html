@@ -498,9 +498,10 @@ function render(){
     const depOf=(mgr,dealId)=>GM_M.has(mgr||'')||(dealId&&gmDirDeal.has(String(dealId)))?'GM':'GG';
     const M={};const ent=(mgr,dep)=>{const k=dep+'|'+(mgr||'—');return M[k]=M[k]||{mgr:mgr||'—',dep,tD:0,tM:0,tPos:0,tPcs:0,inN:0,inM:0,qN:0,qM:0}};
     // передачи периода: когорта первых запусков (как воронка и KPI)
-    const dstart={};IT.forEach(i=>{const st=startDate(i);if(!st)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dstart[k]||st<dstart[k])dstart[k]=st});
+    const ITp=IT.filter(dealOk); // передачи следуют фильтру «Изделия»
+    const dstart={};ITp.forEach(i=>{const st=startDate(i);if(!st)return;const k=i.dealId?String(i.dealId):'c'+i.id;if(!dstart[k]||st<dstart[k])dstart[k]=st});
     const coh=new Set(Object.keys(dstart).filter(k=>inRange(dstart[k])));
-    const byDeal={};IT.forEach(i=>{const k=i.dealId?String(i.dealId):'c'+i.id;if(!coh.has(k))return;if(!inRange(startDate(i)))return;(byDeal[k]=byDeal[k]||[]).push(i)});
+    const byDeal={};ITp.forEach(i=>{const k=i.dealId?String(i.dealId):'c'+i.id;if(!coh.has(k))return;if(!inRange(startDate(i)))return;(byDeal[k]=byDeal[k]||[]).push(i)});
     Object.entries(byDeal).forEach(([k,cards])=>{const mgr=cards[0].dealMgr||cards[0].sourceMgr||'—';const e=ent(mgr,depOf(mgr,k.startsWith('c')?null:k));
       e.tD++;e.tM+=cards[0].dealBudget||0;e.tPos+=cards.length;e.tPcs+=qtySum(cards)});
     // входящий пакет (сейчас)
@@ -522,7 +523,7 @@ function render(){
     const mxMgr={tD:mxOf(allM,r=>r.tD),tM:mxOf(allM,r=>r.tM),tPos:mxOf(allM,r=>r.tPos),tPcs:mxOf(allM,r=>r.tPcs),inM:mxOf(allM,r=>r.inM),qM:mxOf(allM,r=>r.qM)};
     const hg=(v,mx,col)=>{if(!v)return '';const w=Math.max(v/mx*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};
     const T='rgba(45,212,191,.14)',B='rgba(96,165,250,.14)',V='rgba(139,123,240,.14)',AMB='rgba(245,158,11,.12)',PU='rgba(167,139,250,.13)';
-    const cell=(v,m,col,mx,bg)=>`<td style="text-align:center;${hg(m,mx,bg)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink4)"> · ${fmtK(m)} ₽</span>`:'<span style="color:var(--ink4)">·</span>'}</td>`;
+    const cell=(v,m,col,mx,bg)=>`<td style="text-align:center;white-space:nowrap;${hg(m,mx,bg)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink4)"> · ${fmtK(m)} ₽</span>`:'<span style="color:var(--ink4)">·</span>'}</td>`;
     const row=(r,isDep)=>{const nm=isDep?`<b>${r.dep==='GG'?'GENGLASS (GG)':'GLASS MEMORY (GM)'}</b>`:`<span style="padding-left:22px">${esc(r.mgr)}</span>`;
       const idle=!isDep&&!r.tD&&(r.qN||r.inN);
       const mx=isDep?mxDep:mxMgr;
@@ -530,7 +531,7 @@ function render(){
       return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:(canOpen?`data-mgr="${r.dep}|${esc(r.mgr)}" style="cursor:pointer"`:'')}>
         <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):(canOpen?(S.mgrOpen&&S.mgrOpen[r.dep+'|'+r.mgr]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mx.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
-        <td style="text-align:center;${hg(r.tM,mx.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
+        <td style="text-align:center;white-space:nowrap;${hg(r.tM,mx.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mx.tPos,B)}">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPcs,mx.tPcs,V)}">${r.tPcs||'<span style="color:var(--ink4)">·</span>'}</td>
         ${cell(r.inN,r.inM,'var(--amber)',mx.inM,AMB)}
@@ -548,7 +549,7 @@ function render(){
     let body='';deps.forEach(a=>{body+=row(a,true);if(S.deptOpen&&S.deptOpen[a.dep])a.ms.forEach(m=>{body+=row(m,false);if(S.mgrOpen&&S.mgrOpen[a.dep+'|'+m.mgr])body+=mgrDetail(m)})});
     const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
     // Итого - первой строкой: на него смотрят чаще, чем на разбивку
-    const foot=`<tr style="border-bottom:2px solid var(--border2);background:rgba(34,211,238,.05)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
+    const foot=`<tr style="border-bottom:2px solid var(--border2);background:rgba(34,211,238,.05)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;white-space:nowrap;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
     return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал <span class="qm" data-tip="Клик по отделу раскрывает менеджеров, по менеджеру - его сделки в просчёте, Итого - первой строкой. Точка совещания ОП и цеха. «Передано» = за выбранный период (когорта воронки). «Пакет» = открытые сделки на стадии «В производстве» сейчас. «Потенциал» = открытые сделки в просчёте сейчас. Бейдж «не передаёт» = потенциал/пакет есть, а передач в периоде нет. Сортировка кликом по заголовку колонки. Вопрос: кто кормит цех и у кого потенциал лежит без движения? Вывод: большой потенциал при нуле передач - разбирать пайплайн менеджера поимённо, клик раскрывает его сделки.">?</span></div><div class="card-s">что отдел продаж передал и держит в расчётах</div></div></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr>${dth('nm','Отдел / менеджер',true)}${dth('tD','Передано сделок')}${dth('tM','₽ передано')}${dth('tPos','Изделий')}${dth('tPcs','Штук')}${dth('inM','Пакет · сейчас')}${dth('qM','Потенциал · сейчас')}</tr></thead><tbody>${foot}${body}</tbody></table></div></div>`;
   })();

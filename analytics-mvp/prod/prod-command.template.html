@@ -73,7 +73,8 @@ b{font-weight:700}
 .tbl th:first-child,.tbl td:first-child{text-align:left}
 .tbl td{padding:7px 9px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums}
 .tbl tr:hover td{background:rgba(255,255,255,.02)}
-.tbl td.nm{color:var(--ink);font-weight:600}
+.tbl td.nm{color:var(--ink);font-weight:600;white-space:nowrap}
+.tbl td.nm .idle-b{display:inline-block;white-space:nowrap;font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700;margin-left:5px;vertical-align:1px}
 .hbar{height:8px;border-radius:4px;background:var(--elev);overflow:hidden;min-width:40px}
 .hbar>i{display:block;height:100%;border-radius:4px}
 .pill{display:inline-block;padding:2px 8px;border-radius:7px;font-size:11px;font-weight:700}
@@ -529,7 +530,7 @@ function render(){
       const mx=isDep?mxDep:mxMgr;
       const canOpen=!isDep&&r.qN>0;
       return `<tr ${isDep?`data-dept="${r.dep}" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid var(--border2)"`:(canOpen?`data-mgr="${r.dep}|${esc(r.mgr)}" style="cursor:pointer"`:'')}>
-        <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):(canOpen?(S.mgrOpen&&S.mgrOpen[r.dep+'|'+r.mgr]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${nm}${idle?' <span style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:var(--amber);border-radius:5px;padding:1px 5px;font-weight:700">не передаёт</span>':''}</td>
+        <td class="nm">${isDep?(S.deptOpen&&S.deptOpen[r.dep]?'▾ ':'▸ '):(canOpen?(S.mgrOpen&&S.mgrOpen[r.dep+'|'+r.mgr]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${nm}${idle?'<span class="idle-b">не передаёт</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mx.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;white-space:nowrap;${hg(r.tM,mx.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink4)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mx.tPos,B)}">${r.tPos||'<span style="color:var(--ink4)">·</span>'}</td>

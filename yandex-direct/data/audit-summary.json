@@ -1,100 +1,125 @@
 {
-  "account": "e-20085264",
-  "generated_at": "2026-07-08",
-  "score": 75.0,
-  "grade": "B",
-  "grade_note": "borderline B/C (cutoff C<75)",
-  "categories": [
-    { "name": "Конверсии и Метрика", "score": 83.8, "weight": 0.25 },
-    { "name": "Слив бюджета / минус-слова", "score": 66.0, "weight": 0.20 },
-    { "name": "Структура аккаунта", "score": 69.1, "weight": 0.15 },
-    { "name": "Ключевые слова и качество", "score": 92.5, "weight": 0.15 },
-    { "name": "Объявления и расширения", "score": 69.4, "weight": 0.15 },
-    { "name": "Настройки и таргетинг", "score": 62.5, "weight": 0.10 }
-  ],
-  "checks_total": 55,
-  "checks_scored": 48,
-  "checks_na": 7,
-  "issues": [
-    {
-      "id": "TIMUR-001",
-      "check": "P0-attribution",
-      "severity": "P0",
-      "title": "Улика по разрыву атрибуции: utm_source=abdm составляет 70-75 из 112 визитов engine=Yandex:Direct за 2026-07-07, не связанных с кампаниями кабинета",
-      "evidence": "Metrika stat/v1/data, dimensions=lastsignAdvEngine,lastsignUTMSource, date=2026-07-07; abdm/peregorodki 30d=3801 visits/30 goal487033158",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-002",
-      "check": "YD02/report-conversions",
-      "severity": "P1",
-      "title": "Конверсии кабинета завышены относительно CRM-лидов в ~102 раза (817 vs 8 за 30 дней)",
-      "evidence": "CAMPAIGN_PERFORMANCE_REPORT 2026-06-08..2026-07-08 vs Metrika goal487033158reaches by lastsignUTMCampaign",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-003",
-      "check": "YD49",
-      "severity": "P1",
-      "title": "Стратегия WB_MAXIMUM_CLICKS (максимум кликов) не соответствует приоритетной цели CRM-лида 487033158",
-      "evidence": "campaigns.get: TextCampaign.BiddingStrategy.Search.BiddingStrategyType=WB_MAXIMUM_CLICKS; PriorityGoals=[487033158]",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-004",
-      "check": "YD55",
-      "severity": "P1",
-      "title": "72.2% расхода (74 604 руб. из 103 330 руб. за 30д) уходит в автотаргетинг, часть сегментов CTR<1.5% при >100 показах",
-      "evidence": "CRITERIA_PERFORMANCE_REPORT 2026-06-08..2026-07-08, Criteria=---autotargeting",
-      "loss_rub_est": 74604
-    },
-    {
-      "id": "TIMUR-005",
-      "check": "YD36/YD46",
-      "severity": "P1",
-      "title": "0 A/B тестирования объявлений: 42 группы, 42 объявления, соотношение 1:1",
-      "evidence": "ads.get + adgroups.get, campaign ids 710747853,710919957",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-006",
-      "check": "YD24",
-      "severity": "P1",
-      "title": "Кампания 710919957 (20000 руб/нед, 74.5% кликов с мобильных, CPC 108.64 руб против 190.55 руб на десктопе) не имеет ни одной мобильной корректировки ставок",
-      "evidence": "CAMPAIGN_PERFORMANCE_REPORT dimension Device 2026-06-08..2026-07-08; bidmodifiers.get Levels=AD_GROUP",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-007",
-      "check": "YD42",
-      "severity": "P2",
-      "title": "Нет визитки (vCard) ни на одном из 42 объявлений",
-      "evidence": "ads.get TextAd.VCardId=null для всех 42 объявлений",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-008",
-      "check": "YD38/YD40",
-      "severity": "P2",
-      "title": "Заголовок 2 = статичный 'GENGLASS' вместо УТП во всех объявлениях; уточнения содержат промо-клише и опечатку 'Премиальное качесвто' (Id 43237648)",
-      "evidence": "ads.get TextAd.Title2; adextensions.get CalloutText",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-009",
-      "check": "YD11",
-      "severity": "P2",
-      "title": "Нет общего набора минус-слов - идентичный список ~190 слов продублирован вручную в 2 кампаниях",
-      "evidence": "campaigns.get TextCampaign.NegativeKeywordSharedSetIds=[] на обеих кампаниях",
-      "loss_rub_est": null
-    },
-    {
-      "id": "TIMUR-010",
-      "check": "YD22/YD51/YD01",
-      "severity": "P2",
-      "title": "2 группы перегружены (40 и 79 ключей вместо 1-15); нет BidCeiling на клик-максимизирующей стратегии; второй счётчик Метрики (94601229, карточка Яндекс.Карт) привязан к кампании 710919957 без объяснения",
-      "evidence": "adgroups.get+keywords.get; campaigns.get BiddingStrategy; management/v1/counter/94601229",
-      "loss_rub_est": null
-    }
-  ]
+ "account": "e-20085264",
+ "generated_at": "2026-07-08",
+ "score": 75.0,
+ "grade": "B",
+ "grade_note": "borderline B/C (cutoff C<75)",
+ "categories": [
+  {
+   "name": "Конверсии и Метрика",
+   "score": 83.8,
+   "weight": 0.25
+  },
+  {
+   "name": "Слив бюджета / минус-слова",
+   "score": 66.0,
+   "weight": 0.2
+  },
+  {
+   "name": "Структура аккаунта",
+   "score": 69.1,
+   "weight": 0.15
+  },
+  {
+   "name": "Ключевые слова и качество",
+   "score": 92.5,
+   "weight": 0.15
+  },
+  {
+   "name": "Объявления и расширения",
+   "score": 69.4,
+   "weight": 0.15
+  },
+  {
+   "name": "Настройки и таргетинг",
+   "score": 62.5,
+   "weight": 0.1
+  }
+ ],
+ "checks_total": 55,
+ "checks_scored": 48,
+ "checks_na": 7,
+ "issues": [
+  {
+   "id": "TIMUR-001",
+   "check": "P0-attribution",
+   "severity": "P0",
+   "title": "Улика по разрыву атрибуции: utm_source=abdm составляет 70-75 из 112 визитов engine=Yandex:Direct за 2026-07-07, не связанных с кампаниями кабинета",
+   "evidence": "Metrika stat/v1/data, dimensions=lastsignAdvEngine,lastsignUTMSource, date=2026-07-07; abdm/peregorodki 30d=3801 visits/30 goal487033158",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-002",
+   "check": "YD02/report-conversions",
+   "severity": "P1",
+   "title": "Конверсии кабинета завышены относительно CRM-лидов примерно в 100 раз (817 vs 8-10 за 30 дней; 8 по окну аудита T-0, 10 по авторитетному запросу дашборда T-1)",
+   "evidence": "CAMPAIGN_PERFORMANCE_REPORT 2026-06-08..2026-07-08 vs Metrika goal487033158reaches by lastsignUTMCampaign",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-003",
+   "check": "YD49",
+   "severity": "P1",
+   "title": "Стратегия WB_MAXIMUM_CLICKS (максимум кликов) не соответствует приоритетной цели CRM-лида 487033158",
+   "evidence": "campaigns.get: TextCampaign.BiddingStrategy.Search.BiddingStrategyType=WB_MAXIMUM_CLICKS; PriorityGoals=[487033158]",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-004",
+   "check": "YD55",
+   "severity": "P1",
+   "title": "72.2% расхода (74 604 руб. из 103 330 руб. за 30д) уходит в автотаргетинг, часть сегментов CTR<1.5% при >100 показах",
+   "evidence": "CRITERIA_PERFORMANCE_REPORT 2026-06-08..2026-07-08, Criteria=---autotargeting",
+   "loss_rub_est": 74604
+  },
+  {
+   "id": "TIMUR-005",
+   "check": "YD36/YD46",
+   "severity": "P1",
+   "title": "0 A/B тестирования объявлений: 42 группы, 42 объявления, соотношение 1:1",
+   "evidence": "ads.get + adgroups.get, campaign ids 710747853,710919957",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-006",
+   "check": "YD24",
+   "severity": "P1",
+   "title": "Кампания 710919957 (20000 руб/нед, 74.5% кликов с мобильных, CPC 108.64 руб против 190.55 руб на десктопе) не имеет ни одной мобильной корректировки ставок",
+   "evidence": "CAMPAIGN_PERFORMANCE_REPORT dimension Device 2026-06-08..2026-07-08; bidmodifiers.get Levels=AD_GROUP",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-007",
+   "check": "YD42",
+   "severity": "P2",
+   "title": "Нет визитки (vCard) ни на одном из 42 объявлений",
+   "evidence": "ads.get TextAd.VCardId=null для всех 42 объявлений",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-008",
+   "check": "YD38/YD40",
+   "severity": "P2",
+   "title": "Заголовок 2 = статичный 'GENGLASS' вместо УТП во всех объявлениях; уточнения содержат промо-клише и опечатку 'Премиальное качесвто' (Id 43237648)",
+   "evidence": "ads.get TextAd.Title2; adextensions.get CalloutText",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-009",
+   "check": "YD11",
+   "severity": "P2",
+   "title": "Нет общего набора минус-слов - идентичный список ~190 слов продублирован вручную в 2 кампаниях",
+   "evidence": "campaigns.get TextCampaign.NegativeKeywordSharedSetIds=[] на обеих кампаниях",
+   "loss_rub_est": null
+  },
+  {
+   "id": "TIMUR-010",
+   "check": "YD22/YD51/YD01",
+   "severity": "P2",
+   "title": "2 группы перегружены (40 и 79 ключей вместо 1-15); нет BidCeiling на клик-максимизирующей стратегии; второй счётчик Метрики (94601229, карточка Яндекс.Карт) привязан к кампании 710919957 без объяснения",
+   "evidence": "adgroups.get+keywords.get; campaigns.get BiddingStrategy; management/v1/counter/94601229",
+   "loss_rub_est": null
+  }
+ ],
+ "vintage_note": "Окно аудита T-0 (06-08..07-08): 938 кликов / 103 330 ₽ / 817 конверсий. Дашборд T-1 (06-08..07-07): 912 / 100 695 ₽ / 797. Авторитетный запрос лидов кампаний - lastsignUTMCampaign T-1: 6+4=10."
 }

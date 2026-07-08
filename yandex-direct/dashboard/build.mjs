@@ -40,6 +40,18 @@ const CSS = `
 --up:${UP};--dn:${DN};--warn:${WARN};--r:10px;--rl:14px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:13.5px/1.5 Inter,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:60px}
+body:before{content:'';position:fixed;inset:-40% -20% auto;height:70%;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 60% 50% at 30% 0%,rgba(34,211,238,.07),transparent 60%),
+radial-gradient(ellipse 40% 40% at 75% 10%,rgba(139,92,246,.05),transparent 60%)}
+.wrap,.topbar{position:relative;z-index:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card,.kpi{animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+.kpi:nth-child(2){animation-delay:.04s}.kpi:nth-child(3){animation-delay:.08s}
+.kpi:nth-child(4){animation-delay:.12s}.kpi:nth-child(5){animation-delay:.16s}.kpi:nth-child(6){animation-delay:.2s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.dot.dr{animation:pulse 2s infinite}
+@media(prefers-reduced-motion:reduce){.card,.kpi{animation:none}.dot.dr{animation:none}}
 a{color:var(--acc);text-decoration:none}
 .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 24px;
 background:rgba(11,15,21,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
@@ -155,7 +167,17 @@ const byDay = days.map(date => {
 const spend30 = T.spend || 0, clicks30 = T.clicks || 0;
 const leads30 = MT.ad_leads_30d || 0;
 const ydLeads = MET.by_engine.filter(e => /direct/i.test(e.engine)).reduce((s, e) => s + e.leads, 0);
-const cplYd = ydLeads ? spend30 / ydLeads : null;
+// Декомпозиция лидов (мост «весь YD-трафик vs лиды кабинета», сведение с аудитом):
+// кабинет = UTM с ID кампаний кабинета; abdm = метка P0-источника; остальное - хвост без разметки
+const activeIds = CAMPS.campaigns.filter(c => c.state === 'ON').map(c => String(c.id));
+const archIds = CAMPS.campaigns.filter(c => c.state !== 'ON').map(c => String(c.id));
+const cabLeads = MET.by_utm.filter(u => activeIds.some(id => u.utm.includes(id)))
+  .reduce((s, u) => s + u.leads, 0);
+const archLeads = MET.by_utm.filter(u => archIds.some(id => u.utm.includes(id)))
+  .reduce((s, u) => s + u.leads, 0);
+const abdmLeads = MET.by_utm.filter(u => /^peregorodki$|abdm/i.test(u.utm)).reduce((s, u) => s + u.leads, 0);
+const restLeads = Math.max(ydLeads - cabLeads - archLeads - abdmLeads, 0);
+const cplCab = cabLeads ? spend30 / cabLeads : null;
 const last7 = byDay.slice(-7);
 const spend7 = last7.reduce((s, d) => s + d.spend, 0);
 
@@ -196,6 +218,44 @@ ${gridY}<path d="${area}" fill="url(#ga)"/><polyline points="${pts}" fill="none"
 ${hots}${lbl}</svg>`;
 }
 
+// Small multiple: визиты (столбцы) + CRM-лиды (точки над днями с лидами), одна ось
+function visitsLeadsSvg(w = 860, h = 150) {
+  const md = DAILY.metrika_days || {};
+  const dd = days.map(date => ({ date, visits: (md[date] || {}).visits || 0, leads: (md[date] || {}).leads || 0 }));
+  if (!dd.length) return '<div class="mut">нет данных</div>';
+  const p = { l: 46, r: 14, t: 12, b: 24 };
+  const iw = w - p.l - p.r, ih = h - p.t - p.b;
+  const mx = Math.max(...dd.map(d => d.visits), 1);
+  const bw = iw / dd.length;
+  const bars = dd.map((d, i) => {
+    const bh = d.visits / mx * ih;
+    return `<g data-tip="<b>${d.date}</b><br>визиты (ad): ${fmt(d.visits)}<br>CRM-лиды: ${d.leads}">
+<rect x="${p.l + i * bw + 1}" y="${p.t + ih - bh}" width="${Math.max(bw - 2, 1)}" height="${Math.max(bh, 1)}" rx="2" fill="${CAT[0]}" opacity=".55"/>
+${d.leads ? `<circle cx="${p.l + i * bw + bw / 2}" cy="${p.t + ih - bh - 8}" r="${Math.min(3 + d.leads, 7)}" fill="${CAT[3]}"/>` : ''}
+</g>`; }).join('');
+  const lbl = dd.filter((_, i) => i % Math.ceil(dd.length / 8) === 0)
+    .map((d, _, arr) => `<text x="${p.l + dd.indexOf(d) * bw + bw / 2}" y="${h - 6}" fill="#6A7484" font-size="10" text-anchor="middle">${d.date.slice(5)}</text>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto" role="img" aria-label="Визиты и лиды по дням">
+<text x="${p.l - 6}" y="${p.t + 8}" fill="#6A7484" font-size="10" text-anchor="end">${fmt(mx)}</text>
+<line x1="${p.l}" y1="${p.t + ih}" x2="${w - p.r}" y2="${p.t + ih}" stroke="#1F2731"/>
+${bars}${lbl}
+<g transform="translate(${w - 210},${p.t})"><rect width="10" height="10" rx="2" fill="${CAT[0]}" opacity=".55"/><text x="15" y="9" fill="#A0AAB8" font-size="10">визиты (ad)</text>
+<circle cx="105" cy="5" r="4" fill="${CAT[3]}"/><text x="114" y="9" fill="#A0AAB8" font-size="10">CRM-лиды</text></g></svg>`;
+}
+
+// Gauge-кольцо для категорий аудита
+const gauge = (score, label, weight) => {
+  const r = 30, c = 2 * Math.PI * r, off = c * (1 - score / 100);
+  const col = score >= 80 ? UP : score >= 65 ? WARN : DN;
+  return `<div style="text-align:center" data-tip="<b>${esc(label)}</b><br>балл ${score} · вес ${Math.round(weight * 100)}%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="${r}" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="${r}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">${score}</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">${esc(label)}</div></div>`;
+};
+
 const spark = (vals, w = 120, h = 28, color = CAT[0]) => {
   if (!vals.length) return '';
   const mx = Math.max(...vals, 1);
@@ -217,14 +277,17 @@ const verdictCamp = c => {
 {
   const gap = MT.yd_visits_30d - clicks30;
   const hero = `
+<div class="note" style="border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.05)">
+<b>Одно решение сверху:</b> кабинет тратит ${fmt(spend30)} ₽/мес и приносит ${cabLeads} атрибуцированных лидов активных кампаний (CPL ~${fmt(cplCab)} ₽ [ГИПОТЕЗА]). Два блокера до масштабирования: закрыть P0 (что такое abdm - там ${abdmLeads} лидов мимо атрибуции) и перевести стратегии с «максимум кликов» на цель CRM-лид. Оба - решения Ивана, детали в <a href="audit.html">аудите</a>.</div>
 <div class="hero">
 <div class="card hl"><div class="lab">Расход 30 дней <span class="badge b-d">[ДАННЫЕ] Reports API, с НДС</span></div>
 <div class="hv">${fmt(spend30)} <small>₽</small></div>
 <div class="hnote">${fmt(spend7)} ₽ за последние 7 дней · ${activeCamps.length} активных кампании из ${T.campaigns}</div>
 <div style="margin-top:10px">${spark(byDay.map(d => d.spend), 280, 40)}</div></div>
-<div class="card hl ${cplYd && cplYd > 5000 ? 'warn' : ''}"><div class="lab">CRM-лиды с Директа <span class="badge b-d">[ДАННЫЕ] Метрика, цель 487033158</span></div>
+<div class="card hl ${cplCab && cplCab > 5000 ? 'warn' : ''}"><div class="lab">CRM-лиды: весь YD-трафик счётчика <span class="badge b-d">[ДАННЫЕ] Метрика, цель 487033158</span></div>
 <div class="hv">${ydLeads}</div>
-<div class="hnote">CPL ~${fmt(cplYd)} ₽ <span class="badge b-h">[ГИПОТЕЗА]</span> - при допущении, что весь Yandex.Direct-трафик счётчика оплачен этим кабинетом (P0 не закрыта)</div></div>
+<div class="hnote">= <b>${cabLeads} активные кампании кабинета</b> + ${archLeads} архивные (лаг-атрибуция) + ${abdmLeads} abdm (P0, не наши) + ${restLeads} без разметки.
+CPL кабинета ~${fmt(cplCab)} ₽ <span class="badge b-h">[ГИПОТЕЗА]</span> - по ${cabLeads} лидам активных кампаний; сходится со страницей <a href="audit.html">Аудит</a> (8-10 в зависимости от окна запроса)</div></div>
 <div class="card hl dn"><div class="lab">P0: разрыв атрибуции</div>
 <div class="hv">${fmt(gap)}</div>
 <div class="hnote">визитов Yandex.Direct сверх ${fmt(clicks30)} кликов кабинета за 30 дней. <a href="reconcile.html">Разбор →</a></div></div>
@@ -238,7 +301,8 @@ const verdictCamp = c => {
 <div class="kpi"><div class="l">CRM-лиды (вся реклама)</div><div class="v">${leads30}</div><div class="d">Метрика, ad-трафик</div></div>
 </div>
 <div class="sec">Расход и трафик по дням</div>
-<div class="card">${trendSvg()}</div>
+<div class="card"><div class="lab">Расход кабинета, ₽/день <span class="badge b-d">[ДАННЫЕ] Reports API</span></div>${trendSvg()}
+<div style="margin-top:14px" class="lab">Визиты рекламного трафика и CRM-лиды <span class="badge b-d">[ДАННЫЕ] Метрика</span></div>${visitsLeadsSvg()}</div>
 <div class="sec">Активные кампании</div>
 <div class="card tblwrap"><table><tr><th>Кампания</th><th class="n">Показы</th><th class="n">Клики</th><th class="n">CTR</th><th class="n">CPC</th><th class="n">Расход</th><th class="n">Конв.(цель)</th><th class="n">CRM-лиды</th><th>Вердикт</th></tr>
 ${activeCamps.map(c => { const [d, p, t] = verdictCamp(c);
@@ -359,7 +423,8 @@ ${topQ.map(r => `<tr><td>${esc(r.query)}</td><td class="mut">${esc(r.camp)}</td>
 <div class="cf-conv">${fmt2(visits ? ydLeads / visits * 100 : 0)}%</div>
 <div class="cf-step"><div class="cf-v">${ydLeads}</div><div class="cf-l">CRM-лиды</div></div>
 </div>
-<div class="hnote" style="margin-top:12px">Ключевая аномалия отмечена: визитов из Yandex.Direct в ${fmt1(visits / Math.max(clicks30, 1))} раза больше, чем кликов оплачено кабинетом e-20085264. Значит, на счётчик льёт ещё минимум один источник с разметкой Директа.</div></div>
+<div class="hnote" style="margin-top:12px">Ключевая аномалия отмечена: визитов из Yandex.Direct в ${fmt1(visits / Math.max(clicks30, 1))} раза больше, чем кликов оплачено кабинетом e-20085264. Значит, на счётчик льёт ещё минимум один источник с разметкой Директа.</div>
+<div class="note" style="margin-top:10px"><b>Мост по лидам (сведение с аудитом):</b> ${ydLeads} CRM-лидов всего YD-трафика = <b>${cabLeads} активные кампании кабинета</b> (6 у Поиска + 4 у ТГ, запрос lastsignUTMCampaign, T-1) + ${archLeads} архивные (лаг-атрибуция старых кликов) + <b>${abdmLeads} abdm/peregorodki без ID</b> (источник P0, не оплачены кабинетом) + ${restLeads} без разметки. Страница Аудит считает лиды кабинета по своему окну T-0 и даёт 8 - расхождение 8 vs ${cabLeads} объясняется окном и лаг-атрибуцией, оба числа на два порядка ниже «конверсий» кабинета.</div></div>
 <div class="sec">Рекламные движки по Метрике</div>
 <div class="card tblwrap"><table><tr><th>Движок</th><th class="n">Визиты</th><th class="n">Посетители</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
 ${MET.by_engine.map(e => `<tr><td>${esc(e.engine)}</td><td class="n">${fmt(e.visits)}</td><td class="n">${fmt(e.users)}</td>
@@ -392,13 +457,15 @@ ${MET.by_source.map(s => `<tr><td>${esc(s.source)}</td><td class="n">${fmt(s.vis
   } else {
     const sev = s => s === 'P0' ? 'p-hot' : s === 'P1' ? 'p-warn' : 'p-mut';
     body = `
+${AUDIT.vintage_note ? `<div class="note"><b>Vintage-нота (сведение с Обзором):</b> ${esc(AUDIT.vintage_note)} Числа аудита и дашборда собраны из разных окон - расхождение заголовков (938 vs 912 кликов) объясняется этим, а не ошибкой данных.</div>` : ''}
 <div class="hero">
 <div class="card hl ${AUDIT.score < 50 ? 'dn' : AUDIT.score < 75 ? 'warn' : ''}">
 <div class="lab">Скоринг кабинета</div><div class="hv">${AUDIT.score}<small>/100 · грейд ${AUDIT.grade}</small></div>
 <div class="hnote">55 проверок YD01-YD55 · ${AUDIT.generated_at}</div></div>
-<div class="card"><div class="lab">Категории</div><table>
-${(AUDIT.categories || []).map(c => `<tr><td>${esc(c.name)}</td><td class="n">${c.score}</td><td class="n mut">вес ${Math.round(c.weight * 100)}%</td></tr>`).join('')}
-</table></div>
+<div class="card"><div class="lab">Категории (кольца = балл 0-100)</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px">
+${(AUDIT.categories || []).map(c => gauge(Math.round(c.score), c.name, c.weight)).join('')}
+</div></div>
 <div class="card"><div class="lab">Issues по приоритету</div>
 <div class="hv">${(AUDIT.issues || []).filter(i => i.severity === 'P0').length}<small> P0</small> ${(AUDIT.issues || []).filter(i => i.severity === 'P1').length}<small> P1</small> ${(AUDIT.issues || []).filter(i => i.severity === 'P2').length}<small> P2</small></div></div>
 </div>

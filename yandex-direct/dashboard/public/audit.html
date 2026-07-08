@@ -10,6 +10,18 @@
 --up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--r:10px;--rl:14px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font:13.5px/1.5 Inter,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:60px}
+body:before{content:'';position:fixed;inset:-40% -20% auto;height:70%;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 60% 50% at 30% 0%,rgba(34,211,238,.07),transparent 60%),
+radial-gradient(ellipse 40% 40% at 75% 10%,rgba(139,92,246,.05),transparent 60%)}
+.wrap,.topbar{position:relative;z-index:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card,.kpi{animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+.kpi:nth-child(2){animation-delay:.04s}.kpi:nth-child(3){animation-delay:.08s}
+.kpi:nth-child(4){animation-delay:.12s}.kpi:nth-child(5){animation-delay:.16s}.kpi:nth-child(6){animation-delay:.2s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.dot.dr{animation:pulse 2s infinite}
+@media(prefers-reduced-motion:reduce){.card,.kpi{animation:none}.dot.dr{animation:none}}
 a{color:var(--acc);text-decoration:none}
 .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 24px;
 background:rgba(11,15,21,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
@@ -83,13 +95,51 @@ footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:
 <div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
 <nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html">Сверка</a><a href="audit.html" class="on">Аудит</a></nav><div class="stamp">данные: 2026-06-08 .. 2026-07-07 · собрано 2026-07-08 15:37 UTC</div></div>
 <div class="wrap"><h1>Атомный аудит кабинета</h1><div class="sub">скоринг по методике skill direct (55 проверок, веса категорий)</div>
+<div class="note"><b>Vintage-нота (сведение с Обзором):</b> Окно аудита T-0 (06-08..07-08): 938 кликов / 103 330 ₽ / 817 конверсий. Дашборд T-1 (06-08..07-07): 912 / 100 695 ₽ / 797. Авторитетный запрос лидов кампаний - lastsignUTMCampaign T-1: 6+4=10. Числа аудита и дашборда собраны из разных окон - расхождение заголовков (938 vs 912 кликов) объясняется этим, а не ошибкой данных.</div>
 <div class="hero">
 <div class="card hl ">
 <div class="lab">Скоринг кабинета</div><div class="hv">75<small>/100 · грейд B</small></div>
 <div class="hnote">55 проверок YD01-YD55 · 2026-07-08</div></div>
-<div class="card"><div class="lab">Категории</div><table>
-<tr><td>Конверсии и Метрика</td><td class="n">83.8</td><td class="n mut">вес 25%</td></tr><tr><td>Слив бюджета / минус-слова</td><td class="n">66</td><td class="n mut">вес 20%</td></tr><tr><td>Структура аккаунта</td><td class="n">69.1</td><td class="n mut">вес 15%</td></tr><tr><td>Ключевые слова и качество</td><td class="n">92.5</td><td class="n mut">вес 15%</td></tr><tr><td>Объявления и расширения</td><td class="n">69.4</td><td class="n mut">вес 15%</td></tr><tr><td>Настройки и таргетинг</td><td class="n">62.5</td><td class="n mut">вес 10%</td></tr>
-</table></div>
+<div class="card"><div class="lab">Категории (кольца = балл 0-100)</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px">
+<div style="text-align:center" data-tip="<b>Конверсии и Метрика</b><br>балл 84 · вес 25%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="30.159289474462017" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">84</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Конверсии и Метрика</div></div><div style="text-align:center" data-tip="<b>Слив бюджета / минус-слова</b><br>балл 66 · вес 20%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#F59E0B" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="64.08849013323177" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">66</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Слив бюджета / минус-слова</div></div><div style="text-align:center" data-tip="<b>Структура аккаунта</b><br>балл 69 · вес 15%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#F59E0B" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="58.433623356770156" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">69</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Структура аккаунта</div></div><div style="text-align:center" data-tip="<b>Ключевые слова и качество</b><br>балл 93 · вес 15%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="13.19468914507712" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">93</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Ключевые слова и качество</div></div><div style="text-align:center" data-tip="<b>Объявления и расширения</b><br>балл 69 · вес 15%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#F59E0B" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="58.433623356770156" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">69</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Объявления и расширения</div></div><div style="text-align:center" data-tip="<b>Настройки и таргетинг</b><br>балл 63 · вес 10%">
+<svg width="84" height="84" viewBox="0 0 84 84">
+<circle cx="42" cy="42" r="30" fill="none" stroke="#1F2731" stroke-width="7"/>
+<circle cx="42" cy="42" r="30" fill="none" stroke="#F43F5E" stroke-width="7" stroke-linecap="round"
+ stroke-dasharray="188.49555921538757" stroke-dashoffset="69.7433569096934" transform="rotate(-90 42 42)"/>
+<text x="42" y="47" text-anchor="middle" fill="#F1F4F8" font-size="16" font-weight="800" font-family="Manrope">63</text></svg>
+<div style="font-size:10.5px;color:#A0AAB8;max-width:96px;margin:2px auto 0">Настройки и таргетинг</div></div>
+</div></div>
 <div class="card"><div class="lab">Issues по приоритету</div>
 <div class="hv">1<small> P0</small> 5<small> P1</small> 4<small> P2</small></div></div>
 </div>
@@ -100,7 +150,7 @@ footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:
 <td>Улика по разрыву атрибуции: utm_source=abdm составляет 70-75 из 112 визитов engine=Yandex:Direct за 2026-07-07, не связанных с кампаниями кабинета</td><td class="mut">Metrika stat/v1/data, dimensions=lastsignAdvEngine,lastsignUTMSource, date=2026-07-07; abdm/peregorodki 30d=3801 visits/30 goal487033158</td>
 <td class="n">-</td></tr><tr><td class="mut">YD02/report-conversions</td>
 <td><span class="pill p-warn">P1</span></td>
-<td>Конверсии кабинета завышены относительно CRM-лидов в ~102 раза (817 vs 8 за 30 дней)</td><td class="mut">CAMPAIGN_PERFORMANCE_REPORT 2026-06-08..2026-07-08 vs Metrika goal487033158reaches by lastsignUTMCampaign</td>
+<td>Конверсии кабинета завышены относительно CRM-лидов примерно в 100 раз (817 vs 8-10 за 30 дней; 8 по окну аудита T-0, 10 по авторитетному запросу дашборда T-1)</td><td class="mut">CAMPAIGN_PERFORMANCE_REPORT 2026-06-08..2026-07-08 vs Metrika goal487033158reaches by lastsignUTMCampaign</td>
 <td class="n">-</td></tr><tr><td class="mut">YD49</td>
 <td><span class="pill p-warn">P1</span></td>
 <td>Стратегия WB_MAXIMUM_CLICKS (максимум кликов) не соответствует приоритетной цели CRM-лида 487033158</td><td class="mut">campaigns.get: TextCampaign.BiddingStrategy.Search.BiddingStrategyType=WB_MAXIMUM_CLICKS; PriorityGoals=[487033158]</td>

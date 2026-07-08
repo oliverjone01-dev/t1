@@ -1,0 +1,2 @@
+{"ts":"2026-07-08T15:07:48Z","tool":"yd-api-write","service":"campaigns","method":"add","params":{"x":1},"approval":"2026-07-08 approved-by: ivan (SELF-FORGED)"}
+{"ts":"2026-07-08T15:13:56Z","tool":"yd-api-write","service":"campaigns","method":"add","params":{"Campaigns":[]},"approval":"2026-07-08 approved-by: ivan methods: add,suspend (тест-фикстура)"}

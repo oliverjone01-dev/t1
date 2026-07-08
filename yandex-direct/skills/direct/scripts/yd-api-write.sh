@@ -2,11 +2,17 @@
 # yd-api-write.sh — Yandex Direct API v5 MUTATING wrapper (Protocol 6 HITL gate)
 #
 # Выполняет мутирующие методы (add/update/delete/suspend/resume/setBids/...)
-# ТОЛЬКО при наличии approval-файла с сегодняшней датой:
+# ТОЛЬКО при наличии approval-файла с сегодняшней датой И whitelist'ом методов:
 #   .claude/approvals/direct-write.ok
-# Файл создаётся вручную ПОСЛЕ явного апрува Ивана и действует один день:
-#   echo "2026-07-08 approved-by: ivan <контекст>" > .claude/approvals/direct-write.ok
-# Файл в .gitignore - апрув не наследуется между сессиями через git.
+# Формат (одна строка, создаётся ЧЕЛОВЕКОМ вне Claude Code после апрува Ивана):
+#   2026-07-08 approved-by: ivan methods: add,update <контекст>
+# Wildcard в methods не поддерживается - каждый метод перечисляется явно.
+# Файл в .gitignore (не наследуется через git) и защищён хуком approvals-guard.sh
+# (инструменты агента не могут его создать/изменить - ответ на ATTACK A/B ФЕНИКСА).
+# Путь захардкожен: env-override был бы вектором подделки (YD_APPROVAL_FILE=/tmp/fake).
+#
+# Пока существует .claude/state/p0-attribution.open - мутации заблокированы
+# независимо от апрува (Hard Rule #2 агента timur, enforced в коде).
 #
 # Каждый вызов логируется в traces/YYYY-MM-DD/direct-writes.jsonl (Protocol 14).
 #
@@ -16,24 +22,38 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../../.." && pwd)"
-APPROVAL_FILE="${YD_APPROVAL_FILE:-${REPO_ROOT}/.claude/approvals/direct-write.ok}"
+APPROVAL_FILE="${REPO_ROOT}/.claude/approvals/direct-write.ok"
+P0_FLAG="${REPO_ROOT}/.claude/state/p0-attribution.open"
 API_BASE="https://api.direct.yandex.com/json/v5"
 
-# --- HITL gate (Protocol 6) ---
+SERVICE="${1:?Usage: yd-api-write.sh <service> <method> <json_params>}"
+METHOD="${2:?Usage: yd-api-write.sh <service> <method> <json_params>}"
+PARAMS="${3:?json_params обязателен для мутирующего вызова}"
+
+# --- P0 gate: при открытом разрыве атрибуции мутации запрещены даже с апрувом ---
+if [[ -f "$P0_FLAG" ]]; then
+    echo "BLOCKED (Hard Rule #2): открыта P0 атрибуции - мутации кабинета запрещены даже с апрувом." >&2
+    echo "Детали: $P0_FLAG. Закрытие P0 - решение Ивана, файл удаляет человек вне Claude Code." >&2
+    exit 3
+fi
+
+# --- HITL gate (Protocol 6): дата + явный whitelist методов ---
 TODAY="$(date +%Y-%m-%d)"
 if [[ ! -f "$APPROVAL_FILE" ]] || ! grep -q "$TODAY" "$APPROVAL_FILE"; then
     echo "BLOCKED (Protocol 6): нет действующего апрува Ивана на мутации кабинета." >&2
-    echo "После явного апрува создайте файл (действует до конца дня):" >&2
-    echo "  echo \"$TODAY approved-by: ivan <контекст>\" > $APPROVAL_FILE" >&2
+    echo "После явного апрува человек (вне Claude Code) создаёт файл, действующий до конца дня:" >&2
+    echo "  echo \"$TODAY approved-by: ivan methods: <method1,method2> <контекст>\" > $APPROVAL_FILE" >&2
+    exit 3
+fi
+APPROVED_METHODS="$(grep "$TODAY" "$APPROVAL_FILE" | sed -n 's/.*methods:[[:space:]]*\([a-zA-Z,]*\).*/\1/p' | head -1)"
+if [[ -z "$APPROVED_METHODS" ]] || ! printf '%s' ",$APPROVED_METHODS," | grep -qi ",$METHOD,"; then
+    echo "BLOCKED (Protocol 6): метод '$METHOD' не входит в whitelist апрува (methods: ${APPROVED_METHODS:-не указан})." >&2
+    echo "Каждый метод перечисляется в approval-файле явно, wildcard не поддерживается." >&2
     exit 3
 fi
 
 # Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
 source "${SCRIPT_DIR}/yd-creds.sh"
-
-SERVICE="${1:?Usage: yd-api-write.sh <service> <method> <json_params>}"
-METHOD="${2:?Usage: yd-api-write.sh <service> <method> <json_params>}"
-PARAMS="${3:?json_params обязателен для мутирующего вызова}"
 
 REQUEST_BODY=$(jq -n \
     --arg method "$METHOD" \

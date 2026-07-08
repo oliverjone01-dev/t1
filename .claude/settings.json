@@ -60,6 +60,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/anti-slop-checker.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/approvals-guard.sh"
           }
         ]
       },
@@ -69,6 +73,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/direct-write-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/approvals-guard.sh"
           }
         ]
       }

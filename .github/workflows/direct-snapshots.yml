@@ -1,0 +1,78 @@
+name: Direct snapshots (прямой, без n8n)
+
+# Ночной синк Яндекс.Директ + Метрика по паттерну ozon-snapshots:
+# API → JSON-снимки (yandex-direct/data/) → пересборка дашборда → commit/push.
+# Токены живут в GitHub Secrets, в клиентский HTML не попадают.
+# Read-only: только Reports API / get / stat Метрики. Мутаций нет по построению.
+
+on:
+  schedule:
+    - cron: "20 6 * * *"   # ~09:20 МСК, после OZON-синка
+  workflow_dispatch:
+    inputs:
+      direct_token:
+        description: "YANDEX_DIRECT_TOKEN (если секрет не задан)"
+        required: false
+      metrika_token:
+        description: "YANDEX_METRIKA_TOKEN (если секрет не задан)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: direct-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Проверка кредов и маскировка
+        env:
+          DTOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || github.event.inputs.direct_token }}
+          MTOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || github.event.inputs.metrika_token }}
+        run: |
+          [ -n "$DTOKEN" ] && echo "::add-mask::$DTOKEN"
+          [ -n "$MTOKEN" ] && echo "::add-mask::$MTOKEN"
+          if [ -z "$DTOKEN" ] || [ -z "$MTOKEN" ]; then
+            echo "::error::Нет YANDEX_DIRECT_TOKEN / YANDEX_METRIKA_TOKEN (secrets или inputs)"; exit 1
+          fi
+
+      - name: Снимки Директ + Метрика
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || github.event.inputs.direct_token }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || github.event.inputs.metrika_token }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+        run: node yandex-direct/dashboard/make-snapshots.mjs
+
+      - name: Дельта-гейт (защита от битого снимка)
+        run: |
+          SPEND=$(node -e "console.log(JSON.parse(require('fs').readFileSync('yandex-direct/data/direct_campaigns.json')).totals.spend||0)")
+          echo "spend30=$SPEND"
+          # Пустой снимок при ранее непустом - не публикуем (аналог FENIX G3/G4 в ozon-snapshots)
+          PREV=$(git show HEAD:yandex-direct/data/direct_campaigns.json 2>/dev/null | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{console.log(JSON.parse(d).totals.spend||0)}catch{console.log(0)}})" || echo 0)
+          node -e "const cur=$SPEND,prev=$PREV; if(prev>1000&&cur<prev*0.3){console.error('::error::Дельта-гейт: расход упал >70% ('+prev+'→'+cur+') - снимок подозрителен, публикация остановлена');process.exit(1)}"
+
+      - name: Пересборка дашборда
+        run: node yandex-direct/dashboard/build.mjs
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A yandex-direct/data yandex-direct/dashboard/public
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "direct: ночной снимок данных $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

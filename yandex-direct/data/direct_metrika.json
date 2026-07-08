@@ -1,0 +1,419 @@
+{
+ "dateFrom": "2026-06-08",
+ "dateTo": "2026-07-07",
+ "generated_at": "2026-07-08T15:37:40.063Z",
+ "counter": 104369223,
+ "goals": {
+  "leads": 487033158,
+  "contacts": 477925360
+ },
+ "totals": {
+  "direct_clicks_30d": 912,
+  "ad_visits_30d": 5555,
+  "yd_visits_30d": 3562,
+  "ad_leads_30d": 46
+ },
+ "by_engine": [
+  {
+   "engine": "Yandex: Direct",
+   "visits": 3480,
+   "users": 2952,
+   "leads": 41,
+   "contacts": 30
+  },
+  {
+   "engine": "Other ad: identified by tags",
+   "visits": 1946,
+   "users": 978,
+   "leads": 1,
+   "contacts": 2
+  },
+  {
+   "engine": "Yandex.Direct: Undetermined",
+   "visits": 82,
+   "users": 63,
+   "leads": 4,
+   "contacts": 1
+  },
+  {
+   "engine": "Instagram",
+   "visits": 44,
+   "users": 18,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "engine": "VK",
+   "visits": 3,
+   "users": 3,
+   "leads": 0,
+   "contacts": 0
+  }
+ ],
+ "by_utm": [
+  {
+   "utm": "peregorodki",
+   "visits": 4322,
+   "leads": 30,
+   "contacts": 21
+  },
+  {
+   "utm": "peregorodki_710747853",
+   "visits": 460,
+   "leads": 6,
+   "contacts": 6
+  },
+  {
+   "utm": "peregorodki_710919957",
+   "visits": 385,
+   "leads": 4,
+   "contacts": 1
+  },
+  {
+   "utm": "genglass",
+   "visits": 165,
+   "leads": 2,
+   "contacts": 2
+  },
+  {
+   "utm": "organization",
+   "visits": 28,
+   "leads": 0,
+   "contacts": 1
+  },
+  {
+   "utm": "akz",
+   "visits": 25,
+   "leads": 1,
+   "contacts": 1
+  },
+  {
+   "utm": "sale",
+   "visits": 25,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "_bbr_mirors",
+   "visits": 15,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_706983545",
+   "visits": 15,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "news_GENGLASS",
+   "visits": 13,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "mirors",
+   "visits": 9,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия",
+   "visits": 8,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "utm": "info",
+   "visits": 5,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "tables",
+   "visits": 5,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "vystavka",
+   "visits": 5,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_705720385",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "peregorodki_{campaign_id}",
+   "visits": 4,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "promo",
+   "visits": 4,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "utm": "tm_campaign=reklama_na_transporte",
+   "visits": 3,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "genglass_bbr2",
+   "visits": 2,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "25979466",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "39283826",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "49504387",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "59815205",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "66457130",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "95692508",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "bbr_tables3",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "egxx021267",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "genglass_bbr",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "genglass_ton",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "instrukciya",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "ionf884174",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_704736562",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_705155766",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_705494663",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_705494735",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_706138190",
+   "visits": 1,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "utm": "name_706356630",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_706995323",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "name_tk_707098549",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "omwd903871",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "partitions",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "progrev_jan",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "rsya_ross_tov_116915749",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "vwlx255735",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "Премиальные_решения для интерьера. Встречаемся в ТОН",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "utm": "Финализируем_списки на встречу 17 июня. Ждем только вас!",
+   "visits": 1,
+   "leads": 0,
+   "contacts": 0
+  }
+ ],
+ "by_source": [
+  {
+   "source": "Ad traffic",
+   "visits": 5555,
+   "users": 4003,
+   "bounce": 30.67506751,
+   "leads": 46,
+   "contacts": 33
+  },
+  {
+   "source": "Search engine traffic",
+   "visits": 2267,
+   "users": 1648,
+   "bounce": 16.36524041,
+   "leads": 69,
+   "contacts": 44
+  },
+  {
+   "source": "Direct traffic",
+   "visits": 977,
+   "users": 801,
+   "bounce": 33.67451382,
+   "leads": 12,
+   "contacts": 14
+  },
+  {
+   "source": "Link traffic",
+   "visits": 330,
+   "users": 153,
+   "bounce": 6.96969697,
+   "leads": 5,
+   "contacts": 13
+  },
+  {
+   "source": "Internal traffic",
+   "visits": 291,
+   "users": 189,
+   "bounce": 23.02405498,
+   "leads": 5,
+   "contacts": 9
+  },
+  {
+   "source": "Mailing traffic",
+   "visits": 26,
+   "users": 14,
+   "bounce": 11.53846154,
+   "leads": 1,
+   "contacts": 0
+  },
+  {
+   "source": "Social network traffic",
+   "visits": 10,
+   "users": 8,
+   "bounce": 40,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Messenger traffic",
+   "visits": 8,
+   "users": 4,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Clicks by QR code",
+   "visits": 6,
+   "users": 4,
+   "bounce": 16.66666667,
+   "leads": 0,
+   "contacts": 0
+  },
+  {
+   "source": "Recommendation system traffic",
+   "visits": 1,
+   "users": 1,
+   "bounce": 0,
+   "leads": 0,
+   "contacts": 0
+  }
+ ]
+}

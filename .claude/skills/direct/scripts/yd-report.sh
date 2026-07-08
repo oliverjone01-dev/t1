@@ -9,9 +9,23 @@ set -euo pipefail
 SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 REPORTS_URL="https://api.direct.yandex.com/json/v5/reports"
 
-# Credentials: prefer environment variables, fall back to local secrets file.
+# Credentials priority: (1) env vars > (2) repo-local .env (gitignored) >
+# (3) ~/.secrets file. Real tokens never live in git.
 OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
 CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+
+if [[ -z "$OAUTH_TOKEN" ]]; then
+    ENV_FILE="${YANDEX_DIRECT_ENV_FILE:-}"
+    if [[ -z "$ENV_FILE" ]]; then
+        REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+        [[ -n "$REPO_ROOT" && -f "$REPO_ROOT/yandex-direct/.env" ]] && ENV_FILE="$REPO_ROOT/yandex-direct/.env"
+    fi
+    if [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
+        set -a; source "$ENV_FILE"; set +a
+        OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
+        CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+    fi
+fi
 
 if [[ -z "$OAUTH_TOKEN" && -f "$SECRETS_FILE" ]]; then
     OAUTH_TOKEN=$(jq -r '.oauth_token // empty' "$SECRETS_FILE")

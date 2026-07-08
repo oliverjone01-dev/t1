@@ -527,6 +527,37 @@ function unassignedBlock(){
     `</div>`;
 }
 
+// Блок «Стадия Разобрать: расчистка» - ВСЕ лиды в статусе «Разобрать», БЕЗ фильтра периода
+// (в т.ч. старые). Этап технический, под удаление: важно расчистить. Владельцы помечены
+// действующий / уволен (ACTIVE=false из Bitrix) / система. Уволенные = лид никто не ведёт.
+function razborBlock(){
+  const RZ=flt(AL,false).filter(l=>l.status==='Разобрать'); // учитываем направление, но не период
+  if(!RZ.length)return '';
+  const FIRED=new Set(DATA.firedManagers||[]);
+  const isSys=n=>/систем|^id\s?\d|расчёт|расчет/i.test(n||'');
+  const stOf=n=>FIRED.has(n)?'fired':isSys(n)?'sys':'act';
+  const stMeta={fired:{l:'уволен',c:'#F43F5E'},sys:{l:'система',c:'#8A94A6'},act:{l:'действующий',c:'#2E9E74'}};
+  const total=RZ.length;
+  const g={};RZ.forEach(l=>{const o=g[l.mgr]||(g[l.mgr]={n:0,ages:[],dirs:new Set(),oldest:l.created});o.n++;o.ages.push(Math.max(0,ageDays(l.created)));o.dirs.add(l.dir||'-');if(l.created&&l.created<o.oldest)o.oldest=l.created;});
+  const rows=Object.entries(g).map(([n,v])=>({mgr:n,n:v.n,med:Math.round(median(v.ages)||0),oldest:v.oldest,dirs:[...v.dirs],st:stOf(n)})).sort((a,b)=>b.n-a.n);
+  const sumBy=s=>rows.filter(r=>r.st===s).reduce((a,r)=>a+r.n,0);
+  const firedN=sumBy('fired'),sysN=sumBy('sys'),actN=sumBy('act');
+  const seg=[['fired',firedN],['act',actN],['sys',sysN]].filter(x=>x[1]);
+  const splitBar=`<div style="display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--bg-base)">`+seg.map(([s,n])=>`<div data-tip="${stMeta[s].l}: ${fmt(n)} лидов" style="width:${(n/total*100).toFixed(1)}%;background:${stMeta[s].c};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#06121a;min-width:0">${n/total>0.05?fmt(n):''}</div>`).join('')+`</div>`;
+  const trs=rows.map(r=>{const m=stMeta[r.st];const dirs=r.dirs.map(d=>DIRLAB[d]||d).slice(0,3).join(', ');const hot=r.med>=30;
+    return `<tr${r.st==='fired'?' style="background:rgba(244,63,94,.07)"':''}><td class="name" style="text-align:left">${r.mgr}</td><td style="text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:${m.c};background:${m.c}22;border:1px solid ${m.c}66;border-radius:5px;padding:1px 7px">${m.l}</span></td><td style="text-align:center;font-weight:800">${fmt(r.n)}</td><td style="text-align:center;color:${hot?'#F8717A':'var(--ink-3)'};font-weight:${hot?800:600}">${r.med}</td><td style="text-align:center;color:var(--ink-4)">${r.oldest||'-'}</td><td style="text-align:left;color:var(--ink-3);font-size:11px">${dirs||'-'}</td></tr>`;}).join('');
+  const ownersTbl=`<div class="scroll" style="margin-top:10px;max-height:440px"><table class="tbl"><thead><tr><th style="text-align:left">Владелец</th><th>Статус</th><th>Лидов</th><th>Медиана ожид., дн</th><th>Старейший</th><th style="text-align:left">Направления</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  const firedAlert=firedN?`<div style="margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.4);border-radius:9px;font-size:12.5px;color:#F8717A;font-weight:700"><span style="font-size:15px">⚠</span><span><b>${fmt(firedN)}</b> лидов висят на уволенных - их никто не ведёт, забрать первыми</span></div>`:'';
+  const known=Array.isArray(DATA.firedManagers);
+  const dataNote=known?'':`<div class="card-sub" style="margin-top:8px;color:var(--ink-4)">Признак «уволен» подтянется после ближайшего ночного снимка Bitrix (добавлено поле ACTIVE). Сейчас различаются «система» и «сотрудник».</div>`;
+  return `<div class="card" style="border-color:rgba(244,63,94,.25)"><div class="card-h"><div><div class="card-title">Стадия «Разобрать»: расчистка перед удалением ${info('ВСЕ лиды в стадии «Разобрать», БЕЗ фильтра периода (в т.ч. старые). Этап технический, под удаление: заявки нужно разобрать и раздать продавцам. Владельцы помечены: уволен (красный - лид мёртв, никто не ведёт), система (аккаунт-приёмник), действующий сотрудник. Реагирует на фильтр направления в шапке. Приоритет: уволенные и самые старые по медиане ожидания.')}</div><div class="card-sub">${fmt(total)} лидов в стадии - разобрать все, приоритет уволенным и старым</div></div></div>`
+    +firedAlert
+    +`<div style="margin-top:10px"><div class="card-sub" style="margin-bottom:5px">на ком висят (действующие / уволенные / системные)</div>${splitBar}</div>`
+    +ownersTbl
+    +dataNote
+    +`</div>`;
+}
+
 // Блок «Передано без карточки СП»: сделки, ушедшие в производственные стадии,
 // у которых НЕТ карточек в СП «Производство GG» - цех делает их «вслепую».
 function noCardBlock(){
@@ -1218,7 +1249,7 @@ function render(){
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+unassignedBlock()+razborBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock();
   document.getElementById('root').innerHTML=h;

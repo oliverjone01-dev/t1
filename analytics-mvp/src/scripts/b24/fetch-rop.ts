@@ -165,7 +165,27 @@ async function main() {
 
   const users: any[] = await pageAll("user.get", {});
   const mgrName: Record<string, string> = {};
-  for (const u of users) mgrName[String(u.ID)] = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim() || `id${u.ID}`;
+  const nmOf = (u: any) => `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim();
+  const firedSet = new Set<string>();
+  for (const u of users) {
+    const nm = nmOf(u) || `id${u.ID}`;
+    mgrName[String(u.ID)] = nm;
+    // ACTIVE может прийти как boolean или "Y"/"N"; уволенные = неактивные аккаунты.
+    const active = u.ACTIVE === true || u.ACTIVE === "Y" || u.ACTIVE === 1 || u.ACTIVE === "1";
+    if (nm && u.ACTIVE !== undefined && !active) firedSet.add(nm);
+  }
+  // Bitrix по умолчанию может отдавать только активных - добираем уволенных явным фильтром.
+  try {
+    const inactive: any[] = await pageAll("user.get", { ACTIVE: false });
+    for (const u of inactive) {
+      const nm = nmOf(u);
+      if (nm) { firedSet.add(nm); if (!mgrName[String(u.ID)]) mgrName[String(u.ID)] = nm; }
+    }
+  } catch (e) {
+    console.warn("user.get ACTIVE=false недоступен:", e instanceof Error ? e.message : e);
+  }
+  const firedManagers = [...firedSet];
+  console.log(`Уволенных сотрудников (ACTIVE=false): ${firedManagers.length}`);
 
   const dealFields: any = (await call("crm.deal.fields", {})).result || {};
   const leadFields: any = (await call("crm.lead.fields", {})).result || {};
@@ -312,6 +332,7 @@ async function main() {
     deals,
     leads,
     prodItems,
+    firedManagers,
   };
   mkdirSync("rop/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));

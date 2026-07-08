@@ -1,0 +1,380 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Кампании: детализация - Директ GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0F15;--card:#131820;--elev:#1A2029;--soft:#232B36;--line:#1F2731;--line2:#2B3441;
+--ink:#F1F4F8;--ink2:#A0AAB8;--ink3:#6A7484;--acc:#22D3EE;--acc2:#06B6D4;--accsoft:rgba(34,211,238,.10);
+--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--r:10px;--rl:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13.5px/1.5 Inter,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:60px}
+a{color:var(--acc);text-decoration:none}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 24px;
+background:rgba(11,15,21,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),#0369A1);
+box-shadow:0 0 18px rgba(34,211,238,.35);display:grid;place-items:center;font-weight:800;font-size:13px;color:#04222B}
+.tt{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:15px}
+.tt small{display:block;font-weight:500;font-size:10.5px;color:var(--ink3)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav a{padding:7px 13px;border-radius:8px;color:var(--ink2);font-weight:600;font-size:12.5px}
+nav a:hover{background:var(--soft);color:var(--ink)}
+nav a.on{background:var(--accsoft);color:var(--acc)}
+.stamp{font-size:11px;color:var(--ink3);padding:4px 10px;border:1px solid var(--line);border-radius:20px;white-space:nowrap}
+.wrap{max-width:1440px;margin:0 auto;padding:22px 24px}
+h1{font-family:Manrope,Inter,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.sub{color:var(--ink3);font-size:12.5px;margin-bottom:18px}
+.sec{display:flex;align-items:center;gap:10px;margin:28px 0 12px;color:var(--ink2);font-weight:700;font-size:13px}
+.sec:before{counter-increment:sec;content:counter(sec,decimal-leading-zero);color:var(--acc);font-family:Manrope;font-weight:800}
+.sec:after{content:'';flex:1;height:1px;background:var(--line)}
+body{counter-reset:sec}
+.hero{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:18px;position:relative;overflow:hidden}
+.card.hl:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--acc),transparent)}
+.card.hl.warn:before{background:linear-gradient(90deg,var(--warn),transparent)}
+.card.hl.dn:before{background:linear-gradient(90deg,var(--dn),transparent)}
+.lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.hv{font-family:Manrope,Inter,sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.05}
+.hv small{font-size:16px;color:var(--ink2);font-weight:700}
+.hnote{margin-top:8px;font-size:12px;color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .l{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.kpi .v{font-family:Manrope;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
+.kpi .d{font-size:11px;margin-top:2px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);
+text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+tr:hover td{background:var(--elev)}
+td.n,th.n{text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.dg{background:var(--up)}.dy{background:var(--warn)}.dr{background:var(--dn)}.dx{background:var(--ink4,#3F4855)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.p-ok{background:rgba(16,185,129,.12);color:var(--up)}
+.p-warn{background:rgba(245,158,11,.12);color:var(--warn)}
+.p-hot{background:rgba(244,63,94,.12);color:var(--dn)}
+.p-mut{background:var(--soft);color:var(--ink3)}
+.badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;vertical-align:2px;margin-left:6px}
+.b-d{background:rgba(34,211,238,.12);color:var(--acc)}
+.b-h{background:rgba(245,158,11,.12);color:var(--warn)}
+.mut{color:var(--ink3)}.up{color:var(--up)}.dn{color:var(--dn)}.warn{color:var(--warn)}
+.note{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:var(--r);padding:12px 14px;font-size:12.5px;margin:12px 0}
+.cf{display:flex;gap:0;align-items:stretch;margin-top:10px}
+.cf-step{flex:1;background:var(--elev);border:1px solid var(--line);padding:12px;text-align:center}
+.cf-step:first-child{border-radius:var(--r) 0 0 var(--r)}
+.cf-step:last-child{border-radius:0 var(--r) var(--r) 0}
+.cf-v{font-family:Manrope;font-size:22px;font-weight:800}
+.cf-l{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.cf-conv{align-self:center;padding:0 8px;font-size:11px;font-weight:700;color:var(--ink3);white-space:nowrap}
+.cf-conv.key{color:var(--warn)}
+.bars .row{display:grid;grid-template-columns:220px 1fr 90px;gap:10px;align-items:center;padding:5px 0}
+.bars .bl{font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .bt{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--acc2),var(--acc));min-width:2px}
+.bars .bv{font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.chart-tip{position:fixed;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:8px;
+padding:8px 11px;font-size:12px;z-index:99;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tblwrap{overflow-x:auto}
+footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:var(--ink3);font-size:11.5px;display:flex;gap:18px;flex-wrap:wrap}
+@media(max-width:900px){.hero,.grid2{grid-template-columns:1fr}.bars .row{grid-template-columns:120px 1fr 70px}}
+</style></head><body>
+<div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
+<nav><a href="index.html">Обзор</a><a href="campaigns.html" class="on">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html">Сверка</a><a href="audit.html">Аудит</a></nav><div class="stamp">данные: 2026-06-08 .. 2026-07-07 · собрано 2026-07-08 15:37 UTC</div></div>
+<div class="wrap"><h1>Кампании: детализация</h1><div class="sub">2 активных из 26 · расход 100 695 ₽ за 30 дней</div>
+<div class="sec">Все кампании кабинета (26)</div>
+<div class="card tblwrap"><table>
+<tr><th>Кампания</th><th>Тип</th><th>Статус</th><th class="n">Дн. бюджет</th><th class="n">Показы</th><th class="n">Клики</th><th class="n">CTR</th><th class="n">CPC</th><th class="n">Расход 30д</th><th class="n">Конв.(цель)</th><th>Вердикт</th></tr>
+<tr id="c710919957"><td><span class="dot dy"></span>[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<div class="mut" style="font-size:10.5px">#710919957 · старт 2026-06-22</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut"><span class="up">Идут показы</span></td>
+<td class="n">-</td>
+<td class="n">17 442</td><td class="n">430</td><td class="n">2,47%</td>
+<td class="n">132</td><td class="n">56 817 ₽</td><td class="n">378</td>
+<td><span class="pill p-warn">CPL 14 204 ₽</span></td></tr><tr id="c710747853"><td><span class="dot dg"></span>[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<div class="mut" style="font-size:10.5px">#710747853 · старт 2026-06-15</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut"><span class="up">Идут показы</span></td>
+<td class="n">-</td>
+<td class="n">4 097</td><td class="n">482</td><td class="n">11,76%</td>
+<td class="n">91</td><td class="n">43 878 ₽</td><td class="n">419</td>
+<td><span class="pill p-ok">CPL 7 313 ₽</span></td></tr><tr id="c701081002"><td><span class="dot dx"></span>Системная кампания eLama<div class="mut" style="font-size:10.5px">#701081002 · старт 2025-06-11</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">3 000 ₽</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706135444"><td><span class="dot dx"></span>[Товары] Столы | Поиск | Стратегия: Пакет Поиск<div class="mut" style="font-size:10.5px">#706135444 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706136297"><td><span class="dot dx"></span>Столы | Поиск |<div class="mut" style="font-size:10.5px">#706136297 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706138089"><td><span class="dot dx"></span>[Товары] Столы | ТовГал | Стратегия: Пакет Товаврная галерея<div class="mut" style="font-size:10.5px">#706138089 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706138187"><td><span class="dot dx"></span>Столы | ТовГал |<div class="mut" style="font-size:10.5px">#706138187 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706138188"><td><span class="dot dx"></span>[Товары] Столы | РСЯ | Стратегия: Пакет РСЯ<div class="mut" style="font-size:10.5px">#706138188 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706138190"><td><span class="dot dx"></span>Столы | РСЯ |<div class="mut" style="font-size:10.5px">#706138190 · старт 2026-01-07</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356605"><td><span class="dot dx"></span>[Товары] Керамические столы | ТовГал |<div class="mut" style="font-size:10.5px">#706356605 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356610"><td><span class="dot dx"></span>Керамические столы | Поиск |<div class="mut" style="font-size:10.5px">#706356610 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356620"><td><span class="dot dx"></span>[Товары] Керамические столы | Поиск |<div class="mut" style="font-size:10.5px">#706356620 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356623"><td><span class="dot dx"></span>Керамические столы | ТовГал |<div class="mut" style="font-size:10.5px">#706356623 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356630"><td><span class="dot dx"></span>Керамические столы | РСЯ |<div class="mut" style="font-size:10.5px">#706356630 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706356636"><td><span class="dot dx"></span>[Товары] Керамические столы | РСЯ |<div class="mut" style="font-size:10.5px">#706356636 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370700"><td><span class="dot dx"></span>[Товары] Межкомнатные перегородки | ТовГал |<div class="mut" style="font-size:10.5px">#706370700 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370706"><td><span class="dot dx"></span>Межкомнатные перегородки | Поиск |<div class="mut" style="font-size:10.5px">#706370706 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370709"><td><span class="dot dx"></span>[Товары] Межкомнатные перегородки | Поиск |<div class="mut" style="font-size:10.5px">#706370709 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370715"><td><span class="dot dx"></span>Межкомнатные перегородки | ТовГал |<div class="mut" style="font-size:10.5px">#706370715 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370721"><td><span class="dot dx"></span>Межкомнатные перегородки | РСЯ |<div class="mut" style="font-size:10.5px">#706370721 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706370727"><td><span class="dot dx"></span>[Товары] Межкомнатные перегородки | РСЯ |<div class="mut" style="font-size:10.5px">#706370727 · старт 2026-01-16</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706502097"><td><span class="dot dx"></span>Зеркала | Поиск |<div class="mut" style="font-size:10.5px">#706502097 · старт 2026-01-21</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706502106"><td><span class="dot dx"></span>Зеркала | ТовГал |<div class="mut" style="font-size:10.5px">#706502106 · старт 2026-01-21</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706502116"><td><span class="dot dx"></span>Зеркала | РСЯ |<div class="mut" style="font-size:10.5px">#706502116 · старт 2026-01-21</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">0</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706983545"><td><span class="dot dx"></span>Ретаргетинг | Товары<div class="mut" style="font-size:10.5px">#706983545 · старт 2026-02-05</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">111</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr><tr id="c706995323"><td><span class="dot dx"></span>Ретаргетинг | Каталог<div class="mut" style="font-size:10.5px">#706995323 · старт 2026-02-05</div></td>
+<td class="mut">Текстовая</td>
+<td class="mut">Архив</td>
+<td class="n">-</td>
+<td class="n">4</td><td class="n">0</td><td class="n">-</td>
+<td class="n">-</td><td class="n">0 ₽</td><td class="n">0</td>
+<td><span class="pill p-mut">архив/модерация</span></td></tr>
+</table></div>
+<div class="sec">Дневная динамика активных кампаний</div>
+<div class="grid2">
+<div class="card"><div class="lab">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</div>
+<div class="bars"><div class="row" data-tip="<b>2026-06-24</b><br>824 ₽ · 10 кликов · 10 конв.">
+<div class="bl">06-24</div>
+<div><div class="bt" style="width:12.171106540736945%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">824 ₽</div></div><div class="row" data-tip="<b>2026-06-25</b><br>1 518 ₽ · 10 кликов · 9 конв.">
+<div class="bl">06-25</div>
+<div><div class="bt" style="width:22.411336627743026%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 518 ₽</div></div><div class="row" data-tip="<b>2026-06-26</b><br>1 264 ₽ · 7 кликов · 7 конв.">
+<div class="bl">06-26</div>
+<div><div class="bt" style="width:18.662530691309286%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 264 ₽</div></div><div class="row" data-tip="<b>2026-06-27</b><br>1 056 ₽ · 9 кликов · 7 конв.">
+<div class="bl">06-27</div>
+<div><div class="bt" style="width:15.587715503558936%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 056 ₽</div></div><div class="row" data-tip="<b>2026-06-28</b><br>158 ₽ · 2 кликов · 2 конв.">
+<div class="bl">06-28</div>
+<div><div class="bt" style="width:2.332613327152009%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">158 ₽</div></div><div class="row" data-tip="<b>2026-06-29</b><br>683 ₽ · 6 кликов · 6 конв.">
+<div class="bl">06-29</div>
+<div><div class="bt" style="width:10.079299108678608%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">683 ₽</div></div><div class="row" data-tip="<b>2026-06-30</b><br>1 182 ₽ · 10 кликов · 10 конв.">
+<div class="bl">06-30</div>
+<div><div class="bt" style="width:17.446837410989666%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 182 ₽</div></div><div class="row" data-tip="<b>2026-07-01</b><br>1 316 ₽ · 11 кликов · 10 конв.">
+<div class="bl">07-01</div>
+<div><div class="bt" style="width:19.433818242486073%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 316 ₽</div></div><div class="row" data-tip="<b>2026-07-02</b><br>1 633 ₽ · 10 кликов · 10 конв.">
+<div class="bl">07-02</div>
+<div><div class="bt" style="width:24.104655334566647%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 633 ₽</div></div><div class="row" data-tip="<b>2026-07-03</b><br>516 ₽ · 6 кликов · 5 конв.">
+<div class="bl">07-03</div>
+<div><div class="bt" style="width:7.614397564479433%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">516 ₽</div></div><div class="row" data-tip="<b>2026-07-04</b><br>616 ₽ · 5 кликов · 4 конв.">
+<div class="bl">07-04</div>
+<div><div class="bt" style="width:9.093043204800171%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">616 ₽</div></div><div class="row" data-tip="<b>2026-07-05</b><br>155 ₽ · 2 кликов · 3 конв.">
+<div class="bl">07-05</div>
+<div><div class="bt" style="width:2.2900921145297053%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">155 ₽</div></div><div class="row" data-tip="<b>2026-07-06</b><br>1 321 ₽ · 5 кликов · 5 конв.">
+<div class="bl">07-06</div>
+<div><div class="bt" style="width:19.510887940364%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 321 ₽</div></div><div class="row" data-tip="<b>2026-07-07</b><br>1 681 ₽ · 8 кликов · 8 конв.">
+<div class="bl">07-07</div>
+<div><div class="bt" style="width:24.81880500628221%;background:linear-gradient(90deg,#0891B288,#0891B2)"></div></div>
+<div class="bv">1 681 ₽</div></div></div></div><div class="card"><div class="lab">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</div>
+<div class="bars"><div class="row" data-tip="<b>2026-06-24</b><br>5 104 ₽ · 36 кликов · 30 конв.">
+<div class="bl">06-24</div>
+<div><div class="bt" style="width:94.94754073963836%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">5 104 ₽</div></div><div class="row" data-tip="<b>2026-06-25</b><br>3 351 ₽ · 40 кликов · 32 конв.">
+<div class="bl">06-25</div>
+<div><div class="bt" style="width:62.33778554952005%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">3 351 ₽</div></div><div class="row" data-tip="<b>2026-06-26</b><br>3 819 ₽ · 29 кликов · 23 конв.">
+<div class="bl">06-26</div>
+<div><div class="bt" style="width:71.04769700126496%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">3 819 ₽</div></div><div class="row" data-tip="<b>2026-06-27</b><br>2 900 ₽ · 31 кликов · 26 конв.">
+<div class="bl">06-27</div>
+<div><div class="bt" style="width:53.954163256194654%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">2 900 ₽</div></div><div class="row" data-tip="<b>2026-06-28</b><br>1 663 ₽ · 16 кликов · 15 конв.">
+<div class="bl">06-28</div>
+<div><div class="bt" style="width:30.933663218989505%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">1 663 ₽</div></div><div class="row" data-tip="<b>2026-06-29</b><br>5 376 ₽ · 25 кликов · 20 конв.">
+<div class="bl">06-29</div>
+<div><div class="bt" style="width:100%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">5 376 ₽</div></div><div class="row" data-tip="<b>2026-06-30</b><br>4 604 ₽ · 29 кликов · 25 конв.">
+<div class="bl">06-30</div>
+<div><div class="bt" style="width:85.65164818810923%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">4 604 ₽</div></div><div class="row" data-tip="<b>2026-07-01</b><br>3 210 ₽ · 31 кликов · 26 конв.">
+<div class="bl">07-01</div>
+<div><div class="bt" style="width:59.705149192648264%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">3 210 ₽</div></div><div class="row" data-tip="<b>2026-07-02</b><br>3 693 ₽ · 25 кликов · 24 конв.">
+<div class="bl">07-02</div>
+<div><div class="bt" style="width:68.70284247339832%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">3 693 ₽</div></div><div class="row" data-tip="<b>2026-07-03</b><br>4 983 ₽ · 35 кликов · 32 конв.">
+<div class="bl">07-03</div>
+<div><div class="bt" style="width:92.70500037205149%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">4 983 ₽</div></div><div class="row" data-tip="<b>2026-07-04</b><br>2 024 ₽ · 23 кликов · 20 конв.">
+<div class="bl">07-04</div>
+<div><div class="bt" style="width:37.645658159089216%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">2 024 ₽</div></div><div class="row" data-tip="<b>2026-07-05</b><br>510 ₽ · 4 кликов · 4 конв.">
+<div class="bl">07-05</div>
+<div><div class="bt" style="width:9.492521765012278%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">510 ₽</div></div><div class="row" data-tip="<b>2026-07-06</b><br>4 405 ₽ · 36 кликов · 36 конв.">
+<div class="bl">07-06</div>
+<div><div class="bt" style="width:81.9528982811221%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">4 405 ₽</div></div><div class="row" data-tip="<b>2026-07-07</b><br>4 661 ₽ · 31 кликов · 29 конв.">
+<div class="bl">07-07</div>
+<div><div class="bt" style="width:86.6993451893742%;background:linear-gradient(90deg,#D9770688,#D97706)"></div></div>
+<div class="bv">4 661 ₽</div></div></div></div>
+</div>
+<div class="sec">Лиды по UTM-меткам кампаний <span class="badge b-d">[ДАННЫЕ] Метрика 30д</span></div>
+<div class="card tblwrap"><table><tr><th>utm_campaign</th><th class="n">Визиты</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th><th class="n">CPL <span class="badge b-h">[ГИПОТЕЗА]</span></th></tr>
+<tr><td>peregorodki <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">4 322</td><td class="n">30</td><td class="n">21</td>
+<td class="n">-</td></tr><tr><td>peregorodki_710747853<div class="mut" style="font-size:10.5px">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</div></td>
+<td class="n">460</td><td class="n">6</td><td class="n">6</td>
+<td class="n">7 313 ₽</td></tr><tr><td>peregorodki_710919957<div class="mut" style="font-size:10.5px">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</div></td>
+<td class="n">385</td><td class="n">4</td><td class="n">1</td>
+<td class="n">14 204 ₽</td></tr><tr><td>genglass <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">165</td><td class="n">2</td><td class="n">2</td>
+<td class="n">-</td></tr><tr><td>organization <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">28</td><td class="n">0</td><td class="n">1</td>
+<td class="n">-</td></tr><tr><td>akz <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">25</td><td class="n">1</td><td class="n">1</td>
+<td class="n">-</td></tr><tr><td>sale <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">25</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>_bbr_mirors <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">15</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>name_706983545<div class="mut" style="font-size:10.5px">Ретаргетинг | Товары</div></td>
+<td class="n">15</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>news_GENGLASS <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">13</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>mirors <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">9</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">8</td><td class="n">1</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>info <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">5</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>tables <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">5</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr><tr><td>vystavka <span class="pill p-hot">без ID - P0</span></td>
+<td class="n">5</td><td class="n">0</td><td class="n">0</td>
+<td class="n">-</td></tr>
+</table></div></div>
+<div class="chart-tip" id="tip"></div>
+<footer><span>[ДАННЫЕ] = цифра из API с источником · [ГИПОТЕЗА] = оценка с допущениями</span>
+<span>Слой: оперативный T-1 (несверенный с CRM)</span><span>Директ GENGROUP · Protocol 9 discipline</span></footer>
+<script>
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');
+if(t){tip.style.display='block';tip.innerHTML=t.dataset.tip;
+tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-10)+'px';
+tip.style.top=(e.clientY+14)+'px';}else tip.style.display='none';});
+</script></body></html>

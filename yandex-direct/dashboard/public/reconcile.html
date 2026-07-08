@@ -1,0 +1,147 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Сверка: Директ vs Метрика vs CRM - Директ GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0F15;--card:#131820;--elev:#1A2029;--soft:#232B36;--line:#1F2731;--line2:#2B3441;
+--ink:#F1F4F8;--ink2:#A0AAB8;--ink3:#6A7484;--acc:#22D3EE;--acc2:#06B6D4;--accsoft:rgba(34,211,238,.10);
+--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--r:10px;--rl:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13.5px/1.5 Inter,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:60px}
+a{color:var(--acc);text-decoration:none}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 24px;
+background:rgba(11,15,21,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),#0369A1);
+box-shadow:0 0 18px rgba(34,211,238,.35);display:grid;place-items:center;font-weight:800;font-size:13px;color:#04222B}
+.tt{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:15px}
+.tt small{display:block;font-weight:500;font-size:10.5px;color:var(--ink3)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav a{padding:7px 13px;border-radius:8px;color:var(--ink2);font-weight:600;font-size:12.5px}
+nav a:hover{background:var(--soft);color:var(--ink)}
+nav a.on{background:var(--accsoft);color:var(--acc)}
+.stamp{font-size:11px;color:var(--ink3);padding:4px 10px;border:1px solid var(--line);border-radius:20px;white-space:nowrap}
+.wrap{max-width:1440px;margin:0 auto;padding:22px 24px}
+h1{font-family:Manrope,Inter,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.sub{color:var(--ink3);font-size:12.5px;margin-bottom:18px}
+.sec{display:flex;align-items:center;gap:10px;margin:28px 0 12px;color:var(--ink2);font-weight:700;font-size:13px}
+.sec:before{counter-increment:sec;content:counter(sec,decimal-leading-zero);color:var(--acc);font-family:Manrope;font-weight:800}
+.sec:after{content:'';flex:1;height:1px;background:var(--line)}
+body{counter-reset:sec}
+.hero{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:18px;position:relative;overflow:hidden}
+.card.hl:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--acc),transparent)}
+.card.hl.warn:before{background:linear-gradient(90deg,var(--warn),transparent)}
+.card.hl.dn:before{background:linear-gradient(90deg,var(--dn),transparent)}
+.lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.hv{font-family:Manrope,Inter,sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.05}
+.hv small{font-size:16px;color:var(--ink2);font-weight:700}
+.hnote{margin-top:8px;font-size:12px;color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .l{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.kpi .v{font-family:Manrope;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
+.kpi .d{font-size:11px;margin-top:2px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);
+text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+tr:hover td{background:var(--elev)}
+td.n,th.n{text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.dg{background:var(--up)}.dy{background:var(--warn)}.dr{background:var(--dn)}.dx{background:var(--ink4,#3F4855)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.p-ok{background:rgba(16,185,129,.12);color:var(--up)}
+.p-warn{background:rgba(245,158,11,.12);color:var(--warn)}
+.p-hot{background:rgba(244,63,94,.12);color:var(--dn)}
+.p-mut{background:var(--soft);color:var(--ink3)}
+.badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;vertical-align:2px;margin-left:6px}
+.b-d{background:rgba(34,211,238,.12);color:var(--acc)}
+.b-h{background:rgba(245,158,11,.12);color:var(--warn)}
+.mut{color:var(--ink3)}.up{color:var(--up)}.dn{color:var(--dn)}.warn{color:var(--warn)}
+.note{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:var(--r);padding:12px 14px;font-size:12.5px;margin:12px 0}
+.cf{display:flex;gap:0;align-items:stretch;margin-top:10px}
+.cf-step{flex:1;background:var(--elev);border:1px solid var(--line);padding:12px;text-align:center}
+.cf-step:first-child{border-radius:var(--r) 0 0 var(--r)}
+.cf-step:last-child{border-radius:0 var(--r) var(--r) 0}
+.cf-v{font-family:Manrope;font-size:22px;font-weight:800}
+.cf-l{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.cf-conv{align-self:center;padding:0 8px;font-size:11px;font-weight:700;color:var(--ink3);white-space:nowrap}
+.cf-conv.key{color:var(--warn)}
+.bars .row{display:grid;grid-template-columns:220px 1fr 90px;gap:10px;align-items:center;padding:5px 0}
+.bars .bl{font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .bt{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--acc2),var(--acc));min-width:2px}
+.bars .bv{font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.chart-tip{position:fixed;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:8px;
+padding:8px 11px;font-size:12px;z-index:99;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tblwrap{overflow-x:auto}
+footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:var(--ink3);font-size:11.5px;display:flex;gap:18px;flex-wrap:wrap}
+@media(max-width:900px){.hero,.grid2{grid-template-columns:1fr}.bars .row{grid-template-columns:120px 1fr 70px}}
+</style></head><body>
+<div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
+<nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html" class="on">Сверка</a><a href="audit.html">Аудит</a></nav><div class="stamp">данные: 2026-06-08 .. 2026-07-07 · собрано 2026-07-08 15:37 UTC</div></div>
+<div class="wrap"><h1>Сверка: Директ vs Метрика vs CRM</h1><div class="sub">разрыв атрибуции P0 · счётчик 104369223</div>
+<div class="note"><b>P0 открыта.</b> Пока разрыв не объяснён, CPL и бюджет-решения по кабинету - [ГИПОТЕЗА]. Мутации кабинета заблокированы техническим гейтом.</div>
+<div class="sec">Воронка: Директ → Метрика → CRM-цели <span class="badge b-d">[ДАННЫЕ] 30 дней</span></div>
+<div class="card"><div class="cf">
+<div class="cf-step"><div class="cf-v">21 654</div><div class="cf-l">Показы</div></div>
+<div class="cf-conv">CTR 4,21%</div>
+<div class="cf-step"><div class="cf-v">912</div><div class="cf-l">Клики кабинета</div></div>
+<div class="cf-conv key">x3,9 ?!</div>
+<div class="cf-step" style="border-color:#F43F5E"><div class="cf-v">3 562</div><div class="cf-l">Визиты Yandex.Direct</div></div>
+<div class="cf-conv">1,26%</div>
+<div class="cf-step"><div class="cf-v">45</div><div class="cf-l">CRM-лиды</div></div>
+</div>
+<div class="hnote" style="margin-top:12px">Ключевая аномалия отмечена: визитов из Yandex.Direct в 3,9 раза больше, чем кликов оплачено кабинетом e-20085264. Значит, на счётчик льёт ещё минимум один источник с разметкой Директа.</div></div>
+<div class="sec">Рекламные движки по Метрике</div>
+<div class="card tblwrap"><table><tr><th>Движок</th><th class="n">Визиты</th><th class="n">Посетители</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
+<tr><td>Yandex: Direct</td><td class="n">3 480</td><td class="n">2 952</td>
+<td class="n">41</td><td class="n">30</td></tr><tr><td>Other ad: identified by tags</td><td class="n">1 946</td><td class="n">978</td>
+<td class="n">1</td><td class="n">2</td></tr><tr><td>Yandex.Direct: Undetermined</td><td class="n">82</td><td class="n">63</td>
+<td class="n">4</td><td class="n">1</td></tr><tr><td>Instagram</td><td class="n">44</td><td class="n">18</td>
+<td class="n">0</td><td class="n">0</td></tr><tr><td>VK</td><td class="n">3</td><td class="n">3</td>
+<td class="n">0</td><td class="n">0</td></tr>
+</table></div>
+<div class="sec">Разбор UTM: где теряется атрибуция</div>
+<div class="card tblwrap"><table><tr><th>utm_campaign</th><th class="n">Визиты</th><th class="n">Лиды</th><th>Диагноз</th></tr>
+<tr><td>peregorodki</td><td class="n">4 322</td><td class="n">30</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_710747853</td><td class="n">460</td><td class="n">6</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_710919957</td><td class="n">385</td><td class="n">4</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>genglass</td><td class="n">165</td><td class="n">2</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>organization</td><td class="n">28</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>akz</td><td class="n">25</td><td class="n">1</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>sale</td><td class="n">25</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>_bbr_mirors</td><td class="n">15</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>name_706983545</td><td class="n">15</td><td class="n">0</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>news_GENGLASS</td><td class="n">13</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>mirors</td><td class="n">9</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>Новые_станки на нашем производстве. Больше форм, чище металл и умная экономия</td><td class="n">8</td><td class="n">1</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr>
+</table>
+<div class="hnote" style="margin-top:10px">Гипотезы источника (проверять по порядку): 1) старая кампания/кабинет с utm_campaign=peregorodki без ID; 2) агентский кабинет eLama (в кабинете есть архивная «Системная кампания eLama»); 3) ручная разметка ссылок в объявлениях другого аккаунта. Все три - [ГИПОТЕЗА] до проверки.</div></div>
+<div class="sec">Все источники трафика (контекст)</div>
+<div class="card tblwrap"><table><tr><th>Источник</th><th class="n">Визиты</th><th class="n">Отказы</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
+<tr><td>Ad traffic</td><td class="n">5 555</td>
+<td class="n">30,7%</td><td class="n">46</td><td class="n">33</td></tr><tr><td>Search engine traffic</td><td class="n">2 267</td>
+<td class="n">16,4%</td><td class="n">69</td><td class="n">44</td></tr><tr><td>Direct traffic</td><td class="n">977</td>
+<td class="n">33,7%</td><td class="n">12</td><td class="n">14</td></tr><tr><td>Link traffic</td><td class="n">330</td>
+<td class="n">7%</td><td class="n">5</td><td class="n">13</td></tr><tr><td>Internal traffic</td><td class="n">291</td>
+<td class="n">23%</td><td class="n">5</td><td class="n">9</td></tr><tr><td>Mailing traffic</td><td class="n">26</td>
+<td class="n">11,5%</td><td class="n">1</td><td class="n">0</td></tr><tr><td>Social network traffic</td><td class="n">10</td>
+<td class="n">40%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Messenger traffic</td><td class="n">8</td>
+<td class="n">0%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Clicks by QR code</td><td class="n">6</td>
+<td class="n">16,7%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Recommendation system traffic</td><td class="n">1</td>
+<td class="n">0%</td><td class="n">0</td><td class="n">0</td></tr>
+</table></div></div>
+<div class="chart-tip" id="tip"></div>
+<footer><span>[ДАННЫЕ] = цифра из API с источником · [ГИПОТЕЗА] = оценка с допущениями</span>
+<span>Слой: оперативный T-1 (несверенный с CRM)</span><span>Директ GENGROUP · Protocol 9 discipline</span></footer>
+<script>
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');
+if(t){tip.style.display='block';tip.innerHTML=t.dataset.tip;
+tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-10)+'px';
+tip.style.top=(e.clientY+14)+'px';}else tip.style.display='none';});
+</script></body></html>

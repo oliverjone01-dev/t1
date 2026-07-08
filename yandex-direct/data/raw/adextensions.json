@@ -1,0 +1,114 @@
+{
+  "result": {
+    "AdExtensions": [
+      {
+        "Id": 41373257,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Собственное производство"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 41373258,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Качественные материалы"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 41373259,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Уникальный дизайн"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 41373260,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Российский бренд"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 41373261,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Премиальное качество"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 41373266,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Доступные цены"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43237646,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Адресная доставка"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43237647,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Собственный дизайн"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43237648,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Премиальное качесвто"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43237649,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Шоу-рум"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43297728,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Под ключ"
+        },
+        "Status": "ACCEPTED"
+      },
+      {
+        "Id": 43297729,
+        "Associated": "YES",
+        "Type": "CALLOUT",
+        "Callout": {
+          "CalloutText": "Доставка и монтаж"
+        },
+        "Status": "ACCEPTED"
+      }
+    ]
+  }
+}

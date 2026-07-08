@@ -9,12 +9,19 @@ set -euo pipefail
 SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 REPORTS_URL="https://api.direct.yandex.com/json/v5/reports"
 
-if [[ ! -f "$SECRETS_FILE" ]]; then
-    echo "ERROR: Credentials not found at $SECRETS_FILE" >&2
-    exit 1
+# Credentials: prefer environment variables, fall back to local secrets file.
+OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
+CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+
+if [[ -z "$OAUTH_TOKEN" && -f "$SECRETS_FILE" ]]; then
+    OAUTH_TOKEN=$(jq -r '.oauth_token // empty' "$SECRETS_FILE")
+    CLIENT_LOGIN=$(jq -r '.client_login // empty' "$SECRETS_FILE")
 fi
 
-OAUTH_TOKEN=$(jq -r '.oauth_token' "$SECRETS_FILE")
+if [[ -z "$OAUTH_TOKEN" || "$OAUTH_TOKEN" == "null" ]]; then
+    echo "ERROR: token not found. Set env var YANDEX_DIRECT_TOKEN, or add oauth_token to $SECRETS_FILE" >&2
+    exit 1
+fi
 
 REPORT_TYPE="${1:?Usage: yd-report.sh <campaign|adgroup|keyword|search_query> [date_from] [date_to]}"
 DATE_FROM="${2:-$(date -d '-30 days' +%Y-%m-%d 2>/dev/null || date -v-30d +%Y-%m-%d)}"
@@ -68,10 +75,17 @@ REQUEST_BODY=$(cat <<EOF
 EOF
 )
 
+# Optional Client-Login header (required for agency accounts)
+LOGIN_HEADER=()
+if [[ -n "${CLIENT_LOGIN:-}" ]]; then
+    LOGIN_HEADER=(-H "Client-Login: ${CLIENT_LOGIN}")
+fi
+
 # Request report (may need polling for large reports)
 HTTP_CODE=$(curl -s -o /tmp/yd-report-response.txt -w "%{http_code}" \
     -X POST "$REPORTS_URL" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
+    "${LOGIN_HEADER[@]}" \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -H "processingMode: auto" \

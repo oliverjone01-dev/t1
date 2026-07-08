@@ -8,15 +8,18 @@ set -euo pipefail
 SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 API_BASE="https://api.direct.yandex.com/json/v5"
 
-if [[ ! -f "$SECRETS_FILE" ]]; then
-    echo "ERROR: Credentials not found at $SECRETS_FILE" >&2
-    exit 1
+# Credentials: prefer environment variables (Claude Code on the web env config),
+# fall back to local secrets file for terminal use.
+OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
+CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+
+if [[ -z "$OAUTH_TOKEN" && -f "$SECRETS_FILE" ]]; then
+    OAUTH_TOKEN=$(jq -r '.oauth_token // empty' "$SECRETS_FILE")
+    CLIENT_LOGIN=$(jq -r '.client_login // empty' "$SECRETS_FILE")
 fi
 
-OAUTH_TOKEN=$(jq -r '.oauth_token' "$SECRETS_FILE")
-
 if [[ -z "$OAUTH_TOKEN" || "$OAUTH_TOKEN" == "null" ]]; then
-    echo "ERROR: oauth_token not found in $SECRETS_FILE" >&2
+    echo "ERROR: token not found. Set env var YANDEX_DIRECT_TOKEN, or add oauth_token to $SECRETS_FILE" >&2
     exit 1
 fi
 
@@ -30,10 +33,17 @@ REQUEST_BODY=$(jq -n \
     --argjson params "$PARAMS" \
     '{method: $method, params: $params}')
 
+# Optional Client-Login header (required for agency accounts)
+LOGIN_HEADER=()
+if [[ -n "${CLIENT_LOGIN:-}" ]]; then
+    LOGIN_HEADER=(-H "Client-Login: ${CLIENT_LOGIN}")
+fi
+
 # Make API call
 RESPONSE=$(curl -s -X POST \
     "${API_BASE}/${SERVICE}" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
+    "${LOGIN_HEADER[@]}" \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -d "$REQUEST_BODY")

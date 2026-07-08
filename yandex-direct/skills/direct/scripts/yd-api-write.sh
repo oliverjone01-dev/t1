@@ -52,6 +52,22 @@ if [[ -z "$APPROVED_METHODS" ]] || ! printf '%s' ",$APPROVED_METHODS," | grep -q
     exit 3
 fi
 
+# --- Amount-cap (CLAUDE.md §9): мутация с деньгами >100K ₽ требует отдельного апрува ---
+# Денежные поля API Директа заданы в микрорублях (x1e6): Amount, Bid, StrategyMaximumClickBid,
+# AverageCpc/AverageCpa/AverageCrr, WeeklySpendLimit, BudgetLimit и т.п.
+MAX_MICROS="$(printf '%s' "$PARAMS" | jq '[.. | objects | to_entries[]
+    | select(.key | test("Amount|Bid|AverageCp[ac]|AverageCrr|SpendLimit|BudgetLimit"; "i"))
+    | .value | numbers] | max // 0')"
+MAX_RUB="$(printf '%s' "$MAX_MICROS" | jq '. / 1000000')"
+AMOUNT_CAP_RUB=100000
+if [[ "$(printf '%s' "$MAX_RUB" | jq "if . > $AMOUNT_CAP_RUB then 1 else 0 end")" == "1" ]]; then
+    if ! grep "$TODAY" "$APPROVAL_FILE" | grep -qi "large-ok:[[:space:]]*.*$METHOD"; then
+        echo "BLOCKED (Protocol 6 / §9): в params сумма ~${MAX_RUB} ₽ (>${AMOUNT_CAP_RUB}) - нужен отдельный апрув." >&2
+        echo "Иван добавляет в approval-файл строку: \"$TODAY large-ok: $METHOD <сумма> <контекст>\"." >&2
+        exit 3
+    fi
+fi
+
 # Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
 source "${SCRIPT_DIR}/yd-creds.sh"
 
@@ -67,8 +83,9 @@ jq -nc \
     --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     --arg service "$SERVICE" --arg method "$METHOD" \
     --argjson params "$PARAMS" \
+    --argjson max_rub "$MAX_RUB" \
     --arg approval "$(head -1 "$APPROVAL_FILE")" \
-    '{ts: $ts, tool: "yd-api-write", service: $service, method: $method, params: $params, approval: $approval}' \
+    '{ts: $ts, tool: "yd-api-write", service: $service, method: $method, max_amount_rub: $max_rub, params: $params, approval: $approval}' \
     >> "${TRACE_DIR}/direct-writes.jsonl"
 
 RESPONSE=$(curl -s -X POST \

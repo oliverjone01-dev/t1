@@ -286,7 +286,7 @@ const verdictCamp = c => {
 <div style="margin-top:10px">${spark(byDay.map(d => d.spend), 280, 40)}</div></div>
 <div class="card hl ${cplCab && cplCab > 5000 ? 'warn' : ''}"><div class="lab">CRM-лиды: весь YD-трафик счётчика <span class="badge b-d">[ДАННЫЕ] Метрика, цель 487033158</span></div>
 <div class="hv">${ydLeads}</div>
-<div class="hnote">= <b>${cabLeads} активные кампании кабинета</b> + ${archLeads} архивные (лаг-атрибуция) + ${abdmLeads} abdm (P0, не наши) + ${restLeads} без разметки.
+<div class="hnote">= <b>${cabLeads} активные кампании кабинета</b> + ${archLeads} архивные (лаг-атрибуция) + ${abdmLeads} abdm (P0, не наши) + ${restLeads} без разметки (остаток, см. <a href="reconcile.html">сверку</a>).
 CPL кабинета ~${fmt(cplCab)} ₽ <span class="badge b-h">[ГИПОТЕЗА]</span> - по ${cabLeads} лидам активных кампаний; сходится со страницей <a href="audit.html">Аудит</a> (8-10 в зависимости от окна запроса)</div></div>
 <div class="card hl dn"><div class="lab">P0: разрыв атрибуции</div>
 <div class="hv">${fmt(gap)}</div>
@@ -424,7 +424,7 @@ ${topQ.map(r => `<tr><td>${esc(r.query)}</td><td class="mut">${esc(r.camp)}</td>
 <div class="cf-step"><div class="cf-v">${ydLeads}</div><div class="cf-l">CRM-лиды</div></div>
 </div>
 <div class="hnote" style="margin-top:12px">Ключевая аномалия отмечена: визитов из Yandex.Direct в ${fmt1(visits / Math.max(clicks30, 1))} раза больше, чем кликов оплачено кабинетом e-20085264. Значит, на счётчик льёт ещё минимум один источник с разметкой Директа.</div>
-<div class="note" style="margin-top:10px"><b>Мост по лидам (сведение с аудитом):</b> ${ydLeads} CRM-лидов всего YD-трафика = <b>${cabLeads} активные кампании кабинета</b> (6 у Поиска + 4 у ТГ, запрос lastsignUTMCampaign, T-1) + ${archLeads} архивные (лаг-атрибуция старых кликов) + <b>${abdmLeads} abdm/peregorodki без ID</b> (источник P0, не оплачены кабинетом) + ${restLeads} без разметки. Страница Аудит считает лиды кабинета по своему окну T-0 и даёт 8 - расхождение 8 vs ${cabLeads} объясняется окном и лаг-атрибуцией, оба числа на два порядка ниже «конверсий» кабинета.</div></div>
+<div class="note" style="margin-top:10px"><b>Мост по лидам (сведение с аудитом):</b> ${ydLeads} CRM-лидов всего YD-трафика = <b>${cabLeads} активные кампании кабинета</b> (6 у Поиска + 4 у ТГ, запрос lastsignUTMCampaign, T-1) + ${archLeads} архивные (лаг-атрибуция старых кликов) + <b>${abdmLeads} abdm/peregorodki без ID</b> (источник P0, не оплачены кабинетом) + ${restLeads} без разметки. Страница Аудит считает лиды кабинета по своему окну T-0 и даёт 8 - расхождение 8 vs ${cabLeads} объясняется окном и лаг-атрибуцией, оба числа на два порядка ниже «конверсий» кабинета. Примечание к методике: «${restLeads} без разметки» - вычисленный остаток (лиды engine-based минус utm-атрибуцированные слагаемые), а не прямой счёт; суммы by_engine и by_utm расходятся на ~1 лид из-за разных моделей атрибуции Метрики.</div></div>
 <div class="sec">Рекламные движки по Метрике</div>
 <div class="card tblwrap"><table><tr><th>Движок</th><th class="n">Визиты</th><th class="n">Посетители</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
 ${MET.by_engine.map(e => `<tr><td>${esc(e.engine)}</td><td class="n">${fmt(e.visits)}</td><td class="n">${fmt(e.users)}</td>

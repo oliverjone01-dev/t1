@@ -416,7 +416,7 @@ function render(){
     const stuckPaid=incoming.filter(d=>!linked.has(String(d.id)));
     const stuckMoney=sum(stuckPaid,d=>d.budget||0);
     const prepVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);PP.forEach(d=>{const k=bkey(d.date);if(k in ki)v[ki[k]]++});return v})();
-    const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);Object.values(dealStart).forEach(s=>{const k=bkey(s);if(k in ki)v[ki[k]]++});return v})();
+    const startVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);Object.entries(dealStart).forEach(([dk,s])=>{if(dk[0]==='c')return;const k=bkey(s);if(k in ki)v[ki[k]]++});return v})();
     // «стаканы»: физическая загрузка цеха по датам запуска карточек - изделия (карточки) и штуки
     const posVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);ITd.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]++});return v})();
     const pcsVals=(()=>{const ki={};keys.forEach((k,i)=>ki[k]=i);const v=keys.map(()=>0);ITd.forEach(i=>{if(!dealPass(i.dealId?String(i.dealId):'c'+i.id))return;const k=bkey(startDate(i));if(k in ki)v[ki[k]]+=qtyOf(i)});return v})();
@@ -503,7 +503,7 @@ function render(){
     const coh=new Set(Object.keys(dstart).filter(k=>inRange(dstart[k])));
     const byDeal={};ITp.forEach(i=>{const k=i.dealId?String(i.dealId):'c'+i.id;if(!coh.has(k))return;if(!inRange(startDate(i)))return;(byDeal[k]=byDeal[k]||[]).push(i)});
     Object.entries(byDeal).forEach(([k,cards])=>{const mgr=cards[0].dealMgr||cards[0].sourceMgr||'—';const e=ent(mgr,depOf(mgr,k.startsWith('c')?null:k));
-      e.tD++;e.tM+=cards[0].dealBudget||0;e.tPos+=cards.length;e.tPcs+=qtySum(cards)});
+      if(!k.startsWith('c'))e.tD++;e.tM+=cards[0].dealBudget||0;e.tPos+=cards.length;e.tPcs+=qtySum(cards)}); // сделки считаем только реальные, карточки/штуки - все
     // входящий пакет (сейчас)
     (PP0||[]).filter(d=>d.open&&/EXECUTING/.test(d.stage)).forEach(d=>{const e=ent(d.mgr,depOf(d.mgr,d.id));e.inN++;e.inM+=d.budget||0});
     // потенциал в расчётах (сейчас)
@@ -550,7 +550,7 @@ function render(){
     const tot={dep:'Итого',tD:sum(deps,a=>a.tD),tM:sum(deps,a=>a.tM),tPos:sum(deps,a=>a.tPos),tPcs:sum(deps,a=>a.tPcs),inN:sum(deps,a=>a.inN),inM:sum(deps,a=>a.inM),qN:sum(deps,a=>a.qN),qM:sum(deps,a=>a.qM)};
     // Итого - первой строкой: на него смотрят чаще, чем на разбивку
     const foot=`<tr style="border-bottom:2px solid var(--border2);background:rgba(34,211,238,.05)"><td class="nm" style="font-weight:800">Итого</td><td style="text-align:center;font-weight:800;${hg(1,1,T)}">${fmt(tot.tD)}</td><td style="text-align:center;font-weight:800;white-space:nowrap;${hg(1,1,T)}">${fmtK(tot.tM)} ₽</td><td style="text-align:center;font-weight:800;${hg(1,1,B)}">${fmt(tot.tPos)}</td><td style="text-align:center;font-weight:800;${hg(1,1,V)}">${fmt(tot.tPcs)}</td>${cell(tot.inN,tot.inM,'var(--amber)',tot.inM||1,AMB)}${cell(tot.qN,tot.qM,'#A78BFA',tot.qM||1,PU)}</tr>`;
-    return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал <span class="qm" data-tip="Клик по отделу раскрывает менеджеров, по менеджеру - его сделки в просчёте, Итого - первой строкой. Точка совещания ОП и цеха. «Передано» = за выбранный период (когорта воронки). «Пакет» = открытые сделки на стадии «В производстве» сейчас. «Потенциал» = открытые сделки в просчёте сейчас. Бейдж «не передаёт» = потенциал/пакет есть, а передач в периоде нет. Сортировка кликом по заголовку колонки. Вопрос: кто кормит цех и у кого потенциал лежит без движения? Вывод: большой потенциал при нуле передач - разбирать пайплайн менеджера поимённо, клик раскрывает его сделки.">?</span></div><div class="card-s">что отдел продаж передал и держит в расчётах</div></div></div>
+    return `<div class="card"><div class="card-h"><div><div class="card-t">Отделы продаж: передачи и потенциал <span class="qm" data-tip="Клик по отделу раскрывает менеджеров, по менеджеру - его сделки в просчёте, Итого - первой строкой. Точка совещания ОП и цеха. «Передано» = за выбранный период (когорта воронки). «Пакет» = сделки, получившие предоплату, но ещё НЕ запущенные в производство: открытые на стадии «Предоплата получена» (следующий шаг - «Заказ в производстве»). Это будущая нагрузка цеха на подходе. «Потенциал» = открытые сделки в просчёте сейчас. Бейдж «не передаёт» = потенциал/пакет есть, а передач в периоде нет. Сортировка кликом по заголовку колонки. Вопрос: кто кормит цех и у кого потенциал лежит без движения? Вывод: большой потенциал при нуле передач - разбирать пайплайн менеджера поимённо, клик раскрывает его сделки.">?</span></div><div class="card-s">что отдел продаж передал и держит в расчётах</div></div></div>
       <div style="overflow-x:auto"><table class="tbl"><thead><tr>${dth('nm','Отдел / менеджер',true)}${dth('tD','Передано сделок')}${dth('tM','₽ передано')}${dth('tPos','Изделий')}${dth('tPcs','Штук')}${dth('inM','Пакет · сейчас')}${dth('qM','Потенциал · сейчас')}</tr></thead><tbody>${foot}${body}</tbody></table></div></div>`;
   })();
 

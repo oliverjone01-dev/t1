@@ -13,11 +13,11 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 | Criterion | Weight | Range |
 |---|---|---|
-| Accuracy (точность) | 25% | 0.0–10.0 |
-| Actionability (исполнимость) | 25% | 0.0–10.0 |
-| Insight (глубина) | 20% | 0.0–10.0 |
-| Brand Fit (соответствие бренду) | 15% | 0.0–10.0 |
-| Risk Awareness (риски) | 15% | 0.0–10.0 |
+| Accuracy (точность) | 25% | 0.0-10.0 |
+| Actionability (исполнимость) | 25% | 0.0-10.0 |
+| Insight (глубина) | 20% | 0.0-10.0 |
+| Brand Fit (соответствие бренду) | 15% | 0.0-10.0 |
+| Risk Awareness (риски) | 15% | 0.0-10.0 |
 
 **Weighted total** = Σ (score × weight)
 
@@ -96,8 +96,8 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 | Score | Verdict | Action |
 |---|---|---|
 | ≥9.0 | go | Deliver as-is, log to traces |
-| 7.5–8.9 | go | Deliver + note gaps for next iteration |
-| 6.0–7.4 | return | Send back with rework_tz, max 3 iterations |
+| 7.5-8.9 | go | Deliver + note gaps for next iteration |
+| 6.0-7.4 | return | Send back with rework_tz, max 3 iterations |
 | <6.0 | veto | Escalate to Иван, do not deliver |
 
 ## Output JSON (по `schemas/audit-report.json`)
@@ -163,19 +163,80 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 }
 ```
 
-## Industry Benchmarks (для cross-check цифр)
+## Pre-Score Block - 5 Stress-Test Questions (run BEFORE scoring 25 checkpoints)
+
+Перед формальным скорингом - быстрый adversarial pass. Если автор не может ответить на 3+ из 5 - score сразу ≤7.0 (return/veto без полного скоринга).
+
+**Q1 - DATA PROOF.** Что подтверждает эту цифру? Источник? Дата? Можно ли verify в `knowledge/semantic/`?
+
+**Q2 - PESSIMISTIC SCENARIO.** Что при -50% от плана? Если конверсия половина? Если сроки x2?
+
+**Q3 - RESOURCE REALITY.** Есть ли РЕАЛЬНО ресурсы для исполнения? People, budget, time, tools? Назвать поимённо.
+
+**Q4 - BLIND SPOTS.** Что ЗАБЫТО? Аудитории не рассмотрены? Каналы проигнорированы? Зависимости неучтены? Риски не перечислены?
+
+**Q5 - INVESTOR QUESTION.** Что инвестор или Богдан спросит ПЕРВЫМ при просмотре? Этот вопрос там отвечен?
+
+## Document-Type Checklists (run additionally to 25 checkpoints)
+
+После 25 generic checkpoints - проверка по типу документа.
+
+### Strategy / Marketing Plan
+
+- [ ] Revenue targets соответствуют 750M ₽ / EBITDA 21% траектории [ДАННЫЕ: product-facts.md, c=0.7]
+- [ ] Brand allocation matches priorities (GENGLASS 320M, VALONTI 130M, GENTERO 180M, Metal-GM 70M, GLASS-MEMORY 50M) [ГИПОТЕЗА: v8 source, требует CFO confirmation]
+- [ ] Resource requirements identified and available (people, budget, tools)
+- [ ] Timeline has milestones, не just end date (см. checkpoint Actionability-10)
+- [ ] Kill criteria defined (when to stop if not working)
+- [ ] Competitive response scenario considered
+- [ ] Synergies between brands identified and quantified
+
+### Commercial Proposal (КП)
+
+- [ ] Client name and project specifics (не generic template)
+- [ ] Pricing matches current price list (check `knowledge/semantic/`)
+- [ ] Contact information current (phones, emails, names)
+- [ ] Photos / renders are of ACTUAL products (не stock)
+- [ ] Terms and conditions accurate
+- [ ] Discount structure current (progressive for GLASS-MEMORY, NOT flat 30%)
+- [ ] CTA with specific deadline
+
+### Landing Page / HTML Artifact
+
+- [ ] Mobile responsive
+- [ ] Load time <3 seconds (без excessive assets)
+- [ ] Form works (webhook, validation)
+- [ ] Analytics code present (Яндекс.Метрика)
+- [ ] Brand guidelines followed (load skill `brand`)
+- [ ] CTA above fold
+- [ ] No broken links / placeholder content
+
+### Presentation (PPTX)
+
+- [ ] Slide count reasonable (10-15 для pitch, 20-30 для detailed)
+- [ ] One idea per slide
+- [ ] Data visualized, не table-dumped
+- [ ] Speaker notes present
+- [ ] Brand template applied
+- [ ] No typos in Russian (особенно ё/е, common names)
+
+## Industry Benchmarks - reference
+
+**Полная таблица** с pessimistic / industry avg / GENGROUP target / optimistic диапазонами - в `references/benchmarks.md`. Содержит 22 метрики по 4 категориям (Конверсии, Юнит-эк, Маржинальность, Сроки).
+
+Quick reference (топ-7 для быстрой проверки):
 
 | Канал | ROMI typical | CR funnel | Cycle |
 |---|---|---|---|
-| Контекст РФ | 3–8x | 1–3% | 1–4 нед |
-| Дизайнерский | 15–30x | 8–15% | 2–4 мес |
-| Маркетплейсы | 2–6x | 2–5% | 3–14 дн |
-| Тендеры B2B | 10–20x | 5–20% | 3–12 мес |
-| Реферальная | 5–15x | n/a | varies |
-| SEO органический | 8–25x | 2–4% | 1–6 мес |
-| Email retention | 20–50x | 5–15% | varies |
+| Контекст РФ | 3-8x | 1-3% | 1-4 нед |
+| Дизайнерский | 15-30x | 8-15% | 2-4 мес |
+| Маркетплейсы | 2-6x | 2-5% | 3-14 дн |
+| Тендеры B2B | 10-20x | 5-20% | 3-12 мес |
+| Реферальная | 5-15x | n/a | varies |
+| SEO органический | 8-25x | 2-4% | 1-6 мес |
+| Email retention | 20-50x | 5-15% | varies |
 
-Любая заявленная цифра, выходящая за диапазон в 2x от benchmark → флаг для проверки.
+**Hard Rule:** любая заявленная цифра, выходящая за диапазон в 2x от benchmark → флаг для проверки. Если цифра > Optimistic в `references/benchmarks.md` - потребовать обоснование. Если < Pessimistic - потребовать план действий.
 
 ## Anti-patterns (что в твоей оценке быть НЕ должно)
 
@@ -189,23 +250,60 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 ## Dispute Template (если автор не согласен)
 
+Полный шаблон с форматом раундов, правилами и шаблоном вердикта - в `references/dispute-template.md`. Quick reference:
+
 ```markdown
 ## Dispute - <task name>
 
 ### Round 1
-**FENIX position:** <тезис>
-**Author position:** <ответ>
-**FENIX rebuttal:** <данные/логика>
-**Author counter:** …
+**FENIX position:** <тезис с цифрами и ссылками>
+**Author position:** <контраргумент с обоснованием>
+**FENIX rebuttal:** <данные / логика>
+**Author counter:** ...
 
 ### Round N (max 5)
-…
+...
 
 ### Final
 - **Resolved:** <с кем согласились и почему>
-- **OR Escalated to Иван:** <если не сошлись>
+- **OR Escalated to Иван:** <если не сошлись за 5 раундов>
+- **IMPACT:** <если паттерн повторится 3+ раз → Inter-Skill Feedback>
 ```
+
+**Правила:**
+1. Max 5 раундов. Не решено → эскалация Ивану.
+2. Каждый аргумент подкреплён данными, не мнениями.
+3. ФЕНИКС НЕ подчиняется СПАРТАКУ в диспуте, только Ивану.
+4. Все диспуты логируются в `knowledge/episodes/YYYY-MM/disputes/`.
+5. Если один тип ошибки найден 3+ раза → обязательное обновление source skill (см. Inter-Skill Feedback Loop ниже).
+
+## Inter-Skill Feedback Loop (Protocol 15 - Reflexion)
+
+**Когда ФЕНИКС при аудите ТРИЖДЫ ПОДРЯД** снижает балл за один и тот же тип проблемы (например, «нет urgency в CTA» в 3 разных КП за месяц):
+
+1. СПАРТАК инициирует обновление соответствующего skill
+2. Проблема добавляется в checklist того skill как новый обязательный пункт
+3. Запись в `knowledge/reflexion/YYYY-MM.md`:
+   ```
+   [дата] PHOENIX-FEEDBACK: [проблема] -> добавлено в [skill, секция]
+   ```
+4. Изменение skill вступает в силу со следующей сессии (после Иван approval)
+
+**Это main mechanism continuous improvement системы** (Protocol 15). Без этого loop ФЕНИКС просто находит одни и те же gaps снова и снова - skills не учатся. С loop - skills эволюционируют по реальным data.
+
+## Special Rules
+
+1. ФЕНИКС **does NOT report to СПАРТАК** - reports ONLY to Иван
+2. ФЕНИКС has **VETO power** on any deliverable scored <6.0
+3. All disputes ФЕНИКС vs agents are logged with DISPUTE tag в episodic memory
+4. **Monthly system audit** (CC-19 Reflexion): all agents, all processes, all data currency
+5. Activation phrase: «ФЕНИКС, аудит [объект]» triggers full workflow
+6. Score <7.5/10 НЕ accepted for final approval - критика должна быть harsh, specific, actionable
 
 ## Reference
 
-См. `agents-v9/MASTER_SYSTEM_v9.md` Раздел 3.1 - Tier 0 ФЕНИКС.
+- Industry benchmarks (полная таблица): `references/benchmarks.md`
+- Dispute template (полный формат): `references/dispute-template.md`
+- Tier 0 architecture: `agents-v9/MASTER_SYSTEM_v9.md` §3.1
+- FENIX agent profile: `.claude/agents/feniks.md`
+- Output schema: `schemas/audit-report.json`

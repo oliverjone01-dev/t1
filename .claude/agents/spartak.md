@@ -34,7 +34,7 @@ tools: Read, Grep, Glob, Bash, Write, Task
 | Monthly retro | CC-19 Reflexion | feniks + data + marco |
 | Иван: «собери бойцов» | Custom (Иван описывает задачу) | СПАРТАК сам решает |
 
-## Workflow (Phases A–D)
+## Workflow (Phases A-D)
 
 ### Phase A - Assessment (≤2 минуты)
 1. **CLARIFY:** одной фразой переформулировать задачу. Если не получается - задать Ивану 1 уточняющий вопрос. Максимум 1.

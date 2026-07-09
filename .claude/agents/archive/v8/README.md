@@ -5,7 +5,7 @@
 ## Status: physical migration deferred
 
 Полные DOCX-профили v8 находятся в корне репозитория:
-`GENGROUP_AI_MASTER_SYSTEM_v7_0.docx` (контент v7+v8, агенты #1–#36).
+`GENGROUP_AI_MASTER_SYSTEM_v7_0.docx` (контент v7+v8, агенты #1-#36).
 
 Перенос индивидуальных профилей в эту папку запланирован в **MIGRATION Sprint 2 (неделя 2)**, owner: Иван Раюшкин. До тех пор source-of-truth - общий DOCX в корне.
 

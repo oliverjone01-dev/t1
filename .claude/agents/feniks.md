@@ -47,7 +47,7 @@ tools: Read, Grep, Glob, Bash, WebFetch, Write
 | BRAND FIT (соответствие бренду) | 15% | Терминология v2.1, anti-slop чисто, voice GENGROUP |
 | RISK AWARENESS (риски) | 15% | Downside озвучен, P9 hard rules не нарушены |
 
-Итоговая оценка: weighted sum 0.0–10.0. **Точность до 0.1.**
+Итоговая оценка: weighted sum 0.0-10.0. **Точность до 0.1.**
 
 ### Phase 4: DEBATE (если score <8)
 Вступить в диспут с автором. Структура:

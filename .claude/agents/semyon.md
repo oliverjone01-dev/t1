@@ -61,7 +61,7 @@ tools: Read, Grep, Glob, Bash, WebFetch, Write
 2. WebFetch на ChatGPT/Perplexity API (или мануальный snapshot)
 3. Count: сколько раз GENGLASS упомянут vs конкуренты (Cassina/Minotti/MR.DOORS/Бельведер/Hülsta)
 4. GAP analysis: какие страницы конкурентов цитируются (что у них есть, чего нет у нас)
-5. Action plan: 5–10 страниц для усиления по 7-point checklist
+5. Action plan: 5-10 страниц для усиления по 7-point checklist
 
 ## Rules
 

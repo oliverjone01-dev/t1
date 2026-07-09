@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<title>Достижения маркетинга за год · GENGROUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
+<link rel="stylesheet" href="brand-site.css">
+<style>
+/* страница-специфика: карточки достижений */
+.frame{background:var(--s1);border:1px solid var(--line);border-left:3px solid var(--gold-fill);border-radius:var(--radius-s);padding:20px 22px;margin-top:6px;box-shadow:var(--shadow)}
+.frame p{font-size:15px;color:var(--ink2);line-height:1.62}
+.frame p+p{margin-top:11px}
+.frame b{color:var(--ink);font-weight:600}
+
+.hl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:26px}
+@media(max-width:900px){.hl-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.hl-grid{grid-template-columns:1fr}}
+.hlc{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);padding:18px 18px 16px;box-shadow:var(--shadow)}
+.hlc .big{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:var(--gold)}
+.hlc .cap{font-size:12.5px;color:var(--ink2);font-weight:600;margin-top:8px;line-height:1.45}
+
+.pillar{margin-top:52px}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+@media(max-width:760px){.ach-grid{grid-template-columns:1fr}}
+.ach{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-s);padding:20px 20px 18px;box-shadow:var(--shadow)}
+.ach.wide{grid-column:1 / -1}
+.btag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;margin-bottom:11px}
+.btag.gg{color:var(--gg-ink);background:var(--gg-soft)}
+.btag.gm{color:var(--gold);background:var(--gold-soft)}
+.btag.v{color:var(--v-ink);background:var(--v-soft)}
+.btag.grp{color:var(--pln-ink);background:var(--pln-soft)}
+.ach h3{font-size:16px;font-weight:800;letter-spacing:-.01em;margin-bottom:8px;line-height:1.28}
+.ach p{font-size:13.5px;color:var(--ink2);line-height:1.6}
+.ach p b{color:var(--ink);font-weight:600}
+.ach .m{margin-top:12px;font-size:12.5px;font-weight:600;color:var(--ink);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;line-height:1.5}
+.ach .m .k{color:var(--keep);font-weight:800}
+
+.risk-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+@media(max-width:760px){.risk-grid{grid-template-columns:1fr}}
+.rc{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--rdy);border-radius:var(--radius-s);padding:18px 20px;box-shadow:var(--shadow)}
+.rc h3{font-size:15px;font-weight:800;margin-bottom:7px;line-height:1.3}
+.rc p{font-size:13.3px;color:var(--ink2);line-height:1.6}
+.rc p b{color:var(--ink)}
+.rc.open{border-left-color:var(--stop)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<div class="prog" id="prog" aria-hidden="true"></div>
+<header class="top"><div class="top-in">
+  <a class="brand" href="plan.html" style="text-decoration:none" aria-label="GENGROUP SMM"><span class="dot"></span>GENGROUP&nbsp;/&nbsp;SMM</a>
+  <nav class="nav" aria-label="Разделы сайта">
+    <a href="plan.html"><span class="n">01</span>Контент-план</a>
+    <a href="index.html"><span class="n">02</span>Платформа бренда</a>
+    <a href="audience.html"><span class="n">03</span>Аудитория</a>
+    <a href="content.html"><span class="n">04</span>Контент-стратегия</a>
+    <a href="../carousel-factory/index.html"><span class="n">05</span>Конструктор</a>
+    <a class="on" href="achievements.html"><span class="n">06</span>Достижения</a>
+  </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
+</div></header>
+
+<div class="wrap" role="main" id="main">
+
+  <section class="hero reveal">
+    <span class="glow" aria-hidden="true"></span>
+    <div class="kicker"><span class="bar"></span>ДИРЕКТОР ПО МАРКЕТИНГУ · ИТОГИ ГОДА</div>
+    <h1>Маркетинг за год: что построено <span class="hl">сверх «заявка → продал»</span></h1>
+    <p class="lead">Базовый процесс «получил заявку - продал» был в компании и до отдела маркетинга. Всё, что за его пределами - новые продукты, новые каналы, репутация, процессы управления - это зона ответственности маркетинга. Ниже - что из этого сделано за год и как оно связано с деньгами. Документ для собственников, от директора по маркетингу <b>Ивана</b>.</p>
+    <div class="stamp">
+      <div class="s">Период: <b>12 месяцев</b></div>
+      <div class="s">Бюджет отдела: <b>~2 млн ₽/мес</b> <span class="hyp">ГИПОТЕЗА</span></div>
+      <div class="s">Бренды: <b>GENGLASS · VALONTI · GM · GENTERO</b></div>
+      <div class="s">Цифры: <b>[ДАННЫЕ] / [ГИПОТЕЗА]</b></div>
+    </div>
+    <div class="hl-grid">
+      <div class="hlc"><div class="big">Новый сайт GG</div><div class="cap">запущен: дизайн, скорость, структура - источник розничных лидов <span class="hyp">ДАННЫЕ</span></div></div>
+      <div class="hlc"><div class="big">Чек ×2</div><div class="cap">средний чек GM по году вырос ориентировочно вдвое через новый канал (Авито) <span class="hyp">ГИПОТЕЗА</span></div></div>
+      <div class="hlc"><div class="big">Б24 своими</div><div class="cap">внедрение процессов силами отдела вместо интегратора за несколько млн <span class="hyp">ГИПОТЕЗА</span></div></div>
+      <div class="hlc"><div class="big">Дашборды</div><div class="cap">РОП, производство, ОЗОН (прибыль и убытки) - боевые экраны управления <span class="hyp">ДАННЫЕ</span></div></div>
+    </div>
+  </section>
+
+  <!-- 01 РАМКА -->
+  <section class="reveal">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">01</span><span class="lbl">Рамка</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Зачем маркетинг, <span class="em">когда «и так продаём»</span></h2>
+      <p class="sec-sub">Короткий ответ на вопрос о расходе. Маркетинг - это не про заявки от тех, кто и так нас знает. Это про то, что двигает выручку за пределами базового процесса продажи.</p>
+    </div>
+    <div class="frame">
+      <p>Есть соблазн считать маркетинг игрушкой, когда дела идут, и лишней статьёй, когда тяжело. Но за базовым процессом «получил заявку - продал» стоят другие процессы развития, и именно они за год дали результат: <b>новые продукты, новые каналы входа, автоматизация управления и найденные точки потерь</b>.</p>
+      <p>Ниже - четыре блока сделанного (продукт, каналы, GM, инфраструктура), блок задела под оптимизацию и честная рамка по росту. Финансовые оценки помечены: <span class="hyp">ДАННЫЕ</span> - подтверждённый факт, <span class="hyp">ГИПОТЕЗА</span> - оценка, которую подтверждаем цифрами на дашбордах.</p>
+    </div>
+  </section>
+
+  <!-- 02 ПРОДУКТ -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">02</span><span class="lbl">Продукт и новинки</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Новые продукты, <span class="em">которых без нас не было бы на полке</span></h2>
+      <p class="sec-sub">Маркетинг находит продукт, выводит и упаковывает. Это довесок к основному ассортименту, который существовал и до нас, - но уже ощутимый в выручке.</p>
+    </div>
+    <div class="ach-grid">
+      <div class="ach">
+        <span class="btag grp">GENGROUP</span>
+        <h3>Вывод новых продуктов из «стола»</h3>
+        <p>Целые продукты найдены, запущены и упакованы силами маркетинга: <b>Конкус, Осолис, Джентерис</b> и линейка, которая ещё не выведена. По части позиций один сегмент способен принести отдельный довесок к выручке, а не разовую продажу.</p>
+        <div class="m">Эффект: <span class="k">дополнительная выручка</span> сверх основного ассортимента. Масштаб уточняем на дашборде продаж <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag v">VALONTI</span>
+        <h3>Вывод бренда в рынок минимальным бюджетом</h3>
+        <p>Подготовка к выставке и вывод VALONTI в рынок при <b>минимальном бюджете</b>: презентация, ролик, настройщик моделей и поток контента для стартовой коллекции. Новый бренд получил витрину и инструмент продаж без крупных вложений.</p>
+        <div class="m">Актив: продажный и контент-инструмент нового бренда, работает на дизайнерский канал <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+      <div class="ach wide">
+        <span class="btag gg">GENGLASS · МП</span>
+        <h3>Система ВНП: ввод новых продуктов на маркетплейсы под подтверждённый спрос</h3>
+        <p>Собрана система ввода новых продуктов для маркетплейсов: <b>аналитика ниши плюс вывод новинок под свободную нишу и подтверждённый спрос</b> - меньше провальных запусков. Продукт выходит на площадку не наугад. Плюс экран управления товарным портфелем на маркетплейсах - видно, что тянет выручку, а что балласт.</p>
+        <div class="m">Механика: меньше провальных запусков, быстрее выход на оборот по каждой новой карточке <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 КАНАЛЫ -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">03</span><span class="lbl">Каналы и заявки</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Откуда приходят <span class="em">новые покупатели</span></h2>
+      <p class="sec-sub">Речь не про лидов, которые и так нас знают. Речь про новые источники входа и про то, через что конечный покупатель выбирает именно нас.</p>
+    </div>
+    <div class="ach-grid">
+      <div class="ach">
+        <span class="btag gg">GENGLASS</span>
+        <h3>Новый сайт GG как источник розничных лидов</h3>
+        <p>Сделан <b>новый сайт GENGLASS</b>: обновлённый дизайн, выше скорость, чище структура. Лиды в розницу генерируются именно на него, а маркетинг запускает источники трафика, через которые эти лиды приходят.</p>
+        <div class="m">Результат: розничный поток заявок на управляемом активе, а не на «сарафане» <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag gg">МП</span>
+        <h3>Карточки, через которые выбирают нас</h3>
+        <p>Карточки для маркетплейсов рисует маркетинг - через них конечный покупатель выбирает нас среди прочих. За год закрыта денежная категория А (десятки карточек вычищены и обновлены), запущена автоматическая закупка рекламы (программатик) и товарная витрина в Яндексе, онлайн-чат на сайте.</p>
+        <div class="m">Эффект: прямая работа на кассу маркетплейсов плюс уже сформированная репутация карточек <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+      <div class="ach wide">
+        <span class="btag grp">GENGROUP</span>
+        <h3>Диверсификация каналов под риск площадок</h3>
+        <p>Запущена работа по расширению набора каналов входа с учётом просадки маркетплейсов и высокой зависимости от ОЗОН. Логика простая: <b>один канал не должен решать судьбу бизнеса</b>. Новые источники (сайт, Директ, Авито, рассылки, дизайнерский канал VALONTI) снижают концентрацию.</p>
+        <div class="m">Смысл: снижение риска «вылетела площадка - встал бизнес» <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 GM -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">04</span><span class="lbl">GM · новый денежный поток</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">GM: разгон канала <span class="em">почти с нуля</span></h2>
+      <p class="sec-sub">Отдельный контур, где маркетинг развернул новый поток клиентов и нашёл точки роста в продуктах и аудитории.</p>
+    </div>
+    <div class="ach-grid">
+      <div class="ach">
+        <span class="btag gm">GM</span>
+        <h3>Разгон по новым клиентам через Авито</h3>
+        <p>Развёрнут маркетинг GM через Авито - новый поток клиентов, которого раньше не было. По имеющимся данным <b>средний чек по году вырос ориентировочно вдвое</b>: с ~20 тыс ₽ в начале года, при 50-80 заказах в месяц.</p>
+        <div class="m">Одна величина: речь о среднем чеке (×2), число заказов держится 50-80/мес. Оценка <span class="hyp">ГИПОТЕЗА</span>, сверяем по факту продаж</div>
+      </div>
+      <div class="ach">
+        <span class="btag gm">GM</span>
+        <h3>Автоматизация отчётности</h3>
+        <p>Отчётность GM переведена в автоматический режим: цифры собираются без ручного труда, руководитель видит поток, а не собирает его вручную.</p>
+        <div class="m">Эффект: экономия времени и прозрачность канала для управления <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+      <div class="ach wide">
+        <span class="btag gm">GM</span>
+        <h3>Новые точки роста в продуктах и аудитории</h3>
+        <p>Найдены новые направления роста в продукте и в целевой аудитории: <b>ритуальные комплексы, металл, ритуальные агентства</b>. Это не один сегмент, а несколько параллельных векторов расширения канала.</p>
+        <div class="m">Задел: несколько новых сегментов ЦА под масштабирование GM в следующем периоде <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 ИНФРАСТРУКТУРА -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">05</span><span class="lbl">Инфраструктура и процессы</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Управление компанией <span class="em">через цифры, а не на глаз</span></h2>
+      <p class="sec-sub">Самый недооценённый блок. Это аналитика для управления бизнесом (BI) и автоматизация процессов. Настройка такого на аутсорсе обходится в сотни тысяч - миллионы ₽ <span class="hyp">ГИПОТЕЗА</span>, мы сделали внутри отдела. Связь с деньгами прямая.</p>
+    </div>
+    <div class="ach-grid">
+      <div class="ach">
+        <span class="btag grp">Bitrix24</span>
+        <h3>Внедрение Б24 силами отдела</h3>
+        <p>Внедрение Bitrix24 с погружением процессов компании. Сопоставимое внедрение у профильного интегратора обошлось бы в <b>несколько миллионов и заняло бы больше времени</b>. У нас - оплата только исполнителю за руки.</p>
+        <div class="m">Экономия: несколько млн ₽ против рыночного внедрения <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag grp">CRM</span>
+        <h3>CRM как инструмент управления, а не журнал</h3>
+        <p>CRM настроена <b>не как система фиксации сделок, а как инструмент управления отделами</b>: воронки, касания, эскалации. Плюс AI-аналитика звонков и переписки - обошли дев-затраты через свой стек (экономия ~200-250 тыс ₽ на разработке <span class="hyp">ГИПОТЕЗА</span>).</p>
+        <div class="m">Сдвиг: от «где записано» к «чем управляем» <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+      <div class="ach wide">
+        <span class="btag grp">BI · дашборды</span>
+        <h3>Экраны управления: РОП, производство, маркетплейсы</h3>
+        <p>Собран экран управления бизнесом - боевые дашборды: <b>РОП (активности и эскалации), производство, ОЗОН</b> (прибыль и убытки - видно, окупается ли каждый рубль рекламы). Это аналитика для управления (BI), которая на аутсорсе стоит дорого <span class="hyp">ГИПОТЕЗА</span>. Связь с деньгами прямая: видно потери, видно узкие места, управление процессами повышает эффективность и выхлоп.</p>
+        <div class="m">Ценность: <span class="k">управляемость</span> - решения по цифрам в реальном времени, а не по ощущениям <span class="hyp">ДАННЫЕ</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 ЗАДЕЛ -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">06</span><span class="lbl">Задел под оптимизацию</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Деньги, которые <span class="em">уже в системе</span></h2>
+      <p class="sec-sub">Аналитика маркетинга нашла не только новые каналы, но и места, где деньги теряются внутри. Это следующий слой роста - без дополнительного расхода на трафик.</p>
+    </div>
+    <div class="ach-grid">
+      <div class="ach">
+        <span class="btag grp">Продажи</span>
+        <h3>Застывшие сделки на крупные суммы</h3>
+        <p>На дашбордах видны <b>застывшие сделки с крупными суммами</b> в продажах. Это готовый задел для оптимизации: часть выручки уже в воронке, её нужно дожать, а не искать заново.</p>
+        <div class="m">Потенциал: возврат части замороженной выручки без затрат на новый трафик <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag grp">Производство</span>
+        <h3>Загрузка и очереди на производстве</h3>
+        <p>Дашборд производства показывает недополученную прибыль из-за <b>задержки ввода новинок</b> и неоптимальной загрузки. Управление очередями - прямой рычаг на прибыль.</p>
+        <div class="m">Потенциал: недополученная прибыль от задержек ввода становится измеримой и управляемой <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag grp">Качество</span>
+        <h3>Контроль качества: брак = риск потерять дизайнера</h3>
+        <p>Дополнительный контроль качества выпускаемой продукции. Логика: если дизайнер получает претензию от конечного клиента из-за нашего брака, <b>он перестаёт нас рекомендовать</b> - а это отток в базе постоянных клиентов, самый дорогой вид потерь.</p>
+        <div class="m">Защита: удержание дизайнерского канала и базы постоянных клиентов <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+      <div class="ach">
+        <span class="btag grp">Монтаж</span>
+        <h3>Повторные выезды на монтаж</h3>
+        <p>С частью заказов перемонтаж случается <b>по 3-4 раза</b>. Это прямые затраты и тот же риск потерять дизайнера. Точка, которую видно на данных и нужно закрывать в первую очередь.</p>
+        <div class="m">Потенциал: сокращение затрат на повторный монтаж плюс защита канала <span class="hyp">ГИПОТЕЗА</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 ЧЕСТНАЯ РАМКА -->
+  <section class="reveal pillar">
+    <div class="sec-head">
+      <span class="eyebrow"><span class="idx">07</span><span class="lbl">Честная рамка</span><span class="rule" aria-hidden="true"></span></span>
+      <h2 class="sec-title">Где мы <span class="em">на самом деле</span></h2>
+      <p class="sec-sub">Без надувания щёк. Что открыто признаём и над чем работаем - это часть отчёта, а не умолчание.</p>
+    </div>
+    <div class="risk-grid">
+      <div class="rc">
+        <h3>Растём, но недостаточно быстро</h3>
+        <p>По тоталу компания <b>не падает</b>, выручка выше прошлого года <span class="hyp">ГИПОТЕЗА</span>. Но рост идёт медленнее, чем выросли техническая база и администрация. Разрыв «база затрат растёт быстрее выручки» - главный рабочий вопрос, и мы отвечаем на него цифрами на дашбордах.</p>
+      </div>
+      <div class="rc open">
+        <h3>Концентрация на маркетплейсах и ОЗОН</h3>
+        <p>Слишком много завязано на маркетплейсы и лично на ОЗОН. <b>Вылет площадки = удар по бизнесу.</b> Это большой риск, и именно поэтому диверсификация каналов - приоритет, а не факультатив.</p>
+      </div>
+      <div class="rc">
+        <h3>Задел важнее оправданий</h3>
+        <p>Значительная часть результата - это <b>активы и заделы</b> (продукты, каналы, дашборды, найденные потери), которые дают отдачу не в момент запуска, а на горизонте. Это долг компании перед собой, который уже профинансирован работой отдела.</p>
+      </div>
+      <div class="rc">
+        <h3>Что дальше</h3>
+        <p>Приоритеты следующего периода: дожать денежные треки маркетплейсов, закрыть склейку воронок и инфраструктуру привлечения заявок, масштабировать GM по новым ЦА, диверсифицировать каналы. <b>Каждая задача - с меткой денежного потенциала.</b></p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="seal"><span class="d"></span>GENGROUP · достижения маркетинга за год · от директора по маркетингу</div>
+    <div style="margin-top:8px">Метка <span class="hyp">ДАННЫЕ</span> - подтверждённый факт. Метка <span class="hyp">ГИПОТЕЗА</span> - оценка, которую подтверждаем цифрами на дашбордах перед вынесением в решения. Финансовые оценки не выдаются за точные суммы.</div>
+  </footer>
+</div>
+
+<script>
+  var prog=document.getElementById('prog');
+  function onScroll(){var h=document.documentElement;prog.style.width=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100+'%';}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+</script>
+<script src="theme.js" defer></script>
+</body>
+</html>

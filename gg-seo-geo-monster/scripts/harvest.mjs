@@ -79,7 +79,11 @@ async function keysoGroupRid(p) {
   const pending = meta.sources.keysso && meta.sources.keysso.pending_rid && meta.sources.keysso.pending_rid[p.id];
   let rid = pending || null;
   if (!rid) {
-    const created = await keysoPost("/report/group", { base: KEYSO_DB, top: 50, domains: [p.domain], name: `geo-monster-${p.id}-${today()}` });
+    // API требует >1 домена: групповой отчёт - это сравнение. Даём наш домен +
+    // конкурентов из конфига: получаем и свои фразы, и конкурентный срез разом.
+    const domains = [p.domain, ...(p.competitors || []).slice(0, 5)];
+    if (domains.length < 2) domains.push("yandex.ru"); // технический добивочный домен, если конкуренты не заведены
+    const created = await keysoPost("/report/group", { base: KEYSO_DB, top: 50, domains, name: `geo-monster-${p.id}-${today()}` });
     rid = created.rid || pick(created, ["rid", "report_id", "id"]);
     if (!rid) throw new Error("group report: rid не получен: " + JSON.stringify(created).slice(0, 150));
   }
@@ -124,9 +128,20 @@ async function harvestKeyso(p) {
   if (meta.sources.keysso && meta.sources.keysso.pending_rid) delete meta.sources.keysso.pending_rid[p.id];
   const compJson = await keyso("/report/simple/organic/concurents", { base: KEYSO_DB, domain: p.domain, top: 10 });
 
+  // строка группового отчёта может нести позиции по каждому домену группы -
+  // ищем позицию именно нашего домена, иначе общий pos
+  const posForDomain = (r, domain) => {
+    const d = domain.toLowerCase();
+    for (const [k, v] of Object.entries(r)) {
+      if (!k.toLowerCase().includes(d)) continue;
+      if (typeof v === "number") return v;
+      if (v && typeof v === "object") { const n = pick(v, ["pos", "position"], true); if (n != null) return n; }
+    }
+    return pick(r, ["pos", "position"], true);
+  };
   const keywords = pickRows(kwJson).map((r) => ({
     phrase: pick(r, ["phrase", "keyword", "query", "name"]) || "",
-    pos: pick(r, ["pos", "position"], true),
+    pos: posForDomain(r, p.domain),
     freq: pick(r, ["ws", "freq", "wordstat", "shows"], true) || 0,
     url: pick(r, ["url", "page"]) || ""
   })).filter((k) => k.phrase);

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<title>Карточка · Матовый стол МДФ в экошпоне · GENGLASS · прототип</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14140F;--ink2:#54524C;--ink3:#8A887F;--paper:#F4F2ED;--paper2:#EBE7E0;
+    --matte1:#2A2C30;--matte2:#191A1D;--matte3:#0E0F11;
+    --core:#D9CFBB;--core2:#C7BBA1;--film:#1B1C1F;
+    --line:#E0DBD1;--drop-hl:#F4F5F6;
+    --card-w:468px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#E7E5E1;color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+
+  .head{max-width:1180px;margin:0 auto;padding:38px 24px 8px}
+  .head .eye{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+  .head h1{font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:-.03em;margin:8px 0 10px;line-height:1.06}
+  .head p{max-width:78ch;color:var(--ink2);font-size:14.5px}
+  .head p b{color:var(--ink)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{font-size:12px;font-weight:600;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 13px}
+  .chip b{color:var(--ink)}
+
+  .rail{max-width:1180px;margin:26px auto 0;padding:0 24px 10px;display:flex;flex-wrap:wrap;gap:26px}
+  .slide{position:relative;width:var(--card-w);max-width:100%;aspect-ratio:3/4;border-radius:22px;overflow:hidden;
+    box-shadow:0 2px 4px rgba(20,16,10,.06),0 30px 60px rgba(20,16,10,.16);background:#fff;isolation:isolate}
+  .s-num{position:absolute;top:15px;right:17px;z-index:9;font-size:12px;font-weight:800;letter-spacing:.05em}
+  .slide.dark .s-num{color:rgba(255,255,255,.5)} .slide.light .s-num{color:var(--ink3)}
+  .mk{position:absolute;top:14px;left:17px;z-index:9;font-size:10.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+  .mk .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .slide.dark .mk{color:rgba(255,255,255,.72)} .slide.dark .mk .dot{background:#E9C77E}
+  .slide.light .mk{color:var(--ink)} .slide.light .mk .dot{background:var(--ink)}
+  .photo-tag{position:absolute;bottom:13px;right:15px;z-index:9;font-size:10px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.4)}
+  .slide.light .photo-tag{color:var(--ink3)}
+
+  /* фоны */
+  .bg{position:absolute;inset:0;z-index:0}
+  .matte{background:radial-gradient(135% 100% at 50% -18%,var(--matte1),var(--matte2) 56%,var(--matte3) 100%)}
+  .lightbg{background:linear-gradient(180deg,var(--paper),var(--paper2))}
+  .whitebg{background:#fff}
+  /* сплит: светлый верх + тёмный низ (как в референсе) */
+  .lighttop{position:absolute;left:0;right:0;top:0;height:41%;z-index:2;background:linear-gradient(180deg,var(--paper),var(--paper2))}
+  .darkbot{position:absolute;left:0;right:0;top:41%;bottom:0;z-index:1;background:radial-gradient(120% 90% at 60% 120%,var(--matte1),var(--matte2) 70%)}
+
+  /* СТОЛЕШНИЦА - плоская, читается как стол */
+  .tabletop{position:absolute;z-index:2;left:50%;transform:translateX(-50%);border-radius:50%;
+    background:radial-gradient(90% 120% at 50% 8%,#3A3C41 0%,#282A2E 26%,#191A1D 58%,#101113 100%);
+    box-shadow:0 -18px 40px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.07)}
+  .tabletop::after{content:"";position:absolute;left:14%;right:14%;top:8%;height:30%;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(255,255,255,.10),transparent 74%);filter:blur(7px)}
+
+  /* капли воды - чёткие */
+  .drop{position:absolute;z-index:4;border-radius:50% 50% 50% 50%/58% 58% 42% 42%;
+    background:radial-gradient(58% 52% at 40% 26%,rgba(255,255,255,.65),rgba(150,154,160,.28) 44%,rgba(8,9,10,.72) 82%);
+    box-shadow:0 4px 7px rgba(0,0,0,.45),inset 0 -2px 3px rgba(255,255,255,.14)}
+  .drop::after{content:"";position:absolute;top:14%;left:26%;width:26%;height:22%;border-radius:50%;background:rgba(255,255,255,.85);filter:blur(.4px)}
+
+  /* тряпка-микрофибра - светлая, ясная */
+  .cloth{position:absolute;z-index:5;width:38%;height:22%;border-radius:16px 30px 20px 26px;transform:rotate(-11deg);
+    background:linear-gradient(150deg,#EDEBE7 0%,#D6D3CC 52%,#B9B5AC 100%);
+    box-shadow:0 16px 28px rgba(0,0,0,.42),inset 0 2px 4px rgba(255,255,255,.7),inset 0 -6px 12px rgba(0,0,0,.10)}
+  .cloth::before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.5;
+    background:repeating-linear-gradient(52deg,rgba(0,0,0,.05) 0 1px,transparent 1px 6px)}
+  .cloth::after{content:"";position:absolute;left:16%;top:0;bottom:14%;width:3px;border-radius:3px;transform:rotate(6deg);
+    background:linear-gradient(rgba(0,0,0,.14),transparent);filter:blur(.5px)}
+
+  /* матовая плоскость (стабильность / фактура) */
+  .plane{position:absolute;z-index:2;left:-8%;right:-8%;bottom:-4%;height:60%;transform:perspective(760px) rotateX(62deg);transform-origin:bottom;
+    background:linear-gradient(180deg,#30322E,#1a1b18);box-shadow:inset 0 6px 26px rgba(0,0,0,.4)}
+  .plane .edgehl{position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent)}
+  .swatch{position:absolute;z-index:2;left:12%;right:12%;top:44%;bottom:20%;border-radius:16px;
+    background:radial-gradient(120% 120% at 30% 20%,#33352F,#1c1d1a 70%);box-shadow:0 20px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06)}
+
+  /* типографика */
+  .pad{position:absolute;z-index:7;left:34px;right:34px}
+  .pad.top{top:54px} .pad.mid{top:50px}
+  .kicker{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+  .slide.dark .kicker{color:rgba(255,255,255,.5)}
+  .h{font-weight:900;letter-spacing:-.035em;line-height:1.02;font-size:39px}
+  .h.sm{font-size:31px}
+  .sub{margin-top:13px;font-size:15.5px;line-height:1.42;font-weight:500;color:var(--ink2);max-width:25ch}
+  .slide.dark .h{color:#fff} .slide.dark .sub{color:rgba(255,255,255,.8)} .onink{color:var(--ink)}
+
+  .callout{position:absolute;z-index:8;font-size:14.5px;font-weight:700;line-height:1.18;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.55)}
+  .callout.d{color:var(--ink);text-shadow:none}
+  .lead{position:absolute;z-index:7;pointer-events:none}
+  .lead path{stroke:rgba(255,255,255,.82);stroke-width:2;stroke-dasharray:3 5;fill:none;stroke-linecap:round}
+  .lead.d path{stroke:rgba(20,20,15,.55)}
+
+  /* диаграмма-разрез торца */
+  .diag{position:absolute;z-index:4;left:26px;right:26px;top:46%;bottom:44px}
+  .diag svg{width:100%;height:100%;overflow:visible}
+  .dlabel{position:absolute;z-index:6;font-size:12.5px;font-weight:700;color:var(--ink)}
+  .dlabel span{color:var(--ink3);font-weight:600}
+
+  /* спеки + cta */
+  .specs{list-style:none;margin:20px 0 0;padding:0}
+  .specs li{display:flex;justify-content:space-between;gap:14px;font-size:14.5px;padding:10.5px 0;border-top:1px solid var(--line)}
+  .specs li:first-child{border-top:none}
+  .specs .k{color:var(--ink2)} .specs .v{font-weight:700;color:var(--ink);text-align:right}
+  .trust{margin-top:16px;font-size:13px;color:var(--ink2)} .trust b{color:var(--ink)}
+  .care{margin-top:8px;font-size:12px;color:var(--ink3)}
+  .cta{position:absolute;left:34px;right:34px;bottom:30px;z-index:8;display:flex;align-items:center;justify-content:center;gap:8px;
+    height:54px;border-radius:14px;background:var(--ink);color:#fff;font-weight:800;font-size:16px}
+
+  .note{max-width:1180px;margin:30px auto 60px;padding:0 24px}
+  .notecard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px}
+  .notecard h3{font-size:15px;font-weight:800;margin-bottom:4px}
+  .notecard .muted{color:var(--ink3);font-size:12.5px;margin-bottom:14px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}}
+  .cols h4{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+  .cols ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+  .cols li{font-size:13.5px;color:var(--ink2);line-height:1.45;padding-left:24px;position:relative} .cols li b{color:var(--ink)}
+  .cols li::before{position:absolute;left:0;top:-1px;font-size:14px}
+  .cols li.ok::before{content:"✓";color:#2B7150;font-weight:800}
+  .cols li.warn::before{content:"!";color:#B0641E;font-weight:900;left:4px}
+  .cols li.slot::before{content:"▣";color:var(--ink3)}
+  .foot{max-width:1180px;margin:0 auto;padding:0 24px 60px;color:var(--ink3);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="eye">GENGLASS · КАРТОЧКА ТОВАРА · ПРОТОТИП</div>
+  <h1>Матовый обеденный стол · МДФ в экошпоне</h1>
+  <p>Материал: <b>МДФ 25&nbsp;мм в экошпоне</b> - премиальная высокопрочная плёнка. Матовый тон, стойкость к протирке, <b>бесшовный обёрнутый торец</b> (плёнка заходит с поверхности и подрезается снизу). Слов по минимуму: один слайд - одно УТП и одна эмоция. Фон слайдов - заглушка под съёмку, <b>в финал ставится реальное фото</b> в этих ракурсах.</p>
+  <div class="meta">
+    <span class="chip"><b>6</b> слайдов · 3:4 (WB/OZON)</span>
+    <span class="chip">материал: <b>МДФ + экошпон</b></span>
+    <span class="chip">торец: <b>плёнка через край, без шва</b></span>
+    <span class="chip">тон: уверенный, без пафоса</span>
+    <span class="chip">цифры под сверку карты товара</span>
+  </div>
+</div>
+
+<div class="rail">
+
+  <!-- 1 · ОБЛОЖКА -->
+  <div class="slide dark">
+    <div class="bg matte"></div>
+    <div class="tabletop" style="width:150%;height:52%;bottom:-9%"></div>
+    <div class="mk"><span class="dot"></span>GENGLASS</div>
+    <div class="s-num">01 / 06</div>
+    <div class="pad top">
+      <div class="kicker">обеденные столы</div>
+      <div class="h">Матовый.<br>Ровный.<br>Спокойный.</div>
+      <div class="sub">Столешница МДФ 25&nbsp;мм в экошпоне. Матовый тон, который выглядит дороже.</div>
+    </div>
+    <div class="photo-tag">сюда фото стола</div>
+  </div>
+
+  <!-- 2 · УХОД -->
+  <div class="slide light">
+    <div class="lighttop"></div>
+    <div class="darkbot"></div>
+    <div class="drop" style="width:32px;height:25px;left:16%;top:66%"></div>
+    <div class="drop" style="width:19px;height:15px;left:27%;top:60%"></div>
+    <div class="drop" style="width:13px;height:10px;left:23%;top:74%"></div>
+    <div class="drop" style="width:24px;height:19px;left:41%;top:72%"></div>
+    <div class="cloth" style="right:9%;top:56%"></div>
+    <div class="mk"><span class="dot"></span>ЭКОШПОН · 25&nbsp;ММ</div>
+    <div class="s-num">02 / 06</div>
+    <div class="pad top">
+      <div class="h sm">Уход в одно движение</div>
+      <div class="sub">Протёр влажной тканью - и как новый. Экошпон не держит разводы и следы от пальцев.</div>
+    </div>
+    <div class="callout" style="left:34px;top:62%;max-width:9ch">матовый тон без бликов</div>
+    <svg class="lead" style="left:152px;top:65%;width:66px;height:38px" viewBox="0 0 66 38"><path d="M4 28 C 28 28 40 15 58 8"/><path d="M58 8 l-9 1 M58 8 l-1 9"/></svg>
+    <div class="callout" style="right:30px;bottom:15%;text-align:right;max-width:9ch">вода собирается каплей</div>
+    <svg class="lead" style="right:150px;bottom:17%;width:74px;height:48px" viewBox="0 0 74 48"><path d="M70 8 C 44 8 28 28 8 40"/><path d="M8 40 l10 -1 M8 40 l0 -10"/></svg>
+    <div class="photo-tag">сюда фото: рука + микрофибра</div>
+  </div>
+
+  <!-- 3 · ТОРЕЦ (разрез, плёнка обёрнута) -->
+  <div class="slide light">
+    <div class="bg lightbg"></div>
+    <div class="mk"><span class="dot"></span>КРАЙ СТОЛЕШНИЦЫ</div>
+    <div class="s-num">03 / 06</div>
+    <div class="pad top">
+      <div class="kicker">торец</div>
+      <div class="h sm onink">Край без шва</div>
+      <div class="sub">Плёнка заходит с поверхности, огибает край и подрезается снизу. Сверху и сбоку ни стыка, ни пластиковой кромки.</div>
+    </div>
+    <div class="diag">
+      <svg viewBox="0 0 380 190" preserveAspectRatio="xMidYMid meet">
+        <!-- сердцевина МДФ -->
+        <path d="M14 78 H320 a26 26 0 0 1 26 26 v6 a26 26 0 0 1 -26 26 H14 Z" fill="#D9CFBB"/>
+        <path d="M14 78 H320 a26 26 0 0 1 26 26 v6 a26 26 0 0 1 -26 26 H14 Z" fill="none" stroke="#B9AC8F" stroke-width="1"/>
+        <!-- волокно МДФ -->
+        <g stroke="#C3B79B" stroke-width="1" opacity=".7">
+          <line x1="22" y1="92" x2="300" y2="92"/><line x1="22" y1="104" x2="300" y2="104"/>
+          <line x1="22" y1="116" x2="300" y2="116"/><line x1="22" y1="128" x2="300" y2="128"/>
+        </g>
+        <!-- плёнка экошпон: с поверхности, через край, подрезка снизу -->
+        <path d="M8 72 H322 a32 32 0 0 1 32 32 v6 a32 32 0 0 1 -32 32 H300" fill="none" stroke="#1B1C1F" stroke-width="11" stroke-linecap="round"/>
+        <!-- точка подреза -->
+        <circle cx="300" cy="142" r="4.5" fill="#1B1C1F"/>
+      </svg>
+    </div>
+    <div class="dlabel" style="left:40px;top:47%">экошпон <span>с поверхности</span></div>
+    <div class="dlabel" style="right:34px;bottom:16%;text-align:right">подрезка <span>под столешницей</span></div>
+    <svg class="lead d" style="right:60px;bottom:22%;width:64px;height:44px" viewBox="0 0 64 44"><path d="M60 6 C 40 6 30 22 20 36"/><path d="M20 36 l9 -2 M20 36 l1 -9"/></svg>
+  </div>
+
+  <!-- 4 · СТАБИЛЬНОСТЬ -->
+  <div class="slide light">
+    <div class="bg lightbg"></div>
+    <div class="plane"><span class="edgehl"></span></div>
+    <div class="mk"><span class="dot"></span>ГЕОМЕТРИЯ</div>
+    <div class="s-num">04 / 06</div>
+    <div class="pad top">
+      <div class="h sm onink">Не поведёт,<br>не рассохнется</div>
+      <div class="sub">Плита 25&nbsp;мм держит форму. Не трескается по волокну, как массив дерева.</div>
+    </div>
+    <div class="callout d" style="left:34px;bottom:24%;max-width:11ch">ровная плоскость без волн</div>
+  </div>
+
+  <!-- 5 · ФАКТУРА -->
+  <div class="slide dark">
+    <div class="bg matte"></div>
+    <div class="swatch"></div>
+    <div class="mk"><span class="dot"></span>ЭКОШПОН</div>
+    <div class="s-num">05 / 06</div>
+    <div class="pad mid">
+      <div class="h sm">Матовый в глубину</div>
+      <div class="sub">Тёплый на ощупь, без зеркального блеска. Тон, который успокаивает интерьер.</div>
+    </div>
+    <div class="photo-tag">сюда макро фактуры</div>
+  </div>
+
+  <!-- 6 · СПЕКИ + CTA -->
+  <div class="slide light">
+    <div class="bg whitebg"></div>
+    <div class="mk"><span class="dot"></span>GENGLASS</div>
+    <div class="s-num">06 / 06</div>
+    <div class="pad top" style="top:44px">
+      <div class="h sm onink">Коротко о столе</div>
+      <ul class="specs">
+        <li><span class="k">Столешница</span><span class="v">МДФ 25&nbsp;мм</span></li>
+        <li><span class="k">Покрытие</span><span class="v">экошпон, матовый</span></li>
+        <li><span class="k">Торец</span><span class="v">бесшовный, плёнка через край</span></li>
+        <li><span class="k">Основание</span><span class="v">металл</span></li>
+        <li><span class="k">Форма</span><span class="v">круг / овал</span></li>
+        <li><span class="k">Производство</span><span class="v">своё, Домодедово</span></li>
+      </ul>
+      <div class="trust"><b>Делаем сами.</b> Гарантия и замер от производителя, не перепродажа.</div>
+      <div class="care">Уход: протирать влажной тканью, без абразива.</div>
+    </div>
+    <div class="cta">В корзину
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <div class="notecard">
+    <h3>Перед публикацией (внутреннее, на слайды не идёт)</h3>
+    <div class="muted">Материал и цифры сверяем со спекой до выкладки. На маркетплейсе честный слайд = меньше возвратов = выше рейтинг.</div>
+    <div class="cols">
+      <div>
+        <h4>Сверить со спекой</h4>
+        <ul>
+          <li class="warn"><b>Класс экошпона</b> и его влаго/термо/царапино-стойкость - от них зависят формулировки. Подача «протёр» безопасна.</li>
+          <li class="warn"><b>25&nbsp;мм</b>, макс. нагрузка, размеры, форма, вес - из карты товара.</li>
+          <li class="warn"><b>Гарантия</b> - срок из регламента, поставить на слайд 6.</li>
+          <li class="warn"><b>Термостойкость</b> плёнки (горячая кружка/посуда) - добавить в уход, если есть ограничение.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Исправлено по правкам</h4>
+        <ul>
+          <li class="ok">материал: <b>МДФ + экошпон</b> (премиальная плёнка), не «крашеный МДФ»</li>
+          <li class="ok">торец: <b>плёнка обёрнута через край, подрезка снизу</b> - не крашеный</li>
+          <li class="ok">убрано «монолитный»; заголовок торца «Дороже, чем ценник» → «Край без шва»</li>
+          <li class="slot">фото-слоты: 01 стол · 02 рука+микрофибра+капли · 05 макро фактуры</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">GENGLASS · прототип карточки «Матовый стол МДФ в экошпоне» · фон слайдов - заглушка под съёмку · цифры под сверку карты товара 1С/Bitrix24.</div>
+
+</body>
+</html>

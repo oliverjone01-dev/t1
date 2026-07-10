@@ -1,0 +1,246 @@
+{
+  "result": {
+    "BidModifiers": [
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668469,
+        "Id": 102095375567,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668465,
+        "Id": 102095375568,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700609,
+        "Id": 102095375569,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668467,
+        "Id": 102095375570,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700610,
+        "Id": 102095375571,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668476,
+        "Id": 102095375572,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668462,
+        "Id": 102095375573,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 150
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668472,
+        "Id": 102095375574,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 175
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668475,
+        "Id": 102095375575,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 175
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668466,
+        "Id": 102095672595,
+        "Level": "AD_GROUP",
+        "Type": "MOBILE_ADJUSTMENT",
+        "MobileAdjustment": {
+          "BidModifier": 200
+        }
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668467,
+        "Id": 272095375549,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700610,
+        "Id": 272095375550,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668465,
+        "Id": 272095375551,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700609,
+        "Id": 272095375552,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668469,
+        "Id": 272095375553,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668475,
+        "Id": 272095375554,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668472,
+        "Id": 272095375555,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668462,
+        "Id": 272095375556,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668476,
+        "Id": 272095375557,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668466,
+        "Id": 272095672597,
+        "Level": "AD_GROUP",
+        "Type": "TABLET_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668462,
+        "Id": 282095375558,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668465,
+        "Id": 282095375559,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668467,
+        "Id": 282095375560,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668469,
+        "Id": 282095375561,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668472,
+        "Id": 282095375562,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668475,
+        "Id": 282095375563,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668476,
+        "Id": 282095375564,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700609,
+        "Id": 282095375565,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700610,
+        "Id": 282095375566,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      },
+      {
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668466,
+        "Id": 282095672596,
+        "Level": "AD_GROUP",
+        "Type": "DESKTOP_ONLY_ADJUSTMENT"
+      }
+    ]
+  }
+}

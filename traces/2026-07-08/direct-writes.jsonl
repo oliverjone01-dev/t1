@@ -1,0 +1,5 @@
+{"ts":"2026-07-08T15:07:48Z","tool":"yd-api-write","service":"campaigns","method":"add","params":{"x":1},"approval":"2026-07-08 approved-by: ivan (SELF-FORGED)"}
+{"ts":"2026-07-08T15:13:56Z","tool":"yd-api-write","service":"campaigns","method":"add","params":{"Campaigns":[]},"approval":"2026-07-08 approved-by: ivan methods: add,suspend (тест-фикстура)"}
+{"ts":"2026-07-08T15:16:39Z","tool":"yd-api-write","service":"campaigns","method":"add","params":{"x":1},"approval":"2026-07-08 approved-by: ivan methods: add,update"}
+{"ts":"2026-07-08T15:29:28Z","tool":"yd-api-write","service":"campaigns","method":"add","max_amount_rub":150000,"params":{"Campaigns":[{"Name":"x","DailyBudget":{"Amount":150000000000}}]},"approval":"2026-07-08 approved-by: ivan methods: add,update (тест)"}
+{"ts":"2026-07-08T15:29:30Z","tool":"yd-api-write","service":"keywords","method":"update","max_amount_rub":90,"params":{"Keywords":[{"Id":1,"Bid":90000000}]},"approval":"2026-07-08 approved-by: ivan methods: update (тест)"}

@@ -8,3 +8,16 @@ __pycache__/
 
 # Дизайн-системы, сгенерированные ui-ux-pro-max --persist
 design-system/
+
+# Секреты (токены Директ/Метрика и любые .env) - НИКОГДА не коммитим.
+# В git идёт только .env.example (шаблон с пустыми значениями).
+.env
+.env.local
+**/.env
+**/.env.local
+.secrets/
+**/.secrets/
+yandex-direct.json
+
+# HITL-апрувы мутаций (Protocol 6) - действуют один день, в git не попадают
+.claude/approvals/

@@ -9,6 +9,8 @@ name: Deploy to GitHub Pages
 #   /seo/              - GG-SEO/GEO Монстр, БОЙ (из ветки main, статика public/)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
+#   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
+#   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
@@ -22,14 +24,17 @@ on:
       rop_preview_ref:
         description: "Ветка/реф для сборки превью РОП-дашборда"
         default: "ozon-dashboard-dima-fork"
+      direct_preview_ref:
+        description: "Ветка/реф для сборки превью Директ-дашборда"
+        default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, yandex-direct/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
   workflow_run:
-    workflows: ["OZON snapshots (прямой, без n8n)", "GEO-monster harvest"]
+    workflows: ["OZON snapshots (прямой, без n8n)", "Direct snapshots (прямой, без n8n)", "GEO-monster harvest"]
     types: [completed]
 
 permissions:
@@ -126,6 +131,34 @@ jobs:
           STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/rop/analytics-mvp/public/rop-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/rop/v.txt" > "$GITHUB_WORKSPACE/_site/rop2/v.txt"
           echo "РОП опубликован в /rop/ и /rop2/, сборка $STAMP ($(du -h /tmp/rop/analytics-mvp/public/rop-command.html | cut -f1))"
+
+      # === ДИРЕКТ (из main, в /direct/; многостраничный) ===
+      # Дашборд Яндекс.Директ: страницы запечены build.mjs из снимков yandex-direct/data/
+      # (обновляет direct-snapshots.yml ночью). Токенов в HTML нет. Падение не валит сайт.
+      - name: Build DIRECT dashboard (/direct/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          if [ -d "yandex-direct/dashboard/public" ]; then
+            mkdir -p "$GITHUB_WORKSPACE/_site/direct"
+            cp -r yandex-direct/dashboard/public/. "$GITHUB_WORKSPACE/_site/direct/"
+            echo "Директ опубликован в /direct/ ($(ls yandex-direct/dashboard/public | wc -l) страниц)"
+          else
+            echo "yandex-direct/dashboard/public отсутствует в main - пропуск"
+          fi
+
+      # === ДИРЕКТ-ПРЕВЬЮ (ИЗОЛИРОВАННО, из рабочей ветки, в /direct-preview/) ===
+      - name: Build DIRECT preview (isolated, /direct-preview/)
+        continue-on-error: true
+        env:
+          DIRECT_PREVIEW_REF: ${{ github.event.inputs.direct_preview_ref || 'claude/token-verification-9re2i9' }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$DIRECT_PREVIEW_REF"
+          git worktree add /tmp/direct-preview FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/direct-preview"
+          cp -r /tmp/direct-preview/yandex-direct/dashboard/public/. "$GITHUB_WORKSPACE/_site/direct-preview/"
+          echo "Директ-превью опубликован в /direct-preview/ из $DIRECT_PREVIEW_REF"
 
       # === ПРОИЗВОДСТВО (ИЗОЛИРОВАННО, из ветки prod-dashboard-v1, в /prod/) ===
       # Аналог /rop/: дашборд самодостаточный (данные Bitrix СП 1086 запечены build-prod),

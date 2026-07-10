@@ -1,13 +1,117 @@
 {
  "domain": "genglass.ru",
  "measured": "2026-07-10",
- "visibility": null,
+ "visibility": 11,
  "ai_answers": 31,
- "keywords_total": 1,
- "top1": 0,
- "top3": 0,
- "top10": 0,
- "top50": 0,
+ "keywords_total": 1937,
+ "top1": 9,
+ "top3": 38,
+ "top10": 271,
+ "top50": 1937,
+ "top_pages": [
+  {
+   "url": "/product-category/mirrors/floor",
+   "keywords_top50": 175
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu",
+   "keywords_top50": 155
+  },
+  {
+   "url": "/zerkala-na-zakaz",
+   "keywords_top50": 137
+  },
+  {
+   "url": "/product-category/mirrors",
+   "keywords_top50": 124
+  },
+  {
+   "url": "/product-category/mirrors/led",
+   "keywords_top50": 84
+  },
+  {
+   "url": "/product-category/tables",
+   "keywords_top50": 65
+  },
+  {
+   "url": "/stellazhi-i-polki-na-zakaz",
+   "keywords_top50": 64
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-ovalnoe",
+   "keywords_top50": 63
+  },
+  {
+   "url": "/stoly-na-zakaz",
+   "keywords_top50": 56
+  },
+  {
+   "url": "/product-category/mirrors/dizajnerskie",
+   "keywords_top50": 51
+  }
+ ],
+ "ad_keywords": [
+  {
+   "phrase": "перегородка с аркой",
+   "pos": 1,
+   "freq": 74,
+   "url": ""
+  },
+  {
+   "phrase": "лофт перегородка из металла и стекла цена",
+   "pos": 0,
+   "freq": 11,
+   "url": ""
+  },
+  {
+   "phrase": "напольные зеркала",
+   "pos": 0,
+   "freq": 15733,
+   "url": ""
+  },
+  {
+   "phrase": "стеллаж перегородки",
+   "pos": 0,
+   "freq": 4217,
+   "url": ""
+  },
+  {
+   "phrase": "перегородки интерьерные для зонирования",
+   "pos": 0,
+   "freq": 171,
+   "url": ""
+  },
+  {
+   "phrase": "межкомнатные перегородки в стиле лофт",
+   "pos": 0,
+   "freq": 40,
+   "url": ""
+  },
+  {
+   "phrase": "перегородка резная для зонирования",
+   "pos": 0,
+   "freq": 66,
+   "url": ""
+  },
+  {
+   "phrase": "межкомнатная перегородка гармошка раздвижная",
+   "pos": 0,
+   "freq": 60,
+   "url": ""
+  },
+  {
+   "phrase": "интерьерные перегородки для зонирования",
+   "pos": 1,
+   "freq": 188,
+   "url": ""
+  },
+  {
+   "phrase": "перегородка с зеркалом",
+   "pos": 0,
+   "freq": 128,
+   "url": ""
+  }
+ ],
  "history": [
   {
    "date": "2026-07-10",
@@ -18,10 +122,707 @@
    "date": "2026-07-10",
    "visibility": 0,
    "top10": 0
+  },
+  {
+   "date": "2026-07-10",
+   "visibility": 11,
+   "top10": 271
   }
  ],
- "keywords": [],
- "competitors": [],
+ "keywords": [
+  {
+   "phrase": "высота зеркала в ванной",
+   "pos": null,
+   "freq": 3861,
+   "url": ""
+  },
+  {
+   "phrase": "изготовление стеклянных столов на заказ",
+   "pos": null,
+   "freq": 20,
+   "url": ""
+  },
+  {
+   "phrase": "столи",
+   "pos": null,
+   "freq": 5809,
+   "url": ""
+  },
+  {
+   "phrase": "магнитная доска для офиса",
+   "pos": null,
+   "freq": 355,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало в пол",
+   "pos": null,
+   "freq": 6277,
+   "url": ""
+  },
+  {
+   "phrase": "полы из половой доски",
+   "pos": null,
+   "freq": 1224,
+   "url": ""
+  },
+  {
+   "phrase": "декоративная мебель",
+   "pos": null,
+   "freq": 5991,
+   "url": ""
+  },
+  {
+   "phrase": "дизайнерские барные стулья",
+   "pos": null,
+   "freq": 171,
+   "url": ""
+  },
+  {
+   "phrase": "межкомнатная перегородка раздвижная для квартиры цена",
+   "pos": null,
+   "freq": 179,
+   "url": ""
+  },
+  {
+   "phrase": "интерьеры лофт",
+   "pos": null,
+   "freq": 8263,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало над кроватью",
+   "pos": null,
+   "freq": 377,
+   "url": ""
+  },
+  {
+   "phrase": "стулья в стиле лофт",
+   "pos": null,
+   "freq": 1175,
+   "url": ""
+  },
+  {
+   "phrase": "роскошная мебель",
+   "pos": null,
+   "freq": 430,
+   "url": ""
+  },
+  {
+   "phrase": "большое зеркало в прихожей",
+   "pos": null,
+   "freq": 1620,
+   "url": ""
+  },
+  {
+   "phrase": "российские дизайнеры мебели",
+   "pos": null,
+   "freq": 67,
+   "url": ""
+  },
+  {
+   "phrase": "кофейные столики купить",
+   "pos": null,
+   "freq": 892,
+   "url": ""
+  },
+  {
+   "phrase": "стиль лофт что это такое",
+   "pos": null,
+   "freq": 337,
+   "url": ""
+  },
+  {
+   "phrase": "раздвижная перегородка гармошка",
+   "pos": null,
+   "freq": 465,
+   "url": ""
+  },
+  {
+   "phrase": "акриловое зеркало",
+   "pos": null,
+   "freq": 1968,
+   "url": ""
+  },
+  {
+   "phrase": "loft com",
+   "pos": null,
+   "freq": 148,
+   "url": ""
+  },
+  {
+   "phrase": "дубль дом",
+   "pos": null,
+   "freq": 6692,
+   "url": ""
+  },
+  {
+   "phrase": "zerkala ru",
+   "pos": null,
+   "freq": 285,
+   "url": ""
+  },
+  {
+   "phrase": "дизайнерская мебель",
+   "pos": null,
+   "freq": 6766,
+   "url": ""
+  },
+  {
+   "phrase": "барный стул купить в спб",
+   "pos": null,
+   "freq": 504,
+   "url": ""
+  },
+  {
+   "phrase": "как самому сделать зеркало",
+   "pos": null,
+   "freq": 573,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало настенное в раме",
+   "pos": null,
+   "freq": 311,
+   "url": ""
+  },
+  {
+   "phrase": "магазин света эдисон",
+   "pos": null,
+   "freq": 72,
+   "url": ""
+  },
+  {
+   "phrase": "вешалка манекен",
+   "pos": null,
+   "freq": 262,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало с внутренней подсветкой",
+   "pos": null,
+   "freq": 104,
+   "url": ""
+  },
+  {
+   "phrase": "интерьерные салоны",
+   "pos": null,
+   "freq": 1450,
+   "url": ""
+  },
+  {
+   "phrase": "складные перегородки",
+   "pos": null,
+   "freq": 2588,
+   "url": ""
+  },
+  {
+   "phrase": "круглое зеркало с подсветкой",
+   "pos": null,
+   "freq": 2948,
+   "url": ""
+  },
+  {
+   "phrase": "кофейный столик купить",
+   "pos": null,
+   "freq": 892,
+   "url": ""
+  },
+  {
+   "phrase": "спальня с зеркалами",
+   "pos": null,
+   "freq": 5618,
+   "url": ""
+  },
+  {
+   "phrase": "стильное кресло",
+   "pos": null,
+   "freq": 949,
+   "url": ""
+  },
+  {
+   "phrase": "стол обеденный купить в самаре",
+   "pos": null,
+   "freq": 99,
+   "url": ""
+  },
+  {
+   "phrase": "купить стеклянный стол",
+   "pos": null,
+   "freq": 3106,
+   "url": ""
+  },
+  {
+   "phrase": "шкафчик для ванны с зеркалом",
+   "pos": null,
+   "freq": 767,
+   "url": ""
+  },
+  {
+   "phrase": "стол обеденный стеклянный овальный",
+   "pos": null,
+   "freq": 56,
+   "url": ""
+  },
+  {
+   "phrase": "лофт журнальный столик",
+   "pos": null,
+   "freq": 1065,
+   "url": ""
+  },
+  {
+   "phrase": "артефакты это",
+   "pos": null,
+   "freq": 11089,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало с лед подсветкой",
+   "pos": null,
+   "freq": 388,
+   "url": ""
+  },
+  {
+   "phrase": "межкомнатная перегородка раздвижная",
+   "pos": null,
+   "freq": 7173,
+   "url": ""
+  },
+  {
+   "phrase": "деревянное покрытие",
+   "pos": null,
+   "freq": 14411,
+   "url": ""
+  },
+  {
+   "phrase": "диван дизайн",
+   "pos": null,
+   "freq": 11285,
+   "url": ""
+  },
+  {
+   "phrase": "как сделать зеркало",
+   "pos": null,
+   "freq": 18464,
+   "url": ""
+  },
+  {
+   "phrase": "рейтинг кухонь",
+   "pos": null,
+   "freq": 13127,
+   "url": ""
+  },
+  {
+   "phrase": "сдвижные стеклянные перегородки",
+   "pos": null,
+   "freq": 188,
+   "url": ""
+  },
+  {
+   "phrase": "кресло с каретной стяжкой купить",
+   "pos": null,
+   "freq": 32,
+   "url": ""
+  },
+  {
+   "phrase": "прямоугольные подушки",
+   "pos": null,
+   "freq": 1972,
+   "url": ""
+  },
+  {
+   "phrase": "мебель кресла",
+   "pos": null,
+   "freq": 28514,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало в спб",
+   "pos": null,
+   "freq": 3442,
+   "url": ""
+  },
+  {
+   "phrase": "перегородка складная гармошка",
+   "pos": null,
+   "freq": 196,
+   "url": ""
+  },
+  {
+   "phrase": "хай тек интерьер",
+   "pos": null,
+   "freq": 1409,
+   "url": ""
+  },
+  {
+   "phrase": "интерьерный салон москва",
+   "pos": null,
+   "freq": 70,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало стоячее",
+   "pos": null,
+   "freq": 808,
+   "url": ""
+  },
+  {
+   "phrase": "атлант плюс",
+   "pos": null,
+   "freq": 1433,
+   "url": ""
+  },
+  {
+   "phrase": "фигурное зеркало",
+   "pos": null,
+   "freq": 1421,
+   "url": ""
+  },
+  {
+   "phrase": "производство столов",
+   "pos": null,
+   "freq": 11013,
+   "url": ""
+  },
+  {
+   "phrase": "можно ли ставить зеркало напротив входной двери",
+   "pos": null,
+   "freq": 156,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало с подсветкой в спб",
+   "pos": null,
+   "freq": 294,
+   "url": ""
+  },
+  {
+   "phrase": "раковина с рисунком",
+   "pos": null,
+   "freq": 1102,
+   "url": ""
+  },
+  {
+   "phrase": "лампочки эдисона",
+   "pos": null,
+   "freq": 2109,
+   "url": ""
+  },
+  {
+   "phrase": "перегородка в комнату раздвижная",
+   "pos": null,
+   "freq": 1212,
+   "url": ""
+  },
+  {
+   "phrase": "лофт картины",
+   "pos": null,
+   "freq": 832,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало в москве",
+   "pos": null,
+   "freq": 2983,
+   "url": ""
+  },
+  {
+   "phrase": "зеркала в ванну",
+   "pos": null,
+   "freq": 37458,
+   "url": ""
+  },
+  {
+   "phrase": "модные стулья",
+   "pos": null,
+   "freq": 734,
+   "url": ""
+  },
+  {
+   "phrase": "купить дорогой диван",
+   "pos": null,
+   "freq": 921,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянные обеденные столы",
+   "pos": null,
+   "freq": 1151,
+   "url": ""
+  },
+  {
+   "phrase": "зеркальный шкафчик",
+   "pos": null,
+   "freq": 699,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало для макияжа с лампочками",
+   "pos": null,
+   "freq": 159,
+   "url": ""
+  },
+  {
+   "phrase": "стол кухонный под заказ",
+   "pos": null,
+   "freq": 117,
+   "url": ""
+  },
+  {
+   "phrase": "кот с рюкзаком",
+   "pos": null,
+   "freq": 906,
+   "url": ""
+  },
+  {
+   "phrase": "изготовление эксклюзивной мебели",
+   "pos": null,
+   "freq": 41,
+   "url": ""
+  },
+  {
+   "phrase": "гримерные зеркала",
+   "pos": null,
+   "freq": 3969,
+   "url": ""
+  },
+  {
+   "phrase": "шоурум мебели москва",
+   "pos": null,
+   "freq": 399,
+   "url": ""
+  },
+  {
+   "phrase": "зеркальная композиция",
+   "pos": null,
+   "freq": 4903,
+   "url": ""
+  },
+  {
+   "phrase": "прихожая зеркальная",
+   "pos": null,
+   "freq": 1249,
+   "url": ""
+  },
+  {
+   "phrase": "купить раздвижные перегородки",
+   "pos": null,
+   "freq": 1502,
+   "url": ""
+  },
+  {
+   "phrase": "дом на троих",
+   "pos": null,
+   "freq": 8197,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянные раздвижные перегородки",
+   "pos": null,
+   "freq": 2822,
+   "url": ""
+  },
+  {
+   "phrase": "маша цигаль дизайнер",
+   "pos": null,
+   "freq": 136,
+   "url": ""
+  },
+  {
+   "phrase": "зеркала под заказ",
+   "pos": null,
+   "freq": 1209,
+   "url": ""
+  },
+  {
+   "phrase": "дизайн спальни с зеркалами",
+   "pos": null,
+   "freq": 167,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянные панно на стену",
+   "pos": null,
+   "freq": 105,
+   "url": ""
+  },
+  {
+   "phrase": "инфракрасный датчик присутствия",
+   "pos": null,
+   "freq": 244,
+   "url": ""
+  },
+  {
+   "phrase": "необычная мягкая мебель",
+   "pos": null,
+   "freq": 61,
+   "url": ""
+  },
+  {
+   "phrase": "дизайнерская посуда",
+   "pos": null,
+   "freq": 428,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало гримерное",
+   "pos": null,
+   "freq": 3177,
+   "url": ""
+  },
+  {
+   "phrase": "artpole официальный сайт",
+   "pos": null,
+   "freq": 290,
+   "url": ""
+  },
+  {
+   "phrase": "зеркала по размерам на заказ",
+   "pos": null,
+   "freq": 615,
+   "url": ""
+  },
+  {
+   "phrase": "лофт купить",
+   "pos": null,
+   "freq": 11287,
+   "url": ""
+  },
+  {
+   "phrase": "перегородка раздвижная",
+   "pos": null,
+   "freq": 23835,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало купить в казани",
+   "pos": null,
+   "freq": 339,
+   "url": ""
+  },
+  {
+   "phrase": "зеркальный шкаф в ванну",
+   "pos": null,
+   "freq": 450,
+   "url": ""
+  },
+  {
+   "phrase": "купить барный стул в москве",
+   "pos": null,
+   "freq": 323,
+   "url": ""
+  },
+  {
+   "phrase": "лайт мебель интернет магазин",
+   "pos": null,
+   "freq": 5,
+   "url": ""
+  },
+  {
+   "phrase": "зеркала какие бывают",
+   "pos": null,
+   "freq": 874,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало напольное купить",
+   "pos": null,
+   "freq": 3579,
+   "url": ""
+  }
+ ],
+ "competitors": [
+  {
+   "domain": "miralls.ru",
+   "visibility": 371,
+   "common_keywords": 764,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "rosestar.ru",
+   "visibility": 251,
+   "common_keywords": 941,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "зеркаловраме.рф",
+   "visibility": 54,
+   "common_keywords": 862,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "зеркаласподсветкой.рф",
+   "visibility": 108,
+   "common_keywords": 743,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "basicdecor.ru",
+   "visibility": 3653,
+   "common_keywords": 651,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "msk-zerkala.ru",
+   "visibility": 26,
+   "common_keywords": 546,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "ogogo.ru",
+   "visibility": 550,
+   "common_keywords": 531,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "zerkala-m.ru",
+   "visibility": 185,
+   "common_keywords": 47,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "avazerkala.ru",
+   "visibility": 390,
+   "common_keywords": 38,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "fdmebel.ru",
+   "visibility": 313,
+   "common_keywords": 29,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "zerkala-mag.ru",
+   "visibility": 58,
+   "common_keywords": 19,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "markglass.ru",
+   "visibility": 21,
+   "common_keywords": 14,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "zerkala.ru",
+   "visibility": 54,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "metal-gm.ru",
+   "visibility": 7,
+   "common_keywords": 9,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "woodwide.ru",
+   "visibility": 6,
+   "common_keywords": 9,
+   "delta_visibility": 0
+  }
+ ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],

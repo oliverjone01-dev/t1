@@ -1,4 +1,805 @@
 {
  "measured": "2026-07-10",
- "phrases": []
+ "phrases": [
+  {
+   "phrase": "высота зеркала в ванной",
+   "pos": null,
+   "freq": 3861,
+   "url": "",
+   "cluster": "высота",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "изготовление стеклянных столов на заказ",
+   "pos": null,
+   "freq": 20,
+   "url": "",
+   "cluster": "изготовление",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "столи",
+   "pos": null,
+   "freq": 5809,
+   "url": "",
+   "cluster": "столи",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "магнитная доска для офиса",
+   "pos": null,
+   "freq": 355,
+   "url": "",
+   "cluster": "магнитная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало в пол",
+   "pos": null,
+   "freq": 6277,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "полы из половой доски",
+   "pos": null,
+   "freq": 1224,
+   "url": "",
+   "cluster": "полы",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "декоративная мебель",
+   "pos": null,
+   "freq": 5991,
+   "url": "",
+   "cluster": "декоративная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "дизайнерские барные стулья",
+   "pos": null,
+   "freq": 171,
+   "url": "",
+   "cluster": "дизайнерские",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "межкомнатная перегородка раздвижная для квартиры цена",
+   "pos": null,
+   "freq": 179,
+   "url": "",
+   "cluster": "межкомнатная",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "интерьеры лофт",
+   "pos": null,
+   "freq": 8263,
+   "url": "",
+   "cluster": "интерьеры",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало над кроватью",
+   "pos": null,
+   "freq": 377,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стулья в стиле лофт",
+   "pos": null,
+   "freq": 1175,
+   "url": "",
+   "cluster": "стулья",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "роскошная мебель",
+   "pos": null,
+   "freq": 430,
+   "url": "",
+   "cluster": "роскошная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "большое зеркало в прихожей",
+   "pos": null,
+   "freq": 1620,
+   "url": "",
+   "cluster": "большое",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "российские дизайнеры мебели",
+   "pos": null,
+   "freq": 67,
+   "url": "",
+   "cluster": "российские",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кофейные столики купить",
+   "pos": null,
+   "freq": 892,
+   "url": "",
+   "cluster": "кофейные",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "стиль лофт что это такое",
+   "pos": null,
+   "freq": 337,
+   "url": "",
+   "cluster": "стиль",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "раздвижная перегородка гармошка",
+   "pos": null,
+   "freq": 465,
+   "url": "",
+   "cluster": "раздвижная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "акриловое зеркало",
+   "pos": null,
+   "freq": 1968,
+   "url": "",
+   "cluster": "акриловое",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "loft com",
+   "pos": null,
+   "freq": 148,
+   "url": "",
+   "cluster": "loft",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "дубль дом",
+   "pos": null,
+   "freq": 6692,
+   "url": "",
+   "cluster": "дубль",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "zerkala ru",
+   "pos": null,
+   "freq": 285,
+   "url": "",
+   "cluster": "zerkala",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "дизайнерская мебель",
+   "pos": null,
+   "freq": 6766,
+   "url": "",
+   "cluster": "дизайнерская",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "барный стул купить в спб",
+   "pos": null,
+   "freq": 504,
+   "url": "",
+   "cluster": "барный",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "как самому сделать зеркало",
+   "pos": null,
+   "freq": 573,
+   "url": "",
+   "cluster": "самому",
+   "intent": "informational"
+  },
+  {
+   "phrase": "купить зеркало настенное в раме",
+   "pos": null,
+   "freq": 311,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "магазин света эдисон",
+   "pos": null,
+   "freq": 72,
+   "url": "",
+   "cluster": "магазин",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "вешалка манекен",
+   "pos": null,
+   "freq": 262,
+   "url": "",
+   "cluster": "вешалка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало с внутренней подсветкой",
+   "pos": null,
+   "freq": 104,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "интерьерные салоны",
+   "pos": null,
+   "freq": 1450,
+   "url": "",
+   "cluster": "интерьерные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "складные перегородки",
+   "pos": null,
+   "freq": 2588,
+   "url": "",
+   "cluster": "складные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "круглое зеркало с подсветкой",
+   "pos": null,
+   "freq": 2948,
+   "url": "",
+   "cluster": "круглое",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кофейный столик купить",
+   "pos": null,
+   "freq": 892,
+   "url": "",
+   "cluster": "кофейный",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "спальня с зеркалами",
+   "pos": null,
+   "freq": 5618,
+   "url": "",
+   "cluster": "спальня",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стильное кресло",
+   "pos": null,
+   "freq": 949,
+   "url": "",
+   "cluster": "стильное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стол обеденный купить в самаре",
+   "pos": null,
+   "freq": 99,
+   "url": "",
+   "cluster": "стол",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "купить стеклянный стол",
+   "pos": null,
+   "freq": 3106,
+   "url": "",
+   "cluster": "стеклянный",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "шкафчик для ванны с зеркалом",
+   "pos": null,
+   "freq": 767,
+   "url": "",
+   "cluster": "шкафчик",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стол обеденный стеклянный овальный",
+   "pos": null,
+   "freq": 56,
+   "url": "",
+   "cluster": "стол",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "лофт журнальный столик",
+   "pos": null,
+   "freq": 1065,
+   "url": "",
+   "cluster": "лофт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "артефакты это",
+   "pos": null,
+   "freq": 11089,
+   "url": "",
+   "cluster": "артефакты",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало с лед подсветкой",
+   "pos": null,
+   "freq": 388,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "межкомнатная перегородка раздвижная",
+   "pos": null,
+   "freq": 7173,
+   "url": "",
+   "cluster": "межкомнатная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "деревянное покрытие",
+   "pos": null,
+   "freq": 14411,
+   "url": "",
+   "cluster": "деревянное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "диван дизайн",
+   "pos": null,
+   "freq": 11285,
+   "url": "",
+   "cluster": "диван",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как сделать зеркало",
+   "pos": null,
+   "freq": 18464,
+   "url": "",
+   "cluster": "сделать",
+   "intent": "informational"
+  },
+  {
+   "phrase": "рейтинг кухонь",
+   "pos": null,
+   "freq": 13127,
+   "url": "",
+   "cluster": "рейтинг",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "сдвижные стеклянные перегородки",
+   "pos": null,
+   "freq": 188,
+   "url": "",
+   "cluster": "сдвижные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кресло с каретной стяжкой купить",
+   "pos": null,
+   "freq": 32,
+   "url": "",
+   "cluster": "кресло",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "прямоугольные подушки",
+   "pos": null,
+   "freq": 1972,
+   "url": "",
+   "cluster": "прямоугольные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мебель кресла",
+   "pos": null,
+   "freq": 28514,
+   "url": "",
+   "cluster": "мебель",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить зеркало в спб",
+   "pos": null,
+   "freq": 3442,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "перегородка складная гармошка",
+   "pos": null,
+   "freq": 196,
+   "url": "",
+   "cluster": "перегородка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "хай тек интерьер",
+   "pos": null,
+   "freq": 1409,
+   "url": "",
+   "cluster": "интерьер",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "интерьерный салон москва",
+   "pos": null,
+   "freq": 70,
+   "url": "",
+   "cluster": "интерьерный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало стоячее",
+   "pos": null,
+   "freq": 808,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "атлант плюс",
+   "pos": null,
+   "freq": 1433,
+   "url": "",
+   "cluster": "атлант",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "фигурное зеркало",
+   "pos": null,
+   "freq": 1421,
+   "url": "",
+   "cluster": "фигурное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "производство столов",
+   "pos": null,
+   "freq": 11013,
+   "url": "",
+   "cluster": "производство",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "можно ли ставить зеркало напротив входной двери",
+   "pos": null,
+   "freq": 156,
+   "url": "",
+   "cluster": "можно",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить зеркало с подсветкой в спб",
+   "pos": null,
+   "freq": 294,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "раковина с рисунком",
+   "pos": null,
+   "freq": 1102,
+   "url": "",
+   "cluster": "раковина",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "лампочки эдисона",
+   "pos": null,
+   "freq": 2109,
+   "url": "",
+   "cluster": "лампочки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перегородка в комнату раздвижная",
+   "pos": null,
+   "freq": 1212,
+   "url": "",
+   "cluster": "перегородка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "лофт картины",
+   "pos": null,
+   "freq": 832,
+   "url": "",
+   "cluster": "лофт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить зеркало в москве",
+   "pos": null,
+   "freq": 2983,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "зеркала в ванну",
+   "pos": null,
+   "freq": 37458,
+   "url": "",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "модные стулья",
+   "pos": null,
+   "freq": 734,
+   "url": "",
+   "cluster": "модные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить дорогой диван",
+   "pos": null,
+   "freq": 921,
+   "url": "",
+   "cluster": "дорогой",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "стеклянные обеденные столы",
+   "pos": null,
+   "freq": 1151,
+   "url": "",
+   "cluster": "стеклянные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркальный шкафчик",
+   "pos": null,
+   "freq": 699,
+   "url": "",
+   "cluster": "зеркальный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало для макияжа с лампочками",
+   "pos": null,
+   "freq": 159,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стол кухонный под заказ",
+   "pos": null,
+   "freq": 117,
+   "url": "",
+   "cluster": "стол",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "кот с рюкзаком",
+   "pos": null,
+   "freq": 906,
+   "url": "",
+   "cluster": "рюкзаком",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "изготовление эксклюзивной мебели",
+   "pos": null,
+   "freq": 41,
+   "url": "",
+   "cluster": "изготовление",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "гримерные зеркала",
+   "pos": null,
+   "freq": 3969,
+   "url": "",
+   "cluster": "гримерные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "шоурум мебели москва",
+   "pos": null,
+   "freq": 399,
+   "url": "",
+   "cluster": "шоурум",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркальная композиция",
+   "pos": null,
+   "freq": 4903,
+   "url": "",
+   "cluster": "зеркальная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "прихожая зеркальная",
+   "pos": null,
+   "freq": 1249,
+   "url": "",
+   "cluster": "прихожая",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить раздвижные перегородки",
+   "pos": null,
+   "freq": 1502,
+   "url": "",
+   "cluster": "раздвижные",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "дом на троих",
+   "pos": null,
+   "freq": 8197,
+   "url": "",
+   "cluster": "троих",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянные раздвижные перегородки",
+   "pos": null,
+   "freq": 2822,
+   "url": "",
+   "cluster": "стеклянные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "маша цигаль дизайнер",
+   "pos": null,
+   "freq": 136,
+   "url": "",
+   "cluster": "маша",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала под заказ",
+   "pos": null,
+   "freq": 1209,
+   "url": "",
+   "cluster": "зеркала",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "дизайн спальни с зеркалами",
+   "pos": null,
+   "freq": 167,
+   "url": "",
+   "cluster": "дизайн",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянные панно на стену",
+   "pos": null,
+   "freq": 105,
+   "url": "",
+   "cluster": "стеклянные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "инфракрасный датчик присутствия",
+   "pos": null,
+   "freq": 244,
+   "url": "",
+   "cluster": "инфракрасный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "необычная мягкая мебель",
+   "pos": null,
+   "freq": 61,
+   "url": "",
+   "cluster": "необычная",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "дизайнерская посуда",
+   "pos": null,
+   "freq": 428,
+   "url": "",
+   "cluster": "дизайнерская",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало гримерное",
+   "pos": null,
+   "freq": 3177,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "artpole официальный сайт",
+   "pos": null,
+   "freq": 290,
+   "url": "",
+   "cluster": "artpole",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала по размерам на заказ",
+   "pos": null,
+   "freq": 615,
+   "url": "",
+   "cluster": "зеркала",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "лофт купить",
+   "pos": null,
+   "freq": 11287,
+   "url": "",
+   "cluster": "лофт",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "перегородка раздвижная",
+   "pos": null,
+   "freq": 23835,
+   "url": "",
+   "cluster": "перегородка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало купить в казани",
+   "pos": null,
+   "freq": 339,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "зеркальный шкаф в ванну",
+   "pos": null,
+   "freq": 450,
+   "url": "",
+   "cluster": "зеркальный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить барный стул в москве",
+   "pos": null,
+   "freq": 323,
+   "url": "",
+   "cluster": "барный",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "лайт мебель интернет магазин",
+   "pos": null,
+   "freq": 5,
+   "url": "",
+   "cluster": "лайт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала какие бывают",
+   "pos": null,
+   "freq": 874,
+   "url": "",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало напольное купить",
+   "pos": null,
+   "freq": 3579,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  }
+ ]
 }

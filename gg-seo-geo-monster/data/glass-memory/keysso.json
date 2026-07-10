@@ -1,0 +1,25 @@
+{
+ "domain": "glass-memory.ru",
+ "measured": "2026-07-10",
+ "visibility": null,
+ "ai_answers": 18,
+ "keywords_total": 216,
+ "top1": 0,
+ "top3": 0,
+ "top10": 0,
+ "top50": 0,
+ "history": [
+  {
+   "date": "2026-07-10",
+   "visibility": 0,
+   "top10": 0
+  }
+ ],
+ "keywords": [],
+ "competitors": [],
+ "deltas": {
+  "dropped_top10": [],
+  "entered_top10": [],
+  "competitor_up": []
+ }
+}

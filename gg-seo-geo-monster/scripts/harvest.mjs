@@ -22,6 +22,8 @@ const KEYSO_LIMIT = Number(process.env.KEYSO_DAILY_LIMIT || 3000);
 const KEYSO_DB = process.env.KEYSO_DB || "msk";
 const PER = Number(process.env.KEYSO_PER || 100);
 
+const FORCE = process.env.HARVEST_FORCE === "1";   // игнорировать кэш 24ч
+const DEBUG = process.env.KEYSO_DEBUG === "1";     // сохранить срез сырых ответов для сверки схемы
 const KEYSO_TOKEN = process.env.KEYSO_TOKEN || process.env.KEYSSO_API_KEY || "";
 const YM_TOKEN = process.env.YM_TOKEN || process.env.YANDEX_METRIKA_TOKEN || "";
 const YD_TOKEN = process.env.YD_TOKEN || process.env.YANDEX_DIRECT_TOKEN || "";
@@ -120,13 +122,20 @@ const guessIntent = (s) => /(куп|цена|заказ|стоимост|пра�
 async function harvestKeyso(p) {
   const file = join(DATA, p.id, "keysso.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) return "cached-24h";
+  if (prev && prev.measured === today() && !FORCE) return "cached-24h";
 
   const dash = await keyso("/report/simple/domain_dashboard", { base: KEYSO_DB, domain: p.domain });
   const { rid } = await keysoGroupRid(p);
   const kwJson = await keyso(`/report/group/organic/keywords/${rid}`, { page: 1, per_page: PER });
   if (meta.sources.keysso && meta.sources.keysso.pending_rid) delete meta.sources.keysso.pending_rid[p.id];
   const compJson = await keyso("/report/simple/organic/concurents", { base: KEYSO_DB, domain: p.domain, top: 10 });
+
+  if (DEBUG) {
+    // срез сырых ответов (массивы укорочены до 3 элементов) - для сверки схемы полей
+    const trunc = (o, d = 0) => Array.isArray(o) ? o.slice(0, 3).map((x) => trunc(x, d + 1))
+      : (o && typeof o === "object" && d < 6) ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, trunc(v, d + 1)])) : o;
+    writeJSON(join(DATA, p.id, "keysso-raw.json"), { note: "debug-срез для сверки схемы, удалить после", dash: trunc(dash), keywords_response: trunc(kwJson), concurents_response: trunc(compJson) });
+  }
 
   // строка группового отчёта может нести позиции по каждому домену группы -
   // ищем позицию именно нашего домена, иначе общий pos
@@ -199,7 +208,7 @@ async function ym(params) {
 async function harvestMetrika(p) {
   const file = join(DATA, p.id, "metrika.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) return "cached-24h";
+  if (prev && prev.measured === today() && !FORCE) return "cached-24h";
   const counter = p.metrika_counter;
   if (!counter || /PLACEHOLDER/i.test(counter)) return "no-counter (заполни metrika_counter в config/projects.json)";
 
@@ -245,7 +254,7 @@ const tsv = (text) => text.trim().split("\n").map((l) => l.split("\t"));
 async function harvestDirect(p) {
   const file = join(DATA, p.id, "direct.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) return "cached-24h";
+  if (prev && prev.measured === today() && !FORCE) return "cached-24h";
 
   const mk = (fields, name, extra) => ({ params: Object.assign({
     SelectionCriteria: {}, FieldNames: fields, ReportName: `${name}-${p.id}-${today()}`,

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GENGLASS · SEO/GEO отчёт по живым данным · 10.07.2026</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  .rep{max-width:1080px;margin:0 auto;padding:34px 26px 80px}
+  .rep header{margin-bottom:30px}
+  .rep .crumbs{font-family:var(--mono);font-size:11.5px;color:var(--dim);letter-spacing:.08em;margin-bottom:18px}
+  .rep .crumbs a{color:var(--gold)}
+  .rep h1{font-size:clamp(26px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .rep .sub{color:var(--muted);margin-top:10px;max-width:72ch}
+  .rep h2{font-size:21px;margin:44px 0 6px;color:var(--gold);letter-spacing:-.01em}
+  .rep h2 .n{font-family:var(--mono);font-size:13px;color:var(--dim);margin-right:10px}
+  .rep h3{font-size:15.5px;margin:20px 0 8px}
+  .rep p{margin:10px 0;max-width:78ch}
+  .rep p, .rep li{color:#D6D5D0;font-size:14.5px}
+  .rep ul{margin:8px 0 8px 20px}
+  .rep li{margin:5px 0}
+  .rep .lead{font-size:16px;color:var(--ink)}
+  .verdict3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+  .verdict3 .v{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .verdict3 .v b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+  .verdict3 .v span{font-size:13.5px;color:var(--muted)}
+  .v.cfg b{color:var(--blue)} .v.money b{color:var(--bad)} .v.organic b{color:var(--ok)}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}
+  .kpis .k{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .kpis .k .v{font-family:var(--mono);font-size:23px;font-weight:600;color:var(--gold)}
+  .kpis .k .l{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.35}
+  .funnel{margin:14px 0}
+  .funnel .row{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
+  .funnel .bar{height:16px;border-radius:4px;background:linear-gradient(90deg,var(--gold),#8a7440)}
+  .funnel .num{font-family:var(--mono);color:var(--muted);text-align:right}
+  .tagD{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:4px;border:1px solid rgba(74,222,128,.4);color:var(--ok)}
+  .tagH{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:4px;border:1px solid rgba(234,179,8,.45);color:var(--demo)}
+  .callout{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;padding:16px 18px;margin:16px 0}
+  .callout.red{border-left-color:var(--bad)}
+  .callout.green{border-left-color:var(--ok)}
+  .callout b{color:var(--ink)}
+  .rep table{margin:10px 0}
+  .rep td{font-size:13px}
+  .diag-ok{color:var(--ok)} .diag-bad{color:var(--bad)} .diag-mid{color:var(--demo)}
+  .plan .p0{border-left:3px solid var(--bad)} .plan .p1{border-left:3px solid var(--demo)} .plan .p2{border-left:3px solid var(--blue)}
+  .plan .card{border-radius:0 12px 12px 0;margin:12px 0}
+  .plan h3{margin-top:0;font-family:var(--mono);letter-spacing:.06em}
+  .limits li{color:var(--muted);font-size:13.5px}
+  .src{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:40px;border-top:1px solid var(--border);padding-top:14px;line-height:1.8}
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.verdict3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="rep">
+
+<header>
+  <div class="crumbs"><a href="index.html">← GEO-MONSTER</a> · отчёт · genglass.ru · замер 2026-07-10</div>
+  <h1>GENGLASS: конфиг, деньги и выдача смотрят в три разные стороны</h1>
+  <p class="sub">SEO/AEO/GEO-разбор по первому живому harvest: keys.so + Яндекс.Метрика + Яндекс.Директ.
+  Аналитик: СЕМЁН (skill geo-aeo). Каждая цифра помечена: <span class="tagD">ДАННЫЕ</span> - замер с источником,
+  <span class="tagH">ГИПОТЕЗА</span> - требует проверки.</p>
+</header>
+
+<h2><span class="n">01</span>Главный вывод</h2>
+<p class="lead">Genglass.ru органически силён в <b>зеркалах</b>: 7 из 10 страниц-лидеров по ключам - категории зеркал,
+реальные конкуренты по выдаче - зеркальные магазины. Но 100% рекламного бюджета
+(117 668 ₽/мес) идёт в <b>перегородки</b>, где органики почти нет, а конфиг проекта целится ещё и в
+«лофт-мебель», которую выдача не подтверждает ни одним пересечением. <span class="tagD">ДАННЫЕ: keys.so + Директ, 10.07.2026</span></p>
+
+<div class="verdict3">
+  <div class="v cfg"><b>Конфиг говорит</b><span>«стеклянные перегородки», «мебель лофт», «туалетный столик» - из 6 предполагаемых конкурентов выдача подтвердила одного (miralls.ru). «Туалетный столик» - ноль точек контента во всех 4 источниках</span></div>
+  <div class="v money"><b>Деньги идут</b><span>2 кампании Директа - обе «Межкомнатные перегородки», 117 668 ₽/мес, CPC 114.8 ₽. Все 30 видимых поисковых запросов - без органического топ-10</span></div>
+  <div class="v organic"><b>Выдача признаёт</b><span>Зеркала: 393 ключа только у трёх зеркальных страниц, конкуренты - rosestar.ru, зеркаловраме.рф, зеркаласподсветкой.рф. Плюс 31 упоминание в ИИ-ответах Алисы</span></div>
+</div>
+
+<h2><span class="n">02</span>KPI: где сайт сейчас</h2>
+<div class="kpis">
+  <div class="k"><div class="v">271</div><div class="l">ключей в топ-10 Яндекса <span class="tagD">keys.so</span></div></div>
+  <div class="k"><div class="v">1 937</div><div class="l">ключей в топ-50 - дожато только 14%</div></div>
+  <div class="k"><div class="v">31</div><div class="l">упоминание в ИИ-ответах Алисы (baseline) <span class="tagD">aiAnswersCnt</span></div></div>
+  <div class="k"><div class="v">19%</div><div class="l">визитов - из поиска (1 674 из 9 021 за 30д) <span class="tagD">Метрика</span></div></div>
+  <div class="k"><div class="v">117 668 ₽</div><div class="l">Директ за 30д · 1 025 кликов · CPC 114.8 ₽ <span class="tagD">Директ</span></div></div>
+</div>
+
+<div class="funnel">
+  <div class="row"><span>топ-1</span><div><div class="bar" style="width:2%"></div></div><span class="num">9</span></div>
+  <div class="row"><span>топ-3</span><div><div class="bar" style="width:4%"></div></div><span class="num">38</span></div>
+  <div class="row"><span>топ-10</span><div><div class="bar" style="width:14%"></div></div><span class="num">271</span></div>
+  <div class="row"><span>топ-50</span><div><div class="bar" style="width:100%"></div></div><span class="num">1 937</span></div>
+</div>
+<div class="callout"><b>1 666 запросов (86% отслеживаемой семантики) стоят на позициях 11-50</b> - сайт в индексе,
+но не на первом экране выдачи. Дожать существующее дешевле, чем охватывать новое. Форма воронки
+(топ-1/топ-3 = 24%, топ-3/топ-10 = 14%) без аномалий - проблема не в качестве того, что уже в топе, а в объёме хвоста.</div>
+
+<h2><span class="n">03</span>Директ против органики: за что платим</h2>
+<p>Обе кампании - кластер «перегородки»: Поиск (50 119 ₽, 520 кликов, CTR 11.9%) и ТГ-сеть
+(67 549 ₽, 505 кликов, CTR 2.4%). <span class="tagD">ДАННЫЕ: direct.json</span></p>
+<ul>
+  <li><b>Все 30 видимых поисковых запросов Директа не имеют органического топ-10</b> («межкомнатные перегородки», «перегородка для зонирования», «раздвижные перегородки»...). Измеримая часть - 12 817 ₽/30д, это лишь ~11% бюджета <span class="tagD">ДАННЫЕ</span>. Вывод об отсутствии органики - по отсутствию перегородочных страниц в топах и перегородочных фраз в ключевом массиве; позиции именно этих 30 фраз в замере не выгружены. <span class="tagH">ГИПОТЕЗА</span></li>
+  <li>keys.so видит в рекламной выдаче фразы, где сайт уже <b>№1 в органике</b>: «перегородка с аркой» (pos 1), «интерьерные перегородки для зонирования» (pos 1) - возможная самоканнибализация бюджета. Точное совпадение с активными запросами кабинета требует сверки. <span class="tagH">ГИПОТЕЗА</span></li>
+  <li>Кампания «ТГ» тратит на 35% больше поисковой при CTR впятеро ниже (11.9% против 2.4%) - приоритетная точка аудита кабинета (владелец: Тимур, skill direct).</li>
+  <li>Потенциал экономии при усилении органики перегородок: порядка <b>7.5-10 тыс ₽/мес</b> по поисковой кампании (15-20% от 520 поисковых кликов при поисковом CPC ~96 ₽; сетевые 505 кликов «ТГ» органика не заменяет - там нет поискового запроса). <b>Только как пилот на 2-3 страницах с замером до/после</b>, не как план. <span class="tagH">ГИПОТЕЗА: 15-20% поисковых кликов закрываемы органикой за 2-3 мес</span></li>
+</ul>
+
+<h2><span class="n">04</span>Конкуренты: предположения не подтвердились</h2>
+<p>Из 6 конкурентов конфига реальное пересечение выдачи подтвердил <b>один</b> - miralls.ru.
+Остальные пять лофт-брендов (archpole, loffi, loftdesigne, amgrades, moonzana) не попали в список пересечений keys.so вовсе (ниже порога инструмента). <span class="tagD">ДАННЫЕ: keys.so competitors</span></p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Домен</th><th class="num">Общих ключей</th><th class="num">Видимость</th><th>Профиль</th></tr></thead>
+<tbody>
+<tr><td>rosestar.ru</td><td class="num">941</td><td class="num">251</td><td>зеркала - максимальное пересечение</td></tr>
+<tr><td>зеркаловраме.рф</td><td class="num">862</td><td class="num">54</td><td class="diag-bad">монобренд по нашему priority_topic «зеркало в раме»</td></tr>
+<tr><td>miralls.ru</td><td class="num">764</td><td class="num">371</td><td>единственный подтверждённый из конфига</td></tr>
+<tr><td>зеркаласподсветкой.рф</td><td class="num">743</td><td class="num">108</td><td class="diag-bad">монобренд по topic «зеркала с подсветкой»</td></tr>
+<tr><td>basicdecor.ru</td><td class="num">651</td><td class="num">3 653</td><td class="diag-mid">крупный декор-маркетплейс - проверить масштаб до мониторинга</td></tr>
+<tr><td>msk-zerkala.ru</td><td class="num">546</td><td class="num">26</td><td>зеркала</td></tr>
+<tr><td>ogogo.ru</td><td class="num">531</td><td class="num">550</td><td class="diag-mid">классифицировать</td></tr>
+<tr><td>metal-gm.ru</td><td class="num">9</td><td class="num">7</td><td class="diag-ok">сестринский бренд GENGROUP - точка перелинковки, не конкурент</td></tr>
+</tbody></table></div>
+<div class="callout green"><b>Возможность:</b> борьба идёт в конкретной, проверяемой нише «зеркала» против специализированных
+магазинов, а не в размытой «дизайнерской мебели». По двум priority_topics (зеркало в раме, зеркала с подсветкой)
+нас атакуют монобренды с сотнями общих ключей - это и есть поле контент-атаки.</div>
+
+<h2><span class="n">05</span>Страницы: где ключи есть, а трафика нет</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>URL</th><th class="num">Ключей в топ-50</th><th class="num">Визитов/30д</th><th>Диагноз</th></tr></thead>
+<tbody>
+<tr><td class="mono">/product-category/mirrors/floor</td><td class="num">175</td><td class="num">20</td><td class="diag-bad">максимальный разрыв</td></tr>
+<tr><td class="mono">/product-category/mirrors/zerkalo-v-prikhozhuyu</td><td class="num">155</td><td class="num">&lt;10</td><td class="diag-bad">невидимка</td></tr>
+<tr><td class="mono">/zerkala-na-zakaz</td><td class="num">137</td><td class="num">28</td><td class="diag-mid">разрыв</td></tr>
+<tr><td class="mono">/product-category/mirrors</td><td class="num">124</td><td class="num">42</td><td class="diag-mid">трафик утекает в подкатегории?</td></tr>
+<tr><td class="mono">/product-category/mirrors/zerkalo-ovalnoe</td><td class="num">63</td><td class="num">&lt;10</td><td class="diag-bad">невидимка</td></tr>
+<tr><td class="mono">/stoly-na-zakaz</td><td class="num">56</td><td class="num">108</td><td class="diag-ok">лучшее соотношение - образец on-page</td></tr>
+<tr><td class="mono">/stellazhi-i-polki-na-zakaz</td><td class="num">64</td><td class="num">52</td><td class="diag-ok">рабочая лошадка</td></tr>
+</tbody></table></div>
+<div class="callout red"><b>P1-находка:</b> три зеркальные страницы (floor, prikhozhuyu, ovalnoe) держат 393 ключа -
+20% всего ключевого массива сайта - и дают почти нулевой трафик. Либо это крупнейшая быстрая победа
+(CTR/сниппет/schema), либо ключи сидят в хвосте 11-50: сначала выгрузить фактические позиции по этим URL, потом переписывать.</div>
+<p>Обратные находки - трафик есть, в конфиге нет: <b>душевые перегородки</b> (30 визитов),
+<b>магнитно-маркерные доски</b> (56 визитов суммарно), блог «популярные модели зеркал 2026» (37 визитов -
+правильный freshness-формат, тиражировать). Топ поисковых фраз Метрики - почти весь брендовый
+(«genglass», «генгласс») - небрендовая органика недоразвита. <span class="tagD">ДАННЫЕ: Метрика</span></p>
+
+<h2><span class="n">06</span>AI-видимость (GEO)</h2>
+<p><b>31 упоминание GENGLASS в ИИ-ответах Алисы</b> - первый зафиксированный baseline. Это абсолютное число
+без знаменателя: AI Citation Rate посчитаем после отчёта Яндекс.Вебмастера «видимость в Алиса AI»
+(бесплатный, покажет состав запросов и конкурентов в ИИ-ответах). <span class="tagD">ДАННЫЕ: keys.so aiAnswersCnt</span></p>
+<p>По канону «GEO - следствие SEO»: раз органическая сила - зеркала, то и цитирования вероятнее всего
+зеркальные. <span class="tagH">ГИПОТЕЗА - проверяется Вебмастером</span>. Приоритетные действия 7-point:
+FAQ+schema на 3 страницах-невидимках, comparative statements против реальных конкурентов (rosestar,
+зеркаловраме.рф), профили экспертов Yandex.Q, проверка доступа AI-краулеров + llms.txt, индексация в Bing Webmaster.</p>
+
+<h2><span class="n">07</span>План действий</h2>
+<div class="plan">
+  <div class="card p0"><h3 style="color:var(--bad)">P0 · 72 часа</h3><ul>
+    <li>Сверка кабинета Директа: полный список запросов против органических pos=1 фраз («перегородка с аркой», «интерьерные перегородки для зонирования») - при пересечении минус-слова немедленно. Владелец: Тимур.</li>
+    <li>Разбор кампании «ТГ»: 67 549 ₽ при CTR 2.4% против 11.9% у поиска. Владелец: Тимур.</li>
+    <li>Выгрузить фактические позиции по 3 страницам-невидимкам (floor / prikhozhuyu / ovalnoe) - топ-10 это или хвост. До этого страницы не переписывать.</li>
+  </ul></div>
+  <div class="card p1"><h3 style="color:var(--demo)">P1 · 14 дней</h3><ul>
+    <li>Обновить конкурентов в конфиге: + rosestar.ru, зеркаловраме.рф, зеркаласподсветкой.рф, msk-zerkala.ru, avazerkala.ru, zerkala-m.ru, zerkala-mag.ru, zerkala.ru, markglass.ru; оставить miralls.ru; вывести 5 неподтверждённых лофт-брендов из SEO-мониторинга.</li>
+    <li>Отчёт Яндекс.Вебмастера «Алиса AI» - расшифровать 31 упоминание, увидеть ИИ-конкурентов.</li>
+    <li>FAQ + Product/FAQPage schema на 3 страницы-невидимки.</li>
+    <li>Живой обход robots.txt + 5 страниц (AI-краулеры, llms.txt) - из офиса, контейнер до сайта не достаёт.</li>
+    <li>Content-briefs на 2 нераспознанные вертикали: душевые перегородки, магнитно-маркерные доски - кандидаты в priority_topics.</li>
+  </ul></div>
+  <div class="card p2"><h3 style="color:var(--blue)">P2 · 30 дней</h3><ul>
+    <li>«Туалетный столик»: приоритетный topic конфига с нулевым присутствием - контент с нуля или убрать из приоритетов.</li>
+    <li>Пилот «перегородки»: усилить 2-3 страницы по GEO-чеклисту, замер позиций до/после 60-90 дней; при выходе в топ-5 - тест снижения ставок Директа и замер экономии (гипотеза §03).</li>
+    <li>Категория /product-category/mirrors: проверить внутреннюю каннибализацию с подкатегориями.</li>
+    <li>Второй harvest-замер через 30 дней - первая реальная динамика (сейчас один валидный снимок).</li>
+  </ul></div>
+</div>
+
+<h2><span class="n">08</span>Ограничения данных (честно)</h2>
+<ul class="limits">
+  <li>100 фраз группового отчёта keys.so - рыночная выборка ниши (у всех pos=null), а не срез наших 1 937 ключей: точного списка фраз «зоны 11-30» в этом замере нет - выгрузим отдельно.</li>
+  <li>Метрика без целей (goals: []) - конверсии и заявки не видны, анализ по визитам.</li>
+  <li>Один валидный снимок - динамики ещё нет, тренды со второго замера.</li>
+  <li>Visibility=11 - шкала keys.so не откалибрована против кабинета (у basicdecor 3653 - другой масштаб каталога?).</li>
+  <li>Топ-30 запросов Директа покрывает ~11% расхода - полная сверка только в кабинете.</li>
+  <li>Живой обход genglass.ru из контейнера недоступен (403) - schema/robots/FAQ-выводы это рекомендации к проверке.</li>
+</ul>
+
+<h2><span class="n">09</span>Глоссарий (для нечитающих SEO-жаргон)</h2>
+<ul class="limits">
+  <li><b>Сниппет</b> - блок сайта в выдаче Яндекса/Google: заголовок + описание. Плохой сниппет = позиции есть, кликов нет.</li>
+  <li><b>Schema (разметка)</b> - служебные пометки в коде страницы, по которым поисковик и нейросети понимают: это товар, это цена, это вопрос-ответ.</li>
+  <li><b>On-page</b> - всё, что сделано на самой странице (тексты, заголовки, разметка), в отличие от внешних ссылок.</li>
+  <li><b>Freshness</b> - сигналы свежести: даты, актуальный год в заголовке («модели 2026 года»).</li>
+  <li><b>llms.txt</b> - файл-путеводитель по сайту для нейросетей, как robots.txt для поисковиков.</li>
+  <li><b>GEO-чеклист (7 пунктов)</b> - наш стандарт страницы под цитирование ИИ: 1) прямой ответ в первых двух предложениях, 2) FAQ-блок с разметкой, 3) schema-разметка, 4) таблица сравнения, 5) цифры с единицами и датой, 6) одинаковое написание бренда везде, 7) внутренние ссылки на главную страницу темы.</li>
+</ul>
+<p class="src">Источники: data/genglass/{keysso,metrika,direct,semantics}.json · замер 2026-07-10 · harvest GEO-monster ·
+аналитик СЕМЁН (skill geo-aeo) · оркестрация СПАРТАК · дисциплина Protocol 9: [ДАННЫЕ] = замер с источником, [ГИПОТЕЗА] = требует проверки ·
+<a href="index.html" style="color:var(--gold)">вернуться в GEO-MONSTER</a></p>
+
+</div>
+</body>
+</html>

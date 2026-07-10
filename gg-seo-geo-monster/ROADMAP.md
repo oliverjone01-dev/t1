@@ -78,3 +78,6 @@ Drive MCP-коннектор): дать доступ подключённому 
 - Секреты Яндекса для сбора частот (один набор, см. `docs/WORDSTAT_API.md`):
   вариант A (AI Studio) - `YANDEX_SEARCH_API_KEY` + `YANDEX_FOLDER_ID`;
   вариант B (standalone) - `YANDEX_OAUTH_TOKEN`. Плюс подтвердить, какой доступ есть.
+- keys.so (лицензия есть, тариф Профессиональный, 3000/сутки): активировать REST API
+  в кабинете → секрет `KEYSO_TOKEN`, заполнить домены конкурентов в
+  `data/keyso-targets.json`. Основной источник по конкурентам и семантике. См. `docs/KEYS_SO.md`.

@@ -1,0 +1,61 @@
+name: keys.so collect (конкуренты и семантика)
+
+# Тянет данные keys.so (сводка домена, органика, конкуренты, реклама) в
+# data/keyso/ проекта SEO/GEO. keys.so закрыт из web-контейнера Claude сетевой
+# политикой, поэтому живой сбор - здесь. Ключ REST API - в GitHub Secrets
+# (KEYSO_TOKEN, см. gg-seo-geo-monster/docs/KEYS_SO.md). Запуск вручную; для
+# регулярного обновления раскомментируй schedule. Тариф Профессиональный: 3000/сутки.
+
+on:
+  workflow_dispatch:
+    inputs:
+      db:
+        description: "База/регион keys.so (msk = Москва Яндекс; сверить в кабинете)"
+        default: "msk"
+      per:
+        description: "Строк на отчёт (беречь суточный лимит 3000)"
+        default: "100"
+      dry_run:
+        description: "1 = показать план запросов без похода в сеть"
+        default: "0"
+  # schedule:
+  #   - cron: "0 5 * * 1"   # еженедельно, пн ~08:00 МСК
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keyso-collect
+  cancel-in-progress: false
+
+env:
+  KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN }}
+  KEYSO_DB: ${{ github.event.inputs.db || 'msk' }}
+  KEYSO_PER: ${{ github.event.inputs.per || '100' }}
+  DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Сбор keys.so
+        run: node gg-seo-geo-monster/scripts/keyso.mjs
+
+      - name: Коммит результата
+        if: ${{ github.event.inputs.dry_run != '1' }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gg-seo-geo-monster/data/keyso
+          if git diff --cached --quiet; then
+            echo "Изменений в keyso нет"
+          else
+            git commit -m "chore(seo-geo): обновление данных keys.so ($(date -u +%Y-%m-%d))"
+            for i in 1 2 3 4; do git push && break || sleep $((2**i)); done
+          fi

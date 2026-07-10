@@ -76,28 +76,32 @@ async function keysoPost(path, body) {
     body: JSON.stringify(body)
   }));
 }
-/* групповой отчёт: создать (или добрать вчерашний pending) и дождаться готовности */
+/* групповой отчёт: rid из pending (вчерашний) или создать новый.
+   API требует >1 домена (отчёт-сравнение) - даём наш домен + конкурентов. */
 async function keysoGroupRid(p) {
   const pending = meta.sources.keysso && meta.sources.keysso.pending_rid && meta.sources.keysso.pending_rid[p.id];
-  let rid = pending || null;
-  if (!rid) {
-    // API требует >1 домена: групповой отчёт - это сравнение. Даём наш домен +
-    // конкурентов из конфига: получаем и свои фразы, и конкурентный срез разом.
-    const domains = [p.domain, ...(p.competitors || []).slice(0, 5)];
-    if (domains.length < 2) domains.push("yandex.ru"); // технический добивочный домен, если конкуренты не заведены
-    const created = await keysoPost("/report/group", { base: KEYSO_DB, top: 50, domains, name: `geo-monster-${p.id}-${today()}` });
-    rid = created.rid || pick(created, ["rid", "report_id", "id"]);
-    if (!rid) throw new Error("group report: rid не получен: " + JSON.stringify(created).slice(0, 150));
+  if (pending) return pending;
+  const domains = [p.domain, ...(p.competitors || []).slice(0, 5)];
+  if (domains.length < 2) domains.push("yandex.ru"); // технический добивочный, если конкуренты не заведены
+  const created = await keysoPost("/report/group", { base: KEYSO_DB, top: 50, domains, name: `geo-monster-${p.id}-${today()}` });
+  const rid = created.rid || pick(created, ["rid", "report_id", "id"]);
+  if (!rid) throw new Error("group report: rid не получен: " + JSON.stringify(created).slice(0, 150));
+  return rid;
+}
+/* фразы группового отчёта: сервер готовит до 5 минут и отвечает {code:202} -
+   ждём до ~100с, иначе запоминаем rid и добираем следующим прогоном */
+async function keysoGroupKeywords(p, rid) {
+  for (let i = 0; i < 6; i++) {
+    const j = await keyso(`/report/group/organic/keywords/${rid}`, { page: 1, per_page: PER });
+    if (!(j && j.code === 202)) {
+      if (meta.sources.keysso && meta.sources.keysso.pending_rid) delete meta.sources.keysso.pending_rid[p.id];
+      return j;
+    }
+    await sleep(18000);
   }
-  for (let i = 0; i < 10; i++) {
-    const st = JSON.stringify(await keyso(`/report/group/state/${rid}`, {})).toLowerCase();
-    if (/ready|done|finish|complete|success|"state":\s*1|100/.test(st)) return { rid, ready: true };
-    await sleep(6000);
-  }
-  // не готов - запомним rid, доберём следующим прогоном
-  meta.sources.keysso = meta.sources.keysso || {};
+  meta.sources.keysso = Object.assign({}, meta.sources.keysso);
   meta.sources.keysso.pending_rid = Object.assign({}, meta.sources.keysso.pending_rid, { [p.id]: rid });
-  throw new Error(`group report ${rid} не готов за 60с - доберём следующим прогоном`);
+  return null; // не готов - работаем по сводке, полный список фраз доберём потом
 }
 // защитные экстракторы: точная схема ответа сверяется на первом живом 200 (apidoc закрыт из контейнера)
 function pick(obj, names, isNum) {
@@ -125,9 +129,8 @@ async function harvestKeyso(p) {
   if (prev && prev.measured === today() && !FORCE) return "cached-24h";
 
   const dash = await keyso("/report/simple/domain_dashboard", { base: KEYSO_DB, domain: p.domain });
-  const { rid } = await keysoGroupRid(p);
-  const kwJson = await keyso(`/report/group/organic/keywords/${rid}`, { page: 1, per_page: PER });
-  if (meta.sources.keysso && meta.sources.keysso.pending_rid) delete meta.sources.keysso.pending_rid[p.id];
+  const rid = await keysoGroupRid(p);
+  const kwJson = await keysoGroupKeywords(p, rid);
   const compJson = await keyso("/report/simple/organic/concurents", { base: KEYSO_DB, domain: p.domain, top: 10 });
 
   if (DEBUG) {
@@ -137,33 +140,39 @@ async function harvestKeyso(p) {
     writeJSON(join(DATA, p.id, "keysso-raw.json"), { note: "debug-срез для сверки схемы, удалить после", dash: trunc(dash), keywords_response: trunc(kwJson), concurents_response: trunc(compJson) });
   }
 
-  // строка группового отчёта может нести позиции по каждому домену группы -
-  // ищем позицию именно нашего домена, иначе общий pos
-  const posForDomain = (r, domain) => {
-    const d = domain.toLowerCase();
-    for (const [k, v] of Object.entries(r)) {
-      if (!k.toLowerCase().includes(d)) continue;
-      if (typeof v === "number") return v;
-      if (v && typeof v === "object") { const n = pick(v, ["pos", "position"], true); if (n != null) return n; }
-    }
-    return pick(r, ["pos", "position"], true);
-  };
-  const keywords = pickRows(kwJson).map((r) => ({
-    phrase: pick(r, ["phrase", "keyword", "query", "name"]) || "",
-    pos: posForDomain(r, p.domain),
-    freq: pick(r, ["ws", "freq", "wordstat", "shows"], true) || 0,
-    url: pick(r, ["url", "page"]) || ""
-  })).filter((k) => k.phrase);
-  const top10 = keywords.filter((k) => k.pos && k.pos <= 10).length;
-  const visibility = pick(dash, ["visib", "traff"], true);
+  // Реальная схема keys.so (сверена по debug-срезу 10.07.2026):
+  // dash: {it1,it3,it5,it10,it50, vis, aiAnswersCnt, keys:[{word,ws,pos}],
+  //        concs:[{name,cnt,it50,vis}], pages:[{url,it50}], adkeys:[{word,ws,p[],pos}]}
+  // concurents: {data:[{name,cnt,it10,it50,vis,adscnt,adcost}], total}
+  // group keywords: строки вида {word, ws, p:[позиции по доменам группы], pos}
+  const rowToKeyword = (r) => ({
+    phrase: r.word || pick(r, ["phrase", "keyword", "query"]) || "",
+    pos: Array.isArray(r.p) ? (r.p[0] ?? null) : (typeof r.pos === "number" ? r.pos : pick(r, ["pos", "position"], true)),
+    freq: (typeof r.ws === "number" ? r.ws : pick(r, ["ws", "freq", "wordstat"], true)) || 0,
+    url: r.url || pick(r, ["url", "page"]) || ""
+  });
+  let kwSource = "group";
+  let kwRows = kwJson ? pickRows(kwJson) : [];
+  if (!kwRows.length) { kwRows = dash.keys || []; kwSource = "dash-sample"; }
+  const keywords = kwRows.map(rowToKeyword).filter((k) => k.phrase);
 
+  const visibility = typeof dash.vis === "number" ? dash.vis : pick(dash, ["vis"], true);
+  const top10 = typeof dash.it10 === "number" ? dash.it10 : keywords.filter((k) => k.pos && k.pos <= 10).length;
+  const aiAnswers = pick(dash, ["aianswers"], true);
+
+  // конкуренты: пересечение из сводки (top overlap) + строки эндпоинта concurents,
+  // приоритет доменам из конфига
   const wanted = new Set((p.competitors || []).map((c) => c.toLowerCase()));
-  const competitors = pickRows(compJson).map((r) => ({
-    domain: (pick(r, ["domain", "site", "host"]) || "").toLowerCase(),
-    visibility: pick(r, ["visib", "traff"], true) || 0,
-    common_keywords: pick(r, ["common", "cross", "intersect"], true) || 0,
+  const compRows = ((compJson && compJson.data) || pickRows(compJson) || []).concat(dash.concs || []);
+  const seen = new Set();
+  const competitors = compRows.map((r) => ({
+    domain: String(r.name || pick(r, ["domain", "site", "host"]) || "").toLowerCase(),
+    visibility: (typeof r.vis === "number" ? r.vis : pick(r, ["vis"], true)) || 0,
+    common_keywords: (typeof r.cnt === "number" ? r.cnt : pick(r, ["cnt", "common", "cross"], true)) || 0,
     delta_visibility: 0
-  })).filter((c) => c.domain).filter((c, i) => wanted.has(c.domain) || i < 15);
+  })).filter((c) => c.domain && c.domain !== p.domain && !seen.has(c.domain) && seen.add(c.domain))
+    .sort((a, b) => (wanted.has(b.domain) - wanted.has(a.domain)) || (b.common_keywords - a.common_keywords))
+    .slice(0, 15);
 
   // дельты против прошлого снапшота
   const prevPos = new Map(((prev && prev.keywords) || []).map((k) => [k.phrase, k.pos]));
@@ -181,13 +190,14 @@ async function harvestKeyso(p) {
   }
   const history = ((prev && prev.history) || []).slice(-59).concat([{ date: today(), visibility: visibility || 0, top10 }]);
 
-  // aiAnswersCnt - упоминания сайта в ИИ-ответах Алисы (сырьё для GEO-трекера M3)
-  const aiAnswers = pick(dash, ["aianswers"], true);
   writeJSON(file, {
     domain: p.domain, measured: today(), visibility, ai_answers: aiAnswers,
-    keywords_total: pick(dash, ["keywords_total", "keys", "count"], true) || keywords.length,
-    top1: keywords.filter((k) => k.pos === 1).length, top3: keywords.filter((k) => k.pos && k.pos <= 3).length,
-    top10, top50: keywords.filter((k) => k.pos && k.pos <= 50).length,
+    keywords_total: typeof dash.it50 === "number" ? dash.it50 : keywords.length,
+    top1: dash.it1 ?? keywords.filter((k) => k.pos === 1).length,
+    top3: dash.it3 ?? keywords.filter((k) => k.pos && k.pos <= 3).length,
+    top10, top50: dash.it50 ?? keywords.filter((k) => k.pos && k.pos <= 50).length,
+    top_pages: (dash.pages || []).slice(0, 10).map((r) => ({ url: r.url, keywords_top50: r.it50 })),
+    ad_keywords: (dash.adkeys || []).slice(0, 30).map(rowToKeyword).filter((k) => k.phrase),
     history, keywords, competitors,
     deltas: { dropped_top10: dropped.slice(0, 20), entered_top10: entered.slice(0, 20), competitor_up: compUp }
   });
@@ -195,7 +205,7 @@ async function harvestKeyso(p) {
     measured: today(),
     phrases: keywords.map((k) => ({ phrase: k.phrase, pos: k.pos, freq: k.freq, url: k.url, cluster: guessCluster(k.phrase), intent: guessIntent(k.phrase) }))
   });
-  return "ok";
+  return kwSource === "group" ? "ok" : "ok (фразы: срез сводки, полный список группового отчёта доберём следующим прогоном)";
 }
 
 /* ---------- Метрика ---------- */

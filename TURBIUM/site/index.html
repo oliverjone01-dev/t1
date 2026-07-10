@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TURBIUM · Платформа бренда</title>
+<style>
+  :root{
+    --bg:#0A0F0D; --surface:#101613; --surface2:#151d19;
+    --mint:#4EEAC0; --teal:#00BFA5; --amber:#FF8C42; --peach:#FFB88C;
+    --white:#F2F7F5; --grey:#8A9A94; --line:#1e2a25;
+    --disp:'Arial Narrow','Helvetica Neue',system-ui,sans-serif;
+    --body:system-ui,'Segoe UI',sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Code','JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;overflow-x:hidden}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    background:var(--bg);color:var(--white);font-family:var(--body);
+    font-size:clamp(15px,1.05vw,17px);line-height:1.65;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      repeating-linear-gradient(0deg,transparent 0 47px,rgba(0,191,165,.045) 47px 48px),
+      repeating-linear-gradient(90deg,transparent 0 47px,rgba(0,191,165,.045) 47px 48px);
+  }
+  .aurora{position:fixed;pointer-events:none;z-index:0;filter:blur(90px);opacity:.5}
+  .aurora.a1{width:60vw;height:40vh;top:-10vh;right:-15vw;background:radial-gradient(ellipse,rgba(78,234,192,.16),transparent 70%)}
+  .aurora.a2{width:50vw;height:50vh;top:120vh;left:-20vw;background:radial-gradient(ellipse,rgba(255,140,66,.10),transparent 70%)}
+  .aurora.a3{width:55vw;height:45vh;top:340vh;right:-18vw;background:radial-gradient(ellipse,rgba(0,191,165,.12),transparent 70%)}
+
+  .wrap{position:relative;z-index:1;max-width:1160px;margin:0 auto;padding:0 clamp(20px,4vw,48px)}
+
+  /* ---- left rail nav ---- */
+  nav.rail{position:fixed;left:0;top:0;bottom:0;width:200px;padding:32px 0 32px 24px;z-index:5;display:none;flex-direction:column;gap:4px;border-right:1px solid var(--line);background:linear-gradient(90deg,rgba(10,15,13,.92),rgba(10,15,13,.6))}
+  @media(min-width:1440px){nav.rail{display:flex}.wrap{margin-left:calc((100vw - 1160px)/2 + 40px)}}
+  nav.rail .logo{font-family:var(--mono);color:var(--mint);font-size:14px;margin-bottom:28px;letter-spacing:.08em}
+  nav.rail a{font-family:var(--mono);font-size:12px;color:var(--grey);text-decoration:none;padding:7px 10px;border-left:2px solid transparent;transition:color .2s,border-color .2s}
+  nav.rail a:hover,nav.rail a:focus-visible{color:var(--mint);border-left-color:var(--mint);outline:none}
+  nav.rail a .n{color:var(--teal);margin-right:8px}
+
+  /* ---- shared ---- */
+  section{padding:clamp(72px,10vh,130px) 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .eyebrow::after{content:"";height:1px;flex:0 0 64px;background:var(--teal);opacity:.5}
+  .eyebrow .idx{color:var(--grey)}
+  h1,h2,h3{font-family:var(--disp);text-wrap:balance;line-height:1.02;letter-spacing:.005em}
+  h2{font-size:clamp(34px,4.6vw,62px);font-weight:800;text-transform:uppercase;margin-bottom:28px;hyphens:auto;overflow-wrap:break-word}
+  @media(max-width:520px){h2{font-size:clamp(26px,8.6vw,34px)}.hero h1{font-size:clamp(40px,13vw,52px)}}
+  h3{font-size:clamp(19px,1.8vw,24px);font-weight:800;text-transform:uppercase;margin-bottom:12px}
+  p.lead{font-size:clamp(17px,1.5vw,21px);max-width:38em;color:var(--white)}
+  p.muted,li.muted{color:var(--grey)}
+  .cols{display:grid;gap:clamp(24px,3vw,48px)}
+  @media(min-width:840px){.cols.c2{grid-template-columns:1fr 1fr}.cols.c3{grid-template-columns:repeat(3,1fr)}.cols.c32{grid-template-columns:1.4fr 1fr}}
+  .src{font-family:var(--mono);font-size:11px;color:var(--grey);letter-spacing:.02em}
+  .tagD,.tagH{font-family:var(--mono);font-size:10px;letter-spacing:.14em;padding:2px 7px;border-radius:2px}
+  .tagD{color:var(--mint);border:1px solid rgba(78,234,192,.4)}
+  .tagH{color:var(--peach);border:1px solid rgba(255,184,140,.4)}
+  .amber{color:var(--amber)} .mint{color:var(--mint)} .white{color:var(--white)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+  .rv.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+  /* ---- hero ---- */
+  header.hero{min-height:92vh;display:flex;align-items:center;padding:clamp(60px,8vh,100px) 0}
+  .hero-grid{display:grid;gap:clamp(32px,5vw,72px);align-items:center;width:100%}
+  @media(min-width:900px){.hero-grid{grid-template-columns:1.35fr .9fr}}
+  .hero h1{font-size:clamp(52px,8.5vw,118px);font-weight:800;text-transform:uppercase}
+  .hero h1 .tail{color:var(--mint)}
+  .hero .sub{margin-top:22px;font-size:clamp(16px,1.5vw,20px);color:var(--grey);max-width:32em}
+  .hero .sub b{color:var(--white);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--grey);border:1px solid var(--line);padding:6px 12px;border-radius:2px}
+  .chip b{color:var(--mint);font-weight:500}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px}
+  .btn{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:15px;text-decoration:none;padding:15px 28px;border-radius:2px;transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s}
+  .btn.primary{background:var(--mint);color:#062018;box-shadow:0 0 34px rgba(78,234,192,.28)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 0 48px rgba(78,234,192,.4)}
+  .btn.ghost{color:var(--mint);border:1px solid rgba(78,234,192,.45)}
+  .btn.ghost:hover{border-color:var(--mint)}
+  .btn:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+
+  .element{aspect-ratio:1;width:min(340px,78vw);margin-left:auto;border:1px solid rgba(78,234,192,.55);border-radius:4px;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(160deg,rgba(78,234,192,.07),rgba(10,15,13,.4));box-shadow:0 0 60px rgba(78,234,192,.14), inset 0 0 40px rgba(78,234,192,.05)}
+  .element .no{position:absolute;top:14px;left:16px;font-family:var(--mono);font-size:15px;color:var(--mint)}
+  .element .mass{position:absolute;top:14px;right:16px;font-family:var(--mono);font-size:11px;color:var(--grey)}
+  .element .sym{font-family:var(--disp);font-weight:800;font-size:clamp(72px,7.5vw,104px);line-height:1;color:var(--white);text-shadow:0 0 34px rgba(78,234,192,.45)}
+  .element .nm{margin-top:10px;font-family:var(--mono);font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--mint)}
+  .element .job{position:absolute;bottom:14px;font-family:var(--mono);font-size:10px;color:var(--grey);letter-spacing:.08em}
+
+  /* ---- stats ---- */
+  .stats{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:44px}
+  @media(min-width:700px){.stats{grid-template-columns:repeat(3,1fr)}}
+  .stat{background:var(--surface);padding:26px 24px 20px;display:flex;flex-direction:column;gap:6px}
+  .stat .v{font-family:var(--disp);font-weight:800;font-size:clamp(34px,3.6vw,48px);line-height:1}
+  .stat .v.bad{color:var(--amber)} .stat .v.ok{color:var(--mint)} .stat .v.fact{color:var(--white)}
+  .stat .l{font-size:14px;color:var(--white);max-width:24em}
+  .stat .s{margin-top:auto;padding-top:10px}
+
+  .note{border-left:2px solid var(--amber);padding:14px 20px;background:rgba(255,140,66,.05);margin-top:34px;max-width:46em}
+  .note.mintline{border-color:var(--mint);background:rgba(78,234,192,.05)}
+  .note p{font-size:15px}
+
+  /* ---- brand platform ---- */
+  .platform{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+  @media(min-width:840px){.platform{grid-template-columns:1fr 1fr}}
+  .pcell{background:var(--surface);padding:30px 28px}
+  .pcell h3{color:var(--mint)}
+  .pcell ul{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .pcell li{padding-left:20px;position:relative}
+  .pcell li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;border:1px solid var(--teal)}
+  .banword{font-family:var(--mono);font-size:12px;color:var(--grey);text-decoration:line-through;text-decoration-color:var(--amber);margin-right:14px;display:inline-block}
+
+  /* ---- segments ---- */
+  .segs{display:grid;gap:16px;margin-top:12px}
+  @media(min-width:700px){.segs{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:1040px){.segs{grid-template-columns:repeat(5,1fr)}}
+  .seg{border:1px solid var(--line);background:var(--surface);padding:18px 16px 16px;position:relative;min-height:280px;display:flex;flex-direction:column;transition:border-color .25s,transform .25s cubic-bezier(.16,1,.3,1)}
+  .seg:hover{border-color:rgba(78,234,192,.5);transform:translateY(-4px)}
+  .seg .share{position:absolute;top:12px;right:14px;font-family:var(--mono);font-size:12px;color:var(--grey)}
+  .seg .sym{font-family:var(--disp);font-weight:800;font-size:44px;color:var(--mint);line-height:1}
+  .seg.newseg .sym{color:var(--peach)}
+  .seg .nm{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--white);margin:6px 0 12px}
+  .seg .jtbd{font-size:13px;color:var(--grey);font-style:italic;margin-bottom:12px}
+  .seg .pain{font-size:13px;color:var(--white)}
+  .seg .prod{margin-top:auto;padding-top:14px;font-family:var(--mono);font-size:11px;color:var(--mint)}
+
+  /* ---- ladder ---- */
+  .ladder{display:flex;flex-direction:column;gap:14px;counter-reset:step;margin-top:8px}
+  .rung{display:grid;grid-template-columns:64px 1fr auto;gap:20px;align-items:start;border:1px solid var(--line);background:var(--surface);padding:22px 24px;position:relative}
+  .rung::before{counter-increment:step;content:"0" counter(step);font-family:var(--mono);font-size:13px;color:var(--teal);padding-top:4px}
+  .rung .price{font-family:var(--disp);font-weight:800;font-size:clamp(20px,2vw,26px);color:var(--mint);white-space:nowrap;text-align:right}
+  .rung .price small{display:block;font-family:var(--mono);font-weight:400;font-size:10px;color:var(--grey);letter-spacing:.08em;margin-top:4px}
+  .rung.free .price{color:var(--white)}
+  .rung p{font-size:14px;color:var(--grey);max-width:44em}
+  .rung h3{margin-bottom:6px}
+  @media(max-width:700px){.rung{grid-template-columns:1fr}.rung .price{text-align:left}}
+
+  .mini{display:grid;gap:12px;margin-top:26px}
+  @media(min-width:840px){.mini{grid-template-columns:repeat(3,1fr)}}
+  .mini .m{border:1px dashed rgba(78,234,192,.35);padding:16px 18px;background:rgba(78,234,192,.03)}
+  .mini .m b{display:block;font-size:14px;margin-bottom:4px}
+  .mini .m span{font-size:13px;color:var(--grey)}
+  .mini .m .pr{display:block;margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--mint)}
+
+  /* ---- engine ---- */
+  .engine{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:10px}
+  @media(min-width:900px){.engine{grid-template-columns:repeat(4,1fr)}}
+  .ecell{background:var(--surface);padding:26px 22px;display:flex;flex-direction:column;gap:10px}
+  .ecell .k{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal)}
+  .ecell h3{font-size:18px}
+  .ecell p{font-size:13.5px;color:var(--grey)}
+  .ecell .freq{margin-top:auto;padding-top:12px;font-family:var(--mono);font-size:11px;color:var(--mint)}
+  .rule{margin-top:40px;border:1px solid rgba(78,234,192,.4);padding:26px 28px;background:linear-gradient(120deg,rgba(78,234,192,.06),transparent)}
+  .rule .formula{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:clamp(18px,2.4vw,30px);line-height:1.25}
+  .rule .formula i{color:var(--teal);font-style:normal;padding:0 6px}
+
+  /* ---- funnel ---- */
+  .funnel{display:flex;flex-direction:column;gap:6px;margin-top:14px;max-width:760px}
+  .fstep{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+  .fbar{height:52px;display:flex;align-items:center;padding:0 18px;font-size:14px;border:1px solid rgba(78,234,192,.35);background:linear-gradient(90deg,rgba(78,234,192,.12),rgba(78,234,192,.03))}
+  .fstep:nth-child(1) .fbar{width:100%}
+  .fstep:nth-child(2) .fbar{width:82%}
+  .fstep:nth-child(3) .fbar{width:60%}
+  .fstep:nth-child(4) .fbar{width:42%}
+  .fstep:nth-child(5) .fbar{width:26%;border-color:var(--mint);background:linear-gradient(90deg,rgba(78,234,192,.25),rgba(78,234,192,.06))}
+  .fstep .fm{font-family:var(--mono);font-size:11px;color:var(--grey);white-space:nowrap}
+  .fstep .fm b{color:var(--mint);font-weight:500}
+  @media(max-width:620px){.fstep{grid-template-columns:1fr}.fstep .fm{padding-left:4px}}
+
+  /* ---- roadmap ---- */
+  .phases{display:grid;gap:16px;margin-top:10px}
+  @media(min-width:900px){.phases{grid-template-columns:repeat(3,1fr)}}
+  .phase{border:1px solid var(--line);background:var(--surface);padding:26px 24px;display:flex;flex-direction:column;gap:14px}
+  .phase .ph{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--teal);text-transform:uppercase}
+  .phase ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .phase li{font-size:13.5px;color:var(--grey);padding-left:18px;position:relative}
+  .phase li::before{content:"→";position:absolute;left:0;color:var(--teal)}
+  .phase .kpi{border-top:1px solid var(--line);padding-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--mint);line-height:1.7}
+  .phase .kill{font-family:var(--mono);font-size:11px;color:var(--amber);border:1px solid rgba(255,140,66,.35);padding:8px 10px;margin-top:auto}
+  .risks{margin-top:40px;display:grid;gap:12px}
+  @media(min-width:840px){.risks{grid-template-columns:repeat(3,1fr)}}
+  .risk{border-left:2px solid var(--amber);padding:14px 18px;background:rgba(255,140,66,.04);font-size:13.5px}
+  .risk b{display:block;color:var(--amber);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .risk span{color:var(--grey)}
+  .risk .plan{color:var(--white)}
+
+  /* ---- design system ---- */
+  .sw{display:grid;gap:12px;margin-top:10px}
+  @media(min-width:700px){.sw{grid-template-columns:repeat(4,1fr)}}
+  .swatch{border:1px solid var(--line);padding:0 0 12px;background:var(--surface)}
+  .swatch .c{height:74px;border-bottom:1px solid var(--line)}
+  .swatch .i{padding:12px 14px 0;font-family:var(--mono);font-size:11px;color:var(--grey);line-height:1.8}
+  .swatch .i b{color:var(--white);font-weight:500;display:block}
+  .drama{display:flex;align-items:stretch;margin:38px 0 8px;border:1px solid var(--line)}
+  .drama div{flex:1;padding:16px 14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .drama .d1{background:rgba(255,140,66,.14);color:var(--amber)}
+  .drama .d2{background:rgba(242,247,245,.06);color:var(--white)}
+  .drama .d3{background:rgba(78,234,192,.14);color:var(--mint)}
+  .spec{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:26px}
+  @media(min-width:840px){.spec{grid-template-columns:1fr 1fr}}
+  .spec .cell{background:var(--surface);padding:26px}
+  .spec .t1{font-family:var(--disp);font-weight:800;font-size:34px;text-transform:uppercase;line-height:1.05}
+  .spec .t2{font-size:15px;color:var(--grey);margin-top:10px;max-width:30em}
+  .spec .t3{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:14px;letter-spacing:.12em}
+  .comp-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:18px}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 60px;font-family:var(--mono);font-size:11.5px;color:var(--grey);line-height:2}
+  footer .lock{color:var(--mint)}
+  a.inline{color:var(--mint);text-decoration:none;border-bottom:1px solid rgba(78,234,192,.4)}
+  a.inline:hover{border-bottom-color:var(--mint)}
+</style>
+</head>
+<body>
+<div class="aurora a1"></div><div class="aurora a2"></div><div class="aurora a3"></div>
+
+<nav class="rail" aria-label="Разделы">
+  <div class="logo">[Tb] TURBIUM</div>
+  <a href="#ctx"><span class="n">01</span>Контекст 2026</a>
+  <a href="#brand"><span class="n">02</span>Платформа бренда</a>
+  <a href="#aud"><span class="n">03</span>Аудитория</a>
+  <a href="#prod"><span class="n">04</span>Продукт</a>
+  <a href="#engine"><span class="n">05</span>Контент-двигатель</a>
+  <a href="#funnel"><span class="n">06</span>Воронка</a>
+  <a href="#road"><span class="n">07</span>Roadmap 90 дней</a>
+  <a href="#ds"><span class="n">08</span>Дизайн-система</a>
+</nav>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow"><span class="idx">turbium.ru</span> независимое AI-агентство · Россия</div>
+      <h1>Элемент<br>вашего <span class="tail">роста</span></h1>
+      <p class="sub">TURBIUM встраивается в малый бизнес как элемент в реакцию: <b>диагностика за 5 минут</b>, мини-продукты, которые закрывают одну задачу за раз, и система, которая перестаёт терять ваших клиентов.</p>
+      <div class="chips">
+        <span class="chip">Платформа бренда <b>v1.0</b></span>
+        <span class="chip">июль 2026</span>
+        <span class="chip">внутренний документ · <b>закрыт паролем</b></span>
+      </div>
+      <div class="cta-row">
+        <a class="btn primary" href="https://t.me/turbium_bot" rel="noopener">AI-аудит в Telegram</a>
+        <a class="btn ghost" href="#brand">Платформа бренда</a>
+      </div>
+    </div>
+    <div class="element rv" aria-hidden="true">
+      <span class="no">65</span><span class="mass">158.93</span>
+      <span class="sym">Tb</span>
+      <span class="nm">Turbium</span>
+      <span class="job">job to be done: рост</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 01 CONTEXT ================= -->
+<section id="ctx">
+  <div class="eyebrow"><span class="idx">01</span> Контекст · боли МСБ 2026</div>
+  <h2 class="rv">Рынок покупает<br><span class="amber">обезболивающее</span>,<br>не витамины</h2>
+  <p class="lead rv">2026 год для малого бизнеса России: НДС вырос до 22%, ключевая ставка около 21%, кредит недоступен, CAC растёт не из-за цены клика, а из-за потерянных лидов. Собственники входят в рынок маркетинговых услуг в режиме паники, не планирования. Это не наша интерпретация: это данные.</p>
+
+  <div class="stats rv">
+    <div class="stat"><span class="v bad num">78%</span><span class="l">МСБ не имеют письменной маркетинговой стратегии</span><span class="s src">[ДАННЫЕ] НАФИ, авг 2025, n=500</span></div>
+    <div class="stat"><span class="v bad num">76–86%</span><span class="l">ведут клиентскую базу в Excel, WhatsApp и блокнотах: CRM нет</span><span class="s src">[ДАННЫЕ] J'son&amp;Partners, KT-Team</span></div>
+    <div class="stat"><span class="v bad num">30–50%</span><span class="l">входящих лидов теряется без CRM из-за человеческого фактора</span><span class="s src">[ДАННЫЕ] KT-Team, 2025</span></div>
+    <div class="stat"><span class="v fact num">46%</span><span class="l">окупают рекламу только через 3+ месяца</span><span class="s src">[ДАННЫЕ] НАФИ / RSBI</span></div>
+    <div class="stat"><span class="v fact num">−24.5%</span><span class="l">активных селлеров ушли с маркетплейсов за год: они умеют считать, но не умеют в лидген</span><span class="s src">[ДАННЫЕ] Sellmonitor / MPGO, 2025</span></div>
+    <div class="stat"><span class="v fact num">5–15%</span><span class="l">реально системно используют AI: остальные «попробовали ChatGPT»</span><span class="s src">[ДАННЫЕ] консенсус-оценка, НАФИ 2024</span></div>
+  </div>
+
+  <div class="note rv">
+    <p><b class="amber">Правило платформы:</b> каждая цифра наружу несёт источник и тег <span class="tagD">ДАННЫЕ</span> или <span class="tagH">ГИПОТЕЗА</span>. Цифра без источника не публикуется. Это не бюрократия, это позиционирование: рынок с аллергией на инфоцыган верит только тем, кто показывает, откуда цифра.</p>
+  </div>
+</section>
+
+<!-- ================= 02 BRAND ================= -->
+<section id="brand">
+  <div class="eyebrow"><span class="idx">02</span> Платформа бренда</div>
+  <h2 class="rv">Не агентство.<br><span class="mint">Реагент</span></h2>
+  <p class="lead rv">Агентство продаёт часы и отчёты. Курсы продают мотивацию. TURBIUM продаёт реакцию: элемент попадает в бизнес, и метрика меняется. Если реакции нет, мы говорим об этом первыми.</p>
+
+  <div class="platform rv" style="margin-top:44px">
+    <div class="pcell">
+      <h3>Суть бренда</h3>
+      <p>Tb, элемент №65. Встраиваемся в существующий бизнес малыми дозами: диагностика, один процесс, одна метрика. Не «трансформация», а серия управляемых реакций с проверяемым результатом.</p>
+    </div>
+    <div class="pcell">
+      <h3>Позиционирование</h3>
+      <p>Первый AI-помощник собственника МСБ: скорая помощь для маркетинга, который течёт. Между «нанять агентство за 100К+» и «разбираться самому ночами» появляется третий путь: за вечер и за цену ужина.</p>
+    </div>
+    <div class="pcell">
+      <h3>Принципы</h3>
+      <ul>
+        <li>Каждая цифра с источником. Вымышленных кейсов не существует</li>
+        <li>Обезболивающее, не витамины: заходим через острую боль</li>
+        <li>Прозрачность: показываем собственные CAC и расчёты</li>
+        <li>AI = copilot. Продаём сэкономленные часы и рубли, не «нейросети»</li>
+        <li>Малые дозы: сначала пилот, потом бюджет</li>
+      </ul>
+    </div>
+    <div class="pcell">
+      <h3>Голос</h3>
+      <p>Живой разговорный русский: «свой, который шарит». Ирония без яда, провокация с немедленным разворотом. Максимум 12 слов на слайде.</p>
+      <p style="margin-top:14px">
+        <span class="banword">уникальный</span>
+        <span class="banword">эксклюзивный</span>
+        <span class="banword">не упусти шанс</span>
+        <span class="banword">только сегодня</span>
+        <span class="banword">заработай миллион</span>
+      </p>
+      <p class="src" style="margin-top:6px">запретный словарь: маркеры инфоцыганства</p>
+    </div>
+  </div>
+
+  <div class="note mintline rv">
+    <p><b class="mint">Reason to believe:</b> собственная research-база из трёх перекрёстно верифицированных исследований МСБ (НАФИ, NMi Group, Data Insight, Calltouch, click.ru, RSBI). Контент-фабрика физически не может опубликовать цифру, которой нет в базе.</p>
+  </div>
+</section>
+
+<!-- ================= 03 AUDIENCE ================= -->
+<section id="aud">
+  <div class="eyebrow"><span class="idx">03</span> Аудитория · 5 элементов</div>
+  <h2 class="rv">Периодическая таблица<br>собственника</h2>
+  <p class="lead rv">Сегментация по JTBD: не «кто клиент», а какую работу он нанимает TURBIUM выполнить. Доли сегментов: <span class="tagH">ГИПОТЕЗА</span>, валидируются первыми 500 прохождениями аудита в боте.</p>
+
+  <div class="segs rv">
+    <div class="seg">
+      <span class="share num">~35%</span><span class="sym">Ха</span><span class="nm">Хаотик</span>
+      <p class="jtbd">«Наведи порядок: я не понимаю, что из маркетинга работает»</p>
+      <p class="pain">Бюджет 50–200К/мес уходит «на всё подряд», аналитики нет, CRM частично</p>
+      <span class="prod">→ AI-аудит + мини-продукты</span>
+    </div>
+    <div class="seg">
+      <span class="share num">~25%</span><span class="sym">Ра</span><span class="nm">Разочарованный</span>
+      <p class="jtbd">«Покажи прозрачно, где меня обманывают»</p>
+      <p class="pain">2–5 агентств за 3 года, красивые отчёты, продаж нет, доверие на нуле</p>
+      <span class="prod">→ Аудит PRO</span>
+    </div>
+    <div class="seg">
+      <span class="share num">~25%</span><span class="sym">Но</span><span class="nm">Новичок</span>
+      <p class="jtbd">«Не дай слить первые деньги»</p>
+      <p class="pain">Бизнесу 0–2 года, информационный шум, каждая ошибка критична</p>
+      <span class="prod">→ бесплатный аудит + гайд</span>
+    </div>
+    <div class="seg">
+      <span class="share num">~15%</span><span class="sym">Ма</span><span class="nm">Масштабатор</span>
+      <p class="jtbd">«Помоги расти без x2 команды»</p>
+      <p class="pain">Рост упёрся в потолок: x2 результата требует x3 людей и x4 хаоса</p>
+      <span class="prod">→ Система + сопровождение</span>
+    </div>
+    <div class="seg newseg">
+      <span class="share">n/a</span><span class="sym">Бе</span><span class="nm">Беженец · новый</span>
+      <p class="jtbd">«Научи привлекать клиентов без маркетплейса»</p>
+      <p class="pain">Ушёл с WB/Ozon (−24.5% за год), считает юнит-экономику, не умеет в лидген</p>
+      <span class="prod">→ Система «свой канал»</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 PRODUCT ================= -->
+<section id="prod">
+  <div class="eyebrow"><span class="idx">04</span> Продукт · единая лестница</div>
+  <h2 class="rv">Лестница из бота<br>в <span class="mint">систему</span></h2>
+  <p class="lead rv">Один прайс, один источник правды. Каждая ступень решает одну задачу целиком и продаёт следующую. Цены: <span class="tagH">ГИПОТЕЗА</span>, фиксируются после первых 20 продаж. Фальшивых дедлайнов и «скидок до пятницы» не существует.</p>
+
+  <div class="ladder rv" style="margin-top:40px">
+    <div class="rung free">
+      <div><h3>AI-аудит маркетинга</h3><p>12 вопросов в Telegram-боте, 5 минут. На выходе: карта дыр по 7 зонам, оценка 🔴🟡🟢, одна рекомендация, которую можно внедрить сегодня. Определяет сегмент и ведёт на следующую ступень.</p></div>
+      <div class="price">0 ₽<small>вход в воронку</small></div>
+    </div>
+    <div class="rung">
+      <div><h3>Мини-продукты</h3><p>Решают одну бизнес-задачу за вечер: инструмент + инструкция + разбор типовых ошибок. Покупаются в боте в один клик, работают как трипваер и как честная ценность сами по себе.</p></div>
+      <div class="price">990–2 990 ₽<small>гипотеза · тест ценой</small></div>
+    </div>
+    <div class="rung">
+      <div><h3>Аудит PRO</h3><p>Глубокий разбор: воронка, каналы, юнит-экономика, конкуренты. PDF-отчёт с цифрами, план на 90 дней, 60-минутная сессия. Для Разочарованного: показываем, что именно не работало и почему.</p></div>
+      <div class="price">14 990 ₽<small>гипотеза</small></div>
+    </div>
+    <div class="rung">
+      <div><h3>Система</h3><p>Внедрение за 3 недели: TG-бот приёма заявок + CRM + сквозная аналитика + скрипты. Закрывает главную утечку рынка: 30–50% потерянных лидов. Фиксированный объём, фиксированный срок.</p></div>
+      <div class="price">49 990 ₽<small>гипотеза</small></div>
+    </div>
+    <div class="rung">
+      <div><h3>Сопровождение</h3><p>Ежемесячно: контроль метрик, оптимизация, новые автоматизации, доступ к обновлениям research-базы. Для Масштабатора: рост без пропорционального роста команды.</p></div>
+      <div class="price">39 990 ₽/мес<small>гипотеза</small></div>
+    </div>
+  </div>
+
+  <h3 class="rv" style="margin-top:48px">Полка мини-продуктов на старт</h3>
+  <div class="mini rv">
+    <div class="m"><b>Калькулятор юнит-экономики</b><span>Считает CPL, CAC и допустимую цену клиента по вашей нише. С разбором: где вы в красной зоне.</span><span class="pr">990 ₽</span></div>
+    <div class="m"><b>CRM за неделю</b><span>Пошаговый план внедрения без саботажа команды + шаблон полей + 10 ошибок, из-за которых 50% внедрений проваливаются.</span><span class="pr">1 990 ₽</span></div>
+    <div class="m"><b>Детектор агентств</b><span>Гайд: 3 вопроса подрядчику, чтение отчётов, красные флаги. Для тех, кто уже обжёгся.</span><span class="pr">990 ₽</span></div>
+    <div class="m"><b>Лидо-ловушка</b><span>Шаблон квиз-бота приёма заявок: скопируй и запусти за вечер. Отвечает ночью, пока конкурент спит.</span><span class="pr">2 990 ₽</span></div>
+    <div class="m"><b>152-ФЗ без штрафа</b><span>Чек-лист 10 шагов безопасной работы с данными клиентов + какие AI можно использовать для ПД.</span><span class="pr">1 490 ₽</span></div>
+    <div class="m"><b>Свой канал после маркетплейса</b><span>Дорожная карта D2C для Беженца: магазин, трафик, retention. С расчётом стартового бюджета.</span><span class="pr">2 990 ₽</span></div>
+  </div>
+</section>
+
+<!-- ================= 05 ENGINE ================= -->
+<section id="engine">
+  <div class="eyebrow"><span class="idx">05</span> Контент-двигатель · перспективы</div>
+  <h2 class="rv">Одна боль,<br>четыре формата,<br>один <span class="mint">CTA</span></h2>
+  <p class="lead rv">Telegram-first: канал = дом, бот = касса. Остальные площадки: охватные витрины, которые сгорают и заменяются, не ломая систему. Каждая единица контента собирается фабрикой из research-инсайта, поэтому масштабируется без потери качества.</p>
+
+  <div class="engine rv" style="margin-top:44px">
+    <div class="ecell">
+      <span class="k">Формат 1</span>
+      <h3>Виральные карусели</h3>
+      <p>6 слайдов по методу Шугермана: скользкая горка, незавершённый гештальт, loop-механика (слайд 6 зеркалит слайд 1 с инверсией цвета). 8 ротируемых форматов: ШОКЕР, КАЛЬКУЛЯТОР, МИФОБОРЕЦ, ИСТОРИЯ, ДО/ПОСЛЕ, ТАЙМЛАЙН, ВОПРОС-ОТВЕТ, ПЕРЕВЁРНУТЫЙ.</p>
+      <span class="freq">3/нед · TG, VK, витрины</span>
+    </div>
+    <div class="ecell">
+      <span class="k">Формат 2</span>
+      <h3>Reels / Shorts</h3>
+      <p>15–30 секунд: хук карусели + один график + один вывод. YouTube Shorts и VK Клипы как легальный охват, дублирование в витрины. Шаблонный монтаж: тёмный фон, мятные субтитры, цифра крупно.</p>
+      <span class="freq">4–5/нед · YT, VK</span>
+    </div>
+    <div class="ecell">
+      <span class="k">Формат 3</span>
+      <h3>GEO-SEO блог</h3>
+      <p>turbium.ru/blog: кластеры «сколько стоит клиент в [ниша] 2026», «CRM для малого бизнеса», «152-ФЗ для МСБ». FAQ-блоки, schema.org, entity-разметка. Цель: цитируемость в YandexGPT, Perplexity, ChatGPT: когда собственник спрашивает AI, ответ ссылается на нас.</p>
+      <span class="freq">2/нед · органика + AI-поиск</span>
+    </div>
+    <div class="ecell">
+      <span class="k">Формат 4</span>
+      <h3>Внешние площадки</h3>
+      <p>VC.ru и Дзен: лонгриды из research-базы. Клерк и Т-Ж Бизнес: гостевые разборы. Посевы в бизнес-чатах и Telegram-каналах МСБ: нативные разборы с калькулятором. Подкасты как длинное доверие.</p>
+      <span class="freq">2–4/мес · заимствованное доверие</span>
+    </div>
+  </div>
+
+  <div class="rule rv">
+    <p class="formula">Research-инсайт <i>→</i> карусель <i>+</i> short <i>+</i> статья <i>+</i> пост в канал <i>→</i> бот</p>
+    <p class="muted" style="margin-top:12px;font-size:14px">Правило двигателя: контент не придумывается, а извлекается. 12 готовых инсайтов из сводного отчёта = 12 контент-пакетов первого цикла. Себестоимость пакета считается и входит в юнит-экономику CAC.</p>
+  </div>
+</section>
+
+<!-- ================= 06 FUNNEL ================= -->
+<section id="funnel">
+  <div class="eyebrow"><span class="idx">06</span> Воронка</div>
+  <h2 class="rv">Из ленты<br>в реакцию</h2>
+  <p class="lead rv">Целевые конверсии: <span class="tagH">ГИПОТЕЗА</span> до первых 90 дней данных. Каждый шаг измерим, у каждого шага есть владелец и red flag.</p>
+
+  <div class="funnel rv" style="margin-top:40px">
+    <div class="fstep"><div class="fbar">Контент: охват (карусели, shorts, блог, посевы)</div><span class="fm">база расчёта</span></div>
+    <div class="fstep"><div class="fbar">Переход в TG-бот</div><span class="fm">CTR <b>1.5–3%</b> с охвата</span></div>
+    <div class="fstep"><div class="fbar">Прошёл AI-аудит до конца</div><span class="fm"><b>55%+</b> начавших · red flag &lt;40%</span></div>
+    <div class="fstep"><div class="fbar">Подписка на канал + серия прогрева</div><span class="fm"><b>60%</b> прошедших аудит</span></div>
+    <div class="fstep"><div class="fbar">Покупка мини-продукта → PRO → Система</div><span class="fm"><b>5–8%</b> прошедших аудит</span></div>
+  </div>
+
+  <div class="note rv">
+    <p><b class="amber">Анти-паттерн:</b> гнать охват без готового бота = сжигать контент. Порядок запуска жёсткий: сначала бот и полка мини-продуктов, потом дистрибуция. Проверено на чужих ошибках: 90% бизнесов сливают бюджет не из-за рекламы, а из-за того, что после клика ничего не готово.</p>
+  </div>
+</section>
+
+<!-- ================= 07 ROADMAP ================= -->
+<section id="road">
+  <div class="eyebrow"><span class="idx">07</span> Roadmap · 90 дней</div>
+  <h2 class="rv">Три фазы,<br>три kill-критерия</h2>
+
+  <div class="phases rv" style="margin-top:40px">
+    <div class="phase">
+      <span class="ph">Фаза 1 · недели 1–3 · Фундамент</span>
+      <ul>
+        <li>TG-бот: аудит 12 вопросов + оплата + выдача мини-продуктов</li>
+        <li>Полка: 3 мини-продукта готовы (калькулятор, CRM, детектор)</li>
+        <li>5 эталонных каруселей через Carousel Factory</li>
+        <li>Каркас блога + 3 GEO-статьи с FAQ-разметкой</li>
+        <li>Юнит-экономика TURBIUM посчитана: себестоимость контента, целевой CAC</li>
+      </ul>
+      <div class="kpi">KPI: бот работает end-to-end · 1 тестовая продажа на знакомых</div>
+      <div class="kill">KILL: бот не готов к дню 21 → дистрибуция не стартует</div>
+    </div>
+    <div class="phase">
+      <span class="ph">Фаза 2 · недели 4–8 · Дистрибуция</span>
+      <ul>
+        <li>Ритм: 3 карусели + 4 shorts + 2 статьи в неделю</li>
+        <li>Посевы: 8–10 размещений в TG-каналах и чатах МСБ</li>
+        <li>2 лонгрида на VC.ru из research-базы</li>
+        <li>A/B: 3 хука на каждый сегмент, недельный разбор метрик</li>
+      </ul>
+      <div class="kpi">KPI к неделе 8: 1 000 подписчиков канала · 300 прохождений аудита · 30 продаж мини-продуктов</div>
+      <div class="kill">KILL: &lt;100 аудитов к неделе 6 → смена хуков и площадок, не бюджета</div>
+    </div>
+    <div class="phase">
+      <span class="ph">Фаза 3 · недели 9–13 · Монетизация</span>
+      <ul>
+        <li>Запуск Аудит PRO и Системы на прогретую базу</li>
+        <li>Первые 3 реальных кейса с разрешением на публикацию</li>
+        <li>Кейс-контент заменяет модельные расчёты</li>
+        <li>Решение по масштабированию: платный трафик Яндекс/TG Ads на работающую воронку</li>
+      </ul>
+      <div class="kpi">KPI к дню 90: 5 продаж PRO · 1–2 Системы · CAC ≤ 30% LTV первой покупки</div>
+      <div class="kill">KILL: 0 продаж PRO к неделе 12 → пересборка оффера с клиентскими интервью</div>
+    </div>
+  </div>
+
+  <h3 class="rv" style="margin-top:52px">Риски и план Б</h3>
+  <div class="risks rv">
+    <div class="risk"><b>Блок или бан площадки-витрины</b><span>Запрещённые платформы: без бюджета, только органика.</span> <span class="plan">План Б: ядро в Telegram, витрины взаимозаменяемы, база в боте принадлежит нам.</span></div>
+    <div class="risk"><b>152-ФЗ и данные клиентов</b><span>Штрафы до 15 млн ₽ для юрлиц.</span> <span class="plan">План Б: персональные данные только через GigaChat/YandexGPT, чек-лист применяем к себе первым.</span></div>
+    <div class="risk"><b>Ноль реакции рынка</b><span>Гипотезы цен и конверсий не подтверждаются.</span> <span class="plan">План Б: kill-критерии на каждой фазе, пересборка оффера дешевле упорства. Пилот до бюджета.</span></div>
+  </div>
+</section>
+
+<!-- ================= 08 DESIGN SYSTEM ================= -->
+<section id="ds">
+  <div class="eyebrow"><span class="idx">08</span> Дизайн-система · Visual DNA v3</div>
+  <h2 class="rv">Цвет как<br>драматургия</h2>
+  <p class="lead rv">Палитра не декоративна: каждый цвет несёт роль в нарративе. Amber говорит о боли, белый предъявляет факт, мятный даёт решение. Нарушение ролей = нарушение бренда.</p>
+
+  <div class="drama rv"><div class="d1">Amber · боль</div><div class="d2">White · пруф</div><div class="d3">Mint · решение</div></div>
+
+  <div class="sw rv">
+    <div class="swatch"><div class="c" style="background:#0A0F0D"></div><div class="i"><b>Deep Black · #0A0F0D</b>фон, всегда · глубина, не #000</div></div>
+    <div class="swatch"><div class="c" style="background:#4EEAC0"></div><div class="i"><b>Mint · #4EEAC0</b>решения, CTA, логотип Tb</div></div>
+    <div class="swatch"><div class="c" style="background:#FF8C42"></div><div class="i"><b>Amber Fire · #FF8C42</b>проблемы, шок, alert</div></div>
+    <div class="swatch"><div class="c" style="background:#00BFA5"></div><div class="i"><b>Teal · #00BFA5</b>свечение, grid, связки</div></div>
+    <div class="swatch"><div class="c" style="background:#FFB88C"></div><div class="i"><b>Soft Peach · #FFB88C</b>нюанс, тёплые мелочи</div></div>
+    <div class="swatch"><div class="c" style="background:#F2F7F5"></div><div class="i"><b>White · #F2F7F5</b>данные, цифры, пруфы</div></div>
+    <div class="swatch"><div class="c" style="background:#8A9A94"></div><div class="i"><b>Cool Grey · #8A9A94</b>источники, подписи</div></div>
+    <div class="swatch"><div class="c" style="background:#151d19"></div><div class="i"><b>Surface · #151D19</b>карточки, ячейки</div></div>
+  </div>
+
+  <div class="spec rv">
+    <div class="cell">
+      <div class="t1">Заголовок: bold condensed, верхний регистр</div>
+      <p class="t2">Основной текст: системный гротеск, 15–17px, интерлиньяж 1.65, строка не шире 65 знаков. Ключевые слова-решения выделяются мятным, слова-боли: amber.</p>
+      <div class="t3">MONO · ИСТОЧНИКИ · МЕТКИ · 12px · +12% ТРЕКИНГ</div>
+    </div>
+    <div class="cell">
+      <h3 style="color:var(--mint)">Правила композиции</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:9px;font-size:14px;color:var(--grey)">
+        <li>70/30: премиальный dark + raw-элементы (скриншоты, заметки)</li>
+        <li>Воздух: минимум 30% пустого пространства на слайде</li>
+        <li>Лого [Tb] мелко, внизу слева, мятным, на каждом носителе</li>
+        <li>Grid-паттерн teal: еле заметен, никогда не спорит с контентом</li>
+        <li>Loop: последний кадр рифмуется с первым с инверсией цвета</li>
+        <li>Никаких криптосимволов на монетах, лица не узнаваемы</li>
+      </ul>
+      <div class="comp-row">
+        <a class="btn primary" style="font-size:13px;padding:11px 20px" href="#ds">Кнопка решения</a>
+        <a class="btn ghost" style="font-size:13px;padding:11px 20px" href="#ds">Вторичная</a>
+        <span class="tagD">ДАННЫЕ</span><span class="tagH">ГИПОТЕЗА</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>TURBIUM · платформа бренда v1.0 · июль 2026 · независимый проект AI-агентства</div>
+  <div>Источники данных: НАФИ · NMi Group · Data Insight · Calltouch · click.ru · RSBI · Sellmonitor/MPGO · KT-Team · Gartner</div>
+  <div>Цены и конверсии с тегом [ГИПОТЕЗА] подлежат валидации · вымышленные кейсы запрещены платформой</div>
+  <div class="lock">⬢ Документ закрыт паролем · доступ только по прямой ссылке от владельца</div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var els=document.querySelectorAll('.rv');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}})
+  },{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>

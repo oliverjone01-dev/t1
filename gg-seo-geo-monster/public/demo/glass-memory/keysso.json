@@ -1,0 +1,304 @@
+{
+ "demo": true,
+ "domain": "glass-memory.ru",
+ "measured": "2026-07-09",
+ "visibility": 1840,
+ "keywords_total": 186,
+ "top1": 6,
+ "top3": 14,
+ "top10": 37,
+ "top50": 112,
+ "history": [
+  {
+   "date": "2026-06-10",
+   "visibility": 1697,
+   "top10": 34
+  },
+  {
+   "date": "2026-06-11",
+   "visibility": 1688,
+   "top10": 33
+  },
+  {
+   "date": "2026-06-12",
+   "visibility": 1702,
+   "top10": 34
+  },
+  {
+   "date": "2026-06-13",
+   "visibility": 1708,
+   "top10": 34
+  },
+  {
+   "date": "2026-06-14",
+   "visibility": 1702,
+   "top10": 34
+  },
+  {
+   "date": "2026-06-15",
+   "visibility": 1720,
+   "top10": 35
+  },
+  {
+   "date": "2026-06-16",
+   "visibility": 1740,
+   "top10": 35
+  },
+  {
+   "date": "2026-06-17",
+   "visibility": 1756,
+   "top10": 35
+  },
+  {
+   "date": "2026-06-18",
+   "visibility": 1748,
+   "top10": 35
+  },
+  {
+   "date": "2026-06-19",
+   "visibility": 1744,
+   "top10": 36
+  },
+  {
+   "date": "2026-06-20",
+   "visibility": 1765,
+   "top10": 36
+  },
+  {
+   "date": "2026-06-21",
+   "visibility": 1775,
+   "top10": 36
+  },
+  {
+   "date": "2026-06-22",
+   "visibility": 1782,
+   "top10": 36
+  },
+  {
+   "date": "2026-06-23",
+   "visibility": 1796,
+   "top10": 36
+  },
+  {
+   "date": "2026-06-24",
+   "visibility": 1800,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-25",
+   "visibility": 1792,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-26",
+   "visibility": 1787,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-27",
+   "visibility": 1780,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-28",
+   "visibility": 1784,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-29",
+   "visibility": 1791,
+   "top10": 37
+  },
+  {
+   "date": "2026-06-30",
+   "visibility": 1815,
+   "top10": 38
+  },
+  {
+   "date": "2026-07-01",
+   "visibility": 1807,
+   "top10": 38
+  },
+  {
+   "date": "2026-07-02",
+   "visibility": 1807,
+   "top10": 38
+  },
+  {
+   "date": "2026-07-03",
+   "visibility": 1806,
+   "top10": 38
+  },
+  {
+   "date": "2026-07-04",
+   "visibility": 1801,
+   "top10": 39
+  },
+  {
+   "date": "2026-07-05",
+   "visibility": 1798,
+   "top10": 39
+  },
+  {
+   "date": "2026-07-06",
+   "visibility": 1795,
+   "top10": 39
+  },
+  {
+   "date": "2026-07-07",
+   "visibility": 1786,
+   "top10": 39
+  },
+  {
+   "date": "2026-07-08",
+   "visibility": 1804,
+   "top10": 40
+  },
+  {
+   "date": "2026-07-09",
+   "visibility": 1812,
+   "top10": 40
+  }
+ ],
+ "keywords": [
+  {
+   "phrase": "стеклянный памятник",
+   "pos": 3,
+   "freq": 4400,
+   "url": "/pamyatniki/"
+  },
+  {
+   "phrase": "памятник из стекла на могилу",
+   "pos": 5,
+   "freq": 2100,
+   "url": "/pamyatniki/na-mogilu/"
+  },
+  {
+   "phrase": "портрет на стекле на памятник",
+   "pos": 4,
+   "freq": 3600,
+   "url": "/portrety/"
+  },
+  {
+   "phrase": "портрет в стекле фото",
+   "pos": 9,
+   "freq": 1800,
+   "url": "/portrety/#gallery"
+  },
+  {
+   "phrase": "табличка на памятник стекло",
+   "pos": 6,
+   "freq": 2900,
+   "url": "/tablichki/"
+  },
+  {
+   "phrase": "ритуальные изделия из стекла",
+   "pos": 2,
+   "freq": 990,
+   "url": "/"
+  },
+  {
+   "phrase": "мемориал из стекла",
+   "pos": 7,
+   "freq": 640,
+   "url": "/memorialy/"
+  },
+  {
+   "phrase": "стеклянная плита на памятник",
+   "pos": 12,
+   "freq": 780,
+   "url": "/pamyatniki/plity/"
+  },
+  {
+   "phrase": "цветное стекло памятник",
+   "pos": 15,
+   "freq": 410,
+   "url": "/pamyatniki/tsvetnye/"
+  },
+  {
+   "phrase": "накладка на памятник из стекла",
+   "pos": 8,
+   "freq": 1300,
+   "url": "/nakladki/"
+  },
+  {
+   "phrase": "наборное стекло мемориал",
+   "pos": 11,
+   "freq": 350,
+   "url": "/nabornoe/"
+  },
+  {
+   "phrase": "сколько стоит стеклянный памятник",
+   "pos": 13,
+   "freq": 890,
+   "url": "/blog/skolko-stoit/"
+  },
+  {
+   "phrase": "стеклянный памятник отзывы",
+   "pos": 18,
+   "freq": 520,
+   "url": "/otzyvy/"
+  },
+  {
+   "phrase": "памятник из стекла и гранита",
+   "pos": 16,
+   "freq": 470,
+   "url": "/pamyatniki/kombinirovannye/"
+  },
+  {
+   "phrase": "дилер ритуальных изделий",
+   "pos": 21,
+   "freq": 260,
+   "url": "/dileram/"
+  },
+  {
+   "phrase": "что лучше гранит или стекло памятник",
+   "pos": 10,
+   "freq": 380,
+   "url": "/blog/granit-ili-steklo/"
+  },
+  {
+   "phrase": "гравировка на стекле памятник",
+   "pos": 24,
+   "freq": 640,
+   "url": "/gravirovka/"
+  },
+  {
+   "phrase": "стеклянный крест на памятник",
+   "pos": 27,
+   "freq": 310,
+   "url": "/kresty/"
+  }
+ ],
+ "competitors": [
+  {
+   "domain": "gran-tech.ru",
+   "visibility": 3210,
+   "common_keywords": 44,
+   "delta_visibility": 1.1
+  },
+  {
+   "domain": "vpk-stone.ru",
+   "visibility": 2760,
+   "common_keywords": 38,
+   "delta_visibility": -0.4
+  }
+ ],
+ "deltas": {
+  "dropped_top10": [
+   {
+    "phrase": "накладка на памятник из стекла",
+    "from": 7,
+    "to": 11
+   }
+  ],
+  "entered_top10": [
+   {
+    "phrase": "что лучше гранит или стекло памятник",
+    "from": 14,
+    "to": 10
+   }
+  ],
+  "competitor_up": []
+ }
+}

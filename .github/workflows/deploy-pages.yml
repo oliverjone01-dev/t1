@@ -29,7 +29,7 @@ on:
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
   workflow_run:
-    workflows: ["OZON snapshots (прямой, без n8n)"]
+    workflows: ["OZON snapshots (прямой, без n8n)", "GEO-monster harvest"]
     types: [completed]
 
 permissions:
@@ -69,6 +69,8 @@ jobs:
           npm run katya
           npm run smoke
       - name: Assemble site (prod)
+        env:
+          HUB_PASS: ${{ secrets.HUB_PASS }}
         run: |
           set -euo pipefail
           mkdir -p _site
@@ -76,9 +78,16 @@ jobs:
           # SMM: статика-плейсхолдер (свой build добавляется в сессии SMM)
           mkdir -p _site/smm
           cp -r smm/public/. _site/smm/
-          # SEO/GEO Монстр: статика public/, без npm/smoke (самодостаточный HTML)
-          mkdir -p _site/seo
+          # SEO/GEO Монстр (GEO-monster): статика public/ (конфиг внутри) + данные harvest
+          mkdir -p _site/seo/data
           cp -r gg-seo-geo-monster/public/. _site/seo/
+          if [ -d gg-seo-geo-monster/data ]; then cp -r gg-seo-geo-monster/data/. _site/seo/data/; fi
+          # Пароль хаба: если задан секрет HUB_PASS - подменяем дефолтный хэш в index.html
+          if [ -n "${HUB_PASS:-}" ]; then
+            HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
+            sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" _site/seo/index.html
+            echo "HUB_PASS: хэш подменён из секрета"
+          fi
 
       # === ПРЕВЬЮ (из рабочей ветки) ===
       # Если падает - бой всё равно публикуется (continue-on-error), поломка видна в логах.

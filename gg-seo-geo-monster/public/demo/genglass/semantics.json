@@ -1,0 +1,294 @@
+{
+ "demo": true,
+ "measured": "2026-07-09",
+ "phrases": [
+  {
+   "phrase": "стеклянные перегородки",
+   "pos": 4,
+   "freq": 74000,
+   "url": "/peregorodki/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянные перегородки для квартиры",
+   "pos": 7,
+   "freq": 12400,
+   "url": "/peregorodki/kvartira/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перегородка кухня гостиная",
+   "pos": 12,
+   "freq": 9800,
+   "url": "/peregorodki/kuhnya-gostinaya/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "раздвижные стеклянные перегородки",
+   "pos": 9,
+   "freq": 8100,
+   "url": "/peregorodki/razdvizhnye/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перегородки в стиле лофт",
+   "pos": 6,
+   "freq": 6400,
+   "url": "/peregorodki/loft/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянная перегородка цена",
+   "pos": 14,
+   "freq": 5900,
+   "url": "/peregorodki/#price",
+   "cluster": "перегородки",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "зонирование комнаты перегородкой",
+   "pos": 11,
+   "freq": 4300,
+   "url": "/blog/zonirovanie/",
+   "cluster": "перегородки",
+   "intent": "informational"
+  },
+  {
+   "phrase": "перегородка в студию",
+   "pos": 17,
+   "freq": 3100,
+   "url": "/peregorodki/studiya/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало в металлической раме",
+   "pos": 3,
+   "freq": 18700,
+   "url": "/zerkala/v-rame/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало в раме лофт",
+   "pos": 5,
+   "freq": 7600,
+   "url": "/zerkala/loft/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала с подсветкой",
+   "pos": 8,
+   "freq": 15200,
+   "url": "/zerkala/s-podsvetkoy/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало с подсветкой в ванную",
+   "pos": 13,
+   "freq": 9100,
+   "url": "/zerkala/vannaya/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "большое зеркало в пол",
+   "pos": 10,
+   "freq": 11800,
+   "url": "/zerkala/napolnye/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало в спальню над комодом",
+   "pos": 21,
+   "freq": 2600,
+   "url": "/zerkala/spalnya/",
+   "cluster": "зеркала",
+   "intent": "informational"
+  },
+  {
+   "phrase": "туалетный столик с зеркалом",
+   "pos": 15,
+   "freq": 22400,
+   "url": "/stoly/tualetnyj/",
+   "cluster": "столы",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "туалетный столик лофт",
+   "pos": 18,
+   "freq": 4700,
+   "url": "/stoly/tualetnyj-loft/",
+   "cluster": "столы",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "консольный стол металл",
+   "pos": 16,
+   "freq": 3900,
+   "url": "/stoly/konsolnye/",
+   "cluster": "столы",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "журнальный столик стекло металл",
+   "pos": 12,
+   "freq": 6800,
+   "url": "/stoly/zhurnalnye/",
+   "cluster": "столы",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мебель лофт на заказ",
+   "pos": 19,
+   "freq": 8900,
+   "url": "/loft/",
+   "cluster": "лофт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мебель из металла и стекла",
+   "pos": 9,
+   "freq": 5200,
+   "url": "/",
+   "cluster": "лофт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеллаж лофт металлический",
+   "pos": 23,
+   "freq": 7400,
+   "url": "/stellazhi/",
+   "cluster": "лофт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как выбрать стеклянную перегородку",
+   "pos": 5,
+   "freq": 1900,
+   "url": "/blog/kak-vybrat-peregorodku/",
+   "cluster": "перегородки",
+   "intent": "informational"
+  },
+  {
+   "phrase": "перегородка вместо стены",
+   "pos": 8,
+   "freq": 2800,
+   "url": "/blog/peregorodka-vmesto-steny/",
+   "cluster": "перегородки",
+   "intent": "informational"
+  },
+  {
+   "phrase": "сколько стоит перегородка из стекла",
+   "pos": 24,
+   "freq": 2100,
+   "url": "/blog/skolko-stoit/",
+   "cluster": "перегородки",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "душевая перегородка из стекла",
+   "pos": 27,
+   "freq": 13600,
+   "url": "/dushevye/",
+   "cluster": "душевые",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "шторка для душа стеклянная",
+   "pos": 31,
+   "freq": 9700,
+   "url": "/dushevye/shtorki/",
+   "cluster": "душевые",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "экран для ванной стекло",
+   "pos": 34,
+   "freq": 4100,
+   "url": "/dushevye/ekrany/",
+   "cluster": "душевые",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркальное панно на стену",
+   "pos": 22,
+   "freq": 5300,
+   "url": "/zerkala/panno/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перила из стекла",
+   "pos": 41,
+   "freq": 3800,
+   "url": "/perila/",
+   "cluster": "ограждения",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянные двери межкомнатные",
+   "pos": 46,
+   "freq": 16900,
+   "url": "/dveri/",
+   "cluster": "двери",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало гримерное с лампочками",
+   "pos": 26,
+   "freq": 6100,
+   "url": "/zerkala/grimernye/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "полка стеклянная настенная",
+   "pos": 37,
+   "freq": 3300,
+   "url": "/polki/",
+   "cluster": "полки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "изголовье кровати зеркальное",
+   "pos": 29,
+   "freq": 1700,
+   "url": "/spalnya/izgolovya/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перегородка для зонирования купить",
+   "pos": 20,
+   "freq": 3400,
+   "url": "/peregorodki/",
+   "cluster": "перегородки",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "лофт перегородки чёрные",
+   "pos": 13,
+   "freq": 2900,
+   "url": "/peregorodki/loft-black/",
+   "cluster": "перегородки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало ростовое в раме",
+   "pos": 11,
+   "freq": 4800,
+   "url": "/zerkala/rostovye/",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "demo": true,
+ "updated": "2026-07-09",
+ "sources": {
+  "keysso": {
+   "status": "demo",
+   "requests_used": 0,
+   "limit": 3000
+  },
+  "metrika": {
+   "status": "demo"
+  },
+  "direct": {
+   "status": "demo"
+  }
+ },
+ "note": "DEMO-снапшоты. Живые данные появятся в data/ после запуска harvest с секретами (см. SETUP.md)."
+}

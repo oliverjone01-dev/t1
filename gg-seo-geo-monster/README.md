@@ -36,15 +36,34 @@
 
 ```
 gg-seo-geo-monster/
-  README.md            # этот файл - charter проекта
-  ROADMAP.md           # этапы до боевого сайта, с датами и Kill Criteria
-  public/              # статический сайт (то, что выезжает на отдельный URL)
-    index.html         # хаб-лендинг: витрина модулей + статус
-    assets/            # css/js/img (пока inline в index.html)
-  data/                # источники хаба (клетки, замеры цитируемости) - JSON
-    clusters.sample.json
-    citations.sample.json
+  README.md              # этот файл - charter проекта
+  SETUP.md               # единственный ручной шаг владельца: 4 секрета
+  DECISIONS.md           # решения автономной сборки GEO-monster v1.0
+  BACKLOG.md             # что дальше, по приоритету
+  ROADMAP.md             # этапы, Kill Criteria
+  public/                # приложение GEO-monster (статический SPA, без сборки)
+    index.html           # оболочка: гейт по паролю + роутер
+    app.js / app.css     # ядро: дашборд, семантика, GEO-трекер, отчёты, админка
+    forge.js             # Content Forge + внешние площадки + image-промты
+    about.html           # манифест проекта (бывший лендинг)
+    intel.html           # разведка GEO рунета (18 источников)
+    demo/                # DEMO-снапшоты (та же схема, что data/)
+  config/projects.json   # предзаведённые проекты: genglass.ru, glass-memory.ru
+  scripts/
+    harvest.mjs          # ночной сбор: keys.so + Метрика + Директ -> data/
+    gen-demo.mjs         # генератор DEMO-данных
+    keyso.mjs            # разведочный сборщик keys.so (сырые отчёты)
+    wordstat.mjs         # сборщик частот Wordstat
+  data/                  # живые снапшоты (коммитит GitHub Actions, не руками)
+  docs/                  # спеки интеграций (keys.so, Wordstat)
+  knowledge/             # приёмки экспертизы, канон KPI, разведотчёты
+  content-runs/          # ручные прогоны контент-конвейера с гейтами feniks
 ```
+
+Вход в хаб - по паролю (дефолт `genmonster2026`, смена через секрет `HUB_PASS` -
+см. SETUP.md). Это защита от случайных глаз, не криптография: хэш пароля лежит в
+клиентском коде, репозиторий публичный. Ничего чувствительного в data/ не хранится -
+только агрегированные SEO-метрики.
 
 ## Как запустить локально
 

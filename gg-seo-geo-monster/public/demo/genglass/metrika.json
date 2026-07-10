@@ -1,0 +1,265 @@
+{
+ "demo": true,
+ "counter": "DEMO",
+ "measured": "2026-07-09",
+ "visits_30d": [
+  {
+   "date": "2026-06-10",
+   "visits": 655,
+   "search_visits": 350
+  },
+  {
+   "date": "2026-06-11",
+   "visits": 622,
+   "search_visits": 327
+  },
+  {
+   "date": "2026-06-12",
+   "visits": 582,
+   "search_visits": 322
+  },
+  {
+   "date": "2026-06-13",
+   "visits": 613,
+   "search_visits": 331
+  },
+  {
+   "date": "2026-06-14",
+   "visits": 628,
+   "search_visits": 342
+  },
+  {
+   "date": "2026-06-15",
+   "visits": 629,
+   "search_visits": 318
+  },
+  {
+   "date": "2026-06-16",
+   "visits": 632,
+   "search_visits": 377
+  },
+  {
+   "date": "2026-06-17",
+   "visits": 621,
+   "search_visits": 340
+  },
+  {
+   "date": "2026-06-18",
+   "visits": 633,
+   "search_visits": 359
+  },
+  {
+   "date": "2026-06-19",
+   "visits": 660,
+   "search_visits": 361
+  },
+  {
+   "date": "2026-06-20",
+   "visits": 639,
+   "search_visits": 325
+  },
+  {
+   "date": "2026-06-21",
+   "visits": 592,
+   "search_visits": 340
+  },
+  {
+   "date": "2026-06-22",
+   "visits": 640,
+   "search_visits": 343
+  },
+  {
+   "date": "2026-06-23",
+   "visits": 675,
+   "search_visits": 393
+  },
+  {
+   "date": "2026-06-24",
+   "visits": 709,
+   "search_visits": 427
+  },
+  {
+   "date": "2026-06-25",
+   "visits": 662,
+   "search_visits": 403
+  },
+  {
+   "date": "2026-06-26",
+   "visits": 655,
+   "search_visits": 366
+  },
+  {
+   "date": "2026-06-27",
+   "visits": 668,
+   "search_visits": 372
+  },
+  {
+   "date": "2026-06-28",
+   "visits": 671,
+   "search_visits": 395
+  },
+  {
+   "date": "2026-06-29",
+   "visits": 674,
+   "search_visits": 374
+  },
+  {
+   "date": "2026-06-30",
+   "visits": 675,
+   "search_visits": 396
+  },
+  {
+   "date": "2026-07-01",
+   "visits": 659,
+   "search_visits": 351
+  },
+  {
+   "date": "2026-07-02",
+   "visits": 704,
+   "search_visits": 406
+  },
+  {
+   "date": "2026-07-03",
+   "visits": 664,
+   "search_visits": 393
+  },
+  {
+   "date": "2026-07-04",
+   "visits": 650,
+   "search_visits": 352
+  },
+  {
+   "date": "2026-07-05",
+   "visits": 701,
+   "search_visits": 358
+  },
+  {
+   "date": "2026-07-06",
+   "visits": 694,
+   "search_visits": 416
+  },
+  {
+   "date": "2026-07-07",
+   "visits": 744,
+   "search_visits": 393
+  },
+  {
+   "date": "2026-07-08",
+   "visits": 739,
+   "search_visits": 390
+  },
+  {
+   "date": "2026-07-09",
+   "visits": 751,
+   "search_visits": 394
+  }
+ ],
+ "top_phrases": [
+  {
+   "phrase": "стеклянные перегородки",
+   "visits": 194
+  },
+  {
+   "phrase": "стеклянные перегородки для квартиры",
+   "visits": 119
+  },
+  {
+   "phrase": "перегородка кухня гостиная",
+   "visits": 86
+  },
+  {
+   "phrase": "раздвижные стеклянные перегородки",
+   "visits": 67
+  },
+  {
+   "phrase": "перегородки в стиле лофт",
+   "visits": 55
+  },
+  {
+   "phrase": "стеклянная перегородка цена",
+   "visits": 47
+  },
+  {
+   "phrase": "зонирование комнаты перегородкой",
+   "visits": 41
+  },
+  {
+   "phrase": "перегородка в студию",
+   "visits": 36
+  },
+  {
+   "phrase": "зеркало в металлической раме",
+   "visits": 32
+  },
+  {
+   "phrase": "зеркало в раме лофт",
+   "visits": 29
+  },
+  {
+   "phrase": "зеркала с подсветкой",
+   "visits": 27
+  },
+  {
+   "phrase": "зеркало с подсветкой в ванную",
+   "visits": 25
+  }
+ ],
+ "top_pages": [
+  {
+   "url": "/peregorodki/",
+   "visits": 1860
+  },
+  {
+   "url": "/peregorodki/kvartira/",
+   "visits": 1085
+  },
+  {
+   "url": "/peregorodki/kuhnya-gostinaya/",
+   "visits": 766
+  },
+  {
+   "url": "/peregorodki/razdvizhnye/",
+   "visits": 592
+  },
+  {
+   "url": "/peregorodki/loft/",
+   "visits": 482
+  },
+  {
+   "url": "/peregorodki/#price",
+   "visits": 407
+  },
+  {
+   "url": "/blog/zonirovanie/",
+   "visits": 352
+  },
+  {
+   "url": "/peregorodki/studiya/",
+   "visits": 310
+  },
+  {
+   "url": "/zerkala/v-rame/",
+   "visits": 277
+  },
+  {
+   "url": "/zerkala/loft/",
+   "visits": 250
+  }
+ ],
+ "goals": [
+  {
+   "name": "Заявка с сайта",
+   "conversions": 94
+  },
+  {
+   "name": "Звонок (коллтрекинг)",
+   "conversions": 141
+  },
+  {
+   "name": "Заказ замера",
+   "conversions": 57
+  }
+ ],
+ "bounce_rate": 21.4,
+ "depth": 3.1
+}

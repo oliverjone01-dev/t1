@@ -1,0 +1,64 @@
+name: Wordstat semcore (сбор семантического ядра)
+
+# Тянет частотность запросов из Yandex Wordstat в data/semcore/ проекта SEO/GEO.
+# Из web-контейнера Claude Яндекс закрыт сетевой политикой, поэтому живой сбор - здесь.
+# Креды - в GitHub Secrets (см. gg-seo-geo-monster/docs/WORDSTAT_API.md). Запуск вручную;
+# для регулярного обновления частот раскомментируй schedule.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Режим API: direct (standalone Wordstat) | aistudio (Yandex Cloud Search API)"
+        default: "direct"
+      regions:
+        description: "Регионы через запятую (по умолчанию 213 Москва, 225 Россия)"
+        default: "213,225"
+      dry_run:
+        description: "1 = показать план запросов без похода в сеть"
+        default: "0"
+  # schedule:
+  #   - cron: "0 4 * * 1"   # еженедельно, пн ~07:00 МСК - освежать частоты
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wordstat-semcore
+  cancel-in-progress: false
+
+env:
+  WORDSTAT_MODE: ${{ github.event.inputs.mode || 'direct' }}
+  WORDSTAT_REGIONS: ${{ github.event.inputs.regions || '213,225' }}
+  DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+  # direct
+  YANDEX_OAUTH_TOKEN: ${{ secrets.YANDEX_OAUTH_TOKEN }}
+  # aistudio
+  YANDEX_SEARCH_API_KEY: ${{ secrets.YANDEX_SEARCH_API_KEY }}
+  YANDEX_FOLDER_ID: ${{ secrets.YANDEX_FOLDER_ID }}
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Сбор семантического ядра
+        run: node gg-seo-geo-monster/scripts/wordstat.mjs
+
+      - name: Коммит результата
+        if: ${{ github.event.inputs.dry_run != '1' }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gg-seo-geo-monster/data/semcore
+          if git diff --cached --quiet; then
+            echo "Изменений в semcore нет"
+          else
+            git commit -m "chore(seo-geo): обновление семантического ядра Wordstat ($(date -u +%Y-%m-%d))"
+            for i in 1 2 3 4; do git push && break || sleep $((2**i)); done
+          fi

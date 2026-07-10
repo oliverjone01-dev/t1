@@ -1,0 +1,23 @@
+{
+  "_note": "SAMPLE. Референс структуры, не боевые данные. Боевой файл - clusters.json, владелец semyon.",
+  "updated": "2026-07-07",
+  "brand": "GENGLASS",
+  "clusters": [
+    {
+      "id": "peregorodki-steklo",
+      "pillar": "Стеклянные перегородки для квартиры",
+      "intent": "commercial",
+      "satellites": ["перегородка кухня-гостиная", "раздвижная стеклянная перегородка цена"],
+      "status": "planned",
+      "target_url": "genglass.ru/blog/steklyannye-peregorodki/"
+    },
+    {
+      "id": "dushevye-steklo",
+      "pillar": "Стеклянные душевые перегородки без профиля",
+      "intent": "commercial",
+      "satellites": ["душевая перегородка на заказ", "стекло для душа толщина"],
+      "status": "planned",
+      "target_url": "genglass.ru/blog/dushevye-peregorodki/"
+    }
+  ]
+}

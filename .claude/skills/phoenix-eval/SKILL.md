@@ -177,6 +177,11 @@ description: Adversarial audit checklist for FENIX (#35). Use when reviewing any
 
 Любая заявленная цифра, выходящая за диапазон в 2x от benchmark → флаг для проверки.
 
+**GEO-канал (калибровка, всё [ГИПОТЕЗА]):** LLM ~25% запросов (2026), охват AI в РФ
+~26% (Mediascope), прогноз -50% поиск-трафика к 2028 (Gartner/Semrush). Выручку под
+GEO напрямую не закладывать - это репутация/видимость, не поток кликов. Источники
+внешне не сверены. Полный контекст - `gg-seo-geo-monster/knowledge/geo-intel-intake.md`.
+
 ## Anti-patterns (что в твоей оценке быть НЕ должно)
 
 - ❌ Score >9.0 без всех 25 чекпоинтов на 2/2

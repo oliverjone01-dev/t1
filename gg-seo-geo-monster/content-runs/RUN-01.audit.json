@@ -1,0 +1,68 @@
+{
+  "agent": "feniks",
+  "skill": "phoenix-eval",
+  "task_id": "a7f3c1e0-run01-peregorodki-gate",
+  "timestamp": "2026-07-07T00:00:00Z",
+  "deliverable_ref": "gg-seo-geo-monster/content-runs/RUN-01-steklyannye-peregorodki.md",
+  "iteration": 1,
+  "comprehension_gate": {
+    "applies": true,
+    "passed": false,
+    "defects": [
+      "БЛОК 2, абзац сравнений: англицизм «visual continuity» латиницей в тексте для неспециалиста. Замена: «взгляд идёт насквозь, помещение не дробится на клетки и кажется больше».",
+      "БЛОК 2, конфликт цен: таблица/интро дают раздвижную в пол от 35 000 ₽, блок бюджетов - от 42 000 ₽ за то же изделие. Тег [ГИПОТЕЗА] не спасает от внутреннего противоречия.",
+      "БЛОК 2: «Механизм рассчитан на 350+ установок опыта бригады» - технически ложно (механизм нормируется циклами), склеивает две сущности. Замена: развести опыт бригады и ресурс механизма."
+    ]
+  },
+  "checkpoints": {
+    "accuracy_1_figures_tagged": 1,
+    "accuracy_2_sources_verifiable": 1,
+    "accuracy_3_no_conflict_with_rag": 1,
+    "accuracy_4_glossary_terminology": 2,
+    "accuracy_5_brand_names_correct": 2,
+    "actionability_6_owner_assigned": 1,
+    "actionability_7_deadline_buffer": 1,
+    "actionability_8_resources_listed": 2,
+    "actionability_9_metric_concrete": 1,
+    "actionability_10_milestone": 2,
+    "insight_11_nontrivial": 1,
+    "insight_12_second_order": 1,
+    "insight_13_alternatives_analyzed": 2,
+    "insight_14_anti_median": 1,
+    "insight_15_cross_domain": 0,
+    "brand_16_voice": 2,
+    "brand_17_anti_slop": 2,
+    "brand_18_no_em_dash": 2,
+    "brand_19_output_routing": 2,
+    "brand_20_tone_audience": 0,
+    "risk_21_downside": 1,
+    "risk_22_p9_hard_rules": 1,
+    "risk_23_crisis_scenarios": 0,
+    "risk_24_dependencies": 2,
+    "risk_25_reversibility": 1
+  },
+  "scores": {
+    "accuracy": 7.0,
+    "actionability": 7.0,
+    "insight": 5.0,
+    "brand_fit": 6.0,
+    "risk_awareness": 5.0
+  },
+  "weighted_total": 6.15,
+  "verdict": "return",
+  "gaps": [
+    "Comprehension Gate провален (3 дефекта): англицизм, конфликт цен, ложная фраза про 350+. brand_fit capped 6.0.",
+    "27 000 / 350+ / 16 000 м² в первом абзаце без тега [ДАННЫЕ].",
+    "Гипотезные цены в Title/META/Schema индексируются как факт - тег там не поставить.",
+    "FAQ 3 вместо >=5.",
+    "Нет cross-domain и метрики успеха статьи.",
+    "Schema.org не прогнан через validator; Article без image/dateModified/mainEntityOfPage."
+  ],
+  "rework_tz": "1) Свести цену раздвижной к одному ориентиру. 2) Переписать фразу про 350+. 3) Заменить visual continuity русским. 4) Проставить [ДАННЫЕ] на бренд-факты в интро. 5) БЛОКЕР: снять суммы из META/Schema или получить прайс-снимок PRL v5. 6) FAQ до 5. 7) Прогнать JSON-LD через validator.",
+  "confidence": 0.82,
+  "p9_triggers_fired": [
+    "ценовые слова: от 35 000 руб, цена, срок 7 дней",
+    "гипотезные цены в публичном слое без верификации",
+    "бренд-факты без тега в интро"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "_note": "SAMPLE. Каждая цифра боевого файла обязана иметь дату замера и источник (Protocol 9). Без источника - показывать нельзя.",
+  "updated": "2026-07-07",
+  "engines": ["ChatGPT", "Perplexity", "YandexGPT", "Gemini"],
+  "queries": [
+    {
+      "query": "производитель стеклянных перегородок Москва",
+      "measured": "SAMPLE-not-real",
+      "cited": { "ChatGPT": null, "Perplexity": null, "YandexGPT": null, "Gemini": null },
+      "note": "baseline не снят - поле cited=null означает НЕТ ДАННЫХ, а не НЕТ ЦИТИРОВАНИЯ"
+    }
+  ]
+}

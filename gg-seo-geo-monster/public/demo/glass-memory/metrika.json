@@ -1,0 +1,261 @@
+{
+ "demo": true,
+ "counter": "DEMO",
+ "measured": "2026-07-09",
+ "visits_30d": [
+  {
+   "date": "2026-06-10",
+   "visits": 78,
+   "search_visits": 51
+  },
+  {
+   "date": "2026-06-11",
+   "visits": 85,
+   "search_visits": 58
+  },
+  {
+   "date": "2026-06-12",
+   "visits": 88,
+   "search_visits": 50
+  },
+  {
+   "date": "2026-06-13",
+   "visits": 87,
+   "search_visits": 59
+  },
+  {
+   "date": "2026-06-14",
+   "visits": 93,
+   "search_visits": 60
+  },
+  {
+   "date": "2026-06-15",
+   "visits": 90,
+   "search_visits": 58
+  },
+  {
+   "date": "2026-06-16",
+   "visits": 84,
+   "search_visits": 57
+  },
+  {
+   "date": "2026-06-17",
+   "visits": 80,
+   "search_visits": 55
+  },
+  {
+   "date": "2026-06-18",
+   "visits": 77,
+   "search_visits": 46
+  },
+  {
+   "date": "2026-06-19",
+   "visits": 74,
+   "search_visits": 50
+  },
+  {
+   "date": "2026-06-20",
+   "visits": 70,
+   "search_visits": 44
+  },
+  {
+   "date": "2026-06-21",
+   "visits": 67,
+   "search_visits": 41
+  },
+  {
+   "date": "2026-06-22",
+   "visits": 67,
+   "search_visits": 40
+  },
+  {
+   "date": "2026-06-23",
+   "visits": 63,
+   "search_visits": 37
+  },
+  {
+   "date": "2026-06-24",
+   "visits": 68,
+   "search_visits": 47
+  },
+  {
+   "date": "2026-06-25",
+   "visits": 70,
+   "search_visits": 41
+  },
+  {
+   "date": "2026-06-26",
+   "visits": 72,
+   "search_visits": 42
+  },
+  {
+   "date": "2026-06-27",
+   "visits": 71,
+   "search_visits": 42
+  },
+  {
+   "date": "2026-06-28",
+   "visits": 78,
+   "search_visits": 46
+  },
+  {
+   "date": "2026-06-29",
+   "visits": 75,
+   "search_visits": 44
+  },
+  {
+   "date": "2026-06-30",
+   "visits": 71,
+   "search_visits": 47
+  },
+  {
+   "date": "2026-07-01",
+   "visits": 75,
+   "search_visits": 47
+  },
+  {
+   "date": "2026-07-02",
+   "visits": 73,
+   "search_visits": 43
+  },
+  {
+   "date": "2026-07-03",
+   "visits": 57,
+   "search_visits": 38
+  },
+  {
+   "date": "2026-07-04",
+   "visits": 61,
+   "search_visits": 35
+  },
+  {
+   "date": "2026-07-05",
+   "visits": 61,
+   "search_visits": 41
+  },
+  {
+   "date": "2026-07-06",
+   "visits": 57,
+   "search_visits": 36
+  },
+  {
+   "date": "2026-07-07",
+   "visits": 62,
+   "search_visits": 39
+  },
+  {
+   "date": "2026-07-08",
+   "visits": 58,
+   "search_visits": 36
+  },
+  {
+   "date": "2026-07-09",
+   "visits": 54,
+   "search_visits": 33
+  }
+ ],
+ "top_phrases": [
+  {
+   "phrase": "стеклянный памятник",
+   "visits": 26
+  },
+  {
+   "phrase": "памятник из стекла на могилу",
+   "visits": 16
+  },
+  {
+   "phrase": "портрет на стекле на памятник",
+   "visits": 12
+  },
+  {
+   "phrase": "портрет в стекле фото",
+   "visits": 9
+  },
+  {
+   "phrase": "табличка на памятник стекло",
+   "visits": 8
+  },
+  {
+   "phrase": "ритуальные изделия из стекла",
+   "visits": 6
+  },
+  {
+   "phrase": "мемориал из стекла",
+   "visits": 6
+  },
+  {
+   "phrase": "стеклянная плита на памятник",
+   "visits": 5
+  },
+  {
+   "phrase": "цветное стекло памятник",
+   "visits": 4
+  },
+  {
+   "phrase": "накладка на памятник из стекла",
+   "visits": 4
+  },
+  {
+   "phrase": "наборное стекло мемориал",
+   "visits": 4
+  },
+  {
+   "phrase": "сколько стоит стеклянный памятник",
+   "visits": 3
+  }
+ ],
+ "top_pages": [
+  {
+   "url": "/pamyatniki/",
+   "visits": 252
+  },
+  {
+   "url": "/pamyatniki/na-mogilu/",
+   "visits": 147
+  },
+  {
+   "url": "/portrety/",
+   "visits": 104
+  },
+  {
+   "url": "/portrety/#gallery",
+   "visits": 80
+  },
+  {
+   "url": "/tablichki/",
+   "visits": 65
+  },
+  {
+   "url": "/",
+   "visits": 55
+  },
+  {
+   "url": "/memorialy/",
+   "visits": 48
+  },
+  {
+   "url": "/pamyatniki/plity/",
+   "visits": 42
+  },
+  {
+   "url": "/pamyatniki/tsvetnye/",
+   "visits": 38
+  },
+  {
+   "url": "/nakladki/",
+   "visits": 34
+  }
+ ],
+ "goals": [
+  {
+   "name": "Заявка дилера",
+   "conversions": 12
+  },
+  {
+   "name": "Запрос каталога",
+   "conversions": 31
+  }
+ ],
+ "bounce_rate": 26.8,
+ "depth": 2.4
+}

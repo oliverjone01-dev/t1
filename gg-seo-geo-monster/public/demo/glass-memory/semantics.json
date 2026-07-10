@@ -1,0 +1,150 @@
+{
+ "demo": true,
+ "measured": "2026-07-09",
+ "phrases": [
+  {
+   "phrase": "стеклянный памятник",
+   "pos": 3,
+   "freq": 4400,
+   "url": "/pamyatniki/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "памятник из стекла на могилу",
+   "pos": 5,
+   "freq": 2100,
+   "url": "/pamyatniki/na-mogilu/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "портрет на стекле на памятник",
+   "pos": 4,
+   "freq": 3600,
+   "url": "/portrety/",
+   "cluster": "портреты",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "портрет в стекле фото",
+   "pos": 9,
+   "freq": 1800,
+   "url": "/portrety/#gallery",
+   "cluster": "портреты",
+   "intent": "informational"
+  },
+  {
+   "phrase": "табличка на памятник стекло",
+   "pos": 6,
+   "freq": 2900,
+   "url": "/tablichki/",
+   "cluster": "таблички",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ритуальные изделия из стекла",
+   "pos": 2,
+   "freq": 990,
+   "url": "/",
+   "cluster": "бренд",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мемориал из стекла",
+   "pos": 7,
+   "freq": 640,
+   "url": "/memorialy/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянная плита на памятник",
+   "pos": 12,
+   "freq": 780,
+   "url": "/pamyatniki/plity/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "цветное стекло памятник",
+   "pos": 15,
+   "freq": 410,
+   "url": "/pamyatniki/tsvetnye/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "накладка на памятник из стекла",
+   "pos": 8,
+   "freq": 1300,
+   "url": "/nakladki/",
+   "cluster": "накладки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "наборное стекло мемориал",
+   "pos": 11,
+   "freq": 350,
+   "url": "/nabornoe/",
+   "cluster": "накладки",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "сколько стоит стеклянный памятник",
+   "pos": 13,
+   "freq": 890,
+   "url": "/blog/skolko-stoit/",
+   "cluster": "памятники",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "стеклянный памятник отзывы",
+   "pos": 18,
+   "freq": 520,
+   "url": "/otzyvy/",
+   "cluster": "бренд",
+   "intent": "informational"
+  },
+  {
+   "phrase": "памятник из стекла и гранита",
+   "pos": 16,
+   "freq": 470,
+   "url": "/pamyatniki/kombinirovannye/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "дилер ритуальных изделий",
+   "pos": 21,
+   "freq": 260,
+   "url": "/dileram/",
+   "cluster": "дилеры",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "что лучше гранит или стекло памятник",
+   "pos": 10,
+   "freq": 380,
+   "url": "/blog/granit-ili-steklo/",
+   "cluster": "памятники",
+   "intent": "informational"
+  },
+  {
+   "phrase": "гравировка на стекле памятник",
+   "pos": 24,
+   "freq": 640,
+   "url": "/gravirovka/",
+   "cluster": "портреты",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянный крест на памятник",
+   "pos": 27,
+   "freq": 310,
+   "url": "/kresty/",
+   "cluster": "памятники",
+   "intent": "commercial"
+  }
+ ]
+}

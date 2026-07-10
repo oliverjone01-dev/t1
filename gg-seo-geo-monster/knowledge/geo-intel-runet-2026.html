@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENGROUP · GEO/AEO разведка рунета - рейтинг по ФЕНИКС</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0A; --bg2:#111111; --card:#151515; --card2:#1A1A1A;
+  --gold:#C8A951; --gold-h:#D8BC66; --white:#FFFFFF; --gray:#9A9A9A; --muted:#666;
+  --border:#222; --border-h:#333;
+  --a:#34D399; --b:#C8A951; --c:#7C7568;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'Montserrat','Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(10,10,10,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.topbar-in{max-width:1180px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--gray);text-transform:uppercase}
+.brand b{color:var(--gold);font-weight:600}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.fbtn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:6px 12px;border:1px solid var(--border-h);background:transparent;color:var(--gray);border-radius:6px;cursor:pointer;transition:all .2s}
+.fbtn:hover{border-color:var(--gold);color:var(--white)}
+.fbtn.active{background:var(--gold);color:#0A0A0A;border-color:var(--gold);font-weight:600}
+
+/* ---------- hero ---------- */
+.hero{padding:84px 0 60px;border-bottom:1px solid var(--border);position:relative}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:26px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:"";width:34px;height:1px;background:var(--gold)}
+.hero h1{font-size:clamp(34px,5.4vw,62px);font-weight:800;line-height:1.04;letter-spacing:-.025em;max-width:14ch}
+.hero h1 .hl{color:var(--gold)}
+.hero .sub{margin-top:26px;font-size:clamp(16px,2vw,19px);color:var(--gray);max-width:60ch;font-weight:400}
+.statline{margin-top:48px;display:flex;gap:14px;flex-wrap:wrap}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;min-width:140px}
+.stat .v{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--white);line-height:1}
+.stat .v.g{color:var(--gold)}
+.stat .l{font-size:12px;color:var(--gray);margin-top:8px;letter-spacing:.02em}
+
+/* ---------- section ---------- */
+.sec{padding:66px 0;border-bottom:1px solid var(--border)}
+.sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:8px;flex-wrap:wrap}
+.sec-num{font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:.1em}
+.sec h2{font-size:clamp(24px,3.4vw,36px);font-weight:700;letter-spacing:-.02em}
+.sec-desc{color:var(--gray);max-width:64ch;margin:14px 0 38px;font-size:16px}
+
+/* ---------- methodology ---------- */
+.method{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.mcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 18px;position:relative;overflow:hidden}
+.mcard .w{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:600}
+.mcard .c{font-size:13px;font-weight:600;margin:10px 0 6px;letter-spacing:.01em}
+.mcard .d{font-size:12.5px;color:var(--gray);line-height:1.5}
+.mcard .bar{position:absolute;left:0;bottom:0;height:3px;background:var(--gold)}
+.formula{margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--gray);background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+.formula b{color:var(--white)}
+
+/* ---------- consensus ---------- */
+.cons{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.ccard{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--border);border-radius:14px;padding:26px;transition:border-color .3s}
+.ccard:hover{border-color:var(--gold)}
+.ccard .k{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.08em;margin-bottom:12px}
+.ccard h3{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+.ccard p{font-size:14.5px;color:var(--gray)}
+.ccard .src{display:block;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+
+/* ---------- ranking ---------- */
+.rank-list{display:flex;flex-direction:column;gap:16px}
+.card{display:grid;grid-template-columns:118px 1fr;gap:0;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .3s,border-color .3s,opacity .3s}
+.card:hover{border-color:var(--border-h);transform:translateY(-2px)}
+.card.hidden{display:none}
+.rail{padding:24px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:14px;background:var(--bg2)}
+.rnum{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.05em}
+.chip{width:74px;height:74px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--c)}
+.chip .sv{font-family:var(--mono);font-size:21px;font-weight:600;line-height:1;color:var(--white)}
+.chip .sm{font-family:var(--mono);font-size:10px;color:var(--gray);margin-top:2px}
+.tier-a .chip{border-color:var(--a)} .tier-a .chip .sv{color:var(--a)}
+.tier-b .chip{border-color:var(--b)} .tier-b .chip .sv{color:var(--b)}
+.tier-c .chip{border-color:var(--c)} .tier-c .chip .sv{color:#B9B0A0}
+.tier-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:5px}
+.tier-a .tier-tag{background:rgba(52,211,153,.12);color:var(--a)}
+.tier-b .tier-tag{background:rgba(200,169,81,.14);color:var(--b)}
+.tier-c .tier-tag{background:rgba(124,117,104,.16);color:#B9B0A0}
+.subscore{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:center;line-height:1.7;letter-spacing:.02em}
+.body{padding:24px 26px}
+.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:4px 9px;border-radius:5px;border:1px solid var(--border-h);color:var(--gray)}
+.badge.pf{border-color:var(--gold);color:var(--gold)}
+.m-dot{color:var(--muted);font-size:11px}
+.m-txt{font-size:11.5px;color:var(--muted)}
+.card h3{font-size:18.5px;font-weight:700;letter-spacing:-.01em;line-height:1.3;margin-bottom:16px}
+.atoms-l{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.atoms{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.atoms li{font-size:13.5px;color:#C9C9C9;padding-left:18px;position:relative;line-height:1.5}
+.atoms li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;background:var(--gold);border-radius:1px;transform:rotate(45deg);opacity:.8}
+.tk{font-size:13.5px;background:var(--bg);border-left:2px solid var(--gold);padding:11px 15px;border-radius:0 8px 8px 0;color:#D6D6D6}
+.tk b{color:var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-right:8px}
+.srcl{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-family:var(--mono);font-size:11.5px;color:var(--gray);border-bottom:1px solid var(--border-h);padding-bottom:2px;transition:color .2s,border-color .2s}
+.srcl:hover{color:var(--gold);border-color:var(--gold)}
+
+/* ---------- strategy ---------- */
+.strat{background:linear-gradient(165deg,#141414,#0d0d0d);border:1px solid var(--border);border-radius:16px;padding:40px}
+.strat p{font-size:16px;color:#CFCFCF;margin-bottom:18px;max-width:78ch}
+.strat p b{color:var(--white)}
+.strat .gold{color:var(--gold)}
+.verdict{display:flex;gap:16px;flex-wrap:wrap;margin-top:26px}
+.vbox{flex:1;min-width:240px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vbox .vk{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.vbox.win .vk{color:var(--a)} .vbox.warn .vk{color:var(--gold)} .vbox.kill .vk{color:#E0795A}
+.vbox p{font-size:14px;color:var(--gray);margin:0}
+
+/* ---------- roadmap ---------- */
+.phases{display:flex;flex-direction:column;gap:0;position:relative;margin-top:10px}
+.phase{display:grid;grid-template-columns:62px 1fr;gap:22px;padding:0 0 34px}
+.ptrack{display:flex;flex-direction:column;align-items:center}
+.pdot{width:44px;height:44px;border-radius:50%;background:var(--bg2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;color:var(--gold);font-size:15px;flex-shrink:0}
+.pline{width:2px;flex:1;background:linear-gradient(var(--border-h),transparent);margin-top:6px}
+.phase:last-child .pline{display:none}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;transition:border-color .3s}
+.pcard:hover{border-color:var(--gold)}
+.pcard .ph{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.pcard h3{font-size:19px;font-weight:700}
+.pcard .pt{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.06em}
+.track{margin-top:16px}
+.track-l{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px;display:inline-flex;align-items:center;gap:8px}
+.track-l.geo{color:var(--gold)} .track-l.seo{color:#7FB5E6}
+.track ul{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.track li{font-size:13.5px;color:#C5C5C5;padding-left:16px;position:relative}
+.track li::before{content:"→";position:absolute;left:0;color:var(--muted);font-family:var(--mono);font-size:12px}
+.cp{margin-top:14px;font-size:12.5px;color:var(--gray);font-family:var(--mono);background:var(--bg);border:1px dashed var(--border-h);border-radius:8px;padding:10px 14px}
+.cp b{color:var(--gold)}
+
+/* ---------- footer ---------- */
+.foot{padding:46px 0 70px}
+.disc{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:22px 26px;max-width:80ch}
+.disc .dh{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.disc p{font-size:13.5px;color:var(--gray)}
+.fmeta{margin-top:30px;font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.04em;display:flex;gap:18px;flex-wrap:wrap}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.rv.in{opacity:1;transform:none}
+
+@media(max-width:880px){
+  .method{grid-template-columns:repeat(2,1fr)}
+  .cons{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  .wrap{padding:0 18px}
+  .card{grid-template-columns:1fr}
+  .rail{flex-direction:row;justify-content:flex-start;border-right:none;border-bottom:1px solid var(--border);padding:16px 20px}
+  .subscore{display:none}
+  .body{padding:20px}
+  .method{grid-template-columns:1fr}
+  .strat{padding:26px}
+  .phase{grid-template-columns:44px 1fr;gap:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .rv{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brand">GENGROUP · <b>GEO INTEL</b> · рунет 06.2026</div>
+    <div class="filters" id="filters">
+      <button class="fbtn active" data-f="all">Все · 18</button>
+      <button class="fbtn" data-f="a">A-эшелон ≥8.0</button>
+      <button class="fbtn" data-f="b">B 7.0–7.9</button>
+      <button class="fbtn" data-f="c">C &lt;7.0</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow rv">GEO / AEO разведка · 18 источников · ранжировано по ФЕНИКС</div>
+    <h1 class="rv">Нейросеть не читает один сайт.<br>Она собирает <span class="hl">консенсус</span>.</h1>
+    <p class="sub rv">18 разборов GEO-рынка рунета, отсортированных по авторитетности. Что из этого забираем под перегородки, GLASS-MEMORY и весь трафик GENGROUP - и как встать в ответы ИИ, не покупая воздух.</p>
+    <div class="statline rv">
+      <div class="stat"><div class="v">18</div><div class="l">источников разобрано</div></div>
+      <div class="stat"><div class="v g">7.6</div><div class="l">средний балл ФЕНИКС</div></div>
+      <div class="stat"><div class="v">8</div><div class="l">в A-эшелоне (≥8.0)</div></div>
+      <div class="stat"><div class="v g">×2</div><div class="l">рейтинги цитируются чаще инфо</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- METHODOLOGY -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="sec-num">01</span><h2>Методика ФЕНИКС</h2></div>
+    <p class="sec-desc rv">Балл - это оценка авторитетности источника, а не подтверждение его результатов. Пять критериев, взвешенная сумма. Под-баллы C1–C5 видны на каждой карточке.</p>
+    <div class="method">
+      <div class="mcard rv"><div class="w">C1 · 25%</div><div class="c">Авторитет площадки</div><div class="d">Траст домена: Habr, Sostav, AdIndex, vc.ru - высокий; блог агентства - средний.</div><div class="bar" style="width:25%"></div></div>
+      <div class="mcard rv"><div class="w">C2 · 25%</div><div class="c">Доказательность</div><div class="d">Кейс с цифрами и методологией против воды и рекламы.</div><div class="bar" style="width:25%"></div></div>
+      <div class="mcard rv"><div class="w">C3 · 20%</div><div class="c">Экспертиза (E-E-A-T)</div><div class="d">Named-эксперт, трек агентства, прозрачность авторства.</div><div class="bar" style="width:20%"></div></div>
+      <div class="mcard rv"><div class="w">C4 · 15%</div><div class="c">Применимость</div><div class="d">Можно ли взять и применить: чек-листы, форматы, формулы.</div><div class="bar" style="width:15%"></div></div>
+      <div class="mcard rv"><div class="w">C5 · 15%</div><div class="c">Актуальность</div><div class="d">Свежесть 2026 + новое знание против пересказа.</div><div class="bar" style="width:15%"></div></div>
+    </div>
+    <div class="formula rv">ФЕНИКС = <b>C1×0.25 + C2×0.25 + C3×0.20 + C4×0.15 + C5×0.15</b> &nbsp;·&nbsp; порог A-эшелона ≥ 8.0</div>
+  </div>
+</section>
+
+<!-- CONSENSUS -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="sec-num">02</span><h2>Что говорит весь корпус</h2></div>
+    <p class="sec-desc rv">Четыре вывода, которые повторяются у независимых авторов. Это не мнение одного агентства - это консенсус 18 источников.</p>
+    <div class="cons">
+      <div class="ccard rv"><div class="k">РЫЧАГ №1</div><h3>«ТОП лучших» решает</h3><p>Формат рейтинговой подборки нейросети «выкусывают» целиком для своих ответов. Рейтинги цитируются вдвое чаще информационных статей (82% против 38% в Алисе).</p><span class="src">подтверждено: AdsOn, Head Promo, Sostav, vc.ru/Mansors, DTF</span></div>
+      <div class="ccard rv"><div class="k">ПЛОЩАДКА</div><h3>VC - номер один</h3><p>До 94% статей в ТОП-10 Гугла, стабильное присутствие в Алисе и Gemini. DTF стабилен везде. Tenchat работает только в Яндексе, в Гугле его нет.</p><span class="src">подтверждено: AdsOn, Sostav/Clatch, vc.ru/Mansors</span></div>
+      <div class="ccard rv"><div class="k">ОЖИДАНИЯ</div><h3>GEO ≠ трафик</h3><p>В 2026 нейросети - ещё не источник заметного потока кликов. GEO про репутацию и долгую видимость, а не про мгновенный трафик. Держим ожидания трезво.</p><span class="src">подтверждено: Kokoc/AdIndex, ADPASS</span></div>
+      <div class="ccard rv"><div class="k">ФУНДАМЕНТ</div><h3>GEO стоит на SEO</h3><p>Без технической базы и доверия поисковиков ИИ игнорирует сайт. «Делаешь GEO - получаешь SEO в подарок» и наоборот. Часть рынка продаёт SEO под новой вывеской дороже.</p><span class="src">подтверждено: vc.ru/Mansors, darvindigital, Texterra</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- RANKING -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="sec-num">03</span><h2>Рейтинг источников</h2></div>
+    <p class="sec-desc rv">18 материалов по убыванию балла ФЕНИКС. Каждый разобран атомарно: что внутри, какие цифры, что берём в работу. Фильтр по эшелонам - в шапке.</p>
+
+    <div class="rank-list" id="ranklist">
+
+      <!-- 1 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№01</span><div class="chip"><span class="sv">9.05</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·10<br>C3·8 C4·9<br>C5·9</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Habr</span><span class="badge">Кейс с цифрами</span><span class="m-dot">·</span><span class="m-txt">Евгений Ванжула / AdsOn · март 2026</span></div>
+          <h3>Как попасть в ответы ИИ: GEO-кейс производителя лазерного оборудования</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>60 статей за несколько месяцев: 20 DTF, 19 VC, 21 Tenchat - поровну, чтобы потом сравнить площадки.</li>
+            <li>Два типа: 11 рейтинговых «ТОП лучших» + 49 информационных. Одна тема в 3 версиях (ТОП-9 / ТОП-8 / ТОП-5), не дубли.</li>
+            <li>Бренд в рейтинге как один из, не первый и не единственный - обзор рынка доверительнее рекламы.</li>
+            <li>AI берёт данные из таблиц в 3–4 раза чаще, чем из сплошного текста. Заголовок с конкретикой: год + число позиций.</li>
+            <li>Результат GEO: Алиса 38/60 (12 прямых упоминаний + 26 ссылок), Gemini 31/60 (27 прямых). SEO: 41/60 в ТОП-10 Яндекса.</li>
+            <li>VC лучший (72% Я / 94% Г), DTF стабилен, Tenchat - ноль в Гугле. Алиса чаще ссылается, Gemini чаще называет бренд.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Полный шаблон под перегородки: форматы, разбивка площадок, метрики присутствия. Точка отсчёта.</div>
+          <a class="srcl" href="https://habr.com/ru/articles/1017062/" target="_blank" rel="noopener">habr.com/ru/articles/1017062 →</a>
+        </div>
+      </article>
+
+      <!-- 2 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№02</span><div class="chip"><span class="sv">8.60</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·8<br>C3·9 C4·9<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Habr</span><span class="badge">Гайд + кейс</span><span class="m-dot">·</span><span class="m-txt">Владимир Назаров / Head Promo · июнь 2026</span></div>
+          <h3>Гайд по GEO/AEO на 2026: как попасть в ИИ-ответы ChatGPT, Алисы, Perplexity</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>RAG: генеративные движки работают на 4-этапной архитектуре (запрос → извлечение → синтез → ответ со ссылками).</li>
+            <li>Площадки: VC, Sostav, DTF, PressFeed, AdPass, Dzen. Формат «ТОП-лучших» нейросети забирают целиком.</li>
+            <li>Кейс Clatch: упор на политику безопасности данных поднял траст у ChatGPT и Perplexity; контент в списки/таблицы/FAQ.</li>
+            <li>ORM + SERM + отзовики - часть GEO-стратегии. Answer-First: чёткие определения и рекомендации в начале статьи.</li>
+            <li>Прошлый гайд автора посмотрело 30 000+ человек - сам по себе сигнал экспертизы для ИИ.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Чек-лист площадок + методология. Независимое подтверждение: рейтинги и внешние трасты работают.</div>
+          <a class="srcl" href="https://habr.com/ru/articles/1042732/" target="_blank" rel="noopener">habr.com/ru/articles/1042732 →</a>
+        </div>
+      </article>
+
+      <!-- 3 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№03</span><div class="chip"><span class="sv">8.50</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·8<br>C3·7 C4·10<br>C5·9</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Habr</span><span class="badge">Гайд (тех)</span><span class="m-dot">·</span><span class="m-txt">экспертный, автор не указан · февраль 2026</span></div>
+          <h3>GEO/AEO-оптимизация: технический гайд по попаданию в ответы нейросетей</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li><b>Prompt Win Rate</b> = упоминания бренда / всего промптов × 100. &lt;10% - невидим, 10–30% - базовая видимость.</li>
+            <li><b>AI Visibility Score</b> = (Prompt Win Rate × Citation Position × E-E-A-T) / 100. Вес позиции: первый 1.0, в списке 0.5, единственный 1.5.</li>
+            <li>SoMV (Share of Machine Voice) - доля упоминаний против конкурентов в ответах ИИ.</li>
+            <li>Author Schema с реальными данными + FAQ Schema + явная дата «Обновлено: …». Сравнительные таблицы вместо текста.</li>
+            <li>GPTBot - про обучение, не про browsing; его запрет не влияет на цитирование. Старт за 30 дней с пилота на 5–7 страницах.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Готовые формулы для замера нашего Share of Model + техчеклист под AI-краулеры.</div>
+          <a class="srcl" href="https://habr.com/ru/articles/987506/" target="_blank" rel="noopener">habr.com/ru/articles/987506 →</a>
+        </div>
+      </article>
+
+      <!-- 4 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№04</span><div class="chip"><span class="sv">8.40</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·7<br>C3·10 C4·8<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Ашманов и партнёры</span><span class="badge">Методология</span><span class="m-dot">·</span><span class="m-txt">Ашманов и партнёры · апрель 2026</span></div>
+          <h3>GEO-продвижение: как попасть в ответы ИИ, а не только в выдачу</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>С мая 2025 в Яндексе работает YandexGPT с Алисой: на запрос генерит мини-статью со ссылками на источники.</li>
+            <li>Стратегия генеративного SEO: собирать выборку запросов по смыслу и интенту, а не только по ключам.</li>
+            <li>Цель - рост доверия до клика; контент не теряет ценность месяцами.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Авторитетная рамка процесса. Ссылаться как на отраслевой эталон при защите бюджета Богдану.</div>
+          <a class="srcl" href="https://www.ashmanov.com/education/articles/geo-prodvizhenie-kak-popast-v-otvety-ii-a-ne-tolko-v-vydachu/" target="_blank" rel="noopener">ashmanov.com →</a>
+        </div>
+      </article>
+
+      <!-- 5 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№05</span><div class="chip"><span class="sv">8.30</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·10 C2·7<br>C3·9 C4·7<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">AdIndex</span><span class="badge">Гайд</span><span class="m-dot">·</span><span class="m-txt">Kokoc Performance (Kokoc Group) · февраль 2026</span></div>
+          <h3>Что такое GEO/AEO и как продвигаться в нейросетях: гайд Kokoc Performance</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>В 2026 LLM-платформы обрабатывают ~25% запросов; к 2028 ИИ-поиск доминирует, трафик с поисковиков -50% (Gartner, Semrush).</li>
+            <li>Главный тезис: GEO - про репутацию и долгую видимость, не про трафик. Миф «попаду в ответы и пойдёт поток» - не работает.</li>
+            <li>GEO не заменяет SEO, а дополняет; без SEO продвижение не выходит.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Трезвый ожидания-менеджмент для Reality Audit: не закладывать выручку напрямую от GEO.</div>
+          <a class="srcl" href="https://adindex.ru/publication/opinion/marketing/2026/02/24/342621.phtml" target="_blank" rel="noopener">adindex.ru →</a>
+        </div>
+      </article>
+
+      <!-- 6 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№06</span><div class="chip"><span class="sv">8.25</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·8<br>C3·8 C4·8<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Sostav</span><span class="badge">Гайд + метод</span><span class="m-dot">·</span><span class="m-txt">Ирина Кожевникова / Скобеев и Партнёры · апрель 2026</span></div>
+          <h3>Как попасть в ответы нейросетей: система связи сущностей</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>AI собирает картину из сущностей и связей, а не из ключей «купить / цена / в Москве».</li>
+            <li>Метод: разложить нишу на сущности - бренд, услуга, ниша, регион, эксперт, кейс, источник - и связать их.</li>
+            <li>Повторяющийся сигнал «бренд связан с темой и имеет экспертизу» - вот что цепляет модель.</li>
+            <li>Внутри рабочий промт-роль: «Senior SEO Strategist + Market Intelligence Analyst» для разбора ниши на сущности.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Метод Entity Markup под GENGLASS и перегородки + готовый промт для разбора ниши.</div>
+          <a class="srcl" href="https://www.sostav.ru/blogs/289279/84695" target="_blank" rel="noopener">sostav.ru/blogs/289279 →</a>
+        </div>
+      </article>
+
+      <!-- 7 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№07</span><div class="chip"><span class="sv">8.20</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·8<br>C3·7 C4·8<br>C5·9</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Sostav</span><span class="badge">Гайд + кейс</span><span class="m-dot">·</span><span class="m-txt">агентство / Sostav-блог · июнь 2026</span></div>
+          <h3>Полное руководство по GEO и AEO в 2026: попадание в нейровыдачу</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Кейс Clatch: присутствие в ответах ИИ 7.5% → 50.5% за месяц, узнаваемость бренда 42.6% → 80.4%.</li>
+            <li>Рычаг кейса - упор на безопасность данных + упаковка контента в списки, таблицы и FAQ.</li>
+            <li>VC: ИИ постоянно сканирует площадку для оценки репутации; «выкусывает» формат ТОП-10. Органика бесплатно, корп-блог от 40 000 ₽/мес.</li>
+            <li>Хорошо ранжируется в Алисе, ChatGPT, Gemini, Perplexity, GigaChat.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Бенчмарк скорости роста и подтверждение роли VC + формата ТОП-10.</div>
+          <a class="srcl" href="https://www.sostav.ru/blogs/284204/90966" target="_blank" rel="noopener">sostav.ru/blogs/284204 →</a>
+        </div>
+      </article>
+
+      <!-- 8 -->
+      <article class="card tier-a rv" data-tier="a">
+        <div class="rail"><span class="rnum">№08</span><div class="chip"><span class="sv">8.05</span><span class="sm">/10</span></div><span class="tier-tag">A · опора</span><div class="subscore">C1·9 C2·7<br>C3·9 C4·8<br>C5·7</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Texterra</span><span class="badge">Гайд / разбор</span><span class="m-dot">·</span><span class="m-txt">Редакция Texterra · ноябрь 2025</span></div>
+          <h3>AEO и GEO: как управлять видимостью бренда в нейропоиске Google и Яндекса</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>GEO - чтобы модель взяла именно ваши формулировки; важна проверяемость факта. AEO - чтобы выбрала ваш сайт как источник.</li>
+            <li>Google: нейроответ в отдельной вкладке с ограниченным набором источников. Яндекс «Нейро» - диалоговый слой, сам подбирает источники из выдачи.</li>
+            <li>Позиции перестали быть главным индикатором видимости. Отдельный разбор рисков канала (zero-click).</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Чёткая терминология AEO/GEO для внутренних регламентов + понимание рисков.</div>
+          <a class="srcl" href="https://texterra.ru/blog/aeo-i-geo-kak-upravlyat-vidimostyu-brenda-v-neyropoiske-google-i-yandeksa.html" target="_blank" rel="noopener">texterra.ru →</a>
+        </div>
+      </article>
+
+      <!-- 9 -->
+      <article class="card tier-b rv" data-tier="b">
+        <div class="rail"><span class="rnum">№09</span><div class="chip"><span class="sv">7.80</span><span class="sm">/10</span></div><span class="tier-tag">B · полезно</span><div class="subscore">C1·8 C2·8<br>C3·7 C4·8<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">vc.ru</span><span class="badge">Кейс с цифрами</span><span class="m-dot">·</span><span class="m-txt">агентство / vc.ru · март 2026</span></div>
+          <h3>Как бренды попадают в ответы ChatGPT и Google AI? Кейс AEO/GEO (Mansors)</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Кейс юр-услуг (Дубай): один материал = 11 упоминаний, второй = 15 (Yandex AEO + Google AI Overview).</li>
+            <li>Публикации на vc.ru как самой цитируемой площадке; структура под парсинг - заголовки, списки, определения.</li>
+            <li>Бренд появился в Decision-кластерах, где раньше доминировали только конкуренты. Узкие запросы без жёсткой коммерческой конкуренции - проще охватить.</li>
+            <li>Мониторинг: повторное сканирование провайдеров, фиксация упоминаний, сравнение с конкурентами; первые сигналы - через пару дней. «Делаешь GEO - получаешь SEO в подарок».</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Подтверждение «1 статья = N упоминаний» и приоритета VC + методика недельного мониторинга.</div>
+          <a class="srcl" href="https://vc.ru/ai/2791699-kak-brendy-popadayut-v-ai-otvety-chatgpt-i-google-optimizatsiya-aeo-geo" target="_blank" rel="noopener">vc.ru/ai/2791699 →</a>
+        </div>
+      </article>
+
+      <!-- 10 -->
+      <article class="card tier-b rv" data-tier="b">
+        <div class="rail"><span class="rnum">№10</span><div class="chip"><span class="sv">7.55</span><span class="sm">/10</span></div><span class="tier-tag">B · полезно</span><div class="subscore">C1·8 C2·7<br>C3·7 C4·8<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">seo.ru</span><span class="badge">Гайд (практ)</span><span class="m-dot">·</span><span class="m-txt">Редакция seo.ru · июнь 2026</span></div>
+          <h3>От SEO к GEO: как продвигать бренд, когда ответы дают нейросети</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Матрица промптов: информационные, коммерческие, сравнительные, репутационные, локальные, проблемные - где бренд должен появляться.</li>
+            <li>Аудит присутствия: прогон промптов в ChatGPT, Алисе, Perplexity, Gemini, Copilot; фиксировать упоминание, контекст, тональность, ссылки.</li>
+            <li>Техбаза = как у SEO + доступ для AI-краулеров: GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, CCBot, Bytespider, Amazonbot.</li>
+            <li>На горизонте - AI-commerce: OpenAI ACP (Agentic Commerce Protocol) передаёт product feeds и промо.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Матрица типов промптов под наши ниши + техчеклист ботов перед запуском.</div>
+          <a class="srcl" href="https://seo.ru/blog/ot-seo-k-geo-kak-prodvigat-brend-kogda-otvety-dayut-neyroseti/" target="_blank" rel="noopener">seo.ru/blog →</a>
+        </div>
+      </article>
+
+      <!-- 11 -->
+      <article class="card tier-b rv" data-tier="b">
+        <div class="rail"><span class="rnum">№11</span><div class="chip"><span class="sv">7.10</span><span class="sm">/10</span></div><span class="tier-tag">B · полезно</span><div class="subscore">C1·6 C2·8<br>C3·6 C4·8<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">darvindigital.ru</span><span class="badge">Контр-разбор</span><span class="m-dot">·</span><span class="m-txt">Darvin Digital · апрель 2026</span></div>
+          <h3>Как сайту попасть в ответы нейросетей без GEO-услуги (кейс ProjectQ)</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Магазин проекторов вырос с 15–20 заказов/мес до появления в ответах ChatGPT рядом с M.Video, Ozon, DNS - без отдельной GEO-услуги.</li>
+            <li>Тезис «GEO вместо SEO - миф»: часто продают базовый SEO дороже в новой упаковке. Для нейроответов у поисковиков уже должны быть причины считать сайт полезным.</li>
+            <li>Данные рынка: Mediascope - охват AI-сервисов в РФ 26% населения; Алиса AI 40 → 65 млн/мес за квартал; переходы из Perplexity сидят на сайте ~9 минут.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Отрезвляющий контраргумент: проверить, не платим ли за «GEO» вместо базового SEO. Свежие данные рынка РФ.</div>
+          <a class="srcl" href="https://darvindigital.ru/portfolio/nashi-sayty/kak-saytu-ne-pokupaya-uslugu-geo-prodvizheniya-okazatsya-v-neyrootvetah/" target="_blank" rel="noopener">darvindigital.ru →</a>
+        </div>
+      </article>
+
+      <!-- 12 -->
+      <article class="card tier-b rv" data-tier="b">
+        <div class="rail"><span class="rnum">№12</span><div class="chip"><span class="sv">7.10</span><span class="sm">/10</span></div><span class="tier-tag">B · полезно</span><div class="subscore">C1·9 C2·6<br>C3·7 C4·6<br>C5·7</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">Sostav</span><span class="badge">Концепт / PR</span><span class="m-dot">·</span><span class="m-txt">экспертная колонка / Sostav · 2026</span></div>
+          <h3>Как бренду попасть в ответы ChatGPT, Perplexity, Алисы и других ИИ</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>ИИ воспроизводит усвоенное при обучении: статьи, обзоры, колонки, медиа, форумы, отзывы формируют его «картину мира».</li>
+            <li>Один источник, даже отличный сайт, - мало. Нужны упоминания в разных независимых источниках.</li>
+            <li>ИИ редко говорит «купите X», чаще «обратите внимание на…» / «эксперты рекомендуют…». GEO становится частью PR, как когда-то SMM.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Рамка «GEO = PR» для связки с нашим инфополем и репутацией брендов.</div>
+          <a class="srcl" href="https://www.sostav.ru/blogs/289415/85323" target="_blank" rel="noopener">sostav.ru/blogs/289415 →</a>
+        </div>
+      </article>
+
+      <!-- 13 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№13</span><div class="chip"><span class="sv">6.95</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·8 C2·6<br>C3·6 C4·7<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">vc.ru</span><span class="badge">Рейтинг агентств</span><span class="m-dot">·</span><span class="m-txt">обзор / vc.ru · май 2026</span></div>
+          <h3>Продвижение в нейросетях 2026: ТОП-14 GEO-агентств России</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Топ-1 поиска даёт лишь 20–30% прежнего трафика; в 7 из 10 случаев человек не доходит до органики.</li>
+            <li>Критерии выбора подрядчика: реальные кейсы с цифрами, связка SEO+GEO (без SEO - лукавство), прозрачная отчётность по площадкам.</li>
+            <li>Средний срок появления бренда в ответах нейросетей - 2–3 месяца от старта.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Карта подрядчиков на случай аутсорса + готовые критерии для брифа.</div>
+          <a class="srcl" href="https://vc.ru/marketing/2950105-prodvizhenie-v-neyrosetyakh-top-14-geo-agentstv-dlya-biznesa-v-rossii" target="_blank" rel="noopener">vc.ru/marketing/2950105 →</a>
+        </div>
+      </article>
+
+      <!-- 14 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№14</span><div class="chip"><span class="sv">6.90</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·6 C2·7<br>C3·7 C4·7<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">digitalgeeks.ru</span><span class="badge">Самокейс</span><span class="m-dot">·</span><span class="m-txt">Digital Geeks · февраль 2026</span></div>
+          <h3>Первые места в ChatGPT, Алисе и Perplexity несколько месяцев (самокейс)</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Агентство вывело себя в топ-1 ChatGPT и Алисы, топ-2/3 Perplexity и удерживало 3 месяца.</li>
+            <li>Три рычага: позиционирование (доработать под GEO-агентство), UGC (раскидать инфо по UGC-площадкам), PR в трастовых СМИ (РБК, Бизнес-секреты).</li>
+            <li>Честно: на 100% не определить, какая статья как сработала - эффект накопительный.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Пример накопительного эффекта и роли PR в авторитетных СМИ.</div>
+          <a class="srcl" href="https://digitalgeeks.ru/cases/pervye-mesta-v-chatgpt-yandeks-alise-i-perplexity-kejs-geeks/" target="_blank" rel="noopener">digitalgeeks.ru →</a>
+        </div>
+      </article>
+
+      <!-- 15 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№15</span><div class="chip"><span class="sv">6.85</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·8 C2·6<br>C3·7 C4·7<br>C5·6</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">ADPASS</span><span class="badge">Гайд / методы</span><span class="m-dot">·</span><span class="m-txt">ADPASS / агентство · сентябрь 2025</span></div>
+          <h3>Продвижение внутри нейросетей: как сделать, чтобы ИИ упоминали компанию</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Разнообразие голосов (форумы, комментарии, блог, тематические площадки) - чем разнообразнее, тем выше шанс «всплыть».</li>
+            <li>Прямой путь - интеграция: собственный ChatGPT-плагин (поиск по базе, калькулятор, CRM-функции).</li>
+            <li>Цикл: сбор запросов → контент (статьи, FAQ, кейсы) → продвижение на внешних (публикации, рейтинги, интервью) + ручные тесты в ChatGPT/Perplexity/Claude.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Идея плагина/интеграции на перспективу (SpiderBot / MCP) + важность разных источников.</div>
+          <a class="srcl" href="https://adpass.ru/prodvizhenie-vnutri-nejrosetej-kak-sdelat-tak-chtoby-ii-upominali-vashu-kompaniyu/" target="_blank" rel="noopener">adpass.ru →</a>
+        </div>
+      </article>
+
+      <!-- 16 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№16</span><div class="chip"><span class="sv">6.55</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·7 C2·6<br>C3·6 C4·7<br>C5·7</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">vc.ru</span><span class="badge">Концепт / ликбез</span><span class="m-dot">·</span><span class="m-txt">личный блог / vc.ru · декабрь 2025</span></div>
+          <h3>SEO в эпоху ИИ: подробный гайд по AIO, GEO и AEO</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Разбор трёх терминов: AIO - контент понятен машинам; GEO - встраивание в генеративные ответы; AEO - прямые ответы.</li>
+            <li>Пример AIO: e-commerce генерит описания тысяч товаров по шаблонам и актуальным запросам.</li>
+            <li>Вывод: AIO/GEO/AEO дают максимум только вместе с классическим SEO. Глубина статьи - невысокая.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Ликбез по терминам для команды, не более.</div>
+          <a class="srcl" href="https://vc.ru/id1153983/2642356-seo-v-epokhu-ii-aio-geo-aeo" target="_blank" rel="noopener">vc.ru/id1153983/2642356 →</a>
+        </div>
+      </article>
+
+      <!-- 17 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№17</span><div class="chip"><span class="sv">6.50</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·7 C2·6<br>C3·5 C4·7<br>C5·8</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">DTF</span><span class="badge">Рейтинг + кейс</span><span class="m-dot">·</span><span class="m-txt">«Независимый рейтинг» / DTF · апрель 2026</span></div>
+          <h3>Независимый рейтинг компаний по продвижению в нейросетях 2026</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Кейс NeuroReach: бренд закрепляется как «дефолтный ответ» ИИ (доброволец-центр.рф в ChatGPT/DeepSeek/ЯндексGPT/Gemini), плюс бытовая техника и сеть стоматологий.</li>
+            <li>Метрики продукта: Stability / Coverage / Answer Share вместо позиций и трафика; ROMI через zero-click funnel.</li>
+            <li>Вопрос подрядчику: упоминание без интента (сравнение → выбор → доверие → действие) часто не даёт денег. GEO-аудит как PDF за 1–2 дня.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Метрики Stability/Coverage/Answer Share для дашборда + вопросы подрядчику. Формат рекламно-рейтинговый - читать критично.</div>
+          <a class="srcl" href="https://dtf.ru/reyting/4733907-reyting-kompaniy-po-prodvizheniyu-v-neyrosetyah" target="_blank" rel="noopener">dtf.ru/reyting/4733907 →</a>
+        </div>
+      </article>
+
+      <!-- 18 -->
+      <article class="card tier-c rv" data-tier="c">
+        <div class="rail"><span class="rnum">№18</span><div class="chip"><span class="sv">6.35</span><span class="sm">/10</span></div><span class="tier-tag">C · справочно</span><div class="subscore">C1·6 C2·6<br>C3·7 C4·6<br>C5·7</div></div>
+        <div class="body">
+          <div class="meta"><span class="badge pf">marketing-tech.ru</span><span class="badge">Концепт / колонка</span><span class="m-dot">·</span><span class="m-txt">Павел Зелёв / marketing-tech · январь 2026</span></div>
+          <h3>Как работает выдача ИИ: откуда нейросети берут бренды в ответах</h3>
+          <div class="atoms-l">Атомный разбор</div>
+          <ul class="atoms">
+            <li>Откуда ИИ берёт бренды: непротиворечивость данных о компании на всех площадках, чётко закреплённая тематика.</li>
+            <li>Экспертные тексты - «топливо» для AI-ответов: логика, причинно-следственные связи, простой язык.</li>
+            <li>Для медицины, сервиса и B2B экспертные публикации работают двойне: помогают людям и формируют цифровой след.</li>
+          </ul>
+          <div class="tk"><b>Берём</b>Тезис о консистентности данных бренда везде - критично для 5 брендов GENGROUP.</div>
+          <a class="srcl" href="https://marketing-tech.ru/experts/zelev-pavel-aleksandrovich/kak-rabotaet-vydacha-ii-otkuda-chatgpt-yandeksgpt-i-drugie-nejroseti-berut-brendy-v-otvetah/" target="_blank" rel="noopener">marketing-tech.ru →</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- STRATEGY -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="sec-num">04</span><h2>Стратегический вывод</h2></div>
+    <div class="strat rv">
+      <p>Восемнадцать источников, разные авторы, один общий вектор: <b>в ответы ИИ заходят не через рекламу, а через консенсус.</b> Формат «ТОП лучших» на внешних трастах - это рычаг, который повторяется у всех. <span class="gold">VC - площадка №1</span>, рейтинговые статьи цитируются вдвое чаще информационных, и всё это работает только поверх живого технического SEO.</p>
+      <p>Но кейсы рынка - это узкие ниши с малым числом игроков (Pokkels - лазерное оборудование, Clatch - приложение). <b>Перегородки - переполненная ниша</b>: десятки производителей, маркетплейсы доминируют в выдаче, у нейросетей уже есть из кого выбирать. Значит цифры из кейсов на нас 1:1 не переносятся, и порог входа выше.</p>
+      <p>Отсюда главная развилка. <span class="gold">GLASS-MEMORY - незанятая в AI-поиске ниша</span> (реставрационные накладки, наборное стекло - 0 конкурентов в СНГ). Это наш Pokkels: там 60 рейтинговых статей дадут эффект ближе к кейсу, чем в переполненных перегородках. Логика - обкатать GEO-механику на GLASS-MEMORY (дёшево, быстро, чисто), а отлаженный конвейер перенести на GENGLASS и перегородки.</p>
+      <div class="verdict">
+        <div class="vbox win"><div class="vk">✓ Сильная ставка</div><p>GLASS-MEMORY как пилотная GEO-ниша. Незанятость = низкий порог цитирования, как у кейсов.</p></div>
+        <div class="vbox warn"><div class="vk">⚠ Реалистично</div><p>Перегородки - дольше и дороже. Ждать результат за 4–6 месяцев, не за недели. ТОП-10 ниже 68% из кейса.</p></div>
+        <div class="vbox kill"><div class="vk">✕ Чего не обещаем</div><p>Роста выручки на «+N млн» под GEO. Всё в статусе [ГИПОТЕЗА] до замера baseline Share of Model.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="sec-num">05</span><h2>Следующие шаги: захват GEO + SEO</h2></div>
+    <p class="sec-desc rv">Четыре фазы. GEO и SEO идут одним треком - они неразделимы. Каждая фаза с чекпоинтом и ответственным.</p>
+    <div class="phases">
+
+      <div class="phase rv">
+        <div class="ptrack"><div class="pdot">0</div><div class="pline"></div></div>
+        <div class="pcard">
+          <div class="ph"><h3>Фундамент и замер</h3><span class="pt">2 недели</span></div>
+          <div class="track">
+            <span class="track-l seo">◆ SEO / тех</span>
+            <ul>
+              <li>Открыть доступ AI-краулерам: GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, YandexGPT, GigaChat в robots.txt.</li>
+              <li>Schema.org (Product, FAQ, Organization, Author), llms.txt, скорость, явные даты «Обновлено».</li>
+            </ul>
+            <span class="track-l geo">◆ GEO / замер</span>
+            <ul>
+              <li>Собрать test prompt bank: 50+ запросов по перегородкам и GLASS-MEMORY (6 типов промптов).</li>
+              <li>Замерить baseline Share of Model: прогон в ChatGPT, Алисе, Gemini, Perplexity, YandexGPT + позиции конкурентов.</li>
+              <li>Зафиксировать пилотную нишу: гипотеза - GLASS-MEMORY первой.</li>
+            </ul>
+          </div>
+          <div class="cp"><b>Чекпоинт:</b> baseline Prompt Win Rate зафиксирован · ответственный: Дмитрий Янчоглов (тех) + контент-маркетолог (замер)</div>
+        </div>
+      </div>
+
+      <div class="phase rv">
+        <div class="ptrack"><div class="pdot">1</div><div class="pline"></div></div>
+        <div class="pcard">
+          <div class="ph"><h3>Рейтинговый движок</h3><span class="pt">месяц 1–2</span></div>
+          <div class="track">
+            <span class="track-l geo">◆ GEO / внешние трасты</span>
+            <ul>
+              <li>Одна тема «ТОП производителей» в 3 версиях: VC (ТОП-9), DTF (ТОП-7), Tenchat (ТОП-5). Бренд как один из.</li>
+              <li>Структура: год + число позиций в заголовке, H2/H3, сравнительная таблица (материал, толщина стекла, профиль, вилка цены, гарантия).</li>
+              <li>Entity Markup: единая сущность бренда на всех площадках - имя, экспертиза, кейсы.</li>
+            </ul>
+            <span class="track-l seo">◆ SEO / свой блог</span>
+            <ul>
+              <li>Информационные статьи на сайте («как выбрать перегородку», «лофт vs алюминиевый профиль») под длинный хвост и конверсию форм.</li>
+              <li>Обобщающие запросы держим у себя - ИИ их к бренду не привязывает, но они дают трафик и лиды.</li>
+            </ul>
+          </div>
+          <div class="cp"><b>Чекпоинт +6 недель:</b> первые упоминания и индексация · кто пишет и бюджет на N статей - утвердить до старта</div>
+        </div>
+      </div>
+
+      <div class="phase rv">
+        <div class="ptrack"><div class="pdot">2</div><div class="pline"></div></div>
+        <div class="pcard">
+          <div class="ph"><h3>Масштаб, PR и мониторинг</h3><span class="pt">месяц 3–4</span></div>
+          <div class="track">
+            <span class="track-l geo">◆ GEO / объём + PR</span>
+            <ul>
+              <li>Дожать корпус рейтинговых - количеством, как в кейсе Pokkels: не все выйдут в ТОП.</li>
+              <li>PR в трастовых СМИ (по примеру Digital Geeks) для накопительного сигнала экспертизы.</li>
+              <li>ФЕНИКС-аудит каждой статьи перед публикацией: порог 9.9.</li>
+            </ul>
+            <span class="track-l seo">◆ Аналитика</span>
+            <ul>
+              <li>Подключить мониторинг Share of Model в дашборд: Prompt Win Rate, Citation Position, Stability/Coverage/Answer Share.</li>
+              <li>Сверка с позициями в Яндексе и Гугле по тем же запросам - GEO и SEO в одной таблице.</li>
+            </ul>
+          </div>
+          <div class="cp"><b>Чекпоинт:</b> динамика Share of Model по месяцам в дашборде · ответственный: контент-маркетолог + Дмитрий (n8n-мониторинг)</div>
+        </div>
+      </div>
+
+      <div class="phase rv">
+        <div class="ptrack"><div class="pdot">3</div><div class="pline"></div></div>
+        <div class="pcard">
+          <div class="ph"><h3>Решение о масштабировании</h3><span class="pt">месяц 5</span></div>
+          <div class="track">
+            <span class="track-l geo">◆ Reality Audit результатов</span>
+            <ul>
+              <li>Share of Model вырос + есть лиды → масштабируем конвейер на перегородки GENGLASS и остальные ниши.</li>
+              <li>Роста нет → стоп или пересмотр гипотезы (kill criteria сработали).</li>
+              <li>Перед добавлением в Roadmap - Protocol 9: 5 вопросов, метки [ДАННЫЕ]/[ГИПОТЕЗА], downside.</li>
+            </ul>
+          </div>
+          <div class="cp"><b>Решение:</b> go / no-go по масштабированию на основе данных, а не ощущений</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="disc rv">
+      <div class="dh">Дисклеймер · Protocol 9 Reality Audit</div>
+      <p>Балл ФЕНИКС - это экспертная оценка авторитетности источника по открытым данным (площадка, авторство, фрагменты, дата), а не подтверждение его результатов. Все цифры внутри кейсов (присутствие в ответах, рост узнаваемости, число упоминаний) - это заявления авторов, независимо не верифицированы, статус [ГИПОТЕЗА]. Под GENGROUP ни одна цифра эффекта на выручку не подтверждается без замера baseline Share of Model и прохождения 5 вопросов Reality Audit.</p>
+    </div>
+    <div class="fmeta rv">
+      <span>GENGROUP · GEO/AEO Intel</span>
+      <span>18 источников · средний ФЕНИКС 7.6</span>
+      <span>сборка: июнь 2026</span>
+      <span>ручной веб-поиск рунета</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // reveal on scroll
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:0.12});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+
+  // tier filter
+  var btns=document.querySelectorAll('.fbtn');
+  var cards=document.querySelectorAll('#ranklist .card');
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      btns.forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      var f=b.getAttribute('data-f');
+      cards.forEach(function(c){
+        var show = (f==='all') || (c.getAttribute('data-tier')===f);
+        c.classList.toggle('hidden',!show);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+{
+ "demo": true,
+ "domain": "genglass.ru",
+ "measured": "2026-07-09",
+ "visibility": 14260,
+ "keywords_total": 2431,
+ "top1": 38,
+ "top3": 112,
+ "top10": 314,
+ "top50": 1207,
+ "history": [
+  {
+   "date": "2026-06-10",
+   "visibility": 13198,
+   "top10": 288
+  },
+  {
+   "date": "2026-06-11",
+   "visibility": 13237,
+   "top10": 288
+  },
+  {
+   "date": "2026-06-12",
+   "visibility": 13383,
+   "top10": 289
+  },
+  {
+   "date": "2026-06-13",
+   "visibility": 13481,
+   "top10": 287
+  },
+  {
+   "date": "2026-06-14",
+   "visibility": 13450,
+   "top10": 285
+  },
+  {
+   "date": "2026-06-15",
+   "visibility": 13510,
+   "top10": 288
+  },
+  {
+   "date": "2026-06-16",
+   "visibility": 13505,
+   "top10": 286
+  },
+  {
+   "date": "2026-06-17",
+   "visibility": 13592,
+   "top10": 284
+  },
+  {
+   "date": "2026-06-18",
+   "visibility": 13742,
+   "top10": 288
+  },
+  {
+   "date": "2026-06-19",
+   "visibility": 13790,
+   "top10": 287
+  },
+  {
+   "date": "2026-06-20",
+   "visibility": 13779,
+   "top10": 287
+  },
+  {
+   "date": "2026-06-21",
+   "visibility": 13934,
+   "top10": 291
+  },
+  {
+   "date": "2026-06-22",
+   "visibility": 14055,
+   "top10": 296
+  },
+  {
+   "date": "2026-06-23",
+   "visibility": 14060,
+   "top10": 294
+  },
+  {
+   "date": "2026-06-24",
+   "visibility": 14037,
+   "top10": 295
+  },
+  {
+   "date": "2026-06-25",
+   "visibility": 14093,
+   "top10": 294
+  },
+  {
+   "date": "2026-06-26",
+   "visibility": 14199,
+   "top10": 295
+  },
+  {
+   "date": "2026-06-27",
+   "visibility": 14285,
+   "top10": 298
+  },
+  {
+   "date": "2026-06-28",
+   "visibility": 14212,
+   "top10": 301
+  },
+  {
+   "date": "2026-06-29",
+   "visibility": 14261,
+   "top10": 306
+  },
+  {
+   "date": "2026-06-30",
+   "visibility": 14406,
+   "top10": 306
+  },
+  {
+   "date": "2026-07-01",
+   "visibility": 14346,
+   "top10": 303
+  },
+  {
+   "date": "2026-07-02",
+   "visibility": 14428,
+   "top10": 309
+  },
+  {
+   "date": "2026-07-03",
+   "visibility": 14363,
+   "top10": 309
+  },
+  {
+   "date": "2026-07-04",
+   "visibility": 14359,
+   "top10": 312
+  },
+  {
+   "date": "2026-07-05",
+   "visibility": 14301,
+   "top10": 313
+  },
+  {
+   "date": "2026-07-06",
+   "visibility": 14276,
+   "top10": 317
+  },
+  {
+   "date": "2026-07-07",
+   "visibility": 14408,
+   "top10": 320
+  },
+  {
+   "date": "2026-07-08",
+   "visibility": 14473,
+   "top10": 323
+  },
+  {
+   "date": "2026-07-09",
+   "visibility": 14407,
+   "top10": 329
+  }
+ ],
+ "keywords": [
+  {
+   "phrase": "стеклянные перегородки",
+   "pos": 4,
+   "freq": 74000,
+   "url": "/peregorodki/"
+  },
+  {
+   "phrase": "стеклянные перегородки для квартиры",
+   "pos": 7,
+   "freq": 12400,
+   "url": "/peregorodki/kvartira/"
+  },
+  {
+   "phrase": "перегородка кухня гостиная",
+   "pos": 12,
+   "freq": 9800,
+   "url": "/peregorodki/kuhnya-gostinaya/"
+  },
+  {
+   "phrase": "раздвижные стеклянные перегородки",
+   "pos": 9,
+   "freq": 8100,
+   "url": "/peregorodki/razdvizhnye/"
+  },
+  {
+   "phrase": "перегородки в стиле лофт",
+   "pos": 6,
+   "freq": 6400,
+   "url": "/peregorodki/loft/"
+  },
+  {
+   "phrase": "стеклянная перегородка цена",
+   "pos": 14,
+   "freq": 5900,
+   "url": "/peregorodki/#price"
+  },
+  {
+   "phrase": "зонирование комнаты перегородкой",
+   "pos": 11,
+   "freq": 4300,
+   "url": "/blog/zonirovanie/"
+  },
+  {
+   "phrase": "перегородка в студию",
+   "pos": 17,
+   "freq": 3100,
+   "url": "/peregorodki/studiya/"
+  },
+  {
+   "phrase": "зеркало в металлической раме",
+   "pos": 3,
+   "freq": 18700,
+   "url": "/zerkala/v-rame/"
+  },
+  {
+   "phrase": "зеркало в раме лофт",
+   "pos": 5,
+   "freq": 7600,
+   "url": "/zerkala/loft/"
+  },
+  {
+   "phrase": "зеркала с подсветкой",
+   "pos": 8,
+   "freq": 15200,
+   "url": "/zerkala/s-podsvetkoy/"
+  },
+  {
+   "phrase": "зеркало с подсветкой в ванную",
+   "pos": 13,
+   "freq": 9100,
+   "url": "/zerkala/vannaya/"
+  },
+  {
+   "phrase": "большое зеркало в пол",
+   "pos": 10,
+   "freq": 11800,
+   "url": "/zerkala/napolnye/"
+  },
+  {
+   "phrase": "зеркало в спальню над комодом",
+   "pos": 21,
+   "freq": 2600,
+   "url": "/zerkala/spalnya/"
+  },
+  {
+   "phrase": "туалетный столик с зеркалом",
+   "pos": 15,
+   "freq": 22400,
+   "url": "/stoly/tualetnyj/"
+  },
+  {
+   "phrase": "туалетный столик лофт",
+   "pos": 18,
+   "freq": 4700,
+   "url": "/stoly/tualetnyj-loft/"
+  },
+  {
+   "phrase": "консольный стол металл",
+   "pos": 16,
+   "freq": 3900,
+   "url": "/stoly/konsolnye/"
+  },
+  {
+   "phrase": "журнальный столик стекло металл",
+   "pos": 12,
+   "freq": 6800,
+   "url": "/stoly/zhurnalnye/"
+  },
+  {
+   "phrase": "мебель лофт на заказ",
+   "pos": 19,
+   "freq": 8900,
+   "url": "/loft/"
+  },
+  {
+   "phrase": "мебель из металла и стекла",
+   "pos": 9,
+   "freq": 5200,
+   "url": "/"
+  },
+  {
+   "phrase": "стеллаж лофт металлический",
+   "pos": 23,
+   "freq": 7400,
+   "url": "/stellazhi/"
+  },
+  {
+   "phrase": "как выбрать стеклянную перегородку",
+   "pos": 5,
+   "freq": 1900,
+   "url": "/blog/kak-vybrat-peregorodku/"
+  },
+  {
+   "phrase": "перегородка вместо стены",
+   "pos": 8,
+   "freq": 2800,
+   "url": "/blog/peregorodka-vmesto-steny/"
+  },
+  {
+   "phrase": "сколько стоит перегородка из стекла",
+   "pos": 24,
+   "freq": 2100,
+   "url": "/blog/skolko-stoit/"
+  },
+  {
+   "phrase": "душевая перегородка из стекла",
+   "pos": 27,
+   "freq": 13600,
+   "url": "/dushevye/"
+  },
+  {
+   "phrase": "шторка для душа стеклянная",
+   "pos": 31,
+   "freq": 9700,
+   "url": "/dushevye/shtorki/"
+  },
+  {
+   "phrase": "экран для ванной стекло",
+   "pos": 34,
+   "freq": 4100,
+   "url": "/dushevye/ekrany/"
+  },
+  {
+   "phrase": "зеркальное панно на стену",
+   "pos": 22,
+   "freq": 5300,
+   "url": "/zerkala/panno/"
+  },
+  {
+   "phrase": "перила из стекла",
+   "pos": 41,
+   "freq": 3800,
+   "url": "/perila/"
+  },
+  {
+   "phrase": "стеклянные двери межкомнатные",
+   "pos": 46,
+   "freq": 16900,
+   "url": "/dveri/"
+  },
+  {
+   "phrase": "зеркало гримерное с лампочками",
+   "pos": 26,
+   "freq": 6100,
+   "url": "/zerkala/grimernye/"
+  },
+  {
+   "phrase": "полка стеклянная настенная",
+   "pos": 37,
+   "freq": 3300,
+   "url": "/polki/"
+  },
+  {
+   "phrase": "изголовье кровати зеркальное",
+   "pos": 29,
+   "freq": 1700,
+   "url": "/spalnya/izgolovya/"
+  },
+  {
+   "phrase": "перегородка для зонирования купить",
+   "pos": 20,
+   "freq": 3400,
+   "url": "/peregorodki/"
+  },
+  {
+   "phrase": "лофт перегородки чёрные",
+   "pos": 13,
+   "freq": 2900,
+   "url": "/peregorodki/loft-black/"
+  },
+  {
+   "phrase": "зеркало ростовое в раме",
+   "pos": 11,
+   "freq": 4800,
+   "url": "/zerkala/rostovye/"
+  }
+ ],
+ "competitors": [
+  {
+   "domain": "miralls.ru",
+   "visibility": 16890,
+   "common_keywords": 412,
+   "delta_visibility": 8.4
+  },
+  {
+   "domain": "archpole.ru",
+   "visibility": 12140,
+   "common_keywords": 287,
+   "delta_visibility": 1.2
+  },
+  {
+   "domain": "loffi.ru",
+   "visibility": 9860,
+   "common_keywords": 246,
+   "delta_visibility": -2.1
+  },
+  {
+   "domain": "loftdesigne.ru",
+   "visibility": 8420,
+   "common_keywords": 233,
+   "delta_visibility": 0.6
+  },
+  {
+   "domain": "amgrades.ru",
+   "visibility": 6110,
+   "common_keywords": 158,
+   "delta_visibility": -0.8
+  },
+  {
+   "domain": "moonzana.ru",
+   "visibility": 5730,
+   "common_keywords": 121,
+   "delta_visibility": 3.9
+  }
+ ],
+ "deltas": {
+  "dropped_top10": [
+   {
+    "phrase": "стеклянная перегородка цена",
+    "from": 9,
+    "to": 14
+   },
+   {
+    "phrase": "журнальный столик стекло металл",
+    "from": 8,
+    "to": 12
+   }
+  ],
+  "entered_top10": [
+   {
+    "phrase": "зеркало в раме лофт",
+    "from": 12,
+    "to": 5
+   }
+  ],
+  "competitor_up": [
+   {
+    "domain": "miralls.ru",
+    "delta": 8.4
+   }
+  ]
+ }
+}

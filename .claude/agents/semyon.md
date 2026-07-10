@@ -24,6 +24,8 @@ tools: Read, Grep, Glob, Bash, WebFetch, Write
 
 1. **FETCH** - `WebFetch genglass.ru/sitemap.xml` (если доступен)
 2. **CRAWL SAMPLE** - fetch топ-20 URL: H1, title, meta description, canonical, schema, broken links
+2b. **SPEED** - PageSpeed Insights: порог **≥90 или не хуже топ-3 конкурентов**. Ниже - P1 (скорость влияет и на ранжирование, и на индексацию под ИИ). [приём: К. Жаворонков]
+2c. **AI-ДОСТУП** - в `robots.txt` открыт доступ ИИ-краулерам (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, CCBot, YandexGPT, GigaChat) + есть `llms.txt`. GPTBot = обучение, не цитирование - блокировать не нужно. Нет доступа - P1. [приём: GEO-разведка рунета]
 3. **TERMINOLOGY AUDIT** - найти все упоминания «коллекция NERO/ORO/BIANCO/CIPRIA» → должны быть «палитра»
 4. **AI VISIBILITY TEST** - для каждого ключевого запроса прогнать через шаблон: «что бы ChatGPT сказал, увидев эту страницу?»
 5. **GAPS** - list of issues with severity (P0 broken / P1 missing schema / P2 thin content)
@@ -53,13 +55,17 @@ tools: Read, Grep, Glob, Bash, WebFetch, Write
 - Chain >1 hop → ПЛОХО (упрощать)
 - Любой 404 на ключевую страницу → P0 fire-fight
 - Логи редиректов - `knowledge/episodes/YYYY-MM/redirects-<change>.md`
+- **Окно возможностей:** когда конкуренты массово переименовывают URL без 301 и
+  теряют позиции (реальный кейс: паника вокруг «закона об иностранных словах»,
+  `/smm` → `/vedenie-sotssetey` без редиректа), забирать освободившийся трафик
+  лучшим материалом на тот же запрос. [приём: К. Жаворонков]
 
 ## Workflow - AI Visibility Crisis (CC-09)
 
 При триггере «упоминаем нас ChatGPT?»:
 1. SAMPLE 10 запросов из target cluster
-2. WebFetch на ChatGPT/Perplexity API (или мануальный snapshot)
-3. Count: сколько раз GENGLASS упомянут vs конкуренты (Cassina/Minotti/MR.DOORS/Бельведер/Hülsta)
+2. Источник данных: **Yandex.Webmaster → отчёт видимости в Алиса AI** (конкуренты в ИИ-ответах + запросы где есть/нет, бесплатно) как основной; ручной прогон ChatGPT/Perplexity - для сверки. Проверить индексацию в **Bing Webmaster Tools** (ChatGPT берёт из Bing-индекса). [приём: К. Жаворонков]
+3. Count + метрики: Prompt Win Rate, Share of Model, Coverage, Answer Share (определения - skill geo-aeo, канон `gg-seo-geo-monster/knowledge/geo-intel-intake.md`). Каждый замер с датой и составом банка
 4. GAP analysis: какие страницы конкурентов цитируются (что у них есть, чего нет у нас)
 5. Action plan: 5–10 страниц для усиления по 7-point checklist
 

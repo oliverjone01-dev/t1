@@ -1,0 +1,57 @@
+name: GEO-monster harvest
+
+# Ночной сбор данных SEO/GEO-хаба: keys.so + Яндекс.Метрика + Яндекс.Директ ->
+# нормализованные JSON-снапшоты в gg-seo-geo-monster/data/. Сайт (Pages /seo/) читает
+# только эти JSON; без секретов остаётся в DEMO-режиме. Секреты: KEYSO_TOKEN, YM_TOKEN,
+# YD_TOKEN (см. gg-seo-geo-monster/SETUP.md). Cron 03:00 МСК + ручной запуск.
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 00:00 UTC = 03:00 МСК
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: geo-monster-harvest
+  cancel-in-progress: false
+
+env:
+  KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN }}
+  KEYSSO_API_KEY: ${{ secrets.KEYSSO_API_KEY }}
+  YM_TOKEN: ${{ secrets.YM_TOKEN }}
+  YD_TOKEN: ${{ secrets.YD_TOKEN }}
+  YD_LOGIN: ${{ secrets.YD_LOGIN }}
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Сбор данных
+        run: node gg-seo-geo-monster/scripts/harvest.mjs
+
+      - name: "Гард: в диффе нет токенов"
+        run: |
+          set -euo pipefail
+          git add gg-seo-geo-monster/data
+          if git diff --cached | grep -nE '(AQVN[A-Za-z0-9_-]{10,}|y0_[A-Za-z0-9_-]{20,}|Bearer [A-Za-z0-9_-]{20,}|api[_-]?key["'"'"':= ]+[A-Za-z0-9]{16,})'; then
+            echo "::error::Похоже на токен в данных - коммит остановлен"; exit 1
+          fi
+
+      - name: Коммит снапшотов
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "Изменений нет"
+          else
+            git commit -m "chore(seo-geo): harvest snapshots $(date -u +%Y-%m-%d)"
+            for i in 1 2 3 4; do git push && break || sleep $((2**i)); done
+          fi

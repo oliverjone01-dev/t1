@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>GEO-MONSTER · GENGROUP internal</title>
+<link rel="stylesheet" href="app.css">
+<script>
+/* Хэш пароля (SHA-256). Дефолт: genmonster2026 (см. SETUP.md).
+   При деплое с секретом HUB_PASS значение подменяется автоматически. */
+window.HUB_PASS_HASH = "2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868";
+</script>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="box">
+    <div class="logo"><b>GEO-MONSTER</b>GENGROUP internal</div>
+    <p>Внутренний SEO/GEO-хаб. Доступ по паролю (защита от случайных глаз, не криптография).</p>
+    <form id="gateForm">
+      <input type="password" id="gatePass" placeholder="Пароль" autocomplete="current-password" autofocus>
+      <span class="err" id="gateErr">Неверный пароль</span>
+      <button class="btn" type="submit">Войти</button>
+    </form>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <div class="logo"><b>GEO-MONSTER</b>GENGROUP internal</div>
+    <nav id="nav"></nav>
+    <div class="foot">
+      <a href="about.html">Манифест проекта</a>
+      <a href="intel.html">Разведка GEO (18 источников)</a>
+      <a href="#" id="logout">Выйти</a>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script src="forge.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

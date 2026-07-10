@@ -80,6 +80,8 @@ async function harvestKeyso(p) {
   const prev = readJSON(file, null);
   if (prev && prev.measured === today()) { setStatus("keysso", "cached-24h"); return; }
 
+  // Схема живого ответа keys.so не сверена с apidoc (D6): числа до ручной сверки
+  // помечаются в статусе. Убрать пометку - после первого подтверждённого прогона.
   const dash = await keyso(process.env.KEYSO_EP_DASHBOARD || "/report/simple/domain_dashboard", { base: KEYSO_DB, domain: p.domain });
   const kwJson = await keyso(process.env.KEYSO_EP_ORGANIC || "/report/simple/organic/keywords", { base: KEYSO_DB, domain: p.domain, page: 1, per_page: PER });
   const compJson = await keyso(process.env.KEYSO_EP_COMPETITORS || "/report/simple/organic/competitors", { base: KEYSO_DB, domain: p.domain, page: 1, per_page: 50 });
@@ -128,7 +130,7 @@ async function harvestKeyso(p) {
     measured: today(),
     phrases: keywords.map((k) => ({ phrase: k.phrase, pos: k.pos, freq: k.freq, url: k.url, cluster: guessCluster(k.phrase), intent: guessIntent(k.phrase) }))
   });
-  setStatus("keysso", "ok");
+  setStatus("keysso", process.env.KEYSO_SCHEMA_VERIFIED === "1" ? "ok" : "ok (схема не сверена, см. BACKLOG-1)");
 }
 
 /* ---------- Метрика ---------- */
@@ -230,7 +232,10 @@ async function main() {
     else setStatus("direct", "no-token (YD_TOKEN)");
   }
 
-  meta.updated = today();
+  // Честная свежесть: meta.updated двигаем только если хотя бы один источник
+  // реально собрался (ok/cached); при полном сбое дата остаётся прошлой.
+  const anyOk = Object.values(meta.sources).some((s) => s && s.date === today() && /^(ok|cached)/.test(String(s.status)));
+  if (anyOk) meta.updated = today();
   if (meta.sources.keysso) { meta.sources.keysso.requests_used = keysoUsed; meta.sources.keysso.limit = KEYSO_LIMIT; }
   delete meta.demo;
   writeJSON(join(DATA, "meta.json"), meta);

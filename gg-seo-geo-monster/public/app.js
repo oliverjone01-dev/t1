@@ -188,21 +188,29 @@ function ownerInsights() {
   const dq = (d.search_queries || []);
   if (dq.length) {
     const phrases = semanticsPhrases();
-    const unpaid = dq.filter((q) => {
-      const qt = tokens(q.query);
-      return !phrases.some((p) => { let c = 0; for (const w of tokens(p.phrase)) if (qt.has(w)) c++; return c >= 2 && p.pos && p.pos <= 10; });
-    });
-    if (unpaid.length >= dq.length * 0.5) {
-      const cost = unpaid.reduce((a, q) => a + (q.cost || 0), 0);
-      out.push({ cls: "bad", t: `Платим за рекламу по ${unpaid.length} из ${dq.length} видимых запросов, где бесплатной выдачи у нас нет (${rub(cost)} только по видимой части)`, a: "Строим страницы под эти запросы: через 2-3 месяца часть рекламных денег можно экономить. Проверяется пилотом, не обещанием." });
+    const havePos = phrases.some((p) => typeof p.pos === "number");
+    if (havePos) {
+      // честный счёт возможен только когда в семантике есть реальные позиции
+      const unpaid = dq.filter((q) => {
+        const qt = tokens(q.query);
+        return !phrases.some((p) => { let c = 0; for (const w of tokens(p.phrase)) if (qt.has(w)) c++; return c >= 2 && typeof p.pos === "number" && p.pos <= 10; });
+      });
+      if (unpaid.length >= dq.length * 0.5) {
+        const cost = unpaid.reduce((a, q) => a + (q.cost || 0), 0);
+        out.push({ cls: "bad", t: `Платим за рекламу по ${unpaid.length} из ${dq.length} видимых запросов, где бесплатной выдачи у нас нет (${rub(cost)} только по видимой части)`, a: "Строим страницы под эти запросы: через 2-3 месяца часть рекламных денег можно экономить. Проверяется пилотом, не обещанием." });
+      }
+    } else if (d.spend_30d) {
+      out.push({ cls: "bad", t: `Реклама тратит ${rub(d.spend_30d)} за 30 дней, и по видимым рекламным запросам бесплатная выдача не обнаружена`, a: "Точная сверка - выгрузкой позиций (задача в плане). Строим страницы под рекламные запросы, экономию проверяем пилотом." });
     }
   }
   const mp = new Map((m.top_pages || []).map((p) => [p.url.replace(/\/$/, ""), p.visits]));
-  for (const p of (k.top_pages || []).slice(0, 5)) {
+  const gaps = (k.top_pages || []).filter((p) => {
     const visits = mp.get((p.url || "").replace(/\/$/, "")) || 0;
-    if ((p.keywords_top50 || 0) >= 100 && visits < 30) {
-      out.push({ cls: "warn", t: `Страница ${p.url} присутствует в поиске по ${fmt(p.keywords_top50)} запросам, но почти не приводит посетителей (${fmt(visits)} за месяц)`, a: "Чиним заголовки и описания в выдаче, поднимаем позиции из хвоста - это самая быстрая победа." });
-    }
+    return (p.keywords_top50 || 0) >= 100 && visits < 30;
+  });
+  if (gaps.length) {
+    const keysSum = gaps.reduce((a, p) => a + (p.keywords_top50 || 0), 0);
+    out.push({ cls: "warn", t: `${gaps.length === 1 ? "Страница" : gaps.length + " страницы"} (${gaps.map((p) => p.url).join(", ")}) держ${gaps.length === 1 ? "ит" : "ат"} ${fmt(keysSum)} запросов в поиске, но почти не привод${gaps.length === 1 ? "ит" : "ят"} посетителей`, a: "Сначала проверяем реальные позиции, потом чиним заголовки и описания - это самая быстрая победа." });
   }
   if (k.ai_answers != null) out.push({ cls: "ok", t: `Нейросеть Алиса уже упоминает нас в своих ответах: ${fmt(k.ai_answers)} раз`, a: "Это бесплатные рекомендации. Усиливаем страницы по нашему GEO-чеклисту, чтобы упоминаний стало больше." });
   const brand = (state.proj.brand || "").toLowerCase();

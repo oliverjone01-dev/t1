@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КП GENGLASS · Блок «Почему это стоит именно столько»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#E8E8EC; --card:#FFFFFF; --ink:#191A1D; --ink2:#4C4E55; --mute:#8A8D96;
+  --line:#E4E4E8; --line2:#EDEDF1; --inner:#F6F6F8;
+  --gold:#B0872E; --gold-soft:#F4ECD9;
+  --dark:#191A1D;
+  --font:'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;line-height:1.5;padding:40px 20px}
+
+.card{max-width:1000px;margin:0 auto;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;padding:40px 40px 0;box-shadow:0 1px 2px rgba(20,20,30,.04),0 18px 44px rgba(20,20,30,.08);overflow:hidden}
+@media(max-width:720px){.card{padding:26px 20px 0}body{padding:16px 10px}}
+
+.head h2{font-size:26px;font-weight:800;letter-spacing:-.02em}
+.head p{color:var(--ink2);font-size:15px;margin-top:8px;max-width:70ch}
+.head .mats{margin-top:12px;display:flex;flex-wrap:wrap;gap:7px}
+.mats .m{font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--gold);
+  background:var(--gold-soft);border-radius:7px;padding:5px 10px}
+
+.grid{display:grid;grid-template-columns:300px 1fr;gap:34px;margin-top:30px}
+@media(max-width:720px){.grid{grid-template-columns:1fr;gap:26px}}
+
+.coltitle{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mute);margin-bottom:16px}
+
+/* donut */
+.donut-wrap{display:flex;flex-direction:column;align-items:center}
+.donut{width:190px;height:190px;border-radius:50%;position:relative;
+  background:conic-gradient(
+    var(--gold) 0 38%,
+    #2A2B2F 38% 67%,
+    #5E616B 67% 82%,
+    #9A9DA6 82% 92%,
+    #CDCFD6 92% 100%);}
+.donut::after{content:"";position:absolute;inset:26px;border-radius:50%;background:var(--card)}
+.donut .mid{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:1}
+.donut .mid b{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.donut .mid span{font-size:11px;color:var(--mute);font-weight:600;margin-top:2px}
+.legend{margin-top:22px;width:100%;display:flex;flex-direction:column;gap:9px}
+.leg{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
+.leg i{width:11px;height:11px;border-radius:3px;flex:none}
+.leg b{margin-left:auto;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* stages */
+.stages{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.stages{grid-template-columns:1fr}}
+.stage{background:var(--inner);border:1px solid var(--line2);border-radius:12px;padding:15px 16px}
+.stage .sh{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.stage .sn{width:22px;height:22px;flex:none;border-radius:6px;background:var(--gold);
+  color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.stage h4{font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.stage p{font-size:12.5px;color:var(--ink2);line-height:1.5}
+
+/* triple control */
+.control{margin:32px -40px 0;background:var(--dark);color:#fff;padding:20px 40px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+@media(max-width:720px){.control{margin:26px -20px 0;padding:18px 20px}}
+.control .t{font-size:15px;font-weight:800;letter-spacing:.01em}
+.control .flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+.control .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.22);
+  border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;color:#F2F2F4}
+.control .pill svg{width:14px;height:14px;color:var(--gold)}
+.control .arw{color:var(--gold);font-weight:800}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="head">
+    <h2>Почему это стоит именно столько</h2>
+    <p>Весь цикл на нашем производстве. Вы платите за изделие, а не за цепочку перекупщиков. Состав работ зависит от того, что в вашей смете:</p>
+    <div class="mats"><span class="m">металл</span><span class="m">стекло</span><span class="m">камень</span><span class="m">МДФ</span></div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: cost structure -->
+    <div>
+      <div class="coltitle">Структура стоимости</div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <div class="mid"><b>100%</b><span>цена изделия</span></div>
+        </div>
+        <div class="legend">
+          <div class="leg"><i style="background:#B0872E"></i>Премиальные материалы<b>38%</b></div>
+          <div class="leg"><i style="background:#2A2B2F"></i>Производство<b>29%</b></div>
+          <div class="leg"><i style="background:#5E616B"></i>Проектирование<b>15%</b></div>
+          <div class="leg"><i style="background:#9A9DA6"></i>Контроль качества<b>10%</b></div>
+          <div class="leg"><i style="background:#CDCFD6"></i>Гарантия и сервис<b>8%</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: 8 stages -->
+    <div>
+      <div class="coltitle">Путь вашего изделия, 8 этапов</div>
+      <div class="stages">
+        <div class="stage"><div class="sh"><span class="sn">1</span><h4>Проектирование</h4></div><p>Конструктор считает изделие под ваш проект: чертежи, размеры, нагрузки, стыковки. До запуска согласуем.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">2</span><h4>Подбор материала</h4></div><p>Под смету закупаем то, что в изделии: металл, стекло, камень или МДФ. Материалы премиальные, не эконом.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">3</span><h4>Раскрой и заготовка</h4></div><p>Режем и готовим детали по чертежу с точностью до миллиметра.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">4</span><h4>Профильная обработка</h4></div><p>У каждого материала свой передел: металл варим и шлифуем, стекло режем и закаляем, камень и МДФ обрабатываем под размер и форму.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">5</span><h4>Покрытие и финиш</h4></div><p>Покраска, напыление, шлифовка кромки, декоративные фактуры. То, что вы видите и трогаете.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">6</span><h4>Контроль качества</h4></div><p>Проверяем на каждом переделе, а не только в конце. Подробнее ниже.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">7</span><h4>Сборка</h4></div><p>Собираем изделие целиком, подгоняем стыки, проверяем в сборе.</p></div>
+        <div class="stage"><div class="sh"><span class="sn">8</span><h4>Упаковка и отгрузка</h4></div><p>Пакуем под перевозку, чтобы довезти без сколов и царапин. 100% сохранность груза.</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- triple control -->
+  <div class="control">
+    <div class="t">Тройной контроль</div>
+    <div class="flow">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>После изготовления</span>
+      <span class="arw">&rarr;</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>После покрытия</span>
+      <span class="arw">&rarr;</span>
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>После сборки</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

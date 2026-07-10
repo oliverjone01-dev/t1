@@ -9,6 +9,13 @@ on:
   schedule:
     - cron: "0 0 * * *" # 00:00 UTC = 03:00 МСК
   workflow_dispatch:
+    inputs:
+      force:
+        description: "1 = игнорировать кэш 24ч (пересобрать сегодняшнее)"
+        default: "0"
+      debug:
+        description: "1 = сохранить срез сырых ответов keys.so в data/ для сверки схемы"
+        default: "0"
 
 permissions:
   contents: write
@@ -18,6 +25,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  HARVEST_FORCE: ${{ github.event.inputs.force || '0' }}
+  KEYSO_DEBUG: ${{ github.event.inputs.debug || '0' }}
   KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN }}
   KEYSSO_API_KEY: ${{ secrets.KEYSSO_API_KEY }}
   YM_TOKEN: ${{ secrets.YM_TOKEN }}

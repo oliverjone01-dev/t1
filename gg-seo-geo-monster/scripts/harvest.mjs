@@ -36,7 +36,8 @@ meta.sources = meta.sources || {};
 let keysoUsed = (meta.sources.keysso && meta.sources.keysso.date === today() && meta.sources.keysso.requests_used) || 0;
 
 function setStatus(src, status, extra) {
-  meta.sources[src] = Object.assign({ status, date: today() }, src === "keysso" ? { requests_used: keysoUsed, limit: KEYSO_LIMIT } : {}, extra || {});
+  // merge поверх существующего, чтобы не терять служебные поля (pending_rid и т.п.)
+  meta.sources[src] = Object.assign({}, meta.sources[src], { status, date: today() }, src === "keysso" ? { requests_used: keysoUsed, limit: KEYSO_LIMIT } : {}, extra || {});
 }
 
 async function http(url, opts) {
@@ -47,13 +48,50 @@ async function http(url, opts) {
 }
 const asJSON = (t) => JSON.parse(t);
 
-/* ---------- keys.so ---------- */
-async function keyso(path, params) {
+/* ---------- keys.so ----------
+   Схема из openapi keyso-mcp (сверено 10.07.2026 по живой ошибке 400 + спеке):
+   - GET  /report/simple/domain_dashboard?domain&base  - сводка (+ aiAnswersCnt: упоминания в ИИ-ответах Алисы)
+   - GET  /report/simple/organic/concurents?domain&base&top - конкуренты (опечатка "concurents" - в самом API)
+   - POST /report/group {base, top, domains[], name} -> {rid} - групповой отчёт
+   - GET  /report/group/state/<rid> - готовность
+   - GET  /report/group/organic/keywords/<rid>?page&per_page - фразы домена */
+const KEYSO_HEADERS = { "X-Keyso-TOKEN": KEYSO_TOKEN, "auth-token": KEYSO_TOKEN, Accept: "application/json" };
+function keysoSpend() {
   if (keysoUsed >= KEYSO_LIMIT * 0.8) throw Object.assign(new Error(`стоп: израсходовано ${keysoUsed} из ${KEYSO_LIMIT} (порог 80%)`), { limit: true });
-  const u = new URL("https://api.keys.so" + path);
-  for (const [k, v] of Object.entries(params)) u.searchParams.set(k, String(v));
   keysoUsed++;
-  return asJSON(await http(u, { headers: { "X-Keyso-TOKEN": KEYSO_TOKEN, "auth-token": KEYSO_TOKEN, Accept: "application/json" } }));
+}
+async function keyso(path, params) {
+  keysoSpend();
+  const u = new URL("https://api.keys.so" + path);
+  for (const [k, v] of Object.entries(params || {})) u.searchParams.set(k, String(v));
+  return asJSON(await http(u, { headers: KEYSO_HEADERS }));
+}
+async function keysoPost(path, body) {
+  keysoSpend();
+  return asJSON(await http("https://api.keys.so" + path, {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, KEYSO_HEADERS),
+    body: JSON.stringify(body)
+  }));
+}
+/* групповой отчёт: создать (или добрать вчерашний pending) и дождаться готовности */
+async function keysoGroupRid(p) {
+  const pending = meta.sources.keysso && meta.sources.keysso.pending_rid && meta.sources.keysso.pending_rid[p.id];
+  let rid = pending || null;
+  if (!rid) {
+    const created = await keysoPost("/report/group", { base: KEYSO_DB, top: 50, domains: [p.domain], name: `geo-monster-${p.id}-${today()}` });
+    rid = created.rid || pick(created, ["rid", "report_id", "id"]);
+    if (!rid) throw new Error("group report: rid не получен: " + JSON.stringify(created).slice(0, 150));
+  }
+  for (let i = 0; i < 10; i++) {
+    const st = JSON.stringify(await keyso(`/report/group/state/${rid}`, {})).toLowerCase();
+    if (/ready|done|finish|complete|success|"state":\s*1|100/.test(st)) return { rid, ready: true };
+    await sleep(6000);
+  }
+  // не готов - запомним rid, доберём следующим прогоном
+  meta.sources.keysso = meta.sources.keysso || {};
+  meta.sources.keysso.pending_rid = Object.assign({}, meta.sources.keysso.pending_rid, { [p.id]: rid });
+  throw new Error(`group report ${rid} не готов за 60с - доберём следующим прогоном`);
 }
 // защитные экстракторы: точная схема ответа сверяется на первом живом 200 (apidoc закрыт из контейнера)
 function pick(obj, names, isNum) {
@@ -78,13 +116,13 @@ const guessIntent = (s) => /(куп|цена|заказ|стоимост|пра�
 async function harvestKeyso(p) {
   const file = join(DATA, p.id, "keysso.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) { setStatus("keysso", "cached-24h"); return; }
+  if (prev && prev.measured === today()) return "cached-24h";
 
-  // Схема живого ответа keys.so не сверена с apidoc (D6): числа до ручной сверки
-  // помечаются в статусе. Убрать пометку - после первого подтверждённого прогона.
-  const dash = await keyso(process.env.KEYSO_EP_DASHBOARD || "/report/simple/domain_dashboard", { base: KEYSO_DB, domain: p.domain });
-  const kwJson = await keyso(process.env.KEYSO_EP_ORGANIC || "/report/simple/organic/keywords", { base: KEYSO_DB, domain: p.domain, page: 1, per_page: PER });
-  const compJson = await keyso(process.env.KEYSO_EP_COMPETITORS || "/report/simple/organic/competitors", { base: KEYSO_DB, domain: p.domain, page: 1, per_page: 50 });
+  const dash = await keyso("/report/simple/domain_dashboard", { base: KEYSO_DB, domain: p.domain });
+  const { rid } = await keysoGroupRid(p);
+  const kwJson = await keyso(`/report/group/organic/keywords/${rid}`, { page: 1, per_page: PER });
+  if (meta.sources.keysso && meta.sources.keysso.pending_rid) delete meta.sources.keysso.pending_rid[p.id];
+  const compJson = await keyso("/report/simple/organic/concurents", { base: KEYSO_DB, domain: p.domain, top: 10 });
 
   const keywords = pickRows(kwJson).map((r) => ({
     phrase: pick(r, ["phrase", "keyword", "query", "name"]) || "",
@@ -119,8 +157,11 @@ async function harvestKeyso(p) {
   }
   const history = ((prev && prev.history) || []).slice(-59).concat([{ date: today(), visibility: visibility || 0, top10 }]);
 
+  // aiAnswersCnt - упоминания сайта в ИИ-ответах Алисы (сырьё для GEO-трекера M3)
+  const aiAnswers = pick(dash, ["aianswers"], true);
   writeJSON(file, {
-    domain: p.domain, measured: today(), visibility, keywords_total: pick(dash, ["keywords_total", "keys", "count"], true) || keywords.length,
+    domain: p.domain, measured: today(), visibility, ai_answers: aiAnswers,
+    keywords_total: pick(dash, ["keywords_total", "keys", "count"], true) || keywords.length,
     top1: keywords.filter((k) => k.pos === 1).length, top3: keywords.filter((k) => k.pos && k.pos <= 3).length,
     top10, top50: keywords.filter((k) => k.pos && k.pos <= 50).length,
     history, keywords, competitors,
@@ -130,7 +171,7 @@ async function harvestKeyso(p) {
     measured: today(),
     phrases: keywords.map((k) => ({ phrase: k.phrase, pos: k.pos, freq: k.freq, url: k.url, cluster: guessCluster(k.phrase), intent: guessIntent(k.phrase) }))
   });
-  setStatus("keysso", process.env.KEYSO_SCHEMA_VERIFIED === "1" ? "ok" : "ok (схема не сверена, см. BACKLOG-1)");
+  return "ok";
 }
 
 /* ---------- Метрика ---------- */
@@ -143,9 +184,9 @@ async function ym(params) {
 async function harvestMetrika(p) {
   const file = join(DATA, p.id, "metrika.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) { setStatus("metrika", "cached-24h"); return; }
+  if (prev && prev.measured === today()) return "cached-24h";
   const counter = p.metrika_counter;
-  if (!counter || /PLACEHOLDER/i.test(counter)) { setStatus("metrika", "no-counter (заполни metrika_counter в config/projects.json)"); return; }
+  if (!counter || /PLACEHOLDER/i.test(counter)) return "no-counter (заполни metrika_counter в config/projects.json)";
 
   const base = { ids: counter, date1: "30daysAgo", date2: "yesterday", accuracy: "full" };
   const byDay = await ym(Object.assign({ bytime: 1, metrics: "ym:s:visits", group: "day" }, base));
@@ -167,7 +208,7 @@ async function harvestMetrika(p) {
     goals: [], // цели: подключаются отдельно после выбора goal id (BACKLOG)
     bounce_rate: +(quality.totals?.[0]?.toFixed?.(1) ?? 0), depth: +(quality.totals?.[1]?.toFixed?.(1) ?? 0)
   });
-  setStatus("metrika", "ok");
+  return "ok";
 }
 
 /* ---------- Директ (Reports API, TSV) ---------- */
@@ -189,7 +230,7 @@ const tsv = (text) => text.trim().split("\n").map((l) => l.split("\t"));
 async function harvestDirect(p) {
   const file = join(DATA, p.id, "direct.json");
   const prev = readJSON(file, null);
-  if (prev && prev.measured === today()) { setStatus("direct", "cached-24h"); return; }
+  if (prev && prev.measured === today()) return "cached-24h";
 
   const mk = (fields, name, extra) => ({ params: Object.assign({
     SelectionCriteria: {}, FieldNames: fields, ReportName: `${name}-${p.id}-${today()}`,
@@ -213,7 +254,7 @@ async function harvestDirect(p) {
     ctr: imp ? +(clicks / imp * 100).toFixed(2) : 0, avg_cpc: clicks ? +(spend / clicks).toFixed(1) : 0,
     campaigns: campaigns.map(({ impressions, ...c }) => c), search_queries: queries
   });
-  setStatus("direct", "ok");
+  return "ok";
 }
 
 /* ---------- main ---------- */
@@ -222,19 +263,25 @@ async function main() {
   if (!cfg) throw new Error("public/config/projects.json не найден");
   console.log(`GEO-monster harvest: проектов ${cfg.projects.length}, keys.so лимит ${KEYSO_LIMIT}/сутки (израсходовано ${keysoUsed})`);
 
+  // статусы копим per-project, чтобы второй проект не затирал первый
+  const agg = { keysso: {}, metrika: {}, direct: {} };
   for (const p of cfg.projects) {
     console.log(`\n== ${p.brand} (${p.domain}) ==`);
-    if (KEYSO_TOKEN) { try { await harvestKeyso(p); console.log("  keys.so: ok"); } catch (e) { setStatus("keysso", "error: " + e.message.slice(0, 160)); console.warn("  keys.so:", e.message); if (e.limit) break; } }
-    else setStatus("keysso", "no-token (KEYSO_TOKEN)");
-    if (YM_TOKEN) { try { await harvestMetrika(p); console.log("  metrika: ok"); } catch (e) { setStatus("metrika", "error: " + e.message.slice(0, 160)); console.warn("  metrika:", e.message); } }
-    else setStatus("metrika", "no-token (YM_TOKEN)");
-    if (YD_TOKEN) { try { await harvestDirect(p); console.log("  direct: ok"); } catch (e) { setStatus("direct", "error: " + e.message.slice(0, 160)); console.warn("  direct:", e.message); } }
-    else setStatus("direct", "no-token (YD_TOKEN)");
+    if (KEYSO_TOKEN) { try { agg.keysso[p.id] = await harvestKeyso(p); console.log("  keys.so:", agg.keysso[p.id]); } catch (e) { agg.keysso[p.id] = "error: " + e.message.slice(0, 140); console.warn("  keys.so:", e.message); if (e.limit) break; } }
+    else agg.keysso[p.id] = "no-token (KEYSO_TOKEN)";
+    if (YM_TOKEN) { try { agg.metrika[p.id] = await harvestMetrika(p); console.log("  metrika:", agg.metrika[p.id]); } catch (e) { agg.metrika[p.id] = "error: " + e.message.slice(0, 140); console.warn("  metrika:", e.message); } }
+    else agg.metrika[p.id] = "no-token (YM_TOKEN)";
+    if (YD_TOKEN) { try { agg.direct[p.id] = await harvestDirect(p); console.log("  direct:", agg.direct[p.id]); } catch (e) { agg.direct[p.id] = "error: " + e.message.slice(0, 140); console.warn("  direct:", e.message); } }
+    else agg.direct[p.id] = "no-token (YD_TOKEN)";
+  }
+  for (const [src, m] of Object.entries(agg)) {
+    const line = Object.entries(m).map(([id, s]) => `${id}: ${s}`).join(" · ");
+    if (line) setStatus(src, line);
   }
 
   // Честная свежесть: meta.updated двигаем только если хотя бы один источник
   // реально собрался (ok/cached); при полном сбое дата остаётся прошлой.
-  const anyOk = Object.values(meta.sources).some((s) => s && s.date === today() && /^(ok|cached)/.test(String(s.status)));
+  const anyOk = Object.values(meta.sources).some((s) => s && s.date === today() && /(^|: )(ok|cached)/.test(String(s.status)));
   if (anyOk) meta.updated = today();
   if (meta.sources.keysso) { meta.sources.keysso.requests_used = keysoUsed; meta.sources.keysso.limit = KEYSO_LIMIT; }
   delete meta.demo;

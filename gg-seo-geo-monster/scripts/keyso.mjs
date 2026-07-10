@@ -44,20 +44,17 @@ const REPORTS = {
     // сводка домена: видимость, число запросов, трафик
     query: (domain) => ({ base: DB, domain }),
   },
-  organic_keywords: {
-    path: process.env.KEYSO_EP_ORGANIC || "/report/simple/organic/keywords",
-    // ключи, по которым домен в топе
-    query: (domain) => ({ base: DB, domain, page: 1, per_page: PER }),
-  },
+  // ключи домена доступны только через групповой отчёт (POST /report/group -> rid ->
+  // /report/group/organic/keywords/<rid>) - это делает harvest.mjs; здесь только simple-отчёты
   competitors: {
-    path: process.env.KEYSO_EP_COMPETITORS || "/report/simple/organic/competitors",
-    // конкуренты домена по органике
-    query: (domain) => ({ base: DB, domain, page: 1, per_page: PER }),
+    path: process.env.KEYSO_EP_COMPETITORS || "/report/simple/organic/concurents",
+    // конкуренты домена по органике ("concurents" - опечатка в самом API keys.so)
+    query: (domain) => ({ base: DB, domain, top: 10 }),
   },
-  ads_keywords: {
-    path: process.env.KEYSO_EP_ADS || "/report/simple/context/keywords",
-    // ключи, по которым домен крутит рекламу (Директ/РСЯ)
-    query: (domain) => ({ base: DB, domain, page: 1, per_page: PER }),
+  ad_history: {
+    path: process.env.KEYSO_EP_ADS || "/report/simple/domain_ad_history",
+    // история рекламных размещений домена
+    query: (domain) => ({ base: DB, domain }),
   },
 };
 
@@ -114,7 +111,7 @@ async function main() {
   const index = { updated: nowIso(), source: "keys.so", db: DB, targets: [] };
 
   for (const t of targets) {
-    const reports = t.reports?.length ? t.reports : ["dashboard", "organic_keywords", "competitors"];
+    const reports = t.reports?.length ? t.reports : ["dashboard", "competitors"];
     const summary = { domain: t.domain, brand: t.brand || null, role: t.role || null, reports: {} };
     for (const rep of reports) {
       const spec = REPORTS[rep];

@@ -3,15 +3,15 @@
   "keysso": {
    "status": "genglass: ok · glass-memory: ok",
    "date": "2026-07-10",
-   "requests_used": 20,
+   "requests_used": 30,
    "limit": 3000
   },
   "metrika": {
-   "status": "genglass: cached-24h · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
+   "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
    "date": "2026-07-10"
   },
   "direct": {
-   "status": "genglass: cached-24h · glass-memory: cached-24h",
+   "status": "genglass: ok · glass-memory: ok",
    "date": "2026-07-10"
   }
  },

@@ -30,8 +30,9 @@ G=$("$CH" --headless=new --disable-gpu --no-sandbox --virtual-time-budget=4000 -
 echo "$G" | grep -q 'id="gateForm"' && echo "$G" | grep -q '<div class="app" id="app" hidden' \
   && echo "OK   gate закрыт без пароля" || { echo "FAIL gate"; FAIL=1; }
 
-# em dash в клиентских файлах
-if grep -l "$(printf '—')" app.js forge.js app.css index.html 2>/dev/null; then
+# em dash (U+2014, байты e2 80 94) в клиентских файлах - игла задана хексом,
+# чтобы сам детектор не содержал запрещённый символ
+if grep -l "$(printf '\xe2\x80\x94')" app.js forge.js app.css index.html 2>/dev/null; then
   echo "FAIL em dash найден"; FAIL=1
 else echo "OK   em dash 0"; fi
 

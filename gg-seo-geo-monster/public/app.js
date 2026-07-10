@@ -332,8 +332,10 @@ V.geo = function (root) {
   const CHECK = window.Forge.GEO_CHECKLIST;
   const journal = () => ls.get(jKey, []);
   const isGM = state.proj.id === "glass-memory";
+  const aiCnt = state.data.keysso && state.data.keysso.ai_answers;
   root.innerHTML = `
     ${isGM ? '<div class="card mb" style="border-color:var(--gold)"><h3 style="color:var(--gold)">Приоритетная ниша GEO</h3><p class="dim">Ниша GLASS-MEMORY в AI-поиске не занята [ГИПОТЕЗА: geo-intel-intake, проверяется этим baseline-замером]. Обкатываем GEO-механику здесь, затем переносим на GENGLASS.</p></div>' : ""}
+    ${aiCnt != null ? `<div class="card mb"><h3>Упоминания в ИИ-ответах Алисы ${badge(state.demo.keysso)} <span class="dim">по данным keys.so (aiAnswersCnt)</span></h3><div class="kpi"><div class="v gold">${fmt(aiCnt)}</div></div></div>` : ""}
     <div class="grid g2 mb">
       <div class="card"><h3>Журнал проверок AI-видимости <span class="dim">ручной замер, канон KPI: knowledge/geo-intel-intake.md</span></h3>
         <form class="stack" id="geoForm">
@@ -471,7 +473,7 @@ V.admin = function (root) {
     <div class="card mb"><h3>Источники данных</h3>
       <div class="tbl-wrap"><table><thead><tr><th>Источник</th><th>Статус</th><th>Расход лимита</th></tr></thead><tbody>
         ${["keysso", "metrika", "direct"].map((s) => {
-          const st = src[s] || {}; const live = st.status && st.status !== "demo";
+          const st = src[s] || {}; const live = /(^|: )(ok|cached)/.test(String(st.status || ""));
           return `<tr><td>${s}</td><td>${live ? '<span class="badge-live">LIVE</span>' : '<span class="badge-demo">DEMO</span>'} <span class="dim">${esc(st.status || "нет данных")}</span></td>
           <td class="num">${st.requests_used != null ? `${fmt(st.requests_used)} / ${fmt(st.limit)}` : "-"}</td></tr>`;
         }).join("")}

@@ -2,8 +2,8 @@
   "_note": "Домены для анализа keys.so. Ведёт Семён. role: own | competitor. reports по умолчанию: dashboard, organic_keywords, competitors. Помним суточный лимит тарифа - 3000 строк.",
   "updated": "2026-07-10",
   "targets": [
-    { "domain": "genglass.ru", "brand": "GENGLASS", "role": "own", "reports": ["dashboard", "organic_keywords", "competitors", "ads_keywords"] },
-    { "domain": "ЗАПОЛНИТЬ-домен-Бельведер", "brand": null, "role": "competitor", "reports": ["dashboard", "organic_keywords"] },
-    { "domain": "ЗАПОЛНИТЬ-домен-MR.DOORS", "brand": null, "role": "competitor", "reports": ["dashboard", "organic_keywords"] }
+    { "domain": "genglass.ru", "brand": "GENGLASS", "role": "own", "reports": ["dashboard", "competitors", "ad_history"] },
+    { "domain": "ЗАПОЛНИТЬ-домен-Бельведер", "brand": null, "role": "competitor", "reports": ["dashboard", "competitors"] },
+    { "domain": "ЗАПОЛНИТЬ-домен-MR.DOORS", "brand": null, "role": "competitor", "reports": ["dashboard", "competitors"] }
   ]
 }

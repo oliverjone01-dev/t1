@@ -17,10 +17,13 @@
       `docs/WORDSTAT_API.md`). Собирает семантическое ядро на проекты.
 - [ ] `data/clusters.json` - карта кластеров pillar/satellite: частота из Wordstat
       (`[ДАННЫЕ]` с датой) + интент из единой Google-таблицы контент-плана
-- [ ] `data/citations.json` - baseline замер: цитирует ли ChatGPT/Perplexity/YandexGPT
-      бренд по 20 целевым запросам (владелец: semyon + data, каждая цифра с датой)
+- [ ] `data/citations.json` - baseline замер AI-видимости по банку из 50+ промптов
+      (6 типов), метрики Prompt Win Rate / Share of Model / Coverage / Answer Share
+      (определения - `knowledge/geo-intel-intake.md`). Владелец: semyon + data, каждая цифра с датой
 - [ ] Хаб читает JSON, а не хардкод в HTML
 - [ ] feniks Step 12.5 на baseline-замер (нельзя показывать непроверенные цифры)
+- [ ] Разведка рунета `knowledge/geo-intel-runet-2026.html` - оформить страницей хаба
+      (раздел «Разведка GEO») и источником определений KPI для AI Citation Tracker
 
 ### Доступы Google, которые нужны от Ивана (Этап 1)
 

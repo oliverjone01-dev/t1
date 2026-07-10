@@ -27,7 +27,7 @@
 |---|---|---|
 | **Content Forge** | есть промпт, нет UI | Кластер ключей → статья (6 блоков: META, текст, промпты картинок, Schema.org, GEO-чеклист, перелинковка). Источник: `../SEO_PIPELINE_content_forge_prompt.md` |
 | **GEO/AEO Checklist Engine** | скилл готов | 7-точечная проверка цитируемости в ChatGPT / Perplexity / YandexGPT / Gemini. Источник: скилл `geo-aeo` |
-| **AI Citation Tracker** | план | Замер: цитирует ли AI-поиск бренд по целевым запросам. Baseline → динамика |
+| **AI Citation Tracker** | план | Замер AI-видимости по KPI: Prompt Win Rate, Share of Model, Coverage, Answer Share, AI Visibility Score (определения - `knowledge/geo-intel-intake.md`). Baseline → динамика |
 | **Schema.org Generator** | план | Article + FAQPage + Product + BreadcrumbList JSON-LD под вставку в `<head>` |
 | **Keyword Clusters** | план | Карта кластеров pillar/satellite с перелинковкой |
 | **Rank Monitor** | план | ТОП Яндекс / Google по кластерам, без розовых очков (реальные позиции) |

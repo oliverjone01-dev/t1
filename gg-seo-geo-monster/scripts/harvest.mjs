@@ -198,6 +198,11 @@ async function harvestKeyso(p) {
     top10, top50: dash.it50 ?? keywords.filter((k) => k.pos && k.pos <= 50).length,
     top_pages: (dash.pages || []).slice(0, 10).map((r) => ({ url: r.url, keywords_top50: r.it50 })),
     ad_keywords: (dash.adkeys || []).slice(0, 30).map(rowToKeyword).filter((k) => k.phrase),
+    // рекламные конкуренты: кто платит за те же запросы (adconcs из сводки)
+    ad_competitors: (dash.adconcs || []).slice(0, 10).map((r) => ({
+      domain: String(r.name || "").toLowerCase(), common_ad_keywords: r.cnt || 0,
+      ads_count: r.adscnt || 0, ad_keywords_count: r.adkeyscnt || 0, visibility: r.vis || 0
+    })).filter((c) => c.domain),
     history, keywords, competitors,
     deltas: { dropped_top10: dropped.slice(0, 20), entered_top10: entered.slice(0, 20), competitor_up: compUp }
   });

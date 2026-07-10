@@ -177,6 +177,51 @@ function signals() {
 /* ---------- views ---------- */
 const V = {};
 
+/* Выводы для собственника: правила поверх живых данных, простой язык */
+function ownerInsights() {
+  const k = state.data.keysso || {}, m = state.data.metrika || {}, d = state.data.direct || {};
+  const out = [];
+  if (k.top50 && k.top10 != null) {
+    const pct = Math.round(k.top10 / k.top50 * 100);
+    if (pct < 30) out.push({ cls: "warn", t: `Нас видно в поиске по ${fmt(k.top50)} запросам, но на первой странице - только ${fmt(k.top10)} (${pct}%)`, a: "Дожимаем существующие страницы: это дешевле, чем строить новые с нуля." });
+  }
+  const dq = (d.search_queries || []);
+  if (dq.length) {
+    const phrases = semanticsPhrases();
+    const havePos = phrases.some((p) => typeof p.pos === "number");
+    if (havePos) {
+      // честный счёт возможен только когда в семантике есть реальные позиции
+      const unpaid = dq.filter((q) => {
+        const qt = tokens(q.query);
+        return !phrases.some((p) => { let c = 0; for (const w of tokens(p.phrase)) if (qt.has(w)) c++; return c >= 2 && typeof p.pos === "number" && p.pos <= 10; });
+      });
+      if (unpaid.length >= dq.length * 0.5) {
+        const cost = unpaid.reduce((a, q) => a + (q.cost || 0), 0);
+        out.push({ cls: "bad", t: `Платим за рекламу по ${unpaid.length} из ${dq.length} видимых запросов, где бесплатной выдачи у нас нет (${rub(cost)} только по видимой части)`, a: "Строим страницы под эти запросы: через 2-3 месяца часть рекламных денег можно экономить. Проверяется пилотом, не обещанием." });
+      }
+    } else if (d.spend_30d) {
+      out.push({ cls: "bad", t: `Реклама тратит ${rub(d.spend_30d)} за 30 дней, и по видимым рекламным запросам бесплатная выдача не обнаружена`, a: "Точная сверка - выгрузкой позиций (задача в плане). Строим страницы под рекламные запросы, экономию проверяем пилотом." });
+    }
+  }
+  const mp = new Map((m.top_pages || []).map((p) => [p.url.replace(/\/$/, ""), p.visits]));
+  const gaps = (k.top_pages || []).filter((p) => {
+    const visits = mp.get((p.url || "").replace(/\/$/, "")) || 0;
+    return (p.keywords_top50 || 0) >= 100 && visits < 30;
+  });
+  if (gaps.length) {
+    const keysSum = gaps.reduce((a, p) => a + (p.keywords_top50 || 0), 0);
+    out.push({ cls: "warn", t: `${gaps.length === 1 ? "Страница" : gaps.length + " страницы"} (${gaps.map((p) => p.url).join(", ")}) держ${gaps.length === 1 ? "ит" : "ат"} ${fmt(keysSum)} запросов в поиске, но почти не привод${gaps.length === 1 ? "ит" : "ят"} посетителей`, a: "Сначала проверяем реальные позиции, потом чиним заголовки и описания - это самая быстрая победа." });
+  }
+  if (k.ai_answers != null) out.push({ cls: "ok", t: `Нейросеть Алиса уже упоминает нас в своих ответах: ${fmt(k.ai_answers)} раз`, a: "Это бесплатные рекомендации. Усиливаем страницы по нашему GEO-чеклисту, чтобы упоминаний стало больше." });
+  const brand = (state.proj.brand || "").toLowerCase();
+  const tp = m.top_phrases || [];
+  if (tp.length >= 5) {
+    const b = tp.filter((p) => p.phrase.toLowerCase().includes(brand) || /генгласс|дженгласс/.test(p.phrase.toLowerCase())).length;
+    if (b / tp.length > 0.3) out.push({ cls: "warn", t: `Заметная часть поисковых приходов - люди, которые уже знают нас по имени`, a: "Новых клиентов поиск приводит мало. Растим страницы под запросы «без имени» - перегородки, зеркала, столы." });
+  }
+  return out.slice(0, 5);
+}
+
 V.dash = function (root) {
   const k = state.data.keysso || {}, m = state.data.metrika || {}, d = state.data.direct || {};
   const sv = (m.visits_30d || []).reduce((a, x) => a + (x.search_visits || 0), 0);
@@ -184,12 +229,21 @@ V.dash = function (root) {
   const kpi = (label, val, demo, sub) => `
     <div class="card kpi"><h3>${label} ${badge(demo)}</h3><div class="v gold">${val}</div>${sub ? `<div class="d">${sub}</div>` : ""}</div>`;
   const visDelta = hist.length > 7 ? ((hist[hist.length - 1].visibility - hist[hist.length - 8].visibility) / hist[hist.length - 8].visibility * 100) : null;
+  const ins = ownerInsights();
+  const strat = state.proj.strategy;
   root.innerHTML = `
+    ${ins.length ? `<div class="card mb"><h3>Выводы: что это значит и что делаем</h3>
+      ${ins.map((i) => `<div class="signal"><span class="ico tag ${i.cls}">→</span><span><b>${esc(i.t)}.</b> <span class="muted">${esc(i.a)}</span></span></div>`).join("")}
+      <p class="dim mt">Выводы построены автоматически из текущих данных. Полный разбор - <a href="report-genglass.html" style="color:var(--gold)">отчёт аналитика</a>.</p></div>` : ""}
+    ${strat ? `<div class="grid g2 mb">
+      <div class="card" style="border-left:3px solid var(--gold)"><h3 style="color:var(--gold)">Дорога 1 · ${esc(strat.priority.title)}</h3><p class="muted" style="font-size:13.5px">${esc(strat.priority.note)}</p></div>
+      <div class="card" style="border-left:3px solid var(--ok)"><h3 style="color:var(--ok)">Дорога 2 · ${esc(strat.strength.title)}</h3><p class="muted" style="font-size:13.5px">${esc(strat.strength.note)}</p></div>
+    </div>` : ""}
     <div class="grid g4 mb">
-      ${kpi("Видимость Keys.so", fmt(k.visibility), state.demo.keysso, visDelta != null ? `за 7 дней: <span class="${visDelta >= 0 ? "up" : "down"}">${visDelta >= 0 ? "+" : ""}${fmt1(visDelta)}%</span>` : "")}
-      ${kpi("Ключей в топ-10", fmt(k.top10), state.demo.keysso, `топ-3: ${fmt(k.top3)} · всего: ${fmt(k.keywords_total)}`)}
-      ${kpi("Поисковый трафик 30д", fmt(sv), state.demo.metrika, `отказы ${fmt1(m.bounce_rate)}% · глубина ${fmt1(m.depth)}`)}
-      ${kpi("Директ 30д", rub(d.spend_30d), state.demo.direct, `клики ${fmt(d.clicks)} · CTR ${fmt1(d.ctr)}% · CPC ${rub(d.avg_cpc)}`)}
+      ${kpi("Балл видимости в поиске (keys.so)", fmt(k.visibility), state.demo.keysso, visDelta != null ? `за 7 дней: <span class="${visDelta >= 0 ? "up" : "down"}">${visDelta >= 0 ? "+" : ""}${fmt1(visDelta)}%</span>` : "чем выше, тем чаще нас видят")}
+      ${kpi("Запросов на первой странице", fmt(k.top10), state.demo.keysso, `в тройке лидеров: ${fmt(k.top3)} · всего нас видно: ${fmt(k.keywords_total)}`)}
+      ${kpi("Посетители из поиска, 30 дней", fmt(sv), state.demo.metrika, `уходят сразу: ${fmt1(m.bounce_rate)}% · смотрят страниц: ${fmt1(m.depth)}`)}
+      ${kpi("Расход на рекламу (Директ), 30 дней", rub(d.spend_30d), state.demo.direct, `переходов ${fmt(d.clicks)} · цена перехода ${rub(d.avg_cpc)}`)}
     </div>
     <div class="grid g2 mb">
       <div class="card"><h3>Динамика видимости и топ-10 ${badge(state.demo.keysso)}</h3>
@@ -207,7 +261,7 @@ V.dash = function (root) {
       <div class="card"><h3>Сигналы</h3>
         ${signals().map((s) => `<div class="signal"><span class="ico tag ${s.cls}">${s.ico}</span><span>${esc(s.text)}</span></div>`).join("")}
       </div>
-      <div class="card"><h3>Конкуренты по видимости ${badge(state.demo.keysso)}</h3>
+      <div class="card"><h3>Конкуренты в поиске (по общим запросам) ${badge(state.demo.keysso)}</h3>
         <div class="tbl-wrap"><table><thead><tr><th>Домен</th><th class="num">Видимость</th><th class="num">Общие ключи</th><th class="num">Δ 7д</th></tr></thead><tbody>
         ${(k.competitors || []).map((c) => `<tr><td>${esc(c.domain)}</td><td class="num">${fmt(c.visibility)}</td><td class="num">${fmt(c.common_keywords)}</td><td class="num ${c.delta_visibility >= 0 ? "pos-good" : "pos-far"}">${c.delta_visibility >= 0 ? "+" : ""}${fmt1(c.delta_visibility)}%</td></tr>`).join("") || '<tr><td colspan="4" class="dim">Нет данных</td></tr>'}
         </tbody></table></div>

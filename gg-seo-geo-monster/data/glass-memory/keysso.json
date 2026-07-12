@@ -1,8 +1,8 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-07-11",
+ "measured": "2026-07-12",
  "visibility": 2,
- "ai_answers": 18,
+ "ai_answers": 6,
  "keywords_total": 625,
  "top1": 2,
  "top3": 5,
@@ -113,6 +113,11 @@
   },
   {
    "date": "2026-07-11",
+   "visibility": 2,
+   "top10": 37
+  },
+  {
+   "date": "2026-07-12",
    "visibility": 2,
    "top10": 37
   }

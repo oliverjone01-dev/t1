@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GG-MarkPlan 2026 · GENGROUP</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="logo">GENGROUP<b>MARKPLAN 2026</b></div>
+      <button class="nav-btn active" data-view="overview">Обзор</button>
+      <button class="nav-btn" data-view="year">План года</button>
+      <button class="nav-btn" data-view="quarters">Кварталы</button>
+      <button class="nav-btn" data-view="channels">Каналы</button>
+      <button class="nav-btn" data-view="budget">Бюджет и KPI</button>
+      <div class="foot">
+        <a href="../">← Аналитика GENGROUP</a>
+        <a href="../seo/">SEO/GEO Монстр</a>
+        <span class="updated" id="ver">v0.1</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 id="view-title">Обзор</h1>
+          <div class="sub" id="view-sub">Единый маркетинговый план 2026 по 5 брендам</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="updated" id="updated"></div>
+      </div>
+
+      <div class="banner" id="banner" hidden>
+        <span class="ic">⚠</span>
+        <span id="banner-text"></span>
+      </div>
+
+      <div id="view"></div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

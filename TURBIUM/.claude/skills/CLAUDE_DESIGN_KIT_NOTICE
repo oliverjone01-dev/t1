@@ -1,0 +1,18 @@
+NOTICE — лицензии внутри Claude Design Kit
+
+Кит установлен из github.com/futurepitcher/claude-design-kit @ 139e3155.
+Внутри смешанное лицензирование:
+
+1) Ядро кита и большинство скиллов: MIT, (c) 2026 Christopher Pitcher.
+   Полный текст: CLAUDE_DESIGN_KIT_LICENSE (в этой же папке).
+
+2) Скилл frontend-design (`frontend-design/SKILL.md` и `frontend-design/reference/`):
+   Apache License 2.0, на основе Anthropic frontend-design skill.
+   - Файл несёт собственный заголовок `license: Apache 2.0`.
+   - Согласно Apache-2.0 §4, фиксируем: файлы переупакованы для размещения
+     в этом репозитории как Claude Code skill (структура `<name>/SKILL.md`,
+     добавлен каталог `reference/`). Содержательных изменений в текст руководства
+     не вносилось.
+
+Оба типа лицензий (MIT и Apache-2.0) разрешают внутреннее использование и модификацию.
+Происхождение и пиннинг коммита также зафиксированы в CLAUDE_DESIGN_KIT_SOURCE.md.

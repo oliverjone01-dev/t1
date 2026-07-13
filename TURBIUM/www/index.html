@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TURBIUM · Заявки, а не отчёты. AI-маркетинг для малого бизнеса</title>
+<meta name="description" content="Настраиваем связки, которые приводят клиентов, и показываем на дашборде цену каждой заявки. Начните с бесплатного AI-аудита в Telegram, 15 минут.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<!-- HEADER -->
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="index.html"><span class="tb-mark">Tb<small>65</small></span> TURBIUM</a>
+    <button class="burger" id="burger" aria-label="Меню" aria-expanded="false">≡</button>
+    <nav class="nav-links" id="navlinks">
+      <a href="uslugi.html">Услуги</a>
+      <a href="podhod.html">Как работаем</a>
+      <a href="o-nas.html">О нас</a>
+      <a href="blog.html">Блог</a>
+      <a href="kontakty.html">Контакты</a>
+      <a class="btn btn-primary nav-cta" href="#audit">AI-аудит</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow rv">Независимое AI-агентство для малого бизнеса</div>
+      <h1 class="rv d1">Заявки с рекламы,<br>а не <span class="hl">красивые отчёты</span></h1>
+      <p class="lead rv d2">Настраиваем связки, которые приводят клиентов, и показываем на дашборде, <b>сколько денег принёс каждый рубль</b>. Начните с бесплатного AI-аудита в Telegram, займёт 15 минут.</p>
+      <div class="hero-cta rv d3">
+        <a class="btn btn-primary btn-lg" href="#audit">Получить бесплатный AI-аудит <span class="arr">→</span></a>
+        <a class="btn btn-ghost btn-lg" href="uslugi.html">Что мы делаем</a>
+      </div>
+      <div class="hero-note rv d3"><span class="dot"></span> 15 минут в Telegram, без созвонов и без карты</div>
+      <div class="chips rv d4">
+        <span class="chip">от <b>бесплатного аудита</b></span>
+        <span class="chip">без годовых <b>контрактов</b></span>
+        <span class="chip">цена заявки <b>видна с 1 дня</b></span>
+      </div>
+    </div>
+    <div class="tb-stage rv d2">
+      <figure class="gfx" data-ratio="1:1" data-render="hero-tb-tile" id="tbTile" style="transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease">
+        <span class="gfx-badge">рендер</span>
+        <div class="gfx-in">
+          <div class="gfx-key">hero-tb-tile · 1:1</div>
+          <div class="gfx-desc">Кристалл-плитка Tb: амбер-ядро в центре, холодный teal-grid по краям</div>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PAIN -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Знакомо?</div>
+      <h2>Деньги на рекламу уходят,<br>а откуда клиенты, непонятно</h2>
+      <p class="lead muted">Малый бизнес в 2026 режет расходы и хочет понятный результат. Вот что чаще всего болит у собственника до того, как он приходит к нам.</p>
+    </div>
+    <div class="pain-list rv d1">
+      <div class="pain-item"><span class="x">✕</span><p>Заявки где-то теряются: клиент написал и не дождался ответа.</p></div>
+      <div class="pain-item"><span class="x">✕</span><p>Реклама крутится, но вы не знаете, какой рубль сработал, а какой сгорел.</p></div>
+      <div class="pain-item"><span class="x">✕</span><p>Уже платили агентствам и получали красивые отчёты вместо продаж.</p></div>
+      <div class="pain-item"><span class="x">✕</span><p>Клиенты покупают один раз и пропадают, повторных нет.</p></div>
+    </div>
+    <figure class="gfx rv d2 mt-l" data-ratio="16:9" data-render="pain-heat-strip">
+      <span class="gfx-badge">рендер</span>
+      <div class="gfx-in"><div class="gfx-key">pain-heat-strip · 16:9</div>
+      <div class="gfx-desc">Абстрактная амбер-тепловая карта хаоса в маркетинге малого бизнеса</div></div>
+    </figure>
+    <div class="stats rv d2 mt-l">
+      <div class="stat"><div class="v nums" data-count="78" data-suf="%">78%</div><div class="k">малого бизнеса работают без маркетинговой стратегии, по наитию</div><div class="s">Источник: НАФИ, 2024</div></div>
+      <div class="stat"><div class="v nums">30-50<small>%</small></div><div class="k">входящих заявок теряется, если их некому быстро обработать</div><div class="s">Источник: KT-Team, 2024</div></div>
+      <div class="stat"><div class="v nums" data-count="24.5" data-dec="1" data-suf="%">24.5%</div><div class="k">селлеров ушли с маркетплейсов за 2025 год</div><div class="s">Источник: Sellmonitor, 2025</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ДЛЯ КОГО -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Для кого</div>
+      <h2>Скорее всего, вы<br>один из этих людей</h2>
+      <p class="lead muted">Мы работаем с собственниками малого бизнеса. У каждого своя ситуация, но боль общая: клиентов хочется больше, а куда уходят деньги, непонятно.</p>
+    </div>
+    <div class="grid g3 rv d1">
+      <div class="card lift seg-card">
+        <h3>Тонете в текучке</h3>
+        <p class="trig">Заявки где-то теряются, а руки не доходят выстроить систему.</p>
+        <p class="out">→ Настройку берём на себя. От вас 15 минут и доступы.</p>
+      </div>
+      <div class="card lift seg-card">
+        <h3>Обожглись на подрядчиках</h3>
+        <p class="trig">Уже платили за рекламу и получали только красивые отчёты.</p>
+        <p class="out">→ Цену каждой заявки видите на дашборде с первого дня.</p>
+      </div>
+      <div class="card lift seg-card">
+        <h3>Только стартовали</h3>
+        <p class="trig">Запустились недавно и боитесь слить первый бюджет впустую.</p>
+        <p class="out">→ Начинаем с бесплатного аудита и одной связки на малом бюджете.</p>
+      </div>
+      <div class="card lift seg-card">
+        <h3>Упёрлись в потолок</h3>
+        <p class="trig">Поток клиентов есть, но часть лидов утекает, и вы не видите куда.</p>
+        <p class="out">→ Дашборд показывает, на каком шаге воронки вы теряете клиентов.</p>
+      </div>
+      <div class="card lift seg-card">
+        <h3>Ушли с маркетплейса</h3>
+        <p class="trig">Устали от комиссий и хотите приводить клиентов в свои каналы.</p>
+        <p class="out">→ Строим поток в ваши каналы: квиз, база, карты и отзывы.</p>
+      </div>
+      <div class="card seg-card" style="display:flex;flex-direction:column;justify-content:center;border-style:dashed">
+        <p class="muted" style="margin:0">Не узнали себя? Пройдите бесплатный аудит, он подскажет, где именно у вас утекают деньги.</p>
+        <a class="rd mint mt-m" href="#audit" style="font-size:14px">Пройти аудит →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ЧТО ДЕЛАЕМ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Что мы делаем</div>
+      <h2>Готовые связки, которые<br>приводят клиентов</h2>
+      <p class="lead muted">Не абстрактный маркетинг, а собранные под ключ механизмы привлечения. Каждый решает одну задачу и понятен без терминов.</p>
+    </div>
+    <div class="svc rv d1">
+      <div class="card lift svc-item">
+        <h3>Квиз-ловушка</h3>
+        <p class="p">Короткий тест вместо скучной формы: вовлекает человека из рекламы и превращает в заявку. Заявка сразу падает вам, а не теряется.</p>
+        <div class="meta"><span class="price">от 24 990 ₽</span><span class="tag">услуги, запись, замер</span></div>
+      </div>
+      <div class="card lift svc-item">
+        <h3>Магнит и прогрев</h3>
+        <p class="p">Даём человеку пользу бесплатно, а дальше цепочка сообщений мягко доводит его до покупки. Без звонков в лоб.</p>
+        <div class="meta"><span class="price">от 24 990 ₽</span><span class="tag">эксперты, услуги, B2B</span></div>
+      </div>
+      <div class="card lift svc-item">
+        <h3>Карты и отзывы</h3>
+        <p class="p">Наводим порядок в Яндекс Картах и 2ГИС и запускаем сбор отзывов. Вас находят рядом и выбирают. Трафик, который не надо докупать каждый раз.</p>
+        <div class="meta"><span class="price">от 19 990 ₽</span><span class="tag">локальный бизнес</span></div>
+      </div>
+      <div class="card lift svc-item">
+        <h3>Реанимация базы</h3>
+        <p class="p">Поднимаем ваших старых клиентов и зависшие заявки и возвращаем часть в покупку. Самый дешёвый источник выручки, он уже у вас в базе.</p>
+        <div class="meta"><span class="price">от 19 990 ₽</span><span class="tag">у кого есть база</span></div>
+      </div>
+    </div>
+    <figure class="gfx rv d2 mt-l" data-ratio="3:2" data-render="services-rail-node">
+      <span class="gfx-badge">рендер</span>
+      <div class="gfx-in"><div class="gfx-key">services-rail-node · 3:2</div>
+      <div class="gfx-desc">Иконки-услуги как грани кристалла, одна выделена мятной подсветкой</div></div>
+    </figure>
+    <div class="center mt-l rv d2">
+      <a class="btn btn-ghost" href="uslugi.html">Все услуги и цены <span class="arr">→</span></a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- КАК РАБОТАЕМ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Как мы работаем</div>
+      <h2>Четыре шага от заявки<br>до потока клиентов</h2>
+    </div>
+    <div class="grid g2" style="align-items:start">
+      <div class="steps rv d1">
+        <div class="step"><div class="sn">1</div><div><h3>Бесплатный AI-аудит</h3><p>15 минут в Telegram. Показываем, где именно вы теряете заявки и деньги. Ничего не продаём, вы сами решаете, что делать дальше.</p></div></div>
+        <div class="step"><div class="sn">2</div><div><h3>Собираем первую связку</h3><p>Берём одну задачу и запускаем её на небольшом бюджете. Проверяем на деле, что работает, прежде чем вкладывать больше.</p></div></div>
+        <div class="step"><div class="sn">3</div><div><h3>Подключаем дашборд Пульс</h3><p>Вы видите три цифры на языке денег: сколько заявок, сколько стоила каждая, сколько принесла. Без терминов и без веры на слово.</p></div></div>
+        <div class="step"><div class="sn">4</div><div><h3>Масштабируем то, что сработало</h3><p>Оставляем работающее, отключаем лишнее. Не устраивают цифры, останавливаемся. Связки и доступы остаются у вас.</p></div></div>
+      </div>
+      <figure class="gfx rv d2" data-ratio="4:5" data-render="process-timeline-vertical">
+        <span class="gfx-badge">рендер</span>
+        <div class="gfx-in"><div class="gfx-key">process-timeline-vertical · 4:5</div>
+        <div class="gfx-desc">Вертикальная лента шагов, градиент amber→white→mint</div></div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ДОВЕРИЕ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Почему нам можно верить</div>
+      <h2>Мы молодые. И это<br>работает на вас</h2>
+      <p class="lead muted">Громких кейсов с именами у нас пока нет, и мы честно об этом говорим. Поэтому вы заходите на пилотных ценах и без обязательств: рискуете меньше, а внимания к вашему проекту получаете больше, чем у загруженного агентства.</p>
+    </div>
+    <div class="trust rv d1">
+      <div class="card lift">
+        <h3>Всё в цифрах, а не на словах</h3>
+        <p>Цену заявки и всю воронку вы видите на дашборде с первого дня. Не нравятся цифры, останавливаемся. Никаких годовых контрактов.</p>
+      </div>
+      <div class="card lift">
+        <h3>Первый шаг бесплатный, первый бюджет маленький</h3>
+        <p>Начинаете с аудита за 0 ₽ и одной связки на небольшом бюджете. Сначала проверяем, потом масштабируем. Вы рискуете малым.</p>
+      </div>
+      <div class="card lift">
+        <h3>Каждая цифра с источником</h3>
+        <p>Не можем показать, откуда взяли число, не пишем его. Проверяемость вместо обещаний. Инфоцыганщину мы сами терпеть не можем.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- КЕЙСЫ-ФРЕЙМ (модель) -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Как это выглядит</div>
+      <h2>До и после: наглядно</h2>
+      <p class="lead muted">Реальные кейсы клиентов появятся здесь по мере запуска. Пока показываем на модельном примере, как меняется картина, когда заявки перестают теряться. Это иллюстрация механики, а не обещание конкретных цифр.</p>
+    </div>
+    <figure class="gfx rv d1" data-ratio="3:2" data-render="case-before-after">
+      <span class="gfx-badge">рендер · модель</span>
+      <div class="gfx-in"><div class="gfx-key">case-before-after · 3:2</div>
+      <div class="gfx-desc">Диптих: слева амбер-хаос заявок, справа мятная чистота дашборда. Пометка «модельный пример»</div></div>
+    </figure>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FAQ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div class="eyebrow">Вопросы</div>
+      <h2>Что обычно спрашивают<br>до заявки</h2>
+    </div>
+    <div class="faq rv d1">
+      <details><summary>Сколько это стоит?</summary><div class="a">Цены сейчас пилотные, потому что мы набираем первые кейсы. Ориентиры есть на странице услуг. Точную сумму под вашу задачу назовём после бесплатного аудита, без него это была бы цифра с потолка.</div></details>
+      <details><summary>Вы гарантируете результат?</summary><div class="a">Гарантируем прозрачность: цену заявки и все цифры вы видите на дашборде. Обещать «100 клиентов к пятнице» мы не будем, это признак тех, кто вас уже разочаровал.</div></details>
+      <details><summary>У вас есть кейсы?</summary><div class="a">Честно: громких кейсов с именами пока нет, мы молодая команда. Поэтому и держим пилотные цены и не запираем в контракты. Вы рискуете меньше, чем с раскрученным агентством, а внимания получаете больше.</div></details>
+      <details><summary>Что от меня нужно и сколько времени займёт?</summary><div class="a">15 минут на аудит, доступы к рекламным кабинетам и полчаса на созвон по продукту. Всю настройку делаем сами.</div></details>
+      <details><summary>Это же просто перепроданный ChatGPT?</summary><div class="a">Нет. AI мы используем внутри, чтобы быстрее собирать аудит и связки. Вы платите за собранную систему и нашу работу, а не за доступ к нейросети.</div></details>
+      <details><summary>А если не сработает, я привязан надолго?</summary><div class="a">Нет годовых обязательств. Не устраивают цифры на дашборде, останавливаемся. Связки и доступы остаются у вас.</div></details>
+      <details><summary>Чем вы отличаетесь от агентства, которое меня уже кинуло?</summary><div class="a">Мы показываем цену клиента в реальном времени, а не раз в месяц в презентации. И начинаем с малого бюджета, а не с «дайте триста тысяч на тест».</div></details>
+      <details><summary>Я не разбираюсь в маркетинге, я пойму, что вы делаете?</summary><div class="a">Да. Дашборд Пульс показывает три вещи на языке денег: сколько заявок, сколько стоила каждая, сколько принесла. Без терминов.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ФИНАЛЬНЫЙ CTA + ФОРМА -->
+<section class="lead-block" id="audit">
+  <div class="wrap">
+    <div class="sec-head center rv" style="margin:0 auto 32px">
+      <h2>Хочу заявки, а не отчёты</h2>
+      <p class="lead muted" style="margin:0 auto">Оставьте контакт, и мы пришлём разбор вашего маркетинга. Ничего не продаём на аудите: покажем, где вы теряете заявки, и вы сами решите, работать дальше или нет.</p>
+    </div>
+    <div class="form-tile rv d1" id="formTile">
+      <form id="leadForm">
+        <div class="field">
+          <label for="lf-contact">Телефон или ник в Telegram</label>
+          <input class="first-field" id="lf-contact" name="contact" type="text" placeholder="+7 999 000-00-00 или @username" required>
+        </div>
+        <div class="form-extra">
+          <div class="field">
+            <label for="lf-name">Как к вам обращаться</label>
+            <input id="lf-name" name="name" type="text" placeholder="Имя">
+          </div>
+          <div class="field">
+            <label for="lf-task">Что за бизнес и что болит</label>
+            <textarea id="lf-task" name="task" placeholder="Например: кофейня, заявки теряются, не понимаю какая реклама работает"></textarea>
+          </div>
+        </div>
+        <label class="consent"><input type="checkbox" name="agree" required> Соглашаюсь на обработку персональных данных и с <a href="politika.html" target="_blank" rel="noopener">политикой конфиденциальности</a>.</label>
+        <button class="btn btn-solid btn-lg" type="submit">Разобрать мой бизнес бесплатно <span class="arr">→</span></button>
+        <p class="form-risk">Или сразу в бот: <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>. Аудит за 15 минут, без карты и без созвонов.</p>
+      </form>
+      <div class="form-ok" id="formOk">
+        <div class="big">Готово</div>
+        <p class="muted mt-s">Спасибо. Мы свяжемся в течение рабочего дня. Хотите быстрее, напишите прямо в бот <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div class="foot-brand">
+      <a class="brand" href="index.html"><span class="tb-mark">Tb<small>65</small></span> TURBIUM</a>
+      <p>Независимое AI-агентство для малого бизнеса. Приводим заявки и показываем цену каждой. Элемент вашего роста.</p>
+    </div>
+    <div>
+      <h4>Разделы</h4>
+      <a href="uslugi.html">Услуги и связки</a>
+      <a href="podhod.html">Как мы работаем</a>
+      <a href="o-nas.html">О нас</a>
+      <a href="blog.html">Блог</a>
+    </div>
+    <div>
+      <h4>Связаться</h4>
+      <a href="#audit">Бесплатный AI-аудит</a>
+      <a href="https://t.me/turbium_bot" rel="noopener">Telegram-бот</a>
+      <a href="kontakty.html">Контакты</a>
+    </div>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>© TURBIUM 2026 · Элемент вашего роста</span>
+    <span>Каждую цифру подкрепляем источником</span>
+  </div>
+</footer>
+
+<!-- sticky echo CTA -->
+<div class="echo" id="echo"><a href="#audit"><span class="tb-mark" style="width:26px;height:26px;font-size:12px;border-color:rgba(6,35,27,.3);color:#06231b;box-shadow:none;background:none">Tb</span><span class="txt">Бесплатный аудит</span></a></div>
+
+<script src="app.js"></script>
+</body>
+</html>

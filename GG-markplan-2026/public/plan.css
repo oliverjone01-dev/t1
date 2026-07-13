@@ -9,7 +9,7 @@
   --ink-2:var(--ink2);--ink-3:var(--ink3);--line-2:var(--line2);
   --brass:var(--gold);--brass-2:var(--gold-fill);--brass-ink:var(--gold);
   --forest:var(--keep);--forest-2:var(--keep2);--rust:var(--stop);--sky:var(--gg);
-  --r:18px;--w:1200px;
+  --r:18px;--w:2560px;
   --serif:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
   --sans:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 
@@ -365,3 +365,48 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .bar.hot rect.b-fill{filter:brightness(1.06) drop-shadow(0 2px 7px rgba(0,0,0,.4))}
 .g-tip{background:var(--s1);border-color:var(--line2);box-shadow:var(--shadow-lg)}
 .g-tip .tt-id{color:var(--gold)}
+
+/* ====== приоритеты (sales-director + ФЕНИКС) ====== */
+.band-prio{background:color-mix(in oklab,var(--gold-soft) 40%,transparent)}
+.prio{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;align-items:start}
+.ptier{background:var(--s1);border:1px solid var(--line2);border-radius:16px;padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.ptier::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--gold-fill)}
+.ptier.forest::before{background:var(--keep)}
+.ptier.sky::before{background:var(--gg)}
+.ptier.rust::before{background:var(--stop)}
+.ptier.ink::before{background:var(--ink3)}
+.ptier.ink .ptier-k{background:var(--s2);color:var(--ink2)}
+.ptier-h{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.ptier-k{font-family:var(--serif);font-weight:800;font-size:18px;letter-spacing:.02em;border-radius:12px;padding:7px 12px;background:var(--gold-soft);color:var(--gold)}
+.ptier.forest .ptier-k{background:var(--pub-soft);color:var(--pub)}
+.ptier.sky .ptier-k{background:var(--gg-soft);color:var(--gg-ink)}
+.ptier.rust .ptier-k{background:color-mix(in oklab,var(--stop) 16%,transparent);color:var(--stop)}
+.ptier-n{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.1}
+.ptier-hz{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.ptier-lead{font-size:13px;color:var(--ink2);line-height:1.45;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.pitem{padding:9px 0;border-top:1px solid var(--line)}
+.pitem:first-of-type{border-top:none}
+.pit-t{font-size:13.5px;font-weight:600;line-height:1.35}
+.pit-w{font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.42}
+.pit-w b{color:var(--ink2);font-weight:600}
+.prio-note{margin-top:16px;font-size:13px;color:var(--ink2);border-left:3px solid var(--gold-fill);padding:8px 0 8px 14px;background:linear-gradient(90deg,var(--gold-soft),transparent 70%)}
+
+/* ====== адаптив под широкие экраны (макс. контент 2560px) ====== */
+/* на средних-широких раскладываем плотнее, текст держим читаемым */
+@media(min-width:1400px){
+  .blocks{grid-template-columns:repeat(3,1fr)}
+  .hero-dek{max-width:52ch}
+  .sec-dek{max-width:78ch}
+  .hero-title{font-size:clamp(52px,5vw,104px)}
+}
+@media(min-width:2000px){
+  .blocks{grid-template-columns:repeat(4,1fr)}
+  .band-inner,.hero{padding-left:40px;padding-right:40px}
+  body{font-size:17px}
+  .fork{gap:20px}
+}
+/* очень узкие: график и таблицы уже скроллятся внутри себя, тексты в одну колонку */
+@media(max-width:520px){
+  .mast-nav{display:none}
+  .hero-title{font-size:clamp(30px,9vw,40px)}
+}

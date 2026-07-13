@@ -92,7 +92,7 @@
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
-    var nav = [["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-gantt", "График"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
+    var nav = [["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
     $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("");
     // герой-статы
     $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
@@ -142,6 +142,23 @@
     host.appendChild(tbl); host.appendChild(side);
     var gi = s.gap.indexOf(":");
     $("#verdict-15").innerHTML = "<b>" + esc(s.gap.slice(0, gi)) + ":</b>" + esc(s.gap.slice(gi + 1));
+  }
+
+  /* ---------- приоритеты (sales-director + ФЕНИКС) ---------- */
+  function renderPriorities() {
+    var pr = P.priorities; if (!pr) return;
+    var dek = $("#prio-dek"); if (dek) dek.textContent = pr.dek || "";
+    var host = $("#prio"); if (!host) return;
+    host.innerHTML = pr.tiers.map(function (tr) {
+      var items = tr.items.map(function (it) {
+        return '<div class="pitem"><div class="pit-t">' + esc(it.t) + '</div><div class="pit-w"><b>Зачем:</b> ' + esc(it.why) + "</div></div>";
+      }).join("");
+      return '<div class="ptier ' + (tr.tone || "") + '">' +
+        '<div class="ptier-h"><span class="ptier-k">' + esc(tr.k) + '</span><div><div class="ptier-n">' + esc(tr.name) +
+        '</div><div class="ptier-hz">' + esc(tr.horizon) + '</div></div></div>' +
+        '<div class="ptier-lead">' + esc(tr.lead) + '</div>' + items + "</div>";
+    }).join("");
+    var note = $("#prio-note"); if (note) note.innerHTML = esc(pr.note || "");
   }
 
   /* ---------- блоки плана ---------- */
@@ -194,7 +211,11 @@
     var end = new Date(maxD); end.setDate(end.getDate() + 4);
     var totalDays = diffDays(end, start);
 
-    var Lw = 300, dw = 17, rh = 40, HH = 38, axisH = 56, bh = 22, padB = 42;
+    var Lw = 300, rh = 40, HH = 38, axisH = 56, bh = 22, padB = 42;
+    // ширину дня подбираем под контейнер: на широких экранах график заполняет ширину,
+    // на узких - минимум 17px/день и горизонтальный скролл
+    var avail = (host.clientWidth || wrap.clientWidth || 1000);
+    var dw = Math.max(17, Math.min(46, Math.floor((avail - Lw) / totalDays)));
     var W = Lw + totalDays * dw;
     var toneHex = { brass: "#C9A96A", forest: "#6FC38C", sky: "#87ABC6", rust: "#E08A5F", ink: "#B6AD99" };
     var order = [], yById = {}, rowY = axisH, blockRows = [];
@@ -377,7 +398,7 @@
 
   /* ---------- прокрутка-подсветка навигации + reveal ---------- */
   function wireScroll() {
-    var secs = ["s-obzor", "s-15", "s-gantt", "s-bloki", "s-voronka", "s-resheniya"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var secs = ["s-obzor", "s-15", "s-gantt", "s-prioritety", "s-bloki", "s-voronka", "s-resheniya"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
     var links = {}; document.querySelectorAll(".mast-nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (ents) {
@@ -407,9 +428,10 @@
   }
 
   /* ---------- boot ---------- */
-  function render() { renderChrome(); renderScenarios(); renderGantt(); renderBlocks(); wireScroll(); wireTheme(); wireProg(); }
+  function render() { renderChrome(); renderScenarios(); renderGantt(); renderPriorities(); renderBlocks(); wireScroll(); wireTheme(); wireProg(); }
   document.addEventListener("DOMContentLoaded", function () {
     render();
+    var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(function () { renderGantt(); }, 200); });
     loadLive(function (ok) {
       var badge = $("#src-badge");
       if (ok) { badge.textContent = "живая таблица"; badge.classList.add("live"); renderGantt(); renderBlocks(); }

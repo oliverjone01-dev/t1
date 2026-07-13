@@ -132,7 +132,7 @@
     });
     tbl.innerHTML = '<table class="mtx"><thead><tr><th>Источник, млн ₽ / мес</th><th>худший</th><th>базовый</th><th>лучший</th></tr></thead>' +
       "<tbody>" + body + "</tbody><tfoot>" +
-      "<tr><td>Всего немаркетплейс ГГР</td><td>" + s.total.pess.toFixed(1) + "</td><td>" + s.total.base.toFixed(1) + "</td><td>" + s.total.opt.toFixed(1) + "</td></tr>" +
+      "<tr><td>Всего (пример структуры, не уровень)</td><td>" + s.total.pess.toFixed(1) + "</td><td>" + s.total.base.toFixed(1) + "</td><td>" + s.total.opt.toFixed(1) + "</td></tr>" +
       '<tr class="tgt"><td>Цель Ивана</td><td colspan="3">' + s.target + " млн / мес - между базовым и оптимистичным</td></tr>" +
       "</tfoot></table>";
     var side = el("div", "scen-side");

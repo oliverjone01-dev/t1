@@ -157,8 +157,9 @@
       var body = el("div", "btasks");
       ts.forEach(function (t) {
         var pills = statusPill(t.st) + (t.gate ? '<span class="pill gate">гейт</span>' : "");
-        body.innerHTML += '<div class="trow" id="row-' + esc(t.id) + '"><div><div class="tt">' + esc(t.t) +
-          '</div><div class="tmeta"><span class="who">' + esc(t.who || "-") + "</span>" + pills + "</div></div>" +
+        body.innerHTML += '<div class="trow" id="row-' + esc(t.id) + '"><div><div class="tt">' + esc(t.t) + "</div>" +
+          (t.why ? '<div class="twhy"><b>Зачем:</b> ' + esc(t.why) + "</div>" : "") +
+          '<div class="tmeta">' + (t.author ? '<span class="who">' + esc(t.author) + "</span>" : "") + pills + "</div></div>" +
           '<div class="who tnum">' + esc(t.id) + "</div></div>";
       });
       d.appendChild(body); host.appendChild(d);
@@ -327,10 +328,12 @@
       var stName = { work: "в работе", done: "готово", plan: "план", talk: "к обсуждению" }[o.t.st] || o.t.st;
       var opens = deps.filter(function (d) { return d.a === o.t.id; }).map(function (d) { return d.b; });
       var needs = o.t.dep || [];
-      tip.innerHTML = '<div class="tt-h"><b>' + esc(o.t.t) + '</b><span class="tt-id">' + esc(o.t.id) + (o.t.gate ? " · гейт" : "") + "</span></div>" +
-        '<div class="tt-r"><span>кто</span>' + esc(o.t.who || "-") + "</div>" +
+      tip.innerHTML = '<div class="tt-h"><b>' + esc(o.t.t) + '</b><span class="tt-id">' + esc(o.t.id) + (o.t.bu ? " · " + esc(o.t.bu) : "") + (o.t.gate ? " · гейт" : "") + "</span></div>" +
+        (o.t.author ? '<div class="tt-r"><span>предложил</span>' + esc(o.t.author) + "</div>" : "") +
+        (o.t.who ? '<div class="tt-r"><span>кто</span>' + esc(o.t.who) + "</div>" : "") +
         '<div class="tt-r"><span>срок</span>' + fmt(o.s) + " - " + fmt(new Date(o.e.getTime() - MS)) + " · " + o.t.days + "д</div>" +
         '<div class="tt-r"><span>статус</span>' + esc(stName) + "</div>" +
+        (o.t.why ? '<div class="tt-r"><span>зачем</span>' + esc(o.t.why) + "</div>" : "") +
         (needs.length ? '<div class="tt-r"><span>после</span>' + esc(needs.join(", ")) + "</div>" : "") +
         (opens.length ? '<div class="tt-r"><span>откроет</span>' + esc(opens.join(", ")) + "</div>" : "");
       tip.style.display = "block";

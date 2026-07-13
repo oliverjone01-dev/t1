@@ -384,8 +384,25 @@
     }
   }
 
+  /* ---------- тема (как в SMM) + прогресс-бар ---------- */
+  function wireTheme() {
+    var R = document.documentElement;
+    function cur() { return R.getAttribute("data-theme") || "dark"; }
+    function sync() { document.querySelectorAll(".ttoggle button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-t") === cur()); }); }
+    function set(t) { R.setAttribute("data-theme", t); try { localStorage.setItem("gg.theme", t); } catch (e) {} sync(); }
+    try { var saved = localStorage.getItem("gg.theme"); if (saved === "light" || saved === "dark") R.setAttribute("data-theme", saved); } catch (e) {}
+    if (!R.getAttribute("data-theme")) R.setAttribute("data-theme", "dark");
+    document.addEventListener("click", function (e) { var b = e.target.closest && e.target.closest(".ttoggle button"); if (b) set(b.getAttribute("data-t")); });
+    sync();
+  }
+  function wireProg() {
+    var bar = $("#prog"); if (!bar) return;
+    function upd() { var h = document.documentElement.scrollHeight - window.innerHeight; bar.style.width = (h > 0 ? (window.scrollY / h * 100) : 0) + "%"; }
+    window.addEventListener("scroll", upd, { passive: true }); window.addEventListener("resize", upd); upd();
+  }
+
   /* ---------- boot ---------- */
-  function render() { renderChrome(); renderScenarios(); renderGantt(); renderBlocks(); wireScroll(); }
+  function render() { renderChrome(); renderScenarios(); renderGantt(); renderBlocks(); wireScroll(); wireTheme(); wireProg(); }
   document.addEventListener("DOMContentLoaded", function () {
     render();
     loadLive(function (ok) {

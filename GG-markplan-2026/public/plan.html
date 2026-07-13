@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GENGROUP · План мотивации и приоритетов 2026</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Маркетинговый план GENGROUP: мотивация дизайнеров, воронка прогрева, розница, сроки. Живая привязка к Google-таблице.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="plan.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ХЕДЕР -->
+<header class="masthead">
+  <div class="mast-inner">
+    <div class="mast-brand">
+      <span class="mast-holding">GENGROUP</span>
+      <span class="mast-sub">Маркетинговый штаб</span>
+    </div>
+    <nav class="mast-nav" id="nav"></nav>
+    <div class="mast-meta">
+      <span class="src" id="src-badge" title="Источник данных плана">снимок</span>
+      <span class="mast-date" id="mast-date"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ГЕРОЙ -->
+  <section class="hero" id="s-obzor">
+    <div class="hero-grid">
+      <div class="hero-lead">
+        <p class="eyebrow">План 2026 · мотивация и приоритеты</p>
+        <h1 class="hero-title">Один большой чек <br>важнее десяти мелких.</h1>
+        <p class="hero-dek" id="hero-dek"></p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#s-gantt">Смотреть график</a>
+          <a class="btn btn-ghost" href="#s-15">Прикидка 15 млн</a>
+        </div>
+      </div>
+      <aside class="hero-side">
+        <div class="hero-stat" id="hero-stats"></div>
+      </aside>
+    </div>
+    <div class="hero-note" id="hero-note"></div>
+  </section>
+
+  <!-- РАЗВИЛКА / СТОП-ГЕЙТ -->
+  <section class="band band-gate" id="s-razvilka">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">00</span>
+        <h2 class="sec-title">Развилка, которую решаем первой</h2>
+      </div>
+      <div class="fork" id="fork"></div>
+    </div>
+  </section>
+
+  <!-- 15 МЛН -->
+  <section class="band" id="s-15">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">01</span>
+        <h2 class="sec-title">Прикидка 15 млн - вилками, до факта</h2>
+        <p class="sec-dek">Считал Роман. Все числа - гипотезы с диапазоном, не бюджет. Даже грубая прикидка отвечает на главное.</p>
+      </div>
+      <div class="scen" id="scen"></div>
+      <div class="verdict" id="verdict-15"></div>
+    </div>
+  </section>
+
+  <!-- ГАНТ -->
+  <section class="band band-plan" id="s-gantt">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">02</span>
+        <h2 class="sec-title">График работ - кто, когда, от чего зависит</h2>
+        <p class="sec-dek">Наведите на задачу - подсветятся её зависимости. Данные тянутся из Google-таблицы; меняете таблицу - меняется график.</p>
+      </div>
+      <div class="gantt-legend" id="gantt-legend"></div>
+      <div class="gantt-wrap" id="gantt-wrap">
+        <div class="gantt-scroll" id="gantt-scroll"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- БЛОКИ ПЛАНА -->
+  <section class="band" id="s-bloki">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">03</span>
+        <h2 class="sec-title">План по блокам</h2>
+        <p class="sec-dek">Тот же список задач, что в графике и в таблице - развёрнуто.</p>
+      </div>
+      <div class="blocks" id="blocks"></div>
+    </div>
+  </section>
+
+  <!-- ВОРОНКА ПРОГРЕВА -->
+  <section class="band band-funnel" id="s-voronka">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">04</span>
+        <h2 class="sec-title">Воронка прогрева дизайнера</h2>
+        <p class="sec-dek">От тёплого лида до фаната бренда. Работаем с теми, кто уже нас знает, а не с холодными.</p>
+      </div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+  </section>
+
+  <!-- ОТКРЫТЫЕ РЕШЕНИЯ -->
+  <section class="band band-open" id="s-resheniya">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">05</span>
+        <h2 class="sec-title">Открытые решения - на встречу</h2>
+      </div>
+      <ol class="open-list" id="open-list"></ol>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-col">
+      <span class="foot-h">GENGROUP · MarkPlan 2026</span>
+      <span class="foot-p" id="foot-audit"></span>
+    </div>
+    <div class="foot-col foot-links">
+      <a href="./">← Аналитика</a>
+      <a href="index.html">MarkPlan</a>
+      <a id="sheet-link" target="_blank" rel="noopener">Google-таблица</a>
+    </div>
+    <div class="foot-col">
+      <span class="foot-p">Все цифры - гипотезы Богдана и Ивана от 10.07.2026. Утверждаем на встрече. Прошло гейт ФЕНИКСА (6,8/10, доработано).</span>
+    </div>
+  </div>
+</footer>
+
+<script src="plan-data.js"></script>
+<script src="plan.js"></script>
+</body>
+</html>

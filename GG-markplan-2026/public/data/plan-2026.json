@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "version": "0.1.0",
+    "status": "skeleton",
+    "note": "Каркас разделов, не утверждённый план 2026. Все цифры - [ГИПОТЕЗА]-заглушки для иллюстрации структуры. Не для решений. Наполнение - через триаду ДАТА → ФЕНИКС → МАРКО (Step 12.5).",
+    "owner": "Иван Раюшкин (CMO), домен задачи - marco",
+    "updated": "2026-07-12"
+  },
+  "brands": [
+    { "id": "genglass", "name": "GENGLASS", "priority": 1, "focus": "Стекло в интерьере, loft/modern" },
+    { "id": "valonti", "name": "VALONTI", "priority": 2, "focus": "Премиум-мебель" },
+    { "id": "gentero", "name": "GENTERO", "priority": 3, "focus": "HoReCa / офис" },
+    { "id": "metalgm", "name": "Metal-GM", "priority": 4, "focus": "Металлопроизводство" },
+    { "id": "glassmemory", "name": "GLASS-MEMORY", "priority": 5, "focus": "Ритуальное стекло" }
+  ],
+  "goals": [
+    {
+      "id": "g-holding-1",
+      "scope": "holding",
+      "title": "Единый маркетинговый контур на 5 брендов",
+      "metric": "доля каналов с планом/фактом в одном месте",
+      "target": "100% каналов в MarkPlan",
+      "p9": "ГИПОТЕЗА",
+      "assumptions": ["целевое значение - заглушка каркаса, не согласовано"]
+    },
+    {
+      "id": "g-genglass-1",
+      "scope": "genglass",
+      "title": "Рост органической и AI-видимости GENGLASS",
+      "metric": "AI Visibility Score / позиции по кластерам",
+      "target": "baseline → +X (задаёт semyon)",
+      "p9": "ГИПОТЕЗА",
+      "assumptions": ["baseline ещё не зафиксирован в gg-seo-geo-monster", "цель формулирует semyon"]
+    }
+  ],
+  "quarters": [
+    {
+      "id": "q1",
+      "label": "Q1 2026",
+      "initiatives": [
+        {
+          "id": "q1-i1",
+          "brand": "genglass",
+          "title": "Зафиксировать SEO/GEO baseline и кластеры",
+          "owner": "semyon",
+          "status": "proposed",
+          "channel": "seo-geo",
+          "ice": { "impact": null, "confidence": null, "ease": null, "score": null, "p9": "ГИПОТЕЗА" },
+          "first_signal": { "date": null, "responsible": "semyon", "downside": "нет прироста цитируемости за квартал" }
+        },
+        {
+          "id": "q1-i2",
+          "brand": "genglass",
+          "title": "Аудит кабинета Яндекс.Директ, минус-слова, сверка Директ vs Метрика",
+          "owner": "timur",
+          "status": "proposed",
+          "channel": "direct",
+          "ice": { "impact": null, "confidence": null, "ease": null, "score": null, "p9": "ГИПОТЕЗА" },
+          "first_signal": { "date": null, "responsible": "timur", "downside": "CPO не снижается" }
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "label": "Q2 2026",
+      "initiatives": [
+        {
+          "id": "q2-i1",
+          "brand": "valonti",
+          "title": "Контент-серия под премиум-сегмент (позиционирование vs рынок)",
+          "owner": "marco",
+          "status": "proposed",
+          "channel": "content-smm",
+          "ice": { "impact": null, "confidence": null, "ease": null, "score": null, "p9": "ГИПОТЕЗА" },
+          "first_signal": { "date": null, "responsible": "marco", "downside": "нет отклика ЦА на серию" }
+        }
+      ]
+    },
+    { "id": "q3", "label": "Q3 2026", "initiatives": [] },
+    { "id": "q4", "label": "Q4 2026", "initiatives": [] }
+  ],
+  "channels": [
+    { "id": "direct", "name": "Яндекс.Директ", "owner": "timur" },
+    { "id": "seo-geo", "name": "SEO / AEO / GEO", "owner": "semyon" },
+    { "id": "content-smm", "name": "Контент / SMM", "owner": "marco" },
+    { "id": "mp", "name": "Маркетплейсы (OZON/WB)", "owner": "data" },
+    { "id": "pr", "name": "PR / внешние площадки", "owner": "marco" }
+  ],
+  "budget": {
+    "note": "Заглушка. Реальные бюджеты и KPI - только после гейта ROMAN (unit-эк) + ДАТА (источники). Бюджет >200K на чистой гипотезе блокируется (Hard Rule).",
+    "rows": [
+      { "channel": "direct", "planned": null, "kpi": "CPO", "target": null, "p9": "ГИПОТЕЗА" },
+      { "channel": "seo-geo", "planned": null, "kpi": "AI Visibility Score", "target": null, "p9": "ГИПОТЕЗА" },
+      { "channel": "content-smm", "planned": null, "kpi": "охват / вовлечённость", "target": null, "p9": "ГИПОТЕЗА" }
+    ]
+  }
+}

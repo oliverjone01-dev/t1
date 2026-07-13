@@ -7,6 +7,7 @@ name: Deploy to GitHub Pages
 #   /smm/              - SMM-стратегия, БОЙ (из ветки main)
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
 #   /seo/              - GG-SEO/GEO Монстр, БОЙ (из ветки main, статика public/)
+#   /markplan/         - GG-MarkPlan 2026 (маркетинговый план по 5 брендам), БОЙ (из main, статика public/)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
 #   /rop-preview/      - РОП-дашборд, ПРЕВЬЮ (из ветки ozon-dashboard-dima-fork, изолированная копия Ивана)
 #   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
@@ -29,7 +30,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, yandex-direct/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -87,6 +88,9 @@ jobs:
           mkdir -p _site/seo/data
           cp -r gg-seo-geo-monster/public/. _site/seo/
           if [ -d gg-seo-geo-monster/data ]; then cp -r gg-seo-geo-monster/data/. _site/seo/data/; fi
+          # MarkPlan 2026: маркетинговый план по 5 брендам, статика public/ (данные в public/data/)
+          mkdir -p _site/markplan
+          cp -r GG-markplan-2026/public/. _site/markplan/
           # Пароль хаба: если задан секрет HUB_PASS - подменяем дефолтный хэш в index.html
           if [ -n "${HUB_PASS:-}" ]; then
             HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)

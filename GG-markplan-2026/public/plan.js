@@ -65,15 +65,20 @@
     if (cur.length || row.length) { row.push(cur); rows.push(row); }
     return rows;
   }
-  // маппинг живой таблицы -> формат tasks. Колонки: ID,Блок,Задача,Ответственный,Старт,Дней,Зависит,Статус
+  // маппинг живой таблицы -> формат tasks.
+  // Колонки: ID, Б/Е, Блок, Задача, Обоснование, Автор, Ответственный, Старт, Дней, Зависит, Статус, Гейт
   var STMAP = { "готово": "done", "done": "done", "в работе": "work", "work": "work", "план": "plan", "не начато": "plan", "plan": "plan", "к обсуждению": "talk", "talk": "talk" };
   function mapLive(rows) {
     if (!rows || rows.length < 2) return null;
     var head = rows[0].map(function (s) { return String(s).toLowerCase().trim(); });
     function col() { for (var a = 0; a < arguments.length; a++) { var idx = head.indexOf(arguments[a]); if (idx >= 0) return idx; } return -1; }
-    var ci = { id: col("id", "№", "no"), b: col("блок", "block"), t: col("задача", "task"), who: col("ответственный", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"), dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate") };
+    var ci = { id: col("id", "№", "no"), bu: col("б/е", "бе", "бренд", "bu"), b: col("блок", "block"), t: col("задача", "task"),
+      why: col("обоснование", "зачем", "why"), author: col("автор", "предложил", "author"),
+      who: col("ответственный", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"),
+      dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate") };
     if (ci.t < 0 || ci.start < 0) return null;
     var out = [], blocks = [], bmap = {};
+    var cell = function (row, i) { return i >= 0 ? (row[i] || "").trim() : ""; };
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r]; if (!row || !(row[ci.t] || "").trim()) continue;
       var bname = (ci.b >= 0 ? row[ci.b] : "").trim() || "Прочее";
@@ -81,8 +86,8 @@
       var st = STMAP[String(ci.st >= 0 ? row[ci.st] : "").toLowerCase().trim()] || "plan";
       out.push({
         id: (ci.id >= 0 && row[ci.id]) ? String(row[ci.id]).trim() : "T" + r,
-        b: bmap[bname], t: row[ci.t].trim(),
-        who: ci.who >= 0 ? (row[ci.who] || "").trim() : "",
+        bu: cell(row, ci.bu), b: bmap[bname], t: row[ci.t].trim(),
+        why: cell(row, ci.why), author: cell(row, ci.author), who: cell(row, ci.who),
         start: (row[ci.start] || "").trim(),
         days: Math.max(1, parseInt(ci.days >= 0 ? row[ci.days] : "1", 10) || 1),
         dep: ci.dep >= 0 ? String(row[ci.dep] || "").split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean) : [],

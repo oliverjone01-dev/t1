@@ -311,6 +311,11 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .mast-nav a.active{color:var(--ink);background:var(--s2);font-weight:700}
 .src{border-radius:var(--radius-pill);border-color:var(--line2);color:var(--ink3)}
 .src.live{color:var(--pub);border-color:var(--pub);background:var(--pub-soft)}
+/* верхняя ссылка на Google-таблицу плана (золотая pill CTA) */
+.sheet-top{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;color:var(--cta-ink);background:var(--cta);border-radius:var(--radius-pill);padding:7px 14px;white-space:nowrap;box-shadow:0 3px 12px rgba(227,189,114,.3);transition:.15s var(--ease)}
+.sheet-top:hover{background:var(--cta-2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(227,189,114,.42)}
+.sheet-top .lbl-mini{display:none}
+@media(max-width:560px){.sheet-top{padding:6px 10px;font-size:11.5px}.sheet-top .lbl-full{display:none}.sheet-top .lbl-mini{display:inline}}
 /* тумблер темы (SMM .tt, переименован в .ttoggle - .tt занят заголовком задачи) */
 .ttoggle{display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--line2);border-radius:var(--radius-pill);padding:4px}
 .ttoggle button{font:inherit;font-size:12px;font-weight:700;color:var(--ink2);background:none;border:none;border-radius:var(--radius-pill);padding:6px 9px;cursor:pointer;display:flex;align-items:center;line-height:1;transition:.15s var(--ease)}

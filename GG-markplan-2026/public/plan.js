@@ -89,7 +89,9 @@
     $("#hero-dek").textContent = P.meta.dek || "";
     $("#hero-note").innerHTML = esc(P.meta.note || "");
     $("#foot-audit").textContent = P.meta.audit || "";
-    var link = $("#sheet-link"); if (link && P.meta.sheetId) link.href = "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit";
+    var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
+    var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
+    var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
     var nav = [["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-gantt", "График"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
     $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("");
     // герой-статы

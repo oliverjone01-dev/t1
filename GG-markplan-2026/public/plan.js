@@ -17,7 +17,10 @@
   function pd(s) { if (!s) return null; var m = String(s).trim().match(/(\d{4})-(\d{2})-(\d{2})/); if (m) return new Date(+m[1], +m[2] - 1, +m[3]); var d = String(s).trim().match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/); if (d) { var y = +d[3]; if (y < 100) y += 2000; return new Date(y, +d[2] - 1, +d[1]); } return null; }
   function diffDays(a, b) { return Math.round((a - b) / MS); }
   var MON = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  var WD = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]; // 0=Вс
   function fmt(d) { return d.getDate() + " " + MON[d.getMonth()]; }
+  // какие строки Ганта раскрыты (обоснование + автор) - переживает перерисовку
+  var ganttOpen = {};
   // перенос текста по словам в N строк (для левой колонки Ганта)
   function wrapText(txt, maxChars, maxLines) {
     var words = String(txt || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
@@ -230,17 +233,19 @@
     var end = new Date(maxD); end.setDate(end.getDate() + 4);
     var totalDays = diffDays(end, start);
 
-    var HH = 34, axisH = 56, bh = 20, padB = 42;
-    // левая колонка - 1/3 ширины (в ней Задача + Обоснование развёрнуто),
-    // правее - шкала времени: на широких экранах график заполняет ширину,
-    // на узких - минимум 15px/день и горизонтальный скролл
+    var HH = 34, axisH = 66, bh = 20, padB = 42;
+    // левая читаемая панель: [id][Задача ...][Ответственный]; правее - календарь по дням.
+    // при клике по строке вниз раскрывается обоснование + автор (мельче).
     var avail = (host.clientWidth || wrap.clientWidth || 1100);
-    var Lw = Math.max(300, Math.min(Math.round(avail / 3), 860));
-    var dw = Math.max(15, Math.min(46, Math.floor((avail - Lw) / totalDays)));
+    var Lw = Math.max(340, Math.min(Math.round(avail * 0.42), 660));
+    var Rw = Math.min(150, Math.max(96, Math.round(Lw * 0.3))); // колонка «Ответственный»
+    var taskX = 54, taskRight = Lw - Rw - 10;
+    var dw = Math.max(16, Math.min(46, Math.floor((avail - Lw) / totalDays)));
     var W = Lw + totalDays * dw;
-    // сколько символов влезает в строку левой колонки (задача крупнее, обоснование мельче)
-    var tCPL = Math.max(20, Math.floor((Lw - 64) / 6.6));
-    var wCPL = Math.max(24, Math.floor((Lw - 64) / 5.4));
+    // символов в строке названия задачи, обоснования (выпадашка) и ответственного
+    var tCPL = Math.max(14, Math.floor((taskRight - taskX) / 6.6));
+    var wCPL = Math.max(20, Math.floor((Lw - taskX - 12) / 5.2));
+    var whoCPL = Math.max(7, Math.floor((Rw - 14) / 6.2));
     var toneHex = { brass: "#C9A96A", forest: "#6FC38C", sky: "#87ABC6", rust: "#E08A5F", ink: "#B6AD99" };
     var order = [], yById = {}, rowY = axisH, blockRows = [];
     P.blocksMeta.forEach(function (bm) {
@@ -249,9 +254,11 @@
       var headY = rowY; rowY += HH;
       bt.forEach(function (o) {
         o.tl = wrapText(o.t.t, tCPL, 4);
-        o.wl = o.t.why ? wrapText(o.t.why, wCPL, 3) : [];
-        var h = 12 + o.tl.length * 15 + (o.wl.length ? 4 + o.wl.length * 13 : 0) + 10;
-        if (h < 46) h = 46;
+        o.exWl = o.t.why ? wrapText(o.t.why, wCPL, 6) : [];
+        var open = !!ganttOpen[o.t.id];
+        var h = 12 + o.tl.length * 15 + 10;
+        if (open) h += 6 + o.exWl.length * 13 + (o.t.author ? 16 : 0) + 4;
+        if (h < 48) h = 48;
         o.top = rowY; o.rh = h; o.y = rowY + 20;
         yById[o.t.id] = o; order.push(o); rowY += h;
       });
@@ -290,36 +297,59 @@
       root.appendChild(sv("rect", { x: 0, y: b.headY + HH, width: 3, height: b.y1 - (b.headY + HH), fill: toneHex[b.bm.tone] || "#C9A96A", opacity: .5 }));
     });
 
-    // ось: месяцы + недели с числами
+    // ось-календарь: месяцы сверху, ниже строка дней недели и чисел; выходные выделены
     var cur = new Date(start), lastMonth = -1;
     while (cur <= end) {
-      var x = xOf(cur), dow = cur.getDay();
-      if (dow === 1) {
-        root.appendChild(sv("line", { x1: x, y1: axisH, x2: x, y2: H - padB + 6, class: "g-grid" }));
-        var wl = sv("text", { x: x + 4, y: axisH - 11, class: "g-axis" }); wl.textContent = fmt(cur); root.appendChild(wl);
-      }
+      var x = xOf(cur), dow = cur.getDay(), wknd = (dow === 0 || dow === 6);
+      var wd = sv("text", { x: x + dw / 2, y: 41, class: "g-day-wd" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); wd.textContent = WD[dow]; root.appendChild(wd);
+      var dn = sv("text", { x: x + dw / 2, y: 56, class: "g-day-num" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); dn.textContent = cur.getDate(); root.appendChild(dn);
+      if (dow === 1) root.appendChild(sv("line", { x1: x, y1: axisH, x2: x, y2: H - padB + 6, class: "g-grid" }));
       if (cur.getMonth() !== lastMonth) {
         lastMonth = cur.getMonth();
-        root.appendChild(sv("line", { x1: x, y1: 10, x2: x, y2: H - padB + 6, class: "g-rail" }));
-        var ml = sv("text", { x: x + 7, y: 26, class: "g-month" }); ml.textContent = MON[cur.getMonth()].toUpperCase(); root.appendChild(ml);
+        root.appendChild(sv("line", { x1: x, y1: 8, x2: x, y2: H - padB + 6, class: "g-rail" }));
+        var ml = sv("text", { x: x + 7, y: 22, class: "g-month" }); ml.textContent = MON[cur.getMonth()].toUpperCase(); root.appendChild(ml);
       }
       cur.setDate(cur.getDate() + 1);
     }
-    root.appendChild(sv("line", { x1: Lw, y1: 10, x2: Lw, y2: H - padB + 6, class: "g-rail" }));
+    root.appendChild(sv("line", { x1: 0, y1: axisH + 0.5, x2: W, y2: axisH + 0.5, class: "g-rail" }));
+    root.appendChild(sv("line", { x1: Lw, y1: 8, x2: Lw, y2: H - padB + 6, class: "g-rail" }));
+    // разделитель колонок «Задача | Ответственный» + заголовки колонок
+    root.appendChild(sv("line", { x1: Lw - Rw, y1: axisH, x2: Lw - Rw, y2: H - padB + 6, class: "g-coldiv" }));
+    var chT = sv("text", { x: taskX, y: axisH - 10, class: "g-col-head" }); chT.textContent = "Задача"; root.appendChild(chT);
+    var chW = sv("text", { x: Lw - Rw + 8, y: axisH - 10, class: "g-col-head" }); chW.textContent = "Ответственный"; root.appendChild(chW);
 
-    // подписи рядов: id-чип + Задача (перенос) + Обоснование (перенос, приглушённо)
+    // подписи рядов: id-чип + Задача, справа Ответственный; по клику вниз - обоснование + автор
     order.forEach(function (o) {
       var tone = toneHex[(P.blocksMeta[o.t.b] || {}).tone] || "#C9A96A";
+      var open = !!ganttOpen[o.t.id];
       root.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: W, y2: o.top + 0.5, class: "g-rowsep" }));
+      if (open) root.appendChild(sv("rect", { x: 0, y: o.top + 1, width: Lw, height: o.rh - 1, class: "g-rowopen" }));
+      // id-чип
       root.appendChild(sv("rect", { x: 14, y: o.top + 10, width: 32, height: 18, rx: 5, fill: tone, opacity: .17 }));
       var it = sv("text", { x: 30, y: o.top + 23, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; root.appendChild(it);
+      // треугольник-раскрытие
+      var cy = o.top + 17;
+      var chev = sv("path", { d: open ? "M" + (taskX - 15) + "," + (cy - 3) + " h8 l-4,6 z" : "M" + (taskX - 15) + "," + (cy - 4) + " l6,4 l-6,4 z", class: "g-chevron" });
+      root.appendChild(chev);
+      // задача (перенос)
       o.tl.forEach(function (ln, i) {
-        var tx = sv("text", { x: 54, y: o.top + 21 + i * 15, class: "g-task-line" }); tx.textContent = ln; root.appendChild(tx);
+        var tx = sv("text", { x: taskX, y: o.top + 21 + i * 15, class: "g-task-line" }); tx.textContent = ln; root.appendChild(tx);
       });
-      var wy0 = o.top + 21 + o.tl.length * 15 + 4;
-      o.wl.forEach(function (ln, i) {
-        var wx = sv("text", { x: 54, y: wy0 + i * 13, class: "g-why-line" }); wx.textContent = ln; root.appendChild(wx);
+      // ответственный (правая колонка панели)
+      var who = wrapText(o.t.who || "", whoCPL, 2);
+      who.forEach(function (ln, i) {
+        var wt = sv("text", { x: Lw - Rw + 8, y: o.top + 21 + i * 14, class: "g-who" }); wt.textContent = ln; root.appendChild(wt);
       });
+      // выпадашка по клику: обоснование (мельче) + автор
+      if (open) {
+        var ey = o.top + 21 + o.tl.length * 15 + 10;
+        o.exWl.forEach(function (ln, i) {
+          var wx = sv("text", { x: taskX, y: ey + i * 13, class: "g-why-exp" }); wx.textContent = ln; root.appendChild(wx);
+        });
+        if (o.t.author) {
+          var au = sv("text", { x: taskX, y: ey + o.exWl.length * 13 + 3, class: "g-author-exp" }); au.textContent = "предложил: " + o.t.author; root.appendChild(au);
+        }
+      }
     });
 
     // зависимости - плавные кривые под барами
@@ -359,9 +389,9 @@
     // сегодня - линия + чип
     if (TODAY >= start && TODAY <= end) {
       var tx = xOf(TODAY);
-      root.appendChild(sv("line", { x1: tx, y1: axisH - 3, x2: tx, y2: H - padB + 6, class: "g-today" }));
-      root.appendChild(sv("rect", { x: tx - 27, y: axisH - 23, width: 54, height: 17, rx: 8.5, class: "g-today-chip" }));
-      var tdl = sv("text", { x: tx, y: axisH - 11, class: "g-today-lbl", "text-anchor": "middle" }); tdl.textContent = "сегодня"; root.appendChild(tdl);
+      root.appendChild(sv("line", { x1: tx, y1: 2, x2: tx, y2: H - padB + 6, class: "g-today" }));
+      root.appendChild(sv("rect", { x: tx - 27, y: 2, width: 54, height: 16, rx: 8, class: "g-today-chip" }));
+      var tdl = sv("text", { x: tx, y: 13.5, class: "g-today-lbl", "text-anchor": "middle" }); tdl.textContent = "сегодня"; root.appendChild(tdl);
     }
 
     // прозрачные зоны-строки на всю ширину - надёжное наведение на любую точку строки
@@ -372,7 +402,13 @@
       hr.addEventListener("mouseenter", function () { highlight(o.t.id); });
       hr.addEventListener("mousemove", function (ev) { showTip(ev, o); });
       hr.addEventListener("mouseleave", function () { clearHi(); hideTip(); });
-      hr.addEventListener("click", function () { gotoTask(o.t); });
+      hr.addEventListener("click", function () {
+        var sl = host.scrollLeft, st = host.scrollTop;
+        ganttOpen[o.t.id] = !ganttOpen[o.t.id];
+        renderGantt();
+        var h2 = $("#gantt-scroll"); if (h2) { h2.scrollLeft = sl; h2.scrollTop = st; }
+      });
+      hr.style.cursor = "pointer";
       hitLayer.appendChild(hr);
     });
 
@@ -386,13 +422,11 @@
       var opens = deps.filter(function (d) { return d.a === o.t.id; }).map(function (d) { return d.b; });
       var needs = o.t.dep || [];
       tip.innerHTML = '<div class="tt-h"><b>' + esc(o.t.t) + '</b><span class="tt-id">' + esc(o.t.id) + (o.t.bu ? " · " + esc(o.t.bu) : "") + (o.t.gate ? " · гейт" : "") + "</span></div>" +
-        (o.t.author ? '<div class="tt-r"><span>предложил</span>' + esc(o.t.author) + "</div>" : "") +
-        (o.t.who ? '<div class="tt-r"><span>кто</span>' + esc(o.t.who) + "</div>" : "") +
         '<div class="tt-r"><span>срок</span>' + fmt(o.s) + " - " + fmt(new Date(o.e.getTime() - MS)) + " · " + o.t.days + "д</div>" +
         '<div class="tt-r"><span>статус</span>' + esc(stName) + "</div>" +
-        (o.t.why ? '<div class="tt-r"><span>зачем</span>' + esc(o.t.why) + "</div>" : "") +
         (needs.length ? '<div class="tt-r"><span>после</span>' + esc(needs.join(", ")) + "</div>" : "") +
-        (opens.length ? '<div class="tt-r"><span>откроет</span>' + esc(opens.join(", ")) + "</div>" : "");
+        (opens.length ? '<div class="tt-r"><span>откроет</span>' + esc(opens.join(", ")) + "</div>" : "") +
+        '<div class="tt-r tt-hint">клик - раскрыть обоснование и автора</div>';
       tip.style.display = "block";
       var wr = wrap.getBoundingClientRect();
       var lx = ev.clientX - wr.left + 16, ty = ev.clientY - wr.top + 16;
@@ -402,7 +436,7 @@
     }
     function hideTip() { tip.style.display = "none"; }
 
-    wrap.appendChild(el("div", "g-hint", "Наведите на задачу - подсветится цепочка зависимостей и карточка. Клик - открыть задачу в блоках. Прокрутка вправо - горизонт до сентября."));
+    wrap.appendChild(el("div", "g-hint", "Наведите на задачу - подсветится цепочка зависимостей. Клик по строке - раскрыть обоснование и автора. Прокрутка вправо - горизонт до сентября."));
 
     function related(id) { var set = {}; set[id] = 1; deps.forEach(function (d) { if (d.a === id) set[d.b] = 1; if (d.b === id) set[d.a] = 1; }); return set; }
     function highlight(id) {

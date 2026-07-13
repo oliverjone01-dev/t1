@@ -242,15 +242,20 @@
     // левая читаемая панель: [id][Задача ...][Ответственный]; правее - календарь по дням.
     // при клике по строке вниз раскрывается обоснование + автор (мельче).
     var avail = (host.clientWidth || wrap.clientWidth || 1100);
-    var Lw = Math.max(340, Math.min(Math.round(avail * 0.42), 660));
-    var Rw = Math.min(150, Math.max(96, Math.round(Lw * 0.3))); // колонка «Ответственный»
-    var taskX = 54, taskRight = Lw - Rw - 10;
+    var Lw = Math.max(300, Math.min(Math.round(avail * 0.42), 660));
+    // на узких экранах панель не должна занимать весь экран - оставляем полоску таймлайна
+    if (Lw > avail - 30) Lw = Math.max(200, avail - 30);
+    // на телефонах и планшетах прячем колонку «Ответственный» - задаче нужна вся ширина панели
+    var narrow = avail < 820;
+    var Rw = narrow ? 0 : Math.min(150, Math.max(92, Math.round(Lw * 0.3)));
+    var taskX = 54, taskRight = Lw - Rw - (Rw ? 10 : 8);
     var dw = Math.max(16, Math.min(46, Math.floor((avail - Lw) / totalDays)));
     var W = Lw + totalDays * dw;
-    // символов в строке названия задачи, обоснования (выпадашка) и ответственного
-    var tCPL = Math.max(14, Math.floor((taskRight - taskX) / 6.6));
-    var wCPL = Math.max(20, Math.floor((Lw - taskX - 12) / 5.2));
-    var whoCPL = Math.max(7, Math.floor((Rw - 14) / 6.2));
+    // символов в строке: делители = средняя ширина кириллицы (консервативно,
+    // иначе длинные строки заезжают из панели в таймлайн)
+    var tCPL = Math.max(13, Math.floor((taskRight - taskX) / 7.5));
+    var wCPL = Math.max(18, Math.floor((Lw - taskX - 14) / 6.4));
+    var whoCPL = Math.max(6, Math.floor((Rw - 14) / 6.8));
     var toneHex = { brass: "#C9A96A", forest: "#6FC38C", sky: "#87ABC6", rust: "#E08A5F", ink: "#B6AD99" };
     var order = [], yById = {}, rowY = axisH, blockRows = [];
     P.blocksMeta.forEach(function (bm) {
@@ -272,7 +277,7 @@
     var H = rowY + padB;
     var xOf = function (d) { return Lw + diffDays(d, start) * dw; };
 
-    var svg = sv("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, class: "gantt", role: "img", "aria-label": "Диаграмма Ганта плана" });
+    var svg = sv("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, class: "gantt", role: "img", "aria-label": "Диаграмма Ганта плана", "data-lw": Lw, "data-rw": Rw });
     var defs = sv("defs");
     function grad(id, c1, c2) { var g = sv("linearGradient", { id: id, x1: 0, y1: 0, x2: 0, y2: 1 }); g.appendChild(sv("stop", { offset: 0, "stop-color": c1 })); g.appendChild(sv("stop", { offset: 1, "stop-color": c2 })); defs.appendChild(g); }
     grad("g-work", "#DABB7E", "#B18B39");
@@ -318,10 +323,12 @@
     }
     root.appendChild(sv("line", { x1: 0, y1: axisH + 0.5, x2: W, y2: axisH + 0.5, class: "g-rail" }));
     root.appendChild(sv("line", { x1: Lw, y1: 8, x2: Lw, y2: H - padB + 6, class: "g-rail" }));
-    // разделитель колонок «Задача | Ответственный» + заголовки колонок
-    root.appendChild(sv("line", { x1: Lw - Rw, y1: axisH, x2: Lw - Rw, y2: H - padB + 6, class: "g-coldiv" }));
+    // разделитель колонок «Задача | Ответственный» + заголовки колонок (колонка только на широких)
     var chT = sv("text", { x: taskX, y: axisH - 10, class: "g-col-head" }); chT.textContent = "Задача"; root.appendChild(chT);
-    var chW = sv("text", { x: Lw - Rw + 8, y: axisH - 10, class: "g-col-head" }); chW.textContent = "Ответственный"; root.appendChild(chW);
+    if (Rw) {
+      root.appendChild(sv("line", { x1: Lw - Rw, y1: axisH, x2: Lw - Rw, y2: H - padB + 6, class: "g-coldiv" }));
+      var chW = sv("text", { x: Lw - Rw + 8, y: axisH - 10, class: "g-col-head" }); chW.textContent = "Ответственный"; root.appendChild(chW);
+    }
 
     // подписи рядов: id-чип + Задача, справа Ответственный; по клику вниз - обоснование + автор
     order.forEach(function (o) {
@@ -340,11 +347,12 @@
       o.tl.forEach(function (ln, i) {
         var tx = sv("text", { x: taskX, y: o.top + 21 + i * 15, class: "g-task-line" }); tx.textContent = ln; root.appendChild(tx);
       });
-      // ответственный (правая колонка панели)
-      var who = wrapText(o.t.who || "", whoCPL, 2);
-      who.forEach(function (ln, i) {
-        var wt = sv("text", { x: Lw - Rw + 8, y: o.top + 21 + i * 14, class: "g-who" }); wt.textContent = ln; root.appendChild(wt);
-      });
+      // ответственный (правая колонка панели, только на широких экранах)
+      if (Rw) {
+        wrapText(o.t.who || "", whoCPL, 2).forEach(function (ln, i) {
+          var wt = sv("text", { x: Lw - Rw + 8, y: o.top + 21 + i * 14, class: "g-who" }); wt.textContent = ln; root.appendChild(wt);
+        });
+      }
       // выпадашка по клику: обоснование (мельче) + автор
       if (open) {
         var ey = o.top + 21 + o.tl.length * 15 + 10;

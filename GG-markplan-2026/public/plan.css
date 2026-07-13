@@ -2,25 +2,27 @@
    Тёплая бумага, глубокая типографика Fraunces, латунный акцент. Не тёмный неон. */
 
 :root{
-  --paper:#F4EEE2;
-  --paper-2:#ECE4D3;
-  --paper-3:#E3D9C4;
-  --ink:#211C15;
-  --ink-2:#5C5443;
-  --ink-3:#8A8069;
-  --line:#D6CBB4;
-  --line-2:#C6B99C;
-  --brass:#A87E3D;
+  /* тёмная тема - тёплый графит с латунью GENGROUP (не неон) */
+  --paper:#141210;
+  --paper-2:#1D1A15;
+  --paper-3:#282319;
+  --ink:#F1EBDD;
+  --ink-2:#B6AD99;
+  --ink-3:#7E7563;
+  --line:#2E2A21;
+  --line-2:#413A2C;
+  --brass:#D9BC82;
   --brass-2:#C9A96A;
-  --brass-ink:#6E5220;
-  --forest:#2F4A38;
-  --forest-2:#4A6B54;
-  --rust:#9B4526;
-  --sky:#3A5A70;
+  --brass-ink:#E6CE93;
+  --forest:#6FC38C;
+  --forest-2:#3E5A46;
+  --rust:#E08A5F;
+  --sky:#87ABC6;
 
   --r:4px;
-  --serif:"Fraunces","Iowan Old Style",Georgia,"Times New Roman",serif;
-  --sans:"Public Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  /* San Francisco Pro Display - системный шрифт Apple, родной на Mac/iPhone */
+  --serif:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",system-ui,sans-serif;
+  --sans:"SF Pro Text","SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",system-ui,sans-serif;
   --w:1180px;
   --ease:cubic-bezier(.22,.61,.36,1);
 }
@@ -52,7 +54,7 @@ body{
 main,.masthead,.foot{position:relative;z-index:1}
 
 a{color:inherit;text-decoration:none}
-h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.05;letter-spacing:-.015em}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:700;line-height:1.05;letter-spacing:-.02em}
 .tnum{font-variant-numeric:tabular-nums}
 
 /* ---------- ХЕДЕР ---------- */
@@ -138,7 +140,11 @@ table.mtx th:first-child,table.mtx td:first-child{text-align:left}
 table.mtx thead th{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);background:var(--paper-2);font-weight:600}
 table.mtx tbody td{font-variant-numeric:tabular-nums}
 table.mtx .drive td:first-child::after{content:" ▸";color:var(--forest);font-weight:700}
+table.mtx .grp td{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--brass-ink);font-weight:700;background:color-mix(in oklab,var(--brass-2) 12%,transparent);padding-top:9px;padding-bottom:9px}
+table.mtx .sub td{font-weight:700;color:var(--ink);border-top:1px solid var(--line-2);font-variant-numeric:tabular-nums}
 table.mtx tfoot td{font-weight:700;background:var(--paper-2);border-top:2px solid var(--line-2);font-variant-numeric:tabular-nums}
+table.mtx tfoot .tgt td{color:var(--brass-ink);font-weight:600;background:color-mix(in oklab,var(--brass-2) 10%,transparent)}
+table.mtx tfoot .tgt td:last-child{text-align:left;font-weight:600}
 table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400;text-align:left}
 .scen-side{display:flex;flex-direction:column;gap:10px}
 .vbox{border:1px solid var(--line-2);border-radius:12px;padding:15px 16px;background:var(--paper)}

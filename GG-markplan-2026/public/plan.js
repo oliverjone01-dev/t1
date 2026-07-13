@@ -113,25 +113,32 @@
 
   function renderScenarios() {
     var s = P.scenarios;
-    $("#scen").innerHTML = "";
-    var intro = el("div", "scen-intro"); intro.innerHTML = "<b>Сначала уточнить:</b> " + esc(s.intro);
-    $("#scen").appendChild(intro);
+    var host = $("#scen"); host.innerHTML = "";
+    var intro = el("div", "scen-intro"); intro.innerHTML = "<b>Уточнено Иваном:</b> " + esc(s.intro);
+    host.appendChild(intro);
     var tbl = el("div", "scen-tbl");
-    var rows = s.rows.map(function (r) {
-      return '<tr class="' + (r.drive ? "drive" : "") + '"><td>' + esc(r.src) + '<span class="snote">' + esc(r.note) + '</span></td>' +
-        "<td>" + r.pess.toFixed(1) + "</td><td><b>" + r.base.toFixed(1) + "</b></td><td>" + r.opt.toFixed(1) + "</td></tr>";
-    }).join("");
+    var body = "";
+    s.groups.forEach(function (g) {
+      body += '<tr class="grp"><td colspan="4">' + esc(g.name) + "</td></tr>";
+      g.rows.forEach(function (r) {
+        body += "<tr><td>" + esc(r.src) + '<span class="snote">' + esc(r.note) + "</span></td><td>" +
+          r.pess.toFixed(1) + "</td><td><b>" + r.base.toFixed(1) + "</b></td><td>" + r.opt.toFixed(1) + "</td></tr>";
+      });
+      body += '<tr class="sub"><td>' + esc(g.name) + " итого</td><td>" + g.sub.pess.toFixed(1) +
+        "</td><td>" + g.sub.base.toFixed(1) + "</td><td>" + g.sub.opt.toFixed(1) + "</td></tr>";
+    });
     tbl.innerHTML = '<table class="mtx"><thead><tr><th>Источник, млн ₽ / мес</th><th>худший</th><th>базовый</th><th>лучший</th></tr></thead>' +
-      "<tbody>" + rows + "</tbody><tfoot>" +
-      "<tr><td>Итого в месяц</td><td>" + s.perMonth.pess.toFixed(1) + "</td><td>" + s.perMonth.base.toFixed(1) + "</td><td>" + s.perMonth.opt.toFixed(1) + "</td></tr>" +
-      "<tr><td>За 2 месяца</td><td>" + s.twoMonth.pess.toFixed(1) + "</td><td>" + s.twoMonth.base.toFixed(1) + "</td><td>" + s.twoMonth.opt.toFixed(1) + "</td></tr>" +
+      "<tbody>" + body + "</tbody><tfoot>" +
+      "<tr><td>Всего немаркетплейс ГГР</td><td>" + s.total.pess.toFixed(1) + "</td><td>" + s.total.base.toFixed(1) + "</td><td>" + s.total.opt.toFixed(1) + "</td></tr>" +
+      '<tr class="tgt"><td>Цель Ивана</td><td colspan="3">' + s.target + " млн / мес - между базовым и оптимистичным</td></tr>" +
       "</tfoot></table>";
     var side = el("div", "scen-side");
     side.innerHTML = s.verdict.map(function (v) {
       return '<div class="vbox ' + (v.tone || "") + '"><div class="vh">' + esc(v.h) + '</div><div class="vv">' + esc(v.v) + '</div><div class="vd">' + esc(v.d) + "</div></div>";
     }).join("");
-    $("#scen").appendChild(tbl); $("#scen").appendChild(side);
-    $("#verdict-15").innerHTML = "Дизайнерские деньги в это окно не попадают - они сентябрьские. Четыре цифры из факта (выручка за 2 сопоставимых месяца, средний чек по каналам, конверсия воронки входа, мощность производства) схлопывают вилку в план.";
+    host.appendChild(tbl); host.appendChild(side);
+    var gi = s.gap.indexOf(":");
+    $("#verdict-15").innerHTML = "<b>" + esc(s.gap.slice(0, gi)) + ":</b>" + esc(s.gap.slice(gi + 1));
   }
 
   /* ---------- блоки плана ---------- */

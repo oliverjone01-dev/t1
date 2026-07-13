@@ -18,6 +18,25 @@
   function diffDays(a, b) { return Math.round((a - b) / MS); }
   var MON = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
   function fmt(d) { return d.getDate() + " " + MON[d.getMonth()]; }
+  // перенос текста по словам в N строк (для левой колонки Ганта)
+  function wrapText(txt, maxChars, maxLines) {
+    var words = String(txt || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
+    for (var i = 0; i < words.length; i++) {
+      var probe = cur ? cur + " " + words[i] : words[i];
+      if (probe.length <= maxChars) { cur = probe; }
+      else {
+        if (cur) lines.push(cur);
+        cur = words[i];
+        if (lines.length >= maxLines - 1) {
+          var rest = words.slice(i).join(" ");
+          if (rest.length > maxChars) rest = rest.slice(0, maxChars - 1) + "…";
+          lines.push(rest); cur = ""; break;
+        }
+      }
+    }
+    if (cur) lines.push(cur);
+    return lines.slice(0, maxLines);
+  }
 
   /* ---------- источник данных ---------- */
   // Приоритет: CONFIG.csvUrl (опубликованный CSV) -> gviz по sheetId+лист -> снимок.
@@ -92,7 +111,7 @@
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
-    var nav = [["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
+    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
     $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("");
     // герой-статы
     $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
@@ -211,19 +230,31 @@
     var end = new Date(maxD); end.setDate(end.getDate() + 4);
     var totalDays = diffDays(end, start);
 
-    var Lw = 300, rh = 40, HH = 38, axisH = 56, bh = 22, padB = 42;
-    // ширину дня подбираем под контейнер: на широких экранах график заполняет ширину,
-    // на узких - минимум 17px/день и горизонтальный скролл
-    var avail = (host.clientWidth || wrap.clientWidth || 1000);
-    var dw = Math.max(17, Math.min(46, Math.floor((avail - Lw) / totalDays)));
+    var HH = 34, axisH = 56, bh = 20, padB = 42;
+    // левая колонка - 1/3 ширины (в ней Задача + Обоснование развёрнуто),
+    // правее - шкала времени: на широких экранах график заполняет ширину,
+    // на узких - минимум 15px/день и горизонтальный скролл
+    var avail = (host.clientWidth || wrap.clientWidth || 1100);
+    var Lw = Math.max(300, Math.min(Math.round(avail / 3), 860));
+    var dw = Math.max(15, Math.min(46, Math.floor((avail - Lw) / totalDays)));
     var W = Lw + totalDays * dw;
+    // сколько символов влезает в строку левой колонки (задача крупнее, обоснование мельче)
+    var tCPL = Math.max(20, Math.floor((Lw - 64) / 6.6));
+    var wCPL = Math.max(24, Math.floor((Lw - 64) / 5.4));
     var toneHex = { brass: "#C9A96A", forest: "#6FC38C", sky: "#87ABC6", rust: "#E08A5F", ink: "#B6AD99" };
     var order = [], yById = {}, rowY = axisH, blockRows = [];
     P.blocksMeta.forEach(function (bm) {
       var bt = tasks.filter(function (o) { return o.t.b === bm.id; }).sort(function (a, b) { return a.s - b.s; });
       if (!bt.length) return;
       var headY = rowY; rowY += HH;
-      bt.forEach(function (o) { o.y = rowY + rh / 2; yById[o.t.id] = o; order.push(o); rowY += rh; });
+      bt.forEach(function (o) {
+        o.tl = wrapText(o.t.t, tCPL, 4);
+        o.wl = o.t.why ? wrapText(o.t.why, wCPL, 3) : [];
+        var h = 12 + o.tl.length * 15 + (o.wl.length ? 4 + o.wl.length * 13 : 0) + 10;
+        if (h < 46) h = 46;
+        o.top = rowY; o.rh = h; o.y = rowY + 20;
+        yById[o.t.id] = o; order.push(o); rowY += h;
+      });
       blockRows.push({ bm: bm, headY: headY, y1: rowY, n: bt.length });
     });
     var H = rowY + padB;
@@ -276,14 +307,19 @@
     }
     root.appendChild(sv("line", { x1: Lw, y1: 10, x2: Lw, y2: H - padB + 6, class: "g-rail" }));
 
-    // подписи рядов: id-чип, имя, ответственный
+    // подписи рядов: id-чип + Задача (перенос) + Обоснование (перенос, приглушённо)
     order.forEach(function (o) {
       var tone = toneHex[(P.blocksMeta[o.t.b] || {}).tone] || "#C9A96A";
-      root.appendChild(sv("rect", { x: 14, y: o.y - 9, width: 30, height: 18, rx: 5, fill: tone, opacity: .17 }));
-      var it = sv("text", { x: 29, y: o.y + 4, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; root.appendChild(it);
-      var name = o.t.t; if (name.length > 30) name = name.slice(0, 29) + "…";
-      var tl = sv("text", { x: 52, y: o.y - 2, class: "g-row-label" }); tl.textContent = name; root.appendChild(tl);
-      var wl2 = sv("text", { x: 52, y: o.y + 12, class: "g-row-who" }); wl2.textContent = o.t.who || ""; root.appendChild(wl2);
+      root.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: W, y2: o.top + 0.5, class: "g-rowsep" }));
+      root.appendChild(sv("rect", { x: 14, y: o.top + 10, width: 32, height: 18, rx: 5, fill: tone, opacity: .17 }));
+      var it = sv("text", { x: 30, y: o.top + 23, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; root.appendChild(it);
+      o.tl.forEach(function (ln, i) {
+        var tx = sv("text", { x: 54, y: o.top + 21 + i * 15, class: "g-task-line" }); tx.textContent = ln; root.appendChild(tx);
+      });
+      var wy0 = o.top + 21 + o.tl.length * 15 + 4;
+      o.wl.forEach(function (ln, i) {
+        var wx = sv("text", { x: 54, y: wy0 + i * 13, class: "g-why-line" }); wx.textContent = ln; root.appendChild(wx);
+      });
     });
 
     // зависимости - плавные кривые под барами
@@ -331,7 +367,7 @@
     // прозрачные зоны-строки на всю ширину - надёжное наведение на любую точку строки
     var hitLayer = sv("g"); root.appendChild(hitLayer);
     order.forEach(function (o) {
-      var hr = sv("rect", { x: Lw, y: o.y - rh / 2, width: W - Lw, height: rh, fill: "transparent", class: "bar-hit" });
+      var hr = sv("rect", { x: 0, y: o.top, width: W, height: o.rh, fill: "transparent", class: "bar-hit" });
       hr.setAttribute("data-id", o.t.id);
       hr.addEventListener("mouseenter", function () { highlight(o.t.id); });
       hr.addEventListener("mousemove", function (ev) { showTip(ev, o); });

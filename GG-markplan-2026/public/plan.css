@@ -2,54 +2,87 @@
    Тёплая бумага, глубокая типографика Fraunces, латунный акцент. Не тёмный неон. */
 
 :root{
-  /* тёмная тема - тёплый графит с латунью GENGROUP (не неон) */
-  --paper:#141210;
-  --paper-2:#1D1A15;
-  --paper-3:#282319;
-  --ink:#F1EBDD;
-  --ink-2:#B6AD99;
-  --ink-3:#7E7563;
-  --line:#2E2A21;
-  --line-2:#413A2C;
-  --brass:#D9BC82;
-  --brass-2:#C9A96A;
-  --brass-ink:#E6CE93;
-  --forest:#6FC38C;
-  --forest-2:#3E5A46;
-  --rust:#E08A5F;
-  --sky:#87ABC6;
+  /* гамма и токены как в SMM-проекте (brand-site). Две темы; дефолт - тёмная.
+     Прежние имена (--paper/--brass/--forest…) - алиасы к SMM-токенам,
+     разрешаются лениво, поэтому переключение темы работает без правки компонентов. */
+  --paper:var(--bg);--paper-2:var(--s1);--paper-3:var(--s2);
+  --ink-2:var(--ink2);--ink-3:var(--ink3);--line-2:var(--line2);
+  --brass:var(--gold);--brass-2:var(--gold-fill);--brass-ink:var(--gold);
+  --forest:var(--keep);--forest-2:var(--keep2);--rust:var(--stop);--sky:var(--gg);
+  --r:18px;--w:1200px;
+  --serif:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --sans:Inter,"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
 
-  --r:4px;
-  /* San Francisco Pro Display - системный шрифт Apple, родной на Mac/iPhone */
-  --serif:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",system-ui,sans-serif;
-  --sans:"SF Pro Text","SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",system-ui,sans-serif;
-  --w:1180px;
-  --ease:cubic-bezier(.22,.61,.36,1);
+  /* ТЁМНАЯ (дефолт, гамма SMM) */
+  --bg:#131418;--s1:#1E2025;--s2:#26282E;--s3:#303239;--line:#2E3036;--line2:#3C3F47;
+  --ink:#F3F2EF;--ink2:#B4B6B8;--ink3:#888A8D;
+  --gold:#E3BD72;--gold2:#EFC976;--gold-soft:rgba(227,189,114,.15);--gold-fill:#E3BD72;--gold-border:#E3BD72;
+  --gg:#6E92B5;--gg-ink:#AEC8DE;--gg-soft:rgba(110,146,181,.15);
+  --keep:#5FD09B;--keep2:#3E5A46;--pub:#5FD09B;--pub-soft:rgba(95,208,155,.16);
+  --rdy:#E8A24E;--sgl-soft:rgba(232,162,78,.17);--pln:#A6A6A2;--drf:#BBA0DC;
+  --stop:#E8805F;--danger:#E8805F;
+  --sel-bg:#E3BD72;--sel-ink:#1A1408;--cta:#E3BD72;--cta-2:#D2AB5C;--cta-ink:#1A1408;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.35);
+  --shadow-lg:0 8px 20px rgba(0,0,0,.45),0 30px 60px rgba(0,0,0,.5);
+  --glow1:rgba(227,189,114,.10);--glow2:rgba(110,146,181,.08);--top-bg:rgba(19,20,24,.72);
+  --radius-pill:999px;--ease:cubic-bezier(.22,.61,.36,1);
+}
+:root[data-theme="light"]{
+  --bg:#F7F4EE;--s1:#FFFFFF;--s2:#EFEAE0;--s3:#E4DCCD;--line:#E0D7C6;--line2:#CBBEA6;
+  --ink:#171410;--ink2:#484034;--ink3:#6A5C4C;
+  --gold:#7E5510;--gold2:#9A6A12;--gold-soft:#F8EBD0;--gold-fill:#E3BD72;--gold-border:#D8B45E;
+  --gg:#33506C;--gg-ink:#2B445C;--gg-soft:#E2EAF2;
+  --keep:#2B7150;--keep2:#225C40;--pub:#2B7150;--pub-soft:#D7EFE3;
+  --rdy:#8A5410;--sgl-soft:#FBE9CF;--pln:#5E5345;--drf:#774893;
+  --stop:#B03A24;--danger:#B03A24;
+  --sel-bg:#E3BD72;--sel-ink:#241803;--cta:#E3BD72;--cta-2:#D2AB5C;--cta-ink:#241803;
+  --shadow:0 1px 2px rgba(80,60,30,.10),0 12px 30px rgba(80,60,30,.14);
+  --shadow-lg:0 8px 20px rgba(80,60,30,.16),0 30px 60px rgba(80,60,30,.22);
+  --glow1:rgba(227,189,114,.16);--glow2:rgba(110,146,181,.10);--top-bg:rgba(247,244,238,.82);
+}
+:root[data-theme="dark"]{
+  --bg:#131418;--s1:#1E2025;--s2:#26282E;--s3:#303239;--line:#2E3036;--line2:#3C3F47;
+  --ink:#F3F2EF;--ink2:#B4B6B8;--ink3:#888A8D;
+  --gold:#E3BD72;--gold2:#EFC976;--gold-soft:rgba(227,189,114,.15);--gold-fill:#E3BD72;--gold-border:#E3BD72;
+  --gg:#6E92B5;--gg-ink:#AEC8DE;--gg-soft:rgba(110,146,181,.15);
+  --keep:#5FD09B;--keep2:#3E5A46;--pub:#5FD09B;--pub-soft:rgba(95,208,155,.16);
+  --rdy:#E8A24E;--sgl-soft:rgba(232,162,78,.17);--pln:#A6A6A2;--drf:#BBA0DC;
+  --stop:#E8805F;--danger:#E8805F;
+  --sel-bg:#E3BD72;--sel-ink:#1A1408;--cta:#E3BD72;--cta-2:#D2AB5C;--cta-ink:#1A1408;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.35);
+  --shadow-lg:0 8px 20px rgba(0,0,0,.45),0 30px 60px rgba(0,0,0,.5);
+  --glow1:rgba(227,189,114,.10);--glow2:rgba(110,146,181,.08);--top-bg:rgba(19,20,24,.72);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  background:var(--paper);
+  background:var(--bg);
   color:var(--ink);
   font-family:var(--sans);
-  font-size:16px;line-height:1.6;
-  font-feature-settings:"tnum" 0;
+  font-size:16px;line-height:1.55;letter-spacing:.005em;
   -webkit-font-smoothing:antialiased;
   overflow-x:hidden;
+  transition:background .25s,color .25s;
+  /* фирменные radial-glow SMM */
+  background-image:radial-gradient(1100px 520px at 88% -10%,var(--glow1),transparent 60%),radial-gradient(900px 500px at -10% 6%,var(--glow2),transparent 55%);
+  background-attachment:fixed;
 }
+::selection{background:var(--sel-bg);color:var(--sel-ink)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* тонкая бумажная фактура + чертёжная сетка */
+/* прогресс-бар прокрутки (SMM .prog) */
+.prog{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--gold-fill),var(--gold2));z-index:60;transition:width .1s linear}
+/* тонкая чертёжная сетка - оставлена, но приглушена под гамму SMM */
 .grain{
-  position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:
     linear-gradient(var(--line) .5px,transparent .5px),
     linear-gradient(90deg,var(--line) .5px,transparent .5px);
-  background-size:34px 34px;
-  -webkit-mask-image:radial-gradient(120% 80% at 70% 0%,#000 0%,transparent 65%);
-          mask-image:radial-gradient(120% 80% at 70% 0%,#000 0%,transparent 65%);
-  opacity:.35;
+  background-size:38px 38px;
+  -webkit-mask-image:radial-gradient(120% 80% at 70% 0%,#000 0%,transparent 62%);
+          mask-image:radial-gradient(120% 80% at 70% 0%,#000 0%,transparent 62%);
+  opacity:.25;
 }
 main,.masthead,.foot{position:relative;z-index:1}
 
@@ -263,3 +296,65 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 /* появление */
 .reveal{opacity:0;transform:translateY(14px)}
 .reveal.in{opacity:1;transform:none;transition:opacity .6s var(--ease),transform .6s var(--ease)}
+
+/* ============ SMM-скин: стилеобразующие элементы как в brand-site ============ */
+.masthead{background:var(--top-bg);border-bottom:1px solid var(--line);backdrop-filter:blur(14px)}
+.mast-holding{font-weight:800;letter-spacing:.02em}
+/* бренд-точка */
+.mast-brand{position:relative}
+.mast-brand::before{content:"";position:absolute;left:-16px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--gold-fill)}
+.mast-inner{padding-left:40px}
+.mast-sub{color:var(--ink3)}
+/* навигация - pill-ссылки SMM */
+.mast-nav a{font-weight:600;letter-spacing:.02em;color:var(--ink2);border-radius:var(--radius-pill)}
+.mast-nav a:hover{color:var(--ink);background:var(--s2)}
+.mast-nav a.active{color:var(--ink);background:var(--s2);font-weight:700}
+.src{border-radius:var(--radius-pill);border-color:var(--line2);color:var(--ink3)}
+.src.live{color:var(--pub);border-color:var(--pub);background:var(--pub-soft)}
+/* тумблер темы (SMM .tt, переименован в .ttoggle - .tt занят заголовком задачи) */
+.ttoggle{display:inline-flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--line2);border-radius:var(--radius-pill);padding:4px}
+.ttoggle button{font:inherit;font-size:12px;font-weight:700;color:var(--ink2);background:none;border:none;border-radius:var(--radius-pill);padding:6px 9px;cursor:pointer;display:flex;align-items:center;line-height:1;transition:.15s var(--ease)}
+.ttoggle button.on{background:var(--cta);color:var(--cta-ink)}
+
+/* эйбрау-пилюля секций (SMM .sec-num) */
+.sec-no{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.18em;color:var(--gold);background:var(--gold-soft);border-radius:var(--radius-pill);padding:5px 12px;margin-bottom:12px}
+.sec-title{font-weight:800;letter-spacing:-.025em}
+.eyebrow{color:var(--gold);font-weight:800}
+.hero-title{font-weight:800;letter-spacing:-.03em}
+
+/* кнопки SMM: золотая pill со свечением + ghost */
+.btn{border-radius:var(--radius-pill);font-weight:800}
+.btn-primary{background:var(--cta);color:var(--cta-ink);box-shadow:0 4px 14px rgba(227,189,114,.3)}
+.btn-primary:hover{background:var(--cta-2);color:var(--cta-ink);box-shadow:0 8px 22px rgba(227,189,114,.42);transform:translateY(-1px)}
+.btn-ghost{background:var(--s2);color:var(--ink);border:1px solid var(--line2)}
+.btn-ghost:hover{background:var(--s1);border-color:var(--ink3)}
+
+/* карточки - возвышение тенью, скругление SMM */
+.card,.fcard,.vbox,.bcard,.hero-stat,.scen-tbl,.gantt-wrap,.open-list li{box-shadow:var(--shadow)}
+.hero-note{border-left-color:var(--gold-fill)}
+
+/* статус-пилюли в гамме SMM */
+.pill.done{color:var(--pub);border-color:var(--pub);background:var(--pub-soft)}
+.pill.work{color:var(--gold);border-color:var(--gold-border);background:var(--gold-soft)}
+.pill.talk{color:var(--gg-ink);border-color:var(--gg);background:var(--gg-soft)}
+.pill.gate{color:var(--stop);border-color:var(--stop);background:color-mix(in oklab,var(--stop) 16%,transparent)}
+.status.committed{color:var(--gold);border-color:var(--gold-border)}
+
+/* Гант: заливки баров через токены (тема-независимо, гамма SMM) */
+.gantt .bar.st-work .b-fill{fill:var(--gold-fill)}
+.gantt .bar.st-done .b-fill{fill:var(--keep)}
+.gantt .bar.st-plan .b-fill{fill:var(--s3);stroke:var(--line2)}
+.gantt .bar.st-talk .b-fill{fill:url(#hatch);stroke:var(--line2)}
+.g-gate{fill:var(--stop)}
+.g-today,.lg .st-today{background:var(--gold-fill)}
+.g-today{stroke:var(--gold-fill)}
+.g-today-chip{fill:var(--gold-fill)}
+.g-today-lbl{fill:var(--sel-ink)}
+.lg .st-work{background:var(--gold-fill)}
+.lg .st-done{background:var(--keep)}
+.lg .st-gate{background:var(--stop)}
+.g-dep.hot{stroke:var(--gold-fill)}
+.g-dep-arrow.hot{fill:var(--gold-fill)}
+.bar.hot rect.b-fill{filter:brightness(1.06) drop-shadow(0 2px 7px rgba(0,0,0,.4))}
+.g-tip{background:var(--s1);border-color:var(--line2);box-shadow:var(--shadow-lg)}
+.g-tip .tt-id{color:var(--gold)}

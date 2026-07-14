@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TURBIUM · Заявки, а не отчёты. AI-маркетинг для малого бизнеса</title>
-<meta name="description" content="Настраиваем связки, которые приводят клиентов, и показываем на дашборде цену каждой заявки. Начните с бесплатного AI-аудита в Telegram, 15 минут.">
+<title>TURBIUM · Хватит платить за рекламу вслепую. AI-маркетинг для малого бизнеса</title>
+<meta name="description" content="Приводим заявки и показываем цену каждой на дашборде с первого дня. Начните с бесплатного AI-аудита в Telegram, 15 минут, без карты и созвонов.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="progress" id="progress"></div>
+<div class="refract" aria-hidden="true"><span id="refractFill"></span></div>
 
 <!-- HEADER -->
 <header class="nav">
@@ -29,226 +30,231 @@
 <!-- HERO -->
 <section class="hero">
   <div class="wrap hero-grid">
-    <div>
+    <div class="hero-copy">
       <div class="eyebrow rv">Независимое AI-агентство для малого бизнеса</div>
-      <h1 class="rv d1"><span class="hl">Заявки</span> с рекламы,<br>а не красивые отчёты</h1>
-      <p class="lead rv d2">Настраиваем связки, которые приводят клиентов, и показываем на дашборде, <b>сколько денег принёс каждый рубль</b>. Начните с бесплатного AI-аудита в Telegram, займёт 15 минут.</p>
+      <h1 class="rv d1">Хватит платить за&nbsp;рекламу <span class="hl">вслепую</span></h1>
+      <p class="lead rv d2">Приводим заявки и показываем цену каждой на&nbsp;дашборде с&nbsp;первого дня. Вы видите, за что платите, и&nbsp;останавливаетесь, когда захотите.</p>
       <div class="hero-cta rv d3">
-        <a class="btn btn-primary btn-lg" href="#audit">Получить бесплатный AI-аудит <span class="arr">→</span></a>
-        <a class="btn btn-ghost btn-lg" href="uslugi.html">Что мы делаем</a>
+        <a class="btn btn-solid btn-lg" href="#audit">Разобрать мой бизнес бесплатно <span class="arr">→</span></a>
+        <a class="btn btn-ghost btn-lg" href="#puls">Показать, как это видно</a>
       </div>
-      <div class="hero-note rv d3"><span class="dot"></span> 15 минут в Telegram, без созвонов и без карты</div>
-      <div class="chips rv d4">
-        <span class="chip">от <b>бесплатного аудита</b></span>
-        <span class="chip">без годовых <b>контрактов</b></span>
-        <span class="chip">цена заявки <b>видна с 1 дня</b></span>
-      </div>
+      <div class="hero-note rv d3"><span class="dot"></span> 15 минут в Telegram. Без карты, без созвонов, без продаж.</div>
     </div>
     <div class="tb-stage rv d2">
-      <figure class="gfx has-img" data-ratio="1:1" id="tbTile">
-        <img src="img/hero-tb-tile.jpg" alt="Символ TURBIUM: кристалл-плитка тербия Tb-65, реагент роста бизнеса" fetchpriority="high" decoding="async" width="1254" height="1254">
+      <figure class="gfx has-img tb-tilt" data-ratio="1:1" id="tbTile">
+        <img src="img/hero-tb-tile.jpg" alt="Символ TURBIUM: кристалл-плитка тербия Tb-65, элемент №65 в основе бренда" fetchpriority="high" decoding="async" width="1254" height="1254">
+        <span class="tb-glare" aria-hidden="true"></span>
       </figure>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<!-- MARQUEE · сырой сигнал -->
+<div class="signal" aria-hidden="true">
+  <div class="signal-track">
+    <span>записать на приём</span><i>·</i><span>ответить в 2 ночи</span><i>·</i><span>посчитать смету</span><i>·</i><span>перезвонить по заявке</span><i>·</i><span>куда ушёл бюджет</span><i>·</i><span>кто писал вчера</span><i>·</i><span>сколько стоил клиент</span><i>·</i><span>почему молчит реклама</span><i>·</i>
+    <span>записать на приём</span><i>·</i><span>ответить в 2 ночи</span><i>·</i><span>посчитать смету</span><i>·</i><span>перезвонить по заявке</span><i>·</i><span>куда ушёл бюджет</span><i>·</i><span>кто писал вчера</span><i>·</i><span>сколько стоил клиент</span><i>·</i><span>почему молчит реклама</span><i>·</i>
+  </div>
+  <div class="signal-cap"><span class="amber">сырой поток</span> входящих, в котором тонет бизнес <span class="sep">→</span> мы превращаем его в <span class="mint">понятные заявки</span></div>
+</div>
 
-<!-- PAIN -->
-<section>
+<!-- ЗНАКОМО (пейн-зеркало) -->
+<section id="pain">
   <div class="wrap">
     <div class="sec-head rv">
-      <div class="eyebrow">Знакомо?</div>
-      <h2>Деньги на рекламу уходят,<br>а откуда клиенты, непонятно</h2>
-      <p class="lead muted">Малый бизнес в 2026 режет расходы и хочет понятный результат. Вот что чаще всего болит у собственника до того, как он приходит к нам.</p>
+      <div class="eyebrow amber">Знакомо?</div>
+      <h2 class="fc">Деньги на рекламу уходят,<br>а что происходит - не видно</h2>
     </div>
     <div class="pain-list rv d1">
-      <div class="pain-item"><span class="x">✕</span><p>Заявки где-то теряются: клиент написал и не дождался ответа.</p></div>
-      <div class="pain-item"><span class="x">✕</span><p>Реклама крутится, но вы не знаете, какой рубль сработал, а какой сгорел.</p></div>
-      <div class="pain-item"><span class="x">✕</span><p>Уже платили агентствам и получали красивые отчёты вместо продаж.</p></div>
-      <div class="pain-item"><span class="x">✕</span><p>Клиенты покупают один раз и пропадают, повторных нет.</p></div>
+      <div class="pain-item fc"><span class="x">✕</span><p>Реклама крутится, но какой рубль сработал, а какой сгорел, вы не знаете.</p></div>
+      <div class="pain-item fc"><span class="x">✕</span><p>Заявки где-то теряются: человек написал и не дождался ответа.</p></div>
+      <div class="pain-item fc"><span class="x">✕</span><p>Отчёт от подрядчика есть, а новых клиентов и понимания цифр - нет.</p></div>
     </div>
-    <figure class="gfx has-img rv d2 mt-l" data-ratio="16:9">
-      <img src="img/pain-heat-strip.jpg" alt="Поток заявок утекает: где именно бизнес теряет клиентов и бюджет" loading="lazy" decoding="async" width="1672" height="941">
-    </figure>
-    <div class="stats rv d2 mt-l">
-      <div class="stat"><div class="v nums" data-count="78" data-suf="%">78%</div><div class="k">малого бизнеса работают без маркетинговой стратегии, по наитию</div><div class="s">Источник: НАФИ, 2024</div></div>
-      <div class="stat"><div class="v nums">30-50<small>%</small></div><div class="k">входящих заявок теряется, если их некому быстро обработать</div><div class="s">Источник: KT-Team, 2024</div></div>
-      <div class="stat"><div class="v nums" data-count="24.5" data-dec="1" data-suf="%">24.5%</div><div class="k">селлеров ушли с маркетплейсов за 2025 год</div><div class="s">Источник: Sellmonitor, 2025</div></div>
+    <div class="proof rv d2">
+      <div class="proof-item fc">
+        <div class="v nums" data-count="50" data-suf="%">0%</div>
+        <p>входящих заявок теряется, если их некому быстро обработать</p>
+        <span class="src">Источник: KT-Team, 2024</span>
+      </div>
+      <div class="proof-item fc">
+        <div class="v nums" data-count="24.5" data-dec="1" data-suf="%">0%</div>
+        <p>селлеров ушли с маркетплейсов за 2025 год</p>
+        <span class="src">Источник: Sellmonitor, 2025</span>
+      </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
-
 <!-- ДЛЯ КОГО -->
-<section>
+<section id="dlya-kogo">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="eyebrow">Для кого</div>
-      <h2>Скорее всего, вы<br>один из этих людей</h2>
-      <p class="lead muted">Мы работаем с собственниками малого бизнеса. У каждого своя ситуация, но боль общая: клиентов хочется больше, а куда уходят деньги, непонятно.</p>
+      <h2 class="fc">Скорее всего, вы<br>один из этих пяти</h2>
     </div>
-    <div class="grid g3 rv d1">
-      <div class="card lift seg-card">
+    <div class="seg-grid rv d1">
+      <article class="seg fc">
         <h3>Тонете в текучке</h3>
-        <p class="trig">Заявки где-то теряются, а руки не доходят выстроить систему.</p>
-        <p class="out">→ Настройку берём на себя. От вас 15 минут и доступы.</p>
-      </div>
-      <div class="card lift seg-card">
+        <p class="trig">«Телефон разрывается весь день, а вечером не вспомнить, кто писал и кому ты не ответил.»</p>
+        <p class="out"><span class="ar">→</span> Заявки падают в одно окно и не теряются. Настройку берём на себя, от вас 15 минут и доступы.</p>
+      </article>
+      <article class="seg fc">
         <h3>Обожглись на подрядчиках</h3>
-        <p class="trig">Уже платили за рекламу и получали только красивые отчёты.</p>
-        <p class="out">→ Цену каждой заявки видите на дашборде с первого дня.</p>
-      </div>
-      <div class="card lift seg-card">
+        <p class="trig">«Заплатил за рекламу, получил PDF на двадцать слайдов и ноль новых клиентов.»</p>
+        <p class="out"><span class="ar">→</span> Вместо слайдов дашборд: цена каждой заявки видна с первого дня. Не нравятся цифры - останавливаемся.</p>
+      </article>
+      <article class="seg fc">
         <h3>Только стартовали</h3>
-        <p class="trig">Запустились недавно и боитесь слить первый бюджет впустую.</p>
-        <p class="out">→ Начинаем с бесплатного аудита и одной связки на малом бюджете.</p>
-      </div>
-      <div class="card lift seg-card">
+        <p class="trig">«Бюджет на старт один, и слить его в трубу страшно до дрожи.»</p>
+        <p class="out"><span class="ar">→</span> Начинаем с бесплатного аудита и одной связки на малых деньгах. Сначала проверяем, потом вкладываем.</p>
+      </article>
+      <article class="seg fc">
         <h3>Упёрлись в потолок</h3>
-        <p class="trig">Поток клиентов есть, но часть лидов утекает, и вы не видите куда.</p>
-        <p class="out">→ Дашборд показывает, на каком шаге воронки вы теряете клиентов.</p>
-      </div>
-      <div class="card lift seg-card">
+        <p class="trig">«Заявок вроде хватает, а выручка стоит, и где именно теряю - не понимаю.»</p>
+        <p class="out"><span class="ar">→</span> Дашборд показывает, на каком шаге воронки утекают клиенты. Латаем дырку, а не льём сверху ещё бюджет.</p>
+      </article>
+      <article class="seg fc">
         <h3>Ушли с маркетплейса</h3>
-        <p class="trig">Устали от комиссий и хотите приводить клиентов в свои каналы.</p>
-        <p class="out">→ Строим поток в ваши каналы: квиз, база, карты и отзывы.</p>
-      </div>
-      <div class="card seg-card" style="display:flex;flex-direction:column;justify-content:center;border-style:dashed">
-        <p class="muted" style="margin:0">Не узнали себя? Пройдите бесплатный аудит, он подскажет, где именно у вас утекают деньги.</p>
-        <a class="rd mint mt-m" href="#audit" style="font-size:14px">Пройти аудит →</a>
-      </div>
+        <p class="trig">«Отдал площадке комиссию, а клиент так и остался её, не моим.»</p>
+        <p class="out"><span class="ar">→</span> Строим поток в ваши каналы: квиз, база, карты, отзывы. Клиент приходит к вам и остаётся вашим.</p>
+      </article>
+      <a class="seg seg-cta fc" href="#audit">
+        <p>Не узнали себя?</p>
+        <h3>Аудит подскажет,<br>где утекают деньги</h3>
+        <span class="ar-lg">→</span>
+      </a>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<!-- ЧТО ВЫ УВИДИТЕ · ПУЛЬС -->
+<section id="puls" class="deep">
+  <div class="wrap">
+    <div class="grid g2 puls-grid">
+      <div class="puls-copy rv">
+        <div class="eyebrow mint">Что вы увидите</div>
+        <h2 class="fc">Дашборд Пульс:<br>маркетинг на языке денег</h2>
+        <p class="lead muted fc">Три цифры, без единого термина. Сколько пришло заявок, во сколько обошлась каждая и сколько денег они принесли. Решения принимаете по числам, а не по ощущениям.</p>
+        <ul class="puls-points fc">
+          <li><span class="ar">→</span> Видно в реальном времени, а не раз в месяц в презентации</li>
+          <li><span class="ar">→</span> Понятно без маркетолога-переводчика</li>
+          <li><span class="ar">→</span> Не сходятся цифры - вы это видите первым и жмёте стоп</li>
+        </ul>
+      </div>
+      <div class="puls-panel rv d1 fc">
+        <div class="panel-head"><span>Пульс · сводка за месяц</span><span class="demo">демо</span></div>
+        <div class="panel-metrics">
+          <div class="metric"><div class="mv nums" data-count="128">0</div><div class="mk">заявок</div></div>
+          <div class="metric"><div class="mv nums" data-count="340" data-suf=" ₽">0</div><div class="mk">цена заявки</div></div>
+          <div class="metric"><div class="mv nums" data-count="612" data-suf=" тыс">0</div><div class="mk">выручка с них</div></div>
+        </div>
+        <div class="panel-bars">
+          <span style="--h:38%"></span><span style="--h:52%"></span><span style="--h:44%"></span><span style="--h:66%"></span><span style="--h:59%"></span><span style="--h:78%"></span><span style="--h:71%"></span><span class="on" style="--h:92%"></span>
+        </div>
+        <div class="panel-foot">Цифры на примере. У вас будут ваши, из ваших кабинетов и CRM.</div>
+      </div>
+    </div>
+    <figure class="gfx has-img rv d1 mt-l case-frame" data-ratio="3:2">
+      <span class="gfx-badge">модель</span>
+      <img src="img/case-before-after.jpg" alt="До и после: слева хаос из потерянных заявок, справа ровный поток через систему" loading="lazy" decoding="async" width="1536" height="1024">
+    </figure>
+    <p class="src center rv d1 mt-s">Иллюстрация механики «до и после». Не обещание конкретных цифр - их вы увидите на своём дашборде.</p>
+  </div>
+</section>
 
-<!-- ЧТО ДЕЛАЕМ -->
-<section>
+<!-- СВЯЗКИ -->
+<section id="svyazki">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="eyebrow">Что мы делаем</div>
-      <h2>Готовые связки, которые<br>приводят клиентов</h2>
-      <p class="lead muted">Не абстрактный маркетинг, а собранные под ключ механизмы привлечения. Каждый решает одну задачу и понятен без терминов.</p>
+      <h2 class="fc">Готовые связки,<br>которые ловят заявки</h2>
+      <p class="lead muted fc">Не абстрактный маркетинг, а готовые механизмы под конкретную задачу. Каждый решает одну проблему и понятен без терминов.</p>
     </div>
     <div class="svc rv d1">
-      <div class="card lift svc-item">
+      <div class="svc-item fc">
+        <span class="svc-n">01</span>
         <h3>Квиз-ловушка</h3>
-        <p class="p">Короткий тест вместо скучной формы: вовлекает человека из рекламы и превращает в заявку. Заявка сразу падает вам, а не теряется.</p>
+        <p class="p">Короткий тест вместо скучной формы. Вовлекает человека из рекламы и превращает в заявку, которая сразу падает вам.</p>
         <div class="meta"><span class="price">от 24 990 ₽</span><span class="tag">услуги, запись, замер</span></div>
       </div>
-      <div class="card lift svc-item">
+      <div class="svc-item fc">
+        <span class="svc-n">02</span>
         <h3>Магнит и прогрев</h3>
         <p class="p">Даём человеку пользу бесплатно, а дальше цепочка сообщений мягко доводит его до покупки. Без звонков в лоб.</p>
         <div class="meta"><span class="price">от 24 990 ₽</span><span class="tag">эксперты, услуги, B2B</span></div>
       </div>
-      <div class="card lift svc-item">
+      <div class="svc-item fc">
+        <span class="svc-n">03</span>
         <h3>Карты и отзывы</h3>
-        <p class="p">Наводим порядок в Яндекс Картах и 2ГИС и запускаем сбор отзывов. Вас находят рядом и выбирают. Трафик, который не надо докупать каждый раз.</p>
+        <p class="p">Наводим порядок в Яндекс Картах и 2ГИС, запускаем сбор отзывов. Вас находят рядом и выбирают. Этот трафик не надо докупать.</p>
         <div class="meta"><span class="price">от 19 990 ₽</span><span class="tag">локальный бизнес</span></div>
       </div>
-      <div class="card lift svc-item">
+      <div class="svc-item fc">
+        <span class="svc-n">04</span>
         <h3>Реанимация базы</h3>
-        <p class="p">Поднимаем ваших старых клиентов и зависшие заявки и возвращаем часть в покупку. Самый дешёвый источник выручки, он уже у вас в базе.</p>
+        <p class="p">Поднимаем старых клиентов и зависшие заявки, возвращаем часть в покупку. Это дешевле новой рекламы: эти люди уже вас знают.</p>
         <div class="meta"><span class="price">от 19 990 ₽</span><span class="tag">у кого есть база</span></div>
       </div>
     </div>
-    <figure class="gfx has-img rv d2 mt-l" data-ratio="3:2">
-      <img src="img/services-rail-node.jpg" alt="Связка собирает поток заявок в один узел и распределяет по каналам" loading="lazy" decoding="async" width="1536" height="1024">
-    </figure>
     <div class="center mt-l rv d2">
-      <a class="btn btn-ghost" href="uslugi.html">Все услуги и цены <span class="arr">→</span></a>
+      <a class="btn btn-ghost" href="uslugi.html">Все связки и цены <span class="arr">→</span></a>
     </div>
   </div>
 </section>
 
-<hr class="divider">
-
-<!-- КАК РАБОТАЕМ -->
-<section>
+<!-- КАК РАБОТАЕМ (sticky огранка процесса) -->
+<section id="kak" class="process">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="eyebrow">Как мы работаем</div>
-      <h2>Четыре шага от заявки<br>до потока клиентов</h2>
+      <h2 class="fc">Четыре шага от заявки<br>до потока клиентов</h2>
     </div>
-    <div class="grid g2" style="align-items:start">
-      <div class="steps rv d1">
-        <div class="step"><div class="sn">1</div><div><h3>Бесплатный AI-аудит</h3><p>15 минут в Telegram. Показываем, где именно вы теряете заявки и деньги. Ничего не продаём, вы сами решаете, что делать дальше.</p></div></div>
-        <div class="step"><div class="sn">2</div><div><h3>Собираем первую связку</h3><p>Берём одну задачу и запускаем её на небольшом бюджете. Проверяем на деле, что работает, прежде чем вкладывать больше.</p></div></div>
-        <div class="step"><div class="sn">3</div><div><h3>Подключаем дашборд Пульс</h3><p>Вы видите три цифры на языке денег: сколько заявок, сколько стоила каждая, сколько принесла. Без терминов и без веры на слово.</p></div></div>
-        <div class="step"><div class="sn">4</div><div><h3>Масштабируем то, что сработало</h3><p>Оставляем работающее, отключаем лишнее. Не устраивают цифры, останавливаемся. Связки и доступы остаются у вас.</p></div></div>
+    <div class="proc-scene">
+      <div class="proc-visual">
+        <figure class="gfx has-img" data-ratio="4:5">
+          <img src="img/process-timeline-vertical.jpg" alt="Путь от боли к росту: четыре ступени, снизу вверх от янтарной к мятной" loading="lazy" decoding="async" width="1122" height="1402">
+        </figure>
       </div>
-      <figure class="gfx has-img rv d2" data-ratio="4:5">
-        <img src="img/process-timeline-vertical.jpg" alt="Путь от боли к росту: четыре ступени, снизу вверх от янтарной к мятной" loading="lazy" decoding="async" width="1122" height="1402">
-      </figure>
+      <div class="proc-steps">
+        <div class="pstep fc" data-step="1"><div class="pn">01</div><div><h3>Бесплатный AI-аудит</h3><p>15 минут в Telegram. Показываем, где именно вы теряете заявки и деньги. Ничего не продаём - решаете сами.</p></div></div>
+        <div class="pstep fc" data-step="2"><div class="pn">02</div><div><h3>Собираем первую связку</h3><p>Берём одну задачу и запускаем на небольшом бюджете. Проверяем на деле, прежде чем вкладывать больше.</p></div></div>
+        <div class="pstep fc" data-step="3"><div class="pn">03</div><div><h3>Включаем дашборд Пульс</h3><p>Цена заявки и выручка - перед глазами с первого дня. Без веры на слово, всё в цифрах.</p></div></div>
+        <div class="pstep fc" data-step="4"><div class="pn">04</div><div><h3>Растим то, что сработало</h3><p>Усиливаем работающее, отключаем лишнее. Не устраивают цифры - останавливаемся. Связки остаются у вас.</p></div></div>
+      </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
-
-<!-- ДОВЕРИЕ -->
-<section>
+<!-- ПОЧЕМУ ВЕРИТЬ -->
+<section id="trust">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="eyebrow">Почему нам можно верить</div>
-      <h2>Мы молодые. И это<br>работает на вас</h2>
-      <p class="lead muted">Громких кейсов с именами у нас пока нет, и мы честно об этом говорим. Поэтому вы заходите на пилотных ценах и без обязательств: рискуете меньше, а внимания к вашему проекту получаете больше, чем у загруженного агентства.</p>
+      <h2 class="fc">Мы молодые.<br>И это работает на вас</h2>
+      <p class="lead muted fc">Громких кейсов с именами у нас пока нет, и мы говорим это прямо. Поэтому вы заходите на пилотных ценах и без обязательств: рискуете меньше, а внимания получаете больше, чем у загруженного агентства.</p>
     </div>
     <div class="trust rv d1">
-      <div class="card lift">
-        <h3>Всё в цифрах, а не на словах</h3>
-        <p>Цену заявки и всю воронку вы видите на дашборде с первого дня. Не нравятся цифры, останавливаемся. Никаких годовых контрактов.</p>
-      </div>
-      <div class="card lift">
-        <h3>Первый шаг бесплатный, первый бюджет маленький</h3>
-        <p>Начинаете с аудита за 0 ₽ и одной связки на небольшом бюджете. Сначала проверяем, потом масштабируем. Вы рискуете малым.</p>
-      </div>
-      <div class="card lift">
-        <h3>Каждая цифра с источником</h3>
-        <p>Не можем показать, откуда взяли число, не пишем его. Проверяемость вместо обещаний. Инфоцыганщину мы сами терпеть не можем.</p>
-      </div>
+      <div class="fc trust-card"><h3>Заявки, а не отчёты</h3><p>Цену заявки и всю воронку видите на дашборде с первого дня. Не сошлись цифры - выходите в любой момент, без годовых контрактов.</p></div>
+      <div class="fc trust-card"><h3>Первый шаг - ноль рублей</h3><p>Начинаете с аудита за 0 ₽ и одной связки на малом бюджете. Сначала проверяем, потом масштабируем.</p></div>
+      <div class="fc trust-card"><h3>Каждая цифра с источником</h3><p>Не можем показать, откуда взяли число - не пишем его. Проверяемость вместо обещаний.</p></div>
     </div>
   </div>
 </section>
-
-<hr class="divider">
-
-<!-- КЕЙСЫ-ФРЕЙМ (модель) -->
-<section>
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="eyebrow">Как это выглядит</div>
-      <h2>До и после: наглядно</h2>
-      <p class="lead muted">Реальные кейсы клиентов появятся здесь по мере запуска. Пока показываем на модельном примере, как меняется картина, когда заявки перестают теряться. Это иллюстрация механики, а не обещание конкретных цифр.</p>
-    </div>
-    <figure class="gfx has-img rv d1" data-ratio="3:2">
-      <span class="gfx-badge">модель</span>
-      <img src="img/case-before-after.jpg" alt="До и после: слева хаос из потерянных заявок, справа ровный поток через систему" loading="lazy" decoding="async" width="1536" height="1024">
-    </figure>
-  </div>
-</section>
-
-<hr class="divider">
 
 <!-- FAQ -->
-<section>
+<section id="faq">
   <div class="wrap">
     <div class="sec-head rv">
       <div class="eyebrow">Вопросы</div>
-      <h2>Что обычно спрашивают<br>до заявки</h2>
+      <h2 class="fc">Что обычно спрашивают<br>до заявки</h2>
     </div>
     <div class="faq rv d1">
-      <details><summary>Сколько это стоит?</summary><div class="a">Цены сейчас пилотные, потому что мы набираем первые кейсы. Ориентиры есть на странице услуг. Точную сумму под вашу задачу назовём после бесплатного аудита, без него это была бы цифра с потолка.</div></details>
-      <details><summary>Вы гарантируете результат?</summary><div class="a">Гарантируем прозрачность: цену заявки и все цифры вы видите на дашборде. Обещать «100 клиентов к пятнице» мы не будем, это признак тех, кто вас уже разочаровал.</div></details>
-      <details><summary>У вас есть кейсы?</summary><div class="a">Честно: громких кейсов с именами пока нет, мы молодая команда. Поэтому и держим пилотные цены и не запираем в контракты. Вы рискуете меньше, чем с раскрученным агентством, а внимания получаете больше.</div></details>
-      <details><summary>Что от меня нужно и сколько времени займёт?</summary><div class="a">15 минут на аудит, доступы к рекламным кабинетам и полчаса на созвон по продукту. Всю настройку делаем сами.</div></details>
-      <details><summary>Это же просто перепроданный ChatGPT?</summary><div class="a">Нет. AI мы используем внутри, чтобы быстрее собирать аудит и связки. Вы платите за собранную систему и нашу работу, а не за доступ к нейросети.</div></details>
-      <details><summary>А если не сработает, я привязан надолго?</summary><div class="a">Нет годовых обязательств. Не устраивают цифры на дашборде, останавливаемся. Связки и доступы остаются у вас.</div></details>
-      <details><summary>Чем вы отличаетесь от агентства, которое меня уже кинуло?</summary><div class="a">Мы показываем цену клиента в реальном времени, а не раз в месяц в презентации. И начинаем с малого бюджета, а не с «дайте триста тысяч на тест».</div></details>
-      <details><summary>Я не разбираюсь в маркетинге, я пойму, что вы делаете?</summary><div class="a">Да. Дашборд Пульс показывает три вещи на языке денег: сколько заявок, сколько стоила каждая, сколько принесла. Без терминов.</div></details>
+      <details class="fc"><summary>Сколько это стоит?</summary><div class="a">Цены сейчас пилотные, мы набираем первые кейсы. Ориентиры есть на странице услуг. Точную сумму под вашу задачу назовём после бесплатного аудита - без него это была бы цифра с потолка.</div></details>
+      <details class="fc"><summary>Вы гарантируете клиентов?</summary><div class="a">Гарантируем, что цену заявки и все цифры вы увидите на дашборде. Обещать «100 клиентов к пятнице» мы не будем - это признак тех, кто вас уже разочаровал.</div></details>
+      <details class="fc"><summary>У вас есть кейсы?</summary><div class="a">Честно: громких кейсов с именами пока нет, мы молодая команда. Поэтому цены пилотные, и в контракт на год мы вас не запираем. Вы платите меньше на старте и получаете больше личного внимания, чем в раскрученном агентстве, где вы клиент номер двести.</div></details>
+      <details class="fc"><summary>Это же просто перепроданный ChatGPT?</summary><div class="a">Нет. AI мы используем внутри, чтобы быстрее собирать аудит и связки. Вы платите за собранную систему и нашу работу, а не за доступ к нейросети.</div></details>
+      <details class="fc"><summary>А если не сработает, я привязан надолго?</summary><div class="a">Нет годовых обязательств. Не устраивают цифры на дашборде - останавливаемся. Связки и доступы остаются у вас.</div></details>
+      <details class="fc"><summary>Я не разбираюсь в маркетинге, я пойму, что вы делаете?</summary><div class="a">Да. Пульс показывает три вещи на языке денег: сколько заявок, сколько стоила каждая, сколько принесла. Без терминов.</div></details>
     </div>
   </div>
 </section>
@@ -257,8 +263,8 @@
 <section class="lead-block" id="audit">
   <div class="wrap">
     <div class="sec-head center rv" style="margin:0 auto 32px">
-      <h2>Хочу заявки, а не отчёты</h2>
-      <p class="lead muted" style="margin:0 auto">Оставьте контакт, и мы пришлём разбор вашего маркетинга. Ничего не продаём на аудите: покажем, где вы теряете заявки, и вы сами решите, работать дальше или нет.</p>
+      <h2 class="fc">Хватит гадать. Давайте посмотрим<br>ваши цифры вместе</h2>
+      <p class="lead muted fc" style="margin:0 auto">Оставьте контакт - пришлём разбор вашего маркетинга. На аудите ничего не продаём: покажем, где утекают заявки, а работать дальше или нет, решите вы.</p>
     </div>
     <div class="form-tile rv d1" id="formTile">
       <form id="leadForm">
@@ -282,7 +288,7 @@
       </form>
       <div class="form-ok" id="formOk">
         <div class="big">Готово</div>
-        <p class="muted mt-s">Спасибо. Мы свяжемся в течение рабочего дня. Хотите быстрее, напишите прямо в бот <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>.</p>
+        <p class="muted mt-s">Спасибо. Мы свяжемся в течение рабочего дня. Хотите быстрее - напишите прямо в бот <a class="mint" href="https://t.me/turbium_bot" rel="noopener">@turbium_bot</a>.</p>
       </div>
     </div>
   </div>
@@ -293,7 +299,7 @@
   <div class="wrap foot-grid">
     <div class="foot-brand">
       <a class="brand" href="index.html"><span class="tb-mark">Tb<small>65</small></span> TURBIUM</a>
-      <p>Независимое AI-агентство для малого бизнеса. Приводим заявки и показываем цену каждой. Элемент вашего роста.</p>
+      <p>Независимое AI-агентство для малого бизнеса. Приводим заявки и показываем цену каждой. Tb - тербий, элемент №65: малая доза, заметный эффект.</p>
     </div>
     <div>
       <h4>Разделы</h4>
@@ -315,8 +321,7 @@
   </div>
 </footer>
 
-<!-- sticky echo CTA -->
-<div class="echo" id="echo"><a href="#audit"><span class="tb-mark" style="width:26px;height:26px;font-size:12px;border-color:rgba(6,35,27,.3);color:#06231b;box-shadow:none;background:none">Tb</span><span class="txt">Бесплатный аудит</span></a></div>
+<div class="echo" id="echo"><a href="#audit"><span class="tb-mark" style="width:26px;height:26px;font-size:12px;border-color:rgba(10,20,15,.3);color:#0A140F;background:none">Tb</span><span class="txt">Бесплатный аудит</span></a></div>
 
 <script src="app.js"></script>
 </body>

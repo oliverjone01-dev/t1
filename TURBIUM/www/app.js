@@ -16,17 +16,18 @@
     });
   }
 
-  /* reveal on scroll */
-  var rv = document.querySelectorAll('.rv');
+  /* reveal on scroll (огранка-reveal + fade) */
+  var rv = document.querySelectorAll('.rv, .fc, .puls-panel');
   if('IntersectionObserver' in window && !reduce){
     var io = new IntersectionObserver(function(en){
       en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-    }, {threshold:.14, rootMargin:'0px 0px -6% 0px'});
+    }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
     rv.forEach(function(e){ io.observe(e); });
   } else { rv.forEach(function(e){ e.classList.add('in'); }); }
 
   /* scroll progress + sticky echo */
   var bar = document.getElementById('progress');
+  var refract = document.getElementById('refractFill');
   var echo = document.getElementById('echo');
   var hero = document.querySelector('.hero, .phead');
   var t=false;
@@ -36,6 +37,7 @@
       var h=document.documentElement, max=h.scrollHeight-h.clientHeight;
       var p = max>0 ? (h.scrollTop||pageYOffset)/max : 0;
       if(bar) bar.style.width = (p*100)+'%';
+      if(refract) refract.style.height = (p*100)+'%';
       if(echo){
         var past = (pageYOffset > (hero?hero.offsetHeight:600));
         echo.classList.toggle('show', past && p < .93);
@@ -45,13 +47,27 @@
   }
   addEventListener('scroll', onScroll, {passive:true}); onScroll();
 
+  /* sticky-огранка процесса: подсветка активного шага (desktop) */
+  var psteps = document.querySelectorAll('.pstep');
+  if(psteps.length && 'IntersectionObserver' in window){
+    var po = new IntersectionObserver(function(en){
+      en.forEach(function(e){
+        if(e.isIntersecting && matchMedia('(min-width:860px)').matches){
+          psteps.forEach(function(s){ s.classList.remove('active'); });
+          e.target.classList.add('active');
+        }
+      });
+    }, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+    psteps.forEach(function(s){ po.observe(s); });
+  }
+
   /* count-up */
   function fmt(v,d){ return d>0 ? v.toFixed(d) : Math.round(v).toString(); }
   function count(el){
     var to=parseFloat(el.dataset.count), d=parseInt(el.dataset.dec||'0',10), suf=el.dataset.suf||'';
     if(reduce){ el.textContent=fmt(to,d)+suf; return; }
-    var s=null, dur=1300;
-    function step(ts){ if(!s)s=ts; var p=Math.min((ts-s)/dur,1), e=1-Math.pow(1-p,3);
+    var s=null, dur=1400;
+    function step(ts){ if(!s)s=ts; var p=Math.min((ts-s)/dur,1), e=1-Math.pow(1-p,4);
       el.textContent=fmt(to*e,d)+suf; if(p<1)requestAnimationFrame(step); else el.textContent=fmt(to,d)+suf; }
     requestAnimationFrame(step);
   }
@@ -61,15 +77,27 @@
     cs.forEach(function(c){co.observe(c);});
   } else cs.forEach(count);
 
-  /* Tb-момент: одна сдержанная сборка плитки на входе, без параллакса */
+  /* интерактивная плитка Tb: наклон + блик (только точный указатель) */
   var tile=document.getElementById('tbTile');
   if(tile && !reduce){
-    tile.style.opacity='0';
-    tile.style.transform='scale(.965)';
-    tile.style.transition='opacity .8s var(--ease,ease), transform .8s var(--ease,ease)';
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      tile.style.opacity='1';tile.style.transform='none';
-    });});
+    var glare=tile.querySelector('.tb-glare');
+    if(tile.animate){ tile.style.opacity='0'; tile.animate([{opacity:0},{opacity:1}],{duration:700,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'}); }
+    else { tile.style.opacity='1'; }
+    if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+      var raf=false;
+      tile.addEventListener('pointermove',function(ev){
+        if(raf)return; raf=true;
+        requestAnimationFrame(function(){
+          var r=tile.getBoundingClientRect();
+          var x=(ev.clientX-r.left)/r.width, y=(ev.clientY-r.top)/r.height;
+          tile.style.setProperty('--ry',((x-.5)*6).toFixed(2)+'deg');
+          tile.style.setProperty('--rx',((.5-y)*6).toFixed(2)+'deg');
+          if(glare){glare.style.setProperty('--gx',(x*100).toFixed(1)+'%');glare.style.setProperty('--gy',(y*100).toFixed(1)+'%');}
+          raf=false;
+        });
+      });
+      tile.addEventListener('pointerleave',function(){tile.style.setProperty('--ry','0deg');tile.style.setProperty('--rx','0deg');});
+    }
   }
 
   /* lead form: progressive disclosure + honest submit

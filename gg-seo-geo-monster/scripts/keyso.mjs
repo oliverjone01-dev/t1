@@ -108,6 +108,53 @@ async function call(url, token) {
 async function safeText(res) { try { return (await res.text()).slice(0, 300); } catch { return ""; } }
 function nowIso() { return new Date().toISOString(); }
 
+/* ---------- DEEP-режим: выпотрошить keys.so по каждому домену ----------
+   Групповой отчёт (домен + genglass.ru для сравнения) -> 4 среза:
+   organic/keywords (семантика с позициями), context/keywords (PPC-ключи),
+   context/ads (тексты объявлений), organic/sitepages (топ-страницы).
+   Включается env DEEP=1. Расход: ~6-8 запросов на домен. */
+const DEEP = process.env.DEEP === "1";
+async function callJSON(url, token, opts) {
+  const headers = Object.assign({ "X-Keyso-TOKEN": token, "auth-token": token, Accept: "application/json" }, opts && opts.headers);
+  const res = await fetch(url, Object.assign({ headers }, opts && opts.body ? { method: "POST", body: opts.body } : {}));
+  const text = await res.text();
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${text.slice(0, 160)}`);
+  return JSON.parse(text);
+}
+async function deepCollect(domain, token, outBase) {
+  const own = "genglass.ru";
+  const domains = domain === own ? [own, "loftcase.ru"] : [domain, own];
+  const created = await callJSON(BASE + "/report/group", token, {
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ base: DB, top: 50, domains, name: `deep-${domain}-${nowIso().slice(0, 10)}` })
+  });
+  const rid = created.rid || created.id;
+  if (!rid) throw new Error("rid не получен: " + JSON.stringify(created).slice(0, 120));
+  const SLICES = [
+    ["organic_keywords", `/report/group/organic/keywords/${rid}?page=1&per_page=${PER}`],
+    ["context_keywords", `/report/group/context/keywords/${rid}?page=1&per_page=${PER}`],
+    ["context_ads", `/report/group/context/ads/${rid}?page=1&per_page=50`],
+    ["sitepages", `/report/group/organic/sitepages/${rid}?page=1&per_page=50`]
+  ];
+  const status = {};
+  for (const [name, path] of SLICES) {
+    let json = null;
+    for (let a = 1; a <= 5; a++) {
+      json = await callJSON(BASE + path, token);
+      if (!(json && json.code === 202)) break;
+      console.warn(`    ${name}: отчёт готовится (202), жду 40с (${a}/5)`);
+      await sleep(40000);
+    }
+    if (json && json.code === 202) { status[name] = "pending-202"; continue; }
+    const file = join(outBase, `${name}.json`);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, JSON.stringify({ domain, vs: domains, report: name, measured: nowIso(), data: json }, null, 1) + "\n");
+    status[name] = "ok";
+    await sleep(1200);
+  }
+  return status;
+}
+
 async function main() {
   if (!existsSync(targetsPath)) throw new Error(`Нет файла целей: ${targetsPath}`);
   const cfg = JSON.parse(readFileSync(targetsPath, "utf8"));
@@ -140,6 +187,12 @@ async function main() {
         summary.reports[rep] = e.pending ? "pending-202 (добрать следующим прогоном)" : `error: ${String(e.message).slice(0, 160)}`;
       }
       if (delay) await sleep(delay);
+    }
+    if (DEEP && !DRY) {
+      try {
+        summary.deep = await deepCollect(t.domain, token, join(outDir, t.domain.replace(/[^\w.-]/g, "_"), "deep"));
+        console.log(`  deep: ${JSON.stringify(summary.deep)}`);
+      } catch (e) { summary.deep = "error: " + String(e.message).slice(0, 140); console.warn("  deep:", e.message); }
     }
     index.targets.push(summary);
   }

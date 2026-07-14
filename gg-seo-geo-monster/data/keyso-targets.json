@@ -1,106 +1,142 @@
 {
-  "_note": "Разведка keys.so: рынок стальных межкомнатных перегородок РФ (goal Ивана 10.07). Отчёты: dashboard (KPI+ai+конкуренты) + competitors (пересечение выдачи). Лимит 3000/сутки.",
-  "updated": "2026-07-10",
-  "targets": [
-    {
-      "domain": "genglass.ru",
-      "brand": "GENGLASS",
-      "role": "own",
-      "reports": [
-        "dashboard",
-        "competitors",
-        "ad_history"
-      ]
-    },
-    {
-      "domain": "loftkrel.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "ivegroup.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "loftcase.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "mosgor-okna.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "peregorodki-glass.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "vo-zavod.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "loft-peregorodki-spb.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "alfaporta.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "union.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    },
-    {
-      "domain": "xn----7sbb2alsf9bq.xn--p1ai",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": [
-        "dashboard",
-        "competitors"
-      ]
-    }
-  ]
+ "_note": "Разведка keys.so: рынок перегородок РФ. deep=1 собирает по каждому домену групповой отчёт (семантика+PPC-ключи+объявления+топ-страницы). discovered - авто-дискавери из concs.",
+ "updated": "2026-07-14",
+ "targets": [
+  {
+   "domain": "genglass.ru",
+   "brand": "GENGLASS",
+   "role": "own",
+   "reports": [
+    "dashboard",
+    "competitors",
+    "ad_history"
+   ]
+  },
+  {
+   "domain": "loftkrel.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "ivegroup.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "loftcase.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "mosgor-okna.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "peregorodki-glass.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "vo-zavod.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "loft-peregorodki-spb.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "alfaporta.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "union.ru",
+   "brand": null,
+   "role": "competitor-peregorodki",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "lain-loft.ru",
+   "brand": null,
+   "role": "competitor-peregorodki-discovered",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "glasstroy.ru",
+   "brand": null,
+   "role": "competitor-peregorodki-discovered",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "kelman-stroi.ru",
+   "brand": null,
+   "role": "competitor-peregorodki-discovered",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "fantasia-stekla.ru",
+   "brand": null,
+   "role": "competitor-peregorodki-discovered",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "intereruyut.ru",
+   "brand": null,
+   "role": "competitor-peregorodki-discovered",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  }
+ ]
 }

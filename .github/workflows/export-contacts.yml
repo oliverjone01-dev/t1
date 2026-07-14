@@ -1,0 +1,64 @@
+# Разовый экспорт контактов сделок (предоплата получена -> успех) за год в .xlsx.
+# Запускается вручную (workflow_dispatch). Данные берёт из Bitrix24 (нужен секрет
+# B24_WEBHOOK_URL), скрипт и analytics-mvp живут на ветке rop-dashboard-v1.
+name: Экспорт контактов сделок (предоплата-успех)
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: export-contacts
+  cancel-in-progress: false
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rop-dashboard-v1
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Проверка секрета
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан."; exit 1
+          fi
+
+      - name: Экспорт из Bitrix -> xlsx
+        working-directory: analytics-mvp
+        run: node src/scripts/b24/export-won-contacts.mjs
+
+      - name: Артефакт (скачивается из вкладки Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: won-contacts-xlsx
+          path: analytics-mvp/exports/won-contacts.xlsx
+          if-no-files-found: error
+
+      - name: Коммит файла в rop-dashboard-v1
+        working-directory: analytics-mvp
+        run: |
+          set -e
+          git config user.name "gengroup-export-bot"
+          git config user.email "export-bot@gengroup.local"
+          git add -f exports/won-contacts.xlsx
+          git commit -m "export: контакты сделок предоплата->успех за год" || { echo "нет изменений"; exit 0; }
+          for i in 1 2 3 4; do
+            git push origin HEAD:rop-dashboard-v1 && break || {
+              echo "push $i не удался, ребейз и повтор";
+              git fetch origin rop-dashboard-v1 && git rebase origin/rop-dashboard-v1 || true;
+              sleep $((i*2));
+            }
+          done

@@ -16,14 +16,17 @@
     });
   }
 
-  /* reveal on scroll (огранка-reveal + fade) */
-  var rv = document.querySelectorAll('.rv, .fc, .puls-panel');
-  if('IntersectionObserver' in window && !reduce){
-    var io = new IntersectionObserver(function(en){
-      en.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-    }, {threshold:.12, rootMargin:'0px 0px -6% 0px'});
-    rv.forEach(function(e){ io.observe(e); });
-  } else { rv.forEach(function(e){ e.classList.add('in'); }); }
+  /* reveal (по позиции в rAF-скролле: надёжно при любой скорости, без дыр) */
+  var revEls = [].slice.call(document.querySelectorAll('.rv, .fc, .puls-panel'));
+  if(reduce){ revEls.forEach(function(e){ e.classList.add('in'); }); revEls=[]; }
+  function revealPass(){
+    if(!revEls.length) return;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    revEls = revEls.filter(function(e){
+      if(e.getBoundingClientRect().top < vh*0.92){ e.classList.add('in'); return false; }
+      return true;
+    });
+  }
 
   /* scroll progress + sticky echo */
   var bar = document.getElementById('progress');
@@ -38,6 +41,7 @@
       var p = max>0 ? (h.scrollTop||pageYOffset)/max : 0;
       if(bar) bar.style.width = (p*100)+'%';
       if(refract) refract.style.height = (p*100)+'%';
+      revealPass();
       if(echo){
         var past = (pageYOffset > (hero?hero.offsetHeight:600));
         echo.classList.toggle('show', past && p < .93);
@@ -45,7 +49,12 @@
       t=false;
     });
   }
-  addEventListener('scroll', onScroll, {passive:true}); onScroll();
+  var revTimer;
+  function onScrollSafe(){ onScroll(); clearTimeout(revTimer); revTimer=setTimeout(revealPass,140); }
+  addEventListener('scroll', onScrollSafe, {passive:true});
+  addEventListener('resize', onScrollSafe, {passive:true});
+  addEventListener('load', function(){ onScroll(); setTimeout(revealPass,60); });
+  onScroll();
 
   /* sticky-огранка процесса: подсветка активного шага (desktop) */
   var psteps = document.querySelectorAll('.pstep');

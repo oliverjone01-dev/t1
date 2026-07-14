@@ -421,9 +421,10 @@
     function grad(id, c1, c2) { var g = sv("linearGradient", { id: id, x1: 0, y1: 0, x2: 0, y2: 1 }); g.appendChild(sv("stop", { offset: 0, "stop-color": c1 })); g.appendChild(sv("stop", { offset: 1, "stop-color": c2 })); defs.appendChild(g); }
     grad("g-work", "#DABB7E", "#B18B39");
     grad("g-done", "#7FCF9C", "#3E5A46");
-    var pat = sv("pattern", { id: "hatch", width: 7, height: 7, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
-    pat.appendChild(sv("rect", { width: 7, height: 7, fill: "var(--paper-3)" }));
-    pat.appendChild(sv("rect", { width: 3.5, height: 7, fill: "var(--paper-2)" }));
+    grad("g-plan", "#8093AE", "#515F79");
+    var pat = sv("pattern", { id: "hatch", width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
+    pat.appendChild(sv("rect", { width: 8, height: 8, fill: "#6E5A34" }));
+    pat.appendChild(sv("rect", { width: 4, height: 8, fill: "#D9BC7E" }));
     defs.appendChild(pat);
     rsvg.appendChild(defs);
     var rroot = sv("g"); rsvg.appendChild(rroot);
@@ -471,11 +472,12 @@
     order.forEach(function (o) {
       var x = xR(o.s), w = Math.max(dw * o.t.days, 11), y = o.y - bh / 2;
       var g = sv("g", { class: "bar st-" + o.t.st + (o.t.key ? " key" : "") }); g.setAttribute("data-id", o.t.id);
-      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : "var(--paper-3)";
+      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : o.t.st === "plan" ? "url(#g-plan)" : "var(--paper-3)";
       var rect = sv("rect", { x: x, y: y, width: w, height: bh, rx: bh / 2, class: "b-fill", fill: fill });
-      if (o.t.st === "plan" || o.t.st === "talk") { rect.setAttribute("stroke", "var(--line-2)"); rect.setAttribute("stroke-width", "1.4"); }
+      if (o.t.st === "plan") { rect.setAttribute("stroke", "#9DB0CC"); rect.setAttribute("stroke-width", "1.2"); }
+      else if (o.t.st === "talk") { rect.setAttribute("stroke", "#E08A5F"); rect.setAttribute("stroke-width", "1.6"); rect.setAttribute("stroke-dasharray", "3.5 2.5"); }
       g.appendChild(rect);
-      if (o.t.st === "work" || o.t.st === "done") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
+      if (o.t.st === "work" || o.t.st === "done" || o.t.st === "plan") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
       var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.days + "д"; g.appendChild(dl);
       if (o.t.gate) { var d2 = bh * 0.6, cx = x, cyg = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cyg - d2) + " " + (cx + d2) + "," + cyg + " " + cx + "," + (cyg + d2) + " " + (cx - d2) + "," + cyg, class: "g-gate" })); }
       barLayer.appendChild(g);

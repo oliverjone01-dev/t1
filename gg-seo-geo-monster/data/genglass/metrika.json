@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-07-13",
+ "measured": "2026-07-14",
  "visits_30d": [
-  {
-   "date": "2026-06-13",
-   "visits": 260,
-   "search_visits": 36
-  },
   {
    "date": "2026-06-14",
    "visits": 261,
@@ -151,12 +146,17 @@
    "date": "2026-07-12",
    "visits": 226,
    "search_visits": 52
+  },
+  {
+   "date": "2026-07-13",
+   "visits": 300,
+   "search_visits": 50
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 13
+   "visits": 14
   },
   {
    "phrase": "genglass",
@@ -168,7 +168,7 @@
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 8
+   "visits": 9
   },
   {
    "phrase": "интернет магазин зеркало в раме",
@@ -184,7 +184,7 @@
   },
   {
    "phrase": "genglass.ru",
-   "visits": 3
+   "visits": 4
   },
   {
    "phrase": "генглас",
@@ -220,6 +220,10 @@
   },
   {
    "phrase": "Перегородки с черной металлической раскладкой",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало на штанге",
    "visits": 2
   },
   {
@@ -287,6 +291,10 @@
    "visits": 1
   },
   {
+   "phrase": "Nolvis L",
+   "visits": 1
+  },
+  {
    "phrase": "Zeliso-I зеркало купить",
    "visits": 1
   },
@@ -327,6 +335,10 @@
    "visits": 1
   },
   {
+   "phrase": "gen group зеркало",
+   "visits": 1
+  },
+  {
    "phrase": "gen group стол обеденный круглый trubis wood d100 см черный с золотым металлическим подстольем",
    "visits": 1
   },
@@ -341,24 +353,12 @@
   {
    "phrase": "genglas. ru",
    "visits": 1
-  },
-  {
-   "phrase": "genglass horsix wood 40",
-   "visits": 1
-  },
-  {
-   "phrase": "genglass trubis wood 180 ggt-03-1-1-о-180",
-   "visits": 1
-  },
-  {
-   "phrase": "genglass trubis wood ggt-03-2-1-e-16080 160х80х75",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 315
+   "visits": 316
   },
   {
    "url": "/stoly-na-zakaz/",
@@ -366,18 +366,18 @@
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 53
+   "visits": 52
   },
   {
    "url": "/product-category/tables/",
-   "visits": 48
-  },
-  {
-   "url": "/product-category/mirrors/",
-   "visits": 42
+   "visits": 49
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
+   "visits": 41
+  },
+  {
+   "url": "/product-category/mirrors/",
    "visits": 41
   },
   {
@@ -385,19 +385,19 @@
    "visits": 35
   },
   {
-   "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 31
-  },
-  {
    "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 29
+   "visits": 30
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 29
+   "visits": 30
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 29
+  },
+  {
+   "url": "/product-category/mirrors/dizajnerskie/",
    "visits": 28
   },
   {
@@ -406,14 +406,14 @@
   },
   {
    "url": "/product-category/mirrors/floor/",
+   "visits": 21
+  },
+  {
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 20
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 19
-  },
-  {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 18
   },
   {
@@ -422,26 +422,30 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 14
+   "visits": 16
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 13
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+   "visits": 16
   },
   {
    "url": "/product-category/mirrors/rotatable/",
    "visits": 13
   },
   {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 13
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 12
   },
   {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
-   "visits": 13
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
+   "visits": 12
   },
   {
    "url": "/product-category/mirrors/led/",
+   "visits": 12
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-rame/",
    "visits": 12
   },
   {
@@ -453,15 +457,15 @@
    "visits": 12
   },
   {
+   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
+   "visits": 12
+  },
+  {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 11
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
    "visits": 10
   },
   {
@@ -469,15 +473,11 @@
    "visits": 10
   },
   {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
-   "visits": 10
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/dekorativnye-peregorodki/",
    "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 28.2,
+ "bounce_rate": 28.5,
  "depth": 2.4
 }

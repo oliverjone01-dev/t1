@@ -21,6 +21,8 @@
   function fmt(d) { return d.getDate() + " " + MON[d.getMonth()]; }
   // какие строки Ганта раскрыты (обоснование + автор) - переживает перерисовку
   var ganttOpen = {};
+  var ganttZoom = 1;      // масштаб ленты времени (кнопки +/-)
+  var ganttLw = null;     // ширина левой колонки, если её тянули (null = авто)
   // перенос текста по словам в N строк (для левой колонки Ганта)
   function wrapText(txt, maxChars, maxLines) {
     var words = String(txt || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
@@ -39,6 +41,44 @@
     }
     if (cur) lines.push(cur);
     return lines.slice(0, maxLines);
+  }
+  // перенос по РЕАЛЬНОЙ ширине (px): меряем текст скрытым SVG-узлом с тем же CSS-классом,
+  // длинные слова жёстко режем - так строки гарантированно не вылезают из панели
+  var _measSvg = null, _measTx = null;
+  function measurePx(str, cls) {
+    if (!_measSvg) {
+      _measSvg = document.createElementNS(SVGNS, "svg");
+      _measSvg.setAttribute("style", "position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden");
+      _measTx = document.createElementNS(SVGNS, "text");
+      _measSvg.appendChild(_measTx); document.body.appendChild(_measSvg);
+    }
+    _measTx.setAttribute("class", cls || "");
+    _measTx.textContent = str;
+    return _measTx.getComputedTextLength();
+  }
+  function wrapPx(txt, maxPx, cls, maxLines) {
+    var words = String(txt || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
+    for (var i = 0; i < words.length; i++) {
+      var word = words[i];
+      // жёсткий перенос слишком длинного слова
+      while (measurePx(word, cls) > maxPx && word.length > 1 && lines.length < maxLines + 1) {
+        var lo = 1, hi = word.length, fit = 1;
+        while (lo <= hi) { var mid = (lo + hi) >> 1; if (measurePx(word.slice(0, mid), cls) <= maxPx) { fit = mid; lo = mid + 1; } else hi = mid - 1; }
+        if (cur) { lines.push(cur); cur = ""; }
+        lines.push(word.slice(0, fit)); word = word.slice(fit);
+      }
+      var probe = cur ? cur + " " + word : word;
+      if (measurePx(probe, cls) <= maxPx) cur = probe;
+      else { if (cur) lines.push(cur); cur = word; }
+    }
+    if (cur) lines.push(cur);
+    if (lines.length > maxLines) {
+      lines = lines.slice(0, maxLines);
+      var last = lines[maxLines - 1];
+      while (last.length > 1 && measurePx(last + "…", cls) > maxPx) last = last.slice(0, -1);
+      lines[maxLines - 1] = last + "…";
+    }
+    return lines;
   }
 
   /* ---------- источник данных ---------- */
@@ -216,17 +256,33 @@
 
   /* ---------- ГАНТ ---------- */
   function renderGantt() {
-    var host = $("#gantt-scroll"); host.innerHTML = "";
-    // очистить старые подписи (карточку/подсказку) при перерисовке
+    var host = $("#gantt-scroll");
     var wrap = host.parentNode;
+    // сохранить относительную прокрутку ленты между перерисовками
+    var prevR = host.querySelector(".g-right"), prevFrac = null;
+    if (prevR && prevR.scrollWidth > prevR.clientWidth) prevFrac = prevR.scrollLeft / (prevR.scrollWidth - prevR.clientWidth);
+    host.innerHTML = "";
     wrap.querySelectorAll(".g-tip,.g-hint").forEach(function (n) { n.remove(); });
     $("#gantt-legend").innerHTML =
+      '<div class="lg-set">' +
       '<span class="lg"><i class="st-work"></i>в работе</span>' +
       '<span class="lg"><i class="st-plan"></i>план</span>' +
       '<span class="lg"><i class="st-talk"></i>к обсуждению</span>' +
       '<span class="lg"><i class="st-done"></i>готово</span>' +
       '<span class="lg"><i class="st-gate"></i>гейт</span>' +
-      '<span class="lg"><i class="st-today"></i>сегодня</span>';
+      '<span class="lg"><i class="st-today"></i>сегодня</span></div>' +
+      '<div class="g-zoom"><button type="button" data-z="out" aria-label="Уменьшить масштаб">&minus;</button>' +
+      '<button type="button" data-z="fit">по ширине</button>' +
+      '<button type="button" data-z="in" aria-label="Увеличить масштаб">+</button></div>';
+    $("#gantt-legend").querySelectorAll(".g-zoom button").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var z = b.getAttribute("data-z");
+        if (z === "in") ganttZoom = Math.min(4, ganttZoom * 1.3);
+        else if (z === "out") ganttZoom = Math.max(0.4, ganttZoom / 1.3);
+        else { ganttZoom = 1; ganttLw = null; }
+        renderGantt();
+      });
+    });
 
     var tasks = P.tasks.map(function (t) { var s = pd(t.start); return { t: t, s: s, e: s ? new Date(s.getTime() + t.days * MS) : null }; })
       .filter(function (o) { return o.s; });
@@ -238,46 +294,128 @@
     var end = new Date(maxD); end.setDate(end.getDate() + 4);
     var totalDays = diffDays(end, start);
 
-    var HH = 34, axisH = 66, bh = 20, padB = 42;
-    // левая читаемая панель: [id][Задача ...][Ответственный]; правее - календарь по дням.
-    // при клике по строке вниз раскрывается обоснование + автор (мельче).
-    var avail = (host.clientWidth || wrap.clientWidth || 1100);
-    var Lw = Math.max(300, Math.min(Math.round(avail * 0.42), 660));
-    // на узких экранах панель не должна занимать весь экран - оставляем полоску таймлайна
-    if (Lw > avail - 30) Lw = Math.max(200, avail - 30);
-    // на телефонах и планшетах прячем колонку «Ответственный» - задаче нужна вся ширина панели
-    var narrow = avail < 820;
-    var Rw = narrow ? 0 : Math.min(150, Math.max(92, Math.round(Lw * 0.3)));
-    var taskX = 54, taskRight = Lw - Rw - (Rw ? 10 : 8);
-    var dw = Math.max(16, Math.min(46, Math.floor((avail - Lw) / totalDays)));
-    var W = Lw + totalDays * dw;
-    // символов в строке: делители = средняя ширина кириллицы (консервативно,
-    // иначе длинные строки заезжают из панели в таймлайн)
-    var tCPL = Math.max(13, Math.floor((taskRight - taskX) / 7.5));
-    var wCPL = Math.max(18, Math.floor((Lw - taskX - 14) / 6.4));
-    var whoCPL = Math.max(6, Math.floor((Rw - 14) / 6.8));
+    var HH = 34, axisH = 66, bh = 20, padB = 42, LH = 18;
+    var wrapW = (wrap.clientWidth || host.clientWidth || 1100);
+    var dividerW = 10;
+    var autoLw = Math.max(300, Math.min(Math.round(wrapW * 0.42), 620));
+    var Lw = ganttLw != null ? ganttLw : autoLw;
+    Lw = Math.max(210, Math.min(Lw, wrapW - 90));
+    var rightAvail = Math.max(140, wrapW - Lw - dividerW);
+    var baseDw = Math.max(15, Math.min(46, Math.floor(rightAvail / totalDays)));
+    var dw = Math.max(6, Math.round(baseDw * ganttZoom));
+    var tlW = totalDays * dw;
+    var taskX = 52, taskRight = Lw - 12, textPx = taskRight - taskX;
     var toneHex = { brass: "#C9A96A", forest: "#6FC38C", sky: "#87ABC6", rust: "#E08A5F", ink: "#B6AD99" };
+    function chipW(t) { return Math.round(measurePx(String(t), "g-chip-t")) + 34; }
+
     var order = [], yById = {}, rowY = axisH, blockRows = [];
     P.blocksMeta.forEach(function (bm) {
       var bt = tasks.filter(function (o) { return o.t.b === bm.id; }).sort(function (a, b) { return a.s - b.s; });
       if (!bt.length) return;
       var headY = rowY; rowY += HH;
       bt.forEach(function (o) {
-        o.tl = wrapText(o.t.t, tCPL, 4);
-        o.exWl = o.t.why ? wrapText(o.t.why, wCPL, 6) : [];
+        o.tl = wrapPx(o.t.t, textPx, "g-task-line", 4);
+        o.exWl = o.t.why ? wrapPx(o.t.why, textPx, "g-why-exp", 6) : [];
+        o.whoTxt = o.t.who || "не назначен";
+        o.finTxt = "до " + fmt(new Date(o.e.getTime() - MS));
+        var w1 = chipW(o.whoTxt), w2 = chipW(o.finTxt), avail = taskRight - taskX;
+        o.twoChip = (w1 + 6 + w2 > avail) && (w2 <= avail);
         var open = !!ganttOpen[o.t.id];
-        var h = 12 + o.tl.length * 15 + 10;
-        if (open) h += 6 + o.exWl.length * 13 + (o.t.author ? 16 : 0) + 4;
-        if (h < 48) h = 48;
-        o.top = rowY; o.rh = h; o.y = rowY + 20;
+        var h = 9 + o.tl.length * LH + (o.twoChip ? 44 : 24) + 6;
+        if (open) h += 4 + o.exWl.length * 13 + (o.t.author ? 16 : 0) + 6;
+        if (h < 58) h = 58;
+        o.top = rowY; o.rh = h; o.y = rowY + 18;
         yById[o.t.id] = o; order.push(o); rowY += h;
       });
       blockRows.push({ bm: bm, headY: headY, y1: rowY, n: bt.length });
     });
     var H = rowY + padB;
-    var xOf = function (d) { return Lw + diffDays(d, start) * dw; };
+    var xR = function (d) { return diffDays(d, start) * dw; };
 
-    var svg = sv("svg", { width: W, height: H, viewBox: "0 0 " + W + " " + H, class: "gantt", role: "img", "aria-label": "Диаграмма Ганта плана", "data-lw": Lw, "data-rw": Rw });
+    // ---------- сплит: фиксированная панель задач + прокручиваемая лента ----------
+    var split = el("div", "g-split");
+    var left = el("div", "g-left"); left.style.width = Lw + "px";
+    var divider = el("div", "g-divider"); divider.setAttribute("title", "Потяните, чтобы изменить ширину колонки задач");
+    divider.innerHTML = '<span class="g-divider-grip"></span>';
+    var right = el("div", "g-right");
+    split.appendChild(left); split.appendChild(divider); split.appendChild(right);
+    host.appendChild(split);
+
+    function highlight(id) {
+      rsvg.classList.add("dim");
+      var rel = related(id);
+      barLayer.querySelectorAll(".bar").forEach(function (b) { b.classList.toggle("hot", rel[b.getAttribute("data-id")] === 1); });
+      deps.forEach(function (d) { var on = d.a === id || d.b === id; d.path.classList.toggle("hot", on); d.arrow.classList.toggle("hot", on); });
+    }
+    function clearHi() {
+      if (!rsvg) return;
+      rsvg.classList.remove("dim");
+      barLayer.querySelectorAll(".bar.hot").forEach(function (b) { b.classList.remove("hot"); });
+      deps.forEach(function (d) { d.path.classList.remove("hot"); d.arrow.classList.remove("hot"); });
+    }
+    function related(id) { var set = {}; set[id] = 1; deps.forEach(function (d) { if (d.a === id) set[d.b] = 1; if (d.b === id) set[d.a] = 1; }); return set; }
+    function toggleRow(id) { ganttOpen[id] = !ganttOpen[id]; renderGantt(); }
+
+    // ---------- ЛЕВАЯ ПАНЕЛЬ ----------
+    var lsvg = sv("svg", { width: Lw, height: H, viewBox: "0 0 " + Lw + " " + H, class: "gantt", "data-lw": Lw });
+    var lroot = sv("g"); lsvg.appendChild(lroot);
+    var lHit = sv("g");
+    var chT = sv("text", { x: taskX, y: axisH - 10, class: "g-col-head" }); chT.textContent = "Задача"; lroot.appendChild(chT);
+    lroot.appendChild(sv("line", { x1: 0, y1: axisH + 0.5, x2: Lw, y2: axisH + 0.5, class: "g-rail" }));
+    blockRows.forEach(function (b) {
+      lroot.appendChild(sv("rect", { x: 0, y: b.headY, width: Lw, height: HH, class: "g-headband" }));
+      lroot.appendChild(sv("line", { x1: 0, y1: b.headY + 0.5, x2: Lw, y2: b.headY + 0.5, class: "g-rail" }));
+      lroot.appendChild(sv("circle", { cx: 21, cy: b.headY + HH / 2, r: 4, fill: toneHex[b.bm.tone] || "#C9A96A" }));
+      var lab = sv("text", { x: 33, y: b.headY + HH / 2 + 4, class: "g-block-label" }); lab.textContent = b.bm.name; lroot.appendChild(lab);
+      var cnt = sv("text", { x: Lw - 12, y: b.headY + HH / 2 + 4, class: "g-block-cnt", "text-anchor": "end" }); cnt.textContent = b.n + " задач"; lroot.appendChild(cnt);
+      lroot.appendChild(sv("rect", { x: 0, y: b.headY + HH, width: 3, height: b.y1 - (b.headY + HH), fill: toneHex[b.bm.tone] || "#C9A96A", opacity: .5 }));
+    });
+    function chip(parent, x, y, text, kind) {
+      var w = chipW(text), chH = 18;
+      var g = sv("g", { class: "g-chip g-chip-" + kind });
+      g.appendChild(sv("rect", { x: x, y: y, width: w, height: chH, rx: 6, class: "g-chip-bg" }));
+      g.appendChild(sv("circle", { cx: x + 9, cy: y + chH / 2, r: 2.6, class: "g-chip-dot" }));
+      var t = sv("text", { x: x + 17, y: y + chH / 2 + 3.4, class: "g-chip-t" }); t.textContent = text; g.appendChild(t);
+      parent.appendChild(g);
+      return w;
+    }
+    order.forEach(function (o) {
+      var tone = toneHex[(P.blocksMeta[o.t.b] || {}).tone] || "#C9A96A";
+      var open = !!ganttOpen[o.t.id];
+      lroot.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: Lw, y2: o.top + 0.5, class: "g-rowsep" }));
+      if (open) lroot.appendChild(sv("rect", { x: 0, y: o.top + 1, width: Lw, height: o.rh - 1, class: "g-rowopen" }));
+      lroot.appendChild(sv("rect", { x: 12, y: o.top + 9, width: 32, height: 18, rx: 5, fill: tone, opacity: .17 }));
+      var it = sv("text", { x: 28, y: o.top + 22, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; lroot.appendChild(it);
+      var cyv = o.top + 16;
+      lroot.appendChild(sv("path", { d: open ? "M" + (taskX - 14) + "," + (cyv - 3) + " h8 l-4,6 z" : "M" + (taskX - 14) + "," + (cyv - 4) + " l6,4 l-6,4 z", class: "g-chevron" }));
+      o.tl.forEach(function (ln, i) {
+        var tx = sv("text", { x: taskX, y: o.top + 20 + i * LH, class: "g-task-line" }); tx.textContent = ln; lroot.appendChild(tx);
+      });
+      var chipsY = o.top + 6 + o.tl.length * LH + 4;
+      var used = chip(lroot, taskX, chipsY, o.whoTxt, o.t.who ? "who" : "who-empty");
+      if (o.twoChip) chip(lroot, taskX, chipsY + 22, o.finTxt, "cal");
+      else chip(lroot, taskX + used + 6, chipsY, o.finTxt, "cal");
+      if (open) {
+        var ey = chipsY + (o.twoChip ? 44 : 24) + 4;
+        o.exWl.forEach(function (ln, i) {
+          var wx = sv("text", { x: taskX, y: ey + i * 13, class: "g-why-exp" }); wx.textContent = ln; lroot.appendChild(wx);
+        });
+        if (o.t.author) {
+          var au = sv("text", { x: taskX, y: ey + o.exWl.length * 13 + 3, class: "g-author-exp" }); au.textContent = wrapPx("предложил: " + o.t.author, textPx, "g-author-exp", 1)[0] || ""; lroot.appendChild(au);
+        }
+      }
+      var lh = sv("rect", { x: 0, y: o.top, width: Lw, height: o.rh, fill: "transparent", class: "bar-hit" });
+      lh.setAttribute("data-id", o.t.id);
+      lh.addEventListener("mouseenter", function () { highlight(o.t.id); });
+      lh.addEventListener("mouseleave", function () { clearHi(); });
+      lh.addEventListener("click", function () { toggleRow(o.t.id); });
+      lHit.appendChild(lh);
+    });
+    lsvg.appendChild(lHit);
+    left.appendChild(lsvg);
+
+    // ---------- ПРАВАЯ ЛЕНТА (прокрутка + зум) ----------
+    var rsvg = sv("svg", { width: tlW, height: H, viewBox: "0 0 " + tlW + " " + H, class: "gantt", role: "img", "aria-label": "Лента времени плана" });
     var defs = sv("defs");
     function grad(id, c1, c2) { var g = sv("linearGradient", { id: id, x1: 0, y1: 0, x2: 0, y2: 1 }); g.appendChild(sv("stop", { offset: 0, "stop-color": c1 })); g.appendChild(sv("stop", { offset: 1, "stop-color": c2 })); defs.appendChild(g); }
     grad("g-work", "#DABB7E", "#B18B39");
@@ -286,108 +424,51 @@
     pat.appendChild(sv("rect", { width: 7, height: 7, fill: "var(--paper-3)" }));
     pat.appendChild(sv("rect", { width: 3.5, height: 7, fill: "var(--paper-2)" }));
     defs.appendChild(pat);
-    svg.appendChild(defs);
-    var root = sv("g"); svg.appendChild(root);
+    rsvg.appendChild(defs);
+    var rroot = sv("g"); rsvg.appendChild(rroot);
 
-    // выходные - вертикальные полосы ритма
     var cur0 = new Date(start);
     while (cur0 <= end) {
       var dwk = cur0.getDay();
-      if (dwk === 0 || dwk === 6) root.appendChild(sv("rect", { x: xOf(cur0), y: axisH, width: dw, height: H - axisH - padB + 6, class: "g-weekend" }));
+      if (dwk === 0 || dwk === 6) rroot.appendChild(sv("rect", { x: xR(cur0), y: axisH, width: dw, height: H - axisH - padB + 6, class: "g-weekend" }));
       cur0.setDate(cur0.getDate() + 1);
     }
-
-    // заголовки блоков: цветная точка, имя, счётчик, левый кант
     blockRows.forEach(function (b) {
-      root.appendChild(sv("rect", { x: 0, y: b.headY, width: W, height: HH, class: "g-headband" }));
-      root.appendChild(sv("line", { x1: 0, y1: b.headY + 0.5, x2: W, y2: b.headY + 0.5, class: "g-rail" }));
-      root.appendChild(sv("circle", { cx: 21, cy: b.headY + HH / 2, r: 4, fill: toneHex[b.bm.tone] || "#C9A96A" }));
-      var lab = sv("text", { x: 33, y: b.headY + HH / 2 + 4, class: "g-block-label" }); lab.textContent = b.bm.name; root.appendChild(lab);
-      var cnt = sv("text", { x: Lw - 14, y: b.headY + HH / 2 + 4, class: "g-block-cnt", "text-anchor": "end" }); cnt.textContent = b.n + " задач"; root.appendChild(cnt);
-      root.appendChild(sv("rect", { x: 0, y: b.headY + HH, width: 3, height: b.y1 - (b.headY + HH), fill: toneHex[b.bm.tone] || "#C9A96A", opacity: .5 }));
+      rroot.appendChild(sv("rect", { x: 0, y: b.headY, width: tlW, height: HH, class: "g-headband" }));
+      rroot.appendChild(sv("line", { x1: 0, y1: b.headY + 0.5, x2: tlW, y2: b.headY + 0.5, class: "g-rail" }));
     });
-
-    // ось-календарь: месяцы сверху, ниже строка дней недели и чисел; выходные выделены
     var cur = new Date(start), lastMonth = -1;
     while (cur <= end) {
-      var x = xOf(cur), dow = cur.getDay(), wknd = (dow === 0 || dow === 6);
-      var wd = sv("text", { x: x + dw / 2, y: 41, class: "g-day-wd" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); wd.textContent = WD[dow]; root.appendChild(wd);
-      var dn = sv("text", { x: x + dw / 2, y: 56, class: "g-day-num" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); dn.textContent = cur.getDate(); root.appendChild(dn);
-      if (dow === 1) root.appendChild(sv("line", { x1: x, y1: axisH, x2: x, y2: H - padB + 6, class: "g-grid" }));
+      var x = xR(cur), dow = cur.getDay(), wknd = (dow === 0 || dow === 6);
+      if (dw >= 13) { var wd = sv("text", { x: x + dw / 2, y: 41, class: "g-day-wd" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); wd.textContent = WD[dow]; rroot.appendChild(wd); }
+      if (dw >= 9) { var dn = sv("text", { x: x + dw / 2, y: 56, class: "g-day-num" + (wknd ? " wknd" : ""), "text-anchor": "middle" }); dn.textContent = cur.getDate(); rroot.appendChild(dn); }
+      if (dow === 1) rroot.appendChild(sv("line", { x1: x, y1: axisH, x2: x, y2: H - padB + 6, class: "g-grid" }));
       if (cur.getMonth() !== lastMonth) {
         lastMonth = cur.getMonth();
-        root.appendChild(sv("line", { x1: x, y1: 8, x2: x, y2: H - padB + 6, class: "g-rail" }));
-        var ml = sv("text", { x: x + 7, y: 22, class: "g-month" }); ml.textContent = MON[cur.getMonth()].toUpperCase(); root.appendChild(ml);
+        rroot.appendChild(sv("line", { x1: x, y1: 8, x2: x, y2: H - padB + 6, class: "g-rail" }));
+        var ml = sv("text", { x: x + 7, y: 22, class: "g-month" }); ml.textContent = MON[cur.getMonth()].toUpperCase(); rroot.appendChild(ml);
       }
       cur.setDate(cur.getDate() + 1);
     }
-    root.appendChild(sv("line", { x1: 0, y1: axisH + 0.5, x2: W, y2: axisH + 0.5, class: "g-rail" }));
-    root.appendChild(sv("line", { x1: Lw, y1: 8, x2: Lw, y2: H - padB + 6, class: "g-rail" }));
-    // разделитель колонок «Задача | Ответственный» + заголовки колонок (колонка только на широких)
-    var chT = sv("text", { x: taskX, y: axisH - 10, class: "g-col-head" }); chT.textContent = "Задача"; root.appendChild(chT);
-    if (Rw) {
-      root.appendChild(sv("line", { x1: Lw - Rw, y1: axisH, x2: Lw - Rw, y2: H - padB + 6, class: "g-coldiv" }));
-      var chW = sv("text", { x: Lw - Rw + 8, y: axisH - 10, class: "g-col-head" }); chW.textContent = "Ответственный"; root.appendChild(chW);
-    }
+    rroot.appendChild(sv("line", { x1: 0, y1: axisH + 0.5, x2: tlW, y2: axisH + 0.5, class: "g-rail" }));
+    order.forEach(function (o) { rroot.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: tlW, y2: o.top + 0.5, class: "g-rowsep" })); });
 
-    // подписи рядов: id-чип + Задача, справа Ответственный; по клику вниз - обоснование + автор
-    order.forEach(function (o) {
-      var tone = toneHex[(P.blocksMeta[o.t.b] || {}).tone] || "#C9A96A";
-      var open = !!ganttOpen[o.t.id];
-      root.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: W, y2: o.top + 0.5, class: "g-rowsep" }));
-      if (open) root.appendChild(sv("rect", { x: 0, y: o.top + 1, width: Lw, height: o.rh - 1, class: "g-rowopen" }));
-      // id-чип
-      root.appendChild(sv("rect", { x: 14, y: o.top + 10, width: 32, height: 18, rx: 5, fill: tone, opacity: .17 }));
-      var it = sv("text", { x: 30, y: o.top + 23, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; root.appendChild(it);
-      // треугольник-раскрытие
-      var cy = o.top + 17;
-      var chev = sv("path", { d: open ? "M" + (taskX - 15) + "," + (cy - 3) + " h8 l-4,6 z" : "M" + (taskX - 15) + "," + (cy - 4) + " l6,4 l-6,4 z", class: "g-chevron" });
-      root.appendChild(chev);
-      // задача (перенос)
-      o.tl.forEach(function (ln, i) {
-        var tx = sv("text", { x: taskX, y: o.top + 21 + i * 15, class: "g-task-line" }); tx.textContent = ln; root.appendChild(tx);
-      });
-      // ответственный (правая колонка панели, только на широких экранах)
-      if (Rw) {
-        wrapText(o.t.who || "", whoCPL, 2).forEach(function (ln, i) {
-          var wt = sv("text", { x: Lw - Rw + 8, y: o.top + 21 + i * 14, class: "g-who" }); wt.textContent = ln; root.appendChild(wt);
-        });
-      }
-      // выпадашка по клику: обоснование (мельче) + автор
-      if (open) {
-        var ey = o.top + 21 + o.tl.length * 15 + 10;
-        o.exWl.forEach(function (ln, i) {
-          var wx = sv("text", { x: taskX, y: ey + i * 13, class: "g-why-exp" }); wx.textContent = ln; root.appendChild(wx);
-        });
-        if (o.t.author) {
-          var au = sv("text", { x: taskX, y: ey + o.exWl.length * 13 + 3, class: "g-author-exp" }); au.textContent = "предложил: " + o.t.author; root.appendChild(au);
-        }
-      }
-    });
-
-    // зависимости - плавные кривые под барами
-    var depLayer = sv("g"); root.appendChild(depLayer);
+    var depLayer = sv("g"); rroot.appendChild(depLayer);
     var deps = [];
     order.forEach(function (o) {
       (o.t.dep || []).forEach(function (pid) {
         var p = yById[pid]; if (!p) return;
-        var ex = xOf(p.e), ey = p.y, sx = xOf(o.s), sy = o.y;
+        var ex = xR(p.e), ey = p.y, sx = xR(o.s), sy = o.y;
         var cp = Math.max(16, Math.min(64, Math.abs(sx - ex) * 0.5));
         var d = "M" + ex + "," + ey + " C" + (ex + cp) + "," + ey + " " + (sx - cp) + "," + sy + " " + (sx - 7) + "," + sy;
-        var pe = sv("path", { d: d, class: "g-dep" });
-        pe.setAttribute("data-a", pid); pe.setAttribute("data-b", o.t.id);
-        depLayer.appendChild(pe);
-        var ar = sv("polygon", { points: (sx - 7) + "," + (sy - 3.5) + " " + sx + "," + sy + " " + (sx - 7) + "," + (sy + 3.5), class: "g-dep-arrow" });
-        ar.setAttribute("data-a", pid); ar.setAttribute("data-b", o.t.id);
-        depLayer.appendChild(ar);
+        var pe = sv("path", { d: d, class: "g-dep" }); pe.setAttribute("data-a", pid); pe.setAttribute("data-b", o.t.id); depLayer.appendChild(pe);
+        var ar = sv("polygon", { points: (sx - 7) + "," + (sy - 3.5) + " " + sx + "," + sy + " " + (sx - 7) + "," + (sy + 3.5), class: "g-dep-arrow" }); ar.setAttribute("data-a", pid); ar.setAttribute("data-b", o.t.id); depLayer.appendChild(ar);
         deps.push({ a: pid, b: o.t.id, path: pe, arrow: ar });
       });
     });
-
-    // бары - pill со статус-заливкой
-    var barLayer = sv("g"); root.appendChild(barLayer);
+    var barLayer = sv("g"); rroot.appendChild(barLayer);
     order.forEach(function (o) {
-      var x = xOf(o.s), w = Math.max(dw * o.t.days, 11), y = o.y - bh / 2;
+      var x = xR(o.s), w = Math.max(dw * o.t.days, 11), y = o.y - bh / 2;
       var g = sv("g", { class: "bar st-" + o.t.st + (o.t.key ? " key" : "") }); g.setAttribute("data-id", o.t.id);
       var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : "var(--paper-3)";
       var rect = sv("rect", { x: x, y: y, width: w, height: bh, rx: bh / 2, class: "b-fill", fill: fill });
@@ -395,39 +476,45 @@
       g.appendChild(rect);
       if (o.t.st === "work" || o.t.st === "done") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
       var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.days + "д"; g.appendChild(dl);
-      if (o.t.gate) { var d2 = bh * 0.6, cx = x, cy = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cy - d2) + " " + (cx + d2) + "," + cy + " " + cx + "," + (cy + d2) + " " + (cx - d2) + "," + cy, class: "g-gate" })); }
+      if (o.t.gate) { var d2 = bh * 0.6, cx = x, cyg = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cyg - d2) + " " + (cx + d2) + "," + cyg + " " + cx + "," + (cyg + d2) + " " + (cx - d2) + "," + cyg, class: "g-gate" })); }
       barLayer.appendChild(g);
     });
-
-    // сегодня - линия + чип
     if (TODAY >= start && TODAY <= end) {
-      var tx = xOf(TODAY);
-      root.appendChild(sv("line", { x1: tx, y1: 2, x2: tx, y2: H - padB + 6, class: "g-today" }));
-      root.appendChild(sv("rect", { x: tx - 27, y: 2, width: 54, height: 16, rx: 8, class: "g-today-chip" }));
-      var tdl = sv("text", { x: tx, y: 13.5, class: "g-today-lbl", "text-anchor": "middle" }); tdl.textContent = "сегодня"; root.appendChild(tdl);
+      var tdx = xR(TODAY);
+      rroot.appendChild(sv("line", { x1: tdx, y1: 2, x2: tdx, y2: H - padB + 6, class: "g-today" }));
+      rroot.appendChild(sv("rect", { x: tdx - 27, y: 2, width: 54, height: 16, rx: 8, class: "g-today-chip" }));
+      var tdl = sv("text", { x: tdx, y: 13.5, class: "g-today-lbl", "text-anchor": "middle" }); tdl.textContent = "сегодня"; rroot.appendChild(tdl);
     }
-
-    // прозрачные зоны-строки на всю ширину - надёжное наведение на любую точку строки
-    var hitLayer = sv("g"); root.appendChild(hitLayer);
+    var hitLayer = sv("g");
     order.forEach(function (o) {
-      var hr = sv("rect", { x: 0, y: o.top, width: W, height: o.rh, fill: "transparent", class: "bar-hit" });
+      var hr = sv("rect", { x: 0, y: o.top, width: tlW, height: o.rh, fill: "transparent", class: "bar-hit" });
       hr.setAttribute("data-id", o.t.id);
       hr.addEventListener("mouseenter", function () { highlight(o.t.id); });
       hr.addEventListener("mousemove", function (ev) { showTip(ev, o); });
       hr.addEventListener("mouseleave", function () { clearHi(); hideTip(); });
-      hr.addEventListener("click", function () {
-        var sl = host.scrollLeft, st = host.scrollTop;
-        ganttOpen[o.t.id] = !ganttOpen[o.t.id];
-        renderGantt();
-        var h2 = $("#gantt-scroll"); if (h2) { h2.scrollLeft = sl; h2.scrollTop = st; }
-      });
-      hr.style.cursor = "pointer";
+      hr.addEventListener("click", function () { if (right._panned) { right._panned = false; return; } toggleRow(o.t.id); });
       hitLayer.appendChild(hr);
     });
+    rsvg.appendChild(hitLayer);
+    right.appendChild(rsvg);
 
-    host.appendChild(svg);
+    if (prevFrac != null) right.scrollLeft = prevFrac * (right.scrollWidth - right.clientWidth);
+    else if (TODAY >= start && TODAY <= end) right.scrollLeft = Math.max(0, xR(TODAY) - 90);
 
-    // всплывающая карточка задачи
+    // перетаскивание ленты мышью (тач - нативный скролл)
+    var panS = null;
+    right.addEventListener("pointerdown", function (e) { if (e.pointerType === "touch") return; if (e.button != null && e.button !== 0) return; panS = { x: e.clientX, sl: right.scrollLeft }; right._panned = false; });
+    right.addEventListener("pointermove", function (e) { if (!panS) return; var dx = e.clientX - panS.x; if (Math.abs(dx) > 4) { right._panned = true; right.scrollLeft = panS.sl - dx; right.classList.add("panning"); } });
+    function endPan() { panS = null; right.classList.remove("panning"); }
+    right.addEventListener("pointerup", endPan);
+    right.addEventListener("pointerleave", endPan);
+
+    // перетаскивание границы левой колонки
+    var dragS = null;
+    divider.addEventListener("pointerdown", function (e) { e.preventDefault(); dragS = { x: e.clientX, lw: Lw }; try { divider.setPointerCapture(e.pointerId); } catch (er) {} divider.classList.add("drag"); });
+    divider.addEventListener("pointermove", function (e) { if (!dragS) return; var nl = Math.max(210, Math.min(dragS.lw + (e.clientX - dragS.x), wrapW - 90)); ganttLw = nl; left.style.width = nl + "px"; });
+    divider.addEventListener("pointerup", function () { if (!dragS) return; dragS = null; divider.classList.remove("drag"); renderGantt(); });
+
     wrap.style.position = "relative";
     var tip = el("div", "g-tip"); tip.style.display = "none"; wrap.appendChild(tip);
     function showTip(ev, o) {
@@ -448,21 +535,7 @@
       tip.style.left = Math.max(6, lx) + "px"; tip.style.top = Math.max(6, ty) + "px";
     }
     function hideTip() { tip.style.display = "none"; }
-
-    wrap.appendChild(el("div", "g-hint", "Наведите на задачу - подсветится цепочка зависимостей. Клик по строке - раскрыть обоснование и автора. Прокрутка вправо - горизонт до сентября."));
-
-    function related(id) { var set = {}; set[id] = 1; deps.forEach(function (d) { if (d.a === id) set[d.b] = 1; if (d.b === id) set[d.a] = 1; }); return set; }
-    function highlight(id) {
-      svg.classList.add("dim");
-      var rel = related(id);
-      barLayer.querySelectorAll(".bar").forEach(function (b) { b.classList.toggle("hot", rel[b.getAttribute("data-id")] === 1); });
-      deps.forEach(function (d) { var on = d.a === id || d.b === id; d.path.classList.toggle("hot", on); d.arrow.classList.toggle("hot", on); });
-    }
-    function clearHi() {
-      svg.classList.remove("dim");
-      barLayer.querySelectorAll(".bar.hot").forEach(function (b) { b.classList.remove("hot"); });
-      deps.forEach(function (d) { d.path.classList.remove("hot"); d.arrow.classList.remove("hot"); });
-    }
+    wrap.appendChild(el("div", "g-hint", "Клик по строке - обоснование и автор. Ленту тяните вбок или свайпайте; кнопки +/- меняют масштаб; серую границу колонки задач можно двигать."));
   }
 
   function gotoTask(t) {

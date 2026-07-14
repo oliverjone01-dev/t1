@@ -2,10 +2,500 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T06:06:32.556Z",
+  "measured": "2026-07-14T08:49:27.882Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "id": 118065628,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 149500077,
+        "name": "loftproekt98.ru",
+        "cnt": 2,
+        "it50": 116,
+        "vis": 0,
+        "perc": 1.7241379310344829
+      },
+      {
+        "did": 233719002,
+        "name": "peregorodki.spb.ru",
+        "cnt": 2,
+        "it50": 201,
+        "vis": 2,
+        "perc": 0.9950248756218907
+      },
+      {
+        "did": 112234979,
+        "name": "decus.spb.ru",
+        "cnt": 2,
+        "it50": 36,
+        "vis": 1,
+        "perc": 5.555555555555555
+      },
+      {
+        "did": 37940194,
+        "name": "peregorodkitut.ru",
+        "cnt": 2,
+        "it50": 228,
+        "vis": 0,
+        "perc": 0.8771929824561404
+      },
+      {
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
+        "cnt": 2,
+        "it50": 286,
+        "vis": 1,
+        "perc": 0.6993006993006994
+      },
+      {
+        "did": 32073658,
+        "name": "peregorodki-spb.ru",
+        "cnt": 2,
+        "it50": 131,
+        "vis": 1,
+        "perc": 1.5267175572519083
+      },
+      {
+        "did": 258016815,
+        "name": "peregorodki-spb.com",
+        "cnt": 2,
+        "it50": 82,
+        "vis": 0,
+        "perc": 2.4390243902439024
+      },
+      {
+        "did": 134642209,
+        "name": "loftperegorodki.ru",
+        "cnt": 1,
+        "it50": 19,
+        "vis": 0,
+        "perc": 5.2631578947368425
+      },
+      {
+        "did": 233707125,
+        "name": "loft-ds.ru",
+        "cnt": 1,
+        "it50": 43,
+        "vis": 0,
+        "perc": 2.3255813953488373
+      },
+      {
+        "did": 137508821,
+        "name": "spb.peregorodki-v-sanusel.ru",
+        "cnt": 1,
+        "it50": 13,
+        "vis": 0,
+        "perc": 7.692307692307692
+      }
+    ],
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "peregorodki spb ru",
+        "ws": 20,
+        "wsk": 8,
+        "pos": 7
+      },
+      {
+        "word": "лофт дизайн санкт петербург",
+        "ws": 24,
+        "wsk": 15,
+        "pos": 36
+      },
+      {
+        "word": "лофт перегородки в спб",
+        "ws": 16,
+        "wsk": 4,
+        "pos": 38
+      },
+      {
+        "word": "гардеробная в стиле лофт из профильной трубы",
+        "ws": 11,
+        "wsk": 9,
+        "pos": 43
+      },
+      {
+        "word": "cartelle design",
+        "ws": 47,
+        "wsk": 14,
+        "pos": 44
+      }
+    ],
+    "topkeys": 1000000,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 5
+      }
+    ],
+    "pagesinindex": 1,
+    "vis": 0,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 0,
+    "history": {
+      "2025.02": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 1,
+        "it10": 3,
+        "it50": 14,
+        "pagesInIndex": 2,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 2,
+        "it10": 6,
+        "it50": 26,
+        "pagesInIndex": 3,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 2,
+        "it10": 6,
+        "it50": 26,
+        "pagesInIndex": 3,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 6,
+        "it50": 23,
+        "pagesInIndex": 3,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 5,
+        "it50": 20,
+        "pagesInIndex": 3,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 1,
+        "it50": 11,
+        "pagesInIndex": 4,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 1,
+        "it50": 14,
+        "pagesInIndex": 4,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 2,
+        "it50": 14,
+        "pagesInIndex": 4,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.10": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 2,
+        "it50": 15,
+        "pagesInIndex": 5,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2025.11": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 3,
+        "it50": 22,
+        "pagesInIndex": 6,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2025.12": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 2,
+        "it50": 27,
+        "pagesInIndex": 5,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.01": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 1,
+        "it50": 19,
+        "pagesInIndex": 3,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.02": {
+        "it1": 1,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 13,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.03": {
+        "it1": 1,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 14,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.04": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 1,
+        "it50": 9,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.05": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 5,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.06": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 6,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.07": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 1,
+        "it50": 5,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        13,
+        250,
+        9,
+        22,
+        13
+      ],
+      "2025.02": [
+        10,
+        109,
+        8,
+        20,
+        7
+      ],
+      "2025.03": [
+        16,
+        109,
+        11,
+        20,
+        14
+      ],
+      "2025.04": [
+        17,
+        279,
+        12,
+        25,
+        14
+      ],
+      "2025.05": [
+        9,
+        292,
+        6,
+        25,
+        7
+      ],
+      "2025.06": [
+        15,
+        302,
+        9,
+        25,
+        13
+      ],
+      "2025.07": [
+        15,
+        302,
+        9,
+        25,
+        13
+      ],
+      "2025.08": [
+        15,
+        302,
+        9,
+        25,
+        13
+      ],
+      "2025.09": [
+        12,
+        379,
+        8,
+        25,
+        10
+      ],
+      "2025.10": [
+        9,
+        265,
+        6,
+        23,
+        1
+      ],
+      "2025.11": [
+        10,
+        102,
+        6,
+        23,
+        3
+      ],
+      "2025.12": [
+        9,
+        150,
+        5,
+        23,
+        2
+      ],
+      "2026.01": [
+        10,
+        101,
+        5,
+        22,
+        3
+      ],
+      "2026.02": [
+        11,
+        212,
+        6,
+        26,
+        4
+      ],
+      "2026.04": [
+        8,
+        212,
+        5,
+        26,
+        6
+      ],
+      "2026.05": [
+        14,
+        117,
+        8,
+        24,
+        9
+      ],
+      "2026.06": [
+        16,
+        161,
+        8,
+        25,
+        8
+      ],
+      "2026.07": [
+        16,
+        161,
+        8,
+        25,
+        8
+      ]
+    },
+    "aiAnswersCnt": 0,
+    "aiState": 0,
+    "dr": 1,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/1ddb512f9ccfeedda84b5fdb7de559a651c016a4933240e29d3cba6741c9c0f6.png",
+    "name": "loft-peregorodki-spb.ru"
   }
 }

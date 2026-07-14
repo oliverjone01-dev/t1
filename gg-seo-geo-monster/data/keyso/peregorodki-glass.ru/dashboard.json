@@ -2,10 +2,566 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T06:06:26.614Z",
+  "measured": "2026-07-14T08:49:19.319Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "id": 309180640,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30202337,
+        "name": "glasstroy.ru",
+        "cnt": 123,
+        "it50": 10062,
+        "vis": 126,
+        "perc": 1.2224209898628502
+      },
+      {
+        "did": 30670319,
+        "name": "oki-doki.ru",
+        "cnt": 108,
+        "it50": 2001,
+        "vis": 116,
+        "perc": 5.397301349325337
+      },
+      {
+        "did": 278166136,
+        "name": "zavod-peregorodok.ru",
+        "cnt": 108,
+        "it50": 1268,
+        "vis": 35,
+        "perc": 8.517350157728707
+      },
+      {
+        "did": 30700481,
+        "name": "gstrong.ru",
+        "cnt": 102,
+        "it50": 3749,
+        "vis": 58,
+        "perc": 2.7207255268071484
+      },
+      {
+        "did": 272188389,
+        "name": "fdmebel.ru",
+        "cnt": 100,
+        "it50": 2565,
+        "vis": 313,
+        "perc": 3.8986354775828462
+      },
+      {
+        "did": 30773214,
+        "name": "zerist.ru",
+        "cnt": 99,
+        "it50": 4482,
+        "vis": 56,
+        "perc": 2.208835341365462
+      },
+      {
+        "did": 30153427,
+        "name": "perilaglavsnab.ru",
+        "cnt": 95,
+        "it50": 12367,
+        "vis": 1145,
+        "perc": 0.7681733645993369
+      },
+      {
+        "did": 405727645,
+        "name": "lbspace.ru",
+        "cnt": 95,
+        "it50": 1559,
+        "vis": 32,
+        "perc": 6.093649775497114
+      },
+      {
+        "did": 30425760,
+        "name": "disaglass.ru",
+        "cnt": 86,
+        "it50": 2845,
+        "vis": 14,
+        "perc": 3.022847100175747
+      },
+      {
+        "did": 30530484,
+        "name": "priorglass.ru",
+        "cnt": 86,
+        "it50": 7205,
+        "vis": 115,
+        "perc": 1.193615544760583
+      }
+    ],
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 8,
+    "it50": 153,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "стеклянные перегородки для зонирования в москве",
+        "ws": 18,
+        "wsk": 2,
+        "pos": 1
+      },
+      {
+        "word": "перегородка для зонирования комнаты из стекла",
+        "ws": 151,
+        "wsk": 42,
+        "pos": 3
+      },
+      {
+        "word": "стеклянные перегородки в квартиру",
+        "ws": 625,
+        "wsk": 19,
+        "pos": 6
+      },
+      {
+        "word": "перегородки из каленого стекла",
+        "ws": 69,
+        "wsk": 6,
+        "pos": 7
+      },
+      {
+        "word": "стекло для перегородок",
+        "ws": 7109,
+        "wsk": 29,
+        "pos": 8
+      },
+      {
+        "word": "декоративные стеклянные перегородки",
+        "ws": 78,
+        "wsk": 3,
+        "pos": 8
+      },
+      {
+        "word": "перегородка из стекла для зонирования комнаты",
+        "ws": 151,
+        "wsk": 42,
+        "pos": 9
+      },
+      {
+        "word": "стеклянная перегородка для квартиры",
+        "ws": 467,
+        "wsk": 2,
+        "pos": 9
+      },
+      {
+        "word": "стеклянная декоративная перегородка",
+        "ws": 110,
+        "wsk": 11,
+        "pos": 11
+      },
+      {
+        "word": "стекло для стеклянных перегородок",
+        "ws": 134,
+        "wsk": 0,
+        "pos": 12
+      }
+    ],
+    "topkeys": 776603,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 116
+      },
+      {
+        "url": "/our-works/loft-peregorodki",
+        "it50": 12
+      },
+      {
+        "url": "/our-works/skladnyie-peregorodki",
+        "it50": 10
+      },
+      {
+        "url": "/our-works/peregorodki-dlya-zonirovaniya-komnat",
+        "it50": 4
+      },
+      {
+        "url": "/calculator",
+        "it50": 3
+      },
+      {
+        "url": "/articles/mobilnyie-peregorodki-dlya-zonirovaniya-prostranstva",
+        "it50": 1
+      },
+      {
+        "url": "/our-works/mobilnyie-peregorodki",
+        "it50": 1
+      },
+      {
+        "url": "/our-works/peregorodki-v-kvartire",
+        "it50": 1
+      },
+      {
+        "url": "/vidyi-materialov",
+        "it50": 1
+      },
+      {
+        "url": "/our-works/nedorogie-peregorodki",
+        "it50": 1
+      }
+    ],
+    "pagesinindex": 13,
+    "vis": 1,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 1,
+    "history": {
+      "2025.02": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 2,
+        "it50": 105,
+        "pagesInIndex": 6,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 149,
+        "pagesInIndex": 12,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 147,
+        "pagesInIndex": 12,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 4,
+        "it50": 173,
+        "pagesInIndex": 12,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 9,
+        "it50": 204,
+        "pagesInIndex": 11,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 2,
+        "it10": 36,
+        "it50": 350,
+        "pagesInIndex": 13,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 3,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 233,
+        "pagesInIndex": 8,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 186,
+        "pagesInIndex": 8,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2025.10": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 1,
+        "it50": 197,
+        "pagesInIndex": 8,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 3
+      },
+      "2025.11": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 1,
+        "it10": 5,
+        "it50": 208,
+        "pagesInIndex": 9,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2025.12": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 7,
+        "it50": 243,
+        "pagesInIndex": 10,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.01": {
+        "it1": 1,
+        "it3": 5,
+        "it5": 10,
+        "it10": 18,
+        "it50": 227,
+        "pagesInIndex": 10,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 13,
+        "aiCnt": 0
+      },
+      "2026.02": {
+        "it1": 2,
+        "it3": 9,
+        "it5": 16,
+        "it10": 39,
+        "it50": 247,
+        "pagesInIndex": 14,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 22,
+        "aiCnt": 3
+      },
+      "2026.03": {
+        "it1": 2,
+        "it3": 9,
+        "it5": 17,
+        "it10": 40,
+        "it50": 250,
+        "pagesInIndex": 13,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 22,
+        "aiCnt": 3
+      },
+      "2026.04": {
+        "it1": 0,
+        "it3": 3,
+        "it5": 6,
+        "it10": 26,
+        "it50": 190,
+        "pagesInIndex": 14,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 127
+      },
+      "2026.05": {
+        "it1": 1,
+        "it3": 3,
+        "it5": 7,
+        "it10": 24,
+        "it50": 191,
+        "pagesInIndex": 11,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 1
+      },
+      "2026.06": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 4,
+        "it10": 16,
+        "it50": 158,
+        "pagesInIndex": 12,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2026.07": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 2,
+        "it10": 8,
+        "it50": 153,
+        "pagesInIndex": 13,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        0,
+        22,
+        0,
+        2,
+        0
+      ],
+      "2025.02": [
+        0,
+        26,
+        0,
+        2,
+        0
+      ],
+      "2025.03": [
+        1,
+        22,
+        1,
+        2,
+        1
+      ],
+      "2025.04": [
+        0,
+        25,
+        0,
+        2,
+        0
+      ],
+      "2025.05": [
+        1,
+        23,
+        1,
+        2,
+        1
+      ],
+      "2025.06": [
+        1,
+        23,
+        1,
+        2,
+        1
+      ],
+      "2025.07": [
+        0,
+        24,
+        0,
+        2,
+        1
+      ],
+      "2025.08": [
+        0,
+        23,
+        0,
+        2,
+        1
+      ],
+      "2025.09": [
+        0,
+        23,
+        0,
+        2,
+        1
+      ],
+      "2025.10": [
+        0,
+        22,
+        0,
+        2,
+        1
+      ],
+      "2025.11": [
+        0,
+        21,
+        0,
+        2,
+        1
+      ],
+      "2025.12": [
+        0,
+        23,
+        0,
+        2,
+        1
+      ],
+      "2026.01": [
+        0,
+        29,
+        0,
+        2,
+        1
+      ],
+      "2026.02": [
+        0,
+        28,
+        0,
+        2,
+        1
+      ],
+      "2026.04": [
+        0,
+        23,
+        0,
+        2,
+        1
+      ],
+      "2026.05": [
+        0,
+        21,
+        0,
+        2,
+        1
+      ],
+      "2026.06": [
+        0,
+        26,
+        0,
+        2,
+        0
+      ],
+      "2026.07": [
+        0,
+        26,
+        0,
+        2,
+        0
+      ]
+    },
+    "aiAnswersCnt": 0,
+    "aiState": 0,
+    "dr": 8,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/10df735f4ea2b936f65758356dd87113282d06ab4b80560bea1bf14626d01a24.png",
+    "name": "peregorodki-glass.ru"
   }
 }

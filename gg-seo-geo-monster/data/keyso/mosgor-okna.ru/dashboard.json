@@ -2,10 +2,545 @@
   "domain": "mosgor-okna.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T06:06:23.668Z",
+  "measured": "2026-07-14T08:49:15.064Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=mosgor-okna.ru",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "id": 125542640,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 231858553,
+        "name": "balconia.ru",
+        "cnt": 14,
+        "it50": 2537,
+        "vis": 24,
+        "perc": 0.5518328734726055
+      },
+      {
+        "did": 135089991,
+        "name": "balkoni-nedorogo.ru",
+        "cnt": 13,
+        "it50": 1907,
+        "vis": 95,
+        "perc": 0.6816990036706869
+      },
+      {
+        "did": 31366452,
+        "name": "okna-stroj.com",
+        "cnt": 11,
+        "it50": 1729,
+        "vis": 12,
+        "perc": 0.6362058993637941
+      },
+      {
+        "did": 63416400,
+        "name": "reh-okna24.ru",
+        "cnt": 9,
+        "it50": 1072,
+        "vis": 0,
+        "perc": 0.8395522388059701
+      },
+      {
+        "did": 30820538,
+        "name": "sbalkonom.ru",
+        "cnt": 9,
+        "it50": 1316,
+        "vis": 33,
+        "perc": 0.6838905775075987
+      },
+      {
+        "did": 31763426,
+        "name": "ardom.by",
+        "cnt": 7,
+        "it50": 1033,
+        "vis": 11,
+        "perc": 0.6776379477250726
+      },
+      {
+        "did": 264567956,
+        "name": "balkonotdelka.ru",
+        "cnt": 7,
+        "it50": 1182,
+        "vis": 3,
+        "perc": 0.5922165820642978
+      },
+      {
+        "did": 29973307,
+        "name": "asbalkon.ru",
+        "cnt": 6,
+        "it50": 550,
+        "vis": 1,
+        "perc": 1.0909090909090908
+      },
+      {
+        "did": 111860913,
+        "name": "balkonvmoskve.ru",
+        "cnt": 6,
+        "it50": 498,
+        "vis": 1,
+        "perc": 1.2048192771084336
+      },
+      {
+        "did": 30820435,
+        "name": "mosgor-balkon.ru",
+        "cnt": 5,
+        "it50": 502,
+        "vis": 0,
+        "perc": 0.9960159362549802
+      }
+    ],
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 38,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "salamander streamline",
+        "ws": 18,
+        "wsk": 1,
+        "pos": 20
+      },
+      {
+        "word": "декоративная штукатурка на балконе",
+        "ws": 1102,
+        "wsk": 203,
+        "pos": 22
+      },
+      {
+        "word": "завод рехау в гжели официальный сайт",
+        "ws": 24,
+        "wsk": 21,
+        "pos": 23
+      },
+      {
+        "word": "крыша балкона цена с установкой",
+        "ws": 35,
+        "wsk": 8,
+        "pos": 23
+      },
+      {
+        "word": "крыша балкона на последнем этаже цена",
+        "ws": 215,
+        "wsk": 2,
+        "pos": 23
+      },
+      {
+        "word": "сделать крышу на балконе последнего этажа цена",
+        "ws": 28,
+        "wsk": 23,
+        "pos": 24
+      },
+      {
+        "word": "крыша на балкон последнего этажа цена в москве",
+        "ws": 83,
+        "wsk": 33,
+        "pos": 25
+      },
+      {
+        "word": "фактурная штукатурка на балконе",
+        "ws": 53,
+        "wsk": 27,
+        "pos": 25
+      },
+      {
+        "word": "застеклить угловой балкон",
+        "ws": 38,
+        "wsk": 0,
+        "pos": 25
+      },
+      {
+        "word": "отделка лоджии декоративной штукатуркой",
+        "ws": 25,
+        "wsk": 11,
+        "pos": 26
+      }
+    ],
+    "topkeys": 1000000,
+    "pages": [
+      {
+        "url": "/otdelka-balkonov/shtukaturka",
+        "it50": 5
+      },
+      {
+        "url": "/otdelka-balkonov/laminat-na-balkone",
+        "it50": 5
+      },
+      {
+        "url": "/osteklenie-balkonov/balkon-3-metra",
+        "it50": 4
+      },
+      {
+        "url": "/osteklenie-balkonov/kryisha-na-balkon",
+        "it50": 4
+      },
+      {
+        "url": "/vhodnye-gruppy-dveri/alyuminievye-dveri",
+        "it50": 3
+      },
+      {
+        "url": "/okna/plastikovyie-okna/novotex",
+        "it50": 2
+      },
+      {
+        "url": "/okna/plastikovyie-okna/veka/veka-softline",
+        "it50": 2
+      },
+      {
+        "url": "/okna/plastikovyie-okna/melke",
+        "it50": 2
+      },
+      {
+        "url": "/okna/plastikovyie-okna/rehau/gzhel",
+        "it50": 2
+      },
+      {
+        "url": "/okna/plastikovyie-okna/salamander/streamline",
+        "it50": 2
+      }
+    ],
+    "pagesinindex": 17,
+    "vis": 0,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 0,
+    "history": {
+      "2024.08": {
+        "it1": 7,
+        "it3": 27,
+        "it5": 79,
+        "it10": 385,
+        "it50": 2448,
+        "pagesInIndex": 106,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 79,
+        "aiCnt": 0
+      },
+      "2024.09": {
+        "it1": 6,
+        "it3": 24,
+        "it5": 75,
+        "it10": 400,
+        "it50": 2482,
+        "pagesInIndex": 106,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 35,
+        "aiCnt": 0
+      },
+      "2024.10": {
+        "it1": 6,
+        "it3": 29,
+        "it5": 75,
+        "it10": 387,
+        "it50": 2496,
+        "pagesInIndex": 105,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 96,
+        "aiCnt": 0
+      },
+      "2024.11": {
+        "it1": 6,
+        "it3": 26,
+        "it5": 84,
+        "it10": 406,
+        "it50": 3069,
+        "pagesInIndex": 103,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 103,
+        "aiCnt": 0
+      },
+      "2024.12": {
+        "it1": 5,
+        "it3": 24,
+        "it5": 77,
+        "it10": 420,
+        "it50": 3433,
+        "pagesInIndex": 105,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 14,
+        "aiCnt": 0
+      },
+      "2025.01": {
+        "it1": 2,
+        "it3": 17,
+        "it5": 51,
+        "it10": 281,
+        "it50": 3379,
+        "pagesInIndex": 101,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 11,
+        "aiCnt": 0
+      },
+      "2025.02": {
+        "it1": 3,
+        "it3": 18,
+        "it5": 51,
+        "it10": 282,
+        "it50": 3236,
+        "pagesInIndex": 101,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 13,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 3,
+        "it3": 20,
+        "it5": 55,
+        "it10": 291,
+        "it50": 2746,
+        "pagesInIndex": 101,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 14,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 3,
+        "it3": 20,
+        "it5": 54,
+        "it10": 282,
+        "it50": 2695,
+        "pagesInIndex": 101,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 14,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 3,
+        "it3": 22,
+        "it5": 61,
+        "it10": 321,
+        "it50": 2697,
+        "pagesInIndex": 105,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 15,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 3,
+        "it3": 17,
+        "it5": 57,
+        "it10": 286,
+        "it50": 2763,
+        "pagesInIndex": 105,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 7,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 10,
+        "it10": 76,
+        "it50": 1497,
+        "pagesInIndex": 97,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 4,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 37,
+        "pagesInIndex": 21,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 1,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.10": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 1,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.11": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 1,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.06": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 39,
+        "pagesInIndex": 18,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.07": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 38,
+        "pagesInIndex": 17,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        252,
+        151,
+        54,
+        2,
+        38
+      ],
+      "2025.02": [
+        253,
+        152,
+        54,
+        4,
+        39
+      ],
+      "2025.03": [
+        255,
+        153,
+        55,
+        4,
+        40
+      ],
+      "2025.04": [
+        254,
+        151,
+        54,
+        4,
+        40
+      ],
+      "2025.05": [
+        248,
+        136,
+        54,
+        4,
+        38
+      ],
+      "2025.06": [
+        248,
+        135,
+        52,
+        4,
+        38
+      ],
+      "2025.07": [
+        248,
+        135,
+        52,
+        4,
+        38
+      ],
+      "2025.08": [
+        252,
+        135,
+        54,
+        4,
+        41
+      ],
+      "2025.09": [
+        307,
+        135,
+        72,
+        4,
+        104
+      ],
+      "2025.10": [
+        355,
+        135,
+        77,
+        4,
+        35
+      ],
+      "2025.11": [
+        329,
+        135,
+        74,
+        4,
+        34
+      ],
+      "2025.12": [
+        348,
+        135,
+        76,
+        4,
+        38
+      ],
+      "2026.01": [
+        391,
+        135,
+        78,
+        4,
+        39
+      ],
+      "2026.06": [
+        392,
+        135,
+        79,
+        4,
+        133
+      ],
+      "2026.07": [
+        392,
+        135,
+        79,
+        4,
+        133
+      ]
+    },
+    "aiAnswersCnt": 0,
+    "aiState": 10,
+    "dr": 11,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/5db1fda123678eb361e83d90359903be7ae578a602de1764163917c1026f9171.png",
+    "name": "mosgor-okna.ru"
   }
 }

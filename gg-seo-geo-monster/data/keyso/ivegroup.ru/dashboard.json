@@ -2,10 +2,573 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T06:06:17.211Z",
+  "measured": "2026-07-14T08:49:07.311Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "id": 30485583,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30202337,
+        "name": "glasstroy.ru",
+        "cnt": 365,
+        "it50": 10062,
+        "vis": 126,
+        "perc": 3.6275094414629296
+      },
+      {
+        "did": 30134448,
+        "name": "dvertsov.ru",
+        "cnt": 267,
+        "it50": 32547,
+        "vis": 2148,
+        "perc": 0.8203521061849017
+      },
+      {
+        "did": 272188389,
+        "name": "fdmebel.ru",
+        "cnt": 245,
+        "it50": 2565,
+        "vis": 313,
+        "perc": 9.551656920077972
+      },
+      {
+        "did": 322813373,
+        "name": "lain-loft.ru",
+        "cnt": 217,
+        "it50": 6768,
+        "vis": 282,
+        "perc": 3.2062647754137115
+      },
+      {
+        "did": 80428092,
+        "name": "fantasia-stekla.ru",
+        "cnt": 203,
+        "it50": 5074,
+        "vis": 111,
+        "perc": 4.00078833267639
+      },
+      {
+        "did": 125649525,
+        "name": "alfaporta.ru",
+        "cnt": 196,
+        "it50": 10307,
+        "vis": 1121,
+        "perc": 1.9016202580770352
+      },
+      {
+        "did": 80337046,
+        "name": "dveriunas.ru",
+        "cnt": 184,
+        "it50": 27425,
+        "vis": 3489,
+        "perc": 0.6709206927985415
+      },
+      {
+        "did": 30122289,
+        "name": "dveri-academy.ru",
+        "cnt": 176,
+        "it50": 7823,
+        "vis": 238,
+        "perc": 2.2497763006519236
+      },
+      {
+        "did": 280352249,
+        "name": "kelman-stroi.ru",
+        "cnt": 171,
+        "it50": 9924,
+        "vis": 20,
+        "perc": 1.7230955259975818
+      },
+      {
+        "did": 30329275,
+        "name": "union.ru",
+        "cnt": 167,
+        "it50": 8744,
+        "vis": 927,
+        "perc": 1.9098810612991766
+      }
+    ],
+    "it1": 10,
+    "it3": 45,
+    "it5": 66,
+    "it10": 129,
+    "it50": 1015,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "душевая для собак",
+        "ws": 135,
+        "wsk": 20,
+        "pos": 1
+      },
+      {
+        "word": "окно в стене",
+        "ws": 43388,
+        "wsk": 17,
+        "pos": 1
+      },
+      {
+        "word": "межкомнатные окна в интерьере",
+        "ws": 31,
+        "wsk": 11,
+        "pos": 1
+      },
+      {
+        "word": "ivegroup",
+        "ws": 28,
+        "wsk": 7,
+        "pos": 1
+      },
+      {
+        "word": "ive group",
+        "ws": 29,
+        "wsk": 4,
+        "pos": 1
+      },
+      {
+        "word": "стекла для перегородок",
+        "ws": 7117,
+        "wsk": 4,
+        "pos": 1
+      },
+      {
+        "word": "стеклянная фрамуга",
+        "ws": 215,
+        "wsk": 2,
+        "pos": 1
+      },
+      {
+        "word": "угловой тамбур",
+        "ws": 43,
+        "wsk": 2,
+        "pos": 1
+      },
+      {
+        "word": "ivegroup ru официальный сайт",
+        "ws": 2,
+        "wsk": 2,
+        "pos": 1
+      },
+      {
+        "word": "межкомнатные окна в стене",
+        "ws": 72,
+        "wsk": 2,
+        "pos": 1
+      }
+    ],
+    "topkeys": 234218,
+    "pages": [
+      {
+        "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno",
+        "it50": 85
+      },
+      {
+        "url": "/stellazhi",
+        "it50": 79
+      },
+      {
+        "url": "/2023/10/06/arochnye-steklyannye-dveri",
+        "it50": 77
+      },
+      {
+        "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri",
+        "it50": 68
+      },
+      {
+        "url": "/2023/02/05/moyka-dlya-sobak",
+        "it50": 63
+      },
+      {
+        "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka",
+        "it50": 53
+      },
+      {
+        "url": "/2021/03/22/steklyannyi-tambur-v-dom",
+        "it50": 52
+      },
+      {
+        "url": "/2023/02/12/materialy-peregorodok",
+        "it50": 42
+      },
+      {
+        "url": "/2023/02/17/peregorodki_s_matovymi_steklami",
+        "it50": 41
+      },
+      {
+        "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri-s-penalom",
+        "it50": 34
+      }
+    ],
+    "pagesinindex": 54,
+    "vis": 5,
+    "topvis": 433973,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 7,
+    "history": {
+      "2025.02": {
+        "it1": 34,
+        "it3": 102,
+        "it5": 167,
+        "it10": 297,
+        "it50": 1447,
+        "pagesInIndex": 56,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 30,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 40,
+        "it3": 102,
+        "it5": 139,
+        "it10": 274,
+        "it50": 1463,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 40,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 39,
+        "it3": 101,
+        "it5": 137,
+        "it10": 268,
+        "it50": 1434,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 31,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 36,
+        "it3": 93,
+        "it5": 130,
+        "it10": 248,
+        "it50": 1404,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 24,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 36,
+        "it3": 85,
+        "it5": 118,
+        "it10": 226,
+        "it50": 1320,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 15,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 24,
+        "it3": 50,
+        "it5": 72,
+        "it10": 176,
+        "it50": 1325,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 9,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 15,
+        "it3": 32,
+        "it5": 52,
+        "it10": 126,
+        "it50": 1282,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 13,
+        "it3": 33,
+        "it5": 52,
+        "it10": 123,
+        "it50": 1331,
+        "pagesInIndex": 57,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 51
+      },
+      "2025.10": {
+        "it1": 13,
+        "it3": 32,
+        "it5": 48,
+        "it10": 117,
+        "it50": 1321,
+        "pagesInIndex": 56,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 28
+      },
+      "2025.11": {
+        "it1": 8,
+        "it3": 28,
+        "it5": 48,
+        "it10": 125,
+        "it50": 1203,
+        "pagesInIndex": 56,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 7,
+        "aiCnt": 6
+      },
+      "2025.12": {
+        "it1": 11,
+        "it3": 25,
+        "it5": 46,
+        "it10": 117,
+        "it50": 1065,
+        "pagesInIndex": 57,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 6,
+        "aiCnt": 22
+      },
+      "2026.01": {
+        "it1": 12,
+        "it3": 30,
+        "it5": 48,
+        "it10": 115,
+        "it50": 1028,
+        "pagesInIndex": 53,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 6,
+        "aiCnt": 33
+      },
+      "2026.02": {
+        "it1": 11,
+        "it3": 33,
+        "it5": 52,
+        "it10": 120,
+        "it50": 1033,
+        "pagesInIndex": 57,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 5,
+        "aiCnt": 15
+      },
+      "2026.03": {
+        "it1": 10,
+        "it3": 31,
+        "it5": 49,
+        "it10": 114,
+        "it50": 1030,
+        "pagesInIndex": 56,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 5,
+        "aiCnt": 7
+      },
+      "2026.04": {
+        "it1": 19,
+        "it3": 42,
+        "it5": 63,
+        "it10": 135,
+        "it50": 989,
+        "pagesInIndex": 59,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 6,
+        "aiCnt": 171
+      },
+      "2026.05": {
+        "it1": 13,
+        "it3": 49,
+        "it5": 74,
+        "it10": 140,
+        "it50": 1060,
+        "pagesInIndex": 58,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 6,
+        "aiCnt": 38
+      },
+      "2026.06": {
+        "it1": 10,
+        "it3": 47,
+        "it5": 68,
+        "it10": 125,
+        "it50": 1004,
+        "pagesInIndex": 57,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 6,
+        "aiCnt": 15
+      },
+      "2026.07": {
+        "it1": 10,
+        "it3": 45,
+        "it5": 66,
+        "it10": 129,
+        "it50": 1015,
+        "pagesInIndex": 54,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 5,
+        "aiCnt": 13
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        259,
+        138,
+        71,
+        3,
+        63
+      ],
+      "2025.02": [
+        260,
+        144,
+        72,
+        3,
+        64
+      ],
+      "2025.03": [
+        283,
+        126,
+        75,
+        3,
+        69
+      ],
+      "2025.04": [
+        285,
+        141,
+        75,
+        3,
+        71
+      ],
+      "2025.05": [
+        265,
+        130,
+        77,
+        4,
+        71
+      ],
+      "2025.06": [
+        264,
+        154,
+        74,
+        4,
+        69
+      ],
+      "2025.07": [
+        263,
+        148,
+        73,
+        4,
+        68
+      ],
+      "2025.08": [
+        273,
+        163,
+        78,
+        4,
+        75
+      ],
+      "2025.09": [
+        565,
+        126,
+        108,
+        3,
+        248
+      ],
+      "2025.10": [
+        662,
+        127,
+        111,
+        4,
+        95
+      ],
+      "2025.11": [
+        659,
+        144,
+        112,
+        3,
+        82
+      ],
+      "2025.12": [
+        720,
+        160,
+        118,
+        4,
+        96
+      ],
+      "2026.01": [
+        721,
+        921,
+        117,
+        4,
+        95
+      ],
+      "2026.02": [
+        725,
+        1510,
+        118,
+        4,
+        95
+      ],
+      "2026.03": [
+        719,
+        1554,
+        115,
+        4,
+        95
+      ],
+      "2026.04": [
+        719,
+        1105,
+        116,
+        4,
+        330
+      ],
+      "2026.05": [
+        718,
+        1276,
+        115,
+        4,
+        329
+      ],
+      "2026.06": [
+        720,
+        1162,
+        114,
+        4,
+        334
+      ],
+      "2026.07": [
+        720,
+        1162,
+        114,
+        4,
+        334
+      ]
+    },
+    "aiAnswersCnt": 13,
+    "aiState": 10,
+    "dr": 21,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/70e3a912fa6972e638ef77425c8d96f9b5763f6148c246533647387db1cf30c2.png",
+    "name": "ivegroup.ru"
   }
 }

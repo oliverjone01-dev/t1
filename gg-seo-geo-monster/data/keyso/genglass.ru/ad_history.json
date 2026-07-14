@@ -2,7 +2,7 @@
   "domain": "genglass.ru",
   "report": "ad_history",
   "db": "msk",
-  "measured": "2026-07-14T06:06:12.777Z",
+  "measured": "2026-07-14T08:49:01.395Z",
   "url": "https://api.keys.so/report/simple/domain_ad_history?base=msk&domain=genglass.ru",
   "data": {
     "2026-07": {

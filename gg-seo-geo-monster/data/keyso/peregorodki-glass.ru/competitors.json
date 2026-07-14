@@ -2,10 +2,32 @@
   "domain": "peregorodki-glass.ru",
   "report": "competitors",
   "db": "msk",
-  "measured": "2026-07-14T06:06:28.126Z",
+  "measured": "2026-07-14T08:49:21.200Z",
   "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=peregorodki-glass.ru&top=10",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 1,
+    "data": [
+      {
+        "id": 278166136,
+        "name": "zavod-peregorodok.ru",
+        "perc": 1,
+        "theme": 88,
+        "cnt": 7,
+        "it1": 8,
+        "it3": 45,
+        "it5": 122,
+        "it10": 253,
+        "it50": 1268,
+        "pagesinindex": 25,
+        "vis": 35,
+        "adscnt": 0,
+        "adkeyscnt": 0,
+        "adtraf": 0,
+        "adcost": 0
+      }
+    ],
+    "total": 1
   }
 }

@@ -2,10 +2,573 @@
   "domain": "vo-zavod.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T06:06:29.791Z",
+  "measured": "2026-07-14T08:49:23.709Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=vo-zavod.ru",
   "data": {
-    "code": 202,
-    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+    "id": 30965359,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30678142,
+        "name": "oknazavr.ru",
+        "cnt": 167,
+        "it50": 12461,
+        "vis": 78,
+        "perc": 1.3401813658614878
+      },
+      {
+        "did": 131288716,
+        "name": "nadezhnye-okna.com",
+        "cnt": 164,
+        "it50": 5835,
+        "vis": 8,
+        "perc": 2.810625535561268
+      },
+      {
+        "did": 100366025,
+        "name": "voronezh.oknatrade.ru",
+        "cnt": 147,
+        "it50": 277,
+        "vis": 2,
+        "perc": 53.068592057761734
+      },
+      {
+        "did": 30070755,
+        "name": "mosokna.ru",
+        "cnt": 144,
+        "it50": 24509,
+        "vis": 1829,
+        "perc": 0.5875392712880982
+      },
+      {
+        "did": 51933482,
+        "name": "okna-germany.ru",
+        "cnt": 142,
+        "it50": 20631,
+        "vis": 1596,
+        "perc": 0.6882846202316901
+      },
+      {
+        "did": 30340850,
+        "name": "okna-milya.ru",
+        "cnt": 136,
+        "it50": 639,
+        "vis": 3,
+        "perc": 21.28325508607199
+      },
+      {
+        "did": 243080234,
+        "name": "voronezh.oknapeople.ru",
+        "cnt": 134,
+        "it50": 293,
+        "vis": 2,
+        "perc": 45.73378839590443
+      },
+      {
+        "did": 251053992,
+        "name": "okna-voronezh.ru",
+        "cnt": 130,
+        "it50": 174,
+        "vis": 5,
+        "perc": 74.71264367816092
+      },
+      {
+        "did": 263143269,
+        "name": "voronezh.okna-plastikovyye.ru",
+        "cnt": 128,
+        "it50": 174,
+        "vis": 8,
+        "perc": 73.5632183908046
+      },
+      {
+        "did": 351101430,
+        "name": "voronezh.zavod-okna-pvh.ru",
+        "cnt": 121,
+        "it50": 190,
+        "vis": 4,
+        "perc": 63.684210526315795
+      }
+    ],
+    "it1": 17,
+    "it3": 36,
+    "it5": 51,
+    "it10": 134,
+    "it50": 645,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "воронежский оконный завод",
+        "ws": 1128,
+        "wsk": 369,
+        "pos": 1
+      },
+      {
+        "word": "воронежский оконный завод официальный сайт",
+        "ws": 127,
+        "wsk": 101,
+        "pos": 1
+      },
+      {
+        "word": "воронеж оконный завод",
+        "ws": 481,
+        "wsk": 62,
+        "pos": 1
+      },
+      {
+        "word": "оконный завод воронеж",
+        "ws": 346,
+        "wsk": 48,
+        "pos": 1
+      },
+      {
+        "word": "ооо воронежский оконный завод",
+        "ws": 41,
+        "wsk": 21,
+        "pos": 1
+      },
+      {
+        "word": "оконный завод воронеж официальный сайт",
+        "ws": 59,
+        "wsk": 18,
+        "pos": 1
+      },
+      {
+        "word": "воронежский оконный завод вакансии",
+        "ws": 39,
+        "wsk": 17,
+        "pos": 1
+      },
+      {
+        "word": "vo zavod ru",
+        "ws": 32,
+        "wsk": 12,
+        "pos": 1
+      },
+      {
+        "word": "воронежский оконный завод официальный",
+        "ws": 138,
+        "wsk": 11,
+        "pos": 1
+      },
+      {
+        "word": "воронежский оконный завод вакансии воронеж",
+        "ws": 9,
+        "wsk": 9,
+        "pos": 1
+      }
+    ],
+    "topkeys": 317355,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 103
+      },
+      {
+        "url": "/article/plesen-na-okne",
+        "it50": 81
+      },
+      {
+        "url": "/article/zamenaokna-gid-po-cenam",
+        "it50": 56
+      },
+      {
+        "url": "/kontakty",
+        "it50": 35
+      },
+      {
+        "url": "/osteklenie-balkonov-i-lodzhij",
+        "it50": 31
+      },
+      {
+        "url": "/plastikokna-rostov-na-donu",
+        "it50": 29
+      },
+      {
+        "url": "/article/tihie-okna",
+        "it50": 25
+      },
+      {
+        "url": "/dushevye-kabiny",
+        "it50": 22
+      },
+      {
+        "url": "/remont",
+        "it50": 18
+      },
+      {
+        "url": "/plastikovye-okna-tambov",
+        "it50": 18
+      }
+    ],
+    "pagesinindex": 74,
+    "vis": 13,
+    "topvis": 270738,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 8,
+    "history": {
+      "2025.02": {
+        "it1": 18,
+        "it3": 34,
+        "it5": 49,
+        "it10": 106,
+        "it50": 764,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 30,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 13,
+        "it3": 23,
+        "it5": 39,
+        "it10": 77,
+        "it50": 706,
+        "pagesInIndex": 54,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 20,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 13,
+        "it3": 23,
+        "it5": 38,
+        "it10": 77,
+        "it50": 686,
+        "pagesInIndex": 54,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 21,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 15,
+        "it3": 22,
+        "it5": 37,
+        "it10": 72,
+        "it50": 655,
+        "pagesInIndex": 52,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 21,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 14,
+        "it3": 20,
+        "it5": 33,
+        "it10": 77,
+        "it50": 637,
+        "pagesInIndex": 53,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 16,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 14,
+        "it3": 21,
+        "it5": 37,
+        "it10": 78,
+        "it50": 639,
+        "pagesInIndex": 57,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 31,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 10,
+        "it3": 24,
+        "it5": 34,
+        "it10": 62,
+        "it50": 622,
+        "pagesInIndex": 58,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 19,
+        "aiCnt": 2
+      },
+      "2025.09": {
+        "it1": 9,
+        "it3": 24,
+        "it5": 33,
+        "it10": 71,
+        "it50": 640,
+        "pagesInIndex": 56,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 19,
+        "aiCnt": 49
+      },
+      "2025.10": {
+        "it1": 11,
+        "it3": 23,
+        "it5": 32,
+        "it10": 71,
+        "it50": 645,
+        "pagesInIndex": 54,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 20,
+        "aiCnt": 51
+      },
+      "2025.11": {
+        "it1": 18,
+        "it3": 36,
+        "it5": 49,
+        "it10": 100,
+        "it50": 730,
+        "pagesInIndex": 54,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 24,
+        "aiCnt": 49
+      },
+      "2025.12": {
+        "it1": 30,
+        "it3": 51,
+        "it5": 65,
+        "it10": 132,
+        "it50": 743,
+        "pagesInIndex": 62,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 31,
+        "aiCnt": 77
+      },
+      "2026.01": {
+        "it1": 28,
+        "it3": 46,
+        "it5": 64,
+        "it10": 130,
+        "it50": 742,
+        "pagesInIndex": 67,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 33,
+        "aiCnt": 94
+      },
+      "2026.02": {
+        "it1": 20,
+        "it3": 34,
+        "it5": 57,
+        "it10": 127,
+        "it50": 752,
+        "pagesInIndex": 69,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 20,
+        "aiCnt": 20
+      },
+      "2026.03": {
+        "it1": 19,
+        "it3": 34,
+        "it5": 59,
+        "it10": 130,
+        "it50": 713,
+        "pagesInIndex": 70,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 19,
+        "aiCnt": 49
+      },
+      "2026.04": {
+        "it1": 13,
+        "it3": 32,
+        "it5": 56,
+        "it10": 122,
+        "it50": 602,
+        "pagesInIndex": 69,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 17,
+        "aiCnt": 224
+      },
+      "2026.05": {
+        "it1": 19,
+        "it3": 37,
+        "it5": 59,
+        "it10": 139,
+        "it50": 587,
+        "pagesInIndex": 71,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 19,
+        "aiCnt": 49
+      },
+      "2026.06": {
+        "it1": 17,
+        "it3": 33,
+        "it5": 50,
+        "it10": 136,
+        "it50": 625,
+        "pagesInIndex": 75,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 11,
+        "aiCnt": 39
+      },
+      "2026.07": {
+        "it1": 17,
+        "it3": 36,
+        "it5": 51,
+        "it10": 134,
+        "it50": 645,
+        "pagesInIndex": 74,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 13,
+        "aiCnt": 31
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        134,
+        357,
+        74,
+        10,
+        83
+      ],
+      "2025.02": [
+        143,
+        404,
+        82,
+        13,
+        91
+      ],
+      "2025.03": [
+        147,
+        490,
+        75,
+        14,
+        91
+      ],
+      "2025.04": [
+        138,
+        454,
+        76,
+        13,
+        85
+      ],
+      "2025.05": [
+        151,
+        514,
+        79,
+        10,
+        96
+      ],
+      "2025.06": [
+        145,
+        517,
+        76,
+        12,
+        92
+      ],
+      "2025.07": [
+        149,
+        507,
+        76,
+        12,
+        95
+      ],
+      "2025.08": [
+        145,
+        505,
+        75,
+        12,
+        92
+      ],
+      "2025.09": [
+        164,
+        593,
+        86,
+        14,
+        116
+      ],
+      "2025.10": [
+        154,
+        627,
+        78,
+        13,
+        33
+      ],
+      "2025.11": [
+        164,
+        611,
+        86,
+        13,
+        33
+      ],
+      "2025.12": [
+        159,
+        661,
+        85,
+        15,
+        34
+      ],
+      "2026.01": [
+        169,
+        636,
+        91,
+        15,
+        38
+      ],
+      "2026.02": [
+        162,
+        665,
+        90,
+        15,
+        35
+      ],
+      "2026.03": [
+        162,
+        669,
+        92,
+        17,
+        19
+      ],
+      "2026.04": [
+        177,
+        1105,
+        90,
+        17,
+        127
+      ],
+      "2026.05": [
+        269,
+        1716,
+        93,
+        18,
+        204
+      ],
+      "2026.06": [
+        263,
+        1645,
+        90,
+        19,
+        205
+      ],
+      "2026.07": [
+        263,
+        1645,
+        90,
+        19,
+        205
+      ]
+    },
+    "aiAnswersCnt": 31,
+    "aiState": 10,
+    "dr": 18,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/40d128efa4c1feca98bc0c1170146507c444f66c3df6e53dc09fede90c30a249.png",
+    "name": "vo-zavod.ru"
   }
 }

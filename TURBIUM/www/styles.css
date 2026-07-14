@@ -161,6 +161,7 @@ section{padding:clamp(56px,9vh,116px) 0;position:relative}
 .consent a{color:var(--mint)}
 .gfx.has-img{border-style:solid;border-color:var(--line);background:var(--deep)}
 .gfx.has-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.gfx.has-img .gfx-badge{z-index:2;color:var(--white);background:rgba(10,15,13,.72);border-color:rgba(255,255,255,.14);backdrop-filter:blur(4px)}
 
 /* ---------- hero ---------- */
 .hero{background:var(--deep);padding-top:clamp(48px,7vh,92px)}

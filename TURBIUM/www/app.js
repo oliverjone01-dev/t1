@@ -61,16 +61,15 @@
     cs.forEach(function(c){co.observe(c);});
   } else cs.forEach(count);
 
-  /* Tb tile parallax */
+  /* Tb-момент: одна сдержанная сборка плитки на входе, без параллакса */
   var tile=document.getElementById('tbTile');
-  if(tile && !reduce && matchMedia('(pointer:fine)').matches){
-    var st=tile.parentElement;
-    st.addEventListener('pointermove',function(e){
-      var r=tile.getBoundingClientRect();
-      tile.style.setProperty('--ry',(((e.clientX-r.left)/r.width-.5)*7).toFixed(2)+'deg');
-      tile.style.setProperty('--rx',((-(e.clientY-r.top)/r.height+.5)*7).toFixed(2)+'deg');
-    });
-    st.addEventListener('pointerleave',function(){tile.style.setProperty('--ry','0deg');tile.style.setProperty('--rx','0deg');});
+  if(tile && !reduce){
+    tile.style.opacity='0';
+    tile.style.transform='scale(.965)';
+    tile.style.transition='opacity .8s var(--ease,ease), transform .8s var(--ease,ease)';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      tile.style.opacity='1';tile.style.transform='none';
+    });});
   }
 
   /* lead form: progressive disclosure + honest submit

@@ -313,11 +313,10 @@ footer.foot{border-top:1px solid var(--line);padding:44px 0 40px;background:var(
    v5 · «Огранка сигнала» · концепт-фишки
    ============================================================ */
 
-/* --- огранка-reveal (clip-path со скошенным углом) --- */
-.fc{opacity:0;clip-path:polygon(0 8%,0 8%,0 100%,0 100%);transition:opacity .6s var(--ease),clip-path .75s cubic-bezier(.2,.7,.2,1)}
-.fc.in{opacity:1;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
-@media(max-width:640px){.fc{transition:opacity .45s var(--ease),clip-path .5s var(--ease)}}
-@media(prefers-reduced-motion:reduce){.fc{opacity:1;clip-path:none;transition:none}}
+/* --- reveal (сдержанный, надёжный: opacity + подъём) --- */
+.fc{opacity:0;transform:translateY(18px);transition:opacity .55s var(--ease),transform .65s var(--ease)}
+.fc.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.fc{opacity:1;transform:none;transition:none}}
 
 /* --- дуга-преломление (scroll-driven, левый край) --- */
 .refract{position:fixed;left:max(10px,calc((100vw - var(--maxw))/2 - 22px));top:14vh;bottom:14vh;width:2px;z-index:45;
@@ -333,21 +332,6 @@ footer.foot{border-top:1px solid var(--line);padding:44px 0 40px;background:var(
   background:radial-gradient(180px 180px at var(--gx,50%) var(--gy,40%),rgba(95,227,182,.28),transparent 60%)}
 .tb-tilt:hover .tb-glare{opacity:1}
 @media(hover:none),(pointer:coarse){.tb-tilt{transform:none}.tb-glare{display:none}}
-
-/* --- marquee «сырой сигнал» --- */
-.signal{background:var(--deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0 20px;overflow:hidden}
-.signal-track{display:flex;gap:0;white-space:nowrap;width:max-content;font-family:var(--head);font-weight:600;
-  font-size:clamp(1.1rem,2.2vw,1.6rem);letter-spacing:-.02em;color:var(--amber);opacity:.85;
-  animation:marq 34s linear infinite;will-change:transform}
-.signal-track span{padding:0 4px}
-.signal-track i{color:var(--grey-dim);font-style:normal;padding:0 14px}
-.signal:hover .signal-track{animation-play-state:paused}
-@keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.signal-cap{max-width:var(--maxw);margin:14px auto 0;padding:0 clamp(18px,4vw,40px);
-  font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--grey);text-transform:uppercase}
-.signal-cap .sep{color:var(--grey-dim);padding:0 6px}
-@media(max-width:640px){.signal-track{animation-duration:22s;font-size:1.15rem}.signal-cap{text-transform:none;letter-spacing:0}}
-@media(prefers-reduced-motion:reduce){.signal-track{animation:none;transform:translateX(0)}}
 
 /* --- proof (2 сорсд-стата) --- */
 .proof{display:grid;gap:20px;margin-top:36px}

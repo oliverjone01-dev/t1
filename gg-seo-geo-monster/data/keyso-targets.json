@@ -1,9 +1,106 @@
 {
-  "_note": "Домены для анализа keys.so. Ведёт Семён. role: own | competitor. reports по умолчанию: dashboard, organic_keywords, competitors. Помним суточный лимит тарифа - 3000 строк.",
+  "_note": "Разведка keys.so: рынок стальных межкомнатных перегородок РФ (goal Ивана 10.07). Отчёты: dashboard (KPI+ai+конкуренты) + competitors (пересечение выдачи). Лимит 3000/сутки.",
   "updated": "2026-07-10",
   "targets": [
-    { "domain": "genglass.ru", "brand": "GENGLASS", "role": "own", "reports": ["dashboard", "competitors", "ad_history"] },
-    { "domain": "ЗАПОЛНИТЬ-домен-Бельведер", "brand": null, "role": "competitor", "reports": ["dashboard", "competitors"] },
-    { "domain": "ЗАПОЛНИТЬ-домен-MR.DOORS", "brand": null, "role": "competitor", "reports": ["dashboard", "competitors"] }
+    {
+      "domain": "genglass.ru",
+      "brand": "GENGLASS",
+      "role": "own",
+      "reports": [
+        "dashboard",
+        "competitors",
+        "ad_history"
+      ]
+    },
+    {
+      "domain": "loftkrel.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "ivegroup.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "loftcase.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "mosgor-okna.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "peregorodki-glass.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "vo-zavod.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "loft-peregorodki-spb.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "alfaporta.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "union.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    },
+    {
+      "domain": "xn----7sbb2alsf9bq.xn--p1ai",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": [
+        "dashboard",
+        "competitors"
+      ]
+    }
   ]
 }

@@ -201,7 +201,12 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 @media(max-width:860px){.scen{grid-template-columns:1fr}}
 
 /* ---------- ГАНТ (переосмысленный) ---------- */
-.gantt-legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:14px;font-size:12.5px;color:var(--ink-2)}
+.gantt-legend{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:12.5px;color:var(--ink-2)}
+.lg-set{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.g-zoom{display:inline-flex;align-items:center;gap:4px}
+.g-zoom button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;min-width:30px;cursor:pointer;transition:.15s var(--ease)}
+.g-zoom button:hover{color:var(--ink);border-color:var(--ink-3);background:color-mix(in oklab,var(--brass-2) 18%,transparent)}
+.g-zoom button[data-z=fit]{font-weight:500}
 .lg{display:inline-flex;align-items:center;gap:7px}
 .lg i{width:17px;height:12px;border-radius:6px;display:inline-block}
 .lg .st-done{background:linear-gradient(180deg,#7FCF9C,#3E5A46)}
@@ -212,12 +217,33 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .lg .st-today{width:3px;height:14px;border-radius:2px;background:var(--brass)}
 
 .gantt-wrap{border:1px solid var(--line-2);border-radius:14px;background:var(--paper);overflow:hidden;position:relative}
-.gantt-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.gantt-scroll{overflow:visible}
 .gantt{display:block;font-size:13px}
 .gantt svg{display:block}
+/* сплит: фиксированная панель задач + прокручиваемая лента */
+.g-split{display:flex;align-items:flex-start;width:100%}
+.g-left{flex:0 0 auto;overflow:hidden}
+.g-left svg{display:block}
+.g-divider{flex:0 0 10px;align-self:stretch;cursor:col-resize;position:relative;touch-action:none;background:color-mix(in oklab,var(--paper-2) 60%,transparent);border-left:1px solid var(--line-2)}
+.g-divider:hover,.g-divider.drag{background:color-mix(in oklab,var(--brass-2) 30%,transparent)}
+.g-divider-grip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:2px;height:26px;border-radius:2px;background:var(--line-2)}
+.g-divider:hover .g-divider-grip,.g-divider.drag .g-divider-grip{background:var(--brass)}
+.g-right{flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;cursor:grab}
+.g-right.panning{cursor:grabbing}
+.g-right svg{display:block}
+/* чипы под задачей: ответственный + дедлайн */
+.g-chip-bg{fill:color-mix(in oklab,var(--paper-2) 90%,transparent);stroke:var(--line-2);stroke-width:1}
+.g-chip-t{fill:var(--ink-2);font-family:var(--sans);font-size:10.5px}
+.g-chip-dot{fill:var(--ink-3)}
+.g-chip-who .g-chip-dot{fill:var(--forest,#6FC38C)}
+.g-chip-who-empty .g-chip-bg{stroke-dasharray:3 2}
+.g-chip-who-empty .g-chip-t{fill:var(--ink-3)}
+.g-chip-who-empty .g-chip-dot{fill:var(--ink-3)}
+.g-chip-cal .g-chip-dot{fill:var(--brass)}
+.g-chip-cal .g-chip-t{fill:var(--brass-ink)}
 .g-row-label{fill:var(--ink);font-family:var(--sans);font-size:12.5px;font-weight:500}
 .g-row-who{fill:var(--ink-3);font-family:var(--sans);font-size:10.5px}
-.g-task-line{fill:var(--ink);font-family:var(--sans);font-size:12.5px;font-weight:600}
+.g-task-line{fill:var(--ink);font-family:var(--sans);font-size:13.5px;font-weight:500}
 .g-why-line{fill:var(--ink-3);font-family:var(--sans);font-size:11px}
 .g-why-exp{fill:var(--ink-2);font-family:var(--sans);font-size:11px}
 .g-author-exp{fill:var(--brass-ink);font-family:var(--sans);font-size:10.5px;font-weight:600;font-style:italic}

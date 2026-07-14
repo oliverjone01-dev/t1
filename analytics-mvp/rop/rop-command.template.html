@@ -1306,10 +1306,10 @@ function offerCalendarBlock(){
   const serie=r=>{const cnt={};let tot=0;keys.forEach(k=>{const n=dealsFor(r,k).length;cnt[k]=n;if(!r.wip)tot+=n;});return {cnt,mx:Math.max(1,...keys.map(k=>cnt[k])),tot};};
 
   const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
-  const showN=keys.length<=24;
+  const fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9; // число всегда показываем, шрифт под плотность
   const rowHTML=r=>{const s=serie(r);
     const cells=keys.map(k=>{const v=s.cnt[k],t=v/s.mx,bg=v===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===r.id&&S.calCell.k===k;
-      return `<div ${v?`data-calcell="${r.id}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${t>.5?'#06121a':'var(--ink-4)'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+v+(v?' · клик - сделки':'')).replace(/"/g,'&quot;')}">${showN&&v?v:''}</div>`;}).join("");
+      return `<div ${v?`data-calcell="${r.id}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:${t>.5?'#06121a':'var(--ink-4)'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+v+(v?' · клик - сделки':'')).replace(/"/g,'&quot;')}">${v?v:''}</div>`;}).join("");
     return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:170px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.nm}${r.wip?'':` <b style="color:${r.color}">${s.tot}</b>`}</div><div style="flex:1;display:flex;gap:2px">${cells}</div></div>`;
   };
   const step=Math.max(1,Math.ceil(keys.length/12));

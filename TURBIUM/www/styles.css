@@ -18,7 +18,7 @@
   --peach:#E9B48D;         /* новые сущности · нюанс */
   --white:#ECEEF0;         /* ink: факты · цифры · заголовки */
   --grey:#888E94;          /* вторичный текст */
-  --grey-dim:#6B7177;      /* источники · подписи */
+  --grey-dim:#828C89;      /* источники · подписи (WCAG AA на графите) */
   --ondark:#0A140F;        /* текст на mint-заливке */
   --head:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Segoe UI',system-ui,sans-serif;
   --disp:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Segoe UI',system-ui,sans-serif;
@@ -104,8 +104,9 @@ header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px);
 .btn-solid:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(95,227,182,.18)}
 .btn-ghost{color:var(--white);border-color:var(--line)}
 .btn-ghost:hover{border-color:rgba(236,238,240,.3);color:var(--white)}
+.btn:active{transform:translateY(0) scale(.985)}
 .btn:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
-.btn-lg{padding:16px 30px;font-size:16px}
+.btn-lg{padding:16px 30px;font-size:16px;min-height:52px}
 
 /* ---------- typography ---------- */
 h1,h2{font-family:var(--head);text-wrap:balance;line-height:1.04;letter-spacing:-.025em;font-weight:800}
@@ -406,6 +407,35 @@ footer.foot{border-top:1px solid var(--line);padding:44px 0 40px;background:var(
 .trust-card h3{font-size:1.12rem;margin-bottom:10px}
 .trust-card p{color:var(--grey);font-size:14.5px;max-width:40ch}
 
-/* --- FAQ clip-reveal совместимость --- */
-.faq details.fc{clip-path:none;opacity:1}
-.faq details.fc:not(.in){opacity:1}
+/* FAQ details не анимируем по отдельности (ревилится контейнер .faq) */
+.faq details.fc{opacity:1;transform:none}
+
+/* ============================================================
+   Polish: каскад-ревил, состояния, тач-цели, тайминги
+   ============================================================ */
+/* каскад внутри сеток: элементы проявляются волной, не пачкой */
+.pain-list .fc:nth-child(2),.proof .fc:nth-child(2),.trust .fc:nth-child(2),
+.seg-grid .fc:nth-child(2),.svc .fc:nth-child(2){transition-delay:.05s}
+.seg-grid .fc:nth-child(3),.svc .fc:nth-child(3){transition-delay:.1s}
+.seg-grid .fc:nth-child(4){transition-delay:.15s}
+.seg-grid .fc:nth-child(5){transition-delay:.2s}
+.seg-grid .fc:nth-child(6){transition-delay:.25s}
+@media(prefers-reduced-motion:reduce){.fc{transition-delay:0s!important}}
+
+/* фокус-состояния для клавиатуры (доступность) */
+.nav-links a:focus-visible,.foot a:focus-visible,.seg-cta:focus-visible,.contact-row:focus-visible,
+.faq summary:focus-visible,a.mint:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:6px}
+.seg-cta:focus-visible,.contact-row:focus-visible{outline-offset:2px}
+
+/* hover-состояние вопросов FAQ */
+.faq summary{transition:color .2s}
+.faq summary:hover{color:var(--white)}
+.faq details:hover{border-bottom-color:rgba(236,238,240,.16)}
+
+/* тач-цели минимум 44px, снятие hover-эффектов на тач */
+.burger{min-width:44px;min-height:44px}
+@media(hover:none){.card.lift:hover,.seg:hover,.svc-item:hover{transform:none}}
+@media(max-width:860px){.nav-links a{min-height:48px;display:flex;align-items:center}}
+
+/* картинки без скачка при загрузке */
+.gfx.has-img img{background:var(--surface)}

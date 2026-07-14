@@ -1,0 +1,357 @@
+{
+  "domain": "genglass.ru",
+  "report": "ad_history",
+  "db": "msk",
+  "measured": "2026-07-14T06:06:12.777Z",
+  "url": "https://api.keys.so/report/simple/domain_ad_history?base=msk&domain=genglass.ru",
+  "data": {
+    "2026-07": {
+      "adCost": 38439,
+      "adsCount": 44,
+      "adTraf": 1,
+      "adKeysCount": 62
+    },
+    "2026-06": {
+      "adCost": 8910,
+      "adsCount": 30,
+      "adTraf": 0,
+      "adKeysCount": 38
+    },
+    "2026-05": {
+      "adCost": 2851,
+      "adsCount": 24,
+      "adTraf": 0,
+      "adKeysCount": 34
+    },
+    "2026-04": {
+      "adCost": 41432,
+      "adsCount": 93,
+      "adTraf": 2,
+      "adKeysCount": 202
+    },
+    "2026-03": {
+      "adCost": 152023,
+      "adsCount": 188,
+      "adTraf": 7,
+      "adKeysCount": 498
+    },
+    "2026-02": {
+      "adCost": 270139,
+      "adsCount": 305,
+      "adTraf": 12,
+      "adKeysCount": 671
+    },
+    "2026-01": {
+      "adCost": 571633,
+      "adsCount": 423,
+      "adTraf": 25,
+      "adKeysCount": 804
+    },
+    "2025-12": {
+      "adCost": 400217,
+      "adsCount": 437,
+      "adTraf": 21,
+      "adKeysCount": 763
+    },
+    "2025-11": {
+      "adCost": 24047,
+      "adsCount": 2,
+      "adTraf": 1,
+      "adKeysCount": 61
+    },
+    "2025-10": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2025-09": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2025-08": {
+      "adCost": 948,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2025-07": {
+      "adCost": 14390,
+      "adsCount": 4,
+      "adTraf": 2,
+      "adKeysCount": 4
+    },
+    "2025-06": {
+      "adCost": 2715,
+      "adsCount": 18,
+      "adTraf": 0,
+      "adKeysCount": 18
+    },
+    "2025-05": {
+      "adCost": 225579,
+      "adsCount": 106,
+      "adTraf": 9,
+      "adKeysCount": 110
+    },
+    "2025-04": {
+      "adCost": 179297,
+      "adsCount": 88,
+      "adTraf": 7,
+      "adKeysCount": 90
+    },
+    "2025-03": {
+      "adCost": 227673,
+      "adsCount": 109,
+      "adTraf": 9,
+      "adKeysCount": 114
+    },
+    "2025-02": {
+      "adCost": 455531,
+      "adsCount": 166,
+      "adTraf": 16,
+      "adKeysCount": 176
+    },
+    "2025-01": {
+      "adCost": 21471,
+      "adsCount": 21,
+      "adTraf": 0,
+      "adKeysCount": 25
+    },
+    "2024-12": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-11": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-10": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-09": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-08": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-07": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-06": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-05": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-04": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-03": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-02": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2024-01": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2023-12": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2023-11": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2023-10": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-09": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-08": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-07": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-06": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-05": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-04": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-03": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-02": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2023-01": {
+      "adCost": 0,
+      "adsCount": 1,
+      "adTraf": 0,
+      "adKeysCount": 1
+    },
+    "2022-12": {
+      "adCost": 30118,
+      "adsCount": 8,
+      "adTraf": 0,
+      "adKeysCount": 9
+    },
+    "2022-11": {
+      "adCost": 36471,
+      "adsCount": 9,
+      "adTraf": 0,
+      "adKeysCount": 11
+    },
+    "2022-10": {
+      "adCost": 24213,
+      "adsCount": 22,
+      "adTraf": 0,
+      "adKeysCount": 23
+    },
+    "2022-09": {
+      "adCost": 26130,
+      "adsCount": 22,
+      "adTraf": 0,
+      "adKeysCount": 22
+    },
+    "2022-08": {
+      "adCost": 7803,
+      "adsCount": 17,
+      "adTraf": 0,
+      "adKeysCount": 17
+    },
+    "2022-07": {
+      "adCost": 2038,
+      "adsCount": 13,
+      "adTraf": 0,
+      "adKeysCount": 13
+    },
+    "2022-06": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2022-05": {
+      "adCost": 95831,
+      "adsCount": 20,
+      "adTraf": 0,
+      "adKeysCount": 120
+    },
+    "2022-04": {
+      "adCost": 217538,
+      "adsCount": 27,
+      "adTraf": 3,
+      "adKeysCount": 303
+    },
+    "2022-03": {
+      "adCost": 184358,
+      "adsCount": 22,
+      "adTraf": 2,
+      "adKeysCount": 263
+    },
+    "2022-02": {
+      "adCost": 210991,
+      "adsCount": 19,
+      "adTraf": 2,
+      "adKeysCount": 292
+    },
+    "2021-12": {
+      "adCost": 706691,
+      "adsCount": 43,
+      "adTraf": 5,
+      "adKeysCount": 567
+    },
+    "2021-11": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2021-10": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    },
+    "2021-09": {
+      "adCost": 0,
+      "adsCount": 0,
+      "adTraf": 0,
+      "adKeysCount": 0
+    }
+  }
+}

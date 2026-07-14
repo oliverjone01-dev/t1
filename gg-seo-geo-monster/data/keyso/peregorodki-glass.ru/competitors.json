@@ -1,0 +1,11 @@
+{
+  "domain": "peregorodki-glass.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-07-14T06:06:28.126Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=peregorodki-glass.ru&top=10",
+  "data": {
+    "code": 202,
+    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+  }
+}

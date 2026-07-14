@@ -1,0 +1,107 @@
+{
+  "updated": "2026-07-14T06:06:07.183Z",
+  "source": "keys.so",
+  "db": "msk",
+  "targets": [
+    {
+      "domain": "genglass.ru",
+      "brand": "GENGLASS",
+      "role": "own",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok",
+        "ad_history": "ok"
+      }
+    },
+    {
+      "domain": "loftkrel.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "ivegroup.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "loftcase.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "mosgor-okna.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "peregorodki-glass.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "vo-zavod.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "loft-peregorodki-spb.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "alfaporta.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "union.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "xn----7sbb2alsf9bq.xn--p1ai",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "error: HTTP 404 {\"code\":404,\"message\":\"Домен не найден.\"}",
+        "competitors": "error: HTTP 404 {\"code\":404,\"message\":\"Домен не найден.\"}"
+      }
+    }
+  ]
+}

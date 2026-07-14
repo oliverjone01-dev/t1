@@ -1,0 +1,11 @@
+{
+  "domain": "vo-zavod.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-14T06:06:29.791Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=vo-zavod.ru",
+  "data": {
+    "code": 202,
+    "message": "В данный момент сервер подготавливает отчет. Это может занять до 5 минут, но обычно происходит заметно быстрее."
+  }
+}

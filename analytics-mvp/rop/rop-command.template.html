@@ -1265,6 +1265,80 @@ function render(){
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
+// ===== ОЦЕНКА МЕНЕДЖЕРОВ: НАКОПЛЕНИЕ ↔ РАСКЕШИВАНИЕ (аналитика оффер-стадий) =====
+// Пончики клиент/изделие + конверсия сегмента, поток по месяцам, динамика конверсии,
+// возрастные когорты пайплайна. История берётся из hist по датам входа/закрытия.
+function offerAnalytics(){
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  if(!passed.length)return "";
+  const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
+  const money=a=>a.reduce((s,d)=>s+(d.budget||0),0);
+  const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
+  const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
+  const M=s=>String(s||"").slice(0,7);
+  const MN=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+  const mLbl=m=>{const p=m.split("-");return MN[+p[1]-1]+" "+p[0].slice(2);};
+  const months=(()=>{const set=new Set();passed.forEach(d=>{const f=firstOffer(d);if(f)set.add(M(f));if(d.closed)set.add(M(d.closed));});return [...set].filter(Boolean).sort().slice(-9);})();
+  const PAL=["#22D3EE","#A78BFA","#60A5FA","#F59E0B","#2E9E74","#F43F5E","#818CF8","#C084FC","#2DD4BF"];
+
+  // ---- 1) ПОНЧИКИ клиент / изделие ----
+  const grp=(arr,kf)=>{const m={};arr.forEach(d=>{const k=kf(d);m[k]=(m[k]||0)+(d.budget||0);});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
+  const donutBlock=(data,dim,title)=>{
+    const dd=data.slice(0,8).map((e,i)=>[e[0],e[1],PAL[i%PAL.length]]);
+    const leg=dd.map(([n,v,c])=>{const sel=S.ocSeg&&S.ocSeg.dim===dim&&S.ocSeg.val===n;return `<div class="ro-lg" data-ocseg="${dim}|${esc(n)}" style="cursor:pointer;padding:2px 4px;border-radius:6px;${sel?'background:rgba(34,211,238,.12)':''}"><span class="dot" style="background:${c}"></span><span class="nm">${esc(n)}</span><span class="vl">${fmtK(v)}</span></div>`;}).join("");
+    return `<div style="flex:1;min-width:290px"><div class="card-t" style="font-size:12.5px">${title}</div><div class="card-sub">клик по сегменту - конверсия в динамике</div><div style="display:flex;gap:10px;align-items:center;margin-top:6px"><div style="flex:0 0 150px">${donut(dd,fmtK(money(open)),dim==="client"?"₽ КЛИЕНТЫ":"₽ ИЗДЕЛИЯ",true)}</div><div style="flex:1">${leg}</div></div></div>`;
+  };
+  const donuts=`<div style="display:flex;gap:20px;flex-wrap:wrap">${donutBlock(grp(open,cliV),"client","Пайплайн по типу клиента")}${donutBlock(grp(open,catV),"assort","Пайплайн по типу изделия")}</div>`;
+
+  // конверсия выбранного сегмента в динамике
+  const segDyn=(()=>{
+    if(!S.ocSeg)return "";
+    const kf=S.ocSeg.dim==="client"?cliV:catV,val=S.ocSeg.val;
+    const seg=passed.filter(d=>kf(d)===val);
+    const rows=months.map(m=>{const won=seg.filter(d=>d.won&&M(d.closed)===m).length,lost=seg.filter(d=>d.lost&&M(d.closed)===m).length,cl=won+lost;return {m,won,lost,cr:cl?won/cl:null};});
+    const mx=Math.max(1,...rows.map(r=>r.won+r.lost));
+    const bars=rows.map(r=>{const h=(r.won+r.lost)/mx*56,wh=(r.won+r.lost)?r.won/(r.won+r.lost)*h:0;return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" data-tip="${(mLbl(r.m)+': '+(r.cr==null?'нет закрытых':'конверсия '+pct(r.cr)+' · '+r.won+'✓/'+r.lost+'✗')).replace(/"/g,'&quot;')}"><div style="font-size:9px;color:${r.cr==null?'var(--ink-4)':'var(--ink-2)'};font-weight:700">${r.cr==null?'':pct(r.cr)}</div><div style="width:60%;height:${h.toFixed(0)}px;min-height:2px;background:#CC5867;border-radius:2px;display:flex;flex-direction:column-reverse"><div style="height:${wh.toFixed(0)}px;background:#2E9E74;border-radius:0 0 2px 2px"></div></div><div style="font-size:9px;color:var(--ink-4)">${MN[+r.m.split("-")[1]-1]}</div></div>`;}).join("");
+    const tot=seg.filter(d=>d.won).length,totL=seg.filter(d=>d.lost).length;
+    return `<div style="margin-top:12px;border-top:1px dashed var(--border);padding-top:10px"><div class="card-t" style="font-size:12.5px">Конверсия сегмента: <span style="color:#22D3EE">${esc(val)}</span> <span class="card-sub" style="font-weight:400">всего ${tot}✓ / ${totL}✗ = ${pct(tot+totL?tot/(tot+totL):0)}</span> <button data-ocsegclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:10px;padding:1px 7px;margin-left:6px">✕ закрыть</button></div><div class="card-sub">зелёное - выигранные, красное - проигранные, % сверху - конверсия месяца (по дате закрытия)</div><div style="display:flex;gap:5px;align-items:flex-end;height:84px;margin-top:8px">${bars}</div></div>`;
+  })();
+
+  // ---- 2) ПОТОК накопление ↔ раскешивание по месяцам ----
+  const flow=(()=>{
+    const rows=months.map(m=>{const inn=passed.filter(d=>M(firstOffer(d))===m),won=passed.filter(d=>d.won&&M(d.closed)===m),lost=passed.filter(d=>d.lost&&M(d.closed)===m);return {m,in:inn.length,inM:money(inn),won:won.length,lost:lost.length};});
+    const mx=Math.max(1,...rows.map(r=>Math.max(r.in,r.won+r.lost))),H=54;
+    const cols=rows.map(r=>{const mig=r.m==="2026-03";const inH=r.in/mx*H,wH=r.won/mx*H,lH=r.lost/mx*H;
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center" data-tip="${(mLbl(r.m)+' · приток '+r.in+' ('+fmtK(r.inM)+' ₽) · успех '+r.won+' · отказ '+r.lost).replace(/"/g,'&quot;')}"><div style="height:${H}px;display:flex;align-items:flex-end"><div style="width:16px;height:${inH.toFixed(0)}px;min-height:1px;background:#22D3EE;border-radius:2px 2px 0 0"></div></div><div style="width:70%;height:1px;background:var(--border)"></div><div style="width:16px;display:flex;flex-direction:column"><div style="height:${wH.toFixed(0)}px;background:#2E9E74"></div><div style="height:${lH.toFixed(0)}px;background:#CC5867;border-radius:0 0 2px 2px"></div></div><div style="font-size:9px;color:${mig?'#F59E0B':'var(--ink-4)'};margin-top:2px">${MN[+r.m.split("-")[1]-1]}${mig?'⚑':''}</div></div>`;}).join("");
+    return `<div class="card-t" style="font-size:12.5px">Накопление ↔ раскешивание</div><div class="card-sub"><span style="color:#22D3EE">■</span> вверх - приток офферов · вниз <span style="color:#2E9E74">■</span> успех / <span style="color:#CC5867">■</span> отказ · ⚑ март = миграция CRM</div><div style="display:flex;gap:6px;align-items:center;margin-top:10px">${cols}</div>`;
+  })();
+
+  // ---- 3) ДИНАМИКА КОНВЕРСИИ (отдел) ----
+  const convDyn=(()=>{
+    const rows=months.map(m=>{const won=passed.filter(d=>d.won&&M(d.closed)===m).length,lost=passed.filter(d=>d.lost&&M(d.closed)===m).length,cl=won+lost;return {m,cr:cl?won/cl:null};});
+    const W=Math.max(300,months.length*46),H=86,pad=16,span=(W-2*pad)/(months.length-1||1);
+    const pts=rows.map((r,i)=>({x:pad+i*span,y:r.cr==null?null:H-20-(r.cr*(H-30)),r}));
+    let path="";pts.forEach(p=>{if(p.y==null)return;path+=(path?"L":"M")+p.x.toFixed(0)+" "+p.y.toFixed(0)+" ";});
+    const dots=pts.map(p=>p.y==null?"":`<circle cx="${p.x.toFixed(0)}" cy="${p.y.toFixed(0)}" r="3.5" fill="#2E9E74" data-tip="${(mLbl(p.r.m)+': '+pct(p.r.cr)).replace(/"/g,'&quot;')}"/><text x="${p.x.toFixed(0)}" y="${(p.y-7).toFixed(0)}" text-anchor="middle" font-size="8.5" font-weight="700" fill="var(--ink-2)">${pct(p.r.cr)}</text>`).join("");
+    const lbls=months.map((m,i)=>`<text x="${(pad+i*span).toFixed(0)}" y="${H-4}" text-anchor="middle" font-size="8" fill="var(--ink-4)">${MN[+m.split("-")[1]-1]}</text>`).join("");
+    return `<div class="card-t" style="font-size:12.5px">Динамика конверсии оффер→успех</div><div class="card-sub">доля выигранных среди закрытых по месяцам (по дате закрытия)</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;margin-top:6px"><path d="${path}" fill="none" stroke="#2E9E74" stroke-width="2"/>${dots}${lbls}</svg>`;
+  })();
+
+  // ---- 4) ВОЗРАСТНЫЕ КОГОРТЫ (застой) ----
+  const cohorts=(()=>{
+    const age=d=>Math.max(0,Math.round((NOWD-new Date(String(d.created).slice(0,10)+"T12:00:00+03:00"))/DAYMS));
+    const bk=[["≤14 дн",0,14,"#2E9E74"],["14-30",15,30,"#D9A441"],["30-60",31,60,"#C2873C"],["60+ дн",61,1e9,"#CC5867"]];
+    const rows=bk.map(([l,a,b,c])=>{const ds=open.filter(d=>{const g=age(d);return g>=a&&g<=b;});return {l,c,n:ds.length,sum:money(ds)};});
+    const tot=open.length||1;
+    const bar=`<div style="display:flex;height:32px;border-radius:8px;overflow:hidden;background:var(--bg-base)">`+rows.map(r=>r.n?`<div data-tip="${(r.l+': '+r.n+' сделок · '+fmtK(r.sum)+' ₽').replace(/"/g,'&quot;')}" style="width:${(r.n/tot*100).toFixed(1)}%;background:${r.c};display:flex;align-items:center;justify-content:center;gap:5px;font-size:10.5px;font-weight:800;color:#06121a;min-width:0"><span>${r.l}</span><span>${r.n}</span></div>`:"").join("")+`</div>`;
+    return `<div class="card-t" style="font-size:12.5px">Возраст пайплайна (застой)</div><div class="card-sub">открытые офферы по возрасту с создания · в 60+ застряло <b style="color:#F8717A">${fmtK(rows[3].sum)} ₽</b> (${pct(rows[3].n/tot)} сделок)</div><div style="margin-top:8px">${bar}</div>`;
+  })();
+
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Оценка менеджеров: накопление ↔ раскешивание ${info('Как отдел наполняет стадию предложения и раскешивает её в деньги. Пончики - структура открытого пайплайна по типу клиента и изделия (клик по сегменту раскрывает его конверсию по месяцам). Поток - приток офферов против выхода в успех/отказ. Динамика конверсии - тренд закрытия. Возраст - где застрял пайплайн. История по датам входа в оффер и закрытия из истории стадий; март раздут миграцией CRM. Тип изделия заполнен лишь на ~половине сделок - сегмент «не указана» это дисциплина, а не реальная категория.')}</div><div class="card-sub">структура, поток, конверсия и застой горячего пайплайна</div></div></div>${donuts}${segDyn}<div class="grid2" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px"><div>${flow}</div><div>${convDyn}</div></div><div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">${cohorts}</div></div>`;
+}
+
 // ===== СО СДЕЛАННЫМ ПРЕДЛОЖЕНИЕМ: КП отправлено / Принимают решение / Долгострой =====
 // Горячий пайплайн: открытые сделки, где оффер уже у клиента. Полная картина по
 // менеджеру + динамика закрытия + фокус «новые против горячих» + причины отказов.
@@ -1362,7 +1436,7 @@ function offerControlBlock(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
-    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock();
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1710,6 +1784,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
+  document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

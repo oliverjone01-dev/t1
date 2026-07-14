@@ -18,8 +18,8 @@ on:
       dry_run:
         description: "1 = показать план запросов без похода в сеть"
         default: "0"
-  # schedule:
-  #   - cron: "0 5 * * 1"   # еженедельно, пн ~08:00 МСК
+  schedule:
+    - cron: "30 2 * * 1"   # еженедельно, пн 05:30 МСК - контроль рынка перегородок (goal Ивана 14.07)
 
 permissions:
   contents: write

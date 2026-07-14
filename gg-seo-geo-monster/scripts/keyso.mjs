@@ -85,7 +85,15 @@ async function call(url, token) {
       if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status} ${await safeText(res)}`);
       // 402/403 при исчерпании суточного лимита тарифа - фатально, не ретраим
       if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status} ${await safeText(res)}`), { fatal: true });
-      return { data: await res.json() };
+      const json = await res.json();
+      // keys.so код 202 = «отчёт готовится, до 5 минут» - ждём и добираем, не пишем пустышку
+      if (json && json.code === 202) {
+        console.warn(`  отчёт готовится (202), жду 45с и пробую снова (${attempt}/4)`);
+        await sleep(45000);
+        lastErr = Object.assign(new Error("202: отчёт не готов"), { pending: true });
+        continue;
+      }
+      return { data: json };
     } catch (e) {
       lastErr = e;
       if (e.fatal) throw e;
@@ -129,7 +137,7 @@ async function main() {
         summary.reports[rep] = dry ? null : "ok";
       } catch (e) {
         console.log(`FAIL: ${e.message}`);
-        summary.reports[rep] = `error: ${String(e.message).slice(0, 160)}`;
+        summary.reports[rep] = e.pending ? "pending-202 (добрать следующим прогоном)" : `error: ${String(e.message).slice(0, 160)}`;
       }
       if (delay) await sleep(delay);
     }

@@ -114,7 +114,7 @@
     function col() { for (var a = 0; a < arguments.length; a++) { var idx = head.indexOf(arguments[a]); if (idx >= 0) return idx; } return -1; }
     var ci = { id: col("id", "№", "no"), bu: col("б/е", "бе", "бренд", "bu"), b: col("блок", "block"), t: col("задача", "task"),
       why: col("обоснование", "зачем", "why"), author: col("автор", "предложил", "author"),
-      who: col("ответственный", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"),
+      who: col("ответственный", "отв.", "отв", "ответств", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"),
       dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate") };
     if (ci.t < 0 || ci.start < 0) return null;
     var out = [], blocks = [], bmap = {};

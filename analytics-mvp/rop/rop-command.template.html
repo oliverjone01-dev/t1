@@ -1266,9 +1266,9 @@ function render(){
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
 // ===== КАЛЕНДАРЬ ЗАГРУЗКИ МЕНЕДЖЕРОВ (оффер-стадии) =====
-// Как в производстве: тепловой календарь по датам событий. Приток офферов (вход в
-// КП/Решение/Долгострой) → выход в успех (предоплата получена) / отказ. Реагирует на
-// период и гранулярность сверху. Фильтр по менеджеру + лидерборд загрузки и зон риска.
+// Тепловой календарь по датам событий: приток офферов, «в работе» и ПЕРЕМЕЩЕНИЯ сделок
+// по стадиям (вошло в КП отправлено / Принимают решение / Долгострой / Успех-предоплата /
+// Отказ) по датам. Реагирует на период и гранулярность. Фильтр по менеджеру + лидерборд.
 function offerCalendarBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const dirOk=d=>!S.fDir||d.dir===S.fDir;
@@ -1277,38 +1277,53 @@ function offerCalendarBlock(){
   if(!passed.length)return "";
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
-  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
+  const enterStage=(d,code)=>{for(const h of (d.hist||[]))if(h[0]===code&&h[1])return h[1];return null;};
+  const enterExec=d=>enterStage(d,"C49:EXECUTING");
   const enterLose=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
   const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
   const g=S.gran,keys=buckets(g);
   const lbl=k=>{const p=k.split("-");return g==="month"?(p[1]+"."+p[0].slice(2)):(p[2]+"."+p[1]);};
+  const endDate=k=>{if(g==="month")return k+"-31";if(g==="week"){const dt=new Date(k+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+6);return dt.toISOString().slice(0,10);}return k;};
   const mgrSel=S.calMgr||"";
   const scope=mgrSel?passed.filter(d=>d.mgr===mgrSel):passed;
-
-  const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
-  const serie=(df,color)=>{const cnt={};keys.forEach(k=>cnt[k]=0);let tot=0;scope.forEach(d=>{const dt=df(d);if(inR(dt)){const k=bkey(dt.slice(0,10),g);if(k in cnt){cnt[k]++;tot++;}}});return {cnt,mx:Math.max(1,...keys.map(k=>cnt[k])),tot,color};};
-  const SR={in:{df:firstOffer,color:"#22D3EE",nm:"Пришло офферов"},win:{df:enterExec,color:"#2E9E74",nm:"→ В успех (предоплата)"},loss:{df:enterLose,color:"#CC5867",nm:"→ В отказ"}};
-  const arr=serie(firstOffer,"#22D3EE"),suc=serie(enterExec,"#2E9E74"),los=serie(enterLose,"#CC5867");
-  const showN=keys.length<=24;
-  const rowHTML=(sid,s)=>{const nm=SR[sid].nm;
-    const cells=keys.map(k=>{const v=s.cnt[k],t=v/s.mx,bg=v===0?"var(--bg-base)":hx(s.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;return `<div ${v?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:24px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:${t>.5?'#06121a':'var(--ink-4)'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(nm+' · '+lbl(k)+': '+v+(v?' · клик - сделки':'')).replace(/"/g,'&quot;')}">${showN&&v?v:''}</div>`;}).join("");
-    return `<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><div style="width:160px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm} <b style="color:${s.color}">${s.tot}</b></div><div style="flex:1;display:flex;gap:2px">${cells}</div></div>`;
-  };
-  // панель сделок по клику на ячейку
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
-  const cellPanel=(()=>{
-    if(!S.calCell||!SR[S.calCell.s])return "";
-    const sd=SR[S.calCell.s],k=S.calCell.k;
-    const ds=scope.filter(d=>{const dt=sd.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
-    if(!ds.length)return "";
-    const body=ds.slice(0,80).map(d=>`<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:left">${esc(d.stage||'')}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(catV(d))} · ${esc(cliV(d))}</td><td style="text-align:center;font-size:10px;color:var(--ink-4)">${(sd.df(d)||'').slice(0,10)}</td></tr>`).join("");
-    return `<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><b style="font-size:12px;color:${sd.color}">${sd.nm.replace('→ ','')} · ${lbl(k)}</b><span class="card-sub">${fmt(ds.length)} сделок · ${fmtK(ds.reduce((s2,d)=>s2+(d.budget||0),0))} ₽</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th><th>Дата</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
-  })();
+
+  // строки-движения: событие = вход в стадию (по истории), считаем по интервалу
+  const ROWS=[
+    {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer},
+    {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true},
+    {id:"kp",nm:"→ КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC")},
+    {id:"dec",nm:"→ Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3")},
+    {id:"long",nm:"→ Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2")},
+    {id:"win",nm:"→ Успех (предоплата)",color:"#2E9E74",df:enterExec},
+    {id:"loss",nm:"→ Отказ",color:"#CC5867",df:enterLose},
+  ];
+  const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
+  const wipAt=k=>scope.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);const clsd=(ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k));return !clsd;});
+  const dealsFor=(r,k)=>r.wip?wipAt(k):scope.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
+  const serie=r=>{const cnt={};let tot=0;keys.forEach(k=>{const n=dealsFor(r,k).length;cnt[k]=n;if(!r.wip)tot+=n;});return {cnt,mx:Math.max(1,...keys.map(k=>cnt[k])),tot};};
+
+  const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
+  const showN=keys.length<=24;
+  const rowHTML=r=>{const s=serie(r);
+    const cells=keys.map(k=>{const v=s.cnt[k],t=v/s.mx,bg=v===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===r.id&&S.calCell.k===k;
+      return `<div ${v?`data-calcell="${r.id}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${t>.5?'#06121a':'var(--ink-4)'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+v+(v?' · клик - сделки':'')).replace(/"/g,'&quot;')}">${showN&&v?v:''}</div>`;}).join("");
+    return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:170px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.nm}${r.wip?'':` <b style="color:${r.color}">${s.tot}</b>`}</div><div style="flex:1;display:flex;gap:2px">${cells}</div></div>`;
+  };
   const step=Math.max(1,Math.ceil(keys.length/12));
-  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:160px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div></div>`;
-  const cal=head+rowHTML("in",arr)+rowHTML("win",suc)+rowHTML("loss",los)+cellPanel;
+  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:170px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div></div>`;
+  const cal=head+ROWS.map(rowHTML).join("");
+
+  // панель сделок по клику на ячейку
+  const cellPanel=(()=>{
+    if(!S.calCell||!RBY[S.calCell.s])return "";
+    const r=RBY[S.calCell.s],k=S.calCell.k,ds=dealsFor(r,k);
+    if(!ds.length)return "";
+    const body=ds.slice(0,100).map(d=>{const evd=r.wip?'':(r.df(d)||'').slice(0,10);return `<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:left">${esc(d.stage||'')}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(catV(d))} · ${esc(cliV(d))}</td>${r.wip?'':`<td style="text-align:center;font-size:10px;color:var(--ink-4)">${evd}</td>`}</tr>`;}).join("");
+    return `<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px;color:${r.color}">${r.nm.replace('→ ','')} · ${lbl(k)}</b><span class="card-sub">${fmt(ds.length)} сделок · ${fmtK(ds.reduce((s2,d)=>s2+(d.budget||0),0))} ₽</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Текущая стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th>${r.wip?'':'<th>Дата события</th>'}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  })();
 
   // лидерборд загрузки/риска
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1317,10 +1332,10 @@ function offerCalendarBlock(){
   mst.forEach(x=>{x.risk=x.opn>=medOpen&&x.a>(x.su+x.lo)&&x.opn>0;});
   mst.sort((a,b)=>b.opn-a.opn);
   const lbRows=mst.map(x=>{const sel=mgrSel===x.m;return `<tr data-calmgr="${esc(x.m)}" style="cursor:pointer;${sel?'background:rgba(34,211,238,.12)':''}"><td class="name" style="text-align:left">${sel?'<span style="color:#22D3EE">▸ </span>':''}${esc(x.m)}${x.risk?' <span title="Копит офферы быстрее, чем раскешивает, при высокой загрузке" style="font-size:9px;font-weight:700;color:#F43F5E;background:rgba(244,63,94,.14);border:1px solid rgba(244,63,94,.45);border-radius:5px;padding:1px 5px">зона риска</span>':''}</td><td style="text-align:center;font-weight:800;color:${x.opn>=medOpen&&x.opn?'#F8717A':'var(--ink-2)'}">${x.opn}</td><td style="text-align:center;color:#22D3EE">${x.a||'·'}</td><td style="text-align:center;color:#2E9E74">${x.su||'·'}</td><td style="text-align:center;color:#CC5867">${x.lo||'·'}</td><td style="text-align:center;font-weight:700;color:${x.bal>0?'#F8717A':'#2E9E74'}">${x.bal>0?'+':''}${x.bal}</td></tr>`;}).join("");
-  const lb=`<table class="tbl"><thead><tr><th style="text-align:left">Менеджер · клик открывает его календарь</th><th>Загрузка<span title="Открытых офферов сейчас"></span></th><th style="color:#22D3EE">Пришло</th><th style="color:#2E9E74">Успех</th><th style="color:#CC5867">Отказ</th><th>Баланс<span title="Пришло минус (успех+отказ): плюс = копит"></span></th></tr></thead><tbody>${lbRows}</tbody></table>`;
+  const lb=`<table class="tbl"><thead><tr><th style="text-align:left">Менеджер · клик открывает его календарь</th><th>Загрузка</th><th style="color:#22D3EE">Пришло</th><th style="color:#2E9E74">Успех</th><th style="color:#CC5867">Отказ</th><th>Баланс</th></tr></thead><tbody>${lbRows}</tbody></table>`;
 
   const riskN=mst.filter(x=>x.risk).length;
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий, как в производстве. «Пришло офферов» - вход сделки в стадии КП/Принимают решение/Долгострой; «В успех» - переход в «Предоплата получена» (деньги); «В отказ» - уход в проигрыш. Дата события - из истории стадий, зависит от периода и гранулярности сверху. Лидерборд: загрузка (открытых сейчас) и баланс за период (пришло минус выход). «Зона риска» - копит офферы быстрее, чем раскешивает, при высокой загрузке. Клик по менеджеру раскрывает его персональный календарь.')}</div><div class="card-sub">кто сколько офферов набирает и раскешивает · период и гранулярность из фильтров сверху${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div>${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · тепловой календарь</div><div class="card-sub" style="margin-bottom:6px">строки: пришло офферов (синее) → в успех/предоплата (зелёное) → в отказ (красное) · число = событий в интервале</div>${cal}</div></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий, как в производстве. «Пришло офферов» - вход в оффер-зону; «В работе» - открытых офферов на конец интервала (снимок); далее ПЕРЕМЕЩЕНИЯ по стадиям - сколько сделок вошло в КП отправлено / Принимают решение / Долгострой / Успех (предоплата получена) / Отказ в каждом интервале. Даты - из истории стадий, зависят от периода и гранулярности сверху. Клик по ячейке раскрывает сами сделки. Лидерборд: загрузка и баланс за период; «зона риска» - копит быстрее, чем раскешивает.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · период и гранулярность из фильтров сверху${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div>${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · тепловой календарь движения сделок</div><div class="card-sub" style="margin-bottom:6px">число = сделок в интервале · клик по ячейке - список сделок с бюджетом, стадией и клиентом</div>${cal}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====

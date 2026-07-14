@@ -1265,11 +1265,101 @@ function render(){
   const B_migWarn=migInRange()?`<div style="margin:0 0 16px;padding:14px 18px;border:1px solid #F43F5E;border-left:4px solid #F43F5E;border-radius:12px;background:rgba(244,63,94,.08)">`+
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
+// ===== СО СДЕЛАННЫМ ПРЕДЛОЖЕНИЕМ: КП отправлено / Принимают решение / Долгострой =====
+// Горячий пайплайн: открытые сделки, где оффер уже у клиента. Полная картина по
+// менеджеру + динамика закрытия + фокус «новые против горячих» + причины отказов.
+function offerControlBlock(){
+  const OFFER={ "C49:PREPAYMENT_INVOIC": { l: "КП отправлено", c: "#60A5FA" }, "C49:3": { l: "Принимают решение", c: "#C2873C" }, "C49:UC_8JTBV2": { l: "Долгострой", c: "#F43F5E" } };
+  const OSET=new Set(Object.keys(OFFER));
+  const EARLY=new Set(["C49:NEW","C49:UC_LRFLH9","C49:PREPARATION","C49:UC_OGZUU0","C49:UC_32UM3S","C49:PREPARATION"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
+  if(!open.length)return "";
+  const PD=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
+  const enter=d=>{const h=d.hist||[];let dt=null;for(const e of h)if(e[0]===d.stageCode&&e[1])dt=e[1];return dt||d.created;};
+  const age=d=>Math.max(0,Math.round((NOWD-PD(d.created))/DAYMS));
+  const dwell=d=>Math.max(0,Math.round((NOWD-PD(enter(d)))/DAYMS));
+  const money=a=>a.reduce((s,d)=>s+(d.budget||0),0);
+  const checks=a=>a.map(d=>d.budget||0).filter(v=>v>0);
+  const cat=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
+  const cli=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
+  const portal=DATA.b24Portal||"";
+  const dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
+  const ageC=v=>v>=60?"#B0414F":v>=30?"#CC5867":v>=14?"#C2873C":"#2E9E74";
+
+  // ---- 1) KPI-строка ----
+  const ch=checks(open),pipe=money(open),ages=open.map(age),avgAge=ages.length?Math.round(ages.reduce((a,b)=>a+b,0)/ages.length):0;
+  const stuck=open.filter(d=>dwell(d)>30).length;
+  const byStage=Object.keys(OFFER).map(k=>({k,...OFFER[k],n:open.filter(d=>d.stageCode===k).length,sum:money(open.filter(d=>d.stageCode===k))}));
+  const kpiHTML=`<div style="margin-bottom:12px">`+kstrip([
+    {k:"Открытых сделок",v:fmt(open.length),sub:"оффер уже у клиента",ac:"#22D3EE"},
+    {k:"Пайплайн",v:fmtK(pipe),u:" ₽",sub:"сумма бюджетов открытых",ac:"#A78BFA"},
+    {k:"Ср. чек",v:fmtK(ch.length?pipe/ch.length:0),u:" ₽",sub:"средний бюджет открытой",ac:"#60A5FA"},
+    {k:"Медиана чека",v:fmtK(median(ch)||0),u:" ₽",sub:"типичный бюджет",ac:"#818CF8"},
+    {k:"Ср. возраст",v:fmt(avgAge),u:" дн",sub:"дней с создания сделки",ac:"#C2873C"},
+    {k:"Зависших >30 дн",v:fmt(stuck),sub:"лежат в стадии дольше 30 дней",ac:"#F43F5E"},
+  ],6)+`</div>`;
+  const splitBar=`<div style="display:flex;height:30px;border-radius:8px;overflow:hidden;background:var(--bg-base);margin-bottom:4px">`+byStage.map(s=>s.n?`<div data-tip="${(s.l+': '+fmt(s.n)+' сделок · '+fmtK(s.sum)+' ₽').replace(/"/g,'&quot;')}" style="width:${(s.n/open.length*100).toFixed(1)}%;background:${s.c};display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:800;color:#06121a;min-width:0"><span>${s.l}</span><span>${fmt(s.n)}</span></div>`:"").join("")+`</div><div class="card-sub" style="margin-bottom:12px">Долгострой (красный) - оффер завис: разбирать в первую очередь</div>`;
+
+  // ---- исторические (прошедшие эти стадии) для «кто закрывает» и причин отказа ----
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  const H={};passed.forEach(d=>{const h=H[d.mgr]||(H[d.mgr]={won:0,lost:0,wc:[]});if(d.won){h.won++;if(d.budget>0)h.wc.push(d.budget);}else if(d.lost)h.lost++;});
+  const earlyN={};AD.filter(d=>!d.won&&!d.lost&&EARLY.has(d.stageCode)).forEach(d=>{earlyN[d.mgr]=(earlyN[d.mgr]||0)+1;});
+
+  // ---- 2) таблица по менеджерам ----
+  const G={};open.forEach(d=>{(G[d.mgr]=G[d.mgr]||[]).push(d);});
+  let mrows=Object.entries(G).map(([mgr,ds])=>{
+    const c=checks(ds),h=H[mgr]||{won:0,lost:0,wc:[]},cr=(h.won+h.lost)?h.won/(h.won+h.lost):null;
+    return {mgr,ds,n:ds.length,kp:ds.filter(d=>d.stageCode==="C49:PREPAYMENT_INVOIC").length,dec:ds.filter(d=>d.stageCode==="C49:3").length,lng:ds.filter(d=>d.stageCode==="C49:UC_8JTBV2").length,
+      pipe:money(ds),med:median(c)||0,medAge:median(ds.map(age))||0,medDw:median(ds.map(dwell))||0,stuck:ds.filter(d=>dwell(d)>30).length,early:earlyN[mgr]||0,cr,won:h.won,lost:h.lost,wonMed:median(h.wc)||0};
+  });
+  const sk=S.ocSort||"pipe",asc=S.ocAsc?1:-1;
+  mrows.sort((a,b)=>{const x=a[sk],y=b[sk];if(x==null)return 1;if(y==null)return -1;return (x>y?1:x<y?-1:0)*asc;});
+  const crColor=r=>r==null?"var(--ink-4)":r>=0.4?"#2E9E74":r>=0.2?"#C2873C":"#CC5867";
+  const th=(k,t,tip)=>`<th data-ocsort="${k}" class="${S.ocSort===k?'sorted'+(S.ocAsc?' asc':''):''}" style="cursor:pointer;text-align:center;white-space:nowrap">${t}${tip?info(tip):""}</th>`;
+  const head=`<tr><th style="text-align:left">Менеджер</th>${th("n","Горячих","Открытых сделок этого менеджера в 3 стадиях предложения")}<th style="text-align:center">КП·Реш·Долг</th>${th("pipe","Пайплайн ₽")}${th("med","Медиана чека")}${th("medAge","Ср. возраст","Медиана дней с создания сделки")}${th("medDw","В стадии, дн","Медиана дней в текущей стадии предложения - сколько оффер лежит без движения")}${th("stuck",">30 дн")}${th("early","Ранних","Открытые сделки этого менеджера в ранних стадиях (новая/квал/ТЗ/расчёт). Много ранних при зависших горячих = уводит фокус с тёплых.")}${th("cr","Закрытие %","Историческая конверсия: выигранные ÷ (выигранные+проигранные) среди прошедших стадию предложения")}${th("wonMed","Чек выигр.","Медиана чека выигранных сделок, прошедших предложение")}</tr>`;
+  const body=mrows.map(r=>{
+    const opn=!!(S.ocOpen&&S.ocOpen[r.mgr]);
+    const neglect=r.medDw>=30&&r.early>r.n;
+    const main=`<tr data-ocmgr="${esc(r.mgr)}" style="cursor:pointer">
+      <td class="name" style="text-align:left">${opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'}${esc(r.mgr)}${neglect?' <span title="Горячие висят >30 дн, а новых много - уводит фокус" style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:#F59E0B;border-radius:5px;padding:1px 5px;font-weight:700">фокус на новых</span>':''}</td>
+      <td style="text-align:center;font-weight:800">${fmt(r.n)}</td>
+      <td style="text-align:center;white-space:nowrap;font-size:11px"><span style="color:#60A5FA">${r.kp}</span> · <span style="color:#C2873C">${r.dec}</span> · <span style="color:#F43F5E;font-weight:700">${r.lng}</span></td>
+      <td style="text-align:center;font-weight:700">${fmtK(r.pipe)}</td>
+      <td style="text-align:center">${fmtK(r.med)}</td>
+      <td style="text-align:center;color:${ageC(r.medAge)}">${fmt(r.medAge)}</td>
+      <td style="text-align:center;color:${ageC(r.medDw)};font-weight:${r.medDw>=30?800:400}">${fmt(r.medDw)}</td>
+      <td style="text-align:center;color:${r.stuck?'#F8717A':'var(--ink-3)'};font-weight:${r.stuck?700:400}">${r.stuck||'·'}</td>
+      <td style="text-align:center;color:var(--ink-3)">${r.early||'·'}</td>
+      <td style="text-align:center;font-weight:800;color:${crColor(r.cr)}">${r.cr==null?'—':pct(r.cr)}<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${r.won}✓/${r.lost}✗</div></td>
+      <td style="text-align:center;color:var(--ink-3)">${r.wonMed?fmtK(r.wonMed):'—'}</td></tr>`;
+    if(!opn)return main;
+    const sub=r.ds.slice().sort((a,b)=>dwell(b)-dwell(a)).map(d=>{const st=OFFER[d.stageCode]||{l:d.stage,c:"#6A7484"};
+      return `<tr style="background:var(--bg-base)"><td style="text-align:left;padding-left:18px">${dl(d.id)}</td><td colspan="2" style="text-align:left"><span style="display:inline-block;font-size:9.5px;font-weight:700;color:${st.c};background:${st.c}22;border:1px solid ${st.c}66;border-radius:5px;padding:1px 6px">${st.l}</span></td><td style="text-align:center">${fmtK(d.budget||0)}</td><td colspan="2" style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(cat(d))} · ${esc(cli(d))}</td><td style="text-align:center;font-size:10px;color:var(--ink-4)">с ${enter(d)}</td><td style="text-align:center;color:${ageC(age(d))}">${age(d)}<span style="color:var(--ink-4);font-size:9px"> с созд.</span></td><td colspan="3" style="text-align:left;font-size:11px;color:var(--ink-3);padding-left:6px">${esc((d.title||'').slice(0,60))}</td></tr>`;}).join("");
+    return main+sub;
+  }).join("");
+  const mgrTbl=`<div class="scroll" style="max-height:560px"><table class="tbl" id="ocTbl"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+
+  // ---- 3) причины отказов со стадии предложения ----
+  const lost=passed.filter(d=>d.lost);
+  const rmap={};lost.forEach(d=>{const r=(!d.reason||d.reason==="не указана")?"не проставлена причина":d.reason;rmap[r]=(rmap[r]||0)+1;});
+  const rrows=Object.entries(rmap).sort((a,b)=>b[1]-a[1]);
+  const noReason=rmap["не проставлена причина"]||0;
+  const rOpen=!!S.ocReasons;
+  const rbars=rrows.map(([r,n])=>{const bad=r==="не проставлена причина";return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:200px;font-size:11px;color:${bad?'#F8717A':'var(--ink-3)'};text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r)}</div><div style="flex:1;height:14px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(n/lost.length*100).toFixed(1)}%;background:${bad?'#CC5867':'#6A7484'}"></div></div><div style="width:36px;font-size:11px;font-weight:800;color:var(--ink-2)">${n}</div></div>`;}).join("");
+  const lostList=rOpen?`<div class="scroll" style="margin-top:8px;max-height:340px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Причина отказа</th><th style="text-align:left">Менеджер</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th></tr></thead><tbody>${lost.slice().sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,200).map(d=>`<tr><td style="text-align:center">${dl(d.id)}</td><td style="text-align:left;${(!d.reason||d.reason==='не указана')?'color:#F8717A':''}">${esc((!d.reason||d.reason==='не указана')?'не проставлена':d.reason)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(cat(d))} · ${esc(cli(d))}</td></tr>`).join("")}</tbody></table></div>`:"";
+  const reasonsBlock=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px"><div class="card-t" style="font-size:13px">Причины отказов со стадии предложения ${info('Сделки, которые уже получили оффер, но ушли в отказ. Красным - «не проставлена причина»: менеджер не зафиксировал, почему потеряли тёплую сделку. Вопрос: почему сливаются горячие и заполняется ли причина. Вывод: большой красный столбик = дыра в дисциплине, чинить регламент; реальные причины (дорого/конкурент/пропала потребность) - сигнал к работе с ценой и скоростью.')}</div><div class="card-sub" style="margin-bottom:8px">${fmt(lost.length)} отказных из прошедших предложение · <span style="color:#F8717A;font-weight:700">${pct(lost.length?noReason/lost.length:0)} без причины</span></div>${rbars}<button id="ocReasonsToggle" class="dbtn" style="margin-top:10px">${rOpen?'Скрыть сделки':'Показать отказные сделки ('+fmt(lost.length)+')'}</button>${lostList}</div>`;
+
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Со сделанным предложением - под контроль ${info('Горячий пайплайн: открытые сделки на стадиях КП отправлено / Принимают решение / Долгострой - оффер уже у клиента, их нельзя терять. Снимок «сейчас» (на фильтр периода не реагирует, на направление - да). Клик по менеджеру раскрывает его сделки со ссылками в Битрикс24 для предметного разговора. Колонки «Закрытие %» и «Чек выигр.» - историческая динамика: кто доводит офферы до денег. Бейдж «фокус на новых» - у кого горячие висят >30 дн, а новых много.')}</div><div class="card-sub">${fmt(open.length)} горячих сделок · ${fmtK(pipe)} ₽ пайплайна · оффер у клиента</div></div></div>${kpiHTML}${splitBar}${mgrTbl}${reasonsBlock}</div>`;
+}
+
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
-    + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock();
+    + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
@@ -1616,6 +1706,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const ds=e.target.closest('[data-ds]');if(ds){const k=ds.dataset.ds;if(!S.dsSort)S.dsSort={};if(S.dsSort.k===k)S.dsSort.a=!S.dsSort.a;else{S.dsSort.k=k;S.dsSort.a=(k==='dp'||k==='lp'||k==='n');}render();}});
   document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
+  document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

@@ -310,7 +310,8 @@
 
     var order = [], yById = {}, rowY = axisH, blockRows = [];
     P.blocksMeta.forEach(function (bm) {
-      var bt = tasks.filter(function (o) { return o.t.b === bm.id; }).sort(function (a, b) { return a.s - b.s; });
+      // порядок задач - как в таблице (по строкам), без пересортировки по дате
+      var bt = tasks.filter(function (o) { return o.t.b === bm.id; });
       if (!bt.length) return;
       var headY = rowY; rowY += HH;
       bt.forEach(function (o) {

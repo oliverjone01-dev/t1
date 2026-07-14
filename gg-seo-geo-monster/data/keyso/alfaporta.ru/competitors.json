@@ -2,7 +2,7 @@
   "domain": "alfaporta.ru",
   "report": "competitors",
   "db": "msk",
-  "measured": "2026-07-14T08:49:33.504Z",
+  "measured": "2026-07-14T11:01:45.338Z",
   "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=alfaporta.ru&top=10",
   "data": {
     "current_page": 1,

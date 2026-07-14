@@ -1,0 +1,517 @@
+{
+ "domain": "glasstroy.ru",
+ "vs": [
+  "glasstroy.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:05:56.354Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 26,
+  "data": [
+   {
+    "url": "/",
+    "domain": "glasstroy.ru",
+    "it1": 2,
+    "it3": 2,
+    "it5": 4,
+    "it10": 12,
+    "it50": 81,
+    "vis": 53
+   },
+   {
+    "url": "/about",
+    "domain": "glasstroy.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 8,
+    "vis": 12
+   },
+   {
+    "url": "/about/novosti/avtomaticheskaya-razdvizhnaya-dver-s-privodom-gilgen-sla-radarom-ik-datchikom-dlya",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/bronzovoe-steklo-menyaet-predstavlenie-o-dizayne-interera",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannaya-peregorodka-s-avtomaticheskoy-dvustvorchatoy-razdvizhnoy-dveryu",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannaya-peregorodka-s-raspashnoy-dveryu-luchshee-reshenie-dlya-vashego-ofisa",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannaya-razdvizhnaya-dver-s-dovodchikom-besporogovaya-podvesnaya-sistema-v",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-mayatnikovye-dveri-i-peregorodki-dlya-stomatologii",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-paneli-dlya-besedki-i-barbekyu-otlichnaya-alternativa-drevesine",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-peregorodki-i-dveri-so-skrytymi-dovodchikami-dlya-supermarketa",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-peregorodki-iz-zakalennogo-tonirovannogo-stekla-grey",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-peregorodki-s-dvermi-i-usilennym-profilem-freestyle",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 5,
+    "it50": 15,
+    "vis": 3
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-peregorodki-s-gradientnoy-plyonkoy-reshenie-dlya-privatnosti-bez",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/celnosteklyannye-peregorodki-s-otkatnoy-dveryu-fast-glass-funkcionalnaya-sistema-dlya",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/cs-peregorodki-protivopozharnye-dveri-i-sistema-skud-dlya-bc-vodnyy-teper-my",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/demontazh-i-regulirovka-staryh-steklyannyh-dverey-takzhe-izgotovlenie-i-ustanovka",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/demontazh-steklyannyh-peregorodok-i-gkl-konstrukciy-i-ustanovka-celnosteklyannogo",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/dushevye-ograzhdeniya-iz-matovogo-stekla",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/dushevye-peregorodki-iz-zakalennogo-stekla-dlya-sovremennogo-fitnes-kluba",
+    "domain": "glasstroy.ru",
+    "it1": 2,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 18
+   },
+   {
+    "url": "/about/novosti/dveri-estet-glass-so-skrytym-profilem-i-dvoynymi-steklyannymi-panelyami-dlya-kliniki",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/dveri-i-dushevye-peregorodki-iz-stekla-crystalvision-satinat-s-ottenkom-pod-bronzu",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/dveri-v-alyuminievoy-obzhimnoy-korobke-luchshiy-variant-dlya-mnogolyudnogo-ofisa",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/dvoynoy-vitrazh-fsc-24-dlya-obustroystva-steklyannyh-peregorodok-v-magazine",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 8
+   },
+   {
+    "url": "/about/novosti/estetika-i-funkcionalnost-novyy-proekt-po-montazhu-steklyannykh-konstrukciy-v",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/gibkoe-prostranstvo-v-korotkie-sroki-steklo-gipsovinil-v-odnom-proekte",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/glasstroy-voplotil-v-zhizn-proekt-v-mgu-novyy-kabinet-rektora-siyaet-steklom-i",
+    "domain": "glasstroy.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 26
+   },
+   {
+    "url": "/about/novosti/gld-portal-sistema-sdvizhnyh-steklyannyh-peregorodok-dlya-fasadnoy-steny-ili",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/gld-portaly-razdvizhnye-steklyannye-steny-s-otlichnoy-teplo-i-zvukoizolyaciey",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/interer-bez-opor-montazh-steklyannykh-konstrukciy-za-potolok-v-delovom-prostranstve",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/izgotovlenie-celnosteklyannykh-konstrukciy-dlya-stomatologicheskoy-kliniki",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/kak-steklyannye-peregorodki-menyayut-prostranstvo-magazina-opyt-novogo-proekta",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 4
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-besklipsovogo-tipa-s-dvoynym-ostekleniem-i-dvermi-dlya",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-dlya-ofisa-v-minimalistichnom-stile",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-i-dveri-s-prozrachnym-i-gluhim-zapolneniem-dlya-ofisa-kompanii",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-s-zapolneniem-iz-syrogo-stekla-tolshchinoy-v-5-mm-praktichnyy",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-s-zhalyuzi-novyy-uroven-komforta-i-funkcionalnosti",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-so-steklom-i-gipsodekorom-praktichnye-konstrukcii-dlya",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-so-steklom-i-gipsovinilom-praktichnyy-sposob-obustroystva",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/about/novosti/karkasnye-peregorodki-v-komplekte-s-dvermi-estet-glass-dlya-oborudovaniya-veterinarnoy",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/lestnichnoe-steklyannoe-ograzhdenie-v-restorane-kak-sokhranit-stil-i-obespechit",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/lestnichnye-steklyannye-ograzhdeniya-s-derevyannymi-poruchnyami-dlya-zagorodnogo",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/maksimum-sveta-so-steklom-optiwhite-luchshiy-prirodnyy-material-dlya-proizvodstva",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/mayatnikovye-dveri-i-steklyannyy-tambur-praktichnoe-reshenie-dlya-ofisa-s-vysokoy",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 36
+   },
+   {
+    "url": "/about/novosti/mezhkomnatnye-dveri-i-doors-osnashchennye-dovodchikami-so-skolzyashchey-tyagoy-i-skud",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 4,
+    "vis": 21
+   },
+   {
+    "url": "/about/novosti/montazh-kozyrka-iz-tripleksa-dlya-salona-krasoty",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/montazh-lestnichnogo-steklyannogo-ograzhdeniya-ot-razmetki-do-finalnoy-polirovki",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 3,
+    "it50": 3,
+    "vis": 8
+   },
+   {
+    "url": "/about/novosti/nadezhnye-elektronnye-zamki-k-steklyannym-dveryam",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/ne-tolko-chistye-mashiny-kak-steklyannye-peregorodki-preobrazuyut-oblik-avtomoek",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/novyy-uroven-sveta-pervyy-proekt-so-steklyannoy-shakhtoy-lifta-v-kottedzhe-na-novoy",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/novosti/ofisnye-peregorodki-ukomplektovannye-alyuminievoy-dveryu-s-avtomaticheskim-vydvizhnym",
+    "domain": "glasstroy.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 1290
+ }
+}

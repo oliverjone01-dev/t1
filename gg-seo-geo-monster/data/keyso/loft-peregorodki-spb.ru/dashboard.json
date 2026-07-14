@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T08:49:27.882Z",
+  "measured": "2026-07-14T11:00:51.379Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -433,35 +433,35 @@
         265,
         6,
         23,
-        1
+        0
       ],
       "2025.11": [
         10,
         102,
         6,
         23,
-        3
+        0
       ],
       "2025.12": [
         9,
         150,
         5,
         23,
-        2
+        0
       ],
       "2026.01": [
         10,
         101,
         5,
         22,
-        3
+        0
       ],
       "2026.02": [
         11,
         212,
         6,
         26,
-        4
+        0
       ],
       "2026.04": [
         8,

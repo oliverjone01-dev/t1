@@ -1,0 +1,517 @@
+{
+ "domain": "ivegroup.ru",
+ "vs": [
+  "ivegroup.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T10:57:18.718Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 6,
+  "data": [
+   {
+    "url": "/",
+    "domain": "ivegroup.ru",
+    "it1": 3,
+    "it3": 3,
+    "it5": 3,
+    "it10": 3,
+    "it50": 27,
+    "vis": 13
+   },
+   {
+    "url": "/2020/03/03/peregorodka-v-prihozhyju",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 18,
+    "vis": 0
+   },
+   {
+    "url": "/2020/05/24/shumoizolyaciya-mezhkomnatnyh-peregorodok",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 8,
+    "vis": 4
+   },
+   {
+    "url": "/2020/06/14/peregorodka-dachnyi-otvet-bertman-2",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/2021/03/22/steklyannyi-tambur-v-dom",
+    "domain": "ivegroup.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 5,
+    "it10": 12,
+    "it50": 52,
+    "vis": 42
+   },
+   {
+    "url": "/2023/02/01/mezhkomnatnye-peregorodki-sochi",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/2023/02/05/moyka-dlya-sobak",
+    "domain": "ivegroup.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 10,
+    "it10": 14,
+    "it50": 63,
+    "vis": 61
+   },
+   {
+    "url": "/2023/02/10/penaly-dlya-dverei",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/2023/02/12/materialy-peregorodok",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 42,
+    "vis": 0
+   },
+   {
+    "url": "/2023/02/17/peregorodki_s_matovymi_steklami",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 41,
+    "vis": 2
+   },
+   {
+    "url": "/2023/10/06/arochnye-steklyannye-dveri",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 12,
+    "it50": 77,
+    "vis": 3
+   },
+   {
+    "url": "/2026/01/25/peregorodka-mezhdu-kuhney-i-komnatoy-po-zakonu-mosgaz",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 7,
+    "vis": 12
+   },
+   {
+    "url": "/about",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 9
+   },
+   {
+    "url": "/about/portfolio-dushevyh-peregorodok",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/about/portfolio-dveri-garmoshka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/portfolio-razdvizhnyh-peregorodok",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/portfolio-stacionarnyh-peregorodok",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/cena",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/materialy/vidy-metalla",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/materialy/vidy-stekla",
+    "domain": "ivegroup.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 21,
+    "vis": 9
+   },
+   {
+    "url": "/metallicheskie-izdeliya",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 5,
+    "vis": 17
+   },
+   {
+    "url": "/peregorodki",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft/knizhka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 15,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft/mayatnikovye-dveri",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft/raspashnye-dveri",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 68,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri-s-penalom",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 34,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-s-dveryami",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 13,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 53,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-s-dveryami/raspashnaya-peregorodka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-s-dveryami/teleskopicheskie-dveri",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 23,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-uglovie",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-v-vannuyu",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 28,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/peregorodki-v-vannuyu/dushevye-kabiny",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/statsionarnye-peregorodki",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 26,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/statsionarnye-peregorodki/decorativnye-peregorodki",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 22,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno",
+    "domain": "ivegroup.ru",
+    "it1": 3,
+    "it3": 27,
+    "it5": 36,
+    "it10": 49,
+    "it50": 85,
+    "vis": 300
+   },
+   {
+    "url": "/product/dekorativnaya-peregorodka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/product/dushevaya-kabina",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/product/mezhkomnatnaya-framuga",
+    "domain": "ivegroup.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 2
+   },
+   {
+    "url": "/product/mezhkomnatnoe-okno",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/product/peregorodka-garmoshka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 29,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-knizhka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-na-balkon",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 19,
+    "vis": 2
+   },
+   {
+    "url": "/product/peregorodka-raspashnaya",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-razdvizhnaya",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/uglovaya-peregorodka",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 3,
+    "vis": 1
+   },
+   {
+    "url": "/stellazhi",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 79,
+    "vis": 0
+   },
+   {
+    "url": "/uslugi/zakladnye",
+    "domain": "ivegroup.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 12,
+    "vis": 0
+   }
+  ],
+  "total": 257
+ }
+}

@@ -1,0 +1,574 @@
+{
+  "domain": "lain-loft.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-14T11:04:13.932Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
+  "data": {
+    "id": 322813373,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 333146076,
+        "name": "glassstore.org",
+        "cnt": 1547,
+        "it50": 4278,
+        "vis": 799,
+        "perc": 36.161757830762035
+      },
+      {
+        "did": 30199581,
+        "name": "glass-store.ru",
+        "cnt": 1399,
+        "it50": 8363,
+        "vis": 124,
+        "perc": 16.728446729642474
+      },
+      {
+        "did": 30172018,
+        "name": "steklo-kom.ru",
+        "cnt": 1268,
+        "it50": 7358,
+        "vis": 745,
+        "perc": 17.23294373471052
+      },
+      {
+        "did": 30530484,
+        "name": "priorglass.ru",
+        "cnt": 1236,
+        "it50": 7205,
+        "vis": 115,
+        "perc": 17.154753643303263
+      },
+      {
+        "did": 29923635,
+        "name": "steklo9255193.ru",
+        "cnt": 1184,
+        "it50": 3932,
+        "vis": 44,
+        "perc": 30.111902339776194
+      },
+      {
+        "did": 30042665,
+        "name": "steklotrade.com",
+        "cnt": 1129,
+        "it50": 4062,
+        "vis": 124,
+        "perc": 27.794190054160513
+      },
+      {
+        "did": 30030622,
+        "name": "169.ru",
+        "cnt": 1082,
+        "it50": 106205,
+        "vis": 8528,
+        "perc": 1.0187844263452757
+      },
+      {
+        "did": 30202337,
+        "name": "glasstroy.ru",
+        "cnt": 1079,
+        "it50": 10062,
+        "vis": 126,
+        "perc": 10.723514211886304
+      },
+      {
+        "did": 32109853,
+        "name": "bsk-glass.ru",
+        "cnt": 1056,
+        "it50": 3780,
+        "vis": 137,
+        "perc": 27.93650793650794
+      },
+      {
+        "did": 30530494,
+        "name": "nayada-glass.ru",
+        "cnt": 993,
+        "it50": 2972,
+        "vis": 24,
+        "perc": 33.411843876177656
+      }
+    ],
+    "it1": 145,
+    "it3": 631,
+    "it5": 1175,
+    "it10": 2364,
+    "it50": 6768,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "раздвижные пластиковые двери",
+        "ws": 1619,
+        "wsk": 233,
+        "pos": 1
+      },
+      {
+        "word": "лайн лофт",
+        "ws": 232,
+        "wsk": 88,
+        "pos": 1
+      },
+      {
+        "word": "телевизор зеркало",
+        "ws": 1984,
+        "wsk": 79,
+        "pos": 1
+      },
+      {
+        "word": "закаленное стекло на заказ",
+        "ws": 827,
+        "wsk": 76,
+        "pos": 1
+      },
+      {
+        "word": "умное стекло",
+        "ws": 3277,
+        "wsk": 71,
+        "pos": 1
+      },
+      {
+        "word": "столешница стеклянная для стола",
+        "ws": 445,
+        "wsk": 61,
+        "pos": 1
+      },
+      {
+        "word": "витраж окна",
+        "ws": 4314,
+        "wsk": 56,
+        "pos": 1
+      },
+      {
+        "word": "перегородка витражная",
+        "ws": 573,
+        "wsk": 55,
+        "pos": 1
+      },
+      {
+        "word": "витражные перегородки",
+        "ws": 553,
+        "wsk": 47,
+        "pos": 1
+      },
+      {
+        "word": "перегородки витражные",
+        "ws": 573,
+        "wsk": 45,
+        "pos": 1
+      }
+    ],
+    "topkeys": 55951,
+    "pages": [
+      {
+        "url": "/kupit-steklo/kalenoe-steklo",
+        "it50": 482
+      },
+      {
+        "url": "/dver-garmoshka",
+        "it50": 386
+      },
+      {
+        "url": "/",
+        "it50": 279
+      },
+      {
+        "url": "/dekorativnye-peregorodki",
+        "it50": 228
+      },
+      {
+        "url": "/kupit-steklo/riflenoe-steklo",
+        "it50": 220
+      },
+      {
+        "url": "/razdvizhnye-peregorodki",
+        "it50": 219
+      },
+      {
+        "url": "/kupit-steklo/uzorchatoe-steklo",
+        "it50": 200
+      },
+      {
+        "url": "/kupit-steklo/smart-steklo",
+        "it50": 198
+      },
+      {
+        "url": "/dver-garmoshka/dveri-garmoshka-dlya-shkafa",
+        "it50": 196
+      },
+      {
+        "url": "/shkafy-na-balkon",
+        "it50": 183
+      }
+    ],
+    "pagesinindex": 158,
+    "vis": 282,
+    "topvis": 36654,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 17,
+    "history": {
+      "2025.02": {
+        "it1": 46,
+        "it3": 242,
+        "it5": 558,
+        "it10": 1426,
+        "it50": 4823,
+        "pagesInIndex": 120,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 176,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 80,
+        "it3": 319,
+        "it5": 708,
+        "it10": 1618,
+        "it50": 5020,
+        "pagesInIndex": 128,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 195,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 79,
+        "it3": 310,
+        "it5": 694,
+        "it10": 1579,
+        "it50": 4899,
+        "pagesInIndex": 129,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 216,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 85,
+        "it3": 336,
+        "it5": 697,
+        "it10": 1603,
+        "it50": 5026,
+        "pagesInIndex": 132,
+        "adsCount": 3,
+        "adKeysCount": 4,
+        "visAvg": 166,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 80,
+        "it3": 305,
+        "it5": 642,
+        "it10": 1420,
+        "it50": 5002,
+        "pagesInIndex": 131,
+        "adsCount": 10,
+        "adKeysCount": 19,
+        "visAvg": 126,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 23,
+        "it3": 85,
+        "it5": 177,
+        "it10": 423,
+        "it50": 4684,
+        "pagesInIndex": 131,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 73,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 74,
+        "it3": 357,
+        "it5": 731,
+        "it10": 1616,
+        "it50": 5646,
+        "pagesInIndex": 134,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 223,
+        "aiCnt": 19
+      },
+      "2025.09": {
+        "it1": 67,
+        "it3": 330,
+        "it5": 721,
+        "it10": 1629,
+        "it50": 5625,
+        "pagesInIndex": 130,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 186,
+        "aiCnt": 486
+      },
+      "2025.10": {
+        "it1": 70,
+        "it3": 336,
+        "it5": 735,
+        "it10": 1638,
+        "it50": 5637,
+        "pagesInIndex": 131,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 204,
+        "aiCnt": 293
+      },
+      "2025.11": {
+        "it1": 148,
+        "it3": 576,
+        "it5": 1024,
+        "it10": 1887,
+        "it50": 5892,
+        "pagesInIndex": 139,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 319,
+        "aiCnt": 703
+      },
+      "2025.12": {
+        "it1": 184,
+        "it3": 699,
+        "it5": 1181,
+        "it10": 2188,
+        "it50": 6429,
+        "pagesInIndex": 146,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 342,
+        "aiCnt": 737
+      },
+      "2026.01": {
+        "it1": 178,
+        "it3": 685,
+        "it5": 1164,
+        "it10": 2167,
+        "it50": 6095,
+        "pagesInIndex": 141,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 376,
+        "aiCnt": 1043
+      },
+      "2026.02": {
+        "it1": 145,
+        "it3": 643,
+        "it5": 1105,
+        "it10": 2115,
+        "it50": 6087,
+        "pagesInIndex": 141,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 299,
+        "aiCnt": 608
+      },
+      "2026.03": {
+        "it1": 149,
+        "it3": 624,
+        "it5": 1096,
+        "it10": 2109,
+        "it50": 6186,
+        "pagesInIndex": 140,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 299,
+        "aiCnt": 90
+      },
+      "2026.04": {
+        "it1": 97,
+        "it3": 478,
+        "it5": 866,
+        "it10": 1809,
+        "it50": 6269,
+        "pagesInIndex": 147,
+        "adsCount": 6,
+        "adKeysCount": 14,
+        "visAvg": 202,
+        "aiCnt": 797
+      },
+      "2026.05": {
+        "it1": 109,
+        "it3": 467,
+        "it5": 882,
+        "it10": 1896,
+        "it50": 6595,
+        "pagesInIndex": 153,
+        "adsCount": 7,
+        "adKeysCount": 14,
+        "visAvg": 191,
+        "aiCnt": 352
+      },
+      "2026.06": {
+        "it1": 138,
+        "it3": 579,
+        "it5": 1070,
+        "it10": 2203,
+        "it50": 6835,
+        "pagesInIndex": 157,
+        "adsCount": 2,
+        "adKeysCount": 2,
+        "visAvg": 267,
+        "aiCnt": 484
+      },
+      "2026.07": {
+        "it1": 145,
+        "it3": 631,
+        "it5": 1175,
+        "it10": 2364,
+        "it50": 6768,
+        "pagesInIndex": 158,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 282,
+        "aiCnt": 398
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        12,
+        639,
+        9,
+        3,
+        9
+      ],
+      "2025.02": [
+        13,
+        658,
+        9,
+        3,
+        10
+      ],
+      "2025.03": [
+        12,
+        625,
+        9,
+        3,
+        11
+      ],
+      "2025.04": [
+        12,
+        683,
+        9,
+        3,
+        9
+      ],
+      "2025.05": [
+        12,
+        655,
+        9,
+        3,
+        9
+      ],
+      "2025.06": [
+        13,
+        654,
+        10,
+        3,
+        10
+      ],
+      "2025.07": [
+        14,
+        651,
+        11,
+        3,
+        11
+      ],
+      "2025.08": [
+        14,
+        651,
+        10,
+        3,
+        11
+      ],
+      "2025.09": [
+        74,
+        709,
+        29,
+        3,
+        49
+      ],
+      "2025.10": [
+        69,
+        697,
+        30,
+        3,
+        56
+      ],
+      "2025.11": [
+        80,
+        706,
+        30,
+        3,
+        11
+      ],
+      "2025.12": [
+        101,
+        704,
+        33,
+        3,
+        13
+      ],
+      "2026.01": [
+        101,
+        715,
+        33,
+        3,
+        13
+      ],
+      "2026.02": [
+        100,
+        717,
+        32,
+        3,
+        13
+      ],
+      "2026.03": [
+        99,
+        671,
+        32,
+        3,
+        13
+      ],
+      "2026.04": [
+        99,
+        659,
+        32,
+        3,
+        13
+      ],
+      "2026.05": [
+        101,
+        699,
+        32,
+        3,
+        66
+      ],
+      "2026.06": [
+        101,
+        723,
+        34,
+        3,
+        66
+      ],
+      "2026.07": [
+        101,
+        723,
+        34,
+        3,
+        66
+      ]
+    },
+    "aiAnswersCnt": 398,
+    "aiState": 10,
+    "dr": 24,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",
+    "name": "lain-loft.ru"
+  }
+}

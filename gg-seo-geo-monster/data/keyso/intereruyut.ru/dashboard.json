@@ -1,0 +1,574 @@
+{
+  "domain": "intereruyut.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-14T11:10:01.367Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=intereruyut.ru",
+  "data": {
+    "id": 30530749,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30030622,
+        "name": "169.ru",
+        "cnt": 9134,
+        "it50": 106205,
+        "vis": 8528,
+        "perc": 8.6003483828445
+      },
+      {
+        "did": 30134448,
+        "name": "dvertsov.ru",
+        "cnt": 9112,
+        "it50": 32547,
+        "vis": 2148,
+        "perc": 27.9964359234338
+      },
+      {
+        "did": 80337046,
+        "name": "dveriunas.ru",
+        "cnt": 8611,
+        "it50": 27425,
+        "vis": 3489,
+        "perc": 31.398359161349134
+      },
+      {
+        "did": 30135923,
+        "name": "rf-dveri.ru",
+        "cnt": 7403,
+        "it50": 20723,
+        "vis": 2795,
+        "perc": 35.723592143994594
+      },
+      {
+        "did": 30182400,
+        "name": "dveri-tut.com",
+        "cnt": 6483,
+        "it50": 17103,
+        "vis": 2208,
+        "perc": 37.905630591124364
+      },
+      {
+        "did": 279637164,
+        "name": "dverilab.ru",
+        "cnt": 5872,
+        "it50": 15195,
+        "vis": 2091,
+        "perc": 38.64429088515959
+      },
+      {
+        "did": 30030613,
+        "name": "dveribravo.ru",
+        "cnt": 5524,
+        "it50": 18929,
+        "vis": 2007,
+        "perc": 29.182735485234296
+      },
+      {
+        "did": 29919264,
+        "name": "moscow.petrovich.ru",
+        "cnt": 5413,
+        "it50": 957763,
+        "vis": 181979,
+        "perc": 0.5651711331508944
+      },
+      {
+        "did": 48582214,
+        "name": "yadveri.ru",
+        "cnt": 5320,
+        "it50": 10907,
+        "vis": 314,
+        "perc": 48.77601540295223
+      },
+      {
+        "did": 30263453,
+        "name": "portaprima.ru",
+        "cnt": 5188,
+        "it50": 23401,
+        "vis": 833,
+        "perc": 22.16999273535319
+      }
+    ],
+    "it1": 249,
+    "it3": 870,
+    "it5": 1733,
+    "it10": 4810,
+    "it50": 15761,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "двери межкомнатные",
+        "ws": 995693,
+        "wsk": 32730,
+        "pos": 1
+      },
+      {
+        "word": "двери скрытые",
+        "ws": 82244,
+        "wsk": 2112,
+        "pos": 1
+      },
+      {
+        "word": "двери скрытые межкомнатные",
+        "ws": 12145,
+        "wsk": 1208,
+        "pos": 1
+      },
+      {
+        "word": "межкомнатные белые двери",
+        "ws": 12691,
+        "wsk": 739,
+        "pos": 1
+      },
+      {
+        "word": "двери межкомнатные на заказ",
+        "ws": 4162,
+        "wsk": 529,
+        "pos": 1
+      },
+      {
+        "word": "экошпон",
+        "ws": 12341,
+        "wsk": 522,
+        "pos": 1
+      },
+      {
+        "word": "белые двери",
+        "ws": 91108,
+        "wsk": 355,
+        "pos": 1
+      },
+      {
+        "word": "оникс двери",
+        "ws": 1809,
+        "wsk": 339,
+        "pos": 1
+      },
+      {
+        "word": "двери высокие межкомнатные",
+        "ws": 1531,
+        "wsk": 335,
+        "pos": 1
+      },
+      {
+        "word": "двери межкомнатные высокие",
+        "ws": 1531,
+        "wsk": 335,
+        "pos": 1
+      }
+    ],
+    "topkeys": 26722,
+    "pages": [
+      {
+        "url": "/catalog/skrytye-dveri",
+        "it50": 802
+      },
+      {
+        "url": "/catalog/mezhkomnatnye-dveri",
+        "it50": 783
+      },
+      {
+        "url": "/catalog/mezhkomnatnye-dvernye-ruchki",
+        "it50": 557
+      },
+      {
+        "url": "/catalog/razdvizhnye-dveri",
+        "it50": 508
+      },
+      {
+        "url": "/catalog/dr-vnutrennie-paneli",
+        "it50": 493
+      },
+      {
+        "url": "/catalog/dveri-iz-massiva",
+        "it50": 399
+      },
+      {
+        "url": "/catalog/dveri-knizhka",
+        "it50": 375
+      },
+      {
+        "url": "/services/ustanovka-dverej",
+        "it50": 371
+      },
+      {
+        "url": "/catalog/plastikovye-dveri",
+        "it50": 328
+      },
+      {
+        "url": "/catalog/razdvizhnye-peregorodki",
+        "it50": 306
+      }
+    ],
+    "pagesinindex": 1022,
+    "vis": 1107,
+    "topvis": 12869,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 11,
+    "history": {
+      "2025.02": {
+        "it1": 116,
+        "it3": 710,
+        "it5": 1604,
+        "it10": 3861,
+        "it50": 10338,
+        "pagesInIndex": 842,
+        "adsCount": 6,
+        "adKeysCount": 7,
+        "visAvg": 1497,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 93,
+        "it3": 673,
+        "it5": 1503,
+        "it10": 3736,
+        "it50": 10167,
+        "pagesInIndex": 902,
+        "adsCount": 10,
+        "adKeysCount": 10,
+        "visAvg": 1243,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 93,
+        "it3": 665,
+        "it5": 1461,
+        "it10": 3627,
+        "it50": 9867,
+        "pagesInIndex": 895,
+        "adsCount": 7,
+        "adKeysCount": 7,
+        "visAvg": 1402,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 92,
+        "it3": 618,
+        "it5": 1370,
+        "it10": 3452,
+        "it50": 9714,
+        "pagesInIndex": 898,
+        "adsCount": 5,
+        "adKeysCount": 5,
+        "visAvg": 1152,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 115,
+        "it3": 620,
+        "it5": 1322,
+        "it10": 3244,
+        "it50": 9612,
+        "pagesInIndex": 883,
+        "adsCount": 4,
+        "adKeysCount": 4,
+        "visAvg": 1135,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 393,
+        "it3": 1210,
+        "it5": 2059,
+        "it10": 3953,
+        "it50": 9981,
+        "pagesInIndex": 754,
+        "adsCount": 1,
+        "adKeysCount": 1,
+        "visAvg": 2410,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 169,
+        "it3": 726,
+        "it5": 1388,
+        "it10": 3167,
+        "it50": 10415,
+        "pagesInIndex": 695,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1485,
+        "aiCnt": 42
+      },
+      "2025.09": {
+        "it1": 124,
+        "it3": 656,
+        "it5": 1303,
+        "it10": 3105,
+        "it50": 10515,
+        "pagesInIndex": 701,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1195,
+        "aiCnt": 1286
+      },
+      "2025.10": {
+        "it1": 122,
+        "it3": 652,
+        "it5": 1287,
+        "it10": 3112,
+        "it50": 12219,
+        "pagesInIndex": 1283,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 967,
+        "aiCnt": 355
+      },
+      "2025.11": {
+        "it1": 97,
+        "it3": 557,
+        "it5": 1129,
+        "it10": 3070,
+        "it50": 14118,
+        "pagesInIndex": 1484,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 852,
+        "aiCnt": 946
+      },
+      "2025.12": {
+        "it1": 81,
+        "it3": 441,
+        "it5": 969,
+        "it10": 2962,
+        "it50": 13616,
+        "pagesInIndex": 1027,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 805,
+        "aiCnt": 445
+      },
+      "2026.01": {
+        "it1": 102,
+        "it3": 457,
+        "it5": 1041,
+        "it10": 3172,
+        "it50": 12769,
+        "pagesInIndex": 783,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1135,
+        "aiCnt": 1358
+      },
+      "2026.02": {
+        "it1": 114,
+        "it3": 616,
+        "it5": 1357,
+        "it10": 3744,
+        "it50": 12841,
+        "pagesInIndex": 746,
+        "adsCount": 6,
+        "adKeysCount": 7,
+        "visAvg": 1169,
+        "aiCnt": 394
+      },
+      "2026.03": {
+        "it1": 113,
+        "it3": 628,
+        "it5": 1400,
+        "it10": 3910,
+        "it50": 13177,
+        "pagesInIndex": 747,
+        "adsCount": 6,
+        "adKeysCount": 7,
+        "visAvg": 1166,
+        "aiCnt": 192
+      },
+      "2026.04": {
+        "it1": 130,
+        "it3": 655,
+        "it5": 1445,
+        "it10": 3868,
+        "it50": 14124,
+        "pagesInIndex": 855,
+        "adsCount": 4,
+        "adKeysCount": 4,
+        "visAvg": 1174,
+        "aiCnt": 2284
+      },
+      "2026.05": {
+        "it1": 124,
+        "it3": 626,
+        "it5": 1308,
+        "it10": 3727,
+        "it50": 15133,
+        "pagesInIndex": 979,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 624,
+        "aiCnt": 714
+      },
+      "2026.06": {
+        "it1": 218,
+        "it3": 844,
+        "it5": 1706,
+        "it10": 4638,
+        "it50": 15644,
+        "pagesInIndex": 1040,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 978,
+        "aiCnt": 174
+      },
+      "2026.07": {
+        "it1": 249,
+        "it3": 870,
+        "it5": 1733,
+        "it10": 4810,
+        "it50": 15761,
+        "pagesInIndex": 1022,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1107,
+        "aiCnt": 169
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        1370,
+        4545,
+        196,
+        8,
+        165
+      ],
+      "2025.02": [
+        1382,
+        6339,
+        203,
+        10,
+        183
+      ],
+      "2025.03": [
+        1348,
+        6429,
+        197,
+        11,
+        174
+      ],
+      "2025.04": [
+        1347,
+        7419,
+        199,
+        22,
+        173
+      ],
+      "2025.05": [
+        1358,
+        7356,
+        201,
+        15,
+        185
+      ],
+      "2025.06": [
+        1376,
+        7156,
+        206,
+        17,
+        191
+      ],
+      "2025.07": [
+        1377,
+        7217,
+        207,
+        17,
+        191
+      ],
+      "2025.08": [
+        1383,
+        7411,
+        210,
+        18,
+        194
+      ],
+      "2025.09": [
+        1904,
+        8346,
+        265,
+        15,
+        523
+      ],
+      "2025.10": [
+        2043,
+        7385,
+        271,
+        18,
+        184
+      ],
+      "2025.11": [
+        2006,
+        9948,
+        272,
+        18,
+        145
+      ],
+      "2025.12": [
+        2140,
+        8587,
+        281,
+        17,
+        170
+      ],
+      "2026.01": [
+        2128,
+        9728,
+        283,
+        19,
+        166
+      ],
+      "2026.02": [
+        2155,
+        10234,
+        282,
+        19,
+        171
+      ],
+      "2026.03": [
+        2126,
+        10127,
+        280,
+        19,
+        165
+      ],
+      "2026.04": [
+        2125,
+        9876,
+        282,
+        19,
+        667
+      ],
+      "2026.05": [
+        2147,
+        10255,
+        279,
+        18,
+        676
+      ],
+      "2026.06": [
+        2155,
+        10252,
+        275,
+        20,
+        674
+      ],
+      "2026.07": [
+        2155,
+        10252,
+        275,
+        20,
+        674
+      ]
+    },
+    "aiAnswersCnt": 169,
+    "aiState": 10,
+    "dr": 27,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/8ca977d93caea090093885456e6c251f9495fd9e43785078fb83d96e392f8161.png",
+    "name": "intereruyut.ru"
+  }
+}

@@ -2,7 +2,7 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T08:49:07.311Z",
+  "measured": "2026-07-14T10:56:28.854Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
     "id": 30485583,

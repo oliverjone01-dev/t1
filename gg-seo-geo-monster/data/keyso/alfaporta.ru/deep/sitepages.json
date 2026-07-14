@@ -1,0 +1,517 @@
+{
+ "domain": "alfaporta.ru",
+ "vs": [
+  "alfaporta.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:02:33.473Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 12,
+  "data": [
+   {
+    "url": "/",
+    "domain": "alfaporta.ru",
+    "it1": 11,
+    "it3": 12,
+    "it5": 13,
+    "it10": 15,
+    "it50": 89,
+    "vis": 343
+   },
+   {
+    "url": "/1000-RM046-interior-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/1023-RM017-interior-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/123-RM011-interior-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/15162-FK027-narrow-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/15179-FK028-double-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 4,
+    "it10": 11,
+    "it50": 36,
+    "vis": 28
+   },
+   {
+    "url": "/15181-FK028-double-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/15182-FK028-onehalf-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 13
+   },
+   {
+    "url": "/15183-FK028-double-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/15196-FK028-onehalf-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/15228-RM048-double-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/15644-RM048-barn-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/16009-RM020-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/16014-ZK012-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 35
+   },
+   {
+    "url": "/16016-RM048-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/16040-RM020-double-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 3
+   },
+   {
+    "url": "/16088-FK028-double-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 4
+   },
+   {
+    "url": "/16092-FK028-double-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 51
+   },
+   {
+    "url": "/16123-RM002-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16124-RM003-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16128-RM003-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/16132-FK027-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/16145-FK028-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16182-FK021-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16186-RM056-sliding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16506-ZM059-invisible-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/16519-ZM067-invisible-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16523-ZM070-invisible-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/16524-ZM071-invisible-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/16545-ZM062-invisible-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/17006-RM020-folding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/17025-PM001-folding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/17034-PM002-folding-doors.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/176-RM014-interior-door.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/18020-RM048-sliding-door-to-case.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/18034-ZK010-sliding-door-to-case.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/18035-ZK010-sliding-door-to-case.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 3,
+    "vis": 2
+   },
+   {
+    "url": "/18502-bravo-arch.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/18504-bravo-F-27-arch.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/18516-DIY-02-portal.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 7
+   },
+   {
+    "url": "/19019-SP002-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19023-SP002-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/19030-SP003-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19031-SP003-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19083-SP001-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 18,
+    "vis": 1448
+   },
+   {
+    "url": "/19097-SP002-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19101-SP002-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19110-SP003-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19114-SP003-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/19118-SP003-sliding-partition.html",
+    "domain": "alfaporta.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 66,
+    "vis": 0
+   }
+  ],
+  "total": 589
+ }
+}

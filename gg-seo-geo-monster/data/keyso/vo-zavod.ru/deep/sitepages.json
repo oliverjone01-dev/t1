@@ -1,0 +1,517 @@
+{
+ "domain": "vo-zavod.ru",
+ "vs": [
+  "vo-zavod.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:00:48.577Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 6,
+  "data": [
+   {
+    "url": "/",
+    "domain": "vo-zavod.ru",
+    "it1": 12,
+    "it3": 17,
+    "it5": 19,
+    "it10": 33,
+    "it50": 103,
+    "vis": 738
+   },
+   {
+    "url": "/aluminievye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 11,
+    "vis": 2
+   },
+   {
+    "url": "/aluminievye-okna/alyuminievye-okna-shpon",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/alyuminievye-okna-tambov",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/energoeffektivnye-okna-ekonomiya",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/article/kak-vybrat-okno",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/kogda-menyat-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 10,
+    "vis": 1
+   },
+   {
+    "url": "/article/plesen-na-okne",
+    "domain": "vo-zavod.ru",
+    "it1": 2,
+    "it3": 3,
+    "it5": 6,
+    "it10": 19,
+    "it50": 81,
+    "vis": 15
+   },
+   {
+    "url": "/article/pochemu-plachut-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/article/smart-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/article/tihie-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 25,
+    "vis": 1
+   },
+   {
+    "url": "/article/zamena-okna-cena",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/zamenaokna-gid-po-cenam",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 8,
+    "it50": 56,
+    "vis": 31
+   },
+   {
+    "url": "/article/zamershchik-obmanyvaet",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/belgorod/okna-plastik",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/belgorod/okna/osteklenei-balkonov",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/ceny",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-kabiny",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 22,
+    "vis": 7
+   },
+   {
+    "url": "/dvery",
+    "domain": "vo-zavod.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 4
+   },
+   {
+    "url": "/dvery/alyuminievye-dveri",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/dvery/alyuminievye-dveri-grazzio",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dvery/plastikovye-dveri",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 4,
+    "it50": 4,
+    "vis": 33
+   },
+   {
+    "url": "/dvery/portalnye-sistemy-patio",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 4,
+    "vis": 6
+   },
+   {
+    "url": "/energosberegayushhie-plastikovye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/fasady",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/favorit-space",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/forvard-profilnye-sistemy",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/gde-kupit",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 7,
+    "vis": 5
+   },
+   {
+    "url": "/gross-by-krauss",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 6,
+    "vis": 6
+   },
+   {
+    "url": "/kontakty",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 35,
+    "vis": 30
+   },
+   {
+    "url": "/laminirovannye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/lipeck/remont-okon",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/loft",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/moskitnye-setki",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 5,
+    "vis": 10
+   },
+   {
+    "url": "/msk/patio-dver",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/multifunkcionalnoe-plastikovoe-okno",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/nedorogie-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/news/matovoe-okno-podogrev",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/okna/arochnye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/okna/cvetnye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/okna/francuzskie-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/okna/kruglye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/okna/panoramnye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/osteklenie-balkona-tambov",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/osteklenie-balkonov-i-lodzhij",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 6,
+    "it10": 16,
+    "it50": 31,
+    "vis": 105
+   },
+   {
+    "url": "/osteklenie-zagorodnyh-domov-i-kottedzhej/tproduct/323664460-561500487701-plast-okno-60h120-sm-rossiya-tsena-ot",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/osteklenie-zagorodnyh-domov-i-kottedzhej/tproduct/323664460-607899581031-plastikovoe-okno-60h90-sm-rossiya-tsena",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/osteklenie-zagorodnyh-domov-i-kottedzhej/tproduct/323664460-640951154011-okno-80h120-sm-pvh-rossiya-tsena-ot",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/plastikokna-rostov-na-donu",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 29,
+    "vis": 0
+   },
+   {
+    "url": "/plastikovye-okna",
+    "domain": "vo-zavod.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 8,
+    "it50": 10,
+    "vis": 16
+   }
+  ],
+  "total": 277
+ }
+}

@@ -1,0 +1,517 @@
+{
+ "domain": "intereruyut.ru",
+ "vs": [
+  "intereruyut.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:10:51.839Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 25,
+  "data": [
+   {
+    "url": "/",
+    "domain": "intereruyut.ru",
+    "it1": 3,
+    "it3": 9,
+    "it5": 13,
+    "it10": 39,
+    "it50": 273,
+    "vis": 512
+   },
+   {
+    "url": "/articles/aktualnye-trendy-v-dizayne-mezhkomnatnykh-i-vkhodnykh-dverey-vzglyad-ekspertov-intereruyutru",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/chto-delat-esli-skripit-vkhodnaya-dver",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/articles/chto-takoe-zvukoizolyatsionnye-dveri-i-kak-oni-rabotayut",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 55,
+    "vis": 1
+   },
+   {
+    "url": "/articles/dekorativnye-nakladki-na-vkhodnye-dveri-kak-baget-menyaet-vospriyatie-prostranstva",
+    "domain": "intereruyut.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 4,
+    "it10": 8,
+    "it50": 8,
+    "vis": 31
+   },
+   {
+    "url": "/articles/dver-mezhkomnatnaya-s-korobkoy",
+    "domain": "intereruyut.ru",
+    "it1": 13,
+    "it3": 29,
+    "it5": 30,
+    "it10": 34,
+    "it50": 50,
+    "vis": 1587
+   },
+   {
+    "url": "/articles/dveri-dlya-detskogo-sada",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-dlya-meduchrezhdeniy",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-filenchatye-mezhkomnatnye",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 14,
+    "it50": 43,
+    "vis": 8
+   },
+   {
+    "url": "/articles/dveri-iz-massiva-dereva",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-iz-massiva-duba-na-zakaz",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-iz-massiva-ot-proizvoditelya",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-iz-massiva-sosny-pod-pokrasku",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-meditsinskie-dlya-bolnits",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-mezhkomnatnye-dvoynye-raspashnye",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-s-alyuminievoy-kromkoy",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 19,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-skrytogo-montazha-pod-pokrasku",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 13,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dveri-so-skrytym-korobom",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/dvukhstvorchatye-dveri-mezhkomnatnye-kupit",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/articles/emalit-na-dveryakh-razbiraem-tekhnologiyu-pokrytiya-bez-marketingovykh-legend",
+    "domain": "intereruyut.ru",
+    "it1": 2,
+    "it3": 6,
+    "it5": 9,
+    "it10": 19,
+    "it50": 21,
+    "vis": 223
+   },
+   {
+    "url": "/articles/gde-kupit-mezhkomnatnye-dveri-v-moskve",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/kak-pravilno-vybrat-mezhkomnatnuyu-dver-dlya-vashego-doma-ili-kvartiry",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/kak-samostoyatelno-ustanovit-zamok-v-mezhkomnatnuyu-dver",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/kak-skryt-dver",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/articles/kakie-dveri-luchshe-vybrat-dlya-kvartiry-s-malenkimi-detmi",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/kompozitnye-dveri",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 4,
+    "it10": 4,
+    "it50": 4,
+    "vis": 29
+   },
+   {
+    "url": "/articles/kupit-dveri-dlya-shkol",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 17,
+    "vis": 21
+   },
+   {
+    "url": "/articles/kupit-mezhkomnatnye-dveri-deshevo",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/laminirovannye-i-shponirovannye-mezhkomnatnye-dveri-kakie-vybrat",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/laminirovannye-mezhkomnatnye-dveri-materialy-i-preimushchestva",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/magnitnye-mezhkomnatnye-dveri",
+    "domain": "intereruyut.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 6,
+    "it10": 19,
+    "it50": 45,
+    "vis": 164
+   },
+   {
+    "url": "/articles/mezhkomnatnye-dveri-skrytogo-montazha",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/mezhkomnatnye-dveri-so-skrytymi-petlyami",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 13,
+    "vis": 0
+   },
+   {
+    "url": "/articles/mezhkomnatnye-dveri-v-interere",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/articles/normativy-i-standarty-dlya-mezhkomnatnykh-dverey-v-2025-godu",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/articles/ofisnye-plastikovye-dveri",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/articles/optimalnyy-razmer-i-tip-dverey-dlya-raznykh-komnat-v-dome",
+    "domain": "intereruyut.ru",
+    "it1": 3,
+    "it3": 6,
+    "it5": 11,
+    "it10": 39,
+    "it50": 275,
+    "vis": 72
+   },
+   {
+    "url": "/articles/razdvizhnye-mezhkomnatnye-dveri-garmoshka",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 3,
+    "it50": 85,
+    "vis": 7
+   },
+   {
+    "url": "/articles/shponirovannye-dveri-plyusy-minusy-i-drugie-osobennosti",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/articles/skrytaya-razdvizhnaya-dver",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 28,
+    "vis": 0
+   },
+   {
+    "url": "/articles/skrytye-dveri-bez-nalichnikov",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/skrytye-dveri-shponirovannye-kupit",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/skrytye-dveri-v-interere",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/articles/sposoby-oblitsovki-derevyannykh-i-metallicheskikh-dverey",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/articles/steklyannye-dveri-v-interere-pomeshcheniy",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/articles/stili-dverey-kak-vybrat-dveri-kotorye-podkhodyat-k-vashemu-intereru",
+    "domain": "intereruyut.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 3,
+    "it10": 4,
+    "it50": 14,
+    "vis": 21
+   },
+   {
+    "url": "/articles/tsarapina-na-shponirovannykh-dveryakh-mozhno-li-ubrat",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 27,
+    "vis": 0
+   },
+   {
+    "url": "/articles/tsargovye-dveri-v-interere-konstruktsiya-materialy-i-tekhnologiya-montazha-po-gostu",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/articles/vydvizhnye-dveri-mezhkomnatnye",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/3000-seriya-shpon",
+    "domain": "intereruyut.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   }
+  ],
+  "total": 1225
+ }
+}

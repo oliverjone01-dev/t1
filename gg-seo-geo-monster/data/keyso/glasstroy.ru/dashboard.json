@@ -1,0 +1,574 @@
+{
+  "domain": "glasstroy.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-14T11:05:07.056Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
+  "data": {
+    "id": 30202337,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30700481,
+        "name": "gstrong.ru",
+        "cnt": 1489,
+        "it50": 3749,
+        "vis": 58,
+        "perc": 39.71725793544945
+      },
+      {
+        "did": 80428092,
+        "name": "fantasia-stekla.ru",
+        "cnt": 1435,
+        "it50": 5074,
+        "vis": 111,
+        "perc": 28.281434765471026
+      },
+      {
+        "did": 30773214,
+        "name": "zerist.ru",
+        "cnt": 1391,
+        "it50": 4482,
+        "vis": 56,
+        "perc": 31.03525211958947
+      },
+      {
+        "did": 30134448,
+        "name": "dvertsov.ru",
+        "cnt": 1369,
+        "it50": 32547,
+        "vis": 2148,
+        "perc": 4.20622484407165
+      },
+      {
+        "did": 30199581,
+        "name": "glass-store.ru",
+        "cnt": 1306,
+        "it50": 8363,
+        "vis": 124,
+        "perc": 15.616405596077964
+      },
+      {
+        "did": 30030622,
+        "name": "169.ru",
+        "cnt": 1292,
+        "it50": 106205,
+        "vis": 8528,
+        "perc": 1.2165152299797561
+      },
+      {
+        "did": 30530484,
+        "name": "priorglass.ru",
+        "cnt": 1283,
+        "it50": 7205,
+        "vis": 115,
+        "perc": 17.807078417765442
+      },
+      {
+        "did": 280352249,
+        "name": "kelman-stroi.ru",
+        "cnt": 1212,
+        "it50": 9924,
+        "vis": 20,
+        "perc": 12.212817412333736
+      },
+      {
+        "did": 30153427,
+        "name": "perilaglavsnab.ru",
+        "cnt": 1163,
+        "it50": 12367,
+        "vis": 1145,
+        "perc": 9.40405918977925
+      },
+      {
+        "did": 322813373,
+        "name": "lain-loft.ru",
+        "cnt": 1079,
+        "it50": 6768,
+        "vis": 282,
+        "perc": 15.942671394799053
+      }
+    ],
+    "it1": 139,
+    "it3": 461,
+    "it5": 821,
+    "it10": 1949,
+    "it50": 10062,
+    "childsCount": 1,
+    "keys": [
+      {
+        "word": "раздвижные двери в беседку",
+        "ws": 416,
+        "wsk": 99,
+        "pos": 1
+      },
+      {
+        "word": "стоечно ригельная система фасадного остекления",
+        "ws": 179,
+        "wsk": 91,
+        "pos": 1
+      },
+      {
+        "word": "витражное остекление это",
+        "ws": 142,
+        "wsk": 71,
+        "pos": 1
+      },
+      {
+        "word": "застеклённая веранда к дому",
+        "ws": 462,
+        "wsk": 66,
+        "pos": 1
+      },
+      {
+        "word": "перегородка для зонирования комнаты стеклянная",
+        "ws": 1242,
+        "wsk": 66,
+        "pos": 1
+      },
+      {
+        "word": "двери в беседку",
+        "ws": 2715,
+        "wsk": 60,
+        "pos": 1
+      },
+      {
+        "word": "дверь гармошка стеклянная",
+        "ws": 408,
+        "wsk": 56,
+        "pos": 1
+      },
+      {
+        "word": "баня стеклянная",
+        "ws": 19380,
+        "wsk": 55,
+        "pos": 1
+      },
+      {
+        "word": "стеклянный забор",
+        "ws": 803,
+        "wsk": 47,
+        "pos": 1
+      },
+      {
+        "word": "входная зона частного дома",
+        "ws": 864,
+        "wsk": 47,
+        "pos": 1
+      }
+    ],
+    "topkeys": 39814,
+    "pages": [
+      {
+        "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona",
+        "it50": 280
+      },
+      {
+        "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha",
+        "it50": 252
+      },
+      {
+        "url": "/price/peregorodki/dlya-komnat",
+        "it50": 184
+      },
+      {
+        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome",
+        "it50": 164
+      },
+      {
+        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy",
+        "it50": 131
+      },
+      {
+        "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti",
+        "it50": 116
+      },
+      {
+        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo",
+        "it50": 112
+      },
+      {
+        "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu",
+        "it50": 107
+      },
+      {
+        "url": "/glass-partitions-for-home/steklyannye-bloki-osobennosti-raznovidnosti-i-sfera-primeneniya",
+        "it50": 106
+      },
+      {
+        "url": "/steklyannye-peregorodki-dlya-doma/steklyannye-peregorodki-v-interere-otdelyaem-kukhnyu-ot-gostinoy",
+        "it50": 88
+      }
+    ],
+    "pagesinindex": 1087,
+    "vis": 126,
+    "topvis": 64972,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": 0,
+    "restop5": 8,
+    "history": {
+      "2025.02": {
+        "it1": 92,
+        "it3": 443,
+        "it5": 812,
+        "it10": 2106,
+        "it50": 9540,
+        "pagesInIndex": 1023,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 197,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 119,
+        "it3": 477,
+        "it5": 832,
+        "it10": 2008,
+        "it50": 9263,
+        "pagesInIndex": 1067,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 228,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 113,
+        "it3": 463,
+        "it5": 809,
+        "it10": 1958,
+        "it50": 9034,
+        "pagesInIndex": 1057,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 201,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 108,
+        "it3": 431,
+        "it5": 770,
+        "it10": 1918,
+        "it50": 9141,
+        "pagesInIndex": 1073,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 181,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 112,
+        "it3": 406,
+        "it5": 745,
+        "it10": 1833,
+        "it50": 9130,
+        "pagesInIndex": 1050,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 183,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 54,
+        "it3": 289,
+        "it5": 616,
+        "it10": 1635,
+        "it50": 10101,
+        "pagesInIndex": 1135,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 126,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 89,
+        "it3": 348,
+        "it5": 683,
+        "it10": 1713,
+        "it50": 10646,
+        "pagesInIndex": 1098,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 233,
+        "aiCnt": 57
+      },
+      "2025.09": {
+        "it1": 94,
+        "it3": 357,
+        "it5": 707,
+        "it10": 1755,
+        "it50": 10875,
+        "pagesInIndex": 1100,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 217,
+        "aiCnt": 939
+      },
+      "2025.10": {
+        "it1": 92,
+        "it3": 348,
+        "it5": 706,
+        "it10": 1757,
+        "it50": 10876,
+        "pagesInIndex": 1100,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 196,
+        "aiCnt": 532
+      },
+      "2025.11": {
+        "it1": 99,
+        "it3": 357,
+        "it5": 713,
+        "it10": 1774,
+        "it50": 10250,
+        "pagesInIndex": 1092,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 152,
+        "aiCnt": 825
+      },
+      "2025.12": {
+        "it1": 95,
+        "it3": 373,
+        "it5": 771,
+        "it10": 1912,
+        "it50": 10380,
+        "pagesInIndex": 1091,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 139,
+        "aiCnt": 1316
+      },
+      "2026.01": {
+        "it1": 77,
+        "it3": 363,
+        "it5": 740,
+        "it10": 1905,
+        "it50": 9973,
+        "pagesInIndex": 1102,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 117,
+        "aiCnt": 886
+      },
+      "2026.02": {
+        "it1": 71,
+        "it3": 317,
+        "it5": 678,
+        "it10": 1832,
+        "it50": 9638,
+        "pagesInIndex": 1082,
+        "adsCount": 3,
+        "adKeysCount": 3,
+        "visAvg": 106,
+        "aiCnt": 755
+      },
+      "2026.03": {
+        "it1": 92,
+        "it3": 348,
+        "it5": 700,
+        "it10": 1816,
+        "it50": 9541,
+        "pagesInIndex": 1074,
+        "adsCount": 4,
+        "adKeysCount": 4,
+        "visAvg": 106,
+        "aiCnt": 695
+      },
+      "2026.04": {
+        "it1": 80,
+        "it3": 304,
+        "it5": 643,
+        "it10": 1743,
+        "it50": 10008,
+        "pagesInIndex": 1133,
+        "adsCount": 3,
+        "adKeysCount": 3,
+        "visAvg": 91,
+        "aiCnt": 6814
+      },
+      "2026.05": {
+        "it1": 117,
+        "it3": 376,
+        "it5": 721,
+        "it10": 1848,
+        "it50": 10328,
+        "pagesInIndex": 1100,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 97,
+        "aiCnt": 474
+      },
+      "2026.06": {
+        "it1": 153,
+        "it3": 454,
+        "it5": 806,
+        "it10": 1896,
+        "it50": 10204,
+        "pagesInIndex": 1115,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 117,
+        "aiCnt": 472
+      },
+      "2026.07": {
+        "it1": 139,
+        "it3": 461,
+        "it5": 821,
+        "it10": 1949,
+        "it50": 10062,
+        "pagesInIndex": 1087,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 126,
+        "aiCnt": 404
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        1783,
+        14922,
+        352,
+        19,
+        270
+      ],
+      "2025.02": [
+        1771,
+        15639,
+        354,
+        19,
+        276
+      ],
+      "2025.03": [
+        1783,
+        15937,
+        350,
+        18,
+        290
+      ],
+      "2025.04": [
+        1781,
+        16079,
+        355,
+        21,
+        281
+      ],
+      "2025.05": [
+        1743,
+        15394,
+        350,
+        23,
+        281
+      ],
+      "2025.06": [
+        1752,
+        16037,
+        354,
+        19,
+        293
+      ],
+      "2025.07": [
+        1760,
+        15996,
+        357,
+        19,
+        301
+      ],
+      "2025.08": [
+        1813,
+        15529,
+        369,
+        19,
+        339
+      ],
+      "2025.09": [
+        3128,
+        14959,
+        436,
+        19,
+        1057
+      ],
+      "2025.10": [
+        3644,
+        14330,
+        448,
+        18,
+        398
+      ],
+      "2025.11": [
+        3489,
+        15691,
+        456,
+        20,
+        381
+      ],
+      "2025.12": [
+        3766,
+        17124,
+        471,
+        21,
+        417
+      ],
+      "2026.01": [
+        3784,
+        17924,
+        480,
+        21,
+        413
+      ],
+      "2026.02": [
+        3807,
+        19291,
+        477,
+        24,
+        413
+      ],
+      "2026.03": [
+        3764,
+        19026,
+        475,
+        24,
+        413
+      ],
+      "2026.04": [
+        3773,
+        18927,
+        478,
+        24,
+        1349
+      ],
+      "2026.05": [
+        3772,
+        18417,
+        476,
+        19,
+        1345
+      ],
+      "2026.06": [
+        3775,
+        18600,
+        477,
+        21,
+        1346
+      ],
+      "2026.07": [
+        3775,
+        18600,
+        477,
+        21,
+        1346
+      ]
+    },
+    "aiAnswersCnt": 404,
+    "aiState": 10,
+    "dr": 31,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",
+    "name": "glasstroy.ru"
+  }
+}

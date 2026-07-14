@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-14T08:48:56.006Z",
+  "updated": "2026-07-14T10:54:40.402Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
@@ -11,6 +11,12 @@
         "dashboard": "ok",
         "competitors": "ok",
         "ad_history": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -20,6 +26,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -29,6 +41,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -38,6 +56,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -47,6 +71,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -56,6 +86,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -65,6 +101,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -74,6 +116,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -83,6 +131,12 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
@@ -92,15 +146,87 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
-      "domain": "xn----7sbb2alsf9bq.xn--p1ai",
+      "domain": "lain-loft.ru",
       "brand": null,
-      "role": "competitor-peregorodki",
+      "role": "competitor-peregorodki-discovered",
       "reports": {
-        "dashboard": "error: HTTP 404 {\"code\":404,\"message\":\"Домен не найден.\"}",
-        "competitors": "error: HTTP 404 {\"code\":404,\"message\":\"Домен не найден.\"}"
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "glasstroy.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "kelman-stroi.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "fantasia-stekla.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "intereruyut.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     }
   ]

@@ -1,0 +1,517 @@
+{
+ "domain": "kelman-stroi.ru",
+ "vs": [
+  "kelman-stroi.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:07:35.318Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 9,
+  "data": [
+   {
+    "url": "/",
+    "domain": "kelman-stroi.ru",
+    "it1": 3,
+    "it3": 3,
+    "it5": 3,
+    "it10": 3,
+    "it50": 7,
+    "vis": 29
+   },
+   {
+    "url": "/about",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 11
+   },
+   {
+    "url": "/blog/ambarnaya-dver-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 7,
+    "it10": 18,
+    "it50": 83,
+    "vis": 109
+   },
+   {
+    "url": "/blog/arka-na-kuhnyu-vmesto-dveri-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 4,
+    "it10": 17,
+    "it50": 170,
+    "vis": 37
+   },
+   {
+    "url": "/blog/azhurnye-peregorodki-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/byudzhetnaya-peregorodka-v-komnate-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/blog/chem-zakryt-i-kak-oformit-proem-vmesto-dveri",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 8,
+    "it50": 355,
+    "vis": 4
+   },
+   {
+    "url": "/blog/demontazh-dverej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 118,
+    "vis": 0
+   },
+   {
+    "url": "/blog/demontazh-peregorodok-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 16,
+    "vis": 0
+   },
+   {
+    "url": "/blog/dushevaya-peregorodka-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 5,
+    "it10": 10,
+    "it50": 175,
+    "vis": 32
+   },
+   {
+    "url": "/blog/dver-iz-ldsp-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 5,
+    "it10": 9,
+    "it50": 42,
+    "vis": 36
+   },
+   {
+    "url": "/blog/dver-v-banyu-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 5,
+    "it5": 10,
+    "it10": 43,
+    "it50": 187,
+    "vis": 218
+   },
+   {
+    "url": "/blog/dveri-kupe-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 318,
+    "vis": 0
+   },
+   {
+    "url": "/blog/iz-chego-luchshe-delat-peregorodki-dlya-zonirovaniya",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 54,
+    "vis": 0
+   },
+   {
+    "url": "/blog/iz-chego-sdelat-peregorodku-v-vannoj-komnate",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 8,
+    "it50": 29,
+    "vis": 3
+   },
+   {
+    "url": "/blog/kak-krepit-stenovye-paneli",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 51,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-obshit-dver-dermatinom-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 12,
+    "it10": 25,
+    "it50": 208,
+    "vis": 97
+   },
+   {
+    "url": "/blog/kak-otregulirovat-plastikovuyu-dver",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 298,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-otregulirovat-vhodnuyu-dver",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 158,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-pokrasit-staruyu-dver",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 94,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-pomenyat-lichinku-v-zamke-vhodnoj-dveri",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 152,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-postroit-zimnij-sad-v-chastnom-dome-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-sdelat-dver-iz-fanery-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 6,
+    "it5": 17,
+    "it10": 25,
+    "it50": 152,
+    "vis": 172
+   },
+   {
+    "url": "/blog/kak-sdelat-peregorodku-iz-gipsokartona",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 363,
+    "vis": 0
+   },
+   {
+    "url": "/blog/karkasnye-peregorodki-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 6,
+    "it50": 47,
+    "vis": 4
+   },
+   {
+    "url": "/blog/kozyrek-nad-vhodnoj-dveryu-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 164,
+    "vis": 0
+   },
+   {
+    "url": "/blog/loft-peregorodka-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 12,
+    "vis": 11
+   },
+   {
+    "url": "/blog/mezhkomnatnye-dveri-so-steklom",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 13,
+    "vis": 0
+   },
+   {
+    "url": "/blog/mezhkomnatnye-peregorodki-iz-dereva-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/blog/mezhkomnatnye-peregorodki-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/montazh-stenovyh-panelej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 16,
+    "it50": 643,
+    "vis": 10
+   },
+   {
+    "url": "/blog/myagkie-stenovye-paneli-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 2,
+    "it3": 4,
+    "it5": 11,
+    "it10": 35,
+    "it50": 98,
+    "vis": 219
+   },
+   {
+    "url": "/blog/otkosy-dverej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 18,
+    "it50": 621,
+    "vis": 38
+   },
+   {
+    "url": "/blog/peregorodka-dlya-sobak-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 4,
+    "it50": 88,
+    "vis": 9
+   },
+   {
+    "url": "/blog/peregorodka-iz-brusa-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 5,
+    "it10": 11,
+    "it50": 93,
+    "vis": 38
+   },
+   {
+    "url": "/blog/peregorodka-iz-dereva-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 30,
+    "vis": 3
+   },
+   {
+    "url": "/blog/peregorodka-iz-penoblokov-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 10,
+    "it10": 22,
+    "it50": 87,
+    "vis": 56
+   },
+   {
+    "url": "/blog/peregorodka-iz-reek-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 11,
+    "it50": 357,
+    "vis": 3
+   },
+   {
+    "url": "/blog/peregorodka-s-dveryu-iz-gipsokartona-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 10,
+    "it50": 141,
+    "vis": 2
+   },
+   {
+    "url": "/blog/peregorodka-s-polkami-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 42,
+    "vis": 1
+   },
+   {
+    "url": "/blog/peregorodka-s-shumoizolyatsiej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 49,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-iz-dsp-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 6,
+    "it10": 7,
+    "it50": 14,
+    "vis": 59
+   },
+   {
+    "url": "/blog/peregorodki-iz-gazobetonnyh-blokov-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 9,
+    "it50": 191,
+    "vis": 22
+   },
+   {
+    "url": "/blog/peregorodki-v-vannoj-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 9,
+    "it50": 62,
+    "vis": 8
+   },
+   {
+    "url": "/blog/porog-dverej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 3,
+    "it3": 6,
+    "it5": 13,
+    "it10": 47,
+    "it50": 246,
+    "vis": 100
+   },
+   {
+    "url": "/blog/primery-interesnyh-peregorodok-dlya-zonirovaniya",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/razdvizhnye-dveri-loft-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 3,
+    "it50": 24,
+    "vis": 8
+   },
+   {
+    "url": "/blog/shirma-peregorodka-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 81,
+    "vis": 0
+   },
+   {
+    "url": "/blog/shumoizolyatsiya-dverej-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 78,
+    "vis": 0
+   },
+   {
+    "url": "/blog/skladnye-dveri-svoimi-rukami",
+    "domain": "kelman-stroi.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 17,
+    "it10": 37,
+    "it50": 181,
+    "vis": 230
+   }
+  ],
+  "total": 403
+ }
+}

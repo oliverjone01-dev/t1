@@ -2,7 +2,7 @@
   "domain": "union.ru",
   "report": "competitors",
   "db": "msk",
-  "measured": "2026-07-14T08:49:37.237Z",
+  "measured": "2026-07-14T11:02:38.039Z",
   "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=union.ru&top=10",
   "data": {
     "current_page": 1,

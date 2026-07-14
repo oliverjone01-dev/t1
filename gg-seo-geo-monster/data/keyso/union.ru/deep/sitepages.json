@@ -1,0 +1,517 @@
+{
+ "domain": "union.ru",
+ "vs": [
+  "union.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-14T11:03:26.017Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 13,
+  "data": [
+   {
+    "url": "/",
+    "domain": "union.ru",
+    "it1": 57,
+    "it3": 73,
+    "it5": 77,
+    "it10": 81,
+    "it50": 529,
+    "vis": 11661
+   },
+   {
+    "url": "/actions",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/adoor/patents",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/agoprofil-97",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/aktsii",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 16
+   },
+   {
+    "url": "/alyuminiy-i-steklo",
+    "domain": "union.ru",
+    "it1": 2,
+    "it3": 5,
+    "it5": 8,
+    "it10": 13,
+    "it50": 25,
+    "vis": 214
+   },
+   {
+    "url": "/alyuminiy-i-steklo-rz",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 10
+   },
+   {
+    "url": "/art-deco",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/article/main/kak-smotryatsya-belye-dveri-v-interere-kvartiry",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/main/kak-vybrat-mezhkomnatnye-dveri-s-khoroshey-shumoizolyatsiey",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 6,
+    "it10": 13,
+    "it50": 69,
+    "vis": 135
+   },
+   {
+    "url": "/article/main/mezhkomnatnye-dveri-iz-shpona-osobennosti-nyuansy-vybora",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/article/main/razdelyaem-komnatu-pravilno-idei-i-vidy-razdvizhnykh-peregorodok",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 3,
+    "it50": 13,
+    "vis": 27
+   },
+   {
+    "url": "/article/main/rotornaya-sistema-otkryvaniya-dverey-osobennosti-i-preimushchestva",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 3,
+    "it10": 6,
+    "it50": 37,
+    "vis": 8
+   },
+   {
+    "url": "/article/main/standartnye-razmery-mezhkomnatnykh-dverey-chem-luchshe",
+    "domain": "union.ru",
+    "it1": 5,
+    "it3": 26,
+    "it5": 90,
+    "it10": 353,
+    "it50": 629,
+    "vis": 2067
+   },
+   {
+    "url": "/article/main/vertikalnye-reyki-v-interere-stilnye-idei-i-sovremennye-sposoby-otdelki",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 12,
+    "vis": 16
+   },
+   {
+    "url": "/biblioteki-stellazhi",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 52,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/belaya-dver-v-interere",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/belye-dveri-svezhee-reshenie-dlya-lyubogo-interera",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 32,
+    "vis": 2
+   },
+   {
+    "url": "/blog/main/desyat-mifov-o-stalnyh-dveryah4278",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/dver-laminam",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 7,
+    "vis": 5
+   },
+   {
+    "url": "/blog/main/dveri-kotorye-dobavyat-sveta-i-prostora",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/garderobnaya",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/garderobnaya-ne-roskosh-a-sredstvo-uporyadochennoj-zhizni",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/kak-obustroit-idealnuyu-garderobnuyu-pyat-universalnyh-sovetov",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/kak-oformit-garderobnuyu-mechty-v-italyanskikh-traditsiyakh-prakticheskie-sovety-i-realnye-proekty-o",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/kak-sdelat-garderobnyu-i-ne-dopustit-oshibok",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/kak-vybrat-mezhkomnatnye-peregorodki-instruktsiya-ot-eksperta",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 7,
+    "it5": 14,
+    "it10": 24,
+    "it50": 236,
+    "vis": 160
+   },
+   {
+    "url": "/blog/main/kak-vybrat-skrytye-dveri-poleznaya-instruktsiya",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 9,
+    "it5": 10,
+    "it10": 13,
+    "it50": 30,
+    "vis": 52
+   },
+   {
+    "url": "/blog/main/mezhkomnatnye-dveri-vysotoy-2300",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 6,
+    "it5": 6,
+    "it10": 8,
+    "it50": 59,
+    "vis": 39
+   },
+   {
+    "url": "/blog/main/neozhidannyy-povorot-osobennosti-povorotnykh-dverey",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/otkroveniya-dvernogo-koroba",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 4,
+    "it10": 5,
+    "it50": 25,
+    "vis": 33
+   },
+   {
+    "url": "/blog/main/otkryvaem-dveri-v-minimalizm-kak-vybrat-raspashnye-mezhkomnatnye-dveri-podhodyashie-modnomu-interernomu-stilyu",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/penaly",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 5,
+    "it10": 5,
+    "it50": 31,
+    "vis": 16
+   },
+   {
+    "url": "/blog/main/premialnaya-dver-tonda-s-radiusnym-tortsom",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/pritvor-optsiya-obespechivayushchaya-komfort",
+    "domain": "union.ru",
+    "it1": 2,
+    "it3": 7,
+    "it5": 14,
+    "it10": 25,
+    "it50": 49,
+    "vis": 110
+   },
+   {
+    "url": "/blog/main/pyat-sekretov-dverey-union-kotorye-zritelno-uvelichat-ploshchad-pomeshcheniya",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/razdvizhnye-peregorodki-preobrazhenie-prostranstva",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 18,
+    "vis": 2
+   },
+   {
+    "url": "/blog/main/retsept-tishiny-i-komforta-zvukoizolyatsionnye-dveri-ot-union",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/sem-preimushestv-skrytyh-dverej",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/shponirovannye-dveri-i-ikh-preimushchestva",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 5,
+    "it5": 13,
+    "it10": 29,
+    "it50": 46,
+    "vis": 53
+   },
+   {
+    "url": "/blog/main/skrytye-dveri-osobennosti-konstruktsii-dverey-skrytogo-montazha",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 8,
+    "it50": 25,
+    "vis": 10
+   },
+   {
+    "url": "/blog/main/spokojnyj-i-rassuditelnyj-seryj-cvet-v-interere",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/stenovye-paneli-modnyy-trend-s-praktichnymi-svoystvami",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/stilnye-sovremennye-mezhkomnatnye-dveri-pod-potolok",
+    "domain": "union.ru",
+    "it1": 1,
+    "it3": 8,
+    "it5": 13,
+    "it10": 30,
+    "it50": 58,
+    "vis": 154
+   },
+   {
+    "url": "/blog/main/tipovye-konstruktsii-dverey-",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 6,
+    "it50": 99,
+    "vis": 37
+   },
+   {
+    "url": "/blog/main/upravlyaya-liniyami",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/vertikalnye-reyki-v-interere",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 55,
+    "vis": 0
+   },
+   {
+    "url": "/blog/main/vybiraem-mansardnuyu-dver",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 3,
+    "vis": 1
+   },
+   {
+    "url": "/blog/main/zerkalnaya-istoriya-v-sovremennom-interere",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 3,
+    "it50": 5,
+    "vis": 4
+   },
+   {
+    "url": "/bluinterni-98",
+    "domain": "union.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 11
+   }
+  ],
+  "total": 630
+ }
+}

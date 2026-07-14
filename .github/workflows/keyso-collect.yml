@@ -18,6 +18,9 @@ on:
       dry_run:
         description: "1 = показать план запросов без похода в сеть"
         default: "0"
+      deep:
+        description: "1 = глубокий сбор по каждому домену (семантика+PPC+объявления+страницы)"
+        default: "0"
   schedule:
     - cron: "30 2 * * 1"   # еженедельно, пн 05:30 МСК - контроль рынка перегородок (goal Ивана 14.07)
 
@@ -29,6 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  DEEP: ${{ github.event.inputs.deep || '0' }}
   KEYSO_TOKEN: ${{ secrets.KEYSO_TOKEN }}
   KEYSO_DB: ${{ github.event.inputs.db || 'msk' }}
   KEYSO_PER: ${{ github.event.inputs.per || '100' }}

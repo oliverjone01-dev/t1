@@ -1,0 +1,216 @@
+{
+ "updated": "2026-07-14",
+ "note": "авто-дискавери конкурентов из concs собранных доменов keys.so",
+ "candidates": [
+  {
+   "domain": "fdmebel.ru",
+   "seen_in": 4,
+   "common": 745,
+   "it50": 2565,
+   "vis": 313
+  },
+  {
+   "domain": "dver1.ru",
+   "seen_in": 4,
+   "common": 4575,
+   "it50": 17962,
+   "vis": 669
+  },
+  {
+   "domain": "glasstroy.ru",
+   "seen_in": 3,
+   "common": 365,
+   "it50": 10062,
+   "vis": 126
+  },
+  {
+   "domain": "dvertsov.ru",
+   "seen_in": 3,
+   "common": 6272,
+   "it50": 32547,
+   "vis": 2148
+  },
+  {
+   "domain": "lain-loft.ru",
+   "seen_in": 3,
+   "common": 498,
+   "it50": 6768,
+   "vis": 282
+  },
+  {
+   "domain": "dveriunas.ru",
+   "seen_in": 3,
+   "common": 5835,
+   "it50": 27425,
+   "vis": 3489
+  },
+  {
+   "domain": "kelman-stroi.ru",
+   "seen_in": 2,
+   "common": 303,
+   "it50": 9924,
+   "vis": 20
+  },
+  {
+   "domain": "169.ru",
+   "seen_in": 2,
+   "common": 6046,
+   "it50": 106205,
+   "vis": 8528
+  },
+  {
+   "domain": "rf-dveri.ru",
+   "seen_in": 2,
+   "common": 4933,
+   "it50": 20723,
+   "vis": 2795
+  },
+  {
+   "domain": "intereruyut.ru",
+   "seen_in": 2,
+   "common": 4493,
+   "it50": 15761,
+   "vis": 1107
+  },
+  {
+   "domain": "portaprima.ru",
+   "seen_in": 2,
+   "common": 4338,
+   "it50": 23401,
+   "vis": 833
+  },
+  {
+   "domain": "mosdvery.ru",
+   "seen_in": 2,
+   "common": 4121,
+   "it50": 13889,
+   "vis": 679
+  },
+  {
+   "domain": "shkaffkupe.ru",
+   "seen_in": 2,
+   "common": 631,
+   "it50": 5434,
+   "vis": 96
+  },
+  {
+   "domain": "shpondveri.ru",
+   "seen_in": 2,
+   "common": 587,
+   "it50": 3341,
+   "vis": 227
+  },
+  {
+   "domain": "prostor-mebel.ru",
+   "seen_in": 2,
+   "common": 645,
+   "it50": 2030,
+   "vis": 65
+  },
+  {
+   "domain": "fantasia-stekla.ru",
+   "seen_in": 1,
+   "common": 203,
+   "it50": 5074,
+   "vis": 111
+  },
+  {
+   "domain": "dveri-academy.ru",
+   "seen_in": 1,
+   "common": 176,
+   "it50": 7823,
+   "vis": 238
+  },
+  {
+   "domain": "rosestar.ru",
+   "seen_in": 1,
+   "common": 941,
+   "it50": 10589,
+   "vis": 251
+  },
+  {
+   "domain": "zerkala-m.ru",
+   "seen_in": 1,
+   "common": 939,
+   "it50": 4849,
+   "vis": 185
+  },
+  {
+   "domain": "avazerkala.ru",
+   "seen_in": 1,
+   "common": 916,
+   "it50": 4555,
+   "vis": 390
+  },
+  {
+   "domain": "зеркаловраме.рф",
+   "seen_in": 1,
+   "common": 862,
+   "it50": 4426,
+   "vis": 54
+  },
+  {
+   "domain": "miralls.ru",
+   "seen_in": 1,
+   "common": 764,
+   "it50": 5260,
+   "vis": 371
+  },
+  {
+   "domain": "зеркаласподсветкой.рф",
+   "seen_in": 1,
+   "common": 743,
+   "it50": 4804,
+   "vis": 108
+  },
+  {
+   "domain": "basicdecor.ru",
+   "seen_in": 1,
+   "common": 651,
+   "it50": 109674,
+   "vis": 3653
+  },
+  {
+   "domain": "zerkala-mag.ru",
+   "seen_in": 1,
+   "common": 602,
+   "it50": 2865,
+   "vis": 58
+  },
+  {
+   "domain": "msk-zerkala.ru",
+   "seen_in": 1,
+   "common": 546,
+   "it50": 5960,
+   "vis": 26
+  },
+  {
+   "domain": "ogogo.ru",
+   "seen_in": 1,
+   "common": 531,
+   "it50": 46159,
+   "vis": 550
+  },
+  {
+   "domain": "dveri-tut.com",
+   "seen_in": 1,
+   "common": 4372,
+   "it50": 17103,
+   "vis": 2208
+  },
+  {
+   "domain": "dveribravo.ru",
+   "seen_in": 1,
+   "common": 4264,
+   "it50": 18929,
+   "vis": 2007
+  },
+  {
+   "domain": "oknazavr.ru",
+   "seen_in": 1,
+   "common": 167,
+   "it50": 12461,
+   "vis": 78
+  }
+ ]
+}

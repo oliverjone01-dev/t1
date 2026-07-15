@@ -1489,8 +1489,9 @@ function offerCalendarBlock(){
     const planAt=k=>{const bs0=bStart(k),be0=endDate(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;if(bs>be)return 0;const pf=planForPeriod(bs,be);return pf?(pf.sales||0):0;};
     const P={};let ptot=0;keys.forEach(k=>{P[k]=planAt(k);ptot+=P[k];});
     if(ptot<0.5)return "";
+    const days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),factor=days/30,TCR=0.15;
     const fact={};keys.forEach(k=>fact[k]=0);
-    AD.forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fact[k]!=null)fact[k]++;}});
+    passed.forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fact[k]!=null)fact[k]++;}});
     let mx=1,ftot=0;keys.forEach(k=>{ftot+=fact[k];mx=Math.max(mx,P[k],fact[k]);});
     const att=ptot?ftot/ptot:0,tc=att>=1?'#2E9E74':att>=0.8?'#C2873C':'#CC5867';
     // рисуем один стакан-стрип: cnt по бакетам, риска = plan по бакетам, свой масштаб smx
@@ -1504,15 +1505,16 @@ function offerCalendarBlock(){
         `</div></div>`;}).join("");
     const port=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
     const mgrs=[...new Set(passed.map(d=>d.mgr))].map(m=>{const p=port(m);
-      const ft=AD.filter(d=>d.mgr===m).reduce((s,d)=>{const e=enterExec(d);return s+((e&&inR(e))?1:0);},0);
+      const ft=passed.filter(d=>d.mgr===m).reduce((s,d)=>{const e=enterExec(d);return s+((e&&inR(e))?1:0);},0);
       return {m,p,ft};}).filter(x=>x.p>0||x.ft>0);
     const wsum=mgrs.reduce((s,x)=>s+x.p,0)||1;
     mgrs.sort((a,b)=>b.ft-a.ft||b.p-a.p);
     const isOpen=S.calCupOpen,attC=v=>v==null?'var(--ink-3)':v>=1?'#2E9E74':v>=0.8?'#C2873C':v>=0.5?'#D9A441':'#CC5867';
-    const mgrTbl=isOpen?`<div class="scroll" style="margin-top:8px;max-height:300px"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Менеджер ${info('Доля плана - вес живого портфеля менеджера в общем портфеле (его кусок общего стакана). Цель - столько предоплат приходится на его долю. Вклад - сколько процентов всех предоплат отдела он реально принёс. Вып. - факт ÷ цель его доли.')}</th><th>Портфель</th><th>Доля плана</th><th>Цель</th><th>Факт</th><th>Вклад</th><th>Вып.</th></tr></thead><tbody>`+
-      mgrs.map(x=>{const w=x.p/wsum,tgt=Math.round(ptot*w),a=tgt?x.ft/tgt:null,contrib=ftot?x.ft/ftot:0,c=attC(a);
-        return `<tr><td class="name" style="text-align:left">${esc(x.m)}</td><td style="text-align:center">${x.p}</td><td style="text-align:center;color:var(--ink-3)">${pct(w)}</td><td style="text-align:center;color:var(--ink-3)">${tgt}</td><td style="text-align:center;font-weight:800;color:${c}">${x.ft}</td><td style="text-align:center;color:#22D3EE;font-weight:700">${pct(contrib)}</td><td style="text-align:center;font-weight:800;color:${c}">${a==null?'—':pct(a)}</td></tr>`;}).join("")+
-      `<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${wsum}</td><td style="text-align:center">100%</td><td style="text-align:center">${fmt(Math.round(ptot))}</td><td style="text-align:center">${fmt(ftot)}</td><td style="text-align:center">100%</td><td style="text-align:center;color:${tc}">${pct(att)}</td></tr></tbody></table></div>`:"";
+    const dTgt=Math.round(wsum*TCR*factor);
+    const mgrTbl=isOpen?`<div class="scroll" style="margin-top:8px;max-height:300px"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Менеджер ${info('Цель - живой портфель менеджера × 15% за период: его собственная норма от того, что он реально ведёт, а не доля обещанного отделом плана. Факт - его успехи (предоплаты) из оффер-воронки, как в строке «Успех». Вклад - сколько процентов всех успехов отдела он принёс. Вып. - факт ÷ его цель.')}</th><th>Портфель</th><th>Цель (портф×15%)</th><th>Факт</th><th>Вклад</th><th>Вып.</th></tr></thead><tbody>`+
+      mgrs.map(x=>{const tgt=Math.round(x.p*TCR*factor),a=tgt?x.ft/tgt:null,contrib=ftot?x.ft/ftot:0,c=attC(a);
+        return `<tr><td class="name" style="text-align:left">${esc(x.m)}</td><td style="text-align:center">${x.p}</td><td style="text-align:center;color:var(--ink-3)">${tgt}</td><td style="text-align:center;font-weight:800;color:${c}">${x.ft}</td><td style="text-align:center;color:#22D3EE;font-weight:700">${pct(contrib)}</td><td style="text-align:center;font-weight:800;color:${c}">${a==null?'—':pct(a)}</td></tr>`;}).join("")+
+      `<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${wsum}</td><td style="text-align:center">${dTgt}</td><td style="text-align:center">${fmt(ftot)}</td><td style="text-align:center">100%</td><td style="text-align:center;color:${attC(dTgt?ftot/dTgt:null)}">${dTgt?pct(ftot/dTgt):'—'}</td></tr></tbody></table></div>`:"";
     const arw=isOpen?'▾':'▸';
     return `<div style="margin-top:2px;padding-top:8px;border-top:1px dashed var(--border)">`+
       `<div class="chrow" style="display:flex;align-items:flex-end;gap:6px">`+

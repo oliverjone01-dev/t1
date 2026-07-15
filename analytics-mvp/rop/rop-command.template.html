@@ -1385,6 +1385,7 @@ function offerCalendarBlock(){
   const g=S.gran,keys=buckets(g);
   const lbl=k=>{const p=k.split("-");return g==="month"?(p[1]+"."+p[0].slice(2)):(p[2]+"."+p[1]);};
   const endDate=k=>{if(g==="month")return k+"-31";if(g==="week"){const dt=new Date(k+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+6);return dt.toISOString().slice(0,10);}return k;};
+  const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
   const mgrSel=S.calMgr||"",unit=S.calUnit==="money"?"money":"count";
   const scope=mgrSel?passed.filter(d=>d.mgr===mgrSel):passed;
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
@@ -1403,7 +1404,10 @@ function offerCalendarBlock(){
   ];
   const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
   const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
-  const dealsFor=(r,k,sc)=>r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
+  const ageAt=(d,k)=>Math.round((PD2(endDate(k))-PD2(d.created))/DAYMS);
+  const COH=[{id:"wip@new",nm:"новые ≤14 дн",color:"#2E9E74",cohort:[0,14],wip:true},{id:"wip@mid",nm:"застой 14-30 дн",color:"#D9A441",cohort:[15,30],wip:true},{id:"wip@old",nm:"брошенные 30+ дн",color:"#CC5867",cohort:[31,1e9],wip:true}];
+  const RBY2={};COH.forEach(c=>RBY2[c.id]=c);
+  const dealsFor=(r,k,sc)=>r.cohort?wipAt(k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
   const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
 
   const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
@@ -1412,10 +1416,13 @@ function offerCalendarBlock(){
   const rowLine=(r,sc,sid,opts)=>{const s=serie(r,sc);opts=opts||{};
     const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==="money"?mon:cnt,mx=unit==="money"?s.mxM:s.mx,t=v/mx,bg=cnt===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;
       return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+cnt+' сд · '+fmtK(mon)+' ₽').replace(/"/g,'&quot;')}">${cellV(cnt,mon)}</div>`;}).join("");
-    const sig=r.wip?'':(unit==="money"?fmtK(s.totM):fmt(s.tot));
-    const canExp=!mgrSel&&!opts.sub&&!r.wip;
+    const lastK=keys[keys.length-1];
+    let sig;
+    if(r.cohort){const tw=wipAt(lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
+    else sig=r.wip?'':(unit==="money"?fmtK(s.totM):fmt(s.tot));
+    const canExp=!opts.sub&&(r.wip||!mgrSel);
     const nmeHTML=opts.sub?`<span style="padding-left:16px;color:var(--ink-3)">${esc(opts.mgr)}</span>`:`${canExp?(S.calRowOpen&&S.calRowOpen[r.id]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):''}${r.nm}`;
-    return `<div ${canExp?`data-calrow="${r.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}${r.wip?'':` <b style="color:${r.color}">${sig}</b>`}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
+    return `<div ${canExp?`data-calrow="${r.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}${(r.wip&&!r.cohort)?'':` <b style="color:${r.color}">${r.cohort?'':sig}</b>`}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${(r.wip&&!r.cohort)?'var(--ink-4)':r.color}">${sig}</div></div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1424,7 +1431,10 @@ function offerCalendarBlock(){
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
     html+=rowLine(r,scope,r.id,{});
-    if(!mgrSel&&!r.wip&&S.calRowOpen&&S.calRowOpen[r.id]){
+    const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
+    if(r.wip&&isOpen){
+      html+=COH.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
+    }else if(!mgrSel&&!r.wip&&isOpen){
       const subs=names.map(m=>({m,s:serie(r,passed.filter(d=>d.mgr===m))})).filter(x=>x.s.tot>0).sort((a,b)=>b.s.tot-a.s.tot);
       html+=subs.map(x=>rowLine(r,passed.filter(d=>d.mgr===x.m),r.id+"~"+x.m,{sub:true,mgr:x.m})).join("");
     }
@@ -1437,7 +1447,7 @@ function offerCalendarBlock(){
   // панель сделок по клику на ячейку (sid может быть "kp" или "kp~Менеджер")
   const cellPanel=(()=>{
     if(!S.calCell)return "";
-    const parts=String(S.calCell.s).split("~"),r=RBY[parts[0]];if(!r)return "";
+    const parts=String(S.calCell.s).split("~"),r=RBY[parts[0]]||RBY2[parts[0]];if(!r)return "";
     const sc=parts[1]?passed.filter(d=>d.mgr===parts[1]):scope,k=S.calCell.k,ds=dealsFor(r,k,sc);
     if(!ds.length)return "";
     const body=ds.slice(0,120).map(d=>{const evd=r.wip?'':(r.df(d)||'').slice(0,10);return `<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:left">${esc(d.stage||'')}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(catV(d))} · ${esc(cliV(d))}</td>${r.wip?'':`<td style="text-align:center;font-size:10px;color:var(--ink-4)">${evd}</td>`}</tr>`;}).join("");

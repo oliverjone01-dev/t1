@@ -281,7 +281,7 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   return out;
 }
 const REAL_DAILY_JS = (withProducts: boolean) =>
-  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};window.__PRODUCT_DAILY_REV=${JSON.stringify(PRODUCT_DAILY_REV)};</script>`;
+  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};window.__PRODUCT_DAILY_REV=${JSON.stringify(PRODUCT_DAILY_REV)};window.__DAILY_RET_REAL=${JSON.stringify(DAY_T.ret)};window.__DAILY_ORD_REAL=${JSON.stringify(DAY_T.units)};</script>`;
 
 // --- дельты периодов из истории ---
 const ad = (d: string, n: number) => { const t = new Date(d + "T00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };

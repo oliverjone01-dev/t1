@@ -1286,6 +1286,41 @@ function offerReasonsBlock(){
   return `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов со стадии предложения ${info('Сделки, которые получили оффер, но ушли в отказ. Красным - «не проставлена причина». Вопрос: почему сливаются горячие и фиксируется ли причина. Вывод: большой красный столбик - дыра в дисциплине (чинить регламент); реальные причины (дорого/конкурент) - сигнал к цене и скорости.')}</div><div class="card-sub">${fmt(lost.length)} отказных из прошедших предложение · <span style="color:#F8717A;font-weight:700">${pct(lost.length?noReason/lost.length:0)} без причины</span></div></div></div>${rbars}<button id="ocReasonsToggle" class="dbtn" style="margin-top:10px">${rOpen?'Скрыть сделки':'Показать отказные сделки ('+fmt(lost.length)+')'}</button>${lostList}</div>`;
 }
 
+// ===== ПЛАН ПО КОЛИЧЕСТВУ ПРЕДОПЛАТ (отдел) =====
+// Целевое число предоплат из таблицы плана (выручка ÷ чек), разложенное по периодам
+// день-взвешенно, против факта входов в «Предоплата получена». Столбик - факт, пунктир - план.
+function planCountBlock(){
+  if(!(DATA.plan&&DATA.plan.months&&DATA.plan.months.length))return "";
+  const g=S.gran,keys=buckets(g);
+  const lbl=k=>{const p=k.split("-");return g==="month"?(p[1]+"."+p[0].slice(2)):(p[2]+"."+p[1]);};
+  const endDate=k=>{if(g==="month")return k+"-31";if(g==="week"){const dt=new Date(k+"T00:00:00Z");dt.setUTCDate(dt.getUTCDate()+6);return dt.toISOString().slice(0,10);}return k;};
+  const bStart=k=>g==="month"?k+"-01":k;
+  const planAt=k=>{const bs0=bStart(k),be0=endDate(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;if(bs>be)return 0;const pf=planForPeriod(bs,be);return pf?(pf.sales||0):0;};
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  const fact={};keys.forEach(k=>fact[k]=0);
+  (DATA.deals||[]).filter(dirOk).forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fact[k]!=null)fact[k]++;}});
+  const plan={};let ptot=0,ftot=0,mx=1;
+  keys.forEach(k=>{plan[k]=planAt(k);ftot+=fact[k];ptot+=plan[k];mx=Math.max(mx,plan[k],fact[k]);});
+  if(ptot<0.5)return "";
+  const att=ptot?ftot/ptot:0,tc=att>=1?'#2E9E74':att>=0.8?'#C2873C':'#CC5867';
+  const showN=keys.length<=31,step=Math.max(1,Math.ceil(keys.length/16));
+  const bars=keys.map((k,i)=>{const pl=plan[k],fa=fact[k],a=pl>=0.5?fa/pl:null;
+    const c=a==null?'var(--ink-4)':a>=1?'#2E9E74':a>=0.8?'#C2873C':'#CC5867';
+    const fh=Math.min(100,fa/mx*100).toFixed(1),ph=Math.min(100,pl/mx*100).toFixed(1);
+    return `<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px" title="${(lbl(k)+': план '+Math.round(pl)+' · факт '+fa+' · '+(a==null?'нет плана':pct(a))).replace(/"/g,'&quot;')}">`+
+      `<div style="font-size:10px;font-weight:800;color:${c};height:13px">${showN&&fa?fa:''}</div>`+
+      `<div style="position:relative;width:100%;max-width:32px;height:120px;background:var(--bg-base);border-radius:4px">`+
+        `<div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${c};opacity:.85;border-radius:0 0 4px 4px"></div>`+
+        `<div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:2px dashed #A78BFA"></div>`+
+      `</div>`+
+      `<div style="font-size:8.5px;color:var(--ink-4);height:11px">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`+
+    `</div>`;}).join("");
+  const tip=info('Целевое число предоплат по всему отделу из таблицы плана (план выручки ÷ плановый чек), разложенное по периодам день-взвешенно, против факта входов в стадию «Предоплата получена». Столбик - факт, пунктир - план периода. Зелёный - план закрыт, янтарь 80-100%, красный ниже. Вопрос: тянет ли отдел план в ШТУКАХ предоплат, а не только в рублях. Успех = вход в «Предоплата получена» (позже - реальная оплата из 1С).');
+  return `<div class="card"><div class="card-h"><div><div class="card-title">План по количеству предоплат · отдел ${tip}</div><div class="card-sub">цель в штуках предоплат из таблицы плана vs факт · ${granLabel()}</div></div><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="text-align:right"><div style="font-family:'Manrope';font-weight:800;font-size:20px;color:${tc}">${pct(att)}</div><div class="card-sub">факт ${fmt(ftot)} из ${fmt(Math.round(ptot))} предоплат</div></div><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none">↗ Таблица</a></div></div><div style="display:flex;align-items:flex-end;gap:2px;margin-top:6px">${bars}</div><div class="card-sub" style="margin-top:8px"><span style="display:inline-block;width:14px;height:8px;background:#2E9E74;opacity:.85;border-radius:2px;vertical-align:middle"></span> факт предоплат · <span style="display:inline-block;width:14px;border-top:2px dashed #A78BFA;vertical-align:middle"></span> план периода · зелёный ≥100%, янтарь 80-100%, красный ниже</div></div>`;
+}
+
 // ===== СТАНДАРТ ОТДЕЛА: план в предоплатах, декомпозиция по менеджерам =====
 // План в КОЛИЧЕСТВЕ предоплат (не в выручке). Цель менеджеру = живой портфель × целевой
 // CR. Гардрейлы: чек (чтобы count не убил выручку) и долгострой (в паре с отказами).
@@ -1434,22 +1469,6 @@ function offerCalendarBlock(){
     const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
     return `<div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
   };
-  // строка плана: целевое число предоплат-успехов по отделу (из таблицы плана),
-  // разложенное по бакетам через planForPeriod (день-взвешенно). Только весь отдел.
-  const winRowRef=RBY['win'];
-  const hasPlan=!!(DATA.plan&&DATA.plan.months&&DATA.plan.months.length);
-  const planAt=k=>{const bs0=g==="month"?k+"-01":k,be0=endDate(k);const bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;if(bs>be)return {sales:0,rev:0};const pf=planForPeriod(bs,be);return pf?{sales:pf.sales||0,rev:pf.rev||0}:{sales:0,rev:0};};
-  const planPrepayRowHTML=()=>{const ws=serie(winRowRef,scope);let pt=0,ft=0;const per={};
-    keys.forEach(k=>{const p=planAt(k),plan=unit==="money"?p.rev:p.sales,fact=unit==="money"?ws.mon[k]:ws.cnt[k];per[k]={plan,fact};pt+=plan;ft+=fact;});
-    const cells=keys.map(k=>{const {plan,fact}=per[k],has=plan>=0.5,att=has?fact/plan:null;
-      const bg=!has?"var(--bg-base)":att>=1?"rgba(46,158,116,.34)":att>=0.8?"rgba(217,164,65,.32)":"rgba(204,88,103,.30)";
-      const col=!has?"transparent":att>=1?"#0d1f16":"#eef2f7",disp=has?(unit==="money"?fmtK(plan):Math.round(plan)):"";
-      return `<div style="flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:${col}" title="${(lbl(k)+': план '+(unit==='money'?fmtK(plan)+' ₽':Math.round(plan)+' предоплат')+' · факт '+(unit==='money'?fmtK(fact)+' ₽':Math.round(fact))).replace(/"/g,'&quot;')}">${disp}</div>`;}).join("");
-    const sig=unit==="money"?fmtK(pt):fmt(Math.round(pt)),attTot=pt?ft/pt:0,tc=attTot>=1?"#2E9E74":attTot>=0.8?"#C2873C":"#CC5867";
-    return `<div style="display:flex;align-items:center;gap:6px;margin:2px 0 6px" title="Целевое число предоплат по отделу из таблицы плана. Зелёная ячейка - факт дотянул план периода, красная - нет.">`+
-      `<div style="width:180px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🎯 План предоплат · отдел <b style="color:${tc}">${pct(attTot)}</b></div>`+
-      `<div style="flex:1;display:flex;gap:2px">${cells}</div>`+
-      `<div style="width:70px;text-align:right;font-size:11px;font-weight:800;color:#A78BFA">${sig}</div></div>`;};
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
   let _pg="";
@@ -1457,7 +1476,6 @@ function offerCalendarBlock(){
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
     html+=rowLine(r,scope,r.id,{});
-    if(r.id==="win"&&!mgrSel&&hasPlan)html+=planPrepayRowHTML();
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
     const coh=COHROWS[r.id];
     if(isOpen&&mgrSel){
@@ -1501,7 +1519,7 @@ function offerCalendarBlock(){
 
   const riskN=mst.filter(x=>x.risk).length;
   const unitSeg=`<div class="seg" id="calUnitSeg"><button data-cu="count" class="${unit!=='money'?'on':''}">Кол-во</button><button data-cu="money" class="${unit==='money'?'on':''}">Выручка</button></div>`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Строки «В работе», КП, Решение и Долгострой разворачиваются глубже: менеджер, а внутри - возрастные когорты (новые ≤14 / застой 14-30 / брошенные 30+ дн) по сделкам, стоящим на стадии на конец периода, с долей от неё. Под строкой «Успех» - строка «🎯 План предоплат · отдел»: целевое число предоплат из таблицы плана, разложенное по периодам; ячейка зелёная, если факт дотянул план этого периода, красная - если нет; в подписи слева - общее выполнение плана предоплат за период. Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:8px;align-items:center">${unitSeg}${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div></div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cellPanel}</div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Строки «В работе», КП, Решение и Долгострой разворачиваются глубже: менеджер, а внутри - возрастные когорты (новые ≤14 / застой 14-30 / брошенные 30+ дн) по сделкам, стоящим на стадии на конец периода, с долей от неё. Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:8px;align-items:center">${unitSeg}${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div></div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====
@@ -1796,7 +1814,7 @@ function offerControlBlock(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
-    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+standardBlock()+offerReasonsBlock();
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+planCountBlock()+standardBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).

@@ -1405,6 +1405,9 @@ function offerCalendarBlock(){
   const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
   const mgrSel=S.calMgr||"",unit=S.calUnit==="money"?"money":"count";
   const scope=mgrSel?passed.filter(d=>d.mgr===mgrSel):passed;
+  const _days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),_factor=_days/30;
+  const livePort=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
+  const mgrTarget=m=>Math.round(livePort(m)*0.15*_factor); // цель менеджера = его живой портфель × 15%
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
@@ -1449,7 +1452,11 @@ function offerCalendarBlock(){
     const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
-    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
+    let rightHTML;
+    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),a=ct>=0.5?cf/ct:null,cc=a==null?'#818CF8':a>=1?'#2E9E74':a>=0.8?'#C2873C':a>=0.5?'#D9A441':'#CC5867';
+      rightHTML=`<div style="width:70px;display:flex;align-items:center;justify-content:flex-end;gap:4px" title="${('цель '+ct+' (портфель × 15%) · факт '+cf+' · '+(a==null?'нет цели':pct(a))).replace(/"/g,'&quot;')}"><div style="position:relative;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="font-size:9.5px;font-weight:800;color:${cc}">${cf}<span style="color:var(--ink-4);font-weight:600">/${ct}</span></span></div>`;}
+    else rightHTML=`<div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
+    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1471,7 +1478,8 @@ function offerCalendarBlock(){
       subs.sort((a,b)=>b.rank-a.rank);
       subs.forEach(x=>{
         const mkey=r.id+"~"+x.m;
-        html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey});
+        const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
+        html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup});
         if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
       });
     }
@@ -1839,7 +1847,7 @@ function offerControlBlock(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
-    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+standardBlock()+offerReasonsBlock();
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).

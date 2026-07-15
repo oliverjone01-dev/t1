@@ -1528,7 +1528,8 @@ function offerCalendarBlock(){
       `<div class="chrow" style="display:flex;align-items:flex-end;gap:6px">`+
         `<div data-cupopen style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25;cursor:pointer"><span style="color:#A78BFA">${arw} </span>План предоплат · отдел <b style="color:${tc}">${pct(att)}</b><div style="font-size:8px;color:var(--ink-4)">стакан = факт · <span style="color:#A78BFA">риска</span> = план · клик - доли по менеджерам</div></div>`+
         `<div style="flex:1;display:flex;gap:2px;align-items:flex-end">${strip(fact,P,mx,46,'')}</div>`+
-        `<div style="width:70px;text-align:right;font-size:10.5px;font-weight:800;color:${tc}">${fmt(ftot)}<span style="color:var(--ink-4);font-weight:600">/${fmt(Math.round(ptot))}</span></div>`+
+        (()=>{const gsc=Math.max(1,ftot,ptot),gfh=Math.min(100,ftot/gsc*100).toFixed(0),gph=Math.min(100,ptot/gsc*100).toFixed(0);
+          return `<div style="width:70px;display:flex;align-items:center;justify-content:flex-end;gap:4px" title="${('общий стакан · цель '+Math.round(ptot)+' (план из таблицы) · факт '+ftot+' · '+pct(att)).replace(/"/g,'&quot;')}"><div style="position:relative;width:14px;height:22px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${gfh}%;background:${tc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${gph}%;border-top:2px dashed #A78BFA"></div></div><span style="font-size:10px;font-weight:800;color:${tc}">${fmt(ftot)}<span style="color:var(--ink-4);font-weight:600">/${fmt(Math.round(ptot))}</span></span></div>`;})()+
       `</div>${mgrTbl}</div>`;
   })();
 

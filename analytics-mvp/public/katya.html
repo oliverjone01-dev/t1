@@ -1737,7 +1737,9 @@ function renderDrill(){
     backBtn = `<button class="drill-back" id="drill-back"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2L4 6l4 4"/></svg>Все категории</button>`;
   }
   const total = items.reduce((s,i)=>s+i.rev, 0);
-  items = items.map(i => ({...i, pct:(i.rev/total*100)}));
+  // Убираем категории с нулевой выручкой за период: pow(0)=0 даёт схлопнутые ячейки,
+  // которые наезжают на соседей (наложение подписей). Для коротких периодов часть категорий пуста.
+  items = items.filter(i => i.rev > 0).map(i => ({...i, pct:(i.rev/total*100)}));
   $('#drill').innerHTML = `
     <div class="card-h">
       <div><div class="card-title">${title}</div><div class="card-sub">${sub}</div></div>

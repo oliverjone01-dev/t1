@@ -1417,12 +1417,15 @@ function offerCalendarBlock(){
     const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==="money"?mon:cnt,mx=unit==="money"?s.mxM:s.mx,t=v/mx,bg=cnt===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;
       return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+cnt+' сд · '+fmtK(mon)+' ₽').replace(/"/g,'&quot;')}">${cellV(cnt,mon)}</div>`;}).join("");
     const lastK=keys[keys.length-1];
+    const rowKey=opts.rowKey||r.id;
     let sig;
     if(r.cohort){const tw=wipAt(lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
-    else sig=r.wip?'':(unit==="money"?fmtK(s.totM):fmt(s.tot));
-    const canExp=!opts.sub&&(r.wip||!mgrSel);
-    const nmeHTML=opts.sub?`<span style="padding-left:16px;color:var(--ink-3)">${esc(opts.mgr)}</span>`:`${canExp?(S.calRowOpen&&S.calRowOpen[r.id]?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):''}${r.nm}`;
-    return `<div ${canExp?`data-calrow="${r.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}${(r.wip&&!r.cohort)?'':` <b style="color:${r.color}">${r.cohort?'':sig}</b>`}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${(r.wip&&!r.cohort)?'var(--ink-4)':r.color}">${sig}</div></div>`;
+    else if(r.wip)sig=fmt(s.cnt[lastK]);
+    else sig=unit==="money"?fmtK(s.totM):fmt(s.tot);
+    const canExp=opts.exp||(!opts.sub&&(r.wip||!mgrSel));
+    const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
+    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
+    return `<div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1433,7 +1436,17 @@ function offerCalendarBlock(){
     html+=rowLine(r,scope,r.id,{});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
     if(r.wip&&isOpen){
-      html+=COH.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
+      if(mgrSel){
+        html+=COH.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
+      }else{
+        const lastK=keys[keys.length-1];
+        const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,cnt:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.cnt-a.cnt);
+        subs.forEach(x=>{
+          const mkey="wip~"+x.m;
+          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:true,rowKey:mkey});
+          if(S.calRowOpen&&S.calRowOpen[mkey])html+=COH.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
+        });
+      }
     }else if(!mgrSel&&!r.wip&&isOpen){
       const subs=names.map(m=>({m,s:serie(r,passed.filter(d=>d.mgr===m))})).filter(x=>x.s.tot>0).sort((a,b)=>b.s.tot-a.s.tot);
       html+=subs.map(x=>rowLine(r,passed.filter(d=>d.mgr===x.m),r.id+"~"+x.m,{sub:true,mgr:x.m})).join("");

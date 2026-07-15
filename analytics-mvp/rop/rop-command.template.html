@@ -1404,10 +1404,17 @@ function offerCalendarBlock(){
   ];
   const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
   const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
+  const stageAtT=(d,t)=>{let st=null,bd="";(d.hist||[]).forEach(h=>{const hd=(h[1]||"").slice(0,10);if(hd&&hd<=t&&hd>=bd){bd=hd;st=h[0];}});return st;};
+  const stageWipAt=(k,sc,stg)=>{const e=endDate(k);return sc.filter(d=>stageAtT(d,e)===stg);};
   const ageAt=(d,k)=>Math.round((PD2(endDate(k))-PD2(d.created))/DAYMS);
-  const COH=[{id:"wip@new",nm:"новые ≤14 дн",color:"#2E9E74",cohort:[0,14],wip:true},{id:"wip@mid",nm:"застой 14-30 дн",color:"#D9A441",cohort:[15,30],wip:true},{id:"wip@old",nm:"брошенные 30+ дн",color:"#CC5867",cohort:[31,1e9],wip:true}];
-  const RBY2={};COH.forEach(c=>RBY2[c.id]=c);
-  const dealsFor=(r,k,sc)=>r.cohort?wipAt(k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
+  // Возрастные когорты открытых сделок. Для «В работе» база - все открытые офферы,
+  // для стадий (КП/Решение/Долгострой) - сделки, стоящие на этой стадии на конец периода.
+  const COHDEF=[{key:"new",nm:"новые ≤14 дн",color:"#2E9E74",cohort:[0,14]},{key:"mid",nm:"застой 14-30 дн",color:"#D9A441",cohort:[15,30]},{key:"old",nm:"брошенные 30+ дн",color:"#CC5867",cohort:[31,1e9]}];
+  const COHSRC=[["wip",null],["kp","C49:PREPAYMENT_INVOIC"],["dec","C49:3"],["long","C49:UC_8JTBV2"]];
+  const COHROWS={};COHSRC.forEach(([rid,stg])=>{COHROWS[rid]=COHDEF.map(c=>({...c,wip:true,id:rid+"@"+c.key,stg,base:rid}));});
+  const RBY2={};Object.values(COHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
+  const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
+  const dealsFor=(r,k,sc)=>r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
   const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
 
   const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
@@ -1419,10 +1426,10 @@ function offerCalendarBlock(){
     const lastK=keys[keys.length-1];
     const rowKey=opts.rowKey||r.id;
     let sig;
-    if(r.cohort){const tw=wipAt(lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
+    if(r.cohort){const tw=cohBase(r,lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
     else if(r.wip)sig=fmt(s.cnt[lastK]);
     else sig=unit==="money"?fmtK(s.totM):fmt(s.tot);
-    const canExp=opts.exp||(!opts.sub&&(r.wip||!mgrSel));
+    const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
     return `<div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
@@ -1435,21 +1442,21 @@ function offerCalendarBlock(){
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
     html+=rowLine(r,scope,r.id,{});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
-    if(r.wip&&isOpen){
-      if(mgrSel){
-        html+=COH.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
-      }else{
-        const lastK=keys[keys.length-1];
-        const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,cnt:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.cnt-a.cnt);
-        subs.forEach(x=>{
-          const mkey="wip~"+x.m;
-          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:true,rowKey:mkey});
-          if(S.calRowOpen&&S.calRowOpen[mkey])html+=COH.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
-        });
-      }
-    }else if(!mgrSel&&!r.wip&&isOpen){
-      const subs=names.map(m=>({m,s:serie(r,passed.filter(d=>d.mgr===m))})).filter(x=>x.s.tot>0).sort((a,b)=>b.s.tot-a.s.tot);
-      html+=subs.map(x=>rowLine(r,passed.filter(d=>d.mgr===x.m),r.id+"~"+x.m,{sub:true,mgr:x.m})).join("");
+    const coh=COHROWS[r.id];
+    if(isOpen&&mgrSel){
+      // выбран один менеджер: стадия/В-работе сразу разворачивается в свои когорты
+      if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
+    }else if(isOpen){
+      const lastK=keys[keys.length-1];
+      let subs;
+      if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
+      else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
+      subs.sort((a,b)=>b.rank-a.rank);
+      subs.forEach(x=>{
+        const mkey=r.id+"~"+x.m;
+        html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey});
+        if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
+      });
     }
     return html;
   }).join("");
@@ -1464,7 +1471,7 @@ function offerCalendarBlock(){
     const sc=parts[1]?passed.filter(d=>d.mgr===parts[1]):scope,k=S.calCell.k,ds=dealsFor(r,k,sc);
     if(!ds.length)return "";
     const body=ds.slice(0,120).map(d=>{const evd=r.wip?'':(r.df(d)||'').slice(0,10);return `<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:left">${esc(d.stage||'')}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(catV(d))} · ${esc(cliV(d))}</td>${r.wip?'':`<td style="text-align:center;font-size:10px;color:var(--ink-4)">${evd}</td>`}</tr>`;}).join("");
-    return `<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px;color:${r.color}">${r.nm.replace('→ ','')}${parts[1]?' · '+esc(parts[1]):''} · ${lbl(k)}</b><span class="card-sub">${fmt(ds.length)} сделок · ${fmtK(money(ds))} ₽</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Текущая стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th>${r.wip?'':'<th>Дата события</th>'}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+    return `<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px;color:${r.color}">${(r.base&&RBY[r.base]?RBY[r.base].nm.replace('→ ','')+' · ':'')}${r.nm.replace('→ ','')}${parts[1]?' · '+esc(parts[1]):''} · ${lbl(k)}</b><span class="card-sub">${fmt(ds.length)} сделок · ${fmtK(money(ds))} ₽</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Текущая стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th>${r.wip?'':'<th>Дата события</th>'}</tr></thead><tbody>${body}</tbody></table></div></div>`;
   })();
 
   // лидерборд
@@ -1477,7 +1484,7 @@ function offerCalendarBlock(){
 
   const riskN=mst.filter(x=>x.risk).length;
   const unitSeg=`<div class="seg" id="calUnitSeg"><button data-cu="count" class="${unit!=='money'?'on':''}">Кол-во</button><button data-cu="money" class="${unit==='money'?'on':''}">Выручка</button></div>`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:8px;align-items:center">${unitSeg}${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div></div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cellPanel}</div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь загрузки менеджеров ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Строки «В работе», КП, Решение и Долгострой разворачиваются глубже: менеджер, а внутри - возрастные когорты (новые ≤14 / застой 14-30 / брошенные 30+ дн) по сделкам, стоящим на стадии на конец периода, с долей от неё. Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:8px;align-items:center">${unitSeg}${mgrSel?`<button data-calmgr="${esc(mgrSel)}" class="dbtn">✕ весь отдел</button>`:''}</div></div>${lb}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====

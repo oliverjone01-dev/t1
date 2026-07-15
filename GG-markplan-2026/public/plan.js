@@ -23,6 +23,8 @@
   var ganttOpen = {};
   var ganttZoom = 1;      // масштаб ленты времени (кнопки +/-)
   var ganttLw = null;     // ширина левой колонки, если её тянули (null = авто)
+  var ganttEdit = false;  // разблокирована ли правка сроков (замок)
+  var editPwd = "";       // пароль правки в памяти (в разметку не пишется)
   // перенос текста по словам в N строк (для левой колонки Ганта)
   function wrapText(txt, maxChars, maxLines) {
     var words = String(txt || "").split(/\s+/).filter(Boolean), lines = [], cur = "";
@@ -86,8 +88,24 @@
   var CONFIG = {
     csvUrl: "",
     sheetId: (P.meta && P.meta.sheetId) || "",
-    ganttSheet: (P.meta && P.meta.ganttSheet) || "GANTT"
+    ganttSheet: (P.meta && P.meta.ganttSheet) || "GANTT",
+    writeUrl: (P.meta && P.meta.writeUrl) || ""
   };
+  // JSONP-запрос к Apps Script (обход CORS): создаёт <script> с callback
+  var _jsonpN = 0;
+  function jsonp(base, params, cb, errcb) {
+    if (!base) { errcb && errcb("no_url"); return; }
+    var name = "__ggcb" + (++_jsonpN);
+    var q = ["callback=" + name];
+    for (var k in params) q.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+    var s = document.createElement("script");
+    var to = setTimeout(function () { cleanup(); errcb && errcb("timeout"); }, 9000);
+    function cleanup() { clearTimeout(to); delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); }
+    window[name] = function (data) { cleanup(); cb && cb(data); };
+    s.onerror = function () { cleanup(); errcb && errcb("neterr"); };
+    s.src = base + (base.indexOf("?") >= 0 ? "&" : "?") + q.join("&");
+    document.body.appendChild(s);
+  }
   function gvizUrl() {
     if (CONFIG.csvUrl) return CONFIG.csvUrl;
     if (!CONFIG.sheetId) return "";
@@ -159,7 +177,7 @@
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
-    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-15", "15 млн"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"], ["s-resheniya", "Решения"]];
+    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"]];
     $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("");
     // герой-статы
     $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
@@ -170,8 +188,9 @@
       return '<div class="fcard ' + (f.tone || "") + '"><span class="ftag">' + esc(f.tag) + '</span>' +
         '<div class="fk">' + esc(f.k) + '</div><div class="ft">' + esc(f.t) + '</div><div class="fd">' + esc(f.d) + "</div></div>";
     }).join("");
-    // открытые решения
-    $("#open-list").innerHTML = P.decisions.map(function (d) {
+    // открытые решения (раздел может быть удалён - тогда пропускаем)
+    var ol = $("#open-list");
+    if (ol) ol.innerHTML = P.decisions.map(function (d) {
       return "<li><div class=\"oh\">" + esc(d.h) + '</div><div class="od">' + esc(d.d) + "</div></li>";
     }).join("");
     // воронка
@@ -183,7 +202,7 @@
 
   function renderScenarios() {
     var s = P.scenarios;
-    var host = $("#scen"); host.innerHTML = "";
+    var host = $("#scen"); if (!host) return; host.innerHTML = "";
     var intro = el("div", "scen-intro"); intro.innerHTML = "<b>Уточнено Иваном:</b> " + esc(s.intro);
     host.appendChild(intro);
     var tbl = el("div", "scen-tbl");
@@ -271,9 +290,11 @@
       '<span class="lg"><i class="st-done"></i>готово</span>' +
       '<span class="lg"><i class="st-gate"></i>гейт</span>' +
       '<span class="lg"><i class="st-today"></i>сегодня</span></div>' +
+      '<div class="g-tools">' +
+      (CONFIG.writeUrl ? '<button type="button" class="g-lock' + (ganttEdit ? ' on' : '') + '" data-lock="1" title="' + (ganttEdit ? 'Правка сроков включена - клик, чтобы закрыть' : 'Правка сроков заблокирована - клик и пароль, чтобы открыть') + '">' + (ganttEdit ? '🔓 правка' : '🔒 сроки') + '</button>' : '') +
       '<div class="g-zoom"><button type="button" data-z="out" aria-label="Уменьшить масштаб">&minus;</button>' +
       '<button type="button" data-z="fit">по ширине</button>' +
-      '<button type="button" data-z="in" aria-label="Увеличить масштаб">+</button></div>';
+      '<button type="button" data-z="in" aria-label="Увеличить масштаб">+</button></div></div>';
     $("#gantt-legend").querySelectorAll(".g-zoom button").forEach(function (b) {
       b.addEventListener("click", function () {
         var z = b.getAttribute("data-z");
@@ -282,6 +303,17 @@
         else { ganttZoom = 1; ganttLw = null; }
         renderGantt();
       });
+    });
+    var lockBtn = $("#gantt-legend").querySelector(".g-lock");
+    if (lockBtn) lockBtn.addEventListener("click", function () {
+      if (ganttEdit) { ganttEdit = false; editPwd = ""; renderGantt(); return; }
+      var pwd = window.prompt("Пароль для правки сроков:");
+      if (pwd == null || pwd === "") return;
+      lockBtn.disabled = true; lockBtn.textContent = "проверка…";
+      jsonp(CONFIG.writeUrl, { action: "verify", secret: pwd }, function (r) {
+        if (r && r.ok) { ganttEdit = true; editPwd = pwd; renderGantt(); }
+        else { alert(r && r.error === "bad_secret" ? "Неверный пароль." : "Не удалось проверить пароль (" + ((r && r.error) || "нет ответа") + ")."); renderGantt(); }
+      }, function (e) { alert("Нет связи с таблицей (" + e + "). Проверьте, что Apps Script развёрнут."); renderGantt(); });
     });
 
     var tasks = P.tasks.map(function (t) { var s = pd(t.start); return { t: t, s: s, e: s ? new Date(s.getTime() + t.days * MS) : null }; })
@@ -356,6 +388,20 @@
     }
     function related(id) { var set = {}; set[id] = 1; deps.forEach(function (d) { if (d.a === id) set[d.b] = 1; if (d.b === id) set[d.a] = 1; }); return set; }
     function toggleRow(id) { ganttOpen[id] = !ganttOpen[id]; renderGantt(); }
+    function fmtISO(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+    // применить правку локально (оптимистично) и записать в таблицу; при сбое - откат
+    function commitEdit(o, newStartDate, newDays) {
+      var oldStart = o.t.start, oldDays = o.t.days, jobs = [];
+      if (newStartDate) { o.t.start = fmtISO(newStartDate); jobs.push({ field: "start", value: o.t.start }); }
+      if (newDays != null) { o.t.days = newDays; jobs.push({ field: "days", value: newDays }); }
+      renderGantt();
+      function revert(msg) { o.t.start = oldStart; o.t.days = oldDays; renderGantt(); alert(msg); }
+      jobs.forEach(function (j) {
+        jsonp(CONFIG.writeUrl, { action: "update", id: o.t.id, field: j.field, value: j.value, secret: editPwd }, function (r) {
+          if (!r || !r.ok) revert("Не записалось в таблицу (" + ((r && r.error) || "нет ответа") + "). Откат.");
+        }, function (e) { revert("Нет связи с таблицей (" + e + "). Откат."); });
+      });
+    }
 
     // ---------- ЛЕВАЯ ПАНЕЛЬ ----------
     var lsvg = sv("svg", { width: Lw, height: H, viewBox: "0 0 " + Lw + " " + H, class: "gantt", "data-lw": Lw });
@@ -479,6 +525,7 @@
       g.appendChild(rect);
       if (o.t.st === "work" || o.t.st === "done" || o.t.st === "plan") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
       var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.days + "д"; g.appendChild(dl);
+      o._rect = rect; o._dur = dl; o._bx = x; o._bw = w; o._by = y;
       if (o.t.gate) { var d2 = bh * 0.6, cx = x, cyg = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cyg - d2) + " " + (cx + d2) + "," + cyg + " " + cx + "," + (cyg + d2) + " " + (cx - d2) + "," + cyg, class: "g-gate" })); }
       barLayer.appendChild(g);
     });
@@ -499,6 +546,43 @@
       hitLayer.appendChild(hr);
     });
     rsvg.appendChild(hitLayer);
+
+    // ---------- правка сроков: ручки на краях баров (когда замок открыт) ----------
+    if (ganttEdit && CONFIG.writeUrl) {
+      var editLayer = sv("g", { class: "g-edit" });
+      order.forEach(function (o) {
+        var origDays = o.t.days, origStart = new Date(o.s), rect = o._rect, dl = o._dur, bx = o._bx, by = o._by, bw = o._bw;
+        function mkHandle(side) {
+          var hx = side === "l" ? bx : bx + bw;
+          var hnd = sv("rect", { x: hx - 5, y: by - 3, width: 10, height: bh + 6, rx: 3, class: "g-handle", "data-side": side });
+          hnd.style.cursor = "ew-resize";
+          var st = null;
+          hnd.addEventListener("pointerdown", function (ev) { ev.stopPropagation(); ev.preventDefault(); st = { cx: ev.clientX }; try { hnd.setPointerCapture(ev.pointerId); } catch (e) {} hnd.classList.add("drag"); });
+          hnd.addEventListener("pointermove", function (ev) {
+            if (!st) return;
+            var dd = Math.round((ev.clientX - st.cx) / dw);
+            if (side === "r") {
+              var nd = Math.max(1, origDays + dd);
+              rect.setAttribute("width", nd * dw); dl.textContent = nd + "д"; dl.setAttribute("x", bx + nd * dw + 8); hnd.setAttribute("x", bx + nd * dw - 5);
+            } else {
+              var ndays = Math.max(1, origDays - dd), shift = origDays - ndays, nx = bx + shift * dw;
+              rect.setAttribute("x", nx); rect.setAttribute("width", ndays * dw); hnd.setAttribute("x", nx - 5); dl.textContent = ndays + "д";
+            }
+          });
+          function done(ev) {
+            if (!st) return; var dd = Math.round((ev.clientX - st.cx) / dw); st = null; hnd.classList.remove("drag");
+            if (side === "r") { var nd = Math.max(1, origDays + dd); if (nd !== origDays) commitEdit(o, null, nd); else renderGantt(); }
+            else { var ndays = Math.max(1, origDays - dd), shift = origDays - ndays; if (shift !== 0) commitEdit(o, new Date(origStart.getTime() + shift * MS), ndays); else renderGantt(); }
+          }
+          hnd.addEventListener("pointerup", done);
+          hnd.addEventListener("pointercancel", function () { st = null; hnd.classList.remove("drag"); renderGantt(); });
+          editLayer.appendChild(hnd);
+        }
+        mkHandle("l"); mkHandle("r");
+      });
+      rsvg.appendChild(editLayer);
+    }
+
     right.appendChild(rsvg);
 
     if (prevFrac != null) right.scrollLeft = prevFrac * (right.scrollWidth - right.clientWidth);
@@ -557,7 +641,7 @@
 
   /* ---------- прокрутка-подсветка навигации + reveal ---------- */
   function wireScroll() {
-    var secs = ["s-obzor", "s-15", "s-gantt", "s-prioritety", "s-bloki", "s-voronka", "s-resheniya"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var secs = ["s-obzor", "s-gantt", "s-prioritety", "s-bloki", "s-voronka"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
     var links = {}; document.querySelectorAll(".mast-nav a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
     if ("IntersectionObserver" in window) {
       var io = new IntersectionObserver(function (ents) {

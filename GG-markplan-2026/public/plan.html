@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
-  <link rel="stylesheet" href="plan.css?v=20260714-3">
+  <link rel="stylesheet" href="plan.css?v=20260714-6">
 </head>
 <body>
 <div class="prog" id="prog" aria-hidden="true"></div>
@@ -45,7 +45,7 @@
         <p class="hero-dek" id="hero-dek"></p>
         <div class="hero-cta">
           <a class="btn btn-primary" href="#s-gantt">Смотреть график</a>
-          <a class="btn btn-ghost" href="#s-15">Прикидка 15 млн</a>
+          <a class="btn btn-ghost" href="#s-prioritety">Приоритеты</a>
         </div>
       </div>
       <aside class="hero-side">
@@ -66,26 +66,13 @@
     </div>
   </section>
 
-  <!-- 15 МЛН -->
-  <section class="band" id="s-15">
-    <div class="band-inner">
-      <div class="sec-head">
-        <span class="sec-no">04</span>
-        <h2 class="sec-title">Прикидка 15 млн - вилками, до факта</h2>
-        <p class="sec-dek">Считал Роман. Все числа - гипотезы с диапазоном, не бюджет. Даже грубая прикидка отвечает на главное.</p>
-      </div>
-      <div class="scen" id="scen"></div>
-      <div class="verdict" id="verdict-15"></div>
-    </div>
-  </section>
-
   <!-- ГАНТ -->
   <section class="band band-plan" id="s-gantt">
     <div class="band-inner">
       <div class="sec-head">
         <span class="sec-no">01</span>
-        <h2 class="sec-title">График работ - кто, когда, от чего зависит</h2>
-        <p class="sec-dek">Наведите на задачу - подсветятся её зависимости. Данные тянутся из Google-таблицы; меняете таблицу - меняется график.</p>
+        <h2 class="sec-title">План маркетинга VALONTI 2026</h2>
+        <p class="sec-dek">Задачи, ответственные и сроки - прямо из Google-таблицы.</p>
       </div>
       <div class="gantt-legend" id="gantt-legend"></div>
       <div class="gantt-wrap" id="gantt-wrap">
@@ -111,7 +98,7 @@
   <section class="band" id="s-bloki">
     <div class="band-inner">
       <div class="sec-head">
-        <span class="sec-no">05</span>
+        <span class="sec-no">04</span>
         <h2 class="sec-title">План по блокам</h2>
         <p class="sec-dek">Тот же список задач, что в графике и в таблице - развёрнуто.</p>
       </div>
@@ -123,7 +110,7 @@
   <section class="band band-funnel" id="s-voronka">
     <div class="band-inner">
       <div class="sec-head">
-        <span class="sec-no">06</span>
+        <span class="sec-no">05</span>
         <h2 class="sec-title">Воронка прогрева дизайнера</h2>
         <p class="sec-dek">От тёплого лида до фаната бренда. Работаем с теми, кто уже нас знает, а не с холодными.</p>
       </div>
@@ -131,16 +118,6 @@
     </div>
   </section>
 
-  <!-- ОТКРЫТЫЕ РЕШЕНИЯ -->
-  <section class="band band-open" id="s-resheniya">
-    <div class="band-inner">
-      <div class="sec-head">
-        <span class="sec-no">07</span>
-        <h2 class="sec-title">Открытые решения - на встречу</h2>
-      </div>
-      <ol class="open-list" id="open-list"></ol>
-    </div>
-  </section>
 </main>
 
 <footer class="foot">
@@ -160,7 +137,7 @@
   </div>
 </footer>
 
-<script src="plan-data.js?v=20260714-3"></script>
-<script src="plan.js?v=20260714-3"></script>
+<script src="plan-data.js?v=20260714-6"></script>
+<script src="plan.js?v=20260714-6"></script>
 </body>
 </html>

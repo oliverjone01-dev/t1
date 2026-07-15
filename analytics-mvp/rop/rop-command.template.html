@@ -1416,9 +1416,9 @@ function offerCalendarBlock(){
   const ROWS=[
     {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer,grp:"вход"},
     {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true,grp:"в работе"},
-    {id:"kp",nm:"→ КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC"),grp:"в работе"},
-    {id:"dec",nm:"→ Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3"),grp:"в работе"},
-    {id:"long",nm:"→ Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2"),grp:"в работе"},
+    {id:"kp",nm:"КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
+    {id:"dec",nm:"Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3"),grp:"в работе",child:true},
+    {id:"long",nm:"Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2"),grp:"в работе",child:true},
     {id:"win",nm:"→ Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход · финал"},
     {id:"loss",nm:"→ Отказ",color:"#CC5867",df:enterLose,grp:"выход · финал"},
   ];
@@ -1450,12 +1450,13 @@ function offerCalendarBlock(){
     else if(r.wip)sig=fmt(s.cnt[lastK]);
     else sig=unit==="money"?fmtK(s.totM):fmt(s.tot);
     const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
-    const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
-    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
+    const arw=(canExp&&opts.sub)?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
+    const baseIndent=r.child?'padding-left:18px;':'';
+    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
-    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),a=ct>=0.5?cf/ct:null,cc=a==null?'#818CF8':a>=1?'#2E9E74':a>=0.8?'#C2873C':a>=0.5?'#D9A441':'#CC5867';
-      rightHTML=`<div style="width:70px;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px" title="${('цель '+ct+' (портфель × 15%) · факт '+cf+' · '+(a==null?'нет цели':pct(a))).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="display:inline-block;flex:0 0 auto;min-width:30px;text-align:right;font-size:9.5px;font-weight:800;color:${cc};line-height:16px">${cf}<span style="color:var(--ink-4);font-weight:600">/${ct}</span></span></div>`;}
-    else rightHTML=`<div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
+    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),met=ct>=0.5&&cf>=ct,cc=met?'#2E9E74':'#6A7484';
+      rightHTML=`<div style="width:84px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${('факт '+cf+' · план '+ct+' (портфель × 15%) · '+(ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${met?'#2E9E74':'var(--ink-3)'}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
+    else rightHTML=`<div style="width:84px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
     return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
@@ -1486,7 +1487,7 @@ function offerCalendarBlock(){
     return html;
   }).join("");
   const step=Math.max(1,Math.ceil(keys.length/12));
-  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:70px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==="money"?"₽":"сд"}</div></div>`;
+  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:84px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8px;color:var(--ink-4)"><span style="color:var(--ink-3)">факт</span> / <span style="color:var(--ink)">план</span></div></div>`;
   const cal=head+bodyRows;
 
   // Стаканчики плана предоплат: вживлены под календарь, колонки те же. Стакан = факт
@@ -1501,10 +1502,10 @@ function offerCalendarBlock(){
     const fact={};keys.forEach(k=>fact[k]=0);
     passed.forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fact[k]!=null)fact[k]++;}});
     let mx=1,ftot=0;keys.forEach(k=>{ftot+=fact[k];mx=Math.max(mx,P[k],fact[k]);});
-    const att=ptot?ftot/ptot:0,tc=att>=1?'#2E9E74':att>=0.8?'#C2873C':'#CC5867';
+    const att=ptot?ftot/ptot:0,tc=att>=1?'#2E9E74':'#6A7484'; // выполнен = зелёный, нет = серый
     // рисуем один стакан-стрип: cnt по бакетам, риска = plan по бакетам, свой масштаб smx
     const strip=(fk,pk,smx,h,cap)=>keys.map(k=>{const pl=pk[k],fa=fk[k],a=pl>=0.3?fa/pl:null;
-      const c=a==null?'#818CF8':a>=1?'#2E9E74':a>=0.8?'#C2873C':'#CC5867';
+      const c=a==null?'#6A7484':a>=1?'#2E9E74':'#6A7484';
       const fh=Math.min(100,fa/smx*100).toFixed(1),ph=Math.min(100,pl/smx*100).toFixed(1);
       return `<div style="flex:1;min-width:0;display:flex;justify-content:center" title="${(lbl(k)+': '+cap+' план '+(Math.round(pl*10)/10)+' · факт '+fa+' · '+(a==null?'нет плана':pct(a))).replace(/"/g,'&quot;')}">`+
         `<div style="position:relative;width:100%;max-width:${h>36?24:20}px;height:${h}px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 5px 5px">`+
@@ -1526,10 +1527,10 @@ function offerCalendarBlock(){
     const arw=isOpen?'▾':'▸';
     return `<div style="margin-top:2px;padding-top:8px;border-top:1px dashed var(--border)">`+
       `<div class="chrow" style="display:flex;align-items:flex-end;gap:6px">`+
-        `<div data-cupopen style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25;cursor:pointer"><span style="color:#A78BFA">${arw} </span>План предоплат · отдел <b style="color:${tc}">${pct(att)}</b><div style="font-size:8px;color:var(--ink-4)">стакан = факт · <span style="color:#A78BFA">риска</span> = план · клик - доли по менеджерам</div></div>`+
+        `<div data-cupopen style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25;cursor:pointer"><span style="color:#A78BFA">${arw} </span>План предоплат · отдел <b style="color:${tc}">${pct(att)}</b><div style="font-size:8px;color:var(--ink-4)">налив = <span style="color:var(--ink-3)">факт</span>, <span style="color:#A78BFA">риска</span> = <span style="color:var(--ink)">план</span> · <span style="color:#2E9E74">зелёный</span> = выполнен, <span style="color:#8A93A3">серый</span> = нет · клик - доли по менеджерам</div></div>`+
         `<div style="flex:1;display:flex;gap:2px;align-items:flex-end">${strip(fact,P,mx,46,'')}</div>`+
         (()=>{const gsc=Math.max(1,ftot,ptot),gfh=Math.min(100,ftot/gsc*100).toFixed(0),gph=Math.min(100,ptot/gsc*100).toFixed(0);
-          return `<div style="width:70px;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px" title="${('общий стакан · цель '+Math.round(ptot)+' (план из таблицы) · факт '+ftot+' · '+pct(att)).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:14px;height:22px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${gfh}%;background:${tc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${gph}%;border-top:2px dashed #A78BFA"></div></div><span style="display:inline-block;flex:0 0 auto;min-width:30px;text-align:right;font-size:10px;font-weight:800;color:${tc};line-height:22px">${fmt(ftot)}<span style="color:var(--ink-4);font-weight:600">/${fmt(Math.round(ptot))}</span></span></div>`;})()+
+          return `<div style="width:84px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px" title="${('общий стакан отдела · факт '+ftot+' · план '+Math.round(ptot)+' (из таблицы) · '+pct(att)+(att>=1?' · выполнен':' · не выполнен')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:22px;height:46px;background:var(--bg-base);border:1px solid var(--border-hot);border-top:none;border-radius:0 0 4px 4px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${gfh}%;background:${tc};opacity:.92;border-radius:0 0 3px 3px"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${gph}%;border-top:2px dashed #A78BFA"></div></div><span style="flex:0 0 auto;text-align:right;font-size:13px;font-weight:800;line-height:1.15"><span style="color:${att>=1?'#2E9E74':'var(--ink-3)'}">${fmt(ftot)}</span><div style="color:var(--ink);font-weight:700;font-size:11px">/${fmt(Math.round(ptot))}</div></span></div>`;})()+
       `</div>${mgrTbl}</div>`;
   })();
 

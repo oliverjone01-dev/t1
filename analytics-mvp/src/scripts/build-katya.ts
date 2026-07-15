@@ -1072,7 +1072,7 @@ function aggFromDaily(from,to){
   var spend=0,om=0,orders=0,active=0;list.forEach(function(c){spend+=c.sp;om+=c.om;orders+=c.o;if(c.sp>0)active++;});
   var totals={spend:spend,adRevenue:om,orders:orders,drr:om?Math.round(spend/om*1000)/10:0,cpo:orders?Math.round(spend/orders):0,active:active,campaigns:list.length};
   var top_spend=list.slice().sort(function(x,y){return y.sp-x.sp;}).slice(0,10);
-  var burners=list.filter(function(c){return c.sp>=3000&&(c.o===0||c.drr>=40);}).sort(function(x,y){return y.sp-x.sp;}).slice(0,8);
+  var burners=list.filter(function(c){return !isCPO(c)&&c.sp>=3000&&(c.o===0||c.drr>=40);}).sort(function(x,y){return y.sp-x.sp;}).slice(0,8);
   var lm={};list.forEach(function(c){var g=lm[c.line]||(lm[c.line]={line:c.line,sp:0,om:0});g.sp+=c.sp;g.om+=c.om;});
   var by_line=Object.keys(lm).map(function(k){var g=lm[k];return {line:k,sp:g.sp,om:g.om,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
   return {dateFrom:from,dateTo:to,totals:totals,top_spend:top_spend,burners:burners,by_line:by_line,daily:true};
@@ -1108,11 +1108,15 @@ function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(
   REPORTS[k]=[];if(cb)cb([]);}
 var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
 var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
+// CPO «Оплата за заказ»: OZON не отдаёт выручку/заказы по API (daily/json=0, attribution запрещён) -
+// показываем «н/д», а не вводящий в заблуждение 0. Расход по ним реальный.
+function isCPO(c){return /за заказ/i.test(String((c&&c.instr)||''));}
+var CPO_NA='<span style="color:var(--ink-3)" title="OZON не отдаёт выручку и заказы по кампаниям «Оплата за заказ» через API - смотри их в кабинете OZON. Расход - реальный.">н/д</span>';
 var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
 function renderTop(){var a=lastA;if(!a)return;
   var html=(a.top_spend||[]).map(function(c,ci){
     var ri=repInfo(c.id);var rep=ri?ri.rows:[];var loaded=ri!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td></tr>';
     var sub='';
     if(loaded&&rep.length){
       var winTxt=ri.from?('за '+dShort(ri.from)+'–'+dShort(ri.to)):'';

@@ -1286,6 +1286,86 @@ function offerReasonsBlock(){
   return `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов со стадии предложения ${info('Сделки, которые получили оффер, но ушли в отказ. Красным - «не проставлена причина». Вопрос: почему сливаются горячие и фиксируется ли причина. Вывод: большой красный столбик - дыра в дисциплине (чинить регламент); реальные причины (дорого/конкурент) - сигнал к цене и скорости.')}</div><div class="card-sub">${fmt(lost.length)} отказных из прошедших предложение · <span style="color:#F8717A;font-weight:700">${pct(lost.length?noReason/lost.length:0)} без причины</span></div></div></div>${rbars}<button id="ocReasonsToggle" class="dbtn" style="margin-top:10px">${rOpen?'Скрыть сделки':'Показать отказные сделки ('+fmt(lost.length)+')'}</button>${lostList}</div>`;
 }
 
+// ===== СТАНДАРТ ОТДЕЛА: план в предоплатах, декомпозиция по менеджерам =====
+// План в КОЛИЧЕСТВЕ предоплат (не в выручке). Цель менеджеру = живой портфель × целевой
+// CR. Гардрейлы: чек (чтобы count не убил выручку) и долгострой (в паре с отказами).
+function standardBlock(){
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  if(!passed.length)return "";
+  const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
+  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
+  const enterLose=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  const PD=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
+  const age=d=>Math.max(0,Math.round((NOWD-PD(d.created))/DAYMS));
+  const days=Math.max(1,Math.round((PD(S.end)-PD(S.start))/DAYMS)+1),factor=days/30;
+  const TCR=0.15; // целевая конверсия-минимум (стандарт)
+
+  // план из плановой таблицы (planModel читает Google-план; m-заглушка, targets из листа)
+  const P=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
+  const checkP=Math.round(P.check||120000);          // плановый чек (гардрейл)
+  const winTdept=Math.max(0,Math.round(P.winT||0));  // нужно предоплат за период для плана
+  const revPlan=Math.round(P.targets.rev||0);
+
+  const names=[...new Set([...open.map(d=>d.mgr),...passed.map(d=>d.mgr)])];
+  const rows=names.map(m=>{
+    const op=open.filter(d=>d.mgr===m),ps=passed.filter(d=>d.mgr===m);
+    const live=op.filter(d=>age(d)<=60),zomb=op.filter(d=>age(d)>60);
+    const suc=ps.filter(d=>inR(enterExec(d))),lo=ps.filter(d=>inR(enterLose(d)));
+    const cr=(suc.length+lo.length)?suc.length/(suc.length+lo.length):null;
+    const chk=median(suc.map(d=>d.budget||0).filter(v=>v>0))||0;
+    const target=Math.round(live.length*TCR*factor);
+    const pctPlan=target?suc.length/target:null;
+    return {m,live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),target,fact:suc.length,factM:suc.reduce((s,d)=>s+(d.budget||0),0),lose:lo.length,cr,chk,pctPlan};
+  }).filter(r=>r.live+r.zomb+r.fact+r.lose>0);
+  const medLive=median(rows.map(r=>r.live))||0;
+  const stat=r=>{
+    const okChek=!r.chk||r.chk>=checkP*0.85, okCR=r.cr==null||r.cr>=TCR, okPlan=r.pctPlan!=null&&r.pctPlan>=0.9;
+    if(okPlan&&okCR&&okChek)return {l:"в норме",c:"#2E9E74"};
+    if(r.live>medLive&&(r.pctPlan==null||r.pctPlan<0.6))return {l:"резать портфель",c:"#F43F5E"};
+    if((r.cr!=null&&r.cr<0.10)||(r.pctPlan!=null&&r.pctPlan<0.4))return {l:"ставить ребром",c:"#F43F5E"};
+    return {l:"обучать",c:"#C2873C"};
+  };
+  rows.forEach(r=>r.st=stat(r));
+  rows.sort((a,b)=>(b.pctPlan||0)-(a.pctPlan||0)||b.fact-a.fact);
+
+  // отдел
+  const D_={live:rows.reduce((s,r)=>s+r.live,0),zomb:rows.reduce((s,r)=>s+r.zomb,0),target:rows.reduce((s,r)=>s+r.target,0),fact:rows.reduce((s,r)=>s+r.fact,0),factM:rows.reduce((s,r)=>s+r.factM,0),lose:rows.reduce((s,r)=>s+r.lose,0)};
+  D_.cr=(D_.fact+D_.lose)?D_.fact/(D_.fact+D_.lose):0;
+  const allSuc=passed.filter(d=>inR(enterExec(d)));
+  D_.chk=median(allSuc.map(d=>d.budget||0).filter(v=>v>0))||(D_.fact?Math.round(D_.factM/D_.fact):0);
+  // А / Б / В
+  const revA=D_.factM, prepayA=D_.fact;
+  const prepayB=Math.round(D_.live*TCR*factor), revB=prepayB*checkP; // потенциал живого портфеля при 15%
+  const enough=prepayB>=winTdept;
+  const gap=Math.max(0,winTdept-prepayB);
+  const nDone=`${fmt(prepayA)}`;
+  const pill=(t,c)=>`<span style="display:inline-block;font-size:10px;font-weight:700;color:${c};background:${c}18;border:1px solid ${c}55;border-radius:6px;padding:2px 8px">${t}</span>`;
+  const headA=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px"><b style="font-size:12.5px">Отдел:</b> ${pill('А сейчас: '+fmt(prepayA)+' предоплат · '+fmtK(revA)+' ₽ · CR '+pct(D_.cr),'#22D3EE')} ${pill('Б стандарт (15% от живого): '+fmt(prepayB)+' предоплат · '+fmtK(revB)+' ₽','#C2873C')} ${pill('В план: '+fmt(winTdept)+' предоплат · '+fmtK(revPlan)+' ₽','#A78BFA')}</div><div class="card-sub" style="margin-bottom:10px">${enough?`<span style="color:#2E9E74;font-weight:700">Живого портфеля на план хватает</span> при 15% конверсии.`:`<span style="color:#F8717A;font-weight:700">Живого портфеля на план НЕ хватает</span>: не достаёт <b>${fmt(gap)}</b> предоплат - поднимать конверсию выше 15% или наполнять портфель (план по лидам).`} Цель менеджеру = живой портфель × 15%. Чек - гардрейл (пол ${fmtK(checkP)}), долгострой 60+ - в паре с отказами.</div>`;
+
+  const crC=v=>v==null?"var(--ink-4)":v>=TCR?"#2E9E74":v>=0.10?"#C2873C":"#CC5867";
+  const pctC=v=>v==null?"var(--ink-4)":v>=0.9?"#2E9E74":v>=0.6?"#C2873C":"#CC5867";
+  const th=(t,tip)=>`<th style="text-align:center;white-space:nowrap">${t}${tip?info(tip):""}</th>`;
+  const head=`<tr><th style="text-align:left">Менеджер</th>${th("Живой портфель","Открытые офферы моложе 60 дней - с них реально брать предоплаты.")}${th("Долгострой 60+","Открытые офферы старше 60 дней - мёртвый груз, в цель не идут.")}${th("Цель предоплат","Живой портфель × 15% (за период). Столько предоплат должно выйти.")}${th("Факт")}${th("% плана")}${th("CR","Успех ÷ (успех+отказ) за период. Ниже 15% - расточительство.")}${th("Отказов")}${th("Ср.чек","Медиана чека предоплат. Ниже пола - гонка за количеством роняет выручку.")}${th("Статус")}</tr>`;
+  const body=rows.map(r=>`<tr><td class="name" style="text-align:left">${esc(r.m)}</td>
+    <td style="text-align:center;font-weight:700">${r.live}</td>
+    <td style="text-align:center;color:${r.zomb?'#F8717A':'var(--ink-3)'};font-weight:${r.zomb?700:400}">${r.zomb||'·'}${r.zombM?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(r.zombM)}</div>`:''}</td>
+    <td style="text-align:center;color:var(--ink-3)">${r.target||'·'}</td>
+    <td style="text-align:center;font-weight:800;color:#2E9E74">${r.fact||'·'}</td>
+    <td style="text-align:center;font-weight:800;color:${pctC(r.pctPlan)}">${r.pctPlan==null?'—':pct(r.pctPlan)}</td>
+    <td style="text-align:center;font-weight:700;color:${crC(r.cr)}">${r.cr==null?'—':pct(r.cr)}</td>
+    <td style="text-align:center;color:${r.lose>r.fact*4?'#F8717A':'var(--ink-3)'}">${r.lose||'·'}</td>
+    <td style="text-align:center;color:${r.chk&&r.chk<checkP*0.85?'#F8717A':'var(--ink-2)'}">${r.chk?fmtK(r.chk):'—'}</td>
+    <td style="text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:${r.st.c};background:${r.st.c}22;border:1px solid ${r.st.c}66;border-radius:6px;padding:2px 8px">${r.st.l}</span></td></tr>`).join("");
+  const foot=`<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${D_.live}</td><td style="text-align:center;color:#F8717A">${D_.zomb}</td><td style="text-align:center">${D_.target}</td><td style="text-align:center;color:#2E9E74">${D_.fact}</td><td style="text-align:center;color:${pctC(D_.target?D_.fact/D_.target:null)}">${D_.target?pct(D_.fact/D_.target):'—'}</td><td style="text-align:center;color:${crC(D_.cr)}">${pct(D_.cr)}</td><td style="text-align:center">${D_.lose}</td><td style="text-align:center">${D_.chk?fmtK(D_.chk):'—'}</td><td></td></tr>`;
+
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Стандарт отдела: план в предоплатах ${info('План декомпозируется в КОЛИЧЕСТВО предоплат, не в выручку - одна крупная сделка не должна закрывать месяц. Цель менеджеру = живой портфель × 15% (целевая конверсия-минимум). Вопрос: кто вытягивает свой план по предоплатам и кого приводить к стандарту. Вывод: «резать портфель» - большой портфель без выхода; «ставить ребром» - хроническая низкая конверсия; чек ниже пола - гонка за количеством роняет выручку. Успех = вход в «Предоплата получена» (позже заменить на реальную оплату из 1С).')}</div><div class="card-sub">план в количестве предоплат · цель = живой портфель × 15% · выручка - рычаг (чек-гардрейл)</div></div><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none">↗ Таблица плана</a></div>${headA}<div class="scroll" style="max-height:520px"><table class="tbl">${head.replace('<tr>','<thead><tr>').replace('</tr>','</tr></thead>')}<tbody>${body}${foot}</tbody></table></div></div>`;
+}
+
 // ===== КАЛЕНДАРЬ ЗАГРУЗКИ МЕНЕДЖЕРОВ (оффер-стадии) =====
 // Тепловой календарь по датам событий: приток, «в работе», перемещения по стадиям.
 // Σ-столбец за период, переключатель Кол-во/Выручка, раскрытие этапа по всем менеджерам
@@ -1666,7 +1746,7 @@ function offerControlBlock(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
-    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+offerReasonsBlock();
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+standardBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).

@@ -1465,7 +1465,7 @@ function offerCalendarBlock(){
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
   let _pg="";
-  const grpLabel=t=>`<div style="font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4);opacity:.7;margin:${t==='вход'?'0':'7px'} 0 1px;padding-left:2px">${t}</div>`;
+  const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход · финал':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
     html+=rowLine(r,scope,r.id,{});
@@ -1475,30 +1475,24 @@ function offerCalendarBlock(){
       // выбран один менеджер: стадия/В-работе сразу разворачивается в свои когорты
       if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
     }else if(isOpen){
-      const lastK=keys[keys.length-1];
-      if(r.wip){
-        const wm=S.calWipMode||'mgr';
-        const seg=(v,t)=>`<span data-calwipmode="${v}" style="cursor:pointer;font-weight:${wm===v?'800':'400'};color:${wm===v?'#22D3EE':'var(--ink-3)'}">${t}</span>`;
-        html+=`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><div style="width:180px;padding-left:16px;font-size:9px;color:var(--ink-4)">разворот: ${seg('mgr','по менеджерам')} · ${seg('age','по сроку')}</div></div>`;
-        if(wm==='age'){
-          COHROWS['wip'].forEach(c=>{const ckey=c.id;
-            html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey});
-            if(S.calRowOpen&&S.calRowOpen[ckey]){
-              const ms=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:dealsFor(c,lastK,msc).length,any:keys.some(k=>dealsFor(c,k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
-              html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m})).join("");
-            }
-          });
-        }else{
-          const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
-          subs.forEach(x=>{const mkey="wip~"+x.m;
-            html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:true,rowKey:mkey});
-            if(S.calRowOpen&&S.calRowOpen[mkey])html+=COHROWS['wip'].map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
-          });
-        }
+      const lastK=keys[keys.length-1],wm=S.calWipMode||'mgr';
+      if(coh&&wm==='age'){
+        // сначала когорты по сроку, внутри - менеджеры (для «В работе» и стадий)
+        coh.forEach(c=>{const ckey=c.id;
+          html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey});
+          if(S.calRowOpen&&S.calRowOpen[ckey]){
+            const ms=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:dealsFor(c,lastK,msc).length,any:keys.some(k=>dealsFor(c,k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
+            html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m})).join("");
+          }
+        });
       }else{
-        const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
-        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
-          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup});
+        // сначала менеджеры, внутри - когорты по сроку (если у строки есть возрастные когорты)
+        let subs;
+        if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
+        else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
+        subs.sort((a,b)=>b.rank-a.rank);
+        subs.forEach(x=>{const mkey=r.id+"~"+x.m;
+          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey});
           if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
         });
       }
@@ -1506,7 +1500,7 @@ function offerCalendarBlock(){
     return html;
   }).join("");
   const step=Math.max(1,Math.ceil(keys.length/12));
-  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8px;color:var(--ink-4)"><span style="color:var(--ink-3)">факт</span> / <span style="color:var(--ink)">план</span></div></div>`;
+  const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==="money"?"₽":"сд"}</div></div>`;
   const cal=head+bodyRows;
 
   // Стаканчики плана предоплат: вживлены под календарь, колонки те же. Стакан = факт
@@ -1574,10 +1568,12 @@ function offerCalendarBlock(){
 
   const riskN=mst.filter(x=>x.risk).length;
   const unitSeg=`<div class="seg" id="calUnitSeg"><button data-cu="count" class="${unit!=='money'?'on':''}">Кол-во</button><button data-cu="money" class="${unit==='money'?'on':''}">Выручка</button></div>`;
+  const _wm=S.calWipMode||'mgr';
+  const wipModeSeg=`<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink-4)" title="Порядок разворота стадий и «В работе»: сначала по менеджерам, либо сначала по сроку (когорты новые/застой/брошенные), а внутри - менеджеры">разворот:<div class="seg"><button data-calwipmode="mgr" class="${_wm==='mgr'?'on':''}">менеджеры</button><button data-calwipmode="age" class="${_wm==='age'?'on':''}">сроки</button></div></div>`;
   const _ddOpts=[""].concat(names.slice().sort((a,b)=>a.localeCompare(b)));
   const _ddMenu=S.calMgrOpen?`<div style="position:absolute;top:calc(100% + 4px);right:0;z-index:60;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.5);max-height:300px;overflow:auto;min-width:200px;padding:4px">${_ddOpts.map(m=>{const sel=m===mgrSel,lab=m||"Весь отдел";return `<div class="ddopt" data-calmgropt="${esc(m)}" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;color:${sel?'#22D3EE':'var(--ink-2)'};background:${sel?'rgba(34,211,238,.12)':'transparent'}">${esc(lab)}</div>`;}).join("")}</div>`:"";
   const mgrSelHTML=`<div data-calmgrdd style="position:relative"><button data-calmgrbtn style="display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--bg-base);color:var(--ink-2);border:1px solid var(--border-soft);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;min-width:175px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(mgrSel||"Весь отдел")}</span><span style="color:var(--ink-4);font-size:10px">${S.calMgrOpen?'▲':'▼'}</span></button>${_ddMenu}</div>`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь горячих сделок ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). ВАЖНО: «В работе (на конец)» - это СНИМОК, сколько оффер-сделок открыто на конец периода (ещё не ушли в Успех/Отказ). А числа в строках КП / Решение / Долгострой (их Σ) - это ПОТОК: сколько сделок ЗАШЛО на стадию за период, а не сколько там стоит сейчас. Поэтому их сумма меньше «В работе» и в неё не складывается. Чтобы увидеть снимок «сколько сделок стоит на стадии прямо сейчас», разверни строку стадии стрелкой - сумма её возрастных когорт и есть снимок по стадии (например КП сейчас держит заметно больше, чем зашло за период). Небольшая часть «в работе» может стоять на прочих открытых стадиях вне этих трёх. Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Строки «В работе», КП, Решение и Долгострой разворачиваются глубже: менеджер, а внутри - возрастные когорты (новые ≤14 / застой 14-30 / брошенные 30+ дн) по сделкам, стоящим на стадии на конец периода, с долей от неё. Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:8px;align-items:center">${mgrSelHTML}${unitSeg}</div></div><div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">Календарь горячих сделок ${info('Тепловой календарь по датам событий. Пришло / В работе (снимок) / перемещения по стадиям (КП, Решение, Долгострой, Успех-предоплата, Отказ). ВАЖНО: «В работе (на конец)» - это СНИМОК, сколько оффер-сделок открыто на конец периода (ещё не ушли в Успех/Отказ). А числа в строках КП / Решение / Долгострой (их Σ) - это ПОТОК: сколько сделок ЗАШЛО на стадию за период, а не сколько там стоит сейчас. Поэтому их сумма меньше «В работе» и в неё не складывается. Чтобы увидеть снимок «сколько сделок стоит на стадии прямо сейчас», разверни строку стадии стрелкой - сумма её возрастных когорт и есть снимок по стадии (например КП сейчас держит заметно больше, чем зашло за период). Небольшая часть «в работе» может стоять на прочих открытых стадиях вне этих трёх. Клик по строке этапа раскрывает её по всем менеджерам (строка отдела + строки менеджеров). Строки «В работе», КП, Решение и Долгострой разворачиваются глубже: менеджер, а внутри - возрастные когорты (новые ≤14 / застой 14-30 / брошенные 30+ дн) по сделкам, стоящим на стадии на конец периода, с долей от неё. Клик по ячейке - сами сделки. Переключатель Кол-во/Выручка. Σ - итог за период. Даты из истории стадий, зависят от периода и гранулярности сверху.')}</div><div class="card-sub">приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${mgrSelHTML}${wipModeSeg}${unitSeg}</div></div><div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${mgrSel?esc(mgrSel):"Весь отдел"} · календарь движения сделок${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====

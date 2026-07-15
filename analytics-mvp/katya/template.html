@@ -2883,6 +2883,16 @@ function renderKPIsCompare(){
     return `<span class="${good?'badge-up':'badge-dn'}">${pos?upArr:dnArr}${pos?'+':'−'}${Math.abs(v).toFixed(1).replace('.',',')}%</span>`;
   };
   const sub = '<span class="kpi-sub">к периоду А</span>';
+  // Возвраты OZON по периодам A/B (реальный дневной ряд returns/units).
+  const RET_D = window.__DAILY_RET_REAL || [], ORD_D = window.__DAILY_ORD_REAL || [];
+  const retSrc = RET_D.length > 0;
+  const bRetCnt = Math.round(sumRangeDates(RET_D, cc.bFrom, cc.bTo)), bRetOrd = sumRangeDates(ORD_D, cc.bFrom, cc.bTo);
+  const bRetRate = bRetOrd > 0 ? bRetCnt / bRetOrd * 100 : 0;
+  const aRetOrd = sumRangeDates(ORD_D, cc.aFrom, cc.aTo), aRetCnt = sumRangeDates(RET_D, cc.aFrom, cc.aTo);
+  const aRetRate = aRetOrd > 0 ? aRetCnt / aRetOrd * 100 : 0;
+  const retCell = retSrc
+    ? `<div class="kpi-cell c-pink"><div class="kpi-k">Возвраты <span style="color:var(--ink-3);font-weight:500">(OZON)</span></div><div class="kpi-v num"><span data-anim="${bRetRate}" data-dec="1">0,0</span><span class="u">%</span></div><div class="kpi-row">${badgePct(aRetRate, bRetRate, 'inv')}${sub}</div></div>`
+    : `<div class="kpi-cell c-pink"><div class="kpi-k">Возвраты</div><div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div><div class="kpi-row"><span class="kpi-sub">нет источника</span></div></div>`;
   $('#kpi-strip').innerHTML = `
     <div class="kpi-cell hero">
       <div class="kpi-k">Выручка · Период Б</div>
@@ -2904,11 +2914,7 @@ function renderKPIsCompare(){
       <div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div>
       <div class="kpi-row"><span class="kpi-sub">нет источника (нужен Roistat / Bitrix)</span></div>
     </div>
-    <div class="kpi-cell c-pink">
-      <div class="kpi-k">Возвраты</div>
-      <div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div>
-      <div class="kpi-row"><span class="kpi-sub">нет источника (нужен 1С)</span></div>
-    </div>
+    ${retCell}
   `;
   $$('[data-anim]').forEach(el=>{
     const to = parseFloat(el.dataset.anim), dec = parseInt(el.dataset.dec);
@@ -2970,6 +2976,19 @@ function renderKPIs(){
     const v = (curV - prevV)/prevV*100, pos = v >= 0;
     return `<span class="${pos?'badge-up':'badge-dn'}">${pos?upArr:dnArr}${pos?'+':'−'}${Math.abs(v).toFixed(1).replace('.',',')}%</span><span class="kpi-sub">${cmpLbl}</span>`;
   };
+
+  // Возвраты OZON за период: реальный дневной ряд (returns/units из daily_totals).
+  // Ставка = возвраты ÷ заказано × 100. Меньше = лучше (инверсная полярность бейджа).
+  const RET_D = window.__DAILY_RET_REAL || [], ORD_D = window.__DAILY_ORD_REAL || [];
+  const retSrc = RET_D.length > 0;
+  const retCnt = Math.round(sumRange(RET_D, startIdx, endIdx));
+  const retOrd = sumRange(ORD_D, startIdx, endIdx);
+  const retRate = retOrd > 0 ? (retCnt / retOrd * 100) : 0;
+  const retRatePrev = (prevOK && retSrc) ? (function(){ const rc = sumRange(RET_D, prevStart, prevEnd), oc = sumRange(ORD_D, prevStart, prevEnd); return oc > 0 ? rc / oc * 100 : null; })() : null;
+  const retBadge = (retRatePrev != null) ? (function(){ const d = retRate - retRatePrev, pos = d <= 0; return `<span class="${pos?'badge-up':'badge-dn'}">${pos?dnArr:upArr}${d<=0?'−':'+'}${Math.abs(d).toFixed(1).replace('.',',')} п.п.</span><span class="kpi-sub">${cmpLbl}</span>`; })() : `<span class="kpi-sub">${retCnt} шт возвращено</span>`;
+  const retCell = retSrc
+    ? `<div class="kpi-cell c-pink"><div class="kpi-k">Возвраты <span style="color:var(--ink-3);font-weight:500">(OZON)</span></div><div class="kpi-v num"><span data-anim="${retRate}" data-dec="1">0,0</span><span class="u">%</span></div><div class="kpi-row">${retBadge}</div></div>`
+    : `<div class="kpi-cell c-pink"><div class="kpi-k">Возвраты</div><div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div><div class="kpi-row"><span class="kpi-sub">нет источника</span></div></div>`;
   $('#kpi-strip').innerHTML = `
     <div class="kpi-cell hero">
       <div class="kpi-k">Выручка · ${periodLabel()}</div>
@@ -2991,11 +3010,7 @@ function renderKPIs(){
       <div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div>
       <div class="kpi-row"><span class="kpi-sub">нет источника (нужен Roistat / Bitrix)</span></div>
     </div>
-    <div class="kpi-cell c-pink">
-      <div class="kpi-k">Возвраты</div>
-      <div class="kpi-v num"><span class="kpi-na" style="font-size:21px">нет данных</span></div>
-      <div class="kpi-row"><span class="kpi-sub">нет источника (нужен 1С)</span></div>
-    </div>
+    ${retCell}
   `;
   $$('[data-anim]').forEach(el=>{
     const to = parseFloat(el.dataset.anim), dec = parseInt(el.dataset.dec);

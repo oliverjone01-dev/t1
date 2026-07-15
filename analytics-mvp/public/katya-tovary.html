@@ -2005,10 +2005,16 @@ function _ohSum(daily, s, e){ let a=0; for(let i=s;i<=e;i++) a+=daily[i]||0; ret
 function _ohBuckets(){
   const r=getDateRange(), p=state.period, out=[];
   const fmtDM=i=>{const d=new Date(Date.UTC(2025,3,1)+i*86400000);return String(d.getUTCDate()).padStart(2,'0')+'.'+String(d.getUTCMonth()+1).padStart(2,'0');};
-  if(p==='today'||p==='7d'||p==='30d'){ for(let i=r.startIdx;i<=r.endIdx;i++) out.push({s:i,e:i,label:fmtDM(i)}); }
-  else if(p==='90d'){ for(let s=r.startIdx;s<=r.endIdx;s+=7){ const e=Math.min(s+6,r.endIdx); out.push({s,e,label:fmtDM(s)}); } }
-  else { let cum=0; for(let m=0;m<NMONTHS;m++){ const ms=cum, me=cum+DAYS_IN_MONTH_2025[m]-1; cum+=DAYS_IN_MONTH_2025[m]; if(me>=r.startIdx&&ms<=r.endIdx) out.push({s:Math.max(ms,r.startIdx),e:Math.min(me,r.endIdx),label:(MONTHS[m]?MONTHS[m].m:'M'+(m+1))}); } }
-  return {buckets:out, range:r};
+  // Гранулярность: стандартные кнопки как раньше; для «Свой» (custom) — по длине окна,
+  // чтобы короткий период не сжимался в один месяц (Иван: разбить по дням).
+  const days=r.endIdx-r.startIdx+1;
+  const daily=(p==='today'||p==='7d'||p==='30d')||(p==='custom'&&days<=45);
+  const weekly=(p==='90d')||(p==='custom'&&days>45&&days<=120);
+  let gran;
+  if(daily){ gran='по дням'; for(let i=r.startIdx;i<=r.endIdx;i++) out.push({s:i,e:i,label:fmtDM(i)}); }
+  else if(weekly){ gran='по неделям'; for(let s=r.startIdx;s<=r.endIdx;s+=7){ const e=Math.min(s+6,r.endIdx); out.push({s,e,label:fmtDM(s)}); } }
+  else { gran='по месяцам'; let cum=0; for(let m=0;m<NMONTHS;m++){ const ms=cum, me=cum+DAYS_IN_MONTH_2025[m]-1; cum+=DAYS_IN_MONTH_2025[m]; if(me>=r.startIdx&&ms<=r.endIdx) out.push({s:Math.max(ms,r.startIdx),e:Math.min(me,r.endIdx),label:(MONTHS[m]?MONTHS[m].m:'M'+(m+1))}); } }
+  return {buckets:out, range:r, gran};
 }
 // ── Мультивыбор: массив значений ([] = все) ──
 function _selOn(a){ return Array.isArray(a) && a.length>0; }
@@ -2043,7 +2049,7 @@ function renderOrdersHeat(){
   if(_selOn(A.subcat))   pool=pool.filter(p=>A.subcat.includes(p.subcatId));
   if(_selOn(A.line))     pool=pool.filter(p=>A.line.includes(deriveLine(p)));
   if(_selOn(A.model))    pool=pool.filter(p=>A.model.some(mv=>modelMatches(p,mv)));
-  const {buckets,range}=_ohBuckets();
+  const {buckets,range,gran}=_ohBuckets();
   const drill=(pool.length===1 && pool[0].variants && pool[0].variants.length);
   let items=drill
     ? pool[0].variants.map(v=>({label:v.sku, sub:v.sub, mo:v.mo||[]}))
@@ -2051,7 +2057,7 @@ function renderOrdersHeat(){
   items.forEach(it=> it._t=_ohOrdersMonthly(it.mo, range.startIdx, range.endIdx));
   items.sort((a,b)=>b._t-a._t);
   const total=items.length, MAX=20;
-  const gran=(state.period==='today'||state.period==='7d'||state.period==='30d')?'по дням':(state.period==='90d'?'по неделям':'по месяцам');
+  // gran приходит из _ohBuckets (учитывает длину «Свой»-периода).
   // ── Каскад опций фильтра (мультивыбор, без Класса) ──
   const passCat=p=>_selHas(A.category,p.groupId);
   const passSub=p=>_selHas(A.subcat,p.subcatId);

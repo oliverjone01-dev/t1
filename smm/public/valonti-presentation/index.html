@@ -38,8 +38,8 @@ img{max-width:100%;display:block}
 .track{display:flex;height:100%;transition:transform .8s var(--ease);will-change:transform}
 .slide{
   flex:0 0 100%;height:100%;position:relative;overflow-y:auto;overflow-x:hidden;
-  display:flex;flex-direction:column;justify-content:center;
-  padding:clamp(28px,5vw,84px) clamp(22px,6vw,110px);
+  display:flex;flex-direction:column;justify-content:safe center;
+  padding:clamp(76px,8vh,104px) clamp(22px,6vw,110px) clamp(64px,8vh,88px);
   scrollbar-width:none;
 }
 .slide::-webkit-scrollbar{display:none}
@@ -129,12 +129,16 @@ h2 .em{color:var(--gold)}
 .slot p{font-size:15px;color:var(--ink2);line-height:1.55}.slot p b{color:var(--ink);font-weight:600}
 
 /* materials swatches */
-.matcols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:6px}
-.matcol h4{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:baseline;gap:9px}
-.matcol h4 .c{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.1em}
-.sw{display:flex;flex-wrap:wrap;gap:7px}
-.sw span{font-size:12.5px;color:var(--ink2);border:1px solid var(--line2);border-radius:var(--pill);padding:6px 12px;background:var(--s1);transition:.25s var(--ease)}
+.matrows{display:flex;flex-direction:column}
+.matrow{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:start;padding:18px 0;border-top:1px solid var(--line)}
+.matrow:last-child{border-bottom:1px solid var(--line)}
+.matrow .ml{font-size:15px;font-weight:800;letter-spacing:.02em;padding-top:5px}
+.matrow .ml b{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw span{font-size:13px;color:var(--ink2);border:1px solid var(--line2);border-radius:var(--pill);padding:7px 13px;background:var(--s1);transition:.25s var(--ease)}
 .sw span:hover{border-color:var(--gold-line);color:var(--ink)}
+.sw span.opt{color:var(--gold);border-color:var(--gold-line);background:var(--gold-soft)}
+@media(max-width:640px){.matrow{grid-template-columns:1fr;gap:10px}}
 
 /* process flow */
 .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -240,14 +244,14 @@ h2 .em{color:var(--gold)}
       <div class="bgimg"><img src="assets/table-agisum.jpg" alt="Стол Agisum · Nero Marquina и латунь"></div>
       <div class="veil"></div>
       <div class="slide-in">
-        <div class="eyebrow rv"><span class="bar"></span>bespoke · камень · металл · стекло · B2D</div>
+        <div class="eyebrow rv"><span class="bar"></span>bespoke · камень · металл · стекло</div>
         <h1 class="rv">VALONTI</h1>
         <h1 class="rv" style="font-size:clamp(24px,4.2vw,50px);margin-top:12px"><span class="hl">Инструмент дизайнера.</span></h1>
         <p class="lead rv" style="margin-top:24px">Материалы и мастерство для тех, кто создаёт пространство, за которое готов <b>поставить своё имя</b>. Покупатель здесь не конечный клиент, а автор интерьера.</p>
         <div class="stamps rv">
           <div class="stamp">Мебель из <b>камня, металла, стекла</b></div>
-          <div class="stamp">По индивидуальным заказам</div>
-          <div class="stamp">Производство группы <b>GENGROUP</b></div>
+          <div class="stamp">Bespoke по чертежу</div>
+          <div class="stamp">Собственное производство · мастера <b>15+ лет</b></div>
         </div>
       </div>
     </section>
@@ -257,10 +261,10 @@ h2 .em{color:var(--gold)}
       <div class="slide-in">
         <div class="kick2 rv">Кто мы для вас</div>
         <div class="big-quote rv">VALONTI это про <span class="g">материал, который вы выбираете</span>, и руки, которые сделают <span class="g">по вашему чертежу</span>.</div>
-        <p class="lead rv" style="margin-top:30px">Не ярлык, а высказывание. Объект собирают мастера на собственном производстве группы: камень в массиве, металл, стекло. Узел и допуск решаются внутри и не возвращаются к вам вопросом «а как вы хотите».</p>
+        <p class="lead rv" style="margin-top:30px">Не ярлык, а высказывание. Объект собирают мастера на собственном производстве: камень в массиве, металл, стекло. Узел и допуск решаются внутри и не возвращаются к вам вопросом «а как вы хотите».</p>
         <div class="metrics rv" style="margin-top:34px">
           <div class="metric"><div class="num">15+</div><div class="cap">лет опыта у мастеров на ключевых этапах</div></div>
-          <div class="metric"><div class="num">1</div><div class="cap">производство, один станочный парк группы</div></div>
+          <div class="metric"><div class="num">1</div><div class="cap">производство, один станочный парк на серию и нестандарт</div></div>
           <div class="metric"><div class="num">24 ч</div><div class="cap">на смету по вашему ТЗ</div></div>
         </div>
       </div>
@@ -270,15 +274,15 @@ h2 .em{color:var(--gold)}
     <section class="slide">
       <div class="slide-in">
         <div class="eyebrow rv"><span class="bar"></span>что такое VALONTI</div>
-        <h2 class="rv">Дизайнерская мебель <span class="em">по индивидуальным заказам</span></h2>
-        <p class="lead rv">Российский производитель мебели из металла, стекла и камня. Работаем с проектом, а не с заказом, и говорим спецификацией, а не прайсом.</p>
+        <h2 class="rv">Мебель из камня, металла <span class="em">и стекла по чертежу</span></h2>
+        <p class="lead rv">Российский производитель. Берём и проект целиком, и штучную позицию под комплектацию, но всегда говорим спецификацией, а не прайсом.</p>
         <div class="grid3 rv" style="margin-top:30px">
-          <div class="card"><div class="n">Поверхности</div><h4>Столы и консоли</h4><p>Обеденные, журнальные, приставные. Камень в массиве на металлическом основании.</p></div>
-          <div class="card"><div class="n">Зеркала</div><h4>Зеркала и LED</h4><p>Настенные и напольные, рама любого профиля, окрашивание по RAL, подсветка.</p></div>
-          <div class="card"><div class="n">Корпус</div><h4>Стеллажи и банкетки</h4><p>Открытые стеллажи, вешалки, банкетки. Металл, стекло, каменные вставки.</p></div>
-          <div class="card"><div class="n">Зонирование</div><h4>Перегородки</h4><p>Фиксированные, распашные, раздвижные, каскадные, реечные.</p></div>
-          <div class="card"><div class="n">Комбинации</div><h4>Материал под проект</h4><p>Камень, металл и стекло сходятся в одном изделии на одном производстве.</p></div>
-          <div class="card"><div class="n">Формат</div><h4>Bespoke по чертежу</h4><p>От эскиза до монтажа под ключ. Отдельная контрольная линия под нестандарт.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Столы обеденные и журнальные</h4><p>Камень в массиве на металлическом основании. Круг, овал, прямоугольник под размер проекта.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Консоли и столики</h4><p>Приставные и акцентные. Комбинация камня, металла и стекла в одном предмете.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Зеркала и LED</h4><p>Настенные и напольные, рама любого профиля, окрашивание по RAL, подсветка.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Стеллажи</h4><p>Открытые корпуса, металлическая рама, каменные и стеклянные полки.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Банкетки и вешалки</h4><p>Металл, стекло, каменные вставки. Штучные предметы под зону.</p></div>
+          <div class="card"><div class="n">Категория</div><h4>Перегородки</h4><p>Фиксированные, распашные, раздвижные, каскадные, реечные.</p></div>
         </div>
       </div>
     </section>
@@ -289,40 +293,34 @@ h2 .em{color:var(--gold)}
         <div class="eyebrow rv"><span class="bar"></span>позиционирование</div>
         <h2 class="rv">Где мы стоим <span class="em">на вашей полке решений</span></h2>
         <div class="slots rv" style="margin-top:26px">
-          <div class="slot"><div class="k">Для кого</div><p>Дизайнеры и архитекторы, ведущие проекты для клиентов, которым нужен <b>уровень европейского импорта</b> без долгого ожидания и наценки за логистику.</p></div>
+          <div class="slot"><div class="k">Для кого</div><p>Дизайнеры и архитекторы, которым нужен <b>материал и исполнение уровня проекта</b> без долгого ожидания и наценки за логистику.</p></div>
           <div class="slot"><div class="k">Что даём</div><p><b>Bespoke-мебель из камня в массиве, металла и стекла</b> в режиме диалога на уровне материала, с комиссией и сопровождением дизайнера.</p></div>
-          <div class="slot"><div class="k">В отличие от</div><p>Типовых поставщиков отделки: мы работаем <b>с проектом, а не с заказом</b>, и говорим спецификацией, а не прайсом.</p></div>
-          <div class="slot"><div class="k">Почему верить</div><p>Та же площадка группы <b>плюс отдельная контрольная линия под bespoke</b>: камень, ручная финишная отделка, именная бирка мастера.</p></div>
+          <div class="slot"><div class="k">В отличие от</div><p>Типовых поставщиков отделки: мы работаем <b>по спецификации проекта</b>, а не по прайсу со склада.</p></div>
+          <div class="slot"><div class="k">Почему верить</div><p>Собственное производство <b>плюс отдельная контрольная линия под bespoke</b>: камень, ручная финишная отделка, именная бирка мастера.</p></div>
         </div>
-        <p class="footnote rv">Интонация бутика: Bottega Veneta, не Versace. Гордость направлена на высказывание, а не на ярлык.</p>
+        <p class="footnote rv">Мы не соревнуемся вывеской. Соревнуемся тем, что останется в проекте через десять лет.</p>
       </div>
     </section>
 
     <!-- 05 · МАТЕРИАЛЫ -->
     <section class="slide">
-      <div class="slide-in two wide-img">
-        <div class="stack">
-          <div class="eyebrow rv"><span class="bar"></span>высококлассные материалы</div>
-          <h2 class="rv">Материал говорит <span class="em">сам за себя</span></h2>
-          <p class="lead rv">Не нужно объяснять, почему камень хорош. Нужно правильно его обработать. Палитра материалов собирается под проект, а не под склад.</p>
-          <div class="matcols rv">
-            <div class="matcol">
-              <h4>Камень <span class="c">11</span></h4>
-              <div class="sw"><span>Statuario Maximus</span><span>Vanilla Noir</span><span>Bianco Drift</span><span>Impala Black</span><span>Charcoal</span><span>Napoli Beige</span><span>Granada</span><span>St.&nbsp;Helens White</span><span>Shitake</span><span>Sleek Concrete</span><span>Cloudburst</span></div>
-            </div>
-            <div class="matcol">
-              <h4>Металл <span class="c">12 отделок</span></h4>
-              <div class="sw"><span>Золото мат/глянец</span><span>Бронза</span><span>Хром</span><span>Серебро</span><span>Шампань</span><span>Слоновая кость</span><span>Чёрный матовый</span><span>Белый матовый</span><span>RAL по запросу</span></div>
-            </div>
-            <div class="matcol">
-              <h4>Стекло <span class="c">6 типов</span></h4>
-              <div class="sw"><span>Осветлённое</span><span>Тонированное</span><span>Рифлёное</span><span>Крашеное</span><span>Матовое</span></div>
-            </div>
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>материалы под проект</div>
+        <h2 class="rv">Материал говорит <span class="em">сам за себя</span></h2>
+        <p class="lead rv">Не нужно объяснять, почему камень хорош. Нужно правильно его обработать. Палитра собирается под проект, а не под склад.</p>
+        <div class="matrows rv" style="margin-top:24px">
+          <div class="matrow">
+            <div class="ml">Камень <b>11</b></div>
+            <div class="sw"><span>Statuario Maximus</span><span>Vanilla Noir</span><span>Bianco Drift</span><span>Impala Black</span><span>Charcoal</span><span>Napoli Beige</span><span>Granada</span><span>St.&nbsp;Helens White</span><span>Shitake</span><span>Sleek Concrete</span><span>Cloudburst</span></div>
           </div>
-        </div>
-        <div class="imgframe rv" style="min-height:340px">
-          <img src="assets/vl2-main.jpg" alt="Стеллаж VALONTI: камень, латунь, дымчатое стекло">
-          <div class="cap"><b>Стеллаж</b> · каменные полки, латунная рама, дымчатое стекло</div>
+          <div class="matrow">
+            <div class="ml">Металл <b>12 отделок</b></div>
+            <div class="sw"><span>Золото матовое</span><span>Золото сатин</span><span>Золото глянец</span><span>Серебро</span><span>Хром сатин</span><span>Хром глянец</span><span>Бронза сатин</span><span>Бронза глянец</span><span>Шампань</span><span>Слоновая кость</span><span>Белый матовый</span><span>Чёрный матовый</span><span class="opt">+ RAL под проект</span></div>
+          </div>
+          <div class="matrow">
+            <div class="ml">Стекло <b>6 типов</b></div>
+            <div class="sw"><span>Осветлённое</span><span>Тонированное светлое</span><span>Тонированное тёмное</span><span>Рифлёное</span><span>Крашеное</span><span>Матовое</span></div>
+          </div>
         </div>
       </div>
     </section>
@@ -335,7 +333,7 @@ h2 .em{color:var(--gold)}
         <p class="lead rv">Конкретный мастер, конкретный проект, именная бирка. Изделие должно хорошо смотреться и через десять лет.</p>
         <div class="gal rv">
           <div class="imgframe"><img src="assets/table-agisum.jpg" alt="Обеденный стол Agisum"><div class="cap"><b>Стол Agisum</b> · столешница камень в массиве, рифлёное латунное основание</div></div>
-          <div class="imgframe"><img src="assets/dsc3228.jpg" alt="Объекты VALONTI в интерьере"><div class="cap"><b>В интерьере</b> · каменный стол и латунные зеркала в проекте</div></div>
+          <div class="imgframe"><img src="assets/dsc3228.jpg" alt="Камень и латунь в жилом интерьере"><div class="cap"><b>В интерьере</b> · камень и латунь в жилой зоне</div></div>
           <div class="imgframe"><img src="assets/dsc3276.webp" alt="Зеркальная композиция в интерьере"><div class="cap"><b>Зеркала</b> · арочная композиция, латунный профиль</div></div>
         </div>
       </div>
@@ -348,11 +346,11 @@ h2 .em{color:var(--gold)}
         <h2 class="rv">Высокоточная техника <span class="em">плюс рука мастера</span></h2>
         <p class="lead rv">Детали создаются на современном оборудовании, ключевые этапы выполняют мастера с опытом более 15 лет, финиш оттачивается вручную.</p>
         <div class="grid3 rv" style="margin-top:30px">
-          <div class="card"><div class="n">Происхождение</div><h4>Камень с паспортом</h4><p>Карьер и партия по запросу. <b>Камень в массиве</b>, не имитация и не «похожее на».</p></div>
-          <div class="card"><div class="n">Металл</div><h4>PVD, не покраска</h4><p>Покрытие физическим осаждением. Устойчивость задокументирована, не сотрётся за год.</p></div>
+          <div class="card"><div class="n">Происхождение</div><h4>Камень в массиве</h4><p>Настоящий камень, не имитация и не «похожее на». Карьер и партию уточняем по запросу под проект.</p></div>
+          <div class="card"><div class="n">Металл</div><h4>PVD, не покраска</h4><p>Покрытие физическим осаждением. Стабильнее краски и <b>не сотрётся за год</b>.</p></div>
           <div class="card"><div class="n">Точность</div><h4>ЧПУ-раскрой</h4><p>Стекло и камень режутся на станке, стык слэбов ведём единым узором прожилки.</p></div>
-          <div class="card"><div class="n">Рука</div><h4>Финиш вручную</h4><p>Мастера 15+ лет на сборке и финишной отделке. Именная бирка на каждой работе.</p></div>
-          <div class="card"><div class="n">База группы</div><h4>Одно производство</h4><p>Тот же станочный парк группы, что делает серию, делает и ваш нестандарт.</p></div>
+          <div class="card"><div class="n">Рука</div><h4>Финиш вручную</h4><p>Мастера 15+ лет на сборке и финишной отделке. Каждая работа именная.</p></div>
+          <div class="card"><div class="n">База</div><h4>Одно производство</h4><p>Тот же станочный парк, что делает серию, делает и ваш нестандарт.</p></div>
           <div class="card"><div class="n">Контроль</div><h4>Отдельная линия bespoke</h4><p>Нестандарт идёт по контрольной линии под проект, а не в общем потоке.</p></div>
         </div>
       </div>
@@ -365,10 +363,10 @@ h2 .em{color:var(--gold)}
         <h2 class="rv">Уровень импорта <span class="em">без ожидания импорта</span></h2>
         <div class="diff rv" style="margin-top:26px">
           <div class="dcol"><div class="t">Материал</div><h4>Комбинаций больше</h4><p>Много сочетаний камня в массиве и отделок металла в <b>одном производстве</b> против одного-трёх вариантов у типовых поставщиков. Камень это центр компетенции.</p></div>
-          <div class="dcol"><div class="t">Сервис</div><h4>Проектный, не складской</h4><p>Спецификация, sample-box с образцами в руки, 3D-визуализация в проекте, именная бирка мастера. <b>Сопровождение от эскиза до монтажа.</b></p></div>
+          <div class="dcol"><div class="t">Сервис</div><h4>Проектный, не складской</h4><p>Спецификация, sample-box с образцами в руки, 3D-визуализация в проекте. <b>Сопровождение от эскиза до монтажа под ключ.</b></p></div>
           <div class="dcol"><div class="t">Срок</div><h4>14&ndash;45 дней локально</h4><p>Bespoke <b>без таможни, валютных скачков и логистической наценки</b>, при сопоставимом камне и металле. Смета за 24 часа.</p></div>
         </div>
-        <p class="footnote rv">Сроки VALONTI 14&ndash;45 дней указаны в каталоге бренда. Сравнение с импортом приводится как ориентир рынка, не как гарантированный конкурентный факт.</p>
+        <p class="footnote rv">Срок зависит от сложности изделия. Точную дату называем вместе со сметой в течение 24 часов.</p>
       </div>
     </section>
 
@@ -384,10 +382,10 @@ h2 .em{color:var(--gold)}
           <div class="step"><div class="k">03</div><h5>CAD и 3D</h5><p>Чертежи и 3D-модель для согласования с вашим клиентом до запуска.</p></div>
           <div class="step"><div class="k">04</div><h5>Изготовление</h5><p>14&ndash;45 дней на контрольной линии bespoke. Монтаж под ключ, гарантия 12 месяцев.</p></div>
         </div>
-        <div class="metrics rv" style="margin-top:22px">
-          <div class="metric"><div class="num">Sample-box</div><div class="cap">образцы камня, металла и стекла под проект в руки</div></div>
-          <div class="metric"><div class="num">Комиссия</div><div class="cap">программа авторизованных дизайнеров, условия по договору</div></div>
-          <div class="metric"><div class="num">РФ + KZ</div><div class="cap">логистика, упаковка, страхование по запросу</div></div>
+        <div class="grid3 rv" style="margin-top:22px">
+          <div class="card"><div class="n">Образцы</div><h4>Sample-box</h4><p>Образцы камня, металла и стекла под проект вам в руки, до запуска.</p></div>
+          <div class="card"><div class="n">Партнёрство</div><h4>Комиссия дизайнеру</h4><p>Вознаграждение за заведённый проект. Условия фиксируем договором.</p></div>
+          <div class="card"><div class="n">Доставка</div><h4>Россия и Казахстан</h4><p>Логистика, упаковка, страхование по запросу. Монтаж под ключ.</p></div>
         </div>
       </div>
     </section>
@@ -399,10 +397,10 @@ h2 .em{color:var(--gold)}
         <h2 class="rv">Прямые вопросы <span class="em">прямые ответы</span></h2>
         <div class="qa rv" style="margin-top:24px">
           <div class="qrow"><div class="q">Сделаете точно по моему чертежу или предложите как у вас принято</div><div class="a">По чертежу. Bespoke это <b>отдельная контрольная линия</b>, а не адаптация серии.</div></div>
-          <div class="qrow"><div class="q">У вас PVD-осаждение или крашеный металл, который сотрётся за год</div><div class="a">PVD, физическое осаждение. <b>Устойчивость задокументирована.</b></div></div>
+          <div class="qrow"><div class="q">У вас PVD-осаждение или крашеный металл, который сотрётся за год</div><div class="a">PVD, физическое осаждение. <b>Стабильнее краски, не сотрётся за год.</b></div></div>
           <div class="qrow"><div class="q">Как стыкуете слэбы, чтобы прожилка шла единым узором</div><div class="a">Ведём рисунок камня <b>единым узором</b>, раскрой на ЧПУ, финиш вручную.</div></div>
           <div class="qrow"><div class="q">Дадите образцы в руки, чтобы я показал клиенту до запуска</div><div class="a">Да, <b>sample-box</b> под проект плюс 3D-визуализация для согласования.</div></div>
-          <div class="qrow"><div class="q">За этим стоит реальный цех или перепродажа под красивым именем</div><div class="a">Собственное производство группы, <b>один станочный парк</b>, мастера 15+ лет.</div></div>
+          <div class="qrow"><div class="q">За этим стоит реальный цех или перепродажа под красивым именем</div><div class="a">Собственное производство, <b>один станочный парк</b>, мастера 15+ лет.</div></div>
           <div class="qrow"><div class="q">Реально уложитесь в срок или это маркетинг</div><div class="a">Срок в каталоге <b>14&ndash;45 дней</b> по сложности, монтаж под ключ, гарантия 12 месяцев.</div></div>
         </div>
       </div>
@@ -413,15 +411,15 @@ h2 .em{color:var(--gold)}
       <div class="slide-in">
         <div class="eyebrow rv"><span class="bar"></span>для кого мы работаем</div>
         <div class="persona rv">
-          <div class="lbl">Камертон адресата · Анна, 38, главный архитектор бюро</div>
-          <p>Знает разницу Travertino Navona и Romano на ощупь. Не объясняет базовых вещей. Если что-то не так, <b>не скандалит, но больше не возвращается</b>. Ценит профессиональное уважение, предсказуемость в деталях и партнёрство без иерархии.</p>
+          <div class="lbl">Наш клиент · Анна, 38, главный архитектор бюро</div>
+          <p>Отличает Statuario Maximus от Impala Black на ощупь. Не объясняет базовых вещей. Если что-то не так, <b>не скандалит, но больше не возвращается</b>. Ценит профессиональное уважение, предсказуемость в деталях и партнёрство без иерархии.</p>
         </div>
         <div class="seg rv">
-          <div class="card"><div class="n">Дизайнер-партнёр</div><h4>Ведёт проект клиента</h4><p>Нужен премиум-материал руками мастеров, без компромисса. Триггер: новый проект под конкретное ТЗ.</p></div>
+          <div class="card"><div class="n">Дизайнер-партнёр</div><h4>Ведёт проект клиента</h4><p>Нужен камень в массиве руками мастеров, а не имитация. Триггер: новый проект под конкретное ТЗ.</p></div>
           <div class="card"><div class="n">Архитектор</div><h4>Держит геометрию</h4><p>Производство под кастом, которое не боится сложной геометрии. Триггер: стадия рабочей документации.</p></div>
           <div class="card"><div class="n">Декоратор · комплектовщик</div><h4>Закрывает штучную позицию</h4><p>Предмет, которого нет в серии, под финальную комплектацию объекта. Триггер: сборка проекта.</p></div>
         </div>
-        <p class="footnote rv">Думаем тоном Анны, снимаем голосом мастера-эксперта. Решение в премиуме принимается через дизайнера, имя бренда стоит последним в списке критериев.</p>
+        <p class="footnote rv">Решение по такой мебели принимается через дизайнера. Имя бренда стоит последним в списке критериев, первым идёт материал и исполнение.</p>
       </div>
     </section>
 
@@ -432,9 +430,10 @@ h2 .em{color:var(--gold)}
         <div class="big-quote rv">Не стыдно <span class="g">показать в портфолио</span> через годы.</div>
         <p class="lead rv" style="margin-top:26px">Материал и исполнение на уровне, который вы закладываете в проект и не беспокоитесь, что через полгода клиент напишет про качество.</p>
         <div class="cta-box rv">
-          <a class="cta-btn" href="mailto:info@genglass.ru?subject=VALONTI%20%E2%80%94%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20%D0%BF%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%83">Пришлите чертёж &rarr;</a>
-          <div class="cta-mut">Смета за <b>24 часа</b> · sample-box под проект · программа авторизованных дизайнеров</div>
+          <a class="cta-btn" href="mailto:info@genglass.ru?subject=VALONTI%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20%D0%BF%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%83">Пришлите чертёж &rarr;</a>
+          <a class="cta-btn" style="background:transparent;color:var(--gold);border:1px solid var(--gold-line);box-shadow:none" href="mailto:info@genglass.ru?subject=VALONTI%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20sample-box">Ещё нет чертежа? Sample-box</a>
         </div>
+        <div class="cta-mut rv" style="margin-top:16px">Смета за <b>24 часа</b> · образцы под проект · комиссия дизайнеру по договору</div>
         <div class="contacts rv">
           <div>Почта: <a href="mailto:info@genglass.ru">info@genglass.ru</a></div>
           <div>Телефон: <a href="tel:+74958450535">8 (495) 845-05-35</a></div>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Приложение D. План приведения к v2.1 — GENGROUP</title>
+  <meta name="description" content="Бренд-глоссарий GENGROUP v2.1." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-current="d">
+  <aside class="sidebar" id="sidebar" aria-label="Навигация по глоссарию">
+    <div class="sidebar__progress" aria-hidden="true">
+      <div class="sidebar__progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="sidebar__header">
+      <a href="../index.html" class="sidebar__logo">
+        <span class="sidebar__brand">GENGROUP</span>
+        <span class="sidebar__sub">Бренд-глоссарий v2.1</span>
+      </a>
+      <button class="sidebar__close" id="sidebar-close" aria-label="Закрыть меню" type="button">&times;</button>
+    </div>
+    <div class="sidebar__search">
+      <input type="search" class="sidebar__search-input" id="search-input"
+             placeholder="Поиск по глоссарию..." autocomplete="off" />
+      <div class="sidebar__results" id="search-results" role="listbox" aria-label="Результаты поиска"></div>
+    </div>
+    <nav class="sidebar__nav" aria-label="Оглавление">
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Разделы</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../sections/01-architecture.html" data-section="01">1. Архитектура продукта</a></li>
+          <li><a class="sidebar__link" href="../sections/02-palette.html" data-section="02">2. Палитра (Palette)</a></li>
+          <li><a class="sidebar__link" href="../sections/03-linea.html" data-section="03">3. Линия (Linea)</a></li>
+          <li><a class="sidebar__link" href="../sections/04-collezione.html" data-section="04">4. Коллекция (Collezione)</a></li>
+          <li><a class="sidebar__link" href="../sections/05-ensemble.html" data-section="05">5. Комплект (Ensemble)</a></li>
+          <li><a class="sidebar__link" href="../sections/06-model.html" data-section="06">6. Модель, артикул, размер</a></li>
+          <li><a class="sidebar__link" href="../sections/07-sales-modes.html" data-section="07">7. Режимы продаж</a></li>
+          <li><a class="sidebar__link" href="../sections/08-practice.html" data-section="08">8. Применение терминов</a></li>
+          <li><a class="sidebar__link" href="../sections/09-brand-arch.html" data-section="09">9. Brand Architecture</a></li>
+          <li><a class="sidebar__link" href="../sections/10-systems.html" data-section="10">10. Системы и поля данных</a></li>
+        </ul>
+      </div>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title">Приложения</div>
+        <ul class="sidebar__list">
+          <li><a class="sidebar__link" href="../appendix/a-dictionary.html" data-section="a">A. Алфавитный словарь</a></li>
+          <li><a class="sidebar__link" href="../appendix/b-migration.html" data-section="b">B. Миграция v1.0/v2.0 → v2.1</a></li>
+          <li><a class="sidebar__link" href="../appendix/c-history.html" data-section="c">C. История версий</a></li>
+          <li><a class="sidebar__link" href="../appendix/d-roadmap.html" data-section="d">D. План приведения к v2.1</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+  <button class="hamburger" id="hamburger" aria-label="Открыть меню" aria-expanded="false" type="button">
+    <span></span><span></span><span></span>
+  </button>
+
+  <main class="main">
+    <div class="content">
+      <nav class="crumbs" aria-label="Хлебные крошки">
+        <a href="../index.html">Глоссарий</a><span class="crumbs__sep">/</span>Приложение D. План приведения к v2.1
+      </nav>
+      <p class="page-eyebrow">Приложение D</p>
+      <h1>План приведения к стандартам v2.1</h1>
+      <p class="lead">Детальный план внедрения новой терминологии с уровнями срочности, ответственными и точками эскалации.</p>
+
+      <h2 id="timeline">D.1 Общий таймлайн</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Фаза</th><th>Срок</th><th>Содержание</th><th>Критерий завершения</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0. Экстренная</td><td>72 часа</td><td>Сайт: баннер, меню, URL</td><td>Ни одного слова «коллекция» в контексте палитры на главной</td></tr>
+            <tr><td>1. Внутренняя</td><td>14 дней</td><td>CRM, 1С, Bitrix24, скрипты</td><td>Поля «Линия» и «Маркетинговое наименование» в 1С и Bitrix24</td></tr>
+            <tr><td>2. Сайт и документы</td><td>30 дней</td><td>genglass.ru полностью, презентации, КП</td><td>SEO-аудит пройден, все публичные страницы мигрированы</td></tr>
+            <tr><td>3. Маркетплейсы</td><td>45 дней</td><td>WB, Ozon, Я.Маркет</td><td>100% карточек обновлены</td></tr>
+            <tr><td>4. Обучение</td><td>60 дней</td><td>Менеджеры, дизайнеры-партнёры</td><td>Тест на знание терминологии сдан всеми менеджерами</td></tr>
+            <tr><td>5. Аудит соответствия</td><td>90 дней</td><td>Полный аудит всех каналов</td><td>ФЕНИКС-аудит ≥ 9.5/10</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="phase-0">D.2 Фаза 0: Экстренная (72 часа)</h2>
+      <p>Владелец фазы: МАРКО #1 (CMO). Эскалация при срыве: Иван → Богдан.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0.1</td><td>Заменить баннер «Наша новая коллекция. Розовая серия» на «Весенний дроп. Палитра CIPRIA» (или аналогичная формулировка без слова «коллекция»)</td><td>Сергей</td><td>Д+1 (1 день)</td><td>МАРКО</td></tr>
+            <tr><td>0.2</td><td>Переименовать пункт меню «Коллекция TRUBIS» → «Линия TRUBIS»</td><td>Сергей</td><td>Д+1</td><td>МАРКО</td></tr>
+            <tr><td>0.3</td><td>Настроить 301-редирект: <code>/premera-rozovoj-kollekczii-mebeli/</code> → новый URL (либо <code>/palette-cipria/</code>, либо фильтр каталога)</td><td>Сергей</td><td>Д+2</td><td>СЕМЁН (SEO)</td></tr>
+            <tr><td>0.4</td><td>Проверить все H1/title/meta-description главной и страницы палитры на отсутствие «коллекция» в контексте цвета</td><td>СЕМЁН</td><td>Д+3</td><td>МАРКО</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: снимок главной страницы без слов «коллекция» в контексте цвета/палитры. Скриншот в чат CMO.</p>
+
+      <h2 id="phase-1">D.3 Фаза 1: Внутренняя (14 дней)</h2>
+      <p>Владелец фазы: Борис #11 (CRM). Эскалация при срыве: Иван.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1.1</td><td>В 1С: добавить поле «Линия» в карточку номенклатуры (справочник: TRUBIS, пусто). Заполнить для всех артикулов линии TRUBIS</td><td>Борис + 1С</td><td>Д+7</td><td>Борис</td></tr>
+            <tr><td>1.2</td><td>В 1С: добавить поле «Маркетинговое наименование» (текст). Заполнить для топ-50 артикулов</td><td>Борис + 1С</td><td>Д+14</td><td>Борис</td></tr>
+            <tr><td>1.3</td><td>В Bitrix24: добавить поле «Линия» в карточку сделки воронки GG RF Заказы</td><td>Дмитрий Янчоглов</td><td>Д+7</td><td>Борис</td></tr>
+            <tr><td>1.4</td><td>Обновить шаблоны КП в Bitrix24: замена «коллекция» → «палитра» / «линия»</td><td>Борис</td><td>Д+14</td><td>ВИКТОР</td></tr>
+            <tr><td>1.5</td><td>Разослать буклет «Архитектура продукта GENGLASS» (3 листа A4) всем менеджерам</td><td>МАРКО</td><td>Д+7</td><td>Иван</td></tr>
+            <tr><td>1.6</td><td>Провести 30-минутный брифинг для РОПов (Виталий, Ольга) по новой терминологии</td><td>ВИКТОР</td><td>Д+10</td><td>МАРКО</td></tr>
+            <tr><td>1.7</td><td>Обновить скрипты продаж: добавить реплики перевода терминологии (раздел 8.1)</td><td>ВИКТОР</td><td>Д+14</td><td>Иван</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: поле «Линия» работает в 1С и Bitrix24. РОПы подтвердили получение буклета.</p>
+
+      <h2 id="phase-2">D.4 Фаза 2: Сайт и документы (30 дней)</h2>
+      <p>Владелец фазы: СЕМЁН #17 (SEO). Эскалация при срыве: МАРКО → Иван.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>2.1</td><td>SEO-аудит всех страниц сайта: выгрузка URL, содержащих слово «коллекция» в H1/title/meta/body в контексте цвета</td><td>СЕМЁН</td><td>Д+5</td><td>МАРКО</td></tr>
+            <tr><td>2.2</td><td>Создать WooCommerce-атрибут <code>pa_liniya</code> (Линия) с значением TRUBIS. Привязать к товарам</td><td>Сергей</td><td>Д+10</td><td>СЕМЁН</td></tr>
+            <tr><td>2.3</td><td>Создать страницу <code>/line/trubis/</code> с агрегированной подборкой всех товаров линии TRUBIS через категории</td><td>Сергей</td><td>Д+20</td><td>СЕМЁН</td></tr>
+            <tr><td>2.4</td><td>Заменить все упоминания «коллекция» в контексте цвета на «палитра» по всем страницам сайта (тексты, alt, meta)</td><td>Сергей + контент</td><td>Д+25</td><td>СЕМЁН</td></tr>
+            <tr><td>2.5</td><td>Настроить 301-редиректы для всех изменённых URL</td><td>Сергей</td><td>Д+25</td><td>СЕМЁН</td></tr>
+            <tr><td>2.6</td><td>Обновить PDF-презентацию GENGLASS (текущая версия в Project Knowledge)</td><td>Маркетинг</td><td>Д+30</td><td>МАРКО</td></tr>
+            <tr><td>2.7</td><td>Проверить страницу <code>/dileram/</code> и <code>/stante-nashim-partnerom-for-designers/</code> на соответствие терминологии</td><td>Контент</td><td>Д+30</td><td>МАРКО</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: Screaming Frog-сканирование сайта не находит слово «коллекция» в контексте цвета/палитры. Все 301-редиректы возвращают 200.</p>
+
+      <h2 id="phase-3">D.5 Фаза 3: Маркетплейсы (45 дней)</h2>
+      <p>Владелец фазы: Наташа Скриптун. Эскалация при срыве: МАРКО → Иван.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>3.1</td><td>Выгрузить список всех карточек WB/Ozon/Я.Маркет, содержащих «коллекция» в заголовке/описании</td><td>Наташа</td><td>Д+5</td><td>ОЛЕГ</td></tr>
+            <tr><td>3.2</td><td>Заменить «коллекция [цвет]» → «палитра [цвет]» или «[цвет]» (без слова «коллекция») в заголовках. Приоритет: WB (наибольший трафик)</td><td>Наташа</td><td>Д+30</td><td>ОЛЕГ</td></tr>
+            <tr><td>3.3</td><td>Заменить в описаниях. Приоритет: топ-20 SKU по продажам</td><td>Наташа</td><td>Д+45</td><td>ОЛЕГ</td></tr>
+            <tr><td>3.4</td><td>Для товаров Линии TRUBIS: добавить «Линия TRUBIS» в описание (не в заголовок — маркетплейсы не всегда поддерживают)</td><td>Наташа</td><td>Д+45</td><td>ОЛЕГ</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: 100% карточек обновлены. Выборочная проверка 20 карточек ОЛЕГОМ.</p>
+
+      <h2 id="phase-4">D.6 Фаза 4: Обучение (60 дней)</h2>
+      <p>Владелец фазы: ТРЕНЕР #36. Эскалация при срыве: Иван.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>4.1</td><td>Разработать тест на знание терминологии v2.1 (15 вопросов, порог 80%)</td><td>ТРЕНЕР</td><td>Д+14</td><td>ВИКТОР</td></tr>
+            <tr><td>4.2</td><td>Провести обучение менеджеров GENGLASS (Виталий + команда)</td><td>ТРЕНЕР</td><td>Д+30</td><td>Виталий</td></tr>
+            <tr><td>4.3</td><td>Провести обучение менеджеров VALONTI</td><td>ТРЕНЕР</td><td>Д+30</td><td>Ольга</td></tr>
+            <tr><td>4.4</td><td>Провести обучение менеджеров GLASS-MEMORY</td><td>ТРЕНЕР</td><td>Д+45</td><td>РОП GM</td></tr>
+            <tr><td>4.5</td><td>Рассылка обновлённого буклета дизайнерам-партнёрам через email</td><td>Маркетинг</td><td>Д+30</td><td>МАРКО</td></tr>
+            <tr><td>4.6</td><td>Тестирование всех менеджеров (порог 80%, пересдача через 7 дней)</td><td>ТРЕНЕР</td><td>Д+60</td><td>РОПы</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: 100% менеджеров сдали тест. Результаты в Google Sheet, доступ у Ивана.</p>
+
+      <h2 id="phase-5">D.7 Фаза 5: Аудит соответствия (90 дней)</h2>
+      <p>Владелец фазы: ФЕНИКС #35. Эскалация при срыве: Иван → Богдан.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Задача</th><th>Ответственный</th><th>Дедлайн</th><th>Проверяет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>5.1</td><td>Полный аудит сайта genglass.ru: терминология, URL, meta, фильтры</td><td>ФЕНИКС</td><td>Д+90</td><td>Иван</td></tr>
+            <tr><td>5.2</td><td>Выборочный аудит 30 карточек маркетплейсов</td><td>ФЕНИКС</td><td>Д+90</td><td>Иван</td></tr>
+            <tr><td>5.3</td><td>Прослушивание 10 звонков менеджеров на предмет правильной терминологии</td><td>ФЕНИКС + КОСТЯ #18</td><td>Д+90</td><td>Иван</td></tr>
+            <tr><td>5.4</td><td>Проверка 5 последних КП на соответствие терминологии</td><td>ФЕНИКС</td><td>Д+90</td><td>Иван</td></tr>
+            <tr><td>5.5</td><td>Итоговый отчёт ФЕНИКСА с оценкой и рекомендациями</td><td>ФЕНИКС</td><td>Д+90</td><td>Иван</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Критерий завершения: оценка ФЕНИКСА ≥ 9.5/10. При оценке &lt; 9.5 — формируется ТЗ на доработку с дедлайном 14 дней и повторным аудитом.</p>
+
+      <h2 id="escalations">D.8 Матрица эскалаций</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Уровень</th><th>Условие</th><th>Кто эскалирует</th><th>Кому</th><th>Срок реакции</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>L1 (жёлтый)</td><td>Задача просрочена на 1–3 дня</td><td>Владелец фазы</td><td>Иван (CMO)</td><td>24 часа</td></tr>
+            <tr><td>L2 (оранжевый)</td><td>Задача просрочена на 4–7 дней ИЛИ блокирует следующую фазу</td><td>Иван</td><td>Богдан (директор)</td><td>24 часа</td></tr>
+            <tr><td>L3 (красный)</td><td>Фаза 0 не завершена за 5 дней ИЛИ критичное нарушение терминологии обнаружено клиентом/партнёром</td><td>Иван</td><td>Богдан + экстренное совещание</td><td>Немедленно</td></tr>
+            <tr><td>L4 (чёрный)</td><td>Обнаружена системная ошибка (неверные цены, артикулы, размеры) в публичных каналах из-за неверной терминологии</td><td>Любой сотрудник</td><td>Иван + Богдан</td><td>Немедленно, Protocol 8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="checkpoints">D.9 Контрольные точки</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Дата (от вступления в силу)</th><th>Контрольная точка</th><th>Ответственный</th><th>Формат</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Д+3</td><td>Фаза 0 завершена. Скриншот главной.</td><td>МАРКО</td><td>Сообщение в чат CMO</td></tr>
+            <tr><td>Д+14</td><td>Фаза 1 завершена. Чек-лист 1С/Bitrix24.</td><td>Борис</td><td>Отчёт в Google Sheet</td></tr>
+            <tr><td>Д+30</td><td>Фаза 2 завершена. SEO-отчёт Screaming Frog.</td><td>СЕМЁН</td><td>PDF-отчёт</td></tr>
+            <tr><td>Д+45</td><td>Фаза 3 завершена. Список обновлённых карточек.</td><td>Наташа</td><td>Google Sheet</td></tr>
+            <tr><td>Д+60</td><td>Фаза 4 завершена. Результаты тестирования.</td><td>ТРЕНЕР</td><td>Google Sheet</td></tr>
+            <tr><td>Д+90</td><td>Фаза 5 завершена. Итоговый отчёт ФЕНИКСА.</td><td>ФЕНИКС</td><td>Документ + оценка</td></tr>
+            <tr><td>Д+180</td><td>Контрольная точка палитры CIPRIA: Core/Drop closure.</td><td>Продуктовый комитет</td><td>Протокол совещания</td></tr>
+            <tr><td>Д+365</td><td>Плановый пересмотр глоссария v2.1 → v2.2 или v3.0</td><td>Иван (CMO)</td><td>Инициация через СПАРТАК</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr />
+      <p><strong>Конец документа.</strong></p>
+      <p><small>GENGLASS — PRODUCT ARCHITECTURE — MAGGIO 2026 — v2.1</small></p>
+    </div>
+  </main>
+
+  <script src="../assets/app.js" defer></script>
+</body>
+</html>

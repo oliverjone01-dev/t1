@@ -1454,7 +1454,8 @@ function offerCalendarBlock(){
     const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const baseIndent=r.child?'padding-left:18px;':'';
-    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
+    const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
+    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
     if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),met=ct>=0.5&&cf>=ct,cc=met?'#2E9E74':'#6A7484';
       rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${('факт '+cf+' · план '+ct+' (портфель × 15%) · '+(ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${met?'#2E9E74':'var(--ink-3)'}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
@@ -1475,16 +1476,32 @@ function offerCalendarBlock(){
       if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
     }else if(isOpen){
       const lastK=keys[keys.length-1];
-      let subs;
-      if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
-      else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
-      subs.sort((a,b)=>b.rank-a.rank);
-      subs.forEach(x=>{
-        const mkey=r.id+"~"+x.m;
-        const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
-        html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup});
-        if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
-      });
+      if(r.wip){
+        const wm=S.calWipMode||'mgr';
+        const seg=(v,t)=>`<span data-calwipmode="${v}" style="cursor:pointer;font-weight:${wm===v?'800':'400'};color:${wm===v?'#22D3EE':'var(--ink-3)'}">${t}</span>`;
+        html+=`<div style="display:flex;align-items:center;gap:6px;margin:3px 0"><div style="width:180px;padding-left:16px;font-size:9px;color:var(--ink-4)">разворот: ${seg('mgr','по менеджерам')} · ${seg('age','по сроку')}</div></div>`;
+        if(wm==='age'){
+          COHROWS['wip'].forEach(c=>{const ckey=c.id;
+            html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey});
+            if(S.calRowOpen&&S.calRowOpen[ckey]){
+              const ms=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:dealsFor(c,lastK,msc).length,any:keys.some(k=>dealsFor(c,k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
+              html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m})).join("");
+            }
+          });
+        }else{
+          const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
+          subs.forEach(x=>{const mkey="wip~"+x.m;
+            html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:true,rowKey:mkey});
+            if(S.calRowOpen&&S.calRowOpen[mkey])html+=COHROWS['wip'].map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
+          });
+        }
+      }else{
+        const subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
+        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
+          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup});
+          if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
+        });
+      }
     }
     return html;
   }).join("");
@@ -2205,7 +2222,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
-  document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});
+  document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

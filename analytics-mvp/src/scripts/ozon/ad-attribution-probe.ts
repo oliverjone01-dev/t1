@@ -27,6 +27,22 @@ async function main() {
 
   const ids = id.split(",").map((s) => s.trim()).filter(Boolean);
   console.log(`probe: кампаний в запросе - ${ids.length}`);
+
+  // Разведка: сырые строки daily/json (все поля) - ищем выручку CPO, которой нет в orders/ordersMoney.
+  try {
+    const raw = await perf.dailyStatsRaw(ids, fmt(from), fmt(to));
+    console.log(`\n=== daily/json RAW: ${raw.length} строк. Поля первой строки: ===`);
+    if (raw[0]) console.log(JSON.stringify(Object.keys(raw[0])));
+    let sp = 0, o = 0, om = 0; const extra: Record<string, number> = {};
+    for (const r of raw) {
+      sp += Number(r.moneySpent) || 0; o += Number(r.orders) || 0; om += Number(r.ordersMoney) || 0;
+      for (const k of Object.keys(r)) if (!["id", "title", "date", "views", "clicks", "moneySpent", "orders", "ordersMoney"].includes(k)) { const v = Number(r[k]); if (!isNaN(v)) extra[k] = (extra[k] || 0) + v; }
+    }
+    console.log(`daily/json СУММЫ: расход=${sp} заказы=${o} выручка(ordersMoney)=${om}`);
+    console.log(`daily/json ПРОЧИЕ числовые поля (сумма):`, JSON.stringify(extra));
+    if (raw[0]) console.log(`daily/json пример строки:`, JSON.stringify(raw[0]));
+  } catch (e) { console.error("probe dailyStatsRaw FAILED:", (e as Error).message); }
+
   let uuid = "";
   try { uuid = await perf.requestStatistics(ids, fmt(from), fmt(to), groupBy); }
   catch (e) { console.error("probe requestStatistics FAILED:", (e as Error).message); return; }

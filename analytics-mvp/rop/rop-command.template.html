@@ -91,6 +91,9 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .tbl th:hover{color:var(--ink)}.tbl th.sorted{color:var(--accent)}.tbl th.sorted::after{content:" ↓";font-size:9px}.tbl th.sorted.asc::after{content:" ↑"}
 .tbl th.r,.tbl td.r{text-align:right}.tbl tr:last-child td{border-bottom:none}.tbl td.name{font-weight:600;color:var(--ink)}
 .tbl tr.total td{background:var(--bg-elevated);font-weight:700;color:var(--ink);border-top:1px solid var(--border-hot)}
+.tbl tbody tr:hover td{background:rgba(120,140,170,.12)}
+.tbl tbody tr.total:hover td{background:var(--bg-elevated)}
+.chrow:hover{background:rgba(120,140,170,.10);border-radius:4px}
 .fbar{display:flex;align-items:center;gap:11px;margin-bottom:8px}
 .fbar .fl{width:185px;font-size:11.5px;color:var(--ink-2);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fbar .ft{flex:1;height:24px;background:var(--bg-elevated);border-radius:6px;overflow:hidden}
@@ -1446,7 +1449,7 @@ function offerCalendarBlock(){
     const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:var(--ink-3)">${arw}${esc(opts.mgr)}</span>`:`${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}`;
-    return `<div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
+    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:70px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div></div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1500,22 +1503,23 @@ function offerCalendarBlock(){
           `${pl>=0.3?`<div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:${h>36?2:1.5}px dashed #A78BFA"></div>`:''}`+
         `</div></div>`;}).join("");
     const port=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
-    const mgrs=[...new Set(passed.map(d=>d.mgr))].map(m=>{const p=port(m);const fk={};keys.forEach(k=>fk[k]=0);
-      AD.filter(d=>d.mgr===m).forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fk[k]!=null)fk[k]++;}});
-      const ft=keys.reduce((s,k)=>s+fk[k],0);return {m,p,fk,ft};}).filter(x=>x.p>0||x.ft>0);
+    const mgrs=[...new Set(passed.map(d=>d.mgr))].map(m=>{const p=port(m);
+      const ft=AD.filter(d=>d.mgr===m).reduce((s,d)=>{const e=enterExec(d);return s+((e&&inR(e))?1:0);},0);
+      return {m,p,ft};}).filter(x=>x.p>0||x.ft>0);
     const wsum=mgrs.reduce((s,x)=>s+x.p,0)||1;
-    mgrs.sort((a,b)=>b.p-a.p);
-    const isOpen=S.calCupOpen;
-    const mgrRows=isOpen?mgrs.map(x=>{const w=x.p/wsum,pk={};let smx=1;keys.forEach(k=>{pk[k]=P[k]*w;smx=Math.max(smx,pk[k],x.fk[k]);});
-      const tgt=ptot*w,a=tgt?x.ft/tgt:null,c=a==null?'#818CF8':a>=1?'#2E9E74':a>=0.8?'#C2873C':'#CC5867';
-      return `<div style="display:flex;align-items:flex-end;gap:6px;margin-top:2px"><div style="width:180px;font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:14px" title="${(esc(x.m)+' · портфель '+x.p+' · доля '+pct(w)+' общего плана').replace(/"/g,'&quot;')}">${esc(x.m)} <b style="color:${c}">${a==null?'':pct(a)}</b> <span style="color:var(--ink-4)">портф ${x.p}</span></div><div style="flex:1;display:flex;gap:2px;align-items:flex-end">${strip(x.fk,pk,smx,30,'доля')}</div><div style="width:70px;text-align:right;font-size:10px;font-weight:800;color:${c}">${fmt(x.ft)}<span style="color:var(--ink-4);font-weight:600">/${Math.round(tgt)}</span></div></div>`;}).join(""):"";
+    mgrs.sort((a,b)=>b.ft-a.ft||b.p-a.p);
+    const isOpen=S.calCupOpen,attC=v=>v==null?'var(--ink-3)':v>=1?'#2E9E74':v>=0.8?'#C2873C':v>=0.5?'#D9A441':'#CC5867';
+    const mgrTbl=isOpen?`<div class="scroll" style="margin-top:8px;max-height:300px"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Менеджер ${info('Доля плана - вес живого портфеля менеджера в общем портфеле (его кусок общего стакана). Цель - столько предоплат приходится на его долю. Вклад - сколько процентов всех предоплат отдела он реально принёс. Вып. - факт ÷ цель его доли.')}</th><th>Портфель</th><th>Доля плана</th><th>Цель</th><th>Факт</th><th>Вклад</th><th>Вып.</th></tr></thead><tbody>`+
+      mgrs.map(x=>{const w=x.p/wsum,tgt=Math.round(ptot*w),a=tgt?x.ft/tgt:null,contrib=ftot?x.ft/ftot:0,c=attC(a);
+        return `<tr><td class="name" style="text-align:left">${esc(x.m)}</td><td style="text-align:center">${x.p}</td><td style="text-align:center;color:var(--ink-3)">${pct(w)}</td><td style="text-align:center;color:var(--ink-3)">${tgt}</td><td style="text-align:center;font-weight:800;color:${c}">${x.ft}</td><td style="text-align:center;color:#22D3EE;font-weight:700">${pct(contrib)}</td><td style="text-align:center;font-weight:800;color:${c}">${a==null?'—':pct(a)}</td></tr>`;}).join("")+
+      `<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${wsum}</td><td style="text-align:center">100%</td><td style="text-align:center">${fmt(Math.round(ptot))}</td><td style="text-align:center">${fmt(ftot)}</td><td style="text-align:center">100%</td><td style="text-align:center;color:${tc}">${pct(att)}</td></tr></tbody></table></div>`:"";
     const arw=isOpen?'▾':'▸';
     return `<div style="margin-top:2px;padding-top:8px;border-top:1px dashed var(--border)">`+
-      `<div style="display:flex;align-items:flex-end;gap:6px">`+
-        `<div data-cupopen style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25;cursor:pointer"><span style="color:#A78BFA">${arw} </span>План предоплат · отдел <b style="color:${tc}">${pct(att)}</b><div style="font-size:8px;color:var(--ink-4)">стакан = факт · <span style="color:#A78BFA">риска</span> = план · клик - по менеджерам</div></div>`+
+      `<div class="chrow" style="display:flex;align-items:flex-end;gap:6px">`+
+        `<div data-cupopen style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25;cursor:pointer"><span style="color:#A78BFA">${arw} </span>План предоплат · отдел <b style="color:${tc}">${pct(att)}</b><div style="font-size:8px;color:var(--ink-4)">стакан = факт · <span style="color:#A78BFA">риска</span> = план · клик - доли по менеджерам</div></div>`+
         `<div style="flex:1;display:flex;gap:2px;align-items:flex-end">${strip(fact,P,mx,46,'')}</div>`+
         `<div style="width:70px;text-align:right;font-size:10.5px;font-weight:800;color:${tc}">${fmt(ftot)}<span style="color:var(--ink-4);font-weight:600">/${fmt(Math.round(ptot))}</span></div>`+
-      `</div>${mgrRows}</div>`;
+      `</div>${mgrTbl}</div>`;
   })();
 
   // панель сделок по клику на ячейку (sid может быть "kp" или "kp~Менеджер")

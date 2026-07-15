@@ -1393,13 +1393,13 @@ function offerCalendarBlock(){
   const money=a=>a.reduce((s,d)=>s+(d.budget||0),0);
 
   const ROWS=[
-    {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer},
-    {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true},
-    {id:"kp",nm:"→ КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC")},
-    {id:"dec",nm:"→ Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3")},
-    {id:"long",nm:"→ Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2")},
-    {id:"win",nm:"→ Успех (предоплата)",color:"#2E9E74",df:enterExec},
-    {id:"loss",nm:"→ Отказ",color:"#CC5867",df:enterLose},
+    {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer,grp:"вход"},
+    {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true,grp:"в работе"},
+    {id:"kp",nm:"→ КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC"),grp:"в работе"},
+    {id:"dec",nm:"→ Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3"),grp:"в работе"},
+    {id:"long",nm:"→ Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2"),grp:"в работе"},
+    {id:"win",nm:"→ Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход · финал"},
+    {id:"loss",nm:"→ Отказ",color:"#CC5867",df:enterLose,grp:"выход · финал"},
   ];
   const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
   const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
@@ -1419,8 +1419,11 @@ function offerCalendarBlock(){
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
+  let _pg="";
+  const grpLabel=t=>`<div style="font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4);opacity:.7;margin:${t==='вход'?'0':'7px'} 0 1px;padding-left:2px">${t}</div>`;
   const bodyRows=ROWS.map(r=>{
-    let html=rowLine(r,scope,r.id,{});
+    let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
+    html+=rowLine(r,scope,r.id,{});
     if(!mgrSel&&!r.wip&&S.calRowOpen&&S.calRowOpen[r.id]){
       const subs=names.map(m=>({m,s:serie(r,passed.filter(d=>d.mgr===m))})).filter(x=>x.s.tot>0).sort((a,b)=>b.s.tot-a.s.tot);
       html+=subs.map(x=>rowLine(r,passed.filter(d=>d.mgr===x.m),r.id+"~"+x.m,{sub:true,mgr:x.m})).join("");

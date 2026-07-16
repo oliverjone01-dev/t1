@@ -88,6 +88,13 @@ main,.masthead,.foot{position:relative;z-index:1}
 /* порядок секций: График (Гант) первым, под ним Приоритеты, затем остальное */
 main{display:flex;flex-direction:column}
 #s-gantt{order:1;border-top:none}
+/* компактная шапка графика - максимум места самому графику */
+#s-gantt .band-inner{padding-top:clamp(18px,2.4vw,28px);padding-bottom:clamp(28px,4vw,48px)}
+#s-gantt .sec-head{margin-bottom:14px}
+#s-gantt .sec-no{margin-bottom:6px}
+#s-gantt .sec-title{font-size:clamp(21px,2.5vw,29px)}
+#s-gantt .sec-dek{margin-top:5px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+@media(max-width:640px){#s-gantt .sec-dek{white-space:normal}}
 #s-prioritety{order:2}
 #s-obzor{order:3}
 #s-razvilka{order:4}
@@ -203,6 +210,12 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 /* ---------- ГАНТ (переосмысленный) ---------- */
 .gantt-legend{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:12.5px;color:var(--ink-2)}
 .lg-set{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.g-tools{display:inline-flex;align-items:center;gap:10px}
+.g-lock{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line-2);border-radius:8px;padding:5px 11px;cursor:pointer;transition:.15s var(--ease)}
+.g-lock:hover{color:var(--ink);border-color:var(--ink-3)}
+.g-lock.on{color:#141210;background:var(--brass);border-color:var(--brass)}
+.g-handle{fill:#F0D89A;stroke:#8a6d2f;stroke-width:1;opacity:.9}
+.g-handle:hover,.g-handle.drag{fill:#fff;opacity:1}
 .g-zoom{display:inline-flex;align-items:center;gap:4px}
 .g-zoom button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;min-width:30px;cursor:pointer;transition:.15s var(--ease)}
 .g-zoom button:hover{color:var(--ink);border-color:var(--ink-3);background:color-mix(in oklab,var(--brass-2) 18%,transparent)}
@@ -211,8 +224,8 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .lg i{width:17px;height:12px;border-radius:6px;display:inline-block}
 .lg .st-done{background:linear-gradient(180deg,#7FCF9C,#3E5A46)}
 .lg .st-work{background:linear-gradient(180deg,#DABB7E,#B18B39)}
-.lg .st-plan{background:var(--paper-3);border:1.4px solid var(--line-2)}
-.lg .st-talk{background:repeating-linear-gradient(45deg,var(--paper-3),var(--paper-3) 3px,var(--paper-2) 3px,var(--paper-2) 6px);border:1.4px solid var(--line-2)}
+.lg .st-plan{background:linear-gradient(180deg,#8093AE,#515F79);border:1.2px solid #9DB0CC}
+.lg .st-talk{background:repeating-linear-gradient(45deg,#6E5A34,#6E5A34 3px,#D9BC7E 3px,#D9BC7E 6px);border:1.4px dashed #E08A5F}
 .lg .st-gate{width:12px;height:12px;transform:rotate(45deg);background:var(--rust);border-radius:2px}
 .lg .st-today{width:3px;height:14px;border-radius:2px;background:var(--brass)}
 

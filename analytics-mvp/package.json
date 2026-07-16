@@ -24,6 +24,7 @@
     "ads:attr": "tsx src/scripts/ozon/ad-attribution.ts",
     "ads:attrd": "tsx src/scripts/ozon/ad-attribution-daily.ts",
     "totals:daily": "tsx src/scripts/ozon/daily-totals.ts",
+    "views:daily": "tsx src/scripts/ozon/sku-views.ts",
     "pnl:daily": "tsx src/scripts/ozon/pnl-daily.ts",
     "import:cards": "tsx src/scripts/ozon/import-card-groups.ts"
   },

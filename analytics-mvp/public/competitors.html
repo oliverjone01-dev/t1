@@ -69,13 +69,13 @@ th,td{white-space:nowrap;padding:8px 10px}
 </style></head>
 <body><div class="aurora"></div><div class="wrap">
   <header><div class="brand"><div class="logo">GG</div>
-    <div><h1>GENGLASS · аналитика OZON</h1><div class="sub">конкуренты - данных пока нет</div></div></div>
+    <div><h1>GENGLASS · аналитика OZON</h1><div class="sub">снимок конкурентов 2026-07-15</div></div></div>
     <span class="tag">оперативный слой · снимок</span></header>
   <nav><a class="tab" href="obzor.html">Обзор</a><a class="tab" href="tovary.html">Товары</a><a class="tab" href="voronka.html">Воронка</a><a class="tab" href="marketing.html">Маркетинг и цена</a><a class="tab" href="campaigns.html">Кампании</a><a class="tab on" href="competitors.html">Конкуренты</a><a class="tab" href="cards.html">Карточки</a><a class="tab" href="money.html">Деньги</a><a class="tab" href="assistant.html">Ассистент</a><a class="tab" href="katya.html">Вид Кати</a></nav>
   
   <div class="card" style="border-color:#3a3a40"><b>Лист «Конкуренты»</b> - снимки публичных карточек OZON (цена / база / рейтинг / отзывы / наличие). Заказы и выручку конкурента OZON не отдаёт, поэтому их здесь нет - только факт с карточки.</div>
   <div class="card" style="border-color:#F2B544;background:#2a2414">
-    <b style="color:#F2B544">Данных пока нет.</b> Пилот ещё ни разу не сохранил снимок в <code>data/competitors/</code>.
+    <b style="color:#F2B544">Данных пока нет.</b> Последний прогон (2026-07-15) собрал <b>0 из 14</b> карточек - похоже, OZON срезал сбор анти-ботом по IP дата-центра.
     <div class="note" style="margin-top:8px">Лист наполнится, как только пилот отработает там, где открыт <code>ozon.ru</code> (локально с домашнего IP или из Actions). Запуск: <code>npx tsx src/scripts/competitors/pilot.ts --out data/competitors</code>, затем <code>npm run build:site</code>. Из дата-центра (в т.ч. GitHub Actions) OZON часто режет сбор анти-ботом - если соберётся 0 карточек, нужен резидентный прокси или платный API.</div>
   </div>
   <div class="card">

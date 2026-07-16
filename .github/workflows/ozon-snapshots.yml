@@ -120,6 +120,13 @@ jobs:
           # из-за чего воронка/тоталы замораживались. Догрузка от последнего дня до вчера.
           npm run totals:daily || echo "::warning::daily-totals не собрался (OZON Seller недоступен)"
 
+      - name: Per-SKU показы/воронка по дням (прямой OZON, без n8n)
+        run: |
+          set -euo pipefail
+          # sku_views.ndjson напрямую из OZON (dimension=sku). Раньше писал n8n (удалён),
+          # из-за чего «Воронка по категориям» замораживалась. Догрузка от последнего дня до вчера.
+          npm run views:daily || echo "::warning::sku-views не собрался (OZON Seller недоступен)"
+
       - name: per-SKU attribution по дням (основная/объединённая, любой период)
         run: |
           set -euo pipefail

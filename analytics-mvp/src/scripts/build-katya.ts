@@ -4,7 +4,7 @@
 // Берём её CSS/DOM/JS, балансной заменой подставляем только константы-данные.
 // Реальные числа - канал OZON. Прочие каналы, клиенты, план - нет данных (честно пусто).
 // Запуск: tsx src/scripts/build-katya.ts (после fetch:live). Источник: data/, не fixtures.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 
 type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number };
 const RUMON = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
@@ -281,7 +281,7 @@ function patchRealDaily(html: string, opts: { products?: boolean }): string {
   return out;
 }
 const REAL_DAILY_JS = (withProducts: boolean) =>
-  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};window.__PRODUCT_DAILY_REV=${JSON.stringify(PRODUCT_DAILY_REV)};</script>`;
+  `<script>window.__DAILY_REV_REAL=${JSON.stringify(r4(DAILY_REV_REAL))};window.__SUB_D_R=${JSON.stringify(SUB_D_R)};window.__SUB_D_O=${JSON.stringify(SUB_D_O)};window.__SUBCAT_COMM=${JSON.stringify(SUBCAT_COMM)};window.__PRODUCT_DAILY=${JSON.stringify(PRODUCT_DAILY)};window.__PRODUCT_DAILY_REV=${JSON.stringify(PRODUCT_DAILY_REV)};window.__DAILY_RET_REAL=${JSON.stringify(DAY_T.ret)};window.__DAILY_ORD_REAL=${JSON.stringify(DAY_T.units)};</script>`;
 
 // --- дельты периодов из истории ---
 const ad = (d: string, n: number) => { const t = new Date(d + "T00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
@@ -1072,7 +1072,7 @@ function aggFromDaily(from,to){
   var spend=0,om=0,orders=0,active=0;list.forEach(function(c){spend+=c.sp;om+=c.om;orders+=c.o;if(c.sp>0)active++;});
   var totals={spend:spend,adRevenue:om,orders:orders,drr:om?Math.round(spend/om*1000)/10:0,cpo:orders?Math.round(spend/orders):0,active:active,campaigns:list.length};
   var top_spend=list.slice().sort(function(x,y){return y.sp-x.sp;}).slice(0,10);
-  var burners=list.filter(function(c){return c.sp>=3000&&(c.o===0||c.drr>=40);}).sort(function(x,y){return y.sp-x.sp;}).slice(0,8);
+  var burners=list.filter(function(c){return !isCPO(c)&&c.sp>=3000&&(c.o===0||c.drr>=40);}).sort(function(x,y){return y.sp-x.sp;}).slice(0,8);
   var lm={};list.forEach(function(c){var g=lm[c.line]||(lm[c.line]={line:c.line,sp:0,om:0});g.sp+=c.sp;g.om+=c.om;});
   var by_line=Object.keys(lm).map(function(k){var g=lm[k];return {line:k,sp:g.sp,om:g.om,drr:g.om?Math.round(g.sp/g.om*1000)/10:0};}).sort(function(x,y){return y.sp-x.sp;});
   return {dateFrom:from,dateTo:to,totals:totals,top_spend:top_spend,burners:burners,by_line:by_line,daily:true};
@@ -1108,11 +1108,15 @@ function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(
   REPORTS[k]=[];if(cb)cb([]);}
 var iLabel=function(v){var M={ALL_SKU_PROMO:'Оплата за заказ (все товары)',SKU:'Трафареты',CPC:'Оплата за клик',CPO:'Оплата за заказ'};return M[v]||v||'-';};
 var drrCol=function(d){return d>40?'var(--dn)':(d>0&&d<20?'var(--up)':'inherit');};
+// CPO «Оплата за заказ»: OZON не отдаёт выручку/заказы по API (daily/json=0, attribution запрещён) -
+// показываем «н/д», а не вводящий в заблуждение 0. Расход по ним реальный.
+function isCPO(c){return /за заказ/i.test(String((c&&c.instr)||''));}
+var CPO_NA='<span style="color:var(--ink-3)" title="OZON не отдаёт выручку и заказы по кампаниям «Оплата за заказ» через API - смотри их в кабинете OZON. Расход - реальный.">н/д</span>';
 var stBadge=function(s){if(!s)return '';return s==='активна'?'<span style="font-size:10.5px;color:#34D399;background:rgba(52,211,153,.14);border-radius:4px;padding:1px 6px;margin-left:7px">активна</span>':'<span style="font-size:10.5px;color:var(--ink-3);background:var(--bg-soft);border-radius:4px;padding:1px 6px;margin-left:7px">закрыта</span>';};
 function renderTop(){var a=lastA;if(!a)return;
   var html=(a.top_spend||[]).map(function(c,ci){
     var ri=repInfo(c.id);var rep=ri?ri.rows:[];var loaded=ri!==null;var open=!!expanded[ci];var disp=open?'':'display:none';
-    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+fmtRu(c.om||0)+'</td><td class="r">'+c.o+'</td><td class="r" style="color:'+drrCol(c.drr)+'">'+c.drr+'%</td></tr>';
+    var main='<tr class="ad-exp" data-i="'+ci+'" data-id="'+(c.id||'')+'"><td><span class="cf-tg">'+(open?'▾ ':'▸ ')+'</span><b>'+(c.id||c.off||'-')+'</b>'+stBadge(c.status)+'</td><td style="font-size:12px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:12px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(c.sp)+'</td><td class="r">'+(isCPO(c)?CPO_NA:fmtRu(c.om||0))+'</td><td class="r">'+(isCPO(c)?CPO_NA:c.o)+'</td><td class="r" style="color:'+(isCPO(c)?'var(--ink-3)':drrCol(c.drr))+'">'+(isCPO(c)?CPO_NA:(c.drr+'%'))+'</td></tr>';
     var sub='';
     if(loaded&&rep.length){
       var winTxt=ri.from?('за '+dShort(ri.from)+'–'+dShort(ri.to)):'';
@@ -1421,6 +1425,19 @@ function render(cur,cmp){
 {
   let compInput: any[] = [];
   try { compInput = JSON.parse(readFileSync("src/scripts/competitors/input.json", "utf-8")).items || []; } catch { compInput = []; }
+  // Реальный снимок пилота (data/competitors/competitors_*.json). Как только появится хоть одна
+  // собранная карточка (ok+price) - берём реальные цену/рейтинг/отзывы/наличие вместо демо.
+  // Пилот из облака (Actions/контейнер) OZON блокирует (анти-бот) - снимок кладётся локальным прогоном.
+  const compReal: Record<string, any> = {}; let compRealDate = ""; let compRealOk = 0;
+  try {
+    const files = readdirSync("data/competitors").filter((f) => /^competitors_.*\.json$/.test(f)).sort();
+    if (files.length) {
+      const snap = JSON.parse(readFileSync(`data/competitors/${files[files.length - 1]}`, "utf-8"));
+      compRealDate = snap.date || "";
+      for (const r of (snap.rows || [])) if (r.ok && r.price != null) { compReal[String(r.sku)] = r; compRealOk++; }
+    }
+  } catch { /* нет снимка - демо */ }
+  const hasReal = compRealOk > 0;
   // Чистим имя стола конкурента от ведущего бренда (он дублирует продавца): "Лайфмебель Стол ..." -> "Стол ...".
   const normБ = (s: string) => s.toLowerCase().replace(/ё/g, "е");
   const stripBrand = (name: string, seller: string) => {
@@ -1431,24 +1448,35 @@ function render(cur,cmp){
   };
   const demo = compInput.map((it: any, idx: number) => {
     const seed = Number(String(it.sku).slice(-4)) || (1000 + idx);
-    const compPrice = 12000 + (seed % 9000);                       // ДЕМО: 12k..21k ₽
-    const ggPrice = Math.round((compPrice * (90 + (seed % 21))) / 100); // ДЕМО: 0.90..1.10 от конкурента
-    const rating = Math.round((40 + (seed % 10))) / 10;             // ДЕМО: 4.0..4.9
-    const reviews = 5 + (seed % 140);                               // ДЕМО
-    const available = seed % 7 !== 0;                               // ДЕМО
-    return { sku: String(it.sku), seller: it.seller || "", stol: stripBrand(it.competitor_name || "", it.seller || ""), gg: it.gg_product || "", cat: it.category || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available };
+    const real = compReal[String(it.sku)];
+    const dCompPrice = 12000 + (seed % 9000);                      // ДЕМО-цена конкурента (fallback)
+    const compPrice = real ? real.price : dCompPrice;              // реальная цена конкурента если есть
+    const ggPrice = Math.round((dCompPrice * (90 + (seed % 21))) / 100); // наша цена - демо-оценка (привязка к прайсу отдельно)
+    const rating = (real && real.rating != null) ? real.rating : Math.round((40 + (seed % 10))) / 10;
+    const reviews = (real && real.reviews != null) ? real.reviews : (5 + (seed % 140));
+    const available = (real && real.available != null) ? real.available : (seed % 7 !== 0);
+    return { sku: String(it.sku), seller: it.seller || "", stol: stripBrand(it.competitor_name || "", it.seller || ""), gg: it.gg_product || "", cat: it.category || "", qual: it.qualification || "", compPrice, ggPrice, rating, reviews, available, src: real ? "real" : "demo" };
   });
   const catList = [...new Set(demo.map((d) => d.cat).filter(Boolean))];        // категории для фильтра
-
-  const body = `
-  <section class="card" style="border:1px solid #E0A10088;border-left:3px solid #E0A100;background:rgba(224,161,0,.06)">
+  const srcBadge = hasReal
+    ? `<span class="kt-src" style="background:#34D39922;color:#34D399">OZON ${compRealDate}</span>`
+    : `<span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span>`;
+  const compBanner = hasReal
+    ? `<section class="card" style="border:1px solid #34D39988;border-left:3px solid #34D399;background:rgba(52,211,153,.06)">
+    <div class="card-title" style="color:#34D399">● Живые данные OZON · снимок ${compRealDate}</div>
+    <div class="card-sub">Цена / рейтинг / отзывы / наличие конкурентов - <b>реальные</b> с публичных карточек OZON (собрано ${compRealOk}/${demo.length}; остальные - демо-заглушка). Наша цена в сравнении (Δ) - оценочная до привязки к прайсу. Заказы/выручку конкурента OZON не отдаёт - их здесь нет.</div>
+  </section>`
+    : `<section class="card" style="border:1px solid #E0A10088;border-left:3px solid #E0A100;background:rgba(224,161,0,.06)">
     <div class="card-title" style="color:#E0A100">⚠ ДЕМО-данные · не для решений</div>
     <div class="card-sub">Цены/рейтинги/отзывы на этом листе - <b>заглушка</b> для оценки вида, а не реальные продажи конкурентов. Конкуренты и пары столов - настоящие (из <code>input.json</code>). Заменим на живой снимок пилота OZON (цена / база / рейтинг / отзывы / наличие), как только он отработает. Заказы и выручку конкурента OZON не отдаёт - их здесь не будет даже на реальных данных.</div>
-  </section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Сводка по категориям <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">ключевые цифры в разрезе категорий (общий итог - нижней строкой). Клик по категории - фильтр таблицы ниже.</div></div></div>
+  </section>`;
+
+  const body = `
+  ${compBanner}
+  <section class="card"><div class="card-h"><div><div class="card-title">Сводка по категориям ${srcBadge}</div><div class="card-sub">ключевые цифры в разрезе категорий (общий итог - нижней строкой). Клик по категории - фильтр таблицы ниже.</div></div></div>
     <div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Пар</th><th class="r">Конкурентов</th><th class="r">Ср. цена конкур., ₽</th><th class="r">Ср. рейтинг</th><th class="r">Где мы дороже</th></tr></thead><tbody id="catsum"></tbody><tfoot id="catsumtot"></tfoot></table></div>
   </section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов <span class="kt-src" style="background:#E0A10022;color:#E0A100">ДЕМО</span></div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
+  <section class="card"><div class="card-h"><div><div class="card-title">Мы против конкурентов ${srcBadge}</div><div class="card-sub">выбери товар GG - соберём по нему конкурентов. <span style="color:var(--up)">зелёный</span> Δ - мы дешевле (хорошо), <span style="color:var(--dn)">красный</span> - дороже (риск). Период вверху на демо не влияет.</div></div></div>
     <div style="margin:2px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label class="pt-filter-lbl" style="color:var(--ink-2)">Категория:</label>
       <select id="fCat" style="background:#0c1218;border:1px solid #2a3a4a;color:#dfe9f0;border-radius:8px;padding:7px 11px;font:inherit;min-width:170px"></select>

@@ -94,6 +94,27 @@ export class OzonSeller {
       });
   }
 
+  // Один день, dimension sku, ПОЛНЫЕ метрики воронки (+показы в поиске/посещения карточки).
+  // Для sku_views.ndjson (воронка по категориям). Фолбэк на базовые метрики, если OZON отверг.
+  async skuViewsDay(date: string): Promise<Array<{ date: string; sku: string; name: string; line: string; views: number; vsearch: number; pdp: number; cart: number; units: number; deliv: number; ret: number; canc: number }>> {
+    const fetchM = async (metrics: readonly string[]) => {
+      const data = await this.post<{ result?: { data?: any[] } }>("/v1/analytics/data", {
+        date_from: date, date_to: date, metrics, dimension: ["sku"], limit: 1000, sort: [{ key: "revenue", order: "DESC" }],
+      });
+      return data.result?.data ?? [];
+    };
+    let rows: any[]; let ext = true;
+    try { rows = await fetchM(TOTALS_METRICS); }
+    catch { ext = false; rows = await fetchM(ANALYTICS_METRICS); }
+    return rows.map((r: any) => {
+      const m = (r.metrics ?? []).map((x: any) => Number(x) || 0);
+      const sku = String(r.dimensions?.[0]?.id ?? ""); const name = String(r.dimensions?.[0]?.name ?? "");
+      return ext
+        ? { date, sku, name, line: lineOf(name), views: m[2] || 0, vsearch: m[3] || 0, pdp: m[4] || 0, cart: m[5] || 0, units: m[1] || 0, deliv: m[6] || 0, ret: m[7] || 0, canc: m[8] || 0 }
+        : { date, sku, name, line: lineOf(name), views: m[2] || 0, vsearch: 0, pdp: 0, cart: m[3] || 0, units: m[1] || 0, deliv: m[4] || 0, ret: m[5] || 0, canc: m[6] || 0 };
+    }).filter((r) => r.sku && r.sku !== "0");
+  }
+
   // POST /v1/analytics/data, dimension day | sku
   async analytics(
     dateFrom: string,

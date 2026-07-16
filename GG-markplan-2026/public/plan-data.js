@@ -8,7 +8,9 @@ window.PLAN = {
     version: "1.0",
     updated: "12.07.2026",
     sheetId: "155GvseJd5QUlIujIj1AgZa1no1SvDxlcmcNtCOQKvSA",
-    ganttSheet: "",
+    ganttSheet: "GANTT",
+    writeUrl: "https://script.google.com/macros/s/AKfycbxEld_YULwH8utw2rJx6AFyVKrjz61TcWJ8DtY7BBYUokUTmNKHbBtvqfK5ok5aunap/exec",
+
     dek: "Материал к встрече по мотивации дизайнеров и приоритетам розницы. Разобран с собственником (Богдан) и CMO (Иваном), прошёл адверсариальный гейт ФЕНИКСА.",
     audit: "ФЕНИКС-аудит: 6,8/10, вердикт «доработать». Несущие правки внесены. Три места ждут факта: маржа (Роман), выручка-run-rate под 15 млн (ДАТА), итог пилота воронки.",
     note: "Цифры - вилки-гипотезы. Собственнику 60+: план читается сверху вниз, каждый блок самодостаточен."

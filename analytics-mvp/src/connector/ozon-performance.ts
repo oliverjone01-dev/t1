@@ -116,6 +116,13 @@ export class OzonPerformance {
     return out;
   }
 
+  // Сырые строки daily/json (все поля как отдал OZON) - для probe (разведка полей CPO-выручки).
+  async dailyStatsRaw(campaignIds: string[], dateFrom: string, dateTo: string): Promise<any[]> {
+    const ids = campaignIds.map((id) => `campaignIds=${encodeURIComponent(id)}`).join("&");
+    const data = await this.get<any>(`/api/client/statistics/daily/json?${ids}&dateFrom=${dateFrom}&dateTo=${dateTo}`);
+    return data.rows ?? [];
+  }
+
   // --- Async statistics report (per-SKU «продажи в продвижении» + объединённая карточка) ---
   // POST запрос отчёта -> UUID; затем опрос статуса; затем скачивание (CSV/ZIP). Точная схема
   // тела/ответа подтверждается probe-прогоном в Actions (из контейнера OZON закрыт).

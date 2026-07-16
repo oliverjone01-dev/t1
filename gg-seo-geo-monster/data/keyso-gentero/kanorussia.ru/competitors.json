@@ -1,0 +1,69 @@
+{
+  "domain": "kanorussia.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-07-16T15:58:19.332Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=kanorussia.ru&top=10",
+  "data": {
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 1,
+    "data": [
+      {
+        "id": 275455662,
+        "name": "kano-global.com",
+        "perc": 67,
+        "theme": 67,
+        "cnt": 2,
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 2,
+        "it50": 3,
+        "pagesinindex": 1,
+        "vis": 0,
+        "adscnt": 0,
+        "adkeyscnt": 0,
+        "adtraf": 0,
+        "adcost": 0
+      },
+      {
+        "id": 338013550,
+        "name": "ergo.uz",
+        "perc": 1,
+        "theme": 33,
+        "cnt": 1,
+        "it1": 2,
+        "it3": 3,
+        "it5": 7,
+        "it10": 10,
+        "it50": 81,
+        "pagesinindex": 18,
+        "vis": 0,
+        "adscnt": 0,
+        "adkeyscnt": 0,
+        "adtraf": 0,
+        "adcost": 0
+      },
+      {
+        "id": 232053623,
+        "name": "clever-place.ru",
+        "perc": 1,
+        "theme": 67,
+        "cnt": 2,
+        "it1": 37,
+        "it3": 75,
+        "it5": 96,
+        "it10": 122,
+        "it50": 393,
+        "pagesinindex": 124,
+        "vis": 16,
+        "adscnt": 26,
+        "adkeyscnt": 137,
+        "adtraf": 2,
+        "adcost": 24503
+      }
+    ],
+    "total": 3
+  }
+}

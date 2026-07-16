@@ -1,0 +1,580 @@
+{
+  "domain": "riva.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-16T16:13:16.375Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=riva.ru",
+  "data": {
+    "id": 51362364,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 252528142,
+        "name": "office-plus.ru",
+        "cnt": 118,
+        "it50": 7905,
+        "vis": 217,
+        "perc": 1.4927261227071473
+      },
+      {
+        "did": 109655641,
+        "name": "eco-office.ru",
+        "cnt": 100,
+        "it50": 3934,
+        "vis": 180,
+        "perc": 2.541942043721403
+      },
+      {
+        "did": 29969746,
+        "name": "orgmebel.ru",
+        "cnt": 98,
+        "it50": 6894,
+        "vis": 20,
+        "perc": 1.4215259646069045
+      },
+      {
+        "did": 29971609,
+        "name": "mavikom.ru",
+        "cnt": 89,
+        "it50": 6598,
+        "vis": 392,
+        "perc": 1.3488936041224613
+      },
+      {
+        "did": 30158883,
+        "name": "prezident-mebel.ru",
+        "cnt": 88,
+        "it50": 6469,
+        "vis": 67,
+        "perc": 1.360333900139125
+      },
+      {
+        "did": 31513196,
+        "name": "nice-office.ru",
+        "cnt": 82,
+        "it50": 14272,
+        "vis": 163,
+        "perc": 0.5745515695067265
+      },
+      {
+        "did": 29971637,
+        "name": "prime-wood.ru",
+        "cnt": 82,
+        "it50": 9820,
+        "vis": 525,
+        "perc": 0.8350305498981669
+      },
+      {
+        "did": 117816507,
+        "name": "lime-office.ru",
+        "cnt": 81,
+        "it50": 4726,
+        "vis": 28,
+        "perc": 1.713922979263648
+      },
+      {
+        "did": 30070006,
+        "name": "mebela.ru",
+        "cnt": 81,
+        "it50": 8546,
+        "vis": 820,
+        "perc": 0.9478118417973321
+      },
+      {
+        "did": 30070017,
+        "name": "rmesto.ru",
+        "cnt": 75,
+        "it50": 4121,
+        "vis": 9,
+        "perc": 1.8199466148992962
+      }
+    ],
+    "it1": 62,
+    "it3": 87,
+    "it5": 91,
+    "it10": 108,
+    "it50": 326,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "мебель рива",
+        "ws": 2747,
+        "wsk": 907,
+        "pos": 1
+      },
+      {
+        "word": "рива мебель",
+        "ws": 2630,
+        "wsk": 847,
+        "pos": 1
+      },
+      {
+        "word": "рива мебель офисная мебель сайт",
+        "ws": 447,
+        "wsk": 438,
+        "pos": 1
+      },
+      {
+        "word": "riva",
+        "ws": 43083,
+        "wsk": 426,
+        "pos": 1
+      },
+      {
+        "word": "рива мебель офисная мебель",
+        "ws": 794,
+        "wsk": 243,
+        "pos": 1
+      },
+      {
+        "word": "мебель рива официальный сайт",
+        "ws": 208,
+        "wsk": 130,
+        "pos": 1
+      },
+      {
+        "word": "рива мебель официальный сайт",
+        "ws": 208,
+        "wsk": 122,
+        "pos": 1
+      },
+      {
+        "word": "рива кресла",
+        "ws": 424,
+        "wsk": 91,
+        "pos": 1
+      },
+      {
+        "word": "кресла рива",
+        "ws": 429,
+        "wsk": 91,
+        "pos": 1
+      },
+      {
+        "word": "riva мебель официальный сайт",
+        "ws": 132,
+        "wsk": 88,
+        "pos": 1
+      }
+    ],
+    "topkeys": 487298,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 171
+      },
+      {
+        "url": "/company",
+        "it50": 20
+      },
+      {
+        "url": "/contacts",
+        "it50": 13
+      },
+      {
+        "url": "?ref=xranks",
+        "it50": 11
+      },
+      {
+        "url": "/upload/iblock/1e7/tqwf0dz4485yzmz7z8ya4ldjfqo5nsh1/TEKH.OPISANIE-METAL-SYSTEM-Direct-10.06.2022.pdf",
+        "it50": 8
+      },
+      {
+        "url": "/upload/iblock/93f/7xyrjtc647ecgz7h1o92aqfmmydl9qdm/ESTETICA-TEKH.OPISANIE-24.02.2022.pdf",
+        "it50": 7
+      },
+      {
+        "url": "/catalog/mebel-dlya-personala/onix_1",
+        "it50": 6
+      },
+      {
+        "url": "/catalog/mebel-dlya-personala/estetica_1",
+        "it50": 6
+      },
+      {
+        "url": "/company/news/novinka_divany_serii_bronks",
+        "it50": 4
+      },
+      {
+        "url": "/3d_page",
+        "it50": 4
+      }
+    ],
+    "pagesinindex": 65,
+    "vis": 77,
+    "topvis": 94262,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 28,
+    "history": {
+      "2025.02": {
+        "it1": 66,
+        "it3": 95,
+        "it5": 99,
+        "it10": 112,
+        "it50": 296,
+        "pagesInIndex": 48,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 91,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 67,
+        "it3": 100,
+        "it5": 106,
+        "it10": 124,
+        "it50": 331,
+        "pagesInIndex": 43,
+        "adsCount": 84,
+        "adKeysCount": 879,
+        "visAvg": 89,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 66,
+        "it3": 99,
+        "it5": 105,
+        "it10": 122,
+        "it50": 309,
+        "pagesInIndex": 43,
+        "adsCount": 83,
+        "adKeysCount": 848,
+        "visAvg": 95,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 67,
+        "it3": 102,
+        "it5": 107,
+        "it10": 124,
+        "it50": 291,
+        "pagesInIndex": 41,
+        "adsCount": 76,
+        "adKeysCount": 749,
+        "visAvg": 77,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 65,
+        "it3": 99,
+        "it5": 104,
+        "it10": 119,
+        "it50": 274,
+        "pagesInIndex": 37,
+        "adsCount": 74,
+        "adKeysCount": 710,
+        "visAvg": 75,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 57,
+        "it3": 88,
+        "it5": 95,
+        "it10": 107,
+        "it50": 257,
+        "pagesInIndex": 32,
+        "adsCount": 10,
+        "adKeysCount": 26,
+        "visAvg": 88,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 49,
+        "it3": 94,
+        "it5": 100,
+        "it10": 112,
+        "it50": 295,
+        "pagesInIndex": 28,
+        "adsCount": 1,
+        "adKeysCount": 2,
+        "visAvg": 95,
+        "aiCnt": 1
+      },
+      "2025.09": {
+        "it1": 51,
+        "it3": 98,
+        "it5": 104,
+        "it10": 115,
+        "it50": 295,
+        "pagesInIndex": 37,
+        "adsCount": 1,
+        "adKeysCount": 1,
+        "visAvg": 95,
+        "aiCnt": 10
+      },
+      "2025.10": {
+        "it1": 50,
+        "it3": 98,
+        "it5": 104,
+        "it10": 115,
+        "it50": 299,
+        "pagesInIndex": 43,
+        "adsCount": 1,
+        "adKeysCount": 1,
+        "visAvg": 93,
+        "aiCnt": 14
+      },
+      "2025.11": {
+        "it1": 57,
+        "it3": 92,
+        "it5": 101,
+        "it10": 115,
+        "it50": 330,
+        "pagesInIndex": 51,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 92,
+        "aiCnt": 27
+      },
+      "2025.12": {
+        "it1": 61,
+        "it3": 91,
+        "it5": 99,
+        "it10": 110,
+        "it50": 300,
+        "pagesInIndex": 41,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 91,
+        "aiCnt": 32
+      },
+      "2026.01": {
+        "it1": 55,
+        "it3": 75,
+        "it5": 80,
+        "it10": 95,
+        "it50": 235,
+        "pagesInIndex": 31,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 82,
+        "aiCnt": 44
+      },
+      "2026.02": {
+        "it1": 57,
+        "it3": 80,
+        "it5": 88,
+        "it10": 103,
+        "it50": 245,
+        "pagesInIndex": 22,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 83,
+        "aiCnt": 47
+      },
+      "2026.03": {
+        "it1": 53,
+        "it3": 74,
+        "it5": 82,
+        "it10": 97,
+        "it50": 250,
+        "pagesInIndex": 28,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 82,
+        "aiCnt": 10
+      },
+      "2026.04": {
+        "it1": 54,
+        "it3": 82,
+        "it5": 95,
+        "it10": 108,
+        "it50": 320,
+        "pagesInIndex": 32,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 87,
+        "aiCnt": 21
+      },
+      "2026.05": {
+        "it1": 59,
+        "it3": 86,
+        "it5": 96,
+        "it10": 110,
+        "it50": 329,
+        "pagesInIndex": 43,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 86,
+        "aiCnt": 27
+      },
+      "2026.06": {
+        "it1": 57,
+        "it3": 83,
+        "it5": 90,
+        "it10": 104,
+        "it50": 341,
+        "pagesInIndex": 63,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 76,
+        "aiCnt": 31
+      },
+      "2026.07": {
+        "it1": 62,
+        "it3": 87,
+        "it5": 91,
+        "it10": 108,
+        "it50": 326,
+        "pagesInIndex": 65,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 77,
+        "aiCnt": 30
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        157,
+        2926,
+        54,
+        6,
+        66
+      ],
+      "2025.02": [
+        158,
+        3264,
+        57,
+        6,
+        65
+      ],
+      "2025.03": [
+        161,
+        3202,
+        57,
+        6,
+        68
+      ],
+      "2025.04": [
+        160,
+        3252,
+        57,
+        6,
+        67
+      ],
+      "2025.05": [
+        161,
+        3172,
+        56,
+        6,
+        75
+      ],
+      "2025.06": [
+        159,
+        3177,
+        57,
+        6,
+        73
+      ],
+      "2025.07": [
+        159,
+        3197,
+        57,
+        6,
+        73
+      ],
+      "2025.08": [
+        158,
+        3137,
+        57,
+        6,
+        72
+      ],
+      "2025.09": [
+        203,
+        3262,
+        74,
+        6,
+        100
+      ],
+      "2025.10": [
+        197,
+        3322,
+        65,
+        6,
+        18
+      ],
+      "2025.11": [
+        213,
+        3282,
+        74,
+        6,
+        23
+      ],
+      "2025.12": [
+        212,
+        3377,
+        77,
+        6,
+        20
+      ],
+      "2026.01": [
+        211,
+        3368,
+        76,
+        6,
+        22
+      ],
+      "2026.02": [
+        209,
+        3421,
+        75,
+        8,
+        20
+      ],
+      "2026.04": [
+        206,
+        3377,
+        70,
+        8,
+        108
+      ],
+      "2026.05": [
+        216,
+        3384,
+        78,
+        8,
+        114
+      ],
+      "2026.06": [
+        215,
+        3463,
+        76,
+        8,
+        114
+      ],
+      "2026.07": [
+        215,
+        3463,
+        76,
+        8,
+        114
+      ]
+    },
+    "aiAnswersCnt": 30,
+    "aiState": 10,
+    "dr": 20,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/a711d8d80f840c26fc4060c35fa251910cd882aca777d7fca487838a0ca03925.png",
+    "name": "riva.ru"
+  }
+}

@@ -1,0 +1,541 @@
+{
+  "domain": "gen-group.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-16T16:03:28.059Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=gen-group.ru",
+  "data": {
+    "id": 249352215,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 113321008,
+        "name": "g-group.global",
+        "cnt": 4,
+        "it50": 462,
+        "vis": 10,
+        "perc": 0.8658008658008658
+      },
+      {
+        "did": 338697101,
+        "name": "gen-ii.ru",
+        "cnt": 4,
+        "it50": 27,
+        "vis": 1,
+        "perc": 14.814814814814813
+      },
+      {
+        "did": 333474445,
+        "name": "gnglub.com",
+        "cnt": 4,
+        "it50": 24,
+        "vis": 0,
+        "perc": 16.666666666666668
+      },
+      {
+        "did": 30607407,
+        "name": "gs-group.com",
+        "cnt": 4,
+        "it50": 787,
+        "vis": 16,
+        "perc": 0.5082592121982211
+      },
+      {
+        "did": 268456876,
+        "name": "psy-gen.ru",
+        "cnt": 3,
+        "it50": 199,
+        "vis": 3,
+        "perc": 1.5075376884422111
+      },
+      {
+        "did": 30073980,
+        "name": "simtree.ru",
+        "cnt": 3,
+        "it50": 485,
+        "vis": 15,
+        "perc": 0.6185567010309279
+      },
+      {
+        "did": 149546977,
+        "name": "g-group.art",
+        "cnt": 3,
+        "it50": 138,
+        "vis": 2,
+        "perc": 2.173913043478261
+      },
+      {
+        "did": 407155033,
+        "name": "gngroupcorp.com",
+        "cnt": 3,
+        "it50": 5,
+        "vis": 0,
+        "perc": 60
+      },
+      {
+        "did": 128263833,
+        "name": "gnggroup.in",
+        "cnt": 2,
+        "it50": 2,
+        "vis": 0,
+        "perc": 100
+      },
+      {
+        "did": 227831762,
+        "name": "sahaexpo.com",
+        "cnt": 2,
+        "it50": 35,
+        "vis": 1,
+        "perc": 5.714285714285714
+      }
+    ],
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 26,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "gen group",
+        "ws": 383,
+        "wsk": 26,
+        "pos": 1
+      },
+      {
+        "word": "gengroup",
+        "ws": 17,
+        "wsk": 8,
+        "pos": 1
+      },
+      {
+        "word": "gen group мебель",
+        "ws": 4,
+        "wsk": 4,
+        "pos": 1
+      },
+      {
+        "word": "сайт ген",
+        "ws": 5156,
+        "wsk": 11,
+        "pos": 2
+      },
+      {
+        "word": "джи эн групп официальный сайт",
+        "ws": 26,
+        "wsk": 15,
+        "pos": 3
+      },
+      {
+        "word": "gen group стол кухонный",
+        "ws": 29,
+        "wsk": 12,
+        "pos": 4
+      },
+      {
+        "word": "джиэнгруп официальный сайт",
+        "ws": 26,
+        "wsk": 26,
+        "pos": 5
+      },
+      {
+        "word": "group ru",
+        "ws": 35334,
+        "wsk": 134,
+        "pos": 28
+      },
+      {
+        "word": "ооо ген",
+        "ws": 14631,
+        "wsk": 7,
+        "pos": 29
+      },
+      {
+        "word": "ип валайко богдан станиславович",
+        "ws": 2,
+        "wsk": 1,
+        "pos": 29
+      }
+    ],
+    "topkeys": 1000000,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 25
+      },
+      {
+        "url": "/privacy-policy",
+        "it50": 1
+      }
+    ],
+    "pagesinindex": 2,
+    "vis": 1,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 27,
+    "history": {
+      "2025.02": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 6,
+        "it50": 18,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 3,
+        "it50": 11,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 3,
+        "it50": 9,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 1,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 4,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 1,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 5,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 1,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 2,
+        "it50": 11,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 3,
+        "it10": 3,
+        "it50": 14,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.10": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 3,
+        "it10": 3,
+        "it50": 14,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2025.11": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 3,
+        "it10": 3,
+        "it50": 17,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 3
+      },
+      "2025.12": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 3,
+        "it10": 3,
+        "it50": 22,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 3
+      },
+      "2026.01": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 3,
+        "it50": 24,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 3
+      },
+      "2026.02": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 5,
+        "it50": 26,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2026.03": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 6,
+        "it50": 27,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2026.04": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 8,
+        "it50": 26,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 4
+      },
+      "2026.05": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 8,
+        "it50": 26,
+        "pagesInIndex": 2,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 3
+      },
+      "2026.06": {
+        "it1": 3,
+        "it3": 4,
+        "it5": 5,
+        "it10": 7,
+        "it50": 25,
+        "pagesInIndex": 2,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2026.07": {
+        "it1": 3,
+        "it3": 5,
+        "it5": 7,
+        "it10": 7,
+        "it50": 26,
+        "pagesInIndex": 2,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 1,
+        "aiCnt": 0
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        24,
+        0,
+        4,
+        0,
+        11
+      ],
+      "2025.02": [
+        23,
+        12,
+        3,
+        9,
+        11
+      ],
+      "2025.03": [
+        22,
+        1,
+        4,
+        1,
+        10
+      ],
+      "2025.04": [
+        30,
+        1,
+        3,
+        1,
+        18
+      ],
+      "2025.05": [
+        27,
+        1,
+        3,
+        1,
+        15
+      ],
+      "2025.06": [
+        25,
+        1,
+        3,
+        1,
+        13
+      ],
+      "2025.07": [
+        25,
+        1,
+        3,
+        1,
+        13
+      ],
+      "2025.08": [
+        27,
+        1,
+        3,
+        1,
+        15
+      ],
+      "2025.09": [
+        29,
+        1,
+        7,
+        1,
+        17
+      ],
+      "2025.10": [
+        28,
+        1,
+        6,
+        1,
+        2
+      ],
+      "2025.11": [
+        31,
+        1,
+        7,
+        1,
+        2
+      ],
+      "2025.12": [
+        31,
+        1,
+        10,
+        1,
+        2
+      ],
+      "2026.01": [
+        29,
+        1,
+        8,
+        1,
+        2
+      ],
+      "2026.02": [
+        30,
+        1,
+        8,
+        1,
+        1
+      ],
+      "2026.05": [
+        29,
+        1,
+        9,
+        1,
+        18
+      ],
+      "2026.06": [
+        34,
+        1,
+        10,
+        1,
+        23
+      ],
+      "2026.07": [
+        34,
+        1,
+        10,
+        1,
+        23
+      ]
+    },
+    "aiAnswersCnt": 0,
+    "aiState": 0,
+    "dr": 13,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/267b1a7afdb4e687fd9bcc53db6d701e8532fd0e7fae6c1a01b46316ded07e98.png",
+    "name": "gen-group.ru"
+  }
+}

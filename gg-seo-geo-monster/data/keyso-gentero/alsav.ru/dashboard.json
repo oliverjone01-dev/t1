@@ -1,0 +1,587 @@
+{
+  "domain": "alsav.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-16T16:11:38.093Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=alsav.ru",
+  "data": {
+    "id": 30799919,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 252528142,
+        "name": "office-plus.ru",
+        "cnt": 70,
+        "it50": 7905,
+        "vis": 217,
+        "perc": 0.8855154965211891
+      },
+      {
+        "did": 231460524,
+        "name": "slavstol.ru",
+        "cnt": 68,
+        "it50": 3112,
+        "vis": 30,
+        "perc": 2.185089974293059
+      },
+      {
+        "did": 29969746,
+        "name": "orgmebel.ru",
+        "cnt": 65,
+        "it50": 6894,
+        "vis": 20,
+        "perc": 0.9428488540760082
+      },
+      {
+        "did": 29971613,
+        "name": "mebelstyle.ru",
+        "cnt": 61,
+        "it50": 5148,
+        "vis": 185,
+        "perc": 1.184926184926185
+      },
+      {
+        "did": 29971626,
+        "name": "unitex.ru",
+        "cnt": 60,
+        "it50": 5454,
+        "vis": 168,
+        "perc": 1.1001100110011002
+      },
+      {
+        "did": 29969751,
+        "name": "office-mebel.ru",
+        "cnt": 55,
+        "it50": 4667,
+        "vis": 28,
+        "perc": 1.1784872509106492
+      },
+      {
+        "did": 29971609,
+        "name": "mavikom.ru",
+        "cnt": 54,
+        "it50": 6598,
+        "vis": 392,
+        "perc": 0.8184298272203697
+      },
+      {
+        "did": 29971637,
+        "name": "prime-wood.ru",
+        "cnt": 53,
+        "it50": 9820,
+        "vis": 525,
+        "perc": 0.539714867617108
+      },
+      {
+        "did": 30070006,
+        "name": "mebela.ru",
+        "cnt": 52,
+        "it50": 8546,
+        "vis": 820,
+        "perc": 0.6084717996723614
+      },
+      {
+        "did": 32418344,
+        "name": "glavoffice.ru",
+        "cnt": 41,
+        "it50": 1934,
+        "vis": 23,
+        "perc": 2.1199586349534645
+      }
+    ],
+    "it1": 20,
+    "it3": 28,
+    "it5": 31,
+    "it10": 35,
+    "it50": 257,
+    "childsCount": 3,
+    "keys": [
+      {
+        "word": "алсав",
+        "ws": 710,
+        "wsk": 264,
+        "pos": 1
+      },
+      {
+        "word": "алсав офисная мебель официальный сайт",
+        "ws": 82,
+        "wsk": 82,
+        "pos": 1
+      },
+      {
+        "word": "алсав мебель",
+        "ws": 204,
+        "wsk": 35,
+        "pos": 1
+      },
+      {
+        "word": "alsav",
+        "ws": 446,
+        "wsk": 32,
+        "pos": 1
+      },
+      {
+        "word": "алсав офисная мебель",
+        "ws": 135,
+        "wsk": 27,
+        "pos": 1
+      },
+      {
+        "word": "alsav мебель официальный сайт",
+        "ws": 20,
+        "wsk": 20,
+        "pos": 1
+      },
+      {
+        "word": "ооо производственная компания алсав",
+        "ws": 19,
+        "wsk": 9,
+        "pos": 1
+      },
+      {
+        "word": "alsav мебель",
+        "ws": 42,
+        "wsk": 6,
+        "pos": 1
+      },
+      {
+        "word": "алсав вакансии",
+        "ws": 12,
+        "wsk": 5,
+        "pos": 1
+      },
+      {
+        "word": "алсав мебель официальный сайт",
+        "ws": 121,
+        "wsk": 4,
+        "pos": 1
+      }
+    ],
+    "topkeys": 563413,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 73
+      },
+      {
+        "url": "/contact",
+        "it50": 27
+      },
+      {
+        "url": "/kresla-stulya-dlya-ofisa",
+        "it50": 22
+      },
+      {
+        "url": "/ofisnaya-mebel-arredo",
+        "it50": 17
+      },
+      {
+        "url": "/cabinet-stil",
+        "it50": 16
+      },
+      {
+        "url": "/proizvodstvo",
+        "it50": 9
+      },
+      {
+        "url": "/vacancy",
+        "it50": 9
+      },
+      {
+        "url": "/cabinet-gloss-line",
+        "it50": 6
+      },
+      {
+        "url": "/dileram",
+        "it50": 5
+      },
+      {
+        "url": "/katalog/stoly-dlya-peregovorov",
+        "it50": 5
+      }
+    ],
+    "pagesinindex": 40,
+    "vis": 8,
+    "topvis": 362034,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 12,
+    "history": {
+      "2025.02": {
+        "it1": 20,
+        "it3": 25,
+        "it5": 32,
+        "it10": 42,
+        "it50": 182,
+        "pagesInIndex": 28,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 11,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 15,
+        "it3": 22,
+        "it5": 25,
+        "it10": 39,
+        "it50": 214,
+        "pagesInIndex": 35,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 10,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 15,
+        "it3": 22,
+        "it5": 25,
+        "it10": 39,
+        "it50": 209,
+        "pagesInIndex": 35,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 10,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 16,
+        "it3": 28,
+        "it5": 31,
+        "it10": 43,
+        "it50": 220,
+        "pagesInIndex": 36,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 10,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 19,
+        "it3": 31,
+        "it5": 34,
+        "it10": 44,
+        "it50": 219,
+        "pagesInIndex": 34,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 12,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 14,
+        "it3": 24,
+        "it5": 27,
+        "it10": 44,
+        "it50": 225,
+        "pagesInIndex": 27,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 10,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 12,
+        "it3": 26,
+        "it5": 28,
+        "it10": 36,
+        "it50": 247,
+        "pagesInIndex": 34,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 13,
+        "aiCnt": 1
+      },
+      "2025.09": {
+        "it1": 15,
+        "it3": 27,
+        "it5": 30,
+        "it10": 39,
+        "it50": 262,
+        "pagesInIndex": 32,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 12,
+        "aiCnt": 7
+      },
+      "2025.10": {
+        "it1": 15,
+        "it3": 28,
+        "it5": 31,
+        "it10": 39,
+        "it50": 269,
+        "pagesInIndex": 31,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 13,
+        "aiCnt": 8
+      },
+      "2025.11": {
+        "it1": 18,
+        "it3": 25,
+        "it5": 31,
+        "it10": 44,
+        "it50": 325,
+        "pagesInIndex": 34,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 12,
+        "aiCnt": 23
+      },
+      "2025.12": {
+        "it1": 17,
+        "it3": 24,
+        "it5": 27,
+        "it10": 44,
+        "it50": 316,
+        "pagesInIndex": 40,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 12,
+        "aiCnt": 16
+      },
+      "2026.01": {
+        "it1": 15,
+        "it3": 19,
+        "it5": 23,
+        "it10": 35,
+        "it50": 293,
+        "pagesInIndex": 37,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 17
+      },
+      "2026.02": {
+        "it1": 14,
+        "it3": 17,
+        "it5": 23,
+        "it10": 38,
+        "it50": 277,
+        "pagesInIndex": 36,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 7,
+        "aiCnt": 5
+      },
+      "2026.03": {
+        "it1": 15,
+        "it3": 19,
+        "it5": 25,
+        "it10": 36,
+        "it50": 277,
+        "pagesInIndex": 37,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 7,
+        "aiCnt": 3
+      },
+      "2026.04": {
+        "it1": 16,
+        "it3": 23,
+        "it5": 27,
+        "it10": 34,
+        "it50": 258,
+        "pagesInIndex": 42,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 9,
+        "aiCnt": 12
+      },
+      "2026.05": {
+        "it1": 20,
+        "it3": 28,
+        "it5": 31,
+        "it10": 37,
+        "it50": 275,
+        "pagesInIndex": 42,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 21
+      },
+      "2026.06": {
+        "it1": 19,
+        "it3": 25,
+        "it5": 30,
+        "it10": 36,
+        "it50": 261,
+        "pagesInIndex": 40,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 1
+      },
+      "2026.07": {
+        "it1": 20,
+        "it3": 28,
+        "it5": 31,
+        "it10": 35,
+        "it50": 257,
+        "pagesInIndex": 40,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 8,
+        "aiCnt": 1
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        359,
+        346,
+        111,
+        7,
+        132
+      ],
+      "2025.02": [
+        325,
+        350,
+        111,
+        7,
+        129
+      ],
+      "2025.03": [
+        362,
+        405,
+        106,
+        6,
+        133
+      ],
+      "2025.04": [
+        336,
+        363,
+        113,
+        6,
+        133
+      ],
+      "2025.05": [
+        375,
+        372,
+        107,
+        6,
+        136
+      ],
+      "2025.06": [
+        328,
+        415,
+        109,
+        5,
+        139
+      ],
+      "2025.07": [
+        325,
+        422,
+        108,
+        6,
+        139
+      ],
+      "2025.08": [
+        341,
+        412,
+        109,
+        6,
+        138
+      ],
+      "2025.09": [
+        386,
+        430,
+        117,
+        6,
+        153
+      ],
+      "2025.10": [
+        382,
+        387,
+        125,
+        6,
+        26
+      ],
+      "2025.11": [
+        430,
+        477,
+        123,
+        6,
+        25
+      ],
+      "2025.12": [
+        440,
+        428,
+        127,
+        6,
+        31
+      ],
+      "2026.01": [
+        432,
+        444,
+        127,
+        7,
+        29
+      ],
+      "2026.02": [
+        445,
+        457,
+        128,
+        6,
+        28
+      ],
+      "2026.03": [
+        434,
+        470,
+        126,
+        6,
+        43
+      ],
+      "2026.04": [
+        425,
+        430,
+        126,
+        7,
+        184
+      ],
+      "2026.05": [
+        428,
+        458,
+        123,
+        6,
+        183
+      ],
+      "2026.06": [
+        444,
+        455,
+        124,
+        6,
+        187
+      ],
+      "2026.07": [
+        444,
+        455,
+        124,
+        6,
+        187
+      ]
+    },
+    "aiAnswersCnt": 1,
+    "aiState": 0,
+    "dr": 17,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/46eea0e263d040b66a6ca183f53f463edd3eaefccb046bd931a5737b805d117c.png",
+    "name": "alsav.ru"
+  }
+}

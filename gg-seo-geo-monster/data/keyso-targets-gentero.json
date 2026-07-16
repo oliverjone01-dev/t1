@@ -1,0 +1,35 @@
+{
+ "_note": "Разведка keys.so: рынок офисной/контрактной мебели РФ для GENTERO (B2B-направление GEN-GROUP). own=gen-group.ru. deep=1 собирает по каждому домену групповой отчёт (семантика+PPC-ключи+объявления+топ-страницы). Round 1: 2 конкурента от Ивана. Round 2 добирается из concs (авто-дискавери).",
+ "updated": "2026-07-16",
+ "own": "gen-group.ru",
+ "targets": [
+  {
+   "domain": "gen-group.ru",
+   "brand": "GENTERO",
+   "role": "own",
+   "reports": [
+    "dashboard",
+    "competitors",
+    "ad_history"
+   ]
+  },
+  {
+   "domain": "zamm.ru",
+   "brand": null,
+   "role": "competitor-office",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  },
+  {
+   "domain": "kanorussia.ru",
+   "brand": null,
+   "role": "competitor-office",
+   "reports": [
+    "dashboard",
+    "competitors"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,137 @@
+{
+ "domain": "kanorussia.ru",
+ "vs": [
+  "kanorussia.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T15:59:07.948Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 1,
+  "data": [
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "kanorussia.ru",
+    "it1": 2,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 24,
+    "vis": 44
+   },
+   {
+    "url": "/catalog",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditelya-1",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/contacts",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/becute-2229",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/desun-2209",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/geeco-series-2180",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/item-1963",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/sifan-series-2188",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/star-yo-series-2194",
+    "domain": "kanorussia.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 12
+ }
+}

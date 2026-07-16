@@ -1,0 +1,517 @@
+{
+ "domain": "riva.ru",
+ "vs": [
+  "riva.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:14:06.214Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 2,
+  "data": [
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "riva.ru",
+    "it1": 50,
+    "it3": 54,
+    "it5": 55,
+    "it10": 61,
+    "it50": 171,
+    "vis": 6309
+   },
+   {
+    "url": "/3d_page",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/akusticheskie-resheniya",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/akusticheskie-resheniya/napolnye-peregorodki",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-doma-i-gostinits",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-doma-i-gostinits/home-office/stoly-pismennye",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-doma-i-gostinits/light/krovati",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/cross/stoly-peregovornye_14",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/first/sistemy-khraneniya_3",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/fresco",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/onix-direct",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/onix-wood-direct/stoly-peregovornye_5",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/yalta/stoly-peregovornye_7",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rukovoditeley/yalta/stoly-zhurnalnye_6",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla/riva-chair",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 5
+   },
+   {
+    "url": "/catalog/kresla/riva-chair/1486841?oid=1486856",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla/rv-design",
+    "domain": "riva.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 4
+   },
+   {
+    "url": "/catalog/mebel-dlya-peregovornykh-zon/steel-meet/gotovye-komplekty_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/concept_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/estetica_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/estetica_1/sistemy-khraneniya_7",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/estetica_1/stoly-operatorskie_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/loft_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/metal-system-quattro-4kh4",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/metal-system_2",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/onix_1",
+    "domain": "riva.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 18
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/style_1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-personala/style_1/stoly-operatorskie_13",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobile_system1",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/myagkaya-mebel/brasco",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/myagkaya-mebel/pronto",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 23
+   },
+   {
+    "url": "/catalog/sistemy-khraneniya_13",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/sudebnaya-mebel",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 39
+   },
+   {
+    "url": "/catalog/sudebnaya-mebel/kodex_1/stoly-sekretarey",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/sudebnaya-mebel/kodex_1/tribuny",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 11,
+    "it5": 12,
+    "it10": 13,
+    "it50": 20,
+    "vis": 349
+   },
+   {
+    "url": "/company/news",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/besplatnaya_dostavka_do_tk",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 6
+   },
+   {
+    "url": "/company/news/kabinet_yalta_v_tsvete_dub_mali",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/company/news/novinka_akusticheskie_kabiny_soundcube",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_divan_serii_bridge",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_divany_serii_bronks",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_divany_serii_hans",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_divany_serii_mons",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_kabinet_fresco",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_kresla_job",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_kresla_pegas",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/company/news/novinka_kreslo_sam_m",
+    "domain": "riva.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 67
+ }
+}

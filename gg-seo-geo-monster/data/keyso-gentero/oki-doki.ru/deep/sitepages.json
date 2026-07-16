@@ -1,0 +1,517 @@
+{
+ "domain": "oki-doki.ru",
+ "vs": [
+  "oki-doki.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:18:59.652Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 4,
+  "data": [
+   {
+    "url": "/",
+    "domain": "oki-doki.ru",
+    "it1": 5,
+    "it3": 10,
+    "it5": 18,
+    "it10": 26,
+    "it50": 76,
+    "vis": 308
+   },
+   {
+    "url": "/about/faq",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/about/jobs",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 16
+   },
+   {
+    "url": "/about/own-production",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/about/press/akusticheskie-kabiny-novyy-trend-v-dizayne-ofisa",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 10
+   },
+   {
+    "url": "/about/press/chto-takoe-smart-steklo",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/press/ispolzovanie-protivopozharnykh-peregorodok-v-torgovykh-tsentrakh",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/about/press/kak-gramotno-razgranichit-prostranstvo-bolshogo-ofisa",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/press/kak-ukhazhivat-za-steklyannoy-ofisnoy-peregorodkoy",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/about/press/ofisnye-peregorodki-i-kakimi-oni-byvayut",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 3
+   },
+   {
+    "url": "/about/privacy-policy",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/representation",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/catalog",
+    "domain": "oki-doki.ru",
+    "it1": 1,
+    "it3": 4,
+    "it5": 6,
+    "it10": 8,
+    "it50": 26,
+    "vis": 318
+   },
+   {
+    "url": "/catalog/akusticheskie-kabiny",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 29,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/akusticheskie-kabiny/akusticheskaya-kabina-prevado-chetyryekhmestnaya",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 5,
+    "vis": 3
+   },
+   {
+    "url": "/catalog/akusticheskie-kabiny/akusticheskaya-kabina-prevado-dvukhmestnaya",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/celnosteklyannyye-peregorodki-nix",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/catalog/dekorativnyye-stenovyye-paneli-extent",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/alyuminievye-doors",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 5,
+    "it50": 24,
+    "vis": 2
+   },
+   {
+    "url": "/catalog/dveri/dveri-iz-ldsp",
+    "domain": "oki-doki.ru",
+    "it1": 4,
+    "it3": 7,
+    "it5": 8,
+    "it10": 12,
+    "it50": 23,
+    "vis": 144
+   },
+   {
+    "url": "/catalog/dveri/glukhie-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/kombinirovannye-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/laminirovannye-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 18,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/oki-doki-entrance-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/otkatnye-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/steklyannye-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dveri/tselnosteklyannye-dveri",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/fences/lestnichnye-ograzhdeniya",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/furniture",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/legkie-peregorodki-mobile-light",
+    "domain": "oki-doki.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 4,
+    "it10": 8,
+    "it50": 9,
+    "vis": 25
+   },
+   {
+    "url": "/catalog/mobile-standart",
+    "domain": "oki-doki.ru",
+    "it1": 2,
+    "it3": 11,
+    "it5": 17,
+    "it10": 23,
+    "it50": 24,
+    "vis": 209
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 6,
+    "it10": 19,
+    "it50": 54,
+    "vis": 328
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/kombinirovannye-leghkie-peregorodki",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 7
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/kombinirovannye-mobilnye-peregorodki",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-ekrany-iz-ldsp",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-ekrany-iz-stekla",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 7,
+    "vis": 1
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-ekrany-iz-tkani",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-leghkie-peregorodki-iz-ldsp",
+    "domain": "oki-doki.ru",
+    "it1": 2,
+    "it3": 3,
+    "it5": 4,
+    "it10": 5,
+    "it50": 13,
+    "vis": 38
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-leghkie-peregorodki-iz-tkani",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-peregorodki-iz-stekla",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-peregorodki-iz-stekla-ekonom",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 6,
+    "it50": 8,
+    "vis": 5
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/mobilnye-peregorodki-iz-tkani",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mobilnyye-peregorodki/peredvizhnye-peregorodki-na-kolesikakh",
+    "domain": "oki-doki.ru",
+    "it1": 3,
+    "it3": 6,
+    "it5": 9,
+    "it10": 16,
+    "it50": 28,
+    "vis": 42
+   },
+   {
+    "url": "/catalog/peregorodki-dlya-stolov-mobile-screen",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 8,
+    "it10": 35,
+    "it50": 116,
+    "vis": 232
+   },
+   {
+    "url": "/catalog/peregorodki-loft",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 18,
+    "it50": 42,
+    "vis": 35
+   },
+   {
+    "url": "/catalog/peregorodki-s-dvoynym-ostekleniyem-dual",
+    "domain": "oki-doki.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/protivopozharnye-peregorodki",
+    "domain": "oki-doki.ru",
+    "it1": 3,
+    "it3": 7,
+    "it5": 8,
+    "it10": 11,
+    "it50": 15,
+    "vis": 283
+   },
+   {
+    "url": "/catalog/protivopozharnye-peregorodki/1-tip-eiw-15",
+    "domain": "oki-doki.ru",
+    "it1": 3,
+    "it3": 11,
+    "it5": 14,
+    "it10": 25,
+    "it50": 41,
+    "vis": 532
+   },
+   {
+    "url": "/catalog/protivopozharnye-peregorodki/2-tip-eiw-30",
+    "domain": "oki-doki.ru",
+    "it1": 3,
+    "it3": 3,
+    "it5": 8,
+    "it10": 12,
+    "it50": 22,
+    "vis": 56
+   }
+  ],
+  "total": 165
+ }
+}

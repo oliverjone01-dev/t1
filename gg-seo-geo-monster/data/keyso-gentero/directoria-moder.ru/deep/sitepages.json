@@ -1,0 +1,517 @@
+{
+ "domain": "directoria-moder.ru",
+ "vs": [
+  "directoria-moder.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:10:50.032Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 4,
+  "data": [
+   {
+    "url": "/",
+    "domain": "directoria-moder.ru",
+    "it1": 18,
+    "it3": 22,
+    "it5": 24,
+    "it10": 29,
+    "it50": 141,
+    "vis": 1566
+   },
+   {
+    "url": "/about",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 8,
+    "it5": 9,
+    "it10": 10,
+    "it50": 19,
+    "vis": 876
+   },
+   {
+    "url": "/catalog/biznes",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/biznes/antey",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/biznes/ares-lux",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/biznes/era-premium",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 13,
+    "vis": 4
+   },
+   {
+    "url": "/catalog/biznes/genesis-premium",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/biznes/kyu-dm",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/biznes/winter",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 1
+   },
+   {
+    "url": "/catalog/dlya-khollov-i-kovorkingov/kreslo-krabi",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-khollov-i-kovorkingov/moris",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-khollov-i-kovorkingov/nova",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-khollov-i-kovorkingov/pavarotti",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/dlya-khollov-i-kovorkingov/pazolini",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekonom",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 5,
+    "it10": 6,
+    "it50": 12,
+    "vis": 43
+   },
+   {
+    "url": "/catalog/ekonom/evolution",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 16
+   },
+   {
+    "url": "/catalog/ekonom/flash",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekonom/kabinet-artvision",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekonom/porto",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekonom/tower",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 5,
+    "vis": 3
+   },
+   {
+    "url": "/catalog/ekrany-i-aksessuary",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekrany-i-aksessuary/aksessuary",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekrany-i-aksessuary/tkanevye-nakladki-na-ekrany",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/ekrany-i-aksessuary/zhurnalnye-stoly",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/elit",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 9,
+    "vis": 2
+   },
+   {
+    "url": "/catalog/elit/avatar",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/elit/bugatti",
+    "domain": "directoria-moder.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 14
+   },
+   {
+    "url": "/catalog/elit/privilege-3",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabineti-rukovoditelya",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 9,
+    "it10": 13,
+    "it50": 75,
+    "vis": 366
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/bentley",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/dao-walnut-1",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/dao-white",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/edvard",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/monarch-1",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety-rasprodazha/mux-palisandr",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kabinety_rukovoditelya/kabinet_rukovoditelya_monarch",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 24,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski/bruno-m",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski/kreslo-rukovoditelya-bottichelli-db-13",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 4
+   },
+   {
+    "url": "/catalog/klassicheski/kreslo-rukovoditelya-inter",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 3
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyabottichellidb13_new",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyabruno_new",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 1
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyachellini_new",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyadalidb700_new",
+    "domain": "directoria-moder.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 3,
+    "vis": 11
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyadonatellodb730_new",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyamikelandghelo_new",
+    "domain": "directoria-moder.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/catalog/klassicheski/kreslorukovoditelyarubensm_new",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/klassicheskie/divan-bruno1",
+    "domain": "directoria-moder.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 191
+ }
+}

@@ -1,0 +1,517 @@
+{
+ "domain": "nayada.ru",
+ "vs": [
+  "nayada.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:09:11.893Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 5,
+  "data": [
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "nayada.ru",
+    "it1": 28,
+    "it3": 30,
+    "it5": 34,
+    "it10": 40,
+    "it50": 96,
+    "vis": 2260
+   },
+   {
+    "url": "/about",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 3,
+    "it10": 3,
+    "it50": 8,
+    "vis": 33
+   },
+   {
+    "url": "/about/humor/proektirovshchiki",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/response",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 7
+   },
+   {
+    "url": "/architects",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/architects/12architects/authors/totan-kuzembaev",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/bim-models/bim-nayada-crystal",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/complex",
+    "domain": "nayada.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 7,
+    "vis": 40
+   },
+   {
+    "url": "/complex/carshowroom",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/contacts",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 6,
+    "it50": 28,
+    "vis": 2
+   },
+   {
+    "url": "/information/article/arhitekturnaya-kontseptsiya-v-formirovanii-ofisa-arhitektor-sergei-choban",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/bystrovozvodimye-peregorodki-estetika-bez-dolgih-usilii",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/derevyannye-mezhkomnatnye-peregorodki",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/ehksklyuzivnye-dizajnerskie-dveri-neobychnye-varianty-otdelki",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/kak-organizovat-rabochee-prostranstvo-v-kovorkinge",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/kak-vybrat-protivopozharnuyu-peregorodku-sravnivaem-tipy-i-naznacheniya",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 27
+   },
+   {
+    "url": "/information/article/kak-vybrat-stoiku-reception",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/kakimi-byvayut-sovremennye-peregovornye-v-ofisah",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 16,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/kakoe-steklo-vybrat-dlya-peregorodki",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 13,
+    "vis": 1
+   },
+   {
+    "url": "/information/article/karera-arhitektora-dlinnaya-lestnitsa-s-prizom-na-vershine",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/materialy-dlya-ofisnyh-peregorodok",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/montazh-aluminievyh-peregorodok",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/ofis-prostranstvo-dlya-tvorchestva-i-razvitiya",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/ofisy-open-space-otkrytoe-prostranstvo",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 55,
+    "vis": 9
+   },
+   {
+    "url": "/information/article/oformlyaem-ofis-v-stile-loft-osnovnye-pravila",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/ograzhdeniya-dlya-lestnits-atriumov-eskalatorov",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/ograzhdeniya-razdevalok",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/osobennosti-stoek-resepshen-dlya-magazinov-odezhdy",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/peregorodki-dlya-detskogo-sada-i-shkoly",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/peregorodki-dlya-kafe-i-restoranov",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/peregorodki-dlya-medicinskix-uchrezhdenij",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/peregorodki-iz-matovogo-stekla-bolshie-preimushchestva-dlya-malenkih-ofisov",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/pravila-idealnogo-ofisnogo-prostranstva",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/preimuschestva-nastolnyh-ekranov-dlya-ofisa",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/radiusnye-peregorodki-razdvizhnye",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/raspolozhenie-rabochih-mest-v-ofise",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/razdelenie-kuhni-i-gostinoj-s-pomoshchyu-peregorodki",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/santekhnicheskie-peregorodki-iz-legkih-konstrukcij",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/schaste-eto-kogda-est-mama-i-papa",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/skladskie-peregorodki-7-sovetov-po-ispolzovaniyu",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/sovremennye-tendencii-interera-oblicovka-steklom",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/startuem-vmeste",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/steklo-s-izmenyaemoj-prozrachnostyu-kak-rabotaet-i-gde-ispolzovat",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 9,
+    "it50": 40,
+    "vis": 1
+   },
+   {
+    "url": "/information/article/stojki-reception-salon-krasoty",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/stroitelstvo-chistyh-pomeschenii-trebovaniya-i-osobennosti",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/tomas-muler-odinokii-velosipedist",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 18
+   },
+   {
+    "url": "/information/article/tonirovka-peregorodok-i-dverei-funktsionalnost-i-stil",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/information/article/torgovye-peregorodki-estetika-i-funktsionalnost",
+    "domain": "nayada.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   }
+  ],
+  "total": 224
+ }
+}

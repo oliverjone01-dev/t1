@@ -122,8 +122,11 @@ async function callJSON(url, token, opts) {
   return JSON.parse(text);
 }
 async function deepCollect(domain, token, outBase) {
-  const own = "genglass.ru";
-  const domains = domain === own ? [own, "loftcase.ru"] : [domain, own];
+  // own-домен для групповой пары настраивается через KEYSO_OWN (default genglass.ru -
+  // рынок перегородок). Для вертикали офисной мебели GENTERO передаётся gen-group.ru.
+  const own = process.env.KEYSO_OWN || "genglass.ru";
+  const fallback = process.env.KEYSO_OWN_FALLBACK || "loftcase.ru";
+  const domains = domain === own ? [own, fallback] : [domain, own];
   const created = await callJSON(BASE + "/report/group", token, {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ base: DB, top: 50, domains, name: `deep-${domain}-${nowIso().slice(0, 10)}` })

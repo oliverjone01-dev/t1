@@ -1312,33 +1312,38 @@ function healthBlock(){
   // вертикальный сосуд-воронка: входящий поток льётся сверху в пузатое «В работе» (сток,
   // число в центре), снизу вытекает двумя струями успех/отказ по плану 25/75. Ширина струй
   // ∝ объёму потока (вход шире выхода = копится, уже = тает), пузо фиксировано - это сток.
-  const cx=140,SW=280;
-  const wIn=Math.max(18,Math.round(vhod/maxFlow*150)),wOut=Math.max(18,Math.round(vyhod/maxFlow*150));
-  const xoOut=+(cx-wOut/2).toFixed(1),wSuc=+(wOut*sucShare).toFixed(1),planX=+(xoOut+wOut*SUCPLAN).toFixed(1);
-  // вертикальная воронка: раструб входа сверху сужается в горловину пуза «В работе», снизу пузо
-  // переходит в раструб выхода. Вход и выход - одна форма (зеркально), стенки изогнуты (без острых
-  // углов). Ширина раструба ∝ объёму: вход шире выхода = копится, уже = тает, равны = здоровый.
-  const inPath=`M${(cx-wIn/2).toFixed(1)},16 C${(cx-wIn/2).toFixed(1)},50 98,58 98,92 L182,92 C182,58 ${(cx+wIn/2).toFixed(1)},50 ${(cx+wIn/2).toFixed(1)},16 Z`;
-  const outPath=`M94,282 C94,316 ${(cx-wOut/2).toFixed(1)},324 ${(cx-wOut/2).toFixed(1)},356 L${(cx+wOut/2).toFixed(1)},356 C${(cx+wOut/2).toFixed(1)},324 186,316 186,282 Z`;
-  const svg=`<svg viewBox="0 0 ${SW} 372" width="100%" style="max-width:300px;display:block;margin:2px auto 0" role="img" aria-label="Воронка: вход, в работе, выход">`+
-    `<defs><linearGradient id="hbBelly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818CF8" stop-opacity=".95"/><stop offset="1" stop-color="#6366F1" stop-opacity=".7"/></linearGradient>`+
-    `<clipPath id="hbOut"><path d="${outPath}"/></clipPath></defs>`+
-    // раструб входа сверху
-    `<path d="${inPath}" fill="#22D3EE" opacity=".85"/>`+
-    // пузо «В работе» (сток)
-    `<path d="M98,92 C58,116 34,146 34,180 C34,214 70,258 94,282 C120,296 160,296 186,282 C210,258 246,214 246,180 C246,146 222,116 182,92 C160,84 120,84 98,92 Z" fill="url(#hbBelly)" stroke="#818CF8" stroke-opacity=".55"/>`+
-    `<text x="140" y="180" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="44" fill="#EEF2FF">${fmt(wip)}</text>`+
-    `<text x="140" y="203" text-anchor="middle" font-size="11" font-weight="800" fill="#CBD2F7" letter-spacing="1.5">В РАБОТЕ</text>`+
-    `<text x="140" y="219" text-anchor="middle" font-size="9" fill="#A6AFD6">снимок портфеля · сток</text>`+
-    // раструб выхода снизу, делится успех/отказ по плану 25/75
-    `<g clip-path="url(#hbOut)"><rect x="${xoOut}" y="280" width="${wSuc}" height="80" fill="#2E9E74"/><rect x="${(xoOut+wSuc).toFixed(1)}" y="280" width="${(wOut-wSuc).toFixed(1)}" height="80" fill="#CC5867"/></g>`+
-    `<path d="${outPath}" fill="none" stroke="#0E1420" stroke-opacity=".25"/>`+
-    `<line x1="${planX}" y1="278" x2="${planX}" y2="360" stroke="#E7ECF3" stroke-width="2" stroke-dasharray="3 3"/>`+
+  // вертикальная «труба» в стиле воронки прохождения сделок: сегменты-прямоугольники со скруглением,
+  // соединённые сужающимися перемычками с градиентом. Вход -> В работе (пузо, сток) -> Выход (сплит
+  // успех/отказ по плану 25/75). Ширина ∝ объёму: вход шире выхода = копится, уже = тает.
+  const cx=150,SW=300,maxW=200,maxC=Math.max(vhod,wip,vyhod,1);
+  const wv=c=>Math.max(30,Math.round(c/maxC*maxW)),w1=wv(vhod),w2=wv(wip),w3=wv(vyhod);
+  const n1y=12,n1h=52,c1a=64,c1b=104,n2y=104,n2h=66,c2a=170,c2b=210,n3y=210,n3h=58,SH=276;
+  const xo3=+(cx-w3/2).toFixed(1),wSuc=+(w3*sucShare).toFixed(1),planX=+(xo3+w3*SUCPLAN).toFixed(1);
+  const trap=(wa,wb,ya,yb,g)=>`<path d="M${(cx-wa/2).toFixed(1)},${ya} L${(cx-wb/2).toFixed(1)},${yb} L${(cx+wb/2).toFixed(1)},${yb} L${(cx+wa/2).toFixed(1)},${ya} Z" fill="url(#${g})"/>`;
+  const svg=`<svg viewBox="0 0 ${SW} ${SH}" width="100%" style="max-width:320px;display:block;margin:2px auto 0" role="img" aria-label="Вертикальная труба: вход, в работе, выход">`+
+    `<defs><linearGradient id="hbC1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22D3EE" stop-opacity=".5"/><stop offset="1" stop-color="#818CF8" stop-opacity=".5"/></linearGradient>`+
+    `<linearGradient id="hbC2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818CF8" stop-opacity=".5"/><stop offset="1" stop-color="#9AA4B2" stop-opacity=".5"/></linearGradient>`+
+    `<clipPath id="hbN3"><rect x="${xo3}" y="${n3y}" width="${w3}" height="${n3h}" rx="6"/></clipPath></defs>`+
+    trap(w1,w2,c1a,c1b,'hbC1')+trap(w2,w3,c2a,c2b,'hbC2')+
+    // сегмент 1 - входящий поток
+    `<rect x="${(cx-w1/2).toFixed(1)}" y="${n1y}" width="${w1}" height="${n1h}" rx="6" fill="#22D3EE"/>`+
+    `<text x="${cx}" y="${n1y+n1h/2-1}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="18" fill="#06121a">${fmt(vhod)}</text>`+
+    `<text x="${cx}" y="${n1y+n1h/2+13}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#06121a" opacity=".72">входящий поток</text>`+
+    // сегмент 2 - в работе (пузо, сток)
+    `<rect x="${(cx-w2/2).toFixed(1)}" y="${n2y}" width="${w2}" height="${n2h}" rx="6" fill="#818CF8"/>`+
+    `<text x="${cx}" y="${n2y+30}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="27" fill="#0E1330">${fmt(wip)}</text>`+
+    `<text x="${cx}" y="${n2y+46}" text-anchor="middle" font-size="10" font-weight="800" fill="#0E1330" letter-spacing="1">В РАБОТЕ</text>`+
+    `<text x="${cx}" y="${n2y+58}" text-anchor="middle" font-size="8" fill="#0E1330" opacity=".72">снимок портфеля · сток</text>`+
+    // сегмент 3 - выход, сплит успех/отказ + плановая линия 25%
+    `<g clip-path="url(#hbN3)"><rect x="${xo3}" y="${n3y}" width="${wSuc}" height="${n3h}" fill="#2E9E74"/><rect x="${(xo3+wSuc).toFixed(1)}" y="${n3y}" width="${(w3-wSuc).toFixed(1)}" height="${n3h}" fill="#CC5867"/></g>`+
+    `<rect x="${xo3}" y="${n3y}" width="${w3}" height="${n3h}" rx="6" fill="none" stroke="#0E1420" stroke-opacity=".2"/>`+
+    `<line x1="${planX}" y1="${n3y-4}" x2="${planX}" y2="${n3y+n3h+4}" stroke="#E7ECF3" stroke-width="2" stroke-dasharray="3 3"/>`+
+    `<text x="${cx}" y="${n3y+n3h/2-1}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#fff">${fmt(vyhod)}</text>`+
+    `<text x="${cx}" y="${n3y+n3h/2+13}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" opacity=".85">выход</text>`+
     `</svg>`;
-  const capTop=`<div style="text-align:center;font-size:11px;color:var(--ink-3);margin-bottom:1px"><span style="color:#22D3EE;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Входящий поток</span> · <b style="color:#22D3EE">${fmt(vhod)}</b> новых офферов</div>`;
-  const capBot=`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px;margin-top:1px;padding:0 4px"><span style="color:#2E9E74;font-weight:800">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ план 25 / 75</span><span style="color:#CC5867;font-weight:800">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
-  const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:3px">выход всего ${fmt(vyhod)} · вход и выход - одна форма, ширина ∝ объёму: вход шире = копится, уже = тает, равны = здоровый режим</div>`;
-  const left=`<div>${capTop}${svg}${capBot}${capNote}${banner(fc,ft,fr)}${banner(qc,qt,qr)}</div>`;
+  const capBot=`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px;margin-top:2px;padding:0 4px"><span style="color:#2E9E74;font-weight:800">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ план 25 / 75</span><span style="color:#CC5867;font-weight:800">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
+  const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:4px">ширина сегментов ∝ объёму: вход шире выхода = копится, уже = тает, равны = здоровый режим · пузо «В работе» - сток (снимок портфеля)</div>`;
+  const left=`<div>${svg}${capBot}${capNote}${banner(fc,ft,fr)}${banner(qc,qt,qr)}</div>`;
   const names=[...new Set(passed.map(d=>d.mgr))];
   const mrows=names.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?su/w:0};}).filter(x=>x.w>0).sort((a,b)=>b.cr-a.cr);
   const crMax=Math.max(crDept,...mrows.map(x=>x.cr),0.01);

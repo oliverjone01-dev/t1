@@ -21,6 +21,15 @@ on:
       deep:
         description: "1 = глубокий сбор по каждому домену (семантика+PPC+объявления+страницы)"
         default: "0"
+      targets:
+        description: "Путь к файлу целей (по умолчанию рынок перегородок)"
+        default: "gg-seo-geo-monster/data/keyso-targets.json"
+      outdir:
+        description: "Каталог вывода (по умолчанию data/keyso; для GENTERO - data/keyso-gentero)"
+        default: "gg-seo-geo-monster/data/keyso"
+      own:
+        description: "own-домен для групповой пары deep (перегородки genglass.ru; офис gen-group.ru)"
+        default: "genglass.ru"
   schedule:
     - cron: "30 2 * * 1"   # еженедельно, пн 05:30 МСК - контроль рынка перегородок (goal Ивана 14.07)
 
@@ -37,6 +46,7 @@ env:
   KEYSO_DB: ${{ github.event.inputs.db || 'msk' }}
   KEYSO_PER: ${{ github.event.inputs.per || '100' }}
   DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
+  KEYSO_OWN: ${{ github.event.inputs.own || 'genglass.ru' }}
 
 jobs:
   collect:
@@ -48,7 +58,7 @@ jobs:
           node-version: "22"
 
       - name: Сбор keys.so
-        run: node gg-seo-geo-monster/scripts/keyso.mjs
+        run: node gg-seo-geo-monster/scripts/keyso.mjs "${{ github.event.inputs.targets || 'gg-seo-geo-monster/data/keyso-targets.json' }}" "${{ github.event.inputs.outdir || 'gg-seo-geo-monster/data/keyso' }}"
 
       - name: Коммит результата
         if: ${{ github.event.inputs.dry_run != '1' }}
@@ -56,7 +66,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add gg-seo-geo-monster/data/keyso
+          git add gg-seo-geo-monster/data
           if git diff --cached --quiet; then
             echo "Изменений в keyso нет"
           else

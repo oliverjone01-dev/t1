@@ -1,0 +1,517 @@
+{
+ "domain": "zamm.ru",
+ "vs": [
+  "zamm.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T15:57:29.969Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 7,
+  "data": [
+   {
+    "url": "/",
+    "domain": "zamm.ru",
+    "it1": 173,
+    "it3": 298,
+    "it5": 379,
+    "it10": 543,
+    "it50": 2537,
+    "vis": 23019
+   },
+   {
+    "url": "/basket",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/bolshoy-ofis-bolshie-vozmozhnosti",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/chem-otlichaetsya-pismennyy-stol-dlya-doma-ot-ofisnogo-rabochego-stola",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/chto-nuzhno-dlya-obustroystva-komfortnogo-ofisa",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/chto-nuzhno-znat-o-proizvodstve-metallicheskikh-karkasov",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/chto-takoe-geymerskoe-kreslo-i-chem-ono-otlichaetsya-ot-ofisnogo",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/chto-vkhodit-v-ponyatie-ofisnaya-mebel",
+    "domain": "zamm.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 5,
+    "it10": 8,
+    "it50": 12,
+    "vis": 16
+   },
+   {
+    "url": "/blog/interesnye-stati/dlya-chego-nuzhen-stol-dlya-raboty-stoya",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/dlya-chego-nuzhny-navesnye-polki-v-ofise",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/dlya-chego-nuzhny-yashchiki-v-kompyuternom-stole",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/garderobnaya-v-malenkom-ofise",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/iz-chego-delayut-mebel-dlya-ofisa",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kabinet-sekretarya",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-oborudovat-komfortnoe-rabochee-mesto-v-nebolshom-ofise-",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-oborudovat-ofisnoe-pomeshchenie-maksimalno-uyutno-",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-organizovat-rabochie-mesta-v-nebolshom-ofise",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 8,
+    "vis": 2
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-proizvodyat-mebel-na-metallokarkase",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-rabotat-stoya-ili-sidya-razbiraemsya-",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-raspolozhit-mebel-v-kabinete-rukovoditelya",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-sozdat-sovremennyy-i-uyutnyy-ofis",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 21,
+    "vis": 1
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-uvelichit-nebolshoe-rabochee-prostranstvo",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-vybrat-kachestvennyy-kompyuternyy-stol-dlya-doma",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-vybrat-khoroshiy-kompyuternyy-stol",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 23,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-vybrat-khoroshiy-stol-dlya-peregovorov",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 4
+   },
+   {
+    "url": "/blog/interesnye-stati/kak-vybrat-udobnoe-kompyuternoe-kreslo",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kakaya-korpusnaya-mebel-neobkhodima-v-obustroystve-ofisa",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kakoy-material-dlya-izgotovleniya-mebeli-samyy-luchshiy",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 3,
+    "it10": 13,
+    "it50": 65,
+    "vis": 49
+   },
+   {
+    "url": "/blog/interesnye-stati/kakoy-razmer-ofisnoy-mebeli-maksimalno-effektiven-dlya-personala",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kharakteristiki-idealnogo-ofisa",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/kompyuternye-stoly-s-yashchikami-ispolzovanie-v-ofise",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/krasivyy-ofis-rasstavlyaem-mebel-pravilno",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 4,
+    "it10": 30,
+    "it50": 61,
+    "vis": 7
+   },
+   {
+    "url": "/blog/interesnye-stati/mebel-dlya-domashnego-kabineta-ili-kak-organizovat-rabochee-mesto-doma",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 14,
+    "vis": 2
+   },
+   {
+    "url": "/blog/interesnye-stati/mebel-dlya-konferents-zalov-osnovnye-pravila-vybora",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/mebel-iz-dsp-preimushchestva-i-nedostatki",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/nebolshoy-ofis-kak-rasshirit-poleznoe-prostranstvo",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/ofis-v-stile-minimalizm",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/optimizatsiya-malenkogo-ofisa-stoly-na-neskolko-rabochikh-mest",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/osobennosti-proizvodstva-stolov-na-metallokarkase",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/otlichiya-kresla-rukovoditelya-ot-obychnykh-ofisnykh-kresel",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/prostoy-ukhod-za-beloy-ofisnoy-mebelyu",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/rasstanovka-mebeli-v-ofise-5-osnovnykh-pravil",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/spetsproekt-forbes",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/stoyki-resepshn",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/top-5-idey-po-obustroystvu-uyutnogo-ofisa",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/tsvetovaya-gamma-ofisnykh-pomeshcheniy-podbor-mebeli",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/ustanovka-shkafa-kupe-v-ofise",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/vstroennyy-shkaf-ili-korpusnyy-kakoy-vybrat",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interesnye-stati/vybiraem-kreslo-rukovoditelya-5-prostykh-pravil-",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 5
+   },
+   {
+    "url": "/blog/interesnye-stati/zonirovanie-v-ofisnom-interere-dizaynerskie-priemy",
+    "domain": "zamm.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   }
+  ],
+  "total": 313
+ }
+}

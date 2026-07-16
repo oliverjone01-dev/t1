@@ -1,0 +1,29 @@
+{
+ "domain": "kanorussia.ru",
+ "vs": [
+  "kanorussia.ru",
+  "gen-group.ru"
+ ],
+ "report": "context_keywords",
+ "measured": "2026-07-16T15:59:04.345Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 100,
+  "last_page": 1,
+  "data": [
+   {
+    "id": 310910199,
+    "word": "кано минск",
+    "weight": 1,
+    "ws": 202,
+    "wsk": 13,
+    "superwsk": 12,
+    "avbid": 0,
+    "numwords": 2,
+    "isgeo": 1,
+    "isquest": 0
+   }
+  ],
+  "total": 1
+ }
+}

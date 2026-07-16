@@ -1,0 +1,582 @@
+{
+  "domain": "kanorussia.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-16T15:58:17.646Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=kanorussia.ru",
+  "data": {
+    "id": 378879603,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 72948394,
+        "name": "soho-design.pro",
+        "cnt": 10,
+        "it50": 1295,
+        "vis": 13,
+        "perc": 0.7722007722007722
+      },
+      {
+        "did": 79051883,
+        "name": "everprof.ru",
+        "cnt": 9,
+        "it50": 1626,
+        "vis": 18,
+        "perc": 0.5535055350553505
+      },
+      {
+        "did": 72962458,
+        "name": "москва.фабрика-кресел.рф",
+        "cnt": 8,
+        "it50": 574,
+        "vis": 1,
+        "perc": 1.3937282229965156
+      },
+      {
+        "did": 412881738,
+        "name": "ergonomika.ru",
+        "cnt": 8,
+        "it50": 660,
+        "vis": 126,
+        "perc": 1.2121212121212122
+      },
+      {
+        "did": 231497161,
+        "name": "kabinet-rukovoditelya-rishar.ru",
+        "cnt": 6,
+        "it50": 158,
+        "vis": 0,
+        "perc": 3.7974683544303796
+      },
+      {
+        "did": 30239435,
+        "name": "solo.ru",
+        "cnt": 6,
+        "it50": 1160,
+        "vis": 34,
+        "perc": 0.5172413793103449
+      },
+      {
+        "did": 378409566,
+        "name": "office-direct.ru",
+        "cnt": 6,
+        "it50": 268,
+        "vis": 3,
+        "perc": 2.2388059701492535
+      },
+      {
+        "did": 29971608,
+        "name": "prosmebel.ru",
+        "cnt": 6,
+        "it50": 554,
+        "vis": 1,
+        "perc": 1.0830324909747293
+      },
+      {
+        "did": 30398897,
+        "name": "magazinkresel.ru",
+        "cnt": 6,
+        "it50": 805,
+        "vis": 4,
+        "perc": 0.7453416149068323
+      },
+      {
+        "did": 72956066,
+        "name": "expro-mebel.ru",
+        "cnt": 4,
+        "it50": 350,
+        "vis": 5,
+        "perc": 1.1428571428571428
+      }
+    ],
+    "it1": 2,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 33,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "kano офисная мебель",
+        "ws": 25,
+        "wsk": 24,
+        "pos": 1
+      },
+      {
+        "word": "кано мебель",
+        "ws": 64,
+        "wsk": 19,
+        "pos": 1
+      },
+      {
+        "word": "кано мебель отзывы",
+        "ws": 31,
+        "wsk": 31,
+        "pos": 5
+      },
+      {
+        "word": "шкафная группа",
+        "ws": 136,
+        "wsk": 15,
+        "pos": 12
+      },
+      {
+        "word": "geeco",
+        "ws": 16,
+        "wsk": 2,
+        "pos": 14
+      },
+      {
+        "word": "кан о",
+        "ws": 5626,
+        "wsk": 11,
+        "pos": 15
+      },
+      {
+        "word": "becute",
+        "ws": 24,
+        "wsk": 3,
+        "pos": 15
+      },
+      {
+        "word": "rfyj",
+        "ws": 96,
+        "wsk": 24,
+        "pos": 16
+      },
+      {
+        "word": "шоу рум офисной мебели",
+        "ws": 35,
+        "wsk": 14,
+        "pos": 17
+      },
+      {
+        "word": "офисная мебель шоурум в москве",
+        "ws": 3,
+        "wsk": 3,
+        "pos": 17
+      }
+    ],
+    "topkeys": 1000000,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 24
+      },
+      {
+        "url": "/catalog/kabinety-rukovoditelya-1",
+        "it50": 1
+      },
+      {
+        "url": "/product/sifan-series-2188",
+        "it50": 1
+      },
+      {
+        "url": "/product/star-yo-series-2194",
+        "it50": 1
+      },
+      {
+        "url": "/product/desun-2209",
+        "it50": 1
+      },
+      {
+        "url": "/product/geeco-series-2180",
+        "it50": 1
+      },
+      {
+        "url": "/contacts",
+        "it50": 1
+      },
+      {
+        "url": "/product/becute-2229",
+        "it50": 1
+      },
+      {
+        "url": "/product/item-1963",
+        "it50": 1
+      },
+      {
+        "url": "/catalog",
+        "it50": 1
+      }
+    ],
+    "pagesinindex": 10,
+    "vis": 0,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [
+      {
+        "word": "кано минск",
+        "ws": 202,
+        "wsk": 13,
+        "p": [
+          0,
+          13
+        ],
+        "sr": 0,
+        "pos": 13
+      }
+    ],
+    "adkeyscnt": 1,
+    "ads": [
+      {
+        "id": 2941235770,
+        "header": "Фабрика премиальной офисной мебели Kano. Эксклюзив в РФ. Гарантия качества! Москва",
+        "txt": "Офисные кабинеты. 3D дизайн-0 руб. Работаем по всей России. В наличии и на заказ!",
+        "facts": "Строгий отбор материалов, Бережная сборка, Итальянский дизайн",
+        "links": "О компании, Наш шоурум в Москве, Сотрудничество, Контакты",
+        "keyscnt": 1
+      }
+    ],
+    "adscnt": 1,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 1,
+      "bdg85": 1,
+      "bdg62": 1,
+      "bdg9": 1,
+      "bdg5": 1,
+      "average": 1,
+      "max": 1
+    },
+    "restop5": 9,
+    "history": {
+      "2025.02": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 16,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 1,
+        "it50": 14,
+        "pagesInIndex": 4,
+        "adsCount": 122,
+        "adKeysCount": 278,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 51,
+        "pagesInIndex": 4,
+        "adsCount": 157,
+        "adKeysCount": 388,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 1,
+        "it50": 22,
+        "pagesInIndex": 5,
+        "adsCount": 159,
+        "adKeysCount": 397,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 2,
+        "it10": 2,
+        "it50": 22,
+        "pagesInIndex": 6,
+        "adsCount": 182,
+        "adKeysCount": 475,
+        "visAvg": 2,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 1,
+        "it10": 3,
+        "it50": 27,
+        "pagesInIndex": 7,
+        "adsCount": 168,
+        "adKeysCount": 1963,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 34,
+        "pagesInIndex": 10,
+        "adsCount": 173,
+        "adKeysCount": 3334,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 3,
+        "it50": 36,
+        "pagesInIndex": 11,
+        "adsCount": 167,
+        "adKeysCount": 2763,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2025.10": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 38,
+        "pagesInIndex": 11,
+        "adsCount": 174,
+        "adKeysCount": 2611,
+        "visAvg": 0,
+        "aiCnt": 3
+      },
+      "2025.11": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 49,
+        "pagesInIndex": 11,
+        "adsCount": 134,
+        "adKeysCount": 993,
+        "visAvg": 0,
+        "aiCnt": 3
+      },
+      "2025.12": {
+        "it1": 0,
+        "it3": 1,
+        "it5": 1,
+        "it10": 2,
+        "it50": 41,
+        "pagesInIndex": 11,
+        "adsCount": 88,
+        "adKeysCount": 446,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.01": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 1,
+        "it10": 2,
+        "it50": 22,
+        "pagesInIndex": 7,
+        "adsCount": 47,
+        "adKeysCount": 125,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.02": {
+        "it1": 1,
+        "it3": 1,
+        "it5": 2,
+        "it10": 3,
+        "it50": 33,
+        "pagesInIndex": 11,
+        "adsCount": 17,
+        "adKeysCount": 21,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.03": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 3,
+        "it10": 5,
+        "it50": 34,
+        "pagesInIndex": 11,
+        "adsCount": 14,
+        "adKeysCount": 42,
+        "visAvg": 1,
+        "aiCnt": 0
+      },
+      "2026.04": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 4,
+        "it10": 4,
+        "it50": 32,
+        "pagesInIndex": 12,
+        "adsCount": 14,
+        "adKeysCount": 71,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.05": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 4,
+        "it10": 4,
+        "it50": 18,
+        "pagesInIndex": 4,
+        "adsCount": 9,
+        "adKeysCount": 13,
+        "visAvg": 3,
+        "aiCnt": 2
+      },
+      "2026.06": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 3,
+        "it10": 3,
+        "it50": 27,
+        "pagesInIndex": 9,
+        "adsCount": 4,
+        "adKeysCount": 5,
+        "visAvg": 1,
+        "aiCnt": 1
+      },
+      "2026.07": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 3,
+        "it10": 3,
+        "it50": 33,
+        "pagesInIndex": 10,
+        "adsCount": 1,
+        "adKeysCount": 1,
+        "visAvg": 0,
+        "aiCnt": 0
+      }
+    },
+    "linksHistory": {
+      "2025.02": [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "2025.04": [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "2025.05": [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "2025.06": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "2025.07": [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "2025.08": [
+        1,
+        0,
+        1,
+        0,
+        1
+      ],
+      "2025.09": [
+        0,
+        21,
+        0,
+        1,
+        1
+      ],
+      "2025.10": [
+        0,
+        18,
+        0,
+        1,
+        0
+      ],
+      "2025.11": [
+        1,
+        6,
+        1,
+        1,
+        1
+      ],
+      "2025.12": [
+        0,
+        7,
+        0,
+        1,
+        0
+      ],
+      "2026.01": [
+        0,
+        7,
+        0,
+        1,
+        0
+      ],
+      "2026.02": [
+        0,
+        7,
+        0,
+        1,
+        0
+      ],
+      "2026.04": [
+        0,
+        6,
+        0,
+        1,
+        0
+      ],
+      "2026.05": [
+        0,
+        6,
+        0,
+        1,
+        1
+      ],
+      "2026.06": [
+        44,
+        7,
+        1,
+        1,
+        2
+      ],
+      "2026.07": [
+        44,
+        7,
+        1,
+        1,
+        2
+      ]
+    },
+    "aiAnswersCnt": 0,
+    "aiState": 10,
+    "dr": 10,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/ae73f3b032e2744c46602a1bcb7b42680491cdaed55e8e0787ab7245f2da7895.png",
+    "name": "kanorussia.ru"
+  }
+}

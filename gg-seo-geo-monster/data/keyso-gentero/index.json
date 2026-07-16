@@ -1,0 +1,53 @@
+{
+  "updated": "2026-07-16T15:54:58.735Z",
+  "source": "keys.so",
+  "db": "msk",
+  "targets": [
+    {
+      "domain": "gen-group.ru",
+      "brand": "GENTERO",
+      "role": "own",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok",
+        "ad_history": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "zamm.ru",
+      "brand": null,
+      "role": "competitor-office",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "kanorussia.ru",
+      "brand": null,
+      "role": "competitor-office",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    }
+  ]
+}

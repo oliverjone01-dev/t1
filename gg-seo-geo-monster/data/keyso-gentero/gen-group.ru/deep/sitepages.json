@@ -1,0 +1,517 @@
+{
+ "domain": "gen-group.ru",
+ "vs": [
+  "gen-group.ru",
+  "loftcase.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T15:56:38.214Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 3,
+  "data": [
+   {
+    "url": "/",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 42,
+    "vis": 4
+   },
+   {
+    "url": "/arochnaya_kombinirovannaya_peregorodka_iz_metalla_i_stekla",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 5
+   },
+   {
+    "url": "/blog/post-loftcase_x_intervju_s_dizajnerom__anna_popova",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-mezhkomnatnye_peregorodki_s_rifljonym_steklom_pochemu_rifljonoe_steklo_populyarno_v_interere",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-peregorodki_v_stile_loft_idealnoe_reshenie_dlya_sovremennyh_intererov_ot_dizajnera_eleny_bunak",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-sovremennyj_komfort_dizajn_stomatologicheskoj_kliniki_kotoryj_vdohnovlyaet",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/bolshoj_stellazh_dlya_hranenia_iz_metalla_i_dereva",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/carved",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 9,
+    "it50": 11,
+    "vis": 19
+   },
+   {
+    "url": "/chernye_peregorodki_s_matovym_steklom_v_vannuju_komnatu_i_tualet",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/contacts",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dushevaya_loft_peregorodka_s_shirokim_profilem",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dveri_s_riflenym_steklom_v_zolotom_profile",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/garderobnaya_westline",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/garderobnyj_shkaf_bergen_4",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/garderobnyj_shkaf_brookstone_s_rifljonym_steklom_dostupen_k_prosmotru_v_shourume",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/kaskadnaya_mezhkomnatnaya_peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/kaskadnaya_peregorodka_iz_trjoh_stvorok",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/kaskadnaya_peregorodka_s_rifljonym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 4,
+    "vis": 4
+   },
+   {
+    "url": "/kaskadnaya_razdvizhnaya_peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/kuhonnaya_razdvizhnaya_peregorodka_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 7,
+    "it50": 10,
+    "vis": 3
+   },
+   {
+    "url": "/loft_peregorodka_mezhdu_balkonom_i_gostinoj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/loft_peregorodka_mezhkomnatnaya_s_dverju_chernaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 14
+   },
+   {
+    "url": "/mebel",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 16,
+    "vis": 2
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-garderobnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 12,
+    "vis": 2
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-obedennye_stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-rabochie_stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-stellazhi",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 18,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-zerkala",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/pomeshchenie-dlya_ofisa",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/pomeshchenie-dlya_ofisa/kategoriya_mebeli-stellazhi",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/pomeshchenie-dlya_spalni",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/obedennyj_stol_iz_massiva_duba",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/partition",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 3,
+    "it10": 4,
+    "it50": 8,
+    "vis": 61
+   },
+   {
+    "url": "/peregorodka_iz_profilnoj_truby__s_dekorativnoj_raskladkoj",
+    "domain": "loftcase.ru",
+    "it1": 2,
+    "it3": 3,
+    "it5": 4,
+    "it10": 5,
+    "it50": 8,
+    "vis": 29
+   },
+   {
+    "url": "/peregorodka_loft_s_razdvizhnoj_dverju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodka_mezhdu_kuhnej_i_koridorom_s_dverju_chernaya",
+    "domain": "loftcase.ru",
+    "it1": 2,
+    "it3": 7,
+    "it5": 8,
+    "it10": 9,
+    "it50": 9,
+    "vis": 102
+   },
+   {
+    "url": "/peregorodka_portal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodka_v_garderobnuju_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/peregorodki",
+    "domain": "loftcase.ru",
+    "it1": 3,
+    "it3": 22,
+    "it5": 55,
+    "it10": 206,
+    "it50": 605,
+    "vis": 690
+   },
+   {
+    "url": "/peregorodki/f/material-matovoe-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 5,
+    "it50": 8,
+    "vis": 8
+   },
+   {
+    "url": "/peregorodki/f/material-metal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 23,
+    "it50": 36,
+    "vis": 14
+   },
+   {
+    "url": "/peregorodki/f/material-ne-do-potolka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-s_steklom_volna",
+    "domain": "loftcase.ru",
+    "it1": 2,
+    "it3": 5,
+    "it5": 6,
+    "it10": 6,
+    "it50": 10,
+    "vis": 65
+   },
+   {
+    "url": "/peregorodki/f/material-steklo",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 9,
+    "it5": 14,
+    "it10": 36,
+    "it50": 71,
+    "vis": 896
+   },
+   {
+    "url": "/peregorodki/f/material-steklo/po_komnatam-garderobnaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 15,
+    "it10": 31,
+    "it50": 36,
+    "vis": 207
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-detskaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 3,
+    "it10": 9,
+    "it50": 9,
+    "vis": 3
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-dushevaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 23
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-garderobnaya",
+    "domain": "loftcase.ru",
+    "it1": 11,
+    "it3": 23,
+    "it5": 36,
+    "it10": 45,
+    "it50": 58,
+    "vis": 589
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-gostinaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   }
+  ],
+  "total": 109
+ }
+}

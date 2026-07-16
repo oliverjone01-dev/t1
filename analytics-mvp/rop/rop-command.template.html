@@ -1313,26 +1313,31 @@ function healthBlock(){
   // число в центре), снизу вытекает двумя струями успех/отказ по плану 25/75. Ширина струй
   // ∝ объёму потока (вход шире выхода = копится, уже = тает), пузо фиксировано - это сток.
   const cx=140,SW=280;
-  const wIn=Math.max(14,Math.round(vhod/maxFlow*150)),wOut=Math.max(14,Math.round(vyhod/maxFlow*150));
-  const xoIn=cx-wIn/2,xoOut=cx-wOut/2,wSuc=+(wOut*sucShare).toFixed(1),planX=+(xoOut+wOut*SUCPLAN).toFixed(1);
-  const svg=`<svg viewBox="0 0 ${SW} 372" width="100%" style="max-width:300px;display:block;margin:2px auto 0" role="img" aria-label="Сосуд воронки: вход, в работе, выход">`+
-    `<defs><linearGradient id="hbBelly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818CF8" stop-opacity=".95"/><stop offset="1" stop-color="#6366F1" stop-opacity=".7"/></linearGradient></defs>`+
-    // входящий поток - сужающаяся струя, льётся в горловину
-    `<path d="M${(cx-wIn/2).toFixed(1)},18 L${(cx+wIn/2).toFixed(1)},18 L179,87 L101,87 Z" fill="#22D3EE" opacity=".82"/>`+
-    // пузо «В работе»
-    `<path d="M98,86 C58,112 34,144 34,178 C34,214 72,258 94,286 L186,286 C208,258 246,214 246,178 C246,144 222,112 182,86 Z" fill="url(#hbBelly)" stroke="#818CF8" stroke-opacity=".55"/>`+
-    `<text x="140" y="178" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="44" fill="#EEF2FF">${fmt(wip)}</text>`+
-    `<text x="140" y="201" text-anchor="middle" font-size="11" font-weight="800" fill="#CBD2F7" letter-spacing="1.5">В РАБОТЕ</text>`+
-    `<text x="140" y="217" text-anchor="middle" font-size="9" fill="#A6AFD6">снимок портфеля · сток</text>`+
-    // выход двумя струями + плановая линия 25%
-    `<rect x="${xoOut.toFixed(1)}" y="286" width="${wSuc}" height="60" fill="#2E9E74"/>`+
-    `<rect x="${(xoOut+wSuc).toFixed(1)}" y="286" width="${(wOut-wSuc).toFixed(1)}" height="60" fill="#CC5867"/>`+
-    `<line x1="${planX}" y1="282" x2="${planX}" y2="352" stroke="#E7ECF3" stroke-width="2" stroke-dasharray="3 3"/>`+
-    `<text x="${planX}" y="366" text-anchor="middle" font-size="8.5" fill="#9AA4B2">план 25%</text>`+
+  const wIn=Math.max(18,Math.round(vhod/maxFlow*150)),wOut=Math.max(18,Math.round(vyhod/maxFlow*150));
+  const xoOut=+(cx-wOut/2).toFixed(1),wSuc=+(wOut*sucShare).toFixed(1),planX=+(xoOut+wOut*SUCPLAN).toFixed(1);
+  // вертикальная воронка: раструб входа сверху сужается в горловину пуза «В работе», снизу пузо
+  // переходит в раструб выхода. Вход и выход - одна форма (зеркально), стенки изогнуты (без острых
+  // углов). Ширина раструба ∝ объёму: вход шире выхода = копится, уже = тает, равны = здоровый.
+  const inPath=`M${(cx-wIn/2).toFixed(1)},16 C${(cx-wIn/2).toFixed(1)},50 98,58 98,92 L182,92 C182,58 ${(cx+wIn/2).toFixed(1)},50 ${(cx+wIn/2).toFixed(1)},16 Z`;
+  const outPath=`M94,282 C94,316 ${(cx-wOut/2).toFixed(1)},324 ${(cx-wOut/2).toFixed(1)},356 L${(cx+wOut/2).toFixed(1)},356 C${(cx+wOut/2).toFixed(1)},324 186,316 186,282 Z`;
+  const svg=`<svg viewBox="0 0 ${SW} 372" width="100%" style="max-width:300px;display:block;margin:2px auto 0" role="img" aria-label="Воронка: вход, в работе, выход">`+
+    `<defs><linearGradient id="hbBelly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#818CF8" stop-opacity=".95"/><stop offset="1" stop-color="#6366F1" stop-opacity=".7"/></linearGradient>`+
+    `<clipPath id="hbOut"><path d="${outPath}"/></clipPath></defs>`+
+    // раструб входа сверху
+    `<path d="${inPath}" fill="#22D3EE" opacity=".85"/>`+
+    // пузо «В работе» (сток)
+    `<path d="M98,92 C58,116 34,146 34,180 C34,214 70,258 94,282 C120,296 160,296 186,282 C210,258 246,214 246,180 C246,146 222,116 182,92 C160,84 120,84 98,92 Z" fill="url(#hbBelly)" stroke="#818CF8" stroke-opacity=".55"/>`+
+    `<text x="140" y="180" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="44" fill="#EEF2FF">${fmt(wip)}</text>`+
+    `<text x="140" y="203" text-anchor="middle" font-size="11" font-weight="800" fill="#CBD2F7" letter-spacing="1.5">В РАБОТЕ</text>`+
+    `<text x="140" y="219" text-anchor="middle" font-size="9" fill="#A6AFD6">снимок портфеля · сток</text>`+
+    // раструб выхода снизу, делится успех/отказ по плану 25/75
+    `<g clip-path="url(#hbOut)"><rect x="${xoOut}" y="280" width="${wSuc}" height="80" fill="#2E9E74"/><rect x="${(xoOut+wSuc).toFixed(1)}" y="280" width="${(wOut-wSuc).toFixed(1)}" height="80" fill="#CC5867"/></g>`+
+    `<path d="${outPath}" fill="none" stroke="#0E1420" stroke-opacity=".25"/>`+
+    `<line x1="${planX}" y1="278" x2="${planX}" y2="360" stroke="#E7ECF3" stroke-width="2" stroke-dasharray="3 3"/>`+
     `</svg>`;
   const capTop=`<div style="text-align:center;font-size:11px;color:var(--ink-3);margin-bottom:1px"><span style="color:#22D3EE;font-weight:800;text-transform:uppercase;letter-spacing:.05em">Входящий поток</span> · <b style="color:#22D3EE">${fmt(vhod)}</b> новых офферов</div>`;
   const capBot=`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px;margin-top:1px;padding:0 4px"><span style="color:#2E9E74;font-weight:800">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ план 25 / 75</span><span style="color:#CC5867;font-weight:800">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
-  const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:3px">выход всего ${fmt(vyhod)} · ширина струй ∝ объёму: вход шире выхода = копится, уже = тает</div>`;
+  const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:3px">выход всего ${fmt(vyhod)} · вход и выход - одна форма, ширина ∝ объёму: вход шире = копится, уже = тает, равны = здоровый режим</div>`;
   const left=`<div>${capTop}${svg}${capBot}${capNote}${banner(fc,ft,fr)}${banner(qc,qt,qr)}</div>`;
   const names=[...new Set(passed.map(d=>d.mgr))];
   const mrows=names.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?su/w:0};}).filter(x=>x.w>0).sort((a,b)=>b.cr-a.cr);

@@ -95,6 +95,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .tbl tbody tr.total:hover td{background:var(--bg-elevated)}
 .chrow:hover{background:rgba(120,140,170,.10);border-radius:4px}
 .ddopt:hover{background:rgba(120,140,170,.16)!important}
+.dhcol .dhg{opacity:0;transition:opacity .1s}.dhcol:hover .dhg{opacity:.6}
 .fbar{display:flex;align-items:center;gap:11px;margin-bottom:8px}
 .fbar .fl{width:185px;font-size:11.5px;color:var(--ink-2);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fbar .ft{flex:1;height:24px;background:var(--bg-elevated);border-radius:6px;overflow:hidden}
@@ -1389,11 +1390,10 @@ function healthBlock(){
       sers.forEach((s,j)=>{s.ser.forEach((o,i)=>{if(o.conv==null)return;const x=pL+i*colW+(colW-gw)/2+j*bw,y=yAt(o.conv),h=Math.max(1.5,y0-y);body+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(2.5,bw-1.5).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${s.col}" data-tip="${dt(s.lab+' · '+blabel(dkeys[i],egran),[['Конверсия (успех÷портфель)',pct(o.conv),'hl'],['Успех (предоплата)',fmt(o.su)],['Портфель «в работе»',fmt(o.n)]]).replace(/"/g,'&quot;')}" style="cursor:help"/>`;});});
       xl=dkeys.map((k,i)=>`<text x="${(pL+i*colW+colW/2).toFixed(1)}" y="${DH-8}" text-anchor="middle" font-size="8" fill="var(--ink-4)">${blabel(k,egran)}</text>`).join('');
     }else{
-      const faint=mgrSers.filter(o=>!selArr.includes(o.m)).map(o=>{const dd=smoothPath(o.ser);return dd?`<path d="${dd}" fill="none" stroke="#7C8AA5" stroke-width="1" opacity="${selArr.length?0.08:0.22}" stroke-linejoin="round" stroke-linecap="round"/>`:'';}).join('');
       const lines=sers.map(s=>{const dd=smoothPath(s.ser),sw=s.lab==='Отдел'?2.6:2;return (dd?`<path d="${dd}" fill="none" stroke="${s.col}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`:'')+dotsFor(s.ser,s.col,s.lab);}).join('');
       const colW=dkeys.length>1?plotW/(dkeys.length-1):plotW;
-      const hov=dkeys.map((k,i)=>{const rows=[['Отдел',deptSeries[i].conv==null?'—':pct(deptSeries[i].conv),'hl']];selArr.forEach(m=>{const o=mgrSers.find(z=>z.m===m);if(o)rows.push([esc(m),o.ser[i].conv==null?'—':pct(o.ser[i].conv)]);});rows.push(['Портфель «в работе»',fmt(deptSeries[i].n),'dim']);const hx=Math.max(0,xAt(i)-colW/2);return `<rect x="${hx.toFixed(1)}" y="${pT}" width="${Math.min(colW,DW-hx).toFixed(1)}" height="${plotH}" fill="transparent" data-tip="${dt(blabel(k,egran)+(cumMode?' · накопительно к этой дате':''),rows).replace(/"/g,'&quot;')}" style="cursor:help"/>`;}).join('');
-      body=faint+lines+hov;
+      const hov=dkeys.map((k,i)=>{const rows=[['Отдел',deptSeries[i].conv==null?'—':pct(deptSeries[i].conv),'hl']];selArr.forEach(m=>{const o=mgrSers.find(z=>z.m===m);if(o)rows.push([esc(m),o.ser[i].conv==null?'—':pct(o.ser[i].conv)]);});rows.push(['Портфель «в работе»',fmt(deptSeries[i].n),'dim']);const hx=Math.max(0,xAt(i)-colW/2),gx=xAt(i).toFixed(1);return `<g class="dhcol"><line class="dhg" x1="${gx}" y1="${pT}" x2="${gx}" y2="${(pT+plotH).toFixed(1)}" stroke="#22D3EE" stroke-width="1" stroke-dasharray="3 3"/><rect x="${hx.toFixed(1)}" y="${pT}" width="${Math.min(colW,DW-hx).toFixed(1)}" height="${plotH}" fill="transparent" data-tip="${dt(blabel(k,egran)+(cumMode?' · накопительно к этой дате':''),rows).replace(/"/g,'&quot;')}" style="cursor:help"/></g>`;}).join('');
+      body=lines+hov;
       xl=dkeys.map((k,i)=>(i===0||i===dkeys.length-1||(dkeys.length>2&&i===Math.floor(dkeys.length/2)))?`<text x="${xAt(i).toFixed(1)}" y="${DH-8}" text-anchor="${i===0?'start':i===dkeys.length-1?'end':'middle'}" font-size="8" fill="var(--ink-4)">${blabel(k,egran)}</text>`:'').join('');
     }
     dyn=`<svg viewBox="0 0 ${DW} ${DH}" width="100%" style="display:block">${grid}${planLine}${body}${xl}</svg>`;

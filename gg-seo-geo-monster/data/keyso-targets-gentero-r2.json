@@ -1,0 +1,18 @@
+{
+ "_note": "Round 2 разведки офисной мебели GENTERO. 10 приоритетных производителей (контрактные + перегородочные, ближе всего к профилю GENTERO). own=gen-group.ru. per=50 бережём суточный лимит keys.so 3000 строк (Round 1 уже израсходовал ~960).",
+ "updated": "2026-07-16",
+ "own": "gen-group.ru",
+ "targets": [
+  {"domain": "gen-group.ru", "brand": "GENTERO", "role": "own", "reports": ["dashboard"]},
+  {"domain": "felix.ru", "brand": null, "role": "competitor-office-contract", "reports": ["dashboard", "competitors"]},
+  {"domain": "unitex.ru", "brand": null, "role": "competitor-office-contract", "reports": ["dashboard", "competitors"]},
+  {"domain": "nayada.ru", "brand": null, "role": "competitor-partitions", "reports": ["dashboard", "competitors"]},
+  {"domain": "directoria-moder.ru", "brand": null, "role": "competitor-office-premium", "reports": ["dashboard", "competitors"]},
+  {"domain": "alsav.ru", "brand": null, "role": "competitor-office-premium", "reports": ["dashboard", "competitors"]},
+  {"domain": "riva.ru", "brand": null, "role": "competitor-office", "reports": ["dashboard", "competitors"]},
+  {"domain": "pioner.ru", "brand": null, "role": "competitor-office-premium", "reports": ["dashboard", "competitors"]},
+  {"domain": "mebelstyle.ru", "brand": null, "role": "competitor-office", "reports": ["dashboard", "competitors"]},
+  {"domain": "oki-doki.ru", "brand": null, "role": "competitor-partitions", "reports": ["dashboard", "competitors"]},
+  {"domain": "everprof.ru", "brand": null, "role": "competitor-office", "reports": ["dashboard", "competitors"]}
+ ]
+}

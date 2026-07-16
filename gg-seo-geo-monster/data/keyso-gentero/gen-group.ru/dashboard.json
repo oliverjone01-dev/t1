@@ -2,7 +2,7 @@
   "domain": "gen-group.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-16T15:55:46.108Z",
+  "measured": "2026-07-16T16:03:28.059Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=gen-group.ru",
   "data": {
     "id": 249352215,
@@ -487,7 +487,7 @@
         1,
         7,
         1,
-        1
+        2
       ],
       "2025.12": [
         31,
@@ -501,7 +501,7 @@
         1,
         8,
         1,
-        1
+        2
       ],
       "2026.02": [
         30,

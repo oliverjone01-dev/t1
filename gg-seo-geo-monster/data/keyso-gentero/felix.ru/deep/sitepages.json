@@ -1,0 +1,517 @@
+{
+ "domain": "felix.ru",
+ "vs": [
+  "felix.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:05:54.913Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 16,
+  "data": [
+   {
+    "url": "/",
+    "domain": "felix.ru",
+    "it1": 56,
+    "it3": 64,
+    "it5": 69,
+    "it10": 91,
+    "it50": 461,
+    "vis": 37291
+   },
+   {
+    "url": "/about",
+    "domain": "felix.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 6,
+    "it50": 10,
+    "vis": 3
+   },
+   {
+    "url": "/about/contacts",
+    "domain": "felix.ru",
+    "it1": 3,
+    "it3": 4,
+    "it5": 4,
+    "it10": 6,
+    "it50": 14,
+    "vis": 74
+   },
+   {
+    "url": "/about/diplomas/blagodarstvennoe-pismo-ot-metodicheskogo-tsentra-departamenta-obrazovaniya-i-nauki-goroda-moskvy",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/history",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/about/manufacture",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 7,
+    "vis": 2
+   },
+   {
+    "url": "/about/media/dva-predpriyatiya-kompanii-feliks-mebelnaya-fabrika-v-toroptse-i-dok-zharkovskiy-nachali-proizvodit-",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/media/intervyu-c-predsedatelem-soveta-direktorov-kompanii-quot-feliks-quot-iley-kondratevym",
+    "domain": "felix.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 5
+   },
+   {
+    "url": "/about/media/valentina-martynyuk-master-zolotye-ruki",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/about/mission",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/news",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/news/kompaniya-feliks-obustroila-interery-novykh-obshchestvennykh-tsentrov-v-moskve--100638",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/requisites",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 14,
+    "vis": 16
+   },
+   {
+    "url": "/blog/sovety/bench-sistema-chto-eto-takoe",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 3,
+    "it10": 3,
+    "it50": 6,
+    "vis": 3
+   },
+   {
+    "url": "/blog/sovety/chto-takoe-open-space-ofis",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 7,
+    "it50": 32,
+    "vis": 27
+   },
+   {
+    "url": "/blog/sovety/kak-obustroit-komnatu-otdykha-v-ofise",
+    "domain": "felix.ru",
+    "it1": 2,
+    "it3": 12,
+    "it5": 18,
+    "it10": 24,
+    "it50": 36,
+    "vis": 123
+   },
+   {
+    "url": "/blog/sovety/kak-sobrat-kompyuternoe-kreslo",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 20,
+    "it50": 52,
+    "vis": 19
+   },
+   {
+    "url": "/blog/sovety/oformlenie-peregovornoy-komnaty-v-ofise",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/sovety/organizatsiya-prostranstva-v-kabinete-rukovoditelya",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/sovety/organizatsiya-rabochego-prostranstva-v-ofise",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/sovety/rasstanovka-mebeli-v-ofise",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 8,
+    "it10": 24,
+    "it50": 67,
+    "vis": 18
+   },
+   {
+    "url": "/blog/sovety/vysota-ofisnogo-stola",
+    "domain": "felix.ru",
+    "it1": 9,
+    "it3": 48,
+    "it5": 114,
+    "it10": 227,
+    "it50": 340,
+    "vis": 5006
+   },
+   {
+    "url": "/catalog",
+    "domain": "felix.ru",
+    "it1": 4,
+    "it3": 21,
+    "it5": 22,
+    "it10": 24,
+    "it50": 39,
+    "vis": 1387
+   },
+   {
+    "url": "/catalog/kresla-i-stulya",
+    "domain": "felix.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 9,
+    "vis": 27
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/detskie-kresla",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/igrovye-kresla",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 5
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kompyuternye-kresla",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 15,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kompyuternye-kresla/bezhevyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kompyuternye-kresla/chernyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-personala",
+    "domain": "felix.ru",
+    "it1": 1,
+    "it3": 4,
+    "it5": 6,
+    "it10": 10,
+    "it50": 22,
+    "vis": 59
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-personala?PAGEN_4=2",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-personala?PAGEN_4=6",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-posetiteley",
+    "domain": "felix.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 10,
+    "it10": 21,
+    "it50": 55,
+    "vis": 80
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-rukovoditeley",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 15,
+    "it50": 72,
+    "vis": 195
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-rukovoditeley/bezhevyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-rukovoditeley/chernyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/kresla-dlya-zalov-ozhidaniya",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 4,
+    "it10": 8,
+    "it50": 35,
+    "vis": 17
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-kresla/s-podlokotnikami",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 2
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-kresla/seryye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-kresla/siniye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-stulya/belyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-stulya/bezhevyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-stulya/chernyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/kresla-i-stulya/ofisnyye-stulya/krasnyye",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 24
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma/dlya-kabineta-i-biblioteki",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma/dlya-kabineta-i-biblioteki/myagkaya-mebel-dlya-kabineta",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma/dlya-kabineta-i-biblioteki/stoly-dlya-kabineta",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma/domashniy-ofis",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/catalog/mebel-dlya-doma/kollektsii-mebeli-dlya-doma/monako_3",
+    "domain": "felix.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   }
+  ],
+  "total": 794
+ }
+}

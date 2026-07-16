@@ -1,0 +1,517 @@
+{
+ "domain": "unitex.ru",
+ "vs": [
+  "unitex.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:07:33.329Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 20,
+  "data": [
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "unitex.ru",
+    "it1": 31,
+    "it3": 34,
+    "it5": 37,
+    "it10": 54,
+    "it50": 243,
+    "vis": 3348
+   },
+   {
+    "url": "/acc/15216",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 28,
+    "vis": 4
+   },
+   {
+    "url": "/acc/board",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/acc/korzini",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/acc/kostumnie_veshalki",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/acc/kovriki",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/acc/nabor",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/acc/napolnie_veshalki",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/acc/obchestvennie_veshalki",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/acc/pads",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 18,
+    "vis": 0
+   },
+   {
+    "url": "/acc/podstavka",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 4,
+    "it50": 14,
+    "vis": 0
+   },
+   {
+    "url": "/acc/stoyki-dlya-butilirovannoy-vodi",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/acc/trees",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/acc/zerkala",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 7,
+    "it10": 9,
+    "it50": 12,
+    "vis": 78
+   },
+   {
+    "url": "/accounting",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address",
+    "domain": "unitex.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 7,
+    "it10": 8,
+    "it50": 31,
+    "vis": 359
+   },
+   {
+    "url": "/address/callback",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/kg/bishkek/bishkek_au_grand",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/address/kz/karaganda/karaganda_dealer2",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/astrahan/astrahan",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/barnaul/barnaul_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/belgorod/belgorod",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 8,
+    "vis": 28
+   },
+   {
+    "url": "/address/ru/cheboksary",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 5
+   },
+   {
+    "url": "/address/ru/chelyabinsk/chelyabinsk_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/cherepovec/cherepovec_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/evpatoriya/eupatoria_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/address/ru/feodosia/feodosia_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/grozniy/grozny",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/ivanovo/ivanovo",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/khanty-mansiysk/khanty-mansiysk",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 5,
+    "vis": 23
+   },
+   {
+    "url": "/address/ru/krasnodar",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 5
+   },
+   {
+    "url": "/address/ru/krasnodar/krd_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/kursk/kursk",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 4,
+    "it50": 6,
+    "vis": 21
+   },
+   {
+    "url": "/address/ru/maikop-ad/maikop_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/moscow/sever",
+    "domain": "unitex.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 15,
+    "vis": 2
+   },
+   {
+    "url": "/address/ru/moscow/sever_opp",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/moscow/vostok",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 4,
+    "it10": 6,
+    "it50": 33,
+    "vis": 3
+   },
+   {
+    "url": "/address/ru/moscow/yugo-zapad",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 3,
+    "it50": 20,
+    "vis": 27
+   },
+   {
+    "url": "/address/ru/murmansk/murmansk",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/nabchelni/nchelni",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/nn",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/nn/nishini_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/novorosiysk/novorosiysk2",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/nsk/novosibirsk_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/omsk/omsk",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/patgorsk",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/patgorsk/patgorsk_dealer",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/address/ru/penza/penza",
+    "domain": "unitex.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   }
+  ],
+  "total": 967
+ }
+}

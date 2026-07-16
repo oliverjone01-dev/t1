@@ -1,0 +1,437 @@
+{
+ "domain": "alsav.ru",
+ "vs": [
+  "alsav.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:12:28.298Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 1,
+  "data": [
+   {
+    "url": "/",
+    "domain": "alsav.ru",
+    "it1": 15,
+    "it3": 17,
+    "it5": 18,
+    "it10": 19,
+    "it50": 73,
+    "vis": 513
+   },
+   {
+    "url": "/akusticheskie-mobilnye-peregorodki-softoffice",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/cabinet-avance",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 3,
+    "it50": 3,
+    "vis": 71
+   },
+   {
+    "url": "/cabinet-gloss-line",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/cabinet-stil",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 16,
+    "vis": 0
+   },
+   {
+    "url": "/cabinet-taim-max",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/contact",
+    "domain": "alsav.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 27,
+    "vis": 2
+   },
+   {
+    "url": "/dileram",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/katalog",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 102
+   },
+   {
+    "url": "/katalog/kabinety-rukovoditelej",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/katalog/mebel-dlya-personala",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/katalog/mebel-dlya-priemnyh",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/katalog/stoly-dlya-peregovorov",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/katalog/stoly-dlya-peregovorov/stoly-dlya-peregovorov-gloss",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/kresla-stulya-dlya-ofisa",
+    "domain": "alsav.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 22,
+    "vis": 4
+   },
+   {
+    "url": "/kresla-stulya-dlya-ofisa/kreslo-ofisnoe-al-766",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/kresla-stulya-dlya-ofisa/kreslo-ofisnoe-al781",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/kresla-stulya-dlya-ofisa/kreslo-posetitelya-al-750v",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel-dlya-peregovornyh-i-prezidium-zon-summit",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/mebel-lounge",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/novyj-adres-sklada",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/ofisnaya-mebel-arredo",
+    "domain": "alsav.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 17,
+    "vis": 2
+   },
+   {
+    "url": "/ofisnaya-mebel-magnetic",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/proektnaya-mebel",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/proizvodstvo",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 9,
+    "vis": 8
+   },
+   {
+    "url": "/projects",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnera-attento",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnera-look-wood-office-project",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnera-mavikom",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnera-mavikom-3",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnera-nordini",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/projects/proekt-partnyora-abc-project-4",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/serii-mebeli",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/shkafy-kupe-comfort",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/sklad-alsav-pereezd-na-novuyu-territoriyu-s-2021-goda",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/stoly-na-dvuh-oporah-vast-extend",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stoly-transformery-bend",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/vacancy",
+    "domain": "alsav.ru",
+    "it1": 2,
+    "it3": 3,
+    "it5": 3,
+    "it10": 3,
+    "it50": 9,
+    "vis": 10
+   },
+   {
+    "url": "/wp-content/uploads/2023/05/ALSAV_OBUHOVO_SHEMA_PROEZDA_i_PRAVILA_2023.pdf",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/wp-content/uploads/2024/Памятка_для_посетителей_Атлант-Парк.pdf",
+    "domain": "alsav.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 42
+ }
+}

@@ -1,0 +1,587 @@
+{
+  "domain": "unitex.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-16T16:06:42.807Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=unitex.ru",
+  "data": {
+    "id": 29971626,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 29969731,
+        "name": "express-office.ru",
+        "cnt": 3325,
+        "it50": 42103,
+        "vis": 3906,
+        "perc": 7.897299479847042
+      },
+      {
+        "did": 31513196,
+        "name": "nice-office.ru",
+        "cnt": 2515,
+        "it50": 14272,
+        "vis": 163,
+        "perc": 17.621917040358746
+      },
+      {
+        "did": 29971637,
+        "name": "prime-wood.ru",
+        "cnt": 2214,
+        "it50": 9820,
+        "vis": 525,
+        "perc": 22.545824847250508
+      },
+      {
+        "did": 120248187,
+        "name": "dobriy-office.ru",
+        "cnt": 2156,
+        "it50": 9091,
+        "vis": 527,
+        "perc": 23.71576284237158
+      },
+      {
+        "did": 29919984,
+        "name": "meb-biz.ru",
+        "cnt": 2117,
+        "it50": 10822,
+        "vis": 134,
+        "perc": 19.562003326557015
+      },
+      {
+        "did": 29924618,
+        "name": "bestmebelshop.ru",
+        "cnt": 1853,
+        "it50": 138837,
+        "vis": 21648,
+        "perc": 1.3346586284635942
+      },
+      {
+        "did": 30070006,
+        "name": "mebela.ru",
+        "cnt": 1729,
+        "it50": 8546,
+        "vis": 820,
+        "perc": 20.231687339106017
+      },
+      {
+        "did": 252528142,
+        "name": "office-plus.ru",
+        "cnt": 1619,
+        "it50": 7905,
+        "vis": 217,
+        "perc": 20.480708412397217
+      },
+      {
+        "did": 29935175,
+        "name": "defo.ru",
+        "cnt": 1581,
+        "it50": 8421,
+        "vis": 270,
+        "perc": 18.77449234057713
+      },
+      {
+        "did": 29969746,
+        "name": "orgmebel.ru",
+        "cnt": 1546,
+        "it50": 6894,
+        "vis": 20,
+        "perc": 22.425297360023208
+      }
+    ],
+    "it1": 99,
+    "it3": 315,
+    "it5": 563,
+    "it10": 1292,
+    "it50": 5454,
+    "childsCount": 37,
+    "keys": [
+      {
+        "word": "юнитекс",
+        "ws": 6336,
+        "wsk": 1410,
+        "pos": 1
+      },
+      {
+        "word": "юнитекс офисная мебель официальный сайт",
+        "ws": 314,
+        "wsk": 293,
+        "pos": 1
+      },
+      {
+        "word": "офисная мебель юнитекс",
+        "ws": 661,
+        "wsk": 278,
+        "pos": 1
+      },
+      {
+        "word": "офисная мебель юнитекс официальный сайт",
+        "ws": 253,
+        "wsk": 232,
+        "pos": 1
+      },
+      {
+        "word": "юнитекс официальный сайт",
+        "ws": 1020,
+        "wsk": 154,
+        "pos": 1
+      },
+      {
+        "word": "мебель юнитекс официальный сайт",
+        "ws": 516,
+        "wsk": 152,
+        "pos": 1
+      },
+      {
+        "word": "юнитекс мебель официальный сайт",
+        "ws": 534,
+        "wsk": 147,
+        "pos": 1
+      },
+      {
+        "word": "юнитекс мебель",
+        "ws": 1232,
+        "wsk": 104,
+        "pos": 1
+      },
+      {
+        "word": "мебель юнитекс",
+        "ws": 1130,
+        "wsk": 93,
+        "pos": 1
+      },
+      {
+        "word": "юнитекс ооо",
+        "ws": 304,
+        "wsk": 55,
+        "pos": 1
+      }
+    ],
+    "topkeys": 66159,
+    "pages": [
+      {
+        "url": "/ofisnye-kresla",
+        "it50": 326
+      },
+      {
+        "url": "/",
+        "it50": 243
+      },
+      {
+        "url": "/mebel-personala/ofisnye-tumby",
+        "it50": 171
+      },
+      {
+        "url": "/mebel-personala/ofisnye-stoly",
+        "it50": 154
+      },
+      {
+        "url": "/kabinety-dlya-rukovoditelya",
+        "it50": 119
+      },
+      {
+        "url": "/mebel-personala/ofisnye-shkafy",
+        "it50": 108
+      },
+      {
+        "url": "/mebel-personala/ofisnye-shkafy/shelving",
+        "it50": 103
+      },
+      {
+        "url": "/mebel-dlya-peregovornyx/skladnye-stoly",
+        "it50": 99
+      },
+      {
+        "url": "/ofisnye-kresla/naturalnaya-kozha",
+        "it50": 88
+      },
+      {
+        "url": "/mebel-personala/reception",
+        "it50": 85
+      }
+    ],
+    "pagesinindex": 965,
+    "vis": 168,
+    "topvis": 55431,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 10,
+    "history": {
+      "2025.02": {
+        "it1": 76,
+        "it3": 203,
+        "it5": 337,
+        "it10": 903,
+        "it50": 5019,
+        "pagesInIndex": 748,
+        "adsCount": 29,
+        "adKeysCount": 34,
+        "visAvg": 169,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 87,
+        "it3": 203,
+        "it5": 299,
+        "it10": 771,
+        "it50": 5024,
+        "pagesInIndex": 796,
+        "adsCount": 33,
+        "adKeysCount": 34,
+        "visAvg": 143,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 84,
+        "it3": 202,
+        "it5": 294,
+        "it10": 759,
+        "it50": 4905,
+        "pagesInIndex": 790,
+        "adsCount": 25,
+        "adKeysCount": 26,
+        "visAvg": 147,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 82,
+        "it3": 193,
+        "it5": 275,
+        "it10": 684,
+        "it50": 4603,
+        "pagesInIndex": 775,
+        "adsCount": 33,
+        "adKeysCount": 34,
+        "visAvg": 134,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 79,
+        "it3": 185,
+        "it5": 257,
+        "it10": 606,
+        "it50": 5137,
+        "pagesInIndex": 773,
+        "adsCount": 11,
+        "adKeysCount": 11,
+        "visAvg": 107,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 70,
+        "it3": 199,
+        "it5": 276,
+        "it10": 539,
+        "it50": 4314,
+        "pagesInIndex": 732,
+        "adsCount": 8,
+        "adKeysCount": 8,
+        "visAvg": 117,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 81,
+        "it3": 205,
+        "it5": 289,
+        "it10": 642,
+        "it50": 4455,
+        "pagesInIndex": 775,
+        "adsCount": 44,
+        "adKeysCount": 59,
+        "visAvg": 138,
+        "aiCnt": 6
+      },
+      "2025.09": {
+        "it1": 78,
+        "it3": 200,
+        "it5": 287,
+        "it10": 663,
+        "it50": 4453,
+        "pagesInIndex": 792,
+        "adsCount": 23,
+        "adKeysCount": 24,
+        "visAvg": 150,
+        "aiCnt": 236
+      },
+      "2025.10": {
+        "it1": 80,
+        "it3": 198,
+        "it5": 290,
+        "it10": 673,
+        "it50": 4452,
+        "pagesInIndex": 793,
+        "adsCount": 41,
+        "adKeysCount": 44,
+        "visAvg": 66,
+        "aiCnt": 521
+      },
+      "2025.11": {
+        "it1": 97,
+        "it3": 252,
+        "it5": 372,
+        "it10": 914,
+        "it50": 5061,
+        "pagesInIndex": 864,
+        "adsCount": 60,
+        "adKeysCount": 73,
+        "visAvg": 155,
+        "aiCnt": 400
+      },
+      "2025.12": {
+        "it1": 112,
+        "it3": 301,
+        "it5": 470,
+        "it10": 1177,
+        "it50": 5914,
+        "pagesInIndex": 936,
+        "adsCount": 111,
+        "adKeysCount": 194,
+        "visAvg": 170,
+        "aiCnt": 639
+      },
+      "2026.01": {
+        "it1": 110,
+        "it3": 289,
+        "it5": 463,
+        "it10": 1152,
+        "it50": 5420,
+        "pagesInIndex": 897,
+        "adsCount": 133,
+        "adKeysCount": 242,
+        "visAvg": 170,
+        "aiCnt": 589
+      },
+      "2026.02": {
+        "it1": 99,
+        "it3": 243,
+        "it5": 385,
+        "it10": 929,
+        "it50": 5275,
+        "pagesInIndex": 904,
+        "adsCount": 126,
+        "adKeysCount": 203,
+        "visAvg": 113,
+        "aiCnt": 327
+      },
+      "2026.03": {
+        "it1": 91,
+        "it3": 216,
+        "it5": 348,
+        "it10": 858,
+        "it50": 5238,
+        "pagesInIndex": 883,
+        "adsCount": 221,
+        "adKeysCount": 529,
+        "visAvg": 105,
+        "aiCnt": 154
+      },
+      "2026.04": {
+        "it1": 95,
+        "it3": 271,
+        "it5": 457,
+        "it10": 1036,
+        "it50": 5798,
+        "pagesInIndex": 988,
+        "adsCount": 205,
+        "adKeysCount": 517,
+        "visAvg": 157,
+        "aiCnt": 833
+      },
+      "2026.05": {
+        "it1": 104,
+        "it3": 254,
+        "it5": 441,
+        "it10": 1091,
+        "it50": 5583,
+        "pagesInIndex": 981,
+        "adsCount": 68,
+        "adKeysCount": 114,
+        "visAvg": 143,
+        "aiCnt": 368
+      },
+      "2026.06": {
+        "it1": 115,
+        "it3": 325,
+        "it5": 567,
+        "it10": 1256,
+        "it50": 5476,
+        "pagesInIndex": 966,
+        "adsCount": 25,
+        "adKeysCount": 36,
+        "visAvg": 190,
+        "aiCnt": 153
+      },
+      "2026.07": {
+        "it1": 99,
+        "it3": 315,
+        "it5": 563,
+        "it10": 1292,
+        "it50": 5454,
+        "pagesInIndex": 965,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 168,
+        "aiCnt": 81
+      }
+    },
+    "linksHistory": {
+      "2025.01": [
+        4650,
+        15154,
+        424,
+        6,
+        573
+      ],
+      "2025.02": [
+        4585,
+        17168,
+        429,
+        7,
+        576
+      ],
+      "2025.03": [
+        4636,
+        17542,
+        438,
+        5,
+        608
+      ],
+      "2025.04": [
+        6162,
+        17123,
+        438,
+        9,
+        636
+      ],
+      "2025.05": [
+        5829,
+        17554,
+        433,
+        7,
+        638
+      ],
+      "2025.06": [
+        5910,
+        17520,
+        437,
+        6,
+        648
+      ],
+      "2025.07": [
+        6025,
+        17536,
+        436,
+        6,
+        733
+      ],
+      "2025.08": [
+        6334,
+        17484,
+        443,
+        8,
+        883
+      ],
+      "2025.09": [
+        7783,
+        18926,
+        514,
+        7,
+        1394
+      ],
+      "2025.10": [
+        7765,
+        18486,
+        505,
+        7,
+        501
+      ],
+      "2025.11": [
+        9040,
+        20688,
+        521,
+        7,
+        595
+      ],
+      "2025.12": [
+        8108,
+        20260,
+        528,
+        9,
+        584
+      ],
+      "2026.01": [
+        8551,
+        23049,
+        540,
+        9,
+        613
+      ],
+      "2026.02": [
+        9078,
+        23526,
+        546,
+        8,
+        647
+      ],
+      "2026.03": [
+        9061,
+        23285,
+        548,
+        8,
+        644
+      ],
+      "2026.04": [
+        9101,
+        23465,
+        540,
+        20,
+        1642
+      ],
+      "2026.05": [
+        9066,
+        23461,
+        548,
+        19,
+        1650
+      ],
+      "2026.06": [
+        9081,
+        23552,
+        546,
+        17,
+        1650
+      ],
+      "2026.07": [
+        9081,
+        23552,
+        546,
+        17,
+        1650
+      ]
+    },
+    "aiAnswersCnt": 81,
+    "aiState": 10,
+    "dr": 32,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/2ae6f26bf0aa9f2d8cbb1d7bc3499da9c4e703c0298d4c580cdae8bea7e56d52.png",
+    "name": "unitex.ru"
+  }
+}

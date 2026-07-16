@@ -1,0 +1,517 @@
+{
+ "domain": "pioner.ru",
+ "vs": [
+  "pioner.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:15:43.910Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 3,
+  "data": [
+   {
+    "url": "/",
+    "domain": "pioner.ru",
+    "it1": 4,
+    "it3": 4,
+    "it5": 4,
+    "it10": 4,
+    "it50": 60,
+    "vis": 72
+   },
+   {
+    "url": "/7Admin/a09.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7Admin/a18.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7Bank&/b24.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7Bank.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/7Bank/b73.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/7Contact.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/7Design/d38.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7Design/d39.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7Torg/t34.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/7Wood.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/7torg_juvelir.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 24,
+    "vis": 1
+   },
+   {
+    "url": "/Kassovye_stojki.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/Torgovoe_oborudovanie.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/Torgovye_ostrova_na_zakaz.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/production/woodworking",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/assets/pdf/techno.pdf",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/bagazhnie_sistemi_dlia_aeroportov.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/barnye_stojki.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 21,
+    "vis": 0
+   },
+   {
+    "url": "/contacts",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/design/brandbook_office_strahovoi_compan_dp33.pdf",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/design/design_project_bank_museum_dp20.pdf",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/design/design_project_office_bank_dp2.pdf",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/design/design_project_office_dp05.pdf",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/design_stoiki_reception_av16.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dispetcherskij_stol_pult.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/dizajn_resepshn_moskva_a213",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dizayn_studiya.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/izgotovlenie_barnoi_stoiki_dlya_kafe_bar106.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/kabinet_rukovoditelia_steklo.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/klientskaya_zona_b185.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/kluchnitsa.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/konferenc_stol_kupit_k219",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/konferenc_stol_ovalniy_k124.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/kruglyj_resepshn_a117.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/1049/2-stojka-informacii-v-poliklinike.jpg",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/767/stoika_reception_dlya_gostinicy_a123.jpg",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlia_mfc_b301.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 8
+   },
+   {
+    "url": "/mebel_dlya_aeroporta.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 6
+   },
+   {
+    "url": "/mebel_dlya_kabineta_boss.htm",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_kabineta_lider",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_knizhnogo_magazina_t66.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_notarialnoj_kontory_pod_klyuch.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_ofisa_pod_klyuch_i54.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_polikliniki_a179.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_reception_a145.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_resepshn_na_zakaz_v_moskve_a216",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_dlya_sberbanka_b77.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel_kabinet.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 7,
+    "vis": 34
+   },
+   {
+    "url": "/oborudovanie_dlya_oruzhejnogo_t99.html",
+    "domain": "pioner.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   }
+  ],
+  "total": 148
+ }
+}

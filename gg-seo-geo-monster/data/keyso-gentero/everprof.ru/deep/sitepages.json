@@ -1,0 +1,517 @@
+{
+ "domain": "everprof.ru",
+ "vs": [
+  "everprof.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:20:37.597Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 9,
+  "data": [
+   {
+    "url": "/",
+    "domain": "everprof.ru",
+    "it1": 16,
+    "it3": 23,
+    "it5": 26,
+    "it10": 27,
+    "it50": 75,
+    "vis": 886
+   },
+   {
+    "url": "/blog/20967",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/3d-pechat-mebeli-revolyucziya-v-proizvodstve-ili-vremennoe-yavlenie",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/blog/5-prichin-kupit-igrovoe-kompyuternoe-kreslo",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/5-sovetov-kak-pravilno-sidet-v-ofisnom-kresle",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 62,
+    "vis": 0
+   },
+   {
+    "url": "/blog/barnye-stojki-i-stulya-v-ofise-trend-ili-udobnoe-reshenie",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/barnye-stulya-v-sovremennom-interere-kak-vybrat-stilnye-i-funkczionalnye-modeli",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/biofilnyj-dizajn-kak-mebel-pomogaet-integrirovat-prirodu-v-gorodskoj-interer",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/blog/boli_v_spine_mojet_li_ofisnoe_kreslo_bit_vinovnikom",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/chto-predpochest-ofisnoe-kreslo-s-kolesikami-libo-bez",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/czvet-ofisnogo-kresla-kak-vybrat",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/den-bez-spiny-kak-kreslo-mozhet-izbavit-ot-boley-navsegda",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/eko-revolyucziya-kak-mebelnye-brendy-idut-k-polnoj-ustojchivosti",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ekologichnaya-mebel-kak-vybrat-proizvoditelya-s-otvetstvennym-podhodom",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ekologichnye-materialy-v-proizvodstve-mebeli-moda-ili-neobhodimost",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ergonomichnoe-kompyuternoe-kreslo-preimushhestva-otlichitelnye-cherty",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ergonomichnoe-kompyuternoe-kreslo-preimushhestva-otlichitelnye-cherty?ybaip=1",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ergonomika-i-komfort-chto-vazhno-znat-pri-vybore-kresla",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ergonomika-v-detalyah-pochemu-melochi-imeyut-znachenie-pri-vybore-mebeli",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/gejmerskoe-kreslo-komfort-i-stil-dlya-idealnogo-strima",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/idealnoe-kreslo-na-krestovine-kak-sdelat-pravilnyj-vybor",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/blog/idealnyj-variant-obivki-ofisnogo-kresla",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/idealnyj-vybor-ofisnogo-kresla-dlya-rukovoditelej",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/interery-s-myagkoj-mebelyu-everprof-resheniya-dlya-ofisa-shouruma-i-zony-ozhidaniya",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/iskusstvennyj-intellekt-v-dizajne-mebeli-kak-algoritmy-menyayut-rynok",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-detskaya-mebel-vliyaet-na-razvitie-rebenka-komfort-ergonomika-i-bezopasnost",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-pravilno-ekspluatirovat-obsluzhivat-i-remontirovat-ofisnye-kresla",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kakuyu-obivku-vybrat-dlya-igrovogo-kresla",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kiberfinal-leta-the-international-uzhe-blizko",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kiberleto-prodolzhaetsya-kak-ne-upustit-riyadh-masters-2025",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kinosreda-doma-glavy-gosudarstv-i-idealnoe-kreslo-dlya-premery",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kreativnye-prostranstva-kak-mebel-transformiruet-ofisy-novogo-pokoleniya",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kreslo-reklajner-polza-udobstvo-primeneniya-i-osobennosti-modelej",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/letniy-kabinet-na-dache-kak-organizovat-komfortnoe-rabochee-mesto-za-gorodom",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/luchshie-kresla-dlya-ucheby-2023-komfort-i-zdorove",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/luchshie-novinki-2025-kresla-dlya-rukovoditelya",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/mebel-s-dopolnennoj-realnostyu-kak-ar-menyaet-proczess-pokupki",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/nabivka-ofisnogo-kresla-chto-zhe-nahoditsya-vnutri-izdeliya",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 50,
+    "vis": 0
+   },
+   {
+    "url": "/blog/naskolko-vazhno-podobrat-kreslo-pod-sobstvennyj-rost",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ne-prosto-kreslo-kak-innovaczionnye-mehanizmy-v-mebeli-mogut-izmenit-privychnyj-komfort",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ne-tipichnoe-kreslo-sovremennye-resheniya-i-funkczional-kresla-rukovoditelya",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/obshivka-ofisnogo-kresla-kak-pravilno-vybrat",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 11,
+    "vis": 1
+   },
+   {
+    "url": "/blog/ofisnoe-kreslo-iz-kozhi-ili-tkani-kak-vybrat",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/open-space-bez-khaosa-kak-organizovat-komfortnuyu-rabotu-komandy",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/optimalnyj-vybor-barnyh-stulev-dlya-domashnego-interera",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/osobennosti-vybora-mehanizma-kachaniya-rabochego-kresla-v-usloviyah-ofisnoj-raboty",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 58,
+    "vis": 0
+   },
+   {
+    "url": "/blog/personalizacziya-mebeli-kak-novye-tehnologii-pozvolyayut-sozdavat-unikalnye-predmety-pod-kazhdogo-klienta",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/pochemu-spina-ustayet-bystree-letom-neochevidnaya-prichina",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/pochemu-vneshne-pohozhie-stulya-mogut-stoit-po-raznomu",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/podarki-dlya-biznesa-kak-vybrat-funkczionalnuyu-mebel-k-novomu-godu",
+    "domain": "everprof.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 401
+ }
+}

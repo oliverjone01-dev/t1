@@ -1,0 +1,517 @@
+{
+ "domain": "mebelstyle.ru",
+ "vs": [
+  "mebelstyle.ru",
+  "gen-group.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-16T16:17:21.530Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 16,
+  "data": [
+   {
+    "url": "/",
+    "domain": "gen-group.ru",
+    "it1": 3,
+    "it3": 5,
+    "it5": 7,
+    "it10": 7,
+    "it50": 25,
+    "vis": 75
+   },
+   {
+    "url": "/privacy-policy",
+    "domain": "gen-group.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "mebelstyle.ru",
+    "it1": 27,
+    "it3": 34,
+    "it5": 37,
+    "it10": 53,
+    "it50": 289,
+    "vis": 6415
+   },
+   {
+    "url": "/about",
+    "domain": "mebelstyle.ru",
+    "it1": 3,
+    "it3": 4,
+    "it5": 4,
+    "it10": 4,
+    "it50": 6,
+    "vis": 68
+   },
+   {
+    "url": "/about/production",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 6,
+    "it50": 25,
+    "vis": 21
+   },
+   {
+    "url": "/about/requisites",
+    "domain": "mebelstyle.ru",
+    "it1": 4,
+    "it3": 4,
+    "it5": 4,
+    "it10": 5,
+    "it50": 12,
+    "vis": 102
+   },
+   {
+    "url": "/about/reviews",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 13,
+    "vis": 0
+   },
+   {
+    "url": "/about/reviews/37148",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/about/reviews/37193",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/chto-predstavlyaet-iz-sebya-umnyy-ofis",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/dizayn-kabineta-rukovoditelya-v-sovremennom-stile",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/article/dizayn-peregovornoy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/funktsionalnoye-pomeshcheniye-dlya-otdyha-v-ofise",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 31,
+    "vis": 1
+   },
+   {
+    "url": "/article/funktsionalnyye-zony-ofisa",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/article/kak-vybrat-pravilnoe-kreslo",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/kakie-rasteniya-vybrat-dlya-ofisa",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/article/kreslo-dlya-rukovoditelya-parametry-vybora",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/article/ofisnye-peregorodki-v-zonirovanii-prostranstva",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/article/oshibki-pri-organizatsii-rabochego-mesta-snizhayushchie-produktivnost",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/article/pravda-chto-rabotat-stoya-poleznee-chem-sidya",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/article/rabota-v-ofise-ili-doma-chto-effektivnee",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/article/raznovidnosti-stulev",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 21,
+    "vis": 0
+   },
+   {
+    "url": "/article/regulirovka-i-nastroyka-kompyuternogo-kresla",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 40,
+    "it50": 158,
+    "vis": 40
+   },
+   {
+    "url": "/article/rukovodstvo-po-vyboru-rabochego-stola-dlya-rukovoditelya",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/article/snip-sanpin-npb",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/article/tipy-ofisnogo-prostranstva",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/article/top-samykh-kreativnykh-ofisov",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/article/tsvetovyye-resheniya-dlya-ofisa",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 17,
+    "vis": 0
+   },
+   {
+    "url": "/article/zonirovanie-ofisa",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 4,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/buy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 8,
+    "vis": 2
+   },
+   {
+    "url": "/buy?city=2051",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/buy?city=2610",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/buy?city=269",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/buy?city=3075",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat",
+    "domain": "mebelstyle.ru",
+    "it1": 2,
+    "it3": 13,
+    "it5": 16,
+    "it10": 18,
+    "it50": 74,
+    "vis": 2847
+   },
+   {
+    "url": "/cat/105-104-wal-sc-black-stol-dlya-rukovoditelya-lago-italyanskiy-orekh-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/109-725-ecl-01-shkaf-kombinirovannyy-so-steklom-garderob-entso-evkalipt-morenyy-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/22102-stol-dlya-rukovoditelya-garvard-orekh-angliyskiy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/24711-stoleshnitsa-sorbonna-palisandr",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/362-80-bl-zaglushka-kabel-kanala-80mm-sirius-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/cat/402-kreslo-rukovoditelya-kozha-kozhzamenitel-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/417-chairman-kreslo-dlya-rukovoditelya-kozha-kozhzamenitel-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/cat/424-vd-wd-chairman-kreslo-dlya-rukovoditelya-kozha-ekokozha-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/480-vd-n-wd-n-chairman-kreslo-dlya-rukovoditelya-ekokozha-korichnevyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/505-dom-home-chairman-kreslo-dlya-rukovoditelya-tkan-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/cat/505-dom-home-chairman-kreslo-dlya-rukovoditelya-tkan-temno-bezhevyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/651-chairman-kreslo-dlya-sotrudnikov-ekokozha-chernyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/cat/696-chairman-kreslo-dlya-sotrudnikov-tkan-oranzhevyy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/cat/696-chairman-kreslo-dlya-sotrudnikov-tkan-siniy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/cat/699-b-v-chairman-kreslo-dlya-posetiteley-tkan-seryy",
+    "domain": "mebelstyle.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   }
+  ],
+  "total": 755
+ }
+}

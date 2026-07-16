@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-16T15:54:58.735Z",
+  "updated": "2026-07-16T16:03:25.860Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
@@ -8,9 +8,7 @@
       "brand": "GENTERO",
       "role": "own",
       "reports": {
-        "dashboard": "ok",
-        "competitors": "ok",
-        "ad_history": "ok"
+        "dashboard": "ok"
       },
       "deep": {
         "organic_keywords": "ok",
@@ -20,7 +18,82 @@
       }
     },
     {
-      "domain": "zamm.ru",
+      "domain": "felix.ru",
+      "brand": null,
+      "role": "competitor-office-contract",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "unitex.ru",
+      "brand": null,
+      "role": "competitor-office-contract",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "nayada.ru",
+      "brand": null,
+      "role": "competitor-partitions",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "directoria-moder.ru",
+      "brand": null,
+      "role": "competitor-office-premium",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "alsav.ru",
+      "brand": null,
+      "role": "competitor-office-premium",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "riva.ru",
       "brand": null,
       "role": "competitor-office",
       "reports": {
@@ -35,7 +108,52 @@
       }
     },
     {
-      "domain": "kanorussia.ru",
+      "domain": "pioner.ru",
+      "brand": null,
+      "role": "competitor-office-premium",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "mebelstyle.ru",
+      "brand": null,
+      "role": "competitor-office",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "oki-doki.ru",
+      "brand": null,
+      "role": "competitor-partitions",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "everprof.ru",
       "brand": null,
       "role": "competitor-office",
       "reports": {

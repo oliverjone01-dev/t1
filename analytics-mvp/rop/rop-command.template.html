@@ -1341,7 +1341,7 @@ function healthBlock(){
     `<text x="${cx}" y="${n3y+n3h/2-1}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#fff">${fmt(vyhod)}</text>`+
     `<text x="${cx}" y="${n3y+n3h/2+13}" text-anchor="middle" font-size="8.5" font-weight="700" fill="#fff" opacity=".85">выход</text>`+
     `</svg>`;
-  const capBot=`<div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px;margin-top:2px;padding:0 4px"><span style="color:#2E9E74;font-weight:800">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ план 25 / 75</span><span style="color:#CC5867;font-weight:800">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
+  const capBot=`<div style="display:flex;justify-content:center;align-items:center;gap:14px;font-size:10.5px;margin:2px auto 0;max-width:288px"><span style="color:#2E9E74;font-weight:800;white-space:nowrap">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ 25 / 75</span><span style="color:#CC5867;font-weight:800;white-space:nowrap">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
   const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:4px">ширина сегментов ∝ объёму: вход шире выхода = копится, уже = тает, равны = здоровый режим · пузо «В работе» - сток (снимок портфеля)</div>`;
   const left=`<div>${svg}${capBot}${capNote}${banner(fc,ft,fr)}${banner(qc,qt,qr)}</div>`;
   const names=[...new Set(passed.map(d=>d.mgr))];

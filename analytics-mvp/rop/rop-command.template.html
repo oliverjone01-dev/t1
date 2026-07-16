@@ -1270,6 +1270,44 @@ function render(){
     `<div style="display:flex;align-items:center;gap:9px;font-weight:800;font-size:14px;color:#F8717A;margin-bottom:6px"><span style="font-size:16px">⚑</span>Внимание: в период попал переезд CRM (5 марта 2026) - данным по сделкам верить нельзя</div>`+
     `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5">5 марта 2026 вся история сделок из AmoCRM залилась в Битрикс24 одним днём: <b style="color:var(--ink)">~21 000 сделок (94% всех записей)</b>. Дата создания и дата закрытия схлопнулись в 05.03.2026, сделки разом упали на этапы «Успешно» и «Отказ». Из-за этого за любой период, включающий 5 марта, <b style="color:#F8717A">искажены</b>: число созданных и закрытых сделок, выручка, средний чек, конверсии CR1/CR2 и вся воронка - на графиках это ложный всплеск (помечен красным флажком ⚑ переезд CRM). Лиды по дате создания пострадали меньше (даты сохранились), но проверяйте отдельно. Для честной картины берите период <b style="color:var(--ink)">после 5 марта 2026</b>.</div></div>`:'';
 // ===== ПРИЧИНЫ ОТКАЗОВ СО СТАДИИ ПРЕДЛОЖЕНИЯ (под календарём) =====
+// ===== ЗДОРОВЬЕ ОТДЕЛА ПРОДАЖ: баланс вход/выход + доля отказов + конверсия по менеджерам =====
+function healthBlock(){
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  if(!passed.length)return "";
+  const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
+  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
+  const enterLose=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  const openEnd=d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end));};
+  const vhod=passed.filter(d=>inR(firstOffer(d))).length;
+  const suc=passed.filter(d=>inR(enterExec(d))).length;
+  const otk=passed.filter(d=>inR(enterLose(d))).length;
+  const vyhod=suc+otk,bal=vhod-vyhod;
+  const wip=passed.filter(openEnd).length,crDept=wip?suc/wip:0;
+  const lossShare=vyhod?otk/vyhod:0;
+  const tol=Math.max(3,0.15*Math.max(vhod,vyhod,1));
+  let fc,ft,fr;
+  if(Math.abs(bal)<=tol){fc='#2E9E74';ft='Здоровый режим';fr='Вход ≈ выход: сделки обрабатываются, накопления нет. Нормальный темп отдела.';}
+  else if(bal>0){fc='#F59E0B';ft='Копится в работе';fr='Входящих ('+fmt(vhod)+') больше, чем закрыто ('+fmt(vyhod)+') - портфель растёт на '+fmt(bal)+'. Поток новых клиентов больше, чем делается продаж: менеджеры распыляются, отказы неизбежно растут. Поднимать эффективность отдела (скорость обработки и конверсию).';}
+  else{fc='#F43F5E';ft='Выход обгоняет вход';fr='Закрыто ('+fmt(vyhod)+') больше, чем пришло ('+fmt(vhod)+') - портфель тает на '+fmt(-bal)+'. Сигнал маркетингу: увеличить поток новых клиентов, иначе воронка иссякнет.';}
+  const lossBad=lossShare>=0.25,lc=lossBad?'#F43F5E':lossShare>=0.18?'#F59E0B':'#2E9E74';
+  const lossRec=lossBad?'Доля отказов '+pct(lossShare)+' ≥ 25% - результат есть, но качество низкое. Поднимать эффективность отдела: разбор возражений, скорость, квалификация лида.':'Доля отказов '+pct(lossShare)+' в норме (порог 25%).';
+  const mx=Math.max(vhod,vyhod,1);
+  const tile=(lab,val,c,sub)=>`<div style="flex:1;min-width:78px;background:var(--bg-base);border-radius:10px;padding:9px 11px"><div style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em">${lab}</div><div style="font-family:'Manrope';font-weight:800;font-size:21px;color:${c}">${val}</div>${sub?`<div style="font-size:9px;color:var(--ink-4)">${sub}</div>`:''}</div>`;
+  const bar=(lab,val,c)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><div style="width:52px;font-size:11px;color:var(--ink-3);text-align:right">${lab}</div><div style="flex:1;height:16px;background:var(--bg-base);border-radius:8px;overflow:hidden"><div style="height:100%;width:${(val/mx*100).toFixed(1)}%;background:${c}"></div></div><div style="width:34px;font-size:12px;font-weight:800;color:${c}">${fmt(val)}</div></div>`;
+  const banner=(c,t,r)=>`<div style="border-left:3px solid ${c};background:${c}14;border-radius:8px;padding:8px 11px;margin-top:8px"><div style="font-weight:800;font-size:12.5px;color:${c}">${t}</div><div style="font-size:11px;color:var(--ink-2);margin-top:3px;line-height:1.4">${r}</div></div>`;
+  const left=`<div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${tile('Вход',fmt(vhod),'#22D3EE','пришло офферов')}${tile('Выход',fmt(vyhod),'#9AA4B2',fmt(suc)+' успех · '+fmt(otk)+' отказ')}${tile('Баланс',(bal>0?'+':'')+fmt(bal),fc,bal>0?'копит':bal<0?'разгружает':'ровно')}</div><div style="margin:6px 0">${bar('Вход',vhod,'#22D3EE')}${bar('Выход',vyhod,'#9AA4B2')}</div>${banner(fc,ft,fr)}${banner(lc,'Доля отказов '+pct(lossShare),lossRec)}</div>`;
+  const names=[...new Set(passed.map(d=>d.mgr))];
+  const mrows=names.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?su/w:0};}).filter(x=>x.w>0).sort((a,b)=>b.cr-a.cr);
+  const crMax=Math.max(crDept,...mrows.map(x=>x.cr),0.01);
+  const crBars=mrows.map(x=>{const above=x.cr>=crDept,c=above?'#2E9E74':'#F43F5E';return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0" title="${(esc(x.m)+': '+x.su+' успех / '+x.w+' в работе = '+pct(x.cr)+' (отдел '+pct(crDept)+')').replace(/"/g,'&quot;')}"><div style="width:118px;font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right">${esc(x.m)}</div><div style="flex:1;position:relative;height:15px;background:var(--bg-base);border-radius:7px;overflow:hidden"><div style="height:100%;width:${(x.cr/crMax*100).toFixed(1)}%;background:${c};opacity:.9"></div><div style="position:absolute;top:-2px;bottom:-2px;left:${(crDept/crMax*100).toFixed(1)}%;border-left:2px dashed #A78BFA"></div></div><div style="width:38px;font-size:11px;font-weight:800;color:${c};text-align:right">${pct(x.cr)}</div></div>`;}).join("");
+  const right=`<div><div class="card-t" style="font-size:12.5px">Конверсия в успех по менеджерам ${info('Успех за период ÷ в работе на конец (снимок портфеля). Пунктир - конверсия всего отдела. Кто левее/ниже пунктира (красный) - тянет отдел вниз, с ними разбираться в первую очередь.')}</div><div class="card-sub" style="margin-bottom:6px">успех ÷ в работе · отдел <b style="color:#A78BFA">${pct(crDept)}</b> (${fmt(suc)}/${fmt(wip)}) · <span style="color:#A78BFA">┊</span> = отдел</div>${crBars||'<div class="card-sub">нет данных</div>'}</div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Здоровье отдела продаж ${info('Баланс входа (новые офферы) и выхода (успех+отказ) за период - показатель здоровья отдела. Вход>выход - копится, менеджеры распыляются, растут отказы (поднимать эффективность). Вход<выход - воронка тает (маркетингу больше лидов). Вход≈выход - здоровый режим. Отдельный сигнал - доля отказов: ≥25% значит результат есть, но качество низкое. Справа - конверсия в успех по менеджерам против отдела: кто ниже пунктира, тянет вниз.')}</div><div class="card-sub">баланс потока · доля отказов · конверсия по менеджерам - сигналы РОПу</div></div></div><div class="grid2" style="align-items:start;gap:18px">${left}${right}</div></div>`;
+}
+
 function offerReasonsBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const dirOk=d=>!S.fDir||d.dir===S.fDir;
@@ -1421,8 +1459,9 @@ function offerCalendarBlock(){
     {id:"kp",nm:"КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C49:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
     {id:"dec",nm:"Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C49:3"),grp:"в работе",child:true},
     {id:"long",nm:"Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C49:UC_8JTBV2"),grp:"в работе",child:true},
-    {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход · финал"},
-    {id:"loss",nm:"Отказ",color:"#CC5867",df:enterLose,grp:"выход · финал"},
+    {id:"vyhod",nm:"Выход (успех + отказ)",color:"#9AA4B2",df:d=>enterExec(d)||enterLose(d),grp:"выход"},
+    {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход",child:true},
+    {id:"loss",nm:"Отказ",color:"#CC5867",df:enterLose,grp:"выход",child:true},
   ];
   const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
   const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
@@ -1455,7 +1494,7 @@ function offerCalendarBlock(){
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const baseIndent=r.child?'padding-left:18px;':'';
     const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
-    const nmeHTML=opts.sub?`<span style="padding-left:${opts.sub2?30:16}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
+    const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
     if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),met=ct>=0.5&&cf>=ct,cc=met?'#2E9E74':'#6A7484';
       rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${('факт '+cf+' · план '+ct+' (портфель × 15%) · '+(ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${met?'#2E9E74':'var(--ink-3)'}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
@@ -1465,24 +1504,24 @@ function offerCalendarBlock(){
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
   let _pg="";
-  const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход · финал':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
+  const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
     html+=rowLine(r,scope,r.id,{});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
-    const coh=COHROWS[r.id];
+    const coh=COHROWS[r.id],off=r.child?18:0;
     if(isOpen&&mgrSel){
       // выбран один менеджер: стадия/В-работе сразу разворачивается в свои когорты
-      if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");
+      if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm,off})).join("");
     }else if(isOpen){
       const lastK=keys[keys.length-1],wm=S.calWipMode||'mgr';
       if(coh&&wm==='age'){
         // сначала когорты по сроку, внутри - менеджеры (для «В работе» и стадий)
         coh.forEach(c=>{const ckey=c.id;
-          html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey});
+          html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey,off});
           if(S.calRowOpen&&S.calRowOpen[ckey]){
             const ms=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:dealsFor(c,lastK,msc).length,any:keys.some(k=>dealsFor(c,k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
-            html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m})).join("");
+            html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m,off})).join("");
           }
         });
       }else{
@@ -1492,8 +1531,8 @@ function offerCalendarBlock(){
         else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
         subs.sort((a,b)=>b.rank-a.rank);
         subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
-          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup});
-          if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm})).join("");
+          html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup,off});
+          if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm,off})).join("");
         });
       }
     }
@@ -1868,7 +1907,7 @@ function offerControlBlock(){
     + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
-    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+offerReasonsBlock();
+    + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).

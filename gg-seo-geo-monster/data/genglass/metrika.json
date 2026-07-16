@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-07-15",
+ "measured": "2026-07-16",
  "visits_30d": [
-  {
-   "date": "2026-06-15",
-   "visits": 408,
-   "search_visits": 78
-  },
   {
    "date": "2026-06-16",
    "visits": 321,
@@ -149,26 +144,31 @@
   },
   {
    "date": "2026-07-14",
-   "visits": 277,
+   "visits": 278,
    "search_visits": 64
+  },
+  {
+   "date": "2026-07-15",
+   "visits": 285,
+   "search_visits": 61
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 15
-  },
-  {
-   "phrase": "genglass",
-   "visits": 11
-  },
-  {
-   "phrase": "генгласс",
-   "visits": 9
+   "visits": 13
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 9
+   "visits": 11
+  },
+  {
+   "phrase": "genglass",
+   "visits": 10
+  },
+  {
+   "phrase": "генгласс",
+   "visits": 8
   },
   {
    "phrase": "интернет магазин зеркало в раме",
@@ -223,10 +223,6 @@
    "visits": 2
   },
   {
-   "phrase": "genglass стол",
-   "visits": 2
-  },
-  {
    "phrase": "Перегородки с черной металлической раскладкой",
    "visits": 2
   },
@@ -248,6 +244,10 @@
   },
   {
    "phrase": "стол genglass",
+   "visits": 2
+  },
+  {
+   "phrase": "стол на заказ",
    "visits": 2
   },
   {
@@ -303,6 +303,10 @@
    "visits": 1
   },
   {
+   "phrase": "Trubis L Max Раздвижной прямоугольный стол на металлическом каркасе",
+   "visits": 1
+  },
+  {
    "phrase": "Zeliso-I зеркало купить",
    "visits": 1
   },
@@ -349,28 +353,24 @@
   {
    "phrase": "gen group зеркало",
    "visits": 1
-  },
-  {
-   "phrase": "gen group стол обеденный круглый trubis wood d100 см черный с золотым металлическим подстольем",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 324
+   "visits": 326
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 108
+   "visits": 104
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 53
+   "visits": 52
   },
   {
    "url": "/product-category/tables/",
-   "visits": 47
+   "visits": 48
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
@@ -378,11 +378,11 @@
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 41
+   "visits": 40
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 35
+   "visits": 34
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
@@ -390,15 +390,15 @@
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 32
+   "visits": 31
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 28
+   "visits": 26
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 27
+   "visits": 26
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
@@ -413,23 +413,23 @@
    "visits": 21
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
    "visits": 20
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 19
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 18
+  },
+  {
+   "url": "/product-category/tables/kitchen-tables/",
+   "visits": 18
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 17
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 16
-  },
-  {
-   "url": "/product-category/mirrors/led/",
+   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 13
   },
   {
@@ -437,15 +437,7 @@
    "visits": 12
   },
   {
-   "url": "/product-category/mirrors/rotatable/",
-   "visits": 12
-  },
-  {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 12
-  },
-  {
-   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 12
   },
   {
@@ -457,11 +449,19 @@
    "visits": 11
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 11
   },
   {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "url": "/product-category/mirrors/led/",
+   "visits": 11
+  },
+  {
+   "url": "/product-category/mirrors/rotatable/",
+   "visits": 11
+  },
+  {
+   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
    "visits": 11
   },
   {
@@ -469,15 +469,15 @@
    "visits": 10
   },
   {
-   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
+   "url": "/product-category/mirrors/zerkalo-arka/",
    "visits": 10
   },
   {
-   "url": "/product-category/hranenie/veshalki/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 28.7,
+ "bounce_rate": 29.4,
  "depth": 2.4
 }

@@ -2155,7 +2155,17 @@ function managerPortfolioInner(){
   STAGES.forEach(st=>{if(!st.lead)st.items=openD.filter(d=>st.codes.includes(d.stageCode));st.n=st.items.length;st.m=st.lead?0:st.items.reduce((s,d)=>s+(d.budget||0),0);});
   const grp=ids=>STAGES.filter(st=>ids.includes(st.id)).reduce((s,st)=>s+st.n,0);
   const preN=grp(['new','qual','prep']),offN=grp(['kp','dec','long']);
-  const mx=Math.max(1,...STAGES.map(st=>st.n));
+  // матрица как в календаре: столбцы = «ранее» (до периода) + бакеты дат.
+  // сделку/лид кладём в столбец по дате попадания на текущий этап (лид - по дате прихода).
+  const g=S.gran,dkeys=buckets(g),keys=['__prev__',...dkeys];
+  const unit=S.calUnit==='money'?'money':'count';
+  const whenOf=(st,x)=>st.lead?x.created:stageIn(x);
+  const bOf=w=>{let k=bkey(String(w).slice(0,10),g);if(k<dkeys[0])return '__prev__';if(k>dkeys[dkeys.length-1])return dkeys[dkeys.length-1];return k;};
+  const klabel=k=>k==='__prev__'?'ранее':blabel(k,g);
+  const hx=(c,t)=>c+Math.round((0.16+t*0.72)*255).toString(16).padStart(2,'0');
+  const RW=72,fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
+  STAGES.forEach(st=>{const cnt={},mon={};keys.forEach(k=>{cnt[k]=0;mon[k]=0;});st.items.forEach(x=>{const k=bOf(whenOf(st,x));cnt[k]++;mon[k]+=(x.budget||0);});st.cnt=cnt;st.mon=mon;st.mxv=Math.max(1,...keys.map(k=>st.lead?cnt[k]:(unit==='money'?mon[k]:cnt[k])));});
+  const cellV=(st,k)=>st.lead?(st.cnt[k]||''):((unit==='money')?(st.mon[k]?fmtK(st.mon[k]):''):(st.cnt[k]||''));
   const dealList=arr=>{if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет сделок на этой стадии</div>';
     const body=arr.slice().sort((a,b)=>days(stageIn(b))-days(stageIn(a))).slice(0,60).map(d=>{const dg=days(stageIn(d)),dc=dg>30?'#CC5867':dg>14?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:center">${dl(d.id)}</td><td style="text-align:left">${esc(cliV(d))}</td><td style="text-align:left;color:var(--ink-3)">${esc(catV(d))}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
     return `<div class="scroll" style="max-height:260px;margin:0 0 6px 20px"><table class="tbl" style="font-size:11px"><thead><tr><th>Сделка</th><th style="text-align:left">Клиент</th><th style="text-align:left">Категория</th><th>Бюджет</th><th>В стадии</th></tr></thead><tbody>${body}</tbody></table></div>`;};
@@ -2164,16 +2174,21 @@ function managerPortfolioInner(){
     return `<div class="scroll" style="max-height:260px;margin:0 0 6px 20px;opacity:.85"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Лид</th><th style="text-align:left">Источник</th><th>В работе</th></tr></thead><tbody>${body}</tbody></table></div>`;};
   const row=st=>{const op=!!(S.portOpen&&S.portOpen[st.id]);
     const arw=st.n?`<span style="color:#A78BFA">${op?'▾ ':'▸ '}</span>`:'<span style="color:var(--ink-4)">· </span>';
-    const bar=`<div style="flex:1;height:18px;background:var(--bg-base);border-radius:6px;overflow:hidden"><div style="height:100%;width:${(st.n/mx*100).toFixed(1)}%;background:${st.col};opacity:${st.dim?'.5':'.9'};min-width:${st.n?'22px':'0'};display:flex;align-items:center;padding-left:6px">${st.n?`<span style="font-size:10px;font-weight:800;color:#06121a">${st.n}</span>`:''}</div></div>`;
-    const head=`<div class="chrow" ${st.n?`data-portrow="${st.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:10px;margin:3px 0;${st.dim?'opacity:.62;':''}"><div style="width:230px;font-size:11.5px;color:var(--ink-2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${arw}${esc(st.nm)}${st.hint?` <span style="color:var(--ink-4);font-size:9.5px">· ${st.hint}</span>`:''}</div>${bar}<div style="width:74px;font-size:10.5px;color:var(--ink-3);text-align:right">${st.m?fmtK(st.m)+' ₽':'—'}</div></div>`;
+    const cells=keys.map(k=>{const cnt=st.cnt[k],v=st.lead?cnt:(unit==='money'?st.mon[k]:cnt),t=v/st.mxv,bg=cnt===0?'var(--bg-base)':hx(st.col,t),tc=cnt===0?'transparent':t>.5?'#06121a':'#eef2f7';
+      return `<div style="flex:1;min-width:0;height:20px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:${tc}" title="${(st.nm+' · '+klabel(k)+': '+cnt+' сд · '+fmtK(st.mon[k]||0)+' ₽').replace(/"/g,'&quot;')}">${cellV(st,k)}</div>`;}).join('');
+    const sig=st.lead?fmt(st.n):(unit==='money'?fmtK(st.m):fmt(st.n));
+    const head=`<div class="chrow" ${st.n?`data-portrow="${st.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0;${st.dim?'opacity:.6;':''}"><div style="width:210px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${arw}${esc(st.nm)}${st.hint?` <span style="color:var(--ink-4);font-size:9px">· ${st.hint}</span>`:''}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:11px;font-weight:800;color:${st.col}">${sig}</div></div>`;
     return head+(op?(st.lead?leadList(st.items):dealList(st.items)):'');};
+  const step=Math.max(1,Math.ceil(keys.length/12));
+  const colHead=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:210px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:${k==='__prev__'?'var(--ink-3)':'var(--ink-4)'};overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1||k==='__prev__')?klabel(k):''}</div>`).join('')+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==='money'?'₽':'сд'}</div></div>`;
   const tile=(lab,val,col,sub,dim)=>`<div style="flex:1;min-width:118px;background:var(--bg-base);border-radius:10px;padding:9px 12px;${dim?'opacity:.62;':''}"><div style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em">${lab}</div><div style="font-family:'Manrope';font-weight:800;font-size:21px;color:${col}">${val}</div>${sub?`<div style="font-size:9px;color:var(--ink-4)">${sub}</div>`:''}</div>`;
   const grpHdr=(txt,col)=>`<div style="font-size:10px;font-weight:800;color:${col};text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px">${txt}</div>`;
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${tile('Лиды в работе',fmt(leadWork.length),'#2DD4BF','запас для новых сделок',true)}${tile('До предложения',fmt(preN),'#60A5FA','взять / ТЗ / КП')}${tile('На предложении',fmt(offN),'#818CF8','КП / решение / долгострой')}${tile('Всего открытых',fmt(preN+offN),'#A78BFA','сделок в портфеле')}</div>`
-    +grpHdr('Запас · лиды (менее срочно)','#2DD4BF').replace('margin:10px 0 4px','margin:0 0 4px')+STAGES.filter(st=>st.lead).map(row).join('')
+    +`<div class="card-sub" style="margin:0 0 6px">Каждый этап - строка, как в календаре. Столбец - когда сделка попала на этот этап (лид - когда пришёл); «ранее» - до начала периода. Σ справа - сколько сейчас на этапе. Клик по строке раскрывает список сделок.</div>`
+    +colHead
+    +grpHdr('Запас · лиды (менее срочно)','#2DD4BF').replace('margin:10px 0 4px','margin:4px 0 4px')+STAGES.filter(st=>st.lead).map(row).join('')
     +grpHdr('До предложения - взять в работу и сделать КП','#60A5FA')+STAGES.filter(st=>['new','qual','prep'].includes(st.id)).map(row).join('')
-    +grpHdr('На предложении - оффер у клиента','#818CF8')+STAGES.filter(st=>['kp','dec','long'].includes(st.id)).map(row).join('')
-    +`<div class="card-sub" style="margin:8px 2px 0">Клик по стадии раскрывает список сделок - как строка календаря. Ниже - движение этих сделок по времени.</div>`;
+    +grpHdr('На предложении - оффер у клиента','#818CF8')+STAGES.filter(st=>['kp','dec','long'].includes(st.id)).map(row).join('');
 }
 function mgrScatter(L){
   const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,q:0};a.t++;if(l.qual==='квал')a.q++;});

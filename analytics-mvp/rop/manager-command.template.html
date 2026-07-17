@@ -2039,14 +2039,17 @@ function mgrStats(){
   const mDays=new Date(Y,M,0).getDate(),mStart=today.slice(0,7)+'-01',mEl=Math.max(1,+today.slice(8,10)),mFactor=mDays/30;
   const inMonth=e=>e&&e.slice(0,10)>=mStart&&e.slice(0,10)<=today;
   const sucA=passed.filter(d=>inMonth(_enterExec(d))),loseA=passed.filter(d=>inMonth(_enterLoseOff(d)));
-  const suc=sucA.length,rev=sucA.reduce((s,d)=>s+(d.budget||0),0),chk=median(sucA.map(d=>d.budget||0).filter(v=>v>0))||0;
+  const suc=sucA.length,rev=sucA.reduce((s,d)=>s+(d.budget||0),0),chk=suc?Math.round(rev/suc):0; // её средний чек (mean) = выручка ÷ предоплаты
   const wip=open.length,cr=wip?suc/wip:0;
   const target=Math.round(live.length*0.15*mFactor),proj=Math.round(suc/mEl*mDays);
   const dOpen=ALL_DEALS.filter(d=>_MO.has(d.stageCode)&&!d.won&&!d.lost);
   const dPassed=ALL_DEALS.filter(d=>(d.hist||[]).some(h=>_MO.has(h[0])));
   const dSuc=dPassed.filter(d=>inMonth(_enterExec(d)));
   const dWip=dOpen.length,dCr=dWip?dSuc.length/dWip:0;
-  const dChk=median(dSuc.map(d=>d.budget||0).filter(v=>v>0))||120000;
+  // стандарт чека = СРЕДНИЙ (mean) чек предоплаты по всему отделу (как в расчёте плана РОП, ~118 т.р.),
+  // а не медиана (её тянут вниз десятки дешёвых сделок).
+  const dExAll=dPassed.filter(d=>_enterExec(d)).map(d=>d.budget||0).filter(v=>v>0);
+  const dChk=dExAll.length?Math.round(dExAll.reduce((a,b)=>a+b,0)/dExAll.length):120000;
   const mLabel=['','январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'][M]+' '+Y;
   return {live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),wip,suc,sucM:rev,lose:loseA.length,cr,target,chk,proj,mEl,mDays,mLabel,dCr,checkP:Math.round(dChk||120000)};
 }
@@ -2059,7 +2062,7 @@ function managerKpiBlock(MS){
   const revPlan=Math.max(1,MS.target*pc);
   const g2=gauge({label:'Выручка',att:MS.sucM/revPlan,fact:MS.sucM,plan:revPlan,kind:'money',factDisp:fmtK(MS.sucM),planDisp:fmtK(revPlan),note:`цель <b>${fmtK(revPlan)} ₽</b> · факт <b>${fmtK(MS.sucM)} ₽</b>`});
   const g3=gauge({label:'Конверсия портфеля',att:MS.cr/0.15,fact:MS.cr,plan:0.15,kind:'pct',factDisp:pct(MS.cr),planDisp:pct(0.15),note:`факт <b>${pct(MS.cr)}</b> · цель 15% · отдел <b style="color:#A78BFA">${pct(MS.dCr)}</b>`});
-  const g4=gauge({label:'Средний чек',att:pc?MS.chk/pc:0,fact:MS.chk,plan:pc,kind:'money',factDisp:fmtK(MS.chk),planDisp:fmtK(pc),note:`факт <b>${MS.chk?fmtK(MS.chk)+' ₽':'—'}</b> · пол <b>${fmtK(pc)} ₽</b>`});
+  const g4=gauge({label:'Средний чек',att:pc?MS.chk/pc:0,fact:MS.chk,plan:pc,kind:'money',factDisp:fmtK(MS.chk),planDisp:fmtK(pc),note:`факт <b>${MS.chk?fmtK(MS.chk)+' ₽':'—'}</b> · стандарт отдела <b>${fmtK(pc)} ₽</b>`});
   return `<div class="card"><div class="card-h"><div><div class="card-title">Мои KPI - план на ${MS.mLabel} ${info('План месячный. Главный KPI - предоплаты (штуки): цель = живой портфель (открытые офферы моложе 60 дн) × целевая конверсия 15% × доля месяца. Прогноз - темп текущего месяца (прошло дней ÷ факт), спроецированный на конец месяца. Выручка и чек - гардрейлы (чтобы гонка за количеством не роняла деньги). Конверсия портфеля = успех ÷ портфель, сравнение с отделом. Белая отсечка на спидометре = 100% плана. Метрики - за текущий календарный месяц, независимо от пресета периода сверху (тот управляет календарём и графиком ниже).')}</div><div class="card-sub">текущий месяц · предоплаты - главное · выручка/чек - гардрейлы · конверсия vs цель 15% и отдел</div></div></div><div class="gauges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${g1}${g2}${g3}${g4}</div></div>`;
 }
 function managerPlanBlock(MS){

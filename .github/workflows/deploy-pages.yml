@@ -198,6 +198,22 @@ jobs:
           printf '%s' "$OSTAMP" > "$GITHUB_WORKSPACE/_site/office/v.txt"
           echo "Офис-менеджер опубликован в /office/, сборка $OSTAMP"
 
+      # === МЕНЕДЖЕР ЛАКОМОВА (ИЗОЛИРОВАННО, из ветки manager-lakomova, в /rop-lakomova/) ===
+      # Личный дашборд менеджера ОП. Аналог /rop/: самодостаточный HTML (данные Bitrix
+      # запечены build-manager), копируем без npm/smoke. Ссылки менеджеров различаются по фамилии
+      # (/rop-lakomova/, далее /rop-<фамилия>/). Падение не валит остальной сайт (continue-on-error).
+      - name: Build MANAGER dashboard Lakomova (isolated, /rop-lakomova/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin manager-lakomova
+          git worktree add /tmp/mgr-lakomova FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop-lakomova"
+          cp /tmp/mgr-lakomova/analytics-mvp/public/manager-lakomova.html "$GITHUB_WORKSPACE/_site/rop-lakomova/index.html"
+          MSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/mgr-lakomova/analytics-mvp/public/manager-lakomova.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$MSTAMP" > "$GITHUB_WORKSPACE/_site/rop-lakomova/v.txt"
+          echo "Менеджер Лакомова опубликован в /rop-lakomova/, сборка $MSTAMP"
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при

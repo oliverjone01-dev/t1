@@ -1580,7 +1580,20 @@ function offerCalendarBlock(){
   const COHROWS={};COHSRC.forEach(([rid,stg])=>{COHROWS[rid]=COHDEF.map(c=>({...c,wip:true,id:rid+"@"+c.key,stg,base:rid}));});
   const RBY2={};Object.values(COHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
   const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
-  const dealsFor=(r,k,sc)=>r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
+  // ===== стадии «до предложения» + лиды: живут в AD (до оффера), а не в passed =====
+  // Те же возрастные когорты (сроки), клик по строке = сроки, клик по ячейке = список.
+  const _preSet={pnew:new Set(["C49:NEW"]),pqual:new Set(["C49:UC_LRFLH9"]),pprep:new Set(["C49:PREPARATION","C49:UC_OGZUU0"])};
+  const _leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе');
+  const _wipSet=(k,set)=>AD.filter(d=>set.has(stageAtT(d,endDate(k))));
+  const _leadWip=k=>_leadWork.filter(l=>String(l.created).slice(0,10)<=endDate(k));
+  const _daysAt=s=>Math.max(0,Math.round((NOWD-PD2(s))/DAYMS));
+  const _stIn=d=>{let r=d.created;(d.hist||[]).forEach(h=>{if(h[0]===d.stageCode&&h[1]&&h[1]>r)r=h[1];});return r;};
+  const _portBaseAt=(r,k)=>r.lead?_leadWip(k):_wipSet(k,r.set);
+  const PCOHSRC=[['pnew',_preSet.pnew],['pqual',_preSet.pqual],['pprep',_preSet.pprep]];
+  const PCOHROWS={};PCOHSRC.forEach(([rid,set])=>{PCOHROWS[rid]=COHDEF.map(c=>({...c,port:true,wip:true,set,id:rid+'@'+c.key,base:rid}));});
+  PCOHROWS['leads']=COHDEF.map(c=>({...c,port:true,wip:true,lead:true,id:'leads@'+c.key,base:'leads'}));
+  Object.values(PCOHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
+  const dealsFor=(r,k,sc)=>r.port?_portBaseAt(r,k).filter(d=>!r.cohort||(()=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];})()):r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
   const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
 
   const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
@@ -1592,20 +1605,21 @@ function offerCalendarBlock(){
     const lastK=keys[keys.length-1];
     const rowKey=opts.rowKey||r.id;
     let sig;
-    if(r.cohort){const tw=cohBase(r,lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
+    if(r.cohort){const base=r.port?_portBaseAt(r,lastK):cohBase(r,lastK,sc);const tw=base.length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
     else if(r.wip)sig=fmt(s.cnt[lastK]);
     else sig=unit==="money"?fmtK(s.totM):fmt(s.tot);
     const _mgrDash=typeof MANAGER!=='undefined'&&MANAGER;
-    const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||(!mgrSel&&!_mgrDash)));
+    const canExp=opts.exp||(!opts.sub&&!opts.noexp&&(COHROWS[r.id]||PCOHROWS[r.id]||(!mgrSel&&!_mgrDash)));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const baseIndent=r.child?'padding-left:18px;':'';
     const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
-    const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
+    const hintHTML=(!opts.sub&&r.hint)?` <span style="color:var(--ink-4);font-size:9px">· ${r.hint}</span>`:'';
+    const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${hintHTML}${(r.port||!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
     if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),met=ct>=0.5&&cf>=ct,cc=met?'#2E9E74':'#6A7484';
       rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${('факт '+cf+' · план '+ct+' (портфель × 15%) · '+(ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${met?'#2E9E74':'var(--ink-3)'}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
     else rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
-    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
+    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}${opts.dim?'opacity:.62;':''}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1649,45 +1663,26 @@ function offerCalendarBlock(){
   const step=Math.max(1,Math.ceil(keys.length/12));
   const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==="money"?"₽":"сд"}</div></div>`;
 
-  // ===== ПОРТФЕЛЬ: текущие стадии как строки той же матрицы (WIP-снимок) =====
-  // Столбец = сколько сделок стояло на этапе на конец бакета; Σ (последний бакет) = сейчас на этапе.
-  // «Запас»/«до предложения» дополняют календарь стадиями, которых в нём нет.
+  // ===== ПОРТФЕЛЬ: стадии «до предложения» + лиды как строки той же матрицы =====
+  // Ведут себя как все строки: клик по строке разворачивает СРОКИ (новые/застой/брошенные),
+  // клик по ячейке открывает список сделок. Столбец = WIP на конец бакета, Σ = сейчас.
   const _isMgr=typeof MANAGER!=='undefined'&&MANAGER;
-  const _preSet={pnew:new Set(["C49:NEW"]),pqual:new Set(["C49:UC_LRFLH9"]),pprep:new Set(["C49:PREPARATION","C49:UC_OGZUU0"]),pkp:new Set(["C49:PREPAYMENT_INVOIC"]),pdec:new Set(["C49:3"]),plong:new Set(["C49:UC_8JTBV2"])};
-  const _leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе');
-  const _wipSet=(k,set)=>AD.filter(d=>set.has(stageAtT(d,endDate(k))));
-  const _leadWip=k=>_leadWork.filter(l=>String(l.created).slice(0,10)<=endDate(k));
-  const _daysAt=s=>Math.max(0,Math.round((NOWD-PD2(s))/DAYMS));
-  const _stIn=d=>{let r=d.created;(d.hist||[]).forEach(h=>{if(h[0]===d.stageCode&&h[1]&&h[1]>r)r=h[1];});return r;};
-  // Только то, чего НЕТ в нижней части календаря: лиды и сделки до КП.
-  // Офферные стадии (КП/Решение/Долгострой) уже показаны ниже в «В работе».
   const PORTG={'запас':'#2DD4BF','до предложения':'#60A5FA'};
   const PORT=[
-    {id:'leads',grp:'запас',nm:'Лиды в работе',hint:'ещё не разобрал',color:'#2DD4BF',dim:true,lead:true},
-    {id:'pnew',grp:'до предложения',nm:'Новая сделка',hint:'взять в работу',color:'#22D3EE'},
-    {id:'pqual',grp:'до предложения',nm:'Квалификация',hint:'квалифицировать',color:'#38BDF8'},
-    {id:'pprep',grp:'до предложения',nm:'Формируется предложение (ТЗ)',hint:'сделать ТЗ, отправить КП',color:'#60A5FA'},
+    {id:'leads',grp:'запас',nm:'Лиды в работе',hint:'ещё не разобрал',color:'#2DD4BF',dim:true,port:true,wip:true,lead:true},
+    {id:'pnew',grp:'до предложения',nm:'Новая сделка',hint:'взять в работу',color:'#22D3EE',port:true,wip:true,set:_preSet.pnew},
+    {id:'pqual',grp:'до предложения',nm:'Квалификация',hint:'квалифицировать',color:'#38BDF8',port:true,wip:true,set:_preSet.pqual},
+    {id:'pprep',grp:'до предложения',nm:'Формируется предложение (ТЗ)',hint:'сделать ТЗ, отправить КП',color:'#60A5FA',port:true,wip:true,set:_preSet.pprep},
   ];
-  const _portItemsNow=r=>r.lead?_leadWork:AD.filter(d=>!d.won&&!d.lost&&_preSet[r.id].has(d.stageCode));
-  const portSerie=r=>{const cnt={},mon={};keys.forEach(k=>{const ds=r.lead?_leadWip(k):_wipSet(k,_preSet[r.id]);cnt[k]=ds.length;mon[k]=ds.reduce((s,d)=>s+(d.budget||0),0);});return {cnt,mon,mxC:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k]))};};
-  const portList=r=>{const arr=_portItemsNow(r);
-    if(r.lead){if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет лидов в работе</div>';
-      const b=arr.slice().sort((a,b)=>_daysAt(b.created)-_daysAt(a.created)).slice(0,60).map(l=>{const dg=_daysAt(l.created),dc=dg>14?'#CC5867':dg>7?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:left">${esc(l.title||l.client||('лид #'+l.id))}</td><td style="text-align:left;color:var(--ink-3)">${esc(l.source||'источник не указан')}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
-      return `<div class="scroll" style="max-height:240px;margin:0 0 6px 20px;opacity:.85"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Лид</th><th style="text-align:left">Источник</th><th>В работе</th></tr></thead><tbody>${b}</tbody></table></div>`;}
-    if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет сделок на этой стадии</div>';
-    const b=arr.slice().sort((a,b)=>_daysAt(_stIn(b))-_daysAt(_stIn(a))).slice(0,60).map(d=>{const dg=_daysAt(_stIn(d)),dc=dg>30?'#CC5867':dg>14?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:center">${dl(d.id)}</td><td style="text-align:left">${esc(cliV(d))}</td><td style="text-align:left;color:var(--ink-3)">${esc(catV(d))}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
-    return `<div class="scroll" style="max-height:240px;margin:0 0 6px 20px"><table class="tbl" style="font-size:11px"><thead><tr><th>Сделка</th><th style="text-align:left">Клиент</th><th style="text-align:left">Категория</th><th>Бюджет</th><th>В стадии</th></tr></thead><tbody>${b}</tbody></table></div>`;};
-  const portRow=r=>{const s=portSerie(r),op=!!(S.portOpen&&S.portOpen[r.id]),lastK=keys[keys.length-1],curN=s.cnt[lastK],curM=s.mon[lastK];
-    const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==='money'?mon:cnt,mx=unit==='money'?s.mxM:s.mxC,t=v/mx,bg=cnt===0?'var(--bg-base)':hx(r.color,t);
-      return `<div style="flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'}" title="${(r.nm+' · '+lbl(k)+': '+cnt+' сд · '+fmtK(mon)+' ₽').replace(/"/g,'&quot;')}">${unit==='money'?(mon?fmtK(mon):''):(cnt||'')}</div>`;}).join('');
-    const arw=curN?`<span style="color:#A78BFA">${op?'▾ ':'▸ '}</span>`:'<span style="color:var(--ink-4)">· </span>';
-    const nm=`<span>${arw}${r.nm}${r.hint?` <span style="color:var(--ink-4);font-size:9px">· ${r.hint}</span>`:''} <b style="color:${r.color}">${fmt(curN)}</b></span>`;
-    const sig=unit==='money'?fmtK(curM):fmt(curN);
-    const head=`<div class="chrow" ${curN?`data-portrow="${r.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0;${r.dim?'opacity:.62;':''}"><div style="width:180px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:11px;font-weight:800;color:${r.color}">${sig}</div></div>`;
-    return head+(op?portList(r):'');};
+  PORT.forEach(r=>RBY[r.id]=r);
+  const _pTot=r=>keys.reduce((n,k)=>n+dealsFor(r,k,scope).length,0);
   const portGrp=t=>{const gc=PORTG[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:10px 0 2px">${t}${t==='запас'?' · лиды (менее срочно)':''}</div>`;};
   let _ppg="";
-  const portBody=_isMgr?PORT.map(r=>{let h=(r.grp!==_ppg)?portGrp(r.grp):"";_ppg=r.grp;return h+portRow(r);}).join(""):"";
+  const portBody=_isMgr?PORT.map(r=>{let h=(r.grp!==_ppg)?portGrp(r.grp):"";_ppg=r.grp;
+    const empty=_pTot(r)===0;
+    h+=rowLine(r,scope,r.id,{noexp:empty,dim:r.dim});
+    if(!empty&&S.calRowOpen&&S.calRowOpen[r.id]){const coh=PCOHROWS[r.id];if(coh)h+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm})).join("");}
+    return h;}).join(""):"";
   const cal=head+portBody+bodyRows;
 
   // Стаканчики плана предоплат: вживлены под календарь, колонки те же. Стакан = факт
@@ -1741,8 +1736,14 @@ function offerCalendarBlock(){
     const parts=String(S.calCell.s).split("~"),r=RBY[parts[0]]||RBY2[parts[0]];if(!r)return "";
     const sc=parts[1]?passed.filter(d=>d.mgr===parts[1]):scope,k=S.calCell.k,ds=dealsFor(r,k,sc);
     if(!ds.length)return "";
+    const hdrNm=`${(r.base&&RBY[r.base]?RBY[r.base].nm.replace('→ ','')+' · ':'')}${r.nm.replace('→ ','')}${parts[1]?' · '+esc(parts[1]):''} · ${lbl(k)}`;
+    const wrap=(cnt,sumHTML,thead,tbody)=>`<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px;color:${r.color}">${hdrNm}</b><span class="card-sub">${cnt}${sumHTML}</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div></div>`;
+    if(r.lead){
+      const lb=ds.slice(0,120).map(l=>{const dg=_daysAt(l.created),dc=dg>30?'#CC5867':dg>14?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:left">${esc(l.title||l.client||('лид #'+l.id))}</td><td style="text-align:left;color:var(--ink-3)">${esc(l.source||'источник не указан')}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join("");
+      return wrap(`${fmt(ds.length)} лидов`,'','<tr><th style="text-align:left">Лид</th><th style="text-align:left">Источник</th><th>В работе</th></tr>',lb);
+    }
     const body=ds.slice(0,120).map(d=>{const evd=r.wip?'':(r.df(d)||'').slice(0,10);return `<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:left">${esc(d.stage||'')}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(catV(d))} · ${esc(cliV(d))}</td>${r.wip?'':`<td style="text-align:center;font-size:10px;color:var(--ink-4)">${evd}</td>`}</tr>`;}).join("");
-    return `<div style="margin-top:10px;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;background:var(--bg-base)"><div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap"><b style="font-size:12px;color:${r.color}">${(r.base&&RBY[r.base]?RBY[r.base].nm.replace('→ ','')+' · ':'')}${r.nm.replace('→ ','')}${parts[1]?' · '+esc(parts[1]):''} · ${lbl(k)}</b><span class="card-sub">${fmt(ds.length)} сделок · ${fmtK(money(ds))} ₽</span><span style="flex:1"></span><button data-calcellclose style="background:none;border:1px solid var(--border-soft);border-radius:6px;color:var(--ink-3);cursor:pointer;font-size:11px;padding:1px 7px">✕ закрыть</button></div><div class="scroll" style="max-height:300px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Текущая стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th>${r.wip?'':'<th>Дата события</th>'}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+    return wrap(`${fmt(ds.length)} сделок`,` · ${fmtK(money(ds))} ₽`,`<tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th style="text-align:left">Текущая стадия</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th>${r.wip?'':'<th>Дата события</th>'}</tr>`,body);
   })();
 
   // лидерборд
@@ -1764,10 +1765,10 @@ function offerCalendarBlock(){
   const tilesHTML=isMgr?managerPortfolioTiles():'';
   const ttl=isMgr?'Мой клиентский портфель':'Календарь горячих сделок';
   const tip=isMgr
-    ?'Весь твой портфель в одном месте: сверху - стадии от лида до долгостроя (клик раскрывает список сделок), снизу - как эти сделки двигались по времени. «Запас · лиды» приглушён: это будущее, не срочное. «До предложения» - здесь надо действовать: взять, квалифицировать, сделать ТЗ, отправить КП. «На предложении» - оффер уже у клиента. Вопрос: с кем работать дальше и где сделки застревают? Вывод: пусто в «до предложения» и в лидах - скоро нечего закрывать, проси лиды; «брошенные 30+» висят давно - ими займись в первую очередь.'
+    ?'Вся воронка в одном месте, сверху вниз: лиды → до предложения → оффер пришёл → в работе → успех/отказ. Клик по строке этапа = разбивка по срокам (свежие / застой / брошенные), клик по ячейке = список этих сделок. «Запас · лиды» приглушён: это будущее, не срочное. «До предложения» - здесь надо действовать: взять, квалифицировать, сделать ТЗ, отправить КП. Вопрос: с кем работать дальше и где сделки застревают? Вывод: пусто в «до предложения» и в лидах - скоро нечего закрывать, проси лиды; «брошенные 30+» висят давно - ими займись в первую очередь.'
     :'Движение твоих сделок по времени: сколько пришло, сколько в работе, сколько ушло в успех или отказ. Разверни строку стрелкой - увидишь разбивку по срокам (свежие / застой / брошенные). Клик по клетке - список этих сделок. Переключатель Кол-во/Выручка - смотреть в штуках или в деньгах. Вопрос: где сделки застревают и что назревает? Вывод: красное «в зоне риска» и «брошенные 30+» висят давно - ими займись в первую очередь.';
   const sub=isMgr?`стадии портфеля и движение сделок по времени${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}`:`приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">${ttl} ${info(tip)}</div><div class="card-sub">${sub}</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${isMgr?'':mgrSelHTML}${isMgr?'':wipModeSeg}${unitSeg}</div></div>${tilesHTML?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${tilesHTML}</div>`:''}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${isMgr?'Вся воронка сделок - одна таблица':(mgrSel?esc(mgrSel):"Весь отдел")+' · календарь движения сделок'}${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${isMgr?'сверху вниз: лиды → до предложения → оффер пришёл → в работе → успех/отказ · клик по строке этапа раскрывает список · клик по ячейке - список сделок':`${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок`} · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">${ttl} ${info(tip)}</div><div class="card-sub">${sub}</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${isMgr?'':mgrSelHTML}${isMgr?'':wipModeSeg}${unitSeg}</div></div>${tilesHTML?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${tilesHTML}</div>`:''}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${isMgr?'Вся воронка сделок - одна таблица':(mgrSel?esc(mgrSel):"Весь отдел")+' · календарь движения сделок'}${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${isMgr?'сверху вниз: лиды → до предложения → оффер пришёл → в работе → успех/отказ · клик по строке этапа = разбивка по срокам · клик по ячейке = список сделок':`${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок`} · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====
@@ -2532,7 +2533,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
-  document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const pr=e.target.closest('[data-portrow]');if(pr){const k=pr.dataset.portrow;S.portOpen=S.portOpen||{};S.portOpen[k]=!S.portOpen[k];render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});
+  document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');

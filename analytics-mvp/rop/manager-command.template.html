@@ -1645,7 +1645,49 @@ function offerCalendarBlock(){
   }).join("");
   const step=Math.max(1,Math.ceil(keys.length/12));
   const head=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:180px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:var(--ink-4);overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1)?lbl(k):''}</div>`).join("")+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==="money"?"₽":"сд"}</div></div>`;
-  const cal=head+bodyRows;
+
+  // ===== ПОРТФЕЛЬ: текущие стадии как строки той же матрицы (WIP-снимок) =====
+  // Столбец = сколько сделок стояло на этапе на конец бакета; Σ (последний бакет) = сейчас на этапе.
+  // «Запас»/«до предложения» дополняют календарь стадиями, которых в нём нет.
+  const _isMgr=typeof MANAGER!=='undefined'&&MANAGER;
+  const _preSet={pnew:new Set(["C49:NEW"]),pqual:new Set(["C49:UC_LRFLH9"]),pprep:new Set(["C49:PREPARATION","C49:UC_OGZUU0"]),pkp:new Set(["C49:PREPAYMENT_INVOIC"]),pdec:new Set(["C49:3"]),plong:new Set(["C49:UC_8JTBV2"])};
+  const _leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе');
+  const _wipSet=(k,set)=>AD.filter(d=>set.has(stageAtT(d,endDate(k))));
+  const _leadWip=k=>_leadWork.filter(l=>String(l.created).slice(0,10)<=endDate(k));
+  const _daysAt=s=>Math.max(0,Math.round((NOWD-PD2(s))/DAYMS));
+  const _stIn=d=>{let r=d.created;(d.hist||[]).forEach(h=>{if(h[0]===d.stageCode&&h[1]&&h[1]>r)r=h[1];});return r;};
+  const PORTG={'запас':'#2DD4BF','до предложения':'#60A5FA','на предложении':'#818CF8'};
+  const PORT=[
+    {id:'leads',grp:'запас',nm:'Лиды в работе',hint:'ещё не разобрал',color:'#2DD4BF',dim:true,lead:true},
+    {id:'pnew',grp:'до предложения',nm:'Новая сделка',hint:'взять в работу',color:'#22D3EE'},
+    {id:'pqual',grp:'до предложения',nm:'Квалификация',hint:'квалифицировать',color:'#38BDF8'},
+    {id:'pprep',grp:'до предложения',nm:'Формируется предложение (ТЗ)',hint:'сделать ТЗ, отправить КП',color:'#60A5FA'},
+    {id:'pkp',grp:'на предложении',nm:'КП отправлено',hint:'',color:'#818CF8'},
+    {id:'pdec',grp:'на предложении',nm:'Принимают решение',hint:'',color:'#C2873C'},
+    {id:'plong',grp:'на предложении',nm:'Долгострой',hint:'дожать или закрыть',color:'#F59E0B'},
+  ];
+  const _portItemsNow=r=>r.lead?_leadWork:AD.filter(d=>!d.won&&!d.lost&&_preSet[r.id].has(d.stageCode));
+  const portSerie=r=>{const cnt={},mon={};keys.forEach(k=>{const ds=r.lead?_leadWip(k):_wipSet(k,_preSet[r.id]);cnt[k]=ds.length;mon[k]=ds.reduce((s,d)=>s+(d.budget||0),0);});return {cnt,mon,mxC:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k]))};};
+  const portList=r=>{const arr=_portItemsNow(r);
+    if(r.lead){if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет лидов в работе</div>';
+      const b=arr.slice().sort((a,b)=>_daysAt(b.created)-_daysAt(a.created)).slice(0,60).map(l=>{const dg=_daysAt(l.created),dc=dg>14?'#CC5867':dg>7?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:left">${esc(l.title||l.client||('лид #'+l.id))}</td><td style="text-align:left;color:var(--ink-3)">${esc(l.source||'источник не указан')}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
+      return `<div class="scroll" style="max-height:240px;margin:0 0 6px 20px;opacity:.85"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Лид</th><th style="text-align:left">Источник</th><th>В работе</th></tr></thead><tbody>${b}</tbody></table></div>`;}
+    if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет сделок на этой стадии</div>';
+    const b=arr.slice().sort((a,b)=>_daysAt(_stIn(b))-_daysAt(_stIn(a))).slice(0,60).map(d=>{const dg=_daysAt(_stIn(d)),dc=dg>30?'#CC5867':dg>14?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:center">${dl(d.id)}</td><td style="text-align:left">${esc(cliV(d))}</td><td style="text-align:left;color:var(--ink-3)">${esc(catV(d))}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
+    return `<div class="scroll" style="max-height:240px;margin:0 0 6px 20px"><table class="tbl" style="font-size:11px"><thead><tr><th>Сделка</th><th style="text-align:left">Клиент</th><th style="text-align:left">Категория</th><th>Бюджет</th><th>В стадии</th></tr></thead><tbody>${b}</tbody></table></div>`;};
+  const portRow=r=>{const s=portSerie(r),op=!!(S.portOpen&&S.portOpen[r.id]),lastK=keys[keys.length-1],curN=s.cnt[lastK],curM=s.mon[lastK];
+    const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==='money'?mon:cnt,mx=unit==='money'?s.mxM:s.mxC,t=v/mx,bg=cnt===0?'var(--bg-base)':hx(r.color,t);
+      return `<div style="flex:1;min-width:0;height:22px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'}" title="${(r.nm+' · '+lbl(k)+': '+cnt+' сд · '+fmtK(mon)+' ₽').replace(/"/g,'&quot;')}">${unit==='money'?(mon?fmtK(mon):''):(cnt||'')}</div>`;}).join('');
+    const arw=curN?`<span style="color:#A78BFA">${op?'▾ ':'▸ '}</span>`:'<span style="color:var(--ink-4)">· </span>';
+    const nm=`<span>${arw}${r.nm}${r.hint?` <span style="color:var(--ink-4);font-size:9px">· ${r.hint}</span>`:''} <b style="color:${r.color}">${fmt(curN)}</b></span>`;
+    const sig=unit==='money'?fmtK(curM):fmt(curN);
+    const head=`<div class="chrow" ${curN?`data-portrow="${r.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0;${r.dim?'opacity:.62;':''}"><div style="width:180px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:11px;font-weight:800;color:${r.color}">${sig}</div></div>`;
+    return head+(op?portList(r):'');};
+  const portGrp=t=>{const gc=PORTG[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:10px 0 2px">${t}${t==='запас'?' · лиды (менее срочно)':''}</div>`;};
+  let _ppg="";
+  const portBody=_isMgr?PORT.map(r=>{let h=(r.grp!==_ppg)?portGrp(r.grp):"";_ppg=r.grp;return h+portRow(r);}).join(""):"";
+  const flowHdr=_isMgr?`<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);font-weight:800;padding-left:8px;margin:14px 0 2px;border-top:1px dashed var(--border);padding-top:8px">движение сделок по времени</div>`:"";
+  const cal=head+portBody+flowHdr+bodyRows;
 
   // Стаканчики плана предоплат: вживлены под календарь, колонки те же. Стакан = факт
   // (все входы в «Предоплата получена» по отделу за период), риска = план из таблицы.
@@ -1718,13 +1760,13 @@ function offerCalendarBlock(){
   const _ddMenu=S.calMgrOpen?`<div style="position:absolute;top:calc(100% + 4px);right:0;z-index:60;background:var(--bg-elevated);border:1px solid var(--border-soft);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.5);max-height:300px;overflow:auto;min-width:200px;padding:4px">${_ddOpts.map(m=>{const sel=m===mgrSel,lab=m||"Весь отдел";return `<div class="ddopt" data-calmgropt="${esc(m)}" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;color:${sel?'#22D3EE':'var(--ink-2)'};background:${sel?'rgba(34,211,238,.12)':'transparent'}">${esc(lab)}</div>`;}).join("")}</div>`:"";
   const mgrSelHTML=`<div data-calmgrdd style="position:relative"><button data-calmgrbtn style="display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--bg-base);color:var(--ink-2);border:1px solid var(--border-soft);border-radius:8px;font-size:12px;padding:6px 10px;cursor:pointer;min-width:175px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(mgrSel||"Весь отдел")}</span><span style="color:var(--ink-4);font-size:10px">${S.calMgrOpen?'▲':'▼'}</span></button>${_ddMenu}</div>`;
   const isMgr=typeof MANAGER!=='undefined'&&MANAGER;
-  const portHTML=isMgr?managerPortfolioInner():'';
+  const tilesHTML=isMgr?managerPortfolioTiles():'';
   const ttl=isMgr?'Мой клиентский портфель':'Календарь горячих сделок';
   const tip=isMgr
     ?'Весь твой портфель в одном месте: сверху - стадии от лида до долгостроя (клик раскрывает список сделок), снизу - как эти сделки двигались по времени. «Запас · лиды» приглушён: это будущее, не срочное. «До предложения» - здесь надо действовать: взять, квалифицировать, сделать ТЗ, отправить КП. «На предложении» - оффер уже у клиента. Вопрос: с кем работать дальше и где сделки застревают? Вывод: пусто в «до предложения» и в лидах - скоро нечего закрывать, проси лиды; «брошенные 30+» висят давно - ими займись в первую очередь.'
     :'Движение твоих сделок по времени: сколько пришло, сколько в работе, сколько ушло в успех или отказ. Разверни строку стрелкой - увидишь разбивку по срокам (свежие / застой / брошенные). Клик по клетке - список этих сделок. Переключатель Кол-во/Выручка - смотреть в штуках или в деньгах. Вопрос: где сделки застревают и что назревает? Вывод: красное «в зоне риска» и «брошенные 30+» висят давно - ими займись в первую очередь.';
   const sub=isMgr?`стадии портфеля и движение сделок по времени${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}`:`приток, «в работе» и перемещения сделок по стадиям · клик по этапу раскрывает по менеджерам${riskN?` · <span style="color:#F43F5E;font-weight:700">в зоне риска: ${riskN}</span>`:''}`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">${ttl} ${info(tip)}</div><div class="card-sub">${sub}</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${isMgr?'':mgrSelHTML}${isMgr?'':wipModeSeg}${unitSeg}</div></div>${portHTML?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${portHTML}</div>`:''}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${isMgr?'Календарь движения сделок':(mgrSel?esc(mgrSel):"Весь отдел")+' · календарь движения сделок'}${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${unit==="money"?"₽ в интервале":"сделок в интервале"} · ${isMgr?'клик по этапу - разбивка по срокам':'клик по этапу - разбивка по менеджерам'} · клик по ячейке - список сделок · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">${ttl} ${info(tip)}</div><div class="card-sub">${sub}</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${isMgr?'':mgrSelHTML}${isMgr?'':wipModeSeg}${unitSeg}</div></div>${tilesHTML?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">${tilesHTML}</div>`:''}<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px"><div class="card-t" style="font-size:12.5px">${isMgr?'Все стадии и движение сделок - одна таблица':(mgrSel?esc(mgrSel):"Весь отдел")+' · календарь движения сделок'}${unit==="money"?" · выручка ₽":""}</div><div class="card-sub" style="margin-bottom:6px">${isMgr?'сверху - сколько сейчас на каждом этапе (Σ), ниже - движение по времени · клик по строке этапа раскрывает список · клик по ячейке календаря - список сделок':`${unit==="money"?"₽ в интервале":"сделок в интервале"} · клик по этапу - разбивка по менеджерам · клик по ячейке - список сделок`} · Σ - итог за период</div>${cal}${cupStrip}${cellPanel}</div></div>`;
 }
 
 // ===== УПРАВЛЕНЧЕСКИЕ РЕШЕНИЯ: индекс эффективности, матрица нагрузки, рекомендации =====
@@ -2135,60 +2177,14 @@ function managerSignalsBlock(MS){
 // Портфель по стадиям - вживляется в шапку календаря одним блоком.
 // Каждая стадия (лиды + до-офферные + офферные сделки) раскрывается в список - как строка календаря.
 // Лиды идут «в запас» и оформлены приглушённо: та же форма, менее яркая.
-function managerPortfolioInner(){
+function managerPortfolioTiles(){
   const AD_=DATA.deals,openD=AD_.filter(d=>!d.won&&!d.lost);
-  const leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе');
-  const days=s=>Math.max(0,Math.round((NOWD-_PDx(s))/DAYMS));
-  const stageIn=d=>{let r=d.created;(d.hist||[]).forEach(h=>{if(h[0]===d.stageCode&&h[1]&&h[1]>r)r=h[1];});return r;};
-  const cliV=d=>{const c=d.client;return (!c||c==='нет данных')?'не указан':c;};
-  const catV=d=>{const a=d.assort;return (!a||a==='нет данных'||a==='не указана')?'не указана':a;};
-  const portal=DATA.b24Portal||'',dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
-  const STAGES=[
-    {id:'leads',nm:'Лиды в работе',hint:'ещё не разобрал',col:'#2DD4BF',dim:true,lead:true,items:leadWork},
-    {id:'new',nm:'Новая сделка',hint:'взять в работу',col:'#22D3EE',codes:['C49:NEW']},
-    {id:'qual',nm:'Квалификация',hint:'квалифицировать',col:'#38BDF8',codes:['C49:UC_LRFLH9']},
-    {id:'prep',nm:'Формируется предложение (ТЗ)',hint:'сделать ТЗ, отправить КП',col:'#60A5FA',codes:['C49:PREPARATION','C49:UC_OGZUU0']},
-    {id:'kp',nm:'КП отправлено',hint:'',col:'#818CF8',codes:['C49:PREPAYMENT_INVOIC']},
-    {id:'dec',nm:'Принимают решение',hint:'',col:'#C2873C',codes:['C49:3']},
-    {id:'long',nm:'Долгострой',hint:'дожать или закрыть',col:'#F59E0B',codes:['C49:UC_8JTBV2']},
-  ];
-  STAGES.forEach(st=>{if(!st.lead)st.items=openD.filter(d=>st.codes.includes(d.stageCode));st.n=st.items.length;st.m=st.lead?0:st.items.reduce((s,d)=>s+(d.budget||0),0);});
-  const grp=ids=>STAGES.filter(st=>ids.includes(st.id)).reduce((s,st)=>s+st.n,0);
-  const preN=grp(['new','qual','prep']),offN=grp(['kp','dec','long']);
-  // матрица как в календаре: столбцы = «ранее» (до периода) + бакеты дат.
-  // сделку/лид кладём в столбец по дате попадания на текущий этап (лид - по дате прихода).
-  const g=S.gran,dkeys=buckets(g),keys=['__prev__',...dkeys];
-  const unit=S.calUnit==='money'?'money':'count';
-  const whenOf=(st,x)=>st.lead?x.created:stageIn(x);
-  const bOf=w=>{let k=bkey(String(w).slice(0,10),g);if(k<dkeys[0])return '__prev__';if(k>dkeys[dkeys.length-1])return dkeys[dkeys.length-1];return k;};
-  const klabel=k=>k==='__prev__'?'ранее':blabel(k,g);
-  const hx=(c,t)=>c+Math.round((0.16+t*0.72)*255).toString(16).padStart(2,'0');
-  const RW=72,fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
-  STAGES.forEach(st=>{const cnt={},mon={};keys.forEach(k=>{cnt[k]=0;mon[k]=0;});st.items.forEach(x=>{const k=bOf(whenOf(st,x));cnt[k]++;mon[k]+=(x.budget||0);});st.cnt=cnt;st.mon=mon;st.mxv=Math.max(1,...keys.map(k=>st.lead?cnt[k]:(unit==='money'?mon[k]:cnt[k])));});
-  const cellV=(st,k)=>st.lead?(st.cnt[k]||''):((unit==='money')?(st.mon[k]?fmtK(st.mon[k]):''):(st.cnt[k]||''));
-  const dealList=arr=>{if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет сделок на этой стадии</div>';
-    const body=arr.slice().sort((a,b)=>days(stageIn(b))-days(stageIn(a))).slice(0,60).map(d=>{const dg=days(stageIn(d)),dc=dg>30?'#CC5867':dg>14?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:center">${dl(d.id)}</td><td style="text-align:left">${esc(cliV(d))}</td><td style="text-align:left;color:var(--ink-3)">${esc(catV(d))}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
-    return `<div class="scroll" style="max-height:260px;margin:0 0 6px 20px"><table class="tbl" style="font-size:11px"><thead><tr><th>Сделка</th><th style="text-align:left">Клиент</th><th style="text-align:left">Категория</th><th>Бюджет</th><th>В стадии</th></tr></thead><tbody>${body}</tbody></table></div>`;};
-  const leadList=arr=>{if(!arr.length)return '<div class="card-sub" style="padding:2px 0 6px 20px">нет лидов в работе</div>';
-    const body=arr.slice().sort((a,b)=>days(b.created)-days(a.created)).slice(0,60).map(l=>{const dg=days(l.created),dc=dg>14?'#CC5867':dg>7?'#D9A441':'var(--ink-3)';return `<tr><td style="text-align:left">${esc(l.title||l.client||('лид #'+l.id))}</td><td style="text-align:left;color:var(--ink-3)">${esc(l.source||'источник не указан')}</td><td style="text-align:center;color:${dc};font-weight:700">${dg} дн</td></tr>`;}).join('');
-    return `<div class="scroll" style="max-height:260px;margin:0 0 6px 20px;opacity:.85"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Лид</th><th style="text-align:left">Источник</th><th>В работе</th></tr></thead><tbody>${body}</tbody></table></div>`;};
-  const row=st=>{const op=!!(S.portOpen&&S.portOpen[st.id]);
-    const arw=st.n?`<span style="color:#A78BFA">${op?'▾ ':'▸ '}</span>`:'<span style="color:var(--ink-4)">· </span>';
-    const cells=keys.map(k=>{const cnt=st.cnt[k],v=st.lead?cnt:(unit==='money'?st.mon[k]:cnt),t=v/st.mxv,bg=cnt===0?'var(--bg-base)':hx(st.col,t),tc=cnt===0?'transparent':t>.5?'#06121a':'#eef2f7';
-      return `<div style="flex:1;min-width:0;height:20px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:${tc}" title="${(st.nm+' · '+klabel(k)+': '+cnt+' сд · '+fmtK(st.mon[k]||0)+' ₽').replace(/"/g,'&quot;')}">${cellV(st,k)}</div>`;}).join('');
-    const sig=st.lead?fmt(st.n):(unit==='money'?fmtK(st.m):fmt(st.n));
-    const head=`<div class="chrow" ${st.n?`data-portrow="${st.id}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0;${st.dim?'opacity:.6;':''}"><div style="width:210px;font-size:11px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${arw}${esc(st.nm)}${st.hint?` <span style="color:var(--ink-4);font-size:9px">· ${st.hint}</span>`:''}</div><div style="flex:1;display:flex;gap:2px">${cells}</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:11px;font-weight:800;color:${st.col}">${sig}</div></div>`;
-    return head+(op?(st.lead?leadList(st.items):dealList(st.items)):'');};
-  const step=Math.max(1,Math.ceil(keys.length/12));
-  const colHead=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div style="width:210px"></div><div style="flex:1;display:flex;gap:2px">`+keys.map((k,i)=>`<div style="flex:1;text-align:center;font-size:8.5px;color:${k==='__prev__'?'var(--ink-3)':'var(--ink-4)'};overflow:hidden">${(keys.length<=16||i%step===0||i===keys.length-1||k==='__prev__')?klabel(k):''}</div>`).join('')+`</div><div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:8.5px;color:var(--ink-4)">Σ ${unit==='money'?'₽':'сд'}</div></div>`;
+  const leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе').length;
+  const cnt=codes=>openD.filter(d=>codes.includes(d.stageCode)).length;
+  const preN=cnt(['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0']);
+  const offN=cnt(['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2']);
   const tile=(lab,val,col,sub,dim)=>`<div style="flex:1;min-width:118px;background:var(--bg-base);border-radius:10px;padding:9px 12px;${dim?'opacity:.62;':''}"><div style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em">${lab}</div><div style="font-family:'Manrope';font-weight:800;font-size:21px;color:${col}">${val}</div>${sub?`<div style="font-size:9px;color:var(--ink-4)">${sub}</div>`:''}</div>`;
-  const grpHdr=(txt,col)=>`<div style="font-size:10px;font-weight:800;color:${col};text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px">${txt}</div>`;
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${tile('Лиды в работе',fmt(leadWork.length),'#2DD4BF','запас для новых сделок',true)}${tile('До предложения',fmt(preN),'#60A5FA','взять / ТЗ / КП')}${tile('На предложении',fmt(offN),'#818CF8','КП / решение / долгострой')}${tile('Всего открытых',fmt(preN+offN),'#A78BFA','сделок в портфеле')}</div>`
-    +`<div class="card-sub" style="margin:0 0 6px">Каждый этап - строка, как в календаре. Столбец - когда сделка попала на этот этап (лид - когда пришёл); «ранее» - до начала периода. Σ справа - сколько сейчас на этапе. Клик по строке раскрывает список сделок.</div>`
-    +colHead
-    +grpHdr('Запас · лиды (менее срочно)','#2DD4BF').replace('margin:10px 0 4px','margin:4px 0 4px')+STAGES.filter(st=>st.lead).map(row).join('')
-    +grpHdr('До предложения - взять в работу и сделать КП','#60A5FA')+STAGES.filter(st=>['new','qual','prep'].includes(st.id)).map(row).join('')
-    +grpHdr('На предложении - оффер у клиента','#818CF8')+STAGES.filter(st=>['kp','dec','long'].includes(st.id)).map(row).join('');
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap">${tile('Лиды в работе',fmt(leadWork),'#2DD4BF','запас для новых сделок',true)}${tile('До предложения',fmt(preN),'#60A5FA','взять / ТЗ / КП')}${tile('На предложении',fmt(offN),'#818CF8','КП / решение / долгострой')}${tile('Всего открытых',fmt(preN+offN),'#A78BFA','сделок в портфеле')}</div>`;
 }
 function mgrScatter(L){
   const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,q:0};a.t++;if(l.qual==='квал')a.q++;});

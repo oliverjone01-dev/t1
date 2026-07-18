@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-17",
+ "measured": "2026-07-18",
  "phrases": [
   {
    "phrase": "ral каталог цветов по металлу",
@@ -36,7 +36,7 @@
   {
    "phrase": "купить большое зеркало",
    "pos": null,
-   "freq": 2646,
+   "freq": 3294,
    "url": "",
    "cluster": "большое",
    "intent": "transactional"
@@ -108,7 +108,7 @@
   {
    "phrase": "маленькие зеркала для декора",
    "pos": null,
-   "freq": 32,
+   "freq": 36,
    "url": "",
    "cluster": "маленькие",
    "intent": "commercial"
@@ -135,6 +135,14 @@
    "freq": 8159,
    "url": "",
    "cluster": "настенное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "пуфы с ящиком для хранения",
+   "pos": null,
+   "freq": 507,
+   "url": "",
+   "cluster": "пуфы",
    "intent": "commercial"
   },
   {
@@ -234,6 +242,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "консоли мебельные",
+   "pos": null,
+   "freq": 511,
+   "url": "",
+   "cluster": "консоли",
+   "intent": "commercial"
+  },
+  {
    "phrase": "письменные столы на заказ по индивидуальным размерам",
    "pos": null,
    "freq": 75,
@@ -316,7 +332,7 @@
   {
    "phrase": "купить красивое зеркало",
    "pos": null,
-   "freq": 257,
+   "freq": 366,
    "url": "",
    "cluster": "красивое",
    "intent": "transactional"
@@ -356,7 +372,7 @@
   {
    "phrase": "купить мебель для столовой",
    "pos": null,
-   "freq": 182,
+   "freq": 138,
    "url": "",
    "cluster": "мебель",
    "intent": "transactional"
@@ -370,6 +386,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "стеллаж перегородка",
+   "pos": null,
+   "freq": 4217,
+   "url": "",
+   "cluster": "стеллаж",
+   "intent": "commercial"
+  },
+  {
    "phrase": "столик дамский",
    "pos": null,
    "freq": 899,
@@ -380,7 +404,7 @@
   {
    "phrase": "купить консоль в москве",
    "pos": null,
-   "freq": 352,
+   "freq": 546,
    "url": "",
    "cluster": "консоль",
    "intent": "transactional"
@@ -391,14 +415,6 @@
    "freq": 216,
    "url": "",
    "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "светильники lightstar",
-   "pos": null,
-   "freq": 2730,
-   "url": "",
-   "cluster": "светильники",
    "intent": "commercial"
   },
   {
@@ -482,6 +498,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "багет для фоторамок",
+   "pos": null,
+   "freq": 127,
+   "url": "",
+   "cluster": "багет",
+   "intent": "commercial"
+  },
+  {
    "phrase": "туалетный столик с зеркалом купить в москве",
    "pos": null,
    "freq": 204,
@@ -532,7 +556,7 @@
   {
    "phrase": "купить зеркало в спальню",
    "pos": null,
-   "freq": 620,
+   "freq": 1029,
    "url": "",
    "cluster": "зеркало",
    "intent": "transactional"
@@ -604,7 +628,7 @@
   {
    "phrase": "люстра золото",
    "pos": null,
-   "freq": 2680,
+   "freq": 2970,
    "url": "",
    "cluster": "люстра",
    "intent": "commercial"
@@ -626,28 +650,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "журнальный столик с подсветкой",
-   "pos": null,
-   "freq": 139,
-   "url": "",
-   "cluster": "журнальный",
-   "intent": "commercial"
-  },
-  {
    "phrase": "зеркало в детскую",
    "pos": null,
    "freq": 1351,
    "url": "",
    "cluster": "зеркало",
    "intent": "commercial"
-  },
-  {
-   "phrase": "купить стеклянный столик журнальный",
-   "pos": null,
-   "freq": 734,
-   "url": "",
-   "cluster": "стеклянный",
-   "intent": "transactional"
   },
   {
    "phrase": "сиена диван",
@@ -684,7 +692,7 @@
   {
    "phrase": "купить керамическую вазу",
    "pos": null,
-   "freq": 741,
+   "freq": 986,
    "url": "",
    "cluster": "керамическую",
    "intent": "transactional"
@@ -706,17 +714,9 @@
    "intent": "commercial"
   },
   {
-   "phrase": "нагревательный элемент для зеркала заднего вида купить",
-   "pos": null,
-   "freq": 40,
-   "url": "",
-   "cluster": "нагревательный",
-   "intent": "transactional"
-  },
-  {
    "phrase": "матовое зеркало",
    "pos": null,
-   "freq": 2107,
+   "freq": 2430,
    "url": "",
    "cluster": "матовое",
    "intent": "commercial"
@@ -724,7 +724,7 @@
   {
    "phrase": "кухонный стол на заказ",
    "pos": null,
-   "freq": 469,
+   "freq": 460,
    "url": "",
    "cluster": "кухонный",
    "intent": "transactional"
@@ -740,7 +740,7 @@
   {
    "phrase": "люстры потолочные для спальни",
    "pos": null,
-   "freq": 656,
+   "freq": 683,
    "url": "",
    "cluster": "люстры",
    "intent": "commercial"
@@ -770,6 +770,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "зеркало из чего состоит",
+   "pos": null,
+   "freq": 454,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
    "phrase": "светильник для спальни",
    "pos": null,
    "freq": 2205,
@@ -788,18 +796,10 @@
   {
    "phrase": "купить багет",
    "pos": null,
-   "freq": 8273,
+   "freq": 10000,
    "url": "",
    "cluster": "багет",
    "intent": "transactional"
-  },
-  {
-   "phrase": "зеркала италия",
-   "pos": null,
-   "freq": 619,
-   "url": "",
-   "cluster": "зеркала",
-   "intent": "commercial"
   }
  ]
 }

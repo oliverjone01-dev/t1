@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-07-18",
+ "measured": "2026-07-19",
  "visits_30d": [
-  {
-   "date": "2026-06-18",
-   "visits": 384,
-   "search_visits": 51
-  },
   {
    "date": "2026-06-19",
    "visits": 298,
@@ -151,6 +146,11 @@
    "date": "2026-07-17",
    "visits": 288,
    "search_visits": 58
+  },
+  {
+   "date": "2026-07-18",
+   "visits": 185,
+   "search_visits": 33
   }
  ],
  "top_phrases": [
@@ -164,7 +164,7 @@
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 10
+   "visits": 9
   },
   {
    "phrase": "генгласс",
@@ -358,19 +358,19 @@
  "top_pages": [
   {
    "url": "/",
-   "visits": 322
+   "visits": 317
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 100
+   "visits": 96
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 55
+   "visits": 58
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 46
+   "visits": 45
   },
   {
    "url": "/product-category/tables/",
@@ -381,11 +381,11 @@
    "visits": 36
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 34
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 32
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
    "visits": 32
   },
   {
@@ -394,30 +394,30 @@
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 27
-  },
-  {
-   "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 27
+   "visits": 28
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 26
   },
   {
+   "url": "/product-category/mirrors/dizajnerskie/",
+   "visits": 25
+  },
+  {
    "url": "/zerkala-na-zakaz/",
-   "visits": 24
+   "visits": 25
   },
   {
    "url": "/product-category/mirrors/floor/",
-   "visits": 22
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
    "visits": 21
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 20
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
    "visits": 20
   },
   {
@@ -426,7 +426,7 @@
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 18
+   "visits": 17
   },
   {
    "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
@@ -441,14 +441,6 @@
    "visits": 12
   },
   {
-   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
-   "visits": 12
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 11
-  },
-  {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 11
   },
@@ -457,12 +449,16 @@
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/zerkalo-arka/",
+   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
+   "visits": 11
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
    "visits": 10
   },
   {
-   "url": "/product-category/hranenie/veshalki/",
-   "visits": 9
+   "url": "/product-category/mirrors/zerkalo-arka/",
+   "visits": 10
   },
   {
    "url": "/product-category/mirrors/led/",
@@ -475,9 +471,13 @@
   {
    "url": "/product-category/tables/keramicheskie-stoly/",
    "visits": 9
+  },
+  {
+   "url": "/product/obedennyj-stol-trubis-wood-l-80-chernyj/",
+   "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 29.9,
+ "bounce_rate": 30.1,
  "depth": 2.4
 }

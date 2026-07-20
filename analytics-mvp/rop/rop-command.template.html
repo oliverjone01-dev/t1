@@ -1555,6 +1555,8 @@ function offerCalendarBlock(){
   const winTargetAll=()=>Math.round(_portAt(scope)*0.15*_factor); // успех-цель отдела
   const lossCap=m=>Math.round(_portAt(_mSc(m))*0.6*_factor);      // потолок отказов = успех-цель × 4
   const lossCapAll=()=>Math.round(_portAt(scope)*0.6*_factor);
+  // Средний чек портфеля - для пересчёта цели в деньги (кол-во × чек = выручка).
+  const _avgChk=sc=>{const a=wipAt(_capK(),sc).map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
@@ -1603,14 +1605,15 @@ function offerCalendarBlock(){
     const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
     const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
-    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,inv=opts.cup.inv,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0);
+    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,inv=opts.cup.inv,mny=opts.cup.money,_fv=v=>mny?fmtK(v):fmt(v),sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0);
       // inv = потолок (отказы): меньше плана = зелёный, больше = красный, ровно = серый.
       // обычный = цель (успех): факт >= план = зелёный, иначе серый.
       let cc,fc,note;
       if(inv){const noCap=ct<0.5;cc=noCap?'#6A7484':cf<ct?'#2E9E74':cf>ct?'#CC5867':'#6A7484';fc=cc==='#6A7484'?'var(--ink-3)':cc;note=noCap?'нет потолка':cf<ct?'в норме':cf>ct?'превышен':'на пределе';}
       else{const met=ct>=0.5&&cf>=ct;cc=met?'#2E9E74':'#6A7484';fc=met?'#2E9E74':'var(--ink-3)';note=ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели';}
-      const ttl=inv?('факт '+cf+' · потолок '+ct+' (успех-цель × 4 = портфель × 15% × 4) · '+note):('факт '+cf+' · план '+ct+' (портфель × 15%) · '+note);
-      rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:${opts.cup.agg?'flex-start':'flex-end'};gap:5px" title="${ttl.replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${fc}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
+      const _base=mny?'кол-во × ср.чек':'портфель × 15%';
+      const ttl=inv?('факт '+_fv(cf)+' · потолок '+_fv(ct)+' (успех × 4'+(mny?' × ср.чек':'')+') · '+note):('факт '+_fv(cf)+' · план '+_fv(ct)+' ('+_base+') · '+note);
+      rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:${opts.cup.agg?'flex-start':'flex-end'};gap:5px" title="${ttl.replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${fc}">${_fv(cf)}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${_fv(ct)}</span></span></div>`;}
     else rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
     // Клик по ЛЕВОМУ блоку (название строки) раскрывает строку; клик по ЯЧЕЙКЕ открывает сделки.
     return `<div class="chrow" style="display:flex;align-items:center;gap:6px;margin:2px 0"><div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${canExp?'раскрыть':''}">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
@@ -1621,7 +1624,8 @@ function offerCalendarBlock(){
   const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
-    const _aggCup=r.id==="loss"?{fact:serie(r,scope).tot,target:lossCapAll(),inv:true,agg:true}:r.id==="win"?{fact:serie(r,scope).tot,target:winTargetAll(),agg:true}:null;
+    const _mny=unit==="money",_ac=_mny?_avgChk(scope):0;
+    const _aggCup=r.id==="loss"?{fact:_mny?serie(r,scope).totM:serie(r,scope).tot,target:_mny?Math.round(lossCapAll()*_ac):lossCapAll(),inv:true,agg:true,money:_mny}:r.id==="win"?{fact:_mny?serie(r,scope).totM:serie(r,scope).tot,target:_mny?Math.round(winTargetAll()*_ac):winTargetAll(),agg:true,money:_mny}:null;
     html+=rowLine(r,scope,r.id,{cup:_aggCup});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
     const coh=COHROWS[r.id],off=r.child?18:0;
@@ -1643,9 +1647,9 @@ function offerCalendarBlock(){
         // сначала менеджеры, внутри - когорты по сроку (если у строки есть возрастные когорты)
         let subs;
         if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
-        else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
+        else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,rankM:s.totM,any:s.tot>0};}).filter(x=>x.any);
         subs.sort((a,b)=>b.rank-a.rank);
-        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:r.id==="loss"?{fact:x.rank,target:lossCap(x.m),inv:true}:null;
+        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const _m2=unit==="money",_ac2=_m2?_avgChk(x.msc):0;const cup=r.id==="win"?{fact:_m2?(x.rankM||0):x.rank,target:_m2?Math.round(mgrTarget(x.m)*_ac2):mgrTarget(x.m),money:_m2}:r.id==="loss"?{fact:_m2?(x.rankM||0):x.rank,target:_m2?Math.round(lossCap(x.m)*_ac2):lossCap(x.m),inv:true,money:_m2}:null;
           html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup,off});
           if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm,off})).join("");
         });

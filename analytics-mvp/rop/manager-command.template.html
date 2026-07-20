@@ -1611,7 +1611,7 @@ function offerCalendarBlock(){
   const cellV=(cnt,mon)=>unit==="money"?(mon?fmtK(mon):""):(cnt?cnt:"");
   const rowLine=(r,sc,sid,opts)=>{const s=serie(r,sc);opts=opts||{};
     const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==="money"?mon:cnt,mx=unit==="money"?s.mxM:s.mx,t=v/mx,bg=cnt===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;
-      return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}" title="${(r.nm+' · '+lbl(k)+': '+cnt+' сд · '+fmtK(mon)+' ₽').replace(/"/g,'&quot;')}">${cellV(cnt,mon)}</div>`;}).join("");
+      return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}"${cnt?` data-tip="${dt(r.nm+' · '+lbl(k),[['Сделок',fmt(cnt),'hl'],['Сумма',fmtK(mon)+' ₽','dim']]).replace(/"/g,'&quot;')}"`:''}>${cellV(cnt,mon)}</div>`;}).join("");
     const lastK=keys[keys.length-1];
     const rowKey=opts.rowKey||r.id;
     let sig;

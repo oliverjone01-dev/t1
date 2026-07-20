@@ -2194,8 +2194,9 @@ function managerDynBlock(){
   const me=cum(DATA.deals),dp=cum(ALL_DEALS);
   const pts=[...me,...dp].map(o=>o.conv).filter(v=>v!=null);
   if(!pts.length)return '';
-  const ymax=Math.min(1,Math.max(0.3,Math.max(...pts)*1.2));
-  const DW=760,DH=200,pL=30,pR=12,pT=12,pB=26,pw=DW-pL-pR,ph=DH-pT-pB;
+  // Ось по данным (с запасом), но не ниже 16% - чтобы линия цели 15% помещалась, а линии не жались к низу.
+  const ymax=Math.min(1,Math.max(0.16,Math.max(...pts,0.15)*1.15));
+  const DW=760,DH=150,pL=30,pR=12,pT=12,pB=26,pw=DW-pL-pR,ph=DH-pT-pB;
   const xAt=i=>pL+(dk.length<=1?pw/2:i/(dk.length-1)*pw),yAt=v=>pT+(1-v/ymax)*ph;
   const path=arr=>{const pp=[];arr.forEach((o,i)=>{if(o.conv!=null)pp.push({x:xAt(i),y:yAt(o.conv)});});if(pp.length<1)return '';if(pp.length===1)return `M${pp[0].x.toFixed(1)} ${pp[0].y.toFixed(1)}`;let d=`M${pp[0].x.toFixed(1)} ${pp[0].y.toFixed(1)}`;for(let i=0;i<pp.length-1;i++){const p0=pp[i-1]||pp[i],p1=pp[i],p2=pp[i+1],p3=pp[i+2]||p2,c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6,c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;d+=` C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;}return d;};
   const dots=(arr,c)=>arr.map((o,i)=>o.conv==null?'':`<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(o.conv).toFixed(1)}" r="3" fill="${c}" stroke="var(--bg-card)" stroke-width="1"/>`).join('');
@@ -2233,11 +2234,24 @@ function managerSignalsBlock(MS){
 function managerPortfolioTiles(){
   const AD_=DATA.deals,openD=AD_.filter(d=>!d.won&&!d.lost);
   const leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе').length;
+  const PRE=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0'];
+  const OFF=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'];
   const cnt=codes=>openD.filter(d=>codes.includes(d.stageCode)).length;
-  const preN=cnt(['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0']);
-  const offN=cnt(['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2']);
-  const tile=(lab,val,col,sub,dim)=>`<div style="flex:1;min-width:118px;background:var(--bg-base);border-radius:10px;padding:9px 12px;${dim?'opacity:.62;':''}"><div style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em">${lab}</div><div style="font-family:'Manrope';font-weight:800;font-size:21px;color:${col}">${val}</div>${sub?`<div style="font-size:9px;color:var(--ink-4)">${sub}</div>`:''}</div>`;
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap">${tile('Лиды в работе',fmt(leadWork),'#2DD4BF','запас для новых сделок',true)}${tile('До предложения',fmt(preN),'#60A5FA','взять / ТЗ / КП')}${tile('На предложении',fmt(offN),'#818CF8','КП / решение / долгострой')}${tile('Всего открытых',fmt(preN+offN),'#A78BFA','сделок в портфеле')}</div>`;
+  const preN=cnt(PRE),offN=cnt(OFF);
+  // Снимок портфеля на прошлую дату по истории стадий - для динамики к предыдущему периоду.
+  const _stageAt=(d,t)=>{let st=null;(d.hist||[]).forEach(h=>{if(h[1]&&h[1].slice(0,10)<=t)st=h[0];});return st;};
+  const snapAt=(codes,t)=>AD_.filter(d=>codes.includes(_stageAt(d,t))).length;
+  const [pS,pE]=prevWin();                       // предыдущий период того же размера
+  const preP=snapAt(PRE,pE),offP=snapAt(OFF,pE);
+  const _q=s=>String(s).replace(/"/g,'&quot;');
+  // Бейдж динамики: сейчас минус конец прошлого периода. Рост - зелёный, спад - красный.
+  const dlt=(cur,prev)=>{const d=cur-prev;return {d,txt:d>0?'▲ +'+fmt(d):d<0?'▼ '+fmt(Math.abs(d)):'= 0',col:d>0?'#2E9E74':d<0?'#CC5867':'#8A94A6'};};
+  const tile=(lab,val,col,sub,dim,tip,dl)=>`<div data-tip="${_q(tip)}" style="flex:1;min-width:122px;background:var(--bg-base);border-radius:10px;padding:9px 12px;${dim?'opacity:.62;':''}cursor:help"><div style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.05em">${lab}</div><div style="display:flex;align-items:baseline;gap:7px"><div style="font-family:'Manrope';font-weight:800;font-size:21px;color:${col}">${val}</div>${dl?`<div style="font-size:10.5px;font-weight:800;color:${dl.col}">${dl.txt}</div>`:''}</div>${sub?`<div style="font-size:9px;color:var(--ink-4)">${sub}${dl?' · к пред. периоду':''}</div>`:''}</div>`;
+  const tLead=dt('Лиды в работе',[['Сейчас',fmt(leadWork),'hl'],['Назначение','запас для новых сделок','dim'],['Динамика','у лидов нет истории стадий - не считается','dim']]);
+  const tPre=dt('До предложения · сейчас vs период назад',[['Сейчас',fmt(preN),'hl'],['Было на '+pE,fmt(preP),'dim'],['Динамика',(preN-preP>=0?'+':'')+fmt(preN-preP)+' сделок','hl'],['Стадии','взять в работу / ТЗ / формируется КП','dim']]);
+  const tOff=dt('На предложении · сейчас vs период назад',[['Сейчас',fmt(offN),'hl'],['Было на '+pE,fmt(offP),'dim'],['Динамика',(offN-offP>=0?'+':'')+fmt(offN-offP)+' сделок','hl'],['Стадии','КП отправлено / решение / долгострой','dim']]);
+  const tTot=dt('Всего открытых · сейчас vs период назад',[['Сейчас',fmt(preN+offN),'hl'],['Было на '+pE,fmt(preP+offP),'dim'],['Динамика',((preN+offN)-(preP+offP)>=0?'+':'')+fmt((preN+offN)-(preP+offP))+' сделок','hl'],['Период сравнения',pS+' … '+pE,'dim']]);
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap">${tile('Лиды в работе',fmt(leadWork),'#2DD4BF','запас для новых сделок',true,tLead,null)}${tile('До предложения',fmt(preN),'#60A5FA','взять / ТЗ / КП',false,tPre,dlt(preN,preP))}${tile('На предложении',fmt(offN),'#818CF8','КП / решение / долгострой',false,tOff,dlt(offN,offP))}${tile('Всего открытых',fmt(preN+offN),'#A78BFA','сделок в портфеле',false,tTot,dlt(preN+offN,preP+offP))}</div>`;
 }
 function mgrScatter(L){
   const A={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=A[l.mgr]=A[l.mgr]||{t:0,q:0};a.t++;if(l.qual==='квал')a.q++;});

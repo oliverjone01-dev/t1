@@ -1592,16 +1592,15 @@ function offerCalendarBlock(){
   const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
   // ===== стадии «до предложения» + лиды: живут в AD (до оффера), а не в passed =====
   // Те же возрастные когорты (сроки), клик по строке = сроки, клик по ячейке = список.
-  const _preSet={pnew:new Set(["C49:NEW"]),pqual:new Set(["C49:UC_LRFLH9"]),pprep:new Set(["C49:PREPARATION","C49:UC_OGZUU0"])};
+  const _preSet={pnew:new Set(["C49:NEW","C49:UC_LRFLH9"]),pprep:new Set(["C49:PREPARATION","C49:UC_OGZUU0"])};
   const _leadWork=(DATA.leads||[]).filter(l=>l.qual==='в работе');
   const _wipSet=(k,set)=>AD.filter(d=>set.has(stageAtT(d,endDate(k))));
   const _leadWip=k=>_leadWork.filter(l=>String(l.created).slice(0,10)<=endDate(k));
   const _daysAt=s=>Math.max(0,Math.round((NOWD-PD2(s))/DAYMS));
   const _stIn=d=>{let r=d.created;(d.hist||[]).forEach(h=>{if(h[0]===d.stageCode&&h[1]&&h[1]>r)r=h[1];});return r;};
   const _portBaseAt=(r,k)=>r.lead?_leadWip(k):_wipSet(k,r.set);
-  const PCOHSRC=[['pnew',_preSet.pnew],['pqual',_preSet.pqual],['pprep',_preSet.pprep]];
+  const PCOHSRC=[['pnew',_preSet.pnew],['pprep',_preSet.pprep]];
   const PCOHROWS={};PCOHSRC.forEach(([rid,set])=>{PCOHROWS[rid]=COHDEF.map(c=>({...c,port:true,wip:true,set,id:rid+'@'+c.key,base:rid}));});
-  PCOHROWS['leads']=COHDEF.map(c=>({...c,port:true,wip:true,lead:true,id:'leads@'+c.key,base:'leads'}));
   Object.values(PCOHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
   const dealsFor=(r,k,sc)=>r.port?_portBaseAt(r,k).filter(d=>!r.cohort||(()=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];})()):r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
   const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
@@ -1686,12 +1685,10 @@ function offerCalendarBlock(){
   // Ведут себя как все строки: клик по строке разворачивает СРОКИ (новые/застой/брошенные),
   // клик по ячейке открывает список сделок. Столбец = WIP на конец бакета, Σ = сейчас.
   const _isMgr=typeof MANAGER!=='undefined'&&MANAGER;
-  const PORTG={'запас':'#2DD4BF','до предложения':'#60A5FA'};
+  const PORTG={'взятые сделки в работу':'#60A5FA'};
   const PORT=[
-    {id:'leads',grp:'запас',nm:'Лиды в работе',hint:'ещё не разобрал',color:'#2DD4BF',dim:true,port:true,wip:true,lead:true},
-    {id:'pnew',grp:'до предложения',nm:'Новая сделка',hint:'взять в работу',color:'#22D3EE',port:true,wip:true,set:_preSet.pnew},
-    {id:'pqual',grp:'до предложения',nm:'Квалификация',hint:'квалифицировать',color:'#38BDF8',port:true,wip:true,set:_preSet.pqual},
-    {id:'pprep',grp:'до предложения',nm:'Формируется предложение (ТЗ)',hint:'сделать ТЗ, отправить КП',color:'#60A5FA',port:true,wip:true,set:_preSet.pprep},
+    {id:'pnew',grp:'взятые сделки в работу',nm:'Новые сделки',hint:'новые + квалификация · этап уйдёт, цель закрывает воронка лидов',color:'#22D3EE',port:true,wip:true,set:_preSet.pnew},
+    {id:'pprep',grp:'взятые сделки в работу',nm:'Формирование ТЗ',hint:'сделать ТЗ, отправить КП',color:'#60A5FA',port:true,wip:true,set:_preSet.pprep},
   ];
   PORT.forEach(r=>RBY[r.id]=r);
   const _pTot=r=>keys.reduce((n,k)=>n+dealsFor(r,k,scope).length,0);

@@ -1547,9 +1547,11 @@ function offerCalendarBlock(){
   const _days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),_factor=_days/30;
   const livePort=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
   const mgrTarget=m=>Math.round(livePort(m)*0.15*_factor); // цель менеджера = его живой портфель × 15%
-  // Потолок отказов = клиентский портфель × 25% (соотношение 1/4 к портфелю). Меньше = хорошо.
-  const lossCap=m=>Math.round(livePort(m)*0.25*_factor);
-  const lossCapAll=()=>Math.round(open.filter(d=>(NOWD-PD2(d.created))/DAYMS<=60).length*0.25*_factor);
+  // Потолок отказов = «В работе на конец» × 15% × 4 (= портфель × 60%). Соотношение 1 успех : 4 отказа.
+  // Пример: портфель 64 → успех-цель 9,6 → потолок отказов 38,4. Меньше потолка = хорошо.
+  const _capK=()=>keys[keys.length-1];
+  const lossCap=m=>Math.round(wipAt(_capK(),passed.filter(d=>d.mgr===m)).length*0.15*4*_factor);
+  const lossCapAll=()=>Math.round(wipAt(_capK(),scope).length*0.15*4*_factor);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
@@ -1604,7 +1606,7 @@ function offerCalendarBlock(){
       let cc,fc,note;
       if(inv){const noCap=ct<0.5;cc=noCap?'#6A7484':cf<ct?'#2E9E74':cf>ct?'#CC5867':'#6A7484';fc=cc==='#6A7484'?'var(--ink-3)':cc;note=noCap?'нет потолка':cf<ct?'в норме':cf>ct?'превышен':'на пределе';}
       else{const met=ct>=0.5&&cf>=ct;cc=met?'#2E9E74':'#6A7484';fc=met?'#2E9E74':'var(--ink-3)';note=ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели';}
-      const ttl=inv?('факт '+cf+' · потолок '+ct+' (портфель × 25%) · '+note):('факт '+cf+' · план '+ct+' (портфель × 15%) · '+note);
+      const ttl=inv?('факт '+cf+' · потолок '+ct+' (успех-цель × 4 = портфель × 15% × 4) · '+note):('факт '+cf+' · план '+ct+' (портфель × 15%) · '+note);
       rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${ttl.replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${fc}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
     else rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
     // Клик по ЛЕВОМУ блоку (название строки) раскрывает строку; клик по ЯЧЕЙКЕ открывает сделки.

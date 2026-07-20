@@ -1547,6 +1547,9 @@ function offerCalendarBlock(){
   const _days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),_factor=_days/30;
   const livePort=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
   const mgrTarget=m=>Math.round(livePort(m)*0.15*_factor); // цель менеджера = его живой портфель × 15%
+  // Потолок отказов = клиентский портфель × 25% (соотношение 1/4 к портфелю). Меньше = хорошо.
+  const lossCap=m=>Math.round(livePort(m)*0.25*_factor);
+  const lossCapAll=()=>Math.round(open.filter(d=>(NOWD-PD2(d.created))/DAYMS<=60).length*0.25*_factor);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
@@ -1595,10 +1598,17 @@ function offerCalendarBlock(){
     const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
     const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
-    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0),met=ct>=0.5&&cf>=ct,cc=met?'#2E9E74':'#6A7484';
-      rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${('факт '+cf+' · план '+ct+' (портфель × 15%) · '+(ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели')).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${met?'#2E9E74':'var(--ink-3)'}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
+    if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,inv=opts.cup.inv,sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0);
+      // inv = потолок (отказы): меньше плана = зелёный, больше = красный, ровно = серый.
+      // обычный = цель (успех): факт >= план = зелёный, иначе серый.
+      let cc,fc,note;
+      if(inv){const noCap=ct<0.5;cc=noCap?'#6A7484':cf<ct?'#2E9E74':cf>ct?'#CC5867':'#6A7484';fc=cc==='#6A7484'?'var(--ink-3)':cc;note=noCap?'нет потолка':cf<ct?'в норме':cf>ct?'превышен':'на пределе';}
+      else{const met=ct>=0.5&&cf>=ct;cc=met?'#2E9E74':'#6A7484';fc=met?'#2E9E74':'var(--ink-3)';note=ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели';}
+      const ttl=inv?('факт '+cf+' · потолок '+ct+' (портфель × 25%) · '+note):('факт '+cf+' · план '+ct+' (портфель × 15%) · '+note);
+      rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:5px" title="${ttl.replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${fc}">${cf}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${ct}</span></span></div>`;}
     else rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
-    return `<div class="chrow" ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}display:flex;align-items:center;gap:6px;margin:2px 0"><div style="width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
+    // Клик по ЛЕВОМУ блоку (название строки) раскрывает строку; клик по ЯЧЕЙКЕ открывает сделки.
+    return `<div class="chrow" style="display:flex;align-items:center;gap:6px;margin:2px 0"><div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${canExp?'раскрыть':''}">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
   const names=[...new Set(passed.map(d=>d.mgr))];
@@ -1606,7 +1616,8 @@ function offerCalendarBlock(){
   const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
-    html+=rowLine(r,scope,r.id,{});
+    const _aggCup=r.id==="loss"?{fact:serie(r,scope).tot,target:lossCapAll(),inv:true}:null;
+    html+=rowLine(r,scope,r.id,{cup:_aggCup});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
     const coh=COHROWS[r.id],off=r.child?18:0;
     if(isOpen&&mgrSel){
@@ -1629,7 +1640,7 @@ function offerCalendarBlock(){
         if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
         else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,any:s.tot>0};}).filter(x=>x.any);
         subs.sort((a,b)=>b.rank-a.rank);
-        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:null;
+        subs.forEach(x=>{const mkey=r.id+"~"+x.m;const cup=r.id==="win"?{fact:x.rank,target:mgrTarget(x.m)}:r.id==="loss"?{fact:x.rank,target:lossCap(x.m),inv:true}:null;
           html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup,off});
           if(coh&&S.calRowOpen&&S.calRowOpen[mkey])html+=coh.map(c=>rowLine(c,x.msc,c.id+"~"+x.m,{sub:true,sub2:true,mgr:c.nm,off})).join("");
         });
@@ -2003,7 +2014,7 @@ function offerControlBlock(){
 
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт и где зависают сделки')+B_rating+B_mgrPlanFactPair+B_mgrDwell+stagnationBlock()
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт')+B_rating+B_mgrPlanFactPair
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()
     + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();

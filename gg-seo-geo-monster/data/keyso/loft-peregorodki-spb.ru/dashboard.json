@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T11:00:51.379Z",
+  "measured": "2026-07-20T05:58:19.949Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -10,20 +10,20 @@
     "parentName": "",
     "concs": [
       {
-        "did": 149500077,
-        "name": "loftproekt98.ru",
+        "did": 32073658,
+        "name": "peregorodki-spb.ru",
         "cnt": 2,
-        "it50": 116,
-        "vis": 0,
-        "perc": 1.7241379310344829
+        "it50": 117,
+        "vis": 1,
+        "perc": 1.7094017094017095
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 2,
-        "it50": 201,
+        "it50": 203,
         "vis": 2,
-        "perc": 0.9950248756218907
+        "perc": 0.9852216748768474
       },
       {
         "did": 112234979,
@@ -34,92 +34,86 @@
         "perc": 5.555555555555555
       },
       {
+        "did": 258016815,
+        "name": "peregorodki-spb.com",
+        "cnt": 2,
+        "it50": 83,
+        "vis": 0,
+        "perc": 2.4096385542168677
+      },
+      {
         "did": 37940194,
         "name": "peregorodkitut.ru",
         "cnt": 2,
-        "it50": 228,
+        "it50": 196,
         "vis": 0,
-        "perc": 0.8771929824561404
+        "perc": 1.0204081632653061
+      },
+      {
+        "did": 149500077,
+        "name": "loftproekt98.ru",
+        "cnt": 2,
+        "it50": 119,
+        "vis": 0,
+        "perc": 1.680672268907563
       },
       {
         "did": 31466309,
         "name": "steklodel-spb.ru",
         "cnt": 2,
-        "it50": 286,
+        "it50": 279,
         "vis": 1,
-        "perc": 0.6993006993006994
-      },
-      {
-        "did": 32073658,
-        "name": "peregorodki-spb.ru",
-        "cnt": 2,
-        "it50": 131,
-        "vis": 1,
-        "perc": 1.5267175572519083
-      },
-      {
-        "did": 258016815,
-        "name": "peregorodki-spb.com",
-        "cnt": 2,
-        "it50": 82,
-        "vis": 0,
-        "perc": 2.4390243902439024
+        "perc": 0.7168458781362007
       },
       {
         "did": 134642209,
         "name": "loftperegorodki.ru",
-        "cnt": 1,
+        "cnt": 2,
         "it50": 19,
         "vis": 0,
-        "perc": 5.2631578947368425
+        "perc": 10.526315789473685
       },
       {
-        "did": 233707125,
-        "name": "loft-ds.ru",
-        "cnt": 1,
-        "it50": 43,
+        "did": 30965690,
+        "name": "peregorodkalab.ru",
+        "cnt": 2,
+        "it50": 186,
         "vis": 0,
-        "perc": 2.3255813953488373
+        "perc": 1.075268817204301
       },
       {
-        "did": 137508821,
-        "name": "spb.peregorodki-v-sanusel.ru",
-        "cnt": 1,
-        "it50": 13,
+        "did": 244319620,
+        "name": "peregorodka78.ru",
+        "cnt": 2,
+        "it50": 98,
         "vis": 0,
-        "perc": 7.692307692307692
+        "perc": 2.0408163265306123
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
-    "it10": 1,
-    "it50": 5,
+    "it10": 0,
+    "it50": 4,
     "childsCount": 0,
     "keys": [
       {
         "word": "peregorodki spb ru",
         "ws": 20,
         "wsk": 8,
-        "pos": 7
+        "pos": 13
       },
       {
         "word": "лофт дизайн санкт петербург",
-        "ws": 24,
-        "wsk": 15,
+        "ws": 17,
+        "wsk": 11,
         "pos": 36
       },
       {
         "word": "лофт перегородки в спб",
-        "ws": 16,
+        "ws": 7,
         "wsk": 4,
         "pos": 38
-      },
-      {
-        "word": "гардеробная в стиле лофт из профильной трубы",
-        "ws": 11,
-        "wsk": 9,
-        "pos": 43
       },
       {
         "word": "cartelle design",
@@ -132,7 +126,7 @@
     "pages": [
       {
         "url": "/",
-        "it50": 5
+        "it50": 4
       }
     ],
     "pagesinindex": 1,
@@ -144,7 +138,20 @@
     "ads": [],
     "adscnt": 0,
     "adtraf": 0,
-    "adcost": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
     "restop5": 0,
     "history": {
       "2025.02": {
@@ -355,8 +362,8 @@
         "it1": 0,
         "it3": 0,
         "it5": 0,
-        "it10": 1,
-        "it50": 5,
+        "it10": 0,
+        "it50": 4,
         "pagesInIndex": 1,
         "adsCount": 0,
         "adKeysCount": 0,
@@ -433,35 +440,35 @@
         265,
         6,
         23,
-        0
+        1
       ],
       "2025.11": [
         10,
         102,
         6,
         23,
-        0
+        3
       ],
       "2025.12": [
         9,
         150,
         5,
         23,
-        0
+        2
       ],
       "2026.01": [
         10,
         101,
         5,
         22,
-        0
+        3
       ],
       "2026.02": [
         11,
         212,
         6,
         26,
-        0
+        4
       ],
       "2026.04": [
         8,

@@ -2,50 +2,13 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "competitors",
   "db": "msk",
-  "measured": "2026-07-14T11:00:53.165Z",
+  "measured": "2026-07-20T05:58:21.826Z",
   "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=loft-peregorodki-spb.ru&top=10",
   "data": {
     "current_page": 1,
     "per_page": 25,
-    "last_page": 1,
-    "data": [
-      {
-        "id": 32073658,
-        "name": "peregorodki-spb.ru",
-        "perc": 1,
-        "theme": 100,
-        "cnt": 1,
-        "it1": 3,
-        "it3": 4,
-        "it5": 4,
-        "it10": 6,
-        "it50": 131,
-        "pagesinindex": 27,
-        "vis": 1,
-        "adscnt": 8,
-        "adkeyscnt": 8,
-        "adtraf": 0,
-        "adcost": 13180
-      },
-      {
-        "id": 258016815,
-        "name": "peregorodki-spb.com",
-        "perc": 1,
-        "theme": 100,
-        "cnt": 1,
-        "it1": 0,
-        "it3": 1,
-        "it5": 5,
-        "it10": 15,
-        "it50": 82,
-        "pagesinindex": 31,
-        "vis": 0,
-        "adscnt": 0,
-        "adkeyscnt": 0,
-        "adtraf": 0,
-        "adcost": 0
-      }
-    ],
-    "total": 2
+    "last_page": 0,
+    "data": [],
+    "total": 0
   }
 }

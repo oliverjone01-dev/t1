@@ -2,7 +2,7 @@
   "domain": "vo-zavod.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T10:59:58.513Z",
+  "measured": "2026-07-20T05:57:30.435Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=vo-zavod.ru",
   "data": {
     "id": 30965359,
@@ -10,91 +10,91 @@
     "parentName": "",
     "concs": [
       {
-        "did": 30678142,
-        "name": "oknazavr.ru",
-        "cnt": 167,
-        "it50": 12461,
-        "vis": 78,
-        "perc": 1.3401813658614878
-      },
-      {
         "did": 131288716,
         "name": "nadezhnye-okna.com",
-        "cnt": 164,
-        "it50": 5835,
-        "vis": 8,
-        "perc": 2.810625535561268
+        "cnt": 174,
+        "it50": 5902,
+        "vis": 9,
+        "perc": 2.9481531684174853
       },
       {
-        "did": 100366025,
-        "name": "voronezh.oknatrade.ru",
-        "cnt": 147,
-        "it50": 277,
-        "vis": 2,
-        "perc": 53.068592057761734
+        "did": 30678142,
+        "name": "oknazavr.ru",
+        "cnt": 162,
+        "it50": 12827,
+        "vis": 105,
+        "perc": 1.2629609417634675
+      },
+      {
+        "did": 51933482,
+        "name": "okna-germany.ru",
+        "cnt": 149,
+        "it50": 20370,
+        "vis": 308,
+        "perc": 0.7314678448699068
       },
       {
         "did": 30070755,
         "name": "mosokna.ru",
         "cnt": 144,
-        "it50": 24509,
-        "vis": 1829,
-        "perc": 0.5875392712880982
+        "it50": 25891,
+        "vis": 2936,
+        "perc": 0.5561778224093313
       },
       {
-        "did": 51933482,
-        "name": "okna-germany.ru",
-        "cnt": 142,
-        "it50": 20631,
-        "vis": 1596,
-        "perc": 0.6882846202316901
+        "did": 100366025,
+        "name": "voronezh.oknatrade.ru",
+        "cnt": 140,
+        "it50": 276,
+        "vis": 2,
+        "perc": 50.72463768115942
       },
       {
         "did": 30340850,
         "name": "okna-milya.ru",
-        "cnt": 136,
-        "it50": 639,
+        "cnt": 137,
+        "it50": 622,
         "vis": 3,
-        "perc": 21.28325508607199
+        "perc": 22.025723472668812
       },
       {
         "did": 243080234,
         "name": "voronezh.oknapeople.ru",
-        "cnt": 134,
-        "it50": 293,
+        "cnt": 132,
+        "it50": 290,
         "vis": 2,
-        "perc": 45.73378839590443
+        "perc": 45.51724137931035
       },
       {
         "did": 251053992,
         "name": "okna-voronezh.ru",
-        "cnt": 130,
-        "it50": 174,
+        "cnt": 128,
+        "it50": 170,
         "vis": 5,
-        "perc": 74.71264367816092
+        "perc": 75.29411764705883
       },
       {
         "did": 263143269,
         "name": "voronezh.okna-plastikovyye.ru",
-        "cnt": 128,
-        "it50": 174,
-        "vis": 8,
-        "perc": 73.5632183908046
+        "cnt": 124,
+        "it50": 169,
+        "vis": 6,
+        "perc": 73.37278106508876
       },
       {
-        "did": 351101430,
-        "name": "voronezh.zavod-okna-pvh.ru",
-        "cnt": 121,
-        "it50": 190,
-        "vis": 4,
-        "perc": 63.684210526315795
+        "did": 30057848,
+        "name": "oknapanorama.ru",
+        "cnt": 123,
+        "it50": 12698,
+        "vis": 1385,
+        "perc": 0.9686564813356434
       }
     ],
-    "it1": 17,
-    "it3": 36,
-    "it5": 51,
-    "it10": 134,
-    "it50": 645,
+    "it1": 19,
+    "it3": 48,
+    "it5": 70,
+    "it10": 151,
+    "it50": 653,
     "childsCount": 0,
     "keys": [
       {
@@ -119,6 +119,12 @@
         "word": "оконный завод воронеж",
         "ws": 346,
         "wsk": 48,
+        "pos": 1
+      },
+      {
+        "word": "сколько стоит замена окон на пластиковые в среднем",
+        "ws": 77,
+        "wsk": 34,
         "pos": 1
       },
       {
@@ -150,15 +156,9 @@
         "ws": 138,
         "wsk": 11,
         "pos": 1
-      },
-      {
-        "word": "воронежский оконный завод вакансии воронеж",
-        "ws": 9,
-        "wsk": 9,
-        "pos": 1
       }
     ],
-    "topkeys": 317355,
+    "topkeys": 311632,
     "pages": [
       {
         "url": "/",
@@ -166,11 +166,11 @@
       },
       {
         "url": "/article/plesen-na-okne",
-        "it50": 81
+        "it50": 88
       },
       {
         "url": "/article/zamenaokna-gid-po-cenam",
-        "it50": 56
+        "it50": 64
       },
       {
         "url": "/kontakty",
@@ -178,40 +178,53 @@
       },
       {
         "url": "/osteklenie-balkonov-i-lodzhij",
-        "it50": 31
+        "it50": 32
       },
       {
         "url": "/plastikokna-rostov-na-donu",
-        "it50": 29
+        "it50": 27
       },
       {
         "url": "/article/tihie-okna",
-        "it50": 25
-      },
-      {
-        "url": "/dushevye-kabiny",
-        "it50": 22
-      },
-      {
-        "url": "/remont",
-        "it50": 18
+        "it50": 23
       },
       {
         "url": "/plastikovye-okna-tambov",
         "it50": 18
+      },
+      {
+        "url": "/dushevye-kabiny",
+        "it50": 18
+      },
+      {
+        "url": "/remont",
+        "it50": 17
       }
     ],
-    "pagesinindex": 74,
-    "vis": 13,
-    "topvis": 270738,
+    "pagesinindex": 71,
+    "vis": 17,
+    "topvis": 239403,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
     "ads": [],
     "adscnt": 0,
     "adtraf": 0,
-    "adcost": 0,
-    "restop5": 8,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 11,
     "history": {
       "2025.02": {
         "it1": 18,
@@ -418,16 +431,16 @@
         "aiCnt": 39
       },
       "2026.07": {
-        "it1": 17,
-        "it3": 36,
-        "it5": 51,
-        "it10": 134,
-        "it50": 645,
-        "pagesInIndex": 74,
+        "it1": 19,
+        "it3": 48,
+        "it5": 70,
+        "it10": 151,
+        "it50": 653,
+        "pagesInIndex": 71,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 13,
-        "aiCnt": 31
+        "visAvg": 17,
+        "aiCnt": 75
       }
     },
     "linksHistory": {
@@ -565,7 +578,7 @@
         205
       ]
     },
-    "aiAnswersCnt": 31,
+    "aiAnswersCnt": 75,
     "aiState": 10,
     "dr": 18,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/40d128efa4c1feca98bc0c1170146507c444f66c3df6e53dc09fede90c30a249.png",

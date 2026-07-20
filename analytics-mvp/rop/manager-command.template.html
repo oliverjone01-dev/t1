@@ -1552,11 +1552,15 @@ function offerCalendarBlock(){
   const scope=mgrSel?passed.filter(d=>d.mgr===mgrSel):passed;
   const _days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),_factor=_days/30;
   const livePort=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
-  const mgrTarget=m=>Math.round(livePort(m)*0.15*_factor); // цель менеджера = его живой портфель × 15%
-  // Потолок отказов = «В работе на конец» × 15% × 4 (= портфель × 60%). Соотношение 1 успех : 4 отказа.
+  // База целей = «В работе на конец» (портфель). Успех-цель = портфель × 15%,
+  // потолок отказов = успех-цель × 4 (= портфель × 60%). Пример: портфель 174 → успех 26 → отказ 104.
   const _capK=()=>keys[keys.length-1];
-  const lossCap=m=>Math.round(wipAt(_capK(),passed.filter(d=>d.mgr===m)).length*0.15*4*_factor);
-  const lossCapAll=()=>Math.round(wipAt(_capK(),scope).length*0.15*4*_factor);
+  const _portAt=sc=>wipAt(_capK(),sc).length;
+  const _mSc=m=>passed.filter(d=>d.mgr===m);
+  const mgrTarget=m=>Math.round(_portAt(_mSc(m))*0.15*_factor);   // успех-цель менеджера
+  const winTargetAll=()=>Math.round(_portAt(scope)*0.15*_factor); // успех-цель (портфель × 15%)
+  const lossCap=m=>Math.round(_portAt(_mSc(m))*0.6*_factor);      // потолок отказов = успех-цель × 4
+  const lossCapAll=()=>Math.round(_portAt(scope)*0.6*_factor);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
@@ -1637,7 +1641,7 @@ function offerCalendarBlock(){
   const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{
     let html=(r.grp!==_pg)?grpLabel(r.grp):"";_pg=r.grp;
-    const _aggCup=r.id==="loss"?{fact:serie(r,scope).tot,target:lossCapAll(),inv:true}:null;
+    const _aggCup=r.id==="loss"?{fact:serie(r,scope).tot,target:lossCapAll(),inv:true}:r.id==="win"?{fact:serie(r,scope).tot,target:winTargetAll()}:null;
     html+=rowLine(r,scope,r.id,{cup:_aggCup});
     const isOpen=S.calRowOpen&&S.calRowOpen[r.id];
     const coh=COHROWS[r.id],off=r.child?18:0;
@@ -1706,9 +1710,9 @@ function offerCalendarBlock(){
     const useMoney=unit==="money",fmtV=v=>useMoney?fmtK(v):fmt(Math.round(v));
     const bStart=k=>g==="month"?k+"-01":k;
     const _bDaysP=k=>{const bs0=bStart(k),be0=endDate(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;return bs>be?0:Math.max(1,Math.round((PD2(be)-PD2(bs))/DAYMS)+1);};
-    const _herLive=open.filter(d=>(NOWD-PD2(d.created))/DAYMS<=60);
-    const _herPort=_herLive.length;
-    const _herAvg=(()=>{const a=_herLive.map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;})();
+    const _herWip=wipAt(keys[keys.length-1],passed); // «В работе на конец» - её портфель
+    const _herPort=_herWip.length;
+    const _herAvg=(()=>{const a=_herWip.map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;})();
     const planAt=_isMgr
       ?(k=>{const t=_herPort*0.15*(_bDaysP(k)/30);return useMoney?t*_herAvg:t;})
       :(k=>{const bs0=bStart(k),be0=endDate(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;if(bs>be)return 0;const pf=planForPeriod(bs,be);return pf?(useMoney?(pf.rev||0):(pf.sales||0)):0;});

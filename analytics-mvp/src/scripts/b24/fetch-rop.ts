@@ -25,7 +25,8 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const UF = {
   client: "UF_CRM_1767958427410",                 // тип клиента (B2B/B2C/Дилер...)
   assort: "UF_CRM_DEAL_AMO_NSRJIWLJQEERRQTL",      // ассортимент (Столы/Зеркала...)
-  reason: "UF_CRM_DEAL_AMO_ELDDYDEQCJZIKJIM",      // причина провала
+  reason: "UF_CRM_DEAL_AMO_ELDDYDEQCJZIKJIM",      // legacy enum «Причина отказа» (старые сделки)
+  reasonComment: "UF_CRM_1768574645865",           // текущее поле «Комментарий к отказу» (свободный текст, свежие отказы)
   dir: "UF_CRM_69A7F70A18816",                     // бренд/направление сделки
 };
 const UF_LEAD_DIR = "UF_CRM_1772609158";           // бренд/направление лида
@@ -198,7 +199,7 @@ async function main() {
 
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
-    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.dir];
+    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -232,7 +233,9 @@ async function main() {
       source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",
       client: clientMap[String(d[UF.client])] || "нет данных",
       assort: assortMap[String(d[UF.assort])] || "нет данных",
-      reason: reasonMap[String(d[UF.reason])] || "не указана",
+      // Причина отказа: сначала текущее свободное поле «Комментарий к отказу»,
+      // иначе старый enum «Причина отказа» (старые сделки), иначе «не указана».
+      reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",
       dir: dirMap[String(d[UF.dir])] || "не указано",
       hist: histByDeal[String(d.ID)] || [],
       touchReal: ac.real, touchAll: ac.all,

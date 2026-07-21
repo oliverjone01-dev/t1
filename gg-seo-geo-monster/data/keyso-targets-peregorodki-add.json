@@ -1,0 +1,11 @@
+{
+ "_note": "Дозабор keys.so: 4 новых конкурента перегородок из ценового бенчмарка Ивана (июль). own=genglass.ru для deep-пары. outdir=data/keyso (присоединяются к основным 15). decus.spb.ru - питерский домен, db=msk может дать частичные данные.",
+ "updated": "2026-07-16",
+ "own": "genglass.ru",
+ "targets": [
+  {"domain": "make-loft.ru", "brand": null, "role": "competitor-peregorodki-price", "reports": ["dashboard", "competitors"]},
+  {"domain": "craftwall.ru", "brand": null, "role": "competitor-peregorodki-price", "reports": ["dashboard", "competitors"]},
+  {"domain": "fdmebel.ru", "brand": null, "role": "competitor-peregorodki-price", "reports": ["dashboard", "competitors"]},
+  {"domain": "decus.spb.ru", "brand": null, "role": "competitor-peregorodki-price", "reports": ["dashboard", "competitors"]}
+ ]
+}

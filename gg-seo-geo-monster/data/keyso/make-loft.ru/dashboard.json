@@ -1,0 +1,523 @@
+{
+  "domain": "make-loft.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-07-21T20:39:11.842Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=make-loft.ru",
+  "data": {
+    "id": 280362511,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 129916199,
+        "name": "loftcase.ru",
+        "cnt": 35,
+        "it50": 1407,
+        "vis": 61,
+        "perc": 2.487562189054726
+      },
+      {
+        "did": 272188389,
+        "name": "fdmebel.ru",
+        "cnt": 30,
+        "it50": 2579,
+        "vis": 330,
+        "perc": 1.1632415664986429
+      },
+      {
+        "did": 30290557,
+        "name": "loffi.ru",
+        "cnt": 28,
+        "it50": 728,
+        "vis": 1,
+        "perc": 3.846153846153846
+      },
+      {
+        "did": 278166136,
+        "name": "zavod-peregorodok.ru",
+        "cnt": 28,
+        "it50": 1271,
+        "vis": 37,
+        "perc": 2.202989771833202
+      },
+      {
+        "did": 242157702,
+        "name": "biglas.ru",
+        "cnt": 28,
+        "it50": 1813,
+        "vis": 10,
+        "perc": 1.5444015444015444
+      },
+      {
+        "did": 30670319,
+        "name": "oki-doki.ru",
+        "cnt": 27,
+        "it50": 2002,
+        "vis": 119,
+        "perc": 1.3486513486513487
+      },
+      {
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 25,
+        "it50": 952,
+        "vis": 7,
+        "perc": 2.6260504201680672
+      },
+      {
+        "did": 30392765,
+        "name": "peregorodok.net",
+        "cnt": 25,
+        "it50": 1753,
+        "vis": 8,
+        "perc": 1.426126640045636
+      },
+      {
+        "did": 30135757,
+        "name": "prostor-mebel.ru",
+        "cnt": 25,
+        "it50": 2009,
+        "vis": 40,
+        "perc": 1.2444001991040319
+      },
+      {
+        "did": 271504090,
+        "name": "steelloft.ru",
+        "cnt": 25,
+        "it50": 94,
+        "vis": 0,
+        "perc": 26.595744680851066
+      }
+    ],
+    "it1": 2,
+    "it3": 3,
+    "it5": 3,
+    "it10": 6,
+    "it50": 40,
+    "childsCount": 0,
+    "keys": [
+      {
+        "word": "make loft",
+        "ws": 36,
+        "wsk": 8,
+        "pos": 1
+      },
+      {
+        "word": "make loft перегородки",
+        "ws": 3,
+        "wsk": 3,
+        "pos": 1
+      },
+      {
+        "word": "перегородки из стали",
+        "ws": 644,
+        "wsk": 4,
+        "pos": 3
+      },
+      {
+        "word": "перегородка лофт из металла и стекла",
+        "ws": 81,
+        "wsk": 32,
+        "pos": 6
+      },
+      {
+        "word": "перегородка лофт",
+        "ws": 2615,
+        "wsk": 96,
+        "pos": 10
+      },
+      {
+        "word": "перегородки двери лофт",
+        "ws": 74,
+        "wsk": 1,
+        "pos": 10
+      },
+      {
+        "word": "перегородки лофт",
+        "ws": 2615,
+        "wsk": 369,
+        "pos": 11
+      },
+      {
+        "word": "лофт перегородка из металла и стекла",
+        "ws": 84,
+        "wsk": 29,
+        "pos": 11
+      },
+      {
+        "word": "перегородки лофт раздвижные",
+        "ws": 212,
+        "wsk": 35,
+        "pos": 13
+      },
+      {
+        "word": "лофт перегородка купить",
+        "ws": 186,
+        "wsk": 1,
+        "pos": 13
+      }
+    ],
+    "topkeys": 1000000,
+    "pages": [
+      {
+        "url": "/",
+        "it50": 40
+      }
+    ],
+    "pagesinindex": 1,
+    "vis": 0,
+    "topvis": 1000000,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 8,
+    "history": {
+      "2025.02": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 3,
+        "it50": 24,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.03": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 5,
+        "it50": 32,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 5,
+        "it50": 32,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 5,
+        "it50": 33,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 3,
+        "it3": 3,
+        "it5": 3,
+        "it10": 6,
+        "it50": 38,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 1,
+        "it3": 2,
+        "it5": 2,
+        "it10": 3,
+        "it50": 58,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 2,
+        "it50": 49,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2025.09": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 3,
+        "it50": 52,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 3
+      },
+      "2025.10": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 3,
+        "it50": 53,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2025.11": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 4,
+        "it50": 50,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 4
+      },
+      "2025.12": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 4,
+        "it50": 41,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.01": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 2,
+        "it50": 38,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.02": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 2,
+        "it50": 31,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.03": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 2,
+        "it50": 33,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.04": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 2,
+        "it10": 2,
+        "it50": 33,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 1
+      },
+      "2026.05": {
+        "it1": 2,
+        "it3": 2,
+        "it5": 3,
+        "it10": 4,
+        "it50": 36,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.06": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 3,
+        "it10": 6,
+        "it50": 43,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      },
+      "2026.07": {
+        "it1": 2,
+        "it3": 3,
+        "it5": 3,
+        "it10": 6,
+        "it50": 40,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 2
+      }
+    },
+    "linksHistory": {
+      "2025.03": [
+        2,
+        4,
+        2,
+        4,
+        2
+      ],
+      "2025.04": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "2025.05": [
+        3,
+        4,
+        3,
+        4,
+        3
+      ],
+      "2025.06": [
+        2,
+        0,
+        2,
+        0,
+        2
+      ],
+      "2025.07": [
+        2,
+        0,
+        2,
+        0,
+        2
+      ],
+      "2025.08": [
+        2,
+        0,
+        2,
+        0,
+        2
+      ],
+      "2025.09": [
+        5,
+        0,
+        4,
+        0,
+        5
+      ],
+      "2025.10": [
+        3,
+        4,
+        3,
+        4,
+        3
+      ],
+      "2025.11": [
+        5,
+        4,
+        4,
+        4,
+        1
+      ],
+      "2025.12": [
+        4,
+        4,
+        3,
+        4,
+        1
+      ],
+      "2026.01": [
+        4,
+        0,
+        3,
+        0,
+        1
+      ],
+      "2026.02": [
+        3,
+        4,
+        3,
+        4,
+        1
+      ],
+      "2026.05": [
+        3,
+        3,
+        3,
+        1,
+        3
+      ],
+      "2026.06": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "2026.07": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    "aiAnswersCnt": 2,
+    "aiState": 0,
+    "dr": 9,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/6d0777cafb5ae07edf0d74e7d2fff5560307296834b7fcb65295f3be7033b745.png",
+    "name": "make-loft.ru"
+  }
+}

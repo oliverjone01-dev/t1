@@ -1,142 +1,66 @@
 {
-  "updated": "2026-07-20T05:53:16.020Z",
+  "updated": "2026-07-21T20:38:23.995Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
     {
-      "domain": "genglass.ru",
-      "brand": "GENGLASS",
-      "role": "own",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok",
-        "ad_history": "ok"
-      }
-    },
-    {
-      "domain": "loftkrel.ru",
+      "domain": "make-loft.ru",
       "brand": null,
-      "role": "competitor-peregorodki",
+      "role": "competitor-peregorodki-price",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
-      "domain": "ivegroup.ru",
+      "domain": "craftwall.ru",
       "brand": null,
-      "role": "competitor-peregorodki",
+      "role": "competitor-peregorodki-price",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
-      "domain": "loftcase.ru",
+      "domain": "fdmebel.ru",
       "brand": null,
-      "role": "competitor-peregorodki",
+      "role": "competitor-peregorodki-price",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     },
     {
-      "domain": "mosgor-okna.ru",
+      "domain": "decus.spb.ru",
       "brand": null,
-      "role": "competitor-peregorodki",
+      "role": "competitor-peregorodki-price",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      }
-    },
-    {
-      "domain": "peregorodki-glass.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "vo-zavod.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "loft-peregorodki-spb.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "alfaporta.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "union.ru",
-      "brand": null,
-      "role": "competitor-peregorodki",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "lain-loft.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-discovered",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "glasstroy.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-discovered",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "kelman-stroi.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-discovered",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "fantasia-stekla.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-discovered",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
-      }
-    },
-    {
-      "domain": "intereruyut.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-discovered",
-      "reports": {
-        "dashboard": "ok",
-        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
       }
     }
   ]

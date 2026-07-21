@@ -825,7 +825,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   if(typeof MANAGER!=='undefined'&&MANAGER){
     const MS=mgrStats();
-    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+offerReasonsBlock();
+    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+dataQualityBlock();
     document.getElementById('root').innerHTML=h;freshStamp();return;
   }
   const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
@@ -1431,6 +1431,42 @@ function offerReasonsBlock(){
   const rbars=rrows.map(([r,n])=>{const bad=r==="не проставлена причина";return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><div style="width:200px;font-size:11px;color:${bad?'#F8717A':'var(--ink-3)'};text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r)}</div><div style="flex:1;height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden"><div style="height:100%;width:${(n/lost.length*100).toFixed(1)}%;background:${bad?'#CC5867':'#6A7484'}"></div></div><div style="width:36px;font-size:11px;font-weight:800;color:var(--ink-2)">${n}</div></div>`;}).join("");
   const lostList=rOpen?`<div class="scroll" style="margin-top:8px;max-height:340px"><table class="tbl"><thead><tr><th>Сделка</th><th>Дата отказа</th><th style="text-align:left">Причина отказа</th><th style="text-align:left">Менеджер</th><th>Бюджет</th><th style="text-align:left">Категория / клиент</th></tr></thead><tbody>${lost.slice().sort((a,b)=>(loseDate(b)||'').localeCompare(loseDate(a)||'')).slice(0,200).map(d=>`<tr><td style="text-align:center">${dl(d.id)}${amoBadge(d)}</td><td style="text-align:center;color:var(--ink-3);white-space:nowrap">${loseDate(d)||'—'}</td><td style="text-align:left;${(!d.reason||d.reason==='не указана')?'color:#F8717A':''}">${esc((!d.reason||d.reason==='не указана')?'не проставлена':d.reason)}</td><td class="name" style="text-align:left">${esc(d.mgr)}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(cat(d))} · ${esc(cli(d))}</td></tr>`).join("")}</tbody></table></div>`:"";
   return `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов со стадии предложения ${info('Сделки, которым ты уже сделал предложение, но они ушли в отказ. Красным - «не проставлена причина»: не зафиксировано, почему потеряли тёплого клиента. Вопрос: где я теряю горячих и записываю ли причину? Вывод: большой красный столбик - надо заполнять причины; реальные причины (дорого / конкурент) - повод поработать с ценой и скоростью ответа.')}</div><div class="card-sub">${fmt(lost.length)} отказных из прошедших предложение · <span style="color:#F8717A;font-weight:700">${pct(lost.length?noReason/lost.length:0)} без причины</span></div></div></div>${rbars}<button id="ocReasonsToggle" class="dbtn" style="margin-top:10px">${rOpen?'Скрыть сделки':'Показать отказные сделки ('+fmt(lost.length)+')'}</button>${lostList}</div>`;
+}
+
+// ===== ПРОВЕРКА ЗАПОЛНЕНИЯ: проблемные сделки (пропуски в CRM) =====
+// Сделки, дошедшие до оффера, у которых не заполнено важное поле: причина отказа
+// (для отказных), категория (ассортимент), тип клиента, либо бюджет 0/1 (при
+// отправленном КП цена должна быть выше). Сортируемая таблица по столбцам.
+function dataQualityBlock(){
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
+  const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
+  const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
+  const eBud=d=>(d.budget||0)<=1;
+  const nP=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
+  const rows=passed.filter(d=>nP(d)>0);
+  const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
+  const _info=info('Сделки, дошедшие до предложения, у которых в CRM не заполнено важное: причина отказа (для отказных), категория (ассортимент), тип клиента, либо бюджет 0/1 - при отправленном КП цена должна быть выше 1. Вопрос: где дыры в данных, из-за которых статистика неполная? Вывод: заполни пропуски (красное «нет»), иначе отчёты врут; клик по заголовку столбца - сортировка.');
+  if(!rows.length)return `<div class="card"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div></div></div><div style="text-align:center;padding:28px 16px"><div style="font-size:42px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:17px;color:#2E9E74;margin-top:8px">В CRM порядок - все сделки заполнены</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.5">Причина отказа, категория, тип клиента и бюджет проставлены везде. Отличная дисциплина ведения сделок - так держать!</div></div></div>`;
+  const cRsn=rows.filter(eRsn).length,cCat=rows.filter(eCat).length,cCli=rows.filter(eCli).length,cBud=rows.filter(eBud).length;
+  if(!S.dqSort)S.dqSort={k:'cnt',a:false};
+  const sk=S.dqSort.k,sa=S.dqSort.a?1:-1;
+  const sv={id:d=>+d.id||0,stage:d=>d.stage||'',bud:d=>d.budget||0,cat:d=>eCat(d)?0:1,cli:d=>eCli(d)?0:1,rsn:d=>eRsn(d)?0:1,cnt:d=>nP(d)};
+  const sorted=rows.slice().sort((a,b)=>{const x=sv[sk](a),y=sv[sk](b);return (x>y?1:x<y?-1:0)*sa;});
+  const th=(k,lab,al)=>`<th data-dqsort="${k}" style="cursor:pointer;text-align:${al||'center'};white-space:nowrap${S.dqSort.k===k?';color:#22D3EE':''}">${lab}${S.dqSort.k===k?(sa>0?' ▲':' ▼'):''}</th>`;
+  const miss=(bad,val)=>`<td style="text-align:center;${bad?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${bad?'нет':esc(val||'')}</td>`;
+  const body=sorted.slice(0,300).map(d=>`<tr>`+
+    `<td style="text-align:center">${dl(d.id)}</td>`+
+    `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(d.stage||'')}</td>`+
+    `<td style="text-align:center;${eRsn(d)?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${d.lost?(eRsn(d)?'нет':esc(d.reason)):'—'}</td>`+
+    miss(eCat(d),d.assort)+miss(eCli(d),d.client)+
+    `<td style="text-align:center;${eBud(d)?'color:#F8717A;font-weight:700':''}">${fmtK(d.budget||0)}</td>`+
+    `<td style="text-align:center;font-weight:800;color:${nP(d)>=2?'#CC5867':'#C2873C'}">${nP(d)}</td>`+
+    `</tr>`).join("");
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 // ===== СТАНДАРТ ОТДЕЛА: план в предоплатах, декомпозиция по менеджерам =====
@@ -2187,7 +2223,10 @@ function managerDynBlock(){
   const eg=GR[gi],glab=eg==='day'?'дням':eg==='month'?'месяцам':'неделям';
   const bEnd=k=>{let e;if(eg==='month')e=k+'-31';else if(eg==='week'){const t=new Date(k+'T00:00:00Z');t.setUTCDate(t.getUTCDate()+6);e=t.toISOString().slice(0,10);}else e=k;return e<S.end?e:S.end;};
   const wipAt=(ds,t)=>ds.filter(d=>{const f=_firstOffer(d);if(!f||f.slice(0,10)>t)return false;const ex=_enterExec(d),lo=_enterLoseAny(d);return !((ex&&ex.slice(0,10)<=t)||(lo&&lo.slice(0,10)<=t));}).length;
-  const cum=ds=>dk.map(k=>{const be=bEnd(k),port=wipAt(ds,be),su=ds.filter(d=>{const e=_enterExec(d);return e&&e.slice(0,10)>=S.start&&e.slice(0,10)<=be;}).length;return {conv:port?su/port:null,su,port};});
+  // Конверсия приведена к МЕСЯЧНОЙ норме: успех ÷ портфель ÷ число месяцев в окне.
+  // Иначе накопительная доля растёт с длиной диапазона (60 дн -> ~2x, 90 -> ~3x) и не сравнима с целью 15%.
+  const _mo=be=>Math.max((_PDx(be)-_PDx(S.start))/DAYMS,7)/30;
+  const cum=ds=>dk.map(k=>{const be=bEnd(k),port=wipAt(ds,be),su=ds.filter(d=>{const e=_enterExec(d);return e&&e.slice(0,10)>=S.start&&e.slice(0,10)<=be;}).length;return {conv:port?(su/port)/_mo(be):null,su,port};});
   const me=cum(DATA.deals),dp=cum(ALL_DEALS);
   const pts=[...me,...dp].map(o=>o.conv).filter(v=>v!=null);
   if(!pts.length)return '';
@@ -2208,8 +2247,8 @@ function managerDynBlock(){
   const endLbl=(arr,c,txt)=>{let li=-1;arr.forEach((o,i)=>{if(o.conv!=null)li=i;});if(li<0)return '';const x=xAt(li),y=yAt(arr[li].conv);return `<text x="${(x-4).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="end" font-size="9" font-weight="800" fill="${c}" style="paint-order:stroke;stroke:var(--bg-card);stroke-width:3px">${txt}</text>`;};
   const svg=`<svg viewBox="0 0 ${DW} ${DH}" width="100%" style="display:block">${grid}${plan}<path d="${path(dp)}" fill="none" stroke="#A78BFA" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/><path d="${path(me)}" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>${dots(me,'#22D3EE')}${endLbl(dp,'#A78BFA','Отдел')}${endLbl(me,'#22D3EE','Я')}${hov}${xl}</svg>`;
   const swatch=(c,dash,lab)=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><svg width="22" height="8" style="overflow:visible"><line x1="0" y1="4" x2="22" y2="4" stroke="${c}" stroke-width="${dash?2:2.6}"${dash?` stroke-dasharray="${dash}"`:''}/></svg>${lab}</span>`;
-  const legend=`<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:2px 0 8px">${swatch('#22D3EE','',`<b style="color:#22D3EE">${esc(MANAGER)} (я)</b>`)}${swatch('#A78BFA','5 4','<b style="color:#A78BFA">Отдел</b>')}${swatch('#E7ECF3','4 3','цель 15%')}<span style="font-size:10.5px;color:var(--ink-4)">накопительно · по ${glab} · наведи - значения</span></div>`;
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Моя конверсия в динамике vs отдел ${info('Как со временем меняется твоя доля успеха из портфеля, рядом - весь отдел. Голубая линия - ты, сиреневый пунктир - отдел, светлый пунктир - цель 15%. Наведи - точные значения. График за период сверху (30/60 дн), поэтому число может слегка отличаться от KPI за месяц. Вопрос: я подтягиваюсь к отделу или отстаю? Вывод: чем выше линия и ближе к отделу, тем лучше; ниже отдела - разбирай возражения и скорость ответа.')}</div></div></div>${legend}${svg}</div>`;
+  const legend=`<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:2px 0 8px">${swatch('#22D3EE','',`<b style="color:#22D3EE">${esc(MANAGER)} (я)</b>`)}${swatch('#A78BFA','5 4','<b style="color:#A78BFA">Отдел</b>')}${swatch('#E7ECF3','4 3','цель 15%')}<span style="font-size:10.5px;color:var(--ink-4)">в пересчёте на месяц · по ${glab} · наведи - значения</span></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Моя конверсия в динамике vs отдел ${info('Как со временем меняется твоя доля успеха из портфеля, рядом - весь отдел. Голубая линия - ты, сиреневый пунктир - отдел, светлый пунктир - цель 15%. Наведи - точные значения. Конверсия приведена к месячной норме (успех ÷ портфель ÷ число месяцев в окне), поэтому сравнима с целью 15% на любом диапазоне (без нормировки накопительная доля росла бы с длиной периода: 60 дн ~2x, 90 ~3x). Вопрос: я подтягиваюсь к отделу или отстаю? Вывод: чем выше линия и ближе к отделу, тем лучше; ниже отдела - разбирай возражения и скорость ответа.')}</div></div></div>${legend}${svg}</div>`;
 }
 function managerSignalsBlock(MS){
   const sig=[];
@@ -2594,6 +2633,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const sn=e.target.closest('[data-nc]');if(sn){const k=sn.dataset.nc;if(S.ncSort===k)S.ncAsc=!S.ncAsc;else{S.ncSort=k;S.ncAsc=(k==='mgr'||k==='id'||k==='pd');}render();}});
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
+  document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
   document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});

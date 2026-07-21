@@ -178,7 +178,7 @@
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
     var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"]];
-    $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("");
+    $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("") + '<a href="razbor.html" class="active" title="Адверсариальный разбор стратсессии Квартета">ФЕНИКС-разбор →</a>';
     // герой-статы
     $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
       return '<div class="hstat ' + (s.tone || "") + '"><span class="v tnum">' + esc(s.v) + '</span><span class="l">' + esc(s.l) + "</span></div>";

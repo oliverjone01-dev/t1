@@ -1,0 +1,111 @@
+/* GG-MarkPlan 2026 · разбор стратсессии «Квартет» (ФЕНИКС)
+   Надстройка над plan.css: те же токены/гамма/темы. Здесь - только компоненты
+   разбора: карточки-вердикты, счётчики баллов, реплики-пузыри, бренд-колонки,
+   метки Protocol 9. Em dash не используется. */
+
+/* ---------- метки Protocol 9 (инлайн) ---------- */
+.tg{font-size:11px;font-weight:700;letter-spacing:.04em;padding:1px 7px;border-radius:20px;white-space:nowrap;vertical-align:middle;border:1px solid}
+.tg-data{color:var(--keep);border-color:var(--keep);background:var(--pub-soft)}
+.tg-gip{color:var(--gold);border-color:var(--gold-border);background:var(--gold-soft)}
+.tg-flag{color:var(--stop);border-color:var(--stop);background:color-mix(in oklab,var(--stop) 15%,transparent)}
+
+/* ---------- итог-строка ФЕНИКСА (hero) ---------- */
+.fx-lead{display:grid;grid-template-columns:auto 1fr;gap:clamp(20px,3vw,40px);align-items:center;max-width:var(--w);margin:0 auto;padding:0 24px}
+.fx-dial{flex:none;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;position:relative;background:
+  radial-gradient(closest-side,var(--s1) 78%,transparent 80% 100%),
+  conic-gradient(var(--gold) calc(var(--val,6.6)*36deg),var(--line2) 0);}
+.fx-dial .num{font-family:var(--serif);font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+.fx-dial .den{font-size:13px;color:var(--ink3);margin-top:2px}
+.fx-dial .cap{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
+.fx-lead .lead-txt .verline{font-family:var(--serif);font-weight:800;font-size:clamp(20px,2.4vw,28px);letter-spacing:-.02em;line-height:1.12}
+.fx-lead .lead-txt p{margin-top:12px;font-size:15px;color:var(--ink2);line-height:1.55;max-width:62ch}
+@media(max-width:640px){.fx-lead{grid-template-columns:1fr;justify-items:start;gap:44px}}
+
+/* ---------- значок вердикта ---------- */
+.verdict-b{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:var(--radius-pill);border:1px solid}
+.verdict-b::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.v-go{color:var(--keep);border-color:var(--keep);background:var(--pub-soft)}
+.v-return{color:var(--gold);border-color:var(--gold-border);background:var(--gold-soft)}
+.v-veto{color:var(--stop);border-color:var(--stop);background:color-mix(in oklab,var(--stop) 14%,transparent)}
+.v-watch{color:var(--gg-ink);border-color:var(--gg);background:var(--gg-soft)}
+
+/* ---------- спор: две позиции + разбор ---------- */
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:6px 0 20px}
+.pos{background:var(--s1);border:1px solid var(--line2);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.pos::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.pos.a::before{background:var(--gg)}
+.pos.b::before{background:var(--gold-fill)}
+.pos .who{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.pos .ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:800;font-size:14px;flex:none}
+.pos.a .ava{background:var(--gg-soft);color:var(--gg-ink)}
+.pos.b .ava{background:var(--gold-soft);color:var(--gold)}
+.pos .nm{font-family:var(--serif);font-weight:700;font-size:15px}
+.pos .rl{font-size:11px;color:var(--ink3);letter-spacing:.04em}
+.pos .claim{font-size:14.5px;color:var(--ink);line-height:1.5}
+.pos .claim b{color:var(--ink)}
+@media(max-width:720px){.versus{grid-template-columns:1fr}}
+
+/* ---------- реплика-пузырь (первоисточник из чата) ---------- */
+.quote{border-left:3px solid var(--line2);padding:6px 0 6px 14px;margin:10px 0;font-size:13.5px;color:var(--ink2);line-height:1.5}
+.quote .q-who{font-weight:700;color:var(--ink);font-size:12.5px}
+.quote .q-tm{font-size:11px;color:var(--ink3);margin-left:6px}
+.quote.b{border-left-color:var(--gold-fill)}
+.quote.a{border-left-color:var(--gg)}
+.quote.o{border-left-color:var(--keep)}
+
+/* ---------- вердикт-карточка ФЕНИКСА ---------- */
+.fx-card{border:1px solid var(--line2);border-radius:14px;background:color-mix(in oklab,var(--s1) 92%,var(--gold-soft));box-shadow:var(--shadow);padding:18px 20px;margin-top:10px}
+.fx-card .fx-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.fx-card .fx-sc{font-family:var(--serif);font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1}
+.fx-card .fx-sc b{font-size:14px;color:var(--ink3);font-weight:600}
+.fx-card .fx-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);flex:1;min-width:120px}
+.fx-card .fx-body{font-size:14px;color:var(--ink);line-height:1.56}
+.fx-card .fx-body p{margin-top:9px}
+.fx-card .fx-body p:first-child{margin-top:0}
+.fx-card .gaps{list-style:none;margin-top:12px;display:grid;gap:7px}
+.fx-card .gaps li{position:relative;padding-left:22px;font-size:13px;color:var(--ink2);line-height:1.45}
+.fx-card .gaps li::before{content:"▸";position:absolute;left:4px;top:0;color:var(--stop);font-weight:800}
+.fx-card.go{background:color-mix(in oklab,var(--s1) 92%,var(--pub-soft))}
+.fx-card.veto{background:color-mix(in oklab,var(--s1) 90%,color-mix(in oklab,var(--stop) 20%,transparent))}
+
+/* ---------- бренд-разбор ---------- */
+.brands{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.brandc{background:var(--s1);border:1px solid var(--line2);border-radius:16px;padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.brandc::before{content:"";position:absolute;left:0;top:0;right:0;height:4px}
+.brandc.valonti::before{background:var(--gold-fill)}
+.brandc.genglass::before{background:var(--gg)}
+.brandc.gentero::before{background:var(--keep)}
+.brandc .bh{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.brandc .bn{font-family:var(--serif);font-weight:800;font-size:20px;letter-spacing:.01em}
+.brandc .bt{font-size:11.5px;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase}
+.brandc .bsub{font-size:12.5px;color:var(--ink2);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.brandc h4{font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--ink);margin:12px 0 4px;letter-spacing:.01em}
+.brandc p{font-size:13px;color:var(--ink2);line-height:1.5}
+.brandc .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-top:1px solid var(--line)}
+.brandc .kv:first-of-type{border-top:none}
+.brandc .kv .k{color:var(--ink3)}
+.brandc .kv .v{color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
+.brandc .verdict-b{margin-top:12px}
+@media(max-width:900px){.brands{grid-template-columns:1fr}}
+
+/* ---------- список «что делать» ---------- */
+.todo{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;counter-reset:t}
+.todo li{list-style:none;counter-increment:t;background:var(--s1);border:1px solid var(--line2);border-radius:12px;padding:16px 18px 16px 50px;position:relative;box-shadow:var(--shadow)}
+.todo li::before{content:counter(t);position:absolute;left:16px;top:15px;font-family:var(--serif);font-weight:800;font-size:18px;color:var(--gold);width:24px;text-align:center}
+.todo .th{font-family:var(--serif);font-weight:700;font-size:15px;margin-bottom:4px}
+.todo .td{font-size:13px;color:var(--ink2);line-height:1.5}
+.todo .own{display:inline-block;margin-top:8px;font-size:11.5px;color:var(--ink3)}
+.todo .own b{color:var(--gg-ink);font-weight:700}
+@media(max-width:760px){.todo{grid-template-columns:1fr}}
+
+/* ---------- вводка-предупреждение ---------- */
+.p9-note{max-width:var(--w);margin:0 auto;padding:14px 24px;font-size:13px;color:var(--ink2);line-height:1.5}
+.p9-note .in{border:1px dashed var(--gold-border);border-radius:12px;background:var(--gold-soft);padding:12px 16px}
+.p9-note b{color:var(--gold)}
+
+/* ---------- сетка итог-карточек ---------- */
+.fx-summary-grid{max-width:var(--w);margin:22px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.fx-summary-grid{grid-template-columns:1fr}}
+
+/* ---------- сноска-подпись ФЕНИКСА ---------- */
+.sig{font-style:italic;color:var(--ink3);font-size:12.5px}

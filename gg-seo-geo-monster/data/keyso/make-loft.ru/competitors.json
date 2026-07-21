@@ -1,0 +1,14 @@
+{
+  "domain": "make-loft.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-07-21T20:39:16.120Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=make-loft.ru&top=10",
+  "data": {
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 0,
+    "data": [],
+    "total": 0
+  }
+}

@@ -1,0 +1,517 @@
+{
+ "domain": "craftwall.ru",
+ "vs": [
+  "craftwall.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-07-21T20:41:13.439Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 6,
+  "data": [
+   {
+    "url": "/",
+    "domain": "craftwall.ru",
+    "it1": 9,
+    "it3": 9,
+    "it5": 9,
+    "it10": 11,
+    "it50": 63,
+    "vis": 90
+   },
+   {
+    "url": "/blog/bezramnye-i-skrytye-peregorodki",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/chyornyj-alyuminievyj-profil-novyj-standart-sovremennogo-interera",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/dekorativnye-peregorodki-v-stilyah-ot-minimalizma-do-art-deko",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/derevyannye-stenovye-paneli-v-sovremennom-interere",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/dushevaya-peregorodka-kak-vybrat-i-kakie-byvayut",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/blog/kak-rabotaet-smart-steklo-v-interere-kvartiry",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/matovoe-steklo-v-peregorodkah-plyusy-i-minusy",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/blog/metallicheskie-peregorodki",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/blog/ofisnye-peregorodki-sozdanie-komfortnogo-rabochego-prostranstva",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/otkatnye-peregorodki-bez-nizhnih-napravlyayushchih",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodka-dlya-vannoj-kak-vybrat",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-iz-cvetnogo-stekla",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-s-dveryami-kakie-sistemy-otkryvaniya-vybrat",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-s-ehlementami-dereva-i-metalla",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-s-matovym-steklom",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-s-nitridom-titana",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-s-zapolneniem-metallicheskoj-setkoj",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-so-smart-steklom",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-stellazhi",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-v-stile-loft-dlya-zonirovaniya-kvartiry-i-ofisa",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/peregorodki-vmesto-dverey-preimushchestva-i-prichiny-vybora",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/pivotnye-dveri-dlya-sovremennyh-vhodnyh-grupp",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/radiusnye-peregorodki-ehstetika-i-funkcionalnost-sovremennogo-interera",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/steklyannye-peregorodki-s-metallicheskim-karkasom",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/tipy-steklyannyh-peregorodok-v-interere",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/blog/tonkosti-zonirovaniya-s-pomoshchyu-stellazhej",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/trendy-v-dizajne-peregorodok-na-2025-god",
+    "domain": "craftwall.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/zonirovanie-garderobnoj-s-pomoshchyu-peregorodok",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 4,
+    "it10": 8,
+    "it50": 31,
+    "vis": 11
+   },
+   {
+    "url": "/blog/zonirovanie-prostranstva-s-pomoshchyu-peregorodok-s-riflenym-steklom",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 5,
+    "it50": 10,
+    "vis": 1
+   },
+   {
+    "url": "/blog/zonirovanie-sovremennyh-beauty-prostranstv",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 3,
+    "it10": 6,
+    "it50": 13,
+    "vis": 5
+   },
+   {
+    "url": "/blog/zonirovanie-spalni-s-garderobnoj",
+    "domain": "craftwall.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 2,
+    "it10": 5,
+    "it50": 29,
+    "vis": 2
+   },
+   {
+    "url": "/contacts",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/porfolio/kp-maloe-sareevo",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/b-w-zoo-barberia-spa",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/danilovskij-rynok-na-novoj-rige",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/dvorec-gosuslug-na-vdnh",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/elegantnyj-dom-v-novogorske",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/flagmanskij-centr-moi-dokumenty-v-tc-columbus",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 18,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/italyanskij-restoran-buonamici",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/lefortovskij-centr-edinoborstv",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/ofis-kompanii-mosbeauty-group",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/prostranstvo-gostinaya-poliny-pavlovich",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/restoran-asia-inn",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/restoran-panaziatskoy-kuhni-miyagi-family",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/salon-krasoty-na-patriarshih-prudah",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/timeless-na-ohotnom-ryadu",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/zagorodnoe-event-prostranstvo-uspensky",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/teleskopicheskie-peregorodki",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/products",
+    "domain": "craftwall.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 4,
+    "it10": 5,
+    "it50": 7,
+    "vis": 59
+   }
+  ],
+  "total": 296
+ }
+}

@@ -1,0 +1,51 @@
+{
+  "domain": "decus.spb.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-07-21T20:43:41.933Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=decus.spb.ru&top=10",
+  "data": {
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 1,
+    "data": [
+      {
+        "id": 310268448,
+        "name": "decus-az.com",
+        "perc": 83,
+        "theme": 83,
+        "cnt": 5,
+        "it1": 0,
+        "it3": 3,
+        "it5": 3,
+        "it10": 5,
+        "it50": 6,
+        "pagesinindex": 1,
+        "vis": 0,
+        "adscnt": 0,
+        "adkeyscnt": 0,
+        "adtraf": 0,
+        "adcost": 0
+      },
+      {
+        "id": 106448947,
+        "name": "anker-industry.com",
+        "perc": 1,
+        "theme": 17,
+        "cnt": 1,
+        "it1": 15,
+        "it3": 21,
+        "it5": 23,
+        "it10": 34,
+        "it50": 173,
+        "pagesinindex": 26,
+        "vis": 3,
+        "adscnt": 0,
+        "adkeyscnt": 0,
+        "adtraf": 0,
+        "adcost": 0
+      }
+    ],
+    "total": 2
+  }
+}

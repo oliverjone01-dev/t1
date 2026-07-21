@@ -14,7 +14,10 @@ const TPL = "rop/manager-command.template.html";
 const SRC = "rop/data/rop.json";
 const PLAN = "rop/plan/plan.json"; // помесячный план (из Google Таблицы); опционален
 const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY";
-const OUT = "public/manager-lakomova.html";
+// Персональный дашборд одного менеджера. Имя и выходной файл параметризуются
+// (deploy-pages пересобирает каждого менеджера из единого rop.json в цикле).
+const MGR = process.env.MANAGER_NAME || "Татьяна Лакомова";
+const OUT = process.env.MANAGER_OUT || "public/manager-lakomova.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 
 const rop = JSON.parse(readFileSync(SRC, "utf-8"));
@@ -141,6 +144,7 @@ const opUsers = Object.values(staff)
   .filter((s: any) => s.deals > 0 && isSalesRep(s)).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
 const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && !isSalesRep(s)).map((s: any) => s.name);
 console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (нераспределённые): ${_excluded.join(", ") || "-"}`);
+if (!opUsers.includes(MGR)) console.warn(`ВНИМАНИЕ: менеджер "${MGR}" не в ростере ОП - дашборд может быть пустым`);
 
 const DATA = {
   from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
@@ -167,7 +171,11 @@ const i = tpl.indexOf("const DATA=");
 if (i < 0) { console.error("В шаблоне нет 'const DATA='"); process.exit(1); }
 let j = tpl.indexOf("{", i), depth = 0, end = -1;
 for (let k = j; k < tpl.length; k++) { const c = tpl[k]; if (c === "{") depth++; else if (c === "}") { depth--; if (depth === 0) { end = k; break; } } }
-const out = tpl.slice(0, i) + "const DATA=" + JSON.stringify(DATA) + tpl.slice(end + 1);
+let out = tpl.slice(0, i) + "const DATA=" + JSON.stringify(DATA) + tpl.slice(end + 1);
+// Персонализация: подменяем имя менеджера, по которому шаблон фильтрует сделки/лиды.
+const _mRe = /const MANAGER="[^"]*";/;
+if (!_mRe.test(out)) console.warn("ВНИМАНИЕ: в шаблоне не найден 'const MANAGER=' - имя не заменено");
+out = out.replace(_mRe, "const MANAGER=" + JSON.stringify(MGR) + ";");
 writeFileSync(OUT, out);
 
 console.log(`build-manager: сделок ${deals.length}, лидов ${leads.length}, период ${from}..${to}`);

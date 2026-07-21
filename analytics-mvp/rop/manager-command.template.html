@@ -825,7 +825,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   if(typeof MANAGER!=='undefined'&&MANAGER){
     const MS=mgrStats();
-    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+dataQualityBlock();
+    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+dataQualityBlock()+challengeWidget();
     document.getElementById('root').innerHTML=h;freshStamp();return;
   }
   const m=mtr(D,L,soldSet(),lostSet()),pm=mtr(PDd,PLd,soldSet(_pw[0],_pw[1]),lostSet(_pw[0],_pw[1]));
@@ -1450,7 +1450,7 @@ function dataQualityBlock(){
   const rows=passed.filter(d=>nP(d)>0);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const _info=info('Сделки, дошедшие до предложения, у которых в CRM не заполнено важное: причина отказа (для отказных), категория (ассортимент), тип клиента, либо бюджет 0/1 - при отправленном КП цена должна быть выше 1. Вопрос: где дыры в данных, из-за которых статистика неполная? Вывод: заполни пропуски (красное «нет»), иначе отчёты врут; клик по заголовку столбца - сортировка.');
-  if(!rows.length)return `<div class="card"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div></div></div><div style="text-align:center;padding:28px 16px"><div style="font-size:42px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:17px;color:#2E9E74;margin-top:8px">В CRM порядок - все сделки заполнены</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.5">Причина отказа, категория, тип клиента и бюджет проставлены везде. Отличная дисциплина ведения сделок - так держать!</div></div></div>`;
+  if(!rows.length)return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div></div></div><div style="text-align:center;padding:28px 16px"><div style="font-size:42px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:17px;color:#2E9E74;margin-top:8px">В CRM порядок - все сделки заполнены</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.5">Причина отказа, категория, тип клиента и бюджет проставлены везде. Отличная дисциплина ведения сделок - так держать!</div></div></div>`;
   const cRsn=rows.filter(eRsn).length,cCat=rows.filter(eCat).length,cCli=rows.filter(eCli).length,cBud=rows.filter(eBud).length;
   if(!S.dqSort)S.dqSort={k:'cnt',a:false};
   const sk=S.dqSort.k,sa=S.dqSort.a?1:-1;
@@ -1466,7 +1466,57 @@ function dataQualityBlock(){
     `<td style="text-align:center;${eBud(d)?'color:#F8717A;font-weight:700':''}">${fmtK(d.budget||0)}</td>`+
     `<td style="text-align:center;font-weight:800;color:${nP(d)>=2?'#CC5867':'#C2873C'}">${nP(d)}</td>`+
     `</tr>`).join("");
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+// ===== ЧЕЛЛЕНДЖ «CRM-дисциплина»: ТОП-3 менеджеров с наименьшим числом недочётов =====
+// Считаем по всему отделу (ALL_DEALS), не по фильтру - рейтинг общий. Метрика: доля
+// чистых сделок среди дошедших до предложения. Виджет в правом углу, кнопка ведёт к #dqfix.
+function challengeWidget(){
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
+  const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
+  const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
+  const eBud=d=>(d.budget||0)<=1;
+  const bad=d=>eRsn(d)||eCat(d)||eCli(d)||eBud(d);
+  const gaps=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
+  const passedAll=(ALL_DEALS||[]).filter(d=>isOP(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
+  const byM={};passedAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0,g:0};m.tot++;if(bad(d)){m.bad++;m.g+=gaps(d);}});
+  const all=Object.values(byM);
+  // Порог объёма: медаль честная только у тех, кто провёл ≥ FLOOR сделок до предложения,
+  // иначе менеджер с 1-2 идеальными сделками занимает подиум незаслуженно. Порог мягко
+  // снижаем, если желающих мало (маленький отдел).
+  let FLOOR=15;while(FLOOR>3&&all.filter(m=>m.tot>=FLOOR).length<3)FLOOR=Math.floor(FLOOR/2);
+  const rows=all.filter(m=>m.tot>=FLOOR).map(m=>({...m,clean:(m.tot-m.bad)/m.tot}));
+  if(!rows.length)return "";
+  // сортировка: больше доля чистых → выше; при равенстве меньше сделок к правке
+  rows.sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
+  rows.forEach((m,i)=>m.rank=i+1);
+  const me=rows.find(m=>m.n===MANAGER);
+  const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
+  const top=rows.slice(0,3);
+  const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
+  const line=(m,hi)=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0${hi?';font-weight:800':''}">`+
+    `<span style="width:20px;text-align:center;font-size:14px">${medal(m.rank)||m.rank}</span>`+
+    `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
+    `<span style="font-family:'Manrope';font-weight:800;color:${m.clean>=0.999?'#2E9E74':m.clean>=0.9?'#C2873C':'#CC5867'}">${Math.round(m.clean*100)}%</span>`+
+    `<span data-tip="доля сделок без дыр в CRM" style="color:var(--ink-4);font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+  const meOut=(me&&me.rank>3)?`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>${line(me,true)}`:'';
+  const tip=dt('Челлендж «CRM-дисциплина»',[
+    ['Как считаем','доля сделок без дыр среди дошедших до предложения'],
+    ['Что дыра','пустая причина отказа, категория, тип клиента или бюджет 0/1'],
+    ['В зачёт идут','менеджеры с ≥'+FLOOR+' сделок до предложения'],
+    ['Цифра справа','сколько сделок осталось поправить'],
+    ['Цель','100% чистых - тогда статистика отдела не врёт'],
+    ['Твоя задача','нажми кнопку → поправь свои сделки в списке ниже']]).replace(/"/g,'&quot;');
+  const cta=(me&&me.bad>0)?`нажми и поправь ${me.bad} свои`:(me?'у тебя чисто ✓':'к списку');
+  const badge=(me&&me.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.bad}</span>`:(me?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
+  if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
+  return `<div id="crmChallenge" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px)">`+
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">CRM-дисциплина · ТОП-3</span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+    top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
+    `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на исправление ↓</button>`+
+    `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;
 }
 
 // ===== СТАНДАРТ ОТДЕЛА: план в предоплатах, декомпозиция по менеджерам =====
@@ -2634,6 +2684,8 @@ function buildShell(){
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
+  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeToggle')){S.chalMin=!S.chalMin;render();return;}});
+  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('dqfix');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
   document.addEventListener('click',e=>{const sg=e.target.closest('[data-ocseg]');if(sg){const v=sg.dataset.ocseg.split('|');S.ocSeg={dim:v[0],val:v.slice(1).join('|')};render();return;}if(e.target&&e.target.closest('[data-ocsegclose]')){S.ocSeg=null;render();return;}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-mdmgr]');if(m){const k=m.dataset.mdmgr;S.mdOpen=S.mdOpen||{};S.mdOpen[k]=!S.mdOpen[k];render();return;}const so=e.target.closest('[data-mdsort]');if(so){const k=so.dataset.mdsort;if(S.mdSort===k)S.mdAsc=!S.mdAsc;else{S.mdSort=k;S.mdAsc=false;}render();return;}});
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});

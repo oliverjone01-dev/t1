@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-07-20",
+ "measured": "2026-07-21",
  "visibility": null,
  "ai_answers": null,
  "keywords_total": 100,
@@ -74,6 +74,11 @@
   },
   {
    "date": "2026-07-20",
+   "visibility": 0,
+   "top10": 0
+  },
+  {
+   "date": "2026-07-21",
    "visibility": 0,
    "top10": 0
   }
@@ -226,7 +231,7 @@
   {
    "phrase": "памятник на двоих",
    "pos": null,
-   "freq": 6270,
+   "freq": 5928,
    "url": ""
   },
   {
@@ -358,7 +363,7 @@
   {
    "phrase": "памятники для младенцев",
    "pos": null,
-   "freq": 149,
+   "freq": 112,
    "url": ""
   },
   {
@@ -386,15 +391,9 @@
    "url": ""
   },
   {
-   "phrase": "мемориал значение слова",
-   "pos": null,
-   "freq": 70,
-   "url": ""
-  },
-  {
    "phrase": "памятник фриске",
    "pos": null,
-   "freq": 668,
+   "freq": 537,
    "url": ""
   },
   {
@@ -430,7 +429,7 @@
   {
    "phrase": "памятники на могилу в спб недорого",
    "pos": null,
-   "freq": 191,
+   "freq": 101,
    "url": ""
   },
   {
@@ -610,7 +609,7 @@
   {
    "phrase": "памятники на могилу спб",
    "pos": null,
-   "freq": 1646,
+   "freq": 1638,
    "url": ""
   },
   {
@@ -678,6 +677,12 @@
    "pos": null,
    "freq": 28,
    "url": ""
+  },
+  {
+   "phrase": "как правильно устанавливать памятник на могиле",
+   "pos": null,
+   "freq": 99,
+   "url": ""
   }
  ],
  "competitors": [
@@ -688,21 +693,15 @@
    "delta_visibility": 0
   },
   {
-   "domain": "granitgo.ru",
-   "visibility": 1,
-   "common_keywords": 5,
-   "delta_visibility": 0
-  },
-  {
    "domain": "kpam3d.ru",
    "visibility": 3,
-   "common_keywords": 5,
+   "common_keywords": 4,
    "delta_visibility": 0
   },
   {
-   "domain": "metalgm.ru",
-   "visibility": 0,
-   "common_keywords": 3,
+   "domain": "granitgo.ru",
+   "visibility": 1,
+   "common_keywords": 4,
    "delta_visibility": 0
   },
   {
@@ -712,13 +711,25 @@
    "delta_visibility": 0
   },
   {
-   "domain": "l-glass.ru",
+   "domain": "metalgm.ru",
    "visibility": 0,
+   "common_keywords": 3,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "loftpipe.ru",
+   "visibility": 2,
    "common_keywords": 2,
    "delta_visibility": 0
   },
   {
    "domain": "kamintalia.ru",
+   "visibility": 0,
+   "common_keywords": 2,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "l-glass.ru",
    "visibility": 0,
    "common_keywords": 2,
    "delta_visibility": 0
@@ -730,43 +741,37 @@
    "delta_visibility": 0
   },
   {
+   "domain": "tricky-pipe.ru",
+   "visibility": 0,
+   "common_keywords": 1,
+   "delta_visibility": 0
+  },
+  {
    "domain": "omegaglass.ru",
    "visibility": 3,
    "common_keywords": 1,
    "delta_visibility": 0
   },
   {
-   "domain": "mospamyatniki.ru",
+   "domain": "refabrica.ru",
    "visibility": 0,
    "common_keywords": 1,
    "delta_visibility": 0
   },
   {
-   "domain": "proceramika.ru",
-   "visibility": 1,
-   "common_keywords": 1,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "konstruktor-pamyatnikov.talkingstone.ru",
+   "domain": "serpuhov.stella-pamyat.ru",
    "visibility": 2,
    "common_keywords": 1,
    "delta_visibility": 0
   },
   {
-   "domain": "домпамяти.рф",
-   "visibility": 10,
-   "common_keywords": 1,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "arkado-granit.ru",
-   "visibility": 5,
-   "common_keywords": 1,
-   "delta_visibility": 0
-  },
-  {
    "domain": "glassandmirrors.ru",
+   "visibility": 0,
+   "common_keywords": 1,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "digital-boats.ru",
    "visibility": 0,
    "common_keywords": 1,
    "delta_visibility": 0

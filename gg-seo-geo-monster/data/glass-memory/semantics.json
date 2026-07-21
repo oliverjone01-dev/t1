@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-20",
+ "measured": "2026-07-21",
  "phrases": [
   {
    "phrase": "триплекс что такое",
@@ -196,7 +196,7 @@
   {
    "phrase": "памятник на двоих",
    "pos": null,
-   "freq": 6270,
+   "freq": 5928,
    "url": "",
    "cluster": "памятник",
    "intent": "commercial"
@@ -372,7 +372,7 @@
   {
    "phrase": "памятники для младенцев",
    "pos": null,
-   "freq": 149,
+   "freq": 112,
    "url": "",
    "cluster": "памятники",
    "intent": "commercial"
@@ -410,17 +410,9 @@
    "intent": "commercial"
   },
   {
-   "phrase": "мемориал значение слова",
-   "pos": null,
-   "freq": 70,
-   "url": "",
-   "cluster": "мемориал",
-   "intent": "commercial"
-  },
-  {
    "phrase": "памятник фриске",
    "pos": null,
-   "freq": 668,
+   "freq": 537,
    "url": "",
    "cluster": "памятник",
    "intent": "commercial"
@@ -468,7 +460,7 @@
   {
    "phrase": "памятники на могилу в спб недорого",
    "pos": null,
-   "freq": 191,
+   "freq": 101,
    "url": "",
    "cluster": "памятники",
    "intent": "commercial"
@@ -708,7 +700,7 @@
   {
    "phrase": "памятники на могилу спб",
    "pos": null,
-   "freq": 1646,
+   "freq": 1638,
    "url": "",
    "cluster": "памятники",
    "intent": "commercial"
@@ -800,6 +792,14 @@
    "url": "",
    "cluster": "казанское",
    "intent": "commercial"
+  },
+  {
+   "phrase": "как правильно устанавливать памятник на могиле",
+   "pos": null,
+   "freq": 99,
+   "url": "",
+   "cluster": "правильно",
+   "intent": "informational"
   }
  ]
 }

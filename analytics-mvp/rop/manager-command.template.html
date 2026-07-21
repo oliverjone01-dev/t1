@@ -1480,7 +1480,9 @@ function challengeWidget(){
   const eBud=d=>(d.budget||0)<=1;
   const bad=d=>eRsn(d)||eCat(d)||eCli(d)||eBud(d);
   const gaps=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
-  const passedAll=(ALL_DEALS||[]).filter(d=>isOP(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
+  // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
+  const CHAL_EXCLUDE=new Set(["Ольга Лысенко"]);
+  const passedAll=(ALL_DEALS||[]).filter(d=>isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
   const byM={};passedAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0,g:0};m.tot++;if(bad(d)){m.bad++;m.g+=gaps(d);}});
   const all=Object.values(byM);
   // Порог объёма: медаль честная только у тех, кто провёл ≥ FLOOR сделок до предложения,
@@ -1512,8 +1514,8 @@ function challengeWidget(){
   const cta=(me&&me.bad>0)?`нажми и поправь ${me.bad} свои`:(me?'у тебя чисто ✓':'к списку');
   const badge=(me&&me.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.bad}</span>`:(me?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
-  return `<div id="crmChallenge" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px)">`+
-    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">CRM-дисциплина · ТОП-3</span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+  return `<div id="crmChallenge" style="position:fixed;right:14px;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px)">`+
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">CRM-дисциплина · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
     top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
     `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на исправление ↓</button>`+
     `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;

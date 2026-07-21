@@ -198,6 +198,38 @@ jobs:
           printf '%s' "$OSTAMP" > "$GITHUB_WORKSPACE/_site/office/v.txt"
           echo "Офис-менеджер опубликован в /office/, сборка $OSTAMP"
 
+      # === ПЕРСОНАЛЬНЫЕ ДАШБОРДЫ МЕНЕДЖЕРОВ (в /rop-<фамилия>/) ===
+      # ЕДИНЫЙ ИСТОЧНИК ДАННЫХ: rop.json берём из rop-dashboard-v1 (тот же снимок, что и /rop/)
+      # и пересобираем КАЖДОГО менеджера здесь в цикле. Ветка manager-lakomova хранит только
+      # шаблон/скрипт - её собственный rop.json игнорируется, поэтому ни один дашборд менеджера
+      # не может отстать от РОП по данным. Имя менеджера подставляет build-manager (MANAGER_NAME).
+      # node_modules переиспользуем из основного workspace (npm ci уже прошёл выше).
+      # Падение не валит остальной сайт (continue-on-error).
+      - name: Build MANAGER dashboards (isolated, /rop-<surname>/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin manager-lakomova rop-dashboard-v1
+          git worktree add /tmp/mgr origin/manager-lakomova
+          git show origin/rop-dashboard-v1:analytics-mvp/rop/data/rop.json > /tmp/mgr/analytics-mvp/rop/data/rop.json
+          ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/mgr/analytics-mvp/node_modules
+          cd /tmp/mgr/analytics-mvp
+          printf '%s\n' \
+            "Юлия Лысанова|lysanova" \
+            "Татьяна Лакомова|lakomova" \
+            "Юлия Шура-Бура|shura-bura" \
+            "Алина Платонова|platonova" \
+            "Ольга Маслова|maslova" \
+          | while IFS='|' read -r NAME SLUG; do
+              [ -z "$NAME" ] && continue
+              MANAGER_NAME="$NAME" MANAGER_OUT="public/manager-$SLUG.html" npx tsx src/scripts/b24/build-manager.ts
+              mkdir -p "$GITHUB_WORKSPACE/_site/rop-$SLUG"
+              cp "public/manager-$SLUG.html" "$GITHUB_WORKSPACE/_site/rop-$SLUG/index.html"
+              MSTAMP=$(grep -o '"bakedAt":"[^"]*"' "public/manager-$SLUG.html" | head -1 | cut -d'"' -f4)
+              printf '%s' "$MSTAMP" > "$GITHUB_WORKSPACE/_site/rop-$SLUG/v.txt"
+              echo "Менеджер $NAME -> /rop-$SLUG/ ($MSTAMP)"
+            done
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при

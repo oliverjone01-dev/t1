@@ -2,7 +2,7 @@
   "domain": "lain-loft.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T11:04:13.932Z",
+  "measured": "2026-07-20T06:00:04.494Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
   "data": {
     "id": 322813373,
@@ -12,101 +12,95 @@
       {
         "did": 333146076,
         "name": "glassstore.org",
-        "cnt": 1547,
-        "it50": 4278,
-        "vis": 799,
-        "perc": 36.161757830762035
+        "cnt": 1551,
+        "it50": 4203,
+        "vis": 836,
+        "perc": 36.902212705210566
       },
       {
         "did": 30199581,
         "name": "glass-store.ru",
-        "cnt": 1399,
-        "it50": 8363,
-        "vis": 124,
-        "perc": 16.728446729642474
+        "cnt": 1445,
+        "it50": 8359,
+        "vis": 111,
+        "perc": 17.286756789089605
       },
       {
         "did": 30172018,
         "name": "steklo-kom.ru",
-        "cnt": 1268,
-        "it50": 7358,
-        "vis": 745,
-        "perc": 17.23294373471052
+        "cnt": 1271,
+        "it50": 6995,
+        "vis": 591,
+        "perc": 18.17012151536812
       },
       {
         "did": 30530484,
         "name": "priorglass.ru",
-        "cnt": 1236,
-        "it50": 7205,
-        "vis": 115,
-        "perc": 17.154753643303263
+        "cnt": 1247,
+        "it50": 7131,
+        "vis": 90,
+        "perc": 17.487028467255644
       },
       {
         "did": 29923635,
         "name": "steklo9255193.ru",
-        "cnt": 1184,
-        "it50": 3932,
-        "vis": 44,
-        "perc": 30.111902339776194
+        "cnt": 1202,
+        "it50": 3853,
+        "vis": 37,
+        "perc": 31.196470282896442
       },
       {
         "did": 30042665,
         "name": "steklotrade.com",
-        "cnt": 1129,
-        "it50": 4062,
-        "vis": 124,
-        "perc": 27.794190054160513
-      },
-      {
-        "did": 30030622,
-        "name": "169.ru",
-        "cnt": 1082,
-        "it50": 106205,
-        "vis": 8528,
-        "perc": 1.0187844263452757
-      },
-      {
-        "did": 30202337,
-        "name": "glasstroy.ru",
-        "cnt": 1079,
-        "it50": 10062,
-        "vis": 126,
-        "perc": 10.723514211886304
+        "cnt": 1197,
+        "it50": 4313,
+        "vis": 159,
+        "perc": 27.75330396475771
       },
       {
         "did": 32109853,
         "name": "bsk-glass.ru",
-        "cnt": 1056,
-        "it50": 3780,
-        "vis": 137,
-        "perc": 27.93650793650794
+        "cnt": 1084,
+        "it50": 3762,
+        "vis": 99,
+        "perc": 28.814460393407764
+      },
+      {
+        "did": 30202337,
+        "name": "glasstroy.ru",
+        "cnt": 1078,
+        "it50": 9916,
+        "vis": 128,
+        "perc": 10.871319080274304
+      },
+      {
+        "did": 30030622,
+        "name": "169.ru",
+        "cnt": 1063,
+        "it50": 103392,
+        "vis": 7260,
+        "perc": 1.0281259671928196
       },
       {
         "did": 30530494,
         "name": "nayada-glass.ru",
-        "cnt": 993,
-        "it50": 2972,
+        "cnt": 983,
+        "it50": 2875,
         "vis": 24,
-        "perc": 33.411843876177656
+        "perc": 34.19130434782609
       }
     ],
-    "it1": 145,
-    "it3": 631,
-    "it5": 1175,
-    "it10": 2364,
-    "it50": 6768,
+    "it1": 159,
+    "it3": 669,
+    "it5": 1237,
+    "it10": 2496,
+    "it50": 6844,
     "childsCount": 0,
     "keys": [
       {
-        "word": "раздвижные пластиковые двери",
-        "ws": 1619,
-        "wsk": 233,
-        "pos": 1
-      },
-      {
-        "word": "лайн лофт",
-        "ws": 232,
-        "wsk": 88,
+        "word": "стекла для дверей межкомнатных",
+        "ws": 3732,
+        "wsk": 112,
         "pos": 1
       },
       {
@@ -117,20 +111,14 @@
       },
       {
         "word": "закаленное стекло на заказ",
-        "ws": 827,
-        "wsk": 76,
+        "ws": 716,
+        "wsk": 72,
         "pos": 1
       },
       {
-        "word": "умное стекло",
-        "ws": 3277,
-        "wsk": 71,
-        "pos": 1
-      },
-      {
-        "word": "столешница стеклянная для стола",
-        "ws": 445,
-        "wsk": 61,
+        "word": "лайн лофт",
+        "ws": 237,
+        "wsk": 64,
         "pos": 1
       },
       {
@@ -146,6 +134,18 @@
         "pos": 1
       },
       {
+        "word": "заказать стекло в дверь межкомнатную",
+        "ws": 315,
+        "wsk": 54,
+        "pos": 1
+      },
+      {
+        "word": "лестница из нержавейки",
+        "ws": 4500,
+        "wsk": 49,
+        "pos": 1
+      },
+      {
         "word": "витражные перегородки",
         "ws": 553,
         "wsk": 47,
@@ -158,60 +158,73 @@
         "pos": 1
       }
     ],
-    "topkeys": 55951,
+    "topkeys": 54687,
     "pages": [
       {
         "url": "/kupit-steklo/kalenoe-steklo",
-        "it50": 482
+        "it50": 493
       },
       {
         "url": "/dver-garmoshka",
-        "it50": 386
+        "it50": 405
       },
       {
         "url": "/",
-        "it50": 279
+        "it50": 278
       },
       {
         "url": "/dekorativnye-peregorodki",
-        "it50": 228
-      },
-      {
-        "url": "/kupit-steklo/riflenoe-steklo",
-        "it50": 220
-      },
-      {
-        "url": "/razdvizhnye-peregorodki",
         "it50": 219
       },
       {
+        "url": "/kupit-steklo/riflenoe-steklo",
+        "it50": 215
+      },
+      {
+        "url": "/razdvizhnye-peregorodki",
+        "it50": 205
+      },
+      {
         "url": "/kupit-steklo/uzorchatoe-steklo",
-        "it50": 200
-      },
-      {
-        "url": "/kupit-steklo/smart-steklo",
-        "it50": 198
-      },
-      {
-        "url": "/dver-garmoshka/dveri-garmoshka-dlya-shkafa",
-        "it50": 196
+        "it50": 202
       },
       {
         "url": "/shkafy-na-balkon",
-        "it50": 183
+        "it50": 197
+      },
+      {
+        "url": "/kupit-steklo/smart-steklo",
+        "it50": 193
+      },
+      {
+        "url": "/dver-garmoshka/dveri-garmoshka-dlya-shkafa",
+        "it50": 190
       }
     ],
     "pagesinindex": 158,
-    "vis": 282,
-    "topvis": 36654,
+    "vis": 315,
+    "topvis": 35730,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
     "ads": [],
     "adscnt": 0,
     "adtraf": 0,
-    "adcost": 0,
-    "restop5": 17,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 18,
     "history": {
       "2025.02": {
         "it1": 46,
@@ -418,16 +431,16 @@
         "aiCnt": 484
       },
       "2026.07": {
-        "it1": 145,
-        "it3": 631,
-        "it5": 1175,
-        "it10": 2364,
-        "it50": 6768,
+        "it1": 159,
+        "it3": 669,
+        "it5": 1237,
+        "it10": 2496,
+        "it50": 6844,
         "pagesInIndex": 158,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 282,
-        "aiCnt": 398
+        "visAvg": 315,
+        "aiCnt": 517
       }
     },
     "linksHistory": {
@@ -506,42 +519,42 @@
         706,
         30,
         3,
-        11
+        20
       ],
       "2025.12": [
         101,
         704,
         33,
         3,
-        13
+        28
       ],
       "2026.01": [
         101,
         715,
         33,
         3,
-        13
+        27
       ],
       "2026.02": [
         100,
         717,
         32,
         3,
-        13
+        27
       ],
       "2026.03": [
         99,
         671,
         32,
         3,
-        13
+        27
       ],
       "2026.04": [
         99,
         659,
         32,
         3,
-        13
+        27
       ],
       "2026.05": [
         101,
@@ -565,7 +578,7 @@
         66
       ]
     },
-    "aiAnswersCnt": 398,
+    "aiAnswersCnt": 517,
     "aiState": 10,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",

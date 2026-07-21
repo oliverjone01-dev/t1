@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-14T10:54:40.402Z",
+  "updated": "2026-07-20T05:53:16.020Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
@@ -11,12 +11,6 @@
         "dashboard": "ok",
         "competitors": "ok",
         "ad_history": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -26,12 +20,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -41,12 +29,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -56,12 +38,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -71,12 +47,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -86,12 +56,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -101,12 +65,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -116,12 +74,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -131,12 +83,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -146,12 +92,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -161,12 +101,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -176,12 +110,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -191,12 +119,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -206,12 +128,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
@@ -221,12 +137,6 @@
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     }
   ]

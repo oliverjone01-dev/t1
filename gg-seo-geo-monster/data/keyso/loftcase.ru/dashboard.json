@@ -2,7 +2,7 @@
   "domain": "loftcase.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-14T10:57:21.679Z",
+  "measured": "2026-07-20T05:55:02.100Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loftcase.ru",
   "data": {
     "id": 129916199,
@@ -12,103 +12,91 @@
       {
         "did": 272188389,
         "name": "fdmebel.ru",
-        "cnt": 745,
-        "it50": 2565,
-        "vis": 313,
-        "perc": 29.044834307992204
+        "cnt": 799,
+        "it50": 2602,
+        "vis": 323,
+        "perc": 30.707148347425058
       },
       {
         "did": 30135757,
         "name": "prostor-mebel.ru",
-        "cnt": 645,
-        "it50": 2030,
-        "vis": 65,
-        "perc": 31.773399014778324
-      },
-      {
-        "did": 30026489,
-        "name": "shkaffkupe.ru",
-        "cnt": 631,
-        "it50": 5434,
-        "vis": 96,
-        "perc": 11.612072138387926
-      },
-      {
-        "did": 30650360,
-        "name": "shpondveri.ru",
-        "cnt": 587,
-        "it50": 3341,
-        "vis": 227,
-        "perc": 17.5695899431308
+        "cnt": 724,
+        "it50": 2021,
+        "vis": 38,
+        "perc": 35.82384957941613
       },
       {
         "did": 254951024,
         "name": "перегородки-на-заказ.рф",
-        "cnt": 575,
-        "it50": 1797,
-        "vis": 53,
-        "perc": 31.99777406789093
+        "cnt": 651,
+        "it50": 1847,
+        "vis": 40,
+        "perc": 35.24634542501354
+      },
+      {
+        "did": 30026489,
+        "name": "shkaffkupe.ru",
+        "cnt": 638,
+        "it50": 5118,
+        "vis": 46,
+        "perc": 12.465806955842126
+      },
+      {
+        "did": 30650360,
+        "name": "shpondveri.ru",
+        "cnt": 631,
+        "it50": 3294,
+        "vis": 149,
+        "perc": 19.15604128718883
       },
       {
         "did": 125649525,
         "name": "alfaporta.ru",
-        "cnt": 563,
-        "it50": 10307,
-        "vis": 1121,
-        "perc": 5.462307169884545
+        "cnt": 584,
+        "it50": 10182,
+        "vis": 2075,
+        "perc": 5.7356118640738565
       },
       {
         "did": 380174818,
         "name": "ekalum.ru",
-        "cnt": 549,
-        "it50": 3306,
-        "vis": 104,
-        "perc": 16.60617059891107
-      },
-      {
-        "did": 30176237,
-        "name": "aristo.ru",
-        "cnt": 519,
-        "it50": 6066,
-        "vis": 219,
-        "perc": 8.555885262116716
+        "cnt": 569,
+        "it50": 3238,
+        "vis": 129,
+        "perc": 17.572575663990115
       },
       {
         "did": 30066226,
         "name": "dver1.ru",
-        "cnt": 506,
-        "it50": 17962,
-        "vis": 669,
-        "perc": 2.8170582340496604
+        "cnt": 560,
+        "it50": 18043,
+        "vis": 549,
+        "perc": 3.1036967244914924
+      },
+      {
+        "did": 329921063,
+        "name": "doors4u.ru",
+        "cnt": 552,
+        "it50": 9710,
+        "vis": 1998,
+        "perc": 5.684860968074151
       },
       {
         "did": 322813373,
         "name": "lain-loft.ru",
-        "cnt": 498,
-        "it50": 6768,
-        "vis": 282,
-        "perc": 7.358156028368794
+        "cnt": 531,
+        "it50": 6844,
+        "vis": 315,
+        "perc": 7.758620689655173
       }
     ],
-    "it1": 44,
-    "it3": 156,
-    "it5": 284,
-    "it10": 618,
-    "it50": 1340,
+    "it1": 32,
+    "it3": 143,
+    "it5": 239,
+    "it10": 576,
+    "it50": 1420,
     "childsCount": 0,
     "keys": [
-      {
-        "word": "межкомнатные перегородки",
-        "ws": 28227,
-        "wsk": 1389,
-        "pos": 1
-      },
-      {
-        "word": "лофт перегородки",
-        "ws": 2530,
-        "wsk": 400,
-        "pos": 1
-      },
       {
         "word": "перегородка для гардеробной",
         "ws": 718,
@@ -156,33 +144,45 @@
         "ws": 1757,
         "wsk": 26,
         "pos": 1
+      },
+      {
+        "word": "гардеробные перегородки",
+        "ws": 1757,
+        "wsk": 23,
+        "pos": 1
+      },
+      {
+        "word": "лофт перегородка раздвижная",
+        "ws": 237,
+        "wsk": 22,
+        "pos": 1
       }
     ],
-    "topkeys": 193223,
+    "topkeys": 183583,
     "pages": [
       {
         "url": "/peregorodki",
-        "it50": 565
+        "it50": 628
       },
       {
         "url": "/peregorodki/f/tip-razdvizhnye",
-        "it50": 116
-      },
-      {
-        "url": "/peregorodki/f/po_komnatam-garderobnaya",
-        "it50": 60
+        "it50": 123
       },
       {
         "url": "/peregorodki/f/material-steklo",
+        "it50": 66
+      },
+      {
+        "url": "/peregorodki/f/po_komnatam-garderobnaya",
         "it50": 59
       },
       {
         "url": "/",
-        "it50": 44
+        "it50": 43
       },
       {
         "url": "/peregorodki/f/material-metal",
-        "it50": 39
+        "it50": 36
       },
       {
         "url": "/peregorodki/f/material-steklo/po_komnatam-garderobnaya",
@@ -190,65 +190,65 @@
       },
       {
         "url": "/peregorodki/f/po_komnatam-vannaya",
-        "it50": 26
+        "it50": 27
+      },
+      {
+        "url": "/mebel/f/kategoriya_mebeli-stellazhi",
+        "it50": 20
       },
       {
         "url": "/peregorodki/f/tip-razdvizhnye/material-steklo",
-        "it50": 21
-      },
-      {
-        "url": "/peregorodki/f/po_komnatam-kuhnya",
-        "it50": 18
+        "it50": 17
       }
     ],
-    "pagesinindex": 103,
-    "vis": 92,
-    "topvis": 80702,
+    "pagesinindex": 107,
+    "vis": 59,
+    "topvis": 112228,
     "adconcs": [
       {
         "did": 259614127,
         "name": "ddveri.pro",
         "cnt": 9,
-        "it50": 668,
-        "vis": 3,
-        "adkeyscnt": 521,
-        "adscnt": 302
+        "it50": 509,
+        "vis": 2,
+        "adkeyscnt": 1065,
+        "adscnt": 451
       },
       {
         "did": 30329275,
         "name": "union.ru",
         "cnt": 6,
-        "it50": 8744,
-        "vis": 927,
-        "adkeyscnt": 2382,
-        "adscnt": 816
+        "it50": 8227,
+        "vis": 453,
+        "adkeyscnt": 5125,
+        "adscnt": 1316
       },
       {
         "did": 380174818,
         "name": "ekalum.ru",
         "cnt": 4,
-        "it50": 3306,
-        "vis": 104,
-        "adkeyscnt": 202,
-        "adscnt": 63
+        "it50": 3238,
+        "vis": 129,
+        "adkeyscnt": 235,
+        "adscnt": 61
       },
       {
         "did": 30650360,
         "name": "shpondveri.ru",
         "cnt": 3,
-        "it50": 3341,
-        "vis": 227,
-        "adkeyscnt": 58,
-        "adscnt": 45
+        "it50": 3294,
+        "vis": 149,
+        "adkeyscnt": 174,
+        "adscnt": 105
       },
       {
         "did": 30656689,
         "name": "dpi-dorma.ru",
         "cnt": 3,
-        "it50": 48,
+        "it50": 46,
         "vis": 0,
-        "adkeyscnt": 28,
-        "adscnt": 27
+        "adkeyscnt": 62,
+        "adscnt": 57
       }
     ],
     "adkeys": [
@@ -422,9 +422,9 @@
         "keyscnt": 1
       },
       {
-        "id": 3588857480,
-        "header": "Раздвижная перегородка в спальню. Работаем \"под ключ\". Консультация дизайнера. Москва",
-        "txt": "Свое производство. Гарантия 3 года. Прозначное, матовое, рифленое стекло. Монтаж",
+        "id": 2719955642,
+        "header": "Стеклянная перегородка в комнату. Работаем \"под ключ\". Консультация дизайнера. Москва",
+        "txt": "Изготовление и установка стеклянных перегородок для квартиры, домов, офисов, кафе",
         "facts": "Работаем \"под ключ\", Консультация дизайнера, Собственное производство, Монтаж",
         "links": "Шоу-рум с образцами, Собственное производство, Честная Гарантия 3 года, Монтаж за один день",
         "keyscnt": 1
@@ -457,7 +457,7 @@
       "average": 14278,
       "max": 35853
     },
-    "restop5": 21,
+    "restop5": 17,
     "history": {
       "2025.02": {
         "it1": 1,
@@ -664,16 +664,16 @@
         "aiCnt": 234
       },
       "2026.07": {
-        "it1": 44,
-        "it3": 156,
-        "it5": 284,
-        "it10": 618,
-        "it50": 1340,
-        "pagesInIndex": 103,
+        "it1": 32,
+        "it3": 143,
+        "it5": 239,
+        "it10": 576,
+        "it50": 1420,
+        "pagesInIndex": 107,
         "adsCount": 35,
         "adKeysCount": 40,
-        "visAvg": 92,
-        "aiCnt": 55
+        "visAvg": 59,
+        "aiCnt": 29
       }
     },
     "linksHistory": {
@@ -745,35 +745,35 @@
         702,
         86,
         10,
-        42
+        33
       ],
       "2025.11": [
         635,
         1058,
         84,
         14,
-        371
+        40
       ],
       "2025.12": [
         623,
         1039,
         88,
         11,
-        337
+        41
       ],
       "2026.01": [
         599,
         1140,
         92,
         14,
-        321
+        41
       ],
       "2026.02": [
         625,
         1172,
         94,
         13,
-        329
+        40
       ],
       "2026.03": [
         618,
@@ -811,9 +811,9 @@
         739
       ]
     },
-    "aiAnswersCnt": 55,
+    "aiAnswersCnt": 29,
     "aiState": 0,
-    "dr": 20,
+    "dr": 19,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/91ee1f38cdfc7383c484adecca98b38be7c299cacd9f04386c92a0afe578c227.png",
     "name": "loftcase.ru"
   }

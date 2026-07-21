@@ -1498,11 +1498,16 @@ function challengeWidget(){
   const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
   const top=rows.slice(0,3);
   const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
+  // Цвет заполненности - по МЕСТУ в рейтинге, а не по абсолютному порогу: это соревнование,
+  // и лидеры (ТОП-3) - самые заполненные в отделе, поэтому зелёные, даже если 100% ещё не достигли.
+  // Кто без дыр вовсе - всегда зелёный. Нижняя треть - красные (отстают), середина - янтарные.
+  const _n=rows.length,_lowCut=_n-Math.max(1,Math.ceil(_n/3));
+  const rankCol=m=>m.bad===0?'#2E9E74':m.rank<=3?'#2E9E74':m.rank>_lowCut?'#CC5867':'#C2873C';
   const line=(m,hi)=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0${hi?';font-weight:800':''}">`+
     `<span style="width:20px;text-align:center;font-size:14px">${medal(m.rank)||m.rank}</span>`+
     `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
-    `<span style="font-family:'Manrope';font-weight:800;color:${m.clean>=0.999?'#2E9E74':m.clean>=0.9?'#C2873C':'#CC5867'}">${Math.round(m.clean*100)}%</span>`+
-    `<span data-tip="доля сделок без дыр в CRM" style="color:var(--ink-4);font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+    `<span style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${Math.round(m.clean*100)}%</span>`+
+    `<span data-tip="сколько сделок осталось поправить (0 - без дыр)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
   const meOut=(me&&me.rank>3)?`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>${line(me,true)}`:'';
   // Пояснение - это проза, а не пары «метрика/число», поэтому не таблица dt() (там узкая
   // колонка ярлыка ломает каждую строку), а обычные строки: жирный зачин + текст, перенос сам.

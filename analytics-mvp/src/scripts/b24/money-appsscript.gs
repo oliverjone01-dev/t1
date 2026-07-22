@@ -15,6 +15,7 @@
 
 var WEBHOOK = 'https://glassmemory.bitrix24.ru/rest/XXX/XXXXXXXX/'; // <- ВПИШИ свой вебхук
 var PORTAL  = 'https://glassmemory.bitrix24.ru';
+var ONLY_CATEGORY = 49; // только воронка «GG Заказы РФ» (C49). null - все воронки.
 
 var SP = [
   { etid: 1060, key: 'Расчёт' },
@@ -133,6 +134,7 @@ function fillMoney() {
   var rows = [header];
   ids.map(Number).sort(function (a, b) { return b - a; }).forEach(function (idn) {
     var id = String(idn), rec = byDeal[id], nf = info[id] || {};
+    if (ONLY_CATEGORY != null && String(nf.cat) !== String(ONLY_CATEGORY)) return; // только нужная воронка
     var ssv = SP.map(function (s) { return Math.round(rec.ss[s.key] || 0); });
     var tot = ssv.reduce(function (a, b) { return a + b; }, 0);
     var opp = Math.round(nf.opp || 0);

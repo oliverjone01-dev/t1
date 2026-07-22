@@ -72,8 +72,37 @@ function itemsAll_(etid, select) {
   return all;
 }
 
+// Названия воронок (crm.category.list) и стадий (crm.status.list) - вместо кодов C49:EXECUTING.
+function nameMaps_() {
+  var cats = { '0': 'Общая' }, stages = {};
+  var c = (call_('crm.category.list', { entityTypeId: 2 }).result || {}).categories || [];
+  c.forEach(function (x) { cats[String(x.id)] = x.name; });
+  var st = call_('crm.status.list', { filter: {} }).result || [];
+  var start = 50;
+  while (st.length && st.length % 50 === 0) {
+    var more = call_('crm.status.list', { filter: {}, start: start }).result || [];
+    if (!more.length) break; st = st.concat(more); start += 50;
+  }
+  st.forEach(function (s) { stages[s.STATUS_ID] = s.NAME; });
+  return { cats: cats, stages: stages };
+}
+
+// СЛУЖЕБНАЯ: показать, какие поля идут в с/с по каждому СП (Просмотр -> Журналы выполнения).
+function showSsFields() {
+  SP.forEach(function (sp) {
+    var f = (call_('crm.item.fields', { entityTypeId: sp.etid }).result || {}).fields || {};
+    var picked = [];
+    for (var id in f) {
+      var t = String(lbl_(f[id])), ty = String(f[id].type || '');
+      if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_TYPES.test(ty)) picked.push('«' + t + '» (' + ty + ')');
+    }
+    Logger.log(sp.key + ' [' + sp.etid + ']: ' + (picked.join(' + ') || 'нет'));
+  });
+}
+
 function fillMoney() {
   var t0 = Date.now();
+  var maps = nameMaps_();
   // 1) По каждому СП: найти с/с-поля, стянуть карточки, просуммировать с/с на сделку (parentId2).
   var byDeal = {}; // dealId -> { ss: { ключ_СП: сумма } }
   SP.forEach(function (sp) {
@@ -93,14 +122,14 @@ function fillMoney() {
   var ids = Object.keys(byDeal), info = {};
   for (var i = 0; i < ids.length; i += 50) {
     var chunk = ids.slice(i, i + 50);
-    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'STAGE_ID', 'CLOSEDATE'] }).result || [];
-    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, stage: d.STAGE_ID, close: d.CLOSEDATE }; });
+    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'CLOSEDATE'] }).result || [];
+    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, close: d.CLOSEDATE }; });
   }
 
   // 3) Собрать строки и записать в лист.
   var header = ['Сделка', 'Название', 'Ответственный(id)', 'Бюджет']
     .concat(SP.map(function (s) { return s.key + ' с/с'; }))
-    .concat(['Σ с/с', 'Маржа', 'Стадия', 'Дата закрытия']);
+    .concat(['Σ с/с', 'Маржа', 'Воронка', 'Стадия', 'Дата закрытия']);
   var rows = [header];
   ids.map(Number).sort(function (a, b) { return b - a; }).forEach(function (idn) {
     var id = String(idn), rec = byDeal[id], nf = info[id] || {};
@@ -108,8 +137,10 @@ function fillMoney() {
     var tot = ssv.reduce(function (a, b) { return a + b; }, 0);
     var opp = Math.round(nf.opp || 0);
     if (!opp && !tot) return; // без денег - пропускаем
+    var funnel = maps.cats[String(nf.cat)] || (nf.cat != null ? 'воронка ' + nf.cat : '');
+    var stage = maps.stages[nf.stage] || nf.stage || '';
     rows.push(['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '', nf.mgr || '', opp]
-      .concat(ssv).concat([tot, opp - tot, nf.stage || '', nf.close || '']));
+      .concat(ssv).concat([tot, opp - tot, funnel, stage, nf.close || '']));
   });
 
   var sh = SpreadsheetApp.getActiveSheet();

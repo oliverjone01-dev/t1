@@ -219,16 +219,19 @@ function fillMoney() {
   SpreadsheetApp.getActiveSpreadsheet().toast('Готово: ' + (rows.length - 1) + ' сделок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
 }
 
-// Названия стадий КОНКРЕТНОГО СП (у каждого свои). crm.item.fields -> поле stageId со списком
-// значений items:[{ID,NAME}] (STATUS_ID/VALUE - на других порталах). Возвращаем карту код->имя.
+// Названия стадий КОНКРЕТНОГО СП (у каждого свои). Стадии смарт-процесса лежат в справочнике
+// статусов под ENTITY_ID = «DYNAMIC_<etid>_STAGE_<категория>», а код стадии карточки - это
+// STATUS_ID вида «DT1056_23:NEW». Тянем по каждой категории СП и строим карту STATUS_ID -> имя.
 function spStages_(etid) {
-  var f = (call_('crm.item.fields', { entityTypeId: etid }).result || {}).fields || {};
-  var def = f.stageId || f.STAGE_ID || {};
-  var items = def.items || (def.settings && def.settings.items) || [];
-  var m = {};
-  items.forEach(function (it) {
-    var code = it.ID != null ? it.ID : (it.STATUS_ID != null ? it.STATUS_ID : it.VALUE);
-    m[String(code)] = it.NAME || it.VALUE || '';
+  var m = {}, cats = [];
+  try { cats = (call_('crm.category.list', { entityTypeId: etid }).result || {}).categories || []; } catch (e) {}
+  var catIds = cats.map(function (c) { return String(c.id); });
+  if (!catIds.length) catIds = ['0']; // СП без направлений
+  catIds.forEach(function (cid) {
+    try {
+      var st = call_('crm.status.list', { filter: { ENTITY_ID: 'DYNAMIC_' + etid + '_STAGE_' + cid } }).result || [];
+      st.forEach(function (s) { m[String(s.STATUS_ID)] = s.NAME; });
+    } catch (e) {}
   });
   return m;
 }
@@ -258,7 +261,7 @@ function fillDiag() {
       var rec = perDeal[d] || (perDeal[d] = { vals: {}, sp: {} });
       var s = rec.sp[sp.key] || (rec.sp[sp.key] = { card: it.id, etid: sp.etid, created: '', closed: '', stage: '' });
       s.card = it.id;                                                    // ASC -> последняя = самая свежая карточка
-      s.stage = sm[String(it.stageId)] || it.stageId || '';             // текущая стадия СП (самой свежей карточки)
+      s.stage = sm[String(it.stageId)] || maps.stages[String(it.stageId)] || it.stageId || ''; // текущая стадия СП (самой свежей карточки)
       if (it.createdTime && (!s.created || it.createdTime < s.created)) s.created = it.createdTime; // окно жизни: старт
       if (it.closedate && (!s.closed || it.closedate > s.closed)) s.closed = it.closedate;         // окно жизни: закрытие
       cols.forEach(function (c) { var v = num_(it[c.id]); if (v) rec.vals[c.col] = (rec.vals[c.col] || 0) + v; });

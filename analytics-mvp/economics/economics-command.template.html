@@ -59,9 +59,14 @@
   .risk{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:2px;vertical-align:middle}
   .risk.g{background:var(--pos)} .risk.a{background:var(--warn)} .risk.r{background:var(--neg)}
   .detail>td{background:var(--panel2);padding:0}
-  .dwrap{padding:12px 16px 16px 40px;display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
-  @media(max-width:1050px){.dwrap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
-  .dwrap h3{font-size:12px;color:var(--mut);margin:2px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  /* контент разворота закреплён слева и ограничен по ширине - без горизонтального свайпа */
+  .dcard{position:sticky;left:0;width:min(1000px,calc(100vw - 46px));padding:14px 20px 18px}
+  @media(max-width:1050px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .dcard h3{font-size:12px;color:var(--mut);margin:18px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .dcard h3:first-of-type{margin-top:6px}
+  .dcard table{max-width:640px}
+  .dsum{display:flex;flex-wrap:wrap;gap:7px 20px;padding:9px 14px;background:var(--panel3);border:1px solid var(--line);border-radius:8px;font-size:13.5px;margin-bottom:2px}
+  .dsum span{white-space:nowrap} .dsum b{color:var(--mut);font-weight:600;font-size:11px;margin-right:5px;text-transform:uppercase;letter-spacing:.3px}
   table.cmp,table.prd{border:1px solid var(--line);border-radius:8px;overflow:hidden}
   table.cmp th,table.prd th{position:static;background:var(--panel3)}
   table.cmp td,table.cmp th{padding:6px 9px}
@@ -245,16 +250,24 @@ function detailHTML(d){
   // ссылки на карточки СП - источник цифр (проверить в Bitrix)
   var SPMAP={};(DATA.sp||[]).forEach(function(s){SPMAP[s.key]=s.etid;});
   const cl=Object.keys(d.cards||{}).filter(k=>SPMAP[k]&&d.cards[k]).map(k=>'<a href="'+DATA.b24Portal+'/crm/type/'+SPMAP[k]+'/details/'+d.cards[k]+'/" target="_blank" onclick="event.stopPropagation()">↗ '+esc(k)+'</a>').join(' &nbsp;·&nbsp; ');
-  const srcRow='<div class="note" style="padding:10px 16px 2px 40px">Источник цифр в Bitrix: <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">↗ сделка '+d.id+'</a>'+(cl?' &nbsp;·&nbsp; '+cl:'')+'</div>';
-  return srcRow+'<div class="dwrap">'
-    +'<div><h3>Калькулятор против факта - по материалам</h3>'
-      +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
-      +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'
-      +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Стекло сравнивается с Закупкой, работа - с Производством. Строки под «Работа/производство» - разбивка по участкам (сумма через каждый цех, дубли берём по максимуму). Состав факт-с/с уточняется с ПТО.</div></div>'
-    +'<div><h3>Товары в сделке'+(qty?' - '+(d.products||[]).length+' позиц., '+qty+' шт':'')+'</h3>'
-      +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods
-      +(qty?'<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого изделий</b></td><td><b>'+qty+' шт</b></td><td></td></tr>':'')+'</tbody></table>'
-      +'<div class="note">По каждому товару запускаются смарт-процессы. На рекламацию обычно идёт часть (напр. 1 шт из позиции). Когда СП Рекламация подключим - привяжем рекламационное количество к строке товара; пока готовим базу.</div></div>'
+  const srcRow='<div class="note" style="margin-bottom:8px">Источник цифр в Bitrix: <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">↗ сделка '+d.id+'</a>'+(cl?' &nbsp;·&nbsp; '+cl:'')+'</div>';
+  // короткая сводка сверху - вся история в одну строку
+  const sfact=factOf(d),scalc=calcOf(d),smg=marginOf(d),smp=pct(smg,d.budget);
+  const summary='<div class="dsum">'
+    +'<span><b>КП</b>'+rub(d.budget)+'</span>'
+    +'<span><b>Калькулятор</b>'+(scalc?rub(scalc):'<span class="muted">нет</span>')+'</span>'
+    +'<span><b>Факт с/с</b>'+(sfact>1000?rub(sfact):'<span class="muted">не внесена</span>')+'</span>'
+    +'<span class="'+(smg>=0?'pos':'neg')+'"><b>Маржа</b>'+rub(smg)+' · '+smp+'%</span>'
+    +(qty?'<span><b>Изделий</b>'+qty+' шт</span>':'')+'</div>';
+  return '<div class="dcard">'+srcRow+summary
+    +'<h3>Калькулятор против факта - по материалам</h3>'
+    +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
+    +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'
+    +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Строки под «Работа/производство» - разбивка по участкам. Состав факт-с/с уточняется с ПТО.</div>'
+    +'<h3>Товары в сделке'+(qty?' - '+(d.products||[]).length+' позиц., '+qty+' шт':'')+'</h3>'
+    +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods
+    +(qty?'<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого изделий</b></td><td><b>'+qty+' шт</b></td><td></td></tr>':'')+'</tbody></table>'
+    +'<div class="note">На рекламацию обычно идёт часть (напр. 1 шт из позиции). Когда СП Рекламация подключим - привяжем рекламационное количество к строке товара; пока готовим базу.</div>'
     +'</div>';
 }
 

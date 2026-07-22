@@ -133,6 +133,7 @@ const marginOf=d=>d.budget-factOf(d);
 // запас маржи (для рекламации): <10% красный, <20% жёлтый
 const riskClass=d=>{const p=pct(marginOf(d),d.budget);return p<10?'r':p<20?'a':'g';};
 const matVal=(layer,key)=>layer?(layer[key]||0):0;
+const qtyOf=d=>(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0); // изделий всего в сделке (для рекламаций)
 
 const S={d1:'',d2:'',basis:'created',mgr:'',via:'',q:'',sortKey:'id',sortDir:-1,open:new Set()};
 
@@ -142,7 +143,9 @@ function filtered(){
   if(q){
     const num=q.replace(/\s/g,'');
     const byNum=/^\d+$/.test(num);
-    return DATA.deals.filter(d=>byNum?String(d.id).indexOf(num)>=0:(d.title||'').toLowerCase().indexOf(q.toLowerCase())>=0);
+    const lo=q.toLowerCase();
+    return DATA.deals.filter(d=>byNum?String(d.id).indexOf(num)>=0
+      :((d.title||'').toLowerCase().indexOf(lo)>=0 || (d.products||[]).some(p=>(p.name||'').toLowerCase().indexOf(lo)>=0)));
   }
   const b=S.basis;
   return DATA.deals.filter(d=>{
@@ -185,6 +188,7 @@ const COLS=[
   {k:'title',t:'Название',l:true},
   {k:'mgr',t:'Менеджер',l:true},
   {k:'kpVia',t:'КП по',l:true},
+  {k:'qty',t:'Изделий, шт'},
   {k:'budget',t:'Выручка (КП)'},
   {k:'calc',t:'Калькулятор'},
   {k:'fact',t:'С/с факт'},
@@ -192,7 +196,7 @@ const COLS=[
   {k:'margin',t:'Маржа'},
   {k:'mpct',t:'Запас %'},
 ];
-const sortVal=(d,k)=>k==='calc'?calcOf(d):k==='fact'?factOf(d):k==='err'?(factOf(d)-calcOf(d)):k==='margin'?marginOf(d):k==='mpct'?pct(marginOf(d),d.budget):d[k];
+const sortVal=(d,k)=>k==='calc'?calcOf(d):k==='fact'?factOf(d):k==='err'?(factOf(d)-calcOf(d)):k==='margin'?marginOf(d):k==='mpct'?pct(marginOf(d),d.budget):k==='qty'?qtyOf(d):d[k];
 
 function viaBadge(v){if(!v)return '<span class="muted">-</span>';const c=v.indexOf('+')>=0?'both':v.indexOf('Калькул')>=0?'calc':'rasch';return '<span class="badge '+c+'">'+v+'</span>';}
 
@@ -203,6 +207,7 @@ function dealCells(d){
     '<span title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,40))+'</span>',
     esc(d.mgr||'-'),
     viaBadge(d.kpVia),
+    (function(){var q=qtyOf(d),p=(d.products||[]).length;return q?(q+(p>1?' <span class="muted" style="font-size:10.5px">('+p+' поз.)</span>':'')):'<span class="muted">-</span>';})(),
     rub(d.budget),
     calc?rub(calc):'<span class="muted">-</span>',
     rub(fact),
@@ -246,9 +251,10 @@ function detailHTML(d){
       +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
       +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'
       +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Стекло сравнивается с Закупкой, работа - с Производством. Строки под «Работа/производство» - разбивка по участкам (сумма через каждый цех, дубли берём по максимуму). Состав факт-с/с уточняется с ПТО.</div></div>'
-    +'<div><h3>Товары в сделке'+(qty?' - '+qty+' шт':'')+'</h3>'
-      +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods+'</tbody></table>'
-      +'<div class="note">По товарам запускаются смарт-процессы. Количество - из товарных строк сделки.</div></div>'
+    +'<div><h3>Товары в сделке'+(qty?' - '+(d.products||[]).length+' позиц., '+qty+' шт':'')+'</h3>'
+      +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods
+      +(qty?'<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого изделий</b></td><td><b>'+qty+' шт</b></td><td></td></tr>':'')+'</tbody></table>'
+      +'<div class="note">По каждому товару запускаются смарт-процессы. На рекламацию обычно идёт часть (напр. 1 шт из позиции). Когда СП Рекламация подключим - привяжем рекламационное количество к строке товара; пока готовим базу.</div></div>'
     +'</div>';
 }
 

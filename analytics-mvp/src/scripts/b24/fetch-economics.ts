@@ -37,6 +37,20 @@ const MAT: Record<string, RegExp> = {
   kompl: /фурнитур|комплект|дерев|профил/i,
   work: /раскрой|сварк|зачист|нарезк|трубогиб|листогиб|покрас|токарн|слесар|гибк|сверл|зинковк|производствен|работ/i,
 };
+// Участки производства (СП 1086): разбивка себестоимости по операциям (для мотивации по цехам).
+// По ряду участков в Bitrix два поля-дубля (money «…стоимость работ» и double «СВАРКА/СЛЕСАРКА…»),
+// поэтому внутри карточки берём МАКСИМУМ из совпавших полей (dedup), между карточками - сумму.
+const STATIONS: { key: string; re: RegExp }[] = [
+  { key: "Раскрой", re: /раскрой/i },
+  { key: "Нарезка", re: /нарезк/i },
+  { key: "Сварка", re: /сварк/i },
+  { key: "Слесарка/зачистка", re: /слесар|зачист/i },
+  { key: "Гибка (трубо/листо)", re: /трубогиб|листогиб|гибк/i },
+  { key: "Токарные", re: /токарн/i },
+  { key: "Сверловка/зинковка", re: /сверл|зинковк/i },
+  { key: "Покраска", re: /покрас/i },
+];
+
 // «денежное» с/с-поле: тип money/double/integer/string и название про с/с или материал/работу.
 const SS_HINT = /с\s*\/\s*с|себестоим|стоим|раскрой|сварк|зачист|нарезк|трубогиб|листогиб|покрас|токарн|слесар|гибк|сверл|зинковк|металл|сталь|алюмин|стекл|зеркал|фурнитур|дерев|профил/i;
 const SS_EXCL = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар|номер|заказ|дата|срок|описан|коммент/i;
@@ -73,6 +87,8 @@ async function call(method: string, params: any = {}): Promise<any> {
 async function spFieldMap(etid: number) {
   const fields: Record<string, any> = (await call("crm.item.fields", { entityTypeId: etid })).result?.fields || {};
   const byMat: Record<string, string[]> = { metal: [], glass: [], kompl: [], work: [] };
+  const stations: Record<string, string[]> = {};
+  for (const s of STATIONS) stations[s.key] = [];
   let workItogo: string | null = null, calcItogo: string | null = null;
   const all: string[] = [];
   for (const [id, def] of Object.entries(fields)) {
@@ -82,8 +98,9 @@ async function spFieldMap(etid: number) {
     if (WORK_ITOGO.test(t)) workItogo = id;
     if (CALC_ITOGO.test(t)) calcItogo = id;
     for (const m of Object.keys(MAT)) if (MAT[m].test(t)) { byMat[m].push(id); all.push(id); break; }
+    for (const s of STATIONS) if (s.re.test(t)) { stations[s.key].push(id); all.push(id); }
   }
-  return { byMat, workItogo, calcItogo, all: [...new Set(all.concat(workItogo || [], calcItogo || []).filter(Boolean) as string[])] };
+  return { byMat, stations, workItogo, calcItogo, all: [...new Set(all.concat(workItogo || [], calcItogo || []).filter(Boolean) as string[])] };
 }
 
 async function itemsAll(etid: number, select: string[]): Promise<any[]> {
@@ -133,7 +150,7 @@ async function main() {
     stage: stageName[d.STAGE_ID] || d.STAGE_ID || null, budget: Math.round(num(d.OPPORTUNITY)),
     created: d10(d.DATE_CREATE), closed: d10(d.CLOSEDATE), isClosed: d.CLOSED === "Y", kpVia: new Set<string>(),
     calc: { total: 0, metal: 0, glass: 0, kompl: 0, work: 0 },
-    raschet: { total: 0, metal: 0, kompl: 0 }, zakupka: { glass: 0 }, prod: { fact: 0 }, products: [] as any[],
+    raschet: { total: 0, metal: 0, kompl: 0 }, zakupka: { glass: 0 }, prod: { fact: 0, stations: {} as Record<string, number> }, products: [] as any[],
   };
   const inWindow = new Set(Object.keys(deal));
   console.log(`Сделок воронки ${ONLY_CATEGORY} за ${WINDOW_DAYS} дн: ${inWindow.size}`);
@@ -159,6 +176,10 @@ async function main() {
         rec.zakupka.glass += sumMat("glass");
       } else if (sp.key === "Производство GG") {
         rec.prod.fact += fm.workItogo ? num(it[fm.workItogo]) : sumMat("work");
+        for (const st of STATIONS) { // разбивка по участкам: max из полей-дублей внутри карточки, сумма между карточками
+          let v = 0; for (const f of (fm.stations[st.key] || [])) v = Math.max(v, num(it[f]));
+          if (v) rec.prod.stations[st.key] = (rec.prod.stations[st.key] || 0) + v;
+        }
       }
     }
     console.log(`СП ${sp.etid} «${sp.key}»: карточек ${items.length}, привязано к окну ${touched}`);

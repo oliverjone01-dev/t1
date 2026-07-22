@@ -65,6 +65,7 @@
   table.cmp,table.prd{border:1px solid var(--line);border-radius:8px;overflow:hidden}
   table.cmp th,table.prd th{position:static;background:var(--panel3)}
   table.cmp td,table.cmp th{padding:6px 9px}
+  table.cmp tr.sub td{background:rgba(221,107,32,.06);font-size:12.5px}
   .matdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
   .badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;border:1px solid var(--line);color:var(--mut)}
   .badge.calc{color:#D69E2E;border-color:#5a4a1e} .badge.rasch{color:#38A169;border-color:#1e4a2e} .badge.both{color:#4A86E8;border-color:#1e3a5a}
@@ -220,24 +221,22 @@ function detailHTML(d){
     return {m,c,f,delta};
   });
   const cSum=mats.reduce((a,x)=>a+x.c,0),fSum=mats.reduce((a,x)=>a+x.f,0);
-  const cmpRows=mats.map(x=>'<tr><td class="l"><span class="matdot" style="background:'+cv(x.m.col)+'"></span>'+x.m.label
+  // участки производства - вкладываем под строку «Работа/производство» (drill-down)
+  const st=(d.prod&&d.prod.stations)||{};
+  const stKeys=Object.keys(st).filter(k=>st[k]).sort((a,b)=>st[b]-st[a]);
+  const stTot=stKeys.reduce((a,k)=>a+st[k],0);
+  const matRow=x=>'<tr><td class="l"><span class="matdot" style="background:'+cv(x.m.col)+'"></span>'+x.m.label
       +' <span class="muted" style="font-size:10.5px">'+x.m.src+'</span></td>'
       +'<td>'+(x.c?rub(x.c):'<span class="muted">-</span>')+'</td><td>'+(x.f?rub(x.f):'<span class="muted">-</span>')+'</td>'
-      +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c||x.f?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>').join('');
+      +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c||x.f?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>';
+  const subRow=k=>'<tr class="sub"><td class="l" style="padding-left:30px"><span class="matdot" style="background:var(--work);opacity:.55"></span>'+esc(k)
+      +'</td><td class="muted">-</td><td>'+rub(st[k])+'</td><td class="muted">'+pct(st[k],stTot)+'% участка</td></tr>';
+  const cmpRows=mats.map(x=>matRow(x)+((x.m.key==='work'&&stKeys.length)?stKeys.map(subRow).join(''):'')).join('');
   const cmpFoot='<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого</b></td><td><b>'+rub(cSum)+'</b></td><td><b>'+rub(fSum)+'</b></td>'
       +'<td class="'+((fSum-cSum)>0?'neg':'pos')+'"><b>'+((fSum-cSum>0?'+':'')+comp(fSum-cSum))+'</b></td></tr>';
   const prods=(d.products&&d.products.length)?d.products.map(p=>'<tr><td class="l">'+esc(p.name||p.article||'-')+(p.article&&p.name?' <span class="muted" style="font-size:10.5px">'+esc(p.article)+'</span>':'')+'</td><td>'+(p.qty!=null?p.qty:'-')+'</td><td>'+(p.price!=null?rub(p.price):'<span class="muted">-</span>')+'</td></tr>').join('')
       :'<tr><td class="l muted" colspan="3">товарные строки не подтянуты</td></tr>';
   const qty=(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0);
-  // производство по участкам (сумма, прошедшая через каждый цех)
-  const st=(d.prod&&d.prod.stations)||{};
-  const stKeys=Object.keys(st).filter(k=>st[k]).sort((a,b)=>st[b]-st[a]);
-  const stTot=stKeys.reduce((a,k)=>a+st[k],0);
-  const stationsBlock=stKeys.length?('<h3 style="margin-top:16px">Производство по участкам</h3>'
-    +'<table class="cmp"><thead><tr><th class="l">Участок</th><th>Сумма</th><th>Доля</th></tr></thead><tbody>'
-    +stKeys.map(k=>'<tr><td class="l"><span class="matdot" style="background:var(--work)"></span>'+esc(k)+'</td><td>'+rub(st[k])+'</td><td class="muted">'+pct(st[k],stTot)+'%</td></tr>').join('')
-    +'<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого по участкам</b></td><td><b>'+rub(stTot)+'</b></td><td></td></tr></tbody></table>'
-    +'<div class="note">Сумма себестоимости, прошедшая через каждый участок. По части участков в Bitrix поля-дубли - берём максимум (без задвоения); боевой набор полей подтверждает ПТО.</div>'):'';
   // ссылки на карточки СП - источник цифр (проверить в Bitrix)
   var SPMAP={};(DATA.sp||[]).forEach(function(s){SPMAP[s.key]=s.etid;});
   const cl=Object.keys(d.cards||{}).filter(k=>SPMAP[k]&&d.cards[k]).map(k=>'<a href="'+DATA.b24Portal+'/crm/type/'+SPMAP[k]+'/details/'+d.cards[k]+'/" target="_blank" onclick="event.stopPropagation()">↗ '+esc(k)+'</a>').join(' &nbsp;·&nbsp; ');
@@ -246,7 +245,7 @@ function detailHTML(d){
     +'<div><h3>Калькулятор против факта - по материалам</h3>'
       +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
       +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'
-      +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Стекло сравнивается с Закупкой, работа - с Производством. Состав факт-с/с уточняется с ПТО.</div>'+stationsBlock+'</div>'
+      +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Стекло сравнивается с Закупкой, работа - с Производством. Строки под «Работа/производство» - разбивка по участкам (сумма через каждый цех, дубли берём по максимуму). Состав факт-с/с уточняется с ПТО.</div></div>'
     +'<div><h3>Товары в сделке'+(qty?' - '+qty+' шт':'')+'</h3>'
       +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods+'</tbody></table>'
       +'<div class="note">По товарам запускаются смарт-процессы. Количество - из товарных строк сделки.</div></div>'

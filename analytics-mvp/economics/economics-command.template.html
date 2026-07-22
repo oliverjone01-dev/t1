@@ -6,19 +6,20 @@
 <title>Экономика сделок · GENGROUP</title>
 <style>
   :root{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --line:#272c37;
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212b; --panel3:#232834; --line:#272c37;
     --tx:#e7ebf0; --mut:#8b93a1; --acc:#4A86E8;
     --pos:#38A169; --neg:#e05561; --warn:#D69E2E;
-    --sp0:#4A86E8; --sp1:#D69E2E; --sp2:#DD6B20; --sp3:#805AD5;
+    --metal:#8b93a1; --glass:#4A86E8; --kompl:#805AD5; --work:#DD6B20;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
   a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
-  .wrap{max-width:1320px;margin:0 auto;padding:20px 18px 60px}
-  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .wrap{max-width:1500px;margin:0 auto;padding:20px 18px 60px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:2px}
   h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
   .sub{color:var(--mut);font-size:13px}
   .stamp{margin-left:auto;color:var(--mut);font-size:12px;text-align:right}
+  .lead{color:var(--mut);font-size:12.5px;margin:6px 0 0;max-width:960px}
   .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
   .bar label{color:var(--mut);font-size:12px;margin-right:2px}
   input[type=date],select{background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px}
@@ -28,30 +29,39 @@
   .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .seg button{background:var(--panel2);color:var(--mut);border:0;padding:6px 11px;font-size:12px;cursor:pointer}
   .seg button.on{background:var(--acc);color:#fff}
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .kpi .k{color:var(--mut);font-size:12px;margin-bottom:6px}
-  .kpi .v{font-size:22px;font-weight:700;letter-spacing:.3px}
-  .kpi .v.pos{color:var(--pos)} .kpi .v.neg{color:var(--neg)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .card h2{font-size:14px;margin:0 0 12px;font-weight:600;color:var(--tx)}
-  .card h2 .m{color:var(--mut);font-weight:400;font-size:12px}
-  .spbar{display:flex;align-items:center;gap:10px;margin:9px 0}
-  .spbar .nm{width:130px;font-size:13px;color:var(--tx)}
-  .spbar .track{flex:1;height:14px;background:var(--panel2);border-radius:7px;overflow:hidden}
-  .spbar .fill{height:100%;border-radius:7px}
-  .spbar .vl{width:120px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:6px 11px;font-size:12px;cursor:pointer}
+  .btn:hover{border-color:var(--acc)}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:16px 0}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .kpi .k{color:var(--mut);font-size:11.5px;margin-bottom:6px}
+  .kpi .v{font-size:20px;font-weight:700;letter-spacing:.3px}
+  .kpi .v.pos{color:var(--pos)} .kpi .v.neg{color:var(--neg)} .kpi .v.warn{color:var(--warn)}
+  .kpi .h{color:var(--mut);font-size:11px;margin-top:3px}
+  .tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px;margin-top:10px;overflow:auto;max-height:72vh}
   table{width:100%;border-collapse:collapse}
-  th,td{padding:8px 10px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line);white-space:nowrap}
-  th:first-child,td:first-child,th.l,td.l{text-align:left}
-  thead th{color:var(--mut);font-weight:600;font-size:12px;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel)}
+  th,td{padding:7px 9px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line);white-space:nowrap}
+  th.l,td.l{text-align:left}
+  thead th{color:var(--mut);font-weight:600;font-size:11.5px;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel);z-index:2}
   thead th:hover{color:var(--tx)}
-  tbody tr:hover{background:var(--panel2)}
-  td.pos{color:var(--pos)} td.neg{color:var(--neg)}
-  .tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 4px;margin-top:16px;max-height:640px;overflow:auto}
-  .muted{color:var(--mut)} .rt{font-size:12px;color:var(--mut);margin:4px 2px 0}
-  @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+  tbody tr.deal:hover{background:var(--panel2)}
+  tr.deal{cursor:pointer}
+  td.pos{color:var(--pos)} td.neg{color:var(--neg)} td.warnc{color:var(--warn)}
+  .tw{display:inline-block;width:9px;text-align:center;color:var(--mut);transition:transform .12s}
+  tr.open .tw{transform:rotate(90deg);color:var(--acc)}
+  .risk{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:2px;vertical-align:middle}
+  .risk.g{background:var(--pos)} .risk.a{background:var(--warn)} .risk.r{background:var(--neg)}
+  .detail>td{background:var(--panel2);padding:0}
+  .dwrap{padding:12px 16px 16px 40px;display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
+  @media(max-width:1050px){.dwrap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+  .dwrap h3{font-size:12px;color:var(--mut);margin:2px 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  table.cmp,table.prd{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  table.cmp th,table.prd th{position:static;background:var(--panel3)}
+  table.cmp td,table.cmp th{padding:6px 9px}
+  .matdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  .badge{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;border:1px solid var(--line);color:var(--mut)}
+  .badge.calc{color:#D69E2E;border-color:#5a4a1e} .badge.rasch{color:#38A169;border-color:#1e4a2e} .badge.both{color:#4A86E8;border-color:#1e3a5a}
+  .muted{color:var(--mut)} .rt{font-size:12px;color:var(--mut);margin:8px 2px 0}
+  .note{font-size:11.5px;color:var(--mut);margin-top:8px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -61,184 +71,196 @@
     <span class="sub" id="sub"></span>
     <span class="stamp" id="stamp"></span>
   </header>
+  <p class="lead">Ценообразование сделки по слоям: <b>КП</b> (что заплатил клиент) -> <b>Калькулятор</b> (оценка менеджера, по ней выставлен КП) -> <b>факт-себестоимость</b> из Расчёта (металл, комплектующие), Закупки (стекло) и Производства (сборка/покраска). Видно, на каком материале калькулятор ошибся против факта и какой запас маржи остаётся на случай рекламации. Разворачивай строку сделки до товаров и материалов.</p>
 
   <div class="bar">
     <div class="presets" id="presets"></div>
-    <span style="width:12px"></span>
+    <span style="width:8px"></span>
     <label>с</label><input type="date" id="d1">
     <label>по</label><input type="date" id="d2">
-    <span style="width:12px"></span>
+    <span style="width:8px"></span>
     <label>по дате</label>
-    <div class="seg" id="basis">
-      <button data-b="created" class="on">создания</button>
-      <button data-b="closed">закрытия</button>
-    </div>
-    <span style="width:12px"></span>
+    <div class="seg" id="basis"><button data-b="created" class="on">создания</button><button data-b="closed">закрытия</button></div>
+    <span style="width:8px"></span>
     <label>менеджер</label><select id="mgr"><option value="">все</option></select>
+    <label>КП по</label><select id="via"><option value="">любой</option><option>Калькулятор</option><option>Расчёт</option></select>
+    <span style="width:8px"></span>
+    <button class="btn" id="expall">Развернуть всё</button>
+    <button class="btn" id="colall">Свернуть всё</button>
   </div>
 
   <div class="kpis" id="kpis"></div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Себестоимость по смарт-процессам <span class="m" id="ssnote"></span></h2>
-      <div id="spbars"></div>
-    </div>
-    <div class="card">
-      <h2>По менеджерам <span class="m">выручка · с/с · маржа</span></h2>
-      <div style="max-height:320px;overflow:auto"><table id="mgrtbl"></table></div>
-    </div>
-  </div>
-
   <div class="rt" id="rowinfo"></div>
-  <div class="tblwrap">
-    <table id="deals"></table>
-  </div>
+  <div class="tblwrap"><table id="deals"></table></div>
+  <p class="note" id="foot"></p>
 </div>
 
 <script>
-const DATA={"funnelName":"GG Заказы РФ","b24Portal":"https://glassmemory.bitrix24.ru","bakedAt":null,"generatedAt":null,"category":49,"sp":[{"key":"Расчёт","etid":1060},{"key":"Калькулятор","etid":1056},{"key":"Закупка","etid":1074},{"key":"Производство GG","etid":1086}],"deals":[]};
+const DATA={"funnelName":"GG Заказы РФ","b24Portal":"https://glassmemory.bitrix24.ru","bakedAt":null,"generatedAt":null,"category":49,"materials":[{"key":"metal","label":"Металл","src":"Расчёт","col":"--metal"},{"key":"glass","label":"Стекло","src":"Закупка","col":"--glass"},{"key":"kompl","label":"Комплектующие","src":"Расчёт","col":"--kompl"},{"key":"work","label":"Работа/производство","src":"Производство","col":"--work"}],"deals":[]};
 
 // ---- утилиты ----
-const SPCOL=['var(--sp0)','var(--sp1)','var(--sp2)','var(--sp3)'];
 const rub=n=>Math.round(n).toLocaleString('ru')+' ₽';
-const comp=n=>{n=Math.round(n);const a=Math.abs(n);if(a>=1e9)return (n/1e9).toFixed(2)+' млрд';if(a>=1e6)return (n/1e6).toFixed(1)+' млн';if(a>=1e3)return Math.round(n/1e3)+' тыс';return String(n);};
+const comp=n=>{n=Math.round(n);const a=Math.abs(n),s=n<0?'-':'';if(a>=1e9)return s+(a/1e9).toFixed(2)+' млрд';if(a>=1e6)return s+(a/1e6).toFixed(1)+' млн';if(a>=1e3)return s+Math.round(a/1e3)+' тыс';return String(n);};
 const pct=(a,b)=>b?Math.round(a/b*100):0;
 const $=s=>document.querySelector(s);
 const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const cv=v=>'var('+v+')';
 const dealUrl=id=>DATA.b24Portal+'/crm/deal/details/'+id+'/';
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 
-const S={d1:'',d2:'',basis:'created',mgr:'',sortKey:'id',sortDir:-1};
+// с/с факт = материалы (Расчёт) + стекло (Закупка) + производство. Калькулятор в факт НЕ входит
+// (это оценка). Если поле факта пустое - модель считает по имеющимся слоям. Состав уточняется с ПТО.
+const factOf=d=>d.ssActual!=null?d.ssActual:((d.raschet&&d.raschet.total||0)+(d.zakupka&&d.zakupka.glass||0)+(d.prod&&d.prod.fact||0));
+const calcOf=d=>d.calc&&d.calc.total||0;
+const marginOf=d=>d.budget-factOf(d);
+// запас маржи (для рекламации): <10% красный, <20% жёлтый
+const riskClass=d=>{const p=pct(marginOf(d),d.budget);return p<10?'r':p<20?'a':'g';};
+const matVal=(layer,key)=>layer?(layer[key]||0):0;
 
-// диапазон -> отфильтрованные сделки
+const S={d1:'',d2:'',basis:'created',mgr:'',via:'',sortKey:'id',sortDir:-1,open:new Set()};
+
 function filtered(){
   const b=S.basis;
   return DATA.deals.filter(d=>{
-    if(S.mgr && d.mgr!==S.mgr) return false;
+    if(S.mgr&&d.mgr!==S.mgr)return false;
+    if(S.via&&(d.kpVia||'').indexOf(S.via)<0)return false;
     const dt=b==='closed'?d.closed:d.created;
-    if(b==='closed' && !d.closed) return false;
-    if(S.d1 && (!dt||dt<S.d1)) return false;
-    if(S.d2 && (!dt||dt>S.d2)) return false;
+    if(b==='closed'&&!d.closed)return false;
+    if(S.d1&&(!dt||dt<S.d1))return false;
+    if(S.d2&&(!dt||dt>S.d2))return false;
     return true;
   });
 }
 
 function kpis(rows){
   const budget=rows.reduce((a,d)=>a+d.budget,0);
-  const ss=rows.reduce((a,d)=>a+d.ssTotal,0);
-  const margin=budget-ss;
+  const fact=rows.reduce((a,d)=>a+factOf(d),0);
+  const calc=rows.reduce((a,d)=>a+calcOf(d),0);
+  const margin=budget-fact;
+  // средняя точность калькулятора: |факт-калькулятор| / факт по сделкам с обоими
+  const wc=rows.filter(d=>calcOf(d)>0&&factOf(d)>0);
+  const errAbs=wc.reduce((a,d)=>a+Math.abs(factOf(d)-calcOf(d)),0);
+  const errBase=wc.reduce((a,d)=>a+factOf(d),0);
+  const risk=rows.filter(d=>riskClass(d)!=='g').length;
   const box=$('#kpis');box.innerHTML='';
-  const add=(k,v,cls)=>{const e=el('div','kpi');e.append(el('div','k',k),el('div','v'+(cls?' '+cls:''),v));box.append(e);};
-  add('Сделок с деньгами',rows.length.toLocaleString('ru'));
-  add('Выручка портфеля',comp(budget)+' ₽');
-  add('Себестоимость',comp(ss)+' ₽');
-  add('Маржа',comp(margin)+' ₽',margin>=0?'pos':'neg');
-  add('Маржинальность',pct(margin,budget)+' %',margin>=0?'pos':'neg');
+  const add=(k,v,cls,h)=>{const e=el('div','kpi');e.append(el('div','k',k),el('div','v'+(cls?' '+cls:''),v));if(h)e.append(el('div','h',h));box.append(e);};
+  add('Сделок',rows.length.toLocaleString('ru'),'',DATA.funnelName||'');
+  add('Выручка (КП)',comp(budget)+' ₽');
+  add('С/с факт',comp(fact)+' ₽','','Расчёт+Закупка+Пр-во');
+  add('Маржа',comp(margin)+' ₽',margin>=0?'pos':'neg',pct(margin,budget)+'% маржинальность');
+  add('Точность калькул.',(errBase?Math.round(errAbs/errBase*100):0)+'%',errBase&&errAbs/errBase>0.15?'warn':'', 'ср. отклонение от факта');
+  add('Риск по марже',String(risk),risk?'warn':'pos','сделок с запасом <20%');
 }
 
-function spbars(rows){
-  const box=$('#spbars');box.innerHTML='';
-  const totals=DATA.sp.map(s=>rows.reduce((a,d)=>a+(d.ss[s.key]||0),0));
-  const max=Math.max(1,...totals);
-  DATA.sp.forEach((s,i)=>{
-    const b=el('div','spbar');
-    b.append(el('div','nm',s.key));
-    const tr=el('div','track');const f=el('div','fill');f.style.width=(totals[i]/max*100)+'%';f.style.background=SPCOL[i%4];tr.append(f);
-    b.append(tr,el('div','vl',rub(totals[i])));
-    box.append(b);
-  });
-  $('#ssnote').textContent='Сумма с/с = '+rub(totals.reduce((a,b)=>a+b,0));
-}
-
-function mgrtbl(rows){
-  const m={};
-  rows.forEach(d=>{const k=d.mgr||'-';const o=m[k]||(m[k]={b:0,s:0,n:0});o.b+=d.budget;o.s+=d.ssTotal;o.n++;});
-  const arr=Object.entries(m).map(([k,v])=>({k,...v,mg:v.b-v.s})).sort((a,b)=>b.mg-a.mg);
-  const t=$('#mgrtbl');
-  t.innerHTML='<thead><tr><th class="l">Менеджер</th><th>Сделок</th><th>Выручка</th><th>С/с</th><th>Маржа</th><th>%</th></tr></thead>';
-  const tb=el('tbody');
-  arr.forEach(r=>{
-    const tr=el('tr');
-    tr.innerHTML='<td class="l">'+r.k+'</td><td>'+r.n+'</td><td>'+comp(r.b)+'</td><td>'+comp(r.s)+'</td>'
-      +'<td class="'+(r.mg>=0?'pos':'neg')+'">'+comp(r.mg)+'</td><td class="'+(r.mg>=0?'pos':'neg')+'">'+pct(r.mg,r.b)+'</td>';
-    tb.append(tr);
-  });
-  t.append(tb);
-}
-
+// ---- строка сделки ----
 const COLS=[
-  {k:'id',t:'Сделка',l:true,r:d=>'<a href="'+dealUrl(d.id)+'" target="_blank">'+d.id+'</a>'},
-  {k:'title',t:'Название',l:true,r:d=>'<span title="'+(d.title||'').replace(/"/g,'&quot;')+'">'+(d.title||'').slice(0,42)+'</span>'},
-  {k:'mgr',t:'Ответственный',l:true,r:d=>d.mgr||'-'},
-  {k:'stage',t:'Стадия',l:true,r:d=>d.stage||'-'},
-  {k:'budget',t:'Выручка',r:d=>rub(d.budget)},
-  ...['Расчёт','Калькулятор','Закупка','Производство GG'].map(key=>({k:'ss_'+key,t:key,ss:key,r:d=>{const v=d.ss[key]||0;return v?rub(v):'<span class="muted">-</span>';}})),
-  {k:'ssTotal',t:'Σ с/с',r:d=>rub(d.ssTotal)},
-  {k:'margin',t:'Маржа',r:d=>'<span class="'+(d.margin>=0?'pos':'neg')+'">'+rub(d.margin)+'</span>'},
-  {k:'mpct',t:'%',r:d=>'<span class="'+(d.margin>=0?'pos':'neg')+'">'+pct(d.margin,d.budget)+'</span>'},
-  {k:'created',t:'Создана',l:true,r:d=>d.created||'-'},
-  {k:'closed',t:'Закрыта',l:true,r:d=>d.closed||'-'},
+  {k:'id',t:'Сделка',l:true,w:1},
+  {k:'title',t:'Название',l:true},
+  {k:'mgr',t:'Менеджер',l:true},
+  {k:'kpVia',t:'КП по',l:true},
+  {k:'budget',t:'Выручка (КП)'},
+  {k:'calc',t:'Калькулятор'},
+  {k:'fact',t:'С/с факт'},
+  {k:'err',t:'Δ калькул.'},
+  {k:'margin',t:'Маржа'},
+  {k:'mpct',t:'Запас %'},
 ];
-function sortVal(d,k){if(k==='mpct')return pct(d.margin,d.budget);if(k&&k.indexOf('ss_')===0)return d.ss[k.slice(3)]||0;return d[k];}
+const sortVal=(d,k)=>k==='calc'?calcOf(d):k==='fact'?factOf(d):k==='err'?(factOf(d)-calcOf(d)):k==='margin'?marginOf(d):k==='mpct'?pct(marginOf(d),d.budget):d[k];
 
-function deals(rows){
-  const r=[...rows].sort((a,b)=>{const x=sortVal(a,S.sortKey),y=sortVal(b,S.sortKey);if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*S.sortDir;});
-  const t=$('#deals');
-  const hd=COLS.map(c=>'<th class="'+(c.l?'l':'')+'" data-k="'+c.k+'">'+c.t+(S.sortKey===c.k?(S.sortDir<0?' ▾':' ▴'):'')+'</th>').join('');
-  t.innerHTML='<thead><tr>'+hd+'</tr></thead>';
-  const tb=el('tbody');
-  const frag=document.createDocumentFragment();
-  r.slice(0,1000).forEach(d=>{
-    const tr=el('tr');
-    tr.innerHTML=COLS.map(c=>'<td class="'+(c.l?'l':'')+'">'+c.r(d)+'</td>').join('');
-    frag.append(tr);
+function viaBadge(v){if(!v)return '<span class="muted">-</span>';const c=v.indexOf('+')>=0?'both':v.indexOf('Калькул')>=0?'calc':'rasch';return '<span class="badge '+c+'">'+v+'</span>';}
+
+function dealCells(d){
+  const fact=factOf(d),calc=calcOf(d),err=fact-calc,mg=marginOf(d),mp=pct(mg,d.budget);
+  return [
+    '<span class="tw">▸</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a>',
+    '<span title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,40))+'</span>',
+    esc(d.mgr||'-'),
+    viaBadge(d.kpVia),
+    rub(d.budget),
+    calc?rub(calc):'<span class="muted">-</span>',
+    rub(fact),
+    '<span class="'+(err>0?'neg':err<0?'pos':'muted')+'">'+(calc?(err>0?'+':'')+comp(err):'-')+'</span>',
+    '<span class="'+(mg>=0?'pos':'neg')+'">'+rub(mg)+'</span>',
+    '<span class="risk '+riskClass(d)+'"></span><span class="'+(mp>=20?'pos':mp>=10?'warnc':'neg')+'">'+mp+'%</span>',
+  ];
+}
+
+// разворот: сравнение по материалам (калькулятор vs факт) + товары с количеством
+function detailHTML(d){
+  const mats=DATA.materials.map(m=>{
+    const c=matVal(d.calc,m.key);
+    const f=m.key==='glass'?matVal(d.zakupka,'glass'):m.key==='work'?matVal(d.prod,'fact'):matVal(d.raschet,m.key);
+    const delta=f-c;
+    return {m,c,f,delta};
   });
-  tb.append(frag);t.append(tb);
-  t.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='stage'||k==='created'||k==='closed')?1:-1;}render();});
-  $('#rowinfo').textContent='Показано '+Math.min(1000,r.length)+' из '+r.length+' сделок'+(r.length>1000?' (первая 1000 по сортировке)':'');
+  const cSum=mats.reduce((a,x)=>a+x.c,0),fSum=mats.reduce((a,x)=>a+x.f,0);
+  const cmpRows=mats.map(x=>'<tr><td class="l"><span class="matdot" style="background:'+cv(x.m.col)+'"></span>'+x.m.label
+      +' <span class="muted" style="font-size:10.5px">'+x.m.src+'</span></td>'
+      +'<td>'+(x.c?rub(x.c):'<span class="muted">-</span>')+'</td><td>'+(x.f?rub(x.f):'<span class="muted">-</span>')+'</td>'
+      +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c||x.f?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>').join('');
+  const cmpFoot='<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого</b></td><td><b>'+rub(cSum)+'</b></td><td><b>'+rub(fSum)+'</b></td>'
+      +'<td class="'+((fSum-cSum)>0?'neg':'pos')+'"><b>'+((fSum-cSum>0?'+':'')+comp(fSum-cSum))+'</b></td></tr>';
+  const prods=(d.products&&d.products.length)?d.products.map(p=>'<tr><td class="l">'+esc(p.name||p.article||'-')+(p.article&&p.name?' <span class="muted" style="font-size:10.5px">'+esc(p.article)+'</span>':'')+'</td><td>'+(p.qty!=null?p.qty:'-')+'</td><td>'+(p.price!=null?rub(p.price):'<span class="muted">-</span>')+'</td></tr>').join('')
+      :'<tr><td class="l muted" colspan="3">товарные строки не подтянуты</td></tr>';
+  const qty=(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0);
+  return '<div class="dwrap">'
+    +'<div><h3>Калькулятор против факта - по материалам</h3>'
+      +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
+      +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'
+      +'<div class="note">Δ&gt;0 (красный) - факт дороже, чем заложил калькулятор: запас маржи уменьшился. Δ&lt;0 - калькулятор перезаложил. Стекло сравнивается с Закупкой, работа - с Производством. Состав факт-с/с уточняется с ПТО.</div></div>'
+    +'<div><h3>Товары в сделке'+(qty?' - '+qty+' шт':'')+'</h3>'
+      +'<table class="prd"><thead><tr><th class="l">Товар / артикул</th><th>Кол-во</th><th>Цена</th></tr></thead><tbody>'+prods+'</tbody></table>'
+      +'<div class="note">По товарам запускаются смарт-процессы. Количество - из товарных строк сделки.</div></div>'
+    +'</div>';
 }
 
 function render(){
   const rows=filtered();
-  kpis(rows);spbars(rows);mgrtbl(rows);deals(rows);
+  kpis(rows);
+  const r=[...rows].sort((a,b)=>{const x=sortVal(a,S.sortKey),y=sortVal(b,S.sortKey);if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*S.sortDir;});
+  const t=$('#deals');
+  t.innerHTML='<thead><tr>'+COLS.map(c=>'<th class="'+(c.l?'l':'')+'" data-k="'+c.k+'">'+c.t+(S.sortKey===c.k?(S.sortDir<0?' ▾':' ▴'):'')+'</th>').join('')+'</tr></thead>';
+  const tb=el('tbody');const frag=document.createDocumentFragment();
+  r.slice(0,1200).forEach(d=>{
+    const open=S.open.has(d.id);
+    const tr=el('tr','deal'+(open?' open':''));tr.dataset.id=d.id;
+    tr.innerHTML=dealCells(d).map((h,i)=>'<td class="'+(COLS[i].l?'l':'')+'">'+h+'</td>').join('');
+    tr.onclick=()=>{if(S.open.has(d.id))S.open.delete(d.id);else S.open.add(d.id);render();};
+    frag.append(tr);
+    if(open){const dr=el('tr','detail');const td=el('td');td.colSpan=COLS.length;td.innerHTML=detailHTML(d);dr.append(td);frag.append(dr);}
+  });
+  tb.append(frag);t.append(tb);
+  t.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='kpVia')?1:-1;}render();});
+  $('#rowinfo').textContent='Сделок: '+r.length+(r.length>1200?' (показаны 1200 по сортировке)':'')+' · клик по строке разворачивает материалы и товары';
+  $('#foot').innerHTML='Модель: КП (выручка) - Калькулятор (оценка, по ней выставлен КП) - факт-с/с (Расчёт: металл+комплектующие · Закупка: стекло · Производство: сборка/покраска). '
+    +'Калькулятор в сумму факта НЕ входит - он сравнивается с фактом, чтобы видеть ошибку оценки. Точный состав факт-себестоимости и определение «сдан» уточняются с ПТО перед ТЗ на СП Рекламация.';
 }
 
-// ---- пресеты диапазона ----
-function isoAdd(days){const t=new Date();t.setDate(t.getDate()+days);return t.toISOString().slice(0,10);}
+// ---- пресеты, фильтры ----
 const today=()=>new Date().toISOString().slice(0,10);
+const isoAdd=days=>{const t=new Date();t.setDate(t.getDate()+days);return t.toISOString().slice(0,10);};
 const PRESETS=[['Сегодня',0],['7 дней',-6],['30 дней',-29],['90 дней',-89],['Всё',null]];
-function setPreset(days){
-  if(days==null){S.d1='';S.d2='';}
-  else{S.d2=today();S.d1=days===0?today():isoAdd(days);}
-  $('#d1').value=S.d1;$('#d2').value=S.d2;markPresets();render();
-}
-function markPresets(){document.querySelectorAll('#presets .chip').forEach(c=>{const d=c.dataset.d;const on=(d===''&&!S.d1&&!S.d2)||(d!==''&&((d==='0'&&S.d1===today()&&S.d2===today())||(S.d1===isoAdd(+d)&&S.d2===today()&&d!=='0')));c.classList.toggle('on',!!on);});}
+function setPreset(days){if(days==null){S.d1='';S.d2='';}else{S.d2=today();S.d1=days===0?today():isoAdd(days);}$('#d1').value=S.d1;$('#d2').value=S.d2;markPresets();render();}
+function markPresets(){document.querySelectorAll('#presets .chip').forEach(c=>{const d=c.dataset.d;let on=false;if(d===''&&!S.d1&&!S.d2)on=true;else if(d==='0'&&S.d1===today()&&S.d2===today())on=true;else if(d&&d!=='0'&&S.d1===isoAdd(+d)&&S.d2===today())on=true;c.classList.toggle('on',on);});}
 
 function init(){
   $('#sub').textContent=(DATA.funnelName||'')+(DATA.deals.length?' · '+DATA.deals.length+' сделок в базе':'');
   if(DATA.generatedAt){const dt=new Date(DATA.generatedAt);$('#stamp').innerHTML='данные Bitrix24<br>обновлено '+dt.toLocaleString('ru',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-  // пресеты
-  const pc=$('#presets');
-  PRESETS.forEach(([nm,dd])=>{const c=el('button','chip',nm);c.dataset.d=dd==null?'':String(dd);c.onclick=()=>setPreset(dd);pc.append(c);});
-  // менеджеры
+  const pc=$('#presets');PRESETS.forEach(([nm,dd])=>{const c=el('button','chip',nm);c.dataset.d=dd==null?'':String(dd);c.onclick=()=>setPreset(dd);pc.append(c);});
   const mg=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
   const sel=$('#mgr');mg.forEach(m=>{const o=el('option');o.value=m;o.textContent=m;sel.append(o);});
   sel.onchange=()=>{S.mgr=sel.value;render();};
-  // даты
+  $('#via').onchange=e=>{S.via=e.target.value;render();};
   $('#d1').onchange=e=>{S.d1=e.target.value;markPresets();render();};
   $('#d2').onchange=e=>{S.d2=e.target.value;markPresets();render();};
-  // basis
   document.querySelectorAll('#basis button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#basis button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.basis=b.dataset.b;render();});
-  setPreset(null); // старт: всё
+  $('#expall').onclick=()=>{filtered().slice(0,1200).forEach(d=>S.open.add(d.id));render();};
+  $('#colall').onclick=()=>{S.open.clear();render();};
+  setPreset(null);
   autoReload();
 }
-
-// авто-перезагрузка при устаревшем кэше (сверка v.txt с bakedAt), как у остальных дашбордов
-function autoReload(){
-  if(!DATA.bakedAt||location.search.indexOf('cb=')>=0)return;
-  fetch('v.txt?ts='+Date.now()).then(r=>r.ok?r.text():'').then(t=>{t=(t||'').trim();if(t&&t!==DATA.bakedAt)location.replace(location.pathname+'?cb='+Date.now());}).catch(()=>{});
-}
-
+function autoReload(){if(!DATA.bakedAt||location.search.indexOf('cb=')>=0)return;fetch('v.txt?ts='+Date.now()).then(r=>r.ok?r.text():'').then(t=>{t=(t||'').trim();if(t&&t!==DATA.bakedAt)location.replace(location.pathname+'?cb='+Date.now());}).catch(()=>{});}
 init();
 </script>
 </body>

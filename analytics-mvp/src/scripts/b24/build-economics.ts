@@ -12,6 +12,15 @@ const PORTAL = (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").rep
 const src = JSON.parse(readFileSync(SRC, "utf-8"));
 const tpl = readFileSync(TPL, "utf-8");
 
+// Слои материалов для сравнения «калькулятор vs факт». Металл/комплектующие - из Расчёта,
+// стекло - из Закупки, работа - из Производства. Порядок = порядок строк в разворотe.
+const MATERIALS = src.materials || [
+  { key: "metal", label: "Металл", src: "Расчёт", col: "--metal" },
+  { key: "glass", label: "Стекло", src: "Закупка", col: "--glass" },
+  { key: "kompl", label: "Комплектующие", src: "Расчёт", col: "--kompl" },
+  { key: "work", label: "Работа/производство", src: "Производство", col: "--work" },
+];
+
 const DATA = {
   generatedAt: src.generated_at || null,
   bakedAt: new Date().toISOString(), // штамп сборки: отличать свежую версию от кэша
@@ -19,6 +28,7 @@ const DATA = {
   category: src.category,
   funnelName: src.funnelName || null,
   sp: src.sp || [],
+  materials: MATERIALS,
   deals: src.deals || [],
 };
 

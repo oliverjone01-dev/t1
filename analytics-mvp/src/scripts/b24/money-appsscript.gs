@@ -31,6 +31,22 @@ var SS_LABEL   = /с\s*\/\s*с|себестоим/i;
 var SS_EXCLUDE = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар/i;
 var SS_TYPES   = /^(money|double|integer|string)$/i;
 
+// ВАЖНО про двойной счёт: во многих СП есть и ИТОГ, и его составляющие, и «ПЦ С/С» (цена) - если
+// сложить всё, сумма задваивается. Поэтому тут задаём, КАКИЕ поля брать в конкретном СП (по части
+// названия). Если СП нет в списке - берём все поля с «с/с/себестоимость» (может задваивать!).
+// Посмотри showSsFields() и впиши для каждого СП его ИТОГОВОЕ поле.
+var SS_PICK = {
+  1056: ['с/с итого']  // Калькулятор: только «РАСЧЕТ С/С ИТОГО» (иначе плюсуются ПЦ С/С за объём/1шт)
+  // 1060: ['производственная с/с'],   // Расчёт - впиши итоговое поле, глянув showSsFields()
+  // 1086: ['себестоимость производственная'], // Производство GG - итог
+  // 1074 (Закупка) можно оставить авто: там складываются РАЗНЫЕ материалы (стекло+металл+фурнитура)
+};
+
+// Для ДИАГНОСТИКИ (fillDiag): «денежное» поле - тип money ИЛИ число/строка с денежным названием
+// (участки, материалы, стоимости, себестоимость). Служебные (кол-во/id/даты/номера) исключаем.
+var MONEY_WIDE = /с\s*\/\s*с|себестоим|стоим|цена|прайс|бюджет|закуп|расч[её]т|калькул|маржа|прибыл|рентаб|наценк|доставк|металл|стекл|зеркал|фурнитур|дерев|покрас|раскрой|сварк|гибк|слесар|зачист|нарезк|трубогиб|листогиб|токарн|профил|обрешет|работ|сумма/i;
+var MONEY_EXCL = /кол-?во|количеств|номер|№|дата|срок|статус|режим расч|комментар|описан|файл|чертеж|ведомост|артикул|заказ по/i;
+
 function call_(method, params) {
   var url = WEBHOOK.replace(/\/+$/, '') + '/' + method + '.json';
   for (var attempt = 0; attempt < 6; attempt++) {
@@ -53,10 +69,27 @@ function lbl_(d) { return d.formLabel || d.listLabel || d.editFormLabel || d.tit
 
 function ssFields_(etid) {
   var f = (call_('crm.item.fields', { entityTypeId: etid }).result || {}).fields || {};
+  var pick = SS_PICK[etid]; // если задано - берём только эти поля (по части названия)
   var out = [];
   for (var id in f) {
-    var t = String(lbl_(f[id])), ty = String(f[id].type || '');
-    if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_TYPES.test(ty)) out.push(id);
+    var t = String(lbl_(f[id])).trim(), ty = String(f[id].type || '');
+    if (!SS_TYPES.test(ty)) continue;
+    if (pick) {
+      var lo = t.toLowerCase();
+      if (pick.some(function (p) { return lo.indexOf(String(p).toLowerCase()) >= 0; })) out.push(id);
+    } else if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t)) out.push(id);
+  }
+  return out;
+}
+
+// ДИАГНОСТИКА: все денежные поля СП (id + название) - для широкой выгрузки fillDiag.
+function moneyFields_(etid) {
+  var f = (call_('crm.item.fields', { entityTypeId: etid }).result || {}).fields || {};
+  var out = [];
+  for (var id in f) {
+    var t = String(lbl_(f[id])).trim(), ty = String(f[id].type || '');
+    if (MONEY_EXCL.test(t)) continue;
+    if (ty === 'money' || ((ty === 'double' || ty === 'integer' || ty === 'string') && MONEY_WIDE.test(t))) out.push({ id: id, label: t });
   }
   return out;
 }
@@ -165,4 +198,60 @@ function fillMoney() {
   sh.getRange(1, 1, rows.length, header.length).setValues(rows);
   sh.setFrozenRows(1);
   SpreadsheetApp.getActiveSpreadsheet().toast('Готово: ' + (rows.length - 1) + ' сделок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
+}
+
+// ШИРОКАЯ ДИАГНОСТИКА: одна строка на сделку, но ВСЕ денежные поля по каждому СП отдельными
+// колонками + индикатор «через что считали» (Калькулятор/Расчёт) + ссылки на карточки СП.
+// Заполняет активный лист. Запусти вместо fillMoney, когда надо понять, как всё устроено.
+function fillDiag() {
+  var t0 = Date.now();
+  var maps = nameMaps_();
+  var users = {}; try { users = userMap_(); } catch (e) {}
+  // Поля по каждому СП + сбор сумм/первой карточки на сделку.
+  var spCols = [];               // [{ sp, cols:[{id,label,col}] }]
+  var perDeal = {};              // dealId -> { vals:{col:sum}, card:{spKey:cardId} }
+  SP.forEach(function (sp) {
+    var mf = moneyFields_(sp.etid);
+    var cols = mf.map(function (m) { return { id: m.id, label: m.label, col: sp.key + ' · ' + m.label }; });
+    spCols.push({ sp: sp, cols: cols });
+    if (!mf.length) return;
+    var items = itemsAll_(sp.etid, ['id', 'parentId2'].concat(mf.map(function (m) { return m.id; })));
+    items.forEach(function (it) {
+      var d = String(it.parentId2 || ''); if (!d) return;
+      var rec = perDeal[d] || (perDeal[d] = { vals: {}, card: {} });
+      if (!rec.card[sp.key]) rec.card[sp.key] = it.id; // первая карточка СП - для ссылки
+      cols.forEach(function (c) { var v = num_(it[c.id]); if (v) rec.vals[c.col] = (rec.vals[c.col] || 0) + v; });
+    });
+  });
+  // Сделки (бюджет/название/стадия).
+  var ids = Object.keys(perDeal), info = {};
+  for (var i = 0; i < ids.length; i += 50) {
+    var chunk = ids.slice(i, i + 50);
+    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID'] }).result || [];
+    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID }; });
+  }
+  // Заголовок: фикс + ссылки на карточки СП + все денежные поля (сгруппированы по СП).
+  var moneyCols = [];
+  spCols.forEach(function (sc) { sc.cols.forEach(function (c) { moneyCols.push(c.col); }); });
+  var header = ['Сделка', 'Название', 'Ответственный', 'Бюджет', 'Расчёт через']
+    .concat(SP.map(function (s) { return '↗ ' + s.key; }))
+    .concat(['Воронка', 'Стадия']).concat(moneyCols);
+  var rows = [header];
+  function itemLink_(etid, cardId) { return cardId ? '=HYPERLINK("' + PORTAL + '/crm/type/' + etid + '/details/' + cardId + '/","открыть")' : ''; }
+  ids.map(Number).sort(function (a, b) { return b - a; }).forEach(function (idn) {
+    var id = String(idn), rec = perDeal[id], nf = info[id] || {};
+    if (ONLY_CATEGORY != null && String(nf.cat) !== String(ONLY_CATEGORY)) return;
+    var via = []; if (rec.card['Калькулятор']) via.push('Калькулятор'); if (rec.card['Расчёт']) via.push('Расчёт');
+    var row = ['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '',
+      users[String(nf.mgr)] || (nf.mgr || ''), Math.round(nf.opp || 0), via.join(' + ') || '—'];
+    SP.forEach(function (s) { row.push(itemLink_(s.etid, rec.card[s.key])); });
+    row.push(maps.cats[String(nf.cat)] || '', maps.stages[nf.stage] || nf.stage || '');
+    moneyCols.forEach(function (col) { var v = Math.round(rec.vals[col] || 0); row.push(v || ''); });
+    rows.push(row);
+  });
+  var sh = SpreadsheetApp.getActiveSheet();
+  sh.clearContents();
+  sh.getRange(1, 1, rows.length, header.length).setValues(rows);
+  sh.setFrozenRows(1); sh.setFrozenColumns(1);
+  SpreadsheetApp.getActiveSpreadsheet().toast('Диагностика: ' + (rows.length - 1) + ' сделок, ' + header.length + ' колонок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
 }

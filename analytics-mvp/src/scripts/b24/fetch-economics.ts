@@ -1,11 +1,14 @@
 // Прямой коннектор Bitrix24 (read-only) -> economics/data/economics.json для дашборда
-// ЭКОНОМИКА СДЕЛОК. По каждой сделке воронки «GG Заказы РФ» (CATEGORY_ID=49): бюджет
-// (выручка портфеля) + себестоимость из смарт-процессов Расчёт(1060)/Калькулятор(1056)/
-// Закупка(1074)/Производство GG(1086). Логика с/с - как в money-appsscript.gs (задача Богдана):
-// поля с/с находятся по названию (включая текстовые поля стекла в Закупке), а двойной счёт
-// в Калькуляторе гасится SS_PICK (берём только «РАСЧЕТ С/С ИТОГО»).
+// ЭКОНОМИКА СДЕЛОК. По сделкам воронки «GG Заказы РФ» (CATEGORY_ID=49) за последние
+// ECON_WINDOW_DAYS дней (по умолчанию 60): бюджет (КП) + оценка Калькулятора + факт-себестоимость
+// по слоям: Расчёт (металл, комплектующие), Закупка (стекло), Производство (сборка/покраска).
+// Калькулятор в сумму факта НЕ входит - это оценка менеджера, по которой выставлен КП, её
+// сравниваем с фактом по материалам. Плюс товары сделки с количеством.
 //
-// Сеть нужна к glassmemory.bitrix24.ru -> бежит в GitHub Actions (economics-cron.yml).
+// с/с-поля классифицируются ПО НАЗВАНИЮ (структура полей в Bitrix «грязная» - дубли, поля
+// «удалить»), поэтому маппинг переживает переименования. Точный состав факта уточняется с ПТО.
+//
+// Сеть к glassmemory.bitrix24.ru -> бежит в GitHub Actions (economics-cron.yml).
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-economics.ts
 
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -13,24 +16,35 @@ import { writeFileSync, mkdirSync } from "node:fs";
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
 const OUT = "economics/data/economics.json";
-const ONLY_CATEGORY = 49; // воронка «GG Заказы РФ»
+const ONLY_CATEGORY = 49;
+const WINDOW_DAYS = Number(process.env.ECON_WINDOW_DAYS || 60);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// Смарт-процессы с себестоимостью. Порядок = порядок столбцов в дашборде.
+// Роль каждого СП в факт-себестоимости: какие материалы он поставляет (по модели Богдана).
+// Калькулятор - отдельно (оценка, все материалы для сравнения). Металл/комплектующие берём из
+// Расчёта, стекло - из Закупки, работу/сборку - из Производства.
 const SP = [
-  { etid: 1060, key: "Расчёт" },
-  { etid: 1056, key: "Калькулятор" },
-  { etid: 1074, key: "Закупка" },
-  { etid: 1086, key: "Производство GG" },
+  { etid: 1060, key: "Расчёт", layer: ["metal", "kompl"] },
+  { etid: 1074, key: "Закупка", layer: ["glass"] },
+  { etid: 1086, key: "Производство GG", layer: ["work"] },
+  { etid: 1056, key: "Калькулятор", layer: [] }, // оценка: total + разбивка для сравнения
 ] as const;
 
-const SS_LABEL = /с\s*\/\s*с|себестоим/i;
-const SS_EXCLUDE = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар/i;
-const SS_TYPES = /^(money|double|integer|string)$/i;
-// Какие поля брать в конкретном СП (гасит двойной счёт). Пусто -> все поля с/с этого СП.
-const SS_PICK: Record<number, string[]> = {
-  1056: ["с/с итого"], // Калькулятор: только «РАСЧЕТ С/С ИТОГО»
+// Классификация с/с-поля по названию в материал.
+const MAT: Record<string, RegExp> = {
+  glass: /стекл|зеркал/i,
+  metal: /металл|сталь|алюмин/i,
+  kompl: /фурнитур|комплект|дерев|профил/i,
+  work: /раскрой|сварк|зачист|нарезк|трубогиб|листогиб|покрас|токарн|слесар|гибк|сверл|зинковк|производствен|работ/i,
 };
+// «денежное» с/с-поле: тип money/double/integer/string и название про с/с или материал/работу.
+const SS_HINT = /с\s*\/\s*с|себестоим|стоим|раскрой|сварк|зачист|нарезк|трубогиб|листогиб|покрас|токарн|слесар|гибк|сверл|зинковк|металл|сталь|алюмин|стекл|зеркал|фурнитур|дерев|профил/i;
+const SS_EXCL = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар|номер|заказ|дата|срок|описан|коммент/i;
+const SS_TYPES = /^(money|double|integer|string)$/i;
+// Итоговое поле работы в Производстве (чтобы не суммировать операции поверх итога).
+const WORK_ITOGO = /себестоимость производственная/i;
+// Итог Калькулятора (гасит двойной счёт «ПЦ С/С за объём/1шт»).
+const CALC_ITOGO = /с\s*\/\s*с\s*итог/i;
 
 const lbl = (d: any) => d.formLabel || d.listLabel || d.editFormLabel || d.title || "";
 const num = (v: any) => { const n = parseFloat(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
@@ -55,31 +69,30 @@ async function call(method: string, params: any = {}): Promise<any> {
   throw lastErr;
 }
 
-// Поля-себестоимость СП (по названию+типу, с учётом SS_PICK).
-async function ssFields(etid: number): Promise<string[]> {
+// Поля СП: классифицируем денежные с/с-поля по материалам + отдельно итоги (work/calc).
+async function spFieldMap(etid: number) {
   const fields: Record<string, any> = (await call("crm.item.fields", { entityTypeId: etid })).result?.fields || {};
-  const pick = SS_PICK[etid];
-  const out: string[] = [];
+  const byMat: Record<string, string[]> = { metal: [], glass: [], kompl: [], work: [] };
+  let workItogo: string | null = null, calcItogo: string | null = null;
+  const all: string[] = [];
   for (const [id, def] of Object.entries(fields)) {
     const t = String(lbl(def)).trim(), type = String((def as any).type || "");
     if (!SS_TYPES.test(type)) continue;
-    if (pick) {
-      const lo = t.toLowerCase();
-      if (pick.some((p) => lo.indexOf(p.toLowerCase()) >= 0)) out.push(id);
-    } else if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t)) out.push(id);
+    if (!SS_HINT.test(t) || SS_EXCL.test(t)) continue;
+    if (WORK_ITOGO.test(t)) workItogo = id;
+    if (CALC_ITOGO.test(t)) calcItogo = id;
+    for (const m of Object.keys(MAT)) if (MAT[m].test(t)) { byMat[m].push(id); all.push(id); break; }
   }
-  return out;
+  return { byMat, workItogo, calcItogo, all: [...new Set(all.concat(workItogo || [], calcItogo || []).filter(Boolean) as string[])] };
 }
 
-// Все карточки СП (пагинация по id).
 async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   const all: any[] = []; let lastId = 0;
   for (;;) {
     const j = await call("crm.item.list", { entityTypeId: etid, select, filter: { ">id": lastId }, order: { id: "ASC" }, start: -1 });
     const batch: any[] = (j.result && j.result.items) || [];
     if (!batch.length) break;
-    all.push(...batch);
-    lastId = Number(batch[batch.length - 1].id);
+    all.push(...batch); lastId = Number(batch[batch.length - 1].id);
     if (batch.length < 50) break;
   }
   return all;
@@ -98,76 +111,104 @@ async function pageAll(method: string, params: any): Promise<any[]> {
 }
 
 async function main() {
-  console.log(`Bitrix -> ${OUT} (воронка ${ONLY_CATEGORY})`);
+  const cutoff = new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  console.log(`Bitrix -> ${OUT} (воронка ${ONLY_CATEGORY}, сделки с ${cutoff})`);
 
-  // Справочники: пользователи, воронки, стадии сделок.
   const users = await pageAll("user.get", {});
   const userName: Record<string, string> = {};
   for (const u of users) userName[String(u.ID)] = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() || `id${u.ID}`;
-  const cats: any[] = (await call("crm.category.list", { entityTypeId: 2 })).result?.categories || [];
-  const catName: Record<string, string> = { "0": "Общая" };
-  for (const c of cats) catName[String(c.id)] = c.name;
   const stages = await pageAll("crm.status.list", { filter: {} });
   const stageName: Record<string, string> = {};
   for (const s of stages) stageName[s.STATUS_ID] = s.NAME;
-  console.log(`Справочники: пользователей ${users.length}, воронок ${cats.length}`);
 
-  // По каждому СП: с/с-поля -> сумма с/с на сделку (parentId2).
-  const bySs: Record<string, Record<string, number>> = {}; // dealId -> {spKey: сумма}
+  // 1) Сделки воронки 49 за окно (по дате создания). Это опорный список.
+  const dealRows: any[] = await pageAll("crm.deal.list", {
+    filter: { CATEGORY_ID: ONLY_CATEGORY, ">=DATE_CREATE": cutoff },
+    select: ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "CLOSEDATE", "CLOSED"],
+    order: { ID: "DESC" },
+  });
+  const deal: Record<string, any> = {};
+  for (const d of dealRows) deal[String(d.ID)] = {
+    id: Number(d.ID), title: d.TITLE || "", mgr: userName[String(d.ASSIGNED_BY_ID)] || null,
+    stage: stageName[d.STAGE_ID] || d.STAGE_ID || null, budget: Math.round(num(d.OPPORTUNITY)),
+    created: d10(d.DATE_CREATE), closed: d10(d.CLOSEDATE), isClosed: d.CLOSED === "Y", kpVia: new Set<string>(),
+    calc: { total: 0, metal: 0, glass: 0, kompl: 0, work: 0 },
+    raschet: { total: 0, metal: 0, kompl: 0 }, zakupka: { glass: 0 }, prod: { fact: 0 }, products: [] as any[],
+  };
+  const inWindow = new Set(Object.keys(deal));
+  console.log(`Сделок воронки ${ONLY_CATEGORY} за ${WINDOW_DAYS} дн: ${inWindow.size}`);
+
+  // 2) По каждому СП: с/с-поля -> вклад в слои факта (или оценку Калькулятора) на сделку.
   for (const sp of SP) {
-    const ss = await ssFields(sp.etid);
-    console.log(`СП ${sp.etid} «${sp.key}»: с/с-поля = ${ss.join(", ") || "нет"}`);
-    if (!ss.length) continue;
-    const items = await itemsAll(sp.etid, ["id", "parentId2", ...ss]);
+    const fm = await spFieldMap(sp.etid);
+    if (!fm.all.length) { console.log(`СП ${sp.etid} «${sp.key}»: денежных с/с-полей не найдено`); continue; }
+    const items = await itemsAll(sp.etid, ["id", "parentId2", ...fm.all]);
+    let touched = 0;
     for (const it of items) {
-      const d = String(it.parentId2 || ""); if (!d) continue;
-      const rec = (bySs[d] ||= {});
-      const s = ss.reduce((x, f) => x + num(it[f]), 0);
-      rec[sp.key] = (rec[sp.key] || 0) + s;
+      const did = String(it.parentId2 || ""); if (!did || !inWindow.has(did)) continue;
+      const rec = deal[did]; touched++;
+      const sumMat = (m: string) => (fm.byMat[m] || []).reduce((s, f) => s + num(it[f]), 0);
+      if (sp.key === "Калькулятор") {
+        rec.kpVia.add("Калькулятор");
+        rec.calc.total += fm.calcItogo ? num(it[fm.calcItogo]) : (sumMat("metal") + sumMat("glass") + sumMat("kompl") + sumMat("work"));
+        rec.calc.metal += sumMat("metal"); rec.calc.glass += sumMat("glass"); rec.calc.kompl += sumMat("kompl"); rec.calc.work += sumMat("work");
+      } else if (sp.key === "Расчёт") {
+        rec.kpVia.add("Расчёт");
+        rec.raschet.metal += sumMat("metal"); rec.raschet.kompl += sumMat("kompl");
+      } else if (sp.key === "Закупка") {
+        rec.zakupka.glass += sumMat("glass");
+      } else if (sp.key === "Производство GG") {
+        rec.prod.fact += fm.workItogo ? num(it[fm.workItogo]) : sumMat("work");
+      }
     }
-    console.log(`  карточек ${items.length}`);
+    console.log(`СП ${sp.etid} «${sp.key}»: карточек ${items.length}, привязано к окну ${touched}`);
   }
 
-  // Сделки: бюджет/название/стадия/ответственный/даты (только по сделкам с деньгами из СП).
-  const ids = Object.keys(bySs);
-  const info: Record<string, any> = {};
-  for (let i = 0; i < ids.length; i += 50) {
-    const chunk = ids.slice(i, i + 50);
-    const dl: any[] = (await call("crm.deal.list", { filter: { "@ID": chunk }, select: ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "CATEGORY_ID", "STAGE_ID", "DATE_CREATE", "CLOSEDATE", "CLOSED"], start: -1 })).result || [];
-    for (const d of dl) info[String(d.ID)] = d;
+  // 3) Товары сделки с количеством (crm.item.productrow.list, ownerType 'D').
+  const ids = [...inWindow];
+  let prodDeals = 0;
+  for (const id of ids) {
+    try {
+      const rows: any[] = (await call("crm.item.productrow.list", { filter: { "=ownerType": "D", "=ownerId": Number(id) } })).result?.productRows || [];
+      if (rows.length) {
+        deal[id].products = rows.map((r) => ({ name: r.productName || "", qty: Number(r.quantity) || 0, price: Math.round(num(r.price)) }));
+        prodDeals++;
+      }
+    } catch { /* сделка без товарных строк */ }
   }
+  console.log(`Товарные строки подтянуты по ${prodDeals} сделкам из ${ids.length}`);
 
+  // 4) Сборка. total Расчёта = металл+комплектующие (стекло - из Закупки, работа - из Производства).
   const deals = ids.map((id) => {
-    const nf = info[id] || {};
-    if (ONLY_CATEGORY != null && String(nf.CATEGORY_ID) !== String(ONLY_CATEGORY)) return null;
-    const ss: Record<string, number> = {};
-    let ssTotal = 0;
-    for (const sp of SP) { const v = Math.round((bySs[id][sp.key] || 0)); ss[sp.key] = v; ssTotal += v; }
-    const budget = Math.round(num(nf.OPPORTUNITY));
-    if (!budget && !ssTotal) return null;
+    const r = deal[id];
+    r.raschet.total = r.raschet.metal + r.raschet.kompl;
+    const ssActual = r.raschet.total + r.zakupka.glass + r.prod.fact;
+    if (!r.budget && !ssActual && !r.calc.total) return null;
     return {
-      id: Number(id), title: nf.TITLE || "",
-      mgr: userName[String(nf.ASSIGNED_BY_ID)] || null,
-      funnel: catName[String(nf.CATEGORY_ID)] || null,
-      stage: stageName[nf.STAGE_ID] || nf.STAGE_ID || null,
-      budget, ss, ssTotal, margin: budget - ssTotal,
-      created: d10(nf.DATE_CREATE), closed: d10(nf.CLOSEDATE),
-      isClosed: nf.CLOSED === "Y",
+      id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, funnel: "GG Заказы РФ",
+      created: r.created, closed: r.closed, isClosed: r.isClosed,
+      kpVia: [...r.kpVia].join(" + ") || null, budget: r.budget,
+      calc: r.calc, raschet: r.raschet, zakupka: r.zakupka, prod: r.prod,
+      ssActual: Math.round(ssActual), margin: r.budget - Math.round(ssActual), products: r.products,
     };
   }).filter(Boolean) as any[];
-
   deals.sort((a, b) => b.id - a.id);
+
   const out = {
-    generated_at: new Date().toISOString(),
-    category: ONLY_CATEGORY,
-    funnelName: catName[String(ONLY_CATEGORY)] || `воронка ${ONLY_CATEGORY}`,
-    sp: SP.map((s) => ({ key: s.key, etid: s.etid })),
+    generated_at: new Date().toISOString(), category: ONLY_CATEGORY, windowDays: WINDOW_DAYS,
+    funnelName: "GG Заказы РФ",
+    materials: [
+      { key: "metal", label: "Металл", src: "Расчёт", col: "--metal" },
+      { key: "glass", label: "Стекло", src: "Закупка", col: "--glass" },
+      { key: "kompl", label: "Комплектующие", src: "Расчёт", col: "--kompl" },
+      { key: "work", label: "Работа/производство", src: "Производство", col: "--work" },
+    ],
     deals,
   };
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
-  const sumB = deals.reduce((a, d) => a + d.budget, 0), sumS = deals.reduce((a, d) => a + d.ssTotal, 0);
-  console.log(`Готово: ${deals.length} сделок, бюджет ${sumB.toLocaleString("ru")} ₽, с/с ${sumS.toLocaleString("ru")} ₽, маржа ${(sumB - sumS).toLocaleString("ru")} ₽`);
+  const B = deals.reduce((a, d) => a + d.budget, 0), F = deals.reduce((a, d) => a + d.ssActual, 0);
+  console.log(`Готово: ${deals.length} сделок, КП ${B.toLocaleString("ru")} ₽, факт ${F.toLocaleString("ru")} ₽, маржа ${(B - F).toLocaleString("ru")} ₽`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

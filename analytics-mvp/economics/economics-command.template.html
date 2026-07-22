@@ -265,7 +265,7 @@ function render(){
 // ---- пресеты, фильтры ----
 const today=()=>new Date().toISOString().slice(0,10);
 const isoAdd=days=>{const t=new Date();t.setDate(t.getDate()+days);return t.toISOString().slice(0,10);};
-const PRESETS=[['Сегодня',0],['7 дней',-6],['30 дней',-29],['90 дней',-89],['Всё',null]];
+const PRESETS=[['Сегодня',0],['7 дней',-6],['30 дней',-29],['60 дней',-59],['Всё',null]];
 function setPreset(days){if(days==null){S.d1='';S.d2='';}else{S.d2=today();S.d1=days===0?today():isoAdd(days);}$('#d1').value=S.d1;$('#d2').value=S.d2;markPresets();render();}
 function markPresets(){document.querySelectorAll('#presets .chip').forEach(c=>{const d=c.dataset.d;let on=false;if(d===''&&!S.d1&&!S.d2)on=true;else if(d==='0'&&S.d1===today()&&S.d2===today())on=true;else if(d&&d!=='0'&&S.d1===isoAdd(+d)&&S.d2===today())on=true;c.classList.toggle('on',on);});}
 

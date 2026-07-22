@@ -227,6 +227,11 @@ function dealCells(d){
 
 // разворот: сравнение по материалам (калькулятор vs факт) + товары с количеством
 function detailHTML(d){
+  // карта СП -> entityTypeId и ссылка на источник по названию СП (для строк материалов и участков)
+  var SPMAP={};(DATA.sp||[]).forEach(function(s){SPMAP[s.key]=s.etid;});
+  const cardKey=src=>src==='Производство'?'Производство GG':src;
+  const spLink=(label,key)=>(d.cards&&d.cards[key]&&SPMAP[key])?'<a href="'+DATA.b24Portal+'/crm/type/'+SPMAP[key]+'/details/'+d.cards[key]+'/" target="_blank" onclick="event.stopPropagation()">'+esc(label)+'</a>':'<span class="muted">'+esc(label)+'</span>';
+  const srcHtml=src=>'<span style="font-size:10.5px" class="muted">'+spLink('↗ '+src,cardKey(src))+'</span>';
   const mats=DATA.materials.map(m=>{
     const c=matVal(d.calc,m.key);
     const f=m.key==='glass'?matVal(d.zakupka,'glass'):m.key==='work'?matVal(d.prod,'fact'):matVal(d.raschet,m.key);
@@ -239,7 +244,7 @@ function detailHTML(d){
   const stKeys=Object.keys(st).filter(k=>st[k]).sort((a,b)=>st[b]-st[a]);
   const stTot=stKeys.reduce((a,k)=>a+st[k],0);
   const matRow=x=>'<tr><td class="l"><span class="matdot" style="background:'+cv(x.m.col)+'"></span>'+x.m.label
-      +' <span class="muted" style="font-size:10.5px">'+x.m.src+'</span></td>'
+      +' '+srcHtml(x.m.src)+'</td>'
       +'<td>'+(x.c?rub(x.c):'<span class="muted">-</span>')+'</td><td>'+(x.f?rub(x.f):'<span class="muted">-</span>')+'</td>'
       +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c>0&&x.f>0?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>';
   const subRow=k=>'<tr class="sub"><td class="l" style="padding-left:30px"><span class="matdot" style="background:var(--work);opacity:.55"></span>'+esc(k)
@@ -250,8 +255,7 @@ function detailHTML(d){
   const prods=(d.products&&d.products.length)?d.products.map(p=>'<tr><td class="l">'+esc(p.name||p.article||'-')+(p.article&&p.name?' <span class="muted" style="font-size:10.5px">'+esc(p.article)+'</span>':'')+'</td><td>'+(p.qty!=null?p.qty:'-')+'</td><td>'+(p.price!=null?rub(p.price):'<span class="muted">-</span>')+'</td></tr>').join('')
       :'<tr><td class="l muted" colspan="3">товарные строки не подтянуты</td></tr>';
   const qty=(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0);
-  // ссылки на карточки СП - источник цифр (проверить в Bitrix)
-  var SPMAP={};(DATA.sp||[]).forEach(function(s){SPMAP[s.key]=s.etid;});
+  // общий ряд ссылок на карточки всех СП сделки - источник цифр (проверить в Bitrix)
   const cl=Object.keys(d.cards||{}).filter(k=>SPMAP[k]&&d.cards[k]).map(k=>'<a href="'+DATA.b24Portal+'/crm/type/'+SPMAP[k]+'/details/'+d.cards[k]+'/" target="_blank" onclick="event.stopPropagation()">↗ '+esc(k)+'</a>').join(' &nbsp;·&nbsp; ');
   const srcRow='<div class="note" style="margin-bottom:8px">Источник цифр в Bitrix: <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">↗ сделка '+d.id+'</a>'+(cl?' &nbsp;·&nbsp; '+cl:'')+'</div>';
   // короткая сводка сверху - вся история в одну строку

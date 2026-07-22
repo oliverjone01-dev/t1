@@ -67,6 +67,32 @@ function call_(method, params) {
 function num_(v) { var n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : 0; }
 function lbl_(d) { return d.formLabel || d.listLabel || d.editFormLabel || d.title || ''; }
 
+// PHP-style query из объекта: {select:['id','parentId2'], order:{id:'ASC'}, start:50}
+// -> select[0]=id&select[1]=parentId2&order[id]=ASC&start=50 (для batch-команд Bitrix).
+function qs_(params, prefix) {
+  var parts = [];
+  for (var k in params) {
+    if (!params.hasOwnProperty(k)) continue;
+    var key = prefix ? prefix + '[' + k + ']' : k, v = params[k];
+    if (v != null && typeof v === 'object') { var inner = qs_(v, key); if (inner) parts.push(inner); }
+    else parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(v == null ? '' : v));
+  }
+  return parts.join('&');
+}
+
+// BATCH: до 50 методов в одном HTTP-запросе (экономит квоту urlfetch ~в 50 раз).
+// cmds: [[имя, метод, параметры], ...]. Возвращает { имя: result_метода }.
+function batch_(cmds) {
+  var out = {};
+  for (var i = 0; i < cmds.length; i += 50) {
+    var slice = cmds.slice(i, i + 50), cmd = {};
+    slice.forEach(function (c) { cmd[c[0]] = c[1] + '?' + qs_(c[2]); });
+    var res = (call_('batch', { halt: 0, cmd: cmd }).result || {}).result || {};
+    slice.forEach(function (c) { out[c[0]] = res[c[0]]; });
+  }
+  return out;
+}
+
 // ISO-дату «2026-07-21T13:07:41+03:00» -> ['21.07.2026','13:07'] (дата и время отдельно).
 function dsplit_(v) {
   if (!v) return ['', ''];
@@ -113,16 +139,19 @@ function moneyFields_(etid) {
   return out;
 }
 
+// Все карточки СП. Первая страница + total одним запросом, остальные - пачками по 50 страниц
+// (2500 карточек) в одном batch-запросе. Так на большой СП уходит не сотни urlfetch, а единицы.
 function itemsAll_(etid, select) {
-  var all = [], last = 0;
-  for (;;) {
-    var r = (call_('crm.item.list', { entityTypeId: etid, select: select, filter: { '>id': last }, order: { id: 'ASC' } }).result || {}).items || [];
-    if (!r.length) break;
-    all = all.concat(r);
-    last = r[r.length - 1].id;
-    if (r.length < 50) break; // crm.item.list отдаёт по 50
-  }
-  return all;
+  var base = { entityTypeId: etid, select: select, order: { id: 'ASC' } };
+  var first = call_('crm.item.list', Object.assign({ start: 0 }, base));
+  var items = ((first.result || {}).items) || [];
+  var total = first.total || items.length;
+  if (total <= items.length) return items;
+  var cmds = [];
+  for (var s = items.length; s < total; s += 50) cmds.push(['p' + s, 'crm.item.list', Object.assign({ start: s }, base)]);
+  var res = batch_(cmds);
+  for (var k in res) { var it = (res[k] && res[k].items) || []; items = items.concat(it); }
+  return items;
 }
 
 // Названия воронок (crm.category.list) и стадий (crm.status.list) - вместо кодов C49:EXECUTING.
@@ -185,13 +214,11 @@ function fillMoney() {
     });
   });
 
-  // 2) Подтянуть бюджет/название/стадию только по этим сделкам (батчами по 50).
-  var ids = Object.keys(byDeal), info = {};
-  for (var i = 0; i < ids.length; i += 50) {
-    var chunk = ids.slice(i, i + 50);
-    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'CLOSEDATE'] }).result || [];
-    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, close: d.CLOSEDATE }; });
-  }
+  // 2) Подтянуть бюджет/название/стадию только по этим сделкам (одним batch по 50 сделок/команда).
+  var ids = Object.keys(byDeal), info = {}, dcmds = [];
+  for (var i = 0; i < ids.length; i += 50) dcmds.push(['d' + i, 'crm.deal.list', { filter: { '@ID': ids.slice(i, i + 50) }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'CLOSEDATE'] }]);
+  var dres = batch_(dcmds);
+  for (var dk in dres) (dres[dk] || []).forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, close: d.CLOSEDATE }; });
 
   // 3) Собрать строки и записать в лист.
   var header = ['Сделка', 'Название', 'Ответственный', 'Бюджет']
@@ -268,13 +295,11 @@ function fillDiag() {
     });
   });
 
-  // Сделки: бюджет/название/стадия + окно жизни (DATE_CREATE ... CLOSEDATE).
-  var ids = Object.keys(perDeal), info = {};
-  for (var i = 0; i < ids.length; i += 50) {
-    var chunk = ids.slice(i, i + 50);
-    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'DATE_CREATE', 'CLOSEDATE'] }).result || [];
-    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, created: d.DATE_CREATE, closed: d.CLOSEDATE }; });
-  }
+  // Сделки: бюджет/название/стадия + окно жизни (DATE_CREATE ... CLOSEDATE), одним batch.
+  var ids = Object.keys(perDeal), info = {}, dcmds = [];
+  for (var i = 0; i < ids.length; i += 50) dcmds.push(['d' + i, 'crm.deal.list', { filter: { '@ID': ids.slice(i, i + 50) }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'DATE_CREATE', 'CLOSEDATE'] }]);
+  var dres = batch_(dcmds);
+  for (var dk in dres) (dres[dk] || []).forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, created: d.DATE_CREATE, closed: d.CLOSEDATE }; });
 
   // Группы колонок (для цвета): у каждой - имя (ключ GCOL), заголовки и функция ячеек строки.
   var groups = [];

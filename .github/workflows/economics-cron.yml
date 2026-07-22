@@ -81,6 +81,7 @@ jobs:
             cp analytics-mvp/economics/data/economics.json /tmp/econ-fresh.json 2>/dev/null || true
             git fetch origin "$DATA_BRANCH"
             git reset --hard "origin/$DATA_BRANCH"
+            mkdir -p analytics-mvp/economics/data # reset --hard удаляет неотслеживаемую папку данных - воссоздаём
             cp /tmp/econ-fresh.json analytics-mvp/economics/data/economics.json 2>/dev/null || true
             (cd analytics-mvp && npx tsx src/scripts/b24/build-economics.ts)
             git add -A analytics-mvp/economics/data analytics-mvp/public/economics-command.html

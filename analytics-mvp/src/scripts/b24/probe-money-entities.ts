@@ -52,9 +52,10 @@ const d16 = (s?: string) => (s ? String(s).slice(0, 16) : "");
   const dname: Record<string, string> = {}; dstages.forEach((s) => (dname[s.STATUS_ID] = s.NAME));
 
   // 4) История стадий сделки (как металась).
-  const hist: any[] = (await call("crm.stagehistory.list", { entityTypeId: 2, filter: { ownerId: DEAL }, order: { id: "ASC" } })).result?.items || [];
+  const hres: any = (await call("crm.stagehistory.list", { entityTypeId: 2, filter: { OWNER_ID: DEAL }, order: { ID: "ASC" } })).result;
+  const hist: any[] = (hres && (hres.items || hres)) || [];
   console.log(`\n=== ИСТОРИЯ СТАДИЙ СДЕЛКИ ${DEAL} (${hist.length} переходов) ===`);
-  for (const h of hist) console.log(`  ${d16(h.createdTime)} -> ${dname[h.stageId] || h.stageId}`);
+  for (const h of hist) { const ct = h.CREATED_TIME || h.createdTime, st = h.STAGE_ID || h.stageId; console.log(`  ${d16(ct)} -> ${dname[st] || st}`); }
 
   // 5) Карточки каждого СП, привязанные к сделке (сколько раз перезапускались).
   console.log(`\n=== КАРТОЧКИ СП, привязанные к сделке ${DEAL} ===`);

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Автоматизация ОП ГМ</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b23;
+    --border: #242c38;
+    --text: #e8ebf0;
+    --muted: #8b95a5;
+    --accent: #d9a441;
+    --ok: #4caf7d;
+    --plan: #5b8dd9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "SB Sans Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main { max-width: 880px; width: 100%; margin: 0 auto; padding: 48px 24px 64px; flex: 1; }
+  .kicker {
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 { font-size: clamp(26px, 5vw, 38px); font-weight: 700; margin-bottom: 8px; }
+  .sub { color: var(--muted); font-size: 16px; margin-bottom: 32px; }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 40px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card h2 { font-size: 16px; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--muted); }
+  .card .tag {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--plan);
+    border: 1px solid var(--plan);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-bottom: 12px;
+  }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">GENGROUP / Отдел продаж</div>
+  <h1>Автоматизация ОП ГМ</h1>
+  <p class="sub">Рабочая площадка проекта автоматизации отдела продаж ГМ: процессы, интеграции, отчёты.</p>
+
+  <div class="status"><span class="dot"></span>Каркас проекта. Наполнение идёт в ветке <code>op-gm-automation-v1</code>.</div>
+
+  <div class="grid">
+    <div class="card">
+      <span class="tag">План</span>
+      <h2>Процессы</h2>
+      <p>Карта процессов ОП: от лида до отгрузки. Что автоматизируем, что остаётся у менеджера.</p>
+    </div>
+    <div class="card">
+      <span class="tag">План</span>
+      <h2>Интеграции</h2>
+      <p>Bitrix24, 1С, телефония. Схемы полей и потоки данных между системами.</p>
+    </div>
+    <div class="card">
+      <span class="tag">План</span>
+      <h2>Отчёты</h2>
+      <p>Контрольные метрики отдела: воронка, конверсия, скорость обработки лидов.</p>
+    </div>
+  </div>
+</main>
+<footer>
+  GENGROUP · внутренний проект · <a href="../">на главный хаб</a>
+</footer>
+</body>
+</html>

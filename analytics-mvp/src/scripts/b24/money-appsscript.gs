@@ -67,6 +67,25 @@ function call_(method, params) {
 function num_(v) { var n = parseFloat(String(v == null ? '' : v).replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : 0; }
 function lbl_(d) { return d.formLabel || d.listLabel || d.editFormLabel || d.title || ''; }
 
+// ISO-дату «2026-07-21T13:07:41+03:00» -> ['21.07.2026','13:07'] (дата и время отдельно).
+function dsplit_(v) {
+  if (!v) return ['', ''];
+  var m = String(v).match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+  if (m) return [m[3] + '.' + m[2] + '.' + m[1], m[4] + ':' + m[5]];
+  var d = String(v).match(/(\d{4})-(\d{2})-(\d{2})/);
+  return d ? [d[3] + '.' + d[2] + '.' + d[1], ''] : [String(v), ''];
+}
+
+// Цвета групп колонок: [фон заголовка (насыщ.), фон тела (светлый)].
+var GCOL = {
+  'Сделка':          ['#4A86E8', '#D6E2FA'],
+  'Расчёт':          ['#38A169', '#DDF3E4'],
+  'Калькулятор':     ['#D69E2E', '#FBF0D0'],
+  'Закупка':         ['#DD6B20', '#FCE4D2'],
+  'Производство GG': ['#805AD5', '#E7DEF9'],
+  'Производство GM': ['#D53F8C', '#FBDCEC']
+};
+
 function ssFields_(etid) {
   var f = (call_('crm.item.fields', { entityTypeId: etid }).result || {}).fields || {};
   var pick = SS_PICK[etid]; // если задано - берём только эти поля (по части названия)
@@ -200,58 +219,110 @@ function fillMoney() {
   SpreadsheetApp.getActiveSpreadsheet().toast('Готово: ' + (rows.length - 1) + ' сделок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
 }
 
-// ШИРОКАЯ ДИАГНОСТИКА: одна строка на сделку, но ВСЕ денежные поля по каждому СП отдельными
-// колонками + индикатор «через что считали» (Калькулятор/Расчёт) + ссылки на карточки СП.
-// Заполняет активный лист. Запусти вместо fillMoney, когда надо понять, как всё устроено.
+// Названия стадий КОНКРЕТНОГО СП (у каждого свои). crm.item.fields -> поле stageId со списком
+// значений items:[{ID,NAME}] (STATUS_ID/VALUE - на других порталах). Возвращаем карту код->имя.
+function spStages_(etid) {
+  var f = (call_('crm.item.fields', { entityTypeId: etid }).result || {}).fields || {};
+  var def = f.stageId || f.STAGE_ID || {};
+  var items = def.items || (def.settings && def.settings.items) || [];
+  var m = {};
+  items.forEach(function (it) {
+    var code = it.ID != null ? it.ID : (it.STATUS_ID != null ? it.STATUS_ID : it.VALUE);
+    m[String(code)] = it.NAME || it.VALUE || '';
+  });
+  return m;
+}
+
+// ШИРОКАЯ ДИАГНОСТИКА: одна строка на сделку. По сделке И по каждому СП - своя цветная группа
+// колонок: ссылка, текущая стадия, дата+время создания и закрытия (СП живёт в своём окне), а
+// дальше все денежные поля этого СП отдельными столбцами. Сделка живёт от создания до закрытия;
+// каждый СП - от запуска (createdTime) до закрытия (closedate) в своём окне, привязка к сделке
+// через parentId2. Запусти вместо fillMoney, когда надо понять, как всё устроено.
 function fillDiag() {
   var t0 = Date.now();
   var maps = nameMaps_();
   var users = {}; try { users = userMap_(); } catch (e) {}
-  // Поля по каждому СП + сбор сумм/первой карточки на сделку.
-  var spCols = [];               // [{ sp, cols:[{id,label,col}] }]
-  var perDeal = {};              // dealId -> { vals:{col:sum}, card:{spKey:cardId} }
+
+  // По каждому СП: денежные поля + карта стадий + сбор карточки/сумм/окна жизни на сделку.
+  var spMeta = [];   // [{ sp, cols:[{id,label,col}], sm:{код->стадия} }]
+  var perDeal = {};  // dealId -> { vals:{col:sum}, sp:{ spKey:{card,etid,created,closed,stage} } }
   SP.forEach(function (sp) {
     var mf = moneyFields_(sp.etid);
     var cols = mf.map(function (m) { return { id: m.id, label: m.label, col: sp.key + ' · ' + m.label }; });
-    spCols.push({ sp: sp, cols: cols });
-    if (!mf.length) return;
-    var items = itemsAll_(sp.etid, ['id', 'parentId2'].concat(mf.map(function (m) { return m.id; })));
+    var sm = {}; try { sm = spStages_(sp.etid); } catch (e) {}
+    spMeta.push({ sp: sp, cols: cols, sm: sm });
+    var sel = ['id', 'parentId2', 'stageId', 'createdTime', 'closedate'].concat(mf.map(function (m) { return m.id; }));
+    var items = itemsAll_(sp.etid, sel);
     items.forEach(function (it) {
       var d = String(it.parentId2 || ''); if (!d) return;
-      var rec = perDeal[d] || (perDeal[d] = { vals: {}, card: {} });
-      if (!rec.card[sp.key]) rec.card[sp.key] = it.id; // первая карточка СП - для ссылки
+      var rec = perDeal[d] || (perDeal[d] = { vals: {}, sp: {} });
+      var s = rec.sp[sp.key] || (rec.sp[sp.key] = { card: it.id, etid: sp.etid, created: '', closed: '', stage: '' });
+      s.card = it.id;                                                    // ASC -> последняя = самая свежая карточка
+      s.stage = sm[String(it.stageId)] || it.stageId || '';             // текущая стадия СП (самой свежей карточки)
+      if (it.createdTime && (!s.created || it.createdTime < s.created)) s.created = it.createdTime; // окно жизни: старт
+      if (it.closedate && (!s.closed || it.closedate > s.closed)) s.closed = it.closedate;         // окно жизни: закрытие
       cols.forEach(function (c) { var v = num_(it[c.id]); if (v) rec.vals[c.col] = (rec.vals[c.col] || 0) + v; });
     });
   });
-  // Сделки (бюджет/название/стадия).
+
+  // Сделки: бюджет/название/стадия + окно жизни (DATE_CREATE ... CLOSEDATE).
   var ids = Object.keys(perDeal), info = {};
   for (var i = 0; i < ids.length; i += 50) {
     var chunk = ids.slice(i, i + 50);
-    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID'] }).result || [];
-    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID }; });
+    var r = call_('crm.deal.list', { filter: { '@ID': chunk }, select: ['ID', 'TITLE', 'OPPORTUNITY', 'ASSIGNED_BY_ID', 'CATEGORY_ID', 'STAGE_ID', 'DATE_CREATE', 'CLOSEDATE'] }).result || [];
+    r.forEach(function (d) { info[String(d.ID)] = { title: d.TITLE, opp: num_(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, cat: d.CATEGORY_ID, stage: d.STAGE_ID, created: d.DATE_CREATE, closed: d.CLOSEDATE }; });
   }
-  // Заголовок: фикс + ссылки на карточки СП + все денежные поля (сгруппированы по СП).
-  var moneyCols = [];
-  spCols.forEach(function (sc) { sc.cols.forEach(function (c) { moneyCols.push(c.col); }); });
-  var header = ['Сделка', 'Название', 'Ответственный', 'Бюджет', 'Расчёт через']
-    .concat(SP.map(function (s) { return '↗ ' + s.key; }))
-    .concat(['Воронка', 'Стадия']).concat(moneyCols);
+
+  // Группы колонок (для цвета): у каждой - имя (ключ GCOL), заголовки и функция ячеек строки.
+  var groups = [];
+  groups.push({ name: 'Сделка',
+    heads: ['Сделка', 'Название', 'Ответственный', 'Бюджет', 'Воронка', 'Стадия сделки', 'Создана (дата)', '(время)', 'Закрыта (дата)', '(время)'],
+    cells: function (id, rec, nf) {
+      var cr = dsplit_(nf.created), cl = dsplit_(nf.closed);
+      return ['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '',
+        users[String(nf.mgr)] || (nf.mgr || ''), Math.round(nf.opp || 0),
+        maps.cats[String(nf.cat)] || '', maps.stages[nf.stage] || nf.stage || '',
+        cr[0], cr[1], cl[0], cl[1]];
+    } });
+  spMeta.forEach(function (m) {
+    groups.push({ name: m.sp.key,
+      heads: ['↗ ' + m.sp.key, 'Стадия СП', 'Создан (дата)', '(время)', 'Закрыт (дата)', '(время)'].concat(m.cols.map(function (c) { return c.label; })),
+      cells: function (id, rec, nf) {
+        var s = rec.sp[m.sp.key], out;
+        if (s) {
+          var cr = dsplit_(s.created), cl = dsplit_(s.closed);
+          out = ['=HYPERLINK("' + PORTAL + '/crm/type/' + s.etid + '/details/' + s.card + '/","открыть")', s.stage || '', cr[0], cr[1], cl[0], cl[1]];
+        } else { out = ['', '', '', '', '', '']; }
+        m.cols.forEach(function (c) { var v = Math.round(rec.vals[c.col] || 0); out.push(v || ''); });
+        return out;
+      } });
+  });
+
+  // Заголовок + строки.
+  var header = [];
+  groups.forEach(function (g) { header = header.concat(g.heads); });
   var rows = [header];
-  function itemLink_(etid, cardId) { return cardId ? '=HYPERLINK("' + PORTAL + '/crm/type/' + etid + '/details/' + cardId + '/","открыть")' : ''; }
   ids.map(Number).sort(function (a, b) { return b - a; }).forEach(function (idn) {
     var id = String(idn), rec = perDeal[id], nf = info[id] || {};
     if (ONLY_CATEGORY != null && String(nf.cat) !== String(ONLY_CATEGORY)) return;
-    var via = []; if (rec.card['Калькулятор']) via.push('Калькулятор'); if (rec.card['Расчёт']) via.push('Расчёт');
-    var row = ['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '',
-      users[String(nf.mgr)] || (nf.mgr || ''), Math.round(nf.opp || 0), via.join(' + ') || '—'];
-    SP.forEach(function (s) { row.push(itemLink_(s.etid, rec.card[s.key])); });
-    row.push(maps.cats[String(nf.cat)] || '', maps.stages[nf.stage] || nf.stage || '');
-    moneyCols.forEach(function (col) { var v = Math.round(rec.vals[col] || 0); row.push(v || ''); });
+    var row = [];
+    groups.forEach(function (g) { row = row.concat(g.cells(id, rec, nf)); });
     rows.push(row);
   });
+
   var sh = SpreadsheetApp.getActiveSheet();
-  sh.clearContents();
+  sh.clear(); // чистим и содержимое, и старую заливку прошлого прогона
   sh.getRange(1, 1, rows.length, header.length).setValues(rows);
   sh.setFrozenRows(1); sh.setFrozenColumns(1);
+
+  // Заливка групп: заголовок насыщенный + белый жирный, тело - светлый оттенок того же цвета.
+  var col = 1;
+  groups.forEach(function (g) {
+    var pal = GCOL[g.name] || ['#666666', '#EEEEEE'], w = g.heads.length;
+    sh.getRange(1, col, 1, w).setBackground(pal[0]).setFontColor('#FFFFFF').setFontWeight('bold');
+    if (rows.length > 1) sh.getRange(2, col, rows.length - 1, w).setBackground(pal[1]);
+    col += w;
+  });
+
   SpreadsheetApp.getActiveSpreadsheet().toast('Диагностика: ' + (rows.length - 1) + ' сделок, ' + header.length + ' колонок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
 }

@@ -88,6 +88,19 @@ function nameMaps_() {
   return { cats: cats, stages: stages };
 }
 
+// Справочник сотрудников: id -> «Фамилия Имя» (для колонки «Ответственный»).
+function userMap_() {
+  var m = {}, start = 0;
+  for (;;) {
+    var r = call_('user.get', { start: start }).result || [];
+    if (!r.length) break;
+    r.forEach(function (u) { m[String(u.ID)] = ((u.LAST_NAME || '') + ' ' + (u.NAME || '')).trim() || ('id' + u.ID); });
+    if (r.length < 50) break;
+    start += 50;
+  }
+  return m;
+}
+
 // СЛУЖЕБНАЯ: показать, какие поля идут в с/с по каждому СП (Просмотр -> Журналы выполнения).
 function showSsFields() {
   SP.forEach(function (sp) {
@@ -104,6 +117,7 @@ function showSsFields() {
 function fillMoney() {
   var t0 = Date.now();
   var maps = nameMaps_();
+  var users = {}; try { users = userMap_(); } catch (e) { /* нет доступа к user.get - оставим id */ }
   // 1) По каждому СП: найти с/с-поля, стянуть карточки, просуммировать с/с на сделку (parentId2).
   var byDeal = {}; // dealId -> { ss: { ключ_СП: сумма } }
   SP.forEach(function (sp) {
@@ -128,7 +142,7 @@ function fillMoney() {
   }
 
   // 3) Собрать строки и записать в лист.
-  var header = ['Сделка', 'Название', 'Ответственный(id)', 'Бюджет']
+  var header = ['Сделка', 'Название', 'Ответственный', 'Бюджет']
     .concat(SP.map(function (s) { return s.key + ' с/с'; }))
     .concat(['Σ с/с', 'Маржа', 'Воронка', 'Стадия', 'Дата закрытия']);
   var rows = [header];
@@ -141,7 +155,8 @@ function fillMoney() {
     if (!opp && !tot) return; // без денег - пропускаем
     var funnel = maps.cats[String(nf.cat)] || (nf.cat != null ? 'воронка ' + nf.cat : '');
     var stage = maps.stages[nf.stage] || nf.stage || '';
-    rows.push(['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '', nf.mgr || '', opp]
+    var mgr = users[String(nf.mgr)] || (nf.mgr || '');
+    rows.push(['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '', mgr, opp]
       .concat(ssv).concat([tot, opp - tot, funnel, stage, nf.close || '']));
   });
 

@@ -20,7 +20,12 @@
   .sub{color:var(--mut);font-size:13px}
   .stamp{margin-left:auto;color:var(--mut);font-size:12px;text-align:right}
   .lead{color:var(--mut);font-size:12.5px;margin:6px 0 0;max-width:960px}
-  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+  .searchbar{display:flex;gap:10px;align-items:center;margin:14px 0 0;padding:12px 14px;background:var(--panel);border:1px solid var(--acc);border-radius:12px}
+  .searchbar .si{font-size:16px;opacity:.7}
+  .searchbar input{flex:1;min-width:120px;background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:15px;letter-spacing:.3px}
+  .searchbar input:focus{outline:none;border-color:var(--acc)}
+  .searchbar .shint{font-size:12.5px;white-space:nowrap}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 0;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
   .bar label{color:var(--mut);font-size:12px;margin-right:2px}
   input[type=date],select{background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px}
   .presets{display:flex;gap:6px;flex-wrap:wrap}
@@ -73,6 +78,13 @@
   </header>
   <p class="lead">Ценообразование сделки по слоям: <b>КП</b> (что заплатил клиент) -> <b>Калькулятор</b> (оценка менеджера, по ней выставлен КП) -> <b>факт-себестоимость</b> из Расчёта (металл, комплектующие), Закупки (стекло) и Производства (сборка/покраска). Видно, на каком материале калькулятор ошибся против факта и какой запас маржи остаётся на случай рекламации. Разворачивай строку сделки до товаров и материалов.</p>
 
+  <div class="searchbar">
+    <span class="si">🔍</span>
+    <input id="search" type="search" inputmode="numeric" placeholder="Поиск сделки по номеру (например 50123)" autocomplete="off">
+    <button class="btn" id="clr">Сбросить</button>
+    <span class="shint muted" id="shint"></span>
+  </div>
+
   <div class="bar">
     <div class="presets" id="presets"></div>
     <span style="width:8px"></span>
@@ -118,9 +130,16 @@ const marginOf=d=>d.budget-factOf(d);
 const riskClass=d=>{const p=pct(marginOf(d),d.budget);return p<10?'r':p<20?'a':'g';};
 const matVal=(layer,key)=>layer?(layer[key]||0):0;
 
-const S={d1:'',d2:'',basis:'created',mgr:'',via:'',sortKey:'id',sortDir:-1,open:new Set()};
+const S={d1:'',d2:'',basis:'created',mgr:'',via:'',q:'',sortKey:'id',sortDir:-1,open:new Set()};
 
 function filtered(){
+  // Поиск по номеру сделки - глобальный: игнорирует дату/менеджера/КП, чтобы найти сделку всегда.
+  const q=(S.q||'').trim();
+  if(q){
+    const num=q.replace(/\s/g,'');
+    const byNum=/^\d+$/.test(num);
+    return DATA.deals.filter(d=>byNum?String(d.id).indexOf(num)>=0:(d.title||'').toLowerCase().indexOf(q.toLowerCase())>=0);
+  }
   const b=S.basis;
   return DATA.deals.filter(d=>{
     if(S.mgr&&d.mgr!==S.mgr)return false;
@@ -217,6 +236,12 @@ function detailHTML(d){
 
 function render(){
   const rows=filtered();
+  // при поиске - авто-разворот найденных (до 5), чтобы сразу видеть форензику по сделке
+  const q=(S.q||'').trim();
+  if(q&&rows.length&&rows.length<=5)rows.forEach(d=>S.open.add(d.id));
+  const sh=$('#shint');
+  if(q)sh.innerHTML=rows.length?('<span style="color:var(--pos)">найдено: '+rows.length+'</span>'):'<span style="color:var(--neg)">сделка не найдена</span>';
+  else sh.textContent='';
   kpis(rows);
   const r=[...rows].sort((a,b)=>{const x=sortVal(a,S.sortKey),y=sortVal(b,S.sortKey);if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*S.sortDir;});
   const t=$('#deals');
@@ -252,6 +277,9 @@ function init(){
   const sel=$('#mgr');mg.forEach(m=>{const o=el('option');o.value=m;o.textContent=m;sel.append(o);});
   sel.onchange=()=>{S.mgr=sel.value;render();};
   $('#via').onchange=e=>{S.via=e.target.value;render();};
+  const srch=$('#search');
+  srch.oninput=e=>{S.q=e.target.value;render();};
+  $('#clr').onclick=()=>{S.q='';srch.value='';S.open.clear();render();srch.focus();};
   $('#d1').onchange=e=>{S.d1=e.target.value;markPresets();render();};
   $('#d2').onchange=e=>{S.d2=e.target.value;markPresets();render();};
   document.querySelectorAll('#basis button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#basis button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.basis=b.dataset.b;render();});

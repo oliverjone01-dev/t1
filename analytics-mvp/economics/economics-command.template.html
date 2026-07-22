@@ -43,6 +43,9 @@
   .kpi .v.pos{color:var(--pos)} .kpi .v.neg{color:var(--neg)} .kpi .v.warn{color:var(--warn)}
   .kpi .h{color:var(--mut);font-size:11px;margin-top:3px}
   .tblwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px;margin-top:10px;overflow:auto;max-height:72vh}
+  #deals{min-width:1100px}
+  #deals thead th:first-child,#deals tbody td:first-child{position:sticky;left:0;background:var(--panel);z-index:3}
+  #deals tbody tr.deal:hover td:first-child{background:var(--panel2)}
   table{width:100%;border-collapse:collapse}
   th,td{padding:7px 9px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line);white-space:nowrap}
   th.l,td.l{text-align:left}
@@ -153,23 +156,26 @@ function filtered(){
 }
 
 function kpis(rows){
-  const budget=rows.reduce((a,d)=>a+d.budget,0);
-  const fact=rows.reduce((a,d)=>a+factOf(d),0);
-  const calc=rows.reduce((a,d)=>a+calcOf(d),0);
-  const margin=budget-fact;
-  // средняя точность калькулятора: |факт-калькулятор| / факт по сделкам с обоими
-  const wc=rows.filter(d=>calcOf(d)>0&&factOf(d)>0);
+  const budgetAll=rows.reduce((a,d)=>a+d.budget,0);
+  // с/с внесена только у части сделок - маржу/себестоимость считаем ТОЛЬКО по ним, иначе агрегат врёт.
+  // Порог 1000 ₽ отсекает шум (напр. «1 ₽» из enum-поля стекла), чтобы не считать сделку «с с/с».
+  const costed=rows.filter(d=>factOf(d)>1000);
+  const fact=costed.reduce((a,d)=>a+factOf(d),0);
+  const budgetC=costed.reduce((a,d)=>a+d.budget,0);
+  const margin=budgetC-fact;
+  // точность калькулятора: только там, где факт реальный (>=5000), иначе деление на копейки врёт
+  const wc=rows.filter(d=>calcOf(d)>0&&factOf(d)>=5000);
   const errAbs=wc.reduce((a,d)=>a+Math.abs(factOf(d)-calcOf(d)),0);
   const errBase=wc.reduce((a,d)=>a+factOf(d),0);
-  const risk=rows.filter(d=>riskClass(d)!=='g').length;
   const box=$('#kpis');box.innerHTML='';
   const add=(k,v,cls,h)=>{const e=el('div','kpi');e.append(el('div','k',k),el('div','v'+(cls?' '+cls:''),v));if(h)e.append(el('div','h',h));box.append(e);};
+  const cov=rows.length?costed.length/rows.length:0;
   add('Сделок',rows.length.toLocaleString('ru'),'',DATA.funnelName||'');
-  add('Выручка (КП)',comp(budget)+' ₽');
-  add('С/с факт',comp(fact)+' ₽','','Расчёт+Закупка+Пр-во');
-  add('Маржа',comp(margin)+' ₽',margin>=0?'pos':'neg',pct(margin,budget)+'% маржинальность');
-  add('Точность калькул.',(errBase?Math.round(errAbs/errBase*100):0)+'%',errBase&&errAbs/errBase>0.15?'warn':'', 'ср. отклонение от факта');
-  add('Риск по марже',String(risk),risk?'warn':'pos','сделок с запасом <20%');
+  add('Выручка (КП)',comp(budgetAll)+' ₽','','весь портфель');
+  add('С/с внесена',costed.length+' / '+rows.length,cov<0.5?'warn':'pos','сделок с себестоимостью');
+  add('С/с факт',comp(fact)+' ₽','','по '+costed.length+' сделкам с с/с');
+  add('Маржа (где есть с/с)',comp(margin)+' ₽',margin>=0?'pos':'neg','по '+costed.length+' · '+pct(margin,budgetC)+'% маржинальность');
+  add('Точность калькул.',wc.length>=3?(Math.round(errAbs/errBase*100)+'%'):'-',wc.length>=3&&errAbs/errBase>0.15?'warn':'',wc.length>=3?('по '+wc.length+' сделкам'):'мало данных с фактом');
 }
 
 // ---- строка сделки ----
@@ -232,7 +238,11 @@ function detailHTML(d){
     +stKeys.map(k=>'<tr><td class="l"><span class="matdot" style="background:var(--work)"></span>'+esc(k)+'</td><td>'+rub(st[k])+'</td><td class="muted">'+pct(st[k],stTot)+'%</td></tr>').join('')
     +'<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого по участкам</b></td><td><b>'+rub(stTot)+'</b></td><td></td></tr></tbody></table>'
     +'<div class="note">Сумма себестоимости, прошедшая через каждый участок. По части участков в Bitrix поля-дубли - берём максимум (без задвоения); боевой набор полей подтверждает ПТО.</div>'):'';
-  return '<div class="dwrap">'
+  // ссылки на карточки СП - источник цифр (проверить в Bitrix)
+  var SPMAP={};(DATA.sp||[]).forEach(function(s){SPMAP[s.key]=s.etid;});
+  const cl=Object.keys(d.cards||{}).filter(k=>SPMAP[k]&&d.cards[k]).map(k=>'<a href="'+DATA.b24Portal+'/crm/type/'+SPMAP[k]+'/details/'+d.cards[k]+'/" target="_blank" onclick="event.stopPropagation()">↗ '+esc(k)+'</a>').join(' &nbsp;·&nbsp; ');
+  const srcRow='<div class="note" style="padding:10px 16px 2px 40px">Источник цифр в Bitrix: <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">↗ сделка '+d.id+'</a>'+(cl?' &nbsp;·&nbsp; '+cl:'')+'</div>';
+  return srcRow+'<div class="dwrap">'
     +'<div><h3>Калькулятор против факта - по материалам</h3>'
       +'<table class="cmp"><thead><tr><th class="l">Материал / источник</th><th>Калькулятор</th><th>Факт</th><th>Δ (ошибка)</th></tr></thead>'
       +'<tbody>'+cmpRows+cmpFoot+'</tbody></table>'

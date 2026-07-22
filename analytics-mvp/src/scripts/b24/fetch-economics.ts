@@ -151,6 +151,7 @@ async function main() {
     created: d10(d.DATE_CREATE), closed: d10(d.CLOSEDATE), isClosed: d.CLOSED === "Y", kpVia: new Set<string>(),
     calc: { total: 0, metal: 0, glass: 0, kompl: 0, work: 0 },
     raschet: { total: 0, metal: 0, kompl: 0 }, zakupka: { glass: 0 }, prod: { fact: 0, stations: {} as Record<string, number> }, products: [] as any[],
+    cards: {} as Record<string, number>, // id карточки каждого СП - для ссылки на источник цифр
   };
   const inWindow = new Set(Object.keys(deal));
   console.log(`Сделок воронки ${ONLY_CATEGORY} за ${WINDOW_DAYS} дн: ${inWindow.size}`);
@@ -164,6 +165,7 @@ async function main() {
     for (const it of items) {
       const did = String(it.parentId2 || ""); if (!did || !inWindow.has(did)) continue;
       const rec = deal[did]; touched++;
+      rec.cards[sp.key] = it.id; // ASC -> перезапишет самой свежей карточкой (для ссылки на источник)
       const sumMat = (m: string) => (fm.byMat[m] || []).reduce((s, f) => s + num(it[f]), 0);
       if (sp.key === "Калькулятор") {
         rec.kpVia.add("Калькулятор");
@@ -175,11 +177,13 @@ async function main() {
       } else if (sp.key === "Закупка") {
         rec.zakupka.glass += sumMat("glass");
       } else if (sp.key === "Производство GG") {
-        rec.prod.fact += fm.workItogo ? num(it[fm.workItogo]) : sumMat("work");
+        let stSum = 0;
         for (const st of STATIONS) { // разбивка по участкам: max из полей-дублей внутри карточки, сумма между карточками
           let v = 0; for (const f of (fm.stations[st.key] || [])) v = Math.max(v, num(it[f]));
-          if (v) rec.prod.stations[st.key] = (rec.prod.stations[st.key] || 0) + v;
+          if (v) { rec.prod.stations[st.key] = (rec.prod.stations[st.key] || 0) + v; stSum += v; }
         }
+        const itog = fm.workItogo ? num(it[fm.workItogo]) : 0;
+        rec.prod.fact += itog || stSum; // итоговое поле, а если пусто - сумма по участкам (оно почти всегда пусто)
       }
     }
     console.log(`СП ${sp.etid} «${sp.key}»: карточек ${items.length}, привязано к окну ${touched}`);
@@ -209,7 +213,7 @@ async function main() {
       id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, funnel: "GG Заказы РФ",
       created: r.created, closed: r.closed, isClosed: r.isClosed,
       kpVia: [...r.kpVia].join(" + ") || null, budget: r.budget,
-      calc: r.calc, raschet: r.raschet, zakupka: r.zakupka, prod: r.prod,
+      calc: r.calc, raschet: r.raschet, zakupka: r.zakupka, prod: r.prod, cards: r.cards,
       ssActual: Math.round(ssActual), margin: r.budget - Math.round(ssActual), products: r.products,
     };
   }).filter(Boolean) as any[];
@@ -218,6 +222,7 @@ async function main() {
   const out = {
     generated_at: new Date().toISOString(), category: ONLY_CATEGORY, windowDays: WINDOW_DAYS,
     funnelName: "GG Заказы РФ",
+    sp: SP.map((s) => ({ key: s.key, etid: s.etid })), // key -> entityTypeId для ссылок на карточки СП
     materials: [
       { key: "metal", label: "Металл", src: "Расчёт", col: "--metal" },
       { key: "glass", label: "Стекло", src: "Закупка", col: "--glass" },

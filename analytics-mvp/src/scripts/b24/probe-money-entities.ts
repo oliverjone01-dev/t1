@@ -1,12 +1,13 @@
-// РАЗВЕДКА КЕЙСА РЕКЛАМАЦИИ (сделка 91015) для ТЗ на СП Рекламация.
-// Печатает: список всех СП (entityTypeId+title), поля рекламации сделки, историю стадий сделки
-// (как её метало по воронке), и все карточки СП, привязанные к сделке (сколько раз
-// перезапускались Расчёт/Закупка/Производство/Сборка/Монтаж/Замер/Логистика). Ничего не пишет.
+// РАЗВЕДКА «где в Bitrix24 лежат деньги/себестоимость по сделке».
+// Задача Богдана: собрать по сделке все суммы из сущностей - Бюджет сделки, СП Расчёт,
+// СП Калькулятор, СП Закупка (по столбцам с/с), плюс Производство (себестоимость по участкам),
+// срок/просрочка и рекламации. Чтобы это выгрузить, сперва надо узнать entityTypeId смарт-
+// процессов и КОДЫ их денежных полей + как они привязаны к сделке. Этот скрипт ничего не
+// коммитит - только печатает карту сущностей и полей в лог.
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/probe-money-entities.ts
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
-const DEAL = Number(process.env.PROBE_DEAL || 91015);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function call(method: string, params: any = {}): Promise<any> {
@@ -27,45 +28,68 @@ async function call(method: string, params: any = {}): Promise<any> {
   }
   throw lastErr;
 }
-const d16 = (s?: string) => (s ? String(s).slice(0, 16) : "");
+
+// «Денежное» поле: тип money/double ИЛИ название про деньги/себестоимость/сумму/цену/закупку.
+const MONEY_RE = /с\/с|себестоим|сумма|стоим|цена|прайс|бюджет|закуп|расч[её]т|калькул|маржа|наценк|прибыл|итого|money|cost|price|amount|total|sum/i;
+const lbl = (d: any) => d.formLabel || d.listLabel || d.editFormLabel || d.title || d.name || "";
+
+function dumpFields(fields: Record<string, any>, tag: string) {
+  const money: string[] = [];
+  const links: string[] = [];
+  for (const [id, def] of Object.entries(fields)) {
+    const t = String(lbl(def)), type = String(def.type || "");
+    if (/money|double|integer/i.test(type) && MONEY_RE.test(t + " " + id)) money.push(`    ${id} | ${type} | «${t}»`);
+    else if (MONEY_RE.test(t)) money.push(`    ${id} | ${type} | «${t}»  (по названию)`);
+    if (/parent|deal|сделк|привязк|link|crm_/i.test(t + " " + id) && /crm|entity|deal|integer/i.test(type + " " + id)) links.push(`    ${id} | ${type} | «${t}»`);
+  }
+  console.log(`\n== ${tag}: денежные поля ==`);
+  console.log(money.length ? money.join("\n") : "    (не найдено — смотри полный список ниже)");
+  console.log(`  -- связи со сделкой/родителем --`);
+  console.log(links.length ? links.join("\n") : "    (нет явных — возможно parentId2 / crm.item.list parentId)");
+}
 
 (async () => {
-  // 1) Все СП.
-  const types: any[] = (await call("crm.type.list", { select: ["entityTypeId", "title"] })).result?.types || [];
-  console.log("=== ВСЕ СМАРТ-ПРОЦЕССЫ (entityTypeId | title) ===");
-  for (const t of types) console.log(`  ${t.entityTypeId} | «${t.title}»`);
-  const wantRe = /замер|сбор|монтаж|логист|расч[её]т|калькул|закуп|производ|реклам|претенз|доставк|отгруз/i;
-  const want = types.filter((t) => wantRe.test(t.title || ""));
+  // 1) Все смарт-процессы: entityTypeId + название (ищем Расчёт/Калькулятор/Закупка/Производство/Рекламация).
+  console.log("=== СМАРТ-ПРОЦЕССЫ (crm.type.list) ===");
+  const types = (await call("crm.type.list", { select: ["entityTypeId", "title", "isCategoriesEnabled"] })).result?.types || [];
+  for (const t of types) console.log(`  entityTypeId=${t.entityTypeId} | «${t.title}»${t.isCategoriesEnabled ? " (есть направления)" : ""}`);
+  const want = types.filter((t: any) => /расч[её]т|калькул|закуп|производ|реклам|претенз|смет/i.test(t.title || ""));
+  console.log(`\nКандидаты по задаче Богдана: ${want.map((t: any) => `${t.entityTypeId}=«${t.title}»`).join(" | ") || "не распознано — смотри полный список выше"}`);
 
-  // 2) Сделка 91015: категория/стадия/поля рекламации.
-  const dl: any[] = (await call("crm.deal.list", { filter: { ID: DEAL }, select: ["*", "uf_*"] })).result || [];
-  const d = dl[0] || {};
-  console.log(`\n=== СДЕЛКА ${DEAL} ===`);
-  console.log(`  TITLE=${d.TITLE} | CATEGORY_ID=${d.CATEGORY_ID} | STAGE_ID=${d.STAGE_ID} | OPP=${d.OPPORTUNITY} | CLOSED=${d.CLOSED}`);
-  console.log("  -- заполненные поля про рекламацию/срок --");
-  for (const k of Object.keys(d)) {
-    if (/1678431|DATA_SOZDANIYA|реклам|срок|1773904695389|1767959114927/i.test(k) && d[k]) console.log(`    ${k} = ${JSON.stringify(d[k])}`);
+  // 2) Сделка: денежные поля + срок/дедлайн + намёки на рекламацию.
+  const df = (await call("crm.deal.fields")).result || {};
+  dumpFields(df, "СДЕЛКА (crm.deal)");
+  console.log(`  -- срок/дедлайн/просрочка/рекламация в сделке --`);
+  for (const [id, def] of Object.entries<any>(df)) {
+    const t = String(lbl(def));
+    if (/срок|дедлайн|просроч|deadline|реклам|претенз|close|отгруз|сдач|готов/i.test(t + " " + id)) console.log(`    ${id} | ${def.type} | «${t}»`);
   }
 
-  // 3) Имена стадий воронки сделки.
-  const dstages: any[] = (await call("crm.status.list", { filter: { ENTITY_ID: "DEAL_STAGE_" + d.CATEGORY_ID }, order: { SORT: "ASC" } })).result || [];
-  const dname: Record<string, string> = {}; dstages.forEach((s) => (dname[s.STATUS_ID] = s.NAME));
-
-  // 4) История стадий сделки (как металась).
-  const hres: any = (await call("crm.stagehistory.list", { entityTypeId: 2, filter: { OWNER_ID: DEAL }, order: { ID: "ASC" } })).result;
-  const hist: any[] = (hres && (hres.items || hres)) || [];
-  console.log(`\n=== ИСТОРИЯ СТАДИЙ СДЕЛКИ ${DEAL} (${hist.length} переходов) ===`);
-  for (const h of hist) { const ct = h.CREATED_TIME || h.createdTime, st = h.STAGE_ID || h.stageId; console.log(`  ${d16(ct)} -> ${dname[st] || st}`); }
-
-  // 5) Карточки каждого СП, привязанные к сделке (сколько раз перезапускались).
-  console.log(`\n=== КАРТОЧКИ СП, привязанные к сделке ${DEAL} ===`);
+  // 3) По каждому кандидату-СП: поля + 3 примера с непустыми деньгами + привязка к сделке.
   for (const t of want) {
+    const etid = t.entityTypeId;
+    console.log(`\n\n######## СП ${etid} «${t.title}» ########`);
+    let fields: Record<string, any> = {};
+    try { fields = (await call("crm.item.fields", { entityTypeId: etid })).result?.fields || {}; }
+    catch (e) { console.log("  crm.item.fields ошибка:", String(e)); continue; }
+    dumpFields(fields, `СП ${etid}`);
+    // примеры
     let items: any[] = [];
-    try { items = (await call("crm.item.list", { entityTypeId: t.entityTypeId, filter: { parentId2: DEAL }, select: ["id", "title", "stageId", "createdTime", "closedate"] })).result?.items || []; }
-    catch (e) { console.log(`  СП ${t.entityTypeId} «${t.title}»: ошибка ${e}`); continue; }
-    if (!items.length) continue;
-    console.log(`\n  СП ${t.entityTypeId} «${t.title}»: ${items.length} карточек`);
-    for (const it of items) console.log(`    #${it.id} | стадия=${it.stageId} | созд=${d16(it.createdTime)} | закр=${(it.closedate || "").slice(0, 10)} | «${(it.title || "").slice(0, 46)}»`);
+    try { items = (await call("crm.item.list", { entityTypeId: etid, order: { id: "DESC" }, select: ["*", "uf*"] })).result?.items || []; }
+    catch (e) { console.log("  crm.item.list ошибка:", String(e)); }
+    console.log(`  -- ${Math.min(3, items.length)} свежих карточек: непустые денежные значения + привязка --`);
+    for (const it of items.slice(0, 3)) {
+      const parent = it.parentId2 ?? it.parentId ?? "";
+      const moneyVals = Object.entries(it).filter(([k, v]) => {
+        const def = fields[k]; const t2 = def ? String(lbl(def)) : "";
+        return v && String(v) !== "0" && (MONEY_RE.test(t2) || MONEY_RE.test(k)) && !Array.isArray(v);
+      }).map(([k, v]) => `${k}=${v}`);
+      console.log(`    #${it.id} «${it.title || ""}» parentId2(сделка?)=${parent} | ${moneyVals.join(", ") || "нет денег в полях"}`);
+    }
+    // полный список полей карточки (id | type | label) - чтобы вручную сверить с/с столбцы
+    console.log(`  -- ВСЕ поля карточки (id | type | «label») --`);
+    for (const [id, def] of Object.entries(fields)) console.log(`      ${id} | ${def.type} | «${lbl(def)}»`);
   }
-  console.log("\n=== ГОТОВО ===");
+
+  console.log("\n=== ГОТОВО. Скопируй entityTypeId и коды денежных полей в export-money.ts ===");
 })();

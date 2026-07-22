@@ -192,6 +192,7 @@ const COLS=[
   {k:'id',t:'Сделка',l:true,w:1},
   {k:'title',t:'Название',l:true},
   {k:'mgr',t:'Менеджер',l:true},
+  {k:'stage',t:'Этап воронки',l:true},
   {k:'kpVia',t:'КП по',l:true},
   {k:'qty',t:'Изделий, шт'},
   {k:'budget',t:'Выручка (КП)'},
@@ -207,16 +208,18 @@ function viaBadge(v){if(!v)return '<span class="muted">-</span>';const c=v.index
 
 function dealCells(d){
   const fact=factOf(d),calc=calcOf(d),err=fact-calc,mg=marginOf(d),mp=pct(mg,d.budget);
+  const showErr=calc>0&&fact>1000; // Δ только когда есть И калькулятор, И реальный факт
   return [
     '<span class="tw">▸</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a>',
     '<span title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,40))+'</span>',
     esc(d.mgr||'-'),
+    '<span class="muted">'+esc(d.stage||'-')+'</span>',
     viaBadge(d.kpVia),
     (function(){var q=qtyOf(d),p=(d.products||[]).length;return q?(q+(p>1?' <span class="muted" style="font-size:10.5px">('+p+' поз.)</span>':'')):'<span class="muted">-</span>';})(),
     rub(d.budget),
     calc?rub(calc):'<span class="muted">-</span>',
     rub(fact),
-    '<span class="'+(err>0?'neg':err<0?'pos':'muted')+'">'+(calc?(err>0?'+':'')+comp(err):'-')+'</span>',
+    showErr?('<span class="'+(err>0?'neg':err<0?'pos':'muted')+'">'+(err>0?'+':'')+comp(err)+'</span>'):'<span class="muted">-</span>',
     '<span class="'+(mg>=0?'pos':'neg')+'">'+rub(mg)+'</span>',
     '<span class="risk '+riskClass(d)+'"></span><span class="'+(mp>=20?'pos':mp>=10?'warnc':'neg')+'">'+mp+'%</span>',
   ];
@@ -238,12 +241,12 @@ function detailHTML(d){
   const matRow=x=>'<tr><td class="l"><span class="matdot" style="background:'+cv(x.m.col)+'"></span>'+x.m.label
       +' <span class="muted" style="font-size:10.5px">'+x.m.src+'</span></td>'
       +'<td>'+(x.c?rub(x.c):'<span class="muted">-</span>')+'</td><td>'+(x.f?rub(x.f):'<span class="muted">-</span>')+'</td>'
-      +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c||x.f?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>';
+      +'<td class="'+(x.delta>0?'neg':x.delta<0?'pos':'muted')+'">'+(x.c>0&&x.f>0?((x.delta>0?'+':'')+comp(x.delta)):'-')+'</td></tr>';
   const subRow=k=>'<tr class="sub"><td class="l" style="padding-left:30px"><span class="matdot" style="background:var(--work);opacity:.55"></span>'+esc(k)
       +'</td><td class="muted">-</td><td>'+rub(st[k])+'</td><td class="muted">'+pct(st[k],stTot)+'% участка</td></tr>';
   const cmpRows=mats.map(x=>matRow(x)+((x.m.key==='work'&&stKeys.length)?stKeys.map(subRow).join(''):'')).join('');
   const cmpFoot='<tr style="border-top:2px solid var(--line)"><td class="l"><b>Итого</b></td><td><b>'+rub(cSum)+'</b></td><td><b>'+rub(fSum)+'</b></td>'
-      +'<td class="'+((fSum-cSum)>0?'neg':'pos')+'"><b>'+((fSum-cSum>0?'+':'')+comp(fSum-cSum))+'</b></td></tr>';
+      +'<td class="'+((fSum-cSum)>0?'neg':'pos')+'"><b>'+(cSum>0&&fSum>0?((fSum-cSum>0?'+':'')+comp(fSum-cSum)):'-')+'</b></td></tr>';
   const prods=(d.products&&d.products.length)?d.products.map(p=>'<tr><td class="l">'+esc(p.name||p.article||'-')+(p.article&&p.name?' <span class="muted" style="font-size:10.5px">'+esc(p.article)+'</span>':'')+'</td><td>'+(p.qty!=null?p.qty:'-')+'</td><td>'+(p.price!=null?rub(p.price):'<span class="muted">-</span>')+'</td></tr>').join('')
       :'<tr><td class="l muted" colspan="3">товарные строки не подтянуты</td></tr>';
   const qty=(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0);
@@ -293,7 +296,7 @@ function render(){
     if(open){const dr=el('tr','detail');const td=el('td');td.colSpan=COLS.length;td.innerHTML=detailHTML(d);dr.append(td);frag.append(dr);}
   });
   tb.append(frag);t.append(tb);
-  t.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='kpVia')?1:-1;}render();});
+  t.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='stage'||k==='kpVia')?1:-1;}render();});
   $('#rowinfo').textContent='Сделок: '+r.length+(r.length>1200?' (показаны 1200 по сортировке)':'')+' · клик по строке разворачивает материалы и товары';
   $('#foot').innerHTML='Модель: КП (выручка) - Калькулятор (оценка, по ней выставлен КП) - факт-с/с (Расчёт: металл+комплектующие · Закупка: стекло · Производство: сборка/покраска). '
     +'Калькулятор в сумму факта НЕ входит - он сравнивается с фактом, чтобы видеть ошибку оценки. Точный состав факт-себестоимости и определение «сдан» уточняются с ПТО перед ТЗ на СП Рекламация.';

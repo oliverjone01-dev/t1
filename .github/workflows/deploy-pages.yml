@@ -13,6 +13,7 @@ name: Deploy to GitHub Pages
 #   /direct/           - Дашборд Яндекс.Директ, БОЙ (из main, данные direct-snapshots.yml)
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
+#   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
@@ -182,6 +183,19 @@ jobs:
           STAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/prod/analytics-mvp/public/prod-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$STAMP" | tee "$GITHUB_WORKSPACE/_site/prod/v.txt" > "$GITHUB_WORKSPACE/_site/prod2/v.txt"
           echo "Производство опубликовано в /prod/ и /prod2/, сборка $STAMP ($(du -h /tmp/prod/analytics-mvp/public/prod-command.html | cut -f1))"
+
+      # === АВТОМАТИЗАЦИЯ ОП ГМ (ИЗОЛИРОВАННО, из ветки op-gm-automation-v1, в /op-gm/) ===
+      # Проект автоматизации отдела продаж ГМ. Своя ветка, свой URL. Статика public/
+      # копируется как есть - без npm/smoke. Падение не валит остальной сайт.
+      - name: Build OP-GM automation (isolated, /op-gm/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin op-gm-automation-v1
+          git worktree add /tmp/op-gm FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/op-gm"
+          cp -r /tmp/op-gm/op-gm-automation/public/. "$GITHUB_WORKSPACE/_site/op-gm/"
+          echo "Автоматизация ОП ГМ опубликована в /op-gm/ из op-gm-automation-v1"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

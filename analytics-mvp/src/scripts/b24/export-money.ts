@@ -29,11 +29,12 @@ const SP = [
   { etid: 1120, key: "Производство GM" },
 ] as const;
 
-// Что считаем «с/с»: название содержит с/с/себестоимость, тип - число. «Бюджет заказ» НЕ с/с
-// (это цена продажи в СП), поэтому исключаем. Настраивается при необходимости.
+// Что считаем «с/с»: название содержит с/с/себестоимость. Тип - число ИЛИ строка (в Закупке
+// «С/С Стекло/Фурнитура/Дерево» сделаны текстом, но хранят числа - парсим их). enumeration/file/
+// employee/date/crm/boolean НЕ берём. «Бюджет заказ» - это цена продажи, не с/с - исключаем.
 const SS_LABEL = /с\s*\/\s*с|себестоим/i;
-const SS_EXCLUDE = /бюджет|наценк|прибыл|сумма налога|режим расч/i;
-const SS_NUM = /money|double|integer/i;
+const SS_EXCLUDE = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар/i;
+const SS_NUM = /^(money|double|integer|string)$/i;
 const lbl = (d: any) => d.formLabel || d.listLabel || d.editFormLabel || d.title || "";
 const num = (v: any) => { const n = parseFloat(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
 

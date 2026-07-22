@@ -1,0 +1,35 @@
+name: B24 money probe (разведка денежных сущностей)
+
+# Разовая разведка: найти entityTypeId смарт-процессов (Расчёт/Калькулятор/Закупка/
+# Производство) и коды их денежных полей (с/с) + привязку к сделке. Скрипт живёт на ветке
+# rop-dashboard-v1 (там же fetch-prod/fetch-rop), поэтому чекаутим её. Ничего не коммитит -
+# только печатает карту сущностей и полей в лог. Секрет B24_WEBHOOK_URL маскируется.
+# Запуск вручную (workflow_dispatch).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rop-dashboard-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe money entities
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/probe-money-entities.ts

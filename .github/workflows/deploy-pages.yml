@@ -14,6 +14,7 @@ name: Deploy to GitHub Pages
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
+#   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
@@ -211,6 +212,26 @@ jobs:
           OSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/office/analytics-mvp/public/office-command.html | head -1 | cut -d'"' -f4)
           printf '%s' "$OSTAMP" > "$GITHUB_WORKSPACE/_site/office/v.txt"
           echo "Офис-менеджер опубликован в /office/, сборка $OSTAMP"
+
+      # === ЭКОНОМИКА СДЕЛОК (ИЗОЛИРОВАННО, из ветки economics-dashboard-v1, в /economics/) ===
+      # Дашборд денег по сделкам воронки «GG Заказы РФ»: выручка портфеля, себестоимость из СП
+      # (Расчёт/Калькулятор/Закупка/Производство GG), маржа. Аналог /prod/: самодостаточный HTML
+      # (данные запекает economics-cron), копируем без npm/smoke. Падение не валит остальной сайт.
+      - name: Build ECONOMICS dashboard (isolated, /economics/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin economics-dashboard-v1
+          git worktree add /tmp/economics FETCH_HEAD
+          if [ -f /tmp/economics/analytics-mvp/public/economics-command.html ]; then
+            mkdir -p "$GITHUB_WORKSPACE/_site/economics"
+            cp /tmp/economics/analytics-mvp/public/economics-command.html "$GITHUB_WORKSPACE/_site/economics/index.html"
+            ESTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/economics/analytics-mvp/public/economics-command.html | head -1 | cut -d'"' -f4)
+            printf '%s' "$ESTAMP" > "$GITHUB_WORKSPACE/_site/economics/v.txt"
+            echo "Экономика сделок опубликована в /economics/, сборка $ESTAMP"
+          else
+            echo "public/economics-command.html ещё не запечён (запусти economics-cron) - пропуск"
+          fi
 
       # === ПЕРСОНАЛЬНЫЕ ДАШБОРДЫ МЕНЕДЖЕРОВ (в /rop-<фамилия>/) ===
       # ЕДИНЫЙ ИСТОЧНИК ДАННЫХ: rop.json берём из rop-dashboard-v1 (тот же снимок, что и /rop/)

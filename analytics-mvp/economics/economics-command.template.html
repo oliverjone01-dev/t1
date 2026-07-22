@@ -46,6 +46,9 @@
   #deals{min-width:1100px}
   #deals thead th:first-child,#deals tbody td:first-child{position:sticky;left:0;background:var(--panel);z-index:3}
   #deals tbody tr.deal:hover td:first-child{background:var(--panel2)}
+  #deals thead .fltr th{top:32px;padding:3px 6px;border-bottom:1px solid var(--line);cursor:auto}
+  .fltr input,.fltr select{width:100%;min-width:54px;box-sizing:border-box;background:var(--panel2);color:var(--tx);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11px}
+  .fltr input::placeholder{color:var(--mut)} .fltr select{cursor:pointer}
   table{width:100%;border-collapse:collapse}
   th,td{padding:7px 9px;text-align:right;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--line);white-space:nowrap}
   th.l,td.l{text-align:left}
@@ -140,7 +143,7 @@ const riskClass=d=>{const p=pct(marginOf(d),d.budget);return p<10?'r':p<20?'a':'
 const matVal=(layer,key)=>layer?(layer[key]||0):0;
 const qtyOf=d=>(d.products||[]).reduce((a,p)=>a+(Number(p.qty)||0),0); // изделий всего в сделке (для рекламаций)
 
-const S={d1:'',d2:'',basis:'created',mgr:'',via:'',q:'',sortKey:'id',sortDir:-1,open:new Set()};
+const S={d1:'',d2:'',basis:'created',mgr:'',via:'',q:'',colf:{},sortKey:'id',sortDir:-1,open:new Set()};
 
 function filtered(){
   // Поиск по номеру сделки - глобальный: игнорирует дату/менеджера/КП, чтобы найти сделку всегда.
@@ -152,7 +155,8 @@ function filtered(){
     return DATA.deals.filter(d=>byNum?String(d.id).indexOf(num)>=0
       :((d.title||'').toLowerCase().indexOf(lo)>=0 || (d.products||[]).some(p=>(p.name||'').toLowerCase().indexOf(lo)>=0)));
   }
-  const b=S.basis;
+  const b=S.basis, cf=S.colf||{};
+  const cfKeys=Object.keys(cf).filter(k=>String(cf[k]).trim()!=='');
   return DATA.deals.filter(d=>{
     if(S.mgr&&d.mgr!==S.mgr)return false;
     if(S.via&&(d.kpVia||'').indexOf(S.via)<0)return false;
@@ -160,6 +164,13 @@ function filtered(){
     if(b==='closed'&&!d.closed)return false;
     if(S.d1&&(!dt||dt<S.d1))return false;
     if(S.d2&&(!dt||dt>S.d2))return false;
+    for(const k of cfKeys){
+      const col=COLS.find(c=>c.k===k); if(!col||!col.f)continue;
+      const v=String(cf[k]).trim();
+      if(col.f==='num'){ if(!(Number(sortVal(d,k)||0)>=parseFloat(v)))return false; }
+      else if(col.f==='select'){ if(valTxt(d,k)!==v)return false; }
+      else { if(valTxt(d,k).toLowerCase().indexOf(v.toLowerCase())<0)return false; }
+    }
     return true;
   });
 }
@@ -189,19 +200,32 @@ function kpis(rows){
 
 // ---- строка сделки ----
 const COLS=[
-  {k:'id',t:'Сделка',l:true,w:1},
-  {k:'title',t:'Название',l:true},
-  {k:'mgr',t:'Менеджер',l:true},
-  {k:'stage',t:'Этап воронки',l:true},
-  {k:'kpVia',t:'КП по',l:true},
-  {k:'qty',t:'Изделий, шт'},
-  {k:'budget',t:'Выручка (КП)'},
-  {k:'calc',t:'Калькулятор'},
-  {k:'fact',t:'С/с факт'},
+  {k:'id',t:'Сделка',l:true,f:'text'},
+  {k:'title',t:'Название',l:true,f:'text'},
+  {k:'mgr',t:'Менеджер',l:true,f:'select'},
+  {k:'stage',t:'Этап воронки',l:true,f:'select'},
+  {k:'kpVia',t:'КП по',l:true,f:'select'},
+  {k:'qty',t:'Изделий, шт',f:'num'},
+  {k:'budget',t:'Выручка (КП)',f:'num'},
+  {k:'calc',t:'Калькулятор',f:'num'},
+  {k:'fact',t:'С/с факт',f:'num'},
   {k:'err',t:'Δ калькул.'},
-  {k:'margin',t:'Маржа'},
-  {k:'mpct',t:'Запас %'},
+  {k:'margin',t:'Маржа',f:'num'},
+  {k:'mpct',t:'Запас %',f:'num'},
 ];
+// значение колонки как текст (для select/text-фильтров)
+const valTxt=(d,k)=>k==='id'?String(d.id):k==='kpVia'?(d.kpVia||''):(d[k]!=null?String(d[k]):'');
+// контрол фильтра в заголовке: select (категории), число (>=) или текст
+function fltrCtl(c){
+  if(!c.f)return '';
+  const cur=S.colf[c.k]||'';
+  if(c.f==='select'){
+    const opts=[...new Set(DATA.deals.map(d=>valTxt(d,c.k)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+    return '<select data-f="'+c.k+'"><option value="">все</option>'+opts.map(o=>'<option'+(o===cur?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
+  }
+  if(c.f==='num')return '<input data-f="'+c.k+'" type="number" placeholder="≥" value="'+esc(cur)+'">';
+  return '<input data-f="'+c.k+'" type="search" placeholder="фильтр" value="'+esc(cur)+'">';
+}
 const sortVal=(d,k)=>k==='calc'?calcOf(d):k==='fact'?factOf(d):k==='err'?(factOf(d)-calcOf(d)):k==='margin'?marginOf(d):k==='mpct'?pct(marginOf(d),d.budget):k==='qty'?qtyOf(d):d[k];
 
 function viaBadge(v){if(!v)return '<span class="muted">-</span>';const c=v.indexOf('+')>=0?'both':v.indexOf('Калькул')>=0?'calc':'rasch';return '<span class="badge '+c+'">'+v+'</span>';}
@@ -289,7 +313,9 @@ function render(){
   kpis(rows);
   const r=[...rows].sort((a,b)=>{const x=sortVal(a,S.sortKey),y=sortVal(b,S.sortKey);if(x==null)return 1;if(y==null)return -1;return (x<y?-1:x>y?1:0)*S.sortDir;});
   const t=$('#deals');
-  t.innerHTML='<thead><tr>'+COLS.map(c=>'<th class="'+(c.l?'l':'')+'" data-k="'+c.k+'">'+c.t+(S.sortKey===c.k?(S.sortDir<0?' ▾':' ▴'):'')+'</th>').join('')+'</tr></thead>';
+  const headRow='<tr>'+COLS.map(c=>'<th class="'+(c.l?'l':'')+'" data-k="'+c.k+'">'+c.t+(S.sortKey===c.k?(S.sortDir<0?' ▾':' ▴'):'')+'</th>').join('')+'</tr>';
+  const fltrRow='<tr class="fltr">'+COLS.map(c=>'<th class="'+(c.l?'l':'')+'">'+fltrCtl(c)+'</th>').join('')+'</tr>';
+  t.innerHTML='<thead>'+headRow+fltrRow+'</thead>';
   const tb=el('tbody');const frag=document.createDocumentFragment();
   r.slice(0,1200).forEach(d=>{
     const open=S.open.has(d.id);
@@ -300,7 +326,8 @@ function render(){
     if(open){const dr=el('tr','detail');const td=el('td');td.colSpan=COLS.length;td.innerHTML=detailHTML(d);dr.append(td);frag.append(dr);}
   });
   tb.append(frag);t.append(tb);
-  t.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='stage'||k==='kpVia')?1:-1;}render();});
+  t.querySelectorAll('thead tr:first-child th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.sortKey===k)S.sortDir*=-1;else{S.sortKey=k;S.sortDir=(k==='title'||k==='mgr'||k==='stage'||k==='kpVia')?1:-1;}render();});
+  t.querySelectorAll('.fltr [data-f]').forEach(ctl=>{ctl.onchange=()=>{S.colf[ctl.dataset.f]=ctl.value;render();};ctl.onclick=e=>e.stopPropagation();});
   $('#rowinfo').textContent='Сделок: '+r.length+(r.length>1200?' (показаны 1200 по сортировке)':'')+' · клик по строке разворачивает материалы и товары';
   $('#foot').innerHTML='Модель: КП (выручка) - Калькулятор (оценка, по ней выставлен КП) - факт-с/с (Расчёт: металл+комплектующие · Закупка: стекло · Производство: сборка/покраска). '
     +'Калькулятор в сумму факта НЕ входит - он сравнивается с фактом, чтобы видеть ошибку оценки. Точный состав факт-себестоимости и определение «сдан» уточняются с ПТО перед ТЗ на СП Рекламация.';
@@ -323,7 +350,7 @@ function init(){
   $('#via').onchange=e=>{S.via=e.target.value;render();};
   const srch=$('#search');
   srch.oninput=e=>{S.q=e.target.value;render();};
-  $('#clr').onclick=()=>{S.q='';srch.value='';S.open.clear();render();srch.focus();};
+  $('#clr').onclick=()=>{S.q='';srch.value='';S.colf={};S.open.clear();render();srch.focus();};
   $('#d1').onchange=e=>{S.d1=e.target.value;markPresets();render();};
   $('#d2').onchange=e=>{S.d2=e.target.value;markPresets();render();};
   document.querySelectorAll('#basis button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#basis button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.basis=b.dataset.b;render();});

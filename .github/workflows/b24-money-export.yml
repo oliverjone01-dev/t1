@@ -1,0 +1,42 @@
+name: B24 money export (деньги по сделке -> money.csv)
+
+# Собирает деньги по всем сделкам (бюджет + С/С из СП Расчёт/Калькулятор/Закупка/Производство)
+# и выкладывает money.csv артефактом - скачать и импортировать в Google-таблицу.
+# Скрипт живёт на rop-dashboard-v1 (там же fetch-prod/fetch-rop), поэтому чекаутим её.
+# Запуск вручную (workflow_dispatch). Секрет B24_WEBHOOK_URL маскируется, ничего не коммитит.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rop-dashboard-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Export money -> money.csv
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+          B24_PORTAL: https://glassmemory.bitrix24.ru
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/export-money.ts > /dev/null
+          echo "Строк в money.csv: $(wc -l < prod/data/money.csv)"
+          head -5 prod/data/money.csv
+      - uses: actions/upload-artifact@v4
+        with:
+          name: money-csv
+          path: analytics-mvp/prod/data/money.csv
+          retention-days: 14

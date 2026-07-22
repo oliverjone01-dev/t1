@@ -208,7 +208,7 @@ function fillMoney() {
     var funnel = maps.cats[String(nf.cat)] || (nf.cat != null ? 'воронка ' + nf.cat : '');
     var stage = maps.stages[nf.stage] || nf.stage || '';
     var mgr = users[String(nf.mgr)] || (nf.mgr || '');
-    rows.push(['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '', mgr, opp]
+    rows.push(['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/";"' + id + '")', nf.title || '', mgr, opp]
       .concat(ssv).concat([tot, opp - tot, funnel, stage, nf.close || '']));
   });
 
@@ -279,7 +279,7 @@ function fillDiag() {
     heads: ['Сделка', 'Название', 'Ответственный', 'Бюджет', 'Воронка', 'Стадия сделки', 'Создана (дата)', '(время)', 'Закрыта (дата)', '(время)'],
     cells: function (id, rec, nf) {
       var cr = dsplit_(nf.created), cl = dsplit_(nf.closed);
-      return ['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/","' + id + '")', nf.title || '',
+      return ['=HYPERLINK("' + PORTAL + '/crm/deal/details/' + id + '/";"' + id + '")', nf.title || '',
         users[String(nf.mgr)] || (nf.mgr || ''), Math.round(nf.opp || 0),
         maps.cats[String(nf.cat)] || '', maps.stages[nf.stage] || nf.stage || '',
         cr[0], cr[1], cl[0], cl[1]];
@@ -291,7 +291,7 @@ function fillDiag() {
         var s = rec.sp[m.sp.key], out;
         if (s) {
           var cr = dsplit_(s.created), cl = dsplit_(s.closed);
-          out = ['=HYPERLINK("' + PORTAL + '/crm/type/' + s.etid + '/details/' + s.card + '/","открыть")', s.stage || '', cr[0], cr[1], cl[0], cl[1]];
+          out = ['=HYPERLINK("' + PORTAL + '/crm/type/' + s.etid + '/details/' + s.card + '/";"открыть")', s.stage || '', cr[0], cr[1], cl[0], cl[1]];
         } else { out = ['', '', '', '', '', '']; }
         m.cols.forEach(function (c) { var v = Math.round(rec.vals[c.col] || 0); out.push(v || ''); });
         return out;

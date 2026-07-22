@@ -21,8 +21,8 @@ var SP = [
   { etid: 1060, key: 'Расчёт' },
   { etid: 1056, key: 'Калькулятор' },
   { etid: 1074, key: 'Закупка' },
-  { etid: 1086, key: 'Производство GG' },
-  { etid: 1120, key: 'Производство GM' }
+  { etid: 1086, key: 'Производство GG' }
+  // { etid: 1120, key: 'Производство GM' } // GM (металл Metal-GM) не нужен в этой воронке - убран
 ];
 
 // Что считаем «с/с»: название содержит с/с/себестоимость; тип число или строка (в Закупке
@@ -315,17 +315,24 @@ function fillDiag() {
 
   var sh = SpreadsheetApp.getActiveSheet();
   sh.clear(); // чистим и содержимое, и старую заливку прошлого прогона
+  try { sh.getRange(1, 1, 1, sh.getMaxColumns()).shiftColumnGroupDepth(-8); } catch (e) {} // снять прежние группировки
   sh.getRange(1, 1, rows.length, header.length).setValues(rows);
   sh.setFrozenRows(1); sh.setFrozenColumns(1);
 
-  // Заливка групп: заголовок насыщенный + белый жирный, тело - светлый оттенок того же цвета.
+  // Заливка + сворачиваемые группы: заголовок насыщенный + белый жирный, тело - светлый оттенок.
+  // Каждый СП - отдельная группа колонок, по умолчанию СВЁРНУТА (в шапке столбцов «+», клик
+  // разворачивает нужный СП). Группа «Сделка» всегда видна.
   var col = 1;
   groups.forEach(function (g) {
     var pal = GCOL[g.name] || ['#666666', '#EEEEEE'], w = g.heads.length;
     sh.getRange(1, col, 1, w).setBackground(pal[0]).setFontColor('#FFFFFF').setFontWeight('bold');
     if (rows.length > 1) sh.getRange(2, col, rows.length - 1, w).setBackground(pal[1]);
+    if (g.name !== 'Сделка') {
+      sh.getRange(1, col, sh.getMaxRows(), w).shiftColumnGroupDepth(1);
+      try { sh.getColumnGroup(col, 1).collapse(); } catch (e) {}
+    }
     col += w;
   });
 
-  SpreadsheetApp.getActiveSpreadsheet().toast('Диагностика: ' + (rows.length - 1) + ' сделок, ' + header.length + ' колонок за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
+  SpreadsheetApp.getActiveSpreadsheet().toast('Диагностика: ' + (rows.length - 1) + ' сделок, ' + header.length + ' колонок (СП свёрнуты - жми «+») за ' + Math.round((Date.now() - t0) / 1000) + ' сек');
 }

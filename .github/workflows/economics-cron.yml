@@ -1,0 +1,101 @@
+name: ECONOMICS snapshot cron (планировщик)
+
+# Данные дашборда «Экономика сделок» живут на ветке economics-dashboard-v1. По расписанию
+# (или вручную) чекаутит ветку, снимает по сделкам воронки «GG Заказы РФ» (49) бюджет и
+# себестоимость из СП Расчёт/Калькулятор/Закупка/Производство GG (fetch-economics), запекает
+# build-economics, коммитит свежие данные туда и дёргает публикацию /economics/ (deploy-pages).
+# Аналог prod-cron.yml. Секрет B24_WEBHOOK_URL маскируется, в файлы не пишется.
+#
+# ВАЖНО: schedule срабатывает только когда этот файл лежит на дефолтной ветке (main).
+# workflow_dispatch с ref=economics-dashboard-v1 работает и до слияния в main.
+
+on:
+  schedule:
+    - cron: "47 5 * * *" # ~08:47 МСК, основной
+    - cron: "17 10 * * *" # ~13:17 МСК, страховочный
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write # для dispatch deploy-pages
+
+concurrency:
+  group: economics-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru # домен портала для кликабельных ID (не секрет)
+  DATA_BRANCH: economics-dashboard-v1
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: economics-dashboard-v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте."
+
+      - name: Снимок денег по сделкам -> economics/data/economics.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-economics.ts
+
+      - name: Запечь дашборд -> public/economics-command.html
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/build-economics.ts
+          echo "Дашборд: $(du -h public/economics-command.html | cut -f1)"
+
+      - name: Commit + push в economics-dashboard-v1
+        id: commit
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/economics/data analytics-mvp/public/economics-command.html
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "data(economics): снимок денег по сделкам $(date -u +%F)"
+          # гонка с ручными правками: сброс на origin, свежие данные обратно, пересборка
+          for i in 1 2 3 4 5; do
+            if git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            cp analytics-mvp/economics/data/economics.json /tmp/econ-fresh.json 2>/dev/null || true
+            git fetch origin "$DATA_BRANCH"
+            git reset --hard "origin/$DATA_BRANCH"
+            cp /tmp/econ-fresh.json analytics-mvp/economics/data/economics.json 2>/dev/null || true
+            (cd analytics-mvp && npx tsx src/scripts/b24/build-economics.ts)
+            git add -A analytics-mvp/economics/data analytics-mvp/public/economics-command.html
+            git diff --staged --quiet || git commit -m "data(economics): снимок денег по сделкам $(date -u +%F)"
+            sleep $((2**i))
+          done
+          echo "push не удался"; exit 1
+
+      - name: Триггер деплоя /economics/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация /economics/ запрошена."

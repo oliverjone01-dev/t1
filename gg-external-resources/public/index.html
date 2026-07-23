@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аналитика внешних ресурсов GENGROUP</title>
+<style>
+:root{--bg:#0A0A0B;--surface:#161617;--raised:#1E1E20;--line:#2A2A2D;--txt:#F5F5F6;--mut:#8A8A90;--mut2:#5E5E64;--brand:#FF4438;--good:#34D399;--bad:#FF5A5F;--warn:#F2B544;--info:#6AA8FF;--r-card:16px;--r-ctl:10px;--pad:22px;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.55 "SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,Inter,"Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 20px 60px;position:relative;z-index:1}
+.num{font-variant-numeric:tabular-nums}
+.aurora{position:fixed;inset:-22% 0 auto 0;height:480px;z-index:0;pointer-events:none;background:radial-gradient(60% 120% at 50% 0%, transparent 40%, rgba(255,120,40,.45) 47%, rgba(255,60,120,.4) 55%, rgba(120,90,255,.36) 63%, rgba(70,170,255,.32) 71%, transparent 80%);filter:blur(40px);opacity:.38;transform:scaleY(.7)}
+header{display:flex;gap:14px;align-items:center}
+.logo{width:42px;height:42px;border-radius:11px;background:#1E1E20;border:1px solid #34343a;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;letter-spacing:-.02em}
+h1{font-size:20px;margin:0;font-weight:680;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:12.5px;margin-top:2px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mut);margin:34px 0 14px;font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:22px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:var(--pad);position:relative;overflow:hidden}
+.kpi .lab{color:var(--mut);font-size:12px}
+.kpi .val{font-size:25px;font-weight:680;margin-top:6px;letter-spacing:-.02em}
+.kpi .d{font-size:12px;margin-top:5px;color:var(--mut)}
+.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:18px 0 0;color:var(--mut);font-size:12.5px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line)}
+.b-data{background:rgba(52,211,153,.12);color:var(--good);border-color:rgba(52,211,153,.3)}
+.b-hypo{background:rgba(242,181,68,.12);color:var(--warn);border-color:rgba(242,181,68,.3)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 2px}
+.chip{padding:7px 14px;border-radius:999px;color:var(--mut);font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--surface);font:inherit}
+.chip.on{background:var(--raised);color:var(--txt);border-color:var(--mut2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;margin-top:16px}
+.rc{display:flex;flex-direction:column;gap:12px}
+.rc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.rc .nm{font-size:15.5px;font-weight:680;letter-spacing:-.01em}
+.rc a.nm{color:var(--txt);text-decoration:none}
+.rc a.nm:hover{color:var(--info)}
+.rc .cat{font-size:11px;color:var(--mut);margin-top:3px}
+.status{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.s-active{background:rgba(52,211,153,.14);color:var(--good)}
+.s-pilot{background:rgba(106,168,255,.14);color:var(--info)}
+.s-planned{background:rgba(242,181,68,.14);color:var(--warn)}
+.s-none{background:rgba(138,138,144,.14);color:var(--mut)}
+.purpose{font-size:12.5px;color:#C9C9CE}
+.brands{display:flex;gap:5px;flex-wrap:wrap}
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--raised);border:1px solid var(--line);color:var(--mut);font-size:10.5px;font-weight:600}
+.metrics{display:flex;flex-direction:column;gap:7px;border-top:1px solid var(--line);padding-top:11px}
+.m{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px}
+.m .ml{color:var(--mut)}
+.m .mv{font-weight:680;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:7px}
+.dot{width:6px;height:6px;border-radius:50%;flex:none}
+.d-data{background:var(--good)}.d-hypo{background:var(--warn)}
+.na{color:var(--mut2)}
+.note{font-size:11.5px;color:var(--mut);border-top:1px solid var(--line);padding-top:10px}
+.foot{margin-top:40px;padding:20px 22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);font-size:12.5px;color:var(--mut);line-height:1.7}
+.foot b{color:var(--txt);font-weight:640}
+.owner{font-size:10.5px;color:var(--mut2);text-transform:uppercase;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="wrap">
+  <header>
+    <div class="logo">GG</div>
+    <div>
+      <h1>Аналитика внешних ресурсов GENGROUP</h1>
+      <div class="sub" id="sub">загрузка…</div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="legend">
+    <span class="badge b-data">● [ДАННЫЕ]</span> живой источник в репозитории
+    <span class="badge b-hypo">● [ГИПОТЕЗА]</span> нет выгрузки, в план не подавать
+  </div>
+
+  <h2>Ресурсы</h2>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* Встроенный снимок реестра (канонический источник: ../data/resources.json).
+   Инлайн, чтобы страница рендерилась автономно; на GitHub Pages при желании
+   можно переключить на fetch('./data/resources.json'). */
+const DATA = /*__DATA__*/{
+  "meta": {
+    "title": "Аналитика внешних ресурсов GENGROUP",
+    "version": "1.0",
+    "updated": "2026-07-23",
+    "owner": "Иван Раюшкин (CMO)",
+    "protocol": "Каждая цифра размечена [ДАННЫЕ] (есть источник в репо) или [ГИПОТЕЗА] (нет выгрузки). Protocol 9 hard rule: цифра без источника не идёт в план.",
+    "window": "30 дней, снимок 2026-07-23"
+  },
+  "categories": [
+    { "id": "marketplace", "name": "Маркетплейсы" },
+    { "id": "paid", "name": "Платный трафик" },
+    { "id": "publishing", "name": "Площадки публикаций" },
+    { "id": "social", "name": "Соцсети / SMM" },
+    { "id": "ai_search", "name": "AI-видимость / GEO" },
+    { "id": "competitive", "name": "Внешнее поле" }
+  ],
+  "resources": [
+    { "id":"ozon","name":"OZON (GENGLASS)","url":"https://www.ozon.ru","category":"marketplace","brands":["GENGLASS"],"status":"active","owner":"data","purpose":"Основной канал онлайн-продаж GENGLASS: зеркала, стекло, интерьерные изделия.","metrics":[{"label":"Начисления, 30д","value":24613690,"unit":"₽","kind":"data"},{"label":"К перечислению, 30д","value":10686206,"unit":"₽","kind":"data"},{"label":"Операций, 30д","value":3481,"unit":"шт","kind":"data"}],"note":"Единственный внешний ресурс с полной живой P&L. Комиссия площадки ~45% начислений."},
+    { "id":"wb","name":"Wildberries","url":"https://www.wildberries.ru","category":"marketplace","brands":["GENGLASS"],"status":"planned","owner":"data","purpose":"Мультиплатформенное расширение по единому контракту данных (новый n8n-workflow).","metrics":[{"label":"Выручка","value":null,"unit":"₽","kind":"hypo"}],"note":"Не подключён. До живой выгрузки цифры в отчёты не подавать."},
+    { "id":"yandex_market","name":"Яндекс.Маркет","url":"https://market.yandex.ru","category":"marketplace","brands":["GENGLASS"],"status":"planned","owner":"data","purpose":"Третья площадка в мультиплатформенном контуре аналитики.","metrics":[{"label":"Выручка","value":null,"unit":"₽","kind":"hypo"}],"note":"Не подключён. Приоритет ниже WB."},
+    { "id":"direct_genglass","name":"Яндекс.Директ - GENGLASS","url":"https://direct.yandex.ru","category":"paid","brands":["GENGLASS"],"status":"active","owner":"timur","purpose":"Платный трафик на genglass.ru: перегородки и зеркала на заказ.","metrics":[{"label":"Расход, 30д","value":150359,"unit":"₽","kind":"data"},{"label":"Клики, 30д","value":1174,"unit":"шт","kind":"data"},{"label":"CTR","value":3.34,"unit":"%","kind":"data"},{"label":"Средний CPC","value":128.1,"unit":"₽","kind":"data"},{"label":"Кампаний активно","value":8,"unit":"шт","kind":"data"}],"note":"Мутации кабинета - только после HITL-апрува Ивана (P0). Топ-кампания: перегородки ТГ (85.7К₽/30д)."},
+    { "id":"direct_glass_memory","name":"Яндекс.Директ - GLASS-MEMORY","url":"https://direct.yandex.ru","category":"paid","brands":["GLASS-MEMORY"],"status":"active","owner":"timur","purpose":"Платный трафик на glass-memory.ru в незанятой нише ритуального стекла.","metrics":[{"label":"Кабинет подключён","value":1,"unit":"да","kind":"data"},{"label":"Расход, 30д","value":null,"unit":"₽","kind":"hypo"}],"note":"Присутствие подтверждено, но снимок расхода дублирует genglass - требует ре-выгрузки."},
+    { "id":"vc","name":"vc.ru","url":"https://vc.ru","category":"publishing","brands":["GENGLASS","VALONTI","GENTERO","GLASS-MEMORY"],"status":"planned","owner":"marco","purpose":"Лонгриды и кейсы с цифрами: SEO-хвост + цитируемость нейросетями рунета.","metrics":[{"label":"Просмотры / переходы","value":null,"unit":"","kind":"hypo"}],"note":"Генератор промт-пакетов готов (forge.js), замера присутствия ещё нет. Тезис о цитируемости - гипотеза."},
+    { "id":"dzen","name":"dzen.ru","url":"https://dzen.ru","category":"publishing","brands":["GENGLASS","GLASS-MEMORY"],"status":"planned","owner":"marco","purpose":"Бесплатная алгоритмическая дистрибуция историй заказов и разборов ошибок.","metrics":[{"label":"Дочитывания","value":null,"unit":"","kind":"hypo"}],"note":"Для GLASS-MEMORY обязателен деликатный тон, без кликбейта на горе."},
+    { "id":"dtf","name":"dtf.ru","url":"https://dtf.ru","category":"publishing","brands":["GENGLASS"],"status":"none","owner":"marco","purpose":"Точечные материалы про интерьер геймера (стекло+металл+неон).","metrics":[{"label":"Присутствие","value":0,"unit":"нет","kind":"data"}],"note":"Только узкий угол. Для GLASS-MEMORY публикация повредит бренду."},
+    { "id":"smm_valonti","name":"SMM VALONTI / TURBIUM","url":"https://oliverjone01-dev.github.io/t1/smm/","category":"social","brands":["VALONTI"],"status":"pilot","owner":"marco","purpose":"Премиальная витрина «Valonti by GENGLASS» для дизайнеров и архитекторов (Instagram, Pinterest).","metrics":[{"label":"Baseline охватов","value":null,"unit":"","kind":"hypo"}],"note":"ФЕНИКС GO 9.2 на стратегию, амплификация заблокирована до baseline (snapshot 8 аккаунтов + 6 выгрузок)."},
+    { "id":"ai_yandex","name":"YandexGPT / Алиса","url":"https://ya.ru","category":"ai_search","brands":["GENGLASS","GLASS-MEMORY"],"status":"active","owner":"semyon","purpose":"Попадание бренда в AI-ответы Яндекса (AEO/GEO).","metrics":[{"label":"AI-ответы genglass","value":19,"unit":"запр.","kind":"data"},{"label":"AI-ответы glass-memory","value":12,"unit":"запр.","kind":"data"}],"note":"keys.so: число запросов, где домен в AI-ответе. Полный Share of Model tracker - в плане."},
+    { "id":"ai_gpt","name":"ChatGPT / Perplexity / Gemini","url":"https://chatgpt.com","category":"ai_search","brands":["GENGLASS","VALONTI","GLASS-MEMORY"],"status":"planned","owner":"semyon","purpose":"Цитируемость GG в западных AI-системах.","metrics":[{"label":"Share of Model","value":null,"unit":"%","kind":"hypo"}],"note":"Baseline не снят. GLASS-MEMORY - приоритетная незанятая ниша."},
+    { "id":"competitors_keyso","name":"Конкурентные домены (keys.so)","url":"https://keys.so","category":"competitive","brands":["GENGLASS"],"status":"active","owner":"semyon","purpose":"Мониторинг внешнего поля: органика и пересечения конкурентов с genglass.ru.","metrics":[{"label":"Доменов под мониторингом","value":19,"unit":"шт","kind":"data"},{"label":"Видимость genglass","value":15,"unit":"балл","kind":"data"},{"label":"Ключей в топ-50","value":1865,"unit":"шт","kind":"data"},{"label":"Ключей в топ-3","value":38,"unit":"шт","kind":"data"}],"note":"alfaporta.ru, loftcase.ru, craftwall.ru и др. Спринт «перегородки»: 19 доменов ре-аудит (PR #177)."},
+    { "id":"metrika_genglass","name":"Яндекс.Метрика - genglass.ru","url":"https://metrika.yandex.ru","category":"paid","brands":["GENGLASS"],"status":"active","owner":"timur","purpose":"Контрольная точка сверки внешнего трафика с CRM.","metrics":[{"label":"Визиты, 30д","value":8298,"unit":"шт","kind":"data"},{"label":"Поисковые визиты, 30д","value":1724,"unit":"шт","kind":"data"}],"note":"Якорь честности: расход Директа сверяется с визитами Метрики против лидов CRM."}
+  ]
+};
+
+const fmt = (v,u)=>{ if(v===null||v===undefined) return '<span class="na">нет данных</span>'; let s = typeof v==='number' ? v.toLocaleString('ru-RU') : v; return s + (u?(' '+u):''); };
+const catName = id => (DATA.categories.find(c=>c.id===id)||{}).name || id;
+const statusLabel = {active:'активен',pilot:'пилот',planned:'план',none:'нет'};
+
+let filter = 'all';
+
+function kpis(){
+  const R = DATA.resources;
+  const rev = R.find(r=>r.id==='ozon').metrics[0].value;
+  const spend = R.find(r=>r.id==='direct_genglass').metrics[0].value;
+  const active = R.filter(r=>r.status==='active').length;
+  const total = R.length;
+  const aiTotal = 19+12;
+  const cards = [
+    {lab:'Внешняя выручка (OZON, 30д)', val:rev.toLocaleString('ru-RU')+' ₽', d:'[ДАННЫЕ] pnl_30d.json'},
+    {lab:'Внешний платный расход (Директ, 30д)', val:spend.toLocaleString('ru-RU')+' ₽', d:'[ДАННЫЕ] direct.json · genglass'},
+    {lab:'Ресурсов в реестре', val:total, d:active+' активных · '+(total-active)+' пилот/план/нет'},
+    {lab:'AI-ответы (keys.so, genglass+GM)', val:aiTotal, d:'[ДАННЫЕ] запросов с брендом в AI-ответе'}
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(c=>
+    `<div class="card kpi"><div class="lab">${c.lab}</div><div class="val num">${c.val}</div><div class="d">${c.d}</div></div>`).join('');
+}
+
+function chips(){
+  const cats = [{id:'all',name:'Все'}].concat(DATA.categories.map(c=>({id:c.id,name:c.name})));
+  document.getElementById('chips').innerHTML = cats.map(c=>
+    `<button class="chip ${c.id===filter?'on':''}" data-c="${c.id}">${c.name}</button>`).join('');
+  document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{filter=b.dataset.c;chips();grid();});
+}
+
+function grid(){
+  const rows = DATA.resources.filter(r=>filter==='all'||r.category===filter);
+  document.getElementById('grid').innerHTML = rows.map(r=>{
+    const metrics = r.metrics.map(m=>
+      `<div class="m"><span class="ml">${m.label}</span><span class="mv"><span class="dot ${m.kind==='data'?'d-data':'d-hypo'}"></span><span class="num">${fmt(m.value,m.unit)}</span></span></div>`).join('');
+    const brands = r.brands.map(b=>`<span class="tag">${b}</span>`).join('');
+    return `<div class="card rc">
+      <div class="top">
+        <div><a class="nm" href="${r.url}" target="_blank" rel="noopener">${r.name}</a><div class="cat">${catName(r.category)}</div></div>
+        <span class="status s-${r.status}">${statusLabel[r.status]}</span>
+      </div>
+      <div class="purpose">${r.purpose}</div>
+      <div class="brands">${brands}</div>
+      <div class="metrics">${metrics}</div>
+      <div class="note"><span class="owner">owner: ${r.owner}</span> · ${r.note}</div>
+    </div>`;
+  }).join('');
+}
+
+function foot(){
+  document.getElementById('foot').innerHTML =
+    `<b>Дисциплина данных (Protocol 9).</b> ${DATA.meta.protocol}<br>
+     <b>Что живое сейчас:</b> OZON P&L, Яндекс.Директ genglass, Метрика genglass, keys.so (видимость + 19 конкурентных доменов). Остальное - площадки публикаций, WB/Маркет, SMM baseline и западная AI-видимость - в статусе план/пилот, замера присутствия ещё нет.<br>
+     <b>Ближайший шаг:</b> снять baseline по vc.ru/dzen (UTM-разметка уже заложена в forge.js) и ре-выгрузить Директ GLASS-MEMORY (текущий снимок дублирует genglass).<br>
+     Владелец: ${DATA.meta.owner} · обновлено ${DATA.meta.updated} · окно ${DATA.meta.window}`;
+}
+
+document.getElementById('sub').textContent = 'Реестр v'+DATA.meta.version+' · обновлено '+DATA.meta.updated+' · '+DATA.resources.length+' ресурсов · единый контракт с analytics-mvp и gg-seo-geo-monster';
+kpis(); chips(); grid(); foot();
+</script>
+</body>
+</html>

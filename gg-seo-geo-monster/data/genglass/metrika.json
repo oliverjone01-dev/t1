@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-07-22",
+ "measured": "2026-07-23",
  "visits_30d": [
-  {
-   "date": "2026-06-22",
-   "visits": 309,
-   "search_visits": 65
-  },
   {
    "date": "2026-06-23",
    "visits": 315,
@@ -151,32 +146,37 @@
    "date": "2026-07-21",
    "visits": 258,
    "search_visits": 68
+  },
+  {
+   "date": "2026-07-22",
+   "visits": 262,
+   "search_visits": 73
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 13
-  },
-  {
-   "phrase": "genglass",
-   "visits": 10
+   "visits": 14
   },
   {
    "phrase": "генгласс",
-   "visits": 9
-  },
-  {
-   "phrase": "дженгласс ру",
-   "visits": 8
+   "visits": 10
   },
   {
    "phrase": "интернет магазин зеркало в раме",
    "visits": 8
   },
   {
+   "phrase": "genglass",
+   "visits": 7
+  },
+  {
+   "phrase": "дженгласс ру",
+   "visits": 7
+  },
+  {
    "phrase": "генгласс зеркала",
-   "visits": 6
+   "visits": 5
   },
   {
    "phrase": "генгласс столы",
@@ -255,10 +255,6 @@
    "visits": 2
   },
   {
-   "phrase": "обеденный стол на заказ",
-   "visits": 2
-  },
-  {
    "phrase": "перегородка для зонирования комнаты на заказ",
    "visits": 2
   },
@@ -296,6 +292,10 @@
   },
   {
    "phrase": "GENGLASS Консоль TRUBIS 100х35х80 см белая 5 4 отзыва 1 вопрос Имя скрыто 30 сентября 2025 Стильный и элегантный столик. Оказался очень удобным в использовании. Брали для интерьера, на деле не понимаем, как без консоли раньше обходились😀 Качество упаковки: Отличное Простота сборки: Легкая Качество исполнения: Отличное 35 80 черный черный 0 0 Все отзывы Ширина, см 35 40 Глубина, см 80 100 120 Цвет:",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см",
    "visits": 1
   },
   {
@@ -358,7 +358,7 @@
  "top_pages": [
   {
    "url": "/",
-   "visits": 326
+   "visits": 329
   },
   {
    "url": "/stoly-na-zakaz/",
@@ -369,20 +369,20 @@
    "visits": 62
   },
   {
-   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 47
+   "url": "/product-category/tables/",
+   "visits": 46
   },
   {
-   "url": "/product-category/tables/",
-   "visits": 44
+   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
+   "visits": 45
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 36
+   "visits": 38
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 34
+   "visits": 36
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
@@ -390,10 +390,6 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 31
-  },
-  {
-   "url": "/product-category/steklyannye-doski/",
    "visits": 29
   },
   {
@@ -401,16 +397,24 @@
    "visits": 27
   },
   {
+   "url": "/product-category/steklyannye-doski/",
+   "visits": 27
+  },
+  {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 25
+   "visits": 26
   },
   {
    "url": "/zerkala-na-zakaz/",
    "visits": 23
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 22
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 21
   },
   {
    "url": "/product-category/mirrors/floor/",
@@ -418,15 +422,11 @@
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 21
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 21
+   "visits": 18
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 17
+   "visits": 18
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
@@ -434,6 +434,10 @@
   },
   {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "visits": 14
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-arka/",
    "visits": 13
   },
   {
@@ -441,19 +445,7 @@
    "visits": 13
   },
   {
-   "url": "/product-category/mirrors/zerkalo-arka/",
-   "visits": 12
-  },
-  {
-   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
-   "visits": 12
-  },
-  {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 11
   },
   {
@@ -461,7 +453,15 @@
    "visits": 11
   },
   {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 10
+  },
+  {
    "url": "/product-category/mirrors/led/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 10
   },
   {
@@ -473,8 +473,8 @@
    "visits": 10
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 9
+   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
+   "visits": 10
   }
  ],
  "goals": [],

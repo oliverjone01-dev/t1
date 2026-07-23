@@ -199,7 +199,7 @@ async function main() {
 
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
-    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
+    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -228,6 +228,7 @@ async function main() {
       lost: /:(LOSE|APOLOGY)$|^(LOSE|APOLOGY)$/.test(sid),
       budget: Number(d.OPPORTUNITY) || 0,
       created: d10(d.DATE_CREATE),
+      activity: d10(d.LAST_ACTIVITY_TIME),
       closed: d10(d.CLOSEDATE),
       cycle: dayDiff(d.DATE_CREATE, d.CLOSEDATE),
       source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",

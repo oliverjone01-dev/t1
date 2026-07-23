@@ -99,6 +99,28 @@ jobs:
             // сколько у скольких вообще заполнен LAST_COMMUNICATION_TIME
             const noComm = rows.filter(r => r.aComm===null).length;
             console.log(`\nСлужебное: у ${noComm} из ${rows.length} открытых сделок LAST_COMMUNICATION_TIME пустой (нет ни одного контакта / поле не ведётся).`);
+
+            // ── ДЕТАЛИ: ЧТО за «активность» на конкретных сделках (таймлайн + автор) ──
+            const TYPE = {1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело (provider)'};
+            const uCache={};
+            const uName = async id => { if(!id||String(id)==='0') return 'система/робот'; if(uCache[id]) return uCache[id];
+              const u=await call('user.get',{ID:id}); const x=(u.result&&u.result[0])||{};
+              const n=[x.LAST_NAME,x.NAME].filter(Boolean).join(' ')||('id'+id); uCache[id]=n; return n; };
+            for(const id of [6017,9923,10181,14901]){
+              console.log(`\n===== ДЕТАЛИ #${id}  ${PORTAL}/crm/deal/details/${id}/ =====`);
+              const dg = await call('crm.deal.get',{id});
+              const d = dg.result||{};
+              console.log(`  LAST_ACTIVITY_TIME = ${d.LAST_ACTIVITY_TIME||'-'}  | двигал: ${await uName(d.LAST_ACTIVITY_BY)} (LAST_ACTIVITY_BY=${d.LAST_ACTIVITY_BY||'-'})`);
+              console.log(`  LAST_COMMUNICATION_TIME = ${d.LAST_COMMUNICATION_TIME||'(пусто)'}`);
+              const ac = await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:id}, order:{ID:'DESC'},
+                select:['ID','TYPE_ID','PROVIDER_ID','SUBJECT','CREATED','COMPLETED','DIRECTION','AUTHOR_ID'] });
+              const acts = ac.result||[];
+              console.log(`  активностей в таймлайне: ${acts.length}${ac.error?(' (ошибка: '+(ac.error_description||ac.error)+')'):''}. Последние 5:`);
+              for(const a of acts.slice(0,5)){
+                console.log(`    ${a.CREATED} | ${TYPE[a.TYPE_ID]||('type'+a.TYPE_ID)}${a.PROVIDER_ID?('/'+a.PROVIDER_ID):''} | «${(a.SUBJECT||'').slice(0,55)}» | автор ${await uName(a.AUTHOR_ID)}${a.COMPLETED==='Y'?' | завершено':''}`);
+              }
+              if(!acts.length) console.log('    (активностей в таймлайне нет - значит LAST_ACTIVITY_TIME двигало НЕ «дело», а изменение карточки/робот)');
+            }
           })().catch(e=>console.log('FATAL', e && e.message));
           MJS
           node /tmp/comm.mjs

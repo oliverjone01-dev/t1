@@ -7,7 +7,9 @@
   "scripts": {
     "fetch": "node fetch.mjs",
     "build": "node build.mjs",
-    "sync": "node fetch.mjs && node build.mjs"
+    "notify": "node notify.mjs",
+    "sync": "node fetch.mjs && node build.mjs && node notify.mjs",
+    "sync:sandbox": "TOCHKA_SANDBOX=1 node fetch.mjs && node build.mjs && node notify.mjs"
   },
   "engines": { "node": ">=20" }
 }

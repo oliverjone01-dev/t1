@@ -38,23 +38,30 @@ jobs:
       TOCHKA_CLIENT_SECRET: ${{ secrets.TOCHKA_CLIENT_SECRET }}
       TOCHKA_CUSTOMER_CODE: ${{ secrets.TOCHKA_CUSTOMER_CODE }}
       TOCHKA_ACCOUNT_FILTER: ${{ secrets.TOCHKA_ACCOUNT_FILTER }}
+      # Telegram-доставка (создать бота у @BotFather, узнать chat_id)
+      TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: Маскировка кредов и проверка наличия
+      - name: Маскировка кредов и выбор контура (прод/песочница)
         run: |
           set -euo pipefail
-          for v in TOCHKA_TOKEN TOCHKA_REFRESH_TOKEN TOCHKA_CLIENT_SECRET TOCHKA_CLIENT_ID; do
+          for v in TOCHKA_TOKEN TOCHKA_REFRESH_TOKEN TOCHKA_CLIENT_SECRET TOCHKA_CLIENT_ID TG_BOT_TOKEN; do
             val="${!v:-}"; [ -n "$val" ] && echo "::add-mask::$val" || true
           done
-          if [ -z "${TOCHKA_TOKEN:-}" ] && { [ -z "${TOCHKA_REFRESH_TOKEN:-}" ] || [ -z "${TOCHKA_CLIENT_ID:-}" ] || [ -z "${TOCHKA_CLIENT_SECRET:-}" ]; }; then
-            echo "::error::Нет доступа к Точке. Задай секрет TOCHKA_TOKEN, либо связку TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET."
-            exit 1
+          # Прод, если задан TOCHKA_TOKEN или полная связка refresh. Иначе - песочница (демо-данные).
+          if [ -n "${TOCHKA_TOKEN:-}" ] || { [ -n "${TOCHKA_REFRESH_TOKEN:-}" ] && [ -n "${TOCHKA_CLIENT_ID:-}" ] && [ -n "${TOCHKA_CLIENT_SECRET:-}" ]; }; then
+            echo "TOCHKA_SANDBOX=0" >> "$GITHUB_ENV"
+            echo "Контур: ПРОД (боевые доступы Точки заданы)."
+          else
+            echo "TOCHKA_SANDBOX=1" >> "$GITHUB_ENV"
+            echo "::notice::Контур: ПЕСОЧНИЦА (демо-данные Точки). Добавь секрет TOCHKA_TOKEN для перехода на прод."
           fi
-          echo "Креды Точки на месте."
 
       - name: Снимок остатка и поступлений
         run: node fetch.mjs "${{ github.event.inputs.day }}"
@@ -69,6 +76,10 @@ jobs:
 
       - name: Пересборка дашборда
         run: node build.mjs
+
+      - name: Отправка сводки в Telegram
+        continue-on-error: true
+        run: node notify.mjs
 
       - name: Commit & push
         working-directory: .

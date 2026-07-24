@@ -28,14 +28,18 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const DATA = join(ROOT, "data");
 if (!existsSync(DATA)) mkdirSync(DATA, { recursive: true });
 
+// Песочница: TOCHKA_SANDBOX=1 (или токен = sandbox.jwt.token). База и токен-строка публичны.
+const SANDBOX = process.env.TOCHKA_SANDBOX === "1" || process.env.TOCHKA_TOKEN === "sandbox.jwt.token";
 const CFG = {
-  base: (process.env.TOCHKA_API_BASE || "https://enter.tochka.com/uapi").replace(/\/$/, ""),
+  base: (process.env.TOCHKA_API_BASE || (SANDBOX ? "https://enter.tochka.com/sandbox/v2" : "https://enter.tochka.com/uapi")).replace(/\/$/, ""),
   ver: process.env.TOCHKA_API_VERSION || "v1.0",
   tokenUrl: process.env.TOCHKA_TOKEN_URL || "https://enter.tochka.com/connect/token",
   customerCode: process.env.TOCHKA_CUSTOMER_CODE || "",
   accFilter: process.env.TOCHKA_ACCOUNT_FILTER || "",
+  sandbox: SANDBOX,
 };
 const ob = p => `${CFG.base}/open-banking/${CFG.ver}${p}`;
+const acc = id => encodeURIComponent(id); // accountId в Точке содержит "/" (номер/БИК) - кодируем в пути
 
 // ---- utils ------------------------------------------------------------------
 function todayUTC(offsetDays = 0) {
@@ -97,9 +101,11 @@ async function getToken() {
     }
     return j.access_token;
   }
-  // Режим A: статический токен.
+  // Режим A: статический JWT-токен.
   if (process.env.TOCHKA_TOKEN) return process.env.TOCHKA_TOKEN;
-  throw new Error("Нет доступа к API: задай TOCHKA_TOKEN, либо TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET.");
+  // Песочница: публичная строка-токен, даёт все права на демо-данных.
+  if (SANDBOX) return "sandbox.jwt.token";
+  throw new Error("Нет доступа к API: задай TOCHKA_TOKEN (JWT из ЛК), TOCHKA_SANDBOX=1 для песочницы, либо TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET.");
 }
 
 // ---- data extraction (Open Banking envelope: { Data: { ... } }) -------------
@@ -178,7 +184,7 @@ async function getStatement(token, accountId, from, to) {
   }
   // Опрос готовности (async): статус Completed/Ready.
   for (let i = 0; i < 20; i++) {
-    const got = await api(ob(`/accounts/${accountId}/statements/${stId}`), { token });
+    const got = await api(ob(`/accounts/${acc(accountId)}/statements/${encodeURIComponent(stId)}`), { token });
     const { status, txns } = extractTransactions(got);
     const ready = /complete|ready|done|success/i.test(String(status)) || (!status && txns.length >= 0 && i > 0);
     if (ready || txns.length) return txns;
@@ -198,12 +204,12 @@ async function main() {
   if (CFG.accFilter) accounts = accounts.filter(a => `${a.accountId}${a.number}`.includes(CFG.accFilter));
   if (!accounts.length) throw new Error("API вернул 0 счетов (проверь scope на чтение счетов и TOCHKA_ACCOUNT_FILTER).");
 
-  const out = { fetchedAt: new Date().toISOString(), day, currency: "RUB", accounts: [], incoming: { count: 0, total: 0, items: [] } };
+  const out = { fetchedAt: new Date().toISOString(), day, sandbox: CFG.sandbox, currency: "RUB", accounts: [], incoming: { count: 0, total: 0, items: [] } };
 
   for (const a of accounts) {
     let balance = null, incoming = { count: 0, total: 0, items: [] };
     try {
-      const bJson = await api(ob(`/accounts/${a.accountId}/balances`), { token });
+      const bJson = await api(ob(`/accounts/${acc(a.accountId)}/balances`), { token });
       balance = extractBalance(bJson, a.accountId);
     } catch (e) { console.log(`::warning::Баланс ${a.accountId}: ${e.message}`); }
     try {
@@ -230,7 +236,7 @@ async function main() {
   hist.push(line);
   writeFileSync(hp, hist.join("\n") + "\n");
 
-  console.log(`OK ${day}: счетов ${out.accounts.length}, остаток ${out.balanceTotal.toLocaleString("ru-RU")} ₽, поступлений ${out.incoming.count} на ${out.incoming.total.toLocaleString("ru-RU")} ₽`);
+  console.log(`OK ${day}${CFG.sandbox ? " [SANDBOX]" : ""}: счетов ${out.accounts.length}, остаток ${out.balanceTotal.toLocaleString("ru-RU")} ₽, поступлений ${out.incoming.count} на ${out.incoming.total.toLocaleString("ru-RU")} ₽`);
 }
 
 main().catch(e => { console.error(`::error::Синк Точки упал: ${e.message}`); process.exit(1); });

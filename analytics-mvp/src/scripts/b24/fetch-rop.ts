@@ -118,6 +118,34 @@ async function activityCounts(): Promise<Record<string, { real: number; all: num
   return m;
 }
 
+// Ближайшее ОТКРЫТОЕ дело/задача по сделке: срок (DEADLINE, иначе END_TIME) + тема.
+// Одно сметание по всем незавершённым активностям (COMPLETED=N), не по одной сделке.
+// Нужно для РОП-таблицы: «на какой срок менеджер сдвинул дело» и «сколько без дела / просрочено».
+async function openTasks(): Promise<Record<string, { due: string; subj: string }>> {
+  const m: Record<string, { due: string; subj: string }> = {};
+  let lastId = 0, total = 0;
+  for (;;) {
+    const j = await call("crm.activity.list", {
+      select: ["ID", "OWNER_ID", "SUBJECT", "DEADLINE", "END_TIME"],
+      filter: { OWNER_TYPE_ID: 2, COMPLETED: "N", ">ID": lastId }, order: { ID: "ASC" }, start: -1,
+    });
+    const batch: any[] = j.result || [];
+    if (!batch.length) break;
+    for (const a of batch) {
+      const k = String(a.OWNER_ID);
+      const raw = a.DEADLINE && !String(a.DEADLINE).startsWith("0000") ? a.DEADLINE : a.END_TIME;
+      if (!raw) continue;
+      const prev = m[k];
+      if (!prev || String(raw) < prev.due) m[k] = { due: String(raw), subj: a.SUBJECT || "" };
+    }
+    total += batch.length;
+    lastId = Number(batch[batch.length - 1].ID);
+    if (batch.length < 50) break;
+  }
+  console.log(`Открытые дела: ${total} активностей, ближайшее дело есть у ${Object.keys(m).length} сделок`);
+  return m;
+}
+
 // Обычная пагинация через next (для user.get).
 async function pageAll(method: string, params: any): Promise<any[]> {
   const all: any[] = [];
@@ -213,8 +241,10 @@ async function main() {
   console.log(`История стадий: ${histRows.length} записей на ${Object.keys(histByDeal).length} сделок`);
   // Касания (звонки/письма/встречи/чаты) по каждой сделке.
   const acts = await activityCounts();
+  const tasks = await openTasks();
   const deals = dealRows.map((d) => {
     const ac = acts[String(d.ID)] || { real: 0, all: 0 };
+    const tk = tasks[String(d.ID)];
     const sid = String(d.STAGE_ID || "");
     return {
       id: d.ID,
@@ -229,6 +259,8 @@ async function main() {
       budget: Number(d.OPPORTUNITY) || 0,
       created: d10(d.DATE_CREATE),
       activity: d10(d.LAST_ACTIVITY_TIME),
+      taskDue: tk ? d10(tk.due) : null,
+      taskSubj: tk ? tk.subj : null,
       closed: d10(d.CLOSEDATE),
       cycle: dayDiff(d.DATE_CREATE, d.CLOSEDATE),
       source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",

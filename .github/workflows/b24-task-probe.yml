@@ -1,0 +1,77 @@
+name: B24 task probe (открытые дела по сделкам - срок и тема, read-only)
+
+# Для доработки РОП-таблицы: по списку сделок тянем ОТКРЫТЫЕ дела/задачи из таймлайна
+# (crm.activity.list COMPLETED=N): тема, дедлайн/срок (на какую дату сдвинуто), ответственный.
+# Плюс последнее закрытое дело для контекста. Только чтение.
+# Запуск: push этого файла в rop-dashboard-v1 или workflow_dispatch.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-task-probe.yml"
+
+permissions:
+  contents: read
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Открытые дела по сделкам
+        run: |
+          set -uo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          cat > /tmp/task.mjs <<'MJS'
+          const base = (process.env.B24_WEBHOOK_URL || '').replace(/\/+$/,'');
+          const call = async (m,p={}) => {
+            const r = await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+            let j={}; try{j=await r.json();}catch(e){j={error:'parse'};}
+            return j;
+          };
+          const TYPE = {1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело'};
+          const uCache={};
+          const uName = async id => { if(!id||String(id)==='0') return '-'; if(uCache[id]) return uCache[id];
+            const u=await call('user.get',{ID:id}); const x=(u.result&&u.result[0])||{};
+            const n=[x.LAST_NAME,x.NAME].filter(Boolean).join(' ')||('id'+id); uCache[id]=n; return n; };
+          const IDS = [82441,87839,89989,90763,90919,91005,91259,91409];
+          (async()=>{
+            // 1) Какие поля вообще есть у активности (один раз, чтобы знать имя поля срока).
+            const f = await call('crm.activity.fields');
+            const ff = f.result||{};
+            const dateFields = Object.keys(ff).filter(k=>/DEADLINE|END_TIME|START_TIME|CREATED|LIGHT_TIME/i.test(k));
+            console.log('Поля-даты у активности:', dateFields.join(', '));
+            console.log('Есть DEADLINE:', !!ff.DEADLINE, '| END_TIME:', !!ff.END_TIME);
+            for(const id of IDS){
+              console.log(`\n===== Сделка #${id} =====`);
+              // открытые дела
+              const op = await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:id, COMPLETED:'N'},
+                order:{DEADLINE:'ASC'}, select:['ID','SUBJECT','DESCRIPTION','TYPE_ID','PROVIDER_ID','DEADLINE','END_TIME','START_TIME','CREATED','RESPONSIBLE_ID'] });
+              const acts = op.result||[];
+              if(op.error) console.log('  ошибка:', op.error_description||op.error);
+              console.log(`  ОТКРЫТЫХ дел: ${acts.length}`);
+              for(const a of acts.slice(0,4)){
+                const срок = a.DEADLINE && !String(a.DEADLINE).startsWith('0000') ? a.DEADLINE : (a.END_TIME||'нет срока');
+                console.log(`    тема: «${(a.SUBJECT||'').slice(0,60)}»`);
+                console.log(`      срок(DEADLINE/END): ${срок} | тип: ${TYPE[a.TYPE_ID]||a.TYPE_ID}${a.PROVIDER_ID?('/'+a.PROVIDER_ID):''} | ответств.: ${await uName(a.RESPONSIBLE_ID)} | создано: ${a.CREATED}`);
+                if(a.DESCRIPTION) console.log(`      описание: «${String(a.DESCRIPTION).replace(/<[^>]+>/g,'').slice(0,80)}»`);
+              }
+              if(!acts.length){
+                // последнее закрытое - для контекста
+                const cl = await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:id, COMPLETED:'Y'},
+                  order:{ID:'DESC'}, select:['SUBJECT','DEADLINE','END_TIME','TYPE_ID','RESPONSIBLE_ID'] });
+                const c=(cl.result||[])[0];
+                console.log('  открытых дел нет.'+(c?` Последнее закрытое: «${(c.SUBJECT||'').slice(0,50)}» (${c.END_TIME||c.DEADLINE||'-'})`:' и закрытых нет.'));
+              }
+            }
+          })().catch(e=>console.log('FATAL', e && e.message));
+          MJS
+          node /tmp/task.mjs

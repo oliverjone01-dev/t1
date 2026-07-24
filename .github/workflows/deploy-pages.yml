@@ -14,6 +14,7 @@ name: Deploy to GitHub Pages
 #   /direct-preview/   - Дашборд Яндекс.Директ, ПРЕВЬЮ (из рабочей ветки)
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
+#   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
@@ -197,6 +198,20 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/op-gm"
           cp -r /tmp/op-gm/op-gm-automation/public/. "$GITHUB_WORKSPACE/_site/op-gm/"
           echo "Автоматизация ОП ГМ опубликована в /op-gm/ из op-gm-automation-v1"
+
+      # === GG MESSAGE AUTOMATION (ИЗОЛИРОВАННО, из ветки claude/gg-message-automation-ffpwpd, в /messages/) ===
+      # Панель автоматизации сообщений в чаты команды GG (шаблоны, расписание, конфиг-генератор).
+      # Своя ветка, свой URL. Статика public/ копируется как есть - без npm/smoke. Секретов в HTML нет.
+      # Падение не валит остальной сайт.
+      - name: Build GG message automation (isolated, /messages/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin claude/gg-message-automation-ffpwpd
+          git worktree add /tmp/gg-msg FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/messages"
+          cp -r /tmp/gg-msg/gg-message-automation/public/. "$GITHUB_WORKSPACE/_site/messages/"
+          echo "GG Message Automation опубликована в /messages/ из claude/gg-message-automation-ffpwpd"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

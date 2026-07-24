@@ -1,0 +1,86 @@
+name: Tochka snapshots (остаток + поступления)
+
+# Ежедневный синк Точка Банка по паттерну direct-snapshots / ozon-snapshots:
+# API -> JSON-снимок (tochka-bank/data/) -> пересборка дашборда -> commit/push.
+# Read-only: только чтение счетов и выписки, никаких платежей. Токены живут в
+# GitHub Secrets, в клиентский HTML не попадают. Данные публикует deploy-pages.yml -> /tochka/.
+
+on:
+  schedule:
+    - cron: "30 6 * * *"   # ~09:30 МСК, после Директ-синка; забирает вчерашний операционный день
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "Операционный день YYYY-MM-DD (пусто = сегодня по МСК)"
+        required: false
+      tochka_token:
+        description: "TOCHKA_TOKEN (если секрет не задан)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tochka-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tochka-bank
+        shell: bash
+    env:
+      TOCHKA_TOKEN: ${{ secrets.TOCHKA_TOKEN || github.event.inputs.tochka_token }}
+      TOCHKA_REFRESH_TOKEN: ${{ secrets.TOCHKA_REFRESH_TOKEN }}
+      TOCHKA_CLIENT_ID: ${{ secrets.TOCHKA_CLIENT_ID }}
+      TOCHKA_CLIENT_SECRET: ${{ secrets.TOCHKA_CLIENT_SECRET }}
+      TOCHKA_CUSTOMER_CODE: ${{ secrets.TOCHKA_CUSTOMER_CODE }}
+      TOCHKA_ACCOUNT_FILTER: ${{ secrets.TOCHKA_ACCOUNT_FILTER }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Маскировка кредов и проверка наличия
+        run: |
+          set -euo pipefail
+          for v in TOCHKA_TOKEN TOCHKA_REFRESH_TOKEN TOCHKA_CLIENT_SECRET TOCHKA_CLIENT_ID; do
+            val="${!v:-}"; [ -n "$val" ] && echo "::add-mask::$val" || true
+          done
+          if [ -z "${TOCHKA_TOKEN:-}" ] && { [ -z "${TOCHKA_REFRESH_TOKEN:-}" ] || [ -z "${TOCHKA_CLIENT_ID:-}" ] || [ -z "${TOCHKA_CLIENT_SECRET:-}" ]; }; then
+            echo "::error::Нет доступа к Точке. Задай секрет TOCHKA_TOKEN, либо связку TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET."
+            exit 1
+          fi
+          echo "Креды Точки на месте."
+
+      - name: Снимок остатка и поступлений
+        run: node fetch.mjs "${{ github.event.inputs.day }}"
+
+      - name: Дельта-гейт (защита от битого снимка)
+        run: |
+          set -euo pipefail
+          # Пустой снимок (0 счетов) при ранее непустой истории - не публикуем.
+          ACC=$(node -e "console.log((JSON.parse(require('fs').readFileSync('data/latest.json')).accounts||[]).length)")
+          echo "accounts=$ACC"
+          if [ "$ACC" = "0" ]; then echo "::error::Синк вернул 0 счетов - публикация остановлена"; exit 1; fi
+
+      - name: Пересборка дашборда
+        run: node build.mjs
+
+      - name: Commit & push
+        working-directory: .
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A tochka-bank/data tochka-bank/public
+          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
+          git commit -m "tochka: снимок остатка и поступлений $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && exit 0
+            sleep $((2**i))
+          done
+          exit 1

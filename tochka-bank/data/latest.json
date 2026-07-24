@@ -1,0 +1,9 @@
+{
+  "fetchedAt": null,
+  "day": null,
+  "currency": "RUB",
+  "pending": true,
+  "balanceTotal": 0,
+  "accounts": [],
+  "incoming": { "count": 0, "total": 0, "items": [] }
+}

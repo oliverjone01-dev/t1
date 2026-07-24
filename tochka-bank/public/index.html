@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Точка Банк - остаток и поступления</title>
+<style>
+  :root{--bg:#0d1014;--bg2:#12161d;--panel:#171d26;--panel2:#1d2530;--border:#263040;--border2:#313d4f;
+    --text:#e9edf3;--muted:#8a95a6;--muted2:#616b7a;--accent:#7c5cff;--ok:#4caf7d;--warn:#e0b64a;--bad:#e5735e;--shadow:0 6px 24px rgba(0,0,0,.35);}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:"SB Sans Display","Segoe UI",system-ui,-apple-system,sans-serif;line-height:1.55;font-size:15px;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"SF Mono",ui-monospace,Consolas,monospace}
+  .wrap{max-width:1040px;margin:0 auto;padding:34px 28px 80px}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:26px}
+  .kicker{color:var(--accent);font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  h1{font-size:26px;letter-spacing:-.02em;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:14px}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;padding:7px 12px;border-radius:9px;border:1px solid var(--border2)}
+  .badge.ok{color:var(--ok);border-color:rgba(76,175,125,.4);background:rgba(76,175,125,.07)}
+  .badge.wait{color:var(--warn);border-color:rgba(224,182,74,.4);background:rgba(224,182,74,.07)}
+  .badge .p{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:8px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .stat .k{color:var(--muted);font-size:12.5px;margin-bottom:10px}
+  .stat .v{font-size:28px;font-weight:700;letter-spacing:-.02em}
+  .stat .v small{font-size:14px;font-weight:400;color:var(--muted)}
+  .stat.hl .v{color:var(--ok)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-top:16px}
+  h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:9px}
+  h2 .bar{width:3px;height:16px;background:var(--accent);border-radius:2px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
+  td.num,th.num{text-align:right;white-space:nowrap}
+  tbody tr:hover{background:var(--panel2)}
+  .muted{color:var(--muted)}
+  .empty{border:1px dashed var(--border2);border-radius:14px;padding:40px 28px;text-align:center;color:var(--muted);margin-top:16px}
+  .empty .big{font-size:30px;margin-bottom:10px;opacity:.7}
+  .foot{color:var(--muted2);font-size:11.5px;margin-top:28px;border-top:1px solid var(--border);padding-top:14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap">
+  <div class="top">
+    <div>
+      <div class="kicker">GENGROUP · Казначейство</div>
+      <h1>Точка Банк - остаток и поступления</h1>
+      <div class="sub">Ежедневный синк расчётных счетов</div>
+    </div>
+    <div class="badge wait"><span class="p"></span> Ожидание первого синка</div>
+  </div>
+
+  
+  <div class="empty">
+    <div class="big">🏦</div>
+    <b style="color:var(--text)">Пайплайн готов, данные ещё не загружены</b><br>
+    <span>Добавь секреты доступа Точки в репозиторий и запусти воркфлоу «Tochka snapshots» - панель заполнится остатком и поступлениями за день.</span>
+    <div class="mono muted" style="margin-top:16px;font-size:12px;text-align:left;max-width:520px;margin-inline:auto;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px">
+      Secrets: TOCHKA_TOKEN &nbsp;<span style="color:var(--muted2)">(или)</span>&nbsp; TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET<br>
+      Scope: чтение счетов + выписок (read-only)
+    </div>
+  </div>
+
+  <div class="foot">
+    Собрано 2026-07-24T08:54:28.132Z · источник: Точка Банк Open API (RUB) · read-only, без хранения токенов в клиенте.<br>
+    Данные обновляет воркфлоу «Tochka snapshots» (ежедневный cron). Публикация: deploy-pages.yml → /tochka/.
+  </div>
+</div>
+<script>window.__BAKED_AT="2026-07-24T08:54:28.132Z";</script>
+</body></html>

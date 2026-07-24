@@ -15,6 +15,7 @@ name: Deploy to GitHub Pages
 #   /prod/             - Дашборд Производство, БОЙ (из ветки prod-dashboard-v1)
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
 #   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
+#   /tochka/           - Точка Банк: остаток + поступления (из ветки claude/gg-message-automation-ffpwpd, данные tochka-snapshots.yml)
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
@@ -38,7 +39,7 @@ on:
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
   workflow_run:
-    workflows: ["OZON snapshots (прямой, без n8n)", "Direct snapshots (прямой, без n8n)", "GEO-monster harvest"]
+    workflows: ["OZON snapshots (прямой, без n8n)", "Direct snapshots (прямой, без n8n)", "GEO-monster harvest", "Tochka snapshots (остаток + поступления)"]
     types: [completed]
 
 permissions:
@@ -212,6 +213,20 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/messages"
           cp -r /tmp/gg-msg/gg-message-automation/public/. "$GITHUB_WORKSPACE/_site/messages/"
           echo "GG Message Automation опубликована в /messages/ из claude/gg-message-automation-ffpwpd"
+
+      # === ТОЧКА БАНК (ИЗОЛИРОВАННО, из ветки claude/gg-message-automation-ffpwpd, в /tochka/) ===
+      # Дашборд остатка и поступлений по расчётным счетам. Данные запекает tochka-snapshots.yml
+      # (ежедневный cron) в tochka-bank/public/index.html - копируем готовый HTML без npm/build.
+      # Токенов в HTML нет. Падение не валит остальной сайт.
+      - name: Build TOCHKA dashboard (isolated, /tochka/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin claude/gg-message-automation-ffpwpd
+          git worktree add /tmp/tochka FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/tochka"
+          cp -r /tmp/tochka/tochka-bank/public/. "$GITHUB_WORKSPACE/_site/tochka/"
+          echo "Точка Банк опубликована в /tochka/ из claude/gg-message-automation-ffpwpd"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

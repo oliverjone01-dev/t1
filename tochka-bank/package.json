@@ -1,0 +1,13 @@
+{
+  "name": "tochka-bank",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ежедневный синк Точка Банка: остаток и поступления по расчётным счетам GENGROUP",
+  "scripts": {
+    "fetch": "node fetch.mjs",
+    "build": "node build.mjs",
+    "sync": "node fetch.mjs && node build.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

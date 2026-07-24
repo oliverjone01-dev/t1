@@ -1,14 +1,6 @@
 {
- "measured": "2026-07-23",
+ "measured": "2026-07-24",
  "phrases": [
-  {
-   "phrase": "ral каталог цветов по металлу",
-   "pos": null,
-   "freq": 69,
-   "url": "",
-   "cluster": "каталог",
-   "intent": "commercial"
-  },
   {
    "phrase": "стекло акрил",
    "pos": null,
@@ -39,14 +31,6 @@
    "freq": 3294,
    "url": "",
    "cluster": "большое",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "купить стеклянный обеденный стол на кухню",
-   "pos": null,
-   "freq": 34,
-   "url": "",
-   "cluster": "стеклянный",
    "intent": "transactional"
   },
   {
@@ -122,6 +106,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "купить столик в прихожую",
+   "pos": null,
+   "freq": 188,
+   "url": "",
+   "cluster": "столик",
+   "intent": "transactional"
+  },
+  {
    "phrase": "настенное панно",
    "pos": null,
    "freq": 5834,
@@ -140,7 +132,7 @@
   {
    "phrase": "пуфы с ящиком для хранения",
    "pos": null,
-   "freq": 507,
+   "freq": 747,
    "url": "",
    "cluster": "пуфы",
    "intent": "commercial"
@@ -180,7 +172,7 @@
   {
    "phrase": "рамка под зеркало",
    "pos": null,
-   "freq": 284,
+   "freq": 377,
    "url": "",
    "cluster": "рамка",
    "intent": "commercial"
@@ -370,6 +362,14 @@
    "intent": "transactional"
   },
   {
+   "phrase": "консоль полукруглая",
+   "pos": null,
+   "freq": 300,
+   "url": "",
+   "cluster": "консоль",
+   "intent": "commercial"
+  },
+  {
    "phrase": "стеллаж перегородка",
    "pos": null,
    "freq": 4217,
@@ -522,14 +522,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "сайт ava",
-   "pos": null,
-   "freq": 555,
-   "url": "",
-   "cluster": "сайт",
-   "intent": "commercial"
-  },
-  {
    "phrase": "заказать стол на кухню по своим размерам",
    "pos": null,
    "freq": 6,
@@ -618,6 +610,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "овальный багет",
+   "pos": null,
+   "freq": 107,
+   "url": "",
+   "cluster": "овальный",
+   "intent": "commercial"
+  },
+  {
    "phrase": "люстра золото",
    "pos": null,
    "freq": 2970,
@@ -674,14 +674,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "изготовление витрин",
-   "pos": null,
-   "freq": 970,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
    "phrase": "стоимость зеркало",
    "pos": null,
    "freq": 2542,
@@ -704,14 +696,6 @@
    "url": "",
    "cluster": "керамическую",
    "intent": "transactional"
-  },
-  {
-   "phrase": "столик для макияжа с зеркалом",
-   "pos": null,
-   "freq": 823,
-   "url": "",
-   "cluster": "столик",
-   "intent": "commercial"
   },
   {
    "phrase": "декор из зеркал на стене",
@@ -799,6 +783,22 @@
    "freq": 3279,
    "url": "",
    "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить багет",
+   "pos": null,
+   "freq": 10000,
+   "url": "",
+   "cluster": "багет",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "зеркала италия",
+   "pos": null,
+   "freq": 619,
+   "url": "",
+   "cluster": "зеркала",
    "intent": "commercial"
   }
  ]

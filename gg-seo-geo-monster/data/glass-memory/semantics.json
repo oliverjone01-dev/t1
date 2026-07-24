@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-23",
+ "measured": "2026-07-24",
  "phrases": [
   {
    "phrase": "стеклянная картина",
@@ -204,7 +204,7 @@
   {
    "phrase": "пушкин кладбище",
    "pos": null,
-   "freq": 3710,
+   "freq": 2733,
    "url": "",
    "cluster": "пушкин",
    "intent": "commercial"
@@ -298,6 +298,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "изготовление полок из стекла на заказ",
+   "pos": null,
+   "freq": 258,
+   "url": "",
+   "cluster": "изготовление",
+   "intent": "transactional"
+  },
+  {
    "phrase": "ножка стула",
    "pos": null,
    "freq": 43998,
@@ -346,11 +354,11 @@
    "intent": "commercial"
   },
   {
-   "phrase": "кладбище южное",
+   "phrase": "краска для ограды на кладбище",
    "pos": null,
-   "freq": 22516,
+   "freq": 1115,
    "url": "",
-   "cluster": "кладбище",
+   "cluster": "краска",
    "intent": "commercial"
   },
   {
@@ -359,14 +367,6 @@
    "freq": 445,
    "url": "",
    "cluster": "лестница",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "надписи на могильных плитах",
-   "pos": null,
-   "freq": 513,
-   "url": "",
-   "cluster": "надписи",
    "intent": "commercial"
   },
   {
@@ -546,6 +546,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "поставить памятник на могилу",
+   "pos": null,
+   "freq": 2285,
+   "url": "",
+   "cluster": "поставить",
+   "intent": "commercial"
+  },
+  {
    "phrase": "франшиза ритуальных услуг",
    "pos": null,
    "freq": 34,
@@ -578,19 +586,19 @@
    "intent": "commercial"
   },
   {
+   "phrase": "плотность габбро",
+   "pos": null,
+   "freq": 194,
+   "url": "",
+   "cluster": "плотность",
+   "intent": "commercial"
+  },
+  {
    "phrase": "брусчатка виды",
    "pos": null,
    "freq": 2046,
    "url": "",
    "cluster": "брусчатка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "плитка на кладбище",
-   "pos": null,
-   "freq": 13070,
-   "url": "",
-   "cluster": "плитка",
    "intent": "commercial"
   },
   {
@@ -714,6 +722,14 @@
    "intent": "informational"
   },
   {
+   "phrase": "как чистить мрамор",
+   "pos": null,
+   "freq": 47,
+   "url": "",
+   "cluster": "чистить",
+   "intent": "informational"
+  },
+  {
    "phrase": "какой краской лучше покрасить ограду на кладбище",
    "pos": null,
    "freq": 52,
@@ -783,22 +799,6 @@
    "freq": 575,
    "url": "",
    "cluster": "эпитафия",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятник это",
-   "pos": null,
-   "freq": 23386,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "когда ставят",
-   "pos": null,
-   "freq": 209061,
-   "url": "",
-   "cluster": "когда",
    "intent": "commercial"
   }
  ]

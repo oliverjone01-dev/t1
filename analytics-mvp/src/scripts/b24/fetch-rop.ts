@@ -147,6 +147,70 @@ async function openTasks(): Promise<Record<string, { due: string; subj: string }
 }
 
 // Обычная пагинация через next (для user.get).
+// Каналы коммуникации по МЕНЕДЖЕРУ за 90 дней: звонки/письма/мессенджеры (вх/исх).
+// Атрибуция «по владельцу»: активность привязана к лиду/сделке/контакту/компании, а те -
+// к менеджеру (владельцу лида или сделки воронки 49). Клиентское общение в основном идёт
+// на стадии ЛИДА, поэтому считаем лиды + сделки менеджера. ГМ и прочие воронки не попадают,
+// т.к. их сделки/лиды не в наших картах. SMS/уведомления исключены. Один проход по активностям
+// с защитой по времени, чтобы не подвесить ночной снимок.
+async function channelMix(
+  dealRows: any[], leadRows: any[], mgrName: Record<string, string>,
+): Promise<Record<string, { call_in: number; call_out: number; email_in: number; email_out: number; msg_in: number; msg_out: number }>> {
+  const nameOf = (id: any) => mgrName[String(id)] || `id${id}`;
+  const dealOwner: Record<string, string> = {}, contactOwner: Record<string, string> = {},
+    companyOwner: Record<string, string> = {}, leadOwner: Record<string, string> = {};
+  for (const d of dealRows) {
+    const mgr = nameOf(d.ASSIGNED_BY_ID);
+    dealOwner[String(d.ID)] = mgr;
+    if (d.CONTACT_ID && String(d.CONTACT_ID) !== "0") contactOwner[String(d.CONTACT_ID)] = mgr;
+    if (d.COMPANY_ID && String(d.COMPANY_ID) !== "0") companyOwner[String(d.COMPANY_ID)] = mgr;
+  }
+  for (const l of leadRows) leadOwner[String(l.ID)] = nameOf(l.ASSIGNED_BY_ID);
+  const chanOf = (a: any): "call" | "email" | "msg" | null => {
+    const p = String(a.PROVIDER_ID || "").toUpperCase(), t = String(a.TYPE_ID);
+    if (p.includes("IMOPENLINES") || p.includes("IMCONNECTOR") || p.includes("IMOL")) return "msg";
+    if (p.includes("SMS") || p.includes("NOTIFICATION") || p.includes("REST_APP")) return null;
+    if (t === "2" || p.includes("CALL") || p.includes("VOX")) return "call";
+    if (t === "4" || p.includes("EMAIL") || p.includes("MAIL")) return "email";
+    return null;
+  };
+  const ownerOf = (a: any): string | undefined => {
+    const t = String(a.OWNER_TYPE_ID), id = String(a.OWNER_ID);
+    if (t === "1") return leadOwner[id];
+    if (t === "2") return dealOwner[id];
+    if (t === "3") return contactOwner[id];
+    if (t === "4") return companyOwner[id];
+    return undefined;
+  };
+  const since = new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10);
+  const by: Record<string, any> = {};
+  const mk = () => ({ call_in: 0, call_out: 0, email_in: 0, email_out: 0, msg_in: 0, msg_out: 0 });
+  const t0 = Date.now(), CAP_MS = 6 * 60 * 1000, CAP_PAGES = 6000;
+  let last = 0, scanned = 0, attr = 0;
+  for (let i = 0; i < CAP_PAGES; i++) {
+    if (Date.now() - t0 > CAP_MS) { console.warn("channelMix: стоп по времени (6 мин), частичные данные"); break; }
+    const j = await call("crm.activity.list", {
+      select: ["ID", "OWNER_TYPE_ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION"],
+      filter: { ">=CREATED": since, ">ID": last }, order: { ID: "ASC" }, start: -1,
+    });
+    const b: any[] = j.result || [];
+    if (!b.length) break;
+    for (const a of b) {
+      scanned++;
+      const c = chanOf(a); if (!c) continue;
+      const mgr = ownerOf(a); if (!mgr) continue;
+      const d = String(a.DIRECTION) === "1" ? "in" : String(a.DIRECTION) === "2" ? "out" : "out";
+      const key = `${c}_${d}`;
+      const m = by[mgr] || (by[mgr] = mk());
+      m[key]++; attr++;
+    }
+    last = Number(b[b.length - 1].ID);
+    if (b.length < 50) break;
+  }
+  console.log(`Каналы (90 дн): просмотрено ${scanned}, привязано к менеджерам ${attr}, менеджеров ${Object.keys(by).length}`);
+  return by;
+}
+
 async function pageAll(method: string, params: any): Promise<any[]> {
   const all: any[] = [];
   let start = 0;
@@ -227,7 +291,8 @@ async function main() {
 
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
-    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
+    "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID",
+    "CONTACT_ID", "COMPANY_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -300,6 +365,9 @@ async function main() {
   }).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));
   console.log(`Лиды (кроме ${EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
 
+  // Каналы коммуникации по менеджеру (лиды + сделки воронки 49), 90 дней.
+  const channels = await channelMix(dealRows, leadRows, mgrName);
+
   // --- Карточки производства (СП 1086): id, сделка, дата запуска, изделий ---
   // Нужны сквозной воронке «предоплаты -> сделки -> позиции -> изделия» (раздел 4).
   // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
@@ -369,6 +437,7 @@ async function main() {
     leads,
     prodItems,
     firedManagers,
+    channelMix: channels,
   };
   mkdirSync("rop/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));

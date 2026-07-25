@@ -97,11 +97,15 @@ async function listHistory(category: string): Promise<any[]> {
 // touchReal == touchAll (различия по типам сейчас не делаем).
 async function activityCounts(): Promise<Record<string, { real: number; all: number }>> {
   const m: Record<string, { real: number; all: number }> = {};
+  // Окно 365 дней: раньше мёл ВСЮ историю активностей по сделкам (десятки тысяч страниц,
+  // ~25 мин днём). Для «касаний» по активным сделкам года с запасом хватает, а снимок
+  // ускоряется в разы. Сделки старше года почти все закрыты и в живой аналитике не участвуют.
+  const since = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
   let lastId = 0, total = 0;
   for (;;) {
     const j = await call("crm.activity.list", {
       select: ["ID", "OWNER_ID"],
-      filter: { OWNER_TYPE_ID: 2, ">ID": lastId }, order: { ID: "ASC" }, start: -1,
+      filter: { OWNER_TYPE_ID: 2, ">=CREATED": since, ">ID": lastId }, order: { ID: "ASC" }, start: -1,
     });
     const batch: any[] = j.result || [];
     if (!batch.length) break;
@@ -155,7 +159,7 @@ async function openTasks(): Promise<Record<string, { due: string; subj: string }
 // с защитой по времени, чтобы не подвесить ночной снимок.
 async function channelMix(
   dealRows: any[], leadRows: any[], mgrName: Record<string, string>,
-): Promise<{ byMgr: Record<string, any>; touch: Record<string, string> }> {
+): Promise<{ byMgr: Record<string, any>; touch: Record<string, { d: string; c: string }> }> {
   const nameOf = (id: any) => mgrName[String(id)] || `id${id}`;
   const dealOwner: Record<string, string> = {}, contactOwner: Record<string, string> = {},
     companyOwner: Record<string, string> = {}, leadOwner: Record<string, string> = {};
@@ -186,7 +190,7 @@ async function channelMix(
   const by: Record<string, any> = {};
   // touch[`${OWNER_TYPE_ID}:${OWNER_ID}`] = дата последнего реального касания (звонок/письмо/мессенджер).
   // Нужно для «последнее касание по сделке»: был ли ФАКТ связи, а не только запланированное дело.
-  const touch: Record<string, string> = {};
+  const touch: Record<string, { d: string; c: string }> = {};
   const mk = () => ({ call_in: 0, call_out: 0, email_in: 0, email_out: 0, msg_in: 0, msg_out: 0 });
   const t0 = Date.now(), CAP_MS = 6 * 60 * 1000, CAP_PAGES = 6000;
   let last = 0, scanned = 0, attr = 0;
@@ -204,7 +208,7 @@ async function channelMix(
       // дата касания по владельцу (для per-deal «последнее касание»)
       const ownKey = `${a.OWNER_TYPE_ID}:${a.OWNER_ID}`;
       const day = d10(a.CREATED) || "";
-      if (day && (!touch[ownKey] || day > touch[ownKey])) touch[ownKey] = day;
+      if (day && (!touch[ownKey] || day > touch[ownKey].d)) touch[ownKey] = { d: day, c };
       const mgr = ownerOf(a); if (!mgr) continue;
       const d = String(a.DIRECTION) === "1" ? "in" : String(a.DIRECTION) === "2" ? "out" : "out";
       const key = `${c}_${d}`;
@@ -299,7 +303,7 @@ async function main() {
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID",
-    "CONTACT_ID", "COMPANY_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
+    "CONTACT_ID", "COMPANY_ID", "LEAD_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -381,12 +385,16 @@ async function main() {
   for (const d of dealRows) dealRowById[String(d.ID)] = d;
   for (const dl of deals) {
     const raw = dealRowById[String(dl.id)];
+    // Ключи владельцев: сама сделка, её контакт, компания И ЛИД-ИСТОЧНИК. Большая часть
+    // клиентского общения идёт на стадии лида, поэтому без лида «последнее касание» почти пустое.
     const keys = [`2:${dl.id}`];
     if (raw && raw.CONTACT_ID && String(raw.CONTACT_ID) !== "0") keys.push(`3:${raw.CONTACT_ID}`);
     if (raw && raw.COMPANY_ID && String(raw.COMPANY_ID) !== "0") keys.push(`4:${raw.COMPANY_ID}`);
-    let mx: string | null = null;
-    for (const k of keys) { const t = touch[k]; if (t && (!mx || t > mx)) mx = t; }
-    (dl as any).lastTouch = mx; // дата (YYYY-MM-DD) или null, если касаний за 90 дней не было
+    if (raw && raw.LEAD_ID && String(raw.LEAD_ID) !== "0") keys.push(`1:${raw.LEAD_ID}`);
+    let best: { d: string; c: string } | null = null;
+    for (const k of keys) { const t = touch[k]; if (t && (!best || t.d > best.d)) best = t; }
+    (dl as any).lastTouch = best ? best.d : null;       // дата последнего касания (YYYY-MM-DD) или null
+    (dl as any).lastTouchChan = best ? best.c : null;   // канал последнего касания: call | msg | email
   }
   const touchedDeals = deals.filter((d: any) => d.lastTouch).length;
   console.log(`Последнее касание проставлено у ${touchedDeals} из ${deals.length} сделок`);

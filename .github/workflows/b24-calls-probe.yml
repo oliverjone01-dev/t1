@@ -1,9 +1,8 @@
-name: B24 calls probe (сделки с записью исходящих звонков, read-only)
+name: B24 calls probe (разбор сделки 91033 - что за звонок, read-only)
 
-# Ищем сделки с ЗАПИСЬЮ ИСХОДЯЩИХ звонков. voximplant.statistic.get без фильтра по
-# сущности (звонки часто привязаны к контакту/лиду, а не к сделке напрямую). Считаем
-# распределение CALL_TYPE и CRM_ENTITY_TYPE, собираем сделки (CRM_ENTITY_TYPE=DEAL) и
-# отдельно домапливаем звонки-активности на сделку. Только чтение. Запуск: push в rop-dashboard-v1.
+# Разбираем конкретную сделку: её контакт/компания, активности-звонки на самой сделке,
+# поле BINDINGS у звонка (привязка активности к нескольким сущностям), запись через
+# voximplant по CRM_ACTIVITY_ID. Только чтение. Запуск: push этого файла в rop-dashboard-v1.
 
 on:
   workflow_dispatch:
@@ -25,70 +24,51 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Сделки с записью исходящих звонков
+      - name: Разбор сделки 91033
         run: |
           set -uo pipefail
           echo "::add-mask::$B24_WEBHOOK_URL"
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
-          cat > /tmp/calls.mjs <<'MJS'
+          cat > /tmp/one.mjs <<'MJS'
           const base = (process.env.B24_WEBHOOK_URL || '').replace(/\/+$/,'');
-          const PORTAL = 'https://glassmemory.bitrix24.ru';
           const call = async (m,p={}) => {
             const r = await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
             let j={}; try{j=await r.json();}catch(e){j={error:'parse'};}
             return j;
           };
-          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const short=(o,n=1500)=>{const t=JSON.stringify(o);return t.length>n?t.slice(0,n)+'…':t;};
+          const DEAL=91033;
           (async()=>{
-            const typeCnt={}, entCnt={}, recEntCnt={};
-            const dealRec={};        // сделки с записью исходящего (прямая привязка DEAL)
-            const actIds=[];         // CRM_ACTIVITY_ID звонков-записей на контакте/лиде - домапим на сделку
-            let start=0, scanned=0, outRec=0, capped=false;
-            for(let i=0;i<400;i++){
-              const j=await call('voximplant.statistic.get',{ order:{CALL_START_DATE:'DESC'}, start });
-              if(j.error){ console.log('ошибка на стр', i, j.error_description||j.error); break; }
-              const rows=j.result||[]; if(!rows.length) break;
-              for(const c of rows){
-                scanned++;
-                typeCnt[c.CALL_TYPE]=(typeCnt[c.CALL_TYPE]||0)+1;
-                if(c.CRM_ENTITY_TYPE) entCnt[String(c.CRM_ENTITY_TYPE)]=(entCnt[String(c.CRM_ENTITY_TYPE)]||0)+1;
-                const isOut=String(c.CALL_TYPE)==='1';
-                const hasRec=(c.RECORD_FILE_ID&&String(c.RECORD_FILE_ID)!=='0')||(c.CALL_RECORD_URL&&String(c.CALL_RECORD_URL).length>5);
-                if(isOut&&hasRec){
-                  outRec++;
-                  const et=String(c.CRM_ENTITY_TYPE||'нет'); recEntCnt[et]=(recEntCnt[et]||0)+1;
-                  if(et==='DEAL'){
-                    const id=String(c.CRM_ENTITY_ID);
-                    const e=(dealRec[id]||={n:0,rec:'',date:''}); e.n++;
-                    if(!e.rec){e.rec=c.CALL_RECORD_URL||('file:'+c.RECORD_FILE_ID); e.date=(c.CALL_START_DATE||'').slice(0,10);}
-                  } else if(c.CRM_ACTIVITY_ID){ actIds.push(String(c.CRM_ACTIVITY_ID)); }
-                }
+            const d=(await call('crm.deal.get',{id:DEAL})).result||{};
+            console.log(`Сделка ${DEAL}: «${d.TITLE}» | стадия ${d.STAGE_ID} | CONTACT_ID=${d.CONTACT_ID} | COMPANY_ID=${d.COMPANY_ID} | LEAD_ID=${d.LEAD_ID||'-'}`);
+            // связанные контакты (может быть несколько)
+            const cont=(await call('crm.deal.contact.items.get',{id:DEAL})).result||[];
+            console.log('Контакты сделки:', JSON.stringify(cont));
+
+            // 1) Активности НА САМОЙ СДЕЛКЕ (owner = deal)
+            const onDeal=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:DEAL},
+              select:['ID','TYPE_ID','PROVIDER_ID','DIRECTION','SUBJECT','COMPLETED','OWNER_TYPE_ID','OWNER_ID','BINDINGS','ASSOCIATED_ENTITY_ID'] })).result||[];
+            console.log(`\n[1] Активностей с OWNER=сделка: ${onDeal.length}`);
+            for(const a of onDeal) console.log(`  #${a.ID} | тип ${a.TYPE_ID}/${a.PROVIDER_ID} | dir ${a.DIRECTION} | «${(a.SUBJECT||'').slice(0,45)}» | BINDINGS=${short(a.BINDINGS,300)}`);
+
+            // 2) Звонки на КОНТАКТЕ сделки + их BINDINGS (проверяем привязку к сделке)
+            const cid=d.CONTACT_ID||(cont[0]&&cont[0].CONTACT_ID);
+            if(cid){
+              const onC=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:3, OWNER_ID:cid, PROVIDER_ID:'VOXIMPLANT_CALL'},
+                order:{ID:'DESC'}, select:['ID','DIRECTION','SUBJECT','PROVIDER_ID','BINDINGS','SETTINGS','FILES'] })).result||[];
+              console.log(`\n[2] Звонков VOXIMPLANT на контакте ${cid}: ${onC.length}. Первые 5 (с BINDINGS):`);
+              for(const a of onC.slice(0,5)){
+                console.log(`  звонок #${a.ID} | dir ${a.DIRECTION} (1=вх,2=исх) | «${(a.SUBJECT||'').slice(0,40)}»`);
+                console.log(`     BINDINGS=${short(a.BINDINGS,400)}`);
+                // запись через voximplant по activity id
+                const v=(await call('voximplant.statistic.get',{ filter:{CRM_ACTIVITY_ID:a.ID} })).result||[];
+                if(v[0]) console.log(`     voximplant: CALL_TYPE=${v[0].CALL_TYPE} REC=${v[0].CALL_RECORD_URL||('file:'+v[0].RECORD_FILE_ID)} CRM_ENTITY=${v[0].CRM_ENTITY_TYPE}/${v[0].CRM_ENTITY_ID}`);
               }
-              if(j.next===undefined||j.next===null){ break; }
-              start=j.next; if(i===399) capped=true; await sleep(120);
             }
-            console.log(`Просмотрено звонков: ${scanned}${capped?' (упёрлись в лимит страниц - не все)':''}`);
-            console.log('CALL_TYPE распределение (1=исходящий, 2=входящий):', JSON.stringify(typeCnt));
-            console.log('CRM_ENTITY_TYPE всех звонков:', JSON.stringify(entCnt));
-            console.log(`\nИсходящих звонков С ЗАПИСЬЮ: ${outRec} | их привязка:`, JSON.stringify(recEntCnt));
-
-            const direct=Object.entries(dealRec).sort((a,b)=>b[1].n-a[1].n);
-            console.log(`\n[A] Сделки с записью исходящего (прямая привязка DEAL): ${direct.length}`);
-            for(const [id,e] of direct.slice(0,60)) console.log(`  #${id} | звонков ${e.n} | ${e.date} | ${PORTAL}/crm/deal/details/${id}/ | ${e.rec}`);
-            if(direct.length>60) console.log(`  … ещё ${direct.length-60}`);
-
-            const uniqAct=[...new Set(actIds)].slice(0,500);
-            const dealsViaAct={};
-            for(const aid of uniqAct){
-              const a=await call('crm.activity.get',{id:aid});
-              const r=a.result; if(r && String(r.OWNER_TYPE_ID)==='2'){ const id=String(r.OWNER_ID); dealsViaAct[id]=(dealsViaAct[id]||0)+1; }
-            }
-            const viaAct=Object.entries(dealsViaAct).filter(([id])=>!dealRec[id]).sort((a,b)=>b[1]-a[1]);
-            console.log(`\n[B] Ещё сделки, где звонок-запись лежит активностью на сделке (проверено ${uniqAct.length} активностей): ${viaAct.length}`);
-            for(const [id,n] of viaAct.slice(0,60)) console.log(`  #${id} | звонков ${n} | ${PORTAL}/crm/deal/details/${id}/`);
-
-            const all=new Set([...direct.map(x=>x[0]),...viaAct.map(x=>x[0])]);
-            console.log(`\nИТОГО уникальных сделок с записью исходящего звонка: ${all.size}`);
+            // 3) Полная структура одного звонка (чтобы увидеть все привязки)
+            const anyCall=onDeal.find(a=>String(a.PROVIDER_ID).includes('VOXIMPLANT'));
+            if(anyCall){ const full=(await call('crm.activity.get',{id:anyCall.ID})).result||{};
+              console.log('\n[3] Полный звонок на сделке:', short(full,1200)); }
           })().catch(e=>console.log('FATAL', e && e.message));
           MJS
-          node /tmp/calls.mjs
+          node /tmp/one.mjs

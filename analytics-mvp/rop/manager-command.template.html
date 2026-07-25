@@ -825,7 +825,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   if(typeof MANAGER!=='undefined'&&MANAGER){
     const MS=mgrStats();
-    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+dataQualityBlock()+challengeWidget();
+    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+myTaskDisciplineBlock()+dataQualityBlock()+challengeWidget();
     document.getElementById('root').innerHTML=h;freshStamp();
     // Авто-задвижение челленджа: показать сейчас, через 10 сек простоя уехать вправо (полоска с медалями).
     clearTimeout(window.__ct);{const _e=document.getElementById('crmChallenge')||document.getElementById('crmChallengeToggle');if(_e){_e.style.transition='transform .45s cubic-bezier(.4,0,.2,1)';_e.style.transform='translateX(0)';_e.style.opacity='1';}}
@@ -1473,63 +1473,102 @@ function dataQualityBlock(){
   return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
-// ===== ЧЕЛЛЕНДЖ «CRM-дисциплина»: ТОП-3 менеджеров с наименьшим числом недочётов =====
+// ===== ДИСЦИПЛИНА ДЕЛ И СВЯЗЬ С КЛИЕНТОМ (личный блок менеджера) =====
+// У каждой открытой сделки должно быть запланированное дело, и после дела - реальное касание
+// (звонок/письмо/мессенджер). Показываем по СВОИМ открытым сделкам: состояние дела
+// (нет дела/просрочено/припарковано/в работе), последнее реальное касание и метку «без связи»
+// (дело есть, а касания за 90 дней не было). Плюс свои каналы коммуникации.
+function myTaskDisciplineBlock(){
+  const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
+  const now=NOWD.getTime(), PARK=30;
+  const open=(AD||[]).filter(d=>!d.won&&!d.lost);
+  if(!open.length) return '';
+  const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
+  const COL={none:'#8794A5',over:'#CC5867',park:'#C2873C',ok:'#2E9E74'};
+  const LBL={none:'нет дела',over:'просрочено',park:'припарковано',ok:'в работе'};
+  const noLink=d=>d.taskDue&&!d.lastTouch;
+  let tN=0,tNone=0,tOver=0,tPark=0,tOk=0,tNoLink=0,tRisk=0;
+  open.forEach(d=>{const c=cls(d);tN++;if(c==='none')tNone++;else if(c==='over')tOver++;else if(c==='park')tPark++;else tOk++;if(c!=='ok')tRisk+=(d.budget||0);if(noLink(d))tNoLink++;});
+  const tProb=tNone+tOver+tPark;
+  const CHC={call:'#3DAEC2',msg:'#2E9E74',email:'#C2873C'};
+  const CH=DATA.channelMix||null, myCh=CH?CH[MANAGER]:null;
+  const chS=(()=>{if(!myCh)return null;const call=(myCh.call_in||0)+(myCh.call_out||0),msg=(myCh.msg_in||0)+(myCh.msg_out||0),email=(myCh.email_in||0)+(myCh.email_out||0);const tot=call+msg+email;if(!tot)return null;const lead=call>=msg&&call>=email?'звонки':msg>=email?'мессенджеры':'почта';return {call,msg,email,tot,lead};})();
+  // структура портфеля по состоянию дел
+  const sg=(v,c,lab)=>v?`<div title="${lab}: ${v}" style="height:100%;width:${(v/tN*100).toFixed(2)}%;background:${c}"></div>`:'';
+  const bar=`<div style="display:flex;height:18px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">${sg(tOver,COL.over,'просрочено')}${sg(tNone,COL.none,'нет дела')}${sg(tPark,COL.park,'припарковано')}${sg(tOk,COL.ok,'в работе')}</div>`;
+  const leg=[['over',tOver],['none',tNone],['park',tPark],['ok',tOk]].map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-3)"><i style="width:9px;height:9px;border-radius:2px;background:${COL[k]};display:inline-block"></i>${LBL[k]} <b style="color:var(--ink-2)">${v}</b></span>`).join('<span style="color:var(--ink-4)">·</span>');
+  // мой канальный микс
+  const chBar=chS?(()=>{const s2=(v,c)=>v?`<div style="height:100%;width:${(v/chS.tot*100).toFixed(2)}%;background:${c}"></div>`:'';return `<div style="margin-top:10px"><div class="card-sub" style="margin-bottom:4px">Мои каналы за 90 дней · чаще: <b style="color:var(--ink-2)">${chS.lead}</b> · звонки ${chS.call} · письма ${chS.email} · мессенджеры ${chS.msg}</div><div style="display:flex;height:14px;border-radius:5px;overflow:hidden;border:1px solid var(--border)">${s2(chS.call,CHC.call)}${s2(chS.msg,CHC.msg)}${s2(chS.email,CHC.email)}</div></div>`;})():(CH?'':'<div class="card-sub" style="margin-top:8px">Каналы коммуникации готовятся из Bitrix.</div>');
+  // фильтр-чипы
+  const seg=S.mtdProb||'all';
+  const chip=(k,lab,n,col)=>{const on=seg===k;return `<span data-mtdprob="${k}" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:11px;white-space:nowrap;border:1px solid ${on?col:'var(--border)'};background:${on?col+'22':'transparent'};color:${on?col:'var(--ink-3)'}">${lab} <b>${n}</b></span>`;};
+  const chips=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px">${chip('all','Все проблемные',tProb,'#22D3EE')}${chip('over','Просрочено',tOver,COL.over)}${chip('none','Без дела',tNone,COL.none)}${chip('nolink','Без связи',tNoLink,'#CC5867')}</div>`;
+  // список сделок
+  const portal=DATA.b24Portal||'',dlc=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
+  const dueCell=d=>{if(!d.taskDue)return '<span style="color:#8794A5">нет дела</span>';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);const dd=d.taskDue.slice(8,10)+'.'+d.taskDue.slice(5,7)+'.'+d.taskDue.slice(0,4);const c=cls(d);const suf=dy<0?`просрочено на ${-dy} дн`:`через ${dy} дн`;return `<span style="color:${COL[c]};font-weight:700">${dd}</span> <span style="color:var(--ink-4);font-size:10px">${suf}</span>`;};
+  const touchCell=d=>{if(!d.lastTouch)return '<span style="color:#CC5867;font-weight:700">касаний нет</span> <span style="color:var(--ink-4);font-size:10px">90+ дн</span>';const dy=Math.round((now-PD2(d.lastTouch).getTime())/DAYMS);const col=dy<=7?'#2E9E74':dy<=30?'#C2873C':'#CC5867';const dd=d.lastTouch.slice(8,10)+'.'+d.lastTouch.slice(5,7);return `<span style="color:${col};font-weight:700">${dy} дн назад</span> <span style="color:var(--ink-4);font-size:10px">${dd}</span>`;};
+  const ordC={over:0,none:1,park:2,ok:3};
+  let ds=open.filter(d=>cls(d)!=='ok');
+  if(seg==='over')ds=open.filter(d=>cls(d)==='over');else if(seg==='none')ds=open.filter(d=>cls(d)==='none');else if(seg==='park')ds=open.filter(d=>cls(d)==='park');else if(seg==='nolink')ds=open.filter(noLink);
+  ds.sort((a,b)=>ordC[cls(a)]-ordC[cls(b)]||(b.budget||0)-(a.budget||0));
+  const body=ds.slice(0,300).map(d=>{const c=cls(d),nl=noLink(d);return `<tr><td style="text-align:center">${dlc(d.id)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3);white-space:nowrap">${esc(d.stage||'')}</td><td style="text-align:center"><span style="font-size:10px;font-weight:700;color:${COL[c]}">${LBL[c]}</span>${nl?' <span style="font-size:9px;font-weight:700;color:#CC5867">· без связи</span>':''}</td><td style="text-align:left;font-size:11px;color:var(--ink-2)">${d.taskSubj?esc(d.taskSubj):'<span style="color:var(--ink-4)">-</span>'}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${dueCell(d)}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${touchCell(d)}</td><td style="text-align:right;font-size:11px">${fmtK(d.budget||0)}</td></tr>`;}).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--ink-4);padding:14px">по этому фильтру сделок нет</td></tr>`;
+  const _info=info('У каждой открытой сделки должно быть запланированное дело - оно двигает дату активности и не даёт сделке уйти в брошенные. Но дело - это только план: после него в таймлайне должно быть РЕАЛЬНОЕ касание (звонок с Манго, письмо/мессенджер из сделки). «Последнее касание» показывает, был ли факт связи; метка «без связи» - дело есть, а касания за 90 дней не было (имитация работы). Срок дела двигаем только после реального контакта с клиентом.');
+  return `<div class="card" id="mytaskdisc"><div class="card-h"><div><div class="card-title">Дисциплина дел и связь с клиентом ${_info}</div><div class="card-sub">${fmt(open.length)} открытых сделок · <span style="color:#F8717A;font-weight:700">${pct(tN?tProb/tN:0)} с проблемой по делам</span> · <span style="color:#CC5867;font-weight:700">${tNoLink} без реального касания</span></div></div></div>
+    <div style="margin:6px 0 2px">${bar}<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:7px">${leg}</div></div>${chBar}${chips}
+    <div class="scroll" style="max-height:460px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th><th style="text-align:left">Стадия</th><th style="text-align:center">Состояние</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:center">Срок дела</th><th style="text-align:center">Последнее касание</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+// ===== ЧЕЛЛЕНДЖ «Дисциплина дел»: ТОП-3 менеджеров по доле живых сделок (дело + касание) =====
 // Считаем по всему отделу (ALL_DEALS), не по фильтру - рейтинг общий. Метрика: доля
 // чистых сделок среди дошедших до предложения. Виджет в правом углу, кнопка ведёт к #dqfix.
 function challengeWidget(){
-  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
-  const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
-  const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
-  const eBud=d=>(d.budget||0)<=1;
-  const bad=d=>eRsn(d)||eCat(d)||eCli(d)||eBud(d);
-  const gaps=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
+  const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
+  const now=NOWD.getTime(), PARK=30;
+  const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
+  // «Проблемная» открытая сделка: нет дела, дело просрочено, или дело есть, а реального касания
+  // за 90 дней не было. Живая = дело на срок и был контакт. Челлендж - доля живых сделок.
+  const isProb=d=>{const c=cls(d);return c==='none'||c==='over'||(d.taskDue&&!d.lastTouch);};
   // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
   const CHAL_EXCLUDE=new Set(["Ольга Лысенко"]);
-  const passedAll=(ALL_DEALS||[]).filter(d=>isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
-  const byM={};passedAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0,g:0};m.tot++;if(bad(d)){m.bad++;m.g+=gaps(d);}});
+  const openAll=(ALL_DEALS||[]).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr));
+  const byM={};openAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0};m.tot++;if(isProb(d))m.bad++;});
   const all=Object.values(byM);
-  // Порог объёма: медаль честная только у тех, кто провёл ≥ FLOOR сделок до предложения,
-  // иначе менеджер с 1-2 идеальными сделками занимает подиум незаслуженно. Порог мягко
-  // снижаем, если желающих мало (маленький отдел).
+  // Порог объёма: медаль честная у тех, у кого ≥ FLOOR открытых сделок (иначе 1-2 идеальные
+  // сделки дают незаслуженный подиум). Порог мягко снижаем, если участников мало.
   let FLOOR=15;while(FLOOR>3&&all.filter(m=>m.tot>=FLOOR).length<3)FLOOR=Math.floor(FLOOR/2);
   const rows=all.filter(m=>m.tot>=FLOOR).map(m=>({...m,clean:(m.tot-m.bad)/m.tot}));
   if(!rows.length)return "";
-  // сортировка: больше доля чистых → выше; при равенстве меньше сделок к правке
+  // сортировка: больше доля живых → выше; при равенстве меньше сделок к разбору
   rows.sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
   rows.forEach((m,i)=>m.rank=i+1);
   const me=rows.find(m=>m.n===MANAGER);
   const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
   const top=rows.slice(0,3);
   const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
-  // Цвет заполненности - по МЕСТУ в рейтинге, а не по абсолютному порогу: это соревнование,
-  // и лидеры (ТОП-3) - самые заполненные в отделе, поэтому зелёные, даже если 100% ещё не достигли.
-  // Кто без дыр вовсе - всегда зелёный. Нижняя треть - красные (отстают), середина - янтарные.
+  // Цвет - по МЕСТУ: лидеры ТОП-3 зелёные, нижняя треть красная, середина янтарная; без проблем - зелёный.
   const _n=rows.length,_lowCut=_n-Math.max(1,Math.ceil(_n/3));
   const rankCol=m=>m.bad===0?'#2E9E74':m.rank<=3?'#2E9E74':m.rank>_lowCut?'#CC5867':'#C2873C';
   const line=(m,hi)=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0${hi?';font-weight:800':''}">`+
     `<span style="width:20px;text-align:center;font-size:14px">${medal(m.rank)||m.rank}</span>`+
     `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
     `<span style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${Math.round(m.clean*100)}%</span>`+
-    `<span data-tip="сколько сделок осталось поправить (0 - без дыр)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+    `<span data-tip="сколько открытых сделок без дела/просрочено/без связи (0 - всё живое)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
   const meOut=(me&&me.rank>3)?`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>${line(me,true)}`:'';
-  // Пояснение - это проза, а не пары «метрика/число», поэтому не таблица dt() (там узкая
-  // колонка ярлыка ломает каждую строку), а обычные строки: жирный зачин + текст, перенос сам.
   const _trow=(l,t)=>`<div style="margin:5px 0 0;line-height:1.4"><b style="color:#22D3EE">${l}:</b> ${t}</div>`;
-  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «CRM-дисциплина»</div>`+
-    _trow('Как считаем','доля сделок без дыр среди дошедших до предложения')+
-    _trow('Что такое «дыра»','пустая причина отказа, категория, тип клиента или бюджет 0/1')+
-    _trow('В зачёт идут','менеджеры с ≥'+FLOOR+' сделок до предложения')+
-    _trow('Цифра справа','сколько сделок осталось поправить')+
-    _trow('Цель','100% чистых - тогда статистика отдела не врёт')+
-    _trow('Твоя задача','нажми кнопку и поправь свои сделки в списке ниже')).replace(/"/g,'&quot;');
-  const cta=(me&&me.bad>0)?`нажми и поправь ${me.bad} свои`:(me?'у тебя чисто ✓':'к списку');
+  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Дисциплина дел»</div>`+
+    _trow('Как считаем','доля живых сделок среди открытых: есть дело на срок и было реальное касание с клиентом')+
+    _trow('Что такое «проблема»','нет дела, дело просрочено, или дело есть, а звонка/письма/мессенджера за 90 дней не было')+
+    _trow('В зачёт идут','менеджеры с ≥'+FLOOR+' открытых сделок')+
+    _trow('Цифра справа','сколько открытых сделок надо разобрать')+
+    _trow('Цель','100% живых - на каждой сделке реальный следующий шаг и контакт')+
+    _trow('Твоя задача','поставь дела и свяжись с клиентами, двигай срок только после контакта')).replace(/"/g,'&quot;');
+  const cta=(me&&me.bad>0)?`разбери свои ${me.bad}`:(me?'у тебя всё живое ✓':'к списку');
   const badge=(me&&me.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.bad}</span>`:(me?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
   return `<div id="crmChallenge" style="position:fixed;right:14px;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px);transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform">`+
-    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">CRM-дисциплина · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Дисциплина дел · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
     top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
-    `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на исправление ↓</button>`+
+    `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на разбор ↓</button>`+
     `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;
 }
 
@@ -2721,7 +2760,8 @@ function buildShell(){
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeToggle')){S.chalMin=!S.chalMin;render();return;}});
-  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('dqfix');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
+  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('mytaskdisc')||document.getElementById('dqfix');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
+  document.addEventListener('click',e=>{const mp=e.target.closest('[data-mtdprob]');if(mp){S.mtdProb=mp.dataset.mtdprob;render();return;}});
   // Авто-задвижение челленджа: после 10 сек без наведения виджет уезжает вправо, оставляя
   // полоску с эмодзи-медалями; при наведении - выезжает обратно. Работает и на свёрнутом бейдже.
   document.addEventListener('mouseover',e=>{if(e.target.closest&&e.target.closest('#crmChallenge, #crmChallengeToggle')){clearTimeout(window.__ct);const _e=document.getElementById('crmChallenge')||document.getElementById('crmChallengeToggle');if(_e){_e.style.transform='translateX(0)';_e.style.opacity='1';}}});

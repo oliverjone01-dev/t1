@@ -56,7 +56,8 @@ const dwellOf = (d: any): number | null => {
 // --- deals -> схема MVP (+ hist/dwellCur из истории стадий; касания = фаза 2) ---
 const deals = rop.deals.map((d: any) => ({
   id: d.id, mgr: d.mgr, stage: d.stage, won: d.won, lost: d.lost, budget: d.budget,
-  created: d.created, closed: d.closed, source: d.source, client: d.client,
+  created: d.created, activity: d.activity, taskDue: d.taskDue, taskSubj: d.taskSubj, lastTouch: d.lastTouch || null,
+  closed: d.closed, source: d.source, client: d.client,
   assort: d.assort, reason: d.reason, touchReal: d.touchReal || 0, touchAll: d.touchAll || 0, cycle: d.cycle,
   stageCode: d.stageCode, dir: d.dir, hist: d.hist || [], dwellCur: dwellOf(d),
 }));
@@ -164,6 +165,8 @@ const DATA = {
   planCsv: `https://docs.google.com/spreadsheets/d/${PLAN_ID}/gviz/tq?tqx=out:csv`,
   // Домен портала Bitrix для кликабельных ID (не секрет; переопределяется env B24_PORTAL).
   b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),
+  // Каналы коммуникации по менеджеру (звонки/письма/мессенджеры, вх/исх) за 90 дней. null = старый снимок.
+  channelMix: rop.channelMix || null,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

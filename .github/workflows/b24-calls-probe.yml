@@ -1,4 +1,9 @@
-name: B24 timeline probe v3 - inventory of channels (tasks, mail, calls, messengers, whatsapp)
+name: B24 channel-mix probe (каналы по менеджерам за 90 дней, read-only)
+
+# Считаем каналы коммуникации в разрезе по менеджерам (AUTHOR_ID активности) за
+# последние 90 дней: звонки вх/исх, письма вх/исх, мессенджеры вх/исх. SMS исключаем.
+# Цель пробы - замерить объём и время, убедиться что проход не подвесит ночной снимок,
+# и получить живые числа для виджета «Каналы коммуникации». Только чтение.
 
 on:
   workflow_dispatch:
@@ -20,37 +25,57 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Инвентарь каналов таймлайна
+      - name: Каналы по менеджерам за 90 дней
         run: |
           set -uo pipefail
           echo "::add-mask::$B24_WEBHOOK_URL"
-          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
-          cat > /tmp/tl.mjs <<'MJS'
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          cat > /tmp/ch.mjs <<'MJS'
           const base=(process.env.B24_WEBHOOK_URL||'').replace(/\/+$/,'');
           const call=async(m,p={})=>{const r=await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});let j={};try{j=await r.json();}catch(e){j={error:'parse'};}return j;};
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-          const TYPE={1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело/провайдер'};
-          const dir=d=>String(d)==='1'?'вх':String(d)==='2'?'исх':'-';
-          const DEAL=91033, CONTACT=60179;
-          const tally=async(f,pages=20)=>{const t={};let last=0;for(let i=0;i<pages;i++){const j=await call('crm.activity.list',{filter:{...f,'>ID':last},select:['ID','TYPE_ID','PROVIDER_ID','PROVIDER_TYPE_ID','DIRECTION'],order:{ID:'ASC'},start:-1});if(j.error){console.log('  err',j.error_description||j.error);break;}const b=j.result||[];if(!b.length)break;for(const a of b){const k=`${TYPE[a.TYPE_ID]||('t'+a.TYPE_ID)} · ${a.PROVIDER_ID||'-'} · ${dir(a.DIRECTION)}`;t[k]=(t[k]||0)+1;}last=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(60);}return t;};
-          const show=t=>Object.entries(t).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>console.log(`   ${v}  ${k}`));
+          // канал по активности: мессенджер (открытые линии) / звонок / письмо; sms и прочее - null
+          const chan=a=>{const p=String(a.PROVIDER_ID||'').toUpperCase();const t=String(a.TYPE_ID);
+            if(p.includes('IMOPENLINES')||p.includes('IMCONNECTOR')||p.includes('IMOL'))return 'msg';
+            if(p.includes('SMS')||p.includes('NOTIFICATION')||p.includes('REST_APP'))return null;
+            if(t==='2'||p.includes('CALL')||p.includes('VOX'))return 'call';
+            if(t==='4'||p.includes('EMAIL')||p.includes('MAIL'))return 'email';
+            return null;};
+          const dir=d=>String(d)==='1'?'in':String(d)==='2'?'out':'na';
           (async()=>{
-            console.log('=== ГЛОБАЛЬНО: все каналы таймлайна (сэмпл ~5000 активностей, по провайдеру и направлению) ===');
-            show(await tally({}, 100));
-
-            console.log('\n=== СДЕЛКА 91033: активности на самой сделке ===');
-            show(await tally({OWNER_TYPE_ID:2, OWNER_ID:DEAL}));
-
-            console.log('\n=== КОНТАКТ 60179 (клиент сделки): звонки/письма/мессенджеры ===');
-            show(await tally({OWNER_TYPE_ID:3, OWNER_ID:CONTACT}));
-
-            console.log('\n=== Комментарии таймлайна сделки 91033 ===');
-            const cm=await call('crm.timeline.comment.list',{filter:{ENTITY_ID:DEAL, ENTITY_TYPE:'deal'}, order:{ID:'DESC'}});
-            console.log(cm.error?('  недоступно: '+(cm.error_description||cm.error)):('  комментариев: '+((cm.result||[]).length)));
-
-            console.log('\n=== Открытые линии/мессенджеры: список коннекторов (imconnector) ===');
-            const ic=await call('imconnector.connector.list',{});
-            console.log(ic.error?('  недоступно: '+(ic.error_description||ic.error)):('  '+JSON.stringify(ic.result)));
+            const t0=Date.now();
+            // 1) карта пользователей id -> имя
+            const users=[];let ustart=0;
+            for(let i=0;i<40;i++){const j=await call('user.get',{start:ustart});const b=j.result||[];users.push(...b);if(j.next===undefined||j.next===null)break;ustart=j.next;await sleep(40);}
+            const name={};for(const u of users)name[String(u.ID)]=`${u.NAME||''} ${u.LAST_NAME||''}`.trim()||('id'+u.ID);
+            console.log(`Пользователей: ${users.length}`);
+            // 2) окно 90 дней
+            const since=new Date(Date.now()-90*864e5).toISOString().slice(0,10);
+            console.log(`Окно: с ${since} по сегодня`);
+            // 3) проход по активностям, тэлли per AUTHOR_ID x канал x направление
+            const tally={};let last=0,scanned=0,pages=0,used=0;
+            const CAP_PAGES=4000, CAP_MS=12*60*1000;
+            for(let i=0;i<CAP_PAGES;i++){
+              if(Date.now()-t0>CAP_MS){console.log('  СТОП по времени (12 мин), частичные данные');break;}
+              const j=await call('crm.activity.list',{filter:{'>=CREATED':since,'>ID':last},select:['ID','AUTHOR_ID','TYPE_ID','PROVIDER_ID','DIRECTION'],order:{ID:'ASC'},start:-1});
+              if(j.error){console.log('  ошибка стр',i,j.error_description||j.error);break;}
+              const b=j.result||[];if(!b.length)break;pages++;
+              for(const a of b){scanned++;const c=chan(a);if(!c)continue;used++;const au=String(a.AUTHOR_ID||'0');const key=c+'_'+dir(a.DIRECTION);const m=tally[au]=tally[au]||{call_in:0,call_out:0,call_na:0,email_in:0,email_out:0,email_na:0,msg_in:0,msg_out:0,msg_na:0};m[key]=(m[key]||0)+1;}
+              last=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(50);
+            }
+            const secs=((Date.now()-t0)/1000).toFixed(0);
+            console.log(`\nПросмотрено активностей: ${scanned} | каналов (звонок/письмо/мессенджер): ${used} | страниц: ${pages} | время: ${secs}с\n`);
+            // 4) свод по менеджерам, сортировка по сумме каналов
+            const rows=Object.entries(tally).map(([au,m])=>{
+              const call=m.call_in+m.call_out+m.call_na, email=m.email_in+m.email_out+m.email_na, msg=m.msg_in+m.msg_out+m.msg_na;
+              return {au,nm:name[au]||('id'+au),call,email,msg,total:call+email+msg,m};
+            }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+            console.log('менеджер | всего | звонки(вх/исх) | письма(вх/исх) | мессенджеры(вх/исх) | чаще');
+            for(const r of rows.slice(0,40)){
+              const lead=r.call>=r.email&&r.call>=r.msg?'звонки':r.msg>=r.email?'мессенджеры':'почта';
+              console.log(`${r.nm} | ${r.total} | ${r.call} (${r.m.call_in}/${r.m.call_out}) | ${r.email} (${r.m.email_in}/${r.m.email_out}) | ${r.msg} (${r.m.msg_in}/${r.m.msg_out}) | ${lead}`);
+            }
+            console.log(`\nВсего менеджеров с коммуникациями: ${rows.length}`);
           })().catch(e=>console.log('FATAL',e&&e.message));
           MJS
-          node /tmp/tl.mjs
+          node /tmp/ch.mjs

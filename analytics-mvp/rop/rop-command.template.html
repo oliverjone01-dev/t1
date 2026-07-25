@@ -709,8 +709,8 @@ function taskDisciplineBlock(){
   const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
   const COL={none:'#8794A5',over:'#CC5867',park:'#C2873C',ok:'#2E9E74'};
   const LBL={none:'нет дела',over:'просрочено',park:'припарковано',ok:'в работе'};
-  // Переключатель вида: группируем строки ПО МЕНЕДЖЕРУ или ПО НАЗВАНИЮ ДЕЛА (задачи).
-  const view=(S.tdView==='task')?'task':'mgr';
+  // Группировка по менеджеру. Вид «по делам» убран - названий дел слишком много (85 групп), пользы мало.
+  const view='mgr';
   const _disp={};
   const gkey=d=>{if(view==='mgr')return d.mgr;if(!d.taskDue)return 'Без дела';const raw=(d.taskSubj||'без темы').trim()||'без темы';const k=raw.toLowerCase().replace(/\s+/g,' ');if(!_disp[k])_disp[k]=raw;return k;};
   const glabel=k=>view==='mgr'?k:(k==='Без дела'?'Без дела':(_disp[k]||k));
@@ -735,7 +735,7 @@ function taskDisciplineBlock(){
   const tNoLink=open.filter(d=>d.taskDue&&!d.lastTouch).length;
   const chip=(k,lab,n,col)=>{const on=seg2===k;return `<span data-tdprob="${k}" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:11px;white-space:nowrap;border:1px solid ${on?col:'var(--border)'};background:${on?col+'22':'transparent'};color:${on?col:'var(--ink-3)'}">${lab} <b>${n}</b></span>`;};
   // переключатель вида (по менеджерам / по делам) + выбор конкретной группы
-  const viewToggle=`<div style="display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden">${[['mgr','По менеджерам'],['task','По делам']].map(([k,l])=>`<button data-tdview="${k}" style="border:0;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;padding:4px 11px;background:${view===k?'#22D3EE22':'transparent'};color:${view===k?'#22D3EE':'var(--ink-3)'}">${l}</button>`).join('')}</div>`;
+  const viewToggle='';
   const _mopts=Object.values(perM).sort((a,b)=>(b.none+b.over+b.park)-(a.none+a.over+a.park)).map(m=>`<option value="${esc(m.n)}"${S.tdMgr===m.n?' selected':''}>${esc(glabel(m.n))} (${m.none+m.over+m.park})</option>`).join('');
   const mgrSel=`<label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-3);font-weight:700">${view==='mgr'?'Менеджер':'Дело'}: <select data-tdmgrsel style="background:var(--bg-base);color:var(--ink-1);border:1px solid var(--border);border-radius:8px;padding:3px 8px;font-size:11px;cursor:pointer;max-width:260px"><option value=""${!S.tdMgr?' selected':''}>Все</option>${_mopts}</select></label>`;
   // Фильтры: менеджер (выпадающий), статус (клик по цифрам в таблице), канал (клик по точке легенды).

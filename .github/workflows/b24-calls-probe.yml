@@ -1,4 +1,4 @@
-name: B24 timeline probe v2 (каналы: задачи/почта/звонки/мессенджеры/WhatsApp, read-only)
+name: B24 timeline probe v3 - inventory of channels (tasks, mail, calls, messengers, whatsapp)
 
 on:
   workflow_dispatch:

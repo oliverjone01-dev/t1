@@ -1,0 +1,93 @@
+name: B24 calls probe (сделки с исходящим звонком и записью, read-only)
+
+# Ищем сделки, где есть ИСХОДЯЩИЙ звонок с ЗАПИСЬЮ. Источник - телефония:
+# voximplant.statistic.get (CALL_TYPE=1 исходящий, CALL_RECORD_URL = ссылка на запись,
+# CRM_ENTITY_TYPE=DEAL). Если метод недоступен - фолбэк на crm.activity.list (звонки).
+# Только чтение. Запуск: push этого файла в rop-dashboard-v1.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [rop-dashboard-v1]
+    paths:
+      - ".github/workflows/b24-calls-probe.yml"
+
+permissions:
+  contents: read
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Сделки с исходящим звонком и записью
+        run: |
+          set -uo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          cat > /tmp/calls.mjs <<'MJS'
+          const base = (process.env.B24_WEBHOOK_URL || '').replace(/\/+$/,'');
+          const PORTAL = 'https://glassmemory.bitrix24.ru';
+          const call = async (m,p={}) => {
+            const r = await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+            let j={}; try{j=await r.json();}catch(e){j={error:'parse'};}
+            return j;
+          };
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          (async()=>{
+            // 1) Проверяем доступность телефонии и смотрим поля первой записи.
+            const probe = await call('voximplant.statistic.get',{ order:{CALL_START_DATE:'DESC'}, start:0 });
+            if(probe.error){
+              console.log('voximplant.statistic.get недоступен:', probe.error_description||probe.error);
+              console.log('Фолбэк: считаем по crm.activity.list (исходящие звонки VOXIMPLANT), запись проверить нельзя этим методом.');
+              // фолбэк - просто перечислить сделки с исходящим звонком
+              const deals=new Set(); let lastId=0, total=0;
+              for(let i=0;i<60;i++){
+                const j=await call('crm.activity.list',{ select:['ID','OWNER_ID','OWNER_TYPE_ID','PROVIDER_ID','DIRECTION'],
+                  filter:{OWNER_TYPE_ID:2, PROVIDER_ID:'VOXIMPLANT_CALL', DIRECTION:2, '>ID':lastId}, order:{ID:'ASC'}, start:-1 });
+                const b=j.result||[]; if(!b.length) break;
+                for(const a of b) deals.add(String(a.OWNER_ID));
+                total+=b.length; lastId=Number(b[b.length-1].ID); if(b.length<50) break;
+              }
+              console.log(`Исходящих звонков (activity): ${total}, распределены по ${deals.size} сделкам.`);
+              console.log([...deals].slice(0,60).map(d=>`#${d} ${PORTAL}/crm/deal/details/${d}/`).join('\n'));
+              return;
+            }
+            console.log('Поля записи voximplant:', Object.keys((probe.result||[])[0]||{}).join(', '));
+            // 2) Пейджим все звонки, копим сделки с ИСХОДЯЩИМ (CALL_TYPE=1) и НЕПУСТОЙ записью.
+            const byDeal={}; let start=0, scanned=0, out=0, outRec=0;
+            for(let i=0;i<120;i++){
+              const j=await call('voximplant.statistic.get',{ order:{CALL_START_DATE:'DESC'},
+                filter:{ CRM_ENTITY_TYPE:'DEAL' }, start });
+              if(j.error){ console.log('ошибка на стр', i, j.error_description||j.error); break; }
+              const rows=j.result||[]; if(!rows.length) break;
+              for(const c of rows){
+                scanned++;
+                const isOut=String(c.CALL_TYPE)==='1';
+                const hasRec=c.CALL_RECORD_URL && String(c.CALL_RECORD_URL).length>5;
+                if(isOut) out++;
+                if(isOut && hasRec){
+                  outRec++;
+                  const id=String(c.CRM_ENTITY_ID);
+                  const e=(byDeal[id] ||= {n:0, rec:'', date:''});
+                  e.n++; if(!e.rec){e.rec=c.CALL_RECORD_URL; e.date=(c.CALL_START_DATE||'').slice(0,10);}
+                }
+              }
+              if(j.next===undefined || j.next===null) break; start=j.next; await sleep(200);
+            }
+            const deals=Object.entries(byDeal).sort((a,b)=>b[1].n-a[1].n);
+            console.log(`\nПросмотрено звонков (привязанных к сделкам): ${scanned} | исходящих: ${out} | из них с записью: ${outRec}`);
+            console.log(`СДЕЛОК с исходящим звонком и записью: ${deals.length}\n`);
+            console.log('#сделка | звонков с записью | дата | ссылка на сделку | пример записи');
+            for(const [id,e] of deals.slice(0,80)){
+              console.log(`#${id} | ${e.n} | ${e.date} | ${PORTAL}/crm/deal/details/${id}/ | ${e.rec}`);
+            }
+            if(deals.length>80) console.log(`… ещё ${deals.length-80} сделок (обрезано для лога).`);
+          })().catch(e=>console.log('FATAL', e && e.message));
+          MJS
+          node /tmp/calls.mjs

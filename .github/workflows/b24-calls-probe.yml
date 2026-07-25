@@ -1,8 +1,8 @@
-name: B24 calls probe (разбор сделки 91033 - что за звонок, read-only)
+name: B24 calls probe (разбор сделки 91033 v2, read-only)
 
-# Разбираем конкретную сделку: её контакт/компания, активности-звонки на самой сделке,
-# поле BINDINGS у звонка (привязка активности к нескольким сущностям), запись через
-# voximplant по CRM_ACTIVITY_ID. Только чтение. Запуск: push этого файла в rop-dashboard-v1.
+# Что за сущность звонок в сделке 91033: перечисляем активности OWNER=сделка (тип/провайдер/
+# направление), для звонков VOXIMPLANT берём полную структуру (bindings) и запись через
+# voximplant по CRM_ACTIVITY_ID. Только чтение.
 
 on:
   workflow_dispatch:
@@ -36,39 +36,28 @@ jobs:
             let j={}; try{j=await r.json();}catch(e){j={error:'parse'};}
             return j;
           };
-          const short=(o,n=1500)=>{const t=JSON.stringify(o);return t.length>n?t.slice(0,n)+'…':t;};
+          const S=(o,n=900)=>{const t=(o===undefined||o===null)?'—':JSON.stringify(o);return t.length>n?t.slice(0,n)+'…':t;};
+          const TYPE={1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело'};
           const DEAL=91033;
           (async()=>{
-            const d=(await call('crm.deal.get',{id:DEAL})).result||{};
-            console.log(`Сделка ${DEAL}: «${d.TITLE}» | стадия ${d.STAGE_ID} | CONTACT_ID=${d.CONTACT_ID} | COMPANY_ID=${d.COMPANY_ID} | LEAD_ID=${d.LEAD_ID||'-'}`);
-            // связанные контакты (может быть несколько)
-            const cont=(await call('crm.deal.contact.items.get',{id:DEAL})).result||[];
-            console.log('Контакты сделки:', JSON.stringify(cont));
-
-            // 1) Активности НА САМОЙ СДЕЛКЕ (owner = deal)
-            const onDeal=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:DEAL},
-              select:['ID','TYPE_ID','PROVIDER_ID','DIRECTION','SUBJECT','COMPLETED','OWNER_TYPE_ID','OWNER_ID','BINDINGS','ASSOCIATED_ENTITY_ID'] })).result||[];
-            console.log(`\n[1] Активностей с OWNER=сделка: ${onDeal.length}`);
-            for(const a of onDeal) console.log(`  #${a.ID} | тип ${a.TYPE_ID}/${a.PROVIDER_ID} | dir ${a.DIRECTION} | «${(a.SUBJECT||'').slice(0,45)}» | BINDINGS=${short(a.BINDINGS,300)}`);
-
-            // 2) Звонки на КОНТАКТЕ сделки + их BINDINGS (проверяем привязку к сделке)
-            const cid=d.CONTACT_ID||(cont[0]&&cont[0].CONTACT_ID);
-            if(cid){
-              const onC=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:3, OWNER_ID:cid, PROVIDER_ID:'VOXIMPLANT_CALL'},
-                order:{ID:'DESC'}, select:['ID','DIRECTION','SUBJECT','PROVIDER_ID','BINDINGS','SETTINGS','FILES'] })).result||[];
-              console.log(`\n[2] Звонков VOXIMPLANT на контакте ${cid}: ${onC.length}. Первые 5 (с BINDINGS):`);
-              for(const a of onC.slice(0,5)){
-                console.log(`  звонок #${a.ID} | dir ${a.DIRECTION} (1=вх,2=исх) | «${(a.SUBJECT||'').slice(0,40)}»`);
-                console.log(`     BINDINGS=${short(a.BINDINGS,400)}`);
-                // запись через voximplant по activity id
-                const v=(await call('voximplant.statistic.get',{ filter:{CRM_ACTIVITY_ID:a.ID} })).result||[];
-                if(v[0]) console.log(`     voximplant: CALL_TYPE=${v[0].CALL_TYPE} REC=${v[0].CALL_RECORD_URL||('file:'+v[0].RECORD_FILE_ID)} CRM_ENTITY=${v[0].CRM_ENTITY_TYPE}/${v[0].CRM_ENTITY_ID}`);
-              }
+            const acts=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:DEAL}, order:{ID:'DESC'},
+              select:['ID','TYPE_ID','PROVIDER_ID','PROVIDER_TYPE_ID','DIRECTION','SUBJECT','COMPLETED','ASSOCIATED_ENTITY_ID'] })).result||[];
+            console.log(`Активностей OWNER=сделка ${DEAL}: ${acts.length}`);
+            for(const a of acts){
+              console.log(`  #${a.ID} | ${TYPE[a.TYPE_ID]||('type'+a.TYPE_ID)} / ${a.PROVIDER_ID||'-'} | dir=${a.DIRECTION}(1вх/2исх) | assoc=${a.ASSOCIATED_ENTITY_ID||'-'} | «${(a.SUBJECT||'').slice(0,45)}»`);
             }
-            // 3) Полная структура одного звонка (чтобы увидеть все привязки)
-            const anyCall=onDeal.find(a=>String(a.PROVIDER_ID).includes('VOXIMPLANT'));
-            if(anyCall){ const full=(await call('crm.activity.get',{id:anyCall.ID})).result||{};
-              console.log('\n[3] Полный звонок на сделке:', short(full,1200)); }
+            const calls=acts.filter(a=>String(a.TYPE_ID)==='2'||String(a.PROVIDER_ID||'').includes('CALL'));
+            console.log(`\nЗвонков среди них: ${calls.length}`);
+            for(const c of calls.slice(0,4)){
+              const full=(await call('crm.activity.get',{id:c.ID})).result||{};
+              console.log(`\n== Звонок #${c.ID} - полная карточка ==`);
+              console.log('  OWNER:', full.OWNER_TYPE_ID, '/', full.OWNER_ID, '| PROVIDER:', full.PROVIDER_ID, '| DIRECTION:', full.DIRECTION);
+              console.log('  BINDINGS (к чему привязан):', S(full.BINDINGS,500));
+              console.log('  FILES:', S(full.FILES,300));
+              const v=(await call('voximplant.statistic.get',{ filter:{CRM_ACTIVITY_ID:c.ID} })).result||[];
+              if(v[0]) console.log(`  voximplant: CALL_TYPE=${v[0].CALL_TYPE}(1исх/2вх) | ЗАПИСЬ=${v[0].CALL_RECORD_URL||('file_id:'+v[0].RECORD_FILE_ID)} | CRM_ENTITY=${v[0].CRM_ENTITY_TYPE}/${v[0].CRM_ENTITY_ID} | длит=${v[0].CALL_DURATION}с`);
+              else console.log('  voximplant по этому activity: нет записи в статистике');
+            }
           })().catch(e=>console.log('FATAL', e && e.message));
           MJS
           node /tmp/one.mjs

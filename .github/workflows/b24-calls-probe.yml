@@ -1,4 +1,4 @@
-name: B24 calls result (менеджеры по 28 сделкам, read-only)
+name: B24 timeline probe (каналы: задачи/почта/звонки/мессенджеры/WhatsApp, read-only)
 
 on:
   workflow_dispatch:
@@ -20,23 +20,37 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Ответственные по сделкам
+      - name: Инвентарь каналов таймлайна
         run: |
           set -uo pipefail
           echo "::add-mask::$B24_WEBHOOK_URL"
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета"; exit 1; fi
-          cat > /tmp/m.mjs <<'MJS'
+          cat > /tmp/tl.mjs <<'MJS'
           const base=(process.env.B24_WEBHOOK_URL||'').replace(/\/+$/,'');
           const call=async(m,p={})=>{const r=await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});let j={};try{j=await r.json();}catch(e){j={error:'parse'};}return j;};
-          const IDS=[72991,85573,90473,91033,96433,97309,97661,98029,98107,98141,82835,91047,96431,97017,97697,97751,97803,97825,98077,98087,85141,91433,95731,97483,92547,96763,97767,97115];
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const TYPE={1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело/провайдер'};
+          const dir=d=>String(d)==='1'?'вх':String(d)==='2'?'исх':'-';
+          const DEAL=91033, CONTACT=60179;
+          const tally=async(f,pages=20)=>{const t={};let last=0;for(let i=0;i<pages;i++){const j=await call('crm.activity.list',{filter:{...f,'>ID':last},select:['ID','TYPE_ID','PROVIDER_ID','PROVIDER_TYPE_ID','DIRECTION'],order:{ID:'ASC'},start:-1});if(j.error){console.log('  err',j.error_description||j.error);break;}const b=j.result||[];if(!b.length)break;for(const a of b){const k=`${TYPE[a.TYPE_ID]||('t'+a.TYPE_ID)} · ${a.PROVIDER_ID||'-'} · ${dir(a.DIRECTION)}`;t[k]=(t[k]||0)+1;}last=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(60);}return t;};
+          const show=t=>Object.entries(t).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>console.log(`   ${v}  ${k}`));
           (async()=>{
-            const deals=(await call('crm.deal.list',{filter:{ID:IDS},select:['ID','ASSIGNED_BY_ID'],start:-1})).result||[];
-            const uids=[...new Set(deals.map(d=>String(d.ASSIGNED_BY_ID)))];
-            const users=(await call('user.get',{FILTER:{ID:uids}})).result||[];
-            const nm={}; users.forEach(u=>nm[String(u.ID)]=[u.LAST_NAME,u.NAME].filter(Boolean).join(' ')||('id'+u.ID));
-            const byId={}; deals.forEach(d=>byId[String(d.ID)]=nm[String(d.ASSIGNED_BY_ID)]||('id'+d.ASSIGNED_BY_ID));
-            console.log('#сделка | ответственный');
-            for(const id of IDS) console.log(`#${id} | ${byId[String(id)]||'не найдена'}`);
+            console.log('=== ГЛОБАЛЬНО: все каналы таймлайна (сэмпл ~5000 активностей, по провайдеру и направлению) ===');
+            show(await tally({}, 100));
+
+            console.log('\n=== СДЕЛКА 91033: активности на самой сделке ===');
+            show(await tally({OWNER_TYPE_ID:2, OWNER_ID:DEAL}));
+
+            console.log('\n=== КОНТАКТ 60179 (клиент сделки): звонки/письма/мессенджеры ===');
+            show(await tally({OWNER_TYPE_ID:3, OWNER_ID:CONTACT}));
+
+            console.log('\n=== Комментарии таймлайна сделки 91033 ===');
+            const cm=await call('crm.timeline.comment.list',{filter:{ENTITY_ID:DEAL, ENTITY_TYPE:'deal'}, order:{ID:'DESC'}});
+            console.log(cm.error?('  недоступно: '+(cm.error_description||cm.error)):('  комментариев: '+((cm.result||[]).length)));
+
+            console.log('\n=== Открытые линии/мессенджеры: список коннекторов (imconnector) ===');
+            const ic=await call('imconnector.connector.list',{});
+            console.log(ic.error?('  недоступно: '+(ic.error_description||ic.error)):('  '+JSON.stringify(ic.result)));
           })().catch(e=>console.log('FATAL',e&&e.message));
           MJS
-          node /tmp/m.mjs
+          node /tmp/tl.mjs

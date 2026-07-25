@@ -1,4 +1,4 @@
-name: B24 channel-mix probe v2 (атрибуция автор vs ответственный, read-only)
+name: B24 channel-mix probe v3 (атрибуция по владельцу сделки воронки 49, read-only)
 
 # Считаем каналы коммуникации в разрезе по менеджерам (AUTHOR_ID активности) за
 # последние 90 дней: звонки вх/исх, письма вх/исх, мессенджеры вх/исх. SMS исключаем.
@@ -49,33 +49,40 @@ jobs:
             for(let i=0;i<40;i++){const j=await call('user.get',{start:ustart});const b=j.result||[];users.push(...b);if(j.next===undefined||j.next===null)break;ustart=j.next;await sleep(40);}
             const name={};for(const u of users)name[String(u.ID)]=`${u.NAME||''} ${u.LAST_NAME||''}`.trim()||('id'+u.ID);
             console.log(`Пользователей: ${users.length}`);
-            // 2) окно 90 дней
+            // 2) карты владельцев по сделкам ВОРОНКИ 49: сделка/контакт/компания -> менеджер сделки
+            const dealOwner={}, contactOwner={}, companyOwner={};
+            let dlast=0, deals=0;
+            for(let i=0;i<2000;i++){
+              const j=await call('crm.deal.list',{filter:{CATEGORY_ID:49,'>ID':dlast},select:['ID','ASSIGNED_BY_ID','CONTACT_ID','COMPANY_ID'],order:{ID:'ASC'},start:-1});
+              if(j.error){console.log('  ошибка сделок',j.error_description||j.error);break;}
+              const b=j.result||[];if(!b.length)break;
+              for(const d of b){const mgr=String(d.ASSIGNED_BY_ID||'0');dealOwner[String(d.ID)]=mgr;if(d.CONTACT_ID&&d.CONTACT_ID!=='0')contactOwner[String(d.CONTACT_ID)]=mgr;if(d.COMPANY_ID&&d.COMPANY_ID!=='0')companyOwner[String(d.COMPANY_ID)]=mgr;deals++;}
+              dlast=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(40);
+            }
+            console.log(`Сделок воронки 49: ${deals} | контактов в карте: ${Object.keys(contactOwner).length} | компаний: ${Object.keys(companyOwner).length}`);
+            const ownerOf=a=>{const t=String(a.OWNER_TYPE_ID),id=String(a.OWNER_ID);if(t==='2')return dealOwner[id];if(t==='3')return contactOwner[id];if(t==='4')return companyOwner[id];return undefined;};
+            // 3) окно 90 дней
             const since=new Date(Date.now()-90*864e5).toISOString().slice(0,10);
             console.log(`Окно: с ${since} по сегодня`);
-            // 3) проход по активностям, тэлли ОТДЕЛЬНО по AUTHOR_ID и по RESPONSIBLE_ID
-            const byA={}, byR={};
-            const mk=()=>({call:0,email:0,msg:0});
-            const add=(map,id,c)=>{const m=map[id]=map[id]||mk();m[c]++;};
-            let last=0,scanned=0,pages=0,used=0,noResp=0;
+            // 4) проход по активностям, атрибуция по владельцу сделки
+            const byMgr={};const mk=()=>({call_in:0,call_out:0,email_in:0,email_out:0,msg_in:0,msg_out:0});
+            let last=0,scanned=0,pages=0,used=0,attr=0,unattr=0;const missByType={};
             const CAP_PAGES=4000, CAP_MS=12*60*1000;
             for(let i=0;i<CAP_PAGES;i++){
               if(Date.now()-t0>CAP_MS){console.log('  СТОП по времени (12 мин), частичные данные');break;}
-              const j=await call('crm.activity.list',{filter:{'>=CREATED':since,'>ID':last},select:['ID','AUTHOR_ID','RESPONSIBLE_ID','TYPE_ID','PROVIDER_ID','DIRECTION'],order:{ID:'ASC'},start:-1});
+              const j=await call('crm.activity.list',{filter:{'>=CREATED':since,'>ID':last},select:['ID','OWNER_TYPE_ID','OWNER_ID','TYPE_ID','PROVIDER_ID','DIRECTION'],order:{ID:'ASC'},start:-1});
               if(j.error){console.log('  ошибка стр',i,j.error_description||j.error);break;}
               const b=j.result||[];if(!b.length)break;pages++;
-              for(const a of b){scanned++;const c=chan(a);if(!c)continue;used++;const au=String(a.AUTHOR_ID||'0');const rs=String(a.RESPONSIBLE_ID||a.AUTHOR_ID||'0');if(!a.RESPONSIBLE_ID)noResp++;add(byA,au,c);add(byR,rs,c);}
+              for(const a of b){scanned++;const c=chan(a);if(!c)continue;used++;const mgr=ownerOf(a);if(!mgr){unattr++;missByType[String(a.OWNER_TYPE_ID)]=(missByType[String(a.OWNER_TYPE_ID)]||0)+1;continue;}attr++;const m=byMgr[mgr]=byMgr[mgr]||mk();m[c+'_'+dir(a.DIRECTION)]=(m[c+'_'+dir(a.DIRECTION)]||0)+1;}
               last=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(50);
             }
             const secs=((Date.now()-t0)/1000).toFixed(0);
-            console.log(`\nПросмотрено активностей: ${scanned} | каналов: ${used} | без RESPONSIBLE_ID: ${noResp} | страниц: ${pages} | время: ${secs}с`);
-            const dump=(title,map)=>{
-              const rows=Object.entries(map).map(([id,m])=>({id,nm:name[id]||('id'+id),...m,total:m.call+m.email+m.msg})).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
-              console.log(`\n=== ${title} (топ 20 из ${rows.length}) ===`);
-              console.log('менеджер | всего | звонки | письма | мессенджеры | чаще');
-              for(const r of rows.slice(0,20)){const lead=r.call>=r.email&&r.call>=r.msg?'звонки':r.msg>=r.email?'мессенджеры':'почта';console.log(`${r.nm} | ${r.total} | ${r.call} | ${r.email} | ${r.msg} | ${lead}`);}
-            };
-            dump('ПО АВТОРУ (AUTHOR_ID)', byA);
-            dump('ПО ОТВЕТСТВЕННОМУ (RESPONSIBLE_ID)', byR);
+            console.log(`\nПросмотрено активностей: ${scanned} | каналов: ${used} | привязано к сделкам 49: ${attr} | мимо (др. воронки/без сделки): ${unattr} | страниц: ${pages} | время: ${secs}с`);
+            console.log(`Непривязанные по типу владельца: ${JSON.stringify(missByType)} (2=сделка,3=контакт,4=компания,1=лид)`);
+            const rows=Object.entries(byMgr).map(([id,m])=>{const call=m.call_in+m.call_out,email=m.email_in+m.email_out,msg=m.msg_in+m.msg_out;return {nm:name[id]||('id'+id),call,email,msg,total:call+email+msg,m};}).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+            console.log(`\n=== КАНАЛЫ ПО ВЛАДЕЛЬЦУ СДЕЛКИ (воронка 49), топ 30 из ${rows.length} ===`);
+            console.log('менеджер | всего | звонки(вх/исх) | письма(вх/исх) | мессенджеры(вх/исх) | чаще');
+            for(const r of rows.slice(0,30)){const lead=r.call>=r.email&&r.call>=r.msg?'звонки':r.msg>=r.email?'мессенджеры':'почта';console.log(`${r.nm} | ${r.total} | ${r.call} (${r.m.call_in}/${r.m.call_out}) | ${r.email} (${r.m.email_in}/${r.m.email_out}) | ${r.msg} (${r.m.msg_in}/${r.m.msg_out}) | ${lead}`);}
           })().catch(e=>console.log('FATAL',e&&e.message));
           MJS
           node /tmp/ch.mjs

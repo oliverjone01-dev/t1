@@ -1,8 +1,9 @@
-name: B24 calls probe (разбор сделки 91033 v2, read-only)
+name: B24 calls result (сделки воронки 49 с записью исходящих, read-only)
 
-# Что за сущность звонок в сделке 91033: перечисляем активности OWNER=сделка (тип/провайдер/
-# направление), для звонков VOXIMPLANT берём полную структуру (bindings) и запись через
-# voximplant по CRM_ACTIVITY_ID. Только чтение.
+# Итоговый список: сделки воронки 49, у контактов которых есть ИСХОДЯЩИЙ звонок с ЗАПИСЬЮ.
+# Телефония - Bitrix+Манго, но все звонки лежат в единой voximplant.statistic (VOXIMPLANT_CALL).
+# Шаги: 1) скан звонков -> контакты/компании с записью исх.; 2) сделки cat 49; 3) все контакты
+# сделок (batch); 4) пересечение. Только чтение.
 
 on:
   workflow_dispatch:
@@ -24,40 +25,84 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Разбор сделки 91033
+      - name: Сделки воронки 49 с записью исходящих звонков
         run: |
           set -uo pipefail
           echo "::add-mask::$B24_WEBHOOK_URL"
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
-          cat > /tmp/one.mjs <<'MJS'
+          cat > /tmp/res.mjs <<'MJS'
           const base = (process.env.B24_WEBHOOK_URL || '').replace(/\/+$/,'');
+          const PORTAL='https://glassmemory.bitrix24.ru';
           const call = async (m,p={}) => {
             const r = await fetch(`${base}/${m}.json`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
             let j={}; try{j=await r.json();}catch(e){j={error:'parse'};}
             return j;
           };
-          const S=(o,n=900)=>{const t=(o===undefined||o===null)?'—':JSON.stringify(o);return t.length>n?t.slice(0,n)+'…':t;};
-          const TYPE={1:'Встреча',2:'Звонок',3:'Задача',4:'Письмо',6:'Дело'};
-          const DEAL=91033;
+          const batch = async (cmds) => { // cmds: {key: "method?params"}
+            const r=await call('batch',{halt:0, cmd:cmds}); return (r.result&&r.result.result)||{};
+          };
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          const d10=s=>String(s||'').slice(0,10);
           (async()=>{
-            const acts=(await call('crm.activity.list',{ filter:{OWNER_TYPE_ID:2, OWNER_ID:DEAL}, order:{ID:'DESC'},
-              select:['ID','TYPE_ID','PROVIDER_ID','PROVIDER_TYPE_ID','DIRECTION','SUBJECT','COMPLETED','ASSOCIATED_ENTITY_ID'] })).result||[];
-            console.log(`Активностей OWNER=сделка ${DEAL}: ${acts.length}`);
-            for(const a of acts){
-              console.log(`  #${a.ID} | ${TYPE[a.TYPE_ID]||('type'+a.TYPE_ID)} / ${a.PROVIDER_ID||'-'} | dir=${a.DIRECTION}(1вх/2исх) | assoc=${a.ASSOCIATED_ENTITY_ID||'-'} | «${(a.SUBJECT||'').slice(0,45)}»`);
+            // 1) Контакты/компании с ИСХОДЯЩИМ звонком + запись
+            const contRec={}, compRec={};
+            let start=0, scanned=0, outRec=0;
+            for(let i=0;i<400;i++){
+              const j=await call('voximplant.statistic.get',{ order:{CALL_START_DATE:'DESC'}, start });
+              if(j.error){ console.log('voximplant ошибка:', j.error_description||j.error); break; }
+              const rows=j.result||[]; if(!rows.length) break;
+              for(const c of rows){
+                scanned++;
+                const isOut=String(c.CALL_TYPE)==='1';
+                const hasRec=(c.RECORD_FILE_ID&&String(c.RECORD_FILE_ID)!=='0')||(c.CALL_RECORD_URL&&String(c.CALL_RECORD_URL).length>5);
+                if(!isOut||!hasRec) continue;
+                outRec++;
+                const url=c.CALL_RECORD_URL||('file_id:'+c.RECORD_FILE_ID), dt=d10(c.CALL_START_DATE);
+                const bag = c.CRM_ENTITY_TYPE==='CONTACT'?contRec : c.CRM_ENTITY_TYPE==='COMPANY'?compRec : null;
+                if(!bag) continue;
+                const id=String(c.CRM_ENTITY_ID); const e=(bag[id]||={n:0,last:'',url:''}); e.n++;
+                if(dt>e.last){e.last=dt; e.url=url;}
+              }
+              if(j.next===undefined||j.next===null) break; start=j.next; await sleep(100);
             }
-            const calls=acts.filter(a=>String(a.TYPE_ID)==='2'||String(a.PROVIDER_ID||'').includes('CALL'));
-            console.log(`\nЗвонков среди них: ${calls.length}`);
-            for(const c of calls.slice(0,4)){
-              const full=(await call('crm.activity.get',{id:c.ID})).result||{};
-              console.log(`\n== Звонок #${c.ID} - полная карточка ==`);
-              console.log('  OWNER:', full.OWNER_TYPE_ID, '/', full.OWNER_ID, '| PROVIDER:', full.PROVIDER_ID, '| DIRECTION:', full.DIRECTION);
-              console.log('  BINDINGS (к чему привязан):', S(full.BINDINGS,500));
-              console.log('  FILES:', S(full.FILES,300));
-              const v=(await call('voximplant.statistic.get',{ filter:{CRM_ACTIVITY_ID:c.ID} })).result||[];
-              if(v[0]) console.log(`  voximplant: CALL_TYPE=${v[0].CALL_TYPE}(1исх/2вх) | ЗАПИСЬ=${v[0].CALL_RECORD_URL||('file_id:'+v[0].RECORD_FILE_ID)} | CRM_ENTITY=${v[0].CRM_ENTITY_TYPE}/${v[0].CRM_ENTITY_ID} | длит=${v[0].CALL_DURATION}с`);
-              else console.log('  voximplant по этому activity: нет записи в статистике');
+            console.log(`Звонков просмотрено: ${scanned} | исходящих с записью: ${outRec} | контактов с записью: ${Object.keys(contRec).length} | компаний: ${Object.keys(compRec).length}`);
+
+            // 2) Сделки воронки 49
+            const deals=[]; let last=0;
+            for(let i=0;i<200;i++){
+              const j=await call('crm.deal.list',{ filter:{CATEGORY_ID:49, '>ID':last}, select:['ID','TITLE','STAGE_ID','CONTACT_ID','COMPANY_ID','ASSIGNED_BY_ID'], order:{ID:'ASC'}, start:-1 });
+              const b=j.result||[]; if(!b.length) break;
+              deals.push(...b); last=Number(b[b.length-1].ID); if(b.length<50) break;
             }
+            console.log(`Сделок воронки 49: ${deals.length}`);
+
+            // 3) Все контакты сделок (batch по 50)
+            const dealContacts={};
+            for(let i=0;i<deals.length;i+=50){
+              const chunk=deals.slice(i,i+50); const cmd={};
+              chunk.forEach(d=>{cmd['d'+d.ID]='crm.deal.contact.items.get?id='+d.ID;});
+              const res=await batch(cmd);
+              chunk.forEach(d=>{ const arr=res['d'+d.ID]||[]; dealContacts[d.ID]=arr.map(x=>String(x.CONTACT_ID)); });
+              await sleep(120);
+            }
+
+            // 4) Пересечение
+            const hit=[];
+            for(const d of deals){
+              const cids=new Set([...(dealContacts[d.ID]||[]), ...(d.CONTACT_ID?[String(d.CONTACT_ID)]:[])]);
+              let n=0,last='',url='';
+              for(const cid of cids){ const e=contRec[cid]; if(e){ n+=e.n; if(e.last>last){last=e.last;url=e.url;} } }
+              const comp=d.COMPANY_ID&&compRec[String(d.COMPANY_ID)];
+              if(comp){ n+=comp.n; if(comp.last>last){last=comp.last;url=comp.url;} }
+              if(n>0) hit.push({id:d.ID, title:(d.TITLE||'').slice(0,40), stage:d.STAGE_ID, n, last, url});
+            }
+            hit.sort((a,b)=>b.last<a.last?-1:b.last>a.last?1:b.n-a.n);
+            console.log(`\n=== СДЕЛОК ВОРОНКИ 49 С ЗАПИСЬЮ ИСХОДЯЩЕГО ЗВОНКА: ${hit.length} ===`);
+            console.log('#сделка | стадия | записей | последний звонок | ссылка на сделку | пример записи | название');
+            for(const h of hit.slice(0,150)){
+              console.log(`#${h.id} | ${h.stage} | ${h.n} | ${h.last} | ${PORTAL}/crm/deal/details/${h.id}/ | ${h.url} | ${h.title}`);
+            }
+            if(hit.length>150) console.log(`… ещё ${hit.length-150} сделок (обрезано для лога).`);
           })().catch(e=>console.log('FATAL', e && e.message));
           MJS
-          node /tmp/one.mjs
+          node /tmp/res.mjs

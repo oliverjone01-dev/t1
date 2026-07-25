@@ -1,4 +1,4 @@
-name: B24 channel-mix probe (каналы по менеджерам за 90 дней, read-only)
+name: B24 channel-mix probe v2 (атрибуция автор vs ответственный, read-only)
 
 # Считаем каналы коммуникации в разрезе по менеджерам (AUTHOR_ID активности) за
 # последние 90 дней: звонки вх/исх, письма вх/исх, мессенджеры вх/исх. SMS исключаем.
@@ -52,30 +52,30 @@ jobs:
             // 2) окно 90 дней
             const since=new Date(Date.now()-90*864e5).toISOString().slice(0,10);
             console.log(`Окно: с ${since} по сегодня`);
-            // 3) проход по активностям, тэлли per AUTHOR_ID x канал x направление
-            const tally={};let last=0,scanned=0,pages=0,used=0;
+            // 3) проход по активностям, тэлли ОТДЕЛЬНО по AUTHOR_ID и по RESPONSIBLE_ID
+            const byA={}, byR={};
+            const mk=()=>({call:0,email:0,msg:0});
+            const add=(map,id,c)=>{const m=map[id]=map[id]||mk();m[c]++;};
+            let last=0,scanned=0,pages=0,used=0,noResp=0;
             const CAP_PAGES=4000, CAP_MS=12*60*1000;
             for(let i=0;i<CAP_PAGES;i++){
               if(Date.now()-t0>CAP_MS){console.log('  СТОП по времени (12 мин), частичные данные');break;}
-              const j=await call('crm.activity.list',{filter:{'>=CREATED':since,'>ID':last},select:['ID','AUTHOR_ID','TYPE_ID','PROVIDER_ID','DIRECTION'],order:{ID:'ASC'},start:-1});
+              const j=await call('crm.activity.list',{filter:{'>=CREATED':since,'>ID':last},select:['ID','AUTHOR_ID','RESPONSIBLE_ID','TYPE_ID','PROVIDER_ID','DIRECTION'],order:{ID:'ASC'},start:-1});
               if(j.error){console.log('  ошибка стр',i,j.error_description||j.error);break;}
               const b=j.result||[];if(!b.length)break;pages++;
-              for(const a of b){scanned++;const c=chan(a);if(!c)continue;used++;const au=String(a.AUTHOR_ID||'0');const key=c+'_'+dir(a.DIRECTION);const m=tally[au]=tally[au]||{call_in:0,call_out:0,call_na:0,email_in:0,email_out:0,email_na:0,msg_in:0,msg_out:0,msg_na:0};m[key]=(m[key]||0)+1;}
+              for(const a of b){scanned++;const c=chan(a);if(!c)continue;used++;const au=String(a.AUTHOR_ID||'0');const rs=String(a.RESPONSIBLE_ID||a.AUTHOR_ID||'0');if(!a.RESPONSIBLE_ID)noResp++;add(byA,au,c);add(byR,rs,c);}
               last=Number(b[b.length-1].ID);if(b.length<50)break;await sleep(50);
             }
             const secs=((Date.now()-t0)/1000).toFixed(0);
-            console.log(`\nПросмотрено активностей: ${scanned} | каналов (звонок/письмо/мессенджер): ${used} | страниц: ${pages} | время: ${secs}с\n`);
-            // 4) свод по менеджерам, сортировка по сумме каналов
-            const rows=Object.entries(tally).map(([au,m])=>{
-              const call=m.call_in+m.call_out+m.call_na, email=m.email_in+m.email_out+m.email_na, msg=m.msg_in+m.msg_out+m.msg_na;
-              return {au,nm:name[au]||('id'+au),call,email,msg,total:call+email+msg,m};
-            }).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
-            console.log('менеджер | всего | звонки(вх/исх) | письма(вх/исх) | мессенджеры(вх/исх) | чаще');
-            for(const r of rows.slice(0,40)){
-              const lead=r.call>=r.email&&r.call>=r.msg?'звонки':r.msg>=r.email?'мессенджеры':'почта';
-              console.log(`${r.nm} | ${r.total} | ${r.call} (${r.m.call_in}/${r.m.call_out}) | ${r.email} (${r.m.email_in}/${r.m.email_out}) | ${r.msg} (${r.m.msg_in}/${r.m.msg_out}) | ${lead}`);
-            }
-            console.log(`\nВсего менеджеров с коммуникациями: ${rows.length}`);
+            console.log(`\nПросмотрено активностей: ${scanned} | каналов: ${used} | без RESPONSIBLE_ID: ${noResp} | страниц: ${pages} | время: ${secs}с`);
+            const dump=(title,map)=>{
+              const rows=Object.entries(map).map(([id,m])=>({id,nm:name[id]||('id'+id),...m,total:m.call+m.email+m.msg})).filter(r=>r.total>0).sort((a,b)=>b.total-a.total);
+              console.log(`\n=== ${title} (топ 20 из ${rows.length}) ===`);
+              console.log('менеджер | всего | звонки | письма | мессенджеры | чаще');
+              for(const r of rows.slice(0,20)){const lead=r.call>=r.email&&r.call>=r.msg?'звонки':r.msg>=r.email?'мессенджеры':'почта';console.log(`${r.nm} | ${r.total} | ${r.call} | ${r.email} | ${r.msg} | ${lead}`);}
+            };
+            dump('ПО АВТОРУ (AUTHOR_ID)', byA);
+            dump('ПО ОТВЕТСТВЕННОМУ (RESPONSIBLE_ID)', byR);
           })().catch(e=>console.log('FATAL',e&&e.message));
           MJS
           node /tmp/ch.mjs

@@ -21,6 +21,23 @@ const EXCLUDE_LEAD_DIRS = (process.env.ROP_EXCLUDE_LEAD_DIRS || "glass-memory")
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Глобальный лимит одновременных запросов к Bitrix. Снимок ускоряем параллелизмом
+// (несколько потоков пагинации сразу), но не заваливаем вебхук: CONC воркеров тянут
+// шарды из общего пула. Ретрай в call() гасит редкие QUERY_LIMIT. По умолчанию 5.
+const CONC = Math.max(1, Number(process.env.B24_CONC || 5));
+let inflight = 0;
+const waiters: Array<() => void> = [];
+async function acquire(): Promise<void> {
+  if (inflight < CONC) { inflight++; return; }
+  await new Promise<void>((r) => waiters.push(r));
+  inflight++;
+}
+function release(): void {
+  inflight--;
+  const w = waiters.shift();
+  if (w) w();
+}
+
 // Маппинг кастомных полей сделки (восстановлен из crm.deal.fields, разведка 2026-06-25).
 const UF = {
   client: "UF_CRM_1767958427410",                 // тип клиента (B2B/B2C/Дилер...)
@@ -33,62 +50,93 @@ const UF_LEAD_DIR = "UF_CRM_1772609158";           // бренд/направл�
 
 async function call(method: string, params: any = {}): Promise<any> {
   let lastErr: any;
-  for (let attempt = 0; attempt < 6; attempt++) {
-    try {
-      const res = await fetch(`${BASE}/${method}.json`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(params),
-        signal: AbortSignal.timeout(30000),
-      });
-      const j: any = await res.json();
-      if (j.error) {
-        // rate limit Bitrix (2 req/s) -> подождать и повторить
-        if (/QUERY_LIMIT|OPERATION_TIME_LIMIT/i.test(String(j.error))) { await sleep(1200); continue; }
-        throw new Error(`${method}: ${j.error_description || j.error}`);
+  await acquire();
+  try {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const res = await fetch(`${BASE}/${method}.json`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(params),
+          signal: AbortSignal.timeout(30000),
+        });
+        const j: any = await res.json();
+        if (j.error) {
+          // rate limit Bitrix (2 req/s) -> подождать и повторить
+          if (/QUERY_LIMIT|OPERATION_TIME_LIMIT/i.test(String(j.error))) { await sleep(1200); continue; }
+          throw new Error(`${method}: ${j.error_description || j.error}`);
+        }
+        return j;
+      } catch (e) {
+        lastErr = e;
+        await sleep(600 * (attempt + 1));
       }
-      return j;
-    } catch (e) {
-      lastErr = e;
-      await sleep(600 * (attempt + 1));
     }
+    throw lastErr;
+  } finally {
+    release();
   }
-  throw lastErr;
 }
 
 // Быстрая пагинация по ID (start=-1): не считает total, не тормозит на больших объёмах.
+// Метём параллельными полосами (listSharded), сохраняя тот же ID-курсор внутри каждой.
 async function listAll(method: string, params: any): Promise<any[]> {
+  return listSharded(method, params);
+}
+
+// --- Шардированная пагинация: делим диапазон ID на CONC полос и метём их параллельно ---
+// Внутри полосы - тот же быстрый ID-курсор (start:-1, без COUNT). Полосы не пересекаются
+// (`>ID lo` и `<=ID hi`), новые записи с ID>maxId в снимок не попадают (это ок для снимка).
+// itemsPath=true - для методов, где строки лежат в result.items (stagehistory, item.list).
+const rowsOf = (j: any, itemsPath: boolean): any[] => (itemsPath ? (j.result?.items || []) : (j.result || []));
+// Границы ID подходящих строк: min и max. Делим именно [min,max], а не [0,max] -
+// иначе при фильтре по дате (свежие активности = высокие ID) нижние полосы пустые,
+// и верхняя тянет всё, убивая параллелизм.
+async function idBounds(method: string, params: any, idField: string, itemsPath: boolean): Promise<{ min: number; max: number }> {
+  const hi = await call(method, { ...params, order: { [idField]: "DESC" }, start: -1 });
+  const hiArr = rowsOf(hi, itemsPath);
+  if (!hiArr.length) return { min: 0, max: 0 };
+  const lo = await call(method, { ...params, order: { [idField]: "ASC" }, start: -1 });
+  const loArr = rowsOf(lo, itemsPath);
+  return { min: Number(loArr[0][idField]), max: Number(hiArr[0][idField]) };
+}
+async function pageBand(method: string, params: any, lo: number, hi: number, idField: string, itemsPath: boolean): Promise<any[]> {
   const all: any[] = [];
-  let lastId = 0;
+  let last = lo;
   for (;;) {
-    const filter = { ...(params.filter || {}), ">ID": lastId };
-    const j = await call(method, { ...params, filter, order: { ID: "ASC" }, start: -1 });
-    const batch: any[] = j.result || [];
+    const filter = { ...(params.filter || {}), [`>${idField}`]: last, [`<=${idField}`]: hi };
+    const j = await call(method, { ...params, filter, order: { [idField]: "ASC" }, start: -1 });
+    const batch = rowsOf(j, itemsPath);
     if (!batch.length) break;
     all.push(...batch);
-    lastId = Number(batch[batch.length - 1].ID);
-    if (batch.length < 50) break;
+    last = Number(batch[batch.length - 1][idField]);
+    if (batch.length < 50 || last >= hi) break;
   }
   return all;
+}
+// Тянет ВСЕ строки метода параллельными полосами по ID. Возвращает сырые строки (агрегируем снаружи).
+async function listSharded(method: string, params: any, opts: { idField?: string; itemsPath?: boolean; shards?: number } = {}): Promise<any[]> {
+  const idField = opts.idField || "ID", itemsPath = !!opts.itemsPath, shards = Math.max(1, opts.shards || CONC);
+  const { min, max } = await idBounds(method, params, idField, itemsPath);
+  if (!max) return [];
+  // Полосы делим по [min-1, max]: `>` строгий, поэтому старт с min-1, чтобы захватить саму min-строку.
+  const base = min - 1, span = max - base;
+  const step = Math.ceil(span / shards);
+  const bands: Array<[number, number]> = [];
+  for (let i = 0; i < shards; i++) {
+    const lo = base + i * step, hi = Math.min(base + (i + 1) * step, max);
+    if (lo < hi) bands.push([lo, hi]);
+  }
+  const parts = await Promise.all(bands.map(([lo, hi]) => pageBand(method, params, lo, hi, idField, itemsPath)));
+  return parts.flat();
 }
 
 // История стадий (crm.stagehistory.list): result.items, пагинация по ID. Для воронки/dwell.
 async function listHistory(category: string): Promise<any[]> {
-  const all: any[] = [];
-  let lastId = 0;
-  for (;;) {
-    const j = await call("crm.stagehistory.list", {
-      entityTypeId: 2,
-      filter: { CATEGORY_ID: Number(category), ">ID": lastId },
-      order: { ID: "ASC" }, start: -1,
-    });
-    const batch: any[] = (j.result && j.result.items) || [];
-    if (!batch.length) break;
-    all.push(...batch);
-    lastId = Number(batch[batch.length - 1].ID);
-    if (batch.length < 50) break;
-  }
-  return all;
+  return listSharded("crm.stagehistory.list", {
+    entityTypeId: 2,
+    filter: { CATEGORY_ID: Number(category) },
+  }, { itemsPath: true });
 }
 
 // Касания: crm.activity.list по сделкам (OWNER_TYPE_ID=2) -> на сделку {real, all}.
@@ -101,24 +149,16 @@ async function activityCounts(): Promise<Record<string, { real: number; all: num
   // ~25 мин днём). Для «касаний» по активным сделкам года с запасом хватает, а снимок
   // ускоряется в разы. Сделки старше года почти все закрыты и в живой аналитике не участвуют.
   const since = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
-  let lastId = 0, total = 0;
-  for (;;) {
-    const j = await call("crm.activity.list", {
-      select: ["ID", "OWNER_ID"],
-      filter: { OWNER_TYPE_ID: 2, ">=CREATED": since, ">ID": lastId }, order: { ID: "ASC" }, start: -1,
-    });
-    const batch: any[] = j.result || [];
-    if (!batch.length) break;
-    for (const a of batch) {
-      const k = String(a.OWNER_ID);
-      const e = (m[k] ||= { real: 0, all: 0 });
-      e.all++; e.real++;
-    }
-    total += batch.length;
-    lastId = Number(batch[batch.length - 1].ID);
-    if (batch.length < 50) break;
+  const rows = await listSharded("crm.activity.list", {
+    select: ["ID", "OWNER_ID"],
+    filter: { OWNER_TYPE_ID: 2, ">=CREATED": since },
+  });
+  for (const a of rows) {
+    const k = String(a.OWNER_ID);
+    const e = (m[k] ||= { real: 0, all: 0 });
+    e.all++; e.real++;
   }
-  console.log(`Касания: ${total} активностей по сделкам на ${Object.keys(m).length} сделок`);
+  console.log(`Касания: ${rows.length} активностей по сделкам на ${Object.keys(m).length} сделок`);
   return m;
 }
 
@@ -127,26 +167,18 @@ async function activityCounts(): Promise<Record<string, { real: number; all: num
 // Нужно для РОП-таблицы: «на какой срок менеджер сдвинул дело» и «сколько без дела / просрочено».
 async function openTasks(): Promise<Record<string, { due: string; subj: string }>> {
   const m: Record<string, { due: string; subj: string }> = {};
-  let lastId = 0, total = 0;
-  for (;;) {
-    const j = await call("crm.activity.list", {
-      select: ["ID", "OWNER_ID", "SUBJECT", "DEADLINE", "END_TIME"],
-      filter: { OWNER_TYPE_ID: 2, COMPLETED: "N", ">ID": lastId }, order: { ID: "ASC" }, start: -1,
-    });
-    const batch: any[] = j.result || [];
-    if (!batch.length) break;
-    for (const a of batch) {
-      const k = String(a.OWNER_ID);
-      const raw = a.DEADLINE && !String(a.DEADLINE).startsWith("0000") ? a.DEADLINE : a.END_TIME;
-      if (!raw) continue;
-      const prev = m[k];
-      if (!prev || String(raw) < prev.due) m[k] = { due: String(raw), subj: a.SUBJECT || "" };
-    }
-    total += batch.length;
-    lastId = Number(batch[batch.length - 1].ID);
-    if (batch.length < 50) break;
+  const rows = await listSharded("crm.activity.list", {
+    select: ["ID", "OWNER_ID", "SUBJECT", "DEADLINE", "END_TIME"],
+    filter: { OWNER_TYPE_ID: 2, COMPLETED: "N" },
+  });
+  for (const a of rows) {
+    const k = String(a.OWNER_ID);
+    const raw = a.DEADLINE && !String(a.DEADLINE).startsWith("0000") ? a.DEADLINE : a.END_TIME;
+    if (!raw) continue;
+    const prev = m[k];
+    if (!prev || String(raw) < prev.due) m[k] = { due: String(raw), subj: a.SUBJECT || "" };
   }
-  console.log(`Открытые дела: ${total} активностей, ближайшее дело есть у ${Object.keys(m).length} сделок`);
+  console.log(`Открытые дела: ${rows.length} активностей, ближайшее дело есть у ${Object.keys(m).length} сделок`);
   return m;
 }
 
@@ -192,31 +224,23 @@ async function channelMix(
   // Нужно для «последнее касание по сделке»: был ли ФАКТ связи, а не только запланированное дело.
   const touch: Record<string, { d: string; c: string }> = {};
   const mk = () => ({ call_in: 0, call_out: 0, email_in: 0, email_out: 0, msg_in: 0, msg_out: 0 });
-  const t0 = Date.now(), CAP_MS = 6 * 60 * 1000, CAP_PAGES = 6000;
-  let last = 0, scanned = 0, attr = 0;
-  for (let i = 0; i < CAP_PAGES; i++) {
-    if (Date.now() - t0 > CAP_MS) { console.warn("channelMix: стоп по времени (6 мин), частичные данные"); break; }
-    const j = await call("crm.activity.list", {
-      select: ["ID", "OWNER_TYPE_ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "CREATED"],
-      filter: { ">=CREATED": since, ">ID": last }, order: { ID: "ASC" }, start: -1,
-    });
-    const b: any[] = j.result || [];
-    if (!b.length) break;
-    for (const a of b) {
-      scanned++;
-      const c = chanOf(a); if (!c) continue;
-      // дата касания по владельцу (для per-deal «последнее касание»)
-      const ownKey = `${a.OWNER_TYPE_ID}:${a.OWNER_ID}`;
-      const day = d10(a.CREATED) || "";
-      if (day && (!touch[ownKey] || day > touch[ownKey].d)) touch[ownKey] = { d: day, c };
-      const mgr = ownerOf(a); if (!mgr) continue;
-      const d = String(a.DIRECTION) === "1" ? "in" : String(a.DIRECTION) === "2" ? "out" : "out";
-      const key = `${c}_${d}`;
-      const m = by[mgr] || (by[mgr] = mk());
-      m[key]++; attr++;
-    }
-    last = Number(b[b.length - 1].ID);
-    if (b.length < 50) break;
+  let scanned = 0, attr = 0;
+  const rows = await listSharded("crm.activity.list", {
+    select: ["ID", "OWNER_TYPE_ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "CREATED"],
+    filter: { ">=CREATED": since },
+  });
+  for (const a of rows) {
+    scanned++;
+    const c = chanOf(a); if (!c) continue;
+    // дата касания по владельцу (для per-deal «последнее касание»)
+    const ownKey = `${a.OWNER_TYPE_ID}:${a.OWNER_ID}`;
+    const day = d10(a.CREATED) || "";
+    if (day && (!touch[ownKey] || day > touch[ownKey].d)) touch[ownKey] = { d: day, c };
+    const mgr = ownerOf(a); if (!mgr) continue;
+    const d = String(a.DIRECTION) === "1" ? "in" : String(a.DIRECTION) === "2" ? "out" : "out";
+    const key = `${c}_${d}`;
+    const m = by[mgr] || (by[mgr] = mk());
+    m[key]++; attr++;
   }
   console.log(`Каналы (90 дн): просмотрено ${scanned}, привязано к менеджерам ${attr}, менеджеров ${Object.keys(by).length}, точек касания ${Object.keys(touch).length}`);
   return { byMgr: by, touch };
@@ -403,46 +427,32 @@ async function main() {
   // Нужны сквозной воронке «предоплаты -> сделки -> позиции -> изделия» (раздел 4).
   // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
   const ETID = 1086, OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
-  const spRows: any[] = [];
-  {
-    let lastId = 0;
-    for (;;) {
-      const j = await call("crm.item.list", {
-        entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
-        filter: { ">id": lastId }, order: { id: "ASC" }, start: -1,
-      });
-      const batch: any[] = (j.result && j.result.items) || [];
-      if (!batch.length) break;
-      spRows.push(...batch);
-      lastId = Number(batch[batch.length - 1].id);
-      if (batch.length < 50) break;
-    }
-  }
+  const spRows = await listSharded("crm.item.list", {
+    entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
+  }, { idField: "id", itemsPath: true });
   const spFirst: Record<string, string> = {};
   {
-    let lastId = 0;
-    for (;;) {
-      const j = await call("crm.stagehistory.list", { entityTypeId: ETID, filter: { ">ID": lastId }, order: { ID: "ASC" }, start: -1 });
-      const batch: any[] = (j.result && j.result.items) || [];
-      if (!batch.length) break;
-      for (const h of batch) {
-        const oid = String(h.OWNER_ID ?? h.ownerId), dt = d10(h.CREATED_TIME ?? h.createdTime) || "";
-        if (dt && (!spFirst[oid] || dt < spFirst[oid])) spFirst[oid] = dt;
-      }
-      lastId = Number(batch[batch.length - 1].ID);
-      if (batch.length < 50) break;
+    const histSp = await listSharded("crm.stagehistory.list", { entityTypeId: ETID }, { itemsPath: true });
+    for (const h of histSp) {
+      const oid = String(h.OWNER_ID ?? h.ownerId), dt = d10(h.CREATED_TIME ?? h.createdTime) || "";
+      if (dt && (!spFirst[oid] || dt < spFirst[oid])) spFirst[oid] = dt;
     }
   }
-  const prodItems: any[] = [];
   let spQtyTotal = 0;
-  for (const r of spRows) {
-    let qty: number | null = null;
+  // Товарные строки по каждой карточке - отдельный вызов на карточку. Гоним параллельно
+  // (семафор CONC ограничивает одновременные запросы), иначе это сотни последовательных round-trip.
+  const spQty: Record<string, number | null> = {};
+  await Promise.all(spRows.map((r) => (async () => {
     try {
       const j = await call("crm.item.productrow.list", { filter: { "=ownerId": r.id, "=ownerType": OWNER_T } });
       const prs: any[] = (j.result && j.result.productRows) || [];
       const q = prs.reduce((x, y) => x + (Number(y.quantity) || 0), 0);
-      if (q > 0) { qty = q; spQtyTotal += q; }
+      if (q > 0) { spQty[String(r.id)] = q; spQtyTotal += q; }
     } catch { /* карточка без товарных строк */ }
+  })()));
+  const prodItems: any[] = [];
+  for (const r of spRows) {
+    const qty: number | null = spQty[String(r.id)] ?? null;
     prodItems.push({
       id: r.id,
       dealId: r.parentId2 ? String(r.parentId2) : null,

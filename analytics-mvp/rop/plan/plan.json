@@ -1,6 +1,6 @@
 {
  "source": "ROP_plan_template.xlsx",
- "generatedAt": "2026-06-30T08:18:37.317367Z",
+ "generatedAt": "2026-07-26T14:31:00.578122Z",
  "months": [
   {
    "month": "2026-01",
@@ -58,7 +58,7 @@
   },
   {
    "month": "2026-07",
-   "rev": 6000000,
+   "rev": 10000000,
    "check": 80000,
    "cr2": 0.16,
    "cr1": 0.55,

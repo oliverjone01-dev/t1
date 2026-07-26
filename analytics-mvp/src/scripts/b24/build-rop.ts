@@ -55,6 +55,7 @@ const deals = rop.deals.map((d: any) => ({
   id: d.id, mgr: d.mgr, stage: d.stage, won: d.won, lost: d.lost, budget: d.budget,
   created: d.created, activity: d.activity, taskDue: d.taskDue, taskSubj: d.taskSubj, lastTouch: d.lastTouch || null, lastTouchChan: d.lastTouchChan || null, closed: d.closed, source: d.source, client: d.client,
   assort: d.assort, reason: d.reason, touchReal: d.touchReal || 0, touchAll: d.touchAll || 0, cycle: d.cycle,
+  touch90: d.touch90 ?? null, tasksOpen: d.tasksOpen ?? null, tasksNoContact: d.tasksNoContact ?? null,
   stageCode: d.stageCode, dir: d.dir, hist: d.hist || [], dwellCur: dwellOf(d),
 }));
 

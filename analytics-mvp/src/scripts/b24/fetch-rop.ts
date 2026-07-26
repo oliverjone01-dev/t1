@@ -165,8 +165,11 @@ async function activityCounts(): Promise<Record<string, { real: number; all: num
 // Ближайшее ОТКРЫТОЕ дело/задача по сделке: срок (DEADLINE, иначе END_TIME) + тема.
 // Одно сметание по всем незавершённым активностям (COMPLETED=N), не по одной сделке.
 // Нужно для РОП-таблицы: «на какой срок менеджер сдвинул дело» и «сколько без дела / просрочено».
-async function openTasks(): Promise<Record<string, { due: string; subj: string }>> {
+// nearest - ближайшее открытое дело (для taskDue/taskSubj, как было);
+// dues   - ВСЕ сроки открытых дел по сделке (YYYY-MM-DD), для счётчиков «дел N / без касания K».
+async function openTasks(): Promise<{ nearest: Record<string, { due: string; subj: string }>; dues: Record<string, string[]> }> {
   const m: Record<string, { due: string; subj: string }> = {};
+  const dues: Record<string, string[]> = {};
   const rows = await listSharded("crm.activity.list", {
     select: ["ID", "OWNER_ID", "SUBJECT", "DEADLINE", "END_TIME"],
     filter: { OWNER_TYPE_ID: 2, COMPLETED: "N" },
@@ -177,9 +180,11 @@ async function openTasks(): Promise<Record<string, { due: string; subj: string }
     if (!raw) continue;
     const prev = m[k];
     if (!prev || String(raw) < prev.due) m[k] = { due: String(raw), subj: a.SUBJECT || "" };
+    const day = d10(raw);
+    if (day) (dues[k] ||= []).push(day);
   }
   console.log(`Открытые дела: ${rows.length} активностей, ближайшее дело есть у ${Object.keys(m).length} сделок`);
-  return m;
+  return { nearest: m, dues };
 }
 
 // Обычная пагинация через next (для user.get).
@@ -191,7 +196,7 @@ async function openTasks(): Promise<Record<string, { due: string; subj: string }
 // с защитой по времени, чтобы не подвесить ночной снимок.
 async function channelMix(
   dealRows: any[], leadRows: any[], mgrName: Record<string, string>,
-): Promise<{ byMgr: Record<string, any>; touch: Record<string, { d: string; c: string }> }> {
+): Promise<{ byMgr: Record<string, any>; touch: Record<string, { d: string; c: string }>; commCount: Record<string, number> }> {
   const nameOf = (id: any) => mgrName[String(id)] || `id${id}`;
   const dealOwner: Record<string, string> = {}, contactOwner: Record<string, string> = {},
     companyOwner: Record<string, string> = {}, leadOwner: Record<string, string> = {};
@@ -223,6 +228,9 @@ async function channelMix(
   // touch[`${OWNER_TYPE_ID}:${OWNER_ID}`] = дата последнего реального касания (звонок/письмо/мессенджер).
   // Нужно для «последнее касание по сделке»: был ли ФАКТ связи, а не только запланированное дело.
   const touch: Record<string, { d: string; c: string }> = {};
+  // commCount[`${OWNER_TYPE_ID}:${OWNER_ID}`] = число реальных касаний (звонок/письмо/мессенджер) за 90 дн.
+  // Нужно для per-deal счётчика «касаний N» (суммируем по ключам сделки: сделка+лид+контакт+компания).
+  const commCount: Record<string, number> = {};
   const mk = () => ({ call_in: 0, call_out: 0, email_in: 0, email_out: 0, msg_in: 0, msg_out: 0 });
   let scanned = 0, attr = 0;
   const rows = await listSharded("crm.activity.list", {
@@ -236,6 +244,7 @@ async function channelMix(
     const ownKey = `${a.OWNER_TYPE_ID}:${a.OWNER_ID}`;
     const day = d10(a.CREATED) || "";
     if (day && (!touch[ownKey] || day > touch[ownKey].d)) touch[ownKey] = { d: day, c };
+    commCount[ownKey] = (commCount[ownKey] || 0) + 1;
     const mgr = ownerOf(a); if (!mgr) continue;
     const d = String(a.DIRECTION) === "1" ? "in" : String(a.DIRECTION) === "2" ? "out" : "out";
     const key = `${c}_${d}`;
@@ -243,7 +252,7 @@ async function channelMix(
     m[key]++; attr++;
   }
   console.log(`Каналы (90 дн): просмотрено ${scanned}, привязано к менеджерам ${attr}, менеджеров ${Object.keys(by).length}, точек касания ${Object.keys(touch).length}`);
-  return { byMgr: by, touch };
+  return { byMgr: by, touch, commCount };
 }
 
 async function pageAll(method: string, params: any): Promise<any[]> {
@@ -344,7 +353,7 @@ async function main() {
   const tasks = await openTasks();
   const deals = dealRows.map((d) => {
     const ac = acts[String(d.ID)] || { real: 0, all: 0 };
-    const tk = tasks[String(d.ID)];
+    const tk = tasks.nearest[String(d.ID)];
     const sid = String(d.STAGE_ID || "");
     return {
       id: d.ID,
@@ -405,6 +414,8 @@ async function main() {
   // «Последнее касание» по каждой сделке: макс. дата звонка/письма/мессенджера по самой сделке,
   // её контакту или компании. Нужно, чтобы видеть ФАКТ связи, а не только запланированное дело.
   const touch = channels.touch;
+  const commCount = channels.commCount;
+  const today = d10(new Date().toISOString()) || "";
   const dealRowById: Record<string, any> = {};
   for (const d of dealRows) dealRowById[String(d.ID)] = d;
   for (const dl of deals) {
@@ -416,9 +427,17 @@ async function main() {
     if (raw && raw.COMPANY_ID && String(raw.COMPANY_ID) !== "0") keys.push(`4:${raw.COMPANY_ID}`);
     if (raw && raw.LEAD_ID && String(raw.LEAD_ID) !== "0") keys.push(`1:${raw.LEAD_ID}`);
     let best: { d: string; c: string } | null = null;
-    for (const k of keys) { const t = touch[k]; if (t && (!best || t.d > best.d)) best = t; }
-    (dl as any).lastTouch = best ? best.d : null;       // дата последнего касания (YYYY-MM-DD) или null
-    (dl as any).lastTouchChan = best ? best.c : null;   // канал последнего касания: call | msg | email
+    let comm = 0;
+    for (const k of keys) { const t = touch[k]; if (t && (!best || t.d > best.d)) best = t; comm += commCount[k] || 0; }
+    const lastT = best ? best.d : null;
+    (dl as any).lastTouch = lastT;                       // дата последнего касания (YYYY-MM-DD) или null
+    (dl as any).lastTouchChan = best ? best.c : null;    // канал последнего касания: call | msg | email
+    // Счётчики per-deal (90 дн): касаний всего, открытых дел, «дел без касания после»
+    // (просроченное дело, после срока которого реального касания не было - имитация работы).
+    const dues = tasks.dues[String(dl.id)] || [];
+    (dl as any).touch90 = comm;
+    (dl as any).tasksOpen = dues.length;
+    (dl as any).tasksNoContact = dues.filter((day) => day <= today && (!lastT || lastT < day)).length;
   }
   const touchedDeals = deals.filter((d: any) => d.lastTouch).length;
   console.log(`Последнее касание проставлено у ${touchedDeals} из ${deals.length} сделок`);

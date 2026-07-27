@@ -2,7 +2,7 @@
   "domain": "intereruyut.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T06:03:24.611Z",
+  "measured": "2026-07-27T06:12:12.321Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=intereruyut.ru",
   "data": {
     "id": 30530749,
@@ -12,89 +12,89 @@
       {
         "did": 30134448,
         "name": "dvertsov.ru",
-        "cnt": 8907,
-        "it50": 31281,
-        "vis": 1639,
-        "perc": 28.474153639589527
+        "cnt": 8957,
+        "it50": 31371,
+        "vis": 1611,
+        "perc": 28.551847247457847
       },
       {
         "did": 30030622,
         "name": "169.ru",
-        "cnt": 8704,
-        "it50": 103392,
-        "vis": 7260,
-        "perc": 8.418446301454658
+        "cnt": 8883,
+        "it50": 104065,
+        "vis": 7470,
+        "perc": 8.536011146879353
       },
       {
         "did": 80337046,
         "name": "dveriunas.ru",
-        "cnt": 8044,
-        "it50": 25766,
-        "vis": 2903,
-        "perc": 31.219436466661488
+        "cnt": 8249,
+        "it50": 26334,
+        "vis": 3099,
+        "perc": 31.32452342978659
       },
       {
         "did": 30135923,
         "name": "rf-dveri.ru",
-        "cnt": 7203,
-        "it50": 19968,
-        "vis": 2199,
-        "perc": 36.07271634615385
+        "cnt": 7295,
+        "it50": 20592,
+        "vis": 2182,
+        "perc": 35.42637917637918
       },
       {
         "did": 30182400,
         "name": "dveri-tut.com",
-        "cnt": 6514,
-        "it50": 16510,
-        "vis": 1654,
-        "perc": 39.45487583282859
-      },
-      {
-        "did": 30030613,
-        "name": "dveribravo.ru",
-        "cnt": 5569,
-        "it50": 18705,
-        "vis": 1744,
-        "perc": 29.77278802459235
+        "cnt": 6487,
+        "it50": 16386,
+        "vis": 1651,
+        "perc": 39.588673257658975
       },
       {
         "did": 279637164,
         "name": "dverilab.ru",
-        "cnt": 5423,
-        "it50": 13924,
-        "vis": 3700,
-        "perc": 38.94714162596954
+        "cnt": 5624,
+        "it50": 14551,
+        "vis": 3789,
+        "perc": 38.65026458662635
+      },
+      {
+        "did": 30030613,
+        "name": "dveribravo.ru",
+        "cnt": 5505,
+        "it50": 18694,
+        "vis": 1683,
+        "perc": 29.447951214293358
       },
       {
         "did": 29919264,
         "name": "moscow.petrovich.ru",
-        "cnt": 5215,
-        "it50": 894773,
-        "vis": 168674,
-        "perc": 0.5828293880123786
+        "cnt": 5420,
+        "it50": 936503,
+        "vis": 180280,
+        "perc": 0.5787488134047621
       },
       {
         "did": 30263453,
         "name": "portaprima.ru",
-        "cnt": 5205,
-        "it50": 23173,
-        "vis": 821,
-        "perc": 22.46148534932896
+        "cnt": 5126,
+        "it50": 23023,
+        "vis": 791,
+        "perc": 22.26469182990922
       },
       {
-        "did": 48582214,
-        "name": "yadveri.ru",
-        "cnt": 5182,
-        "it50": 10394,
-        "vis": 87,
-        "perc": 49.85568597267655
+        "did": 47186681,
+        "name": "mosdvery.ru",
+        "cnt": 5118,
+        "it50": 13893,
+        "vis": 907,
+        "perc": 36.838695746059166
       }
     ],
-    "it1": 281,
-    "it3": 941,
-    "it5": 1859,
-    "it10": 5244,
-    "it50": 15805,
+    "it1": 292,
+    "it3": 958,
+    "it5": 1913,
+    "it10": 5304,
+    "it50": 15811,
     "childsCount": 0,
     "keys": [
       {
@@ -158,23 +158,23 @@
         "pos": 1
       }
     ],
-    "topkeys": 26362,
+    "topkeys": 26330,
     "pages": [
       {
         "url": "/catalog/skrytye-dveri",
-        "it50": 841
+        "it50": 824
       },
       {
         "url": "/catalog/mezhkomnatnye-dveri",
-        "it50": 783
+        "it50": 791
       },
       {
         "url": "/catalog/mezhkomnatnye-dvernye-ruchki",
-        "it50": 581
+        "it50": 577
       },
       {
         "url": "/catalog/razdvizhnye-dveri",
-        "it50": 556
+        "it50": 563
       },
       {
         "url": "/catalog/dr-vnutrennie-paneli",
@@ -182,28 +182,28 @@
       },
       {
         "url": "/catalog/dveri-iz-massiva",
-        "it50": 397
-      },
-      {
-        "url": "/catalog/dveri-knizhka",
-        "it50": 377
+        "it50": 421
       },
       {
         "url": "/services/ustanovka-dverej",
-        "it50": 371
+        "it50": 384
+      },
+      {
+        "url": "/catalog/dveri-knizhka",
+        "it50": 379
       },
       {
         "url": "/catalog/plastikovye-dveri",
-        "it50": 333
+        "it50": 342
       },
       {
         "url": "/",
-        "it50": 322
+        "it50": 340
       }
     ],
-    "pagesinindex": 1014,
-    "vis": 1928,
-    "topvis": 8861,
+    "pagesinindex": 1022,
+    "vis": 1988,
+    "topvis": 8716,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,16 +431,16 @@
         "aiCnt": 174
       },
       "2026.07": {
-        "it1": 281,
-        "it3": 941,
-        "it5": 1859,
-        "it10": 5244,
-        "it50": 15805,
-        "pagesInIndex": 1014,
+        "it1": 292,
+        "it3": 958,
+        "it5": 1913,
+        "it10": 5304,
+        "it50": 15811,
+        "pagesInIndex": 1022,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 1928,
-        "aiCnt": 346
+        "visAvg": 1988,
+        "aiCnt": 580
       }
     },
     "linksHistory": {
@@ -512,35 +512,35 @@
         7385,
         271,
         18,
-        140
+        171
       ],
       "2025.11": [
         2006,
         9948,
         272,
         18,
-        153
+        161
       ],
       "2025.12": [
         2140,
         8587,
         281,
         17,
-        164
+        188
       ],
       "2026.01": [
         2128,
         9728,
         283,
         19,
-        163
+        184
       ],
       "2026.02": [
         2155,
         10234,
         282,
         19,
-        165
+        184
       ],
       "2026.03": [
         2126,
@@ -571,14 +571,14 @@
         674
       ],
       "2026.07": [
-        2155,
-        10252,
-        275,
-        20,
-        674
+        2154,
+        10274,
+        280,
+        21,
+        675
       ]
     },
-    "aiAnswersCnt": 346,
+    "aiAnswersCnt": 580,
     "aiState": 10,
     "dr": 28,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/8ca977d93caea090093885456e6c251f9495fd9e43785078fb83d96e392f8161.png",

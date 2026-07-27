@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T05:58:19.949Z",
+  "measured": "2026-07-27T06:09:26.429Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -13,81 +13,81 @@
         "did": 32073658,
         "name": "peregorodki-spb.ru",
         "cnt": 2,
-        "it50": 117,
+        "it50": 110,
         "vis": 1,
-        "perc": 1.7094017094017095
+        "perc": 1.8181818181818181
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
         "cnt": 2,
-        "it50": 203,
+        "it50": 210,
         "vis": 2,
-        "perc": 0.9852216748768474
-      },
-      {
-        "did": 112234979,
-        "name": "decus.spb.ru",
-        "cnt": 2,
-        "it50": 36,
-        "vis": 1,
-        "perc": 5.555555555555555
-      },
-      {
-        "did": 258016815,
-        "name": "peregorodki-spb.com",
-        "cnt": 2,
-        "it50": 83,
-        "vis": 0,
-        "perc": 2.4096385542168677
-      },
-      {
-        "did": 37940194,
-        "name": "peregorodkitut.ru",
-        "cnt": 2,
-        "it50": 196,
-        "vis": 0,
-        "perc": 1.0204081632653061
+        "perc": 0.9523809523809523
       },
       {
         "did": 149500077,
         "name": "loftproekt98.ru",
         "cnt": 2,
-        "it50": 119,
+        "it50": 121,
         "vis": 0,
-        "perc": 1.680672268907563
-      },
-      {
-        "did": 31466309,
-        "name": "steklodel-spb.ru",
-        "cnt": 2,
-        "it50": 279,
-        "vis": 1,
-        "perc": 0.7168458781362007
-      },
-      {
-        "did": 134642209,
-        "name": "loftperegorodki.ru",
-        "cnt": 2,
-        "it50": 19,
-        "vis": 0,
-        "perc": 10.526315789473685
-      },
-      {
-        "did": 30965690,
-        "name": "peregorodkalab.ru",
-        "cnt": 2,
-        "it50": 186,
-        "vis": 0,
-        "perc": 1.075268817204301
+        "perc": 1.6528925619834711
       },
       {
         "did": 244319620,
         "name": "peregorodka78.ru",
         "cnt": 2,
-        "it50": 98,
+        "it50": 96,
         "vis": 0,
-        "perc": 2.0408163265306123
+        "perc": 2.0833333333333335
+      },
+      {
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
+        "cnt": 2,
+        "it50": 275,
+        "vis": 1,
+        "perc": 0.7272727272727273
+      },
+      {
+        "did": 37940194,
+        "name": "peregorodkitut.ru",
+        "cnt": 2,
+        "it50": 176,
+        "vis": 0,
+        "perc": 1.1363636363636365
+      },
+      {
+        "did": 258016815,
+        "name": "peregorodki-spb.com",
+        "cnt": 2,
+        "it50": 79,
+        "vis": 0,
+        "perc": 2.531645569620253
+      },
+      {
+        "did": 30965690,
+        "name": "peregorodkalab.ru",
+        "cnt": 2,
+        "it50": 189,
+        "vis": 0,
+        "perc": 1.0582010582010584
+      },
+      {
+        "did": 112234979,
+        "name": "decus.spb.ru",
+        "cnt": 2,
+        "it50": 37,
+        "vis": 1,
+        "perc": 5.405405405405405
+      },
+      {
+        "did": 134642209,
+        "name": "loftperegorodki.ru",
+        "cnt": 2,
+        "it50": 21,
+        "vis": 0,
+        "perc": 9.523809523809524
       }
     ],
     "it1": 0,
@@ -377,7 +377,7 @@
         250,
         9,
         22,
-        13
+        0
       ],
       "2025.02": [
         10,
@@ -440,35 +440,35 @@
         265,
         6,
         23,
-        1
+        0
       ],
       "2025.11": [
         10,
         102,
         6,
         23,
-        3
+        0
       ],
       "2025.12": [
         9,
         150,
         5,
         23,
-        2
+        0
       ],
       "2026.01": [
         10,
         101,
         5,
         22,
-        3
+        0
       ],
       "2026.02": [
         11,
         212,
         6,
         26,
-        4
+        0
       ],
       "2026.04": [
         8,

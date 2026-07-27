@@ -2,7 +2,7 @@
   "domain": "mosgor-okna.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T05:55:51.392Z",
+  "measured": "2026-07-27T06:06:57.997Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=mosgor-okna.ru",
   "data": {
     "id": 125542640,
@@ -13,88 +13,88 @@
         "did": 231858553,
         "name": "balconia.ru",
         "cnt": 14,
-        "it50": 2558,
-        "vis": 25,
-        "perc": 0.547302580140735
+        "it50": 2592,
+        "vis": 23,
+        "perc": 0.5401234567901234
       },
       {
         "did": 135089991,
         "name": "balkoni-nedorogo.ru",
         "cnt": 13,
-        "it50": 1911,
-        "vis": 91,
-        "perc": 0.6802721088435374
+        "it50": 1919,
+        "vis": 77,
+        "perc": 0.6774361646690984
       },
       {
         "did": 31366452,
         "name": "okna-stroj.com",
         "cnt": 11,
-        "it50": 1744,
-        "vis": 13,
-        "perc": 0.6307339449541284
-      },
-      {
-        "did": 30820538,
-        "name": "sbalkonom.ru",
-        "cnt": 9,
-        "it50": 1298,
-        "vis": 32,
-        "perc": 0.6933744221879815
+        "it50": 1745,
+        "vis": 12,
+        "perc": 0.6303724928366763
       },
       {
         "did": 63416400,
         "name": "reh-okna24.ru",
         "cnt": 9,
-        "it50": 981,
+        "it50": 927,
         "vis": 0,
-        "perc": 0.9174311926605504
+        "perc": 0.970873786407767
       },
       {
-        "did": 264567956,
-        "name": "balkonotdelka.ru",
-        "cnt": 7,
-        "it50": 1114,
-        "vis": 2,
-        "perc": 0.6283662477558348
+        "did": 30820538,
+        "name": "sbalkonom.ru",
+        "cnt": 9,
+        "it50": 1367,
+        "vis": 30,
+        "perc": 0.6583760058522312
       },
       {
         "did": 31763426,
         "name": "ardom.by",
         "cnt": 7,
-        "it50": 1016,
+        "it50": 1004,
         "vis": 14,
-        "perc": 0.6889763779527559
+        "perc": 0.6972111553784861
       },
       {
-        "did": 111860913,
-        "name": "balkonvmoskve.ru",
-        "cnt": 6,
-        "it50": 468,
-        "vis": 1,
-        "perc": 1.2820512820512822
+        "did": 264567956,
+        "name": "balkonotdelka.ru",
+        "cnt": 7,
+        "it50": 1096,
+        "vis": 3,
+        "perc": 0.6386861313868613
       },
       {
         "did": 29973307,
         "name": "asbalkon.ru",
         "cnt": 6,
-        "it50": 537,
+        "it50": 566,
         "vis": 1,
-        "perc": 1.1173184357541899
+        "perc": 1.0600706713780919
       },
       {
-        "did": 30219733,
-        "name": "okna-season.ru",
+        "did": 111860913,
+        "name": "balkonvmoskve.ru",
+        "cnt": 6,
+        "it50": 476,
+        "vis": 1,
+        "perc": 1.2605042016806722
+      },
+      {
+        "did": 30820435,
+        "name": "mosgor-balkon.ru",
         "cnt": 5,
-        "it50": 390,
-        "vis": 5,
-        "perc": 1.2820512820512822
+        "it50": 506,
+        "vis": 0,
+        "perc": 0.9881422924901186
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 0,
-    "it50": 38,
+    "it50": 36,
     "childsCount": 0,
     "keys": [
       {
@@ -161,11 +161,11 @@
     "topkeys": 1000000,
     "pages": [
       {
-        "url": "/otdelka-balkonov/shtukaturka",
+        "url": "/otdelka-balkonov/laminat-na-balkone",
         "it50": 5
       },
       {
-        "url": "/otdelka-balkonov/laminat-na-balkone",
+        "url": "/otdelka-balkonov/shtukaturka",
         "it50": 5
       },
       {
@@ -181,11 +181,11 @@
         "it50": 3
       },
       {
-        "url": "/okna/plastikovyie-okna/novotex",
+        "url": "/okna/plastikovyie-okna/veka/veka-softline",
         "it50": 2
       },
       {
-        "url": "/okna/plastikovyie-okna/veka/veka-softline",
+        "url": "/okna/plastikovyie-okna/novotex",
         "it50": 2
       },
       {
@@ -193,15 +193,15 @@
         "it50": 2
       },
       {
-        "url": "/okna/plastikovyie-okna/rehau/gzhel",
+        "url": "/okna/plastikovyie-okna/salamander/streamline",
         "it50": 2
       },
       {
-        "url": "/okna/plastikovyie-okna/salamander/streamline",
-        "it50": 2
+        "url": "/okna/plastikovyie-okna/deceuninck",
+        "it50": 1
       }
     ],
-    "pagesinindex": 17,
+    "pagesinindex": 16,
     "vis": 0,
     "topvis": 1000000,
     "adconcs": [],
@@ -435,8 +435,8 @@
         "it3": 0,
         "it5": 0,
         "it10": 0,
-        "it50": 38,
-        "pagesInIndex": 17,
+        "it50": 36,
+        "pagesInIndex": 16,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
@@ -449,7 +449,7 @@
         151,
         54,
         2,
-        38
+        0
       ],
       "2025.02": [
         253,
@@ -512,28 +512,28 @@
         135,
         77,
         4,
-        26
+        35
       ],
       "2025.11": [
         329,
         135,
         74,
         4,
-        37
+        34
       ],
       "2025.12": [
         348,
         135,
         76,
         4,
-        41
+        38
       ],
       "2026.01": [
         391,
         135,
         78,
         4,
-        42
+        39
       ],
       "2026.06": [
         392,

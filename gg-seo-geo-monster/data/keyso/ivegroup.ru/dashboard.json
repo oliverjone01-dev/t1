@@ -2,7 +2,7 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T05:54:58.308Z",
+  "measured": "2026-07-27T06:06:04.255Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
     "id": 30485583,
@@ -12,95 +12,95 @@
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 381,
-        "it50": 9916,
+        "cnt": 384,
+        "it50": 9896,
         "vis": 128,
-        "perc": 3.8422751109318276
+        "perc": 3.8803556992724335
       },
       {
         "did": 30134448,
         "name": "dvertsov.ru",
-        "cnt": 275,
-        "it50": 31281,
-        "vis": 1639,
-        "perc": 0.8791279051181228
+        "cnt": 269,
+        "it50": 31371,
+        "vis": 1611,
+        "perc": 0.8574798380670046
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
         "cnt": 252,
-        "it50": 2602,
-        "vis": 323,
-        "perc": 9.684857801691008
-      },
-      {
-        "did": 322813373,
-        "name": "lain-loft.ru",
-        "cnt": 214,
-        "it50": 6844,
-        "vis": 315,
-        "perc": 3.126826417299825
+        "it50": 2577,
+        "vis": 339,
+        "perc": 9.778812572759023
       },
       {
         "did": 80428092,
         "name": "fantasia-stekla.ru",
-        "cnt": 209,
-        "it50": 5095,
-        "vis": 101,
-        "perc": 4.102060843964671
+        "cnt": 221,
+        "it50": 5169,
+        "vis": 91,
+        "perc": 4.275488489069453
+      },
+      {
+        "did": 322813373,
+        "name": "lain-loft.ru",
+        "cnt": 216,
+        "it50": 6857,
+        "vis": 303,
+        "perc": 3.1500656263672164
       },
       {
         "did": 125649525,
         "name": "alfaporta.ru",
-        "cnt": 205,
-        "it50": 10182,
-        "vis": 2075,
-        "perc": 2.013356904340994
+        "cnt": 203,
+        "it50": 10590,
+        "vis": 2243,
+        "perc": 1.9169027384324833
+      },
+      {
+        "did": 30700481,
+        "name": "gstrong.ru",
+        "cnt": 181,
+        "it50": 3798,
+        "vis": 63,
+        "perc": 4.765666140073724
       },
       {
         "did": 30122289,
         "name": "dveri-academy.ru",
-        "cnt": 185,
-        "it50": 7962,
-        "vis": 257,
-        "perc": 2.3235367997990455
+        "cnt": 178,
+        "it50": 7967,
+        "vis": 267,
+        "perc": 2.2342161415840343
       },
       {
         "did": 80337046,
         "name": "dveriunas.ru",
-        "cnt": 183,
-        "it50": 25766,
-        "vis": 2903,
-        "perc": 0.7102382985329503
+        "cnt": 176,
+        "it50": 26334,
+        "vis": 3099,
+        "perc": 0.6683375104427737
       },
       {
         "did": 30329275,
         "name": "union.ru",
         "cnt": 173,
-        "it50": 8227,
-        "vis": 453,
-        "perc": 2.1028321380819253
-      },
-      {
-        "did": 30700481,
-        "name": "gstrong.ru",
-        "cnt": 169,
-        "it50": 3678,
-        "vis": 60,
-        "perc": 4.594888526373029
+        "it50": 8471,
+        "vis": 468,
+        "perc": 2.0422618344941568
       }
     ],
-    "it1": 11,
-    "it3": 50,
-    "it5": 71,
-    "it10": 132,
-    "it50": 1045,
+    "it1": 12,
+    "it3": 51,
+    "it5": 70,
+    "it10": 137,
+    "it50": 1034,
     "childsCount": 0,
     "keys": [
       {
-        "word": "окно в межкомнатной стене",
-        "ws": 72,
-        "wsk": 16,
+        "word": "окно внутреннее",
+        "ws": 25937,
+        "wsk": 8,
         "pos": 1
       },
       {
@@ -122,12 +122,6 @@
         "pos": 1
       },
       {
-        "word": "межкомнатные окна в стене",
-        "ws": 65,
-        "wsk": 4,
-        "pos": 1
-      },
-      {
         "word": "ive group",
         "ws": 29,
         "wsk": 4,
@@ -140,8 +134,14 @@
         "pos": 1
       },
       {
-        "word": "душевая для собак",
-        "ws": 112,
+        "word": "межкомнатные окна в стене",
+        "ws": 65,
+        "wsk": 4,
+        "pos": 1
+      },
+      {
+        "word": "окно в межкомнатной стене",
+        "ws": 59,
         "wsk": 2,
         "pos": 1
       },
@@ -158,52 +158,52 @@
         "pos": 1
       }
     ],
-    "topkeys": 227257,
+    "topkeys": 228789,
     "pages": [
       {
         "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno",
-        "it50": 88
+        "it50": 85
       },
       {
         "url": "/2023/10/06/arochnye-steklyannye-dveri",
-        "it50": 79
+        "it50": 77
       },
       {
         "url": "/stellazhi",
-        "it50": 74
+        "it50": 69
       },
       {
         "url": "/2023/02/05/moyka-dlya-sobak",
-        "it50": 65
+        "it50": 66
       },
       {
         "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri",
-        "it50": 60
+        "it50": 62
       },
       {
         "url": "/2023/02/12/materialy-peregorodok",
-        "it50": 59
+        "it50": 58
       },
       {
         "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka",
-        "it50": 57
+        "it50": 55
       },
       {
         "url": "/2021/03/22/steklyannyi-tambur-v-dom",
-        "it50": 50
+        "it50": 49
       },
       {
         "url": "/2023/02/17/peregorodki_s_matovymi_steklami",
-        "it50": 42
+        "it50": 45
       },
       {
         "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri-s-penalom",
-        "it50": 41
+        "it50": 38
       }
     ],
-    "pagesinindex": 56,
-    "vis": 7,
-    "topvis": 400459,
+    "pagesinindex": 57,
+    "vis": 6,
+    "topvis": 410615,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,16 +431,16 @@
         "aiCnt": 15
       },
       "2026.07": {
-        "it1": 11,
-        "it3": 50,
-        "it5": 71,
-        "it10": 132,
-        "it50": 1045,
-        "pagesInIndex": 56,
+        "it1": 12,
+        "it3": 51,
+        "it5": 70,
+        "it10": 137,
+        "it50": 1034,
+        "pagesInIndex": 57,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 7,
-        "aiCnt": 42
+        "visAvg": 6,
+        "aiCnt": 57
       }
     },
     "linksHistory": {
@@ -512,42 +512,42 @@
         127,
         111,
         4,
-        95
+        100
       ],
       "2025.11": [
         659,
         144,
         112,
         3,
-        82
+        108
       ],
       "2025.12": [
         720,
         160,
         118,
         4,
-        96
+        109
       ],
       "2026.01": [
         721,
         921,
         117,
         4,
-        95
+        111
       ],
       "2026.02": [
         725,
         1510,
         118,
         4,
-        95
+        110
       ],
       "2026.03": [
         719,
         1554,
         115,
         4,
-        95
+        110
       ],
       "2026.04": [
         719,
@@ -571,14 +571,14 @@
         334
       ],
       "2026.07": [
-        720,
-        1162,
-        114,
-        4,
+        718,
+        1105,
+        113,
+        5,
         334
       ]
     },
-    "aiAnswersCnt": 42,
+    "aiAnswersCnt": 57,
     "aiState": 10,
     "dr": 21,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/70e3a912fa6972e638ef77425c8d96f9b5763f6148c246533647387db1cf30c2.png",

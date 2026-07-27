@@ -1,66 +1,142 @@
 {
-  "updated": "2026-07-21T20:38:23.995Z",
+  "updated": "2026-07-27T06:04:21.519Z",
   "source": "keys.so",
   "db": "msk",
   "targets": [
     {
-      "domain": "make-loft.ru",
-      "brand": null,
-      "role": "competitor-peregorodki-price",
+      "domain": "genglass.ru",
+      "brand": "GENGLASS",
+      "role": "own",
       "reports": {
         "dashboard": "ok",
-        "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
+        "competitors": "ok",
+        "ad_history": "ok"
       }
     },
     {
-      "domain": "craftwall.ru",
+      "domain": "loftkrel.ru",
       "brand": null,
-      "role": "competitor-peregorodki-price",
+      "role": "competitor-peregorodki",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
-      "domain": "fdmebel.ru",
+      "domain": "ivegroup.ru",
       "brand": null,
-      "role": "competitor-peregorodki-price",
+      "role": "competitor-peregorodki",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
       }
     },
     {
-      "domain": "decus.spb.ru",
+      "domain": "loftcase.ru",
       "brand": null,
-      "role": "competitor-peregorodki-price",
+      "role": "competitor-peregorodki",
       "reports": {
         "dashboard": "ok",
         "competitors": "ok"
-      },
-      "deep": {
-        "organic_keywords": "ok",
-        "context_keywords": "ok",
-        "context_ads": "ok",
-        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "mosgor-okna.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "peregorodki-glass.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "vo-zavod.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "loft-peregorodki-spb.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "alfaporta.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "union.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "lain-loft.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "glasstroy.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "kelman-stroi.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "fantasia-stekla.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      }
+    },
+    {
+      "domain": "intereruyut.ru",
+      "brand": null,
+      "role": "competitor-peregorodki-discovered",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
       }
     }
   ]

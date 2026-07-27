@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T06:00:54.598Z",
+  "measured": "2026-07-27T06:11:14.190Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,95 +12,95 @@
       {
         "did": 30700481,
         "name": "gstrong.ru",
-        "cnt": 1470,
-        "it50": 3678,
-        "vis": 60,
-        "perc": 39.9673735725938
-      },
-      {
-        "did": 30773214,
-        "name": "zerist.ru",
-        "cnt": 1399,
-        "it50": 4459,
-        "vis": 64,
-        "perc": 31.37474770127831
+        "cnt": 1480,
+        "it50": 3798,
+        "vis": 63,
+        "perc": 38.967877830437075
       },
       {
         "did": 80428092,
         "name": "fantasia-stekla.ru",
-        "cnt": 1390,
-        "it50": 5095,
-        "vis": 101,
-        "perc": 27.281648675171734
+        "cnt": 1398,
+        "it50": 5169,
+        "vis": 91,
+        "perc": 27.045850261172376
       },
       {
-        "did": 30134448,
-        "name": "dvertsov.ru",
-        "cnt": 1278,
-        "it50": 31281,
-        "vis": 1639,
-        "perc": 4.085547137239858
+        "did": 30773214,
+        "name": "zerist.ru",
+        "cnt": 1393,
+        "it50": 4483,
+        "vis": 64,
+        "perc": 31.072942226187823
       },
       {
         "did": 30530484,
         "name": "priorglass.ru",
-        "cnt": 1250,
-        "it50": 7131,
-        "vis": 90,
-        "perc": 17.529098303183282
+        "cnt": 1278,
+        "it50": 7250,
+        "vis": 95,
+        "perc": 17.627586206896552
       },
       {
-        "did": 30199581,
-        "name": "glass-store.ru",
-        "cnt": 1249,
-        "it50": 8359,
-        "vis": 111,
-        "perc": 14.941978705586791
+        "did": 30134448,
+        "name": "dvertsov.ru",
+        "cnt": 1270,
+        "it50": 31371,
+        "vis": 1611,
+        "perc": 4.048324886041248
       },
       {
         "did": 30030622,
         "name": "169.ru",
-        "cnt": 1244,
-        "it50": 103392,
-        "vis": 7260,
-        "perc": 1.2031878675332714
+        "cnt": 1240,
+        "it50": 104065,
+        "vis": 7470,
+        "perc": 1.1915629654542832
+      },
+      {
+        "did": 30199581,
+        "name": "glass-store.ru",
+        "cnt": 1220,
+        "it50": 8261,
+        "vis": 112,
+        "perc": 14.768187870717831
       },
       {
         "did": 280352249,
         "name": "kelman-stroi.ru",
-        "cnt": 1192,
-        "it50": 9682,
-        "vis": 19,
-        "perc": 12.311505887213386
+        "cnt": 1205,
+        "it50": 9764,
+        "vis": 21,
+        "perc": 12.341253584596476
       },
       {
         "did": 30153427,
         "name": "perilaglavsnab.ru",
-        "cnt": 1130,
-        "it50": 12294,
-        "vis": 1199,
-        "perc": 9.19147551651212
+        "cnt": 1133,
+        "it50": 12327,
+        "vis": 1251,
+        "perc": 9.191206295124523
       },
       {
-        "did": 322813373,
-        "name": "lain-loft.ru",
-        "cnt": 1078,
-        "it50": 6844,
-        "vis": 315,
-        "perc": 15.751022793687902
+        "did": 258022726,
+        "name": "oknafactoria.ru",
+        "cnt": 1067,
+        "it50": 45727,
+        "vis": 1259,
+        "perc": 2.333413519364927
       }
     ],
-    "it1": 136,
-    "it3": 469,
-    "it5": 842,
-    "it10": 1980,
-    "it50": 9916,
+    "it1": 134,
+    "it3": 477,
+    "it5": 850,
+    "it10": 1963,
+    "it50": 9896,
     "childsCount": 1,
     "keys": [
       {
         "word": "раздвижные двери в беседку",
-        "ws": 416,
-        "wsk": 99,
+        "ws": 471,
+        "wsk": 101,
         "pos": 1
       },
       {
@@ -110,15 +110,15 @@
         "pos": 1
       },
       {
-        "word": "застеклённая веранда к дому",
-        "ws": 477,
-        "wsk": 79,
+        "word": "раздвижные двери для беседки",
+        "ws": 443,
+        "wsk": 85,
         "pos": 1
       },
       {
-        "word": "раздвижные двери для беседки",
-        "ws": 361,
-        "wsk": 78,
+        "word": "застеклённая веранда к дому",
+        "ws": 477,
+        "wsk": 79,
         "pos": 1
       },
       {
@@ -128,26 +128,26 @@
         "pos": 1
       },
       {
-        "word": "дверь гармошка стеклянная",
-        "ws": 408,
-        "wsk": 56,
-        "pos": 1
-      },
-      {
         "word": "дверь для беседки",
         "ws": 1703,
         "wsk": 56,
         "pos": 1
       },
       {
-        "word": "дверь террасная",
-        "ws": 1120,
-        "wsk": 51,
+        "word": "дверь гармошка стеклянная",
+        "ws": 408,
+        "wsk": 56,
         "pos": 1
       },
       {
-        "word": "терраса стеклянная к дому",
-        "ws": 267,
+        "word": "входная зона частного дома",
+        "ws": 864,
+        "wsk": 47,
+        "pos": 1
+      },
+      {
+        "word": "стеклянный забор",
+        "ws": 803,
         "wsk": 47,
         "pos": 1
       },
@@ -158,35 +158,35 @@
         "pos": 1
       }
     ],
-    "topkeys": 39784,
+    "topkeys": 39867,
     "pages": [
       {
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona",
-        "it50": 293
+        "it50": 289
       },
       {
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha",
-        "it50": 252
+        "it50": 242
       },
       {
         "url": "/price/peregorodki/dlya-komnat",
-        "it50": 186
+        "it50": 181
       },
       {
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome",
-        "it50": 166
+        "it50": 169
       },
       {
         "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy",
-        "it50": 147
+        "it50": 163
       },
       {
         "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo",
-        "it50": 115
+        "it50": 119
       },
       {
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti",
-        "it50": 114
+        "it50": 110
       },
       {
         "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu",
@@ -194,16 +194,16 @@
       },
       {
         "url": "/glass-partitions-for-home/steklyannye-bloki-osobennosti-raznovidnosti-i-sfera-primeneniya",
-        "it50": 102
+        "it50": 99
       },
       {
         "url": "/glass-walls/vitrazhnye-sistemy-ostekleniya-chto-eto-kak-vybrat-na-chto-obrashchat-vnimanie",
-        "it50": 94
+        "it50": 95
       }
     ],
-    "pagesinindex": 1077,
+    "pagesinindex": 1085,
     "vis": 128,
-    "topvis": 67381,
+    "topvis": 67535,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -224,7 +224,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 8,
+    "restop5": 9,
     "history": {
       "2025.02": {
         "it1": 92,
@@ -431,16 +431,16 @@
         "aiCnt": 472
       },
       "2026.07": {
-        "it1": 136,
-        "it3": 469,
-        "it5": 842,
-        "it10": 1980,
-        "it50": 9916,
-        "pagesInIndex": 1077,
+        "it1": 134,
+        "it3": 477,
+        "it5": 850,
+        "it10": 1963,
+        "it50": 9896,
+        "pagesInIndex": 1085,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 128,
-        "aiCnt": 1677
+        "aiCnt": 2917
       }
     },
     "linksHistory": {
@@ -512,42 +512,42 @@
         14330,
         448,
         18,
-        520
+        330
       ],
       "2025.11": [
         3489,
         15691,
         456,
         20,
-        543
+        334
       ],
       "2025.12": [
         3766,
         17124,
         471,
         21,
-        615
+        348
       ],
       "2026.01": [
         3784,
         17924,
         480,
         21,
-        616
+        347
       ],
       "2026.02": [
         3807,
         19291,
         477,
         24,
-        620
+        353
       ],
       "2026.03": [
         3764,
         19026,
         475,
         24,
-        620
+        353
       ],
       "2026.04": [
         3773,
@@ -572,13 +572,13 @@
       ],
       "2026.07": [
         3775,
-        18600,
-        477,
-        21,
-        1346
+        18545,
+        476,
+        20,
+        1347
       ]
     },
-    "aiAnswersCnt": 1677,
+    "aiAnswersCnt": 2917,
     "aiState": 10,
     "dr": 31,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

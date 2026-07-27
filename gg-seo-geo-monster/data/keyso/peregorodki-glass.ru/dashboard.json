@@ -2,7 +2,7 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-20T05:56:40.769Z",
+  "measured": "2026-07-27T06:07:47.711Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
     "id": 309180640,
@@ -13,90 +13,96 @@
         "did": 30202337,
         "name": "glasstroy.ru",
         "cnt": 110,
-        "it50": 9916,
+        "it50": 9896,
         "vis": 128,
-        "perc": 1.109318273497378
-      },
-      {
-        "did": 30670319,
-        "name": "oki-doki.ru",
-        "cnt": 99,
-        "it50": 1991,
-        "vis": 114,
-        "perc": 4.972375690607735
+        "perc": 1.1115602263540825
       },
       {
         "did": 30700481,
         "name": "gstrong.ru",
         "cnt": 97,
-        "it50": 3678,
-        "vis": 60,
-        "perc": 2.6373028820010873
+        "it50": 3798,
+        "vis": 63,
+        "perc": 2.553975776724592
       },
       {
-        "did": 278166136,
-        "name": "zavod-peregorodok.ru",
-        "cnt": 94,
-        "it50": 1246,
-        "vis": 34,
-        "perc": 7.54414125200642
+        "did": 30670319,
+        "name": "oki-doki.ru",
+        "cnt": 93,
+        "it50": 2039,
+        "vis": 119,
+        "perc": 4.561059342815105
       },
       {
         "did": 30773214,
         "name": "zerist.ru",
-        "cnt": 91,
-        "it50": 4459,
+        "cnt": 89,
+        "it50": 4483,
         "vis": 64,
-        "perc": 2.0408163265306123
+        "perc": 1.9852777158153023
       },
       {
-        "did": 272188389,
-        "name": "fdmebel.ru",
-        "cnt": 90,
-        "it50": 2602,
-        "vis": 323,
-        "perc": 3.458877786318217
-      },
-      {
-        "did": 322813373,
-        "name": "lain-loft.ru",
-        "cnt": 82,
-        "it50": 6844,
-        "vis": 315,
-        "perc": 1.1981297486849796
+        "did": 278166136,
+        "name": "zavod-peregorodok.ru",
+        "cnt": 84,
+        "it50": 1249,
+        "vis": 36,
+        "perc": 6.725380304243394
       },
       {
         "did": 30153427,
         "name": "perilaglavsnab.ru",
-        "cnt": 82,
-        "it50": 12294,
-        "vis": 1199,
-        "perc": 0.6669920286318529
+        "cnt": 83,
+        "it50": 12327,
+        "vis": 1251,
+        "perc": 0.6733187312403667
       },
       {
-        "did": 30530484,
-        "name": "priorglass.ru",
-        "cnt": 78,
-        "it50": 7131,
-        "vis": 90,
-        "perc": 1.093815734118637
+        "did": 272188389,
+        "name": "fdmebel.ru",
+        "cnt": 82,
+        "it50": 2577,
+        "vis": 339,
+        "perc": 3.1819945673263486
+      },
+      {
+        "did": 405727645,
+        "name": "lbspace.ru",
+        "cnt": 81,
+        "it50": 1424,
+        "vis": 25,
+        "perc": 5.688202247191011
+      },
+      {
+        "did": 322813373,
+        "name": "lain-loft.ru",
+        "cnt": 77,
+        "it50": 6857,
+        "vis": 303,
+        "perc": 1.122940061251276
       },
       {
         "did": 30425760,
         "name": "disaglass.ru",
-        "cnt": 78,
-        "it50": 2790,
+        "cnt": 75,
+        "it50": 2817,
         "vis": 12,
-        "perc": 2.795698924731183
+        "perc": 2.662406815761448
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 0,
-    "it50": 140,
+    "it50": 134,
     "childsCount": 0,
     "keys": [
+      {
+        "word": "стеклянные перегородки бу",
+        "ws": 72,
+        "wsk": 8,
+        "pos": 12
+      },
       {
         "word": "стеклянная перегородка на заказ",
         "ws": 592,
@@ -122,10 +128,10 @@
         "pos": 16
       },
       {
-        "word": "стеклянные перегородки купить",
-        "ws": 2283,
-        "wsk": 22,
-        "pos": 17
+        "word": "за перегородкой",
+        "ws": 11101,
+        "wsk": 0,
+        "pos": 16
       },
       {
         "word": "стеклянные перегородки в квартире для зонирования",
@@ -140,12 +146,6 @@
         "pos": 18
       },
       {
-        "word": "перегородки на заказ",
-        "ws": 2591,
-        "wsk": 35,
-        "pos": 20
-      },
-      {
         "word": "стеклянные перегородки для зонирования пространства в комнате",
         "ws": 106,
         "wsk": 33,
@@ -158,15 +158,15 @@
         "pos": 20
       }
     ],
-    "topkeys": 808825,
+    "topkeys": 828378,
     "pages": [
       {
         "url": "/",
-        "it50": 107
+        "it50": 102
       },
       {
         "url": "/our-works/loft-peregorodki",
-        "it50": 12
+        "it50": 11
       },
       {
         "url": "/our-works/skladnyie-peregorodki",
@@ -174,7 +174,7 @@
       },
       {
         "url": "/calculator",
-        "it50": 4
+        "it50": 3
       },
       {
         "url": "/our-works/peregorodki-dlya-zonirovaniya-komnat",
@@ -182,7 +182,7 @@
       },
       {
         "url": "/articles/mobilnyie-peregorodki-dlya-zonirovaniya-prostranstva",
-        "it50": 1
+        "it50": 2
       },
       {
         "url": "/our-works/mobilnyie-peregorodki",
@@ -435,12 +435,12 @@
         "it3": 0,
         "it5": 0,
         "it10": 0,
-        "it50": 140,
+        "it50": 134,
         "pagesInIndex": 12,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
-        "aiCnt": 8
+        "aiCnt": 12
       }
     },
     "linksHistory": {
@@ -565,13 +565,13 @@
       ],
       "2026.07": [
         0,
-        26,
+        28,
         0,
         2,
         0
       ]
     },
-    "aiAnswersCnt": 8,
+    "aiAnswersCnt": 12,
     "aiState": 0,
     "dr": 4,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/10df735f4ea2b936f65758356dd87113282d06ab4b80560bea1bf14626d01a24.png",

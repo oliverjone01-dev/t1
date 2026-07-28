@@ -1,161 +1,16 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-07-27",
- "visibility": 2,
- "ai_answers": 18,
- "keywords_total": 613,
- "top1": 2,
- "top3": 7,
- "top10": 49,
- "top50": 613,
- "top_pages": [
-  {
-   "url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva",
-   "keywords_top50": 70
-  },
-  {
-   "url": "/products/ritual-products/foto-iz-stekla",
-   "keywords_top50": 38
-  },
-  {
-   "url": "/",
-   "keywords_top50": 32
-  },
-  {
-   "url": "/products/ritual-products/pamyatniki-iz-stekla",
-   "keywords_top50": 31
-  },
-  {
-   "url": "/products/art/polki-iz-stekla",
-   "keywords_top50": 29
-  },
-  {
-   "url": "/products/loft-mebel/nozhki-dlya-stulev-metallicheskie",
-   "keywords_top50": 28
-  },
-  {
-   "url": "/konstruktor-pamyatnikov",
-   "keywords_top50": 20
-  },
-  {
-   "url": "/products/loft-mebel/peregorodki-iz-metalla",
-   "keywords_top50": 20
-  },
-  {
-   "url": "/products/loft-mebel/polki-loft-iz-trub",
-   "keywords_top50": 19
-  },
-  {
-   "url": "/products/loft-mebel/opora-dlya-stola-loft",
-   "keywords_top50": 17
-  }
- ],
- "ad_keywords": [
-  {
-   "phrase": "фото на стекле на памятнике",
-   "pos": 0,
-   "freq": 3817,
-   "url": ""
-  },
-  {
-   "phrase": "фото на памятник на стекле цена",
-   "pos": 0,
-   "freq": 455,
-   "url": ""
-  },
-  {
-   "phrase": "изготовление фото на стекле для памятников",
-   "pos": 0,
-   "freq": 13,
-   "url": ""
-  },
-  {
-   "phrase": "сфера санкт петербург фото на стекле",
-   "pos": 0,
-   "freq": 5,
-   "url": ""
-  },
-  {
-   "phrase": "фото в стекле",
-   "pos": 0,
-   "freq": 7114,
-   "url": ""
-  },
-  {
-   "phrase": "стеклянный портрет на памятник",
-   "pos": 1,
-   "freq": 69,
-   "url": ""
-  },
-  {
-   "phrase": "фото стекло на памятник",
-   "pos": 0,
-   "freq": 3817,
-   "url": ""
-  },
-  {
-   "phrase": "памятник стекло",
-   "pos": 0,
-   "freq": 7261,
-   "url": ""
-  },
-  {
-   "phrase": "фотография в стекле",
-   "pos": 1,
-   "freq": 1158,
-   "url": ""
-  },
-  {
-   "phrase": "фото под стеклом на памятник",
-   "pos": 0,
-   "freq": 207,
-   "url": ""
-  }
- ],
- "ad_competitors": [
-  {
-   "domain": "yandex.ru",
-   "common_ad_keywords": 4,
-   "ads_count": 197681,
-   "ad_keywords_count": 37832756,
-   "visibility": 23225297
-  },
-  {
-   "domain": "pamiatniky.ru",
-   "common_ad_keywords": 4,
-   "ads_count": 36,
-   "ad_keywords_count": 688,
-   "visibility": 17
-  },
-  {
-   "domain": "promsteklo.com",
-   "common_ad_keywords": 3,
-   "ads_count": 29,
-   "ad_keywords_count": 60,
-   "visibility": 33
-  },
-  {
-   "domain": "monument-nd.ru",
-   "common_ad_keywords": 3,
-   "ads_count": 275,
-   "ad_keywords_count": 1971,
-   "visibility": 97
-  },
-  {
-   "domain": "photoceramic.ru",
-   "common_ad_keywords": 3,
-   "ads_count": 29,
-   "ad_keywords_count": 79,
-   "visibility": 6
-  },
-  {
-   "domain": "foto-makeup.ru",
-   "common_ad_keywords": 3,
-   "ads_count": 347,
-   "ad_keywords_count": 1823,
-   "visibility": 0
-  }
- ],
+ "measured": "2026-07-28",
+ "visibility": null,
+ "ai_answers": null,
+ "keywords_total": 100,
+ "top1": 0,
+ "top3": 0,
+ "top10": 0,
+ "top50": 0,
+ "top_pages": [],
+ "ad_keywords": [],
+ "ad_competitors": [],
  "history": [
   {
    "date": "2026-07-10",
@@ -256,6 +111,11 @@
    "date": "2026-07-27",
    "visibility": 2,
    "top10": 49
+  },
+  {
+   "date": "2026-07-28",
+   "visibility": 0,
+   "top10": 0
   }
  ],
  "keywords": [
@@ -286,19 +146,19 @@
   {
    "phrase": "стекло фото",
    "pos": null,
-   "freq": 37733,
+   "freq": 44398,
    "url": ""
   },
   {
    "phrase": "сверло по мрамору",
    "pos": null,
-   "freq": 307,
+   "freq": 269,
    "url": ""
   },
   {
    "phrase": "столешница ясень",
    "pos": null,
-   "freq": 1213,
+   "freq": 1622,
    "url": ""
   },
   {
@@ -322,7 +182,7 @@
   {
    "phrase": "смоленское кладбище часы работы",
    "pos": null,
-   "freq": 510,
+   "freq": 682,
    "url": ""
   },
   {
@@ -371,6 +231,12 @@
    "phrase": "изготовление полок из стекла",
    "pos": null,
    "freq": 403,
+   "url": ""
+  },
+  {
+   "phrase": "укладка брусчатки технология",
+   "pos": null,
+   "freq": 2105,
    "url": ""
   },
   {
@@ -424,7 +290,7 @@
   {
    "phrase": "смоленское кладбище метро",
    "pos": null,
-   "freq": 1534,
+   "freq": 2029,
    "url": ""
   },
   {
@@ -472,7 +338,7 @@
   {
    "phrase": "сертолово кладбище",
    "pos": null,
-   "freq": 231,
+   "freq": 204,
    "url": ""
   },
   {
@@ -490,7 +356,13 @@
   {
    "phrase": "стеклянные картины",
    "pos": null,
-   "freq": 2053,
+   "freq": 1369,
+   "url": ""
+  },
+  {
+   "phrase": "гранит красный фото",
+   "pos": null,
+   "freq": 253,
    "url": ""
   },
   {
@@ -544,7 +416,7 @@
   {
    "phrase": "санкт петербург южное кладбище",
    "pos": null,
-   "freq": 4909,
+   "freq": 2810,
    "url": ""
   },
   {
@@ -635,12 +507,6 @@
    "phrase": "как установить памятник",
    "pos": null,
    "freq": 7276,
-   "url": ""
-  },
-  {
-   "phrase": "брусчатка это",
-   "pos": null,
-   "freq": 3090,
    "url": ""
   },
   {
@@ -740,6 +606,12 @@
    "url": ""
   },
   {
+   "phrase": "илики кладбище",
+   "pos": null,
+   "freq": 244,
+   "url": ""
+  },
+  {
    "phrase": "гранитех",
    "pos": null,
    "freq": 153,
@@ -754,7 +626,7 @@
   {
    "phrase": "северное кладбище санкт петербург",
    "pos": null,
-   "freq": 3565,
+   "freq": 2542,
    "url": ""
   },
   {
@@ -772,7 +644,7 @@
   {
    "phrase": "стеклянные полки под заказ",
    "pos": null,
-   "freq": 51,
+   "freq": 73,
    "url": ""
   },
   {
@@ -826,7 +698,7 @@
   {
    "phrase": "сверление мрамора",
    "pos": null,
-   "freq": 106,
+   "freq": 101,
    "url": ""
   },
   {
@@ -846,115 +718,108 @@
    "pos": null,
    "freq": 40,
    "url": ""
-  },
-  {
-   "phrase": "виды надгробных памятников",
-   "pos": null,
-   "freq": 147,
-   "url": ""
-  },
-  {
-   "phrase": "как выбрать памятник",
-   "pos": null,
-   "freq": 558,
-   "url": ""
   }
  ],
  "competitors": [
   {
-   "domain": "cherdak-masterskaya.ru",
-   "visibility": 203,
-   "common_keywords": 153,
+   "domain": "dzen.ru",
+   "visibility": 11988056,
+   "common_keywords": 16,
    "delta_visibility": 0
   },
   {
    "domain": "postament.ru",
-   "visibility": 2568,
-   "common_keywords": 139,
+   "visibility": 2524,
+   "common_keywords": 14,
+   "delta_visibility": -1.7
+  },
+  {
+   "domain": "livemaster.ru",
+   "visibility": 164323,
+   "common_keywords": 13,
    "delta_visibility": 0
   },
   {
-   "domain": "dymovskiy.ru",
-   "visibility": 673,
-   "common_keywords": 131,
+   "domain": "ru.pinterest.com",
+   "visibility": 2759935,
+   "common_keywords": 12,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "yandex.ru",
+   "visibility": 24389302,
+   "common_keywords": 10,
    "delta_visibility": 0
   },
   {
    "domain": "nisp.ru",
-   "visibility": 773,
-   "common_keywords": 126,
-   "delta_visibility": 0
+   "visibility": 587,
+   "common_keywords": 9,
+   "delta_visibility": -24.1
   },
   {
    "domain": "talkingstone.ru",
-   "visibility": 882,
-   "common_keywords": 126,
+   "visibility": 895,
+   "common_keywords": 8,
+   "delta_visibility": 1.5
+  },
+  {
+   "domain": "m.vk.com",
+   "visibility": 12639660,
+   "common_keywords": 8,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "glassphoto.ru",
+   "visibility": 11,
+   "common_keywords": 8,
+   "delta_visibility": 83.3
+  },
+  {
+   "domain": "wildberries.ru",
+   "visibility": 2681586,
+   "common_keywords": 8,
    "delta_visibility": 0
   },
   {
    "domain": "granitreal.ru",
    "visibility": 98,
-   "common_keywords": 119,
+   "common_keywords": 7,
    "delta_visibility": 0
   },
   {
-   "domain": "easyloft.net",
-   "visibility": 125,
-   "common_keywords": 102,
+   "domain": "pqd.ru",
+   "visibility": 1779,
+   "common_keywords": 6,
    "delta_visibility": 0
   },
   {
-   "domain": "iritual.ru",
-   "visibility": 52,
-   "common_keywords": 99,
+   "domain": "uslugi.yandex.ru",
+   "visibility": 355446,
+   "common_keywords": 6,
    "delta_visibility": 0
   },
   {
-   "domain": "danila-master.ru",
-   "visibility": 219,
-   "common_keywords": 94,
+   "domain": "grad-ex.ru",
+   "visibility": 116,
+   "common_keywords": 6,
    "delta_visibility": 0
   },
   {
-   "domain": "loft-mebel-dc.ru",
-   "visibility": 35,
-   "common_keywords": 92,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "glassphoto.ru",
-   "visibility": 6,
-   "common_keywords": 8,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "metalgm.ru",
-   "visibility": 0,
-   "common_keywords": 3,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "uvprint.ru",
-   "visibility": 3,
-   "common_keywords": 3,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "kpam3d.ru",
-   "visibility": 3,
-   "common_keywords": 3,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "l-glass.ru",
-   "visibility": 0,
-   "common_keywords": 2,
+   "domain": "monument-nd.ru",
+   "visibility": 93,
+   "common_keywords": 5,
    "delta_visibility": 0
   }
  ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],
-  "competitor_up": []
+  "competitor_up": [
+   {
+    "domain": "glassphoto.ru",
+    "delta": 83.3
+   }
+  ]
  }
 }

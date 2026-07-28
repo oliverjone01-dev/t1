@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-27",
+ "measured": "2026-07-28",
  "phrases": [
   {
    "phrase": "илики",
@@ -36,7 +36,7 @@
   {
    "phrase": "стекло фото",
    "pos": null,
-   "freq": 37733,
+   "freq": 44398,
    "url": "",
    "cluster": "стекло",
    "intent": "commercial"
@@ -44,7 +44,7 @@
   {
    "phrase": "сверло по мрамору",
    "pos": null,
-   "freq": 307,
+   "freq": 269,
    "url": "",
    "cluster": "сверло",
    "intent": "commercial"
@@ -52,7 +52,7 @@
   {
    "phrase": "столешница ясень",
    "pos": null,
-   "freq": 1213,
+   "freq": 1622,
    "url": "",
    "cluster": "столешница",
    "intent": "commercial"
@@ -84,7 +84,7 @@
   {
    "phrase": "смоленское кладбище часы работы",
    "pos": null,
-   "freq": 510,
+   "freq": 682,
    "url": "",
    "cluster": "смоленское",
    "intent": "commercial"
@@ -154,6 +154,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "укладка брусчатки технология",
+   "pos": null,
+   "freq": 2105,
+   "url": "",
+   "cluster": "укладка",
+   "intent": "commercial"
+  },
+  {
    "phrase": "glass furniture",
    "pos": null,
    "freq": 91,
@@ -220,7 +228,7 @@
   {
    "phrase": "смоленское кладбище метро",
    "pos": null,
-   "freq": 1534,
+   "freq": 2029,
    "url": "",
    "cluster": "смоленское",
    "intent": "commercial"
@@ -284,7 +292,7 @@
   {
    "phrase": "сертолово кладбище",
    "pos": null,
-   "freq": 231,
+   "freq": 204,
    "url": "",
    "cluster": "сертолово",
    "intent": "commercial"
@@ -308,9 +316,17 @@
   {
    "phrase": "стеклянные картины",
    "pos": null,
-   "freq": 2053,
+   "freq": 1369,
    "url": "",
    "cluster": "стеклянные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "гранит красный фото",
+   "pos": null,
+   "freq": 253,
+   "url": "",
+   "cluster": "гранит",
    "intent": "commercial"
   },
   {
@@ -380,7 +396,7 @@
   {
    "phrase": "санкт петербург южное кладбище",
    "pos": null,
-   "freq": 4909,
+   "freq": 2810,
    "url": "",
    "cluster": "санкт",
    "intent": "commercial"
@@ -504,14 +520,6 @@
    "url": "",
    "cluster": "установить",
    "intent": "informational"
-  },
-  {
-   "phrase": "брусчатка это",
-   "pos": null,
-   "freq": 3090,
-   "url": "",
-   "cluster": "брусчатка",
-   "intent": "commercial"
   },
   {
    "phrase": "благовещенское кладбище",
@@ -642,6 +650,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "илики кладбище",
+   "pos": null,
+   "freq": 244,
+   "url": "",
+   "cluster": "илики",
+   "intent": "commercial"
+  },
+  {
    "phrase": "гранитех",
    "pos": null,
    "freq": 153,
@@ -660,7 +676,7 @@
   {
    "phrase": "северное кладбище санкт петербург",
    "pos": null,
-   "freq": 3565,
+   "freq": 2542,
    "url": "",
    "cluster": "северное",
    "intent": "commercial"
@@ -684,7 +700,7 @@
   {
    "phrase": "стеклянные полки под заказ",
    "pos": null,
-   "freq": 51,
+   "freq": 73,
    "url": "",
    "cluster": "стеклянные",
    "intent": "transactional"
@@ -756,7 +772,7 @@
   {
    "phrase": "сверление мрамора",
    "pos": null,
-   "freq": 106,
+   "freq": 101,
    "url": "",
    "cluster": "сверление",
    "intent": "commercial"
@@ -784,22 +800,6 @@
    "url": "",
    "cluster": "шокша",
    "intent": "commercial"
-  },
-  {
-   "phrase": "виды надгробных памятников",
-   "pos": null,
-   "freq": 147,
-   "url": "",
-   "cluster": "виды",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "как выбрать памятник",
-   "pos": null,
-   "freq": 558,
-   "url": "",
-   "cluster": "выбрать",
-   "intent": "informational"
   }
  ]
 }

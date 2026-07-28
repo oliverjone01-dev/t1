@@ -1470,7 +1470,7 @@ function dataQualityBlock(){
     `<td style="text-align:center;${eBud(d)?'color:#F8717A;font-weight:700':''}">${fmtK(d.budget||0)}</td>`+
     `<td style="text-align:center;font-weight:800;color:${nP(d)>=2?'#CC5867':'#C2873C'}">${nP(d)}</td>`+
     `</tr>`).join("");
-  return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок с пропусками в карточке: не заполнен тип изделия у ${cCat}, тип клиента у ${cCli}, бюджет у ${cBud}. Дозаполни - от этого зависит точность отчётов. Клик по столбцу сортирует.</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 // ===== ДИСЦИПЛИНА ДЕЛ И СВЯЗЬ С КЛИЕНТОМ (личный блок менеджера) =====
@@ -1516,7 +1516,7 @@ function myTaskDisciplineBlock(){
   if(seg==='over')ds=open.filter(d=>cls(d)==='over');else if(seg==='none')ds=open.filter(d=>cls(d)==='none');else if(seg==='park')ds=open.filter(d=>cls(d)==='park');else if(seg==='ctrl')ds=open.filter(d=>cls(d)==='ctrl');else if(seg==='nolink')ds=open.filter(noLink);else if(seg==='every')ds=open.slice();
   ds.sort((a,b)=>ordC[cls(a)]-ordC[cls(b)]||(b.budget||0)-(a.budget||0));
   const body=ds.slice(0,300).map(d=>{const c=cls(d);return `<tr><td style="text-align:center">${dlc(d.id)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3);white-space:nowrap">${esc(d.stage||'')}</td><td style="text-align:center"><span style="font-size:10px;font-weight:700;color:${COL[c]}">${LBL[c]}</span></td><td style="text-align:left;font-size:11px;color:var(--ink-2)">${d.taskSubj?esc(d.taskSubj):'<span style="color:var(--ink-4)">-</span>'}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${dueCell(d)}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${touchCell(d,c==='ctrl')}</td><td style="text-align:right;font-size:11px">${fmtK(d.budget||0)}</td></tr>`;}).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--ink-4);padding:14px">по этому фильтру сделок нет</td></tr>`;
-  const _info=info('У каждой открытой сделки должно быть запланированное дело - оно двигает дату активности и не даёт сделке уйти в брошенные. Но дело - это только план: после него в таймлайне должно быть РЕАЛЬНОЕ касание (звонок с Манго, письмо/мессенджер из сделки). «Последнее касание» показывает, был ли факт связи; метка «без связи» - дело есть, а касания за 90 дней не было (имитация работы). Срок дела двигаем только после реального контакта с клиентом. Сделки на пост-продажных стадиях (в производстве, логистике, монтаже) помечены синим «на контроле»: продажа состоялась, это уже сопровождение сроков, а не дисциплина продаж - в счётчик проблем, в риск и в челлендж они не идут. Сделки на стадии «Долгострой» вынесены в отдельный блок ниже с мягким правилом по коммуникации.');
+  const _info=info('Все открытые сделки по состоянию дел: у каждой должно стоять запланированное дело, а после него - реальное касание клиента (звонок Манго, письмо, мессенджер). Цвет по сроку дела: просрочено, нет дела, припарковано (дело отодвинуто дальше 30 дней), в работе. Синее «на контроле» - сделка уже продана и ушла в производство, там дожимать нечего. Долгострой вынесен в соседнюю вкладку с мягким правилом. Вопрос: по каким сделкам нет следующего шага или менеджер давно не выходил на связь? Вывод: красные «просрочено» и «нет дела» - поставь дело и позвони; «без связи» - дело есть, а контакта нет 90 дней, это имитация работы; срок дела двигай только после реального касания.');
   const _ctrlSub=tCtrl?` · <span style="color:#38BDF8;font-weight:700">${tCtrl} на контроле</span>`:'';
   return `<div class="card" id="mytaskdisc"><div class="card-h"><div><div class="card-title">Дисциплина дел и связь с клиентом ${_info}</div><div class="card-sub"><b style="color:#F8717A;font-size:13px">${fmt(tProb)} требуют внимания</b> из ${fmt(open.length)} открытых${_ctrlSub}</div></div></div>
     <div style="margin:8px 0 4px">${bar}</div>${chips}
@@ -1581,13 +1581,19 @@ function challengeWidget(){
   const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
   // «Проблемная» открытая сделка: нет дела, дело просрочено, или дело есть, а реального касания
   // за 90 дней не было. Живая = дело на срок и был контакт. Челлендж - доля живых сделок.
-  const isProb=d=>{const c=cls(d);return c==='none'||c==='over'||(d.taskDue&&!d.lastTouch);};
+  // Челлендж за ЧИСТОТУ CRM: та же логика, что «Сделки для исправления» (заполнены ли
+  // бюджет, категория/тип изделия, тип клиента у сделок, дошедших до предложения).
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
+  const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
+  const eBud=d=>(d.budget||0)<=1;
+  const isDirty=d=>eCat(d)||eCli(d)||eBud(d);
   // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
   const CHAL_EXCLUDE=new Set(["Ольга Лысенко"]);
   // Пост-продажные стадии (производство/логистика/монтаж) в челлендж не идут: продажа состоялась,
   // это уже сопровождение, а не дисциплина активных продаж - иначе рейтинг искажается.
-  const openAll=(ALL_DEALS||[]).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&!PROD_STAGES.includes(d.stageCode));
-  const byM={};openAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0};m.tot++;if(isProb(d))m.bad++;});
+  const scope=(ALL_DEALS||[]).filter(d=>!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
+  const byM={};scope.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0};m.tot++;if(isDirty(d))m.bad++;});
   const all=Object.values(byM);
   // Порог объёма: медаль честная у тех, у кого ≥ FLOOR открытых сделок (иначе 1-2 идеальные
   // сделки дают незаслуженный подиум). Порог мягко снижаем, если участников мало.
@@ -1608,21 +1614,21 @@ function challengeWidget(){
     `<span style="width:20px;text-align:center;font-size:14px">${medal(m.rank)||m.rank}</span>`+
     `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
     `<span style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${Math.round(m.clean*100)}%</span>`+
-    `<span data-tip="сколько открытых сделок без дела/просрочено/без связи (0 - всё живое)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+    `<span data-tip="сколько сделок надо дозаполнить в CRM (0 - всё чисто)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
   const meOut=(me&&me.rank>3)?`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>${line(me,true)}`:'';
   const _trow=(l,t)=>`<div style="margin:5px 0 0;line-height:1.4"><b style="color:#22D3EE">${l}:</b> ${t}</div>`;
-  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Дисциплина дел»</div>`+
-    _trow('Как считаем','доля живых сделок среди открытых: есть дело на срок и было реальное касание с клиентом')+
-    _trow('Что такое «проблема»','нет дела, дело просрочено, или дело есть, а звонка/письма/мессенджера за 90 дней не было')+
-    _trow('В зачёт идут','менеджеры с ≥'+FLOOR+' открытых сделок')+
-    _trow('Цифра справа','сколько открытых сделок надо разобрать')+
-    _trow('Цель','100% живых - на каждой сделке реальный следующий шаг и контакт')+
-    _trow('Твоя задача','поставь дела и свяжись с клиентами, двигай срок только после контакта')).replace(/"/g,'&quot;');
-  const cta=(me&&me.bad>0)?`разбери свои ${me.bad}`:(me?'у тебя всё живое ✓':'к списку');
+  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Порядок в CRM»</div>`+
+    _trow('Как считаем','доля сделок с чисто заполненной карточкой среди дошедших до предложения: заполнены бюджет, тип изделия и тип клиента')+
+    _trow('Что такое «проблема»','в карточке не заполнен бюджет, тип изделия (категория) или тип клиента')+
+    _trow('В зачёт идут','менеджеры с ≥'+FLOOR+' сделок, дошедших до предложения')+
+    _trow('Цифра справа','сколько сделок надо дозаполнить в CRM')+
+    _trow('Цель','100% чистых карточек - тогда аналитика по деньгам, изделиям и клиентам точная')+
+    _trow('Твоя задача','дозаполни бюджет, тип изделия и тип клиента в красных сделках')).replace(/"/g,'&quot;');
+  const cta=(me&&me.bad>0)?`дозаполни свои ${me.bad}`:(me?'карточки чистые ✓':'к списку');
   const badge=(me&&me.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.bad}</span>`:(me?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
   return `<div id="crmChallenge" style="position:fixed;right:14px;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px);transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform">`+
-    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Дисциплина дел · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Порядок в CRM · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
     top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
     `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на разбор ↓</button>`+
     `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;
@@ -2821,7 +2827,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeToggle')){S.chalMin=!S.chalMin;render();return;}});
-  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('mytaskdisc')||document.getElementById('dqfix');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
+  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('dqfix')||document.getElementById('mytaskdisc');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
   document.addEventListener('click',e=>{const mp=e.target.closest('[data-mtdprob]');if(mp){S.mtdProb=mp.dataset.mtdprob;render();return;}});
   document.addEventListener('click',e=>{const lb=e.target.closest('[data-lbseg]');if(lb){S.lbSeg=lb.dataset.lbseg;render();return;}});
   document.addEventListener('click',e=>{const tv=e.target.closest('[data-taskview]');if(tv){S.taskView=tv.dataset.taskview;render();return;}});

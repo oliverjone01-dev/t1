@@ -237,7 +237,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="brand"><b>GENGLASS · Менеджер ОП</b><span>Личный дашборд · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span></div>
 </div>
 <div class="controls">
-  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
+  <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created">дате создания</button><button data-b="outcome" class="on">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу. На раздел 4 «Передача в производство» НЕ влияет: предоплаты и передачи там считаются по событиям стадий и не зависят от способа признания выручки.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
   <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
@@ -298,7 +298,7 @@ const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Нека�
 // Расчёты, id{N}. Уволенный/действующий сотрудник - это ЕСТЬ ответственный, сюда не входит.
 const noOwner=n=>/систем|^id\s?\d|^расч[её]т/i.test(n||'');
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'outcome',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
@@ -2307,18 +2307,23 @@ function mgrStats(){
   const days=Math.max(1,Math.round((_PDx(re)-_PDx(rs))/DAYMS)+1);
   const elapsed=Math.max(1,Math.min(days,Math.round((_PDx(re<today?re:today)-_PDx(rs))/DAYMS)+1));
   const wipAt=(sc,t)=>sc.filter(d=>{const f=_firstOffer(d);if(!f||f.slice(0,10)>t)return false;const ex=_enterExec(d),lo=_enterLoseAny(d);return !((ex&&ex.slice(0,10)<=t)||(lo&&lo.slice(0,10)<=t));});
-  const sucA=passed.filter(d=>inR(_enterExec(d))),loseA=passed.filter(d=>inR(_enterLoseOff(d)));
+  // Тумблер S.dateBasis: outcome (по дате ПРОДАЖИ, дефолт менеджерского дашборда) - предоплата/
+  // отказ по дате СОБЫТИЯ; created (по дате СОЗДАНИЯ) - когорта сделок, созданных в периоде.
+  const OUTC=S.dateBasis!=='created';
+  const createdIn=d=>d.created&&d.created.slice(0,10)>=rs&&d.created.slice(0,10)<=re;
+  const sucA=OUTC?passed.filter(d=>inR(_enterExec(d))):passed.filter(d=>createdIn(d)&&_enterExec(d));
+  const loseA=OUTC?passed.filter(d=>inR(_enterLoseOff(d))):passed.filter(d=>createdIn(d)&&_enterLoseOff(d));
   const suc=sucA.length,rev=sucA.reduce((s,d)=>s+(d.budget||0),0),chk=suc?Math.round(rev/suc):0; // её средний чек = выручка ÷ предоплаты
   // Конверсия = успех ÷ портфель, В ПЕРЕСЧЁТЕ НА МЕСЯЦ (÷ число месяцев в окне), чтобы план был
   // ЕДИНЫЙ 15% на день/неделю/месяц. Пол 7 дн - чтобы дневной вид не давал спайков ×30.
   const _moN=Math.max(days,7)/30;
-  const wip=wipAt(passed,re).length,cr=wip?(suc/wip)/_moN:0,proj=Math.round(suc/elapsed*days);
+  const wip=wipAt(passed,re).length,_cohort=passed.filter(createdIn).length,cr=OUTC?(wip?(suc/wip)/_moN:0):(_cohort?suc/_cohort:0),proj=Math.round(suc/elapsed*days);
   const mDays=days,mEl=elapsed; // для совместимости с потребителями (прогноз/темп по диапазону)
   const mStart=rs; // старт диапазона
   // отдел (та же формула, тот же диапазон, тот же снимок портфеля на конец)
   const dPassed=ALL_DEALS.filter(d=>(d.hist||[]).some(h=>_MO.has(h[0]))&&isOP(d.mgr));
-  const dSuc=dPassed.filter(d=>inR(_enterExec(d)));
-  const dWip=wipAt(dPassed,re).length,dCr=dWip?(dSuc.length/dWip)/_moN:0;
+  const dSuc=OUTC?dPassed.filter(d=>inR(_enterExec(d))):dPassed.filter(d=>createdIn(d)&&_enterExec(d));
+  const dWip=wipAt(dPassed,re).length,_dCohort=dPassed.filter(createdIn).length,dCr=OUTC?(dWip?(dSuc.length/dWip)/_moN:0):(_dCohort?dSuc.length/_dCohort:0);
   const dLive=dWip; // живой портфель отдела на конец диапазона (для доли)
   // чек отдела: средний (mean) и медиана; базис - тумблер S.chkBasis (по умолчанию средний)
   const dEx=dPassed.filter(d=>_enterExec(d)).map(d=>d.budget||0).filter(v=>v>0);
@@ -2343,10 +2348,10 @@ function mgrStats(){
   // Название периода по длине диапазона - для заголовков «План-факт … за <период>».
   const periodLabel=days<=1?'день':days<=8?'неделю':(days>=26&&days<=31)?'месяц':'период ('+fmt(days)+' дн)';
   const lossCap=Math.round(wip*0.6*factor),loseProj=Math.round(loseA.length/mEl*mDays); // потолок отказов = портфель × 60%, порезано под диапазон
-  return {live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),wip,suc,sucM:rev,lose:loseA.length,lossCap,loseProj,cr,chk,proj,mEl,mDays,periodLabel,days,dCr,checkP:avgCheck,dMean,dMed,basis,planRev,totalSales,dLive,share,capacity,target,targetFloored,revTarget};
+  return {mode:OUTC?'outcome':'created',live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),wip,suc,sucM:rev,lose:loseA.length,lossCap,loseProj,cr,chk,proj,mEl,mDays,periodLabel,days,dCr,checkP:avgCheck,dMean,dMed,basis,planRev,totalSales,dLive,share,capacity,target,targetFloored,revTarget};
 }
 function managerHeaderBlock(){
-  return `<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title" style="font-size:18px">${esc(MANAGER)} · менеджер отдела продаж</div><div class="card-sub">личная эффективность и план-факт · оффер-воронка (КП / Решение / Долгострой → предоплата) · период сверху</div></div></div></div>`;
+  return `<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title" style="font-size:18px">${esc(MANAGER)} · менеджер отдела продаж</div><div class="card-sub">личная эффективность и план-факт · оффер-воронка (КП / Решение / Долгострой → предоплата) · период сверху · режим: ${S.dateBasis!=='created'?'по дате продажи':'по дате создания'}</div></div></div></div>`;
 }
 function managerKpiBlock(MS){
   const pc=MS.checkP;
@@ -2395,7 +2400,7 @@ function managerDynBlock(){
   const bStartOf=k=>eg==='month'?k+'-01':k;
   // Успех в интервале ÷ портфель на конец, В ПЕРЕСЧЁТЕ НА МЕСЯЦ (÷ длину интервала в месяцах,
   // пол 7 дн), чтобы линия сравнивалась с ЕДИНОЙ целью 15%/мес на любой гранулярности.
-  const per=ds=>dk.map(k=>{const be=bEnd(k),bs0=bStartOf(k),bs=bs0>S.start?bs0:S.start,port=wipAt(ds,be),bDays=Math.max(7,Math.round((_PDx(be)-_PDx(bs))/DAYMS)+1),moB=bDays/30,su=ds.filter(d=>{const e=_enterExec(d);return e&&e.slice(0,10)>=bs&&e.slice(0,10)<=be;}).length;return {conv:port?(su/port)/moB:null,su,port};});
+  const per=ds=>dk.map(k=>{const be=bEnd(k),bs0=bStartOf(k),bs=bs0>S.start?bs0:S.start,port=wipAt(ds,be),bDays=Math.max(7,Math.round((_PDx(be)-_PDx(bs))/DAYMS)+1),moB=bDays/30,su=ds.filter(d=>{if(S.dateBasis!=='created'){const e=_enterExec(d);return e&&e.slice(0,10)>=bs&&e.slice(0,10)<=be;}const c=d.created;return c&&c.slice(0,10)>=bs&&c.slice(0,10)<=be&&_enterExec(d);}).length;return {conv:port?(su/port)/moB:null,su,port};});
   const me=per(DATA.deals),dp=per(ALL_DEALS);
   const planCr=0.15; // единая цель 15%/мес (не режется под интервал - метрика приведена к месяцу)
   const glabOne=eg==='day'?'день':eg==='week'?'неделю':'месяц';

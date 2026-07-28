@@ -249,21 +249,11 @@ jobs:
           git show origin/rop-dashboard-v1:analytics-mvp/rop/data/rop.json > /tmp/mgr/analytics-mvp/rop/data/rop.json
           ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/mgr/analytics-mvp/node_modules
           cd /tmp/mgr/analytics-mvp
-          printf '%s\n' \
-            "Юлия Лысанова|lysanova" \
-            "Татьяна Лакомова|lakomova" \
-            "Юлия Шура-Бура|shura-bura" \
-            "Алина Платонова|platonova" \
-            "Ольга Маслова|maslova" \
-          | while IFS='|' read -r NAME SLUG; do
-              [ -z "$NAME" ] && continue
-              MANAGER_NAME="$NAME" MANAGER_OUT="public/manager-$SLUG.html" npx tsx src/scripts/b24/build-manager.ts
-              mkdir -p "$GITHUB_WORKSPACE/_site/rop-$SLUG"
-              cp "public/manager-$SLUG.html" "$GITHUB_WORKSPACE/_site/rop-$SLUG/index.html"
-              MSTAMP=$(grep -o '"bakedAt":"[^"]*"' "public/manager-$SLUG.html" | head -1 | cut -d'"' -f4)
-              printf '%s' "$MSTAMP" > "$GITHUB_WORKSPACE/_site/rop-$SLUG/v.txt"
-              echo "Менеджер $NAME -> /rop-$SLUG/ ($MSTAMP)"
-            done
+          # Авто-ростер: собираем ВСЕХ активных менеджеров ОП из единого rop.json одним
+          # скриптом. Список берётся из данных (как opUsers), слаги = транслит фамилии,
+          # пишет _site/rop-<slug>/index.html + v.txt. Новый менеджер в Bitrix -> дашборд
+          # появляется сам, без правки этого файла. MIN_DEALS отсекает исторических призраков.
+          OUT_DIR="$GITHUB_WORKSPACE/_site" MIN_DEALS=5 node src/scripts/b24/build-managers-all.mjs
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

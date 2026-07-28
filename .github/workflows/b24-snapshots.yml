@@ -1,0 +1,106 @@
+name: B24 snapshots (РОП, прямой Bitrix)
+
+# Ежедневный автосинк данных Bitrix24 для РОП- и менеджерских дашбордов - БЕЗ участия человека.
+#
+# ВАЖНО про расписание: GitHub запускает `schedule` ТОЛЬКО из файла на дефолтной ветке (main).
+# Раньше этот workflow жил лишь на rop-dashboard-v1, поэтому cron не срабатывал ни разу - данные
+# обновлялись только при ручном пуше. Теперь он на main => cron идёт сам каждый день.
+#
+# Единый источник данных - ветка rop-dashboard-v1 (эталон /rop/). Workflow независимо от триггера
+# ЯВНО чекаутит и коммитит rop-dashboard-v1 (там же лежат fetch-rop/build-rop и шаблоны), затем
+# дёргает deploy-pages, который пересобирает /rop/ и всех менеджеров из этого же rop.json.
+#
+# ROP_DATE_FROM: пусто = вся история (выбор Ивана 2026-06-25).
+
+on:
+  workflow_dispatch:
+    inputs:
+      date_from:
+        description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
+        required: false
+  schedule:
+    - cron: "17 5 * * *" # ~08:17 МСК ежедневно
+
+concurrency:
+  group: b24-rop-data
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: write # чтобы после свежего снимка дёрнуть deploy-pages (публикация /rop/ и менеджеров)
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru # домен портала для кликабельных ID (не секрет)
+  DATA_BRANCH: rop-dashboard-v1 # единый источник данных РОП + менеджеров
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      # Чекаутим ИМЕННО ветку данных (не main): там fetch-rop/build-rop, шаблоны и rop.json.
+      # Полная история нужна для корректного rebase-push при гонке снимков.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DATA_BRANCH }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте. ROP_DATE_FROM='${ROP_DATE_FROM:-}'"
+
+      - name: Снимок Bitrix -> rop/data/rop.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-rop.ts
+          echo "Размер данных: $(du -h rop/data/rop.json | cut -f1)"
+
+      - name: Запечь РОП-дашборд (build-rop) -> public/rop-command.html
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/build-rop.ts
+          echo "Дашборд: $(du -h public/rop-command.html | cut -f1)"
+
+      - name: Commit в ветку данных (если есть изменения)
+        id: commit
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/rop/data analytics-mvp/public/rop-command.html
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "data(rop): снимок Bitrix24 + дашборд $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1
+
+      # Свежие данные доехали в ветку данных - публикуем /rop/ и всех менеджеров.
+      # deploy-pages пересобирает менеджеров из этого же rop.json (build-managers-all).
+      - name: Триггер деплоя (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        working-directory: .
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация запрошена (deploy-pages, ref=main)."

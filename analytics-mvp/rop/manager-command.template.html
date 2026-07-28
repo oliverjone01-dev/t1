@@ -1483,37 +1483,42 @@ function myTaskDisciplineBlock(){
   const now=NOWD.getTime(), PARK=30;
   const open=(AD||[]).filter(d=>!d.won&&!d.lost);
   if(!open.length) return '';
-  const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
-  const COL={none:'#8794A5',over:'#CC5867',park:'#C2873C',ok:'#2E9E74'};
-  const LBL={none:'нет дела',over:'просрочено',park:'припарковано',ok:'в работе'};
-  const noLink=d=>d.taskDue&&!d.lastTouch;
-  let tN=0,tNone=0,tOver=0,tPark=0,tOk=0,tNoLink=0,tRisk=0;
-  open.forEach(d=>{const c=cls(d);tN++;if(c==='none')tNone++;else if(c==='over')tOver++;else if(c==='park')tPark++;else tOk++;if(c!=='ok')tRisk+=(d.budget||0);if(noLink(d))tNoLink++;});
-  const tProb=tNone+tOver+tPark;
+  // Пост-продажные стадии (в производстве / логистике / монтаже) = состояние «на контроле» (синий):
+  // продажа состоялась, деньги в кассе, дальше идёт сопровождение сроков, а не продажа. Просрочку
+  // дела здесь НЕ считаем проблемой дисциплины и не гоним в счётчики риска и в челлендж - менеджеру
+  // не за что отвлекаться, но сделки остаются видны в таблице отдельным синим фильтром.
+  const cls=d=>{if(PROD_STAGES.includes(d.stageCode))return 'ctrl';if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
+  const COL={none:'#8794A5',over:'#CC5867',park:'#C2873C',ok:'#2E9E74',ctrl:'#38BDF8'};
+  const LBL={none:'нет дела',over:'просрочено',park:'припарковано',ok:'в работе',ctrl:'на контроле'};
+  const noLink=d=>d.taskDue&&!d.lastTouch&&cls(d)!=='ctrl';
+  let tN=0,tNone=0,tOver=0,tPark=0,tOk=0,tCtrl=0,tNoLink=0,tRisk=0;
+  open.forEach(d=>{const c=cls(d);tN++;if(c==='none')tNone++;else if(c==='over')tOver++;else if(c==='park')tPark++;else if(c==='ctrl')tCtrl++;else tOk++;if(c!=='ok'&&c!=='ctrl')tRisk+=(d.budget||0);if(noLink(d))tNoLink++;});
+  const tProb=tNone+tOver+tPark, preN=tN-tCtrl;
   const CHC={call:'#3DAEC2',msg:'#2E9E74',email:'#C2873C'};
   const CH=DATA.channelMix||null, myCh=CH?CH[MANAGER]:null;
   const chS=(()=>{if(!myCh)return null;const call=(myCh.call_in||0)+(myCh.call_out||0),msg=(myCh.msg_in||0)+(myCh.msg_out||0),email=(myCh.email_in||0)+(myCh.email_out||0);const tot=call+msg+email;if(!tot)return null;const lead=call>=msg&&call>=email?'звонки':msg>=email?'мессенджеры':'почта';return {call,msg,email,tot,lead};})();
   // структура портфеля по состоянию дел
   const sg=(v,c,lab)=>v?`<div title="${lab}: ${v}" style="height:100%;width:${(v/tN*100).toFixed(2)}%;background:${c}"></div>`:'';
-  const bar=`<div style="display:flex;height:18px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">${sg(tOver,COL.over,'просрочено')}${sg(tNone,COL.none,'нет дела')}${sg(tPark,COL.park,'припарковано')}${sg(tOk,COL.ok,'в работе')}</div>`;
-  const leg=[['over',tOver],['none',tNone],['park',tPark],['ok',tOk]].map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-3)"><i style="width:9px;height:9px;border-radius:2px;background:${COL[k]};display:inline-block"></i>${LBL[k]} <b style="color:var(--ink-2)">${v}</b></span>`).join('<span style="color:var(--ink-4)">·</span>');
+  const bar=`<div style="display:flex;height:18px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">${sg(tOver,COL.over,'просрочено')}${sg(tNone,COL.none,'нет дела')}${sg(tPark,COL.park,'припарковано')}${sg(tOk,COL.ok,'в работе')}${sg(tCtrl,COL.ctrl,'на контроле')}</div>`;
+  const leg=[['over',tOver],['none',tNone],['park',tPark],['ok',tOk],['ctrl',tCtrl]].filter(([,v])=>v).map(([k,v])=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-3)"><i style="width:9px;height:9px;border-radius:2px;background:${COL[k]};display:inline-block"></i>${LBL[k]} <b style="color:var(--ink-2)">${v}</b></span>`).join('<span style="color:var(--ink-4)">·</span>');
   // мой канальный микс
   const chBar=chS?(()=>{const s2=(v,c)=>v?`<div style="height:100%;width:${(v/chS.tot*100).toFixed(2)}%;background:${c}"></div>`:'';return `<div style="margin-top:10px"><div class="card-sub" style="margin-bottom:4px">Мои каналы за 90 дней · чаще: <b style="color:var(--ink-2)">${chS.lead}</b> · звонки ${chS.call} · письма ${chS.email} · мессенджеры ${chS.msg}</div><div style="display:flex;height:14px;border-radius:5px;overflow:hidden;border:1px solid var(--border)">${s2(chS.call,CHC.call)}${s2(chS.msg,CHC.msg)}${s2(chS.email,CHC.email)}</div></div>`;})():(CH?'':'<div class="card-sub" style="margin-top:8px">Каналы коммуникации готовятся из Bitrix.</div>');
   // фильтр-чипы
   const seg=S.mtdProb||'all';
   const chip=(k,lab,n,col)=>{const on=seg===k;return `<span data-mtdprob="${k}" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 10px;border-radius:11px;white-space:nowrap;border:1px solid ${on?col:'var(--border)'};background:${on?col+'22':'transparent'};color:${on?col:'var(--ink-3)'}">${lab} <b>${n}</b></span>`;};
-  const chips=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px">${chip('all','Все проблемные',tProb,'#22D3EE')}${chip('over','Просрочено',tOver,COL.over)}${chip('none','Без дела',tNone,COL.none)}${chip('nolink','Без связи',tNoLink,'#CC5867')}</div>`;
+  const chips=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px">${chip('all','Все проблемные',tProb,'#22D3EE')}${chip('over','Просрочено',tOver,COL.over)}${chip('none','Без дела',tNone,COL.none)}${chip('nolink','Без связи',tNoLink,'#CC5867')}${tCtrl?chip('ctrl','На контроле',tCtrl,COL.ctrl):''}</div>`;
   // список сделок
   const portal=DATA.b24Portal||'',dlc=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
-  const dueCell=d=>{if(!d.taskDue)return '<span style="color:#8794A5">нет дела</span>';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);const dd=d.taskDue.slice(8,10)+'.'+d.taskDue.slice(5,7)+'.'+d.taskDue.slice(0,4);const c=cls(d);const suf=dy<0?`просрочено на ${-dy} дн`:`через ${dy} дн`;return `<span style="color:${COL[c]};font-weight:700">${dd}</span> <span style="color:var(--ink-4);font-size:10px">${suf}</span>`;};
-  const touchCell=d=>{if(!d.lastTouch)return '<span style="color:#CC5867;font-weight:700">касаний нет</span> <span style="color:var(--ink-4);font-size:10px">90+ дн</span>';const dy=Math.round((now-PD2(d.lastTouch).getTime())/DAYMS);const col=dy<=7?'#2E9E74':dy<=30?'#C2873C':'#CC5867';const dd=d.lastTouch.slice(8,10)+'.'+d.lastTouch.slice(5,7);return `<span style="color:${col};font-weight:700">${dy} дн назад</span> <span style="color:var(--ink-4);font-size:10px">${dd}</span>`;};
-  const ordC={over:0,none:1,park:2,ok:3};
-  let ds=open.filter(d=>cls(d)!=='ok');
-  if(seg==='over')ds=open.filter(d=>cls(d)==='over');else if(seg==='none')ds=open.filter(d=>cls(d)==='none');else if(seg==='park')ds=open.filter(d=>cls(d)==='park');else if(seg==='nolink')ds=open.filter(noLink);
+  const dueCell=d=>{const c=cls(d);if(!d.taskDue)return c==='ctrl'?'<span style="color:var(--ink-4)">—</span>':'<span style="color:#8794A5">нет дела</span>';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);const dd=d.taskDue.slice(8,10)+'.'+d.taskDue.slice(5,7)+'.'+d.taskDue.slice(0,4);const suf=c==='ctrl'?(dy<0?`план ${-dy} дн назад`:`план через ${dy} дн`):(dy<0?`просрочено на ${-dy} дн`:`через ${dy} дн`);return `<span style="color:${COL[c]};font-weight:700">${dd}</span> <span style="color:var(--ink-4);font-size:10px">${suf}</span>`;};
+  const touchCell=(d,ctrl)=>{if(!d.lastTouch)return ctrl?'<span style="color:var(--ink-4)">—</span>':'<span style="color:#CC5867;font-weight:700">касаний нет</span> <span style="color:var(--ink-4);font-size:10px">90+ дн</span>';const dy=Math.round((now-PD2(d.lastTouch).getTime())/DAYMS);const col=dy<=7?'#2E9E74':dy<=30?'#C2873C':'#CC5867';const dd=d.lastTouch.slice(8,10)+'.'+d.lastTouch.slice(5,7);return `<span style="color:${col};font-weight:700">${dy} дн назад</span> <span style="color:var(--ink-4);font-size:10px">${dd}</span>`;};
+  const ordC={over:0,none:1,park:2,ctrl:3,ok:4};
+  let ds=open.filter(d=>{const c=cls(d);return c!=='ok'&&c!=='ctrl';});
+  if(seg==='over')ds=open.filter(d=>cls(d)==='over');else if(seg==='none')ds=open.filter(d=>cls(d)==='none');else if(seg==='park')ds=open.filter(d=>cls(d)==='park');else if(seg==='ctrl')ds=open.filter(d=>cls(d)==='ctrl');else if(seg==='nolink')ds=open.filter(noLink);
   ds.sort((a,b)=>ordC[cls(a)]-ordC[cls(b)]||(b.budget||0)-(a.budget||0));
-  const body=ds.slice(0,300).map(d=>{const c=cls(d),nl=noLink(d);return `<tr><td style="text-align:center">${dlc(d.id)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3);white-space:nowrap">${esc(d.stage||'')}</td><td style="text-align:center"><span style="font-size:10px;font-weight:700;color:${COL[c]}">${LBL[c]}</span>${nl?' <span style="font-size:9px;font-weight:700;color:#CC5867">· без связи</span>':''}</td><td style="text-align:left;font-size:11px;color:var(--ink-2)">${d.taskSubj?esc(d.taskSubj):'<span style="color:var(--ink-4)">-</span>'}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${dueCell(d)}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${touchCell(d)}</td><td style="text-align:right;font-size:11px">${fmtK(d.budget||0)}</td></tr>`;}).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--ink-4);padding:14px">по этому фильтру сделок нет</td></tr>`;
-  const _info=info('У каждой открытой сделки должно быть запланированное дело - оно двигает дату активности и не даёт сделке уйти в брошенные. Но дело - это только план: после него в таймлайне должно быть РЕАЛЬНОЕ касание (звонок с Манго, письмо/мессенджер из сделки). «Последнее касание» показывает, был ли факт связи; метка «без связи» - дело есть, а касания за 90 дней не было (имитация работы). Срок дела двигаем только после реального контакта с клиентом.');
-  return `<div class="card" id="mytaskdisc"><div class="card-h"><div><div class="card-title">Дисциплина дел и связь с клиентом ${_info}</div><div class="card-sub">${fmt(open.length)} открытых сделок · <span style="color:#F8717A;font-weight:700">${pct(tN?tProb/tN:0)} с проблемой по делам</span> · <span style="color:#CC5867;font-weight:700">${tNoLink} без реального касания</span></div></div></div>
+  const body=ds.slice(0,300).map(d=>{const c=cls(d),nl=noLink(d);return `<tr><td style="text-align:center">${dlc(d.id)}</td><td style="text-align:left;font-size:11px;color:var(--ink-3);white-space:nowrap">${esc(d.stage||'')}</td><td style="text-align:center"><span style="font-size:10px;font-weight:700;color:${COL[c]}">${LBL[c]}</span>${nl?' <span style="font-size:9px;font-weight:700;color:#CC5867">· без связи</span>':''}</td><td style="text-align:left;font-size:11px;color:var(--ink-2)">${d.taskSubj?esc(d.taskSubj):'<span style="color:var(--ink-4)">-</span>'}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${dueCell(d)}</td><td style="text-align:center;font-size:11px;white-space:nowrap">${touchCell(d,c==='ctrl')}</td><td style="text-align:right;font-size:11px">${fmtK(d.budget||0)}</td></tr>`;}).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--ink-4);padding:14px">по этому фильтру сделок нет</td></tr>`;
+  const _info=info('У каждой открытой сделки должно быть запланированное дело - оно двигает дату активности и не даёт сделке уйти в брошенные. Но дело - это только план: после него в таймлайне должно быть РЕАЛЬНОЕ касание (звонок с Манго, письмо/мессенджер из сделки). «Последнее касание» показывает, был ли факт связи; метка «без связи» - дело есть, а касания за 90 дней не было (имитация работы). Срок дела двигаем только после реального контакта с клиентом. Сделки на пост-продажных стадиях (в производстве, логистике, монтаже) помечены синим «на контроле»: продажа состоялась, это уже сопровождение сроков, а не дисциплина продаж - в счётчик проблем, в риск и в челлендж они не идут.');
+  const _ctrlSub=tCtrl?` · <span style="color:#38BDF8;font-weight:700">${tCtrl} на контроле</span>`:'';
+  return `<div class="card" id="mytaskdisc"><div class="card-h"><div><div class="card-title">Дисциплина дел и связь с клиентом ${_info}</div><div class="card-sub">${fmt(open.length)} открытых сделок · <span style="color:#F8717A;font-weight:700">${pct(preN?tProb/preN:0)} с проблемой по делам</span> · <span style="color:#CC5867;font-weight:700">${tNoLink} без реального касания</span>${_ctrlSub}</div></div></div>
     <div style="margin:6px 0 2px">${bar}<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:7px">${leg}</div></div>${chBar}${chips}
     <div class="scroll" style="max-height:460px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th><th style="text-align:left">Стадия</th><th style="text-align:center">Состояние</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:center">Срок дела</th><th style="text-align:center">Последнее касание</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
@@ -1530,7 +1535,9 @@ function challengeWidget(){
   const isProb=d=>{const c=cls(d);return c==='none'||c==='over'||(d.taskDue&&!d.lastTouch);};
   // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
   const CHAL_EXCLUDE=new Set(["Ольга Лысенко"]);
-  const openAll=(ALL_DEALS||[]).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr));
+  // Пост-продажные стадии (производство/логистика/монтаж) в челлендж не идут: продажа состоялась,
+  // это уже сопровождение, а не дисциплина активных продаж - иначе рейтинг искажается.
+  const openAll=(ALL_DEALS||[]).filter(d=>!d.won&&!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&!PROD_STAGES.includes(d.stageCode));
   const byM={};openAll.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0};m.tot++;if(isProb(d))m.bad++;});
   const all=Object.values(byM);
   // Порог объёма: медаль честная у тех, у кого ≥ FLOOR открытых сделок (иначе 1-2 идеальные

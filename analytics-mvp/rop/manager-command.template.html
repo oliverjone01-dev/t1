@@ -826,7 +826,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   if(typeof MANAGER!=='undefined'&&MANAGER){
     const MS=mgrStats();
-    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+myTaskDisciplineBlock()+myLongbuildBlock()+dataQualityBlock()+challengeWidget();
+    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+myTaskCombinedBlock()+dataQualityBlock()+challengeWidget();
     document.getElementById('root').innerHTML=h;freshStamp();
     // Авто-задвижение челленджа: показать сейчас, через 10 сек простоя уехать вправо (полоска с медалями).
     clearTimeout(window.__ct);{const _e=document.getElementById('crmChallenge')||document.getElementById('crmChallengeToggle');if(_e){_e.style.transition='transform .45s cubic-bezier(.4,0,.2,1)';_e.style.transform='translateX(0)';_e.style.opacity='1';}}
@@ -1451,8 +1451,8 @@ function dataQualityBlock(){
   const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
   const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
   const eBud=d=>(d.budget||0)<=1;
-  const nP=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
-  const rows=passed.filter(d=>nP(d)>0);
+  const nP=d=>(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
+  const rows=passed.filter(d=>!d.lost&&nP(d)>0);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const _info=info('Сделки, дошедшие до предложения, у которых в CRM не заполнено важное: причина отказа (для отказных), категория (ассортимент), тип клиента, либо бюджет 0/1 - при отправленном КП цена должна быть выше 1. Вопрос: где дыры в данных, из-за которых статистика неполная? Вывод: заполни пропуски (красное «нет»), иначе отчёты врут; клик по заголовку столбца - сортировка.');
   if(!rows.length)return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div></div></div><div style="text-align:center;padding:28px 16px"><div style="font-size:42px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:17px;color:#2E9E74;margin-top:8px">В CRM порядок - все сделки заполнены</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.5">Причина отказа, категория, тип клиента и бюджет проставлены везде. Отличная дисциплина ведения сделок - так держать!</div></div></div>`;
@@ -1466,12 +1466,11 @@ function dataQualityBlock(){
   const body=sorted.slice(0,300).map(d=>`<tr>`+
     `<td style="text-align:center">${dl(d.id)}</td>`+
     `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(d.stage||'')}</td>`+
-    `<td style="text-align:center;${eRsn(d)?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${d.lost?(eRsn(d)?'нет':esc(d.reason)):'—'}</td>`+
     miss(eCat(d),d.assort)+miss(eCli(d),d.client)+
     `<td style="text-align:center;${eBud(d)?'color:#F8717A;font-weight:700':''}">${fmtK(d.budget||0)}</td>`+
     `<td style="text-align:center;font-weight:800;color:${nP(d)>=2?'#CC5867':'#C2873C'}">${nP(d)}</td>`+
     `</tr>`).join("");
-  return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="dqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления ${_info}</div><div class="card-sub">${fmt(rows.length)} сделок надо поправить в CRM · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div><div class="scroll" style="max-height:440px;margin-top:6px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('stage','Стадия','left')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 // ===== ДИСЦИПЛИНА ДЕЛ И СВЯЗЬ С КЛИЕНТОМ (личный блок менеджера) =====
@@ -1561,6 +1560,16 @@ function myLongbuildBlock(){
   return `<div class="card" id="mylongbuild"><div class="card-h"><div><div class="card-title">Долгострой: постановка дел и коммуникация ${_info}</div><div class="card-sub"><b style="color:#F8717A;font-size:13px">${fmt(tProb)} требуют действия</b> из ${fmt(tN)} на Долгострое${tProb?' ('+fmtK(tProbM)+' ₽)':''} · <span style="color:#38BDF8">${tWait} ждут срока</span></div></div></div>
     <div style="margin:8px 0 4px">${bar}</div>${chips}
     <div class="scroll" style="max-height:460px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th><th style="text-align:center">Состояние</th><th style="text-align:left">Ближайшее дело</th><th style="text-align:center">Срок дела</th><th style="text-align:center">Последнее касание</th><th style="text-align:right">Бюджет</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
+// ===== ОБЪЕДИНЁННЫЙ ВИДЖЕТ: переключатель Дисциплина дел / Долгострой =====
+// Оба блока - таблицы открытых сделок с чипами-состояниями. Объединены в одну карточку с
+// вкладками сверху, чтобы не растягивать дашборд и не путать менеджера двумя похожими блоками.
+function myTaskCombinedBlock(){
+  const view=S.taskView||'disc';
+  const tab=(k,lab)=>`<button data-taskview="${k}" style="background:${view===k?'var(--accent-soft)':'transparent'};color:${view===k?'var(--accent)':'var(--ink-3)'};border:0;font:inherit;font-size:12.5px;font-weight:700;padding:7px 16px;cursor:pointer;border-radius:7px;white-space:nowrap;transition:.15s">${lab}</button>`;
+  const tabs=`<div class="seg" style="display:inline-flex;margin-bottom:10px">${tab('disc','Дисциплина дел')}${tab('longbuild','Долгострой')}</div>`;
+  return `<div>${tabs}${view==='disc'?myTaskDisciplineBlock():myLongbuildBlock()}</div>`;
 }
 
 // ===== ЧЕЛЛЕНДЖ «Дисциплина дел»: ТОП-3 менеджеров по доле живых сделок (дело + касание) =====
@@ -2815,6 +2824,7 @@ function buildShell(){
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('mytaskdisc')||document.getElementById('dqfix');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
   document.addEventListener('click',e=>{const mp=e.target.closest('[data-mtdprob]');if(mp){S.mtdProb=mp.dataset.mtdprob;render();return;}});
   document.addEventListener('click',e=>{const lb=e.target.closest('[data-lbseg]');if(lb){S.lbSeg=lb.dataset.lbseg;render();return;}});
+  document.addEventListener('click',e=>{const tv=e.target.closest('[data-taskview]');if(tv){S.taskView=tv.dataset.taskview;render();return;}});
   // Авто-задвижение челленджа: после 10 сек без наведения виджет уезжает вправо, оставляя
   // полоску с эмодзи-медалями; при наведении - выезжает обратно. Работает и на свёрнутом бейдже.
   document.addEventListener('mouseover',e=>{if(e.target.closest&&e.target.closest('#crmChallenge, #crmChallengeToggle')){clearTimeout(window.__ct);const _e=document.getElementById('crmChallenge')||document.getElementById('crmChallengeToggle');if(_e){_e.style.transform='translateX(0)';_e.style.opacity='1';}}});

@@ -1589,7 +1589,7 @@ function challengeWidget(){
   const eBud=d=>(d.budget||0)<=1;
   const isDirty=d=>eCat(d)||eCli(d)||eBud(d);
   // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
-  const CHAL_EXCLUDE=new Set(["Ольга Лысенко"]);
+  const CHAL_EXCLUDE=new Set(["Ольга Лысенко","Алёна Кубанова"]);
   // Пост-продажные стадии (производство/логистика/монтаж) в челлендж не идут: продажа состоялась,
   // это уже сопровождение, а не дисциплина активных продаж - иначе рейтинг искажается.
   const scope=(ALL_DEALS||[]).filter(d=>!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));

@@ -44,26 +44,57 @@
     <div>
       <div class="kicker">GENGROUP · Казначейство</div>
       <h1>Точка Банк - остаток и поступления</h1>
-      <div class="sub">Ежедневный синк расчётных счетов</div>
+      <div class="sub">Ежедневный синк расчётных счетов · операционный день 29.07.2026</div>
     </div>
-    <div class="badge wait"><span class="p"></span> Ожидание первого синка</div>
+    <div class="badge ok"><span class="p"></span> Синк активен</div>
   </div>
 
   
-  <div class="empty">
-    <div class="big">🏦</div>
-    <b style="color:var(--text)">Пайплайн готов, данные ещё не загружены</b><br>
-    <span>Добавь секреты доступа Точки в репозиторий и запусти воркфлоу «Tochka snapshots» - панель заполнится остатком и поступлениями за день.</span>
-    <div class="mono muted" style="margin-top:16px;font-size:12px;text-align:left;max-width:520px;margin-inline:auto;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px">
-      Secrets: TOCHKA_TOKEN &nbsp;<span style="color:var(--muted2)">(или)</span>&nbsp; TOCHKA_REFRESH_TOKEN + TOCHKA_CLIENT_ID + TOCHKA_CLIENT_SECRET<br>
-      Scope: чтение счетов + выписок (read-only)
-    </div>
+  <div class="cards">
+    <div class="stat"><div class="k">Остаток по всем счетам</div><div class="v">931,11 <small>₽</small></div></div>
+    <div class="stat hl"><div class="k">Поступления за день</div><div class="v">+0 <small>₽</small></div></div>
+    <div class="stat"><div class="k">Платежей-поступлений</div><div class="v">0</div></div>
+    <div class="stat"><div class="k">Счетов</div><div class="v">3</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h2><span class="bar"></span>Остаток, динамика</h2><div class="muted" style="padding:20px 0">Недостаточно истории для графика (нужно ≥2 дня синка).</div><div class="muted" style="font-size:12px;margin-top:6px">1 дн. истории</div></div>
+    <div class="card"><h2><span class="bar"></span>Поступления, динамика</h2><div class="muted" style="padding:20px 0">Недостаточно истории для графика (нужно ≥2 дня синка).</div><div class="muted" style="font-size:12px;margin-top:6px">по операционным дням</div></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="bar"></span>Расчётные счета</h2>
+    <table><thead><tr><th>Счёт</th><th class="num">Остаток</th><th class="num">Поступлений</th><th class="num">Сумма прихода</th></tr></thead>
+    <tbody>
+  <tr>
+    <td><b>Personal</b><div class="muted mono" style="font-size:11.5px">12345123451234512345/044525104</div></td>
+    <td class="num"><b>310,37</b> <span class="muted">RUB</span></td>
+    <td class="num">0</td>
+    <td class="num" style="color:var(--ok)">+0</td>
+  </tr>
+  <tr>
+    <td><b>Personal</b><div class="muted mono" style="font-size:11.5px">12345678901234567890/044525104</div></td>
+    <td class="num"><b>310,37</b> <span class="muted">RUB</span></td>
+    <td class="num">0</td>
+    <td class="num" style="color:var(--ok)">+0</td>
+  </tr>
+  <tr>
+    <td><b>Personal</b><div class="muted mono" style="font-size:11.5px">12345810901234567890/044525104</div></td>
+    <td class="num"><b>310,37</b> <span class="muted">RUB</span></td>
+    <td class="num">0</td>
+    <td class="num" style="color:var(--ok)">+0</td>
+  </tr></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2><span class="bar"></span>Поступления за 29.07.2026</h2>
+    <div class="muted" style="padding:8px 0">За этот день поступлений не зафиксировано.</div>
   </div>
 
   <div class="foot">
-    Собрано 2026-07-24T08:54:28.132Z · источник: Точка Банк Open API (RUB) · read-only, без хранения токенов в клиенте.<br>
+    Собрано 2026-07-29T08:43:50.880Z · источник: Точка Банк Open API (RUB) · read-only, без хранения токенов в клиенте.<br>
     Данные обновляет воркфлоу «Tochka snapshots» (ежедневный cron). Публикация: deploy-pages.yml → /tochka/.
   </div>
 </div>
-<script>window.__BAKED_AT="2026-07-24T08:54:28.132Z";</script>
+<script>window.__BAKED_AT="2026-07-29T08:43:50.880Z";</script>
 </body></html>

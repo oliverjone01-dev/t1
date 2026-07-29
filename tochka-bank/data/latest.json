@@ -1,9 +1,59 @@
 {
-  "fetchedAt": null,
-  "day": null,
+  "fetchedAt": "2026-07-29T08:43:49.611Z",
+  "day": "2026-07-29",
+  "sandbox": true,
   "currency": "RUB",
-  "pending": true,
-  "balanceTotal": 0,
-  "accounts": [],
-  "incoming": { "count": 0, "total": 0, "items": [] }
+  "accounts": [
+    {
+      "accountId": "12345123451234512345/044525104",
+      "number": "",
+      "currency": "RUB",
+      "name": "Personal",
+      "type": "Personal",
+      "balance": 310.37,
+      "balanceAt": "2026-07-29T08:43:49.729979+00:00",
+      "balanceType": "OpeningAvailable",
+      "incoming": {
+        "count": 0,
+        "total": 0,
+        "items": []
+      }
+    },
+    {
+      "accountId": "12345678901234567890/044525104",
+      "number": "",
+      "currency": "RUB",
+      "name": "Personal",
+      "type": "Personal",
+      "balance": 310.37,
+      "balanceAt": "2026-07-29T08:43:50.136338+00:00",
+      "balanceType": "OpeningAvailable",
+      "incoming": {
+        "count": 0,
+        "total": 0,
+        "items": []
+      }
+    },
+    {
+      "accountId": "12345810901234567890/044525104",
+      "number": "",
+      "currency": "RUB",
+      "name": "Personal",
+      "type": "Personal",
+      "balance": 310.37,
+      "balanceAt": "2026-07-29T08:43:50.504870+00:00",
+      "balanceType": "OpeningAvailable",
+      "incoming": {
+        "count": 0,
+        "total": 0,
+        "items": []
+      }
+    }
+  ],
+  "incoming": {
+    "count": 0,
+    "total": 0,
+    "items": []
+  },
+  "balanceTotal": 931.11
 }

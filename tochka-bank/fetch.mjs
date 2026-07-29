@@ -196,7 +196,9 @@ async function getStatement(token, accountId, from, to) {
 // ---- main -------------------------------------------------------------------
 async function main() {
   const day = process.argv[2] || todayUTC(0); // операционный день (МСК), по умолчанию сегодня
-  const from = `${day}T00:00:00Z`, to = `${day}T23:59:59Z`;
+  // Точка требует "exact dates" (нулевое время) в выписке: даты формата YYYY-MM-DD,
+  // иначе Validation Error "Datetimes ... should have zero time". Диапазон включает day.
+  const from = day, to = day;
   const token = await getToken();
 
   const accJson = await api(ob(`/accounts${CFG.customerCode ? `?customerCode=${encodeURIComponent(CFG.customerCode)}` : ""}`), { token });

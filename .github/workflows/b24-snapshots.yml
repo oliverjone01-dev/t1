@@ -19,7 +19,8 @@ on:
         description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
         required: false
   schedule:
-    - cron: "17 5 * * *" # ~08:17 МСК ежедневно
+    - cron: "20 2 * * *" # запрос 05:20 МСК. GitHub задерживает schedule на 1-3 ч, поэтому ставим
+                         # рано: даже с задержкой снимок+деплой успевают ДО 9:00 МСК (требование Ивана)
 
 concurrency:
   group: b24-rop-data

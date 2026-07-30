@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-29",
+ "measured": "2026-07-30",
  "phrases": [
   {
    "phrase": "кладбище московская славянка",
@@ -7,14 +7,6 @@
    "freq": 160,
    "url": "",
    "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "всеволожское кладбище",
-   "pos": null,
-   "freq": 958,
-   "url": "",
-   "cluster": "всеволожское",
    "intent": "commercial"
   },
   {
@@ -132,7 +124,7 @@
   {
    "phrase": "фото гранита",
    "pos": null,
-   "freq": 21700,
+   "freq": 22159,
    "url": "",
    "cluster": "фото",
    "intent": "commercial"
@@ -290,6 +282,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "формы памятников",
+   "pos": null,
+   "freq": 5239,
+   "url": "",
+   "cluster": "формы",
+   "intent": "commercial"
+  },
+  {
    "phrase": "гранит блю перл",
    "pos": null,
    "freq": 281,
@@ -304,14 +304,6 @@
    "url": "",
    "cluster": "крест",
    "intent": "transactional"
-  },
-  {
-   "phrase": "мебель из стекла",
-   "pos": null,
-   "freq": 617,
-   "url": "",
-   "cluster": "мебель",
-   "intent": "commercial"
   },
   {
    "phrase": "как добраться до северного кладбища спб",
@@ -413,14 +405,6 @@
    "phrase": "кладбище в озерках",
    "pos": null,
    "freq": 85,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище 9 января",
-   "pos": null,
-   "freq": 2793,
    "url": "",
    "cluster": "кладбище",
    "intent": "commercial"
@@ -800,6 +784,22 @@
    "url": "",
    "cluster": "какой",
    "intent": "informational"
+  },
+  {
+   "phrase": "краска по граниту для памятников",
+   "pos": null,
+   "freq": 113,
+   "url": "",
+   "cluster": "краска",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "месторождение возрождение",
+   "pos": null,
+   "freq": 260,
+   "url": "",
+   "cluster": "месторождение",
+   "intent": "commercial"
   }
  ]
 }

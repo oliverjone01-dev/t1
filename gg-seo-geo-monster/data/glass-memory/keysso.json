@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-07-29",
+ "measured": "2026-07-30",
  "visibility": null,
  "ai_answers": null,
  "keywords_total": 100,
@@ -121,6 +121,11 @@
    "date": "2026-07-29",
    "visibility": 0,
    "top10": 0
+  },
+  {
+   "date": "2026-07-30",
+   "visibility": 0,
+   "top10": 0
   }
  ],
  "keywords": [
@@ -128,12 +133,6 @@
    "phrase": "кладбище московская славянка",
    "pos": null,
    "freq": 160,
-   "url": ""
-  },
-  {
-   "phrase": "всеволожское кладбище",
-   "pos": null,
-   "freq": 958,
    "url": ""
   },
   {
@@ -223,7 +222,7 @@
   {
    "phrase": "фото гранита",
    "pos": null,
-   "freq": 21700,
+   "freq": 22159,
    "url": ""
   },
   {
@@ -341,6 +340,12 @@
    "url": ""
   },
   {
+   "phrase": "формы памятников",
+   "pos": null,
+   "freq": 5239,
+   "url": ""
+  },
+  {
    "phrase": "гранит блю перл",
    "pos": null,
    "freq": 281,
@@ -350,12 +355,6 @@
    "phrase": "крест на могилу купить в спб",
    "pos": null,
    "freq": 97,
-   "url": ""
-  },
-  {
-   "phrase": "мебель из стекла",
-   "pos": null,
-   "freq": 617,
    "url": ""
   },
   {
@@ -434,12 +433,6 @@
    "phrase": "кладбище в озерках",
    "pos": null,
    "freq": 85,
-   "url": ""
-  },
-  {
-   "phrase": "кладбище 9 января",
-   "pos": null,
-   "freq": 2793,
    "url": ""
   },
   {
@@ -723,96 +716,108 @@
    "pos": null,
    "freq": 181,
    "url": ""
+  },
+  {
+   "phrase": "краска по граниту для памятников",
+   "pos": null,
+   "freq": 113,
+   "url": ""
+  },
+  {
+   "phrase": "месторождение возрождение",
+   "pos": null,
+   "freq": 260,
+   "url": ""
   }
  ],
  "competitors": [
   {
-   "domain": "m.avito.ru",
-   "visibility": 4483084,
-   "common_keywords": 28,
-   "delta_visibility": 0
-  },
-  {
    "domain": "dzen.ru",
-   "visibility": 11880045,
+   "visibility": 11877615,
    "common_keywords": 16,
-   "delta_visibility": -0.9
+   "delta_visibility": 0
   },
   {
    "domain": "postament.ru",
-   "visibility": 2519,
+   "visibility": 2481,
    "common_keywords": 14,
-   "delta_visibility": -0.2
+   "delta_visibility": -1.5
   },
   {
    "domain": "livemaster.ru",
-   "visibility": 164951,
+   "visibility": 164801,
    "common_keywords": 13,
-   "delta_visibility": 0.4
+   "delta_visibility": -0.1
   },
   {
    "domain": "ru.pinterest.com",
-   "visibility": 2764543,
+   "visibility": 2774034,
    "common_keywords": 12,
-   "delta_visibility": 0.2
+   "delta_visibility": 0.3
   },
   {
    "domain": "yandex.ru",
-   "visibility": 24331603,
+   "visibility": 24355113,
    "common_keywords": 10,
-   "delta_visibility": -0.2
+   "delta_visibility": 0.1
   },
   {
    "domain": "nisp.ru",
-   "visibility": 568,
+   "visibility": 544,
    "common_keywords": 9,
-   "delta_visibility": -3.2
-  },
-  {
-   "domain": "wildberries.ru",
-   "visibility": 2687425,
-   "common_keywords": 8,
-   "delta_visibility": 0.2
-  },
-  {
-   "domain": "talkingstone.ru",
-   "visibility": 890,
-   "common_keywords": 8,
-   "delta_visibility": -0.6
-  },
-  {
-   "domain": "m.vk.com",
-   "visibility": 12568429,
-   "common_keywords": 8,
-   "delta_visibility": -0.6
-  },
-  {
-   "domain": "easyloft.net",
-   "visibility": 136,
-   "common_keywords": 8,
-   "delta_visibility": 0
+   "delta_visibility": -4.2
   },
   {
    "domain": "glassphoto.ru",
-   "visibility": 11,
+   "visibility": 10,
    "common_keywords": 8,
+   "delta_visibility": -9.1
+  },
+  {
+   "domain": "wildberries.ru",
+   "visibility": 2680635,
+   "common_keywords": 8,
+   "delta_visibility": -0.3
+  },
+  {
+   "domain": "talkingstone.ru",
+   "visibility": 881,
+   "common_keywords": 8,
+   "delta_visibility": -1
+  },
+  {
+   "domain": "m.vk.com",
+   "visibility": 12469837,
+   "common_keywords": 8,
+   "delta_visibility": -0.8
+  },
+  {
+   "domain": "granitreal.ru",
+   "visibility": 96,
+   "common_keywords": 7,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "grad-ex.ru",
+   "visibility": 108,
+   "common_keywords": 6,
    "delta_visibility": 0
   },
   {
    "domain": "pqd.ru",
-   "visibility": 1796,
+   "visibility": 1773,
    "common_keywords": 6,
-   "delta_visibility": 1
+   "delta_visibility": -1.3
   },
   {
    "domain": "uslugi.yandex.ru",
-   "visibility": 355695,
+   "visibility": 355781,
    "common_keywords": 6,
-   "delta_visibility": 0.1
+   "delta_visibility": 0
   },
   {
-   "domain": "cherdak-masterskaya.ru",
-   "visibility": 269,
+   "domain": "monument-nd.ru",
+   "visibility": 89,
    "common_keywords": 5,
    "delta_visibility": 0
   }

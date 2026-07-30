@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-07-29",
+ "measured": "2026-07-30",
  "visits_30d": [
-  {
-   "date": "2026-06-29",
-   "visits": 336,
-   "search_visits": 77
-  },
   {
    "date": "2026-06-30",
    "visits": 294,
@@ -151,6 +146,11 @@
    "date": "2026-07-28",
    "visits": 280,
    "search_visits": 73
+  },
+  {
+   "date": "2026-07-29",
+   "visits": 234,
+   "search_visits": 46
   }
  ],
  "top_phrases": [
@@ -164,7 +164,7 @@
   },
   {
    "phrase": "генгласс",
-   "visits": 11
+   "visits": 10
   },
   {
    "phrase": "интернет магазин зеркало в раме",
@@ -175,15 +175,15 @@
    "visits": 6
   },
   {
+   "phrase": "генгласс столы",
+   "visits": 6
+  },
+  {
    "phrase": "дженгласс ру",
    "visits": 6
   },
   {
    "phrase": "генгласс зеркала",
-   "visits": 5
-  },
-  {
-   "phrase": "генгласс столы",
    "visits": 5
   },
   {
@@ -203,6 +203,10 @@
    "visits": 3
   },
   {
+   "phrase": "gemglass",
+   "visits": 2
+  },
+  {
    "phrase": "Перегородки с черной металлической раскладкой",
    "visits": 2
   },
@@ -219,19 +223,11 @@
    "visits": 2
   },
   {
-   "phrase": "интерьерная капсула тон",
-   "visits": 2
-  },
-  {
    "phrase": "кухонный стол на заказ по индивидуальным размерам",
    "visits": 2
   },
   {
    "phrase": "лофт перегородки",
-   "visits": 2
-  },
-  {
-   "phrase": "магнитная доска на заказ по индивидуальным размерам",
    "visits": 2
   },
   {
@@ -264,10 +260,6 @@
   },
   {
    "phrase": "'info@genglass.ru'",
-   "visits": 1
-  },
-  {
-   "phrase": "+7 (495) 120-75-35",
    "visits": 1
   },
   {
@@ -331,10 +323,6 @@
    "visits": 1
   },
   {
-   "phrase": "gemglass",
-   "visits": 1
-  },
-  {
    "phrase": "gemglass стол",
    "visits": 1
   },
@@ -353,20 +341,32 @@
   {
    "phrase": "gen gloss",
    "visits": 1
+  },
+  {
+   "phrase": "gen glqss",
+   "visits": 1
+  },
+  {
+   "phrase": "gen group зеркало",
+   "visits": 1
+  },
+  {
+   "phrase": "genclass",
+   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 332
+   "visits": 330
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 97
+   "visits": 96
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 65
+   "visits": 64
   },
   {
    "url": "/product-category/tables/",
@@ -374,23 +374,19 @@
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 44
-  },
-  {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 38
+   "visits": 42
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 38
+   "visits": 37
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 35
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
    "visits": 32
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 30
   },
   {
    "url": "/product-category/steklyannye-doski/",
@@ -401,8 +397,12 @@
    "visits": 29
   },
   {
-   "url": "/zerkala-na-zakaz/",
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
    "visits": 28
+  },
+  {
+   "url": "/zerkala-na-zakaz/",
+   "visits": 27
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
@@ -421,20 +421,20 @@
    "visits": 20
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 19
-  },
-  {
    "url": "/product-category/mirrors/floor/",
    "visits": 19
   },
   {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "visits": 18
+  },
+  {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 19
+   "visits": 17
   },
   {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 15
+   "visits": 16
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
@@ -449,15 +449,7 @@
    "visits": 13
   },
   {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
-   "visits": 12
-  },
-  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 11
   },
   {
@@ -465,19 +457,27 @@
    "visits": 11
   },
   {
+   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
+   "visits": 11
+  },
+  {
    "url": "/product-category/mirrors/led/",
    "visits": 10
   },
   {
-   "url": "/product-category/tables/keramicheskie-stoly/",
+   "url": "/product-category/tables/bolshie-stoly/",
    "visits": 10
   },
   {
-   "url": "/product-category/mirrors/rotatable/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "visits": 9
+  },
+  {
+   "url": "/product-category/mezhkomnatnye-peregorodki/",
    "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 27.7,
+ "bounce_rate": 27.3,
  "depth": 2.5
 }

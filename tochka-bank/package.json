@@ -6,10 +6,9 @@
   "description": "Ежедневный синк Точка Банка: остаток и поступления по расчётным счетам GENGROUP",
   "scripts": {
     "fetch": "node fetch.mjs",
-    "build": "node build.mjs",
     "notify": "node notify.mjs",
-    "sync": "node fetch.mjs && node build.mjs && node notify.mjs",
-    "sync:sandbox": "TOCHKA_SANDBOX=1 node fetch.mjs && node build.mjs && node notify.mjs"
+    "sync": "node fetch.mjs && node notify.mjs",
+    "sync:sandbox": "TOCHKA_SANDBOX=1 node fetch.mjs && node notify.mjs"
   },
   "engines": { "node": ">=20" }
 }

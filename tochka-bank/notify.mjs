@@ -39,8 +39,6 @@ function buildMessage() {
     lines.push(`   • +${rub(t.amount)} ₽ · ${who}${purpose}`);
   }
   if ((inc.items || []).length > top.length) lines.push(`   …и ещё ${inc.items.length - top.length}`);
-  lines.push("");
-  lines.push(`<a href="https://oliverjone01-dev.github.io/t1/tochka/">Открыть дашборд</a>`);
   return lines.join("\n");
 }
 

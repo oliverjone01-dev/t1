@@ -1,15 +1,11 @@
 # Точка Банк - ежедневный синк остатка и поступлений
 
 Интеграция с Open API Точка Банка: каждый день забирает **остаток по расчётным
-счетам** и **поступления за операционный день**, кладёт снимок в `data/` и печёт
-самодостаточный дашборд в `/tochka/`.
+счетам** и **поступления за операционный день**, кладёт снимок в `data/` и шлёт
+сводку в Telegram.
 
 Read-only по построению: только чтение счетов и выписки. Никаких платежей и мутаций.
-Токены живут в GitHub Secrets и в клиентский HTML не попадают.
-
-## URL
-
-- Бой: `https://oliverjone01-dev.github.io/t1/tochka/`
+Токены живут в GitHub Secrets и в репозиторий/лог не пишутся.
 
 ## Быстрый старт: сначала песочница, потом прод
 
@@ -40,20 +36,18 @@ Read-only по построению: только чтение счетов и �
 
 Без них воркфлоу не падает - просто печатает превью сообщения в лог.
 
-## Как устроено (паттерн direct-snapshots / ozon-snapshots)
+## Как устроено
 
 ```
 tochka-bank/
   fetch.mjs        - клиент API: auth -> счета -> баланс -> выписка -> data/latest.json (+ history.ndjson)
-  build.mjs        - печёт data/ -> public/index.html (данные запекаются в HTML)
+  notify.mjs       - шлёт сводку (остаток + поступления) в Telegram
   data/            - снимки (коммитятся воркфлоу)
-  public/          - собранный дашборд, публикуется в /tochka/
 ```
 
 1. `.github/workflows/tochka-snapshots.yml` (ежедневный cron ~09:30 МСК) запускает
-   `node fetch.mjs` -> дельта-гейт -> `node build.mjs` -> commit `data/` и `public/`.
-2. Успешный синк триггерит `deploy-pages.yml` (`workflow_run`) -> публикация `/tochka/`.
-3. Шаг в `deploy-pages.yml` обёрнут в `continue-on-error` - поломка не валит остальной сайт.
+   `node fetch.mjs` -> дельта-гейт -> `node notify.mjs` -> commit `data/`.
+2. Без секретов Telegram воркфлоу не падает - печатает превью сводки в лог.
 
 Запустить вручную: Actions → «Tochka snapshots» → Run workflow (можно указать `day`).
 
@@ -106,7 +100,7 @@ API Точки использует OAuth2 с согласиями (consents). �
 ```bash
 cd tochka-bank
 TOCHKA_TOKEN=... node fetch.mjs          # или связка refresh + client_id/secret
-node build.mjs                           # печёт public/index.html
+TG_BOT_TOKEN=... TG_CHAT_ID=... node notify.mjs   # сводка в Telegram (без секретов - превью в консоль)
 ```
 
 ## Границы и безопасность

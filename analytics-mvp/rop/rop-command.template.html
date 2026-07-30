@@ -2620,7 +2620,9 @@ function freshStamp(){const el=document.getElementById('freshTag');if(!el)return
   const t=p2(m.getUTCDate())+'.'+p2(m.getUTCMonth()+1)+' '+p2(m.getUTCHours())+':'+p2(m.getUTCMinutes());
   let col='var(--accent)',pre='данные на';
   if(ageH>48){col='#F43F5E';pre='данные устарели, на';}else if(ageH>30){col='#F59E0B';pre='данные на';}
-  let bk='';if(DATA.bakedAt){const bb=new Date(new Date(DATA.bakedAt).getTime()+3*36e5);bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());}
+  // «сборка» показываем по времени ДАННЫХ (generatedAt), а не деплоя - чтобы метки были склеены
+  // (сборка = данные) и не было «свежая сборка на старых данных». bakedAt остаётся для кэш-бастера.
+  let bk='';if(DATA.generatedAt){const bb=new Date(new Date(DATA.generatedAt).getTime()+3*36e5);bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());}
   el.textContent=pre+' '+t+' МСК'+bk;el.style.color=col;}
 function showToast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:9999;background:#0E2A22;color:#E6F0EA;border:1px solid #2E9E74;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:540px;text-align:center;opacity:0;transition:opacity .25s';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},6000);}
 function parsePlanCSV(text){const num=s=>{s=(s||'').replace(/"/g,'').replace(/[^\d.,-]/g,'').replace(/\s/g,'');if(!s)return null;if(s.indexOf(',')>=0&&s.indexOf('.')<0)s=s.replace(',','.');else s=s.replace(/,/g,'');const v=parseFloat(s);return isNaN(v)?null:v;};

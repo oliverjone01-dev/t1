@@ -1,5 +1,5 @@
 {
- "measured": "2026-07-30",
+ "measured": "2026-07-31",
  "phrases": [
   {
    "phrase": "кладбище московская славянка",
@@ -20,7 +20,7 @@
   {
    "phrase": "что дороже мрамор или гранит",
    "pos": null,
-   "freq": 722,
+   "freq": 833,
    "url": "",
    "cluster": "дороже",
    "intent": "informational"
@@ -36,7 +36,7 @@
   {
    "phrase": "черный гранит",
    "pos": null,
-   "freq": 10802,
+   "freq": 10053,
    "url": "",
    "cluster": "черный",
    "intent": "commercial"
@@ -44,7 +44,7 @@
   {
    "phrase": "чем склеить мрамор",
    "pos": null,
-   "freq": 427,
+   "freq": 291,
    "url": "",
    "cluster": "склеить",
    "intent": "informational"
@@ -98,17 +98,9 @@
    "intent": "commercial"
   },
   {
-   "phrase": "толщина брусчатки",
-   "pos": null,
-   "freq": 4766,
-   "url": "",
-   "cluster": "толщина",
-   "intent": "commercial"
-  },
-  {
    "phrase": "что написать на памятнике маме",
    "pos": null,
-   "freq": 245,
+   "freq": 274,
    "url": "",
    "cluster": "написать",
    "intent": "informational"
@@ -316,7 +308,7 @@
   {
    "phrase": "чем просверлить гранит",
    "pos": null,
-   "freq": 219,
+   "freq": 164,
    "url": "",
    "cluster": "просверлить",
    "intent": "informational"
@@ -396,7 +388,7 @@
   {
    "phrase": "черный гранит фото",
    "pos": null,
-   "freq": 689,
+   "freq": 717,
    "url": "",
    "cluster": "черный",
    "intent": "commercial"
@@ -596,7 +588,7 @@
   {
    "phrase": "чем склеить гранит",
    "pos": null,
-   "freq": 430,
+   "freq": 310,
    "url": "",
    "cluster": "склеить",
    "intent": "informational"
@@ -684,7 +676,7 @@
   {
    "phrase": "что пишут на могиле",
    "pos": null,
-   "freq": 369,
+   "freq": 217,
    "url": "",
    "cluster": "пишут",
    "intent": "informational"
@@ -732,7 +724,7 @@
   {
    "phrase": "чем сверлить камень",
    "pos": null,
-   "freq": 596,
+   "freq": 761,
    "url": "",
    "cluster": "сверлить",
    "intent": "informational"
@@ -799,6 +791,14 @@
    "freq": 260,
    "url": "",
    "cluster": "месторождение",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "могильное надгробие",
+   "pos": null,
+   "freq": 160,
+   "url": "",
+   "cluster": "могильное",
    "intent": "commercial"
   }
  ]

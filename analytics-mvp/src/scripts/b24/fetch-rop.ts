@@ -12,12 +12,18 @@ import { writeFileSync, mkdirSync } from "node:fs";
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
-const OUT = "rop/data/rop.json";
+const OUT = process.env.ROP_OUT || "rop/data/rop.json";
 const DATE_FROM = process.env.ROP_DATE_FROM || "";
 // Дашборд v1: одна воронка сделок (49 = Заказы GG RF) + лиды всех направлений кроме Glass Memory.
+// GM-форк: ROP_DEAL_CATEGORY=21 (Glass Memory продажи), ROP_OUT=rop/data/rop-gm.json,
+// ROP_SKIP_SP=1 (у Glass Memory производство внутри воронки, отдельного СП-1086 нет),
+// ROP_ONLY_LEAD_DIRS=glass-memory (оставить только лиды этого направления).
 const DEAL_CATEGORY = process.env.ROP_DEAL_CATEGORY || "49";
 const EXCLUDE_LEAD_DIRS = (process.env.ROP_EXCLUDE_LEAD_DIRS || "glass-memory")
   .split(",").map((s) => s.trim()).filter(Boolean);
+const ONLY_LEAD_DIRS = (process.env.ROP_ONLY_LEAD_DIRS || "")
+  .split(",").map((s) => s.trim()).filter(Boolean);
+const SKIP_SP = process.env.ROP_SKIP_SP === "1";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -406,8 +412,8 @@ async function main() {
       source: sourceName[String(l.SOURCE_ID)] || l.SOURCE_ID || "не указан",
       dir: leadDirMap[String(l[UF_LEAD_DIR])] || "не указано",
     };
-  }).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));
-  console.log(`Лиды (кроме ${EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
+  }).filter((l) => ONLY_LEAD_DIRS.length ? ONLY_LEAD_DIRS.includes(l.dir) : !EXCLUDE_LEAD_DIRS.includes(l.dir));
+  console.log(`Лиды (${ONLY_LEAD_DIRS.length ? "только " + ONLY_LEAD_DIRS.join("/") : "кроме " + EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
 
   // Каналы коммуникации по менеджеру (лиды + сделки воронки 49), 90 дней.
   const channels = await channelMix(dealRows, leadRows, mgrName);
@@ -445,6 +451,9 @@ async function main() {
   // --- Карточки производства (СП 1086): id, сделка, дата запуска, изделий ---
   // Нужны сквозной воронке «предоплаты -> сделки -> позиции -> изделия» (раздел 4).
   // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
+  // GM-форк (SKIP_SP): у Glass Memory производство внутри воронки C21, отдельного СП-1086 нет.
+  const prodItems: any[] = [];
+  if (!SKIP_SP) {
   const ETID = 1086, OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
   const spRows = await listSharded("crm.item.list", {
     entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
@@ -469,7 +478,6 @@ async function main() {
       if (q > 0) { spQty[String(r.id)] = q; spQtyTotal += q; }
     } catch { /* карточка без товарных строк */ }
   })()));
-  const prodItems: any[] = [];
   for (const r of spRows) {
     const qty: number | null = spQty[String(r.id)] ?? null;
     prodItems.push({
@@ -480,6 +488,7 @@ async function main() {
     });
   }
   console.log(`Карточки производства: ${prodItems.length}, изделий из товарных строк ${Math.round(spQtyTotal)}`);
+  }
 
   const out = {
     generated_at: new Date().toISOString(),

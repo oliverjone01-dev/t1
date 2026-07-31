@@ -1,0 +1,82 @@
+name: B24 GM snapshots (Glass Memory, прямой Bitrix)
+
+# Прямой коннектор Bitrix24 (read-only) -> analytics-mvp/rop/data/rop-gm.json.
+# Форк b24-snapshots.yml под воронку C21 «☑️ПРОДАЖИ Glass Memory»:
+#   ROP_DEAL_CATEGORY=21     - воронка Glass Memory продажи
+#   ROP_OUT=...rop-gm.json   - отдельный файл данных, не пересекается с GG (rop.json)
+#   ROP_SKIP_SP=1            - у Glass Memory производство ВНУТРИ воронки, отдельного СП-1086 нет
+#   ROP_ONLY_LEAD_DIRS=glass-memory - оставить только лиды Glass Memory
+#
+# Живёт на ветке rop-gm-dashboard-v1 (аналог rop-dashboard-v1 для GG).
+# Файл-двойник на main нужен только чтобы workflow_dispatch был доступен
+# (GitHub регистрирует воркфлоу с дефолтной ветки). Запуск чекаутит rop-gm-dashboard-v1.
+
+on:
+  workflow_dispatch:
+    inputs:
+      date_from:
+        description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: b24-gm-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru
+  ROP_DEAL_CATEGORY: "21"
+  ROP_OUT: rop/data/rop-gm.json
+  ROP_SKIP_SP: "1"
+  ROP_ONLY_LEAD_DIRS: glass-memory
+  ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rop-gm-dashboard-v1
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте. Категория=$ROP_DEAL_CATEGORY -> $ROP_OUT"
+
+      - name: Снимок Bitrix C21 -> rop/data/rop-gm.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-rop.ts
+          echo "Размер данных: $(du -h rop/data/rop-gm.json | cut -f1)"
+
+      - name: Commit (если есть изменения)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/rop/data/rop-gm.json
+          if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
+          git commit -m "data(rop-gm): снимок Bitrix24 C21 Glass Memory $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1

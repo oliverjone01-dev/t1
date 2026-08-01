@@ -16,6 +16,7 @@ name: Deploy to GitHub Pages
 #   /op-gm/            - Автоматизация ОП ГМ (из ветки op-gm-automation-v1, статика public/)
 #   /messages/         - GG Message Automation (из ветки claude/gg-message-automation-ffpwpd, статика public/)
 #   /economics/        - Экономика сделок (из ветки economics-dashboard-v1, данные economics-cron.yml)
+#   /integra/          - ИНТЕГРА 2.0, план GENTERO (из ветки claude/gentero-plan-03609o, статика public/)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
@@ -212,6 +213,20 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_site/messages"
           cp -r /tmp/gg-msg/gg-message-automation/public/. "$GITHUB_WORKSPACE/_site/messages/"
           echo "GG Message Automation опубликована в /messages/ из claude/gg-message-automation-ffpwpd"
+
+      # === ИНТЕГРА 2.0 (ИЗОЛИРОВАННО, из ветки claude/gentero-plan-03609o, в /integra/) ===
+      # План GENTERO по фурнитуре, складу соседей и недостроенному сайту. Документ к обсуждению
+      # собственников. Самодостаточный офлайн-HTML (ноль внешних запросов), копируем как есть -
+      # без npm/smoke. Секретов в HTML нет. Падение не валит остальной сайт.
+      - name: Build INTEGRA plan (isolated, /integra/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin claude/gentero-plan-03609o
+          git worktree add /tmp/integra FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/integra"
+          cp -r /tmp/integra/gentero-integra/public/. "$GITHUB_WORKSPACE/_site/integra/"
+          echo "ИНТЕГРА 2.0 опубликована в /integra/ из claude/gentero-plan-03609o"
 
       # === ОФИС-МЕНЕДЖЕР (ИЗОЛИРОВАННО, из ветки office-dashboard-v1, в /office/) ===
       # Личный дашборд квалификации лидов GG. Аналог /rop/: самодостаточный HTML,

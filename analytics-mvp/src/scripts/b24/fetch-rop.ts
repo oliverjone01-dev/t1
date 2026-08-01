@@ -23,7 +23,9 @@ const EXCLUDE_LEAD_DIRS = (process.env.ROP_EXCLUDE_LEAD_DIRS || "glass-memory")
   .split(",").map((s) => s.trim()).filter(Boolean);
 const ONLY_LEAD_DIRS = (process.env.ROP_ONLY_LEAD_DIRS || "")
   .split(",").map((s) => s.trim()).filter(Boolean);
-const SKIP_SP = process.env.ROP_SKIP_SP === "1";
+// Производственный СП: entityTypeId. GG = 1086 (по умолчанию), GM Glass Memory = 1120.
+// ROP_SP_ETID переопределяет; ROP_SKIP_SP=1 отключает совсем.
+const SP_ETID = process.env.ROP_SP_ETID || (process.env.ROP_SKIP_SP === "1" ? "" : "1086");
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -453,8 +455,10 @@ async function main() {
   // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
   // GM-форк (SKIP_SP): у Glass Memory производство внутри воронки C21, отдельного СП-1086 нет.
   const prodItems: any[] = [];
-  if (!SKIP_SP) {
-  const ETID = 1086, OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
+  if (SP_ETID) {
+  const ETID = Number(SP_ETID), OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
+  // Разведка: список смарт-процессов (id + название), чтобы подтвердить нужный СП в логе.
+  try { const tj = await call("crm.type.list", {}); for (const t of (((tj.result && tj.result.types) || []) as any[])) console.log(`  СП ${t.entityTypeId} = ${t.title}`); } catch { /* нет доступа к crm.type.list */ }
   const spRows = await listSharded("crm.item.list", {
     entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
   }, { idField: "id", itemsPath: true });

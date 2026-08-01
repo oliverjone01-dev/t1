@@ -997,7 +997,7 @@ function render(){
     return `<div class="mg-row"><div class="mg-name" data-tip="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
   const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
   const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=(_lm!=='leads');
-  const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='prod'?(Math.round(_mP.winT)||_factTot):_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
+  const _mPlanTot=_lm==='conv'?((_mP.conv&&_mP.conv>0)?_mP.conv:0.15):_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='prod'?(Math.round(_mP.winT)||_factTot):_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',prod:'В производство',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
   const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
@@ -1016,7 +1016,7 @@ function render(){
     const ds=(metric==='won'||metric==='rev'||metric==='check')?soldSet():metric==='prod'?prodSet():D;
     const arr=mgrPF(L,ds,metric,_mkeys);
     const fact=metric==='conv'?m.conv:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0);
-    const planTot=metric==='conv'?0.15:metric==='check'?(_mP.check||60000):metric==='leads'?fact:metric==='prod'?(Math.round(_mP.winT)||fact):metric==='deals'?(_mP.targets.deals||fact):(metric==='won'?Math.round(_mP.winT):_mP.targets.rev);
+    const planTot=metric==='conv'?((_mP.conv&&_mP.conv>0)?_mP.conv:0.15):metric==='check'?(_mP.check||60000):metric==='leads'?fact:metric==='prod'?(Math.round(_mP.winT)||fact):metric==='deals'?(_mP.targets.deals||fact):(metric==='won'?Math.round(_mP.winT):_mP.targets.rev);
     const plan=metric==='leads'?(_mP.targets.leads||fact):planTot;
     return {fact,plan,pct:plan?fact/plan:0};
   };
@@ -1292,6 +1292,9 @@ function healthBlock(){
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
+  // Конверсия-цель ИЗ ПЛАНА (CR2 листа РОП), запас 15% если плана нет.
+  const _HP=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
+  const planCrH=(_HP.conv&&_HP.conv>0)?_HP.conv:0.15;
   const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
   const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
   const enterLose=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
@@ -1396,7 +1399,7 @@ function healthBlock(){
   if(allPts.length){
     const y0=yAt(0);
     const grid=[0,0.25,0.5,0.75,1].filter(v=>v<=ymax+0.001).map(v=>`<line x1="${pL}" y1="${yAt(v).toFixed(1)}" x2="${DW-pR}" y2="${yAt(v).toFixed(1)}" stroke="var(--border)" stroke-opacity=".5"/><text x="${pL-4}" y="${(yAt(v)+3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--ink-4)">${Math.round(v*100)}</text>`).join('');
-    const CVT=0.15;const planLine=CVT<=ymax?`<line x1="${pL}" y1="${yAt(CVT).toFixed(1)}" x2="${DW-pR}" y2="${yAt(CVT).toFixed(1)}" stroke="#E7ECF3" stroke-width="1.4" stroke-dasharray="4 3" opacity=".55"/><text x="${DW-pR}" y="${(yAt(CVT)-3).toFixed(1)}" text-anchor="end" font-size="7.5" fill="#9AA4B2">цель 15%</text>`:'';
+    const CVT=planCrH;const planLine=CVT<=ymax?`<line x1="${pL}" y1="${yAt(CVT).toFixed(1)}" x2="${DW-pR}" y2="${yAt(CVT).toFixed(1)}" stroke="#E7ECF3" stroke-width="1.4" stroke-dasharray="4 3" opacity=".55"/><text x="${DW-pR}" y="${(yAt(CVT)-3).toFixed(1)}" text-anchor="end" font-size="7.5" fill="#9AA4B2">цель ${pct(planCrH)}</text>`:'';
     const sers=[{lab:'Отдел',col:'#A78BFA',ser:deptSeries},...selArr.map(m=>({lab:esc(m),col:mgrCol(m),ser:(mgrSers.find(z=>z.m===m)||{ser:dkeys.map(()=>({conv:null}))}).ser}))];
     let body='',xl='';
     if(barMode){
@@ -1416,7 +1419,7 @@ function healthBlock(){
   const chips=mrows.map(x=>{const on=selArr.includes(x.m),col=mgrCol(x.m)||'#7C8AA5';return `<span data-hmmgr="${esc(x.m)}" style="cursor:pointer;font-size:10px;font-weight:700;padding:2px 8px;border-radius:11px;white-space:nowrap;border:1px solid ${on?col:'var(--border)'};background:${on?col+'22':'transparent'};color:${on?col:'var(--ink-3)'}">${on?'● ':''}${esc(shortN(x.m))}</span>`;}).join('');
   const chipRow=`<div style="display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 8px">${chips}${selArr.length?`<span data-hmclear="1" style="cursor:pointer;font-size:10px;font-weight:700;padding:2px 8px;border-radius:11px;color:#F8717A;border:1px solid rgba(244,63,94,.4)">× сброс</span>`:''}</div>`;
   const cumSeg=`<div class="seg" id="dhCumSeg" style="display:inline-flex;vertical-align:middle;transform:scale(.85);transform-origin:left"><button data-dc="cum" class="${cumMode?'on':''}">накопительно</button><button data-dc="per" class="${!cumMode?'on':''}">по периодам</button></div>`;
-  const dynChart=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><div class="card-t" style="font-size:12.5px">Конверсия в успех в динамике ${info('ЭТО ТА ЖЕ метрика, что бар выше, но во времени: успех ÷ портфель «в работе», по отделу и по каждому менеджеру (его портфель). Успех = сделка ушла в предоплату («Предоплата получена»). Портфель = открытые офферы на эту дату. Режим «накопительно» - успех с начала периода ÷ портфель на дату (гладкая линия, к концу = число из бара выше); «по периодам» - успех за интервал ÷ портфель (мельче числа, видно темп по неделям). Сетка агрегируется до 12 интервалов для читаемости. Жирная сиреневая - отдел, цветные - выбранные менеджеры, пунктир - цель 15%.')}</div><div class="card-sub" style="margin-bottom:4px">${cumMode?'накопительная':'по периодам'} · успех ÷ портфель «в работе» по ${granLab}${aggNote} · <span style="color:#A78BFA;font-weight:700">● отдел</span> &nbsp;${cumSeg}</div>${chipRow}${dyn}</div>`;
+  const dynChart=`<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><div class="card-t" style="font-size:12.5px">Конверсия в успех в динамике ${info('ЭТО ТА ЖЕ метрика, что бар выше, но во времени: успех ÷ портфель «в работе», по отделу и по каждому менеджеру (его портфель). Успех = сделка ушла в предоплату («Предоплата получена»). Портфель = открытые офферы на эту дату. Режим «накопительно» - успех с начала периода ÷ портфель на дату (гладкая линия, к концу = число из бара выше); «по периодам» - успех за интервал ÷ портфель (мельче числа, видно темп по неделям). Сетка агрегируется до 12 интервалов для читаемости. Жирная сиреневая - отдел, цветные - выбранные менеджеры, пунктир - цель '+pct(planCrH)+'.')}</div><div class="card-sub" style="margin-bottom:4px">${cumMode?'накопительная':'по периодам'} · успех ÷ портфель «в работе» по ${granLab}${aggNote} · <span style="color:#A78BFA;font-weight:700">● отдел</span> &nbsp;${cumSeg}</div>${chipRow}${dyn}</div>`;
   const right=`<div><div class="card-t" style="font-size:12.5px">Конверсия в успех по менеджерам ${info('Успех ÷ портфель «в работе» на конец (снимок открытых офферов): какая доля портфеля стала успехом за период. По отделу и по каждому менеджеру (его портфель). Это снимок за период; график ниже - та же метрика во времени. Пунктир - отдел. Кто левее/ниже (красный) - тянет вниз. Клик по менеджеру выделяет его линию в динамике.')}</div><div class="card-sub" style="margin-bottom:6px">успех ÷ портфель «в работе» · отдел <b style="color:#A78BFA">${pct(crDept)}</b> (${fmt(suc)}/${fmt(wip)}) · <span style="color:#A78BFA">┊</span> = отдел · клик - линия в динамике</div>${crBars||'<div class="card-sub">нет данных</div>'}${dynChart}</div>`;
   return `<div class="card"><div class="card-h"><div><div class="card-title">Здоровье отдела продаж ${info('Баланс входа (новые офферы) и выхода (успех + отказ) за период - показатель здоровья отдела. Выход = предоплата (успех) плюс отказ, ушедший НЕПОСРЕДСТВЕННО с 3 оффер-этапов (КП/Решение/Долгострой); отвалившиеся раньше по воронке в отказ тут не считаются. Вход>выход - копится, менеджеры распыляются, растут отказы (поднимать эффективность). Вход<выход - воронка тает (маркетингу больше лидов). Вход≈выход - здоровый режим. План выхода - 1 успех на 3 отказа (25% успех / 75% отказ); падение доли успеха ниже 25% - сигнал по качеству. Линза периода: рабочая 30 дн (≈2× медианы цикла ~13 дн), контрольная 60 дн (ловит хвост p90 ~51 дн); окно короче 14 дн искажает баланс - выход не успевает закрыться. Справа - конверсия в успех по менеджерам против отдела: кто ниже пунктира, тянет вниз.')}</div><div class="card-sub">баланс потока · выход 25/75 · конверсия по менеджерам - сигналы РОПу &nbsp;${lensBadge}</div></div></div><div class="grid2" style="align-items:start;gap:18px">${left}${right}</div></div>`;
 }
@@ -1654,10 +1657,10 @@ function standardBlock(){
   const PD=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
   const age=d=>Math.max(0,Math.round((NOWD-PD(d.created))/DAYMS));
   const days=Math.max(1,Math.round((PD(S.end)-PD(S.start))/DAYMS)+1),factor=days/30;
-  const TCR=0.15; // целевая конверсия-минимум (стандарт)
 
   // план из плановой таблицы (planModel читает Google-план; m-заглушка, targets из листа)
   const P=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
+  const TCR=(P.conv&&P.conv>0)?P.conv:0.15; // конверсия-цель ИЗ ПЛАНА (CR2 листа); запас 15% если плана нет
   const checkP=Math.round(P.check||120000);          // плановый чек (гардрейл)
   const winTdept=Math.max(0,Math.round(P.winT||0));  // нужно предоплат за период для плана
   const revPlan=Math.round(P.targets.rev||0);
@@ -1696,7 +1699,7 @@ function standardBlock(){
   const gap=Math.max(0,winTdept-prepayB);
   const nDone=`${fmt(prepayA)}`;
   const pill=(t,c)=>`<span style="display:inline-block;font-size:10px;font-weight:700;color:${c};background:${c}18;border:1px solid ${c}55;border-radius:6px;padding:2px 8px">${t}</span>`;
-  const headA=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px"><b style="font-size:12.5px">Отдел:</b> ${pill('А сейчас: '+fmt(prepayA)+' предоплат · '+fmtK(revA)+' ₽ · CR '+pct(D_.cr),'#22D3EE')} ${pill('Б стандарт (15% от живого): '+fmt(prepayB)+' предоплат · '+fmtK(revB)+' ₽','#C2873C')} ${pill('В план: '+fmt(winTdept)+' предоплат · '+fmtK(revPlan)+' ₽','#A78BFA')}</div><div class="card-sub" style="margin-bottom:10px">${enough?`<span style="color:#2E9E74;font-weight:700">Живого портфеля на план хватает</span> при 15% конверсии.`:`<span style="color:#F8717A;font-weight:700">Живого портфеля на план НЕ хватает</span>: не достаёт <b>${fmt(gap)}</b> предоплат - поднимать конверсию выше 15% или наполнять портфель (план по лидам).`} Цель менеджеру = живой портфель × 15%. Чек - гардрейл (пол ${fmtK(checkP)}), долгострой 60+ - в паре с отказами.</div>`;
+  const headA=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px"><b style="font-size:12.5px">Отдел:</b> ${pill('А сейчас: '+fmt(prepayA)+' предоплат · '+fmtK(revA)+' ₽ · CR '+pct(D_.cr),'#22D3EE')} ${pill('Б стандарт ('+pct(TCR)+' от живого): '+fmt(prepayB)+' предоплат · '+fmtK(revB)+' ₽','#C2873C')} ${pill('В план: '+fmt(winTdept)+' предоплат · '+fmtK(revPlan)+' ₽','#A78BFA')}</div><div class="card-sub" style="margin-bottom:10px">${enough?`<span style="color:#2E9E74;font-weight:700">Живого портфеля на план хватает</span> при ${pct(TCR)} конверсии.`:`<span style="color:#F8717A;font-weight:700">Живого портфеля на план НЕ хватает</span>: не достаёт <b>${fmt(gap)}</b> предоплат - поднимать конверсию выше ${pct(TCR)} или наполнять портфель (план по лидам).`} Цель менеджеру = живой портфель × ${pct(TCR)}. Чек - гардрейл (пол ${fmtK(checkP)}), долгострой 60+ - в паре с отказами.</div>`;
 
   const crC=v=>v==null?"var(--ink-4)":v>=TCR?"#2E9E74":v>=0.10?"#C2873C":"#CC5867";
   const pctC=v=>v==null?"var(--ink-4)":v>=0.9?"#2E9E74":v>=0.6?"#C2873C":"#CC5867";
@@ -1704,7 +1707,7 @@ function standardBlock(){
   // налив = факт предоплат. Норма успех:отказ = 1:4 (CR 15%). Отсортировано по % плана.
   const maxV=Math.max(1,...rows.map(r=>Math.max(r.target,r.fact)));
   const short=m=>{const p=String(m).trim().split(/\s+/);return p[0].length>9?p[0].slice(0,8)+"…":p[0];};
-  const cupsMgr=rows.length?`<div style="margin:2px 0 12px"><div class="card-sub" style="margin-bottom:6px">Стакан каждого менеджера = его доля общего плана: <span style="color:#A78BFA">риска</span> - цель (портфель × 15%), налив - факт предоплат. Наведи - портфель, цель, факт, отказы и норма 1:4.</div><div class="scroll" style="overflow-x:auto"><div style="display:flex;gap:4px;align-items:flex-end;min-width:min-content;padding-bottom:2px">`+
+  const cupsMgr=rows.length?`<div style="margin:2px 0 12px"><div class="card-sub" style="margin-bottom:6px">Стакан каждого менеджера = его доля общего плана: <span style="color:#A78BFA">риска</span> - цель (портфель × ${pct(TCR)}), налив - факт предоплат. Наведи - портфель, цель, факт, отказы и норма 1:4.</div><div class="scroll" style="overflow-x:auto"><div style="display:flex;gap:4px;align-items:flex-end;min-width:min-content;padding-bottom:2px">`+
     rows.map(r=>{const a=r.pctPlan,c=pctC(a),fh=Math.min(100,r.fact/maxV*100).toFixed(1),ph=Math.min(100,r.target/maxV*100).toFixed(1),loseNorm=Math.round(r.target*4);
       return `<div style="flex:0 0 34px;display:flex;flex-direction:column;align-items:center;gap:3px" data-tip="${(r.m+' · портфель '+r.live+(r.zomb?(' (+'+r.zomb+' долгострой)'):'')+' · цель '+r.target+' предоплат · факт '+r.fact+' · '+(a==null?'нет цели':pct(a)+' плана')+' · отказов '+r.lose+' из нормы ~'+loseNorm+' · CR '+(r.cr==null?'—':pct(r.cr))).replace(/"/g,'&quot;')}">`+
         `<div style="font-size:9px;font-weight:800;color:${c};height:12px">${r.fact||''}</div>`+
@@ -1715,7 +1718,7 @@ function standardBlock(){
         `<div style="font-size:8px;color:var(--ink-4);max-width:36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(short(r.m))}</div>`+
       `</div>`;}).join("")+`</div></div></div>`:"";
   const th=(t,tip)=>`<th style="text-align:center;white-space:nowrap">${t}${tip?info(tip):""}</th>`;
-  const head=`<tr><th style="text-align:left">Менеджер</th>${th("Живой портфель","Открытые офферы моложе 60 дней - с них реально брать предоплаты.")}${th("Долгострой 60+","Открытые офферы старше 60 дней - мёртвый груз, в цель не идут.")}${th("Цель предоплат","Живой портфель × 15% (за период). Столько предоплат должно выйти.")}${th("Факт")}${th("% плана")}${th("CR","Успех ÷ (успех+отказ) за период. Ниже 15% - расточительство.")}${th("Отказов")}${th("Ср.чек","Медиана чека предоплат. Ниже пола - гонка за количеством роняет выручку.")}${th("Статус")}</tr>`;
+  const head=`<tr><th style="text-align:left">Менеджер</th>${th("Живой портфель","Открытые офферы моложе 60 дней - с них реально брать предоплаты.")}${th("Долгострой 60+","Открытые офферы старше 60 дней - мёртвый груз, в цель не идут.")}${th("Цель предоплат","Живой портфель × "+pct(TCR)+" (за период). Столько предоплат должно выйти.")}${th("Факт")}${th("% плана")}${th("CR","Успех ÷ (успех+отказ) за период. Ниже "+pct(TCR)+" - расточительство.")}${th("Отказов")}${th("Ср.чек","Медиана чека предоплат. Ниже пола - гонка за количеством роняет выручку.")}${th("Статус")}</tr>`;
   const body=rows.map(r=>`<tr><td class="name" style="text-align:left">${esc(r.m)}</td>
     <td style="text-align:center;font-weight:700">${r.live}</td>
     <td style="text-align:center;color:${r.zomb?'#F8717A':'var(--ink-3)'};font-weight:${r.zomb?700:400}">${r.zomb||'·'}${r.zombM?`<div style="font-size:9px;font-weight:400;color:var(--ink-4)">${fmtK(r.zombM)}</div>`:''}</td>
@@ -1728,7 +1731,7 @@ function standardBlock(){
     <td style="text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:${r.st.c};background:${r.st.c}22;border:1px solid ${r.st.c}66;border-radius:6px;padding:2px 8px">${r.st.l}</span></td></tr>`).join("");
   const foot=`<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${D_.live}</td><td style="text-align:center;color:#F8717A">${D_.zomb}</td><td style="text-align:center">${D_.target}</td><td style="text-align:center;color:#2E9E74">${D_.fact}</td><td style="text-align:center;color:${pctC(D_.target?D_.fact/D_.target:null)}">${D_.target?pct(D_.fact/D_.target):'—'}</td><td style="text-align:center;color:${crC(D_.cr)}">${pct(D_.cr)}</td><td style="text-align:center">${D_.lose}</td><td style="text-align:center">${D_.chk?fmtK(D_.chk):'—'}</td><td></td></tr>`;
 
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Стандарт отдела: план в предоплатах ${info('План декомпозируется в КОЛИЧЕСТВО предоплат, не в выручку - одна крупная сделка не должна закрывать месяц. Цель менеджеру = живой портфель × 15% (целевая конверсия-минимум). Вопрос: кто вытягивает свой план по предоплатам и кого приводить к стандарту. Вывод: «резать портфель» - большой портфель без выхода; «ставить ребром» - хроническая низкая конверсия; чек ниже пола - гонка за количеством роняет выручку. Успех = вход в «Предоплата получена» (позже заменить на реальную оплату из 1С).')}</div><div class="card-sub">план в количестве предоплат · цель = живой портфель × 15% · выручка - рычаг (чек-гардрейл)</div></div><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none">↗ Таблица плана</a></div>${headA}${cupsMgr}<div class="scroll" style="max-height:520px"><table class="tbl">${head.replace('<tr>','<thead><tr>').replace('</tr>','</tr></thead>')}<tbody>${body}${foot}</tbody></table></div></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Стандарт отдела: план в предоплатах ${info('План декомпозируется в КОЛИЧЕСТВО предоплат, не в выручку - одна крупная сделка не должна закрывать месяц. Цель менеджеру = живой портфель × '+pct(TCR)+' (конверсия-цель из плана). Вопрос: кто вытягивает свой план по предоплатам и кого приводить к стандарту. Вывод: «резать портфель» - большой портфель без выхода; «ставить ребром» - хроническая низкая конверсия; чек ниже пола - гонка за количеством роняет выручку. Успех = вход в «Предоплата получена» (позже заменить на реальную оплату из 1С).')}</div><div class="card-sub">план в количестве предоплат · цель = живой портфель × ${pct(TCR)} · выручка - рычаг (чек-гардрейл)</div></div><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none">↗ Таблица плана</a></div>${headA}${cupsMgr}<div class="scroll" style="max-height:520px"><table class="tbl">${head.replace('<tr>','<thead><tr>').replace('</tr>','</tr></thead>')}<tbody>${body}${foot}</tbody></table></div></div>`;
 }
 
 // ===== КАЛЕНДАРЬ ЗАГРУЗКИ МЕНЕДЖЕРОВ (оффер-стадии) =====
@@ -1755,16 +1758,18 @@ function offerCalendarBlock(){
   const RW=unit==="money"?108:84; // ширина правой колонки (в деньгах числа шире)
   const scope=mgrSel?passed.filter(d=>d.mgr===mgrSel):passed;
   const _days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),_factor=_days/30;
+  const _PC=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
+  const _TCR=(_PC.conv&&_PC.conv>0)?_PC.conv:0.15; // конверсия-цель ИЗ ПЛАНА (CR2 листа), запас 15%
   const livePort=m=>open.filter(d=>d.mgr===m&&(NOWD-PD2(d.created))/DAYMS<=60).length;
-  // База целей = «В работе на конец» (портфель). Успех-цель = портфель × 15%,
-  // потолок отказов = успех-цель × 4 (= портфель × 60%). Пример: портфель 174 → успех 26 → отказ 104.
+  // База целей = «В работе на конец» (портфель). Успех-цель = портфель × TCR (конверсия-цель плана),
+  // потолок отказов = успех-цель × 4 (= портфель × TCR×4). Пример при 15%: портфель 174 → успех 26 → отказ 104.
   const _capK=()=>keys[keys.length-1];
   const _portAt=sc=>wipAt(_capK(),sc).length;
   const _mSc=m=>passed.filter(d=>d.mgr===m);
-  const mgrTarget=m=>Math.round(_portAt(_mSc(m))*0.15*_factor);   // успех-цель менеджера
-  const winTargetAll=()=>Math.round(_portAt(scope)*0.15*_factor); // успех-цель (портфель × 15%)
-  const lossCap=m=>Math.round(_portAt(_mSc(m))*0.6*_factor);      // потолок отказов = успех-цель × 4
-  const lossCapAll=()=>Math.round(_portAt(scope)*0.6*_factor);
+  const mgrTarget=m=>Math.round(_portAt(_mSc(m))*_TCR*_factor);   // успех-цель менеджера
+  const winTargetAll=()=>Math.round(_portAt(scope)*_TCR*_factor); // успех-цель (портфель × TCR)
+  const lossCap=m=>Math.round(_portAt(_mSc(m))*_TCR*4*_factor);   // потолок отказов = успех-цель × 4
+  const lossCapAll=()=>Math.round(_portAt(scope)*_TCR*4*_factor);
   // Средний чек портфеля - для пересчёта цели в деньги (кол-во × чек = выручка).
   const _avgChk=sc=>{const a=wipAt(_capK(),sc).map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
@@ -1834,7 +1839,7 @@ function offerCalendarBlock(){
       let cc,fc,note;
       if(inv){const noCap=ct<0.5;cc=noCap?'#6A7484':cf<ct?'#2E9E74':cf>ct?'#CC5867':'#6A7484';fc=cc==='#6A7484'?'var(--ink-3)':cc;note=noCap?'нет потолка':cf<ct?'в норме':cf>ct?'превышен':'на пределе';}
       else{const met=ct>=0.5&&cf>=ct;cc=met?'#2E9E74':'#6A7484';fc=met?'#2E9E74':'var(--ink-3)';note=ct>=0.5?(met?'план выполнен':'не выполнен'):'нет цели';}
-      const _base=mny?'кол-во × ср.чек':'портфель × 15%';
+      const _base=mny?'кол-во × ср.чек':'портфель × '+pct(_TCR);
       const ttl=inv?('факт '+_fv(cf)+' · потолок '+_fv(ct)+' (успех × 4'+(mny?' × ср.чек':'')+') · '+note):('факт '+_fv(cf)+' · план '+_fv(ct)+' ('+_base+') · '+note);
       rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:${opts.cup.agg?'flex-start':'flex-end'};gap:5px" data-tip="${ttl.replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:12px;height:16px;background:var(--bg-base);border:1px solid var(--border);border-top:none;border-radius:0 0 3px 3px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${fh}%;background:${cc};opacity:.9"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${ph}%;border-top:1.5px dashed #A78BFA"></div></div><span style="flex:0 0 auto;font-size:9.5px;font-weight:800;line-height:16px"><span style="display:inline-block;min-width:15px;text-align:right;color:${fc}">${_fv(cf)}</span><span style="color:var(--ink-4);font-weight:600"> / </span><span style="display:inline-block;min-width:15px;text-align:right;color:var(--ink)">${_fv(ct)}</span></span></div>`;}
     else rightHTML=`<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;text-align:right;font-size:${opts.sub?10:11}px;font-weight:800;color:${r.cohort?r.color:r.wip?'var(--ink-4)':r.color}">${sig}</div>`;
@@ -1919,11 +1924,11 @@ function offerCalendarBlock(){
     const _herPort=_herWip.length;
     const _herAvg=(()=>{const a=_herWip.map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;})();
     const planAt=_isMgr
-      ?(k=>{const t=_herPort*0.15*(_bDaysP(k)/30);return useMoney?t*_herAvg:t;})
+      ?(k=>{const t=_herPort*_TCR*(_bDaysP(k)/30);return useMoney?t*_herAvg:t;})
       :(k=>{const bs0=bStart(k),be0=endDate(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;if(bs>be)return 0;const pf=planForPeriod(bs,be);return pf?(useMoney?(pf.rev||0):(pf.sales||0)):0;});
     const P={};let ptot=0;keys.forEach(k=>{P[k]=planAt(k);ptot+=P[k];});
     if(ptot<(useMoney?1:0.5))return "";
-    const days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),factor=days/30,TCR=0.15;
+    const days=Math.max(1,Math.round((PD2(S.end)-PD2(S.start))/DAYMS)+1),factor=days/30,TCR=_TCR;
     const fact={};keys.forEach(k=>fact[k]=0);
     passed.forEach(d=>{const e=enterExec(d);if(e&&inR(e)){const k=bkey(e.slice(0,10),g);if(fact[k]!=null)fact[k]+=useMoney?(d.budget||0):1;}});
     let mx=1,ftot=0;keys.forEach(k=>{ftot+=fact[k];mx=Math.max(mx,P[k],fact[k]);});
@@ -1945,17 +1950,17 @@ function offerCalendarBlock(){
     mgrs.sort((a,b)=>b.ft-a.ft||b.p-a.p);
     const isOpen=S.calCupOpen,attC=v=>v==null?'var(--ink-3)':v>=1?'#2E9E74':v>=0.8?'#C2873C':v>=0.5?'#D9A441':'#CC5867';
     const dTgt=Math.round(wsum*TCR*factor);
-    const mgrTbl=isOpen?`<div class="scroll" style="margin-top:8px;max-height:300px"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Менеджер ${info('Цель - живой портфель менеджера × 15% за период: его собственная норма от того, что он реально ведёт, а не доля обещанного отделом плана. Факт - его успехи (предоплаты) из оффер-воронки, как в строке «Успех». Вклад - сколько процентов всех успехов отдела он принёс. Вып. - факт ÷ его цель.')}</th><th>Портфель</th><th>Цель (портф×15%)</th><th>Факт</th><th>Вклад</th><th>Вып.</th></tr></thead><tbody>`+
+    const mgrTbl=isOpen?`<div class="scroll" style="margin-top:8px;max-height:300px"><table class="tbl" style="font-size:11px"><thead><tr><th style="text-align:left">Менеджер ${info('Цель - живой портфель менеджера × '+pct(TCR)+' за период: его собственная норма от того, что он реально ведёт, а не доля обещанного отделом плана. Факт - его успехи (предоплаты) из оффер-воронки, как в строке «Успех». Вклад - сколько процентов всех успехов отдела он принёс. Вып. - факт ÷ его цель.')}</th><th>Портфель</th><th>Цель (портф×${pct(TCR)})</th><th>Факт</th><th>Вклад</th><th>Вып.</th></tr></thead><tbody>`+
       mgrs.map(x=>{const tgt=Math.round(x.p*TCR*factor),a=tgt?x.ft/tgt:null,contrib=ftot?x.ft/ftot:0,c=attC(a);
         return `<tr><td class="name" style="text-align:left">${esc(x.m)}</td><td style="text-align:center">${x.p}</td><td style="text-align:center;color:var(--ink-3)">${tgt}</td><td style="text-align:center;font-weight:800;color:${c}">${x.ft}</td><td style="text-align:center;color:#22D3EE;font-weight:700">${pct(contrib)}</td><td style="text-align:center;font-weight:800;color:${c}">${a==null?'—':pct(a)}</td></tr>`;}).join("")+
       `<tr class="total"><td style="text-align:left">ОТДЕЛ</td><td style="text-align:center">${wsum}</td><td style="text-align:center">${dTgt}</td><td style="text-align:center">${fmt(ftot)}</td><td style="text-align:center">100%</td><td style="text-align:center;color:${attC(dTgt?ftot/dTgt:null)}">${dTgt?pct(ftot/dTgt):'—'}</td></tr></tbody></table></div>`:"";
     const arw=isOpen?'▾':'▸';
     return `<div style="margin-top:2px;padding-top:8px;border-top:1px dashed var(--border)">`+
       `<div class="chrow" style="display:flex;align-items:flex-end;gap:6px">`+
-        `<div style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25">${_isMgr?'Мой план предоплат · портфель × 15%':'План предоплат · отдел'} <b style="color:${tc}">${pct(att)}</b></div>`+
+        `<div style="width:180px;font-size:10.5px;color:var(--ink-2);line-height:1.25">${_isMgr?'Мой план предоплат · портфель × '+pct(_TCR):'План предоплат · отдел'} <b style="color:${tc}">${pct(att)}</b></div>`+
         `<div style="flex:1;display:flex;gap:2px;align-items:flex-end">${strip(fact,P,mx,46,'')}</div>`+
         (()=>{const gsc=Math.max(1,ftot,ptot),gfh=Math.min(100,ftot/gsc*100).toFixed(0),gph=Math.min(100,ptot/gsc*100).toFixed(0);
-          return `<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px" data-tip="${dt(_isMgr?'Мой план предоплат':'План предоплат отдела',[['Факт',fmtV(ftot),'hl'],[_isMgr?'Цель':'План',fmtV(ptot),'hl'],['Выполнение',pct(att),'hl'],['База',_isMgr?'портфель × 15%':'из таблицы','dim'],['Статус',att>=1?'выполнен':'не выполнен','dim']]).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:22px;height:46px;background:var(--bg-base);border:1px solid var(--border-hot);border-top:none;border-radius:0 0 4px 4px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${gfh}%;background:${tc};opacity:.92;border-radius:0 0 3px 3px"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${gph}%;border-top:2px dashed #A78BFA"></div></div><span style="flex:0 0 auto;text-align:right;font-size:12px;font-weight:800;line-height:1.15"><span style="color:${att>=1?'#2E9E74':'var(--ink-3)'}">${fmtV(ftot)}</span><div style="color:var(--ink);font-weight:700;font-size:10.5px">/${fmtV(ptot)}</div></span></div>`;})()+
+          return `<div style="width:${RW}px;box-sizing:border-box;border-left:1px dashed var(--border-soft);padding-left:6px;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px" data-tip="${dt(_isMgr?'Мой план предоплат':'План предоплат отдела',[['Факт',fmtV(ftot),'hl'],[_isMgr?'Цель':'План',fmtV(ptot),'hl'],['Выполнение',pct(att),'hl'],['База',_isMgr?'портфель × '+pct(_TCR):'из таблицы','dim'],['Статус',att>=1?'выполнен':'не выполнен','dim']]).replace(/"/g,'&quot;')}"><div style="position:relative;flex:0 0 auto;width:22px;height:46px;background:var(--bg-base);border:1px solid var(--border-hot);border-top:none;border-radius:0 0 4px 4px"><div style="position:absolute;left:0;bottom:0;width:100%;height:${gfh}%;background:${tc};opacity:.92;border-radius:0 0 3px 3px"></div><div style="position:absolute;left:-1px;right:-1px;bottom:${gph}%;border-top:2px dashed #A78BFA"></div></div><span style="flex:0 0 auto;text-align:right;font-size:12px;font-weight:800;line-height:1.15"><span style="color:${att>=1?'#2E9E74':'var(--ink-3)'}">${fmtV(ftot)}</span><div style="color:var(--ink);font-weight:700;font-size:10.5px">/${fmtV(ptot)}</div></span></div>`;})()+
       `</div></div>`;
   })();
 
@@ -2348,16 +2353,18 @@ function mgrStats(){
   const dEx=dPassed.filter(d=>_enterExec(d)).map(d=>d.budget||0).filter(v=>v>0);
   const dMean=dEx.length?Math.round(dEx.reduce((a,b)=>a+b,0)/dEx.length):120000,dMed=Math.round(median(dEx)||120000);
   // средний (mean) - правильный делитель: выручка = кол-во × средний чек, поэтому кол-во = выручка ÷ средний.
-  const basis='mean',avgCheck=dMean;
-  // ЛОГИКА ПЛАНА (Ивана): план выручки отдела ÷ средний чек отдела = всего продаж отделу;
-  // мощность при 15% = портфель × 15%. Месячный норматив ПРОПОРЦИОНАЛЬНО режем под длину
+  // План месяца (из таблицы РОП): конверсия-цель CR2 и плановый чек тянутся отсюда, как в дашборде РОП.
+  const pm=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===today.slice(0,7));
+  const tcr=(pm&&pm.cr2>0)?pm.cr2:0.15;                 // конверсия-цель ИЗ ПЛАНА (CR2 листа), запас 15%
+  const basis='mean',avgCheck=(pm&&pm.check>0)?Math.round(pm.check):dMean; // плановый чек; запас - средний чек отдела
+  // ЛОГИКА ПЛАНА (Ивана): план выручки отдела ÷ плановый чек = всего продаж отделу;
+  // мощность = портфель × CR2 (конверсия-цель плана). Месячный норматив ПРОПОРЦИОНАЛЬНО режем под длину
   // диапазона (factor = дней/30): диапазон «неделя» → цель ≈ месячная × 7/30 и т.д.
   const factor=days/30;
-  const pm=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===today.slice(0,7));
   const planRev=Math.round((pm?pm.rev:0)*factor);
   const totalSales=avgCheck&&planRev?Math.round(planRev/avgCheck):0;
   const share=dWip?wip/dWip:0;                 // доля портфеля = его «В работе» ÷ «В работе» отдела
-  const capacity=Math.round(wip*0.15*factor);  // мощность = портфель × 15%, порезано под диапазон
+  const capacity=Math.round(wip*tcr*factor);   // мощность = портфель × CR2, порезано под диапазон
   // Пол «1 продажа в день» действует ТОЛЬКО на дневном виде: смотришь «Сегодня» - цель минимум 1
   // (иначе округляется в 0). На неделю и больше цель считается от месячного плана (портфель × 15%,
   // порезано под диапазон) без пола.
@@ -2366,46 +2373,46 @@ function mgrStats(){
   const revTarget=Math.round(target*avgCheck);
   // Название периода по длине диапазона - для заголовков «План-факт … за <период>».
   const periodLabel=days<=1?'день':days<=8?'неделю':(days>=26&&days<=31)?'месяц':'период ('+fmt(days)+' дн)';
-  const lossCap=Math.round(wip*0.6*factor),loseProj=Math.round(loseA.length/mEl*mDays); // потолок отказов = портфель × 60%, порезано под диапазон
-  return {mode:OUTC?'outcome':'created',live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),wip,suc,sucM:rev,lose:loseA.length,lossCap,loseProj,cr,chk,proj,mEl,mDays,periodLabel,days,dCr,checkP:avgCheck,dMean,dMed,basis,planRev,totalSales,dLive,share,capacity,target,targetFloored,revTarget};
+  const lossCap=Math.round(wip*tcr*4*factor),loseProj=Math.round(loseA.length/mEl*mDays); // потолок отказов = успех-цель × 4 (портфель × CR2×4), порезано под диапазон
+  return {mode:OUTC?'outcome':'created',live:live.length,zomb:zomb.length,zombM:zomb.reduce((s,d)=>s+(d.budget||0),0),wip,suc,sucM:rev,lose:loseA.length,lossCap,loseProj,cr,chk,proj,mEl,mDays,periodLabel,days,dCr,checkP:avgCheck,dMean,dMed,basis,planRev,totalSales,dLive,share,capacity,target,targetFloored,revTarget,tcr};
 }
 function managerHeaderBlock(){
   return `<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title" style="font-size:18px">${esc(MANAGER)} · менеджер отдела продаж</div><div class="card-sub">Личная эффективность и план-факт по продажам · режим: ${S.dateBasis!=='created'?'по дате продажи':'по дате создания'}</div></div></div></div>`;
 }
 function managerKpiBlock(MS){
   const pc=MS.checkP;
-  const g1=gauge({label:'Предоплаты, шт',gradeBar:true,att:MS.target?MS.suc/MS.target:0,fact:MS.suc,plan:MS.target,kind:'count',factDisp:fmt(MS.suc),planDisp:fmt(MS.target),info:`Цель = клиентский портфель «в работе» (${fmt(MS.wip)}) × 15% × дней/30 - от месячного плана, порезано под диапазон = ${fmt(MS.target)} предоплат${MS.targetFloored?' (на дневном виде поднято до минимума 1 продажи)':''}. Факт - вошло в «Предоплата получена» в этом периоде. Прогноз к концу периода = факт ÷ прошло дней × дней в периоде. Стрелка/полоса - процент выполнения.`});
+  const g1=gauge({label:'Предоплаты, шт',gradeBar:true,att:MS.target?MS.suc/MS.target:0,fact:MS.suc,plan:MS.target,kind:'count',factDisp:fmt(MS.suc),planDisp:fmt(MS.target),info:`Цель = клиентский портфель «в работе» (${fmt(MS.wip)}) × ${pct(MS.tcr)} × дней/30 - от месячного плана, порезано под диапазон = ${fmt(MS.target)} предоплат${MS.targetFloored?' (на дневном виде поднято до минимума 1 продажи)':''}. Факт - вошло в «Предоплата получена» в этом периоде. Прогноз к концу периода = факт ÷ прошло дней × дней в периоде. Стрелка/полоса - процент выполнения.`});
   const revPlan=Math.max(1,MS.revTarget);
   const g2=gauge({label:'Выручка',gradeBar:true,att:MS.sucM/revPlan,fact:MS.sucM,plan:revPlan,kind:'money',factDisp:fmtK(MS.sucM),planDisp:fmtK(revPlan),info:`Цель по выручке = цель предоплат (${fmt(MS.target)}) × средний чек (${fmtK(MS.checkP)} ₽) = ${fmtK(revPlan)} ₽. Факт - выручка по твоим предоплатам за период.`});
-  const g3=gauge({label:'Конверсия портфеля',gradeBar:true,att:MS.cr/0.15,fact:MS.cr,plan:0.15,kind:'pct',factDisp:pct(MS.cr),planDisp:pct(0.15),info:`Конверсия = предоплаты за период ÷ портфель «в работе» на конец (${fmt(MS.suc)} ÷ ${fmt(MS.wip)}), в пересчёте на месяц - поэтому цель ЕДИНАЯ 15%/мес на день/неделю/месяц. У отдела за тот же период ${pct(MS.dCr)} (успех отдела ÷ портфель отдела) - одна формула, сравнимо.`});
-  const g4=gauge({label:'Средний чек',gradeBar:true,att:pc?MS.chk/pc:0,fact:MS.chk,plan:pc,kind:'money',factDisp:fmtK(MS.chk),planDisp:fmtK(pc),info:`Средний чек твоих предоплат за период (выручка ÷ кол-во). План - средний чек по отделу (${fmtK(pc)} ₽). Ниже отдела - гонка за количеством роняет выручку.`});
+  const g3=gauge({label:'Конверсия портфеля',gradeBar:true,att:MS.tcr?MS.cr/MS.tcr:0,fact:MS.cr,plan:MS.tcr,kind:'pct',factDisp:pct(MS.cr),planDisp:pct(MS.tcr),info:`Конверсия = предоплаты за период ÷ портфель «в работе» на конец (${fmt(MS.suc)} ÷ ${fmt(MS.wip)}), в пересчёте на месяц - поэтому цель ЕДИНАЯ ${pct(MS.tcr)}/мес на день/неделю/месяц (из плана листа). У отдела за тот же период ${pct(MS.dCr)} (успех отдела ÷ портфель отдела) - одна формула, сравнимо.`});
+  const g4=gauge({label:'Средний чек',gradeBar:true,att:pc?MS.chk/pc:0,fact:MS.chk,plan:pc,kind:'money',factDisp:fmtK(MS.chk),planDisp:fmtK(pc),info:`Средний чек твоих предоплат за период (выручка ÷ кол-во). План - плановый чек из таблицы РОП (${fmtK(pc)} ₽). Ниже плана - гонка за количеством роняет выручку.`});
   return `<div class="card"><div class="card-h"><div><div class="card-title">Мои KPI - план на ${MS.periodLabel} ${info('Четыре главные цифры за выбранный период (реагируют на фильтр дат сверху): предоплаты, деньги, конверсия, средний чек. Цель порезана под длину диапазона (месячный норматив × дней/30). Стрелка спидометра и полоса снизу показывают процент выполнения плана. Вопрос: где я по плану и где проседаю? Вывод: зелёный - в норме, красный - отстаёшь; предоплаты главное, тяни их в первую очередь.')}</div><div class="card-sub">Четыре главные цифры за период: предоплаты, деньги, конверсия, средний чек</div></div></div><div class="gauges" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${g1}${g2}${g3}${g4}</div></div>`;
 }
 function managerPlanBlock(MS){
   const pctPlan=MS.target?MS.suc/MS.target:0,c=pctPlan>=0.9?'#2E9E74':pctPlan>=0.6?'#C2873C':'#CC5867';
   const projC=MS.target&&MS.proj>=MS.target?'#2E9E74':'#CC5867',bar=Math.min(100,pctPlan*100).toFixed(0),gapT=Math.max(0,MS.target-MS.suc);
-  // Реальная конверсия портфеля (факт предоплат ÷ портфель «в работе») против цели 15%.
-  const crC=MS.cr>=0.15?'#2E9E74':MS.cr>=0.1?'#C2873C':'#CC5867';
+  // Реальная конверсия портфеля (факт предоплат ÷ портфель «в работе») против цели из плана (CR2).
+  const crC=MS.cr>=MS.tcr?'#2E9E74':MS.cr>=MS.tcr*0.67?'#C2873C':'#CC5867';
   // Отказы: норма ≤ портфель × 60% (успех × 4). Красный, если факт или прогноз к концу периода превышает потолок.
   const loseOver=MS.lose>MS.lossCap||MS.loseProj>MS.lossCap,lossC=loseOver?'#CC5867':'#2E9E74';
-  const chain=`Портфель «в работе» <b>${fmt(MS.wip)}</b> × 15% = цель <b style="color:#A78BFA">${fmt(MS.target)}</b> предоплат`+(MS.planRev?` · сверка по выручке: план <b>${fmtK(MS.planRev)} ₽</b> ÷ чек <b>${fmtK(MS.checkP)} ₽</b> = <b>${fmt(MS.totalSales)}</b> продаж отделу (${fmt(MS.target)} × чек = <b>${fmtK(MS.revTarget)} ₽</b> с тебя)`:'');
+  const chain=`Портфель «в работе» <b>${fmt(MS.wip)}</b> × ${pct(MS.tcr)} = цель <b style="color:#A78BFA">${fmt(MS.target)}</b> предоплат`+(MS.planRev?` · сверка по выручке: план <b>${fmtK(MS.planRev)} ₽</b> ÷ чек <b>${fmtK(MS.checkP)} ₽</b> = <b>${fmt(MS.totalSales)}</b> продаж отделу (${fmt(MS.target)} × чек = <b>${fmtK(MS.revTarget)} ₽</b> с тебя)`:'');
   const verdict=MS.target?(MS.proj>=MS.target?`Темп в норме: прошло ${fmt(MS.mEl)}/${fmt(MS.mDays)} дней, сделано ${fmt(MS.suc)} → прогноз ${fmt(MS.proj)} ≥ цель ${fmt(MS.target)}.`:`Недобор по темпу: прошло ${fmt(MS.mEl)}/${fmt(MS.mDays)} дней, сделано ${fmt(MS.suc)} → прогноз ${fmt(MS.proj)} < цель ${fmt(MS.target)} (нужно ещё ${fmt(gapT)}).`):'Нет портфеля в работе - цель не сформировать.';
   // Статус словами (не только цветом) + hover на всём блоке плитки, а не на тонкой полосе (в неё «фиг попадёшь»).
   const _q=s=>String(s).replace(/"/g,'&quot;');
   const stPlan=f=>f>=1?'план выполнен':f>=0.9?'почти в плане':f>=0.6?'отставание':'невыполнение плана';
   const stProj=MS.target?(MS.proj>=MS.target?'выйдешь на план':'ниже плана на '+fmt(Math.max(0,MS.target-MS.proj))):'нет цели';
   const stLoss=loseOver?'выше потолка':'в норме';
-  const stCr=MS.cr>=0.15?'≥ цели 15%':'ниже цели 15%';
+  const stCr=MS.cr>=MS.tcr?'≥ цели '+pct(MS.tcr):'ниже цели '+pct(MS.tcr);
   // Подсказки: разделяем количество продаж и деньги, чтобы не путать «шт» с «₽».
-  const tCel=dt('Цель предоплат · за '+MS.periodLabel,[['Клиентский портфель «в работе»',fmt(MS.wip),'dim'],['× 15% × дней/30 (от месячного плана)',fmt(MS.capacity)+' предоплат',MS.targetFloored?'dim':'hl']].concat(MS.targetFloored?[['Пол на день: минимум 1',fmt(MS.target)+' предоплат','hl']]:[]).concat(MS.planRev?[['В деньгах (× чек '+fmtK(MS.checkP)+')',fmtK(MS.revTarget)+' ₽','dim']]:[]));
+  const tCel=dt('Цель предоплат · за '+MS.periodLabel,[['Клиентский портфель «в работе»',fmt(MS.wip),'dim'],['× '+pct(MS.tcr)+' × дней/30 (от месячного плана)',fmt(MS.capacity)+' предоплат',MS.targetFloored?'dim':'hl']].concat(MS.targetFloored?[['Пол на день: минимум 1',fmt(MS.target)+' предоплат','hl']]:[]).concat(MS.planRev?[['В деньгах (× чек '+fmtK(MS.checkP)+')',fmtK(MS.revTarget)+' ₽','dim']]:[]));
   const tFac=dt('Факт предоплат · за '+MS.periodLabel,[['Сделано предоплат',fmt(MS.suc)+' из '+fmt(MS.target),'hl'],['Выполнение плана',pct(pctPlan),'hl'],['Осталось до плана',fmt(gapT)+' предоплат','dim'],['Выручка по ним',fmtK(MS.sucM)+' ₽','dim']]);
   const tPct=dt('Выполнение плана предоплат',[['Факт',fmt(MS.suc)+' предоплат','hl'],['Цель',fmt(MS.target)+' предоплат','hl'],['% плана',pct(pctPlan),'hl'],['Осталось',fmt(gapT)+' предоплат','dim']]);
   const tPrj=dt('Прогноз предоплат к концу периода',[['Сделано за '+fmt(MS.mEl)+'/'+fmt(MS.mDays)+' дн',fmt(MS.suc),'dim'],['Прогноз к концу мес',fmt(MS.proj),'hl'],['Цель',fmt(MS.target),'hl'],[MS.proj>=MS.target?'Запас над планом':'Не хватит до плана',fmt(Math.abs(MS.target-MS.proj))+' предоплат','dim']]);
-  const tLos=dt('Отказы за период',[['Потеряно сделок',fmt(MS.lose),'hl'],['Потолок (портфель × 60%)',fmt(MS.lossCap),'hl'],['Прогноз к концу мес',fmt(MS.loseProj),'dim'],['Правило','на 1 успех ≤ 4 отказа','dim']]);
-  const tCr=dt('Реальная конверсия портфеля',[['Предоплаты ÷ портфель «в работе»',fmt(MS.suc)+' ÷ '+fmt(MS.wip),'dim'],['Факт конверсии',pct(MS.cr),'hl'],['Цель','15%','hl'],['Отдел сейчас',pct(MS.dCr),'dim']]);
+  const tLos=dt('Отказы за период',[['Потеряно сделок',fmt(MS.lose),'hl'],['Потолок (успех-цель × 4)',fmt(MS.lossCap),'hl'],['Прогноз к концу мес',fmt(MS.loseProj),'dim'],['Правило','на 1 успех ≤ 4 отказа','dim']]);
+  const tCr=dt('Реальная конверсия портфеля',[['Предоплаты ÷ портфель «в работе»',fmt(MS.suc)+' ÷ '+fmt(MS.wip),'dim'],['Факт конверсии',pct(MS.cr),'hl'],['Цель',pct(MS.tcr),'hl'],['Отдел сейчас',pct(MS.dCr),'dim']]);
   // Плитка: весь блок наводибельный (data-tip), статус текстом, тонкая полоса - только визуал.
   const tile=(lab,val,col,status,frac,tip,barCol)=>`<div data-tip="${_q(tip)}" style="flex:1;min-width:116px;background:var(--bg-base);border-radius:10px;padding:9px 12px;cursor:help"><div style="font-size:10.5px;color:var(--ink-2);font-weight:800;text-transform:uppercase;letter-spacing:.04em">${lab}</div><div style="font-family:'Manrope';font-weight:800;font-size:22px;color:${col};line-height:1.15">${val}</div>${status?`<div style="font-size:9.5px;font-weight:800;color:${col};margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${status}</div>`:''}${frac!=null?`<div style="height:4px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-top:5px"><div style="height:100%;width:${Math.max(3,Math.min(100,frac*100)).toFixed(0)}%;background:${barCol||col};border-radius:3px"></div></div>`:''}</div>`;
-  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">План-факт по предоплатам · за ${MS.periodLabel} ${info('Сколько предоплат надо сделать за ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху) и сколько уже сделано. Цель - твоя часть плана отдела по размеру портфеля, по клиентскому портфелю, порезанная под длину диапазона (портфель × 15% × дней/30, от месячного плана). На дневном виде («Сегодня») цель поднимается до минимума 1 продажи, чтобы не была нулевой. Прогноз - сколько выйдет к концу периода при нынешнем темпе. Отказы - сколько сделок потеряно; норма ≤ портфель × 60% (на 1 успех не больше 4 отказов), красный - вышел за потолок. Реальная конверсия - факт предоплат ÷ портфель «в работе», сравни с целью 15%. Вопрос: успеваю ли я к плану и не сливаю ли сделки? Вывод: прогноз ниже цели - ускоряйся; отказов выше нормы или конверсия ниже 15% - дожимай сделки и скорость ответа.')}</div><div class="card-sub">Сколько предоплат надо сделать за период и сколько уже есть</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${tile('Цель предоплат',fmt(MS.target),'#A78BFA','план на '+MS.periodLabel,null,tCel)}${tile('Факт',fmt(MS.suc),c,stPlan(pctPlan),pctPlan,tFac,c)}${tile('% плана',MS.target?pct(pctPlan):'—',c,stPlan(pctPlan),pctPlan,tPct,c)}${tile('Прогноз успехов',fmt(MS.proj),projC,stProj,MS.target?MS.proj/MS.target:0,tPrj,projC)}${tile('Отказы',fmt(MS.lose),lossC,stLoss,MS.lossCap?MS.lose/MS.lossCap:0,tLos,lossC)}${tile('Реальная конверсия',pct(MS.cr),crC,stCr,MS.cr/0.15,tCr,crC)}</div><div data-tip="${_q(dt('Итог по плану предоплат',[['Факт',fmt(MS.suc)+' предоплат','hl'],['Цель',fmt(MS.target)+' предоплат','hl'],['% плана',pct(pctPlan),'hl'],['Вердикт',MS.proj>=MS.target?'темп в норме':'недобор по темпу','dim']]))}" style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;cursor:help"><div style="height:100%;width:${bar}%;background:${c}"></div></div></div>`;
+  return `<div class="card"><div class="card-h" style="flex-wrap:wrap;gap:8px"><div><div class="card-title">План-факт по предоплатам · за ${MS.periodLabel} ${info('Сколько предоплат надо сделать за ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху) и сколько уже сделано. Цель - твоя часть плана отдела по размеру портфеля, по клиентскому портфелю, порезанная под длину диапазона (портфель × '+pct(MS.tcr)+' × дней/30, от месячного плана). На дневном виде («Сегодня») цель поднимается до минимума 1 продажи, чтобы не была нулевой. Прогноз - сколько выйдет к концу периода при нынешнем темпе. Отказы - сколько сделок потеряно; норма ≤ успех-цель × 4 (на 1 успех не больше 4 отказов), красный - вышел за потолок. Реальная конверсия - факт предоплат ÷ портфель «в работе», сравни с целью '+pct(MS.tcr)+'. Вопрос: успеваю ли я к плану и не сливаю ли сделки? Вывод: прогноз ниже цели - ускоряйся; отказов выше нормы или конверсия ниже '+pct(MS.tcr)+' - дожимай сделки и скорость ответа.')}</div><div class="card-sub">Сколько предоплат надо сделать за период и сколько уже есть</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">${tile('Цель предоплат',fmt(MS.target),'#A78BFA','план на '+MS.periodLabel,null,tCel)}${tile('Факт',fmt(MS.suc),c,stPlan(pctPlan),pctPlan,tFac,c)}${tile('% плана',MS.target?pct(pctPlan):'—',c,stPlan(pctPlan),pctPlan,tPct,c)}${tile('Прогноз успехов',fmt(MS.proj),projC,stProj,MS.target?MS.proj/MS.target:0,tPrj,projC)}${tile('Отказы',fmt(MS.lose),lossC,stLoss,MS.lossCap?MS.lose/MS.lossCap:0,tLos,lossC)}${tile('Реальная конверсия',pct(MS.cr),crC,stCr,MS.tcr?MS.cr/MS.tcr:0,tCr,crC)}</div><div data-tip="${_q(dt('Итог по плану предоплат',[['Факт',fmt(MS.suc)+' предоплат','hl'],['Цель',fmt(MS.target)+' предоплат','hl'],['% плана',pct(pctPlan),'hl'],['Вердикт',MS.proj>=MS.target?'темп в норме':'недобор по темпу','dim']]))}" style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;cursor:help"><div style="height:100%;width:${bar}%;background:${c}"></div></div></div>`;
 }
 function managerDynBlock(){
   const GR=['day','week','month'];let gi=Math.max(0,GR.indexOf(S.gran)),dk=bucketsR(S.start,S.end,GR[gi]);
@@ -2421,7 +2428,9 @@ function managerDynBlock(){
   // пол 7 дн), чтобы линия сравнивалась с ЕДИНОЙ целью 15%/мес на любой гранулярности.
   const per=ds=>dk.map(k=>{const be=bEnd(k),bs0=bStartOf(k),bs=bs0>S.start?bs0:S.start,port=wipAt(ds,be),bDays=Math.max(7,Math.round((_PDx(be)-_PDx(bs))/DAYMS)+1),moB=bDays/30,su=ds.filter(d=>{if(S.dateBasis!=='created'){const e=_enterExec(d);return e&&e.slice(0,10)>=bs&&e.slice(0,10)<=be;}const c=d.created;return c&&c.slice(0,10)>=bs&&c.slice(0,10)<=be&&_enterExec(d);}).length;return {conv:port?(su/port)/moB:null,su,port};});
   const me=per(DATA.deals),dp=per(ALL_DEALS);
-  const planCr=0.15; // единая цель 15%/мес (не режется под интервал - метрика приведена к месяцу)
+  // единая цель CR2/мес ИЗ ПЛАНА (не режется под интервал - метрика приведена к месяцу); запас 15%
+  const _pmC=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===String(DATA.to||'').slice(0,7));
+  const planCr=(_pmC&&_pmC.cr2>0)?_pmC.cr2:0.15;
   const glabOne=eg==='day'?'день':eg==='week'?'неделю':'месяц';
   const pts=[...me,...dp].map(o=>o.conv).filter(v=>v!=null);
   if(!pts.length)return '';
@@ -2443,16 +2452,16 @@ function managerDynBlock(){
   const svg=`<svg viewBox="0 0 ${DW} ${DH}" width="100%" style="display:block">${grid}${plan}<path d="${path(dp)}" fill="none" stroke="#A78BFA" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/><path d="${path(me)}" fill="none" stroke="#22D3EE" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>${dots(me,'#22D3EE')}${endLbl(dp,'#A78BFA','Отдел')}${endLbl(me,'#22D3EE','Я')}${hov}${xl}</svg>`;
   const swatch=(c,dash,lab)=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-2);white-space:nowrap"><svg width="22" height="8" style="overflow:visible"><line x1="0" y1="4" x2="22" y2="4" stroke="${c}" stroke-width="${dash?2:2.6}"${dash?` stroke-dasharray="${dash}"`:''}/></svg>${lab}</span>`;
   const legend=`<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:2px 0 8px">${swatch('#22D3EE','',`<b style="color:#22D3EE">${esc(MANAGER)} (я)</b>`)}${swatch('#A78BFA','5 4','<b style="color:#A78BFA">Отдел</b>')}${swatch('#E7ECF3','4 3',`цель ${pct(planCr)}/мес`)}<span style="font-size:10.5px;color:var(--ink-4)">не накопительно · в пересчёте на месяц · по ${glab} · наведи - значения</span></div>`;
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Моя конверсия в динамике vs отдел ${info('Как со временем меняется твоя доля успеха из портфеля, рядом - весь отдел. Голубая линия - ты, сиреневый пунктир - отдел, светлый пунктир - цель. Считаем НЕ накопительно: в каждом интервале успех, вошедший именно в нём, ÷ портфель на конец интервала (была продажа - конверсия есть, не было - 0), и приводим к МЕСЯЧНОЙ норме (÷ длину интервала в месяцах). Поэтому цель ЕДИНАЯ 15%/мес на любой гранулярности - день, неделя, месяц сравниваются с одним и тем же 15%. Вопрос: я подтягиваюсь к отделу или отстаю? Вывод: чем выше линия и ближе к отделу, тем лучше; ниже отдела - разбирай возражения и скорость ответа.')}</div></div></div>${legend}${svg}</div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Моя конверсия в динамике vs отдел ${info('Как со временем меняется твоя доля успеха из портфеля, рядом - весь отдел. Голубая линия - ты, сиреневый пунктир - отдел, светлый пунктир - цель. Считаем НЕ накопительно: в каждом интервале успех, вошедший именно в нём, ÷ портфель на конец интервала (была продажа - конверсия есть, не было - 0), и приводим к МЕСЯЧНОЙ норме (÷ длину интервала в месяцах). Поэтому цель ЕДИНАЯ '+pct(planCr)+'/мес на любой гранулярности - день, неделя, месяц сравниваются с одним и тем же '+pct(planCr)+'. Вопрос: я подтягиваюсь к отделу или отстаю? Вывод: чем выше линия и ближе к отделу, тем лучше; ниже отдела - разбирай возражения и скорость ответа.')}</div></div></div>${legend}${svg}</div>`;
 }
 function managerSignalsBlock(MS){
   const sig=[];
   // Отставание по предоплатам: прогноз к концу периода ниже цели (портфель «в работе» × 15%).
-  if(MS.target&&MS.proj<MS.target)sig.push(['#F43F5E','Отставание от плана',`Прогноз ${fmt(MS.proj)} < цель ${fmt(MS.target)} предоплат (портфель в работе ${fmt(MS.wip)} × 15%). Сделано ${fmt(MS.suc)} за ${fmt(MS.mEl)}/${fmt(MS.mDays)} дн - нужно ещё ${fmt(Math.max(0,MS.target-MS.suc))}. Дожимать портфель, поднимать конверсию.`]);
-  // Отказы выше потолка: норма ≤ портфель × 60% (успех × 4). Совпадает с плиткой «Отказы».
-  if(MS.lose>MS.lossCap)sig.push(['#F43F5E','Отказов больше нормы',`Отказов ${fmt(MS.lose)} при потолке ${fmt(MS.lossCap)} (портфель ${fmt(MS.wip)} × 60%). Разбирать причины отказов ниже - на чём теряем.`]);
+  if(MS.target&&MS.proj<MS.target)sig.push(['#F43F5E','Отставание от плана',`Прогноз ${fmt(MS.proj)} < цель ${fmt(MS.target)} предоплат (портфель в работе ${fmt(MS.wip)} × ${pct(MS.tcr)}). Сделано ${fmt(MS.suc)} за ${fmt(MS.mEl)}/${fmt(MS.mDays)} дн - нужно ещё ${fmt(Math.max(0,MS.target-MS.suc))}. Дожимать портфель, поднимать конверсию.`]);
+  // Отказы выше потолка: норма ≤ успех-цель × 4 (портфель × CR2×4). Совпадает с плиткой «Отказы».
+  if(MS.lose>MS.lossCap)sig.push(['#F43F5E','Отказов больше нормы',`Отказов ${fmt(MS.lose)} при потолке ${fmt(MS.lossCap)} (успех-цель × 4). Разбирать причины отказов ниже - на чём теряем.`]);
   else if(MS.loseProj>MS.lossCap)sig.push(['#F59E0B','Отказы идут за потолок',`Отказов ${fmt(MS.lose)}, прогноз к концу периода ${fmt(MS.loseProj)} > потолок ${fmt(MS.lossCap)}. Сбавить темп потерь: квалификация на входе, работа с возражениями.`]);
-  if(MS.cr<0.15)sig.push(['#F59E0B','Конверсия ниже цели',`Портфель конвертируется на ${pct(MS.cr)} при цели 15%${MS.dCr?` (отдел ${pct(MS.dCr)})`:''}. Разбор возражений, скорость ответа, квалификация лида.`]);
+  if(MS.cr<MS.tcr)sig.push(['#F59E0B','Конверсия ниже цели',`Портфель конвертируется на ${pct(MS.cr)} при цели ${pct(MS.tcr)}${MS.dCr?` (отдел ${pct(MS.dCr)})`:''}. Разбор возражений, скорость ответа, квалификация лида.`]);
   if(MS.zomb>0)sig.push(['#F59E0B','Долгострой',`${fmt(MS.zomb)} офферов старше 60 дн (${fmtK(MS.zombM)} ₽) - мёртвый груз. Разобрать: дожать или закрыть.`]);
   if(MS.chk&&MS.checkP&&MS.chk<MS.checkP*0.85)sig.push(['#F59E0B','Чек ниже пола',`Средний чек ${fmtK(MS.chk)} ₽ < пол ${fmtK(MS.checkP)} ₽. Не гнать количество в ущерб деньгам.`]);
   if(!sig.length)sig.push(['#2E9E74','В норме','Ключевые метрики в порядке - держать темп.']);

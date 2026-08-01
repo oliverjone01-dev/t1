@@ -7,9 +7,10 @@ name: B24 GM snapshots (Glass Memory, прямой Bitrix)
 #   ROP_SKIP_SP=1            - у Glass Memory производство ВНУТРИ воронки, отдельного СП-1086 нет
 #   ROP_ONLY_LEAD_DIRS=glass-memory - оставить только лиды Glass Memory
 #
-# Живёт на ветке rop-gm-dashboard-v1 (аналог rop-dashboard-v1 для GG).
-# Файл-двойник на main нужен только чтобы workflow_dispatch был доступен
-# (GitHub регистрирует воркфлоу с дефолтной ветки). Запуск чекаутит rop-gm-dashboard-v1.
+# Живёт на ветке rop-gm-dashboard-v1 (аналог rop-dashboard-v1 для GG). Файл-двойник
+# на main нужен, чтобы schedule/workflow_dispatch были доступны (GitHub регистрирует
+# воркфлоу с дефолтной ветки). Запуск чекаутит rop-gm-dashboard-v1, коммитит свежий
+# снимок туда и дёргает deploy-pages -> /rop-gm/ пересобирается из свежих данных.
 
 on:
   workflow_dispatch:
@@ -17,9 +18,12 @@ on:
       date_from:
         description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
         required: false
+  schedule:
+    - cron: "37 5 * * *" # ~08:37 МСК, ежедневный снимок Glass Memory
 
 permissions:
   contents: write
+  actions: write # чтобы после свежего снимка дёрнуть deploy-pages (публикация /rop-gm/)
 
 concurrency:
   group: b24-gm-data
@@ -67,16 +71,29 @@ jobs:
           echo "Размер данных: $(du -h rop/data/rop-gm.json | cut -f1)"
 
       - name: Commit (если есть изменения)
+        id: commit
         working-directory: .
         run: |
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A analytics-mvp/rop/data/rop-gm.json
-          if git diff --staged --quiet; then echo "снимок без изменений"; exit 0; fi
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(rop-gm): снимок Bitrix24 C21 Glass Memory $(date -u +%F)"
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
             git rebase --abort 2>/dev/null || true; sleep $((2**i))
           done
           echo "push не удался"; exit 1
+
+      # Свежие данные в ветке -> публикуем /rop-gm/ (deploy-pages собирает GM-дашборд из ветки).
+      - name: Триггер деплоя /rop-gm/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация /rop-gm/ запрошена (deploy-pages, ref=main)."

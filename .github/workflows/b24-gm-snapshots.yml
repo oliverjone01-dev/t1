@@ -4,13 +4,13 @@ name: B24 GM snapshots (Glass Memory, прямой Bitrix)
 # Форк b24-snapshots.yml под воронку C21 «☑️ПРОДАЖИ Glass Memory»:
 #   ROP_DEAL_CATEGORY=21     - воронка Glass Memory продажи
 #   ROP_OUT=...rop-gm.json   - отдельный файл данных, не пересекается с GG (rop.json)
-#   ROP_SKIP_SP=1            - у Glass Memory производство ВНУТРИ воронки, отдельного СП-1086 нет
+#   ROP_SP_ETID=1120         - производственный СП «Производство GM» (карточки цеха)
 #   ROP_ONLY_LEAD_DIRS=glass-memory - оставить только лиды Glass Memory
 #
 # Живёт на ветке rop-gm-dashboard-v1 (аналог rop-dashboard-v1 для GG). Файл-двойник
-# на main нужен, чтобы schedule/workflow_dispatch были доступны (GitHub регистрирует
-# воркфлоу с дефолтной ветки). Запуск чекаутит rop-gm-dashboard-v1, коммитит свежий
-# снимок туда и дёргает deploy-pages -> /rop-gm/ пересобирается из свежих данных.
+# на main нужен, чтобы schedule/workflow_dispatch были доступны. Расписание СОВПАДАЕТ
+# с GG (b24-snapshots): Bitrix обновляется одновременно для обеих воронок. После свежего
+# снимка дёргает deploy-pages -> /rop-gm/ пересобирается из свежих данных.
 
 on:
   workflow_dispatch:
@@ -19,7 +19,8 @@ on:
         description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
         required: false
   schedule:
-    - cron: "37 5 * * *" # ~08:37 МСК, ежедневный снимок Glass Memory
+    - cron: "17 5 * * *" # ~08:17 МСК, синхронно с GG (b24-snapshots)
+    - cron: "47 9 * * *" # ~12:47 МСК, страховочный, синхронно с GG
 
 permissions:
   contents: write
@@ -34,7 +35,7 @@ env:
   B24_PORTAL: https://glassmemory.bitrix24.ru
   ROP_DEAL_CATEGORY: "21"
   ROP_OUT: rop/data/rop-gm.json
-  ROP_SKIP_SP: "1"
+  ROP_SP_ETID: "1120"
   ROP_ONLY_LEAD_DIRS: glass-memory
   ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
 
@@ -62,7 +63,7 @@ jobs:
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then
             echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
           fi
-          echo "Секрет на месте. Категория=$ROP_DEAL_CATEGORY -> $ROP_OUT"
+          echo "Секрет на месте. Категория=$ROP_DEAL_CATEGORY -> $ROP_OUT, СП=$ROP_SP_ETID"
 
       - name: Снимок Bitrix C21 -> rop/data/rop-gm.json
         run: |

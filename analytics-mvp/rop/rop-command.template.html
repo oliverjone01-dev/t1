@@ -660,7 +660,7 @@ function deptDQBlock(){
   const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
   const eBud=d=>(d.budget||0)<=1;
   const nP=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
-  const allRows=passed.filter(d=>nP(d)>0);
+  const allRows=passed.filter(d=>!d.lost&&nP(d)>0);  // исключаем «Сделка провалена»: мёртвые сделки не чиним
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const _info=info('Ровно тот список, что видит каждый менеджер в своём дашборде: сделки, дошедшие до предложения, у которых в CRM не заполнено важное - причина отказа (для отказных), категория, тип клиента или бюджет 0/1 (при отправленном КП цена должна быть выше 1). Вопрос: где дыры в данных по отделу и у кого их больше. Вывод: чипы сверху - кто сколько должен поправить (клик - фильтр), таблица - конкретные сделки; клик по заголовку столбца - сортировка. Пока не закрыты, статистика конверсии и причин неполная.');
   if(!allRows.length)return `<div class="card" id="deptdqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления по отделу ${_info}</div></div></div><div style="text-align:center;padding:26px 16px"><div style="font-size:40px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:16px;color:#2E9E74;margin-top:8px">В CRM порядок по всему отделу</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px">Причина, категория, тип клиента и бюджет проставлены у всех сделок, дошедших до предложения. Отличная дисциплина - так держать!</div></div></div>`;

@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const TPL = "rop/rop-gm-command.template.html";
 const SRC = "rop/data/rop-gm.json";
-const PLAN = "rop/plan/plan.json"; // помесячный план (из Google Таблицы); опционален
+const PLAN = "rop/plan/plan-gm.json"; // своя GM план-таблица (Glass Memory), опциональна
 const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY";
 const OUT = "public/rop-gm-command.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);

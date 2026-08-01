@@ -270,6 +270,25 @@ jobs:
           # появляется сам, без правки этого файла. MIN_DEALS отсекает исторических призраков.
           OUT_DIR="$GITHUB_WORKSPACE/_site" MIN_DEALS=5 node src/scripts/b24/build-managers-all.mjs
 
+      # === РОП GLASS MEMORY (изолированно, из ветки rop-gm-dashboard-v1, в /rop-gm/) ===
+      # Форк РОП-дашборда под воронку C21 «ПРОДАЖИ Glass Memory». Данные - собственный снимок
+      # rop-gm.json (крон b24-gm-snapshots), собирается build-rop-gm.ts здесь на деплое.
+      # node_modules переиспользуем из основного workspace. Падение не валит сайт.
+      - name: Build ROP-GM dashboard (isolated, /rop-gm/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin rop-gm-dashboard-v1
+          git worktree add /tmp/ropgm origin/rop-gm-dashboard-v1
+          ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/ropgm/analytics-mvp/node_modules
+          cd /tmp/ropgm/analytics-mvp
+          npx tsx src/scripts/b24/build-rop-gm.ts
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop-gm"
+          cp public/rop-gm-command.html "$GITHUB_WORKSPACE/_site/rop-gm/index.html"
+          STAMP=$(grep -o '"bakedAt":"[^"]*"' public/rop-gm-command.html | head -1 | cut -d'"' -f4)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/rop-gm/v.txt"
+          echo "ROP-GM опубликован в /rop-gm/, сборка $STAMP"
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при

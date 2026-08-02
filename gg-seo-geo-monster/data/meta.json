@@ -1,23 +1,20 @@
 {
  "sources": {
   "keysso": {
-   "status": "genglass: ok (фразы: срез сводки, полный список группового отчёта доберём следующим прогоном) · glass-memory: ok (фразы: срез сводки, полный список группового отчёта доберём следующим прогоном)",
-   "date": "2026-08-01",
-   "requests_used": 18,
+   "status": "genglass: ok · glass-memory: ok",
+   "date": "2026-08-02",
+   "requests_used": 6,
    "limit": 3000,
-   "pending_rid": {
-    "genglass": "e9c2d1f86e054c0bad5858a688fd3784",
-    "glass-memory": "9aac21b8d96d780be17ba1089024f1c8"
-   }
+   "pending_rid": {}
   },
   "metrika": {
    "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
-   "date": "2026-08-01"
+   "date": "2026-08-02"
   },
   "direct": {
    "status": "genglass: ok · glass-memory: ok",
-   "date": "2026-08-01"
+   "date": "2026-08-02"
   }
  },
- "updated": "2026-08-01"
+ "updated": "2026-08-02"
 }

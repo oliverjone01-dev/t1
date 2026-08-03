@@ -41,7 +41,7 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .dwell-split .dw-chart{flex:1;min-width:0;border-left:1px solid var(--border-soft);padding-left:20px;display:flex;flex-direction:column;justify-content:center}
 @media(max-width:1150px){.dwell-split{flex-direction:column}.dwell-split .dw-chart{border-left:0;padding-left:0;border-top:1px solid var(--border-soft);padding-top:14px}}
 .lsort.on{color:var(--accent)}
-.controls{padding:9px 10px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow-x:auto;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.controls{padding:9px 10px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
 .controls>*{flex-shrink:0}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
 select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:210px}
@@ -73,6 +73,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .card-title{font-family:'Manrope';font-weight:700;font-size:15px;margin-bottom:2px}
 .card-sub{font-size:11px;color:var(--ink-3)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid2>*,.grid3>*{min-width:0}
 @media(max-width:1100px){.grid2,.grid3{grid-template-columns:1fr}}
 .gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media(max-width:1100px){.gauges{grid-template-columns:repeat(2,1fr)}}

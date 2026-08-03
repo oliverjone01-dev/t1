@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-02",
+ "measured": "2026-08-03",
  "visits_30d": [
-  {
-   "date": "2026-07-03",
-   "visits": 288,
-   "search_visits": 64
-  },
   {
    "date": "2026-07-04",
    "visits": 247,
@@ -151,12 +146,17 @@
    "date": "2026-08-01",
    "visits": 193,
    "search_visits": 47
+  },
+  {
+   "date": "2026-08-02",
+   "visits": 181,
+   "search_visits": 49
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 23
+   "visits": 22
   },
   {
    "phrase": "genglass",
@@ -171,10 +171,6 @@
    "visits": 8
   },
   {
-   "phrase": "интернет магазин зеркало в раме",
-   "visits": 7
-  },
-  {
    "phrase": "gen glass",
    "visits": 5
   },
@@ -184,6 +180,10 @@
   },
   {
    "phrase": "генгласс столы",
+   "visits": 4
+  },
+  {
+   "phrase": "интернет магазин зеркало в раме",
    "visits": 4
   },
   {
@@ -203,11 +203,15 @@
    "visits": 2
   },
   {
-   "phrase": "Перегородки с черной металлической раскладкой",
+   "phrase": "genglass официальный",
    "visits": 2
   },
   {
    "phrase": "дженгласс",
+   "visits": 2
+  },
+  {
+   "phrase": "дизайнерские зеркала",
    "visits": 2
   },
   {
@@ -231,15 +235,15 @@
    "visits": 2
   },
   {
-   "phrase": "магнитная доска на заказ по индивидуальным размерам",
-   "visits": 2
-  },
-  {
    "phrase": "магнитно маркерная доска на заказ",
    "visits": 2
   },
   {
    "phrase": "маркерные доски под заказ",
+   "visits": 2
+  },
+  {
+   "phrase": "полки на заказ",
    "visits": 2
   },
   {
@@ -252,10 +256,6 @@
   },
   {
    "phrase": "стол журнальный genglass",
-   "visits": 2
-  },
-  {
-   "phrase": "стол на заказ по индивидуальным размерам",
    "visits": 2
   },
   {
@@ -358,31 +358,31 @@
  "top_pages": [
   {
    "url": "/",
-   "visits": 334
+   "visits": 331
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 91
+   "visits": 92
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 62
+   "visits": 65
   },
   {
    "url": "/product-category/tables/",
-   "visits": 47
-  },
-  {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 39
+   "visits": 48
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 38
+   "visits": 37
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 36
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 36
+   "visits": 35
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
@@ -393,19 +393,15 @@
    "visits": 29
   },
   {
-   "url": "/product-category/steklyannye-doski/",
-   "visits": 27
-  },
-  {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 26
+   "visits": 25
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 25
   },
   {
-   "url": "/zerkala-na-zakaz/",
+   "url": "/product-category/steklyannye-doski/",
    "visits": 25
   },
   {
@@ -414,23 +410,27 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 22
+   "visits": 23
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 19
-  },
-  {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 18
+   "url": "/zerkala-na-zakaz/",
+   "visits": 23
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
    "visits": 17
   },
   {
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 17
+  },
+  {
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "visits": 16
+  },
+  {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 15
+   "visits": 16
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
@@ -442,18 +442,10 @@
   },
   {
    "url": "/product-category/mirrors/zerkalo-arka/",
-   "visits": 13
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 13
+   "visits": 12
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/mirrors/led/",
    "visits": 11
   },
   {
@@ -461,7 +453,15 @@
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/wall/",
+   "url": "/product-category/hranenie/veshalki/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/mirrors/led/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-rame/",
    "visits": 10
   },
   {

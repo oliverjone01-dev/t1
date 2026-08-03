@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-27T06:11:14.190Z",
+  "measured": "2026-08-03T06:01:24.929Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -10,200 +10,200 @@
     "parentName": "",
     "concs": [
       {
-        "did": 30700481,
-        "name": "gstrong.ru",
-        "cnt": 1480,
-        "it50": 3798,
-        "vis": 63,
-        "perc": 38.967877830437075
+        "did": 30654137,
+        "name": "m.avito.ru",
+        "cnt": 5710,
+        "it50": 19249440,
+        "vis": 4460756,
+        "perc": 0.029663200591809425
       },
       {
-        "did": 80428092,
-        "name": "fantasia-stekla.ru",
-        "cnt": 1398,
-        "it50": 5169,
-        "vis": 91,
-        "perc": 27.045850261172376
+        "did": 262623812,
+        "name": "dzen.ru",
+        "cnt": 5532,
+        "it50": 55875919,
+        "vis": 11939439,
+        "perc": 0.00990050830304912
       },
       {
-        "did": 30773214,
-        "name": "zerist.ru",
-        "cnt": 1393,
-        "it50": 4483,
-        "vis": 64,
-        "perc": 31.072942226187823
+        "did": 29917497,
+        "name": "market.yandex.ru",
+        "cnt": 3535,
+        "it50": 16524342,
+        "vis": 1493488,
+        "perc": 0.021392682383359046
       },
       {
-        "did": 30530484,
-        "name": "priorglass.ru",
-        "cnt": 1278,
-        "it50": 7250,
-        "vis": 95,
-        "perc": 17.627586206896552
+        "did": 374680290,
+        "name": "lemanapro.ru",
+        "cnt": 3422,
+        "it50": 2935740,
+        "vis": 978913,
+        "perc": 0.11656345589187053
       },
       {
-        "did": 30134448,
-        "name": "dvertsov.ru",
-        "cnt": 1270,
-        "it50": 31371,
-        "vis": 1611,
-        "perc": 4.048324886041248
+        "did": 29918164,
+        "name": "yandex.ru",
+        "cnt": 3211,
+        "it50": 51115738,
+        "vis": 24213062,
+        "perc": 0.006281822635525677
       },
       {
-        "did": 30030622,
-        "name": "169.ru",
-        "cnt": 1240,
-        "it50": 104065,
-        "vis": 7470,
-        "perc": 1.1915629654542832
+        "did": 37692261,
+        "name": "m-strana.ru",
+        "cnt": 3129,
+        "it50": 1551507,
+        "vis": 47080,
+        "perc": 0.201674887705953
       },
       {
-        "did": 30199581,
-        "name": "glass-store.ru",
-        "cnt": 1220,
-        "it50": 8261,
-        "vis": 112,
-        "perc": 14.768187870717831
+        "did": 30695597,
+        "name": "m.youtube.com",
+        "cnt": 2991,
+        "it50": 47047939,
+        "vis": 3140495,
+        "perc": 0.00635734543015795
       },
       {
-        "did": 280352249,
-        "name": "kelman-stroi.ru",
-        "cnt": 1205,
-        "it50": 9764,
-        "vis": 21,
-        "perc": 12.341253584596476
+        "did": 29918353,
+        "name": "ozon.ru",
+        "cnt": 2952,
+        "it50": 17703144,
+        "vis": 3719484,
+        "perc": 0.01667500416875104
       },
       {
-        "did": 30153427,
-        "name": "perilaglavsnab.ru",
-        "cnt": 1133,
-        "it50": 12327,
-        "vis": 1251,
-        "perc": 9.191206295124523
+        "did": 29918348,
+        "name": "wildberries.ru",
+        "cnt": 2502,
+        "it50": 13949975,
+        "vis": 2687295,
+        "perc": 0.017935516013469557
       },
       {
-        "did": 258022726,
-        "name": "oknafactoria.ru",
-        "cnt": 1067,
-        "it50": 45727,
-        "vis": 1259,
-        "perc": 2.333413519364927
+        "did": 140677055,
+        "name": "ru.pinterest.com",
+        "cnt": 2453,
+        "it50": 7275316,
+        "vis": 2776249,
+        "perc": 0.03371674852336311
       }
     ],
-    "it1": 134,
-    "it3": 477,
-    "it5": 850,
-    "it10": 1963,
-    "it50": 9896,
+    "it1": 126,
+    "it3": 491,
+    "it5": 881,
+    "it10": 2039,
+    "it50": 9907,
     "childsCount": 1,
     "keys": [
       {
+        "pos": 1,
         "word": "раздвижные двери в беседку",
         "ws": 471,
-        "wsk": 101,
-        "pos": 1
+        "wsk": 101
       },
       {
+        "pos": 1,
         "word": "стоечно ригельная система фасадного остекления",
         "ws": 179,
-        "wsk": 91,
-        "pos": 1
+        "wsk": 91
       },
       {
+        "pos": 1,
         "word": "раздвижные двери для беседки",
         "ws": 443,
-        "wsk": 85,
-        "pos": 1
+        "wsk": 85
       },
       {
-        "word": "застеклённая веранда к дому",
-        "ws": 477,
-        "wsk": 79,
-        "pos": 1
-      },
-      {
+        "pos": 1,
         "word": "перегородка для зонирования комнаты стеклянная",
         "ws": 1242,
-        "wsk": 66,
-        "pos": 1
+        "wsk": 66
       },
       {
+        "pos": 1,
         "word": "дверь для беседки",
         "ws": 1703,
-        "wsk": 56,
-        "pos": 1
+        "wsk": 56
       },
       {
+        "pos": 1,
         "word": "дверь гармошка стеклянная",
         "ws": 408,
-        "wsk": 56,
-        "pos": 1
+        "wsk": 56
       },
       {
-        "word": "входная зона частного дома",
-        "ws": 864,
-        "wsk": 47,
-        "pos": 1
-      },
-      {
+        "pos": 1,
         "word": "стеклянный забор",
-        "ws": 803,
-        "wsk": 47,
-        "pos": 1
+        "ws": 711,
+        "wsk": 52
       },
       {
+        "pos": 1,
+        "word": "перегородки в каркасном доме",
+        "ws": 1745,
+        "wsk": 49
+      },
+      {
+        "pos": 1,
+        "word": "двери стеклянные перегородки",
+        "ws": 2221,
+        "wsk": 48
+      },
+      {
+        "pos": 1,
         "word": "монтаж стеклянных дверей",
         "ws": 753,
-        "wsk": 47,
-        "pos": 1
+        "wsk": 47
       }
     ],
-    "topkeys": 39867,
+    "topkeys": 39573,
     "pages": [
       {
-        "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona",
-        "it50": 289
+        "it50": 281,
+        "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha",
-        "it50": 242
+        "it50": 248,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
-        "url": "/price/peregorodki/dlya-komnat",
-        "it50": 181
+        "it50": 181,
+        "url": "/price/peregorodki/dlya-komnat"
       },
       {
-        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome",
-        "it50": 169
+        "it50": 174,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
-        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy",
-        "it50": 163
+        "it50": 171,
+        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo",
-        "it50": 119
+        "it50": 125,
+        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
       },
       {
-        "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti",
-        "it50": 110
+        "it50": 116,
+        "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu",
-        "it50": 103
+        "it50": 102,
+        "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu"
       },
       {
-        "url": "/glass-partitions-for-home/steklyannye-bloki-osobennosti-raznovidnosti-i-sfera-primeneniya",
-        "it50": 99
+        "it50": 100,
+        "url": "/glass-walls/vitrazhnye-sistemy-ostekleniya-chto-eto-kak-vybrat-na-chto-obrashchat-vnimanie"
       },
       {
-        "url": "/glass-walls/vitrazhnye-sistemy-ostekleniya-chto-eto-kak-vybrat-na-chto-obrashchat-vnimanie",
-        "it50": 95
+        "it50": 96,
+        "url": "/"
       }
     ],
-    "pagesinindex": 1085,
-    "vis": 128,
-    "topvis": 67535,
+    "pagesinindex": 1077,
+    "vis": 174,
+    "topvis": 54879,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,26 +431,31 @@
         "aiCnt": 472
       },
       "2026.07": {
-        "it1": 134,
-        "it3": 477,
-        "it5": 850,
-        "it10": 1963,
-        "it50": 9896,
-        "pagesInIndex": 1085,
+        "it1": 126,
+        "it3": 491,
+        "it5": 881,
+        "it10": 2039,
+        "it50": 9907,
+        "pagesInIndex": 1077,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 128,
-        "aiCnt": 2917
+        "visAvg": 174,
+        "aiCnt": 4107
+      },
+      "2026.08": {
+        "it1": 126,
+        "it3": 491,
+        "it5": 881,
+        "it10": 2039,
+        "it50": 9907,
+        "pagesInIndex": 1077,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 174,
+        "aiCnt": 4107
       }
     },
     "linksHistory": {
-      "2025.01": [
-        1783,
-        14922,
-        352,
-        19,
-        270
-      ],
       "2025.02": [
         1771,
         15639,
@@ -512,42 +517,42 @@
         14330,
         448,
         18,
-        330
+        398
       ],
       "2025.11": [
         3489,
         15691,
         456,
         20,
-        334
+        381
       ],
       "2025.12": [
         3766,
         17124,
         471,
         21,
-        348
+        417
       ],
       "2026.01": [
         3784,
         17924,
         480,
         21,
-        347
+        413
       ],
       "2026.02": [
         3807,
         19291,
         477,
         24,
-        353
+        413
       ],
       "2026.03": [
         3764,
         19026,
         475,
         24,
-        353
+        413
       ],
       "2026.04": [
         3773,
@@ -576,11 +581,18 @@
         476,
         20,
         1347
+      ],
+      "2026.08": [
+        3775,
+        18545,
+        476,
+        20,
+        1347
       ]
     },
-    "aiAnswersCnt": 2917,
+    "aiAnswersCnt": 4107,
     "aiState": 10,
-    "dr": 31,
+    "dr": 32,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",
     "name": "glasstroy.ru"
   }

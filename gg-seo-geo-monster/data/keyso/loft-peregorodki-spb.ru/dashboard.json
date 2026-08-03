@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-07-27T06:09:26.429Z",
+  "measured": "2026-08-03T06:00:20.077Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -10,123 +10,117 @@
     "parentName": "",
     "concs": [
       {
+        "did": 92800307,
+        "name": "m.vk.com",
+        "cnt": 3,
+        "it50": 53206506,
+        "vis": 12290505,
+        "perc": 0.000005638408205192049
+      },
+      {
         "did": 32073658,
         "name": "peregorodki-spb.ru",
         "cnt": 2,
-        "it50": 110,
+        "it50": 112,
         "vis": 1,
-        "perc": 1.8181818181818181
+        "perc": 1.7857142857142856
       },
       {
-        "did": 233719002,
-        "name": "peregorodki.spb.ru",
+        "did": 30654137,
+        "name": "m.avito.ru",
         "cnt": 2,
-        "it50": 210,
-        "vis": 2,
-        "perc": 0.9523809523809523
-      },
-      {
-        "did": 149500077,
-        "name": "loftproekt98.ru",
-        "cnt": 2,
-        "it50": 121,
-        "vis": 0,
-        "perc": 1.6528925619834711
-      },
-      {
-        "did": 244319620,
-        "name": "peregorodka78.ru",
-        "cnt": 2,
-        "it50": 96,
-        "vis": 0,
-        "perc": 2.0833333333333335
-      },
-      {
-        "did": 31466309,
-        "name": "steklodel-spb.ru",
-        "cnt": 2,
-        "it50": 275,
-        "vis": 1,
-        "perc": 0.7272727272727273
+        "it50": 19249440,
+        "vis": 4460756,
+        "perc": 0.00001038991264161451
       },
       {
         "did": 37940194,
         "name": "peregorodkitut.ru",
         "cnt": 2,
-        "it50": 176,
+        "it50": 159,
         "vis": 0,
-        "perc": 1.1363636363636365
+        "perc": 1.2578616352201257
+      },
+      {
+        "did": 30817217,
+        "name": "doors4spb.ru",
+        "cnt": 2,
+        "it50": 608,
+        "vis": 8,
+        "perc": 0.32894736842105265
+      },
+      {
+        "did": 29917679,
+        "name": "2gis.ru",
+        "cnt": 2,
+        "it50": 15180548,
+        "vis": 6897581,
+        "perc": 0.000013174754956145193
       },
       {
         "did": 258016815,
         "name": "peregorodki-spb.com",
         "cnt": 2,
-        "it50": 79,
+        "it50": 82,
         "vis": 0,
-        "perc": 2.531645569620253
+        "perc": 2.4390243902439024
       },
       {
-        "did": 30965690,
-        "name": "peregorodkalab.ru",
+        "did": 31466309,
+        "name": "steklodel-spb.ru",
         "cnt": 2,
-        "it50": 189,
-        "vis": 0,
-        "perc": 1.0582010582010584
-      },
-      {
-        "did": 112234979,
-        "name": "decus.spb.ru",
-        "cnt": 2,
-        "it50": 37,
+        "it50": 262,
         "vis": 1,
-        "perc": 5.405405405405405
+        "perc": 0.7633587786259541
       },
       {
-        "did": 134642209,
-        "name": "loftperegorodki.ru",
+        "did": 29918164,
+        "name": "yandex.ru",
         "cnt": 2,
-        "it50": 21,
-        "vis": 0,
-        "perc": 9.523809523809524
+        "it50": 51115738,
+        "vis": 24213062,
+        "perc": 0.000003912689277811073
+      },
+      {
+        "did": 233719002,
+        "name": "peregorodki.spb.ru",
+        "cnt": 2,
+        "it50": 217,
+        "vis": 2,
+        "perc": 0.9216589861751152
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 0,
-    "it50": 4,
+    "it50": 3,
     "childsCount": 0,
     "keys": [
       {
+        "pos": 13,
         "word": "peregorodki spb ru",
         "ws": 20,
-        "wsk": 8,
-        "pos": 13
+        "wsk": 8
       },
       {
-        "word": "лофт дизайн санкт петербург",
-        "ws": 17,
-        "wsk": 11,
-        "pos": 36
-      },
-      {
+        "pos": 38,
         "word": "лофт перегородки в спб",
         "ws": 7,
-        "wsk": 4,
-        "pos": 38
+        "wsk": 4
       },
       {
+        "pos": 44,
         "word": "cartelle design",
         "ws": 47,
-        "wsk": 14,
-        "pos": 44
+        "wsk": 14
       }
     ],
     "topkeys": 1000000,
     "pages": [
       {
-        "url": "/",
-        "it50": 4
+        "it50": 3,
+        "url": "/"
       }
     ],
     "pagesinindex": 1,
@@ -363,7 +357,19 @@
         "it3": 0,
         "it5": 0,
         "it10": 0,
-        "it50": 4,
+        "it50": 3,
+        "pagesInIndex": 1,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 0,
+        "aiCnt": 0
+      },
+      "2026.08": {
+        "it1": 0,
+        "it3": 0,
+        "it5": 0,
+        "it10": 0,
+        "it50": 3,
         "pagesInIndex": 1,
         "adsCount": 0,
         "adKeysCount": 0,
@@ -372,13 +378,6 @@
       }
     },
     "linksHistory": {
-      "2025.01": [
-        13,
-        250,
-        9,
-        22,
-        0
-      ],
       "2025.02": [
         10,
         109,
@@ -440,35 +439,35 @@
         265,
         6,
         23,
-        0
+        6
       ],
       "2025.11": [
         10,
         102,
         6,
         23,
-        0
+        5
       ],
       "2025.12": [
         9,
         150,
         5,
         23,
-        0
+        5
       ],
       "2026.01": [
         10,
         101,
         5,
         22,
-        0
+        5
       ],
       "2026.02": [
         11,
         212,
         6,
         26,
-        0
+        5
       ],
       "2026.04": [
         8,
@@ -491,7 +490,7 @@
         25,
         8
       ],
-      "2026.07": [
+      "2026.08": [
         16,
         161,
         8,

@@ -167,6 +167,8 @@ const DATA = {
   b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""),
   // Каналы коммуникации по менеджеру (звонки/письма/мессенджеры, вх/исх) за 90 дней. null = старый снимок.
   channelMix: rop.channelMix || null,
+  // Фото профилей из Bitrix (имя -> URL) для аватара в шапке дашборда. undefined = старый снимок.
+  managerPhotos: rop.managerPhotos || undefined,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

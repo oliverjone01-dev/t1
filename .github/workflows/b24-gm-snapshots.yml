@@ -33,6 +33,7 @@ concurrency:
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
   B24_PORTAL: https://glassmemory.bitrix24.ru
+  DATA_BRANCH: rop-gm-dashboard-v1 # ветка-носитель данных GM (чекаут + коммит именно сюда, НЕ в триггер-ref)
   ROP_DEAL_CATEGORY: "21"
   ROP_OUT: rop/data/rop-gm.json
   ROP_SP_ETID: "1120"
@@ -49,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: rop-gm-dashboard-v1
+          ref: ${{ env.DATA_BRANCH }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -82,7 +83,7 @@ jobs:
           if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(rop-gm): снимок Bitrix24 C21 Glass Memory $(date -u +%F)"
           for i in 1 2 3 4 5; do
-            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
             git rebase --abort 2>/dev/null || true; sleep $((2**i))
           done
           echo "push не удался"; exit 1

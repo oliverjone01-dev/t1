@@ -249,9 +249,13 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 </div>
 </div>
 <div class="wrap" id="root"></div>
-<div id="planTools" style="position:fixed;right:14px;bottom:14px;z-index:40;display:flex;gap:8px;align-items:center;padding:7px 9px;background:rgba(19,24,32,.92);border:1px solid var(--border);border-radius:10px;backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.35)">
-  <button id="planRefresh" class="dbtn" data-tip="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
-  <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица плана</a>
+<!-- Плавающий док плана: сверху справа, авто-задвигается вправо через 5 сек, остаётся цветная ленточка-вкладка; наведи/кликни - выезжает. -->
+<div id="planDock" style="position:fixed;right:0;top:8px;z-index:60;display:flex;align-items:stretch;transition:transform .4s cubic-bezier(.4,0,.2,1);will-change:transform">
+  <div id="planDockTab" title="План" style="width:10px;border-radius:7px 0 0 7px;background:linear-gradient(180deg,#8B5CF6,#22D3EE);cursor:pointer;box-shadow:-2px 0 10px rgba(0,0,0,.35);flex:none"></div>
+  <div style="display:flex;gap:8px;align-items:center;padding:7px 10px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--border);border-right:none;border-radius:10px 0 0 10px;box-shadow:0 8px 24px rgba(0,0,0,.4);backdrop-filter:blur(8px)">
+    <button id="planRefresh" class="dbtn" data-tip="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
+    <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица плана</a>
+  </div>
 </div>
 <div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
 <script>
@@ -2640,7 +2644,14 @@ async function refreshPlan(){const url=DATA.planCsv;if(!url){showToast('В сб�
     DATA.plan=Object.assign({},DATA.plan||{},{months});render();
     showToast('План обновлён из таблицы: '+months.length+' мес');
   }catch(e){showToast('Не удалось прочитать таблицу онлайн ('+e.message+'). Нужно: файл сохранён как Google Таблица + доступ по ссылке. Иначе скажи мне - обновлю вручную.');}}
-function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;}
+function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;
+  // Авто-задвижение дока плана: показан, через 5 сек простоя уезжает вправо (видна цветная ленточка); наведи/кликни - выезжает.
+  const d=document.getElementById('planDock');
+  if(d&&!d.__wired){d.__wired=1;const HID='translateX(calc(100% - 10px))';
+    const show=()=>{clearTimeout(window.__pd);d.style.transform='translateX(0)';};
+    const arm=()=>{clearTimeout(window.__pd);window.__pd=setTimeout(()=>{d.style.transform=HID;},5000);};
+    d.addEventListener('mouseenter',show);d.addEventListener('mouseleave',arm);d.addEventListener('click',show);
+    arm();}}
 setPeriod('30');buildShell();render();freshStamp();wirePlanBtns();
 // Анти-кэш для боевого адреса /rop/: деплой кладёт рядом v.txt со штампом сборки.
 // Проверяем при загрузке, при возврате на вкладку и раз в 15 минут: давно открытая

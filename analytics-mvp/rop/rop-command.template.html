@@ -1631,8 +1631,9 @@ function healthBlock(){
   const wipCntAt=(ds,t)=>ds.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>t)return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=t)||(lo&&lo.slice(0,10)<=t));}).length;
   // Успех в интервале ÷ портфель, В ПЕРЕСЧЁТЕ НА МЕСЯЦ (÷ длину интервала в месяцах, пол 7 дн),
   // чтобы цель была ЕДИНАЯ на любой гранулярности. Берём конверсию-цель ИЗ ПЛАНА (CR2 листа), запас 15%.
-  const _HP=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
-  const planCr=(_HP.conv&&_HP.conv>0)?_HP.conv:0.15;
+  // Цель конверсии - CR2 месяца конца диапазона из плана (единый источник: как кубки и личные дашборды), запас 15%.
+  const _pmH=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===String(S.end).slice(0,7));
+  const planCr=(_pmH&&_pmH.cr2>0)?_pmH.cr2:0.15;
   const glabOne=egran==='day'?'день':egran==='week'?'неделю':'месяц';
   const bStartOf=k=>egran==='month'?k+'-01':k;
   const _moB=k=>{const bs0=bStartOf(k),be0=bEnd(k),bs=bs0>S.start?bs0:S.start,be=be0<S.end?be0:S.end;return Math.max(7,Math.round((new Date(be)-new Date(bs))/864e5)+1)/30;};

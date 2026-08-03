@@ -2382,7 +2382,21 @@ function managerHeaderBlock(){
   const bg=`linear-gradient(135deg,hsl(${hu},55%,42%),hsl(${(hu+40)%360},55%,30%))`;
   const img=ph?`<img src="${ph}" alt="" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:'';
   const avatar=`<div style="position:relative;width:56px;height:56px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:${bg};overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.4)"><span style="font-family:'Manrope';font-weight:800;font-size:19px;color:#fff">${esc(ini)}</span>${img}</div>`;
-  return `<div class="card" style="margin-bottom:14px"><div class="card-h" style="justify-content:flex-start;align-items:center;gap:14px;margin-bottom:0">${avatar}<div><div class="card-title" style="font-size:18px">${esc(MANAGER)} · менеджер отдела продаж</div><div class="card-sub">Личная эффективность и план-факт по продажам · режим: ${S.dateBasis!=='created'?'по дате продажи':'по дате создания'}</div></div></div></div>`;
+  // Пьедистал: место менеджера В ОТДЕЛЕ за выбранный период по 3 метрикам. Успех = вход в «Предоплата получена».
+  // Конверсия = ПОРТФЕЛЬ→ПРЕДОПЛАТА за период (предоплаты ÷ портфель). Ранг среди всех менеджеров ОП с оффер-активностью.
+  const rs=S.start,re=S.end,_inR=e=>e&&e.slice(0,10)>=rs&&e.slice(0,10)<=re;
+  const _loseAny=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
+  const _openEnd=d=>{const f=_firstOffer(d);if(!f||f.slice(0,10)>re)return false;const ex=_enterExec(d),lo=_loseAny(d);return !((ex&&ex.slice(0,10)<=re)||(lo&&lo.slice(0,10)<=re));};
+  const _dp=(ALL_DEALS||[]).filter(d=>isOP(d.mgr)&&(!S.fDir||d.dir===S.fDir)&&(d.hist||[]).some(h=>_MO.has(h[0])));
+  const _bm={};_dp.forEach(d=>{const m=d.mgr,o=_bm[m]||(_bm[m]={fact:0,rev:0,wip:0});const e=_enterExec(d);if(e&&_inR(e)){o.fact++;o.rev+=d.budget||0;}if(_openEnd(d))o.wip++;});
+  const _drows=Object.entries(_bm).map(([m,o])=>({m,fact:o.fact,rev:o.rev,wip:o.wip,cr:o.wip?o.fact/o.wip:null}));
+  const _N=Math.max(_drows.length,1),_me=_drows.find(r=>r.m===MANAGER);
+  const _rankBy=v=>{const s=[..._drows].sort((a,b)=>v(b)-v(a));return (s.findIndex(r=>r.m===MANAGER)+1)||_N;};
+  const _cup=rk=>['🥇','🥈','🥉'][rk-1]||('#'+rk);
+  const _mets=[['Конверсия',r=>r.cr==null?-1:r.cr,r=>r.cr==null?'—':pct(r.cr),'#34D399'],['Выручка',r=>r.rev,r=>fmtK(r.rev)+' ₽','#A78BFA'],['Успех',r=>r.fact,r=>fmt(r.fact),'#10B981']];
+  const ped=_me?`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:stretch">`+_mets.map(([lab,vf,df,col])=>{const rk=_rankBy(vf),rc=rk===1?'#F5C451':rk<=3?'#2E9E74':rk<=Math.ceil(_N/2)?'#C2873C':'#CC5867';
+    return `<div style="min-width:100px;background:var(--bg-base);border:1px solid var(--border);border-radius:11px;padding:9px 12px" data-tip="${lab}: ${rk} место из ${_N} в отделе · ${(df(_me)||'').replace(/"/g,'&quot;')}"><div style="font-size:9px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.04em">${lab}</div><div style="display:flex;align-items:baseline;gap:5px;margin-top:2px"><span style="font-size:18px;line-height:1">${rk<=3?_cup(rk):''}</span><b style="font-family:'Manrope';font-size:19px;color:${rc}">${rk}<span style="font-size:10px;color:var(--ink-4);font-weight:600"> / ${_N}</span></b></div><div style="font-size:10.5px;color:${col};font-weight:700;margin-top:2px">${df(_me)}</div></div>`;}).join('')+`</div>`:'';
+  return `<div class="card" style="margin-bottom:14px"><div class="card-h" style="justify-content:space-between;align-items:center;gap:14px;margin-bottom:0"><div style="display:flex;align-items:center;gap:14px;min-width:0">${avatar}<div style="min-width:0"><div class="card-title" style="font-size:18px">${esc(MANAGER)} · менеджер отдела продаж</div><div class="card-sub">Моё место в отделе ${info('Место в отделе продаж за выбранный период по трём метрикам: Конверсия (портфель→предоплата = предоплаты ÷ портфель за период), Выручка, Успех (кол-во предоплат). Ранг среди всех менеджеров ОП с оффер-активностью. Успех = вход в «Предоплата получена».')} · режим: ${S.dateBasis!=='created'?'по дате продажи':'по дате создания'}</div></div></div>${ped}</div></div>`;
 }
 function managerKpiBlock(MS){
   const pc=MS.checkP;

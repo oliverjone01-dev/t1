@@ -22,7 +22,7 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .nav button.on{background:var(--accent-soft);color:var(--accent)}.nav button:hover:not(.on){color:var(--ink)}
 .tb-spacer{flex:1}
 .seg{display:inline-flex;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button{background:transparent;border:0;color:var(--ink-3);font:inherit;font-size:10.5px;padding:5px 7px;cursor:pointer;transition:.15s;white-space:nowrap}
 .seg button.on{background:var(--accent-soft);color:var(--accent)}
 .msel{position:relative;display:inline-block}
 .msel-btn{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--ink-2);font:inherit;font-size:11.5px;padding:6px 11px;cursor:pointer;white-space:nowrap}
@@ -39,7 +39,8 @@ body{background:radial-gradient(ellipse 60% 40% at 50% -8%,rgba(34,211,238,.05),
 .dwell-split .dw-chart{flex:1;min-width:0;border-left:1px solid var(--border-soft);padding-left:20px;display:flex;flex-direction:column;justify-content:center}
 @media(max-width:1150px){.dwell-split{flex-direction:column}.dwell-split .dw-chart{border-left:0;padding-left:0;border-top:1px solid var(--border-soft);padding-top:14px}}
 .lsort.on{color:var(--accent)}
-.controls{padding:10px 24px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.controls{padding:9px 10px;border-bottom:1px solid var(--border-soft);display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow-x:auto;background:rgba(19,24,32,.92);backdrop-filter:blur(16px)}
+.controls>*{flex-shrink:0}
 .ctl-lbl{font-size:10px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.06em;margin-right:-7px}
 select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;max-width:210px}
 .wrap{max-width:1660px;margin:0 auto;padding:8px 24px 80px}
@@ -226,9 +227,9 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .pf-pct{font-size:13px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
 .pf-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin:2px 0 12px}
 .pf-leg{display:flex;align-items:center;gap:5px}.pf-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-left:8px}
-.rev-toggle{display:flex;align-items:center;gap:7px}
-.dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 8px;font:inherit;font-size:11.5px}
-.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:6px 11px;font:inherit;font-size:11.5px;cursor:pointer}
+.rev-toggle{display:flex;align-items:center;gap:5px}
+.dinp{background:var(--bg-elevated);border:1px solid var(--border);color:var(--ink-2);border-radius:7px;padding:5px 6px;font:inherit;font-size:11px}
+.dbtn{background:var(--accent-soft);border:1px solid var(--border);color:var(--accent);border-radius:7px;padding:5px 8px;font:inherit;font-size:11px;cursor:pointer}
 </style></head><body>
 <div id="tip"></div>
 <div class="hdr">
@@ -240,7 +241,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу. На раздел 4 «Передача в производство» НЕ влияет: предоплаты и передачи там считаются по событиям стадий и не зависят от способа признания выручки.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
-  <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
+  <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:148px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
@@ -1748,8 +1749,8 @@ function offerCalendarBlock(){
   const _TCR=(_PC.conv&&_PC.conv>0)?_PC.conv:0.15; // конверсия-цель ИЗ ПЛАНА (CR2 листа), запас 15%
   const mgrTarget=m=>Math.round(_portAt(_mSc(m))*_TCR*_factor);   // успех-цель менеджера
   const winTargetAll=()=>Math.round(_portAt(scope)*_TCR*_factor); // успех-цель отдела
-  const lossCap=m=>Math.round(_portAt(_mSc(m))*0.6*_factor);      // потолок отказов = успех-цель × 4
-  const lossCapAll=()=>Math.round(_portAt(scope)*0.6*_factor);
+  const lossCap=m=>Math.round(_portAt(_mSc(m))*_TCR*4*_factor);   // потолок отказов = успех-цель × 4
+  const lossCapAll=()=>Math.round(_portAt(scope)*_TCR*4*_factor);
   // Средний чек портфеля - для пересчёта цели в деньги (кол-во × чек = выручка).
   const _avgChk=sc=>{const a=wipAt(_capK(),sc).map(d=>d.budget||0).filter(v=>v>0);return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;

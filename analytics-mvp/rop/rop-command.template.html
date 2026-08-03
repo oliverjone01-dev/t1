@@ -884,7 +884,7 @@ function managerDashboardsBlock(){
   // Успех = вход в «Предоплата получена» (предоплата). Конверсия = предоплаты ÷ (предоплаты + отказы).
   const MK=S.mdMet||'conv';
   const mval=r=>MK==='rev'?r.rev:MK==='won'?r.fact:(r.cr==null?-1:r.cr);
-  const mlab={conv:'Конверсия',rev:'Выручка',won:'Успех'}[MK];
+  const mlab={conv:'Конверсия',rev:'Выручка',won:'Предоплаты'}[MK];
   const mfmt=r=>MK==='rev'?fmtK(r.rev)+' ₽':MK==='won'?fmt(r.fact):(r.cr==null?'—':pct(r.cr));
   const barCol=r=>MK==='conv'?crC(r.cr):MK==='rev'?'#A78BFA':'#2E9E74';
   const _byDept={};
@@ -895,7 +895,7 @@ function managerDashboardsBlock(){
   const rankOf={};ranked.forEach((r,i)=>rankOf[r.name]=i+1);
   const maxV=Math.max(1e-9,...deptRows.map(r=>Math.max(0,mval(r))));
   const cup=rk=>['🥇','🥈','🥉'][rk-1]||('<span style="font-size:12px;font-weight:800;color:var(--ink-3)">#'+rk+'</span>');
-  const seg=`<div class="seg" id="mdMetSeg"><button data-mdmet="conv" class="${MK==='conv'?'on':''}">Конверсия</button><button data-mdmet="rev" class="${MK==='rev'?'on':''}">Выручка</button><button data-mdmet="won" class="${MK==='won'?'on':''}">Успех</button></div>`;
+  const seg=`<div class="seg" id="mdMetSeg"><button data-mdmet="conv" class="${MK==='conv'?'on':''}">Конверсия</button><button data-mdmet="rev" class="${MK==='rev'?'on':''}">Выручка</button><button data-mdmet="won" class="${MK==='won'?'on':''}">Предоплаты</button></div>`;
   const cards=rows.map(r=>{const{name,slug,port,fact,otk,cr,target,pctPlan,rev}=r;
     const rk=rankOf[name]||NDEPT,bc=barCol(r),w=(mval(r)>0?Math.max(4,Math.min(100,mval(r)/maxV*100)):0).toFixed(1);
     return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+

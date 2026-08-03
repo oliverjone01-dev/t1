@@ -845,18 +845,17 @@ function managerDashboardsBlock(){
   const dirOk=d=>!S.fDir||d.dir===S.fDir;
   const AD=(DATA.deals||[]).filter(dirOk);
   const PDx=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
-  // Окно = последние 30 дней (сегодня по данным и 30 дней назад). Метрики сверены с личными дашбордами менеджеров.
-  const _end=String(DATA.to||S.end),_sd=new Date(_end+"T12:00:00+03:00");_sd.setDate(_sd.getDate()-29);const _start=_sd.toISOString().slice(0,10);
-  const inR=ds=>ds&&ds.slice(0,10)>=_start&&ds.slice(0,10)<=_end;
+  // Окно = ВЫБРАННЫЙ диапазон дат (реагирует на фильтр периода сверху). Портфель - снимок на конец диапазона.
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
   const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
   const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
   const enterLoseAny=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
   const enterLoseOff=d=>{const h=d.hist||[];for(let i=0;i<h.length;i++){if(/LOSE|APOLOGY/.test(h[i][0])){const prev=i>0?h[i-1][0]:null;return (prev&&OSET.has(prev))?h[i][1]:null;}}return null;};
-  // Портфель «в работе» на конец окна: ВСЕ открытые офферы менеджера (без ограничения возраста) - как «клиентский портфель» в его дашборде.
-  const wipMgr=mp=>mp.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>_end)return false;const ex=enterExec(d),lo=enterLoseAny(d);return !((ex&&ex.slice(0,10)<=_end)||(lo&&lo.slice(0,10)<=_end));}).length;
-  const days=Math.max(1,Math.round((PDx(_end)-PDx(_start))/DAYMS)+1),factor=days/30;
-  // Конверсия-цель = CR2 месяца снимка из плана (как в дашборде менеджера), запас 15%.
-  const _pmC=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===_end.slice(0,7));
+  // Портфель «в работе» на конец диапазона: ВСЕ открытые офферы менеджера (без ограничения возраста) - как «клиентский портфель» в его дашборде.
+  const wipMgr=mp=>mp.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLoseAny(d);return !((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end));}).length;
+  const days=Math.max(1,Math.round((PDx(S.end)-PDx(S.start))/DAYMS)+1),factor=days/30;
+  // Конверсия-цель = CR2 месяца конца диапазона из плана (как в дашборде менеджера), запас 15%.
+  const _pmC=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===String(S.end).slice(0,7));
   const TCR=(_pmC&&_pmC.cr2>0)?_pmC.cr2:0.15;
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const photos=DATA.managerPhotos||{};
@@ -869,7 +868,8 @@ function managerDashboardsBlock(){
     const img=photos[n]?`<img src="${photos[n]}" alt="" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:'';
     return `<div style="position:relative;width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:${bg};overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35)">${ini}${img}</div>`;};
   const stat=(l,v,c)=>`<div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em">${l}</span><b style="font-size:13px;color:${c||'var(--ink)'};font-variant-numeric:tabular-nums">${v}</b></div>`;
-  const cards=DASH.map(([name,slug])=>{
+  // Данные по всем менеджерам за диапазон.
+  const rows=DASH.map(([name,slug])=>{
     const mine=passed.filter(d=>d.mgr===name);
     const port=wipMgr(mine);
     const suc=mine.filter(d=>inR(enterExec(d)));
@@ -877,8 +877,23 @@ function managerDashboardsBlock(){
     const cr=(fact+otk)?fact/(fact+otk):null;
     const target=Math.round(port*TCR*factor), pctPlan=target?fact/target:null;
     const rev=suc.reduce((s,d)=>s+(d.budget||0),0);
+    return {name,slug,port,fact,otk,cr,target,pctPlan,rev};
+  });
+  // Кубки: рейтинг по выбранной метрике (вкладки Конверсия / Выручка / Успех).
+  const MK=S.mdMet||'conv';
+  const mval=r=>MK==='rev'?r.rev:MK==='won'?r.fact:(r.cr==null?-1:r.cr);
+  const mlab={conv:'Конверсия',rev:'Выручка',won:'Успех'}[MK];
+  const mfmt=r=>MK==='rev'?fmtK(r.rev)+' ₽':MK==='won'?fmt(r.fact):(r.cr==null?'—':pct(r.cr));
+  const barCol=r=>MK==='conv'?crC(r.cr):MK==='rev'?'#A78BFA':'#2E9E74';
+  const ranked=[...rows].sort((a,b)=>mval(b)-mval(a));
+  const rankOf={};ranked.forEach((r,i)=>rankOf[r.name]=i+1);
+  const maxV=Math.max(1e-9,...rows.map(r=>Math.max(0,mval(r))));
+  const cup=rk=>['🥇','🥈','🥉'][rk-1]||('<span style="font-size:12px;font-weight:800;color:var(--ink-3)">#'+rk+'</span>');
+  const seg=`<div class="seg" id="mdMetSeg"><button data-mdmet="conv" class="${MK==='conv'?'on':''}">Конверсия</button><button data-mdmet="rev" class="${MK==='rev'?'on':''}">Выручка</button><button data-mdmet="won" class="${MK==='won'?'on':''}">Успех</button></div>`;
+  const cards=rows.map(r=>{const{name,slug,port,fact,otk,cr,target,pctPlan,rev}=r;
+    const rk=rankOf[name],bc=barCol(r),w=(mval(r)>0?Math.max(4,Math.min(100,mval(r)/maxV*100)):0).toFixed(1);
     return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+
-      `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div></div>`+
+      `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0;flex:1"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div><span style="font-size:19px;line-height:1" title="${rk} место по: ${mlab}">${cup(rk)}</span></div>`+
       `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 6px;padding-top:10px;border-top:1px solid var(--border-soft)">`+
         stat('Портфель',fmt(port))+
         stat('План / факт',`${fmt(target)} / ${fmt(fact)}`,fact?'#2E9E74':'var(--ink-3)')+
@@ -886,9 +901,11 @@ function managerDashboardsBlock(){
         stat('CR',cr==null?'—':pct(cr),crC(cr))+
         stat('Отказы',fmt(otk),otk>fact*4?'#F8717A':'var(--ink-2)')+
         stat('Выручка',fmtK(rev)+' ₽')+
-      `</div></a>`;}).join('');
+      `</div>`+
+      `<div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border-soft)"><div style="display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em"><span>${mlab} · ${rk} место</span><b style="color:${bc};font-size:11.5px;font-variant-numeric:tabular-nums">${mfmt(r)}</b></div><div style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${w}%;background:${bc};border-radius:3px"></div></div></div>`+
+      `</a>`;}).join('');
   const note=DATA.managerPhotos?'':'<span style="color:var(--ink-4)">фото подтянутся из Bitrix после ближайшего снимка</span>';
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: его план по предоплатам, факт, конверсия и выручка за ПОСЛЕДНИЕ 30 ДНЕЙ (сегодня и 30 дней назад, не зависит от фильтра периода сверху). Клик по карточке открывает персональный дашборд (план-факт, KPI, календарь сделок, челлендж). Цифры совпадают с личным дашбордом менеджера: портфель = все открытые офферы менеджера на сегодня («клиентский портфель в работе»), план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">клик по карточке - личный дашборд менеджера · метрики за последние 30 дней ${note}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:4px">${cards}</div></div>`;
+  return `<div class="card"><div class="card-h" style="align-items:flex-start"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: план по предоплатам, факт, конверсия и выручка ЗА ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху). Клик по карточке открывает персональный дашборд. Внизу карточки - место в рейтинге отдела (кубок) по выбранной метрике: вкладки «Конверсия» (успех÷закрытые), «Выручка», «Успех» (кол-во предоплат). Цифры совпадают с личным дашбордом менеджера при том же периоде: портфель = все открытые офферы на конец диапазона, план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">клик по карточке - личный дашборд · кубок = место в отделе по выбранной метрике · всё за выбранный период ${note}</div></div>${seg}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:8px">${cards}</div></div>`;
 }
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
@@ -2630,6 +2647,7 @@ function buildShell(){
   if(_ds)_ds.querySelectorAll('button').forEach(b=>b.onclick=()=>{_ds.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.dateBasis=b.dataset.b;render();});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
   document.addEventListener('click',e=>{const mb=e.target.closest('#mgrMetricSeg button');if(mb){S.loadMetric=mb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const mm=e.target.closest('#mdMetSeg button');if(mm){S.mdMet=mm.dataset.mdmet;render();}});
   document.addEventListener('click',e=>{const onBtn=e.target.closest('#lossMgrBtn'),inPanel=e.target.closest('#lossMgrPanel');if(onBtn){S.lossMgrOpen=!S.lossMgrOpen;render();return;}if(S.lossMgrOpen&&!inPanel){S.lossMgrOpen=false;render();}});
   document.addEventListener('change',e=>{const cb=e.target&&e.target.closest&&e.target.closest('#lossMgrPanel input[data-lmgr]');if(cb){const m=cb.dataset.lmgr;const s=new Set(S.lossMgrSel||[]);if(cb.checked)s.add(m);else s.delete(m);S.lossMgrSel=[...s];render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});

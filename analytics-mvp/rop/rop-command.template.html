@@ -245,14 +245,13 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
-  <span style="font-size:11px;color:var(--ink-3)" id="periodLabel"></span>
-  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-    <button id="planRefresh" class="dbtn" data-tip="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
-    <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица плана</a>
-  </div>
 </div>
 </div>
 <div class="wrap" id="root"></div>
+<div id="planTools" style="position:fixed;right:14px;bottom:14px;z-index:40;display:flex;gap:8px;align-items:center;padding:7px 9px;background:rgba(19,24,32,.92);border:1px solid var(--border);border-radius:10px;backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(0,0,0,.35)">
+  <button id="planRefresh" class="dbtn" data-tip="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
+  <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица плана</a>
+</div>
 <div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
 <script>
 const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};const AD=DATA.deals,AL=DATA.leads,KSS=DATA.keyStageStats;
@@ -2597,7 +2596,7 @@ function buildShell(){
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}const csrt=e.target.closest('[data-cellsort]');if(csrt){const kk=csrt.dataset.cellsort;if((S.cellSort||'due')===kk)S.cellAsc=(S.cellAsc===false);else{S.cellSort=kk;S.cellAsc=true;}render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}const tdp=e.target.closest('[data-tdprob]');if(tdp){S.tdProb=tdp.dataset.tdprob;render();return;}const tds=e.target.closest('[data-tdsort]');if(tds){const kk=tds.dataset.tdsort;S.tdSort=S.tdSort||{k:'prob',a:false};if(S.tdSort.k===kk)S.tdSort.a=!S.tdSort.a;else S.tdSort={k:kk,a:false};render();return;}const tfm=e.target.closest('[data-tdfmgr]');if(tfm){const k=tfm.dataset.tdfmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tvw=e.target.closest('[data-tdview]');if(tvw){S.tdView=tvw.dataset.tdview;S.tdMgr='';S.tdProb='all';render();return;}const tcl=e.target.closest('[data-tdcell]');if(tcl){const p=tcl.dataset.tdcell.split('|'),mg=p[0]||'',st=p[1]||'all';S.tdProb=st;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tcs=e.target.closest('[data-tdchanseg]');if(tcs){const p=tcs.dataset.tdchanseg.split('|'),mg=p[0]||'',ch=p[1]||'';S.tdChan=ch;S.tdMgr=mg||'';S.tdDept=true;render();return;}const tch=e.target.closest('[data-tdchan]');if(tch){const k=tch.dataset.tdchan;S.tdChan=(S.tdChan===k)?'':k;render();return;}if(e.target.closest('[data-tdprobclear]')){S.tdProb='all';render();return;}if(e.target.closest('[data-tdchanclear]')){S.tdChan='';render();return;}const tdm=e.target.closest('[data-tdmgr]');if(tdm){const k=tdm.dataset.tdmgr;S.tdMgr=(S.tdMgr===k)?'':k;render();return;}const tdd=e.target.closest('[data-tddept]');if(tdd){S.tdDept=(S.tdDept===false);render();return;}});
   document.addEventListener('change',e=>{const ms=e.target.closest('[data-tdmgrsel]');if(ms){S.tdMgr=ms.value||'';if(S.tdMgr)S.tdDept=true;render();return;}});
   const _ac=document.getElementById('applyCustom');
-  if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
+  if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));const _pl=document.getElementById('periodLabel');if(_pl)_pl.textContent=S.start+' → '+S.end;render();}};
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
@@ -2615,7 +2614,7 @@ function setPeriod(p){
   else if(p==='today'){S.start=S.end=DATA.to;}
   else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
   else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p-1));S.start=e.toISOString().slice(0,10);S.end=DATA.to;} // n дней включая сегодня - окно совпадает с дашбордом производства
-  document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
+  const _pl=document.getElementById('periodLabel');if(_pl)_pl.textContent=S.start+' → '+S.end;}
 function freshStamp(){const el=document.getElementById('freshTag');if(!el)return;
   if(!DATA.generatedAt){el.textContent='';return;}
   const g=new Date(DATA.generatedAt),ageH=(new Date()-g)/36e5,p2=n=>String(n).padStart(2,'0');

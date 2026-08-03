@@ -740,16 +740,15 @@ function taskDisciplineBlock(){
   // легенды: дисциплина + каналы
   // Единый стиль легенды - как в остальном дашборде (.lgd/.dot): цветной кружок 9px
   // с лёгким кольцом (как health-точки в строках) + подпись 11px + счётчик tabular.
-  // Единый вид элемента легенды: кружок+подпись в первой строке, значение - строкой ниже (под подписью).
-  // Значение-строка рендерится всегда (у «Здоровья» пустая) - так все элементы одной высоты и выровнены.
-  const LGI=(c,l,n)=>`<span style="display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;font-size:11px;color:var(--ink-2);white-space:nowrap"><span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${c};box-shadow:0 0 0 2px ${c}2b;flex:none"></i>${l}</span><b style="color:var(--ink);font-variant-numeric:tabular-nums;padding-left:15px;min-height:14px;line-height:14px">${n!=null?n:''}</b></span>`;
+  // Элемент легенды в одну строку: кружок + подпись + (опц.) число. Читается «слева направо».
+  const LGI=(c,l,n)=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-2);white-space:nowrap"><i style="width:9px;height:9px;border-radius:50%;background:${c};box-shadow:0 0 0 2px ${c}2b;flex:none"></i>${l}${n!=null?` <b style="color:var(--ink);font-variant-numeric:tabular-nums">${n}</b>`:''}</span>`;
   const legDisc=[['over',tOver],['none',tNone],['park',tPark],['ok',tOk]].map(([k,n])=>LGI(COL[k],LBL[k],n)).join('');
   const _lchN={call:0,msg:0,email:0,none:0};open.forEach(d=>{if(d.lastTouchChan&&_lchN[d.lastTouchChan]!=null)_lchN[d.lastTouchChan]++;else if(!d.lastTouch)_lchN.none++;});
   const legChan=[[CHC.call,'звонки',_lchN.call],[CHC.msg,'мессенджеры',_lchN.msg],[CHC.email,'почта',_lchN.email],['#8794A5','без касания',_lchN.none]].map(([c,l,n])=>LGI(c,l,n)).join('');
   const _hleg=[['#2E9E74','в норме'],['#C2873C','внимание'],['#CC5867','проблема']].map(([c,l])=>LGI(c,l,null)).join('');
-  const glab=t=>`<b style="font-size:10px;font-weight:700;letter-spacing:.02em;color:var(--ink-3);text-transform:uppercase">${t}</b>`;
-  const gsep=`<span style="width:1px;height:30px;background:var(--border);align-self:flex-start"></span>`;
-  const legend=`<div style="display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-start;margin:12px 0 4px"><span style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">${glab('Здоровье')}${_hleg}</span>${gsep}<span style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">${glab('Дисциплина')}${legDisc}</span>${gsep}<span style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">${glab('Каналы')}${legChan}</span></div>`;
+  // Легенда: каждая группа - отдельная строка «ПОДПИСЬ-ГРУППЫ | элементы», чтобы было ясно что к чему.
+  const _grp=(lab,hint,items)=>`<div style="display:flex;align-items:baseline;gap:9px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border-soft)"><b style="width:96px;flex:none;font-size:10px;font-weight:800;letter-spacing:.03em;color:var(--ink-3);text-transform:uppercase;line-height:1.25">${lab}<div style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-4);font-size:9.5px">${hint}</div></b><div style="display:flex;flex-wrap:wrap;gap:5px 14px;flex:1">${items}</div></div>`;
+  const legend=`<div style="margin:8px 0 2px">${_grp('Здоровье','кружок у имени',_hleg)}${_grp('Дисциплина','статус дела',legDisc)}${_grp('Каналы','последнее касание',legChan)}</div>`;
   // фильтр-чипы по типу проблемы
   const seg2=S.tdProb||'all';
   const tNoLink=open.filter(d=>d.taskDue&&!d.lastTouch).length;

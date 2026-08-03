@@ -248,10 +248,6 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="seg" id="period"></div><span class="qm" data-tip="Главный фильтр времени - за какое окно считается ВЕСЬ дашборд: пресеты (Сегодня, Вчера, 7/30/60 дн, Всё) или свой диапазон дат. Отличие: тут ты задаёшь, СКОЛЬКО времени берём, а «Период по» решает, по какой дате сделка в это окно попадёт. Польза: «30 дн» - рабочий месяц, «Сегодня» - оперативка, «Всё» - вся история. Цель плана режется под длину окна, поэтому % выполнения корректен на любом диапазоне." style="margin-left:2px">?</span>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
   <span style="font-size:11px;color:var(--ink-3)" id="periodLabel"></span>
-  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-    <button id="planRefresh" class="dbtn" data-tip="Перечитать план из Google Таблицы (если поменял цифры) - вживую, без пересборки">⟳ Обновить план</button>
-    <a id="planOpen" class="dbtn" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица плана</a>
-  </div>
 </div>
 </div>
 <div class="wrap" id="root"></div>

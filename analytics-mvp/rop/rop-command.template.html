@@ -845,15 +845,19 @@ function managerDashboardsBlock(){
   const dirOk=d=>!S.fDir||d.dir===S.fDir;
   const AD=(DATA.deals||[]).filter(dirOk);
   const PDx=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
-  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  // Окно = последние 30 дней (сегодня по данным и 30 дней назад). Метрики сверены с личными дашбордами менеджеров.
+  const _end=String(DATA.to||S.end),_sd=new Date(_end+"T12:00:00+03:00");_sd.setDate(_sd.getDate()-29);const _start=_sd.toISOString().slice(0,10);
+  const inR=ds=>ds&&ds.slice(0,10)>=_start&&ds.slice(0,10)<=_end;
   const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
   const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
   const enterLoseAny=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
   const enterLoseOff=d=>{const h=d.hist||[];for(let i=0;i<h.length;i++){if(/LOSE|APOLOGY/.test(h[i][0])){const prev=i>0?h[i-1][0]:null;return (prev&&OSET.has(prev))?h[i][1]:null;}}return null;};
-  const liveOpen=d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLoseAny(d);if((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end))return false;return Math.round((NOWD-PDx(d.created))/DAYMS)<=60;};
-  const days=Math.max(1,Math.round((PDx(S.end)-PDx(S.start))/DAYMS)+1),factor=days/30;
-  const P=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
-  const TCR=(P.conv&&P.conv>0)?P.conv:0.15;
+  // Портфель «в работе» на конец окна: ВСЕ открытые офферы менеджера (без ограничения возраста) - как «клиентский портфель» в его дашборде.
+  const wipMgr=mp=>mp.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>_end)return false;const ex=enterExec(d),lo=enterLoseAny(d);return !((ex&&ex.slice(0,10)<=_end)||(lo&&lo.slice(0,10)<=_end));}).length;
+  const days=Math.max(1,Math.round((PDx(_end)-PDx(_start))/DAYMS)+1),factor=days/30;
+  // Конверсия-цель = CR2 месяца снимка из плана (как в дашборде менеджера), запас 15%.
+  const _pmC=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===_end.slice(0,7));
+  const TCR=(_pmC&&_pmC.cr2>0)?_pmC.cr2:0.15;
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const photos=DATA.managerPhotos||{};
   const pctC=v=>v==null?'var(--ink-4)':v>=0.9?'#2E9E74':v>=0.6?'#C2873C':'#CC5867';
@@ -867,7 +871,7 @@ function managerDashboardsBlock(){
   const stat=(l,v,c)=>`<div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em">${l}</span><b style="font-size:13px;color:${c||'var(--ink)'};font-variant-numeric:tabular-nums">${v}</b></div>`;
   const cards=DASH.map(([name,slug])=>{
     const mine=passed.filter(d=>d.mgr===name);
-    const port=AD.filter(d=>d.mgr===name&&liveOpen(d)).length;
+    const port=wipMgr(mine);
     const suc=mine.filter(d=>inR(enterExec(d)));
     const fact=suc.length, otk=mine.filter(d=>inR(enterLoseOff(d))).length;
     const cr=(fact+otk)?fact/(fact+otk):null;
@@ -884,7 +888,7 @@ function managerDashboardsBlock(){
         stat('Выручка',fmtK(rev)+' ₽')+
       `</div></a>`;}).join('');
   const note=DATA.managerPhotos?'':'<span style="color:var(--ink-4)">фото подтянутся из Bitrix после ближайшего снимка</span>';
-  return `<div class="card"><div class="card-h"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: его план по предоплатам, факт, конверсия и выручка за выбранный период. Клик по карточке открывает персональный дашборд (план-факт, KPI, календарь сделок, челлендж). Метрики в карточке считаются по той же оффер-воронке, что «Стандарт отдела»: портфель = живые офферы менеджера, план = портфель × конверсия-цель из плана.')}</div><div class="card-sub">клик по карточке - личный дашборд менеджера · метрики за выбранный период ${note}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:4px">${cards}</div></div>`;
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: его план по предоплатам, факт, конверсия и выручка за ПОСЛЕДНИЕ 30 ДНЕЙ (сегодня и 30 дней назад, не зависит от фильтра периода сверху). Клик по карточке открывает персональный дашборд (план-факт, KPI, календарь сделок, челлендж). Цифры совпадают с личным дашбордом менеджера: портфель = все открытые офферы менеджера на сегодня («клиентский портфель в работе»), план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">клик по карточке - личный дашборд менеджера · метрики за последние 30 дней ${note}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:4px">${cards}</div></div>`;
 }
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];

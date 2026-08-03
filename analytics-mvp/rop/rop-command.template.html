@@ -853,7 +853,7 @@ function managerDashboardsBlock(){
   const enterLoseOff=d=>{const h=d.hist||[];for(let i=0;i<h.length;i++){if(/LOSE|APOLOGY/.test(h[i][0])){const prev=i>0?h[i-1][0]:null;return (prev&&OSET.has(prev))?h[i][1]:null;}}return null;};
   // Портфель «в работе» на конец диапазона: ВСЕ открытые офферы менеджера (без ограничения возраста) - как «клиентский портфель» в его дашборде.
   const wipMgr=mp=>mp.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLoseAny(d);return !((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end));}).length;
-  const days=Math.max(1,Math.round((PDx(S.end)-PDx(S.start))/DAYMS)+1),factor=days/30;
+  const days=Math.max(1,Math.round((PDx(S.end)-PDx(S.start))/DAYMS)+1),factor=days/30,moN=Math.max(days,7)/30;
   // Конверсия-цель = CR2 месяца конца диапазона из плана (как в дашборде менеджера), запас 15%.
   const _pmC=((DATA.plan&&DATA.plan.months)||[]).find(x=>x.month===String(S.end).slice(0,7));
   const TCR=(_pmC&&_pmC.cr2>0)?_pmC.cr2:0.15;
@@ -874,26 +874,32 @@ function managerDashboardsBlock(){
     const port=wipMgr(mine);
     const suc=mine.filter(d=>inR(enterExec(d)));
     const fact=suc.length, otk=mine.filter(d=>inR(enterLoseOff(d))).length;
-    const cr=(fact+otk)?fact/(fact+otk):null;
-    const target=Math.round(port*TCR*factor), pctPlan=target?fact/target:null;
+    const cr=port?fact/port:null; // конверсия ПОРТФЕЛЬ→ПРЕДОПЛАТА за период = предоплаты ÷ портфель
+    // Цель: портфель × CR2 × дней/30 из плана; на дневном виде пол = минимум 1 продажа (как в дашборде менеджера).
+    const _cap=Math.round(port*TCR*factor), target=days<=1?Math.max(1,_cap):_cap, pctPlan=target?fact/target:null;
     const rev=suc.reduce((s,d)=>s+(d.budget||0),0);
     return {name,slug,port,fact,otk,cr,target,pctPlan,rev};
   });
-  // Кубки: рейтинг по выбранной метрике (вкладки Конверсия / Выручка / Успех).
+  // Кубки: место В ОТДЕЛЕ - среди ВСЕХ менеджеров ОП с оффер-активностью, по выбранной метрике (за период).
+  // Успех = вход в «Предоплата получена» (предоплата). Конверсия = предоплаты ÷ (предоплаты + отказы).
   const MK=S.mdMet||'conv';
   const mval=r=>MK==='rev'?r.rev:MK==='won'?r.fact:(r.cr==null?-1:r.cr);
   const mlab={conv:'Конверсия',rev:'Выручка',won:'Успех'}[MK];
   const mfmt=r=>MK==='rev'?fmtK(r.rev)+' ₽':MK==='won'?fmt(r.fact):(r.cr==null?'—':pct(r.cr));
   const barCol=r=>MK==='conv'?crC(r.cr):MK==='rev'?'#A78BFA':'#2E9E74';
-  const ranked=[...rows].sort((a,b)=>mval(b)-mval(a));
+  const _byDept={};
+  passed.filter(d=>isOP(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[]});o.mine.push(d);const e=enterExec(d);if(e&&inR(e)){o.fact++;o.rev+=d.budget||0;}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;});
+  const deptRows=Object.entries(_byDept).map(([m,o])=>{const wip=wipMgr(o.mine);return {name:m,fact:o.fact,otk:o.otk,rev:o.rev,wip,cr:wip?o.fact/wip:null};});
+  const NDEPT=Math.max(deptRows.length,1);
+  const ranked=[...deptRows].sort((a,b)=>mval(b)-mval(a));
   const rankOf={};ranked.forEach((r,i)=>rankOf[r.name]=i+1);
-  const maxV=Math.max(1e-9,...rows.map(r=>Math.max(0,mval(r))));
+  const maxV=Math.max(1e-9,...deptRows.map(r=>Math.max(0,mval(r))));
   const cup=rk=>['🥇','🥈','🥉'][rk-1]||('<span style="font-size:12px;font-weight:800;color:var(--ink-3)">#'+rk+'</span>');
   const seg=`<div class="seg" id="mdMetSeg"><button data-mdmet="conv" class="${MK==='conv'?'on':''}">Конверсия</button><button data-mdmet="rev" class="${MK==='rev'?'on':''}">Выручка</button><button data-mdmet="won" class="${MK==='won'?'on':''}">Успех</button></div>`;
   const cards=rows.map(r=>{const{name,slug,port,fact,otk,cr,target,pctPlan,rev}=r;
-    const rk=rankOf[name],bc=barCol(r),w=(mval(r)>0?Math.max(4,Math.min(100,mval(r)/maxV*100)):0).toFixed(1);
+    const rk=rankOf[name]||NDEPT,bc=barCol(r),w=(mval(r)>0?Math.max(4,Math.min(100,mval(r)/maxV*100)):0).toFixed(1);
     return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+
-      `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0;flex:1"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div><span style="font-size:19px;line-height:1" title="${rk} место по: ${mlab}">${cup(rk)}</span></div>`+
+      `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0;flex:1"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div><span style="font-size:19px;line-height:1" title="${rk} место из ${NDEPT} в отделе по: ${mlab}">${cup(rk)}</span></div>`+
       `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 6px;padding-top:10px;border-top:1px solid var(--border-soft)">`+
         stat('Портфель',fmt(port))+
         stat('План / факт',`${fmt(target)} / ${fmt(fact)}`,fact?'#2E9E74':'var(--ink-3)')+
@@ -902,7 +908,7 @@ function managerDashboardsBlock(){
         stat('Отказы',fmt(otk),otk>fact*4?'#F8717A':'var(--ink-2)')+
         stat('Выручка',fmtK(rev)+' ₽')+
       `</div>`+
-      `<div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border-soft)"><div style="display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em"><span>${mlab} · ${rk} место</span><b style="color:${bc};font-size:11.5px;font-variant-numeric:tabular-nums">${mfmt(r)}</b></div><div style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${w}%;background:${bc};border-radius:3px"></div></div></div>`+
+      `<div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border-soft)"><div style="display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em"><span>${mlab} · ${rk} из ${NDEPT} в отделе</span><b style="color:${bc};font-size:11.5px;font-variant-numeric:tabular-nums">${mfmt(r)}</b></div><div style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${w}%;background:${bc};border-radius:3px"></div></div></div>`+
       `</a>`;}).join('');
   const note=DATA.managerPhotos?'':'<span style="color:var(--ink-4)">фото подтянутся из Bitrix после ближайшего снимка</span>';
   return `<div class="card"><div class="card-h" style="align-items:flex-start"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: план по предоплатам, факт, конверсия и выручка ЗА ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху). Клик по карточке открывает персональный дашборд. Внизу карточки - место в рейтинге отдела (кубок) по выбранной метрике: вкладки «Конверсия» (успех÷закрытые), «Выручка», «Успех» (кол-во предоплат). Цифры совпадают с личным дашбордом менеджера при том же периоде: портфель = все открытые офферы на конец диапазона, план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">клик по карточке - личный дашборд · кубок = место в отделе по выбранной метрике · всё за выбранный период ${note}</div></div>${seg}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:8px">${cards}</div></div>`;

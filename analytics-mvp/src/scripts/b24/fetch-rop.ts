@@ -302,11 +302,13 @@ async function main() {
 
   const users: any[] = await pageAll("user.get", {});
   const mgrName: Record<string, string> = {};
+  const mgrPhoto: Record<string, string> = {}; // имя -> URL фото профиля Bitrix (для карточек «Дашборды менеджеров»)
   const nmOf = (u: any) => `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim();
   const firedSet = new Set<string>();
   for (const u of users) {
     const nm = nmOf(u) || `id${u.ID}`;
     mgrName[String(u.ID)] = nm;
+    if (u.PERSONAL_PHOTO && typeof u.PERSONAL_PHOTO === "string") mgrPhoto[nm] = u.PERSONAL_PHOTO;
     // ACTIVE может прийти как boolean или "Y"/"N"; уволенные = неактивные аккаунты.
     const active = u.ACTIVE === true || u.ACTIVE === "Y" || u.ACTIVE === 1 || u.ACTIVE === "1";
     if (nm && u.ACTIVE !== undefined && !active) firedSet.add(nm);
@@ -497,6 +499,7 @@ async function main() {
     leads,
     prodItems,
     firedManagers,
+    managerPhotos: mgrPhoto,
     channelMix: channels.byMgr,
   };
   mkdirSync("rop/data", { recursive: true });

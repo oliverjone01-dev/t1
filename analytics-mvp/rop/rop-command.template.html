@@ -836,6 +836,56 @@ function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols|
   const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3)">${x.sub}</div>`:'');
   return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}<div class="kpi-foot" style="margin-top:auto;padding-top:8px">${foot}</div></div>`;}).join('')+'</div>';}
 function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
+// Дашборды менеджеров: карточки со ссылкой на личный дашборд + основные метрики (портфель, план/факт
+// предоплат, % плана, CR, выручка) за выбранный период. Фото - из Bitrix (DATA.managerPhotos), запас - инициалы.
+function managerDashboardsBlock(){
+  // Список совпадает с циклом deploy-pages (кто реально собран в /rop-<slug>/).
+  const DASH=[['Юлия Лысанова','lysanova'],['Татьяна Лакомова','lakomova'],['Юлия Шура-Бура','shura-bura'],['Алина Платонова','platonova'],['Ольга Маслова','maslova']];
+  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
+  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const AD=(DATA.deals||[]).filter(dirOk);
+  const PDx=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
+  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING")return h[1];return null;};
+  const enterLoseAny=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
+  const enterLoseOff=d=>{const h=d.hist||[];for(let i=0;i<h.length;i++){if(/LOSE|APOLOGY/.test(h[i][0])){const prev=i>0?h[i-1][0]:null;return (prev&&OSET.has(prev))?h[i][1]:null;}}return null;};
+  const liveOpen=d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLoseAny(d);if((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end))return false;return Math.round((NOWD-PDx(d.created))/DAYMS)<=60;};
+  const days=Math.max(1,Math.round((PDx(S.end)-PDx(S.start))/DAYMS)+1),factor=days/30;
+  const P=planModel(DATA.deals||[],DATA.leads||[],{check:0,conv:0,rev:0,deals:0,leads:0,qrate:0});
+  const TCR=(P.conv&&P.conv>0)?P.conv:0.15;
+  const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
+  const photos=DATA.managerPhotos||{};
+  const pctC=v=>v==null?'var(--ink-4)':v>=0.9?'#2E9E74':v>=0.6?'#C2873C':'#CC5867';
+  const crC=v=>v==null?'var(--ink-4)':v>=TCR?'#2E9E74':v>=0.10?'#C2873C':'#CC5867';
+  const initials=n=>n.trim().split(/\s+/).map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+  const hue=n=>{let h=0;for(let i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;return h;};
+  const avatar=n=>{const hu=hue(n),bg=`linear-gradient(135deg,hsl(${hu},55%,42%),hsl(${(hu+40)%360},55%,30%))`;
+    const ini=`<span style="font-family:'Manrope';font-weight:800;font-size:16px;color:#fff">${esc(initials(n))}</span>`;
+    const img=photos[n]?`<img src="${photos[n]}" alt="" onerror="this.style.display='none'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:'';
+    return `<div style="position:relative;width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:${bg};overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.35)">${ini}${img}</div>`;};
+  const stat=(l,v,c)=>`<div style="display:flex;flex-direction:column;gap:1px"><span style="font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em">${l}</span><b style="font-size:13px;color:${c||'var(--ink)'};font-variant-numeric:tabular-nums">${v}</b></div>`;
+  const cards=DASH.map(([name,slug])=>{
+    const mine=passed.filter(d=>d.mgr===name);
+    const port=AD.filter(d=>d.mgr===name&&liveOpen(d)).length;
+    const suc=mine.filter(d=>inR(enterExec(d)));
+    const fact=suc.length, otk=mine.filter(d=>inR(enterLoseOff(d))).length;
+    const cr=(fact+otk)?fact/(fact+otk):null;
+    const target=Math.round(port*TCR*factor), pctPlan=target?fact/target:null;
+    const rev=suc.reduce((s,d)=>s+(d.budget||0),0);
+    return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+
+      `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div></div>`+
+      `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 6px;padding-top:10px;border-top:1px solid var(--border-soft)">`+
+        stat('Портфель',fmt(port))+
+        stat('План / факт',`${fmt(target)} / ${fmt(fact)}`,fact?'#2E9E74':'var(--ink-3)')+
+        stat('% плана',pctPlan==null?'—':pct(pctPlan),pctC(pctPlan))+
+        stat('CR',cr==null?'—':pct(cr),crC(cr))+
+        stat('Отказы',fmt(otk),otk>fact*4?'#F8717A':'var(--ink-2)')+
+        stat('Выручка',fmtK(rev)+' ₽')+
+      `</div></a>`;}).join('');
+  const note=DATA.managerPhotos?'':'<span style="color:var(--ink-4)">фото подтянутся из Bitrix после ближайшего снимка</span>';
+  return `<div class="card"><div class="card-h"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: его план по предоплатам, факт, конверсия и выручка за выбранный период. Клик по карточке открывает персональный дашборд (план-факт, KPI, календарь сделок, челлендж). Метрики в карточке считаются по той же оффер-воронке, что «Стандарт отдела»: портфель = живые офферы менеджера, план = портфель × конверсия-цель из плана.')}</div><div class="card-sub">клик по карточке - личный дашборд менеджера · метрики за выбранный период ${note}</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:4px">${cards}</div></div>`;
+}
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];
 const STORD={};FORDER.forEach((c,i)=>{const nm=DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[c];if(nm)STORD[nm]=i;});
@@ -2242,7 +2292,7 @@ function offerControlBlock(){
 
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
-    + divider(3,'Менеджеры','кто тянет, кто отстаёт')+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
+    + divider(3,'Менеджеры','кто тянет, кто отстаёт')+managerDashboardsBlock()+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()+deptDQBlock()
     + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();

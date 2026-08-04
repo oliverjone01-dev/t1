@@ -475,12 +475,23 @@ async function main() {
   // Та же логика, что в fetch-prod: запуск = Дата передачи в производство || первый вход в стадию || создание.
   // GM-форк (SKIP_SP): у Glass Memory производство внутри воронки C21, отдельного СП-1086 нет.
   const prodItems: any[] = [];
+  const spStages: Record<string, string> = {}; // каталог стадий СП (STATUS_ID -> название этапа)
   if (SP_ETID) {
   const ETID = Number(SP_ETID), OWNER_T = "T" + ETID.toString(16), UF_D2P = "ufCrm23_1777569335541";
   // Разведка: список смарт-процессов (id + название), чтобы подтвердить нужный СП в логе.
   try { const tj = await call("crm.type.list", {}); for (const t of (((tj.result && tj.result.types) || []) as any[])) console.log(`  СП ${t.entityTypeId} = ${t.title}`); } catch { /* нет доступа к crm.type.list */ }
+  // Каталог стадий СП: этапы производства (DYNAMIC_{ETID}_STAGE_{cat}). Нужен, чтобы видеть,
+  // через какие этапы цеха проходит заказ, и встроить их в трубу после «В производстве».
+  try {
+    const sj = await call("crm.status.list", {});
+    for (const s of (((sj.result) || []) as any[])) {
+      const eid = String(s.ENTITY_ID || "");
+      if (eid.startsWith(`DYNAMIC_${ETID}_STAGE_`)) spStages[String(s.STATUS_ID)] = s.NAME;
+    }
+    console.log(`Стадии СП ${ETID}: ${Object.keys(spStages).length} -> ${Object.entries(spStages).map(([k, v]) => k + "=" + v).join(" | ")}`);
+  } catch (e) { console.log("Каталог стадий СП недоступен:", (e as any)?.message); }
   const spRows = await listSharded("crm.item.list", {
-    entityTypeId: ETID, select: ["id", "parentId2", "createdTime", UF_D2P],
+    entityTypeId: ETID, select: ["id", "parentId2", "createdTime", "stageId", UF_D2P],
   }, { idField: "id", itemsPath: true });
   const spFirst: Record<string, string> = {};
   {
@@ -509,6 +520,7 @@ async function main() {
       dealId: r.parentId2 ? String(r.parentId2) : null,
       start: d10(r[UF_D2P]) || spFirst[String(r.id)] || d10(r.createdTime),
       qty,
+      stage: r.stageId ? String(r.stageId) : null,
     });
   }
   console.log(`Карточки производства: ${prodItems.length}, изделий из товарных строк ${Math.round(spQtyTotal)}`);
@@ -522,6 +534,7 @@ async function main() {
     refs: {
       managers: mgrName,
       dealStages: stageName,
+      spStages, // этапы СП производства (STATUS_ID -> название)
       leadStatuses: leadStatus,
       categories: catName,
       dirs: dirMap,

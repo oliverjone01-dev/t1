@@ -1,6 +1,6 @@
 {
-  "fetchedAt": "2026-08-03T10:10:47.528Z",
-  "day": "2026-08-03",
+  "fetchedAt": "2026-08-04T09:18:22.552Z",
+  "day": "2026-08-04",
   "sandbox": true,
   "currency": "RUB",
   "accounts": [
@@ -11,7 +11,7 @@
       "name": "Personal",
       "type": "Personal",
       "balance": 310.37,
-      "balanceAt": "2026-08-03T10:10:47.664214+00:00",
+      "balanceAt": "2026-08-04T09:18:22.721212+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
         "count": 1,
@@ -36,7 +36,7 @@
       "name": "Personal",
       "type": "Personal",
       "balance": 310.37,
-      "balanceAt": "2026-08-03T10:11:01.025756+00:00",
+      "balanceAt": "2026-08-04T09:18:30.005756+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
         "count": 1,
@@ -61,7 +61,7 @@
       "name": "Personal",
       "type": "Personal",
       "balance": 310.37,
-      "balanceAt": "2026-08-03T10:11:08.045152+00:00",
+      "balanceAt": "2026-08-04T09:18:40.655503+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
         "count": 1,

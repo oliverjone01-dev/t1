@@ -17,7 +17,7 @@ on:
         required: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: tochka-data
@@ -68,26 +68,14 @@ jobs:
       - name: Дельта-гейт (защита от битого снимка)
         run: |
           set -euo pipefail
-          # Пустой снимок (0 счетов) при ранее непустой истории - не публикуем.
+          # Пустой снимок (0 счетов) - не шлём (защита от протухшего токена/битого ответа).
           ACC=$(node -e "console.log((JSON.parse(require('fs').readFileSync('data/latest.json')).accounts||[]).length)")
           echo "accounts=$ACC"
-          if [ "$ACC" = "0" ]; then echo "::error::Синк вернул 0 счетов - публикация остановлена"; exit 1; fi
+          if [ "$ACC" = "0" ]; then echo "::error::Синк вернул 0 счетов - отправка остановлена"; exit 1; fi
 
       - name: Отправка сводки в Telegram
-        continue-on-error: true
         run: node notify.mjs
 
-      - name: Commit & push
-        working-directory: .
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A tochka-bank/data
-          git diff --staged --quiet && { echo "нет изменений"; exit 0; }
-          git commit -m "tochka: снимок остатка и поступлений $(date -u +%Y-%m-%d)"
-          for i in 1 2 3 4 5; do
-            git pull --rebase && git push && exit 0
-            sleep $((2**i))
-          done
-          exit 1
+      # НИКАКИХ коммитов данных. Снимок (data/latest.json) живёт только внутри прогона:
+      # fetch -> дельта-гейт -> notify (Telegram) -> job завершается, файл исчезает вместе с раннером.
+      # Реальные остатки и номера счетов в репозиторий не попадают - только в приватный Telegram.

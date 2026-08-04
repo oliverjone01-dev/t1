@@ -241,7 +241,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
   <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
   <div class="rev-toggle"><span class="ctl-lbl">Выручка</span><div class="seg" id="revSeg"><button data-r="prepay" class="on">от предоплаты</button><button data-r="won">по успеху</button></div><span class="qm" data-tip="«Выручка от предоплаты» — деньги и продажи признаются с момента «Предоплата получена» (стадии предоплата → производство → отправлен → успех; возвраты ≈3-5%, поэтому бизнес считает их своими). «Выручка по успеху» — только закрытые в успех (WON). Тумблер синхронно перестраивает все метрики, гейджи, динамику, бублики и трубу. На раздел 4 «Передача в производство» НЕ влияет: предоплаты и передачи там считаются по событиям стадий и не зависят от способа признания выручки.">?</span></div>
   <span class="ctl-lbl">Гранулярность</span><div class="seg" id="gran"><button data-g="day">День</button><button data-g="week" class="on">Неделя</button><button data-g="month">Месяц</button></div>
-  <span class="ctl-lbl">Направление</span><select id="dirSel" class="dinp" style="max-width:170px" data-tip="Фильтр по направлению бизнеса (бренду). Влияет на все блоки. План в таблице - общий, поэтому % выполнения корректен при «Все направления».">​</select>
+  <span class="ctl-lbl">Дилеры</span><div class="seg" id="dealerSeg" data-tip="Дилерский канал (источник «ДИЛЕР Glass Memory») минует воронку продаж - заказ идёт напрямую, без квалификации и переговоров. «С дилерами» - все сделки и лиды (как есть). «Без дилеров» - чистая лид-воронка, конверсия считается честно. «Только дилеры» - дилерский поток отдельно. Переключатель перестраивает ВСЕ метрики и блоки."><button data-ch="all" class="on">С дилерами</button><button data-ch="nodealer">Без дилеров</button><button data-ch="dealer">Только дилеры</button></div>
   <div class="tb-spacer"></div>
   <div class="seg" id="period"></div>
   <input type="date" id="cf" class="dinp"><span style="color:var(--ink-4)">–</span><input type="date" id="ct" class="dinp"><button id="applyCustom" class="dbtn">ОК</button>
@@ -302,11 +302,15 @@ const JUNKST=new Set(['СПАМ','Спам','Дубль','Отказ','Нека�
 // Расчёты, id{N}. Уволенный/действующий сотрудник - это ЕСТЬ ответственный, сюда не входит.
 const noOwner=n=>/систем|^id\s?\d|^расч[её]т/i.test(n||'');
 const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
-let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
+let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',channel:'all',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
 const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
-const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&(withCli? (!S.fCli||x.client===S.fCli):true));
+// Дилерский канал: источник «ДИЛЕР Glass Memory». Переключатель S.channel (all/nodealer/dealer)
+// перестраивает все метрики - фильтрует и сделки, и лиды по источнику.
+const DEALER_SRC=new Set(['ДИЛЕР Glass Memory']);
+const chOk=x=>S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source));
+const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&chOk(x)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 // Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
 // конверсии осмысленны только в одной когорте. Тумблер «Период по» меняет только
@@ -663,7 +667,7 @@ function disciplineBlock(){
 // до предложения, с дырами в причине/категории/клиенте/бюджете≤1), чтобы цифры сходились.
 function deptDQBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
@@ -1459,7 +1463,7 @@ function render(){
 // ===== ЗДОРОВЬЕ ОТДЕЛА ПРОДАЖ: баланс вход/выход + доля отказов + конверсия по менеджерам =====
 function healthBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
@@ -1610,7 +1614,7 @@ function healthBlock(){
 
 function offerReasonsBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const lost=passed.filter(d=>d.lost);
@@ -1636,7 +1640,7 @@ function offerReasonsBlock(){
 // CR. Гардрейлы: чек (чтобы count не убил выручку) и долгострой (в паре с отказами).
 function standardBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1731,7 +1735,7 @@ function standardBlock(){
 // (строка отдела + строки менеджеров), фильтр по менеджеру. Реагирует на период/гранулярность.
 function offerCalendarBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
@@ -1963,7 +1967,7 @@ function offerCalendarBlock(){
 function mgmtDecisionsBlock(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
   const EARLY=new Set(["C21:NEW","C21:UC_UCLN76","C21:PREPARATION","C21:UC_OIR9YC","C21:UC_32UM3S"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -2077,7 +2081,7 @@ function mgmtDecisionsBlock(){
 // возрастные когорты пайплайна. История берётся из hist по датам входа/закрытия.
 function offerAnalytics(){
   const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -2156,7 +2160,7 @@ function offerControlBlock(){
   const OFFER={ "C21:PREPAYMENT_INVOIC": { l: "КП отправлено", c: "#60A5FA" }, "C21:FINAL_INVOICE": { l: "Принимают решение", c: "#C2873C" }, "C21:UC_8JTBV2": { l: "Долгострой", c: "#F43F5E" } };
   const OSET=new Set(Object.keys(OFFER));
   const EARLY=new Set(["C21:NEW","C21:UC_UCLN76","C21:PREPARATION","C21:UC_OIR9YC","C21:UC_32UM3S","C21:PREPARATION"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   if(!open.length)return "";
@@ -2609,11 +2613,8 @@ function buildShell(){
   document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
-  const _dirSel=document.getElementById('dirSel');
-  if(_dirSel){const _ord=['genglass','metal_gm','valonti','gentero','gen-group','не указано'];
-    const _present=[...new Set([...AD,...AL].map(x=>x.dir).filter(Boolean))].sort((a,b)=>(_ord.indexOf(a)+1||99)-(_ord.indexOf(b)+1||99));
-    _dirSel.innerHTML='<option value="">Все направления</option>'+_present.map(d=>`<option value="${d}"${S.fDir===d?' selected':''}>${DIRLAB[d]||d}</option>`).join('');
-    _dirSel.onchange=()=>{S.fDir=_dirSel.value;render();};}
+  const _dlr=document.getElementById('dealerSeg');
+  if(_dlr)_dlr.querySelectorAll('button').forEach(b=>b.onclick=()=>{_dlr.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.channel=b.dataset.ch;render();});
   // scroll-spy
   addEventListener('scroll',()=>{let cur=1;SECS.forEach((s,i)=>{const el=document.getElementById('sec'+(i+1));if(el&&el.getBoundingClientRect().top<160)cur=i+1;});document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));});
 }

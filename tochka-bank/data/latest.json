@@ -1,120 +1,74 @@
 {
-  "fetchedAt": "2026-08-04T09:18:22.552Z",
+  "fetchedAt": "2026-08-04T11:46:03.703Z",
   "day": "2026-08-04",
-  "sandbox": true,
+  "sandbox": false,
   "currency": "RUB",
   "accounts": [
     {
-      "accountId": "12345123451234512345/044525104",
+      "accountId": "40702810320000250018/044525104",
       "number": "",
       "currency": "RUB",
-      "name": "Personal",
-      "type": "Personal",
-      "balance": 310.37,
-      "balanceAt": "2026-08-04T09:18:22.721212+00:00",
+      "name": "Business",
+      "type": "Business",
+      "balance": 2467544,
+      "balanceAt": "2026-08-04T11:46:03.862290+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
-        "count": 1,
-        "total": 172.27,
-        "items": [
-          {
-            "amount": 172.27,
-            "currency": "RUB",
-            "at": "",
-            "counterparty": "",
-            "inn": "",
-            "purpose": "Описание, Без НДС",
-            "docNumber": "2422"
-          }
-        ]
+        "count": 0,
+        "total": 0,
+        "items": []
       }
     },
     {
-      "accountId": "12345678901234567890/044525104",
+      "accountId": "40702810602500079093/044525104",
       "number": "",
       "currency": "RUB",
-      "name": "Personal",
-      "type": "Personal",
-      "balance": 310.37,
-      "balanceAt": "2026-08-04T09:18:30.005756+00:00",
+      "name": "Business",
+      "type": "Business",
+      "balance": 15922.93,
+      "balanceAt": "2026-08-04T11:46:08.427819+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
-        "count": 1,
-        "total": 172.27,
-        "items": [
-          {
-            "amount": 172.27,
-            "currency": "RUB",
-            "at": "",
-            "counterparty": "",
-            "inn": "",
-            "purpose": "Описание, Без НДС",
-            "docNumber": "2422"
-          }
-        ]
+        "count": 0,
+        "total": 0,
+        "items": []
       }
     },
     {
-      "accountId": "12345810901234567890/044525104",
+      "accountId": "40802810220001024609/044525104",
       "number": "",
       "currency": "RUB",
-      "name": "Personal",
-      "type": "Personal",
-      "balance": 310.37,
-      "balanceAt": "2026-08-04T09:18:40.655503+00:00",
+      "name": "Business",
+      "type": "Business",
+      "balance": 19968.22,
+      "balanceAt": "2026-08-04T11:46:13.016400+00:00",
       "balanceType": "OpeningAvailable",
       "incoming": {
-        "count": 1,
-        "total": 172.27,
-        "items": [
-          {
-            "amount": 172.27,
-            "currency": "RUB",
-            "at": "",
-            "counterparty": "",
-            "inn": "",
-            "purpose": "Описание, Без НДС",
-            "docNumber": "2422"
-          }
-        ]
+        "count": 0,
+        "total": 0,
+        "items": []
+      }
+    },
+    {
+      "accountId": "40802810401500106494/044525104",
+      "number": "",
+      "currency": "RUB",
+      "name": "Business",
+      "type": "Business",
+      "balance": 121092.15,
+      "balanceAt": "2026-08-04T11:46:18.026372+00:00",
+      "balanceType": "OpeningAvailable",
+      "incoming": {
+        "count": 0,
+        "total": 0,
+        "items": []
       }
     }
   ],
   "incoming": {
-    "count": 3,
-    "total": 516.8100000000001,
-    "items": [
-      {
-        "amount": 172.27,
-        "currency": "RUB",
-        "at": "",
-        "counterparty": "",
-        "inn": "",
-        "purpose": "Описание, Без НДС",
-        "docNumber": "2422",
-        "account": "12345123451234512345/044525104"
-      },
-      {
-        "amount": 172.27,
-        "currency": "RUB",
-        "at": "",
-        "counterparty": "",
-        "inn": "",
-        "purpose": "Описание, Без НДС",
-        "docNumber": "2422",
-        "account": "12345678901234567890/044525104"
-      },
-      {
-        "amount": 172.27,
-        "currency": "RUB",
-        "at": "",
-        "counterparty": "",
-        "inn": "",
-        "purpose": "Описание, Без НДС",
-        "docNumber": "2422",
-        "account": "12345810901234567890/044525104"
-      }
-    ]
+    "count": 0,
+    "total": 0,
+    "items": []
   },
-  "balanceTotal": 931.11
+  "balanceTotal": 2624527.3000000003
 }

@@ -21,10 +21,11 @@ try { ALIASES = JSON.parse(readFileSync(join(ROOT, "accounts.json"), "utf8")); }
 const rub = (v) => Number(v || 0).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const fmtDay = (s) => s ? String(s).slice(0, 10).split("-").reverse().join(".") : "-";
-const last4 = (s) => String(s || "").replace(/\D/g, "").slice(-4);
+// Хвост НОМЕРА СЧЁТА (часть до "/"), а не БИК. accountId в Точке = "{номер}/{БИК}",
+// поэтому берём часть до слэша, иначе у всех счетов совпадёт хвост БИК.
+const acctTail = (a) => String(a.number || a.accountId || "").split("/")[0].replace(/\D/g, "").slice(-4);
 const acctLabel = (a) => {
-  const k = last4(a.number || a.accountId);
-  const alias = ALIASES[k] || ALIASES[a.number] || ALIASES[a.accountId];
+  const alias = ALIASES[acctTail(a)];
   return String(alias || a.name || "Счёт").trim();
 };
 
@@ -38,7 +39,7 @@ function buildMessage() {
   lines.push("");
   lines.push(`💰 <b>Остаток по счетам:</b> ${rub(d.balanceTotal)} ₽`);
   for (const a of (d.accounts || [])) {
-    lines.push(`   • ${esc(acctLabel(a))} <code>•••${esc(last4(a.number || a.accountId))}</code>: ${rub(a.balance)} ₽`);
+    lines.push(`   • ${esc(acctLabel(a))} <code>•••${esc(acctTail(a))}</code>: ${rub(a.balance)} ₽`);
   }
   lines.push("");
   const inc = d.incoming || { count: 0, total: 0, items: [] };

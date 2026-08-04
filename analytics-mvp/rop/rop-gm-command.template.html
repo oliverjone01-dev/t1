@@ -364,10 +364,17 @@ function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
   so=so||cohortWon;lo=lo||D.filter(d=>d.lost);
   const rev=so.reduce((s,d)=>s+(d.budget||0),0),revCohort=cohortWon.reduce((s,d)=>s+(d.budget||0),0);
   const lostM=lo.reduce((s,d)=>s+(d.budget||0),0),closed=so.length+lo.length;
-  return {leads:L.length,deals:D.length,
+  // CR2 «в продажу» - только по сделкам, пришедшим ИЗ ЛИДА (fromLead). Созданные вручную
+  // (без заявки) в знаменатель не берём: иначе конверсия искажена и может вылетать за 100%.
+  // Числитель и знаменатель оба ограничены fromLead, чтобы доля была честной.
+  // Fallback: если в данных ещё нет флага fromLead (старый снимок) - считаем по всем сделкам.
+  const _hasLead=D.some(d=>d.fromLead!==undefined),
+        Dconv=_hasLead?D.filter(d=>d.fromLead):D,
+        convWon=Dconv.filter(SOLD);
+  return {leads:L.length,deals:D.length,dealsConv:Dconv.length,
     won:so.length,rev,check:so.length?rev/so.length:0,
     wonCohort:cohortWon.length,revCohort,
-    conv:D.length?cohortWon.length/D.length:0,
+    conv:Dconv.length?convWon.length/Dconv.length:0,
     lost:lo.length,lostM,
     qual:L.filter(l=>l.qual==='квал').length,qrate:L.length?L.filter(l=>l.qual==='квал').length/L.length:0,
     lostShare:(so.length+lo.length)?lo.length/(so.length+lo.length):0};}

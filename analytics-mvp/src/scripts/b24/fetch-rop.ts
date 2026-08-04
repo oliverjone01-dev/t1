@@ -388,6 +388,13 @@ async function main() {
       reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",
       dir: dirMap[String(d[UF.dir])] || "не указано",
       hist: histByDeal[String(d.ID)] || [],
+      // Признак «сделка пришла из лида» (LEAD_ID заполнен). Нужен для CR2 в продажу:
+      // созданные вручную (без лида) в знаменатель конверсии не берём.
+      fromLead: !!(d.LEAD_ID && String(d.LEAD_ID) !== "0"),
+      // ID лида-источника + его направление (проставляется ниже) - для анализа перекрестия
+      // «лид -> в какую воронку сделок он лёг».
+      leadId: (d.LEAD_ID && String(d.LEAD_ID) !== "0") ? String(d.LEAD_ID) : null,
+      leadDir: null as string | null,
       touchReal: ac.real, touchAll: ac.all,
     };
   });
@@ -416,6 +423,19 @@ async function main() {
     };
   }).filter((l) => ONLY_LEAD_DIRS.length ? ONLY_LEAD_DIRS.includes(l.dir) : !EXCLUDE_LEAD_DIRS.includes(l.dir));
   console.log(`Лиды (${ONLY_LEAD_DIRS.length ? "только " + ONLY_LEAD_DIRS.join("/") : "кроме " + EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
+
+  // Перекрестие «лид -> воронка сделки»: цепляем к каждой сделке направление её лида-источника.
+  // Берём из ПОЛНОГО leadRows (до фильтра направления), чтобы видеть и чужие направления.
+  const leadDirById: Record<string, string> = {};
+  for (const l of leadRows) leadDirById[String(l.ID)] = leadDirMap[String(l[UF_LEAD_DIR])] || "не указано";
+  let crossN = 0;
+  for (const dl of deals) {
+    dl.leadDir = dl.leadId ? (leadDirById[dl.leadId] || "лид вне окна") : "без лида";
+    // перекрестие = сделка в этой воронке, но её лид принадлежит другому направлению
+    if (ONLY_LEAD_DIRS.length && dl.leadDir !== "без лида" && dl.leadDir !== "лид вне окна"
+        && !ONLY_LEAD_DIRS.includes(dl.leadDir)) crossN++;
+  }
+  console.log(`Перекрестие лид->воронка: ${crossN} сделок из ${deals.length} с лидом чужого направления`);
 
   // Каналы коммуникации по менеджеру (лиды + сделки воронки 49), 90 дней.
   const channels = await channelMix(dealRows, leadRows, mgrName);

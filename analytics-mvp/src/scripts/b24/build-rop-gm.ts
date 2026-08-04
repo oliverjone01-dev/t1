@@ -13,7 +13,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 const TPL = "rop/rop-gm-command.template.html";
 const SRC = "rop/data/rop-gm.json";
 const PLAN = "rop/plan/plan-gm.json"; // своя GM план-таблица (Glass Memory), опциональна
-const PLAN_ID = process.env.PLAN_SHEET_ID || "14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY";
+// Таблица плана Glass Memory (Google Sheets, загружена Иваном 2026-08-04). Кнопка «↗ Таблица плана».
+const PLAN_ID = process.env.PLAN_SHEET_ID || "1OZhFcSBwyNRemK_vF7dVaHNdJCvyGv1h";
 const OUT = "public/rop-gm-command.html";
 const TODAY = process.env.ROP_TODAY || new Date().toISOString().slice(0, 10);
 

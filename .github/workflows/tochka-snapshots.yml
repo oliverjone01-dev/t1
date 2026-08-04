@@ -47,36 +47,6 @@ jobs:
         with:
           node-version: "22"
 
-      - name: DIAG (временно) - под каким именем лежит токен Точки
-        # Печатает только НАЛИЧИЕ и длину секрета, значения маскируются. Видит только
-        # repository Actions secrets. Если все empty - токен лежит не в этой вкладке
-        # (Environment / Codespaces / Dependabot) или не сохранён. Шаг убрать после диагностики.
-        env:
-          C1: ${{ secrets.TOCHKA_TOKEN }}
-          C2: ${{ secrets.TOCHKA_JWT }}
-          C3: ${{ secrets.TOCHKA }}
-          C4: ${{ secrets.TOCHKA_API_TOKEN }}
-          C5: ${{ secrets.TOCHKA_ACCESS_TOKEN }}
-          C6: ${{ secrets.TOKEN }}
-          C7: ${{ secrets.JWT }}
-          C8: ${{ secrets.CLIENT_ID }}
-          C9: ${{ secrets.CLIENT_SECRET }}
-          C10: ${{ secrets.TOCHKA_CLIENT_ID }}
-          C11: ${{ secrets.TOCHKA_CLIENT_SECRET }}
-          C12: ${{ secrets.TOCHKA_REFRESH_TOKEN }}
-          C13: ${{ secrets.TOCHKA_KEY }}
-          C14: ${{ secrets.TOCHKA_SECRET }}
-          C15: ${{ secrets.TOCHKA_TOKEN_JWT }}
-        run: |
-          set -euo pipefail
-          declare -A NAMES=( [C1]=TOCHKA_TOKEN [C2]=TOCHKA_JWT [C3]=TOCHKA [C4]=TOCHKA_API_TOKEN [C5]=TOCHKA_ACCESS_TOKEN [C6]=TOKEN [C7]=JWT [C8]=CLIENT_ID [C9]=CLIENT_SECRET [C10]=TOCHKA_CLIENT_ID [C11]=TOCHKA_CLIENT_SECRET [C12]=TOCHKA_REFRESH_TOKEN [C13]=TOCHKA_KEY [C14]=TOCHKA_SECRET [C15]=TOCHKA_TOKEN_JWT )
-          echo "=== Диагностика: repository Actions secrets ==="
-          for k in C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12 C13 C14 C15; do
-            val="${!k:-}"
-            if [ -n "$val" ]; then echo "::add-mask::$val"; echo "  ${NAMES[$k]}: SET (длина ${#val})"; else echo "  ${NAMES[$k]}: empty"; fi
-          done
-          echo "=== конец диагностики ==="
-
       - name: Маскировка кредов и выбор контура (прод/песочница)
         run: |
           set -euo pipefail

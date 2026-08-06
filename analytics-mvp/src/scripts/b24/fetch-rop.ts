@@ -341,6 +341,27 @@ async function main() {
   const leadDirMap = enumMap(leadFields[UF_LEAD_DIR]);
   console.log(`Справочники: стадий ${Object.keys(stageName).length}, источников ${Object.keys(sourceName).length}, менеджеров ${users.length}, воронок ${cats.length}`);
 
+  // ДИАГНОСТИКА: какие UF-поля реально заполнены у сделок этой воронки - чтобы найти
+  // аналоги «ассортимент» / «тип клиента» (в GM свои поля, GG-шные пустые).
+  const c21uf: Record<string, { n: number; title: string; type: string; sample: string[] }> = {};
+  try {
+    const sample = await call("crm.deal.list", { filter: { CATEGORY_ID: DEAL_CATEGORY }, select: ["*", "UF_*"], order: { ID: "DESC" } });
+    for (const r of ((sample.result || []) as any[])) {
+      for (const k in r) {
+        if (!k.startsWith("UF_")) continue;
+        const v = r[k]; if (v == null || v === "" || v === "0" || (Array.isArray(v) && !v.length)) continue;
+        const f = dealFields[k]; const em = enumMap(f);
+        if (!c21uf[k]) c21uf[k] = { n: 0, title: (f?.formLabel || f?.title || k), type: (f?.type || "?"), sample: [] };
+        c21uf[k].n++;
+        const raw = Array.isArray(v) ? v.join(",") : String(v);
+        const sv = em[raw] || raw;
+        if (c21uf[k].sample.length < 4 && !c21uf[k].sample.includes(sv)) c21uf[k].sample.push(sv);
+      }
+    }
+    console.log(`=== C21 заполненные UF-поля (${Object.keys(c21uf).length}) ===`);
+    for (const [k, o] of Object.entries(c21uf).sort((a, b) => b[1].n - a[1].n)) console.log(`  ${o.n}x ${k} «${o.title}» [${o.type}] пример: ${o.sample.join(" | ")}`);
+  } catch (e) { console.log("диагностика C21 UF:", (e as any)?.message); }
+
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID",
@@ -535,6 +556,7 @@ async function main() {
       managers: mgrName,
       dealStages: stageName,
       spStages, // этапы СП производства (STATUS_ID -> название)
+      _c21uf: c21uf, // диагностика: реально заполненные UF-поля C21 (искать ассортимент/тип клиента)
       leadStatuses: leadStatus,
       categories: catName,
       dirs: dirMap,

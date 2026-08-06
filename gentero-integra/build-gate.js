@@ -148,18 +148,43 @@ __SCRIPT__
 </html>
 `;
 
+/**
+ * Раскладка исходника на четыре части. Поддерживаются два вида вёрстки.
+ *
+ * v1: тело лежит прямо в body, инициализация в анонимной IIFE.
+ * v2 (из Claude Design): тело уже завёрнуто в <div id="doc">, инициализация
+ *     объявлена как function initDoc(){...} и вызывается последней строкой.
+ *     Вызов при сборке убирается: в боевой странице initDoc() зовёт шлюз
+ *     после расшифровки, а до неё звать нечего.
+ */
 function splitPlain(html) {
-  const style  = html.match(/<style>[\s\S]*?<\/style>/);
-  const defs   = html.match(/<svg width="0" height="0"[\s\S]*?<\/svg>/);
-  const body   = html.match(/<body>([\s\S]*?)<\/body>/);
-  const script = html.match(/<script>\n\(function\(\)\{([\s\S]*?)\}\)\(\);\n<\/script>/);
-  if (!style || !defs || !body || !script) {
-    console.error('не разобрал исходник: нет style/defs/body/script');
+  const style = html.match(/<style>[\s\S]*?<\/style>/);
+  const defs  = html.match(/<svg width="0" height="0"[\s\S]*?<\/svg>/);
+  const body  = html.match(/<body>([\s\S]*?)<\/body>/);
+  if (!style || !defs || !body) {
+    console.error('не разобрал исходник: нет style, defs или body');
     process.exit(1);
   }
-  let secret = body[1].replace(defs[0], '').replace(script[0], '')
-                      .replace(/<a href="#main" class="skip">[\s\S]*?<\/a>/, '');
-  return { style: style[0], defs: defs[0], secret: secret.trim(), script: script[1] };
+
+  const doc = body[1].match(/<div id="doc">([\s\S]*)<\/div><!-- \/#doc -->/);
+  const initFn = html.match(/<script>[\s\S]*?function initDoc\(\)\{([\s\S]*?)\n\}\n(?:initDoc\(\);\n)?<\/script>/);
+  const iife = html.match(/<script>\n\(function\(\)\{([\s\S]*?)\}\)\(\);\n<\/script>/);
+
+  let secret, script;
+  if (doc && initFn) {                       // v2
+    secret = doc[1];
+    script = initFn[1];
+  } else if (iife) {                         // v1
+    secret = body[1].replace(defs[0], '').replace(iife[0], '');
+    script = iife[1];
+  } else {
+    console.error('не разобрал исходник: не нашёл ни initDoc(), ни IIFE');
+    process.exit(1);
+  }
+
+  secret = secret.replace(defs[0], '')
+                 .replace(/<a href="#main" class="skip">[\s\S]*?<\/a>/, '');
+  return { style: style[0], defs: defs[0], secret: secret.trim(), script };
 }
 
 function lock(src, out, password) {

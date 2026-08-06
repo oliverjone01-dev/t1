@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>ИНТЕГРА 2.0 · документ к решению собственников</title>
+<style>
+/* ===== Northline system v4 · спецификация · mobile-first · автономная сборка ===== */
+:root{
+  --bg:#060807;--bg2:#0a0d0b;--bg3:#0c120d;--txt:#f2f4ef;--mut:#a1a1aa;--dim:#8a8a93;
+  --lime:#c7ff39;--ink:#071008;--bd:rgba(255,255,255,.1);--bd2:rgba(255,255,255,.15);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sans:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:76px}
+body{background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;
+  font-family:var(--sans);font-size:16px;line-height:1.6;overflow-x:hidden}
+::selection{background:var(--lime);color:var(--ink)}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px;border-radius:2px}
+.noise{background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:44px 44px}
+.wrap{max-width:1152px;margin:0 auto;padding-left:20px;padding-right:20px}
+.ic{width:1.05em;height:1.05em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- типографика: три роли ---------- */
+.tag{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.tag.lm{color:var(--mut);font-weight:600}
+#decision .tag.lm{color:var(--lime);font-weight:700}
+h1{font-size:clamp(1.9rem,7vw,3.4rem);font-weight:800;line-height:1.08;letter-spacing:-.022em;text-wrap:balance}
+h2{font-size:clamp(1.5rem,5vw,2.2rem);font-weight:800;line-height:1.16;letter-spacing:-.02em;max-width:24ch;text-wrap:balance}
+section{padding:64px 0;border-top:1px solid var(--bd);position:relative}
+.sub{margin-top:16px;color:var(--mut);line-height:1.65;max-width:44em;font-size:16px}
+.lead-after{margin-top:32px;font-size:16px;color:var(--mut);line-height:1.68;max-width:44em}
+.white{color:var(--txt);font-weight:600}
+/* единый маркер оговорки: лаймовая черта слева, 14px, не бледнее и не мельче */
+.m-note{border-left:2px solid rgba(199,255,57,.55);padding-left:14px;font-size:14px;color:var(--mut);line-height:1.6}
+.m-note b{color:var(--txt);font-weight:600}
+/* номер раздела как позиция спецификации */
+.m-sec{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.m-sec::after{content:"";flex:1;height:1px;background:var(--bd)}
+.m-sec.m-c{justify-content:center}.m-sec.m-c::after{display:none}
+.m-secnum{font-family:var(--mono);font-size:13px;color:var(--dim);letter-spacing:.08em;flex:none}
+
+/* ---------- reveal: 12px, 380ms, один раз, каскад до 240ms ---------- */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity 380ms var(--ease),transform 380ms var(--ease)}
+.reveal.is-visible{opacity:1;transform:none}
+.stg>*{transition-delay:min(calc(var(--i,0) * 60ms),240ms)}
+
+/* ---------- слот под съёмку: аспект держится, сдвига макета нет ---------- */
+.shot{position:relative;overflow:hidden;border-radius:10px;border:1px solid var(--bd);background:
+  linear-gradient(150deg,rgba(199,255,57,.04),transparent 46%),#070a08}
+.shot:has(figcaption)::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(180deg,transparent 60%,rgba(6,8,7,.78));opacity:0;transition:opacity .4s}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;
+  opacity:0;pointer-events:none;filter:saturate(.96) brightness(1.05) contrast(1.02);transition:opacity .5s var(--ease)}
+.shot.has img{opacity:1}
+.shot.has:has(figcaption)::after{opacity:1}
+.shot .fb{position:absolute;inset:0;display:grid;place-items:center;z-index:1}
+.shot .fb svg{width:64%;max-width:220px;height:auto;overflow:visible}
+figcaption{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:8px 12px;font-size:12px;color:var(--mut);
+  background:linear-gradient(180deg,transparent,rgba(6,8,7,.85) 45%);text-align:right;letter-spacing:.01em}
+.r32{aspect-ratio:3/2}
+.r169{aspect-ratio:16/9}
+.mock{position:absolute;top:10px;left:10px;z-index:4;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--txt);background:rgba(6,8,7,.85);border:1px solid var(--bd2);border-radius:4px;padding:3px 8px}
+
+/* ---------- шапка: прогресс чтения + позиция в документе ---------- */
+header{position:fixed;inset:0 0 auto 0;z-index:50;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+header.scrolled{background:rgba(6,8,7,.93);border-bottom-color:var(--bd)}
+.prog{position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--lime);transform:scaleX(0);transform-origin:0 50%;opacity:0;transition:opacity .3s}
+header.scrolled .prog{opacity:1}
+@supports (animation-timeline:scroll()){
+  @media(prefers-reduced-motion:no-preference){
+    .prog{animation:progGrow linear both;animation-timeline:scroll(root block)}
+    @keyframes progGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  }
+}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;padding-bottom:12px;min-height:60px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.03em;font-size:16px;flex:none;min-height:44px}
+.logo svg{width:22px;height:22px;color:var(--lime)}
+.logo .dot{color:var(--lime)}
+.logo .v{margin-left:5px;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.18em;font-family:var(--mono)}
+.m-pos{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:8px;font-size:13px}
+.m-pos b{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--dim);letter-spacing:.04em;flex:none;font-variant-numeric:tabular-nums}
+.m-pos i{font-style:normal;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-d{display:none;align-items:center;gap:20px;font-size:13.5px;color:var(--mut);white-space:nowrap}
+.nav-d a{transition:color .25s;position:relative;padding:10px 0}
+.nav-d a:hover{color:var(--txt)}
+.nav-d a[aria-current="true"]{color:var(--txt)}
+.nav-d a[aria-current="true"]::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;background:var(--lime)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;white-space:nowrap;
+  font-weight:700;min-height:48px;padding:12px 22px;font-size:15px;cursor:pointer;font-family:inherit;
+  transition:filter .25s,border-color .25s,color .25s,transform .12s var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn-lime{background:var(--lime);color:var(--ink);border:1px solid var(--lime)}
+.btn-lime:hover{filter:brightness(1.08)}
+.btn-ghost{border:1px solid var(--bd2);color:var(--txt);background:none}
+.btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
+.btn-hd{display:none;min-height:44px;padding:10px 16px;font-size:13.5px}
+.mbtn{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--bd2);border-radius:8px;background:none;color:var(--txt);cursor:pointer;flex:none}
+
+/* мобильное меню */
+#mmenu{position:fixed;inset:0;z-index:60;background:rgba(6,8,7,.98);
+  display:none;opacity:0;transition:opacity .26s var(--ease),display .26s allow-discrete}
+#mmenu.open{display:block;opacity:1}
+@starting-style{#mmenu.open{opacity:0}}
+.mm-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 20px}
+.mm-nav{display:flex;flex-direction:column;gap:2px;padding:18px 20px}
+.mm-nav a{font-size:19px;font-weight:700;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.06);min-height:48px;display:flex;align-items:center;gap:12px}
+.mm-nav a::before{content:attr(data-n);font-family:var(--mono);font-size:13px;font-weight:600;color:var(--dim);width:2ch}
+.mm-nav a.lime{color:var(--lime)}
+body.lock{overflow:hidden}
+
+/* ---------- рейка разделов: только очень широкие экраны ---------- */
+.spine{display:none}
+
+/* ---------- герой ---------- */
+.hero{position:relative;overflow:hidden;padding:112px 0 60px;border-top:none}
+.hero-media{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 45%;
+  opacity:0;transition:opacity 1.1s var(--ease);filter:saturate(.7) contrast(1.03)}
+.hero-media.has img{opacity:.3}
+.hero-media::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,8,7,.62),rgba(6,8,7,.84) 52%,var(--bg) 94%)}
+.hero-glow{pointer-events:none;position:absolute;left:50%;top:0;z-index:1;transform:translateX(-32%);height:36rem;width:60rem;border-radius:50%;
+  background:radial-gradient(ellipse at 68% 17%,rgba(199,255,57,.1),transparent 60%)}
+@supports (animation-timeline:scroll()){
+  @media(prefers-reduced-motion:no-preference){
+    .hero-glow{animation:glowDrift linear both;animation-timeline:scroll(root block);animation-range:0 70vh}
+    @keyframes glowDrift{to{transform:translateX(-32%) translateY(-14%);opacity:.35}}
+  }
+}
+.hero-grid{position:relative;z-index:2;display:grid;gap:40px}
+.hero p.lead{font-size:17px;color:var(--mut);line-height:1.62;max-width:34em;margin:22px 0 30px}
+.hero-cta{display:flex;flex-direction:column;gap:12px}
+.hero-cta .btn{width:100%}
+
+/* оглавление: пять позиций пакета */
+.toc{position:relative;border-radius:12px;border:1px solid var(--bd);background:var(--bg2);padding:22px 18px 18px}
+.toc .cap{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:14px}
+.toc ol{list-style:none;display:flex;flex-direction:column;gap:2px}
+.toc li a{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:8px;font-size:14.5px;line-height:1.45;min-height:44px;
+  border:1px solid transparent;transition:border-color .25s,background .25s}
+.toc li a:hover{border-color:var(--bd2);background:var(--bg3)}
+.toc li a b{color:var(--dim);font-family:var(--mono);font-size:12.5px;font-weight:600;flex:none;width:1.5em}
+.toc .foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--bd);display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.toc .foot .big{color:var(--lime);font-size:18px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.toc .foot span:last-child{font-size:12.5px;color:var(--mut);text-align:right;max-width:22ch;line-height:1.5}
+
+/* ---------- если читать одну минуту ---------- */
+.minute{background:var(--bg2);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:44px 0 40px}
+.mgrid{display:grid;gap:26px;margin-top:8px}
+.mcol{display:flex;flex-direction:column}
+.mh{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd)}
+.mlist,.mnum{list-style:none;display:flex;flex-direction:column;gap:11px}
+.mlist li{display:flex;gap:11px;font-size:15px;color:var(--mut);line-height:1.55}
+.mlist li b{color:var(--dim);font-family:var(--mono);font-size:12.5px;flex:none;padding-top:3px}
+.mnum li{display:flex;flex-direction:column;gap:2px}
+.mnum li b{color:var(--txt);font-family:var(--mono);font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.mnum li span{font-size:14px;color:var(--mut);line-height:1.5}
+.mfoot{margin-top:14px}
+.mcta{margin-top:28px;padding-top:18px;border-top:1px solid var(--bd);font-size:15px;color:var(--mut);line-height:1.6;max-width:64em}
+.mcta a{color:var(--lime);border-bottom:1px solid rgba(199,255,57,.4)}
+.mcta a:hover{border-bottom-color:var(--lime)}
+
+/* ---------- цифры ---------- */
+.stats{border-bottom:1px solid var(--bd)}
+.stats-g{display:grid;gap:0}
+.stat{padding:26px 0;border-bottom:1px solid var(--bd)}
+.stat:last-child{border-bottom:none}
+.stat b{display:block;font-size:clamp(1.9rem,4.5vw,2.4rem);font-weight:700;color:var(--txt);letter-spacing:-.03em;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.stat p{margin-top:8px;font-size:14px;color:var(--mut);line-height:1.55;max-width:32ch}
+
+/* ---------- кому выгодно: три человека ---------- */
+.people{display:grid;gap:16px;margin-top:36px}
+.pcard{border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:15px}
+.pcard.hl{border-color:rgba(199,255,57,.4);background:var(--bg3)}
+.pwho{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--bd)}
+.pwho .pava{width:44px;height:44px;border-radius:8px;border:1px solid var(--bd2);color:var(--txt);display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;flex:none;letter-spacing:.02em;margin-top:0;position:relative;overflow:hidden}
+.pwho .pava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;filter:saturate(.85) contrast(1.02)}
+.pwho b{display:block;font-size:16px;font-weight:700;line-height:1.25}
+.pwho span{display:block;font-size:12.5px;color:var(--mut);margin-top:2px}
+.qa .q{color:var(--lime);font-weight:600;font-size:14.5px;line-height:1.45}
+.qa .a{margin-top:5px;font-size:15px;color:var(--mut);line-height:1.6}
+.qa .a b{color:var(--txt);font-weight:600}
+.pfin{margin-top:auto;padding-top:13px;border-top:1px solid var(--bd);font-size:14.5px;color:var(--txt);font-weight:600;line-height:1.55}
+.pfin em{font-style:normal;color:var(--lime)}
+.pnote{margin-top:10px}
+
+/* ---------- карточки фактов ---------- */
+.grid{display:grid;gap:16px;margin-top:36px}
+.card{border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:24px}
+.card.hl{border-color:var(--bd2);background:var(--bg3)}
+.card .k{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.card h3{font-size:18.5px;font-weight:700;margin-bottom:10px;line-height:1.3}
+.card p{font-size:15px;color:var(--mut);line-height:1.62}
+.card .ft{margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);font-size:14px;color:var(--mut);line-height:1.55}
+
+/* пакет: позиции спецификации, единственный новый сильный приём */
+#package .k{position:relative;padding-bottom:10px;margin-bottom:12px}
+#package .k::after{content:"";position:absolute;left:0;bottom:0;width:100%;height:1px;
+  background:linear-gradient(90deg,var(--lime) 0 34px,var(--bd) 34px);
+  transform:scaleX(0);transform-origin:0 50%;transition:transform 420ms var(--ease) 120ms}
+#package .is-visible .k::after{transform:scaleX(1)}
+/* факты: иллюстрации в карточках */
+#why .m-fimg,#package .grid .m-fimg{margin:-24px -24px 16px;aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid var(--bd);border-radius:11px 11px 0 0;background:#070a08}
+#why .m-fimg img,#package .grid .m-fimg img{width:100%;height:100%;object-fit:cover;display:block}
+/* пакет: структура вместо полотна текста */
+.m-kh{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:14px 0 8px}
+.ft .m-kh{margin-top:0}
+.m-klist{list-style:none;display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.m-klist li{display:flex;gap:10px;font-size:14px;color:var(--mut);line-height:1.5}
+.m-klist li i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--dim);flex:none;padding-top:2px;width:2ch}
+.m-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.m-chips span{border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:13px;color:var(--mut);background:var(--bg)}
+.m-swap{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.m-swap>div{display:flex;gap:10px;align-items:baseline;font-size:14.5px;color:var(--mut);line-height:1.5}
+.m-swap>div>span{min-width:0}
+.m-swap b{flex:none;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--txt);border:1px solid var(--bd2);border-radius:4px;padding:2px 8px}
+
+/* featured часть 1 */
+.feat{border:1px solid var(--bd2);background:var(--bg3);border-radius:12px;overflow:hidden;margin-top:20px;margin-bottom:16px}
+.feat-in{padding:24px}
+.feat h3{font-size:clamp(1.25rem,3vw,1.6rem);font-weight:800;line-height:1.2;margin:10px 0 14px;max-width:26ch}
+.feat p{color:var(--mut);font-size:15.5px;line-height:1.65;max-width:52em}
+.feat .imp{color:var(--txt);font-weight:600;margin-top:14px}
+.figs{display:grid;gap:12px;margin:22px 0 4px}
+.fig{border:1px solid var(--bd);border-radius:10px;padding:15px 16px;background:var(--bg)}
+.fig b{display:block;font-size:clamp(1.15rem,3vw,1.35rem);font-weight:700;color:var(--txt);letter-spacing:-.01em}
+.fig b i{font-style:normal;font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.fig span{display:block;margin-top:5px;font-size:13px;color:var(--mut);line-height:1.45}
+.split{display:grid;gap:18px;margin-top:34px;border:1px solid var(--bd);border-radius:12px;padding:22px;background:var(--bg2)}
+.sp-h{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bd)}
+.sp-col.ours .sp-h{color:var(--lime)}
+.sp-col.buy .sp-h{color:var(--mut)}
+.sp-col ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.sp-col li{display:flex;flex-direction:column;gap:1px}
+.sp-col li b{font-size:15.5px;font-weight:600;color:var(--txt)}
+.sp-col.buy li b{color:var(--mut)}
+.sp-col li span{font-size:13px;color:var(--dim);line-height:1.45}
+.sp-note{grid-column:1/-1;margin-top:4px}
+
+/* ---------- каталог: лента с намеренным горизонтальным скроллом ---------- */
+.cat{display:flex;gap:12px;margin:28px -20px 0;padding:4px 20px 14px;overflow-x:auto;
+  scroll-snap-type:x mandatory;scroll-padding-left:20px;
+  scrollbar-width:thin;scrollbar-color:var(--bd2) rgba(255,255,255,.05)}
+.cat::-webkit-scrollbar{height:6px}
+.cat::-webkit-scrollbar-track{background:rgba(255,255,255,.05);border-radius:3px}
+.cat::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.ccard{flex:0 0 min(82%,340px);scroll-snap-align:start;border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:16px;display:flex;flex-direction:column;transition:border-color .3s}
+.ccard:hover{border-color:var(--bd2)}
+.ccard h3{font-size:16.5px;font-weight:700;margin:15px 0 8px;line-height:1.3}
+.ccard>p{font-size:14.5px;color:var(--mut);line-height:1.58}
+.cf{margin-top:auto;padding-top:12px;border-top:1px solid var(--bd);font-size:13px;color:var(--mut);display:flex;flex-direction:column;gap:4px;line-height:1.5}
+.cf b{color:var(--dim);font-weight:600}
+.cnote{margin-top:20px;max-width:60em}
+.bonus{border:1px solid var(--bd2);border-radius:12px;padding:24px;margin-top:34px;background:var(--bg3)}
+.bonus .bt{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:10px}
+.bonus h3{font-size:clamp(1.2rem,2.8vw,1.5rem);font-weight:800;line-height:1.25;margin-bottom:14px;max-width:28ch}
+.bonus p{color:var(--mut);font-size:15.5px;line-height:1.65;max-width:56em}
+.honest{margin:0 0 16px;max-width:56em}
+
+/* маршрутизация заявок: на телефоне вертикальный стек, стрелки вниз */
+.lanes{display:grid;gap:12px;margin:22px 0 4px}
+.lane{border:1px solid var(--bd);border-radius:10px;padding:16px;background:var(--bg);display:flex;flex-direction:column;gap:10px}
+.lane.keep{border-color:rgba(199,255,57,.45);background:rgba(199,255,57,.05)}
+.ltag{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);
+  border:1px solid var(--bd2);border-radius:4px;padding:3px 8px;display:inline-block;width:max-content}
+.lane.keep .ltag{color:var(--lime);border-color:rgba(199,255,57,.5)}
+.lin{font-size:15px;color:var(--txt);font-weight:600;line-height:1.4}
+.lin em{display:block;margin-top:3px;font-style:normal;font-weight:400;font-size:13px;color:var(--mut)}
+.larrow{position:relative;height:22px;width:12px;margin-left:5px}
+.larrow::before{content:"";position:absolute;left:5px;top:0;bottom:2px;width:1px;background:var(--bd2)}
+.larrow::after{content:"";position:absolute;left:2px;bottom:0;width:7px;height:7px;border-left:1px solid var(--bd2);border-bottom:1px solid var(--bd2);transform:rotate(-45deg)}
+.lane.keep .larrow::before{background:rgba(199,255,57,.5)}
+.lane.keep .larrow::after{border-color:rgba(199,255,57,.5)}
+.lout{margin-top:auto}
+.lout b{display:block;font-size:15.5px;font-weight:700;color:var(--txt)}
+.lane.keep .lout b{color:var(--lime)}
+.lout span{display:block;margin-top:3px;font-size:13px;color:var(--mut);line-height:1.45}
+
+/* обязательство GENTERO */
+.pledge{margin-top:20px;border:1px solid var(--bd);border-radius:10px;padding:20px;background:var(--bg)}
+.pledge .pt{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:14px;line-height:1.45}
+.pledge ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.pledge li{display:flex;gap:11px;font-size:15px;color:var(--mut);line-height:1.55}
+.pledge li .m{color:var(--dim);flex:none;font-weight:700}
+.pledge li b{color:var(--txt);font-weight:600}
+.pledge .pf{margin-top:14px}
+
+/* ---------- проверки перед сделкой ---------- */
+.seq{display:flex;flex-direction:column;margin:20px 0 44px;border:1px solid var(--bd);border-radius:12px;background:var(--bg2);overflow:hidden;list-style:none}
+.seq li{display:flex;gap:14px;align-items:flex-start;padding:18px;border-bottom:1px solid var(--bd)}
+.seq li:last-child{border-bottom:none}
+.icb{width:44px;height:44px;border:1px solid var(--bd2);border-radius:8px;display:grid;place-items:center;color:var(--dim);flex:none}
+.seq p{font-size:15px;color:var(--mut);line-height:1.6;padding-top:2px}
+.seq p b{color:var(--txt);display:block;margin-bottom:2px;font-weight:600}
+
+/* три варианта сделки */
+.opts{display:grid;gap:14px;margin-top:20px}
+.opt{border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:22px}
+.opt.pref{border-color:rgba(199,255,57,.45);background:var(--bg3)}
+.opt .lab{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.opt.pref .lab{color:var(--lime)}
+.opt .lab i{font-style:normal;border:1px solid var(--bd2);border-radius:4px;padding:1px 7px;font-size:12px}
+.opt.pref .lab i{border-color:rgba(199,255,57,.4)}
+.opt h3{font-size:17.5px;font-weight:700;margin-bottom:10px;line-height:1.32}
+.opt p{font-size:15px;color:var(--mut);line-height:1.62}
+
+/* ---------- ступени продаж и правила ---------- */
+.lad{display:grid;gap:40px;margin-top:36px;align-items:start}
+.lrow{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid var(--bd)}
+.lrow:last-child{border-bottom:none}
+.lrow .n{color:var(--dim);font-weight:600;font-size:15px;width:40px;flex:none;font-family:var(--mono);padding-top:3px}
+.lrow h3{font-size:17px;font-weight:700;margin-bottom:6px}
+.lrow p{font-size:15px;color:var(--mut);line-height:1.6}
+.rulebox{border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:24px;margin-bottom:20px}
+.rulebox .t{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:18px}
+.rulebox ul{list-style:none;display:flex;flex-direction:column;gap:14px}
+.rulebox li{display:flex;gap:12px;font-size:15px;color:var(--mut);line-height:1.6}
+.rulebox li b.n{color:var(--dim);flex:none;font-family:var(--mono);font-size:13px;font-weight:600;padding-top:2px}
+.rulebox li b.w{color:var(--txt)}
+blockquote{border-left:2px solid var(--lime);padding:4px 0 4px 18px;font-size:clamp(1.02rem,2.6vw,1.2rem);font-weight:500;line-height:1.55}
+
+/* ---------- этапы ---------- */
+.stage{display:grid;gap:10px;border:1px solid var(--bd);background:var(--bg2);border-radius:12px;padding:22px;margin-bottom:14px}
+.stage.hl{border-color:rgba(199,255,57,.4);background:var(--bg3)}
+.stage .sn{color:var(--txt);font-weight:700;font-size:15px;font-family:var(--mono)}
+.stage .sd{font-size:12.5px;color:var(--mut);margin-top:3px;letter-spacing:.04em;font-family:var(--mono)}
+.stage h3{font-size:17px;font-weight:700;margin-bottom:6px}
+.stage p{font-size:15px;color:var(--mut);margin-bottom:8px;line-height:1.62}
+.stage .pr{font-size:14px;font-weight:600;color:var(--lime);margin-bottom:0}
+
+/* ---------- таблицы: горизонтальный скролл + закреплённая первая колонка ---------- */
+.tblw{overflow-x:auto;border:1px solid var(--bd);border-radius:12px;margin:22px 0 26px;-webkit-overflow-scrolling:touch;background:var(--bg2);
+  scrollbar-width:thin;scrollbar-color:var(--bd2) rgba(255,255,255,.05)}
+.tblw::-webkit-scrollbar{height:6px}
+.tblw::-webkit-scrollbar-track{background:rgba(255,255,255,.05)}
+.tblw::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:660px}
+caption{text-align:left;padding:14px 16px 2px}
+caption.m-note{border-left:none;padding-left:16px;position:relative}
+caption.m-note::before{content:"";position:absolute;left:0;top:16px;bottom:4px;width:2px;background:rgba(199,255,57,.55)}
+th{text-align:left;padding:13px 16px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:600;border-bottom:1px solid var(--bd);background:var(--bg2)}
+th.r,td.r{text-align:right}
+td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px;color:var(--mut);vertical-align:top;line-height:1.55}
+td:first-child{color:var(--txt);font-weight:600}
+th:first-child,td:first-child{position:sticky;left:0;z-index:2;background:var(--bg2);border-right:1px solid var(--bd2);min-width:150px;max-width:200px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td:not(:first-child){background:rgba(199,255,57,.025)}
+td.sum{white-space:nowrap;color:var(--txt);font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:15px}
+td.nw{white-space:nowrap}
+
+/* ---------- шкала бюджета: горизонтальна всегда ---------- */
+.lead-sm{font-size:15px;color:var(--mut);line-height:1.6;margin-bottom:20px;max-width:48em}
+.bbar{position:relative;display:grid;grid-template-columns:60fr 60fr 240fr 100fr 80fr 60fr;gap:2px;height:44px;margin:34px 0 12px}
+.bseg{position:relative;border-radius:4px;overflow:hidden;transform-origin:0 100%;min-width:0}
+.s1{background:linear-gradient(180deg,rgba(199,255,57,.30),rgba(199,255,57,.13))}
+.s2{background:linear-gradient(180deg,rgba(199,255,57,.24),rgba(199,255,57,.10))}
+.s3{background:linear-gradient(180deg,rgba(199,255,57,.19),rgba(199,255,57,.08))}
+.s4{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05))}
+.s5{background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.04))}
+.s6{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
+.bl,.bv{display:none}
+.bgate{position:absolute;top:-8px;bottom:-6px;left:20%;width:0;border-left:2px dashed rgba(255,255,255,.55);pointer-events:none}
+.bgate span{position:absolute;top:-22px;left:8px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt);white-space:nowrap}
+.m-blegend{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:7px 18px;margin:14px 0 10px;max-width:480px}
+.m-blegend li{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--mut);min-width:0}
+.m-blegend li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-blegend li b{margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:600;color:var(--txt);font-variant-numeric:tabular-nums}
+.m-sw{width:10px;height:10px;border-radius:2px;flex:none;border:1px solid var(--bd)}
+.bcap{margin-bottom:26px;max-width:52em}
+@supports (animation-timeline:view()){
+  @media(prefers-reduced-motion:no-preference){
+    .bseg{animation:segIn linear both;animation-timeline:view();animation-range:entry 10% cover 34%}
+    @keyframes segIn{from{transform:scaleY(.12);opacity:.25}to{transform:scaleY(1);opacity:1}}
+  }
+}
+
+/* оговорки и предупреждения: всегда развёрнуты */
+.caveats{display:grid;gap:12px;margin-bottom:26px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.cav{border:1px solid var(--bd);border-left:2px solid rgba(199,255,57,.55);border-radius:10px;padding:16px 18px;background:var(--bg2)}
+.ch{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:6px}
+.cav p:last-child{font-size:14px;color:var(--mut);line-height:1.55}
+.warns{display:grid;gap:14px;margin-top:16px}
+.warn{border-left:2px solid rgba(199,255,57,.55);padding-left:14px}
+.wh{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:5px}
+.warn p:last-child{font-size:14px;color:var(--mut);line-height:1.55}
+
+/* денежный гейт */
+.gate{border:1px solid rgba(199,255,57,.42);border-radius:12px;padding:22px;margin-top:6px;background:var(--bg3)}
+.gate .gt{font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
+.steps{display:grid;gap:12px;margin-bottom:16px}
+.step{border:1px solid var(--bd);border-radius:10px;padding:16px 18px;background:var(--bg)}
+.step.hl{border-color:rgba(199,255,57,.45);background:rgba(199,255,57,.05)}
+.step b{display:block;font-family:var(--mono);font-size:18px;font-weight:700;color:var(--txt);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.step.hl b{color:var(--lime)}
+.step span{display:block;margin-top:2px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.step em{display:block;margin-top:10px;font-style:normal;font-size:14px;color:var(--mut);line-height:1.55}
+.gsum{font-size:15px;color:var(--mut);line-height:1.6;padding-bottom:16px;border-bottom:1px solid var(--bd)}
+.gsum b{color:var(--txt);font-weight:600}
+
+/* ---------- вопросы ---------- */
+.faq{max-width:860px}
+.fitem{border:1px solid var(--bd);background:var(--bg2);border-radius:12px;margin-bottom:12px;transition:border-color .3s}
+.fitem:hover,.fitem.open{border-color:var(--bd2)}
+.fbtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;min-height:48px;
+  padding:18px 20px;font-size:clamp(1rem,2.6vw,1.1rem);font-weight:700;background:none;border:none;color:var(--txt);cursor:pointer;font-family:inherit;line-height:1.35}
+.fico{color:var(--lime);transition:transform .3s var(--ease);flex:none}
+.fitem.open .fico{transform:rotate(45deg)}
+.fbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s var(--ease)}
+.fitem.open .fbody{grid-template-rows:1fr}
+.fbody>div{overflow:hidden}
+.fbody p{padding:0 20px 20px;font-size:15px;color:var(--mut);line-height:1.68;max-width:62em}
+
+/* ---------- три решения: последний экран ---------- */
+.cta{position:relative;overflow:hidden;padding:84px 0 100px}
+.cta-glow{display:none}
+.cta .in{position:relative;max-width:920px;margin:0 auto;text-align:center}
+.cta h2{max-width:none;margin-left:auto;margin-right:auto}
+.cta3{display:grid;gap:14px;text-align:left;margin:36px 0 40px}
+.dec{border:1px solid var(--bd2);background:var(--bg2);border-radius:12px;padding:24px}
+.dec .big{color:var(--lime);font-weight:700;font-size:24px;margin-bottom:10px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.dec p{font-size:15.5px;color:var(--mut);line-height:1.62}
+.dec p b{color:var(--txt);font-weight:600}
+.cta .btn{width:100%}
+
+footer{border-top:1px solid var(--bd)}
+.ft-in{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between;padding:32px 0;font-size:12px;color:var(--mut)}
+.ft-in .lg{font-weight:800;font-size:14px;color:var(--txt)}
+
+/* ============ брейкпоинт 600 ============ */
+@media(min-width:600px){
+  .wrap{padding-left:28px;padding-right:28px}
+  section{padding:84px 0}
+  .hero{padding:126px 0 72px}
+  .hero-cta{flex-direction:row;flex-wrap:wrap}
+  .hero-cta .btn{width:auto}
+  .stats-g{grid-template-columns:repeat(3,1fr)}
+  .stat{padding:32px 24px 32px 0;border-bottom:none;border-right:1px solid var(--bd)}
+  .stat:not(:first-child){padding-left:24px}
+  .stat:last-child{border-right:none;padding-right:0}
+  .g2{grid-template-columns:1fr 1fr}
+  .figs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:520px}
+  .split{grid-template-columns:1fr 1fr;padding:26px 28px}
+  .feat-in{padding:30px 34px}
+  .bonus{padding:30px 34px}
+  .gate{padding:26px 28px}
+  .stage{grid-template-columns:150px 1fr;gap:22px;padding:24px}
+  .minute{padding:52px 0 48px}
+  .cat{margin-left:-28px;margin-right:-28px;padding-left:28px;padding-right:28px;scroll-padding-left:28px}
+  .bbar{height:64px;margin-top:34px}
+  .bseg{padding:8px;display:flex;flex-direction:column;justify-content:flex-end}
+  .bl{display:block;font-size:12px;color:var(--mut);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bv{display:block;font-family:var(--mono);font-size:15px;font-weight:700;color:var(--txt);letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+  .s1 .bv,.s2 .bv,.s3 .bv{color:var(--lime)}
+  .m-blegend{display:none}
+}
+
+/* ============ брейкпоинт 900 ============ */
+@media(min-width:900px){
+  .wrap{padding-left:32px;padding-right:32px}
+  section{padding:104px 0}
+  .hero{padding:150px 0 92px}
+  .hero-grid{grid-template-columns:1.18fr .82fr;gap:48px;align-items:center}
+  .hero-media img{left:auto;right:0;width:72%;object-position:60% 45%}
+  .hero-media.has img{opacity:.5}
+  .hero-media::after{background:linear-gradient(90deg,var(--bg) 30%,rgba(6,8,7,.72) 58%,rgba(6,8,7,.5)),
+    linear-gradient(180deg,var(--bg),transparent 22%,transparent 62%,var(--bg))}
+  .toc{padding:24px 22px 22px}
+  .mgrid{grid-template-columns:1.05fr 1fr 1fr;gap:34px}
+  .minute{padding:56px 0 52px}
+  .people{grid-template-columns:repeat(3,1fr)}
+  .lanes{grid-template-columns:repeat(3,1fr)}
+  .larrow{height:16px;width:auto;margin-left:0}
+  .larrow::before{left:0;right:0;top:7px;bottom:auto;width:auto;height:1px}
+  .larrow::after{left:auto;right:0;top:3.5px;bottom:auto;border:0;border-top:1px solid var(--bd2);border-right:1px solid var(--bd2);transform:rotate(45deg)}
+  .lane.keep .larrow::after{border-color:rgba(199,255,57,.5)}
+  .cat{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;overflow:visible;margin-left:0;margin-right:0;padding:0;margin-top:34px}
+  .ccard{flex:none;padding:18px}
+  .opts{grid-template-columns:1.25fr 1fr;align-items:start}
+  .lad{grid-template-columns:1fr 1fr;gap:52px}
+  .steps{grid-template-columns:repeat(3,1fr)}
+  .warns{grid-template-columns:repeat(3,1fr)}
+  .cta3{grid-template-columns:repeat(3,1fr)}
+  .cta .btn{width:auto}
+  .bbar{height:78px}
+  .bseg{padding:10px 8px}
+  .sub,.lead-after{font-size:17px}
+  .card p,.opt p,.stage p,.lrow p{font-size:15.5px}
+}
+
+/* ============ брейкпоинт 1240: полная навигация ============ */
+@media(min-width:1240px){
+  .nav-d{display:flex}
+  .btn-hd{display:inline-flex}
+  .mbtn{display:none}
+  .m-pos{display:none}
+}
+
+/* ============ брейкпоинт 1440: только рейка разделов ============ */
+@media(min-width:1440px){
+  .spine{display:block;position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:40}
+  .spine ol{list-style:none;display:flex;flex-direction:column}
+  .spine a{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:5px 0;color:var(--dim);font-size:12px;transition:color .25s}
+  .spine .lbl{opacity:0;transform:translateX(6px);transition:opacity .25s var(--ease),transform .25s var(--ease);white-space:nowrap}
+  .spine .pip{width:13px;height:1px;background:currentColor;opacity:.42;flex:none;transition:width .25s var(--ease),opacity .25s}
+  .spine a:hover{color:var(--txt)}
+  .spine a:hover .pip{opacity:1;width:20px}
+  .spine a:hover .lbl,.spine:hover .lbl{opacity:1;transform:none}
+  .spine a[aria-current="true"]{color:var(--lime)}
+  .spine a[aria-current="true"] .pip{width:30px;opacity:1}
+  .spine a[aria-current="true"] .lbl{opacity:1;transform:none}
+}
+
+/* ---------- reduced motion: всё статично, всё видимо ---------- */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .reveal{transition:none;opacity:1;transform:none}
+  #package .k::after{transform:none;transition:none}
+  .prog{animation:none}
+  .hero-glow{animation:none}
+  .bseg{animation:none}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+/* ---------- печать: белый лист, лайм становится чёрным ---------- */
+@media print{
+  @page{margin:14mm}
+  :root{--bg:#fff;--bg2:#fff;--bg3:#fff;--txt:#000;--mut:#333;--dim:#555;--lime:#000;--ink:#fff;--bd:#c9c9c9;--bd2:#8a8a8a}
+  html,body{background:#fff!important;color:#000!important;font-size:10.5pt}
+  header,.spine,#mmenu,.hero-glow,.hero-media,.mbtn,.btn,.m-pos,.prog,.fico{display:none!important}
+  .noise{background-image:none}
+  .hero{padding:0 0 18pt}
+  section{padding:16pt 0;border-top:1px solid #c9c9c9}
+  h1,h2,h3{color:#000!important;break-after:avoid}
+  #why .m-fimg,#package .grid .m-fimg{display:none}
+  .reveal{opacity:1!important;transform:none!important}
+  #package .k::after{transform:none!important;background:#000!important}
+  .card,.pcard,.ccard,.stage,.opt,.dec,.fitem,.tblw,.gate,.bonus,.lane,.pledge,.split,.rulebox,.seq,.fig,.toc,.cav,.step,.minute,.stats,.shot{break-inside:avoid;border-color:#c9c9c9!important;background:#fff!important}
+  .pcard.hl,.stage.hl,.opt.pref,.lane.keep,.step.hl,.gate,.card.hl,.bonus,.feat{border:1px solid #000!important;background:#fff!important}
+  .m-note,.cav,.warn,blockquote,.honest{border-left-color:#000!important}
+  caption.m-note::before{background:#000!important}
+  .fbody{grid-template-rows:1fr!important}
+  .fbody>div{overflow:visible!important}
+  .tblw{overflow:visible}
+  table{min-width:0}
+  th:first-child,td:first-child{position:static;border-right:none;max-width:none}
+  th{background:#f2f2f2!important;color:#000!important}
+  .bbar{height:44px}
+  .bseg{background:#f2f2f2!important;border:1px solid #c9c9c9}
+  .s1 .bv,.s2 .bv,.s3 .bv,.step.hl b,.stat b,.dec .big,.toc .foot .big,.pfin em,.stage .pr,.bonus .bt,.gate .gt,.lane.keep .ltag,.lane.keep .lout b,.sp-col.ours .sp-h,.mcta a{color:#000!important}
+  .bgate{border-left-color:#000}
+  .bgate span{color:#000}
+  .m-blegend{display:grid}
+  .mock{background:#000!important;color:#fff!important;border-color:#000}
+  .shot .fb svg [stroke="#c7ff39"]{stroke:#000!important}
+  .shot .fb svg [fill="#c7ff39"]{fill:#000!important}
+  .shot .fb svg [stroke="#4a5550"],.shot .fb svg [stroke="#3d4a44"]{stroke:#9a9a9a!important}
+  figcaption{color:#333!important;background:rgba(255,255,255,.85)}
+  a{color:#000!important}
+  .cta{padding:20pt 0}
+  .mcta a{border-bottom-color:#000}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.2 6.4-6.4 2.2 2.2-6.4 6.4-2.2z"/></symbol>
+  </defs>
+</svg>
+<div id="doc">
+<!-- ============ HEADER ============ -->
+<header id="hd">
+  <div class="wrap hd">
+    <a href="#top" class="logo">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18V6l8 8 8-8v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>
+      ИНТЕГРА<span class="dot">.</span><span class="v">2.0</span>
+    </a>
+    <span class="m-pos"><b id="m-posn">1 из 10</b><i id="m-post">Начало</i></span>
+    <nav class="nav-d" id="navd" aria-label="Разделы документа">
+      <a href="#benefits">Кому выгодно</a>
+      <a href="#package">Пакет</a>
+      <a href="#catalog">Каталог</a>
+      <a href="#site">Сайт в столе</a>
+      <a href="#stages">Этапы и деньги</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <a href="#decision" class="btn btn-lime btn-hd">Три решения <svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></a>
+    <button class="mbtn" id="mopen" aria-label="Открыть меню" aria-expanded="false" aria-controls="mmenu"><svg class="ic" style="width:20px;height:20px" aria-hidden="true"><use href="#i-menu"/></svg></button>
+  </div>
+  <div class="prog" aria-hidden="true"></div>
+</header>
+
+<div id="mmenu" role="dialog" aria-modal="true" aria-label="Меню разделов">
+  <div class="mm-hd">
+    <span class="logo">ИНТЕГРА<span class="dot">.</span></span>
+    <button class="mbtn" id="mclose" aria-label="Закрыть меню"><svg class="ic" style="width:20px;height:20px" aria-hidden="true"><use href="#i-x"/></svg></button>
+  </div>
+  <nav class="mm-nav" aria-label="Разделы документа">
+    <a href="#benefits" data-n="02">Кому выгодно</a>
+    <a href="#why" data-n="03">Почему сейчас</a>
+    <a href="#package" data-n="04">Пакет</a>
+    <a href="#catalog" data-n="05">Каталог</a>
+    <a href="#site" data-n="06">Сайт в столе</a>
+    <a href="#sell" data-n="07">Как продаём</a>
+    <a href="#stages" data-n="08">Этапы и деньги</a>
+    <a href="#faq" data-n="09">Вопросы</a>
+    <a href="#decision" data-n="10" class="lime">Три решения</a>
+  </nav>
+</div>
+
+<nav class="spine" id="spine" aria-label="Положение в документе">
+  <ol>
+    <li><a href="#top"><span class="lbl">Начало</span><span class="pip"></span></a></li>
+    <li><a href="#benefits"><span class="lbl">Кому выгодно</span><span class="pip"></span></a></li>
+    <li><a href="#why"><span class="lbl">Почему сейчас</span><span class="pip"></span></a></li>
+    <li><a href="#package"><span class="lbl">Пакет</span><span class="pip"></span></a></li>
+    <li><a href="#catalog"><span class="lbl">Каталог</span><span class="pip"></span></a></li>
+    <li><a href="#site"><span class="lbl">Сайт в столе</span><span class="pip"></span></a></li>
+    <li><a href="#sell"><span class="lbl">Как продаём</span><span class="pip"></span></a></li>
+    <li><a href="#stages"><span class="lbl">Этапы и деньги</span><span class="pip"></span></a></li>
+    <li><a href="#faq"><span class="lbl">Вопросы</span><span class="pip"></span></a></li>
+    <li><a href="#decision"><span class="lbl">Три решения</span><span class="pip"></span></a></li>
+  </ol>
+</nav>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section class="hero noise" id="top" aria-labelledby="h-top">
+  <div class="hero-media" aria-hidden="true">
+    <img src="img/hero-bg.webp" alt="" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+  </div>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="tag reveal" style="margin-bottom:22px">Богдан и Роман · документ к решению</p>
+        <h1 class="reveal" id="h-top" tabindex="-1">Продаём склад Ветротек.<br>Развиваем GENTERO.<br><span style="color:var(--dim)">Все платят вперёд.</span></h1>
+        <p class="lead reveal">У соседей по территории заморожен склад комплектующих и лежит недостроенный сайт.
+        У нас есть перспективный b2b-бренд, каталог мебели и ММД, продажи и маркетинг. Проект соединяет одно с другим.
+        <span class="white">Без общего юрлица, без долгов, без новых людей в штат.</span></p>
+        <div class="hero-cta reveal">
+          <a href="#benefits" class="btn btn-lime">Смотреть план <svg class="ic" aria-hidden="true"><use href="#i-down"/></svg></a>
+          <a href="#stages" class="btn btn-ghost">Сразу к деньгам</a>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="toc">
+          <p class="cap">Пять частей одного пакета</p>
+          <ol>
+            <li><a href="#package"><b>1</b><span>Покупаем их детали для своего производства у Ветротек</span></a></li>
+            <li><a href="#package"><b>2</b><span>Открываем витрину их фурнитуры под их маркой Ветротек</span></a></li>
+            <li><a href="#catalog"><b>3</b><span>Строим страницы услуг, где эти детали -часть изделия</span></a></li>
+            <li><a href="#package"><b>4</b><span>Даём рекламу за ретробонус +3%, с отчётом каждый месяц</span></a></li>
+            <li><a href="#site"><b>5</b><span>Забираем наработки по сайту для ДГ, который в столе честной сделкой</span></a></li>
+          </ol>
+          <div class="foot">
+            <span class="big">0 ₽ долгов</span>
+            <span>Каждая часть отдельным договором, всё по предоплате</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ONE MINUTE ============ -->
+<div class="minute">
+  <div class="wrap">
+    <p class="tag lm reveal" style="margin-bottom:14px">Если читать одну минуту</p>
+    <div class="mgrid stg">
+      <div class="mcol reveal" style="--i:0">
+        <p class="mh">Что просим</p>
+        <ol class="mlist">
+          <li><b>1</b><span>Добро на пробную закупку и потолок предоплаты</span></li>
+          <li><b>2</b><span>Прайс: 12-15 правил цен, к десятому дню</span></li>
+          <li><b>3</b><span>Две встречи по порядку: пакет по фурнитуре, потом сайт</span></li>
+        </ol>
+      </div>
+      <div class="mcol reveal" style="--i:1">
+        <p class="mh">Чем рискуем</p>
+        <ul class="mnum">
+          <li><b>до 600 тыс. ₽</b><span>потолок затрат запуска</span></li>
+          <li><b>100-200 тыс. ₽</b><span>заморожено в деталях, которые нам и так нужны</span></li>
+          <li><b>Ноль</b><span>новых людей в штат, общих юрлиц и общих кошельков</span></li>
+        </ul>
+      </div>
+      <div class="mcol reveal" style="--i:2">
+        <p class="mh">Что получаем</p>
+        <ul class="mnum">
+          <li><b>35-40% + маркет. бонус 3%</b><span>оценка скидки на комплект деталей против нынешней закупки: сначала согласовываем скидку, затем доп. маркетинговый бонус 3%</span></li>
+          <li><b>от 5-7</b><span>оценка продаж комплектов в мес. со второго запуска</span></li>
+          <li><b>30 дней</b><span>срок расторжения любого договора, долгов не остаётся</span></li>
+        </ul>
+        <p class="mfoot m-note">Выгода на комплекте и продажи комплектов это оценки без подтверждения. Проверяем первым месяцем. Срок расторжения это условие договора, а не прогноз.</p>
+      </div>
+    </div>
+    <p class="mcta reveal">Худший случай: сосед выходит через 30 дней после стройки. Теряем затраты запуска, остаёмся с ходовым товаром на складе и своими карточками комплектов. <a href="#stages">Подробно в разделе про деньги</a>.</p>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<div class="stats">
+  <div class="wrap stats-g">
+    <div class="stat reveal"><b>±20%</b><p>загрузка нашего цеха по металлу, оценка Романа. Новые станки этого лета ждут поток заказов</p></div>
+    <div class="stat reveal"><b>210</b><p>позиций в прайсе их склада: петли, замки, коробки, профили, перила из нержавейки</p></div>
+    <div class="stat reveal"><b>1:1</b><p>встречная торговля: каждый рубль в одну сторону встречен рублём в другую</p></div>
+  </div>
+</div>
+
+<!-- ============ BENEFITS ============ -->
+<section id="benefits" style="border-top:none" aria-labelledby="h-benefits">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">02</span></div>
+    <h2 class="reveal" id="h-benefits">Три человека. У каждого своя боль и своя выгода</h2>
+    <p class="sub reveal">Сделка живёт, только если каждая сторона хочет её сильнее другой. Вот вопросы, которые зададите вы двое и сосед, и что каждый получает.</p>
+
+    <div class="people stg">
+      <div class="pcard reveal" style="--i:0">
+        <div class="pwho"><span class="pava" aria-hidden="true"><img src="uploads/1-bogdan.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()">Б</span><div><b>Богдан</b><span>деньги, цены, риски</span></div></div>
+        <div class="qa">
+          <p class="q">«Где деньги и когда?»</p>
+          <p class="a">Выгода с первой же закупки: детали дешевле, чем берём сейчас на стороне. Продажи комплектов со второго месяца. <b>Всё по предоплате, касса не проседает.</b></p>
+        </div>
+        <div class="qa">
+          <p class="q">«Сколько заморозим в предоплате?»</p>
+          <p class="a">Потолок ставишь ты, до старта. Пробная партия сто-двести тысяч за товар, который нам в любом случае нужен.</p>
+        </div>
+        <div class="qa">
+          <p class="q">«А если опять разойдёмся?»</p>
+          <p class="a">Долгов нет ни у кого, любой договор закрывается за 30 дней. Каталог, марка GENTERO, клиенты и производство остаются у нас. Даже наработки сайта не придется делить, контент будет проиндексирован за нами, обязательства по заявкам не фиксируем в договоре и отдаем их, как часть размена Андрею Владимировичу без юридических обязателств.</p>
+        </div>
+        <p class="pfin">Итог: канал продаж, который <em>не трогает кассу</em> и не зависит от настроений. Актив в виде 80% cайта GT без отвлечения разработчика от V сайта</p>
+      </div>
+
+      <div class="pcard reveal" style="--i:1">
+        <div class="pwho"><span class="pava" aria-hidden="true"><img src="uploads/roman-2.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()">Р</span><div><b>Роман</b><span>производство, загрузка</span></div></div>
+        <div class="qa">
+          <p class="q">«Чем это загрузит цех?»</p>
+          <p class="a">Каждый проданный комплект имеет потенциал кросс-продажи - объектные заказы, где наш металл идёт в сборе с закупным стеклом.. Стекло и зеркальное полотно закупные, обработку не делаем.</p>
+        </div>
+        <div class="qa">
+          <p class="q">«Не потащим ли чужой неликвид?»</p>
+          <p class="a">До старта ревизия склада. Берём только ходовое, залежалое остаётся заботой соседа. Склад не выкупаем: покупаем по мере потребления.</p>
+        </div>
+        <div class="qa">
+          <p class="q">«Кто повезёт и не отвлечёт ли людей?»</p>
+          <p class="a">Сборку сайта и тексты делаем внутри отдела в рамках ФОТ. Производство работает в обычной очереди, никого не дёргаем. Нагрузка на менеджеров будет плановая в рамках роста входящих лидов на комплектации b2b (в рамках рекламного бюджета на маркетинг).</p>
+        </div>
+        <p class="pfin">Итог: <em>загрузка станков через кросс-продажи</em> без новых людей и без риска для производства.</p>
+      </div>
+
+      <div class="pcard hl reveal" style="--i:2">
+        <div class="pwho"><span class="pava" aria-hidden="true"><img src="uploads/Yurkevich-3.jpg" alt="" loading="lazy" decoding="async" onerror="this.remove()">АВ</span><div><b>Андрей Владимирович</b><span>сосед и партнёр</span></div></div>
+        <div class="qa">
+          <p class="q">«Склад лежит, деньги в нём стоят»</p>
+          <p class="a">Появляется <b>постоянный покупатель деньгами вперёд</b>, витрина, реклама и отчёт цифрами каждый месяц. Склад двигается с первого месяца.</p>
+        </div>
+        <div class="qa">
+          <p class="q">«Моё имя задвинут?»</p>
+          <p class="a">Наоборот. Витрина носит имя <b>«ДомГласс Фурнитура» или "VETROTEC"</b>. Там, где продаёт он, всё идёт под его маркой.</p>
+        </div>
+        <div class="qa">
+          <p class="q">«Сайт делали, и что теперь?»</p>
+          <p class="a">То, что было куплено ДГ - 1С Бизнес и Аспро Премьер (2 лицензии) сейчас компания уже использует под сайт Ветротек. Мы берем наработки по сайту ДГ, который решили не использовать в новой компанде маркетинга ДГ. Т.е используем картики и некоторые тексты, которые не мешают продвигать www.glass-store.ru</p>
+        </div>
+        <div class="qa">
+          <p class="q">«А что мне сверху?»</p>
+          <p class="a"><b>Заявки на чистую фурнитуру и чистое стекло с нашей рекламы отдаём его отделу продаж. Бесплатно.</b></p>
+        </div>
+        <p class="pfin">Итог: живой склад, видимая марка и <em>поток заявок</em> без вложений в продвижение с его стороны в первый месяц.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section id="why" class="noise" aria-labelledby="h-why">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">03</span></div>
+    <h2 class="reveal" id="h-why">Четыре факта сошлись в одну точку</h2>
+    <p class="sub reveal">Каждый сам по себе просто новость. Вместе они дают окно, которое через квартал закроется.</p>
+
+    <div class="grid g2 stg">
+      <div class="card hl reveal" style="--i:0">
+        <div class="m-fimg" aria-hidden="true"><img src="img/fact-01.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Факт 1, главный</div>
+        <h3>Их склад комплектующих стоит без движения</h3>
+        <p>Петли, замки, ручки, дверные коробки, профили для душевых, перила из нержавейки. Для соседей это самая наболевшая тема. <span class="white">А мы покупаем те же детали на стороне и дороже, а новые для нас позиции отлично дополняют матрицу для старта GENTERO.</span> Решение их боли это наш вход в разговор.</p>
+      </div>
+      <div class="card reveal" style="--i:1">
+        <div class="m-fimg" aria-hidden="true"><img src="img/fact-02.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Факт 2</div>
+        <h3>Наш металл работает на треть силы</h3>
+        <p>Труболазер и фрезер запущены этим летом, заказов под них мало. Заказы собираются из закупного стекла и нашего металла с покраской, загружает цех без вложений в рекламу. 20% это рамочная оценка (со слов Богдана до запуска новых станков в апреле), счётчика загрузки у нас нет.</p>
+      </div>
+      <div class="card reveal" style="--i:2">
+        <div class="m-fimg" aria-hidden="true"><img src="img/fact-03.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Факт 3</div>
+        <h3>У них в столе лежит недостроенный сайт</h3>
+        <p>Готовый, наполненный сайт по обработке стекла: резка, закалка, триплекс, покраска, фотопечать, гнутое стекло - контент уникальный и оптимизированный под SEO! Достроить его там некому. <span class="white">Это готовый источник заказов, который просто лежит, а мы можем развернуть на нем GENTERO с мин. доработкой, освободить очередь для сайта VALONTI у Сергея и использовать, как актив в пользу GGM, с косвенной пользой для DG.</span></p>
+      </div>
+      <div class="card reveal" style="--i:3">
+        <div class="m-fimg" aria-hidden="true"><img src="img/fact-04.jpg" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Факт 4</div>
+        <h3>Их клиентам обещан товар, который делаем мы</h3>
+        <p>В их презентациях ДГС для гостиниц и объектов мебель, столы, зеркала, перегородки. Ближайшее производство этих позиций наше, на этой же территории. Их продажи и наш цех созданы друг для друга. В рамках пакетных договоренностей - свои комплекты они превентивно комплектуют продукцией GGM!</p>
+      </div>
+    </div>
+
+    <p class="lead-after reveal">И главное обстоятельство, о котором говорим прямо. Мы работаем на территории ИНТЕГРА, где имеет влияние Андрей Владимирович и покупаем у него стекло. Ссориться дорого, дружить по настроению ненадёжно.
+    <span class="white">План делает отношения выгодными по расчёту: чем больше зарабатываем мы, тем больше зарабатывает он.</span></p>
+  </div>
+</section>
+
+<!-- ============ PACKAGE ============ -->
+<section id="package" aria-labelledby="h-package">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">04</span></div>
+    <h2 class="reveal" id="h-package">Пакет «Фурнитура под ключ»: пять частей</h2>
+    <p class="sub reveal">Мы приходим не с просьбой, а с системой, в которой их склад начинает двигаться с первого месяца. Каждая часть усиливает остальные.</p>
+
+    <div class="split reveal is-visible-static">
+      <div class="sp-col ours">
+        <p class="sp-h">Делаем сами</p>
+        <ul>
+          <li><b>Металл</b><span>труболазер, фрезер</span></li>
+          <li><b>Покраска</b><span>порошковая камера</span></li>
+          <li><b>Сборка зеркал и столов</b><span>рамы, подсветка, крепления, подстолья, столешки</span></li>
+          <li><b>Сборка и монтаж</b><span>изделие целиком у клиента</span></li>
+        </ul>
+      </div>
+      <div class="sp-col buy">
+        <p class="sp-h">Закупаем</p>
+        <ul>
+          <li><b>Полотно</b><span>стекло и зеркало, у соседа</span></li>
+          <li><b>Стекло с обработкой</b><span>резка, закалка, печать, на стороне</span></li>
+          <li><b>Фурнитура</b><span>сегодня на стороне и дороже, есть задел на развитие GENTERO -> отсюда весь проект</span></li>
+        </ul>
+      </div>
+      <p class="sp-note m-note">Своей обработки стекла у нас нет и в этом квартале не появится. Изделие GENTERO это закупное стекло плюс наш металл, покраска и сборка. Роль холдинга здесь сборщик и производитель металлической части.</p>
+    </div>
+
+    <div class="feat reveal">
+      <figure class="shot r169">
+        <div class="fb" aria-hidden="true"><svg viewBox="0 0 160 90" fill="none" stroke-linecap="round">
+          <path d="M8 14h144M8 34h144M8 54h144M8 74h144" stroke="#3d4a44" stroke-width="1.2"/>
+          <path d="M8 8v76M56 8v76M104 8v76M152 8v76" stroke="#3d4a44" stroke-width="1.2"/>
+          <rect x="16" y="18" width="14" height="12" stroke="#c7ff39" stroke-width="1.4"/>
+          <rect x="36" y="18" width="14" height="12" stroke="#4a5550" stroke-width="1.2"/>
+          <rect x="64" y="38" width="14" height="12" stroke="#4a5550" stroke-width="1.2"/>
+          <rect x="84" y="38" width="14" height="12" stroke="#c7ff39" stroke-width="1.4"/>
+          <rect x="112" y="58" width="14" height="12" stroke="#4a5550" stroke-width="1.2"/>
+          <rect x="132" y="58" width="14" height="12" stroke="#4a5550" stroke-width="1.2"/>
+          <rect x="16" y="58" width="34" height="12" stroke="#4a5550" stroke-width="1.2"/>
+        </svg></div>
+        <img src="img/warehouse-parts.webp" alt="Иллюстрация категории: стеллажи склада комплектующих. Не фотография склада соседа" width="1600" height="900" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        <figcaption>Иллюстрация категории, не фотография склада соседа</figcaption>
+      </figure>
+      <div class="feat-in">
+        <div class="k">Часть 1, мы первый покупатель</div>
+        <h3>Покупаем их детали для своего производства</h3>
+        <p>По предоплате и по цене ниже рынка: им нужно вернуть деньги из склада, нам нужны детали и их недоделанный сайт для экспертного старта GENTERO без вложений в разработку и освобождение очереди для VALONTI. Первую закупку делаем в знак подтверждения наших серьезных намерений.</p>
+        <div class="figs">
+          <div class="fig"><b><i>14-19</i> тыс. ₽</b><span>комплект на одну стеклянную дверь по их же прайсу (проверить)</span></div>
+          <div class="fig"><b><i>3-7</i> тыс. ₽</b><span>комплект на душевую по их же прайсу (проверить)</span></div>
+        </div>
+        <p class="imp">Перед стартом делаем ревизию склада: что берём для себя, что продаётся комплектами, что не трогаем. Обещаем только то, что подтвердит ревизия.</p>
+      </div>
+    </div>
+
+    <div class="grid g2 stg" style="margin-top:0">
+      <div class="card reveal" style="--i:0">
+        <div class="m-fimg" aria-hidden="true"><img src="img/part-02.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Часть 2, его имя на витрине</div>
+        <h3>Витрина «ДомГласс Фурнитура» на сайте</h3>
+        <p>Отдельные детали продаём под ЕГО маркой, мы официальный распространитель. Готовые комплекты «стекло плюс фурнитура» под нашей маркой GENTERO.</p>
+        <p class="m-note" style="margin-top:12px;color:var(--txt);font-weight:600;font-size:14.5px">Деталь носит его имя, комплект наше.</p>
+        <div class="m-swap">
+          <div><b>Ему</b><span>видимость марки и оборот склада</span></div>
+          <div><b>Нам</b><span>расширение каталога</span></div>
+        </div>
+        <div class="ft">
+          <p class="m-kh">До запуска закрепляем на бумаге</p>
+          <ul class="m-klist">
+            <li><i>01</i><span>право на марку</span></li>
+            <li><i>02</i><span>правило заявок: изделия с монтажом нам, чистая фурнитура и чистое стекло ему, подробнее в каталоге</span></li>
+            <li><i>03</i><span>единые цены без обхода витрины</span></li>
+            <li><i>04</i><span>порядок расставания за 30 дней</span></li>
+            <li><i>05</i><span>схему торговли: перепродажа с нашего счёта или агентская продажа с его счёта</span></li>
+          </ul>
+          <p style="margin-top:10px">От этого зависит, кто отвечает за гарантию и возврат детали, поэтому решаем до первой карточки, а не после первой рекламации.</p>
+        </div>
+      </div>
+      <div class="card reveal" style="--i:1">
+        <div class="m-fimg" aria-hidden="true"><img src="img/part-03.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Часть 3, страницы где это продаётся</div>
+        <h3>Продающие страницы услуг на сайте GENTERO</h3>
+        <p>Первая волна это пять страниц под то, что люди чаще всего ищут:</p>
+        <ul class="m-klist">
+          <li><i>01</i><span>перила со стеклом</span></li>
+          <li><i>02</i><span>двери в алюминиевой коробке</span></li>
+          <li><i>03</i><span>душевые</span></li>
+          <li><i>04</i><span>маятниковые двери</span></li>
+          <li><i>05</i><span>раздвижные системы</span></li>
+        </ul>
+        <p class="m-kh">На каждой</p>
+        <div class="m-chips"><span>цена от</span><span>подбор комплекта</span><span>дата отгрузки числом</span><span>работы</span><span>гарантия</span><span>вопросы-ответы</span></div>
+        <div class="ft">Темы выбираем по спросу в поиске, а не по остаткам склада. Честно: заявки из поиска пойдут не раньше чем через три-шесть месяцев.</div>
+      </div>
+      <div class="card reveal" style="--i:2">
+        <div class="m-fimg" aria-hidden="true"><img src="img/part-04.jpg" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Часть 4, реклама на паях</div>
+        <h3>Продвижение его склада за понятные деньги</h3>
+        <p>Первый месяц это тест за наш счёт, с отчётом:</p>
+        <div class="m-chips"><span>показы</span><span>заявки</span><span>переданные ему заявки поимённо</span></div>
+        <p style="margin-top:12px;font-size:14px">Что из них стало продажей, знает только его отдел, поэтому эту строку заполняет он, если захочет сверяться.</p>
+        <div class="m-swap">
+          <div><b>Понравился</b><span>дальше он платит за продвижение по счёту, деньгами или зачётом в цену закупки</span></div>
+          <div><b>Не понравился</b><span>останавливаем, но продолжаем партнерство GENTERO Х VETROTEC</span></div>
+        </div>
+        <div class="ft">Никаких общих кошельков. Услуга по счёту, как с любым подрядчиком.</div>
+      </div>
+      <div class="card reveal" style="--i:3">
+        <div class="m-fimg" aria-hidden="true"><img src="img/part-05.png" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"></div>
+        <div class="k">Часть 5, сайт в столе</div>
+        <h3>Оживляем их недостроенный сайт</h3>
+        <p>Честной сделкой, а не просьбой. 2 варианта на выбор соседа в следующем разделе.</p>
+        <p style="margin-top:8px">В любом варианте внутри живёт витрина его фурнитуры, а заказы на обработку стекла, которой у нас нет, целиком размещаем у него за деньги.</p>
+        <div class="ft">Разговор о сайте только после первой успешной закупки. Сначала сделка деньгами, потом разговор об активах.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CATALOG ============ -->
+<section id="catalog" class="noise" aria-labelledby="h-catalog">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">05</span><p class="tag lm">Каталог изделий</p></div>
+    <h2 class="reveal" id="h-catalog">Вот что появится на сайте: изделия с монтажом</h2>
+    <p class="sub reveal">Шесть готовых услуг «изделие плюс установка под ключ». Внутри каждой - детали со склада соседа, закупное стекло и наша сборка, монтаж. Эскизы карточек после запуска. Изделий пока нет в продаже, состав комплектов взят из прайса склада.</p>
+  </div>
+  <div class="wrap">
+    <div class="cat stg">
+      <div class="ccard reveal" style="--i:0">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <path d="M10 22h108" stroke="#c7ff39" stroke-width="3"/>
+            <path d="M18 22v56M46 22v56M74 22v56M102 22v56" stroke="#c7ff39" stroke-width="2"/>
+            <rect x="22" y="30" width="20" height="42" stroke="#4a5550" stroke-width="1.5"/>
+            <rect x="50" y="30" width="20" height="42" stroke="#4a5550" stroke-width="1.5"/>
+            <rect x="78" y="30" width="20" height="42" stroke="#4a5550" stroke-width="1.5"/>
+            <path d="M6 78h116" stroke="#4a5550" stroke-width="2"/>
+          </svg></div>
+          <img src="img/cat-01-railing.webp" alt="Ограждение из нержавеющей стали с закалённым стеклом, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Перила и ограждения со стеклом</h3>
+        <p>Поручень из нержавейки, стойки, закалённое стекло 8-10 мм, крепёж, монтаж. Лестницы, балконы, торговые центры, офисы.</p>
+        <div class="cf"><span><b>Фурнитура со склада:</b> профиль, стойки, крепёж. Цена по прайсу склада, уточняется на ревизии</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+
+      <div class="ccard reveal" style="--i:1">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <rect x="34" y="10" width="60" height="74" stroke="#c7ff39" stroke-width="2.5"/>
+            <rect x="41" y="16" width="46" height="62" stroke="#4a5550" stroke-width="1.5"/>
+            <circle cx="82" cy="48" r="2.6" fill="#c7ff39" stroke="none"/>
+            <path d="M82 42v-4M46 16v62" stroke="#4a5550" stroke-width="1"/>
+            <path d="M34 24h-6M34 66h-6" stroke="#c7ff39" stroke-width="2"/>
+          </svg></div>
+          <img src="img/cat-02-door-frame.webp" alt="Стеклянная дверь в алюминиевой коробке, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Дверь стеклянная в алюминиевой коробке</h3>
+        <p>Коробка Г- или П-образная, петли, защёлка, ручка, стекло на выбор: прозрачное, матовое, рифлёное. Срок монтажа подтверждаем расчётом загрузки цеха, до этого в счёт не ставим.</p>
+        <div class="cf"><span><b>Комплект деталей:</b> 14-19 тыс. ₽ по прайсу склада</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+
+      <div class="ccard reveal" style="--i:2">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <path d="M14 82V18M14 18h52" stroke="#4a5550" stroke-width="1.5"/>
+            <path d="M66 18v64" stroke="#c7ff39" stroke-width="2.5"/>
+            <rect x="20" y="24" width="40" height="56" stroke="#4a5550" stroke-width="1.5"/>
+            <path d="M66 50h6M10 82h110" stroke="#c7ff39" stroke-width="2"/>
+            <path d="M74 82V38l34 14v30" stroke="#4a5550" stroke-width="1.5"/>
+          </svg></div>
+          <img src="img/cat-03-shower.webp" alt="Душевое ограждение из закалённого стекла с профилем из нержавеющей стали, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Душевое ограждение</h3>
+        <p>Опорный профиль, порог, держатели стекло-штанга, при желании раздвижная створка. Стекло 8 мм с защитным покрытием.</p>
+        <div class="cf"><span><b>Комплект деталей:</b> 3-7 тыс. ₽ по прайсу склада</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+
+      <div class="ccard reveal" style="--i:3">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <path d="M24 12v68M104 12v68" stroke="#4a5550" stroke-width="1.5"/>
+            <rect x="34" y="16" width="42" height="60" stroke="#c7ff39" stroke-width="2"/>
+            <path d="M76 46q18 4 26 16" stroke="#4a5550" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <circle cx="40" cy="80" r="3" stroke="#c7ff39" stroke-width="2"/>
+            <path d="M55 12v4" stroke="#c7ff39" stroke-width="2"/>
+          </svg></div>
+          <img src="img/cat-04-swing.webp" alt="Маятниковые стеклянные двери с верхней и нижней петлёй, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Маятниковые двери</h3>
+        <p>Открываются в обе стороны: офисы, рестораны, торговые залы. Верхняя и нижняя петли, напольный доводчик, стекло 10-12 мм.</p>
+        <div class="cf"><span><b>Фурнитура со склада:</b> петли, доводчик, ось</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+
+      <div class="ccard reveal" style="--i:4">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <path d="M10 16h108" stroke="#c7ff39" stroke-width="3"/>
+            <rect x="18" y="22" width="42" height="58" stroke="#4a5550" stroke-width="1.5"/>
+            <rect x="52" y="20" width="44" height="60" stroke="#c7ff39" stroke-width="2"/>
+            <path d="M104 50h10m-4-4 4 4-4 4" stroke="#c7ff39" stroke-width="2"/>
+            <circle cx="60" cy="16" r="3" stroke="#4a5550" stroke-width="1.5"/>
+            <circle cx="88" cy="16" r="3" stroke="#4a5550" stroke-width="1.5"/>
+          </svg></div>
+          <img src="img/cat-05-sliding.webp" alt="Раздвижная стеклянная перегородка с верхним рельсом и каретками, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Раздвижные двери и перегородки</h3>
+        <p>Верхний рельс, каретки, доводчики плавного хода. Полотно это стекло, зеркало или рифлёное стекло. Экономят место, делят пространство.</p>
+        <div class="cf"><span><b>Фурнитура со склада:</b> раздвижные комплекты и направляющие</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+
+      <div class="ccard reveal" style="--i:5">
+        <figure class="shot r32"><span class="mock">пример категории</span>
+          <div class="fb" aria-hidden="true"><svg viewBox="0 0 128 92" fill="none" stroke-linecap="round">
+            <path d="M8 82h112M8 12h112" stroke="#4a5550" stroke-width="1.5"/>
+            <path d="M16 12v70M52 12v70M116 12v70" stroke="#c7ff39" stroke-width="2"/>
+            <rect x="60" y="18" width="34" height="64" stroke="#c7ff39" stroke-width="2"/>
+            <circle cx="88" cy="52" r="2.4" fill="#c7ff39" stroke="none"/>
+            <path d="M22 20h24M22 34h24M22 48h24M22 62h24" stroke="#4a5550" stroke-width="1"/>
+          </svg></div>
+          <img src="img/cat-06-partition.webp" alt="Офисная стеклянная перегородка с дверью в зажимном профиле, пример изделия категории" width="1200" height="800" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+        </figure>
+        <h3>Офисная перегородка с дверью в сборе</h3>
+        <p>Зажимной профиль, дверная коробка, замок с индикатором «занято». Превращает угол зала в переговорную или кабинет, срок подтверждаем расчётом загрузки.</p>
+        <div class="cf"><span><b>Фурнитура со склада:</b> профиль, коробка, замок, ручка</span><span><b>Правило срока:</b> дату отгрузки ставим числом в счёте</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="cnote m-note reveal">Цены «от» на изделия появятся вместе с единым прайсом, это решение №2 внизу документа. Состав комплектов берём из прайса склада на 210 позиций. Опт-цены подтверждаем ревизией до старта, поэтому в карточках их пока нет.</p>
+
+    <div class="bonus reveal">
+      <p class="bt">Главный аргумент для соседа</p>
+      <h3>Лиды в подарок: заявки не по нашей части уходят ему</h3>
+      <p class="honest m-note"><b>Сразу про сроки, чтобы не обещать лишнего.</b> Заявки из поиска пойдут не раньше чем через три-шесть месяцев, объём мы не прогнозируем и в этом квартале считаем его нулевым. В первые три месяца сосед получает не заявки, а деньги за пробную закупку и движение склада при заказе комплектов. Поток это второй горизонт, не первый.</p>
+      <p>На витрине будет и сама фурнитура: готовые комплекты деталей без изделия, для переработчиков (как мы в GENTERO), для монтажников и мастеров, которые ставят сами. Обработку стекла мы не делаем вовсе. Поэтому заявки делим по одному правилу, без исключений и без обсуждения в каждом случае.</p>
+
+      <div class="lanes">
+        <div class="lane keep">
+          <div class="lh"><span class="ltag">берём себе</span></div>
+          <p class="lin">Изделие с монтажом<br><em>стекло плюс фурнитура плюс установка</em></p>
+          <div class="larrow" aria-hidden="true"></div>
+          <p class="lout"><b>GENTERO</b><span>наш клиент, наше производство, наши деньги</span></p>
+        </div>
+        <div class="lane give">
+          <div class="lh"><span class="ltag">отдаём</span></div>
+          <p class="lin">Чистый комплект фурнитуры<br><em>без изделия и без монтажа</em></p>
+          <div class="larrow" aria-hidden="true"></div>
+          <p class="lout"><b>ДомГласс Фурнитура</b><span>передаём бесплатно</span></p>
+        </div>
+        <div class="lane give">
+          <div class="lh"><span class="ltag">отдаём</span></div>
+          <p class="lin">Чистое стекло с обработкой<br><em>резка, закалка, триплекс, печать, без нашего изделия</em></p>
+          <div class="larrow" aria-hidden="true"></div>
+          <p class="lout"><b>ДомГласс</b><span>передаём бесплатно</span></p>
+        </div>
+      </div>
+
+      <div class="pledge">
+        <p class="pt">Что GENTERO закрепляет на бумаге, если забирает наработки сайта на 1С-Битрикс</p>
+        <ul>
+          <li><span class="m" aria-hidden="true">&rarr;</span><span>Входящие заявки на чистое стекло с обработкой передаём в <b>ДомГласс</b>. Бесплатно, без процента.</span></li>
+          <li><span class="m" aria-hidden="true">&rarr;</span><span>На страницах обработки указываем <b>ДомГласс партнёром по стеклообработке</b>. Его имя стоит там, где работа его.</span></li>
+          <li><span class="m" aria-hidden="true">&rarr;</span><span style="color:#C7FF39">Заявки на фурнитуру отдельными позициями передаём в <b style="color:#C7FF39">ДомГласс Фурнитура</b>. Тоже бесплатно ИЛИ...</span></li>
+          <li><span class="m" aria-hidden="true">&rarr;</span><span>В работу от GENTERO берём только заказ изделия целиком: стекло плюс фурнитура плюс монтаж.</span></li>
+          <li><span class="m" aria-hidden="true">&rarr;</span><span><b>Обработку внутри наших изделий размещаем у ДомГласс по счёту</b> при сопоставимых цене и сроке с текущим поставщиком. Даром отдаются входящие заявки, а не наши оплаченные заказы, это разные вещи.</span></li>
+        </ul>
+        <p class="pf m-note">Условие сделки по сайту, а не жест доброй воли: формулировка идёт в договор вместе с передачей наработок. Срок действия равен сроку дистрибьюторского договора, потолок объёма не ставим. Прекращается вместе с договором по сайту, тем же уведомлением за 30 дней. Открытие страниц обработки под его именем, как и витрины, ждёт проверки прав на знак «ДомГласс».</p>
+      </div>
+
+      <p style="margin-top:20px"><b style="color:var(--txt)">Сосед получает своё имя на страницах обработки и поток заявок, за которые не платит нам ни процента.</b> Первый месяц продвижения идёт за наш счёт, дальше он платит по счёту только за продвижения каталога Фурнитруры если сам захочет продолжать. На вопрос «а зачем мне эта сделка» это отвечает конкретно.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SITE ============ -->
+<section id="site" aria-labelledby="h-site">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">06</span></div>
+    <h2 class="reveal" id="h-site">Готовый источник заказов лежит без дела</h2>
+    <p class="sub reveal" style="margin-bottom:26px">Сайт по обработке стекла собран почти целиком: услуги от резки и закалки до гнутого стекла и фотопечати, каталог изделий, раздел фурнитуры, регламенты. Достроить его у соседей некому.</p>
+    <p class="sub reveal">И сразу честно про границу: <span class="white">своей обработки стекла у нас нет.</span> Стекло с обработкой и печатью мы закупаем на стороне. Значит заказы на промышленную обработку с этого сайта это не наша загрузка, а его: они целиком уходят соседу как подрядчику (бесплатно ИЛИ...).</p>
+    <p class="sub reveal" style="color:#FFFFFF">Нам сайт нужен под другое: страницы изделий с монтажом, где работает наш металл, покраска и сборка. Решения по мебели. Вид эксперта без вложений в новый сайт. Конкуренции с их основным сайтом нет, темы разведены.</p>
+
+    <figure class="shot r169 reveal" style="margin:34px 0 42px">
+      <div class="fb" aria-hidden="true"><svg viewBox="0 0 160 90" fill="none" stroke-linecap="round">
+        <path d="M12 62h136" stroke="#c7ff39" stroke-width="2.5"/>
+        <path d="M20 62 44 30h72l24 32" stroke="#4a5550" stroke-width="1.4"/>
+        <path d="M44 30h72" stroke="#c7ff39" stroke-width="2"/>
+        <circle cx="34" cy="68" r="4" stroke="#4a5550" stroke-width="1.4"/>
+        <circle cx="60" cy="68" r="4" stroke="#4a5550" stroke-width="1.4"/>
+        <circle cx="100" cy="68" r="4" stroke="#4a5550" stroke-width="1.4"/>
+        <circle cx="126" cy="68" r="4" stroke="#4a5550" stroke-width="1.4"/>
+        <path d="M56 14h48M80 14v16" stroke="#4a5550" stroke-width="1.2"/>
+      </svg></div>
+      <img src="img/glass-processing.webp" alt="Иллюстрация категории: линия обработки стекла. Не фотография производства соседа" width="1600" height="900" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has')" onload="this.parentNode.classList.add('has')">
+      <figcaption>Иллюстрация категории, не фотография их линии</figcaption>
+    </figure>
+
+    <h3 class="reveal" style="font-size:19px;font-weight:800;margin-bottom:8px">2 варианта сделки. Соглашаемся на любой</h3>
+    <div class="opts stg">
+      <div class="opt pref reveal" style="--i:0">
+        <div class="lab"><i>1</i> предпочтительный</div>
+        <h3>Забираем в пользование</h3>
+        <p>Разворачиваем на своих купленных 2 лицензиях Аспро Премиум и 1С Битрикс и на своём адресе GENTERO с небольшим кастомом под фирстиль. Всё, что в текстах описывает их производство, подписываем как свою производственную базу.</p>
+      </div>
+      <div class="opt reveal" style="--i:2">
+        <div class="lab"><i>2</i> если откажет</div>
+        <h3>Строим своё</h3>
+        <p>Строим раздел услуг на сайте GENTERO сами. Медленнее на два-три месяца, но весь остальной план живёт без сайта. Он не заложник этой сделки, но встанет в очередь на разработку у Сергея - V или GT.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SELL ============ -->
+<section id="sell" class="noise" aria-labelledby="h-sell">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">07</span></div>
+    <h2 class="reveal" id="h-sell">Как склад превращается в деньги: четыре ступени</h2>
+
+    <div class="lad">
+      <div>
+        <div class="lrow reveal">
+          <span class="n">01</span>
+          <div><h3>Своё потребление</h3><p>Первыми со склада уходят детали, которые мы ставим в изделия каждый день: петли, замки, профили. Это происходит сразу и не зависит ни от рекламы, ни от поиска.</p></div>
+        </div>
+        <div class="lrow reveal">
+          <span class="n">02</span>
+          <div><h3>Комплекты через сайт</h3><p>Дверь в сборе, душевая в сборе, перегородка с замком и ручкой. Плюс витрина деталей для монтажников, они покупают часто и без торга. Каталог GENTERO становится шире без единого нового станка.</p></div>
+        </div>
+        <div class="lrow reveal">
+          <span class="n">03</span>
+          <div><h3>Дорогие позиции через объекты</h3><p>Перила из нержавейки, дверные коробки, раздвижные системы уходят в составе объектных заказов: гостиницы, офисы, обустройство помещений. Там же продаётся наша мебель из каталога.</p></div>
+        </div>
+        <div class="lrow reveal">
+          <span class="n">04</span>
+          <div><h3>Отчёт соседу каждый месяц</h3><p>Что продано, что в заявках, как движется склад. Он видит результат цифрами, а не обещаниями. Это и есть фундамент доверия на годы.</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="rulebox reveal">
+          <p class="t">Правила безопасности, без исключений</p>
+          <ul>
+            <li><b class="n">01</b><span><b class="w">Деньги только вперёд, в обе стороны.</b> Долгов не существует, значит, и споров о долгах.</span></li>
+            <li><b class="n">02</b><span><b class="w">Никакого общего юрлица.</b> Отдельные договоры, каждый расторгается за 30 дней.</span></li>
+            <li><b class="n">03</b><span><b class="w">Никаких устных договорённостей.</b> Что не в договоре, того не существует, включая обещанное на словах в переговорной.</span></li>
+            <li><b class="n">04</b><span><b class="w">Только счета и акты.</b> Никаких взаимозачётов и общих тетрадей.</span></li>
+            <li><b class="n">05</b><span><b class="w">Помощь их команде по часам и предоплате.</b> Люди остаются в своих компаниях, переманивание запрещено.</span></li>
+            <li><b class="n">06</b><span><b class="w">Вопросы по площадке в сделку не входят.</b> Ведутся отдельным треком, на условия по фурнитуре и сайту не влияют и разменной монетой не служат.</span></li>
+          </ul>
+        </div>
+        <blockquote class="reveal">У каждой части плана есть правило остановки: не пошло, сворачиваем эту часть, остальные работают дальше. План не рассыпается от одного «нет».</blockquote>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGES ============ -->
+<section id="stages" aria-labelledby="h-stages">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">08</span><p class="tag lm">Этапы и деньги</p></div>
+    <h2 class="reveal" id="h-stages" style="margin-bottom:36px">Пять этапов. Сначала сделка, потом просьбы</h2>
+
+    <div class="stage hl reveal">
+      <div><div class="sn">Этап 1</div><div class="sd">недели 1-2 от решения</div></div>
+      <div>
+        <h3>Тихая подготовка</h3>
+        <p>Всё делаем у себя и без анонсов: три проверки по сайту, ревизия склада с остатками, замер спроса в поиске по темам будущих страниц. К соседу на этом этапе не идём вообще.</p>
+        <p class="pr">Железное правило: ни одна просьба к соседу не звучит раньше первой сделки деньгами.</p>
+      </div>
+    </div>
+    <div class="stage reveal">
+      <div><div class="sn">Этап 2</div><div class="sd">недели 3-4</div></div>
+      <div>
+        <h3>Первая сделка деньгами</h3>
+        <p>Пробная закупка деталей по предоплате, сто-двести тысяч. Встреча по пакету «Фурнитура под ключ»: закупка, витрина под его маркой, реклама с тестом за наш счёт. Темы сайта на этой встрече нет.</p>
+        <p class="pr">Проверка: счёт выставлен и товар отгружен за 10 дней.</p>
+      </div>
+    </div>
+    <div class="stage reveal">
+      <div><div class="sn">Этап 3</div><div class="sd">недели 5-8</div></div>
+      <div>
+        <h3>Прайс и разговор о сайте</h3>
+        <p>Единый прайс: 12-15 правил цен от Богдана по главной группе товара, без него не работает ни один оптовый канал. После первой успешной закупки отдельная встреча по сайту с тремя вариантами на столе.</p>
+        <p class="pr">Проверка: выбран один из трёх вариантов, и по каждому у нас готов следующий шаг.</p>
+      </div>
+    </div>
+    <div class="stage reveal">
+      <div><div class="sn">Этап 4</div><div class="sd">недели 9-12</div></div>
+      <div>
+        <h3>Стройка</h3>
+        <p>Витрина «ДомГласс Фурнитура» с бумагами. Пять продающих страниц услуг. Каталог нашей офисной мебели отдельным разделом. Тест рекламы за наш счёт с отчётом. Сборку ведёт подрядчик за фиксированную сумму, своих людей с текущих задач не снимаем.</p>
+        <p class="pr">Проверка: витрина живая, отчёт по рекламе готов к показу соседу.</p>
+      </div>
+    </div>
+    <div class="stage reveal">
+      <div><div class="sn">Этап 5</div><div class="sd">недели 13-18</div></div>
+      <div>
+        <h3>Деньги и отчёт</h3>
+        <p>Комплекты в продаже. Первый месячный отчёт соседу по движению склада. Перевод рекламы на оплату по результату теста.</p>
+        <p class="pr">Проверка на день 120, по первому полному месяцу работы витрины: продажи комплектов не ниже скромного плана, ноль неоплаченных счетов в обе стороны. Раньше мерить нечего, витрина стартует только на неделе 13.</p>
+      </div>
+    </div>
+
+    <h3 class="reveal" style="font-size:clamp(1.25rem,3.2vw,1.6rem);font-weight:800;margin:48px 0 10px">Деньги, честно и без прикрас</h3>
+    <div class="tblw reveal">
+      <table>
+        <caption class="m-note">Потолки ставим мы, они в нашей власти. Всё остальное помечено как оценка: подтверждения нет ни у одной строки, проверяем первым месяцем.</caption>
+        <thead>
+          <tr><th scope="col">Статья</th><th scope="col" class="r">Сумма</th><th scope="col">Пояснение</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Все затраты запуска, потолок</td><td class="sum r">до 600 тыс. ₽</td><td><b>Потолок, наш.</b> Сборка подрядчиком, тест рекламы, тексты, юрист на четыре договора, программы и лицензии, резерв. Разбивка по шести статьям ниже на этой странице. Нового штата ноль</td></tr>
+          <tr><td>Пробная закупка деталей</td><td class="sum r">100-200 тыс. ₽</td><td><b>Потолок, наш.</b> Предоплата за товар, который нам в любом случае нужен. Потолок замороженных денег утверждает Богдан до старта</td></tr>
+          <tr><td>Выгода на закупке</td><td class="sum r">10-20%, оценка</td><td><b>Не подтверждено, зависит от его прайса.</b> Снижение себестоимости каждой двери и душевой. Это не приход в кассу, а сокращение расходов, считаем отдельной строкой</td></tr>
+          <tr><td>Продажи комплектов</td><td class="sum r">оценка</td><td><b>Не подтверждено.</b> Скромный план: 5-10 комплектов в месяц после запуска витрины, проверяем первым месяцем. Обещать больше рано</td></tr>
+          <tr><td>Оплата рекламы соседом</td><td class="sum r">со 2-го месяца, оценка</td><td><b>Не подтверждено, требует его согласия.</b> Только по результату теста, деньгами или зачётом в цену закупки</td></tr>
+          <tr><td>Заявки из поиска</td><td class="sum r">0 ₽ в этом квартале</td><td>Поиск раскачивается три-шесть месяцев. В деньги квартала не считаем, говорим прямо</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="reveal" style="font-size:clamp(1.15rem,2.6vw,1.35rem);font-weight:800;margin:40px 0 8px">Из чего складываются 600 тысяч</h3>
+    <p class="lead-sm reveal">Шесть статей по верхней границе, вместе это потолок 600. Ниже видно, где деньги и где стоит гейт.</p>
+
+    <div class="bbar reveal" role="img" aria-label="Потолок 600 тысяч по шести статьям, все суммы по верхней границе. До гейта: юрист 60 и лицензии 60, не больше 120. За гейтом, только после согласия соседа: сборка 240, реклама 100, тексты 80, резерв 60">
+      <div class="bseg s4"><span class="bl">Юрист</span><span class="bv">60</span></div>
+      <div class="bseg s5"><span class="bl">Лицензии</span><span class="bv">60</span></div>
+      <div class="bseg s1"><span class="bl">Сборка</span><span class="bv">240</span></div>
+      <div class="bseg s2"><span class="bl">Реклама</span><span class="bv">100</span></div>
+      <div class="bseg s3"><span class="bl">Тексты</span><span class="bv">80</span></div>
+      <div class="bseg s6"><span class="bl">Резерв</span><span class="bv">60</span></div>
+      <div class="bgate" aria-hidden="true"><span>гейт: до 120 из 600</span></div>
+    </div>
+    <ul class="m-blegend" aria-hidden="true">
+      <li><i class="m-sw s4"></i><span>Юрист</span><b>60</b></li>
+      <li><i class="m-sw s5"></i><span>Лицензии</span><b>60</b></li>
+      <li><i class="m-sw s1"></i><span>Сборка</span><b>240</b></li>
+      <li><i class="m-sw s2"></i><span>Реклама</span><b>100</b></li>
+      <li><i class="m-sw s3"></i><span>Тексты</span><b>80</b></li>
+      <li><i class="m-sw s6"></i><span>Резерв</span><b>60</b></li>
+    </ul>
+    <p class="bcap m-note reveal">До гейта уходит не больше 120 тысяч: юрист и лицензии. Остальные 480 без «да» соседа не оплачиваются вовсе. И сразу оговорка: гейт закрывает только отказ до стройки. От выхода соседа после неё он не защищает, к неделе 13 потолок потрачен целиком.</p>
+
+    <div class="caveats stg">
+      <div class="cav reveal" style="--i:0"><p class="ch">Это оценка, а не смета</p><p>Ни по одной строке коммерческого предложения на руках нет. Каждая строка до оплаты подтверждается документом из последней колонки таблицы ниже.</p></div>
+      <div class="cav reveal" style="--i:1"><p class="ch">Вилка узкая незаслуженно</p><p>460-600 это плюс-минус 13% вокруг середины. Она построена сверху вниз от потолка, а не снизу вверх от смет. Нижняя граница оптимистична, верхняя это наш потолок, а не потолок рынка.</p></div>
+      <div class="cav reveal" style="--i:2"><p class="ch">Если рынок дороже</p><p>Правило заранее: придут три коммерческих по сборке выше 240, статья не оплачивается, а возвращается Богдану вместе с урезанным составом работ. Потолок держится этим правилом, а не желанием.</p></div>
+      <div class="cav reveal" style="--i:3"><p class="ch">НДС не разделён</p><p>Подрядчиков не выбирали, режим налогообложения у них разный. По трём подрядным статьям разница доходит до 70-85 тысяч, это больше резерва. Тогда держим потолок урезанием состава работ, а не добавкой денег.</p></div>
+      <div class="cav reveal" style="--i:4"><p class="ch">Считано под вариант 1</p><p>Вариант 2 снимает часть сборки, но добавляет согласования. Вариант 3 сумму почти не меняет, а срок растягивает на два-три месяца. Цена самих наработок в эти 600 не входит. Пересчитываем на этапе 3, когда сосед выберет вариант.</p></div>
+    </div>
+
+    <div class="tblw reveal">
+      <table>
+        <thead>
+          <tr><th scope="col">Статья</th><th scope="col" class="r">Оценка</th><th scope="col">Когда платим</th><th scope="col">Что показываем до оплаты</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Сборка подрядчиком</td><td class="sum r">200-240 тыс. ₽</td><td class="nw">этап 4</td><td>Три коммерческих от разных подрядчиков. Витрина, пять страниц услуг, раздел мебели</td></tr>
+          <tr><td>Тест рекламы, первый месяц</td><td class="sum r">80-100 тыс. ₽</td><td class="nw">этап 4</td><td>Медиаплан с прогнозом показов и заявок по позициям склада, с раздельными строками на рекламный бюджет и на работу по настройке и ведению</td></tr>
+          <tr><td>Тексты пяти страниц услуг и шести карточек изделий</td><td class="sum r">60-80 тыс. ₽</td><td class="nw">этап 4</td><td>ТЗ по темам, отобранным замером спроса на этапе 1. Описания 210 позиций фурнитуры сюда не входят: в витрину они грузятся из прайса склада как есть, своими словами их не переписываем</td></tr>
+          <tr><td>Юрист, четыре договора</td><td class="sum r">40-60 тыс. ₽</td><td class="nw">этапы 2-3</td><td>Смета юриста по четырём договорам: закупка деталей, витрина и право на марку, реклама по счёту, сайт с передачей наработок. Четвёртый дороже остальных трёх вместе: чужой знак и чужая интеллектуальная собственность это отдельная работа, и если смета придёт выше 60, режем состав, а не качество</td></tr>
+          <tr><td>Программы, лицензии, хостинг, домен</td><td class="sum r">40-60 тыс. ₽</td><td class="nw">этап 3</td><td>Счета поставщиков, оплата за первый год. Продление со второго года в потолок запуска не входит и уходит в обычные расходы</td></tr>
+          <tr><td>Резерв на непредвиденное</td><td class="sum r">40-60 тыс. ₽</td><td class="nw">по факту</td><td>Тратится только с отдельного разрешения Богдана, не по умолчанию</td></tr>
+          <tr><td><b>Итого</b></td><td class="sum r"><b>460-600 тыс. ₽</b></td><td class="nw">за четыре месяца плана</td><td>Потолок 600 тысяч это верхняя граница всех шести строк сразу</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="gate reveal">
+      <p class="gt">Денежный гейт</p>
+      <div class="steps">
+        <div class="step"><b>80-120 тыс.</b><span>до этапа 4</span><em>Юрист и лицензии. Максимум пятая часть потолка. Резерв не вскрываем.</em></div>
+        <div class="step hl"><b>340-420 тыс.</b><span>только после «да»</span><em>Сборка подрядчиком, тест рекламы, тексты. Всё это этап 4: аванс не раньше недели 9 и только когда сосед согласился и прошла первая закупка.</em></div>
+        <div class="step"><b>до 200 тыс.</b><span>отдельно от потолка</span><em>Пробная закупка на этапе 2. Не расход, а товар на складе, но деньги из кассы вынуты.</em></div>
+      </div>
+      <p class="gsum">Полный отток до этапа 4 в худшем случае <b>320 тысяч</b>, из них 200 возвращаются товаром. После «да» соседа уходит ещё до 420 тысяч, и отдельно резерв до 60 с разрешения Богдана. Отказ на этапе 2 или 3 останавливает проект, потратив из потолка не больше 120.</p>
+      <div class="warns">
+        <div class="warn"><p class="wh">Чего гейт не закрывает</p><p>От выхода соседа после стройки он не защищает вовсе: к неделе 13 потолок потрачен целиком. Это гасится не гейтом, а порогом остановки на дне 120.</p></div>
+        <div class="warn"><p class="wh">Цена наработок вне потолка</p><p>Её называет сосед на этапе 3, сейчас нет ни его цифры, ни своей оценки. Утверждается Богданом отдельным решением. Не устроила цена, уходим в вариант 3 без остановки остальных четырёх частей.</p></div>
+        <div class="warn"><p class="wh">Срока возврата здесь нет</p><p>Нужны месячный объём закупки и маржа на комплекте. Обе ставит Богдан. Пока их нет, срок не считается, и выдумывать его мы не будем.</p></div>
+      </div>
+    </div>
+
+    <p class="lead-after reveal" style="margin-top:8px"><span class="white">Худший сценарий, как он есть.</span> Сосед выходит через 30 дней сразу после стройки, на неделе 13. Витрина снимается, до 600 тысяч затрат запуска не возвращаются, до 200 тысяч заморожено в деталях и расходится нашим же потреблением за несколько месяцев, выручки в квартале ноль. Остаётся закупленный на 100-200 тысяч ходовой товар, который мы и так израсходуем, и карточки своих комплектов на своём сайте. Дешёвая закупка была дешёвой потому что у него, с его выходом она возвращается к рыночной.</p>
+    <p class="lead-after reveal" style="margin-top:14px">Здесь же честно про несимметричность: <span class="white">выход стоит ему ноль, а нам после стройки весь бюджет запуска.</span> Поэтому порог остановки ставим заранее и по той части, которая на этом сроке уже меряется.</p>
+    <p class="lead-after reveal" style="margin-top:10px">Витрина комплектов запускается на неделе 13, первый полный месяц продаж закрывается к дню 120. Комплектом считается изделие с монтажом от 50 тыс. ₽, а не проданная россыпью фурнитура.</p>
+    <p class="lead-after reveal" style="margin-top:10px"><span class="white">Если к дню 120 продано меньше пяти комплектов, дальше в стройку не вкладываемся.</span> Витрину оставляем работать, новые страницы услуг не запускаем, рекламу переводим в минимальный режим.</p>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" class="noise" aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="m-sec reveal"><span class="m-secnum">09</span></div>
+    <h2 class="reveal" id="h-faq" style="margin-bottom:34px">Вопросы, которые вы зададите</h2>
+
+    <div class="faq">
+      <div class="fitem reveal open">
+        <h3><button class="fbtn" id="fb1" aria-expanded="true" aria-controls="fp1">А если снова разойдёмся?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp1" role="region" aria-labelledby="fb1"><div><p>Каждый договор закрывается за 30 дней, и никто никому не должен: всё оплачено вперёд. Порядок расставания по витрине прописан заранее: его марка снимается, карточки переводятся на наши комплекты. Каталог, марка GENTERO, клиенты и производство остаются у нас. В плане нечего делить при разводе, так он построен.</p></div></div>
+      </div>
+      <div class="fitem reveal">
+        <h3><button class="fbtn" id="fb2" aria-expanded="false" aria-controls="fp2">Почему сосед согласится?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp2" role="region" aria-labelledby="fb2"><div><p>Потому что мы приходим с решением его самой наболевшей темы, склада, и приходим как покупатели с деньгами, а не с просьбами. Его склад двигается, его марка на витрине, его сайт достраивается, а заявки на чистую фурнитуру и чистое стекло с нашей рекламы уходят его отделу бесплатно. Там, где продаёт он, всё под его именем. Для него это его проект.</p></div></div>
+      </div>
+      <div class="fitem reveal">
+        <h3><button class="fbtn" id="fb3" aria-expanded="false" aria-controls="fp3">А если он потом передумает и всё захочет назад?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp3" role="region" aria-labelledby="fb3"><div><p>На каждый такой поворот есть заранее прописанный ответ. Первым идёт не разговор, а сделка деньгами: она ничего не обещает на будущее и ничего за собой не тянет. Права на сайт и марку оформляются бумагами, а не словами. По каждой ходовой детали склада составляем замену на рынке, это часть ревизии на этапе 1, до первой закупки. И у каждой части плана есть правило остановки: сворачиваем её, остальное работает.</p></div></div>
+      </div>
+      <div class="fitem reveal">
+        <h3><button class="fbtn" id="fb4" aria-expanded="false" aria-controls="fp4">Не вешаем ли мы на себя чужой неликвид?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp4" role="region" aria-labelledby="fb4"><div><p>Нет. До оффера делаем ревизию всех 210 позиций: что берём для себя, что продаётся комплектами, что не трогаем вообще. Обещаем соседу только первое и второе. Залежалое остаётся его заботой, мы не выкупаем склад, мы покупаем нужное по мере потребления.</p></div></div>
+      </div>
+      <div class="fitem reveal">
+        <h3><button class="fbtn" id="fb5" aria-expanded="false" aria-controls="fp5">Кто это ведёт и не отвлечёт ли от продаж?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp5" role="region" aria-labelledby="fb5"><div><p>Иван ведёт переговоры и бумаги. Сборку сайта и тексты делает подрядчик за фиксированную сумму, наши люди только принимают работу. Производство работает в обычной очереди. Роспись по задачам, кто делает и сколько часов, приносим к встрече по пакету, вместе с разбивкой потолка.</p></div></div>
+      </div>
+      <div class="fitem reveal">
+        <h3><button class="fbtn" id="fb6" aria-expanded="false" aria-controls="fp6">Почему не подождать до осени?<svg class="ic fico" aria-hidden="true"><use href="#i-plus"/></svg></button></h3>
+        <div class="fbody" id="fp6" role="region" aria-labelledby="fb6"><div><p>Склад стоит без движения именно сейчас, и разговор про деньги из него сейчас звучит ко времени. Через квартал у соседа может появиться другое решение задачи, и наше предложение станет для него менее интересным. Плюс наш собственный счётчик: станки по металлу уже куплены и ждут поток заказов, каждый месяц недозагрузки это наши деньги.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta" id="decision" aria-labelledby="h-decision">
+  <div class="cta-glow" aria-hidden="true"></div>
+  <div class="wrap in">
+    <div class="m-sec m-c reveal"><span class="m-secnum">10</span><p class="tag lm">Решение</p></div>
+    <h2 class="reveal" id="h-decision">Три «да» для запуска</h2>
+    <p class="reveal" style="color:var(--mut);font-size:17px;max-width:34em;margin:18px auto 0">Не бюджет и не штат. Три решения, каждое обратимо.</p>
+    <div class="cta3 stg">
+      <div class="dec reveal" style="--i:0">
+        <div class="big">01</div>
+        <p><b>Добро на пробную закупку</b> и потолок замороженных в предоплате денег. Риск это сто-двести тысяч за товар, который нам в любом случае нужен.</p>
+      </div>
+      <div class="dec reveal" style="--i:1">
+        <div class="big">02</div>
+        <p><b>Прайс.</b> 12-15 правил цен от Богдана по главной группе товара, к десятому дню. Без него не работает ни один оптовый канал.</p>
+      </div>
+      <div class="dec reveal" style="--i:2">
+        <div class="big">03</div>
+        <p><b>Две встречи в правильном порядке.</b> Первая по пакету «Фурнитура под ключ» с пробной закупкой. Разговор о сайте вторым, только после первой успешной сделки.</p>
+      </div>
+    </div>
+    <a href="#top" class="btn btn-lime reveal">Обсудить на встрече собственников <svg class="ic" aria-hidden="true"><use href="#i-up"/></svg></a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap ft-in">
+    <span class="lg">ИНТЕГРА<span style="color:var(--lime)">.</span> 2.0</span>
+    <span>Внутренний документ, подготовлен к обсуждению собственников</span>
+    <span>© 2026 GEN-GROUP</span>
+  </div>
+</footer>
+</div><!-- /#doc -->
+<script>
+/* Вся инициализация в initDoc(): в боевой сборке вызывается после расшифровки тела.
+   Никаких слушателей window scroll: только IntersectionObserver и CSS scroll-driven. */
+function initDoc(){
+  'use strict';
+  var d = document;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* слоты съёмки: пометить уже загруженные (кэш опережает onload) */
+  d.querySelectorAll('.shot img, .hero-media img').forEach(function(im){
+    if (im.complete && im.naturalWidth > 0) im.parentNode.classList.add('has');
+  });
+
+  /* базовый reveal: один раз, 12px, 380ms */
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' });
+    d.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  } else {
+    d.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  /* состояние шапки: sentinel вместо слушателя scroll */
+  var hd = d.getElementById('hd');
+  var sentinel = d.createElement('div');
+  sentinel.setAttribute('aria-hidden','true');
+  sentinel.style.cssText = 'position:absolute;top:90px;left:0;width:1px;height:1px;pointer-events:none';
+  (d.getElementById('doc') || d.body).appendChild(sentinel);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(e){
+      hd.classList.toggle('scrolled', !e[0].isIntersecting);
+    }, { threshold: 0 }).observe(sentinel);
+  } else {
+    hd.classList.add('scrolled');
+  }
+
+  /* активный раздел: шапка, рейка и позиция «N из 10» одним наблюдателем */
+  var spineLinks = [].slice.call(d.querySelectorAll('#spine a'));
+  var ids = spineLinks.map(function(a){ return a.getAttribute('href').slice(1); });
+  var names = {};
+  spineLinks.forEach(function(a){
+    var lbl = a.querySelector('.lbl');
+    names[a.getAttribute('href').slice(1)] = lbl ? lbl.textContent : '';
+  });
+  var links = {};
+  d.querySelectorAll('#spine a, #navd a').forEach(function(a){
+    var id = a.getAttribute('href').slice(1);
+    (links[id] = links[id] || []).push(a);
+  });
+  var posN = d.getElementById('m-posn');
+  var posT = d.getElementById('m-post');
+  function setActive(id){
+    Object.keys(links).forEach(function(k){
+      links[k].forEach(function(a){
+        if (k === id) a.setAttribute('aria-current','true');
+        else a.removeAttribute('aria-current');
+      });
+    });
+    var i = ids.indexOf(id);
+    if (i > -1 && posN && posT) {
+      posN.textContent = (i + 1) + ' из ' + ids.length;
+      posT.textContent = names[id] || '';
+    }
+  }
+  setActive('top');
+  if ('IntersectionObserver' in window) {
+    var seen = {};
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ seen[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+      var best = null, bestVal = 0;
+      ids.forEach(function(id){ if ((seen[id] || 0) > bestVal) { bestVal = seen[id]; best = id; } });
+      if (best) setActive(best);
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.01, 1] });
+    ids.forEach(function(id){ var el = d.getElementById(id); if (el) spy.observe(el); });
+  }
+
+  /* мобильное меню: ловушка фокуса и Esc */
+  var mm = d.getElementById('mmenu');
+  var mopen = d.getElementById('mopen');
+  var mclose = d.getElementById('mclose');
+  var lastFocus = null;
+  function openMenu(){
+    lastFocus = d.activeElement;
+    mm.classList.add('open');
+    d.body.classList.add('lock');
+    mopen.setAttribute('aria-expanded','true');
+    mclose.focus();
+  }
+  function closeMenu(){
+    mm.classList.remove('open');
+    d.body.classList.remove('lock');
+    mopen.setAttribute('aria-expanded','false');
+    if (lastFocus) lastFocus.focus();
+  }
+  mopen.addEventListener('click', openMenu);
+  mclose.addEventListener('click', closeMenu);
+  mm.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', closeMenu); });
+  d.addEventListener('keydown', function(ev){
+    if (!mm.classList.contains('open')) return;
+    if (ev.key === 'Escape') { closeMenu(); return; }
+    if (ev.key !== 'Tab') return;
+    var f = mm.querySelectorAll('a[href], button');
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (ev.shiftKey && d.activeElement === first) { ev.preventDefault(); last.focus(); }
+    else if (!ev.shiftKey && d.activeElement === last) { ev.preventDefault(); first.focus(); }
+  });
+
+  /* FAQ: аккордеон, первый открыт из разметки */
+  d.querySelectorAll('.fbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var item = btn.closest('.fitem');
+      var was = item.classList.contains('open');
+      d.querySelectorAll('.fitem.open').forEach(function(i){
+        i.classList.remove('open');
+        i.querySelector('.fbtn').setAttribute('aria-expanded','false');
+      });
+      if (!was) { item.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+    });
+  });
+
+  /* печать: раскрыть все ответы, показать все блоки */
+  window.addEventListener('beforeprint', function(){
+    d.querySelectorAll('.fitem').forEach(function(i){ i.classList.add('open'); });
+    d.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('is-visible'); });
+  });
+}
+initDoc();
+</script>
+</body>
+</html>

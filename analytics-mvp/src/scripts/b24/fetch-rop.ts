@@ -19,6 +19,7 @@ const DATE_FROM = process.env.ROP_DATE_FROM || "";
 // ROP_SKIP_SP=1 (у Glass Memory производство внутри воронки, отдельного СП-1086 нет),
 // ROP_ONLY_LEAD_DIRS=glass-memory (оставить только лиды этого направления).
 const DEAL_CATEGORY = process.env.ROP_DEAL_CATEGORY || "49";
+const IS_GM = String(DEAL_CATEGORY) === "21"; // Glass Memory: свои поля тип клиента/изделие
 const EXCLUDE_LEAD_DIRS = (process.env.ROP_EXCLUDE_LEAD_DIRS || "glass-memory")
   .split(",").map((s) => s.trim()).filter(Boolean);
 const ONLY_LEAD_DIRS = (process.env.ROP_ONLY_LEAD_DIRS || "")
@@ -49,7 +50,8 @@ function release(): void {
 // Маппинг кастомных полей сделки (восстановлен из crm.deal.fields, разведка 2026-06-25).
 const UF = {
   client: "UF_CRM_1767958427410",                 // тип клиента (B2B/B2C/Дилер...)
-  assort: "UF_CRM_DEAL_AMO_NSRJIWLJQEERRQTL",      // ассортимент (Столы/Зеркала...)
+  assort: "UF_CRM_DEAL_AMO_NSRJIWLJQEERRQTL",      // ассортимент GG (Столы/Зеркала...)
+  assortGM: "UF_CRM_69AFC82182CC6",                // GM: «Категория/Подкатегория» (Стеклянные памятники...)
   reason: "UF_CRM_DEAL_AMO_ELDDYDEQCJZIKJIM",      // legacy enum «Причина отказа» (старые сделки)
   reasonComment: "UF_CRM_1768574645865",           // текущее поле «Комментарий к отказу» (свободный текст, свежие отказы)
   dir: "UF_CRM_69A7F70A18816",                     // бренд/направление сделки
@@ -365,7 +367,7 @@ async function main() {
   // --- Сделки: только воронка DEAL_CATEGORY (49 = Заказы GG RF) ---
   const dealSelect = ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "CLOSEDATE", "BEGINDATE", "LAST_ACTIVITY_TIME", "SOURCE_ID",
-    "CONTACT_ID", "COMPANY_ID", "LEAD_ID", UF.client, UF.assort, UF.reason, UF.reasonComment, UF.dir];
+    "CONTACT_ID", "COMPANY_ID", "LEAD_ID", UF.client, UF.assort, UF.assortGM, UF.reason, UF.reasonComment, UF.dir];
   const dateFilter = DATE_FROM ? { ">=DATE_CREATE": DATE_FROM } : {};
   const dealRows = await listAll("crm.deal.list", { select: dealSelect, filter: { CATEGORY_ID: DEAL_CATEGORY, ...dateFilter } });
   // История стадий -> на каждую сделку массив [STAGE_ID, дата входа], отсортированный.
@@ -402,8 +404,13 @@ async function main() {
       closed: d10(d.CLOSEDATE),
       cycle: dayDiff(d.DATE_CREATE, d.CLOSEDATE),
       source: sourceName[String(d.SOURCE_ID)] || d.SOURCE_ID || "не указан",
-      client: clientMap[String(d[UF.client])] || "нет данных",
-      assort: assortMap[String(d[UF.assort])] || "нет данных",
+      // GM: тип клиента = Дилер/Розница из источника (структурного поля нет); изделие = «Категория/Подкатегория».
+      client: IS_GM
+        ? ((sourceName[String(d.SOURCE_ID)] || "") === "ДИЛЕР Glass Memory" ? "Дилер" : "Розница")
+        : (clientMap[String(d[UF.client])] || "нет данных"),
+      assort: IS_GM
+        ? (String(d[UF.assortGM] ?? "").trim() || "нет данных")
+        : (assortMap[String(d[UF.assort])] || "нет данных"),
       // Причина отказа: сначала текущее свободное поле «Комментарий к отказу»,
       // иначе старый enum «Причина отказа» (старые сделки), иначе «не указана».
       reason: (String(d[UF.reasonComment] ?? "").trim()) || reasonMap[String(d[UF.reason])] || "не указана",

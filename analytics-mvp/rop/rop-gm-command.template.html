@@ -265,8 +265,8 @@ const GROUPS=[
  ['Заявка',['C21:NEW'],'#22D3EE'],
  ['Выявление',['C21:UC_UCLN76'],'#38BDF8'],
  ['Потенц./Розница',['C21:PREPARATION'],'#818CF8'],
- ['КП/Договор',['C21:PREPAYMENT_INVOIC'],'#F472B6'],
  ['Потенц. клиенты',['C21:UC_OIR9YC'],'#60A5FA'],
+ ['КП/Договор (бюджет)',['C21:PREPAYMENT_INVOIC'],'#F472B6'],
  ['Ожидание оплаты',['C21:FINAL_INVOICE'],'#FB923C'],
  ['Предоплата (деньги)',['C21:UC_5BND99'],'#6366F1'],
  ['В производстве',['C21:UC_T56ORF'],'#2DD4BF'],
@@ -852,7 +852,7 @@ function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div cl
 // Порядок стадий воронки C21 (прогрессия сделки). Деньги появляются на «Счёт оплачен» (UC_5BND99),
 // успех = WON. LOSE/APOLOGY - не стадии прогрессии (терминальный отказ), в порядок не входят.
 // Порядок ранних стадий (Ожидание оплаты vs КП) - по смыслу денежного потока, подтвердить из Битрикса.
-const FORDER=['C21:NEW','C21:UC_UCLN76','C21:PREPARATION','C21:PREPAYMENT_INVOIC','C21:UC_OIR9YC','C21:FINAL_INVOICE','C21:UC_5BND99','C21:UC_T56ORF','C21:WON'];
+const FORDER=['C21:NEW','C21:UC_UCLN76','C21:PREPARATION','C21:UC_OIR9YC','C21:PREPAYMENT_INVOIC','C21:FINAL_INVOICE','C21:UC_5BND99','C21:UC_T56ORF','C21:WON'];
 const STORD={};FORDER.forEach((c,i)=>{const nm=DATA.refs&&DATA.refs.dealStages&&DATA.refs.dealStages[c];if(nm)STORD[nm]=i;});
 const ddiffJS=(a,b)=>{const t1=Date.parse(a),t2=Date.parse(b);return isNaN(t1)||isNaN(t2)?null:(t2-t1)/864e5;};
 function funnelChart(){
@@ -865,8 +865,8 @@ function funnelChart(){
   const reachedOrd=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&ord[e[0]]!=null&&ord[e[0]]>mo)mo=ord[e[0]];}if(!h.length&&ord[d.stageCode]!=null)mo=ord[d.stageCode];if(d.won&&ord['C21:WON']>mo)mo=ord['C21:WON'];return mo;};
   const reached=DD.map(reachedOrd);
   const FUN=prepay
-    ?[['Заявка','C21:NEW'],['Выявление','C21:UC_UCLN76'],['Потенц./Розница','C21:PREPARATION'],['КП/Договор','C21:PREPAYMENT_INVOIC'],['Потенц. клиенты','C21:UC_OIR9YC'],['Ожидание оплаты','C21:FINAL_INVOICE'],['Продажи (от предоплаты)','C21:UC_5BND99']]
-    :[['Заявка','C21:NEW'],['Выявление','C21:UC_UCLN76'],['Потенц./Розница','C21:PREPARATION'],['КП/Договор','C21:PREPAYMENT_INVOIC'],['Потенц. клиенты','C21:UC_OIR9YC'],['Ожидание оплаты','C21:FINAL_INVOICE'],['Предоплата','C21:UC_5BND99'],['В производстве','C21:UC_T56ORF'],['Успешно','C21:WON']];
+    ?[['Заявка','C21:NEW'],['Выявление','C21:UC_UCLN76'],['Потенц./Розница','C21:PREPARATION'],['Потенц. клиенты','C21:UC_OIR9YC'],['КП/Договор','C21:PREPAYMENT_INVOIC'],['Ожидание оплаты','C21:FINAL_INVOICE'],['Продажи (от предоплаты)','C21:UC_5BND99']]
+    :[['Заявка','C21:NEW'],['Выявление','C21:UC_UCLN76'],['Потенц./Розница','C21:PREPARATION'],['Потенц. клиенты','C21:UC_OIR9YC'],['КП/Договор','C21:PREPAYMENT_INVOIC'],['Ожидание оплаты','C21:FINAL_INVOICE'],['Предоплата','C21:UC_5BND99'],['В производстве','C21:UC_T56ORF'],['Успешно','C21:WON']];
   const F=FUN.map(([name,code])=>{const th=ord[code];const sub=DD.filter((d,i)=>reached[i]>=th);
     const dws=[];DD.forEach(d=>{const h=d.hist||[];for(let k=0;k<h.length;k++){if(h[k][0]===code){const nxt=h[k+1]?h[k+1][1]:((d.won||d.lost)?d.closed:DATA.to);const dd=ddiffJS(h[k][1],nxt);if(dd!=null&&dd>=0)dws.push(dd);}}});
     return {name,count:sub.length,money:sub.reduce((s,d)=>s+(d.budget||0),0),dwell:median(dws)};});

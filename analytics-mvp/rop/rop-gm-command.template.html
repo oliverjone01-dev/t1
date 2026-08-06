@@ -1467,7 +1467,7 @@ function render(){
 // ===== ПРИЧИНЫ ОТКАЗОВ СО СТАДИИ ПРЕДЛОЖЕНИЯ (под календарём) =====
 // ===== ЗДОРОВЬЕ ОТДЕЛА ПРОДАЖ: баланс вход/выход + доля отказов + конверсия по менеджерам =====
 function healthBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1482,7 +1482,9 @@ function healthBlock(){
   const openEnd=d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>S.end)return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=S.end)||(lo&&lo.slice(0,10)<=S.end));};
   const vhod=passed.filter(d=>inR(firstOffer(d))).length;
   const suc=passed.filter(d=>inR(enterExec(d))).length;
-  const otk=passed.filter(d=>inR(enterLoseOff(d))).length;
+  // Отказ = ВСЕ потери среди сделок, сделавших оффер (не только «прямо с оффер-этапа») - честный
+  // баланс. Раньше считались только ушедшие непосредственно с оффер-стадии, отсюда занижение.
+  const otk=passed.filter(d=>inR(enterLose(d))).length;
   const vyhod=suc+otk,bal=vhod-vyhod;
   const wip=passed.filter(openEnd).length;
   // Конверсия = успех(за период) ÷ портфель «в работе» на конец, В ПЕРЕСЧЁТЕ НА МЕСЯЦ (÷ число
@@ -1548,7 +1550,7 @@ function healthBlock(){
   const capBot=`<div style="display:flex;justify-content:center;align-items:center;gap:14px;font-size:10.5px;margin:2px auto 0;max-width:288px"><span style="color:#2E9E74;font-weight:800;white-space:nowrap">Успех ${fmt(suc)} · ${pct(sucShare)}</span><span style="color:var(--ink-4);white-space:nowrap">┊ 25 / 75</span><span style="color:#CC5867;font-weight:800;white-space:nowrap">Отказ ${fmt(otk)} · ${pct(1-sucShare)}</span></div>`;
   const capNote=`<div style="text-align:center;font-size:9.5px;color:var(--ink-4);margin-top:4px">ширина сегментов ∝ объёму: вход шире выхода = копится, уже = тает, равны = здоровый режим · пузо «В работе» - сток (снимок портфеля)</div>`;
   const left=`<div>${svg}${capBot}${capNote}${banner(fc,ft,fr)}${banner(qc,qt,qr)}</div>`;
-  const names=[...new Set(passed.map(d=>d.mgr))];
+  const names=[...new Set(passed.map(d=>d.mgr))].filter(isOP);
   const mrows=names.map(m=>{const sc=passed.filter(d=>d.mgr===m);const w=sc.filter(openEnd).length,su=sc.filter(d=>inR(enterExec(d))).length;return {m,w,su,cr:w?(su/w)/_moN:0};}).filter(x=>x.w>0).sort((a,b)=>b.cr-a.cr);
   const crMax=Math.max(crDept,...mrows.map(x=>x.cr),0.01);
   const selArr=Array.isArray(S.hmSel)?S.hmSel:(S.hmSel?[S.hmSel]:[]);
@@ -1836,7 +1838,7 @@ function offerCalendarBlock(){
     return `<div class="chrow" style="display:flex;align-items:center;gap:6px;margin:2px 0"><div ${canExp?`data-calrow="${rowKey}" style="cursor:pointer;`:'style="'}width:180px;font-size:${opts.sub?10.5:11}px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" data-tip="${canExp?'раскрыть':''}">${nmeHTML}</div><div style="flex:1;display:flex;gap:2px">${cells}</div>${rightHTML}</div>`;
   };
   // строки: отдел + (если раскрыто) менеджеры
-  const names=[...new Set(passed.map(d=>d.mgr))];
+  const names=[...new Set(passed.map(d=>d.mgr))].filter(isOP);
   let _pg="";
   const grpLabel=t=>{const gc={'вход':'#22D3EE','в работе':'#818CF8','выход':'#9AA4B2'}[t]||'var(--ink-4)';return `<div style="font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:${gc};font-weight:800;border-left:2px solid ${gc};padding-left:6px;margin:${t==='вход'?'2px':'10px'} 0 2px">${t}</div>`;};
   const bodyRows=ROWS.map(r=>{

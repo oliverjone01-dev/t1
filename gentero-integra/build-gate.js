@@ -80,16 +80,18 @@ __DEFS__
 
 <div id="doc"></div>
 
-<script id="payload" type="application/octet-stream">__PAYLOAD__</script>
+__PAYLOADS__
 <script>
 (function(){
   'use strict';
   var ITER = __ITER__;
+  var TITLES = __TITLES__;          // ключ документа -> заголовок вкладки браузера
   var gate = document.getElementById('gate');
   var form = document.getElementById('gform');
   var pass = document.getElementById('gpass');
   var btn  = document.getElementById('gbtn');
   var err  = document.getElementById('gerr');
+  var key = null;                   // ключ выводим один раз, дальше переключение мгновенное
 
   function b64(s){ var b = atob(s), a = new Uint8Array(b.length);
     for (var i=0;i<b.length;i++) a[i] = b.charCodeAt(i); return a; }
@@ -100,6 +102,40 @@ __DEFS__
     return;
   }
 
+  // Один документ в DOM за раз. Держать оба нельзя: у них совпадают
+  // id разделов, #hd, #spine и #navd, и initDoc начнёт цеплять чужой.
+  function open(name, focusTop){
+    var el = document.getElementById('payload-' + name);
+    if (!el) return Promise.reject(new Error('нет документа ' + name));
+    var raw  = b64(el.textContent.trim());
+    var salt = raw.slice(0, 16), iv = raw.slice(16, 28), data = raw.slice(28);
+    return crypto.subtle.decrypt({ name:'AES-GCM', iv: iv }, key, data)
+      .then(function(buf){
+        var doc = document.getElementById('doc');
+        doc.innerHTML = new TextDecoder().decode(buf);
+        doc.setAttribute('data-doc', name);
+        document.title = TITLES[name] || document.title;
+        try { history.replaceState(null, '', '#' + name); } catch(e) {}
+        window.scrollTo(0, 0);
+        try { initDoc(); } catch(e) { console.error(e); }
+        if (focusTop) {
+          var h = document.getElementById('h-top');
+          if (h) { h.setAttribute('tabindex','-1'); h.focus(); }
+        }
+      });
+  }
+  window.openDoc = open;
+
+  // Переключатель вкладок живёт внутри шифра, поэтому слушаем делегированно
+  document.addEventListener('click', function(ev){
+    var t = ev.target.closest && ev.target.closest('[data-go]');
+    if (!t || !key) return;
+    ev.preventDefault();
+    var name = t.getAttribute('data-go');
+    if (document.getElementById('doc').getAttribute('data-doc') === name) return;
+    open(name, true).catch(function(e){ console.error(e); });
+  });
+
   form.addEventListener('submit', function(ev){
     ev.preventDefault();
     var p = pass.value;
@@ -108,8 +144,9 @@ __DEFS__
     err.className = 'ok';
     err.textContent = 'Расшифровка...';
 
-    var raw  = b64(document.getElementById('payload').textContent.trim());
-    var salt = raw.slice(0, 16), iv = raw.slice(16, 28), data = raw.slice(28);
+    // Соль и вектор берём из первого документа, ключ общий для всех
+    var raw = b64(document.getElementById('payload-__FIRST__').textContent.trim());
+    var salt = raw.slice(0, 16);
 
     crypto.subtle.importKey('raw', new TextEncoder().encode(p), 'PBKDF2', false, ['deriveKey'])
       .then(function(km){
@@ -117,18 +154,18 @@ __DEFS__
           { name:'PBKDF2', salt: salt, iterations: ITER, hash:'SHA-256' },
           km, { name:'AES-GCM', length:256 }, false, ['decrypt']);
       })
-      .then(function(key){ return crypto.subtle.decrypt({ name:'AES-GCM', iv: iv }, key, data); })
-      .then(function(buf){
-        document.getElementById('doc').innerHTML = new TextDecoder().decode(buf);
+      .then(function(k){
+        key = k;
+        var want = (location.hash || '').replace('#','');
+        if (!document.getElementById('payload-' + want)) want = '__FIRST__';
+        return open(want, true);
+      })
+      .then(function(){
         gate.classList.add('done');
         gate.remove();            // иначе на странице остаётся второй h1
-        document.title = 'GT & DG';
-        // innerHTML не исполняет вложенные script, инициализацию зовём сами
-        try { initDoc(); } catch(e) { console.error(e); }
-        var h = document.getElementById('h-top');
-        if (h) { h.setAttribute('tabindex','-1'); h.focus(); }
       })
       .catch(function(){
+        key = null;
         err.className = '';
         err.textContent = 'Пароль не подошёл.';
         btn.disabled = false;
@@ -187,38 +224,96 @@ function splitPlain(html) {
   return { style: style[0], defs: defs[0], secret: secret.trim(), script };
 }
 
-function lock(src, out, password) {
-  const { style, defs, secret, script } = splitPlain(fs.readFileSync(src, 'utf8'));
-  const salt = crypto.randomBytes(16), iv = crypto.randomBytes(12);
-  const c = crypto.createCipheriv('aes-256-gcm', derive(password, salt), iv);
-  const ct = Buffer.concat([c.update(secret, 'utf8'), c.final(), c.getAuthTag()]);
-  const payload = Buffer.concat([salt, iv, ct]).toString('base64');
-  const page = GATE.replace('__STYLE__', () => style).replace('__DEFS__', () => defs)
-                   .replace('__PAYLOAD__', () => payload).replace('__ITER__', String(ITER))
-                   .replace('__SCRIPT__', () => script);
+/**
+ * Сборка страницы из одного или нескольких документов.
+ *
+ * Соль общая на все документы, вектор у каждого свой. Иначе при переключении
+ * вкладок пришлось бы гонять PBKDF2 заново, а это 250 000 итераций и заметная
+ * пауза. С общей солью ключ выводится один раз при вводе пароля, дальше
+ * переключение стоит одну расшифровку AES.
+ *
+ * CSS, спрайт иконок и initDoc() берутся из первого документа: оформление
+ * общее, а вёрстка второго обязана следовать тому же контракту имён.
+ */
+function lockAll(docs, out, password) {
+  const salt = crypto.randomBytes(16);
+  const k = derive(password, salt);
+  let first = null, payloads = [], titles = {}, report = [];
+
+  for (const { name, file, title } of docs) {
+    const part = splitPlain(fs.readFileSync(file, 'utf8'));
+    if (!first) first = part;
+    const iv = crypto.randomBytes(12);
+    const c = crypto.createCipheriv('aes-256-gcm', k, iv);
+    const ct = Buffer.concat([c.update(part.secret, 'utf8'), c.final(), c.getAuthTag()]);
+    const payload = Buffer.concat([salt, iv, ct]).toString('base64');
+    payloads.push(`<script id="payload-${name}" type="application/octet-stream">${payload}</script>`);
+    titles[name] = title;
+    report.push(`      ${name}: ${part.secret.length} симв. -> ${payload.length} симв. шифротекста`);
+  }
+
+  const page = GATE
+    .replace('__STYLE__', () => first.style)
+    .replace('__DEFS__', () => first.defs)
+    .replace('__PAYLOADS__', () => payloads.join('\n'))
+    .replace('__TITLES__', () => JSON.stringify(titles))
+    .replace(/__FIRST__/g, () => docs[0].name)
+    .replace('__ITER__', String(ITER))
+    .replace('__SCRIPT__', () => first.script);
+
   fs.writeFileSync(out, page);
-  console.log(`lock: ${secret.length} симв. открытого текста -> ${payload.length} симв. шифротекста`);
+  console.log(`lock: ${docs.length} документ(ов), общая соль`);
+  console.log(report.join('\n'));
   console.log(`      ${out}, ${Buffer.byteLength(page)} байт`);
 }
 
 function unlock(src, out, password) {
-  const m = fs.readFileSync(src, 'utf8').match(/<script id="payload"[^>]*>([\s\S]*?)<\/script>/);
-  if (!m) { console.error('в файле нет зашифрованной нагрузки'); process.exit(1); }
-  const raw = Buffer.from(m[1].trim(), 'base64');
-  const salt = raw.subarray(0, 16), iv = raw.subarray(16, 28);
-  const ct = raw.subarray(28, raw.length - 16), tag = raw.subarray(raw.length - 16);
-  const d = crypto.createDecipheriv('aes-256-gcm', derive(password, salt), iv);
-  d.setAuthTag(tag);
-  let plain;
-  try { plain = Buffer.concat([d.update(ct), d.final()]).toString('utf8'); }
-  catch { console.error('пароль не подошёл'); process.exit(1); }
-  fs.writeFileSync(out, plain);
-  console.log(`unlock: ${plain.length} симв. -> ${out}`);
+  const html = fs.readFileSync(src, 'utf8');
+  const all = [...html.matchAll(/<script id="payload(?:-([a-z0-9-]+))?"[^>]*>([\s\S]*?)<\/script>/g)];
+  if (!all.length) { console.error('в файле нет зашифрованной нагрузки'); process.exit(1); }
+
+  for (const m of all) {
+    const name = m[1] || 'doc';
+    const raw = Buffer.from(m[2].trim(), 'base64');
+    const salt = raw.subarray(0, 16), iv = raw.subarray(16, 28);
+    const ct = raw.subarray(28, raw.length - 16), tag = raw.subarray(raw.length - 16);
+    const d = crypto.createDecipheriv('aes-256-gcm', derive(password, salt), iv);
+    d.setAuthTag(tag);
+    let plain;
+    try { plain = Buffer.concat([d.update(ct), d.final()]).toString('utf8'); }
+    catch { console.error(`пароль не подошёл (${name})`); process.exit(1); }
+    const dst = all.length === 1 ? out : out.replace(/(\.[^.]+)?$/, `-${name}$1`);
+    fs.writeFileSync(dst, plain);
+    console.log(`unlock: ${name}, ${plain.length} симв. -> ${dst}`);
+  }
 }
 
-const [, , mode, src, out, pw] = process.argv;
-if (!['lock', 'unlock'].includes(mode) || !src || !out || !pw) {
-  console.error('node build-gate.js lock|unlock <in.html> <out.html> <пароль>');
+const USAGE = `node build-gate.js lock   <in.html> <out.html> <пароль>
+node build-gate.js lock2  <gt.html> <gm.html> <out.html> <пароль>
+node build-gate.js unlock <gated.html> <out.html> <пароль>
+
+lock2 собирает переключатель предложений: GT & DG и GM & DG на одной
+странице, один пароль, один ввод. При unlock многодокументной страницы
+файлы пишутся как out-gt.html и out-gm.html.`;
+
+const [, , mode, ...rest] = process.argv;
+
+if (mode === 'lock2') {
+  const [gt, gm, out, pw] = rest;
+  if (!gt || !gm || !out || !pw) { console.error(USAGE); process.exit(1); }
+  lockAll([
+    { name: 'gt', file: gt, title: 'GT & DG' },
+    { name: 'gm', file: gm, title: 'GM & DG' },
+  ], out, pw);
+} else if (mode === 'lock') {
+  const [src, out, pw] = rest;
+  if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }
+  lockAll([{ name: 'gt', file: src, title: 'GT & DG' }], out, pw);
+} else if (mode === 'unlock') {
+  const [src, out, pw] = rest;
+  if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }
+  unlock(src, out, pw);
+} else {
+  console.error(USAGE);
   process.exit(1);
 }
-(mode === 'lock' ? lock : unlock)(src, out, pw);

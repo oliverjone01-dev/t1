@@ -122,7 +122,7 @@ __DEFS__
         document.getElementById('doc').innerHTML = new TextDecoder().decode(buf);
         gate.classList.add('done');
         gate.remove();            // иначе на странице остаётся второй h1
-        document.title = 'ИНТЕГРА 2.0';
+        document.title = 'GT & DG';
         // innerHTML не исполняет вложенные script, инициализацию зовём сами
         try { initDoc(); } catch(e) { console.error(e); }
         var h = document.getElementById('h-top');

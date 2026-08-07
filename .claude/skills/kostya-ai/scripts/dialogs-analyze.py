@@ -102,7 +102,7 @@ def main(src, dst):
         "out": 0, "in": 0, "unknown": 0, "deals": set(), "amount": 0.0,
         "replyMin": [], "unanswered": [], "initiated": 0, "dialogs": 0,
         "defects": Counter(), "outChars": [], "greetFirst": 0, "firstOfDay": 0,
-        "concreteTime": 0, "promises": 0, "attachOnly": 0, "byHour": Counter(),
+        "concreteTime": 0, "promises": 0, "attachOnly": 0, "outText": 0, "byHour": Counter(),
         "byWeekday": Counter(), "worstReplies": [],
         "inDet": Counter(), "outDet": Counter(), "escalations": [], "priceObj": [],
     })
@@ -148,6 +148,7 @@ def main(src, dst):
                 if m['attach'] == 'sent':
                     S['attachOnly'] += 1
                 else:
+                    S['outText'] += 1      # знаменатель текстовых метрик, без вложений
                     S['outChars'].append(len(txt))
                     for name, rx in DET.items():
                         if rx.search(txt):
@@ -206,7 +207,10 @@ def main(src, dst):
     res = []
     for name, S in mgr.items():
         rep = S['replyMin']
-        outTotal = S['out'] or 1
+        # Знаменатель текстовых метрик - только сообщения с текстом. Вложения без текста
+        # (25% исходящих) исключены из детекции, оставлять их в знаменателе значит занижать
+        # все доли на четверть.
+        outTotal = S['outText'] or 1
         res.append({
             "mgr": name,
             "deals": len(S['deals']), "dialogs": S['dialogs'],
@@ -234,7 +238,10 @@ def main(src, dst):
             "escalationCount": len(S['escalations']),
             "priceObjCount": len(S['priceObj']),
             "priceObjections": sorted(S['priceObj'], key=lambda x: -x['amount'])[:10],
-            "qualifyRate": round(sum(S['outDet'][k] for k in ('Q_БЮДЖЕТ','Q_СРОК','Q_ЛПР')) * 100 / max(1, S['out']), 2),
+            "outText": S['outText'],
+            "qualifyRate": round(sum(S['outDet'][k] for k in ('Q_БЮДЖЕТ', 'Q_СРОК', 'Q_ЛПР'))
+                                 * 100 / max(1, S['outText']), 2),
+            "qualifiedDealShare": None,   # см. ТЗ: правильная метрика - доля сделок, а не сообщений
             "byHour": dict(sorted(S['byHour'].items())),
             "byWeekday": dict(sorted(S['byWeekday'].items())),
         })

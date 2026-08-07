@@ -25,11 +25,14 @@ const PORTAL = process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru";
 // открытых сделок): взята медиана dwell по стадии, округлённая вверх до рабочего смысла.
 // Правило пересмотра: если детектор даёт >30% флагов по стадии, порог слишком жёсткий.
 const STAGE_LIMITS = {
-  "Новая сделка": { dwell: 1, silence: 2, group: "active" },
-  "Расчёт": { dwell: 5, silence: 5, group: "active" },
-  "Формирование ТЗ": { dwell: 7, silence: 5, group: "active" },
-  "КП отправлено": { dwell: 14, silence: 7, group: "active" },
-  "Принимают решение": { dwell: 7, silence: 7, group: "active" },
+  "Новая сделка": { dwell: 3, silence: 3, group: "active" },
+  "Расчёт": { dwell: 10, silence: 7, group: "active" },
+  "Формирование ТЗ": { dwell: 14, silence: 10, group: "active" },
+  // D01 и D02 давали 52.8% и 40.5% флагов от открытого портфеля, нарушая собственное
+  // правило «детектор с долей выше 30% это шум, а не сигнал». Лимиты ослаблены до p75
+  // фактического распределения. Костин совет из ТЗ: начинать с мягких лимитов.
+  "КП отправлено": { dwell: 35, silence: 14, group: "active" },
+  "Принимают решение": { dwell: 14, silence: 10, group: "active" },
   "Долгострой": { dwell: 60, silence: 30, group: "stuck" },
   "Предоплата получена": { dwell: 5, silence: 7, group: "money" },
   "Заказ в производстве": { dwell: 45, silence: 21, group: "prod" },
@@ -350,11 +353,18 @@ for (const m of mgrs.values()) {
       + comp.tasks * WEIGHTS.tasks + comp.fields * WEIGHTS.fields) * 100,
   ) / 10;
   m.sample = m.openDeals < MIN_SAMPLE ? "мало данных" : "ок";
+  // Ниже минимальной выборки индекс НЕ выдаётся числом. Иначе в JSON лежит «8.0» против
+  // сотрудника с одной сделкой, и первый же потребитель контракта опубликует это как оценку.
+  if (m.sample !== "ок") m.index = null;
   m.band = m.sample !== "ок" ? "мало данных"
     : m.index >= 7.5 ? "молодец" : m.index >= 5 ? "норма" : "холодец";
 }
 
-const managers = [...mgrs.values()].sort((a, b) => (b.index ?? -1) - (a.index ?? -1));
+// Сортировка сначала по наличию выборки, потом по индексу: менеджер с одной сделкой
+// не должен оказываться первым элементом массива.
+const BAND_RANK = { "молодец": 3, "норма": 2, "холодец": 1, "мало данных": 0 };
+const managers = [...mgrs.values()].sort((a, b) =>
+  (BAND_RANK[b.band] ?? 0) - (BAND_RANK[a.band] ?? 0) || (b.index ?? -1) - (a.index ?? -1));
 
 flags.sort((a, b) => (SEV_RANK[b.severity] - SEV_RANK[a.severity])
   || (b.budget - a.budget) || String(a.deal).localeCompare(String(b.deal)));

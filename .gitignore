@@ -21,3 +21,9 @@ yandex-direct.json
 
 # HITL-апрувы мутаций (Protocol 6) - действуют один день, в git не попадают
 .claude/approvals/
+
+# Kostya-AI: собранные разборы содержат цитаты клиентской переписки, имена сотрудников
+# и суммы сделок. Репозиторий публичный, поэтому артефакты сборки в него не кладутся.
+# Собирать локально скриптом .claude/skills/kostya-ai/scripts/build-site.py
+analytics-mvp/public/kostya-managers.html
+analytics-mvp/public/kostya/

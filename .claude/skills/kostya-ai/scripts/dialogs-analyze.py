@@ -44,6 +44,12 @@ OUT_DET = {
 }
 
 GREET = re.compile(r"(добр\w+\s+(?:день|утро|вечер)|здравствуйте|приветству)", re.I)
+# Фильтры метрики «оставлено без ответа»: закрытая сделка и вежливое закрытие диалога
+# не являются виной менеджера.
+CLOSED_STAGE = re.compile(r"сделка\s+(успешна|провалена)", re.I)
+TRIVIAL_CLOSER = re.compile(
+    r"^(спасибо|поняла|понял|хорошо|ок|окей|да|нет|принято|ясно|благодарю|отлично|супер"
+    r"|договорились|до свидания|всего доброго)[\s\.,!)]*$", re.I)
 # Обещание - это будущее время первого лица («отправлю», «вернусь»), а не настоящее
 # («отправляю КП»): второе описывает действие, которое уже происходит, и срока не требует.
 PROMISE = re.compile(
@@ -178,14 +184,24 @@ def main(src, dst):
                             "reply": txt[:180], "stage": m['stage'], "amount": m['amount'],
                         })
                     pendingIn = None
-        if pendingIn is not None:
-            last = seq[-1]['dt']
-            S['unanswered'].append({
-                "deal": dealId, "clientAt": pendingIn['ts'],
-                "clientText": pendingIn['text'][:180], "stage": pendingIn['stage'],
-                "amount": pendingIn['amount'],
-                "silentMinutes": bmin(pendingIn['dt'], last) if last > pendingIn['dt'] else 0,
-            })
+        # «Оставлено без ответа» засчитывается только если реплика клиента действительно
+        # требовала ответа. Без фильтров метрика завышена в 5.7 раза (171 против 38 на
+        # выгрузке апрель-июль): 83 случая приходятся на уже закрытые сделки, где диалог
+        # заканчивается законно, 12 на «Спасибо» и «Поняла», 10 на голое вложение.
+        # Обвинить менеджера в том, что он не ответил на «Хорошо» по выигранной сделке,
+        # значит получить справедливое возражение и обесценить весь инструмент.
+        if pendingIn is not None and pendingIn is seq[-1]:
+            t = (pendingIn['text'] or '').strip()
+            if not CLOSED_STAGE.search(pendingIn['stage'] or '') \
+                    and pendingIn['attach'] != 'received' \
+                    and not TRIVIAL_CLOSER.match(t[:40]) \
+                    and len(t) >= 25:
+                S['unanswered'].append({
+                    "deal": dealId, "clientAt": pendingIn['ts'],
+                    "clientText": t[:180], "stage": pendingIn['stage'],
+                    "amount": pendingIn['amount'],
+                    "silentMinutes": 0,
+                })
 
     res = []
     for name, S in mgr.items():

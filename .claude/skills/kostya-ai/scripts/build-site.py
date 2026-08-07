@@ -132,7 +132,8 @@ SALES_SCRIPTS = [
         "id": "escalation",
         "title": "Клиент требует руководителя или пишет претензию",
         "when": "В переписке появились слова «директор», «руководитель», «жалоба», «сколько можно».",
-        "why": "49 таких случаев за 4 месяца. Ни один сейчас не отслеживается автоматически. "
+        "why": "19 таких случаев за 4 месяца по строгому детектору (клиент просит телефон руководителя, "
+               "пишет претензию, «сколько можно», «верните деньги»). Ни один сейчас не отслеживается автоматически. "
                "Разобранный Костей случай в Glass Memory дошёл до «вам всё равно, деньги лишь бы сожрать» "
                "ровно потому, что менеджер начал с технического объяснения вместо извинения.",
         "script": [
@@ -278,6 +279,18 @@ MAGNETS = [
 
 
 # ---------------------------------------------------------------- сборка данных
+def name_key(s):
+    """Ключ менеджера, устойчивый к порядку слов и к ё.
+
+    Выгрузка диалогов даёт «Лакомова Татьяна», rop.json даёт «Татьяна Лакомова».
+    Без нормализации слои A и B не соединяются: flagsByMgr оказывается пустым
+    у всех, и 1540 флагов дисциплины не доезжают до карточки менеджера.
+    """
+    s = (s or "").lower().replace("ё", "е")
+    parts = sorted(p for p in re.split(r"[^а-яa-z-]+", s) if len(p) > 1)
+    return " ".join(parts)
+
+
 def build_deal_index(msgs_path):
     """Детализация по сделкам: хронология, объёмы, реакции."""
     deals = defaultdict(lambda: {"msgs": [], "mgr": None, "stage": None, "amount": 0.0,
@@ -321,22 +334,33 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None):
     for v in mgr_deals.values():
         v.sort(key=lambda x: -x[1]["amount"])
 
-    flags_by_mgr = defaultdict(list)
+    # Слой A (снимок Bitrix) индексируется по нормализованному ключу, потому что
+    # имена там в обратном порядке относительно выгрузки диалогов.
+    flags_by_key = defaultdict(list)
+    kostya_by_key = {}
     if K:
         for f in K["flags"]:
-            flags_by_mgr[f["mgr"]].append(f)
+            flags_by_key[name_key(f["mgr"])].append(f)
+        for m in K["managers"]:
+            kostya_by_key[name_key(m["mgr"])] = m
 
     # Ростер: только те, у кого есть заметный объём переписки.
     mgrs = [m for m in A["managers"] if m["out"] >= 25]
+
+    joined = sum(1 for m in mgrs if kostya_by_key.get(name_key(m["mgr"])))
+    print(f"join слоёв A и B: сведено {joined} из {len(mgrs)} менеджеров")
+    if K and joined == 0:
+        raise SystemExit("Слои A и B не сведены ни по одному менеджеру. Проверьте name_key и источники.")
 
     payload = {
         "meta": A["meta"], "totals": A["totals"],
         "managers": mgrs,
         "dealsByMgr": {m["mgr"]: [{"id": did, **d} for did, d in mgr_deals.get(m["mgr"], [])][:60] for m in mgrs},
-        "flagsByMgr": {m["mgr"]: flags_by_mgr.get(m["mgr"], [])[:40] for m in mgrs},
+        "flagsByMgr": {m["mgr"]: flags_by_key.get(name_key(m["mgr"]), [])[:40] for m in mgrs},
         "kostyaMeta": K["meta"] if K else None,
         "kostyaTotals": K["totals"] if K else None,
-        "kostyaManagers": {m["mgr"]: m for m in K["managers"]} if K else {},
+        "kostyaManagers": {m["mgr"]: kostya_by_key[name_key(m["mgr"])]
+                           for m in mgrs if name_key(m["mgr"]) in kostya_by_key},
         "scripts": SALES_SCRIPTS, "followups": FOLLOWUPS, "magnets": MAGNETS,
     }
 

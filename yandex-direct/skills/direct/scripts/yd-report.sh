@@ -6,10 +6,15 @@
 
 set -euo pipefail
 
+SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 REPORTS_URL="https://api.direct.yandex.com/json/v5/reports"
 
-# Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
-source "$(dirname "${BASH_SOURCE[0]}")/yd-creds.sh"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+    echo "ERROR: Credentials not found at $SECRETS_FILE" >&2
+    exit 1
+fi
+
+OAUTH_TOKEN=$(jq -r '.oauth_token' "$SECRETS_FILE")
 
 REPORT_TYPE="${1:?Usage: yd-report.sh <campaign|adgroup|keyword|search_query> [date_from] [date_to]}"
 DATE_FROM="${2:-$(date -d '-30 days' +%Y-%m-%d 2>/dev/null || date -v-30d +%Y-%m-%d)}"
@@ -67,7 +72,6 @@ EOF
 HTTP_CODE=$(curl -s -o /tmp/yd-report-response.txt -w "%{http_code}" \
     -X POST "$REPORTS_URL" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
-    ${CLIENT_LOGIN:+-H "Client-Login: ${CLIENT_LOGIN}"} \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -H "processingMode: auto" \

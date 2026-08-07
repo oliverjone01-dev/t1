@@ -6,10 +6,36 @@
 
 set -euo pipefail
 
+SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 REPORTS_URL="https://api.direct.yandex.com/json/v5/reports"
 
-# Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
-source "$(dirname "${BASH_SOURCE[0]}")/yd-creds.sh"
+# Credentials priority: (1) env vars > (2) repo-local .env (gitignored) >
+# (3) ~/.secrets file. Real tokens never live in git.
+OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
+CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+
+if [[ -z "$OAUTH_TOKEN" ]]; then
+    ENV_FILE="${YANDEX_DIRECT_ENV_FILE:-}"
+    if [[ -z "$ENV_FILE" ]]; then
+        REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || true)
+        [[ -n "$REPO_ROOT" && -f "$REPO_ROOT/yandex-direct/.env" ]] && ENV_FILE="$REPO_ROOT/yandex-direct/.env"
+    fi
+    if [[ -n "$ENV_FILE" && -f "$ENV_FILE" ]]; then
+        set -a; source "$ENV_FILE"; set +a
+        OAUTH_TOKEN="${YANDEX_DIRECT_TOKEN:-}"
+        CLIENT_LOGIN="${YANDEX_DIRECT_LOGIN:-}"
+    fi
+fi
+
+if [[ -z "$OAUTH_TOKEN" && -f "$SECRETS_FILE" ]]; then
+    OAUTH_TOKEN=$(jq -r '.oauth_token // empty' "$SECRETS_FILE")
+    CLIENT_LOGIN=$(jq -r '.client_login // empty' "$SECRETS_FILE")
+fi
+
+if [[ -z "$OAUTH_TOKEN" || "$OAUTH_TOKEN" == "null" ]]; then
+    echo "ERROR: token not found. Set env var YANDEX_DIRECT_TOKEN, or add oauth_token to $SECRETS_FILE" >&2
+    exit 1
+fi
 
 REPORT_TYPE="${1:?Usage: yd-report.sh <campaign|adgroup|keyword|search_query> [date_from] [date_to]}"
 DATE_FROM="${2:-$(date -d '-30 days' +%Y-%m-%d 2>/dev/null || date -v-30d +%Y-%m-%d)}"
@@ -63,11 +89,17 @@ REQUEST_BODY=$(cat <<EOF
 EOF
 )
 
+# Optional Client-Login header (required for agency accounts)
+LOGIN_HEADER=()
+if [[ -n "${CLIENT_LOGIN:-}" ]]; then
+    LOGIN_HEADER=(-H "Client-Login: ${CLIENT_LOGIN}")
+fi
+
 # Request report (may need polling for large reports)
 HTTP_CODE=$(curl -s -o /tmp/yd-report-response.txt -w "%{http_code}" \
     -X POST "$REPORTS_URL" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
-    ${CLIENT_LOGIN:+-H "Client-Login: ${CLIENT_LOGIN}"} \
+    "${LOGIN_HEADER[@]}" \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -H "processingMode: auto" \

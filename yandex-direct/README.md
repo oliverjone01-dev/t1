@@ -58,11 +58,7 @@ Skill подключён в живой ростер (`.claude/skills/direct/`). 
 YANDEX_DIRECT_TOKEN=<OAUTH_TOKEN>
 YANDEX_DIRECT_LOGIN=<логин-клиента>
 YANDEX_METRIKA_TOKEN=<OAUTH_TOKEN_METRIKA>
-YANDEX_METRIKA_COUNTER=104369223
 ```
-
-Счётчик `104369223` - рабочий счётчик GENGLASS ("Новый GenGlass", genglass.ru,
-связка с Директом + ecommerce). Это идентификатор, не секрет.
 
 Переменные применяются при старте новой сессии. Токен получается через OAuth-приложение
 Яндекса с доступом к API Директа (https://yandex.ru/dev/direct).

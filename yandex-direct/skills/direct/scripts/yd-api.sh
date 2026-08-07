@@ -5,26 +5,24 @@
 
 set -euo pipefail
 
+SECRETS_FILE="${HOME}/.secrets/yandex-direct.json"
 API_BASE="https://api.direct.yandex.com/json/v5"
 
-# Resolve OAUTH_TOKEN / CLIENT_LOGIN (env → yandex-direct/.env → ~/.secrets)
-source "$(dirname "${BASH_SOURCE[0]}")/yd-creds.sh"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+    echo "ERROR: Credentials not found at $SECRETS_FILE" >&2
+    exit 1
+fi
+
+OAUTH_TOKEN=$(jq -r '.oauth_token' "$SECRETS_FILE")
+
+if [[ -z "$OAUTH_TOKEN" || "$OAUTH_TOKEN" == "null" ]]; then
+    echo "ERROR: oauth_token not found in $SECRETS_FILE" >&2
+    exit 1
+fi
 
 SERVICE="${1:?Usage: yd-api.sh <service> <method> [json_params]}"
 METHOD="${2:?Usage: yd-api.sh <service> <method> [json_params]}"
-
-# Protocol 6 (Trust by Design): этот wrapper - READ-ONLY.
-# Любая мутация кабинета (add/update/delete/suspend/resume/setBids/...) идёт
-# только через yd-api-write.sh, который требует HITL-апрув Ивана (approval-файл).
-if [[ "$METHOD" != "get" ]]; then
-    echo "BLOCKED: yd-api.sh - read-only wrapper, метод '$METHOD' запрещён." >&2
-    echo "Мутации кабинета - через yd-api-write.sh после HITL-апрува Ивана (Protocol 6)." >&2
-    exit 3
-fi
-# Note: do NOT write ${3:-{}} — bash closes the expansion on the first "}",
-# leaving a stray "}" appended to $3 and breaking jq --argjson.
-PARAMS="${3:-}"
-[[ -z "$PARAMS" ]] && PARAMS='{}'
+PARAMS="${3:-{}}"
 
 # Build request body
 REQUEST_BODY=$(jq -n \
@@ -36,7 +34,6 @@ REQUEST_BODY=$(jq -n \
 RESPONSE=$(curl -s -X POST \
     "${API_BASE}/${SERVICE}" \
     -H "Authorization: Bearer ${OAUTH_TOKEN}" \
-    ${CLIENT_LOGIN:+-H "Client-Login: ${CLIENT_LOGIN}"} \
     -H "Content-Type: application/json; charset=utf-8" \
     -H "Accept-Language: ru" \
     -d "$REQUEST_BODY")

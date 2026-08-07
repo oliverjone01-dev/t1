@@ -668,7 +668,7 @@ function disciplineBlock(){
 // менеджера и фильтр. Универсум ровно как в личных дашбордах и в челлендже (сделки, дошедшие
 // до предложения, с дырами в причине/категории/клиенте/бюджете≤1), чтобы цифры сходились.
 function deptDQBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1320,7 +1320,7 @@ function render(){
 
   const G=(a,b)=>`<div class="grid2">`+a+b+`</div>`;
   // ===== раздел «В производство»: метрики отдела + график + менеджеры =====
-  const QUOTE_SET=new Set(['C21:UC_OIR9YC','C21:PREPARATION','C21:PREPAYMENT_INVOIC','C21:FINAL_INVOICE','C21:UC_8JTBV2']);
+  const QUOTE_SET=new Set(['C21:UC_OIR9YC','C21:PREPARATION','C21:PREPAYMENT_INVOIC','C21:FINAL_INVOICE']);
   const _qDeals=flt(AD,true).filter(d=>!d.won&&!d.lost&&QUOTE_SET.has(d.stageCode)),_qM=_qDeals.reduce((x,d)=>x+(d.budget||0),0);
   const _pdCur=prodSet(),_pdPrev=prodSet(_pw[0],_pw[1]);
   const _pdM=_pdCur.reduce((x,d)=>x+(d.budget||0),0),_pdMPrev=_pdPrev.reduce((x,d)=>x+(d.budget||0),0);
@@ -1620,7 +1620,7 @@ function healthBlock(){
 }
 
 function offerReasonsBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1646,7 +1646,7 @@ function offerReasonsBlock(){
 // План в КОЛИЧЕСТВЕ предоплат (не в выручке). Цель менеджеру = живой портфель × целевой
 // CR. Гардрейлы: чек (чтобы count не убил выручку) и долгострой (в паре с отказами).
 function standardBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
@@ -1741,7 +1741,7 @@ function standardBlock(){
 // Σ-столбец за период, переключатель Кол-во/Выручка, раскрытие этапа по всем менеджерам
 // (строка отдела + строки менеджеров), фильтр по менеджеру. Реагирует на период/гранулярность.
 function offerCalendarBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1781,8 +1781,7 @@ function offerCalendarBlock(){
     {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer,grp:"вход"},
     {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true,grp:"в работе"},
     {id:"kp",nm:"КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C21:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
-    {id:"dec",nm:"Принимают решение",color:"#C2873C",df:d=>enterStage(d,"C21:FINAL_INVOICE"),grp:"в работе",child:true},
-    {id:"long",nm:"Долгострой",color:"#F59E0B",df:d=>enterStage(d,"C21:UC_8JTBV2"),grp:"в работе",child:true},
+    {id:"dec",nm:"Ожидание оплаты",color:"#C2873C",df:d=>enterStage(d,"C21:FINAL_INVOICE"),grp:"в работе",child:true},
     {id:"vyhod",nm:"Выход (успех + отказ)",color:"#9AA4B2",df:d=>enterExec(d)||enterLose(d),grp:"выход"},
     {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход",child:true},
     {id:"loss",nm:"Отказ",color:"#CC5867",df:enterLose,grp:"выход",child:true},
@@ -1799,7 +1798,7 @@ function offerCalendarBlock(){
   // Возрастные когорты открытых сделок. Для «В работе» база - все открытые офферы,
   // для стадий (КП/Решение/Долгострой) - сделки, стоящие на этой стадии на конец периода.
   const COHDEF=[{key:"new",nm:"новые ≤14 дн",color:"#2E9E74",cohort:[0,14]},{key:"mid",nm:"застой 14-30 дн",color:"#D9A441",cohort:[15,30]},{key:"old",nm:"брошенные 30+ дн",color:"#CC5867",cohort:[31,1e9]}];
-  const COHSRC=[["wip",null],["kp","C21:PREPAYMENT_INVOIC"],["dec","C21:FINAL_INVOICE"],["long","C21:UC_8JTBV2"]];
+  const COHSRC=[["wip",null],["kp","C21:PREPAYMENT_INVOIC"],["dec","C21:FINAL_INVOICE"]];
   const COHROWS={};COHSRC.forEach(([rid,stg])=>{COHROWS[rid]=COHDEF.map(c=>({...c,wip:true,id:rid+"@"+c.key,stg,base:rid}));});
   const RBY2={};Object.values(COHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
   const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
@@ -1972,7 +1971,7 @@ function offerCalendarBlock(){
 // Синтез для решений: ограничить новые / перераспределить / нанять. Считает по горячему
 // пайплайну (оффер-стадии): конверсия, скорость, раскешено за 90 дн, застой, нагрузка.
 function mgmtDecisionsBlock(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const EARLY=new Set(["C21:NEW","C21:UC_UCLN76","C21:PREPARATION","C21:UC_OIR9YC","C21:UC_32UM3S"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
@@ -2087,7 +2086,7 @@ function mgmtDecisionsBlock(){
 // Пончики клиент/изделие + конверсия сегмента, поток по месяцам, динамика конверсии,
 // возрастные когорты пайплайна. История берётся из hist по датам входа/закрытия.
 function offerAnalytics(){
-  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE","C21:UC_8JTBV2"]);
+  const OSET=new Set(["C21:PREPAYMENT_INVOIC","C21:FINAL_INVOICE"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
@@ -2164,7 +2163,7 @@ function offerAnalytics(){
 // Горячий пайплайн: открытые сделки, где оффер уже у клиента. Полная картина по
 // менеджеру + динамика закрытия + фокус «новые против горячих» + причины отказов.
 function offerControlBlock(){
-  const OFFER={ "C21:PREPAYMENT_INVOIC": { l: "КП отправлено", c: "#60A5FA" }, "C21:FINAL_INVOICE": { l: "Принимают решение", c: "#C2873C" }, "C21:UC_8JTBV2": { l: "Долгострой", c: "#F43F5E" } };
+  const OFFER={ "C21:PREPAYMENT_INVOIC": { l: "КП отправлено", c: "#60A5FA" }, "C21:FINAL_INVOICE": { l: "Ожидание оплаты", c: "#C2873C" } };
   const OSET=new Set(Object.keys(OFFER));
   const EARLY=new Set(["C21:NEW","C21:UC_UCLN76","C21:PREPARATION","C21:UC_OIR9YC","C21:UC_32UM3S","C21:PREPARATION"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&chOk(d);
@@ -2210,7 +2209,7 @@ function offerControlBlock(){
   const G={};open.forEach(d=>{(G[d.mgr]=G[d.mgr]||[]).push(d);});
   let mrows=Object.entries(G).map(([mgr,ds])=>{
     const c=checks(ds),h=H[mgr]||{won:0,lost:0,wc:[]},cr=(h.won+h.lost)?h.won/(h.won+h.lost):null;
-    return {mgr,ds,n:ds.length,kp:ds.filter(d=>d.stageCode==="C21:PREPAYMENT_INVOIC").length,dec:ds.filter(d=>d.stageCode==="C21:FINAL_INVOICE").length,lng:ds.filter(d=>d.stageCode==="C21:UC_8JTBV2").length,
+    return {mgr,ds,n:ds.length,kp:ds.filter(d=>d.stageCode==="C21:PREPAYMENT_INVOIC").length,dec:ds.filter(d=>d.stageCode==="C21:FINAL_INVOICE").length,lng:0,
       pipe:money(ds),med:median(c)||0,medAge:median(ds.map(age))||0,medDw:median(ds.map(dwell))||0,stuck:ds.filter(d=>dwell(d)>30).length,early:earlyN[mgr]||0,cr,lr:(h.won+h.lost)?h.lost/(h.won+h.lost):null,closed:h.won+h.lost,won:h.won,lost:h.lost,wonMed:median(h.wc)||0};
   });
   const sk=S.ocSort||"pipe",asc=S.ocAsc?1:-1;
@@ -2225,7 +2224,7 @@ function offerControlBlock(){
     const main=`<tr data-ocmgr="${esc(r.mgr)}" style="cursor:pointer">
       <td class="name" style="text-align:left">${opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'}${esc(r.mgr)}${neglect?' <span data-tip="Горячие висят >30 дн, а новых много - уводит фокус" style="font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:#F59E0B;border-radius:5px;padding:1px 5px;font-weight:700">фокус на новых</span>':''}</td>
       <td style="text-align:center;font-weight:800">${fmt(r.n)}</td>
-      <td style="text-align:center;white-space:nowrap;font-size:11px"><span style="color:#60A5FA">${r.kp}</span> · <span style="color:#C2873C">${r.dec}</span> · <span style="color:#F43F5E;font-weight:700">${r.lng}</span></td>
+      <td style="text-align:center;white-space:nowrap;font-size:11px"><span style="color:#60A5FA">${r.kp}</span> · <span style="color:#C2873C">${r.dec}</span></td>
       <td style="text-align:center;font-weight:700">${fmtK(r.pipe)}</td>
       <td style="text-align:center">${fmtK(r.med)}</td>
       <td style="text-align:center;color:${ageC(r.medAge)}">${fmt(r.medAge)}</td>

@@ -2096,6 +2096,7 @@ function offerAnalytics(){
   const money=a=>a.reduce((s,d)=>s+(d.budget||0),0);
   const cliV=d=>{const c=d.client;return (!c||c==="нет данных")?"не указан":c;};
   const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?"не указана":a;};
+  const stgV=d=>d.stage||"без стадии"; // GM: изделия нет - показываем распределение по стадии
   const M=s=>String(s||"").slice(0,7);
   const MN=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
   const mLbl=m=>{const p=m.split("-");return MN[+p[1]-1]+" "+p[0].slice(2);};
@@ -2107,14 +2108,14 @@ function offerAnalytics(){
   const donutBlock=(data,dim,title)=>{
     const dd=data.slice(0,8).map((e,i)=>[e[0],e[1],PAL[i%PAL.length]]);
     const leg=dd.map(([n,v,c])=>{const sel=S.ocSeg&&S.ocSeg.dim===dim&&S.ocSeg.val===n;return `<div class="ro-lg" data-ocseg="${dim}|${esc(n)}" style="cursor:pointer;padding:2px 4px;border-radius:6px;${sel?'background:rgba(34,211,238,.12)':''}"><span class="dot" style="background:${c}"></span><span class="nm">${esc(n)}</span><span class="vl">${fmtK(v)}</span></div>`;}).join("");
-    return `<div style="flex:1;min-width:290px"><div class="card-t" style="font-size:12.5px">${title}</div><div class="card-sub">клик по сегменту - конверсия в динамике</div><div style="display:flex;gap:10px;align-items:center;margin-top:6px"><div style="flex:0 0 150px">${donut(dd,fmtK(money(open)),dim==="client"?"₽ КЛИЕНТЫ":"₽ ИЗДЕЛИЯ",true)}</div><div style="flex:1">${leg}</div></div></div>`;
+    return `<div style="flex:1;min-width:290px"><div class="card-t" style="font-size:12.5px">${title}</div><div class="card-sub">клик по сегменту - конверсия в динамике</div><div style="display:flex;gap:10px;align-items:center;margin-top:6px"><div style="flex:0 0 150px">${donut(dd,fmtK(money(open)),dim==="client"?"₽ КЛИЕНТЫ":dim==="stage"?"₽ СТАДИИ":"₽ ИЗДЕЛИЯ",true)}</div><div style="flex:1">${leg}</div></div></div>`;
   };
-  const donuts=`<div style="display:flex;gap:20px;flex-wrap:wrap">${donutBlock(grp(open,cliV),"client","Пайплайн по типу клиента")}${donutBlock(grp(open,catV),"assort","Пайплайн по типу изделия")}</div>`;
+  const donuts=`<div style="display:flex;gap:20px;flex-wrap:wrap">${donutBlock(grp(open,cliV),"client","Пайплайн по типу клиента")}${donutBlock(grp(open,stgV),"stage","Пайплайн по стадии")}</div>`;
 
   // конверсия выбранного сегмента в динамике
   const segDyn=(()=>{
     if(!S.ocSeg)return "";
-    const kf=S.ocSeg.dim==="client"?cliV:catV,val=S.ocSeg.val;
+    const kf=S.ocSeg.dim==="client"?cliV:S.ocSeg.dim==="stage"?stgV:catV,val=S.ocSeg.val;
     const seg=passed.filter(d=>kf(d)===val);
     const rows=months.map(m=>{const won=seg.filter(d=>d.won&&M(d.closed)===m).length,lost=seg.filter(d=>d.lost&&M(d.closed)===m).length,cl=won+lost;return {m,won,lost,cr:cl?won/cl:null};});
     const mx=Math.max(1,...rows.map(r=>r.won+r.lost));

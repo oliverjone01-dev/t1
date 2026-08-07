@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-08-06",
+ "measured": "2026-08-07",
  "visibility": null,
  "ai_answers": null,
  "keywords_total": 100,
@@ -161,6 +161,11 @@
    "date": "2026-08-06",
    "visibility": 0,
    "top10": 0
+  },
+  {
+   "date": "2026-08-07",
+   "visibility": 0,
+   "top10": 0
   }
  ],
  "keywords": [
@@ -264,6 +269,12 @@
    "phrase": "надпись на могильной плите",
    "pos": null,
    "freq": 513,
+   "url": ""
+  },
+  {
+   "phrase": "изделия из металлопрофиля",
+   "pos": null,
+   "freq": 135,
    "url": ""
   },
   {
@@ -450,12 +461,6 @@
    "phrase": "карелия габбро",
    "pos": null,
    "freq": 460,
-   "url": ""
-  },
-  {
-   "phrase": "карьер возрождение",
-   "pos": null,
-   "freq": 273,
    "url": ""
   },
   {
@@ -759,13 +764,104 @@
    "url": ""
   },
   {
-   "phrase": "как выбрать памятник",
+   "phrase": "гравировка портрета",
    "pos": null,
-   "freq": 558,
+   "freq": 1175,
    "url": ""
   }
  ],
- "competitors": [],
+ "competitors": [
+  {
+   "domain": "m.avito.ru",
+   "visibility": 4410371,
+   "common_keywords": 27,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "livemaster.ru",
+   "visibility": 163072,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "ru.pinterest.com",
+   "visibility": 2851581,
+   "common_keywords": 13,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "yandex.ru",
+   "visibility": 23388768,
+   "common_keywords": 10,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "glassphoto.ru",
+   "visibility": 11,
+   "common_keywords": 9,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "easyloft.net",
+   "visibility": 245,
+   "common_keywords": 8,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "m.vk.com",
+   "visibility": 8726279,
+   "common_keywords": 8,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "nisp.ru",
+   "visibility": 423,
+   "common_keywords": 8,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "talkingstone.ru",
+   "visibility": 827,
+   "common_keywords": 7,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "pqd.ru",
+   "visibility": 1844,
+   "common_keywords": 6,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "uslugi.yandex.ru",
+   "visibility": 344420,
+   "common_keywords": 6,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "wildberries.ru",
+   "visibility": 2641594,
+   "common_keywords": 6,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "grad-ex.ru",
+   "visibility": 69,
+   "common_keywords": 5,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "granitreal.ru",
+   "visibility": 112,
+   "common_keywords": 5,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "monument-nd.ru",
+   "visibility": 125,
+   "common_keywords": 5,
+   "delta_visibility": 0
+  }
+ ],
  "deltas": {
   "dropped_top10": [],
   "entered_top10": [],

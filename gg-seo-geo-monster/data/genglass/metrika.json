@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-06",
+ "measured": "2026-08-07",
  "visits_30d": [
-  {
-   "date": "2026-07-07",
-   "visits": 311,
-   "search_visits": 63
-  },
   {
    "date": "2026-07-08",
    "visits": 271,
@@ -149,8 +144,13 @@
   },
   {
    "date": "2026-08-05",
-   "visits": 256,
+   "visits": 257,
    "search_visits": 85
+  },
+  {
+   "date": "2026-08-06",
+   "visits": 246,
+   "search_visits": 84
   }
  ],
  "top_phrases": [
@@ -164,11 +164,11 @@
   },
   {
    "phrase": "генгласс",
-   "visits": 11
+   "visits": 12
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 10
+   "visits": 12
   },
   {
    "phrase": "gen glass",
@@ -199,11 +199,11 @@
    "visits": 3
   },
   {
-   "phrase": "GENGLASS Стол раскладной TRUBIS R Max 120(160)х80 см, черный",
+   "phrase": "gemglass",
    "visits": 2
   },
   {
-   "phrase": "gemglass",
+   "phrase": "ген гласс",
    "visits": 2
   },
   {
@@ -251,10 +251,6 @@
    "visits": 2
   },
   {
-   "phrase": "лофт перегородки",
-   "visits": 2
-  },
-  {
    "phrase": "магнитно маркерная доска на заказ",
    "visits": 2
   },
@@ -287,10 +283,6 @@
    "visits": 2
   },
   {
-   "phrase": "GENGGLASS",
-   "visits": 1
-  },
-  {
    "phrase": "GENGLASS (например, серия Halfeo NF LED",
    "visits": 1
   },
@@ -304,6 +296,10 @@
   },
   {
    "phrase": "GENGLASS Стол кухонный раздвижной в симферополе",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS Стол раскладной TRUBIS R Max 120(160)х80 см, черный",
    "visits": 1
   },
   {
@@ -353,32 +349,36 @@
   {
    "phrase": "gen glass сто обеденный",
    "visits": 1
+  },
+  {
+   "phrase": "gen glass стол",
+   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 362
+   "visits": 363
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 95
+   "visits": 94
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 64
+   "visits": 63
   },
   {
    "url": "/product-category/tables/",
-   "visits": 46
-  },
-  {
-   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 39
+   "visits": 47
   },
   {
    "url": "/product-category/mirrors/",
    "visits": 39
+  },
+  {
+   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
+   "visits": 38
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
@@ -389,19 +389,19 @@
    "visits": 33
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 28
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 29
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 27
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "visits": 29
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 27
+   "visits": 28
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
    "visits": 26
   },
   {
@@ -409,16 +409,16 @@
    "visits": 26
   },
   {
-   "url": "/zerkala-na-zakaz/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
    "visits": 25
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 24
+   "visits": 25
   },
   {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 20
+   "url": "/zerkala-na-zakaz/",
+   "visits": 25
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
@@ -426,7 +426,7 @@
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 16
+   "visits": 17
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
@@ -437,11 +437,19 @@
    "visits": 13
   },
   {
-   "url": "/product-category/mirrors/floor/",
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 12
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
+   "visits": 12
+  },
+  {
+   "url": "/product-category/hranenie/veshalki/",
+   "visits": 11
+  },
+  {
+   "url": "/product-category/mirrors/floor/",
    "visits": 11
   },
   {
@@ -453,15 +461,7 @@
    "visits": 11
   },
   {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/hranenie/veshalki/",
-   "visits": 10
-  },
-  {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
+   "url": "/product-category/mirrors/wall/",
    "visits": 10
   },
   {
@@ -478,6 +478,6 @@
   }
  ],
  "goals": [],
- "bounce_rate": 26.1,
+ "bounce_rate": 26,
  "depth": 2.6
 }

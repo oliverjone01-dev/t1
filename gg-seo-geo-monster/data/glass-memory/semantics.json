@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-06",
+ "measured": "2026-08-07",
  "phrases": [
   {
    "phrase": "илики",
@@ -135,6 +135,14 @@
    "freq": 513,
    "url": "",
    "cluster": "надпись",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "изделия из металлопрофиля",
+   "pos": null,
+   "freq": 135,
+   "url": "",
+   "cluster": "изделия",
    "intent": "commercial"
   },
   {
@@ -383,14 +391,6 @@
    "freq": 460,
    "url": "",
    "cluster": "карелия",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "карьер возрождение",
-   "pos": null,
-   "freq": 273,
-   "url": "",
-   "cluster": "карьер",
    "intent": "commercial"
   },
   {
@@ -794,12 +794,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "как выбрать памятник",
+   "phrase": "гравировка портрета",
    "pos": null,
-   "freq": 558,
+   "freq": 1175,
    "url": "",
-   "cluster": "выбрать",
-   "intent": "informational"
+   "cluster": "гравировка",
+   "intent": "commercial"
   }
  ]
 }

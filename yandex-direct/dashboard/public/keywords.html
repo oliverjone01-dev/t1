@@ -1,0 +1,285 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Ключи и критерии - Директ GENGLASS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0F15;--card:#131820;--elev:#1A2029;--soft:#232B36;--line:#1F2731;--line2:#2B3441;
+--ink:#F1F4F8;--ink2:#A0AAB8;--ink3:#6A7484;--acc:#22D3EE;--acc2:#06B6D4;--accsoft:rgba(34,211,238,.10);
+--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--r:10px;--rl:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:13.5px/1.5 Inter,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:60px}
+body:before{content:'';position:fixed;inset:-40% -20% auto;height:70%;pointer-events:none;z-index:0;
+background:radial-gradient(ellipse 60% 50% at 30% 0%,rgba(34,211,238,.07),transparent 60%),
+radial-gradient(ellipse 40% 40% at 75% 10%,rgba(139,92,246,.05),transparent 60%)}
+.wrap,.topbar{position:relative;z-index:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card,.kpi{animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+.kpi:nth-child(2){animation-delay:.04s}.kpi:nth-child(3){animation-delay:.08s}
+.kpi:nth-child(4){animation-delay:.12s}.kpi:nth-child(5){animation-delay:.16s}.kpi:nth-child(6){animation-delay:.2s}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.dot.dr{animation:pulse 2s infinite}
+@media(prefers-reduced-motion:reduce){.card,.kpi{animation:none}.dot.dr{animation:none}}
+a{color:var(--acc);text-decoration:none}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 24px;
+background:rgba(11,15,21,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),#0369A1);
+box-shadow:0 0 18px rgba(34,211,238,.35);display:grid;place-items:center;font-weight:800;font-size:13px;color:#04222B}
+.tt{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:15px}
+.tt small{display:block;font-weight:500;font-size:10.5px;color:var(--ink3)}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav a{padding:7px 13px;border-radius:8px;color:var(--ink2);font-weight:600;font-size:12.5px}
+nav a:hover{background:var(--soft);color:var(--ink)}
+nav a.on{background:var(--accsoft);color:var(--acc)}
+.stamp{font-size:11px;color:var(--ink3);padding:4px 10px;border:1px solid var(--line);border-radius:20px;white-space:nowrap}
+.wrap{max-width:1440px;margin:0 auto;padding:22px 24px}
+h1{font-family:Manrope,Inter,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.sub{color:var(--ink3);font-size:12.5px;margin-bottom:18px}
+.sec{display:flex;align-items:center;gap:10px;margin:28px 0 12px;color:var(--ink2);font-weight:700;font-size:13px}
+.sec:before{counter-increment:sec;content:counter(sec,decimal-leading-zero);color:var(--acc);font-family:Manrope;font-weight:800}
+.sec:after{content:'';flex:1;height:1px;background:var(--line)}
+body{counter-reset:sec}
+.hero{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rl);padding:18px;position:relative;overflow:hidden}
+.card.hl:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--acc),transparent)}
+.card.hl.warn:before{background:linear-gradient(90deg,var(--warn),transparent)}
+.card.hl.dn:before{background:linear-gradient(90deg,var(--dn),transparent)}
+.lab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+.hv{font-family:Manrope,Inter,sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.05}
+.hv small{font-size:16px;color:var(--ink2);font-weight:700}
+.hnote{margin-top:8px;font-size:12px;color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi .l{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.kpi .v{font-family:Manrope;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
+.kpi .d{font-size:11px;margin-top:2px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);
+text-align:left;padding:8px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+tr:hover td{background:var(--elev)}
+td.n,th.n{text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.dg{background:var(--up)}.dy{background:var(--warn)}.dr{background:var(--dn)}.dx{background:var(--ink4,#3F4855)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700}
+.p-ok{background:rgba(16,185,129,.12);color:var(--up)}
+.p-warn{background:rgba(245,158,11,.12);color:var(--warn)}
+.p-hot{background:rgba(244,63,94,.12);color:var(--dn)}
+.p-mut{background:var(--soft);color:var(--ink3)}
+.badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;vertical-align:2px;margin-left:6px}
+.b-d{background:rgba(34,211,238,.12);color:var(--acc)}
+.b-h{background:rgba(245,158,11,.12);color:var(--warn)}
+.mut{color:var(--ink3)}.up{color:var(--up)}.dn{color:var(--dn)}.warn{color:var(--warn)}
+.note{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:var(--r);padding:12px 14px;font-size:12.5px;margin:12px 0}
+.cf{display:flex;gap:0;align-items:stretch;margin-top:10px}
+.cf-step{flex:1;background:var(--elev);border:1px solid var(--line);padding:12px;text-align:center}
+.cf-step:first-child{border-radius:var(--r) 0 0 var(--r)}
+.cf-step:last-child{border-radius:0 var(--r) var(--r) 0}
+.cf-v{font-family:Manrope;font-size:22px;font-weight:800}
+.cf-l{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.cf-conv{align-self:center;padding:0 8px;font-size:11px;font-weight:700;color:var(--ink3);white-space:nowrap}
+.cf-conv.key{color:var(--warn)}
+.bars .row{display:grid;grid-template-columns:220px 1fr 90px;gap:10px;align-items:center;padding:5px 0}
+.bars .bl{font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .bt{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--acc2),var(--acc));min-width:2px}
+.bars .bv{font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.chart-tip{position:fixed;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:8px;
+padding:8px 11px;font-size:12px;z-index:99;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.tblwrap{overflow-x:auto}
+footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:var(--ink3);font-size:11.5px;display:flex;gap:18px;flex-wrap:wrap}
+@media(max-width:900px){.hero,.grid2{grid-template-columns:1fr}.bars .row{grid-template-columns:120px 1fr 70px}}
+</style></head><body>
+<div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
+<nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html" class="on">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html">Сверка</a><a href="audit.html">Аудит</a></nav><div class="stamp">данные: 2026-06-08 .. 2026-07-07 · собрано 2026-07-08 15:37 UTC</div></div>
+<div class="wrap"><h1>Ключи и критерии</h1><div class="sub">266 критериев со статистикой за 30 дней</div>
+<div class="kpis">
+<div class="kpi"><div class="l">Ключей/критериев со статистикой</div><div class="v">266</div></div>
+<div class="kpi"><div class="l">Расход по критериям</div><div class="v">100 695 ₽</div></div>
+<div class="kpi"><div class="l">Автотаргетинг</div><div class="v">73%</div><div class="d">73 227 ₽ из 100 695 ₽</div></div>
+<div class="kpi"><div class="l">«Конверсия» кампании на кликах</div><div class="v">87%</div><div class="d">мягкая цель, НЕ лиды</div></div>
+</div>
+<div class="note"><b>Почему здесь нет «zombie-ключей».</b> Цель оптимизации кампаний срабатывает на 87% кликов [ДАННЫЕ], поэтому анализ слива по колонке «конверсии» не работает: у ключей с расходом конверсия есть почти всегда. Ключей с расходом и нулевой конверсией всего 4 на 287 ₽. Реальная эффективность считается только по CRM-лидам после закрытия P0 атрибуции.</div>
+<div class="sec">Автотаргетинг: концентрация расхода <span class="badge b-d">[ДАННЫЕ] 30д</span></div>
+<div class="card tblwrap"><table><tr><th>Критерий</th><th>Кампания / группа</th><th class="n">Показы</th><th class="n">Клики</th><th class="n">CTR</th><th class="n">CPC</th><th class="n">Расход</th><th class="n">Доля расхода</th></tr>
+<tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки-гармошки</td>
+<td class="n">3 120</td><td class="n">116</td><td class="n">3,72%</td><td class="n">118</td>
+<td class="n warn">13 735 ₽</td><td class="n">14%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки с декоративным стеклом</td>
+<td class="n">2 242</td><td class="n">44</td><td class="n">1,96%</td><td class="n">196</td>
+<td class="n warn">8 638 ₽</td><td class="n">9%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Раздвижные перегородки</td>
+<td class="n">1 510</td><td class="n">47</td><td class="n">3,11%</td><td class="n">146</td>
+<td class="n warn">6 882 ₽</td><td class="n">7%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки-стеллажи</td>
+<td class="n">2 851</td><td class="n">92</td><td class="n">3,23%</td><td class="n">72</td>
+<td class="n warn">6 599 ₽</td><td class="n">7%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки для зонирования комнаты</td>
+<td class="n">1 904</td><td class="n">45</td><td class="n">2,36%</td><td class="n">133</td>
+<td class="n warn">5 974 ₽</td><td class="n">6%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Дизайнерские перегородки</td>
+<td class="n">1 677</td><td class="n">25</td><td class="n">1,49%</td><td class="n">202</td>
+<td class="n warn">5 057 ₽</td><td class="n">5%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Межкомнатные перегородки</td>
+<td class="n">269</td><td class="n">36</td><td class="n">13,38%</td><td class="n">128</td>
+<td class="n warn">4 623 ₽</td><td class="n">5%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Раздвижные перегородки</td>
+<td class="n">328</td><td class="n">46</td><td class="n">14,02%</td><td class="n">83</td>
+<td class="n warn">3 804 ₽</td><td class="n">4%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки стекло металл</td>
+<td class="n">265</td><td class="n">26</td><td class="n">9,81%</td><td class="n">109</td>
+<td class="n warn">2 846 ₽</td><td class="n">3%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки для зонирования комнаты</td>
+<td class="n">178</td><td class="n">23</td><td class="n">12,92%</td><td class="n">96</td>
+<td class="n warn">2 216 ₽</td><td class="n">2%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки стекло металл</td>
+<td class="n">1 468</td><td class="n">16</td><td class="n">1,09%</td><td class="n">133</td>
+<td class="n warn">2 123 ₽</td><td class="n">2%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Межкомнатные перегородки</td>
+<td class="n">748</td><td class="n">11</td><td class="n">1,47%</td><td class="n">145</td>
+<td class="n warn">1 591 ₽</td><td class="n">2%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Лофт перегородки</td>
+<td class="n">155</td><td class="n">11</td><td class="n">7,1%</td><td class="n">135</td>
+<td class="n warn">1 487 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки-гармошки</td>
+<td class="n">125</td><td class="n">16</td><td class="n">12,8%</td><td class="n">74</td>
+<td class="n warn">1 185 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Каскадные перегородки</td>
+<td class="n">37</td><td class="n">7</td><td class="n">18,92%</td><td class="n">143</td>
+<td class="n warn">999 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Стационарные перегородки</td>
+<td class="n">640</td><td class="n">5</td><td class="n">0,78%</td><td class="n">180</td>
+<td class="n warn">899 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Складные перегородки</td>
+<td class="n">80</td><td class="n">12</td><td class="n">15%</td><td class="n">49</td>
+<td class="n warn">583 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки с декоративным стеклом</td>
+<td class="n">18</td><td class="n">1</td><td class="n">5,56%</td><td class="n">571</td>
+<td class="n warn">571 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Зеркальные перегородки</td>
+<td class="n">64</td><td class="n">9</td><td class="n">14,06%</td><td class="n">63</td>
+<td class="n warn">568 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки</td>
+<td class="n">97</td><td class="n">12</td><td class="n">12,37%</td><td class="n">46</td>
+<td class="n warn">547 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки-стеллажи</td>
+<td class="n">170</td><td class="n">25</td><td class="n">14,71%</td><td class="n">20</td>
+<td class="n warn">506 ₽</td><td class="n">1%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Лофт перегородки</td>
+<td class="n">60</td><td class="n">2</td><td class="n">3,33%</td><td class="n">192</td>
+<td class="n warn">384 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Цветные декоративные перегородки</td>
+<td class="n">10</td><td class="n">1</td><td class="n">10%</td><td class="n">342</td>
+<td class="n warn">342 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Телескопические перегородки</td>
+<td class="n">51</td><td class="n">7</td><td class="n">13,73%</td><td class="n">48</td>
+<td class="n warn">336 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Дизайнерские перегородки</td>
+<td class="n">16</td><td class="n">3</td><td class="n">18,75%</td><td class="n">47</td>
+<td class="n warn">141 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Арочные перегородки</td>
+<td class="n">35</td><td class="n">2</td><td class="n">5,71%</td><td class="n">70</td>
+<td class="n warn">141 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Складные перегородки</td>
+<td class="n">66</td><td class="n">2</td><td class="n">3,03%</td><td class="n">70</td>
+<td class="n warn">140 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Арочные перегородки</td>
+<td class="n">20</td><td class="n">1</td><td class="n">5%</td><td class="n">93</td>
+<td class="n warn">93 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Распашные перегородки</td>
+<td class="n">17</td><td class="n">2</td><td class="n">11,76%</td><td class="n">36</td>
+<td class="n warn">72 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Матовые перегородки</td>
+<td class="n">9</td><td class="n">1</td><td class="n">11,11%</td><td class="n">59</td>
+<td class="n warn">59 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки</td>
+<td class="n">129</td><td class="n">1</td><td class="n">0,78%</td><td class="n">41</td>
+<td class="n warn">41 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Зеркальные перегородки</td>
+<td class="n">74</td><td class="n">1</td><td class="n">1,35%</td><td class="n">28</td>
+<td class="n warn">28 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Перегородки с дверью</td>
+<td class="n">349</td><td class="n">1</td><td class="n">0,29%</td><td class="n">16</td>
+<td class="n warn">16 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Перегородки с дверью</td>
+<td class="n">9</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Стальные перегородки</td>
+<td class="n">25</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |<br>Стационарные перегородки</td>
+<td class="n">2</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Матовые перегородки</td>
+<td class="n">3</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Телескопические перегородки</td>
+<td class="n">22</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Каскадные перегородки</td>
+<td class="n">20</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Распашные перегородки</td>
+<td class="n">21</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |<br>Стальные перегородки</td>
+<td class="n">45</td><td class="n">0</td><td class="n">0%</td><td class="n">0</td>
+<td class="n warn">0 ₽</td><td class="n">0%</td></tr>
+</table>
+<div class="hnote" style="margin-top:10px">Автотаргетинг на 73% бюджета при молодом кабинете - вопрос к ревизии: качество площадок/запросов проверяется на странице <a href="queries.html">Запросы</a>. Решение о корректировке - к апруву Ивана.</div></div>
+<div class="sec">Топ-40 критериев по расходу <span class="badge b-d">[ДАННЫЕ] CRITERIA_PERFORMANCE_REPORT 30д</span></div>
+<div class="card tblwrap"><table><tr><th>Критерий</th><th>Кампания</th><th class="n">Показы</th><th class="n">Клики</th><th class="n">CTR</th><th class="n">CPC</th><th class="n">Расход</th><th class="n">Конв.(цель)</th></tr>
+<tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">3 120</td><td class="n">116</td><td class="n">3,72%</td>
+<td class="n">118</td><td class="n">13 735 ₽</td><td class="n">103</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">2 242</td><td class="n">44</td><td class="n">1,96%</td>
+<td class="n">196</td><td class="n">8 638 ₽</td><td class="n">35</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">1 510</td><td class="n">47</td><td class="n">3,11%</td>
+<td class="n">146</td><td class="n">6 882 ₽</td><td class="n">40</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">2 851</td><td class="n">92</td><td class="n">3,23%</td>
+<td class="n">72</td><td class="n">6 599 ₽</td><td class="n">80</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">1 904</td><td class="n">45</td><td class="n">2,36%</td>
+<td class="n">133</td><td class="n">5 974 ₽</td><td class="n">40</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">1 677</td><td class="n">25</td><td class="n">1,49%</td>
+<td class="n">202</td><td class="n">5 057 ₽</td><td class="n">23</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">269</td><td class="n">36</td><td class="n">13,38%</td>
+<td class="n">128</td><td class="n">4 623 ₽</td><td class="n">34</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">328</td><td class="n">46</td><td class="n">14,02%</td>
+<td class="n">83</td><td class="n">3 804 ₽</td><td class="n">37</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">265</td><td class="n">26</td><td class="n">9,81%</td>
+<td class="n">109</td><td class="n">2 846 ₽</td><td class="n">21</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">178</td><td class="n">23</td><td class="n">12,92%</td>
+<td class="n">96</td><td class="n">2 216 ₽</td><td class="n">21</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">1 468</td><td class="n">16</td><td class="n">1,09%</td>
+<td class="n">133</td><td class="n">2 123 ₽</td><td class="n">14</td></tr><tr><td>[перегородки] [зонирования] [комнаты] -раздвижные -стеллаж -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">206</td><td class="n">31</td><td class="n">15,05%</td>
+<td class="n">68</td><td class="n">2 098 ₽</td><td class="n">22</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">748</td><td class="n">11</td><td class="n">1,47%</td>
+<td class="n">145</td><td class="n">1 591 ₽</td><td class="n">10</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">155</td><td class="n">11</td><td class="n">7,1%</td>
+<td class="n">135</td><td class="n">1 487 ₽</td><td class="n">8</td></tr><tr><td>[раздвижные] [перегородки] -гардеробной -гостиную -дверью -заказ -заказать -замер -зеркальные -зонирования -изготовление -каскадные -квартиру -купе -купить -лофт -межкомнатные -монтажом -Москве -недорого -офиса -проем -производителя -производство -размерам -стеклянные -стоимость -студию -телескопические -установкой -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">158</td><td class="n">13</td><td class="n">8,23%</td>
+<td class="n">107</td><td class="n">1 396 ₽</td><td class="n">11</td></tr><tr><td>[раздвижные] [перегородки] [межкомнатные] -зонирования</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">80</td><td class="n">7</td><td class="n">8,75%</td>
+<td class="n">184</td><td class="n">1 285 ₽</td><td class="n">7</td></tr><tr><td>[перегородки] [зонирования] -гармошка -дизайнерские -заказ -зеркальные -каскадная -квартиры -комнаты -купить -лофт -матовые -металлические -мобильные -передвижные -пространства -раздвижные -складные -стационарная -стеклянные -стеллаж -студии -телескопическая</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">188</td><td class="n">25</td><td class="n">13,3%</td>
+<td class="n">51</td><td class="n">1 266 ₽</td><td class="n">20</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">125</td><td class="n">16</td><td class="n">12,8%</td>
+<td class="n">74</td><td class="n">1 185 ₽</td><td class="n">16</td></tr><tr><td>[межкомнатные] [перегородки] -гармошка -дверью -заказ -зеркальные -каскадная -квартиру -купить -металлические -москве -производителя -раздвижные -стеклянные -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">198</td><td class="n">14</td><td class="n">7,07%</td>
+<td class="n">83</td><td class="n">1 162 ₽</td><td class="n">12</td></tr><tr><td>[перегородки] [дверью] -арочная -заказ -купить -лофт -маятниковой -межкомнатная -раздвижной -распашной -стеклянные -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">143</td><td class="n">11</td><td class="n">7,69%</td>
+<td class="n">104</td><td class="n">1 142 ₽</td><td class="n">9</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">37</td><td class="n">7</td><td class="n">18,92%</td>
+<td class="n">143</td><td class="n">999 ₽</td><td class="n">6</td></tr><tr><td>перегородки раздвижной дверью -вместо -стеклянные</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">13</td><td class="n">1</td><td class="n">7,69%</td>
+<td class="n">924</td><td class="n">924 ₽</td><td class="n">1</td></tr><tr><td>[перегородки] [зонирования] [купить]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">82</td><td class="n">7</td><td class="n">8,54%</td>
+<td class="n">130</td><td class="n">909 ₽</td><td class="n">7</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">640</td><td class="n">5</td><td class="n">0,78%</td>
+<td class="n">180</td><td class="n">899 ₽</td><td class="n">4</td></tr><tr><td>[раздвижные] [стеклянные] [перегородки] -двери -комнату</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">57</td><td class="n">10</td><td class="n">17,54%</td>
+<td class="n">89</td><td class="n">894 ₽</td><td class="n">10</td></tr><tr><td>[складные] [перегородки] -гармошка -заказ -зонирования -москве -стеклянные -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">41</td><td class="n">7</td><td class="n">17,07%</td>
+<td class="n">118</td><td class="n">826 ₽</td><td class="n">7</td></tr><tr><td>[матовые] [перегородки] -заказ -зонирования -купить -москве -производителя -цена</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">35</td><td class="n">6</td><td class="n">17,14%</td>
+<td class="n">131</td><td class="n">784 ₽</td><td class="n">5</td></tr><tr><td>[дизайнерские] [перегородки] [москве]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">1</td><td class="n">1</td><td class="n">100%</td>
+<td class="n">702</td><td class="n">702 ₽</td><td class="n">1</td></tr><tr><td>[металлические] [перегородки] -зонирования -межкомнатные -стеллаж -черные</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">118</td><td class="n">10</td><td class="n">8,47%</td>
+<td class="n">63</td><td class="n">630 ₽</td><td class="n">8</td></tr><tr><td>[перегородка] [гармошка] [межкомнатная]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">8</td><td class="n">3</td><td class="n">37,5%</td>
+<td class="n">208</td><td class="n">623 ₽</td><td class="n">3</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">80</td><td class="n">12</td><td class="n">15%</td>
+<td class="n">49</td><td class="n">583 ₽</td><td class="n">10</td></tr><tr><td>[раздвижные] [перегородки] [производителя]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">1</td><td class="n">1</td><td class="n">100%</td>
+<td class="n">579</td><td class="n">579 ₽</td><td class="n">1</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">18</td><td class="n">1</td><td class="n">5,56%</td>
+<td class="n">571</td><td class="n">571 ₽</td><td class="n">1</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">64</td><td class="n">9</td><td class="n">14,06%</td>
+<td class="n">63</td><td class="n">568 ₽</td><td class="n">8</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">97</td><td class="n">12</td><td class="n">12,37%</td>
+<td class="n">46</td><td class="n">547 ₽</td><td class="n">11</td></tr><tr><td>[стеклянные] [перегородки] [лофт]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">3</td><td class="n">1</td><td class="n">33,33%</td>
+<td class="n">534</td><td class="n">534 ₽</td><td class="n">1</td></tr><tr><td>[перегородки] [установкой] -каскадные -раздвижные</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">62</td><td class="n">7</td><td class="n">11,29%</td>
+<td class="n">76</td><td class="n">529 ₽</td><td class="n">4</td></tr><tr><td>[распашные] [стеклянные] [перегородки] -дверью</td><td class="mut">[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |</td>
+<td class="n">1</td><td class="n">1</td><td class="n">100%</td>
+<td class="n">528</td><td class="n">528 ₽</td><td class="n">1</td></tr><tr><td>[перегородки] [цветным] [стеклом]</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">1</td><td class="n">1</td><td class="n">100%</td>
+<td class="n">515</td><td class="n">515 ₽</td><td class="n">1</td></tr><tr><td>---autotargeting</td><td class="mut">[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |</td>
+<td class="n">170</td><td class="n">25</td><td class="n">14,71%</td>
+<td class="n">20</td><td class="n">506 ₽</td><td class="n">24</td></tr>
+</table></div></div>
+<div class="chart-tip" id="tip"></div>
+<footer><span>[ДАННЫЕ] = цифра из API с источником · [ГИПОТЕЗА] = оценка с допущениями</span>
+<span>Слой: оперативный T-1 (несверенный с CRM)</span><span>Директ GENGROUP · Protocol 9 discipline</span></footer>
+<script>
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');
+if(t){tip.style.display='block';tip.innerHTML=t.dataset.tip;
+tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-10)+'px';
+tip.style.top=(e.clientY+14)+'px';}else tip.style.display='none';});
+</script></body></html>

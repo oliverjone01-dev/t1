@@ -1,0 +1,2619 @@
+{
+  "result": {
+    "Campaigns": [
+      {
+        "Id": 701081002,
+        "Name": "Системная кампания eLama",
+        "StartDate": "2025-06-11",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 0,
+          "Impressions": 0
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 0
+          }
+        },
+        "DailyBudget": {
+          "Amount": 3000000000,
+          "Mode": "STANDARD"
+        },
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "HIGHEST_POSITION"
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "NO"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "NO"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "YES"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706135444,
+        "Name": "[Товары] Столы | Поиск | Стратегия: Пакет Поиск",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 663,
+          "Impressions": 9220
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 6130639300
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706136297,
+        "Name": "Столы | Поиск |",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 1497,
+          "Impressions": 15791
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 22521639400
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706138089,
+        "Name": "[Товары] Столы | ТовГал | Стратегия: Пакет Товаврная галерея",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 279,
+          "Impressions": 108490
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 9557979900
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "PAY_FOR_CONVERSION_MULTIPLE_GOALS",
+              "PayForConversionMultipleGoals": {
+                "WeeklySpendLimit": 30000000000,
+                "BudgetType": "WEEKLY_BUDGET"
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706138187,
+        "Name": "Столы | ТовГал |",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 768,
+          "Impressions": 55405
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 29847315300
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706138188,
+        "Name": "[Товары] Столы | РСЯ | Стратегия: Пакет РСЯ",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 604,
+          "Impressions": 40553
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 2290700900
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706138190,
+        "Name": "Столы | РСЯ |",
+        "StartDate": "2026-01-07",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 2328,
+          "Impressions": 226484
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 13934138900
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356605,
+        "Name": "[Товары] Керамические столы | ТовГал |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 139,
+          "Impressions": 48613
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 10550884200
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "PAY_FOR_CONVERSION_MULTIPLE_GOALS",
+              "PayForConversionMultipleGoals": {
+                "WeeklySpendLimit": 30000000000,
+                "BudgetType": "WEEKLY_BUDGET"
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356610,
+        "Name": "Керамические столы | Поиск |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 140,
+          "Impressions": 1196
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 9742678000
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356620,
+        "Name": "[Товары] Керамические столы | Поиск |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 30,
+          "Impressions": 751
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 1041479800
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356623,
+        "Name": "Керамические столы | ТовГал |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 80,
+          "Impressions": 5681
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 5009797200
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356630,
+        "Name": "Керамические столы | РСЯ |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 1886,
+          "Impressions": 125289
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 27740672100
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706356636,
+        "Name": "[Товары] Керамические столы | РСЯ |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 167,
+          "Impressions": 40333
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 3402273700
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370700,
+        "Name": "[Товары] Межкомнатные перегородки | ТовГал |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 81,
+          "Impressions": 30004
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 4701840400
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "PAY_FOR_CONVERSION_MULTIPLE_GOALS",
+              "PayForConversionMultipleGoals": {
+                "WeeklySpendLimit": 30000000000,
+                "BudgetType": "WEEKLY_BUDGET"
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370706,
+        "Name": "Межкомнатные перегородки | Поиск |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 379,
+          "Impressions": 3409
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 25615656200
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370709,
+        "Name": "[Товары] Межкомнатные перегородки | Поиск |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 40,
+          "Impressions": 275
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 1617695100
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370715,
+        "Name": "Межкомнатные перегородки | ТовГал |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 516,
+          "Impressions": 24962
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 27653230400
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370721,
+        "Name": "Межкомнатные перегородки | РСЯ |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 358,
+          "Impressions": 33692
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 6955564400
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706370727,
+        "Name": "[Товары] Межкомнатные перегородки | РСЯ |",
+        "StartDate": "2026-01-16",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 7,
+          "Impressions": 1230
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 134703500
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "YES"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706502097,
+        "Name": "Зеркала | Поиск |",
+        "StartDate": "2026-01-21",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 10,
+          "Impressions": 52
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 735926300
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706502106,
+        "Name": "Зеркала | ТовГал |",
+        "StartDate": "2026-01-21",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 0,
+          "Impressions": 8
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 0
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 40000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 40000000000,
+                  "IsMinimumExplorationBudgetCustom": "YES"
+                },
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706502116,
+        "Name": "Зеркала | РСЯ |",
+        "StartDate": "2026-01-21",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 1,
+          "Impressions": 34
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 30545100
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "AVERAGE_CPA_MULTIPLE_GOALS",
+              "AverageCpaMultipleGoals": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "ExplorationBudget": {
+                  "MinimumExplorationBudget": 20000000000,
+                  "IsMinimumExplorationBudgetCustom": "NO"
+                },
+                "BidCeiling": null
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706983545,
+        "Name": "Ретаргетинг | Товары",
+        "StartDate": "2026-02-05",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 1436,
+          "Impressions": 370795
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 65882725600
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "PAY_FOR_CONVERSION_MULTIPLE_GOALS",
+              "PayForConversionMultipleGoals": {
+                "WeeklySpendLimit": 70000000000,
+                "BudgetType": "WEEKLY_BUDGET"
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "YES"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 706995323,
+        "Name": "Ретаргетинг | Каталог",
+        "StartDate": "2026-02-05",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "MODERATION",
+        "State": "ARCHIVED",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Кампания перенесена в архив",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 745,
+          "Impressions": 120527
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 33269110300
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "SERVING_OFF"
+            },
+            "Network": {
+              "BiddingStrategyType": "PAY_FOR_CONVERSION_MULTIPLE_GOALS",
+              "PayForConversionMultipleGoals": {
+                "WeeklySpendLimit": 70000000000,
+                "BudgetType": "WEEKLY_BUDGET"
+              }
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "NO"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 710747853,
+        "Name": "[На заказ] Межкомнатные перегородки | Поиск | НБ=5т.р. | mCPC |",
+        "StartDate": "2026-06-15",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Идут показы",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 491,
+          "Impressions": 4194
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 45033338400
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "WB_MAXIMUM_CLICKS",
+              "WbMaximumClicks": {
+                "WeeklySpendLimit": 5000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      },
+      {
+        "Id": 710919957,
+        "Name": "[На заказ] Межкомнатные перегородки | ТГ | НБ=20т.р. | mCPC |",
+        "StartDate": "2026-06-22",
+        "Type": "TEXT_CAMPAIGN",
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusPayment": "ALLOWED",
+        "StatusClarification": "Идут показы",
+        "SourceId": null,
+        "Statistics": {
+          "Clicks": 447,
+          "Impressions": 18672
+        },
+        "Currency": "RUB",
+        "Funds": {
+          "Mode": "SHARED_ACCOUNT_FUNDS",
+          "SharedAccountFunds": {
+            "Refund": 0,
+            "Spend": 58296644200
+          }
+        },
+        "DailyBudget": null,
+        "EndDate": null,
+        "TextCampaign": {
+          "BiddingStrategy": {
+            "Search": {
+              "BiddingStrategyType": "WB_MAXIMUM_CLICKS",
+              "WbMaximumClicks": {
+                "WeeklySpendLimit": 20000000000,
+                "BudgetType": "WEEKLY_BUDGET",
+                "BidCeiling": null
+              }
+            },
+            "Network": {
+              "BiddingStrategyType": "SERVING_OFF"
+            }
+          },
+          "Settings": [
+            {
+              "Option": "ADD_METRICA_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_OPENSTAT_TAG",
+              "Value": "NO"
+            },
+            {
+              "Option": "ADD_TO_FAVORITES",
+              "Value": "NO"
+            },
+            {
+              "Option": "CAMPAIGN_EXACT_PHRASE_MATCHING_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "DAILY_BUDGET_ALLOWED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_AREA_OF_INTEREST_TARGETING",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_COMPANY_INFO",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_EXTENDED_AD_TITLE",
+              "Value": "YES"
+            },
+            {
+              "Option": "ENABLE_SITE_MONITORING",
+              "Value": "YES"
+            },
+            {
+              "Option": "EXCLUDE_PAUSED_COMPETING_ADS",
+              "Value": "NO"
+            },
+            {
+              "Option": "MAINTAIN_NETWORK_CPC",
+              "Value": "NO"
+            },
+            {
+              "Option": "REQUIRE_SERVICING",
+              "Value": "NO"
+            },
+            {
+              "Option": "SHARED_ACCOUNT_ENABLED",
+              "Value": "YES"
+            },
+            {
+              "Option": "ALTERNATIVE_TEXTS_ENABLED",
+              "Value": "NO"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

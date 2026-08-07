@@ -1,0 +1,720 @@
+{
+  "result": {
+    "Ads": [
+      {
+        "Id": 17750762694,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668462,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Лофт перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "лофт-перегородки",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762695,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668463,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Межкомнатные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762696,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668464,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Межкомнатные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762697,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668465,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Арочные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762698,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668466,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Дизайнерские перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762699,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668467,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Зеркальные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762700,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668468,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки из стекла и металла на заказ под ключ",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/kombinirovannye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762701,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668469,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Матовые перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "лофт-перегородки",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762702,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668470,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки для зонирования на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762703,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668471,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки с дверью на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762704,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668472,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки с декоративным стеклом на заказ",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/peregorodki-s-dekorativnym-steklom/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762705,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668473,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки-гармошки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762707,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668475,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Телескопические перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762708,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668476,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Каскадные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750762709,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760668477,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Раздвижные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828681,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700607,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки-стеллажи на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-stellazhi/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828682,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700608,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Распашные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/raspashnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828683,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700609,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Складные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/skladnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828684,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700610,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Стальные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828685,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700611,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Стационарные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/staczionarnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17750828687,
+        "CampaignId": 710747853,
+        "AdGroupId": 5760700613,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Цветные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/czvetnye-dekorativnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": null
+        }
+      },
+      {
+        "Id": 17760177266,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918824,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Лофт перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "лофт-перегородки",
+          "AdImageHash": "cOjE1yvFNGGin5qRgkpmEQ"
+        }
+      },
+      {
+        "Id": 17760177267,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918825,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Межкомнатные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "S1yEs8s4PXLEXe23jE-haQ"
+        }
+      },
+      {
+        "Id": 17760177268,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918826,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Межкомнатные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "E7a6rUS0kzYSG3r88sE-9Q"
+        }
+      },
+      {
+        "Id": 17760177269,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918827,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Арочные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "nv5EI5RMvertDlyBzg8CJw"
+        }
+      },
+      {
+        "Id": 17760177270,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918828,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Дизайнерские перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "PeUKVyZ17K1Re8wC-5bCdg"
+        }
+      },
+      {
+        "Id": 17760177271,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918829,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Зеркальные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "PeUKVyZ17K1Re8wC-5bCdg"
+        }
+      },
+      {
+        "Id": 17760177272,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918830,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки из стекла и металла на заказ под ключ",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/kombinirovannye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "S1yEs8s4PXLEXe23jE-haQ"
+        }
+      },
+      {
+        "Id": 17760177273,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918831,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Матовые перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "лофт-перегородки",
+          "AdImageHash": "fNU6ZvKUUYruumCPLn5JPQ"
+        }
+      },
+      {
+        "Id": 17760177274,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918832,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки для зонирования на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "GlttG_1s3_YaN6IZP1fuAQ"
+        }
+      },
+      {
+        "Id": 17760177275,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918833,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки с дверью на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "E7a6rUS0kzYSG3r88sE-9Q"
+        }
+      },
+      {
+        "Id": 17760177276,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918834,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки с декоративным стеклом на заказ",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/peregorodki-s-dekorativnym-steklom/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "fNU6ZvKUUYruumCPLn5JPQ"
+        }
+      },
+      {
+        "Id": 17760177277,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918835,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки-гармошки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "tW85XuK6rAin_ty2c1xNig"
+        }
+      },
+      {
+        "Id": 17760177278,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918836,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Телескопические перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "4ASeYV9MHtj-eoyo2ycWsA"
+        }
+      },
+      {
+        "Id": 17760177279,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918837,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Каскадные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "4ASeYV9MHtj-eoyo2ycWsA"
+        }
+      },
+      {
+        "Id": 17760177280,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918838,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Раздвижные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "ISReia9IxJjB_YQdwFN2Sw"
+        }
+      },
+      {
+        "Id": 17760177281,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918839,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Перегородки-стеллажи на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-stellazhi/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "8SI2tb17hHRibkh6zjhr9g"
+        }
+      },
+      {
+        "Id": 17760177282,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918840,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Распашные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/raspashnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "cOjE1yvFNGGin5qRgkpmEQ"
+        }
+      },
+      {
+        "Id": 17760177283,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918841,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Складные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/skladnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "tW85XuK6rAin_ty2c1xNig"
+        }
+      },
+      {
+        "Id": 17760177284,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918842,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Стальные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "E7a6rUS0kzYSG3r88sE-9Q"
+        }
+      },
+      {
+        "Id": 17760177285,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918843,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Стационарные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/staczionarnye-peregorodki-na-zakaz/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "X9ZKvi4IKWFaXqVyzuDkEw"
+        }
+      },
+      {
+        "Id": 17760177286,
+        "CampaignId": 710919957,
+        "AdGroupId": 5763918844,
+        "Status": "ACCEPTED",
+        "State": "ON",
+        "StatusClarification": "Идут показы.",
+        "TextAd": {
+          "Text": "Российский бренд дизайнерской мебели. Доставка и монтаж по Москве и МО",
+          "Title": "Цветные перегородки на заказ под ваш интерьер",
+          "Title2": "GENGLASS",
+          "Href": "https://genglass.ru/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/czvetnye-dekorativnye-peregorodki/?utm_source=yandex&utm_medium=source_type:{source_type}|place:{source}&utm_campaign=peregorodki_{campaign_id}&utm_term=keyword:{keyword}|retargeting_id:{retargeting_id}|key_id:{phrase_id}&utm_content=gbid:{gbid}|creative_id:{creative_id}|ad_id:{ad_id}|banner_id:{banner_id}|addphrases:{addphrases}|match_type:{match_type}|matched_keyword:{matched_keyword}|coef_goal:{coef_goal_context_id}|device:{device_type}|device_id:{device_id}|position_type:{position_type}|position:{position}|blok:zagolovok&roistat=direct6_{source_type}_{banner_id}_{keyword}&roistat_referrer={source}&roistat_pos={position_type}_{position}&ploshadka={source}",
+          "Mobile": "NO",
+          "DisplayUrlPath": "перегородки-на-заказ",
+          "AdImageHash": "8Ca81l4IkwuuxLeMOGvAHg"
+        }
+      }
+    ]
+  }
+}

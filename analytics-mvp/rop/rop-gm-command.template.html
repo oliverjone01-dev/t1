@@ -1053,10 +1053,13 @@ function render(){
   // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
   // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
   // стандарт Ивана: квал-лид = СОЗДАННАЯ СДЕЛКА, поэтому средняя ступень = m.deals (бьётся с CR1 в шапке)
-  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort; // квал-лид = успешная стадия лида, а не создание сделки
+  // ДВА ТРЕКА: воронка = ЛИД-канал (продажи ИЗ лида). Прямые/дилерские продажи (без лида) идут мимо
+  // заявка→квал, поэтому в лид-воронку не входят - иначе конверсия вылетает за 100% (было 82 из 12).
+  const _cohortWon=D.filter(d=>SOLD(d)),_wonLead=_cohortWon.filter(d=>d.fromLead).length,_wonDirect=_cohortWon.length-_wonLead;
+  const _leadN=m.leads||1,_qualN=m.qual,_wonN=_wonLead; // продажи ИЗ лида (честная лид-воронка)
   const _cv1=m.leads?m.qual/m.leads:0,_cvQS=_qualN?Math.min(_wonN/_qualN,1):0,_cvE2E=_leadN?_wonN/_leadN:0;
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
-  const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
+  const _lostN=D.filter(d=>d.lost).length,_closedN=_cohortWon.length+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
   const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(stg[0][1],stg[1][1],stg[2][1],1),n=3,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_leadN?_wonN/_leadN:0;
@@ -1082,7 +1085,7 @@ function render(){
     ? `<div id="cvDyn"></div>`
     : `${_cvFunnel}${_churn}${_oi}`;
   const B_dynLeads=`<div class="card"><div class="card-h"><div><div class="card-title">Динамика заявок ${info('Поток лидов по неделям: квал / неквал / итого во времени. Вопрос: растёт ли входящий поток и его качество, есть ли провалы. Вывод: спад «итого» - вопрос к маркетингу и каналам; рост «неквал» - падает качество трафика.')}</div><div class="card-sub">поток заявок и его качество</div></div><div style="display:flex;align-items:center;gap:9px"><span class="ctl-lbl">Разрез</span><div class="seg" id="dimSeg"></div></div></div><div id="dynBox"></div></div>`;
-  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. В режиме «Динамика» - конверсии по неделям, жирная линия = сквозная заявка→продажа; последние недели всегда занижены циклом сделки (~33 дня): свежие ещё не успели закрыться. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">путь заявка → сделка → продажа</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
+  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. В режиме «Динамика» - конверсии по неделям, жирная линия = сквозная заявка→продажа; последние недели всегда занижены циклом сделки (~33 дня): свежие ещё не успели закрыться. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">лид-воронка: заявка → сделка → продажа · <b style="color:#C084FC">прямые без лида: ${fmt(_wonDirect)}</b> (дилеры, мимо воронки)</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
   /* 2. ЛИДЫ */
   /* уровни собираются в конце */
   // data-quality: атрибуция направления ЗА ВЫБРАННЫЙ ПЕРИОД - направления берутся из поля динамически

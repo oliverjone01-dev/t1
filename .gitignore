@@ -27,3 +27,13 @@ yandex-direct.json
 # Собирать локально скриптом .claude/skills/kostya-ai/scripts/build-site.py
 analytics-mvp/public/kostya-managers.html
 analytics-mvp/public/kostya/
+
+# Машиночитаемые копии разборов Кости: плоский текст с именными характеристиками
+# сотрудников, индексируется поиском по коду. Исходные docx требуют скачивания,
+# эти файлы открываются в один клик. Генерируются локально скриптом docx-to-md.py.
+Kostya-analitycs-2026/extracted/*.md
+
+# Трассы и ручные оверрайды РОПа: внутри промпты, цитаты клиентской переписки
+# и персональные оценки сотрудников.
+traces/**/kostya*
+kostya-overrides/

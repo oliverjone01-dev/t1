@@ -37,3 +37,5 @@ Kostya-analitycs-2026/extracted/*.md
 # и персональные оценки сотрудников.
 traces/**/kostya*
 kostya-overrides/
+PASSWORDS.local.json
+analytics-mvp/public/platform/

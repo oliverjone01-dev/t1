@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kostya-AI. Качество работы менеджеров GENGROUP</title>
+<style>
+:root{
+  --bg:#06121a; --panel:#0b1a24; --panel2:#0e2130; --line:#233242; --line2:#2a3a4a;
+  --tx:#dfe9f0; --mut:#5d7484; --acc:#22D3EE; --acc2:#0E7490;
+  --ok:#34D399; --warn:#f59e0b; --bad:#FF4438; --pink:#ec4899;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
+header{padding:22px 24px 0;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0a1c27,#06121a)}
+h1{margin:0 0 4px;font-size:21px;letter-spacing:.2px}
+h1 span{color:var(--acc)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+nav{display:flex;gap:2px;flex-wrap:wrap}
+nav button{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mut);
+  padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+nav button:hover{color:var(--tx)}
+nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{padding:22px 24px 60px;max-width:1440px}
+section{display:none} section.on{display:block}
+h2{font-size:17px;margin:26px 0 12px;font-weight:600}
+h2:first-child{margin-top:0}
+h3{font-size:15px;margin:20px 0 8px}
+p{margin:8px 0}
+.grid{display:grid;gap:12px}
+.k4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.k3{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .v{font-size:26px;font-weight:600;line-height:1.15}
+.kpi .l{color:var(--mut);font-size:12px;margin-top:4px}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;border:1px solid var(--line2);color:var(--mut)}
+.tag.ok{color:var(--ok);border-color:#1c5a45} .tag.bad{color:var(--bad);border-color:#5c2320}
+.tag.warn{color:var(--warn);border-color:#5e4415} .tag.acc{color:var(--acc);border-color:var(--acc2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-weight:500;font-size:12px;position:sticky;top:0;background:var(--panel2)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)} .bar i.warn{background:var(--warn)}
+.note{background:var(--panel2);border-left:3px solid var(--acc2);padding:10px 14px;border-radius:0 8px 8px 0;
+  color:var(--mut);font-size:13px;margin:12px 0}
+.note.bad{border-left-color:var(--bad)}
+.mgr{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;background:var(--panel);overflow:hidden}
+.mgr>summary{padding:14px 16px;cursor:pointer;list-style:none;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mgr>summary::-webkit-details-marker{display:none}
+.mgr>summary:hover{background:var(--panel2)}
+.mgr .nm{font-weight:600;min-width:190px}
+.mgr .body{padding:0 16px 18px;border-top:1px solid var(--line)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.q{background:var(--panel2);border-left:3px solid var(--line2);padding:8px 12px;margin:6px 0;
+  border-radius:0 6px 6px 0;font-size:13px;color:#c3d3de}
+.q.bad{border-left-color:var(--bad)}
+ul{margin:6px 0 6px 18px;padding:0} li{margin:4px 0}
+.script{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;background:var(--panel)}
+.script .when{color:var(--acc);font-size:12px;margin-bottom:4px}
+.script .why{color:var(--mut);font-size:13px;margin-bottom:10px}
+.small{font-size:12px;color:var(--mut)}
+.hr{height:1px;background:var(--line);margin:22px 0}
+footer{padding:20px 24px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
+@media(max-width:700px){main{padding:16px 12px 40px}header{padding:16px 12px 0}th,td{white-space:normal}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Kostya-<span>AI</span>. Качество работы менеджеров</h1>
+  <div class="sub" id="sub"></div>
+  <nav id="nav"></nav>
+</header>
+<main>
+  <section id="t-sum" class="on"></section>
+  <section id="t-mgr"></section>
+  <section id="t-deal"></section>
+  <section id="t-scr"></section>
+  <section id="t-fup"></section>
+</main>
+<footer id="foot"></footer>
+<script>
+const D = /*__DATA__*/null;
+const E = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => (Math.round(n||0)).toLocaleString('ru-RU')+' ₽';
+const pc = (v,d=0) => v==null ? '&mdash;' : (v*100).toFixed(d)+'%';
+const mins = v => v==null ? '&mdash;' : v<60 ? v+' мин' : v<480 ? Math.floor(v/60)+' ч '+String(Math.round(v%60)).padStart(2,'0') : (v/480).toFixed(1)+' раб.дн';
+const url = id => 'https://glassmemory.bitrix24.ru/crm/deal/details/'+id+'/';
+const bar = (v,cls='') => `<div class="bar"><i class="${cls}" style="width:${Math.max(0,Math.min(100,v*100)).toFixed(0)}%"></i></div>`;
+
+/* Индекс качества коммуникации. Веса - гипотеза, калибровка после 2 недель прогонов.
+   Компоненты: скорость ответа, доведение диалога, конкретность сроков, квалификация, чистота текста. */
+function commIndex(m){
+  const r=m.reply||{};
+  const speed = r.within60==null?0:r.within60;
+  const tail  = r.over240==null?0:1-r.over240;
+  const answered = m.in? 1-Math.min(1,m.unansweredCount/Math.max(1,m.dialogs)) : 0;
+  const concrete = m.concreteTimeShare==null?0:m.concreteTimeShare;
+  const qual = Math.min(1,(m.qualifyRate||0)/1.0);
+  const dp = m.defectsPer100Out||{};
+  const clean = Math.max(0,1-((dp['T07_ОРФОГРАФИЯ']||0)+(dp['T01_БЕЗ_ПОЯСНЕНИЯ']||0)+(dp['T02_БЕЗ_ПРИВЕТСТВИЯ']||0))/40);
+  const v = speed*.25 + tail*.15 + answered*.20 + concrete*.15 + qual*.10 + clean*.15;
+  return Math.round(v*100)/10;
+}
+/* Минимальная выборка та же, что в kostya-audit: 10 сделок. Ниже неё один плохой диалог
+   двигает индекс на балл и светофор начинает врать, поэтому полосу не присваиваем. */
+const MIN_DEALS = 10;
+const band = (i,m) => (m && m.deals < MIN_DEALS) ? ['мало данных','']
+  : i>=7.5?['молодец','ok']:i>=5?['норма','warn']:['в разборе','bad'];
+
+/* ---------- вкладки ---------- */
+const TABS=[['t-sum','Сводка'],['t-mgr','Менеджеры'],['t-deal','Сделки'],['t-scr','Скрипты продаж'],['t-fup','Дожимы и лид-магниты']];
+document.getElementById('nav').innerHTML = TABS.map(([id,n],i)=>
+  `<button data-t="${id}" class="${i?'':'on'}">${n}</button>`).join('');
+document.getElementById('nav').onclick = e => {
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
+  window.scrollTo(0,0);
+};
+
+const M = D.managers.map(m=>({...m,idx:commIndex(m)}))
+  .sort((a,b)=>(b.deals>=MIN_DEALS)-(a.deals>=MIN_DEALS) || b.idx-a.idx);
+document.getElementById('sub').innerHTML =
+  `Переписка ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)} &middot; ${D.totals.messages.toLocaleString('ru-RU')} сообщений &middot; `+
+  `${D.totals.deals} сделок &middot; ${M.length} менеджеров с объёмом от 25 исходящих`;
+document.getElementById('foot').innerHTML =
+  `Источник: выгрузка диалогов Bitrix24 воронки C49 и снимок rop.json. Собрано ${E(D.meta.generated_at.slice(0,16).replace('T',' '))}. `+
+  `Индекс коммуникации и пороги помечены как гипотеза до калибровки. Персональные оценки сотрудников требуют апрува Ивана (Protocol 6).`;
+
+/* ---------- 1. Сводка ---------- */
+(function(){
+  const t=D.totals;
+  const allUn = M.reduce((s,m)=>s+m.unansweredCount,0);
+  const allEsc = M.reduce((s,m)=>s+(m.escalationCount||0),0);
+  const allObj = M.reduce((s,m)=>s+(m.priceObjCount||0),0);
+  const prom = M.reduce((s,m)=>s+m.promises,0);
+  const promC = M.reduce((s,m)=>s+Math.round((m.concreteTimeShare||0)*m.promises),0);
+  const qOut = M.reduce((s,m)=>s+Object.entries(m.outDet||{}).filter(([k])=>k.startsWith('Q_')).reduce((a,[,v])=>a+v,0),0);
+  const kt=D.kostyaTotals;
+  document.getElementById('t-sum').innerHTML = `
+  <h2>Светофор по качеству коммуникации</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Менеджер</th><th class="num">Индекс</th><th>Полоса</th><th class="num">Сделок</th>
+      <th class="num">Исх.</th><th class="num">Медиана ответа</th><th class="num">p90</th>
+      <th class="num">Ответ &lt;1ч</th><th class="num">Без ответа</th><th class="num">Срок в обещании</th>
+      <th class="num">Квалификация</th><th class="num">Эскалации</th></tr></thead>
+    <tbody>${M.map(m=>{const [b,c]=band(m.idx,m);const r=m.reply||{};return `<tr>
+      <td>${E(m.mgr)}</td>
+      <td class="num">${m.deals>=MIN_DEALS?"<b>"+m.idx.toFixed(1)+"</b>":"&mdash;"}</td>
+      <td><span class="tag ${c}">${b}</span></td>
+      <td class="num">${m.deals}</td><td class="num">${m.out.toLocaleString('ru-RU')}</td>
+      <td class="num">${mins(r.medianMin)}</td><td class="num">${mins(r.p90Min)}</td>
+      <td class="num">${pc(r.within60)}</td>
+      <td class="num">${m.unansweredCount?`<span class="tag bad">${m.unansweredCount}</span>`:'0'}</td>
+      <td class="num">${pc(m.concreteTimeShare)}</td>
+      <td class="num">${(m.qualifyRate||0).toFixed(2)}%</td>
+      <td class="num">${m.escalationCount||0}</td></tr>`}).join('')}</tbody>
+  </table></div>
+  <div class="note">Индекс складывается из скорости ответа (25%), длины хвоста p90 (15%), доведения диалога до ответа (20%),
+    конкретности сроков в обещаниях (15%), чистоты текста (15%) и квалификации клиента (10%). Веса
+    <b>гипотеза</b>, пересматриваются после двух недель ежедневных прогонов вместе с Иваном.</div>
+
+  <h2>Что происходит в отделе</h2>
+  <div class="grid k4">
+    <div class="card kpi"><div class="v">${mins(t.replyMedianMin)}</div><div class="l">медиана ответа клиенту, рабочее время</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${mins(t.replyP90Min)}</div><div class="l">p90 ответа: каждый десятый ждёт столько</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${allUn}</div><div class="l">диалогов, где последнее слово осталось за клиентом</div></div>
+    <div class="card kpi"><div class="v" style="color:${promC/prom<0.2?'var(--bad)':'var(--tx)'}">${(100*promC/prom).toFixed(0)}%</div><div class="l">обещаний с конкретным сроком (${promC} из ${prom})</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${qOut}</div><div class="l">вопросов про бюджет, срок и ЛПР на ${t.out.toLocaleString('ru-RU')} исходящих</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--warn)">${allObj}</div><div class="l">возражений по цене от клиентов</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${allEsc}</div><div class="l">обращений к руководителю и претензий</div></div>
+    <div class="card kpi"><div class="v">${t.out.toLocaleString('ru-RU')} / ${t.in.toLocaleString('ru-RU')}</div><div class="l">исходящих / входящих сообщений</div></div>
+  </div>
+
+  <h2>Три вывода, которые видны сразу</h2>
+  <div class="grid k3">
+    <div class="card"><h3 style="margin-top:0;color:var(--bad)">Квалификации нет</h3>
+      <p class="small">Вопрос про бюджет встречается в 0.1% исходящих, про сроки в 0.1%, про лицо принимающее решение
+      в 0.02%. Расчёты готовятся вслепую: без денег клиента, без его дедлайна и без понимания, кто подписывает.</p>
+      <p class="small">При этом упоминаний скидки в переписке в семь раз больше, чем вопросов о бюджете.
+      Отдел торгуется вместо того, чтобы выяснять.</p></div>
+    <div class="card"><h3 style="margin-top:0;color:var(--warn)">Медиана хорошая, хвост плохой</h3>
+      <p class="small">Половина ответов уходит за ${mins(t.replyMedianMin)}, это сильный результат.
+      Но каждый десятый ответ занимает ${mins(t.replyP90Min)}. Клиенты уходят именно в хвосте, а средние цифры его прячут.</p></div>
+    <div class="card"><h3 style="margin-top:0;color:var(--bad)">Обещания без сроков</h3>
+      <p class="small">Из ${prom} обещаний вида «отправлю», «уточню», «перезвоню» конкретную дату или время содержат ${promC}.
+      Это ровно тот дефект, который Костя описал у семи менеджеров из восьми в июне.</p></div>
+  </div>
+  ${kt?`<h2>Дисциплина по открытым сделкам (снимок Bitrix)</h2>
+  <div class="grid k4">
+    <div class="card kpi"><div class="v">${kt.openDeals}</div><div class="l">открытых сделок на ${money(kt.openBudget)}</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${kt.byCode.D01||0}</div><div class="l">зависли на стадии дольше лимита</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--bad)">${kt.byCode.D03||0}</div><div class="l">просроченных дел</div></div>
+    <div class="card kpi"><div class="v" style="color:var(--warn)">${kt.byCode.D10||0}</div><div class="l">сделок без направления или ассортимента</div></div>
+  </div>`:''}
+  <div class="note">Что этот разбор не видит: ${D.meta.caveats.map(c=>E(c)).join(' ')}</div>`;
+})();
+
+/* ---------- 2. Менеджеры ---------- */
+(function(){
+  const DEF=[['T03_ОБЕЩАНИЕ_БЕЗ_СРОКА','обещание без срока'],['T03_РАЗМЫТЫЙ_СРОК','размытая формулировка'],
+    ['T01_БЕЗ_ПОЯСНЕНИЯ','сообщение без пояснения'],['T02_БЕЗ_ПРИВЕТСТВИЯ','нет приветствия в первом за день'],
+    ['T07_ОРФОГРАФИЯ','орфография и пробелы'],['T04_ЖАРГОН','жаргон в извинении'],['T06_ЗАЩИТА','защита вместо извинения']];
+  document.getElementById('t-mgr').innerHTML = M.map(m=>{
+    const [b,c]=band(m.idx,m), r=m.reply||{}, dp=m.defectsPer100Out||{};
+    const deals=(D.dealsByMgr[m.mgr]||[]);
+    const flags=(D.flagsByMgr[m.mgr]||[]);
+    const kk=(D.kostyaManagers||{})[m.mgr];
+    return `<details class="mgr">
+      <summary>
+        <span class="nm">${E(m.mgr)}</span>
+        <span class="tag ${c}">${b}${m.deals>=MIN_DEALS?" "+m.idx.toFixed(1):""}</span>
+        <span class="small">${m.deals} сделок &middot; ${m.out.toLocaleString('ru-RU')} исходящих &middot; медиана ${mins(r.medianMin)}</span>
+        <span class="chips">
+          ${m.unansweredCount?`<span class="tag bad">${m.unansweredCount} без ответа</span>`:''}
+          ${m.escalationCount?`<span class="tag bad">${m.escalationCount} эскалаций</span>`:''}
+          ${m.priceObjCount?`<span class="tag warn">${m.priceObjCount} «дорого»</span>`:''}
+        </span>
+      </summary>
+      <div class="body">
+        <h3>Скорость и доведение</h3>
+        <div class="grid k4">
+          <div class="card kpi"><div class="v">${mins(r.medianMin)}</div><div class="l">медиана ответа</div></div>
+          <div class="card kpi"><div class="v">${mins(r.p75Min)}</div><div class="l">p75</div></div>
+          <div class="card kpi"><div class="v" style="color:var(--bad)">${mins(r.p90Min)}</div><div class="l">p90, худшая десятая</div></div>
+          <div class="card kpi"><div class="v">${pc(r.within60)}</div><div class="l">ответов быстрее часа</div>${bar(r.within60||0,(r.within60||0)>.7?'ok':'warn')}</div>
+          <div class="card kpi"><div class="v">${pc(m.initiatedShare)}</div><div class="l">диалогов начал сам</div></div>
+          <div class="card kpi"><div class="v">${pc(m.concreteTimeShare)}</div><div class="l">обещаний с конкретным сроком</div>${bar(m.concreteTimeShare||0,(m.concreteTimeShare||0)>.3?'ok':'bad')}</div>
+          <div class="card kpi"><div class="v">${(m.qualifyRate||0).toFixed(2)}%</div><div class="l">сообщений с квалификацией</div></div>
+          <div class="card kpi"><div class="v">${m.avgOutChars||'—'}</div><div class="l">средняя длина сообщения, знаков</div></div>
+        </div>
+
+        <h3>Дефекты текста на 100 исходящих</h3>
+        <div class="scroll"><table><thead><tr><th>Дефект</th><th class="num">На 100 сообщений</th><th class="num">Всего</th><th>Уровень</th></tr></thead><tbody>
+        ${DEF.filter(([k])=>dp[k]!=null).map(([k,n])=>{const v=dp[k]||0;const cl=v>15?'bad':v>5?'warn':'ok';
+          return `<tr><td>${n}</td><td class="num">${v}</td><td class="num">${(m.defects||{})[k]||0}</td><td>${bar(Math.min(1,v/40),cl)}</td></tr>`}).join('')}
+        </tbody></table></div>
+
+        ${m.escalations&&m.escalations.length?`<h3 style="color:var(--bad)">Эскалации: клиент требовал руководителя или писал претензию</h3>
+        ${m.escalations.map(e=>`<div class="q bad"><a href="${url(e.deal)}" target="_blank">Сделка ${E(e.deal)}</a>
+          ${e.amount?` &middot; ${money(e.amount)}`:''} &middot; <span class="small">${E((e.at||'').slice(0,16).replace('T',' '))}</span><br>${E(e.text)}</div>`).join('')}`:''}
+
+        ${m.unanswered&&m.unanswered.length?`<h3>Оставлено без ответа (топ по сумме)</h3>
+        ${m.unanswered.slice(0,6).map(u=>`<div class="q"><a href="${url(u.deal)}" target="_blank">Сделка ${E(u.deal)}</a>
+          ${u.amount?` &middot; ${money(u.amount)}`:''} &middot; <span class="small">${E((u.clientAt||'').slice(0,16).replace('T',' '))}, стадия ${E(u.stage)}</span><br>${E(u.clientText)}</div>`).join('')}`:''}
+
+        ${m.worstReplies&&m.worstReplies.length?`<h3>Самые долгие ответы</h3>
+        <div class="scroll"><table><thead><tr><th>Сделка</th><th class="num">Ждал</th><th>Клиент написал</th><th>Ответ менеджера</th></tr></thead><tbody>
+        ${m.worstReplies.slice(0,6).map(w=>`<tr><td><a href="${url(w.deal)}" target="_blank">${E(w.deal)}</a></td>
+          <td class="num" style="color:var(--bad)">${mins(w.minutes)}</td>
+          <td style="white-space:normal;max-width:340px">${E(w.clientText)}</td>
+          <td style="white-space:normal;max-width:340px">${E(w.reply)}</td></tr>`).join('')}
+        </tbody></table></div>`:''}
+
+        ${flags.length?`<h3>Флаги дисциплины по открытым сделкам</h3>
+        <div class="scroll"><table><thead><tr><th>Код</th><th>Сделка</th><th class="num">Сумма</th><th>Факт</th></tr></thead><tbody>
+        ${flags.slice(0,12).map(f=>`<tr><td><span class="tag ${f.severity==='crit'?'bad':f.severity==='high'?'warn':''}">${E(f.code)}</span></td>
+          <td><a href="${E(f.url)}" target="_blank">${E(f.deal)}</a></td><td class="num">${money(f.budget)}</td>
+          <td style="white-space:normal">${E(f.fact)}</td></tr>`).join('')}
+        </tbody></table></div>`:''}
+
+        <h3>Крупнейшие сделки в переписке</h3>
+        <div class="scroll"><table><thead><tr><th>Сделка</th><th class="num">Сумма</th><th>Стадия</th>
+          <th class="num">Сообщений</th><th class="num">вх/исх</th><th class="num">Дней</th><th>Последнее слово</th></tr></thead><tbody>
+        ${deals.slice(0,12).map(d=>`<tr><td><a href="${url(d.id)}" target="_blank">${E(d.id)}</a></td>
+          <td class="num">${money(d.amount)}</td><td>${E(d.stage)}</td><td class="num">${d.n}</td>
+          <td class="num">${d.in}/${d.out}</td><td class="num">${d.days}</td>
+          <td>${d.lastDir==='in'?'<span class="tag bad">за клиентом</span>':'<span class="tag ok">за нами</span>'}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div></details>`;
+  }).join('');
+})();
+
+/* ---------- 3. Сделки ---------- */
+(function(){
+  const rows=[];
+  for(const [mgr,ds] of Object.entries(D.dealsByMgr)) for(const d of ds) rows.push({mgr,...d});
+  rows.sort((a,b)=>b.amount-a.amount);
+  const el=document.getElementById('t-deal');
+  el.innerHTML=`
+  <h2>Детализация обработки заказов</h2>
+  <div class="note">Одна строка на сделку: сколько сообщений, кто кого тащил, за кем осталось последнее слово,
+    сколько дней жила переписка. «Последнее слово за клиентом» означает, что диалог оборвался на его сообщении.</div>
+  <div class="card" style="margin-bottom:12px">
+    <input id="q" placeholder="Фильтр: менеджер, стадия, номер сделки, тип изделия"
+      style="width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--tx);
+      padding:9px 12px;border-radius:8px;font:inherit">
+  </div>
+  <div class="scroll"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th class="num">Сумма</th><th>Стадия</th>
+    <th>Тип клиента</th><th>Изделие</th><th class="num">Сообщ.</th><th class="num">вх</th><th class="num">исх</th>
+    <th class="num">Дней</th><th>Последнее слово</th></tr></thead><tbody id="tb"></tbody></table></div>
+  <p class="small" id="cnt"></p>`;
+  const tb=el.querySelector('#tb'), cnt=el.querySelector('#cnt');
+  function draw(f){
+    const q=(f||'').toLowerCase().trim();
+    const r=q?rows.filter(x=>[x.id,x.mgr,x.stage,x.item,x.client].join(' ').toLowerCase().includes(q)):rows;
+    tb.innerHTML=r.slice(0,300).map(d=>`<tr><td><a href="${url(d.id)}" target="_blank">${E(d.id)}</a></td>
+      <td>${E(d.mgr)}</td><td class="num">${money(d.amount)}</td><td>${E(d.stage)}</td>
+      <td>${E(d.client)}</td><td>${E(d.item)}</td><td class="num">${d.n}</td><td class="num">${d.in}</td>
+      <td class="num">${d.out}</td><td class="num">${d.days}</td>
+      <td>${d.lastDir==='in'?'<span class="tag bad">за клиентом</span>':'<span class="tag ok">за нами</span>'}</td></tr>`).join('');
+    cnt.textContent=`Показано ${Math.min(300,r.length)} из ${r.length}. В карточках менеджеров показаны только их топ-60 сделок по сумме.`;
+  }
+  el.querySelector('#q').oninput=e=>draw(e.target.value);
+  draw('');
+})();
+
+/* ---------- 4. Скрипты продаж ---------- */
+document.getElementById('t-scr').innerHTML = `
+  <h2>Скрипты продаж</h2>
+  <div class="note">Каждый скрипт привязан к конкретной ситуации и к цифре из нашей переписки, а не к абстрактной
+    методике. Формулировки согласованы с фразебуком Кости: конкретные сроки вместо «в ближайшее время»,
+    извинение перед объяснением, вопрос с выбором вместо «актуально?».</div>
+  ${D.scripts.map(s=>`<div class="script">
+    <div class="when">${E(s.when)}</div>
+    <h3 style="margin:0 0 6px">${E(s.title)}</h3>
+    <div class="why">${E(s.why)}</div>
+    ${s.script.map(l=>`<div class="q">${E(l)}</div>`).join('')}
+    <h3 style="font-size:13px;color:var(--bad)">Так нельзя</h3>
+    <ul class="small">${s.dont.map(x=>`<li>${E(x)}</li>`).join('')}</ul>
+  </div>`).join('')}`;
+
+/* ---------- 5. Дожимы и лид-магниты ---------- */
+document.getElementById('t-fup').innerHTML = `
+  <h2>Скрипты дожима: когда напомнить о себе и что сказать</h2>
+  <div class="note">Алгоритм трёх касаний из разборов Кости, разложенный по ситуациям. После третьего касания
+    сделка уходит в отложенные с датой следующего контакта, а не остаётся висеть на активной стадии.</div>
+  ${D.followups.map(f=>`<div class="script">
+    <h3 style="margin:0 0 10px">${E(f.sit)}</h3>
+    <div class="scroll" style="margin-bottom:10px"><table><thead><tr><th style="width:170px">Когда</th><th>Что написать</th></tr></thead><tbody>
+      <tr><td><span class="tag acc">${E(f.t1)}</span></td><td style="white-space:normal">${E(f.m1)}</td></tr>
+      <tr><td><span class="tag acc">${E(f.t2)}</span></td><td style="white-space:normal">${E(f.m2)}</td></tr>
+      <tr><td><span class="tag acc">${E(f.t3)}</span></td><td style="white-space:normal">${E(f.m3)}</td></tr>
+    </tbody></table></div>
+    <p class="small"><b>Дальше:</b> ${E(f.after)}</p>
+    <p class="small"><b>Что приложить:</b> ${E(f.magnet)}</p>
+  </div>`).join('')}
+
+  <div class="hr"></div>
+  <h2>Лид-магниты</h2>
+  <div class="note">Колонка «отправок» посчитана по реальным ссылкам и упоминаниям в переписке за
+    ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)}. Материалы со статусом «НЕТ» в отделе отсутствуют:
+    это не идея на будущее, а дыра, через которую уходят конкретные возражения.</div>
+  <div class="scroll"><table><thead><tr><th>Материал</th><th>Статус</th><th class="num">Отправок</th>
+    <th>Когда давать</th><th>Зачем</th></tr></thead><tbody>
+  ${D.magnets.map(g=>`<tr>
+    <td style="white-space:normal">${g.url?`<a href="${E(g.url)}" target="_blank">${E(g.name)}</a>`:E(g.name)}</td>
+    <td><span class="tag ${g.status==='НЕТ'||g.status==='почти НЕТ'?'bad':g.status.includes('разовое')?'warn':'ok'}">${E(g.status)}</span></td>
+    <td class="num">${g.used}</td>
+    <td style="white-space:normal;max-width:280px">${E(g.when)}</td>
+    <td style="white-space:normal;max-width:380px">${E(g.why)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+
+// Сортировка по клику на заголовок. Решение Ивана от 2026-08-08, вопрос 5: разборы
+// выкатываются всем десяти сразу, но читать их скопом нельзя, нужен вход по одному
+// столбцу. Обработчик один на документ и переживает перерисовку вкладок.
+document.addEventListener('click', e => {
+  const th = e.target.closest('th');
+  if (!th) return;
+  const table = th.closest('table'), tb = table && table.tBodies[0];
+  if (!tb || !tb.rows.length) return;
+  const col = [...th.parentNode.children].indexOf(th);
+  const dir = th.dataset.dir === 'asc' ? -1 : 1;
+  for (const h of th.parentNode.children) { delete h.dataset.dir; h.textContent = h.textContent.replace(/ [▲▼]$/, ''); }
+  th.dataset.dir = dir === 1 ? 'asc' : 'desc';
+  th.textContent += dir === 1 ? ' ▲' : ' ▼';
+  // Число вытаскиваем из текста ячейки: там «15.5 мин», «2 037 135 ₽», «77%».
+  const val = r => {
+    const t = (r.cells[col]?.innerText || '').trim();
+    const n = parseFloat(t.replace(/ |\s/g, '').replace(',', '.').replace(/[^\d.\-]/g, ''));
+    return Number.isNaN(n) || !/\d/.test(t) ? null : n;
+  };
+  const rows = [...tb.rows];
+  const numeric = rows.every(r => val(r) !== null);
+  rows.sort((a, b) => numeric
+    ? (val(a) - val(b)) * dir
+    : (a.cells[col]?.innerText || '').localeCompare(b.cells[col]?.innerText || '', 'ru') * dir);
+  tb.append(...rows);
+});
+document.addEventListener('mouseover', e => {
+  const th = e.target.closest('thead th');
+  if (th && !th.style.cursor) { th.style.cursor = 'pointer'; th.title = 'Клик - сортировка'; }
+});
+</script>
+</body>
+</html>

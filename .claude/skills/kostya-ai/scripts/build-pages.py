@@ -15,7 +15,7 @@
 Запуск:
   python3 build-pages.py analysis.json per_manager.json out_dir [kostya.json]
 """
-import json, sys, os, re, html, statistics
+import json, sys, os, re, html, hashlib, statistics
 from collections import Counter
 from datetime import datetime, timedelta
 
@@ -127,6 +127,15 @@ def slug(name):
     s = (name or "").lower().replace("ё", "е")
     out = "".join(TRANSLIT.get(c, c if c.isalnum() else "-") for c in s)
     return re.sub(r"-+", "-", out).strip("-")
+
+
+def page_token(name):
+    """Имя файла не называет человека. Содержимое кабинета зашифровано, но адрес
+    страницы виден всем: lakomova-tatyana.html сообщает, чей это кабинет, до того
+    как кто-либо ввёл пароль, и позволяет перечислить весь отдел подбором адресов.
+    Токен устойчив: один и тот же человек всегда получает один и тот же адрес."""
+    h = hashlib.sha1(name_key(name).encode("utf-8")).hexdigest()[:10]
+    return f"k-{h}"
 
 
 def name_key(s):
@@ -784,7 +793,7 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
             continue
         pm = PM.get(m["mgr"], {})
         kk = kk_by_key.get(name_key(m["mgr"]))
-        sl = slug(m["mgr"])
+        sl = page_token(m["mgr"])
         # Слепок того же самого прогона не является прошлым разбором. Без этой
         # проверки повторная сборка на тех же данных печатала бы «две недели
         # назад: столько же», то есть выдуманное сравнение.

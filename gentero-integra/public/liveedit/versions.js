@@ -176,7 +176,8 @@
       'placeholder="подпись версии, необязательно" maxlength="80">' +
       '<button type="button" class="ver-primary" id="ver-save">Сохранить версию</button></div>' +
       '<div class="ver-list" id="ver-list"></div>' +
-      '<div class="ver-tools"><button type="button" class="ver-mini" id="ver-export">Выгрузить копию</button></div>' +
+      '<div class="ver-tools"><button type="button" class="ver-mini" id="ver-export">Выгрузить копию</button>' +
+      '<button type="button" class="ver-mini" id="ver-login" hidden>Войти, чтобы сохранять</button></div>' +
       '<div class="ver-f" id="ver-f" role="status" aria-live="polite" aria-atomic="true"></div>';
     document.body.appendChild(panel);
     list = panel.querySelector('#ver-list');
@@ -200,6 +201,13 @@
       i.value = '';
     });
     panel.querySelector('#ver-export').addEventListener('click', exportAll);
+    panel.querySelector('#ver-login').addEventListener('click', function () {
+      if (!window.LiveAuth) return;
+      window.LiveAuth.prompt({ server: true }).then(function (ok) {
+        if (ok) { paintAuth(); note('вошли, теперь можно сохранять версии'); }
+      });
+    });
+    paintAuth();
     list.addEventListener('click', onListClick);
     banner.addEventListener('click', onBannerClick);
     document.addEventListener('keydown', function (ev) {
@@ -207,6 +215,18 @@
       if (previewing) { exitPreview(); return; }
       if (panel.classList.contains('open')) toggle(false);
     });
+  }
+
+  // Модуль версий подключают и отдельно от редактора блоков. Тогда войти
+  // больше негде, а без входа сервер отклоняет любую запись.
+  function paintAuth() {
+    if (!panel) return;
+    var need = (storeCfg.storage && storeCfg.storage !== 'local' && storeCfg.storage.url)
+      ? !(window.LiveAuth && window.LiveAuth.can()) : false;
+    var b = panel.querySelector('#ver-login');
+    if (b) b.hidden = !need;
+    var s = panel.querySelector('#ver-save');
+    if (s) s.disabled = need;
   }
 
   function toggle(force) {
@@ -219,6 +239,7 @@
     document.documentElement.classList.toggle('ver-shift', on);
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
     if (on) {
+      paintAuth();
       load();
       (panel.querySelector('#ver-label') || panel.querySelector('.ver-x')).focus();
     }
@@ -468,6 +489,11 @@
   function init() {
     if (CFG.ui === false) return;   // зритель документа истории не видит
     css();
+    // LiveAuth поднимаем сами: раньше его инициализировал только blockedit.js,
+    // и при отдельной встройке модуля версий все записи отлетали с 401
+    if (window.LiveAuth && CFG.storage && CFG.storage.url && !window.LiveAuth.ready()) {
+      window.LiveAuth.init({ url: CFG.storage.url, key: CFG.storage.key });
+    }
     build();
     // ключ мог прийти до загрузки этого файла, тогда SETCRYPT уже не позовут
     load();

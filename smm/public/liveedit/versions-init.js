@@ -50,6 +50,7 @@
   };
 
   window.LIVEEDIT_KEY = function (cryptoKey) {
+    if (!window.LiveCrypt) { window.__leKeyPending = cryptoKey; return; }  // crypt.js ещё не приехал
     var c = window.LiveCrypt.fromKey(cryptoKey);
     window.VERSIONS.crypt = c;
     if (window.VERSIONS_SETCRYPT) window.VERSIONS_SETCRYPT(c);
@@ -61,7 +62,10 @@
     var s = document.createElement('script');
     s.src = base + files[i] + '?v=' + CORE_VERSION;
     s.onload = function () {
-      if (files[i] === 'crypt.js' && d.crypt !== 'wait') window.VERSIONS.crypt = window.LiveCrypt.off;
+      if (files[i] === 'crypt.js') {
+        if (d.crypt !== 'wait') window.VERSIONS.crypt = window.LiveCrypt.off;
+        else if (window.__leKeyPending) window.VERSIONS.crypt = window.LiveCrypt.fromKey(window.__leKeyPending);
+      }
       next(i + 1);
     };
     s.onerror = function () {

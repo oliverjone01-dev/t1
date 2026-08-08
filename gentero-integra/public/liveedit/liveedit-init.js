@@ -52,7 +52,10 @@
   var storage = (d.storage === 'local' || /[?&]store=local(&|$)/.test(location.search)) ? 'local' : SUPABASE;
   var showUI = d.always === '1' || /[?&]edit=1(&|$)/.test(location.search);
 
+  var awaitKey = d.crypt === 'wait';
+
   window.BLOCKEDIT = {
+    awaitKey: awaitKey,
     docKey: docKey,
     storage: storage,
     root: d.root || '#doc',
@@ -75,15 +78,22 @@
 
   // Готовность патчей. Хост ждёт её перед первой отрисовкой, иначе зритель
   // увидит шаблонный текст и его подмену на глазах.
-  var resolveReady, readyDone = false;
+  //
+  // Отсчёт таймаута начинается НЕ с загрузки страницы: пароль печатают дольше
+  // четырёх секунд, и таймер снимал бы ожидание раньше, чем ключ вообще придёт.
+  // Пока ждём ключ, готовность не резолвится ничем, кроме самого ключа.
+  var resolveReady, readyDone = false, keyCame = !awaitKey;
   window.LIVEEDIT_READY = new Promise(function (r) { resolveReady = r; });
   function ready() { if (!readyDone) { readyDone = true; resolveReady(); } }
-  setTimeout(ready, 4000);          // сеть могла умереть, показ ждать не будет
+  function armTimeout() { setTimeout(ready, 4000); }   // сеть умерла, показ ждать не будет
+  if (!awaitKey) armTimeout();
 
   // Страница с шифрованием отдаёт ключ сюда, когда пользователь ввёл пароль.
   // Ключ может прийти раньше, чем догрузятся ядра, поэтому держим его у себя,
   // а ядра при старте сами забирают его из window.BLOCKEDIT.crypt.
   window.LIVEEDIT_KEY = function (cryptoKey) {
+    keyCame = true;
+    armTimeout();
     if (!window.LiveCrypt) {         // crypt.js ещё не приехал
       window.__leKeyPending = cryptoKey;
       return window.LIVEEDIT_READY;
@@ -93,22 +103,32 @@
     window.VERSIONS.crypt = c;
     var jobs = [];
     if (window.BLOCKEDIT_SETCRYPT) jobs.push(window.BLOCKEDIT_SETCRYPT(c));
+    else if (window.LiveCrypt) jobs.push(waitCore());     // ядро ещё грузится
     if (window.VERSIONS_SETCRYPT) jobs.push(window.VERSIONS_SETCRYPT(c));
     Promise.all(jobs).then(ready, ready);
     return window.LIVEEDIT_READY;
   };
 
+  // ядро приехало позже ключа: дожидаемся его первой загрузки
+  function waitCore() {
+    return new Promise(function (res) {
+      var t = setInterval(function () {
+        if (!window.BLOCKEDIT_INFO) return;
+        var h = window.BLOCKEDIT_INFO().health;
+        if (h && (h.ok || h.err)) { clearInterval(t); res(); }
+      }, 100);
+      setTimeout(function () { clearInterval(t); res(); }, 4000);
+    });
+  }
+
   var files = ['crypt.js', 'store.js', 'auth.js', 'blockedit.js', 'versions.js'];
   (function next(i) {
-    if (i >= files.length) {
-      if (d.crypt !== 'wait') ready();       // без шифрования ядра грузят патчи сами
-      return;
-    }
+    if (i >= files.length) return;
     var s = document.createElement('script');
     s.src = base + files[i] + '?v=' + CORE_VERSION;
     s.onload = function () {
       if (files[i] === 'crypt.js') {
-        if (d.crypt !== 'wait') {
+        if (!awaitKey) {
           window.BLOCKEDIT.crypt = window.LiveCrypt.off;
           window.VERSIONS.crypt = window.LiveCrypt.off;
         } else if (window.__leKeyPending) {   // пароль ввели быстрее, чем грузились ядра
@@ -120,20 +140,47 @@
       next(i + 1);
     };
     // Обрыв одного файла не должен молча обезоруживать остальные.
+    // Обрыв ядра нельзя проглотить: плашку рисует blockedit.js, а если не
+    // загрузился именно он, предупредить зрителя больше некому.
     s.onerror = function () {
       console.error('liveedit: не загрузился ' + files[i]);
+      warn('правки не загрузились: не открылся модуль ' + files[i] + '. На экране шаблонный текст');
       if (files[i] === 'crypt.js' || files[i] === 'store.js') { ready(); return; }
       next(i + 1);
     };
     document.head.appendChild(s);
   })(0);
 
-  // Ядра уже стартовали и могли сами загрузить патчи: снимаем ожидание,
-  // как только blockedit отчитался о первой загрузке.
-  var poll = setInterval(function () {
-    if (!window.BLOCKEDIT_INFO) return;
-    var i = window.BLOCKEDIT_INFO();
-    if (i.health && (i.health.ok || i.health.err)) { clearInterval(poll); ready(); }
-  }, 120);
-  setTimeout(function () { clearInterval(poll); }, 5000);
+  function warn(text) {
+    if (document.querySelector('.le-warn')) return;
+    var st = document.createElement('style');
+    st.textContent = '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;' +
+      'align-items:center;justify-content:center;flex-wrap:wrap;background:#A83810;color:#fff;' +
+      'font:600 13px/1.4 sans-serif;padding:10px 16px;text-align:center}' +
+      '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;' +
+      'border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer}' +
+      '@media print{.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}}';
+    document.head.appendChild(st);
+    var w = document.createElement('div');
+    w.className = 'le-warn';
+    w.setAttribute('role', 'status');
+    var sp = document.createElement('span');
+    sp.textContent = text;
+    var bt = document.createElement('button');
+    bt.type = 'button';
+    bt.textContent = 'Скрыть';
+    bt.onclick = function () { w.remove(); };
+    w.appendChild(sp); w.appendChild(bt);
+    (document.body || document.documentElement).appendChild(w);
+  }
+
+  // Без ожидания ключа ядра грузят патчи сами: снимаем ожидание по их отчёту.
+  if (!awaitKey) {
+    var poll = setInterval(function () {
+      if (!window.BLOCKEDIT_INFO) return;
+      var h = window.BLOCKEDIT_INFO().health;
+      if (h && (h.ok || h.err)) { clearInterval(poll); ready(); }
+    }, 120);
+    setTimeout(function () { clearInterval(poll); }, 5000);
+  }
 })();

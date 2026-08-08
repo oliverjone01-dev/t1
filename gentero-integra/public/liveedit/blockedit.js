@@ -107,7 +107,10 @@
     all.forEach(function (el) {
       if (el.closest('[data-noedit]')) return;
       if (el.closest('.le-bar') || el.closest('.le-panel') || el.closest('.ver-panel')) return;
-      if (!el.hasAttribute('data-edit') && el.querySelector(SEL)) return;   // не самый внутренний
+      // «самый внутренний» проверяем по data-le, а не по data-edit: иначе
+      // сохранённый в блок список делает родителя невыбираемым, дети
+      // регистрируются заново, и orig[] снимается уже с правленого текста
+      if (!el.hasAttribute('data-le') && el.querySelector(SEL)) return;
       if (!norm(el)) return;
       // data-le уже стоит - берём его. Иначе хэш посчитается от уже
       // отредактированного текста и патч потеряет свой же адрес.
@@ -132,7 +135,9 @@
   /* ---------- санитайзер ---------- */
 
   var OK_TAG = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, BR: 1, SPAN: 1, A: 1, UL: 1, OL: 1, LI: 1, P: 1, SMALL: 1, SUP: 1, SUB: 1, CODE: 1, DIV: 1 };
-  var OK_ATTR = { class: 1, href: 1, target: 1, rel: 1, 'data-edit': 1 };
+  // data-edit намеренно НЕ в списке: иначе содержимое базы чеканит
+  // произвольные идентификаторы блоков
+  var OK_ATTR = { class: 1, href: 1, target: 1, rel: 1 };
 
   // Разбор идёт в inert-документе, а не в живом div: там <img onerror> и
   // <iframe> не начнут грузиться и выполняться ещё до того, как мы их вырежем.
@@ -177,6 +182,11 @@
   }
 
   function apply() {
+    // В режиме просмотра версии в DOM лежит старый текст. Наложить поверх него
+    // текущие патчи значило бы врать: баннер продолжает обещать старую версию.
+    if (window.VERSIONS_PREVIEWING && window.VERSIONS_PREVIEWING()) {
+      return { total: roots().querySelectorAll('[data-le]').length, applied: 0 };
+    }
     var els = scan(), hit = 0;
     els.forEach(function (el) {
       var id = el.getAttribute('data-le');
@@ -192,10 +202,17 @@
     var live = {};
     Array.prototype.slice.call(roots().querySelectorAll('[data-le]'))
       .forEach(function (el) { live[el.getAttribute('data-le')] = 1; });
+    var others = {};        // префиксы других вкладок этого же документа
+    Object.keys(orig).forEach(function (id) { others[id] = 1; });
     return Object.keys(patches).filter(function (id) {
-      // чужая вкладка не сирота: у неё другой префикс документа
+      if (live[id]) return false;
+      // Блок другой вкладки не сирота: он появится, когда вкладку откроют.
+      // Признак «видели этот id хоть раз в этой сессии» работает и для ручных
+      // data-edit, у которых нет префикса документа, а раньше фильтр по
+      // префиксу выбрасывал из счёта именно те блоки, что объявлены важными.
       var doc = (roots().getAttribute('data-doc') || 'doc') + '/';
-      return id.indexOf(doc) === 0 && !live[id];
+      if (id.indexOf('/') > 0 && id.indexOf(doc) !== 0) return false;
+      return !!others[id];
     });
   }
 
@@ -205,12 +222,14 @@
   // валидно встаёт на место другого.
   function aad(id) { return DOCKEY + '|' + id; }
 
-  var health = { ok: false, err: null, rows: 0, bad: 0, trimmed: 0 };
+  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false };
 
   function load() {
-    health = { ok: false, err: null, rows: 0, bad: 0, trimmed: 0 };
+    var w = health.write || 0;
+    health = { ok: false, err: null, rows: 0, bad: 0, write: w, cut: false };
     return store.list().then(function (rows) {
       health.rows = rows.length;
+      if (rows.truncated) health.cut = rows.truncated;
       return Promise.all(rows.map(function (r) {
         return crypt.decrypt(r.payload, aad(r.block_id))
           .then(function (html) { patches[r.block_id] = html; })
@@ -234,6 +253,7 @@
   }
 
   function save(id, html) {
+    var was = patches[id];
     patches[id] = html;
     dirty++;
     return crypt.encrypt(html, aad(id))
@@ -242,7 +262,15 @@
         flash('сохранено');
         if (window.VERSIONS_TOUCH) window.VERSIONS_TOUCH();
       })
-      .catch(function (e) { flash('НЕ сохранилось: ' + e.message, true); });
+      .catch(function (e) {
+        // Карта обязана остаться равной базе. Иначе ближайший авто-снимок
+        // зафиксирует редакцию, которой на сервере нет, и на другом экране
+        // блок покажет шаблон без единого признака расхождения.
+        if (was == null) delete patches[id]; else patches[id] = was;
+        health.write = (health.write || 0) + 1;
+        flash('НЕ сохранилось: ' + e.message, true);
+        report();
+      });
   }
 
   function reset(id, el) {
@@ -263,6 +291,8 @@
   function report() {
     var o = orphans().length;
     var bad = [];
+    if (health.cut) bad.push('правок в базе больше, чем загружено: показаны первые ' + health.cut);
+    if (health.write) bad.push('правок не сохранилось на сервер: ' + health.write + '. На экране они есть, в базе нет');
     if (health.err) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
     else if (health.bad) bad.push(health.bad + ' из ' + health.rows + ' правок не открылись этим ключом');
     if (o) bad.push('правок без блока: ' + o + ' (текст в шаблоне переписан, правка осталась в базе)');
@@ -274,9 +304,18 @@
       noteEl.setAttribute('aria-live', 'polite');
       document.body.appendChild(noteEl);
     }
-    noteEl.innerHTML = '<span>' + bad.join('. ') + '</span>' +
-      '<button type="button" aria-label="Скрыть предупреждение">Скрыть</button>';
-    noteEl.querySelector('button').onclick = function () { noteEl.remove(); noteEl = null; };
+    // textContent, а не innerHTML: сюда попадает тело ответа сервера, а этот
+    // же модуль в двух шагах выше объявляет, что содержимому базы не доверяет
+    noteEl.textContent = '';
+    var sp = document.createElement('span');
+    sp.textContent = bad.join('. ');
+    var bt = document.createElement('button');
+    bt.type = 'button';
+    bt.textContent = 'Скрыть';
+    bt.setAttribute('aria-label', 'Скрыть предупреждение');
+    bt.onclick = function () { noteEl.remove(); noteEl = null; };
+    noteEl.appendChild(sp);
+    noteEl.appendChild(bt);
   }
 
   /* ---------- правка ---------- */
@@ -404,59 +443,16 @@
   }
 
   /* ---------- вход редактора ----------
-     На сервере право писать проверяет Supabase (политики RLS "to authenticated"),
-     поэтому спрашиваем почту и пароль. В локальном режиме писать некуда, кроме
-     своего браузера, там достаточно кода. Кода в разметке больше нет.        */
+     Форма живёт в auth.js: она нужна и модулю версий тоже. На сервере право
+     писать проверяет Supabase, локально хватает кода.                        */
 
   function gateOpen() {
-    var srv = !store.local && window.LiveAuth;
-    var ov = document.createElement('div');
-    ov.className = 'le-ov';
-    ov.innerHTML = '<div class="le-modal" role="dialog" aria-modal="true" aria-labelledby="le-mt">' +
-      '<h2 id="le-mt">' + (srv ? 'Вход редактора' : 'Код редактора') + '</h2>' +
-      '<p>' + (srv
-        ? 'Правка сохраняется на сервер, поэтому нужен ваш логин. Доступ действует до закрытия вкладки.'
-        : 'Правка сохраняется только в этот браузер.') + '</p>' +
-      '<form id="le-f">' +
-      (srv ? '<label for="le-em">Почта</label><input id="le-em" type="email" autocomplete="username" required>' : '') +
-      '<label for="le-pw">' + (srv ? 'Пароль' : 'Код') + '</label>' +
-      '<input id="le-pw" type="password" autocomplete="current-password" required>' +
-      '<p class="le-err" id="le-er" role="status" aria-live="polite"></p>' +
-      '<div class="le-row"><button type="button" class="le-ghost" id="le-cancel">Отмена</button>' +
-      '<button type="submit" class="le-primary" id="le-go">Войти</button></div>' +
-      '</form></div>';
-    document.body.appendChild(ov);
-    var back = document.activeElement;
-    var f = ov.querySelector('#le-f'), er = ov.querySelector('#le-er');
-    (ov.querySelector('#le-em') || ov.querySelector('#le-pw')).focus();
-
-    function close() {
-      ov.remove();
-      document.removeEventListener('keydown', esc, true);
-      if (back && back.focus) back.focus();
-    }
-    function esc(ev) {
-      if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(); return; }
-      if (ev.key !== 'Tab') return;
-      var f2 = ov.querySelectorAll('input,button');
-      var first = f2[0], last = f2[f2.length - 1];
-      if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
-      else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
-    }
-    document.addEventListener('keydown', esc, true);
-    ov.querySelector('#le-cancel').addEventListener('click', close);
-
-    f.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var pw = ov.querySelector('#le-pw').value;
-      if (!srv) {
-        if (pw.trim() !== CODE) { er.textContent = 'Код не подошёл.'; return; }
-        unlocked = true; close(); toggle(); return;
-      }
-      er.textContent = 'Проверяю...';
-      window.LiveAuth.signIn(ov.querySelector('#le-em').value.trim(), pw)
-        .then(function (u) { unlocked = true; close(); flash('вошли как ' + (u && u.email || '')); toggle(); })
-        .catch(function (e) { er.textContent = e.message; });
+    var srv = !store.local && window.LiveAuth && window.LiveAuth.ready();
+    if (!window.LiveAuth) { flash('модуль входа не загрузился', true); return; }
+    window.LiveAuth.prompt({ server: srv, code: CODE }).then(function (ok) {
+      if (!ok) return;
+      unlocked = true;
+      toggle();
     });
   }
 
@@ -523,7 +519,9 @@
       var html = clean(el.innerHTML);
       if (html && html !== clean(beforeEdit)) {
         patches[id] = html;
-        crypt.encrypt(html, aad(id)).then(function (p) { store.putSync(id, p, author()); });
+        crypt.encrypt(html, aad(id))
+          .then(function (p) { return store.putSync(id, p, author()); })
+          .catch(function () { health.write = (health.write || 0) + 1; });
         ev.preventDefault();
         ev.returnValue = '';    // «правка ещё сохраняется»
       }
@@ -615,7 +613,10 @@
   };
   // перечитать сервер: нужно перед откатом, чтобы не стереть чужие правки,
   // сделанные пока эта вкладка стояла открытой
-  window.BLOCKEDIT_RELOAD = function () { return load(); };
+  window.BLOCKEDIT_RELOAD = function () {
+    patches = {};       // иначе блоки, удалённые другой вкладкой, воскресают
+    return load();
+  };
   window.BLOCKEDIT_SETCRYPT = function (c) {
     crypt = c;
     storeCfg.crypt = c;
@@ -673,9 +674,10 @@
     return Promise.resolve();
   };
   window.BLOCKEDIT_INFO = function () {
-    var a = apply();
+    // read-only: раньше здесь стоял apply(), а вызывают INFO часто
     return {
-      total: a.total, patched: Object.keys(patches).length, orphans: orphans(),
+      total: roots().querySelectorAll('[data-le]').length,
+      patched: Object.keys(patches).length, orphans: orphans(),
       local: store.local, crypt: crypt.on, health: health, canWrite: unlocked
     };
   };
@@ -701,10 +703,11 @@
       window.LiveAuth.init({ url: CFG.storage.url, key: CFG.storage.key });
       unlocked = window.LiveAuth.can(); // токен мог сохраниться в этой вкладке
     }
-    // Ключ мог прийти раньше, чем догрузился этот файл: тогда SETCRYPT никто
-    // не вызовет, и документ молча покажет шаблонный текст.
-    if (crypt.on) { if (!loaded) load(); }
-    else load();
+    // Ждём ключ - не грузим ничего: бесключевой load() набил бы карту
+    // шифротекстом и, что хуже, отрапортовал бы готовность, из-за чего гейт
+    // снимал парольный экран до наложения правок.
+    if (CFG.awaitKey && !crypt.on) return;
+    load();
   }
   function warnCss() {
     return '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;align-items:center;' +

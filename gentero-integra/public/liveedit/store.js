@@ -25,6 +25,7 @@
   var TIMEOUT = 8000;
   var MAX_BLOCKS = 2000;
   var MAX_PAYLOAD = 200 * 1024;    // 200 КБ на блок, выше в документе не бывает
+  var MAX_BEACON = 60 * 1024;      // предел keepalive в браузерах, 64 КБ на запрос
 
   function headers(opt) {
     if (window.LiveAuth && window.LiveAuth.ready()) return window.LiveAuth.headers();
@@ -69,11 +70,15 @@
       },
       beacon: function (b, prefer) {
         // Уход со страницы: обычный fetch браузер убивает, keepalive доживает.
+        // Но keepalive ограничен 64 КБ, поэтому крупный блок так не уходит и
+        // об этом надо сказать честно, а не сделать вид, что сохранили.
+        var body = JSON.stringify(b);
+        if (body.length > MAX_BEACON) return Promise.reject(new Error('слишком большой блок для отправки при закрытии'));
         return fetch(base, {
           method: 'POST', keepalive: true,
           headers: Object.assign({ 'Prefer': prefer || 'return=minimal' }, headers(opt)),
-          body: JSON.stringify(b)
-        });
+          body: body
+        }).catch(function () { });
       },
       del: function (q) { return go(base + '?' + q, { method: 'DELETE', headers: headers(opt) }, table); }
     };
@@ -119,14 +124,20 @@
       local: false,
       list: function () {
         return api.get('doc_key=eq.' + dk + '&select=block_id,payload,author,updated_at&limit=' + MAX_BLOCKS)
-          .then(function (a) { return a || []; });
+          .then(function (a) {
+            a = a || [];
+            // молчаливое усечение читалось бы как «всё загружено»
+            if (a.length === MAX_BLOCKS) a.truncated = MAX_BLOCKS;
+            return a;
+          });
       },
       put: function (id, payload, author) {
         return api.post([row(id, payload, author)], 'resolution=merge-duplicates,return=minimal');
       },
       putSync: function (id, payload, author) {
-        try { api.beacon([row(id, payload, author)], 'resolution=merge-duplicates,return=minimal'); } catch (e) { }
-        return Promise.resolve();
+        try {
+          return api.beacon([row(id, payload, author)], 'resolution=merge-duplicates,return=minimal');
+        } catch (e) { return Promise.resolve(); }
       },
       drop: function (id) { return api.del('doc_key=eq.' + dk + '&block_id=eq.' + encodeURIComponent(id)); },
       wipe: function () { return api.del('doc_key=eq.' + dk); }
@@ -170,7 +181,9 @@
         r.doc_key = cfg.docKey;
         return api.post([r]).then(function (a) { return (a && a[0]) || r; });
       },
-      drop: function (id) { return api.del('id=eq.' + encodeURIComponent(id)); }
+      // фильтр по doc_key обязателен: иначе вошедший стирает версию любого
+      // документа проекта, просто угадав числовой id
+      drop: function (id) { return api.del('doc_key=eq.' + dk + '&id=eq.' + encodeURIComponent(id)); }
     };
   }
 

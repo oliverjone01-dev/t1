@@ -63,7 +63,7 @@ const FIRST_NAMES = new Set(["александр", "александра", "ал
 const MALE_EXC = /^(никита|илья|фома|кузьма|данила|савва|лука|гаврила)$/u;
 const FEM_SUR = /(ова|ева|ёва|ина|ына|ская|цкая|ая)$/u;
 const MAL_SUR = /(ов|ев|ёв|ин|ын|ский|цкий|ой|ый|ий)$/u;
-// Фамилии, которые не склоняются и не показывают пол: Лысенко, Турченко, Элчи.
+// Фамилии, которые не склоняются и не показывают пол: Коваленко, Ким, Шевчи.
 const SUR_SHAPE = /(ов|ев|ёв|ин|ын|ский|цкий|ова|ева|ёва|ина|ына|ская|цкая|ая|ко|ук|юк|ых|их|ун|арь)$/u;
 
 // Не человек: системные учётки Bitrix. Псевдоним для них вреден вдвойне: читатель
@@ -91,7 +91,7 @@ export function splitName(fullName) {
 }
 
 /**
- * Пол определяется по фамилии, а если фамилия несклоняемая (Лысенко, Элчи) - по
+ * Пол определяется по фамилии, а если фамилия несклоняемая (Коваленко, Ким) - по
  * имени. Псевдоним обязан совпадать по полу: переименовать сотрудницу в мужчину
  * внутри документа о её собственной работе недопустимо.
  */
@@ -114,13 +114,13 @@ export function nameKey(s) {
 
 /**
  * Падежные формы фамилии в фиксированном порядке. Реальная фамилия и псевдоним
- * дают списки одинаковой длины, замена идёт форма в форму: «у Лакомовой» должно
+ * дают списки одинаковой длины, замена идёт форма в форму: «у Петровой» должно
  * стать «у Соколовой», а не «у Соколова».
  */
-function surnameForms(s) {
+function surnameForms(s, g) {
   let m;
   if ((m = s.match(/^(.+?)(ова|ева|ёва|ина|ына)$/u))) {
-    const base = m[1] + m[2].slice(0, -1);          // Маслов, Ерин
+    const base = m[1] + m[2].slice(0, -1);          // Петров, Ильин
     return [s, base + "ой", base + "у", base + "ою", base + "ы"];
   }
   if ((m = s.match(/^(.+?)(ская|цкая|ая)$/u))) {
@@ -134,7 +134,12 @@ function surnameForms(s) {
     const base = m[1] + m[2].slice(0, -2);
     return [s, base + "ого", base + "ому", base + "им", base + "ом"];
   }
-  return [s, s, s, s, s];                            // Лысенко, Элчи, Шура-Бура
+  // Мужская фамилия на согласный склоняется (Гончарук, Ковач), женская с тем
+  // же окончанием не склоняется (та же Гончарук), поэтому нужен пол.
+  if (g === "m" && /[бвгджзйклмнпрстфхцчшщ]$/u.test(s)) {
+    return [s, s + "а", s + "у", s + "ом", s + "е"];
+  }
+  return [s, s, s, s, s];                            // Коваленко, Ким, Ли
 }
 
 /** Формы личного имени. В нашем корпусе имя стоит в обращении, то есть в им. падеже. */
@@ -175,7 +180,10 @@ export function buildMap(names, existing = {}) {
     if (NOT_A_PERSON.test(raw)) { skipped.push(norm(raw)); continue; }
     const key = nameKey(raw);
     if (!key || map[key]) continue;
-    const { first, last } = splitName(raw);
+    let { first, last } = splitName(raw);
+    // В методических файлах человек упоминается одной фамилией («дефект у
+    // Кубановой»). Такая запись тоже подлежит замене, имени у неё просто нет.
+    if (!last && first && !FIRST_NAMES.has(low(first))) { last = first; first = ""; }
     if (!last) { skipped.push(norm(raw)); continue; }
     const g = genderOf(raw);
     const pool = POOL[g];
@@ -193,7 +201,7 @@ export function buildMap(names, existing = {}) {
 // ─────────────────────────────────────────── замена
 
 // Буква ё в выгрузках пишется через раз: «менеджер Алена» в исходящем сообщении и
-// «Алёна Кубанова» в карточке это один человек. Шаблон делает их взаимозаменяемыми,
+// «Алёна Петрова» в карточке это один человек. Шаблон делает их взаимозаменяемыми,
 // иначе написание без ё проходит мимо замены и остаётся в файле настоящим именем.
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   .replace(/[еёЕЁ]/g, (c) => (c === c.toUpperCase() ? "[ЕЁ]" : "[её]"));
@@ -213,11 +221,13 @@ const rx = (body, flags = "gu") => new RegExp(`(?<![А-Яа-яЁёA-Za-z])${body
 export function apply(text, map, opts = {}) {
   const pairs = [];
   for (const p of Object.values(map)) {
-    const rf = surnameForms(p.last), af = surnameForms(p.aliasLast);
+    const rf = surnameForms(p.last, p.g), af = surnameForms(p.aliasLast, p.g);
     // Слой 1: полное имя. Порядок слов псевдонима повторяет порядок в источнике.
-    pairs.push([`${p.first} ${p.last}`, `${p.aliasFirst} ${p.aliasLast}`]);
-    pairs.push([`${p.last} ${p.first}`, `${p.aliasLast} ${p.aliasFirst}`]);
-    pairs.push([`${p.last}, ${p.first}`, `${p.aliasLast}, ${p.aliasFirst}`]);
+    if (p.first) {
+      pairs.push([`${p.first} ${p.last}`, `${p.aliasFirst} ${p.aliasLast}`]);
+      pairs.push([`${p.last} ${p.first}`, `${p.aliasLast} ${p.aliasFirst}`]);
+      pairs.push([`${p.last}, ${p.first}`, `${p.aliasLast}, ${p.aliasFirst}`]);
+    }
     // Слой 2: фамилия отдельно, форма в форму.
     for (let i = 0; i < rf.length; i++) if (rf[i] !== p.last || i === 0) pairs.push([rf[i], af[i]]);
   }
@@ -249,7 +259,7 @@ const INTRO = /((?:меня\s+зовут|ваш(?:а)?\s+менеджер|мен
  * человеку. Псевдонимы, уже подставленные слоями 1-3, не трогаем.
  */
 export function maskIntros(text, map) {
-  const real = new Set(Object.values(map).map((p) => low(p.first)));
+  const real = new Set(Object.values(map).filter((p) => p.first).map((p) => low(p.first)));
   return text.replace(INTRO, (m, pre, name) => (real.has(low(name)) ? `${pre}[менеджер]` : m));
 }
 
@@ -260,15 +270,16 @@ export function maskIntros(text, map) {
 export function check(text, map) {
   const hard = [], soft = [];
   for (const p of Object.values(map)) {
-    for (const f of [`${p.first} ${p.last}`, `${p.last} ${p.first}`, ...surnameForms(p.last)]) {
+    const forms = p.first ? [`${p.first} ${p.last}`, `${p.last} ${p.first}`] : [];
+    for (const f of [...forms, ...surnameForms(p.last, p.g)]) {
       const n = (text.match(rx(esc(f))) || []).length;
       if (n) hard.push(`${f} (${n})`);
     }
-    const n = (text.match(rx(esc(p.first))) || []).length;
+    const n = p.first ? (text.match(rx(esc(p.first))) || []).length : 0;
     if (n) soft.push(`${p.first} (${n})`);
   }
   // Имя в самопредставлении принадлежит сотруднику, это жёсткая утечка.
-  const real = new Set(Object.values(map).map((p) => low(p.first)));
+  const real = new Set(Object.values(map).filter((p) => p.first).map((p) => low(p.first)));
   for (const m of text.matchAll(INTRO)) {
     if (real.has(low(m[2]))) hard.push(`самопредставление: ${m[0].replace(/\s+/g, " ")}`);
   }

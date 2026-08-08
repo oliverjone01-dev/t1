@@ -80,7 +80,7 @@ p();
 // --- Светофор ---
 p("## Светофор");
 p();
-const molodec = band("молодец"), norma = band("норма"), holodec = band("холодец"), few = band("мало данных");
+const molodec = band("молодец"), norma = band("норма"), holodec = band("в разборе"), few = band("мало данных");
 p(`**Молодец** (индекс от 7.5): ${molodec.length ? molodec.map(fmtMgr).join("; ") : "никого"}`);
 p();
 p(`**Норма** (5.0-7.4): ${norma.length ? norma.map(fmtMgr).join("; ") : "никого"}`);
@@ -121,12 +121,12 @@ if (!c.D06 && A.totals.lostInWindow) {
 }
 
 // --- Разбор по менеджерам ---
-// Порядок: сначала холодец, потом норма, потом молодец. Внимание РОПа идёт сверху вниз,
+// Порядок: сначала «в разборе», потом норма, потом молодец. Внимание РОПа идёт сверху вниз,
 // поэтому сверху должно быть то, что горит, а не алфавит и не лучший результат.
 p("## Разбор по менеджерам");
 p();
 const rank = { crit: 3, high: 2, med: 1, low: 0 };
-const BAND_ORDER = { "холодец": 0, "норма": 1, "молодец": 2 };
+const BAND_ORDER = { "в разборе": 0, "норма": 1, "молодец": 2 };
 const detailed = managers
   .filter((m) => m.band !== "мало данных")
   .sort((a, b) => (BAND_ORDER[a.band] - BAND_ORDER[b.band]) || (a.index - b.index));

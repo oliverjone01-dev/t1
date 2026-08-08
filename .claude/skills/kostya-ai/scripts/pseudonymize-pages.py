@@ -26,7 +26,7 @@ TRANSLIT = {
 
 
 def slug(name: str) -> str:
-    """Имя файла тоже персональные данные: lakomova-tatyana.html называет человека
+    """Имя файла тоже персональные данные: petrova-mariya.html называет человека
     до того, как кто-либо ввёл пароль. Файл переименовывается по псевдониму."""
     return "".join(TRANSLIT.get(c, "") for c in name.strip().lower())
 
@@ -41,8 +41,8 @@ def main() -> int:
     src, out = pathlib.Path(a.src), pathlib.Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     table = json.loads(pathlib.Path(a.map).read_text(encoding="utf-8"))
-    # Ключ по отсортированным словам: выгрузка даёт «Ерина Екатерина», снимок
-    # сделок «Екатерина Ерина», это один человек.
+    # Ключ по отсортированным словам: выгрузка даёт «Петрова Мария», снимок
+    # сделок «Мария Петрова», это один человек.
     def key(s: str) -> str:
         return " ".join(sorted(s.lower().replace("ё", "е").split()))
 

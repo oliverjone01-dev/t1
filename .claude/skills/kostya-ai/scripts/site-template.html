@@ -356,6 +356,37 @@ document.getElementById('t-fup').innerHTML = `
     <td style="white-space:normal;max-width:280px">${E(g.when)}</td>
     <td style="white-space:normal;max-width:380px">${E(g.why)}</td></tr>`).join('')}
   </tbody></table></div>`;
+
+// Сортировка по клику на заголовок. Решение Ивана от 2026-08-08, вопрос 5: разборы
+// выкатываются всем десяти сразу, но читать их скопом нельзя, нужен вход по одному
+// столбцу. Обработчик один на документ и переживает перерисовку вкладок.
+document.addEventListener('click', e => {
+  const th = e.target.closest('th');
+  if (!th) return;
+  const table = th.closest('table'), tb = table && table.tBodies[0];
+  if (!tb || !tb.rows.length) return;
+  const col = [...th.parentNode.children].indexOf(th);
+  const dir = th.dataset.dir === 'asc' ? -1 : 1;
+  for (const h of th.parentNode.children) { delete h.dataset.dir; h.textContent = h.textContent.replace(/ [▲▼]$/, ''); }
+  th.dataset.dir = dir === 1 ? 'asc' : 'desc';
+  th.textContent += dir === 1 ? ' ▲' : ' ▼';
+  // Число вытаскиваем из текста ячейки: там «15.5 мин», «2 037 135 ₽», «77%».
+  const val = r => {
+    const t = (r.cells[col]?.innerText || '').trim();
+    const n = parseFloat(t.replace(/ |\s/g, '').replace(',', '.').replace(/[^\d.\-]/g, ''));
+    return Number.isNaN(n) || !/\d/.test(t) ? null : n;
+  };
+  const rows = [...tb.rows];
+  const numeric = rows.every(r => val(r) !== null);
+  rows.sort((a, b) => numeric
+    ? (val(a) - val(b)) * dir
+    : (a.cells[col]?.innerText || '').localeCompare(b.cells[col]?.innerText || '', 'ru') * dir);
+  tb.append(...rows);
+});
+document.addEventListener('mouseover', e => {
+  const th = e.target.closest('thead th');
+  if (th && !th.style.cursor) { th.style.cursor = 'pointer'; th.title = 'Клик - сортировка'; }
+});
 </script>
 </body>
 </html>

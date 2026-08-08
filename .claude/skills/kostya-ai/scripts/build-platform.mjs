@@ -56,7 +56,16 @@ mkdirSync(outDir, { recursive: true });
 // Пароли переиспользуем, если файл уже есть: пересборка не должна менять пароль,
 // который человеку уже продиктовали.
 let passwords = existsSync(pwFile) ? JSON.parse(readFileSync(pwFile, "utf8")) : {};
-const scopeKey = (p) => (p.scope === "common" ? "common" : p.file);
+// Решение Ивана от 2026-08-08, вопрос 8: пока один общий пароль на кабинеты.
+// Цена решения, сказана вслух и повторена здесь: пересланный файл открывается
+// любым из десяти, изоляция начинает держаться только на псевдониме, а не на
+// пароле. Сводка штаба общий пароль не получает никогда: в ней данные всех.
+const shared = rest.includes("--shared");
+const scopeKey = (p) => {
+  if (p.scope === "common") return "common";
+  if (p.scope === "manager" && shared) return "managers-shared";
+  return p.file;
+};
 
 const built = [];
 for (const p of pages) {
@@ -84,14 +93,29 @@ for (const p of pages) {
   const outPath = join(outDir, p.file);
   writeFileSync(outPath, html);
 
-  // Контроль: plaintext не должен просачиваться в собранный файл. Слова из
-  // заголовка гейта исключаем, они на экране блокировки стоят намеренно.
-  const visible = new Set((gateTitle + " " + (p.subtitle || "")).match(/[А-Яа-яЁё]{4,}/g) || []);
-  const probe = (payload.match(/[А-Яа-яЁё]{8,}/g) || [])
-    .filter((w) => !visible.has(w)).slice(0, 60);
-  const leak = probe.filter((w) => html.includes(w));
-  if (leak.length) {
-    console.error(`УТЕЧКА в ${p.file}: ${leak.slice(0, 3).join(", ")}`);
+  // Контроль: plaintext не должен просачиваться в собранный файл. Шифротекст в
+  // base64 читаемой кириллицы не содержит, поэтому ищем в каркасе гейта, из
+  // которого шифротекст вырезан. Совпадение по целому слову: подстрока даёт
+  // ложную тревогу («менеджер» внутри «менеджера» на экране блокировки).
+  // Каркас обязан посимвольно совпасть с шаблоном, в котором подставлены только
+  // заголовок и подзаголовок. Любой лишний байт это содержимое, просочившееся
+  // мимо шифрования. Сравнение точное: сравнивать по словарю нельзя, каркас и
+  // содержимое написаны на одном языке и общие слова дают ложную тревогу.
+  const chrome = html.replace(JSON.stringify(sealed), "");
+  const expected = tpl
+    .replaceAll("__TITLE__", esc(gateTitle))
+    .replaceAll("__SUBTITLE__", esc(p.subtitle || ""))
+    .replace("__SEALED__", "");
+  if (chrome !== expected) {
+    console.error(`УТЕЧКА в ${p.file}: каркас гейта не совпал с шаблоном, содержимое просочилось мимо шифрования`);
+    process.exit(1);
+  }
+  // Экран блокировки не должен называть человека: ссылка без пароля не обязана
+  // сообщать, чей это кабинет.
+  const onGate = `${gateTitle} ${p.subtitle || ""}`;
+  const named = (p.person || "").split(/\s+/).filter((w) => w.length > 2 && onGate.includes(w));
+  if (named.length) {
+    console.error(`УТЕЧКА в ${p.file}: имя «${named.join(" ")}» стоит на экране блокировки`);
     process.exit(1);
   }
   built.push({ ...p, sizeKb: Math.round(html.length / 1024) });

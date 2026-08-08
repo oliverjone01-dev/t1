@@ -351,6 +351,31 @@ def render(m, pm, kk, meta, period):
     a('<footer>Kostya-AI. Разбор построен на выгрузке переписки Bitrix24 воронки C49 и снимке сделок. '
       'Не измеряет звонки и не измеряет продажи. Персональные оценки требуют апрува Ивана. '
       'Вопросы и несогласие с флагом: РОП.</footer>')
+    # Сортировка по клику на заголовок. Решение Ивана от 2026-08-08, вопрос 5:
+    # таблица сделок читается по одному столбцу, а не скопом.
+    a("""<script>
+document.addEventListener('click', e => {
+  const th = e.target.closest('thead th');
+  if (!th) return;
+  const tb = th.closest('table').tBodies[0];
+  if (!tb || !tb.rows.length) return;
+  const col = [...th.parentNode.children].indexOf(th);
+  const dir = th.dataset.dir === 'asc' ? -1 : 1;
+  for (const h of th.parentNode.children) { delete h.dataset.dir; h.textContent = h.textContent.replace(/ [\\u25b2\\u25bc]$/, ''); }
+  th.dataset.dir = dir === 1 ? 'asc' : 'desc';
+  th.textContent += dir === 1 ? ' \\u25b2' : ' \\u25bc';
+  const val = r => {
+    const t = (r.cells[col] ? r.cells[col].innerText : '').trim();
+    const n = parseFloat(t.replace(/\\s/g, '').replace(',', '.').replace(/[^\\d.\\-]/g, ''));
+    return Number.isNaN(n) || !/\\d/.test(t) ? null : n;
+  };
+  const rows = [...tb.rows], numeric = rows.every(r => val(r) !== null);
+  rows.sort((a, b) => numeric ? (val(a) - val(b)) * dir
+    : (a.cells[col] ? a.cells[col].innerText : '').localeCompare(b.cells[col] ? b.cells[col].innerText : '', 'ru') * dir);
+  tb.append(...rows);
+});
+document.querySelectorAll('thead th').forEach(th => { th.style.cursor = 'pointer'; th.title = 'Клик, сортировка'; });
+</script>""")
     a('</div></body></html>')
     return "\n".join(L)
 

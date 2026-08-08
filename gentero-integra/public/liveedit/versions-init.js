@@ -13,11 +13,13 @@
 
    Параметры: data-doc, data-storage ('local' или Supabase по умолчанию),
    data-auto (авто-снимок каждые N вызовов VERSIONS_TOUCH, 0 выключает),
-   data-crypt ('wait', если ключ придёт позже через window.LIVEEDIT_KEY).
+   data-crypt ('wait', если ключ придёт позже через window.LIVEEDIT_KEY),
+   data-always ('1' - панель видна всегда; по умолчанию только при ?edit=1).
+   Адрес страницы понимает ?edit=1 и ?store=local, как и liveedit-init.js.
    ========================================================================== */
 (function () {
   'use strict';
-  var CORE_VERSION = '1';
+  var CORE_VERSION = '2';
 
   var SUPABASE = {
     type: 'supabase',
@@ -38,7 +40,10 @@
 
   window.VERSIONS = {
     docKey: d.doc || (location.pathname.replace(/[^\w]+/g, '_').replace(/^_|_$/g, '') || 'page'),
-    storage: (d.storage === 'local') ? 'local' : SUPABASE,
+    storage: (d.storage === 'local' || /[?&]store=local(&|$)/.test(location.search)) ? 'local' : SUPABASE,
+    // панель прячется от зрителя так же, как у liveedit-init: раньше отдельный
+    // загрузчик ui не передавал, и история была видна всем
+    ui: d.always === '1' || /[?&]edit=1(&|$)/.test(location.search),
     autoEvery: d.auto ? parseInt(d.auto, 10) : 8,
     getState: host.getState,
     setState: host.setState
@@ -50,7 +55,7 @@
     if (window.VERSIONS_SETCRYPT) window.VERSIONS_SETCRYPT(c);
   };
 
-  var files = ['crypt.js', 'store.js', 'versions.js'];
+  var files = ['crypt.js', 'store.js', 'auth.js', 'versions.js'];
   (function next(i) {
     if (i >= files.length) return;
     var s = document.createElement('script');
@@ -59,7 +64,10 @@
       if (files[i] === 'crypt.js' && d.crypt !== 'wait') window.VERSIONS.crypt = window.LiveCrypt.off;
       next(i + 1);
     };
-    s.onerror = function () { console.error('versions: не загрузился ' + files[i]); };
+    s.onerror = function () {
+      console.error('versions: не загрузился ' + files[i]);
+      if (files[i] !== 'crypt.js' && files[i] !== 'store.js') next(i + 1);
+    };
     document.head.appendChild(s);
   })(0);
 })();

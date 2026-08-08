@@ -160,10 +160,16 @@ __PAYLOADS__
         key = k;
         // тот же ключ уходит модулям правки и версий: патчи контента лежат в
         // Supabase шифрованными и открываются только этим паролем
-        if (window.LIVEEDIT_KEY) { try { window.LIVEEDIT_KEY(k); } catch(e) { console.error(e); } }
+        var patches = Promise.resolve();
+        if (window.LIVEEDIT_KEY) {
+          try { patches = window.LIVEEDIT_KEY(k) || Promise.resolve(); } catch(e) { console.error(e); }
+        }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = '__FIRST__';
-        return open(want, true);
+        // Гейт снимаем только когда правки уже наложены. Иначе зал сначала
+        // видит шаблонные цифры, а через полсекунды их подмену на глазах.
+        err.textContent = 'Загружаю правки...';
+        return Promise.all([open(want, true), patches]);
       })
       .then(function(){
         gate.classList.add('done');
@@ -260,10 +266,11 @@ function lockAll(docs, out, password) {
 
   // Модуль правки блоков и версий. Подключается, только если задан LIVEEDIT_DOC:
   // ключ шифрования ему отдаёт гейт после ввода пароля, панели видны при ?edit=1.
+  // Кода редактора в разметке нет намеренно: страница публичная, атрибут в ней
+  // виден любому, а право писать проверяет Supabase по логину.
   const le = process.env.LIVEEDIT_DOC
     ? `<script src="${process.env.LIVEEDIT_SRC || 'liveedit/liveedit-init.js'}" ` +
-      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" ` +
-      `data-code="${process.env.LIVEEDIT_CODE || ''}" data-crypt="wait" defer></script>`
+      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" data-crypt="wait" defer></script>`
     : '';
 
   const page = GATE

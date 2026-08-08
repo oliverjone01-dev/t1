@@ -27,13 +27,19 @@
     return a;
   }
 
+  // aad привязывает шифротекст к его месту. Без неё payload одного блока
+  // валидно расшифровывается на месте любого другого: ключ на документ один,
+  // тег GCM сходится, подмена ячейки в таблице денег проходит незаметно и
+  // не требует знания пароля, достаточно доступа к таблице.
   function wrap(keyPromise) {
     return {
       on: true,
-      encrypt: function (text) {
+      encrypt: function (text, aad) {
         return keyPromise.then(function (k) {
           var iv = crypto.getRandomValues(new Uint8Array(12));
-          return S.encrypt({ name: 'AES-GCM', iv: iv }, k, new TextEncoder().encode(text))
+          var p = { name: 'AES-GCM', iv: iv };
+          if (aad) p.additionalData = new TextEncoder().encode(aad);
+          return S.encrypt(p, k, new TextEncoder().encode(text))
             .then(function (ct) {
               var out = new Uint8Array(12 + ct.byteLength);
               out.set(iv, 0);
@@ -42,10 +48,12 @@
             });
         });
       },
-      decrypt: function (s) {
+      decrypt: function (s, aad) {
         return keyPromise.then(function (k) {
           var raw = b64d(s);
-          return S.decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, k, raw.slice(12))
+          var p = { name: 'AES-GCM', iv: raw.slice(0, 12) };
+          if (aad) p.additionalData = new TextEncoder().encode(aad);
+          return S.decrypt(p, k, raw.slice(12))
             .then(function (buf) { return new TextDecoder().decode(buf); });
         });
       }
@@ -60,6 +68,9 @@
       encrypt: function (t) { return Promise.resolve(t); },
       decrypt: function (t) { return Promise.resolve(t); }
     },
+    // Заголовок AES-GCM у патчей: iv[12] || ciphertext+tag.
+    // У тела документа в build-gate.js формат другой, salt[16] || iv[12] || ct.
+    // Совместимость между ними по ключу, а не по байтам, не перепутать.
     fromKey: function (k) { return wrap(Promise.resolve(k)); },
     fromPassword: function (pw, saltB64, iter) {
       var salt = b64d(saltB64), it = iter || 250000;

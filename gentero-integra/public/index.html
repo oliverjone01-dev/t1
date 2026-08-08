@@ -885,10 +885,14 @@ footer{border-top:1px solid var(--bd)}
       })
       .then(function(k){
         key = k;
-        if (window.LIVEEDIT_KEY) { try { window.LIVEEDIT_KEY(k); } catch(e) { console.error(e); } }
+        var patches = Promise.resolve();
+        if (window.LIVEEDIT_KEY) {
+          try { patches = window.LIVEEDIT_KEY(k) || Promise.resolve(); } catch(e) { console.error(e); }
+        }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = 'gt';
-        return open(want, true);
+        err.textContent = 'Загружаю правки...';
+        return Promise.all([open(want, true), patches]);
       })
       .then(function(){
         gate.classList.add('done');
@@ -1093,6 +1097,6 @@ function initDoc(){
   });
 }
 </script>
-<script src="liveedit/liveedit-init.js" data-doc="integra-internal" data-root="#doc" data-code="0103" data-crypt="wait" defer></script>
+<script src="liveedit/liveedit-init.js" data-doc="integra-internal" data-root="#doc" data-crypt="wait" defer></script>
 </body>
 </html>

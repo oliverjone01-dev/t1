@@ -28,13 +28,19 @@
   var DOCKEY = CFG.docKey || (location.pathname.replace(/[^\w]+/g, '_').replace(/^_|_$/g, '') || 'page');
   var AUTO = CFG.autoEvery == null ? 8 : CFG.autoEvery;
 
-  var crypt = CFG.crypt || (window.LiveCrypt ? window.LiveCrypt.off : null);
-  var store = window.LiveStore.versions({ docKey: DOCKEY, storage: CFG.storage });
+  if (!window.LiveCrypt || !window.LiveStore) {
+    console.error('versions: не загрузились crypt.js или store.js, история выключена');
+    return;
+  }
+  var crypt = CFG.crypt || window.LiveCrypt.off;
+  var storeCfg = { docKey: DOCKEY, storage: CFG.storage, crypt: crypt };
+  var store = window.LiveStore.versions(storeCfg);
 
   var rows = [];            // {id,label,author,created_at,state}
   var touched = 0;
   var previewing = null;    // id версии в режиме просмотра
   var liveState = null;     // состояние до входа в просмотр
+  var offset = 0, more = false, hidden = 0;
   var panel, list, banner, btn;
 
   function author() {
@@ -69,19 +75,30 @@
 
   /* ---------- хранилище ---------- */
 
-  function load() {
-    return store.list().then(function (raw) {
+  var PAGE = 40;
+
+  // append = дозагрузка следующей страницы. Без неё историю можно погасить,
+  // навалив в таблицу мусорных строк со свежей датой: они вытеснят настоящие
+  // версии из выборки, а панель напишет «версий пока нет».
+  function load(append) {
+    if (!append) { offset = 0; hidden = 0; }
+    return store.list(offset, PAGE).then(function (raw) {
+      more = raw.length === PAGE;
+      offset += raw.length;
       return Promise.all(raw.map(function (r) {
-        return crypt.decrypt(r.snapshot)
+        return crypt.decrypt(r.snapshot, DOCKEY + '|version')
           .then(function (j) { r.state = JSON.parse(j); return r; })
-          .catch(function () { r.state = null; return r; });     // не наш ключ
+          .catch(function () { r.state = null; return r; });     // не наш ключ или чужая строка
       }));
     }).then(function (out) {
-      rows = out.filter(function (r) { return r.state; });
+      var good = out.filter(function (r) { return r.state; });
+      hidden += out.length - good.length;
+      rows = append ? rows.concat(good) : good;
       render();
       return rows;
     }).catch(function (e) {
       console.warn('versions: список не загрузился', e);
+      note('история не загрузилась: ' + (e.message || e), true);
     });
   }
 
@@ -92,15 +109,20 @@
       if (!silent) note('состояние не менялось, версия не нужна');
       return Promise.resolve();
     }
-    return crypt.encrypt(JSON.stringify(st)).then(function (p) {
+    return crypt.encrypt(JSON.stringify(st), DOCKEY + '|version').then(function (p) {
       return store.add({ label: label || null, snapshot: p, crypt: !!crypt.on, author: author() });
     }).then(function (r) {
       touched = 0;
       r = r || {};
       rows.unshift({ id: r.id, label: label || null, author: author(), created_at: r.created_at || new Date().toISOString(), state: st });
       render();
-      if (!silent) note('версия сохранена');
-    }).catch(function (e) { note('версия не сохранилась: ' + e.message, true); });
+      if (r.__trimmed) note('версия сохранена, самых старых убрано: ' + r.__trimmed);
+      else if (!silent) note('версия сохранена');
+      return r;
+    }).catch(function (e) {
+      note('версия НЕ сохранилась: ' + e.message, true);
+      throw e;                       // откат не должен идти дальше без предохранителя
+    });
   }
 
   /* ---------- сравнение ---------- */
@@ -141,20 +163,33 @@
       '</svg><span>Версии</span>';
     wrap.appendChild(btn);
 
+    btn.setAttribute('aria-controls', 'ver-panel');
+
     panel = document.createElement('aside');
     panel.className = 'ver-panel';
-    panel.setAttribute('aria-label', 'История версий');
+    panel.id = 'ver-panel';
+    panel.setAttribute('aria-labelledby', 'ver-t');
     panel.innerHTML =
-      '<div class="ver-h"><b>История версий</b><button type="button" class="ver-x" aria-label="Закрыть">&times;</button></div>' +
-      '<div class="ver-new"><input id="ver-label" placeholder="подпись версии, необязательно" maxlength="80">' +
+      '<div class="ver-h"><h2 class="ver-t" id="ver-t">История версий</h2>' +
+      '<button type="button" class="ver-x" aria-label="Закрыть историю версий">&times;</button></div>' +
+      '<div class="ver-new"><input id="ver-label" aria-label="Подпись версии, необязательно" ' +
+      'placeholder="подпись версии, необязательно" maxlength="80">' +
       '<button type="button" class="ver-primary" id="ver-save">Сохранить версию</button></div>' +
       '<div class="ver-list" id="ver-list"></div>' +
-      '<div class="ver-f" id="ver-f"></div>';
+      '<div class="ver-tools"><button type="button" class="ver-mini" id="ver-export">Выгрузить копию</button></div>' +
+      '<div class="ver-f" id="ver-f" role="status" aria-live="polite" aria-atomic="true"></div>';
     document.body.appendChild(panel);
     list = panel.querySelector('#ver-list');
+    // Закрытая панель обязана уйти и из порядка табуляции, и из дерева
+    // доступности: иначе Tab с любой страницы уходит в невидимые кнопки,
+    // включая «Вернуть», которая меняет документ.
+    panel.inert = true;
 
     banner = document.createElement('div');
     banner.className = 'ver-banner';
+    banner.setAttribute('role', 'status');
+    banner.setAttribute('aria-live', 'assertive');   // под баннером только что подменился весь текст
+    banner.inert = true;
     document.body.appendChild(banner);
 
     btn.addEventListener('click', function () { toggle(); });
@@ -164,6 +199,7 @@
       snap(i.value.trim() || null);
       i.value = '';
     });
+    panel.querySelector('#ver-export').addEventListener('click', exportAll);
     list.addEventListener('click', onListClick);
     banner.addEventListener('click', onBannerClick);
     document.addEventListener('keydown', function (ev) {
@@ -175,20 +211,47 @@
 
   function toggle(force) {
     var on = force == null ? !panel.classList.contains('open') : force;
+    // фокус увести до inert, иначе он провалится в body
+    if (!on && panel.contains(document.activeElement)) btn.focus();
     panel.classList.toggle('open', on);
+    panel.inert = !on;
     // открытая панель иначе накрывает собой тулбар в правом нижнем углу
     document.documentElement.classList.toggle('ver-shift', on);
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    if (on) load();
+    if (on) {
+      load();
+      (panel.querySelector('#ver-label') || panel.querySelector('.ver-x')).focus();
+    }
   }
 
   function note(t, bad) {
     var f = panel && panel.querySelector('#ver-f');
     if (!f) return;
-    f.textContent = t;
+    f.textContent = '';
     f.className = 'ver-f show' + (bad ? ' bad' : '');
+    requestAnimationFrame(function () { f.textContent = t; });
     clearTimeout(note.t);
-    note.t = setTimeout(function () { f.className = 'ver-f'; }, 3000);
+    note.t = setTimeout(function () { f.className = 'ver-f'; f.textContent = ''; }, 4000);
+  }
+
+  // Копия расшифрованного состояния и всей загруженной истории одним файлом.
+  function exportAll() {
+    var dump = {
+      docKey: DOCKEY, at: new Date().toISOString(),
+      current: window.BLOCKEDIT_EXPORT ? window.BLOCKEDIT_EXPORT() : (CFG.getState ? CFG.getState() : null),
+      versions: rows.map(function (r) {
+        return { id: r.id, label: r.label, author: r.author, created_at: r.created_at, state: r.state };
+      })
+    };
+    var b = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = DOCKEY + '-' + dump.at.slice(0, 19).replace(/[:T]/g, '-') + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    note('копия выгружена: ' + rows.length + ' версий. Храните её вне Supabase');
   }
 
   function render() {
@@ -198,21 +261,39 @@
       return;
     }
     var cur = CFG.getState ? CFG.getState() : null;
-    list.innerHTML = rows.map(function (r, i) {
+    // render перерисовывает список целиком, поэтому фокус надо вернуть на ту же
+    // кнопку той же версии, иначе Tab уезжает в начало документа
+    var act = document.activeElement, keep = null;
+    if (act && list.contains(act) && act.closest('[data-id]')) {
+      keep = [act.closest('[data-id]').getAttribute('data-id'), act.getAttribute('data-a')];
+    }
+    list.innerHTML = '<ul class="ver-ul">' + rows.map(function (r, i) {
       var d = cur ? diff(r.state, cur).length : 0;
-      return '<article class="ver-i' + (previewing === r.id ? ' on' : '') + '" data-id="' + esc(r.id) + '">' +
-        '<div class="ver-i-h"><time>' + esc(fmt(r.created_at)) + '</time>' +
-        (i === 0 ? '<span class="ver-tag">последняя</span>' : '') + '</div>' +
+      var t = esc(fmt(r.created_at));
+      var pv = previewing === r.id;
+      return '<li class="ver-i' + (pv ? ' on' : '') + '" data-id="' + esc(r.id) + '"' +
+        (pv ? ' aria-current="true"' : '') + '>' +
+        '<div class="ver-i-h"><time datetime="' + esc(r.created_at) + '">' + t + '</time>' +
+        (i === 0 ? '<span class="ver-tag">последняя</span>' : '') +
+        (pv ? '<span class="ver-tag ver-tag-pv">на экране</span>' : '') + '</div>' +
         (r.label ? '<p class="ver-lb">' + esc(r.label) + '</p>' : '') +
         '<p class="ver-meta">' + esc(r.author || 'без подписи') + ' · блоков: ' + count(r.state) +
         (d ? ' · отличий от текущей: ' + d : ' · совпадает с текущей') + '</p>' +
         '<div class="ver-a">' +
-        '<button type="button" data-a="view">Показать</button>' +
-        '<button type="button" data-a="diff">Что изменилось</button>' +
-        '<button type="button" data-a="back">Вернуть</button>' +
-        '<button type="button" data-a="del" class="ver-del" aria-label="Удалить версию">Удалить</button>' +
-        '</div><div class="ver-d" hidden></div></article>';
-    }).join('');
+        '<button type="button" data-a="view" aria-pressed="' + (pv ? 'true' : 'false') +
+          '" aria-label="Показать версию от ' + t + '">Показать</button>' +
+        '<button type="button" data-a="diff" aria-expanded="false" aria-controls="ver-d-' + esc(r.id) +
+          '" aria-label="Что изменилось в версии от ' + t + '">Что изменилось</button>' +
+        '<button type="button" data-a="back" aria-label="Вернуть версию от ' + t + '">Вернуть</button>' +
+        '<button type="button" data-a="del" class="ver-del" aria-label="Удалить версию от ' + t + '">Удалить</button>' +
+        '</div><div class="ver-d" id="ver-d-' + esc(r.id) + '" hidden></div></li>';
+    }).join('') + '</ul>' +
+      (hidden ? '<p class="ver-empty">Строк, не открывшихся этим ключом: ' + hidden + '.</p>' : '') +
+      (more ? '<button type="button" class="ver-mini" data-a="more">Показать более старые</button>' : '');
+    if (keep) {
+      var f = list.querySelector('[data-id="' + keep[0] + '"] [data-a="' + keep[1] + '"]');
+      if (f) f.focus();
+    }
   }
 
   function rowById(id) {
@@ -222,7 +303,8 @@
   function onListClick(ev) {
     var b = ev.target.closest && ev.target.closest('button[data-a]');
     if (!b) return;
-    var art = b.closest('.ver-i'), r = rowById(art.getAttribute('data-id'));
+    if (b.getAttribute('data-a') === 'more') { load(true); return; }
+    var art = b.closest('.ver-i'), r = art && rowById(art.getAttribute('data-id'));
     if (!r) return;
     var a = b.getAttribute('data-a');
 
@@ -231,24 +313,27 @@
       previewing = r.id;
       CFG.setState(r.state, { preview: true });
       banner.className = 'ver-banner show';
+      banner.inert = false;
       banner.innerHTML = '<span>Просмотр версии от ' + esc(fmt(r.created_at)) +
-        '. Это только показ, на сервере ничего не изменилось.</span>' +
+        '. Это только показ, на сервере ничего не изменилось, правка на время просмотра выключена.</span>' +
         '<button type="button" data-a="restore">Вернуть эту</button>' +
         '<button type="button" data-a="exit">К текущей</button>';
       render();
     } else if (a === 'diff') {
       var box = art.querySelector('.ver-d');
-      if (!box.hidden) { box.hidden = true; return; }
+      if (!box.hidden) { box.hidden = true; b.setAttribute('aria-expanded', 'false'); return; }
       var base = previewing ? liveState : CFG.getState();
       var d = diff(r.state, base);
       box.innerHTML = d.length ? d.map(function (x) {
         var t = x.kind === 'added' ? 'в этой версии не было' :
           x.kind === 'removed' ? 'сейчас нет' : 'изменено';
+        // «было» и «стало» различать одним цветом нельзя
         return '<div class="ver-dr ' + x.kind + '"><b>' + esc(t) + '</b>' +
-          (x.was ? '<span class="was">' + esc(x.was.slice(0, 160)) + '</span>' : '') +
-          (x.now ? '<span class="now">' + esc(x.now.slice(0, 160)) + '</span>' : '') + '</div>';
+          (x.was ? '<span class="was"><i class="le-sr">было: </i>' + esc(x.was.slice(0, 160)) + '</span>' : '') +
+          (x.now ? '<span class="now"><i class="le-sr">стало: </i>' + esc(x.now.slice(0, 160)) + '</span>' : '') + '</div>';
       }).join('') : '<p class="ver-empty">Отличий нет.</p>';
       box.hidden = false;
+      b.setAttribute('aria-expanded', 'true');
     } else if (a === 'back') {
       restore(r);
     } else if (a === 'del') {
@@ -257,19 +342,31 @@
         rows = rows.filter(function (x) { return x !== r; });
         render();
         note('версия удалена');
-      });
+      }).catch(function (e) { note('версия НЕ удалена: ' + e.message, true); });
     }
   }
 
   function restore(r) {
-    if (!confirm('Вернуть документ к версии от ' + fmt(r.created_at) + '?\nТекущее состояние сначала сохранится отдельной версией.')) return;
-    snap('перед откатом', true).then(function () {
-      previewing = null;
-      banner.className = 'ver-banner';
-      return CFG.setState(r.state, { preview: false });
-    }).then(function () {
-      note('документ вернулся к версии от ' + fmt(r.created_at));
-      render();
+    // Карта в этой вкладке могла устареть: пока она лежала открытой, кто-то
+    // мог править документ. Откат из устаревшей карты стёр бы чужие правки,
+    // поэтому сначала перечитываем сервер и показываем расхождение.
+    var fresh = window.BLOCKEDIT_RELOAD ? window.BLOCKEDIT_RELOAD() : Promise.resolve();
+    fresh.then(function () {
+      var now = CFG.getState();
+      var lost = diff(r.state, now).length;
+      if (!confirm('Вернуть документ к версии от ' + fmt(r.created_at) + '?\n' +
+        'Отличий от текущего состояния: ' + lost + '. Текущее состояние сначала сохранится отдельной версией.')) return;
+      return snap('перед откатом', true).then(function () {
+        previewing = null;
+        banner.className = 'ver-banner';
+        banner.inert = true;
+        return CFG.setState(r.state, { preview: false });
+      }).then(function () {
+        note('документ вернулся к версии от ' + fmt(r.created_at));
+        render();
+      });
+    }).catch(function (e) {
+      note('откат отменён: ' + (e.message || e), true);
     });
   }
 
@@ -277,6 +374,7 @@
     if (!previewing) return;
     previewing = null;
     banner.className = 'ver-banner';
+    banner.inert = true;
     if (liveState) CFG.setState(liveState, { preview: true });
     render();
   }
@@ -293,41 +391,55 @@
   function css() {
     var s = document.createElement('style');
     s.textContent = [
+      // дубль на случай, если versions.js подключён без blockedit.js;
+      // тему ставит blockedit через data-le-theme, здесь только значения
+      ':root{--le-ok:#6BBF7B;--le-bad:#E8805F;--le-ring:var(--cta,#E3BD72);--le-edge:#6A6E78}',
+      ':root[data-le-theme="light"]{--le-ok:#1B6B2C;--le-bad:#A83810;--le-ring:#8A6A1E;--le-edge:#767A84}',
+      '.le-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}',
       '.ver-panel{position:fixed;top:0;right:-460px;width:440px;max-width:100vw;height:100dvh;z-index:9500;background:var(--card,#1E2025);border-left:1px solid var(--line,#2E3036);display:flex;flex-direction:column;font-family:inherit;box-shadow:-20px 0 60px rgba(0,0,0,.45);transition:right .3s cubic-bezier(.22,.61,.36,1)}',
-      '.ver-panel.open{right:0}',
+      '.ver-panel.open{right:0;visibility:visible;transition:right .3s cubic-bezier(.22,.61,.36,1)}',
+      // фолбэк для браузеров без inert: убирает из порядка табуляции
+      '.ver-panel:not(.open){visibility:hidden;transition:right .3s cubic-bezier(.22,.61,.36,1),visibility 0s .3s}',
+      '.ver-banner:not(.show){visibility:hidden}',
       '.ver-shift .le-tb{right:456px}',
+      '.ver-ul{list-style:none;margin:0;padding:0}',
+      '.ver-t{font:800 16px/1.2 inherit;margin:0;color:var(--ink,#F3F2EF)}',
+      '.ver-tools{padding:0 20px 14px}',
+      '.ver-mini{margin:8px 0 0;background:var(--card2,#26282E);border:1px solid var(--le-edge,#6A6E78);color:var(--ink,#F3F2EF);border-radius:999px;padding:8px 14px;font:600 12px/1 inherit;cursor:pointer}',
+      '.ver-mini:hover{border-color:var(--le-ring,#E3BD72)}',
+      '.ver-tag-pv{background:var(--le-ok,#6BBF7B)}',
       '.ver-h{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line,#2E3036);color:var(--ink,#F3F2EF);font-size:16px}',
-      '.ver-x{background:none;border:none;color:var(--ink2,#B4B6B8);font-size:26px;line-height:1;cursor:pointer;padding:0 4px}',
+      '.ver-x{background:none;border:none;color:var(--ink2,#B4B6B8);font-size:26px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}',
       '.ver-x:hover{color:var(--ink,#F3F2EF)}',
       '.ver-new{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line,#2E3036)}',
-      '.ver-new input{flex:1;min-width:0;background:var(--bg2,#191B20);border:1px solid var(--line2,#3C3F47);border-radius:13px;color:var(--ink,#F3F2EF);font-family:inherit;font-size:13px;padding:10px 12px}',
-      '.ver-new input:focus{border-color:var(--cta,#E3BD72);outline:none;box-shadow:0 0 0 3px rgba(227,189,114,.28)}',
+      '.ver-new input{flex:1;min-width:0;background:var(--bg2,#191B20);border:1px solid var(--le-edge,#6A6E78);border-radius:13px;color:var(--ink,#F3F2EF);font-family:inherit;font-size:13px;padding:10px 12px}',
+      '.ver-new input:focus{border-color:var(--le-ring,#E3BD72);outline:none;box-shadow:0 0 0 3px rgba(227,189,114,.28)}',
       '.ver-primary{background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border:1px solid var(--cta,#E3BD72);border-radius:999px;padding:10px 16px;font:700 12.5px/1 inherit;cursor:pointer;white-space:nowrap}',
       '.ver-list{flex:1;overflow:auto;padding:12px 16px 20px}',
       '.ver-i{border:1px solid var(--line,#2E3036);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--bg2,#191B20)}',
-      '.ver-i.on{border-color:var(--cta,#E3BD72)}',
+      '.ver-i.on{border-color:var(--le-ring,#E3BD72);box-shadow:inset 3px 0 0 var(--le-ok,#6BBF7B)}',
       '.ver-i-h{display:flex;align-items:center;gap:8px}',
       '.ver-i time{color:var(--ink,#F3F2EF);font-size:13.5px;font-weight:700}',
       '.ver-tag{font-size:11px;color:var(--cta-ink,#1A1408);background:var(--cta,#E3BD72);border-radius:999px;padding:2px 8px;font-weight:700}',
       '.ver-lb{color:var(--ink,#F3F2EF);font-size:13.5px;margin:6px 0 0}',
       '.ver-meta{color:var(--ink2,#B4B6B8);font-size:12px;margin:5px 0 0;line-height:1.45}',
       '.ver-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}',
-      '.ver-a button{background:var(--card2,#26282E);border:1px solid var(--line2,#3C3F47);color:var(--ink,#F3F2EF);border-radius:999px;padding:6px 12px;font:600 12px/1 inherit;cursor:pointer}',
+      '.ver-a button{background:var(--card2,#26282E);border:1px solid var(--le-edge,#6A6E78);color:var(--ink,#F3F2EF);border-radius:999px;padding:7px 12px;min-height:26px;font:600 12px/1 inherit;cursor:pointer}',
       '.ver-a button:hover{border-color:var(--cta,#E3BD72)}',
-      '.ver-a .ver-del{color:#E8805F}.ver-a .ver-del:hover{border-color:#E8805F}',
+      '.ver-a .ver-del{color:var(--le-bad,#E8805F)}.ver-a .ver-del:hover{border-color:var(--le-bad,#E8805F)}',
       '.ver-d{margin-top:10px;border-top:1px solid var(--line,#2E3036);padding-top:10px}',
       '.ver-dr{font-size:12px;line-height:1.5;margin-bottom:9px;color:var(--ink2,#B4B6B8)}',
       '.ver-dr b{display:block;color:var(--ink,#F3F2EF);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}',
-      '.ver-dr .was{display:block;color:#E8805F}.ver-dr .now{display:block;color:#6BBF7B}',
+      '.ver-dr .was{display:block;color:var(--le-bad,#E8805F)}.ver-dr .now{display:block;color:var(--le-ok,#6BBF7B)}',
       '.ver-empty{color:var(--ink2,#B4B6B8);font-size:13px;line-height:1.55;padding:8px 2px}',
       '.ver-f{padding:0 20px;max-height:0;overflow:hidden;color:var(--ink2,#B4B6B8);font-size:12.5px;transition:.2s}',
-      '.ver-f.show{max-height:60px;padding:12px 20px;border-top:1px solid var(--line,#2E3036)}.ver-f.bad{color:#E8805F}',
+      '.ver-f.show{max-height:60px;padding:12px 20px;border-top:1px solid var(--line,#2E3036)}.ver-f.bad{color:var(--le-bad,#E8805F)}',
       '.ver-banner{position:fixed;left:50%;transform:translate(-50%,-140%);top:12px;z-index:9700;display:flex;align-items:center;gap:10px;background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border-radius:999px;padding:9px 10px 9px 18px;font:600 12.5px/1.35 inherit;box-shadow:0 12px 34px rgba(0,0,0,.45);max-width:min(94vw,760px);transition:transform .25s}',
       '.ver-banner.show{transform:translate(-50%,0)}',
       '.ver-banner button{background:rgba(0,0,0,.16);border:1px solid rgba(0,0,0,.22);color:inherit;border-radius:999px;padding:6px 13px;font:700 12px/1 inherit;cursor:pointer;white-space:nowrap}',
       '.ver-banner button:hover{background:rgba(0,0,0,.26)}',
-      '.ver-panel :focus-visible,.ver-banner :focus-visible,.ver-open:focus-visible{outline:2px solid var(--cta,#E3BD72);outline-offset:2px}',
-      '@media print{.ver-panel,.ver-banner,.ver-open{display:none}}',
+      '.ver-panel :focus-visible,.ver-banner :focus-visible,.ver-open:focus-visible{outline:2px solid var(--le-ring,#E3BD72);outline-offset:2px}',
+      '@media print{.ver-panel,.ver-open{display:none}.ver-banner{position:static;display:block;transform:none;max-width:none;box-shadow:none;border-radius:0;margin:0 0 12px}.ver-banner:not(.show){display:none}.ver-banner button{display:none}}',
       '@media(max-width:620px){.ver-panel{right:-100%;width:100%}.ver-panel.open{right:0}.ver-shift .le-tb{display:none}.ver-banner{flex-wrap:wrap;border-radius:18px;padding:12px 14px}}',
       '@media (prefers-reduced-motion:reduce){.ver-panel,.ver-banner,.ver-f{transition:none!important}}'
     ].join('');
@@ -341,15 +453,24 @@
     touched++;
     if (AUTO && touched >= AUTO) snap('авто', true);
   };
-  window.VERSIONS_FLUSH = function () { if (touched) snap('авто', true); };
-  window.VERSIONS_SETCRYPT = function (c) { crypt = c; return load(); };
-  window.VERSIONS_RELOAD = load;
+  window.VERSIONS_FLUSH = function () { if (touched) return snap('авто', true); };
+  window.VERSIONS_SETCRYPT = function (c) {
+    crypt = c;
+    storeCfg.crypt = c;
+    return panel ? load() : Promise.resolve();
+  };
+  window.VERSIONS_RELOAD = function () { return load(); };
+  // blockedit спрашивает это перед началом правки: в режиме просмотра в DOM
+  // лежит старый текст, и запись оттуда молча откатила бы блок
+  window.VERSIONS_PREVIEWING = function () { return !!previewing; };
+  window.VERSIONS_EXPORT = exportAll;
 
   function init() {
     if (CFG.ui === false) return;   // зритель документа истории не видит
     css();
     build();
-    if (!crypt.on) load();
+    // ключ мог прийти до загрузки этого файла, тогда SETCRYPT уже не позовут
+    load();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

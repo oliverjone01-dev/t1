@@ -5,43 +5,77 @@
      'local'                       - localStorage этого браузера
      {type:'supabase', url, key}   - таблицы doc_blocks и doc_versions
 
-   LiveStore.blocks(cfg) -> { list(), put(blockId, payload, author), drop(blockId), wipe() }
+   LiveStore.blocks(cfg)   -> { list(), put(id, payload, author), drop(id), wipe() }
    LiveStore.versions(cfg) -> { list(), add(row), drop(id) }
 
-   cfg: { docKey, storage, tableBlocks, tableVersions }
+   cfg: { docKey, storage, tableBlocks, tableVersions, crypt }
 
-   В теле хранится payload как есть. Шифрование накладывает вызывающий модуль
-   через LiveCrypt, хранилище про него не знает и знать не должно.
+   В теле хранится payload как есть. Шифрование накладывает вызывающий модуль,
+   хранилище про него не знает и знать не должно, только проставляет флаг crypt
+   в строке, чтобы схема не врала про содержимое.
+
+   Право на запись проверяет сервер (политики RLS "to authenticated"), а
+   заголовки берутся из LiveAuth: пока не вошли, уходит anon-ключ и запись
+   отлетает с 401. Раньше запись была открыта анониму, и один DELETE стирал
+   и весь контент, и всю историю.
    ========================================================================== */
 (function () {
   'use strict';
 
+  var TIMEOUT = 8000;
+  var MAX_BLOCKS = 2000;
+  var MAX_PAYLOAD = 200 * 1024;    // 200 КБ на блок, выше в документе не бывает
+
+  function headers(opt) {
+    if (window.LiveAuth && window.LiveAuth.ready()) return window.LiveAuth.headers();
+    return { 'apikey': opt.key, 'Authorization': 'Bearer ' + opt.key, 'Content-Type': 'application/json' };
+  }
+
+  // Ответ PostgREST при Prefer: return=minimal пустой. r.json() на нём кидает
+  // SyntaxError, и удачная запись выглядит как провал.
+  function body(r, table) {
+    if (!r.ok) {
+      return r.text().then(function (t) {
+        if (r.status === 401 || r.status === 403) throw new Error('нет прав на запись, войдите заново');
+        throw new Error(table + ' ' + r.status + (t ? ' ' + t.slice(0, 160) : ''));
+      });
+    }
+    if (r.status === 204) return null;
+    return r.text().then(function (t) { return t ? JSON.parse(t) : null; });
+  }
+
+  function go(url, init, table) {
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    if (ctl) init.signal = ctl.signal;
+    var t = setTimeout(function () { if (ctl) ctl.abort(); }, TIMEOUT);
+    return fetch(url, init)
+      .then(function (r) { clearTimeout(t); return body(r, table); })
+      .catch(function (e) {
+        clearTimeout(t);
+        throw (e.name === 'AbortError') ? new Error(table + ': сервер не ответил за ' + (TIMEOUT / 1000) + ' с') : e;
+      });
+  }
+
   function rest(opt, table) {
     var base = opt.url.replace(/\/$/, '') + '/rest/v1/' + table;
-    var h = { 'apikey': opt.key, 'Authorization': 'Bearer ' + opt.key, 'Content-Type': 'application/json' };
     return {
-      get: function (q) {
-        return fetch(base + '?' + q, { headers: h }).then(function (r) {
-          if (!r.ok) throw new Error(table + ' get ' + r.status);
-          return r.json();
-        });
-      },
-      post: function (body, prefer) {
-        return fetch(base, {
+      get: function (q) { return go(base + '?' + q, { headers: headers(opt) }, table); },
+      post: function (b, prefer) {
+        return go(base, {
           method: 'POST',
-          headers: Object.assign({ 'Prefer': prefer || 'return=representation' }, h),
-          body: JSON.stringify(body)
-        }).then(function (r) {
-          if (!r.ok) return r.text().then(function (t) { throw new Error(table + ' post ' + r.status + ' ' + t); });
-          return r.json();
+          headers: Object.assign({ 'Prefer': prefer || 'return=representation' }, headers(opt)),
+          body: JSON.stringify(b)
+        }, table);
+      },
+      beacon: function (b, prefer) {
+        // Уход со страницы: обычный fetch браузер убивает, keepalive доживает.
+        return fetch(base, {
+          method: 'POST', keepalive: true,
+          headers: Object.assign({ 'Prefer': prefer || 'return=minimal' }, headers(opt)),
+          body: JSON.stringify(b)
         });
       },
-      del: function (q) {
-        return fetch(base + '?' + q, { method: 'DELETE', headers: h }).then(function (r) {
-          if (!r.ok) throw new Error(table + ' del ' + r.status);
-          return r;
-        });
-      }
+      del: function (q) { return go(base + '?' + q, { method: 'DELETE', headers: headers(opt) }, table); }
     };
   }
 
@@ -49,10 +83,11 @@
   function lsRead(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } }
   function lsWrite(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
 
+  function isLocal(cfg) { return cfg.storage === 'local' || !cfg.storage || !cfg.storage.url; }
+
   function blocks(cfg) {
-    var isLocal = (cfg.storage === 'local' || !cfg.storage || !cfg.storage.url);
     var K = lsKey(cfg, 'blocks');
-    if (isLocal) {
+    if (isLocal(cfg)) {
       return {
         local: true,
         list: function () { return Promise.resolve(lsRead(K)); },
@@ -62,6 +97,7 @@
           lsWrite(K, all);
           return Promise.resolve();
         },
+        putSync: function (id, payload, author) { return this.put(id, payload, author); },
         drop: function (id) {
           lsWrite(K, lsRead(K).filter(function (r) { return r.block_id !== id; }));
           return Promise.resolve();
@@ -71,14 +107,26 @@
     }
     var api = rest(cfg.storage, cfg.tableBlocks || 'doc_blocks');
     var dk = encodeURIComponent(cfg.docKey);
+    function row(id, payload, author) {
+      if (payload.length > MAX_PAYLOAD) throw new Error('блок слишком большой');
+      return {
+        doc_key: cfg.docKey, block_id: id, payload: payload,
+        crypt: !!(cfg.crypt && cfg.crypt.on), author: author || null,
+        updated_at: new Date().toISOString()
+      };
+    }
     return {
       local: false,
-      list: function () { return api.get('doc_key=eq.' + dk + '&select=block_id,payload,author,updated_at'); },
+      list: function () {
+        return api.get('doc_key=eq.' + dk + '&select=block_id,payload,author,updated_at&limit=' + MAX_BLOCKS)
+          .then(function (a) { return a || []; });
+      },
       put: function (id, payload, author) {
-        return api.post([{
-          doc_key: cfg.docKey, block_id: id, payload: payload,
-          author: author || null, updated_at: new Date().toISOString()
-        }], 'resolution=merge-duplicates,return=minimal');
+        return api.post([row(id, payload, author)], 'resolution=merge-duplicates,return=minimal');
+      },
+      putSync: function (id, payload, author) {
+        try { api.beacon([row(id, payload, author)], 'resolution=merge-duplicates,return=minimal'); } catch (e) { }
+        return Promise.resolve();
       },
       drop: function (id) { return api.del('doc_key=eq.' + dk + '&block_id=eq.' + encodeURIComponent(id)); },
       wipe: function () { return api.del('doc_key=eq.' + dk); }
@@ -86,20 +134,21 @@
   }
 
   function versions(cfg) {
-    var isLocal = (cfg.storage === 'local' || !cfg.storage || !cfg.storage.url);
     var K = lsKey(cfg, 'versions');
-    if (isLocal) {
+    if (isLocal(cfg)) {
       return {
         local: true,
         list: function () { return Promise.resolve(lsRead(K).slice().reverse()); },
-        add: function (row) {
+        add: function (r) {
           var all = lsRead(K);
-          row.id = (all.length ? all[all.length - 1].id + 1 : 1);
-          row.created_at = new Date().toISOString();
-          all.push(row);
-          while (all.length > 60) all.shift();      // локально держим последние 60
+          r.id = (all.length ? all[all.length - 1].id + 1 : 1);
+          r.created_at = new Date().toISOString();
+          all.push(r);
+          var cut = 0;
+          while (all.length > 60) { all.shift(); cut++; }
+          if (cut) r.__trimmed = cut;          // молча не выбрасываем, модуль скажет
           lsWrite(K, all);
-          return Promise.resolve(row);
+          return Promise.resolve(r);
         },
         drop: function (id) {
           lsWrite(K, lsRead(K).filter(function (r) { return String(r.id) !== String(id); }));
@@ -111,12 +160,15 @@
     var dk = encodeURIComponent(cfg.docKey);
     return {
       local: false,
-      list: function () {
-        return api.get('doc_key=eq.' + dk + '&select=id,label,snapshot,author,created_at&order=created_at.desc&limit=80');
+      // offset позволяет добраться до старых версий, если свежие забиты мусором
+      list: function (offset, limit) {
+        return api.get('doc_key=eq.' + dk +
+          '&select=id,label,snapshot,author,created_at&order=created_at.desc' +
+          '&limit=' + (limit || 40) + '&offset=' + (offset || 0)).then(function (a) { return a || []; });
       },
-      add: function (row) {
-        row.doc_key = cfg.docKey;
-        return api.post([row]).then(function (a) { return a[0]; });
+      add: function (r) {
+        r.doc_key = cfg.docKey;
+        return api.post([r]).then(function (a) { return (a && a[0]) || r; });
       },
       drop: function (id) { return api.del('id=eq.' + encodeURIComponent(id)); }
     };

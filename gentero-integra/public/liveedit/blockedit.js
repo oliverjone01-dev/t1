@@ -222,6 +222,7 @@
   // валидно встаёт на место другого.
   function aad(id) { return DOCKEY + '|' + id; }
 
+  var SEEN = 'liveedit:seen:' + DOCKEY;
   var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false };
 
   function load() {
@@ -238,6 +239,9 @@
     }).then(function () {
       loaded = true;
       health.ok = true;
+      // помним, что для этого документа правки существуют: только тогда есть
+      // смысл тревожить зрителя красной полосой при следующем сбое
+      if (health.rows) { try { localStorage.setItem(SEEN, '1'); } catch (e) { } }
       if (window.LIVEEDIT_TOOLATE && window.LIVEEDIT_TOOLATE()) {
         // Экран уже снят по таймауту. Накладывать патчи сейчас значит менять
         // цифры на глазах у зала, поэтому только предупреждаем.
@@ -297,13 +301,23 @@
      предупредить. Показывать шаблонные цифры вместо правленых молча нельзя. */
 
   var noteEl = null;
+  function seen() { try { return localStorage.getItem(SEEN) === '1'; } catch (e) { return false; } }
+  // «Хранилища ещё нет» это несделанная настройка, а не поломка документа.
+  // Такое сообщение адресовано редактору, зрителю оно ничего не говорит.
+  function notSetUp(msg) { return /does not exist|PGRST205|schema cache|404/i.test(msg || ''); }
+
   function report() {
     var o = orphans().length;
     var bad = [];
     if (health.late) bad.push('правки пришли слишком поздно и НЕ наложены. Обновите страницу');
     if (health.cut) bad.push('правок в базе больше, чем загружено: показаны первые ' + health.cut);
     if (health.write) bad.push('правок не сохранилось на сервер: ' + health.write + '. На экране они есть, в базе нет');
-    if (health.err) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
+    if (health.err) {
+      // Зрителю про сбой загрузки говорим, только если для этого документа
+      // правки хоть раз приходили: иначе терять нечего и пугать незачем.
+      if (UI && notSetUp(health.err)) bad.push('хранилище правок ещё не создано: выполните schema.sql в Supabase');
+      else if (UI || seen()) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
+    }
     else if (health.bad) bad.push(health.bad + ' из ' + health.rows + ' правок не открылись этим ключом');
     if (o) bad.push('правок без блока: ' + o + ' (текст в шаблоне переписан, правка осталась в базе)');
     if (!bad.length) { if (noteEl) { noteEl.remove(); noteEl = null; } return; }

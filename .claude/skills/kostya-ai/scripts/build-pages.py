@@ -28,6 +28,21 @@ PORTAL = "https://glassmemory.bitrix24.ru/crm/deal/details/{}/"
 CONTRACT = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                        "..", "shared", "contract.json"), encoding="utf-8"))
 
+# Набор иконок один на всю платформу: библиотека, кабинет и сводка. Второй набор
+# читался бы как второй продукт, а человек ходит между ними в один день.
+ICONS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "..", "shared", "icons.json"), encoding="utf-8"))
+
+
+def ic(name):
+    """Иконка блока. aria-hidden: смысл несёт заголовок рядом, а не картинка."""
+    body = ICONS.get(name)
+    if not body:
+        return ""
+    return ('<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+            'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
+            'aria-hidden="true">' + body + '</svg>')
+
 TRANSLIT = {
     'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'i',
     'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
@@ -299,8 +314,12 @@ body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 -apple-system,B
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 :where(a,button,summary,input,[data-copy]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
 .wrap{max-width:780px;margin:0 auto;padding:20px 16px 60px}
-h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;margin:34px 0 10px}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:19px;margin:34px 0 10px;display:flex;align-items:center;gap:10px}
 h3{font-size:15px;margin:16px 0 6px;color:var(--tx);font-weight:600}
+/* Иконка едет за кеглем строки, а не за экраном, и наследует цвет контекста. */
+.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em;color:var(--acc)}
+.toc a .ic{width:1em;height:1em;margin-right:5px}
 p,.note{max-width:66ch}
 .sub{color:var(--mut);font-size:13px}
 .toc{font-size:13px;margin:10px 0 4px}.toc a{margin-right:14px;display:inline-block;padding:6px 0}
@@ -410,12 +429,12 @@ def render(m, pm, kk, meta, period, D, prev):
         a('<div class="small" style="margin-top:8px">Это первый разбор. '
           'Точки сравнения появятся в следующем, через две недели.</div>')
     a('</header>')
-    a('<nav class="toc"><a href="#sys">Не моё</a><a href="#task">Моя задача</a>'
-      '<a href="#money">Деньги</a><a href="#win">Получилось</a><a href="#norm">Нормативы</a>'
-      '<a href="#qual">Квалификация</a><a href="#talk">Разбор реплик</a><a href="#deals">Сделки</a></nav>')
+    a('<nav class="toc"><a href="#sys">' + ic("ne-vasha-zona") + 'Не моё</a><a href="#task">' + ic("check") + 'Моя задача</a>'
+      '<a href="#money">' + ic("money") + 'Деньги</a><a href="#win">' + ic("check") + 'Получилось</a><a href="#norm">' + ic("normativy") + 'Нормативы</a>'
+      '<a href="#qual">' + ic("kvalifikaciya") + 'Квалификация</a><a href="#talk">' + ic("message") + 'Разбор реплик</a><a href="#deals">' + ic("deal") + 'Сделки</a></nav>')
 
     # 2. Не ваша зона (ВЫШЕ личных претензий, блокирующее требование ТЗ)
-    a('<h2 id="sys">Не ваша зона</h2>')
+    a('<h2 id="sys">' + ic("ne-vasha-zona") + 'Не ваша зона</h2>')
     a('<div class="card sys"><div class="note" style="margin-bottom:8px">Это чинит РОП и интегратор Bitrix24. '
       'Показываем сначала, чтобы вы видели, что вам не вменяют чужое.</div><ul class="note">')
     for s in SYSTEMIC:
@@ -423,7 +442,7 @@ def render(m, pm, kk, meta, period, D, prev):
     a('</ul></div>')
 
     # 3. Одна задача на 14 дней
-    a('<h2 id="task">Моя задача на 14 дней</h2>')
+    a('<h2 id="task">' + ic("check") + 'Моя задача на 14 дней</h2>')
     a(f'<div class="card task"><div style="font-size:18px;font-weight:600">{esc(title)}</div>')
     a(f'<h3>Когда срабатывает</h3><div>{esc(trigger)}</div>')
     a('<h3>Что я делаю</h3><ul>')
@@ -465,7 +484,7 @@ def render(m, pm, kk, meta, period, D, prev):
                    key=lambda d: -d["amount"])[:8]
     closed = sorted([d for d in flagged if d.get("stage") in CLOSED],
                     key=lambda d: -d["amount"])
-    a('<h2 id="money">Деньги на столе</h2>')
+    a('<h2 id="money">' + ic("money") + 'Деньги на столе</h2>')
     if risky:
         a(f'<div class="small">Открытых сделок с оборванным диалогом или очень долгим ответом: '
           f'{len(risky)} на {money(sum(d["amount"] for d in risky))}. Их ещё можно вернуть.</div>')
@@ -508,7 +527,7 @@ def render(m, pm, kk, meta, period, D, prev):
         a('</tbody></table></div></details>')
 
     # 5. Что получилось
-    a('<h2 id="win">Что получилось</h2>')
+    a('<h2 id="win">' + ic("check") + 'Что получилось</h2>')
     wins = pm.get("wins", [])
     good = []
     if r.get("medianMin") is not None and D["medianMin"] and r["medianMin"] <= D["medianMin"]:
@@ -547,7 +566,7 @@ def render(m, pm, kk, meta, period, D, prev):
     a('</div>')
 
     # 6. Нормативы с личной динамикой (ТЗ раздел 4, блок 6)
-    a('<h2 id="norm">Три норматива, ваши цифры и динамика</h2><div class="kpi">')
+    a('<h2 id="norm">' + ic("normativy") + 'Три норматива, ваши цифры и динамика</h2><div class="kpi">')
     a(f'<div><div class="v"{reglament_tone("reply", r.get("p90Min"))}>{mins(r.get("p90Min"))}</div>'
       f'<div class="l">p90 ответа. Норматив отдела: ни один клиент не ждёт дольше 4 рабочих часов '
       f'<span class="tag acc">РЕГЛАМЕНТ</span></div>{delta(p, "p90Min", r.get("p90Min"), mins, lower_better=True)}</div>')
@@ -578,7 +597,7 @@ def render(m, pm, kk, meta, period, D, prev):
 
     # 7. Квалификация
     od = m.get("outDet") or {}
-    a('<h2 id="qual">Квалификация клиента</h2>')
+    a('<h2 id="qual">' + ic("kvalifikaciya") + 'Квалификация клиента</h2>')
     a('<div class="kpi">')
     for code, label in [("Q_БЮДЖЕТ", "спросили про бюджет"), ("Q_СРОК", "спросили про срок"),
                         ("Q_ЛПР", "спросили, кто решает")]:
@@ -598,7 +617,7 @@ def render(m, pm, kk, meta, period, D, prev):
 
     # 8. Разбор двух диалогов
     inst = [i for i in pm.get("instances", []) if i["code"] not in NOT_PERSONAL]
-    a('<h2 id="talk">Разбор двух реплик</h2>')
+    a('<h2 id="talk">' + ic("message") + 'Разбор двух реплик</h2>')
     if inst:
         seen_code, shown = set(), 0
         for i in inst:
@@ -628,7 +647,7 @@ def render(m, pm, kk, meta, period, D, prev):
 
     # 9. Таблица сделок. Свёрнута: это справочник и мост в Bitrix для возражения,
     # а не то, что читают подряд. ТЗ раздел 4, блок 9 требует фильтр.
-    a('<h2 id="deals">Все сделки в переписке</h2>')
+    a('<h2 id="deals">' + ic("deal") + 'Все сделки в переписке</h2>')
     a(f'<details><summary>Показать таблицу: {len(deals)} сделок на '
       f'{money(sum(d.get("amount") or 0 for d in deals))}</summary>')
     a('<div class="small">Нужна, чтобы возразить по конкретному номеру: право оспорить флаг '
@@ -655,7 +674,7 @@ def render(m, pm, kk, meta, period, D, prev):
 
     # 10. Флаги дисциплины из Bitrix
     if kk:
-        a('<h2>Дисциплина по открытым сделкам</h2><div class="kpi">')
+        a('<h2>' + ic("chart") + 'Дисциплина по открытым сделкам</h2><div class="kpi">')
         a(f'<div><div class="v">{kk["openDeals"]}</div><div class="l">открытых сделок на {money(kk["openBudget"])}</div></div>')
         a(f'<div><div class="v">{kk["stuckDeals"]}</div><div class="l">зависли на стадии дольше лимита</div></div>')
         a(f'<div><div class="v">{kk["overdueTasks"]}</div><div class="l">просроченных дел</div></div>')

@@ -129,6 +129,16 @@ jobs:
           # видна фамилия из ростера, значит plaintext просочился мимо шифрования, и
           # публиковать нельзя. Шифротекст в base64 кириллицы не содержит в принципе.
           cp gg-sales-academy/sealed/*.html _site/academy/
+          # Иллюстрации к типовым ситуациям. Файлов может ещё не быть: страницы в этом
+          # случае показывают рамку с промтом и не ломаются, поэтому пустая папка это
+          # штатное состояние, а не ошибка сборки.
+          mkdir -p _site/academy/img
+          if compgen -G "gg-sales-academy/img/*.webp" > /dev/null; then
+            cp gg-sales-academy/img/*.webp _site/academy/img/
+            echo "Academy: картинок $(ls gg-sales-academy/img/*.webp | wc -l)"
+          else
+            echo "Academy: картинок пока нет, на страницах стоят рамки с промтами"
+          fi
           for f in _site/academy/k-*.html _site/academy/rop-summary.html; do
             if grep -qE "$ROSTER" "$f"; then
               echo "::error::$f не запечатан: в нём видна фамилия из ростера. Публикация остановлена."; exit 1

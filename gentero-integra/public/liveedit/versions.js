@@ -64,8 +64,11 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
     });
   }
+  // Разбор в inert-документе: сюда приходит содержимое базы, а в отсоединённом
+  // узле живого документа <img onerror> в Chrome выполняется.
   function plain(html) {
-    var b = document.createElement('div');
+    var d = document.implementation.createHTMLDocument('');
+    var b = d.createElement('div');
     b.innerHTML = html || '';
     return (b.textContent || '').replace(/\s+/g, ' ').trim();
   }
@@ -485,6 +488,17 @@
   // лежит старый текст, и запись оттуда молча откатила бы блок
   window.VERSIONS_PREVIEWING = function () { return !!previewing; };
   window.VERSIONS_EXPORT = exportAll;
+  window.VERSIONS_PAINTAUTH = function () { paintAuth(); };
+  // Гейт перерисовал документ: превью к новому DOM не относится.
+  window.VERSIONS_EXITPREVIEW = function () {
+    if (!previewing) return;
+    previewing = null;
+    liveState = null;
+    banner.className = 'ver-banner';
+    banner.inert = true;
+    render();
+    note('просмотр версии закрыт: документ перерисован');
+  };
 
   function init() {
     if (CFG.ui === false) return;   // зритель документа истории не видит
@@ -495,8 +509,10 @@
       window.LiveAuth.init({ url: CFG.storage.url, key: CFG.storage.key });
     }
     build();
-    // ключ мог прийти до загрузки этого файла, тогда SETCRYPT уже не позовут
-    load();
+    // Пока ждём ключ, историю не тянем: без него все строки всё равно уйдут в
+    // «не открылись», а готовность гейта ждала бы лишний запрос, к правильности
+    // текста на экране отношения не имеющий.
+    if (!(CFG.awaitKey && !crypt.on)) load();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

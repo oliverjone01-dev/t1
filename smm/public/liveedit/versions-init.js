@@ -39,6 +39,7 @@
   }
 
   window.VERSIONS = {
+    awaitKey: d.crypt === 'wait',
     docKey: d.doc || (location.pathname.replace(/[^\w]+/g, '_').replace(/^_|_$/g, '') || 'page'),
     storage: (d.storage === 'local' || /[?&]store=local(&|$)/.test(location.search)) ? 'local' : SUPABASE,
     // панель прячется от зрителя так же, как у liveedit-init: раньше отдельный
@@ -56,6 +57,29 @@
     if (window.VERSIONS_SETCRYPT) window.VERSIONS_SETCRYPT(c);
   };
 
+  function warn(text) {
+    if (document.querySelector('.le-warn[data-src="vinit"]')) return;
+    var st = document.createElement('style');
+    st.textContent = '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;' +
+      'align-items:center;justify-content:center;flex-wrap:wrap;background:#A83810;color:#fff;' +
+      'font:600 13px/1.4 sans-serif;padding:10px 16px;text-align:center}' +
+      '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;' +
+      'border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer}';
+    document.head.appendChild(st);
+    var w = document.createElement('div');
+    w.className = 'le-warn';
+    w.setAttribute('data-src', 'vinit');
+    w.setAttribute('role', 'status');
+    var sp = document.createElement('span');
+    sp.textContent = text;
+    var bt = document.createElement('button');
+    bt.type = 'button';
+    bt.textContent = 'Скрыть';
+    bt.onclick = function () { w.remove(); };
+    w.appendChild(sp); w.appendChild(bt);
+    (document.body || document.documentElement).appendChild(w);
+  }
+
   var files = ['crypt.js', 'store.js', 'auth.js', 'versions.js'];
   (function next(i) {
     if (i >= files.length) return;
@@ -68,8 +92,11 @@
       }
       next(i + 1);
     };
+    // Молчаливый обрыв недопустим и здесь: пользователь должен понимать,
+    // что история версий не работает, а не думать, что версий просто нет.
     s.onerror = function () {
       console.error('versions: не загрузился ' + files[i]);
+      warn('история версий недоступна: не открылся модуль ' + files[i]);
       if (files[i] !== 'crypt.js' && files[i] !== 'store.js') next(i + 1);
     };
     document.head.appendChild(s);

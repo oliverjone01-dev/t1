@@ -162,13 +162,13 @@
         if (n.tagName === 'A') {
           // \s не покрывает управляющие символы C0, а браузер их при резолве
           // URL выбрасывает, поэтому "\x01javascript:" прошло бы фильтр
-          var href = (n.getAttribute('href') || '').replace(/[ - ]/g, '').toLowerCase();
+          var href = (n.getAttribute('href') || '').replace(/[\u0000-\u0020]/g, '').toLowerCase();
           if (/^(javascript|data|vbscript):/.test(href)) n.removeAttribute('href');
         }
         walk(n);
       });
     })(box);
-    return box.innerHTML.replace(/ /g, ' ').trim();
+    return box.innerHTML.replace(/\u00A0/g, ' ').trim();
   }
 
   /* ---------- применение патчей ---------- */
@@ -202,17 +202,17 @@
     var live = {};
     Array.prototype.slice.call(roots().querySelectorAll('[data-le]'))
       .forEach(function (el) { live[el.getAttribute('data-le')] = 1; });
-    var others = {};        // префиксы других вкладок этого же документа
-    Object.keys(orig).forEach(function (id) { others[id] = 1; });
+    var doc = (roots().getAttribute('data-doc') || 'doc') + '/';
     return Object.keys(patches).filter(function (id) {
       if (live[id]) return false;
-      // Блок другой вкладки не сирота: он появится, когда вкладку откроют.
-      // Признак «видели этот id хоть раз в этой сессии» работает и для ручных
-      // data-edit, у которых нет префикса документа, а раньше фильтр по
-      // префиксу выбрасывал из счёта именно те блоки, что объявлены важными.
-      var doc = (roots().getAttribute('data-doc') || 'doc') + '/';
-      if (id.indexOf('/') > 0 && id.indexOf(doc) !== 0) return false;
-      return !!others[id];
+      // Сирота это патч, которому НЕ соответствует живой блок. Проверять его
+      // наличие в orig нельзя: orig наполняется только по элементам из DOM,
+      // и такое условие отрицало бы само определение сироты.
+      // Блок другой вкладки сиротой не считаем: у него префикс чужого
+      // документа, он появится, когда вкладку откроют. Ручной data-edit
+      // префикса не имеет вообще, поэтому попадает в счёт всегда.
+      if (/^[^\/]+\//.test(id) && id.indexOf(doc) !== 0) return false;
+      return true;
     });
   }
 
@@ -222,11 +222,11 @@
   // валидно встаёт на место другого.
   function aad(id) { return DOCKEY + '|' + id; }
 
-  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false };
+  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false };
 
   function load() {
     var w = health.write || 0;
-    health = { ok: false, err: null, rows: 0, bad: 0, write: w, cut: false };
+    health = { ok: false, err: null, rows: 0, bad: 0, write: w, cut: false, late: false };
     return store.list().then(function (rows) {
       health.rows = rows.length;
       if (rows.truncated) health.cut = rows.truncated;
@@ -238,6 +238,14 @@
     }).then(function () {
       loaded = true;
       health.ok = true;
+      if (window.LIVEEDIT_TOOLATE && window.LIVEEDIT_TOOLATE()) {
+        // Экран уже снят по таймауту. Накладывать патчи сейчас значит менять
+        // цифры на глазах у зала, поэтому только предупреждаем.
+        health.late = true;
+        paint();
+        report();
+        return;
+      }
       apply();
       paint();
       report();
@@ -260,6 +268,7 @@
       .then(function (p) { return store.put(id, p, author()); })
       .then(function () {
         flash('сохранено');
+        if (health.write) { health.write = 0; report(); }   // расхождение с базой ушло
         if (window.VERSIONS_TOUCH) window.VERSIONS_TOUCH();
       })
       .catch(function (e) {
@@ -291,6 +300,7 @@
   function report() {
     var o = orphans().length;
     var bad = [];
+    if (health.late) bad.push('правки пришли слишком поздно и НЕ наложены. Обновите страницу');
     if (health.cut) bad.push('правок в базе больше, чем загружено: показаны первые ' + health.cut);
     if (health.write) bad.push('правок не сохранилось на сервер: ' + health.write + '. На экране они есть, в базе нет');
     if (health.err) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
@@ -452,6 +462,7 @@
     window.LiveAuth.prompt({ server: srv, code: CODE }).then(function (ok) {
       if (!ok) return;
       unlocked = true;
+      if (window.VERSIONS_PAINTAUTH) window.VERSIONS_PAINTAUTH();  // панель версий тоже разблокируется
       toggle();
     });
   }
@@ -608,6 +619,12 @@
 
   window.BLOCKEDIT_REFRESH = function () {
     if (!loaded) return;
+    // Документ перерисован (переключили вкладку). Просмотр старой версии к
+    // новому DOM отношения не имеет: оставить баннер значило бы показывать
+    // чистый шаблон под обещанием старой версии.
+    if (window.VERSIONS_PREVIEWING && window.VERSIONS_PREVIEWING() && window.VERSIONS_EXITPREVIEW) {
+      window.VERSIONS_EXITPREVIEW();
+    }
     apply();
     reach();          // после смены DOM новые блоки тоже должны быть доступны с клавиатуры
   };
@@ -650,12 +667,25 @@
         jobs.push(crypt.encrypt(next[id], aad(id)).then(function (p) { return store.put(id, p, author()); }));
       }
     });
+    var back = JSON.parse(JSON.stringify(patches));
     patches = JSON.parse(JSON.stringify(next));
     apply();
     report();
-    return Promise.all(jobs)
-      .then(function () { flash('версия восстановлена'); })
-      .catch(function (e) { flash('откат прошёл НЕ полностью: ' + e.message, true); throw e; });
+    // Откат меняет весь документ, а не один блок, поэтому предохранитель тут
+    // нужнее, чем в save(): без него карта утверждала бы восстановленное
+    // состояние, которого на сервере нет, и это попало бы в авто-снимок.
+    return Promise.all(jobs.map(function (j) {
+      return j.then(function () { return true; }, function () { return false; });
+    })).then(function (res) {
+      var fail = res.filter(function (x) { return !x; }).length;
+      if (!fail) { flash('версия восстановлена'); return; }
+      patches = back;
+      apply();
+      health.write = (health.write || 0) + fail;
+      report();
+      flash('откат НЕ прошёл: ' + fail + ' из ' + res.length + ' записей отклонено', true);
+      throw new Error('откат не прошёл');
+    });
   };
   // Только показать состояние в DOM. Ни хранилище, ни карта патчей не трогаются:
   // отсюда всегда можно вернуться к текущей версии.

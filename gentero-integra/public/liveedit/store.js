@@ -78,7 +78,10 @@
           method: 'POST', keepalive: true,
           headers: Object.assign({ 'Prefer': prefer || 'return=minimal' }, headers(opt)),
           body: body
-        }).catch(function () { });
+        }).then(function (r) {
+          // молча резолвить 401 нельзя: последняя правка потерялась бы без следа
+          if (!r.ok) throw new Error(table + ' ' + r.status);
+        });
       },
       del: function (q) { return go(base + '?' + q, { method: 'DELETE', headers: headers(opt) }, table); }
     };

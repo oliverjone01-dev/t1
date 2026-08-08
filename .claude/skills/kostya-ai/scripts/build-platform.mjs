@@ -30,7 +30,11 @@ if (!srcDir || !outDir) {
   console.error("Использование: node build-platform.mjs <src> <out> [--passwords файл.json]");
   process.exit(1);
 }
-const pwFile = rest.includes("--passwords") ? rest[rest.indexOf("--passwords") + 1] : join(outDir, "PASSWORDS.local.json");
+// Пароли лежат ВНЕ папки выдачи по той же причине, что и манифест: папку
+// пересылают целиком, и файл с паролем поехал бы вместе с кабинетами,
+// отменяя правило «файл одним каналом, пароль другим».
+const pwFile = rest.includes("--passwords") ? rest[rest.indexOf("--passwords") + 1]
+  : outDir.replace(/\/+$/, "") + "-PASSWORDS.local.json";
 
 // Пароль читаемый вслух и достаточно длинный, чтобы офлайн-подбор был дорогим.
 // Слова простые, без похожих букв: пароль диктуют по телефону.
@@ -85,9 +89,16 @@ for (const p of pages) {
   // На экране блокировки имя человека не показываем. Иначе любой, у кого есть
   // ссылка, узнаёт, чей это кабинет, не зная пароля. Имя появляется после входа.
   const gateTitle = p.scope === "manager" ? "Кабинет менеджера" : p.title;
+  // Единственная точка контакта до ввода пароля не должна говорить только про
+  // угрозу. Подпись описывает жанр документа и не называет человека, поэтому
+  // контроль утечки имени ниже остаётся зелёным.
+  const subtitle = p.subtitle || (p.scope === "manager"
+    ? "Разбор вашей переписки с клиентами: что получилось, что чинить и одна задача на 14 дней. "
+      + "Это основа плана развития, а не итоговая оценка сотрудника."
+    : "");
   const html = tpl
     .replaceAll("__TITLE__", esc(gateTitle))
-    .replaceAll("__SUBTITLE__", esc(p.subtitle || ""))
+    .replaceAll("__SUBTITLE__", esc(subtitle))
     .replace("__SEALED__", JSON.stringify(sealed));
 
   const outPath = join(outDir, p.file);
@@ -103,7 +114,7 @@ for (const p of pages) {
   const chrome = html.replace(JSON.stringify(sealed), "");
   const expected = tpl
     .replaceAll("__TITLE__", esc(gateTitle))
-    .replaceAll("__SUBTITLE__", esc(p.subtitle || ""))
+    .replaceAll("__SUBTITLE__", esc(subtitle))
     .replace("__SEALED__", "");
   if (chrome !== expected) {
     console.error(`УТЕЧКА в ${p.file}: каркас гейта не совпал с шаблоном, содержимое просочилось мимо шифрования`);
@@ -111,7 +122,7 @@ for (const p of pages) {
   }
   // Экран блокировки не должен называть человека: ссылка без пароля не обязана
   // сообщать, чей это кабинет.
-  const onGate = `${gateTitle} ${p.subtitle || ""}`;
+  const onGate = `${gateTitle} ${subtitle}`;
   const named = (p.person || "").split(/\s+/).filter((w) => w.length > 2 && onGate.includes(w));
   if (named.length) {
     console.error(`УТЕЧКА в ${p.file}: имя «${named.join(" ")}» стоит на экране блокировки`);
@@ -122,7 +133,10 @@ for (const p of pages) {
 }
 
 writeFileSync(pwFile, JSON.stringify(passwords, null, 1));
-writeFileSync(join(outDir, "manifest.json"), JSON.stringify({
+// Манифест НЕ кладётся в папку выдачи. Он перечисляет все файлы вместе с полем
+// person, а при одном общем пароле общая папка давала бы полный список кабинетов
+// тому, кто получил один файл. Изоляция не должна держаться на гигиене раздачи.
+writeFileSync(outDir.replace(/\/+$/, "") + "-manifest.json", JSON.stringify({
   bakedAt: new Date().toISOString(), pages: built,
 }, null, 1));
 

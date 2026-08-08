@@ -7,8 +7,8 @@
 <style>
 :root{
   --bg:#06121a; --panel:#0b1a24; --panel2:#0e2130; --line:#233242; --line2:#2a3a4a;
-  --tx:#dfe9f0; --mut:#5d7484; --acc:#22D3EE; --acc2:#0E7490;
-  --ok:#34D399; --warn:#f59e0b; --bad:#FF4438; --pink:#ec4899;
+  --tx:#dfe9f0; --mut:#7b93a6; --note:#dfe9f0; --acc:#22D3EE; --acc2:#0E7490;
+  --ok:#34D399; --warn:#f59e0b; --bad:#E05A50; --pink:#ec4899;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);
@@ -23,7 +23,7 @@ nav button{background:transparent;border:0;border-bottom:2px solid transparent;c
   padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
 nav button:hover{color:var(--tx)}
 nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
-main{padding:22px 24px 60px;max-width:1440px}
+main{padding:22px 24px 60px;max-width:1440px;margin:0 auto}
 section{display:none} section.on{display:block}
 h2{font-size:17px;margin:26px 0 12px;font-weight:600}
 h2:first-child{margin-top:0}
@@ -88,8 +88,8 @@ footer{padding:20px 24px;border-top:1px solid var(--line);color:var(--mut);font-
 const D = /*__DATA__*/null;
 const E = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = n => (Math.round(n||0)).toLocaleString('ru-RU')+' ₽';
-const pc = (v,d=0) => v==null ? '&mdash;' : (v*100).toFixed(d)+'%';
-const mins = v => v==null ? '&mdash;' : v<60 ? v+' мин' : v<480 ? Math.floor(v/60)+' ч '+String(Math.round(v%60)).padStart(2,'0') : (v/480).toFixed(1)+' раб.дн';
+const pc = (v,d=0) => v==null ? 'нет данных' : (v*100).toFixed(d)+'%';
+const mins = v => v==null ? 'нет данных' : v<60 ? v+' мин' : v<480 ? Math.floor(v/60)+' ч '+String(Math.round(v%60)).padStart(2,'0') : (v/480).toFixed(1)+' раб.дн';
 const url = id => 'https://glassmemory.bitrix24.ru/crm/deal/details/'+id+'/';
 const bar = (v,cls='') => `<div class="bar"><i class="${cls}" style="width:${Math.max(0,Math.min(100,v*100)).toFixed(0)}%"></i></div>`;
 
@@ -124,8 +124,10 @@ document.getElementById('nav').onclick = e => {
   window.scrollTo(0,0);
 };
 
+const BAND_RANK = {'молодец':3,'норма':2,'в разборе':1,'мало данных':0};
 const M = D.managers.map(m=>({...m,idx:commIndex(m)}))
-  .sort((a,b)=>(b.deals>=MIN_DEALS)-(a.deals>=MIN_DEALS) || b.idx-a.idx);
+  .sort((a,b)=>BAND_RANK[band(b.idx,b)[0]]-BAND_RANK[band(a.idx,a)[0]]
+    || a.mgr.localeCompare(b.mgr,'ru'));
 document.getElementById('sub').innerHTML =
   `Переписка ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)} &middot; ${D.totals.messages.toLocaleString('ru-RU')} сообщений &middot; `+
   `${D.totals.deals} сделок &middot; ${M.length} менеджеров с объёмом от 25 исходящих`;
@@ -144,6 +146,12 @@ document.getElementById('foot').innerHTML =
   const qOut = M.reduce((s,m)=>s+Object.entries(m.outDet||{}).filter(([k])=>k.startsWith('Q_')).reduce((a,[,v])=>a+v,0),0);
   const kt=D.kostyaTotals;
   document.getElementById('t-sum').innerHTML = `
+  <div class="note bad"><b>В каком состоянии инструмент прямо сейчас.</b>
+    Ни один из 23 детекторов не прошёл ручную проверку по 30 случаям. Два проверенных
+    оказались завышены, один в разы. Пороги стадий и веса индекса помечены гипотезой,
+    калибровка на закрытых сделках идёт до конца августа. Клиент опознаётся по названию
+    сделки, а не по CONTACT_ID: прокси покрывает малую долю сделок.
+    Любой флаг здесь это повод открыть сделку, а не установленный факт.</div>
   <h2>Светофор по качеству коммуникации</h2>
   <div class="scroll"><table>
     <thead><tr><th>Менеджер</th><th class="num">Индекс</th><th>Полоса</th><th class="num">Сделок</th>
@@ -151,20 +159,25 @@ document.getElementById('foot').innerHTML =
       <th class="num">Ответ &lt;1ч</th><th class="num">Без ответа</th><th class="num">Срок в обещании</th>
       <th class="num">Квалификация</th><th class="num">Эскалации</th></tr></thead>
     <tbody>${M.map(m=>{const [b,c]=band(m.idx,m);const r=m.reply||{};return `<tr>
-      <td>${E(m.mgr)}</td>
-      <td class="num">${m.deals>=MIN_DEALS?"<b>"+m.idx.toFixed(1)+"</b>":"&mdash;"}</td>
-      <td><span class="tag ${c}">${b}</span></td>
-      <td class="num">${m.deals}</td><td class="num">${m.out.toLocaleString('ru-RU')}</td>
-      <td class="num">${mins(r.medianMin)}</td><td class="num">${mins(r.p90Min)}</td>
-      <td class="num">${pc(r.within60)}</td>
-      <td class="num">${m.unansweredCount?`<span class="tag bad">${m.unansweredCount}</span>`:'0'}</td>
-      <td class="num">${pc(m.concreteTimeShare)}</td>
-      <td class="num">${(m.qualifyRate||0).toFixed(2)}%</td>
-      <td class="num">${m.escalationCount||0}</td></tr>`}).join('')}</tbody>
+      <td data-v="0">${E(m.mgr)}</td>
+      <td class="num" data-v="${m.deals>=MIN_DEALS?m.idx:-1}">${m.deals>=MIN_DEALS?m.idx.toFixed(1):"мало данных"}</td>
+      <td data-v="${BAND_RANK[b]}"><span class="tag ${c}">${b}</span></td>
+      <td class="num" data-v="${m.deals}">${m.deals}</td>
+      <td class="num" data-v="${m.out}">${m.out.toLocaleString('ru-RU')}</td>
+      <td class="num" data-v="${r.medianMin==null?-1:r.medianMin}">${mins(r.medianMin)}</td>
+      <td class="num" data-v="${r.p90Min==null?-1:r.p90Min}">${mins(r.p90Min)}</td>
+      <td class="num" data-v="${r.within60==null?-1:r.within60}">${pc(r.within60)}</td>
+      <td class="num" data-v="${m.unansweredCount||0}">${m.unansweredCount?`<span class="tag bad">${m.unansweredCount}</span>`:'0'}</td>
+      <td class="num" data-v="${m.concreteTimeShare==null?-1:m.concreteTimeShare}">${pc(m.concreteTimeShare)}</td>
+      <td class="num" data-v="${m.qualifyRate||0}">${(m.qualifyRate||0).toFixed(2)}%</td>
+      <td class="num" data-v="${m.escalationCount||0}">${m.escalationCount||0}</td></tr>`}).join('')}</tbody>
   </table></div>
   <div class="note">Индекс складывается из скорости ответа (25%), длины хвоста p90 (15%), доведения диалога до ответа (20%),
     конкретности сроков в обещаниях (15%), чистоты текста (15%) и квалификации клиента (10%). Веса
-    <b>гипотеза</b>, пересматриваются после двух недель ежедневных прогонов вместе с Иваном.</div>
+    <b>гипотеза</b>, пересматриваются после двух недель ежедневных прогонов вместе с Иваном.
+    Внутри полосы люди идут по алфавиту, а не по баллу: при выборке в полтора десятка сделок
+    доверительный интервал шире двух баллов, и разница в десятых между людьми ничего не значит.
+    Сортировка по любому столбцу доступна кликом по заголовку.</div>
 
   <h2>Что происходит в отделе</h2>
   <div class="grid k4">
@@ -233,7 +246,7 @@ document.getElementById('foot').innerHTML =
           <div class="card kpi"><div class="v">${pc(m.initiatedShare)}</div><div class="l">диалогов начал сам</div></div>
           <div class="card kpi"><div class="v">${pc(m.concreteTimeShare)}</div><div class="l">обещаний с конкретным сроком</div>${bar(m.concreteTimeShare||0,(m.concreteTimeShare||0)>.3?'ok':'bad')}</div>
           <div class="card kpi"><div class="v">${(m.qualifyRate||0).toFixed(2)}%</div><div class="l">сообщений с квалификацией</div></div>
-          <div class="card kpi"><div class="v">${m.avgOutChars||'—'}</div><div class="l">средняя длина сообщения, знаков</div></div>
+          <div class="card kpi"><div class="v">${m.avgOutChars||'нет данных'}</div><div class="l">средняя длина сообщения, знаков</div></div>
         </div>
 
         <h3>Дефекты текста на 100 исходящих</h3>
@@ -370,11 +383,14 @@ document.addEventListener('click', e => {
   for (const h of th.parentNode.children) { delete h.dataset.dir; h.textContent = h.textContent.replace(/ [▲▼]$/, ''); }
   th.dataset.dir = dir === 1 ? 'asc' : 'desc';
   th.textContent += dir === 1 ? ' ▲' : ' ▼';
-  // Число вытаскиваем из текста ячейки: там «15.5 мин», «2 037 135 ₽», «77%».
+  // Значение берётся из data-v, а не из текста ячейки. Текст врёт: «1.5 раб.дн»
+  // после вычистки нецифр превращалась в 1.5 и вставала ниже «12 мин», а одна
+  // ячейка «нет данных» роняла всю колонку в алфавитную сортировку.
   const val = r => {
-    const t = (r.cells[col]?.innerText || '').trim();
-    const n = parseFloat(t.replace(/ |\s/g, '').replace(',', '.').replace(/[^\d.\-]/g, ''));
-    return Number.isNaN(n) || !/\d/.test(t) ? null : n;
+    const c = r.cells[col];
+    if (!c || c.dataset.v === undefined) return null;
+    const n = parseFloat(c.dataset.v);
+    return Number.isNaN(n) ? null : n;
   };
   const rows = [...tb.rows];
   const numeric = rows.every(r => val(r) !== null);

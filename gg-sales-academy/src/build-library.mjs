@@ -15,6 +15,11 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
+// Единый источник подписанных обещаний. Тот же файл читает сборка кабинетов.
+// Копия текста в двух генераторах разошлась бы молча: раздел помечен черновиком
+// до визы юриста, значит он будет меняться.
+const CONTRACT = JSON.parse(readFileSync(new URL("../../.claude/skills/kostya-ai/shared/contract.json", import.meta.url), "utf8"));
+
 // B1. Дефолтного пароля нет и быть не может: опубликованный хеш дефолта равен
 // sha256 строки, напечатанной в этом же файле, то есть гейт открывается чтением
 // исходника. Без переменной сборка падает.
@@ -103,8 +108,8 @@ sec("normativy", "Нормативы", "Четыре норматива отде
   `<div class="kpi">
     <div><div class="v">${N.replyMed}</div><div class="l">медиана ответа клиенту, рабочее время</div><span class="tag ok">ДАННЫЕ</span></div>
     <div><div class="v" style="color:var(--bad)">${N.replyP90}</div><div class="l">p90: каждый десятый ответ занимает столько</div><span class="tag ok">ДАННЫЕ</span></div>
-    <div><div class="v" style="color:var(--warn)">около ${N.promiseShare}</div><div class="l">обещаний содержат конкретный срок</div><span class="tag warn">ГИПОТЕЗА</span></div>
-    <div><div class="v" style="color:var(--warn)">около ${N.qBudget}</div><div class="l">сообщений с вопросом о бюджете</div><span class="tag warn">ГИПОТЕЗА</span></div>
+    <div><div class="v">около ${N.promiseShare}</div><div class="l">обещаний содержат конкретный срок</div><span class="tag warn">ГИПОТЕЗА</span></div>
+    <div><div class="v">около ${N.qBudget}</div><div class="l">сообщений с вопросом о бюджете</div><span class="tag warn">ГИПОТЕЗА</span></div>
   </div>
 
   <h3>Норматив 1. Скорость ответа</h3>
@@ -460,20 +465,18 @@ sec("pravovaya", "Права и данные", "Ваши данные и ваш�
   не используются как основание для кадровых решений и не влияют на премию.</p>
 
   <h3>Две подписанные гарантии</h3>
-  <div class="card"><p>Подписано Иваном Раюшкиным 08.08.2026:</p>
-  <ul>
-    <li><b>Результаты разбора не влияют на премию и не служат основанием для кадрового решения.</b>
-      Разбор показывает, где смотреть, а не кого наказывать.</li>
-    <li><b>За возражение против флага последствий не бывает.</b> Оспоренный и не снятый флаг
-      остаётся в кабинете вместе с текстом возражения, чтобы спор был виден, а не замят.</li>
-  </ul>
-  <p class="small">Обещание без подписи это пожелание. Эти два держатся именем, а не формулировкой.</p></div>
+  <div class="card"><p>Подписано: ${CONTRACT.signedBy}, ${CONTRACT.signedAt.split("-").reverse().join(".")}.</p>
+  <ul>${CONTRACT.guarantees.map(g => `<li><b>${g}</b></li>`).join("")}</ul>
+  <p class="small">Обещание без подписи это пожелание. Эти два держатся именем, а не формулировкой.
+  Тот же текст стоит в шапке личного кабинета: он берётся из одного файла, поэтому разойтись
+  между документами не может.</p></div>
 
   <h3>Ваши права</h3>
   <ul>
     <li>Запросить копию всего, что собрано лично о вас.</li>
-    <li>Оспорить любой флаг с указанием номера сделки. Ответ приходит письменно в течение
-      <b>двух рабочих дней</b>. Молчание дольше двух дней означает, что флаг снят.</li>
+    <li>Оспорить любой флаг с указанием номера сделки. ${CONTRACT.dispute.rule}
+      В кабинете для этого есть кнопка «не согласен» в строке сделки: она копирует готовый текст
+      с номером, флагом и датой, до которой ждём ответ. Адресат: ${CONTRACT.dispute.owner}.</li>
     <li>Знать, кто видит ваш кабинет: вы и РОП. Сводку по отделу видят РОП и Иван.</li>
   </ul>
 
@@ -526,7 +529,7 @@ sec("changelog", "Что изменилось", "Что изменилось в 
 // ─────────────────────────────────────────────────────────── рендер
 const CSS = `
 :root{--bg:#06121a;--panel:#0b1a24;--panel2:#0e2130;--line:#233242;--line2:#2a3a4a;
---tx:#dfe9f0;--mut:#5d7484;--acc:#22D3EE;--acc2:#0E7490;--ok:#34D399;--warn:#f59e0b;--bad:#FF4438}
+--tx:#dfe9f0;--mut:#7b93a6;--note:#dfe9f0;--acc:#22D3EE;--acc2:#0E7490;--ok:#34D399;--warn:#f59e0b;--bad:#E05A50}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);
 font:15.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -536,15 +539,18 @@ a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 .logo{padding:0 20px 16px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 .logo b{color:var(--acc);display:block;font-size:15px;letter-spacing:.1em;margin-bottom:3px}
 .grp{padding:14px 20px 5px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-.side a{display:block;padding:8px 20px;color:var(--tx);font-size:14px;border-left:2px solid transparent}
+.side a{display:block;padding:11px 20px;color:var(--tx);font-size:14px;border-left:2px solid transparent}
+:where(a,button,input,summary,[data-copy]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
 .side a:hover{background:var(--panel2);text-decoration:none}
 .side a.on{border-left-color:var(--acc);color:var(--acc);background:var(--panel2)}
 .side .meta{padding:18px 20px 0;margin-top:14px;border-top:1px solid var(--line);color:var(--mut);font-size:11.5px;line-height:1.55}
 main{padding:30px 34px 70px;max-width:880px}
+main p,main .why,main .note{max-width:66ch}
+main .q,main .ex{max-width:70ch}
 section{display:none}section.on{display:block}
 h1{font-size:24px;margin:0 0 6px}
 .lead-sub{color:var(--mut);font-size:14px;margin-bottom:22px}
-h3{font-size:16px;margin:26px 0 8px}
+h3{font-size:18px;margin:30px 0 8px;font-weight:600}
 p{margin:9px 0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px 17px;margin:12px 0}
 .card.lead{border-color:var(--acc2);background:var(--panel2)}
@@ -577,7 +583,7 @@ font-size:10.5px;color:var(--ok)}
 .steps>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
 ul{margin:8px 0 8px 20px;padding:0}li{margin:5px 0}
 ul.dont li{color:#e8b4b0}
-.small{font-size:12.5px;color:var(--mut)}
+.small{font-size:13px;color:var(--mut);max-width:62ch}
 @media(max-width:860px){.wrap{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 14px 50px}}
 `;
 
@@ -607,7 +613,7 @@ ${CSS}
 background:radial-gradient(1200px 600px at 50% -10%,#0d2333,#06121a)}
 .box{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
 .box h1{font-size:19px;margin:0 0 8px}
-.box p{color:var(--mut);font-size:13px;margin:0 0 16px}
+.box p{color:var(--tx);font-size:13.5px;margin:0 0 16px}
 .box form{display:flex;flex-direction:column;gap:10px}
 input{background:var(--panel2);border:1px solid var(--line2);color:var(--tx);padding:12px 14px;
 border-radius:9px;font:inherit;font-size:15px;width:100%}
@@ -669,7 +675,9 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     e.preventDefault();sessionStorage.removeItem('academy');location.reload()});
 
   function show(id){
-    var s=document.getElementById(id);if(!s)return;
+    // Неизвестный якорь в пересланной ссылке давал полностью пустой экран:
+    // все секции display:none, ни одна не показана.
+    var s=document.getElementById(id)||document.getElementById('kak-chitat');if(!s)return;
     document.querySelectorAll('main section').forEach(function(x){x.classList.toggle('on',x===s)});
     document.querySelectorAll('.side a[data-s]').forEach(function(a){a.classList.toggle('on',a.dataset.s===id)});
     window.scrollTo(0,0);
@@ -677,10 +685,32 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   window.addEventListener('hashchange',function(){show(location.hash.slice(1))});
 
   // Копирование формулировки: главное действие в библиотеке. Читают меньше, чем копируют.
+  // Тихий отказ недопустим: по file:// и в части браузеров доступ к буферу закрыт,
+  // и человек видел бы ровно ничего на главном действии библиотеки.
+  function copyText(txt,el){
+    var done=function(){el.classList.add('done');setTimeout(function(){el.classList.remove('done')},1400)};
+    var fallback=function(){
+      var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();var ok=false;
+      try{ok=document.execCommand('copy')}catch(err){ok=false}
+      document.body.removeChild(ta);
+      if(ok)done();else window.prompt('Скопируйте текст вручную',txt);
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done).catch(fallback);
+    } else fallback();
+  }
   document.addEventListener('click',function(e){
     var el=e.target.closest('[data-copy]');if(!el)return;
-    navigator.clipboard.writeText(el.textContent.trim()).then(function(){
-      el.classList.add('done');setTimeout(function(){el.classList.remove('done')},1200)});
+    copyText(el.textContent.trim(),el);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    var el=e.target.closest('[data-copy]');if(!el)return;
+    e.preventDefault();copyText(el.textContent.trim(),el);
+  });
+  document.querySelectorAll('[data-copy]').forEach(function(el){
+    el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label','Скопировать формулировку');
   });
 })();
 </script>

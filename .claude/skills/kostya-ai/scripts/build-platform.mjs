@@ -142,7 +142,8 @@ writeFileSync(outDir.replace(/\/+$/, "") + "-manifest.json", JSON.stringify({
 
 console.log(`\nстраниц: ${built.length}, папка: ${outDir}`);
 console.log(`пароли: ${pwFile}  (в git не попадает, раздавать лично)`);
-console.log("Файлы платформы не коммитятся: репозиторий публичный.");
+console.log("Запечатанные файлы коммитятся и уезжают на Pages в /academy/.");
+console.log("Пароль даёт 23,6 бита, файлы публичные: подбор офлайн реален. Риск принят 08.08.2026.");
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

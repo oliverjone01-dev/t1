@@ -118,6 +118,8 @@ __PAYLOADS__
         try { history.replaceState(null, '', '#' + name); } catch(e) {}
         window.scrollTo(0, 0);
         try { initDoc(); } catch(e) { console.error(e); }
+        // вкладка перерисовала #doc целиком, патчи надо наложить заново
+        if (window.BLOCKEDIT_REFRESH) { try { window.BLOCKEDIT_REFRESH(); } catch(e) { console.error(e); } }
         if (focusTop) {
           var h = document.getElementById('h-top');
           if (h) { h.setAttribute('tabindex','-1'); h.focus(); }
@@ -152,10 +154,13 @@ __PAYLOADS__
       .then(function(km){
         return crypto.subtle.deriveKey(
           { name:'PBKDF2', salt: salt, iterations: ITER, hash:'SHA-256' },
-          km, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+          km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
       })
       .then(function(k){
         key = k;
+        // тот же ключ уходит модулям правки и версий: патчи контента лежат в
+        // Supabase шифрованными и открываются только этим паролем
+        if (window.LIVEEDIT_KEY) { try { window.LIVEEDIT_KEY(k); } catch(e) { console.error(e); } }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = '__FIRST__';
         return open(want, true);
@@ -181,6 +186,7 @@ function initDoc(){
 __SCRIPT__
 }
 </script>
+__LIVEEDIT__
 </body>
 </html>
 `;
@@ -252,7 +258,16 @@ function lockAll(docs, out, password) {
     report.push(`      ${name}: ${part.secret.length} симв. -> ${payload.length} симв. шифротекста`);
   }
 
+  // Модуль правки блоков и версий. Подключается, только если задан LIVEEDIT_DOC:
+  // ключ шифрования ему отдаёт гейт после ввода пароля, панели видны при ?edit=1.
+  const le = process.env.LIVEEDIT_DOC
+    ? `<script src="${process.env.LIVEEDIT_SRC || 'liveedit/liveedit-init.js'}" ` +
+      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" ` +
+      `data-code="${process.env.LIVEEDIT_CODE || ''}" data-crypt="wait" defer></script>`
+    : '';
+
   const page = GATE
+    .replace('__LIVEEDIT__', () => le)
     .replace('__STYLE__', () => first.style)
     .replace('__DEFS__', () => first.defs)
     .replace('__PAYLOADS__', () => payloads.join('\n'))

@@ -846,6 +846,7 @@ footer{border-top:1px solid var(--bd)}
         try { history.replaceState(null, '', '#' + name); } catch(e) {}
         window.scrollTo(0, 0);
         try { initDoc(); } catch(e) { console.error(e); }
+        if (window.BLOCKEDIT_REFRESH) { try { window.BLOCKEDIT_REFRESH(); } catch(e) { console.error(e); } }
         if (focusTop) {
           var h = document.getElementById('h-top');
           if (h) { h.setAttribute('tabindex','-1'); h.focus(); }
@@ -880,10 +881,11 @@ footer{border-top:1px solid var(--bd)}
       .then(function(km){
         return crypto.subtle.deriveKey(
           { name:'PBKDF2', salt: salt, iterations: ITER, hash:'SHA-256' },
-          km, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+          km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
       })
       .then(function(k){
         key = k;
+        if (window.LIVEEDIT_KEY) { try { window.LIVEEDIT_KEY(k); } catch(e) { console.error(e); } }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = 'gt';
         return open(want, true);
@@ -1091,5 +1093,6 @@ function initDoc(){
   });
 }
 </script>
+<script src="liveedit/liveedit-init.js" data-doc="integra-internal" data-root="#doc" data-code="0103" data-crypt="wait" defer></script>
 </body>
 </html>

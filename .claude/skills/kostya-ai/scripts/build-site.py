@@ -8,11 +8,15 @@
 Запуск:
   python3 build-site.py analysis.json msgs.jsonl out.html [kostya.json]
 """
-import json, sys, html, re, statistics
+import json, sys, os, html, re, hashlib, statistics
 from collections import defaultdict, Counter
 from datetime import datetime
 
 PORTAL = "https://glassmemory.bitrix24.ru/crm/deal/details/{}/"
+
+# Набор иконок один на всю платформу: библиотека, кабинет и сводка.
+ICONS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "..", "shared", "icons.json"), encoding="utf-8"))
 
 def esc(s):
     return html.escape(str(s if s is not None else ""))
@@ -376,7 +380,16 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None):
         "kostyaTotals": K["totals"] if K else None,
         "kostyaManagers": {m["mgr"]: kostya_by_key[name_key(m["mgr"])]
                            for m in mgrs if name_key(m["mgr"]) in kostya_by_key},
+        # Адрес кабинета каждого. Список «кто под каким адресом» существует только
+        # внутри зашифрованной сводки: снаружи адреса не называют людей, а Ивану и
+        # РОПу нужно знать, кому какую ссылку отдать.
+        "cabinets": {m["mgr"]: "k-" + hashlib.sha1(name_key(m["mgr"]).encode("utf-8")).hexdigest()[:10] + ".html"
+                     for m in mgrs},
         "scripts": SALES_SCRIPTS, "followups": FOLLOWUPS, "magnets": MAGNETS,
+        # Иконки едут данными, а не разметкой: набор один на библиотеку, кабинеты
+        # и сводку, и лежит он в shared/icons.json. Копия внутри шаблона разошлась
+        # бы с остальными молча.
+        "icons": ICONS,
     }
 
     tpl = open(__file__.replace("build-site.py", "site-template.html"), encoding="utf-8").read()

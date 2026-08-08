@@ -15,6 +15,47 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
+// Единый источник подписанных обещаний. Тот же файл читает сборка кабинетов.
+// Копия текста в двух генераторах разошлась бы молча: раздел помечен черновиком
+// до визы юриста, значит он будет меняться.
+const CONTRACT = JSON.parse(readFileSync(new URL("../../.claude/skills/kostya-ai/shared/contract.json", import.meta.url), "utf8"));
+
+// Иконки и типовые ситуации лежат там же и по той же причине: набор один на
+// библиотеку, кабинеты и сводку. Разъехавшиеся наборы читаются как разные
+// продукты, а промт к картинке, скопированный во второй генератор, разойдётся молча.
+const ICONS = JSON.parse(readFileSync(new URL("../../.claude/skills/kostya-ai/shared/icons.json", import.meta.url), "utf8"));
+const SITU = JSON.parse(readFileSync(new URL("../../.claude/skills/kostya-ai/shared/situations.json", import.meta.url), "utf8"));
+
+/** Иконка раздела или состояния. aria-hidden: смысл несёт подпись рядом, не картинка. */
+const ic = (name, cls = "ic") => ICONS[name]
+  ? `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`
+  : "";
+
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/**
+ * Иллюстрация к типовой ситуации.
+ *
+ * Картинки может не быть: файлы генерирует и приносит Иван. Поэтому по умолчанию
+ * стоит рамка с промтом, а <img> скрыт и раскрывается сам, когда файл появится в
+ * img/. Так раздел не ломается ни в одном из двух состояний, и никому не нужно
+ * помнить, что после подкладывания файла надо что-то переверстать.
+ */
+function situ(id) {
+  const s = (SITU.situations || []).find((x) => x.id === id);
+  if (!s) throw new Error(`Нет ситуации ${id} в situations.json`);
+  return `<figure class="situ" id="situ-${s.id}">
+  <img src="img/${s.id}.webp" alt="${esc(s.alt)}" loading="lazy"
+       onload="this.closest('.situ').classList.add('has-img')">
+  <div class="ph">
+    <div class="ph-h">${ic("picture")}<b>${esc(s.title)}</b><span class="tag">картинки ещё нет</span></div>
+    <div class="ph-f">Положить файл: <code>gg-sales-academy/img/${s.id}.webp</code>, 1600x640, до 200 КБ. Появится здесь сам.</div>
+    <div class="ex" data-copy>${esc(s.prompt)}</div>
+  </div>
+  <figcaption>${esc(s.title)}</figcaption>
+</figure>`;
+}
+
 // B1. Дефолтного пароля нет и быть не может: опубликованный хеш дефолта равен
 // sha256 строки, напечатанной в этом же файле, то есть гейт открывается чтением
 // исходника. Без переменной сборка падает.
@@ -103,8 +144,8 @@ sec("normativy", "Нормативы", "Четыре норматива отде
   `<div class="kpi">
     <div><div class="v">${N.replyMed}</div><div class="l">медиана ответа клиенту, рабочее время</div><span class="tag ok">ДАННЫЕ</span></div>
     <div><div class="v" style="color:var(--bad)">${N.replyP90}</div><div class="l">p90: каждый десятый ответ занимает столько</div><span class="tag ok">ДАННЫЕ</span></div>
-    <div><div class="v" style="color:var(--warn)">около ${N.promiseShare}</div><div class="l">обещаний содержат конкретный срок</div><span class="tag warn">ГИПОТЕЗА</span></div>
-    <div><div class="v" style="color:var(--warn)">около ${N.qBudget}</div><div class="l">сообщений с вопросом о бюджете</div><span class="tag warn">ГИПОТЕЗА</span></div>
+    <div><div class="v">около ${N.promiseShare}</div><div class="l">обещаний содержат конкретный срок</div><span class="tag warn">ГИПОТЕЗА</span></div>
+    <div><div class="v">около ${N.qBudget}</div><div class="l">сообщений с вопросом о бюджете</div><span class="tag warn">ГИПОТЕЗА</span></div>
   </div>
 
   <h3>Норматив 1. Скорость ответа</h3>
@@ -154,7 +195,8 @@ sec("normativy", "Нормативы", "Четыре норматива отде
 // ─────────────────────────────────────────────────────────── не ваша зона
 sec("ne-vasha-zona", "Не ваша зона", "Не ваша зона",
   "Дефекты, которые видны в ваших цифрах и чинятся не вами. Раздел стоит выше личных претензий намеренно.",
-  `<div class="scroll"><table><thead><tr><th>Что не работает</th><th>Что из-за этого видно в разборе</th><th>Владелец</th></tr></thead><tbody>
+  `${situ("ne-vasha-zona")}
+  <div class="scroll"><table><thead><tr><th>Что не работает</th><th>Что из-за этого видно в разборе</th><th>Владелец</th></tr></thead><tbody>
   <tr><td>Поля «Дата решения клиента» и «Дата следующего контакта» в Bitrix24 не созданы</td>
       <td>Стадия «Принимают решение» не может работать по правилу «нет даты, нет стадии». Детектор считает по косвенному признаку</td><td>РОП, интегратор</td></tr>
   <tr><td>Стадии «Счёт отправлен» и «Связаться позже» не созданы</td>
@@ -179,6 +221,7 @@ sec("kvalifikaciya", "Квалификация", "Квалификация: тр
   `<div class="card warn-card"><b>Почему это раздел номер один.</b> Расчёты готовятся вслепую:
   без бюджета клиента, без его дедлайна и без понимания, кто подписывает. Вопрос про ЛПР задан
   ${N.qLpr} раз на все текстовые исходящие за четыре месяца.</div>
+  ${situ("kvalifikaciya-tri-voprosa")}
 
   <h3>Ветка «дизайнер, комплектатор»</h3>
   <p class="why">Дизайнер бюджетом не распоряжается. Прямой вопрос «какой у вас бюджет» ставит его
@@ -215,7 +258,8 @@ sec("kvalifikaciya", "Квалификация", "Квалификация: тр
 // ─────────────────────────────────────────────────────────── возражения
 sec("vozrazheniya", "Возражения", "Возражения",
   `${N.priceObj} возражения по цене за период. Правило: не более 24 часов на встречное предложение.`,
-  `<h3>«Дорого» бывает трёх видов, и лечатся они по-разному</h3>
+  `<h3>${ic("vozrazheniya")}«Дорого» бывает трёх видов, и лечатся они по-разному</h3>
+  ${situ("dorogo-tri-vida")}
   <div class="scroll"><table><thead><tr><th>Тип</th><th>Признак</th><th>Что делать</th></tr></thead><tbody>
   <tr><td>Дороже ожидания</td><td>У клиента нет референса цены на стекло</td><td>Показать структуру цены и вилку уровней</td></tr>
   <tr><td>Дороже конкурента</td><td>На руках другое предложение</td><td>Построчное сравнение состава. Не спорить в переписке</td></tr>
@@ -226,7 +270,8 @@ sec("vozrazheniya", "Возражения", "Возражения",
   <div class="q" data-copy>Какая цифра для вас рабочая? Назовите, скажу честно, попадаем мы в неё или нет.</div>
   <div class="q" data-copy>В вашу цифру мы честно не попадаем. Предлагаю так: я не буду уговаривать, но напишу [конкретная дата], когда вы будете сравнивать монтажников. Если к тому моменту разница окажется не в нашу пользу, скажете, и я закрою вопрос.</div>
 
-  <h3>«Дорого» сказал заказчик, а разговариваю я с дизайнером</h3>
+  <h3>${ic("person")}«Дорого» сказал заказчик, а разговариваю я с дизайнером</h3>
+  ${situ("dizayner-posredine")}
   <p class="why">Здесь провал не в возражении, а в конструкции: защищать нашу цену придётся человеку,
   который наш продукт не знает, перед человеком, которого мы никогда не видели. Задача не отработать
   возражение, а вооружить дизайнера.</p>
@@ -235,7 +280,8 @@ sec("vozrazheniya", "Возражения", "Возражения",
   <div class="q" data-copy>И дам формулировку, чтобы вы не оправдывались перед заказчиком за нашу цену: разница между предложениями это не наценка, это доставка, монтаж и гарантия на срабатывание фурнитуры. При одинаковом объёме работ разница [цифра] процентов, а не в два раза.</div>
   <div class="q" data-copy>Если заказчику удобнее услышать это от производителя, готов подключиться на 10 минут созвоном, вместе с вами, при вас. Ничего мимо вас говорить не буду, вопрос вознаграждения не поднимаю.</div>
 
-  <h3>«Подумаю» и «надо посоветоваться»</h3>
+  <h3>${ic("clock")}«Подумаю» и «надо посоветоваться»</h3>
+  ${situ("podumayu")}
   <div class="q" data-copy>Конечно. Чтобы я не дёргал вас лишний раз: когда удобно вернуться к вопросу, к пятнице или к следующей среде?</div>
   <div class="q" data-copy>Что осталось нерешённым: цена, срок или конструкция?</div>
   <div class="q" data-copy>Конечно, посоветуйтесь. Чтобы вам не пересказывать техчасть, подготовлю лист на одну страницу, который можно просто показать. Что важнее в первую очередь, цена или срок?</div>
@@ -256,14 +302,16 @@ sec("dozhim", "Дожим", "Дожим: когда напомнить и что
   ${N.kpStage} открытых сделок с медианой ${N.kpMedian} день. Лестница из трёх касаний за девять
   дней с последующей паузой на месяц выводит менеджера из эфира ровно тогда, когда клиент решает.</div>
 
-  <h3>Ветка А: розница до 150 тысяч, изделие не привязано к ремонту</h3>
+  ${situ("dozhim-dve-vetki")}
+
+  <h3>${ic("calendar")}Ветка А: розница до 150 тысяч, изделие не привязано к ремонту</h3>
   <div class="scroll"><table><thead><tr><th style="width:190px">Когда</th><th>Что сделать</th></tr></thead><tbody>
   <tr><td><span class="tag acc">Через 2 рабочих дня</span></td><td class="wrap">Письменно, с вопросом по технике, а не «ну как». <span class="ex" data-copy>Направлял вам расчёт по [изделие]. Понимаю, что решение требует времени. Может, остались технические вопросы?</span></td></tr>
   <tr><td><span class="tag acc">Ещё через 3 дня</span></td><td class="wrap">Звонок. Если не отвечает: <span class="ex" data-copy>Звонил уточнить по расчёту. Если сейчас неактуально, просто скажите, я не буду беспокоить.</span></td></tr>
   <tr><td><span class="tag acc">Ещё через 5 дней</span></td><td class="wrap">Вопрос-закрытие. <span class="ex" data-copy>Скажите одним словом: идём в работу, пауза или не актуально? Любой ответ мне подходит.</span></td></tr>
   </tbody></table></div>
 
-  <h3>Ветка Б: от 150 тысяч, дизайнер, объект</h3>
+  <h3>${ic("calendar")}Ветка Б: от 150 тысяч, дизайнер, объект</h3>
   <div class="scroll"><table><thead><tr><th style="width:190px">Когда</th><th>Что сделать</th></tr></thead><tbody>
   <tr><td><span class="tag acc">Через 2 рабочих дня</span></td><td class="wrap">Письменно, вопрос по технике</td></tr>
   <tr><td><span class="tag acc">Через 5 дней</span></td><td class="wrap">Звонок, смена канала</td></tr>
@@ -273,11 +321,13 @@ sec("dozhim", "Дожим", "Дожим: когда напомнить и что
   <p class="small">Разница принципиальная. «Напишу через месяц» это уход: клиент слышит, что вопрос
   закрыт. «Поставил себе дату и вернусь с поводом» это назначенная встреча.</p>
 
-  <h3>Клиент назвал дату решения, дата наступила</h3>
+  <h3>${ic("check")}Клиент назвал дату решения, дата наступила</h3>
+  ${situ("data-resheniya")}
   <div class="q" data-copy>Договаривались, что сегодня будет ясность по [изделие]. Идём в работу или переносим дату?</div>
   <p class="norm">В дату решения нужен ответ: да, нет или новая дата. Третьего не дано.</p>
 
-  <h3>Долгий проект, объект не готов</h3>
+  <h3>${ic("pause")}Долгий проект, объект не готов</h3>
+  ${situ("dolgostroy")}
   <div class="q" data-copy>Понял, ждём закладные. Запишу контрольную точку на [дата]. Напишу вам в этот день, ничего не потеряется.</div>
   <p class="small">Такие сделки живут в «Долгострое». Сейчас там ${N.dolgostroy} сделок,
   ${N.dolgoStale} из них без активности дольше месяца.</p>`);
@@ -285,12 +335,14 @@ sec("dozhim", "Дожим", "Дожим: когда напомнить и что
 // ─────────────────────────────────────────────────────────── эскалация
 sec("eskalaciya", "Эскалация", "Плохие новости и претензии",
   `${N.esc} обращений к руководителю за период. Ни одно сейчас не поднимается автоматически.`,
-  `<h3>Сдвиг срока: сообщаем до наступления даты</h3>
+  `<h3>${ic("alert")}Сдвиг срока: сообщаем до наступления даты</h3>
+  ${situ("sdvig-sroka")}
   <p class="why">Одно проактивное сообщение за три дня до срыва дешевле, чем весь разбор претензии
   после. Проактивного модуля в отделе не было вообще.</p>
   <div class="q" data-copy>Предупреждаю заранее: по вашему заказу сдвигается срок, будет готово [новая дата] вместо [старая]. Причина в [одна фраза]. Держу на контроле лично и напишу вам [дата] с подтверждением.</div>
 
-  <h3>Претензия: четыре шага, порядок обязателен</h3>
+  <h3>${ic("eskalaciya")}Претензия: четыре шага, порядок обязателен</h3>
+  ${situ("pretenziya-chetyre-shaga")}
   <div class="steps">
     <div><b>1. Выслушать до конца.</b> Не перебивать, не объяснять. Зафиксировать вслух:
       <span class="ex" data-copy>Я записываю. Правильно понял: [первое], [второе], [третье]. Ничего не упустил?</span>
@@ -460,20 +512,18 @@ sec("pravovaya", "Права и данные", "Ваши данные и ваш�
   не используются как основание для кадровых решений и не влияют на премию.</p>
 
   <h3>Две подписанные гарантии</h3>
-  <div class="card"><p>Подписано Иваном Раюшкиным 08.08.2026:</p>
-  <ul>
-    <li><b>Результаты разбора не влияют на премию и не служат основанием для кадрового решения.</b>
-      Разбор показывает, где смотреть, а не кого наказывать.</li>
-    <li><b>За возражение против флага последствий не бывает.</b> Оспоренный и не снятый флаг
-      остаётся в кабинете вместе с текстом возражения, чтобы спор был виден, а не замят.</li>
-  </ul>
-  <p class="small">Обещание без подписи это пожелание. Эти два держатся именем, а не формулировкой.</p></div>
+  <div class="card"><p>Подписано: ${CONTRACT.signedBy}, ${CONTRACT.signedAt.split("-").reverse().join(".")}.</p>
+  <ul>${CONTRACT.guarantees.map(g => `<li><b>${g}</b></li>`).join("")}</ul>
+  <p class="small">Обещание без подписи это пожелание. Эти два держатся именем, а не формулировкой.
+  Тот же текст стоит в шапке личного кабинета: он берётся из одного файла, поэтому разойтись
+  между документами не может.</p></div>
 
   <h3>Ваши права</h3>
   <ul>
     <li>Запросить копию всего, что собрано лично о вас.</li>
-    <li>Оспорить любой флаг с указанием номера сделки. Ответ приходит письменно в течение
-      <b>двух рабочих дней</b>. Молчание дольше двух дней означает, что флаг снят.</li>
+    <li>Оспорить любой флаг с указанием номера сделки. ${CONTRACT.dispute.rule}
+      В кабинете для этого есть кнопка «не согласен» в строке сделки: она копирует готовый текст
+      с номером, флагом и датой, до которой ждём ответ. Адресат: ${CONTRACT.dispute.owner}.</li>
     <li>Знать, кто видит ваш кабинет: вы и РОП. Сводку по отделу видят РОП и Иван.</li>
   </ul>
 
@@ -526,7 +576,7 @@ sec("changelog", "Что изменилось", "Что изменилось в 
 // ─────────────────────────────────────────────────────────── рендер
 const CSS = `
 :root{--bg:#06121a;--panel:#0b1a24;--panel2:#0e2130;--line:#233242;--line2:#2a3a4a;
---tx:#dfe9f0;--mut:#5d7484;--acc:#22D3EE;--acc2:#0E7490;--ok:#34D399;--warn:#f59e0b;--bad:#FF4438}
+--tx:#dfe9f0;--mut:#7b93a6;--note:#dfe9f0;--acc:#22D3EE;--acc2:#0E7490;--ok:#34D399;--warn:#f59e0b;--bad:#E05A50}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);
 font:15.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -536,15 +586,18 @@ a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 .logo{padding:0 20px 16px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
 .logo b{color:var(--acc);display:block;font-size:15px;letter-spacing:.1em;margin-bottom:3px}
 .grp{padding:14px 20px 5px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-.side a{display:block;padding:8px 20px;color:var(--tx);font-size:14px;border-left:2px solid transparent}
+.side a{display:block;padding:11px 20px;color:var(--tx);font-size:14px;border-left:2px solid transparent}
+:where(a,button,input,summary,[data-copy]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
 .side a:hover{background:var(--panel2);text-decoration:none}
 .side a.on{border-left-color:var(--acc);color:var(--acc);background:var(--panel2)}
 .side .meta{padding:18px 20px 0;margin-top:14px;border-top:1px solid var(--line);color:var(--mut);font-size:11.5px;line-height:1.55}
 main{padding:30px 34px 70px;max-width:880px}
+main p,main .why,main .note{max-width:66ch}
+main .q,main .ex{max-width:70ch}
 section{display:none}section.on{display:block}
 h1{font-size:24px;margin:0 0 6px}
 .lead-sub{color:var(--mut);font-size:14px;margin-bottom:22px}
-h3{font-size:16px;margin:26px 0 8px}
+h3{font-size:18px;margin:30px 0 8px;font-weight:600}
 p{margin:9px 0}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px 17px;margin:12px 0}
 .card.lead{border-color:var(--acc2);background:var(--panel2)}
@@ -563,7 +616,12 @@ th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);verti
 th{color:var(--mut);font-weight:500;font-size:12px;background:var(--panel2)}
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-td.wrap,.wrap{white-space:normal}
+td.wrap{white-space:normal}
+/* Коллизия имён, найдена по вёрстке: класс .wrap это и каркас страницы с
+   min-height в экран, и модификатор ячейки таблицы. Ячейка наследовала высоту
+   целого экрана, и строка «Ветка А» растягивалась на тысячу пикселей пустоты.
+   Каркас переименовывать поздно, поэтому ячейке правила каркаса снимаются явно. */
+td.wrap{display:table-cell;min-height:0;grid-template-columns:none}
 td.was{color:var(--mut)}td.now{color:var(--tx)}
 .q,.ex{background:var(--panel2);border-left:3px solid var(--acc2);padding:9px 13px;margin:8px 0;
 border-radius:0 8px 8px 0;font-size:14px;cursor:copy;position:relative}
@@ -577,8 +635,45 @@ font-size:10.5px;color:var(--ok)}
 .steps>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
 ul{margin:8px 0 8px 20px;padding:0}li{margin:5px 0}
 ul.dont li{color:#e8b4b0}
-.small{font-size:12.5px;color:var(--mut)}
+.small{font-size:13px;color:var(--mut);max-width:62ch}
+
+/* Иконки. Размер в em, поэтому иконка едет за кеглем строки, а не за экраном.
+   Цвет наследуется: одна и та же иконка работает и на акценте, и на красном. */
+.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em}
+.side a{display:flex;align-items:center;gap:10px}
+.side a .ic{color:var(--mut)}
+.side a.on .ic,.side a:hover .ic{color:var(--acc)}
+h1{display:flex;align-items:center;gap:11px}
+h1 .ic{width:1.05em;height:1.05em;color:var(--acc)}
+h3{display:flex;align-items:center;gap:9px}
+h3 .ic{color:var(--acc);width:1em;height:1em}
+
+/* Иллюстрация типовой ситуации. Два состояния: файл есть и файла ещё нет.
+   Второе состояние не заглушка, а рабочий экран: в нём лежит промт, который
+   можно скопировать одной кнопкой. */
+.situ{margin:16px 0 6px;padding:0;border:1px solid var(--line);border-radius:12px;
+background:var(--panel);overflow:hidden}
+.situ img{display:none;width:100%;height:auto;aspect-ratio:2.5/1;object-fit:cover}
+.situ.has-img img{display:block}
+.situ.has-img .ph{display:none}
+.ph{padding:14px 16px 16px;background:
+repeating-linear-gradient(135deg,transparent 0 9px,rgba(35,50,66,.5) 9px 10px)}
+.ph-h{display:flex;align-items:center;gap:9px;font-size:14px}
+.ph-h .ic{color:var(--acc)}
+.ph-f{color:var(--mut);font-size:12.5px;margin:7px 0 2px}
+.ph-f code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
+padding:1px 6px;font-size:12px;color:var(--tx)}
+/* Промт занимает всю ширину рамки: общий предел в 70ch держит читаемость прозы,
+   а здесь текст копируют целиком, и обрезанная колонка мешает его окинуть глазом. */
+.ph .ex{max-width:none;margin-top:10px;background:var(--panel);font-size:12.5px;line-height:1.55}
+/* Подпись имеет смысл под картинкой. Пока картинки нет, заголовок уже стоит в
+   рамке, и вторая копия названия читается как ошибка вёрстки. */
+.situ figcaption{display:none}
+.situ.has-img figcaption{display:block;padding:9px 16px;border-top:1px solid var(--line);
+color:var(--mut);font-size:12.5px}
+
 @media(max-width:860px){.wrap{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 14px 50px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 `;
 
 const GROUPS = [
@@ -590,10 +685,10 @@ const byId = Object.fromEntries(S.map((s) => [s.id, s]));
 
 const nav = GROUPS.map(([g, ids]) =>
   `<div class="grp">${g}</div>` +
-  ids.map((id) => `<a href="#${id}" data-s="${id}">${byId[id].nav}</a>`).join("")).join("");
+  ids.map((id) => `<a href="#${id}" data-s="${id}">${ic(id)}<span>${byId[id].nav}</span></a>`).join("")).join("");
 
 const body = S.map((s) => `<section id="${s.id}">
-  <h1>${s.title}</h1><div class="lead-sub">${s.lead}</div>${s.body}</section>`).join("\n");
+  <h1>${ic(s.id)}<span>${s.title}</span></h1><div class="lead-sub">${s.lead}</div>${s.body}</section>`).join("\n");
 
 process.stdout.write(`<!doctype html>
 <html lang="ru"><head>
@@ -607,7 +702,7 @@ ${CSS}
 background:radial-gradient(1200px 600px at 50% -10%,#0d2333,#06121a)}
 .box{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
 .box h1{font-size:19px;margin:0 0 8px}
-.box p{color:var(--mut);font-size:13px;margin:0 0 16px}
+.box p{color:var(--tx);font-size:13.5px;margin:0 0 16px}
 .box form{display:flex;flex-direction:column;gap:10px}
 input{background:var(--panel2);border:1px solid var(--line2);color:var(--tx);padding:12px 14px;
 border-radius:9px;font:inherit;font-size:15px;width:100%}
@@ -669,7 +764,9 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     e.preventDefault();sessionStorage.removeItem('academy');location.reload()});
 
   function show(id){
-    var s=document.getElementById(id);if(!s)return;
+    // Неизвестный якорь в пересланной ссылке давал полностью пустой экран:
+    // все секции display:none, ни одна не показана.
+    var s=document.getElementById(id)||document.getElementById('kak-chitat');if(!s)return;
     document.querySelectorAll('main section').forEach(function(x){x.classList.toggle('on',x===s)});
     document.querySelectorAll('.side a[data-s]').forEach(function(a){a.classList.toggle('on',a.dataset.s===id)});
     window.scrollTo(0,0);
@@ -677,10 +774,32 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   window.addEventListener('hashchange',function(){show(location.hash.slice(1))});
 
   // Копирование формулировки: главное действие в библиотеке. Читают меньше, чем копируют.
+  // Тихий отказ недопустим: по file:// и в части браузеров доступ к буферу закрыт,
+  // и человек видел бы ровно ничего на главном действии библиотеки.
+  function copyText(txt,el){
+    var done=function(){el.classList.add('done');setTimeout(function(){el.classList.remove('done')},1400)};
+    var fallback=function(){
+      var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();var ok=false;
+      try{ok=document.execCommand('copy')}catch(err){ok=false}
+      document.body.removeChild(ta);
+      if(ok)done();else window.prompt('Скопируйте текст вручную',txt);
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done).catch(fallback);
+    } else fallback();
+  }
   document.addEventListener('click',function(e){
     var el=e.target.closest('[data-copy]');if(!el)return;
-    navigator.clipboard.writeText(el.textContent.trim()).then(function(){
-      el.classList.add('done');setTimeout(function(){el.classList.remove('done')},1200)});
+    copyText(el.textContent.trim(),el);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    var el=e.target.closest('[data-copy]');if(!el)return;
+    e.preventDefault();copyText(el.textContent.trim(),el);
+  });
+  document.querySelectorAll('[data-copy]').forEach(function(el){
+    el.tabIndex=0;el.setAttribute('role','button');el.setAttribute('aria-label','Скопировать формулировку');
   });
 })();
 </script>

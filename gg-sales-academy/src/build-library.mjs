@@ -26,6 +26,11 @@ if (!PASS || PASS.length < 12) {
 }
 const HASH = createHash("sha256").update(PASS).digest("hex");
 const BUILT = process.env.BUILD_DATE || new Date().toISOString().slice(0, 10);
+// Счётчик открытий (решение Ивана от 08.08.2026, вопрос 9). Адрес приходит сборкой:
+// без него страница не делает ни одного сетевого запроса, а правовой раздел так и
+// пишет. Отправляется один факт, дата открытия раздела. Ни имени, ни содержимого:
+// счётчик отвечает на вопрос «файл вообще открыли», а не «кто и что читал».
+const BEACON = process.env.ACADEMY_BEACON || "";
 
 // Агрегаты отдела. Персональных данных нет, разбивки по людям нет.
 // Каждое число несёт окно наблюдения: требование ТЗ, число без окна это упрёк.
@@ -454,12 +459,35 @@ sec("pravovaya", "Права и данные", "Ваши данные и ваш�
   <p>Разбор качества работы с клиентами и построение индивидуального плана развития. Результаты
   не используются как основание для кадровых решений и не влияют на премию.</p>
 
+  <h3>Две подписанные гарантии</h3>
+  <div class="card"><p>Подписано Иваном Раюшкиным 08.08.2026:</p>
+  <ul>
+    <li><b>Результаты разбора не влияют на премию и не служат основанием для кадрового решения.</b>
+      Разбор показывает, где смотреть, а не кого наказывать.</li>
+    <li><b>За возражение против флага последствий не бывает.</b> Оспоренный и не снятый флаг
+      остаётся в кабинете вместе с текстом возражения, чтобы спор был виден, а не замят.</li>
+  </ul>
+  <p class="small">Обещание без подписи это пожелание. Эти два держатся именем, а не формулировкой.</p></div>
+
   <h3>Ваши права</h3>
   <ul>
     <li>Запросить копию всего, что собрано лично о вас.</li>
-    <li>Оспорить любой флаг с указанием номера сделки. За возражение последствий не бывает.</li>
+    <li>Оспорить любой флаг с указанием номера сделки. Ответ приходит письменно в течение
+      <b>двух рабочих дней</b>. Молчание дольше двух дней означает, что флаг снят.</li>
     <li>Знать, кто видит ваш кабинет: вы и РОП. Сводку по отделу видят РОП и Иван.</li>
   </ul>
+
+  <h3>Счётчик открытий</h3>
+  ${BEACON
+    ? `<p>Библиотека сообщает один факт: раздел открыт, дата и время. Ни имени, ни текста, ни того,
+       что вы читали внутри. Отправляется один раз за сессию и только после входа. Разрешено Иваном
+       08.08.2026 и названо здесь, а не спрятано в коде: без этого счётчика нельзя отличить
+       «методика не сработала» от «файл никто не открыл». Персональные кабинеты счётчика не имеют
+       вообще: они работают с диска и без сети.</p>`
+    : `<p>Счётчик открытий разрешён Иваном 08.08.2026, но адрес приёмника пока не задан, поэтому
+       эта страница не делает ни одного сетевого запроса. Когда адрес появится, здесь будет
+       написано, что именно отправляется. Персональные кабинеты счётчика не имеют вообще: они
+       работают с диска и без сети.</p>`}
 
   <h3>Хранение</h3>
   <p>Файл кабинета собирается на период разбора и устаревает вместе с ним. Каждый файл несёт
@@ -590,7 +618,7 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .err{color:var(--bad);font-size:13px;min-height:19px}
 .hint{color:var(--mut);font-size:11.5px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 </style>
-<script>window.ACADEMY_HASH="${HASH}";</script>
+<script>window.ACADEMY_HASH="${HASH}";window.ACADEMY_BEACON=${JSON.stringify(BEACON)};</script>
 </head><body>
 
 <div class="gate" id="gate">
@@ -622,7 +650,14 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   var gate=document.getElementById('gate'),app=document.getElementById('app');
   async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
     return [].map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
-  function open_(){gate.style.display='none';app.hidden=false;show(location.hash.slice(1)||'kak-chitat')}
+  function open_(){gate.style.display='none';app.hidden=false;show(location.hash.slice(1)||'kak-chitat');ping()}
+  // Один раз за сессию и только после входа: до пароля считать нечего.
+  function ping(){
+    if(!window.ACADEMY_BEACON||sessionStorage.getItem('academy_ping')==='1')return;
+    sessionStorage.setItem('academy_ping','1');
+    try{navigator.sendBeacon(window.ACADEMY_BEACON,
+      JSON.stringify({event:'academy_open',at:new Date().toISOString()}))}catch(e){}
+  }
   if(sessionStorage.getItem('academy')==='1')open_();
   document.getElementById('gf').addEventListener('submit',async function(e){
     e.preventDefault();

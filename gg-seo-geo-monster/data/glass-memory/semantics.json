@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-08",
+ "measured": "2026-08-09",
  "phrases": [
   {
    "phrase": "кладбище московская славянка",
@@ -127,14 +127,6 @@
    "freq": 13,
    "url": "",
    "cluster": "букинский",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "оформление могилы на кладбище своими руками фото",
-   "pos": null,
-   "freq": 2,
-   "url": "",
-   "cluster": "оформление",
    "intent": "commercial"
   },
   {
@@ -799,6 +791,14 @@
    "freq": 5740,
    "url": "",
    "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "подставка под памятник",
+   "pos": null,
+   "freq": 334,
+   "url": "",
+   "cluster": "подставка",
    "intent": "commercial"
   }
  ]

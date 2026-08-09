@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-08",
+ "measured": "2026-08-09",
  "visits_30d": [
-  {
-   "date": "2026-07-09",
-   "visits": 281,
-   "search_visits": 79
-  },
   {
    "date": "2026-07-10",
    "visits": 255,
@@ -151,12 +146,17 @@
    "date": "2026-08-07",
    "visits": 254,
    "search_visits": 72
+  },
+  {
+   "date": "2026-08-08",
+   "visits": 203,
+   "search_visits": 63
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 29
+   "visits": 31
   },
   {
    "phrase": "genglass",
@@ -179,15 +179,11 @@
    "visits": 5
   },
   {
-   "phrase": "генгласс зеркала",
-   "visits": 4
-  },
-  {
-   "phrase": "интернет магазин зеркало в раме",
-   "visits": 4
-  },
-  {
    "phrase": "стол на заказ",
+   "visits": 5
+  },
+  {
+   "phrase": "генгласс зеркала",
    "visits": 4
   },
   {
@@ -204,6 +200,10 @@
   },
   {
    "phrase": "зеркало на штанге",
+   "visits": 3
+  },
+  {
+   "phrase": "интернет магазин зеркало в раме",
    "visits": 3
   },
   {
@@ -235,6 +235,10 @@
    "visits": 2
   },
   {
+   "phrase": "зеркала в интерьере 2026",
+   "visits": 2
+  },
+  {
    "phrase": "зеркало genglass",
    "visits": 2
   },
@@ -247,7 +251,15 @@
    "visits": 2
   },
   {
+   "phrase": "зеркало на штанге поворотное",
+   "visits": 2
+  },
+  {
    "phrase": "зеркало овальное 54х73 в металлической раме",
+   "visits": 2
+  },
+  {
+   "phrase": "каскадная перегородка",
    "visits": 2
   },
   {
@@ -292,10 +304,6 @@
   },
   {
    "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGLASS Стол кухонный раздвижной в симферополе",
    "visits": 1
   },
   {
@@ -345,40 +353,32 @@
   {
    "phrase": "gen glass сто обеденный",
    "visits": 1
-  },
-  {
-   "phrase": "gen glass стол",
-   "visits": 1
-  },
-  {
-   "phrase": "gen group зеркало",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 360
+   "visits": 361
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 93
+   "visits": 89
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 65
+   "visits": 67
   },
   {
    "url": "/product-category/tables/",
-   "visits": 49
+   "visits": 52
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 40
+   "visits": 43
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 38
+   "visits": 35
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
@@ -389,20 +389,24 @@
    "visits": 33
   },
   {
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "visits": 33
+  },
+  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
    "visits": 31
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "url": "/product-category/mirrors/dizajnerskie/",
    "visits": 31
   },
   {
-   "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 28
+   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
+   "visits": 27
   },
   {
-   "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 28
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 26
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
@@ -410,19 +414,15 @@
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 26
+   "visits": 24
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 26
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 25
+   "visits": 24
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 18
+   "visits": 19
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
@@ -430,11 +430,15 @@
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 14
+   "visits": 13
   },
   {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 13
+  },
+  {
+   "url": "/product-category/mirrors/wall/",
+   "visits": 12
   },
   {
    "url": "/product-category/hranenie/veshalki/",
@@ -445,23 +449,11 @@
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/floor/",
-   "visits": 11
-  },
-  {
    "url": "/product-category/mirrors/led/",
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/wall/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 11
-  },
-  {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
+   "url": "/product-category/mirrors/zerkalo-arka/",
    "visits": 11
   },
   {
@@ -469,15 +461,23 @@
    "visits": 10
   },
   {
-   "url": "/product-category/mirrors/zerkalo-arka/",
+   "url": "/product-category/mirrors/zerkalo-v-rame/",
    "visits": 10
   },
   {
-   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
+   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
    "visits": 10
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "visits": 9
+  },
+  {
+   "url": "/product-category/mirrors/floor/",
+   "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 25.8,
+ "bounce_rate": 25.7,
  "depth": 2.6
 }

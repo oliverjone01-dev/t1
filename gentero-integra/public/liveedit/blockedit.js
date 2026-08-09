@@ -353,7 +353,7 @@
       if (UI && notSetUp(health.err)) bad.push('хранилище правок ещё не создано: выполните schema.sql в Supabase');
       else if (UI || seen()) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
     }
-    else if (health.bad) bad.push(health.bad + ' из ' + health.rows + ' правок не открылись этим ключом');
+    else if (UI && health.bad) bad.push(health.bad + ' из ' + health.rows + ' правок не открылись этим ключом');
     if (o) bad.push('правок без блока: ' + o + ' (текст в шаблоне переписан, правка осталась в базе)');
     if (!bad.length) { if (noteEl) { noteEl.remove(); noteEl = null; } return; }
     if (!noteEl) {

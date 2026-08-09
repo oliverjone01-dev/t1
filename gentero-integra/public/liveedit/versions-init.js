@@ -19,7 +19,7 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var CORE_VERSION = '2';
+  var CORE_VERSION = '3';
 
   var SUPABASE = {
     type: 'supabase',

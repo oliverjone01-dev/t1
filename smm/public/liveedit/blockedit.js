@@ -225,6 +225,8 @@
   var SEEN = 'liveedit:seen:' + DOCKEY;
   var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false, legacy: 0 };
   var legacyIds = [];      // патчи, записанные до привязки шифра к слоту
+  var unread = [];         // строки, не открывшиеся текущим ключом
+  var altCrypts = [];      // ключи прошлых сборок
 
   function load() {
     var w = health.write || 0;
@@ -246,7 +248,14 @@
                 legacyIds.push(r.block_id);
                 health.legacy++;
               })
-              .catch(function () { health.bad++; });   // не наш ключ или подменённый слот
+              .catch(function () {
+                // Ключ выводится из соли страницы, а до стабилизации соли она
+                // менялась на каждой сборке. Такие строки открываются ключом
+                // той сборки, при которой их сохранили.
+                unread.push(r);
+                health.bad++;
+                return tryAlt(r);
+              });
           });
       }));
     }).then(function () {
@@ -297,6 +306,43 @@
     });
   }
 
+  // Попытка открыть строку ключами прошлых сборок.
+  function tryAlt(r) {
+    if (!altCrypts.length) return;
+    var i = 0;
+    function step() {
+      if (i >= altCrypts.length) return;
+      var c = altCrypts[i++];
+      return c.decrypt(r.payload, aad(r.block_id))
+        .catch(function () { return c.decrypt(r.payload); })
+        .then(function (html) {
+          patches[r.block_id] = html;
+          legacyIds.push(r.block_id);
+          health.legacy++;
+          health.bad = Math.max(0, health.bad - 1);
+          unread = unread.filter(function (x) { return x !== r; });
+        })
+        .catch(step);
+    }
+    return step();
+  }
+
+  // Ключи прошлых сборок приходят из гейта позже основного, чтобы не задерживать
+  // показ документа. Пробуем ими всё, что не открылось.
+  window.BLOCKEDIT_ALTKEYS = function (crypts) {
+    altCrypts = crypts || [];
+    if (!unread.length || !altCrypts.length) return Promise.resolve(0);
+    var todo = unread.slice();
+    return Promise.all(todo.map(tryAlt)).then(function () {
+      apply();
+      report();
+      migrate();
+      var got = todo.length - unread.length;
+      if (got) flash('прочитано правок прежним ключом: ' + got);
+      return got;
+    });
+  };
+
   function save(id, html) {
     var was = patches[id];
     patches[id] = html;
@@ -342,7 +388,7 @@
   function report() {
     var o = orphans().length;
     var bad = [];
-    if (UI && health.legacy) bad.push('правок в старом формате: ' + health.legacy +
+    if (UI && health.legacy) bad.push('правок в прежнем формате или прежним ключом: ' + health.legacy +
       '. Текст на экране верный, войдите как редактор, и они перезапишутся сами');
     if (health.late) bad.push('правки пришли слишком поздно и НЕ наложены. Обновите страницу');
     if (health.cut) bad.push('правок в базе больше, чем загружено: показаны первые ' + health.cut);

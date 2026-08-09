@@ -126,6 +126,16 @@
     Promise.all(jobs).then(function () { ready(false); }, function () { ready(false); });
   }
 
+  // Ключи прошлых сборок. Нужны потому, что до стабилизации соли каждая
+  // публикация страницы меняла ключ, и сохранённые правки переставали
+  // открываться. Приходят после основного, показ ими не задерживается.
+  window.LIVEEDIT_ALTKEYS = function (cryptoKeys) {
+    if (!window.LiveCrypt || !cryptoKeys || !cryptoKeys.length) return;
+    var cs = cryptoKeys.map(function (k) { return window.LiveCrypt.fromKey(k); });
+    if (window.BLOCKEDIT_ALTKEYS) window.BLOCKEDIT_ALTKEYS(cs);
+    if (window.VERSIONS_ALTKEYS) window.VERSIONS_ALTKEYS(cs);
+  };
+
   var files = ['crypt.js', 'store.js', 'auth.js', 'blockedit.js', 'versions.js'];
   (function next(i) {
     if (i >= files.length) return;

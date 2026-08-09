@@ -164,6 +164,20 @@ __PAYLOADS__
         if (window.LIVEEDIT_KEY) {
           try { patches = window.LIVEEDIT_KEY(k) || Promise.resolve(); } catch(e) { console.error(e); }
         }
+        // Ключи прошлых сборок выводим в фоне и отдаём модулю позже: они нужны
+        // только для чтения правок, сохранённых до стабилизации соли.
+        var alts = window.LIVEEDIT_ALT_SALTS || [];
+        if (alts.length && window.LIVEEDIT_ALTKEYS) {
+          Promise.all(alts.map(function(sb){
+            var raw = b64(sb);
+            return crypto.subtle.importKey('raw', new TextEncoder().encode(p), 'PBKDF2', false, ['deriveKey'])
+              .then(function(km){
+                return crypto.subtle.deriveKey(
+                  { name:'PBKDF2', salt: raw, iterations: ITER, hash:'SHA-256' },
+                  km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+              });
+          })).then(function(keys){ window.LIVEEDIT_ALTKEYS(keys); }, function(){});
+        }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = '__FIRST__';
         // Гейт снимаем только когда правки уже наложены. Иначе зал сначала
@@ -247,8 +261,26 @@ function splitPlain(html) {
  * CSS, спрайт иконок и initDoc() берутся из первого документа: оформление
  * общее, а вёрстка второго обязана следовать тому же контракту имён.
  */
+/* Соль берётся из уже собранной страницы, если она есть.
+   Раньше каждая пересборкагенерировала новую, а из соли выводится ключ, которым
+   зашифрованы правки в Supabase. То есть любая публикация делала все ранее
+   сохранённые правки нечитаемыми. Соль не секрет, она и так лежит открыто в
+   начале payload, поэтому её стабильность ничего не ослабляет. */
+function saltFor(out) {
+  try {
+    const prev = fs.readFileSync(out, 'utf8');
+    const m = prev.match(/<script id="payload(?:-[a-z0-9-]+)?"[^>]*>([\s\S]*?)<\/script>/);
+    if (m) {
+      const s = Buffer.from(m[1].trim(), 'base64').subarray(0, 16);
+      if (s.length === 16) { console.log('соль взята из предыдущей сборки, ключ правок не меняется'); return s; }
+    }
+  } catch (e) { }
+  console.log('соли не нашлось, генерирую новую: ранее сохранённые правки станут нечитаемыми');
+  return crypto.randomBytes(16);
+}
+
 function lockAll(docs, out, password) {
-  const salt = crypto.randomBytes(16);
+  const salt = saltFor(out);
   const k = derive(password, salt);
   let first = null, payloads = [], titles = {}, report = [];
 
@@ -268,9 +300,23 @@ function lockAll(docs, out, password) {
   // ключ шифрования ему отдаёт гейт после ввода пароля, панели видны при ?edit=1.
   // Кода редактора в разметке нет намеренно: страница публичная, атрибут в ней
   // виден любому, а право писать проверяет Supabase по логину.
+  // Соли прошлых сборок: страница пробует их, чтобы прочитать правки,
+  // сохранённые до того, как соль стала стабильной.
+  let altSalts = '[]';
+  try {
+    const p = __dirname + '/liveedit-salts.json';
+    if (fs.existsSync(p)) {
+      const cur = salt.toString('base64');
+      const all = JSON.parse(fs.readFileSync(p, 'utf8')).filter(x => x !== cur);
+      altSalts = JSON.stringify(all);
+      if (all.length) console.log(`      запасных ключей из прошлых сборок: ${all.length}`);
+    }
+  } catch (e) { }
+
   const le = process.env.LIVEEDIT_DOC
     ? `<script src="${process.env.LIVEEDIT_SRC || 'liveedit/liveedit-init.js'}" ` +
-      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" data-crypt="wait" defer></script>`
+      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" data-crypt="wait" defer></script>` +
+      `\n<script>window.LIVEEDIT_ALT_SALTS = ${altSalts};</script>`
     : '';
 
   const page = GATE

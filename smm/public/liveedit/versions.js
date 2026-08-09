@@ -41,6 +41,21 @@
   var previewing = null;    // id версии в режиме просмотра
   var liveState = null;     // состояние до входа в просмотр
   var offset = 0, more = false, hidden = 0, legacy = 0;
+  var altCrypts = [];
+
+  // Перебор ключей прошлых сборок для одного снимка.
+  function altOpen(r) {
+    var i = 0;
+    function step() {
+      if (i >= altCrypts.length) { r.state = null; return r; }
+      var c = altCrypts[i++];
+      return c.decrypt(r.snapshot, DOCKEY + '|version')
+        .catch(function () { return c.decrypt(r.snapshot); })
+        .then(function (j) { r.state = JSON.parse(j); r.legacy = true; return r; })
+        .catch(step);
+    }
+    return Promise.resolve().then(step);
+  }
   var panel, list, banner, btn;
 
   function author() {
@@ -95,7 +110,7 @@
           .catch(function () {
             return crypt.decrypt(r.snapshot)
               .then(function (j) { r.state = JSON.parse(j); r.legacy = true; return r; })
-              .catch(function () { r.state = null; return r; });  // не наш ключ или чужая строка
+              .catch(function () { return altOpen(r); });   // ключ прошлой сборки
           });
       }));
     }).then(function (out) {
@@ -520,6 +535,11 @@
   // лежит старый текст, и запись оттуда молча откатила бы блок
   window.VERSIONS_PREVIEWING = function () { return !!previewing; };
   window.VERSIONS_EXPORT = exportAll;
+  // снимки, снятые под ключом прошлой сборки, тоже надо уметь открыть
+  window.VERSIONS_ALTKEYS = function (crypts) {
+    altCrypts = crypts || [];
+    return panel ? load() : Promise.resolve();
+  };
   window.VERSIONS_PAINTAUTH = function () { paintAuth(); };
   // Гейт перерисовал документ: превью к новому DOM не относится.
   window.VERSIONS_EXITPREVIEW = function () {

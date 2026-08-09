@@ -1,0 +1,229 @@
+/* Дизайн-система платформы GG Sales Academy, вариант «Полосы и плотность».
+   Единый источник для трёх контуров: библиотека, кабинет менеджера, сводка штаба.
+   Читается сборкой библиотеки (Node) и сборками кабинета и сводки (Python).
+   Копия внутри генератора запрещена: контуры разъедутся молча.
+
+   Плотность задаётся множителем --k на <html data-d>. По умолчанию «просторно».
+   Решение Ивана от 09.08.2026 по итогам трёх вариантов. */
+/* =============================================================
+   ВАРИАНТ 2. «ПОЛОСЫ И ПЛОТНОСТЬ»
+   Карточка остаётся, меняется способ группировки. Страница режется
+   на полосы во всю ширину: у полосы свой тон фона, свой номер и своя
+   липкая шапка. Между полосами дышит не отступ, а смена поверхности.
+   Плотность вынесена в переключатель: один множитель --k управляет
+   всей шкалой отступов и кеглем. По умолчанию стоит «просторно».
+   ============================================================= */
+:root{
+  --bg:#06121a;          /* полоса нечётная */
+  --band:#081a25;        /* полоса чётная: смена поверхности вместо отступа */
+  --panel:#0b1a24; --panel2:#0e2130;
+  --line:#20303f; --line2:#2a3a4a;
+  --tx:#e2ecf3; --mut:#89a0b2;
+  --acc:#22D3EE; --acc2:#0E7490;
+  --ok:#34D399; --warn:#f59e0b; --bad:#E05A50;
+
+  --k:1.25;              /* множитель плотности */
+  --fs:17px;             /* кегль основного текста */
+  --s1:calc(4px*var(--k));
+  --s2:calc(8px*var(--k));
+  --s3:calc(12px*var(--k));
+  --s4:calc(18px*var(--k));
+  --s5:calc(28px*var(--k));
+  --s6:calc(44px*var(--k));
+  --s7:calc(68px*var(--k));
+  --r:10px;              /* скругление, узнаваемость сохранена */
+  --barh:58px;
+}
+html[data-d="mid"]{--k:1;--fs:16px}
+html[data-d="tight"]{--k:.8;--fs:15px}
+
+*{box-sizing:border-box}
+/* clip, а не hidden: hidden делает элемент скроллпортом и ломает position:sticky */
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font:var(--fs)/1.66 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+:where(a,button,summary,input,[data-copy],[tabindex]):focus-visible{
+  outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+
+/* -- полоса --------------------------------------------------- */
+.band{border-top:1px solid var(--line)}
+.band:nth-of-type(even){background:var(--band)}
+.band-head{position:sticky;top:var(--barh);z-index:20;
+  background:inherit;border-bottom:1px solid var(--line)}
+.band:nth-of-type(odd)>.band-head{background:var(--bg)}
+.band:nth-of-type(even)>.band-head{background:var(--band)}
+.band-head .in{max-width:1180px;margin:0 auto;padding:var(--s3) var(--s4);
+  display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.band-head .idx{font-size:12px;letter-spacing:.2em;color:var(--acc);font-variant-numeric:tabular-nums;
+  border:1px solid var(--acc2);border-radius:4px;padding:3px 8px;flex:none}
+.band-head h2{font-size:calc(var(--fs) + 3px);margin:0;font-weight:650;letter-spacing:-.01em}
+.band-head .note{font-size:13px;color:var(--mut);margin-left:auto}
+.inner{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s4) var(--s7)}
+.inner.narrow{max-width:820px}
+
+/* линейка: тонкая мера с засечками. Показывает шаг сетки глазу */
+.rule{height:9px;margin-bottom:var(--s5);
+  background:repeating-linear-gradient(90deg,var(--line2) 0 1px,transparent 1px calc(8px*var(--k)));
+  border-bottom:1px solid var(--line);opacity:.75}
+
+/* -- типографика ---------------------------------------------- */
+h1{font-size:clamp(25px,4vw,31px);line-height:1.22;margin:0 0 var(--s3);font-weight:650;letter-spacing:-.015em}
+h3{font-size:calc(var(--fs) + 2px);line-height:1.35;margin:var(--s6) 0 var(--s3);font-weight:650}
+h3:first-child{margin-top:0}
+p{margin:0 0 var(--s3);max-width:68ch}
+.lead{font-size:calc(var(--fs) + 2px);line-height:1.55;color:var(--tx);max-width:70ch}
+.sm{font-size:calc(var(--fs) - 3px);color:var(--mut);line-height:1.6;max-width:66ch}
+.cap{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+
+/* -- карточка -------------------------------------------------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--s4) var(--s5);margin:0 0 var(--s4)}
+.card>:last-child{margin-bottom:0}
+.card.acc{border-color:var(--acc2);background:var(--panel2)}
+.card.warn{border-left:3px solid var(--warn)}
+.card.ok{border-left:3px solid var(--ok)}
+.card.bad{border-left:3px solid var(--bad)}
+.grid{display:grid;gap:var(--s4)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+
+/* -- плитка как полоса, а не как квадрат ------------------------ */
+/* Ряд «подпись слева, число справа» читается сверху вниз одним движением
+   глаза. Сетка из квадратов заставляет прыгать зигзагом. */
+.strips{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel);margin-bottom:var(--s4)}
+.strip{display:flex;align-items:baseline;gap:var(--s3);padding:var(--s3) var(--s5);
+  border-bottom:1px solid var(--line)}
+.strip:last-child{border-bottom:0}
+.strip .l{flex:1 1 220px;min-width:0}
+.strip .l b{display:block;font-weight:600;font-size:var(--fs)}
+.strip .l span{display:block;color:var(--mut);font-size:13px;line-height:1.5;margin-top:2px}
+.strip .v{font-size:calc(var(--fs) + 11px);font-weight:650;font-variant-numeric:tabular-nums;
+  line-height:1.1;letter-spacing:-.01em;flex:none}
+.strip .st{flex:none;min-width:96px;text-align:right}
+.bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:7px;max-width:280px}
+.bar i{display:block;height:100%;background:var(--acc)}
+.bar i.ok{background:var(--ok)}.bar i.warn{background:var(--warn)}.bar i.bad{background:var(--bad)}
+
+/* -- метки, речевые модули ------------------------------------- */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;line-height:1.45;
+  border:1px solid var(--line2);color:var(--mut);white-space:nowrap}
+.tag.ok{color:var(--ok);border-color:#1c5a45}
+.tag.bad{color:var(--bad);border-color:#5c2320}
+.tag.warn{color:var(--warn);border-color:#5e4415}
+.tag.acc{color:var(--acc);border-color:var(--acc2)}
+.q{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--acc);
+  padding:var(--s3) var(--s4);margin:0 0 var(--s2);border-radius:0 var(--r) var(--r) 0;
+  font-size:calc(var(--fs) - 1px);line-height:1.6;cursor:copy;position:relative}
+.q:hover{background:#12283a}
+.q .who{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--mut);margin-bottom:4px}
+.q.was{border-left-color:var(--bad)}
+.q.now{border-left-color:var(--ok)}
+.q.done::after{content:"скопировано";position:absolute;right:12px;top:9px;font-size:12px;color:var(--ok)}
+ul{margin:0 0 var(--s3);padding-left:var(--s4)}
+li{margin:0 0 var(--s2);max-width:66ch}
+ul.dont li{color:#e9bcb8}
+
+/* -- таблица ---------------------------------------------------- */
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:var(--r);
+  background:var(--panel);margin:0 0 var(--s3)}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:calc(var(--fs) - 3px)}
+th,td{padding:var(--s3) var(--s4);text-align:left;vertical-align:top;
+  border-bottom:1px solid var(--line);line-height:1.55}
+th{position:sticky;top:0;background:var(--panel2);color:var(--mut);font-weight:600;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;box-shadow:0 1px 0 var(--line)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+/* разделитель групп: воздух внутри таблицы, там где смысловой шов */
+tr.grp td{background:var(--panel2);color:var(--mut);font-size:12px;letter-spacing:.12em;
+  text-transform:uppercase;padding-top:var(--s3);padding-bottom:var(--s3)}
+
+/* -- шапка страницы и переключатель плотности -------------------- */
+.bar-top{position:sticky;top:0;z-index:30;background:rgba(6,18,26,.94);
+  border-bottom:1px solid var(--line2);backdrop-filter:blur(6px)}
+.bar-top .in{max-width:1180px;margin:0 auto;padding:10px var(--s4);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:var(--barh)}
+.bar-top .nm{font-weight:650;font-size:15px;letter-spacing:.01em}
+.bar-top .nm span{color:var(--acc)}
+.dsw{display:flex;gap:2px;margin-left:auto;border:1px solid var(--line2);border-radius:8px;padding:2px}
+.dsw button{font:inherit;font-size:13px;padding:7px 13px;border:0;border-radius:6px;
+  background:transparent;color:var(--mut);cursor:pointer}
+.dsw button:hover{color:var(--tx)}
+.dsw button[aria-pressed="true"]{background:var(--acc2);color:#eafcff}
+.hero{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
+.badge{display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);
+  border:1px solid var(--acc2);border-radius:4px;padding:4px 10px;margin-bottom:var(--s4)}
+
+/* -- витрина системы -------------------------------------------- */
+.ruler{display:grid;gap:var(--s2);margin-bottom:var(--s4)}
+.ruler div{display:flex;align-items:center;gap:var(--s3);font-size:13px;color:var(--mut)}
+.ruler i{display:block;height:12px;background:var(--acc2);border-radius:2px}
+.ruler b{color:var(--tx);min-width:36px;font-variant-numeric:tabular-nums}
+.spec{display:flex;gap:var(--s4);align-items:baseline;flex-wrap:wrap;
+  padding:var(--s3) 0;border-bottom:1px solid var(--line)}
+.spec .meta{font-size:12px;color:var(--mut);min-width:180px;font-variant-numeric:tabular-nums}
+.sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--s3)}
+.sw>div{display:flex;gap:12px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--mut)}
+.sw i{width:40px;height:40px;flex:none;border-radius:8px;border:1px solid var(--line2)}
+.sw b{display:block;color:var(--tx);font-size:14px;margin-bottom:2px}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:var(--s3)}
+.icons figure{margin:0;padding:var(--s3);border:1px solid var(--line);border-radius:var(--r);
+  text-align:center;background:var(--panel)}
+.icons svg{width:26px;height:26px;color:var(--acc)}
+.icons figcaption{font-size:11.5px;color:var(--mut);margin-top:8px;word-break:break-word}
+.btn{font:inherit;font-size:14px;padding:11px 18px;border-radius:8px;border:1px solid var(--acc2);
+  background:var(--acc2);color:#eafcff;cursor:pointer}
+.btn:hover{background:#0891b2}
+.btn.ghost{background:transparent;color:var(--acc)}
+.btn.ghost:hover{background:rgba(34,211,238,.08)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;background:transparent;color:var(--mut);border-color:var(--line2)}
+.states{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center}
+.diff>div{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);padding:var(--s3) 0;
+  border-bottom:1px solid var(--line);font-size:14px;line-height:1.55}
+.diff .was{color:var(--mut)}
+.diff .now b{color:var(--acc)}
+.ic{width:1.1em;height:1.1em;flex:none;vertical-align:-.15em}
+h1 .ic,h3 .ic{color:var(--acc)}
+h1,h3{display:flex;align-items:center;gap:10px}
+
+/* -- вкладки сводки ---------------------------------------------- */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:var(--s5)}
+.tabs button{font:inherit;font-size:14px;background:transparent;border:0;border-bottom:2px solid transparent;
+  color:var(--mut);padding:11px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.tabs button:hover{color:var(--tx)}
+.tabs button[aria-selected="true"]{color:var(--acc);border-bottom-color:var(--acc)}
+[role="tabpanel"][hidden]{display:none}
+
+/* -- рамка примера ------------------------------------------------ */
+.screen{border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:var(--bg)}
+.screen>.h{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;
+  padding:var(--s3) var(--s4);background:var(--panel);border-bottom:1px solid var(--line2)}
+.screen>.h b{font-size:14px}
+.screen>.h span{font-size:12.5px;color:var(--mut)}
+.screen .in2{padding:var(--s5) var(--s4) var(--s6)}
+/* внутри примера полосы живут своим фоном */
+.screen .sband{margin:0 calc(-1*var(--s4));padding:var(--s5) var(--s4);border-top:1px solid var(--line)}
+.screen .sband:nth-of-type(even){background:var(--band)}
+.screen .sband:first-of-type{border-top:0;padding-top:0}
+
+@media(max-width:760px){
+  :root{--barh:0px}
+  .bar-top{position:static}
+  .band-head{top:0}
+  .diff>div{grid-template-columns:1fr;gap:4px}
+  .diff .was::before{content:"было: "}
+  .diff .now::before{content:"стало: ";color:var(--mut)}
+  .strip{flex-wrap:wrap;gap:var(--s2)}
+  .strip .st{text-align:left;min-width:0}
+  .bar-top .in{min-height:0}
+}
+@media(max-width:430px){
+  .inner,.hero,.band-head .in{padding-left:14px;padding-right:14px}
+  .card{padding:var(--s4)}
+  .strip{padding-left:var(--s4);padding-right:var(--s4)}
+  .screen .in2{padding-left:14px;padding-right:14px}
+  .screen .sband{margin:0 -14px;padding-left:14px;padding-right:14px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

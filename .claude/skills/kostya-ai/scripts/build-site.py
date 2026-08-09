@@ -18,6 +18,63 @@ PORTAL = "https://glassmemory.bitrix24.ru/crm/deal/details/{}/"
 ICONS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     "..", "shared", "icons.json"), encoding="utf-8"))
 
+
+# Режим фрагмента: сводка отдаётся куском для вставки разделом в академию.
+FRAGMENT = "--fragment" in sys.argv
+
+
+def scope_css(css, scope=".rop"):
+    """Ограничивает стили сводки её собственным контейнером.
+
+    Сводка уезжает разделом внутрь академии, а её CSS написан по тегам: main,
+    header, table, h2, body. Подключается он позже общего, поэтому без
+    ограничения переопределил бы каркас академии целиком. Разбор идёт по
+    скобкам, а не регуляркой: внутри @media лежат вложенные блоки.
+    """
+    res, i, n = [], 0, len(css)
+    while i < n:
+        if css.startswith("/*", i):
+            j = css.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            res.append(css[i:j])
+            i = j
+            continue
+        j = css.find("{", i)
+        if j < 0:
+            res.append(css[i:])
+            break
+        sel = css[i:j].strip()
+        depth, k = 1, j + 1
+        while k < n and depth:
+            if css[k] == "{":
+                depth += 1
+            elif css[k] == "}":
+                depth -= 1
+            k += 1
+        body = css[j + 1:k - 1]
+        if sel.startswith("@"):
+            inner = scope_css(body, scope) if sel.startswith(("@media", "@supports")) else body
+            res.append(sel + "{" + inner + "}")
+        else:
+            parts = []
+            for one in (x.strip() for x in sel.split(",")):
+                if not one:
+                    continue
+                if one == "*":
+                    parts.append(scope + " *")
+                elif one in (":root", "html"):
+                    parts.append(scope)
+                elif one == "body":
+                    parts.append(scope)
+                elif one.startswith("body"):
+                    parts.append(scope + one[4:])
+                else:
+                    parts.append(scope + " " + one)
+            res.append(", ".join(parts) + "{" + body + "}")
+        i = k
+    return "".join(res)
+
+
 def esc(s):
     return html.escape(str(s if s is not None else ""))
 
@@ -394,8 +451,17 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None):
 
     tpl = open(__file__.replace("build-site.py", "site-template.html"), encoding="utf-8").read()
     htmlout = tpl.replace("/*__DATA__*/null", json.dumps(payload, ensure_ascii=False))
-    open(out_path, "w", encoding="utf-8").write(htmlout)
-    print(f"сайт: {out_path} ({len(htmlout)//1024} КБ), менеджеров {len(mgrs)}, сделок {len(deals)}")
+
+    if FRAGMENT:
+        css = re.search(r"<style>([\s\S]*?)</style>", htmlout).group(1)
+        body = re.search(r"<body>([\s\S]*?)</body>", htmlout).group(1)
+        css_path = os.path.join(os.path.dirname(os.path.abspath(out_path)) or ".", "rop.css")
+        open(css_path, "w", encoding="utf-8").write(scope_css(css))
+        open(out_path, "w", encoding="utf-8").write('<div class="rop">' + body + "</div>")
+        print(f"фрагмент сводки: {out_path} ({len(body)//1024} КБ), стили: {css_path}")
+    else:
+        open(out_path, "w", encoding="utf-8").write(htmlout)
+        print(f"сайт: {out_path} ({len(htmlout)//1024} КБ), менеджеров {len(mgrs)}, сделок {len(deals)}")
 
 
 if __name__ == "__main__":

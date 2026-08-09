@@ -23,10 +23,10 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
 
 | Зона | Артикулов | Состав | Действующие палитры |
 |---|---|---|---|
-| Прихожая | 4 | Зеркало + консоль + вешалка + банкетка | NERO / BIANCO / ORO / **CIPRIA (запуск весна 2026)** |
-| Кабинет | 5 | Стол + стеллаж + кресло + лампа + органайзер | NERO / ORO / **CIPRIA (запуск 2026)** |
-| Зона отдыха | 3 | Журнальный стол + банкетка + зеркало | NERO / BIANCO |
-| Столовая группа | 3 | Стол TRUBIS + витрина + буфет | ORO |
+| Прихожая | 4 | Зеркало + консоль + вешалка + банкетка | ЧЁРНАЯ / БЕЛАЯ / ЗОЛОТАЯ |
+| Кабинет | 5 | Стол + стеллаж + кресло + лампа + органайзер | ЧЁРНАЯ / ЗОЛОТАЯ |
+| Зона отдыха | 3 | Журнальный стол + банкетка + зеркало | ЧЁРНАЯ / БЕЛАЯ |
+| Столовая группа | 3 | Стол TRUBIS + витрина + буфет | ЗОЛОТАЯ |
 
 ## Cross-sell triggers (по категориям)
 
@@ -37,7 +37,7 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
 | Стол журнальный | Зеркало + консоль (для гостиной) | Зона отдыха |
 | Стеллаж TRUBIS | Стол TRUBIS в той же палитре | Линия TRUBIS - единый дизайн-код |
 | Перегородка межкомнатная | Зеркало в той же палитре (для зонирования) | Visual continuity |
-| Артикул в палитре CIPRIA (Drop) | Другие 6 моделей первой волны CIPRIA | Поддержка запуска Drop |
+| Артикул в снятой с продаж палитре | Та же модель в действующей палитре | Розовая палитра снята с продаж 08.08.2026 |
 
 ## Pricing rules
 
@@ -59,7 +59,7 @@ description: Cross-sell engine for GENGROUP - rules and triggers for proposing c
     "deal_id": "B24-12345",
     "customer_type": "designer|b2c|horeca",
     "current_items": ["GGM-02-1-2", "GGT-03-1-2-90"],
-    "palette": "ORO",
+    "palette": "ЗОЛОТАЯ",
     "stage": "first_purchase|followup_30d|followup_60d"
   }
 }

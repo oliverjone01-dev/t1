@@ -29,7 +29,7 @@ nav button{display:inline-flex;align-items:center;gap:7px}
 h2{display:flex;align-items:center;gap:10px}
 h2 .ic{color:var(--acc)}
 main{padding:22px 24px 60px;max-width:1440px;margin:0 auto}
-section{display:none} section.on{display:block}
+.tabpanel{display:none}.tabpanel.on{display:block}
 h2{font-size:17px;margin:26px 0 12px;font-weight:600}
 h2:first-child{margin-top:0}
 h3{font-size:15px;margin:20px 0 8px}
@@ -82,11 +82,11 @@ footer{padding:20px 24px;border-top:1px solid var(--line);color:var(--mut);font-
   <nav id="nav"></nav>
 </header>
 <main>
-  <section id="t-sum" class="on"></section>
-  <section id="t-mgr"></section>
-  <section id="t-deal"></section>
-  <section id="t-scr"></section>
-  <section id="t-fup"></section>
+  <div class="tabpanel on" id="t-sum"></div>
+  <div class="tabpanel" id="t-mgr"></div>
+  <div class="tabpanel" id="t-deal"></div>
+  <div class="tabpanel" id="t-scr"></div>
+  <div class="tabpanel" id="t-fup"></div>
 </main>
 <footer id="foot"></footer>
 <script>
@@ -133,7 +133,7 @@ document.getElementById('nav').innerHTML = TABS.map(([id,n,icn],i)=>
 document.getElementById('nav').onclick = e => {
   const b=e.target.closest('button'); if(!b) return;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
+  document.querySelectorAll('.tabpanel').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
   window.scrollTo(0,0);
 };
 

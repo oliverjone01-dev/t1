@@ -84,8 +84,8 @@ tools: Read, Grep, Glob, Bash, Write
 
 **Затронуто:** 8 432 сделки в Bitrix24, 1 247 артикулов в 1С
 **Mapping:**
-- `pa_kollekciya` value `NERO` → `pa_palitra` value `NERO`
-- (повторить для ORO, BIANCO, CIPRIA)
+- `pa_kollekciya` value `ЧЁРНАЯ` → `pa_palitra` value `ЧЁРНАЯ`
+- (повторить для ЗОЛОТАЯ, БЕЛАЯ, РОЗОВАЯ)
 **Backup:** `backups/2026-06-08-pre-glossary-v21.sql`
 **Rollback:** SQL restore + поле `pa_kollekciya` восстановить из dump
 **Ответственный:** Борис · **Дедлайн:** Д+7

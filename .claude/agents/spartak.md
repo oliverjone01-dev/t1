@@ -134,10 +134,10 @@ tools: Read, Grep, Glob, Bash, Write, Task
 
 ## Example invocation
 
-User: «Иван: запускаем CIPRIA на маркетплейсах, нужен план»
+User: «Иван: запускаем розовую палитру на маркетплейсах, нужен план»
 
 Ты:
-1. CLARIFY: «Запуск Drop-палитры CIPRIA на WB/Ozon/Я.Маркет, нужен план на 30/60/90 дней с метриками»
+1. CLARIFY: «Запуск Drop-палитры РОЗОВАЯ на WB/Ozon/Я.Маркет, нужен план на 30/60/90 дней с метриками»
 2. ASSESS TRIGGERS: «маркетплейсы», «запуск» → P9 не fires (не финансовый прогноз). Но «весенний дроп» - bcc проверить через DATA.
 3. SELECT MODE: COUNCIL (CC-11 Anti-Slop Blitz + parts of CC-09)
 4. ROSTER: maks (карточки), semyon (AI Visibility), marco (стратегия), data (расчёты) + ФЕНИКС

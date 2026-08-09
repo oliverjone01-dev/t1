@@ -63,7 +63,7 @@ Strategist + Market Intelligence Analyst». [ДАННЫЕ: GEO-разведка 
 ```html
 <details>
   <summary>Сколько стоит стеклянная перегородка 2400×1000?</summary>
-  GENGLASS делает стандартную перегородку 2400×1000 в палитре NERO от 47 800 ₽. Срок изготовления 7 рабочих дней, доставка по Москве 1-2 дня.
+  GENGLASS делает стандартную перегородку 2400×1000 в палитре ЧЁРНАЯ от 47 800 ₽. Срок изготовления 7 рабочих дней, доставка по Москве 1-2 дня.
 </details>
 ```
 
@@ -79,8 +79,8 @@ Strategist + Market Intelligence Analyst». [ДАННЫЕ: GEO-разведка 
 <table>
   <thead><tr><th>Размер</th><th>Цена</th><th>Срок</th></tr></thead>
   <tbody>
-    <tr><td>2400×1000 NERO</td><td>47 800 ₽</td><td>7 дн</td></tr>
-    <tr><td>2400×1000 ORO</td><td>52 500 ₽</td><td>7 дн</td></tr>
+    <tr><td>2400×1000 ЧЁРНАЯ</td><td>47 800 ₽</td><td>7 дн</td></tr>
+    <tr><td>2400×1000 ЗОЛОТАЯ</td><td>52 500 ₽</td><td>7 дн</td></tr>
   </tbody>
 </table>
 ```
@@ -116,7 +116,7 @@ Bing/считает авторитетными (Habr, VC, профильные �
 ### 7. Freshness Signals
 - Актуальные цены (snapshot ≤90 дней)
 - Даты в виде «по состоянию на Q2 2026»
-- Упоминание trends 2026 (Quiet Luxury, CIPRIA Drop)
+- Упоминание trends 2026 (Quiet Luxury, РОЗОВАЯ Drop)
 
 ## IA: одна страница на один интент
 

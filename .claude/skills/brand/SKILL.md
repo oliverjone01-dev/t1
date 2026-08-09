@@ -60,7 +60,7 @@ description: Brand voice and tone authority for GENGROUP holding. Auto-invoke wh
 ## Cross-brand rules
 
 - Кросс-брендовые коллекции - отдельное решение совета холдинга, по умолчанию не делаем
-- Имена палитр (NERO/ORO/BIANCO/CIPRIA) принадлежат GENGLASS - другие бренды используют через лицензию
+- Имена палитр (ЧЁРНАЯ/ЗОЛОТАЯ/БЕЛАЯ/РОЗОВАЯ) принадлежат GENGLASS - другие бренды используют через лицензию
 - Metal-GM канонично пишется через дефис (не GM-METAL); GLASS-MEMORY через дефис
 
 ## Output mark

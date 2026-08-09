@@ -1,6 +1,6 @@
 ---
 name: encyclopedia
-description: GENGROUP terminology reference and consistency checker. Auto-invoke when text uses brand-specific terms (палитра, линия, коллекция, комплект, артикул) - verifies alignment with glossary v2.1. Catches GM-METAL → Metal-GM, "коллекция NERO" → "палитра NERO", etc.
+description: GENGROUP terminology reference and consistency checker. Auto-invoke when text uses brand-specific terms (палитра, линия, коллекция, комплект, артикул) - verifies alignment with glossary v2.1. Catches GM-METAL → Metal-GM, "коллекция ЧЁРНАЯ" → "палитра ЧЁРНАЯ", etc.
 ---
 
 # Encyclopedia (v1.1) - Terminology Consistency
@@ -20,7 +20,7 @@ description: GENGROUP terminology reference and consistency checker. Auto-invoke
 - **Линия** (Linea) - сквозной дизайн-код через категории. **TRUBIS** - первая линия GENGLASS
 - **Модель** (Modello): EVELIX, RAUNTEL, KUVINO, TRUBIS Oval, etc.
 - **Артикул** (SKU): GGT-XX-C-D-SS (столы), GGM-XX-C-S (зеркала), GGP-XX-... (перегородки)
-- **Палитра** (Palette): сквозной финиш - NERO, ORO, BIANCO (Core); CIPRIA (Drop весна 2026); INDUSTRIAL (в разработке)
+- **Палитра** (Palette): сквозной финиш - ЧЁРНАЯ, ЗОЛОТАЯ, БЕЛАЯ (Core); РОЗОВАЯ (снята с продаж); INDUSTRIAL (в разработке)
 - **Коллекция** (Collezione): сквозной дизайн-концепт с именным автором - первая ожидается Q3-Q4 2026
 - **Комплект** (Ensemble): 2-7 артикулов для зоны интерьера - Прихожая/Кабинет/Зона отдыха/Столовая
 
@@ -33,9 +33,9 @@ description: GENGROUP terminology reference and consistency checker. Auto-invoke
 
 | ❌ Неправильно | ✅ Правильно |
 |---|---|
-| «Коллекция NERO/ORO/BIANCO/CIPRIA» | **Палитра** NERO/ORO/BIANCO/CIPRIA |
+| «Коллекция ЧЁРНАЯ/ЗОЛОТАЯ/БЕЛАЯ/РОЗОВАЯ» | **Палитра** ЧЁРНАЯ/ЗОЛОТАЯ/БЕЛАЯ/РОЗОВАЯ |
 | «Коллекция TRUBIS» | **Линия** TRUBIS |
-| «Розовая коллекция» | Палитра CIPRIA (Drop весна 2026) |
+| «Розовая коллекция» | Палитра РОЗОВАЯ (снята с продаж) |
 | GM-METAL | **Metal-GM** (с мая 2026) |
 | «Ежемесячный комплект» | Комплект (Ensemble), без частоты |
 | «Квартальная коллекция» | Квартальный Drop палитры |
@@ -56,15 +56,15 @@ description: GENGROUP terminology reference and consistency checker. Auto-invoke
 
 | Клиент | Менеджер |
 |---|---|
-| «Из розовой коллекции» | «Наш весенний релиз - палитра CIPRIA, 7 моделей» |
+| «Из розовой коллекции» | «Розовую палитру мы сняли с продаж. Из действующих ближе всего белая» |
 | «Покажите коллекцию TRUBIS» | «Линия TRUBIS - наш бестселлер, столы и стеллажи» |
-| «А какие у вас коллекции?» | «Три базовых палитры - чёрная, золотая, белая; плюс весенняя CIPRIA. Первая авторская коллекция выйдет к концу года» |
+| «А какие у вас коллекции?» | «Три базовых палитры - чёрная, золотая, белая. Первая авторская коллекция выйдет к концу года» |
 
 ## Pricing implications
 
 Терминология влияет на цену:
-- Палитра Core (NERO/ORO/BIANCO): референсная цена
-- Палитра Drop (CIPRIA): +5–15%
+- Палитра Core (ЧЁРНАЯ/ЗОЛОТАЯ/БЕЛАЯ): референсная цена
+- Палитра Drop: +5–15%. Действующих Drop-палитр сейчас нет
 - Коллекционная модель: +15–30%
 - Лимитированная серия (50 шт, нумерация): доп. +10–20%
 

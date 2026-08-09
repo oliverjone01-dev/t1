@@ -12,7 +12,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);
-  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  font:var(--fs,15.5px)/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
 header{padding:22px 24px 0;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0a1c27,#06121a)}
 h1{margin:0 0 4px;font-size:21px;letter-spacing:.2px}
@@ -20,7 +20,7 @@ h1 span{color:var(--acc)}
 .sub{color:var(--mut);font-size:13px;margin-bottom:16px}
 nav{display:flex;gap:2px;flex-wrap:wrap}
 nav button{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mut);
-  padding:10px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+  padding:11px 18px;font-size:calc(var(--fs,15.5px) - 1px);cursor:pointer;font-family:inherit}
 nav button:hover{color:var(--tx)}
 nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
 nav button{display:inline-flex;align-items:center;gap:7px}
@@ -30,30 +30,30 @@ h2{display:flex;align-items:center;gap:10px}
 h2 .ic{color:var(--acc)}
 main{padding:22px 24px 60px;max-width:1440px;margin:0 auto}
 .tabpanel{display:none}.tabpanel.on{display:block}
-h2{font-size:17px;margin:26px 0 12px;font-weight:600}
+h2{font-size:calc(var(--fs,15.5px) + 4px);margin:var(--s6,34px) 0 var(--s3,12px);font-weight:650}
 h2:first-child{margin-top:0}
-h3{font-size:15px;margin:20px 0 8px}
+h3{font-size:calc(var(--fs,15.5px) + 1px);margin:var(--s5,22px) 0 var(--s2,8px)}
 p{margin:8px 0}
 .grid{display:grid;gap:12px}
 .k4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
 .k3{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.kpi .v{font-size:26px;font-weight:600;line-height:1.15}
-.kpi .l{color:var(--mut);font-size:12px;margin-top:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:var(--s4,15px) var(--s5,18px)}
+.kpi .v{font-size:calc(var(--fs,15.5px) + 12px);font-weight:650;line-height:1.15}
+.kpi .l{color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);margin-top:4px}
 .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;border:1px solid var(--line2);color:var(--mut)}
 .tag.ok{color:var(--ok);border-color:#1c5a45} .tag.bad{color:var(--bad);border-color:#5c2320}
 .tag.warn{color:var(--warn);border-color:#5e4415} .tag.acc{color:var(--acc);border-color:var(--acc2)}
-table{width:100%;border-collapse:collapse;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:calc(var(--fs,15.5px) - 2px)}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
-th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th,td{padding:var(--s3,11px) var(--s4,14px);text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--mut);font-weight:500;font-size:12px;position:sticky;top:0;background:var(--panel2)}
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;min-width:70px}
 .bar i{display:block;height:100%;background:var(--acc)}
 .bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)} .bar i.warn{background:var(--warn)}
-.note{background:var(--panel2);border-left:3px solid var(--acc2);padding:10px 14px;border-radius:0 8px 8px 0;
-  color:var(--mut);font-size:13px;margin:12px 0}
+.note{background:var(--panel2);border-left:3px solid var(--acc2);padding:var(--s3,11px) var(--s4,15px);border-radius:0 8px 8px 0;
+  color:var(--mut);font-size:calc(var(--fs,15.5px) - 2px);margin:var(--s3,12px) 0;max-width:100ch}
 .note.bad{border-left-color:var(--bad)}
 .mgr{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;background:var(--panel);overflow:hidden}
 .mgr>summary{padding:14px 16px;cursor:pointer;list-style:none;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -62,14 +62,14 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .mgr .nm{font-weight:600;min-width:190px}
 .mgr .body{padding:0 16px 18px;border-top:1px solid var(--line)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.q{background:var(--panel2);border-left:3px solid var(--line2);padding:8px 12px;margin:6px 0;
-  border-radius:0 6px 6px 0;font-size:13px;color:#c3d3de}
+.q{background:var(--panel2);border-left:3px solid var(--line2);padding:var(--s2,9px) var(--s3,13px);margin:var(--s2,7px) 0;
+  border-radius:0 6px 6px 0;font-size:calc(var(--fs,15.5px) - 2px);color:#c3d3de}
 .q.bad{border-left-color:var(--bad)}
 ul{margin:6px 0 6px 18px;padding:0} li{margin:4px 0}
 .script{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;background:var(--panel)}
 .script .when{color:var(--acc);font-size:12px;margin-bottom:4px}
-.script .why{color:var(--mut);font-size:13px;margin-bottom:10px}
-.small{font-size:12px;color:var(--mut)}
+.script .why{color:var(--mut);font-size:calc(var(--fs,15.5px) - 2px);margin-bottom:10px}
+.small{font-size:calc(var(--fs,15.5px) - 3px);color:var(--mut)}
 .hr{height:1px;background:var(--line);margin:22px 0}
 footer{padding:20px 24px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
 @media(max-width:700px){main{padding:16px 12px 40px}header{padding:16px 12px 0}th,td{white-space:normal}}
@@ -172,7 +172,7 @@ document.getElementById('foot').innerHTML =
       <th class="num">Ответ &lt;1ч</th><th class="num">Без ответа</th><th class="num">Срок в обещании</th>
       <th class="num">Квалификация</th><th class="num">Эскалации</th></tr></thead>
     <tbody>${M.map(m=>{const [b,c]=band(m.idx,m);const r=m.reply||{};return `<tr>
-      <td data-v="0">${E(m.mgr)}</td>
+      <td data-v="0">${D.cabinets&&D.cabinets[m.mgr]?`<a href="./${E(D.cabinets[m.mgr])}">${E(m.mgr)}</a>`:E(m.mgr)}</td>
       <td class="num" data-v="${m.deals>=MIN_DEALS?m.idx:-1}">${m.deals>=MIN_DEALS?m.idx.toFixed(1):"мало данных"}</td>
       <td data-v="${BAND_RANK[b]}"><span class="tag ${c}">${b}</span></td>
       <td class="num" data-v="${m.deals}">${m.deals}</td>
@@ -249,7 +249,7 @@ document.getElementById('foot').innerHTML =
     const kk=(D.kostyaManagers||{})[m.mgr];
     return `<details class="mgr">
       <summary>
-        <span class="nm">${E(m.mgr)}</span>
+        <span class="nm">${D.cabinets&&D.cabinets[m.mgr]?`<a href="./${E(D.cabinets[m.mgr])}">${E(m.mgr)}</a>`:E(m.mgr)}</span>
         <span class="tag ${c}">${b}${m.deals>=MIN_DEALS?" "+m.idx.toFixed(1):""}</span>
         <span class="small">${m.deals} сделок &middot; ${m.out.toLocaleString('ru-RU')} исходящих &middot; медиана ${mins(r.medianMin)}</span>
         <span class="chips">

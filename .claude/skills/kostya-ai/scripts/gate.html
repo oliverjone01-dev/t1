@@ -77,6 +77,17 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
   const S=JSON.parse(document.getElementById('sealed').textContent);
   const b=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
 
+  function finish(){
+    // Скрипты, пришедшие из расшифрованного HTML, innerHTML не выполняет: пересоздаём.
+    app.querySelectorAll('script').forEach(old=>{
+      const s=document.createElement('script');
+      for(const a of old.attributes) s.setAttribute(a.name,a.value);
+      s.textContent=old.textContent;
+      old.replaceWith(s);
+    });
+    document.title=(app.querySelector('h1')?.textContent||document.title).trim();
+  }
+
   async function unseal(pass){
     const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
     const key=await crypto.subtle.deriveKey(
@@ -87,22 +98,28 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     return new TextDecoder().decode(pt);
   }
 
+  // Единый пароль портала, решение Ивана от 09.08.2026: введённый один раз,
+  // он запоминается на вкладку и открывает остальные страницы академии без
+  // повторного ввода. sessionStorage, не localStorage: закрыл вкладку - пароль
+  // забыт, на общем компьютере ничего не остаётся.
+  async function open_(pass){
+    const html=await unseal(pass);
+    try{sessionStorage.setItem('academy_pw',pass)}catch(_){}
+    gate.remove();
+    app.innerHTML=html;
+    app.classList.add('on');
+    finish();
+  }
+  try{
+    const saved=sessionStorage.getItem('academy_pw');
+    if(saved) open_(saved).catch(()=>{try{sessionStorage.removeItem('academy_pw')}catch(_){}});
+  }catch(_){}
+
   f.addEventListener('submit', async e=>{
     e.preventDefault();
     err.textContent=''; go.disabled=true; go.textContent='Расшифровываю…';
     try{
-      const html=await unseal(pw.value);
-      gate.remove();
-      app.innerHTML=html;
-      app.classList.add('on');
-      // Скрипты, пришедшие из расшифрованного HTML, innerHTML не выполняет: пересоздаём.
-      app.querySelectorAll('script').forEach(old=>{
-        const s=document.createElement('script');
-        for(const a of old.attributes) s.setAttribute(a.name,a.value);
-        s.textContent=old.textContent;
-        old.replaceWith(s);
-      });
-      document.title=(app.querySelector('h1')?.textContent||document.title).trim();
+      await open_(pw.value);
       pw.value='';
     }catch(_){
       err.textContent='Неверный пароль';

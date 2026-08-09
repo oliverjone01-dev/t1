@@ -34,6 +34,26 @@ const ic = (name, cls = "ic") => ICONS[name]
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 /**
+ * Промт к картинке. Собирается из общего стилевого блока prompt_style и поля
+ * scene конкретной ситуации, порядок частей задан массивом prompt_style.assembly.
+ *
+ * Поля prompt у ситуации нет намеренно: пока общая часть лежала в десяти копиях,
+ * она разошлась формулировками, и десять картинок перестали читаться как один
+ * набор. Стиль набора меняется в одном месте, сцена - в своём.
+ */
+function situPrompt(s) {
+  const st = SITU.prompt_style;
+  if (!st || !Array.isArray(st.assembly)) {
+    throw new Error("В situations.json нет prompt_style.assembly: промт не из чего собрать");
+  }
+  return st.assembly
+    .map((k) => (k === "scene" ? s.scene : st[k]))
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
  * Иллюстрация к типовой ситуации.
  *
  * Картинки может не быть: файлы генерирует и приносит Иван. Поэтому по умолчанию
@@ -50,7 +70,7 @@ function situ(id) {
   <div class="ph">
     <div class="ph-h">${ic("picture")}<b>${esc(s.title)}</b><span class="tag">картинки ещё нет</span></div>
     <div class="ph-f">Положить файл: <code>gg-sales-academy/img/${s.id}.webp</code>, 1600x640, до 200 КБ. Появится здесь сам.</div>
-    <div class="ex" data-copy>${esc(s.prompt)}</div>
+    <div class="ex" data-copy>${esc(situPrompt(s))}</div>
   </div>
   <figcaption>${esc(s.title)}</figcaption>
 </figure>`;
@@ -574,106 +594,116 @@ sec("changelog", "Что изменилось", "Что изменилось в 
   </tbody></table></div>`);
 
 // ─────────────────────────────────────────────────────────── рендер
-const CSS = `
-:root{--bg:#06121a;--panel:#0b1a24;--panel2:#0e2130;--line:#233242;--line2:#2a3a4a;
---tx:#dfe9f0;--mut:#7b93a6;--note:#dfe9f0;--acc:#22D3EE;--acc2:#0E7490;--ok:#34D399;--warn:#f59e0b;--bad:#E05A50}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);
-font:15.5px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
-.side{border-right:1px solid var(--line);background:var(--panel);padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
-.logo{padding:0 20px 16px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}
-.logo b{color:var(--acc);display:block;font-size:15px;letter-spacing:.1em;margin-bottom:3px}
-.grp{padding:14px 20px 5px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
-.side a{display:block;padding:11px 20px;color:var(--tx);font-size:14px;border-left:2px solid transparent}
-:where(a,button,input,summary,[data-copy]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
+// Дизайн-система лежит в shared/academy.css и одна на три контура: библиотеку,
+// кабинет менеджера и сводку штаба. Копия внутри генератора запрещена, иначе
+// контуры разъедутся молча. Вариант «Полосы и плотность», решение Ивана 09.08.2026.
+const CSS = readFileSync(new URL("../../.claude/skills/kostya-ai/shared/academy.css", import.meta.url), "utf8") + `
+/* ── раскладка библиотеки поверх системы ─────────────────────────────
+   Боковое меню остаётся: разделов двенадцать плюс личный, и держать их
+   одной прокруткой значит потерять адресацию. Полосы работают ВНУТРИ
+   раздела, между смысловыми шагами. */
+.wrap{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+.side{border-right:1px solid var(--line);background:var(--panel);padding:var(--s4) 0;
+  position:sticky;top:0;height:100vh;overflow-y:auto;align-self:start}
+.side .logo{padding:0 var(--s4) var(--s4);font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--mut)}
+.side .logo b{color:var(--acc);display:block;font-size:15px;letter-spacing:.1em;margin-bottom:3px}
+.side .grp{padding:var(--s4) var(--s4) 6px;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--mut)}
+.side a{display:flex;align-items:center;gap:11px;padding:11px var(--s4);color:var(--tx);
+  font-size:14.5px;border-left:2px solid transparent}
+.side a .ic{color:var(--mut)}
 .side a:hover{background:var(--panel2);text-decoration:none}
 .side a.on{border-left-color:var(--acc);color:var(--acc);background:var(--panel2)}
-.side .meta{padding:18px 20px 0;margin-top:14px;border-top:1px solid var(--line);color:var(--mut);font-size:11.5px;line-height:1.55}
-main{padding:30px 34px 70px;max-width:880px}
-main p,main .why,main .note{max-width:66ch}
-main .q,main .ex{max-width:70ch}
-section{display:none}section.on{display:block}
-h1{font-size:24px;margin:0 0 6px}
-.lead-sub{color:var(--mut);font-size:14px;margin-bottom:22px}
-h3{font-size:18px;margin:30px 0 8px;font-weight:600}
-p{margin:9px 0}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px 17px;margin:12px 0}
-.card.lead{border-color:var(--acc2);background:var(--panel2)}
-.card.warn-card{border-left:3px solid var(--warn)}
-.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:11px;margin:14px 0}
-.kpi>div{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px}
-.v{font-size:25px;font-weight:600;line-height:1.15}
-.l{color:var(--mut);font-size:12px;margin:4px 0 7px}
-.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;
-border:1px solid var(--line2);color:var(--mut);letter-spacing:.03em}
-.tag.ok{color:var(--ok);border-color:#1c5a45}.tag.bad{color:var(--bad);border-color:#5c2320}
-.tag.warn{color:var(--warn);border-color:#5e4415}.tag.acc{color:var(--acc);border-color:var(--acc2)}
-.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel);margin:12px 0}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--mut);font-weight:500;font-size:12px;background:var(--panel2)}
-tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-td.wrap{white-space:normal}
-/* Коллизия имён, найдена по вёрстке: класс .wrap это и каркас страницы с
-   min-height в экран, и модификатор ячейки таблицы. Ячейка наследовала высоту
-   целого экрана, и строка «Ветка А» растягивалась на тысячу пикселей пустоты.
-   Каркас переименовывать поздно, поэтому ячейке правила каркаса снимаются явно. */
-td.wrap{display:table-cell;min-height:0;grid-template-columns:none}
-td.was{color:var(--mut)}td.now{color:var(--tx)}
-.q,.ex{background:var(--panel2);border-left:3px solid var(--acc2);padding:9px 13px;margin:8px 0;
-border-radius:0 8px 8px 0;font-size:14px;cursor:copy;position:relative}
-.ex{display:block;margin:6px 0 0;font-size:13px}
-[data-copy]{cursor:copy}
-[data-copy]:hover{background:#12283a}
-[data-copy].done::after{content:"скопировано";position:absolute;right:9px;top:7px;
-font-size:10.5px;color:var(--ok)}
-.why{color:var(--mut);font-size:13.5px}
-.norm{border-left:3px solid var(--ok);background:var(--panel2);padding:9px 13px;border-radius:0 8px 8px 0}
-.steps>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:9px 0}
-ul{margin:8px 0 8px 20px;padding:0}li{margin:5px 0}
-ul.dont li{color:#e8b4b0}
-.small{font-size:13px;color:var(--mut);max-width:62ch}
-
-/* Иконки. Размер в em, поэтому иконка едет за кеглем строки, а не за экраном.
-   Цвет наследуется: одна и та же иконка работает и на акценте, и на красном. */
-.ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em}
-.side a{display:flex;align-items:center;gap:10px}
-.side a .ic{color:var(--mut)}
 .side a.on .ic,.side a:hover .ic{color:var(--acc)}
-h1{display:flex;align-items:center;gap:11px}
-h1 .ic{width:1.05em;height:1.05em;color:var(--acc)}
-h3{display:flex;align-items:center;gap:9px}
-h3 .ic{color:var(--acc);width:1em;height:1em}
+.side .meta{padding:var(--s4) var(--s4) 0;margin-top:var(--s4);border-top:1px solid var(--line);
+  color:var(--mut);font-size:11.5px;line-height:1.55}
+main{min-width:0}
+section{display:none}
+section.on{display:block}
+.sec-head{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
+.sec-head h1{margin-bottom:var(--s2)}
+.sec-head .lead-sub{color:var(--mut);font-size:calc(var(--fs) - 1px);max-width:70ch;margin:0}
 
-/* Иллюстрация типовой ситуации. Два состояния: файл есть и файла ещё нет.
-   Второе состояние не заглушка, а рабочий экран: в нём лежит промт, который
-   можно скопировать одной кнопкой. */
-.situ{margin:16px 0 6px;padding:0;border:1px solid var(--line);border-radius:12px;
-background:var(--panel);overflow:hidden}
+/* Чередование поверхностей считается на сборке, а не через nth-of-type:
+   полосы лежат вперемешку с другими div и счёт по тегу сбивается. */
+.band{border-top:1px solid var(--line);background:var(--bg)}
+.band.alt,.band.alt>.band-head{background:var(--band)}
+.band>.band-head{background:var(--bg)}
+.band .inner{padding-top:var(--s5);padding-bottom:var(--s6)}
+/* Шапка полосы и её текст обязаны стоять на одной вертикали. По умолчанию
+   шапка тянется на 1180, а текст ужат до 820 и центрирован, из-за чего номер
+   полосы висит слева от собственного содержимого. */
+.band-head .in,.band .inner.narrow{max-width:868px}
+.band-head h2{display:flex;align-items:center;gap:9px;min-width:0}
+.band-head h2 .ic{color:var(--acc)}
+.sec-head{max-width:868px;margin:0 auto}
+
+/* ── иллюстрация к типовой ситуации ─────────────────────────────────
+   Два состояния: файл есть и файла ещё нет. Второе не заглушка, а рабочий
+   экран: внутри промт, который копируется одной кнопкой. */
+.situ{margin:0 0 var(--s4);border:1px solid var(--line);border-radius:var(--r);
+  background:var(--panel);overflow:hidden}
 .situ img{display:none;width:100%;height:auto;aspect-ratio:2.5/1;object-fit:cover}
 .situ.has-img img{display:block}
 .situ.has-img .ph{display:none}
-.ph{padding:14px 16px 16px;background:
-repeating-linear-gradient(135deg,transparent 0 9px,rgba(35,50,66,.5) 9px 10px)}
-.ph-h{display:flex;align-items:center;gap:9px;font-size:14px}
+.ph{padding:var(--s4) var(--s5) var(--s5);
+  background:repeating-linear-gradient(135deg,transparent 0 9px,rgba(35,50,66,.5) 9px 10px)}
+.ph-h{display:flex;align-items:center;gap:10px;font-size:calc(var(--fs) - 1px);flex-wrap:wrap}
 .ph-h .ic{color:var(--acc)}
-.ph-f{color:var(--mut);font-size:12.5px;margin:7px 0 2px}
+.ph-f{color:var(--mut);font-size:13px;margin:var(--s2) 0 0}
 .ph-f code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
-padding:1px 6px;font-size:12px;color:var(--tx)}
-/* Промт занимает всю ширину рамки: общий предел в 70ch держит читаемость прозы,
-   а здесь текст копируют целиком, и обрезанная колонка мешает его окинуть глазом. */
-.ph .ex{max-width:none;margin-top:10px;background:var(--panel);font-size:12.5px;line-height:1.55}
-/* Подпись имеет смысл под картинкой. Пока картинки нет, заголовок уже стоит в
-   рамке, и вторая копия названия читается как ошибка вёрстки. */
+  padding:1px 6px;font-size:12.5px;color:var(--tx)}
+.ph .q{max-width:none;margin-top:var(--s3);font-size:13px;line-height:1.6;background:var(--panel)}
 .situ figcaption{display:none}
-.situ.has-img figcaption{display:block;padding:9px 16px;border-top:1px solid var(--line);
-color:var(--mut);font-size:12.5px}
+.situ.has-img figcaption{display:block;padding:var(--s3) var(--s5);
+  border-top:1px solid var(--line);color:var(--mut);font-size:13px}
 
-@media(max-width:860px){.wrap{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px 14px 50px}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.norm{border-left:3px solid var(--ok);background:var(--panel2);padding:var(--s3) var(--s4);
+  border-radius:0 var(--r) var(--r) 0;margin:0 0 var(--s3)}
+.why{color:var(--mut);font-size:calc(var(--fs) - 2px);max-width:68ch}
+.steps>div{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:var(--s3) var(--s4);margin:0 0 var(--s3)}
+.ex{display:block;background:var(--panel2);border-left:3px solid var(--acc2);
+  padding:var(--s2) var(--s3);margin:var(--s2) 0 0;border-radius:0 8px 8px 0;
+  font-size:calc(var(--fs) - 3px);line-height:1.6;cursor:copy;position:relative}
+.ex:hover{background:#12283a}
+.ex.done::after{content:"скопировано";position:absolute;right:10px;top:6px;font-size:11.5px;color:var(--ok)}
+/* KPI: из сетки квадратов в полосы «подпись слева, число справа». Глаз идёт
+   сверху вниз одним движением вместо зигзага по плитке. Разметка генераторов
+   не трогается, меняется только раскладка. */
+.kpi{display:block;border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;background:var(--panel);margin:0 0 var(--s4)}
+.kpi>div{display:flex;align-items:baseline;gap:var(--s3);flex-wrap:wrap;
+  padding:var(--s3) var(--s5);border-bottom:1px solid var(--line);
+  background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0}
+.kpi>div:last-child{border-bottom:0}
+.kpi .l{order:1;flex:1 1 240px;color:var(--mut);font-size:13.5px;margin:0;min-width:0}
+.kpi .v{order:2;font-size:calc(var(--fs) + 10px);font-weight:650;line-height:1.15;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.kpi .tag{order:3;flex:none}
+.kpi .d{order:4;flex:none;font-size:13px}
+td.wrap{white-space:normal}
+/* Сводка приезжает со своей типографикой. Общее правило «заголовок это флекс»
+   разрывало её h1 по внутреннему span: «Kostya-  AI . Качество работы». */
+.rop h1,.rop h2,.rop h3{display:block;gap:0}
+@media(max-width:860px){
+  /* На телефоне колонка меню занимала весь первый экран, и человек открывал
+     свой разбор, видя только оглавление. Меню становится лентой: навигация
+     на месте, содержимое начинается сразу под ней.
+     min-width:0 обязателен: элемент грида по умолчанию не сжимается уже своего
+     содержимого, и лента из чипов растянула бы страницу вбок. */
+  .wrap{grid-template-columns:1fr}
+  .side{position:static;height:auto;min-width:0;overflow:visible;
+    border-right:0;border-bottom:1px solid var(--line);padding:var(--s3) 0 var(--s2)}
+  .side .logo{padding:0 var(--s4) var(--s3)}
+  .side .grp{display:none}
+  .side nav{display:flex;gap:8px;overflow-x:auto;padding:0 var(--s4) var(--s2);scrollbar-width:thin}
+  .side a{flex:0 0 auto;border:1px solid var(--line2);border-left-width:1px;
+    border-radius:20px;padding:8px 14px;font-size:13.5px;white-space:nowrap}
+  .side a.on{border-color:var(--acc);background:var(--panel2)}
+  .side .meta{display:none}
+}
 `;
 
 const GROUPS = [
@@ -681,23 +711,83 @@ const GROUPS = [
   ["Инструменты", ["kvalifikaciya", "vozrazheniya", "dozhim", "eskalaciya", "frazebuk", "materialy"]],
   ["Про платформу", ["pravovaya", "changelog"]],
 ];
+// ── персональный раздел ─────────────────────────────────────────────────
+// Академия одна на всех, но лежит у каждого своя копия, и в неё вшит ровно тот
+// личный раздел, на который человек имеет право: менеджеру его разбор, РОПу
+// сводка отдела. Собрать всех менеджеров в один файл было бы честнее по букве
+// «всё тут», но тогда общий пароль кабинетов открывал бы весь отдел любому из
+// десяти. Изоляция держится на том, что чужих данных в файле физически нет.
+const argv = process.argv.slice(2);
+const argOf = (k) => { const i = argv.indexOf(k); return i < 0 ? null : argv[i + 1]; };
+const NOGATE = argv.includes("--nogate");   // снаружи уже стоит шифрование
+const FRAG = argOf("--fragment");
+// Свои стили персонального раздела приезжают отдельным файлом и доклеиваются в
+// head. Второй блок <style> в body сборщик кабинета молча теряет, поэтому всё
+// оформление обязано лежать в первом.
+const FRAG_CSS = argOf("--fragment-css");
+const FRAG_ID = argOf("--id") || "moy-razbor";
+const FRAG_NAV = argOf("--nav") || "Мой разбор";
+const FRAG_TITLE = argOf("--title") || FRAG_NAV;
+const FRAG_LEAD = argOf("--lead") || "";
+const FRAG_ICON = argOf("--icon") || "person";
+
+if (FRAG) {
+  S.unshift({ id: FRAG_ID, nav: FRAG_NAV, title: FRAG_TITLE, lead: FRAG_LEAD,
+              body: readFileSync(FRAG, "utf8"), icon: FRAG_ICON, personal: true });
+  GROUPS.unshift(["Лично вам", [FRAG_ID]]);
+}
+
 const byId = Object.fromEntries(S.map((s) => [s.id, s]));
 
 const nav = GROUPS.map(([g, ids]) =>
   `<div class="grp">${g}</div>` +
-  ids.map((id) => `<a href="#${id}" data-s="${id}">${ic(id)}<span>${byId[id].nav}</span></a>`).join("")).join("");
+  ids.filter((id) => byId[id]).map((id) =>
+    `<a href="#${id}" data-s="${id}">${ic(byId[id].icon || id)}<span>${byId[id].nav}</span></a>`).join("")).join("");
 
-const body = S.map((s) => `<section id="${s.id}">
-  <h1>${ic(s.id)}<span>${s.title}</span></h1><div class="lead-sub">${s.lead}</div>${s.body}</section>`).join("\n");
+/**
+ * Режет тело раздела на полосы по заголовкам h3.
+ *
+ * Полоса это единица чтения: своя поверхность, свой номер, липкая шапка. Между
+ * полосами дышит смена фона, а не пустой отступ, и это прямой ответ на претензию
+ * про компактность: раньше внешний зазор между блоками (12px) был МЕНЬШЕ
+ * внутреннего отступа блока (15px), из-за чего группировка распадалась.
+ *
+ * Чередование поверхностей считается здесь, а не селектором nth-of-type: полосы
+ * лежат вперемешку с другими div, и счёт по тегу сбивается.
+ */
+function bands(html) {
+  // Библиотека делит разделы h3, кабинет и сводка h2. Режем по тому, что есть,
+  // иначе персональный раздел приезжает одной сплошной полосой.
+  const lvl = /<h2[^>]*>/.test(html) ? "2" : "3";
+  const parts = html.split(new RegExp(`(?=<h${lvl}[^>]*>)`)).filter((x) => x.trim());
+  let n = 0;
+  return parts.map((part) => {
+    const m = part.match(new RegExp(`^<h${lvl}[^>]*>([\\s\\S]*?)</h${lvl}>([\\s\\S]*)$`));
+    const alt = n++ % 2 === 1 ? " alt" : "";
+    if (!m) return `<div class="band${alt}"><div class="inner narrow">${part}</div></div>`;
+    const idx = String(n).padStart(2, "0");
+    return `<div class="band${alt}"><div class="band-head"><div class="in">`
+      + `<span class="idx">${idx}</span><h2>${m[1]}</h2></div></div>`
+      + `<div class="inner narrow">${m[2]}</div></div>`;
+  }).join("\n");
+}
 
+const body = S.map((s) => `<section id="${s.id}"${s.personal ? ' data-personal="1"' : ""}>
+  <div class="sec-head"><h1>${ic(s.icon || s.id)}<span>${s.title}</span></h1>
+  ${s.lead ? `<div class="lead-sub">${s.lead}</div>` : ""}</div>
+  ${bands(s.body)}</section>`).join("\n");
+
+// data-d="air" стоит в разметке, а не выставляется скриптом: иначе первый кадр
+// рисуется в плотном режиме и страница дёргается на глазах.
 process.stdout.write(`<!doctype html>
-<html lang="ru"><head>
+<html lang="ru" data-d="air"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>GG Sales Academy - библиотека отдела продаж</title>
+<title>${FRAG ? esc(FRAG_TITLE) + ". " : ""}GG Sales Academy</title>
 <style>
 ${CSS}
+${FRAG_CSS ? readFileSync(FRAG_CSS, "utf8") : ""}
 .gate{position:fixed;inset:0;display:grid;place-items:center;padding:20px;z-index:9;
 background:radial-gradient(1200px 600px at 50% -10%,#0d2333,#06121a)}
 .box{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
@@ -715,7 +805,7 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 <script>window.ACADEMY_HASH="${HASH}";window.ACADEMY_BEACON=${JSON.stringify(BEACON)};</script>
 </head><body>
-
+${NOGATE ? "" : `
 <div class="gate" id="gate">
   <div class="box">
     <div class="logo"><b>GG SALES ACADEMY</b>GENGROUP internal</div>
@@ -727,17 +817,30 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     <div class="hint">Доступ по паролю: защита от случайных глаз, не криптография.
     Персональных данных сотрудников на этих страницах нет.</div>
   </div>
-</div>
+</div>`}
 
-<div class="wrap" id="app" hidden>
+<div class="wrap" id="app"${NOGATE ? "" : " hidden"}>
   <aside class="side">
-    <div class="logo"><b>GG SALES ACADEMY</b>Библиотека отдела продаж</div>
-    <nav id="nav">${nav}</nav>
+    <div class="logo"><b>GG SALES ACADEMY</b>${FRAG ? esc(FRAG_TITLE) : "Библиотека отдела продаж"}</div>
+    <!-- id="secnav", а не "nav": сводка штаба приезжает разделом и строит свои
+         вкладки в элемент с id="nav". При совпадении её скрипт затирал боковое
+         меню академии, и навигация исчезала целиком. -->
+    <nav id="secnav" aria-label="Разделы академии">${nav}</nav>
     <div class="meta">Данные за ${PERIOD}<br>Сборка ${BUILT}<br><br>
-      Личный разбор выдаётся отдельным файлом с личным паролем.<br><br>
-      <a href="#" id="out">Выйти</a></div>
+      ${FRAG ? "Этот файл ваш. Данных коллег в нём нет." : "Личный разбор выдаётся отдельным файлом с личным паролем."}
+      ${NOGATE ? "" : '<br><br><a href="#" id="out">Выйти</a>'}</div>
   </aside>
-  <main>${body}</main>
+  <main>
+    <div class="bar-top"><div class="in">
+      <span class="nm">GG Sales <span>Academy</span></span>
+      <div class="dsw" role="group" aria-label="Плотность вёрстки">
+        <button type="button" data-den="air" aria-pressed="true">Просторно</button>
+        <button type="button" data-den="mid" aria-pressed="false">Рабочая</button>
+        <button type="button" data-den="tight" aria-pressed="false">Плотно</button>
+      </div>
+    </div></div>
+    ${body}
+  </main>
 </div>
 
 <script>
@@ -753,15 +856,38 @@ button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
     try{navigator.sendBeacon(window.ACADEMY_BEACON,
       JSON.stringify({event:'academy_open',at:new Date().toISOString()}))}catch(e){}
   }
-  if(sessionStorage.getItem('academy')==='1')open_();
-  document.getElementById('gf').addEventListener('submit',async function(e){
-    e.preventDefault();
-    if(await sha(document.getElementById('gp').value)===window.ACADEMY_HASH){
-      sessionStorage.setItem('academy','1');open_();
-    } else {document.getElementById('ge').textContent='Неверный пароль'}
-  });
-  document.getElementById('out').addEventListener('click',function(e){
-    e.preventDefault();sessionStorage.removeItem('academy');location.reload()});
+  // В персональной сборке гейта нет: снаружи стоит шифрование, и второй пароль
+  // на том же файле означал бы два пароля на один документ.
+  if(!gate){show(location.hash.slice(1)||(document.querySelector('main section')||{}).id);ping()}
+  else{
+    if(sessionStorage.getItem('academy')==='1')open_();
+    document.getElementById('gf').addEventListener('submit',async function(e){
+      e.preventDefault();
+      if(await sha(document.getElementById('gp').value)===window.ACADEMY_HASH){
+        sessionStorage.setItem('academy','1');open_();
+      } else {document.getElementById('ge').textContent='Неверный пароль'}
+    });
+    document.getElementById('out').addEventListener('click',function(e){
+      e.preventDefault();sessionStorage.removeItem('academy');location.reload()});
+  }
+
+  // Плотность. Один множитель правит всю шкалу отступов и кегль сразу, поэтому
+  // спор «мне тесно» против «мне слишком просторно» решается настройкой, а не
+  // переспором. Дефолт «просторно» стоит в разметке, здесь только переключение.
+  var root=document.documentElement,DK='academy_density';
+  // В запечатанной сборке до <html> доезжает только body со стилями, атрибут с
+  // корня теряется. Значение по умолчанию от этого не меняется (--k живёт в
+  // :root), но состояние переключателя надо проставить явно.
+  if(!root.dataset.d)root.dataset.d='air';
+  function setDen(v){
+    root.dataset.d=v;
+    document.querySelectorAll('.dsw button').forEach(function(b){
+      b.setAttribute('aria-pressed',String(b.dataset.den===v))});
+    try{localStorage.setItem(DK,v)}catch(e){}
+  }
+  try{var saved=localStorage.getItem(DK);if(saved)setDen(saved)}catch(e){}
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('.dsw button');if(b)setDen(b.dataset.den)});
 
   function show(id){
     // Неизвестный якорь в пересланной ссылке давал полностью пустой экран:

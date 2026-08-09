@@ -313,7 +313,7 @@ CSS = """
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
 :where(a,button,summary,input,[data-copy]):focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:4px}
-.wrap{max-width:780px;margin:0 auto;padding:20px 16px 60px}
+.cab{max-width:868px;margin:0 auto;padding:20px 16px 60px}
 h1{font-size:24px;margin:0 0 4px}
 h2{font-size:19px;margin:34px 0 10px;display:flex;align-items:center;gap:10px}
 h3{font-size:15px;margin:16px 0 6px;color:var(--tx);font-weight:600}
@@ -362,13 +362,13 @@ details[open]>summary::before{transform:rotate(90deg)}
 details>*:not(summary){margin:0 14px 14px}
 input.f{width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--tx);padding:10px 12px;border-radius:8px;font:inherit;font-size:13px}
 footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
-@media(max-width:600px){.wrap{padding:14px 12px 40px}h1{font-size:21px}
+@media(max-width:600px){.cab{padding:14px 12px 40px}h1{font-size:21px}
  td a{padding:11px 6px;margin:-11px -6px}.toc a{padding:10px 0}}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms !important}}
 @media print{
  :root{--bg:#fff;--panel:#fff;--panel2:#f5f7f8;--tx:#111;--mut:#444;--note:#111;--line:#ccc;--line2:#bbb;--acc:#0b5a72}
  body{background:#fff;color:#111}
- .wrap{max-width:none;padding:0}
+ .cab{max-width:none;padding:0}
  details{border:0}details>*:not(summary){margin:0}
  .scroll{max-height:none;overflow:visible;border:1px solid #ccc}
  th{position:static;box-shadow:none}
@@ -400,7 +400,7 @@ def render(m, pm, kk, meta, period, D, prev):
     a(f'<!doctype html><html lang="ru"><head><meta charset="utf-8">'
       f'<meta name="viewport" content="width=device-width,initial-scale=1">'
       f'<meta name="robots" content="noindex,nofollow">'
-      f'<title>{esc(m["mgr"])}. Разбор работы</title><style>{CSS}</style></head><body><div class="wrap">')
+      f'<title>{esc(m["mgr"])}. Разбор работы</title><style>{CSS}</style></head><body><div class="cab">')
 
     # 1. Шапка
     key, val, unit = pick_task(m, kk)
@@ -786,6 +786,11 @@ def snapshot_of(m):
             "concrete": None if cts is None else round(cts * 100)}
 
 
+# Режим фрагмента: страница отдаётся куском для вставки в академию, а не
+# самостоятельным документом.
+FRAGMENT = "--fragment" in sys.argv
+
+
 def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
     A = json.load(open(analysis_path, encoding="utf-8"))
     PM = json.load(open(per_manager_path, encoding="utf-8"))["managers"]
@@ -822,12 +827,27 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
             prev = (prev_all.get("managers") or {}).get(name_key(m["mgr"]))
             if prev:
                 prev = dict(prev, builtAt=prev_all.get("builtAt"))
-        path = os.path.join(out_dir, f"{sl}.html")
-        open(path, "w", encoding="utf-8").write(render(m, pm, kk, A["meta"], period, D, prev))
+        page = render(m, pm, kk, A["meta"], period, D, prev)
+        if FRAGMENT:
+            # Кабинет уезжает разделом внутрь академии, поэтому отдаём не документ,
+            # а его содержимое: своя обёртка .cab и свой каркас там лишние, их даёт
+            # оболочка. Стили кладём один раз рядом, сборщик академии доклеит их в
+            # head: второй блок <style> в body теряется молча.
+            inner = page.split("<body>", 1)[1].rsplit("</body>", 1)[0]
+            inner = inner.replace('<div class="cab">', "", 1)
+            inner = inner[::-1].replace(">vid/<", "", 1)[::-1]
+            path = os.path.join(out_dir, f"{sl}.frag.html")
+            open(path, "w", encoding="utf-8").write(inner)
+        else:
+            path = os.path.join(out_dir, f"{sl}.html")
+            open(path, "w", encoding="utf-8").write(page)
         snap["managers"][name_key(m["mgr"])] = snapshot_of(m)
-        made.append({"mgr": m["mgr"], "slug": sl, "file": f"{sl}.html",
+        made.append({"mgr": m["mgr"], "slug": sl, "file": os.path.basename(path),
                      "deals": m["deals"], "joined": kk is not None})
         print(f"  {m['mgr']:22} -> {sl}.html   (слой A {'сведён' if kk else 'НЕ сведён'})")
+
+    if FRAGMENT:
+        open(os.path.join(out_dir, "cab.css"), "w", encoding="utf-8").write(CSS)
 
     json.dump(snap, open(snap_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 

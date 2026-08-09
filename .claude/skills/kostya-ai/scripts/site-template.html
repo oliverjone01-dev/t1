@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kostya-AI. Качество работы менеджеров GENGROUP</title>
 <style>
+/* Два правила для правок в этом блоке.
+   1. Запятых в комментариях быть не должно. Стили сводки уезжают в академию
+      через scope_css из build-site.py: он режет список селекторов по запятой
+      а комментарий перед правилом попадает в этот же список. Запятая внутри
+      комментария рвёт селектор и правило молча гибнет.
+   2. Комментарий не ставится прямо перед @media. Тот же разбор приклеит его
+      к прелюдии селектора и весь блок @media станет невалидным. Пояснение
+      к медиазапросу пишется внутри его фигурных скобок. */
+
 :root{
   --bg:#06121a; --panel:#0b1a24; --panel2:#0e2130; --line:#233242; --line2:#2a3a4a;
   --tx:#dfe9f0; --mut:#7b93a6; --note:#dfe9f0; --acc:#22D3EE; --acc2:#0E7490;
@@ -29,7 +38,7 @@ nav button{display:inline-flex;align-items:center;gap:7px}
 .ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em}
 h2{display:flex;align-items:center;gap:10px}
 h2 .ic{color:var(--acc)}
-/* Внутри академии заголовок уезжает в липкую шапку полосы, и собственные
+/* Внутри академии заголовок уезжает в липкую шапку полосы. Собственные
    вертикальные поля сводки её раздувают. Снаружи селектор не совпадает ни с чем. */
 .band-head h2{margin:0}
 main{padding:0 var(--s4,24px) var(--s6,60px);max-width:1560px;margin:0 auto}
@@ -45,10 +54,10 @@ p{margin:var(--s2,8px) 0}
   padding:var(--s4,16px) var(--s5,20px);margin:0}
 
 /* ── полосы вместо квадратов ───────────────────────────────────────────
-   Ряд «подпись слева, число справа» читается сверху вниз одним движением
-   глаза. Сетка плиток заставляет прыгать зигзагом, а на первом экране РОПа
+   Ряд «подпись слева и число справа» читается сверху вниз одним движением
+   глаза. Сетка плиток заставляет прыгать зигзагом. На первом экране РОПа
    нужен ровно один проход. Разметка совпадает с .strip дизайн-системы
-   академии, поэтому в обоих режимах геометрия одна. */
+   академии: в обоих режимах геометрия одна. */
 .strips{border:1px solid var(--line);border-radius:10px;overflow:hidden;
   background:var(--panel);margin:0 0 var(--s4,16px)}
 .strip{display:flex;align-items:baseline;gap:var(--s4,16px);
@@ -58,7 +67,7 @@ p{margin:var(--s2,8px) 0}
 .strip .l b{display:block;font-weight:600;font-size:var(--fs,15.5px);line-height:1.35}
 .strip .l span{display:block;color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);
   line-height:1.5;margin-top:3px}
-/* Числа стоят колонкой по правому краю, метка справа держит свою ширину:
+/* Числа стоят колонкой по правому краю. Метка справа держит свою ширину:
    иначе длинная метка сдвигает соседнее число и столбец перестаёт читаться
    одним движением глаза. */
 .strip .v{flex:none;min-width:170px;text-align:right;
@@ -76,8 +85,8 @@ p{margin:var(--s2,8px) 0}
 table{width:100%;border-collapse:collapse;font-size:calc(var(--fs,15.5px) - 2px)}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 /* Таблицы сводки показываются целиком: внутренняя прокрутка на десяти строках
-   прячет двух последних менеджеров, а именно они внизу ростера. Липкая шапка
-   при этом не нужна и выключается, иначе она уезжает поверх шапки полосы. */
+   прячет двух последних менеджеров. Именно они внизу ростера. Липкая шапка
+   при этом не нужна и выключается: иначе она уезжает поверх шапки полосы. */
 .scroll.full{max-height:none}
 .scroll.full th{position:static}
 th,td{padding:var(--s3,12px) var(--s4,16px);text-align:left;border-bottom:1px solid var(--line);
@@ -87,16 +96,16 @@ th{color:var(--mut);font-weight:600;font-size:calc(var(--fs,15.5px) - 3px);lette
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 td.wrap,th.wrap{white-space:normal}
-/* Вторая строка в ячейке: номер сделки, стадия, что за счётчик. */
+/* Вторая строка в ячейке: номер сделки и стадия плюс название счётчика. */
 .sub2{display:block;color:var(--mut);font-weight:400;line-height:1.45;margin-top:3px;
   font-size:calc(var(--fs,15.5px) - 3px);white-space:normal}
 td.num .sub2{white-space:nowrap}
 .nm2{font-weight:600}
 
 /* ── раскрываемая строка светофора ─────────────────────────────────────
-   Одиннадцать колонок в один экран не влезают без горизонтальной прокрутки,
-   а прокрутка вбок на сводке означает, что половину цифр никто не увидит.
-   На виду семь, остальное открывается по строке. */
+   Одиннадцать колонок в один экран не влезают без горизонтальной прокрутки.
+   Прокрутка вбок на сводке означает что половину цифр никто не увидит.
+   На виду семь. Остальное открывается по строке. */
 button.exp{background:transparent;border:1px solid var(--line2);border-radius:6px;color:var(--mut);
   font:inherit;font-size:calc(var(--fs,15.5px) - 3px);line-height:1;padding:5px 7px;cursor:pointer;
   flex:none;margin-right:var(--s3,12px)}
@@ -120,7 +129,7 @@ tr.det>td{background:var(--panel2);white-space:normal;padding:var(--s4,16px) var
 .note.bad{border-left-color:var(--bad)}
 
 /* Состояние инструмента: одна строка со ссылкой-разворотом. Первым экраном
-   стоят деньги, а не оговорки про инструмент, но и прятать их нельзя. */
+   стоят деньги а не оговорки про инструмент но и прятать их нельзя. */
 .disc{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--warn);
   border-radius:0 8px 8px 0;margin:0 0 var(--s4,16px);max-width:110ch}
 .disc>summary{padding:var(--s3,12px) var(--s4,16px);cursor:pointer;list-style:none;
@@ -158,13 +167,47 @@ ul{margin:6px 0 6px 18px;padding:0} li{margin:4px 0}
 .hr{height:1px;background:var(--line);margin:var(--s5,22px) 0}
 footer{padding:var(--s4,20px) var(--s4,24px);border-top:1px solid var(--line);color:var(--mut);
   font-size:calc(var(--fs,15.5px) - 3px)}
+/* ── две колонки полос на широком экране ───────────────────────────────
+   Одна полоса на 1600px занимает треть ширины и две трети пустуют. Подпись
+   встаёт на свою строку. Число под ней слева. Метка и микрограф справа.
+   Получается BI-плитка которая не рвётся ни на одной ширине: подпись всегда
+   занимает 100% и числу некуда вылезать. */
+.strips.two .strip{flex-wrap:wrap;row-gap:var(--s2,8px)}
+.strips.two .strip .l{flex:1 1 100%}
+.strips.two .strip .v{margin-right:auto;text-align:left;min-width:0}
+.strip .st{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.strip .st .bar{margin-top:0;width:120px;max-width:120px;flex:none}
+@media(min-width:1200px){
+  .strips.two{display:grid;grid-template-columns:1fr 1fr}
+  .strips.two>.strip{border-right:1px solid var(--line)}
+  .strips.two>.strip:nth-child(2n){border-right:0}
+  /* Полос в блоке всегда чётное число последний ряд снимается парой. */
+  .strips.two>.strip:nth-last-child(-n+2){border-bottom:0}
+}
+/* Первый экран: число крупнее прозы втрое но с потолком. Без потолка на
+   ультрашироком мониторе цифра перестаёт помещаться в свою колонку. */
+.strips.big .v{font-size:clamp(30px,2.6vw,44px);min-width:0;line-height:1.1}
+@media(min-width:1200px){
+  /* Десктоп: первый экран читают через комнату. Нижняя граница 36px. */
+  .strips.big .v{font-size:clamp(36px,2.9vw,44px)}
+}
+@media(max-width:900px){
+  /* Раскрытие строки светофора пальцем: на планшете и телефоне цель 44px. */
+  button.exp{min-width:44px;min-height:44px}
+}
+.strips.big .strip{padding-top:var(--s4,18px);padding-bottom:var(--s4,18px)}
+/* Вкладка это основная навигация сводки и на телефоне тоже. */
+nav button{min-height:44px}
+
 @media(max-width:700px){
   main{padding:0 12px 40px}header{padding:16px 12px 0}
   th,td{white-space:normal}
   .strip{flex-wrap:wrap;gap:var(--s2,8px)}
   .strip .v,.strip .st,.strips.big .v{min-width:0;text-align:left}
+  .strip .st{align-items:flex-start}
+  .strips.big .v{font-size:clamp(28px,8vw,36px)}
   /* Фамилия и подпись под ней не рвутся по слогам: таблица и так уезжает
-     в горизонтальную прокрутку внутри своей рамки, а три строки на ячейку
+     в горизонтальную прокрутку внутри своей рамки. Три строки на ячейку
      превращают светофор в простыню. */
   .mgrcell .nm2,.mgrcell .sub2{white-space:nowrap}
 }
@@ -186,7 +229,17 @@ footer{padding:var(--s4,20px) var(--s4,24px);border-top:1px solid var(--line);co
 <footer id="foot"></footer>
 <script>
 const D = /*__DATA__*/null;
-const E = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Нормализация текста, который приезжает данными и правится не здесь.
+   Длинное тире меняется на дефис: правило типографики портала одно на все три
+   контура. Личное имя руководителя в скриптах меняется на должность: на экране
+   менеджера стоит роль, а не подпись живого человека. Имя записано кодами
+   символов намеренно, чтобы grep по собранным файлам не находил его в шаблоне.
+   Лукахед защищает однокоренные фамилии от превращения в «руководительов». */
+const ROLE = {'':'руководитель','а':'руководителя','у':'руководителю','ом':'руководителем','е':'руководителе'};
+const norm = v => String(v==null?'':v)
+  .replace(/\u2014/g,'-')
+  .replace(/\u0418\u0432\u0430\u043d(ом|а|у|е)?(?![А-Яа-яЁё])/g,(_,x)=>ROLE[x||'']);
+const E = s => norm(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = n => (Math.round(n||0)).toLocaleString('ru-RU')+' ₽';
 const pc = (v,d=0) => v==null ? 'нет данных' : (v*100).toFixed(d)+'%';
 const mins = v => v==null ? 'нет данных' : v<60 ? v+' мин' : v<480 ? Math.floor(v/60)+' ч '+String(Math.round(v%60)).padStart(2,'0') : (v/480).toFixed(1)+' раб.дн';
@@ -255,7 +308,7 @@ document.getElementById('sub').innerHTML =
   `${D.totals.deals} сделок &middot; ${M.length} менеджеров с объёмом от 25 исходящих`;
 document.getElementById('foot').innerHTML =
   `Источник: выгрузка диалогов Bitrix24 воронки C49 и снимок rop.json. Собрано ${E(D.meta.generated_at.slice(0,16).replace('T',' '))}. `+
-  `Индекс коммуникации и пороги помечены как гипотеза до калибровки. Персональные оценки сотрудников требуют апрува Ивана (Protocol 6).`;
+  `Индекс коммуникации и пороги помечены гипотезой до калибровки.`;
 
 /* ---------- 1. Сводка ---------- */
 /* Рамка sales-director: за 30 секунд РОП обязан получить ответ на три вопроса.
@@ -280,12 +333,14 @@ document.getElementById('foot').innerHTML =
   const share = (a,b) => b ? (100*a/b).toFixed(0)+'%' : 'нет базы';
 
   /* Полоса первого экрана: подпись и источник слева, число справа, за числом
-     доля или метка. Источник обязателен у каждой: цифра без источника на
-     дашборде РОПа превращается в спор о том, откуда она взялась. */
-  const strip = (label,src,value,color,st) => `<div class="strip">
+     метка и микрограф доли. Источник обязателен у каждой: цифра без источника
+     на дашборде РОПа превращается в спор о том, откуда она взялась.
+     share - доля 0..1 для бара, null - бара нет. */
+  const strip = (label,src,value,color,st,share,bcls) => `<div class="strip">
     <div class="l"><b>${label}</b><span>${src}</span></div>
     <div class="v"${color?` style="color:var(--${color})"`:''}>${value}</div>
-    <div class="st">${st||''}</div></div>`;
+    <div class="st">${st||''}${share==null?'':bar(Math.max(.02,share),bcls||color||'')}</div></div>`;
+  const rate = (a,b) => b ? a/b : null;
 
   /* Пять сделок на сегодня. Берём критические флаги снимка, схлопываем по сделке
      (на одной могут гореть и зависание, и тишина), сортируем по сумме. Дни
@@ -315,19 +370,22 @@ document.getElementById('foot').innerHTML =
 
   document.getElementById('t-sum').innerHTML = `
 <h2>${I('money')}Где деньги под риском</h2>
-<div class="strips big">
+<div class="strips big two">
   ${strip('Открытый портфель отдела',
     `${num(kt.openDeals)} открытых сделок в воронке C49 &middot; ${SNAP}`,
     money(kt.openBudget), '', `<span class="tag acc">портфель</span>`)}
   ${strip('Зависли на стадии дольше лимита',
-    `детектор D01, лимит свой у каждой стадии: у «КП отправлено» ${lim.dwell!=null?lim.dwell+' дней':'лимит не задан'} &middot; ${SNAP}`,
-    num(kc.D01||0), 'bad', `<span class="tag bad">${share(kc.D01||0,kt.openDeals)} портфеля</span>`)}
+    `детектор D01, у «КП отправлено» ${lim.dwell!=null?lim.dwell+' дней':'лимит не задан'} &middot; ${SNAP}`,
+    num(kc.D01||0), 'bad', `<span class="tag bad">${share(kc.D01||0,kt.openDeals)} портфеля</span>`,
+    rate(kc.D01||0,kt.openDeals), 'bad')}
   ${strip('Просрочено дел в CRM',
     `детектор D03, дело со сроком в прошлом на открытой сделке &middot; ${SNAP}`,
-    num(kc.D03||0), 'bad', `<span class="tag bad">${share(kc.D03||0,kt.openDeals)} портфеля</span>`)}
+    num(kc.D03||0), 'bad', `<span class="tag bad">${share(kc.D03||0,kt.openDeals)} портфеля</span>`,
+    rate(kc.D03||0,kt.openDeals), 'bad')}
   ${strip('Последнее слово осталось за клиентом',
-    `диалогов, где клиент написал последним и ответа не было &middot; ${MSG}`,
-    num(allUn), allUn?'warn':'', `<span class="tag ${allUn?'warn':'ok'}">из ${num(D.totals.deals)} сделок</span>`)}
+    `клиент написал последним, ответа не было &middot; ${MSG}`,
+    num(allUn), allUn?'warn':'', `<span class="tag ${allUn?'warn':'ok'}">из ${num(D.totals.deals)} сделок</span>`,
+    rate(allUn,D.totals.deals), allUn?'warn':'ok')}
 </div>
 <details class="disc"><summary><b>Инструмент в калибровке.</b>
   Ни один из 23 детекторов не прошёл ручную проверку, пороги стадий и веса индексов помечены гипотезой.
@@ -351,9 +409,8 @@ document.getElementById('foot').innerHTML =
     <td class="wrap">${E(f.fact)}<span class="sub2">${E(f.should)}</span></td></tr>`}).join('')}</tbody>
 </table></div>
 <p class="small">В этих пяти сделках ${money(topMoney)}. ${conc}
-  Отобраны по сумме среди критических флагов снимка, всего таких ${num(ks.crit)} на ${num(kt.flags)} флагов.
-  В сводку каждого менеджера приезжают 40 его худших флагов, поэтому список это верхняя часть очереди,
-  а не вся она. Полный перечень по человеку во вкладке «Менеджеры», по сделке во вкладке «Сделки».</p>
+  Отобраны по сумме среди ${num(ks.crit)} критических флагов. Полный перечень по человеку во вкладке
+  «Менеджеры», по сделке во вкладке «Сделки».</p>
 
 <h2>${I('person')}Кто требует внимания: светофор по менеджерам</h2>
 <div class="scroll full"><table>
@@ -393,28 +450,26 @@ document.getElementById('foot').innerHTML =
       ${cell(pc(m.initiatedShare),'диалогов начал сам')}
     </div></td></tr>`}).join('')}</tbody>
 </table></div>
-<div class="note">Две полосы считаются из разных источников и не обязаны совпадать.
-  <b>Дисциплина</b> это индекс ведения открытых сделок из снимка Bitrix: чистота стадий 30%,
-  управление паузой 25%, дисциплина дел 25%, полнота данных 20%. <b>Коммуникация</b> считается
-  по переписке: скорость ответа 25%, доведение диалога 20%, хвост p90 15%, конкретность сроков 15%,
-  чистота текста 15%, квалификация 10%. Пороги обеих полос: молодец от 7.5, норма от 5.0,
-  ниже 5.0 «в разборе». При выборке меньше ${MIN_DEALS} сделок индекс не выдаётся вообще.
-  Веса <b>гипотеза</b>, пересматриваются вместе с Иваном после двух недель ежедневных прогонов.
-  Сверху те, кем заниматься сегодня; внутри полосы люди идут по алфавиту, а не по баллу.
-  Клик по треугольнику раскрывает остальные цифры, клик по заголовку столбца сортирует.</div>
+<div class="note"><b>Дисциплина</b> считается по снимку открытых сделок, <b>коммуникация</b> по переписке:
+  источники разные, совпадать не обязаны. Пороги: молодец от 7.5, норма от 5.0, ниже «в разборе»,
+  при выборке меньше ${MIN_DEALS} сделок индекс не выдаётся. Веса <b>гипотеза</b>.
+  Сверху те, кем заниматься сегодня. Треугольник раскрывает остальные цифры, заголовок столбца сортирует.</div>
 
 <h2>${I('chart')}Что происходит в переписке отдела</h2>
-<div class="strips">
+<div class="strips two">
   ${strip('Медиана ответа клиенту',`рабочее время ${D.meta.workHours?D.meta.workHours[0]+':00-'+D.meta.workHours[1]+':00':'9:00-19:00'} &middot; ${MSG}`,
     mins(t.replyMedianMin),'',`<span class="tag ok">половина ответов</span>`)}
-  ${strip('p90 ответа: столько ждёт каждый десятый','клиенты уходят в хвосте, медиана его прячет &middot; '+MSG,
+  ${strip('p90 ответа: столько ждёт каждый десятый','клиенты уходят в хвосте &middot; '+MSG,
     mins(t.replyP90Min),'bad',`<span class="tag bad">худшая десятая</span>`)}
-  ${strip('Молчат дольше лимита стадии','детектор D02, считается по последней активности &middot; '+SNAP,
-    num(kc.D02||0),'bad',`<span class="tag bad">${share(kc.D02||0,kt.openDeals)} портфеля</span>`)}
-  ${strip('Обещаний с конкретным сроком',`${num(promC)} из ${num(prom)} обещаний вида «отправлю», «уточню», «перезвоню» &middot; ${MSG}`,
-    share(promC,prom), promC/Math.max(1,prom)<0.2?'bad':'', `<span class="tag ${promC/Math.max(1,prom)<0.2?'bad':'ok'}">срок назван</span>`)}
+  ${strip('Молчат дольше лимита стадии','детектор D02, по последней активности &middot; '+SNAP,
+    num(kc.D02||0),'bad',`<span class="tag bad">${share(kc.D02||0,kt.openDeals)} портфеля</span>`,
+    rate(kc.D02||0,kt.openDeals),'bad')}
+  ${strip('Обещаний с конкретным сроком',`${num(promC)} из ${num(prom)} обещаний «отправлю», «уточню», «перезвоню» &middot; ${MSG}`,
+    share(promC,prom), promC/Math.max(1,prom)<0.2?'bad':'', `<span class="tag ${promC/Math.max(1,prom)<0.2?'bad':'ok'}">срок назван</span>`,
+    rate(promC,prom), promC/Math.max(1,prom)<0.2?'bad':'ok')}
   ${strip('Вопросов про бюджет, срок и ЛПР',`на ${num(t.out)} исходящих сообщений &middot; ${MSG}`,
-    num(qOut),'bad',`<span class="tag bad">${(100*qOut/Math.max(1,t.out)).toFixed(2)}% исходящих</span>`)}
+    num(qOut),'bad',`<span class="tag bad">${(100*qOut/Math.max(1,t.out)).toFixed(2)}% исходящих</span>`,
+    rate(qOut,t.out),'bad')}
   ${strip('Возражений по цене от клиентов','детектор OBJ_ЦЕНА по входящим &middot; '+MSG,
     num(allObj),'warn',`<span class="tag warn">повод для скрипта</span>`)}
   ${strip('Обращений к руководителю и претензий','строгий детектор эскалаций по входящим &middot; '+MSG,
@@ -444,8 +499,7 @@ document.getElementById('foot').innerHTML =
 </div>
 
 <h2>${I('lock')}Кабинеты менеджеров</h2>
-<div class="note">Адрес не называет человека: содержимое зашифровано, но сам адрес виден всем,
-  кто знает домен. Список «кто под каким адресом» существует только здесь, внутри вашей сводки.
+<div class="note">Список «кто под каким адресом» существует только здесь, внутри сводки.
   Пароль на все кабинеты один и отдаётся отдельно от ссылки.</div>
 <div class="scroll full"><table><thead><tr><th>Менеджер</th><th>Ссылка на кабинет</th></tr></thead><tbody>
 ${Object.entries(D.cabinets||{}).map(([mgr,f])=>`<tr><td>${E(mgr)}</td>
@@ -552,8 +606,7 @@ ${Object.entries(D.cabinets||{}).map(([mgr,f])=>`<tr><td>${E(mgr)}</td>
   const el=document.getElementById('t-deal');
   el.innerHTML=`
   <h2>${I('search')}Детализация обработки заказов</h2>
-  <div class="note">Одна строка на сделку: сколько сообщений, кто кого тащил, за кем осталось последнее слово,
-    сколько дней жила переписка. «Последнее слово за клиентом» означает, что диалог оборвался на его сообщении.</div>
+  <div class="note">Одна строка на сделку. «Последнее слово за клиентом» означает, что диалог оборвался на его сообщении.</div>
   <div class="card" style="margin-bottom:var(--s3,12px)">
     <input id="q" placeholder="Фильтр: менеджер, стадия, номер сделки, тип изделия"
       style="width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--tx);
@@ -581,9 +634,8 @@ ${Object.entries(D.cabinets||{}).map(([mgr,f])=>`<tr><td>${E(mgr)}</td>
 /* ---------- 4. Скрипты продаж ---------- */
 document.getElementById('t-scr').innerHTML = `
   <h2>${I('message')}Скрипты продаж</h2>
-  <div class="note">Каждый скрипт привязан к конкретной ситуации и к цифре из нашей переписки, а не к абстрактной
-    методике. Формулировки согласованы с фразебуком Кости: конкретные сроки вместо «в ближайшее время»,
-    извинение перед объяснением, вопрос с выбором вместо «актуально?».</div>
+  <div class="note">Каждый скрипт привязан к ситуации и к цифре из нашей переписки: конкретный срок вместо
+    «в ближайшее время», извинение перед объяснением, вопрос с выбором вместо «актуально?».</div>
   ${D.scripts.map(s=>`<div class="script">
     <div class="when">${E(s.when)}</div>
     <h3 style="margin:0 0 6px">${E(s.title)}</h3>
@@ -596,8 +648,8 @@ document.getElementById('t-scr').innerHTML = `
 /* ---------- 5. Дожимы и лид-магниты ---------- */
 document.getElementById('t-fup').innerHTML = `
   <h2>${I('dozhim')}Скрипты дожима: когда напомнить о себе и что сказать</h2>
-  <div class="note">Алгоритм трёх касаний из разборов Кости, разложенный по ситуациям. После третьего касания
-    сделка уходит в отложенные с датой следующего контакта, а не остаётся висеть на активной стадии.</div>
+  <div class="note">После третьего касания сделка уходит в отложенные с датой следующего контакта,
+    а не висит на активной стадии.</div>
   ${D.followups.map(f=>`<div class="script">
     <h3 style="margin:0 0 10px">${E(f.sit)}</h3>
     <div class="scroll" style="margin-bottom:10px"><table><thead><tr><th style="width:190px">Когда</th><th class="wrap">Что написать</th></tr></thead><tbody>
@@ -611,9 +663,8 @@ document.getElementById('t-fup').innerHTML = `
 
   <div class="hr"></div>
   <h2>${I('materialy')}Лид-магниты</h2>
-  <div class="note">Колонка «отправок» посчитана по реальным ссылкам и упоминаниям в переписке за
-    ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)}. Материалы со статусом «НЕТ» в отделе отсутствуют:
-    это не идея на будущее, а дыра, через которую уходят конкретные возражения.</div>
+  <div class="note">«Отправок» посчитано по ссылкам и упоминаниям в переписке. Статус «НЕТ» означает,
+    что материала в отделе нет: это дыра, через которую уходят конкретные возражения.</div>
   <div class="scroll"><table><thead><tr><th class="wrap">Материал</th><th>Статус</th><th class="num">Отправок</th>
     <th class="wrap">Когда давать</th><th class="wrap">Зачем</th></tr></thead><tbody>
   ${D.magnets.map(g=>`<tr>
@@ -636,9 +687,9 @@ document.addEventListener('click', e => {
   b.innerHTML = on ? '&#9662;' : '&#9656;';
 });
 
-// Сортировка по клику на заголовок. Решение Ивана от 2026-08-08, вопрос 5: разборы
-// выкатываются всем десяти сразу, но читать их скопом нельзя, нужен вход по одному
-// столбцу. Обработчик один на документ и переживает перерисовку вкладок.
+// Сортировка по клику на заголовок: разборы выкатываются всем сразу, но читать их
+// скопом нельзя, нужен вход по одному столбцу. Обработчик один на документ и
+// переживает перерисовку вкладок.
 document.addEventListener('click', e => {
   const th = e.target.closest('th');
   if (!th) return;

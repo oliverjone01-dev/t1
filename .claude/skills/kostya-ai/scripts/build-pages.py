@@ -6,15 +6,21 @@
 Совета от 2026-08-07, ТЗ knowledge/episodes/2026-08/tz-kostya-ai-final-assembly-20260807.md,
 раздел 3.
 
-Порядок блоков задан ТЗ, раздел 4, и менять его нельзя: он определяет, прочитают
-страницу или закроют. «Не ваша зона» стоит ВЫШЕ личных претензий.
+Порядок блоков определяет, прочитают страницу или закроют. Сверху идут цифры
+самого человека, под ними одна задача на 14 дней, под ней разбор его
+переговоров. «Не ваша зона» уехала в конец и свёрнута: она снимает претензию,
+но не отвечает на вопрос «что у меня», ради которого кабинет и открывают.
 
 Файлы попадают в .gitignore. Это НЕзашифрованные страницы: цитаты клиентской
 переписки лежат в них открытым текстом, а репозиторий публичный. Коммитится и
 публикуется только результат build-platform.mjs, где payload уже зашифрован.
 
 Запуск:
-  python3 build-pages.py analysis.json per_manager.json out_dir [kostya.json]
+  python3 build-pages.py analysis.json per_manager.json out_dir [kostya.json] [cases.json]
+                         [--fragment]
+
+cases.json готовит dialogs-cases.py. Без него секция «Разбор переговоров» не
+рендерится: цитаты берутся только из выгрузки переписки, из метрик их не собрать.
 """
 import json, sys, os, re, html, hashlib, statistics
 from collections import Counter
@@ -49,34 +55,9 @@ TRANSLIT = {
     'х':'h','ц':'c','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
 }
 
-# Третье поле это реплика из фразебука, готовая к отправке. ТЗ раздел 4, блок 8
-# требует «как надо было» именно репликой, а не советом: совет объясняет, реплика
-# переносится в переписку одним движением.
-DEFECT_FIX = {
-    "T03_ОБЕЩАНИЕ_БЕЗ_СРОКА": ("Обещание без срока",
-        "Назвать конкретную дату и время. «Отвечу сегодня до 18:00» вместо «вернусь».",
-        "Расчёт готовлю, отправлю завтра до 12:00. Если что-то сдвинется, напишу раньше срока, а не после."),
-    "T03_РАЗМЫТЫЙ_СРОК": ("Размытая формулировка",
-        "«В ближайшее время» заменить на дату. Клиент не должен угадывать, когда ждать.",
-        "По срокам конкретно: чертежи у вас в четверг до конца дня, спецификация в пятницу утром."),
-    "T01_БЕЗ_ПОЯСНЕНИЯ": ("Реплика без пояснения",
-        "Короткое сообщение без контекста читается как отписка. Одна строка «что это и что дальше».",
-        "Направляю чертёж на согласование. Посмотрите размеры и расположение петель, после вашего «ок» запускаем в работу."),
-    "T02_БЕЗ_ПРИВЕТСТВИЯ": ("Первое за день без приветствия",
-        "«Добрый день, Имя!» в первом сообщении дня. Две секунды, но клиент чувствует, что его помнят.",
-        "Добрый день, [Имя]! Возвращаюсь по вашему заказу."),
-    "T07_ОРФОГРАФИЯ": ("Небрежность в тексте",
-        "Лишний пробел перед запятой, слипание знака и буквы. Чинится проверкой правописания, не усилием воли.",
-        None),
-    "T04_ЖАРГОН": ("Жаргон в извинении",
-        "«Закрутился», «забылся» заменить на извинение и конкретное действие со сроком.",
-        "Прошу прощения, ответ задержался по моей вине. Сегодня до 17:00 пришлю расчёт."),
-    "T06_ЗАЩИТА": ("Защита вместо извинения",
-        "Сначала извинение, потом короткое пояснение, потом действие с датой. Никаких «вы не указали».",
-        "Мне очень жаль, что так вышло. Приношу извинения. Разберусь с производством и вернусь к вам сегодня до 17:00 с решением."),
-}
-# Дефекты, которые НЕ идут в персональную задачу: чинятся инструментом, а не обучением.
-NOT_PERSONAL = {"T07_ОРФОГРАФИЯ"}
+# Реплики «как надо было» переехали в dialogs-cases.py: там они лежат рядом с
+# детектором, который их вызывает, и берутся из references/phrasebook.md. Две
+# копии одной библиотеки расходятся молча, поэтому вторая здесь не держится.
 
 SYSTEMIC = [
     "Поля «Дата решения клиента» и «Дата следующего контакта» в Bitrix24 не созданы. "
@@ -240,7 +221,9 @@ def reglament_tone(kind, value):
 def cut(text, limit=230):
     """Резать по границе слова. Обрыв посреди слова читается как баг выгрузки и
     заставляет человека искать в своей фразе дефект, которого в куске нет."""
-    t = (text or "").strip()
+    # Длинное тире меняется на дефис и в цитате: правило типографики действует на
+    # всю страницу, а смысл реплики от знака не зависит.
+    t = (text or "").strip().replace("—", "-").replace("–", "-")
     if len(t) <= limit:
         return t
     head = t[:limit]
@@ -302,6 +285,92 @@ def pick_task(m, kk):
     return "promise", round((m.get("concreteTimeShare") or 0) * 100), "% обещаний со сроком"
 
 
+def plural(n, one, few, many):
+    """Русское склонение числительного. «12 случаев», а не «12 случая»."""
+    n = abs(int(n))
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return few
+    return many
+
+
+def case_card(c, mgr, built_dt):
+    """Одна карточка переговоров: реплика клиента, ответ менеджера, вердикт, замена.
+
+    Порядок жёсткий: сначала факт (что было сказано), потом оценка. Обратный
+    порядок читается как приговор, и человек перестаёт читать на второй карточке.
+    """
+    bad = c["verdict"] == "defect"
+    L = []
+    a = L.append
+    a(f'<div class="card case {"bad" if bad else "good"}">')
+    a(f'<div class="small">Сделка <a href="{PORTAL.format(c["deal"])}" target="_blank">'
+      f'{esc(c["deal"])}</a> · {esc(c.get("when") or "")}'
+      f'{" · " + esc(c["stage"]) if c.get("stage") else ""} '
+      f'<span class="tag {"bad" if bad else "ok"}">{esc(c["title"])}</span>'
+      f'{" " + dispute_btn(c["deal"], c["title"], mgr, built_dt) if bad else ""}</div>')
+    if c.get("client"):
+        a(f'<div class="q"><div class="who">Клиент написал</div>{esc(c["client"])}</div>')
+    if c.get("manager"):
+        a(f'<div class="q {"was" if bad else "now"}"><div class="who">Вы ответили</div>'
+          f'{esc(c["manager"])}</div>')
+    if bad:
+        a(f'<div class="q now" data-copy><div class="who">Как надо было</div>{esc(c["should"])}</div>')
+    else:
+        a(f'<div class="small">{esc(c["should"])}</div>')
+    a('</div>')
+    return "\n".join(L)
+
+
+def talks_block(cs, mgr, built_dt):
+    """Секция «Разбор переговоров»: сводка уровнем выше, под ней кейсы.
+
+    Сводка стоит первой сознательно. Пятнадцать карточек подряд человек читает
+    как поток претензий и не собирает из них картину, а число случаев по всей
+    переписке он видит один раз и запоминает.
+    """
+    if not cs or not cs.get("cases"):
+        return ""
+    s = cs.get("summary") or {}
+    L = []
+    a = L.append
+    a('<div class="anch" id="talks"></div><h2>' + ic("message") + 'Разбор переговоров</h2>')
+    a('<div class="sumbox"><div style="font-size:17px;font-weight:600">Главное по вашим переговорам</div>')
+    a('<div class="small" style="margin-top:6px">Счёт идёт по всей вашей переписке за период, '
+      'а не по карточкам ниже. Карточки это примеры, по одному на тип.</div>')
+    if s.get("top_defects"):
+        a('<div class="sumgrid bad">')
+        for d in s["top_defects"]:
+            a(f'<div><div class="n">{esc(d["n"])}</div><div class="l">{esc(d["title"])}, '
+              f'{plural(d["n"], "случай", "случая", "случаев")}</div></div>')
+        a('</div>')
+    if s.get("strengths"):
+        a('<div class="sumgrid good">')
+        for g in s["strengths"]:
+            a(f'<div><div class="n">{esc(g["n"])}</div><div class="l">{esc(g["title"])}, '
+              f'{plural(g["n"], "раз", "раза", "раз")}</div></div>')
+        a('</div>')
+    a('</div>')
+    defects = [c for c in cs["cases"] if c["verdict"] == "defect"]
+    strong = [c for c in cs["cases"] if c["verdict"] == "strong"]
+    if defects:
+        a(f'<h3>Что чинить: {len(defects)} {plural(len(defects), "случай", "случая", "случаев")} '
+          f'из вашей переписки</h3>')
+        for c in defects:
+            a(case_card(c, mgr, built_dt))
+    if strong:
+        a(f'<h3>Что уже получается: {len(strong)} '
+          f'{plural(len(strong), "случай", "случая", "случаев")}, повторять</h3>')
+        for c in strong:
+            a(case_card(c, mgr, built_dt))
+    a('<div class="small">Кейсы отобраны скриптом по каталогу дефектов: по одному на тип, '
+      'сначала сделки с большей суммой. Цитаты сокращены до 200 знаков, телефоны и почта '
+      'вычищены, фамилии сокращены до имени. Не согласны с разбором конкретной реплики: '
+      'кнопка «не согласен» в строке кейса.</div>')
+    return "\n".join(L)
+
+
 # ВНИМАНИЕ: второго блока <style> быть не может. Сборщик кабинета берёт из файла
 # ровно первый блок (build-platform.mjs, склейка payload), второй теряется молча,
 # и сборка при этом не падает. Поэтому @media print живёт здесь же.
@@ -327,6 +396,22 @@ p,.note{max-width:66ch}
 .card.sys{border-color:var(--acc2);background:var(--panel2)}
 .card.task{border-color:var(--acc);border-width:2px}
 .card.win{border-color:#1c5a45}
+/* Якорь секции живёт на отдельном элементе, а не на h2: оболочка академии
+   пересобирает заголовки и снимает с них атрибуты, и ссылки навигации кабинета
+   молча переставали работать внутри неё. */
+.anch{position:relative;top:-56px;height:0;overflow:hidden}
+/* Кейс переговоров. Цвет несёт вердикт, но не остаётся единственным его носителем:
+   рядом стоит текстовый ярлык, иначе при дальтонизме карточка теряет смысл. */
+.card.case{border-left-width:4px}
+.card.case.bad{border-left-color:var(--bad)}
+.card.case.good{border-left-color:var(--ok);border-color:#1c5a45}
+.who{font-size:12px;color:var(--mut);margin-bottom:3px;letter-spacing:.02em}
+.sumbox{background:var(--panel2);border:1px solid var(--acc2);border-radius:12px;padding:16px;margin:10px 0}
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+.sumgrid>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.sumgrid .n{font-size:28px;font-weight:600;line-height:1.15}
+.sumgrid.bad .n{color:var(--bad)}
+.sumgrid.good>div{border-color:#1c5a45}.sumgrid.good .n{color:var(--ok)}
 .card .note,.card ul.note li{color:var(--note);font-size:14px;max-width:66ch}
 .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .kpi>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
@@ -381,13 +466,12 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:v
 """
 
 
-def render(m, pm, kk, meta, period, D, prev):
+def render(m, pm, kk, meta, period, D, prev, cs=None):
     """Одна персональная страница.
 
-    Порядок блоков: ТЗ раздел 4 блокирует ровно одно, положение «Не ваша зона»
-    выше личных претензий и на первом экране. Позиция задачи ТЗ не фиксирует,
-    поэтому она поднята на третью: единственный объект, ради которого файл
-    существует, лежал на 28% глубины прокрутки.
+    Порядок блоков: сначала собственные цифры человека, потом одна задача на
+    14 дней, потом разбор его переговоров. Раздел «Не ваша зона» уехал в конец
+    и свёрнут: он снимает претензию, но не отвечает на вопрос «что у меня».
     """
     r = m.get("reply") or {}
     built = (meta.get("generated_at") or datetime.now().isoformat())[:19]
@@ -409,16 +493,7 @@ def render(m, pm, kk, meta, period, D, prev):
     a(f'<h1>{esc(m["mgr"])}</h1>')
     a(f'<div class="sub">Разбор переписки за {esc(period["from"])} - {esc(period["to"])}. '
       f'Собрано {esc(built.replace("T", " ")[:16])}.</div>')
-    a('<div class="card sys" style="margin-top:12px"><b>Это основа плана развития, а не итоговая оценка сотрудника.</b>'
-      '<div class="note" style="margin-top:6px">Формулировка Кости из разборов июня 2026. '
-      'Разбор построен на переписке в CRM. Он не видит звонков и не измеряет вашу выручку.</div>')
-    signed = datetime.fromisoformat(CONTRACT["signedAt"]).strftime("%d.%m.%Y")
-    a(f'<div class="note" style="margin-top:10px"><b>Подписано {esc(CONTRACT["signedBy"])} '
-      f'{esc(signed)}:</b><ul class="note">')
-    for g in CONTRACT["guarantees"]:
-        a(f'<li>{esc(g)}</li>')
-    a('</ul></div>')
-    a(f'<div class="note" style="margin-top:8px">Ваша задача на 14 дней: <b>{esc(title)}</b>. '
+    a(f'<div class="note" style="margin-top:10px">Ваша задача на 14 дней: <b>{esc(title)}</b>. '
       f'<a href="#task">Перейти к ней</a></div>')
     if p:
         was = (p.get("builtAt") or "")[:10]
@@ -429,20 +504,44 @@ def render(m, pm, kk, meta, period, D, prev):
         a('<div class="small" style="margin-top:8px">Это первый разбор. '
           'Точки сравнения появятся в следующем, через две недели.</div>')
     a('</header>')
-    a('<nav class="toc"><a href="#sys">' + ic("ne-vasha-zona") + 'Не моё</a><a href="#task">' + ic("check") + 'Моя задача</a>'
-      '<a href="#money">' + ic("money") + 'Деньги</a><a href="#win">' + ic("check") + 'Получилось</a><a href="#norm">' + ic("normativy") + 'Нормативы</a>'
-      '<a href="#qual">' + ic("kvalifikaciya") + 'Квалификация</a><a href="#talk">' + ic("message") + 'Разбор реплик</a><a href="#deals">' + ic("deal") + 'Сделки</a></nav>')
+    a('<nav class="toc"><a href="#norm">' + ic("normativy") + 'Мои цифры</a><a href="#task">' + ic("check") + 'Моя задача</a>'
+      '<a href="#talks">' + ic("message") + 'Разбор переговоров</a>'
+      '<a href="#money">' + ic("money") + 'Деньги</a><a href="#win">' + ic("check") + 'Получилось</a>'
+      '<a href="#qual">' + ic("kvalifikaciya") + 'Квалификация</a><a href="#deals">' + ic("deal") + 'Сделки</a>'
+      '<a href="#sys">' + ic("ne-vasha-zona") + 'Не моя зона</a></nav>')
 
-    # 2. Не ваша зона (ВЫШЕ личных претензий, блокирующее требование ТЗ)
-    a('<h2 id="sys">' + ic("ne-vasha-zona") + 'Не ваша зона</h2>')
-    a('<div class="card sys"><div class="note" style="margin-bottom:8px">Это чинит РОП и интегратор Bitrix24. '
-      'Показываем сначала, чтобы вы видели, что вам не вменяют чужое.</div><ul class="note">')
-    for s in SYSTEMIC:
-        a(f'<li>{esc(s)}</li>')
-    a('</ul></div>')
+    # 2. Дашборд собственных цифр. Стоит первым: человек открывает кабинет ради
+    # своих чисел, и раздел про чужую зону ответственности на первом экране
+    # отодвигал их вниз.
+    a('<div class="anch" id="norm"></div><h2>' + ic("normativy") + 'Три норматива, ваши цифры и динамика</h2><div class="kpi">')
+    a(f'<div><div class="v"{reglament_tone("reply", r.get("p90Min"))}>{mins(r.get("p90Min"))}</div>'
+      f'<div class="l">p90 ответа. Норматив отдела: ни один клиент не ждёт дольше 4 рабочих часов '
+      f'<span class="tag acc">РЕГЛАМЕНТ</span></div>{delta(p, "p90Min", r.get("p90Min"), mins, lower_better=True)}</div>')
+    a(f'<div><div class="v"{reglament_tone("unanswered", m["unansweredCount"])}>{m["unansweredCount"]}</div>'
+      f'<div class="l">диалогов оборвано на клиенте. Норматив: ноль '
+      f'<span class="tag acc">РЕГЛАМЕНТ</span></div>'
+      f'{delta(p, "unanswered", m["unansweredCount"], str, lower_better=True)}</div>')
+    cts = m.get("concreteTimeShare")
+    a(f'<div><div class="v">{"нет данных" if cts is None else f"{cts*100:.0f}%"}</div>'
+      f'<div class="l">обещаний с конкретным сроком, по отделу {D["concreteShare"]*100:.0f}%. '
+      f'Порог не откалиброван <span class="tag warn">ГИПОТЕЗА</span></div>'
+      f'{delta(p, "concrete", None if cts is None else round(cts*100), lambda v: f"{v}%")}</div>')
+    a('</div>')
+    a(f'<div class="small">Медиана вашего ответа {mins(r.get("medianMin"))}, по отделу '
+      f'{mins(D["medianMin"])}. Медиана не красится цветом: норматива на неё не назначено, '
+      f'а хвост важнее середины.</div>')
+    idx, band = band_of(m)
+    a('<div class="card"><b>Ваш индекс качества коммуникации: </b>'
+      + (f'<b>{idx}</b> из 10, полоса «{esc(band)}».' if idx is not None
+         else f'не считается, полоса «{esc(band)}».')
+      + '<div class="small" style="margin-top:6px">Индекс и полосу видите вы и РОП. '
+        'На общем экране отдела показывается только движение, без ранжирования людей: '
+        'при выборке в полтора десятка сделок доверительный интервал шире двух баллов, '
+        'и разница в десятых между людьми ничего не значит. '
+        '<span class="tag warn">ГИПОТЕЗА</span></div></div>')
 
     # 3. Одна задача на 14 дней
-    a('<h2 id="task">' + ic("check") + 'Моя задача на 14 дней</h2>')
+    a('<div class="anch" id="task"></div><h2>' + ic("check") + 'Моя задача на 14 дней</h2>')
     a(f'<div class="card task"><div style="font-size:18px;font-weight:600">{esc(title)}</div>')
     a(f'<h3>Когда срабатывает</h3><div>{esc(trigger)}</div>')
     a('<h3>Что я делаю</h3><ul>')
@@ -476,7 +575,13 @@ def render(m, pm, kk, meta, period, D, prev):
       'толковали задним числом.</div>')
     a('</div>')
 
-    # 4. Деньги на столе
+    # 4. Разбор переговоров. Пустая строка, если cases.json не передан: сочинять
+    # кейсы из метрик нельзя, а секция без цитат не нужна.
+    talks = talks_block(cs, m["mgr"], built_dt)
+    if talks:
+        a(talks)
+
+    # 5. Деньги на столе
     deals = pm.get("deals", [])
     CLOSED = {"Сделка провалена", "Сделка успешна"}
     flagged = [d for d in deals if d.get("unanswered") or (d.get("maxReply") or 0) > 480]
@@ -484,7 +589,7 @@ def render(m, pm, kk, meta, period, D, prev):
                    key=lambda d: -d["amount"])[:8]
     closed = sorted([d for d in flagged if d.get("stage") in CLOSED],
                     key=lambda d: -d["amount"])
-    a('<h2 id="money">' + ic("money") + 'Деньги на столе</h2>')
+    a('<div class="anch" id="money"></div><h2>' + ic("money") + 'Деньги на столе</h2>')
     if risky:
         a(f'<div class="small">Открытых сделок с оборванным диалогом или очень долгим ответом: '
           f'{len(risky)} на {money(sum(d["amount"] for d in risky))}. Их ещё можно вернуть.</div>')
@@ -527,7 +632,7 @@ def render(m, pm, kk, meta, period, D, prev):
         a('</tbody></table></div></details>')
 
     # 5. Что получилось
-    a('<h2 id="win">' + ic("check") + 'Что получилось</h2>')
+    a('<div class="anch" id="win"></div><h2>' + ic("check") + 'Что получилось</h2>')
     wins = pm.get("wins", [])
     good = []
     if r.get("medianMin") is not None and D["medianMin"] and r["medianMin"] <= D["medianMin"]:
@@ -565,39 +670,9 @@ def render(m, pm, kk, meta, period, D, prev):
 
     a('</div>')
 
-    # 6. Нормативы с личной динамикой (ТЗ раздел 4, блок 6)
-    a('<h2 id="norm">' + ic("normativy") + 'Три норматива, ваши цифры и динамика</h2><div class="kpi">')
-    a(f'<div><div class="v"{reglament_tone("reply", r.get("p90Min"))}>{mins(r.get("p90Min"))}</div>'
-      f'<div class="l">p90 ответа. Норматив отдела: ни один клиент не ждёт дольше 4 рабочих часов '
-      f'<span class="tag acc">РЕГЛАМЕНТ</span></div>{delta(p, "p90Min", r.get("p90Min"), mins, lower_better=True)}</div>')
-    a(f'<div><div class="v"{reglament_tone("unanswered", m["unansweredCount"])}>{m["unansweredCount"]}</div>'
-      f'<div class="l">диалогов оборвано на клиенте. Норматив: ноль '
-      f'<span class="tag acc">РЕГЛАМЕНТ</span></div>'
-      f'{delta(p, "unanswered", m["unansweredCount"], str, lower_better=True)}</div>')
-    cts = m.get("concreteTimeShare")
-    a(f'<div><div class="v">{"нет данных" if cts is None else f"{cts*100:.0f}%"}</div>'
-      f'<div class="l">обещаний с конкретным сроком, по отделу {D["concreteShare"]*100:.0f}%. '
-      f'Порог не откалиброван <span class="tag warn">ГИПОТЕЗА</span></div>'
-      f'{delta(p, "concrete", None if cts is None else round(cts*100), lambda v: f"{v}%")}</div>')
-    a('</div>')
-    a(f'<div class="small">Медиана вашего ответа {mins(r.get("medianMin"))}, по отделу '
-      f'{mins(D["medianMin"])}. Медиана не красится цветом: норматива на неё не назначено, '
-      f'а хвост важнее середины.</div>')
-
-    # 6-бис. Индекс и полоса, видимые самому человеку (решение Ивана, вопрос 12)
-    idx, band = band_of(m)
-    a('<div class="card"><b>Ваш индекс качества коммуникации: </b>'
-      + (f'<b>{idx}</b> из 10, полоса «{esc(band)}».' if idx is not None
-         else f'не считается, полоса «{esc(band)}».')
-      + '<div class="small" style="margin-top:6px">Индекс и полосу видите вы и РОП. '
-        'На общем экране отдела показывается только движение, без ранжирования людей: '
-        'при выборке в полтора десятка сделок доверительный интервал шире двух баллов, '
-        'и разница в десятых между людьми ничего не значит. '
-        '<span class="tag warn">ГИПОТЕЗА</span></div></div>')
-
     # 7. Квалификация
     od = m.get("outDet") or {}
-    a('<h2 id="qual">' + ic("kvalifikaciya") + 'Квалификация клиента</h2>')
+    a('<div class="anch" id="qual"></div><h2>' + ic("kvalifikaciya") + 'Квалификация клиента</h2>')
     a('<div class="kpi">')
     for code, label in [("Q_БЮДЖЕТ", "спросили про бюджет"), ("Q_СРОК", "спросили про срок"),
                         ("Q_ЛПР", "спросили, кто решает")]:
@@ -615,39 +690,9 @@ def render(m, pm, kk, meta, period, D, prev):
     a('<div class="q now" data-copy><b>Про ЛПР:</b> Когда планируете выносить спецификацию заказчику? '
       'Подготовлю материалы сразу в виде, удобном для показа.</div></div>')
 
-    # 8. Разбор двух диалогов
-    inst = [i for i in pm.get("instances", []) if i["code"] not in NOT_PERSONAL]
-    a('<h2 id="talk">' + ic("message") + 'Разбор двух реплик</h2>')
-    if inst:
-        seen_code, shown = set(), 0
-        for i in inst:
-            if i["code"] in seen_code:
-                continue
-            seen_code.add(i["code"])
-            nm, fix, ready = DEFECT_FIX.get(i["code"], (i["code"], "", None))
-            a(f'<div class="card"><div class="small">Сделка '
-              f'<a href="{PORTAL.format(i["deal"])}" target="_blank">{esc(i["deal"])}</a>'
-              f'{" · " + money(i["amount"]) if i.get("amount") else ""} · {esc(i["at"][:10])} · {esc(nm)} '
-              f'{dispute_btn(i["deal"], nm, m["mgr"], built_dt)}</div>')
-            a(f'<div class="q was"><b>Что я написал</b><br>{esc(cut(i["text"]))}</div>')
-            if ready:
-                a(f'<div class="q now" data-copy><b>Как надо было</b><br>{esc(ready)}</div>')
-                a(f'<div class="small">{esc(fix)}</div>')
-            else:
-                a(f'<div class="q now"><b>Как надо было</b><br>{esc(fix)}</div>')
-            a('</div>')
-            shown += 1
-            if shown == 2:
-                break
-        if shown == 1:
-            a('<div class="small">Второй повторяющийся дефект другого типа не найден. '
-              'Один честный разбор лучше двух, из которых второй натянут.</div>')
-    else:
-        a('<div class="card">Повторяющихся дефектов в тексте не найдено.</div>')
-
     # 9. Таблица сделок. Свёрнута: это справочник и мост в Bitrix для возражения,
     # а не то, что читают подряд. ТЗ раздел 4, блок 9 требует фильтр.
-    a('<h2 id="deals">' + ic("deal") + 'Все сделки в переписке</h2>')
+    a('<div class="anch" id="deals"></div><h2>' + ic("deal") + 'Все сделки в переписке</h2>')
     a(f'<details><summary>Показать таблицу: {len(deals)} сделок на '
       f'{money(sum(d.get("amount") or 0 for d in deals))}</summary>')
     a('<div class="small">Нужна, чтобы возразить по конкретному номеру: право оспорить флаг '
@@ -683,10 +728,20 @@ def render(m, pm, kk, meta, period, D, prev):
         a('<div class="small">Индекс дисциплины считается по чистоте ведения CRM, а не по выручке. '
           'Пороги пока не откалиброваны и помечены как гипотеза.</div>')
 
+    # 11. Не ваша зона. Стоит в конце и свёрнута в одну строку: раздел нужен как
+    # опора при разборе с РОПом, а не как первое, что человек читает про себя.
+    a('<div class="anch" id="sys"></div><h2>' + ic("ne-vasha-zona") + 'Не ваша зона</h2>')
+    a(f'<details><summary>{len(SYSTEMIC)} '
+      f'{plural(len(SYSTEMIC), "дефект", "дефекта", "дефектов")} чинит РОП и интегратор '
+      f'Bitrix24, вам они не вменяются</summary><ul class="note">')
+    for s in SYSTEMIC:
+        a(f'<li>{esc(s)}</li>')
+    a('</ul></details>')
+
     due = workdays_after(built_dt, CONTRACT["dispute"]["slaWorkdays"])
     a(f'<footer>Kostya-AI. Разбор построен на выгрузке переписки Bitrix24 воронки C49 и снимке сделок. '
-      f'Не измеряет звонки и не измеряет продажи. Выдача кабинетов требует апрува Ивана: '
-      f'оценкой сотрудника этот файл не является и в кадровом решении не участвует.<br>'
+      f'Не измеряет звонки и не измеряет продажи. Оценкой сотрудника этот файл не является '
+      f'и в кадровом решении не участвует: результаты не влияют на премию.<br>'
       f'Несогласие с флагом: кнопка «не согласен» в строке, адресат {esc(CONTRACT["dispute"]["owner"])}. '
       f'{esc(CONTRACT["dispute"]["rule"])} По этому разбору срок ответа до '
       f'{esc(due.strftime("%d.%m.%Y"))} включительно.<br>'
@@ -791,11 +846,16 @@ def snapshot_of(m):
 FRAGMENT = "--fragment" in sys.argv
 
 
-def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
+def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=None):
     A = json.load(open(analysis_path, encoding="utf-8"))
     PM = json.load(open(per_manager_path, encoding="utf-8"))["managers"]
     K = json.load(open(kostya_path, encoding="utf-8")) if kostya_path else None
     kk_by_key = {name_key(x["mgr"]): x for x in K["managers"]} if K else {}
+    # Кейсы переговоров необязательны: выгрузка диалогов ручная и приходит реже,
+    # чем снимок сделок. Без файла секция «Разбор переговоров» не рендерится, а
+    # не наполняется заглушками.
+    CS = json.load(open(cases_path, encoding="utf-8"))["managers"] if cases_path else {}
+    cs_by_key = {name_key(k): v for k, v in CS.items()}
 
     os.makedirs(out_dir, exist_ok=True)
     period = A["meta"]["period"]
@@ -827,7 +887,7 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
             prev = (prev_all.get("managers") or {}).get(name_key(m["mgr"]))
             if prev:
                 prev = dict(prev, builtAt=prev_all.get("builtAt"))
-        page = render(m, pm, kk, A["meta"], period, D, prev)
+        page = render(m, pm, kk, A["meta"], period, D, prev, cs_by_key.get(name_key(m["mgr"])))
         if FRAGMENT:
             # Кабинет уезжает разделом внутрь академии, поэтому отдаём не документ,
             # а его содержимое: своя обёртка .cab и свой каркас там лишние, их даёт
@@ -842,9 +902,11 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
             path = os.path.join(out_dir, f"{sl}.html")
             open(path, "w", encoding="utf-8").write(page)
         snap["managers"][name_key(m["mgr"])] = snapshot_of(m)
+        ncase = len((cs_by_key.get(name_key(m["mgr"])) or {}).get("cases") or [])
         made.append({"mgr": m["mgr"], "slug": sl, "file": os.path.basename(path),
-                     "deals": m["deals"], "joined": kk is not None})
-        print(f"  {m['mgr']:22} -> {sl}.html   (слой A {'сведён' if kk else 'НЕ сведён'})")
+                     "deals": m["deals"], "joined": kk is not None, "cases": ncase})
+        print(f"  {m['mgr']:22} -> {sl}.html   (слой A {'сведён' if kk else 'НЕ сведён'}, "
+              f"кейсов переговоров {ncase})")
 
     if FRAGMENT:
         open(os.path.join(out_dir, "cab.css"), "w", encoding="utf-8").write(CSS)
@@ -883,4 +945,10 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:5])
+    # Флаги отсеиваются по месту, а не по позиции: --fragment ставят и в середину
+    # строки, и тогда срез argv[1:5] съедал бы его как путь к kostya.json.
+    ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(ARGS) < 3:
+        sys.exit("нужно: build-pages.py analysis.json per_manager.json out_dir "
+                 "[kostya.json] [cases.json] [--fragment]")
+    main(*ARGS[:5])

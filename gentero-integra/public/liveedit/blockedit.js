@@ -223,18 +223,31 @@
   function aad(id) { return DOCKEY + '|' + id; }
 
   var SEEN = 'liveedit:seen:' + DOCKEY;
-  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false };
+  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false, legacy: 0 };
+  var legacyIds = [];      // патчи, записанные до привязки шифра к слоту
 
   function load() {
     var w = health.write || 0;
-    health = { ok: false, err: null, rows: 0, bad: 0, write: w, cut: false, late: false };
+    health = { ok: false, err: null, rows: 0, bad: 0, write: w, cut: false, late: false, legacy: 0 };
+    legacyIds = [];
     return store.list().then(function (rows) {
       health.rows = rows.length;
       if (rows.truncated) health.cut = rows.truncated;
       return Promise.all(rows.map(function (r) {
         return crypt.decrypt(r.payload, aad(r.block_id))
           .then(function (html) { patches[r.block_id] = html; })
-          .catch(function () { health.bad++; });   // не наш ключ или подменённый слот
+          .catch(function () {
+            // Патчи, записанные до появления AAD, открываются без неё. Терять
+            // из-за смены формата уже сохранённый текст нельзя, поэтому
+            // читаем по-старому и помечаем строку на перезапись.
+            return crypt.decrypt(r.payload)
+              .then(function (html) {
+                patches[r.block_id] = html;
+                legacyIds.push(r.block_id);
+                health.legacy++;
+              })
+              .catch(function () { health.bad++; });   // не наш ключ или подменённый слот
+          });
       }));
     }).then(function () {
       loaded = true;
@@ -253,6 +266,7 @@
       apply();
       paint();
       report();
+      migrate();
     }).catch(function (e) {
       // Молчаливая деградация на цифрах сделки недопустима: показываем плашку,
       // а не console.warn, который на показе никто не увидит.
@@ -261,6 +275,25 @@
       health.err = e.message || 'нет связи с хранилищем';
       paint();
       report();
+    });
+  }
+
+  // Перезапись патчей старого формата. Требует прав, поэтому запускается
+  // после загрузки и повторно после входа редактора.
+  function migrate() {
+    if (!legacyIds.length || !unlocked) return Promise.resolve();
+    var ids = legacyIds.slice();
+    return Promise.all(ids.map(function (id) {
+      return crypt.encrypt(patches[id], aad(id))
+        .then(function (p) { return store.put(id, p, author()); })
+        .then(function () { return true; }, function () { return false; });
+    })).then(function (res) {
+      var ok = res.filter(Boolean).length;
+      if (!ok) return;
+      legacyIds = legacyIds.filter(function (id) { return ids.indexOf(id) < 0; });
+      health.legacy = Math.max(0, health.legacy - ok);
+      report();
+      flash('правок переведено в новый формат: ' + ok);
     });
   }
 
@@ -309,6 +342,8 @@
   function report() {
     var o = orphans().length;
     var bad = [];
+    if (UI && health.legacy) bad.push('правок в старом формате: ' + health.legacy +
+      '. Текст на экране верный, войдите как редактор, и они перезапишутся сами');
     if (health.late) bad.push('правки пришли слишком поздно и НЕ наложены. Обновите страницу');
     if (health.cut) bad.push('правок в базе больше, чем загружено: показаны первые ' + health.cut);
     if (health.write) bad.push('правок не сохранилось на сервер: ' + health.write + '. На экране они есть, в базе нет');
@@ -477,6 +512,7 @@
       if (!ok) return;
       unlocked = true;
       if (window.VERSIONS_PAINTAUTH) window.VERSIONS_PAINTAUTH();  // панель версий тоже разблокируется
+      migrate();
       toggle();
     });
   }

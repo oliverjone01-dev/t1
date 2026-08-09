@@ -40,7 +40,7 @@
   var touched = 0;
   var previewing = null;    // id версии в режиме просмотра
   var liveState = null;     // состояние до входа в просмотр
-  var offset = 0, more = false, hidden = 0;
+  var offset = 0, more = false, hidden = 0, legacy = 0;
   var panel, list, banner, btn;
 
   function author() {
@@ -91,11 +91,17 @@
       return Promise.all(raw.map(function (r) {
         return crypt.decrypt(r.snapshot, DOCKEY + '|version')
           .then(function (j) { r.state = JSON.parse(j); return r; })
-          .catch(function () { r.state = null; return r; });     // не наш ключ или чужая строка
+          // снимки, снятые до привязки шифра к слоту, открываются без неё
+          .catch(function () {
+            return crypt.decrypt(r.snapshot)
+              .then(function (j) { r.state = JSON.parse(j); r.legacy = true; return r; })
+              .catch(function () { r.state = null; return r; });  // не наш ключ или чужая строка
+          });
       }));
     }).then(function (out) {
       var good = out.filter(function (r) { return r.state; });
       hidden += out.length - good.length;
+      legacy = good.filter(function (r) { return r.legacy; }).length;
       rows = append ? rows.concat(good) : good;
       render();
       return rows;
@@ -313,6 +319,7 @@
         '</div><div class="ver-d" id="ver-d-' + esc(r.id) + '" hidden></div></li>';
     }).join('') + '</ul>' +
       (hidden ? '<p class="ver-empty">Строк, не открывшихся этим ключом: ' + hidden + '.</p>' : '') +
+      (legacy ? '<p class="ver-empty">Снимков в старом формате: ' + legacy + '. Читаются и откатываются как обычно.</p>' : '') +
       (more ? '<button type="button" class="ver-mini" data-a="more">Показать более старые</button>' : '');
     if (keep) {
       var f = list.querySelector('[data-id="' + keep[0] + '"] [data-a="' + keep[1] + '"]');

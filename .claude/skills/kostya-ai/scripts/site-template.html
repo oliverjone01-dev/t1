@@ -14,10 +14,11 @@
 body{margin:0;background:var(--bg);color:var(--tx);
   font:var(--fs,15.5px)/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline}
-header{padding:22px 24px 0;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0a1c27,#06121a)}
-h1{margin:0 0 4px;font-size:21px;letter-spacing:.2px}
+header{padding:var(--s5,22px) var(--s4,24px) 0;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#0a1c27,#06121a)}
+h1{margin:0 0 4px;font-size:calc(var(--fs,15.5px) + 6px);letter-spacing:.2px}
 h1 span{color:var(--acc)}
-.sub{color:var(--mut);font-size:13px;margin-bottom:16px}
+.sub{color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);margin-bottom:var(--s4,16px)}
 nav{display:flex;gap:2px;flex-wrap:wrap}
 nav button{background:transparent;border:0;border-bottom:2px solid transparent;color:var(--mut);
   padding:11px 18px;font-size:calc(var(--fs,15.5px) - 1px);cursor:pointer;font-family:inherit}
@@ -28,51 +29,145 @@ nav button{display:inline-flex;align-items:center;gap:7px}
 .ic{width:1.15em;height:1.15em;flex:none;vertical-align:-.18em}
 h2{display:flex;align-items:center;gap:10px}
 h2 .ic{color:var(--acc)}
-main{padding:22px 24px 60px;max-width:1440px;margin:0 auto}
+/* Внутри академии заголовок уезжает в липкую шапку полосы, и собственные
+   вертикальные поля сводки её раздувают. Снаружи селектор не совпадает ни с чем. */
+.band-head h2{margin:0}
+main{padding:0 var(--s4,24px) var(--s6,60px);max-width:1560px;margin:0 auto}
 .tabpanel{display:none}.tabpanel.on{display:block}
 h2{font-size:calc(var(--fs,15.5px) + 4px);margin:var(--s6,34px) 0 var(--s3,12px);font-weight:650}
 h2:first-child{margin-top:0}
 h3{font-size:calc(var(--fs,15.5px) + 1px);margin:var(--s5,22px) 0 var(--s2,8px)}
-p{margin:8px 0}
-.grid{display:grid;gap:12px}
-.k4{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
-.k3{grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:var(--s4,15px) var(--s5,18px)}
-.kpi .v{font-size:calc(var(--fs,15.5px) + 12px);font-weight:650;line-height:1.15}
-.kpi .l{color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);margin-top:4px}
-.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;border:1px solid var(--line2);color:var(--mut)}
+p{margin:var(--s2,8px) 0}
+.grid{display:grid;gap:var(--s4,16px)}
+.k4{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.k3{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:var(--s4,16px) var(--s5,20px);margin:0}
+
+/* ── полосы вместо квадратов ───────────────────────────────────────────
+   Ряд «подпись слева, число справа» читается сверху вниз одним движением
+   глаза. Сетка плиток заставляет прыгать зигзагом, а на первом экране РОПа
+   нужен ровно один проход. Разметка совпадает с .strip дизайн-системы
+   академии, поэтому в обоих режимах геометрия одна. */
+.strips{border:1px solid var(--line);border-radius:10px;overflow:hidden;
+  background:var(--panel);margin:0 0 var(--s4,16px)}
+.strip{display:flex;align-items:baseline;gap:var(--s4,16px);
+  padding:var(--s3,13px) var(--s5,20px);border-bottom:1px solid var(--line)}
+.strip:last-child{border-bottom:0}
+.strip .l{flex:1 1 260px;min-width:0}
+.strip .l b{display:block;font-weight:600;font-size:var(--fs,15.5px);line-height:1.35}
+.strip .l span{display:block;color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);
+  line-height:1.5;margin-top:3px}
+/* Числа стоят колонкой по правому краю, метка справа держит свою ширину:
+   иначе длинная метка сдвигает соседнее число и столбец перестаёт читаться
+   одним движением глаза. */
+.strip .v{flex:none;min-width:170px;text-align:right;
+  font-size:calc(var(--fs,15.5px) + 10px);font-weight:650;
+  font-variant-numeric:tabular-nums;line-height:1.15;letter-spacing:-.01em}
+.strip .st{flex:none;min-width:190px;text-align:right}
+.strips.big .strip{padding-top:var(--s4,16px);padding-bottom:var(--s4,16px)}
+.strips.big .v{font-size:calc(var(--fs,15.5px) + 15px);min-width:250px}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:calc(var(--fs,15.5px) - 3px);line-height:1.45;border:1px solid var(--line2);
+  color:var(--mut);white-space:nowrap}
 .tag.ok{color:var(--ok);border-color:#1c5a45} .tag.bad{color:var(--bad);border-color:#5c2320}
 .tag.warn{color:var(--warn);border-color:#5e4415} .tag.acc{color:var(--acc);border-color:var(--acc2)}
 table{width:100%;border-collapse:collapse;font-size:calc(var(--fs,15.5px) - 2px)}
 .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
-th,td{padding:var(--s3,11px) var(--s4,14px);text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--mut);font-weight:500;font-size:12px;position:sticky;top:0;background:var(--panel2)}
+/* Таблицы сводки показываются целиком: внутренняя прокрутка на десяти строках
+   прячет двух последних менеджеров, а именно они внизу ростера. Липкая шапка
+   при этом не нужна и выключается, иначе она уезжает поверх шапки полосы. */
+.scroll.full{max-height:none}
+.scroll.full th{position:static}
+th,td{padding:var(--s3,12px) var(--s4,16px);text-align:left;border-bottom:1px solid var(--line);
+  white-space:nowrap;vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:calc(var(--fs,15.5px) - 3px);letter-spacing:0;
+  text-transform:none;position:sticky;top:0;background:var(--panel2)}
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;min-width:70px}
+td.wrap,th.wrap{white-space:normal}
+/* Вторая строка в ячейке: номер сделки, стадия, что за счётчик. */
+.sub2{display:block;color:var(--mut);font-weight:400;line-height:1.45;margin-top:3px;
+  font-size:calc(var(--fs,15.5px) - 3px);white-space:normal}
+td.num .sub2{white-space:nowrap}
+.nm2{font-weight:600}
+
+/* ── раскрываемая строка светофора ─────────────────────────────────────
+   Одиннадцать колонок в один экран не влезают без горизонтальной прокрутки,
+   а прокрутка вбок на сводке означает, что половину цифр никто не увидит.
+   На виду семь, остальное открывается по строке. */
+button.exp{background:transparent;border:1px solid var(--line2);border-radius:6px;color:var(--mut);
+  font:inherit;font-size:calc(var(--fs,15.5px) - 3px);line-height:1;padding:5px 7px;cursor:pointer;
+  flex:none;margin-right:var(--s3,12px)}
+button.exp:hover{color:var(--acc);border-color:var(--acc2)}
+tr.det{display:none}
+tr.det.on{display:table-row}
+tr.det>td{background:var(--panel2);white-space:normal;padding:var(--s4,16px) var(--s5,20px)}
+.detg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:var(--s3,12px) var(--s4,16px)}
+.detg>div{border-left:2px solid var(--line2);padding-left:var(--s3,12px)}
+.detg span{display:block;color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);line-height:1.45}
+.detg b{font-size:calc(var(--fs,15.5px) + 1px);font-variant-numeric:tabular-nums}
+.mgrcell{display:flex;align-items:baseline}
+
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;min-width:70px;
+  max-width:280px;margin-top:6px}
 .bar i{display:block;height:100%;background:var(--acc)}
 .bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)} .bar i.warn{background:var(--warn)}
-.note{background:var(--panel2);border-left:3px solid var(--acc2);padding:var(--s3,11px) var(--s4,15px);border-radius:0 8px 8px 0;
-  color:var(--mut);font-size:calc(var(--fs,15.5px) - 2px);margin:var(--s3,12px) 0;max-width:100ch}
+.note{background:var(--panel2);border-left:3px solid var(--acc2);padding:var(--s3,12px) var(--s4,16px);
+  border-radius:0 8px 8px 0;color:var(--mut);font-size:calc(var(--fs,15.5px) - 2px);
+  margin:var(--s3,12px) 0;max-width:100ch}
 .note.bad{border-left-color:var(--bad)}
-.mgr{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;background:var(--panel);overflow:hidden}
-.mgr>summary{padding:14px 16px;cursor:pointer;list-style:none;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+
+/* Состояние инструмента: одна строка со ссылкой-разворотом. Первым экраном
+   стоят деньги, а не оговорки про инструмент, но и прятать их нельзя. */
+.disc{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--warn);
+  border-radius:0 8px 8px 0;margin:0 0 var(--s4,16px);max-width:110ch}
+.disc>summary{padding:var(--s3,12px) var(--s4,16px);cursor:pointer;list-style:none;
+  color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);line-height:1.55}
+.disc>summary::-webkit-details-marker{display:none}
+.disc>summary b{color:var(--tx)}
+.disc>summary i{font-style:normal;color:var(--acc);border-bottom:1px dashed var(--acc2)}
+.disc[open]>summary i{display:none}
+.disc .body{padding:0 var(--s4,16px) var(--s3,12px);color:var(--mut);
+  font-size:calc(var(--fs,15.5px) - 3px);line-height:1.6}
+
+.mgr{border:1px solid var(--line);border-radius:10px;margin-bottom:var(--s3,12px);
+  background:var(--panel);overflow:hidden}
+.mgr>summary{padding:var(--s3,14px) var(--s4,16px);cursor:pointer;list-style:none;display:flex;
+  gap:14px;align-items:center;flex-wrap:wrap}
 .mgr>summary::-webkit-details-marker{display:none}
 .mgr>summary:hover{background:var(--panel2)}
 .mgr .nm{font-weight:600;min-width:190px}
-.mgr .body{padding:0 16px 18px;border-top:1px solid var(--line)}
+.mgr .body{padding:0 var(--s4,16px) var(--s5,18px);border-top:1px solid var(--line)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.q{background:var(--panel2);border-left:3px solid var(--line2);padding:var(--s2,9px) var(--s3,13px);margin:var(--s2,7px) 0;
-  border-radius:0 6px 6px 0;font-size:calc(var(--fs,15.5px) - 2px);color:#c3d3de}
+.mini{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+  padding:var(--s3,13px) var(--s4,16px)}
+.mini .v{font-size:calc(var(--fs,15.5px) + 8px);font-weight:650;line-height:1.15;
+  font-variant-numeric:tabular-nums}
+.mini .l{color:var(--mut);font-size:calc(var(--fs,15.5px) - 3px);margin-top:4px;line-height:1.45}
+.q{background:var(--panel2);border-left:3px solid var(--line2);padding:var(--s2,9px) var(--s3,13px);
+  margin:var(--s2,7px) 0;border-radius:0 6px 6px 0;font-size:calc(var(--fs,15.5px) - 2px);color:#c3d3de}
 .q.bad{border-left-color:var(--bad)}
 ul{margin:6px 0 6px 18px;padding:0} li{margin:4px 0}
-.script{border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;background:var(--panel)}
-.script .when{color:var(--acc);font-size:12px;margin-bottom:4px}
+.script{border:1px solid var(--line);border-radius:10px;padding:var(--s4,16px);
+  margin-bottom:var(--s3,14px);background:var(--panel)}
+.script .when{color:var(--acc);font-size:calc(var(--fs,15.5px) - 3px);margin-bottom:4px}
 .script .why{color:var(--mut);font-size:calc(var(--fs,15.5px) - 2px);margin-bottom:10px}
-.small{font-size:calc(var(--fs,15.5px) - 3px);color:var(--mut)}
-.hr{height:1px;background:var(--line);margin:22px 0}
-footer{padding:20px 24px;border-top:1px solid var(--line);color:var(--mut);font-size:12px}
-@media(max-width:700px){main{padding:16px 12px 40px}header{padding:16px 12px 0}th,td{white-space:normal}}
+.small{font-size:calc(var(--fs,15.5px) - 3px);color:var(--mut);line-height:1.6}
+.hr{height:1px;background:var(--line);margin:var(--s5,22px) 0}
+footer{padding:var(--s4,20px) var(--s4,24px);border-top:1px solid var(--line);color:var(--mut);
+  font-size:calc(var(--fs,15.5px) - 3px)}
+@media(max-width:700px){
+  main{padding:0 12px 40px}header{padding:16px 12px 0}
+  th,td{white-space:normal}
+  .strip{flex-wrap:wrap;gap:var(--s2,8px)}
+  .strip .v,.strip .st,.strips.big .v{min-width:0;text-align:left}
+  /* Фамилия и подпись под ней не рвутся по слогам: таблица и так уезжает
+     в горизонтальную прокрутку внутри своей рамки, а три строки на ячейку
+     превращают светофор в простыню. */
+  .mgrcell .nm2,.mgrcell .sub2{white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -97,6 +192,8 @@ const pc = (v,d=0) => v==null ? 'нет данных' : (v*100).toFixed(d)+'%';
 const mins = v => v==null ? 'нет данных' : v<60 ? v+' мин' : v<480 ? Math.floor(v/60)+' ч '+String(Math.round(v%60)).padStart(2,'0') : (v/480).toFixed(1)+' раб.дн';
 const url = id => 'https://glassmemory.bitrix24.ru/crm/deal/details/'+id+'/';
 const bar = (v,cls='') => `<div class="bar"><i class="${cls}" style="width:${Math.max(0,Math.min(100,v*100)).toFixed(0)}%"></i></div>`;
+const dt = s => s ? String(s).slice(0,10).split('-').reverse().join('.') : 'дата не указана';
+const num = n => (n==null?0:n).toLocaleString('ru-RU');
 
 /* Индекс качества коммуникации. Веса - гипотеза, калибровка после 2 недель прогонов.
    Компоненты: скорость ответа, доведение диалога, конкретность сроков, квалификация, чистота текста. */
@@ -116,7 +213,16 @@ function commIndex(m){
    двигает индекс на балл и светофор начинает врать, поэтому полосу не присваиваем. */
 const MIN_DEALS = 10;
 const band = (i,m) => (m && m.deals < MIN_DEALS) ? ['мало данных','']
-  : i>=7.5?['молодец','ok']:i>=5?['норма','warn']:['в разборе','bad'];
+  : i>=7.5?['молодец','ok']:i>=5?['норма','acc']:['в разборе','bad'];
+
+/* Полоса дисциплины приезжает из снимка Bitrix (kostya-audit). В контракте нижняя
+   полоса до сих пор называется «холодец»: это устный обиход РОПа, а на экране,
+   который смотрит отдел, по scoring.md стоит «в разборе». Переименование здесь,
+   а не в данных: контракт правит kostya-audit, шаблон только отображает. */
+const BCLS  = {'молодец':'ok','норма':'acc','в разборе':'bad','мало данных':'','нет в снимке':''};
+const BRANK = {'в разборе':0,'норма':1,'молодец':2,'мало данных':3,'нет в снимке':4};
+const KM = D.kostyaManagers || {};
+const dband = m => { const k=KM[m.mgr]; return !k ? 'нет в снимке' : (k.band==='холодец' ? 'в разборе' : k.band); };
 
 /* ---------- вкладки ---------- */
 /* Иконка из общего набора. Приходит данными в D.icons, поэтому библиотека,
@@ -137,10 +243,13 @@ document.getElementById('nav').onclick = e => {
   window.scrollTo(0,0);
 };
 
-const BAND_RANK = {'молодец':3,'норма':2,'в разборе':1,'мало данных':0};
+/* Порядок ростера: сверху те, кем заниматься сегодня. Сортировка по полосе
+   дисциплины (снимок открытых сделок), внутри полосы по алфавиту, а не по баллу:
+   при выборке в полтора десятка сделок разница в десятых ничего не значит. */
 const M = D.managers.map(m=>({...m,idx:commIndex(m)}))
-  .sort((a,b)=>BAND_RANK[band(b.idx,b)[0]]-BAND_RANK[band(a.idx,a)[0]]
-    || a.mgr.localeCompare(b.mgr,'ru'));
+  .sort((a,b)=>BRANK[dband(a)]-BRANK[dband(b)] || a.mgr.localeCompare(b.mgr,'ru'));
+const link = m => D.cabinets&&D.cabinets[m.mgr]
+  ? `<a href="./${E(D.cabinets[m.mgr])}">${E(m.mgr)}</a>` : E(m.mgr);
 document.getElementById('sub').innerHTML =
   `Переписка ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)} &middot; ${D.totals.messages.toLocaleString('ru-RU')} сообщений &middot; `+
   `${D.totals.deals} сделок &middot; ${M.length} менеджеров с объёмом от 25 исходящих`;
@@ -149,92 +258,202 @@ document.getElementById('foot').innerHTML =
   `Индекс коммуникации и пороги помечены как гипотеза до калибровки. Персональные оценки сотрудников требуют апрува Ивана (Protocol 6).`;
 
 /* ---------- 1. Сводка ---------- */
+/* Рамка sales-director: за 30 секунд РОП обязан получить ответ на три вопроса.
+   Где деньги под риском - первый экран. Что делать сегодня - пять сделок с
+   суммой и днями простоя. Кто требует внимания - светофор по людям.
+   Всё остальное (объёмы переписки, выводы, кабинеты, оговорки) ниже. */
 (function(){
   const t=D.totals;
-  const allUn = M.reduce((s,m)=>s+m.unansweredCount,0);
+  const kt=D.kostyaTotals || {byCode:{},bySeverity:{}};
+  const kc=kt.byCode||{}, ks=kt.bySeverity||{};
+  const kmeta=D.kostyaMeta||{};
+  const SNAP='снимок Bitrix '+dt(kmeta.audit_date||kmeta.snapshot_at);
+  const MSG='переписка '+E(D.meta.period.from)+' - '+E(D.meta.period.to);
+  const lim=((kmeta.thresholds||{}).stageLimits||{})['КП отправлено']||{};
+
+  const allUn = M.reduce((s,m)=>s+(m.unansweredCount||0),0);
   const allEsc = M.reduce((s,m)=>s+(m.escalationCount||0),0);
   const allObj = M.reduce((s,m)=>s+(m.priceObjCount||0),0);
-  const prom = M.reduce((s,m)=>s+m.promises,0);
-  const promC = M.reduce((s,m)=>s+Math.round((m.concreteTimeShare||0)*m.promises),0);
+  const prom = M.reduce((s,m)=>s+(m.promises||0),0);
+  const promC = M.reduce((s,m)=>s+Math.round((m.concreteTimeShare||0)*(m.promises||0)),0);
   const qOut = M.reduce((s,m)=>s+Object.entries(m.outDet||{}).filter(([k])=>k.startsWith('Q_')).reduce((a,[,v])=>a+v,0),0);
-  const kt=D.kostyaTotals;
+  const share = (a,b) => b ? (100*a/b).toFixed(0)+'%' : 'нет базы';
+
+  /* Полоса первого экрана: подпись и источник слева, число справа, за числом
+     доля или метка. Источник обязателен у каждой: цифра без источника на
+     дашборде РОПа превращается в спор о том, откуда она взялась. */
+  const strip = (label,src,value,color,st) => `<div class="strip">
+    <div class="l"><b>${label}</b><span>${src}</span></div>
+    <div class="v"${color?` style="color:var(--${color})"`:''}>${value}</div>
+    <div class="st">${st||''}</div></div>`;
+
+  /* Пять сделок на сегодня. Берём критические флаги снимка, схлопываем по сделке
+     (на одной могут гореть и зависание, и тишина), сортируем по сумме. Дни
+     простоя достаём из evidence того флага, который сделку открыл. */
+  const flat=[];
+  for(const fs of Object.values(D.flagsByMgr||{})) for(const f of fs||[]) flat.push(f);
+  const byDeal=new Map();
+  for(const f of flat){
+    if(f.severity!=='crit') continue;
+    const cur=byDeal.get(f.deal);
+    if(!cur) byDeal.set(f.deal,{...f,codes:[f.code]});
+    else if(!cur.codes.includes(f.code)) cur.codes.push(f.code);
+  }
+  const idle = f => {
+    const e=f.evidence||{};
+    if(e.silence!=null) return ['без активности',e.silence];
+    if(e.dwell!=null) return ['на стадии',e.dwell];
+    if(e.overdueDays!=null) return ['просрочка дела',e.overdueDays];
+    return ['нет счётчика',null];
+  };
+  const top=[...byDeal.values()].sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,5);
+  const topMoney=top.reduce((s,f)=>s+(f.budget||0),0);
+  const topMgrs=[...new Set(top.map(f=>f.mgr))];
+  const conc = topMgrs.length===1
+    ? `Все пять числятся за одним человеком: ${E(topMgrs[0])}. Это не сбой отбора, а концентрация крупного портфеля.`
+    : `Сделки распределены между ${topMgrs.length} менеджерами.`;
+
   document.getElementById('t-sum').innerHTML = `
-  <div class="note bad"><b>В каком состоянии инструмент прямо сейчас.</b>
-    Ни один из 23 детекторов не прошёл ручную проверку по 30 случаям. Два проверенных
-    оказались завышены, один в разы. Пороги стадий и веса индекса помечены гипотезой,
-    калибровка на закрытых сделках идёт до конца августа. Клиент опознаётся по названию
-    сделки, а не по CONTACT_ID: прокси покрывает малую долю сделок.
-    Любой флаг здесь это повод открыть сделку, а не установленный факт.</div>
-  <h2>${I('normativy')}Светофор по качеству коммуникации</h2>
-  <div class="scroll"><table>
-    <thead><tr><th>Менеджер</th><th class="num">Индекс</th><th>Полоса</th><th class="num">Сделок</th>
-      <th class="num">Исх.</th><th class="num">Медиана ответа</th><th class="num">p90</th>
-      <th class="num">Ответ &lt;1ч</th><th class="num">Без ответа</th><th class="num">Срок в обещании</th>
-      <th class="num">Квалификация</th><th class="num">Эскалации</th></tr></thead>
-    <tbody>${M.map(m=>{const [b,c]=band(m.idx,m);const r=m.reply||{};return `<tr>
-      <td data-v="0">${D.cabinets&&D.cabinets[m.mgr]?`<a href="./${E(D.cabinets[m.mgr])}">${E(m.mgr)}</a>`:E(m.mgr)}</td>
-      <td class="num" data-v="${m.deals>=MIN_DEALS?m.idx:-1}">${m.deals>=MIN_DEALS?m.idx.toFixed(1):"мало данных"}</td>
-      <td data-v="${BAND_RANK[b]}"><span class="tag ${c}">${b}</span></td>
-      <td class="num" data-v="${m.deals}">${m.deals}</td>
-      <td class="num" data-v="${m.out}">${m.out.toLocaleString('ru-RU')}</td>
-      <td class="num" data-v="${r.medianMin==null?-1:r.medianMin}">${mins(r.medianMin)}</td>
-      <td class="num" data-v="${r.p90Min==null?-1:r.p90Min}">${mins(r.p90Min)}</td>
-      <td class="num" data-v="${r.within60==null?-1:r.within60}">${pc(r.within60)}</td>
-      <td class="num" data-v="${m.unansweredCount||0}">${m.unansweredCount?`<span class="tag bad">${m.unansweredCount}</span>`:'0'}</td>
-      <td class="num" data-v="${m.concreteTimeShare==null?-1:m.concreteTimeShare}">${pc(m.concreteTimeShare)}</td>
-      <td class="num" data-v="${m.qualifyRate||0}">${(m.qualifyRate||0).toFixed(2)}%</td>
-      <td class="num" data-v="${m.escalationCount||0}">${m.escalationCount||0}</td></tr>`}).join('')}</tbody>
-  </table></div>
-  <div class="note">Индекс складывается из скорости ответа (25%), длины хвоста p90 (15%), доведения диалога до ответа (20%),
-    конкретности сроков в обещаниях (15%), чистоты текста (15%) и квалификации клиента (10%). Веса
-    <b>гипотеза</b>, пересматриваются после двух недель ежедневных прогонов вместе с Иваном.
-    Внутри полосы люди идут по алфавиту, а не по баллу: при выборке в полтора десятка сделок
-    доверительный интервал шире двух баллов, и разница в десятых между людьми ничего не значит.
-    Сортировка по любому столбцу доступна кликом по заголовку.</div>
+<h2>${I('money')}Где деньги под риском</h2>
+<div class="strips big">
+  ${strip('Открытый портфель отдела',
+    `${num(kt.openDeals)} открытых сделок в воронке C49 &middot; ${SNAP}`,
+    money(kt.openBudget), '', `<span class="tag acc">портфель</span>`)}
+  ${strip('Зависли на стадии дольше лимита',
+    `детектор D01, лимит свой у каждой стадии: у «КП отправлено» ${lim.dwell!=null?lim.dwell+' дней':'лимит не задан'} &middot; ${SNAP}`,
+    num(kc.D01||0), 'bad', `<span class="tag bad">${share(kc.D01||0,kt.openDeals)} портфеля</span>`)}
+  ${strip('Просрочено дел в CRM',
+    `детектор D03, дело со сроком в прошлом на открытой сделке &middot; ${SNAP}`,
+    num(kc.D03||0), 'bad', `<span class="tag bad">${share(kc.D03||0,kt.openDeals)} портфеля</span>`)}
+  ${strip('Последнее слово осталось за клиентом',
+    `диалогов, где клиент написал последним и ответа не было &middot; ${MSG}`,
+    num(allUn), allUn?'warn':'', `<span class="tag ${allUn?'warn':'ok'}">из ${num(D.totals.deals)} сделок</span>`)}
+</div>
+<details class="disc"><summary><b>Инструмент в калибровке.</b>
+  Ни один из 23 детекторов не прошёл ручную проверку, пороги стадий и веса индексов помечены гипотезой.
+  Флаг здесь это повод открыть сделку, а не установленный факт. <i>Развернуть</i></summary>
+  <div class="body">Два проверенных детектора оказались завышены, один в разы. Калибровка на закрытых
+  сделках идёт до конца августа. Клиент опознаётся по названию сделки, а не по CONTACT_ID: прокси
+  покрывает малую долю сделок, поэтому группировка по клиенту заведомо неполная. Снимок открытых
+  сделок сделан ${dt(kmeta.snapshot_at)}, переписка охватывает ${MSG}: два слоя сняты в разные
+  моменты и в спорных случаях расходятся.</div></details>
 
-  <h2>${I('lock')}Кабинеты менеджеров</h2>
-  <div class="note">Адрес не называет человека: содержимое зашифровано, но сам адрес виден всем,
-    кто знает домен. Список «кто под каким адресом» существует только здесь, внутри вашей сводки.
-    Пароль на все кабинеты один и отдаётся отдельно от ссылки.</div>
-  <div class="scroll"><table><thead><tr><th>Менеджер</th><th>Ссылка на кабинет</th></tr></thead><tbody>
-  ${Object.entries(D.cabinets||{}).map(([mgr,f])=>`<tr><td data-v="0">${E(mgr)}</td>
-    <td data-v="0"><a href="./${E(f)}" target="_blank">${E(f)}</a></td></tr>`).join('')}
-  </tbody></table></div>
+<h2>${I('alert')}Что сделать сегодня: пять сделок</h2>
+<div class="scroll full"><table>
+  <thead><tr><th class="wrap">Сделка</th><th>Менеджер</th><th class="num">Сумма</th>
+    <th class="num">Простой</th><th class="wrap">Что не так и что сделать</th></tr></thead>
+  <tbody>${top.map(f=>{const [what,days]=idle(f);return `<tr>
+    <td class="wrap"><a href="${E(f.url||url(f.deal))}" target="_blank">${E(f.title||('Сделка '+f.deal))}</a>
+      <span class="sub2">№${E(f.deal)} &middot; ${E(f.stage)} &middot; ${f.codes.map(c=>E(c)).join(', ')}</span></td>
+    <td>${E(f.mgr)}</td>
+    <td class="num" data-v="${f.budget||0}">${money(f.budget)}</td>
+    <td class="num" data-v="${days==null?-1:days}">${days==null?'нет данных':days+' дн.'}<span class="sub2">${what}</span></td>
+    <td class="wrap">${E(f.fact)}<span class="sub2">${E(f.should)}</span></td></tr>`}).join('')}</tbody>
+</table></div>
+<p class="small">В этих пяти сделках ${money(topMoney)}. ${conc}
+  Отобраны по сумме среди критических флагов снимка, всего таких ${num(ks.crit)} на ${num(kt.flags)} флагов.
+  В сводку каждого менеджера приезжают 40 его худших флагов, поэтому список это верхняя часть очереди,
+  а не вся она. Полный перечень по человеку во вкладке «Менеджеры», по сделке во вкладке «Сделки».</p>
 
-  <h2>${I('chart')}Что происходит в отделе</h2>
-  <div class="grid k4">
-    <div class="card kpi"><div class="v">${mins(t.replyMedianMin)}</div><div class="l">медиана ответа клиенту, рабочее время</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${mins(t.replyP90Min)}</div><div class="l">p90 ответа: каждый десятый ждёт столько</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${allUn}</div><div class="l">диалогов, где последнее слово осталось за клиентом</div></div>
-    <div class="card kpi"><div class="v" style="color:${promC/prom<0.2?'var(--bad)':'var(--tx)'}">${(100*promC/prom).toFixed(0)}%</div><div class="l">обещаний с конкретным сроком (${promC} из ${prom})</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${qOut}</div><div class="l">вопросов про бюджет, срок и ЛПР на ${t.out.toLocaleString('ru-RU')} исходящих</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--warn)">${allObj}</div><div class="l">возражений по цене от клиентов</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${allEsc}</div><div class="l">обращений к руководителю и претензий</div></div>
-    <div class="card kpi"><div class="v">${t.out.toLocaleString('ru-RU')} / ${t.in.toLocaleString('ru-RU')}</div><div class="l">исходящих / входящих сообщений</div></div>
-  </div>
+<h2>${I('person')}Кто требует внимания: светофор по менеджерам</h2>
+<div class="scroll full"><table>
+  <thead><tr><th>Менеджер</th><th>Дисциплина</th><th>Коммуникация</th>
+    <th class="num">Открытый портфель</th><th class="num">Молчат</th>
+    <th class="num">Просрочено дел</th><th class="num">Без ответа</th></tr></thead>
+  <tbody>${M.map(m=>{
+    const k=KM[m.mgr], db=dband(m), [cb,cc]=band(m.idx,m), r=m.reply||{};
+    const dv = k&&k.index!=null ? ' '+k.index.toFixed(1) : '';
+    const cv = m.deals>=MIN_DEALS ? ' '+m.idx.toFixed(1) : '';
+    const cell=(v,s)=>`<div><span>${s}</span><b>${v}</b></div>`;
+    return `<tr>
+    <td data-k="${E(m.mgr)}"><div class="mgrcell"><button class="exp" aria-expanded="false" title="Раскрыть остальные цифры">&#9656;</button>
+      <div><span class="nm2">${link(m)}</span>
+      <span class="sub2">${k?num(k.openDeals)+' открытых сделок':'в снимке Bitrix не найден'}</span></div></div></td>
+    <td data-v="${BRANK[db]}"><span class="tag ${BCLS[db]}">${db}${dv}</span></td>
+    <td data-v="${BRANK[cb]}"><span class="tag ${cc}">${cb}${cv}</span></td>
+    <td class="num" data-v="${k?k.openBudget:-1}">${k?money(k.openBudget):'нет данных'}</td>
+    <td class="num" data-v="${k?k.silentDeals:-1}"${k&&k.silentDeals?' style="color:var(--bad)"':''}>${k?num(k.silentDeals):'нет данных'}</td>
+    <td class="num" data-v="${k?k.overdueTasks:-1}">${k?(k.overdueTasks?`<span class="tag bad">${num(k.overdueTasks)}</span>`:'0'):'нет данных'}</td>
+    <td class="num" data-v="${m.unansweredCount||0}">${m.unansweredCount?`<span class="tag bad">${m.unansweredCount}</span>`:'0'}</td></tr>
+    <tr class="det"><td colspan="7"><div class="detg">
+      ${k?cell(num(k.stuckDeals),'зависли на стадии, D01'):''}
+      ${k?cell(num(k.noNextStep),'нет следующего шага, D04'):''}
+      ${k?cell(num(k.emptyClassifiers),'пустые классификаторы, D10'):''}
+      ${k?cell(num(k.zeroBudget),'сделки с нулевой суммой, D07'):''}
+      ${k?cell(num(k.openFlags),'всего флагов на открытых сделках'):''}
+      ${cell(num(m.deals),'сделок в переписке')}
+      ${cell(num(m.out),'исходящих сообщений')}
+      ${cell(mins(r.medianMin),'медиана ответа клиенту')}
+      ${cell(mins(r.p90Min),'p90 ответа, худшая десятая')}
+      ${cell(pc(r.within60),'ответов быстрее часа')}
+      ${cell(pc(m.concreteTimeShare),'обещаний с конкретным сроком')}
+      ${cell((m.qualifyRate||0).toFixed(2)+'%','сообщений с квалификацией')}
+      ${cell(num(m.escalationCount),'эскалаций и претензий')}
+      ${cell(num(m.priceObjCount),'возражений по цене')}
+      ${cell(pc(m.initiatedShare),'диалогов начал сам')}
+    </div></td></tr>`}).join('')}</tbody>
+</table></div>
+<div class="note">Две полосы считаются из разных источников и не обязаны совпадать.
+  <b>Дисциплина</b> это индекс ведения открытых сделок из снимка Bitrix: чистота стадий 30%,
+  управление паузой 25%, дисциплина дел 25%, полнота данных 20%. <b>Коммуникация</b> считается
+  по переписке: скорость ответа 25%, доведение диалога 20%, хвост p90 15%, конкретность сроков 15%,
+  чистота текста 15%, квалификация 10%. Пороги обеих полос: молодец от 7.5, норма от 5.0,
+  ниже 5.0 «в разборе». При выборке меньше ${MIN_DEALS} сделок индекс не выдаётся вообще.
+  Веса <b>гипотеза</b>, пересматриваются вместе с Иваном после двух недель ежедневных прогонов.
+  Сверху те, кем заниматься сегодня; внутри полосы люди идут по алфавиту, а не по баллу.
+  Клик по треугольнику раскрывает остальные цифры, клик по заголовку столбца сортирует.</div>
 
-  <h2>${I('check')}Три вывода, которые видны сразу</h2>
-  <div class="grid k3">
-    <div class="card"><h3 style="margin-top:0;color:var(--bad)">Квалификации нет</h3>
-      <p class="small">Вопрос про бюджет встречается в 0.1% исходящих, про сроки в 0.1%, про лицо принимающее решение
-      в 0.02%. Расчёты готовятся вслепую: без денег клиента, без его дедлайна и без понимания, кто подписывает.</p>
-      <p class="small">При этом упоминаний скидки в переписке в семь раз больше, чем вопросов о бюджете.
-      Отдел торгуется вместо того, чтобы выяснять.</p></div>
-    <div class="card"><h3 style="margin-top:0;color:var(--warn)">Медиана хорошая, хвост плохой</h3>
-      <p class="small">Половина ответов уходит за ${mins(t.replyMedianMin)}, это сильный результат.
-      Но каждый десятый ответ занимает ${mins(t.replyP90Min)}. Клиенты уходят именно в хвосте, а средние цифры его прячут.</p></div>
-    <div class="card"><h3 style="margin-top:0;color:var(--bad)">Обещания без сроков</h3>
-      <p class="small">Из ${prom} обещаний вида «отправлю», «уточню», «перезвоню» конкретную дату или время содержат ${promC}.
-      Это ровно тот дефект, который Костя описал у семи менеджеров из восьми в июне.</p></div>
-  </div>
-  ${kt?`<h2>${I('deal')}Дисциплина по открытым сделкам (снимок Bitrix)</h2>
-  <div class="grid k4">
-    <div class="card kpi"><div class="v">${kt.openDeals}</div><div class="l">открытых сделок на ${money(kt.openBudget)}</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${kt.byCode.D01||0}</div><div class="l">зависли на стадии дольше лимита</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--bad)">${kt.byCode.D03||0}</div><div class="l">просроченных дел</div></div>
-    <div class="card kpi"><div class="v" style="color:var(--warn)">${kt.byCode.D10||0}</div><div class="l">сделок без направления или ассортимента</div></div>
-  </div>`:''}
-  <div class="note">Что этот разбор не видит: ${D.meta.caveats.map(c=>E(c)).join(' ')}</div>`;
+<h2>${I('chart')}Что происходит в переписке отдела</h2>
+<div class="strips">
+  ${strip('Медиана ответа клиенту',`рабочее время ${D.meta.workHours?D.meta.workHours[0]+':00-'+D.meta.workHours[1]+':00':'9:00-19:00'} &middot; ${MSG}`,
+    mins(t.replyMedianMin),'',`<span class="tag ok">половина ответов</span>`)}
+  ${strip('p90 ответа: столько ждёт каждый десятый','клиенты уходят в хвосте, медиана его прячет &middot; '+MSG,
+    mins(t.replyP90Min),'bad',`<span class="tag bad">худшая десятая</span>`)}
+  ${strip('Молчат дольше лимита стадии','детектор D02, считается по последней активности &middot; '+SNAP,
+    num(kc.D02||0),'bad',`<span class="tag bad">${share(kc.D02||0,kt.openDeals)} портфеля</span>`)}
+  ${strip('Обещаний с конкретным сроком',`${num(promC)} из ${num(prom)} обещаний вида «отправлю», «уточню», «перезвоню» &middot; ${MSG}`,
+    share(promC,prom), promC/Math.max(1,prom)<0.2?'bad':'', `<span class="tag ${promC/Math.max(1,prom)<0.2?'bad':'ok'}">срок назван</span>`)}
+  ${strip('Вопросов про бюджет, срок и ЛПР',`на ${num(t.out)} исходящих сообщений &middot; ${MSG}`,
+    num(qOut),'bad',`<span class="tag bad">${(100*qOut/Math.max(1,t.out)).toFixed(2)}% исходящих</span>`)}
+  ${strip('Возражений по цене от клиентов','детектор OBJ_ЦЕНА по входящим &middot; '+MSG,
+    num(allObj),'warn',`<span class="tag warn">повод для скрипта</span>`)}
+  ${strip('Обращений к руководителю и претензий','строгий детектор эскалаций по входящим &middot; '+MSG,
+    num(allEsc),'bad',`<span class="tag bad">разбор поимённо</span>`)}
+  ${strip('Исходящих и входящих сообщений','объём переписки отдела за период &middot; '+MSG,
+    num(t.out)+' / '+num(t.in),'',`<span class="tag acc">${num(t.messages)} всего</span>`)}
+</div>
+
+<h2>${I('check')}Три вывода, которые видны сразу</h2>
+<div class="grid k3">
+  <div class="card"><h3 style="margin-top:0;color:var(--bad)">Квалификации нет</h3>
+    <p class="small">Вопрос про бюджет, срок и ЛПР встречается ${num(qOut)} раз на ${num(t.out)} исходящих,
+    это ${(100*qOut/Math.max(1,t.out)).toFixed(2)}%. Расчёты готовятся вслепую: без денег клиента,
+    без его дедлайна и без понимания, кто подписывает.</p>
+    <p class="small">При этом упоминаний скидки в переписке в семь раз больше, чем вопросов о бюджете.
+    Отдел торгуется вместо того, чтобы выяснять.</p></div>
+  <div class="card"><h3 style="margin-top:0;color:var(--warn)">Медиана хорошая, хвост плохой</h3>
+    <p class="small">Половина ответов уходит за ${mins(t.replyMedianMin)}, это сильный результат.
+    Но каждый десятый ответ занимает ${mins(t.replyP90Min)}. Клиенты уходят именно в хвосте,
+    а средние цифры его прячут.</p>
+    <p class="small">Смотреть надо не среднее по отделу, а p90 в раскрытой строке светофора:
+    разброс между людьми там кратный.</p></div>
+  <div class="card"><h3 style="margin-top:0;color:var(--bad)">Обещания без сроков</h3>
+    <p class="small">Из ${num(prom)} обещаний вида «отправлю», «уточню», «перезвоню» конкретную дату
+    или время содержат ${num(promC)}, это ${share(promC,prom)}.
+    Это ровно тот дефект, который Костя описал у семи менеджеров из восьми в июне.</p></div>
+</div>
+
+<h2>${I('lock')}Кабинеты менеджеров</h2>
+<div class="note">Адрес не называет человека: содержимое зашифровано, но сам адрес виден всем,
+  кто знает домен. Список «кто под каким адресом» существует только здесь, внутри вашей сводки.
+  Пароль на все кабинеты один и отдаётся отдельно от ссылки.</div>
+<div class="scroll full"><table><thead><tr><th>Менеджер</th><th>Ссылка на кабинет</th></tr></thead><tbody>
+${Object.entries(D.cabinets||{}).map(([mgr,f])=>`<tr><td>${E(mgr)}</td>
+  <td><a href="./${E(f)}" target="_blank">${E(f)}</a></td></tr>`).join('')}
+</tbody></table></div>
+
+<h2>${I('search')}Чего этот разбор не видит</h2>
+<ul class="small">${(D.meta.caveats||[]).map(c=>`<li>${E(c)}</li>`).join('')}</ul>`;
 })();
 
 /* ---------- 2. Менеджеры ---------- */
@@ -243,15 +462,16 @@ document.getElementById('foot').innerHTML =
     ['T01_БЕЗ_ПОЯСНЕНИЯ','сообщение без пояснения'],['T02_БЕЗ_ПРИВЕТСТВИЯ','нет приветствия в первом за день'],
     ['T07_ОРФОГРАФИЯ','орфография и пробелы'],['T04_ЖАРГОН','жаргон в извинении'],['T06_ЗАЩИТА','защита вместо извинения']];
   document.getElementById('t-mgr').innerHTML = M.map(m=>{
-    const [b,c]=band(m.idx,m), r=m.reply||{}, dp=m.defectsPer100Out||{};
+    const [b,c]=band(m.idx,m), r=m.reply||{}, dp=m.defectsPer100Out||{}, db=dband(m);
+    const k=KM[m.mgr];
     const deals=(D.dealsByMgr[m.mgr]||[]);
     const flags=(D.flagsByMgr[m.mgr]||[]);
-    const kk=(D.kostyaManagers||{})[m.mgr];
     return `<details class="mgr">
       <summary>
-        <span class="nm">${D.cabinets&&D.cabinets[m.mgr]?`<a href="./${E(D.cabinets[m.mgr])}">${E(m.mgr)}</a>`:E(m.mgr)}</span>
-        <span class="tag ${c}">${b}${m.deals>=MIN_DEALS?" "+m.idx.toFixed(1):""}</span>
-        <span class="small">${m.deals} сделок &middot; ${m.out.toLocaleString('ru-RU')} исходящих &middot; медиана ${mins(r.medianMin)}</span>
+        <span class="nm">${link(m)}</span>
+        <span class="tag ${BCLS[db]}">дисциплина: ${db}${k&&k.index!=null?" "+k.index.toFixed(1):""}</span>
+        <span class="tag ${c}">коммуникация: ${b}${m.deals>=MIN_DEALS?" "+m.idx.toFixed(1):""}</span>
+        <span class="small">${m.deals} сделок в переписке &middot; ${m.out.toLocaleString('ru-RU')} исходящих &middot; медиана ${mins(r.medianMin)}</span>
         <span class="chips">
           ${m.unansweredCount?`<span class="tag bad">${m.unansweredCount} без ответа</span>`:''}
           ${m.escalationCount?`<span class="tag bad">${m.escalationCount} эскалаций</span>`:''}
@@ -261,20 +481,32 @@ document.getElementById('foot').innerHTML =
       <div class="body">
         <h3>Скорость и доведение</h3>
         <div class="grid k4">
-          <div class="card kpi"><div class="v">${mins(r.medianMin)}</div><div class="l">медиана ответа</div></div>
-          <div class="card kpi"><div class="v">${mins(r.p75Min)}</div><div class="l">p75</div></div>
-          <div class="card kpi"><div class="v" style="color:var(--bad)">${mins(r.p90Min)}</div><div class="l">p90, худшая десятая</div></div>
-          <div class="card kpi"><div class="v">${pc(r.within60)}</div><div class="l">ответов быстрее часа</div>${bar(r.within60||0,(r.within60||0)>.7?'ok':'warn')}</div>
-          <div class="card kpi"><div class="v">${pc(m.initiatedShare)}</div><div class="l">диалогов начал сам</div></div>
-          <div class="card kpi"><div class="v">${pc(m.concreteTimeShare)}</div><div class="l">обещаний с конкретным сроком</div>${bar(m.concreteTimeShare||0,(m.concreteTimeShare||0)>.3?'ok':'bad')}</div>
-          <div class="card kpi"><div class="v">${(m.qualifyRate||0).toFixed(2)}%</div><div class="l">сообщений с квалификацией</div></div>
-          <div class="card kpi"><div class="v">${m.avgOutChars||'нет данных'}</div><div class="l">средняя длина сообщения, знаков</div></div>
+          <div class="mini"><div class="v">${mins(r.medianMin)}</div><div class="l">медиана ответа</div></div>
+          <div class="mini"><div class="v">${mins(r.p75Min)}</div><div class="l">p75</div></div>
+          <div class="mini"><div class="v" style="color:var(--bad)">${mins(r.p90Min)}</div><div class="l">p90, худшая десятая</div></div>
+          <div class="mini"><div class="v">${pc(r.within60)}</div><div class="l">ответов быстрее часа</div>${bar(r.within60||0,(r.within60||0)>.7?'ok':'warn')}</div>
+          <div class="mini"><div class="v">${pc(m.initiatedShare)}</div><div class="l">диалогов начал сам</div></div>
+          <div class="mini"><div class="v">${pc(m.concreteTimeShare)}</div><div class="l">обещаний с конкретным сроком</div>${bar(m.concreteTimeShare||0,(m.concreteTimeShare||0)>.3?'ok':'bad')}</div>
+          <div class="mini"><div class="v">${(m.qualifyRate||0).toFixed(2)}%</div><div class="l">сообщений с квалификацией</div></div>
+          <div class="mini"><div class="v">${m.avgOutChars||'нет данных'}</div><div class="l">средняя длина сообщения, знаков</div></div>
         </div>
+
+        ${k?`<h3>Открытые сделки в снимке Bitrix</h3>
+        <div class="grid k4">
+          <div class="mini"><div class="v">${money(k.openBudget)}</div><div class="l">портфель на ${k.openDeals} открытых сделках</div></div>
+          <div class="mini"><div class="v" style="color:var(--bad)">${k.stuckDeals}</div><div class="l">зависли на стадии, D01</div></div>
+          <div class="mini"><div class="v" style="color:var(--bad)">${k.silentDeals}</div><div class="l">без активности дольше лимита, D02</div></div>
+          <div class="mini"><div class="v" style="color:var(--bad)">${k.overdueTasks}</div><div class="l">просроченных дел, D03</div></div>
+          <div class="mini"><div class="v" style="color:var(--warn)">${k.noNextStep}</div><div class="l">без следующего шага, D04</div></div>
+          <div class="mini"><div class="v" style="color:var(--warn)">${k.emptyClassifiers}</div><div class="l">пустые классификаторы, D10</div></div>
+          <div class="mini"><div class="v" style="color:var(--warn)">${k.zeroBudget}</div><div class="l">сделки с нулевой суммой, D07</div></div>
+          <div class="mini"><div class="v">${k.index==null?'нет индекса':k.index.toFixed(1)}</div><div class="l">индекс дисциплины, полоса «${db}»</div></div>
+        </div>`:''}
 
         <h3>Дефекты текста на 100 исходящих</h3>
         <div class="scroll"><table><thead><tr><th>Дефект</th><th class="num">На 100 сообщений</th><th class="num">Всего</th><th>Уровень</th></tr></thead><tbody>
-        ${DEF.filter(([k])=>dp[k]!=null).map(([k,n])=>{const v=dp[k]||0;const cl=v>15?'bad':v>5?'warn':'ok';
-          return `<tr><td>${n}</td><td class="num">${v}</td><td class="num">${(m.defects||{})[k]||0}</td><td>${bar(Math.min(1,v/40),cl)}</td></tr>`}).join('')}
+        ${DEF.filter(([k2])=>dp[k2]!=null).map(([k2,n])=>{const v=dp[k2]||0;const cl=v>15?'bad':v>5?'warn':'ok';
+          return `<tr><td>${n}</td><td class="num">${v}</td><td class="num">${(m.defects||{})[k2]||0}</td><td>${bar(Math.min(1,v/40),cl)}</td></tr>`}).join('')}
         </tbody></table></div>
 
         ${m.escalations&&m.escalations.length?`<h3 style="color:var(--bad)">Эскалации: клиент требовал руководителя или писал претензию</h3>
@@ -286,18 +518,18 @@ document.getElementById('foot').innerHTML =
           ${u.amount?` &middot; ${money(u.amount)}`:''} &middot; <span class="small">${E((u.clientAt||'').slice(0,16).replace('T',' '))}, стадия ${E(u.stage)}</span><br>${E(u.clientText)}</div>`).join('')}`:''}
 
         ${m.worstReplies&&m.worstReplies.length?`<h3>Самые долгие ответы</h3>
-        <div class="scroll"><table><thead><tr><th>Сделка</th><th class="num">Ждал</th><th>Клиент написал</th><th>Ответ менеджера</th></tr></thead><tbody>
+        <div class="scroll"><table><thead><tr><th>Сделка</th><th class="num">Ждал</th><th class="wrap">Клиент написал</th><th class="wrap">Ответ менеджера</th></tr></thead><tbody>
         ${m.worstReplies.slice(0,6).map(w=>`<tr><td><a href="${url(w.deal)}" target="_blank">${E(w.deal)}</a></td>
           <td class="num" style="color:var(--bad)">${mins(w.minutes)}</td>
-          <td style="white-space:normal;max-width:340px">${E(w.clientText)}</td>
-          <td style="white-space:normal;max-width:340px">${E(w.reply)}</td></tr>`).join('')}
+          <td class="wrap" style="max-width:380px">${E(w.clientText)}</td>
+          <td class="wrap" style="max-width:380px">${E(w.reply)}</td></tr>`).join('')}
         </tbody></table></div>`:''}
 
         ${flags.length?`<h3>Флаги дисциплины по открытым сделкам</h3>
-        <div class="scroll"><table><thead><tr><th>Код</th><th>Сделка</th><th class="num">Сумма</th><th>Факт</th></tr></thead><tbody>
+        <div class="scroll"><table><thead><tr><th>Код</th><th>Сделка</th><th class="num">Сумма</th><th class="wrap">Факт</th></tr></thead><tbody>
         ${flags.slice(0,12).map(f=>`<tr><td><span class="tag ${f.severity==='crit'?'bad':f.severity==='high'?'warn':''}">${E(f.code)}</span></td>
           <td><a href="${E(f.url)}" target="_blank">${E(f.deal)}</a></td><td class="num">${money(f.budget)}</td>
-          <td style="white-space:normal">${E(f.fact)}</td></tr>`).join('')}
+          <td class="wrap">${E(f.fact)}</td></tr>`).join('')}
         </tbody></table></div>`:''}
 
         <h3>Крупнейшие сделки в переписке</h3>
@@ -322,10 +554,10 @@ document.getElementById('foot').innerHTML =
   <h2>${I('search')}Детализация обработки заказов</h2>
   <div class="note">Одна строка на сделку: сколько сообщений, кто кого тащил, за кем осталось последнее слово,
     сколько дней жила переписка. «Последнее слово за клиентом» означает, что диалог оборвался на его сообщении.</div>
-  <div class="card" style="margin-bottom:12px">
+  <div class="card" style="margin-bottom:var(--s3,12px)">
     <input id="q" placeholder="Фильтр: менеджер, стадия, номер сделки, тип изделия"
       style="width:100%;background:var(--panel2);border:1px solid var(--line2);color:var(--tx);
-      padding:9px 12px;border-radius:8px;font:inherit">
+      padding:11px 14px;border-radius:8px;font:inherit">
   </div>
   <div class="scroll"><table><thead><tr><th>Сделка</th><th>Менеджер</th><th class="num">Сумма</th><th>Стадия</th>
     <th>Тип клиента</th><th>Изделие</th><th class="num">Сообщ.</th><th class="num">вх</th><th class="num">исх</th>
@@ -357,7 +589,7 @@ document.getElementById('t-scr').innerHTML = `
     <h3 style="margin:0 0 6px">${E(s.title)}</h3>
     <div class="why">${E(s.why)}</div>
     ${s.script.map(l=>`<div class="q">${E(l)}</div>`).join('')}
-    <h3 style="font-size:13px;color:var(--bad)">Так нельзя</h3>
+    <h3 style="font-size:calc(var(--fs,15.5px) - 2px);color:var(--bad)">Так нельзя</h3>
     <ul class="small">${s.dont.map(x=>`<li>${E(x)}</li>`).join('')}</ul>
   </div>`).join('')}`;
 
@@ -368,10 +600,10 @@ document.getElementById('t-fup').innerHTML = `
     сделка уходит в отложенные с датой следующего контакта, а не остаётся висеть на активной стадии.</div>
   ${D.followups.map(f=>`<div class="script">
     <h3 style="margin:0 0 10px">${E(f.sit)}</h3>
-    <div class="scroll" style="margin-bottom:10px"><table><thead><tr><th style="width:170px">Когда</th><th>Что написать</th></tr></thead><tbody>
-      <tr><td><span class="tag acc">${E(f.t1)}</span></td><td style="white-space:normal">${E(f.m1)}</td></tr>
-      <tr><td><span class="tag acc">${E(f.t2)}</span></td><td style="white-space:normal">${E(f.m2)}</td></tr>
-      <tr><td><span class="tag acc">${E(f.t3)}</span></td><td style="white-space:normal">${E(f.m3)}</td></tr>
+    <div class="scroll" style="margin-bottom:10px"><table><thead><tr><th style="width:190px">Когда</th><th class="wrap">Что написать</th></tr></thead><tbody>
+      <tr><td><span class="tag acc">${E(f.t1)}</span></td><td class="wrap">${E(f.m1)}</td></tr>
+      <tr><td><span class="tag acc">${E(f.t2)}</span></td><td class="wrap">${E(f.m2)}</td></tr>
+      <tr><td><span class="tag acc">${E(f.t3)}</span></td><td class="wrap">${E(f.m3)}</td></tr>
     </tbody></table></div>
     <p class="small"><b>Дальше:</b> ${E(f.after)}</p>
     <p class="small"><b>Что приложить:</b> ${E(f.magnet)}</p>
@@ -382,15 +614,27 @@ document.getElementById('t-fup').innerHTML = `
   <div class="note">Колонка «отправок» посчитана по реальным ссылкам и упоминаниям в переписке за
     ${E(D.meta.period.from)} &ndash; ${E(D.meta.period.to)}. Материалы со статусом «НЕТ» в отделе отсутствуют:
     это не идея на будущее, а дыра, через которую уходят конкретные возражения.</div>
-  <div class="scroll"><table><thead><tr><th>Материал</th><th>Статус</th><th class="num">Отправок</th>
-    <th>Когда давать</th><th>Зачем</th></tr></thead><tbody>
+  <div class="scroll"><table><thead><tr><th class="wrap">Материал</th><th>Статус</th><th class="num">Отправок</th>
+    <th class="wrap">Когда давать</th><th class="wrap">Зачем</th></tr></thead><tbody>
   ${D.magnets.map(g=>`<tr>
-    <td style="white-space:normal">${g.url?`<a href="${E(g.url)}" target="_blank">${E(g.name)}</a>`:E(g.name)}</td>
+    <td class="wrap">${g.url?`<a href="${E(g.url)}" target="_blank">${E(g.name)}</a>`:E(g.name)}</td>
     <td><span class="tag ${g.status==='НЕТ'||g.status==='почти НЕТ'?'bad':g.status.includes('разовое')?'warn':'ok'}">${E(g.status)}</span></td>
     <td class="num">${g.used}</td>
-    <td style="white-space:normal;max-width:280px">${E(g.when)}</td>
-    <td style="white-space:normal;max-width:380px">${E(g.why)}</td></tr>`).join('')}
+    <td class="wrap" style="max-width:300px">${E(g.when)}</td>
+    <td class="wrap" style="max-width:420px">${E(g.why)}</td></tr>`).join('')}
   </tbody></table></div>`;
+
+// Раскрытие строки светофора. Обработчик один на документ и переживает
+// перерисовку вкладок, как и сортировка ниже.
+document.addEventListener('click', e => {
+  const b = e.target.closest('button.exp');
+  if (!b) return;
+  const det = b.closest('tr') && b.closest('tr').nextElementSibling;
+  if (!det || !det.classList.contains('det')) return;
+  const on = det.classList.toggle('on');
+  b.setAttribute('aria-expanded', on ? 'true' : 'false');
+  b.innerHTML = on ? '&#9662;' : '&#9656;';
+});
 
 // Сортировка по клику на заголовок. Решение Ивана от 2026-08-08, вопрос 5: разборы
 // выкатываются всем десяти сразу, но читать их скопом нельзя, нужен вход по одному
@@ -414,12 +658,23 @@ document.addEventListener('click', e => {
     const n = parseFloat(c.dataset.v);
     return Number.isNaN(n) ? null : n;
   };
-  const rows = [...tb.rows];
+  // Раскрываемая строка едет за своей. Без этого первая же сортировка светофора
+  // перемешивает подробности с чужими фамилиями.
+  const det = new Map(), rows = [];
+  for (const r of [...tb.rows]) {
+    if (r.classList.contains('det')) { if (rows.length) det.set(rows[rows.length - 1], r); }
+    else rows.push(r);
+  }
+  // Текстовый ключ берётся из data-k, если он есть. Иначе значок раскрытия
+  // строки попадает в начало innerText, и раскрытая строка уезжает в конец
+  // алфавита.
+  const txt = r => { const c = r.cells[col];
+    return !c ? '' : (c.dataset.k !== undefined ? c.dataset.k : c.innerText); };
   const numeric = rows.every(r => val(r) !== null);
   rows.sort((a, b) => numeric
     ? (val(a) - val(b)) * dir
-    : (a.cells[col]?.innerText || '').localeCompare(b.cells[col]?.innerText || '', 'ru') * dir);
-  tb.append(...rows);
+    : txt(a).localeCompare(txt(b), 'ru') * dir);
+  for (const r of rows) { tb.append(r); const d = det.get(r); if (d) tb.append(d); }
 });
 document.addEventListener('mouseover', e => {
   const th = e.target.closest('thead th');

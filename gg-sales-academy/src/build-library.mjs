@@ -517,7 +517,8 @@ sec("kabinety", "Кабинеты и сводка", "Кабинеты и сво�
   "Личные разборы и сводка по отделу лежат на этом же сайте, каждый под своим паролем.",
   `<h3>Сводка отдела</h3>
   <p>Весь отдел сразу: светофор, нормативы, детализация заказов, скрипты и адреса кабинетов.
-  Открывается паролем РОПа, он не совпадает с паролем этой библиотеки.</p>
+  Пароль на портале один: введённый при входе, он открывает и сводку, и кабинеты,
+  повторно вводить его не нужно.</p>
   <p><a class="btn" href="rop-summary.html">Открыть сводку отдела</a></p>
   <p class="sm">Внутри сводки лежит таблица «кто под каким адресом». Она существует только там:
   адрес кабинета обезличен именно для того, чтобы этот список не лежал в открытом разделе.</p>
@@ -528,14 +529,15 @@ sec("kabinety", "Кабинеты и сводка", "Кабинеты и сво�
   <p class="sm">Ссылку выдаёт РОП. Своего адреса здесь нет и не будет: в открытом разделе
   список из десяти адресов с фамилиями означал бы, что обезличивание адреса не работает.</p>
 
-  <h3>Почему три двери, а не одна</h3>
+  <h3>Один пароль на весь портал</h3>
   <div class="card">
-  <p>Сайт один, но контуров три, и пароль у каждого свой. Библиотека без персональных данных,
-  кабинет с личным разбором, сводка со всеми сразу. Менеджер не видит данные коллеги не потому,
-  что ему запрещено, а потому что их нет в его файле.</p>
-  <p class="sm">Цена решения названа прямо: файлы лежат в публичном репозитории, пароль
-  кабинетов даёт 23,6 бита, и подбор офлайн занимает порядка двадцати минут на одной
-  видеокарте. Опубликованное не отзывается. Риск принят Иваном 08.08.2026.</p></div>`);
+  <p>Решение Ивана от 09.08.2026: пароль один на библиотеку, кабинеты и сводку.
+  Введённый один раз, он запоминается на вкладку и открывает остальные страницы сам.</p>
+  <p class="sm">Цена решения названа прямо: с единым паролем любой сотрудник отдела может
+  открыть сводку и кабинет коллеги. Разделение по людям с этого момента держится на
+  дисциплине раздачи ссылок, а не на паролях. Плюс прежнее: файлы лежат в публичном
+  репозитории, пароль даёт 23,6 бита, подбор офлайн занимает порядка двадцати минут
+  на одной видеокарте, опубликованное не отзывается.</p></div>`);
 
 sec("pravovaya", "Права и данные", "Ваши данные и ваши права",
   "Что собирается, на каком основании, сколько хранится и как это оспорить.",
@@ -663,7 +665,13 @@ section.on{display:block}
 /* Шапка полосы и её текст обязаны стоять на одной вертикали. По умолчанию
    шапка тянется на 1180, а текст ужат до 820 и центрирован, из-за чего номер
    полосы висит слева от собственного содержимого. */
-.band-head .in,.band .inner.narrow{max-width:868px}
+.band-head .in,.band .inner.narrow{max-width:960px}
+/* Личные разделы это таблицы и дашборды: им отдаётся вся ширина устройства
+   с зажимом на ультрашироких экранах. Проза при этом не расползается:
+   ширину абзаца держит max-width в ch. */
+section[data-personal] .band-head .in,section[data-personal] .inner.narrow,
+#kabinety .band-head .in,#kabinety .inner.narrow{max-width:min(100% - 16px,1560px)}
+section[data-personal] .sec-head,#kabinety .sec-head{max-width:min(100% - 16px,1560px)}
 .band-head h2{display:flex;align-items:center;gap:9px;min-width:0}
 .band-head h2 .ic{color:var(--acc)}
 .sec-head{max-width:868px;margin:0 auto}
@@ -883,7 +891,7 @@ ${NOGATE ? "" : `
   var gate=document.getElementById('gate'),app=document.getElementById('app');
   async function sha(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
     return [].map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,'0')}).join('')}
-  function open_(){gate.style.display='none';app.hidden=false;show(location.hash.slice(1)||'kak-chitat');ping()}
+  function open_(){gate.style.display='none';app.hidden=false;show(location.hash.slice(1)||'kabinety');ping()}
   // Один раз за сессию и только после входа: до пароля считать нечего.
   function ping(){
     if(!window.ACADEMY_BEACON||sessionStorage.getItem('academy_ping')==='1')return;
@@ -896,10 +904,19 @@ ${NOGATE ? "" : `
   if(!gate){show(location.hash.slice(1)||(document.querySelector('main section')||{}).id);ping()}
   else{
     if(sessionStorage.getItem('academy')==='1')open_();
+    else{
+      // Единый пароль портала: если человек уже входил на любой странице
+      // академии в этой вкладке, пароль лежит в sessionStorage и подходит сюда.
+      var pw0=null;try{pw0=sessionStorage.getItem('academy_pw')}catch(e){}
+      if(pw0)sha(pw0).then(function(h){if(h===window.ACADEMY_HASH){sessionStorage.setItem('academy','1');open_()}});
+    }
     document.getElementById('gf').addEventListener('submit',async function(e){
       e.preventDefault();
-      if(await sha(document.getElementById('gp').value)===window.ACADEMY_HASH){
-        sessionStorage.setItem('academy','1');open_();
+      var v=document.getElementById('gp').value;
+      if(await sha(v)===window.ACADEMY_HASH){
+        sessionStorage.setItem('academy','1');
+        try{sessionStorage.setItem('academy_pw',v)}catch(err){}
+        open_();
       } else {document.getElementById('ge').textContent='Неверный пароль'}
     });
     document.getElementById('out').addEventListener('click',function(e){

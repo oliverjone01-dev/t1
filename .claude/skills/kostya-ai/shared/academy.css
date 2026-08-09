@@ -227,3 +227,11 @@ h1,h3{display:flex;align-items:center;gap:10px}
   .screen .sband{margin:0 -14px;padding-left:14px;padding-right:14px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Скроллбары под дизайн: штатный белый ползунок на тёмном фоне читался как
+   дефект вёрстки. Тонкий, в цветах линий, дорожка прозрачная. */
+*{scrollbar-width:thin;scrollbar-color:#2a3a4a transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#233242;border-radius:6px;border:2px solid #06121a}
+::-webkit-scrollbar-thumb:hover{background:#2a3a4a}

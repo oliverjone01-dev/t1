@@ -753,12 +753,49 @@
     });
     return Promise.resolve();
   };
+  // Сколько правок лежит в ЭТОМ браузере. Режим ?store=local пишет только
+  // сюда, и человек, правивший документ в нём, на сервере ничего не увидит.
+  window.BLOCKEDIT_LOCAL_COUNT = function () {
+    try {
+      var raw = localStorage.getItem('liveedit:blocks:' + DOCKEY);
+      return raw ? (JSON.parse(raw) || []).length : 0;
+    } catch (e) { return 0; }
+  };
+
+  // Перенос правок из браузера на сервер. Читаем локальные строки тем же
+  // ключом (со старым форматом тоже), пишем на сервер уже с привязкой к слоту.
+  window.BLOCKEDIT_IMPORT_LOCAL = function () {
+    if (!unlocked) return Promise.reject(new Error('сначала войдите как редактор'));
+    if (store.local) return Promise.reject(new Error('страница и так открыта в локальном режиме'));
+    var local = window.LiveStore.blocks({ docKey: DOCKEY, storage: 'local' });
+    return local.list().then(function (rows) {
+      if (!rows.length) return { total: 0, ok: 0 };
+      return Promise.all(rows.map(function (r) {
+        return crypt.decrypt(r.payload, aad(r.block_id))
+          .catch(function () { return crypt.decrypt(r.payload); })
+          .then(function (html) {
+            patches[r.block_id] = html;
+            return crypt.encrypt(html, aad(r.block_id))
+              .then(function (p) { return store.put(r.block_id, p, r.author || author()); })
+              .then(function () { return true; });
+          })
+          .catch(function () { return false; });
+      })).then(function (res) {
+        var ok = res.filter(Boolean).length;
+        apply();
+        report();
+        return { total: rows.length, ok: ok };
+      });
+    });
+  };
+
   window.BLOCKEDIT_INFO = function () {
     // read-only: раньше здесь стоял apply(), а вызывают INFO часто
     return {
       total: roots().querySelectorAll('[data-le]').length,
       patched: Object.keys(patches).length, orphans: orphans(),
-      local: store.local, crypt: crypt.on, health: health, canWrite: unlocked
+      local: store.local, crypt: crypt.on, health: health, canWrite: unlocked,
+      docKey: DOCKEY, inThisBrowser: window.BLOCKEDIT_LOCAL_COUNT()
     };
   };
   // Выгрузка расшифрованной карты патчей и заголовков версий. Без неё текст

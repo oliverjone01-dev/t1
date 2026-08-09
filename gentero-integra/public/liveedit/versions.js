@@ -186,7 +186,9 @@
       '<button type="button" class="ver-primary" id="ver-save">Сохранить версию</button></div>' +
       '<div class="ver-list" id="ver-list"></div>' +
       '<div class="ver-tools"><button type="button" class="ver-mini" id="ver-export">Выгрузить копию</button>' +
-      '<button type="button" class="ver-mini" id="ver-login" hidden>Войти, чтобы сохранять</button></div>' +
+      '<button type="button" class="ver-mini" id="ver-login" hidden>Войти, чтобы сохранять</button>' +
+      '<button type="button" class="ver-mini" id="ver-import" hidden>Забрать правки из этого браузера</button>' +
+      '<p class="ver-diag" id="ver-diag"></p></div>' +
       '<div class="ver-f" id="ver-f" role="status" aria-live="polite" aria-atomic="true"></div>';
     document.body.appendChild(panel);
     list = panel.querySelector('#ver-list');
@@ -210,6 +212,14 @@
       i.value = '';
     });
     panel.querySelector('#ver-export').addEventListener('click', exportAll);
+    panel.querySelector('#ver-import').addEventListener('click', function () {
+      if (!window.BLOCKEDIT_IMPORT_LOCAL) return;
+      note('переношу...');
+      window.BLOCKEDIT_IMPORT_LOCAL().then(function (r) {
+        note('перенесено на сервер: ' + r.ok + ' из ' + r.total);
+        paintAuth();
+      }).catch(function (e) { note('перенести не вышло: ' + e.message, true); });
+    });
     panel.querySelector('#ver-login').addEventListener('click', function () {
       if (!window.LiveAuth) return;
       window.LiveAuth.prompt({ server: true }).then(function (ok) {
@@ -236,6 +246,20 @@
     if (b) b.hidden = !need;
     var s = panel.querySelector('#ver-save');
     if (s) s.disabled = need;
+
+    // Диагностика простыми словами. Правки, сделанные в режиме ?store=local,
+    // лежат в браузере и на сервере не появляются, а понять это по экрану
+    // было невозможно.
+    var d = panel.querySelector('#ver-diag');
+    var imp = panel.querySelector('#ver-import');
+    if (!d || !window.BLOCKEDIT_INFO) return;
+    var i = window.BLOCKEDIT_INFO();
+    var parts = ['документ: ' + i.docKey];
+    parts.push(i.local ? 'режим: только этот браузер' : 'режим: сервер');
+    parts.push('правок применено: ' + i.patched);
+    if (i.inThisBrowser) parts.push('правок лежит в этом браузере: ' + i.inThisBrowser);
+    d.textContent = parts.join(' · ');
+    if (imp) imp.hidden = !(i.inThisBrowser && !i.local && !need);
   }
 
   function toggle(force) {
@@ -436,6 +460,7 @@
       '.ver-ul{list-style:none;margin:0;padding:0}',
       '.ver-t{font:800 16px/1.2 inherit;margin:0;color:var(--ink,#F3F2EF)}',
       '.ver-tools{padding:0 20px 14px}',
+      '.ver-diag{color:var(--ink2,#B4B6B8);font-size:11.5px;line-height:1.5;margin:10px 0 0}',
       '.ver-mini{margin:8px 0 0;background:var(--card2,#26282E);border:1px solid var(--le-edge,#6A6E78);color:var(--ink,#F3F2EF);border-radius:999px;padding:8px 14px;font:600 12px/1 inherit;cursor:pointer}',
       '.ver-mini:hover{border-color:var(--le-ring,#E3BD72)}',
       '.ver-tag-pv{background:var(--le-ok,#6BBF7B)}',

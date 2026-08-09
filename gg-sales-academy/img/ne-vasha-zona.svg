@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Слева связная группа узлов, справа тусклая несвязная, границу пересекает ровно один канал">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <!-- Наша зона: узлы связаны -->
+  <g fill="none" stroke="#22D3EE" stroke-width="3">
+    <path d="M280 240L470 200M280 240L400 380M470 200L600 320M400 380L600 320M400 380L520 456"/>
+  </g>
+  <g fill="#06121a" stroke="#22D3EE" stroke-width="3">
+    <circle cx="280" cy="240" r="26"/><circle cx="470" cy="200" r="26"/><circle cx="400" cy="380" r="26"/>
+    <circle cx="600" cy="320" r="26"/><circle cx="520" cy="456" r="26"/>
+  </g>
+  <!-- Граница внутри безопасного поля: вёрстка её не подрежет -->
+  <path d="M800 150V300" stroke="#233242" stroke-width="3" stroke-dasharray="12 10" stroke-linecap="round"/>
+  <path d="M800 380V490" stroke="#233242" stroke-width="3" stroke-dasharray="12 10" stroke-linecap="round"/>
+  <!-- Единственный проход и единственный канал через него -->
+  <g fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round">
+    <path d="M776 300H800"/><path d="M776 380H800"/>
+  </g>
+  <path d="M620 340H980" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" marker-end="url(#a)"/>
+  <!-- Не наша зона: тот же состав, связей мы не видим -->
+  <g fill="#06121a" stroke="#233242" stroke-width="3">
+    <circle cx="1030" cy="230" r="26"/><circle cx="1220" cy="190" r="26"/><circle cx="1150" cy="380" r="26"/>
+    <circle cx="1350" cy="310" r="26"/><circle cx="1270" cy="466" r="26"/>
+  </g>
+</svg>

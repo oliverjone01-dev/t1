@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img"
+     aria-label="Длинная пауза с контрольными точками, внимание держится точками, а не непрерывностью">
+  <defs>
+    <pattern id="g2" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g2)"/>
+
+  <!-- Разрежение задано формой, а не прозрачностью: шаг штриха растёт слева
+       направо. Затухание прозрачностью движок распространил бы и на точки,
+       и картинка сказала бы «сделка гаснет, это норма». -->
+  <g fill="none" stroke="#233242" stroke-width="3" stroke-linecap="round">
+    <path d="M200 320H480" stroke-dasharray="26 14"/>
+    <path d="M480 320H760" stroke-dasharray="20 26"/>
+    <path d="M760 320H1040" stroke-dasharray="14 40"/>
+    <path d="M1040 320H1320" stroke-dasharray="10 56"/>
+  </g>
+
+  <!-- Контрольные точки держат полную яркость: внимание не гаснет вместе с паузой -->
+  <g fill="#06121a" stroke="#22D3EE" stroke-width="3">
+    <rect x="180" y="300" width="40" height="40" rx="6"/>
+    <rect x="460" y="300" width="40" height="40" rx="6"/>
+    <rect x="740" y="300" width="40" height="40" rx="6"/>
+    <rect x="1020" y="300" width="40" height="40" rx="6"/>
+  </g>
+  <!-- Выход из паузы: сделка доходит до нормы -->
+  <circle cx="1360" cy="320" r="34" fill="#06121a" stroke="#34D399" stroke-width="5"/>
+</svg>

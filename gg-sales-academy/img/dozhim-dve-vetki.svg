@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Из общего узла расходятся две дорожки касаний: сверху ровный ритм, снизу редеющий">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <circle cx="220" cy="320" r="44" fill="#06121a" stroke="#22D3EE" stroke-width="5"/>
+  <g fill="none" stroke="#22D3EE" stroke-width="3" stroke-linecap="round">
+    <path d="M264 296C360 232 420 212 520 212"/>
+    <path d="M264 344C360 408 420 428 520 428"/>
+  </g>
+  <!-- Ветка А: касания через равные промежутки -->
+  <path d="M520 212H1240" fill="none" stroke="#233242" stroke-width="3"/>
+  <g stroke="#22D3EE" stroke-width="5" stroke-linecap="round">
+    <path d="M560 176V248"/><path d="M720 176V248"/><path d="M880 176V248"/><path d="M1040 176V248"/>
+  </g>
+  <!-- Ветка Б: промежутки растут, ритм редеет -->
+  <path d="M520 428H1240" fill="none" stroke="#233242" stroke-width="3"/>
+  <g stroke="#22D3EE" stroke-width="5" stroke-linecap="round">
+    <path d="M560 392V464"/><path d="M660 392V464"/><path d="M840 392V464"/><path d="M1120 392V464"/>
+  </g>
+  <!-- Обе дорожки доходят до результата -->
+  <circle cx="1300" cy="212" r="40" fill="#06121a" stroke="#34D399" stroke-width="5"/>
+  <circle cx="1300" cy="428" r="40" fill="#06121a" stroke="#34D399" stroke-width="5"/>
+</svg>

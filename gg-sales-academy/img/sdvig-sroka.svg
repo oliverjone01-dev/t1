@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Три метки на оси: предупреждение стоит левее исходной и новой даты и дугой связано с новой">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <path d="M160 380H1440" fill="none" stroke="#233242" stroke-width="3" stroke-linecap="round"/>
+  <!-- Предупреждение: левее обеих дат и выше их -->
+  <path d="M420 190V420" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M420 140L462 212H378Z" fill="#06121a" stroke="#f59e0b" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Исходный срок: бледный -->
+  <path d="M840 312V420" stroke="#233242" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="840" cy="288" r="22" fill="#06121a" stroke="#233242" stroke-width="3"/>
+  <!-- Новый срок -->
+  <path d="M1240 312V420" stroke="#E05A50" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="1240" cy="288" r="26" fill="#06121a" stroke="#E05A50" stroke-width="3"/>
+  <!-- Предупреждение адресовано новому сроку -->
+  <path d="M420 232C700 128 1020 150 1230 258" fill="none" stroke="#f59e0b" stroke-width="3"
+        stroke-dasharray="12 10" stroke-linecap="round" marker-end="url(#a)"/>
+</svg>

@@ -65,11 +65,11 @@ function situ(id) {
   const s = (SITU.situations || []).find((x) => x.id === id);
   if (!s) throw new Error(`Нет ситуации ${id} в situations.json`);
   return `<figure class="situ" id="situ-${s.id}">
-  <img src="img/${s.id}.webp" alt="${esc(s.alt)}" loading="lazy"
-       onload="this.closest('.situ').classList.add('has-img')">
+  <img src="img/${s.id}.svg" alt="${esc(s.alt)}"
+       onerror="var f=this.closest('.situ');if(!this.dataset.f){this.dataset.f=1;this.src='img/${s.id}.webp'}else{f.classList.add('no-img')}">
   <div class="ph">
     <div class="ph-h">${ic("picture")}<b>${esc(s.title)}</b><span class="tag">картинки ещё нет</span></div>
-    <div class="ph-f">Положить файл: <code>gg-sales-academy/img/${s.id}.webp</code>, 1600x640, до 200 КБ. Появится здесь сам.</div>
+    <div class="ph-f">Положить файл: <code>gg-sales-academy/img/${s.id}.svg</code> или <code>.webp</code>, 1600x640. Появится здесь сам.</div>
     <div class="ex" data-copy>${esc(situPrompt(s))}</div>
   </div>
   <figcaption>${esc(s.title)}</figcaption>
@@ -644,9 +644,14 @@ section.on{display:block}
    экран: внутри промт, который копируется одной кнопкой. */
 .situ{margin:0 0 var(--s4);border:1px solid var(--line);border-radius:var(--r);
   background:var(--panel);overflow:hidden}
-.situ img{display:none;width:100%;height:auto;aspect-ratio:2.5/1;object-fit:cover}
-.situ.has-img img{display:block}
-.situ.has-img .ph{display:none}
+/* Показываем картинку, а рамку с промтом достаём только при ошибке загрузки.
+   Обратный порядок («ждём onload») не работал: figure лежит в скрытом разделе,
+   отложенная загрузка там не стартует, событие не приходит, и картинка не
+   появлялась даже там, где файл есть. */
+.situ img{display:block;width:100%;height:auto;aspect-ratio:2.5/1;object-fit:cover}
+.situ .ph{display:none}
+.situ.no-img img{display:none}
+.situ.no-img .ph{display:block}
 .ph{padding:var(--s4) var(--s5) var(--s5);
   background:repeating-linear-gradient(135deg,transparent 0 9px,rgba(35,50,66,.5) 9px 10px)}
 .ph-h{display:flex;align-items:center;gap:10px;font-size:calc(var(--fs) - 1px);flex-wrap:wrap}
@@ -655,9 +660,9 @@ section.on{display:block}
 .ph-f code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;
   padding:1px 6px;font-size:12.5px;color:var(--tx)}
 .ph .q{max-width:none;margin-top:var(--s3);font-size:13px;line-height:1.6;background:var(--panel)}
-.situ figcaption{display:none}
-.situ.has-img figcaption{display:block;padding:var(--s3) var(--s5);
+.situ figcaption{display:block;padding:var(--s3) var(--s5);
   border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+.situ.no-img figcaption{display:none}
 
 .norm{border-left:3px solid var(--ok);background:var(--panel2);padding:var(--s3) var(--s4);
   border-radius:0 var(--r) var(--r) 0;margin:0 0 var(--s3)}

@@ -133,12 +133,17 @@ jobs:
           # случае показывают рамку с промтом и не ломаются, поэтому пустая папка это
           # штатное состояние, а не ошибка сборки.
           mkdir -p _site/academy/img
+          # Иллюстрации нарисованы кодом (SVG): точная палитра сайта, вес 2 КБ вместо
+          # 200, правка строкой вместо новой партии генераций. Решение Ивана 09.08.2026
+          # по вердикту ФЕНИКСА G29. Растровые webp поддерживаются на случай, если
+          # какую-то картинку всё же будут генерировать.
+          if compgen -G "gg-sales-academy/img/*.svg" > /dev/null; then
+            cp gg-sales-academy/img/*.svg _site/academy/img/
+          fi
           if compgen -G "gg-sales-academy/img/*.webp" > /dev/null; then
             cp gg-sales-academy/img/*.webp _site/academy/img/
-            echo "Academy: картинок $(ls gg-sales-academy/img/*.webp | wc -l)"
-          else
-            echo "Academy: картинок пока нет, на страницах стоят рамки с промтами"
           fi
+          echo "Academy: картинок $(ls _site/academy/img/ 2>/dev/null | wc -l)"
           for f in _site/academy/k-*.html _site/academy/rop-summary.html; do
             if grep -qE "$ROSTER" "$f"; then
               echo "::error::$f не запечатан: в нём видна фамилия из ростера. Публикация остановлена."; exit 1

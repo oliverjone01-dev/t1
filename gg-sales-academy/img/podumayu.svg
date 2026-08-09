@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Линия разговора уходит в паузу и разделяется: одна ветка гаснет, вторая доходит до назначенной точки">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <!-- Разговор шёл -->
+  <path d="M180 320H620" fill="none" stroke="#22D3EE" stroke-width="5" stroke-linecap="round"/>
+  <!-- Пауза -->
+  <path d="M620 320H820" fill="none" stroke="#233242" stroke-width="3" stroke-dasharray="12 10" stroke-linecap="round"/>
+  <!-- Без назначенной точки ветка гаснет: штрих редеет и обрывается ничем -->
+  <g fill="none" stroke="#233242" stroke-width="3" stroke-linecap="round">
+    <path d="M820 320C900 320 940 232 1010 232"/>
+    <path d="M1010 232H1140" stroke-dasharray="14 34"/>
+    <path d="M1140 232H1260" stroke-dasharray="8 60"/>
+  </g>
+  <!-- С назначенной точкой ветка доходит до возврата -->
+  <path d="M820 320C900 320 940 424 1010 424H1300" fill="none" stroke="#22D3EE" stroke-width="5" stroke-linecap="round"/>
+  <path d="M1300 356V492" stroke="#34D399" stroke-width="5" stroke-linecap="round"/>
+  <path d="M1300 300L1334 334L1300 368L1266 334Z" fill="#06121a" stroke="#34D399" stroke-width="3" stroke-linejoin="round"/>
+</svg>

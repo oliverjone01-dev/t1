@@ -69,9 +69,14 @@ for pat in "${PATTERNS[@]}"; do
   fi
 done
 
-# Em dash check (single character - different rule)
-if printf '%s' "$CONTENT" | grep -q '-'; then
-  HITS+=("em dash '-'")
+# Em dash check (single character, separate rule).
+# ВНИМАНИЕ: здесь обязан стоять настоящий U+2014, а не ASCII-дефис. До 09.08.2026
+# в шаблоне стоял дефис, поэтому проверка срабатывала на любом тексте с дефисом,
+# то есть всегда, и не несла сигнала. Настоящий em dash при этом проходил
+# незамеченным среди постоянных ложных тревог: гейт CLAUDE.md §7 был мёртв.
+# Нашёл ФЕНИКС при аудите промтов. Правя эту строку, проверяй байты: printf '%s' | xxd.
+if printf '%s' "$CONTENT" | grep -q '—'; then
+  HITS+=("em dash '—'")
 fi
 
 if [ "${#HITS[@]}" -eq 0 ]; then

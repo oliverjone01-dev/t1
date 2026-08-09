@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Пучок линий проходит три сужающихся створа, после каждого линий меньше, наружу выходит одна">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <!-- Входит шесть -->
+  <g fill="none" stroke="#233242" stroke-width="3" stroke-linecap="round">
+    <path d="M150 176H360"/><path d="M150 234H360"/><path d="M150 292H360"/>
+    <path d="M150 350H360"/><path d="M150 408H360"/><path d="M150 466H360"/>
+  </g>
+  <!-- Створ 1 -->
+  <g stroke="#22D3EE" stroke-width="5" stroke-linecap="round">
+    <path d="M420 140V250"/><path d="M420 392V502"/>
+  </g>
+  <g fill="none" stroke="#22D3EE" stroke-width="3" stroke-linecap="round">
+    <path d="M420 268H700"/><path d="M420 306H700"/><path d="M420 344H700"/><path d="M420 382H700"/>
+  </g>
+  <!-- Створ 2 -->
+  <g stroke="#22D3EE" stroke-width="5" stroke-linecap="round">
+    <path d="M760 176V286"/><path d="M760 364V474"/>
+  </g>
+  <g fill="none" stroke="#22D3EE" stroke-width="3" stroke-linecap="round">
+    <path d="M760 302H1040"/><path d="M760 348H1040"/>
+  </g>
+  <!-- Створ 3 -->
+  <g stroke="#22D3EE" stroke-width="5" stroke-linecap="round">
+    <path d="M1100 212V300"/><path d="M1100 350V438"/>
+  </g>
+  <path d="M1100 325H1360" fill="none" stroke="#34D399" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="1400" cy="325" r="34" fill="#06121a" stroke="#34D399" stroke-width="5"/>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 640" width="1600" height="640" role="img" aria-label="Одна линия входит в развилку и расходится на три равные ветки с разными маркерами">
+  <defs>
+    <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0v40" fill="none" stroke="#233242" stroke-width="1" opacity=".1"/>
+    </pattern>
+    <marker id="a" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M1 1L10 6L1 11" fill="none" stroke="#22D3EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1600" height="640" fill="#06121a"/>
+  <rect width="1600" height="640" fill="url(#g)"/>
+
+  <!-- Один вход: слово клиента одно -->
+  <path d="M180 320H500" fill="none" stroke="#22D3EE" stroke-width="5" stroke-linecap="round"/>
+  <!-- Развилка: сначала диагноз, потом ответ -->
+  <path d="M560 320L500 272L440 320L500 368Z" fill="#06121a" stroke="#22D3EE" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Три ветки: длина, угол, толщина и цвет одинаковые. Отличается только форма конца -->
+  <g fill="none" stroke="#22D3EE" stroke-width="3" stroke-linecap="round">
+    <path d="M560 320H700L860 180H1200"/>
+    <path d="M560 320H1200"/>
+    <path d="M560 320H700L860 460H1200"/>
+  </g>
+  <g fill="#06121a" stroke="#22D3EE" stroke-width="3">
+    <circle cx="1270" cy="180" r="42"/>
+    <rect x="1228" y="278" width="84" height="84" rx="8"/>
+    <path d="M1270 418L1316 500H1224Z" stroke-linejoin="round"/>
+  </g>
+</svg>

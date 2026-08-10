@@ -540,10 +540,13 @@ def build_deal_index(msgs_path):
     return out
 
 
-def main(analysis_path, msgs_path, out_path, kostya_path=None):
+def main(analysis_path, msgs_path, out_path, kostya_path=None, registry_path=None):
     A = json.load(open(analysis_path, encoding="utf-8"))
     deals = build_deal_index(msgs_path)
     K = json.load(open(kostya_path, encoding="utf-8")) if kostya_path else None
+    # Реестр замечаний с доказательствами (dialogs-registry.py). Необязателен:
+    # без файла вкладка «Реестр» не рендерится, заглушек не бывает.
+    R = json.load(open(registry_path, encoding="utf-8")) if registry_path else None
 
     mgr_deals = defaultdict(list)
     for did, d in deals.items():
@@ -584,6 +587,7 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None):
         "cabinets": {m["mgr"]: "k-" + hashlib.sha1(name_key(m["mgr"]).encode("utf-8")).hexdigest()[:10] + ".html"
                      for m in mgrs},
         "scripts": SALES_SCRIPTS, "followups": FOLLOWUPS, "magnets": MAGNETS,
+        "registry": R,
         # Иконки едут данными, а не разметкой: набор один на библиотеку, кабинеты
         # и сводку, и лежит он в shared/icons.json. Копия внутри шаблона разошлась
         # бы с остальными молча.
@@ -606,4 +610,4 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:5])
+    main(*[a for a in sys.argv[1:] if not a.startswith("--")][:5])

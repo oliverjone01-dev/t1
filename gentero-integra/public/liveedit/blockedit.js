@@ -31,6 +31,12 @@
   var CODE = CFG.code || '';
   var ROOT_SEL = CFG.root || '#doc';
   var UI = CFG.ui !== false;      // зритель документа панелей не видит вообще
+  // Режим показа. Панелей нет и в обычном режиме зрителя, но там остаётся
+  // диагностика на случай, когда на экране НЕ тот текст. Во время показа на
+  // большом экране красная полоса поперёк слайда дороже любой диагностики:
+  // человек в зале по ней ничего сделать не может, а вопрос задаст вслух.
+  // Здесь модуль молчит совсем и пишет только в консоль.
+  var SHOW = CFG.show === true || /[?&]show=1(&|$)/.test(location.search);
 
   // Один недогруженный файл не должен убивать модуль без единого слова.
   if (!window.LiveCrypt || !window.LiveStore) {
@@ -223,7 +229,7 @@
   function aad(id) { return DOCKEY + '|' + id; }
 
   var SEEN = 'liveedit:seen:' + DOCKEY;
-  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false, legacy: 0 };
+  var health = { ok: false, err: null, rows: 0, bad: 0, write: 0, cut: false, late: false, legacy: 0, applied: 0 };
   var legacyIds = [];      // патчи, записанные до привязки шифра к слоту
   var unread = [];         // строки, не открывшиеся текущим ключом
   var altCrypts = [];      // ключи прошлых сборок
@@ -272,7 +278,7 @@
         report();
         return;
       }
-      apply();
+      health.applied = apply().applied;
       paint();
       report();
       migrate();
@@ -334,7 +340,7 @@
     if (!unread.length || !altCrypts.length) return Promise.resolve(0);
     var todo = unread.slice();
     return Promise.all(todo.map(tryAlt)).then(function () {
-      apply();
+      health.applied = apply().applied;
       report();
       migrate();
       var got = todo.length - unread.length;
@@ -400,15 +406,18 @@
       else if (UI || seen()) bad.push('правки не загрузились: ' + health.err + '. На экране шаблонный текст');
     }
     else if (UI && health.bad) bad.push(health.bad + ' из ' + health.rows + ' правок не открылись этим ключом');
-    if (o) bad.push('правок без блока: ' + o + ' (текст в шаблоне переписан, правка осталась в базе)');
-    if (!bad.length) { if (noteEl) { noteEl.remove(); noteEl = null; } return; }
-    if (!noteEl) {
-      noteEl = document.createElement('div');
-      noteEl.className = 'le-warn le-ui';
-      noteEl.setAttribute('role', 'status');
-      noteEl.setAttribute('aria-live', 'polite');
-      document.body.appendChild(noteEl);
+    // Только редактору: сирота означает, что на экране лежит текст из шаблона,
+    // то есть базовая редакция. Зритель по этой строке не может ничего, кроме
+    // как встревожиться.
+    if (UI && o) bad.push('правки не встали на место: ' + o +
+      '. Откройте историю версий и перенесите их вручную');
+    if (SHOW) {
+      if (bad.length) console.warn('liveedit: ' + bad.join('. '));
+      if (noteEl) { noteEl.hidden = true; warnHeight(); }
+      return;
     }
+    if (!bad.length) { if (noteEl) { noteEl.hidden = true; warnHeight(); } return; }
+    noteEl = warnBox();
     // textContent, а не innerHTML: сюда попадает тело ответа сервера, а этот
     // же модуль в двух шагах выше объявляет, что содержимому базы не доверяет
     noteEl.textContent = '';
@@ -419,9 +428,37 @@
     bt.className = 'le-b';
     bt.textContent = 'Скрыть';
     bt.setAttribute('aria-label', 'Скрыть предупреждение');
-    bt.onclick = function () { noteEl.remove(); noteEl = null; };
+    bt.onclick = function () { noteEl.hidden = true; warnHeight(); };
     noteEl.appendChild(sp);
     noteEl.appendChild(bt);
+    noteEl.hidden = false;
+    warnHeight();
+  }
+
+  // Живая область обязана существовать в дереве доступности ДО того, как в
+  // ней появится текст: иначе экранный диктор не объявит появление, потому
+  // что для него область и сообщение возникли одновременно.
+  var warnEl = null;
+  function warnBox() {
+    if (warnEl) return warnEl;
+    warnEl = document.createElement('div');
+    warnEl.className = 'le-warn le-ui';
+    warnEl.setAttribute('role', 'status');
+    warnEl.setAttribute('aria-live', 'polite');
+    warnEl.hidden = true;
+    (document.body || document.documentElement).appendChild(warnEl);
+    addEventListener('resize', warnHeight);
+    return warnEl;
+  }
+
+  // Высота плашки уезжает в переменную страницы. По ней панель версий и
+  // панель правки блока отступают сверху: пока плашка просто висела поверх
+  // всего с самым большим z-index, она закрывала шапку панели вместе с
+  // крестиком, и панель нельзя было закрыть мышью вообще.
+  function warnHeight() {
+    var h = (warnEl && !warnEl.hidden) ? warnEl.getBoundingClientRect().height : 0;
+    document.documentElement.style.setProperty('--le-warn-h', Math.round(h) + 'px');
+    if (barEl && barEl.__place) barEl.__place();
   }
 
   /* ---------- правка ---------- */
@@ -439,6 +476,10 @@
     beforeEdit = el.innerHTML;
     el.setAttribute('contenteditable', 'true');
     el.setAttribute('aria-describedby', 'le-hint');
+    // Пока блок правится, он поле ввода, а не кнопка. Роль «button» на
+    // contenteditable заставляет диктор молчать о том, что текст можно набирать.
+    el.setAttribute('role', 'textbox');
+    el.setAttribute('aria-label', 'Текст блока');
     el.classList.add('le-active');
     el.focus();
     // При входе с клавиатуры элемент уже был в фокусе, и caret в него не
@@ -462,9 +503,16 @@
     var el = active, id = el.getAttribute('data-le');
     el.removeAttribute('contenteditable');
     el.removeAttribute('aria-describedby');
+    el.removeAttribute('role');
     el.classList.remove('le-active');
+    if (editing) el.setAttribute('aria-label', 'Править блок');
     active = null;
+    // Фокус возвращается на сам блок ДО удаления панели: нажатие кнопки
+    // убивало элемент, на котором стоял фокус, и он падал в body, откуда Tab
+    // начинал обход страницы заново.
+    var inBar = barEl && barEl.contains(document.activeElement);
     killBar();
+    if (inBar && el.isConnected) { try { el.focus(); } catch (e) { } }
     if (!commit) { el.innerHTML = beforeEdit; return; }
     var html = clean(el.innerHTML);
     if (html === clean(beforeEdit)) return;
@@ -480,13 +528,18 @@
     killBar();
     var b = document.createElement('div');
     b.className = 'le-bar le-ui';
-    b.setAttribute('role', 'toolbar');
+    b.setAttribute('role', 'group');
     b.setAttribute('aria-label', 'Правка блока');
     b.innerHTML = '<button type="button" class="le-b le-b-main" data-a="ok">Сохранить</button>' +
       '<button type="button" class="le-b" data-a="no">Отмена</button>' +
-      '<button type="button" class="le-b" data-a="rs">Шаблон</button>' +
+      // Существительное «Шаблон» не говорило, что кнопка делает, а делает она
+      // безвозвратное: удаляет правку с сервера. Теперь глагол и подтверждение.
+      '<button type="button" class="le-b le-b-bad" data-a="rs">Убрать правку</button>' +
       '<span class="le-hint" id="le-hint">Ctrl+Enter сохранить, Esc отменить</span>';
-    document.body.appendChild(b);
+    // Панель встаёт сразу после правимого блока, а не в конец body: иначе Tab
+    // из блока уходил гулять по всей странице и до кнопок не доходил вовсе.
+    if (el.parentNode) el.parentNode.insertBefore(b, el.nextSibling);
+    else document.body.appendChild(b);
     barEl = b;
     place();
     // мышью кнопки не забирают фокус у правимого блока, но с клавиатуры
@@ -497,11 +550,24 @@
       if (!a) return;
       if (a === 'ok') stopEdit(true);
       else if (a === 'no') stopEdit(false);
-      else if (a === 'rs') { var e2 = active, id = e2.getAttribute('data-le'); stopEdit(false); reset(id, e2); }
+      else if (a === 'rs') {
+        if (!confirm('Убрать правку и вернуть текст из шаблона?\n' +
+          'Правка удалится с сервера. Достать её потом можно будет только откатом к версии.')) return;
+        var e2 = active, id = e2.getAttribute('data-le'); stopEdit(false); reset(id, e2);
+      }
     });
     function place() {
       var r = el.getBoundingClientRect();
-      b.style.top = Math.max(8, r.top - 44) + 'px';
+      // Верхняя граница считается от нижнего края плашки состояния. Иначе у
+      // блока в начале страницы панель прижималась к top:8 и оказывалась под
+      // плашкой: кнопки «Сохранить», «Отмена» и «Шаблон» переставали
+      // нажиматься мышью вовсе.
+      // Проект объявляет --le-safe-top высотой своей фиксированной шапки.
+      // Без этого панель правки для блока в начале страницы уезжала под
+      // шапку хоста, и её кнопки переставали нажиматься мышью.
+      var top = parseInt(getComputedStyle(document.documentElement)
+        .getPropertyValue('--le-safe-top'), 10) || 8;
+      b.style.top = Math.max(top, r.top - 44) + 'px';
       b.style.left = Math.max(8, Math.min(r.left, innerWidth - 340)) + 'px';
     }
     b.__place = place;
@@ -522,11 +588,16 @@
       '<button type="button" class="le-btn" id="le-toggle" aria-pressed="false">' +
       '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 6l4 4" stroke="currentColor" stroke-width="1.6"/></svg>' +
       '<span>Правка</span><i class="le-dot" id="le-dot" aria-hidden="true"></i>' +
-      '<span class="le-sr" id="le-state"></span></button>');
+      '</button><span class="le-sr" id="le-state"></span>');
     dot = tb.querySelector('#le-dot');
     msg = tb.querySelector('#le-msg');
     state = tb.querySelector('#le-state');
-    tb.querySelector('#le-toggle').addEventListener('click', toggle);
+    // Состояние вынесено из кнопки наружу и подключено описанием: внутри
+    // кнопки оно попадало в её имя, и диктор читал «Правка сохранение только
+    // в этот браузер, без шифрования» вместо «Правка».
+    var tg = tb.querySelector('#le-toggle');
+    tg.setAttribute('aria-describedby', 'le-state');
+    tg.addEventListener('click', toggle);
   }
 
   function flash(t, bad) {
@@ -569,8 +640,20 @@
   // клавиатуры, а не только мышью.
   function reach() {
     scan().forEach(function (el) {
-      if (editing) el.setAttribute('tabindex', '0');
-      else el.removeAttribute('tabindex');
+      if (editing) {
+        el.setAttribute('tabindex', '0');
+        // Без имени и роли диктор читает обычный абзац и молчит о том, что по
+        // нему можно нажать. Роль ставим только на время режима правки: в
+        // режиме показа абзац обязан остаться абзацем.
+        if (el !== active) {
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', 'Править блок');
+        }
+      } else {
+        el.removeAttribute('tabindex');
+        el.removeAttribute('role');
+        el.removeAttribute('aria-label');
+      }
     });
   }
 
@@ -654,7 +737,8 @@
     s.textContent = [
       /* ---------- нижний тулбар ---------- */
 
-      '.le-tb{position:fixed;right:16px;bottom:16px;z-index:9400;display:flex;align-items:center;gap:8px;',
+      '.le-tb{position:fixed;right:16px;bottom:calc(16px + var(--le-warn-h,0px));z-index:9400;',
+      'display:flex;align-items:center;gap:8px;',
       'font-family:inherit;transition:right .3s var(--le-ease)}',
       // Тулбар крупнее прочих кнопок модуля: это единственное, что видно на
       // странице до открытия панели, и попадать в него надо не целясь.
@@ -699,7 +783,8 @@
       /* ---------- вход редактора ---------- */
 
       '.le-ov{position:fixed;inset:0;z-index:9800;background:rgba(6,6,8,.72);backdrop-filter:blur(6px);',
-      'display:grid;place-items:center;padding:20px;font-family:inherit}',
+      'display:grid;align-items:start;justify-items:center;overflow:auto;padding:20px;font-family:inherit}',
+      '.le-ov>*{margin:auto 0}',
       '.le-modal{background:var(--le-surface);border:1px solid var(--le-line);border-radius:18px;',
       'padding:24px;width:390px;max-width:100%;box-shadow:var(--le-shadow)}',
       '.le-modal h2{font-family:inherit;font-size:18px;font-weight:700;line-height:1.25;color:var(--le-text);margin:0 0 8px}',
@@ -714,8 +799,8 @@
 
       // Её видит и зритель, поэтому она поперёк страницы и не зависит от
       // палитры модуля: сообщение о поломке обязано читаться на любой теме.
-      '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;align-items:center;',
-      'justify-content:center;flex-wrap:wrap;background:#A8351C;color:#fff;font-family:inherit;',
+      '.le-warn{position:fixed;bottom:0;left:0;right:0;z-index:9450;padding-bottom:calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:12px;align-items:center;',
+      'justify-content:center;flex-wrap:wrap;background:var(--le-alarm,#A8351C);color:var(--le-alarm-ink,#fff);font-family:inherit;',
       'font-size:13px;font-weight:600;line-height:1.4;padding:10px 16px;text-align:center}',
       '.le-warn .le-b{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.5);color:#fff}',
       '.le-warn .le-b:hover{border-color:#fff}',
@@ -724,10 +809,10 @@
       '.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}',
       '.le-warn .le-b{display:none}[data-le].le-active{outline:none}',
       '.le-on [data-le-patched]{box-shadow:none}}',
-      '@media(max-width:620px){.le-tb{right:10px;bottom:calc(10px + env(safe-area-inset-bottom))}',
+      '@media(max-width:620px){.le-tb{right:10px;bottom:calc(10px + var(--le-warn-h,0px) + env(safe-area-inset-bottom))}',
       '.le-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);',
       'white-space:nowrap;padding:0}}',
-      '@media (prefers-reduced-motion:reduce){.le-btn,.le-msg,[data-le]{transition:none!important}',
+      '@media (prefers-reduced-motion:reduce){.le-tb,.le-btn,.le-msg,[data-le]{transition:none!important}',
       '.le-btn:hover{transform:none!important}}'
     ].join('');
     document.head.appendChild(s);
@@ -737,13 +822,16 @@
 
   window.BLOCKEDIT_REFRESH = function () {
     if (!loaded) return;
+    // report() в конце обязателен: сироты фильтруются по data-doc корня, а
+    // вкладка его переписывает. Без пересчёта плашка описывала документ,
+    // которого на экране уже нет, числом из прошлой вкладки.
     // Документ перерисован (переключили вкладку). Просмотр старой версии к
     // новому DOM отношения не имеет: оставить баннер значило бы показывать
     // чистый шаблон под обещанием старой версии.
     if (window.VERSIONS_PREVIEWING && window.VERSIONS_PREVIEWING() && window.VERSIONS_EXITPREVIEW) {
       window.VERSIONS_EXITPREVIEW();
     }
-    apply();
+    health.applied = apply().applied;
     reach();          // после смены DOM новые блоки тоже должны быть доступны с клавиатуры
   };
   // перечитать сервер: нужно перед откатом, чтобы не стереть чужие правки,
@@ -787,7 +875,7 @@
     });
     var back = JSON.parse(JSON.stringify(patches));
     patches = JSON.parse(JSON.stringify(next));
-    apply();
+    health.applied = apply().applied;
     report();
     // Откат меняет весь документ, а не один блок, поэтому предохранитель тут
     // нужнее, чем в save(): без него карта утверждала бы восстановленное
@@ -798,7 +886,7 @@
       var fail = res.filter(function (x) { return !x; }).length;
       if (!fail) { flash('версия восстановлена'); return; }
       patches = back;
-      apply();
+      health.applied = apply().applied;
       health.write = (health.write || 0) + fail;
       report();
       flash('откат НЕ прошёл: ' + fail + ' из ' + res.length + ' записей отклонено', true);
@@ -850,7 +938,7 @@
           .catch(function () { return false; });
       })).then(function (res) {
         var ok = res.filter(Boolean).length;
-        apply();
+        health.applied = apply().applied;
         report();
         return { total: rows.length, ok: ok };
       });
@@ -861,7 +949,7 @@
     // read-only: раньше здесь стоял apply(), а вызывают INFO часто
     return {
       total: roots().querySelectorAll('[data-le]').length,
-      patched: Object.keys(patches).length, orphans: orphans(),
+      loaded: Object.keys(patches).length, patched: health.applied || 0, orphans: orphans(),
       local: store.local, crypt: crypt.on, health: health, canWrite: unlocked,
       docKey: DOCKEY, inThisBrowser: window.BLOCKEDIT_LOCAL_COUNT()
     };
@@ -879,7 +967,8 @@
   /* ---------- старт ---------- */
 
   function init() {
-    if (UI) { css(); pickTheme(); buildUI(); bindOnce(); }
+    pickTheme();
+    if (UI) { css(); buildUI(); bindOnce(); }
     else { var s = document.createElement('style'); s.textContent = warnCss(); document.head.appendChild(s); }
     paint();
     if (store.local) {
@@ -895,9 +984,14 @@
     load();
   }
   function warnCss() {
-    return '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;align-items:center;' +
-      'justify-content:center;flex-wrap:wrap;background:#A83810;color:#fff;font:600 13px/1.4 sans-serif;padding:10px 16px;text-align:center}' +
-      '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer}' +
+    return '.le-warn{position:fixed;bottom:0;left:0;right:0;z-index:9450;padding-bottom:calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:12px;align-items:center;' +
+      'justify-content:center;flex-wrap:wrap;background:#A8351C;color:#fff;font-family:sans-serif;' +
+      'font-size:13px;font-weight:600;line-height:1.4;padding:10px 16px;text-align:center}' +
+      '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;' +
+      'border-radius:999px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:700;' +
+      'line-height:1;min-height:32px;cursor:pointer}' +
+      '.le-warn button:focus-visible{outline:2px solid #fff;outline-offset:0;box-shadow:0 0 0 4px #0A0B0D}' +
+      '@media(max-width:620px){.le-warn{font-size:12px;padding:8px 12px}}' +
       '@media print{.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}.le-warn button{display:none}}';
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

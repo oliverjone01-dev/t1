@@ -27,6 +27,13 @@
   var CFG = window.VERSIONS || {};
   var DOCKEY = CFG.docKey || (location.pathname.replace(/[^\w]+/g, '_').replace(/^_|_$/g, '') || 'page');
   var AUTO = CFG.autoEvery == null ? 8 : CFG.autoEvery;
+  // Метка автоснимка. Раньше в поле подписи писалось слово «авто», и оно
+  // рисовалось тем же кеглем и цветом, что подпись человека, да ещё рядом с
+  // его именем: версия, которую никто не решал делать, выглядела решением.
+  // Теперь это происхождение, оно уходит в служебную строку карточки.
+  var AUTOTAG = '\u0000auto';
+  function isAuto(r) { return r && r.label === AUTOTAG; }
+  function labelOf(r) { return isAuto(r) ? '' : (r && r.label) || ''; }
 
   if (!window.LiveCrypt || !window.LiveStore) {
     console.error('versions: не загрузились crypt.js или store.js, история выключена');
@@ -56,7 +63,13 @@
     }
     return Promise.resolve().then(step);
   }
-  var panel, list, banner, btn;
+  var panel, list, banner, btn, lastFocus = null;
+
+  function bannerActions(off) {
+    if (!banner) return;
+    var a = banner.querySelector('.ver-ba');
+    if (a) a.inert = off;
+  }
 
   function author() {
     var a = CFG.author || localStorage.getItem('liveedit:author') || '';
@@ -157,6 +170,10 @@
     if (!CFG.getState) return Promise.resolve();
     var st = CFG.getState();
     if (rows.length && JSON.stringify(rows[0].state) === JSON.stringify(st)) {
+      // Счётчик обнуляем и здесь. Без этого он застревал выше порога, и
+      // «каждые 8 правок» превращалось в «каждая правка после восьмой»:
+      // сериализация всего состояния на каждый ввод.
+      touched = 0;
       if (!silent) note('состояние не менялось, версия не нужна');
       return Promise.resolve();
     }
@@ -245,11 +262,14 @@
     banner = document.createElement('div');
     banner.className = 'ver-banner le-ui';
     banner.setAttribute('role', 'status');
-    banner.setAttribute('aria-live', 'assertive');   // под баннером только что подменился весь текст
-    banner.inert = true;
+    // polite, а не assertive: assertive перебивает чтение того, что человек
+    // читает прямо сейчас, а вход в просмотр это его собственное действие,
+    // а не внешнее событие.
+    banner.setAttribute('aria-live', 'polite');
+    banner.innerHTML = '<span class="ver-bt"></span>';
     document.body.appendChild(banner);
 
-    btn.addEventListener('click', function () { toggle(); });
+    btn.addEventListener('click', function () { lastFocus = btn; toggle(); });
     panel.querySelector('.ver-x').addEventListener('click', function () { toggle(false); });
     panel.querySelector('#ver-save').addEventListener('click', function () {
       var i = panel.querySelector('#ver-label');
@@ -307,20 +327,47 @@
     if (imp) imp.hidden = !(i.inThisBrowser && !i.local && !need);
   }
 
+  var narrow = window.matchMedia ? matchMedia('(max-width:620px)') : null;
+
   function toggle(force) {
     var on = force == null ? !panel.classList.contains('open') : force;
-    // фокус увести до inert, иначе он провалится в body
-    if (!on && panel.contains(document.activeElement)) btn.focus();
+    var back = !on && panel.contains(document.activeElement);
     panel.classList.toggle('open', on);
     panel.inert = !on;
     // открытая панель иначе накрывает собой тулбар в правом нижнем углу
     document.documentElement.classList.toggle('ver-shift', on);
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+
+    // На узком экране панель занимает весь экран, то есть ведёт себя как
+    // диалог, и документ под ней обязан выпасть и из фокуса, и из дерева
+    // доступности. Иначе Tab уходит гулять по невидимому тексту.
+    var modal = on && narrow && narrow.matches;
+    panel.setAttribute('role', modal ? 'dialog' : 'complementary');
+    if (modal) panel.setAttribute('aria-modal', 'true'); else panel.removeAttribute('aria-modal');
+    siblings(modal);
+
     if (on) {
       paintAuth();
       load();
       (panel.querySelector('#ver-label') || panel.querySelector('.ver-x')).focus();
+      return;
     }
+    // Возврат фокуса ТОЛЬКО после снятия .ver-shift: на узком экране это
+    // правило прячет тулбар вместе с кнопкой «Версии», и фокус на скрытой
+    // кнопке проваливался в body, откуда Tab начинал документ заново.
+    if (!back) return;
+    if (btn.offsetParent !== null) btn.focus();
+    else if (lastFocus && lastFocus.isConnected) { try { lastFocus.focus(); } catch (e) { } }
+    else document.body.focus();
+  }
+
+  // Соседи панели по body уходят в inert на время модального режима.
+  function siblings(off) {
+    Array.prototype.slice.call(document.body.children).forEach(function (el) {
+      if (el === panel || el === banner) return;
+      if (off) el.setAttribute('data-le-inert', '1'), el.inert = true;
+      else if (el.getAttribute('data-le-inert')) { el.inert = false; el.removeAttribute('data-le-inert'); }
+    });
   }
 
   function note(t, bad) {
@@ -350,7 +397,9 @@
     a.click();
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-    note('копия выгружена: ' + rows.length + ' версий. Храните её вне Supabase');
+    note('копия выгружена: ' + rows.length + ' ' + plural(rows.length, 'версия', 'версии', 'версий') +
+      (more ? ' из загруженных. Кнопка «Показать более старые» дотянет остальные' : '. Это вся история') +
+      '. Храните файл вне Supabase');
   }
 
   function render() {
@@ -367,23 +416,37 @@
       keep = [act.closest('[data-id]').getAttribute('data-id'), act.getAttribute('data-a')];
     }
     var n = panel && panel.querySelector('#ver-n');
-    if (n) n.textContent = rows.length + ' ' + plural(rows.length, 'версия', 'версии', 'версий');
+    // «6 версий» при недозагруженной истории читалось как «всего шесть».
+    // Пока сервер отдал не всё, говорим об этом словом, а не умалчиваем.
+    if (n) n.textContent = (more ? 'больше ' : '') + rows.length + ' ' +
+      plural(rows.length, 'версия', 'версии', 'версий');
 
-    list.innerHTML = '<ul class="ver-ul">' + rows.map(function (r, i) {
+    // Раскрытые сравнения переживают перерисовку списка: нажатие на любой
+    // кнопке любой карточки перерисовывает всё, и открытое сравнение
+    // схлопывалось у соседа без всякой причины.
+    var open = {};
+    Array.prototype.slice.call(list.querySelectorAll('.ver-d:not([hidden])'))
+      .forEach(function (d) { open[d.id] = d.innerHTML; });
+
+    list.innerHTML = '<ul class="ver-ul" role="list">' + rows.map(function (r, i) {
       var d = cur ? diff(r.state, cur).length : 0;
       var t = esc(fmt(r.created_at));
       var rel = ago(r.created_at);
       var pv = previewing === r.id;
       var b = count(r.state);
+      var lb = labelOf(r);
       return '<li class="ver-i' + (pv ? ' on' : '') + '" data-id="' + esc(r.id) + '"' +
         (pv ? ' aria-current="true"' : '') + '>' +
         '<div class="ver-i-top"><time datetime="' + esc(r.created_at) + '">' + t + '</time>' +
         (rel ? '<span class="ver-ago">' + esc(rel) + '</span>' : '') +
         (pv ? '<span class="ver-tag ver-tag-pv">на экране</span>'
             : (i === 0 ? '<span class="ver-tag">последняя</span>' : '')) + '</div>' +
-        (r.label ? '<p class="ver-lb">' + esc(r.label) + '</p>' : '') +
+        (lb ? '<p class="ver-lb">' + esc(lb) + '</p>' : '') +
         '<p class="ver-meta"><span>' + esc(r.author || 'без подписи') + '</span>' +
-        '<span><b>' + b + '</b> ' + plural(b, 'блок', 'блока', 'блоков') + '</span>' +
+        (isAuto(r) ? '<span>снято автоматически</span>' : '') +
+        // «N блоков» читалось как размер документа, а это число правок в
+        // снимке: блоков в документе всегда больше.
+        '<span><b>' + b + '</b> ' + plural(b, 'правка', 'правки', 'правок') + ' в снимке</span>' +
         (d ? '<span><b>' + d + '</b> ' + plural(d, 'отличие', 'отличия', 'отличий') + ' от текущей</span>'
            : '<span class="same">совпадает с текущей</span>') + '</p>' +
         '<div class="ver-a">' +
@@ -404,6 +467,14 @@
       (hidden ? '<p class="ver-empty">Строк, не открывшихся этим ключом: ' + hidden + '.</p>' : '') +
       (legacy ? '<p class="ver-empty">Снимков в старом формате: ' + legacy + '. Читаются и откатываются как обычно.</p>' : '') +
       (more ? '<button type="button" class="le-b" data-a="more">Показать более старые</button>' : '');
+    Object.keys(open).forEach(function (id) {
+      var d = list.querySelector('#' + (window.CSS && CSS.escape ? CSS.escape(id) : id));
+      if (!d) return;
+      d.innerHTML = open[id];
+      d.hidden = false;
+      var t = list.querySelector('[aria-controls="' + id + '"]');
+      if (t) t.setAttribute('aria-expanded', 'true');
+    });
     if (keep) {
       var f = list.querySelector('[data-id="' + keep[0] + '"] [data-a="' + keep[1] + '"]');
       if (f) f.focus();
@@ -423,15 +494,24 @@
     var a = b.getAttribute('data-a');
 
     if (a === 'view') {
+      // Второе нажатие обязано выключать просмотр: иначе aria-pressed="true"
+      // висит навсегда и обещает переключатель, которого нет.
+      if (previewing === r.id) { exitPreview(); return; }
       if (!previewing) liveState = CFG.getState();
       previewing = r.id;
       CFG.setState(r.state, { preview: true });
       banner.className = 'ver-banner le-ui show';
-      banner.inert = false;
-      banner.innerHTML = '<span>Просмотр версии от ' + esc(fmt(r.created_at)) +
-        '. Это только показ, на сервере ничего не изменилось, правка на время просмотра выключена.</span>' +
-        '<button type="button" class="le-b" data-a="restore">Вернуть эту</button>' +
-        '<button type="button" class="le-b" data-a="exit">К текущей</button>';
+      bannerActions(false);
+      banner.querySelector('.ver-bt').textContent = 'На экране версия от ' + fmt(r.created_at) +
+        '. Это показ: на сервере ничего не изменилось, правка выключена. Esc возвращает к текущей.';
+      var acts = banner.querySelector('.ver-ba');
+      if (!acts) {
+        acts = document.createElement('span');
+        acts.className = 'ver-ba';
+        acts.innerHTML = '<button type="button" class="le-b" data-a="restore">Вернуть эту</button>' +
+          '<button type="button" class="le-b" data-a="exit">К текущей</button>';
+        banner.appendChild(acts);
+      }
       render();
     } else if (a === 'diff') {
       var box = art.querySelector('.ver-d');
@@ -471,11 +551,15 @@
       if (!confirm('Вернуть документ к версии от ' + fmt(r.created_at) + '?\n' +
         'Отличий от текущего состояния: ' + lost + '. Текущее состояние сначала сохранится отдельной версией.')) return;
       return snap('перед откатом', true).then(function () {
-        previewing = null;
-        banner.className = 'ver-banner le-ui';
-        banner.inert = true;
         return CFG.setState(r.state, { preview: false });
       }).then(function () {
+        // Снимаем просмотр только после того, как состояние реально
+        // применилось. Раньше снимали раньше, и отказ записи (нет входа)
+        // оставлял на экране старую редакцию без единого признака этого.
+        previewing = null;
+        liveState = null;
+        banner.className = 'ver-banner le-ui';
+        bannerActions(true);
         note('документ вернулся к версии от ' + fmt(r.created_at));
         render();
       });
@@ -488,7 +572,7 @@
     if (!previewing) return;
     previewing = null;
     banner.className = 'ver-banner le-ui';
-    banner.inert = true;
+    bannerActions(true);
     if (liveState) CFG.setState(liveState, { preview: true });
     render();
   }
@@ -514,7 +598,8 @@
       // лежали в разных правилах, и правка одной оставляла щель.
       ':root{--le-panel-w:min(440px,100vw)}',
 
-      '.ver-panel{position:fixed;top:0;right:0;width:var(--le-panel-w);height:100dvh;z-index:9500;',
+      '.ver-panel{position:fixed;top:0;right:0;width:var(--le-panel-w);',
+      'height:calc(100dvh - var(--le-warn-h,0px));z-index:9500;',
       'background:var(--le-surface);border-left:1px solid var(--le-line);display:flex;flex-direction:column;',
       'box-shadow:var(--le-shadow);transform:translateX(101%);transition:transform .3s var(--le-ease)}',
       '.ver-panel.open{transform:none;visibility:visible;transition:transform .3s var(--le-ease)}',
@@ -553,8 +638,7 @@
       '.ver-panel .ver-ago{font-size:11.5px;color:var(--le-text-3)}',
       '.ver-tag{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;',
       'color:var(--le-a-ink);background:var(--le-a);border-radius:999px;padding:3px 8px;white-space:nowrap}',
-      '.ver-tag-pv{background:var(--le-ok);color:#08130B}',
-      ':root[data-le-theme="light"] .ver-tag-pv{color:#fff}',
+      '.ver-tag-pv{background:var(--le-ok);color:var(--le-ok-ink)}',
 
       '.ver-panel .ver-lb{margin-top:7px;font-size:13px;line-height:1.4;color:var(--le-text)}',
 
@@ -581,9 +665,17 @@
       'letter-spacing:.07em;text-transform:uppercase;color:var(--le-text-3)}',
       // Было и стало различаются не только цветом: на монохромном экране и
       // при дальтонизме остаётся вертикальная черта у края строки.
-      '.ver-dr .was,.ver-dr .now{display:block;padding-left:9px;border-left:2px solid currentColor}',
-      '.ver-dr .was{color:var(--le-bad)}',
-      '.ver-dr .now{color:var(--le-ok);margin-top:3px}',
+      '.ver-dr .was,.ver-dr .now{display:block;padding-left:10px;position:relative}',
+      // Направление изменения обязано читаться без цвета: на монохромном
+      // проекторе и при дальтонизме два оттенка одного размера неразличимы.
+      // Знак минус и плюс плюс разное начертание черты решают это без слов.
+      '.ver-dr .was::before,.ver-dr .now::before{position:absolute;left:0;top:0;',
+      'font-weight:700;font-family:var(--le-mono,ui-monospace,monospace)}',
+      '.ver-dr .was{color:var(--le-bad);text-decoration:line-through;text-decoration-thickness:1px;',
+      'text-decoration-color:color-mix(in srgb,var(--le-bad) 55%,transparent)}',
+      '.ver-dr .was::before{content:"\\2212"}',
+      '.ver-dr .now{color:var(--le-ok);margin-top:4px}',
+      '.ver-dr .now::before{content:"+"}',
 
       /* ---------- служебное ---------- */
 
@@ -598,10 +690,19 @@
 
       // Баннер сообщает, что на экране НЕ текущий документ. Это состояние
       // опаснее всего молча пропустить, поэтому он на акценте и по центру.
-      '.ver-banner{position:fixed;left:50%;top:12px;z-index:9700;display:flex;align-items:center;gap:10px;',
+      // Ширина задана явно. При max-width фиксированный флекс сжимается до
+      // самого широкого элемента, то есть до кнопки, и на узком экране баннер
+      // превращался в башню 160 px шириной поверх всей панели.
+      '.ver-banner{position:fixed;left:calc(50% - var(--le-shift,0px)/2);top:calc(var(--le-safe-top,12px) + 4px);',
+      'z-index:9700;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;',
+      'width:min(94vw - var(--le-shift,0px),760px);',
       'background:var(--le-a);color:var(--le-a-ink);border-radius:999px;padding:8px 10px 8px 16px;',
       'font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;box-shadow:var(--le-shadow);',
-      'max-width:min(94vw,760px);transform:translate(-50%,-160%);transition:transform .25s var(--le-ease)}',
+      'transform:translate(-50%,-180%);transition:transform .25s var(--le-ease)}',
+      '.ver-banner .ver-ba{display:flex;gap:8px;flex:none}',
+      // Пока панель открыта, баннер центрируется в оставшейся части экрана,
+      // а не под панелью.
+      '.ver-shift{--le-shift:var(--le-panel-w)}',
       '.ver-banner.show{transform:translate(-50%,0)}',
       '.ver-banner:not(.show){visibility:hidden}',
       '.ver-banner .le-b{background:rgba(0,0,0,.14);border-color:rgba(0,0,0,.2);color:inherit}',
@@ -614,11 +715,19 @@
       'border-radius:0;margin:0 0 12px;border-bottom:2px solid #000}',
       '.ver-banner:not(.show){display:none}.ver-banner .le-b{display:none}}',
       '@media(max-width:620px){:root{--le-panel-w:100vw}.ver-shift .le-tb{display:none}',
+      // На узком экране панель занимает весь экран, и сдвигать баннер
+      // некуда: вычитание ширины панели уводило его ширину в минус, и
+      // флекс схлопывался в башню шириной с одну кнопку.
+      '.ver-shift{--le-shift:0px}',
       '.ver-banner{flex-wrap:wrap;border-radius:16px;padding:12px 14px}',
       // На узком экране три кнопки в строку не помещаются, и вместо переноса
       // в непредсказуемом месте раскладываем сеткой.
-      '.ver-a{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}',
-      '.ver-a .le-b{width:100%}.ver-a .ver-del{margin-left:0;width:32px}}',
+      '.ver-a{display:grid;grid-template-columns:1fr 1fr;gap:6px}',
+      '.ver-a .le-b{width:100%}',
+      // Удаление остаётся справа и во второй строке. Раньше оно съезжало в
+      // левую нижнюю ячейку, то есть ровно под большой палец, и разнесение
+      // опасной кнопки, ради которого всё сделано, переставало действовать.
+      '.ver-a .ver-del{grid-column:2;justify-self:end;margin-left:0;width:32px}}',
       '@media (prefers-reduced-motion:reduce){.ver-panel,.ver-banner,.ver-f{transition:none!important}}'
     ].join('');
     document.head.appendChild(s);
@@ -629,9 +738,9 @@
   window.VERSIONS_SNAP = function (label) { return snap(label); };
   window.VERSIONS_TOUCH = function () {
     touched++;
-    if (AUTO && touched >= AUTO) snap('авто', true);
+    if (AUTO && touched >= AUTO) snap(AUTOTAG, true);
   };
-  window.VERSIONS_FLUSH = function () { if (touched) return snap('авто', true); };
+  window.VERSIONS_FLUSH = function () { if (touched) return snap(AUTOTAG, true); };
   window.VERSIONS_SETCRYPT = function (c) {
     crypt = c;
     storeCfg.crypt = c;
@@ -654,7 +763,7 @@
     previewing = null;
     liveState = null;
     banner.className = 'ver-banner le-ui';
-    banner.inert = true;
+    bannerActions(true);
     render();
     note('просмотр версии закрыт: документ перерисован');
   };

@@ -19,7 +19,7 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var CORE_VERSION = '4';
+  var CORE_VERSION = '5';
 
   var SUPABASE = {
     type: 'supabase',
@@ -45,6 +45,7 @@
     // панель прячется от зрителя так же, как у liveedit-init: раньше отдельный
     // загрузчик ui не передавал, и история была видна всем
     ui: d.always === '1' || /[?&]edit=1(&|$)/.test(location.search),
+    root: d.root || '#doc',
     autoEvery: d.auto ? parseInt(d.auto, 10) : 8,
     getState: host.getState,
     setState: host.setState
@@ -60,11 +61,15 @@
   function warn(text) {
     if (document.querySelector('.le-warn[data-src="vinit"]')) return;
     var st = document.createElement('style');
-    st.textContent = '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;' +
-      'align-items:center;justify-content:center;flex-wrap:wrap;background:#A83810;color:#fff;' +
-      'font:600 13px/1.4 sans-serif;padding:10px 16px;text-align:center}' +
+    st.textContent = '.le-warn{position:fixed;bottom:0;left:0;right:0;z-index:9450;padding-bottom:calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:12px;' +
+      'align-items:center;justify-content:center;flex-wrap:wrap;background:#A8351C;color:#fff;' +
+      'font-family:sans-serif;font-size:13px;font-weight:600;line-height:1.4;padding:10px 16px;text-align:center}' +
       '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;' +
-      'border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer}';
+      'border-radius:999px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:700;' +
+      'line-height:1;min-height:32px;cursor:pointer}' +
+      '.le-warn button:focus-visible{outline:2px solid #fff;outline-offset:0;box-shadow:0 0 0 4px #0A0B0D}' +
+      '@media(max-width:620px){.le-warn{font-size:12px;padding:8px 12px}}' +
+      '@media print{.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}.le-warn button{display:none}}';
     document.head.appendChild(st);
     var w = document.createElement('div');
     w.className = 'le-warn';

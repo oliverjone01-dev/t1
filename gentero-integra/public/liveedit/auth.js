@@ -147,15 +147,36 @@
         '<button type="submit" class="le-b le-b-main" id="le-go">Войти</button></div>' +
         '</form></div>';
       document.body.appendChild(ov);
+      var offed = Array.prototype.slice.call(document.body.children)
+        .filter(function (el) { return el !== ov && !el.inert; });
+      offed.forEach(function (el) { el.inert = true; });
       var back = document.activeElement;
       var er = ov.querySelector('#le-er');
       (ov.querySelector('#le-em') || ov.querySelector('#le-pw')).focus();
 
       function close(ok) {
         ov.remove();
+        offed.forEach(function (el) { el.inert = false; });
         document.removeEventListener('keydown', keys, true);
         if (back && back.focus) back.focus();
         done(!!ok);
+      }
+
+      // Ошибка входа обязана быть привязана к полю, а не просто лежать рядом:
+      // диктор объявит её один раз и не свяжет с тем, что чинить.
+      function fail(text, el) {
+        er.textContent = text;
+        var f = el || ov.querySelector('#le-pw');
+        f.setAttribute('aria-invalid', 'true');
+        f.setAttribute('aria-describedby', 'le-er');
+        f.focus();
+        f.select && f.select();
+      }
+      function clearFail() {
+        Array.prototype.slice.call(ov.querySelectorAll('input')).forEach(function (f) {
+          f.removeAttribute('aria-invalid');
+          f.removeAttribute('aria-describedby');
+        });
       }
       function keys(ev) {
         if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(false); return; }
@@ -170,15 +191,16 @@
       ov.querySelector('#le-f').addEventListener('submit', function (ev) {
         ev.preventDefault();
         var pw = ov.querySelector('#le-pw').value;
+        clearFail();
         if (!srv) {
-          if (pw.trim() !== (opts.code || '')) { er.textContent = 'Код не подошёл.'; return; }
+          if (pw.trim() !== (opts.code || '')) { fail('Код не подошёл.'); return; }
           close(true);
           return;
         }
         er.textContent = 'Проверяю...';
         LiveAuth.signIn(ov.querySelector('#le-em').value.trim(), pw)
           .then(function () { close(true); })
-          .catch(function (e) { er.textContent = e.message; });
+          .catch(function (e) { fail(e.message); });
       });
     });
   };

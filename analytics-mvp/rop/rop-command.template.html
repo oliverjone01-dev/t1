@@ -259,7 +259,18 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 </div>
 <div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
 <script>
-const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};const AD=DATA.deals,AL=DATA.leads,KSS=DATA.keyStageStats;
+const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};
+// Вырезаем из GG-данных то, что не относится к продажам GG (и из воронки, и из
+// менеджеров, и из «нераспределённых»):
+//  - чужие бренды (боты Metal-GM / VALONTI);
+//  - владелец (не продажник) - его лиды не должны искажать отдел продаж;
+//  - неопознанные технические ID вида idNNNN (экс-сотрудники / нерезолвнутые юзеры).
+// Свой бот «Системный пользователь GG» ОСТАЁТСЯ - это легитимные нераспределённые
+// (реальный GG-входящий, который надо раздать менеджерам). Ростер не трогаем: реальный
+// менеджер, даже если его нет в списке, не исчезнет - он просто не попадёт под правила ниже.
+const GG_FOREIGN=new Set(['Системный пользователь MGM','Системный пользователь V','Дмитрий Янчоглов']);
+const notForeign=x=>!GG_FOREIGN.has(x.mgr)&&!/^id\d+$/.test(String(x.mgr||''));
+const AD=(DATA.deals||[]).filter(notForeign),AL=(DATA.leads||[]).filter(notForeign),KSS=DATA.keyStageStats;
 const GROUPS=[
  ['Новые и квалификация',['C49:NEW','C49:UC_LRFLH9'],'#22D3EE'],
  ['Формируется предложение',['C49:PREPARATION','C49:UC_OGZUU0'],'#60A5FA'],
@@ -657,7 +668,7 @@ function disciplineBlock(){
 // до предложения, с дырами в причине/категории/клиенте/бюджете≤1), чтобы цифры сходились.
 function deptDQBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
@@ -841,7 +852,7 @@ function managerDashboardsBlock(){
   // Список совпадает с циклом deploy-pages (кто реально собран в /rop-<slug>/).
   const DASH=[['Юлия Лысанова','lysanova'],['Татьяна Лакомова','lakomova'],['Юлия Шура-Бура','shura-bura'],['Алина Платонова','platonova'],['Ольга Маслова','maslova']];
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const PDx=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
   // Окно = ВЫБРАННЫЙ диапазон дат (реагирует на фильтр периода сверху). Портфель - снимок на конец диапазона.
@@ -1529,7 +1540,7 @@ function render(){
 // ===== ЗДОРОВЬЕ ОТДЕЛА ПРОДАЖ: баланс вход/выход + доля отказов + конверсия по менеджерам =====
 function healthBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
@@ -1682,7 +1693,7 @@ function healthBlock(){
 
 function offerReasonsBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   const lost=passed.filter(d=>d.lost);
@@ -1708,7 +1719,7 @@ function offerReasonsBlock(){
 // CR. Гардрейлы: чек (чтобы count не убил выручку) и долгострой (в паре с отказами).
 function standardBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -1802,7 +1813,7 @@ function standardBlock(){
 // (строка отдела + строки менеджеров), фильтр по менеджеру. Реагирует на период/гранулярность.
 function offerCalendarBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
@@ -2036,7 +2047,7 @@ function offerCalendarBlock(){
 function mgmtDecisionsBlock(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const EARLY=new Set(["C49:NEW","C49:UC_LRFLH9","C49:PREPARATION","C49:UC_OGZUU0","C49:UC_32UM3S"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -2150,7 +2161,7 @@ function mgmtDecisionsBlock(){
 // возрастные когорты пайплайна. История берётся из hist по датам входа/закрытия.
 function offerAnalytics(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
@@ -2229,7 +2240,7 @@ function offerControlBlock(){
   const OFFER={ "C49:PREPAYMENT_INVOIC": { l: "КП отправлено", c: "#60A5FA" }, "C49:3": { l: "Принимают решение", c: "#C2873C" }, "C49:UC_8JTBV2": { l: "Долгострой", c: "#F43F5E" } };
   const OSET=new Set(Object.keys(OFFER));
   const EARLY=new Set(["C49:NEW","C49:UC_LRFLH9","C49:PREPARATION","C49:UC_OGZUU0","C49:UC_32UM3S","C49:PREPARATION"]);
-  const dirOk=d=>!S.fDir||d.dir===S.fDir;
+  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   if(!open.length)return "";

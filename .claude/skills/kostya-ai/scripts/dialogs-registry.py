@@ -19,7 +19,11 @@
 а не листают.
 
 Запуск:
-  python3 dialogs-registry.py msgs.jsonl registry.json registry-counts.json [--min-out 25]
+  python3 dialogs-registry.py msgs.jsonl registry.json registry-counts.json analysis.json [--min-out 25]
+
+analysis.json обязателен: из его meta.period берётся окно счёта, и это
+единственный источник периода на странице. Без окна счётчики реестра
+разъезжаются с подвалом сводки, и никакой сигнал этого не ловит.
 """
 import importlib.util
 import json, os, re, sys
@@ -94,14 +98,14 @@ def kostya_well(mtext, ctext, answered, code=""):
     return "В реплике " + ", ".join(pts) + "."
 
 
-def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
+def main(src, dst_full, dst_counts, analysis_path, min_out=dc.MIN_OUT):
     # Окно периода берётся из analysis.json: на одной странице не может быть
-    # двух разных периодов (подвал сводки против шапки реестра).
-    p_from = p_to = None
-    if analysis_path:
-        pa = json.load(open(analysis_path, encoding="utf-8"))["meta"]["period"]
-        p_from = datetime.strptime(pa["from"], "%d.%m.%Y")
-        p_to = datetime.strptime(pa["to"], "%d.%m.%Y").replace(hour=23, minute=59, second=59)
+    # двух разных периодов (подвал сводки против шапки реестра). Аргумент
+    # обязателен: опциональное окно однажды молча не передадут, и расхождение
+    # вернётся без единого сигнала.
+    pa = json.load(open(analysis_path, encoding="utf-8"))["meta"]["period"]
+    p_from = datetime.strptime(pa["from"], "%d.%m.%Y")
+    p_to = datetime.strptime(pa["to"], "%d.%m.%Y").replace(hour=23, minute=59, second=59)
 
     M = []
     for line in open(src, encoding="utf-8"):
@@ -234,9 +238,13 @@ def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
     else:
         period = (min(m["dt"] for m in M).strftime("%d.%m.%Y") + " - "
                   + max(m["dt"] for m in M).strftime("%d.%m.%Y"))
-    n_codes = len({**dc.DEFECTS, **EXTRA})
+    # Знаменатель один на все контуры и считается, а не хардкодится: дефекты,
+    # дополнительные коды реестра и сильные стороны - всё, чьи счётчики
+    # рендерятся на страницах.
+    n_codes = len({**dc.DEFECTS, **EXTRA}) + len(dc.STRONG)
     meta = {"source": src, "generated_at": datetime.now().isoformat(),
             "period": period, "minOut": min_out, "evidenceCap": EVIDENCE_CAP,
+            "detectors": n_codes,
             "note": f"Выборка - до {EVIDENCE_CAP} сделок на менеджера и тип, сначала пары "
                     "с репликой клиента и большей суммой. Цитаты вычищены от контактов, "
                     "фамилий и адресов.",
@@ -244,7 +252,8 @@ def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
             # не ручная проверка, и это обязано быть написано там, где по числам
             # разговаривают с людьми, а не только в публичной библиотеке.
             "hypothesis": "Счётчики дедуплицированы по времени и тексту сообщения. "
-                          f"Вручную проверено детекторов: 0 из {n_codes}. Каждое срабатывание - "
+                          f"Вручную проверено детекторов: 2 из {n_codes}, оба замера "
+                          "оказались завышены и исправлены. Каждое срабатывание - "
                           "повод открыть сделку, а не установленный факт."}
 
     json.dump({"meta": meta, "claims": claims},
@@ -258,6 +267,7 @@ def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
                   "total": claims.get(code, {}).get("total", 0)}
            for code, meta_t in all_meta.items()}
     json.dump({"meta": {"period": meta["period"], "generated_at": meta["generated_at"],
+                        "detectors": n_codes,
                         "note": "Только счётчики. Доказательная выборка сделок открывается "
                                 "в личном кабинете и в сводке РОПа."},
                "claims": pub},
@@ -272,8 +282,11 @@ def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if len(args) < 4:
+        sys.exit("нужно: dialogs-registry.py msgs.jsonl registry.json registry-counts.json "
+                 "analysis.json [--min-out=25]. analysis.json обязателен: он задаёт окно периода.")
     mo = dc.MIN_OUT
     for a in sys.argv[1:]:
         if a.startswith("--min-out="):
             mo = int(a.split("=", 1)[1])
-    main(args[0], args[1], args[2], args[3] if len(args) > 3 else None, mo)
+    main(args[0], args[1], args[2], args[3], mo)

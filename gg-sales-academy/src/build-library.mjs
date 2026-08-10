@@ -87,6 +87,40 @@ const N = {
   kpStage: 207, kpMedian: 31, dolgostroy: 103, dolgoStale: 42,
 };
 
+// Реестр замечаний: только счётчики. Файл готовит dialogs-registry.py и в нём
+// нет ни сделок, ни цитат, ни имён - публичный контур это позволяет. Сама
+// доказательная выборка живёт исключительно в запечатанных разделах: в личном
+// кабинете свои сделки, в сводке РОПа весь отдел.
+let REGC = null;
+try {
+  REGC = JSON.parse(readFileSync(new URL("./registry-counts.json", import.meta.url), "utf8"));
+} catch { /* без файла счётчики просто не показываются */ }
+// В персональных сборках якорь #reestr существует (реестр в личном разделе),
+// в публичной библиотеке вести ссылку некуда - там счётчик остаётся числом.
+const HAS_PERSONAL = process.argv.includes("--fragment");
+
+const plural = (n, one, few, many) => {
+  n = Math.abs(n | 0);
+  if (n % 10 === 1 && n % 100 !== 11) return one;
+  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) return few;
+  return many;
+};
+
+/** Счётчик-доказательство у утверждения. Ноль показывается честно, с причиной. */
+const cnt = (code) => {
+  const c = REGC && REGC.claims && REGC.claims[code];
+  if (!c) return "";
+  const label = c.total
+    ? `${c.total} ${plural(c.total, "случай", "случая", "случаев")} за период`
+    : "0 в переписке за период";
+  const hint = c.total
+    ? "Выборка сделок-доказательств: в личном кабинете свои, в сводке РОПа все"
+    : "В письменной переписке за период не встретилось. Пункт из ручного разбора Кости";
+  return HAS_PERSONAL && c.total
+    ? ` <a class="cnt" href="#reestr" title="${esc(hint)}">${label}</a>`
+    : ` <span class="cnt${c.total ? "" : " zero"}" title="${esc(hint)}">${label}</span>`;
+};
+
 const S = [];
 const sec = (id, nav, title, lead, body) => S.push({ id, nav, title, lead, body });
 
@@ -157,7 +191,8 @@ sec("kak-chitat", "Как читать разбор", "Как читать ра�
   ${strip("Сообщений в разборе", "переписка Bitrix24, воронка C49", N.msgs, "", "ДАННЫЕ", "ok")}
   ${strip("Сделок в разборе", "открытые и закрытые за период", N.deals, "", "ДАННЫЕ", "ok")}
   ${strip("Звонков с транскриптом", "193 звонка есть, расшифровок нет", "0", "bad", "слепая зона", "bad")}
-  ${strip("Детекторов проверено вручную", "из 23; два проверенных были завышены", "0", "bad", "ГИПОТЕЗА", "warn")}
+  ${strip("Детекторов проверено вручную", "оба проверенных дали завышение, пороги в калибровке",
+    `2 из ${(REGC && REGC.meta && REGC.meta.detectors) || 20}`, "bad", "ГИПОТЕЗА", "warn")}
   </div>
 
   <h3>Что видит</h3>
@@ -220,6 +255,38 @@ sec("normativy", "Нормативы", "Четыре норматива отде
   <tr><td>Возражений по цене</td><td class="num">${N.priceObj}</td><td>за период</td></tr>
   <tr><td>Обращений к руководителю</td><td class="num">${N.esc}</td><td>за период</td></tr>
   </tbody></table></div>`);
+
+// ─────────────────────────────────────────────────────────── реестр замечаний
+// Весь каталог утверждений методики со счётчиками-доказательствами. В публичном
+// контуре только числа. Выборка сделок с цитатами и вердиктом AI-Кости лежит в
+// запечатанных разделах: менеджер видит свои сделки, РОП весь отдел.
+if (REGC) {
+  const rows = Object.entries(REGC.claims)
+    .sort((a, b) => (a[1].kind !== b[1].kind ? (a[1].kind === "defect" ? -1 : 1) : b[1].total - a[1].total))
+    .map(([code, c]) => `<tr>
+      <td class="wrap">${esc(c.title)}</td>
+      <td class="num"><b style="color:var(--${c.kind === "defect" ? (c.total ? "bad" : "mut") : "ok"})">${c.total}</b></td>
+      <td>${c.kind === "defect" ? "что чинить" : "что повторять"}</td>
+      <td class="wrap">${c.total
+        ? (HAS_PERSONAL ? `<a href="#reestr">выборка сделок в личном разделе</a>` : "в личном кабинете и сводке РОПа")
+        : "в переписке не встретилось, пункт из ручного разбора Кости"}</td>
+    </tr>`).join("");
+  sec("reestr-zamechaniy", "Реестр замечаний", "Реестр замечаний: каждый счётчик доказуем",
+    `Период ${(REGC.meta || {}).period || PERIOD}. Счётчик - срабатывания детектора по переписке отдела.`,
+    `<p>Каждое утверждение методики посчитано по конкретным сделкам, а не сформулировано «по ощущениям».
+    По клику на счётчик открывается выборка сделок с цитатами и вердиктом AI-Кости: что в сделке было
+    сделано хорошо, что плохо и как надо было. ${HAS_PERSONAL
+      ? "В вашем личном разделе лежат ваши сделки, у РОПа в сводке весь отдел."
+      : "Выборка лежит в запечатанных разделах: в личном кабинете свои сделки, в сводке РОПа весь отдел. Здесь, в общей библиотеке, ни сделок, ни имён нет."}</p>
+  <div class="scroll"><table>
+  <thead><tr><th class="wrap">Утверждение</th><th class="num">Случаев</th><th>Тип</th><th class="wrap">Доказательства</th></tr></thead>
+  <tbody>${rows}</tbody></table></div>
+  <p class="sm">Счётчики собраны скриптом dialogs-registry.py из той же выгрузки переписки, что и весь
+  разбор. Детекторы не проверены вручную и помечены гипотезой: не согласны с конкретным срабатыванием -
+  назовите РОПу номер сделки, обе найденные ошибки детекторов нашли именно так.
+  <span class="tag warn">ГИПОТЕЗА</span></p>`);
+  S[S.length - 1].icon = "check";
+}
 
 // ─────────────────────────────────────────────────────────── не ваша зона
 sec("ne-vasha-zona", "Не ваша зона", "Не ваша зона",
@@ -541,9 +608,9 @@ sec("eskalaciya", "Эскалация", "Плохие новости и прет
 
   <h3>Вычеркнуть из речи навсегда</h3>
   <ul class="dont">
-    <li>«Закрутился», «забылся», «замотался». Клиент слышит: у меня бардак, разбирайтесь сами.</li>
-    <li>«Вы не указали», «вы же сами». Это перекладывание, а не пояснение.</li>
-    <li>Восклицательные знаки в ответ на претензию. Читаются как повышенный голос.</li>
+    <li>«Закрутился», «забылся», «замотался». Клиент слышит: у меня бардак, разбирайтесь сами.${cnt("T04_ЖАРГОН")}</li>
+    <li>«Вы не указали», «вы же сами». Это перекладывание, а не пояснение.${cnt("T06_ЗАЩИТА")}</li>
+    <li>Восклицательные знаки в ответ на претензию. Читаются как повышенный голос.${cnt("ESC_ВОСКЛИЦАНИЕ")}</li>
   </ul>`);
 
 // ─────────────────────────────────────────────────────────── фразебук
@@ -888,6 +955,15 @@ const CSS = decomment(readFileSync(new URL("../../.claude/skills/kostya-ai/share
 main{min-width:0}
 section{display:none;scroll-margin-top:calc(var(--barh) + 8px)}
 section.on{display:block}
+
+/* Счётчик-доказательство у утверждения. Красный контур: это счёт нарушений.
+   Ноль - серым: пункт остаётся в методике, но по переписке не подтверждён. */
+.cnt{display:inline-block;margin-left:8px;padding:1px 10px;border-radius:20px;
+  border:1px solid var(--bad);color:var(--bad);font-size:calc(var(--fs) - 3px);
+  line-height:1.5;white-space:nowrap;vertical-align:middle}
+.cnt.zero{border-color:var(--line2);color:var(--mut)}
+a.cnt{text-decoration:none}
+a.cnt:hover{background:rgba(224,90,80,.1);text-decoration:none}
 .sec-head{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
 .sec-head h1{margin-bottom:var(--s2)}
 .sec-head .lead-sub{color:var(--mut);font-size:calc(var(--fs) - 1px);max-width:70ch;margin:0}
@@ -1065,7 +1141,7 @@ details.mv>summary b{font-weight:600;min-width:0}
 `;
 
 const GROUPS = [
-  ["Как работаем", ["kak-chitat", "normativy", "ne-vasha-zona", "glossariy"]],
+  ["Как работаем", ["kak-chitat", "normativy", "reestr-zamechaniy", "ne-vasha-zona", "glossariy"]],
   ["Инструменты", ["kvalifikaciya", "vozrazheniya", "dozhim", "eskalaciya", "frazebuk", "materialy", "trenazher"]],
   ["Личные разделы", ["kabinety"]],
   ["Про платформу", ["changelog"]],
@@ -1260,14 +1336,19 @@ ${NOGATE ? "" : `
   function show(id){
     // Неизвестный якорь в пересланной ссылке давал полностью пустой экран:
     // все секции display:none, ни одна не показана.
-    var s=document.getElementById(id)||document.getElementById('kak-chitat');if(!s)return;
+    var t=document.getElementById(id)||document.getElementById('kak-chitat');if(!t)return;
+    // Якорь может лежать ВНУТРИ секции (например #reestr в личном разделе):
+    // показывается объемлющая секция, затем прокрутка к самому якорю.
+    var s=t.closest('section')||t;
     document.querySelectorAll('main section').forEach(function(x){x.classList.toggle('on',x===s)});
-    document.querySelectorAll('.side a[data-s]').forEach(function(a){a.classList.toggle('on',a.dataset.s===id)});
+    document.querySelectorAll('.side a[data-s]').forEach(function(a){a.classList.toggle('on',a.dataset.s===s.id)});
     window.scrollTo(0,0);
     // Нативный прыжок к якорю случается ПОСЛЕ нашего show(), поэтому второй
     // проход на следующем кадре: иначе заголовок раздела уезжает под шапку,
     // а на телефоне за верхний край уходит вся лента меню.
-    requestAnimationFrame(function(){window.scrollTo(0,0)});
+    requestAnimationFrame(function(){
+      if(t!==s){t.scrollIntoView()}else{window.scrollTo(0,0)}
+    });
   }
   window.addEventListener('hashchange',function(){show(location.hash.slice(1))});
 

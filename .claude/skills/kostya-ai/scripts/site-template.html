@@ -158,6 +158,35 @@ tr.det>td{background:var(--panel2);white-space:normal;padding:var(--s4,16px) var
 .q{background:var(--panel2);border-left:3px solid var(--line2);padding:var(--s2,9px) var(--s3,13px);
   margin:var(--s2,7px) 0;border-radius:0 6px 6px 0;font-size:calc(var(--fs,15.5px) - 2px);color:#c3d3de}
 .q.bad{border-left-color:var(--bad)}
+.q.was{border-left-color:var(--bad)}
+.q.now{border-left-color:var(--ok)}
+
+/* ── реестр замечаний ──────────────────────────────────────────────────
+   Счётчик слева и утверждение справа. Раскрытие - сделки-доказательства
+   с вердиктом AI-Кости. Цвет дублируется словами «Хорошо» и «Плохо»:
+   без них при дальтонизме вердикт нечитаем. */
+details.reg{border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  margin:0 0 var(--s3,12px)}
+details.reg>summary{display:flex;align-items:center;gap:var(--s4,16px);
+  padding:var(--s3,13px) var(--s5,20px);cursor:pointer;list-style:none}
+details.reg>summary::-webkit-details-marker{display:none}
+details.reg[open]>summary{border-bottom:1px solid var(--line)}
+.rn{flex:none;min-width:84px;text-align:right;font-weight:650;line-height:1.1;
+  font-size:calc(var(--fs,15.5px) + 12px);font-variant-numeric:tabular-nums}
+.rn.bad{color:var(--bad)}.rn.good{color:var(--ok)}
+.rt{flex:1 1 auto;min-width:0}
+.reg-b{padding:var(--s3,12px) var(--s5,20px) var(--s4,16px)}
+.rev{border:1px solid var(--line);border-radius:10px;background:var(--panel2);
+  padding:var(--s3,12px) var(--s4,16px);margin:0 0 var(--s3,10px)}
+.rev .q{background:var(--bg)}
+.rk{font-size:calc(var(--fs,15.5px) - 2px);margin-top:6px;max-width:80ch}
+.rk-g{display:block;color:var(--ok);margin-top:2px}
+.rk-b{display:block;color:var(--bad);margin-top:2px}
+@media (max-width:700px){
+  details.reg>summary{gap:10px;padding:11px 12px}
+  .rn{min-width:56px;font-size:calc(var(--fs,15.5px) + 6px)}
+  .reg-b{padding:10px 12px 12px}
+}
 ul{margin:6px 0 6px 18px;padding:0} li{margin:4px 0}
 .script{border:1px solid var(--line);border-radius:10px;padding:var(--s4,16px);
   margin-bottom:var(--s3,14px);background:var(--panel)}
@@ -225,6 +254,7 @@ nav button{min-height:44px}
   <div class="tabpanel" id="t-deal"></div>
   <div class="tabpanel" id="t-scr"></div>
   <div class="tabpanel" id="t-fup"></div>
+  <div class="tabpanel" id="t-reg"></div>
 </main>
 <footer id="foot"></footer>
 <script>
@@ -287,6 +317,7 @@ const I = n => (D.icons && D.icons[n])
 
 const TABS=[['t-sum','Сводка','chart'],['t-mgr','Менеджеры','person'],['t-deal','Сделки','deal'],
   ['t-scr','Скрипты продаж','message'],['t-fup','Дожимы и лид-магниты','dozhim']];
+if(D.registry)TABS.push(['t-reg','Реестр замечаний','check']);
 document.getElementById('nav').innerHTML = TABS.map(([id,n,icn],i)=>
   `<button data-t="${id}" class="${i?'':'on'}">${I(icn)}<span>${n}</span></button>`).join('');
 document.getElementById('nav').onclick = e => {
@@ -388,9 +419,10 @@ document.getElementById('foot').innerHTML =
     rate(allUn,D.totals.deals), allUn?'warn':'ok')}
 </div>
 <details class="disc"><summary><b>Инструмент в калибровке.</b>
-  Ни один из 23 детекторов не прошёл ручную проверку, пороги стадий и веса индексов помечены гипотезой.
+  Вручную проверено ${(D.registry&&D.registry.meta&&D.registry.meta.detectors)?`2 из ${D.registry.meta.detectors}`:'2'} детекторов,
+  оба замера оказались завышены и исправлены. Пороги стадий и веса индексов помечены гипотезой.
   Флаг здесь это повод открыть сделку, а не установленный факт. <i>Развернуть</i></summary>
-  <div class="body">Два проверенных детектора оказались завышены, один в разы. Калибровка на закрытых
+  <div class="body">Оба проверенных детектора были завышены, один в разы. Калибровка на закрытых
   сделках идёт до конца августа. Клиент опознаётся по названию сделки, а не по CONTACT_ID: прокси
   покрывает малую долю сделок, поэтому группировка по клиенту заведомо неполная. Снимок открытых
   сделок сделан ${dt(kmeta.snapshot_at)}, переписка охватывает ${MSG}: два слоя сняты в разные
@@ -674,6 +706,60 @@ document.getElementById('t-fup').innerHTML = `
     <td class="wrap" style="max-width:300px">${E(g.when)}</td>
     <td class="wrap" style="max-width:420px">${E(g.why)}</td></tr>`).join('')}
   </tbody></table></div>`;
+
+/* ---------- 6. Реестр замечаний с доказательствами ---------- */
+/* Каждое утверждение методики отвечает на «докажи»: счётчик - все срабатывания
+   детектора по переписке, раскрытие - конкретные сделки с цитатами и вердиктом
+   AI-Кости по каждой. Имя менеджера ведёт в его кабинет, номер сделки в Bitrix. */
+if (D.registry) (function(){
+  const R=D.registry, C=R.claims||{};
+  const codes=Object.keys(C).sort((a,b)=>C[b].total-C[a].total);
+  const defs=codes.filter(c=>C[c].kind==='defect'), strs=codes.filter(c=>C[c].kind==='strong');
+  const mglink = m => D.cabinets&&D.cabinets[m] ? `<a href="./${E(D.cabinets[m])}">${E(m)}</a>` : E(m);
+  const evi = (e,kind) => `<div class="rev">
+    <div class="rev-h"><a href="${url(e.deal)}" target="_blank">Сделка ${E(e.deal)}</a>
+      <span class="sub2" style="display:inline;margin-left:8px">${E(e.when)} &middot; ${E(e.stage||'стадия не указана')}</span></div>
+    ${e.client?`<div class="q">Клиент: ${E(e.client)}</div>`:''}
+    <div class="q ${kind==='defect'?'was':'now'}">Менеджер: ${E(e.manager)}</div>
+    <div class="rk"><b>AI-Костя.</b>
+      ${e.well?`<span class="rk-g">Хорошо: ${E(e.well)}</span>`:''}
+      ${e.bad?`<span class="rk-b">Плохо: ${E(e.bad)}</span>`:''}
+      ${e.should?`<div class="q now" data-copy>Как надо было: ${E(e.should)}</div>`:''}
+    </div></div>`;
+  const claim = code => { const c=C[code];
+    const nev=Object.values(c.byMgr).reduce((s,v)=>s+v.evidence.length,0);
+    return `<details class="reg">
+    <summary><span class="rn ${c.kind==='defect'?'bad':'good'}">${num(c.total)}</span>
+      <span class="rt"><b>${E(c.title)}</b>
+      <span class="sub2">${num(c.total)} срабатываний по переписке &middot; в выборке ${num(nev)} сделок,
+      ${Object.keys(c.byMgr).length} менеджеров &middot; раскрыть</span></span></summary>
+    <div class="reg-b">
+    ${c.diag?`<p class="small" style="max-width:75ch">${E(c.diag)}</p>`:''}
+    ${Object.entries(c.byMgr).sort((a,b)=>b[1].n-a[1].n).map(([m,v])=>`
+      <h3 style="margin-top:14px">${mglink(m)} <span class="tag ${c.kind==='defect'?'bad':'ok'}">${num(v.n)}</span></h3>
+      ${v.evidence.map(e=>evi(e,c.kind)).join('')}`).join('')}
+    </div>
+  </details>`; };
+  document.getElementById('t-reg').innerHTML = `
+    <div id="reestr"></div>
+    <h2>${I('check')}Реестр замечаний с доказательствами</h2>
+    <div class="note" style="max-width:85ch">Каждое утверждение методики привязано к сделкам, по которым оно посчитано.
+      Счётчик - срабатывания детектора за период ${E((R.meta||{}).period||'')}.
+      ${E((R.meta||{}).note||'')} Нулевые пункты каталога (жаргон, «вы же сами») в письменной
+      переписке за период не встретились: они пришли из ручного разбора Кости и остаются в методике.</div>
+    ${(R.meta||{}).hypothesis?`<p class="small" style="max-width:85ch">${E(R.meta.hypothesis)}
+      <span class="tag warn">ГИПОТЕЗА</span></p>`:''}
+    <h2 style="margin-top:20px">Что чинить</h2>
+    ${defs.map(claim).join('')}
+    <h2>Что уже получается</h2>
+    ${strs.map(claim).join('')}`;
+  /* Прямой заход по якорю #reestr: оболочка академии показывает секцию сводки,
+     а вкладку внутри неё переключаем сами. */
+  function openReg(){ if(location.hash.indexOf('reestr')<0) return;
+    document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.t==='t-reg'));
+    document.querySelectorAll('.tabpanel').forEach(s=>s.classList.toggle('on',s.id==='t-reg')); }
+  window.addEventListener('hashchange',openReg); openReg();
+})();
 
 // Раскрытие строки светофора. Обработчик один на документ и переживает
 // перерисовку вкладок, как и сортировка ниже.

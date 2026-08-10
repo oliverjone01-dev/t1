@@ -371,6 +371,62 @@ def talks_block(cs, mgr, built_dt):
     return "\n".join(L)
 
 
+def registry_block(regm, mgr, built_dt):
+    """Персональный реестр замечаний: счётчик на каждое утверждение и сделки,
+    по которым оно посчитано, с вердиктом AI-Кости на каждую.
+
+    Здесь только сделки самого менеджера: чужих данных в кабинете физически нет.
+    Полный реестр отдела с теми же счётчиками видит РОП в сводке.
+    """
+    if not regm or not regm.get("claims"):
+        return ""
+    L = []
+    a = L.append
+    a('<div class="anch" id="reestr"></div><h2>' + ic("check") + 'Реестр: все ваши случаи по типам</h2>')
+    a('<div class="small" style="max-width:75ch">Карточки выше это примеры, по одному на тип. '
+      'Здесь счёт целиком: каждое утверждение с числом срабатываний и сделками, по которым '
+      'оно посчитано. Раскрывается по клику. Тот же реестр по всему отделу видит РОП.</div>')
+    if regm.get("hyp"):
+        a(f'<div class="small" style="max-width:75ch">{esc(regm["hyp"])} '
+          '<span class="tag warn">ГИПОТЕЗА</span></div>')
+    order = sorted(regm["claims"].items(), key=lambda x: (x[1]["kind"] != "defect", -x[1]["n"]))
+    for code, c in order:
+        bad = c["kind"] == "defect"
+        nev = len(c["evidence"])
+        a(f'<details class="reg"><summary><span class="rn {"bad" if bad else "good"}">{c["n"]}</span>'
+          f'<span class="rt"><b>{esc(c["title"])}</b>'
+          f'<div class="small">{c["n"]} {plural(c["n"], "срабатывание", "срабатывания", "срабатываний")} '
+          f'по вашей переписке · в выборке {nev} {plural(nev, "сделка", "сделки", "сделок")} · раскрыть</div>'
+          f'</span></summary><div class="reg-b">')
+        if c.get("diag"):
+            a(f'<div class="small" style="max-width:75ch">{esc(c["diag"])}</div>')
+        for e in c["evidence"]:
+            a(f'<div class="card case {"bad" if bad else "good"}" style="margin:10px 0">')
+            a(f'<div class="small">Сделка <a href="{PORTAL.format(e["deal"])}" target="_blank">'
+              f'{esc(e["deal"])}</a> · {esc(e.get("when") or "")}'
+              f'{" · " + esc(e["stage"]) if e.get("stage") else ""}</div>')
+            if e.get("client"):
+                a(f'<div class="q"><div class="who">Клиент написал</div>{esc(e["client"])}</div>')
+            if e.get("manager"):
+                a(f'<div class="q {"was" if bad else "now"}"><div class="who">Вы ответили</div>'
+                  f'{esc(e["manager"])}</div>')
+            a('<div class="rk"><b>AI-Костя.</b>')
+            if e.get("well"):
+                a(f'<span class="rk-g">Хорошо: {esc(e["well"])}</span>')
+            if e.get("bad"):
+                a(f'<span class="rk-b">Плохо: {esc(e["bad"])}</span>')
+            a('</div>')
+            if e.get("should"):
+                a(f'<div class="q now" data-copy><div class="who">Как надо было</div>{esc(e["should"])}</div>')
+            a('</div>')
+        a('</div></details>')
+    a('<div class="small">Счётчик считает все срабатывания детектора, выборка ограничена '
+      'восемью сделками на тип: сначала пары с репликой клиента и большей суммой. '
+      'Не согласны с конкретным разбором: кнопка «не согласен» есть у карточек-примеров выше, '
+      'реестр пересчитывается тем же скриптом.</div>')
+    return "\n".join(L)
+
+
 # ВНИМАНИЕ: второго блока <style> быть не может. Сборщик кабинета берёт из файла
 # ровно первый блок (build-platform.mjs, склейка payload), второй теряется молча,
 # и сборка при этом не падает. Поэтому @media print живёт здесь же.
@@ -422,6 +478,20 @@ p,.note{max-width:66ch}
 .tag.warn{color:var(--warn);border-color:#5e4415}.tag.acc{color:var(--acc);border-color:var(--acc2)}
 .q{background:var(--panel2);border-left:3px solid var(--line2);padding:10px 13px;margin:8px 0;border-radius:0 8px 8px 0;font-size:14px;max-width:70ch}
 .q.was{border-left-color:var(--bad)}.q.now{border-left-color:var(--ok)}
+/* Реестр замечаний: счётчик слева, утверждение справа, раскрытие по клику.
+   Цвет вердикта дублируется словами «Хорошо» и «Плохо»: при дальтонизме
+   цвет не единственный носитель смысла. */
+details.reg{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:10px 0}
+details.reg>summary{display:flex;align-items:center;gap:14px;padding:12px 16px;cursor:pointer;list-style:none}
+details.reg>summary::-webkit-details-marker{display:none}
+details.reg[open]>summary{border-bottom:1px solid var(--line)}
+.rn{flex:none;min-width:64px;text-align:right;font-weight:600;line-height:1.1;font-size:26px;font-variant-numeric:tabular-nums}
+.rn.bad{color:var(--bad)}.rn.good{color:var(--ok)}
+.rt{flex:1 1 auto;min-width:0}
+.reg-b{padding:10px 16px 14px}
+.rk{font-size:13.5px;margin-top:6px;max-width:75ch}
+.rk-g{display:block;color:var(--ok);margin-top:2px}
+.rk-b{display:block;color:var(--bad);margin-top:2px}
 [data-copy]{cursor:copy;position:relative}
 [data-copy]::after{content:"копировать";position:absolute;right:10px;top:8px;font-size:10.5px;color:var(--mut);letter-spacing:.03em}
 [data-copy].done::after{content:"скопировано";color:var(--ok)}
@@ -466,7 +536,7 @@ footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:v
 """
 
 
-def render(m, pm, kk, meta, period, D, prev, cs=None):
+def render(m, pm, kk, meta, period, D, prev, cs=None, regm=None):
     """Одна персональная страница.
 
     Порядок блоков: сначала собственные цифры человека, потом одна задача на
@@ -506,7 +576,8 @@ def render(m, pm, kk, meta, period, D, prev, cs=None):
     a('</header>')
     a('<nav class="toc"><a href="#norm">' + ic("normativy") + 'Мои цифры</a><a href="#task">' + ic("check") + 'Моя задача</a>'
       '<a href="#talks">' + ic("message") + 'Разбор переговоров</a>'
-      '<a href="#money">' + ic("money") + 'Деньги</a><a href="#win">' + ic("check") + 'Получилось</a>'
+      + ('<a href="#reestr">' + ic("check") + 'Реестр</a>' if regm else '')
+      + '<a href="#money">' + ic("money") + 'Деньги</a><a href="#win">' + ic("check") + 'Получилось</a>'
       '<a href="#qual">' + ic("kvalifikaciya") + 'Квалификация</a><a href="#deals">' + ic("deal") + 'Сделки</a>'
       '<a href="#sys">' + ic("ne-vasha-zona") + 'Не моя зона</a></nav>')
 
@@ -580,6 +651,11 @@ def render(m, pm, kk, meta, period, D, prev, cs=None):
     talks = talks_block(cs, m["mgr"], built_dt)
     if talks:
         a(talks)
+
+    # 4а. Персональный реестр замечаний: счётчики и сделки-доказательства.
+    reg = registry_block(regm, m["mgr"], built_dt)
+    if reg:
+        a(reg)
 
     # 5. Деньги на столе
     deals = pm.get("deals", [])
@@ -846,7 +922,8 @@ def snapshot_of(m):
 FRAGMENT = "--fragment" in sys.argv
 
 
-def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=None):
+def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=None,
+         registry_path=None):
     A = json.load(open(analysis_path, encoding="utf-8"))
     PM = json.load(open(per_manager_path, encoding="utf-8"))["managers"]
     K = json.load(open(kostya_path, encoding="utf-8")) if kostya_path else None
@@ -856,6 +933,19 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=
     # не наполняется заглушками.
     CS = json.load(open(cases_path, encoding="utf-8"))["managers"] if cases_path else {}
     cs_by_key = {name_key(k): v for k, v in CS.items()}
+    # Реестр замечаний (dialogs-registry.py) режется по менеджеру ЗДЕСЬ, до
+    # рендера: в кабинет уезжает срез с одним человеком, чужие сделки в файл
+    # не попадают вовсе, и изоляция держится на отсутствии данных.
+    reg_by_key = {}
+    if registry_path:
+        R = json.load(open(registry_path, encoding="utf-8"))
+        hyp = (R.get("meta") or {}).get("hypothesis", "")
+        for code, c in R["claims"].items():
+            for mgr_name, v in c["byMgr"].items():
+                k = name_key(mgr_name)
+                reg_by_key.setdefault(k, {"claims": {}, "hyp": hyp})["claims"][code] = {
+                    "title": c["title"], "kind": c["kind"], "diag": c["diag"],
+                    "n": v["n"], "evidence": v["evidence"]}
 
     os.makedirs(out_dir, exist_ok=True)
     period = A["meta"]["period"]
@@ -887,7 +977,8 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=
             prev = (prev_all.get("managers") or {}).get(name_key(m["mgr"]))
             if prev:
                 prev = dict(prev, builtAt=prev_all.get("builtAt"))
-        page = render(m, pm, kk, A["meta"], period, D, prev, cs_by_key.get(name_key(m["mgr"])))
+        page = render(m, pm, kk, A["meta"], period, D, prev, cs_by_key.get(name_key(m["mgr"])),
+                      reg_by_key.get(name_key(m["mgr"])))
         if FRAGMENT:
             # Кабинет уезжает разделом внутрь академии, поэтому отдаём не документ,
             # а его содержимое: своя обёртка .cab и свой каркас там лишние, их даёт
@@ -950,5 +1041,5 @@ if __name__ == "__main__":
     ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
     if len(ARGS) < 3:
         sys.exit("нужно: build-pages.py analysis.json per_manager.json out_dir "
-                 "[kostya.json] [cases.json] [--fragment]")
-    main(*ARGS[:5])
+                 "[kostya.json] [cases.json] [registry.json] [--fragment]")
+    main(*ARGS[:6])

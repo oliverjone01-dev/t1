@@ -1245,26 +1245,34 @@ function render(){
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['Квал %',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" data-tip="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
   const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
-  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)),_attain=(_lm!=='leads');
+  // Факт команды по счётным метрикам ВКЛЮЧАЕТ нераспределённых: это реальные лиды/сделки,
+  // пришедшие в компанию (бот - лишь holding pen до смены ответственного менеджером).
+  // Поэтому «Лиды» = все входящие, а не только распределённые по менеджерам.
+  const _unFact=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0;
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)+_unFact),_attain=(_lm!=='leads');
   const _mPlanTot=_lm==='conv'?((_mP.conv&&_mP.conv>0)?_mP.conv:0.15):_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='prod'?(Math.round(_mP.winT)||_factTot):_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',prod:'В производство',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
   const _nOver=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr>1.3).length,_nUnder=_marr.filter(x=>_mPlanMgr&&x.tot/_mPlanMgr<0.7).length,_fMt=(_lm==='rev'||_lm==='check')?(v=>fmtK(v)+' ₽'):_lm==='conv'?(v=>pct(v)):(v=>fmt(v));
-  const _unTot=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0,_allTot=_teamFact+_unTot,_unShare=_allTot?_unTot/_allTot:0;
-  const _greenPct=Math.min(100,_teamPct*100),_greyPct=(_unTot&&_teamPlan)?Math.min(Math.max(0,100-_greenPct),_unTot/_teamPlan*100):0;
-  const _greySeg=_greyPct>0.3?`<div style="position:absolute;left:${_greenPct.toFixed(1)}%;top:0;height:100%;width:${_greyPct.toFixed(1)}%;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 5px,#2C333E 5px,#2C333E 10px);opacity:.92" data-tip="Нераспределённые ${_fMt(_unTot)} · ${pct(_unShare)} от всех ${_mLab.toLowerCase()} · вне плана"></div>`:'';
+  // Нераспределённые уже ВХОДЯТ в _teamFact (тотал). Серым подсвечиваем их долю как ХВОСТ
+  // зелёной заливки (не «вне плана», а «пришли, но ещё не распределены на менеджера»).
+  const _unTot=_unFact,_allTot=_teamFact,_unShare=_allTot?_unTot/_allTot:0;
+  const _greenPct=Math.min(100,_teamPct*100),_unPct=(_unTot&&_teamPlan)?Math.min(_greenPct,_unTot/_teamPlan*100):0;
+  const _greySeg=_unPct>0.3?`<div style="position:absolute;left:${(_greenPct-_unPct).toFixed(1)}%;top:0;height:100%;width:${_unPct.toFixed(1)}%;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 5px,#2C333E 5px,#2C333E 10px);opacity:.92" data-tip="Не распределены (на боте, ждут менеджера): ${_fMt(_unTot)} · ${pct(_unShare)} от всех ${_mLab.toLowerCase()} · входят в тотал"></div>`:'';
   const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};transition:width .8s var(--ease-out)"></div>${_greySeg}<span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>`;
   const _noL=L.filter(l=>!isOP(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)),_noMap={};
   _noL.forEach(l=>{(_noMap[l.mgr]=_noMap[l.mgr]||{l:0,d:0}).l++;});_noD.forEach(d=>{(_noMap[d.mgr]=_noMap[d.mgr]||{l:0,d:0}).d++;});
   const _noBear=Object.entries(_noMap).sort((a,b)=>(b[1].l+b[1].d)-(a[1].l+a[1].d)).slice(0,5).map(([n,v])=>`${n} <span style="color:var(--ink-4)">(${v.l}л/${v.d}с)</span>`).join(' · ');
   const _unLab={leads:'лидов',deals:'сделок',won:'продаж',prod:'запусков производства',rev:'выручки'}[_lm];
   const _noSwatch=`<span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 3px,#2C333E 3px,#2C333E 6px);vertical-align:-1px;margin-right:6px"></span>`;
-  const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">${_noSwatch}Нераспределённые (вне плана): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок${_unTot&&_unLab?` · <b style="color:var(--ink-3)">${pct(_unShare)}</b> от всех ${_unLab} за период`:''} · на: ${_noBear}</div>`:'';
+  const _noHTML=(_noL.length||_noD.length)?`<div style="flex-basis:100%;font-size:11px;color:var(--ink-4);margin-top:6px;border-top:1px dashed var(--border-soft);padding-top:6px">${_noSwatch}Нераспределённые (на боте, ждут менеджера · входят в тотал): <b style="color:var(--ink-3)">${fmt(_noL.length)}</b> лидов · <b style="color:var(--ink-3)">${fmt(_noD.length)}</b> сделок${_unTot&&_unLab?` · <b style="color:var(--ink-3)">${pct(_unShare)}</b> от всех ${_unLab} за период`:''} · на: ${_noBear}</div>`:'';
   // Команда - план-факт по ВСЕМ метрикам сразу (та же логика факт/план, что у одиночного бара).
   const teamMetric=metric=>{
     const ds=(metric==='won'||metric==='rev'||metric==='check')?soldSet():metric==='prod'?prodSet():D;
     const arr=mgrPF(L,ds,metric,_mkeys);
-    const fact=metric==='conv'?m.conv:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0);
+    const un=unassignedAgg(L,ds,metric,_mkeys);
+    const unT=(un&&metric!=='conv'&&metric!=='check')?un.tot:0; // нераспределённые входят в тотал
+    const fact=metric==='conv'?m.conv:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0)+unT;
     const planTot=metric==='conv'?((_mP.conv&&_mP.conv>0)?_mP.conv:0.15):metric==='check'?(_mP.check||60000):metric==='leads'?fact:metric==='prod'?(Math.round(_mP.winT)||fact):metric==='deals'?(_mP.targets.deals||fact):(metric==='won'?Math.round(_mP.winT):_mP.targets.rev);
     const plan=metric==='leads'?(_mP.targets.leads||fact):planTot;
     return {fact,plan,pct:plan?fact/plan:0};

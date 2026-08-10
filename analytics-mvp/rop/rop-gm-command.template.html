@@ -311,7 +311,11 @@ const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',ge
 // Дилерский канал: источник «ДИЛЕР Glass Memory». Переключатель S.channel (all/nodealer/dealer)
 // перестраивает все метрики - фильтрует и сделки, и лиды по источнику.
 const DEALER_SRC=new Set(['ДИЛЕР Glass Memory']);
-const chOk=x=>S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source));
+// GG-сотрудники, ошибочно оказавшиеся ответственными на GM-лидах/сделках. Их активность
+// относится к GG, а не к GM, поэтому вырезаем из GM-данных целиком (и из воронки, и из
+// менеджеров, и из «нераспределённых»). Единая точка chOk вызывается из flt и всех dirOk.
+const GG_FOREIGN=new Set(['Анна Турченко','Татьяна Лакомова']);
+const chOk=x=>!GG_FOREIGN.has(x.mgr)&&(S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source)));
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&chOk(x)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 // Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:
@@ -378,8 +382,11 @@ function mtr(D,L,so,lo){const cohortWon=D.filter(SOLD);
   // (без заявки) в знаменатель не берём: иначе конверсия искажена и может вылетать за 100%.
   // Числитель и знаменатель оба ограничены fromLead, чтобы доля была честной.
   // Fallback: если в данных ещё нет флага fromLead (старый снимок) - считаем по всем сделкам.
+  // Дилерский канал идёт МИМО лида: в режиме «Только дилеры» когорта уже задана фильтром
+  // канала (chOk), поэтому по fromLead НЕ режем - иначе знаменатель ≈0 и CR2 ложно 0%.
+  // Тогда CR2 = дилерские продажи ÷ дилерские сделки (честная дилерская доводимость).
   const _hasLead=D.some(d=>d.fromLead!==undefined),
-        Dconv=_hasLead?D.filter(d=>d.fromLead):D,
+        Dconv=(S.channel==='dealer')?D:(_hasLead?D.filter(d=>d.fromLead):D),
         convWon=Dconv.filter(SOLD);
   return {leads:L.length,deals:D.length,dealsConv:Dconv.length,
     won:so.length,rev,check:so.length?rev/so.length:0,

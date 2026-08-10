@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GENGLASS · Командный центр РОПа</title>
+<title>Glass Memory · Командный центр РОПа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -307,7 +307,7 @@ const ageDays=ds=>(NOWD-new Date(ds))/DAYMS;
 let S={start:DATA.from,end:DATA.to,gran:'week',fMgr:'',fSrc:'',fCli:'',fDir:'',channel:'all',dynDim:'qual',cvView:'funnel',loadMetric:'leads',dynMetric:'leads',mgrMetric:'leads',pfMetric:'rev',dlDim:'sum',dqDim:'leads',revMetric:'rev',planRev:4000000,hidden:{},hiddenM:{},mtSort:'rev',mtAsc:false,revMode:'prepay',dateBasis:'created',funnelMode:'created',dwellSort:'dwell',pmSort:{k:'m',a:false},rdSort:{k:'qM',a:false},rdeptOpen:{GG:true},rmgrOpen:{},dhSort:'tot',dhAsc:false,dhMetric:'term',lossMgrSel:[],lossMgrOpen:false,lossSort:'date',lossAsc:false,unDim:'leads',unSort:'age',unAsc:false,unOpen:false,stSort:'age',stAsc:false,stEmp:'',stBiz:'',stAge:'',stStage:''};
 function periodLen(){return Math.round((new Date(S.end)-new Date(S.start))/864e5)+1;}
 const inP=d=>d>=S.start&&d<=S.end;
-const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
+const DIRLAB={'glass-memory':'Glass Memory',genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',gentero:'GENTERO',valonti:'VALONTI','не указано':'без направления'};
 // Дилерский канал: источник «ДИЛЕР Glass Memory». Переключатель S.channel (all/nodealer/dealer)
 // перестраивает все метрики - фильтрует и сделки, и лиды по источнику.
 const DEALER_SRC=new Set(['ДИЛЕР Glass Memory']);
@@ -686,7 +686,10 @@ function deptDQBlock(){
   const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
   const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
   const eBud=d=>(d.budget||0)<=1;
-  const nP=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
+  // Категория (ассортимент) в GM НЕ проверяется: у Glass Memory нет категорий товаров,
+  // поле заполнено ~0%, поэтому это ложная «дыра». Проверяем причину (для отказных),
+  // тип клиента и бюджет≤1.
+  const nP=d=>(eRsn(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
   const allRows=passed.filter(d=>nP(d)>0);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
   const _info=info('Ровно тот список, что видит каждый менеджер в своём дашборде: сделки, дошедшие до предложения, у которых в CRM не заполнено важное - причина отказа (для отказных), категория, тип клиента или бюджет 0/1 (при отправленном КП цена должна быть выше 1). Вопрос: где дыры в данных по отделу и у кого их больше. Вывод: чипы сверху - кто сколько должен поправить (клик - фильтр), таблица - конкретные сделки; клик по заголовку столбца - сортировка. Пока не закрыты, статистика конверсии и причин неполная.');
@@ -711,11 +714,11 @@ function deptDQBlock(){
     `<td class="name" style="text-align:left;white-space:nowrap">${esc(d.mgr)}</td>`+
     `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(d.stage||'')}</td>`+
     `<td style="text-align:center;${eRsn(d)?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${d.lost?(eRsn(d)?'нет':esc(d.reason)):'—'}</td>`+
-    miss(eCat(d),d.assort)+miss(eCli(d),d.client)+
+    miss(eCli(d),d.client)+
     `<td style="text-align:center;${eBud(d)?'color:#F8717A;font-weight:700':''}">${fmtK(d.budget||0)}</td>`+
     `<td style="text-align:center;font-weight:800;color:${nP(d)>=2?'#CC5867':'#C2873C'}">${nP(d)}</td>`+
     `</tr>`).join("");
-  return `<div class="card" id="deptdqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления по отделу ${_info}</div><div class="card-sub">${fmt(rows.length)}${sel?' у «'+esc(sel)+'»':''} из ${fmt(allRows.length)} сделок надо поправить · причина ${cRsn} · категория ${cCat} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div>${chips}<div class="scroll" style="max-height:460px;margin-top:2px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('mgr','Менеджер','left')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cat','Категория')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="deptdqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления по отделу ${_info}</div><div class="card-sub">${fmt(rows.length)}${sel?' у «'+esc(sel)+'»':''} из ${fmt(allRows.length)} сделок надо поправить · причина ${cRsn} · клиент ${cCli} · бюджет≤1 ${cBud} · клик по заголовку - сортировка</div></div></div>${chips}<div class="scroll" style="max-height:460px;margin-top:2px"><table class="tbl"><thead><tr>${th('id','Сделка')}${th('mgr','Менеджер','left')}${th('stage','Стадия','left')}${th('rsn','Причина')}${th('cli','Клиент')}${th('bud','Бюджет')}${th('cnt','Проблем')}</tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 // ===== ДИСЦИПЛИНА ДЕЛ: у каждой открытой сделки должно быть запланированное дело.
@@ -1103,7 +1106,7 @@ function render(){
   const dealByDir=dq.dealByDir||{};const dDealEmpty=dealByDir['не указано']||0;
   const palDir=['#22D3EE','#A78BFA','#10B981','#F472B6','#FB923C','#6366F1','#34D399','#60A5FA','#C084FC','#2DD4BF','#F59E0B','#F87171'];
   const dirList=dq.dirList||Object.keys(dq.leadByDir||{});
-  const dirOf={};dirList.forEach((nm,i)=>{dirOf[nm]=nm==='genglass'?'#22D3EE':palDir[i%palDir.length];});dirOf['не указано']='#F43F5E';
+  const dirOf={};dirList.forEach((nm,i)=>{dirOf[nm]=nm==='glass-memory'?'#22D3EE':palDir[i%palDir.length];});dirOf['не указано']='#F43F5E';
   const stByDir=dq.leadStatByDir||{};
   const dirRows=dirList.concat(['не указано']).map(nm=>{const x=stByDir[nm]||{s:(nm==='не указано'?dq.leadQualEmpty:dq.leadQualByDir[nm])||0,f:0,p:0};const tot=(x.s||0)+(x.f||0)+(x.p||0);return [nm,tot,x.s||0,x.f||0,x.p||0];})
     .filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
@@ -1130,7 +1133,7 @@ function render(){
   const _qfV=v=>_qMeta.money?fmtK(v)+' ₽':fmt(v);
   const _qTotal=_qMeta.total||1;
   const _qTop=dirList.map(nm=>[nm,_qMeta.map[nm]||0]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  const dirTiles=_qTop.map(r=>({k:r[0]==='genglass'?'genglass (наш)':r[0],v:_qfV(r[1]),ac:r[0]==='genglass'?'accent':(dirOf[r[0]]||'#6366F1'),sub:pct(r[1]/_qTotal)+' от '+_qMeta.unit}));
+  const dirTiles=_qTop.map(r=>({k:r[0]==='glass-memory'?'Glass Memory (наш)':(DIRLAB[r[0]]||r[0]),v:_qfV(r[1]),ac:r[0]==='glass-memory'?'accent':(dirOf[r[0]]||'#6366F1'),sub:pct(r[1]/_qTotal)+' от '+_qMeta.unit}));
   let dirBarM;
   if(QM==='leads'){dirBarM=dirBar;}
   else{
@@ -1177,7 +1180,7 @@ function render(){
   dData.forEach(d=>{const an=Math.min(d[1]/refused*360,359.98);const a1=dA,a2=dA+an;const xy=(deg,rad)=>[100+rad*Math.cos(deg*Math.PI/180),100+rad*Math.sin(deg*Math.PI/180)];const R=74,r=50;const[x0,y0]=xy(a1,R),[x1,y1]=xy(a2,R),[x2,y2]=xy(a2,r),[x3,y3]=xy(a1,r);const laf=an>180?1:0;const td=dt(d[0],[['Отказов',fmt(d[1]),'hl'],['Доля',pct(d[1]/refused),'hl']]).replace(/"/g,'&quot;');dPaths+=`<path class="dpath seg-anim" data-tip="${td}" d="M${x0} ${y0} A${R} ${R} 0 ${laf} 1 ${x1} ${y1} L${x2} ${y2} A${r} ${r} 0 ${laf} 0 ${x3} ${y3} Z" fill="${d[2]}" opacity=".9"/>`;dA=a2;});
   const dSvg=`<svg viewBox="0 0 200 200" style="width:100%;max-width:166px">${dPaths}<text x="100" y="95" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="27" fill="var(--ink)">${fmt(refused)}</text><text x="100" y="114" text-anchor="middle" font-size="10" fill="var(--ink-3)">отказов</text></svg>`;
   const dLeg=dData.map(d=>`<div class="ro-lg"><span class="dot" style="background:${d[2]}"></span><span class="nm">${d[0]}</span><span class="vl">${fmt(d[1])}</span><span class="pc">${pct(d[1]/refused)}</span></div>`).join('');
-  const B_leadFunnelPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Воронка лидов ${info('Все лиды периода по исходу: в работе / сделки (квал) / отказ. Здесь считаются ЛИДЫ воронки genglass, созданные в периоде и дошедшие до сделки - поэтому цифра «Сделки» не совпадает с «Всего сделок» в «Качестве разметки»: там СДЕЛКИ, созданные за период по всем направлениям, включая созданные вручную без лида и по лидам прошлых периодов. Вопрос: какая доля входящих доходит до сделки, сколько отваливается. Вывод: большой «отказ» или много зависших «в работе» - проблема обработки лидов на входе.')}</div><div class="card-sub">из ${fmt(ltot)} лидов genglass: <b style="color:#2E9E74">${fmt(success)} квал</b> (квал % ${pct(ltot?success/ltot:0)}) · ${fmt(refused)} отказ · ${fmt(inwork)} в работе</div></div></div><div class="lf-bars">${lbars}</div></div>`+
+  const B_leadFunnelPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">Воронка лидов ${info('Все лиды периода по исходу: в работе / сделки (квал) / отказ. Здесь считаются ЛИДЫ воронки genglass, созданные в периоде и дошедшие до сделки - поэтому цифра «Сделки» не совпадает с «Всего сделок» в «Качестве разметки»: там СДЕЛКИ, созданные за период по всем направлениям, включая созданные вручную без лида и по лидам прошлых периодов. Вопрос: какая доля входящих доходит до сделки, сколько отваливается. Вывод: большой «отказ» или много зависших «в работе» - проблема обработки лидов на входе.')}</div><div class="card-sub">из ${fmt(ltot)} лидов Glass Memory: <b style="color:#2E9E74">${fmt(success)} квал</b> (квал % ${pct(ltot?success/ltot:0)}) · ${fmt(refused)} отказ · ${fmt(inwork)} в работе</div></div></div><div class="lf-bars">${lbars}</div></div>`+
     `<div class="card"><div class="card-h"><div><div class="card-title">Причины отказов в лидах ${info('Почему лиды не дошли до сделки: некачественный / спам / дубль / отказ. Вопрос: главная причина потери лидов на входе. Вывод: много «некачественный/спам» - проблема в каналах трафика, а не в продажах.')}</div><div class="card-sub">${fmt(refused)} отказных лидов по статусу. Внутри «Некачественный лид» причину пишет менеджер: чаще всего игнор, тест, пустой, звонок по заказу. Подпричины «Отказа» в выгрузке пока нет.</div></div></div><div class="ro-dwrap" style="margin-top:10px"><div class="ro-donut">${dSvg}</div><div class="ro-legend">${dLeg}</div></div></div></div>`;
   // нагрузка по менеджерам ОП (full-width)
   const mgA={};L.forEach(l=>{if(!isOP(l.mgr))return;const a=mgA[l.mgr]=mgA[l.mgr]||{t:0,q:0,f:0,p:0};a.t++;if(l.qual==='квал')a.q++;else if(l.qual==='в работе')a.p++;else a.f++;});
@@ -1452,7 +1455,7 @@ function render(){
     const DS=S.rdSort||{k:'qM',a:false};
     const _gv={nm:r=>r.mgr,tD:r=>r.tD,tM:r=>r.tM,tPos:r=>r.tPos,tPcs:r=>r.tPcs,inM:r=>r.inM,qM:r=>r.qM}[DS.k]||(r=>r.qM);
     const msS=ms.slice().sort((a,b)=>{const x=_gv(a),y=_gv(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y||0)-(x||0));return DS.a?-d:d});
-    const dep={mgr:'GENGLASS (GG)'};['tD','tM','tPos','tPcs','inN','inM','qN','qM'].forEach(k=>dep[k]=ms.reduce((s,m)=>s+m[k],0));
+    const dep={mgr:'Glass Memory'};['tD','tM','tPos','tPcs','inN','inM','qN','qM'].forEach(k=>dep[k]=ms.reduce((s,m)=>s+m[k],0));
     const mxOf=f=>Math.max(1e-9,...ms.map(f));
     const mx={tD:mxOf(r=>r.tD),tM:mxOf(r=>r.tM),tPos:mxOf(r=>r.tPos),tPcs:mxOf(r=>r.tPcs),inM:mxOf(r=>r.inM),qM:mxOf(r=>r.qM)};
     const hg=(v,m2,col)=>{if(!v)return '';const w=Math.max(v/m2*100,3).toFixed(1);return `background:linear-gradient(90deg,${col} ${w}%,transparent ${w}%);`};

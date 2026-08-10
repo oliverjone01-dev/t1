@@ -404,7 +404,7 @@
     if (!bad.length) { if (noteEl) { noteEl.remove(); noteEl = null; } return; }
     if (!noteEl) {
       noteEl = document.createElement('div');
-      noteEl.className = 'le-warn';
+      noteEl.className = 'le-warn le-ui';
       noteEl.setAttribute('role', 'status');
       noteEl.setAttribute('aria-live', 'polite');
       document.body.appendChild(noteEl);
@@ -416,6 +416,7 @@
     sp.textContent = bad.join('. ');
     var bt = document.createElement('button');
     bt.type = 'button';
+    bt.className = 'le-b';
     bt.textContent = 'Скрыть';
     bt.setAttribute('aria-label', 'Скрыть предупреждение');
     bt.onclick = function () { noteEl.remove(); noteEl = null; };
@@ -478,12 +479,12 @@
   function bar(el) {
     killBar();
     var b = document.createElement('div');
-    b.className = 'le-bar';
+    b.className = 'le-bar le-ui';
     b.setAttribute('role', 'toolbar');
     b.setAttribute('aria-label', 'Правка блока');
-    b.innerHTML = '<button type="button" data-a="ok">Сохранить</button>' +
-      '<button type="button" data-a="no">Отмена</button>' +
-      '<button type="button" data-a="rs">Шаблон</button>' +
+    b.innerHTML = '<button type="button" class="le-b le-b-main" data-a="ok">Сохранить</button>' +
+      '<button type="button" class="le-b" data-a="no">Отмена</button>' +
+      '<button type="button" class="le-b" data-a="rs">Шаблон</button>' +
       '<span class="le-hint" id="le-hint">Ctrl+Enter сохранить, Esc отменить</span>';
     document.body.appendChild(b);
     barEl = b;
@@ -514,7 +515,7 @@
   function buildUI() {
     // тулбар общий с модулем версий: кто загрузился первым, тот и создал
     tb = document.querySelector('.le-tb');
-    if (!tb) { tb = document.createElement('div'); tb.className = 'le-tb'; document.body.appendChild(tb); }
+    if (!tb) { tb = document.createElement('div'); tb.className = 'le-tb le-ui'; document.body.appendChild(tb); }
     // порядок в разметке совпадает с порядком на экране, иначе Tab идёт не туда
     tb.insertAdjacentHTML('afterbegin',
       '<span class="le-msg" id="le-msg" role="status" aria-live="polite" aria-atomic="true"></span>' +
@@ -638,75 +639,96 @@
   /* ---------- стили ---------- */
 
   // Яркость фактической поверхности хоста. Ниже 0.4 считаем тёмной.
+  // Тему и токены держит theme.js: он же нужен модулю версий, подключаемому
+  // отдельно, и держать две копии измерения фона незачем.
   function pickTheme() {
-    var el = document.querySelector(ROOT_SEL) || document.body;
-    var c = '';
-    while (el && !c) {
-      var bg = getComputedStyle(el).backgroundColor;
-      if (bg && bg !== 'transparent' && !/rgba\(0, 0, 0, 0\)/.test(bg)) c = bg;
-      el = el.parentElement;
-    }
-    if (!c) c = getComputedStyle(document.documentElement).backgroundColor || 'rgb(255,255,255)';
-    var m = (c.match(/\d+(\.\d+)?/g) || [255, 255, 255]).slice(0, 3).map(Number);
-    var lum = m.map(function (v) {
-      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-    });
-    var Y = 0.2126 * lum[0] + 0.7152 * lum[1] + 0.0722 * lum[2];
-    document.documentElement.setAttribute('data-le-theme', Y > 0.4 ? 'light' : 'dark');
+    if (window.LiveTheme) window.LiveTheme.apply(ROOT_SEL);
   }
 
   function css() {
+    if (document.getElementById('le-blockedit-css')) return;
     var s = document.createElement('style');
+    s.id = 'le-blockedit-css';
+    // Палитра, типографика и форма кнопки живут в theme.js. Здесь только
+    // раскладка и то, что относится к правке текста в самом документе.
     s.textContent = [
-      // Семантические цвета объявлены токенами: на светлом фоне золото как
-      // индикатор фокуса даёт 1.78:1, а красный и зелёный проваливают текст.
-      // Тему выбираем по ФАКТИЧЕСКОМУ фону хоста, а не по prefers-color-scheme:
-      // страница может быть жёстко тёмной, а система у зрителя светлой, и тогда
-      // светлые токены сядут на тёмную поверхность и провалят контраст.
-      ':root{--le-ok:#6BBF7B;--le-bad:#E8805F;--le-ring:var(--cta,#E3BD72);--le-edge:#6A6E78}',
-      ':root[data-le-theme="light"]{--le-ok:#1B6B2C;--le-bad:#A83810;--le-ring:#8A6A1E;--le-edge:#767A84}',
-      '.le-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}',
-      '.le-tb{position:fixed;right:16px;bottom:16px;z-index:9400;display:flex;align-items:center;gap:10px;font-family:inherit}',
-      '.le-btn{display:inline-flex;align-items:center;gap:8px;background:var(--card,#1E2025);border:1px solid var(--le-edge);color:var(--ink,#F3F2EF);border-radius:999px;padding:10px 16px;font:700 13px/1 inherit;cursor:pointer;box-shadow:0 8px 26px rgba(0,0,0,.4);transition:.15s}',
-      '.le-btn:hover{border-color:var(--le-ring);transform:translateY(-1px)}',
-      '.le-btn svg{width:17px;height:17px;display:block}',
-      '.le-btn[aria-pressed="true"]{background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border-color:var(--cta,#E3BD72)}',
-      '.le-dot{width:7px;height:7px;border-radius:50%;background:var(--le-ok);display:inline-block}',
-      '.le-dot.local{background:var(--cta,#E3BD72);box-shadow:0 0 0 1px var(--le-edge)}',
-      '.le-dot.enc{outline:2px solid var(--le-ok);outline-offset:2px}',
-      '.le-msg{opacity:0;transform:translateY(4px);transition:.2s;background:var(--card,#1E2025);border:1px solid var(--line,#2E3036);color:var(--ink2,#B4B6B8);border-radius:999px;padding:8px 14px;font-size:12.5px;pointer-events:none;white-space:nowrap}',
-      '.le-msg.show{opacity:1;transform:none}.le-msg.bad{color:var(--le-bad);border-color:var(--le-bad)}',
-      '.le-on [data-le]{cursor:text;border-radius:6px;transition:box-shadow .12s,background .12s}',
-      '.le-on [data-le]:hover{box-shadow:0 0 0 2px var(--le-ring);background:rgba(227,189,114,.06)}',
-      '.le-on [data-le]:focus-visible{outline:2px solid var(--le-ring);outline-offset:3px}',
+      /* ---------- нижний тулбар ---------- */
+
+      '.le-tb{position:fixed;right:16px;bottom:16px;z-index:9400;display:flex;align-items:center;gap:8px;',
+      'font-family:inherit;transition:right .3s var(--le-ease)}',
+      // Тулбар крупнее прочих кнопок модуля: это единственное, что видно на
+      // странице до открытия панели, и попадать в него надо не целясь.
+      '.le-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;',
+      'background:var(--le-surface-2);border:1px solid var(--le-edge);color:var(--le-text);',
+      'border-radius:999px;font-family:inherit;font-size:13px;font-weight:700;line-height:1;',
+      'white-space:nowrap;cursor:pointer;box-shadow:var(--le-shadow);',
+      'transition:border-color .15s var(--le-ease),transform .15s var(--le-ease)}',
+      '.le-btn:hover{border-color:var(--le-text-2);transform:translateY(-1px)}',
+      '.le-btn svg{width:16px;height:16px;display:block;flex:none}',
+      '.le-btn[aria-pressed="true"]{background:var(--le-a);color:var(--le-a-ink);border-color:var(--le-a)}',
+
+      // Индикатор режима. Цвет здесь не единственный носитель смысла:
+      // у локального режима ещё и кольцо, у шифрованного вторая обводка.
+      '.le-dot{width:7px;height:7px;border-radius:50%;background:var(--le-ok);display:inline-block;flex:none}',
+      '.le-dot.local{background:var(--le-bad);box-shadow:0 0 0 2px var(--le-surface-2),0 0 0 3px var(--le-bad)}',
+      '.le-dot.enc{outline:2px solid currentColor;outline-offset:2px}',
+
+      '.le-msg{opacity:0;transform:translateY(4px);transition:.2s var(--le-ease);background:var(--le-surface-2);',
+      'border:1px solid var(--le-line);color:var(--le-text-2);border-radius:999px;padding:8px 14px;',
+      'font-family:inherit;font-size:12px;pointer-events:none;white-space:nowrap}',
+      '.le-msg.show{opacity:1;transform:none}',
+      '.le-msg.bad{color:var(--le-bad);border-color:var(--le-bad)}',
+
+      /* ---------- правимый блок в документе ---------- */
+
+      // Подсветка блока строится на обводке, а не на заливке: заливка
+      // непредсказуемо смешивается с фоном чужой страницы.
+      '.le-on [data-le]{cursor:text;border-radius:6px;transition:box-shadow .12s var(--le-ease)}',
+      '.le-on [data-le]:hover{box-shadow:0 0 0 2px var(--le-a)}',
+      '.le-on [data-le]:focus-visible{outline:2px solid var(--le-a);outline-offset:3px}',
       '.le-on [data-le-patched]{box-shadow:inset 3px 0 0 var(--le-ok)}',
-      '[data-le].le-active{outline:2px solid var(--le-ring);outline-offset:3px;background:rgba(227,189,114,.08)}',
-      '.le-bar{position:fixed;z-index:9600;display:flex;align-items:center;gap:6px;background:var(--card,#1E2025);border:1px solid var(--le-edge);border-radius:999px;padding:6px 8px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:inherit}',
-      '.le-bar button{background:var(--card2,#26282E);border:1px solid var(--le-edge);color:var(--ink,#F3F2EF);border-radius:999px;padding:7px 13px;min-height:26px;font:700 12px/1 inherit;cursor:pointer}',
-      '.le-bar button:hover{border-color:var(--le-ring)}',
-      '.le-bar button[data-a="ok"]{background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border-color:var(--cta,#E3BD72)}',
-      '.le-hint{color:var(--ink2,#B4B6B8);font-size:11.5px;padding:0 6px}',
-      // вход редактора
-      '.le-ov{position:fixed;inset:0;z-index:9800;background:rgba(5,5,5,.72);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px;font-family:inherit}',
-      '.le-modal{background:var(--card,#1E2025);border:1px solid var(--le-edge);border-radius:20px;padding:26px;width:390px;max-width:100%;box-shadow:0 24px 70px rgba(0,0,0,.6)}',
-      '.le-modal h2{color:var(--ink,#F3F2EF);font:800 20px/1.2 inherit;margin:0 0 8px}',
-      '.le-modal p{color:var(--ink2,#B4B6B8);font-size:13.5px;line-height:1.5;margin:0 0 16px}',
-      '.le-modal label{display:block;color:var(--ink2,#B4B6B8);font-size:12px;margin:0 0 5px}',
-      '.le-modal input{width:100%;background:var(--bg2,#191B20);border:1px solid var(--le-edge);border-radius:13px;color:var(--ink,#F3F2EF);font-family:inherit;font-size:15px;padding:11px 13px;margin:0 0 13px}',
-      '.le-modal input:focus{border-color:var(--le-ring);outline:none;box-shadow:0 0 0 3px rgba(227,189,114,.3)}',
-      '.le-err{color:var(--le-bad);font-size:12.5px;min-height:1.2em;margin:0 0 10px}',
+      '[data-le].le-active{outline:2px solid var(--le-a);outline-offset:3px}',
+
+      /* ---------- панель над правимым блоком ---------- */
+
+      '.le-bar{position:fixed;z-index:9600;display:flex;align-items:center;gap:6px;',
+      'background:var(--le-surface-2);border:1px solid var(--le-edge);border-radius:999px;',
+      'padding:6px 8px;box-shadow:var(--le-shadow);font-family:inherit}',
+      '.le-hint{color:var(--le-text-3);font-family:inherit;font-size:11px;padding:0 6px}',
+
+      /* ---------- вход редактора ---------- */
+
+      '.le-ov{position:fixed;inset:0;z-index:9800;background:rgba(6,6,8,.72);backdrop-filter:blur(6px);',
+      'display:grid;place-items:center;padding:20px;font-family:inherit}',
+      '.le-modal{background:var(--le-surface);border:1px solid var(--le-line);border-radius:18px;',
+      'padding:24px;width:390px;max-width:100%;box-shadow:var(--le-shadow)}',
+      '.le-modal h2{font-family:inherit;font-size:18px;font-weight:700;line-height:1.25;color:var(--le-text);margin:0 0 8px}',
+      '.le-modal p{font-family:inherit;font-size:13px;line-height:1.5;color:var(--le-text-2);margin:0 0 16px}',
+      '.le-modal label{display:block;font-family:inherit;font-size:12px;color:var(--le-text-2);margin:0 0 5px}',
+      '.le-modal .le-in{width:100%;margin:0 0 12px;font-size:15px}',
+      '.le-err{color:var(--le-bad);font-family:inherit;font-size:12.5px;min-height:1.2em;margin:0 0 10px}',
       '.le-row{display:flex;gap:8px;justify-content:flex-end}',
-      '.le-primary,.le-ghost{border-radius:999px;padding:10px 18px;font:700 13px/1 inherit;cursor:pointer;font-family:inherit}',
-      '.le-primary{background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border:1px solid var(--cta,#E3BD72)}',
-      '.le-ghost{background:var(--card2,#26282E);color:var(--ink,#F3F2EF);border:1px solid var(--le-edge)}',
-      '.le-tb :focus-visible,.le-bar :focus-visible,.le-modal :focus-visible,.le-warn :focus-visible{outline:2px solid var(--le-ring);outline-offset:2px}',
-      // плашка состояния: видна и зрителю, поэтому сверху и поперёк
-      '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;background:var(--le-bad);color:#fff;font:600 13px/1.4 inherit;padding:10px 16px;text-align:center}',
-      '.le-warn button{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:6px 14px;font:700 12px/1 inherit;cursor:pointer}',
-      '@media print{.le-tb,.le-bar,.le-ov{display:none}.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}.le-warn button{display:none}[data-le].le-active{outline:none;background:none}.le-on [data-le-patched]{box-shadow:none}}',
-      '@media(max-width:620px){.le-tb{right:10px;bottom:calc(10px + env(safe-area-inset-bottom))}' +
-        '.le-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;padding:0}}',
-      '@media (prefers-reduced-motion:reduce){.le-btn,.le-msg,[data-le]{transition:none!important}.le-btn:hover{transform:none!important}}'
+      '.le-row .le-b{min-height:38px;padding:0 18px;font-size:13px}',
+
+      /* ---------- плашка состояния ---------- */
+
+      // Её видит и зритель, поэтому она поперёк страницы и не зависит от
+      // палитры модуля: сообщение о поломке обязано читаться на любой теме.
+      '.le-warn{position:fixed;top:0;left:0;right:0;z-index:9750;display:flex;gap:12px;align-items:center;',
+      'justify-content:center;flex-wrap:wrap;background:#A8351C;color:#fff;font-family:inherit;',
+      'font-size:13px;font-weight:600;line-height:1.4;padding:10px 16px;text-align:center}',
+      '.le-warn .le-b{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.5);color:#fff}',
+      '.le-warn .le-b:hover{border-color:#fff}',
+
+      '@media print{.le-tb,.le-bar,.le-ov{display:none}',
+      '.le-warn{position:static;background:none;color:#000;border-bottom:2px solid #000}',
+      '.le-warn .le-b{display:none}[data-le].le-active{outline:none}',
+      '.le-on [data-le-patched]{box-shadow:none}}',
+      '@media(max-width:620px){.le-tb{right:10px;bottom:calc(10px + env(safe-area-inset-bottom))}',
+      '.le-hint{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);',
+      'white-space:nowrap;padding:0}}',
+      '@media (prefers-reduced-motion:reduce){.le-btn,.le-msg,[data-le]{transition:none!important}',
+      '.le-btn:hover{transform:none!important}}'
     ].join('');
     document.head.appendChild(s);
   }

@@ -19,7 +19,7 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var CORE_VERSION = '3';
+  var CORE_VERSION = '4';
 
   var SUPABASE = {
     type: 'supabase',
@@ -80,7 +80,7 @@
     (document.body || document.documentElement).appendChild(w);
   }
 
-  var files = ['crypt.js', 'store.js', 'auth.js', 'versions.js'];
+  var files = ['theme.js', 'crypt.js', 'store.js', 'auth.js', 'versions.js'];
   (function next(i) {
     if (i >= files.length) return;
     var s = document.createElement('script');

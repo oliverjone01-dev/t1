@@ -74,6 +74,33 @@
     return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '.' + d.getFullYear() +
       ', ' + D + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
   }
+  // Русское склонение по числу. Без него панель писала «отличий: 1» и
+  // «блоков: 2», и строка читалась как машинный лог, а не как предложение.
+  function plural(n, one, few, many) {
+    var a = Math.abs(n) % 100, b = a % 10;
+    if (a > 10 && a < 20) return many;
+    if (b > 1 && b < 5) return few;
+    if (b === 1) return one;
+    return many;
+  }
+
+  // «Давно ли» словами. Дата отвечает на вопрос «когда», но на вопрос
+  // «успела ли она устареть» по дате приходится считать в уме.
+  function ago(iso) {
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    var m = Math.round((Date.now() - t) / 60000);
+    if (m < 0) return '';
+    if (m < 2) return 'только что';
+    if (m < 60) return m + ' ' + plural(m, 'минуту', 'минуты', 'минут') + ' назад';
+    var h = Math.round(m / 60);
+    if (h < 24) return h + ' ' + plural(h, 'час', 'часа', 'часов') + ' назад';
+    var d = Math.round(h / 24);
+    if (d === 1) return 'вчера';
+    if (d < 8) return d + ' ' + plural(d, 'день', 'дня', 'дней') + ' назад';
+    return '';                       // дальше точная дата информативнее
+  }
+
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
@@ -190,19 +217,22 @@
     btn.setAttribute('aria-controls', 'ver-panel');
 
     panel = document.createElement('aside');
-    panel.className = 'ver-panel';
+    panel.className = 'ver-panel le-ui';
     panel.id = 'ver-panel';
     panel.setAttribute('aria-labelledby', 'ver-t');
     panel.innerHTML =
       '<div class="ver-h"><h2 class="ver-t" id="ver-t">История версий</h2>' +
-      '<button type="button" class="ver-x" aria-label="Закрыть историю версий">&times;</button></div>' +
-      '<div class="ver-new"><input id="ver-label" aria-label="Подпись версии, необязательно" ' +
+      '<span class="ver-n" id="ver-n"></span>' +
+      '<button type="button" class="le-b le-b-icon ver-x" aria-label="Закрыть историю версий">' +
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" ' +
+      'stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>' +
+      '<div class="ver-new"><input id="ver-label" class="le-in" aria-label="Подпись версии, необязательно" ' +
       'placeholder="подпись версии, необязательно" maxlength="80">' +
-      '<button type="button" class="ver-primary" id="ver-save">Сохранить версию</button></div>' +
+      '<button type="button" class="le-b le-b-main" id="ver-save">Сохранить</button></div>' +
       '<div class="ver-list" id="ver-list"></div>' +
-      '<div class="ver-tools"><button type="button" class="ver-mini" id="ver-export">Выгрузить копию</button>' +
-      '<button type="button" class="ver-mini" id="ver-login" hidden>Войти, чтобы сохранять</button>' +
-      '<button type="button" class="ver-mini" id="ver-import" hidden>Забрать правки из этого браузера</button>' +
+      '<div class="ver-tools"><button type="button" class="le-b" id="ver-export">Выгрузить копию</button>' +
+      '<button type="button" class="le-b" id="ver-login" hidden>Войти, чтобы сохранять</button>' +
+      '<button type="button" class="le-b" id="ver-import" hidden>Забрать правки из браузера</button>' +
       '<p class="ver-diag" id="ver-diag"></p></div>' +
       '<div class="ver-f" id="ver-f" role="status" aria-live="polite" aria-atomic="true"></div>';
     document.body.appendChild(panel);
@@ -213,7 +243,7 @@
     panel.inert = true;
 
     banner = document.createElement('div');
-    banner.className = 'ver-banner';
+    banner.className = 'ver-banner le-ui';
     banner.setAttribute('role', 'status');
     banner.setAttribute('aria-live', 'assertive');   // под баннером только что подменился весь текст
     banner.inert = true;
@@ -336,30 +366,44 @@
     if (act && list.contains(act) && act.closest('[data-id]')) {
       keep = [act.closest('[data-id]').getAttribute('data-id'), act.getAttribute('data-a')];
     }
+    var n = panel && panel.querySelector('#ver-n');
+    if (n) n.textContent = rows.length + ' ' + plural(rows.length, 'версия', 'версии', 'версий');
+
     list.innerHTML = '<ul class="ver-ul">' + rows.map(function (r, i) {
       var d = cur ? diff(r.state, cur).length : 0;
       var t = esc(fmt(r.created_at));
+      var rel = ago(r.created_at);
       var pv = previewing === r.id;
+      var b = count(r.state);
       return '<li class="ver-i' + (pv ? ' on' : '') + '" data-id="' + esc(r.id) + '"' +
         (pv ? ' aria-current="true"' : '') + '>' +
-        '<div class="ver-i-h"><time datetime="' + esc(r.created_at) + '">' + t + '</time>' +
-        (i === 0 ? '<span class="ver-tag">последняя</span>' : '') +
-        (pv ? '<span class="ver-tag ver-tag-pv">на экране</span>' : '') + '</div>' +
+        '<div class="ver-i-top"><time datetime="' + esc(r.created_at) + '">' + t + '</time>' +
+        (rel ? '<span class="ver-ago">' + esc(rel) + '</span>' : '') +
+        (pv ? '<span class="ver-tag ver-tag-pv">на экране</span>'
+            : (i === 0 ? '<span class="ver-tag">последняя</span>' : '')) + '</div>' +
         (r.label ? '<p class="ver-lb">' + esc(r.label) + '</p>' : '') +
-        '<p class="ver-meta">' + esc(r.author || 'без подписи') + ' · блоков: ' + count(r.state) +
-        (d ? ' · отличий от текущей: ' + d : ' · совпадает с текущей') + '</p>' +
+        '<p class="ver-meta"><span>' + esc(r.author || 'без подписи') + '</span>' +
+        '<span><b>' + b + '</b> ' + plural(b, 'блок', 'блока', 'блоков') + '</span>' +
+        (d ? '<span><b>' + d + '</b> ' + plural(d, 'отличие', 'отличия', 'отличий') + ' от текущей</span>'
+           : '<span class="same">совпадает с текущей</span>') + '</p>' +
         '<div class="ver-a">' +
-        '<button type="button" data-a="view" aria-pressed="' + (pv ? 'true' : 'false') +
+        '<button type="button" class="le-b" data-a="view" aria-pressed="' + (pv ? 'true' : 'false') +
           '" aria-label="Показать версию от ' + t + '">Показать</button>' +
-        '<button type="button" data-a="diff" aria-expanded="false" aria-controls="ver-d-' + esc(r.id) +
-          '" aria-label="Что изменилось в версии от ' + t + '">Что изменилось</button>' +
-        '<button type="button" data-a="back" aria-label="Вернуть версию от ' + t + '">Вернуть</button>' +
-        '<button type="button" data-a="del" class="ver-del" aria-label="Удалить версию от ' + t + '">Удалить</button>' +
+        '<button type="button" class="le-b" data-a="diff" aria-expanded="false" aria-controls="ver-d-' + esc(r.id) +
+          '" aria-label="Что изменилось в версии от ' + t + '">Изменения</button>' +
+        '<button type="button" class="le-b" data-a="back" aria-label="Вернуть версию от ' + t + '">Вернуть</button>' +
+        // Удаление необратимо, поэтому оно отжато от остальных кнопок и
+        // подписано только для чтения с экрана: подпись словом рядом с
+        // «Вернуть» провоцирует промах.
+        '<button type="button" class="le-b le-b-icon le-b-bad ver-del" data-a="del" title="Удалить версию"' +
+          ' aria-label="Удалить версию от ' + t + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2m-7 0 1 12h8l1-12"' +
+          ' stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
         '</div><div class="ver-d" id="ver-d-' + esc(r.id) + '" hidden></div></li>';
     }).join('') + '</ul>' +
       (hidden ? '<p class="ver-empty">Строк, не открывшихся этим ключом: ' + hidden + '.</p>' : '') +
       (legacy ? '<p class="ver-empty">Снимков в старом формате: ' + legacy + '. Читаются и откатываются как обычно.</p>' : '') +
-      (more ? '<button type="button" class="ver-mini" data-a="more">Показать более старые</button>' : '');
+      (more ? '<button type="button" class="le-b" data-a="more">Показать более старые</button>' : '');
     if (keep) {
       var f = list.querySelector('[data-id="' + keep[0] + '"] [data-a="' + keep[1] + '"]');
       if (f) f.focus();
@@ -382,12 +426,12 @@
       if (!previewing) liveState = CFG.getState();
       previewing = r.id;
       CFG.setState(r.state, { preview: true });
-      banner.className = 'ver-banner show';
+      banner.className = 'ver-banner le-ui show';
       banner.inert = false;
       banner.innerHTML = '<span>Просмотр версии от ' + esc(fmt(r.created_at)) +
         '. Это только показ, на сервере ничего не изменилось, правка на время просмотра выключена.</span>' +
-        '<button type="button" data-a="restore">Вернуть эту</button>' +
-        '<button type="button" data-a="exit">К текущей</button>';
+        '<button type="button" class="le-b" data-a="restore">Вернуть эту</button>' +
+        '<button type="button" class="le-b" data-a="exit">К текущей</button>';
       render();
     } else if (a === 'diff') {
       var box = art.querySelector('.ver-d');
@@ -428,7 +472,7 @@
         'Отличий от текущего состояния: ' + lost + '. Текущее состояние сначала сохранится отдельной версией.')) return;
       return snap('перед откатом', true).then(function () {
         previewing = null;
-        banner.className = 'ver-banner';
+        banner.className = 'ver-banner le-ui';
         banner.inert = true;
         return CFG.setState(r.state, { preview: false });
       }).then(function () {
@@ -443,7 +487,7 @@
   function exitPreview() {
     if (!previewing) return;
     previewing = null;
-    banner.className = 'ver-banner';
+    banner.className = 'ver-banner le-ui';
     banner.inert = true;
     if (liveState) CFG.setState(liveState, { preview: true });
     render();
@@ -459,59 +503,122 @@
   /* ---------- стили ---------- */
 
   function css() {
+    if (document.getElementById('le-versions-css')) return;
     var s = document.createElement('style');
+    s.id = 'le-versions-css';
+    // Все цвета и типографика приходят из theme.js. Собственных значений тут
+    // нет намеренно: цвет, объявленный по месту, переживает смену темы и
+    // разъезжается с остальным модулем при первой же правке.
     s.textContent = [
-      // дубль на случай, если versions.js подключён без blockedit.js;
-      // тему ставит blockedit через data-le-theme, здесь только значения
-      ':root{--le-ok:#6BBF7B;--le-bad:#E8805F;--le-ring:var(--cta,#E3BD72);--le-edge:#6A6E78}',
-      ':root[data-le-theme="light"]{--le-ok:#1B6B2C;--le-bad:#A83810;--le-ring:#8A6A1E;--le-edge:#767A84}',
-      '.le-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}',
-      '.ver-panel{position:fixed;top:0;right:-460px;width:440px;max-width:100vw;height:100dvh;z-index:9500;background:var(--card,#1E2025);border-left:1px solid var(--line,#2E3036);display:flex;flex-direction:column;font-family:inherit;box-shadow:-20px 0 60px rgba(0,0,0,.45);transition:right .3s cubic-bezier(.22,.61,.36,1)}',
-      '.ver-panel.open{right:0;visibility:visible;transition:right .3s cubic-bezier(.22,.61,.36,1)}',
+      // Ширина панели одна на панель и на сдвиг тулбара. Раньше 440 и 456
+      // лежали в разных правилах, и правка одной оставляла щель.
+      ':root{--le-panel-w:min(440px,100vw)}',
+
+      '.ver-panel{position:fixed;top:0;right:0;width:var(--le-panel-w);height:100dvh;z-index:9500;',
+      'background:var(--le-surface);border-left:1px solid var(--le-line);display:flex;flex-direction:column;',
+      'box-shadow:var(--le-shadow);transform:translateX(101%);transition:transform .3s var(--le-ease)}',
+      '.ver-panel.open{transform:none;visibility:visible;transition:transform .3s var(--le-ease)}',
       // фолбэк для браузеров без inert: убирает из порядка табуляции
-      '.ver-panel:not(.open){visibility:hidden;transition:right .3s cubic-bezier(.22,.61,.36,1),visibility 0s .3s}',
-      '.ver-banner:not(.show){visibility:hidden}',
-      '.ver-shift .le-tb{right:456px}',
-      '.ver-ul{list-style:none;margin:0;padding:0}',
-      '.ver-t{font:800 16px/1.2 inherit;margin:0;color:var(--ink,#F3F2EF)}',
-      '.ver-tools{padding:0 20px 14px}',
-      '.ver-diag{color:var(--ink2,#B4B6B8);font-size:11.5px;line-height:1.5;margin:10px 0 0}',
-      '.ver-mini{margin:8px 0 0;background:var(--card2,#26282E);border:1px solid var(--le-edge,#6A6E78);color:var(--ink,#F3F2EF);border-radius:999px;padding:8px 14px;font:600 12px/1 inherit;cursor:pointer}',
-      '.ver-mini:hover{border-color:var(--le-ring,#E3BD72)}',
-      '.ver-tag-pv{background:var(--le-ok,#6BBF7B)}',
-      '.ver-h{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line,#2E3036);color:var(--ink,#F3F2EF);font-size:16px}',
-      '.ver-x{background:none;border:none;color:var(--ink2,#B4B6B8);font-size:26px;line-height:1;cursor:pointer;padding:0;min-width:32px;min-height:32px;display:inline-flex;align-items:center;justify-content:center}',
-      '.ver-x:hover{color:var(--ink,#F3F2EF)}',
-      '.ver-new{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line,#2E3036)}',
-      '.ver-new input{flex:1;min-width:0;background:var(--bg2,#191B20);border:1px solid var(--le-edge,#6A6E78);border-radius:13px;color:var(--ink,#F3F2EF);font-family:inherit;font-size:13px;padding:10px 12px}',
-      '.ver-new input:focus{border-color:var(--le-ring,#E3BD72);outline:none;box-shadow:0 0 0 3px rgba(227,189,114,.28)}',
-      '.ver-primary{background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border:1px solid var(--cta,#E3BD72);border-radius:999px;padding:10px 16px;font:700 12.5px/1 inherit;cursor:pointer;white-space:nowrap}',
-      '.ver-list{flex:1;overflow:auto;padding:12px 16px 20px}',
-      '.ver-i{border:1px solid var(--line,#2E3036);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--bg2,#191B20)}',
-      '.ver-i.on{border-color:var(--le-ring,#E3BD72);box-shadow:inset 3px 0 0 var(--le-ok,#6BBF7B)}',
-      '.ver-i-h{display:flex;align-items:center;gap:8px}',
-      '.ver-i time{color:var(--ink,#F3F2EF);font-size:13.5px;font-weight:700}',
-      '.ver-tag{font-size:11px;color:var(--cta-ink,#1A1408);background:var(--cta,#E3BD72);border-radius:999px;padding:2px 8px;font-weight:700}',
-      '.ver-lb{color:var(--ink,#F3F2EF);font-size:13.5px;margin:6px 0 0}',
-      '.ver-meta{color:var(--ink2,#B4B6B8);font-size:12px;margin:5px 0 0;line-height:1.45}',
-      '.ver-a{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}',
-      '.ver-a button{background:var(--card2,#26282E);border:1px solid var(--le-edge,#6A6E78);color:var(--ink,#F3F2EF);border-radius:999px;padding:7px 12px;min-height:26px;font:600 12px/1 inherit;cursor:pointer}',
-      '.ver-a button:hover{border-color:var(--cta,#E3BD72)}',
-      '.ver-a .ver-del{color:var(--le-bad,#E8805F)}.ver-a .ver-del:hover{border-color:var(--le-bad,#E8805F)}',
-      '.ver-d{margin-top:10px;border-top:1px solid var(--line,#2E3036);padding-top:10px}',
-      '.ver-dr{font-size:12px;line-height:1.5;margin-bottom:9px;color:var(--ink2,#B4B6B8)}',
-      '.ver-dr b{display:block;color:var(--ink,#F3F2EF);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}',
-      '.ver-dr .was{display:block;color:var(--le-bad,#E8805F)}.ver-dr .now{display:block;color:var(--le-ok,#6BBF7B)}',
-      '.ver-empty{color:var(--ink2,#B4B6B8);font-size:13px;line-height:1.55;padding:8px 2px}',
-      '.ver-f{padding:0 20px;max-height:0;overflow:hidden;color:var(--ink2,#B4B6B8);font-size:12.5px;transition:.2s}',
-      '.ver-f.show{max-height:60px;padding:12px 20px;border-top:1px solid var(--line,#2E3036)}.ver-f.bad{color:var(--le-bad,#E8805F)}',
-      '.ver-banner{position:fixed;left:50%;transform:translate(-50%,-140%);top:12px;z-index:9700;display:flex;align-items:center;gap:10px;background:var(--cta,#E3BD72);color:var(--cta-ink,#1A1408);border-radius:999px;padding:9px 10px 9px 18px;font:600 12.5px/1.35 inherit;box-shadow:0 12px 34px rgba(0,0,0,.45);max-width:min(94vw,760px);transition:transform .25s}',
+      '.ver-panel:not(.open){visibility:hidden;transition:transform .3s var(--le-ease),visibility 0s .3s}',
+      '.ver-shift .le-tb{right:calc(var(--le-panel-w) + 16px)}',
+
+      /* ---------- шапка ---------- */
+
+      // Заголовок и счётчик в одну строку: панель узкая, вертикаль дороже
+      // горизонтали. Крестик у края, куда идёт большой палец.
+      '.ver-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--le-line)}',
+      '.ver-panel .ver-t{flex:1;min-width:0;font-size:14px;font-weight:700;line-height:1.2;color:var(--le-text)}',
+      '.ver-panel .ver-n{font-size:11.5px;font-weight:600;color:var(--le-text-3);white-space:nowrap}',
+
+      /* ---------- сохранение версии ---------- */
+
+      '.ver-new{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--le-line)}',
+      '.ver-new .le-in{flex:1;min-width:0}',
+
+      /* ---------- список ---------- */
+
+      '.ver-list{flex:1;overflow:auto;overscroll-behavior:contain;padding:10px 12px 16px}',
+      '.ver-i{border:1px solid var(--le-line);border-radius:var(--le-radius);padding:12px 12px 11px;',
+      'margin-bottom:10px;background:var(--le-surface-2)}',
+      '.ver-i:last-child{margin-bottom:0}',
+      // Версия на экране помечена полосой у корешка, а не заливкой: заливка
+      // спорит с подсветкой самой правки в документе.
+      '.ver-i.on{border-color:var(--le-ok);box-shadow:inset 3px 0 0 var(--le-ok)}',
+
+      // Верхняя строка карточки. Дата это заголовок версии, поэтому она
+      // первая и самая контрастная. Относительный возраст рядом отвечает на
+      // вопрос «давно ли», ради которого иначе пришлось бы считать в уме.
+      '.ver-i-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}',
+      '.ver-panel .ver-i time{font-size:13px;font-weight:700;color:var(--le-text);font-variant-numeric:tabular-nums}',
+      '.ver-panel .ver-ago{font-size:11.5px;color:var(--le-text-3)}',
+      '.ver-tag{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;',
+      'color:var(--le-a-ink);background:var(--le-a);border-radius:999px;padding:3px 8px;white-space:nowrap}',
+      '.ver-tag-pv{background:var(--le-ok);color:#08130B}',
+      ':root[data-le-theme="light"] .ver-tag-pv{color:#fff}',
+
+      '.ver-panel .ver-lb{margin-top:7px;font-size:13px;line-height:1.4;color:var(--le-text)}',
+
+      // Цифры карточки. Число отдельно от подписи: так строка сканируется
+      // взглядом за один заход, а не читается как предложение.
+      '.ver-panel .ver-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;',
+      'font-size:11.5px;line-height:1.3;color:var(--le-text-3)}',
+      '.ver-meta b{font-weight:700;color:var(--le-text-2);font-variant-numeric:tabular-nums}',
+      '.ver-meta .same{color:var(--le-ok)}',
+
+      // Действия. Три текстовые кнопки помещаются в одну строку при ширине
+      // панели 440; удаление отжато вправо и сделано значком, чтобы опасное
+      // действие не стояло вплотную к «Вернуть» и не ломало строку переносом.
+      '.ver-a{display:flex;align-items:center;gap:6px;margin-top:10px}',
+      '.ver-a .ver-del{margin-left:auto}',
+      '.ver-a .le-b[aria-pressed="true"]{background:var(--le-a);border-color:var(--le-a);color:var(--le-a-ink)}',
+
+      /* ---------- сравнение ---------- */
+
+      '.ver-d{margin-top:10px;border-top:1px solid var(--le-line);padding-top:10px}',
+      '.ver-dr{font-size:11.5px;line-height:1.5;margin-bottom:8px;color:var(--le-text-2)}',
+      '.ver-dr:last-child{margin-bottom:0}',
+      '.ver-panel .ver-dr b{display:block;margin-bottom:3px;font-size:10px;font-weight:700;',
+      'letter-spacing:.07em;text-transform:uppercase;color:var(--le-text-3)}',
+      // Было и стало различаются не только цветом: на монохромном экране и
+      // при дальтонизме остаётся вертикальная черта у края строки.
+      '.ver-dr .was,.ver-dr .now{display:block;padding-left:9px;border-left:2px solid currentColor}',
+      '.ver-dr .was{color:var(--le-bad)}',
+      '.ver-dr .now{color:var(--le-ok);margin-top:3px}',
+
+      /* ---------- служебное ---------- */
+
+      '.ver-panel .ver-empty{padding:10px 4px;font-size:12.5px;line-height:1.55;color:var(--le-text-3)}',
+      '.ver-tools{padding:12px 16px 14px;border-top:1px solid var(--le-line);display:flex;flex-wrap:wrap;gap:6px}',
+      '.ver-panel .ver-diag{flex-basis:100%;margin-top:4px;font-size:11px;line-height:1.5;color:var(--le-text-3)}',
+      '.ver-f{max-height:0;overflow:hidden;padding:0 16px;font-size:12px;color:var(--le-text-2);transition:.2s var(--le-ease)}',
+      '.ver-f.show{max-height:72px;padding:10px 16px;border-top:1px solid var(--le-line)}',
+      '.ver-f.bad{color:var(--le-bad)}',
+
+      /* ---------- баннер просмотра версии ---------- */
+
+      // Баннер сообщает, что на экране НЕ текущий документ. Это состояние
+      // опаснее всего молча пропустить, поэтому он на акценте и по центру.
+      '.ver-banner{position:fixed;left:50%;top:12px;z-index:9700;display:flex;align-items:center;gap:10px;',
+      'background:var(--le-a);color:var(--le-a-ink);border-radius:999px;padding:8px 10px 8px 16px;',
+      'font-family:inherit;font-size:12px;font-weight:600;line-height:1.35;box-shadow:var(--le-shadow);',
+      'max-width:min(94vw,760px);transform:translate(-50%,-160%);transition:transform .25s var(--le-ease)}',
       '.ver-banner.show{transform:translate(-50%,0)}',
-      '.ver-banner button{background:rgba(0,0,0,.16);border:1px solid rgba(0,0,0,.22);color:inherit;border-radius:999px;padding:6px 13px;font:700 12px/1 inherit;cursor:pointer;white-space:nowrap}',
-      '.ver-banner button:hover{background:rgba(0,0,0,.26)}',
-      '.ver-panel :focus-visible,.ver-banner :focus-visible,.ver-open:focus-visible{outline:2px solid var(--le-ring,#E3BD72);outline-offset:2px}',
-      '@media print{.ver-panel,.ver-open{display:none}.ver-banner{position:static;display:block;transform:none;max-width:none;box-shadow:none;border-radius:0;margin:0 0 12px}.ver-banner:not(.show){display:none}.ver-banner button{display:none}}',
-      '@media(max-width:620px){.ver-panel{right:-100%;width:100%}.ver-panel.open{right:0}.ver-shift .le-tb{display:none}.ver-banner{flex-wrap:wrap;border-radius:18px;padding:12px 14px}}',
+      '.ver-banner:not(.show){visibility:hidden}',
+      '.ver-banner .le-b{background:rgba(0,0,0,.14);border-color:rgba(0,0,0,.2);color:inherit}',
+      '.ver-banner .le-b:hover{background:rgba(0,0,0,.24);border-color:rgba(0,0,0,.32)}',
+
+      /* ---------- печать и узкий экран ---------- */
+
+      '@media print{.ver-panel,.ver-open{display:none}',
+      '.ver-banner{position:static;display:block;transform:none;max-width:none;box-shadow:none;',
+      'border-radius:0;margin:0 0 12px;border-bottom:2px solid #000}',
+      '.ver-banner:not(.show){display:none}.ver-banner .le-b{display:none}}',
+      '@media(max-width:620px){:root{--le-panel-w:100vw}.ver-shift .le-tb{display:none}',
+      '.ver-banner{flex-wrap:wrap;border-radius:16px;padding:12px 14px}',
+      // На узком экране три кнопки в строку не помещаются, и вместо переноса
+      // в непредсказуемом месте раскладываем сеткой.
+      '.ver-a{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}',
+      '.ver-a .le-b{width:100%}.ver-a .ver-del{margin-left:0;width:32px}}',
       '@media (prefers-reduced-motion:reduce){.ver-panel,.ver-banner,.ver-f{transition:none!important}}'
     ].join('');
     document.head.appendChild(s);
@@ -546,7 +653,7 @@
     if (!previewing) return;
     previewing = null;
     liveState = null;
-    banner.className = 'ver-banner';
+    banner.className = 'ver-banner le-ui';
     banner.inert = true;
     render();
     note('просмотр версии закрыт: документ перерисован');
@@ -554,6 +661,9 @@
 
   function init() {
     if (CFG.ui === false) return;   // зритель документа истории не видит
+    // Модуль версий подключают и без редактора блоков. Тогда тему выбирать
+    // больше некому, и панель на светлой странице пришла бы тёмной.
+    if (window.LiveTheme) window.LiveTheme.apply(CFG.root || '#doc');
     css();
     // LiveAuth поднимаем сами: раньше его инициализировал только blockedit.js,
     // и при отдельной встройке модуля версий все записи отлетали с 401

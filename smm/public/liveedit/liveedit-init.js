@@ -34,7 +34,7 @@
    ========================================================================== */
 (function () {
   'use strict';
-  var CORE_VERSION = '3';
+  var CORE_VERSION = '4';
 
   // общий бэкенд, тот же проект, что у модуля комментариев
   var SUPABASE = {
@@ -136,7 +136,7 @@
     if (window.VERSIONS_ALTKEYS) window.VERSIONS_ALTKEYS(cs);
   };
 
-  var files = ['crypt.js', 'store.js', 'auth.js', 'blockedit.js', 'versions.js'];
+  var files = ['theme.js', 'crypt.js', 'store.js', 'auth.js', 'blockedit.js', 'versions.js'];
   (function next(i) {
     if (i >= files.length) return;
     var s = document.createElement('script');
@@ -172,6 +172,7 @@
   })(0);
 
   var WHY = {
+    'theme.js': 'оформление панелей не загрузилось: правка работает, но выглядит как обычный текст страницы',
     'crypt.js': 'правки не загрузились: не открылся модуль расшифровки. На экране шаблонный текст',
     'store.js': 'правки не загрузились: не открылся модуль хранилища. На экране шаблонный текст',
     'blockedit.js': 'правки не загрузились: не открылся редактор блоков. На экране шаблонный текст',

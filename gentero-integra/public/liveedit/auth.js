@@ -132,19 +132,19 @@
     var srv = opts.server !== false && !!CFG;
     return new Promise(function (done) {
       var ov = document.createElement('div');
-      ov.className = 'le-ov';
+      ov.className = 'le-ov le-ui';
       ov.innerHTML = '<div class="le-modal" role="dialog" aria-modal="true" aria-labelledby="le-mt">' +
         '<h2 id="le-mt">' + (srv ? 'Вход редактора' : 'Код редактора') + '</h2>' +
         '<p>' + (srv
           ? 'Правка сохраняется на сервер, поэтому нужен ваш логин. Доступ действует до закрытия вкладки.'
           : 'Правка сохраняется только в этот браузер.') + '</p>' +
         '<form id="le-f">' +
-        (srv ? '<label for="le-em">Почта</label><input id="le-em" type="email" autocomplete="username" required>' : '') +
+        (srv ? '<label for="le-em">Почта</label><input id="le-em" class="le-in" type="email" autocomplete="username" required>' : '') +
         '<label for="le-pw">' + (srv ? 'Пароль' : 'Код') + '</label>' +
-        '<input id="le-pw" type="password" autocomplete="current-password" required>' +
+        '<input id="le-pw" class="le-in" type="password" autocomplete="current-password" required>' +
         '<p class="le-err" id="le-er" role="status" aria-live="polite"></p>' +
-        '<div class="le-row"><button type="button" class="le-ghost" id="le-cancel">Отмена</button>' +
-        '<button type="submit" class="le-primary" id="le-go">Войти</button></div>' +
+        '<div class="le-row"><button type="button" class="le-b" id="le-cancel">Отмена</button>' +
+        '<button type="submit" class="le-b le-b-main" id="le-go">Войти</button></div>' +
         '</form></div>';
       document.body.appendChild(ov);
       var back = document.activeElement;

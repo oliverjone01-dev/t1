@@ -311,11 +311,14 @@ const DIRLAB={genglass:'GENGLASS',metal_gm:'Metal-GM','gen-group':'GEN-GROUP',ge
 // Дилерский канал: источник «ДИЛЕР Glass Memory». Переключатель S.channel (all/nodealer/dealer)
 // перестраивает все метрики - фильтрует и сделки, и лиды по источнику.
 const DEALER_SRC=new Set(['ДИЛЕР Glass Memory']);
-// GG-сотрудники, ошибочно оказавшиеся ответственными на GM-лидах/сделках. Их активность
-// относится к GG, а не к GM, поэтому вырезаем из GM-данных целиком (и из воронки, и из
-// менеджеров, и из «нераспределённых»). Единая точка chOk вызывается из flt и всех dirOk.
-const GG_FOREIGN=new Set(['Анна Турченко','Татьяна Лакомова']);
-const chOk=x=>!GG_FOREIGN.has(x.mgr)&&(S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source)));
+// GM-дашборд = только менеджеры ОП GM ИЛИ служебный «Системный пользователь GM» (бот -
+// это «нераспределённые»). Всё прочее (чужие ответственные из других воронок - GG и т.д.)
+// в GM не показываем. Белый список по ответственному, единая точка chOk (из flt и всех
+// dirOk). Защита: если ростер ОП не загрузился (OP пуст) - не блокируем всех, показываем
+// как есть, чтобы дашборд не обнулился при сбое выгрузки.
+const GM_BOT='Системный пользователь GM';
+const inGM=x=>OP.size===0?true:(isOP(x.mgr)||x.mgr===GM_BOT);
+const chOk=x=>inGM(x)&&(S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source)));
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&chOk(x)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
 // Воронка (Лиды/Сделки/CR1/CR2) - ВСЕГДА по дате создания (когорта), решение Ивана:

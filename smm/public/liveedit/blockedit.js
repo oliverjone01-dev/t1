@@ -358,7 +358,10 @@
       .then(function () {
         flash('сохранено');
         if (health.write) { health.write = 0; report(); }   // расхождение с базой ушло
-        if (window.VERSIONS_TOUCH) window.VERSIONS_TOUCH();
+        // Авто-снимок только с полной картой. Снимок неполной карты выглядит
+        // как обычная версия, а откат к нему сносит с сервера всё, чего в нём
+        // нет, то есть все правки, не успевшие загрузиться.
+        if (!health.err && window.VERSIONS_TOUCH) window.VERSIONS_TOUCH();
       })
       .catch(function (e) {
         // Карта обязана остаться равной базе. Иначе ближайший авто-снимок
@@ -423,13 +426,31 @@
     noteEl.textContent = '';
     var sp = document.createElement('span');
     sp.textContent = bad.join('. ');
+    noteEl.appendChild(sp);
+    // Отказ загрузки лечится повтором, и кнопка обязана быть в плашке: без
+    // неё единственным выходом остаётся перезагрузка страницы, а она на
+    // зашифрованном документе означает ввод пароля заново.
+    if (health.err) {
+      var rt = document.createElement('button');
+      rt.type = 'button';
+      rt.className = 'le-b';
+      rt.textContent = 'Загрузить снова';
+      rt.onclick = function () {
+        rt.disabled = true;
+        rt.textContent = 'Загружаю...';
+        health.err = null;
+        load().then(function () {
+          if (!health.err) flash('правки загрузились');
+        });
+      };
+      noteEl.appendChild(rt);
+    }
     var bt = document.createElement('button');
     bt.type = 'button';
     bt.className = 'le-b';
     bt.textContent = 'Скрыть';
     bt.setAttribute('aria-label', 'Скрыть предупреждение');
     bt.onclick = function () { noteEl.hidden = true; warnHeight(); };
-    noteEl.appendChild(sp);
     noteEl.appendChild(bt);
     noteEl.hidden = false;
     warnHeight();
@@ -465,6 +486,7 @@
 
   function startEdit(el) {
     if (active === el) return;
+    if (health.err) { flash('правки не загрузились, править нельзя', true); return; }
     // В режиме просмотра старой версии в DOM лежит не текущий текст. Правка
     // здесь записала бы старую редакцию как новую и тихо откатила блок.
     if (window.VERSIONS_PREVIEWING && window.VERSIONS_PREVIEWING()) {
@@ -612,11 +634,18 @@
 
   function paint() {
     if (!dot) return;
-    dot.className = 'le-dot' + (store.local ? ' local' : '') + (crypt.on ? ' enc' : '');
-    var t = (store.local ? 'сохранение только в этот браузер' : 'сохранение на сервер') +
-            (crypt.on ? ', шифрование включено' : ', без шифрования');
+    // Отказ загрузки это состояние тулбара, а не только плашки: плашку можно
+    // закрыть, а править после этого всё равно нельзя.
+    dot.className = 'le-dot' + (health.err ? ' off' : '') +
+      (store.local ? ' local' : '') + (crypt.on ? ' enc' : '');
+    var t = health.err
+      ? 'правки не загрузились, правка недоступна'
+      : (store.local ? 'сохранение только в этот браузер' : 'сохранение на сервер') +
+        (crypt.on ? ', шифрование включено' : ', без шифрования');
     dot.title = t;
     if (state) state.textContent = t;   // цветом состояние передавать нельзя
+    var tg = tb && tb.querySelector('#le-toggle');
+    if (tg) tg.disabled = !!health.err;
   }
 
   /* ---------- вход редактора ----------
@@ -658,6 +687,10 @@
   }
 
   function toggle() {
+    if (!editing && health.err) {
+      flash('правки не загрузились, править нельзя: на экране шаблон, а не ваш текст', true);
+      return;
+    }
     if (!editing && !unlocked) { gateOpen(); return; }
     editing = !editing;
     if (editing) askAuthor();
@@ -748,6 +781,7 @@
       'white-space:nowrap;cursor:pointer;box-shadow:var(--le-shadow);',
       'transition:border-color .15s var(--le-ease),transform .15s var(--le-ease)}',
       '.le-btn:hover{border-color:var(--le-text-2);transform:translateY(-1px)}',
+      '.le-btn[disabled]{cursor:not-allowed;border-style:dashed;color:var(--le-text-2);transform:none}',
       '.le-btn svg{width:16px;height:16px;display:block;flex:none}',
       '.le-btn[aria-pressed="true"]{background:var(--le-a);color:var(--le-a-ink);border-color:var(--le-a)}',
 
@@ -756,6 +790,8 @@
       '.le-dot{width:7px;height:7px;border-radius:50%;background:var(--le-ok);display:inline-block;flex:none}',
       '.le-dot.local{background:var(--le-bad);box-shadow:0 0 0 2px var(--le-surface-2),0 0 0 3px var(--le-bad)}',
       '.le-dot.enc{outline:2px solid currentColor;outline-offset:2px}',
+      // Недоступность передаётся формой: заливки нет, остаётся только кольцо.
+      '.le-dot.off{background:transparent;box-shadow:inset 0 0 0 2px var(--le-bad)}',
 
       '.le-msg{opacity:0;transform:translateY(4px);transition:.2s var(--le-ease);background:var(--le-surface-2);',
       'border:1px solid var(--le-line);color:var(--le-text-2);border-radius:999px;padding:8px 14px;',

@@ -2,7 +2,7 @@
   "domain": "lain-loft.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-03T06:00:34.728Z",
+  "measured": "2026-08-10T04:20:24.768Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
   "data": {
     "id": 322813373,
@@ -12,97 +12,91 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 6013,
-        "it50": 19249440,
-        "vis": 4460756,
-        "perc": 0.031237272357014022
+        "cnt": 5955,
+        "it50": 19247064,
+        "vis": 4408144,
+        "perc": 0.030939783854825854
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 4101,
-        "it50": 16524342,
-        "vis": 1493488,
-        "perc": 0.02481793223597042
-      },
-      {
-        "did": 29918348,
-        "name": "wildberries.ru",
-        "cnt": 3510,
-        "it50": 13949975,
-        "vis": 2687295,
-        "perc": 0.025161335414579596
+        "cnt": 4126,
+        "it50": 16457323,
+        "vis": 1689077,
+        "perc": 0.025070906124890418
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 3426,
-        "it50": 17703144,
-        "vis": 3719484,
-        "perc": 0.019352494675522042
+        "cnt": 3484,
+        "it50": 17870023,
+        "vis": 4057304,
+        "perc": 0.01949633752569876
+      },
+      {
+        "did": 29918348,
+        "name": "wildberries.ru",
+        "cnt": 3389,
+        "it50": 13671451,
+        "vis": 2647395,
+        "perc": 0.02478888305272059
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 3242,
-        "it50": 2935740,
-        "vis": 978913,
-        "perc": 0.11043212273566459
+        "cnt": 3237,
+        "it50": 2969658,
+        "vis": 999849,
+        "perc": 0.10900245078726237
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 2615,
-        "it50": 2840614,
-        "vis": 353708,
-        "perc": 0.09205756220310116
+        "cnt": 2573,
+        "it50": 2832574,
+        "vis": 343212,
+        "perc": 0.0908361087830362
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 2520,
-        "it50": 55875919,
-        "vis": 11939439,
-        "perc": 0.004509992936313048
+        "cnt": 2415,
+        "it50": 55501348,
+        "vis": 11910304,
+        "perc": 0.004351245667042177
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 2188,
-        "it50": 19249440,
-        "vis": 4460756,
-        "perc": 0.011366564429926274
+        "cnt": 2116,
+        "it50": 19247064,
+        "vis": 4408144,
+        "perc": 0.010993884573771874
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 1635,
-        "it50": 7275316,
-        "vis": 2776249,
-        "perc": 0.0224732506464324
+        "cnt": 1628,
+        "it50": 7268524,
+        "vis": 2853954,
+        "perc": 0.022397944892250474
       },
       {
         "did": 333146076,
         "name": "glassstore.org",
-        "cnt": 1616,
-        "it50": 4329,
+        "cnt": 1574,
+        "it50": 4307,
         "vis": 964,
-        "perc": 37.32963732963733
+        "perc": 36.54515904341769
       }
     ],
-    "it1": 149,
-    "it3": 622,
-    "it5": 1196,
-    "it10": 2491,
-    "it50": 6857,
+    "it1": 145,
+    "it3": 586,
+    "it5": 1155,
+    "it10": 2413,
+    "it50": 6773,
     "childsCount": 0,
     "keys": [
-      {
-        "pos": 1,
-        "word": "телевизор зеркало",
-        "ws": 2525,
-        "wsk": 136
-      },
       {
         "pos": 1,
         "word": "смарт стекло с изменяющейся прозрачностью цена",
@@ -156,54 +150,60 @@
         "word": "стекло черное матовое",
         "ws": 3595,
         "wsk": 50
+      },
+      {
+        "pos": 1,
+        "word": "лестница из нержавейки",
+        "ws": 4500,
+        "wsk": 49
       }
     ],
-    "topkeys": 54247,
+    "topkeys": 54666,
     "pages": [
       {
-        "it50": 518,
+        "it50": 524,
         "url": "/kupit-steklo/kalenoe-steklo"
       },
       {
-        "it50": 414,
+        "it50": 418,
         "url": "/dver-garmoshka"
       },
       {
-        "it50": 277,
+        "it50": 270,
         "url": "/"
       },
       {
-        "it50": 220,
+        "it50": 215,
         "url": "/dekorativnye-peregorodki"
       },
       {
-        "it50": 201,
+        "it50": 202,
         "url": "/kupit-steklo/riflenoe-steklo"
       },
       {
-        "it50": 191,
-        "url": "/kupit-steklo/smart-steklo"
+        "it50": 199,
+        "url": "/shkafy-na-balkon"
       },
       {
-        "it50": 189,
+        "it50": 186,
         "url": "/dver-garmoshka/dveri-garmoshka-dlya-shkafa"
       },
       {
-        "it50": 189,
+        "it50": 184,
         "url": "/kupit-steklo/uzorchatoe-steklo"
       },
       {
-        "it50": 187,
+        "it50": 183,
         "url": "/razdvizhnye-peregorodki"
       },
       {
-        "it50": 185,
-        "url": "/shkafy-na-balkon"
+        "it50": 168,
+        "url": "/kupit-steklo/smart-steklo"
       }
     ],
-    "pagesinindex": 156,
-    "vis": 287,
-    "topvis": 38644,
+    "pagesinindex": 164,
+    "vis": 276,
+    "topvis": 40424,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -226,18 +226,6 @@
     },
     "restop5": 17,
     "history": {
-      "2025.02": {
-        "it1": 46,
-        "it3": 242,
-        "it5": 558,
-        "it10": 1426,
-        "it50": 4823,
-        "pagesInIndex": 120,
-        "adsCount": 2,
-        "adKeysCount": 2,
-        "visAvg": 176,
-        "aiCnt": 0
-      },
       "2025.03": {
         "it1": 80,
         "it3": 319,
@@ -440,19 +428,19 @@
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 287,
-        "aiCnt": 633
+        "aiCnt": 591
       },
       "2026.08": {
-        "it1": 149,
-        "it3": 622,
-        "it5": 1196,
-        "it10": 2491,
-        "it50": 6857,
-        "pagesInIndex": 156,
+        "it1": 145,
+        "it3": 586,
+        "it5": 1155,
+        "it10": 2413,
+        "it50": 6773,
+        "pagesInIndex": 164,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 287,
-        "aiCnt": 633
+        "visAvg": 276,
+        "aiCnt": 736
       }
     },
     "linksHistory": {
@@ -584,13 +572,13 @@
       ],
       "2026.08": [
         102,
-        718,
+        710,
         34,
         3,
         67
       ]
     },
-    "aiAnswersCnt": 633,
+    "aiAnswersCnt": 736,
     "aiState": 10,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",

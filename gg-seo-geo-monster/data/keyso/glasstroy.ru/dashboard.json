@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-03T06:01:24.929Z",
+  "measured": "2026-08-10T04:21:14.862Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,91 +12,109 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5710,
-        "it50": 19249440,
-        "vis": 4460756,
-        "perc": 0.029663200591809425
+        "cnt": 5566,
+        "it50": 19247064,
+        "vis": 4408144,
+        "perc": 0.028918696378834714
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5532,
-        "it50": 55875919,
-        "vis": 11939439,
-        "perc": 0.00990050830304912
+        "cnt": 5402,
+        "it50": 55501348,
+        "vis": 11910304,
+        "perc": 0.009733096933069086
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3535,
-        "it50": 16524342,
-        "vis": 1493488,
-        "perc": 0.021392682383359046
+        "cnt": 3493,
+        "it50": 16457323,
+        "vis": 1689077,
+        "perc": 0.02122459406065008
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 3422,
-        "it50": 2935740,
-        "vis": 978913,
-        "perc": 0.11656345589187053
+        "cnt": 3395,
+        "it50": 2969658,
+        "vis": 999849,
+        "perc": 0.11432292876822853
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3211,
-        "it50": 51115738,
-        "vis": 24213062,
-        "perc": 0.006281822635525677
-      },
-      {
-        "did": 37692261,
-        "name": "m-strana.ru",
-        "cnt": 3129,
-        "it50": 1551507,
-        "vis": 47080,
-        "perc": 0.201674887705953
+        "cnt": 3121,
+        "it50": 50439923,
+        "vis": 23389571,
+        "perc": 0.006187559009556775
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 2991,
-        "it50": 47047939,
-        "vis": 3140495,
-        "perc": 0.00635734543015795
+        "cnt": 3009,
+        "it50": 46985422,
+        "vis": 3691661,
+        "perc": 0.006404114024984175
+      },
+      {
+        "did": 37692261,
+        "name": "m-strana.ru",
+        "cnt": 2987,
+        "it50": 1488686,
+        "vis": 44670,
+        "perc": 0.2006467448474695
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2952,
-        "it50": 17703144,
-        "vis": 3719484,
-        "perc": 0.01667500416875104
-      },
-      {
-        "did": 29918348,
-        "name": "wildberries.ru",
-        "cnt": 2502,
-        "it50": 13949975,
-        "vis": 2687295,
-        "perc": 0.017935516013469557
+        "cnt": 2905,
+        "it50": 17870023,
+        "vis": 4057304,
+        "perc": 0.016256274544246527
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 2453,
-        "it50": 7275316,
-        "vis": 2776249,
-        "perc": 0.03371674852336311
+        "cnt": 2471,
+        "it50": 7268524,
+        "vis": 2853954,
+        "perc": 0.03399589792920819
+      },
+      {
+        "did": 29918348,
+        "name": "wildberries.ru",
+        "cnt": 2322,
+        "it50": 13671451,
+        "vis": 2647395,
+        "perc": 0.016984298155331135
       }
     ],
-    "it1": 126,
-    "it3": 491,
-    "it5": 881,
-    "it10": 2039,
-    "it50": 9907,
+    "it1": 133,
+    "it3": 507,
+    "it5": 917,
+    "it10": 2092,
+    "it50": 9763,
     "childsCount": 1,
     "keys": [
+      {
+        "pos": 1,
+        "word": "стеклянная перегородка в комнату",
+        "ws": 2813,
+        "wsk": 491
+      },
+      {
+        "pos": 1,
+        "word": "стеклянная стена",
+        "ws": 9937,
+        "wsk": 135
+      },
+      {
+        "pos": 1,
+        "word": "высота перил в беседке",
+        "ws": 461,
+        "wsk": 112
+      },
       {
         "pos": 1,
         "word": "раздвижные двери в беседку",
@@ -135,75 +153,57 @@
       },
       {
         "pos": 1,
-        "word": "стеклянный забор",
-        "ws": 711,
+        "word": "высота поручня",
+        "ws": 4228,
         "wsk": 52
-      },
-      {
-        "pos": 1,
-        "word": "перегородки в каркасном доме",
-        "ws": 1745,
-        "wsk": 49
-      },
-      {
-        "pos": 1,
-        "word": "двери стеклянные перегородки",
-        "ws": 2221,
-        "wsk": 48
-      },
-      {
-        "pos": 1,
-        "word": "монтаж стеклянных дверей",
-        "ws": 753,
-        "wsk": 47
       }
     ],
-    "topkeys": 39573,
+    "topkeys": 40019,
     "pages": [
       {
-        "it50": 281,
+        "it50": 255,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "it50": 248,
+        "it50": 247,
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
         "it50": 181,
-        "url": "/price/peregorodki/dlya-komnat"
-      },
-      {
-        "it50": 174,
-        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
-      },
-      {
-        "it50": 171,
         "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 125,
+        "it50": 180,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
+      },
+      {
+        "it50": 168,
+        "url": "/price/peregorodki/dlya-komnat"
+      },
+      {
+        "it50": 132,
+        "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
+      },
+      {
+        "it50": 122,
         "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
+      },
+      {
+        "it50": 117,
+        "url": "/"
       },
       {
         "it50": 116,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "it50": 102,
-        "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu"
-      },
-      {
         "it50": 100,
-        "url": "/glass-walls/vitrazhnye-sistemy-ostekleniya-chto-eto-kak-vybrat-na-chto-obrashchat-vnimanie"
-      },
-      {
-        "it50": 96,
-        "url": "/"
+        "url": "/steklyannye-peregorodki-razdvizhnye/otkatnye-i-razdvizhnye-dveri-na-terrasu"
       }
     ],
-    "pagesinindex": 1077,
-    "vis": 174,
-    "topvis": 54879,
+    "pagesinindex": 1094,
+    "vis": 193,
+    "topvis": 52081,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -226,18 +226,6 @@
     },
     "restop5": 9,
     "history": {
-      "2025.02": {
-        "it1": 92,
-        "it3": 443,
-        "it5": 812,
-        "it10": 2106,
-        "it50": 9540,
-        "pagesInIndex": 1023,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 197,
-        "aiCnt": 0
-      },
       "2025.03": {
         "it1": 119,
         "it3": 477,
@@ -440,19 +428,19 @@
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 174,
-        "aiCnt": 4107
+        "aiCnt": 3842
       },
       "2026.08": {
-        "it1": 126,
-        "it3": 491,
-        "it5": 881,
-        "it10": 2039,
-        "it50": 9907,
-        "pagesInIndex": 1077,
+        "it1": 133,
+        "it3": 507,
+        "it5": 917,
+        "it10": 2092,
+        "it50": 9763,
+        "pagesInIndex": 1094,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 174,
-        "aiCnt": 4107
+        "visAvg": 193,
+        "aiCnt": 4936
       }
     },
     "linksHistory": {
@@ -583,14 +571,14 @@
         1347
       ],
       "2026.08": [
-        3775,
-        18545,
-        476,
-        20,
-        1347
+        3777,
+        18689,
+        478,
+        19,
+        1346
       ]
     },
-    "aiAnswersCnt": 4107,
+    "aiAnswersCnt": 4936,
     "aiState": 10,
     "dr": 32,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

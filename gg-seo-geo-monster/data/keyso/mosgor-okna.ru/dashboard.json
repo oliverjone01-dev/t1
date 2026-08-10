@@ -2,200 +2,25 @@
   "domain": "mosgor-okna.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-03T05:57:48.506Z",
+  "measured": "2026-08-10T04:16:08.370Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=mosgor-okna.ru",
   "data": {
     "id": 125542640,
     "parentid": 0,
     "parentName": "",
-    "concs": [
-      {
-        "did": 31685917,
-        "name": "окна-хауз.рф",
-        "cnt": 9,
-        "it50": 5487,
-        "vis": 27,
-        "perc": 0.16402405686167304
-      },
-      {
-        "did": 30069398,
-        "name": "panokna.ru",
-        "cnt": 6,
-        "it50": 8563,
-        "vis": 94,
-        "perc": 0.07006890108606798
-      },
-      {
-        "did": 30654137,
-        "name": "m.avito.ru",
-        "cnt": 6,
-        "it50": 19249440,
-        "vis": 4460756,
-        "perc": 0.00003116973792484353
-      },
-      {
-        "did": 30638139,
-        "name": "svetokna.ru",
-        "cnt": 5,
-        "it50": 18967,
-        "vis": 648,
-        "perc": 0.02636157536774398
-      },
-      {
-        "did": 30695597,
-        "name": "m.youtube.com",
-        "cnt": 5,
-        "it50": 47047939,
-        "vis": 3140495,
-        "perc": 0.000010627458091203527
-      },
-      {
-        "did": 150340282,
-        "name": "msk.okna-servise.com",
-        "cnt": 5,
-        "it50": 19779,
-        "vis": 1185,
-        "perc": 0.025279336670205776
-      },
-      {
-        "did": 258022726,
-        "name": "oknafactoria.ru",
-        "cnt": 5,
-        "it50": 46568,
-        "vis": 1373,
-        "perc": 0.010736986772032296
-      },
-      {
-        "did": 63416400,
-        "name": "reh-okna24.ru",
-        "cnt": 5,
-        "it50": 879,
-        "vis": 0,
-        "perc": 0.5688282138794085
-      },
-      {
-        "did": 29920400,
-        "name": "profi.ru",
-        "cnt": 4,
-        "it50": 1827891,
-        "vis": 273836,
-        "perc": 0.00021883142922635978
-      },
-      {
-        "did": 29920230,
-        "name": "remontprofi.ru",
-        "cnt": 4,
-        "it50": 5943,
-        "vis": 9,
-        "perc": 0.06730607437321218
-      }
-    ],
+    "concs": [],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 0,
-    "it50": 11,
+    "it50": 0,
     "childsCount": 0,
-    "keys": [
-      {
-        "pos": 25,
-        "word": "застеклить угловой балкон",
-        "ws": 35,
-        "wsk": 1
-      },
-      {
-        "pos": 27,
-        "word": "отделка балкона декоративной штукатуркой",
-        "ws": 61,
-        "wsk": 12
-      },
-      {
-        "pos": 28,
-        "word": "алюминиевые двери цена за м2",
-        "ws": 28,
-        "wsk": 3
-      },
-      {
-        "pos": 29,
-        "word": "окна salamander",
-        "ws": 127,
-        "wsk": 21
-      },
-      {
-        "pos": 31,
-        "word": "отделка балкона ламинатом фото",
-        "ws": 610,
-        "wsk": 268
-      },
-      {
-        "pos": 33,
-        "word": "перегородка лофт из металла и стекла",
-        "ws": 81,
-        "wsk": 32
-      },
-      {
-        "pos": 36,
-        "word": "декоративная штукатурка для лоджии",
-        "ws": 60,
-        "wsk": 15
-      },
-      {
-        "pos": 37,
-        "word": "двери мелке",
-        "ws": 238,
-        "wsk": 12
-      },
-      {
-        "pos": 38,
-        "word": "ремонт балкона 3 метра",
-        "ws": 70,
-        "wsk": 5
-      },
-      {
-        "pos": 39,
-        "word": "дверь алюминиевая со стеклом входная цена",
-        "ws": 197,
-        "wsk": 33
-      }
-    ],
-    "topkeys": 1000000,
-    "pages": [
-      {
-        "it50": 2,
-        "url": "/vhodnye-gruppy-dveri/alyuminievye-dveri"
-      },
-      {
-        "it50": 2,
-        "url": "/otdelka-balkonov/shtukaturka"
-      },
-      {
-        "it50": 2,
-        "url": "/osteklenie-balkonov/balkon-3-metra"
-      },
-      {
-        "it50": 1,
-        "url": "/okna/plastikovyie-okna/melke"
-      },
-      {
-        "it50": 1,
-        "url": "/okna/plastikovyie-okna/salamander/streamline"
-      },
-      {
-        "it50": 1,
-        "url": "/otdelka-balkonov/laminat-na-balkone"
-      },
-      {
-        "it50": 1,
-        "url": "/osteklenie-balkonov/uglovoj-balkon"
-      },
-      {
-        "it50": 1,
-        "url": "/loft-peregorodki"
-      }
-    ],
-    "pagesinindex": 8,
+    "keys": [],
+    "topkeys": 0,
+    "pages": [],
+    "pagesinindex": 0,
     "vis": 0,
-    "topvis": 1000000,
+    "topvis": 0,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -218,18 +43,6 @@
     },
     "restop5": 0,
     "history": {
-      "2024.08": {
-        "it1": 7,
-        "it3": 27,
-        "it5": 79,
-        "it10": 385,
-        "it50": 2448,
-        "pagesInIndex": 106,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 79,
-        "aiCnt": 0
-      },
       "2024.09": {
         "it1": 6,
         "it3": 24,
@@ -439,8 +252,8 @@
         "it3": 0,
         "it5": 0,
         "it10": 0,
-        "it50": 11,
-        "pagesInIndex": 8,
+        "it50": 2,
+        "pagesInIndex": 2,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
@@ -549,7 +362,7 @@
     },
     "aiAnswersCnt": 0,
     "aiState": 10,
-    "dr": 10,
+    "dr": 0,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/5db1fda123678eb361e83d90359903be7ae578a602de1764163917c1026f9171.png",
     "name": "mosgor-okna.ru"
   }

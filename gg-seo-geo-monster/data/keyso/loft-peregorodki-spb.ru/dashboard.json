@@ -2,7 +2,7 @@
   "domain": "loft-peregorodki-spb.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-03T06:00:20.077Z",
+  "measured": "2026-08-10T04:18:38.870Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=loft-peregorodki-spb.ru",
   "data": {
     "id": 118065628,
@@ -10,98 +10,128 @@
     "parentName": "",
     "concs": [
       {
-        "did": 92800307,
-        "name": "m.vk.com",
-        "cnt": 3,
-        "it50": 53206506,
-        "vis": 12290505,
-        "perc": 0.000005638408205192049
-      },
-      {
-        "did": 32073658,
-        "name": "peregorodki-spb.ru",
-        "cnt": 2,
-        "it50": 112,
-        "vis": 1,
-        "perc": 1.7857142857142856
+        "did": 134642209,
+        "name": "loftperegorodki.ru",
+        "cnt": 6,
+        "it50": 19,
+        "vis": 0,
+        "perc": 31.57894736842105
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 2,
-        "it50": 19249440,
-        "vis": 4460756,
-        "perc": 0.00001038991264161451
+        "cnt": 6,
+        "it50": 19247064,
+        "vis": 4408144,
+        "perc": 0.00003117358574793537
       },
       {
-        "did": 37940194,
-        "name": "peregorodkitut.ru",
-        "cnt": 2,
-        "it50": 159,
-        "vis": 0,
-        "perc": 1.2578616352201257
-      },
-      {
-        "did": 30817217,
-        "name": "doors4spb.ru",
-        "cnt": 2,
-        "it50": 608,
-        "vis": 8,
-        "perc": 0.32894736842105265
-      },
-      {
-        "did": 29917679,
-        "name": "2gis.ru",
-        "cnt": 2,
-        "it50": 15180548,
-        "vis": 6897581,
-        "perc": 0.000013174754956145193
-      },
-      {
-        "did": 258016815,
-        "name": "peregorodki-spb.com",
-        "cnt": 2,
-        "it50": 82,
-        "vis": 0,
-        "perc": 2.4390243902439024
-      },
-      {
-        "did": 31466309,
-        "name": "steklodel-spb.ru",
-        "cnt": 2,
-        "it50": 262,
-        "vis": 1,
-        "perc": 0.7633587786259541
+        "did": 30146789,
+        "name": "petralum.ru",
+        "cnt": 5,
+        "it50": 870,
+        "vis": 11,
+        "perc": 0.574712643678161
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 2,
-        "it50": 51115738,
-        "vis": 24213062,
-        "perc": 0.000003912689277811073
+        "cnt": 5,
+        "it50": 50439923,
+        "vis": 23389571,
+        "perc": 0.000009912782777245715
+      },
+      {
+        "did": 29918498,
+        "name": "livemaster.ru",
+        "cnt": 5,
+        "it50": 2730668,
+        "vis": 162815,
+        "perc": 0.00018310537934307648
+      },
+      {
+        "did": 30880413,
+        "name": "ginterio.ru",
+        "cnt": 5,
+        "it50": 902,
+        "vis": 4,
+        "perc": 0.5543237250554324
+      },
+      {
+        "did": 121577103,
+        "name": "uslugi.yandex.ru",
+        "cnt": 4,
+        "it50": 2832574,
+        "vis": 343212,
+        "perc": 0.00014121431602492996
+      },
+      {
+        "did": 129916199,
+        "name": "loftcase.ru",
+        "cnt": 4,
+        "it50": 1467,
+        "vis": 32,
+        "perc": 0.27266530334015
       },
       {
         "did": 233719002,
         "name": "peregorodki.spb.ru",
-        "cnt": 2,
-        "it50": 217,
+        "cnt": 4,
+        "it50": 219,
         "vis": 2,
-        "perc": 0.9216589861751152
+        "perc": 1.8264840182648403
+      },
+      {
+        "did": 280313465,
+        "name": "cherdak-masterskaya.ru",
+        "cnt": 4,
+        "it50": 8215,
+        "vis": 295,
+        "perc": 0.048691418137553254
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
-    "it10": 0,
-    "it50": 3,
+    "it10": 1,
+    "it50": 9,
     "childsCount": 0,
     "keys": [
+      {
+        "pos": 8,
+        "word": "лофт перегородки спб",
+        "ws": 47,
+        "wsk": 18
+      },
       {
         "pos": 13,
         "word": "peregorodki spb ru",
         "ws": 20,
         "wsk": 8
+      },
+      {
+        "pos": 15,
+        "word": "ооо перегородки спб",
+        "ws": 16,
+        "wsk": 3
+      },
+      {
+        "pos": 34,
+        "word": "duendecor",
+        "ws": 1,
+        "wsk": 1
+      },
+      {
+        "pos": 37,
+        "word": "перегородки лофт для зонирования",
+        "ws": 304,
+        "wsk": 28
+      },
+      {
+        "pos": 38,
+        "word": "лофт перегородки москва",
+        "ws": 31,
+        "wsk": 5
       },
       {
         "pos": 38,
@@ -114,12 +144,18 @@
         "word": "cartelle design",
         "ws": 47,
         "wsk": 14
+      },
+      {
+        "pos": 45,
+        "word": "лофт перегородки в интерьере",
+        "ws": 40,
+        "wsk": 2
       }
     ],
     "topkeys": 1000000,
     "pages": [
       {
-        "it50": 3,
+        "it50": 9,
         "url": "/"
       }
     ],
@@ -148,18 +184,6 @@
     },
     "restop5": 0,
     "history": {
-      "2025.02": {
-        "it1": 0,
-        "it3": 0,
-        "it5": 1,
-        "it10": 3,
-        "it50": 14,
-        "pagesInIndex": 2,
-        "adsCount": 0,
-        "adKeysCount": 0,
-        "visAvg": 0,
-        "aiCnt": 0
-      },
       "2025.03": {
         "it1": 0,
         "it3": 0,
@@ -368,8 +392,8 @@
         "it1": 0,
         "it3": 0,
         "it5": 0,
-        "it10": 0,
-        "it50": 3,
+        "it10": 1,
+        "it50": 9,
         "pagesInIndex": 1,
         "adsCount": 0,
         "adKeysCount": 0,
@@ -491,11 +515,11 @@
         8
       ],
       "2026.08": [
-        16,
-        161,
-        8,
-        25,
-        8
+        17,
+        117,
+        7,
+        24,
+        11
       ]
     },
     "aiAnswersCnt": 0,

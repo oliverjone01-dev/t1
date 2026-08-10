@@ -964,6 +964,13 @@ section.on{display:block}
 .cnt.zero{border-color:var(--line2);color:var(--mut)}
 a.cnt{text-decoration:none}
 a.cnt:hover{background:rgba(224,90,80,.1);text-decoration:none}
+
+/* Владелец кабинета в верхней шапке. Приглушённый цвет и обрезка на узких
+   экранах: имя обязано быть видно всегда, но не спорить с переключателем
+   плотности за место. */
+.bar-top .nm .who-top{color:var(--mut);font-weight:500;display:inline-block;
+  max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  vertical-align:bottom}
 .sec-head{max-width:1180px;margin:0 auto;padding:var(--s6) var(--s4) var(--s5)}
 .sec-head h1{margin-bottom:var(--s2)}
 .sec-head .lead-sub{color:var(--mut);font-size:calc(var(--fs) - 1px);max-width:70ch;margin:0}
@@ -1165,6 +1172,11 @@ const FRAG_NAV = argOf("--nav") || "Мой разбор";
 const FRAG_TITLE = argOf("--title") || FRAG_NAV;
 const FRAG_LEAD = argOf("--lead") || "";
 const FRAG_ICON = argOf("--icon") || "person";
+// Владелец кабинета. Едет в сайдбар и в заголовок вкладки, чтобы с первого
+// взгляда было видно, ЧЕЙ это кабинет: оболочка академии у всех одинаковая,
+// и без подписи страница Юли неотличима от страницы Ольги до самого h1.
+// Имя живёт внутри шифрованного контейнера, гейт остаётся анонимным.
+const FRAG_PERSON = argOf("--person") || "";
 
 if (FRAG) {
   S.unshift({ id: FRAG_ID, nav: FRAG_NAV, title: FRAG_TITLE, lead: FRAG_LEAD,
@@ -1219,7 +1231,7 @@ process.stdout.write(`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>${FRAG ? esc(FRAG_TITLE) + ". " : ""}GG Sales Academy</title>
+<title>${FRAG_PERSON ? esc(FRAG_PERSON) + ". " : FRAG ? esc(FRAG_TITLE) + ". " : ""}GG Sales Academy</title>
 <style>
 ${CSS}
 ${FRAG_CSS ? decomment(readFileSync(FRAG_CSS, "utf8")) : ""}
@@ -1256,7 +1268,8 @@ ${NOGATE ? "" : `
 
 <div class="shell" id="app"${NOGATE ? "" : " hidden"}>
   <aside class="side">
-    <div class="logo"><b>GG SALES ACADEMY</b>${FRAG ? esc(FRAG_TITLE) : "Библиотека отдела продаж"}</div>
+    <div class="logo"><b>GG SALES ACADEMY</b>${
+      FRAG_PERSON ? `Кабинет: ${esc(FRAG_PERSON)}` : FRAG ? esc(FRAG_TITLE) : "Библиотека отдела продаж"}</div>
     <!-- id="secnav", а не "nav": сводка штаба приезжает разделом и строит свои
          вкладки в элемент с id="nav". При совпадении её скрипт затирал боковое
          меню академии, и навигация исчезала целиком. -->
@@ -1267,7 +1280,8 @@ ${NOGATE ? "" : `
   </aside>
   <main>
     <div class="bar-top"><div class="in">
-      <span class="nm">GG Sales <span>Academy</span></span>
+      <span class="nm">GG Sales <span>Academy</span>${
+        FRAG_PERSON ? ` <span class="who-top">· ${esc(FRAG_PERSON)}</span>` : ""}</span>
       <div class="dsw" role="group" aria-label="Плотность вёрстки">
         <button type="button" data-den="air" aria-pressed="true">Просторно</button>
         <button type="button" data-den="mid" aria-pressed="false">Рабочая</button>

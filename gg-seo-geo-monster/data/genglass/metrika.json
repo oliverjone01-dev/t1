@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-09",
+ "measured": "2026-08-10",
  "visits_30d": [
-  {
-   "date": "2026-07-10",
-   "visits": 255,
-   "search_visits": 57
-  },
   {
    "date": "2026-07-11",
    "visits": 194,
@@ -151,16 +146,21 @@
    "date": "2026-08-08",
    "visits": 203,
    "search_visits": 63
+  },
+  {
+   "date": "2026-08-09",
+   "visits": 188,
+   "search_visits": 54
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 31
+   "visits": 34
   },
   {
    "phrase": "genglass",
-   "visits": 17
+   "visits": 20
   },
   {
    "phrase": "генгласс",
@@ -172,7 +172,7 @@
   },
   {
    "phrase": "gen glass",
-   "visits": 6
+   "visits": 7
   },
   {
    "phrase": "стол журнальный genglass",
@@ -219,10 +219,6 @@
    "visits": 2
   },
   {
-   "phrase": "генглас",
-   "visits": 2
-  },
-  {
    "phrase": "джен гласс",
    "visits": 2
   },
@@ -240,6 +236,10 @@
   },
   {
    "phrase": "зеркало genglass",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало в золотой раме",
    "visits": 2
   },
   {
@@ -315,6 +315,10 @@
    "visits": 1
   },
   {
+   "phrase": "GENGLASS. зеркала в ванную",
+   "visits": 1
+  },
+  {
    "phrase": "GenGlass",
    "visits": 1
   },
@@ -349,20 +353,16 @@
   {
    "phrase": "gen glass официальный сайт",
    "visits": 1
-  },
-  {
-   "phrase": "gen glass сто обеденный",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 361
+   "visits": 364
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 89
+   "visits": 85
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
@@ -377,15 +377,15 @@
    "visits": 43
   },
   {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 37
+  },
+  {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
    "visits": 35
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 34
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
    "visits": 33
   },
   {
@@ -393,19 +393,19 @@
    "visits": 33
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 31
-  },
-  {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 31
+   "visits": 32
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 27
+   "visits": 30
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 26
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
    "visits": 26
   },
   {
@@ -422,19 +422,23 @@
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 19
+   "visits": 18
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 17
+   "visits": 16
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 13
+   "visits": 14
   },
   {
    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
    "visits": 13
+  },
+  {
+   "url": "/product-category/mirrors/led/",
+   "visits": 12
   },
   {
    "url": "/product-category/mirrors/wall/",
@@ -449,35 +453,31 @@
    "visits": 11
   },
   {
-   "url": "/product-category/mirrors/led/",
-   "visits": 11
-  },
-  {
    "url": "/product-category/mirrors/zerkalo-arka/",
    "visits": 11
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 10
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
    "visits": 10
   },
   {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
-   "visits": 10
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
+   "visits": 9
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
    "visits": 9
   },
   {
-   "url": "/product-category/mirrors/floor/",
+   "url": "/product-category/mirrors/rotatable/",
+   "visits": 9
+  },
+  {
+   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
    "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 25.7,
+ "bounce_rate": 25.5,
  "depth": 2.6
 }

@@ -2,19 +2,19 @@
  "sources": {
   "keysso": {
    "status": "genglass: ok · glass-memory: ok",
-   "date": "2026-08-09",
-   "requests_used": 13,
+   "date": "2026-08-10",
+   "requests_used": 16,
    "limit": 3000,
    "pending_rid": {}
   },
   "metrika": {
    "status": "genglass: ok · glass-memory: no-counter (заполни metrika_counter в config/projects.json)",
-   "date": "2026-08-09"
+   "date": "2026-08-10"
   },
   "direct": {
    "status": "genglass: ok · glass-memory: ok",
-   "date": "2026-08-09"
+   "date": "2026-08-10"
   }
  },
- "updated": "2026-08-09"
+ "updated": "2026-08-10"
 }

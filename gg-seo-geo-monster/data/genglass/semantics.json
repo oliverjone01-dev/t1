@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-09",
+ "measured": "2026-08-10",
  "phrases": [
   {
    "phrase": "темно синий диван",
@@ -79,6 +79,14 @@
    "freq": 239,
    "url": "",
    "cluster": "журнальный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стекольная мастерская пушкино",
+   "pos": null,
+   "freq": 33,
+   "url": "",
+   "cluster": "стекольная",
    "intent": "commercial"
   },
   {
@@ -264,6 +272,14 @@
    "url": "",
    "cluster": "зеркало",
    "intent": "transactional"
+  },
+  {
+   "phrase": "плитка с фацетом",
+   "pos": null,
+   "freq": 402,
+   "url": "",
+   "cluster": "плитка",
+   "intent": "commercial"
   },
   {
    "phrase": "материал зеркало",
@@ -479,14 +495,6 @@
    "freq": 894,
    "url": "",
    "cluster": "зеркала",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "зеркальная мозаика в интерьере",
-   "pos": null,
-   "freq": 51,
-   "url": "",
-   "cluster": "зеркальная",
    "intent": "commercial"
   },
   {
@@ -791,14 +799,6 @@
    "freq": 206,
    "url": "",
    "cluster": "панно",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "зеркало для парикмахерской",
-   "pos": null,
-   "freq": 486,
-   "url": "",
-   "cluster": "зеркало",
    "intent": "commercial"
   }
  ]

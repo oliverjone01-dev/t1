@@ -378,7 +378,7 @@ def registry_block(regm, mgr, built_dt):
     Здесь только сделки самого менеджера: чужих данных в кабинете физически нет.
     Полный реестр отдела с теми же счётчиками видит РОП в сводке.
     """
-    if not regm:
+    if not regm or not regm.get("claims"):
         return ""
     L = []
     a = L.append
@@ -386,7 +386,10 @@ def registry_block(regm, mgr, built_dt):
     a('<div class="small" style="max-width:75ch">Карточки выше это примеры, по одному на тип. '
       'Здесь счёт целиком: каждое утверждение с числом срабатываний и сделками, по которым '
       'оно посчитано. Раскрывается по клику. Тот же реестр по всему отделу видит РОП.</div>')
-    order = sorted(regm.items(), key=lambda x: (x[1]["kind"] != "defect", -x[1]["n"]))
+    if regm.get("hyp"):
+        a(f'<div class="small" style="max-width:75ch">{esc(regm["hyp"])} '
+          '<span class="tag warn">ГИПОТЕЗА</span></div>')
+    order = sorted(regm["claims"].items(), key=lambda x: (x[1]["kind"] != "defect", -x[1]["n"]))
     for code, c in order:
         bad = c["kind"] == "defect"
         nev = len(c["evidence"])
@@ -408,7 +411,8 @@ def registry_block(regm, mgr, built_dt):
                 a(f'<div class="q {"was" if bad else "now"}"><div class="who">Вы ответили</div>'
                   f'{esc(e["manager"])}</div>')
             a('<div class="rk"><b>AI-Костя.</b>')
-            a(f'<span class="rk-g">Хорошо: {esc(e["well"])}</span>')
+            if e.get("well"):
+                a(f'<span class="rk-g">Хорошо: {esc(e["well"])}</span>')
             if e.get("bad"):
                 a(f'<span class="rk-b">Плохо: {esc(e["bad"])}</span>')
             a('</div>')
@@ -935,10 +939,11 @@ def main(analysis_path, per_manager_path, out_dir, kostya_path=None, cases_path=
     reg_by_key = {}
     if registry_path:
         R = json.load(open(registry_path, encoding="utf-8"))
+        hyp = (R.get("meta") or {}).get("hypothesis", "")
         for code, c in R["claims"].items():
             for mgr_name, v in c["byMgr"].items():
                 k = name_key(mgr_name)
-                reg_by_key.setdefault(k, {})[code] = {
+                reg_by_key.setdefault(k, {"claims": {}, "hyp": hyp})["claims"][code] = {
                     "title": c["title"], "kind": c["kind"], "diag": c["diag"],
                     "n": v["n"], "evidence": v["evidence"]}
 

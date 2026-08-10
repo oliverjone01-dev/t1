@@ -595,7 +595,12 @@ def main(analysis_path, msgs_path, out_path, kostya_path=None, registry_path=Non
     }
 
     tpl = open(__file__.replace("build-site.py", "site-template.html"), encoding="utf-8").read()
-    htmlout = tpl.replace("/*__DATA__*/null", json.dumps(payload, ensure_ascii=False))
+    # Типографика платформы: длинное тире запрещено на всей странице, а в payload
+    # едут и сырые цитаты переписки (worstReplies, эскалации), которые через
+    # clean() не проходят. Правка на сериализованной строке безопасна: символ
+    # живёт только внутри JSON-строк.
+    data = json.dumps(payload, ensure_ascii=False).replace("—", "-").replace("–", "-")
+    htmlout = tpl.replace("/*__DATA__*/null", data)
 
     if FRAGMENT:
         css = re.search(r"<style>([\s\S]*?)</style>", htmlout).group(1)

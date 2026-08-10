@@ -721,7 +721,7 @@ if (D.registry) (function(){
     ${e.client?`<div class="q">Клиент: ${E(e.client)}</div>`:''}
     <div class="q ${kind==='defect'?'was':'now'}">Менеджер: ${E(e.manager)}</div>
     <div class="rk"><b>AI-Костя.</b>
-      <span class="rk-g">Хорошо: ${E(e.well)}</span>
+      ${e.well?`<span class="rk-g">Хорошо: ${E(e.well)}</span>`:''}
       ${e.bad?`<span class="rk-b">Плохо: ${E(e.bad)}</span>`:''}
       ${e.should?`<div class="q now" data-copy>Как надо было: ${E(e.should)}</div>`:''}
     </div></div>`;
@@ -743,9 +743,11 @@ if (D.registry) (function(){
     <div id="reestr"></div>
     <h2>${I('check')}Реестр замечаний с доказательствами</h2>
     <div class="note" style="max-width:85ch">Каждое утверждение методики привязано к сделкам, по которым оно посчитано.
-      Счётчик - все срабатывания детектора за период ${E((R.meta||{}).period||'')}.
+      Счётчик - срабатывания детектора за период ${E((R.meta||{}).period||'')}.
       ${E((R.meta||{}).note||'')} Нулевые пункты каталога (жаргон, «вы же сами») в письменной
       переписке за период не встретились: они пришли из ручного разбора Кости и остаются в методике.</div>
+    ${(R.meta||{}).hypothesis?`<p class="small" style="max-width:85ch">${E(R.meta.hypothesis)}
+      <span class="tag warn">ГИПОТЕЗА</span></p>`:''}
     <h2 style="margin-top:20px">Что чинить</h2>
     ${defs.map(claim).join('')}
     <h2>Что уже получается</h2>

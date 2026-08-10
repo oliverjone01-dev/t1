@@ -62,30 +62,47 @@ EXTRA = {
 STRONG_DIAG = ""  # у сильных кейсов графы «что плохо» нет
 
 
-def kostya_well(mtext, ctext, answered):
-    """«Что хорошо» по фактическим признакам реплики, без сочинительства."""
+def kostya_well(mtext, ctext, answered, code=""):
+    """«Что хорошо» по фактическим признакам реплики, без сочинительства.
+
+    На вход подаётся текст БЕЗ служебной шапки вложения: «Отправлено Файл» это
+    не реплика, и хвалить пустое сообщение за скорость нельзя. Пустой текст
+    возвращает пустую строку - графа «Хорошо» в этом случае не рендерится.
+    """
+    mtext = dc.ATTACH_PREFIX.sub("", (mtext or "").strip()).strip()
+    if not mtext:
+        return ""
     pts = []
-    if mtext:
-        if dc.GREET.search(mtext[:80]) or dc.NAME_ADDRESS.match(mtext):
-            pts.append("есть приветствие или обращение по имени")
-        if dc.APOLOGY.search(mtext):
-            pts.append("есть извинение")
-        if dc.CONCRETE.search(mtext):
-            pts.append("назван конкретный срок")
-        if dc.ALTERNATIVE.search(mtext):
-            pts.append("предложен вариант, а не отказ")
-        if dc.QUALIFY.search(mtext):
-            pts.append("задан квалифицирующий вопрос")
-        elif "?" in mtext:
-            pts.append("есть встречный вопрос клиенту")
-    if answered is not None and answered <= 10 and mtext:
+    if dc.GREET.search(mtext[:80]) or dc.NAME_ADDRESS.match(mtext):
+        pts.append("есть приветствие или обращение по имени")
+    if dc.APOLOGY.search(mtext):
+        pts.append("есть извинение")
+    # У дефектов «обещание без срока» и «размытый срок» пункт про конкретный
+    # срок противоречил бы самому дефекту: CONCRETE ловит и прошедшие даты.
+    if code not in ("T03_ОБЕЩАНИЕ_БЕЗ_СРОКА", "T03_РАЗМЫТЫЙ_СРОК") and dc.CONCRETE.search(mtext):
+        pts.append("назван конкретный срок")
+    if dc.ALTERNATIVE.search(mtext):
+        pts.append("предложен вариант, а не отказ")
+    if dc.QUALIFY.search(mtext):
+        pts.append("задан квалифицирующий вопрос")
+    elif "?" in mtext:
+        pts.append("есть встречный вопрос клиенту")
+    if answered is not None and answered <= 10:
         pts.append("ответ пришёл за минуты")
     if not pts:
         return "Опереться в этой реплике не на что: ни одного из опорных элементов (приветствие, извинение, срок, вариант, вопрос) в ней нет."
-    return ("В реплике " + ", ".join(pts) + ".").capitalize()
+    return "В реплике " + ", ".join(pts) + "."
 
 
-def main(src, dst_full, dst_counts, min_out=dc.MIN_OUT):
+def main(src, dst_full, dst_counts, analysis_path=None, min_out=dc.MIN_OUT):
+    # Окно периода берётся из analysis.json: на одной странице не может быть
+    # двух разных периодов (подвал сводки против шапки реестра).
+    p_from = p_to = None
+    if analysis_path:
+        pa = json.load(open(analysis_path, encoding="utf-8"))["meta"]["period"]
+        p_from = datetime.strptime(pa["from"], "%d.%m.%Y")
+        p_to = datetime.strptime(pa["to"], "%d.%m.%Y").replace(hour=23, minute=59, second=59)
+
     M = []
     for line in open(src, encoding="utf-8"):
         o = json.loads(line)
@@ -94,6 +111,8 @@ def main(src, dst_full, dst_counts, min_out=dc.MIN_OUT):
         if o["direction"] not in ("in", "out"):
             continue
         o["dt"] = datetime.fromisoformat(o["ts"])
+        if p_from is not None and not (p_from <= o["dt"] <= p_to):
+            continue
         o["text"] = dc.norm(o["text"])
         M.append(o)
     dc.set_roster({o["mgr"] for o in M})
@@ -102,18 +121,28 @@ def main(src, dst_full, dst_counts, min_out=dc.MIN_OUT):
     for m in M:
         by_deal[m["dealId"]].append(m)
 
-    counts = defaultdict(Counter)                     # mgr -> code -> срабатываний
+    counts = defaultdict(Counter)                     # mgr -> code -> уникальных срабатываний
     pools = defaultdict(lambda: defaultdict(list))    # mgr -> code -> доказательства
     out_n = Counter()
+    # Дедупликация ДО счётчика: 13.4% строк выгрузки - одна переписка под двумя
+    # dealId, и счётчик без неё завышен (по пустым вложениям в разы, замер
+    # ФЕНИКСА 10.08.2026). Ключ - время сообщения плюс головы цитат; у пустого
+    # вложения текстов нет, хватает времени.
+    seen_msgs = defaultdict(set)
     seen_pairs = defaultdict(set)
 
     def push(owner, deal, code, verdict, mmsg, cmsg):
-        counts[owner][code] += 1
         meta = dc.STRONG if verdict == "strong" else {**dc.DEFECTS, **EXTRA}
         title, _w, should = meta[code]
         ref = mmsg or cmsg
         cli = dc.clean(cmsg["text"]) if cmsg is not None else ""
         man = dc.clean(mmsg["text"]) if mmsg is not None else ""
+        tkey = ((code, ref["ts"]) if code == "T01_ПУСТОЕ_ВЛОЖЕНИЕ"
+                else (code, ref["ts"], cli[:60].lower(), man[:60].lower()))
+        if tkey in seen_msgs[owner]:
+            return
+        seen_msgs[owner].add(tkey)
+        counts[owner][code] += 1
         key = (code, cli[:60].lower(), man[:60].lower())
         if key in seen_pairs[owner]:
             return
@@ -128,7 +157,7 @@ def main(src, dst_full, dst_counts, min_out=dc.MIN_OUT):
             well, bad = should, STRONG_DIAG
             should_out = ""
         else:
-            well = kostya_well(raw_m, raw_c, answered)
+            well = kostya_well(raw_m, raw_c, answered, code)
             bad = DIAG[code]
             should_out = should
         pools[owner][code].append({
@@ -200,12 +229,23 @@ def main(src, dst_full, dst_counts, min_out=dc.MIN_OUT):
             "byMgr": by_mgr,
         }
 
-    d0 = min(m["dt"] for m in M).strftime("%d.%m.%Y")
-    d1 = max(m["dt"] for m in M).strftime("%d.%m.%Y")
+    if p_from is not None:
+        period = f"{pa['from']} - {pa['to']}"
+    else:
+        period = (min(m["dt"] for m in M).strftime("%d.%m.%Y") + " - "
+                  + max(m["dt"] for m in M).strftime("%d.%m.%Y"))
+    n_codes = len({**dc.DEFECTS, **EXTRA})
     meta = {"source": src, "generated_at": datetime.now().isoformat(),
-            "period": f"{d0} - {d1}", "minOut": min_out, "evidenceCap": EVIDENCE_CAP,
+            "period": period, "minOut": min_out, "evidenceCap": EVIDENCE_CAP,
             "note": f"Выборка - до {EVIDENCE_CAP} сделок на менеджера и тип, сначала пары "
-                    "с репликой клиента и большей суммой. Цитаты вычищены от контактов и фамилий."}
+                    "с репликой клиента и большей суммой. Цитаты вычищены от контактов, "
+                    "фамилий и адресов.",
+            # Строка честности едет на страницы как есть: счётчики - детекторы,
+            # не ручная проверка, и это обязано быть написано там, где по числам
+            # разговаривают с людьми, а не только в публичной библиотеке.
+            "hypothesis": "Счётчики дедуплицированы по времени и тексту сообщения. "
+                          f"Вручную проверено детекторов: 0 из {n_codes}. Каждое срабатывание - "
+                          "повод открыть сделку, а не установленный факт."}
 
     json.dump({"meta": meta, "claims": claims},
               open(dst_full, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -236,4 +276,4 @@ if __name__ == "__main__":
     for a in sys.argv[1:]:
         if a.startswith("--min-out="):
             mo = int(a.split("=", 1)[1])
-    main(args[0], args[1], args[2], mo)
+    main(args[0], args[1], args[2], args[3] if len(args) > 3 else None, mo)

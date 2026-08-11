@@ -2889,7 +2889,7 @@ function buildShell(){
   document.addEventListener('click',e=>{if(S.calMgrOpen&&!e.target.closest('[data-calmgrdd]')){S.calMgrOpen=false;render();return;}const mb=e.target.closest('[data-calmgrbtn]');if(mb){S.calMgrOpen=!S.calMgrOpen;render();return;}const mo=e.target.closest('[data-calmgropt]');if(mo){S.calMgr=mo.dataset.calmgropt;S.calMgrOpen=false;S.calCell=null;S.calRowOpen={};S.calCupOpen=false;render();return;}const cu=e.target.closest('#calUnitSeg button');if(cu){S.calUnit=cu.dataset.cu;render();return;}const cm=e.target.closest('[data-calmgr]');if(cm){const k=cm.dataset.calmgr;S.calMgr=(S.calMgr===k)?'':k;S.calCell=null;S.calRowOpen={};render();return;}const wmm=e.target.closest('[data-calwipmode]');if(wmm){S.calWipMode=wmm.dataset.calwipmode;S.calRowOpen=S.calRowOpen||{};render();return;}const cr=e.target.closest('[data-calrow]');if(cr){const k=cr.dataset.calrow;S.calRowOpen=S.calRowOpen||{};S.calRowOpen[k]=!S.calRowOpen[k];render();return;}if(e.target.closest('[data-cupopen]')){S.calCupOpen=!S.calCupOpen;render();return;}const cc=e.target.closest('[data-calcell]');if(cc){const p=cc.dataset.calcell.split('|');S.calCell=(S.calCell&&S.calCell.s===p[0]&&S.calCell.k===p[1])?null:{s:p[0],k:p[1]};render();return;}if(e.target&&e.target.closest('[data-calcellclose]')){S.calCell=null;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));document.getElementById('periodLabel').textContent=S.start+' → '+S.end;render();}};
-  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
+  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['month','Месяц'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='month'?'on':''}">${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
   const _dirSel=document.getElementById('dirSel');
@@ -2905,6 +2905,7 @@ function setPeriod(p){
   if(p==='all'){S.start=DATA.from;S.end=DATA.to;}
   else if(p==='today'){S.start=S.end=DATA.to;}
   else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
+  else if(p==='month'){const t=DATA.to,y=+t.slice(0,4),m=+t.slice(5,7),pad=n=>String(n).padStart(2,'0'),ld=new Date(y,m,0).getDate();S.start=y+'-'+pad(m)+'-01';S.end=y+'-'+pad(m)+'-'+pad(ld);} // текущий месяц: 1-е -> последнее число (по DATA.to)
   else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p-1));S.start=e.toISOString().slice(0,10);S.end=DATA.to;} // n дней включая сегодня - окно совпадает с дашбордом производства
   document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
 function freshStamp(){const el=document.getElementById('freshTag');if(!el)return;
@@ -2932,7 +2933,7 @@ async function refreshPlan(){const url=DATA.planCsv;if(!url){showToast('В сб�
     showToast('План обновлён из таблицы: '+months.length+' мес');
   }catch(e){showToast('Не удалось прочитать таблицу онлайн ('+e.message+'). Нужно: файл сохранён как Google Таблица + доступ по ссылке. Иначе скажи мне - обновлю вручную.');}}
 function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;}
-setPeriod('30');buildShell();render();freshStamp();wirePlanBtns();
+setPeriod('month');buildShell();render();freshStamp();wirePlanBtns();
 // Анти-кэш для боевого адреса /rop/: деплой кладёт рядом v.txt со штампом сборки.
 // Проверяем при загрузке, при возврате на вкладку и раз в 15 минут: давно открытая
 // вкладка тоже подтянет свежую сборку. Перезагрузка одна на версию (sessionStorage).

@@ -1152,13 +1152,14 @@ function render(){
     gauge({label:'Продажи',att:planSales?m.won/planSales:0,good:true,fact:m.won,plan:planSales,kind:'count',factDisp:fmt(m.won),planDisp:fmt(planSales),note:`план <b>${fmt(planSales)}</b> · факт <b>${fmt(m.won)}</b>`})+
     gauge({label:'Выручка',att:m.rev/planRevP,good:true,fact:m.rev,plan:planRevP,kind:'money',factDisp:fmtK(m.rev)+' ₽',planDisp:fmtK(planRevP)+' ₽',note:`план <b>${fmtK(planRevP)}</b> ₽ · факт <b>${fmtK(m.rev)}</b>`})+`</div></div>`;
   // сквозная конверсия: тейпер-воронка + ₽ ИЛИ динамика конверсий — переключатель
-  // Сквозная воронка - КОГОРТНАЯ (по дате создания): заявки→квал→продажи одной когорты,
-  // иначе конверсия некорректна. Поэтому продажи здесь = wonCohort, а не по дате исхода.
-  // стандарт Ивана: квал-лид = СОЗДАННАЯ СДЕЛКА, поэтому средняя ступень = m.deals (бьётся с CR1 в шапке)
-  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.wonCohort; // квал-лид = успешная стадия лида, а не создание сделки
+  // Заявки/квал-лиды - когорта по дате создания (intake, средняя ступень = созданные сделки, бьётся с CR1).
+  // Продажи/деньги/отток РЕАГИРУЮТ на тумблер «Период по» (m.won/m.rev/m.lost): «по дате создания» =
+  // продано из когорты; «по дате продажи» = закрыто в периоде (может включать старые когорты - тогда
+  // сквозная % это throughput, не чистая когорта). Так воронка фильтрозависима и бьётся с шапкой.
+  const _leadN=m.leads||1,_qualN=m.qual,_wonN=m.won; // продажи по выбранному базису даты
   const _cv1=m.leads?m.qual/m.leads:0,_cvQS=_qualN?Math.min(_wonN/_qualN,1):0,_cvE2E=_leadN?_wonN/_leadN:0;
-  const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
-  const _lostN=D.filter(d=>d.lost).length,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
+  const _wonRev=m.rev,_lostRev=m.lostM,_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
+  const _lostN=m.lost,_closedN=_wonN+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
   const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=stg[0][1]||1,n=3,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_leadN?_wonN/_leadN:0;
@@ -2589,7 +2590,7 @@ function wireMoneyDyn(D){const keys=buckets(S.gran),metric=S.revMetric||'rev';
   const fmtV=v=>META.p?pct(v/100):META.m?fmtK(v)+' ₽':fmt(v);
   multiline([{name:META.l,total:true,color:META.c,vals},{name:'Пред. период',color:'#7E8796',dash:true,noArea:true,vals:prev}],keys,S.gran,META.m,document.getElementById('rdyn'));
   const ar=dl==null?'':dl>=0?'▲':'▼',dc=dl==null?'var(--ink-3)':dl>=0?'#2E9E74':'#CC5867';
-  document.getElementById('rdh').innerHTML=`${META.l} отдела · по дате закрытия · ${granLabel()} · период <b style="color:var(--ink)">${fmtV(cur)}</b> vs пред. <b style="color:var(--ink-2)">${fmtV(prevT)}</b>`+(dl==null?'':` <b style="color:${dc}">${ar} ${pct(Math.abs(dl))}</b>`)+(metric==='check'||metric==='conv'?' · пустая неделя без продаж = 0':'');}
+  document.getElementById('rdh').innerHTML=`${META.l} отдела · ${S.dateBasis==='outcome'?'по дате продажи':'по дате создания'} · ${granLabel()} · период <b style="color:var(--ink)">${fmtV(cur)}</b> vs пред. <b style="color:var(--ink-2)">${fmtV(prevT)}</b>`+(dl==null?'':` <b style="color:${dc}">${ar} ${pct(Math.abs(dl))}</b>`)+(metric==='check'||metric==='conv'?' · пустая неделя без продаж = 0':'');}
 function wireDQ(){const seg=document.getElementById('dqSeg');if(!seg)return;
   seg.innerHTML=[['leads','Всего лиды'],['qual','Квал'],['deals','Сделки']].map(x=>`<button data-d="${x[0]}" class="${S.dqDim===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.dqDim=b.dataset.d;render();});}

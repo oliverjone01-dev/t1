@@ -1609,6 +1609,10 @@ function challengeWidget(){
   rows.sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
   rows.forEach((m,i)=>m.rank=i+1);
   const me=rows.find(m=>m.n===MANAGER);
+  // Место среди ВСЕХ участников (любой объём) - чтобы менеджер ВСЕГДА видел себя, даже вне медального зачёта (<FLOOR сделок до предложения).
+  const allRk=all.map(m=>({...m,clean:(m.tot-m.bad)/m.tot})).sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
+  allRk.forEach((m,i)=>m.arank=i+1);
+  const meAny=allRk.find(m=>m.n===MANAGER), meX=me||meAny;
   const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
   const top=rows.slice(0,3);
   const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
@@ -1620,7 +1624,18 @@ function challengeWidget(){
     `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
     `<span style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${Math.round(m.clean*100)}%</span>`+
     `<span data-tip="сколько сделок надо дозаполнить в CRM (0 - всё чисто)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
-  const meOut=(me&&me.rank>3)?`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>${line(me,true)}`:'';
+  // Строка «я» для менеджера ВНЕ медального зачёта (мало сделок): место среди всех участников.
+  const lineMe=m=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;font-weight:800">`+
+    `<span style="width:20px;text-align:center;font-size:12px;color:var(--ink-3)">${m.arank}</span>`+
+    `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#22D3EE">${esc(short(m.n))}</span>`+
+    `<span style="font-family:'Manrope';font-weight:800;color:${m.bad===0?'#2E9E74':'#C2873C'}">${Math.round(m.clean*100)}%</span>`+
+    `<span style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+  const _sep=`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>`;
+  // Менеджер ВСЕГДА видит себя: в зачёте вне ТОП-3 - медальной строкой; вне зачёта - строкой с местом среди всех + пометка; нет офферов - подсказка.
+  const meOut=(me&&me.rank>3)?`${_sep}${line(me,true)}`
+    :(!me&&meAny)?`${_sep}${lineMe(meAny)}<div style="text-align:center;font-size:9px;color:var(--ink-4);margin-top:1px">твоё место среди всех · для медали нужно ≥${FLOOR} сделок до предложения</div>`
+    :(!me&&!meAny)?`${_sep}<div style="text-align:center;font-size:10px;color:var(--ink-4);padding:3px 0">Пока нет сделок, дошедших до предложения - челлендж стартует с первой.</div>`
+    :'';
   const _trow=(l,t)=>`<div style="margin:5px 0 0;line-height:1.4"><b style="color:#22D3EE">${l}:</b> ${t}</div>`;
   const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Порядок в CRM»</div>`+
     _trow('Как считаем','доля сделок с чисто заполненной карточкой среди дошедших до предложения: заполнены бюджет, тип изделия и тип клиента')+
@@ -1629,8 +1644,8 @@ function challengeWidget(){
     _trow('Цифра справа','сколько сделок надо дозаполнить в CRM')+
     _trow('Цель','100% чистых карточек - тогда аналитика по деньгам, изделиям и клиентам точная')+
     _trow('Твоя задача','дозаполни бюджет, тип изделия и тип клиента в красных сделках')).replace(/"/g,'&quot;');
-  const cta=(me&&me.bad>0)?`дозаполни свои ${me.bad}`:(me?'карточки чистые ✓':'к списку');
-  const badge=(me&&me.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.bad}</span>`:(me?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
+  const cta=(meX&&meX.bad>0)?`дозаполни свои ${meX.bad}`:(meX?'карточки чистые ✓':'к списку');
+  const badge=(meX&&meX.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${meX.bad}</span>`:(meX?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
   return `<div id="crmChallenge" style="position:fixed;right:0;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px);transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform">`+
     `<div id="crmChallengeRibbon" style="position:absolute;left:1px;top:11px;bottom:11px;width:7px;border-radius:7px;background:linear-gradient(180deg,#8B5CF6,#22D3EE);box-shadow:0 0 12px rgba(34,211,238,.6);cursor:pointer"></div>`+

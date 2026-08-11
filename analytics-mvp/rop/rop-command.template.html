@@ -671,7 +671,8 @@ function deptDQBlock(){
   const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
   const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
   const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
-  const eBud=d=>(d.budget||0)<=1;
+  const PRICED=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:EXECUTING","C49:FINAL_INVOICE","C49:1","C49:2","C49:WON"]);
+  const eBud=d=>PRICED.has(d.stageCode)&&(d.budget||0)<=1; // цена обязательна только с «КП отправлено» и дальше; на «Формирование ТЗ»/«Долгострой» пустая цена - норма, не дыра
   const nP=d=>(eRsn(d)?1:0)+(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
   const allRows=passed.filter(d=>!d.lost&&nP(d)>0);  // исключаем «Сделка провалена»: мёртвые сделки не чиним
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
@@ -846,8 +847,19 @@ function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div cl
 // Дашборды менеджеров: карточки со ссылкой на личный дашборд + основные метрики (портфель, план/факт
 // предоплат, % плана, CR, выручка) за выбранный период. Фото - из Bitrix (DATA.managerPhotos), запас - инициалы.
 function managerDashboardsBlock(){
-  // Список совпадает с циклом deploy-pages (кто реально собран в /rop-<slug>/).
-  const DASH=[['Юлия Лысанова','lysanova'],['Татьяна Лакомова','lakomova'],['Юлия Шура-Бура','shura-bura'],['Алина Платонова','platonova'],['Ольга Маслова','maslova']];
+  // Ростер строится ИЗ ДАННЫХ тем же алгоритмом, что build-managers-all.mjs (слаг = транслит фамилии
+  // с защитой от коллизий), поэтому карточки совпадают с реально собранными страницами /rop-<slug>/.
+  // Новый менеджер в Bitrix появляется сам, ушедший отваливается. MIN_DEALS=5 отсекает «призраков».
+  const _MExcl=new Set(["Виктория Преснякова","Денис Белов","Юлия Мавлина","Системный пользователь MGM"]);
+  const _MnotOP=new Set(["Дмитрий Янчоглов","Алиса Алексеева"]);
+  const _Msys=n=>/систем|^id\s?\d/i.test(n||"");
+  const _Mcnt={};(DATA.deals||[]).filter(d=>!_MExcl.has(d.mgr)&&d.dir!=="glass-memory").forEach(d=>{if(d.mgr)_Mcnt[d.mgr]=(_Mcnt[d.mgr]||0)+1;});
+  const _Mtl={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+  const _translit=s=>s.toLowerCase().split("").map(c=>c in _Mtl?_Mtl[c]:c).join("").replace(/[^a-z0-9-]/g,"").replace(/-+/g,"-").replace(/^-|-$/g,"");
+  const _Mroster=Object.keys(_Mcnt).filter(n=>_Mcnt[n]>=5&&!_MnotOP.has(n)&&!_Msys(n)).sort((a,b)=>_Mcnt[b]-_Mcnt[a]);
+  const _Mused=new Map();
+  const _slugFor=name=>{const p=name.trim().split(/\s+/),sur=p[p.length-1]||name,fir=p[0]||"";let base=_translit(sur)||"mgr",slug=base;if(_Mused.has(slug)&&_Mused.get(slug)!==name){slug=base+"-"+(_translit(fir)||"x");let i=2;while(_Mused.has(slug)&&_Mused.get(slug)!==name)slug=base+"-"+(i++);}_Mused.set(slug,name);return slug;};
+  const DASH=_Mroster.map(name=>[name,_slugFor(name)]);
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);
@@ -905,7 +917,7 @@ function managerDashboardsBlock(){
   const seg=`<div class="seg" id="mdMetSeg"><button data-mdmet="conv" class="${MK==='conv'?'on':''}">Конверсия</button><button data-mdmet="rev" class="${MK==='rev'?'on':''}">Выручка</button><button data-mdmet="won" class="${MK==='won'?'on':''}">Предоплаты</button></div>`;
   const cards=rows.map(r=>{const{name,slug,port,fact,otk,cr,target,pctPlan,rev}=r;
     const rk=rankOf[name]||NDEPT,bc=barCol(r),w=(mval(r)>0?Math.max(4,Math.min(100,mval(r)/maxV*100)):0).toFixed(1);
-    return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+
+    return `<a href="../rop-${slug}/" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;flex:0 0 clamp(240px,78%,270px);scroll-snap-align:start;background:var(--bg-elevated);border:1px solid var(--border);border-radius:13px;padding:13px 14px;transition:border-color .15s,transform .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">`+
       `<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">${avatar(name)}<div style="min-width:0;flex:1"><div style="font-family:'Manrope';font-weight:800;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(name)}</div><div style="font-size:10.5px;color:var(--accent);font-weight:700">Открыть дашборд →</div></div><span style="font-size:19px;line-height:1" title="${rk} место из ${NDEPT} в отделе по: ${mlab}">${cup(rk)}</span></div>`+
       `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 6px;padding-top:10px;border-top:1px solid var(--border-soft)">`+
         stat('Портфель',fmt(port))+
@@ -918,7 +930,7 @@ function managerDashboardsBlock(){
       `<div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border-soft)"><div style="display:flex;justify-content:space-between;align-items:baseline;font-size:9.5px;color:var(--ink-4);text-transform:uppercase;letter-spacing:.03em"><span>${mlab} · ${rk} из ${NDEPT} в отделе</span><b style="color:${bc};font-size:11.5px;font-variant-numeric:tabular-nums">${mfmt(r)}</b></div><div style="height:6px;background:var(--bg-base);border-radius:3px;overflow:hidden;margin-top:4px"><div style="height:100%;width:${w}%;background:${bc};border-radius:3px"></div></div></div>`+
       `</a>`;}).join('');
   const note=DATA.managerPhotos?'':'<span style="color:var(--ink-4)">фото подтянутся из Bitrix после ближайшего снимка</span>';
-  return `<div class="card"><div class="card-h" style="align-items:flex-start"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: план по предоплатам, факт, конверсия и выручка ЗА ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху). Клик по карточке открывает персональный дашборд. Внизу карточки - место в рейтинге отдела (кубок) по выбранной метрике: вкладки «Конверсия» (успех÷закрытые), «Выручка», «Успех» (кол-во предоплат). Цифры совпадают с личным дашбордом менеджера при том же периоде: портфель = все открытые офферы на конец диапазона, план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">клик по карточке - личный дашборд · кубок = место в отделе по выбранной метрике · всё за выбранный период ${note}</div></div>${seg}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:8px">${cards}</div></div>`;
+  return `<div class="card"><div class="card-h" style="align-items:flex-start"><div><div class="card-title">Дашборды менеджеров ${info('Личный дашборд каждого менеджера ОП: план по предоплатам, факт, конверсия и выручка ЗА ВЫБРАННЫЙ ПЕРИОД (реагирует на фильтр дат сверху). Клик по карточке открывает персональный дашборд. Внизу карточки - место в рейтинге отдела (кубок) по выбранной метрике: вкладки «Конверсия» (успех÷закрытые), «Выручка», «Успех» (кол-во предоплат). Цифры совпадают с личным дашбордом менеджера при том же периоде: портфель = все открытые офферы на конец диапазона, план = портфель × CR2 из плана месяца.')}</div><div class="card-sub">${fmt(DASH.length)} менеджеров ОП · листайте вбок ‹ › · клик по карточке - личный дашборд · кубок = место в отделе по выбранной метрике · всё за выбранный период ${note}</div></div>${seg}</div><div class="mdswipe-wrap" style="position:relative;margin-top:8px"><button type="button" aria-label="Назад" onclick="this.parentNode.querySelector('.mgr-swipe').scrollBy({left:-560,behavior:'smooth'})" style="position:absolute;left:-6px;top:calc(50% - 20px);z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg-elevated);color:var(--ink-2);font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35)">‹</button><div class="mgr-swipe" style="display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:2px 4px 12px;scrollbar-width:thin">${cards}</div><button type="button" aria-label="Вперёд" onclick="this.parentNode.querySelector('.mgr-swipe').scrollBy({left:560,behavior:'smooth'})" style="position:absolute;right:-6px;top:calc(50% - 20px);z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:var(--bg-elevated);color:var(--ink-2);font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.35)">›</button></div></div>`;
 }
 
 const FORDER=['C49:NEW','C49:UC_LRFLH9','C49:PREPARATION','C49:UC_OGZUU0','C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2','C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'];

@@ -922,7 +922,9 @@ function managerDashboardsBlock(){
   const _eBud=d=>_PRICED.has(d.stageCode)&&(d.budget||0)<=1;
   const _isDirty=d=>_eCat(d)||_eCli(d)||_eBud(d);
   const _byDept={};
-  passed.filter(d=>isOP(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0});o.mine.push(d);const e=enterExec(d);if(e&&inR(e)){o.fact++;o.rev+=d.budget||0;}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;if(!d.lost){o.ctot++;if(_isDirty(d))o.cbad++;}});
+  // Рейтинг (места/кубки) считаем по тому же белому списку, что и свайп: только действующие продавцы ОП.
+  // Уволенные, офис-менеджеры и CEO в расчёт мест не идут - иначе они держат верхние места, а показанные съезжают вниз.
+  passed.filter(d=>isOP(d.mgr)&&_MShow.has(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0});o.mine.push(d);const e=enterExec(d);if(e&&inR(e)){o.fact++;o.rev+=d.budget||0;}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;if(!d.lost){o.ctot++;if(_isDirty(d))o.cbad++;}});
   const deptRows=Object.entries(_byDept).map(([m,o])=>{const wip=wipMgr(o.mine);return {name:m,fact:o.fact,otk:o.otk,rev:o.rev,wip,cr:wip?o.fact/wip:null,clean:o.ctot?(o.ctot-o.cbad)/o.ctot:null,bad:o.cbad,ctot:o.ctot};});
   const chalBy={};deptRows.forEach(d=>chalBy[d.name]={clean:d.clean,bad:d.bad});
   const NDEPT=Math.max(deptRows.length,1);

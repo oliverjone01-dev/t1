@@ -2907,7 +2907,9 @@ function setPeriod(p){
   else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
   else if(p==='month'){const t=DATA.to,y=+t.slice(0,4),m=+t.slice(5,7),pad=n=>String(n).padStart(2,'0'),ld=new Date(y,m,0).getDate();S.start=y+'-'+pad(m)+'-01';S.end=y+'-'+pad(m)+'-'+pad(ld);} // текущий месяц: 1-е -> последнее число (по DATA.to)
   else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p-1));S.start=e.toISOString().slice(0,10);S.end=DATA.to;} // n дней включая сегодня - окно совпадает с дашбордом производства
-  document.getElementById('periodLabel').textContent=S.start+' → '+S.end;}
+  document.getElementById('periodLabel').textContent=S.start+' → '+S.end;
+  // Синхронизируем поля дат с выбранным периодом: на дефолтном «Месяце» сразу видны 1-е и последнее число.
+  const _cf=document.getElementById('cf'),_ct=document.getElementById('ct');if(_cf)_cf.value=S.start;if(_ct)_ct.value=S.end;}
 function freshStamp(){const el=document.getElementById('freshTag');if(!el)return;
   if(!DATA.generatedAt){el.textContent='';return;}
   const g=new Date(DATA.generatedAt),ageH=(new Date()-g)/36e5,p2=n=>String(n).padStart(2,'0');

@@ -1453,7 +1453,8 @@ function dataQualityBlock(){
   const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
   const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
   const eRsn=d=>d.lost&&(!d.reason||d.reason==="не указана");
-  const eBud=d=>(d.budget||0)<=1;
+  const PRICED=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:EXECUTING","C49:FINAL_INVOICE","C49:1","C49:2","C49:WON"]);
+  const eBud=d=>PRICED.has(d.stageCode)&&(d.budget||0)<=1; // цена обязательна только с «КП отправлено» и дальше; на «Формирование ТЗ»/«Долгострой» пустая цена - норма, не дыра
   const nP=d=>(eCat(d)?1:0)+(eCli(d)?1:0)+(eBud(d)?1:0);
   const rows=passed.filter(d=>!d.lost&&nP(d)>0);
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
@@ -1589,7 +1590,8 @@ function challengeWidget(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
   const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
-  const eBud=d=>(d.budget||0)<=1;
+  const PRICED=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:EXECUTING","C49:FINAL_INVOICE","C49:1","C49:2","C49:WON"]);
+  const eBud=d=>PRICED.has(d.stageCode)&&(d.budget||0)<=1; // цена обязательна только с «КП отправлено» и дальше; на «Формирование ТЗ»/«Долгострой» пустая цена - норма, не дыра
   const isDirty=d=>eCat(d)||eCli(d)||eBud(d);
   // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
   const CHAL_EXCLUDE=new Set(["Ольга Лысенко","Алёна Кубанова"]);

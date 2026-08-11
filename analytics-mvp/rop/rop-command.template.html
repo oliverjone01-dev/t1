@@ -840,7 +840,7 @@ function taskDisciplineBlock(){
 
 /* ============ RENDER ============ */
 function trendChip(cur,prev,inv,asMoney,asPct){let html='';if(prev===0||prev==null){return `<div class="kpi-trend flat">— нет базы</div>`;}
-  const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const cls=Math.abs(dl)<0.005?'flat':up?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼';
+  const dl=(cur-prev)/Math.abs(prev);const up=dl>=0;const good=inv?!up:up;const cls=Math.abs(dl)<0.005?'flat':good?'up':'dn';const ar=Math.abs(dl)<0.005?'→':up?'▲':'▼'; // inv=true: рост это ПЛОХО (потери/неквал) - цвет красный, стрелка по факту направления
   return `<div class="kpi-trend ${cls}">${ar} ${pct(Math.abs(dl))}<small>к пред. периоду</small></div>`;}
 function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols||Math.min(items.length,7)}">`+items.map(x=>{const ac=x.ac==='accent'?'var(--accent)':x.ac;
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
@@ -1138,7 +1138,7 @@ function render(){
     {k:'Выручка',v:fmtK(m.rev),u:'₽',ac:'#A78BFA',trend:trendChip(m.rev,pm.rev)},
     {k:'Средний чек',v:fmt(m.check),u:'₽',ac:'#F472B6',trend:trendChip(m.check,pm.check)},
     {k:'В работе сейчас',v:fmtK(_openM),u:'₽',ac:'#F59E0B',trend:trendChip(_openM,_openMPrev),sub:'снимок открытого пайплайна на сегодня · вне фильтра периода'},
-    {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',trend:trendChip(_lostM,pm.lostM),sub:pct(m.lostShare)+' доля потерь'},
+    {k:'Потеряно',v:fmtK(_lostM),u:'₽',ac:'#F43F5E',qty:fmt(m.lost),qtyLabel:'сделок',trend:trendChip(_lostM,pm.lostM,true),sub:pct(m.lostShare)+' доля потерь'},
   ],9);
   const Pg=planModel(D,L,m),fromSheet=!!Pg.fromSheet;
   const planRevP=Pg.planRevP||1;

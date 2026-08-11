@@ -852,6 +852,10 @@ function managerDashboardsBlock(){
   // Новый менеджер в Bitrix появляется сам, ушедший отваливается. MIN_DEALS=5 отсекает «призраков».
   const _MExcl=new Set(["Виктория Преснякова","Денис Белов","Юлия Мавлина","Системный пользователь MGM"]);
   const _MnotOP=new Set(["Дмитрий Янчоглов","Алиса Алексеева"]);
+  // Белый список действующих продавцов ОП (решение Ивана): в свайпе показываем ТОЛЬКО их.
+  // Явный список надёжнее фильтра-исключения - дрейф данных и однофамильцы (два Валайко) не протекают.
+  // Нового менеджера добавлять сюда вручную. Слаги считаются против ПОЛНОГО ростера, чтобы совпадать со /rop-<slug>/.
+  const _MShow=new Set(["Ольга Лысенко","Алёна Кубанова","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба"]);
   const _Msys=n=>/систем|^id\s?\d/i.test(n||"");
   const _Mcnt={};(DATA.deals||[]).filter(d=>!_MExcl.has(d.mgr)&&d.dir!=="glass-memory").forEach(d=>{if(d.mgr)_Mcnt[d.mgr]=(_Mcnt[d.mgr]||0)+1;});
   const _Mtl={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
@@ -859,7 +863,7 @@ function managerDashboardsBlock(){
   const _Mroster=Object.keys(_Mcnt).filter(n=>_Mcnt[n]>=5&&!_MnotOP.has(n)&&!_Msys(n)).sort((a,b)=>_Mcnt[b]-_Mcnt[a]);
   const _Mused=new Map();
   const _slugFor=name=>{const p=name.trim().split(/\s+/),sur=p[p.length-1]||name,fir=p[0]||"";let base=_translit(sur)||"mgr",slug=base;if(_Mused.has(slug)&&_Mused.get(slug)!==name){slug=base+"-"+(_translit(fir)||"x");let i=2;while(_Mused.has(slug)&&_Mused.get(slug)!==name)slug=base+"-"+(i++);}_Mused.set(slug,name);return slug;};
-  const DASH=_Mroster.map(name=>[name,_slugFor(name)]);
+  const DASH=_Mroster.map(name=>[name,_slugFor(name)]).filter(([name])=>_MShow.has(name));
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
   const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
   const AD=(DATA.deals||[]).filter(dirOk);

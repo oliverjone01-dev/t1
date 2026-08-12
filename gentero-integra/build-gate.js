@@ -356,7 +356,7 @@ function unlock(src, out, password) {
   }
 }
 
-const USAGE = `node build-gate.js lock   <in.html> <out.html> <пароль>
+const USAGE = `node build-gate.js lock   <in.html> <out.html> <пароль> [заголовок] [имя-документа]
 node build-gate.js lock2  <gt.html> <gm.html> <out.html> <пароль>
 node build-gate.js unlock <gated.html> <out.html> <пароль>
 
@@ -374,9 +374,12 @@ if (mode === 'lock2') {
     { name: 'gm', file: gm, title: 'GM & DG' },
   ], out, pw);
 } else if (mode === 'lock') {
-  const [src, out, pw] = rest;
+  // Четвёртым необязательным аргументом идёт заголовок вкладки, пятым имя
+  // документа. Без них одиночная страница получала имя gt и чужой заголовок,
+  // а имя документа ещё и становится префиксом адресов правимых блоков.
+  const [src, out, pw, title, name] = rest;
   if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }
-  lockAll([{ name: 'gt', file: src, title: 'GT & DG' }], out, pw);
+  lockAll([{ name: name || 'doc', file: src, title: title || 'GEN-GROUP' }], out, pw);
 } else if (mode === 'unlock') {
   const [src, out, pw] = rest;
   if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }

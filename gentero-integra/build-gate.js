@@ -41,12 +41,15 @@ const GATE = `<!DOCTYPE html>
 __STYLE__
 <style>
 /* ---------- парольный вход ---------- */
+/* Свечение берётся из палитры документа. Два документа лежат на одном домене,
+   и до ввода пароля их надо различать глазом, а не по памяти. */
 #gate{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;
-  background:radial-gradient(ellipse at 50% 0%,rgba(199,255,57,.07),transparent 55%),var(--bg)}
+  background:radial-gradient(ellipse at 50% 0%,var(--gate-glow,rgba(199,255,57,.07)),transparent 55%),var(--bg)}
+#gate .lg svg{color:var(--gate-mark,var(--lime))}
 #gate.done{display:none}
 .gbox{width:100%;max-width:430px}
 .gbox .lg{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:.03em;margin-bottom:30px}
-.gbox .lg svg{width:24px;height:24px;color:var(--lime)}
+.gbox .lg svg{width:24px;height:24px}
 .gbox h1{font-size:clamp(1.5rem,4.4vw,2rem);line-height:1.15;margin-bottom:10px;letter-spacing:-.02em}
 .gbox .hint{color:var(--mut);font-size:14.5px;line-height:1.6;margin-bottom:26px}
 .gf{display:flex;gap:10px;flex-wrap:wrap}
@@ -67,14 +70,14 @@ __DEFS__
 <div id="gate">
   <div class="gbox">
     <div class="lg"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18V6l8 8 8-8v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"/></svg>GEN-GROUP</div>
-    <h1>Внутренний документ</h1>
-    <p class="hint">Материал к обсуждению собственников. Введите пароль, чтобы открыть.</p>
+    <h1>__GTITLE__</h1>
+    <p class="hint">__GHINT__</p>
     <form class="gf" id="gform" autocomplete="off">
       <input id="gpass" type="password" placeholder="Пароль" aria-label="Пароль" autocomplete="off" spellcheck="false" enterkeyhint="go">
       <button type="submit" class="btn btn-lime" id="gbtn">Открыть</button>
     </form>
     <p id="gerr" role="status" aria-live="polite"></p>
-    <p class="gnote">Документ зашифрован. Пароль никуда не передаётся и проверяется в вашем браузере. Без него текст нельзя извлечь ни из страницы, ни из её исходного кода.</p>
+    <p class="gnote">Текст документа хранится на этой странице только в зашифрованном виде и без пароля не читается. Пароль никуда не передаётся: ключ выводится и проверяется в вашем браузере.</p>
   </div>
 </div>
 
@@ -102,8 +105,8 @@ __PAYLOADS__
     return;
   }
 
-  // Один документ в DOM за раз. Держать оба нельзя: у них совпадают
-  // id разделов, #hd, #spine и #navd, и initDoc начнёт цеплять чужой.
+  // Один документ в DOM за раз: у разных документов совпадают id разделов,
+  // и initDoc начал бы цеплять чужие узлы.
   function open(name, focusTop){
     var el = document.getElementById('payload-' + name);
     if (!el) return Promise.reject(new Error('нет документа ' + name));
@@ -128,7 +131,8 @@ __PAYLOADS__
   }
   window.openDoc = open;
 
-  // Переключатель вкладок живёт внутри шифра, поэтому слушаем делегированно
+  // Переключатель вкладок появляется только после расшифровки, поэтому
+  // слушаем делегированно от документа.
   document.addEventListener('click', function(ev){
     var t = ev.target.closest && ev.target.closest('[data-go]');
     if (!t || !key) return;
@@ -158,14 +162,10 @@ __PAYLOADS__
       })
       .then(function(k){
         key = k;
-        // тот же ключ уходит модулям правки и версий: патчи контента лежат в
-        // Supabase шифрованными и открываются только этим паролем
         var patches = Promise.resolve();
         if (window.LIVEEDIT_KEY) {
           try { patches = window.LIVEEDIT_KEY(k) || Promise.resolve(); } catch(e) { console.error(e); }
         }
-        // Ключи прошлых сборок выводим в фоне и отдаём модулю позже: они нужны
-        // только для чтения правок, сохранённых до стабилизации соли.
         var alts = window.LIVEEDIT_ALT_SALTS || [];
         if (alts.length && window.LIVEEDIT_ALTKEYS) {
           Promise.all(alts.map(function(sb){
@@ -180,9 +180,7 @@ __PAYLOADS__
         }
         var want = (location.hash || '').replace('#','');
         if (!document.getElementById('payload-' + want)) want = '__FIRST__';
-        // Гейт снимаем только когда правки уже наложены. Иначе зал сначала
-        // видит шаблонные цифры, а через полсекунды их подмену на глазах.
-        err.textContent = 'Загружаю правки...';
+        err.textContent = 'Открываю...';
         return Promise.all([open(want, true), patches]);
       })
       .then(function(){
@@ -279,7 +277,16 @@ function saltFor(out) {
   return crypto.randomBytes(16);
 }
 
-function lockAll(docs, out, password) {
+/* Заголовок и подпись парольного экрана. Это единственное, что адресат видит
+   до расшифровки, поэтому они задаются на каждый документ отдельно: страница,
+   отправленная контрагенту, не должна встречать его словами «внутренний
+   документ», а внутренняя обязана предупреждать о себе именно так. */
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function lockAll(docs, out, password, gate) {
+  const g = gate || {};
+  const gTitle = g.title || 'Внутренний документ';
+  const gHint = g.hint || 'Материал к обсуждению собственников. Введите пароль, чтобы открыть.';
   const salt = saltFor(out);
   const k = derive(password, salt);
   let first = null, payloads = [], titles = {}, report = [];
@@ -327,6 +334,8 @@ function lockAll(docs, out, password) {
     .replace('__TITLES__', () => JSON.stringify(titles))
     .replace(/__FIRST__/g, () => docs[0].name)
     .replace('__ITER__', String(ITER))
+    .replace('__GTITLE__', () => esc(gTitle))
+    .replace('__GHINT__', () => esc(gHint))
     .replace('__SCRIPT__', () => first.script);
 
   fs.writeFileSync(out, page);
@@ -362,9 +371,14 @@ node build-gate.js unlock <gated.html> <out.html> <пароль>
 
 lock2 собирает переключатель предложений: GT & DG и GM & DG на одной
 странице, один пароль, один ввод. При unlock многодокументной страницы
-файлы пишутся как out-gt.html и out-gm.html.`;
+файлы пишутся как out-gt.html и out-gm.html.
+
+Экран ввода пароля настраивается переменными окружения GATE_TITLE и
+GATE_HINT. Без них берётся текст внутреннего документа. Страницу для
+контрагента собирать только со своим GATE_TITLE.`;
 
 const [, , mode, ...rest] = process.argv;
+const GATE_TEXT = { title: process.env.GATE_TITLE, hint: process.env.GATE_HINT };
 
 if (mode === 'lock2') {
   const [gt, gm, out, pw] = rest;
@@ -372,14 +386,14 @@ if (mode === 'lock2') {
   lockAll([
     { name: 'gt', file: gt, title: 'GT & DG' },
     { name: 'gm', file: gm, title: 'GM & DG' },
-  ], out, pw);
+  ], out, pw, GATE_TEXT);
 } else if (mode === 'lock') {
   // Четвёртым необязательным аргументом идёт заголовок вкладки, пятым имя
   // документа. Без них одиночная страница получала имя gt и чужой заголовок,
   // а имя документа ещё и становится префиксом адресов правимых блоков.
   const [src, out, pw, title, name] = rest;
   if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }
-  lockAll([{ name: name || 'doc', file: src, title: title || 'GEN-GROUP' }], out, pw);
+  lockAll([{ name: name || 'doc', file: src, title: title || 'GEN-GROUP' }], out, pw, GATE_TEXT);
 } else if (mode === 'unlock') {
   const [src, out, pw] = rest;
   if (!src || !out || !pw) { console.error(USAGE); process.exit(1); }

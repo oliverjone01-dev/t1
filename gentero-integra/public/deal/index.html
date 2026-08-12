@@ -806,7 +806,7 @@ footer{border-top:1px solid var(--bd)}
 .pv-b li{font-size:14px;color:var(--mut);line-height:1.5;padding-left:16px;position:relative}
 .pv-b li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:1px;background:var(--lime)}
 
-/* Приветственная плашка режима владельцев */
+/* Плашка дополнительного слоя */
 .pv-note{display:none}
 .pv-on .pv-note{display:block;margin-top:14px;font-family:var(--mono);font-size:11px;
   letter-spacing:.06em;color:var(--lime)}
@@ -966,7 +966,7 @@ footer{border-top:1px solid var(--bd)}
   .hero-glow{opacity:.9}
 }
 
-/* Панель пароля режима владельцев */
+/* Панель ввода кода */
 .pv-wrap{position:relative;flex:none}
 .pv-pop{position:absolute;top:calc(100% + 10px);right:0;z-index:60;display:none;
   width:250px;padding:16px;border-radius:12px;border:1px solid var(--bd2);
@@ -1332,14 +1332,28 @@ function initDoc(){
   }
 
 
-  /* ---------- приватный слой презентации ----------
+  /* ---------- дополнительный слой презентации ----------
      Замки навешиваются напрямую на каждую кнопку, а не делегированно.
      Кнопки пересоздаются вместе с документом при переключении вкладок,
      поэтому прямое навешивание не может задвоиться. Делегирование здесь
-     уже ломалось: обработчик стакался и toggle отменял сам себя. */
+     уже ломалось: обработчик стакался и toggle отменял сам себя.
+
+     Код сверяется по хешу, а не по значению: раньше он лежал в этом файле
+     строкой, и любой, кто открыл просмотр кода страницы, читал его глазами.
+     Это занавеска, а не замок: короткий код перебирается. Всё, что нельзя
+     показывать никому постороннему, лежит отдельным документом под своим
+     паролем, а не за этим переключателем. */
   var sw = d.getElementById('pvt');
   if (sw) {
-    var PASS = '0103';
+    var PASS_H = '06843e3f58776ec2eb5e0cc7a44a3c3fc1b4b9af2e75504da3d299dc566cc395';
+    var sha = function (str) {
+      if (!(window.crypto && window.crypto.subtle)) return Promise.resolve('');
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (buf) {
+        return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+          return ('0' + b.toString(16)).slice(-2);
+        }).join('');
+      });
+    };
     var root = d.getElementById('doc') || d.body;
     var pop  = d.getElementById('pvpop');
     var fld  = d.getElementById('pvpass');
@@ -1373,8 +1387,10 @@ function initDoc(){
     var frm = d.getElementById('pvform');
     if (frm) frm.addEventListener('submit', function(ev){
       ev.preventDefault();
-      if (fld && fld.value.trim() === PASS) { on(); }
-      else { if (err) err.textContent = 'Не подошёл'; if (fld) { fld.select(); } }
+      sha(fld ? fld.value.trim() : '').then(function(h){
+        if (h && h === PASS_H) { on(); }
+        else { if (err) err.textContent = 'Не подошёл'; if (fld) { fld.select(); } }
+      });
     });
 
     /* каждый замок получает свой обработчик, элементы всегда свежие */

@@ -27,6 +27,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Страховка - фамилии ростера не уходят в Pages открытым текстом
+        run: |
+          ROSTER='Лакомова|Маслова|Кубанова|Шура-Бура|Лысанова|Платонова|Лысенко|Безмащук|Белов|Мавлина|Преснякова'
+          if grep -rInE "$ROSTER" genglass-plan-calculator/; then
+            echo "::error::Найдены фамилии ростера в деплоящейся папке - публикация остановлена. Персональные данные уходят только запечатанными (решение Ивана 08.08.2026)."
+            exit 1
+          fi
+          echo "Ростер чист."
       - uses: actions/configure-pages@v5
         with:
           enablement: true

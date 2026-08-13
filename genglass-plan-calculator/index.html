@@ -1,5 +1,8 @@
-<title>GENGLASS План-Радар</title>
+<!doctype html>
+<html lang="ru">
+<head>
 <meta charset="utf-8">
+<title>GENGLASS План-Радар</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
@@ -112,6 +115,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .bar .fill.em{background:linear-gradient(90deg,#10b981,var(--em))}
 .goal{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.85}
 .goal::after{content:attr(data-l);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+.goal.cap-line{background:var(--rose);opacity:.9}
+.goal.cap-line::after{color:var(--rose);top:auto;bottom:-20px}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
 .legend span{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
 .dot{width:9px;height:9px;border-radius:50%}
@@ -130,6 +135,8 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 .fbar span{display:block;height:100%;border-radius:9999px;background:linear-gradient(90deg,#3b82f6,var(--blue-soft));transition:width .5s ease-out}
 .note{font-size:12.5px;color:var(--muted);margin:16px 0 0;line-height:1.55}
 .note strong{color:var(--ink2)}
+.note.alert{color:var(--rose)}
+.note.alert strong{color:var(--rose)}
 table.data{width:100%;border-collapse:collapse;font-size:13.5px}
 table.data th,table.data td{text-align:left;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top}
 table.data th{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
@@ -139,11 +146,14 @@ table.data td:first-child{color:var(--ink);font-weight:500}
 .tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 8px;border-radius:6px;white-space:nowrap}
 .tag.d{background:rgba(52,211,153,.16);color:var(--em)}
 .tag.g{background:rgba(251,113,133,.16);color:var(--rose)}
+.tag.x{background:var(--w10);color:var(--ink2)}
 footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .fade{animation:fadeSlideIn .8s ease-out both}
 @keyframes fadeSlideIn{from{opacity:0;transform:translateY(30px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 @media(prefers-reduced-motion:reduce){.fade{animation:none}.bar .fill,.stack div,.fbar span,.chip,.nav-links a{transition:none}}
 </style>
+</head>
+<body>
 
 <nav>
   <div class="nav-in">
@@ -161,13 +171,14 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
 <header class="hero fade">
   <span class="cap blue">Отдел продаж GENGLASS · Опт и Розница · без маркетплейсов</span>
   <h1>Калькулятор выполнения плана</h1>
-  <p class="dek">Два инструмента в одном: трекер темпа по факту месяца и конструктор покрытия плана по источникам выручки. Цифры пайплайна взяты из аудита Bitrix (545 решённых сделок), цель 15 млн/мес - черновик Богдана от 10.07.2026, до выгрузки 1С остаётся гипотезой.</p>
+  <p class="dek">Два инструмента в одном: трекер темпа по факту месяца и конструктор покрытия плана по источникам выручки. Цифры воронки взяты из аудита пайплайна Bitrix по направлению Лофт (штамп 09.08.2026, 545 решённых сделок) - а план охватывает всю розницу и опт, так что конверсии переносятся на весь план с оговоркой. Цель 15 млн/мес - черновик Богдана от 10.07.2026, до выгрузки 1С остаётся гипотезой.</p>
   <div class="pills">
     <span class="pill b">Цель 15 млн/мес · [ГИПОТЕЗА]</span>
     <span class="pill n">Win-rate 9% факт → 25% цель</span>
     <span class="pill n">Средний чек 268к → 300к+</span>
     <span class="pill n">Цикл сделки 46 дней</span>
     <span class="pill r">Baseline 1С не выгружен</span>
+    <span class="pill r">Конверсии - только Лофт</span>
   </div>
 </header>
 
@@ -176,14 +187,14 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
   <div class="sec-head">
     <span class="cap blue">01 · Ход месяца</span>
     <h2>Трекер выполнения</h2>
-    <p>Вводишь план, факт на сегодня и рабочие дни - получаешь темп, прогноз на конец месяца и требуемую дневную выручку. Считает по рабочим дням, не по календарю.</p>
+    <p>Вводишь план, факт на сегодня и рабочие дни - получаешь темп, прогноз на конец месяца и требуемую дневную выручку. Считает по рабочим дням линейно: закрытия в конце месяца обычно гуще, поэтому первые недели трекер строже реальности.</p>
   </div>
   <div class="bento">
     <div class="card c4">
       <h3>Вводные месяца</h3>
-      <p class="sub">План - на розницу и опт вместе. Факт - выручка, закрытая с начала месяца.</p>
+      <p class="sub">План - на розницу и опт вместе (цифра плана - [ГИПОТЕЗА] до утверждения).</p>
       <div class="ctl"><div class="row"><label>План на месяц</label><span class="val" id="v_plan"></span></div><input type="range" id="plan" min="5" max="25" step="0.5" aria-label="План на месяц, млн рублей"></div>
-      <div class="ctl"><div class="row"><label>Факт на сегодня</label><span class="val" id="v_fact"></span></div><input type="range" id="fact" min="0" max="25" step="0.1" aria-label="Факт на сегодня, млн рублей"></div>
+      <div class="ctl"><div class="row"><label>Факт на сегодня<span class="hint">факт = поступившие оплаты, не отгрузка и не сделки в работе (определение зафиксировать с РОПом)</span></label><span class="val" id="v_fact"></span></div><input type="range" id="fact" min="0" max="25" step="0.1" aria-label="Факт на сегодня, млн рублей"></div>
       <div class="ctl"><div class="row"><label>Рабочих дней в месяце</label><span class="val" id="v_dtot"></span></div><input type="range" id="dtot" min="15" max="27" step="1" aria-label="Рабочих дней в месяце"></div>
       <div class="ctl"><div class="row"><label>Прошло рабочих дней</label><span class="val" id="v_dpass"></span></div><input type="range" id="dpass" min="0" max="27" step="1" aria-label="Прошло рабочих дней"></div>
     </div>
@@ -210,17 +221,17 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
   <div class="sec-head">
     <span class="cap blue">02 · Из чего складывается план</span>
     <h2>Конструктор покрытия</h2>
-    <p>Пять источников выручки плюс два разовых резерва пайплайна. Розничный вход считается из воронки, остальное - вилками из плана Романа. Смотри, тянет ли выбранная комбинация план из блока выше.</p>
+    <p>Пять источников выручки плюс два разовых резерва пайплайна. Розничный вход считается из воронки платной рекламы (органика, повторные и прямые сюда не входят - у Романа «вход» шире), остальное - вилками из плана. Смотри, тянет ли комбинация план из блока выше и не упирается ли в потолок производства.</p>
   </div>
   <div class="bento">
     <div class="card c4">
-      <h3>Розница · вход (воронка)</h3>
-      <p class="sub">Перегородки, зеркала, платная реклама. Единственный источник с полной математикой воронки.</p>
-      <div class="ctl"><div class="row"><label>Рекламный бюджет / мес</label><span class="val" id="v_budget"></span></div><input type="range" id="budget" min="50000" max="800000" step="10000" aria-label="Рекламный бюджет в месяц"></div>
-      <div class="ctl"><div class="row"><label>Стоимость лида (CPL)<span class="hint">факт Лофт: 3 160 ₽</span></label><span class="val" id="v_cpl"></span></div><input type="range" id="cpl" min="1500" max="6000" step="20" aria-label="Стоимость лида"></div>
-      <div class="ctl"><div class="row"><label>Лид → квал</label><span class="val" id="v_crq"></span></div><input type="range" id="crq" min="30" max="80" step="1" aria-label="Конверсия лид в квал"></div>
-      <div class="ctl"><div class="row"><label>Win-rate (квал → продажа)<span class="hint">факт 9% · цель 25%</span></label><span class="val" id="v_win"></span></div><input type="range" id="win" min="5" max="40" step="1" aria-label="Win-rate"></div>
-      <div class="ctl"><div class="row"><label>Средний чек<span class="hint">факт 268к · цель 300к+</span></label><span class="val" id="v_check"></span></div><input type="range" id="check" min="150000" max="400000" step="2000" aria-label="Средний чек"></div>
+      <h3>Розница · вход (воронка рекламы)</h3>
+      <p class="sub">Единственный источник с полной математикой воронки. Все конверсии - направление Лофт.</p>
+      <div class="ctl"><div class="row"><label>Рекламный бюджет / мес<span class="hint">[ГИПОТЕЗА] - фактический уровень не зафиксирован</span></label><span class="val" id="v_budget"></span></div><input type="range" id="budget" min="50000" max="800000" step="10000" aria-label="Рекламный бюджет в месяц"></div>
+      <div class="ctl"><div class="row"><label>Стоимость лида (CPL)<span class="hint">[ДАННЫЕ] факт Лофт 3 160 ₽, аудит 09.08.2026</span></label><span class="val" id="v_cpl"></span></div><input type="range" id="cpl" min="1500" max="6000" step="20" aria-label="Стоимость лида"></div>
+      <div class="ctl"><div class="row"><label>Лид → квал<span class="hint">[ГИПОТЕЗА] - в выгрузке аудита факта нет</span></label><span class="val" id="v_crq"></span></div><input type="range" id="crq" min="30" max="80" step="1" aria-label="Конверсия лид в квал"></div>
+      <div class="ctl"><div class="row"><label>Win-rate (квал → продажа)<span class="hint">[ДАННЫЕ] факт 9% · цель 25% - [ГИПОТЕЗА]</span></label><span class="val" id="v_win"></span></div><input type="range" id="win" min="5" max="40" step="1" aria-label="Win-rate"></div>
+      <div class="ctl"><div class="row"><label>Средний чек<span class="hint">[ДАННЫЕ] факт 268к · цель 300к+ - [ГИПОТЕЗА]</span></label><span class="val" id="v_check"></span></div><input type="range" id="check" min="150000" max="400000" step="2000" aria-label="Средний чек"></div>
       <div style="margin-top:20px">
         <div class="cap" style="margin-bottom:9px">Сценарии</div>
         <div class="chips" id="presets"></div>
@@ -233,10 +244,11 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
       <div class="ctl"><div class="row"><label>Розница · комплектовщики<span class="hint">вилка 0,3-2,0</span></label><span class="val" id="v_komp"></span></div><input type="range" id="komp" min="0" max="2" step="0.1" aria-label="Комплектовщики, млн"></div>
       <div class="ctl"><div class="row"><label>Опт · новинки<span class="hint">вилка 1,0-5,0</span></label><span class="val" id="v_novi"></span></div><input type="range" id="novi" min="0" max="5" step="0.1" aria-label="Опт новинки, млн"></div>
       <div class="ctl"><div class="row"><label>Опт · дилеры<span class="hint">вилка 0,7-3,5</span></label><span class="val" id="v_dil"></span></div><input type="range" id="dil" min="0" max="3.5" step="0.1" aria-label="Опт дилеры, млн"></div>
+      <div class="ctl"><div class="row"><label>Потолок производства<span class="hint">[НЕТ ДАННЫХ] - потолок ₽/мес запросить у производства (одна из 3 недостающих цифр плана)</span></label><span class="val" id="v_cap"></span></div><input type="range" id="cap" min="5" max="30" step="0.5" aria-label="Потолок производства, млн"></div>
       <div style="margin:22px 0 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
-        <div class="cap" style="margin-bottom:12px">Разовые резервы пайплайна</div>
-        <div class="ctl"><div class="row"><label>Реактивация «Долгостроя»<span class="hint">32 сделки · 21,5 млн в стадии</span></label><span class="val" id="v_dolg"></span></div><input type="range" id="dolg" min="0" max="30" step="1" aria-label="Процент реактивации долгостроя"></div>
-        <div class="ctl"><div class="row"><label>Дожим «КП отправлено»<span class="hint">39 сделок · 11,9 млн в стадии</span></label><span class="val" id="v_kp"></span></div><input type="range" id="kp" min="0" max="30" step="1" aria-label="Процент дожима КП"></div>
+        <div class="cap" style="margin-bottom:12px">Разовые резервы пайплайна · верхняя граница</div>
+        <div class="ctl"><div class="row"><label>Реактивация «Долгостроя»<span class="hint">аудит 09.08: 32 сд · 21,5 млн без касания &gt;14 дн; снимок rop.json 07.08: в стадии 103 сд - фильтры сверить с ДАТОЙ</span></label><span class="val" id="v_dolg"></span></div><input type="range" id="dolg" min="0" max="30" step="1" aria-label="Процент реактивации долгостроя"></div>
+        <div class="ctl"><div class="row"><label>Дожим «КП отправлено»<span class="hint">аудит 09.08: 39 сд · 11,9 млн без касания; снимок rop.json 07.08: в стадии 207 сд - фильтры сверить с ДАТОЙ</span></label><span class="val" id="v_kp"></span></div><input type="range" id="kp" min="0" max="30" step="1" aria-label="Процент дожима КП"></div>
       </div>
     </div>
     <div class="card c4">
@@ -245,12 +257,13 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
       <div id="funnel" style="margin-bottom:4px"></div>
       <div class="kgrid" style="grid-template-columns:repeat(2,1fr);margin-top:16px" id="f_kpis"></div>
       <p class="note" id="f_note"></p>
+      <p class="note"><strong>Лаг цикла 46 дней:</strong> формула соединяет бюджет и выручку в одном месяце, в реальности сделки от сегодняшних лидов оплачиваются через ~1,5 месяца. Выручка этого месяца - от бюджета ~середины позапрошлого.</p>
     </div>
     <div class="card c12">
       <h3>Покрытие плана</h3>
       <p class="sub" id="b_verdict"></p>
       <div class="t-row" style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:2px"><span>Источники против плана</span><span id="b_cap"></span></div>
-      <div style="position:relative;padding-top:22px">
+      <div style="position:relative;padding-top:22px;padding-bottom:20px">
         <div class="stack" id="b_stack"></div>
         <div id="b_goal"></div>
       </div>
@@ -259,7 +272,7 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
         <div class="c7" style="min-width:0"><div id="b_rows"></div></div>
         <div class="c5"><div class="kgrid" style="grid-template-columns:repeat(2,1fr)" id="b_kpis"></div></div>
       </div>
-      <p class="note"><strong>Резервы - разовые.</strong> Долгострой и зависшие КП можно собрать один раз, в run-rate следующего месяца они не повторяются. План, который сходится только за счёт резервов, в следующем месяце не сойдётся.</p>
+      <p class="note"><strong>Резервы - разовые и это верхняя граница.</strong> Долгострой и зависшие КП можно собрать один раз, в run-rate следующего месяца они не повторяются. Популяции «КП отправлено» и «Долгострой» пересекаются по смыслу (обе - зависшие сделки), доля пересечения не измерена - сумма двух резервов может двоить деньги. Суммы стадий тянутся из полей Bitrix с известными дефектами (нулевые бюджеты D07, несколько заказов в одной сделке D12), а средний чек долгостроя 21,5/32 ≈ 672к - в 2,5 раза выше среднего чека 268к и не объяснён. До сверки с ДАТОЙ резервы - [ГИПОТЕЗА].</p>
     </div>
   </div>
 </section>
@@ -269,7 +282,7 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
   <div class="sec-head">
     <span class="cap blue">03 · Protocol 9</span>
     <h2>Данные и допущения</h2>
-    <p>Каждая цифра калькулятора помечена: [ДАННЫЕ] - есть источник, [ГИПОТЕЗА] - черновик до проверки фактом.</p>
+    <p>Каждая цифра калькулятора помечена: [ДАННЫЕ] - есть источник, [ГИПОТЕЗА] - черновик до проверки фактом, [НЕТ ДАННЫХ] - цифры не существует.</p>
   </div>
   <div class="bento">
     <div class="card c12">
@@ -277,28 +290,33 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
       <table class="data">
         <thead><tr><th>Цифра</th><th>Значение</th><th>Статус</th><th>Источник / допущение</th></tr></thead>
         <tbody>
-          <tr><td>Win-rate текущий</td><td>9%</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит пайплайна Bitrix: 545 решённых сделок, направление Лофт</td></tr>
-          <tr><td>Средний чек</td><td>268 000 ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит пайплайна Bitrix, факт Лофт</td></tr>
-          <tr><td>CPL</td><td>3 160 ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Факт рекламы Лофт (пресет «Факт воронки»)</td></tr>
-          <tr><td>Цикл сделки</td><td>46 дней</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит пайплайна Bitrix</td></tr>
-          <tr><td>«КП отправлено» без движения</td><td>39 сделок · 11,9 млн ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Снимок воронки Bitrix на дату аудита</td></tr>
-          <tr><td>«Долгострой»</td><td>32 сделки · 21,5 млн ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Снимок воронки Bitrix на дату аудита</td></tr>
+          <tr><td>Win-rate текущий</td><td>9%</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит пайплайна Bitrix, направление Лофт, 545 решённых сделок, штамп 09.08.2026 (артефакт «Калькулятор и скрипты ОП»). Период выборки в аудите не зафиксирован - зафиксировать с ДАТОЙ</td></tr>
+          <tr><td>Средний чек</td><td>268 000 ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Тот же аудит 09.08.2026, направление Лофт</td></tr>
+          <tr><td>CPL</td><td>3 160 ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Факт рекламы направления Лофт из того же аудита 09.08.2026</td></tr>
+          <tr><td>Цикл сделки</td><td>46 дней</td><td><span class="tag d">ДАННЫЕ</span></td><td>Тот же аудит 09.08.2026. В формулу воронки не входит - учтён оговоркой о лаге (выручка месяца - от бюджета ~1,5 мес назад)</td></tr>
+          <tr><td>«КП отправлено» без касания</td><td>39 сделок · 11,9 млн ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит 09.08.2026, выборка «без касания». Снимок rop.json от 07.08.2026: в стадии 207 открытых сделок, медиана 31 день. Расхождение 5,3× = разные фильтры; какой именно фильтр у аудита - сверить с ДАТОЙ</td></tr>
+          <tr><td>«Долгострой» без активности</td><td>32 сделки · 21,5 млн ₽</td><td><span class="tag d">ДАННЫЕ</span></td><td>Аудит 09.08.2026, выборка «без активности &gt;14 дн». Снимок rop.json 07.08.2026: в стадии 103 сделки, из них 42 без активности &gt;30 дн. Средний чек выборки 672к против 268к среднего (2,5×) - не объяснён, суммы стадий с дефектами D07/D12</td></tr>
+          <tr><td>Лид → квал</td><td>55%</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Оценка из исходного калькулятора экономики; факта в выгрузке аудита нет</td></tr>
+          <tr><td>Рекламный бюджет</td><td>180 000 ₽/мес</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Стартовое значение слайдера из исходного калькулятора; фактический бюджет не зафиксирован</td></tr>
           <tr><td>Цель 15 млн ₽/мес</td><td>розница + опт, без МП</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Черновик Богдана от 10.07.2026. Ориентир-направление, не KPI: перевод в план заблокирован до выгрузки baseline из 1С (Дыра №1)</td></tr>
-          <tr><td>Вилки источников</td><td>худш. 3,0 · баз. 11,5 · лучш. 19,0 млн</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Прикидка Романа - пример структуры источников, не оценка текущего уровня. Диапазон шире 2x: [ШИРОКИЙ ДИАПАЗОН - НЕПРОВЕРЕНО]</td></tr>
+          <tr><td>Вилки источников</td><td>худш. 3,0 · баз. 11,5 · лучш. 19,0 млн</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Прикидка Романа 10-12.07.2026 - пример структуры источников, не оценка текущего уровня. Диапазон шире 2x: [ШИРОКИЙ ДИАПАЗОН - НЕПРОВЕРЕНО]</td></tr>
           <tr><td>Win-rate цель 25%</td><td>промежуточная веха 15%</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>План cr2 из аудита: рост за счёт скорости контакта, мультиканального дожима и реактивации, не за счёт новых лидов</td></tr>
           <tr><td>Дизайнеры в рознице</td><td>0-3,5 млн/мес</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Цикл 1,5-2 мес: в ближние 2 месяца вклад около нуля, деньги с сентября</td></tr>
-          <tr><td>Реактивация долгостроя 15%</td><td>≈ +3,2 млн разово</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Целевой ориентир РОПа из аудита пайплайна; конверсия реактивации не проверена</td></tr>
+          <tr><td>Реактивация долгостроя 15%</td><td>≈ +3,2 млн разово</td><td><span class="tag g">ГИПОТЕЗА</span></td><td>Целевой ориентир РОПа из аудита; конверсия реактивации не проверена, база сумм - см. строку «Долгострой»</td></tr>
+          <tr><td>Потолок производства</td><td>-</td><td><span class="tag x">НЕТ ДАННЫХ</span></td><td>Одна из трёх недостающих цифр плана. Запросить у производства (₽/мес); без неё покрытие &gt;100% ничего не гарантирует</td></tr>
         </tbody>
       </table>
       </div>
-      <p class="note"><strong>Что блокирует перевод цели в план (Дыра №1):</strong> нет baseline из 1С - сколько ГГР делает сейчас в месяц розницей и оптом раздельно, за 6 месяцев помесячно. Если baseline ≥ 9-10 млн - цель 15 достижима; если ≤ 7 млн - в ближайшие 2 месяца нереалистична и едет на Q4. Владелец выгрузки - Борис. Выручка ≠ прибыль: добивать план оптом и комплектовщиками - самая тонкая маржа, цель ведём в паре с полом по марже.</p>
+      <p class="note"><strong>Scope:</strong> конверсии и чек - направление Лофт; план - вся розница + опт GENGLASS без маркетплейсов. Перенос конверсий одного направления на весь план - допущение, а не факт.</p>
+      <p class="note"><strong>Что блокирует перевод цели в план (Дыра №1):</strong> нет baseline из 1С - сколько ГГР делает сейчас в месяц розницей и оптом раздельно, за 6 месяцев помесячно. Если baseline ≥ 9-10 млн - цель 15 достижима; если ≤ 7 млн - в ближайшие 2 месяца нереалистична и едет на Q4. Выручка ≠ прибыль: добивать план оптом и комплектовщиками - самая тонкая маржа, цель ведём в паре с полом по марже.</p>
+      <p class="note"><strong>Кто и когда проверяет первый сигнал (P9 Q5):</strong> Борис - выгрузка 1С (baseline, задача №0 плана, срок - к встрече по плану); ДАТА - сверка фильтров аудита 09.08 со снимком rop.json 07.08 (39/207 и 32/103) и период выборки; Роман - валовая маржа по типовым чекам (для пола по марже и порога CPO). До этих трёх цифр калькулятор - инструмент сценариев, не отчёт.</p>
     </div>
   </div>
 </section>
 
 <footer>
-  <span>GENGLASS · внутренний инструмент отдела продаж · план Опт + Розница</span>
-  <span>Источники: аудит пайплайна Bitrix + план «Мотивация и приоритеты» от 10-12.07.2026</span>
+  <span>GENGLASS · внутренний инструмент отдела продаж · план Опт + Розница · конверсии - направление Лофт</span>
+  <span>Источники: аудит пайплайна Bitrix 09.08.2026 + план «Мотивация и приоритеты» 10-12.07.2026 + rop.json 07.08.2026</span>
 </footer>
 
 </div>
@@ -308,18 +326,18 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
 "use strict";
 var $=function(id){return document.getElementById(id)};
 var IN={
-  plan:15, fact:4.5, dtot:21, dpass:8,
+  plan:15, fact:0, dtot:21, dpass:0,
   budget:180000, cpl:3160, crq:55, win:9, check:268000,
-  des:0, komp:0.3, novi:3, dil:2, dolg:15, kp:10
+  des:0, komp:0.3, novi:3, dil:2, cap:15, dolg:15, kp:10
 };
 var PRESETS=[
   {n:'Факт воронки', v:{budget:180000,cpl:3160,crq:55,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}},
-  {n:'Базовый (Роман)', v:{budget:180000,cpl:3160,crq:55,win:15,check:268000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
+  {n:'Базовый по вилкам', v:{budget:180000,cpl:3160,crq:55,win:15,check:268000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
   {n:'Цель: win 25 / чек 300к', v:{budget:180000,cpl:3160,crq:55,win:25,check:300000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
   {n:'Лучший + резервы', v:{budget:300000,cpl:3160,crq:60,win:25,check:300000,des:3.5,novi:5,komp:2,dil:3.5,dolg:15,kp:10}},
   {n:'Худший', v:{budget:120000,cpl:4000,crq:45,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}}
 ];
-var SLIDERS=['plan','fact','dtot','dpass','budget','cpl','crq','win','check','des','komp','novi','dil','dolg','kp'];
+var SLIDERS=['plan','fact','dtot','dpass','budget','cpl','crq','win','check','des','komp','novi','dil','cap','dolg','kp'];
 function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽'}
 function mln(n){return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн'}
 function n1(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')}
@@ -341,20 +359,27 @@ function render(){
   var fc=pace*IN.dtot;                                /* прогноз */
   var fcPct=IN.plan?fc/IN.plan*100:0;
   var daysLeft=IN.dtot-IN.dpass;
-  var needDay=daysLeft>0?Math.max(0,IN.plan-IN.fact)/daysLeft:0;
+  var gapT=Math.max(0,IN.plan-IN.fact);
+  var needDay=daysLeft>0?gapT/daysLeft:0;
   var okFc=fcPct>=100, midFc=fcPct>=85;
+  var monthOver=daysLeft<=0;
   $('t_status').textContent = IN.dpass===0
-    ? 'Месяц не начался: двигай «прошло рабочих дней», чтобы увидеть темп.'
-    : (okFc?'Темп держит план: при текущей скорости месяц закрывается с запасом '+mln(fc-IN.plan)+'.'
-      : midFc?'Темп ниже плана: при текущей скорости не хватит '+mln(IN.plan-fc)+'. Нужен дожим - резервы пайплайна в блоке ниже.'
-      : 'Красная зона: прогноз '+pct(fcPct)+' плана. Смотри конструктор покрытия - откуда добирать.');
+    ? 'Введи факт и «прошло рабочих дней» - трекер посчитает темп и прогноз. По умолчанию факт 0: реальную цифру берём из оплат, не из сделок в работе.'
+    : monthOver
+      ? (gapT<=0?'Месяц закрыт: план выполнен, '+mln(IN.fact)+' из '+mln(IN.plan)+'.':'Месяц закончился, план не закрыт: не хватило '+mln(gapT)+'.')
+      : (okFc?'Темп держит план: при текущей скорости месяц закрывается с запасом '+mln(fc-IN.plan)+'.'
+        : midFc?'Темп ниже плана: при текущей скорости не хватит '+mln(IN.plan-fc)+'. Нужен дожим - смотри резервы пайплайна в блоке ниже.'
+        : 'Красная зона: прогноз '+pct(fcPct)+' плана. Смотри конструктор покрытия - откуда добирать.');
+  var needKpi = monthOver
+    ? kpi('Итог месяца',gapT<=0?'План закрыт':'Не закрыт',gapT<=0?'выполнено '+pct(done):'дефицит '+mln(gapT),'',gapT<=0?'good':'bad')
+    : kpi('Нужный темп',mln(needDay)+'/дн',pace>0?(needDay>pace?'в '+n1(needDay/pace)+'× выше текущего':'не выше текущего темпа'):'старт месяца','',pace>0?(needDay>pace?'bad':'good'):'');
   $('t_kpis').innerHTML=
     kpi('Выполнение',pct(done),mln(IN.fact)+' из '+mln(IN.plan),'hero-k')+
     kpi('График на сегодня',pct(sched?Math.min(999,IN.fact/sched*100):0),(dev>=0?'+':'−')+mln(Math.abs(dev))+' к графику '+mln(sched),'',dev>=0?'good':'bad')+
     kpi('Темп',mln(pace)+'/дн','средняя выручка за рабочий день')+
     kpi('Прогноз месяца',mln(fc),pct(fcPct)+' плана при текущем темпе','',okFc?'good':midFc?'':'bad')+
-    kpi('Осталось добрать',mln(Math.max(0,IN.plan-IN.fact)),daysLeft+' раб. дн. до конца месяца')+
-    kpi('Нужный темп',mln(needDay)+'/дн',pace>0?(needDay>pace?'в '+n1(needDay/pace)+'× выше текущего':'ниже текущего - план в зоне'):'старт месяца','',needDay>pace&&pace>0?'bad':'good');
+    kpi('Осталось добрать',mln(gapT),daysLeft+' раб. дн. до конца месяца')+
+    needKpi;
   var mx=Math.max(IN.plan,IN.fact,fc,0.001);
   $('t_bar').innerHTML='<div class="fill" style="width:'+(IN.fact/mx*100)+'%"></div>'+
     '<div class="goal" data-l="график '+mln(sched)+'" style="left:'+(sched/mx*100)+'%"></div>';
@@ -368,6 +393,7 @@ function render(){
   $('v_crq').textContent=IN.crq+'%'; $('v_win').textContent=IN.win+'%'; $('v_check').textContent=rub(IN.check);
   $('v_des').textContent=mln(IN.des); $('v_komp').textContent=mln(IN.komp);
   $('v_novi').textContent=mln(IN.novi); $('v_dil').textContent=mln(IN.dil);
+  $('v_cap').textContent=mln(IN.cap);
   $('v_dolg').textContent=IN.dolg+'%'; $('v_kp').textContent=IN.kp+'%';
 
   var leads=IN.budget/IN.cpl, quals=leads*IN.crq/100, deals=quals*IN.win/100;
@@ -387,6 +413,7 @@ function render(){
   var runrate=total-reserves;
   var cover=IN.plan?total/IN.plan*100:0;
   var gap=IN.plan-total;
+  var capExceed=total>IN.cap;
   var needWin=(quals>0&&IN.check>0)?((IN.plan-(total-vhod))*1e6)/(quals*IN.check)*100:0;
 
   var fmax=leads||1;
@@ -395,27 +422,30 @@ function render(){
   }).join('');
   $('f_kpis').innerHTML=
     kpi('Выручка входа',mln(vhod),'сделок: '+n1(deals)+' × '+rub(IN.check))+
-    kpi('CAC',deals>0?rub(IN.budget/deals):'-','бюджет / продажи','',deals>0&&IN.budget/deals>IN.check*0.3?'bad':'');
+    kpi('CPO по рекламе',deals>0?rub(IN.budget/deals):'-','бюджет / продажи, без ФОТ и постоянных; порог - после цифры маржи от Романа');
   $('f_note').innerHTML='Сквозная конверсия лид → продажа: <strong>'+pct(IN.crq*IN.win/100)+'</strong>. Аудит пайплайна: win-rate двигают скорость первого контакта (<15 мин), мультиканальный дожим и работа с «КП отправлено», не новые лиды.';
 
-  var smax=Math.max(total,IN.plan,0.001);
+  var smax=Math.max(total,IN.plan,IN.cap,0.001);
   $('b_stack').innerHTML=srcs.filter(function(s){return s.v>0.001}).map(function(s){
     return '<div style="width:'+(s.v/smax*100)+'%;background:'+s.c+'" title="'+s.n+' · '+mln(s.v)+'"></div>';
   }).join('');
-  $('b_goal').innerHTML='<div class="goal" data-l="план '+mln(IN.plan)+'" style="position:absolute;top:16px;bottom:-4px;width:2px;background:var(--ink);opacity:.85;left:'+(IN.plan/smax*100)+'%"></div>';
+  $('b_goal').innerHTML='<div class="goal" data-l="план '+mln(IN.plan)+'" style="top:16px;bottom:16px;left:'+(IN.plan/smax*100)+'%"></div>'+
+    '<div class="goal cap-line" data-l="потолок пр-ва '+mln(IN.cap)+'" style="top:16px;bottom:16px;left:'+(IN.cap/smax*100)+'%"></div>';
   $('b_cap').textContent='сумма источников '+mln(total);
   $('b_legend').innerHTML=srcs.map(function(s){return '<span><i class="dot" style="background:'+s.c+'"></i>'+s.n+'</span>'}).join('');
   $('b_rows').innerHTML=srcs.map(function(s){
     return '<div class="srow"><span class="l"><i class="dot" style="background:'+s.c+'"></i>'+s.n+'</span><span class="n">'+mln(s.v)+'</span></div>';
   }).join('')+'<div class="srow total"><span class="l">Итого источники</span><span class="n">'+mln(total)+'</span></div>';
   $('b_kpis').innerHTML=
-    kpi('Покрытие плана',pct(cover),'план '+mln(IN.plan),'hero-k')+
+    kpi('Покрытие плана',pct(cover),'план '+mln(IN.plan)+' · с резервами (верхняя граница)','hero-k')+
     kpi(gap>0?'Дефицит':'Запас',mln(Math.abs(gap)),gap>0?'не хватает до плана':'сверх плана','',gap>0?'bad':'good')+
     kpi('Run-rate без резервов',mln(runrate),'повторяемая часть, '+pct(IN.plan?runrate/IN.plan*100:0)+' плана','',runrate>=IN.plan?'good':'')+
-    kpi('Опт / Розница',pct(total>0?opt/total*100:0)+' / '+pct(total>0?retail/total*100:0),'доля опта - тонкая маржа, следи за полом по марже');
-  $('b_verdict').textContent = gap<=0
-    ? 'Комбинация закрывает план. Проверь run-rate без резервов: '+(runrate>=IN.plan?'повторяемая часть тоже тянет - план устойчив.':'без разовых резервов плана нет ('+mln(runrate)+') - следующий месяц на этой же настройке не сойдётся.')
+    kpi('Потолок производства',capExceed?'Превышен':'Не упёрся',capExceed?'источники '+mln(total)+' > потолок '+mln(IN.cap)+' - комбинация не производится':'запас '+mln(IN.cap-total)+' · потолок - [НЕТ ДАННЫХ]','',capExceed?'bad':'');
+  var verdict = gap<=0
+    ? 'Выбранные допущения закрывают план (вилки и цели - [ГИПОТЕЗА]). '+(runrate>=IN.plan?'Повторяемая часть тоже покрывает план при этих допущениях - но каждое из них ещё не факт.':'Без разовых резервов плана нет ('+mln(runrate)+') - следующий месяц на этой же настройке не сойдётся.')
     : 'До плана не хватает '+mln(gap)+'. Через воронку это win-rate '+(needWin>0&&needWin<100?'≈ '+pct(needWin)+' при текущих лидах и чеке'+(needWin>40?' - за пределом реалистичного, добирай другими источниками или лидами':needWin>25?' - выше цели 25%, нужен рост лидов или чека':' - в пределах цели 25%'):'за пределами текущей воронки - нужны лиды, чек или другие источники')+'.';
+  if(capExceed) verdict+=' Внимание: сумма источников выше потолка производства '+mln(IN.cap)+' - производство столько не выпустит, режь комбинацию или уточняй потолок.';
+  $('b_verdict').textContent=verdict;
 }
 
 SLIDERS.forEach(function(k){
@@ -432,3 +462,5 @@ $('presets').addEventListener('click',function(e){
 render();
 })();
 </script>
+</body>
+</html>

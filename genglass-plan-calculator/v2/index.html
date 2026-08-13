@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>GENGLASS План-Радар v2 · простая версия</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg:#0a0a0a; --surface:#151515; --ink:#ffffff; --ink2:#d4d4d4; --muted:#8f8f8f;
+  --brass:#f5b33c; --ok:#2fd98a; --bad:#ff5a5f; --bone:#e7e2d6;
+  --seg-r1:#f5b33c; --seg-r2:#ee7ba8; --seg-r3:#e7e2d6;
+  --seg-o1:#4cc9f0; --seg-o2:#2e6fd9;
+  --seg-x1:#a79e8e; --seg-x2:#7a7365;
+  --w5:rgba(255,255,255,.05); --w8:rgba(255,255,255,.08); --w10:rgba(255,255,255,.1);
+  --mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:12px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:70px}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Inter Tight",Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+  padding-bottom:84px; /* место под липкую панель */
+}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 clamp(16px,2.5vw,32px) 40px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.cap{font-size:12.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cap.ac{color:var(--brass)}
+nav{
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  background:rgba(10,10,10,.8);border-bottom:1px solid var(--w10);
+}
+.nav-in{max-width:1280px;margin:0 auto;padding:13px clamp(16px,2.5vw,32px);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.mark{font-weight:700;letter-spacing:-.025em;font-size:17px}
+.mark span{color:var(--brass)}
+.mark .v2{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+.nav-links{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{
+  color:var(--ink2);text-decoration:none;font-size:13.5px;font-weight:500;
+  padding:8px 15px;border-radius:9999px;background:var(--w5);border:1px solid transparent;
+  transition:.2s ease-out;
+}
+.nav-links a:hover{border-color:var(--w10);color:var(--ink)}
+.nav-links a:focus-visible,button:focus-visible,input:focus-visible,.term:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+header.hero{padding:40px 0 8px}
+.hero h1{font-size:clamp(30px,3.4vw,50px);font-weight:700;letter-spacing:-.04em;line-height:1.04;margin:12px 0 10px}
+.hero p.dek{color:var(--ink2);max-width:66ch;margin:0;font-size:18px;line-height:1.55}
+section{padding-top:clamp(52px,5.5vw,80px)}
+section.first{padding-top:28px}
+.sec-head{margin-bottom:24px;max-width:74ch}
+.sec-head h2{font-size:clamp(25px,2.4vw,38px);font-weight:600;letter-spacing:-.025em;margin:8px 0 10px;line-height:1.1}
+.sec-head p{color:var(--muted);margin:0;font-size:15.5px}
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.card{position:relative;background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:clamp(20px,2vw,28px)}
+.card h3{font-size:19px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px}
+.card .sub{font-size:14px;color:var(--muted);margin:0 0 20px;line-height:1.55}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+@media(max-width:960px){.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
+/* -------- подсказки к терминам -------- */
+.term{
+  position:relative;display:inline;border-bottom:1px dotted rgba(245,179,60,.6);cursor:help;
+  -webkit-tap-highlight-color:transparent;
+}
+.term::after{
+  content:attr(data-tip);position:absolute;left:0;bottom:calc(100% + 8px);z-index:30;
+  width:min(320px,72vw);background:#1f1c15;color:var(--ink2);border:1px solid rgba(245,179,60,.4);
+  border-radius:8px;padding:10px 13px;font-size:13.5px;line-height:1.5;font-weight:400;
+  letter-spacing:0;text-transform:none;white-space:normal;
+  opacity:0;visibility:hidden;transition:opacity .15s ease-out;pointer-events:none;
+}
+.term:hover::after,.term:focus::after{opacity:1;visibility:visible}
+/* -------- командный блок -------- */
+.command{
+  position:relative;border:1px solid rgba(245,179,60,.35);border-radius:16px;
+  padding:clamp(24px,3vw,40px);overflow:hidden;
+  background:radial-gradient(120% 140% at 12% 0%,#141311 0%,#0a0a0a 62%);
+}
+.cmd-top{display:flex;gap:36px;align-items:flex-start;flex-wrap:wrap}
+.cmd-main{flex:1 1 460px;min-width:0}
+.cmd-side{flex:0 1 350px;min-width:280px}
+.big-cover{font-size:clamp(76px,9.5vw,148px);font-weight:700;letter-spacing:-.055em;line-height:.9;margin:12px 0 12px;color:var(--bone)}
+.big-cover .pcent{font-size:.38em;font-weight:600;color:var(--muted);letter-spacing:-.02em}
+.big-cover.good{color:var(--ok)}.big-cover.warn{color:var(--brass)}.big-cover.bone{color:var(--bone)}
+.cover-sub{font-size:18px;color:var(--ink2);margin:0;max-width:58ch;line-height:1.55}
+.cover-sub strong{color:var(--ink)}
+.ctl{margin-bottom:22px}
+.ctl:last-child{margin-bottom:0}
+.ctl .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:9px}
+.ctl label{font-size:15.5px;color:var(--ink2);font-weight:500;line-height:1.4}
+.ctl .hint{display:block;font-size:13px;color:var(--muted);font-weight:400;margin-top:2px;line-height:1.5}
+.val{
+  font-size:16px;font-weight:600;color:var(--ink);
+  background:var(--w5);border:1px solid var(--w10);padding:3px 12px;border-radius:var(--r-sm);white-space:nowrap;
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:9999px;
+  background:var(--w10);outline:none;margin:7px 0 0;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:21px;height:21px;border-radius:50%;background:var(--brass);
+  border:3px solid #1a1408;box-shadow:0 0 0 1px rgba(245,179,60,.5);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{width:21px;height:21px;border-radius:50%;background:var(--brass);border:3px solid #1a1408;cursor:pointer}
+input[type=number]{
+  font:inherit;font-size:15px;width:110px;color:var(--ink);background:var(--w5);
+  border:1px solid var(--w10);border-radius:var(--r-sm);padding:6px 9px;
+}
+.chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
+.chip{
+  font:inherit;font-size:13.5px;font-weight:500;color:var(--ink2);cursor:pointer;
+  background:var(--w5);border:1px solid var(--w10);border-radius:var(--r-sm);padding:8px 14px;
+  transition:.15s ease-out;
+}
+.chip:hover{color:var(--ink);border-color:rgba(245,179,60,.5)}
+.chip.on{background:rgba(245,179,60,.16);color:var(--brass);border-color:rgba(245,179,60,.5)}
+.btn{
+  font:inherit;font-size:13.5px;font-weight:600;color:var(--brass);cursor:pointer;
+  background:rgba(245,179,60,.12);border:1px solid rgba(245,179,60,.4);border-radius:var(--r-sm);padding:9px 16px;
+  transition:.15s ease-out;
+}
+.btn:hover{background:rgba(245,179,60,.2)}
+.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.kgrid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--w5);border:1px solid var(--w8);border-radius:var(--r-sm);padding:15px 17px;min-width:0}
+.kpi .k{font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.kpi .v{font-size:clamp(22px,2.1vw,29px);font-weight:700;letter-spacing:-.03em;line-height:1.05}
+.kpi .u{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.kpi .v.good{color:var(--ok)}.kpi .v.bad{color:var(--bad)}.kpi .v.warn{color:var(--brass)}
+.cmd-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+@media(max-width:960px){.cmd-kpis{grid-template-columns:repeat(2,1fr)}}
+.verdict{font-size:15px;color:var(--ink2);margin:24px 0 0;line-height:1.6;border-top:1px solid var(--w8);padding-top:16px;max-width:110ch}
+.t-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:9px}
+.t-row .num{font-family:var(--mono);font-size:12.5px}
+.goal{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.9}
+.goal::after{content:attr(data-l);position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+.legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.legend .lg{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:-6px}
+.legend span.li{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink2)}
+.dot{width:12px;height:12px;border-radius:3px;flex:none}
+.stack{display:flex;gap:2px;height:42px;border-radius:var(--r-sm);overflow:hidden;background:var(--w5)}
+.stack div{height:100%;min-width:2px;transition:width .14s ease-out}
+.srow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
+.srow:last-child{border-bottom:none}
+.srow .l{color:var(--ink2);display:flex;align-items:center;gap:10px;min-width:0}
+.srow .n{font-weight:600;white-space:nowrap}
+.note{font-size:14px;color:var(--muted);margin:16px 0 0;line-height:1.6}
+.note strong{color:var(--ink2)}
+table.data{width:100%;border-collapse:collapse;font-size:14.5px}
+table.data th,table.data td{text-align:left;padding:12px 13px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top}
+table.data th{font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+table.data td{color:var(--ink2)}
+table.data td:first-child{color:var(--ink);font-weight:500}
+.tbl-scroll{overflow-x:auto}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:var(--r-sm);white-space:nowrap}
+.tag.d{background:rgba(47,217,138,.14);color:var(--ok)}
+.tag.g{background:rgba(255,90,95,.14);color:var(--bad)}
+.tag.x{background:var(--w10);color:var(--ink2)}
+/* -------- менеджеры -------- */
+.mgr{border:1px solid var(--w8);border-radius:var(--r-md);background:var(--surface);padding:22px;min-width:0}
+.mgr.off{opacity:.45}
+.mgr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:4px}
+.mgr-head h4{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.mgr-head .role{font-size:12px;color:var(--muted)}
+.mgr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.mgr .m-ctl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;font-size:14px;color:var(--ink2)}
+.mgr .m-ctl input[type=number]{width:88px;font-size:14px;padding:4px 8px}
+.mgr .plan-out{margin-top:14px;padding:14px;border-radius:var(--r-sm);background:rgba(245,179,60,.07);border:1px solid rgba(245,179,60,.25)}
+.mgr .plan-out .po-line{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0}
+.mgr .plan-out .po-line b{white-space:nowrap}
+.mgr .warn-line{font-size:12.5px;color:var(--bad);margin-top:8px;line-height:1.45}
+.toggle{position:relative;width:40px;height:22px;flex:none;cursor:pointer}
+.toggle input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.toggle i{position:absolute;inset:0;background:var(--w10);border-radius:9999px;transition:.15s}
+.toggle i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--ink2);transition:.15s}
+.toggle input:checked+i{background:rgba(245,179,60,.5)}
+.toggle input:checked+i::after{left:21px;background:var(--brass)}
+/* -------- эко-система -------- */
+.eco{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:960px){.eco{grid-template-columns:1fr}}
+.eco .band{background:var(--w5);border:1px solid var(--w8);border-radius:var(--r-sm);padding:18px;min-width:0}
+.eco .bk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.eco .bt{font-size:17px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+.eco ul{margin:0;padding:0;list-style:none}
+.eco li{font-size:13.5px;color:var(--muted);line-height:1.5;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.eco li:last-child{border-bottom:none}
+.eco li strong{color:var(--ink2);font-weight:600}
+.eco li .st{font-family:var(--mono);font-size:10.5px;padding:1px 7px;border-radius:var(--r-sm);margin-left:6px;white-space:nowrap}
+.eco li .st.on{background:rgba(47,217,138,.14);color:var(--ok)}
+.eco li .st.next{background:rgba(245,179,60,.14);color:var(--brass)}
+.eco li .st.plan{background:var(--w10);color:var(--muted)}
+/* -------- липкая нижняя панель -------- */
+#dock{
+  position:fixed;left:0;right:0;bottom:0;z-index:25;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  background:rgba(10,10,10,.85);border-top:1px solid var(--w10);
+}
+#dock .dock-in{max-width:1280px;margin:0 auto;padding:10px clamp(16px,2.5vw,32px);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#dock .d-pct{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+#dock .d-pct.good{color:var(--ok)}#dock .d-pct.warn{color:var(--brass)}#dock .d-pct.bone{color:var(--bone)}
+#dock .d-text{font-size:13.5px;color:var(--ink2);line-height:1.35;min-width:0}
+#dock .d-text b{color:var(--ink)}
+#dock .d-barwrap{flex:1 1 160px;min-width:120px}
+#dock .d-bar{position:relative;height:8px;border-radius:9999px;background:var(--w10);overflow:hidden}
+#dock .d-bar i{position:absolute;left:0;top:0;bottom:0;background:var(--bone);transition:width .2s ease-out}
+#dock a.d-up{color:var(--muted);text-decoration:none;font-size:12.5px;white-space:nowrap}
+#dock a.d-up:hover{color:var(--ink)}
+@media(max-width:640px){#dock .d-barwrap{display:none}#dock .d-pct{font-size:22px}}
+footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--w10);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.stack div,.chip,.nav-links a,#dock .d-bar i,.term::after{transition:none}}
+@media(max-width:640px){.command{padding:22px}.nav-links{display:none}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <div class="mark">GEN<span>GLASS</span> · План-Радар<span class="v2">v2 · просто</span></div>
+    <div class="nav-links">
+      <a href="#goal">Цель</a>
+      <a href="#builder">Откуда деньги</a>
+      <a href="#power">Хватит ли сил</a>
+      <a href="#managers">По менеджерам</a>
+      <a href="#eco">Экосистема</a>
+      <a href="#sources">Откуда цифры</a>
+      <a href="../">Полная версия →</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="cap ac">Отдел продаж GENGLASS · для работы на планёрке</span>
+  <h1>Соберётся ли план - и что делать каждому</h1>
+  <p class="dek">Двигай ползунки - внизу экрана всегда видно, закрывается ли план. Пунктирное подчёркивание - наведи или тапни, будет объяснение термина простыми словами.</p>
+</header>
+
+<!-- ===================== 01 ЦЕЛЬ ===================== -->
+<section id="goal" class="first">
+  <div class="command">
+    <div class="cmd-top">
+      <div class="cmd-main">
+        <span class="cap ac">Насколько закрывается план</span>
+        <div class="big-cover bone" id="big_cover" aria-live="polite">0<span class="pcent">%</span></div>
+        <p class="cover-sub" id="cover_sub"></p>
+      </div>
+      <div class="cmd-side">
+        <div class="ctl">
+          <div class="row"><label>Цель месяца - сколько денег нужно<span class="hint">Это <span class="term" tabindex="0" data-tip="Выручка - деньги, которые клиенты реально заплатили за месяц. Не путать с прибылью: из выручки ещё вычитаются все расходы.">выручка</span>, магазины и опт вместе, без маркетплейсов. Цифра 15 млн - черновик, не утверждена (ждём выгрузку из 1С)</span></label><span class="val" id="v_plan"></span></div>
+          <input type="range" id="plan" min="5" max="25" step="0.5" aria-label="Цель месяца, миллионов рублей">
+        </div>
+        <div style="margin-top:20px">
+          <div class="cap" style="margin-bottom:10px">Готовые сценарии</div>
+          <div class="chips" id="presets"></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:24px">
+      <div class="t-row"><span>Из чего складывается сумма</span><span class="num" id="b_cap"></span></div>
+      <div style="position:relative;padding-top:24px;padding-bottom:2px">
+        <div class="stack" id="b_stack"></div>
+        <div id="b_goal"></div>
+      </div>
+      <div class="legend" id="b_legend"></div>
+    </div>
+    <div class="cmd-kpis" id="b_kpis"></div>
+    <p class="verdict" id="b_verdict"></p>
+  </div>
+</section>
+
+<!-- ===================== 02 ОТКУДА ДЕНЬГИ ===================== -->
+<section id="builder">
+  <div class="sec-head">
+    <span class="cap ac">02 · Из чего складывается план</span>
+    <h2>Откуда приходят деньги</h2>
+    <p>Пять постоянных источников и два разовых запаса. Крутишь ползунки - сумма и процент внизу экрана меняются сразу.</p>
+  </div>
+  <div class="bento">
+    <div class="card c4">
+      <h3>Продажи с рекламы</h3>
+      <p class="sub">Единственный источник, который считается по цепочке: реклама → заявки → переговоры → продажи. Проценты взяты с направления Лофт - на весь отдел переносим с оговоркой.</p>
+      <div class="ctl"><div class="row"><label>Тратим на рекламу в месяц<span class="hint">Сколько сейчас уходит на рекламу - точная цифра не зафиксирована, это прикидка</span></label><span class="val" id="v_budget"></span></div><input type="range" id="budget" min="50000" max="800000" step="10000" aria-label="Рекламный бюджет в месяц, рублей"></div>
+      <div class="ctl"><div class="row"><label>Цена одной <span class="term" tabindex="0" data-tip="Заявка (лид) - человек, который оставил телефон или написал нам. Цена заявки = рекламный бюджет, делённый на число заявок.">заявки</span><span class="hint">Факт направления Лофт: 3 160 ₽ (аудит от 09.08.2026)</span></label><span class="val" id="v_cpl"></span></div><input type="range" id="cpl" min="1500" max="6000" step="20" aria-label="Цена одной заявки, рублей"></div>
+      <div class="ctl"><div class="row"><label>Сколько заявок - настоящие клиенты<span class="hint">Доля заявок, где человеку правда нужно наше стекло и есть бюджет. Остальное - спам и «просто спросить». Факта нет, прикидка 55%</span></label><span class="val" id="v_crq"></span></div><input type="range" id="crq" min="30" max="80" step="1" aria-label="Доля настоящих клиентов среди заявок, процентов"></div>
+      <div class="ctl"><div class="row"><label>Сколько переговоров кончается продажей<span class="hint">Сейчас покупает 9 клиентов из 100 (факт). Цель - 25 из 100. Это главный рычаг роста</span></label><span class="val" id="v_win"></span></div><input type="range" id="win" min="5" max="40" step="1" aria-label="Доля переговоров, которые заканчиваются продажей, процентов"></div>
+      <div class="ctl"><div class="row"><label>Сколько денег приносит одна продажа<span class="hint">Средний чек: факт 268 тысяч, цель 300 тысяч и выше</span></label><span class="val" id="v_check"></span></div><input type="range" id="check" min="150000" max="400000" step="2000" aria-label="Средний чек, рублей"></div>
+    </div>
+    <div class="card c4">
+      <h3>Остальные источники</h3>
+      <p class="sub">Здесь пока нет точной цепочки - ставим суммы вилками из прикидки финансиста. Все цифры - предположения до выгрузки 1С.</p>
+      <div class="ctl"><div class="row"><label>Заказы от <span class="term" tabindex="0" data-tip="Дизайнеры интерьера, которые закладывают наше стекло в свои проекты. Цикл длинный: от знакомства до денег 1,5-2 месяца, поэтому в ближайшие месяцы вклад почти нулевой.">дизайнеров</span><span class="hint">от 0 до 3,5 млн · деньги начнутся с сентября</span></label><span class="val" id="v_des"></span></div><input type="range" id="des" min="0" max="3.5" step="0.1" aria-label="Заказы от дизайнеров, миллионов"></div>
+      <div class="ctl"><div class="row"><label>Заказы от <span class="term" tabindex="0" data-tip="Комплектовщики - компании, которые собирают объект «под ключ» (отель, офис, ЖК) и докупают у нас стекло в свои проекты.">комплектовщиков</span><span class="hint">от 0,3 до 2 млн</span></label><span class="val" id="v_komp"></span></div><input type="range" id="komp" min="0" max="2" step="0.1" aria-label="Заказы от комплектовщиков, миллионов"></div>
+      <div class="ctl"><div class="row"><label>Опт: новые позиции<span class="hint">Продажи новинок оптовым покупателям · от 1 до 5 млн</span></label><span class="val" id="v_novi"></span></div><input type="range" id="novi" min="0" max="5" step="0.1" aria-label="Опт новинки, миллионов"></div>
+      <div class="ctl"><div class="row"><label>Опт: <span class="term" tabindex="0" data-tip="Дилеры - магазины и компании, которые покупают у нас оптом и перепродают под своей вывеской.">дилеры</span><span class="hint">от 0,7 до 3,5 млн</span></label><span class="val" id="v_dil"></span></div><input type="range" id="dil" min="0" max="3.5" step="0.1" aria-label="Опт дилеры, миллионов"></div>
+      <div class="ctl"><div class="row"><label>Сколько производство успеет сделать<span class="hint">Потолок мощности в деньгах за месяц. Цифры от производства пока нет - ползунок стоит на максимуме, чтобы не выдумывать</span></label><span class="val" id="v_cap"></span></div><input type="range" id="cap" min="5" max="30" step="0.5" aria-label="Потолок производства, миллионов"></div>
+    </div>
+    <div class="card c4">
+      <h3>Разовые запасы в <span class="term" tabindex="0" data-tip="Воронка (пайплайн) - все сделки, которые сейчас в работе: от первой заявки до ожидания оплаты.">воронке</span></h3>
+      <p class="sub">Деньги, которые уже висят в CRM - их можно собрать один раз, дожав зависшие сделки. В следующем месяце этот запас не повторится.</p>
+      <div class="ctl"><div class="row"><label>Оживить «<span class="term" tabindex="0" data-tip="Долгострой - сделки, по которым давно нет движения: клиенту не звонили больше двух недель. По аудиту 09.08 таких 32 сделки на 21,5 млн.">Долгострой</span>»<span class="hint">Какую долю из 21,5 млн реально вернуть в работу и довести до денег</span></label><span class="val" id="v_dolg"></span></div><input type="range" id="dolg" min="0" max="30" step="1" aria-label="Доля реактивации долгостроя, процентов"></div>
+      <div class="ctl"><div class="row"><label>Дожать «<span class="term" tabindex="0" data-tip="КП - коммерческое предложение, то есть расчёт с ценами. «КП отправлено» - мы отправили расчёт, клиент замолчал, а мы не перезвонили. По аудиту 09.08 таких 39 сделок на 11,9 млн.">КП отправлено</span>»<span class="hint">Какую долю из 11,9 млн замолчавших расчётов реально довести до оплаты</span></label><span class="val" id="v_kp"></span></div><input type="range" id="kp" min="0" max="30" step="1" aria-label="Доля дожима КП, процентов"></div>
+      <div class="kgrid" style="grid-template-columns:1fr;margin-top:18px" id="res_kpi"></div>
+      <p class="note">Важно: обе группы - зависшие сделки, списки могут пересекаться. Пока ДАТА не сверила списки, сумма двух запасов может считать одни и те же деньги дважды.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 03 ХВАТИТ ЛИ СИЛ ===================== -->
+<section id="power">
+  <div class="sec-head">
+    <span class="cap ac">03 · Проверка на реальность</span>
+    <h2>Хватит ли сил на этот план</h2>
+    <p>Считаем в обратную сторону: от цели - к продажам, переговорам, заявкам и деньгам на рекламу. Сразу видно, где план упирается в физику.</p>
+  </div>
+  <div class="bento">
+    <div class="card c7">
+      <h3>Что нужно сделать, чтобы получить цель</h3>
+      <p class="sub" id="p_chainsub"></p>
+      <div id="p_rows"></div>
+      <div class="kgrid" style="grid-template-columns:repeat(2,1fr);margin-top:16px" id="p_kpis"></div>
+      <p class="note" id="p_note"></p>
+    </div>
+    <div class="card c5">
+      <h3>Хватает ли сделок в работе</h3>
+      <p class="sub">Продажи этого месяца приходят из сделок, начатых ~1,5 месяца назад (средняя сделка идёт 46 дней). Поэтому важен запас: сколько живых сделок лежит в работе прямо сейчас.</p>
+      <div class="ctl"><div class="row"><label>Сделка идёт в среднем<span class="hint">Факт: 46 дней от заявки до оплаты (аудит 09.08.2026). Это среднее - бывают быстрее и сильно дольше</span></label><span class="val" id="v_cycle"></span></div><input type="range" id="cycle" min="30" max="75" step="1" aria-label="Длительность сделки, дней"></div>
+      <div class="ctl"><div class="row"><label>Живых сделок в работе сейчас<span class="hint">Цифру берём из Bitrix (снимок от 07.08: 310 открытых сделок). 0 = пока не ввели</span></label><span class="val" id="v_stock"></span></div><input type="range" id="stock" min="0" max="600" step="5" aria-label="Открытых сделок сейчас, штук"></div>
+      <div class="kgrid" style="grid-template-columns:1fr 1fr;margin-top:18px" id="s_kpis"></div>
+      <p class="note" id="s_note"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 04 ПО МЕНЕДЖЕРАМ ===================== -->
+<section id="managers">
+  <div class="sec-head">
+    <span class="cap ac">04 · Конфигуратор РОПа</span>
+    <h2>План по менеджерам: кому что делать</h2>
+    <p>Оля распределяет план между менеджерами и настраивает нормативы - калькулятор превращает деньги в понятные ежедневные действия: сколько звонков, расчётов и дожимов нужно каждому. Кнопка «Скопировать план» отдаёт готовый текст для задачи в Bitrix.</p>
+  </div>
+  <div class="bento">
+    <div class="card c12">
+      <h3>Общие нормативы отдела</h3>
+      <p class="sub">Эти проценты одинаковы для всех - Оля меняет их под реальность отдела. Персональный чек и стадии настраиваются у каждого менеджера ниже.</p>
+      <div class="bento" style="gap:16px">
+        <div class="c4 ctl"><div class="row"><label>Рабочих дней в месяце</label><span class="val" id="v_mdays"></span></div><input type="range" id="mdays" min="15" max="27" step="1" aria-label="Рабочих дней в месяце"></div>
+        <div class="c4 ctl"><div class="row"><label>Звонков, чтобы отправить один расчёт<span class="hint">Сколько разговоров в среднем нужно, чтобы клиент дозрел до КП</span></label><span class="val" id="v_c2kp"></span></div><input type="range" id="c2kp" min="1" max="10" step="0.5" aria-label="Звонков на одно КП"></div>
+        <div class="c4 ctl"><div class="row"><label>Расчётов, чтобы получить одну продажу<span class="hint">Сколько отправленных КП в среднем даёт одну оплату</span></label><span class="val" id="v_kp2d"></span></div><input type="range" id="kp2d" min="2" max="15" step="0.5" aria-label="КП на одну продажу"></div>
+      </div>
+      <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-top:8px" id="m_totals"></div>
+      <p class="note" id="m_check"></p>
+    </div>
+    <div class="c12" style="grid-column:span 12">
+      <div class="mgr-grid" id="mgr_cards"></div>
+    </div>
+    <div class="card c12">
+      <p class="note" id="m_foot"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 05 ЭКОСИСТЕМА ===================== -->
+<section id="eco">
+  <div class="sec-head">
+    <span class="cap ac">05 · Как это живёт дальше</span>
+    <h2>Встраивание в систему управления продажами</h2>
+    <p>Сейчас цифры вводятся руками. Чтобы инструмент стал самостоятельной боевой единицей, он должен сам забирать факты и сам отдавать планы. Вот карта: что откуда берём и куда отдаём.</p>
+  </div>
+  <div class="bento">
+    <div class="card c12">
+      <div class="eco">
+        <div class="band">
+          <div class="bk">Входящие данные · что подтягивать</div>
+          <div class="bt">Откуда берём факты</div>
+          <ul>
+            <li><strong>Bitrix24, сделки и стадии</strong> - количество и суммы по «КП отправлено», «Принимают решение», «Долгострой» по каждому менеджеру. Сейчас: снимок rop.json раз в день через GitHub Actions (механика kostya-ai уже работает)<span class="st on">работает</span></li>
+            <li><strong>Bitrix24, телефония</strong> - звонки по менеджерам: сколько, какой длительности. Нужно для контроля нормативов из этого конфигуратора<span class="st next">подключить</span></li>
+            <li><strong>1С</strong> - факт оплат по месяцам, розница и опт раздельно. Это база плана: без неё цель 15 млн остаётся предположением. Ответственный Борис, срок 20.08<span class="st next">подключить</span></li>
+            <li><strong>Яндекс.Директ + Метрика</strong> - рекламный бюджет и цена заявки автоматически вместо ползунков-прикидок. Владелец - Тимур, скилл direct уже есть<span class="st next">подключить</span></li>
+            <li><strong>Дашборд Димы (OZON)</strong> - продажи на маркетплейсах. В этот план не входят, но нужны для общей картины выручки компании<span class="st plan">отдельный контур</span></li>
+          </ul>
+        </div>
+        <div class="band">
+          <div class="bk">Исходящие данные · что отдаём</div>
+          <div class="bt">Куда уходят планы</div>
+          <ul>
+            <li><strong>Задача менеджеру в Bitrix</strong> - кнопка «Скопировать план» уже даёт готовый текст. Следующий шаг: создание задачи через вебхук Bitrix, чтобы Оля не копировала руками<span class="st next">подключить</span></li>
+            <li><strong>Ссылка-снимок в чат отдела</strong> - неизменяемая фиксация принятого плана (работает в полной версии)<span class="st on">работает</span></li>
+            <li><strong>Журнал прогнозов</strong> - сохранённый план сверяется с фактом в конце месяца, инструмент учится на своих ошибках (полная версия)<span class="st on">работает</span></li>
+            <li><strong>Планёрка понедельника</strong> - экран «По менеджерам» = повестка: у кого какие действия на неделю и кто отстаёт<span class="st plan">регламент</span></li>
+          </ul>
+        </div>
+        <div class="band">
+          <div class="bk">Порядок подключения</div>
+          <div class="bt">Три шага до автономности</div>
+          <ul>
+            <li><strong>Шаг 1 (до 20.08):</strong> 1С-выгрузка от Бориса + сверка списков зависших сделок ДАТОЙ. План перестаёт быть предположением</li>
+            <li><strong>Шаг 2:</strong> ежедневный срез стадий и звонков из Bitrix через n8n (по образцу вебхуков analytics-mvp: у OZON-аналитики этот контур уже работает). Ползунки менеджеров заполняются сами</li>
+            <li><strong>Шаг 3:</strong> создание задач в Bitrix из конфигуратора + факт оплат из 1С раз в день. Инструмент сам сравнивает план и факт и подсвечивает отстающих - без ручного ввода вообще</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note"><strong>Принцип безопасности:</strong> инструмент читает данные и предлагает планы, но ничего не меняет в CRM сам. Создание задач и изменение сделок - только через подтверждение Оли или Ивана (правило HITL из регламента GENGROUP).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 06 ОТКУДА ЦИФРЫ ===================== -->
+<section id="sources">
+  <div class="sec-head">
+    <span class="cap ac">06 · Честность цифр</span>
+    <h2>Откуда взяты цифры</h2>
+    <p>У каждой цифры есть статус. <span class="tag d">ФАКТ</span> - есть выгрузка или документ. <span class="tag g">ПРИКИДКА</span> - рабочее предположение, требует проверки. <span class="tag x">НЕТ ЦИФРЫ</span> - данных не существует, нужно добыть.</p>
+  </div>
+  <div class="bento">
+    <div class="card c12">
+      <div class="tbl-scroll">
+      <table class="data">
+        <thead><tr><th>Цифра</th><th>Значение</th><th>Статус</th><th>Откуда</th></tr></thead>
+        <tbody id="src_body"></tbody>
+      </table>
+      </div>
+      <p class="note"><strong>Три цифры, которые всё решают</strong> (пока их нет - это инструмент сценариев, а не отчёт): выгрузка оплат из 1С - Борис, до 20.08; сверка списков зависших сделок - ДАТА, до 18.08; маржа по типовым чекам - Роман, до 20.08.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>GENGLASS · внутренний инструмент отдела продаж · v2 «простая версия»</span>
+  <span><a href="../" style="color:var(--muted)">Полная версия с трекером месяца и журналом прогнозов →</a></span>
+</footer>
+
+</div>
+
+<!-- Липкая панель: всегда видно, закрывается ли план -->
+<div id="dock" role="status" aria-live="polite">
+  <div class="dock-in">
+    <span class="d-pct bone" id="d_pct">0%</span>
+    <span class="d-text" id="d_text"></span>
+    <span class="d-barwrap"><span class="d-bar"><i id="d_fill"></i></span></span>
+    <a class="d-up" href="#goal">↑ к цели</a>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var IN={
+  plan:15,
+  budget:180000, cpl:3160, crq:55, win:9, check:268000,
+  des:0, komp:0.3, novi:3, dil:2, cap:30, dolg:15, kp:10,
+  cycle:46, stock:310,
+  mdays:21, c2kp:3, kp2d:7
+};
+/* Менеджеры GENGLASS (категория 49). open = открытых сделок на снимке 07.08.2026 (факт),
+   null = в снимке разбивки нет. Чек по менеджерам в источниках отсутствует - всем
+   ставится средний по отделу 268к (прикидка), Оля правит руками. GM-менеджеры
+   (Белов, Мавлина, Преснякова) в контур не входят - решение Ивана от 30.06.2026. */
+var MGRS=[
+  {id:'lak', name:'Татьяна Лакомова',  role:'самый большой пайплайн', open:119, share:20, on:true,  note:'3 722 исходящих за апрель-июль, лучший в отделе дожим цепочками. Слабое место: только 3% обещаний с конкретной датой.'},
+  {id:'mas', name:'Ольга Маслова',     role:'второй пайплайн отдела', open:102, share:20, on:true,  note:'Хорошо предлагает альтернативу по цене. Слабое место: дожим обрывается - только 2 цепочки из 74 длиннее двух дней.'},
+  {id:'kub', name:'Алёна Кубанова',    role:'объём просел с июня',    open:6,   share:10, on:true,  note:'Активность упала: 312 исходящих в июне, 35 в августе. Причину выяснить до раздачи плана.'},
+  {id:'shu', name:'Юлия Шура-Бура',    role:'основной пайплайн',      open:null,share:17, on:true,  note:'Держит основной поток сделок. Персонального разбора пока не было - цифры уточнить по Bitrix.'},
+  {id:'pla', name:'Алина Платонова',   role:'основной пайплайн',      open:null,share:17, on:true,  note:'Держит основной поток сделок. Персонального разбора пока не было - цифры уточнить по Bitrix.'},
+  {id:'lys', name:'Юлия Лысанова',     role:'основной пайплайн',      open:null,share:16, on:true,  note:'Держит основной поток сделок. Персонального разбора пока не было - цифры уточнить по Bitrix.'},
+  {id:'oly', name:'Ольга Лысенко',     role:'кандидат на РОПа',       open:null,share:0,  on:false, note:'Если назначение РОПом состоялось - в линейный план не входит, управляет чужими планами. Включи, если продолжает вести сделки.'},
+  {id:'bez', name:'Владислав Безмащук',role:'нет открытых сделок',    open:0,   share:0,  on:false, note:'В снимке 07.08 открытых сделок нет, в переписке апреля-июля отсутствует. Статус выяснить до включения в план.'}
+];
+MGRS.forEach(function(m){m.check=268000});
+/* Стадии отдела, снимок Bitrix rop.json 07.08.2026 (факт) */
+var STAGES={kp:207, decision:55, dolg:103};
+var PRESETS=[
+  {n:'Как сейчас', v:{budget:180000,cpl:3160,crq:55,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}},
+  {n:'Реалистичный рост', v:{budget:180000,cpl:3160,crq:55,win:15,check:268000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
+  {n:'Цель по конверсии', v:{budget:180000,cpl:3160,crq:55,win:25,check:300000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
+  {n:'Всё сложилось', v:{budget:300000,cpl:3160,crq:60,win:25,check:300000,des:3.5,novi:5,komp:2,dil:3.5,dolg:15,kp:10}},
+  {n:'Худший случай', v:{budget:120000,cpl:4000,crq:45,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}}
+];
+var SLIDERS=['plan','budget','cpl','crq','win','check','des','komp','novi','dil','cap','dolg','kp','cycle','stock','mdays','c2kp','kp2d'];
+function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽'}
+function mln(n){return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн'}
+function n1(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')}
+function pct(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')+'%'}
+function ceil1(n){return Math.max(1,Math.ceil(n))}
+function kpi(k,v,u,vc){return '<div class="kpi"><div class="k">'+k+'</div><div class="v '+(vc||'')+'">'+v+'</div><div class="u">'+u+'</div></div>'}
+function seg(s){return s.stripe
+  ? 'background-color:'+s.c+';background-image:repeating-linear-gradient(45deg,rgba(10,10,10,.42) 0 3px,rgba(10,10,10,0) 3px 7px)'
+  : 'background:'+s.c}
+
+function render(){
+  SLIDERS.forEach(function(k){ $(k).value=IN[k]; });
+  $('v_plan').textContent=mln(IN.plan);
+  $('v_budget').textContent=rub(IN.budget); $('v_cpl').textContent=rub(IN.cpl);
+  $('v_crq').textContent=IN.crq+' из 100'; $('v_win').textContent=IN.win+' из 100'; $('v_check').textContent=rub(IN.check);
+  $('v_des').textContent=mln(IN.des); $('v_komp').textContent=mln(IN.komp);
+  $('v_novi').textContent=mln(IN.novi); $('v_dil').textContent=mln(IN.dil);
+  var capSet=IN.cap<30;
+  $('v_cap').textContent=capSet?mln(IN.cap):'цифры нет';
+  $('v_dolg').textContent=IN.dolg+'%'; $('v_kp').textContent=IN.kp+'%';
+  $('v_cycle').textContent=IN.cycle+' дней'; $('v_stock').textContent=IN.stock>0?IN.stock+' сделок':'не введено';
+  $('v_mdays').textContent=IN.mdays+' дн'; $('v_c2kp').textContent=n1(IN.c2kp)+' зв'; $('v_kp2d').textContent=n1(IN.kp2d)+' КП';
+
+  var leads=IN.budget/IN.cpl, quals=leads*IN.crq/100, deals=quals*IN.win/100;
+  var vhod=deals*IN.check/1e6;
+  var resDolg=21.5*IN.dolg/100, resKp=11.9*IN.kp/100;
+  var srcs=[
+    {n:'Продажи с рекламы', v:vhod, c:'#f5b33c', g:'Магазины и заявки'},
+    {n:'Дизайнеры', v:IN.des, c:'#ee7ba8', g:'Магазины и заявки'},
+    {n:'Комплектовщики', v:IN.komp, c:'#e7e2d6', g:'Магазины и заявки'},
+    {n:'Опт: новинки', v:IN.novi, c:'#4cc9f0', g:'Опт'},
+    {n:'Опт: дилеры', v:IN.dil, c:'#2e6fd9', g:'Опт'},
+    {n:'Запас: долгострой', v:resDolg, c:'#a79e8e', g:'Разовые запасы', stripe:true},
+    {n:'Запас: дожим КП', v:resKp, c:'#7a7365', g:'Разовые запасы', stripe:true}
+  ];
+  var total=srcs.reduce(function(s,x){return s+x.v},0);
+  var reserves=resDolg+resKp;
+  var runrate=total-reserves;
+  var cover=IN.plan?total/IN.plan*100:0;
+  var gap=IN.plan-total;
+  var capExceed=capSet&&total>IN.cap;
+
+  /* командный блок */
+  var st=cover>=100?'good':cover>=85?'warn':'bone';
+  var bc=$('big_cover');
+  bc.innerHTML=(Math.round(cover*10)/10).toLocaleString('ru-RU')+'<span class="pcent">%</span>';
+  bc.className='big-cover '+st;
+  $('cover_sub').innerHTML='Источники дают <strong>'+mln(total)+'</strong>, цель - <strong>'+mln(IN.plan)+'</strong>. '+
+    (gap>0?'Не хватает <strong>'+mln(gap)+'</strong>.':'Сверх цели <strong>'+mln(-gap)+'</strong>.');
+  var smax=Math.max(total,IN.plan,capSet?IN.cap:0,0.001);
+  $('b_stack').innerHTML=srcs.filter(function(s){return s.v>0.001}).map(function(s){
+    return '<div style="width:'+(s.v/smax*100)+'%;'+seg(s)+'" title="'+s.n+' · '+mln(s.v)+'"></div>';
+  }).join('');
+  $('b_goal').innerHTML='<div class="goal" data-l="цель '+mln(IN.plan)+'" style="top:18px;bottom:-2px;left:'+(IN.plan/smax*100)+'%"></div>'+
+    (capSet?'<div class="goal" data-l="потолок производства" style="top:18px;bottom:-2px;background:var(--bad);left:'+(IN.cap/smax*100)+'%"></div>':'');
+  $('b_cap').textContent='всего '+mln(total);
+  var lastG='';
+  $('b_legend').innerHTML=srcs.map(function(s){
+    var h=(s.g!==lastG?'<span class="lg">'+s.g+'</span>':'');
+    lastG=s.g;
+    return h+'<span class="li"><i class="dot" style="'+seg(s)+'"></i>'+s.n+'</span>';
+  }).join('');
+  $('b_kpis').innerHTML=
+    kpi(gap>0?'Не хватает':'Запас сверх цели',mln(Math.abs(gap)),gap>0?'столько ещё нужно найти':'больше, чем нужно',gap>0?'bad':'good')+
+    kpi('Постоянная часть',mln(runrate),'без разовых запасов: '+pct(IN.plan?runrate/IN.plan*100:0)+' цели',runrate>=IN.plan?'good':'')+
+    kpi('Разовые запасы',mln(reserves),'соберутся один раз, в следующем месяце их нет')+
+    kpi('Производство',capSet?(capExceed?'Не потянет':'Потянет'):'Цифры нет',capSet?(capExceed?'план больше мощности':'запас есть'):'спросить у производства',capExceed?'bad':'');
+  $('b_verdict').textContent = gap<=0
+    ? (runrate>=IN.plan
+      ? 'План закрывается, и постоянная часть тоже - но помни: почти все цифры здесь пока предположения, а не факты.'
+      : 'План закрывается только вместе с разовыми запасами ('+mln(reserves)+'). Следующий месяц на этих же настройках не сойдётся - постоянных источников только '+mln(runrate)+'.')
+    : 'До цели не хватает '+mln(gap)+'. Смотри, что подкрутить: конверсию переговоров (главный рычаг), рекламу, опт - или снижай цель до реальности.';
+  if(capExceed) $('b_verdict').textContent+=' И внимание: производство столько не выпустит - сумма выше потолка мощности.';
+
+  /* липкая панель */
+  $('d_pct').textContent=pct(cover);
+  $('d_pct').className='d-pct '+st;
+  $('d_text').innerHTML='<b>'+mln(total)+'</b> из <b>'+mln(IN.plan)+'</b>'+(gap>0?' · не хватает <b>'+mln(gap)+'</b>':' · цель перекрыта');
+  $('d_fill').style.width=Math.min(cover,120)/120*100+'%';
+  $('d_fill').style.background=st==='good'?'var(--ok)':st==='warn'?'var(--brass)':'var(--bone)';
+
+  /* разовые запасы KPI */
+  $('res_kpi').innerHTML=kpi('Запасы вместе дадут',mln(reserves),'долгострой '+mln(resDolg)+' + дожим КП '+mln(resKp)+' · это верхняя граница');
+
+  /* обратная математика */
+  var needWon=IN.check>0?IN.plan*1e6/IN.check:0;
+  var needQual=IN.win>0?needWon/(IN.win/100):0;
+  var needLeads=IN.crq>0?needQual/(IN.crq/100):0;
+  var needBudget=needLeads*IN.cpl;
+  var budgetX=IN.budget>0?needBudget/IN.budget:0;
+  var needStock=needQual*IN.cycle/30.4;
+  var stockCover=(IN.stock>0&&needStock>0)?IN.stock/needStock*100:null;
+  $('p_chainsub').textContent='Если закрывать цель '+mln(IN.plan)+' только через рекламу и заявки, цепочка выглядит так:';
+  $('p_rows').innerHTML=[
+    ['Продаж за месяц', n1(needWon), 'цель ÷ средний чек'],
+    ['Переговоров с настоящими клиентами', n1(needQual), 'сейчас покупает '+IN.win+' из 100'],
+    ['Заявок с рекламы', n1(needLeads), 'настоящих клиентов - '+IN.crq+' из 100 заявок'],
+    ['Денег на рекламу', mln(needBudget/1e6), 'заявки × цена заявки '+rub(IN.cpl)]
+  ].map(function(r){
+    return '<div class="srow"><span class="l">'+r[0]+'<span style="margin-left:8px;font-size:12px;color:var(--muted)">'+r[2]+'</span></span><span class="n">'+r[1]+'</span></div>';
+  }).join('');
+  $('p_kpis').innerHTML=
+    kpi('Рекламы нужно больше в','×'+n1(budgetX),mln(needBudget/1e6)+' против '+mln(IN.budget/1e6)+' сейчас',budgetX>1.5?'bad':'good')+
+    kpi('Продаж в рабочий день',n1(needWon/IN.mdays),'по всему отделу');
+  $('p_note').innerHTML = budgetX>1.5
+    ? '<strong>Вывод:</strong> одной рекламой цель не закрыть - бюджета нужно в '+n1(budgetX)+' раза больше. Поэтому план собирается из всех источников сразу, а главный резерв - поднять долю выигранных переговоров с '+IN.win+' до 25 из 100.'
+    : '<strong>Вывод:</strong> при этих настройках рекламный вход тянет цель. Проверь запас сделок справа - хватает ли живой работы в воронке.';
+  $('s_kpis').innerHTML=
+    kpi('Нужно держать в работе',Math.round(needStock)+' сд','столько живых сделок кормят план при цикле '+IN.cycle+' дней')+
+    kpi('Сейчас в работе',stockCover===null?'-':pct(stockCover),stockCover===null?'введи число из Bitrix':IN.stock+' из '+Math.round(needStock)+' нужных',stockCover===null?'':(stockCover>=100?'good':'bad'));
+  $('s_note').innerHTML = stockCover===null
+    ? 'Введи количество открытых сделок из Bitrix - без него на вопрос «выполним ли план» ответа нет.'
+    : (stockCover>=100
+      ? 'Сделок формально хватает. Но посчитаны все подряд - в том числе зависшие. Смотри блок менеджеров: там видно, сколько сделок ждут дожима.'
+      : '<strong>Сделок в работе не хватает: '+pct(stockCover)+' от нужного.</strong> Недостающие появятся либо из новых заявок (деньги от них - через ~1,5 месяца), либо из оживления зависших - это быстрее.');
+
+  lastNeedWon=needWon;
+  updateMgrs();
+}
+
+/* ---- менеджеры ---- */
+function mgrPlanText(m,o){
+  return 'План: '+m.name+' - месяц\n'+
+    '1. Выручка: '+mln(o.rev)+' (доля '+m.share+'% от плана отдела '+mln(IN.plan)+')\n'+
+    '2. Успешных сделок: '+o.deals+' шт при среднем чеке '+rub(m.check)+'\n'+
+    '3. Отправить расчётов (КП): '+o.kpW+' в неделю ('+o.kpM+' за месяц)\n'+
+    '4. Звонков: '+o.callsD+' в день\n'+
+    '5. Дожим недели: обзвонить '+o.decW+' сделок «Принимают решение» + вернуть в работу '+o.dolgW+' сделок «Долгострой»\n'+
+    '6. Разобрать своих зависших «КП отправлено»: '+o.kpStale+' за месяц\n'+
+    'Правила: первый ответ клиенту - до 1 часа; три касания (через 2-3 дня сменить формулировку, через 3-4 дня сменить канал, дальше - «Связаться позже» с датой); у каждого обещания - конкретная дата.\n'+
+    'Основа: средний чек отдела 268 тыс (персонального факта нет - уточнить по выгрузке), стадии - снимок Bitrix 07.08.2026, дожимные квоты - пропорционально доле плана.';
+}
+var lastNeedWon=0;
+function computeMgr(m){
+  var rev=IN.plan*m.share/100;
+  var deals=m.check>0?ceil1(rev*1e6/m.check):0;
+  var kpM=ceil1(deals*IN.kp2d);
+  return {
+    rev:rev, deals:deals, kpM:kpM,
+    kpW:ceil1(kpM/4.33),
+    callsD:ceil1(kpM*IN.c2kp/IN.mdays),
+    decW:Math.ceil(STAGES.decision*m.share/100),
+    dolgW:Math.ceil(STAGES.dolg*m.share/100/4),
+    kpStale:Math.ceil(STAGES.kp*m.share/100)
+  };
+}
+function poHTML(o){
+  return '<div class="po-line"><span>Выручка за месяц</span><b>'+mln(o.rev)+'</b></div>'+
+    '<div class="po-line"><span>Успешных сделок</span><b>'+o.deals+' шт</b></div>'+
+    '<div class="po-line"><span>Расчётов (КП) в неделю</span><b>'+o.kpW+'</b></div>'+
+    '<div class="po-line"><span>Звонков в день</span><b>'+o.callsD+'</b></div>'+
+    '<div class="po-line"><span>Дожим недели: «Принимают решение»</span><b>'+o.decW+' сд</b></div>'+
+    '<div class="po-line"><span>Вернуть из «Долгостроя» за неделю</span><b>'+o.dolgW+' сд</b></div>'+
+    '<div class="po-line"><span>Разобрать зависших КП за месяц</span><b>'+o.kpStale+' сд</b></div>';
+}
+function buildMgrs(){
+  $('mgr_cards').innerHTML=MGRS.map(function(m,i){
+    return '<div class="mgr'+(m.on?'':' off')+'">'+
+      '<div class="mgr-head"><h4>'+m.name+'</h4><label class="toggle" title="Включить в план"><input type="checkbox" data-t="'+i+'"'+(m.on?' checked':'')+'><i></i></label></div>'+
+      '<div class="role">'+m.role+' · открытых сделок 07.08: '+(m.open===null?'нет данных':m.open)+'</div>'+
+      '<div class="m-ctl"><span>Доля плана</span><span style="display:flex;align-items:center;gap:10px;flex:1;max-width:200px"><input type="range" data-s="'+i+'" min="0" max="40" step="1" value="'+m.share+'" aria-label="Доля плана '+m.name+', процентов" style="flex:1"><b style="min-width:44px;text-align:right" data-slbl="'+i+'">'+m.share+'%</b></span></div>'+
+      '<div class="m-ctl"><span>Средний чек, ₽ <span class="term" tabindex="0" data-tip="Персонального среднего чека по менеджерам в выгрузках нет. По умолчанию стоит средний по отделу - 268 тысяч. Впиши реальный чек менеджера, когда ДАТА сделает выгрузку.">(прикидка)</span></span><input type="number" data-c="'+i+'" min="50000" step="5000" value="'+m.check+'" aria-label="Средний чек '+m.name+'"></div>'+
+      (m.on
+        ?'<div class="plan-out" data-po="'+i+'"></div><div style="margin-top:12px"><button class="btn" data-copy="'+i+'">Скопировать план для Bitrix</button></div>'
+        :'<p class="note" style="margin-top:10px">Не входит в план этого месяца.</p>')+
+      '<p class="note" style="margin-top:12px;font-size:12.5px">'+m.note+'</p>'+
+    '</div>';
+  }).join('');
+}
+function updateMgrs(){
+  var shareSum=0, revSum=0, dealsSum=0;
+  MGRS.forEach(function(m,i){
+    m._out=computeMgr(m);
+    if(m.on){shareSum+=m.share; revSum+=m._out.rev; dealsSum+=m._out.deals;}
+    var lb=document.querySelector('[data-slbl="'+i+'"]'); if(lb)lb.textContent=m.share+'%';
+    var po=document.querySelector('[data-po="'+i+'"]'); if(po)po.innerHTML=poHTML(m._out);
+  });
+  $('m_totals').innerHTML=
+    kpi('Роздано долей',pct(shareSum),shareSum===100?'ровно весь план':'должно быть 100%',shareSum===100?'good':'warn')+
+    kpi('Сумма планов менеджеров',mln(revSum),'из цели '+mln(IN.plan))+
+    kpi('Успешных сделок отдела',dealsSum+' шт','для сравнения: чисто через рекламу нужно '+n1(lastNeedWon));
+  $('m_check').innerHTML = shareSum===100
+    ? 'Доли сходятся: весь план роздан. Дожимные квоты считаются от снимка Bitrix 07.08.2026 (207 зависших КП, 55 «Принимают решение», 103 «Долгострой» по отделу) пропорционально доле - при раздаче сверь с реальными сделками каждого.'
+    : '<strong>Роздано '+pct(shareSum)+' плана вместо 100%.</strong> Подкрути доли - иначе '+(shareSum<100?'часть плана ничья и её никто не сделает':'менеджерам роздано больше, чем нужно')+'.';
+  $('m_foot').innerHTML='<strong>Нормативы честности:</strong> первый ответ клиенту - до 1 часа (сейчас в среднем ~6 часов - есть куда расти); «звонков на КП» и «КП на продажу» - прикидки Оли, факта в выгрузках нет: телефония Bitrix ещё не подключена к аналитике. Квоты дожима - верхняя граница: списки «Долгостроя» и зависших КП могут пересекаться.';
+}
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset.s!==undefined){MGRS[+t.dataset.s].share=+t.value; updateMgrs();}
+  if(t.dataset.c!==undefined){MGRS[+t.dataset.c].check=+t.value; updateMgrs();}
+});
+document.addEventListener('change',function(e){
+  var t=e.target;
+  if(t.dataset.t!==undefined){MGRS[+t.dataset.t].on=t.checked; buildMgrs(); updateMgrs();}
+});
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-copy]'); if(!b)return;
+  var m=MGRS[+b.dataset.copy];
+  var txt=mgrPlanText(m,m._out);
+  function ok(){var t=b.textContent;b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=t},1500)}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(ok,function(){prompt('Скопируй текст плана:',txt)})}
+  else prompt('Скопируй текст плана:',txt);
+});
+
+/* ---- откуда цифры ---- */
+$('src_body').innerHTML=[
+  ['Цель 15 млн в месяц','магазины + опт','g','Черновик собственника от 10.07.2026. Станет планом только после выгрузки оплат из 1С'],
+  ['Покупает 9 из 100','доля выигранных переговоров','d','Аудит воронки Bitrix, направление Лофт, 545 закрытых сделок (09.08.2026)'],
+  ['Средний чек 268 тыс','по отделу','d','Тот же аудит 09.08.2026. Персонального чека по менеджерам в выгрузках нет'],
+  ['Цена заявки 3 160 ₽','реклама Лофт','d','Тот же аудит 09.08.2026'],
+  ['Сделка идёт 46 дней','в среднем','d','Тот же аудит 09.08.2026. Среднее без распределения - бывают сильно дольше'],
+  ['Зависшие стадии: 207 КП · 55 решают · 103 долгострой','по отделу','d','Снимок Bitrix (rop.json) от 07.08.2026. Деньги в этих сделках - к сверке ДАТОЙ'],
+  ['Открытых сделок: Лакомова 119 · Маслова 102 · Кубанова 6','по менеджерам','d','Тот же снимок 07.08.2026. По Шура-Бура, Платоновой, Лысановой разбивки в снимке нет'],
+  ['Настоящих клиентов 55 из 100 заявок','','g','Прикидка из исходного калькулятора, факта нет'],
+  ['Звонков на КП, КП на продажу','нормативы конфигуратора','g','Прикидка Оли: телефония не подключена к аналитике, факта нет'],
+  ['Первый ответ ~6 часов','скорость реакции','g','Оценка по снимку 30.06.2026, требует перепроверки. Цель - до 1 часа'],
+  ['Средний чек по менеджерам','','x','Нет в выгрузках. Заказать ДАТЕ: median WON по менеджеру за 6 месяцев'],
+  ['Звонков в день по менеджерам','','x','Нет: в выгрузке 193 звонка за 4 месяца без разбивки. Ждёт подключения телефонии'],
+  ['Потолок производства','','x','Запросить у производства: сколько ₽/мес выпускаем']
+].map(function(r){
+  var tag=r[2]==='d'?'<span class="tag d">ФАКТ</span>':r[2]==='g'?'<span class="tag g">ПРИКИДКА</span>':'<span class="tag x">НЕТ ЦИФРЫ</span>';
+  return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+tag+'</td><td>'+r[3]+'</td></tr>';
+}).join('');
+
+SLIDERS.forEach(function(k){
+  $(k).addEventListener('input',function(e){ IN[k]=+e.target.value; render(); });
+});
+$('presets').innerHTML=PRESETS.map(function(p,i){return '<button class="chip" data-i="'+i+'">'+p.n+'</button>'}).join('');
+$('presets').addEventListener('click',function(e){
+  var b=e.target.closest('.chip'); if(!b)return;
+  var p=PRESETS[+b.dataset.i];
+  Object.keys(p.v).forEach(function(k){IN[k]=p.v[k]});
+  document.querySelectorAll('#presets .chip').forEach(function(c){c.classList.toggle('on',c===b)});
+  render();
+});
+buildMgrs();
+render();
+})();
+</script>
+</body>
+</html>

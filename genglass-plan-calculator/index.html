@@ -6,151 +6,183 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
-  --bg:#0a0a0a; --surface:#171717; --ink:#ffffff; --ink2:#d4d4d4; --muted:#8a8a8a;
-  --blue:#60a5fa; --blue-soft:#93c5fd; --em:#34d399; --rose:#fb7185;
-  --w5:rgba(255,255,255,.05); --w10:rgba(255,255,255,.1);
-  --card-grad:linear-gradient(225deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.05) 50%,rgba(255,255,255,0) 100%);
-  --border-grad:linear-gradient(225deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.2) 50%,rgba(255,255,255,0) 100%);
+  --bg:#0a0a0a; --surface:#151515; --ink:#ffffff; --ink2:#d4d4d4; --muted:#8f8f8f;
+  --brass:#f5b33c; --ok:#2fd98a; --bad:#ff5a5f; --bone:#e7e2d6;
+  --seg-r1:#f5b33c; --seg-r2:#ee7ba8; --seg-r3:#e7e2d6;
+  --seg-o1:#4cc9f0; --seg-o2:#2e6fd9;
+  --seg-x1:#a79e8e; --seg-x2:#7a7365;
+  --w5:rgba(255,255,255,.05); --w8:rgba(255,255,255,.08); --w10:rgba(255,255,255,.1);
+  --mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:12px;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  font-family:"Inter Tight",Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
 }
-body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.03;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M48 0H0v48' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");
-}
-.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px 96px}
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 clamp(16px,2.5vw,32px) 104px}
 h1,h2,h3{margin:0;text-wrap:balance}
-.cap{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.cap.blue{color:var(--blue)}
+.cap{font-size:12.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.cap.ac{color:var(--brass)}
 nav{
   position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  background:rgba(10,10,10,.72);border-bottom:1px solid var(--w10);
+  background:rgba(10,10,10,.8);border-bottom:1px solid var(--w10);
 }
-.nav-in{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.mark{font-weight:700;letter-spacing:-.025em;font-size:16px}
-.mark span{color:var(--blue)}
+.nav-gauge{position:absolute;left:0;bottom:-1px;height:3px;background:var(--bone);transition:width .3s ease-out;max-width:100%}
+.nav-in{max-width:1280px;margin:0 auto;padding:13px clamp(16px,2.5vw,32px);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.mark{font-weight:700;letter-spacing:-.025em;font-size:17px}
+.mark span{color:var(--brass)}
+.nav-cover{
+  display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:14px;color:var(--ink2);
+  background:var(--w5);border:1px solid var(--w10);border-radius:var(--r-sm);padding:6px 13px;white-space:nowrap;
+}
+.nav-cover b{font-weight:600}
+.nav-cover b.good{color:var(--ok)}.nav-cover b.warn{color:var(--brass)}.nav-cover b.bone{color:var(--bone)}
 .nav-links{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
 .nav-links a{
-  color:var(--ink2);text-decoration:none;font-size:13px;font-weight:500;
-  padding:7px 14px;border-radius:9999px;background:var(--w5);border:1px solid transparent;
+  color:var(--ink2);text-decoration:none;font-size:13.5px;font-weight:500;
+  padding:8px 15px;border-radius:9999px;background:var(--w5);border:1px solid transparent;
   transition:.2s ease-out;
 }
-.nav-links a:hover{border-color:var(--w10);color:var(--ink);transform:translateY(-1px)}
-.nav-links a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-header.hero{padding:72px 0 48px}
-.hero h1{font-size:clamp(38px,6vw,72px);font-weight:700;letter-spacing:-.05em;line-height:1.02;margin:14px 0 18px}
-.hero p.dek{color:var(--ink2);max-width:62ch;margin:0 0 22px}
-.pills{display:flex;gap:8px;flex-wrap:wrap}
-.pill{
-  display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;letter-spacing:.05em;
-  text-transform:uppercase;padding:6px 12px;border-radius:9999px;white-space:nowrap;
-}
-.pill.b{background:rgba(96,165,250,.2);color:var(--blue-soft)}
-.pill.e{background:rgba(52,211,153,.16);color:var(--em)}
-.pill.r{background:rgba(251,113,133,.16);color:var(--rose)}
-.pill.n{background:var(--w5);color:var(--ink2)}
-section{padding-top:64px}
-.sec-head{margin-bottom:24px;max-width:70ch}
-.sec-head h2{font-size:clamp(26px,3.4vw,48px);font-weight:600;letter-spacing:-.025em;margin:8px 0 10px}
-.sec-head p{color:var(--muted);margin:0;font-size:14.5px}
-.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:24px}
+.nav-links a:hover{border-color:var(--w10);color:var(--ink)}
+.nav-links a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+header.hero{padding:40px 0 24px}
+.hero h1{font-size:clamp(32px,3.4vw,52px);font-weight:700;letter-spacing:-.04em;line-height:1.02;margin:12px 0 10px}
+.hero p.dek{color:var(--ink2);max-width:68ch;margin:0;font-size:18px;line-height:1.5}
+section{padding-top:clamp(56px,6vw,88px)}
+section.first{padding-top:24px}
+.sec-head{margin-bottom:24px;max-width:72ch}
+.sec-head h2{font-size:clamp(26px,2.4vw,40px);font-weight:600;letter-spacing:-.025em;margin:8px 0 10px;line-height:1.08}
+.sec-head p{color:var(--muted);margin:0;font-size:15.5px}
+.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
 .card{
-  position:relative;background:var(--card-grad),var(--surface);
-  border-radius:24px;padding:26px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  position:relative;background:var(--surface);border:1px solid var(--w8);
+  border-radius:var(--r-md);padding:clamp(20px,2vw,28px);
 }
-.card::before{
-  content:"";position:absolute;inset:0;border-radius:24px;padding:1px;
-  background:var(--border-grad);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
-}
-.card h3{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-bottom:4px}
-.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 20px;line-height:1.5}
+.card h3{font-size:20px;font-weight:600;letter-spacing:-.01em;margin-bottom:5px}
+.card .sub{font-size:14px;color:var(--muted);margin:0 0 22px;line-height:1.5}
 .c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
 @media(max-width:960px){.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
-.ctl{margin-bottom:18px}
-.ctl:last-child{margin-bottom:0}
-.ctl .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px}
-.ctl label{font-size:13px;color:var(--ink2);font-weight:500}
-.ctl .hint{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:1px}
-.val{
-  font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;color:var(--ink);
-  background:var(--w5);border:1px solid var(--w10);padding:2px 10px;border-radius:8px;white-space:nowrap;
+/* -------- command block -------- */
+.command{
+  position:relative;border:1px solid rgba(245,179,60,.35);border-radius:16px;
+  padding:clamp(24px,3vw,44px);overflow:hidden;
+  background:radial-gradient(120% 140% at 12% 0%,#141311 0%,#0a0a0a 62%);
 }
+.command::after{
+  content:"";position:absolute;top:-40%;right:-12%;width:56%;aspect-ratio:1;pointer-events:none;
+  background:repeating-radial-gradient(circle at center,rgba(255,255,255,.028) 0 1px,transparent 1px 44px);
+}
+.cmd-top{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.cmd-main{flex:1 1 480px;min-width:0}
+.cmd-side{flex:0 1 340px;min-width:280px}
+.cmd-over{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.big-cover{
+  font-size:clamp(84px,10.5vw,168px);font-weight:700;letter-spacing:-.055em;line-height:.9;
+  margin:14px 0 12px;color:var(--bone);
+}
+.big-cover .pcent{font-size:.38em;font-weight:600;color:var(--muted);letter-spacing:-.02em}
+.big-cover.good{color:var(--ok)}.big-cover.warn{color:var(--brass)}.big-cover.bone{color:var(--bone)}
+.cover-sub{font-size:18px;color:var(--ink2);margin:0;max-width:60ch;line-height:1.5}
+.cover-sub strong{color:var(--ink)}
+.verdict{font-size:15px;color:var(--ink2);margin:26px 0 0;line-height:1.55;border-top:1px solid var(--w8);padding-top:18px;max-width:110ch}
+.ctl{margin-bottom:24px}
+.ctl:last-child{margin-bottom:0}
+.ctl .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.ctl label{font-size:15.5px;color:var(--ink2);font-weight:500;line-height:1.35}
+.ctl .hint{display:block;font-size:13px;color:var(--muted);font-weight:400;margin-top:2px;line-height:1.45}
+.val{
+  font-size:16px;font-weight:600;color:var(--ink);
+  background:var(--w5);border:1px solid var(--w10);padding:3px 12px;border-radius:var(--r-sm);white-space:nowrap;
+}
+.val.hyp{border-bottom:2px dotted rgba(255,255,255,.45)}
+.val.dat{border-bottom:2px solid rgba(47,217,138,.55)}
 input[type=range]{
-  -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:9999px;
-  background:var(--w10);outline:none;margin:6px 0 0;cursor:pointer;
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:9999px;
+  background:var(--w10);outline:none;margin:7px 0 0;cursor:pointer;
 }
 input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--blue);
-  border:3px solid #0f1420;box-shadow:0 0 0 1px rgba(96,165,250,.5);cursor:pointer;
+  -webkit-appearance:none;width:21px;height:21px;border-radius:50%;background:var(--brass);
+  border:3px solid #1a1408;box-shadow:0 0 0 1px rgba(245,179,60,.5);cursor:pointer;
 }
-input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--blue);border:3px solid #0f1420;cursor:pointer}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+input[type=range]::-moz-range-thumb{width:21px;height:21px;border-radius:50%;background:var(--brass);border:3px solid #1a1408;cursor:pointer}
+.chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
 .chip{
-  font:inherit;font-size:12px;font-weight:500;color:var(--ink2);cursor:pointer;
-  background:var(--w5);border:1px solid var(--w10);border-radius:9999px;padding:7px 13px;
-  transition:.2s ease-out;
+  font:inherit;font-size:13.5px;font-weight:500;color:var(--ink2);cursor:pointer;
+  background:var(--w5);border:1px solid var(--w10);border-radius:var(--r-sm);padding:8px 14px;
+  transition:.15s ease-out;
 }
-.chip:hover{color:var(--ink);border-color:rgba(96,165,250,.5);transform:translateY(-1px)}
-.chip.on{background:rgba(96,165,250,.2);color:var(--blue-soft);border-color:rgba(96,165,250,.5)}
+.chip:hover{color:var(--ink);border-color:rgba(245,179,60,.5)}
+.chip.on{background:rgba(245,179,60,.16);color:var(--brass);border-color:rgba(245,179,60,.5)}
 .kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:640px){.kgrid{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:var(--w5);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:15px 16px;min-width:0}
-.kpi .k{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.kpi .v{font-size:clamp(19px,2vw,24px);font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.05}
-.kpi .u{font-size:11.5px;color:var(--muted);margin-top:5px}
-.kpi.hero-k{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.3)}
-.kpi.hero-k .v{color:var(--blue-soft)}
-.kpi .v.good{color:var(--em)}.kpi .v.bad{color:var(--rose)}.kpi .v.blue{color:var(--blue-soft)}
-.track{margin-top:22px}
-.track .t-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
-.bar{position:relative;height:30px;background:var(--w5);border-radius:9999px;overflow:hidden}
-.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:9999px;background:linear-gradient(90deg,#3b82f6,var(--blue));transition:width .5s ease-out}
-.bar .fill.em{background:linear-gradient(90deg,#10b981,var(--em))}
-.goal{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.85}
-.goal::after{content:attr(data-l);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
-.goal.cap-line{background:var(--rose);opacity:.9}
-.goal.cap-line::after{color:var(--rose);top:auto;bottom:-20px}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
-.legend span{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)}
-.dot{width:9px;height:9px;border-radius:50%}
-.stack{display:flex;height:34px;border-radius:9999px;overflow:hidden;background:var(--w5);margin-top:6px}
-.stack div{height:100%;min-width:0;transition:width .5s ease-out}
-.srow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px}
+.kpi{background:var(--w5);border:1px solid var(--w8);border-radius:var(--r-sm);padding:16px 18px;min-width:0}
+.kpi .k{font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.kpi .v{font-size:clamp(24px,2.2vw,32px);font-weight:700;letter-spacing:-.03em;line-height:1.05}
+.kpi .u{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.kpi.hero-k{background:rgba(245,179,60,.1);border-color:rgba(245,179,60,.3)}
+.kpi.hero-k .v{color:var(--brass)}
+.kpi .v.good{color:var(--ok)}.kpi .v.bad{color:var(--bad)}
+.cmd-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px}
+@media(max-width:960px){.cmd-kpis{grid-template-columns:repeat(2,1fr)}}
+.track{margin-top:24px}
+.t-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:9px}
+.t-row .num{font-family:var(--mono);font-size:12.5px}
+.bar{position:relative;height:32px;background:var(--w5);border-radius:var(--r-sm);overflow:hidden}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b97f18,var(--brass));transition:width .3s ease-out}
+.bar .fill.em{background:linear-gradient(90deg,#149a5c,var(--ok))}
+.goal{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.9}
+.goal::after{content:attr(data-l);position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+.goal.cap-line{background:var(--bad)}
+.goal.cap-line::after{color:var(--bad);top:auto;bottom:-22px}
+.legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.legend .lg{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:-6px}
+.legend span.li{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink2)}
+.dot{width:12px;height:12px;border-radius:3px;flex:none}
+.stack{display:flex;gap:2px;height:44px;border-radius:var(--r-sm);overflow:hidden;background:var(--w5)}
+.stack div{height:100%;min-width:2px;transition:width .14s ease-out}
+.groups{display:flex;gap:2px;margin-top:7px}
+.groups span{
+  display:block;border-top:2px solid;padding-top:5px;min-width:0;overflow:hidden;
+  font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;
+}
+.srow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:15px}
 .srow:last-child{border-bottom:none}
-.srow .l{color:var(--ink2);display:flex;align-items:center;gap:9px;min-width:0}
-.srow .n{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
-.srow.total{border-top:1px solid var(--w10);margin-top:4px;padding-top:13px;font-size:15px}
+.srow .l{color:var(--ink2);display:flex;align-items:center;gap:10px;min-width:0}
+.srow .n{font-weight:600;white-space:nowrap}
+.srow.total{border-top:1px solid var(--w10);margin-top:4px;padding-top:14px;font-size:16px}
 .srow.total .l{color:var(--ink);font-weight:600}
-.f-step{display:grid;grid-template-columns:86px 1fr 84px;gap:12px;align-items:center;margin-bottom:10px}
-.f-step .fl{font-size:12.5px;color:var(--ink2)}
-.f-step .fv{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
-.fbar{height:20px;background:var(--w5);border-radius:9999px;overflow:hidden}
-.fbar span{display:block;height:100%;border-radius:9999px;background:linear-gradient(90deg,#3b82f6,var(--blue-soft));transition:width .5s ease-out}
-.note{font-size:12.5px;color:var(--muted);margin:16px 0 0;line-height:1.55}
+.f-step{display:grid;grid-template-columns:86px 1fr 84px;gap:12px;align-items:center;margin-bottom:11px}
+.f-step .fl{font-size:14px;color:var(--ink2)}
+.f-step .fv{font-size:14.5px;font-weight:600;text-align:right}
+.fbar{height:22px;background:var(--w5);border-radius:var(--r-sm);overflow:hidden}
+.fbar span{display:block;height:100%;background:linear-gradient(90deg,#b97f18,var(--brass));transition:width .3s ease-out}
+.note{font-size:14px;color:var(--muted);margin:18px 0 0;line-height:1.6}
 .note strong{color:var(--ink2)}
-.note.alert{color:var(--rose)}
-.note.alert strong{color:var(--rose)}
-table.data{width:100%;border-collapse:collapse;font-size:13.5px}
-table.data th,table.data td{text-align:left;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top}
-table.data th{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.pills{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;letter-spacing:.05em;
+  text-transform:uppercase;padding:7px 13px;border-radius:var(--r-sm);white-space:nowrap;
+}
+.pill.b{background:rgba(245,179,60,.16);color:var(--brass)}
+.pill.r{background:rgba(255,90,95,.14);color:var(--bad)}
+.pill.n{background:var(--w5);color:var(--ink2)}
+table.data{width:100%;border-collapse:collapse;font-size:14.5px}
+table.data th,table.data td{text-align:left;padding:12px 13px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top}
+table.data th{font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 table.data td{color:var(--ink2)}
 table.data td:first-child{color:var(--ink);font-weight:500}
 .tbl-scroll{overflow-x:auto}
-.tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;padding:2px 8px;border-radius:6px;white-space:nowrap}
-.tag.d{background:rgba(52,211,153,.16);color:var(--em)}
-.tag.g{background:rgba(251,113,133,.16);color:var(--rose)}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:var(--r-sm);white-space:nowrap}
+.tag.d{background:rgba(47,217,138,.14);color:var(--ok)}
+.tag.g{background:rgba(255,90,95,.14);color:var(--bad)}
 .tag.x{background:var(--w10);color:var(--ink2)}
-footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-.fade{animation:fadeSlideIn .8s ease-out both}
-@keyframes fadeSlideIn{from{opacity:0;transform:translateY(30px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
-@media(prefers-reduced-motion:reduce){.fade{animation:none}.bar .fill,.stack div,.fbar span,.chip,.nav-links a{transition:none}}
+footer{margin-top:104px;padding-top:24px;border-top:1px solid var(--w10);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+@media(prefers-reduced-motion:reduce){.bar .fill,.stack div,.fbar span,.chip,.nav-links a,.nav-gauge{transition:none}}
+@media(max-width:640px){.command{padding:22px}.nav-links{display:none}.big-cover{font-size:clamp(64px,17vw,96px)}}
 </style>
 </head>
 <body>
@@ -158,98 +190,88 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
 <nav>
   <div class="nav-in">
     <div class="mark">GEN<span>GLASS</span> · План-Радар</div>
+    <div class="nav-cover" aria-live="polite">покрытие <b id="nav_cover">-</b><span id="nav_sub"></span></div>
     <div class="nav-links">
+      <a href="#goal">Цель и покрытие</a>
+      <a href="#builder">Декомпозиция</a>
       <a href="#tracker">Трекер месяца</a>
-      <a href="#builder">Конструктор покрытия</a>
-      <a href="#sources">Данные и допущения</a>
+      <a href="#sources">Данные</a>
     </div>
   </div>
+  <div class="nav-gauge" id="nav_gauge" style="width:0"></div>
 </nav>
 
 <div class="wrap">
 
-<header class="hero fade">
-  <span class="cap blue">Отдел продаж GENGLASS · Опт и Розница · без маркетплейсов</span>
+<header class="hero">
+  <span class="cap ac">Отдел продаж GENGLASS · Опт и Розница · без маркетплейсов</span>
   <h1>Калькулятор выполнения плана</h1>
-  <p class="dek">Два инструмента в одном: трекер темпа по факту месяца и конструктор покрытия плана по источникам выручки. Цифры воронки взяты из аудита пайплайна Bitrix по направлению Лофт (штамп 09.08.2026, 545 решённых сделок) - а план охватывает всю розницу и опт, так что конверсии переносятся на весь план с оговоркой. Цель 15 млн/мес - черновик Богдана от 10.07.2026, до выгрузки 1С остаётся гипотезой.</p>
-  <div class="pills">
-    <span class="pill b">Цель 15 млн/мес · [ГИПОТЕЗА]</span>
-    <span class="pill n">Win-rate 9% факт → 25% цель</span>
-    <span class="pill n">Средний чек 268к → 300к+</span>
-    <span class="pill n">Цикл сделки 46 дней</span>
-    <span class="pill r">Baseline 1С не выгружен</span>
-    <span class="pill r">Конверсии - только Лофт</span>
-  </div>
+  <p class="dek">Двигай ползунки источников - покрытие плана пересчитывается сразу. Контекст, источники цифр и оговорки - внизу страницы.</p>
 </header>
 
-<!-- ===================== TRACKER ===================== -->
-<section id="tracker" class="fade">
-  <div class="sec-head">
-    <span class="cap blue">01 · Ход месяца</span>
-    <h2>Трекер выполнения</h2>
-    <p>Вводишь план, факт на сегодня и рабочие дни - получаешь темп, прогноз на конец месяца и требуемую дневную выручку. Считает по рабочим дням линейно: закрытия в конце месяца обычно гуще, поэтому первые недели трекер строже реальности.</p>
-  </div>
-  <div class="bento">
-    <div class="card c4">
-      <h3>Вводные месяца</h3>
-      <p class="sub">План - на розницу и опт вместе (цифра плана - [ГИПОТЕЗА] до утверждения).</p>
-      <div class="ctl"><div class="row"><label>План на месяц</label><span class="val" id="v_plan"></span></div><input type="range" id="plan" min="5" max="25" step="0.5" aria-label="План на месяц, млн рублей"></div>
-      <div class="ctl"><div class="row"><label>Факт на сегодня<span class="hint">факт = поступившие оплаты, не отгрузка и не сделки в работе (определение зафиксировать с РОПом)</span></label><span class="val" id="v_fact"></span></div><input type="range" id="fact" min="0" max="25" step="0.1" aria-label="Факт на сегодня, млн рублей"></div>
-      <div class="ctl"><div class="row"><label>Рабочих дней в месяце</label><span class="val" id="v_dtot"></span></div><input type="range" id="dtot" min="15" max="27" step="1" aria-label="Рабочих дней в месяце"></div>
-      <div class="ctl"><div class="row"><label>Прошло рабочих дней</label><span class="val" id="v_dpass"></span></div><input type="range" id="dpass" min="0" max="27" step="1" aria-label="Прошло рабочих дней"></div>
-    </div>
-    <div class="card c8">
-      <h3>Положение на сегодня</h3>
-      <p class="sub" id="t_status"></p>
-      <div class="kgrid" id="t_kpis"></div>
-      <div class="track">
-        <div class="t-row"><span>Факт против графика</span><span id="t_barcap"></span></div>
-        <div class="bar" id="t_bar" style="margin-bottom:26px"></div>
-        <div class="t-row"><span>Прогноз на конец месяца при текущем темпе</span><span id="t_fcap"></span></div>
-        <div class="bar" id="t_fbar"></div>
-        <div class="legend">
-          <span><i class="dot" style="background:var(--blue)"></i>факт / прогноз</span>
-          <span><i class="dot" style="background:var(--ink);opacity:.85"></i>метка плана и графика</span>
+<!-- ===================== GOAL + COVERAGE ===================== -->
+<section id="goal" class="first">
+  <div class="command">
+    <div class="cmd-top">
+      <div class="cmd-main">
+        <div class="cmd-over">
+          <span class="cap ac">Покрытие плана · с резервами (верхняя граница)</span>
+          <span class="pill n">цель 15 млн · [ГИПОТЕЗА]</span>
+        </div>
+        <div class="big-cover bone" id="big_cover" aria-live="polite">0<span class="pcent">%</span></div>
+        <p class="cover-sub" id="cover_sub"></p>
+      </div>
+      <div class="cmd-side">
+        <div class="ctl"><div class="row"><label>План на месяц<span class="hint">розница и опт вместе · черновик Богдана от 10.07.2026</span></label><span class="val hyp" id="v_plan"></span></div><input type="range" id="plan" min="5" max="25" step="0.5" aria-label="План на месяц, млн рублей"></div>
+        <div style="margin-top:22px">
+          <div class="cap" style="margin-bottom:10px">Сценарии</div>
+          <div class="chips" id="presets"></div>
         </div>
       </div>
     </div>
+    <div class="track">
+      <div class="t-row"><span>Источники против плана</span><span class="num" id="b_cap"></span></div>
+      <div style="position:relative;padding-top:24px;padding-bottom:2px">
+        <div class="stack" id="b_stack"></div>
+        <div id="b_goal"></div>
+      </div>
+      <div class="groups" id="b_groups"></div>
+      <div class="legend" id="b_legend"></div>
+    </div>
+    <div class="cmd-kpis" id="b_kpis"></div>
+    <p class="verdict" id="b_verdict"></p>
   </div>
 </section>
 
 <!-- ===================== BUILDER ===================== -->
-<section id="builder" class="fade">
+<section id="builder">
   <div class="sec-head">
-    <span class="cap blue">02 · Из чего складывается план</span>
-    <h2>Конструктор покрытия</h2>
-    <p>Пять источников выручки плюс два разовых резерва пайплайна. Розничный вход считается из воронки платной рекламы (органика, повторные и прямые сюда не входят - у Романа «вход» шире), остальное - вилками из плана. Смотри, тянет ли комбинация план из блока выше и не упирается ли в потолок производства.</p>
+    <span class="cap ac">02 · Из чего складывается план</span>
+    <h2>Декомпозиция по источникам</h2>
+    <p>Пять источников выручки плюс два разовых резерва пайплайна. Розничный вход считается из воронки платной рекламы, остальное - вилками из плана. Покрытие сверху пересчитывается на лету.</p>
   </div>
   <div class="bento">
     <div class="card c4">
       <h3>Розница · вход (воронка рекламы)</h3>
       <p class="sub">Единственный источник с полной математикой воронки. Все конверсии - направление Лофт.</p>
-      <div class="ctl"><div class="row"><label>Рекламный бюджет / мес<span class="hint">[ГИПОТЕЗА] - фактический уровень не зафиксирован</span></label><span class="val" id="v_budget"></span></div><input type="range" id="budget" min="50000" max="800000" step="10000" aria-label="Рекламный бюджет в месяц"></div>
-      <div class="ctl"><div class="row"><label>Стоимость лида (CPL)<span class="hint">[ДАННЫЕ] факт Лофт 3 160 ₽, аудит 09.08.2026</span></label><span class="val" id="v_cpl"></span></div><input type="range" id="cpl" min="1500" max="6000" step="20" aria-label="Стоимость лида"></div>
-      <div class="ctl"><div class="row"><label>Лид → квал<span class="hint">[ГИПОТЕЗА] - в выгрузке аудита факта нет</span></label><span class="val" id="v_crq"></span></div><input type="range" id="crq" min="30" max="80" step="1" aria-label="Конверсия лид в квал"></div>
-      <div class="ctl"><div class="row"><label>Win-rate (квал → продажа)<span class="hint">[ДАННЫЕ] факт 9% · цель 25% - [ГИПОТЕЗА]</span></label><span class="val" id="v_win"></span></div><input type="range" id="win" min="5" max="40" step="1" aria-label="Win-rate"></div>
-      <div class="ctl"><div class="row"><label>Средний чек<span class="hint">[ДАННЫЕ] факт 268к · цель 300к+ - [ГИПОТЕЗА]</span></label><span class="val" id="v_check"></span></div><input type="range" id="check" min="150000" max="400000" step="2000" aria-label="Средний чек"></div>
-      <div style="margin-top:20px">
-        <div class="cap" style="margin-bottom:9px">Сценарии</div>
-        <div class="chips" id="presets"></div>
-        <p class="note">Воронка при бюджете 180к и win 15% даёт вход 1,26 млн - против вилки Романа 3,5 млн (разрыв 2,8×). Чтобы вход дотянулся до 3,5 млн, нужен win ≈ 42% при текущем бюджете либо бюджет ≈ 500к при win 15%. Это главный вопрос плана: вход по мощности до 15 млн не дотягивается.</p>
-      </div>
+      <div class="ctl"><div class="row"><label>Рекламный бюджет / мес<span class="hint">[ГИПОТЕЗА] - фактический уровень не зафиксирован</span></label><span class="val hyp" id="v_budget"></span></div><input type="range" id="budget" min="50000" max="800000" step="10000" aria-label="Рекламный бюджет в месяц"></div>
+      <div class="ctl"><div class="row"><label>Стоимость лида (CPL)<span class="hint">[ДАННЫЕ] факт Лофт 3 160 ₽, аудит 09.08.2026</span></label><span class="val dat" id="v_cpl"></span></div><input type="range" id="cpl" min="1500" max="6000" step="20" aria-label="Стоимость лида"></div>
+      <div class="ctl"><div class="row"><label>Лид → квал<span class="hint">[ГИПОТЕЗА] - в выгрузке аудита факта нет</span></label><span class="val hyp" id="v_crq"></span></div><input type="range" id="crq" min="30" max="80" step="1" aria-label="Конверсия лид в квал"></div>
+      <div class="ctl"><div class="row"><label>Win-rate (квал → продажа)<span class="hint">[ДАННЫЕ] факт 9% · цель 25% - [ГИПОТЕЗА]</span></label><span class="val dat" id="v_win"></span></div><input type="range" id="win" min="5" max="40" step="1" aria-label="Win-rate"></div>
+      <div class="ctl"><div class="row"><label>Средний чек<span class="hint">[ДАННЫЕ] факт 268к · цель 300к+ - [ГИПОТЕЗА]</span></label><span class="val dat" id="v_check"></span></div><input type="range" id="check" min="150000" max="400000" step="2000" aria-label="Средний чек"></div>
     </div>
     <div class="card c4">
       <h3>Остальные источники</h3>
       <p class="sub">Вилки из прикидки Романа (худший / базовый / лучший). Всё - [ГИПОТЕЗА] до факта 1С.</p>
-      <div class="ctl"><div class="row"><label>Розница · дизайнеры<span class="hint">вилка 0-3,5 · деньги с сентября</span></label><span class="val" id="v_des"></span></div><input type="range" id="des" min="0" max="3.5" step="0.1" aria-label="Дизайнеры, млн"></div>
-      <div class="ctl"><div class="row"><label>Розница · комплектовщики<span class="hint">вилка 0,3-2,0</span></label><span class="val" id="v_komp"></span></div><input type="range" id="komp" min="0" max="2" step="0.1" aria-label="Комплектовщики, млн"></div>
-      <div class="ctl"><div class="row"><label>Опт · новинки<span class="hint">вилка 1,0-5,0</span></label><span class="val" id="v_novi"></span></div><input type="range" id="novi" min="0" max="5" step="0.1" aria-label="Опт новинки, млн"></div>
-      <div class="ctl"><div class="row"><label>Опт · дилеры<span class="hint">вилка 0,7-3,5</span></label><span class="val" id="v_dil"></span></div><input type="range" id="dil" min="0" max="3.5" step="0.1" aria-label="Опт дилеры, млн"></div>
-      <div class="ctl"><div class="row"><label>Потолок производства<span class="hint">[НЕТ ДАННЫХ] - запросить у производства (одна из 3 недостающих цифр плана). По умолчанию максимум шкалы, чтобы не выдавать выдуманный потолок за оценку</span></label><span class="val" id="v_cap"></span></div><input type="range" id="cap" min="5" max="30" step="0.5" aria-label="Потолок производства, млн"></div>
-      <div style="margin:22px 0 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
+      <div class="ctl"><div class="row"><label>Розница · дизайнеры<span class="hint">вилка 0-3,5 · деньги с сентября</span></label><span class="val hyp" id="v_des"></span></div><input type="range" id="des" min="0" max="3.5" step="0.1" aria-label="Дизайнеры, млн"></div>
+      <div class="ctl"><div class="row"><label>Розница · комплектовщики<span class="hint">вилка 0,3-2,0</span></label><span class="val hyp" id="v_komp"></span></div><input type="range" id="komp" min="0" max="2" step="0.1" aria-label="Комплектовщики, млн"></div>
+      <div class="ctl"><div class="row"><label>Опт · новинки<span class="hint">вилка 1,0-5,0</span></label><span class="val hyp" id="v_novi"></span></div><input type="range" id="novi" min="0" max="5" step="0.1" aria-label="Опт новинки, млн"></div>
+      <div class="ctl"><div class="row"><label>Опт · дилеры<span class="hint">вилка 0,7-3,5</span></label><span class="val hyp" id="v_dil"></span></div><input type="range" id="dil" min="0" max="3.5" step="0.1" aria-label="Опт дилеры, млн"></div>
+      <div class="ctl"><div class="row"><label>Потолок производства<span class="hint">[НЕТ ДАННЫХ] - запросить у производства. По умолчанию максимум шкалы, чтобы не выдавать выдуманный потолок за оценку</span></label><span class="val" id="v_cap"></span></div><input type="range" id="cap" min="5" max="30" step="0.5" aria-label="Потолок производства, млн"></div>
+      <div style="margin:24px 0 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.07)">
         <div class="cap" style="margin-bottom:12px">Разовые резервы пайплайна · верхняя граница</div>
-        <div class="ctl"><div class="row"><label>Реактивация «Долгостроя»<span class="hint">аудит 09.08: 32 сд · 21,5 млн без касания &gt;14 дн; снимок rop.json 07.08: в стадии 103 сд - фильтры сверить с ДАТОЙ</span></label><span class="val" id="v_dolg"></span></div><input type="range" id="dolg" min="0" max="30" step="1" aria-label="Процент реактивации долгостроя"></div>
-        <div class="ctl"><div class="row"><label>Дожим «КП отправлено»<span class="hint">аудит 09.08: 39 сд · 11,9 млн без касания; снимок rop.json 07.08: в стадии 207 сд - фильтры сверить с ДАТОЙ</span></label><span class="val" id="v_kp"></span></div><input type="range" id="kp" min="0" max="30" step="1" aria-label="Процент дожима КП"></div>
+        <div class="ctl"><div class="row"><label>Реактивация «Долгостроя»<span class="hint">аудит 09.08: 32 сд · 21,5 млн без касания &gt;14 дн; снимок rop.json 07.08: в стадии 103 сд - фильтры сверить с ДАТОЙ</span></label><span class="val hyp" id="v_dolg"></span></div><input type="range" id="dolg" min="0" max="30" step="1" aria-label="Процент реактивации долгостроя"></div>
+        <div class="ctl"><div class="row"><label>Дожим «КП отправлено»<span class="hint">аудит 09.08: 39 сд · 11,9 млн без касания; снимок rop.json 07.08: в стадии 207 сд - фильтры сверить с ДАТОЙ</span></label><span class="val hyp" id="v_kp"></span></div><input type="range" id="kp" min="0" max="30" step="1" aria-label="Процент дожима КП"></div>
       </div>
     </div>
     <div class="card c4">
@@ -258,35 +280,71 @@ footer{margin-top:96px;padding-top:22px;border-top:1px solid var(--w10);display:
       <div id="funnel" style="margin-bottom:4px"></div>
       <div class="kgrid" style="grid-template-columns:repeat(2,1fr);margin-top:16px" id="f_kpis"></div>
       <p class="note" id="f_note"></p>
-      <p class="note"><strong>Лаг цикла 46 дней:</strong> формула соединяет бюджет и выручку в одном месяце, в реальности сделки от сегодняшних лидов оплачиваются через ~1,5 месяца. Выручка этого месяца - от бюджета ~середины позапрошлого.</p>
+      <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
+        <div class="cap" style="margin-bottom:6px">Вклад источников</div>
+        <div id="b_rows"></div>
+      </div>
     </div>
-    <div class="card c12">
-      <h3>Покрытие плана</h3>
-      <p class="sub" id="b_verdict"></p>
-      <div class="t-row" style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:2px"><span>Источники против плана</span><span id="b_cap"></span></div>
-      <div style="position:relative;padding-top:22px;padding-bottom:20px">
-        <div class="stack" id="b_stack"></div>
-        <div id="b_goal"></div>
+  </div>
+</section>
+
+<!-- ===================== TRACKER ===================== -->
+<section id="tracker">
+  <div class="sec-head">
+    <span class="cap ac">03 · Ход месяца</span>
+    <h2>Трекер выполнения</h2>
+    <p>План берётся из блока «Цель и покрытие» выше. Вводишь факт на сегодня и рабочие дни - получаешь темп, прогноз на конец месяца и требуемую дневную выручку. Считает по рабочим дням линейно: закрытия в конце месяца обычно гуще, поэтому первые недели трекер строже реальности.</p>
+  </div>
+  <div class="bento">
+    <div class="card c4">
+      <h3>Вводные месяца</h3>
+      <p class="sub">Факт = поступившие оплаты, не отгрузка и не сделки в работе (определение зафиксировать с РОПом).</p>
+      <div class="ctl"><div class="row"><label>Факт на сегодня</label><span class="val" id="v_fact"></span></div><input type="range" id="fact" min="0" max="25" step="0.1" aria-label="Факт на сегодня, млн рублей"></div>
+      <div class="ctl"><div class="row"><label>Рабочих дней в месяце</label><span class="val" id="v_dtot"></span></div><input type="range" id="dtot" min="15" max="27" step="1" aria-label="Рабочих дней в месяце"></div>
+      <div class="ctl"><div class="row"><label>Прошло рабочих дней</label><span class="val" id="v_dpass"></span></div><input type="range" id="dpass" min="0" max="27" step="1" aria-label="Прошло рабочих дней"></div>
+    </div>
+    <div class="card c8">
+      <h3>Положение на сегодня</h3>
+      <p class="sub" id="t_status"></p>
+      <div class="kgrid" id="t_kpis"></div>
+      <div class="track">
+        <div class="t-row"><span>Факт против графика</span><span class="num" id="t_barcap"></span></div>
+        <div class="bar" id="t_bar" style="margin-bottom:28px"></div>
+        <div class="t-row"><span>Прогноз на конец месяца при текущем темпе</span><span class="num" id="t_fcap"></span></div>
+        <div class="bar" id="t_fbar"></div>
+        <div class="legend">
+          <span class="li"><i class="dot" style="background:var(--brass)"></i>факт / прогноз</span>
+          <span class="li"><i class="dot" style="background:var(--ink)"></i>метка плана и графика</span>
+        </div>
       </div>
-      <div class="legend" id="b_legend"></div>
-      <div class="bento" style="margin-top:24px;gap:12px">
-        <div class="c7" style="min-width:0"><div id="b_rows"></div></div>
-        <div class="c5"><div class="kgrid" style="grid-template-columns:repeat(2,1fr)" id="b_kpis"></div></div>
-      </div>
-      <p class="note"><strong>Что дают пресеты против цели 15 млн:</strong> «Факт воронки» - 18%, «Худший» - 16%, «Базовый по вилкам» - 62%, «Цель win 25 / чек 300к» - 69%, «Лучший + резервы» - 151%. Цель по win-rate и чеку закрывает 69% плана - остальное держится на вилках-[ГИПОТЕЗА] и разовых резервах. Единственный сценарий с покрытием &gt;100% требует все пять вилок в лучшем значении одновременно (включая дизайнеров 3,5 млн, чьи деньги - с сентября), 4,4 млн разовых - и упирается в потолок производства, цифры которого пока нет.</p>
-      <p class="note"><strong>Резервы - разовые и это верхняя граница.</strong> Долгострой и зависшие КП можно собрать один раз, в run-rate следующего месяца они не повторяются. Популяции «КП отправлено» и «Долгострой» пересекаются по смыслу (обе - зависшие сделки), доля пересечения не измерена - сумма двух резервов может двоить деньги. Суммы стадий тянутся из полей Bitrix с известными дефектами (нулевые бюджеты D07, несколько заказов в одной сделке D12), а средний чек долгостроя 21,5/32 ≈ 672к - в 2,5 раза выше среднего чека 268к и не объяснён. До сверки с ДАТОЙ резервы - [ГИПОТЕЗА].</p>
     </div>
   </div>
 </section>
 
 <!-- ===================== SOURCES ===================== -->
-<section id="sources" class="fade">
+<section id="sources">
   <div class="sec-head">
-    <span class="cap blue">03 · Protocol 9</span>
+    <span class="cap ac">04 · Protocol 9</span>
     <h2>Данные и допущения</h2>
-    <p>Каждая цифра калькулятора помечена: [ДАННЫЕ] - есть источник, [ГИПОТЕЗА] - черновик до проверки фактом, [НЕТ ДАННЫХ] - цифры не существует.</p>
+    <p>Каждая цифра калькулятора помечена: [ДАННЫЕ] - есть источник, [ГИПОТЕЗА] - черновик до проверки фактом, [НЕТ ДАННЫХ] - цифры не существует. Значения ползунков подчёркнуты по тому же принципу: пунктир - гипотеза, сплошная - данные.</p>
   </div>
   <div class="bento">
+    <div class="card c12">
+      <h3>О калькуляторе и главные оговорки</h3>
+      <p class="note" style="margin-top:10px">Два инструмента в одном: конструктор покрытия плана по источникам выручки и трекер темпа по факту месяца. Цифры воронки взяты из аудита пайплайна Bitrix по направлению Лофт (штамп 09.08.2026, 545 решённых сделок) - а план охватывает всю розницу и опт, так что конверсии переносятся на весь план с оговоркой. Цель 15 млн/мес - черновик Богдана от 10.07.2026, до выгрузки 1С остаётся гипотезой.</p>
+      <p class="note"><strong>Разрыв входа:</strong> воронка при бюджете 180к и win 15% даёт вход 1,26 млн - против вилки Романа 3,5 млн (разрыв 2,8×). Чтобы вход дотянулся до 3,5 млн, нужен win ≈ 42% при текущем бюджете либо бюджет ≈ 500к при win 15%. Это главный вопрос плана: вход по мощности до 15 млн не дотягивается.</p>
+      <p class="note"><strong>Что дают пресеты против цели 15 млн:</strong> «Факт воронки» - 18%, «Худший» - 16%, «Базовый по вилкам» - 62%, «Цель win 25 / чек 300к» - 69%, «Лучший + резервы» - 151%. Цель по win-rate и чеку закрывает 69% плана - остальное держится на вилках-[ГИПОТЕЗА] и разовых резервах. Единственный сценарий с покрытием &gt;100% требует все пять вилок в лучшем значении одновременно (включая дизайнеров 3,5 млн, чьи деньги - с сентября), 4,4 млн разовых - и упирается в потолок производства, цифры которого пока нет.</p>
+      <p class="note"><strong>Резервы - разовые и это верхняя граница.</strong> Долгострой и зависшие КП можно собрать один раз, в run-rate следующего месяца они не повторяются. Популяции «КП отправлено» и «Долгострой» пересекаются по смыслу (обе - зависшие сделки), доля пересечения не измерена - сумма двух резервов может двоить деньги. Суммы стадий тянутся из полей Bitrix с известными дефектами (нулевые бюджеты D07, несколько заказов в одной сделке D12), а средний чек долгостроя 21,5/32 ≈ 672к - в 2,5 раза выше среднего чека 268к и не объяснён. До сверки с ДАТОЙ резервы - [ГИПОТЕЗА].</p>
+      <p class="note"><strong>Лаг цикла 46 дней:</strong> формула соединяет бюджет и выручку в одном месяце, в реальности сделки от сегодняшних лидов оплачиваются через ~1,5 месяца. Выручка этого месяца - от бюджета ~середины позапрошлого.</p>
+      <div class="pills">
+        <span class="pill b">Цель 15 млн/мес · [ГИПОТЕЗА]</span>
+        <span class="pill n">Win-rate 9% факт → 25% цель</span>
+        <span class="pill n">Средний чек 268к → 300к+</span>
+        <span class="pill n">Цикл сделки 46 дней</span>
+        <span class="pill r">Baseline 1С не выгружен</span>
+        <span class="pill r">Конверсии - только Лофт</span>
+      </div>
+    </div>
     <div class="card c12">
       <div class="tbl-scroll">
       <table class="data">
@@ -345,6 +403,9 @@ function mln(n){return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFr
 function n1(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')}
 function pct(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')+'%'}
 function kpi(k,v,u,cls,vc){return '<div class="kpi '+(cls||'')+'"><div class="k">'+k+'</div><div class="v '+(vc||'')+'">'+v+'</div><div class="u">'+u+'</div></div>'}
+function seg(s){return s.stripe
+  ? 'background-color:'+s.c+';background-image:repeating-linear-gradient(45deg,rgba(10,10,10,.42) 0 3px,rgba(10,10,10,0) 3px 7px)'
+  : 'background:'+s.c}
 
 function render(){
   SLIDERS.forEach(function(k){ $(k).value=IN[k]; });
@@ -370,8 +431,8 @@ function render(){
     : monthOver
       ? (gapT<=0?'Месяц закрыт: план выполнен, '+mln(IN.fact)+' из '+mln(IN.plan)+'.':'Месяц закончился, план не закрыт: не хватило '+mln(gapT)+'.')
       : (okFc?'Темп держит план: при текущей скорости месяц закрывается с запасом '+mln(fc-IN.plan)+'.'
-        : midFc?'Темп ниже плана: при текущей скорости не хватит '+mln(IN.plan-fc)+'. Нужен дожим - смотри резервы пайплайна в блоке ниже.'
-        : 'Красная зона: прогноз '+pct(fcPct)+' плана. Смотри конструктор покрытия - откуда добирать.');
+        : midFc?'Темп ниже плана: при текущей скорости не хватит '+mln(IN.plan-fc)+'. Нужен дожим - смотри резервы пайплайна в декомпозиции.'
+        : 'Красная зона: прогноз '+pct(fcPct)+' плана. Смотри декомпозицию - откуда добирать.');
   var needKpi = monthOver
     ? kpi('Итог месяца',gapT<=0?'План закрыт':'Не закрыт',gapT<=0?'выполнено '+pct(done):'дефицит '+mln(gapT),'',gapT<=0?'good':'bad')
     : kpi('Нужный темп',mln(needDay)+'/дн',pace>0?(needDay>pace?'в '+n1(needDay/pace)+'× выше текущего':'не выше текущего темпа'):'старт месяца','',pace>0?(needDay>pace?'bad':'good'):'');
@@ -403,16 +464,16 @@ function render(){
   var vhod=deals*IN.check/1e6;
   var resDolg=21.5*IN.dolg/100, resKp=11.9*IN.kp/100;
   var srcs=[
-    {n:'Розница · вход (воронка)', v:vhod,   c:'#60a5fa'},
-    {n:'Розница · дизайнеры',      v:IN.des, c:'#93c5fd'},
-    {n:'Розница · комплектовщики', v:IN.komp,c:'#3b82f6'},
-    {n:'Опт · новинки',            v:IN.novi,c:'#34d399'},
-    {n:'Опт · дилеры',             v:IN.dil, c:'#6ee7b7'},
-    {n:'Резерв · долгострой '+IN.dolg+'%', v:resDolg, c:'#a3a3a3'},
-    {n:'Резерв · дожим КП '+IN.kp+'%',     v:resKp,   c:'#737373'}
+    {n:'Розница · вход (воронка)', v:vhod,   c:'#f5b33c', g:'Розница'},
+    {n:'Розница · дизайнеры',      v:IN.des, c:'#ee7ba8', g:'Розница'},
+    {n:'Розница · комплектовщики', v:IN.komp,c:'#e7e2d6', g:'Розница'},
+    {n:'Опт · новинки',            v:IN.novi,c:'#4cc9f0', g:'Опт'},
+    {n:'Опт · дилеры',             v:IN.dil, c:'#2e6fd9', g:'Опт'},
+    {n:'Резерв · долгострой '+IN.dolg+'%', v:resDolg, c:'#a79e8e', g:'Разовые', stripe:true},
+    {n:'Резерв · дожим КП '+IN.kp+'%',     v:resKp,   c:'#7a7365', g:'Разовые', stripe:true}
   ];
   var total=srcs.reduce(function(s,x){return s+x.v},0);
-  var retail=vhod+IN.des+IN.komp, opt=IN.novi+IN.dil, reserves=resDolg+resKp;
+  var reserves=resDolg+resKp;
   var runrate=total-reserves;
   var cover=IN.plan?total/IN.plan*100:0;
   var gap=IN.plan-total;
@@ -428,22 +489,50 @@ function render(){
     kpi('CPO по рекламе',deals>0?rub(IN.budget/deals):'-','бюджет / продажи, без ФОТ и постоянных; порог - после цифры маржи от Романа');
   $('f_note').innerHTML='Сквозная конверсия лид → продажа: <strong>'+pct(IN.crq*IN.win/100)+'</strong>. Аудит пайплайна: win-rate двигают скорость первого контакта (<15 мин), мультиканальный дожим и работа с «КП отправлено», не новые лиды.';
 
+  /* ---- coverage command block ---- */
+  var st=cover>=100?'good':cover>=85?'warn':'bone';
+  var bc=$('big_cover');
+  bc.innerHTML=(Math.round(cover*10)/10).toLocaleString('ru-RU')+'<span class="pcent">%</span>';
+  bc.className='big-cover '+st;
+  var nc=$('nav_cover');
+  nc.textContent=pct(cover);
+  nc.className=st;
+  $('nav_sub').textContent=' · '+mln(total)+' из '+mln(IN.plan);
+  var g=$('nav_gauge');
+  g.style.width=Math.min(cover,125)/125*100+'%';
+  g.style.background=st==='good'?'var(--ok)':st==='warn'?'var(--brass)':'var(--bone)';
+  $('cover_sub').innerHTML='Источники дают <strong>'+mln(total)+'</strong> против плана <strong>'+mln(IN.plan)+'</strong> - '+
+    (gap>0?'до плана не хватает <strong>'+mln(gap)+'</strong>.':'сверх плана <strong>'+mln(-gap)+'</strong>.');
+
   var smax=Math.max(total,IN.plan,capSet?IN.cap:0,0.001);
   $('b_stack').innerHTML=srcs.filter(function(s){return s.v>0.001}).map(function(s){
-    return '<div style="width:'+(s.v/smax*100)+'%;background:'+s.c+'" title="'+s.n+' · '+mln(s.v)+'"></div>';
+    return '<div style="width:'+(s.v/smax*100)+'%;'+seg(s)+'" title="'+s.n+' · '+mln(s.v)+'"></div>';
   }).join('');
-  $('b_goal').innerHTML='<div class="goal" data-l="план '+mln(IN.plan)+'" style="top:16px;bottom:16px;left:'+(IN.plan/smax*100)+'%"></div>'+
-    (capSet?'<div class="goal cap-line" data-l="потолок пр-ва '+mln(IN.cap)+'" style="top:16px;bottom:16px;left:'+(IN.cap/smax*100)+'%"></div>':'');
+  $('b_goal').innerHTML='<div class="goal" data-l="план '+mln(IN.plan)+'" style="top:18px;bottom:-40px;left:'+(IN.plan/smax*100)+'%"></div>'+
+    (capSet?'<div class="goal cap-line" data-l="потолок пр-ва '+mln(IN.cap)+'" style="top:18px;bottom:-16px;left:'+(IN.cap/smax*100)+'%"></div>':'');
   $('b_cap').textContent='сумма источников '+mln(total);
-  $('b_legend').innerHTML=srcs.map(function(s){return '<span><i class="dot" style="background:'+s.c+'"></i>'+s.n+'</span>'}).join('');
+  var GRP={'Розница':'#f5b33c','Опт':'#4cc9f0','Разовые':'#a79e8e'};
+  var gsum={};
+  srcs.forEach(function(s){gsum[s.g]=(gsum[s.g]||0)+s.v});
+  $('b_groups').innerHTML=Object.keys(GRP).filter(function(k){return gsum[k]>0.001}).map(function(k){
+    var w=gsum[k]/smax*100;
+    var lbl=w<13?n1(gsum[k]):k.toUpperCase()+' '+mln(gsum[k]);
+    return '<span style="width:'+w+'%;border-color:'+GRP[k]+'" title="'+k+' · '+mln(gsum[k])+'">'+lbl+'</span>';
+  }).join('');
+  var lastG='';
+  $('b_legend').innerHTML=srcs.map(function(s){
+    var h=(s.g!==lastG?'<span class="lg">'+s.g+'</span>':'');
+    lastG=s.g;
+    return h+'<span class="li"><i class="dot" style="'+seg(s)+'"></i>'+s.n+'</span>';
+  }).join('');
   $('b_rows').innerHTML=srcs.map(function(s){
-    return '<div class="srow"><span class="l"><i class="dot" style="background:'+s.c+'"></i>'+s.n+'</span><span class="n">'+mln(s.v)+'</span></div>';
+    return '<div class="srow"><span class="l"><i class="dot" style="'+seg(s)+'"></i>'+s.n+'</span><span class="n">'+mln(s.v)+'</span></div>';
   }).join('')+'<div class="srow total"><span class="l">Итого источники</span><span class="n">'+mln(total)+'</span></div>';
   $('b_kpis').innerHTML=
-    kpi('Покрытие плана',pct(cover),'план '+mln(IN.plan)+' · с резервами (верхняя граница)','hero-k')+
     kpi(gap>0?'Дефицит':'Запас',mln(Math.abs(gap)),gap>0?'не хватает до плана':'сверх плана','',gap>0?'bad':'good')+
     kpi('Run-rate без резервов',mln(runrate),'повторяемая часть, '+pct(IN.plan?runrate/IN.plan*100:0)+' плана','',runrate>=IN.plan?'good':'')+
-    kpi('Потолок производства',capSet?(capExceed?'Превышен':'Не упёрся'):'Не задан',capSet?(capExceed?'источники '+mln(total)+' > потолок '+mln(IN.cap)+' - комбинация не производится':'запас '+mln(IN.cap-total)+' до потолка'):'[НЕТ ДАННЫХ] - двинь слайдер, когда производство даст цифру','',capExceed?'bad':'');
+    kpi('Разовые резервы',mln(reserves),'верхняя граница, не повторяются')+
+    kpi('Потолок производства',capSet?(capExceed?'Превышен':'Не упёрся'):'Не задан',capSet?(capExceed?'источники '+mln(total)+' > потолок '+mln(IN.cap):'запас '+mln(IN.cap-total)+' до потолка'):'[НЕТ ДАННЫХ] - двинь слайдер, когда производство даст цифру','',capExceed?'bad':'');
   var verdict = gap<=0
     ? 'Выбранные допущения закрывают план (вилки и цели - [ГИПОТЕЗА]). '+(runrate>=IN.plan?'Повторяемая часть тоже покрывает план при этих допущениях - но каждое из них ещё не факт.':'Без разовых резервов плана нет ('+mln(runrate)+') - следующий месяц на этой же настройке не сойдётся.')
     : 'До плана не хватает '+mln(gap)+'. Через воронку (повторяемое покрытие, разовые резервы не в счёт) это win-rate '+(needWin>0&&needWin<100?'≈ '+pct(needWin)+' при текущих лидах и чеке'+(needWin>40?' - за пределом реалистичного, добирай другими источниками или лидами':needWin>25?' - выше цели 25%, нужен рост лидов или чека':' - в пределах цели 25%'):'за пределами текущей воронки - нужны лиды, чек или другие источники')+'.';

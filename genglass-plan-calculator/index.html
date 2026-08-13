@@ -117,6 +117,27 @@ input[type=range]::-moz-range-thumb{width:21px;height:21px;border-radius:50%;bac
 }
 .chip:hover{color:var(--ink);border-color:rgba(245,179,60,.5)}
 .chip.on{background:rgba(245,179,60,.16);color:var(--brass);border-color:rgba(245,179,60,.5)}
+.btn{
+  font:inherit;font-size:13.5px;font-weight:600;color:var(--brass);cursor:pointer;
+  background:rgba(245,179,60,.12);border:1px solid rgba(245,179,60,.4);border-radius:var(--r-sm);padding:9px 16px;
+  transition:.15s ease-out;
+}
+.btn:hover{background:rgba(245,179,60,.2)}
+.btn.ghost{color:var(--ink2);background:var(--w5);border-color:var(--w10)}
+.btn.ghost:hover{border-color:rgba(245,179,60,.5);color:var(--ink)}
+.snapchip{display:none;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--brass);background:rgba(245,179,60,.1);border:1px solid rgba(245,179,60,.35);border-radius:var(--r-sm);padding:7px 12px}
+.bandgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+@media(max-width:960px){.bandgrid{grid-template-columns:1fr}}
+.band{background:var(--w5);border:1px solid var(--w8);border-radius:var(--r-sm);padding:18px;min-width:0}
+.band .bk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.band .bt{font-size:17px;font-weight:600;margin-bottom:7px;letter-spacing:-.01em}
+.band p{font-size:13.5px;color:var(--muted);margin:0;line-height:1.55}
+.band p strong{color:var(--ink2)}
+.band.hot{border-color:rgba(245,179,60,.4)}
+input.jfact{
+  font:inherit;font-size:14.5px;width:92px;color:var(--ink);background:var(--w5);
+  border:1px solid var(--w10);border-radius:var(--r-sm);padding:5px 8px;
+}
 .kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:640px){.kgrid{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--w5);border:1px solid var(--w8);border-radius:var(--r-sm);padding:16px 18px;min-width:0}
@@ -194,7 +215,9 @@ footer{margin-top:104px;padding-top:24px;border-top:1px solid var(--w10);display
     <div class="nav-links">
       <a href="#goal">Цель и покрытие</a>
       <a href="#builder">Декомпозиция</a>
-      <a href="#tracker">Трекер месяца</a>
+      <a href="#pipeline">Пайплайн</a>
+      <a href="#tracker">Трекер</a>
+      <a href="#journal">Журнал</a>
       <a href="#sources">Данные</a>
     </div>
   </div>
@@ -227,6 +250,11 @@ footer{margin-top:104px;padding-top:24px;border-top:1px solid var(--w10);display
           <div class="cap" style="margin-bottom:10px">Сценарии</div>
           <div class="chips" id="presets"></div>
         </div>
+        <div style="margin-top:22px;display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn" id="j_save" title="Зафиксировать текущую настройку в журнале прогнозов">Сохранить прогноз</button>
+          <button class="btn ghost" id="j_link" title="Скопировать неизменяемую ссылку на текущую настройку">Ссылка-снимок</button>
+        </div>
+        <div class="snapchip" id="snap_info"></div>
       </div>
     </div>
     <div class="track">
@@ -288,10 +316,76 @@ footer{margin-top:104px;padding-top:24px;border-top:1px solid var(--w10);display
   </div>
 </section>
 
+<!-- ===================== PIPELINE COVERAGE ===================== -->
+<section id="pipeline">
+  <div class="sec-head">
+    <span class="cap ac">03 · Выполним ли план</span>
+    <h2>Покрытие пайплайном</h2>
+    <p>Обратная математика: не «какая комбинация допущений даст нужную сумму», а «сколько сделок должно физически лежать в работе прямо сейчас». Считается из текущих ползунков: план, чек, win-rate, лид → квал, CPL. Веса weighted-forecast намеренно не используются - они калиброваны на SaaS и завышают пайплайн (P9).</p>
+  </div>
+  <div class="bento">
+    <div class="card c7">
+      <h3>Что физически нужно для плана</h3>
+      <p class="sub" id="p_chainsub"></p>
+      <div id="p_rows"></div>
+      <div class="kgrid" style="grid-template-columns:repeat(2,1fr);margin-top:16px" id="p_kpis"></div>
+      <p class="note" id="p_note"></p>
+      <p class="note">[ГИПОТЕЗА] - арифметика линейна: на росте бюджета CPL растёт, качество лида падает, менеджеры захлёбываются. Цифры - нижняя граница требуемого.</p>
+    </div>
+    <div class="card c5">
+      <h3>Запас сделок в работе</h3>
+      <p class="sub">План закрывают не лиды этого месяца, а запас открытых квалифицированных сделок. Введи факт - получишь покрытие пайплайна.</p>
+      <div class="ctl"><div class="row"><label>Цикл сделки<span class="hint">[ДАННЫЕ] факт 46 дн, аудит 09.08.2026 - среднее без распределения, вилка 30/46/75 ниже</span></label><span class="val dat" id="v_cycle"></span></div><input type="range" id="cycle" min="30" max="75" step="1" aria-label="Цикл сделки, дней"></div>
+      <div class="ctl"><div class="row"><label>Открытых квал. сделок сейчас<span class="hint">ручной ввод из Bitrix; снимок rop.json 07.08: 310 открытых в категории 49 - фильтр сверить с ДАТОЙ. 0 = не задано</span></label><span class="val hyp" id="v_stock"></span></div><input type="range" id="stock" min="0" max="600" step="5" aria-label="Открытых квалифицированных сделок сейчас"></div>
+      <div class="kgrid" style="grid-template-columns:1fr 1fr;margin-top:20px" id="s_kpis"></div>
+      <p class="note" id="s_note"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COHORTS ===================== -->
+<section id="cohorts">
+  <div class="sec-head">
+    <span class="cap ac">04 · Лаг цикла</span>
+    <h2>Когортная машина времени</h2>
+    <p>Выручка месяца рождается не в этом месяце. Три горизонта кассы по циклу сделки - и рычаг РОПа для каждого. Цикл двигается ползунком в блоке «Запас сделок» или вилкой ниже.</p>
+  </div>
+  <div class="bento">
+    <div class="card c12">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+        <h3 style="margin:0">Куда падает касса при цикле <span id="c_lag" style="color:var(--brass)"></span></h3>
+        <div class="chips" id="c_chips">
+          <button class="chip" data-c="30">оптимист 30 дн</button>
+          <button class="chip" data-c="46">среднее 46 дн [ДАННЫЕ]</button>
+          <button class="chip" data-c="75">хвост 75 дн</button>
+        </div>
+      </div>
+      <div class="bandgrid">
+        <div class="band hot">
+          <div class="bk">Касса этого месяца · уже решено</div>
+          <div class="bt">Дожим того, что в стадиях</div>
+          <p>Оплаты этого месяца идут со сделок, вошедших в воронку <strong><span id="c_ago"></span> назад</strong>. Новые лиды сюда не успевают. Единственный живой рычаг - резервы «Долгострой» и «КП отправлено» из декомпозиции.</p>
+        </div>
+        <div class="band">
+          <div class="bk">Касса следующего месяца · управляемо</div>
+          <div class="bt">Квалы, которые в работе сейчас</div>
+          <p>Их судьбу решают <strong>скорость первого контакта &lt;15 мин</strong> и мультиканальный дожим - рычаги win-rate из аудита. Запас считается в блоке «Покрытие пайплайном» выше.</p>
+        </div>
+        <div class="band">
+          <div class="bk">Касса через <span id="c_lag2"></span> · создаётся сегодня</div>
+          <div class="bt">Лиды с текущего бюджета</div>
+          <p>Бюджет, залитый сегодня (<strong><span id="c_today"></span></strong>), даёт оплаты примерно к <strong><span id="c_pay"></span></strong> - <span id="c_land"></span>. «Горим - дайте бюджет на рекламу» кассу этого месяца не спасает.</p>
+        </div>
+      </div>
+      <p class="note">[ГИПОТЕЗА] по границам: 46 дней - среднее без распределения (медиана и хвост неизвестны). В правоскошенном распределении циклов среднее почти всегда оптимистичнее медианы - там, где вилка говорит «успевает», реальность может не успеть. Распределение циклов - в выгрузку ДАТЫ.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== TRACKER ===================== -->
 <section id="tracker">
   <div class="sec-head">
-    <span class="cap ac">03 · Ход месяца</span>
+    <span class="cap ac">05 · Ход месяца</span>
     <h2>Трекер выполнения</h2>
     <p>План берётся из блока «Цель и покрытие» выше. Вводишь факт на сегодня и рабочие дни - получаешь темп, прогноз на конец месяца и требуемую дневную выручку. Считает по рабочим дням линейно: закрытия в конце месяца обычно гуще, поэтому первые недели трекер строже реальности.</p>
   </div>
@@ -321,10 +415,31 @@ footer{margin-top:104px;padding-top:24px;border-top:1px solid var(--w10);display
   </div>
 </section>
 
+<!-- ===================== JOURNAL ===================== -->
+<section id="journal">
+  <div class="sec-head">
+    <span class="cap ac">06 · Дисциплина прогноза</span>
+    <h2>Журнал прогнозов</h2>
+    <p>Прогноз без последующего факта - мнение. «Сохранить прогноз» в блоке «Цель и покрытие» фиксирует настройку с датой; в конце месяца впиши факт - журнал сам посчитает ошибку. Так появляется метрика, которой у отдела нет: точность собственных обещаний.</p>
+  </div>
+  <div class="bento">
+    <div class="card c12">
+      <div class="tbl-scroll">
+      <table class="data">
+        <thead><tr><th>Когда сохранён</th><th>План</th><th>Источники</th><th>Покрытие</th><th>Факт месяца, млн</th><th>Ошибка</th><th></th></tr></thead>
+        <tbody id="j_body"></tbody>
+      </table>
+      </div>
+      <p class="note" id="j_sum"></p>
+      <p class="note"><strong>Два предохранителя.</strong> Журнал живёт в localStorage этого браузера - его можно стереть, поэтому авторитета у него нет: для неизменяемой фиксации жми «Ссылка-снимок» и отправляй ссылку в рабочий чат, она восстанавливает настройку у любого, кто её откроет. Поправка оптимизма считается только от 6 закрытых пар план/факт - средняя по 2-3 точкам выглядит как метрика, но это шум.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ===================== SOURCES ===================== -->
 <section id="sources">
   <div class="sec-head">
-    <span class="cap ac">04 · Protocol 9</span>
+    <span class="cap ac">07 · Protocol 9</span>
     <h2>Данные и допущения</h2>
     <p>Каждая цифра калькулятора помечена: [ДАННЫЕ] - есть источник, [ГИПОТЕЗА] - черновик до проверки фактом, [НЕТ ДАННЫХ] - цифры не существует. Значения ползунков подчёркнуты по тому же принципу: пунктир - гипотеза, сплошная - данные.</p>
   </div>
@@ -388,8 +503,10 @@ var $=function(id){return document.getElementById(id)};
 var IN={
   plan:15, fact:0, dtot:21, dpass:0,
   budget:180000, cpl:3160, crq:55, win:9, check:268000,
-  des:0, komp:0.3, novi:3, dil:2, cap:30, dolg:15, kp:10
+  des:0, komp:0.3, novi:3, dil:2, cap:30, dolg:15, kp:10,
+  cycle:46, stock:0
 };
+var lastCalc={total:0,cover:0};
 var PRESETS=[
   {n:'Факт воронки', v:{budget:180000,cpl:3160,crq:55,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}},
   {n:'Базовый по вилкам', v:{budget:180000,cpl:3160,crq:55,win:15,check:268000,des:2,komp:1,novi:3,dil:2,dolg:0,kp:0}},
@@ -397,7 +514,7 @@ var PRESETS=[
   {n:'Лучший + резервы', v:{budget:300000,cpl:3160,crq:60,win:25,check:300000,des:3.5,novi:5,komp:2,dil:3.5,dolg:15,kp:10}},
   {n:'Худший', v:{budget:120000,cpl:4000,crq:45,win:9,check:268000,des:0,komp:0.3,novi:1,dil:0.7,dolg:0,kp:0}}
 ];
-var SLIDERS=['plan','fact','dtot','dpass','budget','cpl','crq','win','check','des','komp','novi','dil','cap','dolg','kp'];
+var SLIDERS=['plan','fact','dtot','dpass','budget','cpl','crq','win','check','des','komp','novi','dil','cap','dolg','kp','cycle','stock'];
 function rub(n){return Math.round(n).toLocaleString('ru-RU')+' ₽'}
 function mln(n){return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн'}
 function n1(n){return (Math.round(n*10)/10).toLocaleString('ru-RU')}
@@ -538,7 +655,131 @@ function render(){
     : 'До плана не хватает '+mln(gap)+'. Через воронку (повторяемое покрытие, разовые резервы не в счёт) это win-rate '+(needWin>0&&needWin<100?'≈ '+pct(needWin)+' при текущих лидах и чеке'+(needWin>40?' - за пределом реалистичного, добирай другими источниками или лидами':needWin>25?' - выше цели 25%, нужен рост лидов или чека':' - в пределах цели 25%'):'за пределами текущей воронки - нужны лиды, чек или другие источники')+'.';
   if(capExceed) verdict+=' Внимание: сумма источников выше потолка производства '+mln(IN.cap)+' - производство столько не выпустит, режь комбинацию или уточняй потолок.';
   $('b_verdict').textContent=verdict;
+  lastCalc.total=total; lastCalc.cover=cover;
+
+  /* ---- pipeline coverage (обратная математика) ---- */
+  $('v_cycle').textContent=IN.cycle+' дн';
+  $('v_stock').textContent=IN.stock>0?IN.stock+' сд':'не задано';
+  var needWon=IN.check>0?IN.plan*1e6/IN.check:0;
+  var needQual=IN.win>0?needWon/(IN.win/100):0;
+  var needLeads=IN.crq>0?needQual/(IN.crq/100):0;
+  var needBudget=needLeads*IN.cpl;
+  var budgetX=IN.budget>0?needBudget/IN.budget:0;
+  var needStock=needQual*IN.cycle/30.4;
+  var stockCover=(IN.stock>0&&needStock>0)?IN.stock/needStock*100:null;
+  $('p_chainsub').textContent='План '+mln(IN.plan)+' при чеке '+rub(IN.check)+', win '+IN.win+'%, лид → квал '+IN.crq+'% и CPL '+rub(IN.cpl)+':';
+  $('p_rows').innerHTML=[
+    ['Продаж нужно / мес', n1(needWon)+' сд', 'план / средний чек'],
+    ['Квалов нужно / мес', n1(needQual)+' сд', 'продажи / win-rate '+IN.win+'%'],
+    ['Лидов нужно / мес', n1(needLeads), 'квалы / конверсия '+IN.crq+'%'],
+    ['Бюджет нужен / мес', mln(needBudget/1e6), 'лиды × CPL '+rub(IN.cpl)]
+  ].map(function(r){
+    return '<div class="srow"><span class="l">'+r[0]+'<span class="hint" style="display:inline;margin-left:8px;font-size:12px;color:var(--muted)">'+r[2]+'</span></span><span class="n">'+r[1]+'</span></div>';
+  }).join('');
+  $('p_kpis').innerHTML=
+    kpi('Бюджет: нужно / есть','×'+n1(budgetX),mln(needBudget/1e6)+' против '+mln(IN.budget/1e6)+' текущих','',budgetX>1.5?'bad':'good')+
+    kpi('Сделок нужно / раб. день',n1(needWon/IN.dtot),'закрытий при '+IN.dtot+' раб. днях');
+  $('p_note').innerHTML = budgetX>1.5
+    ? '<strong>Вход по мощности план не тянет:</strong> только через рекламу план '+mln(IN.plan)+' требует бюджет в '+n1(budgetX)+'× выше текущего. Разговор на планёрке - не про win-rate этого месяца, а про «бюджет, другие источники или цель едет».'
+    : '<strong>Бюджет в пределах кратности:</strong> требуемый вход достижим на текущем уровне рекламы при этих конверсиях - узкое место ищи в запасе сделок и дожиме.';
+  $('s_kpis').innerHTML=
+    kpi('Требуемый запас',Math.round(needStock)+' сд','открытых квалов при цикле '+IN.cycle+' дн ('+n1(IN.cycle/30.4)+' мес оборота)')+
+    kpi('Покрытие пайплайна',stockCover===null?'-':pct(stockCover),stockCover===null?'введи факт запаса слайдером':'факт '+IN.stock+' против '+Math.round(needStock)+' нужных','',stockCover===null?'':(stockCover>=100?'good':'bad'));
+  $('s_note').innerHTML = stockCover===null
+    ? 'Пока факт запаса не задан, вопрос «выполним ли план» остаётся без ответа. Цифру берём из Bitrix по фильтру, согласованному с ДАТОЙ, - не из памяти.'
+    : (stockCover>=100
+      ? 'Запас формально достаточен - но это сырые сделки без взвешивания. Проверь их качество: без касания &gt;14 дней сделка в запасе числится, а в кассу не движется.'
+      : '<strong>Пайплайн покрывает '+pct(stockCover)+' плана.</strong> Недостающие '+Math.max(0,Math.round(needStock-IN.stock))+' сделок за цикл '+IN.cycle+' дн из воздуха не появятся: либо лиды сегодня (касса через ~'+Math.round(IN.cycle/30.4*10)/10+' мес), либо реактивация резервов, либо цель едет.');
+
+  /* ---- cohorts ---- */
+  var today=new Date();
+  var pay=new Date(today.getTime()+IN.cycle*86400000);
+  var fmt=function(d){return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})};
+  $('c_lag').textContent='~'+IN.cycle+' дней';
+  $('c_lag2').textContent='~'+IN.cycle+' дн';
+  $('c_ago').textContent='~'+IN.cycle+' дней';
+  $('c_today').textContent=fmt(today);
+  $('c_pay').textContent=fmt(pay);
+  var mdiff=(pay.getFullYear()-today.getFullYear())*12+pay.getMonth()-today.getMonth();
+  $('c_land').textContent=mdiff===0?'ещё в этом месяце':mdiff===1?'уже в следующем месяце':'через '+mdiff+' месяца';
+  document.querySelectorAll('#c_chips .chip').forEach(function(c){c.classList.toggle('on',+c.dataset.c===IN.cycle)});
 }
+
+/* ---- journal (localStorage) ---- */
+var JKEY='pr_journal_v1';
+function jload(){try{return JSON.parse(localStorage.getItem(JKEY))||[]}catch(e){return []}}
+function jstore(a){try{localStorage.setItem(JKEY,JSON.stringify(a))}catch(e){}}
+function renderJournal(){
+  var a=jload();
+  if(!a.length){
+    $('j_body').innerHTML='<tr><td colspan="7" style="color:var(--muted)">Пока пусто. Кнопка «Сохранить прогноз» в блоке «Цель и покрытие» фиксирует текущую настройку с датой.</td></tr>';
+    $('j_sum').textContent='';
+    return;
+  }
+  $('j_body').innerHTML=a.map(function(e,i){
+    var d=new Date(e.ts);
+    var factCover=(e.fact!=null&&e.plan)?e.fact/e.plan*100:null;
+    var err=factCover!=null?e.cover-factCover:null;
+    return '<tr>'+
+      '<td>'+d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+'</td>'+
+      '<td>'+mln(e.plan)+'</td><td>'+mln(e.total)+'</td><td>'+pct(e.cover)+'</td>'+
+      '<td><input class="jfact" type="number" min="0" step="0.1" data-i="'+i+'" value="'+(e.fact!=null?e.fact:'')+'" aria-label="Факт месяца, млн"></td>'+
+      '<td>'+(err!=null?'<span style="color:'+(err>0?'var(--bad)':'var(--ok)')+'">'+(err>0?'+':'')+n1(err)+' пп</span>':'-')+'</td>'+
+      '<td style="white-space:nowrap"><button class="chip" data-r="'+i+'">восстановить</button> <button class="chip" data-d="'+i+'" aria-label="Удалить запись">×</button></td>'+
+    '</tr>';
+  }).join('');
+  var closed=a.filter(function(e){return e.fact!=null&&e.plan});
+  if(closed.length>=6){
+    var avg=closed.reduce(function(s,e){return s+(e.cover-e.fact/e.plan*100)},0)/closed.length;
+    $('j_sum').innerHTML='Средняя ошибка прогноза по '+closed.length+' закрытым парам: <strong>'+(avg>0?'+':'')+n1(avg)+' пп</strong>'+(avg>0?' - систематическая переоценка, закладывай поправку вниз.':' - систематическая недооценка.');
+  } else {
+    $('j_sum').textContent='Закрытых пар план/факт: '+closed.length+' из 6, нужных для поправки оптимизма. До этого показываются только сырые пары - средняя на малой выборке врёт.';
+  }
+}
+$('j_body').addEventListener('change',function(e){
+  var inp=e.target.closest('.jfact'); if(!inp)return;
+  var a=jload(); var i=+inp.dataset.i; if(!a[i])return;
+  a[i].fact=inp.value===''?null:+inp.value;
+  jstore(a);
+  setTimeout(renderJournal,0); /* не дёргать tbody внутри blur/change */
+});
+$('j_body').addEventListener('click',function(e){
+  var r=e.target.closest('[data-r]'), d=e.target.closest('[data-d]');
+  var a=jload();
+  if(r){var en=a[+r.dataset.r]; if(en&&en.in){Object.keys(IN).forEach(function(k){if(typeof en.in[k]==='number')IN[k]=en.in[k]}); render();}}
+  if(d){a.splice(+d.dataset.d,1); jstore(a); renderJournal();}
+});
+$('j_save').addEventListener('click',function(){
+  var a=jload();
+  a.unshift({ts:Date.now(),plan:IN.plan,total:lastCalc.total,cover:lastCalc.cover,fact:null,in:JSON.parse(JSON.stringify(IN))});
+  if(a.length>60)a.length=60;
+  jstore(a); renderJournal();
+  var b=$('j_save'), t=b.textContent;
+  b.textContent='Сохранено ✓';
+  setTimeout(function(){b.textContent=t},1500);
+});
+/* ---- snapshot link (URL hash) ---- */
+$('j_link').addEventListener('click',function(){
+  var payload=btoa(encodeURIComponent(JSON.stringify({ts:Date.now(),in:IN})));
+  var url=location.origin+location.pathname+'#s='+payload;
+  var b=$('j_link'), t=b.textContent;
+  function ok(){b.textContent='Скопировано ✓';setTimeout(function(){b.textContent=t},1500)}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,function(){prompt('Скопируй ссылку:',url)})}
+  else prompt('Скопируй ссылку:',url);
+});
+(function(){
+  var m=location.hash.match(/^#s=(.+)$/);
+  if(!m)return;
+  try{
+    var o=JSON.parse(decodeURIComponent(atob(m[1])));
+    if(o&&o.in){
+      Object.keys(IN).forEach(function(k){if(typeof o.in[k]==='number')IN[k]=o.in[k]});
+      var el=$('snap_info');
+      el.style.display='inline-block';
+      el.textContent='открыт снимок от '+new Date(o.ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    }
+  }catch(e){}
+})();
 
 SLIDERS.forEach(function(k){
   $(k).addEventListener('input',function(e){ IN[k]=+e.target.value; render(); });
@@ -548,10 +789,15 @@ $('presets').addEventListener('click',function(e){
   var b=e.target.closest('.chip'); if(!b)return;
   var p=PRESETS[+b.dataset.i];
   Object.keys(p.v).forEach(function(k){IN[k]=p.v[k]});
-  document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c===b)});
+  document.querySelectorAll('#presets .chip').forEach(function(c){c.classList.toggle('on',c===b)});
   render();
 });
+$('c_chips').addEventListener('click',function(e){
+  var b=e.target.closest('.chip'); if(!b)return;
+  IN.cycle=+b.dataset.c; render();
+});
 render();
+renderJournal();
 })();
 </script>
 </body>

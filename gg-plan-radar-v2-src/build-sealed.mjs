@@ -2,6 +2,7 @@
 // Сборка запечатанной v2: исходник -> AES-256-GCM payload в gate-обёртке.
 // Запуск: node gg-plan-radar-v2-src/build-sealed.mjs "<пароль>"
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { seal } from "../.claude/skills/kostya-ai/scripts/seal.mjs";
@@ -31,4 +32,10 @@ const out = gate
 
 mkdirSync(join(root, "genglass-plan-calculator/v2"), { recursive: true });
 writeFileSync(join(root, "genglass-plan-calculator/v2/index.html"), out);
-console.error("запечатано: " + payload.length + " байт -> genglass-plan-calculator/v2/index.html");
+// Контроль рассинхрона исходник/печать: sha256 payload кладётся рядом с печатью.
+// Сверка: node build-sealed.mjs пересобирает и сверяет BUILD.txt сам с собой;
+// расхождение с закоммиченным BUILD.txt = кто-то правил исходник без пересборки.
+const sha = createHash("sha256").update(payload).digest("hex");
+writeFileSync(join(root, "genglass-plan-calculator/v2/BUILD.txt"),
+  "payload sha256: " + sha + "\npayload bytes: " + Buffer.byteLength(payload) + "\n");
+console.error("запечатано: " + payload.length + " байт, sha256 " + sha.slice(0, 12) + "… -> genglass-plan-calculator/v2/");

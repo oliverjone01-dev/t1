@@ -19,6 +19,9 @@ name: Deploy to GitHub Pages
 #   /integra/          - ИНТЕГРА 2.0, план GENTERO (из ветки claude/gentero-plan-03609o, статика public/)
 #   /academy/          - GG Sales Academy: библиотека отдела (контур 1A) плюс запечатанные
 #                        кабинеты менеджеров и сводка штаба (контуры 2 и 3, из sealed/)
+#   /plan/             - GENGLASS План-Радар, полная версия (из main, статика без ПД)
+#   /plan/v2/          - План-Радар v2 «простая» с разбивкой по менеджерам - ТОЛЬКО
+#                        запечатанная копия (исходник в gg-plan-radar-v2-src/, не деплоится)
 # Прод (корни /, /smm/, /rop/, /prod/) меняется только при push в main / rop-dashboard-v1 / prod-dashboard-v1.
 # Превью можно гонять вручную (workflow_dispatch) после пуша в рабочую ветку - бой не трогается.
 # Аналитика проходит smoke-гейт контролов (jsdom) перед публикацией.
@@ -36,7 +39,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -157,6 +160,25 @@ jobs:
             sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" _site/seo/index.html
             echo "HUB_PASS: хэш подменён из секрета"
           fi
+
+      # === ПЛАН-РАДАР (из main, в /plan/ и /plan/v2/) ===
+      # Полная версия - открытая статика без ПД. v2 с разбивкой по менеджерам публикуется
+      # ТОЛЬКО запечатанной (AES-256-GCM, механика академии): исходник живёт в
+      # gg-plan-radar-v2-src/ и в _site не попадает. Страховка та же, что у академии:
+      # фамилия ростера в открытом тексте = стоп всей публикации, поэтому шаг БЕЗ
+      # continue-on-error - утечка важнее аптайма.
+      - name: Build PLAN radar (/plan/ + sealed /plan/v2/)
+        run: |
+          set -euo pipefail
+          mkdir -p _site/plan
+          cp genglass-plan-calculator/index.html _site/plan/
+          cp -r genglass-plan-calculator/v2 _site/plan/v2
+          ROSTER="Лакомова|Маслова|Кубанова|Лысенко|Лысанова|Шура-Бура|Платонова|Безмащук|Белов|Мавлина|Преснякова|Зазноба|Ерина|Лобова"
+          if grep -rInE "$ROSTER" _site/plan/; then
+            echo "::error::План-Радар: найдена фамилия ростера в открытом тексте. Персональные данные уходят только запечатанными (решение Ивана 08.08.2026). Публикация остановлена."
+            exit 1
+          fi
+          echo "План-Радар: /plan/ и /plan/v2/ собраны, ростер чист"
 
       # === ПРЕВЬЮ (из рабочей ветки) ===
       # Если падает - бой всё равно публикуется (continue-on-error), поломка видна в логах.

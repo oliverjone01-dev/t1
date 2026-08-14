@@ -204,6 +204,9 @@ async function main() {
   const token = await getToken();
 
   const accJson = await api(ob(`/accounts${CFG.customerCode ? `?customerCode=${encodeURIComponent(CFG.customerCode)}` : ""}`), { token });
+  // Разовая диагностика: ТОЛЬКО названия полей счёта (без значений) - есть ли у Точки имя/тип счёта.
+  const rawAcc0 = (first(accJson?.Data?.Account, accJson?.Data?.accounts, accJson?.accounts, []) || [])[0];
+  if (rawAcc0) console.log("::notice::ACC keys: " + Object.keys(rawAcc0).join(", "));
   let accounts = extractAccounts(accJson);
   if (CFG.accFilter) accounts = accounts.filter(a => `${a.accountId}${a.number}`.includes(CFG.accFilter));
   if (!accounts.length) throw new Error("API вернул 0 счетов (проверь scope на чтение счетов и TOCHKA_ACCOUNT_FILTER).");

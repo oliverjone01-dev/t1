@@ -34,12 +34,15 @@ const acctLabel = (a) => String(labelByTail.get(acctTail(a)) || a.name || "Сч�
 const acctOrder = (a) => orderByTail.has(acctTail(a)) ? orderByTail.get(acctTail(a)) : 999;
 const acctKind = (a) => kindByTail.get(acctTail(a)) || "счёт";
 const sumBal = (list) => list.reduce((s, a) => s + Number(a.balance || 0), 0);
-// Моноширинная таблица блока: название | счёт | сумма выровнены по колонкам.
-function acctTable(list) {
-  const rows = list.map(a => ({ label: acctLabel(a), tail: acctTail(a), amt: `${rub(a.balance)} ₽` }));
-  const lw = Math.max(...rows.map(r => r.label.length));
-  const aw = Math.max(...rows.map(r => r.amt.length));
-  return rows.map(r => `${r.label.padEnd(lw)}  •••${r.tail}  ${r.amt.padStart(aw)}`).join("\n");
+// Моноширинный блок: название | счёт | сумма выровнены по колонкам + строка «Итого».
+function acctBlock(list) {
+  const items = list.map(a => ({ label: acctLabel(a), tail: acctTail(a), amt: `${rub(a.balance)} ₽` }));
+  const total = `${rub(sumBal(list))} ₽`;
+  const lw = Math.max(...items.map(r => r.label.length), 5);
+  const aw = Math.max(...items.map(r => r.amt.length), total.length);
+  const rows = items.map(r => `${r.label.padEnd(lw)}  •••${r.tail}  ${r.amt.padStart(aw)}`);
+  rows.push(`${"Итого".padEnd(lw + 9)}  ${total.padStart(aw)}`);
+  return rows.join("\n");
 }
 
 function buildMessage() {
@@ -54,14 +57,14 @@ function buildMessage() {
   const счета = accountsOrdered.filter(a => acctKind(a) !== "фонд");
   const фонды = accountsOrdered.filter(a => acctKind(a) === "фонд");
   if (счета.length) {
-    lines.push(`💰 <b>Остатки на счетах:</b> ${rub(sumBal(счета))} ₽`);
-    lines.push(`<pre>${esc(acctTable(счета))}</pre>`);
+    lines.push(`💰 <b>Остатки на счетах:</b>`);
+    lines.push(`<pre>${esc(acctBlock(счета))}</pre>`);
   }
   if (фонды.length) {
-    lines.push(`🏦 <b>Остатки на фондах:</b> ${rub(sumBal(фонды))} ₽`);
-    lines.push(`<pre>${esc(acctTable(фонды))}</pre>`);
+    lines.push(`🏦 <b>Остатки на фондах:</b>`);
+    lines.push(`<pre>${esc(acctBlock(фонды))}</pre>`);
   }
-  lines.push(`<b>Итого:</b> ${rub(d.balanceTotal)} ₽`);
+  lines.push(`<b>Всего:</b> ${rub(d.balanceTotal)} ₽`);
   lines.push("");
   const inc = d.incoming || { count: 0, total: 0, items: [] };
   lines.push(`📥 <b>Поступления за день:</b> +${rub(inc.total)} ₽ (${inc.count})`);
@@ -72,16 +75,26 @@ function buildMessage() {
     if (s.includes(".")) { const p = s.split("."); return p.length >= 2 ? `${p[0]}.${p[1]}` : ""; }
     return "";
   };
-  for (const t of top) {
-    // сумма · дата · плательщик - назначение. Плательщика/дату опускаем, если их нет.
-    const head = [`+${rub(t.amount)} ₽`];
-    if (shortDay(t.at)) head.push(shortDay(t.at));
-    if (t.counterparty) head.push(esc(t.counterparty));
-    let line = `   • ${head.join(" · ")}`;
-    if (t.purpose) line += ` - ${esc(String(t.purpose).slice(0, 90))}`;
-    lines.push(line);
+  if (top.length) {
+    // Блок поступлений: суммы выровнены в колонку, дальше дата и плательщик - назначение.
+    const rows = top.map(t => {
+      const who = String(t.counterparty || "").trim();
+      const purpose = String(t.purpose || "").trim();
+      let tail = who;
+      if (purpose) tail += (tail ? " - " : "") + purpose;
+      if (tail.length > 70) tail = tail.slice(0, 69) + "…";
+      return { amt: `+${rub(t.amount)} ₽`, when: shortDay(t.at), tail };
+    });
+    const aw = Math.max(...rows.map(r => r.amt.length));
+    const body = rows.map(r => {
+      const parts = [r.amt.padStart(aw)];
+      if (r.when) parts.push(r.when);
+      if (r.tail) parts.push(r.tail);
+      return parts.join("  ");
+    }).join("\n");
+    lines.push(`<pre>${esc(body)}</pre>`);
   }
-  if ((inc.items || []).length > top.length) lines.push(`   …и ещё ${inc.items.length - top.length}`);
+  if ((inc.items || []).length > top.length) lines.push(`…и ещё ${inc.items.length - top.length}`);
   return lines.join("\n");
 }
 

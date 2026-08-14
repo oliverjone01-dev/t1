@@ -13,10 +13,15 @@ import { dirname, join } from "node:path";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const d = JSON.parse(readFileSync(join(ROOT, "data/latest.json"), "utf8"));
 
-// Псевдонимы счетов: accounts.json = { "последние 4 цифры": "Название" }. Только отображение,
-// на банк никак не влияет. Если файла нет или названия нет - показываем тип счёта из API.
-let ALIASES = {};
-try { ALIASES = JSON.parse(readFileSync(join(ROOT, "accounts.json"), "utf8")); } catch {}
+// Названия и порядок счетов: accounts.json = { accounts: [ {tail, label}, ... ] }. Только
+// отображение, на банк не влияет. Счета не из списка идут после, в порядке банка.
+let ACCOUNTS_CFG = [];
+try {
+  const cfg = JSON.parse(readFileSync(join(ROOT, "accounts.json"), "utf8"));
+  ACCOUNTS_CFG = Array.isArray(cfg.accounts) ? cfg.accounts : [];
+} catch {}
+const labelByTail = new Map(ACCOUNTS_CFG.map(x => [String(x.tail), x.label]));
+const orderByTail = new Map(ACCOUNTS_CFG.map((x, i) => [String(x.tail), i]));
 
 const rub = (v) => Number(v || 0).toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
@@ -24,10 +29,8 @@ const fmtDay = (s) => s ? String(s).slice(0, 10).split("-").reverse().join(".") 
 // Хвост НОМЕРА СЧЁТА (часть до "/"), а не БИК. accountId в Точке = "{номер}/{БИК}",
 // поэтому берём часть до слэша, иначе у всех счетов совпадёт хвост БИК.
 const acctTail = (a) => String(a.number || a.accountId || "").split("/")[0].replace(/\D/g, "").slice(-4);
-const acctLabel = (a) => {
-  const alias = ALIASES[acctTail(a)];
-  return String(alias || a.name || "Счёт").trim();
-};
+const acctLabel = (a) => String(labelByTail.get(acctTail(a)) || a.name || "Счёт").trim();
+const acctOrder = (a) => orderByTail.has(acctTail(a)) ? orderByTail.get(acctTail(a)) : 999;
 
 function buildMessage() {
   if (d.pending || !d.fetchedAt) {
@@ -38,7 +41,8 @@ function buildMessage() {
   lines.push(`🏦 <b>Точка Банк - сводка за ${fmtDay(d.day)}</b>${tag}`);
   lines.push("");
   lines.push(`💰 <b>Остаток по счетам:</b> ${rub(d.balanceTotal)} ₽`);
-  for (const a of (d.accounts || [])) {
+  const accountsOrdered = [...(d.accounts || [])].sort((a, b) => acctOrder(a) - acctOrder(b));
+  for (const a of accountsOrdered) {
     lines.push(`   • ${esc(acctLabel(a))} <code>•••${esc(acctTail(a))}</code>: ${rub(a.balance)} ₽`);
   }
   lines.push("");

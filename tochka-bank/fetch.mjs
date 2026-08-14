@@ -152,14 +152,16 @@ function txnAmount(t) {
   return money(first(amt.amount, amt.value, t.value, 0));
 }
 function txnMeta(t) {
-  const cp = first(t.counterParty, t.counterparty, t.CreditorAccount, t.DebtorAccount, {}) || {};
+  // Схема выписки Точки: приход (Credit) - плательщик в DebtorParty {inn,name,kpp},
+  // дата операции - documentProcessDate, назначение - description. Прочие варианты - защитно.
+  const cp = first(t.DebtorParty, t.CreditorParty, t.counterParty, t.counterparty, t.DebtorAccount, {}) || {};
   return {
     amount: txnAmount(t),
-    currency: first(t.amount?.currency, t.currency, "RUB"),
-    at: first(t.transactionDate, t.bookingDate, t.date, t.documentDate, ""),
+    currency: first(t.Amount?.currency, t.amount?.currency, t.currency, "RUB"),
+    at: first(t.documentProcessDate, t.transactionDate, t.bookingDate, t.date, t.documentDate, ""),
     counterparty: first(cp.name, cp.Name, t.counterpartyName, t.payerName, ""),
     inn: first(cp.inn, cp.INN, ""),
-    purpose: first(t.paymentPurpose, t.description, t.purpose, t.narrative, ""),
+    purpose: first(t.description, t.paymentPurpose, t.purpose, t.narrative, ""),
     docNumber: first(t.documentNumber, t.docNumber, ""),
   };
 }
@@ -216,19 +218,7 @@ async function main() {
     } catch (e) { console.log(`::warning::Баланс ${a.accountId}: ${e.message}`); }
     try {
       const txns = await getStatement(token, a.accountId, from, to);
-      const rawCredits = txns.filter(isCredit);
-      // Разовый вывод ТОЛЬКО названий полей первой операции (без значений) - чтобы точно
-      // понять, где Точка отдаёт плательщика и дату. Значения не печатаем: логи публичны.
-      if (!globalThis.__TXN_KEYS && rawCredits[0]) {
-        globalThis.__TXN_KEYS = true;
-        const r = rawCredits[0];
-        console.log("::notice::TXN keys: " + Object.keys(r).join(", "));
-        for (const k of Object.keys(r)) {
-          const v = r[k];
-          if (v && typeof v === "object" && !Array.isArray(v)) console.log(`::notice::TXN.${k} keys: ` + Object.keys(v).join(", "));
-        }
-      }
-      const credits = rawCredits.map(txnMeta).sort((x, y) => y.amount - x.amount);
+      const credits = txns.filter(isCredit).map(txnMeta).sort((x, y) => y.amount - x.amount);
       incoming = { count: credits.length, total: credits.reduce((s, t) => s + t.amount, 0), items: credits };
     } catch (e) { console.log(`::warning::Выписка ${a.accountId}: ${e.message}`); }
 

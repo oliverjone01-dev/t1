@@ -45,12 +45,20 @@ function buildMessage() {
   const inc = d.incoming || { count: 0, total: 0, items: [] };
   lines.push(`📥 <b>Поступления за день:</b> +${rub(inc.total)} ₽ (${inc.count})`);
   const top = (inc.items || []).slice(0, 10);
-  const shortDay = (s) => { const p = String(s || "").slice(0, 10).split("-"); return p.length === 3 && p[0] ? `${p[2]}.${p[1]}` : ""; };
+  const shortDay = (s) => {
+    s = String(s || "").slice(0, 10);
+    if (s.includes("-")) { const p = s.split("-"); return p.length === 3 && p[0] ? `${p[2]}.${p[1]}` : ""; }
+    if (s.includes(".")) { const p = s.split("."); return p.length >= 2 ? `${p[0]}.${p[1]}` : ""; }
+    return "";
+  };
   for (const t of top) {
-    const when = shortDay(t.at) ? `${shortDay(t.at)} · ` : "";
-    const who = esc(t.counterparty || "Контрагент не указан");
-    const purpose = t.purpose ? ` - ${esc(String(t.purpose).slice(0, 90))}` : "";
-    lines.push(`   • +${rub(t.amount)} ₽ · ${when}${who}${purpose}`);
+    // сумма · дата · плательщик - назначение. Плательщика/дату опускаем, если их нет.
+    const head = [`+${rub(t.amount)} ₽`];
+    if (shortDay(t.at)) head.push(shortDay(t.at));
+    if (t.counterparty) head.push(esc(t.counterparty));
+    let line = `   • ${head.join(" · ")}`;
+    if (t.purpose) line += ` - ${esc(String(t.purpose).slice(0, 90))}`;
+    lines.push(line);
   }
   if ((inc.items || []).length > top.length) lines.push(`   …и ещё ${inc.items.length - top.length}`);
   return lines.join("\n");

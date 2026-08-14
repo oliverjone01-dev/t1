@@ -42,8 +42,13 @@ function buildMessage() {
   lines.push("");
   lines.push(`💰 <b>Остаток по счетам:</b> ${rub(d.balanceTotal)} ₽`);
   const accountsOrdered = [...(d.accounts || [])].sort((a, b) => acctOrder(a) - acctOrder(b));
-  for (const a of accountsOrdered) {
-    lines.push(`   • ${esc(acctLabel(a))} <code>•••${esc(acctTail(a))}</code>: ${rub(a.balance)} ₽`);
+  if (accountsOrdered.length) {
+    // Таблица в моноширинном блоке: название | счёт | сумма выровнены по колонкам.
+    const rows = accountsOrdered.map(a => ({ label: acctLabel(a), tail: acctTail(a), amt: `${rub(a.balance)} ₽` }));
+    const lw = Math.max(...rows.map(r => r.label.length));
+    const aw = Math.max(...rows.map(r => r.amt.length));
+    const table = rows.map(r => `${r.label.padEnd(lw)}  •••${r.tail}  ${r.amt.padStart(aw)}`).join("\n");
+    lines.push(`<pre>${esc(table)}</pre>`);
   }
   lines.push("");
   const inc = d.incoming || { count: 0, total: 0, items: [] };

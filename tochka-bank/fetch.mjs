@@ -216,7 +216,19 @@ async function main() {
     } catch (e) { console.log(`::warning::Баланс ${a.accountId}: ${e.message}`); }
     try {
       const txns = await getStatement(token, a.accountId, from, to);
-      const credits = txns.filter(isCredit).map(txnMeta).sort((x, y) => y.amount - x.amount);
+      const rawCredits = txns.filter(isCredit);
+      // Разовый вывод ТОЛЬКО названий полей первой операции (без значений) - чтобы точно
+      // понять, где Точка отдаёт плательщика и дату. Значения не печатаем: логи публичны.
+      if (!globalThis.__TXN_KEYS && rawCredits[0]) {
+        globalThis.__TXN_KEYS = true;
+        const r = rawCredits[0];
+        console.log("::notice::TXN keys: " + Object.keys(r).join(", "));
+        for (const k of Object.keys(r)) {
+          const v = r[k];
+          if (v && typeof v === "object" && !Array.isArray(v)) console.log(`::notice::TXN.${k} keys: ` + Object.keys(v).join(", "));
+        }
+      }
+      const credits = rawCredits.map(txnMeta).sort((x, y) => y.amount - x.amount);
       incoming = { count: credits.length, total: credits.reduce((s, t) => s + t.amount, 0), items: credits };
     } catch (e) { console.log(`::warning::Выписка ${a.accountId}: ${e.message}`); }
 

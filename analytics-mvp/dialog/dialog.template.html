@@ -47,6 +47,31 @@ input#q{min-width:220px}
 .body .ref{display:block;margin-top:2px;color:#C2569B;font-size:10.5px}
 .empty{padding:40px;text-align:center;color:var(--ink-4)}
 .foot{color:var(--ink-4);font-size:11px;margin-top:10px}
+
+/* рейтинг менеджеров и скоринг сделок */
+.mgrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.mc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
+.mc:hover{border-color:var(--acc)}
+.mc .top{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}
+.mc .rate{font-size:26px;font-weight:700;line-height:1}
+.mc .stars{color:#E8A33D;font-size:13px;letter-spacing:1px}
+.mc .nm{font-weight:600;font-size:13.5px}
+.mc .sm{color:var(--ink-3);font-size:11px;margin-bottom:8px}
+.asp{display:grid;grid-template-columns:1fr auto auto;gap:3px 8px;align-items:center;font-size:11.5px}
+.asp .lb{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.asp .pos{color:#2E9E74;font-weight:600}
+.asp .neg{color:#C25252}
+.asp .na{color:var(--ink-4)}
+.nodata{color:var(--ink-4);font-size:11.5px;font-style:italic}
+.sc{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:6px 10px 8px 28px;border-top:1px dashed var(--line)}
+.pb{font-weight:700;font-size:12.5px;padding:1px 7px;border-radius:5px}
+.tg{font-size:10.5px;padding:1px 6px;border-radius:4px;border:1px solid}
+.tg-good{color:#2E9E74;border-color:#2E9E7455;background:#2E9E7415}
+.tg-bad{color:#C25252;border-color:#C2525255;background:#C2525215}
+.tg-warn{color:#C2873C;border-color:#C2873C55;background:#C2873C15}
+.nxt{flex-basis:100%;color:var(--ink-2);font-size:11.5px;margin-top:3px}
+.nxt b{color:var(--ink-3);font-weight:600}
+.why{flex-basis:100%;color:var(--ink-4);font-size:10.5px}
 </style>
 </head>
 <body>
@@ -55,7 +80,7 @@ input#q{min-width:220px}
   <div class="sub" id="sub">загрузка…</div>
 
   <div class="bar">
-    <span><label>Смотрим</label><select id="fMode"><option value="deal">по сделкам</option><option value="lead">по лидам</option></select></span>
+    <span><label>Смотрим</label><select id="fMode"><option value="mgr">по менеджерам (рейтинг)</option><option value="deal">по сделкам</option><option value="lead">по лидам</option></select></span>
     <span><label>Менеджер</label><select id="fMgr"></select></span>
     <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
     <span><label>ID</label><input id="fDeal" placeholder="сделка/лид" style="width:96px"></span>
@@ -83,7 +108,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'deal', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'mgr', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -154,6 +179,7 @@ function dealHTML(g, idx){
       <span class="dchips">${chanIcons(g.chans)}</span>
       <span class="dmeta">${g.events.length} соб · ${fmtDay(g.last)}</span>
     </div>
+    ${scoreHTML(g)}
     <div class="thread" style="display:none"></div>
   </div>`;
 }
@@ -183,7 +209,52 @@ function toggle(el, forceOpen){
     th.style.display=''; arw.textContent='▾';
   } else { th.style.display='none'; arw.textContent='▸'; }
 }
+
+const SC = DATA.scoring || null;
+const SCD = {}; if(SC) for(const d of SC.deals) SCD[d.key]=d;
+const probColor = p => p>=60?'#2E9E74':p>=30?'#C2873C':'#C25252';
+function stars(r){ const f=Math.round(r); return '★★★★★'.slice(0,f)+'☆☆☆☆☆'.slice(0,5-f); }
+function mgrCardHTML(m){
+  const asp = m.aspects.map(a=> a.pos===null
+    ? `<span class="lb">${esc(a.label)}</span><span class="na">нет данных</span><span></span>`
+    : `<span class="lb">${esc(a.label)}</span><span class="pos">${a.pos}% 👍</span><span class="neg">${100-a.pos}% 👎</span>`).join('');
+  const head = m.rating!==null
+    ? `<span class="rate">${m.rating.toFixed(1)}</span><span class="stars">${stars(m.rating)}</span><span class="nm">${esc(m.mgr)}</span>`
+    : `<span class="rate" style="color:var(--ink-4)">-</span><span class="nm">${esc(m.mgr)}</span>`;
+  const note = m.rating===null ? `<div class="nodata">рейтинг не считается: ${esc(m.noRating)}</div>` : '';
+  return `<div class="mc" data-mgr="${esc(m.mgr)}">
+    <div class="top">${head}</div>
+    <div class="sm">${m.deals} диалогов · средняя вероятность ${m.probAvg}% · сделок с тревогой ${m.alerts}</div>
+    ${note}<div class="asp">${asp}</div></div>`;
+}
+function renderManagers(){
+  const list=document.getElementById('list');
+  if(!SC){ list.innerHTML='<div class="empty">скоринг не посчитан</div>'; return; }
+  list.innerHTML = `<div class="mgrs">${SC.managers.map(mgrCardHTML).join('')}</div>`;
+  list.querySelectorAll('.mc').forEach(c=>c.onclick=()=>{
+    S.mgr=c.dataset.mgr; S.mode='deal';
+    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render();
+  });
+  const rated=SC.managers.filter(m=>m.rating!==null);
+  document.getElementById('stat').textContent = `менеджеров с рейтингом: ${rated.length} (минимум ${10} диалогов) · остальные - мало данных · клик по карточке открывает сделки менеджера`;
+  document.getElementById('foot').textContent = `Рейтинг - среднее по аспектам ведения сделки, шкала 0-5. Аспекты считаются по переписке за окно снимка и фактам CRM (стадия, открытые дела). Пороги - гипотеза, калибровка ${SC.calibratedAt}.`;
+}
+function scoreHTML(g){
+  if(!SC) return '';
+  const d = SCD[(g.ent==='deal'?'D':'L')+g.aid] || SCD['D'+(g.other||'')] || null;
+  if(!d) return '';
+  const c=probColor(d.prob);
+  const tags = d.tags.map(t=>`<span class="tg tg-${t.tone}">${esc(t.t)}</span>`).join('');
+  const why = d.factors.length ? `базовая по стадии ${d.base}%${d.stage?' («'+esc(d.stage)+'»)':''} × ` + d.factors.map(f=>`${esc(f.label)} ${f.mult}`).join(' × ') : `базовая по стадии ${d.base}%`;
+  return `<div class="sc">
+    <span class="pb" style="background:${c}22;color:${c};border:1px solid ${c}55">${d.prob}% успех</span>
+    ${tags}
+    <div class="nxt"><b>Следующий шаг:</b> ${esc(d.next)}</div>
+    <div class="why">${esc(why)}</div>
+  </div>`;
+}
 function render(){
+  if(S.mode==='mgr'){ VIEW=[]; renderManagers(); return; }
   VIEW = group();
   const show = VIEW.slice(0, DEAL_LIMIT);
   const list=document.getElementById('list');

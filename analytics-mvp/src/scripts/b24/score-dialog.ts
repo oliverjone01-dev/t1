@@ -1,20 +1,27 @@
-// Скоринг диалогов: вероятность успеха сделки, теги, дефекты по Косте, рекомендация
-// следующего шага + агрегация в рейтинг менеджера (аспекты в стиле Яндекс.Бизнес).
+// Разбор ведения сделок: теги по разделам регламента, оценка коммуникации, вероятность
+// успеха, рекомендация следующего шага + сводная таблица по менеджерам.
 //
-// Вход:  dialog/data/dialog.json (снимок коммуникаций) + rop.json (факты сделок, ветка
-//        rop-dashboard-v1; путь через ROP_JSON, если файла нет - работаем без фактов CRM).
-// Выход: тот же dialog.json, дополненный блоком scoring.
+// Источники: dialog.json (переписка, звонки, дела, комментарии, резюме BitrixGPT) и
+// rop.json (стадии, история стадий, открытые дела, бюджет; путь через ROP_JSON).
+// Если рядом лежит ai-review.json (слой ИИ, скрипт ai-review.ts) - его вердикты
+// подмешиваются в разделы и в рекомендацию.
 //
-// Вероятность = эмпирическая база стадии x поведенческие коэффициенты. База считана по
-// сделкам C49, созданным после переезда (01.04.2026), и живёт в BASE_RATES - это [ДАННЫЕ].
-// Коэффициенты и пороги - [ГИПОТЕЗА - калибровка], правятся здесь и только здесь.
+// РЕГЛАМЕНТ, по которому оцениваем (общепринятый цикл сильного продавца):
+//   1. Отклик: первый ответ в течение 15 рабочих минут, клиент не ждёт дольше 4 часов.
+//   2. Квалификация: до расчёта выяснены задача, размеры/ТЗ, срок и бюджет.
+//   3. Сроки: обещание всегда с датой, обещанное выполнено, дела в CRM не просрочены.
+//   4. Вежливость: приветствие с обращением, извинение без жаргона и оправданий.
+//   5. Ведение: следующий шаг зафиксирован всегда, стадия отражает реальность, после КП дожим.
+//   6. Результат: возражение отработано, сигнал оплаты доведён до счёта, отказ разобран.
+//
+// Вероятность = эмпирическая база стадии [ДАННЫЕ] x поведенческие коэффициенты [ГИПОТЕЗА].
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const DLG = "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
+const AIF = "dialog/data/ai-review.json";
 
-// --- База стадий: доля выигранных среди закрытых сделок, побывавших на стадии ---
-// [ДАННЫЕ] снимок rop.json 2026-08-17, сделки C49 с created >= 2026-04-01.
+// [ДАННЫЕ] rop.json 2026-08-17, сделки C49 с created >= 2026-04-01: побывал на стадии -> доля выигранных
 const BASE_RATES: Record<string, { name: string; n: number; win: number }> = {
   "C49:NEW": { name: "Новая сделка", n: 1036, win: 0.208 },
   "C49:UC_LRFLH9": { name: "Квалификация", n: 841, win: 0.197 },
@@ -28,67 +35,81 @@ const BASE_RATES: Record<string, { name: string; n: number; win: number }> = {
   "C49:2": { name: "Заказ отправлен", n: 45, win: 0.978 },
   "C49:UC_8JTBV2": { name: "Долгострой", n: 21, win: 0.095 },
 };
-const BASE_FALLBACK = 0.219;   // [ДАННЫЕ] общий win-rate свежих закрытых сделок C49
+const BASE_FALLBACK = 0.219;
 const CALIBRATED_AT = "2026-08-17";
 
 // --- Пороги [ГИПОТЕЗА - калибровка] ---
-const FAST_ANSWER_MIN = 30;      // быстрый ответ: медиана <= 30 рабочих минут
-const SLOW_ANSWER_MIN = 240;     // медленный: медиана > 4 рабочих часов
-const BALL_STUCK_MIN = 240;      // «мяч у нас»: клиент ждёт больше 4 рабочих часов
-const SILENCE_WARN_D = 2;        // тишина: дней без событий (окно снимка 7 дней,
-const SILENCE_BAD_D = 4;         // поэтому пороги внутри него ниже)
-const MIN_SAMPLE = 10;           // минимальная выборка для рейтинга менеджера (правило Кости)
+const FIRST_ANSWER_MIN = 15;   // норматив первого ответа
+const FAST_ANSWER_MIN = 30;
+const SLOW_ANSWER_MIN = 240;
+const BALL_STUCK_MIN = 240;
+const SILENCE_WARN_D = 2;
+const SILENCE_BAD_D = 4;
+const OVERDUE_GRACE_D = 3;     // просрочка - дефект менеджера только после 3 дней: роботы
+const MIN_SAMPLE = 10;
+const MIN_SEC_N = 5;           // раздел не оценивается, если он затронут меньше чем в 5 сделках:
+                               // процент по двум диалогам - это не оценка человека, а шум         // штампуют дела ежедневно, это системный шум, а не халатность
+const EARLY = new Set(["C49:NEW", "C49:UC_LRFLH9", "C49:PREPAYMENT_INVOIC", "C49:PREPARATION", "C49:3"]);
+const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
-const EARLY = new Set(["C49:NEW", "C49:UC_LRFLH9", "C49:PREPAYMENT_INVOIC", "C49:PREPARATION", "C49:3"]); // до расчёта/оплаты
-
-const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;  // рабочий день МСК
-
-type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; status: string };
-
+type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
-const isCall = (e: Ev) => e.type === "Звонок";
 
-// Рабочие минуты между двумя метками (грубо, по часовым шагам).
 function workMinutes(a: number, b: number): number {
   if (b <= a) return 0;
   let tot = 0, cur = a;
-  while (cur < b) {
-    const nxt = Math.min(b, cur + 3600_000);
-    const h = (new Date(cur).getUTCHours() + TZ_SHIFT) % 24;
-    if (h >= WORK_FROM && h < WORK_TO) tot += (nxt - cur) / 60000;
-    cur = nxt;
-  }
+  while (cur < b) { const nxt = Math.min(b, cur + 3600_000); const h = (new Date(cur).getUTCHours() + TZ_SHIFT) % 24; if (h >= WORK_FROM && h < WORK_TO) tot += (nxt - cur) / 60000; cur = nxt; }
   return Math.round(tot);
 }
 const med = (a: number[]) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m]! : Math.round((s[m - 1]! + s[m]!) / 2); };
 const fmtMin = (m: number) => m < 60 ? `${m} мин` : m < 600 ? `${(m / 60).toFixed(1)} ч` : `${Math.round(m / 60)} ч`;
 
-// --- Текстовые сигналы (по телу сообщений) ---
-const RE_READY = /выставьте счёт|выставите счет|оплач|оформля|беру\b|готов оплатить|реквизит|когда можно оплатить/i;
-const RE_PRICE = /дорого|скидк|дешевле|снизить цену|цена высок|не укладыва|бюджет не/i;
-const RE_VAGUE = /в ближайшее время|как только|постараюсь|на днях|ориентировочно позже|буду держать в курсе/i;
-const RE_QUAL = /размер|\d+\s*(мм|см|м2|х\d)|адрес|срок|когда нужно|бюджет|замер/i;
-const RE_REFUSE = /не актуально|отказыва|передумал|выбрали друг|уже заказал/i;
+// --- Словари сигналов ---
+const RE = {
+  ready: /выставьте счёт|выставите счет|оплач|оформля|беру\b|готов оплатить|реквизит|когда можно оплатить|счёт на оплату/i,
+  price: /дорого|скидк|дешевле|снизить цену|цена высок|не укладыва|бюджет не|подешевле/i,
+  refuse: /не актуально|отказыва|передумал|выбрали друг|уже заказал|не интересует|не будем/i,
+  vague: /в ближайшее время|как только|постараюсь|на днях|в течение недели|буду держать в курсе|ориентировочно/i,
+  dated: /\b\d{1,2}[.\/]\d{1,2}\b|завтра|сегодня до|понедельник|вторник|среду|четверг|пятницу|до \d{1,2}[:.]\d{2}|в течение дня/i,
+  hello: /здравствуйте|добрый день|доброе утро|добрый вечер|приветствую/i,
+  budget: /бюджет|стоимость|цена|прайс|сколько будет стоить|в какую сумму/i,
+  term: /срок|когда нужно|к какой дате|когда планир|готовность/i,
+  spec: /размер|\d+\s*(мм|см|м2)|\d+\s*[хx]\s*\d+|чертеж|эскиз|замер|тз\b|техзадан/i,
+  jargon: /закрутил|замотал|забыл|запар|не успел|вылетело из головы|извиняюсь/i,
+  apology: /прошу прощения|извините|приношу извинения|сожалею/i,
+  defense: /я же (писал|говорил)|вы не (сказали|уточнили)|это не (моя|наша) вина|у нас так принято/i,
+  thanks: /спасибо|благодар/i,
+  kp: /кп\b|коммерческое предложение|направил.{0,12}предложени|отправил.{0,12}расч|расчёт во вложении/i,
+};
+
+// Разделы регламента и их вес в итоговом рейтинге [ГИПОТЕЗА - калибровка]
+const SECTIONS = [
+  { key: "speed", label: "Отклик", weight: 0.22 },
+  { key: "qual", label: "Квалификация", weight: 0.18 },
+  { key: "deadline", label: "Сроки", weight: 0.20 },
+  { key: "polite", label: "Вежливость", weight: 0.10 },
+  { key: "process", label: "Ведение", weight: 0.20 },
+  { key: "result", label: "Результат", weight: 0.10 },
+];
+
+type Tag = { t: string; sec: string; tone: "good" | "bad" | "warn" };
 
 function main() {
   const dlg = JSON.parse(readFileSync(DLG, "utf8"));
   const events: Ev[] = dlg.events || [];
   const now = Date.parse(dlg.to) || Math.max(...events.map((e) => e.ts));
 
-  // Факты сделок из снимка РОПа (если он доступен)
   const facts: Record<string, any> = {};
   if (existsSync(ROP)) {
     const rop = JSON.parse(readFileSync(ROP, "utf8"));
     for (const d of (rop.deals || [])) if (String(d.category) === "49") facts[String(d.id)] = d;
     console.log(`Факты CRM: ${Object.keys(facts).length} сделок C49 (снимок ${rop.generated_at || "?"})`);
-  } else console.log(`ВНИМАНИЕ: ${ROP} не найден - скоринг без стадий и бюджета`);
+  } else console.log(`ВНИМАНИЕ: ${ROP} не найден - разбор без стадий и дел`);
+  const ai: Record<string, any> = existsSync(AIF) ? (JSON.parse(readFileSync(AIF, "utf8")).reviews || {}) : {};
+  if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}`);
 
-  // --- Группировка событий по диалогу (лид сливается в сделку) ---
   const byKey: Record<string, Ev[]> = {};
-  for (const e of events) {
-    const k = e.dealId ? "D" + e.dealId : "L" + e.leadId;
-    (byKey[k] ||= []).push(e);
-  }
+  for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
 
   const deals: any[] = [];
   for (const [key, evs] of Object.entries(byKey)) {
@@ -96,125 +117,155 @@ function main() {
     const last = evs[evs.length - 1]!;
     const dealId = last.dealId || "", leadId = last.leadId || "";
     const f = dealId ? facts[dealId] : null;
-    if (f && (f.won || f.lost)) continue;                      // закрытые не оцениваем
+    if (f && (f.won || f.lost)) continue;
     const msgs = evs.filter(isMsg);
-    const title = last.dealT || last.leadT || (dealId ? "Сделка " + dealId : "Лид " + leadId);
+    const outs = msgs.filter((m) => m.dir === "исходящее"), ins = msgs.filter((m) => m.dir === "входящее");
+    const outText = outs.map((m) => m.body || "").join("\n"), inText = ins.map((m) => m.body || "").join("\n");
+    const allText = msgs.map((m) => m.body || "").join("\n") + "\n" + evs.filter((e) => e.type === "Резюме BitrixGPT" || e.type === "Комментарий-заметка").map((e) => e.body || "").join("\n");
 
-    // --- сигналы ---
     const resp: number[] = [];
     for (let i = 0; i < msgs.length; i++) {
       if (msgs[i]!.dir !== "входящее") continue;
       const nxt = msgs.slice(i + 1).find((m) => m.dir === "исходящее");
       if (nxt) resp.push(workMinutes(msgs[i]!.ts, nxt.ts));
     }
-    const respMed = med(resp);
+    const respMed = med(resp), firstResp = resp.length ? resp[0]! : null;
     const lastMsg = msgs[msgs.length - 1];
     const ballWait = lastMsg && lastMsg.dir === "входящее" ? workMinutes(lastMsg.ts, now) : 0;
     const silenceD = Math.floor((now - last.ts) / 864e5);
-    const text = msgs.map((m) => m.body || "").join("\n");
-    const inText = msgs.filter((m) => m.dir === "входящее").map((m) => m.body || "").join("\n");
-    const outText = msgs.filter((m) => m.dir === "исходящее").map((m) => m.body || "").join("\n");
-    const hasReady = RE_READY.test(inText), hasPrice = RE_PRICE.test(inText), hasRefuse = RE_REFUSE.test(inText);
-    const hasVague = RE_VAGUE.test(outText), hasQual = RE_QUAL.test(text);
-    const calls = evs.filter(isCall).length;
-    const nextStep = f ? (f.tasksOpen || 0) > 0 : evs.some((e) => e.type === "Дело" && e.status === "запланировано");
-    const overdue = f && f.taskDue ? Date.parse(f.taskDue) < now && (f.tasksOpen || 0) > 0 : false;
+    const calls = evs.filter((e) => e.type === "Звонок").length;
+    const tasksOpen = f ? (f.tasksOpen || 0) : 0;
+    const nextStep = f ? tasksOpen > 0 : evs.some((e) => e.type === "Дело" && e.status === "запланировано");
+    const overdueD = f && f.taskDue && tasksOpen > 0 ? Math.floor((now - Date.parse(f.taskDue)) / 864e5) : -1;
+    const overdue = overdueD > OVERDUE_GRACE_D;
+    const stageCode = f ? String(f.stageCode || "") : "";
+    const early = !stageCode || EARLY.has(stageCode);
+    const hist = (f && Array.isArray(f.hist)) ? f.hist : [];
+    const stageDays = hist.length ? Math.floor((now - Date.parse(hist[hist.length - 1][1])) / 864e5) : -1;
+    const a = ai[key] || null;
+
+    const tags: Tag[] = [];
+    const add = (t: string, sec: string, tone: Tag["tone"]) => tags.push({ t, sec, tone });
+
+    // 1. Отклик
+    if (firstResp !== null && firstResp <= FIRST_ANSWER_MIN) add(`Первый ответ за ${fmtMin(firstResp)}`, "speed", "good");
+    else if (firstResp !== null && firstResp > SLOW_ANSWER_MIN) add(`Первый ответ через ${fmtMin(firstResp)}`, "speed", "bad");
+    if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
+    if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
+    // 2. Квалификация (только до расчёта)
+    if (early) {
+      const q = [RE.spec.test(allText) && "ТЗ/размеры", RE.term.test(allText) && "срок", RE.budget.test(allText) && "бюджет"].filter(Boolean) as string[];
+      if (q.length >= 2) add(`Квалификация: ${q.join(", ")}`, "qual", "good");
+      else if (msgs.length >= 3) add(`Квалификация неполная${q.length ? " (только " + q.join(", ") + ")" : ""}`, "qual", "bad");
+    }
+    // 3. Сроки
+    if (RE.vague.test(outText) && !RE.dated.test(outText)) add("Размытый срок без даты", "deadline", "bad");
+    else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
+    if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
+    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", "bad");
+    else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
+    // 4. Вежливость
+    if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
+    else if (outs.length >= 2) add("Без приветствия", "polite", "warn");
+    if (RE.jargon.test(outText)) add("Жаргон вместо извинения", "polite", "bad");
+    if (RE.defense.test(outText)) add("Защита вместо извинения", "polite", "bad");
+    if (RE.apology.test(outText) || RE.thanks.test(outText)) add("Этикет соблюдён", "polite", "good");
+    // 5. Ведение по регламенту
+    if (nextStep) add("Следующий шаг зафиксирован", "process", "good");
+    else add("Нет следующего шага", "process", "bad");
+    if (RE.kp.test(outText)) add("КП отправлено", "process", "good");
+    if (stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D) add("После КП нет дожима", "process", "bad");
+    if (stageDays > 21) add(`На стадии ${stageDays} дн`, "process", "bad");
+    if (calls) add(`Звонков: ${calls}`, "process", "good");
+    // 6. Результат
+    if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
+    if (RE.price.test(inText)) { const worked = RE.dated.test(outText) && outs.length >= ins.length; add(worked ? "Возражение по цене отработано" : "Возражение по цене без ответа", "result", worked ? "warn" : "bad"); }
+    if (RE.refuse.test(inText)) add("Риск отказа", "result", "bad");
+    if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
 
     // --- вероятность ---
-    const code = f ? String(f.stageCode || "") : "";
-    const base = BASE_RATES[code]?.win ?? BASE_FALLBACK;
+    const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;
     const factors: { label: string; mult: number }[] = [];
     const push = (label: string, mult: number) => factors.push({ label, mult });
-    if (hasReady) push("клиент говорит об оплате", 1.3);
-    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`отвечаем быстро (${fmtMin(respMed)})`, 1.1);
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`отвечаем медленно (${fmtMin(respMed)})`, 0.8);
-    if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ответа ${fmtMin(ballWait)}`, 0.7);
+    if (RE.ready.test(inText)) push("клиент говорит об оплате", 1.3);
+    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`быстрые ответы (${fmtMin(respMed)})`, 1.1);
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`медленные ответы (${fmtMin(respMed)})`, 0.8);
+    if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ${fmtMin(ballWait)}`, 0.7);
     if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, 0.6);
-    else if (silenceD >= SILENCE_WARN_D) push(`тишина ${silenceD} дн`, 0.85);
+    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, 0.85);
     if (!nextStep) push("нет следующего шага", 0.85);
-    if (overdue) push("просрочено дело", 0.85);
-    if (hasPrice) push("возражение по цене", 0.9);
-    if (hasRefuse) push("клиент говорит об отказе", 0.5);
-    let prob = base;
-    for (const x of factors) prob *= x.mult;
+    if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
+    if (RE.price.test(inText)) push("возражение по цене", 0.9);
+    if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
+    if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
+    let prob = base; for (const x of factors) prob *= x.mult;
     prob = Math.max(0.03, Math.min(0.97, prob));
 
-    // --- теги (аспекты сделки) ---
-    const tags: { t: string; tone: "good" | "bad" | "warn" }[] = [];
-    if (respMed !== null && respMed <= FAST_ANSWER_MIN) tags.push({ t: `Быстрый ответ · ${fmtMin(respMed)}`, tone: "good" });
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) tags.push({ t: `Медленный ответ · ${fmtMin(respMed)}`, tone: "bad" });
-    if (ballWait > BALL_STUCK_MIN) tags.push({ t: `Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, tone: "bad" });
-    if (silenceD >= SILENCE_WARN_D) tags.push({ t: `Тишина ${silenceD} дн`, tone: silenceD >= SILENCE_BAD_D ? "bad" : "warn" });
-    if (!nextStep) tags.push({ t: "Нет следующего шага", tone: "bad" });
-    if (overdue) tags.push({ t: "Просрочено дело", tone: "bad" });
-    if (hasReady) tags.push({ t: "Сигнал готовности к оплате", tone: "good" });
-    if (hasPrice) tags.push({ t: "Возражение по цене", tone: "warn" });
-    if (hasRefuse) tags.push({ t: "Риск отказа", tone: "bad" });
-    if (hasQual) tags.push({ t: "Квалификация собрана", tone: "good" });
-    if (hasVague) tags.push({ t: "Размытый срок в ответе", tone: "warn" });
-    if (calls) tags.push({ t: `Звонков: ${calls}`, tone: "good" });
-
-    // --- рекомендация следующего шага (формулировки фразебука Кости) ---
-    let next = "";
-    if (hasRefuse) next = "Клиент назвал причину отказа. Не благодарить и закрывать тему, а отработать причину: спросить, что должно измениться, чтобы решение стало другим.";
-    else if (ballWait > BALL_STUCK_MIN) next = `Ответить сегодня: клиент ждёт ${fmtMin(ballWait)}. В ответе дать конкретный срок («отвечу сегодня до 18:00»), а не «в ближайшее время».`;
-    else if (hasReady) next = "Клиент говорит об оплате. Выставить счёт сегодня и назвать срок готовности датой, а не «на днях».";
-    else if (hasPrice) next = "Отработать цену: показать состав стоимости и альтернативу дешевле, назвать конкретный срок ответа.";
+    // --- рекомендация ---
+    let next = "", why = "";
+    if (a && a.recommendation) { next = a.recommendation; why = "разбор ИИ"; }
+    else if (RE.refuse.test(inText)) next = "Клиент назвал причину отказа. Не благодарить и закрывать тему, а спросить, что должно измениться, чтобы решение стало другим.";
+    else if (ballWait > BALL_STUCK_MIN) next = `Ответить сегодня: клиент ждёт ${fmtMin(ballWait)}. Дать конкретный срок («отвечу сегодня до 18:00»), а не «в ближайшее время».`;
+    else if (RE.ready.test(inText)) next = "Клиент говорит об оплате. Выставить счёт сегодня и назвать срок готовности датой.";
+    else if (RE.price.test(inText)) next = "Отработать цену: показать состав стоимости и вариант дешевле, назвать конкретный срок ответа.";
     else if (silenceD >= SILENCE_BAD_D) next = `Тишина ${silenceD} дн. Написать с новым поводом (готовность, сроки, вариант), закончить вопросом и зафиксировать дату следующего контакта.`;
-    else if (overdue) next = `Дело просрочено${f && f.taskSubj ? " («" + String(f.taskSubj).slice(0, 40) + "»)" : ""}. Либо закрыть его сегодня, либо перенести с новой датой: просроченное дело в CRM означает, что сделкой никто не занят.`;
+    else if (overdue) next = `Дело просрочено на ${overdueD} дн${f && f.taskSubj ? " («" + String(f.taskSubj).slice(0, 40) + "»)" : ""}. Закрыть сегодня или перенести с новой датой.`;
     else if (!nextStep) next = "Поставить дело с датой и временем: без следующего шага сделка выпадает из работы.";
-    else if (hasVague) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда» вместо «в ближайшее время».";
+    else if (early && tags.some((t) => t.sec === "qual" && t.tone === "bad")) next = "Достроить квалификацию: задача, размеры, срок, бюджет. Без них расчёт уйдёт мимо.";
+    else if (tags.some((t) => t.t === "Размытый срок без даты")) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда».";
     else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
 
     deals.push({
-      key, dealId, leadId, title, mgr: last.mgr || "(не указан)",
-      stage: f ? f.stage : "", stageCode: code, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors,
-      tags, next, msgs: msgs.length, calls, respMed, ballWait, silenceD, nextStep, overdue,
+      key, dealId, leadId, title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
+      stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why,
+      ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
+      msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
     });
   }
 
-  // --- Агрегация в менеджера: аспекты в стиле Яндекс.Бизнес ---
-  const ASPECTS = [
-    { key: "speed", label: "Скорость ответа", ok: (d: any) => d.respMed === null ? null : d.respMed <= FAST_ANSWER_MIN },
-    { key: "ball", label: "Не оставляет клиента без ответа", ok: (d: any) => d.ballWait <= BALL_STUCK_MIN },
-    { key: "next", label: "Следующий шаг зафиксирован", ok: (d: any) => !!d.nextStep },
-    { key: "silence", label: "Без затяжных пауз", ok: (d: any) => d.silenceD < SILENCE_BAD_D },
-    { key: "qual", label: "Квалификация собрана", ok: (d: any) => EARLY.has(d.stageCode) || !d.stageCode ? d.tags.some((t: any) => t.t === "Квалификация собрана") : null },
-    { key: "concrete", label: "Конкретные сроки в ответах", ok: (d: any) => !d.tags.some((t: any) => t.t === "Размытый срок в ответе") },
-  ];
+  // --- Сводка по менеджерам: доля здоровых сделок в каждом разделе ---
   const byMgr: Record<string, any[]> = {};
   for (const d of deals) (byMgr[d.mgr] ||= []).push(d);
   const managers = Object.entries(byMgr).map(([mgr, ds]) => {
-    const aspects = ASPECTS.map((a) => {
-      const vals = ds.map(a.ok).filter((v) => v !== null) as boolean[];
-      const pos = vals.filter(Boolean).length;
-      return { label: a.label, key: a.key, n: vals.length, pos: vals.length ? Math.round(pos / vals.length * 100) : null };
+    const sections = SECTIONS.map((s) => {
+      const touched = ds.filter((d) => d.tags.some((t: Tag) => t.sec === s.key));
+      const bad = touched.filter((d) => d.tags.some((t: Tag) => t.sec === s.key && t.tone === "bad"));
+      const enoughSec = touched.length >= MIN_SEC_N;
+      return { key: s.key, label: s.label, n: touched.length, pos: enoughSec ? Math.round((1 - bad.length / touched.length) * 100) : null, bad: bad.length };
     });
-    const scored = aspects.filter((a) => a.pos !== null);
-    // Минимальная выборка 10 диалогов - требование методики Кости (на 5 сделках вывод
-    // «носит ограниченный характер»). Роботы портала в рейтинг не идут: это не люди.
     const isBot = /^Системный пользователь/i.test(mgr) || mgr === "(не указан)";
     const enough = ds.length >= MIN_SAMPLE && !isBot;
-    const rating = enough && scored.length ? Number((scored.reduce((s, a) => s + (a.pos as number), 0) / scored.length / 20).toFixed(1)) : null;
+    const scored = sections.filter((s) => s.pos !== null);
+    const wsum = scored.reduce((s, x) => s + SECTIONS.find((y) => y.key === x.key)!.weight, 0);
+    const rating = enough && wsum ? Number((scored.reduce((s, x) => s + (x.pos as number) * SECTIONS.find((y) => y.key === x.key)!.weight, 0) / wsum / 20).toFixed(1)) : null;
     return {
-      mgr, deals: ds.length, rating, aspects, bot: isBot,
-      noRating: !enough ? (isBot ? "робот портала" : `мало данных (${ds.length} из ${MIN_SAMPLE})`) : "",
+      mgr, deals: ds.length, rating, sections, bot: isBot,
+      noRating: enough ? "" : (isBot ? "робот портала" : `мало данных (${ds.length} из ${MIN_SAMPLE})`),
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
-      alerts: ds.filter((d) => d.tags.some((t: any) => t.tone === "bad")).length,
+      alerts: ds.filter((d) => d.tags.some((t: Tag) => t.tone === "bad")).length,
     };
   }).sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.deals - a.deals);
 
+  // Каталог тегов для кликов: нормализованное имя -> раздел, тон, счётчик
+  const tagIndex: Record<string, { sec: string; tone: string; n: number }> = {};
+  for (const d of deals) for (const t of d.tags) {
+    const norm = t.t.split(" · ")[0]!.replace(/\d+/g, "N");
+    const rec = (tagIndex[norm] ||= { sec: t.sec, tone: t.tone, n: 0 });
+    rec.n++;
+  }
+
   dlg.scoring = {
-    calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100),
-    baseRates: BASE_RATES,
-    thresholds: { FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D },
-    deals: deals.sort((a, b) => b.prob - a.prob), managers,
+    calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
+    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
+    thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
+    tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
   };
   writeFileSync(DLG, JSON.stringify(dlg));
-  console.log(`Скоринг: сделок/лидов ${deals.length}, менеджеров ${managers.length}`);
-  for (const m of managers.slice(0, 20)) console.log(`   ${m.rating ? m.rating + " ★" : "  -  "}  ${m.mgr} - ${m.deals} диалогов, вероятность ${m.probAvg}%, тревог ${m.alerts}${m.noRating ? " [" + m.noRating + "]" : ""}`);
+  console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);
+  for (const m of managers.filter((x) => x.rating !== null)) console.log(`   ${m.rating} ★  ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);
 }
 main();

@@ -49,7 +49,32 @@ input#q{min-width:220px}
 .foot{color:var(--ink-4);font-size:11px;margin-top:10px}
 
 /* рейтинг менеджеров и скоринг сделок */
-.mgrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tbl th{background:#0000000d;color:var(--ink-3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th.l,.tbl td.l{text-align:left}
+.tbl td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#ffffff06}
+.tbl .who2{font-weight:600;font-size:12.5px}
+.cellv{display:inline-flex;flex-direction:column;gap:3px;align-items:center;cursor:pointer;min-width:52px;padding:2px 4px;border-radius:5px}
+.cellv:hover{background:#ffffff10;outline:1px solid var(--line)}
+.cellv b{font-weight:600;font-size:12px}
+.bar{width:46px;height:3px;border-radius:2px;background:#ffffff18;overflow:hidden}
+.bar i{display:block;height:100%}
+.rt{font-weight:700;font-size:15px}
+.rtst{color:#E8A33D;font-size:10px;letter-spacing:.5px;display:block}
+.na2{color:var(--ink-4);font-size:11px}
+.tagbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
+.tagsec{margin-bottom:7px}
+.tagsec .sl{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.tgc{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:5px;border:1px solid;margin:0 5px 5px 0;cursor:pointer}
+.tgc:hover{filter:brightness(1.25)}
+.tgc.on{outline:2px solid var(--acc)}
+.tgc .n{opacity:.7;font-size:10px}
+.crumb{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:12px;color:var(--ink-2);flex-wrap:wrap}
+.crumb .x{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:1px 8px;color:var(--ink-3)}
+.crumb .x:hover{border-color:var(--acc);color:var(--acc)}
 .mc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer}
 .mc:hover{border-color:var(--acc)}
 .mc .top{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}
@@ -108,7 +133,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'mgr', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'mgr', sec:'', tag:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -140,6 +165,14 @@ function anchor(e){
   if(S.mode==='deal') return e.dealId ? {ent:'deal',aid:e.dealId,title:e.dealT,other:e.leadId} : {ent:'lead',aid:e.leadId,title:e.leadT,other:''};
   return e.leadId ? {ent:'lead',aid:e.leadId,title:e.leadT,other:e.dealId} : {ent:'deal',aid:e.dealId,title:e.dealT,other:''};
 }
+function dealScore(ent,aid,other){ return (SC? (SCD[(ent==='deal'?'D':'L')+aid] || SCD['D'+(other||'')]) : null) || null; }
+function passScoreFilter(ent,aid,other){
+  if(!S.sec && !S.tag) return true;
+  const d = dealScore(ent,aid,other); if(!d) return false;
+  if(S.sec) return d.tags.some(t=>t.sec===S.sec && t.tone==='bad');
+  const norm = t => t.split(' · ')[0].replace(/[0-9]+/g,'N');
+  return d.tags.some(t=>norm(t.t)===S.tag);
+}
 function group(){
   const map = new Map();
   for(const e of DATA.events){
@@ -148,6 +181,7 @@ function group(){
     const a = anchor(e);
     if(!a.aid) continue;
     if(S.id && String(a.aid).indexOf(S.id)<0 && String(a.other||'').indexOf(S.id)<0) continue;
+    if(!passScoreFilter(a.ent,a.aid,a.other)) continue;
     const key=a.ent+':'+a.aid;
     let g = map.get(key);
     if(!g){ g={ent:a.ent,aid:a.aid,title:a.title,other:a.other,events:[],chans:{},stages:{},last:0,mgr:e.mgr}; map.set(key,g); }
@@ -214,30 +248,48 @@ const SC = DATA.scoring || null;
 const SCD = {}; if(SC) for(const d of SC.deals) SCD[d.key]=d;
 const probColor = p => p>=60?'#2E9E74':p>=30?'#C2873C':'#C25252';
 function stars(r){ const f=Math.round(r); return '★★★★★'.slice(0,f)+'☆☆☆☆☆'.slice(0,5-f); }
-function mgrCardHTML(m){
-  const asp = m.aspects.map(a=> a.pos===null
-    ? `<span class="lb">${esc(a.label)}</span><span class="na">нет данных</span><span></span>`
-    : `<span class="lb">${esc(a.label)}</span><span class="pos">${a.pos}% 👍</span><span class="neg">${100-a.pos}% 👎</span>`).join('');
-  const head = m.rating!==null
-    ? `<span class="rate">${m.rating.toFixed(1)}</span><span class="stars">${stars(m.rating)}</span><span class="nm">${esc(m.mgr)}</span>`
-    : `<span class="rate" style="color:var(--ink-4)">-</span><span class="nm">${esc(m.mgr)}</span>`;
-  const note = m.rating===null ? `<div class="nodata">рейтинг не считается: ${esc(m.noRating)}</div>` : '';
-  return `<div class="mc" data-mgr="${esc(m.mgr)}">
-    <div class="top">${head}</div>
-    <div class="sm">${m.deals} диалогов · средняя вероятность ${m.probAvg}% · сделок с тревогой ${m.alerts}</div>
-    ${note}<div class="asp">${asp}</div></div>`;
+function tone2col(t){ return t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C'; }
+function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
+function cellHTML(m,sec){
+  if(sec.pos===null) return `<td><span class="na2" title="затронут в ${sec.n} сделках, порог ${SC.minSample?5:5}">нет данных</span></td>`;
+  const c=pctCol(sec.pos);
+  return `<td><span class="cellv" data-mgr="${esc(m.mgr)}" data-sec="${sec.key}" title="${sec.bad} сделок с дефектом из ${sec.n} · клик - показать их">
+    <b style="color:${c}">${sec.pos}%</b><span class="bar"><i style="width:${sec.pos}%;background:${c}"></i></span></span></td>`;
 }
 function renderManagers(){
   const list=document.getElementById('list');
-  if(!SC){ list.innerHTML='<div class="empty">скоринг не посчитан</div>'; return; }
-  list.innerHTML = `<div class="mgrs">${SC.managers.map(mgrCardHTML).join('')}</div>`;
-  list.querySelectorAll('.mc').forEach(c=>c.onclick=()=>{
-    S.mgr=c.dataset.mgr; S.mode='deal';
-    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render();
-  });
-  const rated=SC.managers.filter(m=>m.rating!==null);
-  document.getElementById('stat').textContent = `менеджеров с рейтингом: ${rated.length} (минимум ${10} диалогов) · остальные - мало данных · клик по карточке открывает сделки менеджера`;
-  document.getElementById('foot').textContent = `Рейтинг - среднее по аспектам ведения сделки, шкала 0-5. Аспекты считаются по переписке за окно снимка и фактам CRM (стадия, открытые дела). Пороги - гипотеза, калибровка ${SC.calibratedAt}.`;
+  if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
+  const head = `<tr><th class="l">Менеджер</th><th>Диалогов</th>` +
+    SC.sections.map(s=>`<th>${esc(s.label)}<div style="font-weight:400;opacity:.6;text-transform:none">вес ${Math.round(s.weight*100)}%</div></th>`).join('') +
+    `<th>Вероятность</th><th>Тревог</th><th>Рейтинг</th></tr>`;
+  const rows = SC.managers.map(m=>{
+    const secs = SC.sections.map(s=> cellHTML(m, m.sections.find(x=>x.key===s.key))).join('');
+    const rt = m.rating!==null
+      ? `<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span><span class="rtst">${stars(m.rating)}</span>`
+      : `<span class="na2">${esc(m.noRating)}</span>`;
+    return `<tr><td class="l"><span class="who2">${esc(m.mgr)}</span></td><td>${m.deals}</td>${secs}
+      <td>${m.probAvg}%</td><td style="color:${m.alerts?'#C25252':'var(--ink-3)'}">${m.alerts}</td><td>${rt}</td></tr>`;
+  }).join('');
+  const bySec={}; for(const [t,v] of Object.entries(SC.tagIndex)) (bySec[v.sec] ||= []).push([t,v]);
+  const tagbox = SC.sections.map(s=>{
+    const arr=(bySec[s.key]||[]).sort((a,b)=>b[1].n-a[1].n);
+    if(!arr.length) return '';
+    return `<div class="tagsec"><div class="sl">${esc(s.label)}</div>` + arr.map(([t,v])=>{
+      const c=tone2col(v.tone);
+      return `<span class="tgc${S.tag===t?' on':''}" data-tag="${esc(t)}" style="color:${c};border-color:${c}55;background:${c}12">${esc(t)}<span class="n">${v.n}</span></span>`;
+    }).join('') + `</div>`;
+  }).join('');
+  list.innerHTML = `<table class="tbl">${head}${rows}</table>
+    <div class="tagbox"><div style="color:var(--ink-3);font-size:11px;margin-bottom:7px">Теги по разделам регламента · клик открывает сделки с этим тегом</div>${tagbox}</div>`;
+  list.querySelectorAll('.cellv').forEach(c=>c.onclick=()=>{ S.mgr=c.dataset.mgr; S.sec=c.dataset.sec; S.tag=''; S.mode='deal';
+    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render(); });
+  list.querySelectorAll('.tgc').forEach(c=>c.onclick=()=>{ S.tag=c.dataset.tag; S.sec=''; S.mode='deal';
+    document.getElementById('fMode').value='deal'; render(); });
+  list.querySelectorAll('.tbl .who2').forEach(c=>c.onclick=()=>{ S.mgr=c.textContent; S.sec=''; S.tag=''; S.mode='deal';
+    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render(); });
+  const rated=SC.managers.filter(m=>m.rating!==null).length;
+  document.getElementById('stat').textContent = `менеджеров с рейтингом: ${rated} · разбор ИИ: ${SC.aiReviews? SC.aiReviews+' сделок':'слой выключен (нет ключа)'} · калибровка ${SC.calibratedAt}`;
+  document.getElementById('foot').textContent = `Рейтинг - взвешенная доля сделок без дефекта по разделам регламента (отклик 22%, сроки 20%, ведение 20%, квалификация 18%, вежливость 10%, результат 10%). Раздел не оценивается, если затронут меньше чем в 5 сделках; менеджер - меньше чем в ${SC.minSample} диалогах. Пороги - гипотеза, калибруются по факту.`;
 }
 function scoreHTML(g){
   if(!SC) return '';
@@ -253,12 +305,21 @@ function scoreHTML(g){
     <div class="why">${esc(why)}</div>
   </div>`;
 }
+function backToTable(){ S.mode='mgr'; S.mgr=''; S.sec=''; S.tag=''; document.getElementById('fMgr').value=''; document.getElementById('fMode').value='mgr'; render(); }
+function clearScoreFilter(){ S.sec=''; S.tag=''; render(); }
 function render(){
   if(S.mode==='mgr'){ VIEW=[]; renderManagers(); return; }
   VIEW = group();
   const show = VIEW.slice(0, DEAL_LIMIT);
   const list=document.getElementById('list');
-  list.innerHTML = show.length ? show.map((g,i)=>dealHTML(g,i)).join('') : `<div class="empty">по этому фильтру диалогов нет</div>`;
+  const secL = S.sec && SC ? (SC.sections.find(x=>x.key===S.sec)||{}).label : '';
+  const crumb = (S.mgr||S.sec||S.tag) ? `<div class="crumb">
+      <span class="x" onclick="backToTable()">← к таблице</span>
+      ${S.mgr?`<span>Менеджер: <b>${esc(S.mgr)}</b></span>`:''}
+      ${secL?`<span>· дефекты раздела: <b>${esc(secL)}</b></span>`:''}
+      ${S.tag?`<span>· тег: <b>${esc(S.tag)}</b></span>`:''}
+      <span class="x" onclick="clearScoreFilter()">сбросить фильтр</span></div>` : '';
+  list.innerHTML = crumb + (show.length ? show.map((g,i)=>dealHTML(g,i)).join('') : `<div class="empty">по этому фильтру диалогов нет</div>`);
   list.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=()=>toggle(d));
   const totEv = VIEW.reduce((s,g)=>s+g.events.length,0);
   const unit = S.mode==='deal' ? 'сделок/лидов' : 'лидов/сделок';

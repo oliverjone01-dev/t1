@@ -157,7 +157,9 @@ async function main() {
   for (const d of deals) ents.push({ kind: "deal", id: String(d.ID), title: stripHtml(d.TITLE) || ("Сделка " + d.ID), mgrId: String(d.ASSIGNED_BY_ID || "") });
   let leadsN = 0;
   if (WITH_LEADS) {
-    const leads = await listB24("crm.lead.list", `filter[>=DATE_MODIFY]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
+    // LAST_ACTIVITY_TIME бумпается таймлайном (звонок/письмо/комментарий), в отличие от DATE_MODIFY,
+    // который дёргает любая автоматизация - иначе в скоуп лезут десятки тысяч «изменённых» лидов без общения.
+    const leads = await listB24("crm.lead.list", `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
     for (const l of leads) ents.push({ kind: "lead", id: String(l.ID), title: stripHtml(l.TITLE) || ("Лид " + l.ID), mgrId: String(l.ASSIGNED_BY_ID || "") });
     leadsN = leads.length;
   }

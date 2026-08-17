@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-16",
+ "measured": "2026-08-17",
  "visits_30d": [
-  {
-   "date": "2026-07-17",
-   "visits": 288,
-   "search_visits": 58
-  },
   {
    "date": "2026-07-18",
    "visits": 185,
@@ -149,14 +144,19 @@
   },
   {
    "date": "2026-08-15",
-   "visits": 191,
+   "visits": 192,
    "search_visits": 49
+  },
+  {
+   "date": "2026-08-16",
+   "visits": 259,
+   "search_visits": 53
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 41
+   "visits": 42
   },
   {
    "phrase": "genglass",
@@ -168,7 +168,7 @@
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 9
+   "visits": 8
   },
   {
    "phrase": "gen glass",
@@ -291,10 +291,6 @@
    "visits": 2
   },
   {
-   "phrase": "маркерные доски под заказ",
-   "visits": 2
-  },
-  {
    "phrase": "межкомнатные перегородки",
    "visits": 2
   },
@@ -303,11 +299,19 @@
    "visits": 2
   },
   {
+   "phrase": "перегородки для зонирования пространства",
+   "visits": 2
+  },
+  {
    "phrase": "раздвижные стеклянные перегородки",
    "visits": 2
   },
   {
    "phrase": "стол genglass производитель",
+   "visits": 2
+  },
+  {
+   "phrase": "столы на заказ по индивидуальным размерам",
    "visits": 2
   },
   {
@@ -349,24 +353,20 @@
   {
    "phrase": "Genglass магазины",
    "visits": 1
-  },
-  {
-   "phrase": "arkis black",
-   "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 385
+   "visits": 380
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 89
+   "visits": 92
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 66
+   "visits": 67
   },
   {
    "url": "/product-category/mirrors/",
@@ -374,55 +374,55 @@
   },
   {
    "url": "/product-category/tables/",
-   "visits": 56
+   "visits": 57
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 46
+   "visits": 44
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 41
+   "visits": 39
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 34
+   "visits": 36
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 34
+   "visits": 33
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 32
+   "visits": 31
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
    "visits": 29
   },
   {
-   "url": "/zerkala-na-zakaz/",
-   "visits": 29
-  },
-  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 28
+   "visits": 27
   },
   {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 28
+   "visits": 27
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "url": "/zerkala-na-zakaz/",
    "visits": 27
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 26
+  },
+  {
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
    "visits": 25
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 19
+   "visits": 21
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
@@ -433,40 +433,40 @@
    "visits": 15
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
-   "visits": 14
-  },
-  {
    "url": "/product-category/mirrors/wall/",
    "visits": 14
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
+   "visits": 14
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
    "visits": 13
+  },
+  {
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "visits": 12
   },
   {
    "url": "/product-category/hranenie/veshalki/",
    "visits": 12
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 11
+   "url": "/product-category/tables/metal-tables/",
+   "visits": 12
   },
   {
    "url": "/product-category/mirrors/led/",
    "visits": 11
   },
   {
-   "url": "/product-category/tables/metal-tables/",
+   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
    "visits": 11
   },
   {
-   "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj/",
-   "visits": 11
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "visits": 10
   },
   {
    "url": "/product-category/mirrors/zerkalo-arka/",
@@ -478,6 +478,6 @@
   }
  ],
  "goals": [],
- "bounce_rate": 22.7,
+ "bounce_rate": 22.2,
  "depth": 2.6
 }

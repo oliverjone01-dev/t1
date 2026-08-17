@@ -1,8 +1,8 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-08-16",
+ "measured": "2026-08-17",
  "visibility": 41,
- "ai_answers": 21,
+ "ai_answers": 23,
  "keywords_total": 1973,
  "top1": 12,
  "top3": 56,
@@ -377,6 +377,11 @@
   },
   {
    "date": "2026-08-16",
+   "visibility": 41,
+   "top10": 360
+  },
+  {
+   "date": "2026-08-17",
    "visibility": 41,
    "top10": 360
   }

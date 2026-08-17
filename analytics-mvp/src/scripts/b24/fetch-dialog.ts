@@ -164,24 +164,21 @@ async function main() {
   }
   let leadsN = 0;
   if (WITH_LEADS) {
-    // Скоуп лидов: созданные в окне (DATE_CREATE - реальный intake, фильтр работает) + лиды-источники
-    // сделок в скоупе (для пути лид->сделка). LAST_ACTIVITY_TIME у лидов Bitrix игнорирует и отдаёт ВСЕ
-    // лиды портала (десятки тысяч), поэтому им не пользуемся.
-    const leadInfo: Record<string, any> = {};
+    // crm.lead.list ИГНОРИРУЕТ дата-фильтры (LAST_ACTIVITY_TIME/DATE_CREATE) и отдаёт все лиды портала.
+    // Поэтому набор лидов собираем надёжно: источники сделок в скоупе (путь лид->сделка) + лиды со
+    // свежей активностью (глобальный crm.activity.list по лидам - там фильтр по CREATED работает).
     const leadIds = new Set<string>();
-    const created = await listB24("crm.lead.list", `filter[>=DATE_CREATE]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
-    for (const l of created) { const id = String(l.ID); leadIds.add(id); leadInfo[id] = l; }
     for (const lid of Object.keys(leadToDeal)) leadIds.add(lid);
-    // добрать инфо для лидов-источников, созданных до окна
-    for (const id of leadIds) {
-      if (leadInfo[id]) continue;
-      try { const l = (await callB24("crm.lead.get", `id=${id}`)).result; if (l) leadInfo[id] = l; } catch { /* пропуск */ }
-    }
-    for (const id of leadIds) {
+    { let start = 0; for (;;) { const r = await callB24("crm.activity.list", `filter[OWNER_TYPE_ID]=1&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&select[0]=OWNER_ID&order[ID]=ASC&start=${start}`); for (const a of (r.result || [])) leadIds.add(String(a.OWNER_ID)); if (r.next === undefined || r.next === null) break; start = r.next; } }
+    const ids = [...leadIds];
+    const leadInfo: Record<string, any> = {};
+    let li = 0;
+    await Promise.all(Array.from({ length: 6 }, async () => { for (;;) { const idx = li++; if (idx >= ids.length) break; const id = ids[idx]!; try { const l = (await callB24("crm.lead.get", `id=${id}`)).result; if (l) leadInfo[id] = l; } catch { /* пропуск */ } } }));
+    for (const id of ids) {
       const l = leadInfo[id]; const t = l ? (stripHtml(l.TITLE) || ("Лид " + id)) : ("Лид " + id);
       ents.push({ kind: "lead", id, title: t, mgrId: String((l && l.ASSIGNED_BY_ID) || "") }); leadTitle[id] = t;
     }
-    leadsN = leadIds.size;
+    leadsN = ids.length;
   }
   console.log(`Скоуп: сделок ${deals.length} + лидов ${leadsN} = ${ents.length} сущностей`);
 

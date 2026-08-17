@@ -1,8 +1,8 @@
 // Снимок КОММУНИКАЦИЙ Bitrix24 за окно (по умолчанию 7 дней) для страницы /dialog/.
-// СКОУП GG: сделки воронки «Заказы RF» (CATEGORY_ID, по умолчанию 49) + воронка «Лиды».
+// СКОУП как в дашборде GG: сделки воронки «Заказы RF» (CATEGORY_ID, по умолчанию 49) + лиды.
 // Хронология по сделке/лиду: звонки, письма, WhatsApp/Telegram/MAX (Wazzup из комментариев),
-// Открытые линии, дела/TODO, заметки. Пишет dialog/data/dialog.json.
-// Активности + комментарии тянем поэлементно батчами по 25 (50 подкоманд) с параллельностью.
+// Открытые линии, дела/TODO, заметки. Путь лид->сделка (по LEAD_ID) сливается в один диалог.
+// ВАЖНО: запросы шлём JSON-телом (как fetch-rop), иначе Bitrix игнорирует фильтры с >=/<=.
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-dialog.ts
 import { writeFileSync, mkdirSync } from "node:fs";
 
@@ -11,11 +11,11 @@ if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const BASE = WH.replace(/\/+$/, "");
 const PORTAL = process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru";
 const DAYS = Math.max(1, Number(process.env.DIALOG_DAYS || 7));
-const CATEGORY_ID = process.env.DIALOG_CATEGORY ?? "49"; // воронка сделок GG «Заказы RF»
-const WITH_LEADS = process.env.DIALOG_NOLEADS !== "1";   // воронка «Лиды» (по умолчанию включена)
+const CATEGORY_ID = process.env.DIALOG_CATEGORY ?? "49";
+const WITH_LEADS = process.env.DIALOG_NOLEADS !== "1";
 const OUT = "dialog/data/dialog.json";
 const EBATCH = 25;  // сущностей на batch (25×2 = 50 подкоманд - максимум)
-const CONC = 4;     // параллельных batch-запросов
+const CONC = 4;
 const BODY_CAP = 4000;
 
 const nowD = new Date();
@@ -23,40 +23,42 @@ const fromD = new Date(nowD.getTime() - DAYS * 864e5);
 const iso = (d: Date) => d.toISOString().slice(0, 19);
 const FROM = iso(fromD), TO = iso(nowD);
 const fromMs = fromD.getTime(), toMs = nowD.getTime();
-
-const enc = (s: string) => encodeURIComponent(s);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const selQ = (arr: string[]) => arr.map((f, i) => `&select[${i}]=${f}`).join("");
 
-async function callB24(method: string, payload: string): Promise<any> {
+// Запрос к Bitrix JSON-телом (как fetch-rop): фильтры-объекты применяются корректно.
+async function call(method: string, params: any = {}): Promise<any> {
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      const res = await fetch(`${BASE}/${method}`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: payload });
+      const res = await fetch(`${BASE}/${method}.json`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(params),
+        signal: AbortSignal.timeout(30000),
+      });
       const j: any = await res.json();
-      if (j.error && /QUERY_LIMIT|OVERLOAD/i.test(String(j.error))) { await sleep(400 * (attempt + 1)); continue; }
+      if (j.error) { if (/QUERY_LIMIT|OPERATION_TIME_LIMIT|OVERLOAD/i.test(String(j.error))) { await sleep(1200); continue; } return j; }
       return j;
-    } catch (e) { if (attempt === 5) throw e; await sleep(400 * (attempt + 1)); }
+    } catch (e) { if (attempt === 5) throw e; await sleep(600 * (attempt + 1)); }
   }
   return {};
 }
-async function b24Batch(cmds: Record<string, string>): Promise<{ result: any; next: any }> {
-  let payload = "halt=0";
-  for (const k of Object.keys(cmds)) payload += `&cmd[${enc(k)}]=${encodeURIComponent(cmds[k] ?? "")}`;
-  const j = await callB24("batch", payload);
-  const r = j.result || {};
-  return { result: r.result || {}, next: r.result_next || {} };
-}
-async function listB24(method: string, filterStr: string, selectArr: string[]): Promise<any[]> {
+// Пагинация списка (start/next), params-объект.
+async function listAll(method: string, params: any): Promise<any[]> {
   const out: any[] = []; let start = 0;
-  const sel = (selectArr || []).map((f, i) => `select[${i}]=${f}`).join("&");
   for (;;) {
-    const r = await callB24(method, `${filterStr}${sel ? "&" + sel : ""}&start=${start}`);
-    const items = r.result && r.result.items ? r.result.items : (r.result || []);
+    const j = await call(method, { ...params, start });
+    const items = j.result && j.result.items ? j.result.items : (j.result || []);
     out.push(...items);
-    if (r.next === undefined || r.next === null) break;
-    start = r.next;
+    if (j.next === undefined || j.next === null || !items.length) break;
+    start = j.next;
   }
   return out;
+}
+// Batch: cmd - объект {ключ: "method?query"}. Возвращает {result, next}.
+async function callBatch(cmds: Record<string, string>): Promise<{ result: any; next: any }> {
+  const j = await call("batch", { halt: 0, cmd: cmds });
+  const r = j.result || {};
+  return { result: r.result || {}, next: r.result_next || {} };
 }
 
 function stripHtml(s: any): string {
@@ -74,7 +76,7 @@ const uCache: Record<string, string> = {};
 async function buildEmployeeSet(): Promise<Record<string, 1>> {
   const set: Record<string, 1> = {}; let start = 0;
   for (;;) {
-    const r = await callB24("user.get", `FILTER[ACTIVE]=true&start=${start}`);
+    const r = await call("user.get", { FILTER: { ACTIVE: true }, start });
     for (const u of (r.result || [])) {
       const a = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim().toLowerCase();
       const b = `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim().toLowerCase();
@@ -89,14 +91,14 @@ async function userName(id: any): Promise<string> {
   if (!id) return "";
   const k = String(id);
   if (uCache[k]) return uCache[k];
-  const u = ((await callB24("user.get", `ID=${k}`)).result || [])[0];
+  const u = ((await call("user.get", { ID: k })).result || [])[0];
   uCache[k] = u ? `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() : k;
   return uCache[k];
 }
 async function buildCallMap(): Promise<Record<string, any>> {
   const map: Record<string, any> = {}; let start = 0;
   for (;;) {
-    const r = await callB24("voximplant.statistic.get", `FILTER[>CALL_START_DATE]=${enc(FROM)}&FILTER[<=CALL_START_DATE]=${enc(TO)}&SORT=CALL_START_DATE&ORDER=ASC&start=${start}`);
+    const r = await call("voximplant.statistic.get", { FILTER: { ">CALL_START_DATE": FROM, "<=CALL_START_DATE": TO }, SORT: "CALL_START_DATE", ORDER: "ASC", start });
     if (r.error) break;
     for (const c of (r.result || [])) if (c.CRM_ACTIVITY_ID) map[String(c.CRM_ACTIVITY_ID)] = { type: String(c.CALL_TYPE), dur: c.CALL_DURATION, rec: c.CALL_RECORD_URL || "", recId: c.RECORD_FILE_ID || "", tr: c.TRANSCRIPT_ID || "" };
     if (r.next === undefined || r.next === null) break; start = r.next;
@@ -146,16 +148,15 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
 type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string };
 
 async function main() {
-  console.log(`Диалог GG: окно ${FROM} -> ${TO} (${DAYS} дн), сделки воронки ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
+  console.log(`Диалог GG: окно ${FROM} -> ${TO} (${DAYS} дн), воронка ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
   const employees = await buildEmployeeSet();
   const callMap = await buildCallMap();
   console.log(`Сотрудников ${Object.keys(employees).length / 2 | 0}, звонков со статой ${Object.keys(callMap).length}`);
 
-  // Скоуп: сделки воронки GG + лиды, активные в окне.
+  // Сделки воронки GG, активные в окне (фильтр-объект применяется, т.к. JSON-тело).
   const ents: Ent[] = [];
-  const dealFlt = `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}&filter[CATEGORY_ID]=${CATEGORY_ID}`;
-  const deals = await listB24("crm.deal.list", dealFlt, ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"]);
   const leadToDeal: Record<string, string> = {}, dealSrcLead: Record<string, string> = {}, dealTitle: Record<string, string> = {}, leadTitle: Record<string, string> = {};
+  const deals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, ">=LAST_ACTIVITY_TIME": FROM } });
   for (const d of deals) {
     const id = String(d.ID); const t = stripHtml(d.TITLE) || ("Сделка " + id);
     ents.push({ kind: "deal", id, title: t, mgrId: String(d.ASSIGNED_BY_ID || "") });
@@ -164,29 +165,24 @@ async function main() {
   }
   let leadsN = 0;
   if (WITH_LEADS) {
-    // crm.lead.list ИГНОРИРУЕТ дата-фильтры (LAST_ACTIVITY_TIME/DATE_CREATE) и отдаёт все лиды портала.
-    // Поэтому набор лидов собираем надёжно: источники сделок в скоупе (путь лид->сделка) + лиды со
-    // свежей активностью (глобальный crm.activity.list по лидам - там фильтр по CREATED работает).
-    const leadIds = new Set<string>();
+    // Лиды: созданные в окне (реальный intake отдела продаж) + источники сделок в скоупе.
+    const leads = await listAll("crm.lead.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID"], filter: { ">=DATE_CREATE": FROM } });
+    const leadInfo: Record<string, any> = {}; const leadIds = new Set<string>();
+    for (const l of leads) { const id = String(l.ID); leadInfo[id] = l; leadIds.add(id); }
     for (const lid of Object.keys(leadToDeal)) leadIds.add(lid);
-    { let start = 0; for (;;) { const r = await callB24("crm.activity.list", `filter[OWNER_TYPE_ID]=1&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&select[0]=OWNER_ID&order[ID]=ASC&start=${start}`); for (const a of (r.result || [])) leadIds.add(String(a.OWNER_ID)); if (r.next === undefined || r.next === null) break; start = r.next; } }
-    const ids = [...leadIds];
-    const leadInfo: Record<string, any> = {};
-    let li = 0;
-    await Promise.all(Array.from({ length: 6 }, async () => { for (;;) { const idx = li++; if (idx >= ids.length) break; const id = ids[idx]!; try { const l = (await callB24("crm.lead.get", `id=${id}`)).result; if (l) leadInfo[id] = l; } catch { /* пропуск */ } } }));
-    for (const id of ids) {
+    for (const id of leadIds) { if (leadInfo[id]) continue; try { const l = (await call("crm.lead.get", { id })).result; if (l) leadInfo[id] = l; } catch { /* пропуск */ } }
+    for (const id of leadIds) {
       const l = leadInfo[id]; const t = l ? (stripHtml(l.TITLE) || ("Лид " + id)) : ("Лид " + id);
       ents.push({ kind: "lead", id, title: t, mgrId: String((l && l.ASSIGNED_BY_ID) || "") }); leadTitle[id] = t;
     }
-    leadsN = ids.length;
+    leadsN = leadIds.size;
   }
   console.log(`Скоуп: сделок ${deals.length} + лидов ${leadsN} = ${ents.length} сущностей`);
 
-  // Активности + комментарии поэлементно, батчами по 25 (50 подкоманд), параллельность CONC.
-  const aSel = ["ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "SUBJECT", "DESCRIPTION", "CREATED", "END_TIME", "COMPLETED", "RESPONSIBLE_ID"];
-  const cSel = ["ID", "CREATED", "COMMENT", "AUTHOR_ID"];
-  const actQ = (ot: number) => `?filter[OWNER_TYPE_ID]=${ot}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC${selQ(aSel)}`;
-  const cmtQ = (et: string) => `?filter[ENTITY_TYPE]=${et}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC${selQ(cSel)}`;
+  // Активности + комментарии поэлементно, батчами по 25 (JSON-тело в call), параллельность CONC.
+  // В batch-cmd используем только >CREATED (одиночный >, парсится); верхнюю границу режем на клиенте.
+  const aSel = "&select[0]=ID&select[1]=TYPE_ID&select[2]=PROVIDER_ID&select[3]=DIRECTION&select[4]=SUBJECT&select[5]=DESCRIPTION&select[6]=CREATED&select[7]=END_TIME&select[8]=COMPLETED&select[9]=RESPONSIBLE_ID";
+  const cSel = "&select[0]=ID&select[1]=CREATED&select[2]=COMMENT&select[3]=AUTHOR_ID";
   const actsBy: Record<string, any[]> = {}, cmtsBy: Record<string, any[]> = {};
   const chunks: Ent[][] = [];
   for (let i = 0; i < ents.length; i += EBATCH) chunks.push(ents.slice(i, i + EBATCH));
@@ -195,10 +191,10 @@ async function main() {
     const cmds: Record<string, string> = {};
     slice.forEach((e, j) => {
       const ot = e.kind === "deal" ? 2 : 1;
-      cmds["a" + j] = `crm.activity.list${actQ(ot)}&filter[OWNER_ID]=${e.id}`;
-      cmds["c" + j] = `crm.timeline.comment.list${cmtQ(e.kind)}&filter[ENTITY_ID]=${e.id}`;
+      cmds["a" + j] = `crm.activity.list?filter[OWNER_TYPE_ID]=${ot}&filter[OWNER_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(FROM)}&order[CREATED]=ASC${aSel}`;
+      cmds["c" + j] = `crm.timeline.comment.list?filter[ENTITY_TYPE]=${e.kind}&filter[ENTITY_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(FROM)}&order[CREATED]=ASC${cSel}`;
     });
-    const { result } = await b24Batch(cmds);
+    const { result } = await callBatch(cmds);
     slice.forEach((e, j) => { const key = e.kind + ":" + e.id; actsBy[key] = result["a" + j] || []; cmtsBy[key] = result["c" + j] || []; });
     done += slice.length;
     if (done % (EBATCH * 4) < EBATCH) console.log(`  обработано ${done}/${ents.length}`);
@@ -213,7 +209,6 @@ async function main() {
   for (const e of ents) {
     const key = e.kind + ":" + e.id;
     const mgr = await userName(e.mgrId);
-    // Пара «лид↔сделка»: у сделки - её сделка + лид-источник; у лида - лид + сделка, в которую он ушёл.
     let leadId = "", dealId = "", leadT = "", dealT = "";
     if (e.kind === "deal") { dealId = e.id; dealT = e.title; leadId = dealSrcLead[e.id] || ""; leadT = leadId ? (leadTitle[leadId] || "") : ""; }
     else { leadId = e.id; leadT = e.title; dealId = leadToDeal[e.id] || ""; dealT = dealId ? (dealTitle[dealId] || "") : ""; }
@@ -223,7 +218,6 @@ async function main() {
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
     for (const ev of evs) {
       const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
-      // дедуп по паре: одно и то же Wazzup-сообщение висит и на лиде, и на сделке (одинаковый ID).
       const uid = pair + "|" + ev.src;
       if (seen[uid]) continue; seen[uid] = 1;
       counts[ev.type] = (counts[ev.type] || 0) + 1;

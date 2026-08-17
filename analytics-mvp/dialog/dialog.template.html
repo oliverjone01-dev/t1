@@ -9,13 +9,14 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
 a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:1280px;margin:0 auto;padding:18px 22px 60px}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 22px 60px}
 .h1{font-size:20px;font-weight:800;letter-spacing:.2px}
 .sub{color:var(--ink-3);font-size:12px;margin-top:3px}
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:12px}
 .bar label{color:var(--ink-3);font-size:11px;margin-right:4px}
 select,input{background:var(--card2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12.5px;outline:none}
 input#q{min-width:220px}
+#fMode{border-color:#1f6b7d}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--ink-2);font-size:11.5px;cursor:pointer;user-select:none}
 .chip.on{background:#12303a;border-color:#1f6b7d;color:#bfeff8}
 .cnt{color:var(--ink-4);font-size:11px}
@@ -23,7 +24,8 @@ input#q{min-width:220px}
 .dhead{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer}
 .dhead:hover{background:rgba(34,211,238,.04)}
 .arw{color:var(--ink-4);width:12px;flex:0 0 12px;font-size:11px}
-.did{font-weight:800;color:var(--acc);flex:0 0 auto}
+.did{font-weight:800;flex:0 0 auto}
+.link2{color:var(--ink-4);font-weight:600;font-size:11px}
 .dttl{color:var(--ink);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dmgr{color:var(--ink-2);flex:0 0 auto;white-space:nowrap;font-size:12px}
 .dchips{display:flex;gap:4px;flex:0 0 auto}
@@ -31,9 +33,11 @@ input#q{min-width:220px}
 .dchips b{width:8px;height:8px;border-radius:2px;display:inline-block}
 .dmeta{color:var(--ink-4);font-size:11px;flex:0 0 auto;white-space:nowrap}
 .thread{border-top:1px solid var(--border-soft);padding:4px 0;background:var(--card2)}
-.ev{display:grid;grid-template-columns:118px 132px 22px 140px 1fr;gap:10px;padding:7px 14px;border-bottom:1px solid var(--border-soft);align-items:start}
+.ev{display:grid;grid-template-columns:110px 60px 128px 22px 140px 1fr;gap:9px;padding:7px 14px;border-bottom:1px solid var(--border-soft);align-items:start}
 .ev:last-child{border-bottom:none}
 .ev .t{color:var(--ink-3);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.stg{font-size:9.5px;padding:1px 5px;border-radius:4px;white-space:nowrap}
+.stg-lead{background:#3a2a12;color:#d6a45f}.stg-deal{background:#12303a;color:#7fd7e6}
 .badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap}
 .dir-in{color:#69C7DA}.dir-out{color:#7FD1A6}.dir-n{color:var(--ink-4)}
 .who{color:var(--ink-2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -46,15 +50,16 @@ input#q{min-width:220px}
 </head>
 <body>
 <div class="wrap">
-  <div class="h1">GENGLASS · Диалоги по сделкам</div>
+  <div class="h1">GENGLASS · Диалоги</div>
   <div class="sub" id="sub">загрузка…</div>
 
   <div class="bar">
+    <span><label>Смотрим</label><select id="fMode"><option value="deal">по сделкам</option><option value="lead">по лидам</option></select></span>
     <span><label>Менеджер</label><select id="fMgr"></select></span>
     <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
-    <span><label>Сделка</label><input id="fDeal" placeholder="ID" style="width:90px"></span>
+    <span><label>ID</label><input id="fDeal" placeholder="сделка/лид" style="width:96px"></span>
     <input id="q" placeholder="поиск по тексту / кто / тема">
-    <span><label>Сделки</label><select id="fOrd"><option value="desc">свежие сверху</option><option value="asc">старые сверху</option></select></span>
+    <span><label>Порядок</label><select id="fOrd"><option value="desc">свежие сверху</option><option value="asc">старые сверху</option></select></span>
     <span class="chip" id="expAll">развернуть видимые</span>
   </div>
   <div class="cnt" id="typeChips" style="margin-bottom:8px"></div>
@@ -77,8 +82,8 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mgr:'', dir:'', deal:'', q:'', ord:'desc', types:new Set() };
-let VIEW = []; // текущие сгруппированные сделки
+const S = { mode:'deal', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+let VIEW = [];
 
 function initControls(){
   const mgr = document.getElementById('fMgr');
@@ -87,32 +92,40 @@ function initControls(){
   const order = Object.keys(DATA.counts||{}).sort((a,b)=>DATA.counts[b]-DATA.counts[a]);
   chips.innerHTML = order.map(t=>`<span class="chip" data-t="${esc(t)}"><i style="width:8px;height:8px;border-radius:2px;background:${typeColor(t)};display:inline-block"></i>${esc(t)} <span class="cnt">${DATA.counts[t]}</span></span>`).join('');
   chips.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{ const t=ch.dataset.t; if(S.types.has(t)){S.types.delete(t);ch.classList.remove('on');}else{S.types.add(t);ch.classList.add('on');} render(); });
+  document.getElementById('fMode').onchange=e=>{S.mode=e.target.value;render();};
   mgr.onchange=()=>{S.mgr=mgr.value;render();};
   document.getElementById('fDir').onchange=e=>{S.dir=e.target.value;render();};
-  document.getElementById('fDeal').oninput=e=>{S.deal=e.target.value.trim();render();};
+  document.getElementById('fDeal').oninput=e=>{S.id=e.target.value.trim();render();};
   document.getElementById('fOrd').onchange=e=>{S.ord=e.target.value;render();};
   let qt; document.getElementById('q').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{S.q=e.target.value.trim().toLowerCase();render();},180);};
   document.getElementById('expAll').onclick=()=>{ document.querySelectorAll('.deal').forEach(d=>toggle(d,true)); };
   document.getElementById('sub').textContent =
-    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${DATA.scope||''} · сущностей ${DATA.dealsScanned||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
+    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${DATA.scope||''} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
 }
 
 function matchEvent(e){
   if(S.dir && e.dir!==S.dir) return false;
   if(S.types.size && !S.types.has(e.type)) return false;
-  if(S.q){ const q=S.q; if(!((e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.entTitle&&e.entTitle.toLowerCase().indexOf(q)>=0))) return false; }
+  if(S.q){ const q=S.q; if(!((e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.leadT&&e.leadT.toLowerCase().indexOf(q)>=0)||(e.dealT&&e.dealT.toLowerCase().indexOf(q)>=0))) return false; }
   return true;
+}
+// якорь группировки по режиму: по сделкам -> сделка (лид сливается), по лидам -> лид (сделка сливается)
+function anchor(e){
+  if(S.mode==='deal') return e.dealId ? {ent:'deal',aid:e.dealId,title:e.dealT,other:e.leadId} : {ent:'lead',aid:e.leadId,title:e.leadT,other:''};
+  return e.leadId ? {ent:'lead',aid:e.leadId,title:e.leadT,other:e.dealId} : {ent:'deal',aid:e.dealId,title:e.dealT,other:''};
 }
 function group(){
   const map = new Map();
   for(const e of DATA.events){
     if(S.mgr && e.mgr!==S.mgr) continue;
-    if(S.deal && String(e.eid).indexOf(S.deal)<0) continue;
     if(!matchEvent(e)) continue;
-    const key=e.ent+':'+e.eid;
+    const a = anchor(e);
+    if(!a.aid) continue;
+    if(S.id && String(a.aid).indexOf(S.id)<0 && String(a.other||'').indexOf(S.id)<0) continue;
+    const key=a.ent+':'+a.aid;
     let g = map.get(key);
-    if(!g){ g={ent:e.ent,eid:e.eid,title:e.entTitle,mgr:e.mgr,events:[],chans:{},last:0}; map.set(key,g); }
-    g.events.push(e); if(e.ts>g.last)g.last=e.ts; g.chans[e.type]=(g.chans[e.type]||0)+1;
+    if(!g){ g={ent:a.ent,aid:a.aid,title:a.title,other:a.other,events:[],chans:{},stages:{},last:0,mgr:e.mgr}; map.set(key,g); }
+    g.events.push(e); if(e.ts>g.last){g.last=e.ts;g.mgr=e.mgr;} g.chans[e.type]=(g.chans[e.type]||0)+1; g.stages[e.stage]=1;
   }
   const arr=[...map.values()];
   arr.forEach(g=>g.events.sort((a,b)=>a.ts-b.ts));
@@ -124,9 +137,13 @@ function chanIcons(chans){
 }
 function dealHTML(g, idx){
   const isLead = g.ent==='lead';
-  const url = isLead ? `${PORTAL}/crm/lead/details/${esc(g.eid)}/` : `${PORTAL}/crm/deal/details/${esc(g.eid)}/`;
-  const label = isLead ? 'Лид '+esc(g.eid) : esc(g.eid);
-  const link = `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="${isLead?'color:#C2873C':''}">${label}</a>`;
+  const url = isLead ? `${PORTAL}/crm/lead/details/${esc(g.aid)}/` : `${PORTAL}/crm/deal/details/${esc(g.aid)}/`;
+  const label = isLead ? 'Лид '+esc(g.aid) : 'Сделка '+esc(g.aid);
+  const col = isLead ? '#C2873C' : 'var(--acc)';
+  let other = '';
+  if(g.other){ const ou = isLead?`${PORTAL}/crm/deal/details/${esc(g.other)}/`:`${PORTAL}/crm/lead/details/${esc(g.other)}/`;
+    other = ` <a class="link2" href="${ou}" target="_blank" onclick="event.stopPropagation()">${isLead?'→ сделка '+esc(g.other):'← лид '+esc(g.other)}</a>`; }
+  const link = `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="color:${col}">${label}</a>${other}`;
   return `<div class="deal" data-idx="${idx}">
     <div class="dhead">
       <span class="arw">▸</span>
@@ -139,14 +156,16 @@ function dealHTML(g, idx){
     <div class="thread" style="display:none"></div>
   </div>`;
 }
-function evHTML(e){
+function evHTML(e, showStage){
   const c=typeColor(e.type);
   const dir = e.dir==='входящее'?'<span class="dir-in">←</span>':e.dir==='исходящее'?'<span class="dir-out">→</span>':'<span class="dir-n">·</span>';
   const st = e.status?`<span class="st">${esc(e.status)}${e.dur?' · '+esc(e.dur):''}</span>`:'';
   const rec = e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:'';
   const ttl = e.title?`<b>${esc(e.title)}: </b>`:'';
+  const stg = showStage ? `<span class="stg ${e.stage==='lead'?'stg-lead':'stg-deal'}">${e.stage==='lead'?'лид':'сделка'}</span>` : '<span></span>';
   return `<div class="ev">
     <span class="t">${fmtTime(e.dt)}</span>
+    ${stg}
     <span><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(e.type)}</span></span>
     <span>${dir}</span>
     <span class="who">${esc(e.who)}</span>
@@ -158,7 +177,7 @@ function toggle(el, forceOpen){
   const open = th.style.display!=='none';
   if(open && forceOpen) return;
   if(!open){
-    if(!th.dataset.filled){ const g=VIEW[+el.dataset.idx]; th.innerHTML=g.events.map(evHTML).join(''); th.dataset.filled='1'; }
+    if(!th.dataset.filled){ const g=VIEW[+el.dataset.idx]; const mixed=Object.keys(g.stages).length>1; th.innerHTML=g.events.map(e=>evHTML(e,mixed)).join(''); th.dataset.filled='1'; }
     th.style.display=''; arw.textContent='▾';
   } else { th.style.display='none'; arw.textContent='▸'; }
 }
@@ -169,8 +188,9 @@ function render(){
   list.innerHTML = show.length ? show.map((g,i)=>dealHTML(g,i)).join('') : `<div class="empty">по этому фильтру диалогов нет</div>`;
   list.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=()=>toggle(d));
   const totEv = VIEW.reduce((s,g)=>s+g.events.length,0);
-  document.getElementById('stat').textContent = `сделок: ${VIEW.length}${VIEW.length>DEAL_LIMIT?` (показаны первые ${DEAL_LIMIT}, сузьте фильтр)`:''} · событий: ${totEv}`;
-  document.getElementById('foot').textContent = `Всего в снимке ${DATA.events.length} событий по ${DATA.dealsWithEvents||0} сделкам/лидам за ${DATA.days} дн. Клик по сделке/лиду - развернуть диалог; клик по ID - карточка в Bitrix24.`;
+  const unit = S.mode==='deal' ? 'сделок/лидов' : 'лидов/сделок';
+  document.getElementById('stat').textContent = `${unit}: ${VIEW.length}${VIEW.length>DEAL_LIMIT?` (показаны первые ${DEAL_LIMIT}, сузьте фильтр)`:''} · событий: ${totEv}`;
+  document.getElementById('foot').textContent = `Снимок: ${DATA.events.length} событий. «Смотрим по сделкам» - лид сливается в свою сделку; «по лидам» - сделка сливается в лид. Метка «лид»/«сделка» у события - где в пути оно произошло. Клик по ID - карточка в Bitrix24.`;
 }
 initControls(); render();
 </script>

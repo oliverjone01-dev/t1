@@ -98,7 +98,7 @@ async function buildCallMap(): Promise<Record<string, any>> {
   for (;;) {
     const r = await callB24("voximplant.statistic.get", `FILTER[>CALL_START_DATE]=${enc(FROM)}&FILTER[<=CALL_START_DATE]=${enc(TO)}&SORT=CALL_START_DATE&ORDER=ASC&start=${start}`);
     if (r.error) break;
-    for (const c of (r.result || [])) if (c.CRM_ACTIVITY_ID) map[String(c.CRM_ACTIVITY_ID)] = { type: String(c.CALL_TYPE), dur: c.CALL_DURATION, rec: c.CALL_RECORD_URL || "", tr: c.TRANSCRIPT_ID || "" };
+    for (const c of (r.result || [])) if (c.CRM_ACTIVITY_ID) map[String(c.CRM_ACTIVITY_ID)] = { type: String(c.CALL_TYPE), dur: c.CALL_DURATION, rec: c.CALL_RECORD_URL || "", recId: c.RECORD_FILE_ID || "", tr: c.TRANSCRIPT_ID || "" };
     if (r.next === undefined || r.next === null) break; start = r.next;
   }
   return map;
@@ -114,8 +114,9 @@ function activityToEvent(a: any, mgrName: string, callMap: Record<string, any>):
     const ci = callMap[String(a.ID)]; let body = "Звонок", link = "";
     if (ci) {
       link = ci.rec || "";
+      const hasRec = ci.rec || ci.recId;
       body = `Звонок ${ci.type === "2" ? "входящий" : ci.type === "1" ? "исходящий" : ""}${ci.dur ? ", " + durfmt(ci.dur) : ""}`;
-      body += ci.tr ? " · расшифровка есть в Б24" : (ci.rec ? " · запись есть, транскрипт не сделан" : "");
+      body += ci.tr ? " · есть расшифровка" : (hasRec ? " · запись есть (в карточке Б24), транскрипта нет" : "");
     } else if (subj) body = subj;
     return { raw: a.CREATED, dir, who, type: "Звонок", title: subj || "Звонок", body, status: a.COMPLETED === "Y" ? "состоялся" : "не состоялся", dur: ci && ci.dur ? durfmt(ci.dur) : "", link, src: "act#" + a.ID };
   }
@@ -153,14 +154,20 @@ async function main() {
   // Скоуп: сделки воронки GG + лиды, активные в окне.
   const ents: Ent[] = [];
   const dealFlt = `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}&filter[CATEGORY_ID]=${CATEGORY_ID}`;
-  const deals = await listB24("crm.deal.list", dealFlt, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
-  for (const d of deals) ents.push({ kind: "deal", id: String(d.ID), title: stripHtml(d.TITLE) || ("Сделка " + d.ID), mgrId: String(d.ASSIGNED_BY_ID || "") });
+  const deals = await listB24("crm.deal.list", dealFlt, ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"]);
+  const leadToDeal: Record<string, string> = {}, dealSrcLead: Record<string, string> = {}, dealTitle: Record<string, string> = {}, leadTitle: Record<string, string> = {};
+  for (const d of deals) {
+    const id = String(d.ID); const t = stripHtml(d.TITLE) || ("Сделка " + id);
+    ents.push({ kind: "deal", id, title: t, mgrId: String(d.ASSIGNED_BY_ID || "") });
+    dealTitle[id] = t;
+    if (d.LEAD_ID && String(d.LEAD_ID) !== "0") { leadToDeal[String(d.LEAD_ID)] = id; dealSrcLead[id] = String(d.LEAD_ID); }
+  }
   let leadsN = 0;
   if (WITH_LEADS) {
     // LAST_ACTIVITY_TIME бумпается таймлайном (звонок/письмо/комментарий), в отличие от DATE_MODIFY,
     // который дёргает любая автоматизация - иначе в скоуп лезут десятки тысяч «изменённых» лидов без общения.
     const leads = await listB24("crm.lead.list", `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
-    for (const l of leads) ents.push({ kind: "lead", id: String(l.ID), title: stripHtml(l.TITLE) || ("Лид " + l.ID), mgrId: String(l.ASSIGNED_BY_ID || "") });
+    for (const l of leads) { const id = String(l.ID); const t = stripHtml(l.TITLE) || ("Лид " + id); ents.push({ kind: "lead", id, title: t, mgrId: String(l.ASSIGNED_BY_ID || "") }); leadTitle[id] = t; }
     leadsN = leads.length;
   }
   console.log(`Скоуп: сделок ${deals.length} + лидов ${leadsN} = ${ents.length} сущностей`);
@@ -196,26 +203,33 @@ async function main() {
   for (const e of ents) {
     const key = e.kind + ":" + e.id;
     const mgr = await userName(e.mgrId);
+    // Пара «лид↔сделка»: у сделки - её сделка + лид-источник; у лида - лид + сделка, в которую он ушёл.
+    let leadId = "", dealId = "", leadT = "", dealT = "";
+    if (e.kind === "deal") { dealId = e.id; dealT = e.title; leadId = dealSrcLead[e.id] || ""; leadT = leadId ? (leadTitle[leadId] || "") : ""; }
+    else { leadId = e.id; leadT = e.title; dealId = leadToDeal[e.id] || ""; dealT = dealId ? (dealTitle[dealId] || "") : ""; }
+    const pair = leadId + "|" + dealId;
     const evs: any[] = [];
     for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap); if (ev) evs.push(ev); }
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
     for (const ev of evs) {
       const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
-      const uid = key + "|" + ev.src;
+      // дедуп по паре: одно и то же Wazzup-сообщение висит и на лиде, и на сделке (одинаковый ID).
+      const uid = pair + "|" + ev.src;
       if (seen[uid]) continue; seen[uid] = 1;
       counts[ev.type] = (counts[ev.type] || 0) + 1;
       if (mgr) mgrSet[mgr] = 1;
-      events.push({ ts: ms, dt: ev.raw, ent: e.kind, eid: e.id, entTitle: e.title, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, dur: ev.dur, link: ev.link, src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, dur: ev.dur, link: ev.link, src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);
-  const entKeys = new Set(events.map((e) => e.ent + ":" + e.eid));
+  const leadKeys = new Set(events.filter((e) => e.leadId).map((e) => e.leadId));
+  const dealKeys = new Set(events.filter((e) => e.dealId).map((e) => e.dealId));
   const managers = Object.keys(mgrSet).sort();
-  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""}`, portal: PORTAL, dealsScanned: ents.length, dealsWithEvents: entKeys.size, managers, counts, events };
+  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""}`, portal: PORTAL, dealsScanned: ents.length, dealCount: dealKeys.size, leadCount: leadKeys.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
   const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");
-  console.log(`Готово: событий ${events.length} по ${entKeys.size} сделкам/лидам, менеджеров ${managers.length} -> ${OUT}`);
+  console.log(`Готово: событий ${events.length}, сделок ${dealKeys.size} + лидов ${leadKeys.size}, менеджеров ${managers.length} -> ${OUT}`);
   console.log(`  ${summary}`);
 }
 main().catch((e) => { console.error("FATAL", e); process.exit(1); });

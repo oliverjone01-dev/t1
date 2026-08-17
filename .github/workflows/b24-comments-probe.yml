@@ -1,0 +1,37 @@
+name: B24 comments probe (разовая диагностика переписки в комментариях)
+
+# Разовая диагностика: показать, из чего состоят комментарии таймлайна сделки
+# (crm.timeline.comment) - там лежит переписка WhatsApp прямой интеграции.
+# Запуск вручную (workflow_dispatch). Секрет маскируется. Ничего не коммитит.
+
+on:
+  workflow_dispatch:
+    inputs:
+      deal_id:
+        description: "ID сделки для пробы"
+        required: false
+        default: "99627"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe deal comments
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+          DEAL_ID: ${{ github.event.inputs.deal_id }}
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/probe-deal-comments.ts

@@ -1,11 +1,13 @@
-// Разовая диагностика (ничего не коммитит): из чего состоят КОММЕНТАРИИ таймлайна
-// сделки (crm.timeline.comment). Прямая интеграция WhatsApp пишет диалог сюда, а не
-// в crm.activity и не в Открытую линию, поэтому наш снимок его не видит. Задача пробы -
-// показать автора каждого комментария и ПОЛНЫЙ набор полей, чтобы решить, как отличать
-// клиентскую переписку от внутренних заметок (по сервисному автору интеграции / метке / паттерну).
+// Разовая диагностика (ничего не коммитит): валидируем правило «Wazzup-переписка vs своя заметка»
+// в КОММЕНТАРИЯХ таймлайна (crm.timeline.comment). Прямая интеграция Wazzup пишет диалог в
+// комментарии, а не в crm.activity/Открытую линию, поэтому наш снимок его не видит.
+//
+// DEAL_ID может быть списком через запятую. По каждой сделке печатаем сводку:
+//   всего комментов | Wazzup (по маркеру wazzup24.com) | свои заметки | авторы каждой группы |
+//   аномалии (Wazzup не от служебного юзера / заметка от служебного) | ответственный (кому вешаем диалог).
 
 const WH = process.env.B24_WEBHOOK_URL;
-const DEAL_ID = process.env.DEAL_ID || "99627";
+const IDS = (process.env.DEAL_ID || "99627").split(",").map((s) => s.trim()).filter(Boolean);
 if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const base = WH.replace(/\/+$/, "");
 
@@ -20,9 +22,22 @@ async function call(method: string, params: any = {}): Promise<any> {
   return j;
 }
 
-function short(s: any, n = 140): string {
-  const t = String(s ?? "").replace(/\s+/g, " ").trim();
-  return t.length > n ? t.slice(0, n) + "…" : t;
+const isWazzup = (c: any): boolean => String(c.COMMENT || "").toLowerCase().includes("wazzup24.com");
+const speaker = (c: any): string => {
+  // формат Wazzup: "[img]...[/img]&nbsp; <Имя>: <текст>" -> вытащить <Имя>
+  const t = String(c.COMMENT || "").replace(/\[img\][^\[]*\[\/img\]/gi, "").replace(/&nbsp;/g, " ").trim();
+  const m = t.match(/^([^:\n]{1,60}):/);
+  return m ? m[1].trim() : "?";
+};
+
+const nameCache: Record<string, string> = {};
+async function uname(id: string): Promise<string> {
+  if (nameCache[id]) return nameCache[id];
+  try {
+    const u = (await call("user.get", { ID: id })).result?.[0];
+    nameCache[id] = u ? `${u.NAME || ""} ${u.LAST_NAME || ""}`.trim() || `id${id}` : `id${id}`;
+  } catch { nameCache[id] = `id${id}`; }
+  return nameCache[id];
 }
 
 async function commentsFor(entityType: string, entityId: string): Promise<any[]> {
@@ -32,54 +47,33 @@ async function commentsFor(entityType: string, entityId: string): Promise<any[]>
       order: { CREATED: "ASC" },
     });
     return r.result || [];
-  } catch (e: any) {
-    console.log(`  (${entityType} ${entityId}) ошибка: ${e.message}`);
-    return [];
-  }
+  } catch (e: any) { console.log(`  (${entityType} ${entityId}) ошибка: ${e.message}`); return []; }
 }
 
 (async () => {
-  const deal = (await call("crm.deal.get", { id: DEAL_ID })).result;
-  console.log(`Сделка ${DEAL_ID}: "${deal.TITLE}" | LEAD_ID=${deal.LEAD_ID} CONTACT_ID=${deal.CONTACT_ID} COMPANY_ID=${deal.COMPANY_ID} ASSIGNED_BY_ID=${deal.ASSIGNED_BY_ID}`);
+  for (const DEAL_ID of IDS) {
+    let deal: any;
+    try { deal = (await call("crm.deal.get", { id: DEAL_ID })).result; }
+    catch (e: any) { console.log(`\n### Сделка ${DEAL_ID}: ошибка ${e.message}`); continue; }
+    const mgr = await uname(String(deal.ASSIGNED_BY_ID));
+    const cs = await commentsFor("deal", DEAL_ID);
+    const waz = cs.filter(isWazzup), notes = cs.filter((c) => !isWazzup(c));
+    const authorsOf = async (arr: any[]) => {
+      const ids = [...new Set(arr.map((c) => String(c.AUTHOR_ID)))];
+      const named = await Promise.all(ids.map(async (id) => `${id}=${await uname(id)}`));
+      return named.join(", ") || "-";
+    };
+    const speakers = [...new Set(waz.map(speaker))];
+    const last = waz.length ? waz[waz.length - 1].CREATED : "-";
+    // аномалии: Wazzup не от служебного (6485) ИЛИ заметка ОТ служебного
+    const wazNon6485 = waz.filter((c) => String(c.AUTHOR_ID) !== "6485").length;
+    const note6485 = notes.filter((c) => String(c.AUTHOR_ID) === "6485").length;
 
-  const targets: Array<[string, string]> = [["deal", DEAL_ID]];
-  if (deal.LEAD_ID && String(deal.LEAD_ID) !== "0") targets.push(["lead", String(deal.LEAD_ID)]);
-  if (deal.CONTACT_ID && String(deal.CONTACT_ID) !== "0") targets.push(["contact", String(deal.CONTACT_ID)]);
-
-  const authorIds = new Set<string>();
-  const buckets: any[] = [];
-  for (const [t, id] of targets) {
-    const cs = await commentsFor(t, id);
-    buckets.push(...cs);
-    console.log(`\n=== КОММЕНТАРИИ ${t} ${id}: ${cs.length} ===`);
-    for (const c of cs) {
-      authorIds.add(String(c.AUTHOR_ID));
-      const files = Array.isArray(c.FILES) ? c.FILES.length : (c.FILES ? 1 : 0);
-      console.log(`  #${c.ID} ${c.CREATED} автор=${c.AUTHOR_ID} файлы=${files} | ${short(c.COMMENT)}`);
-    }
-  }
-
-  if (buckets.length) {
-    console.log("\n=== СЫРОЙ первый комментарий (ВСЕ поля - ищем метку провайдера/направления) ===");
-    console.log(JSON.stringify(buckets[0], null, 1));
-  }
-
-  console.log("\n=== АВТОРЫ комментариев (кто сервисный пользователь интеграции) ===");
-  for (const id of authorIds) {
-    try {
-      const u = (await call("user.get", { ID: id })).result?.[0];
-      console.log(`  ${id}: ${u ? `${u.NAME || ""} ${u.LAST_NAME || ""} | должн=${u.WORK_POSITION || ""} | ${u.EMAIL || ""} | active=${u.ACTIVE}` : "не найден"}`);
-    } catch (e: any) {
-      console.log(`  ${id}: ошибка ${e.message}`);
-    }
-  }
-
-  const acts = (await call("crm.activity.list", {
-    filter: { OWNER_TYPE_ID: 2, OWNER_ID: DEAL_ID },
-    select: ["ID", "TYPE_ID", "PROVIDER_ID", "PROVIDER_TYPE_ID", "DIRECTION", "SUBJECT", "CREATED"],
-  })).result || [];
-  console.log(`\n=== АКТИВНОСТИ сделки (crm.activity - то, что считаем касаниями СЕЙЧАС): ${acts.length} ===`);
-  for (const a of acts) {
-    console.log(`  #${a.ID} ${a.CREATED} TYPE=${a.TYPE_ID} PROVIDER=${a.PROVIDER_ID}/${a.PROVIDER_TYPE_ID} dir=${a.DIRECTION} | ${short(a.SUBJECT, 80)}`);
+    console.log(`\n### Сделка ${DEAL_ID} | ответственный ${deal.ASSIGNED_BY_ID}=${mgr} | стадия "${deal.STAGE_ID}"`);
+    console.log(`  комментов: ${cs.length} | Wazzup: ${waz.length} | свои заметки: ${notes.length} | последнее Wazzup: ${last}`);
+    console.log(`  авторы Wazzup: ${await authorsOf(waz)}`);
+    console.log(`  авторы заметок: ${await authorsOf(notes)}`);
+    console.log(`  собеседники (префиксы Wazzup): ${speakers.join(" | ") || "-"}`);
+    console.log(`  АНОМАЛИИ: Wazzup не от 6485 = ${wazNon6485} | заметка от 6485 = ${note6485}`);
   }
 })().catch((e) => { console.error("FATAL", e.message); process.exit(1); });

@@ -164,11 +164,24 @@ async function main() {
   }
   let leadsN = 0;
   if (WITH_LEADS) {
-    // LAST_ACTIVITY_TIME бумпается таймлайном (звонок/письмо/комментарий), в отличие от DATE_MODIFY,
-    // который дёргает любая автоматизация - иначе в скоуп лезут десятки тысяч «изменённых» лидов без общения.
-    const leads = await listB24("crm.lead.list", `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
-    for (const l of leads) { const id = String(l.ID); const t = stripHtml(l.TITLE) || ("Лид " + id); ents.push({ kind: "lead", id, title: t, mgrId: String(l.ASSIGNED_BY_ID || "") }); leadTitle[id] = t; }
-    leadsN = leads.length;
+    // Скоуп лидов: созданные в окне (DATE_CREATE - реальный intake, фильтр работает) + лиды-источники
+    // сделок в скоупе (для пути лид->сделка). LAST_ACTIVITY_TIME у лидов Bitrix игнорирует и отдаёт ВСЕ
+    // лиды портала (десятки тысяч), поэтому им не пользуемся.
+    const leadInfo: Record<string, any> = {};
+    const leadIds = new Set<string>();
+    const created = await listB24("crm.lead.list", `filter[>=DATE_CREATE]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
+    for (const l of created) { const id = String(l.ID); leadIds.add(id); leadInfo[id] = l; }
+    for (const lid of Object.keys(leadToDeal)) leadIds.add(lid);
+    // добрать инфо для лидов-источников, созданных до окна
+    for (const id of leadIds) {
+      if (leadInfo[id]) continue;
+      try { const l = (await callB24("crm.lead.get", `id=${id}`)).result; if (l) leadInfo[id] = l; } catch { /* пропуск */ }
+    }
+    for (const id of leadIds) {
+      const l = leadInfo[id]; const t = l ? (stripHtml(l.TITLE) || ("Лид " + id)) : ("Лид " + id);
+      ents.push({ kind: "lead", id, title: t, mgrId: String((l && l.ASSIGNED_BY_ID) || "") }); leadTitle[id] = t;
+    }
+    leadsN = leadIds.size;
   }
   console.log(`Скоуп: сделок ${deals.length} + лидов ${leadsN} = ${ents.length} сущностей`);
 

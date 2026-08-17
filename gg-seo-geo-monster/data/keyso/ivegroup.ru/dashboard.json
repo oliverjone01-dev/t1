@@ -2,7 +2,7 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-10T04:14:28.431Z",
+  "measured": "2026-08-17T03:28:23.789Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
     "id": 30485583,
@@ -12,91 +12,97 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 829,
-        "it50": 19247064,
-        "vis": 4408144,
-        "perc": 0.004307150430839737
+        "cnt": 798,
+        "it50": 19393993,
+        "vis": 4078126,
+        "perc": 0.004114676126778019
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 550,
-        "it50": 16457323,
-        "vis": 1689077,
-        "perc": 0.0033419773070018735
+        "cnt": 541,
+        "it50": 16557226,
+        "vis": 1614998,
+        "perc": 0.003267455550827173
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 507,
-        "it50": 55501348,
-        "vis": 11910304,
-        "perc": 0.0009134913263728298
+        "cnt": 510,
+        "it50": 54734855,
+        "vis": 11270814,
+        "perc": 0.0009317645949733492
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 481,
-        "it50": 2969658,
-        "vis": 999849,
-        "perc": 0.01619715132180204
+        "cnt": 466,
+        "it50": 3011476,
+        "vis": 951567,
+        "perc": 0.01547413959134989
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 478,
-        "it50": 17870023,
-        "vis": 4057304,
-        "perc": 0.0026748706479001174
+        "cnt": 452,
+        "it50": 18031900,
+        "vis": 3953056,
+        "perc": 0.0025066687370715233
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 430,
-        "it50": 7268524,
-        "vis": 2853954,
-        "perc": 0.005915919105446993
+        "cnt": 424,
+        "it50": 7078164,
+        "vis": 2704359,
+        "perc": 0.005990253969814771
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 417,
-        "it50": 13671451,
-        "vis": 2647395,
-        "perc": 0.0030501517359057206
+        "cnt": 393,
+        "it50": 13760102,
+        "vis": 2571057,
+        "perc": 0.0028560834796137417
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 377,
-        "it50": 9763,
-        "vis": 193,
-        "perc": 3.8615179760319576
+        "cnt": 389,
+        "it50": 9956,
+        "vis": 172,
+        "perc": 3.9071916432302127
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 302,
-        "it50": 2832574,
-        "vis": 343212,
-        "perc": 0.010661680859882212
+        "cnt": 280,
+        "it50": 2874543,
+        "vis": 314125,
+        "perc": 0.009740678779200729
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
-        "cnt": 260,
-        "it50": 2691,
-        "vis": 231,
-        "perc": 9.66183574879227
+        "cnt": 251,
+        "it50": 2777,
+        "vis": 235,
+        "perc": 9.038530788620815
       }
     ],
-    "it1": 11,
-    "it3": 51,
+    "it1": 14,
+    "it3": 55,
     "it5": 72,
     "it10": 137,
-    "it50": 1033,
+    "it50": 1024,
     "childsCount": 0,
     "keys": [
+      {
+        "pos": 1,
+        "word": "требования к перегородке между газифицированной кухней и комнатой",
+        "ws": 12,
+        "wsk": 12
+      },
       {
         "pos": 1,
         "word": "окно внутреннее",
@@ -105,14 +111,14 @@
       },
       {
         "pos": 1,
-        "word": "стеклянная фрамуга",
-        "ws": 383,
+        "word": "ivegroup",
+        "ws": 28,
         "wsk": 7
       },
       {
         "pos": 1,
-        "word": "ivegroup",
-        "ws": 28,
+        "word": "стеклянная фрамуга",
+        "ws": 383,
         "wsk": 7
       },
       {
@@ -129,6 +135,12 @@
       },
       {
         "pos": 1,
+        "word": "межкомнатные окна в стене",
+        "ws": 65,
+        "wsk": 4
+      },
+      {
+        "pos": 1,
         "word": "ive group",
         "ws": 29,
         "wsk": 4
@@ -141,69 +153,57 @@
       },
       {
         "pos": 1,
-        "word": "межкомнатные окна в стене",
-        "ws": 65,
-        "wsk": 4
-      },
-      {
-        "pos": 1,
-        "word": "ivegroup ru официальный сайт",
-        "ws": 2,
-        "wsk": 2
-      },
-      {
-        "pos": 1,
-        "word": "окно в межкомнатной стене",
-        "ws": 59,
+        "word": "душевая для собак",
+        "ws": 112,
         "wsk": 2
       }
     ],
-    "topkeys": 226987,
+    "topkeys": 230522,
     "pages": [
       {
-        "it50": 82,
+        "it50": 81,
         "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno"
       },
       {
-        "it50": 76,
+        "it50": 71,
         "url": "/2023/10/06/arochnye-steklyannye-dveri"
       },
       {
-        "it50": 67,
-        "url": "/2023/02/05/moyka-dlya-sobak"
-      },
-      {
-        "it50": 65,
+        "it50": 69,
         "url": "/2023/02/12/materialy-peregorodok"
       },
       {
-        "it50": 63,
-        "url": "/stellazhi"
+        "it50": 66,
+        "url": "/2023/02/05/moyka-dlya-sobak"
       },
       {
         "it50": 62,
+        "url": "/stellazhi"
+      },
+      {
+        "it50": 56,
         "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri"
       },
       {
-        "it50": 50,
-        "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka"
+        "it50": 53,
+        "url": "/2021/03/22/steklyannyi-tambur-v-dom"
       },
       {
-        "it50": 48,
-        "url": "/2021/03/22/steklyannyi-tambur-v-dom"
+        "it50": 45,
+        "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka"
       },
       {
         "it50": 40,
         "url": "/2023/02/17/peregorodki_s_matovymi_steklami"
       },
       {
-        "it50": 36,
-        "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri-s-penalom"
+        "it50": 35,
+        "url": "/product/peregorodka-garmoshka"
       }
     ],
-    "pagesinindex": 59,
+    "pagesinindex": 61,
     "vis": 7,
-    "topvis": 401443,
+    "topvis": 409781,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,16 +431,16 @@
         "aiCnt": 73
       },
       "2026.08": {
-        "it1": 11,
-        "it3": 51,
+        "it1": 14,
+        "it3": 55,
         "it5": 72,
         "it10": 137,
-        "it50": 1033,
-        "pagesInIndex": 59,
+        "it50": 1024,
+        "pagesInIndex": 61,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 7,
-        "aiCnt": 98
+        "aiCnt": 82
       }
     },
     "linksHistory": {
@@ -571,14 +571,14 @@
         334
       ],
       "2026.08": [
-        715,
-        996,
+        713,
+        904,
         114,
         5,
-        329
+        327
       ]
     },
-    "aiAnswersCnt": 98,
+    "aiAnswersCnt": 82,
     "aiState": 10,
     "dr": 18,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/70e3a912fa6972e638ef77425c8d96f9b5763f6148c246533647387db1cf30c2.png",

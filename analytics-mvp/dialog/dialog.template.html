@@ -94,23 +94,24 @@ function initControls(){
   let qt; document.getElementById('q').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{S.q=e.target.value.trim().toLowerCase();render();},180);};
   document.getElementById('expAll').onclick=()=>{ document.querySelectorAll('.deal').forEach(d=>toggle(d,true)); };
   document.getElementById('sub').textContent =
-    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · сделок в скоупе ${DATA.dealsScanned||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
+    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${DATA.scope||''} · сущностей ${DATA.dealsScanned||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
 }
 
 function matchEvent(e){
   if(S.dir && e.dir!==S.dir) return false;
   if(S.types.size && !S.types.has(e.type)) return false;
-  if(S.q){ const q=S.q; if(!((e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.dealTitle&&e.dealTitle.toLowerCase().indexOf(q)>=0))) return false; }
+  if(S.q){ const q=S.q; if(!((e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.entTitle&&e.entTitle.toLowerCase().indexOf(q)>=0))) return false; }
   return true;
 }
 function group(){
   const map = new Map();
   for(const e of DATA.events){
     if(S.mgr && e.mgr!==S.mgr) continue;
-    if(S.deal && String(e.dealId).indexOf(S.deal)<0) continue;
+    if(S.deal && String(e.eid).indexOf(S.deal)<0) continue;
     if(!matchEvent(e)) continue;
-    let g = map.get(e.dealId);
-    if(!g){ g={id:e.dealId,title:e.dealTitle,mgr:e.mgr,events:[],chans:{},last:0}; map.set(e.dealId,g); }
+    const key=e.ent+':'+e.eid;
+    let g = map.get(key);
+    if(!g){ g={ent:e.ent,eid:e.eid,title:e.entTitle,mgr:e.mgr,events:[],chans:{},last:0}; map.set(key,g); }
     g.events.push(e); if(e.ts>g.last)g.last=e.ts; g.chans[e.type]=(g.chans[e.type]||0)+1;
   }
   const arr=[...map.values()];
@@ -122,7 +123,10 @@ function chanIcons(chans){
   return Object.keys(chans).sort((a,b)=>chans[b]-chans[a]).slice(0,5).map(t=>`<i><b style="background:${typeColor(t)}"></b>${chans[t]}</i>`).join('');
 }
 function dealHTML(g, idx){
-  const link = `<a href="${PORTAL}/crm/deal/details/${esc(g.id)}/" target="_blank" onclick="event.stopPropagation()">${esc(g.id)}</a>`;
+  const isLead = g.ent==='lead';
+  const url = isLead ? `${PORTAL}/crm/lead/details/${esc(g.eid)}/` : `${PORTAL}/crm/deal/details/${esc(g.eid)}/`;
+  const label = isLead ? 'Лид '+esc(g.eid) : esc(g.eid);
+  const link = `<a href="${url}" target="_blank" onclick="event.stopPropagation()" style="${isLead?'color:#C2873C':''}">${label}</a>`;
   return `<div class="deal" data-idx="${idx}">
     <div class="dhead">
       <span class="arw">▸</span>
@@ -166,7 +170,7 @@ function render(){
   list.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=()=>toggle(d));
   const totEv = VIEW.reduce((s,g)=>s+g.events.length,0);
   document.getElementById('stat').textContent = `сделок: ${VIEW.length}${VIEW.length>DEAL_LIMIT?` (показаны первые ${DEAL_LIMIT}, сузьте фильтр)`:''} · событий: ${totEv}`;
-  document.getElementById('foot').textContent = `Всего в снимке ${DATA.events.length} событий по ${DATA.dealsWithEvents||0} сделкам за ${DATA.days} дн. Клик по сделке - развернуть диалог; клик по ID - карточка в Bitrix24.`;
+  document.getElementById('foot').textContent = `Всего в снимке ${DATA.events.length} событий по ${DATA.dealsWithEvents||0} сделкам/лидам за ${DATA.days} дн. Клик по сделке/лиду - развернуть диалог; клик по ID - карточка в Bitrix24.`;
 }
 initControls(); render();
 </script>

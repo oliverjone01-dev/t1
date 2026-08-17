@@ -1,8 +1,9 @@
 // Снимок КОММУНИКАЦИЙ Bitrix24 за окно (по умолчанию 7 дней) для страницы /dialog/.
-// Хронология по сделкам: звонки, письма, WhatsApp/Telegram/MAX (Wazzup из комментариев),
-// Открытые линии, дела/TODO, внутренние заметки. Пишет dialog/data/dialog.json.
-// Быстро: активности - одним глобальным запросом (не по сделке), комментарии - батчами с
-// ограниченной параллельностью. Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-dialog.ts
+// СКОУП GG: сделки воронки «Заказы RF» (CATEGORY_ID, по умолчанию 49) + воронка «Лиды».
+// Хронология по сделке/лиду: звонки, письма, WhatsApp/Telegram/MAX (Wazzup из комментариев),
+// Открытые линии, дела/TODO, заметки. Пишет dialog/data/dialog.json.
+// Активности + комментарии тянем поэлементно батчами по 25 (50 подкоманд) с параллельностью.
+// Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-dialog.ts
 import { writeFileSync, mkdirSync } from "node:fs";
 
 const WH = process.env.B24_WEBHOOK_URL;
@@ -10,10 +11,11 @@ if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const BASE = WH.replace(/\/+$/, "");
 const PORTAL = process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru";
 const DAYS = Math.max(1, Number(process.env.DIALOG_DAYS || 7));
-const CATEGORY_ID = process.env.DIALOG_CATEGORY || ""; // "" = все воронки
+const CATEGORY_ID = process.env.DIALOG_CATEGORY ?? "49"; // воронка сделок GG «Заказы RF»
+const WITH_LEADS = process.env.DIALOG_NOLEADS !== "1";   // воронка «Лиды» (по умолчанию включена)
 const OUT = "dialog/data/dialog.json";
-const CBATCH = 50;   // сделок на batch комментариев (50 подкоманд - максимум)
-const CONC = 4;      // параллельных batch-запросов
+const EBATCH = 25;  // сущностей на batch (25×2 = 50 подкоманд - максимум)
+const CONC = 4;     // параллельных batch-запросов
 const BODY_CAP = 4000;
 
 const nowD = new Date();
@@ -56,19 +58,6 @@ async function listB24(method: string, filterStr: string, selectArr: string[]): 
   }
   return out;
 }
-// глобальная пагинация активностей (без OWNER_ID) - один поток по всем сделкам окна
-async function listActivities(): Promise<any[]> {
-  const out: any[] = []; let start = 0;
-  const sel = selQ(["ID", "OWNER_ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "SUBJECT", "DESCRIPTION", "CREATED", "END_TIME", "COMPLETED", "RESPONSIBLE_ID"]);
-  for (;;) {
-    const r = await callB24("crm.activity.list", `filter[OWNER_TYPE_ID]=2&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[ID]=ASC${sel}&start=${start}`);
-    const items = r.result || [];
-    out.push(...items);
-    if (r.next === undefined || r.next === null) break;
-    start = r.next;
-  }
-  return out;
-}
 
 function stripHtml(s: any): string {
   return String(s || "")
@@ -82,14 +71,6 @@ const durfmt = (sec: any) => { const s = parseInt(sec, 10) || 0; return `${Math.
 const cap = (s: string) => (s.length > BODY_CAP ? s.slice(0, BODY_CAP) + " …[обрезано]" : s);
 
 const uCache: Record<string, string> = {};
-async function userName(id: any): Promise<string> {
-  if (!id) return "";
-  const k = String(id);
-  if (uCache[k]) return uCache[k];
-  const u = ((await callB24("user.get", `ID=${k}`)).result || [])[0];
-  uCache[k] = u ? `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() : k;
-  return uCache[k];
-}
 async function buildEmployeeSet(): Promise<Record<string, 1>> {
   const set: Record<string, 1> = {}; let start = 0;
   for (;;) {
@@ -103,6 +84,14 @@ async function buildEmployeeSet(): Promise<Record<string, 1>> {
     if (r.next === undefined || r.next === null) break; start = r.next;
   }
   return set;
+}
+async function userName(id: any): Promise<string> {
+  if (!id) return "";
+  const k = String(id);
+  if (uCache[k]) return uCache[k];
+  const u = ((await callB24("user.get", `ID=${k}`)).result || [])[0];
+  uCache[k] = u ? `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() : k;
+  return uCache[k];
 }
 async function buildCallMap(): Promise<Record<string, any>> {
   const map: Record<string, any> = {}; let start = 0;
@@ -153,76 +142,78 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
   return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(stripHtml(raw)), status: "", dur: "", link: "", src: "cmt#" + c.ID };
 }
 
+type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string };
+
 async function main() {
-  console.log(`Диалог: окно ${FROM} -> ${TO} (${DAYS} дн)${CATEGORY_ID ? `, воронка ${CATEGORY_ID}` : ", все воронки"}`);
+  console.log(`Диалог GG: окно ${FROM} -> ${TO} (${DAYS} дн), сделки воронки ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
   const employees = await buildEmployeeSet();
   const callMap = await buildCallMap();
   console.log(`Сотрудников ${Object.keys(employees).length / 2 | 0}, звонков со статой ${Object.keys(callMap).length}`);
 
-  // Сделки в скоупе: активные в окне (LAST_ACTIVITY_TIME) - есть свежие касания/комментарии.
-  let dflt = `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}`;
-  if (CATEGORY_ID) dflt += `&filter[CATEGORY_ID]=${CATEGORY_ID}`;
-  const deals = await listB24("crm.deal.list", dflt, ["ID", "TITLE", "ASSIGNED_BY_ID", "CATEGORY_ID", "STAGE_ID"]);
-  console.log(`Сделок в скоупе (активны в окне): ${deals.length}`);
-  const dealById: Record<string, any> = {}; for (const d of deals) dealById[String(d.ID)] = d;
+  // Скоуп: сделки воронки GG + лиды, активные в окне.
+  const ents: Ent[] = [];
+  const dealFlt = `filter[>=LAST_ACTIVITY_TIME]=${enc(FROM)}&filter[CATEGORY_ID]=${CATEGORY_ID}`;
+  const deals = await listB24("crm.deal.list", dealFlt, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
+  for (const d of deals) ents.push({ kind: "deal", id: String(d.ID), title: stripHtml(d.TITLE) || ("Сделка " + d.ID), mgrId: String(d.ASSIGNED_BY_ID || "") });
+  let leadsN = 0;
+  if (WITH_LEADS) {
+    const leads = await listB24("crm.lead.list", `filter[>=DATE_MODIFY]=${enc(FROM)}`, ["ID", "TITLE", "ASSIGNED_BY_ID"]);
+    for (const l of leads) ents.push({ kind: "lead", id: String(l.ID), title: stripHtml(l.TITLE) || ("Лид " + l.ID), mgrId: String(l.ASSIGNED_BY_ID || "") });
+    leadsN = leads.length;
+  }
+  console.log(`Скоуп: сделок ${deals.length} + лидов ${leadsN} = ${ents.length} сущностей`);
 
-  // Активности - одним глобальным запросом, группируем по сделке.
-  const acts = await listActivities();
-  const actsByDeal: Record<string, any[]> = {};
-  for (const a of acts) { const k = String(a.OWNER_ID); (actsByDeal[k] || (actsByDeal[k] = [])).push(a); }
-  console.log(`Активностей в окне: ${acts.length} на ${Object.keys(actsByDeal).length} сделок`);
-
-  // Комментарии - батчами по 50 сделок, с ограниченной параллельностью.
-  const cmtSel = ["ID", "CREATED", "COMMENT", "AUTHOR_ID"];
-  const cmtQ = `?filter[ENTITY_TYPE]=deal&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC${selQ(cmtSel)}`;
-  const cmtByDeal: Record<string, any[]> = {};
-  const overflow: string[] = [];
-  const chunks: any[][] = [];
-  for (let i = 0; i < deals.length; i += CBATCH) chunks.push(deals.slice(i, i + CBATCH));
+  // Активности + комментарии поэлементно, батчами по 25 (50 подкоманд), параллельность CONC.
+  const aSel = ["ID", "TYPE_ID", "PROVIDER_ID", "DIRECTION", "SUBJECT", "DESCRIPTION", "CREATED", "END_TIME", "COMPLETED", "RESPONSIBLE_ID"];
+  const cSel = ["ID", "CREATED", "COMMENT", "AUTHOR_ID"];
+  const actQ = (ot: number) => `?filter[OWNER_TYPE_ID]=${ot}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC${selQ(aSel)}`;
+  const cmtQ = (et: string) => `?filter[ENTITY_TYPE]=${et}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC${selQ(cSel)}`;
+  const actsBy: Record<string, any[]> = {}, cmtsBy: Record<string, any[]> = {};
+  const chunks: Ent[][] = [];
+  for (let i = 0; i < ents.length; i += EBATCH) chunks.push(ents.slice(i, i + EBATCH));
   let done = 0;
-  const runChunk = async (slice: any[]) => {
+  const runChunk = async (slice: Ent[]) => {
     const cmds: Record<string, string> = {};
-    slice.forEach((d, j) => { cmds["c" + j] = `crm.timeline.comment.list${cmtQ}&filter[ENTITY_ID]=${d.ID}`; });
-    const { result, next } = await b24Batch(cmds);
-    slice.forEach((d, j) => { cmtByDeal[String(d.ID)] = result["c" + j] || []; if (next["c" + j] != null) overflow.push(String(d.ID)); });
+    slice.forEach((e, j) => {
+      const ot = e.kind === "deal" ? 2 : 1;
+      cmds["a" + j] = `crm.activity.list${actQ(ot)}&filter[OWNER_ID]=${e.id}`;
+      cmds["c" + j] = `crm.timeline.comment.list${cmtQ(e.kind)}&filter[ENTITY_ID]=${e.id}`;
+    });
+    const { result } = await b24Batch(cmds);
+    slice.forEach((e, j) => { const key = e.kind + ":" + e.id; actsBy[key] = result["a" + j] || []; cmtsBy[key] = result["c" + j] || []; });
     done += slice.length;
-    if (done % (CBATCH * 4) < CBATCH) console.log(`  комментарии: ${done}/${deals.length} сделок`);
+    if (done % (EBATCH * 4) < EBATCH) console.log(`  обработано ${done}/${ents.length}`);
   };
-  // пул из CONC воркеров
   let ci = 0;
   await Promise.all(Array.from({ length: CONC }, async () => { for (;;) { const idx = ci++; if (idx >= chunks.length) break; await runChunk(chunks[idx]!); } }));
-  // догрузка редких сделок с >50 комментариев за окно
-  for (const id of overflow) {
-    cmtByDeal[id] = await listB24("crm.timeline.comment.list", `filter[ENTITY_TYPE]=deal&filter[ENTITY_ID]=${id}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC`, cmtSel);
-  }
 
-  // Собираем события по всем сделкам, у которых есть активности ИЛИ комментарии.
   const events: any[] = [];
   const seen: Record<string, 1> = {};
   const counts: Record<string, number> = {};
   const mgrSet: Record<string, 1> = {};
-  const dealIds = new Set<string>([...Object.keys(actsByDeal), ...Object.keys(cmtByDeal)]);
-  for (const id of dealIds) {
-    const d = dealById[id] || { ID: id, TITLE: "сделка " + id, ASSIGNED_BY_ID: "", CATEGORY_ID: "" };
-    const mgr = await userName(d.ASSIGNED_BY_ID);
+  for (const e of ents) {
+    const key = e.kind + ":" + e.id;
+    const mgr = await userName(e.mgrId);
     const evs: any[] = [];
-    for (const a of (actsByDeal[id] || [])) { const e = activityToEvent(a, mgr, callMap); if (e) evs.push(e); }
-    for (const c of (cmtByDeal[id] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
-    for (const e of evs) {
-      const ms = Date.parse(e.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
-      if (seen[e.src]) continue; seen[e.src] = 1;
-      counts[e.type] = (counts[e.type] || 0) + 1;
+    for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap); if (ev) evs.push(ev); }
+    for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
+    for (const ev of evs) {
+      const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
+      const uid = key + "|" + ev.src;
+      if (seen[uid]) continue; seen[uid] = 1;
+      counts[ev.type] = (counts[ev.type] || 0) + 1;
       if (mgr) mgrSet[mgr] = 1;
-      events.push({ ts: ms, dt: e.raw, dealId: id, dealTitle: stripHtml(d.TITLE), mgr, cat: String(d.CATEGORY_ID || ""), type: e.type, dir: e.dir, who: e.who, title: e.title, body: e.body, status: e.status, dur: e.dur, link: e.link, src: e.src });
+      events.push({ ts: ms, dt: ev.raw, ent: e.kind, eid: e.id, entTitle: e.title, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, dur: ev.dur, link: ev.link, src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);
+  const entKeys = new Set(events.map((e) => e.ent + ":" + e.eid));
   const managers = Object.keys(mgrSet).sort();
-  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, category: CATEGORY_ID || "все", portal: PORTAL, dealsScanned: deals.length, dealsWithEvents: dealIds.size, managers, counts, events };
+  const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, scope: `Заказы RF (воронка ${CATEGORY_ID})${WITH_LEADS ? " + Лиды" : ""}`, portal: PORTAL, dealsScanned: ents.length, dealsWithEvents: entKeys.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
   const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");
-  console.log(`Готово: событий ${events.length} по ${dealIds.size} сделкам, менеджеров ${managers.length} -> ${OUT}`);
+  console.log(`Готово: событий ${events.length} по ${entKeys.size} сделкам/лидам, менеджеров ${managers.length} -> ${OUT}`);
   console.log(`  ${summary}`);
 }
 main().catch((e) => { console.error("FATAL", e); process.exit(1); });

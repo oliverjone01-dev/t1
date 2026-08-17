@@ -60,6 +60,13 @@ jobs:
           npx tsx src/scripts/b24/fetch-dialog.ts
           echo "Размер: $(du -h dialog/data/dialog.json | cut -f1)"
 
+      - name: Скоринг диалогов (вероятность, теги, рейтинг менеджеров)
+        run: |
+          set -euo pipefail
+          git fetch origin rop-dashboard-v1 --depth=1
+          git show origin/rop-dashboard-v1:analytics-mvp/rop/data/rop.json > /tmp/rop.json || echo "rop.json недоступен, скоринг без фактов CRM"
+          ROP_JSON=/tmp/rop.json npx tsx src/scripts/b24/score-dialog.ts
+
       - name: Commit (если есть изменения)
         id: commit
         working-directory: .

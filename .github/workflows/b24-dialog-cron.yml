@@ -81,7 +81,7 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/dialog/data/dialog.json analytics-mvp/dialog/data/ai-review.json analytics-mvp/dialog/data/trend.json
+          git add -A analytics-mvp/dialog/data/
           if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(dialog): снимок коммуникаций Bitrix24 $(date -u +%F)"
           for i in 1 2 3 4 5; do

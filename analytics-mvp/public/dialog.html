@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGLASS · Хронология коммуникаций</title>
+<style>
+:root{--bg:#0E141A;--card:#141C24;--card2:#0F171E;--border:#243039;--border-soft:#1B242C;--ink:#E7EEF4;--ink-2:#B7C4CE;--ink-3:#8A99A6;--ink-4:#5D6B77;--acc:#22D3EE}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--acc);text-decoration:none}
+.wrap{max-width:1680px;margin:0 auto;padding:18px 22px 60px}
+.h1{font-size:20px;font-weight:800;letter-spacing:.2px}
+.sub{color:var(--ink-3);font-size:12px;margin-top:3px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 12px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.bar label{color:var(--ink-3);font-size:11px;margin-right:4px}
+select,input{background:var(--card2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12.5px;outline:none}
+input#q{min-width:240px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--border);color:var(--ink-2);font-size:11.5px;cursor:pointer;user-select:none}
+.chip.on{background:#12303a;border-color:#1f6b7d;color:#bfeff8}
+.cnt{color:var(--ink-4);font-size:11px}
+.twrap{border:1px solid var(--border);border-radius:12px;overflow:auto;max-height:calc(100vh - 210px)}
+table{border-collapse:collapse;width:100%;font-size:12.2px}
+thead th{position:sticky;top:0;background:#101922;color:var(--ink-3);text-align:left;font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;z-index:2}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--border-soft);vertical-align:top}
+tbody tr:hover{background:rgba(34,211,238,.04)}
+.dt{white-space:nowrap;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;white-space:nowrap}
+.dir-in{color:#69C7DA}.dir-out{color:#7FD1A6}
+.body{white-space:pre-wrap;word-break:break-word;max-width:640px;color:var(--ink)}
+.ttl{color:var(--ink-3);font-size:11px;margin-bottom:2px}
+.st{font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.mgr{white-space:nowrap;color:var(--ink-2)}
+.who{white-space:nowrap;color:var(--ink-2)}
+.empty{padding:40px;text-align:center;color:var(--ink-4)}
+.foot{color:var(--ink-4);font-size:11px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="h1">GENGLASS · Хронология коммуникаций</div>
+  <div class="sub" id="sub">загрузка…</div>
+
+  <div class="bar">
+    <span><label>Менеджер</label><select id="fMgr"></select></span>
+    <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
+    <span><label>Сделка</label><input id="fDeal" placeholder="ID сделки" style="width:110px"></span>
+    <input id="q" placeholder="поиск по тексту / кто / тема">
+    <span><label>Порядок</label><select id="fOrd"><option value="asc">старые → новые</option><option value="desc">новые → старые</option></select></span>
+    <span class="cnt" id="typeChips"></span>
+  </div>
+  <div class="cnt" id="stat" style="margin:-4px 0 10px"></div>
+
+  <div class="twrap">
+    <table>
+      <thead><tr>
+        <th>Дата/время</th><th>Сделка</th><th>Менеджер</th><th>Тип</th><th>Напр.</th><th>Кто</th><th>Содержимое</th><th>Статус</th><th>Длит.</th><th>Ссылка</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DATA = {"generatedAt":null,"from":"","to":"","days":7,"category":"все","portal":"https://glassmemory.bitrix24.ru","dealsScanned":0,"managers":[],"counts":{},"events":[]};
+const BAKED_AT = "2026-08-17T09:16:12.276Z";
+const PORTAL = DATA.portal || "https://glassmemory.bitrix24.ru";
+const LIMIT = 3000;
+
+const TCOL = {
+  'Звонок':'#3DAEC2','Письмо':'#C2873C','Дело':'#8B7BF0','Задача':'#8B7BF0',
+  'Мессенджер ОЛ':'#2E9E74','Комментарий-заметка':'#8794A5','Активность':'#5D6B77'
+};
+const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDT = iso => { const d=new Date(iso); if(isNaN(d)) return ''; const p=n=>String(n).padStart(2,'0');
+  return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); };
+
+const S = { mgr:'', dir:'', deal:'', q:'', ord:'asc', types:new Set() };
+
+function initControls(){
+  const mgr = document.getElementById('fMgr');
+  mgr.innerHTML = '<option value="">все менеджеры</option>' + (DATA.managers||[]).map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  // чипы типов
+  const chips = document.getElementById('typeChips');
+  const order = Object.keys(DATA.counts||{}).sort((a,b)=>DATA.counts[b]-DATA.counts[a]);
+  chips.innerHTML = order.map(t=>`<span class="chip" data-t="${esc(t)}"><i style="width:8px;height:8px;border-radius:2px;background:${typeColor(t)};display:inline-block"></i>${esc(t)} <span class="cnt">${DATA.counts[t]}</span></span>`).join('');
+  chips.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{ const t=ch.dataset.t; if(S.types.has(t)){S.types.delete(t);ch.classList.remove('on');}else{S.types.add(t);ch.classList.add('on');} render(); });
+  mgr.onchange=()=>{S.mgr=mgr.value;render();};
+  document.getElementById('fDir').onchange=e=>{S.dir=e.target.value;render();};
+  document.getElementById('fDeal').oninput=e=>{S.deal=e.target.value.trim();render();};
+  document.getElementById('fOrd').onchange=e=>{S.ord=e.target.value;render();};
+  let qt; document.getElementById('q').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{S.q=e.target.value.trim().toLowerCase();render();},180);};
+  document.getElementById('sub').textContent =
+    `${DATA.from ? DATA.from.slice(0,10) : ''} → ${DATA.to ? DATA.to.slice(0,10) : ''} · ${DATA.days} дн · сделок в скоупе ${DATA.dealsScanned||0} · снимок ${BAKED_AT ? BAKED_AT.slice(0,16).replace('T',' ') : ''}`;
+}
+
+function filtered(){
+  let ev = DATA.events;
+  if(S.mgr) ev = ev.filter(e=>e.mgr===S.mgr);
+  if(S.dir) ev = ev.filter(e=>e.dir===S.dir);
+  if(S.deal) ev = ev.filter(e=>String(e.dealId).indexOf(S.deal)>=0);
+  if(S.types.size) ev = ev.filter(e=>S.types.has(e.type));
+  if(S.q){ const q=S.q; ev = ev.filter(e=>(e.body&&e.body.toLowerCase().indexOf(q)>=0)||(e.who&&e.who.toLowerCase().indexOf(q)>=0)||(e.title&&e.title.toLowerCase().indexOf(q)>=0)||(e.dealTitle&&e.dealTitle.toLowerCase().indexOf(q)>=0)); }
+  ev = ev.slice();
+  ev.sort((a,b)=> S.ord==='asc' ? a.ts-b.ts : b.ts-a.ts);
+  return ev;
+}
+function row(e){
+  const c = typeColor(e.type);
+  const deal = `<a href="${PORTAL}/crm/deal/details/${esc(e.dealId)}/" target="_blank" title="${esc(e.dealTitle)}">${esc(e.dealId)}</a>`;
+  const dir = e.dir==='входящее'?'<span class="dir-in">← вх</span>':e.dir==='исходящее'?'<span class="dir-out">исх →</span>':'<span style="color:var(--ink-4)">·</span>';
+  const bodyTop = e.title ? `<div class="ttl">${esc(e.title)}</div>` : '';
+  const link = e.link ? `<a href="${esc(e.link)}" target="_blank">запись</a>` : '<span style="color:var(--ink-4)">·</span>';
+  return `<tr>
+    <td class="dt">${fmtDT(e.dt)}</td>
+    <td>${deal}</td>
+    <td class="mgr">${esc(e.mgr)}</td>
+    <td><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(e.type)}</span></td>
+    <td>${dir}</td>
+    <td class="who">${esc(e.who)}</td>
+    <td class="body">${bodyTop}${esc(e.body)}</td>
+    <td class="st">${esc(e.status)}</td>
+    <td class="st">${esc(e.dur)}</td>
+    <td>${link}</td>
+  </tr>`;
+}
+function render(){
+  const ev = filtered();
+  const show = ev.slice(0, LIMIT);
+  document.getElementById('tb').innerHTML = show.length ? show.map(row).join('') : `<tr><td colspan="10" class="empty">по этому фильтру событий нет</td></tr>`;
+  document.getElementById('stat').textContent = `событий: ${ev.length}` + (ev.length>LIMIT?` (показаны первые ${LIMIT}, сузьте фильтр)`:'');
+  document.getElementById('foot').textContent = `Всего в снимке ${DATA.events.length} событий за ${DATA.days} дн. Клик по ID - карточка сделки в Bitrix24.`;
+}
+initControls(); render();
+</script>
+</body>
+</html>

@@ -60,8 +60,8 @@ input#q{min-width:220px}
 .cellv{display:inline-flex;flex-direction:column;gap:3px;align-items:center;cursor:pointer;min-width:52px;padding:2px 4px;border-radius:5px}
 .cellv:hover{background:#ffffff10;outline:1px solid var(--line)}
 .cellv b{font-weight:600;font-size:12px}
-.bar{width:46px;height:3px;border-radius:2px;background:#ffffff18;overflow:hidden}
-.bar i{display:block;height:100%}
+.pbar{display:block;width:46px;height:3px;border-radius:2px;background:#ffffff18;overflow:hidden}
+.pbar i{display:block;height:100%}
 .rt{font-weight:700;font-size:15px}
 .rtst{color:#E8A33D;font-size:10px;letter-spacing:.5px;display:block}
 .na2{color:var(--ink-4);font-size:11px}
@@ -254,7 +254,7 @@ function cellHTML(m,sec){
   if(sec.pos===null) return `<td><span class="na2" title="затронут в ${sec.n} сделках, порог ${SC.minSample?5:5}">нет данных</span></td>`;
   const c=pctCol(sec.pos);
   return `<td><span class="cellv" data-mgr="${esc(m.mgr)}" data-sec="${sec.key}" title="${sec.bad} сделок с дефектом из ${sec.n} · клик - показать их">
-    <b style="color:${c}">${sec.pos}%</b><span class="bar"><i style="width:${sec.pos}%;background:${c}"></i></span></span></td>`;
+    <b style="color:${c}">${sec.pos}%</b><span class="pbar"><i style="width:${sec.pos}%;background:${c}"></i></span></span></td>`;
 }
 function renderManagers(){
   const list=document.getElementById('list');

@@ -94,9 +94,17 @@ jobs:
         if: steps.commit.outputs.changed == 'true'
         run: |
           set -euo pipefail
-          curl -sS -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
-            -d '{"ref":"main"}'
+          # GitHub иногда отвечает 5xx на dispatch. Без --fail-with-body curl молчит, и публикация
+          # теряется незаметно: шаг рапортует успех, а данные на сайт не уезжают. Поэтому ретраи.
+          ok=0
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/dispatch.out -w "%{http_code}" -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+              -d '{"ref":"main"}' || echo 000)
+            if [ "$code" = "204" ]; then ok=1; break; fi
+            echo "попытка $i: HTTP $code $(cat /tmp/dispatch.out)"; sleep $((5*i))
+          done
+          if [ "$ok" != "1" ]; then echo "::error::Публикация не запрошена после 5 попыток"; exit 1; fi
           echo "Публикация /dialog/ запрошена (deploy-pages, ref=main)."

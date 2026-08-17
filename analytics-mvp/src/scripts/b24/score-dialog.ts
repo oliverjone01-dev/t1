@@ -35,9 +35,11 @@ const CALIBRATED_AT = "2026-08-17";
 const FAST_ANSWER_MIN = 30;      // быстрый ответ: медиана <= 30 рабочих минут
 const SLOW_ANSWER_MIN = 240;     // медленный: медиана > 4 рабочих часов
 const BALL_STUCK_MIN = 240;      // «мяч у нас»: клиент ждёт больше 4 рабочих часов
-const SILENCE_WARN_D = 3;        // тишина: дней без событий
-const SILENCE_BAD_D = 7;
+const SILENCE_WARN_D = 2;        // тишина: дней без событий (окно снимка 7 дней,
+const SILENCE_BAD_D = 4;         // поэтому пороги внутри него ниже)
 const MIN_SAMPLE = 10;           // минимальная выборка для рейтинга менеджера (правило Кости)
+
+const EARLY = new Set(["C49:NEW", "C49:UC_LRFLH9", "C49:PREPAYMENT_INVOIC", "C49:PREPARATION", "C49:3"]); // до расчёта/оплаты
 
 const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;  // рабочий день МСК
 
@@ -71,7 +73,7 @@ const RE_REFUSE = /не актуально|отказыва|передумал|�
 function main() {
   const dlg = JSON.parse(readFileSync(DLG, "utf8"));
   const events: Ev[] = dlg.events || [];
-  const now = Math.max(...events.map((e) => e.ts), Date.now() - 864e5);
+  const now = Date.parse(dlg.to) || Math.max(...events.map((e) => e.ts));
 
   // Факты сделок из снимка РОПа (если он доступен)
   const facts: Record<string, any> = {};
@@ -159,6 +161,7 @@ function main() {
     else if (hasReady) next = "Клиент говорит об оплате. Выставить счёт сегодня и назвать срок готовности датой, а не «на днях».";
     else if (hasPrice) next = "Отработать цену: показать состав стоимости и альтернативу дешевле, назвать конкретный срок ответа.";
     else if (silenceD >= SILENCE_BAD_D) next = `Тишина ${silenceD} дн. Написать с новым поводом (готовность, сроки, вариант), закончить вопросом и зафиксировать дату следующего контакта.`;
+    else if (overdue) next = `Дело просрочено${f && f.taskSubj ? " («" + String(f.taskSubj).slice(0, 40) + "»)" : ""}. Либо закрыть его сегодня, либо перенести с новой датой: просроченное дело в CRM означает, что сделкой никто не занят.`;
     else if (!nextStep) next = "Поставить дело с датой и временем: без следующего шага сделка выпадает из работы.";
     else if (hasVague) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда» вместо «в ближайшее время».";
     else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
@@ -178,7 +181,7 @@ function main() {
     { key: "ball", label: "Не оставляет клиента без ответа", ok: (d: any) => d.ballWait <= BALL_STUCK_MIN },
     { key: "next", label: "Следующий шаг зафиксирован", ok: (d: any) => !!d.nextStep },
     { key: "silence", label: "Без затяжных пауз", ok: (d: any) => d.silenceD < SILENCE_BAD_D },
-    { key: "qual", label: "Квалификация собрана", ok: (d: any) => d.tags.some((t: any) => t.t === "Квалификация собрана") },
+    { key: "qual", label: "Квалификация собрана", ok: (d: any) => EARLY.has(d.stageCode) || !d.stageCode ? d.tags.some((t: any) => t.t === "Квалификация собрана") : null },
     { key: "concrete", label: "Конкретные сроки в ответах", ok: (d: any) => !d.tags.some((t: any) => t.t === "Размытый срок в ответе") },
   ];
   const byMgr: Record<string, any[]> = {};

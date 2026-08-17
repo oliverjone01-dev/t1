@@ -39,7 +39,7 @@ async function callB24(method: string, payload: string): Promise<any> {
 }
 async function b24Batch(cmds: Record<string, string>): Promise<{ result: any; next: any }> {
   let payload = "halt=0";
-  for (const k of Object.keys(cmds)) payload += `&cmd[${enc(k)}]=${encodeURIComponent(cmds[k])}`;
+  for (const k of Object.keys(cmds)) payload += `&cmd[${enc(k)}]=${encodeURIComponent(cmds[k] ?? "")}`;
   const j = await callB24("batch", payload);
   const r = j.result || {};
   return { result: r.result || {}, next: r.result_next || {} };
@@ -190,7 +190,7 @@ async function main() {
   };
   // пул из CONC воркеров
   let ci = 0;
-  await Promise.all(Array.from({ length: CONC }, async () => { for (;;) { const idx = ci++; if (idx >= chunks.length) break; await runChunk(chunks[idx]); } }));
+  await Promise.all(Array.from({ length: CONC }, async () => { for (;;) { const idx = ci++; if (idx >= chunks.length) break; await runChunk(chunks[idx]!); } }));
   // догрузка редких сделок с >50 комментариев за окно
   for (const id of overflow) {
     cmtByDeal[id] = await listB24("crm.timeline.comment.list", `filter[ENTITY_TYPE]=deal&filter[ENTITY_ID]=${id}&filter[>CREATED]=${enc(FROM)}&filter[<=CREATED]=${enc(TO)}&order[CREATED]=ASC`, cmtSel);
@@ -221,7 +221,7 @@ async function main() {
   const out = { generatedAt: new Date().toISOString(), from: FROM, to: TO, days: DAYS, category: CATEGORY_ID || "все", portal: PORTAL, dealsScanned: deals.length, dealsWithEvents: dealIds.size, managers, counts, events };
   mkdirSync("dialog/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify(out));
-  const summary = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).map((k) => `${k}: ${counts[k]}`).join(" · ");
+  const summary = Object.keys(counts).sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0)).map((k) => `${k}: ${counts[k] ?? 0}`).join(" · ");
   console.log(`Готово: событий ${events.length} по ${dealIds.size} сделкам, менеджеров ${managers.length} -> ${OUT}`);
   console.log(`  ${summary}`);
 }

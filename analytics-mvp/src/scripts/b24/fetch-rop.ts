@@ -255,6 +255,46 @@ async function channelMix(
   return { byMgr: by, touch, commCount };
 }
 
+// Мессенджер-переписка Wazzup пишется в КОММЕНТАРИИ таймлайна (crm.timeline.comment), а не в
+// crm.activity и не в Открытую линию, поэтому channelMix её не видит. Тянем комментарии по
+// ОТКРЫТЫМ сделкам (объём подъёмный), берём только Wazzup (маркер wazzup24.com - вшитая иконка
+// канала в каждом сообщении). Направление - по префиксу «Имя:»: если имя = сотрудник (mgrName),
+// то исходящее, иначе входящее. Атрибуция - на ОТВЕТСТВЕННОГО за сделку: автор комментария у
+// Wazzup всегда служебный юзер интеграции (напр. 6485 Алиса), а не собеседник.
+async function wazzupMix(
+  openDeals: Array<{ id: string; mgr: string }>, empNames: Set<string>,
+): Promise<{ byMgr: Record<string, { msg_in: number; msg_out: number }>; perDeal: Record<string, { count: number; last: string }> }> {
+  const byMgr: Record<string, { msg_in: number; msg_out: number }> = {};
+  const perDeal: Record<string, { count: number; last: string }> = {};
+  let wazTotal = 0;
+  await Promise.all(openDeals.map((dl) => (async () => {
+    let cs: any[];
+    try {
+      const r = await call("crm.timeline.comment.list", {
+        filter: { ENTITY_ID: dl.id, ENTITY_TYPE: "deal" }, order: { CREATED: "ASC" },
+      });
+      cs = r.result || [];
+    } catch { return; }
+    const waz = cs.filter((c) => String(c.COMMENT || "").toLowerCase().includes("wazzup24.com"));
+    if (!waz.length) return;
+    let mIn = 0, mOut = 0, last = "";
+    for (const c of waz) {
+      const day = d10(c.CREATED) || "";
+      if (day > last) last = day;
+      const txt = String(c.COMMENT).replace(/\[img\][^\[]*\[\/img\]/gi, "").replace(/&nbsp;/g, " ").trim();
+      const m = txt.match(/^([^:\n]{1,60}):/);
+      const who = (m?.[1] || "").trim().toLowerCase();
+      if (who && empNames.has(who)) mOut++; else mIn++;
+    }
+    wazTotal += waz.length;
+    perDeal[String(dl.id)] = { count: waz.length, last };
+    const b = byMgr[dl.mgr] || (byMgr[dl.mgr] = { msg_in: 0, msg_out: 0 });
+    b.msg_in += mIn; b.msg_out += mOut;
+  })()));
+  console.log(`Wazzup-комментарии: сделок с перепиской ${Object.keys(perDeal).length} из ${openDeals.length} открытых, сообщений ${wazTotal}`);
+  return { byMgr, perDeal };
+}
+
 async function pageAll(method: string, params: any): Promise<any[]> {
   const all: any[] = [];
   let start = 0;
@@ -420,6 +460,10 @@ async function main() {
   const today = d10(new Date().toISOString()) || "";
   const dealRowById: Record<string, any> = {};
   for (const d of dealRows) dealRowById[String(d.ID)] = d;
+  // Wazzup-переписка (комментарии) по открытым сделкам: имена сотрудников - для направления вх/исх.
+  const empNames = new Set(Object.values(mgrName).map((n) => String(n).toLowerCase()).filter(Boolean));
+  const openForWaz = (deals as any[]).filter((d) => !d.won && !d.lost).map((d) => ({ id: String(d.id), mgr: d.mgr }));
+  const wazMix = await wazzupMix(openForWaz, empNames);
   for (const dl of deals) {
     const raw = dealRowById[String(dl.id)];
     // Ключи владельцев: сама сделка, её контакт, компания И ЛИД-ИСТОЧНИК. Большая часть
@@ -431,6 +475,9 @@ async function main() {
     let best: { d: string; c: string } | null = null;
     let comm = 0;
     for (const k of keys) { const t = touch[k]; if (t && (!best || t.d > best.d)) best = t; comm += commCount[k] || 0; }
+    // Wazzup-переписка из комментариев: считаем как реальные мессенджер-касания.
+    const wz = wazMix.perDeal[String(dl.id)];
+    if (wz) { comm += wz.count; if (!best || wz.last > best.d) best = { d: wz.last, c: "msg" }; }
     const lastT = best ? best.d : null;
     (dl as any).lastTouch = lastT;                       // дата последнего касания (YYYY-MM-DD) или null
     (dl as any).lastTouchChan = best ? best.c : null;    // канал последнего касания: call | msg | email
@@ -440,6 +487,11 @@ async function main() {
     (dl as any).touch90 = comm;
     (dl as any).tasksOpen = dues.length;
     (dl as any).tasksNoContact = dues.filter((day) => day <= today && (!lastT || lastT < day)).length;
+  }
+  // Wazzup-мессенджеры (вх/исх) - в канал-микс по менеджеру (для мини-стека с вх/исх).
+  for (const [mgr, v] of Object.entries(wazMix.byMgr)) {
+    const b = channels.byMgr[mgr] || (channels.byMgr[mgr] = { call_in: 0, call_out: 0, email_in: 0, email_out: 0, msg_in: 0, msg_out: 0 });
+    b.msg_in += v.msg_in; b.msg_out += v.msg_out;
   }
   const touchedDeals = deals.filter((d: any) => d.lastTouch).length;
   console.log(`Последнее касание проставлено у ${touchedDeals} из ${deals.length} сделок`);

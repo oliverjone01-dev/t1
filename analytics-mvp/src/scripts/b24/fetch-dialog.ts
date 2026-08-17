@@ -106,21 +106,35 @@ async function buildCallMap(): Promise<Record<string, any>> {
   return map;
 }
 
-function activityToEvent(a: any, mgrName: string, callMap: Record<string, any>): any {
+// Время звонка для подписи резюме: «17.08 14:09».
+function shortDT(s: any): string {
+  const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  return m ? `${m[3]}.${m[2]} ${m[4]}:${m[5]}` : "";
+}
+function activityToEvent(a: any, mgrName: string, callMap: Record<string, any>, callRefs: Record<string, any>): any {
   const p = String(a.PROVIDER_ID || "").toUpperCase();
   if (/SMS|NOTIFICATION|REST_APP/.test(p)) return null;
   const dir = a.DIRECTION === "1" ? "входящее" : a.DIRECTION === "2" ? "исходящее" : "-";
   const who = a.DIRECTION === "1" ? "Клиент" : mgrName;
   const subj = stripHtml(a.SUBJECT), desc = stripHtml(a.DESCRIPTION);
+  const st = a.SETTINGS && !Array.isArray(a.SETTINGS) ? a.SETTINGS : {};
   if (a.TYPE_ID === "2" || /CALL|VOX/.test(p)) {
     const ci = callMap[String(a.ID)]; let body = "Звонок", link = "";
+    const f = Array.isArray(a.FILES) ? a.FILES[0] : null;   // запись звонка в карточке
     if (ci) {
-      link = ci.rec || "";
-      const hasRec = ci.rec || ci.recId;
+      link = ci.rec || (f && f.url) || "";
+      const hasRec = ci.rec || ci.recId || (f && f.url);
       body = `Звонок ${ci.type === "2" ? "входящий" : ci.type === "1" ? "исходящий" : ""}${ci.dur ? ", " + durfmt(ci.dur) : ""}`;
       body += ci.tr ? " · есть расшифровка" : (hasRec ? " · запись есть (в карточке Б24), транскрипта нет" : "");
-    } else if (subj) body = subj;
+    } else { if (subj) body = subj; if (f && f.url) { link = f.url; body += " · запись есть (в карточке Б24)"; } }
     return { raw: a.CREATED, dir, who, type: "Звонок", title: subj || "Звонок", body, status: a.COMPLETED === "Y" ? "состоялся" : "не состоялся", dur: ci && ci.dur ? durfmt(ci.dur) : "", link, src: "act#" + a.ID };
+  }
+  // Резюме BitrixGPT: дело с меткой IS_AI_CREATED. ASSOCIATED_ENTITY_ID - ID звонка-источника.
+  if (st.IS_AI_CREATED === true || st.IS_AI_CREATED === "true") {
+    const src = String(a.ASSOCIATED_ENTITY_ID || "");
+    const c = src ? callRefs[src] : null;
+    const ref = c ? `к звонку #${src} · ${shortDT(c.CREATED)}${c.SUBJECT ? " · " + stripHtml(c.SUBJECT) : ""}` : "";
+    return { raw: a.CREATED, dir: "-", who: "BitrixGPT", type: "Резюме BitrixGPT", title: subj, body: cap(desc || subj), status: "", dur: "", link: "", ref, refId: src, src: "act#" + a.ID };
   }
   if (a.TYPE_ID === "4" || /EMAIL|MAIL/.test(p))
     return { raw: a.CREATED, dir, who, type: "Письмо", title: subj, body: cap((subj ? "Тема: " + subj + "\n" : "") + (desc || "")), status: a.COMPLETED === "Y" ? "обработано" : "", dur: "", link: "", src: "act#" + a.ID };
@@ -181,7 +195,7 @@ async function main() {
 
   // Активности + комментарии поэлементно, батчами по 25 (JSON-тело в call), параллельность CONC.
   // В batch-cmd используем только >CREATED (одиночный >, парсится); верхнюю границу режем на клиенте.
-  const aSel = "&select[0]=ID&select[1]=TYPE_ID&select[2]=PROVIDER_ID&select[3]=DIRECTION&select[4]=SUBJECT&select[5]=DESCRIPTION&select[6]=CREATED&select[7]=END_TIME&select[8]=COMPLETED&select[9]=RESPONSIBLE_ID";
+  const aSel = "&select[0]=ID&select[1]=TYPE_ID&select[2]=PROVIDER_ID&select[3]=DIRECTION&select[4]=SUBJECT&select[5]=DESCRIPTION&select[6]=CREATED&select[7]=END_TIME&select[8]=COMPLETED&select[9]=RESPONSIBLE_ID&select[10]=SETTINGS&select[11]=ASSOCIATED_ENTITY_ID&select[12]=FILES";
   const cSel = "&select[0]=ID&select[1]=CREATED&select[2]=COMMENT&select[3]=AUTHOR_ID";
   const actsBy: Record<string, any[]> = {}, cmtsBy: Record<string, any[]> = {};
   const chunks: Ent[][] = [];
@@ -202,6 +216,20 @@ async function main() {
   let ci = 0;
   await Promise.all(Array.from({ length: CONC }, async () => { for (;;) { const idx = ci++; if (idx >= chunks.length) break; await runChunk(chunks[idx]!); } }));
 
+  // Справочник звонков для привязки AI-резюме (ASSOCIATED_ENTITY_ID -> звонок).
+  // Всё загруженное кладём сразу; недостающие (звонок старше окна) добираем точечно.
+  const callRefs: Record<string, any> = {};
+  const needRef = new Set<string>();
+  for (const list of Object.values(actsBy)) for (const a of list) {
+    if (a.TYPE_ID === "2" || /CALL|VOX/.test(String(a.PROVIDER_ID || "").toUpperCase())) callRefs[String(a.ID)] = a;
+    const s = a.SETTINGS && !Array.isArray(a.SETTINGS) ? a.SETTINGS : {};
+    if ((s.IS_AI_CREATED === true || s.IS_AI_CREATED === "true") && a.ASSOCIATED_ENTITY_ID) needRef.add(String(a.ASSOCIATED_ENTITY_ID));
+  }
+  for (const id of needRef) {
+    if (callRefs[id]) continue;
+    try { const r = (await call("crm.activity.get", { id })).result; if (r) callRefs[id] = r; } catch { /* пропуск */ }
+  }
+
   const events: any[] = [];
   const seen: Record<string, 1> = {};
   const counts: Record<string, number> = {};
@@ -214,7 +242,7 @@ async function main() {
     else { leadId = e.id; leadT = e.title; dealId = leadToDeal[e.id] || ""; dealT = dealId ? (dealTitle[dealId] || "") : ""; }
     const pair = leadId + "|" + dealId;
     const evs: any[] = [];
-    for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap); if (ev) evs.push(ev); }
+    for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap, callRefs); if (ev) evs.push(ev); }
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
     for (const ev of evs) {
       const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
@@ -222,7 +250,7 @@ async function main() {
       if (seen[uid]) continue; seen[uid] = 1;
       counts[ev.type] = (counts[ev.type] || 0) + 1;
       if (mgr) mgrSet[mgr] = 1;
-      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, dur: ev.dur, link: ev.link, src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, dur: ev.dur, link: ev.link, ref: ev.ref || "", src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);

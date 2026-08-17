@@ -1,0 +1,88 @@
+name: B24 dialog snapshot (хронология коммуникаций, /dialog/)
+
+# Снимок КОММУНИКАЦИЙ Bitrix24 за окно (7 дней) -> analytics-mvp/dialog/data/dialog.json
+# на ветке dialog-export-v1. Звонки, письма, WhatsApp/Telegram/MAX (Wazzup), Открытые линии,
+# дела/TODO, заметки - в единой хронологии по сделкам. После снимка дёргает deploy-pages -> /dialog/.
+# Живёт на main, чтобы schedule/workflow_dispatch были доступны; код берётся из DATA_BRANCH.
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "DIALOG_DAYS (окно в днях, по умолчанию 7)"
+        required: false
+  schedule:
+    - cron: "37 5 * * *" # ~08:37 МСК
+
+permissions:
+  contents: write
+  actions: write # чтобы после снимка дёрнуть deploy-pages (публикация /dialog/)
+
+concurrency:
+  group: b24-dialog-data
+  cancel-in-progress: true
+
+env:
+  B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+  B24_PORTAL: https://glassmemory.bitrix24.ru
+  DATA_BRANCH: dialog-export-v1
+  DIALOG_DAYS: ${{ github.event.inputs.days || '7' }}
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DATA_BRANCH }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+
+      - name: Проверить секрет
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then
+            echo "::error::Секрет B24_WEBHOOK_URL не задан (Settings -> Secrets -> Actions)."; exit 1
+          fi
+          echo "Секрет на месте. Окно=$DIALOG_DAYS дн"
+
+      - name: Снимок коммуникаций Bitrix -> dialog/data/dialog.json
+        run: |
+          set -euo pipefail
+          npx tsx src/scripts/b24/fetch-dialog.ts
+          echo "Размер: $(du -h dialog/data/dialog.json | cut -f1)"
+
+      - name: Commit (если есть изменения)
+        id: commit
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/dialog/data/dialog.json
+          if git diff --staged --quiet; then echo "снимок без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git commit -m "data(dialog): снимок коммуникаций Bitrix24 $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$DATA_BRANCH" && git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1
+
+      - name: Триггер деплоя /dialog/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'
+          echo "Публикация /dialog/ запрошена (deploy-pages, ref=main)."

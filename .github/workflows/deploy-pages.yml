@@ -382,6 +382,23 @@ jobs:
           printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/rop-gm/v.txt"
           echo "ROP-GM опубликован в /rop-gm/, сборка $STAMP"
 
+      # === ХРОНОЛОГИЯ КОММУНИКАЦИЙ (изолированно, из ветки dialog-export-v1, в /dialog/) ===
+      # Данные - снимок dialog.json (крон b24-dialog-cron), собирается build-dialog.ts на деплое.
+      # node_modules переиспользуем из основного workspace. Падение не валит сайт.
+      - name: Build DIALOG page (isolated, /dialog/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin dialog-export-v1
+          git worktree add /tmp/dlg origin/dialog-export-v1
+          ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg/analytics-mvp/node_modules
+          cd /tmp/dlg/analytics-mvp
+          npx tsx src/scripts/b24/build-dialog.ts
+          mkdir -p "$GITHUB_WORKSPACE/_site/dialog"
+          cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog/index.html"
+          printf '%s' "$(date -u +%FT%TZ)" > "$GITHUB_WORKSPACE/_site/dialog/v.txt"
+          echo "DIALOG опубликован в /dialog/"
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при

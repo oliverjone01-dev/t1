@@ -20,6 +20,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const DLG = "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
 const AIF = "dialog/data/ai-review.json";
+const TRD = "dialog/data/trend.json";
 
 // [ДАННЫЕ] rop.json 2026-08-17, сделки C49 с created >= 2026-04-01: побывал на стадии -> доля выигранных
 const BASE_RATES: Record<string, { name: string; n: number; win: number }> = {
@@ -54,6 +55,10 @@ const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
 type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
+// Антигейминг: «Хорошо, спасибо!» за 2 минуты не ответ клиенту. Ответом по существу считаем
+// сообщение от 25 символов либо с цифрой, датой или вопросом (16% исходящих - короткие отписки).
+const MIN_ANSWER_LEN = 25;
+const isRealAnswer = (e: Ev) => { const b = String(e.body || "").trim(); return b.length >= MIN_ANSWER_LEN || /\d|\?/.test(b); };
 
 function workMinutes(a: number, b: number): number {
   if (b <= a) return 0;
@@ -126,7 +131,7 @@ function main() {
     const resp: number[] = [];
     for (let i = 0; i < msgs.length; i++) {
       if (msgs[i]!.dir !== "входящее") continue;
-      const nxt = msgs.slice(i + 1).find((m) => m.dir === "исходящее");
+      const nxt = msgs.slice(i + 1).find((m) => m.dir === "исходящее" && isRealAnswer(m));
       if (nxt) resp.push(workMinutes(msgs[i]!.ts, nxt.ts));
     }
     const respMed = med(resp), firstResp = resp.length ? resp[0]! : null;
@@ -153,6 +158,8 @@ function main() {
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
     if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
     if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
+    const stubs = outs.filter((m) => !isRealAnswer(m)).length;
+    if (outs.length >= 4 && stubs / outs.length > 0.5) add(`Ответы-заглушки · ${stubs} из ${outs.length}`, "speed", "bad");
     // 2. Квалификация (только до расчёта)
     if (early) {
       const q = [RE.spec.test(allText) && "ТЗ/размеры", RE.term.test(allText) && "срок", RE.budget.test(allText) && "бюджет"].filter(Boolean) as string[];
@@ -258,7 +265,26 @@ function main() {
     rec.n++;
   }
 
+  // --- Тренд: срез дня, чтобы было видно, двигается ли отдел (метрика успеха инструмента) ---
+  const day = (dlg.to || new Date().toISOString()).slice(0, 10);
+  const rated = managers.filter((m) => m.rating !== null);
+  const snap = {
+    day, deals: deals.length,
+    ratingAvg: rated.length ? Number((rated.reduce((s, m) => s + (m.rating as number), 0) / rated.length).toFixed(2)) : null,
+    ballOurs: deals.filter((d) => d.ballWait > BALL_STUCK_MIN).length,
+    noNextStep: deals.filter((d) => !d.nextStep).length,
+    silence: deals.filter((d) => d.silenceD >= SILENCE_BAD_D).length,
+    respMed: med(deals.map((d) => d.respMed).filter((x) => x !== null) as number[]),
+    probAvg: Math.round(deals.reduce((s, d) => s + d.prob, 0) / Math.max(deals.length, 1)),
+  };
+  const trend: any[] = existsSync(TRD) ? (JSON.parse(readFileSync(TRD, "utf8")).days || []) : [];
+  const idx = trend.findIndex((x) => x.day === day);
+  if (idx >= 0) trend[idx] = snap; else trend.push(snap);
+  const days = trend.slice(-90);
+  writeFileSync(TRD, JSON.stringify({ updatedAt: new Date().toISOString(), days }));
+
   dlg.scoring = {
+    trend: days.slice(-14),
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },

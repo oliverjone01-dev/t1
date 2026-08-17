@@ -287,6 +287,19 @@ function renderManagers(){
     document.getElementById('fMode').value='deal'; render(); });
   list.querySelectorAll('.tbl .who2').forEach(c=>c.onclick=()=>{ S.mgr=c.textContent; S.sec=''; S.tag=''; S.mode='deal';
     document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render(); });
+  const tr=SC.trend||[]; const cur=tr[tr.length-1], prev=tr.length>1?tr[tr.length-2]:null;
+  if(cur){
+    const dlt=(a,b,inv)=>{ if(b===null||b===undefined||a===null) return ''; const d=a-b; if(!d) return ' <span style="color:var(--ink-4)">=</span>';
+      const good=inv? d<0 : d>0; return ` <span style="color:${good?'#2E9E74':'#C25252'}">${d>0?'+':''}${Math.round(d*100)/100}</span>`; };
+    const t=document.createElement('div'); t.className='tagbox'; t.style.marginTop='0'; t.style.marginBottom='10px';
+    t.innerHTML=`<div style="color:var(--ink-3);font-size:11px;margin-bottom:5px">Динамика отдела${prev?` (к ${prev.day.slice(5)})`:' (первый срез)'}</div>
+      <span class="tgc" style="cursor:default">средний рейтинг <b>${cur.ratingAvg??'-'}</b>${prev?dlt(cur.ratingAvg,prev.ratingAvg,false):''}</span>
+      <span class="tgc" style="cursor:default">мяч у нас <b>${cur.ballOurs}</b>${prev?dlt(cur.ballOurs,prev.ballOurs,true):''}</span>
+      <span class="tgc" style="cursor:default">без следующего шага <b>${cur.noNextStep}</b>${prev?dlt(cur.noNextStep,prev.noNextStep,true):''}</span>
+      <span class="tgc" style="cursor:default">тишина 4+ дн <b>${cur.silence}</b>${prev?dlt(cur.silence,prev.silence,true):''}</span>
+      <span class="tgc" style="cursor:default">медиана ответа <b>${cur.respMed??'-'} мин</b>${prev?dlt(cur.respMed,prev.respMed,true):''}</span>`;
+    list.prepend(t);
+  }
   const rated=SC.managers.filter(m=>m.rating!==null).length;
   document.getElementById('stat').textContent = `менеджеров с рейтингом: ${rated} · разбор ИИ: ${SC.aiReviews? SC.aiReviews+' сделок':'слой выключен (нет ключа)'} · калибровка ${SC.calibratedAt}`;
   document.getElementById('foot').textContent = `Рейтинг - взвешенная доля сделок без дефекта по разделам регламента (отклик 22%, сроки 20%, ведение 20%, квалификация 18%, вежливость 10%, результат 10%). Раздел не оценивается, если затронут меньше чем в 5 сделках; менеджер - меньше чем в ${SC.minSample} диалогах. Пороги - гипотеза, калибруются по факту.`;

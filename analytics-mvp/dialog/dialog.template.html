@@ -98,6 +98,11 @@ input#q{min-width:220px}
 .lgb{padding:0 12px 10px 12px}
 .lgi{color:var(--ink-2);margin-bottom:5px;line-height:1.5}
 .lgi b{color:var(--ink)}
+.arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
+.qbar{display:flex;justify-content:space-between;align-items:center;padding:7px 2px 4px 2px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.qclose{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:2px 9px;color:var(--ink-3);font-size:11px;margin-left:10px;white-space:nowrap}
+.qclose:hover{border-color:var(--acc);color:var(--acc)}
+.qrow.open td{background:#22d3ee0c}
 .mrow{cursor:pointer}
 .mrow.open td{background:#ffffff0a}
 .arw2{color:var(--ink-4);margin-right:6px;font-size:10px}
@@ -364,7 +369,7 @@ function renderQueue(){
     const url = d.dealId ? `${PORTAL}/crm/deal/details/${d.dealId}/` : `${PORTAL}/crm/lead/details/${d.leadId}/`;
     const c = urgCol(d.uKey), pc = probColor(d.prob);
     const r = `<tr class="qrow${open?' open':''}" data-key="${esc(d.key)}">
-      <td class="pri">${money(d.budget)} ₽</td>
+      <td class="pri"><span class="arw3">${open?'▾':'▸'}</span>${money(d.budget)} ₽</td>
       <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
       <td class="l"><a href="${url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--ink-4);font-size:11px">${esc(d.dealId||d.leadId)}</a>
         <span style="margin-left:6px">${esc(d.title.slice(0,46))}</span></td>
@@ -372,13 +377,16 @@ function renderQueue(){
       <td class="l" style="color:var(--ink-3);font-size:11px">${esc(d.stage||'-')}</td>
       <td style="color:${pc};font-weight:600">${d.prob}%</td>
       <td class="l"><span class="urg" style="color:${c};background:${c}18;border:1px solid ${c}44">${esc(d.urgency)}</span></td></tr>`;
-    return r + (open ? `<tr class="qexp"><td colspan="7"><div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div><div id="qexp-body"></div></td></tr>` : '');
+    return r + (open ? `<tr class="qexp"><td colspan="7">
+      <div class="qbar"><span>Разбор сделки ${esc(d.dealId||d.leadId)}</span><span class="qclose" data-close="1">свернуть ✕</span></div>
+      <div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div><div id="qexp-body"></div></td></tr>` : '');
   }).join('');
   list.innerHTML = `<div class="tiles">${tiles}</div>` +
     (rows.length ? `<table class="tbl">${head}${body}</table>` : '<div class="empty">в этой очереди пусто</div>');
   list.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ S.q4 = S.q4===t.dataset.q ? '' : t.dataset.q; S.exp=null; renderQueue(); });
   list.querySelectorAll('.qrow').forEach(r=>r.onclick=()=>{
     S.exp = (S.exp && S.exp.key===r.dataset.key) ? null : {key:r.dataset.key}; renderQueue(); });
+  list.querySelectorAll('.qclose').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.exp=null; renderQueue(); });
   if(S.exp){
     const host=document.getElementById('qexp-body');
     if(host){
@@ -415,7 +423,7 @@ function renderManagers(){
       : `<span class="na2">${esc(m.noRating)}</span>`;
     const open = S.exp && S.exp.mgr===m.mgr;
     const row = `<tr class="mrow${open?' open':''}" data-mgr="${esc(m.mgr)}">
-      <td class="l"><span class="arw2">${open?'▾':'▸'}</span><span class="who2">${esc(m.mgr)}</span></td><td>${m.deals}</td>${secs}
+      <td class="l"><span class="arw2">${open?'▾':'▸'}</span><span class="who2">${esc(m.mgr)}</span>${open?'<span class="qclose mclose">свернуть ✕</span>':''}</td><td>${m.deals}</td>${secs}
       <td>${m.probAvg}%</td><td style="color:${m.alerts?'#C25252':'var(--ink-3)'}">${m.alerts}</td><td>${rt}</td></tr>`;
     return row + (open ? `<tr class="mexp"><td colspan="${SC.sections.length+5}"><div id="exp-${esc(m.mgr).replace(/[^a-zA-Zа-яА-Я0-9]/g,'_')}"></div></td></tr>` : '');
   }).join('');
@@ -446,6 +454,7 @@ function renderManagers(){
   list.querySelectorAll('.cellv').forEach(c=>c.onclick=ev=>{ ev.stopPropagation();
     const same = S.exp && S.exp.mgr===c.dataset.mgr && S.exp.sec===c.dataset.sec;
     S.exp = same ? null : {mgr:c.dataset.mgr, sec:c.dataset.sec, tag:''}; renderManagers(); });
+  list.querySelectorAll('.mclose').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.exp=null; renderManagers(); });
   list.querySelectorAll('.mrow').forEach(r=>r.onclick=()=>{
     const same = S.exp && S.exp.mgr===r.dataset.mgr && !S.exp.sec;
     S.exp = same ? null : {mgr:r.dataset.mgr, sec:'', tag:''}; renderManagers(); });

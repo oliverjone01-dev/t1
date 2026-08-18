@@ -113,21 +113,30 @@ input#q{min-width:220px}
 .swi{color:var(--ink-2);font-size:11.5px;line-height:1.6}
 .swd{color:var(--ink-4);font-size:10px;margin-left:6px}
 .swnone{color:var(--ink-4);font-style:italic}
-.fixh{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px 0}
-.fix{background:#ffffff05;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px}
-.fixt{font-size:12px}
-.fixn{color:var(--ink-3);font-size:11px;margin-left:6px}
-.fixw{color:var(--ink-3);font-size:11px;margin:2px 0 6px 0}
+/* Плавающая подсказка - дизайн РОП-дашборда (rop-command.template.html, #tip) */
+#tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid #2A3742;border-radius:9px;padding:10px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:420px}
+#tip .tl{color:var(--ink-3);font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+#tip .tip-tot{display:flex;justify-content:space-between;gap:20px;align-items:baseline;margin:3px 0 8px;padding-bottom:7px;border-bottom:1px solid #2A3742}
+#tip .tip-tot span:first-child{font-size:12.5px;font-weight:700}
+#tip .tip-tot span:last-child{font-size:11.5px;font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums;white-space:nowrap}
+#tip .qh{font-weight:800;font-size:10.5px;margin:8px 0 2px;color:#E8A33D}
+#tip .qh:first-child{margin-top:0}
+#tip .qh i{font-style:normal;color:var(--ink-3);font-weight:600;margin-left:6px}
+#tip .qb{white-space:normal;line-height:1.45;color:var(--ink-2)}
+#tip .qn{color:var(--ink-4);font-size:10.5px;margin-top:8px;padding-top:6px;border-top:1px solid #2A3742}
+.malert{display:inline-block;margin-left:7px;font-size:10px;font-weight:800;line-height:15px;height:15px;min-width:15px;padding:0 5px;border-radius:8px;text-align:center;cursor:help;vertical-align:1px;border:1px solid}
 .fixids{display:flex;flex-wrap:wrap;gap:5px}
 .fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
 .fixid:hover{border-color:var(--acc);color:var(--acc)}
 .t1{margin-bottom:10px}
 .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.t1{min-width:1180px}
+.t1{min-width:1260px}
 .t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
 .t1 td{white-space:nowrap}
-.t1 td.l{white-space:normal;min-width:150px}
-.t1 .vbadge{white-space:nowrap;font-size:9px;padding:2px 6px}
+.t1 td.l{white-space:nowrap;min-width:230px;padding-left:12px;padding-right:18px}
+.t1 th.l{padding-left:12px}
+.t1 tr>td:nth-child(2),.t1 tr>th:nth-child(2){min-width:118px;padding-right:16px}
+.t1 .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
 .t1 td{padding:7px 5px;font-size:11.5px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
@@ -220,6 +229,7 @@ input#q{min-width:220px}
 </style>
 </head>
 <body>
+<div id="tip"></div>
 <div class="wrap">
   <div class="h1">GENGLASS · Диалоги</div>
   <div class="sub" id="sub">загрузка…</div>
@@ -247,6 +257,15 @@ const DEAL_LIMIT = 400;
 
 const TCOL = {'Звонок':'#3DAEC2','Резюме BitrixGPT':'#C2569B','Письмо':'#C2873C','Дело':'#8B7BF0','Задача':'#8B7BF0','Мессенджер ОЛ':'#2E9E74','Комментарий-заметка':'#8794A5','Активность':'#5D6B77'};
 const typeColor = t => t && t.indexOf('Сообщение')===0 ? '#2E9E74' : (TCOL[t]||'#5D6B77');
+// Плавающая подсказка: тот же механизм, что в РОП-дашборде (наведение на элемент с data-tip).
+const TIP = () => document.getElementById('tip');
+document.addEventListener('mousemove', e => { const t = e.target.closest && e.target.closest('[data-tip]'); const tip = TIP(); if(!tip) return;
+  if(t){ tip.innerHTML = t.getAttribute('data-tip'); tip.style.opacity = 1;
+    let nx = e.clientX + 14, ny = e.clientY + 14;
+    if(nx + tip.offsetWidth > innerWidth) nx = e.clientX - tip.offsetWidth - 14;
+    if(ny + tip.offsetHeight > innerHeight) ny = Math.max(8, e.clientY - tip.offsetHeight - 14);
+    tip.style.left = nx + 'px'; tip.style.top = ny + 'px';
+  } else tip.style.opacity = 0; });
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
@@ -461,7 +480,7 @@ function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   const byM={}; for(const d of SC.deals) (byM[d.mgr] ||= []).push(d);
-  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','РАЗБОР']};
+  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
   const SHORT={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',date:'Даты'};
@@ -490,22 +509,29 @@ function renderTree(){
     const better = def.better==='less' ? v<dv : v>dv;
     return `color:${better?'#2E9E74':(v===dv?'var(--ink-2)':'#C25252')}`; };
 
+  // «?» рядом с менеджером: весь список рекомендаций уезжает в плавающую подсказку,
+  // чтобы между уровнями дерева не было текстовой прослойки. Дизайн подсказки - как в РОП-дашборде.
+  const alertChip = (m,p) => {
+    if(!p||!p.actions||!p.actions.length) return '';
+    const nD=p.actions.reduce((s2,a)=>s2+a.n,0), nM=p.actions.reduce((s2,a)=>s2+a.money,0);
+    const col = nD>=10?'#C25252':nD>=4?'#E8A33D':'#2E9E74';
+    const body = `<div class="tl">Что сделать, чтобы усилить</div>`
+      +`<div class="tip-tot"><span>${esc(m.mgr)}</span><span>${nD} сделок · ${money(nM)} ₽</span></div>`
+      + p.actions.map((a,i)=>`<div class="qh">${i+1}. ${esc(a.title)}<i>${a.n} сделок · ${money(a.money)} ₽</i></div><div class="qb">${esc(a.how)}</div>`).join('')
+      + `<div class="qn">Очереди пересчитываются на каждом ночном снимке. Сделки этих очередей - в таблице ниже, столбец «Что горит».</div>`;
+    return `<span class="malert" style="color:${col};border-color:${col}66;background:${col}14" data-tip="${body.replace(/"/g,'&quot;')}">?</span>`;
+  };
   let html=`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
-      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b></td>`
+      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${alertChip(m,p)}</td>`
       +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>`<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`).join('')
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
-      if(p&&p.actions.length){
-        html+=`<div class="fixh">Что сделать, чтобы усилить</div>`+p.actions.map((a,i)=>`<div class="fix">
-          <div class="fixt"><b>${i+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
-          <div class="fixw">${esc(a.how)}</div></div>`).join('');
-      }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'msgs',t:'Сообщ.'},{k:'urgency',t:'Что горит',l:1}];

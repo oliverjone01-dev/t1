@@ -61,7 +61,9 @@ const EXCLUDE_MGR = new Set(["Лысенко Ольга", "Сячинова Ал
 // ежедневно, 15 сделок C49, 60 активностей), ID 8001 - ошибочный дубль (отключена,
 // ноль сделок). В firedManagers попал дубль, поэтому по имени фильтр снёс бы живого
 // человека. Проверено пробой 18.08.2026.
-const KEEP_MGR = new Set(["Лобова Надежда"]);
+// Турченко Анна - офис-менеджер, ведёт первичную работу с лидами. В firedManagers
+// попала ошибочно (в портале несколько учёток с этой фамилией), поэтому держим явно.
+const KEEP_MGR = new Set(["Лобова Надежда", "Турченко Анна"]);
 const swapName = (n: string) => { const p = n.trim().split(/\s+/); return p.length === 2 ? p[1] + " " + p[0] : n; };
 function isHidden(mgr: string, fired: Set<string>): string {
   if (KEEP_MGR.has(mgr)) return "";

@@ -122,23 +122,25 @@ input#q{min-width:220px}
 .fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
 .fixid:hover{border-color:var(--acc);color:var(--acc)}
 .t1{margin-bottom:10px}
-.t1 th,.t2 th,.t3 th{font-size:9.5px;padding:6px 6px}
-.t1 td{padding:8px 6px;font-size:11.5px}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.t1{min-width:1180px}
+.t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
+.t1 td{white-space:nowrap}
+.t1 td.l{white-space:normal;min-width:150px}
+.t1 .vbadge{white-space:nowrap;font-size:9px;padding:2px 6px}
+.t1 td{padding:7px 5px;font-size:11.5px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
-.subrow>td{padding:8px 10px 14px 46px;background:#ffffff04;border-left:3px solid #22d3ee3d}
-.dlghead{background:#22d3ee12;border:1px solid #22d3ee3d;border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:11.5px}
-.dlghead b{color:var(--acc)}
-.dlgwho{color:var(--ink-3);margin-left:10px;font-size:11px}
+.subrow>td{padding:0 10px 14px 46px;background:#ffffff04;border-left:3px solid #22d3ee3d}
+.whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
-.lvl-badge{display:inline-block;font-size:9px;letter-spacing:.05em;color:var(--ink-4);border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-bottom:6px}
 .t2{margin-top:6px;font-size:11px}
 .t2 td{padding:6px 6px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.subrow2>td{padding:8px 8px 12px 44px;background:#00000026;border-left:3px solid #C2873C4d}
+.subrow2>td{padding:0 8px 12px 44px;background:#00000026;border-left:3px solid #C2873C4d}
 .t3{margin-top:6px;font-size:11px}
 .t3 td{padding:5px 6px;vertical-align:top}
 .erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
@@ -334,7 +336,7 @@ function dealHTML(g, idx){
   </div>`;
 }
 let CUR_TAGS={};
-const tagCol = t => t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C';
+const tagCol = t => t==='good'?'#2E9E74':t==='bad'?'#C25252':t==='info'?'#7C8794':'#C2873C';
 // Подсветка места, по которому сработал тег: цитата подчёркивается прямо в тексте.
 function hl(body, tags){
   let out = esc(body);
@@ -459,13 +461,15 @@ function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   const byM={}; for(const d of SC.deals) (byM[d.mgr] ||= []).push(d);
-  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
+  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','РАЗБОР']};
   const MD=SC.metricDefs||[];
+  // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
+  const SHORT={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',date:'Даты'};
   const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
     if(k==='hot') return p.hotMoney; if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
     if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0); return p.metrics? p.metrics[k] : null; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
-    {k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:x.label,unit:x.unit})))
+    {k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
     .concat([{k:'rating',t:'Рейтинг'}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   const mgrs=SC.managers.filter(m=>byM[m.mgr]);
@@ -486,7 +490,7 @@ function renderTree(){
     const better = def.better==='less' ? v<dv : v>dv;
     return `color:${better?'#2E9E74':(v===dv?'var(--ink-2)':'#C25252')}`; };
 
-  let html=`<table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  let html=`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
@@ -496,7 +500,7 @@ function renderTree(){
       +MCOLS.slice(2).map(c=>`<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`).join('')
       +`</tr>`;
     if(openM){
-      html+=`<tr class="subrow"><td colspan="${MCOLS.length}"><span class="lvl-badge">УРОВЕНЬ 2 · СДЕЛКИ ${esc(m.mgr)}</span>`;
+      html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       if(p&&p.actions.length){
         html+=`<div class="fixh">Что сделать, чтобы усилить</div>`+p.actions.map((a,i)=>`<div class="fix">
           <div class="fixt"><b>${i+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
@@ -525,12 +529,12 @@ function renderTree(){
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
           <td>${d.msgs}</td>
           <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
-        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><span class="lvl-badge">УРОВЕНЬ 3 · ДИАЛОГ ${esc(d.dealId||d.leadId)}</span><div id="tree-${esc(d.key)}"></div></td></tr>`;
+        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
       html+=`</table></td></tr>`;
     }
   }
-  html+=`</table>`;
+  html+=`</table></div>`;
   list.innerHTML=html;
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
     const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
@@ -550,7 +554,7 @@ function renderTree(){
       CUR_TAGS=(d&&d.evTags)||{};
       const rows=evs.map(e=>{
         const tags=(CUR_TAGS[e.src]||[]);
-        const bad=tags.some(t=>t.tone==='bad'), good=tags.length&&!bad;
+        const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
         const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
         const c3=typeColor(e.type);
         return `<tr class="erow2${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
@@ -562,9 +566,9 @@ function renderTree(){
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
-      host.innerHTML=`<div class="dlghead">Переписка по ${d.isLead?'лиду':'сделке'} <b>${esc(d.dealId||d.leadId)}</b> · ${esc(d.title.slice(0,54))} <span class="dlgwho">вели: ${who}</span></div>`
-        +`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
+      host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
         +`<div class="afterdlg"><div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
+        +`<div class="whob">Переписку вели: ${who}</div>`
         +(d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
         +`</div>`;
       CUR_TAGS={};

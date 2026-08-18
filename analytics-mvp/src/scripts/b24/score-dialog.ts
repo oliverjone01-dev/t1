@@ -84,7 +84,29 @@ const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "
 // Антигейминг: «Хорошо, спасибо!» за 2 минуты не ответ клиенту. Ответом по существу считаем
 // сообщение от 25 символов либо с цифрой, датой или вопросом (16% исходящих - короткие отписки).
 const MIN_ANSWER_LEN = 25;
-const isRealAnswer = (e: Ev) => { const b = String(e.body || "").trim(); return b.length >= MIN_ANSWER_LEN || /\d|\?/.test(b); };
+// Вложение - это содержание, а не отписка. Wazzup кладёт в тело строку вида
+// «Отправлено Изображение» / «Принято Файл» (иногда с подписью следующей строкой):
+// менеджер прислал эскиз, замер или прайс, текста в теле нет по формату канала.
+// 372 таких сообщения из 3339. Метить их «заглушкой» - ложный флаг.
+const RE_ATTACH = /^(отправлено|принято)\s+(изображени|фото|файл|видео|аудио|документ|голосов|стикер|локаци|контакт)/i;
+const isAttach = (e: Ev) => RE_ATTACH.test(String(e.body || "").trim());
+const attachKind = (e: Ev) => { const m = String(e.body || "").trim().match(/^(?:отправлено|принято)\s+([A-Za-zА-Яа-яЁё]+)/i); return m ? m[1]!.toLowerCase() : "вложение"; };
+const isRealAnswer = (e: Ev) => { if (isAttach(e)) return true; const b = String(e.body || "").trim(); return b.length >= MIN_ANSWER_LEN || /\d|\?/.test(b); };
+// Короткая реплика вдогонку собственному развёрнутому сообщению - продолжение мысли,
+// а не отдельный ответ клиенту. Заглушкой считаем только то, что стоит одиноко после
+// сообщения клиента.
+const CONT_MIN = 20;
+function isStub(msgs: Ev[], i: number): boolean {
+  const m = msgs[i]!;
+  if (m.dir !== "исходящее" || isRealAnswer(m)) return false;
+  for (let j = i - 1; j >= 0; j--) {
+    const p = msgs[j]!;
+    if (m.ts - p.ts > CONT_MIN * 60000) break;
+    if (p.dir === "входящее") break;
+    if (p.dir === "исходящее" && isRealAnswer(p)) return false;
+  }
+  return true;
+}
 
 function workMinutes(a: number, b: number): number {
   if (b <= a) return 0;
@@ -223,7 +245,8 @@ function main() {
         if (RE.jargon.test(body) && !RE.apology.test(body)) mark(src, "Жаргон вместо извинения", "bad", "polite", hit(RE.jargon, body));
         if (RE.defense.test(body)) mark(src, "Защита вместо извинения", "bad", "polite", hit(RE.defense, body));
         if (RE.kp.test(body)) mark(src, "КП отправлено", "good", "process", hit(RE.kp, body));
-        if (!isRealAnswer(m) && outs.length >= 4) mark(src, "Ответ-заглушка", "bad", "speed");
+        if (isAttach(m)) mark(src, `Вложение: ${attachKind(m)}`, "info", "process");
+        else if (isStub(msgs, i) && outs.length >= 4) mark(src, "Ответ-заглушка", "bad", "speed");
         // квалификационные вопросы менеджера
         const q = [RE.spec.test(body) && "размеры/ТЗ", RE.term.test(body) && "срок", RE.budget.test(body) && "бюджет"].filter(Boolean) as string[];
         if (q.length && early) mark(src, `Спросил: ${q.join(", ")}`, "good", "qual");
@@ -318,7 +341,7 @@ function main() {
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
     if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
     if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
-    const stubs = outs.filter((m) => !isRealAnswer(m)).length;
+    const stubs = msgs.filter((_, i) => isStub(msgs, i)).length;
     if (outs.length >= 4 && stubs / outs.length > 0.5) add(`Ответы-заглушки · ${stubs} из ${outs.length}`, "speed", "bad");
     // 2. Квалификация (только до расчёта)
     if (early) {

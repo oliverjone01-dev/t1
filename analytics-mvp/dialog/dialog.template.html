@@ -33,7 +33,7 @@ input#q{min-width:220px}
 .dchips b{width:8px;height:8px;border-radius:2px;display:inline-block}
 .dmeta{color:var(--ink-4);font-size:11px;flex:0 0 auto;white-space:nowrap}
 .thread{border-top:1px solid var(--border-soft);padding:4px 0;background:var(--card2)}
-.ev{display:grid;grid-template-columns:110px 60px 128px 22px 140px 1fr;gap:9px;padding:7px 14px;border-bottom:1px solid var(--border-soft);align-items:start}
+.ev{display:grid;grid-template-columns:110px 60px 128px 22px 140px 1fr 190px;gap:9px;padding:7px 14px;border-bottom:1px solid var(--border-soft);align-items:start}
 .ev:last-child{border-bottom:none}
 .ev .t{color:var(--ink-3);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .stg{font-size:9.5px;padding:1px 5px;border-radius:4px;white-space:nowrap}
@@ -44,6 +44,14 @@ input#q{min-width:220px}
 .body{white-space:pre-wrap;word-break:break-word;color:var(--ink)}
 .body .st{color:var(--ink-4);font-size:10.5px;margin-left:6px}
 .body a.rec{margin-left:8px;font-size:11px}
+.ev-bad{background:#C2525209;border-left:2px solid #C2525288}
+.ev-good{background:#2E9E7407;border-left:2px solid #2E9E7455}
+.evtags{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start}
+.evtag{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;line-height:1.5}
+.hlq{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+.parts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 14px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line)}
+.part{padding:1px 7px;border:1px solid var(--line);border-radius:5px;color:var(--ink-2)}
+.part b{color:var(--ink);font-weight:600}
 .body .ref{display:block;margin-top:2px;color:#C2569B;font-size:10.5px}
 .empty{padding:40px;text-align:center;color:var(--ink-4)}
 .foot{color:var(--ink-4);font-size:11px;margin-top:10px}
@@ -234,6 +242,18 @@ function dealHTML(g, idx){
     <div class="thread" style="display:none"></div>
   </div>`;
 }
+let CUR_TAGS={};
+const tagCol = t => t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C';
+// Подсветка места, по которому сработал тег: цитата подчёркивается прямо в тексте.
+function hl(body, tags){
+  let out = esc(body);
+  for(const t of tags){ if(!t.quote) continue;
+    const q = esc(t.quote); const i = out.toLowerCase().indexOf(q.toLowerCase());
+    if(i<0) continue;
+    out = out.slice(0,i) + `<u class="hlq" style="text-decoration-color:${tagCol(t.tone)}">` + out.slice(i,i+q.length) + '</u>' + out.slice(i+q.length);
+  }
+  return out;
+}
 function evHTML(e, showStage){
   const c=typeColor(e.type);
   const dir = e.dir==='входящее'?'<span class="dir-in">←</span>':e.dir==='исходящее'?'<span class="dir-out">→</span>':'<span class="dir-n">·</span>';
@@ -242,13 +262,17 @@ function evHTML(e, showStage){
   const ttl = e.title?`<b>${esc(e.title)}: </b>`:'';
   const ref = e.ref?`<span class="ref">↳ ${esc(e.ref)}</span>`:'';
   const stg = showStage ? `<span class="stg ${e.stage==='lead'?'stg-lead':'stg-deal'}">${e.stage==='lead'?'лид':'сделка'}</span>` : '<span></span>';
-  return `<div class="ev">
+  const mtags = (CUR_TAGS[e.src]||[]);
+  const tagsHTML = mtags.length ? `<span class="evtags">`+mtags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join('')+`</span>` : '';
+  const bad = mtags.some(t=>t.tone==='bad'), good = mtags.length && !bad;
+  return `<div class="ev${bad?' ev-bad':good?' ev-good':''}">
     <span class="t">${fmtTime(e.dt)}</span>
     ${stg}
     <span><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(e.type)}</span></span>
     <span>${dir}</span>
     <span class="who">${esc(e.who)}</span>
-    <span class="body">${ttl}${esc(e.body)}${st}${rec}${ref}</span>
+    <span class="body">${ttl}${mtags.length?hl(e.body,mtags):esc(e.body)}${st}${rec}${ref}</span>
+    ${tagsHTML}
   </div>`;
 }
 function toggle(el, forceOpen){
@@ -256,7 +280,11 @@ function toggle(el, forceOpen){
   const open = th.style.display!=='none';
   if(open && forceOpen) return;
   if(!open){
-    if(!th.dataset.filled){ const g=VIEW[+el.dataset.idx]; const mixed=Object.keys(g.stages).length>1; th.innerHTML=g.events.map(e=>evHTML(e,mixed)).join(''); th.dataset.filled='1'; }
+    if(!th.dataset.filled){ const g=VIEW[+el.dataset.idx]; const mixed=Object.keys(g.stages).length>1;
+      const sc=dealScore(g.ent,g.aid,g.other); CUR_TAGS=(sc&&sc.evTags)||{};
+      const parts=(sc&&sc.participants)||[];
+      const ph=parts.length? `<div class="parts">Переписку вели: `+parts.map(p=>`<span class="part"><b>${esc(p.who)}</b> · ${p.stage==='lead'?'на лиде':'на сделке'} · ${p.n}</span>`).join('<span style="color:var(--ink-4)">→</span>')+`</div>` : '';
+      th.innerHTML = ph + g.events.map(e=>evHTML(e,mixed)).join(''); CUR_TAGS={}; th.dataset.filled='1'; }
     th.style.display=''; arw.textContent='▾';
   } else { th.style.display='none'; arw.textContent='▸'; }
 }

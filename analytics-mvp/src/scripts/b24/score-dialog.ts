@@ -74,7 +74,7 @@ function isHidden(mgr: string, fired: Set<string>): string {
   return "";
 }
 
-type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string };
+type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string; src: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
 // Антигейминг: «Хорошо, спасибо!» за 2 минуты не ответ клиенту. Ответом по существу считаем
 // сообщение от 25 символов либо с цифрой, датой или вопросом (16% исходящих - короткие отписки).
@@ -246,6 +246,59 @@ function main() {
     else if (tags.some((t) => t.t === "Размытый срок без даты")) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда».";
     else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
 
+    // --- Разметка ПО СООБЩЕНИЯМ: какой именно фразой сработал тег ------------------
+    // Тег на уровне сделки не объясняет, что не так. Здесь каждый сигнал привязан к
+    // конкретному сообщению (src) и к цитате внутри него, чтобы в переписке было видно
+    // место ошибки, а не общий вывод.
+    const evTags: Record<string, { t: string; tone: string; sec: string; quote: string }[]> = {};
+    const mark = (src: string, t: string, tone: string, sec: string, quote = "") => {
+      (evTags[src] ||= []).push({ t, tone, sec, quote });
+    };
+    const hit = (re: RegExp, txt: string) => { const m = txt.match(re); return m ? m[0].slice(0, 40) : ""; };
+    let greeted = false;
+    for (let i = 0; i < msgs.length; i++) {
+      const m = msgs[i]!, body = String(m.body || ""), src = m.src || "";
+      if (!src) continue;
+      if (m.dir === "исходящее") {
+        if (!greeted && RE.hello.test(body)) { mark(src, "Приветствие и обращение", "good", "polite", hit(RE.hello, body)); greeted = true; }
+        if (RE.vague.test(body) && !RE.dated.test(body)) mark(src, "Размытый срок без даты", "bad", "deadline", hit(RE.vague, body));
+        else if (RE.dated.test(body)) mark(src, "Конкретная дата", "good", "deadline", hit(RE.dated, body));
+        if (RE.jargon.test(body)) mark(src, "Жаргон вместо извинения", "bad", "polite", hit(RE.jargon, body));
+        if (RE.defense.test(body)) mark(src, "Защита вместо извинения", "bad", "polite", hit(RE.defense, body));
+        if (RE.kp.test(body)) mark(src, "КП отправлено", "good", "process", hit(RE.kp, body));
+        if (!isRealAnswer(m) && outs.length >= 4) mark(src, "Ответ-заглушка", "bad", "speed");
+        // квалификационные вопросы менеджера
+        const q = [RE.spec.test(body) && "размеры/ТЗ", RE.term.test(body) && "срок", RE.budget.test(body) && "бюджет"].filter(Boolean) as string[];
+        if (q.length && early) mark(src, `Спросил: ${q.join(", ")}`, "good", "qual");
+        // скорость: ищем предыдущее входящее
+        const prevIn = msgs.slice(0, i).reverse().find((x) => x.dir === "входящее");
+        if (prevIn && isRealAnswer(m)) {
+          const wm = workMinutes(prevIn.ts, m.ts);
+          if (wm > SLOW_ANSWER_MIN) mark(src, `Ответ через ${fmtMin(wm)}`, "bad", "speed");
+          else if (wm <= FIRST_ANSWER_MIN) mark(src, `Ответ за ${fmtMin(wm)}`, "good", "speed");
+        }
+      } else if (m.dir === "входящее") {
+        if (RE.ready.test(body)) mark(src, "Сигнал готовности к оплате", "good", "result", hit(RE.ready, body));
+        if (RE.price.test(body)) mark(src, "Возражение по цене", "warn", "result", hit(RE.price, body));
+        if (RE.refuse.test(body)) mark(src, "Риск отказа", "bad", "result", hit(RE.refuse, body));
+        const nxt = msgs.slice(i + 1).find((x) => x.dir === "исходящее" && isRealAnswer(x));
+        if (!nxt && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
+      }
+    }
+    // Кто вёл переписку: участники по этапам (лид -> сделка), с числом сообщений.
+    const partMap: Record<string, { who: string; stage: string; n: number; first: number }> = {};
+    for (const e of evs) {
+      if (e.dir !== "исходящее") continue;
+      const who = e.who && e.who !== "Клиент" ? e.who : e.mgr;
+      if (!who) continue;
+      // «Маслова Ольга» из CRM и «Ольга Маслова» из подписи Wazzup - один человек.
+      const norm = who.trim().toLowerCase().split(/\s+/).sort().join(" ");
+      const k = norm + "|" + e.stage;
+      const r = (partMap[k] ||= { who, stage: e.stage, n: 0, first: e.ts });
+      r.n++; if (e.ts < r.first) r.first = e.ts;
+    }
+    const participants = Object.values(partMap).sort((a, b) => a.first - b.first);
+
     // --- Срочность: что именно горит и насколько [ГИПОТЕЗА - калибровка] ---
     // Порядок важен: берём первую сработавшую причину, она же показывается в очереди.
     const urg: [string, number, string][] = [
@@ -268,7 +321,7 @@ function main() {
     const prio = Math.round((money || 60000) * (prob) * uw);
 
     deals.push({
-      key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio,
+      key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why,

@@ -152,7 +152,8 @@ input#q{min-width:220px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.subrow2>td{padding:0 8px 12px 44px;background:#00000026;border-left:3px solid #C2873C4d}
+.subrow2>td{padding:0 8px 14px 76px;background:#00000033;border-left:3px solid #C2873C4d}
+.subrow2>td>div{border-left:2px solid #C2873C33;padding-left:14px}
 .t3{margin-top:6px;font-size:11px;table-layout:fixed}
 .t3 td{padding:5px 6px;vertical-align:top}
 /* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные
@@ -613,7 +614,7 @@ function renderTree(){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
-        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'mix',t:'Лента',l:1},{k:'urgency',t:'Что горит',l:1}];
+        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
       const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
@@ -632,8 +633,8 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
-          <td class="l">${mixCell(d,dFrom,dTo)}</td>
-          <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
+          <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
+          <td class="l">${mixCell(d,dFrom,dTo)}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
       html+=`</table></td></tr>`;
@@ -732,25 +733,27 @@ function mixOf(d,a,b){
   if(!a&&!b) return d.mix||null;
   const evs=(window.EVIX&&EVIX[d.key])||[];
   const m={msg:0,chan:0,call:0,mail:0,task:0,note:0,ai:0,total:0}, ch=new Set();
-  for(const e of evs){ if(a&&e.ts<a)continue; if(b&&e.ts>b)continue; m.total++;
+  for(const e of evs){ if(a&&e.ts<a)continue; if(b&&e.ts>b)continue;
+    // Резюме BitrixGPT - это разбор звонка, а не отдельная коммуникация: сам звонок уже
+    // посчитан, поэтому резюме в счёт ленты не идёт (помечаем звонок как «с разбором»).
+    if(e.type==='Резюме BitrixGPT'){ m.ai++; continue; }
+    m.total++;
     if(e.type&&e.type.indexOf('Сообщение')===0){ m.msg++; ch.add(e.type); }
     else if(e.type==='Мессенджер ОЛ') m.msg++;
     else if(e.type==='Звонок') m.call++;
     else if(e.type==='Письмо') m.mail++;
     else if(e.type==='Дело'||e.type==='Задача') m.task++;
-    else if(e.type==='Комментарий-заметка') m.note++;
-    else if(e.type==='Резюме BitrixGPT') m.ai++; }
+    else if(e.type==='Комментарий-заметка') m.note++; }
   m.chan=ch.size; return m;
 }
 function mixCell(d,a,b){
   const m=mixOf(d,a,b); if(!m) return '<span class="na2">-</span>';
   const p=[];
   if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74']);
-  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков'),'#3DAEC2']);
+  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков')+(m.ai?' с разбором':''),'#3DAEC2']);
   if(m.mail) p.push([m.mail+' '+plu(m.mail,'письмо','письма','писем'),'#C2873C']);
   if(m.task) p.push([m.task+' '+plu(m.task,'дело','дела','дел'),'#8B7BF0']);
   if(m.note) p.push([m.note+' '+plu(m.note,'заметка','заметки','заметок'),'#8794A5']);
-  if(m.ai) p.push([m.ai+' '+plu(m.ai,'резюме','резюме','резюме'),'#C2569B']);
   if(!p.length) return '<span class="na2">пусто</span>';
   return p.map(x=>`<span class="mixchip" style="color:${x[1]};border-color:${x[1]}44;background:${x[1]}12">${esc(x[0])}</span>`).join(' ');
 }

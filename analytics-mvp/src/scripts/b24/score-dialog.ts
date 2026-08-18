@@ -437,7 +437,9 @@ function main() {
       task: evs.filter((e) => e.type === "Дело" || e.type === "Задача").length,
       note: evs.filter((e) => e.type === "Комментарий-заметка").length,
       ai: evs.filter((e) => e.type === "Резюме BitrixGPT").length,
-      total: evs.length,
+      // Резюме BitrixGPT - разбор звонка, а не отдельная коммуникация: сам звонок уже
+      // посчитан, поэтому в общий счёт ленты резюме не идёт.
+      total: evs.filter((e) => e.type !== "Резюме BitrixGPT").length,
     };
     const firstTs = evs.length ? evs[0]!.ts : 0;
     const createdAt = f && f.created ? String(f.created).slice(0, 10) : "";

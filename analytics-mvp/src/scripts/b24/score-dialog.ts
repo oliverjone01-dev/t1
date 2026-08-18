@@ -566,27 +566,35 @@ function main() {
   // а «заметно лучше коллег на сопоставимой выборке». Ниже порога выборки не судим.
   const METRICS = [
     { key: "resp", label: "скорость ответа", unit: "мин", better: "less",
+      how: "Доля ранних сделок, где менеджер спросил хотя бы два из трёх: размеры или ТЗ, срок, бюджет. Ранние стадии - до расчёта: Новая, Квалификация, КП отправлено, Формирование ТЗ, Принимают решение.",
+      how: "Медиана времени от сообщения клиента до первого содержательного ответа менеджера. Считается в рабочих минутах (09:00-19:00 МСК), паузы внутри названного срока не учитываются. Ответом не считается реплика короче 25 символов без цифр и вопроса.",
       calc: (ds: any[]) => med(ds.map((d) => d.respMed).filter((x) => x !== null) as number[]),
       good: (v: number) => `отвечает клиенту за ${v} мин`, bad: (v: number) => `отвечает за ${fmtMin(v)}` },
     { key: "ball", label: "клиент ждёт ответа", unit: "%", better: "less",
+      how: "Доля сделок, где последним написал клиент и ждёт дольше 4 рабочих часов. Если менеджер назвал срок и он не наступил, сделка сюда не попадает.",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.ballWait > BALL_STUCK_MIN).length / ds.length * 100),
       good: (v: number) => `почти не оставляет клиентов без ответа (${v}%)`, bad: (v: number) => `${v}% сделок ждут ответа` },
     { key: "silent", label: "тишина 4+ дней", unit: "%", better: "less",
+      how: "Доля сделок без единого касания 4 календарных дня и дольше. Пост-продажные стадии (производство, отгрузка) не считаются: там тишина нормальна.",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.silenceD >= SILENCE_BAD_D).length / ds.length * 100),
       good: (v: number) => `держит регулярный контакт, тишина только в ${v}% сделок`, bad: (v: number) => `${v}% сделок молчат 4 дня и дольше` },
     { key: "step", label: "следующий шаг", unit: "%", better: "more",
+      how: "Доля сделок с открытым делом в CRM. Берётся из снимка РОПа: есть незакрытая задача - шаг поставлен.",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.nextStep).length / ds.length * 100),
       good: (v: number) => `следующий шаг стоит в ${v}% сделок`, bad: (v: number) => `следующий шаг есть только в ${v}% сделок` },
     { key: "qual", label: "квалификация", unit: "%", better: "more",
       calc: (ds: any[]) => { const e = ds.filter((d) => EARLY.has(d.stageCode) || !d.stageCode); return e.length >= 3 ? Math.round(e.filter((d) => d.tags.some((t: Tag) => t.sec === "qual" && t.tone === "good")).length / e.length * 100) : null; },
       good: (v: number) => `собирает ТЗ, срок и бюджет в ${v}% ранних сделок`, bad: (v: number) => `квалификация собрана лишь в ${v}% ранних сделок` },
     { key: "fake", label: "дела вхолостую", unit: "шт", better: "less",
+      how: "Число дел вида «связаться с клиентом» и «отправь КП», отмеченных выполненными или просроченными, после которых в CRM нет ни сообщения, ни звонка клиенту в течение суток.",
       calc: (ds: any[]) => ds.reduce((a: number, d: any) => a + (d.taskNoContact || 0), 0),
       good: () => `закрывает дела только после разговора с клиентом`, bad: (v: number) => `${v} дел закрыто без контакта с клиентом` },
     { key: "ghost", label: "движение без общения", unit: "шт", better: "less",
+      how: "Число сделок, где стадия менялась, а следов общения с клиентом в CRM нет, плюс сделки, где вообще только внутренняя работа. Учитывает, что звонок с личного телефона в CRM не виден.",
       calc: (ds: any[]) => ds.filter((d) => d.ghostMove || d.internalOnly).length,
       good: () => `не двигает сделки в тишине`, bad: (v: number) => `${v} сделок двигались без единого слова клиенту` },
     { key: "promise", label: "держит слово", unit: "%", better: "more",
+      how: "Доля выполненных обещаний со сроком. Обещание - фраза «пришлю, отправлю, перезвоню» с указанием когда. В знаменатель идут и обещания без срока: клиент не знает, когда ждать.",
       calc: (ds: any[]) => { const p = ds.filter((d) => (d.promiseBroken || 0) + (d.promiseKept || 0) + (d.vagueProm || 0) > 0);
         if (p.length < 3) return null;
         const k = p.reduce((a, d) => a + (d.promiseKept || 0), 0);
@@ -598,13 +606,16 @@ function main() {
     // Дата создания в снимке хранится без времени, поэтому отсчёт идёт от начала рабочего
     // дня создания. Для сравнения менеджеров между собой этого достаточно, для SLA в часах - нет.
     { key: "take", label: "взял в работу", unit: "ч", better: "less",
+      how: "Медиана часов от создания сделки до первого слова клиенту. Дата создания в снимке без времени, отсчёт от начала рабочего дня: сравнивать менеджеров между собой можно, считать SLA в часах нельзя.",
       calc: (ds: any[]) => { const v = ds.map((d) => d.takeH).filter((x) => x !== null && x !== undefined) as number[];
         return v.length >= 3 ? med(v) : null; },
       good: (v: number) => `берёт сделку в работу за ${v} ч`, bad: (v: number) => `первое слово клиенту через ${v} ч после создания сделки` },
     { key: "obj", label: "возражение без аргумента", unit: "шт", better: "less",
+      how: "Число возражений клиента (цена, срок, сравнение с другими, «я подумаю»), на которые в ответе менеджера не прозвучало ни объяснения, ни альтернативы, ни уточняющего вопроса. Вопрос про скидку и «дорого, но выставляйте счёт» возражением не считаются.",
       calc: (ds: any[]) => ds.reduce((a: number, d: any) => a + Math.max(0, (d.objTotal || 0) - (d.objWorked || 0)), 0),
       good: () => `на возражение клиента отвечает аргументом, а не уступкой`, bad: (v: number) => `${v} возражений закрыты без аргумента: молчание, «хорошо» или скидка` },
     { key: "date", label: "конкретные сроки", unit: "%", better: "more",
+      how: "Доля сделок, где менеджер называл клиенту конкретную дату вместо «в ближайшее время».",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.tags.some((t: Tag) => t.t === "Называет конкретные даты")).length / ds.length * 100),
       good: (v: number) => `называет клиенту конкретные даты в ${v}% сделок`, bad: (v: number) => `конкретные даты только в ${v}% сделок` },
   ];
@@ -743,7 +754,7 @@ function main() {
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
-    deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
+    deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better, how: (m as any).how || "" })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),
   };
   writeFileSync(OWN, JSON.stringify(ownDb));

@@ -207,15 +207,31 @@ function main() {
     const outText = outs.map((m) => m.body || "").join("\n"), inText = ins.map((m) => m.body || "").join("\n");
     const allText = msgs.map((m) => m.body || "").join("\n") + "\n" + evs.filter((e) => e.type === "Резюме BitrixGPT" || e.type === "Комментарий-заметка").map((e) => e.body || "").join("\n");
 
+    // Менеджер назвал срок следующего шага («завтра утром пришлю КП») - до этого срока
+    // пауза не дефект, а время на подготовку: клиент знает, когда ждать. Считаем окно
+    // по тому же правилу, что и обещания в T08.
+    const promiseDue = (m: Ev): number => {
+      const b = String(m.body || "");
+      if (!RE.promiseVerb.test(b)) return 0;
+      const sent = b.split(/(?<=[.!?\n])\s+/).find((x) => RE.promiseVerb.test(x)) || b;
+      if (RE.today.test(sent)) return m.ts + 12 * 3600_000;
+      if (RE.tomorrow.test(sent)) return m.ts + 36 * 3600_000;
+      if (RE.weekday.test(sent)) return m.ts + 7 * 864e5;
+      return 0;
+    };
+    const promiseCovers = (ts: number) => outs.some((o) => o.ts <= ts && promiseDue(o) >= ts);
+
     const resp: number[] = [];
     for (let i = 0; i < msgs.length; i++) {
       if (msgs[i]!.dir !== "входящее") continue;
       const nxt = msgs.slice(i + 1).find((m) => m.dir === "исходящее" && isRealAnswer(m));
-      if (nxt) resp.push(workMinutes(msgs[i]!.ts, nxt.ts));
+      if (nxt && !promiseCovers(nxt.ts)) resp.push(workMinutes(msgs[i]!.ts, nxt.ts));
     }
     const respMed = med(resp), firstResp = resp.length ? resp[0]! : null;
     const lastMsg = msgs[msgs.length - 1];
-    const ballWait = lastMsg && lastMsg.dir === "входящее" ? workMinutes(lastMsg.ts, now) : 0;
+    const ballWaitRaw = lastMsg && lastMsg.dir === "входящее" ? workMinutes(lastMsg.ts, now) : 0;
+    const waitAgreed = ballWaitRaw > 0 && promiseCovers(now);   // срок назван и ещё не истёк
+    const ballWait = waitAgreed ? 0 : ballWaitRaw;
     const silenceD = Math.floor((now - last.ts) / 864e5);
     const calls = evs.filter((e) => e.type === "Звонок").length;
     const tasksOpen = f ? (f.tasksOpen || 0) : 0;
@@ -267,11 +283,18 @@ function main() {
         const q = [RE.spec.test(body) && "размеры/ТЗ", RE.term.test(body) && "срок", RE.budget.test(body) && "бюджет"].filter(Boolean) as string[];
         if (q.length && early) mark(src, `Спросил: ${q.join(", ")}`, "good", "qual");
         // скорость: ищем предыдущее входящее
+        // Скорость меряем только по ПЕРВОМУ ответу после сообщения клиента: следующие
+        // сообщения того же менеджера - продолжение работы, а не новый ответ. И если
+        // срок был назван заранее, доставка внутри него - выполненное слово, не задержка.
         const prevIn = msgs.slice(0, i).reverse().find((x) => x.dir === "входящее");
         if (prevIn && isRealAnswer(m)) {
-          const wm = workMinutes(prevIn.ts, m.ts);
-          if (wm > SLOW_ANSWER_MIN) mark(src, `Ответ через ${fmtMin(wm)}`, "bad", "speed");
-          else if (wm <= FIRST_ANSWER_MIN) mark(src, `Ответ за ${fmtMin(wm)}`, "good", "speed");
+          const answered = msgs.slice(0, i).some((x) => x.dir === "исходящее" && x.ts > prevIn.ts && isRealAnswer(x));
+          if (!answered) {
+            const wm = workMinutes(prevIn.ts, m.ts);
+            if (promiseCovers(m.ts) && wm > FAST_ANSWER_MIN) mark(src, `В названный срок (${fmtMin(wm)})`, "good", "deadline");
+            else if (wm > SLOW_ANSWER_MIN) mark(src, `Ответ через ${fmtMin(wm)}`, "bad", "speed");
+            else if (wm <= FIRST_ANSWER_MIN) mark(src, `Ответ за ${fmtMin(wm)}`, "good", "speed");
+          }
         }
       } else if (m.dir === "входящее") {
         if (RE.ready.test(body)) mark(src, "Сигнал готовности к оплате", "good", "result", hit(RE.ready, body));
@@ -300,6 +323,7 @@ function main() {
         const isLastIn = !msgs.slice(i + 1).some((x) => x.dir === "входящее");
         const nxt = msgs.slice(i + 1).find((x) => x.dir === "исходящее" && isRealAnswer(x));
         if (!nxt && isLastIn && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
+        else if (!nxt && isLastIn && waitAgreed) mark(src, `Ждёт по договорённости`, "good", "deadline");
       }
     }
     // T08: обещал и не сделал. Берём исходящее с обещанием и сроком, считаем дедлайн и смотрим,
@@ -375,6 +399,7 @@ function main() {
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
     if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
     if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
+    else if (waitAgreed) add(`Пауза по договорённости · срок назван клиенту`, "deadline", "good");
     const stubs = msgs.filter((_, i) => isStub(msgs, i)).length;
     if (outs.length >= 4 && stubs / outs.length > 0.5) add(`Ответы-заглушки · ${stubs} из ${outs.length}`, "speed", "bad");
     // 2. Квалификация (только до расчёта)

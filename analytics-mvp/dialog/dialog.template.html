@@ -426,7 +426,9 @@ function evRowHTML(e){
     ${tagsHTML}</div>`;
 }
 function whoLabel(e){
-  if(e.dir!=='входящее') return esc(e.who||'');
+  // Подпись «Телефон» стороны не даёт: направление восстановлено по тексту, помечаем это
+  // явно, чтобы вывод РОПа опирался на понятную степень уверенности.
+  if(e.dir!=='входящее') return esc(e.who||'')+(e.guess?'<span class="whosub" title="сторона определена по тексту сообщения, подпись канала была служебной">по тексту</span>':'');
   const nm=String(e.who||'').trim();
   const ttl=String(e.dealT||e.leadT||'').trim();
   const same = !nm || nm==='—' || (ttl && (ttl.indexOf(nm.slice(0,12))>=0 || nm.indexOf(ttl.slice(0,12))>=0));

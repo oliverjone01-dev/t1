@@ -265,7 +265,7 @@ async function main() {
       if (seen[uid]) continue; seen[uid] = 1;
       counts[ev.type] = (counts[ev.type] || 0) + 1;
       if (mgr) mgrSet[mgr] = 1;
-      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", src: ev.src });
+      events.push({ ts: ms, dt: ev.raw, stage: e.kind, leadId, dealId, leadT, dealT, mgr, type: ev.type, dir: ev.dir, who: ev.who, title: ev.title, body: ev.body, status: ev.status, due: ev.due || "", dur: ev.dur, link: ev.link, ref: ev.ref || "", refId: ev.refId || "", src: ev.src });
     }
   }
   events.sort((a, b) => a.ts - b.ts);

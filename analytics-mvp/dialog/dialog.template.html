@@ -208,6 +208,7 @@ input#q{min-width:220px}
 .ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 .sysw{color:var(--ink-4);font-size:10.5px}
+.t3 .ref{display:block;margin-top:3px;color:#C2569B;font-size:10.5px;line-height:1.45}
 .due{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
 .arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
 .arw4{color:var(--acc);margin-right:7px;font-size:11px;display:inline-block;width:9px}
@@ -592,6 +593,11 @@ function renderTree(){
         return String(x??'').localeCompare(String(y??''))*S.sE.d; });
       const ECOLS=[{k:'ts',t:'Время'},{k:'who',t:'Кто'},{k:'type',t:'Канал'},{k:'body',t:'Сообщение',l:1},{k:'tags',t:'Разметка',l:1}];
       CUR_TAGS=(d&&d.evTags)||{};
+      // Резюме BitrixGPT ссылается на звонок-источник (refId - ID активности звонка).
+      // Пара «звонок -> резюме» должна читаться в обе стороны: у звонка метка, что
+      // разбор есть, у резюме - к какому звонку и какого времени оно относится.
+      const SUMBY={};
+      for(const e of evs) if(e.type==='Резюме BitrixGPT'&&e.refId) SUMBY['act#'+e.refId]=e;
       const rows=evs.map(e=>{
         const tags=(CUR_TAGS[e.src]||[]);
         const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
@@ -601,7 +607,7 @@ function renderTree(){
           <td class="etime">${fmtTime(e.dt)}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
-          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
           <td class="l">${tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];
@@ -622,6 +628,14 @@ function renderTree(){
 }
 // У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
 // Показываем тело без повтора, иначе строка читается как каша.
+// Связка звонка и его разбора BitrixGPT: у звонка - подпись с началом резюме,
+// у самого резюме - к какому звонку и на какое время оно относится.
+function sumLink(e,SUMBY){
+  if(e.type==='Резюме BitrixGPT') return e.ref?`<div class="ref">↳ ${esc(e.ref)}</div>`:'';
+  const s=SUMBY&&SUMBY[e.src];
+  if(!s) return '';
+  return `<div class="ref">↳ разбор BitrixGPT: ${esc(String(s.body||'').replace(/\s+/g,' ').slice(0,110))}${String(s.body||'').length>110?'…':''}</div>`;
+}
 // У дел в Bitrix есть выставленный срок (DEADLINE/END_TIME). Показываем его рядом со
 // статусом: просроченный - красным, будущий - серым. Без срока чипа нет.
 function dueChip(e){

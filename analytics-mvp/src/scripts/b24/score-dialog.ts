@@ -218,7 +218,9 @@ function main() {
         if (!greeted && RE.hello.test(body)) { mark(src, "Приветствие и обращение", "good", "polite", hit(RE.hello, body)); greeted = true; }
         if (RE.vague.test(body) && !RE.dated.test(body)) mark(src, "Размытый срок без даты", "bad", "deadline", hit(RE.vague, body));
         else if (RE.dated.test(body)) mark(src, "Конкретная дата", "good", "deadline", hit(RE.dated, body));
-        if (RE.jargon.test(body)) mark(src, "Жаргон вместо извинения", "bad", "polite", hit(RE.jargon, body));
+        // «Не успела» рядом с «прошу прощения» - это причина, а не замена извинения. Дефект
+        // ставим только когда корректного извинения в сообщении нет вовсе.
+        if (RE.jargon.test(body) && !RE.apology.test(body)) mark(src, "Жаргон вместо извинения", "bad", "polite", hit(RE.jargon, body));
         if (RE.defense.test(body)) mark(src, "Защита вместо извинения", "bad", "polite", hit(RE.defense, body));
         if (RE.kp.test(body)) mark(src, "КП отправлено", "good", "process", hit(RE.kp, body));
         if (!isRealAnswer(m) && outs.length >= 4) mark(src, "Ответ-заглушка", "bad", "speed");
@@ -334,7 +336,7 @@ function main() {
     // 4. Вежливость
     if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
     else if (outs.length >= 2) add("Без приветствия", "polite", "warn");
-    if (RE.jargon.test(outText)) add("Жаргон вместо извинения", "polite", "bad");
+    if (RE.jargon.test(outText) && !RE.apology.test(outText)) add("Жаргон вместо извинения", "polite", "bad");
     if (RE.defense.test(outText)) add("Защита вместо извинения", "polite", "bad");
     if (RE.apology.test(outText) || RE.thanks.test(outText)) add("Этикет соблюдён", "polite", "good");
     // 5. Ведение по регламенту

@@ -110,6 +110,10 @@ const RE = {
   apology: /прошу прощения|извините|приношу извинения|сожалею/i,
   defense: /я же (писал|говорил)|вы не (сказали|уточнили)|это не (моя|наша) вина|у нас так принято/i,
   thanks: /спасибо|благодар/i,
+  // Дела, которые по смыслу требуют контакта с клиентом. Робот Bitrix ставит их шаблонно,
+  // поэтому ловим и его формулировки: «Связаться с клиентом», «Сформируй КП и отправь клиенту».
+  contactTask: /связ(аться|ись)|позвони|перезвони|набери|отправ\w* (?:кп|клиент|предложени|расч)|напиш\w* клиент|дожм|уточни у клиент|согласуй с клиент|пригласи|контроль/i,
+  innerTask: /производств|конструктор|замерщик|логист|бухгалтер|счёт в 1с|передать информацию о заказе|внутрен/i,
   kp: /кп\b|коммерческое предложение|направил.{0,12}предложени|отправил.{0,12}расч|расчёт во вложении/i,
 };
 
@@ -187,96 +191,6 @@ function main() {
     const internalKinds = [...new Set(evs.map((e) => e.type))].join(", ");
     const a = ai[key] || null;
 
-    const tags: Tag[] = [];
-    const add = (t: string, sec: string, tone: Tag["tone"]) => tags.push({ t, sec, tone });
-
-    // 1. Отклик
-    if (firstResp !== null && firstResp <= FIRST_ANSWER_MIN) add(`Первый ответ за ${fmtMin(firstResp)}`, "speed", "good");
-    else if (firstResp !== null && firstResp > SLOW_ANSWER_MIN) add(`Первый ответ через ${fmtMin(firstResp)}`, "speed", "bad");
-    if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
-    if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
-    const stubs = outs.filter((m) => !isRealAnswer(m)).length;
-    if (outs.length >= 4 && stubs / outs.length > 0.5) add(`Ответы-заглушки · ${stubs} из ${outs.length}`, "speed", "bad");
-    // 2. Квалификация (только до расчёта)
-    if (early) {
-      const q = [RE.spec.test(allText) && "ТЗ/размеры", RE.term.test(allText) && "срок", RE.budget.test(allText) && "бюджет"].filter(Boolean) as string[];
-      if (q.length >= 2) add(`Квалификация: ${q.join(", ")}`, "qual", "good");
-      else if (msgs.length >= 3) add(`Квалификация неполная${q.length ? " (только " + q.join(", ") + ")" : ""}`, "qual", "bad");
-    }
-    // 3. Сроки
-    if (RE.vague.test(outText) && !RE.dated.test(outText)) add("Размытый срок без даты", "deadline", "bad");
-    else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
-    if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
-    const postSale = POST_SALE.has(stageCode);
-    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", postSale ? "warn" : "bad");
-    else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
-    // 4. Вежливость
-    if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
-    else if (outs.length >= 2) add("Без приветствия", "polite", "warn");
-    if (RE.jargon.test(outText)) add("Жаргон вместо извинения", "polite", "bad");
-    if (RE.defense.test(outText)) add("Защита вместо извинения", "polite", "bad");
-    if (RE.apology.test(outText) || RE.thanks.test(outText)) add("Этикет соблюдён", "polite", "good");
-    // 5. Ведение по регламенту
-    if (nextStep) add("Следующий шаг зафиксирован", "process", "good");
-    else add("Нет следующего шага", "process", "bad");
-    if (RE.kp.test(outText)) add("КП отправлено", "process", "good");
-    if (stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D) add("После КП нет дожима", "process", "bad");
-    if (stageDays > 21) add(`На стадии ${stageDays} дн`, "process", "bad");
-    if (ghostMove) add(`Стадия двигалась ${movedDays.length} раз, касаний в CRM нет`, "process", "bad");
-    if (internalOnly) add(`Нет следов общения в CRM: только ${internalKinds}`, "process", "bad");
-    if (calls) add(`Звонков: ${calls}`, "process", "good");
-    // 6. Результат
-    if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
-    if (RE.price.test(inText)) { const worked = RE.dated.test(outText) && outs.length >= ins.length; add(worked ? "Возражение по цене отработано" : "Возражение по цене без ответа", "result", worked ? "warn" : "bad"); }
-    if (RE.refuse.test(inText)) add("Риск отказа", "result", "bad");
-    if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
-
-    // --- вероятность ---
-    const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;
-    const factors: { label: string; mult: number }[] = [];
-    const push = (label: string, mult: number) => factors.push({ label, mult });
-    if (RE.ready.test(inText)) push("клиент говорит об оплате", 1.3);
-    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`быстрые ответы (${fmtMin(respMed)})`, 1.1);
-    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`медленные ответы (${fmtMin(respMed)})`, 0.8);
-    if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ${fmtMin(ballWait)}`, 0.7);
-    if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
-    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
-    if (!nextStep) push("нет следующего шага", 0.85);
-    if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
-    if (RE.price.test(inText)) push("возражение по цене", 0.9);
-    if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
-    if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
-    else if (internalOnly) push("нет следов общения в CRM", 0.75);
-    if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
-    let prob = base; for (const x of factors) prob *= x.mult;
-    prob = Math.max(0.03, Math.min(0.97, prob));
-    // Почему шанс такой: вклад каждой причины в процентных пунктах и в рублях.
-    // Вклад считаем как разницу «без этой причины» и «с ней», при остальных неизменных.
-    const moneyBase = (f && f.budget) ? f.budget : 0;
-    const whyProb: { label: string; pp: number; rub: number; bad: boolean; who: string }[] = [];
-    for (const x of factors) {
-      const without = Math.max(0.03, Math.min(0.97, prob / x.mult));
-      const pp = Math.round((prob - without) * 100);
-      if (!pp) continue;
-      whyProb.push({ label: x.label, pp, rub: Math.round(moneyBase * (prob - without)), bad: x.mult < 1, who: last.mgr || "" });
-    }
-    whyProb.sort((a, b) => a.pp - b.pp);
-
-    // --- рекомендация ---
-    let next = "", why = "";
-    if (a && a.recommendation) { next = a.recommendation; why = "разбор ИИ"; }
-    else if (RE.refuse.test(inText)) next = "Клиент назвал причину отказа. Не благодарить и закрывать тему, а спросить, что должно измениться, чтобы решение стало другим.";
-    else if (ballWait > BALL_STUCK_MIN) next = `Ответить сегодня: клиент ждёт ${fmtMin(ballWait)}. Дать конкретный срок («отвечу сегодня до 18:00»), а не «в ближайшее время».`;
-    else if (RE.ready.test(inText)) next = "Клиент говорит об оплате. Выставить счёт сегодня и назвать срок готовности датой.";
-    else if (RE.price.test(inText)) next = "Отработать цену: показать состав стоимости и вариант дешевле, назвать конкретный срок ответа.";
-    else if (silenceD >= SILENCE_BAD_D) next = `Тишина ${silenceD} дн. Написать с новым поводом (готовность, сроки, вариант), закончить вопросом и зафиксировать дату следующего контакта.`;
-    else if (overdue) next = `Дело просрочено на ${overdueD} дн${f && f.taskSubj ? " («" + String(f.taskSubj).slice(0, 40) + "»)" : ""}. Закрыть сегодня или перенести с новой датой.`;
-    else if (!nextStep) next = "Поставить дело с датой и временем: без следующего шага сделка выпадает из работы.";
-    else if (early && tags.some((t) => t.sec === "qual" && t.tone === "bad")) next = "Достроить квалификацию: задача, размеры, срок, бюджет. Без них расчёт уйдёт мимо.";
-    else if (tags.some((t) => t.t === "Размытый срок без даты")) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда».";
-    else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
-
     // --- Разметка ПО СООБЩЕНИЯМ: какой именно фразой сработал тег ------------------
     // Тег на уровне сделки не объясняет, что не так. Здесь каждый сигнал привязан к
     // конкретному сообщению (src) и к цитате внутри него, чтобы в переписке было видно
@@ -316,6 +230,25 @@ function main() {
         if (!nxt && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
       }
     }
+    // Дело закрыто, а клиенту не написали и не позвонили. Формальная галочка вместо работы:
+    // ищем контакт в 48 часов после дела, подразумевающего разговор с клиентом.
+    const CONTACT_WINDOW_MS = 48 * 3600_000;
+    let taskNoContact = 0;
+    for (const e of evs) {
+      if (e.type !== "Дело" && e.type !== "Резюме BitrixGPT") continue;
+      const txt = `${e.title || ""} ${e.body || ""}`;
+      if (!RE.contactTask.test(txt) || RE.innerTask.test(txt)) continue;
+      // Запланированное дело ещё не наступило: спрашивать за него нельзя. Дефект - только
+      // выполненное (галочка есть, разговора нет) и просроченное (срок прошёл, контакта нет).
+      if (e.status !== "выполнено" && e.status !== "просрочено") continue;
+      const after = evs.some((x) => x.ts > e.ts && x.ts <= e.ts + CONTACT_WINDOW_MS
+        && (x.dir === "исходящее" || x.type === "Звонок"));
+      if (!after) {
+        taskNoContact++;
+        if (e.src) mark(e.src, e.status === "выполнено" ? "Закрыто без контакта с клиентом" : "Просрочено, контакта нет", "bad", "process");
+      } else if (e.src) mark(e.src, "Контакт после дела был", "good", "process");
+    }
+
     // Кто вёл переписку: участники по этапам (лид -> сделка), с числом сообщений.
     const partMap: Record<string, { who: string; stage: string; n: number; first: number }> = {};
     for (const e of evs) {
@@ -330,6 +263,98 @@ function main() {
     }
     const participants = Object.values(partMap).sort((a, b) => a.first - b.first);
 
+    const tags: Tag[] = [];
+    const add = (t: string, sec: string, tone: Tag["tone"]) => tags.push({ t, sec, tone });
+
+    // 1. Отклик
+    if (firstResp !== null && firstResp <= FIRST_ANSWER_MIN) add(`Первый ответ за ${fmtMin(firstResp)}`, "speed", "good");
+    else if (firstResp !== null && firstResp > SLOW_ANSWER_MIN) add(`Первый ответ через ${fmtMin(firstResp)}`, "speed", "bad");
+    if (respMed !== null && respMed <= FAST_ANSWER_MIN) add(`Держит темп · ${fmtMin(respMed)}`, "speed", "good");
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN) add(`Медленные ответы · ${fmtMin(respMed)}`, "speed", "bad");
+    if (ballWait > BALL_STUCK_MIN) add(`Мяч у нас · клиент ждёт ${fmtMin(ballWait)}`, "speed", "bad");
+    const stubs = outs.filter((m) => !isRealAnswer(m)).length;
+    if (outs.length >= 4 && stubs / outs.length > 0.5) add(`Ответы-заглушки · ${stubs} из ${outs.length}`, "speed", "bad");
+    // 2. Квалификация (только до расчёта)
+    if (early) {
+      const q = [RE.spec.test(allText) && "ТЗ/размеры", RE.term.test(allText) && "срок", RE.budget.test(allText) && "бюджет"].filter(Boolean) as string[];
+      if (q.length >= 2) add(`Квалификация: ${q.join(", ")}`, "qual", "good");
+      else if (msgs.length >= 3) add(`Квалификация неполная${q.length ? " (только " + q.join(", ") + ")" : ""}`, "qual", "bad");
+    }
+    // 3. Сроки
+    if (RE.vague.test(outText) && !RE.dated.test(outText)) add("Размытый срок без даты", "deadline", "bad");
+    else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
+    if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
+    const postSale = POST_SALE.has(stageCode);
+    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", postSale ? "warn" : "bad");
+    else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
+    // 4. Вежливость
+    if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
+    else if (outs.length >= 2) add("Без приветствия", "polite", "warn");
+    if (RE.jargon.test(outText)) add("Жаргон вместо извинения", "polite", "bad");
+    if (RE.defense.test(outText)) add("Защита вместо извинения", "polite", "bad");
+    if (RE.apology.test(outText) || RE.thanks.test(outText)) add("Этикет соблюдён", "polite", "good");
+    // 5. Ведение по регламенту
+    if (nextStep) add("Следующий шаг зафиксирован", "process", "good");
+    else add("Нет следующего шага", "process", "bad");
+    if (RE.kp.test(outText)) add("КП отправлено", "process", "good");
+    if (stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D) add("После КП нет дожима", "process", "bad");
+    if (stageDays > 21) add(`На стадии ${stageDays} дн`, "process", "bad");
+    if (ghostMove) add(`Стадия двигалась ${movedDays.length} раз, касаний в CRM нет`, "process", "bad");
+    if (internalOnly) add(`Нет следов общения в CRM: только ${internalKinds}`, "process", "bad");
+    if (taskNoContact) add(`Дел закрыто без контакта: ${taskNoContact}`, "process", "bad");
+    if (calls) add(`Звонков: ${calls}`, "process", "good");
+    // 6. Результат
+    if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
+    if (RE.price.test(inText)) { const worked = RE.dated.test(outText) && outs.length >= ins.length; add(worked ? "Возражение по цене отработано" : "Возражение по цене без ответа", "result", worked ? "warn" : "bad"); }
+    if (RE.refuse.test(inText)) add("Риск отказа", "result", "bad");
+    if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
+
+    // --- вероятность ---
+    const base = BASE_RATES[stageCode]?.win ?? BASE_FALLBACK;
+    const factors: { label: string; mult: number }[] = [];
+    const push = (label: string, mult: number) => factors.push({ label, mult });
+    if (RE.ready.test(inText)) push("клиент говорит об оплате", 1.3);
+    if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`быстрые ответы (${fmtMin(respMed)})`, 1.1);
+    if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`медленные ответы (${fmtMin(respMed)})`, 0.8);
+    if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ${fmtMin(ballWait)}`, 0.7);
+    if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
+    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
+    if (!nextStep) push("нет следующего шага", 0.85);
+    if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
+    if (RE.price.test(inText)) push("возражение по цене", 0.9);
+    if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
+    if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
+    else if (internalOnly) push("нет следов общения в CRM", 0.75);
+    if (taskNoContact) push(`дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
+    if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
+    let prob = base; for (const x of factors) prob *= x.mult;
+    prob = Math.max(0.03, Math.min(0.97, prob));
+    // Почему шанс такой: вклад каждой причины в процентных пунктах и в рублях.
+    // Вклад считаем как разницу «без этой причины» и «с ней», при остальных неизменных.
+    const moneyBase = (f && f.budget) ? f.budget : 0;
+    const whyProb: { label: string; pp: number; rub: number; bad: boolean; who: string }[] = [];
+    for (const x of factors) {
+      const without = Math.max(0.03, Math.min(0.97, prob / x.mult));
+      const pp = Math.round((prob - without) * 100);
+      if (!pp) continue;
+      whyProb.push({ label: x.label, pp, rub: Math.round(moneyBase * (prob - without)), bad: x.mult < 1, who: last.mgr || "" });
+    }
+    whyProb.sort((a, b) => a.pp - b.pp);
+
+    // --- рекомендация ---
+    let next = "", why = "";
+    if (a && a.recommendation) { next = a.recommendation; why = "разбор ИИ"; }
+    else if (RE.refuse.test(inText)) next = "Клиент назвал причину отказа. Не благодарить и закрывать тему, а спросить, что должно измениться, чтобы решение стало другим.";
+    else if (ballWait > BALL_STUCK_MIN) next = `Ответить сегодня: клиент ждёт ${fmtMin(ballWait)}. Дать конкретный срок («отвечу сегодня до 18:00»), а не «в ближайшее время».`;
+    else if (RE.ready.test(inText)) next = "Клиент говорит об оплате. Выставить счёт сегодня и назвать срок готовности датой.";
+    else if (RE.price.test(inText)) next = "Отработать цену: показать состав стоимости и вариант дешевле, назвать конкретный срок ответа.";
+    else if (silenceD >= SILENCE_BAD_D) next = `Тишина ${silenceD} дн. Написать с новым поводом (готовность, сроки, вариант), закончить вопросом и зафиксировать дату следующего контакта.`;
+    else if (overdue) next = `Дело просрочено на ${overdueD} дн${f && f.taskSubj ? " («" + String(f.taskSubj).slice(0, 40) + "»)" : ""}. Закрыть сегодня или перенести с новой датой.`;
+    else if (!nextStep) next = "Поставить дело с датой и временем: без следующего шага сделка выпадает из работы.";
+    else if (early && tags.some((t) => t.sec === "qual" && t.tone === "bad")) next = "Достроить квалификацию: задача, размеры, срок, бюджет. Без них расчёт уйдёт мимо.";
+    else if (tags.some((t) => t.t === "Размытый срок без даты")) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда».";
+    else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
+
     // --- Срочность: что именно горит и насколько [ГИПОТЕЗА - калибровка] ---
     // Порядок важен: берём первую сработавшую причину, она же показывается в очереди.
     const urg: [string, number, string][] = [
@@ -341,6 +366,7 @@ function main() {
       [stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D ? "После КП нет дожима" : "", 0.6, "nopush"],
       [silenceD >= SILENCE_BAD_D ? `Тишина ${silenceD} дн` : "", 0.5, "silent"],
       [overdue ? `Дело просрочено ${overdueD} дн` : "", 0.45, "overdue"],
+      [taskNoContact ? `Дело закрыто, клиенту не написали (${taskNoContact})` : "", 0.6, "fakedone"],
       [internalOnly ? "Нет следов общения в CRM" : "", 0.55, "internal"],
       [!nextStep ? "Нет следующего шага" : "", 0.4, "nostep"],
     ].filter((x) => x[0]) as [string, number, string][];
@@ -356,7 +382,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
@@ -399,6 +425,7 @@ function main() {
       topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,
       ghost: ds.filter((d) => d.ghostMove).length,
       internal: ds.filter((d) => d.internalOnly).length,
+      fakedone: ds.reduce((s2, d) => s2 + (d.taskNoContact || 0), 0),
       noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
@@ -439,6 +466,7 @@ function main() {
     { key: "nostep", label: "Без следующего шага", hint: "В CRM не назначено ни одного открытого дела" },
     { key: "refuse", label: "Риск отказа", hint: "В переписке прозвучал отказ или «не актуально»" },
     { key: "nopush", label: "КП без дожима", hint: "КП отправлено, но после него тишина" },
+    { key: "fakedone", label: "Дела закрыты вхолостую", hint: "Дело вида «связаться с клиентом» или «отправь КП» отмечено выполненным, но контакта с клиентом в CRM после него нет" },
     { key: "internal", label: "Нет следов общения", hint: "За окно есть только дела, заметки и задачи. Внимание: звонок с личного телефона мимо телефонии система не видит, поэтому это повод спросить, а не обвинение" },
   ].map((q) => ({ ...q, n: deals.filter((d) => d.uKey === q.key).length,
                   money: deals.filter((d) => d.uKey === q.key).reduce((s2, d) => s2 + (d.budget || 0), 0) }));

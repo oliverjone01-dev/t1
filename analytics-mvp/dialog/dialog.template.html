@@ -218,6 +218,9 @@ input#q{min-width:220px}
 .chip2{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px}
 .chip2:hover{border-color:var(--acc);color:var(--acc)}
 .t3 tr.sysrow td{color:var(--ink-3);background:#ffffff04}
+.t3 tr.inrng td{background:rgba(34,211,238,.10)}
+.t3 tr.inrng.sysrow td{background:rgba(34,211,238,.06)}
+.t3 tr.inrng td:first-child{box-shadow:inset 2px 0 0 var(--acc)}
 .t3 .ref{display:block;margin-top:3px;color:#C2569B;font-size:10.5px;line-height:1.45}
 .due{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
 .arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
@@ -282,6 +285,7 @@ document.addEventListener('mousemove', e => { const t = e.target.closest && e.ta
     if(ny + tip.offsetHeight > innerHeight) ny = Math.max(8, e.clientY - tip.offsetHeight - 14);
     tip.style.left = nx + 'px'; tip.style.top = ny + 'px';
   } else tip.style.opacity = 0; });
+const fmt2 = n => Math.round(n).toLocaleString('ru-RU');
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
@@ -487,7 +491,9 @@ function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   // Индекс времени событий по сделкам - для фильтра «по коммуникациям».
-  if(!window.EVTS){ window.EVTS={}; for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); } }
+  if(!window.EVTS){ window.EVTS={}; window.EVIX={};
+    for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId;
+      (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
   const dFrom=S.dFrom?Date.parse(S.dFrom+'T00:00:00+03:00'):0;
   const dTo=S.dTo?Date.parse(S.dTo+'T23:59:59+03:00'):0;
   const inPeriod=d=>{
@@ -506,12 +512,19 @@ function renderTree(){
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
-  const SHORT={take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
+  const SHORT={act:'Активность',take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
   const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
     if(k==='hot') return (byM[m.mgr]||[]).filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0); if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
-    if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0); return p.metrics? p.metrics[k] : null; };
+    if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0);
+    if(k==='act') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
+    return p.metrics? p.metrics[k] : null; };
+  // Что менеджер делал за выбранный период: суммарная лента по его сделкам.
+  const actOf=(mgr)=>{ const t={msg:0,call:0,mail:0,task:0,note:0,ai:0,total:0};
+    for(const d of (byM[mgr]||[])){ const m=mixOf(d,dFrom,dTo)||{};
+      for(const k of ['msg','call','mail','task','note','ai','total']) t[k]+=(m[k]||0); }
+    return t; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
-    {k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
+    {k:'act',t:'Активность'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
     .concat([{k:'rating',t:'Рейтинг'}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   const mgrs=SC.managers.filter(m=>byM[m.mgr]);
@@ -587,14 +600,17 @@ function renderTree(){
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
       +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${alertChip(m,p)}</td>`
       +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
-      +MCOLS.slice(2).map(c=>`<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`).join('')
+      +MCOLS.slice(2).map(c=>{ if(c.k==='act'){ const t=actOf(m.mgr);
+          const tip=`За период: ${t.msg} сообщений · ${t.call} звонков · ${t.mail} писем · ${t.task} дел · ${t.note} заметок · ${t.ai} резюме BitrixGPT. Это всё, что менеджер сделал по своим сделкам за выбранные даты - ставь период «сегодня» или «вчера», чтобы посмотреть один день.`;
+          return `<td data-tip="${esc(tip)}" style="cursor:help">${t.total?fmt2(t.total):'<span class=\"na2\">0</span>'}</td>`; }
+        return `<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'mix',t:'Лента',l:1},{k:'urgency',t:'Что горит',l:1}];
-      const dval=(d,k)=> k==='mix'?((d.mix&&d.mix.total)||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
@@ -612,7 +628,7 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
-          <td class="l">${mixCell(d)}</td>
+          <td class="l">${mixCell(d,dFrom,dTo)}</td>
           <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
@@ -669,7 +685,10 @@ function renderTree(){
         const bad=tags.some(t=>t.tone==='bad'), good=tags.some(t=>t.tone==='good')&&!bad;
         const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
         const c3=typeColor(e.type);
-        return `<tr class="erow2${e.sys?' sysrow':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
+        // Выбран период - подсвечиваем прозрачным фоном то, что в него попало: остальная
+        // переписка остаётся для контекста, но видно, что именно происходило в эти даты.
+        const inR=(dFrom||dTo)&&(!dFrom||e.ts>=dFrom)&&(!dTo||e.ts<=dTo);
+        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
           <td class="etime">${fmtTime(e.dt)}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
@@ -703,8 +722,24 @@ function plu(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
   if(a>10&&a<20) return many; if(b>1&&b<5) return few; if(b===1) return one; return many; }
 // Состав ленты сделки одним взглядом: сколько сообщений, звонков, писем и дел.
 // Ноли не печатаем - строка должна читаться, а не считаться.
-function mixCell(d){
-  const m=d.mix; if(!m) return '<span class="na2">-</span>';
+// Состав ленты за выбранный период. Без фильтра берём предпосчитанный mix за всё окно
+// снимка, с фильтром пересчитываем на лету: РОП смотрит «что менеджер делал в этот день».
+function mixOf(d,a,b){
+  if(!a&&!b) return d.mix||null;
+  const evs=(window.EVIX&&EVIX[d.key])||[];
+  const m={msg:0,chan:0,call:0,mail:0,task:0,note:0,ai:0,total:0}, ch=new Set();
+  for(const e of evs){ if(a&&e.ts<a)continue; if(b&&e.ts>b)continue; m.total++;
+    if(e.type&&e.type.indexOf('Сообщение')===0){ m.msg++; ch.add(e.type); }
+    else if(e.type==='Мессенджер ОЛ') m.msg++;
+    else if(e.type==='Звонок') m.call++;
+    else if(e.type==='Письмо') m.mail++;
+    else if(e.type==='Дело'||e.type==='Задача') m.task++;
+    else if(e.type==='Комментарий-заметка') m.note++;
+    else if(e.type==='Резюме BitrixGPT') m.ai++; }
+  m.chan=ch.size; return m;
+}
+function mixCell(d,a,b){
+  const m=mixOf(d,a,b); if(!m) return '<span class="na2">-</span>';
   const p=[];
   if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74']);
   if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков'),'#3DAEC2']);
@@ -759,6 +794,24 @@ function render(){
   document.getElementById('foot').textContent = `Снимок: ${DATA.events.length} событий. «Смотрим по сделкам» - лид сливается в свою сделку; «по лидам» - сделка сливается в лид. Метка «лид»/«сделка» у события - где в пути оно произошло. Клик по ID - карточка в Bitrix24.`;
 }
 initControls(); render();
+
+// Анти-кэш для боевого адреса /dialog/: деплой кладёт рядом v.txt со штампом сборки.
+// Проверяем при загрузке, при возврате на вкладку и раз в 15 минут - давно открытая
+// вкладка тоже подтянет свежую версию. Перезагрузка одна на версию (sessionStorage),
+// иначе упрямый кэш зациклил бы страницу.
+(function(){try{
+  if(location.protocol==='file:'||!BAKED_AT)return;
+  const chk=()=>{fetch('v.txt?_='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).then(v=>{
+    v=(v||'').trim();
+    if(!v||v===BAKED_AT||v<BAKED_AT)return;
+    if(sessionStorage.getItem('_dlgv')===v)return;
+    sessionStorage.setItem('_dlgv',v);
+    location.replace(location.pathname+'?v='+encodeURIComponent(v));
+  }).catch(()=>{})};
+  chk();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});
+  setInterval(chk,9e5);
+}catch(e){}})();
 </script>
 </body>
 </html>

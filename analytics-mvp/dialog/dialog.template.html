@@ -121,6 +121,24 @@ input#q{min-width:220px}
 .fixids{display:flex;flex-wrap:wrap;gap:5px}
 .fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
 .fixid:hover{border-color:var(--acc);color:var(--acc)}
+.t1{margin-bottom:10px}
+.t1 th,.t2 th,.t3 th{font-size:9.5px;padding:6px 6px}
+.t1 td{padding:8px 6px;font-size:11.5px}
+.mrow2{cursor:pointer}
+.mrow2:hover td{background:#ffffff08}
+.mrow2.on td{background:#22d3ee0d}
+.subrow>td{padding:6px 10px 12px 22px;background:#ffffff04}
+.t2{margin-top:6px;font-size:11px}
+.t2 td{padding:6px 6px}
+.drow{cursor:pointer}
+.drow:hover td{background:#ffffff08}
+.drow.on td{background:#22d3ee12}
+.subrow2>td{padding:6px 8px 10px 16px;background:#00000022}
+.t3{margin-top:6px;font-size:11px}
+.t3 td{padding:5px 6px;vertical-align:top}
+.erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
+.erow2.e-good td:first-child{box-shadow:inset 2px 0 0 #2E9E74}
+.ebody{white-space:pre-wrap;word-break:break-word;max-width:520px}
 .mnode{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
 .mnode.on{border-color:var(--acc)}
 .mhead{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
@@ -225,7 +243,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'tree', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -435,91 +453,121 @@ function renderTree(){
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   const byM={}; for(const d of SC.deals) (byM[d.mgr] ||= []).push(d);
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
+  const MD=SC.metricDefs||[];
+  const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
+    if(k==='hot') return p.hotMoney; if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
+    if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0); return p.metrics? p.metrics[k] : null; };
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+    {k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:x.label,unit:x.unit})))
+    .concat([{k:'rating',t:'Рейтинг'}]);
+  const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   const mgrs=SC.managers.filter(m=>byM[m.mgr]);
-  const withP=mgrs.filter(m=>m.profile), noP=mgrs.filter(m=>!m.profile);
-  const ord={'в разборе':0,'норма':1,'сильный':2};
-  withP.sort((a,b)=>(ord[a.profile.verdict]-ord[b.profile.verdict])||(b.profile.hotMoney-a.profile.hotMoney));
-  let html='';
-  for(const m of withP.concat(noP)){
-    const p=m.profile, ds=(byM[m.mgr]||[]).slice().sort((a,b)=>b.prio-a.prio);
-    const openM=S.tm===m.mgr;
+  const ordV={'в разборе':0,'норма':1,'сильный':2};
+  mgrs.sort((a,b)=>{ const k=S.sM.k;
+    if(k==='mgr') return a.mgr.localeCompare(b.mgr)*S.sM.d;
+    if(k==='verdict') return ((ordV[a.profile?.verdict]??9)-(ordV[b.profile?.verdict]??9))*S.sM.d;
+    const x=mval(a,k), y=mval(b,k);
+    if(x===null&&y===null) return 0; if(x===null) return 1; if(y===null) return -1;
+    return (x-y)*S.sM.d; });
+  const fmtM=(k,v)=>{ if(v===null||v===undefined) return '<span class="na2">-</span>';
+    if(k==='sum'||k==='hot') return money(v)+' ₽';
+    if(k==='resp') return fmtMinShort(v);
+    const def=MD.find(x=>x.key===k); if(def&&def.unit==='%') return v+'%';
+    return v; };
+  const cellCol=(k,v)=>{ const def=MD.find(x=>x.key===k); if(!def||v===null) return '';
+    const dv=(SC.deptMedians||{})[k]; if(dv===null||dv===undefined) return '';
+    const better = def.better==='less' ? v<dv : v>dv;
+    return `color:${better?'#2E9E74':(v===dv?'var(--ink-2)':'#C25252')}`; };
+
+  let html=`<table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  for(const m of mgrs){
+    const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
-    const hot=ds.filter(d=>d.urgency).length;
-    html+=`<div class="mnode${openM?' on':''}">
-      <div class="mhead" data-m="${esc(m.mgr)}">
-        <span class="arw3">${openM?'▾':'▸'}</span>
-        <span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span>
-        <span class="mname">${esc(m.mgr)}</span>
-        <span class="mmeta">${ds.length} сделок · требуют действия <b style="color:${hot?'#C25252':'var(--ink-3)'}">${hot}</b> на ${money(p?p.hotMoney:0)} ₽</span>
-        ${m.rating!==null?`<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span>`:''}
-      </div>
-      ${p?`<div class="sw">
-        <div class="swcol"><div class="swh swh-g">Сильные стороны</div>${p.strengths.length?p.strengths.slice(0,3).map(x=>`<div class="swi">${esc(x.text)}<span class="swd">по отделу ${x.dept}</span></div>`).join(''):'<div class="swi swnone">заметных преимуществ над отделом нет</div>'}</div>
-        <div class="swcol"><div class="swh swh-b">Слабые места</div>${p.weaknesses.length?p.weaknesses.slice(0,3).map(x=>`<div class="swi">${esc(x.text)}<span class="swd">по отделу ${x.dept}</span></div>`).join(''):'<div class="swi swnone">отклонений от отдела нет</div>'}</div>
-      </div>`:''}`;
+    html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
+      +`<td class="l"><span class="arw3">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b></td>`
+      +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
+      +MCOLS.slice(2).map(c=>`<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`).join('')
+      +`</tr>`;
     if(openM){
-      html+=`<div class="mbody">`;
+      html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       if(p&&p.actions.length){
-        html+=`<div class="fixh">Что сделать, чтобы усилить</div>`;
-        html+=p.actions.map((a,ai)=>`<div class="fix">
-          <div class="fixt"><b>${ai+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
-          <div class="fixw">${esc(a.how)}</div>
-          <div class="fixids">${a.ids.map(x=>`<span class="fixid" data-go="${esc(x.id)}">${esc(x.id)} · ${esc(x.t)} · ${money(x.b)} ₽</span>`).join('')}</div>
-        </div>`).join('');
+        html+=`<div class="fixh">Что сделать, чтобы усилить</div>`+p.actions.map((a,i)=>`<div class="fix">
+          <div class="fixt"><b>${i+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
+          <div class="fixw">${esc(a.how)}</div></div>`).join('');
       }
-      html+=`<div class="fixh">Все сделки (${ds.length})</div>`+ds.map(d=>{
-        const openD=S.td===d.key, c=urgCol(d.uKey), pc=probColor(d.prob);
+      // --- уровень 2: таблица сделок ---
+      const DCOLS=[{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
+        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'msgs',t:'Сообщ.'},{k:'urgency',t:'Что горит',l:1}];
+      const dval=(d,k)=> k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+      ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
+        if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
+        return String(x??'').localeCompare(String(y??''))*S.sD.d; });
+      html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
+      for(const d of ds){
+        const openD=S.td===d.key, c2=urgCol(d.uKey), pc=probColor(d.prob);
         const url=d.dealId?`${PORTAL}/crm/deal/details/${d.dealId}/`:`${PORTAL}/crm/lead/details/${d.leadId}/`;
-        return `<div class="dnode${openD?' on':''}" id="d-${esc(d.dealId||d.leadId)}">
-          <div class="dhead2" data-d="${esc(d.key)}">
-            <span class="arw3">${openD?'▾':'▸'}</span><span class="dsum">${money(d.budget)} ₽</span>
-            <span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span>
-            <a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a>
-            <span class="dttl2">${esc(d.title.slice(0,52))}</span>
-            <span class="dstage">${esc(d.stage||'-')}</span>
-            <span class="dprob" style="color:${pc}">${d.prob}%</span>
-            ${d.urgency?`<span class="urg" style="color:${c};background:${c}18;border:1px solid ${c}44">${esc(d.urgency)}</span>`:''}
-          </div>${openD?`<div class="dbody" id="tree-${esc(d.key)}"></div>`:''}</div>`;
-      }).join('')+`</div>`;
+        html+=`<tr class="drow${openD?' on':''}" data-d="${esc(d.key)}">
+          <td><b>${money(d.budget)} ₽</b></td>
+          <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
+          <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
+          <td class="l"><span class="arw3">${openD?'▾':'▸'}</span>${esc(d.title.slice(0,46))}</td>
+          <td class="l dstage">${esc(d.stage||'-')}</td>
+          <td style="color:${pc};font-weight:600">${d.prob}%</td>
+          <td>${d.silenceD}</td>
+          <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
+          <td>${d.msgs}</td>
+          <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
+        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
+      }
+      html+=`</table></td></tr>`;
     }
-    html+=`</div>`;
   }
+  html+=`</table>`;
   list.innerHTML=html;
-  list.querySelectorAll('.mhead').forEach(h=>h.onclick=()=>{ S.tm=S.tm===h.dataset.m?'':h.dataset.m; S.td=''; renderTree(); });
-  list.querySelectorAll('.dhead2').forEach(h=>h.onclick=e=>{ e.stopPropagation(); S.td=S.td===h.dataset.d?'':h.dataset.d; renderTree(); });
-  list.querySelectorAll('.fixid').forEach(b=>b.onclick=e=>{ e.stopPropagation();
-    const id=b.dataset.go; const k=SC.deals.find(x=>(x.dealId||x.leadId)===id); if(!k) return;
-    S.td=k.key; renderTree(); const el=document.getElementById('d-'+id); if(el) el.scrollIntoView({block:'center'}); });
+  list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
+    const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
+    if(st.k===th.dataset.k) st.d=-st.d; else { st.k=th.dataset.k; st.d=(th.dataset.k==='mgr'||th.dataset.k==='title'||th.dataset.k==='stage')?1:-1; }
+    renderTree(); });
+  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=()=>{ S.tm=S.tm===r.dataset.m?'':r.dataset.m; S.td=''; renderTree(); });
+  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); S.td=S.td===r.dataset.d?'':r.dataset.d; renderTree(); });
   if(S.td){
     const host=document.getElementById('tree-'+S.td);
     if(host){ const d=SCD[S.td];
-      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===S.td).sort((a,b)=>a.ts-b.ts);
+      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===S.td);
+      const ekey=e=>S.sE.k==='ts'?e.ts:S.sE.k==='type'?e.type:S.sE.k==='who'?(e.dir==='входящее'?'клиент':e.who):e[S.sE.k];
+      evs.sort((a,b)=>{ const x=ekey(a),y=ekey(b);
+        if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sE.d;
+        return String(x??'').localeCompare(String(y??''))*S.sE.d; });
+      const ECOLS=[{k:'ts',t:'Время'},{k:'who',t:'Кто'},{k:'type',t:'Канал'},{k:'body',t:'Сообщение',l:1},{k:'tags',t:'Разметка',l:1}];
+      CUR_TAGS=(d&&d.evTags)||{};
+      const rows=evs.map(e=>{
+        const tags=(CUR_TAGS[e.src]||[]);
+        const bad=tags.some(t=>t.tone==='bad'), good=tags.length&&!bad;
+        const isM=e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
+        const c3=typeColor(e.type);
+        return `<tr class="erow2${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
+          <td class="etime">${fmtTime(e.dt)}</td>
+          <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
+          <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(e.title)}: </b>`:''}${tags.length?hl(e.body,tags):esc(e.body)}${e.status?`<span class="st">${esc(e.status)}</span>`:''}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
+          <td class="l">${tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
+      }).join('');
+      const parts=(d&&d.participants)||[];
       host.innerHTML=`<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
-        +(d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая по стадии ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
-        +treeHTML(evs,d);
+        +(d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
+        +(parts.length?`<div class="parts">Переписку вели: `+parts.map(x=>`<span class="part"><b>${esc(x.who)}</b> · ${x.stage==='lead'?'на лиде':'на сделке'} · ${x.n}</span>`).join(' → ')+`</div>`:'')
+        +`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      CUR_TAGS={};
+      host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
+        if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });
     }
   }
   const hot=SC.deals.filter(d=>d.urgency);
-  const money2=hot.reduce((s2,d)=>s2+(d.budget||0),0);
-  document.getElementById('stat').textContent=`в разборе: ${withP.filter(m=>m.profile.verdict==='в разборе').length} · норма: ${withP.filter(m=>m.profile.verdict==='норма').length} · сильных: ${withP.filter(m=>m.profile.verdict==='сильный').length} · требуют действия ${hot.length} сделок на ${money(money2)} ₽`;
-  document.getElementById('foot').textContent=`Клик 1 - менеджер: видно сильные и слабые стороны против отдела. Клик 2 - что чинить: списки сделок под каждую слабость. Клик 3 - сделка: почему шанс такой и вся переписка с разметкой.`;
+  document.getElementById('stat').textContent=`менеджеров ${mgrs.length} · сделок и лидов ${SC.deals.length} · требуют действия ${hot.length} на ${money(hot.reduce((s2,d)=>s2+(d.budget||0),0))} ₽`;
+  document.getElementById('foot').textContent=`Три уровня, у каждого свои столбцы и сортировка кликом по заголовку. Менеджер: метрики против медианы отдела, зелёное лучше отдела, красное хуже. Сделка: сумма, шанс, тишина, скорость. Диалог: кто, канал, текст и разметка дефектов.`;
 }
-function scoreHTML(g){
-  if(!SC) return '';
-  const d = SCD[(g.ent==='deal'?'D':'L')+g.aid] || SCD['D'+(g.other||'')] || null;
-  if(!d) return '';
-  const c=probColor(d.prob);
-  const tags = d.tags.map(t=>`<span class="tg tg-${t.tone}">${esc(t.t)}</span>`).join('');
-  const why = d.factors.length ? `базовая по стадии ${d.base}%${d.stage?' («'+esc(d.stage)+'»)':''} × ` + d.factors.map(f=>`${esc(f.label)} ${f.mult}`).join(' × ') : `базовая по стадии ${d.base}%`;
-  return `<div class="sc">
-    <span class="pb" style="background:${c}22;color:${c};border:1px solid ${c}55">${d.prob}% успех</span>
-    ${tags}
-    <div class="nxt"><b>Следующий шаг:</b> ${esc(d.next)}</div>
-    <div class="why">${esc(why)}</div>
-  </div>`;
-}
-function backToTable(){ S.mode='mgr'; S.mgr=''; S.sec=''; S.tag=''; document.getElementById('fMgr').value=''; render(); }
-function clearScoreFilter(){ S.sec=''; S.tag=''; render(); }
+const fmtMinShort = v => v===null||v===undefined?'-':(v<60?v+' м':(v/60).toFixed(1)+' ч');
+
 function render(){
   VIEW=[]; renderTree(); return;
   VIEW = group();

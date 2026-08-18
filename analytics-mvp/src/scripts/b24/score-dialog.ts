@@ -511,9 +511,12 @@ function main() {
       pick((d) => d.stageCode === "C49:PREPAYMENT_INVOIC" && d.silenceD >= SILENCE_WARN_D, "Дожать после КП", "КП отправлено, ответа нет: позвонить и спросить решение"),
       pick((d) => !d.nextStep, "Поставить следующий шаг", "В CRM нет открытого дела: сделка выпадает из работы"),
     ].filter(Boolean);
+    // Сырые значения метрик - для табличного вида: сортировать и сравнивать в столбцах.
+    const metrics: Record<string, number | null> = {};
+    for (const mt of METRICS) { const v = mt.calc(ds); metrics[mt.key] = (v === null || v === undefined || isNaN(v)) ? null : v; }
     const hotMoney = ds.filter((d) => d.urgency).reduce((a, d) => a + (d.budget || 0), 0);
     const verdict = weaknesses.length === 0 ? "сильный" : (strengths.length > weaknesses.length ? "норма" : (weaknesses.length >= 3 ? "в разборе" : "норма"));
-    profile[mgr] = { strengths, weaknesses, actions, hotMoney, verdict };
+    profile[mgr] = { strengths, weaknesses, actions, hotMoney, verdict, metrics };
   }
 
   // --- Сводка по менеджерам: доля здоровых сделок в каждом разделе ---
@@ -606,7 +609,7 @@ function main() {
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
-    deptMedians: dept, tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
+    deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),
   };
   writeFileSync(DLG, JSON.stringify(dlg));

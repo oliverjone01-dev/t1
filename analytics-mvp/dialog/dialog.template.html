@@ -212,6 +212,9 @@ input#q{min-width:220px}
 .t2>tbody>tr>td.l .mixchip{font-size:9.5px}
 .fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
 .chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
+.pset{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px;margin-right:2px}
+.pset:hover{border-color:var(--acc);color:var(--acc)}
+.pset.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
 .chip2{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px}
 .chip2:hover{border-color:var(--acc);color:var(--acc)}
 .t3 tr.sysrow td{color:var(--ink-3);background:#ffffff04}
@@ -256,15 +259,6 @@ input#q{min-width:220px}
   <div class="h1">GENGLASS · Диалоги</div>
   <div class="sub" id="sub">загрузка…</div>
 
-  <div class="bar">
-    <span><label>Менеджер</label><select id="fMgr"></select></span>
-    <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
-    <span><label>ID</label><input id="fDeal" placeholder="сделка/лид" style="width:96px"></span>
-    <input id="q" placeholder="поиск по тексту / кто / тема">
-    <span><label>Порядок</label><select id="fOrd"><option value="desc">свежие сверху</option><option value="asc">старые сверху</option></select></span>
-    <span class="chip" id="expAll">развернуть видимые</span>
-  </div>
-  <div class="cnt" id="typeChips" style="margin-bottom:8px"></div>
   <div class="cnt" id="stat" style="margin-bottom:10px"></div>
 
   <div id="list"></div>
@@ -297,18 +291,7 @@ const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{
 let VIEW = [];
 
 function initControls(){
-  const mgr = document.getElementById('fMgr');
-  mgr.innerHTML = '<option value="">все менеджеры</option>' + (DATA.managers||[]).map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
-  const chips = document.getElementById('typeChips');
-  const order = Object.keys(DATA.counts||{}).sort((a,b)=>DATA.counts[b]-DATA.counts[a]);
-  chips.innerHTML = order.map(t=>`<span class="chip" data-t="${esc(t)}"><i style="width:8px;height:8px;border-radius:2px;background:${typeColor(t)};display:inline-block"></i>${esc(t)} <span class="cnt">${DATA.counts[t]}</span></span>`).join('');
-  chips.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{ const t=ch.dataset.t; if(S.types.has(t)){S.types.delete(t);ch.classList.remove('on');}else{S.types.add(t);ch.classList.add('on');} render(); });
-  mgr.onchange=()=>{S.mgr=mgr.value;render();};
-  document.getElementById('fDir').onchange=e=>{S.dir=e.target.value;render();};
-  document.getElementById('fDeal').oninput=e=>{S.id=e.target.value.trim();render();};
-  document.getElementById('fOrd').onchange=e=>{S.ord=e.target.value;render();};
-  let qt; document.getElementById('q').oninput=e=>{clearTimeout(qt);qt=setTimeout(()=>{S.q=e.target.value.trim().toLowerCase();render();},180);};
-  document.getElementById('expAll').onclick=()=>{ document.querySelectorAll('.deal').forEach(d=>toggle(d,true)); };
+  // Панель старого плоского вида убрана: фильтры дерева живут в шапке таблицы менеджеров.
   document.getElementById('sub').textContent =
     `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${DATA.scope||''} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
 }
@@ -565,11 +548,21 @@ function renderTree(){
   // умолчанию, состояние живёт в S.help.
   const MFULL={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты',take:'Взял'};
   const dm=SC.deptMedians||{};
+  // Подсветка активного пресета: сверяем текущие даты с тем, что дал бы каждый пресет.
+  const psetOn=(k)=>{ const iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
+    if(k==='all') return !S.dFrom&&!S.dTo;
+    if(!S.dFrom||!S.dTo) return false;
+    if(k==='today') return S.dFrom===iso(now)&&S.dTo===iso(now);
+    if(k==='yst') return S.dFrom===iso(now-864e5)&&S.dTo===iso(now-864e5);
+    return S.dTo===iso(now)&&S.dFrom===iso(now-(Number(k)-1)*864e5); };
   const fbar = `<div class="fbar">
     <span>Период</span>
     <input type="date" id="dFrom" value="${esc(S.dFrom||'')}">
     <span style="color:var(--ink-4)">—</span>
     <input type="date" id="dTo" value="${esc(S.dTo||'')}">
+    ${[['today','сегодня'],['yst','вчера'],['3','3 дня'],['7','7 дней'],['30','30 дней'],['all','всё']]
+      .map(([k,t])=>`<span class="pset${psetOn(k)?' on2':''}" data-pset="${k}">${t}</span>`).join('')}
+    <span style="color:var(--ink-4);margin:0 2px">·</span>
     <span class="chip2${S.dMode==='comm'?' on2':''}" data-dmode="comm">по коммуникациям</span>
     <span class="chip2${S.dMode==='created'?' on2':''}" data-dmode="created">по дате создания сделки</span>
     ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
@@ -631,6 +624,13 @@ function renderTree(){
   const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
   if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td=''; renderTree(); };
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td=''; renderTree(); };
+  list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
+    if(k==='all'){ S.dFrom=''; S.dTo=''; }
+    else if(k==='today'){ S.dFrom=iso(now); S.dTo=iso(now); }
+    else if(k==='yst'){ S.dFrom=iso(now-864e5); S.dTo=iso(now-864e5); }
+    else { S.dFrom=iso(now-(Number(k)-1)*864e5); S.dTo=iso(now); }
+    S.td=''; renderTree(); });
   list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };

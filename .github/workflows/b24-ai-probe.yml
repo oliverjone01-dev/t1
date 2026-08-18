@@ -1,0 +1,43 @@
+name: B24 AI probe (резюме звонка BitrixGPT)
+
+# Разовая диагностика: доступно ли через REST резюме звонка, которое BitrixGPT
+# показывает в карточке лида/сделки. Печатает активности со всеми полями, SETTINGS,
+# комментарии таймлайна, статистику телефонии и список ИИ-методов портала.
+# Ничего не коммитит. Секрет маскируется.
+
+on:
+  workflow_dispatch:
+    inputs:
+      entity:
+        description: "lead или deal"
+        required: false
+        default: "lead"
+      id:
+        description: "ID сущности"
+        required: false
+        default: "50489"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Probe AI summary
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+          PROBE_ENTITY: ${{ github.event.inputs.entity }}
+          PROBE_ID: ${{ github.event.inputs.id }}
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/probe-ai-summary.ts

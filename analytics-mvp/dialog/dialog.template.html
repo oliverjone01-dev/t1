@@ -65,6 +65,24 @@ input#q{min-width:220px}
 .rt{font-weight:700;font-size:15px}
 .rtst{color:#E8A33D;font-size:10px;letter-spacing:.5px;display:block}
 .na2{color:var(--ink-4);font-size:11px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:8px;margin-bottom:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer}
+.tile:hover{border-color:var(--acc)}
+.tile.on{border-color:var(--acc);background:#22d3ee0f}
+.tile .tl{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em}
+.tile .tn{font-size:20px;font-weight:700;line-height:1.2}
+.tile .tm{color:var(--ink-4);font-size:10.5px}
+.qrow{cursor:pointer}
+.qrow:hover td{background:#ffffff08}
+.qrow td{vertical-align:middle}
+.pri{font-weight:700;font-size:12px;white-space:nowrap}
+.kind{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap}
+.k-deal{color:#22d3ee;border-color:#22d3ee55;background:#22d3ee12}
+.k-lead{color:#C2873C;border-color:#C2873C55;background:#C2873C12}
+.urg{font-size:10.5px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.qexp>td{padding:0 10px 10px 10px;background:#ffffff05}
+.qnext{color:var(--ink-2);font-size:11.5px;margin:6px 0 8px 0;line-height:1.5}
+.qnext b{color:var(--ink-3)}
 .qm{display:inline-block;margin-left:3px;font-size:9px;color:var(--ink-4);border:1px solid var(--line);border-radius:50%;width:11px;height:11px;line-height:11px;text-align:center;cursor:help;vertical-align:top}
 .legend{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;font-size:11.5px}
 .lgh{padding:8px 12px;cursor:pointer;color:var(--ink-2)}
@@ -104,7 +122,7 @@ input#q{min-width:220px}
   <div class="sub" id="sub">загрузка…</div>
 
   <div class="bar">
-    <span><label>Смотрим</label><select id="fMode"><option value="mgr">по менеджерам (рейтинг)</option><option value="deal">по сделкам</option><option value="lead">по лидам</option></select></span>
+    <span><label>Смотрим</label><select id="fMode"><option value="queue">очередь дел</option><option value="mgr">менеджеры (рейтинг)</option><option value="deal">все сделки</option><option value="lead">все лиды</option></select></span>
     <span><label>Менеджер</label><select id="fMgr"></select></span>
     <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
     <span><label>ID</label><input id="fDeal" placeholder="сделка/лид" style="width:96px"></span>
@@ -132,7 +150,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'mgr', sec:'', tag:'', exp:null, mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'queue', sec:'', tag:'', exp:null, q4:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -299,6 +317,61 @@ function fillExpanded(){
     (VIEW.length ? VIEW.slice(0,DEAL_LIMIT).map((g,i)=>dealHTML(g,i)).join('') : '<div class="empty">ничего не найдено</div>');
   host.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=e=>{ e.stopPropagation(); toggle(d); });
 }
+// ===== ОЧЕРЕДЬ ДЕЛ: главный экран. Строка = сделка или лид, сортировка по деньгам под риском =====
+const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round(v/1000)+'к';
+const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5'}[k]||'#5D6B77');
+function renderQueue(){
+  const list=document.getElementById('list');
+  if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
+  const tiles = SC.queues.map(q=>`<div class="tile${S.q4===q.key?' on':''}" data-q="${q.key}" title="${esc(q.hint)}">
+      <div class="tl">${esc(q.label)}</div><div class="tn" style="color:${urgCol(q.key)}">${q.n}</div>
+      <div class="tm">${money(q.money)} ₽ в работе</div></div>`).join('');
+  let rows = SC.deals.filter(d=>d.urgency);
+  if(S.q4) rows = rows.filter(d=>d.uKey===S.q4);
+  if(S.mgr) rows = rows.filter(d=>d.mgr===S.mgr);
+  rows.sort((a,b)=>b.prio-a.prio);
+  const head = `<tr><th>Под риском</th><th></th><th class="l">Сделка</th><th class="l">Менеджер</th><th class="l">Стадия</th><th>Шанс</th><th class="l">Что горит</th></tr>`;
+  const body = rows.slice(0,200).map(d=>{
+    const open = S.exp && S.exp.key===d.key;
+    const url = d.dealId ? `${PORTAL}/crm/deal/details/${d.dealId}/` : `${PORTAL}/crm/lead/details/${d.leadId}/`;
+    const c = urgCol(d.uKey), pc = probColor(d.prob);
+    const r = `<tr class="qrow${open?' open':''}" data-key="${esc(d.key)}">
+      <td class="pri">${money(d.budget)} ₽</td>
+      <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
+      <td class="l"><a href="${url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--ink-4);font-size:11px">${esc(d.dealId||d.leadId)}</a>
+        <span style="margin-left:6px">${esc(d.title.slice(0,46))}</span></td>
+      <td class="l">${esc(d.mgr)}</td>
+      <td class="l" style="color:var(--ink-3);font-size:11px">${esc(d.stage||'-')}</td>
+      <td style="color:${pc};font-weight:600">${d.prob}%</td>
+      <td class="l"><span class="urg" style="color:${c};background:${c}18;border:1px solid ${c}44">${esc(d.urgency)}</span></td></tr>`;
+    return r + (open ? `<tr class="qexp"><td colspan="7"><div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div><div id="qexp-body"></div></td></tr>` : '');
+  }).join('');
+  list.innerHTML = `<div class="tiles">${tiles}</div>` +
+    (rows.length ? `<table class="tbl">${head}${body}</table>` : '<div class="empty">в этой очереди пусто</div>');
+  list.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ S.q4 = S.q4===t.dataset.q ? '' : t.dataset.q; S.exp=null; renderQueue(); });
+  list.querySelectorAll('.qrow').forEach(r=>r.onclick=()=>{
+    S.exp = (S.exp && S.exp.key===r.dataset.key) ? null : {key:r.dataset.key}; renderQueue(); });
+  if(S.exp){
+    const host=document.getElementById('qexp-body');
+    if(host){
+      const d=SCD[S.exp.key];
+      const map=new Map();
+      for(const e of DATA.events){
+        const k=e.dealId?'D'+e.dealId:'L'+e.leadId; if(k!==S.exp.key) continue;
+        const a=anchor(e); if(!a.aid) continue;
+        const kk=a.ent+':'+a.aid; let g=map.get(kk);
+        if(!g){ g={ent:a.ent,aid:a.aid,title:a.title,other:a.other,events:[],chans:{},stages:{},last:0,mgr:e.mgr}; map.set(kk,g); }
+        g.events.push(e); if(e.ts>g.last)g.last=e.ts; g.chans[e.type]=(g.chans[e.type]||0)+1; g.stages[e.stage]=1;
+      }
+      VIEW=[...map.values()]; VIEW.forEach(g=>g.events.sort((a,b)=>a.ts-b.ts));
+      host.innerHTML = VIEW.map((g,i)=>dealHTML(g,i)).join('');
+      host.querySelectorAll('.deal').forEach(el=>{ el.querySelector('.dhead').onclick=e=>{e.stopPropagation();toggle(el);}; toggle(el,true); });
+    }
+  }
+  const totMoney = rows.reduce((s2,d)=>s2+(d.budget||0),0);
+  document.getElementById('stat').textContent = `в очереди: ${rows.length} (сделок ${rows.filter(d=>!d.isLead).length}, лидов ${rows.filter(d=>d.isLead).length}) · сумма ${money(totMoney)} ₽ · сортировка по сумме${S.q4?' · фильтр: '+(SC.queues.find(q=>q.key===S.q4)||{}).label:''}`;
+  document.getElementById('foot').textContent = `Очередь дел: что требует действия прямо сейчас. Плитка сверху - фильтр по причине. Клик по строке раскрывает переписку и рекомендацию. «Под риском» - сумма сделки; сортировка учитывает сумму, шанс закрыть и срочность причины.`;
+}
 function renderManagers(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
@@ -392,6 +465,7 @@ function scoreHTML(g){
 function backToTable(){ S.mode='mgr'; S.mgr=''; S.sec=''; S.tag=''; document.getElementById('fMgr').value=''; document.getElementById('fMode').value='mgr'; render(); }
 function clearScoreFilter(){ S.sec=''; S.tag=''; render(); }
 function render(){
+  if(S.mode==='queue'){ VIEW=[]; renderQueue(); return; }
   if(S.mode==='mgr'){ VIEW=[]; renderManagers(); return; }
   VIEW = group();
   const show = VIEW.slice(0, DEAL_LIMIT);

@@ -246,8 +246,30 @@ function main() {
     else if (tags.some((t) => t.t === "Размытый срок без даты")) next = "Заменить размытый срок на дату: «подготовлю расчёт завтра до обеда».";
     else next = "Держать темп: следующий шаг зафиксирован, ответы в норме.";
 
+    // --- Срочность: что именно горит и насколько [ГИПОТЕЗА - калибровка] ---
+    // Порядок важен: берём первую сработавшую причину, она же показывается в очереди.
+    const urg: [string, number, string][] = [
+      [RE.ready.test(inText) ? "Готов к оплате" : "", 1.0, "ready"],
+      [ballWait > BALL_STUCK_MIN ? `Клиент ждёт ${fmtMin(ballWait)}` : "", 0.9, "waiting"],
+      [RE.refuse.test(inText) ? "Риск отказа" : "", 0.85, "refuse"],
+      [RE.price.test(inText) && !RE.dated.test(outText) ? "Возражение без ответа" : "", 0.7, "objection"],
+      [silenceD >= SILENCE_BAD_D + 2 ? `Тишина ${silenceD} дн` : "", 0.65, "silent"],
+      [stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D ? "После КП нет дожима" : "", 0.6, "nopush"],
+      [silenceD >= SILENCE_BAD_D ? `Тишина ${silenceD} дн` : "", 0.5, "silent"],
+      [overdue ? `Дело просрочено ${overdueD} дн` : "", 0.45, "overdue"],
+      [!nextStep ? "Нет следующего шага" : "", 0.4, "nostep"],
+    ].filter((x) => x[0]) as [string, number, string][];
+    const urgency = urg.length ? urg[0]![0] : "";
+    const uw = urg.length ? urg[0]![1] : 0.1;
+    const uKey = urg.length ? urg[0]![2] : "ok";
+    // Приоритет = деньги под риском: сумма x шанс закрыть x вес срочности.
+    // Сделки без суммы не проваливаются в конец: берём медиану бюджета как ориентир.
+    const money = (f && f.budget) ? f.budget : 0;
+    const prio = Math.round((money || 60000) * (prob) * uw);
+
     deals.push({
-      key, dealId, leadId, title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
+      key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio,
+      title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
@@ -310,7 +332,18 @@ function main() {
   const days = trend.slice(-90);
   writeFileSync(TRD, JSON.stringify({ updatedAt: new Date().toISOString(), days }));
 
+  const QUEUES = [
+    { key: "waiting", label: "Ждут ответа", hint: "Последним написал клиент, ответа нет дольше 4 рабочих часов" },
+    { key: "ready", label: "Готовы к оплате", hint: "Клиент сам заговорил про счёт, оплату или реквизиты" },
+    { key: "silent", label: "Тишина", hint: "Ни одного касания 4 дня и дольше" },
+    { key: "nostep", label: "Без следующего шага", hint: "В CRM не назначено ни одного открытого дела" },
+    { key: "refuse", label: "Риск отказа", hint: "В переписке прозвучал отказ или «не актуально»" },
+    { key: "nopush", label: "КП без дожима", hint: "КП отправлено, но после него тишина" },
+  ].map((q) => ({ ...q, n: deals.filter((d) => d.uKey === q.key).length,
+                  money: deals.filter((d) => d.uKey === q.key).reduce((s2, d) => s2 + (d.budget || 0), 0) }));
+
   dlg.scoring = {
+    queues: QUEUES,
     trend: days.slice(-14),
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,

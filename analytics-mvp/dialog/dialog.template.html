@@ -150,8 +150,16 @@ input#q{min-width:220px}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
 .subrow2>td{padding:0 8px 12px 44px;background:#00000026;border-left:3px solid #C2873C4d}
-.t3{margin-top:6px;font-size:11px}
+.t3{margin-top:6px;font-size:11px;table-layout:fixed}
 .t3 td{padding:5px 6px;vertical-align:top}
+/* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные
+   ссылки и склеенные слова переносятся внутри своей колонки. */
+.t3 th:nth-child(1),.t3 td:nth-child(1){width:78px}
+.t3 th:nth-child(2),.t3 td:nth-child(2){width:124px}
+.t3 th:nth-child(3),.t3 td:nth-child(3){width:136px}
+.t3 th:nth-child(5),.t3 td:nth-child(5){width:224px;border-left:1px solid var(--line);padding-left:10px}
+.t3 td.ebody{padding-right:16px;word-break:break-word;overflow-wrap:anywhere}
+.t3 td:nth-child(5) .evtag{margin:0 3px 3px 0}
 .erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
 .erow2.e-good td:first-child{box-shadow:inset 2px 0 0 #2E9E74}
 .ebody{white-space:pre-wrap;word-break:break-word;max-width:520px}
@@ -588,7 +596,7 @@ function renderTree(){
           <td class="etime">${fmtTime(e.dt)}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
-          <td class="l ebody">${e.title&&!isM?`<b>${esc(e.title)}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
           <td class="l">${tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];

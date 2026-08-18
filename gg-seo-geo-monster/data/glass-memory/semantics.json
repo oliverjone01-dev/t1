@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-17",
+ "measured": "2026-08-18",
  "phrases": [
   {
    "phrase": "илики",
@@ -263,14 +263,6 @@
    "freq": 291,
    "url": "",
    "cluster": "зеркала",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "песочное кладбище спб",
-   "pos": null,
-   "freq": 27,
-   "url": "",
-   "cluster": "песочное",
    "intent": "commercial"
   },
   {
@@ -682,6 +674,14 @@
    "intent": "transactional"
   },
   {
+   "phrase": "надпись на могиле",
+   "pos": null,
+   "freq": 3896,
+   "url": "",
+   "cluster": "надпись",
+   "intent": "commercial"
+  },
+  {
    "phrase": "северное кладбище санкт петербург",
    "pos": null,
    "freq": 2542,
@@ -720,14 +720,6 @@
    "url": "",
    "cluster": "сделать",
    "intent": "informational"
-  },
-  {
-   "phrase": "могила фриске",
-   "pos": null,
-   "freq": 1451,
-   "url": "",
-   "cluster": "могила",
-   "intent": "commercial"
   },
   {
    "phrase": "установка памятника своими руками",
@@ -786,20 +778,28 @@
    "intent": "commercial"
   },
   {
-   "phrase": "виды надгробных памятников",
-   "pos": null,
-   "freq": 147,
-   "url": "",
-   "cluster": "виды",
-   "intent": "commercial"
-  },
-  {
    "phrase": "гравировка портрета",
    "pos": null,
    "freq": 1175,
    "url": "",
    "cluster": "гравировка",
    "intent": "commercial"
+  },
+  {
+   "phrase": "как выбрать памятник",
+   "pos": null,
+   "freq": 558,
+   "url": "",
+   "cluster": "выбрать",
+   "intent": "informational"
+  },
+  {
+   "phrase": "как правильно выбрать памятник на могилу",
+   "pos": null,
+   "freq": 16,
+   "url": "",
+   "cluster": "правильно",
+   "intent": "informational"
   }
  ]
 }

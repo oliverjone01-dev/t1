@@ -1,7 +1,7 @@
 // Разовая диагностика: найти всех пользователей с заданной фамилией (PROBE_LASTNAME)
 // и показать, кто из них реально ведёт сделки: ID, активность, отдел, счётчики по C49.
 const WH = process.env.B24_WEBHOOK_URL;
-const LAST = process.env.PROBE_LASTNAME || "Лобова";
+const LAST = process.env.PROBE_LASTNAME || "Турченко";
 if (!WH) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const BASE = WH.replace(/\/+$/, "");
 

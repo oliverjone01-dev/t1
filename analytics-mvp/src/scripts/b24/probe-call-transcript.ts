@@ -53,5 +53,5 @@ async function tryCall(label: string, method: string, payload: string) {
     await tryCall("statSel", "voximplant.statistic.get", `FILTER[ID]=${r.ID}&select[0]=TRANSCRIPT&select[1]=TRANSCRIPT_TEXT`);
     await sleep(50);
   }
-  console.log("\n(если текст транскрипта нигде не виден - вероятно, он не отдаётся вебхуком, только в UI)");
+  console.log("\n(ИТОГ пробы 18.08.2026: текст транскрипта вебхуком не отдаётся. Методов чтения нет,\n TRANSCRIPT_ID у внешней телефонии пустой. Доступны запись RECORD_FILE_ID и AI-резюме BitrixGPT.)");
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });

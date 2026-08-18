@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLASS MEMORY. Готовые решения для дилеров</title>
+<meta name="description" content="9 комплектов: камень + стекло, металл + стекло. Дилерский мини-каталог GLASS MEMORY.">
+<style>
+@page { size: A4 portrait; margin: 0; }
+
+:root{
+  --brand:#2E665B; --brand-2:#24544B; --brand-3:#1F4B43;
+  --leaf:#3DA35D; --soft:#EAF1EF;
+  --ink:#17211E; --ink2:#43514D; --ink3:#77857F;
+  --line:#DDE4E1; --line2:#C6D2CE;
+  --paper:#FFFFFF; --paper2:#F5F7F6;
+  --flag:#8A6A12; --flag-bg:#FFF6E0; --flag-line:#E8D49A;
+}
+
+*{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+html,body{margin:0;padding:0;background:#8E9995;}
+body{
+  font-family:"PT Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color:var(--ink); line-height:1.5; font-size:10.5pt;
+}
+h1,h2,h3,.serif{font-family:"PT Serif",Georgia,"Times New Roman",serif;}
+
+.page{
+  position:relative; width:210mm; height:297mm; overflow:hidden;
+  background:var(--paper); margin:0 auto 8mm; padding:16mm 15mm 14mm;
+  page-break-after:always; break-after:page;
+}
+.page:last-child{page-break-after:auto; break-after:auto; margin-bottom:0;}
+@media print{ body{background:#fff;} .page{margin:0; box-shadow:none;} }
+@media screen{ .page{box-shadow:0 6px 30px rgba(0,0,0,.28);} }
+
+/* --- шапка и подвал страницы --- */
+.runhead{
+  position:absolute; top:8mm; left:15mm; right:15mm;
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:7.6pt; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink3); border-bottom:1px solid var(--line); padding-bottom:2.5mm;
+}
+.runhead b{color:var(--brand); font-weight:700;}
+.runfoot{
+  position:absolute; bottom:8mm; left:15mm; right:15mm;
+  display:flex; justify-content:space-between;
+  font-size:7.6pt; color:var(--ink3);
+  border-top:1px solid var(--line); padding-top:2.5mm;
+}
+
+/* --- логотип --- */
+.logo{display:flex; align-items:center; gap:3mm;}
+.logo img{width:9mm; height:auto; display:block;}
+.logo .nm{font-size:12pt; font-weight:800; letter-spacing:.02em; color:#20302C; line-height:1.05;}
+.logo .nm i{font-style:normal; color:var(--leaf);}
+.logo .tg{display:block; font-size:6.6pt; letter-spacing:.18em; text-transform:uppercase; color:var(--ink3); font-weight:700; margin-top:.6mm;}
+
+/* --- обложка --- */
+.cover{background:linear-gradient(160deg,var(--brand) 0%,var(--brand-3) 100%); color:#EAF3F0; padding:0;}
+.cover .inner{position:absolute; inset:0; padding:20mm 18mm; display:flex; flex-direction:column;}
+.cover .logo .nm{color:#fff;} .cover .logo .tg{color:#A8CFC4;} .cover .logo i{color:#8FD3A8;}
+.cover h1{font-size:30pt; line-height:1.14; margin:0 0 5mm; color:#fff; letter-spacing:-.01em;}
+.cover .sub{font-size:12.5pt; color:#C8E2DA; max-width:120mm; margin:0 0 10mm;}
+.cover .rule{width:28mm; height:2px; background:var(--leaf); margin:0 0 8mm;}
+.cover .shot{flex:1; min-height:0; border-radius:3mm; overflow:hidden; background:#1B423B;}
+.cover .shot img{width:100%; height:100%; object-fit:cover; display:block;}
+.cover .meta{margin-top:8mm; display:flex; justify-content:space-between; align-items:flex-end;
+  font-size:8.6pt; color:#B9D8CF; border-top:1px solid rgba(255,255,255,.22); padding-top:4mm;}
+.cover .meta b{color:#fff;}
+
+/* --- типовые блоки --- */
+.kicker{font-size:8pt; letter-spacing:.18em; text-transform:uppercase; color:var(--brand); font-weight:800; margin:0 0 3mm;}
+h2.sec{font-size:19pt; line-height:1.2; margin:0 0 4mm; letter-spacing:-.01em;}
+p{margin:0 0 3.5mm;} p.lead{font-size:11.5pt; color:var(--ink2);}
+.muted{color:var(--ink3);} .small{font-size:8.6pt;}
+
+.facts{display:grid; grid-template-columns:repeat(3,1fr); gap:4mm; margin:6mm 0;}
+.fact{background:var(--paper2); border:1px solid var(--line); border-radius:2.5mm; padding:4mm;}
+.fact .v{font-family:"PT Serif",Georgia,serif; font-size:16pt; color:var(--brand); line-height:1.1;}
+.fact .l{font-size:8.2pt; color:var(--ink2); margin-top:1.5mm;}
+
+.split{display:grid; grid-template-columns:1fr 1fr; gap:7mm;}
+ul.ticks{list-style:none; margin:0; padding:0;}
+ul.ticks li{position:relative; padding:2.4mm 0 2.4mm 6mm; border-top:1px solid var(--line); font-size:9.6pt; color:var(--ink2);}
+ul.ticks li:first-child{border-top:0;}
+ul.ticks li:before{content:""; position:absolute; left:0; top:4.4mm; width:2.4mm; height:2.4mm; border-radius:.6mm; background:var(--leaf);}
+
+table.kv{width:100%; border-collapse:collapse; font-size:9.4pt;}
+table.kv td{padding:2.4mm 0; border-top:1px solid var(--line); vertical-align:top;}
+table.kv tr:first-child td{border-top:0;}
+table.kv td:first-child{color:var(--ink3); width:44%; padding-right:4mm;}
+table.kv td:last-child{color:var(--ink); font-weight:600;}
+
+/* --- карточка комплекта --- */
+.sethead{display:flex; align-items:flex-start; justify-content:space-between; gap:6mm; margin-bottom:4mm;}
+.sku{display:inline-block; font-size:8pt; letter-spacing:.14em; font-weight:800; color:#fff;
+  background:var(--brand); border-radius:1.4mm; padding:1.4mm 2.6mm;}
+.sku.metal{background:#4A5D57;}
+.setname{font-family:"PT Serif",Georgia,serif; font-size:23pt; line-height:1.1; margin:3mm 0 2mm;}
+.setgroup{font-size:8pt; letter-spacing:.16em; text-transform:uppercase; color:var(--ink3); font-weight:700;}
+
+.shotbox{height:106mm; border-radius:2.5mm; overflow:hidden; background:var(--paper2);
+  border:1px solid var(--line); margin:0 0 5mm;}
+.shotbox img{width:100%; height:100%; object-fit:cover; object-position:center 32%; display:block;}
+.shotbox.todo{display:flex; align-items:center; justify-content:center; text-align:center;
+  border:1px dashed var(--flag-line); background:var(--flag-bg); color:var(--flag); padding:8mm;}
+.shotbox.todo .t{font-size:9.4pt; font-weight:700; line-height:1.45;}
+.shotbox.todo .t span{display:block; font-weight:400; font-size:8.4pt; margin-top:2mm; opacity:.85;}
+
+.setbody{display:grid; grid-template-columns:1fr 1fr; gap:7mm; margin-bottom:5mm;}
+.blk h3{font-size:8pt; letter-spacing:.16em; text-transform:uppercase; color:var(--brand);
+  margin:0 0 2.5mm; font-weight:800;}
+
+.pricebox{border:1px solid var(--line2); border-radius:2.5mm; overflow:hidden;}
+.pricebox .row{display:flex; justify-content:space-between; align-items:baseline;
+  padding:3mm 4mm; border-top:1px solid var(--line);}
+.pricebox .row:first-child{border-top:0;}
+.pricebox .row.main{background:var(--brand); color:#fff; border-top:0;}
+.pricebox .row.main .k{color:#BFE0D7;} .pricebox .row.main .v{color:#fff; font-size:13pt;}
+.pricebox .k{font-size:8.6pt; color:var(--ink3);}
+.pricebox .v{font-family:"PT Serif",Georgia,serif; font-size:11.5pt; font-weight:700; white-space:nowrap;}
+.pricebox.empty{border-style:dashed; border-color:var(--flag-line); background:var(--flag-bg);}
+.pricebox.empty .row{border-top-color:var(--flag-line);}
+.pricebox.empty .k, .pricebox.empty .v{color:var(--flag);}
+.pricebox.empty .v{font-size:9.6pt; font-weight:600;}
+
+.why{background:var(--soft); border-left:2.4mm solid var(--leaf); border-radius:0 2mm 2mm 0;
+  padding:3.5mm 4mm; font-size:9.4pt; color:#28453E;}
+.why b{color:var(--brand-3);}
+
+/* --- плашка черновика --- */
+.draftbar{
+  background:var(--flag-bg); border:1px solid var(--flag-line); color:var(--flag);
+  border-radius:2mm; padding:3mm 4mm; font-size:8.6pt; line-height:1.45; margin:0 0 5mm;
+}
+.draftbar b{display:block; letter-spacing:.12em; text-transform:uppercase; font-size:7.6pt; margin-bottom:1.2mm;}
+
+/* --- сетка опций --- */
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:4mm;}
+.opt{border:1px solid var(--line); border-radius:2.5mm; padding:4mm; background:var(--paper2);}
+.opt .n{font-weight:700; font-size:9.8pt; margin-bottom:1.5mm;}
+.opt .d{font-size:8.8pt; color:var(--ink2);}
+
+/* --- контакты --- */
+.contact{background:linear-gradient(160deg,var(--brand) 0%,var(--brand-3) 100%); color:#EAF3F0;}
+.contact .inner{position:absolute; inset:0; padding:22mm 18mm; display:flex; flex-direction:column;}
+.contact h2{color:#fff; font-size:24pt; margin:0 0 5mm;}
+.contact p{color:#C8E2DA;}
+.contact .logo .nm{color:#fff;} .contact .logo .tg{color:#A8CFC4;} .contact .logo i{color:#8FD3A8;}
+.contact .cta{margin-top:auto; border-top:1px solid rgba(255,255,255,.22); padding-top:6mm;
+  display:grid; grid-template-columns:1fr 1fr; gap:6mm; font-size:10pt;}
+.contact .cta .k{font-size:7.6pt; letter-spacing:.16em; text-transform:uppercase; color:#8FB8AC; margin-bottom:2mm;}
+.contact .cta a{color:#fff; text-decoration:none;}
+.contact .cta div b{color:#fff; display:block; margin-bottom:1mm;}
+</style>
+</head>
+<body>
+<section class="page cover">
+<div class="inner">
+      <div class="logo ">
+      <img src="img/logo.png" alt="">
+      <div><span class="nm">GLASS <i>MEMORY</i></span>
+      <span class="tg">производственная компания</span></div>
+    </div>
+      <div style="height:14mm"></div>
+      <div class="rule"></div>
+      <h1>Готовые решения<br>с ценами для дилеров</h1>
+      <p class="sub">9 комплектов: камень + стекло, металл + стекло. Собственное производство полного цикла:
+      стекольный и металлический цех на одной площадке в Домодедово.</p>
+      <div style="margin-bottom:6mm;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.3);border-radius:2mm;padding:3mm 4mm;font-size:8.4pt;color:#FFE9B8;">ЧЕРНОВИК. Цены и типовые размеры не заполнены.</div>
+      <div class="shot"><img src="img/hero.jpg" alt=""></div>
+      <div class="meta">
+        <span>glass-memory.ru · +7 (495) 955-16-79</span>
+        <span><b>v0.1-draft</b> · август 2026</span>
+      </div>
+    </div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Партнёрам</span></div>
+
+      <p class="kicker">Партнёрам</p>
+      <h2 class="sec">Девять позиций, которые закрывают <br>основной спрос ритуальной точки</h2>
+      <p class="lead">Пять комплектов на камне и четыре на металле. По каждому: состав,
+      технические параметры, дилерская вилка и рекомендованная розница. Вы продаёте под своим
+      брендом, мы производим и отгружаем транспортной компанией.</p>
+      <div class="draftbar"><b>Статус документа</b>ЧЕРНОВИК. Дилерские цены и типовые размеры не заполнены: подтверждённого прайса GLASS-MEMORY в системе нет. Заполнить блок prices в catalog.data.json и пересобрать.</div>
+      <div class="facts"><div class="fact"><div class="v">с 2016</div><div class="l">прямой производитель, 10 лет в нише</div></div><div class="fact"><div class="v">320+</div><div class="l">партнёров и поставщиков по России</div></div><div class="fact"><div class="v">7 650</div><div class="l">памятников отреставрировано</div></div><div class="fact"><div class="v">2 500 м²</div><div class="l">установлено памятников (площадь, не штуки)</div></div><div class="fact"><div class="v">25-30</div><div class="l">рабочих дней цикл основного изделия</div></div><div class="fact"><div class="v">0.1 мм</div><div class="l">точность лазерного реза по металлу</div></div></div>
+      <div class="split">
+        <div class="blk">
+          <h3>Поддержка старта</h3>
+          <ul class="ticks"><li>Образец изделия и комплект выставочных образцов на точку.</li><li>3D-визуализация проекта под конкретного клиента.</li><li>Онлайн-обучение технологии и особенностям изделий, услуги дизайнера.</li><li>Бесплатное проектирование и хранение памятника в течение 2 месяцев.</li><li>Доставка транспортной компанией по всей России.</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Условия франшизы</h3>
+          <table class="kv"><tr><td>Паушальный взнос</td><td>100 000 ₽</td></tr><tr><td>Помещение партнёра</td><td>2-15 м²</td></tr><tr><td>Команда точки</td><td>1-2 сотрудника</td></tr><tr><td>Юридическая форма</td><td>ООО или ИП, договор франчайзинга и поставки</td></tr></table>
+          <p class="small muted" style="margin-top:3mm">В паушальный взнос входит специальная дилерская цена и комплект выставочных образцов. Конечную цену для клиента партнёр устанавливает сам с учётом регионального рынка.</p>
+        </div>
+      </div>
+    
+<div class="runfoot"><span>glass-memory.ru</span><span>2 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Технология</span></div>
+
+      <p class="kicker">Технология</p>
+      <h2 class="sec">Почему изображение не выцветает</h2>
+      <p class="lead">Керамическая печать наносится красками, которые впекаются в стекло при закалке.
+      Изображение оказывается внутри материала, а не на его поверхности: выгорать, отслаиваться
+      и темнеть от ультрафиолета там нечему. Это главный аргумент дилера в разговоре о сроке службы.</p>
+      <div class="split" style="margin-top:7mm">
+        <div class="blk"><h3>Стекольный цех</h3><ul class="ticks"><li>Закалённое стекло 4-34 мм. Толщина подбирается под размер и сложность изделия.</li><li>Триплекс (многослойное закалённое) для цветников и ограждений: держит механику, не корродирует и не гниёт.</li><li>Осветлённое стекло 12 мм в наличии: без зеленоватого оттенка на торце.</li><li>Керамическая печать впекается в стекло при закалке. Не выцветает, не отслаивается, не темнеет от ультрафиолета.</li><li>Конструкция панели: закалённое стекло + EVA-плёнка + керамическая фотопечать + закалённое стекло. Расчётный срок службы наружной эксплуатации более 20 лет.</li></ul></div>
+        <div class="blk"><h3>Металлический цех</h3><ul class="ticks"><li>Труболазер режет профильную трубу насквозь. Листовой лазер вырезает панели, монограммы и ажур.</li><li>Профильная труба 40×20, 40×40, 60×30 мм: несущая основа конструкции.</li><li>Стальной лист 2-4 мм: декоративные панели, орнамент, монограммы.</li><li>Нержавеющая сталь AISI 304, матовая или полированная: не корродирует.</li><li>Орнамент под эскиз: дерево жизни, дубовые листья, лоза, розы, голубь с крестом, восточный узор или рисунок заказчика.</li></ul></div>
+      </div>
+      <div class="why" style="margin-top:6mm">
+        <b>Что это даёт партнёру.</b> Оба цеха стоят на одной площадке. Комплект «металл плюс стекло»
+        собирается и проходит контроль качества в одном месте, а не ездит между подрядчиками.
+        Отсюда один договор, один дедлайн и одна точка ответственности по рекламации.
+      </div>
+      <div class="split" style="margin-top:6mm">
+        <div class="shotbox" style="height:62mm;margin:0"><img src="img/pamyatnik2.jpg" alt=""></div>
+        <div class="shotbox" style="height:62mm;margin:0"><img src="img/ograda.jpg" alt=""></div>
+      </div>
+      <p class="small muted" style="margin-top:2.5mm">Слева: орнамент по листу, стеклянный портрет
+      в накладной рамке. Справа: ограждение из профильной трубы, рисунок вырезан насквозь.</p>
+    
+<div class="runfoot"><span>glass-memory.ru</span><span>3 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Камень + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Камень + стекло</span>
+          <h2 class="setname">Портрет</h2>
+        </div>
+        <span class="sku ">КС-01</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Базовый комплект дилерской точки. Прямоугольная гранитная стела несёт конструктив, стекло несёт изображение.</p>
+      <div class="shotbox todo"><div class="t">Фото не подставлено<span>Фото 1 из подборки Ивана: прямоугольная стела со стеклянным портретом</span><span>Положить файл в img/ и прописать путь в catalog.data.json</span></div></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Гранитная стела прямоугольная</li><li>Стеклянный портрет с керамической печатью</li><li>Гранитная тумба</li><li>Гранитный цветник</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Стекло портрета</td><td>закалённое, керамопечать</td></tr><tr><td>Форма стелы</td><td>прямоугольная</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Самый короткий путь к первой сделке нового дилера: понятный клиенту формат, минимальный разговор о технологии.</div>
+    
+<div class="runfoot"><span>КС-01 · Портрет</span><span>4 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Камень + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Камень + стекло</span>
+          <h2 class="setname">Арка</h2>
+        </div>
+        <span class="sku ">КС-02</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Арочная гранитная стела с врезным стеклянным портретом. Форма читается на расстоянии, стекло даёт глубину изображения.</p>
+      <div class="shotbox todo"><div class="t">Фото не подставлено<span>Фото 2 из подборки Ивана: арочный памятник с портретом в верхней части</span><span>Положить файл в img/ и прописать путь в catalog.data.json</span></div></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Гранитная стела арочная</li><li>Стеклянный портрет с керамической печатью, врезной монтаж</li><li>Гранитная тумба</li><li>Гранитный цветник</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Стекло портрета</td><td>закалённое, керамопечать</td></tr><tr><td>Форма стелы</td><td>арка</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Средний чек выше базового при том же цикле производства. Продаётся формой, а не уговорами.</div>
+    
+<div class="runfoot"><span>КС-02 · Арка</span><span>5 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Камень + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Камень + стекло</span>
+          <h2 class="setname">Фасон</h2>
+        </div>
+        <span class="sku ">КС-03</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Фигурная гранитная стела по индивидуальному контуру плюс стеклянный портрет. Резка по чертежу заказчика.</p>
+      <div class="shotbox todo"><div class="t">Фото не подставлено<span>Фото 5 из подборки Ивана: фасонный чёрный памятник с портретом</span><span>Положить файл в img/ и прописать путь в catalog.data.json</span></div></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Гранитная стела фасонная, контур по чертежу</li><li>Стеклянный портрет с керамической печатью</li><li>Гранитная тумба</li><li>Гранитный цветник</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Стекло портрета</td><td>закалённое, керамопечать</td></tr><tr><td>Форма стелы</td><td>фасонная, под проект</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Позиция для клиента, который пришёл за индивидуальностью. Дилер продаёт эскиз, производство закрывает исполнение.</div>
+    
+<div class="runfoot"><span>КС-03 · Фасон</span><span>6 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Камень + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Камень + стекло</span>
+          <h2 class="setname">Витраж</h2>
+        </div>
+        <span class="sku ">КС-04</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Стеклянная стела в полный рост на гранитном основании. Портрет, текст и орнамент впечены в стекло, цветник закрыт стеклом с цветочной композицией.</p>
+      <div class="shotbox todo"><div class="t">Фото не подставлено<span>Фото 3 или 4 из подборки Ивана: светлая стеклянная стела в полный рост + цветной стеклянный цветник</span><span>Положить файл в img/ и прописать путь в catalog.data.json</span></div></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Стеклянная стела в полный рост, керамопечать: портрет, текст, орнамент</li><li>Гранитное основание и тумба</li><li>Стеклянный цветник с цветочной композицией, триплекс</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Стекло стелы</td><td>осветлённое, закалённое, керамопечать</td></tr><tr><td>Стекло цветника</td><td>триплекс</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Флагман линейки. Ровно тот продукт, за которым идут именно в GLASS MEMORY, а не в ближайшую гранитную мастерскую.</div>
+    
+<div class="runfoot"><span>КС-04 · Витраж</span><span>7 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Камень + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Камень + стекло</span>
+          <h2 class="setname">Дуэт</h2>
+        </div>
+        <span class="sku ">КС-05</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Двойной мемориал на две стелы с общим основанием. Два стеклянных портрета в полный рост, единый дизайн-код.</p>
+      <div class="shotbox todo"><div class="t">Фото не подставлено<span>Фото 4 из подборки Ивана: двойной памятник с двумя портретами</span><span>Положить файл в img/ и прописать путь в catalog.data.json</span></div></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Две стеклянные стелы с керамической печатью</li><li>Гранитное основание и тумбы</li><li>Общий цветник</li><li>Стойки ограждения</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Стекло стел</td><td>закалённое, керамопечать</td></tr><tr><td>Конфигурация</td><td>две стелы, общее основание</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Верх чека в каменной линейке. Семейное захоронение закрывается одним договором вместо двух.</div>
+    
+<div class="runfoot"><span>КС-05 · Дуэт</span><span>8 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Металл + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Металл + стекло</span>
+          <h2 class="setname">Дуб</h2>
+        </div>
+        <span class="sku metal">МС-01</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Нержавеющая сталь AISI 304 с лазерной резкой по мотиву дубовых листьев. Стеклянный портрет вынесен на дистанционные держатели.</p>
+      <div class="shotbox"><img src="img/hero.jpg" alt=""></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Стела из нержавеющей стали AISI 304, лазерная резка</li><li>Стеклянный портрет с керамической печатью на дистанционных держателях</li><li>Гранитное основание и цветник</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Металл</td><td>AISI 304, лист 2-4 мм</td></tr><tr><td>Резка</td><td>листовой лазер, точность 0.1 мм</td></tr><tr><td>Стекло</td><td>закалённое, керамопечать</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Материал не корродирует и не требует обслуживания. Отвечает на возражение «металл на улице заржавеет» фактом марки стали.</div>
+    
+<div class="runfoot"><span>МС-01 · Дуб</span><span>9 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Металл + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Металл + стекло</span>
+          <h2 class="setname">Дерево жизни</h2>
+        </div>
+        <span class="sku metal">МС-02</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Стальная рама со сквозным ажуром и стеклянной вставкой. Портрет, имя и даты впечены в стекло.</p>
+      <div class="shotbox"><img src="img/pamyatnik.jpg" alt=""></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Стальная рама, лазерная резка, орнамент «дерево жизни»</li><li>Стеклянная вставка с керамической печатью: портрет, имя, даты</li><li>Гранитное основание</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Металл</td><td>лист 2-4 мм</td></tr><tr><td>Резка</td><td>листовой лазер, точность 0.1 мм</td></tr><tr><td>Стекло</td><td>закалённое, керамопечать</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Сквозной ажур пропускает свет и фон кладбища: изделие не читается как глухая плита.</div>
+    
+<div class="runfoot"><span>МС-02 · Дерево жизни</span><span>10 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Металл + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Металл + стекло</span>
+          <h2 class="setname">Розы</h2>
+        </div>
+        <span class="sku metal">МС-03</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Плотный растительный орнамент по всей плоскости, стеклянный портрет в накладной рамке. Основной текст вынесен на металл.</p>
+      <div class="shotbox"><img src="img/pamyatnik2.jpg" alt=""></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Стальная стела, лазерная резка, орнамент «розы»</li><li>Стеклянный портрет с керамической печатью в накладной рамке</li><li>Гранитное основание</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Металл</td><td>лист 2-4 мм</td></tr><tr><td>Резка</td><td>листовой лазер, точность 0.1 мм</td></tr><tr><td>Стекло</td><td>закалённое, керамопечать</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Орнамент меняется под эскиз без изменения цены оснастки: лазеру всё равно, какой контур резать.</div>
+    
+<div class="runfoot"><span>МС-03 · Розы</span><span>11 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Металл + стекло</span></div>
+
+      <div class="sethead">
+        <div>
+          <span class="setgroup">Металл + стекло</span>
+          <h2 class="setname">Комплекс</h2>
+        </div>
+        <span class="sku metal">МС-04</span>
+      </div>
+      <p style="margin:-2mm 0 5mm;color:var(--ink2);font-size:10.4pt">Мемориальная зона целиком в одном дизайн-коде: стеклянная стела, стальная ограда с лазерной резкой, скамья и стеклянный цветник.</p>
+      <div class="shotbox"><img src="img/kompleks.jpg" alt=""></div>
+      <div class="setbody">
+        <div class="blk">
+          <h3>Состав комплекта</h3>
+          <ul class="ticks"><li>Стеклянная стела с керамической печатью</li><li>Стальная ограда с лазерной резкой, орнамент под эскиз</li><li>Скамья</li><li>Стеклянный цветник, триплекс</li><li>Гранитное основание</li></ul>
+        </div>
+        <div class="blk">
+          <h3>Параметры</h3>
+          <table class="kv"><tr><td>Металл ограды</td><td>профильная труба 40×20, 40×40, 60×30 мм; лист 2-4 мм</td></tr><tr><td>Резка</td><td>труболазер и листовой лазер</td></tr><tr><td>Стекло</td><td>закалённое и триплекс, керамопечать</td></tr><tr><td>Срок производства</td><td>25-30 рабочих дней</td></tr></table>
+          <div style="height:4mm"></div>
+          <div class="pricebox empty"><div class="row"><span class="k">Дилерская цена</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Рекомендованная розница</span><span class="v">не заполнена</span></div><div class="row"><span class="k">Маржа партнёра</span><span class="v">считается из вилок</span></div></div>
+        </div>
+      </div>
+      <div class="why"><b>Как продавать.</b> Максимальный чек в каталоге. Один договор вместо четырёх поставщиков, один дедлайн, одна точка ответственности.</div>
+    
+<div class="runfoot"><span>МС-04 · Комплекс</span><span>12 / 14</span></div>
+</section><section class="page ">
+<div class="runhead"><span><b>GLASS MEMORY</b> · готовые решения для дилеров</span><span>Допродажа</span></div>
+
+      <p class="kicker">Допродажа</p>
+      <h2 class="sec">Что добавляется к любому комплекту</h2>
+      <p class="lead">Позиции ниже поднимают чек сделки, не удлиняя цикл производства:
+      они изготавливаются на том же оборудовании и в те же сроки, что и основное изделие.</p>
+      <div class="opts" style="margin-top:6mm"><div class="opt"><div class="n">Реставрационная накладка на существующий памятник</div><div class="d">Стеклянная накладка на каменную стелу: восстанавливает изображение и текст без замены памятника. 7 650 работ выполнено.</div></div><div class="opt"><div class="n">Стеклянный цветник, триплекс</div><div class="d">Ставится к любому комплекту каменной линейки.</div></div><div class="opt"><div class="n">Ограждение мемориальной зоны</div><div class="d">Стекло-триплекс или сталь с лазерной резкой в дизайн-коде основного изделия.</div></div><div class="opt"><div class="n">Столик и скамья с лазерной резкой</div><div class="d">Изготавливаются на том же оборудовании, что и ограда: единый орнамент по всей зоне.</div></div><div class="opt"><div class="n">Фотография на стеклянной подставке</div><div class="d">Самостоятельный элемент мемориала или дополнение к готовому памятнику.</div></div><div class="opt"><div class="n">Цветопроба</div><div class="d">По прямоугольным стеклоизделиям 8 мм действует как подарок к заказу. Условие акции подтверждать у менеджера.</div></div></div>
+      <div class="split" style="margin-top:7mm">
+        <div class="shotbox" style="height:88mm;margin:0"><img src="img/ograda2.jpg" alt=""></div>
+        <div class="shotbox" style="height:88mm;margin:0"><img src="img/stolik.jpg" alt=""></div>
+      </div>
+      <p class="small muted" style="margin-top:3mm">Ограждение и столик с лазерной резкой:
+      орнамент повторяет рисунок основного изделия, вся зона читается как один проект.</p>
+    
+<div class="runfoot"><span>glass-memory.ru</span><span>13 / 14</span></div>
+</section><section class="page contact">
+<div class="inner">
+      <div class="logo ">
+      <img src="img/logo.png" alt="">
+      <div><span class="nm">GLASS <i>MEMORY</i></span>
+      <span class="tg">производственная компания</span></div>
+    </div>
+      <div style="height:16mm"></div>
+      <h2>Обсудим ваш ассортимент</h2>
+      <p style="font-size:11.5pt;max-width:120mm">Пришлём актуальный прайс для партнёров,
+      образец изделия на точку и 3D-визуализацию под конкретного клиента.
+      Работаем со штучными и серийными заказами по всей России.</p>
+      <div style="flex:1;min-height:0;margin:6mm 0 0;border-radius:3mm;overflow:hidden;background:#1B423B">
+        <img src="img/kompleks.jpg" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+      <div class="cta">
+        <div><div class="k">Телефоны</div><a href="tel:+7 (495) 955-16-79">+7 (495) 955-16-79</a><br><a href="tel:+7 (916) 331-16-41">+7 (916) 331-16-41</a><br><a href="tel:+7 (985) 011-75-81">+7 (985) 011-75-81</a></div>
+        <div>
+          <div class="k">Почта и сайт</div>
+          <a href="mailto:info@glass-memory.ru">info@glass-memory.ru</a><br>
+          <a href="https://glass-memory.ru">glass-memory.ru</a>
+        </div>
+        <div><div class="k">Производство</div><b>г. Домодедово, ул. Текстильщиков, 2Б</b></div>
+        <div><div class="k">Документ</div><b>v0.1-draft · август 2026</b></div>
+      </div>
+    </div>
+</section>
+</body>
+</html>

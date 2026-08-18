@@ -74,11 +74,25 @@ const short = (s: any, n = 300) => String(s ?? "").replace(/\s+/g, " ").slice(0,
   console.log(`\n--- методов всего ${all.length}, похожих на ИИ/расшифровку: ${ai.length} ---`);
   console.log(ai.join("\n") || "(нет)");
 
+  // 4b. Что вообще разрешено этому вебхуку и есть ли лог-записи таймлайна
+  const sc = await call("scope", {});
+  console.log(`\n--- права вебхука (scope): ${JSON.stringify(sc.result || sc.error || "-")}`);
+  const scFull = await call("scope", { full: true });
+  console.log(`--- все возможные scope портала: ${short(JSON.stringify(scFull.result || scFull.error || "-"), 900)}`);
+
+  const lm = await call("crm.timeline.logmessage.list", { entityTypeId: OWNER_TYPE, entityId: ID });
+  const lmr = lm.result;
+  console.log(`\n--- crm.timeline.logmessage.list: ${lm.error ? lm.error + " " + short(lm.error_description, 80) : "ок"}`);
+  const lmArr = Array.isArray(lmr) ? lmr : (lmr && (lmr.logMessages || lmr.items)) || [];
+  for (const it of lmArr) console.log(`  [log ${it.id || it.ID}] ${short(JSON.stringify(it), 400)}`);
+
   // 5. Проверка гипотез: существуют ли такие методы вообще
   const guesses = [
     "ai.engine.list", "ai.prompt.list", "ai.text.list", "copilot.call.summary.get",
     "crm.timeline.logmessage.list", "crm.timeline.note.get", "crm.timeline.item.list",
     "voximplant.transcript.get", "telephony.transcript.get", "crm.activity.todo.list",
+    "ai.engine.list", "crm.ai.call.summary.get", "crm.activity.aicall.get",
+    "crm.timeline.aicall.get", "crm.timeline.comment.fields", "crm.activity.fields",
   ];
   console.log(`\n--- проверка методов-кандидатов ---`);
   for (const m of guesses) {

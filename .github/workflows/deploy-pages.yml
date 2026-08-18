@@ -396,8 +396,12 @@ jobs:
           npx tsx src/scripts/b24/build-dialog.ts
           mkdir -p "$GITHUB_WORKSPACE/_site/dialog"
           cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog/index.html"
-          printf '%s' "$(date -u +%FT%TZ)" > "$GITHUB_WORKSPACE/_site/dialog/v.txt"
-          echo "DIALOG опубликован в /dialog/"
+          # v.txt = штамп сборки самой страницы (как у /rop/). Страница сверяется с ним и
+          # сама перезагружается на свежую версию: время деплоя тут не годится, иначе
+          # вкладка дёргалась бы на каждую публикацию сайта.
+          STAMP=$(grep -o 'const BAKED_AT = "[^"]*"' public/dialog.html | head -1 | cut -d'"' -f2)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog/v.txt"
+          echo "DIALOG опубликован в /dialog/, сборка $STAMP"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

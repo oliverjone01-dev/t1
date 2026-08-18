@@ -208,6 +208,10 @@ input#q{min-width:220px}
 .ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 .sysw{color:var(--ink-4);font-size:10.5px}
+.mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
+.t2>tbody>tr>td.l .mixchip{font-size:9.5px}
+.fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
+.chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
 .chip2{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px}
 .chip2:hover{border-color:var(--acc);color:var(--acc)}
 .t3 tr.sysrow td{color:var(--ink-3);background:#ffffff04}
@@ -289,7 +293,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -499,13 +503,29 @@ const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objecti
 function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
-  const byM={}; for(const d of SC.deals) (byM[d.mgr] ||= []).push(d);
+  // Индекс времени событий по сделкам - для фильтра «по коммуникациям».
+  if(!window.EVTS){ window.EVTS={}; for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); } }
+  const dFrom=S.dFrom?Date.parse(S.dFrom+'T00:00:00+03:00'):0;
+  const dTo=S.dTo?Date.parse(S.dTo+'T23:59:59+03:00'):0;
+  const inPeriod=d=>{
+    if(!dFrom&&!dTo) return true;
+    if(S.dMode==='created'){
+      const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||0);
+      if(!c) return false;
+      return (!dFrom||c>=dFrom)&&(!dTo||c<=dTo);
+    }
+    const ts=EVTS[d.key]||[];
+    return ts.some(t=>(!dFrom||t>=dFrom)&&(!dTo||t<=dTo));
+  };
+  const DEALS=SC.deals.filter(inPeriod);
+  const filtered=DEALS.length!==SC.deals.length;
+  const byM={}; for(const d of DEALS) (byM[d.mgr] ||= []).push(d);
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
   const SHORT={take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
   const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
-    if(k==='hot') return p.hotMoney; if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
+    if(k==='hot') return (byM[m.mgr]||[]).filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0); if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
     if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0); return p.metrics? p.metrics[k] : null; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
@@ -545,6 +565,16 @@ function renderTree(){
   // умолчанию, состояние живёт в S.help.
   const MFULL={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты',take:'Взял'};
   const dm=SC.deptMedians||{};
+  const fbar = `<div class="fbar">
+    <span>Период</span>
+    <input type="date" id="dFrom" value="${esc(S.dFrom||'')}">
+    <span style="color:var(--ink-4)">—</span>
+    <input type="date" id="dTo" value="${esc(S.dTo||'')}">
+    <span class="chip2${S.dMode==='comm'?' on2':''}" data-dmode="comm">по коммуникациям</span>
+    <span class="chip2${S.dMode==='created'?' on2':''}" data-dmode="created">по дате создания сделки</span>
+    ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
+    <span class="cnt">${filtered?`сделок в периоде ${DEALS.length} из ${SC.deals.length} · метрики менеджера считаются по всему окну снимка, фильтр меняет только список сделок`:`окно снимка ${esc((DATA.from||'').slice(0,10))} - ${esc((DATA.to||'').slice(0,10))}, коммуникации есть только внутри него`}</span>
+  </div>`;
   const help = `<div class="legend"><div class="lgh" data-help="1"><i>${S.help?'▾':'▸'}</i>Как читать таблицу: что означает каждый столбец и откуда берётся цифра</div>`
    + (S.help?`<div class="lgb">
       <div class="lgi"><b>Откуда данные.</b> Ночной снимок Bitrix24: переписка WhatsApp, Telegram и MAX через Wazzup, письма, звонки, дела, комментарии и резюме BitrixGPT за последние 7 дней, плюс снимок воронки «GG Заказы РФ» - стадии, бюджеты, открытые дела. Оценивают правила, а не нейросеть: каждый тег ставится по конкретной фразе или факту в CRM, поэтому его можно проверить глазами в переписке.</div>
@@ -557,7 +587,7 @@ function renderTree(){
       <div class="lgi" style="margin-top:8px"><b>Разметка в переписке.</b> Красная метка - нарушение регламента с цитатой из сообщения, зелёная - выполненное правило, серая - факт без оценки (вложение, движение по стадии). Кликните строку менеджера, затем сделку - и правило будет видно на конкретной фразе.</div>
       <div class="lgi"><b>Чего в данных нет.</b> Расшифровок звонков Bitrix через API не отдаёт - виден только факт звонка, длительность и короткое резюме BitrixGPT. Звонок с личного телефона в CRM не попадает вовсе, поэтому «нет следов общения» означает «нет следов в CRM», а не «менеджер не работал».</div>
     </div>`:'')+`</div>`;
-  let html=help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  let html=fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
@@ -570,8 +600,8 @@ function renderTree(){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
-        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'msgs',t:'Сообщ.'},{k:'urgency',t:'Что горит',l:1}];
-      const dval=(d,k)=> k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'mix',t:'Лента',l:1},{k:'urgency',t:'Что горит',l:1}];
+      const dval=(d,k)=> k==='mix'?((d.mix&&d.mix.total)||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
@@ -589,7 +619,7 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
-          <td>${d.msgs}</td>
+          <td class="l">${mixCell(d)}</td>
           <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
@@ -598,6 +628,11 @@ function renderTree(){
   }
   html+=`</table></div>`;
   list.innerHTML=html;
+  const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
+  if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td=''; renderTree(); };
+  if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td=''; renderTree(); };
+  list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
+  const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
     const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
@@ -663,6 +698,23 @@ function renderTree(){
 }
 // У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
 // Показываем тело без повтора, иначе строка читается как каша.
+// Русские окончания: «3 дела», а не «3 дел».
+function plu(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
+  if(a>10&&a<20) return many; if(b>1&&b<5) return few; if(b===1) return one; return many; }
+// Состав ленты сделки одним взглядом: сколько сообщений, звонков, писем и дел.
+// Ноли не печатаем - строка должна читаться, а не считаться.
+function mixCell(d){
+  const m=d.mix; if(!m) return '<span class="na2">-</span>';
+  const p=[];
+  if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74']);
+  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков'),'#3DAEC2']);
+  if(m.mail) p.push([m.mail+' '+plu(m.mail,'письмо','письма','писем'),'#C2873C']);
+  if(m.task) p.push([m.task+' '+plu(m.task,'дело','дела','дел'),'#8B7BF0']);
+  if(m.note) p.push([m.note+' '+plu(m.note,'заметка','заметки','заметок'),'#8794A5']);
+  if(m.ai) p.push([m.ai+' '+plu(m.ai,'резюме','резюме','резюме'),'#C2569B']);
+  if(!p.length) return '<span class="na2">пусто</span>';
+  return p.map(x=>`<span class="mixchip" style="color:${x[1]};border-color:${x[1]}44;background:${x[1]}12">${esc(x[0])}</span>`).join(' ');
+}
 // Связка звонка и его разбора BitrixGPT: у звонка - подпись с началом резюме,
 // у самого резюме - к какому звонку и на какое время оно относится.
 function sumLink(e,SUMBY){

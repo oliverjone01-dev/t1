@@ -425,6 +425,23 @@ function main() {
     const firstOut = outs.length ? outs[0]!.ts : 0;
     const takeH = createdTs && firstOut && firstOut > createdTs ? Math.round(workMinutes(createdTs, firstOut) / 6) / 10 : null;
 
+    // Состав ленты: чем сделка наполнена. Нужен для быстрого взгляда - где разговор,
+    // а где только внутренние дела. Мессенджеры считаем и штуками сообщений, и числом
+    // каналов: три сообщения в одном чате и три разных канала - разные истории.
+    const chans = new Set(msgs.filter((m) => m.type.startsWith("Сообщение")).map((m) => m.type.replace("Сообщение ", "")));
+    const mix = {
+      msg: msgs.filter((m) => m.type.startsWith("Сообщение") || m.type === "Мессенджер ОЛ").length,
+      chan: chans.size,
+      call: evs.filter((e) => e.type === "Звонок").length,
+      mail: evs.filter((e) => e.type === "Письмо").length,
+      task: evs.filter((e) => e.type === "Дело" || e.type === "Задача").length,
+      note: evs.filter((e) => e.type === "Комментарий-заметка").length,
+      ai: evs.filter((e) => e.type === "Резюме BitrixGPT").length,
+      total: evs.length,
+    };
+    const firstTs = evs.length ? evs[0]!.ts : 0;
+    const createdAt = f && f.created ? String(f.created).slice(0, 10) : "";
+
     const participants = Object.values(partMap).sort((a, b) => a.first - b.first);
 
     const tags: Tag[] = [];
@@ -554,7 +571,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,

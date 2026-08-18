@@ -1916,14 +1916,33 @@ function offerCalendarBlock(){
   const RBY2={};Object.values(COHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
   const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
   const dealsFor=(r,k,sc)=>r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
-  const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
+  const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});const nz=keys.map(k=>cnt[k]).filter(x=>x>0),nzM=keys.map(k=>mon[k]).filter(x=>x>0);
+    return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),
+            mn:nz.length?Math.min(...nz):0,mnM:nzM.length?Math.min(...nzM):0,tot,totM};};
 
-  const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
+  // Тепловая шкала календаря: цвет строки сохраняется, меняется только светлота.
+  // Чем больше число, тем темнее и насыщеннее ячейка (t=0 - бледный оттенок строки,
+  // t=1 - глубокий тёмный). Цифра всегда контрастна фону: на светлых ячейках тёмная,
+  // на тёмных светлая, порог по фактической светлоте, а не по значению.
+  const _hsl=(hex)=>{const h=hex.replace("#","");const r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255;
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let hu=0,sa=0;
+    if(mx!==mn){const d=mx-mn;sa=l>0.5?d/(2-mx-mn):d/(mx+mn);
+      hu=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);hu*=60;}
+    return [hu,sa*100,l*100];};
+  const CAL_L_HI=80, CAL_L_LO=26;                 // светлота: пусто -> много
+  const calLum=(t)=>CAL_L_HI-(CAL_L_HI-CAL_L_LO)*Math.min(1,Math.max(0,t));
+  const hx=(c,t)=>{const[h,sa]=_hsl(c);return `hsl(${h.toFixed(0)} ${Math.min(92,sa*1.05).toFixed(0)}% ${calLum(t).toFixed(0)}%)`;};
+  const calInk=(t)=>calLum(t)>54?"#0B1116":"#F2F6FA";
   const fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
   const cellV=(cnt,mon)=>unit==="money"?(mon?fmtK(mon):""):(cnt?cnt:"");
   const rowLine=(r,sc,sid,opts)=>{const s=serie(r,sc);opts=opts||{};
-    const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==="money"?mon:cnt,mx=unit==="money"?s.mxM:s.mx,t=v/mx,bg=cnt===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;
-      return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':t>.5?'#06121a':'#eef2f7'};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}"${cnt?` data-tip="${dt(r.nm+' · '+lbl(k),[['Сделок',fmt(cnt),'hl'],['Сумма',fmtK(mon)+' ₽','dim']]).replace(/"/g,'&quot;')}"`:''}>${cellV(cnt,mon)}</div>`;}).join("");
+    const cells=keys.map(k=>{const cnt=s.cnt[k],mon=s.mon[k],v=unit==="money"?mon:cnt,mx=unit==="money"?s.mxM:s.mx,mn=unit==="money"?s.mnM:s.mn,
+      // Строки-снимки («В работе») стоят на плато: 378..499 при шкале от нуля дают один
+      // и тот же оттенок во всех ячейках. Для таких рядов растягиваем шкалу от минимума,
+      // для потоковых рядов с нулями оставляем шкалу от нуля.
+      lo=(mn>0&&mn/mx>=0.5)?mn*0.92:0, t=mx>lo?(v-lo)/(mx-lo):0,
+      bg=cnt===0?"var(--bg-base)":hx(r.color,t),sel=S.calCell&&S.calCell.s===sid&&S.calCell.k===k;
+      return `<div ${cnt?`data-calcell="${sid}|${k}" style="cursor:pointer;`:'style="'}flex:1;min-width:0;height:${opts.sub?18:22}px;background:${bg};border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:${opts.sub?fs-1:fs}px;font-weight:800;color:${cnt===0?'transparent':calInk(t)};${sel?'box-shadow:inset 0 0 0 2px #22D3EE':''}"${cnt?` data-tip="${dt(r.nm+' · '+lbl(k),[['Сделок',fmt(cnt),'hl'],['Сумма',fmtK(mon)+' ₽','dim']]).replace(/"/g,'&quot;')}"`:''}>${cellV(cnt,mon)}</div>`;}).join("");
     const lastK=keys[keys.length-1];
     const rowKey=opts.rowKey||r.id;
     let sig;

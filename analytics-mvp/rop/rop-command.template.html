@@ -1929,10 +1929,13 @@ function offerCalendarBlock(){
     if(mx!==mn){const d=mx-mn;sa=l>0.5?d/(2-mx-mn):d/(mx+mn);
       hu=mx===r?((g-b)/d+(g<b?6:0)):mx===g?((b-r)/d+2):((r-g)/d+4);hu*=60;}
     return [hu,sa*100,l*100];};
-  const CAL_L_HI=80, CAL_L_LO=26;                 // светлота: пусто -> много
+  // Приглушённая шкала: насыщенность режется вдвое, светлота ходит в узком коридоре.
+  // Разница между «мало» и «много» остаётся заметной, но полотно перестаёт светиться.
+  const CAL_L_HI=64, CAL_L_LO=31;                 // светлота: мало -> много
+  const CAL_S_MAX=42;                             // потолок насыщенности
   const calLum=(t)=>CAL_L_HI-(CAL_L_HI-CAL_L_LO)*Math.min(1,Math.max(0,t));
-  const hx=(c,t)=>{const[h,sa]=_hsl(c);return `hsl(${h.toFixed(0)} ${Math.min(92,sa*1.05).toFixed(0)}% ${calLum(t).toFixed(0)}%)`;};
-  const calInk=(t)=>calLum(t)>54?"#0B1116":"#F2F6FA";
+  const hx=(c,t)=>{const[h,sa]=_hsl(c);return `hsl(${h.toFixed(0)} ${Math.min(CAL_S_MAX,sa*0.5).toFixed(0)}% ${calLum(t).toFixed(0)}%)`;};
+  const calInk=(t)=>calLum(t)>50?"#12181F":"#EAF0F6";
   const fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
   const cellV=(cnt,mon)=>unit==="money"?(mon?fmtK(mon):""):(cnt?cnt:"");
   const rowLine=(r,sc,sid,opts)=>{const s=serie(r,sc);opts=opts||{};

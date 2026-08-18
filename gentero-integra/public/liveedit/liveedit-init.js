@@ -187,6 +187,11 @@
   };
 
   function warn(text) {
+    // Режим показа глушит полосу и для этого места тоже. Раньше выход стоял
+    // только в blockedit.js, а обрыв загрузки любого из шести файлов рисовал
+    // получателю коммерческого предложения «на экране шаблонный текст».
+    // У редактора (?edit=1) полоса остаётся: он по ней может действовать.
+    if (window.BLOCKEDIT && window.BLOCKEDIT.show && !window.BLOCKEDIT.ui) { console.warn('liveedit: ' + text); return; }
     if (document.querySelector('.le-warn[data-src="init"]')) return;
     var st = document.createElement('style');
     st.textContent = '.le-warn{position:fixed;bottom:0;left:0;right:0;z-index:9450;padding-bottom:calc(10px + env(safe-area-inset-bottom,0));display:flex;gap:12px;' +

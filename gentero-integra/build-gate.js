@@ -57,6 +57,8 @@ __STYLE__
   background:var(--bg2);color:var(--txt);font-family:inherit;font-size:15px;letter-spacing:.08em}
 #gpass::placeholder{color:var(--dim);letter-spacing:0}
 #gpass:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+/* Кнопка входа это тач-цель: высота от текста давала 21px. */
+#gbtn{min-height:48px;padding:12px 22px}
 #gerr{margin-top:14px;font-size:13.5px;color:#ff8f6b;min-height:1.3em}
 #gerr.ok{color:var(--mut)}
 .gnote{margin-top:34px;padding-top:18px;border-top:1px solid var(--bd);font-size:12px;color:var(--dim);line-height:1.6}

@@ -320,9 +320,14 @@ function lockAll(docs, out, password, gate) {
     }
   } catch (e) { }
 
+  // LIVEEDIT_MODE=show: панелей нет и диагностических полос зритель не видит.
+  // Нужен на странице, отправленной контрагенту: получатель предложения не
+  // должен читать от самой страницы, что цифры на ней могут быть шаблонными.
+  // У того, кто открыл её с ?edit=1, диагностика остаётся.
+  const leMode = process.env.LIVEEDIT_MODE ? ` data-mode="${process.env.LIVEEDIT_MODE}"` : '';
   const le = process.env.LIVEEDIT_DOC
     ? `<script src="${process.env.LIVEEDIT_SRC || 'liveedit/liveedit-init.js'}" ` +
-      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" data-crypt="wait" defer></script>` +
+      `data-doc="${process.env.LIVEEDIT_DOC}" data-root="#doc" data-crypt="wait"${leMode} defer></script>` +
       `\n<script>window.LIVEEDIT_ALT_SALTS = ${altSalts};</script>`
     : '';
 

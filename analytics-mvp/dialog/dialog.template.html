@@ -132,12 +132,14 @@ input#q{min-width:220px}
 .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .t1{min-width:1260px}
 .t1 th,.t2 th,.t3 th{font-size:9px;padding:5px 5px;white-space:nowrap}
-.t1 td{white-space:nowrap}
-.t1 td.l{white-space:nowrap;min-width:230px;padding-left:12px;padding-right:18px}
-.t1 th.l{padding-left:12px}
-.t1 tr>td:nth-child(2),.t1 tr>th:nth-child(2){min-width:118px;padding-right:16px}
-.t1 .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
-.t1 td{padding:7px 5px;font-size:11.5px}
+/* Только СВОИ строки: таблицы сделок и переписки лежат внутри ячеек таблицы менеджеров,
+   и потомковый селектор .t1 td навязывал им nowrap - из-за этого текст сообщения шёл
+   одной строкой и наезжал на разметку. */
+.t1>tbody>tr>td{white-space:nowrap;padding:7px 5px;font-size:11.5px}
+.t1>tbody>tr>td.l{white-space:nowrap;min-width:230px;padding-left:12px;padding-right:18px}
+.t1>tbody>tr>th.l{padding-left:12px}
+.t1>tbody>tr>td:nth-child(2),.t1>tbody>tr>th:nth-child(2){min-width:118px;padding-right:16px}
+.t1>tbody>tr>td .vbadge{white-space:nowrap;font-size:9px;padding:2px 8px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
@@ -145,7 +147,8 @@ input#q{min-width:220px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .t2{margin-top:6px;font-size:11px}
-.t2 td{padding:6px 6px}
+.t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
+.t2>tbody>tr>td.l{white-space:normal}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
@@ -158,7 +161,9 @@ input#q{min-width:220px}
 .t3 th:nth-child(2),.t3 td:nth-child(2){width:124px}
 .t3 th:nth-child(3),.t3 td:nth-child(3){width:136px}
 .t3 th:nth-child(5),.t3 td:nth-child(5){width:224px;border-left:1px solid var(--line);padding-left:10px}
-.t3 td.ebody{padding-right:16px;word-break:break-word;overflow-wrap:anywhere}
+.t3 td.ebody{padding-right:16px;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.t3 td{white-space:normal}
+.t3 td:nth-child(1){white-space:nowrap}
 .t3 td:nth-child(5) .evtag{margin:0 3px 3px 0}
 .erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
 .erow2.e-good td:first-child{box-shadow:inset 2px 0 0 #2E9E74}

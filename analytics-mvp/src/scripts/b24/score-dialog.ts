@@ -189,6 +189,26 @@ function main() {
     for (const d of (rop.deals || [])) if (String(d.category) === "49") facts[String(d.id)] = d;
     console.log(`Факты CRM: ${Object.keys(facts).length} сделок C49 (снимок ${rop.generated_at || "?"})`);
   } else console.log(`ВНИМАНИЕ: ${ROP} не найден - разбор без стадий и дел`);
+  // Историю смены ответственного Bitrix через REST не отдаёт: в снимке есть только текущий
+  // владелец. Поэтому ведём собственный журнал - сравниваем владельца с прошлым снимком и
+  // копим переходы. С каждым днём история становится полнее, задним числом её не восстановить.
+  const OWN = "dialog/data/owners.json";
+  const ownDb: { owners: Record<string, string>; changes: { id: string; from: string; to: string; at: string }[] } =
+    existsSync(OWN) ? JSON.parse(readFileSync(OWN, "utf8")) : { owners: {}, changes: [] };
+  const ownStamp = new Date().toISOString().slice(0, 10);
+  let ownNew = 0;
+  for (const [id, f] of Object.entries(facts)) {
+    const cur = String((f as any).mgr || "");
+    if (!cur) continue;
+    const prev = ownDb.owners[id];
+    if (prev && prev !== cur) { ownDb.changes.push({ id, from: prev, to: cur, at: ownStamp }); ownNew++; }
+    ownDb.owners[id] = cur;
+  }
+  ownDb.changes = ownDb.changes.slice(-20000);
+  const ownByDeal: Record<string, { from: string; to: string; at: string }[]> = {};
+  for (const c of ownDb.changes) (ownByDeal[c.id] ||= []).push(c);
+  console.log(`Журнал ответственных: сделок ${Object.keys(ownDb.owners).length}, новых передач ${ownNew}, всего в журнале ${ownDb.changes.length}`);
+
   const ai: Record<string, any> = existsSync(AIF) ? (JSON.parse(readFileSync(AIF, "utf8")).reviews || {}) : {};
   if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}`);
 
@@ -388,6 +408,23 @@ function main() {
       const r = (partMap[k] ||= { who, stage: e.stage, n: 0, first: e.ts });
       r.n++; if (e.ts < r.first) r.first = e.ts;
     }
+    // Движение по стадиям: rop.json хранит вход на каждую стадию с точностью до даты.
+    // Времени суток там нет, поэтому ставим полдень - для «сколько дней стояла» этого хватает,
+    // а точнее данных в CRM просто нет.
+    const stageRows = (hist as [string, string][]).map(([code, date]: [string, string], i: number) => {
+      const from = Date.parse(date + "T12:00:00+03:00");
+      const to = i + 1 < hist.length ? Date.parse(hist[i + 1]![1] + "T12:00:00+03:00") : now;
+      return { code, name: BASE_RATES[code]?.name || code, date, ts: from, days: Math.max(0, Math.round((to - from) / 864e5)) };
+    });
+    // Самая долгая стадия и та, на которой сделка стоит сейчас
+    const slowStage = stageRows.length ? stageRows.reduce((a, b) => (b.days > a.days ? b : a)) : null;
+    // Передачи ответственного из собственного журнала
+    const owners = dealId ? (ownByDeal[dealId] || []) : [];
+    // Взял в работу: от создания сделки до первого исходящего слова клиенту
+    const createdTs = f && f.created ? Date.parse(String(f.created)) : 0;
+    const firstOut = outs.length ? outs[0]!.ts : 0;
+    const takeH = createdTs && firstOut && firstOut > createdTs ? Math.round(workMinutes(createdTs, firstOut) / 6) / 10 : null;
+
     const participants = Object.values(partMap).sort((a, b) => a.first - b.first);
 
     const tags: Tag[] = [];
@@ -517,7 +554,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
@@ -558,6 +595,12 @@ function main() {
       good: (v: number) => `держит слово: ${v}% обещаний с датой и выполнены`, bad: (v: number) => `только ${v}% обещаний с датой и выполнены` },
     // Возражений за неделю мало (десятки на отдел), поэтому считаем не долю, а штуки:
     // процент на выборке из двух возражений - это не оценка человека.
+    // Дата создания в снимке хранится без времени, поэтому отсчёт идёт от начала рабочего
+    // дня создания. Для сравнения менеджеров между собой этого достаточно, для SLA в часах - нет.
+    { key: "take", label: "взял в работу", unit: "ч", better: "less",
+      calc: (ds: any[]) => { const v = ds.map((d) => d.takeH).filter((x) => x !== null && x !== undefined) as number[];
+        return v.length >= 3 ? med(v) : null; },
+      good: (v: number) => `берёт сделку в работу за ${v} ч`, bad: (v: number) => `первое слово клиенту через ${v} ч после создания сделки` },
     { key: "obj", label: "возражение без аргумента", unit: "шт", better: "less",
       calc: (ds: any[]) => ds.reduce((a: number, d: any) => a + Math.max(0, (d.objTotal || 0) - (d.objWorked || 0)), 0),
       good: () => `на возражение клиента отвечает аргументом, а не уступкой`, bad: (v: number) => `${v} возражений закрыты без аргумента: молчание, «хорошо» или скидка` },
@@ -703,6 +746,7 @@ function main() {
     deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),
   };
+  writeFileSync(OWN, JSON.stringify(ownDb));
   writeFileSync(DLG, JSON.stringify(dlg));
   console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);
   for (const m of managers.filter((x) => x.rating !== null)) console.log(`   ${m.rating} ★  ${m.mgr} - ${m.deals} диал · ${m.sections.map((s) => s.label + " " + (s.pos ?? "-") + "%").join(" · ")}`);

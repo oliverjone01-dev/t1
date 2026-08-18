@@ -287,6 +287,12 @@ function renderManagers(){
       <span class="tgc" style="cursor:default">медиана ответа <b>${cur.respMed??'-'} мин</b>${prev?dlt(cur.respMed,prev.respMed,true):''}</span>`;
     list.prepend(t);
   }
+  const hid=SC.hiddenMgr||[];
+  if(hid.length){
+    const h=document.createElement('div'); h.style.cssText='color:var(--ink-4);font-size:10.5px;margin-top:6px';
+    h.textContent='Не в таблице: '+hid.map(x=>`${x.mgr} (${x.deals}, ${x.why})`).join(' · ');
+    list.appendChild(h);
+  }
   const rated=SC.managers.filter(m=>m.rating!==null).length;
   document.getElementById('stat').textContent = `менеджеров с рейтингом: ${rated} · разбор ИИ: ${SC.aiReviews? SC.aiReviews+' сделок':'слой выключен (нет ключа)'} · калибровка ${SC.calibratedAt}`;
   document.getElementById('foot').textContent = `Рейтинг - взвешенная доля сделок без дефекта по разделам регламента (отклик 22%, сроки 20%, ведение 20%, квалификация 18%, вежливость 10%, результат 10%). Раздел не оценивается, если затронут меньше чем в 5 сделках; менеджер - меньше чем в ${SC.minSample} диалогах. Пороги - гипотеза, калибруются по факту.`;

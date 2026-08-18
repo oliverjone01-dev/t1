@@ -53,6 +53,21 @@ const MIN_SEC_N = 5;           // раздел не оценивается, ес
 const EARLY = new Set(["C49:NEW", "C49:UC_LRFLH9", "C49:PREPAYMENT_INVOIC", "C49:PREPARATION", "C49:3"]);
 const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
+// Кого не показывать в таблице рейтинга: роботы портала, числовые ID вместо имени,
+// уволенные (список firedManagers из снимка РОПа) и явно названные Иваном не-наши.
+// KEEP_MGR - исключения из списка уволенных: числится уволенным в CRM, но работает.
+const EXCLUDE_MGR = new Set(["Лысенко Ольга", "Сячинова Александра", "Мавлина Юлия", "Ерина Екатерина", "Королькова Наталья"]);
+const KEEP_MGR = new Set(["Лобова Надежда"]);
+const swapName = (n: string) => { const p = n.trim().split(/\s+/); return p.length === 2 ? p[1] + " " + p[0] : n; };
+function isHidden(mgr: string, fired: Set<string>): string {
+  if (KEEP_MGR.has(mgr)) return "";
+  if (/^Системный пользователь/i.test(mgr) || mgr === "(не указан)") return "робот портала";
+  if (!/[A-Za-zА-Яа-яЁё]/.test(mgr)) return "ID без имени";
+  if (EXCLUDE_MGR.has(mgr)) return "не в отделе продаж";
+  if (fired.has(mgr) || fired.has(swapName(mgr))) return "уволен";
+  return "";
+}
+
 type Ev = { ts: number; dt: string; stage: string; leadId: string; dealId: string; leadT: string; dealT: string; mgr: string; type: string; dir: string; who: string; body: string; title: string; status: string };
 const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "Письмо" || e.type === "Мессенджер ОЛ";
 // Антигейминг: «Хорошо, спасибо!» за 2 минуты не ответ клиенту. Ответом по существу считаем
@@ -105,8 +120,10 @@ function main() {
   const now = Date.parse(dlg.to) || Math.max(...events.map((e) => e.ts));
 
   const facts: Record<string, any> = {};
+  let fired = new Set<string>();
   if (existsSync(ROP)) {
     const rop = JSON.parse(readFileSync(ROP, "utf8"));
+    fired = new Set((rop.firedManagers || []) as string[]);
     for (const d of (rop.deals || [])) if (String(d.category) === "49") facts[String(d.id)] = d;
     console.log(`Факты CRM: ${Object.keys(facts).length} сделок C49 (снимок ${rop.generated_at || "?"})`);
   } else console.log(`ВНИМАНИЕ: ${ROP} не найден - разбор без стадий и дел`);
@@ -236,21 +253,25 @@ function main() {
   // --- Сводка по менеджерам: доля здоровых сделок в каждом разделе ---
   const byMgr: Record<string, any[]> = {};
   for (const d of deals) (byMgr[d.mgr] ||= []).push(d);
-  const managers = Object.entries(byMgr).map(([mgr, ds]) => {
+  const hiddenMgr: { mgr: string; deals: number; why: string }[] = [];
+  const managers = Object.entries(byMgr).filter(([mgr, ds]) => {
+    const why = isHidden(mgr, fired);
+    if (why) { hiddenMgr.push({ mgr, deals: ds.length, why }); return false; }
+    return true;
+  }).map(([mgr, ds]) => {
     const sections = SECTIONS.map((s) => {
       const touched = ds.filter((d) => d.tags.some((t: Tag) => t.sec === s.key));
       const bad = touched.filter((d) => d.tags.some((t: Tag) => t.sec === s.key && t.tone === "bad"));
       const enoughSec = touched.length >= MIN_SEC_N;
       return { key: s.key, label: s.label, n: touched.length, pos: enoughSec ? Math.round((1 - bad.length / touched.length) * 100) : null, bad: bad.length };
     });
-    const isBot = /^Системный пользователь/i.test(mgr) || mgr === "(не указан)";
-    const enough = ds.length >= MIN_SAMPLE && !isBot;
+    const enough = ds.length >= MIN_SAMPLE;
     const scored = sections.filter((s) => s.pos !== null);
     const wsum = scored.reduce((s, x) => s + SECTIONS.find((y) => y.key === x.key)!.weight, 0);
     const rating = enough && wsum ? Number((scored.reduce((s, x) => s + (x.pos as number) * SECTIONS.find((y) => y.key === x.key)!.weight, 0) / wsum / 20).toFixed(1)) : null;
     return {
-      mgr, deals: ds.length, rating, sections, bot: isBot,
-      noRating: enough ? "" : (isBot ? "робот портала" : `мало данных (${ds.length} из ${MIN_SAMPLE})`),
+      mgr, deals: ds.length, rating, sections,
+      noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
       alerts: ds.filter((d) => d.tags.some((t: Tag) => t.tone === "bad")).length,
@@ -289,6 +310,7 @@ function main() {
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
     tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
+    hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),
   };
   writeFileSync(DLG, JSON.stringify(dlg));
   console.log(`Разбор: диалогов ${deals.length}, менеджеров ${managers.length}, тегов ${Object.keys(tagIndex).length}`);

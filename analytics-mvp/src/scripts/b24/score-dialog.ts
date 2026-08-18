@@ -51,6 +51,11 @@ const MIN_SAMPLE = 10;
 const MIN_SEC_N = 5;           // раздел не оценивается, если он затронут меньше чем в 5 сделках:
                                // процент по двум диалогам - это не оценка человека, а шум         // штампуют дела ежедневно, это системный шум, а не халатность
 const EARLY = new Set(["C49:NEW", "C49:UC_LRFLH9", "C49:PREPAYMENT_INVOIC", "C49:PREPARATION", "C49:3"]);
+// Пост-продажные стадии: продажа состоялась, дальше идёт производство и логистика.
+// Здесь стадия двигается по факту цеха, а не по работе с клиентом, и тишина в неделю
+// это норма, а не брошенный клиент. Проверено на данных: 25 из 56 «движений без
+// общения» приходились именно на эти стадии - без поправки они били бы по людям зря.
+const POST_SALE = new Set(["C49:EXECUTING", "C49:FINAL_INVOICE", "C49:1", "C49:2"]);
 const WORK_FROM = 9, WORK_TO = 19, TZ_SHIFT = 3;
 
 // Кого не показывать в таблице рейтинга: роботы портала, числовые ID вместо имени,
@@ -170,6 +175,16 @@ function main() {
     const early = !stageCode || EARLY.has(stageCode);
     const hist = (f && Array.isArray(f.hist)) ? f.hist : [];
     const stageDays = hist.length ? Math.floor((now - Date.parse(hist[hist.length - 1][1])) / 864e5) : -1;
+    // Движение без работы: стадия менялась в окне снимка, а клиенту не написали и не позвонили.
+    // Это лучший индикатор имитации: в CRM прогресс есть, в общении с клиентом его нет.
+    const fromDay = String(dlg.from || "").slice(0, 10);
+    const movedDays = hist.filter((h: any) => h && String(h[1] || "").slice(0, 10) >= fromDay).map((h: any) => String(h[1]).slice(0, 10));
+    const touched = msgs.length > 0 || evs.some((e) => e.type === "Звонок");
+    const ghostMove = movedDays.length > 0 && !touched && !POST_SALE.has(stageCode);
+    // Внутренняя работа без клиента: дела, заметки, резюме звонков есть, а самого разговора
+    // с клиентом за окно нет. Формально сделка «в работе», фактически клиент ничего не получил.
+    const internalOnly = !touched && evs.length > 0 && !POST_SALE.has(stageCode);
+    const internalKinds = [...new Set(evs.map((e) => e.type))].join(", ");
     const a = ai[key] || null;
 
     const tags: Tag[] = [];
@@ -193,7 +208,8 @@ function main() {
     if (RE.vague.test(outText) && !RE.dated.test(outText)) add("Размытый срок без даты", "deadline", "bad");
     else if (RE.dated.test(outText)) add("Называет конкретные даты", "deadline", "good");
     if (overdue) add(`Дело просрочено на ${overdueD} дн`, "deadline", "bad");
-    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", "bad");
+    const postSale = POST_SALE.has(stageCode);
+    if (silenceD >= SILENCE_BAD_D) add(`Тишина ${silenceD} дн`, "deadline", postSale ? "warn" : "bad");
     else if (silenceD >= SILENCE_WARN_D) add(`Пауза ${silenceD} дн`, "deadline", "warn");
     // 4. Вежливость
     if (outs.length && RE.hello.test(outText)) add("Приветствие и обращение", "polite", "good");
@@ -207,6 +223,8 @@ function main() {
     if (RE.kp.test(outText)) add("КП отправлено", "process", "good");
     if (stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D) add("После КП нет дожима", "process", "bad");
     if (stageDays > 21) add(`На стадии ${stageDays} дн`, "process", "bad");
+    if (ghostMove) add(`Стадия двигалась ${movedDays.length} раз, касаний в CRM нет`, "process", "bad");
+    if (internalOnly) add(`Нет следов общения в CRM: только ${internalKinds}`, "process", "bad");
     if (calls) add(`Звонков: ${calls}`, "process", "good");
     // 6. Результат
     if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
@@ -222,15 +240,28 @@ function main() {
     if (respMed !== null && respMed <= FAST_ANSWER_MIN) push(`быстрые ответы (${fmtMin(respMed)})`, 1.1);
     if (respMed !== null && respMed > SLOW_ANSWER_MIN) push(`медленные ответы (${fmtMin(respMed)})`, 0.8);
     if (ballWait > BALL_STUCK_MIN) push(`клиент ждёт ${fmtMin(ballWait)}`, 0.7);
-    if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, 0.6);
-    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, 0.85);
+    if (silenceD >= SILENCE_BAD_D) push(`тишина ${silenceD} дн`, postSale ? 0.9 : 0.6);
+    else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
     if (!nextStep) push("нет следующего шага", 0.85);
     if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
     if (RE.price.test(inText)) push("возражение по цене", 0.9);
     if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
+    if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
+    else if (internalOnly) push("нет следов общения в CRM", 0.75);
     if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
     let prob = base; for (const x of factors) prob *= x.mult;
     prob = Math.max(0.03, Math.min(0.97, prob));
+    // Почему шанс такой: вклад каждой причины в процентных пунктах и в рублях.
+    // Вклад считаем как разницу «без этой причины» и «с ней», при остальных неизменных.
+    const moneyBase = (f && f.budget) ? f.budget : 0;
+    const whyProb: { label: string; pp: number; rub: number; bad: boolean; who: string }[] = [];
+    for (const x of factors) {
+      const without = Math.max(0.03, Math.min(0.97, prob / x.mult));
+      const pp = Math.round((prob - without) * 100);
+      if (!pp) continue;
+      whyProb.push({ label: x.label, pp, rub: Math.round(moneyBase * (prob - without)), bad: x.mult < 1, who: last.mgr || "" });
+    }
+    whyProb.sort((a, b) => a.pp - b.pp);
 
     // --- рекомендация ---
     let next = "", why = "";
@@ -310,6 +341,7 @@ function main() {
       [stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D ? "После КП нет дожима" : "", 0.6, "nopush"],
       [silenceD >= SILENCE_BAD_D ? `Тишина ${silenceD} дн` : "", 0.5, "silent"],
       [overdue ? `Дело просрочено ${overdueD} дн` : "", 0.45, "overdue"],
+      [internalOnly ? "Нет следов общения в CRM" : "", 0.55, "internal"],
       [!nextStep ? "Нет следующего шага" : "", 0.4, "nostep"],
     ].filter((x) => x[0]) as [string, number, string][];
     const urgency = urg.length ? urg[0]![0] : "";
@@ -324,7 +356,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
@@ -350,8 +382,23 @@ function main() {
     const scored = sections.filter((s) => s.pos !== null);
     const wsum = scored.reduce((s, x) => s + SECTIONS.find((y) => y.key === x.key)!.weight, 0);
     const rating = enough && wsum ? Number((scored.reduce((s, x) => s + (x.pos as number) * SECTIONS.find((y) => y.key === x.key)!.weight, 0) / wsum / 20).toFixed(1)) : null;
+    // Цена ошибок: сколько рублей потенциала съели дефекты в сделках этого менеджера.
+    const lossBy: Record<string, number> = {};
+    let lossRub = 0;
+    for (const d of ds) for (const w of (d.whyProb || [])) {
+      if (!w.bad) continue;
+      lossRub += -w.rub;
+      const k = w.label.replace(/\s*\([^)]*\)/, "").replace(/\d+/g, "N");
+      lossBy[k] = (lossBy[k] || 0) + -w.rub;
+    }
+    const topLoss = Object.entries(lossBy).sort((a, b) => b[1] - a[1])[0];
     return {
       mgr, deals: ds.length, rating, sections,
+      lossRub: Math.round(lossRub),
+      lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
+      topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,
+      ghost: ds.filter((d) => d.ghostMove).length,
+      internal: ds.filter((d) => d.internalOnly).length,
       noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
       probAvg: Math.round(ds.reduce((s, d) => s + d.prob, 0) / ds.length),
       pipeline: ds.reduce((s, d) => s + (d.budget || 0), 0),
@@ -392,6 +439,7 @@ function main() {
     { key: "nostep", label: "Без следующего шага", hint: "В CRM не назначено ни одного открытого дела" },
     { key: "refuse", label: "Риск отказа", hint: "В переписке прозвучал отказ или «не актуально»" },
     { key: "nopush", label: "КП без дожима", hint: "КП отправлено, но после него тишина" },
+    { key: "internal", label: "Нет следов общения", hint: "За окно есть только дела, заметки и задачи. Внимание: звонок с личного телефона мимо телефонии система не видит, поэтому это повод спросить, а не обвинение" },
   ].map((q) => ({ ...q, n: deals.filter((d) => d.uKey === q.key).length,
                   money: deals.filter((d) => d.uKey === q.key).reduce((s2, d) => s2 + (d.budget || 0), 0) }));
 

@@ -1331,17 +1331,24 @@ function render(){
     const remDisp=remaining<=0?'':isR?(mk==='conv'?'+'+(remaining*100).toFixed(1)+' п.п.':'+'+fmtK(remaining)+' ₽'):f(remaining);
     return {mk,lab,t,f,isR,attn,remaining,proj,risk,need,remDisp};});
   const _riskN=_tm.filter(x=>x.risk.c!==_G).length;
+  // Пояснение к пересчёту: цифры должны быть видны, иначе цель выглядит взятой с потолка.
+  const _cs=_mP.cohort, _csPct=_cs?Math.round(_cs.share*100):null;
+  const _cohortNote=_cs?`<div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border-soft);font-size:11px;color:var(--ink-3);line-height:1.5">
+    Цели по лидам и сделкам пересчитаны на цикл сделки: из плановых <b style="color:var(--ink-2)">${fmt(_mP.targets.leadsRaw||0)}</b> лидов и <b style="color:var(--ink-2)">${fmt(_mP.targets.dealsRaw||0)}</b> сделок берётся <b style="color:var(--ink-2)">${_csPct}%</b> - столько выручки периода в среднем приносят сделки, созданные в этом же периоде. Остальное закрывает пайплайн прошлых периодов, и требовать под него новых лидов сегодня незачем.
+    <span class="qm" data-tip="${('Как считается: берём три последних окна длиной с выбранный период, в каждом смотрим предоплаты и долю денег по сделкам, созданным внутри того же окна, берём медиану. Окна: '+_cs.windows.map(w=>w.a+'..'+w.b+' - '+Math.round(w.share*100)+'%').join('; ')+'. Данные снимка, пересчитывается автоматически. План по выручке и продажам не меняется - меняются только количественные цели по лидам и сделкам.').replace(/"/g,'&quot;')}">?</span>
+  </div>`:'';
   const _hdrPace=_pRem>0?`⏱ прошло ${_pEl} из ${_pTot} дн периода (${pct(_pFrac)}) · осталось ${_pRem} дн`:`⏱ период завершён (${_pTot} дн) · риск = глубина недобора`;
   const _teamHdr=`<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--ink-3);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)"><span>${_hdrPace}</span><span>под угрозой плана: <b style="color:${_riskN?_R:_G}">${_riskN}</b> из 7 показателей</span></div>`;
   // Цвет по достижению: ≥100% = зелёный (успех), 85-100 = золото, 50-85 = оранжевый, <50 = красный.
   const _tone=a=>a>=1?'#2E9E74':a>=0.85?'#D9A441':a>=0.5?'#D9773A':'#CC5867';
   const _teamRows=_teamHdr+_tm.map(x=>{const tc=_tone(x.attn),w=Math.min(100,x.attn*100),done=x.attn>=1;
-    const tip=(x.lab+': факт '+x.f(x.t.fact)+' из плана '+x.f(x.t.plan)+' = '+pct(x.attn)+(x.remaining>0?' · осталось '+(x.remDisp||x.f(x.remaining)):' · план выполнен')+(x.need!=null?' · нужно ~'+x.f(x.need)+'/день оставшиеся '+_pRem+' дн':'')).replace(/"/g,'&quot;');
+    const _adj=(x.mk==='leads'||x.mk==='deals')&&_csPct!=null?` (цель пересчитана на цикл: ${x.mk==='leads'?fmt(_mP.targets.leadsRaw||0):fmt(_mP.targets.dealsRaw||0)} × ${_csPct}%)`:'';
+    const tip=(x.lab+': факт '+x.f(x.t.fact)+' из плана '+x.f(x.t.plan)+_adj+' = '+pct(x.attn)+(x.remaining>0?' · осталось '+(x.remDisp||x.f(x.remaining)):' · план выполнен')+(x.need!=null?' · нужно ~'+x.f(x.need)+'/день оставшиеся '+_pRem+' дн':'')).replace(/"/g,'&quot;');
     const tip2=w<99.4?`<div style="position:absolute;left:${w.toFixed(1)}%;top:2px;bottom:2px;width:2px;background:rgba(255,255,255,.6);border-radius:2px;box-shadow:0 0 5px ${tc};z-index:2"></div>`:'';
     const bar=`<div style="position:relative;flex:1;min-width:150px;height:22px;background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(255,255,255,.02));border-radius:11px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)" data-tip="${tip}"><div style="position:absolute;left:0;top:0;height:100%;width:${w.toFixed(1)}%;border-radius:11px;background:${tc};background-image:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 52%,rgba(0,0,0,.16));box-shadow:0 0 10px ${tc}66,inset 0 0 0 1px rgba(255,255,255,.10);transition:width .85s cubic-bezier(.22,1,.36,1)"></div>${tip2}<span style="position:absolute;left:11px;top:0;line-height:22px;font-size:10.5px;font-weight:800;color:#fff;z-index:3;text-shadow:0 1px 2px rgba(0,0,0,.55)">${x.f(x.t.fact)}</span><span style="position:absolute;right:11px;top:0;line-height:22px;font-size:10px;font-weight:600;color:rgba(255,255,255,.5);z-index:3;text-shadow:0 1px 2px rgba(0,0,0,.5)">цель ${x.f(x.t.plan)}</span></div>`;
     return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-soft)"><div style="flex:0 0 96px;font-size:12.5px;color:var(--ink-2);font-weight:700">${x.lab}</div>${bar}<div style="flex:0 0 54px;text-align:right;font-family:'Manrope';font-weight:800;font-size:14.5px;color:${tc}">${pct(x.attn)}</div><div style="flex:0 0 116px;text-align:right;font-size:11px;color:var(--ink-3)">${done?'<span style="color:#2E9E74;font-weight:700">выполнен ✓</span>':'осталось <b style="color:var(--ink-2)">'+(x.remDisp||x.f(x.remaining))+'</b>'}</div><div style="flex:0 0 84px;text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:${x.risk.c};background:${x.risk.c}22;border:1px solid ${x.risk.c}66;border-radius:6px;padding:2px 8px">${x.risk.l}</span></div></div>`;}).join('');
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). «В пр-во» считается в СДЕЛКАХ, переданных в производство (изделия и штуки - на дашборде производства); план по нему = план продаж периода из таблицы: каждая проданная сделка должна уйти в цех. Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже; «В пр-во» сильно ниже плана продаж - продажи не доезжают до цеха или передачи просели.')}</div><div class="card-sub">все метрики отдела в одном блоке · факт vs план за выбранный период</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица</a></div></div>
-    <div style="padding:6px 14px 8px;background:var(--bg-elevated);border-radius:10px">${_teamRows}</div></div>`;
+    <div style="padding:6px 14px 8px;background:var(--bg-elevated);border-radius:10px">${_teamRows}${_cohortNote}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">кто тянет, а кто отстаёт от плана</div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned)}</div>`+
     `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">вклад каждого менеджера по периодам</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
@@ -2641,21 +2648,51 @@ function planForPeriod(a,b){
     rev+=mo.rev*w;sales+=mSales*w;deals+=mDeals*w;leads+=mLeads*w;}
   return hit?{rev:Math.round(rev),sales,deals:Math.round(deals),leads:Math.round(leads)}:null;
 }
+// ЦИКЛ СДЕЛКИ В ПЛАНЕ ПО КОЛИЧЕСТВУ.
+// Выручку периода закрывают не только сделки, созданные в этом периоде: часть денег
+// приносит пайплайн прошлых месяцев. Значит выводить цель по новым лидам и сделкам из
+// ПОЛНОГО плана выручки нельзя - так план по количеству завышается вдвое, а отдел
+// получает недостижимую цифру. Считаем по факту, какая доля денег периода пришла из
+// сделок этого же периода, и на эту долю умножаем количественные цели.
+// [ДАННЫЕ] считается по снимку каждый раз, окно = длина выбранного периода, берём
+// медиану трёх последних таких окон, чтобы одна удачная неделя не двигала план.
+const _cohortCache={};
+function cohortShare(days){
+  days=Math.max(1,Math.round(days));
+  if(_cohortCache[days]!==undefined)return _cohortCache[days];
+  const iso=t=>new Date(t).toISOString().slice(0,10);
+  const E=Date.parse((DATA.to||S.end)+'T12:00:00+03:00');
+  const shares=[];
+  for(let i=0;i<3;i++){
+    const b=iso(E-i*days*DAYMS), a=iso(E-((i+1)*days-1)*DAYMS);
+    let tot=0,own=0;
+    for(const d of AD){const p=prepayDate(d);if(!p||p<a||p>b)continue;const mo=d.budget||0;tot+=mo;if(d.created>=a)own+=mo;}
+    if(tot>0&&isFinite(own/tot))shares.push({share:own/tot,n:tot,a,b});
+  }
+  if(!shares.length){_cohortCache[days]=null;return null;}
+  const sorted=shares.map(x=>x.share).sort((x,y)=>x-y);
+  const val=sorted[sorted.length>>1];
+  _cohortCache[days]={share:val,windows:shares};
+  return _cohortCache[days];
+}
 function planModel(D,L,m){
   const days=periodLen();
   const pf=planForPeriod(S.start,S.end);
   if(pf&&pf.rev>0){
     const check=pf.sales?pf.rev/pf.sales:(m.check||80000),conv=pf.deals?pf.sales/pf.deals:0.16,lpr=pf.leads?pf.deals/pf.leads:0.55;
-    return {days,planRevP:pf.rev,check,conv,lpr,lprApprox:false,winT:pf.sales,fromSheet:true,
-      targets:{rev:pf.rev,deals:pf.deals,leads:pf.leads},facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
+    const cs=cohortShare(days),k=cs?cs.share:1;
+    return {days,planRevP:pf.rev,check,conv,lpr,lprApprox:false,winT:pf.sales,fromSheet:true,cohort:cs,
+      targets:{rev:pf.rev,deals:Math.round(pf.deals*k),leads:Math.round(pf.leads*k),dealsRaw:pf.deals,leadsRaw:pf.leads},
+      facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
   }
   const planRevP=Math.round(S.planRev*days/30);
   const check=m.check||60000,conv=m.conv||0.12;
   let lpr=(m.deals&&m.leads)?m.deals/m.leads:0;
   let lprApprox=false;if(!(lpr>0&&lpr<=0.95)){lpr=m.qrate>0?m.qrate:0.5;lprApprox=true;}
   const winT=planRevP/check,dealT=winT/(conv||1),leadT=dealT/(lpr||1);
-  return {days,planRevP,check,conv,lpr,lprApprox,winT,fromSheet:false,
-    targets:{rev:planRevP,deals:Math.round(dealT),leads:Math.round(leadT)},
+  const cs2=cohortShare(days),k2=cs2?cs2.share:1;
+  return {days,planRevP,check,conv,lpr,lprApprox,winT,fromSheet:false,cohort:cs2,
+    targets:{rev:planRevP,deals:Math.round(dealT*k2),leads:Math.round(leadT*k2),dealsRaw:Math.round(dealT),leadsRaw:Math.round(leadT)},
     facts:{rev:m.rev,deals:m.deals,leads:m.leads}};
 }
 // Прогноз выручки на конец календарного месяца по текущему темпу (линейная экстраполяция).

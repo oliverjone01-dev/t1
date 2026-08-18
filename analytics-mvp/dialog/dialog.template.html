@@ -65,6 +65,18 @@ input#q{min-width:220px}
 .rt{font-weight:700;font-size:15px}
 .rtst{color:#E8A33D;font-size:10px;letter-spacing:.5px;display:block}
 .na2{color:var(--ink-4);font-size:11px}
+.qm{display:inline-block;margin-left:3px;font-size:9px;color:var(--ink-4);border:1px solid var(--line);border-radius:50%;width:11px;height:11px;line-height:11px;text-align:center;cursor:help;vertical-align:top}
+.legend{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;font-size:11.5px}
+.lgh{padding:8px 12px;cursor:pointer;color:var(--ink-2)}
+.lgh i{font-style:normal;color:var(--ink-4);margin-right:5px}
+.lgb{padding:0 12px 10px 12px}
+.lgi{color:var(--ink-2);margin-bottom:5px;line-height:1.5}
+.lgi b{color:var(--ink)}
+.mrow{cursor:pointer}
+.mrow.open td{background:#ffffff0a}
+.arw2{color:var(--ink-4);margin-right:6px;font-size:10px}
+.mexp>td{padding:0 8px 10px 8px;background:#ffffff05}
+.expcap{color:var(--ink-3);font-size:11px;margin:6px 0}
 .tagbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px}
 .tagsec{margin-bottom:7px}
 .tagsec .sl{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
@@ -120,7 +132,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'mgr', sec:'', tag:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'mgr', sec:'', tag:'', exp:null, mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -235,6 +247,20 @@ const SC = DATA.scoring || null;
 const SCD = {}; if(SC) for(const d of SC.deals) SCD[d.key]=d;
 const probColor = p => p>=60?'#2E9E74':p>=30?'#C2873C':'#C25252';
 function stars(r){ const f=Math.round(r); return '★★★★★'.slice(0,f)+'☆☆☆☆☆'.slice(0,5-f); }
+const SECHELP={
+  speed:['Отклик','Как быстро отвечаем клиенту. Норматив: первый ответ за 15 рабочих минут, клиент не ждёт дольше 4 часов. Отписки «ок, спасибо» за ответ не считаются.'],
+  qual:['Квалификация','Выяснены ли до расчёта задача, размеры или ТЗ, срок и бюджет. Считается только на ранних стадиях - на производстве спрашивать бюджет поздно.'],
+  deadline:['Сроки','Обещание всегда с конкретной датой («завтра до обеда», не «в ближайшее время»), дела в CRM не просрочены, нет пауз от 4 дней.'],
+  polite:['Вежливость','Приветствие с обращением, извинение без жаргона («закрутился», «забыл») и без оправданий («вы не уточнили»).'],
+  process:['Ведение','Следующий шаг назначен всегда, после КП идёт дожим, сделка не стоит на одной стадии месяцами.'],
+  result:['Результат','Возражение отработано аргументом, сигнал оплаты доведён до счёта, отказ разобран, а не принят молча.'],
+};
+const COLHELP={
+  deals:['Диалогов','Сколько сделок и лидов этого менеджера были в переписке за окно снимка (7 дней).'],
+  prob:['Вероятность','Средний шанс закрыть сделку по его портфелю. Считается от фактической доли выигранных на этой стадии, поправленной на поведение в переписке.'],
+  alerts:['Тревог','Сколько его сделок имеют хотя бы один красный тег: клиент ждёт ответа, тишина, нет следующего шага, риск отказа.'],
+  rating:['Рейтинг','Взвешенная оценка по шести разделам, шкала 0-5. Меряет дисциплину ведения сделки, а не выручку. Не считается, если у менеджера меньше 10 диалогов.'],
+};
 function tone2col(t){ return t==='good'?'#2E9E74':t==='bad'?'#C25252':'#C2873C'; }
 function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
 function cellHTML(m,sec){
@@ -243,19 +269,54 @@ function cellHTML(m,sec){
   return `<td><span class="cellv" data-mgr="${esc(m.mgr)}" data-sec="${sec.key}" title="${sec.bad} сделок с дефектом из ${sec.n} · клик - показать их">
     <b style="color:${c}">${sec.pos}%</b><span class="pbar"><i style="width:${sec.pos}%;background:${c}"></i></span></span></td>`;
 }
+// Карточки диалогов внутри раскрытой строки: тот же рендер, что и в режиме «по сделкам».
+function fillExpanded(){
+  if(!S.exp) return;
+  const host = S.exp.tag
+    ? document.getElementById('exp-tag')
+    : document.getElementById('exp-'+S.exp.mgr.replace(/[^a-zA-Zа-яА-Я0-9]/g,'_'));
+  if(!host) return;
+  const norm = t => t.split(' · ')[0].replace(/[0-9]+/g,'N');
+  const map = new Map();
+  for(const e of DATA.events){
+    if(S.exp.mgr && e.mgr!==S.exp.mgr) continue;
+    const a = anchor(e); if(!a.aid) continue;
+    const d = dealScore(a.ent,a.aid,a.other);
+    if(S.exp.sec && !(d && d.tags.some(t=>t.sec===S.exp.sec && t.tone==='bad'))) continue;
+    if(S.exp.tag && !(d && d.tags.some(t=>norm(t.t)===S.exp.tag))) continue;
+    const key=a.ent+':'+a.aid;
+    let g=map.get(key);
+    if(!g){ g={ent:a.ent,aid:a.aid,title:a.title,other:a.other,events:[],chans:{},stages:{},last:0,mgr:e.mgr}; map.set(key,g); }
+    g.events.push(e); if(e.ts>g.last){g.last=e.ts;g.mgr=e.mgr;} g.chans[e.type]=(g.chans[e.type]||0)+1; g.stages[e.stage]=1;
+  }
+  VIEW=[...map.values()];
+  VIEW.forEach(g=>g.events.sort((a,b)=>a.ts-b.ts));
+  VIEW.sort((a,b)=>{ const da=dealScore(a.ent,a.aid,a.other), db=dealScore(b.ent,b.aid,b.other);
+    return (db?db.prob:0)-(da?da.prob:0) || b.last-a.last; });
+  const cap = S.exp.sec ? `дефекты раздела «${esc((SC.sections.find(x=>x.key===S.exp.sec)||{}).label||'')}»`
+            : S.exp.tag ? `тег «${esc(S.exp.tag)}»` : 'все диалоги';
+  host.innerHTML = `<div class="expcap">${cap} · ${VIEW.length}</div>` +
+    (VIEW.length ? VIEW.slice(0,DEAL_LIMIT).map((g,i)=>dealHTML(g,i)).join('') : '<div class="empty">ничего не найдено</div>');
+  host.querySelectorAll('.deal').forEach(d=>d.querySelector('.dhead').onclick=e=>{ e.stopPropagation(); toggle(d); });
+}
 function renderManagers(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
-  const head = `<tr><th class="l">Менеджер</th><th>Диалогов</th>` +
-    SC.sections.map(s=>`<th>${esc(s.label)}<div style="font-weight:400;opacity:.6;text-transform:none">вес ${Math.round(s.weight*100)}%</div></th>`).join('') +
-    `<th>Вероятность</th><th>Тревог</th><th>Рейтинг</th></tr>`;
+  const head = `<tr><th class="l">Менеджер</th><th title="${esc(COLHELP.deals[1])}">Диалогов<span class="qm">?</span></th>` +
+    SC.sections.map(s=>`<th title="${esc((SECHELP[s.key]||['',''])[1])}">${esc(s.label)}<span class="qm">?</span><div style="font-weight:400;opacity:.6;text-transform:none">вес ${Math.round(s.weight*100)}%</div></th>`).join('') +
+    `<th title="${esc(COLHELP.prob[1])}">Вероятность<span class="qm">?</span></th>
+     <th title="${esc(COLHELP.alerts[1])}">Тревог<span class="qm">?</span></th>
+     <th title="${esc(COLHELP.rating[1])}">Рейтинг<span class="qm">?</span></th></tr>`;
   const rows = SC.managers.map(m=>{
     const secs = SC.sections.map(s=> cellHTML(m, m.sections.find(x=>x.key===s.key))).join('');
     const rt = m.rating!==null
       ? `<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span><span class="rtst">${stars(m.rating)}</span>`
       : `<span class="na2">${esc(m.noRating)}</span>`;
-    return `<tr><td class="l"><span class="who2">${esc(m.mgr)}</span></td><td>${m.deals}</td>${secs}
+    const open = S.exp && S.exp.mgr===m.mgr;
+    const row = `<tr class="mrow${open?' open':''}" data-mgr="${esc(m.mgr)}">
+      <td class="l"><span class="arw2">${open?'▾':'▸'}</span><span class="who2">${esc(m.mgr)}</span></td><td>${m.deals}</td>${secs}
       <td>${m.probAvg}%</td><td style="color:${m.alerts?'#C25252':'var(--ink-3)'}">${m.alerts}</td><td>${rt}</td></tr>`;
+    return row + (open ? `<tr class="mexp"><td colspan="${SC.sections.length+5}"><div id="exp-${esc(m.mgr).replace(/[^a-zA-Zа-яА-Я0-9]/g,'_')}"></div></td></tr>` : '');
   }).join('');
   const bySec={}; for(const [t,v] of Object.entries(SC.tagIndex)) (bySec[v.sec] ||= []).push([t,v]);
   const tagbox = SC.sections.map(s=>{
@@ -266,14 +327,30 @@ function renderManagers(){
       return `<span class="tgc${S.tag===t?' on':''}" data-tag="${esc(t)}" style="color:${c};border-color:${c}55;background:${c}12">${esc(t)}<span class="n">${v.n}</span></span>`;
     }).join('') + `</div>`;
   }).join('');
-  list.innerHTML = `<table class="tbl">${head}${rows}</table>
-    <div class="tagbox"><div style="color:var(--ink-3);font-size:11px;margin-bottom:7px">Теги по разделам регламента · клик открывает сделки с этим тегом</div>${tagbox}</div>`;
-  list.querySelectorAll('.cellv').forEach(c=>c.onclick=()=>{ S.mgr=c.dataset.mgr; S.sec=c.dataset.sec; S.tag=''; S.mode='deal';
-    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render(); });
-  list.querySelectorAll('.tgc').forEach(c=>c.onclick=()=>{ S.tag=c.dataset.tag; S.sec=''; S.mode='deal';
-    document.getElementById('fMode').value='deal'; render(); });
-  list.querySelectorAll('.tbl .who2').forEach(c=>c.onclick=()=>{ S.mgr=c.textContent; S.sec=''; S.tag=''; S.mode='deal';
-    document.getElementById('fMgr').value=S.mgr; document.getElementById('fMode').value='deal'; render(); });
+  const legend = `<div class="legend">
+    <div class="lgh" onclick="var b=this.nextElementSibling;b.style.display=b.style.display==='none'?'':'none';this.querySelector('i').textContent=b.style.display==='none'?'▸':'▾';">
+      <i>▸</i> Как читать таблицу</div>
+    <div class="lgb" style="display:none">
+      <div class="lgi"><b>Проценты в разделах</b> - доля диалогов, где раздел отработан без дефекта. 71% в «Отклике» значит: в 71% диалогов отвечали в норматив, в 29% нет. Чем выше, тем лучше.</div>
+      <div class="lgi"><b>«нет данных»</b> - раздел встретился меньше чем в 5 сделках. Процент по двум диалогам это не оценка человека, поэтому не показываем.</div>
+      ${SC.sections.map(s=>`<div class="lgi"><b>${esc((SECHELP[s.key]||[s.label])[0])}</b> (вес ${Math.round(s.weight*100)}%) - ${esc((SECHELP[s.key]||['',''])[1])}</div>`).join('')}
+      <div class="lgi"><b>${esc(COLHELP.prob[0])}</b> - ${esc(COLHELP.prob[1])}</div>
+      <div class="lgi"><b>${esc(COLHELP.alerts[0])}</b> - ${esc(COLHELP.alerts[1])}</div>
+      <div class="lgi"><b>${esc(COLHELP.rating[0])}</b> - ${esc(COLHELP.rating[1])}</div>
+      <div class="lgi" style="color:var(--ink-4)">Клик по строке раскрывает диалоги менеджера, клик по ячейке раздела - только его проблемные сделки, клик по тегу внизу - все сделки с этим тегом.</div>
+    </div></div>`;
+  list.innerHTML = legend + `<table class="tbl">${head}${rows}</table>
+    <div class="tagbox"><div style="color:var(--ink-3);font-size:11px;margin-bottom:7px">Теги по разделам регламента · клик открывает сделки с этим тегом</div>${tagbox}<div id="exp-tag"></div></div>`;
+  // Раскрытие прямо в таблице: строка менеджера разворачивается под собой, без ухода на другой экран.
+  list.querySelectorAll('.cellv').forEach(c=>c.onclick=ev=>{ ev.stopPropagation();
+    const same = S.exp && S.exp.mgr===c.dataset.mgr && S.exp.sec===c.dataset.sec;
+    S.exp = same ? null : {mgr:c.dataset.mgr, sec:c.dataset.sec, tag:''}; renderManagers(); });
+  list.querySelectorAll('.mrow').forEach(r=>r.onclick=()=>{
+    const same = S.exp && S.exp.mgr===r.dataset.mgr && !S.exp.sec;
+    S.exp = same ? null : {mgr:r.dataset.mgr, sec:'', tag:''}; renderManagers(); });
+  list.querySelectorAll('.tgc').forEach(c=>c.onclick=()=>{
+    const same = S.exp && S.exp.tag===c.dataset.tag;
+    S.exp = same ? null : {mgr:'', sec:'', tag:c.dataset.tag}; renderManagers(); });
   const tr=SC.trend||[]; const cur=tr[tr.length-1], prev=tr.length>1?tr[tr.length-2]:null;
   if(cur){
     const dlt=(a,b,inv)=>{ if(b===null||b===undefined||a===null) return ''; const d=a-b; if(!d) return ' <span style="color:var(--ink-4)">=</span>';
@@ -287,6 +364,7 @@ function renderManagers(){
       <span class="tgc" style="cursor:default">медиана ответа <b>${cur.respMed??'-'} мин</b>${prev?dlt(cur.respMed,prev.respMed,true):''}</span>`;
     list.prepend(t);
   }
+  fillExpanded();
   const hid=SC.hiddenMgr||[];
   if(hid.length){
     const h=document.createElement('div'); h.style.cssText='color:var(--ink-4);font-size:10.5px;margin-top:6px';

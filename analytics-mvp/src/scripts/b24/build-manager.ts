@@ -147,8 +147,33 @@ const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && !isSale
 console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (нераспределённые): ${_excluded.join(", ") || "-"}`);
 if (!opUsers.includes(MGR)) console.warn(`ВНИМАНИЕ: менеджер "${MGR}" не в ростере ОП - дашборд может быть пустым`);
 
+// --- Вес страницы: свои записи полностью, отдел - компактной таблицей ---------------
+// Раньше в каждую персональную страницу зашивался весь массив компании (23 тыс сделок,
+// 10 тыс лидов, ~20 МБ). Браузер на офисной машине не вытягивал: вкладка висела минутами.
+// Плюс любой менеджер мог открыть исходник и увидеть сделки коллег.
+// Теперь: свои сделки и лиды - как были, данные отдела (нужны для рейтинга и воронки
+// отдела) - в колоночном виде со словарями повторяющихся значений. ~3.5 МБ вместо 20.
+const MINE_D = deals.filter((d: any) => d.mgr === MGR);
+const MINE_L = leads.filter((l: any) => l.mgr === MGR);
+const DEPT_F = ["mgr", "lost", "won", "hist", "budget", "created", "dir", "stageCode", "assort", "client"];
+const _codes: string[] = [], _mgrs: string[] = [];
+const _ci = (v: any, dic: string[]): number | null => {
+  if (v === null || v === undefined) return null;
+  let i = dic.indexOf(v); if (i < 0) { i = dic.length; dic.push(v); } return i;
+};
+const dept = {
+  f: DEPT_F, codes: _codes, mgrs: _mgrs,
+  r: deals.filter((d: any) => d.mgr !== MGR).map((d: any) => [
+    _ci(d.mgr, _mgrs), d.lost ? 1 : 0, d.won ? 1 : 0,
+    (d.hist || []).map((h: any) => [_ci(h[0], _codes), String(h[1] || "").slice(0, 10)]),
+    d.budget || 0, String(d.created || "").slice(0, 10), d.dir,
+    _ci(d.stageCode, _codes), d.assort, d.client,
+  ]),
+};
+console.log(`Свои: сделок ${MINE_D.length}, лидов ${MINE_L.length} | отдел (компактно): ${dept.r.length} сделок`);
+
 const DATA = {
-  from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
+  from, to, deals: MINE_D, leads: MINE_L, dept, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
   sysUsers: [], deptOf: {},
   // Метка свежести: когда данные сняты из Bitrix (для видимого штампа на странице).
   generatedAt: rop.generated_at || null,

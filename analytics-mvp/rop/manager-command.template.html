@@ -254,7 +254,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 <div class="wrap" id="root"></div>
 <div class="foot">© GENGROUP · GENGLASS · дашборд РОПа v3 · живые данные Bitrix24 (тест, 19.03–19.06.2026)</div>
 <script>
-const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};const MANAGER="Татьяна Лакомова";const ALL_DEALS=(DATA.deals||[]).slice();DATA.deals=(DATA.deals||[]).filter(d=>d.mgr===MANAGER);DATA.leads=(DATA.leads||[]).filter(d=>d.mgr===MANAGER);const AD=DATA.deals,AL=DATA.leads,KSS=DATA.keyStageStats;
+const DATA={"placeholder":true,"from":"","to":"","deals":[],"leads":[],"funnel":[],"keyStageStats":[],"dq":{},"opUsers":[],"intStaff":[],"generatedAt":null};const MANAGER="Татьяна Лакомова";const _unpackDept=p=>{if(!p||!p.r)return[];const F=p.f,C=p.codes||[],M=p.mgrs||[];return p.r.map(r=>{const o={};F.forEach((f,i)=>o[f]=r[i]);o.mgr=M[o.mgr];o.stageCode=C[o.stageCode];o.hist=(o.hist||[]).map(h=>[C[h[0]],h[1]]);o.lost=!!o.lost;o.won=!!o.won;return o;});};const ALL_DEALS=(DATA.deals||[]).concat(_unpackDept(DATA.dept));DATA.deals=(DATA.deals||[]).filter(d=>d.mgr===MANAGER);DATA.leads=(DATA.leads||[]).filter(d=>d.mgr===MANAGER);const AD=DATA.deals,AL=DATA.leads,KSS=DATA.keyStageStats;
 const GROUPS=[
  ['Новые и квалификация',['C49:NEW','C49:UC_LRFLH9'],'#22D3EE'],
  ['Формируется предложение',['C49:PREPARATION','C49:UC_OGZUU0'],'#60A5FA'],

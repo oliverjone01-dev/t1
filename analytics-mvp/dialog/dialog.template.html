@@ -127,13 +127,14 @@ input#q{min-width:220px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
-.subrow>td{padding:6px 10px 12px 22px;background:#ffffff04}
+.subrow>td{padding:8px 10px 14px 46px;background:#ffffff04;border-left:3px solid #22d3ee3d}
+.lvl-badge{display:inline-block;font-size:9px;letter-spacing:.05em;color:var(--ink-4);border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-bottom:6px}
 .t2{margin-top:6px;font-size:11px}
 .t2 td{padding:6px 6px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.subrow2>td{padding:6px 8px 10px 16px;background:#00000022}
+.subrow2>td{padding:8px 8px 12px 44px;background:#00000026;border-left:3px solid #C2873C4d}
 .t3{margin-top:6px;font-size:11px}
 .t3 td{padding:5px 6px;vertical-align:top}
 .erow2.e-bad td:first-child{box-shadow:inset 2px 0 0 #C25252}
@@ -180,6 +181,8 @@ input#q{min-width:220px}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
+.arw4{color:var(--acc);margin-right:7px;font-size:11px;display:inline-block;width:9px}
+.xcell{width:16px;text-align:center}
 .qbar{display:flex;justify-content:space-between;align-items:center;padding:7px 2px 4px 2px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .qclose{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:2px 9px;color:var(--ink-3);font-size:11px;margin-left:10px;white-space:nowrap}
 .qclose:hover{border-color:var(--acc);color:var(--acc)}
@@ -484,19 +487,19 @@ function renderTree(){
     const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
-      +`<td class="l"><span class="arw3">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b></td>`
+      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b></td>`
       +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>`<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`).join('')
       +`</tr>`;
     if(openM){
-      html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
+      html+=`<tr class="subrow"><td colspan="${MCOLS.length}"><span class="lvl-badge">УРОВЕНЬ 2 · СДЕЛКИ ${esc(m.mgr)}</span>`;
       if(p&&p.actions.length){
         html+=`<div class="fixh">Что сделать, чтобы усилить</div>`+p.actions.map((a,i)=>`<div class="fix">
           <div class="fixt"><b>${i+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
           <div class="fixw">${esc(a.how)}</div></div>`).join('');
       }
       // --- уровень 2: таблица сделок ---
-      const DCOLS=[{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
+      const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'msgs',t:'Сообщ.'},{k:'urgency',t:'Что горит',l:1}];
       const dval=(d,k)=> k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
@@ -507,17 +510,18 @@ function renderTree(){
         const openD=S.td===d.key, c2=urgCol(d.uKey), pc=probColor(d.prob);
         const url=d.dealId?`${PORTAL}/crm/deal/details/${d.dealId}/`:`${PORTAL}/crm/lead/details/${d.leadId}/`;
         html+=`<tr class="drow${openD?' on':''}" data-d="${esc(d.key)}">
+          <td class="xcell"><span class="arw4">${openD?'▾':'▸'}</span></td>
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><span class="arw3">${openD?'▾':'▸'}</span>${esc(d.title.slice(0,46))}</td>
+          <td class="l">${esc(d.title.slice(0,46))}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
           <td>${d.msgs}</td>
           <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td></tr>`;
-        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
+        if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><span class="lvl-badge">УРОВЕНЬ 3 · ДИАЛОГ ${esc(d.dealId||d.leadId)}</span><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
       html+=`</table></td></tr>`;
     }

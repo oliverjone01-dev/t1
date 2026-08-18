@@ -499,8 +499,12 @@ function renderTree(){
   const inPeriod=d=>{
     if(!dFrom&&!dTo) return true;
     if(S.dMode==='created'){
-      const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||0);
-      if(!c) return false;
+      // Дата создания приходит из снимка воронки. Её нет у лидов и у сделок вне C49,
+      // поэтому запасной вариант - первое событие в ленте: сделка не должна исчезать
+      // из таблицы только потому, что поля нет.
+      const ts=EVTS[d.key]||[];
+      const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0));
+      if(!c) return true;
       return (!dFrom||c>=dFrom)&&(!dTo||c<=dTo);
     }
     const ts=EVTS[d.key]||[];

@@ -97,7 +97,7 @@ const fmtMin = (m: number) => m < 60 ? `${m} мин` : m < 600 ? `${(m / 60).toF
 
 // --- Словари сигналов ---
 const RE = {
-  ready: /выставьте счёт|выставите счет|оплач|оформля|беру\b|готов оплатить|реквизит|когда можно оплатить|счёт на оплату/i,
+  ready: /выставьте счёт|выставите счет|оплач|оформля|(?<![а-яё])беру(?![а-яё])|готов оплатить|реквизит|когда можно оплатить|счёт на оплату/i,
   price: /дорого|скидк|дешевле|снизить цену|цена высок|не укладыва|бюджет не|подешевле/i,
   refuse: /не актуально|отказыва|передумал|выбрали друг|уже заказал|не интересует|не будем/i,
   vague: /в ближайшее время|как только|постараюсь|на днях|в течение недели|буду держать в курсе|ориентировочно/i,
@@ -105,7 +105,7 @@ const RE = {
   hello: /здравствуйте|добрый день|доброе утро|добрый вечер|приветствую/i,
   budget: /бюджет|стоимость|цена|прайс|сколько будет стоить|в какую сумму/i,
   term: /срок|когда нужно|к какой дате|когда планир|готовность/i,
-  spec: /размер|\d+\s*(мм|см|м2)|\d+\s*[хx]\s*\d+|чертеж|эскиз|замер|тз\b|техзадан/i,
+  spec: /размер|\d+\s*(мм|см|м2)|\d+\s*[хx]\s*\d+|чертеж|эскиз|замер|(?<![а-яё])тз(?![а-яё])|техзадан/i,
   jargon: /закрутил|замотал|забыл|запар|не успел|вылетело из головы|извиняюсь/i,
   apology: /прошу прощения|извините|приношу извинения|сожалею/i,
   defense: /я же (писал|говорил)|вы не (сказали|уточнили)|это не (моя|наша) вина|у нас так принято/i,
@@ -113,8 +113,18 @@ const RE = {
   // Дела, которые по смыслу требуют контакта с клиентом. Робот Bitrix ставит их шаблонно,
   // поэтому ловим и его формулировки: «Связаться с клиентом», «Сформируй КП и отправь клиенту».
   contactTask: /связ(аться|ись)|позвони|перезвони|набери|отправ\w* (?:кп|клиент|предложени|расч)|напиш\w* клиент|дожм|уточни у клиент|согласуй с клиент|пригласи|контроль/i,
+  // Обещание клиенту: «пришлю сегодня», «отправлю завтра», «в понедельник». Ловим глагол
+  // отправки рядом со сроком - иначе «завтра приедет замерщик» считалось бы обещанием менеджера.
+  // Только будущее время от первого лица: «отправлю», «пришлю», «перезвоню». Настоящее
+  // («направляю вам КП») - это уже выполненное действие, а не обещание, и в детектор не идёт.
+  // ВНИМАНИЕ: \b в JS считает границей только латиницу и цифры, для кириллицы он не работает.
+  // Поэтому границы задаём явными lookaround по русским буквам.
+  promiseVerb: /(?<![а-яёa-z])(отправлю|пришлю|направлю|подготовлю|скину|сделаю|посчитаю|уточню|перезвоню|позвоню|свяжусь|вышлю|отвечу|сообщу|напишу|запрошу|согласую|проверю|скажу|пришлём|отправим|подготовим|перезвоним|свяжемся)(?![а-яё])/i,
+  today: /сегодня|в течение дня|до конца дня|до \d{1,2}[:.]\d{2}|в течени[еи] \d+ ?(мин|час)|через \d+ ?(мин|час)/i,
+  tomorrow: /завтра|к утру|до обеда завтра/i,
+  weekday: /(в |во )?(понедельник|вторник|сред[уы]|четверг|пятниц[уы]|субботу|воскресенье)/i,
   innerTask: /производств|конструктор|замерщик|логист|бухгалтер|счёт в 1с|передать информацию о заказе|внутрен/i,
-  kp: /кп\b|коммерческое предложение|направил.{0,12}предложени|отправил.{0,12}расч|расчёт во вложении/i,
+  kp: /(?<![а-яё])кп(?![а-яё])|коммерческое предложение|направил.{0,12}предложени|отправил.{0,12}расч|расчёт во вложении/i,
 };
 
 // Разделы регламента и их вес в итоговом рейтинге [ГИПОТЕЗА - калибровка]
@@ -233,6 +243,37 @@ function main() {
         if (!nxt && isLastIn && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
       }
     }
+    // T08: обещал и не сделал. Берём исходящее с обещанием и сроком, считаем дедлайн и смотрим,
+    // ушло ли клиенту хоть что-то до него. Отдельно от «тишины»: тут нарушено конкретное слово.
+    const promises: { at: string; text: string; due: string; kept: boolean }[] = [];
+    let vagueProm = 0;
+    for (const m of outs) {
+      const b = String(m.body || "");
+      if (!RE.promiseVerb.test(b)) continue;
+      // Срок ищем в том же предложении, что и обещание: иначе «отправлю расчёт» и «замерщик
+      // приедет завтра» из разных фраз склеились бы в одно ложное обещание.
+      const sent = b.split(/(?<=[.!?\n])\s+/).find((x) => RE.promiseVerb.test(x)) || b;
+      let horizonMs = 0, label = "";
+      if (RE.today.test(sent)) { horizonMs = 12 * 3600_000; label = "сегодня"; }
+      else if (RE.tomorrow.test(sent)) { horizonMs = 36 * 3600_000; label = "завтра"; }
+      else if (RE.weekday.test(sent)) { horizonMs = 7 * 864e5; label = (sent.match(RE.weekday) || [""])[0]; }
+      else {
+        // Обещание без срока: «пришлю попозже», «свяжусь с вами». Клиент не знает, когда ждать,
+        // и проверить исполнение нечем. По методике это самостоятельный дефект.
+        vagueProm++;
+        if (m.src) mark(m.src, "Обещание без срока", "bad", "deadline", (sent.match(RE.promiseVerb) || [""])[0]);
+        continue;
+      }
+      const dueTs = m.ts + horizonMs;
+      if (dueTs > now) continue;                       // срок ещё не наступил
+      const kept = msgs.some((x) => x.dir === "исходящее" && x.ts > m.ts && x.ts <= dueTs && isRealAnswer(x))
+        || evs.some((x) => x.type === "Звонок" && x.ts > m.ts && x.ts <= dueTs);
+      promises.push({ at: m.dt, text: sent.slice(0, 110), due: label, kept });
+      if (m.src) mark(m.src, kept ? `Обещал ${label} и сделал` : `Обещал ${label} и не сделал`, kept ? "good" : "bad", "deadline");
+    }
+    const promiseBroken = promises.filter((p) => !p.kept).length;
+    const promiseKept = promises.filter((p) => p.kept).length;
+
     // Дело закрыто, а клиенту не написали и не позвонили. Формальная галочка вместо работы:
     // ищем контакт в 48 часов после дела, подразумевающего разговор с клиентом.
     const CONTACT_WINDOW_MS = 48 * 3600_000;
@@ -305,6 +346,9 @@ function main() {
     if (ghostMove) add(`Стадия двигалась ${movedDays.length} раз, касаний в CRM нет`, "process", "bad");
     if (internalOnly) add(`Нет следов общения в CRM: только ${internalKinds}`, "process", "bad");
     if (taskNoContact) add(`Дел закрыто без контакта: ${taskNoContact}`, "process", "bad");
+    if (promiseBroken) add(`Обещал и не сделал: ${promiseBroken}`, "deadline", "bad");
+    else if (promiseKept) add(`Обещания выполнены: ${promiseKept}`, "deadline", "good");
+    if (vagueProm) add(`Обещаний без срока: ${vagueProm}`, "deadline", "bad");
     if (calls) add(`Звонков: ${calls}`, "process", "good");
     // 6. Результат
     if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
@@ -328,6 +372,8 @@ function main() {
     if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
     if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
     else if (internalOnly) push("нет следов общения в CRM", 0.75);
+    if (promiseBroken) push(`обещал и не сделал: ${promiseBroken}`, promiseBroken > 1 ? 0.7 : 0.8);
+    else if (vagueProm > 1) push(`обещания без срока: ${vagueProm}`, 0.9);
     if (taskNoContact) push(`дел закрыто без контакта: ${taskNoContact}`, taskNoContact > 1 ? 0.75 : 0.85);
     if (a && typeof a.probDelta === "number") push(`оценка ИИ: ${a.verdict || "разбор"}`, Math.max(0.5, Math.min(1.4, 1 + a.probDelta / 100)));
     let prob = base; for (const x of factors) prob *= x.mult;
@@ -369,6 +415,7 @@ function main() {
       [stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D ? "После КП нет дожима" : "", 0.6, "nopush"],
       [silenceD >= SILENCE_BAD_D ? `Тишина ${silenceD} дн` : "", 0.5, "silent"],
       [overdue ? `Дело просрочено ${overdueD} дн` : "", 0.45, "overdue"],
+      [promiseBroken ? `Обещал и не сделал (${promiseBroken})` : "", 0.7, "promise"],
       [taskNoContact ? `Дело закрыто, клиенту не написали (${taskNoContact})` : "", 0.6, "fakedone"],
       [internalOnly ? "Нет следов общения в CRM" : "", 0.55, "internal"],
       [!nextStep ? "Нет следующего шага" : "", 0.4, "nostep"],
@@ -385,7 +432,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
@@ -417,6 +464,13 @@ function main() {
     { key: "ghost", label: "движение без общения", unit: "шт", better: "less",
       calc: (ds: any[]) => ds.filter((d) => d.ghostMove || d.internalOnly).length,
       good: () => `не двигает сделки в тишине`, bad: (v: number) => `${v} сделок двигались без единого слова клиенту` },
+    { key: "promise", label: "держит слово", unit: "%", better: "more",
+      calc: (ds: any[]) => { const p = ds.filter((d) => (d.promiseBroken || 0) + (d.promiseKept || 0) + (d.vagueProm || 0) > 0);
+        if (p.length < 3) return null;
+        const k = p.reduce((a, d) => a + (d.promiseKept || 0), 0);
+        const b = p.reduce((a, d) => a + (d.promiseBroken || 0) + (d.vagueProm || 0), 0);
+        return k + b ? Math.round(k / (k + b) * 100) : null; },
+      good: (v: number) => `держит слово: ${v}% обещаний с датой и выполнены`, bad: (v: number) => `только ${v}% обещаний с датой и выполнены` },
     { key: "date", label: "конкретные сроки", unit: "%", better: "more",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.tags.some((t: Tag) => t.t === "Называет конкретные даты")).length / ds.length * 100),
       good: (v: number) => `называет клиенту конкретные даты в ${v}% сделок`, bad: (v: number) => `конкретные даты только в ${v}% сделок` },
@@ -451,6 +505,7 @@ function main() {
     };
     const actions = [
       pick((d) => d.ballWait > BALL_STUCK_MIN, "Ответить сегодня", "Клиент написал последним и ждёт дольше 4 часов"),
+      pick((d) => (d.promiseBroken || 0) + (d.vagueProm || 0) > 0, "Вернуть долги по обещаниям", "Менеджер обещал прислать или перезвонить: срок прошёл либо не был назван вовсе. Написать, дать конкретную дату и выполнить"),
       pick((d) => d.taskNoContact > 0, "Закрыть дела по-настоящему", "Дело отмечено выполненным, а разговора с клиентом после него нет"),
       pick((d) => d.silenceD >= SILENCE_BAD_D && !POST_SALE.has(d.stageCode), "Разбудить молчащие", "Нет касаний 4 дня и больше: написать с новым поводом и назначить дату следующего контакта"),
       pick((d) => d.stageCode === "C49:PREPAYMENT_INVOIC" && d.silenceD >= SILENCE_WARN_D, "Дожать после КП", "КП отправлено, ответа нет: позвонить и спросить решение"),
@@ -539,6 +594,7 @@ function main() {
     { key: "nostep", label: "Без следующего шага", hint: "В CRM не назначено ни одного открытого дела" },
     { key: "refuse", label: "Риск отказа", hint: "В переписке прозвучал отказ или «не актуально»" },
     { key: "nopush", label: "КП без дожима", hint: "КП отправлено, но после него тишина" },
+    { key: "promise", label: "Обещал и не сделал", hint: "Менеджер назвал клиенту срок («отправлю сегодня», «пришлю завтра»), срок прошёл, ничего не ушло" },
     { key: "fakedone", label: "Дела закрыты вхолостую", hint: "Дело вида «связаться с клиентом» или «отправь КП» отмечено выполненным, но контакта с клиентом в CRM после него нет" },
     { key: "internal", label: "Нет следов общения", hint: "За окно есть только дела, заметки и задачи. Внимание: звонок с личного телефона мимо телефонии система не видит, поэтому это повод спросить, а не обвинение" },
   ].map((q) => ({ ...q, n: deals.filter((d) => d.uKey === q.key).length,

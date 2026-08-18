@@ -84,6 +84,8 @@ const isMsg = (e: Ev) => e.type.startsWith("Сообщение") || e.type === "
 // Антигейминг: «Хорошо, спасибо!» за 2 минуты не ответ клиенту. Ответом по существу считаем
 // сообщение от 25 символов либо с цифрой, датой или вопросом (16% исходящих - короткие отписки).
 const MIN_ANSWER_LEN = 25;
+// Окно, в котором ответ менеджера ещё считается ответом на возражение (сутки).
+const OBJ_WINDOW_MS = 24 * 3600_000;
 // Вложение - это содержание, а не отписка. Wazzup кладёт в тело строку вида
 // «Отправлено Изображение» / «Принято Файл» (иногда с подписью следующей строкой):
 // менеджер прислал эскиз, замер или прайс, текста в теле нет по формату канала.
@@ -119,8 +121,21 @@ const fmtMin = (m: number) => m < 60 ? `${m} мин` : m < 600 ? `${(m / 60).toF
 
 // --- Словари сигналов ---
 const RE = {
-  ready: /выставьте счёт|выставите счет|оплач|оформля|(?<![а-яё])беру(?![а-яё])|готов оплатить|реквизит|когда можно оплатить|счёт на оплату/i,
+  ready: /выставьте счёт|выставите счет|выставляйте|выставите|оплач|оформля|(?<![а-яё])беру(?![а-яё])|готов оплатить|реквизит|когда можно оплатить|счёт на оплату/i,
   price: /дорого|скидк|дешевле|снизить цену|цена высок|не укладыва|бюджет не|подешевле/i,
+  // «Дорого» бывает трёх видов: возражение, вопрос про скидку и реплика перед покупкой
+  // («ого дорого, выставляйте счёт»). Возражением считаем только первое: objQuestion и
+  // сигнал готовности к оплате в том же сообщении снимают срабатывание.
+  objection: /(?<![а-яё])дорого(?![а-яё])|дешевле|снизить цену|цена высок|не укладыва|бюджет не|подешевле|дорогова|почему так долго|слишком долго|в другой компании|у конкурент|у других (дешевле|быстрее)|нашли дешевле|подума(ю|ем)|посоветуюсь|нет денег|не готов[аы]? платить|(дайте|дадите|сделайте|нужна|нужен|хотелось бы) скидк|без скидки/i,
+  // Вопрос про скидку - это интерес, а не возражение: «есть ли у вас дизайнерские скидки?»,
+  // «какой процент скидки при таком объёме?». Между вопросительным словом и «скидкой»
+  // помещаются определения, поэтому допускаем до трёх слов.
+  objQuestion: /(есть|будет|будут|бывают|какая|какие|какой|каков|предусмотрен[аы]?|возможн[оаы]|предоставля[а-яё]*)\s+(ли\s+)?(у вас\s+)?(?:[а-яё]+\s+){0,3}(скидк|бонус|дисконт|программ)|скидки (для|дизайнер)|(дешевле|дороже)[^.?!]{0,40}\?/i,
+  // Контраргумент: причина цены, состав, ценность, альтернатива или уточняющий вопрос по сути
+  // возражения. Голое «хорошо, сделаю скидку» контраргументом не считается.
+  counter: /потому что|так как|за счёт|в стоимость (входит|включ)|в цену (входит|включ)|включен[оаы]? в|входит в цену|гарант|срок службы|толщин|закал|сертификат|собственное производство|монтаж включ|замер бесплат|доставка включ|сравн|разниц|аналог|могу предложить|есть вариант|альтернатив|можем упрост|упрост|рассрочк|по этапам|частями|индивидуальн|под заказ|по вашим размерам|ручная работа|не серийн|можно (тогда )?без|попробуем без|вариант попроще|индивидуальные условия|с чем сравнива|какой у вас бюджет|на какую сумму ориентир|что для вас важн|если убрать|если заменить|дешевле будет если/i,
+  // Уступка без объяснения: цену снизили, ценность не объяснили.
+  concede: /(сделаю|сделаем|дам|дадим|готова дать|готов дать|могу дать) скидк|дам скидку|скидка \d+|уступ|снизим цену|минус \d+ ?%/i,
   refuse: /не актуально|отказыва|передумал|выбрали друг|уже заказал|не интересует|не будем/i,
   vague: /в ближайшее время|как только|постараюсь|на днях|в течение недели|буду держать в курсе|ориентировочно/i,
   dated: /\b\d{1,2}[.\/]\d{1,2}\b|завтра|сегодня до|понедельник|вторник|среду|четверг|пятницу|до \d{1,2}[:.]\d{2}|в течение дня/i,
@@ -227,6 +242,7 @@ function main() {
     // Тег на уровне сделки не объясняет, что не так. Здесь каждый сигнал привязан к
     // конкретному сообщению (src) и к цитате внутри него, чтобы в переписке было видно
     // место ошибки, а не общий вывод.
+    let objTotal = 0, objWorked = 0;
     const evTags: Record<string, { t: string; tone: string; sec: string; quote: string }[]> = {};
     const mark = (src: string, t: string, tone: string, sec: string, quote = "") => {
       (evTags[src] ||= []).push({ t, tone, sec, quote });
@@ -260,6 +276,24 @@ function main() {
       } else if (m.dir === "входящее") {
         if (RE.ready.test(body)) mark(src, "Сигнал готовности к оплате", "good", "result", hit(RE.ready, body));
         if (RE.price.test(body)) mark(src, "Возражение по цене", "warn", "result", hit(RE.price, body));
+        // Возражение без контраргумента: клиент назвал причину сомнения, менеджер ответил,
+        // но ответ не содержит ни объяснения цены, ни альтернативы, ни уточняющего вопроса.
+        // Разбираем и ценовые возражения (тег выше), и остальные: клиент назвал причину
+        // сомнения - на неё должен прозвучать аргумент.
+        if ((RE.price.test(body) || RE.objection.test(body)) && !RE.objQuestion.test(body) && !RE.ready.test(body)) {
+          objTotal++;
+          if (!RE.price.test(body)) mark(src, "Возражение клиента", "warn", "result", hit(RE.objection, body));
+          const reply = msgs.slice(i + 1).filter((x) => x.dir === "исходящее" && x.ts - m.ts <= OBJ_WINDOW_MS).slice(0, 4);
+          // Уточняющий вопрос по сути возражения («какую цену согласовали?») - тоже работа
+          // с возражением, а не уход от него.
+          const isCounter = (t: string) => RE.counter.test(t) || (/\?/.test(t) && /цен|бюджет|сумм|стоимост|сравн|сколько|важн|материал|алюмин|стекл|толщин|комплект|размер/i.test(t));
+          const arg = reply.find((x) => isCounter(String(x.body || "")));
+          const gave = reply.find((x) => RE.concede.test(String(x.body || "")));
+          if (arg) { objWorked++; if (arg.src) mark(arg.src, "Контраргумент на возражение", "good", "result", hit(RE.counter, String(arg.body || ""))); }
+          else if (gave) { if (gave.src) mark(gave.src, "Скидка без аргумента", "bad", "result", hit(RE.concede, String(gave.body || ""))); }
+          else if (reply.length) { if (reply[0]!.src) mark(reply[0]!.src, "Ответ без контраргумента", "bad", "result"); }
+          else mark(src, "Возражение без ответа", "bad", "result", hit(RE.objection, body));
+        }
         if (RE.refuse.test(body)) mark(src, "Риск отказа", "bad", "result", hit(RE.refuse, body));
         // Тег вешаем только на ПОСЛЕДНЕЕ сообщение клиента: если он написал три подряд,
         // без ответа висит вся пачка, но повторять метку на каждой строке - шум.
@@ -377,7 +411,7 @@ function main() {
     if (calls) add(`Звонков: ${calls}`, "process", "good");
     // 6. Результат
     if (RE.ready.test(inText)) add("Сигнал готовности к оплате", "result", "good");
-    if (RE.price.test(inText)) { const worked = RE.dated.test(outText) && outs.length >= ins.length; add(worked ? "Возражение по цене отработано" : "Возражение по цене без ответа", "result", worked ? "warn" : "bad"); }
+    if (objTotal) add(objWorked >= objTotal ? `Возражения отработаны аргументом: ${objWorked}` : `Возражение без контраргумента: ${objTotal - objWorked} из ${objTotal}`, "result", objWorked >= objTotal ? "good" : "bad");
     if (RE.refuse.test(inText)) add("Риск отказа", "result", "bad");
     if (a && Array.isArray(a.tags)) for (const t of a.tags) add(String(t.t || t), t.sec || "process", (t.tone as Tag["tone"]) || "warn");
 
@@ -393,7 +427,8 @@ function main() {
     else if (silenceD >= SILENCE_WARN_D) push(`пауза ${silenceD} дн`, postSale ? 0.95 : 0.85);
     if (!nextStep) push("нет следующего шага", 0.85);
     if (overdue) push(`дело просрочено на ${overdueD} дн`, 0.85);
-    if (RE.price.test(inText)) push("возражение по цене", 0.9);
+    if (objTotal && objWorked < objTotal) push(`возражение без контраргумента (${objTotal - objWorked})`, 0.8);
+    else if (objTotal) push("возражение отработано аргументом", 1.05);
     if (RE.refuse.test(inText)) push("клиент говорит об отказе", 0.5);
     if (ghostMove) push("стадия двигалась, касаний в CRM нет", 0.7);
     else if (internalOnly) push("нет следов общения в CRM", 0.75);
@@ -435,7 +470,7 @@ function main() {
       [RE.ready.test(inText) ? "Готов к оплате" : "", 1.0, "ready"],
       [ballWait > BALL_STUCK_MIN ? `Клиент ждёт ${fmtMin(ballWait)}` : "", 0.9, "waiting"],
       [RE.refuse.test(inText) ? "Риск отказа" : "", 0.85, "refuse"],
-      [RE.price.test(inText) && !RE.dated.test(outText) ? "Возражение без ответа" : "", 0.7, "objection"],
+      [objTotal > objWorked ? `Возражение без контраргумента (${objTotal - objWorked})` : "", 0.7, "objection"],
       [silenceD >= SILENCE_BAD_D + 2 ? `Тишина ${silenceD} дн` : "", 0.65, "silent"],
       [stageCode === "C49:PREPAYMENT_INVOIC" && silenceD >= SILENCE_WARN_D ? "После КП нет дожима" : "", 0.6, "nopush"],
       [silenceD >= SILENCE_BAD_D ? `Тишина ${silenceD} дн` : "", 0.5, "silent"],
@@ -457,7 +492,7 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
-      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises,
+      prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
@@ -496,6 +531,11 @@ function main() {
         const b = p.reduce((a, d) => a + (d.promiseBroken || 0) + (d.vagueProm || 0), 0);
         return k + b ? Math.round(k / (k + b) * 100) : null; },
       good: (v: number) => `держит слово: ${v}% обещаний с датой и выполнены`, bad: (v: number) => `только ${v}% обещаний с датой и выполнены` },
+    // Возражений за неделю мало (десятки на отдел), поэтому считаем не долю, а штуки:
+    // процент на выборке из двух возражений - это не оценка человека.
+    { key: "obj", label: "возражение без аргумента", unit: "шт", better: "less",
+      calc: (ds: any[]) => ds.reduce((a: number, d: any) => a + Math.max(0, (d.objTotal || 0) - (d.objWorked || 0)), 0),
+      good: () => `на возражение клиента отвечает аргументом, а не уступкой`, bad: (v: number) => `${v} возражений закрыты без аргумента: молчание, «хорошо» или скидка` },
     { key: "date", label: "конкретные сроки", unit: "%", better: "more",
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.tags.some((t: Tag) => t.t === "Называет конкретные даты")).length / ds.length * 100),
       good: (v: number) => `называет клиенту конкретные даты в ${v}% сделок`, bad: (v: number) => `конкретные даты только в ${v}% сделок` },
@@ -534,6 +574,7 @@ function main() {
       pick((d) => d.taskNoContact > 0, "Закрыть дела по-настоящему", "Дело отмечено выполненным, а разговора с клиентом после него нет"),
       pick((d) => d.silenceD >= SILENCE_BAD_D && !POST_SALE.has(d.stageCode), "Разбудить молчащие", "Нет касаний 4 дня и больше: написать с новым поводом и назначить дату следующего контакта"),
       pick((d) => d.stageCode === "C49:PREPAYMENT_INVOIC" && d.silenceD >= SILENCE_WARN_D, "Дожать после КП", "КП отправлено, ответа нет: позвонить и спросить решение"),
+      pick((d) => (d.objTotal || 0) > (d.objWorked || 0), "Вернуться к возражению", "Клиент назвал причину сомнения - цену, срок, сравнение с другими. В ответе аргумента не было. Вернуться с расчётом разницы или альтернативой, а не со скидкой"),
       pick((d) => !d.nextStep, "Поставить следующий шаг", "В CRM нет открытого дела: сделка выпадает из работы"),
     ].filter(Boolean);
     // Сырые значения метрик - для табличного вида: сортировать и сравнивать в столбцах.

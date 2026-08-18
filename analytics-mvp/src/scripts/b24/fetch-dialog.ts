@@ -111,6 +111,18 @@ function shortDT(s: any): string {
   const m = String(s || "").match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
   return m ? `${m[3]}.${m[2]} ${m[4]}:${m[5]}` : "";
 }
+// Срок дела. У новых дел (CRM_TODO) время стоит в DEADLINE, у старых активностей - в END_TIME;
+// START_TIME остаётся запасным. Bitrix отдаёт «пустой» срок сентинелом 9999-… и 1970-…, такие режем.
+function dueOf(a: any): string {
+  for (const v of [a.DEADLINE, a.END_TIME, a.START_TIME]) {
+    const s = String(v || "");
+    if (!/^\d{4}-\d{2}-\d{2}T/.test(s)) continue;
+    const y = Number(s.slice(0, 4));
+    if (y < 2000 || y > 2100) continue;
+    return s;
+  }
+  return "";
+}
 function activityToEvent(a: any, mgrName: string, callMap: Record<string, any>, callRefs: Record<string, any>): any {
   const p = String(a.PROVIDER_ID || "").toUpperCase();
   if (/SMS|NOTIFICATION|REST_APP/.test(p)) return null;
@@ -140,9 +152,12 @@ function activityToEvent(a: any, mgrName: string, callMap: Record<string, any>, 
     return { raw: a.CREATED, dir, who, type: "Письмо", title: subj, body: cap((subj ? "Тема: " + subj + "\n" : "") + (desc || "")), status: a.COMPLETED === "Y" ? "обработано" : "", dur: "", link: "", src: "act#" + a.ID };
   if (/IMOPENLINES|IMCONNECTOR|IMOL/.test(p))
     return { raw: a.CREATED, dir, who, type: "Мессенджер ОЛ", title: subj, body: cap(desc || subj || "Сессия Открытой линии"), status: "", dur: "", link: "", src: "act#" + a.ID };
-  if (a.TYPE_ID === "6" || /CRM_TODO/.test(p))
-    return { raw: a.CREATED, dir: "-", who: mgrName, type: "Дело", title: subj, body: cap(desc || subj), status: a.COMPLETED === "Y" ? "выполнено" : (a.END_TIME && a.END_TIME < TO ? "просрочено" : "запланировано"), dur: "", link: "", src: "act#" + a.ID };
-  return { raw: a.CREATED, dir, who, type: "Активность", title: subj, body: cap(desc || subj), status: a.COMPLETED === "Y" ? "выполнено" : "", dur: "", link: "", src: "act#" + a.ID };
+  if (a.TYPE_ID === "6" || /CRM_TODO/.test(p)) {
+    const due = dueOf(a);
+    const status = a.COMPLETED === "Y" ? "выполнено" : (due && due < TO ? "просрочено" : "запланировано");
+    return { raw: a.CREATED, dir: "-", who: mgrName, type: "Дело", title: subj, body: cap(desc || subj), status, due, dur: "", link: "", src: "act#" + a.ID };
+  }
+  return { raw: a.CREATED, dir, who, type: "Активность", title: subj, body: cap(desc || subj), status: a.COMPLETED === "Y" ? "выполнено" : "", due: dueOf(a), dur: "", link: "", src: "act#" + a.ID };
 }
 function commentToEvent(c: any, employees: Record<string, 1>, authorName: string): any {
   const raw = String(c.COMMENT || "");
@@ -195,7 +210,7 @@ async function main() {
 
   // Активности + комментарии поэлементно, батчами по 25 (JSON-тело в call), параллельность CONC.
   // В batch-cmd используем только >CREATED (одиночный >, парсится); верхнюю границу режем на клиенте.
-  const aSel = "&select[0]=ID&select[1]=TYPE_ID&select[2]=PROVIDER_ID&select[3]=DIRECTION&select[4]=SUBJECT&select[5]=DESCRIPTION&select[6]=CREATED&select[7]=END_TIME&select[8]=COMPLETED&select[9]=RESPONSIBLE_ID&select[10]=SETTINGS&select[11]=ASSOCIATED_ENTITY_ID&select[12]=FILES";
+  const aSel = "&select[0]=ID&select[1]=TYPE_ID&select[2]=PROVIDER_ID&select[3]=DIRECTION&select[4]=SUBJECT&select[5]=DESCRIPTION&select[6]=CREATED&select[7]=END_TIME&select[8]=COMPLETED&select[9]=RESPONSIBLE_ID&select[10]=SETTINGS&select[11]=ASSOCIATED_ENTITY_ID&select[12]=FILES&select[13]=START_TIME&select[14]=DEADLINE";
   const cSel = "&select[0]=ID&select[1]=CREATED&select[2]=COMMENT&select[3]=AUTHOR_ID";
   const actsBy: Record<string, any[]> = {}, cmtsBy: Record<string, any[]> = {};
   const chunks: Ent[][] = [];

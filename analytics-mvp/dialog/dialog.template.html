@@ -195,6 +195,7 @@ input#q{min-width:220px}
 .ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 .sysw{color:var(--ink-4);font-size:10.5px}
+.due{display:inline-block;margin-left:6px;font-size:10px;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px;white-space:nowrap}
 .arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
 .arw4{color:var(--acc);margin-right:7px;font-size:11px;display:inline-block;width:9px}
 .xcell{width:16px;text-align:center}
@@ -483,7 +484,7 @@ function renderTree(){
   const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
-  const SHORT={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',date:'Даты'};
+  const SHORT={resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
   const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
     if(k==='hot') return p.hotMoney; if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
     if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0); return p.metrics? p.metrics[k] : null; };
@@ -587,7 +588,7 @@ function renderTree(){
           <td class="etime">${fmtTime(e.dt)}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
-          <td class="l ebody">${e.title&&!isM?`<b>${esc(e.title)}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
+          <td class="l ebody">${e.title&&!isM?`<b>${esc(e.title)}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}</td>
           <td class="l">${tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];
@@ -608,6 +609,14 @@ function renderTree(){
 }
 // У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
 // Показываем тело без повтора, иначе строка читается как каша.
+// У дел в Bitrix есть выставленный срок (DEADLINE/END_TIME). Показываем его рядом со
+// статусом: просроченный - красным, будущий - серым. Без срока чипа нет.
+function dueChip(e){
+  if(!e.due) return '';
+  const t=fmtTime(e.due); if(!t) return '';
+  const over = e.status==='просрочено' || (e.status!=='выполнено' && new Date(e.due) < new Date());
+  return ` <span class="due" style="${over?'color:#C25252;border-color:#C2525255':''}">срок ${t}</span>`;
+}
 function bodyNoTitle(e){
   const b=String(e.body||'').trim(), t=String(e.title||'').trim();
   if(!t) return b;

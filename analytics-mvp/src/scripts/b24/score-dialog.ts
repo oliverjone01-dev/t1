@@ -392,6 +392,75 @@ function main() {
     });
   }
 
+  // ===== ДОСЬЕ РОПа: кто сильный и почему, кто слабый и что чинить =====
+  // Каждая метрика сравнивается с медианой отдела: сильная сторона это не «хорошо вообще»,
+  // а «заметно лучше коллег на сопоставимой выборке». Ниже порога выборки не судим.
+  const METRICS = [
+    { key: "resp", label: "скорость ответа", unit: "мин", better: "less",
+      calc: (ds: any[]) => med(ds.map((d) => d.respMed).filter((x) => x !== null) as number[]),
+      good: (v: number) => `отвечает клиенту за ${v} мин`, bad: (v: number) => `отвечает за ${fmtMin(v)}` },
+    { key: "ball", label: "клиент ждёт ответа", unit: "%", better: "less",
+      calc: (ds: any[]) => Math.round(ds.filter((d) => d.ballWait > BALL_STUCK_MIN).length / ds.length * 100),
+      good: (v: number) => `почти не оставляет клиентов без ответа (${v}%)`, bad: (v: number) => `${v}% сделок ждут ответа` },
+    { key: "silent", label: "тишина 4+ дней", unit: "%", better: "less",
+      calc: (ds: any[]) => Math.round(ds.filter((d) => d.silenceD >= SILENCE_BAD_D).length / ds.length * 100),
+      good: (v: number) => `держит регулярный контакт, тишина только в ${v}% сделок`, bad: (v: number) => `${v}% сделок молчат 4 дня и дольше` },
+    { key: "step", label: "следующий шаг", unit: "%", better: "more",
+      calc: (ds: any[]) => Math.round(ds.filter((d) => d.nextStep).length / ds.length * 100),
+      good: (v: number) => `следующий шаг стоит в ${v}% сделок`, bad: (v: number) => `следующий шаг есть только в ${v}% сделок` },
+    { key: "qual", label: "квалификация", unit: "%", better: "more",
+      calc: (ds: any[]) => { const e = ds.filter((d) => EARLY.has(d.stageCode) || !d.stageCode); return e.length >= 3 ? Math.round(e.filter((d) => d.tags.some((t: Tag) => t.sec === "qual" && t.tone === "good")).length / e.length * 100) : null; },
+      good: (v: number) => `собирает ТЗ, срок и бюджет в ${v}% ранних сделок`, bad: (v: number) => `квалификация собрана лишь в ${v}% ранних сделок` },
+    { key: "fake", label: "дела вхолостую", unit: "шт", better: "less",
+      calc: (ds: any[]) => ds.reduce((a: number, d: any) => a + (d.taskNoContact || 0), 0),
+      good: () => `закрывает дела только после разговора с клиентом`, bad: (v: number) => `${v} дел закрыто без контакта с клиентом` },
+    { key: "ghost", label: "движение без общения", unit: "шт", better: "less",
+      calc: (ds: any[]) => ds.filter((d) => d.ghostMove || d.internalOnly).length,
+      good: () => `не двигает сделки в тишине`, bad: (v: number) => `${v} сделок двигались без единого слова клиенту` },
+    { key: "date", label: "конкретные сроки", unit: "%", better: "more",
+      calc: (ds: any[]) => Math.round(ds.filter((d) => d.tags.some((t: Tag) => t.t === "Называет конкретные даты")).length / ds.length * 100),
+      good: (v: number) => `называет клиенту конкретные даты в ${v}% сделок`, bad: (v: number) => `конкретные даты только в ${v}% сделок` },
+  ];
+  const dealsByMgr: Record<string, any[]> = {};
+  for (const d of deals) (dealsByMgr[d.mgr] ||= []).push(d);
+  const scored = Object.entries(dealsByMgr).filter(([m, ds]) => !isHidden(m, fired) && ds.length >= MIN_SAMPLE);
+  const dept: Record<string, number | null> = {};
+  for (const mt of METRICS) {
+    const vals = scored.map(([, ds]) => mt.calc(ds)).filter((v) => v !== null && !isNaN(v as number)) as number[];
+    dept[mt.key] = vals.length ? med(vals) : null;
+  }
+  const profile: Record<string, any> = {};
+  for (const [mgr, ds] of scored) {
+    const strengths: any[] = [], weaknesses: any[] = [];
+    for (const mt of METRICS) {
+      const v = mt.calc(ds); const dv = dept[mt.key];
+      if (v === null || v === undefined || dv === null || dv === undefined || isNaN(v)) continue;
+      const better = mt.better === "less" ? v < dv : v > dv;
+      const gap = dv === 0 ? (v === 0 ? 0 : 100) : Math.round(Math.abs(v - dv) / Math.max(Math.abs(dv), 1) * 100);
+      const item = { key: mt.key, label: mt.label, v, dept: dv, gap, text: better ? mt.good(v) : mt.bad(v) };
+      if (better && gap >= 20) strengths.push(item);
+      else if (!better && gap >= 20) weaknesses.push(item);
+    }
+    strengths.sort((a, b) => b.gap - a.gap); weaknesses.sort((a, b) => b.gap - a.gap);
+    // Что чинить: конкретные списки сделок под каждую слабость, с деньгами.
+    const pick = (f: (d: any) => boolean, title: string, how: string) => {
+      const list = ds.filter(f).sort((a, b) => (b.budget || 0) - (a.budget || 0));
+      if (!list.length) return null;
+      return { title, how, n: list.length, money: list.reduce((a, d) => a + (d.budget || 0), 0),
+               ids: list.slice(0, 5).map((d) => ({ id: d.dealId || d.leadId, t: d.title.slice(0, 40), b: d.budget || 0 })) };
+    };
+    const actions = [
+      pick((d) => d.ballWait > BALL_STUCK_MIN, "Ответить сегодня", "Клиент написал последним и ждёт дольше 4 часов"),
+      pick((d) => d.taskNoContact > 0, "Закрыть дела по-настоящему", "Дело отмечено выполненным, а разговора с клиентом после него нет"),
+      pick((d) => d.silenceD >= SILENCE_BAD_D && !POST_SALE.has(d.stageCode), "Разбудить молчащие", "Нет касаний 4 дня и больше: написать с новым поводом и назначить дату следующего контакта"),
+      pick((d) => d.stageCode === "C49:PREPAYMENT_INVOIC" && d.silenceD >= SILENCE_WARN_D, "Дожать после КП", "КП отправлено, ответа нет: позвонить и спросить решение"),
+      pick((d) => !d.nextStep, "Поставить следующий шаг", "В CRM нет открытого дела: сделка выпадает из работы"),
+    ].filter(Boolean);
+    const hotMoney = ds.filter((d) => d.urgency).reduce((a, d) => a + (d.budget || 0), 0);
+    const verdict = weaknesses.length === 0 ? "сильный" : (strengths.length > weaknesses.length ? "норма" : (weaknesses.length >= 3 ? "в разборе" : "норма"));
+    profile[mgr] = { strengths, weaknesses, actions, hotMoney, verdict };
+  }
+
   // --- Сводка по менеджерам: доля здоровых сделок в каждом разделе ---
   const byMgr: Record<string, any[]> = {};
   for (const d of deals) (byMgr[d.mgr] ||= []).push(d);
@@ -427,6 +496,7 @@ function main() {
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
       topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,
       ghost: ds.filter((d) => d.ghostMove).length,
+      profile: profile[mgr] || null,
       internal: ds.filter((d) => d.internalOnly).length,
       fakedone: ds.reduce((s2, d) => s2 + (d.taskNoContact || 0), 0),
       noRating: enough ? "" : `мало данных (${ds.length} из ${MIN_SAMPLE})`,
@@ -480,7 +550,7 @@ function main() {
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
     sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
-    tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
+    deptMedians: dept, tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),
   };
   writeFileSync(DLG, JSON.stringify(dlg));

@@ -106,6 +106,22 @@ input#q{min-width:220px}
 .sarr{font-size:9px;color:var(--acc)}
 .fbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-3)}
 .fbar select{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
+.vbadge{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:5px;border:1px solid}
+.sw{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 12px 10px 34px}
+.swcol{}
+.swh{font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.swh-g{color:#2E9E74}.swh-b{color:#C25252}
+.swi{color:var(--ink-2);font-size:11.5px;line-height:1.6}
+.swd{color:var(--ink-4);font-size:10px;margin-left:6px}
+.swnone{color:var(--ink-4);font-style:italic}
+.fixh{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px 0}
+.fix{background:#ffffff05;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px}
+.fixt{font-size:12px}
+.fixn{color:var(--ink-3);font-size:11px;margin-left:6px}
+.fixw{color:var(--ink-3);font-size:11px;margin:2px 0 6px 0}
+.fixids{display:flex;flex-wrap:wrap;gap:5px}
+.fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
+.fixid:hover{border-color:var(--acc);color:var(--acc)}
 .mnode{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
 .mnode.on{border-color:var(--acc)}
 .mhead{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
@@ -455,61 +471,76 @@ const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objecti
 function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
-  const byM={};
-  for(const d of SC.deals){ (byM[d.mgr] ||= []).push(d); }
-  const mgrs = SC.managers.filter(m=>byM[m.mgr]);
+  const byM={}; for(const d of SC.deals) (byM[d.mgr] ||= []).push(d);
+  const V={'сильный':['#2E9E74','СИЛЬНЫЙ'],'норма':['#C2873C','НОРМА'],'в разборе':['#C25252','В РАЗБОРЕ']};
+  const mgrs=SC.managers.filter(m=>byM[m.mgr]);
+  const withP=mgrs.filter(m=>m.profile), noP=mgrs.filter(m=>!m.profile);
+  const ord={'в разборе':0,'норма':1,'сильный':2};
+  withP.sort((a,b)=>(ord[a.profile.verdict]-ord[b.profile.verdict])||(b.profile.hotMoney-a.profile.hotMoney));
   let html='';
-  for(const m of mgrs){
-    const ds=(byM[m.mgr]||[]).slice().sort((a,b)=>b.prio-a.prio);
-    const openM = S.tm===m.mgr;
-    const hot = ds.filter(d=>d.urgency).length;
-    const sum = ds.reduce((s2,d)=>s2+(d.budget||0),0);
-    const rt = m.rating!==null ? `<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span>` : `<span class="na2">${esc(m.noRating)}</span>`;
-    html += `<div class="mnode${openM?' on':''}">
+  for(const m of withP.concat(noP)){
+    const p=m.profile, ds=(byM[m.mgr]||[]).slice().sort((a,b)=>b.prio-a.prio);
+    const openM=S.tm===m.mgr;
+    const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
+    const hot=ds.filter(d=>d.urgency).length;
+    html+=`<div class="mnode${openM?' on':''}">
       <div class="mhead" data-m="${esc(m.mgr)}">
         <span class="arw3">${openM?'▾':'▸'}</span>
+        <span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span>
         <span class="mname">${esc(m.mgr)}</span>
-        ${rt}
-        <span class="mmeta">${ds.length} сделок · ${money(sum)} ₽ · требуют действия <b style="color:${hot?'#C25252':'var(--ink-3)'}">${hot}</b>${m.lossRub?` · под риском ${money(m.lossRub)} ₽`:''}</span>
-        ${m.topLoss?`<span class="mwhy">главная причина: ${esc(m.topLoss.label)}</span>`:''}
-      </div>`;
+        <span class="mmeta">${ds.length} сделок · требуют действия <b style="color:${hot?'#C25252':'var(--ink-3)'}">${hot}</b> на ${money(p?p.hotMoney:0)} ₽</span>
+        ${m.rating!==null?`<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span>`:''}
+      </div>
+      ${p?`<div class="sw">
+        <div class="swcol"><div class="swh swh-g">Сильные стороны</div>${p.strengths.length?p.strengths.slice(0,3).map(x=>`<div class="swi">${esc(x.text)}<span class="swd">по отделу ${x.dept}</span></div>`).join(''):'<div class="swi swnone">заметных преимуществ над отделом нет</div>'}</div>
+        <div class="swcol"><div class="swh swh-b">Слабые места</div>${p.weaknesses.length?p.weaknesses.slice(0,3).map(x=>`<div class="swi">${esc(x.text)}<span class="swd">по отделу ${x.dept}</span></div>`).join(''):'<div class="swi swnone">отклонений от отдела нет</div>'}</div>
+      </div>`:''}`;
     if(openM){
-      html += `<div class="mbody">` + ds.map(d=>{
-        const openD = S.td===d.key;
-        const c=urgCol(d.uKey), pc=probColor(d.prob);
-        const url = d.dealId ? `${PORTAL}/crm/deal/details/${d.dealId}/` : `${PORTAL}/crm/lead/details/${d.leadId}/`;
-        return `<div class="dnode${openD?' on':''}">
+      html+=`<div class="mbody">`;
+      if(p&&p.actions.length){
+        html+=`<div class="fixh">Что сделать, чтобы усилить</div>`;
+        html+=p.actions.map((a,ai)=>`<div class="fix">
+          <div class="fixt"><b>${ai+1}. ${esc(a.title)}</b> <span class="fixn">${a.n} сделок · ${money(a.money)} ₽</span></div>
+          <div class="fixw">${esc(a.how)}</div>
+          <div class="fixids">${a.ids.map(x=>`<span class="fixid" data-go="${esc(x.id)}">${esc(x.id)} · ${esc(x.t)} · ${money(x.b)} ₽</span>`).join('')}</div>
+        </div>`).join('');
+      }
+      html+=`<div class="fixh">Все сделки (${ds.length})</div>`+ds.map(d=>{
+        const openD=S.td===d.key, c=urgCol(d.uKey), pc=probColor(d.prob);
+        const url=d.dealId?`${PORTAL}/crm/deal/details/${d.dealId}/`:`${PORTAL}/crm/lead/details/${d.leadId}/`;
+        return `<div class="dnode${openD?' on':''}" id="d-${esc(d.dealId||d.leadId)}">
           <div class="dhead2" data-d="${esc(d.key)}">
-            <span class="arw3">${openD?'▾':'▸'}</span>
-            <span class="dsum">${money(d.budget)} ₽</span>
+            <span class="arw3">${openD?'▾':'▸'}</span><span class="dsum">${money(d.budget)} ₽</span>
             <span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span>
             <a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a>
             <span class="dttl2">${esc(d.title.slice(0,52))}</span>
             <span class="dstage">${esc(d.stage||'-')}</span>
             <span class="dprob" style="color:${pc}">${d.prob}%</span>
             ${d.urgency?`<span class="urg" style="color:${c};background:${c}18;border:1px solid ${c}44">${esc(d.urgency)}</span>`:''}
-          </div>
-          ${openD?`<div class="dbody" id="tree-${esc(d.key)}"></div>`:''}</div>`;
-      }).join('') + `</div>`;
+          </div>${openD?`<div class="dbody" id="tree-${esc(d.key)}"></div>`:''}</div>`;
+      }).join('')+`</div>`;
     }
-    html += `</div>`;
+    html+=`</div>`;
   }
-  list.innerHTML = html;
-  list.querySelectorAll('.mhead').forEach(h=>h.onclick=()=>{ S.tm = S.tm===h.dataset.m ? '' : h.dataset.m; S.td=''; renderTree(); });
-  list.querySelectorAll('.dhead2').forEach(h=>h.onclick=e=>{ e.stopPropagation(); S.td = S.td===h.dataset.d ? '' : h.dataset.d; renderTree(); });
+  list.innerHTML=html;
+  list.querySelectorAll('.mhead').forEach(h=>h.onclick=()=>{ S.tm=S.tm===h.dataset.m?'':h.dataset.m; S.td=''; renderTree(); });
+  list.querySelectorAll('.dhead2').forEach(h=>h.onclick=e=>{ e.stopPropagation(); S.td=S.td===h.dataset.d?'':h.dataset.d; renderTree(); });
+  list.querySelectorAll('.fixid').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    const id=b.dataset.go; const k=SC.deals.find(x=>(x.dealId||x.leadId)===id); if(!k) return;
+    S.td=k.key; renderTree(); const el=document.getElementById('d-'+id); if(el) el.scrollIntoView({block:'center'}); });
   if(S.td){
     const host=document.getElementById('tree-'+S.td);
-    if(host){
-      const d=SCD[S.td];
+    if(host){ const d=SCD[S.td];
       const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===S.td).sort((a,b)=>a.ts-b.ts);
-      host.innerHTML = `<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
-        + (d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая по стадии ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
-        + treeHTML(evs, d);
+      host.innerHTML=`<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
+        +(d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая по стадии ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
+        +treeHTML(evs,d);
     }
   }
-  const totHot = SC.deals.filter(d=>d.urgency).length;
-  document.getElementById('stat').textContent = `менеджеров: ${mgrs.length} · сделок и лидов: ${SC.deals.length} · требуют действия: ${totHot}`;
-  document.getElementById('foot').textContent = `Три уровня: менеджер, его сделки по сумме под риском, внутри вся коммуникация. Клик по строке раскрывает и сворачивает.`;
+  const hot=SC.deals.filter(d=>d.urgency);
+  const money2=hot.reduce((s2,d)=>s2+(d.budget||0),0);
+  document.getElementById('stat').textContent=`в разборе: ${withP.filter(m=>m.profile.verdict==='в разборе').length} · норма: ${withP.filter(m=>m.profile.verdict==='норма').length} · сильных: ${withP.filter(m=>m.profile.verdict==='сильный').length} · требуют действия ${hot.length} сделок на ${money(money2)} ₽`;
+  document.getElementById('foot').textContent=`Клик 1 - менеджер: видно сильные и слабые стороны против отдела. Клик 2 - что чинить: списки сделок под каждую слабость. Клик 3 - сделка: почему шанс такой и вся переписка с разметкой.`;
 }
 function renderQueue(){
   const list=document.getElementById('list');

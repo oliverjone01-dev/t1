@@ -40,6 +40,9 @@ input#q{min-width:220px}
 .stg-lead{background:#3a2a12;color:#d6a45f}.stg-deal{background:#12303a;color:#7fd7e6}
 .badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap}
 .dir-in{color:#69C7DA}.dir-out{color:#7FD1A6}.dir-n{color:var(--ink-4)}
+.who-cli{color:#E8A33D;font-weight:600}
+.who-mgr{color:#22d3ee}
+.whosub{display:block;color:var(--ink-4);font-size:10px;font-weight:400}
 .who{color:var(--ink-2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .body{white-space:pre-wrap;word-break:break-word;color:var(--ink)}
 .body .st{color:var(--ink-4);font-size:10.5px;margin-left:6px}
@@ -98,6 +101,51 @@ input#q{min-width:220px}
 .lgb{padding:0 12px 10px 12px}
 .lgi{color:var(--ink-2);margin-bottom:5px;line-height:1.5}
 .lgi b{color:var(--ink)}
+.sortable{cursor:pointer;user-select:none}
+.sortable:hover{color:var(--acc)}
+.sarr{font-size:9px;color:var(--acc)}
+.fbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-3)}
+.fbar select{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
+.mnode{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.mnode.on{border-color:var(--acc)}
+.mhead{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;flex-wrap:wrap}
+.mhead:hover{background:#ffffff08}
+.mname{font-weight:600;font-size:13px;min-width:150px}
+.mmeta{color:var(--ink-3);font-size:11.5px}
+.mwhy{color:var(--ink-4);font-size:11px;margin-left:auto}
+.mbody{border-top:1px solid var(--line);padding:4px 8px 8px 20px}
+.dnode{border-bottom:1px solid #ffffff08}
+.dnode:last-child{border-bottom:none}
+.dnode.on{background:#22d3ee08;border-radius:8px}
+.dhead2{display:grid;grid-template-columns:16px 78px 52px 54px 1fr 150px 44px auto;gap:8px;align-items:center;padding:7px 6px;cursor:pointer;font-size:11.5px}
+.dhead2:hover{background:#ffffff08}
+.dsum{font-weight:700}
+.did2{color:var(--ink-4);font-size:10.5px}
+.dttl2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dstage{color:var(--ink-3);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dprob{font-weight:600;text-align:right}
+.dbody{padding:2px 4px 10px 16px;border-left:2px solid var(--line);margin:0 0 8px 8px}
+.whyb{color:var(--ink-3);font-size:11px;margin:4px 0 8px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.wchip{border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+.node{margin:8px 0 12px 0}
+.nhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 0 5px 2px;border-bottom:1px solid var(--line)}
+.nhead b{font-size:11.5px;letter-spacing:.02em}
+.nhead a{color:inherit}
+.ndot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.n-lead{background:#C2873C}.n-deal{background:#22d3ee}
+.nsub{color:var(--ink-4);font-size:10.5px}
+.nbody{border-left:1px solid var(--line);margin-left:3px}
+.erow{display:grid;grid-template-columns:74px 132px 1fr 190px;gap:8px;padding:5px 8px;border-bottom:1px solid #ffffff08;align-items:start;font-size:11.5px}
+.erow:last-child{border-bottom:none}
+.lv-in{}
+.lv-out{background:#ffffff04}
+.lv-task{opacity:.8}
+.e-bad{box-shadow:inset 2px 0 0 #C25252}
+.e-good{box-shadow:inset 2px 0 0 #2E9E74}
+.etime{color:var(--ink-3);font-size:10.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ewho{font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.sysw{color:var(--ink-4);font-size:10.5px}
 .arw3{color:var(--ink-4);margin-right:6px;font-size:10px}
 .qbar{display:flex;justify-content:space-between;align-items:center;padding:7px 2px 4px 2px;color:var(--ink-3);font-size:11px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .qclose{cursor:pointer;border:1px solid var(--line);border-radius:5px;padding:2px 9px;color:var(--ink-3);font-size:11px;margin-left:10px;white-space:nowrap}
@@ -135,7 +183,7 @@ input#q{min-width:220px}
   <div class="sub" id="sub">загрузка…</div>
 
   <div class="bar">
-    <span><label>Смотрим</label><select id="fMode"><option value="queue">очередь дел</option><option value="mgr">менеджеры (рейтинг)</option><option value="deal">все сделки</option><option value="lead">все лиды</option></select></span>
+    <span><label>Смотрим</label><select id="fMode"><option value="tree">менеджеры → сделки → диалог</option><option value="queue">очередь дел</option><option value="mgr">рейтинг (таблица)</option><option value="deal">все сделки</option><option value="lead">все лиды</option></select></span>
     <span><label>Менеджер</label><select id="fMgr"></select></span>
     <span><label>Направление</label><select id="fDir"><option value="">все</option><option value="входящее">входящие</option><option value="исходящее">исходящие</option></select></span>
     <span><label>ID</label><input id="fDeal" placeholder="сделка/лид" style="width:96px"></span>
@@ -163,7 +211,7 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'queue', sec:'', tag:'', exp:null, q4:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'tree', sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
 let VIEW = [];
 
 function initControls(){
@@ -259,6 +307,57 @@ function hl(body, tags){
   }
   return out;
 }
+// Кто написал: клиент или наш сотрудник. У входящих в подписи часто стоит название чата,
+// совпадающее с названием сделки, поэтому показываем слово «Клиент», а имя - только если оно
+// действительно отличается и что-то добавляет.
+// Дерево разбора: этап (лид -> сделка) -> кто вёл -> события с отступами по ролям.
+// Плоский список не давал понять, где заканчивается работа с лидом и начинается сделка.
+function treeHTML(events, sc){
+  CUR_TAGS = (sc && sc.evTags) || {};
+  const byStage = {lead:[], deal:[]};
+  for(const e of events) (byStage[e.stage] || byStage.deal).push(e);
+  const parts = (sc && sc.participants) || [];
+  let out = '';
+  for(const st of ['lead','deal']){
+    const list = byStage[st]; if(!list.length) continue;
+    const who = parts.filter(p=>p.stage===st).map(p=>`${esc(p.who)} · ${p.n}`).join(', ') || 'без исходящих';
+    const id = st==='lead' ? (list[0].leadId||'') : (list[0].dealId||'');
+    const url = st==='lead' ? `${PORTAL}/crm/lead/details/${id}/` : `${PORTAL}/crm/deal/details/${id}/`;
+    const msgs = list.filter(e=>e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок').length;
+    out += `<div class="node">
+      <div class="nhead"><span class="ndot ${st==='lead'?'n-lead':'n-deal'}"></span>
+        <b>${st==='lead'?'ЛИД':'СДЕЛКА'} <a href="${url}" target="_blank" onclick="event.stopPropagation()">${esc(id)}</a></b>
+        <span class="nsub">вёл: ${who}</span><span class="nsub">· ${list.length} событий, из них общения с клиентом ${msgs}</span></div>
+      <div class="nbody">${list.map(e=>evRowHTML(e)).join('')}</div></div>`;
+  }
+  CUR_TAGS = {};
+  return out;
+}
+// Строка события внутри дерева: клиент слева, наш ответ с отступом, внутренняя работа глубже.
+function evRowHTML(e){
+  const tags=(CUR_TAGS[e.src]||[]);
+  const isMsg = e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок';
+  const lvl = !isMsg ? 'lv-task' : (e.dir==='входящее' ? 'lv-in' : 'lv-out');
+  const bad = tags.some(t=>t.tone==='bad'), good = tags.length && !bad;
+  const c = typeColor(e.type);
+  const tagsHTML = tags.length ? `<span class="evtags">`+tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join('')+`</span>` : '';
+  const st = e.status?`<span class="st">${esc(e.status)}</span>`:'';
+  const rec = e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:'';
+  const ttl = e.title && !isMsg ? `<b>${esc(e.title)}: </b>` : '';
+  const ref = e.ref?`<span class="ref">↳ ${esc(e.ref)}</span>`:'';
+  return `<div class="erow ${lvl}${bad?' e-bad':good?' e-good':''}">
+    <span class="etime">${fmtTime(e.dt)}</span>
+    <span class="ewho">${isMsg? whoLabel(e) : '<span class="sysw">CRM · '+esc(e.who||e.mgr||'')+'</span>'}</span>
+    <span class="ebody"><span class="badge" style="background:${c}18;color:${c};border:1px solid ${c}44">${esc(e.type)}</span> ${ttl}${tags.length?hl(e.body,tags):esc(e.body)}${st}${rec}${ref}</span>
+    ${tagsHTML}</div>`;
+}
+function whoLabel(e){
+  if(e.dir!=='входящее') return esc(e.who||'');
+  const nm=String(e.who||'').trim();
+  const ttl=String(e.dealT||e.leadT||'').trim();
+  const same = !nm || nm==='—' || (ttl && (ttl.indexOf(nm.slice(0,12))>=0 || nm.indexOf(ttl.slice(0,12))>=0));
+  return same ? 'Клиент' : `Клиент<span class="whosub">${esc(nm.slice(0,22))}</span>`;
+}
 function evHTML(e, showStage){
   const c=typeColor(e.type);
   const dir = e.dir==='входящее'?'<span class="dir-in">←</span>':e.dir==='исходящее'?'<span class="dir-out">→</span>':'<span class="dir-n">·</span>';
@@ -275,7 +374,7 @@ function evHTML(e, showStage){
     ${stg}
     <span><span class="badge" style="background:${c}22;color:${c};border:1px solid ${c}55">${esc(e.type)}</span></span>
     <span>${dir}</span>
-    <span class="who">${esc(e.who)}</span>
+    <span class="who ${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${whoLabel(e)}</span>
     <span class="body">${ttl}${mtags.length?hl(e.body,mtags):esc(e.body)}${st}${rec}${ref}</span>
     ${tagsHTML}
   </div>`;
@@ -353,6 +452,65 @@ function fillExpanded(){
 // ===== ОЧЕРЕДЬ ДЕЛ: главный экран. Строка = сделка или лид, сортировка по деньгам под риском =====
 const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round(v/1000)+'к';
 const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5'}[k]||'#5D6B77');
+function renderTree(){
+  const list=document.getElementById('list');
+  if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
+  const byM={};
+  for(const d of SC.deals){ (byM[d.mgr] ||= []).push(d); }
+  const mgrs = SC.managers.filter(m=>byM[m.mgr]);
+  let html='';
+  for(const m of mgrs){
+    const ds=(byM[m.mgr]||[]).slice().sort((a,b)=>b.prio-a.prio);
+    const openM = S.tm===m.mgr;
+    const hot = ds.filter(d=>d.urgency).length;
+    const sum = ds.reduce((s2,d)=>s2+(d.budget||0),0);
+    const rt = m.rating!==null ? `<span class="rt" style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</span>` : `<span class="na2">${esc(m.noRating)}</span>`;
+    html += `<div class="mnode${openM?' on':''}">
+      <div class="mhead" data-m="${esc(m.mgr)}">
+        <span class="arw3">${openM?'▾':'▸'}</span>
+        <span class="mname">${esc(m.mgr)}</span>
+        ${rt}
+        <span class="mmeta">${ds.length} сделок · ${money(sum)} ₽ · требуют действия <b style="color:${hot?'#C25252':'var(--ink-3)'}">${hot}</b>${m.lossRub?` · под риском ${money(m.lossRub)} ₽`:''}</span>
+        ${m.topLoss?`<span class="mwhy">главная причина: ${esc(m.topLoss.label)}</span>`:''}
+      </div>`;
+    if(openM){
+      html += `<div class="mbody">` + ds.map(d=>{
+        const openD = S.td===d.key;
+        const c=urgCol(d.uKey), pc=probColor(d.prob);
+        const url = d.dealId ? `${PORTAL}/crm/deal/details/${d.dealId}/` : `${PORTAL}/crm/lead/details/${d.leadId}/`;
+        return `<div class="dnode${openD?' on':''}">
+          <div class="dhead2" data-d="${esc(d.key)}">
+            <span class="arw3">${openD?'▾':'▸'}</span>
+            <span class="dsum">${money(d.budget)} ₽</span>
+            <span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span>
+            <a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a>
+            <span class="dttl2">${esc(d.title.slice(0,52))}</span>
+            <span class="dstage">${esc(d.stage||'-')}</span>
+            <span class="dprob" style="color:${pc}">${d.prob}%</span>
+            ${d.urgency?`<span class="urg" style="color:${c};background:${c}18;border:1px solid ${c}44">${esc(d.urgency)}</span>`:''}
+          </div>
+          ${openD?`<div class="dbody" id="tree-${esc(d.key)}"></div>`:''}</div>`;
+      }).join('') + `</div>`;
+    }
+    html += `</div>`;
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('.mhead').forEach(h=>h.onclick=()=>{ S.tm = S.tm===h.dataset.m ? '' : h.dataset.m; S.td=''; renderTree(); });
+  list.querySelectorAll('.dhead2').forEach(h=>h.onclick=e=>{ e.stopPropagation(); S.td = S.td===h.dataset.d ? '' : h.dataset.d; renderTree(); });
+  if(S.td){
+    const host=document.getElementById('tree-'+S.td);
+    if(host){
+      const d=SCD[S.td];
+      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===S.td).sort((a,b)=>a.ts-b.ts);
+      host.innerHTML = `<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
+        + (d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая по стадии ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
+        + treeHTML(evs, d);
+    }
+  }
+  const totHot = SC.deals.filter(d=>d.urgency).length;
+  document.getElementById('stat').textContent = `менеджеров: ${mgrs.length} · сделок и лидов: ${SC.deals.length} · требуют действия: ${totHot}`;
+  document.getElementById('foot').textContent = `Три уровня: менеджер, его сделки по сумме под риском, внутри вся коммуникация. Клик по строке раскрывает и сворачивает.`;
+}
 function renderQueue(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
@@ -362,8 +520,17 @@ function renderQueue(){
   let rows = SC.deals.filter(d=>d.urgency);
   if(S.q4) rows = rows.filter(d=>d.uKey===S.q4);
   if(S.mgr) rows = rows.filter(d=>d.mgr===S.mgr);
-  rows.sort((a,b)=>b.prio-a.prio);
-  const head = `<tr><th>Под риском</th><th></th><th class="l">Сделка</th><th class="l">Менеджер</th><th class="l">Стадия</th><th>Шанс</th><th class="l">Что горит</th></tr>`;
+  if(S.fStage) rows = rows.filter(d=>(d.stage||'-')===S.fStage);
+  if(S.fKind) rows = rows.filter(d=>S.fKind==='lead'? d.isLead : !d.isLead);
+  if(S.fMin) rows = rows.filter(d=>(d.budget||0)>=S.fMin);
+  if(S.q){ const q=S.q; rows = rows.filter(d=>(d.title||'').toLowerCase().indexOf(q)>=0 || String(d.dealId||d.leadId).indexOf(q)>=0); }
+  const val = (d,k) => k==='prio'?(d.budget||0) : k==='prob'?d.prob : k==='mgr'?d.mgr : k==='stage'?(d.stage||'') : k==='urg'?d.urgency : k==='kind'?(d.isLead?1:0) : (d.title||'');
+  rows.sort((a,b)=>{ const x=val(a,S.sortK), y=val(b,S.sortK);
+    if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sortDir;
+    return String(x).localeCompare(String(y))*S.sortDir; });
+  const SORTS=[['prio','Под риском',''],['kind','',''],['title','Сделка','l'],['mgr','Менеджер','l'],['stage','Стадия','l'],['prob','Шанс',''],['urg','Что горит','l']];
+  const arrow = k => S.sortK===k ? (S.sortDir<0?' ▼':' ▲') : '';
+  const head = `<tr>`+SORTS.map(([k,lbl,cls])=>`<th class="${cls} sortable" data-k="${k}">${esc(lbl)}<span class="sarr">${arrow(k)}</span></th>`).join('')+`</tr>`;
   const body = rows.slice(0,200).map(d=>{
     const open = S.exp && S.exp.key===d.key;
     const url = d.dealId ? `${PORTAL}/crm/deal/details/${d.dealId}/` : `${PORTAL}/crm/lead/details/${d.leadId}/`;
@@ -381,8 +548,22 @@ function renderQueue(){
       <div class="qbar"><span>Разбор сделки ${esc(d.dealId||d.leadId)}</span><span class="qclose" data-close="1">свернуть ✕</span></div>
       <div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div><div id="qexp-body"></div></td></tr>` : '');
   }).join('');
-  list.innerHTML = `<div class="tiles">${tiles}</div>` +
+  const stages=[...new Set(SC.deals.filter(d=>d.urgency).map(d=>d.stage||'-'))].sort();
+  const fbar = `<div class="fbar">
+    <span>Стадия <select id="qStage"><option value="">все</option>${stages.map(x=>`<option value="${esc(x)}"${S.fStage===x?' selected':''}>${esc(x)}</option>`).join('')}</select></span>
+    <span>Тип <select id="qKind"><option value="">все</option><option value="deal"${S.fKind==='deal'?' selected':''}>сделки</option><option value="lead"${S.fKind==='lead'?' selected':''}>лиды</option></select></span>
+    <span>Сумма от <select id="qMin"><option value="0">любая</option><option value="100000"${S.fMin==100000?' selected':''}>100к</option><option value="500000"${S.fMin==500000?' selected':''}>500к</option><option value="1000000"${S.fMin==1000000?' selected':''}>1 млн</option></select></span>
+    ${(S.q4||S.fStage||S.fKind||S.fMin||S.mgr)?`<span class="qclose" id="qReset">сбросить фильтры ✕</span>`:''}
+  </div>`;
+  list.innerHTML = `<div class="tiles">${tiles}</div>` + fbar +
     (rows.length ? `<table class="tbl">${head}${body}</table>` : '<div class="empty">в этой очереди пусто</div>');
+  list.querySelectorAll('th.sortable').forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k; if(S.sortK===k) S.sortDir=-S.sortDir; else { S.sortK=k; S.sortDir=(k==='prio'||k==='prob')?-1:1; }
+    S.exp=null; renderQueue(); });
+  const qs=document.getElementById('qStage'); if(qs) qs.onchange=()=>{ S.fStage=qs.value; S.exp=null; renderQueue(); };
+  const qk=document.getElementById('qKind'); if(qk) qk.onchange=()=>{ S.fKind=qk.value; S.exp=null; renderQueue(); };
+  const qm=document.getElementById('qMin'); if(qm) qm.onchange=()=>{ S.fMin=+qm.value; S.exp=null; renderQueue(); };
+  const qr=document.getElementById('qReset'); if(qr) qr.onclick=()=>{ S.q4=''; S.fStage=''; S.fKind=''; S.fMin=0; S.mgr=''; document.getElementById('fMgr').value=''; S.exp=null; renderQueue(); };
   list.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{ S.q4 = S.q4===t.dataset.q ? '' : t.dataset.q; S.exp=null; renderQueue(); });
   list.querySelectorAll('.qrow').forEach(r=>r.onclick=()=>{
     S.exp = (S.exp && S.exp.key===r.dataset.key) ? null : {key:r.dataset.key}; renderQueue(); });
@@ -400,12 +581,12 @@ function renderQueue(){
         g.events.push(e); if(e.ts>g.last)g.last=e.ts; g.chans[e.type]=(g.chans[e.type]||0)+1; g.stages[e.stage]=1;
       }
       VIEW=[...map.values()]; VIEW.forEach(g=>g.events.sort((a,b)=>a.ts-b.ts));
-      host.innerHTML = VIEW.map((g,i)=>dealHTML(g,i)).join('');
-      host.querySelectorAll('.deal').forEach(el=>{ el.querySelector('.dhead').onclick=e=>{e.stopPropagation();toggle(el);}; toggle(el,true); });
+      const all=VIEW.flatMap(g=>g.events).sort((a,b)=>a.ts-b.ts);
+      host.innerHTML = treeHTML(all, d);
     }
   }
   const totMoney = rows.reduce((s2,d)=>s2+(d.budget||0),0);
-  document.getElementById('stat').textContent = `в очереди: ${rows.length} (сделок ${rows.filter(d=>!d.isLead).length}, лидов ${rows.filter(d=>d.isLead).length}) · сумма ${money(totMoney)} ₽ · сортировка по сумме${S.q4?' · фильтр: '+(SC.queues.find(q=>q.key===S.q4)||{}).label:''}`;
+  document.getElementById('stat').textContent = `в очереди: ${rows.length} (сделок ${rows.filter(d=>!d.isLead).length}, лидов ${rows.filter(d=>d.isLead).length}) · сумма ${money(totMoney)} ₽ · сортировка: ${({prio:'сумма',prob:'шанс',mgr:'менеджер',stage:'стадия',urg:'что горит',title:'название',kind:'тип'})[S.sortK]||S.sortK} ${S.sortDir<0?'по убыванию':'по возрастанию'}${S.q4?' · '+(SC.queues.find(q=>q.key===S.q4)||{}).label:''}`;
   document.getElementById('foot').textContent = `Очередь дел: что требует действия прямо сейчас. Плитка сверху - фильтр по причине. Клик по строке раскрывает переписку и рекомендацию. «Под риском» - сумма сделки; сортировка учитывает сумму, шанс закрыть и срочность причины.`;
 }
 function renderManagers(){
@@ -502,6 +683,7 @@ function scoreHTML(g){
 function backToTable(){ S.mode='mgr'; S.mgr=''; S.sec=''; S.tag=''; document.getElementById('fMgr').value=''; document.getElementById('fMode').value='mgr'; render(); }
 function clearScoreFilter(){ S.sec=''; S.tag=''; render(); }
 function render(){
+  if(S.mode==='tree'){ VIEW=[]; renderTree(); return; }
   if(S.mode==='queue'){ VIEW=[]; renderQueue(); return; }
   if(S.mode==='mgr'){ VIEW=[]; renderManagers(); return; }
   VIEW = group();

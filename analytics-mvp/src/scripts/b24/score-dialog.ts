@@ -226,8 +226,11 @@ function main() {
         if (RE.ready.test(body)) mark(src, "Сигнал готовности к оплате", "good", "result", hit(RE.ready, body));
         if (RE.price.test(body)) mark(src, "Возражение по цене", "warn", "result", hit(RE.price, body));
         if (RE.refuse.test(body)) mark(src, "Риск отказа", "bad", "result", hit(RE.refuse, body));
+        // Тег вешаем только на ПОСЛЕДНЕЕ сообщение клиента: если он написал три подряд,
+        // без ответа висит вся пачка, но повторять метку на каждой строке - шум.
+        const isLastIn = !msgs.slice(i + 1).some((x) => x.dir === "входящее");
         const nxt = msgs.slice(i + 1).find((x) => x.dir === "исходящее" && isRealAnswer(x));
-        if (!nxt && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
+        if (!nxt && isLastIn && ballWait > BALL_STUCK_MIN) mark(src, `Без ответа ${fmtMin(ballWait)}`, "bad", "speed");
       }
     }
     // Дело закрыто, а клиенту не написали и не позвонили. Формальная галочка вместо работы:

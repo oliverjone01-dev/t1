@@ -1091,12 +1091,15 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
     </div>
 
     <div class="sect"><h5>Ответ ИИ - вставь сюда</h5>
-      <textarea class="ansbox" id="aiAns" placeholder="Вставь ответ из чата (JSON с полем «сделки» или обычный текст) и нажми «Показать»"></textarea>
+      <textarea class="ansbox" id="aiAns" oninput="aiAnsInput(this.value)" placeholder="Вставь ответ из чата (JSON с полями «менеджер» и «сделки» или обычный текст) и нажми «Показать»"></textarea>
       <button class="abtn sec" style="margin-top:8px" onclick="aiShowAns()">Показать разбор</button>
       <div id="aiAnsOut"></div>
     </div>`;
+  const at=document.getElementById('aiAns'); if(at){ at.value=S.ansText||''; if(S.ansText) aiShowAns(); }
+  aiSave();
 }
 function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').trim(); const out=document.getElementById('aiAnsOut');
+  S.ansText=document.getElementById('aiAns').value||''; aiSave();
   if(!raw){ out.innerHTML=''; return; }
   let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
   const arr = obj && (obj.сделки||obj.deals||obj.reviews);
@@ -1135,6 +1138,9 @@ function aiApplyToDash(cfg){ const F=S.aiF;
     mgrs=new Set(ml);
     const dl=Array.isArray(cfg.сделки)?cfg.сделки.map(x=>String(x.id)):[];
     dealIds=new Set(dl);
+    // Синхронизируем контролы панели с активированным JSON, чтобы при повторном открытии
+    // фильтр показывал то же, что применено к дашборду.
+    S.aiF.dMode=dMode; S.aiF.from=from; S.aiF.to=to; S.aiF.mgrs=new Set(mgrs); S.aiF.dealIds=dl.join(', ');
   } else {
     dMode=F.dMode; from=F.from; to=F.to; mgrs=new Set(F.mgrs);
     if(F.dealIds.trim()) dealIds=new Set(F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean));
@@ -1147,9 +1153,9 @@ function aiApplyToDash(cfg){ const F=S.aiF;
   S.tm=new Set(matched.map(d=>d.mgr)); S.td=new Set();
   if(matched.length<=OPEN_CAP){ for(const d of matched) S.td.add(d.key); S.dashNote=''; }
   else S.dashNote=`сделок ${matched.length} - раскрыты менеджеры, переписку открывай кликом по строке`;
-  aiToggle(false); render(); window.scrollTo(0,0);
+  aiSave(); aiToggle(false); render(); window.scrollTo(0,0);
 }
-function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); render(); }
+function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); aiSave(); render(); }
 function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||'').trim(); const msg=document.getElementById('aiCfgMsg');
   if(!raw){ if(msg) msg.textContent=''; return; }
   let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
@@ -1157,8 +1163,22 @@ function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||''
   if(msg){ msg.textContent=''; }
   aiApplyToDash(obj);
 }
+// Сохранение состояния панели и применённого фильтра в localStorage: обновление страницы
+// (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
+function aiSave(){ try{ const F=S.aiF;
+  localStorage.setItem('dlg_ai_v1', JSON.stringify({
+    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],inc:[...F.inc]},
+    fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td],
+    vdMode:S.dMode, vdFrom:S.dFrom, vdTo:S.dTo, dashNote:S.dashNote||'', ans:S.ansText||'' })); }catch(e){} }
+function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
+  if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
+    mgrs:new Set(j.aiF.mgrs||[]),inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
+  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]);
+  if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
+}catch(e){} }
+function aiAnsInput(v){ S.ansText=v; aiSave(); }
 
-initControls(); render();
+aiLoad(); initControls(); render();
 
 // Анти-кэш для боевого адреса /dialog/: деплой кладёт рядом v.txt со штампом сборки.
 // Проверяем при загрузке, при возврате на вкладку и раз в 15 минут - давно открытая

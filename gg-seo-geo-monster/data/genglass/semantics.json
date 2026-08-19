@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-18",
+ "measured": "2026-08-19",
  "phrases": [
   {
    "phrase": "темно синий диван",
@@ -602,14 +602,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "рабочий стол на заказ",
-   "pos": null,
-   "freq": 293,
-   "url": "",
-   "cluster": "рабочий",
-   "intent": "transactional"
-  },
-  {
    "phrase": "купить ширму для комнаты недорого",
    "pos": null,
    "freq": 603,
@@ -799,6 +791,14 @@
    "freq": 6177,
    "url": "",
    "cluster": "листовое",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "панно в спальню над кроватью",
+   "pos": null,
+   "freq": 206,
+   "url": "",
+   "cluster": "панно",
    "intent": "commercial"
   }
  ]

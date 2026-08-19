@@ -1,189 +1,16 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-08-18",
- "visibility": 42,
- "ai_answers": 21,
- "keywords_total": 1981,
- "top1": 12,
- "top3": 58,
- "top10": 366,
- "top50": 1981,
- "top_pages": [
-  {
-   "url": "/product-category/mirrors/floor",
-   "keywords_top50": 183
-  },
-  {
-   "url": "/zerkala-na-zakaz",
-   "keywords_top50": 132
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu",
-   "keywords_top50": 124
-  },
-  {
-   "url": "/product-category/mirrors",
-   "keywords_top50": 111
-  },
-  {
-   "url": "/stellazhi-i-polki-na-zakaz",
-   "keywords_top50": 86
-  },
-  {
-   "url": "/product-category/mirrors/led",
-   "keywords_top50": 79
-  },
-  {
-   "url": "/product-category/steklyannye-doski",
-   "keywords_top50": 69
-  },
-  {
-   "url": "/stoly-na-zakaz",
-   "keywords_top50": 66
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-ovalnoe",
-   "keywords_top50": 62
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz",
-   "keywords_top50": 57
-  }
- ],
- "ad_keywords": [
-  {
-   "phrase": "genglass",
-   "pos": 0,
-   "freq": 997,
-   "url": ""
-  },
-  {
-   "phrase": "межкомнатные перегородки в каркасном доме",
-   "pos": 1,
-   "freq": 149,
-   "url": ""
-  },
-  {
-   "phrase": "перегородка металлическая для зонирования",
-   "pos": 1,
-   "freq": 220,
-   "url": ""
-  },
-  {
-   "phrase": "перегородка резная для зонирования",
-   "pos": 0,
-   "freq": 115,
-   "url": ""
-  },
-  {
-   "phrase": "перегородка для зонирования с телевизором",
-   "pos": 0,
-   "freq": 117,
-   "url": ""
-  },
-  {
-   "phrase": "стеллаж перегородка для зонирования комнаты купить в москве",
-   "pos": 0,
-   "freq": 31,
-   "url": ""
-  },
-  {
-   "phrase": "стеклянные матовые перегородки",
-   "pos": 1,
-   "freq": 564,
-   "url": ""
-  },
-  {
-   "phrase": "межкомнатные перегородки из стекла раздвижные",
-   "pos": 0,
-   "freq": 84,
-   "url": ""
-  },
-  {
-   "phrase": "перегородки зонирование",
-   "pos": 0,
-   "freq": 46061,
-   "url": ""
-  },
-  {
-   "phrase": "перегородки интерьерные для зонирования",
-   "pos": 0,
-   "freq": 171,
-   "url": ""
-  }
- ],
- "ad_competitors": [
-  {
-   "domain": "ddveri.pro",
-   "common_ad_keywords": 92,
-   "ads_count": 766,
-   "ad_keywords_count": 1621,
-   "visibility": 1
-  },
-  {
-   "domain": "union.ru",
-   "common_ad_keywords": 51,
-   "ads_count": 2341,
-   "ad_keywords_count": 9107,
-   "visibility": 622
-  },
-  {
-   "domain": "peregorodki-prostor.ru",
-   "common_ad_keywords": 42,
-   "ads_count": 30,
-   "ad_keywords_count": 428,
-   "visibility": 0
-  },
-  {
-   "domain": "keepforyou.ru",
-   "common_ad_keywords": 36,
-   "ads_count": 404,
-   "ad_keywords_count": 729,
-   "visibility": 0
-  },
-  {
-   "domain": "фогмебель-перегородки.рф",
-   "common_ad_keywords": 34,
-   "ads_count": 48,
-   "ad_keywords_count": 588,
-   "visibility": 0
-  },
-  {
-   "domain": "ofimall.ru",
-   "common_ad_keywords": 33,
-   "ads_count": 312,
-   "ad_keywords_count": 1907,
-   "visibility": 9
-  },
-  {
-   "domain": "loftkrel.ru",
-   "common_ad_keywords": 32,
-   "ads_count": 690,
-   "ad_keywords_count": 1119,
-   "visibility": 2
-  },
-  {
-   "domain": "dver1.ru",
-   "common_ad_keywords": 31,
-   "ads_count": 401,
-   "ad_keywords_count": 2017,
-   "visibility": 401
-  },
-  {
-   "domain": "profilhaus365.ru",
-   "common_ad_keywords": 26,
-   "ads_count": 20,
-   "ad_keywords_count": 574,
-   "visibility": 0
-  },
-  {
-   "domain": "shkaffkupe.ru",
-   "common_ad_keywords": 25,
-   "ads_count": 842,
-   "ad_keywords_count": 4737,
-   "visibility": 16
-  }
- ],
+ "measured": "2026-08-19",
+ "visibility": null,
+ "ai_answers": null,
+ "keywords_total": 100,
+ "top1": 0,
+ "top3": 0,
+ "top10": 0,
+ "top50": 0,
+ "top_pages": [],
+ "ad_keywords": [],
+ "ad_competitors": [],
  "history": [
   {
    "date": "2026-07-10",
@@ -389,6 +216,11 @@
    "date": "2026-08-18",
    "visibility": 42,
    "top10": 366
+  },
+  {
+   "date": "2026-08-19",
+   "visibility": 0,
+   "top10": 0
   }
  ],
  "keywords": [
@@ -843,12 +675,6 @@
    "url": ""
   },
   {
-   "phrase": "рабочий стол на заказ",
-   "pos": null,
-   "freq": 293,
-   "url": ""
-  },
-  {
    "phrase": "купить ширму для комнаты недорого",
    "pos": null,
    "freq": 603,
@@ -991,32 +817,32 @@
    "pos": null,
    "freq": 6177,
    "url": ""
+  },
+  {
+   "phrase": "панно в спальню над кроватью",
+   "pos": null,
+   "freq": 206,
+   "url": ""
   }
  ],
  "competitors": [
   {
-   "domain": "rosestar.ru",
-   "visibility": 268,
-   "common_keywords": 62,
-   "delta_visibility": -1.1
-  },
-  {
    "domain": "zerkala-m.ru",
-   "visibility": 327,
-   "common_keywords": 55,
-   "delta_visibility": 0.6
+   "visibility": 328,
+   "common_keywords": 57,
+   "delta_visibility": 0.3
   },
   {
-   "domain": "зеркаловраме.рф",
-   "visibility": 163,
-   "common_keywords": 25,
+   "domain": "avazerkala.ru",
+   "visibility": 139,
+   "common_keywords": 44,
    "delta_visibility": 0
   },
   {
-   "domain": "msk-zerkala.ru",
-   "visibility": 32,
-   "common_keywords": 17,
-   "delta_visibility": 3.2
+   "domain": "alfaporta.ru",
+   "visibility": 3858,
+   "common_keywords": 16,
+   "delta_visibility": 0
   },
   {
    "domain": "zerkala.ru",
@@ -1026,62 +852,68 @@
   },
   {
    "domain": "m.avito.ru",
-   "visibility": 4074848,
-   "common_keywords": 1419,
-   "delta_visibility": -0.1
-  },
-  {
-   "domain": "lemanapro.ru",
-   "visibility": 950995,
-   "common_keywords": 1317,
-   "delta_visibility": -0.1
-  },
-  {
-   "domain": "inmyroom.ru",
-   "visibility": 12617,
-   "common_keywords": 959,
+   "visibility": 4068181,
+   "common_keywords": 167,
    "delta_visibility": -0.2
   },
   {
-   "domain": "hoff.ru",
-   "visibility": 340014,
-   "common_keywords": 928,
-   "delta_visibility": -0.1
-  },
-  {
-   "domain": "livemaster.ru",
-   "visibility": 151803,
-   "common_keywords": 916,
-   "delta_visibility": -0.1
-  },
-  {
    "domain": "ozon.ru",
-   "visibility": 3955827,
-   "common_keywords": 160,
+   "visibility": 3959464,
+   "common_keywords": 166,
    "delta_visibility": 0.1
   },
   {
    "domain": "market.yandex.ru",
-   "visibility": 1618884,
-   "common_keywords": 106,
+   "visibility": 1622516,
+   "common_keywords": 110,
    "delta_visibility": 0.2
   },
   {
    "domain": "wildberries.ru",
-   "visibility": 2569995,
-   "common_keywords": 100,
+   "visibility": 2567195,
+   "common_keywords": 103,
+   "delta_visibility": -0.1
+  },
+  {
+   "domain": "basicdecor.ru",
+   "visibility": 4464,
+   "common_keywords": 38,
    "delta_visibility": 0
   },
   {
    "domain": "santehnika-online.ru",
-   "visibility": 44963,
+   "visibility": 44919,
    "common_keywords": 31,
-   "delta_visibility": 0
+   "delta_visibility": -0.1
   },
   {
    "domain": "fdmebel.ru",
-   "visibility": 235,
-   "common_keywords": 28,
+   "visibility": 236,
+   "common_keywords": 27,
+   "delta_visibility": 0.4
+  },
+  {
+   "domain": "zerkalia.ru",
+   "visibility": 25,
+   "common_keywords": 27,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "komus.ru",
+   "visibility": 96383,
+   "common_keywords": 26,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "yandex.ru",
+   "visibility": 22555861,
+   "common_keywords": 24,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "lain-loft.ru",
+   "visibility": 400,
+   "common_keywords": 23,
    "delta_visibility": 0
   }
  ],

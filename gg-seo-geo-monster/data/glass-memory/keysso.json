@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-08-18",
+ "measured": "2026-08-19",
  "visibility": null,
  "ai_answers": null,
  "keywords_total": 100,
@@ -219,6 +219,11 @@
   },
   {
    "date": "2026-08-18",
+   "visibility": 0,
+   "top10": 0
+  },
+  {
+   "date": "2026-08-19",
    "visibility": 0,
    "top10": 0
   }
@@ -827,34 +832,34 @@
  ],
  "competitors": [
   {
-   "domain": "ru.pinterest.com",
-   "visibility": 2703077,
-   "common_keywords": 13,
+   "domain": "dzen.ru",
+   "visibility": 11234164,
+   "common_keywords": 16,
    "delta_visibility": 0
   },
   {
-   "domain": "livemaster.ru",
-   "visibility": 151803,
+   "domain": "ru.pinterest.com",
+   "visibility": 2700996,
    "common_keywords": 13,
    "delta_visibility": -0.1
   },
   {
-   "domain": "glassphoto.ru",
-   "visibility": 7,
-   "common_keywords": 11,
+   "domain": "postament.ru",
+   "visibility": 2668,
+   "common_keywords": 13,
    "delta_visibility": 0
   },
   {
    "domain": "yandex.ru",
-   "visibility": 22557887,
-   "common_keywords": 10,
+   "visibility": 22555861,
+   "common_keywords": 11,
    "delta_visibility": 0
   },
   {
    "domain": "pqd.ru",
-   "visibility": 1754,
+   "visibility": 1749,
    "common_keywords": 8,
-   "delta_visibility": 0
+   "delta_visibility": -0.3
   },
   {
    "domain": "talkingstone.ru",
@@ -864,55 +869,55 @@
   },
   {
    "domain": "m.vk.com",
-   "visibility": 7716366,
+   "visibility": 7654864,
    "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "grad-ex.ru",
-   "visibility": 112,
-   "common_keywords": 6,
-   "delta_visibility": 0.9
-  },
-  {
-   "domain": "granitreal.ru",
-   "visibility": 113,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "bocelli.ru",
-   "visibility": 428,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "nisp.ru",
-   "visibility": 478,
-   "common_keywords": 6,
-   "delta_visibility": 0
-  },
-  {
-   "domain": "uslugi.yandex.ru",
-   "visibility": 313769,
-   "common_keywords": 5,
-   "delta_visibility": -0.1
+   "delta_visibility": -0.8
   },
   {
    "domain": "kp.ru",
-   "visibility": 1711583,
+   "visibility": 1708260,
+   "common_keywords": 6,
+   "delta_visibility": -0.2
+  },
+  {
+   "domain": "nisp.ru",
+   "visibility": 476,
+   "common_keywords": 6,
+   "delta_visibility": -0.4
+  },
+  {
+   "domain": "gazetametro.ru",
+   "visibility": 9094,
+   "common_keywords": 6,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "starhit.ru",
+   "visibility": 99754,
    "common_keywords": 5,
-   "delta_visibility": -0.1
+   "delta_visibility": 0
   },
   {
    "domain": "7days.ru",
-   "visibility": 62261,
+   "visibility": 61657,
+   "common_keywords": 4,
+   "delta_visibility": -1
+  },
+  {
+   "domain": "organizator24-granit.ru",
+   "visibility": 0,
    "common_keywords": 4,
    "delta_visibility": 0
   },
   {
-   "domain": "latonika.ru",
-   "visibility": 134,
+   "domain": "loftpipe.ru",
+   "visibility": 2,
+   "common_keywords": 4,
+   "delta_visibility": 0
+  },
+  {
+   "domain": "msk1.ru",
+   "visibility": 61141,
    "common_keywords": 4,
    "delta_visibility": 0
   }

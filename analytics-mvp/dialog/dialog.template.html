@@ -168,7 +168,9 @@ input#q{min-width:220px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
-.subrow>td{padding:0 10px 14px 46px;background:#ffffff04;border-left:3px solid #22d3ee3d}
+.subrow>td{padding:0 10px 16px 64px;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
+.subrow>td::before{content:'СДЕЛКИ';position:absolute;left:14px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
+.subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .t2{margin-top:6px;font-size:11px}
@@ -177,9 +179,9 @@ input#q{min-width:220px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.subrow2>td{padding:0 8px 16px 110px;background:#00000040;border-left:4px solid #C2873C66;position:relative}
-.subrow2>td::before{content:'коммуникация';position:absolute;left:64px;top:8px;font-size:9px;letter-spacing:.06em;color:#C2873Caa;transform:rotate(0deg);text-transform:uppercase}
-.subrow2>td>div{border-left:2px solid #C2873C44;padding-left:16px}
+.subrow2>td{padding:0 8px 18px 150px;background:#00000055;border-left:6px solid #C2873C99;position:relative}
+.subrow2>td::before{content:'КОММУНИКАЦИЯ';position:absolute;left:40px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
+.subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
 .t3{margin-top:6px;font-size:11px;table-layout:fixed}
 .t3 td{padding:5px 6px;vertical-align:top}
 /* Колонки переписки фиксированы: текст сообщения не наезжает на разметку, длинные

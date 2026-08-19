@@ -730,15 +730,7 @@ function renderTree(){
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
-      host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
-        +`<div class="afterdlg">`
-        +`<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
-        +`<div class="whob">Переписку вели: ${who}</div>`
-        +(d.takeH!=null?`<div class="whob">Взял в работу за ${d.takeH} ч (отсчёт от начала дня создания: времени создания в снимке нет)</div>`:'')
-        +(d.slowStage?`<div class="whob">Дольше всего стояла на стадии «${esc(d.slowStage.name)}» - ${d.slowStage.days} дн</div>`:'')
-        +`<div class="whob"><span class="chip2" data-sys="1">${S.sys===false?'показать движение по стадиям':'скрыть движение по стадиям'}</span></div>`
-        +(d.whyProb&&d.whyProb.length?`<div class="whyb">Почему шанс ${d.prob}%: базовая ${d.base}% `+d.whyProb.map(w=>`<span class="wchip" style="color:${w.bad?'#C25252':'#2E9E74'}">${w.pp>0?'+':''}${w.pp} п.п. ${esc(w.label)}</span>`).join('')+`</div>`:'')
-        +`</div>`;
+      host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });
@@ -789,10 +781,10 @@ function mixCell(d,a,b){
 // Связка звонка и его разбора BitrixGPT: у звонка - подпись с началом резюме,
 // у самого резюме - к какому звонку и на какое время оно относится.
 function sumLink(e,SUMBY){
+  // У самого резюме BitrixGPT показываем, к какому звонку оно относится. Дубль-подпись
+  // «↳ разбор BitrixGPT» на самом звонке убрана: резюме идёт отдельной строкой ниже.
   if(e.type==='Резюме BitrixGPT') return e.ref?`<div class="ref">↳ ${esc(e.ref)}</div>`:'';
-  const s=SUMBY&&SUMBY[e.src];
-  if(!s) return '';
-  return `<div class="ref">↳ разбор BitrixGPT: ${esc(String(s.body||'').replace(/\s+/g,' ').slice(0,110))}${String(s.body||'').length>110?'…':''}</div>`;
+  return '';
 }
 // У дел в Bitrix есть выставленный срок (DEADLINE/END_TIME). Показываем его рядом со
 // статусом: просроченный - красным, будущий - серым. Без срока чипа нет.

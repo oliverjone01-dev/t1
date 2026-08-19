@@ -168,8 +168,8 @@ input#q{min-width:220px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
-.subrow>td{padding:0 10px 16px 64px;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
-.subrow>td::before{content:'СДЕЛКИ';position:absolute;left:14px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
+.t1>tbody>tr.subrow>td{padding:0 10px 16px 120px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
+.subrow>td::before{content:'СДЕЛКИ ▸';position:absolute;left:22px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
 .subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
@@ -179,8 +179,8 @@ input#q{min-width:220px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.subrow2>td{padding:0 8px 18px 150px;background:#00000055;border-left:6px solid #C2873C99;position:relative}
-.subrow2>td::before{content:'КОММУНИКАЦИЯ';position:absolute;left:40px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
+.t2>tbody>tr.subrow2>td{padding:0 8px 18px 130px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
+.subrow2>td::before{content:'КОММУНИКАЦИЯ ▸';position:absolute;left:34px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
 .subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
 .t3{margin-top:6px;font-size:11px;table-layout:fixed}
 .t3 td{padding:5px 6px;vertical-align:top}
@@ -326,6 +326,12 @@ input#q{min-width:220px}
 .ansout .rv .rvh{font-weight:600;color:var(--ink);margin-bottom:3px}
 .ansout .rv .rvp{color:#C2873C}.ansout .rv .rvr{color:#7FD1A6}
 .copied{color:#7FD1A6;font-size:11px;text-align:center;margin-top:6px;height:14px}
+.scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#12303a;border:1px solid #1f6b7d;border-radius:10px;padding:9px 13px;margin-bottom:10px;color:#bfeff8;font-size:12px}
+.scopebar b{color:#e7f8fc}
+.scopebar .sdot{color:#22D3EE;font-size:9px}
+.scopebar .snote{color:#9fd0dc}
+.scopebar .x{margin-left:auto;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:7px;padding:3px 9px;font-size:11px}
+.scopebar .x:hover{background:#164050;color:#e7f8fc}
 </style>
 </head>
 <body>
@@ -366,7 +372,8 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'',
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -607,7 +614,8 @@ function renderTree(){
     {k:'act',t:'Активность'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
     .concat([{k:'rating',t:'Рейтинг'}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
-  const mgrs=SC.managers.filter(m=>byM[m.mgr]);
+  let mgrs=SC.managers.filter(m=>byM[m.mgr]);
+  if(S.fMgrs.size) mgrs=mgrs.filter(m=>S.fMgrs.has(m.mgr));
   const ordV={'в разборе':0,'норма':1,'сильный':2};
   mgrs.sort((a,b)=>{ const k=S.sM.k;
     if(k==='mgr') return a.mgr.localeCompare(b.mgr)*S.sM.d;
@@ -676,9 +684,13 @@ function renderTree(){
       <div class="lgcols">${MD.map(m=>`<span class="lgcol" data-tip="${esc(m.how||'').replace(/"/g,'&quot;')}"><b>${esc(MFULL[m.key]||m.label)}</b> <i>${m.better==='less'?'↓ меньше лучше':'↑ больше лучше'}${dm[m.key]!==undefined&&dm[m.key]!==null?' · мед. '+dm[m.key]:''}</i></span>`).join('')}</div>
       <div class="lgi lgnote"><b>Чего нет в данных:</b> расшифровок звонков API не отдаёт (виден факт, длительность, резюме BitrixGPT); звонок с личного телефона в CRM не попадает - «нет следов общения» = «нет следов в CRM», а не «не работал».</div>
     </div>`:'')+`</div>`;
-  let html=fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  const scope = (S.fMgrs.size||S.fDealIds.size) ? `<div class="scopebar">
+      <span class="sdot">●</span> Фильтр ИИ применён к дашборду: <b>${S.fMgrs.size?S.fMgrs.size+' '+plu(S.fMgrs.size,'менеджер','менеджера','менеджеров'):'весь отдел'}</b>${S.fDealIds.size?` · <b>${S.fDealIds.size} ${plu(S.fDealIds.size,'сделка','сделки','сделок')}</b>`:''}${S.dashNote?` · <span class="snote">${esc(S.dashNote)}</span>`:''}
+      <span class="x" data-scopeclear="1">сбросить и показать весь отдел</span></div>` : '';
+  let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
-    const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
+    let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
+    const p=m.profile; const openM=S.tm.has(m.mgr);
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
       +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${alertChip(m,p)}</td>`
@@ -699,7 +711,7 @@ function renderTree(){
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
       html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
       for(const d of ds){
-        const openD=S.td===d.key, c2=urgCol(d.uKey), pc=probColor(d.prob);
+        const openD=S.td.has(d.key), c2=urgCol(d.uKey), pc=probColor(d.prob);
         const url=d.dealId?`${PORTAL}/crm/deal/details/${d.dealId}/`:`${PORTAL}/crm/lead/details/${d.leadId}/`;
         html+=`<tr class="drow${openD?' on':''}" data-d="${esc(d.key)}">
           <td class="xcell"><span class="arw4">${openD?'▾':'▸'}</span></td>
@@ -721,15 +733,16 @@ function renderTree(){
   html+=`</table></div>`;
   list.innerHTML=html;
   const fF=list.querySelector('#dFrom'), fT=list.querySelector('#dTo');
-  if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td=''; renderTree(); };
-  if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td=''; renderTree(); };
+  if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
+  if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
+  const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
     else if(k==='today'){ S.dFrom=iso(now); S.dTo=iso(now); }
     else if(k==='yst'){ S.dFrom=iso(now-864e5); S.dTo=iso(now-864e5); }
     else { S.dFrom=iso(now-(Number(k)-1)*864e5); S.dTo=iso(now); }
-    S.td=''; renderTree(); });
+    S.td.clear(); renderTree(); });
   list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
@@ -737,15 +750,18 @@ function renderTree(){
     const st = th.dataset.lvl==='m'?S.sM : th.dataset.lvl==='d'?S.sD : S.sE;
     if(st.k===th.dataset.k) st.d=-st.d; else { st.k=th.dataset.k; st.d=(th.dataset.k==='mgr'||th.dataset.k==='title'||th.dataset.k==='stage')?1:-1; }
     renderTree(); });
-  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=()=>{ S.tm=S.tm===r.dataset.m?'':r.dataset.m; S.td=''; renderTree(); });
-  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); S.td=S.td===r.dataset.d?'':r.dataset.d; renderTree(); });
-  if(S.td){
-    const host=document.getElementById('tree-'+S.td);
-    if(host){ const d=SCD[S.td];
+  // Раскрытие многоуровневое: несколько менеджеров и сделок открыты одновременно, чтобы
+  // сразу нырнуть во всю выборку фильтра. Закрытие менеджера прячет и его открытые сделки.
+  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=()=>{ const m=r.dataset.m;
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
+  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
+  for(const dk of S.td){
+    const host=document.getElementById('tree-'+dk);
+    if(host){ const d=SCD[dk];
       // Движение по стадиям и передачи ответственного идут в ту же ленту: видно, двигалась
       // ли сделка вместе с разговором или молча. Это служебные строки, они не участвуют в
       // метриках переписки и выключаются переключателем.
-      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===S.td).slice();
+      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===dk).slice();
       if(S.sys!==false && d){
         for(const st of (d.stageRows||[])) evs.push({ts:st.ts, dt:new Date(st.ts).toISOString(), type:'Стадия',
           dir:'-', who:'CRM', title:'', body:st.name, days:st.days, sys:1, src:'stage#'+st.code+st.date});
@@ -1009,8 +1025,16 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
     </div>
 
     <div class="sect">
-      <button class="abtn" onclick="aiCopy()">Скопировать настройку для ИИ</button>
+      <button class="abtn" onclick="aiApplyToDash()">Показать эти сделки в дашборде</button>
+      <div class="hint">Свернёт таблицу до выбранных менеджеров и сделок, выставит период и раскроет переписку - можно сразу проверить ход коммуникаций по пайплайну.</div>
+      <button class="abtn sec" style="margin-top:10px" onclick="aiCopy()">Скопировать настройку для ИИ</button>
       <div class="copied" id="aiCopied"></div>
+    </div>
+
+    <div class="sect"><h5>Активировать по JSON</h5>
+      <textarea class="ansbox" id="aiCfg" placeholder="Вставь скопированную настройку (JSON) и активируй - дашборд развернёт ровно эти сделки"></textarea>
+      <button class="abtn" style="margin-top:8px" onclick="aiActivateJSON()">Активировать по JSON</button>
+      <div class="copied" id="aiCfgMsg" style="color:var(--ink-4)"></div>
     </div>
 
     <div class="sect"><h5>Ответ ИИ - вставь сюда</h5>
@@ -1031,6 +1055,42 @@ function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').tri
         ${r.recommendation||r.рекомендация?`<div class="rvr">→ ${esc(r.recommendation||r.рекомендация)}</div>`:''}</div>`;
     }).join('')+'</div>';
   } else { out.innerHTML='<div class="ansout">'+esc(raw)+'</div>'; }
+}
+
+// Применить выборку к самому дашборду: сузить таблицу до нужных менеджеров и сделок,
+// выставить период и раскрыть сделки, чтобы сразу видеть ход коммуникаций по пайплайну.
+// Источник настройки - либо текущие контролы панели, либо переданный конфиг-JSON (cfg).
+const OPEN_CAP = 20; // сколько сделок раскрываем автоматически, чтобы не рендерить сотни лент
+function aiApplyToDash(cfg){ const F=S.aiF;
+  let dMode, from, to, mgrs, dealIds;
+  if(cfg){ const f=cfg.фильтр||{};
+    dMode=/созда/.test(String(f.период_по||''))?'created':'comm';
+    from=(f.с&&!/окн/.test(String(f.с)))?f.с:''; to=(f.по&&!/окн/.test(String(f.по)))?f.по:'';
+    const ml=Array.isArray(f.менеджеры)?f.менеджеры:(Array.isArray(cfg.менеджеры)?cfg.менеджеры.map(x=>x.менеджер):[]);
+    mgrs=new Set(ml);
+    const dl=Array.isArray(cfg.сделки)?cfg.сделки.map(x=>String(x.id)):[];
+    dealIds=new Set(dl);
+  } else {
+    dMode=F.dMode; from=F.from; to=F.to; mgrs=new Set(F.mgrs);
+    if(F.dealIds.trim()) dealIds=new Set(F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean));
+    else dealIds=new Set(aiMatchDeals().map(d=>String(d.dealId||d.leadId)));
+  }
+  S.dMode=dMode; S.dFrom=from; S.dTo=to;
+  const matched=SC.deals.filter(d=> (!mgrs.size||mgrs.has(d.mgr)) && (!dealIds.size||dealIds.has(String(d.dealId||d.leadId))) );
+  S.fMgrs = mgrs.size ? mgrs : (dealIds.size ? new Set(matched.map(d=>d.mgr)) : new Set());
+  S.fDealIds = dealIds;
+  S.tm=new Set(matched.map(d=>d.mgr)); S.td=new Set();
+  if(matched.length<=OPEN_CAP){ for(const d of matched) S.td.add(d.key); S.dashNote=''; }
+  else S.dashNote=`сделок ${matched.length} - раскрыты менеджеры, переписку открывай кликом по строке`;
+  aiToggle(false); render(); window.scrollTo(0,0);
+}
+function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); render(); }
+function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||'').trim(); const msg=document.getElementById('aiCfgMsg');
+  if(!raw){ if(msg) msg.textContent=''; return; }
+  let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
+  if(!obj){ if(msg){ msg.textContent='Не разобрал JSON - проверь, что скопирован весь блок'; msg.style.color='#E08585'; } return; }
+  if(msg){ msg.textContent=''; }
+  aiApplyToDash(obj);
 }
 
 initControls(); render();

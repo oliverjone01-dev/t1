@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "title": "Аналитика внешних ресурсов GENGROUP",
+    "version": "1.0",
+    "updated": "2026-07-23",
+    "owner": "Иван Раюшкин (CMO)",
+    "protocol": "Каждая цифра размечена kind:data (есть источник в репо) или kind:hypo (гипотеза/нет выгрузки). Protocol 9 hard rule: цифра без источника не идёт в план.",
+    "window": "30 дней, снимок 2026-07-23 (если у метрики не указано иное)"
+  },
+  "categories": [
+    { "id": "marketplace", "name": "Маркетплейсы", "hint": "Продажи вне собственных сайтов" },
+    { "id": "paid", "name": "Платный трафик", "hint": "Внешние рекламные кабинеты" },
+    { "id": "publishing", "name": "Площадки публикаций", "hint": "Внешние медиа для контента и SEO-хвоста" },
+    { "id": "social", "name": "Соцсети / SMM", "hint": "Органическая дистрибуция и бренд" },
+    { "id": "ai_search", "name": "AI-видимость / GEO", "hint": "Присутствие в ответах нейросетей" },
+    { "id": "competitive", "name": "Внешнее поле", "hint": "Конкурентные домены под мониторингом" }
+  ],
+  "resources": [
+    {
+      "id": "ozon",
+      "name": "OZON (GENGLASS)",
+      "url": "https://www.ozon.ru",
+      "category": "marketplace",
+      "brands": ["GENGLASS"],
+      "status": "active",
+      "owner": "data",
+      "purpose": "Основной канал онлайн-продаж GENGLASS: зеркала, стекло, интерьерные изделия.",
+      "audience": "Конечный B2C-покупатель РФ, ищущий готовое изделие с быстрой доставкой.",
+      "metrics": [
+        { "label": "Начисления, 30д", "value": 24613690, "unit": "₽", "kind": "data", "source": "analytics-mvp/data/pnl_30d.json" },
+        { "label": "К перечислению, 30д", "value": 10686206, "unit": "₽", "kind": "data", "source": "analytics-mvp/data/pnl_30d.json" },
+        { "label": "Операций, 30д", "value": 3481, "unit": "шт", "kind": "data", "source": "analytics-mvp/data/pnl_30d.json" }
+      ],
+      "kpi": ["accruals", "payout", "ДРР рекламы OZON", "маржа после комиссий"],
+      "note": "Единственный внешний ресурс с полной живой P&L-выгрузкой. Комиссия площадки съедает ~45% начислений (11.19М из 24.61М за 30д)."
+    },
+    {
+      "id": "wb",
+      "name": "Wildberries",
+      "url": "https://www.wildberries.ru",
+      "category": "marketplace",
+      "brands": ["GENGLASS"],
+      "status": "planned",
+      "owner": "data",
+      "purpose": "Мультиплатформенное расширение продаж по единому контракту данных (новый n8n-workflow).",
+      "audience": "B2C-покупатель WB, чувствительный к цене и скорости.",
+      "metrics": [
+        { "label": "Выручка", "value": null, "unit": "₽", "kind": "hypo", "source": "нет коннектора: план по knowledge/episodes/2026-06/feniks-veto-uploaded-docs-20260610.md" }
+      ],
+      "kpi": ["выручка", "выкуп %", "ДРР"],
+      "note": "Не подключён. До живой выгрузки любые цифры - гипотеза, в отчёты не подавать."
+    },
+    {
+      "id": "yandex_market",
+      "name": "Яндекс.Маркет",
+      "url": "https://market.yandex.ru",
+      "category": "marketplace",
+      "brands": ["GENGLASS"],
+      "status": "planned",
+      "owner": "data",
+      "purpose": "Третья площадка в мультиплатформенном контуре аналитики.",
+      "audience": "Покупатель экосистемы Яндекса.",
+      "metrics": [
+        { "label": "Выручка", "value": null, "unit": "₽", "kind": "hypo", "source": "нет коннектора" }
+      ],
+      "kpi": ["выручка", "конверсия карточки"],
+      "note": "Не подключён. Приоритет ниже WB."
+    },
+    {
+      "id": "direct_genglass",
+      "name": "Яндекс.Директ - GENGLASS",
+      "url": "https://direct.yandex.ru",
+      "category": "paid",
+      "brands": ["GENGLASS"],
+      "status": "active",
+      "owner": "timur",
+      "purpose": "Платный трафик на genglass.ru: перегородки и зеркала на заказ.",
+      "audience": "Поисковый спрос и РСЯ по интерьерному стеклу.",
+      "metrics": [
+        { "label": "Расход, 30д", "value": 150359, "unit": "₽", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/direct.json" },
+        { "label": "Клики, 30д", "value": 1174, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/direct.json" },
+        { "label": "CTR", "value": 3.34, "unit": "%", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/direct.json" },
+        { "label": "Средний CPC", "value": 128.1, "unit": "₽", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/direct.json" },
+        { "label": "Кампаний активно", "value": 8, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/direct.json" }
+      ],
+      "kpi": ["расход", "CPC", "CPL", "сверка Директ vs Метрика vs CRM"],
+      "note": "Мутации кабинета - только после HITL-апрува Ивана (P0). Топ-кампания по расходу: перегородки ТГ (85.7К₽/30д)."
+    },
+    {
+      "id": "direct_glass_memory",
+      "name": "Яндекс.Директ - GLASS-MEMORY",
+      "url": "https://direct.yandex.ru",
+      "category": "paid",
+      "brands": ["GLASS-MEMORY"],
+      "status": "active",
+      "owner": "timur",
+      "purpose": "Платный трафик на glass-memory.ru в незанятой нише ритуального стекла.",
+      "audience": "Спрос по памятным стеклянным изделиям, деликатная тематика.",
+      "metrics": [
+        { "label": "Кабинет подключён", "value": 1, "unit": "да", "kind": "data", "source": "gg-seo-geo-monster/data/meta.json (direct: glass-memory ok)" },
+        { "label": "Расход, 30д", "value": null, "unit": "₽", "kind": "hypo", "source": "снимок direct.json дублирует genglass - требует сверки перед подачей в отчёт" }
+      ],
+      "kpi": ["расход", "CPL", "чистота атрибуции"],
+      "note": "Присутствие подтверждено, но числовой снимок расхода требует ре-выгрузки (совпадает с genglass - подозрение на копию)."
+    },
+    {
+      "id": "vc",
+      "name": "vc.ru",
+      "url": "https://vc.ru",
+      "category": "publishing",
+      "brands": ["GENGLASS", "VALONTI", "GENTERO", "GLASS-MEMORY"],
+      "status": "planned",
+      "owner": "marco",
+      "purpose": "Лонгриды и кейсы с цифрами: SEO-хвост + повышенная цитируемость нейросетями рунета.",
+      "audience": "Бизнес-аудитория: предприниматели, маркетологи, дизайнеры интерьера как ЛПР.",
+      "metrics": [
+        { "label": "Просмотры / переходы", "value": null, "unit": "", "kind": "hypo", "source": "нет выгрузки: модуль внешних площадок (M5) в статусе план, forge.js" }
+      ],
+      "kpi": ["дочитывания", "переходы по UTM (source=vc)", "лиды с площадки"],
+      "note": "Инструмент готов (генератор промт-пакетов в forge.js), но замера присутствия ещё нет. Тезис о высокой цитируемости - [ГИПОТЕЗА geo-intel, внешне не сверено]."
+    },
+    {
+      "id": "dzen",
+      "name": "dzen.ru",
+      "url": "https://dzen.ru",
+      "category": "publishing",
+      "brands": ["GENGLASS", "GLASS-MEMORY"],
+      "status": "planned",
+      "owner": "marco",
+      "purpose": "Бесплатная алгоритмическая дистрибуция историй заказов и разборов ошибок.",
+      "audience": "Широкая аудитория ленты; решают дочитывания и CTR обложки.",
+      "metrics": [
+        { "label": "Дочитывания", "value": null, "unit": "", "kind": "hypo", "source": "нет выгрузки, forge.js M5 план" }
+      ],
+      "kpi": ["дочитывания", "CTR обложки", "переходы UTM (source=dzen)"],
+      "note": "Для GLASS-MEMORY обязателен деликатный тон, без кликбейта на горе."
+    },
+    {
+      "id": "dtf",
+      "name": "dtf.ru",
+      "url": "https://dtf.ru",
+      "category": "publishing",
+      "brands": ["GENGLASS"],
+      "status": "none",
+      "owner": "marco",
+      "purpose": "Точечные материалы про интерьер геймера (стекло+металл+неон).",
+      "audience": "Гейм- и поп-культурная аудитория, узкая релевантность.",
+      "metrics": [
+        { "label": "Присутствие", "value": 0, "unit": "нет", "kind": "data", "source": "forge.js platformFit: узкий угол / для GLASS-MEMORY запрещено" }
+      ],
+      "kpi": ["переходы UTM (source=dtf)"],
+      "note": "Только узкий угол. Прямые продажи перегородок здесь не работают; для GLASS-MEMORY публикация повредит бренду."
+    },
+    {
+      "id": "smm_valonti",
+      "name": "SMM VALONTI / TURBIUM (Instagram, Pinterest)",
+      "url": "https://oliverjone01-dev.github.io/t1/smm/",
+      "category": "social",
+      "brands": ["VALONTI"],
+      "status": "pilot",
+      "owner": "marco",
+      "purpose": "Премиальная витрина «Valonti by GENGLASS» для дизайнеров и архитекторов.",
+      "audience": "Архитекторы, дизайнеры интерьера, премиум-B2B.",
+      "metrics": [
+        { "label": "Baseline охватов", "value": null, "unit": "", "kind": "hypo", "source": "smm/README.md: статус PILOT, все цифры [ГИПОТЕЗА] до сбора baseline" }
+      ],
+      "kpi": ["охват", "сохранения", "переходы в профиль", "заявки"],
+      "note": "ФЕНИКС GO 9.2 на стратегию, но амплификация заблокирована до baseline (snapshot 8 аккаунтов + 6 выгрузок Bitrix24/1С)."
+    },
+    {
+      "id": "ai_yandex",
+      "name": "YandexGPT / Алиса",
+      "url": "https://ya.ru",
+      "category": "ai_search",
+      "brands": ["GENGLASS", "GLASS-MEMORY"],
+      "status": "active",
+      "owner": "semyon",
+      "purpose": "Попадание бренда в AI-ответы Яндекса (AEO/GEO).",
+      "audience": "Пользователи нейропоиска Яндекса.",
+      "metrics": [
+        { "label": "AI-ответы genglass (keys.so)", "value": 19, "unit": "запр.", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/keysso.json" },
+        { "label": "AI-ответы glass-memory (keys.so)", "value": 12, "unit": "запр.", "kind": "data", "source": "gg-seo-geo-monster/data/glass-memory/keysso.json" }
+      ],
+      "kpi": ["Share of Model", "Answer Share", "AI Citation Rate"],
+      "note": "keys.so показывает число запросов, где домен попадает в AI-ответ. Полноценный Share of Model tracker - в статусе план (gg-seo-geo-monster)."
+    },
+    {
+      "id": "ai_gpt",
+      "name": "ChatGPT / Perplexity / Gemini",
+      "url": "https://chatgpt.com",
+      "category": "ai_search",
+      "brands": ["GENGLASS", "VALONTI", "GLASS-MEMORY"],
+      "status": "planned",
+      "owner": "semyon",
+      "purpose": "Цитируемость GG в западных AI-системах.",
+      "audience": "Пользователи ChatGPT/Perplexity/Gemini.",
+      "metrics": [
+        { "label": "Share of Model", "value": null, "unit": "%", "kind": "hypo", "source": "AI Citation Tracker - статус план, gg-seo-geo-monster/README.md" }
+      ],
+      "kpi": ["Prompt Win Rate", "Share of Model", "Coverage"],
+      "note": "Baseline не снят. GLASS-MEMORY - приоритетная ниша (незанятая в AI-поисковиках)."
+    },
+    {
+      "id": "competitors_keyso",
+      "name": "Конкурентные домены (keys.so)",
+      "url": "https://keys.so",
+      "category": "competitive",
+      "brands": ["GENGLASS"],
+      "status": "active",
+      "owner": "semyon",
+      "purpose": "Мониторинг внешнего поля: органика, контекст и пересечения конкурентов с genglass.ru.",
+      "audience": "-",
+      "metrics": [
+        { "label": "Доменов под мониторингом", "value": 19, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/keyso/ (19 доменов .ru)" },
+        { "label": "Видимость genglass", "value": 15, "unit": "балл", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/keysso.json" },
+        { "label": "Ключей genglass в топ-50", "value": 1865, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/keysso.json" },
+        { "label": "Ключей genglass в топ-3", "value": 38, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/keysso.json" }
+      ],
+      "kpi": ["видимость", "пересечение ключей", "доля топ-3/топ-10"],
+      "note": "Домены: alfaporta.ru, loftcase.ru, craftwall.ru, peregorodki-glass.ru и др. Спринт «перегородки»: 19 доменов ре-аудит (PR #177)."
+    },
+    {
+      "id": "metrika_genglass",
+      "name": "Яндекс.Метрика - genglass.ru (сверка)",
+      "url": "https://metrika.yandex.ru",
+      "category": "paid",
+      "brands": ["GENGLASS"],
+      "status": "active",
+      "owner": "timur",
+      "purpose": "Контрольная точка сверки внешнего платного/органического трафика с CRM.",
+      "audience": "Все источники трафика на genglass.ru.",
+      "metrics": [
+        { "label": "Визиты, 30д", "value": 8298, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/metrika.json (counter 104369223)" },
+        { "label": "Поисковые визиты, 30д", "value": 1724, "unit": "шт", "kind": "data", "source": "gg-seo-geo-monster/data/genglass/metrika.json" }
+      ],
+      "kpi": ["визиты", "доля поиска", "сверка Директ vs Метрика vs CRM"],
+      "note": "Метрика - якорь честности: расход Директа (1174 клика) сверяется с визитами Метрики против лидов CRM."
+    }
+  ]
+}

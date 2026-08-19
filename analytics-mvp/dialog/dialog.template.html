@@ -176,6 +176,9 @@ input#q{min-width:220px}
 .t2{margin-top:6px;font-size:11px}
 .t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
 .t2>tbody>tr>td.l{white-space:normal}
+.dtt{white-space:normal}
+.dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}
+.dsig .sdiv{color:var(--ink-4);opacity:.45;margin:0 4px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
@@ -718,7 +721,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l">${esc(d.title.slice(0,46))}</td>
+          <td class="l"><div class="dtt">${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
@@ -833,6 +836,21 @@ function mixOf(d,a,b){
     else if(e.type==='Комментарий-заметка') m.note++; }
   m.chan=ch.size; return m;
 }
+// Компактная строка сигналов сделки под названием (уровень 2, не в верхней таблице -
+// чтобы не нагружать): тип клиента, ассортимент, источник. Чек и стадия - свои столбцы.
+function clientShort(c){ if(!c) return null; const s=String(c).toLowerCase();
+  if(/b2b|дилер|опт|юрлиц|компан/.test(s)) return {t:'B2B',col:'#8B7BF0'};
+  if(/b2c|конечн|физ|розниц/.test(s)) return {t:'B2C',col:'#3DAEC2'};
+  return {t:String(c).slice(0,16),col:'#8794A5'}; }
+const srcShort=s=>String(s||'').replace(/^[A-Za-zА-Яа-я]{2,4}:\s*/,'').slice(0,22);
+const unset=v=>!v||/не указан/i.test(String(v));
+function dsig(d){ const p=[]; const cl=clientShort(d.client); if(cl) p.push([cl.t,cl.col]);
+  if(!unset(d.assort)) p.push([String(d.assort).slice(0,26),'#9AA7B2']);
+  if(!unset(d.source)) p.push([srcShort(d.source),'#5D6B77']);
+  if(d.cycle!=null&&d.cycle>0) p.push(['цикл '+Math.round(d.cycle)+' дн','#5D6B77']);
+  if(!p.length) return '';
+  return `<div class="dsig">`+p.map((x,i)=>`${i?'<span class="sdiv">·</span>':''}<span style="color:${x[1]}">${esc(x[0])}</span>`).join('')+`</div>`;
+}
 function mixCell(d,a,b){
   const m=mixOf(d,a,b); if(!m) return '<span class="na2">-</span>';
   const p=[];
@@ -927,9 +945,12 @@ function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
 function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const d of deals)(byM[d.mgr]||=[]).push(d);
   const rep={full:0,partial:0,empty:0};
   const list=deals.map(d=>{ const c=completeness(d), m=aiMix(d); rep[c.k]++;
-    return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title, стадия:d.stage, бюджет:d.budget||0, вероятность:d.prob, полнота:c.k, комментарий:c.why,
+    return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title,
+      чек:d.budget||0, тип_клиента:d.client||'', ассортимент:d.assort||'', источник:d.source||'', бренд:d.dir||'',
+      стадия:d.stage, история_стадий:(d.stageRows||[]).map(s=>({стадия:s.name,дней:s.days})), цикл_дней:d.cycle,
+      вероятность:d.prob, причина_отказа:d.lossReason||'', полнота:c.k, комментарий:c.why,
       лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
-  return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',
+  return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',
     фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', включено:[...F.inc].map(k=>INCLBL[k]) },
     полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
     менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),

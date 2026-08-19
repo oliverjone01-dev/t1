@@ -575,6 +575,10 @@ function main() {
       key, dealId, leadId, isLead: !dealId, urgency, uKey, uw, prio, evTags, participants,
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
+      // Доп. сигналы сделки из снимка воронки: чек уже в budget, здесь тип клиента,
+      // ассортимент, источник лида, бренд, цикл. Идут в ИИ-разбор и компактно в дашборд.
+      client: f ? (f.client || "") : "", assort: f ? (f.assort || "") : "", source: f ? (f.source || "") : "",
+      dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [] } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,

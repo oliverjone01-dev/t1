@@ -286,13 +286,6 @@ function main() {
       (evTags[src] ||= []).push({ t, tone, sec, quote });
     };
     const hit = (re: RegExp, txt: string) => { const m = txt.match(re); return m ? m[0].slice(0, 40) : ""; };
-    // ИИ-разметка на сообщениях (уровень коммуникации): ai-review.ts возвращает msgTags,
-    // привязанные к src сообщения. Кладём их рядом с тегами-правилами, помечая ai:1, чтобы
-    // в переписке было видно, где сработал ИИ, а где детерминированное правило.
-    if (a && Array.isArray(a.msgTags)) for (const mt of a.msgTags) {
-      if (!mt || !mt.src) continue;
-      (evTags[mt.src] ||= []).push({ t: String(mt.t || ""), tone: String(mt.tone || "warn"), sec: "ai", quote: String(mt.quote || ""), ai: 1 } as any);
-    }
     let greeted = false;
     for (let i = 0; i < msgs.length; i++) {
       const m = msgs[i]!, body = String(m.body || ""), src = m.src || "";

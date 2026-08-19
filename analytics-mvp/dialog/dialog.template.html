@@ -332,6 +332,13 @@ input#q{min-width:220px}
 .ansout .rv{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
 .ansout .rv .rvh{font-weight:600;color:var(--ink);margin-bottom:3px}
 .ansout .rv .rvp{color:#C2873C}.ansout .rv .rvr{color:#7FD1A6}
+.mgcard{border:1px solid var(--border);border-radius:9px;padding:11px 13px;margin-bottom:14px;background:#ffffff06}
+.mgcard .mgh{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-4);font-weight:700}
+.mgcard .mgv{font-size:13px;font-weight:600;margin:4px 0 6px;line-height:1.4}
+.mgcard .mgnote{font-size:11px;color:var(--ink-3);margin-bottom:8px;font-style:italic}
+.mgcard .mglab{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-4);margin:8px 0 3px;font-weight:600}
+.mgcard .mgul{margin:0;padding-left:18px}
+.mgcard .mgul li{margin-bottom:3px;line-height:1.45;color:var(--ink-2)}
 .copied{color:#7FD1A6;font-size:11px;text-align:center;margin-top:6px;height:14px}
 .scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#12303a;border:1px solid #1f6b7d;border-radius:10px;padding:9px 13px;margin-bottom:10px;color:#bfeff8;font-size:12px}
 .scopebar b{color:#e7f8fc}
@@ -1093,8 +1100,20 @@ function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').tri
   if(!raw){ out.innerHTML=''; return; }
   let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
   const arr = obj && (obj.сделки||obj.deals||obj.reviews);
-  if(arr){ const items = Array.isArray(arr)?arr:Object.entries(arr).map(([id,v])=>({id,...v}));
-    out.innerHTML='<div class="ansout">'+items.map(r=>{
+  const mg = obj && (obj.менеджер||obj.manager);
+  if(arr||mg){ const items = arr? (Array.isArray(arr)?arr:Object.entries(arr).map(([id,v])=>({id,...v}))) : [];
+    // Уровень менеджера: сводка по всем разобранным сделкам плюс действия руководителю.
+    const mgBlock = mg ? (()=>{ const t=mg.tone==='bad'?'#E08585':mg.tone==='good'?'#7FD1A6':'#E4B563';
+      const lst=(a)=>Array.isArray(a)&&a.length?'<ul class="mgul">'+a.map(x=>`<li>${esc(typeof x==='string'?x:(x.действие||x.text||''))}</li>`).join('')+'</ul>':'';
+      return `<div class="mgcard" style="border-color:${t}66">
+        <div class="mgh">Менеджер · ${esc(mg.менеджер||mg.name||'')}</div>
+        <div class="mgv" style="color:${t}">${esc(mg.вердикт||mg.verdict||'')}</div>
+        ${mg.данные||mg.caveat?`<div class="mgnote">${esc(mg.данные||mg.caveat)}</div>`:''}
+        ${(mg.сильные||mg.strengths)?`<div class="mglab">Сильные стороны</div>${lst(mg.сильные||mg.strengths)}`:''}
+        ${(mg.слабые||mg.weaknesses)?`<div class="mglab">Слабые места</div>${lst(mg.слабые||mg.weaknesses)}`:''}
+        ${(mg.действия||mg.actions)?`<div class="mglab">Что сделать руководителю</div>${lst(mg.действия||mg.actions)}`:''}
+      </div>`; })() : '';
+    out.innerHTML='<div class="ansout">'+mgBlock+items.map(r=>{
       const t=r.tone==='bad'?'#E08585':r.tone==='good'?'#7FD1A6':'#E4B563';
       return `<div class="rv"><div class="rvh" style="color:${t}">${esc(r.id||r.сделка||'')} · ${esc(r.verdict||r.вердикт||'')}</div>
         ${r.problem||r.проблема?`<div class="rvp">Проблема: ${esc(r.problem||r.проблема)}</div>`:''}

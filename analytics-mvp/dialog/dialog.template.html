@@ -283,10 +283,56 @@ input#q{min-width:220px}
 .nxt{flex-basis:100%;color:var(--ink-2);font-size:11.5px;margin-top:3px}
 .nxt b{color:var(--ink-3);font-weight:600}
 .why{flex-basis:100%;color:var(--ink-4);font-size:10.5px}
+/* ===== Боковая панель настройки ИИ-анализа ===== */
+.burger{position:fixed;top:14px;right:16px;z-index:50;width:40px;height:40px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.burger:hover{border-color:var(--acc);color:var(--acc)}
+.scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.apanel{position:fixed;top:0;right:0;height:100%;width:min(470px,95vw);background:var(--card2);border-left:1px solid var(--border);z-index:70;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;box-shadow:-16px 0 40px #0008}
+.apanel.on{transform:none}
+.apanel .ah{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card2);z-index:2}
+.apanel .ah b{font-size:13.5px}
+.apanel .ah .sub2{color:var(--ink-4);font-size:10.5px;margin-top:2px}
+.apanel .ax{cursor:pointer;color:var(--ink-3);font-size:20px;line-height:1;padding:0 4px}
+.apanel .ax:hover{color:var(--ink)}
+.sect{padding:12px 16px;border-bottom:1px solid var(--border-soft)}
+.sect h5{margin:0 0 8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:var(--card2);color:var(--ink-3);border:none;padding:6px 11px;font-size:11.5px;cursor:pointer}
+.seg button.on{background:#12303a;color:#bfeff8}
+.togs{display:flex;flex-wrap:wrap;gap:6px}
+.tog{padding:5px 10px;border-radius:999px;border:1px solid var(--border);color:var(--ink-3);font-size:11px;cursor:pointer;user-select:none}
+.tog.on{background:#12303a;border-color:#1f6b7d;color:#bfeff8}
+.mgrbox{max-height:148px;overflow:auto;display:flex;flex-wrap:wrap;gap:5px}
+.arow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.arow input[type=date]{flex:1}
+.hint{color:var(--ink-4);font-size:10.5px;margin-top:6px;line-height:1.5}
+.abtn{display:block;width:100%;padding:11px;border-radius:9px;background:#12303a;border:1px solid #1f6b7d;color:#bfeff8;font-size:12.5px;font-weight:600;cursor:pointer;text-align:center}
+.abtn:hover{background:#164050}
+.abtn.sec{background:var(--card);border-color:var(--border);color:var(--ink-2);font-weight:500}
+.rep{display:flex;gap:8px}
+.rep .rc{flex:1;text-align:center;border:1px solid var(--border);border-radius:9px;padding:8px 4px}
+.rep .rc b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.rep .rc span{font-size:9.5px;color:var(--ink-4);display:block;margin-top:2px}
+.dllist{max-height:250px;overflow:auto;font-size:11.5px;margin-top:6px}
+.dli{display:flex;gap:7px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+.dli .di{color:var(--ink-4);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.dli .dt{flex:1;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dli .dw{color:var(--ink-4);font-size:10px;flex:0 0 auto}
+.mgrsum{font-size:11.5px;color:var(--ink-3);margin-bottom:6px;line-height:1.6}
+.ansbox{width:100%;box-sizing:border-box;min-height:96px;font-size:12px;resize:vertical;font-family:inherit}
+.ansout{margin-top:10px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:12px;font-size:12px;white-space:pre-wrap;line-height:1.55;color:var(--ink)}
+.ansout .rv{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.ansout .rv .rvh{font-weight:600;color:var(--ink);margin-bottom:3px}
+.ansout .rv .rvp{color:#C2873C}.ansout .rv .rvr{color:#7FD1A6}
+.copied{color:#7FD1A6;font-size:11px;text-align:center;margin-top:6px;height:14px}
 </style>
 </head>
 <body>
 <div id="tip"></div>
+<button class="burger" id="burger" title="Настройка ИИ-анализа" onclick="aiToggle(true)">☰</button>
+<div class="scrim" id="scrim" onclick="aiToggle(false)"></div>
+<aside class="apanel" id="apanel"></aside>
 <div class="wrap">
   <div class="h1">GENGLASS · Диалоги</div>
   <div class="sub" id="sub">загрузка…</div>
@@ -320,7 +366,8 @@ const p2 = n => String(n).padStart(2,'0');
 const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
-const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set() };
+const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:'', td:'', mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
+  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
 function initControls(){
@@ -824,6 +871,168 @@ function render(){
   document.getElementById('stat').textContent = `${unit}: ${VIEW.length}${VIEW.length>DEAL_LIMIT?` (показаны первые ${DEAL_LIMIT}, сузьте фильтр)`:''} · событий: ${totEv}`;
   document.getElementById('foot').textContent = `Снимок: ${DATA.events.length} событий. «Смотрим по сделкам» - лид сливается в свою сделку; «по лидам» - сделка сливается в лид. Метка «лид»/«сделка» у события - где в пути оно произошло. Клик по ID - карточка в Bitrix24.`;
 }
+// ================= Боковая панель: настройка ИИ-анализа (MVP) =================
+// Пока без живого вызова модели: панель собирает точную настройку фильтра + отчёт
+// полноты данных, кнопка копирует конфиг в буфер. Иван присылает конфиг в чат,
+// разбор возвращается текстом и вставляется в поле «Ответ ИИ» - так гоняем MVP.
+function ensureEvtIdx(){ if(window.EVTS) return; window.EVTS={}; window.EVIX={};
+  for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
+const AI_MGRS = SC ? [...new Set(SC.deals.map(d=>d.mgr))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'ru')) : [];
+const INCLBL = { msg:'мессенджеры', mail:'письма', call:'звонки', task:'дела/задачи', note:'комментарии' };
+
+function aiToggle(on){ S.aiOpen=on; document.getElementById('apanel').classList.toggle('on',on);
+  document.getElementById('scrim').classList.toggle('on',on); if(on) renderAIPanel(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&S.aiOpen) aiToggle(false); });
+
+function aiBounds(){ const F=S.aiF; return { a:F.from?Date.parse(F.from+'T00:00:00+03:00'):0, b:F.to?Date.parse(F.to+'T23:59:59+03:00'):0 }; }
+// Лента сделки с учётом глубины: «вся коммуникация» - весь снимок, «в диапазоне» - окно дат.
+function aiMix(d){ const F=S.aiF, {a,b}=aiBounds(); const useR=F.depth==='range'&&(a||b);
+  return mixOf(d, useR?a:0, useR?b:0) || {msg:0,mail:0,call:0,task:0,note:0,ai:0,total:0}; }
+// Классификация полноты данных под настройку включённых каналов.
+function completeness(d){ const F=S.aiF, m=aiMix(d), inc=F.inc;
+  const msg=inc.has('msg')?m.msg:0, mail=inc.has('mail')?m.mail:0, call=inc.has('call')?m.call:0;
+  const hasText=msg>0||mail>0, blind=call>0?Math.max(0,m.call-m.ai):0;
+  if(!hasText && call===0) return {k:'empty',ic:'🔴',why:'только системные инструменты Б24 (дела, заметки, стадии), клиентской переписки нет'};
+  if(inc.has('call') && blind>0) return {k:'partial',ic:'🟡',why:blind+' '+plu(blind,'звонок','звонка','звонков')+' без транскрибации'+(hasText?'':', текстовой переписки нет')};
+  if(!hasText) return {k:'partial',ic:'🟡',why:'только звонки с разбором, без текстовой переписки'};
+  return {k:'full',ic:'🟢',why:'текстовая переписка есть'+(call>0?', звонки покрыты разбором':'')};
+}
+function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
+  const ids=F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean);
+  const idset=ids.length?new Set(ids):null;
+  return SC.deals.filter(d=>{
+    if(F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
+    if(idset){ const id=String(d.dealId||d.leadId||''); if(!idset.has(id)) return false; }
+    if(!a&&!b) return true;
+    if(F.dMode==='created'){ const ts=EVTS[d.key]||[]; const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0)); if(!c) return true; return (!a||c>=a)&&(!b||c<=b); }
+    const ts=EVTS[d.key]||[]; return ts.some(t=>(!a||t>=a)&&(!b||t<=b));
+  });
+}
+function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const d of deals)(byM[d.mgr]||=[]).push(d);
+  const rep={full:0,partial:0,empty:0};
+  const list=deals.map(d=>{ const c=completeness(d), m=aiMix(d); rep[c.k]++;
+    return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title, стадия:d.stage, бюджет:d.budget||0, вероятность:d.prob, полнота:c.k, комментарий:c.why,
+      лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
+  return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',
+    фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', включено:[...F.inc].map(k=>INCLBL[k]) },
+    полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
+    менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),
+    сделки:list, снимок:BAKED_AT };
+}
+function aiCopy(){ const txt=JSON.stringify(aiScope(),null,2);
+  const done=()=>{ const el=document.getElementById('aiCopied'); if(el){ el.textContent='Скопировано - пришлите этот текст в чат'; setTimeout(()=>el.textContent='',4000);} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done)); }
+  else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,cb){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity=0; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove(); cb&&cb(); }
+
+function aiSetMode(m){ S.aiF.dMode=m; renderAIPanel(); }
+function aiSetDepth(m){ S.aiF.depth=m; renderAIPanel(); }
+function aiTogInc(k){ const s=S.aiF.inc; s.has(k)?s.delete(k):s.add(k); renderAIPanel(); }
+function aiTogMgr(m){ const s=S.aiF.mgrs; s.has(m)?s.delete(m):s.add(m); renderAIPanel(); }
+function aiAllMgr(){ S.aiF.mgrs.clear(); renderAIPanel(); }
+function aiDate(which,v){ S.aiF[which]=v; renderAIPanel(); }
+function aiDealIds(v){ S.aiF.dealIds=v; scheduleRep(); }
+let _repT; function scheduleRep(){ clearTimeout(_repT); _repT=setTimeout(renderRepOnly,250); }
+function aiPreset(k){ const F=S.aiF, now=new Date(), iso=d=>d.toISOString().slice(0,10);
+  if(k==='all'){F.from='';F.to='';}
+  else if(k==='today'){F.from=iso(now);F.to=iso(now);}
+  else if(k==='yst'){const y=new Date(now-864e5);F.from=iso(y);F.to=iso(y);}
+  else if(k==='3'){F.from=iso(new Date(now-2*864e5));F.to=iso(now);}
+  else if(k==='7'){F.from=iso(new Date(now-6*864e5));F.to=iso(now);}
+  renderAIPanel();
+}
+
+function repHTML(){ const F=S.aiF, deals=aiMatchDeals(); const rep={full:0,partial:0,empty:0};
+  const rows=deals.map(d=>{ const c=completeness(d); rep[c.k]++; return {d,c}; });
+  const byM={}; for(const {d} of rows)(byM[d.mgr]||=[]).push(d);
+  const order={full:0,partial:1,empty:2};
+  rows.sort((x,y)=>order[x.c.k]-order[y.c.k]||(y.d.budget||0)-(x.d.budget||0));
+  const mgrLine=Object.entries(byM).sort((a,b)=>b[1].length-a[1].length)
+    .map(([m,ds])=>`${esc(m)} <b style="color:var(--ink-2)">${ds.length}</b>`).join(' · ') || '<span class="na2">нет сделок под фильтр</span>';
+  return `<div class="rep">
+      <div class="rc"><b style="color:#7FD1A6">${rep.full}</b><span>🟢 полные</span></div>
+      <div class="rc"><b style="color:#E4B563">${rep.partial}</b><span>🟡 неполные</span></div>
+      <div class="rc"><b style="color:#E08585">${rep.empty}</b><span>🔴 пустые</span></div>
+      <div class="rc"><b>${deals.length}</b><span>всего</span></div>
+    </div>
+    <div class="mgrsum" style="margin-top:10px">Менеджеры в выборке: ${mgrLine}</div>
+    <div class="dllist">${rows.length?rows.map(({d,c})=>`<div class="dli">
+        <span class="di">${c.ic} ${esc(String(d.dealId||d.leadId))}</span>
+        <span class="dt" title="${esc(c.why)}">${esc(d.title||'-')}</span>
+        <span class="dw">${esc(d.mgr||'')}</span>
+      </div>`).join(''):'<div class="na2" style="padding:14px 0">по этому фильтру сделок нет</div>'}</div>`;
+}
+function renderRepOnly(){ const el=document.getElementById('aiRep'); if(el) el.innerHTML=repHTML(); }
+
+function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
+  const seg=(cur,val,fn,lbl)=>`<button class="${cur===val?'on':''}" onclick="${fn}('${val}')">${lbl}</button>`;
+  const preset=(k,l)=>`<span class="tog" onclick="aiPreset('${k}')">${l}</span>`;
+  p.innerHTML=`
+    <div class="ah"><div><b>Настройка ИИ-анализа</b><div class="sub2">MVP: собери фильтр → скопируй → пришли в чат → вставь ответ</div></div>
+      <span class="ax" onclick="aiToggle(false)">✕</span></div>
+
+    <div class="sect"><h5>Период - считать по</h5>
+      <div class="seg">${seg(F.dMode,'comm','aiSetMode','дате коммуникации')}${seg(F.dMode,'created','aiSetMode','дате создания')}</div>
+      <div class="togs" style="margin-top:9px">${preset('today','сегодня')}${preset('yst','вчера')}${preset('3','3 дня')}${preset('7','7 дней')}${preset('all','всё окно')}</div>
+      <div class="arow" style="margin-top:9px">
+        <input type="date" value="${F.from}" onchange="aiDate('from',this.value)">
+        <span style="color:var(--ink-4)">→</span>
+        <input type="date" value="${F.to}" onchange="aiDate('to',this.value)">
+      </div>
+      <div class="hint">Один день - поставь одинаковые даты. Пусто - всё окно снимка (7 дней).</div>
+    </div>
+
+    <div class="sect"><h5>Глубина коммуникации</h5>
+      <div class="seg">${seg(F.depth,'all','aiSetDepth','вся сделка')}${seg(F.depth,'range','aiSetDepth','только в диапазоне')}</div>
+      <div class="hint">«Вся сделка» - весь диалог целиком. «Только в диапазоне» - события за выбранные даты (по дате создания - с момента создания).</div>
+    </div>
+
+    <div class="sect"><h5>Менеджеры${F.mgrs.size?` · выбрано ${F.mgrs.size}`:' · весь отдел'}</h5>
+      <div class="mgrbox">
+        <span class="tog ${F.mgrs.size?'':'on'}" onclick="aiAllMgr()">весь отдел</span>
+        ${AI_MGRS.map(m=>`<span class="tog ${F.mgrs.has(m)?'on':''}" onclick="aiTogMgr('${esc(m).replace(/'/g,"\\'")}')">${esc(m)}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="sect"><h5>Сделки</h5>
+      <input style="width:100%;box-sizing:border-box" placeholder="ID через запятую (пусто - все по фильтру), напр. 99605, 99537"
+        value="${esc(F.dealIds)}" oninput="aiDealIds(this.value)">
+    </div>
+
+    <div class="sect"><h5>Что включать в разбор</h5>
+      <div class="togs">${Object.keys(INCLBL).map(k=>`<span class="tog ${F.inc.has(k)?'on':''}" onclick="aiTogInc('${k}')">${INCLBL[k]}</span>`).join('')}</div>
+    </div>
+
+    <div class="sect"><h5>Полнота данных под выборку</h5>
+      <div id="aiRep">${repHTML()}</div>
+    </div>
+
+    <div class="sect">
+      <button class="abtn" onclick="aiCopy()">Скопировать настройку для ИИ</button>
+      <div class="copied" id="aiCopied"></div>
+    </div>
+
+    <div class="sect"><h5>Ответ ИИ - вставь сюда</h5>
+      <textarea class="ansbox" id="aiAns" placeholder="Вставь ответ из чата (JSON с полем «сделки» или обычный текст) и нажми «Показать»"></textarea>
+      <button class="abtn sec" style="margin-top:8px" onclick="aiShowAns()">Показать разбор</button>
+      <div id="aiAnsOut"></div>
+    </div>`;
+}
+function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').trim(); const out=document.getElementById('aiAnsOut');
+  if(!raw){ out.innerHTML=''; return; }
+  let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
+  const arr = obj && (obj.сделки||obj.deals||obj.reviews);
+  if(arr){ const items = Array.isArray(arr)?arr:Object.entries(arr).map(([id,v])=>({id,...v}));
+    out.innerHTML='<div class="ansout">'+items.map(r=>{
+      const t=r.tone==='bad'?'#E08585':r.tone==='good'?'#7FD1A6':'#E4B563';
+      return `<div class="rv"><div class="rvh" style="color:${t}">${esc(r.id||r.сделка||'')} · ${esc(r.verdict||r.вердикт||'')}</div>
+        ${r.problem||r.проблема?`<div class="rvp">Проблема: ${esc(r.problem||r.проблема)}</div>`:''}
+        ${r.recommendation||r.рекомендация?`<div class="rvr">→ ${esc(r.recommendation||r.рекомендация)}</div>`:''}</div>`;
+    }).join('')+'</div>';
+  } else { out.innerHTML='<div class="ansout">'+esc(raw)+'</div>'; }
+}
+
 initControls(); render();
 
 // Анти-кэш для боевого адреса /dialog/: деплой кладёт рядом v.txt со штампом сборки.

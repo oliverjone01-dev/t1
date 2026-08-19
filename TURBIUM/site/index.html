@@ -1,0 +1,1074 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A0F0D">
+  <meta name="description" content="TURBIUM Brand Operating System. Стратегия, продуктовая архитектура и стандарты независимого AI-агентства для малого бизнеса.">
+  <title>TURBIUM / Brand Operating System</title>
+  <style>
+    :root {
+      --bg: #0A0F0D;
+      --surface: #131A16;
+      --surface-2: #0E1512;
+      --surface-3: #18211C;
+      --line: #1E2A25;
+      --line-hi: #31443C;
+      --mint: #4EEAC0;
+      --mint-soft: #A7F7DF;
+      --teal: #00BFA5;
+      --amber: #FF8C42;
+      --peach: #FFB88C;
+      --white: #F2F7F5;
+      --grey: #8A9A94;
+      --grey-hi: #B7C3BE;
+      --disp: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+      --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", ui-monospace, monospace;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+      --rail: 248px;
+      --gutter: clamp(20px, 4vw, 64px);
+      --section: clamp(96px, 13vw, 190px);
+      --mx: 50%;
+      --my: 24%;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--white);
+      background: var(--bg);
+      font-family: var(--disp);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+    body.menu-open { overflow: hidden; }
+    ::selection { color: var(--bg); background: var(--mint); }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea, select { font: inherit; }
+    button { color: inherit; }
+    img, svg { display: block; max-width: 100%; }
+    h1, h2, h3, p, figure { margin: 0; }
+    ul, ol { margin: 0; padding: 0; list-style: none; }
+    [hidden] { display: none !important; }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 12px;
+      z-index: 1000;
+      padding: 10px 14px;
+      color: var(--bg);
+      background: var(--mint);
+      border-radius: 8px;
+      transform: translateY(-160%);
+      transition: transform .2s var(--ease);
+    }
+    .skip-link:focus { transform: none; }
+    :focus-visible { outline: 2px solid var(--teal); outline-offset: 4px; }
+
+    .grid-field {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .85;
+      background-image:
+        linear-gradient(rgba(78, 234, 192, .036) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(78, 234, 192, .036) 1px, transparent 1px),
+        radial-gradient(circle at var(--mx) var(--my), rgba(0, 191, 165, .09), transparent 26rem);
+      background-size: 48px 48px, 48px 48px, auto;
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.78) 65%, transparent 100%);
+    }
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+    }
+
+    .rail {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 40;
+      width: var(--rail);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 24px 22px;
+      background: rgba(10, 15, 13, .84);
+      backdrop-filter: blur(22px) saturate(120%);
+      border-right: 1px solid var(--line);
+    }
+    .brand-lockup { display: flex; align-items: center; gap: 12px; width: fit-content; }
+    .brand-glyph {
+      position: relative;
+      width: 44px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(78, 234, 192, .54);
+      border-radius: 11px 11px 11px 3px;
+      background:
+        linear-gradient(140deg, rgba(78,234,192,.12), transparent 44%),
+        var(--surface-2);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.025), 0 0 24px rgba(78,234,192,.07);
+      overflow: hidden;
+    }
+    .brand-glyph::before {
+      content: "";
+      position: absolute;
+      width: 34px;
+      height: 14px;
+      top: -7px;
+      right: -12px;
+      border: 1px solid rgba(78,234,192,.4);
+      border-radius: 50%;
+      transform: rotate(38deg);
+    }
+    .brand-glyph b { font-size: 21px; letter-spacing: -.07em; color: var(--mint); line-height: 1; }
+    .brand-glyph small { position: absolute; top: 4px; left: 6px; color: var(--grey); font: 7px/1 var(--mono); }
+    .brand-glyph i { position: absolute; right: 5px; bottom: 4px; color: var(--grey); font: 6px/1 var(--mono); font-style: normal; }
+    .brand-name { display: grid; line-height: 1.05; }
+    .brand-name strong { font-size: 15px; letter-spacing: .08em; }
+    .brand-name span { margin-top: 5px; color: var(--grey); font: 9px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+
+    .rail-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--grey);
+      font: 9px/1.4 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .live-dot { width: 6px; height: 6px; margin-top: 3px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px rgba(78,234,192,.7); }
+    .rail-nav { margin-top: auto; margin-bottom: auto; }
+    .rail-nav ol { display: grid; gap: 5px; }
+    .rail-nav a {
+      position: relative;
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      align-items: center;
+      min-height: 42px;
+      padding: 7px 9px;
+      border-radius: 9px;
+      color: var(--grey);
+      transition: color .2s, background .2s;
+    }
+    .rail-nav a:hover { color: var(--white); background: rgba(255,255,255,.025); }
+    .rail-nav a[aria-current="true"] { color: var(--white); background: rgba(78,234,192,.065); }
+    .rail-nav a[aria-current="true"]::before {
+      content: "";
+      position: absolute;
+      left: -24px;
+      width: 2px;
+      height: 24px;
+      background: var(--mint);
+      box-shadow: 0 0 12px rgba(78,234,192,.5);
+    }
+    .rail-nav .num { color: var(--teal); font: 10px/1 var(--mono); }
+    .rail-nav .label { font-size: 13px; letter-spacing: -.01em; }
+    .rail-bottom { display: grid; gap: 10px; color: var(--grey); font: 9px/1.5 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .rail-progress { height: 2px; background: var(--line); overflow: hidden; }
+    .rail-progress span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, var(--teal), var(--mint)); transition: width .12s linear; }
+
+    .mobile-bar {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      padding: 0 18px;
+      background: rgba(10,15,13,.94);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--line);
+    }
+    .mobile-menu-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--line-hi);
+      border-radius: 10px;
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+    .mobile-menu-trigger span { color: var(--grey-hi); font: 10px/1 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+    .menu-lines { position: relative; width: 16px; height: 12px; }
+    .menu-lines::before, .menu-lines::after { content:""; position:absolute; left:0; width:16px; height:1px; background:var(--mint); transition: transform .2s, top .2s; }
+    .menu-lines::before { top:2px; }
+    .menu-lines::after { top:9px; }
+    .mobile-menu-trigger[aria-expanded="true"] .menu-lines::before { top:6px; transform: rotate(45deg); }
+    .mobile-menu-trigger[aria-expanded="true"] .menu-lines::after { top:6px; transform: rotate(-45deg); }
+    .mobile-menu {
+      position: fixed;
+      inset: 64px 0 0;
+      z-index: 55;
+      display: none;
+      padding: 24px 18px calc(24px + env(safe-area-inset-bottom));
+      background: var(--bg);
+      overflow-y: auto;
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu p { margin-bottom: 18px; color: var(--grey); font: 10px/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .mobile-menu a { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; min-height: 62px; border-top: 1px solid var(--line); }
+    .mobile-menu a:last-child { border-bottom: 1px solid var(--line); }
+    .mobile-menu .m-num { color: var(--teal); font: 11px/1 var(--mono); }
+    .mobile-menu .m-label { font-size: clamp(20px, 6vw, 28px); font-weight: 650; letter-spacing: -.035em; }
+    .mobile-menu .m-arrow { color: var(--mint); }
+
+    .shell { position: relative; z-index: 2; margin-left: var(--rail); }
+    .wrap { width: min(100%, 1480px); margin: 0 auto; padding-inline: var(--gutter); }
+    .hero-grid > *, .chapter-head > *, .evidence-grid > *, .legend-grid > *, .engine > *, .reach-grid > *, .system-grid > *, .brand-lab > * { min-width: 0; }
+    .topline {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      color: var(--grey);
+      font: 9px/1 var(--mono);
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .topline-group { display: flex; align-items: center; gap: 18px; }
+    .confidential { color: var(--peach); }
+
+    .hero {
+      min-height: calc(100svh - 52px);
+      display: grid;
+      align-items: center;
+      padding-block: clamp(54px, 8vw, 110px);
+      border-bottom: 1px solid var(--line);
+    }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(360px, .82fr); gap: clamp(44px, 7vw, 120px); align-items: center; }
+    .eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; color: var(--mint); font: 10px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow::after { content:""; width: 72px; height: 1px; background: linear-gradient(90deg, var(--mint), transparent); }
+    h1 {
+      max-width: 930px;
+      font-size: clamp(58px, 6.9vw, 116px);
+      line-height: .91;
+      letter-spacing: -.066em;
+      font-weight: 760;
+      text-wrap: balance;
+    }
+    h1 .growth { color: var(--mint); font-weight: 520; }
+    .hero-copy { max-width: 720px; margin-top: 32px; color: var(--grey-hi); font-size: clamp(17px, 1.45vw, 21px); line-height: 1.58; letter-spacing: -.015em; }
+    .hero-copy strong { color: var(--white); font-weight: 600; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 38px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 52px;
+      padding: 0 20px;
+      border-radius: 11px 11px 11px 3px;
+      border: 1px solid var(--line-hi);
+      background: var(--surface-2);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform .2s var(--ease), border-color .2s, background .2s;
+    }
+    .btn:hover { transform: translateY(-2px); border-color: var(--teal); }
+    .btn-primary { color: var(--bg); background: var(--mint); border-color: var(--mint); box-shadow: 0 10px 38px rgba(78,234,192,.14); }
+    .btn-primary:hover { background: var(--mint-soft); border-color: var(--mint-soft); }
+    .btn svg { width: 16px; }
+    .hero-note { margin-top: 18px; color: var(--grey); font: 10px/1.5 var(--mono); letter-spacing: .04em; }
+
+    .element-stage { position: relative; display: grid; place-items: center; min-height: 560px; perspective: 1000px; }
+    .element-stage::before {
+      content:"";
+      position: absolute;
+      width: 76%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(78,234,192,.16), rgba(0,191,165,.035) 35%, transparent 68%);
+      filter: blur(22px);
+    }
+    .orbital {
+      position: absolute;
+      width: min(100%, 520px);
+      aspect-ratio: 1;
+      animation: drift 18s linear infinite;
+    }
+    .orbital ellipse { fill: none; stroke: rgba(78,234,192,.15); stroke-width: 1; stroke-dasharray: 2 7; }
+    .orbital .hot { stroke: rgba(255,184,140,.28); stroke-dasharray: 1 13; }
+    .orbital circle { fill: var(--mint); filter: drop-shadow(0 0 7px var(--mint)); }
+    @keyframes drift { to { transform: rotate(360deg); } }
+    .element-card {
+      position: relative;
+      width: min(74%, 350px);
+      aspect-ratio: 1;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rx, -3deg)) rotateY(var(--ry, 6deg));
+      transition: transform .18s ease-out;
+    }
+    .element-card::before, .element-card::after {
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: 28px 28px 28px 8px;
+      transform: translateZ(-28px) translate(18px, 18px);
+      border: 1px solid rgba(78,234,192,.14);
+      background: rgba(11,20,16,.52);
+    }
+    .element-card::after { transform: translateZ(-14px) translate(9px,9px); background:rgba(15,28,22,.66); }
+    .element-face {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+      border: 1px solid rgba(167,247,223,.48);
+      border-radius: 28px 28px 28px 8px;
+      background:
+        radial-gradient(circle at 76% 12%, rgba(255,255,255,.34), transparent 2%, rgba(255,255,255,.07) 8%, transparent 28%),
+        linear-gradient(145deg, rgba(255,255,255,.13), transparent 25%),
+        linear-gradient(135deg, #1B3027 0%, #0C1511 47%, #18372C 72%, #07100D 100%);
+      box-shadow: inset 0 0 38px rgba(78,234,192,.08), 0 35px 90px rgba(0,0,0,.46), 0 0 54px rgba(78,234,192,.16);
+    }
+    .element-face::before {
+      content:"";
+      position:absolute;
+      inset:-60% -20%;
+      background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.22) 49%, rgba(255,255,255,.04) 53%, transparent 58%);
+      transform: translateX(-40%) rotate(8deg);
+      animation: sweep 7s var(--ease) infinite;
+    }
+    .element-face::after {
+      content:"";
+      position:absolute;
+      inset:12px;
+      border:1px solid rgba(255,255,255,.055);
+      border-radius:20px 20px 20px 5px;
+      background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    @keyframes sweep { 0%,55%{ transform:translateX(-55%) rotate(8deg); } 80%,100%{ transform:translateX(50%) rotate(8deg); } }
+    .atomic-no { position:absolute; top:24px; left:28px; z-index:3; color:var(--mint); font:12px/1 var(--mono); }
+    .atomic-mass { position:absolute; top:26px; right:28px; z-index:3; color:var(--grey); font:9px/1 var(--mono); }
+    .atomic-symbol { position:absolute; inset:0; z-index:3; display:grid; place-items:center; font-size:clamp(94px,10vw,145px); font-weight:720; letter-spacing:-.09em; color:var(--white); text-shadow:0 0 28px rgba(78,234,192,.24); }
+    .atomic-name { position:absolute; left:28px; bottom:26px; z-index:3; font:10px/1 var(--mono); letter-spacing:.13em; text-transform:uppercase; color:var(--grey-hi); }
+    .atomic-state { position:absolute; right:28px; bottom:26px; z-index:3; display:flex; align-items:center; gap:7px; color:var(--mint); font:8px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+    .atomic-state::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--mint); box-shadow:0 0 9px var(--mint); }
+    .stage-label { position:absolute; bottom:18px; left:50%; transform:translateX(-50%); white-space:nowrap; color:var(--grey); font:8px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; }
+
+    .manifest {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--line);
+    }
+    .manifest-item { min-height: 158px; padding: 30px 26px; border-right: 1px solid var(--line); }
+    .manifest-item:last-child { border-right: 0; }
+    .manifest-item span { color:var(--grey); font:9px/1 var(--mono); letter-spacing:.09em; text-transform:uppercase; }
+    .manifest-item strong { display:block; margin-top:15px; max-width:22ch; font-size:17px; line-height:1.35; letter-spacing:-.02em; font-weight:590; }
+    .manifest-item strong em { color:var(--mint); font-style:normal; }
+
+    .chapter { padding-block: var(--section); border-bottom: 1px solid var(--line); scroll-margin-top: 24px; }
+    .chapter-head { display:grid; grid-template-columns:minmax(140px,.33fr) minmax(0,1fr); gap:clamp(28px,6vw,96px); margin-bottom:clamp(58px,8vw,110px); }
+    .chapter-id { color:var(--teal); font:10px/1.5 var(--mono); letter-spacing:.1em; text-transform:uppercase; }
+    .chapter-id::before { content:""; display:block; width:52px; height:1px; margin-bottom:17px; background:var(--teal); }
+    .chapter-title h2 { max-width:1000px; font-size:clamp(42px,6vw,86px); line-height:.98; letter-spacing:-.055em; font-weight:690; text-wrap:balance; }
+    .chapter-title p { max-width:690px; margin-top:24px; color:var(--grey-hi); font-size:clamp(16px,1.4vw,20px); line-height:1.65; }
+    .module { scroll-margin-top: 84px; }
+    .module + .module { margin-top:clamp(100px,13vw,180px); }
+    .module-label { display:flex; align-items:center; gap:14px; margin-bottom:24px; color:var(--grey); font:9px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; }
+    .module-label b { color:var(--mint); font-weight:500; }
+    .module-label::after { content:""; flex:1; height:1px; background:var(--line); }
+    .module-title { max-width:920px; font-size:clamp(32px,4.3vw,62px); line-height:1.04; letter-spacing:-.045em; font-weight:650; text-wrap:balance; }
+    .module-intro { max-width:700px; margin-top:20px; color:var(--grey-hi); font-size:17px; }
+    .tag { display:inline-flex; align-items:center; min-height:24px; padding:0 8px; border:1px solid var(--line-hi); border-radius:999px; color:var(--grey-hi); font:8px/1 var(--mono); letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    .tag-data { color:var(--white); }
+    .tag-hyp { color:var(--peach); border-color:rgba(255,184,140,.28); }
+    .tag-plan { color:var(--teal); border-color:rgba(0,191,165,.3); }
+    .tag-model { color:var(--amber); border-color:rgba(255,140,66,.3); }
+
+    .metric-break { position:relative; margin-top:64px; padding:clamp(34px,6vw,82px) 0; border-block:1px solid var(--line); overflow:hidden; }
+    .metric-value { font-size:clamp(100px,19vw,290px); line-height:.72; letter-spacing:-.09em; font-weight:760; color:var(--white); font-variant-numeric:tabular-nums; }
+    .metric-meta { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-top:38px; }
+    .metric-meta p { max-width:620px; color:var(--grey-hi); font-size:18px; }
+    .metric-break .axis { position:absolute; inset:auto 0 32%; height:1px; background:linear-gradient(90deg,var(--amber),var(--white) 45%,var(--mint)); opacity:.25; }
+    .evidence-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:18px; margin-top:26px; }
+    .proof-panel, .signal-panel { border:1px solid var(--line); background:rgba(19,26,22,.72); border-radius:14px 14px 14px 4px; overflow:hidden; }
+    .panel-bar { display:flex; align-items:center; justify-content:space-between; min-height:42px; padding:0 14px; border-bottom:1px solid var(--line); color:var(--grey); font:8px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+    .proof-body { padding:28px; }
+    .proof-body h3 { font-size:26px; letter-spacing:-.035em; }
+    .proof-body p { max-width:52ch; margin-top:12px; color:var(--grey-hi); }
+    .proof-list { display:grid; gap:1px; margin-top:24px; background:var(--line); }
+    .proof-row { display:grid; grid-template-columns:100px 1fr auto; gap:16px; align-items:center; padding:15px 0; background:var(--surface); }
+    .proof-row strong { color:var(--white); font:22px/1 var(--mono); font-variant-numeric:tabular-nums; }
+    .proof-row span { color:var(--grey-hi); font-size:14px; }
+    .signal-panel { padding-bottom:18px; }
+    .signal-visual { position:relative; min-height:220px; display:grid; place-items:center; padding:20px; }
+    .signal-visual svg { width:100%; height:180px; }
+    .toast { margin:0 18px; padding:14px; border:1px solid rgba(255,140,66,.26); background:rgba(255,140,66,.06); border-radius:12px; }
+    .toast-head { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--amber); font:9px/1 var(--mono); text-transform:uppercase; letter-spacing:.07em; }
+    .toast p { margin-top:8px; color:var(--grey-hi); font-size:13px; }
+
+    .legend-grid { display:grid; grid-template-columns:.92fr 1.08fr; gap:18px; margin-top:52px; }
+    .legend-copy { padding:clamp(28px,4vw,54px); border:1px solid var(--line); border-radius:16px 16px 16px 4px; background:linear-gradient(145deg,rgba(78,234,192,.055),transparent 34%),var(--surface); }
+    .legend-copy blockquote { margin:0; font-size:clamp(27px,3.4vw,48px); line-height:1.14; letter-spacing:-.045em; text-wrap:balance; }
+    .legend-copy blockquote em { color:var(--mint); font-style:normal; }
+    .legend-copy p { margin-top:30px; max-width:58ch; color:var(--grey-hi); }
+    .reaction-map { position:relative; min-height:460px; border:1px solid var(--line); border-radius:16px 16px 16px 4px; background:var(--surface-2); overflow:hidden; }
+    .reaction-map::before { content:""; position:absolute; inset:0; background-image:linear-gradient(rgba(78,234,192,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(78,234,192,.035) 1px,transparent 1px); background-size:32px 32px; }
+    .reaction-node { position:absolute; width:136px; min-height:92px; padding:16px; border:1px solid var(--line-hi); border-radius:12px 12px 12px 3px; background:rgba(19,26,22,.96); }
+    .reaction-node span { color:var(--grey); font:8px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+    .reaction-node strong { display:block; margin-top:8px; font-size:15px; line-height:1.25; }
+    .reaction-node.pain { left:8%; top:15%; border-color:rgba(255,140,66,.34); }
+    .reaction-node.data { left:8%; bottom:15%; }
+    .reaction-node.system { right:8%; top:15%; }
+    .reaction-node.growth { right:8%; bottom:15%; border-color:rgba(78,234,192,.36); }
+    .reaction-core { position:absolute; left:50%; top:50%; width:108px; aspect-ratio:1; display:grid; place-items:center; transform:translate(-50%,-50%) rotate(4deg); border:1px solid var(--mint); border-radius:22px 22px 22px 6px; background:rgba(78,234,192,.08); color:var(--mint); font-size:37px; font-weight:700; box-shadow:0 0 40px rgba(78,234,192,.12); }
+    .reaction-lines { position:absolute; inset:0; width:100%; height:100%; }
+
+    .principles { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:18px; background:var(--line); border:1px solid var(--line); border-radius:14px 14px 14px 4px; overflow:hidden; }
+    .principle { min-height:230px; padding:26px; background:var(--surface); }
+    .principle .p-no { color:var(--teal); font:10px/1 var(--mono); }
+    .principle h3 { margin-top:38px; font-size:22px; letter-spacing:-.03em; }
+    .principle p { margin-top:11px; color:var(--grey); font-size:14px; }
+
+    .periodic-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:12px; margin-top:52px; }
+    .persona {
+      position:relative;
+      grid-column:span 4;
+      min-height:300px;
+      padding:23px;
+      border:1px solid var(--line);
+      border-radius:14px 14px 14px 4px;
+      background:var(--surface);
+      transition:transform .25s var(--ease), border-color .25s;
+    }
+    .persona:nth-child(4), .persona:nth-child(5) { grid-column:span 6; }
+    .persona:hover { transform:translateY(-4px); border-color:var(--teal); }
+    .persona.new { border-color:rgba(255,184,140,.28); background:linear-gradient(145deg,rgba(255,184,140,.055),transparent 40%),var(--surface); }
+    .persona-head { display:flex; justify-content:space-between; gap:16px; }
+    .persona-symbol { font-size:54px; line-height:.9; letter-spacing:-.07em; font-weight:710; }
+    .persona-index { color:var(--grey); font:9px/1 var(--mono); }
+    .persona h3 { margin-top:38px; font-size:22px; letter-spacing:-.03em; }
+    .persona .quote { margin-top:12px; color:var(--grey-hi); font-size:15px; }
+    .persona .route { position:absolute; left:23px; right:23px; bottom:22px; padding-top:13px; border-top:1px solid var(--line); color:var(--mint); font-size:13px; }
+
+    .roads { display:grid; gap:12px; margin-top:48px; }
+    .road { display:grid; grid-template-columns:110px 1fr 180px; gap:28px; align-items:center; min-height:138px; padding:22px 24px; border:1px solid var(--line); border-radius:14px 14px 14px 4px; background:var(--surface); }
+    .road-no { color:var(--mint); font:46px/1 var(--mono); letter-spacing:-.08em; }
+    .road h3 { font-size:25px; letter-spacing:-.035em; }
+    .road p { margin-top:7px; color:var(--grey); font-size:14px; }
+    .road-meta { display:grid; gap:8px; justify-items:start; }
+    .formula { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:18px; align-items:center; margin-top:26px; padding:32px; border:1px solid rgba(78,234,192,.25); border-radius:14px 14px 14px 4px; background:rgba(78,234,192,.035); }
+    .formula strong { font-size:clamp(18px,2.2vw,28px); letter-spacing:-.035em; }
+    .formula span { color:var(--mint); font:22px/1 var(--mono); }
+
+    .ladder { display:grid; gap:9px; margin-top:48px; }
+    .rung { width:var(--w); margin-left:calc((100% - var(--w))/2); display:grid; grid-template-columns:46px minmax(0,1fr) auto; gap:18px; align-items:center; min-height:78px; padding:13px 18px; border:1px solid var(--line); border-radius:12px 12px 12px 3px; background:var(--surface); }
+    .rung-no { color:var(--teal); font:10px/1 var(--mono); }
+    .rung strong { font-size:17px; letter-spacing:-.02em; }
+    .rung small { display:block; margin-top:4px; color:var(--grey); font-size:12px; }
+    .rung-price { color:var(--white); font:14px/1 var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .rung:last-child { border-color:rgba(78,234,192,.3); background:linear-gradient(90deg,rgba(78,234,192,.06),transparent),var(--surface); }
+    .bundles { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:24px; }
+    details.bundle { border:1px solid var(--line); border-radius:12px 12px 12px 3px; background:var(--surface-2); }
+    details.bundle summary { min-height:72px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:0 18px; cursor:pointer; list-style:none; }
+    details.bundle summary::-webkit-details-marker { display:none; }
+    details.bundle summary strong { font-size:16px; }
+    details.bundle summary span { color:var(--mint); font:20px/1 var(--mono); transition:transform .2s; }
+    details[open].bundle summary span { transform:rotate(45deg); }
+    .bundle-body { padding:0 18px 18px; color:var(--grey-hi); font-size:14px; }
+    .bundle-body ol { display:grid; gap:8px; counter-reset:steps; }
+    .bundle-body li { position:relative; padding-left:26px; }
+    .bundle-body li::before { counter-increment:steps; content:counter(steps,decimal-leading-zero); position:absolute; left:0; color:var(--teal); font:9px/1.8 var(--mono); }
+
+    .engine { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:48px; }
+    .engine-map { position:relative; min-height:520px; border:1px solid var(--line); border-radius:16px 16px 16px 4px; background:var(--surface-2); overflow:hidden; }
+    .engine-map svg { position:absolute; inset:0; width:100%; height:100%; }
+    .engine-core { position:absolute; left:50%; top:50%; width:132px; aspect-ratio:1; transform:translate(-50%,-50%); display:grid; place-items:center; text-align:center; border:1px solid var(--mint); border-radius:50%; background:var(--surface); color:var(--mint); font-size:16px; font-weight:680; box-shadow:0 0 40px rgba(78,234,192,.1); }
+    .engine-node { position:absolute; width:144px; padding:14px; border:1px solid var(--line-hi); border-radius:10px 10px 10px 3px; background:rgba(19,26,22,.95); }
+    .engine-node b { display:block; font-size:14px; }
+    .engine-node small { color:var(--grey); font:8px/1.4 var(--mono); text-transform:uppercase; }
+    .engine-node.n1 { left:6%; top:8%; }
+    .engine-node.n2 { right:6%; top:8%; }
+    .engine-node.n3 { left:6%; bottom:8%; }
+    .engine-node.n4 { right:6%; bottom:8%; }
+    .engine-board { display:grid; gap:10px; }
+    .cadence { padding:20px; border:1px solid var(--line); border-radius:12px 12px 12px 3px; background:var(--surface); }
+    .cadence-head { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .cadence-head b { font-size:16px; }
+    .cadence p { margin-top:8px; color:var(--grey); font-size:13px; }
+    .cadence-bar { height:4px; margin-top:15px; background:var(--line); overflow:hidden; }
+    .cadence-bar span { display:block; height:100%; width:var(--fill); background:var(--teal); }
+
+    .reach-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:48px; }
+    .reach-panel { min-height:420px; padding:30px; border:1px solid var(--line); border-radius:16px 16px 16px 4px; background:var(--surface); }
+    .reach-panel h3 { font-size:29px; letter-spacing:-.04em; }
+    .reach-panel > p { margin-top:13px; color:var(--grey-hi); }
+    .hook-stack { display:grid; gap:8px; margin-top:28px; }
+    .hook { display:flex; gap:12px; padding:13px 14px; border:1px solid var(--line); border-radius:9px; background:var(--surface-2); font-size:14px; }
+    .hook i { color:var(--amber); font-style:normal; }
+    .channel-list { margin-top:25px; }
+    .channel { display:grid; grid-template-columns:34px 1fr auto; align-items:center; min-height:52px; border-top:1px solid var(--line); }
+    .channel:last-child { border-bottom:1px solid var(--line); }
+    .channel span:first-child { color:var(--teal); font:9px/1 var(--mono); }
+    .channel strong { font-size:14px; }
+    .channel small { color:var(--grey); }
+
+    .funnel { display:grid; gap:10px; margin-top:48px; }
+    .funnel-row { width:var(--w); margin-left:calc((100% - var(--w))/2); display:grid; grid-template-columns:72px 1fr 200px; gap:20px; align-items:center; min-height:66px; padding:12px 18px; border:1px solid var(--line); background:var(--surface); border-radius:10px 10px 10px 3px; }
+    .funnel-row .f-no { color:var(--teal); font:9px/1 var(--mono); }
+    .funnel-row strong { font-size:17px; }
+    .funnel-row .target { display:flex; justify-content:flex-end; gap:8px; color:var(--grey); font:10px/1 var(--mono); }
+    .funnel-row:last-child { border-color:rgba(78,234,192,.3); }
+    .antipattern { display:flex; align-items:flex-start; gap:18px; margin-top:24px; padding:20px; border-left:2px solid var(--amber); background:rgba(255,140,66,.05); }
+    .antipattern b { color:var(--amber); font:10px/1.5 var(--mono); text-transform:uppercase; }
+    .antipattern p { color:var(--grey-hi); }
+
+    .timeline { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px; }
+    .timeline::before { content:""; position:absolute; left:5%; right:5%; top:31px; height:1px; background:linear-gradient(90deg,var(--amber),var(--white),var(--mint)); opacity:.35; }
+    .phase { position:relative; padding-top:62px; }
+    .phase-dot { position:absolute; top:24px; left:22px; width:15px; height:15px; border:4px solid var(--bg); border-radius:50%; background:var(--white); box-shadow:0 0 0 1px var(--line-hi); }
+    .phase:first-child .phase-dot { background:var(--amber); }
+    .phase:last-child .phase-dot { background:var(--mint); }
+    .phase-card { min-height:390px; padding:24px; border:1px solid var(--line); border-radius:14px 14px 14px 4px; background:var(--surface); }
+    .phase-card .weeks { color:var(--teal); font:9px/1 var(--mono); text-transform:uppercase; letter-spacing:.08em; }
+    .phase-card h3 { margin-top:22px; font-size:26px; letter-spacing:-.035em; }
+    .phase-card ul { display:grid; gap:9px; margin-top:20px; color:var(--grey-hi); font-size:14px; }
+    .phase-card li { position:relative; padding-left:17px; }
+    .phase-card li::before { content:""; position:absolute; left:0; top:.7em; width:5px; height:5px; background:var(--teal); }
+    .kill { position:absolute; left:24px; right:24px; bottom:22px; padding-top:14px; border-top:1px solid rgba(255,140,66,.25); color:var(--amber); font:10px/1.5 var(--mono); }
+    .risk-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:24px; }
+    .risk { padding:22px; border:1px solid var(--line); border-radius:12px 12px 12px 3px; background:var(--surface-2); }
+    .risk span { color:var(--amber); font:9px/1 var(--mono); text-transform:uppercase; }
+    .risk h3 { margin-top:14px; font-size:18px; }
+    .risk p { margin-top:8px; color:var(--grey); font-size:13px; }
+
+    .system-grid { display:grid; grid-template-columns:1.15fr .85fr; gap:18px; margin-top:48px; }
+    .palette-panel, .type-panel { padding:26px; border:1px solid var(--line); border-radius:14px 14px 14px 4px; background:var(--surface); }
+    .swatches { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:22px; }
+    .swatch { min-height:132px; display:flex; flex-direction:column; justify-content:space-between; padding:14px; border:1px solid rgba(255,255,255,.07); border-radius:9px; background:var(--c); color:var(--ink,var(--white)); }
+    .swatch b { font-size:13px; }
+    .swatch span { font:8px/1 var(--mono); text-transform:uppercase; letter-spacing:.06em; opacity:.72; }
+    .type-panel .display-sample { margin-top:26px; font-size:clamp(54px,7vw,94px); line-height:.84; letter-spacing:-.07em; font-weight:730; }
+    .type-panel .body-sample { margin-top:28px; color:var(--grey-hi); font-size:17px; }
+    .type-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+    .brand-lab { display:grid; grid-template-columns:.72fr 1.28fr; gap:18px; margin-top:18px; }
+    .logo-stage { min-height:370px; display:grid; place-items:center; border:1px solid var(--line); border-radius:14px 14px 14px 4px; background:var(--surface-2); }
+    .logo-stage .brand-glyph { width:150px; border-radius:31px 31px 31px 10px; }
+    .logo-stage .brand-glyph b { font-size:68px; }
+    .logo-stage .brand-glyph small { top:16px; left:19px; font-size:13px; }
+    .logo-stage .brand-glyph i { right:16px; bottom:15px; font-size:10px; }
+    .logo-rules { padding:28px; border:1px solid var(--line); border-radius:14px 14px 14px 4px; background:var(--surface); }
+    .logo-rules h3 { font-size:28px; letter-spacing:-.04em; }
+    .rule-list { display:grid; gap:1px; margin-top:25px; background:var(--line); }
+    .rule { display:grid; grid-template-columns:42px 1fr; gap:14px; padding:16px 0; background:var(--surface); }
+    .rule span { color:var(--teal); font:9px/1.7 var(--mono); }
+    .rule p { color:var(--grey-hi); font-size:14px; }
+
+    .source-ledger { margin-top:48px; border:1px solid var(--line); border-radius:14px 14px 14px 4px; overflow:hidden; }
+    .source-row { display:grid; grid-template-columns:64px 1.4fr .9fr 150px; gap:20px; align-items:center; min-height:78px; padding:14px 18px; border-bottom:1px solid var(--line); background:rgba(19,26,22,.74); }
+    .source-row:last-child { border-bottom:0; }
+    .source-row .sid { color:var(--teal); font:10px/1 var(--mono); }
+    .source-row strong { font-size:14px; }
+    .source-row p { color:var(--grey); font-size:12px; }
+    .source-row a { color:var(--mint); font:10px/1.4 var(--mono); text-align:right; text-decoration:underline; text-underline-offset:4px; }
+    .source-row .pending { color:var(--peach); text-decoration:none; }
+
+    footer { padding-block:42px; }
+    .footer-grid { display:grid; grid-template-columns:1fr auto; gap:30px; align-items:end; }
+    .footer-grid p { max-width:620px; color:var(--grey); font-size:13px; }
+    .footer-stamp { color:var(--grey); font:9px/1.6 var(--mono); text-align:right; letter-spacing:.08em; text-transform:uppercase; }
+
+    @media (max-width: 1180px) {
+      .rail { display:none; }
+      .mobile-bar { display:flex; }
+      .shell { margin-left:0; padding-top:64px; }
+      .topline { display:none; }
+      .hero { min-height:calc(100svh - 64px); }
+    }
+    @media (max-width: 920px) {
+      .hero-grid { grid-template-columns:1fr; }
+      .element-stage { min-height:480px; }
+      .element-card { width:min(58%,330px); }
+      .manifest { grid-template-columns:1fr 1fr; }
+      .manifest-item:nth-child(2) { border-right:0; }
+      .manifest-item:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+      .chapter-head { grid-template-columns:1fr; }
+      .evidence-grid, .legend-grid, .engine, .system-grid, .brand-lab { grid-template-columns:1fr; }
+      .principles { grid-template-columns:1fr; }
+      .principle { min-height:180px; }
+      .periodic-grid { grid-template-columns:1fr 1fr; }
+      .persona, .persona:nth-child(4), .persona:nth-child(5) { grid-column:auto; }
+      .persona:last-child { grid-column:1/-1; }
+      .road { grid-template-columns:80px 1fr; }
+      .road-meta { grid-column:2; }
+      .reach-grid { grid-template-columns:1fr; }
+      .timeline { grid-template-columns:1fr; }
+      .timeline::before { left:29px; right:auto; top:6%; bottom:6%; width:1px; height:auto; }
+      .phase { padding-top:0; padding-left:62px; }
+      .phase-dot { left:22px; top:26px; }
+      .risk-grid { grid-template-columns:1fr; }
+      .source-row { grid-template-columns:50px 1fr 110px; }
+      .source-row p { grid-column:2/4; }
+    }
+    @media (max-width: 640px) {
+      :root { --gutter:18px; --section:92px; }
+      .grid-field { opacity:.54; }
+      h1 { font-size:clamp(49px,15vw,72px); line-height:.93; }
+      .hero { padding-block:54px 34px; }
+      .hero-copy { margin-top:24px; font-size:16px; }
+      .hero-actions { display:grid; }
+      .btn { width:100%; }
+      .element-stage { min-height:390px; }
+      .element-card { width:min(72%,280px); }
+      .stage-label { bottom:0; }
+      .manifest { grid-template-columns:1fr; }
+      .manifest-item, .manifest-item:nth-child(2) { min-height:126px; border-right:0; border-bottom:1px solid var(--line); }
+      .manifest-item:last-child { border-bottom:0; }
+      .chapter-title h2 { font-size:43px; }
+      .chapter-head { margin-bottom:64px; }
+      .module-title { font-size:34px; }
+      .metric-value { font-size:31vw; }
+      .metric-meta { display:grid; }
+      .proof-row { grid-template-columns:82px 1fr; }
+      .proof-row .tag { grid-column:2; width:fit-content; }
+      .reaction-map { min-height:560px; }
+      .reaction-node.pain { left:5%; top:6%; }
+      .reaction-node.system { right:5%; top:6%; }
+      .reaction-node.data { left:5%; bottom:6%; }
+      .reaction-node.growth { right:5%; bottom:6%; }
+      .reaction-core { width:92px; }
+      .periodic-grid { grid-template-columns:1fr; }
+      .persona:last-child { grid-column:auto; }
+      .road { grid-template-columns:54px 1fr; gap:16px; }
+      .road-no { font-size:32px; }
+      .formula { grid-template-columns:1fr; }
+      .formula span { transform:rotate(90deg); width:fit-content; }
+      .rung { width:100% !important; margin-left:0; grid-template-columns:34px 1fr; }
+      .rung-price { grid-column:2; }
+      .bundles { grid-template-columns:1fr; }
+      .engine-map { min-height:570px; }
+      .engine-node { width:128px; }
+      .reach-panel { min-height:auto; }
+      .funnel-row { width:100% !important; margin-left:0; grid-template-columns:40px 1fr; }
+      .funnel-row .target { grid-column:2; justify-content:flex-start; }
+      .phase { padding-left:44px; }
+      .phase-dot { left:9px; }
+      .swatches { grid-template-columns:1fr 1fr; }
+      .source-row { grid-template-columns:42px 1fr; gap:10px; padding:16px; }
+      .source-row p, .source-row a { grid-column:2; text-align:left; }
+      .footer-grid { grid-template-columns:1fr; }
+      .footer-stamp { text-align:left; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+      .element-card { transform:none !important; }
+    }
+    @media (forced-colors: active) {
+      .grid-field, .grain { display:none; }
+      .brand-glyph, .btn, .persona, .proof-panel, .signal-panel { forced-color-adjust:auto; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">К основному содержанию</a>
+  <div class="grid-field" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <aside class="rail" aria-label="Навигация по Brand OS">
+    <a class="brand-lockup" href="#top" aria-label="TURBIUM, в начало">
+      <span class="brand-glyph" aria-hidden="true"><small>65</small><b>Tb</b><i>158.93</i></span>
+      <span class="brand-name"><strong>TURBIUM</strong><span>Brand OS / v4.0</span></span>
+    </a>
+    <div class="rail-meta"><span class="live-dot"></span><span>Внутренний документ<br>обновлён 15.07.2026</span></div>
+    <nav class="rail-nav">
+      <ol>
+        <li><a href="#chapter-1" data-chapter="chapter-1" aria-current="true"><span class="num">I</span><span class="label">Состояние рынка</span></a></li>
+        <li><a href="#chapter-2" data-chapter="chapter-2"><span class="num">II</span><span class="label">Ядро бренда</span></a></li>
+        <li><a href="#chapter-3" data-chapter="chapter-3"><span class="num">III</span><span class="label">Механика роста</span></a></li>
+        <li><a href="#chapter-4" data-chapter="chapter-4"><span class="num">IV</span><span class="label">Исполнение</span></a></li>
+        <li><a href="#chapter-5" data-chapter="chapter-5"><span class="num">V</span><span class="label">Стандарт</span></a></li>
+      </ol>
+    </nav>
+    <div class="rail-bottom">
+      <div class="rail-progress" aria-hidden="true"><span id="rail-progress"></span></div>
+      <span>Конфиденциально / стратегия в работе</span>
+    </div>
+  </aside>
+
+  <header class="mobile-bar">
+    <a class="brand-lockup" href="#top" aria-label="TURBIUM, в начало">
+      <span class="brand-glyph" aria-hidden="true"><small>65</small><b>Tb</b><i>158.93</i></span>
+      <span class="brand-name"><strong>TURBIUM</strong><span>Brand OS</span></span>
+    </a>
+    <button class="mobile-menu-trigger" type="button" aria-expanded="false" aria-controls="mobile-menu">
+      <span>Главы</span><i class="menu-lines" aria-hidden="true"></i>
+    </button>
+  </header>
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Главы документа">
+    <p>Навигация / 5 глав</p>
+    <a href="#chapter-1" data-chapter="chapter-1" aria-current="true"><span class="m-num">I</span><span class="m-label">Состояние рынка</span><span class="m-arrow">↘</span></a>
+    <a href="#chapter-2" data-chapter="chapter-2"><span class="m-num">II</span><span class="m-label">Ядро бренда</span><span class="m-arrow">↘</span></a>
+    <a href="#chapter-3" data-chapter="chapter-3"><span class="m-num">III</span><span class="m-label">Механика роста</span><span class="m-arrow">↘</span></a>
+    <a href="#chapter-4" data-chapter="chapter-4"><span class="m-num">IV</span><span class="m-label">Исполнение</span><span class="m-arrow">↘</span></a>
+    <a href="#chapter-5" data-chapter="chapter-5"><span class="m-num">V</span><span class="m-label">Стандарт</span><span class="m-arrow">↘</span></a>
+  </nav>
+
+  <div class="shell" id="top">
+    <div class="wrap topline" aria-label="Статус документа">
+      <div class="topline-group"><span>TURBIUM / BRAND OPERATING SYSTEM</span><span>V4.0</span></div>
+      <div class="topline-group"><span>15.07.2026</span><span class="confidential">Внутренний документ</span></div>
+    </div>
+
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Независимое AI-агентство / малый бизнес</div>
+            <h1 id="hero-title">Элемент вашего <span class="growth">роста</span></h1>
+            <p class="hero-copy">Тербий становится заметным не массой, а тем, как меняет свойства среды. TURBIUM работает так же: <strong>малой точной дозой превращает разрозненный маркетинг в управляемую реакцию.</strong></p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#chapter-1">Открыть систему <span aria-hidden="true">↘</span></a>
+              <a class="btn" href="#legend">Легенда бренда <span aria-hidden="true">→</span></a>
+            </div>
+            <p class="hero-note">Не новая услуга поверх хаоса. Управляющий элемент внутри действующей системы.</p>
+          </div>
+
+          <figure class="element-stage" aria-label="Интерактивный знак TURBIUM: элемент тербия Tb, номер 65">
+            <svg class="orbital" viewBox="0 0 520 520" aria-hidden="true">
+              <ellipse cx="260" cy="260" rx="220" ry="78" transform="rotate(23 260 260)"/>
+              <ellipse class="hot" cx="260" cy="260" rx="220" ry="78" transform="rotate(-39 260 260)"/>
+              <ellipse cx="260" cy="260" rx="160" ry="230" transform="rotate(72 260 260)"/>
+              <circle cx="470" cy="325" r="3"/><circle cx="94" cy="126" r="2.5"/><circle cx="234" cy="488" r="2"/>
+            </svg>
+            <div class="element-card" id="element-card">
+              <div class="element-face">
+                <span class="atomic-no">65</span><span class="atomic-mass">158.93</span>
+                <span class="atomic-symbol">Tb</span><span class="atomic-name">Terbium / activator</span><span class="atomic-state">reaction ready</span>
+              </div>
+            </div>
+            <figcaption class="stage-label">Pointer reactive / reduced-motion safe</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="manifest" aria-label="Краткий манифест">
+        <div class="manifest-item"><span>Проблема</span><strong>Каналы есть. <em>Системы нет.</em></strong></div>
+        <div class="manifest-item"><span>Роль TURBIUM</span><strong>Не подрядчик. <em>Активатор.</em></strong></div>
+        <div class="manifest-item"><span>Метод</span><strong>Сигнал → пилот → <em>измерение.</em></strong></div>
+        <div class="manifest-item"><span>Обещание</span><strong>Каждое решение имеет <em>kill-критерий.</em></strong></div>
+      </section>
+
+      <section class="chapter wrap" id="chapter-1" data-observe aria-labelledby="chapter-1-title">
+        <header class="chapter-head">
+          <div class="chapter-id">Глава I / Состояние рынка</div>
+          <div class="chapter-title"><h2 id="chapter-1-title">Рынок покупает обезболивающее, не витамины</h2><p>В условиях дорогого внимания собственнику нужен не ещё один маркетинговый канал. Нужна система, которая показывает, где теряются заявки, деньги и время.</p></div>
+        </header>
+
+        <div class="module" id="context">
+          <div class="module-label"><b>01</b> Контекст / 2026</div>
+          <h3 class="module-title">Сначала фиксируем изменение среды. Потом выбираем реакцию.</h3>
+          <div class="metric-break">
+            <div class="axis" aria-hidden="true"></div>
+            <div class="metric-value">24,5%</div>
+            <div class="metric-meta"><p>сокращение числа активных селлеров за период ноябрь 2024 - ноябрь 2025 по данным, приведённым во вторичном отраслевом материале.</p><span class="tag tag-data">Данные / S-01</span></div>
+          </div>
+          <div class="evidence-grid">
+            <article class="proof-panel">
+              <div class="panel-bar"><span>Signal board / evidence state</span><span>01:03</span></div>
+              <div class="proof-body">
+                <h3>Не масштабировать хаос</h3>
+                <p>До внешней публикации каждая цифра проходит реестр доказательств. Непроверенные показатели остаются внутри как гипотезы.</p>
+                <div class="proof-list">
+                  <div class="proof-row"><strong>100</strong><span>входящих лидов в модельной воронке</span><span class="tag tag-model">Модель</span></div>
+                  <div class="proof-row"><strong>35</strong><span>лидов без следующего действия</span><span class="tag tag-model">Модель</span></div>
+                  <div class="proof-row"><strong>7 дн.</strong><span>окно пилота до первого решения</span><span class="tag tag-plan">План</span></div>
+                </div>
+              </div>
+            </article>
+            <article class="signal-panel">
+              <div class="panel-bar"><span>Leak detector / model</span><span class="tag tag-model">Модель</span></div>
+              <div class="signal-visual">
+                <svg viewBox="0 0 420 180" role="img" aria-label="Модельный график прохождения лидов по воронке">
+                  <defs><linearGradient id="lineG" x1="0" x2="1"><stop stop-color="#FF8C42"/><stop offset=".52" stop-color="#F2F7F5"/><stop offset="1" stop-color="#4EEAC0"/></linearGradient></defs>
+                  <path d="M16 150H404M16 100H404M16 50H404" stroke="#1E2A25"/><path d="M18 35 C70 42, 94 86, 138 91 S210 72, 248 124 S330 94, 404 66" fill="none" stroke="url(#lineG)" stroke-width="3"/><circle cx="248" cy="124" r="6" fill="#FF8C42"/><path d="M248 124V157" stroke="#FF8C42" stroke-dasharray="3 5"/><text x="263" y="143" fill="#FFB88C" font-size="10" font-family="monospace">утечка</text>
+                </svg>
+              </div>
+              <div class="toast"><div class="toast-head"><span>Системный сигнал</span><span>now</span></div><p>Лид получен, но следующий шаг не назначен. Проблема находится между каналом и процессом.</p></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter wrap" id="chapter-2" data-observe aria-labelledby="chapter-2-title">
+        <header class="chapter-head">
+          <div class="chapter-id">Глава II / Ядро бренда</div>
+          <div class="chapter-title"><h2 id="chapter-2-title">Не агентство. Реагент.</h2><p>TURBIUM не забирает у бизнеса управление и не продаёт бесконечный процесс. Мы встраиваем измеримый элемент, который усиливает уже существующую систему.</p></div>
+        </header>
+
+        <div class="module" id="legend">
+          <div class="module-label"><b>02</b> Платформа бренда</div>
+          <h3 class="module-title">Малая доза. Измеримое изменение среды.</h3>
+          <div class="legend-grid">
+            <article class="legend-copy">
+              <blockquote>Тербий не заполняет собой материал. Он <em>активирует</em> его свойства.</blockquote>
+              <p>Это новая легенда бренда: TURBIUM находит минимальное вмешательство с максимальным системным эффектом. Не перестраивает бизнес ради красивой схемы. Добавляет диагностику, связку и измерение именно туда, где возникает утечка.</p>
+              <div class="hero-actions"><span class="tag tag-data">Факт = источник</span><span class="tag tag-hyp">Гипотеза = тест</span><span class="tag tag-plan">План = срок</span><span class="tag tag-model">Модель = расчёт</span></div>
+            </article>
+            <figure class="reaction-map" aria-label="Схема роли TURBIUM в маркетинговой системе">
+              <svg class="reaction-lines" viewBox="0 0 600 460" aria-hidden="true"><path d="M150 100 C230 100 220 230 300 230S370 100 450 100M150 360C230 360 220 230 300 230S370 360 450 360" fill="none" stroke="#31443C" stroke-dasharray="5 7"/><circle cx="300" cy="230" r="142" fill="none" stroke="rgba(78,234,192,.08)"/></svg>
+              <div class="reaction-node pain"><span>вход</span><strong>Боль и хаос каналов</strong></div>
+              <div class="reaction-node system"><span>механика</span><strong>Связка под ключ</strong></div>
+              <div class="reaction-node data"><span>контроль</span><strong>Единая аналитика</strong></div>
+              <div class="reaction-node growth"><span>выход</span><strong>Решение о росте</strong></div>
+              <div class="reaction-core">Tb<br>65</div>
+            </figure>
+          </div>
+          <div class="principles">
+            <article class="principle"><span class="p-no">P / 01</span><h3>Сначала пилот</h3><p>Малый бюджет, короткое окно проверки, заранее согласованный stop-сигнал.</p></article>
+            <article class="principle"><span class="p-no">P / 02</span><h3>AI как copilot</h3><p>AI ускоряет диагностику и производство, но решение остаётся проверяемым человеком.</p></article>
+            <article class="principle"><span class="p-no">P / 03</span><h3>Прозрачность своих цифр</h3><p>Мы показываем не только CAC клиента, но и экономику собственной работы.</p></article>
+          </div>
+        </div>
+
+        <div class="module" id="audience">
+          <div class="module-label"><b>03</b> Аудитория</div>
+          <h3 class="module-title">Периодическая таблица собственника</h3>
+          <p class="module-intro">Не демография, а состояние системы. Один собственник может переходить между состояниями по мере роста бизнеса.</p>
+          <div class="periodic-grid">
+            <article class="persona"><div class="persona-head"><span class="persona-symbol">Ха</span><span class="persona-index">01 / state</span></div><h3>Хаотик</h3><p class="quote">«Заявки приходят отовсюду. Я не понимаю, что работает».</p><div class="route">Маршрут: диагностика → единый вход</div></article>
+            <article class="persona"><div class="persona-head"><span class="persona-symbol">Ра</span><span class="persona-index">02 / state</span></div><h3>Разочарованный</h3><p class="quote">«Я уже платил агентству и получил отчёт вместо ответа».</p><div class="route">Маршрут: пилот → прозрачный KPI</div></article>
+            <article class="persona"><div class="persona-head"><span class="persona-symbol">Но</span><span class="persona-index">03 / state</span></div><h3>Новичок</h3><p class="quote">«Мне нужно начать, но я боюсь слить первый бюджет».</p><div class="route">Маршрут: аудит → одна связка</div></article>
+            <article class="persona"><div class="persona-head"><span class="persona-symbol">Ма</span><span class="persona-index">04 / state</span></div><h3>Масштабатор</h3><p class="quote">«Клиенты есть. Я хочу видеть точку, где теряется рост».</p><div class="route">Маршрут: Пульс → масштабирование</div></article>
+            <article class="persona new"><div class="persona-head"><span class="persona-symbol">Бе</span><span class="persona-index">05 / emerging</span></div><h3>Беженец платформы</h3><p class="quote">«Хочу вернуть клиентов и данные в собственные каналы».</p><div class="route">Маршрут: база → GEO → прямой контакт</div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter wrap" id="chapter-3" data-observe aria-labelledby="chapter-3-title">
+        <header class="chapter-head">
+          <div class="chapter-id">Глава III / Механика роста</div>
+          <div class="chapter-title"><h2 id="chapter-3-title">Клин приводит. Пульс удерживает. GEO капитализирует.</h2><p>Фокус строится не вокруг списка услуг, а вокруг последовательности усиления: быстрый сигнал, постоянная видимость и накопительный органический актив.</p></div>
+        </header>
+
+        <div class="module" id="focus">
+          <div class="module-label"><b>04</b> Фокус</div>
+          <h3 class="module-title">Три дороги, один управляемый маршрут</h3>
+          <div class="roads">
+            <article class="road"><span class="road-no">01</span><div><h3>Нейроконтент-воронки</h3><p>Клин: быстро превращает одну боль в поток касаний и вход в бот.</p></div><div class="road-meta"><span class="tag tag-plan">Месяц 1-2</span><span class="tag tag-hyp">Гипотеза</span></div></article>
+            <article class="road"><span class="road-no">02</span><div><h3>Пульс BI</h3><p>Флагман: показывает путь лида и стоимость результата на одном экране.</p></div><div class="road-meta"><span class="tag tag-plan">С месяца 2</span><span class="tag tag-hyp">Гипотеза</span></div></article>
+            <article class="road"><span class="road-no">03</span><div><h3>GEO-SEO комбайн</h3><p>Компаундер: превращает накопленные ответы и кейсы в долгий спрос.</p></div><div class="road-meta"><span class="tag tag-plan">С месяца 3</span><span class="tag tag-hyp">Гипотеза</span></div></article>
+          </div>
+          <div class="formula"><strong>Контент приводит</strong><span>→</span><strong>Пульс удерживает</strong><span>→</span><strong>GEO капитализирует</strong></div>
+        </div>
+
+        <div class="module" id="product">
+          <div class="module-label"><b>05</b> Продукт и связки</div>
+          <h3 class="module-title">Лестница из сигнала в систему</h3>
+          <p class="module-intro">Порядок исправлен по реальной глубине и цене продукта. Все цены пока являются гипотезами, а не публичным обещанием.</p>
+          <div class="ladder">
+            <article class="rung" style="--w:58%"><span class="rung-no">01</span><div><strong>AI-аудит</strong><small>Диагноз одной утечки</small></div><span class="rung-price">0 ₽ · HYP</span></article>
+            <article class="rung" style="--w:65%"><span class="rung-no">02</span><div><strong>Мини-инструменты</strong><small>Калькулятор, шаблон, микро-бот</small></div><span class="rung-price">990-2 990 ₽ · HYP</span></article>
+            <article class="rung" style="--w:72%"><span class="rung-no">03</span><div><strong>Аудит PRO</strong><small>Карта воронки и план пилота</small></div><span class="rung-price">14 990 ₽ · HYP</span></article>
+            <article class="rung" style="--w:80%"><span class="rung-no">04</span><div><strong>Связка под ключ</strong><small>Один измеримый механизм привлечения</small></div><span class="rung-price">19 990-29 990 ₽ · HYP</span></article>
+            <article class="rung" style="--w:90%"><span class="rung-no">05</span><div><strong>Пульс BI</strong><small>Настройка и ежемесячный контур данных</small></div><span class="rung-price">49 990 + 9 990 ₽ · HYP</span></article>
+            <article class="rung" style="--w:100%"><span class="rung-no">06</span><div><strong>Сопровождение</strong><small>Оптимизация работающей системы</small></div><span class="rung-price">39 990 ₽/мес · HYP</span></article>
+          </div>
+          <div class="bundles">
+            <details class="bundle"><summary><strong>А / Квиз-ловушка</strong><span aria-hidden="true">+</span></summary><div class="bundle-body"><ol><li>Человек отвечает на 4-6 простых вопросов.</li><li>Получает персональный результат.</li><li>Заявка сразу попадает ответственному.</li></ol></div></details>
+            <details class="bundle"><summary><strong>Б / Магнит и прогрев</strong><span aria-hidden="true">+</span></summary><div class="bundle-body"><ol><li>Полезный материал решает малую боль.</li><li>Цепочка объясняет следующий шаг.</li><li>Бот переводит готового человека в заявку.</li></ol></div></details>
+            <details class="bundle"><summary><strong>В / Карты и отзывы</strong><span aria-hidden="true">+</span></summary><div class="bundle-body"><ol><li>Карточки приводятся к единому стандарту.</li><li>Запускается этичный сбор отзывов.</li><li>Локальный спрос превращается в обращения.</li></ol></div></details>
+            <details class="bundle"><summary><strong>Г / Реанимация базы</strong><span aria-hidden="true">+</span></summary><div class="bundle-body"><ol><li>База сегментируется по последнему действию.</li><li>Каждый сегмент получает свой повод вернуться.</li><li>Реакция измеряется без новой закупки трафика.</li></ol></div></details>
+          </div>
+        </div>
+
+        <div class="module" id="content">
+          <div class="module-label"><b>06</b> Контент-двигатель</div>
+          <h3 class="module-title">Одна боль. Четыре формы. Один следующий шаг.</h3>
+          <div class="engine">
+            <figure class="engine-map" aria-label="Схема контент-двигателя TURBIUM">
+              <svg viewBox="0 0 600 520" aria-hidden="true"><circle cx="300" cy="260" r="180" fill="none" stroke="#1E2A25"/><circle cx="300" cy="260" r="110" fill="none" stroke="rgba(78,234,192,.12)" stroke-dasharray="4 9"/><path d="M164 140L252 218M436 140L348 218M164 380L252 302M436 380L348 302" stroke="#31443C"/></svg>
+              <div class="engine-core">Одна<br>боль</div>
+              <div class="engine-node n1"><small>format 01</small><b>Карусель</b></div>
+              <div class="engine-node n2"><small>format 02</small><b>Shorts</b></div>
+              <div class="engine-node n3"><small>format 03</small><b>GEO-статья</b></div>
+              <div class="engine-node n4"><small>format 04</small><b>Внешняя колонка</b></div>
+            </figure>
+            <div class="engine-board">
+              <article class="cadence"><div class="cadence-head"><b>Карусели / TG + VK</b><span class="tag tag-plan">3 в неделю</span></div><p>Диагностируют знакомую боль и дают быстрый тест.</p><div class="cadence-bar"><span style="--fill:76%"></span></div></article>
+              <article class="cadence"><div class="cadence-head"><b>Shorts / YT + VK</b><span class="tag tag-plan">4-5 в неделю</span></div><p>Дают один контринтуитивный вывод без сложных терминов.</p><div class="cadence-bar"><span style="--fill:92%"></span></div></article>
+              <article class="cadence"><div class="cadence-head"><b>GEO-SEO / сайт</b><span class="tag tag-plan">2 в неделю</span></div><p>Отвечают на конкретный вопрос и накапливают поисковый актив.</p><div class="cadence-bar"><span style="--fill:58%"></span></div></article>
+              <article class="cadence"><div class="cadence-head"><b>Внешние площадки</b><span class="tag tag-plan">2-4 в месяц</span></div><p>Переносят сильный тезис в уже собранную аудиторию.</p><div class="cadence-bar"><span style="--fill:42%"></span></div></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="module" id="reach">
+          <div class="module-label"><b>07</b> Охваты</div>
+          <h3 class="module-title">Фильтр собственника вместо погони за всеми</h3>
+          <div class="reach-grid">
+            <article class="reach-panel"><h3>Язык денег собственника</h3><p>Каждый хук начинается не с технологии, а с наблюдаемой потери, риска или зависшего решения.</p><div class="hook-stack"><div class="hook"><i>×</i><span>«Внедрим инновационный AI-маркетинг»</span></div><div class="hook"><i>✓</i><span>«Покажем, где заявка перестаёт быть продажей»</span></div><div class="hook"><i>✓</i><span>«Сначала отключим лишнее, потом добавим новое»</span></div></div></article>
+            <article class="reach-panel"><h3>Первые 30 дней</h3><p>Не максимум охвата, а быстрый набор сигналов из разных поверхностей.</p><div class="channel-list"><div class="channel"><span>01</span><strong>Telegram-посевы</strong><small>точечные</small></div><div class="channel"><span>02</span><strong>Калькулятор потерь</strong><small>виральный</small></div><div class="channel"><span>03</span><strong>Shorts</strong><small>серийные</small></div><div class="channel"><span>04</span><strong>VC.ru</strong><small>экспертный</small></div><div class="channel"><span>05</span><strong>Комментинг</strong><small>ручной</small></div></div></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter wrap" id="chapter-4" data-observe aria-labelledby="chapter-4-title">
+        <header class="chapter-head"><div class="chapter-id">Глава IV / Исполнение</div><div class="chapter-title"><h2 id="chapter-4-title">Каждый этап заканчивается решением</h2><p>Roadmap существует не для ощущения движения. У каждой фазы есть измеримый результат и условие, при котором мы не продолжаем инвестировать.</p></div></header>
+
+        <div class="module" id="funnel">
+          <div class="module-label"><b>08</b> Воронка</div>
+          <h3 class="module-title">Из ленты в реакцию</h3>
+          <div class="funnel">
+            <div class="funnel-row" style="--w:100%"><span class="f-no">01</span><strong>Контент увиден</strong><span class="target">цель TBD <b class="tag tag-plan">План</b></span></div>
+            <div class="funnel-row" style="--w:88%"><span class="f-no">02</span><strong>Переход в бот</strong><span class="target">цель TBD <b class="tag tag-hyp">Гипотеза</b></span></div>
+            <div class="funnel-row" style="--w:76%"><span class="f-no">03</span><strong>Аудит завершён</strong><span class="target">цель TBD <b class="tag tag-hyp">Гипотеза</b></span></div>
+            <div class="funnel-row" style="--w:64%"><span class="f-no">04</span><strong>Следующий шаг выбран</strong><span class="target">цель TBD <b class="tag tag-plan">План</b></span></div>
+            <div class="funnel-row" style="--w:52%"><span class="f-no">05</span><strong>Пилот оплачен</strong><span class="target">цель TBD <b class="tag tag-hyp">Гипотеза</b></span></div>
+          </div>
+          <div class="antipattern"><b>Анти-паттерн</b><p>Гнать охват до готовности бота, маршрутизации и следующего действия значит сжигать не только контент, но и доверие.</p></div>
+        </div>
+
+        <div class="module" id="roadmap">
+          <div class="module-label"><b>09</b> Roadmap</div>
+          <h3 class="module-title">Три фазы. Три stop-сигнала.</h3>
+          <div class="timeline">
+            <article class="phase"><span class="phase-dot"></span><div class="phase-card"><span class="weeks">Недели 1-3 / план</span><h3>Фундамент</h3><ul><li>Бот и карта событий</li><li>Единый реестр claims</li><li>Контентные шаблоны</li><li>Минимальный Пульс</li></ul><div class="kill">STOP: нет сквозного события от контента до результата аудита</div></div></article>
+            <article class="phase"><span class="phase-dot"></span><div class="phase-card"><span class="weeks">Недели 4-8 / план</span><h3>Клин</h3><ul><li>Три серии контента</li><li>Два теста связок</li><li>Сегментация собственников</li><li>Ручная обратная связь</li></ul><div class="kill">STOP: ни одна боль не даёт повторяемого намерения пройти аудит</div></div></article>
+            <article class="phase"><span class="phase-dot"></span><div class="phase-card"><span class="weeks">Недели 9-13 / план</span><h3>Флагман</h3><ul><li>Пилот Пульса</li><li>GEO-кластер</li><li>Экономика сопровождения</li><li>Первый проверяемый кейс</li></ul><div class="kill">STOP: данные не меняют решений клиента минимум в двух циклах</div></div></article>
+          </div>
+          <div class="risk-grid">
+            <article class="risk"><span>Risk / 01</span><h3>Блокировка площадки</h3><p>План Б: база, домен, контент и аналитика остаются в собственном контуре.</p></article>
+            <article class="risk"><span>Risk / 02</span><h3>Правовые требования</h3><p>До запуска формы проверяются оператор данных, согласия, хранение и актуальная редакция 152-ФЗ.</p></article>
+            <article class="risk"><span>Risk / 03</span><h3>Гипотеза не подтверждена</h3><p>Сохраняем данные теста, отключаем механику и не переименовываем провал в «прогрев рынка».</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="chapter wrap" id="chapter-5" data-observe aria-labelledby="chapter-5-title">
+        <header class="chapter-head"><div class="chapter-id">Глава V / Стандарт</div><div class="chapter-title"><h2 id="chapter-5-title">Цвет кодирует смысл. Форма показывает систему.</h2><p>Новая айдентика TURBIUM строится на точности, а не на количестве эффектов. Свечение принадлежит только элементу и главному действию.</p></div></header>
+
+        <div class="module" id="design-system">
+          <div class="module-label"><b>10</b> Дизайн-система</div>
+          <h3 class="module-title">Интерфейс как доказательство метода</h3>
+          <div class="system-grid">
+            <article class="palette-panel"><div class="panel-bar"><span>Semantic palette</span><span>AA target</span></div><div class="swatches"><div class="swatch" style="--c:#FF8C42;--ink:#0A0F0D"><b>Боль</b><span>Amber / #FF8C42</span></div><div class="swatch" style="--c:#F2F7F5;--ink:#0A0F0D"><b>Факт</b><span>White / #F2F7F5</span></div><div class="swatch" style="--c:#4EEAC0;--ink:#0A0F0D"><b>Решение</b><span>Mint / #4EEAC0</span></div><div class="swatch" style="--c:#00BFA5;--ink:#0A0F0D"><b>Состояние</b><span>Teal / #00BFA5</span></div><div class="swatch" style="--c:#FFB88C;--ink:#0A0F0D"><b>Новое</b><span>Peach / #FFB88C</span></div><div class="swatch" style="--c:#131A16"><b>Поверхность</b><span>Surface / #131A16</span></div></div></article>
+            <article class="type-panel"><div class="panel-bar"><span>Type specimen</span><span>System stack</span></div><div class="display-sample">Aa<br>Tb65</div><p class="body-sample">Крупный дисплей формулирует решение. Спокойный текст объясняет доказательство. Моноширинный слой хранит источник, статус и версию.</p><div class="type-meta"><span class="tag">Display / 730</span><span class="tag">Tracking / -5%</span><span class="tag">Body / 16-20</span></div></article>
+          </div>
+          <div class="brand-lab">
+            <figure class="logo-stage" aria-label="Обновлённый знак TURBIUM"><span class="brand-glyph" aria-hidden="true"><small>65</small><b>Tb</b><i>158.93</i></span></figure>
+            <article class="logo-rules"><h3>Знак активного элемента</h3><p class="module-intro">Срезанный нижний угол означает точку внедрения. Орбита выходит за контур: элемент влияет на систему шире собственной площади.</p><div class="rule-list"><div class="rule"><span>01</span><p>Номер 65 и масса 158.93 обязательны в основном знаке.</p></div><div class="rule"><span>02</span><p>Сильное свечение используется только на hero-плитке, не в малом логотипе.</p></div><div class="rule"><span>03</span><p>Символ Tb всегда читается первым. Орбита остаётся вторичным слоем.</p></div><div class="rule"><span>04</span><p>Минимальный размер цифрового знака: 32 × 32 px.</p></div></div></article>
+          </div>
+        </div>
+
+        <div class="module" id="sources">
+          <div class="module-label"><b>S</b> Реестр источников</div>
+          <h3 class="module-title">Источник является частью интерфейса</h3>
+          <p class="module-intro">В публичную версию попадают только claims со статусом «проверено». Всё остальное остаётся гипотезой, планом или моделью.</p>
+          <div class="source-ledger" role="table" aria-label="Реестр источников и статусов">
+            <div class="source-row" role="row"><span class="sid" role="cell">S-01</span><strong role="cell">Сокращение активных селлеров на 24,5%</strong><p role="cell">Вторичный отраслевой материал. Нужна сверка с первичной выборкой перед публичной коммуникацией.</p><a role="cell" href="https://vc.ru/marketplace/2927546-selleri-uhodyat-s-marketpleysov-v-franshizy" target="_blank" rel="noreferrer">Открыть материал ↗</a></div>
+            <div class="source-row" role="row"><span class="sid" role="cell">S-02</span><strong role="cell">Доля бизнеса без стратегии</strong><p role="cell">Заявление из ранней версии. Первичная публикация НАФИ пока не внесена.</p><span role="cell" class="pending">ТРЕБУЕТ ПРОВЕРКИ</span></div>
+            <div class="source-row" role="row"><span class="sid" role="cell">S-03</span><strong role="cell">Потери лидов без CRM</strong><p role="cell">Не использовать универсальный диапазон без методики, выборки и контекста процесса.</p><span role="cell" class="pending">ТРЕБУЕТ ПРОВЕРКИ</span></div>
+            <div class="source-row" role="row"><span class="sid" role="cell">S-04</span><strong role="cell">Правовые требования</strong><p role="cell">Проверять актуальную редакцию закона и сценарий обработки данных на дату запуска.</p><a role="cell" href="https://www.consultant.ru/document/cons_doc_LAW_61801/" target="_blank" rel="noreferrer">152-ФЗ ↗</a></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <div class="footer-grid">
+        <p>TURBIUM Brand Operating System фиксирует рабочую стратегию, а не высеченную в камне истину. Версия обновляется после каждого подтверждённого или опровергнутого решения.</p>
+        <div class="footer-stamp">Tb / 65 / 158.93<br>Элемент вашего роста<br>v4.0 / 15.07.2026</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const card = document.getElementById('element-card');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let frame = 0;
+
+      if (!reduced && matchMedia('(pointer: fine)').matches) {
+        addEventListener('pointermove', (event) => {
+          if (frame) return;
+          frame = requestAnimationFrame(() => {
+            const x = event.clientX / innerWidth;
+            const y = event.clientY / innerHeight;
+            root.style.setProperty('--mx', `${x * 100}%`);
+            root.style.setProperty('--my', `${y * 100}%`);
+            if (card) {
+              const rect = card.getBoundingClientRect();
+              const cx = (event.clientX - rect.left) / rect.width - .5;
+              const cy = (event.clientY - rect.top) / rect.height - .5;
+              card.style.setProperty('--ry', `${Math.max(-1, Math.min(1, cx)) * 6}deg`);
+              card.style.setProperty('--rx', `${Math.max(-1, Math.min(1, -cy)) * 5}deg`);
+            }
+            frame = 0;
+          });
+        }, { passive: true });
+      }
+
+      const progress = document.getElementById('rail-progress');
+      const navLinks = [...document.querySelectorAll('[data-chapter]')];
+      const sections = [...document.querySelectorAll('[data-observe]')];
+
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const value = max > 0 ? Math.min(100, Math.max(0, scrollY / max * 100)) : 0;
+        if (progress) progress.style.width = `${value}%`;
+      };
+      addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        navLinks.forEach(link => link.setAttribute('aria-current', String(link.dataset.chapter === visible.target.id)));
+      }, { rootMargin: '-18% 0px -58% 0px', threshold: [0, .2, .5] });
+      sections.forEach(section => observer.observe(section));
+
+      const trigger = document.querySelector('.mobile-menu-trigger');
+      const menu = document.getElementById('mobile-menu');
+      const closeMenu = (restore = false) => {
+        if (!trigger || !menu) return;
+        trigger.setAttribute('aria-expanded', 'false');
+        menu.classList.remove('open');
+        document.body.classList.remove('menu-open');
+        if (restore) trigger.focus();
+      };
+      trigger?.addEventListener('click', () => {
+        const open = trigger.getAttribute('aria-expanded') === 'true';
+        trigger.setAttribute('aria-expanded', String(!open));
+        menu?.classList.toggle('open', !open);
+        document.body.classList.toggle('menu-open', !open);
+        if (!open) menu?.querySelector('a')?.focus();
+      });
+      menu?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => closeMenu(false)));
+      addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && trigger?.getAttribute('aria-expanded') === 'true') closeMenu(true);
+        if (event.key === 'Tab' && trigger?.getAttribute('aria-expanded') === 'true' && menu) {
+          const links = [...menu.querySelectorAll('a')];
+          const first = links[0];
+          const last = links[links.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      });
+      addEventListener('resize', () => { if (innerWidth > 1180) closeMenu(false); }, { passive: true });
+    })();
+  </script>
+</body>
+</html>

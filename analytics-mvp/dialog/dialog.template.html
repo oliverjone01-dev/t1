@@ -179,6 +179,10 @@ input#q{min-width:220px}
 .dtt{white-space:normal}
 .dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}
 .dsig .sdiv{color:var(--ink-4);opacity:.45;margin:0 4px}
+.leadnote{font-size:11px;padding:6px 12px;margin:0 0 6px;border-radius:7px;line-height:1.4}
+.leadnote.lead-from{background:#C2873C14;border:1px solid #C2873C44;color:#d6a866}
+.leadnote.lead-from a{color:#e4b877;font-weight:600}
+.leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
@@ -764,7 +768,15 @@ function renderTree(){
       // Движение по стадиям и передачи ответственного идут в ту же ленту: видно, двигалась
       // ли сделка вместе с разговором или молча. Это служебные строки, они не участвуют в
       // метриках переписки и выключаются переключателем.
-      const evs=DATA.events.filter(e=>(e.dealId?'D'+e.dealId:'L'+e.leadId)===dk).slice();
+      // Лента сделки = её события + события исходного лида. В Bitrix при конверсии таймлайн
+      // лида обычно переносится на сделку (событие несёт и leadId, и dealId), но если часть
+      // осталась на лиде без dealId - подтягиваем сюда же, чтобы вся переписка была в одном месте.
+      const dLead = d && d.dealId && d.leadId ? String(d.leadId) : '';
+      const evs=DATA.events.filter(e=>{
+        if((e.dealId?'D'+e.dealId:'L'+e.leadId)===dk) return true;
+        if(dLead && !e.dealId && String(e.leadId)===dLead) return true;
+        return false;
+      }).slice();
       if(S.sys!==false && d){
         for(const st of (d.stageRows||[])) evs.push({ts:st.ts, dt:new Date(st.ts).toISOString(), type:'Стадия',
           dir:'-', who:'CRM', title:'', body:st.name, days:st.days, sys:1, src:'stage#'+st.code+st.date});
@@ -799,7 +811,19 @@ function renderTree(){
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
-      host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
+      // Происхождение: сделка из лида или создана напрямую. Если из лида - его переписка
+      // идёт в этой же ленте (события несут и leadId, и dealId). Если лида не было - помечаем,
+      // чтобы пустая история до сделки не читалась как «менеджер ничего не делал».
+      let originNote='';
+      if(d && d.dealId){
+        if(d.leadId){ const ln=(evs.find(e=>e.leadT)||{}).leadT||''; const hasLeadEv=evs.some(e=>e.leadId&&(e.type.startsWith('Сообщение')||e.type==='Письмо'||e.type==='Мессенджер ОЛ'||e.type==='Звонок'));
+          const lu=`${PORTAL}/crm/lead/details/${esc(d.leadId)}/`;
+          originNote=`<div class="leadnote lead-from">↳ Сделка из лида <a href="${lu}" target="_blank" onclick="event.stopPropagation()">${esc(d.leadId)}</a>${ln?' · '+esc(ln):''} - ${hasLeadEv?'переписка лида идёт в этой же ленте':'своей переписки у лида в окне снимка нет'}</div>`;
+        } else {
+          originNote=`<div class="leadnote lead-none">Сделка создана напрямую - лида в CRM не было, истории общения до сделки нет</div>`;
+        }
+      }
+      host.innerHTML=originNote+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`;
       CUR_TAGS={};
       host.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();
         if(S.sE.k===th.dataset.k) S.sE.d=-S.sE.d; else { S.sE.k=th.dataset.k; S.sE.d=1; } renderTree(); });
@@ -948,6 +972,7 @@ function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const
     return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title,
       чек:d.budget||0, тип_клиента:d.client||'', ассортимент:d.assort||'', источник:d.source||'', бренд:d.dir||'',
       стадия:d.stage, история_стадий:(d.stageRows||[]).map(s=>({стадия:s.name,дней:s.days})), цикл_дней:d.cycle,
+      происхождение:(d.dealId? (d.leadId?{из_лида:String(d.leadId)}:{создана_напрямую:true, лида_не_было:true}) : {это_лид:true}),
       вероятность:d.prob, причина_отказа:d.lossReason||'', полнота:c.k, комментарий:c.why,
       лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
   return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',

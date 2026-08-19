@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MEBELIT × VALONTI - протокол по стенду</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+:root{
+  --bg:#0a0a0a; --surface:#151515; --raised:#1c1c1c; --ink:#ffffff; --ink2:#d4d4d4; --muted:#8f8f8f;
+  --brass:#f5b33c; --ok:#2fd98a; --bad:#ff5a5f; --bone:#e7e2d6; --steel:#4cc9f0;
+  --w5:rgba(255,255,255,.05); --w8:rgba(255,255,255,.08); --w10:rgba(255,255,255,.1);
+  --mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:12px; --maxw:1120px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Inter Tight",Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;line-height:1.55}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.cap{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.cap.ac{color:var(--brass)}
+.mono{font-family:var(--mono)}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:40;background:rgba(10,10,10,.82);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--w10)}
+.nav-in{display:flex;align-items:center;gap:16px;justify-content:space-between;padding:13px 22px;max-width:var(--maxw);margin:0 auto}
+.mark{font-weight:800;letter-spacing:-.01em;font-size:16px;display:flex;align-items:center;gap:9px}
+.mark .x{width:22px;height:22px;border:1px solid var(--brass);border-radius:50%;display:grid;place-items:center;color:var(--brass)}
+.mark .x svg{width:12px;height:12px}
+.mark span{color:var(--brass)}
+.nav-cover{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--ink2);
+  background:var(--w5);border:1px solid var(--w10);border-radius:var(--r-sm);padding:5px 12px;white-space:nowrap}
+.nav-cover b{color:var(--ok)}
+.nav-gauge{position:absolute;left:0;bottom:-1px;height:3px;background:var(--brass);width:0;transition:width .15s linear;max-width:100%}
+
+/* hero */
+.hero{padding:68px 0 30px;position:relative;overflow:hidden;border-bottom:1px solid var(--w8)}
+.hero .grain{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.6;
+  background:repeating-radial-gradient(circle at center,rgba(255,255,255,.026) 0 1px,transparent 1px 46px)}
+.hero .in{position:relative;z-index:1;display:grid;grid-template-columns:1.35fr .65fr;gap:34px;align-items:center}
+.hero h1{font-size:clamp(30px,5vw,50px);line-height:1.03;letter-spacing:-.025em;margin:16px 0 0;font-weight:800}
+.hero h1 .amp{color:var(--brass);font-weight:600}
+.hero .dek{color:var(--ink2);max-width:62ch;margin:18px 0 0;font-size:17px;line-height:1.55}
+.hero .metarow{display:flex;flex-wrap:wrap;gap:9px 22px;margin-top:24px;font-size:13px;color:var(--muted);font-family:var(--mono)}
+.hero .metarow b{color:var(--ink2);font-weight:500}
+/* medallion */
+.medal{position:relative;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(120% 130% at 30% 12%,#161412 0%,#0a0a0a 66%);border:1px solid var(--w8);
+  box-shadow:inset 0 0 60px rgba(245,179,60,.06)}
+.medal::before{content:"";position:absolute;inset:14px;border-radius:50%;border:1px dashed rgba(245,179,60,.28)}
+.medal .eq{font-size:clamp(30px,7vw,52px);font-weight:800;letter-spacing:-.03em;color:var(--bone);line-height:1}
+.medal .eq b{color:var(--brass)}
+.medal .lb{margin-top:9px;font-size:12px;color:var(--muted);font-family:var(--mono);letter-spacing:.06em}
+
+/* glance */
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px;padding:30px 0}
+.stat{background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:18px 20px}
+.stat .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:23px;font-weight:700;margin-top:8px;letter-spacing:-.01em}
+.stat .v small{font-size:13px;color:var(--muted);font-weight:500}
+.stat .v.brass{color:var(--brass)}
+
+/* sections */
+section.blk{padding:44px 0;border-top:1px solid var(--w8)}
+.sec-head{display:flex;align-items:flex-start;gap:15px;margin-bottom:24px}
+.sec-head .idx{font-family:var(--mono);font-size:12px;color:var(--brass);padding-top:9px;font-weight:600}
+.sec-head .ic{width:46px;height:46px;border:1px solid var(--w10);border-radius:12px;display:grid;place-items:center;
+  background:var(--w5);color:var(--brass);flex:none}
+.sec-head .ic svg{width:23px;height:23px}
+.sec-head h2{font-size:24px;font-weight:700;letter-spacing:-.015em;margin:6px 0 3px}
+.sec-head .d{color:var(--muted);font-size:14.5px;margin:0}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:13px}
+.card{background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:20px;
+  transition:transform .22s ease,border-color .22s ease}
+.card:hover{transform:translateY(-3px);border-color:var(--w10)}
+.card h3{font-size:15.5px;margin:0 0 8px;font-weight:600;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+.card h3 .dot{width:7px;height:7px;border-radius:50%;background:var(--brass);flex:none}
+.card p{margin:0;color:var(--ink2);font-size:14px;line-height:1.5}
+.card .who{display:flex;align-items:center;gap:7px;margin-top:13px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.03em;color:var(--muted);border-top:1px solid var(--w8);padding-top:11px}
+.card .who b{color:var(--brass);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.03em;
+  text-transform:uppercase}
+.t-agree{background:rgba(47,217,138,.14);color:var(--ok)}
+.t-open{background:rgba(76,201,240,.14);color:var(--steel)}
+.t-idea{background:var(--w5);color:var(--muted);border:1px solid var(--w10)}
+
+/* stand plan */
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
+.planbox{background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:24px 30px 30px}
+.planbox .cap{margin-bottom:16px}
+.stand{position:relative;border:1.5px solid var(--muted);border-radius:6px;aspect-ratio:37/24;
+  background:repeating-linear-gradient(45deg,transparent 0 9px,rgba(255,255,255,.03) 9px 10px)}
+.island{position:absolute;top:9%;left:8%;width:46%;height:68%;border:1.5px solid var(--brass);border-radius:5px;
+  background:rgba(245,179,60,.1);display:grid;place-items:center;text-align:center}
+.island span{font-size:11.5px;font-weight:700;color:var(--brass);line-height:1.25;font-family:var(--mono)}
+.dimx{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.dimy{position:absolute;left:-30px;top:0;bottom:0;writing-mode:vertical-rl;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.planlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:13px}
+.planlist li{display:flex;gap:11px;font-size:14px;color:var(--ink2);line-height:1.5}
+.planlist li svg{width:18px;height:18px;color:var(--brass);flex:none;margin-top:2px}
+
+/* steps */
+.steps{list-style:none;padding:0;margin:0}
+.step{display:grid;grid-template-columns:28px 1fr;gap:16px;padding:15px 0;border-bottom:1px solid var(--w8)}
+.step:last-child{border-bottom:none}
+.step .n{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brass);color:var(--brass);
+  display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:700}
+.step .t{font-size:14.5px;color:var(--ink)}.step .t b{font-weight:600}
+.step .own{display:block;margin-top:4px;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.03em}
+
+/* roles */
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.rolecol{background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:22px}
+.rolecol.v{border-top:2px solid var(--brass)}.rolecol.m{border-top:2px solid var(--steel)}
+.rolecol .bn{font-size:17px;font-weight:700;margin:0 0 3px;letter-spacing:-.01em}
+.rolecol .bt{font-size:12px;color:var(--muted);margin:0 0 15px;font-family:var(--mono)}
+.person{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-top:1px solid var(--w8)}
+.person:first-of-type{border-top:none}
+.person .nm{font-weight:600;font-size:14px}.person .rl{font-size:12.5px;color:var(--muted)}
+
+.foot{padding:34px 0 70px;border-top:1px solid var(--w8);color:var(--muted);font-size:12.5px;line-height:1.7}
+.foot .badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--ink2);
+  background:var(--w5);border:1px solid var(--w10);border-radius:999px;padding:5px 12px;margin-bottom:12px}
+.foot .badge b{color:var(--brass)}
+
+.rev{opacity:0;transform:translateY(15px);transition:opacity .55s ease,transform .55s ease}
+.rev.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.rev{opacity:1;transform:none;transition:none}.card{transition:none}}
+@media (max-width:820px){ .hero .in{grid-template-columns:1fr} .medal{max-width:280px;margin:8px auto 0} .plan,.roles{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+<div class="nav-in">
+<div class="mark">MEBELIT <span class="x" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></span> <span>VALONTI</span></div>
+<div class="nav-cover">протокол встречи <b>19.08.26</b></div>
+</div>
+<div class="nav-gauge" id="gauge"></div>
+</nav>
+
+<div id="doc">
+
+<header class="hero">
+<div class="grain"></div>
+<div class="wrap in">
+<div>
+<p class="cap ac">Совместный стенд · договорённости</p>
+<h1>Стенд MEBELIT <span class="amp">×</span> VALONTI</h1>
+<p class="dek">Ключевые аспекты совместного участия в дизайнерском мероприятии - для владельцев обеих компаний. Единый стенд, общая база лидов-дизайнеров, совместное продвижение.</p>
+<div class="metarow">
+<span>Встреча: <b>19.08.2026</b></span>
+<span>Формат: <b>Телемост</b></span>
+<span>Статус: <b>рабочие договорённости</b></span>
+</div>
+</div>
+<div class="medal" aria-label="Синергия один плюс один равно одиннадцать">
+<div>
+<div class="eq">1+1=<b>11</b></div>
+<div class="lb">синергия, а не сумма</div>
+</div>
+</div>
+</div>
+</header>
+
+<div class="wrap">
+
+<div class="glance rev">
+<div class="stat"><div class="k">Общий стенд</div><div class="v mono">370 × 240 <small>см</small></div></div>
+<div class="stat"><div class="k">Остров VALONTI</div><div class="v mono brass">2 × 2 <small>м · подвижный</small></div></div>
+<div class="stat"><div class="k">Главная задача</div><div class="v">Контакты дизайнеров</div></div>
+<div class="stat"><div class="k">CRM у обеих сторон</div><div class="v">Bitrix24</div></div>
+</div>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">01</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-6h6v6"/></svg></span>
+<div><h2>Стенд: единое пространство</h2><p class="d">Один большой стенд, а не два отдельных.</p></div>
+</div>
+<div class="plan rev">
+<div class="planbox">
+<div class="cap">Схема · вид сверху · размеры по стенограмме, уточнить</div>
+<div class="stand"><div class="island"><span>VALONTI<br>2×2</span></div><div class="dimx">370 см</div><div class="dimy">240 см</div></div>
+</div>
+<ul class="planlist">
+<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 6L9 17l-5-5"/></svg><span><b>Единая концепция и стиль.</b> Большой красивый общий стенд привлекает больше внимания; визуально как одно пространство.</span></li>
+<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 6L9 17l-5-5"/></svg><span><b>Общий проход.</b> Остров VALONTI сдвигают так, чтобы к нему не заходили через зону MEBELIT.</span></li>
+<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 6L9 17l-5-5"/></svg><span><b>Остров подвижный</b> - Андрей подтвердил, положение можно менять при монтаже.</span></li>
+<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12h14"/></svg><span><b>Интеграция материалов (на согласовании).</b> VALONTI - глянец: нержавейка, титан, бронза. MEBELIT - шпон, эмаль, кварцевый агломерат. Идея: добавить друг другу элементы для единого вида.</span></li>
+</ul>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">02</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6"/></svg></span>
+<div><h2>Сбор лидов: общий пул</h2><p class="d">Главная цель. Контакты собираются в единую базу.</p></div>
+</div>
+<div class="cards">
+<div class="card rev"><h3><span class="dot"></span>Механика сбора</h3><p><span class="tag t-agree">согласовано</span> QR-код и короткая форма (имя, телефон, город) прямо на стенде. Бумажные анкеты - устаревший метод.</p><div class="who"><b>Кто</b> менеджеры на стенде + Дима</div></div>
+<div class="card rev"><h3><span class="dot"></span>Розыгрыш как драйвер</h3><p><span class="tag t-agree">согласовано</span> Розыгрыш призов даёт максимум контактов (у MEBELIT так собирали 200+, из них около 130 в работе). Совмещаем розыгрыш и общий сбор.</p><div class="who"><b>Кто</b> обе стороны</div></div>
+<div class="card rev"><h3><span class="dot"></span>Единая база и обмен</h3><p><span class="tag t-agree">согласовано</span> Лиды тегируются по мероприятию, доступ у обеих сторон. Простой путь: выгрузка таблицей и передача (с учётом поздних заявок около 3 дней).</p><div class="who"><b>Кто</b> Дима + сторона MEBELIT</div></div>
+<div class="card rev"><h3><span class="dot"></span>Этика контактов</h3><p><span class="tag t-agree">согласовано</span> Обе компании работают экологично: без спама и дожима. Заходим через пользу для дизайнера.</p><div class="who"><b>Кто</b> обе стороны</div></div>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">03</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span>
+<div><h2>Призовой фонд</h2><p class="d">Совместный, расходы делятся.</p></div>
+</div>
+<div class="cards">
+<div class="card rev"><h3><span class="dot"></span>Общий фонд, деление затрат</h3><p><span class="tag t-agree">согласовано</span> Собираем совместный призовой фонд и делим его. Призы, интересные дизайнерам.</p></div>
+<div class="card rev"><h3><span class="dot"></span>Конкурсы для дизайнеров</h3><p><span class="tag t-idea">идея</span> У VALONTI есть опыт конкурсов, где дизайнеры создают изделия по своим лекалам. Можно повторить совместно.</p></div>
+<div class="card rev"><h3><span class="dot"></span>Второй раунд по охвату</h3><p><span class="tag t-idea">идея, под вопросом</span> Собрать самых горячих и добрать аудиторию ретаргетом на супер-приз. Относительно бюджетно.</p></div>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">04</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l14-6v14L3 13v-2zM3 11v2M17 9a3 3 0 0 1 0 6M7 13v5a2 2 0 0 0 4 0v-3"/></svg></span>
+<div><h2>Продвижение: в две пушки</h2><p class="d">Прогреваем аудиторию с обеих сторон.</p></div>
+</div>
+<div class="cards">
+<div class="card rev"><h3><span class="dot"></span>Вебинары VALONTI</h3><p><span class="tag t-agree">план</span> Вебинары для дизайнеров (сентябрь-октябрь); онлайн-воронка греет к офлайн-мероприятию.</p><div class="who"><b>Кто</b> VALONTI / GENGROUP</div></div>
+<div class="card rev"><h3><span class="dot"></span>Рассылки и соцсети</h3><p><span class="tag t-agree">согласовано</span> Обе стороны рассылают по своим базам и подсвечивают тандем. Нужна взаимная подсветка.</p><div class="who"><b>Кто</b> обе стороны</div></div>
+<div class="card rev"><h3><span class="dot"></span>Подсветка ТОН</h3><p><span class="tag t-idea">идея</span> Задействовать сообщество ТОН и его резидентов для взаимного продвижения по базам дизайнеров.</p><div class="who"><b>Кто</b> GENGROUP + ТОН</div></div>
+<div class="card rev"><h3><span class="dot"></span>Лендинг / спецпроект</h3><p><span class="tag t-idea">идея</span> Отдельный яркий промо-лендинг под регистрацию; команда GENGROUP соберёт быстро на промо-домене.</p><div class="who"><b>Кто</b> Кирилл + команда</div></div>
+<div class="card rev"><h3><span class="dot"></span>Ресурсы организатора</h3><p><span class="tag t-open">уточнить</span> Даёт ли площадка промо, рассылки и QR-сканирование лидов (как на Мосбилде).</p><div class="who"><b>Кто</b> Екатерина</div></div>
+<div class="card rev"><h3><span class="dot"></span>Серые механики</h3><p><span class="tag t-idea">под вопросом</span> Телемаркетинг по базам, лид-магниты - большой охват, но токсичность. Только через пользу, не в лоб.</p><div class="who"><b>Кто</b> обсуждается</div></div>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">05</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.5-2.8 2.5M12 17h.01"/></svg></span>
+<div><h2>Открытые вопросы - на согласование</h2><p class="d">Финальные решения за Андреем Анатольевичем и организаторами.</p></div>
+</div>
+<div class="cards">
+<div class="card rev"><h3><span class="dot"></span>Выход за периметр</h3><p><span class="tag t-open">уточнить</span> Можно ли выносить флаги и рулапы за границу стенда, есть ли штрафы.</p><div class="who"><b>Решает</b> Андрей / организаторы</div></div>
+<div class="card rev"><h3><span class="dot"></span>Интеграция материалов</h3><p><span class="tag t-open">уточнить</span> Глянцевые элементы VALONTI на стенде MEBELIT и деревянные панели на стенах VALONTI - нужно изготовление.</p><div class="who"><b>Решает</b> Андрей Анатольевич</div></div>
+<div class="card rev"><h3><span class="dot"></span>QR-сбор от площадки</h3><p><span class="tag t-open">уточнить</span> Есть ли на выставке решение по сканированию QR и передаче базы участникам.</p><div class="who"><b>Решает</b> организаторы</div></div>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">06</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l9 4.5v6c0 5-3.8 8.5-9 9.5-5.2-1-9-4.5-9-9.5v-6z"/><path d="M12 8v4M12 15h.01"/></svg></span>
+<div><h2>Риски и точки внимания</h2><p class="d">То, что стоит держать на контроле владельцам.</p></div>
+</div>
+<div class="cards">
+<div class="card rev"><h3><span class="dot"></span>Персональные данные (152-ФЗ)</h3><p><span class="tag t-open">внимание</span> Общая база и выгрузка в Google-таблицу затрагивают персональные данные. На встрече это отмечено как спорный момент. Согласовать способ хранения и передачи, чтобы не нарушить закон.</p><div class="who"><b>Кто</b> Дима + сторона MEBELIT</div></div>
+<div class="card rev"><h3><span class="dot"></span>Дубли контактов</h3><p><span class="tag t-open">внимание</span> Один дизайнер может попасть в базу дважды. Нужно правило дедупликации по телефону при слиянии, иначе атрибуция и связь размажутся.</p><div class="who"><b>Кто</b> обе стороны</div></div>
+<div class="card rev"><h3><span class="dot"></span>Расхождение по тону</h3><p><span class="tag t-open">согласовать</span> MEBELIT осторожна с холодными касаниями. Часть охватных идей (телемаркетинг, ретаргет-ловушки) требует согласия по тону, чтобы не навредить бренду MEBELIT. Это точка, где владельцам стоит договориться явно.</p><div class="who"><b>Кто</b> владельцы</div></div>
+<div class="card rev"><h3><span class="dot"></span>Зависимости</h3><p><span class="tag t-open">блокеры</span> Часть пунктов стоит без ответов Андрея Анатольевича (материалы) и организаторов (периметр, QR, промо). Без них дизайн и часть механик не финализировать.</p><div class="who"><b>Кто</b> Андрей / организаторы</div></div>
+<div class="card rev"><h3><span class="dot"></span>Обратимость</h3><p><span class="tag t-agree">низкий риск</span> Точка невозврата не пройдена: остров подвижен, материалы ещё не в производстве. Решения сейчас дёшево откатить.</p><div class="who"><b>Кто</b> обе стороны</div></div>
+</div>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">07</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 22V4M4 4h13l-2 3 2 3H4"/></svg></span>
+<div><h2>Следующие шаги</h2><p class="d">Кто и что делает дальше.</p></div>
+</div>
+<ul class="steps rev">
+<li class="step"><span class="n">1</span><span class="t"><b>Схема расстановки и дизайн-концепция стенда</b> - Марина и Кирилл готовят и присылают.<span class="own">GENGROUP · ориентир - завтра</span></span></li>
+<li class="step"><span class="n">2</span><span class="t"><b>План продвижения</b> с учётом всего обсуждённого.<span class="own">GENGROUP</span></span></li>
+<li class="step"><span class="n">3</span><span class="t"><b>Уточнения у организаторов</b>: периметр, промо-ресурсы, QR-сбор.<span class="own">Екатерина · MEBELIT</span></span></li>
+<li class="step"><span class="n">4</span><span class="t"><b>Согласование интеграции материалов</b> и совместных оферов.<span class="own">Андрей Анатольевич · MEBELIT</span></span></li>
+<li class="step"><span class="n">5</span><span class="t"><b>Запись и протокол встречи</b> направляются коллегам; работа в общем чате.<span class="own">Иван · GENGROUP</span></span></li>
+</ul>
+<p class="d" style="margin-top:18px">Рабочий канал - общий чат, созданный Андреем. Сроки шагов 2-5 - по согласованию на ближайшей сверке (после схемы стенда и плана продвижения).</p>
+</section>
+
+<section class="blk">
+<div class="sec-head rev">
+<span class="idx">·</span>
+<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg></span>
+<div><h2>Участники</h2><p class="d">Кто был на встрече и за что отвечает.</p></div>
+</div>
+<div class="roles rev">
+<div class="rolecol m">
+<p class="bn">MEBELIT</p><p class="bt">корпусная мебель</p>
+<div class="person"><span class="nm">Андрей Анатольевич</span><span class="rl">· владелец, финальные решения</span></div>
+<div class="person"><span class="nm">Екатерина</span><span class="rl">· маркетинг, связь с организаторами</span></div>
+<div class="person"><span class="nm">Светлана</span><span class="rl">· контакт по арт-диалогу</span></div>
+</div>
+<div class="rolecol v">
+<p class="bn">VALONTI · GENGROUP</p><p class="bt">дизайнерская мебель из премиальных материалов</p>
+<div class="person"><span class="nm">Иван</span><span class="rl">· ведёт проект, протокол</span></div>
+<div class="person"><span class="nm">Дима</span><span class="rl">· диджитал-маркетолог, CRM и теги</span></div>
+<div class="person"><span class="nm">Марина</span><span class="rl">· промдизайнер, 3D-модель стенда</span></div>
+<div class="person"><span class="nm">Кирилл</span><span class="rl">· арт-директор, дизайн и лендинг</span></div>
+</div>
+</div>
+</section>
+
+<div class="foot">
+<div class="badge"><b>✎</b> добавьте <span class="mono">?edit=1</span> к адресу, чтобы править протокол и вести версии</div><br>
+Рабочее саммари по записи встречи 19.08.2026. Часть пунктов - идеи и требуют согласования (отмечены тегами). Источник: транскрипт Телемоста.
+</div>
+
+</div>
+</div>
+
+<script>
+(function(){
+  var g=document.getElementById('gauge');
+  function upd(){var h=document.documentElement;var m=h.scrollHeight-h.clientHeight;g.style.width=(m>0?(h.scrollTop/m*100):0)+'%';}
+  addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);upd();
+  var els=[].slice.call(document.querySelectorAll('.rev'));
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+  var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}})},{threshold:.1,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+<script src="./liveedit/liveedit-init.js" data-doc="mebelit-valonti-protocol" data-root="#doc" defer></script>
+</body>
+</html>

@@ -209,8 +209,10 @@ function main() {
   for (const c of ownDb.changes) (ownByDeal[c.id] ||= []).push(c);
   console.log(`Журнал ответственных: сделок ${Object.keys(ownDb.owners).length}, новых передач ${ownNew}, всего в журнале ${ownDb.changes.length}`);
 
-  const ai: Record<string, any> = existsSync(AIF) ? (JSON.parse(readFileSync(AIF, "utf8")).reviews || {}) : {};
-  if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}`);
+  const aiFile: any = existsSync(AIF) ? JSON.parse(readFileSync(AIF, "utf8")) : {};
+  const ai: Record<string, any> = aiFile.reviews || {};
+  const aiMgr: Record<string, any> = aiFile.managers || {};   // разбор ИИ на уровне менеджера
+  if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}, менеджеров ${Object.keys(aiMgr).length}`);
 
   const byKey: Record<string, Ev[]> = {};
   for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
@@ -284,6 +286,13 @@ function main() {
       (evTags[src] ||= []).push({ t, tone, sec, quote });
     };
     const hit = (re: RegExp, txt: string) => { const m = txt.match(re); return m ? m[0].slice(0, 40) : ""; };
+    // ИИ-разметка на сообщениях (уровень коммуникации): ai-review.ts возвращает msgTags,
+    // привязанные к src сообщения. Кладём их рядом с тегами-правилами, помечая ai:1, чтобы
+    // в переписке было видно, где сработал ИИ, а где детерминированное правило.
+    if (a && Array.isArray(a.msgTags)) for (const mt of a.msgTags) {
+      if (!mt || !mt.src) continue;
+      (evTags[mt.src] ||= []).push({ t: String(mt.t || ""), tone: String(mt.tone || "warn"), sec: "ai", quote: String(mt.quote || ""), ai: 1 } as any);
+    }
     let greeted = false;
     for (let i = 0; i < msgs.length; i++) {
       const m = msgs[i]!, body = String(m.body || ""), src = m.src || "";
@@ -574,7 +583,7 @@ function main() {
       title: last.dealT || last.leadT || key, mgr: last.mgr || "(не указан)",
       stage: f ? f.stage : "", stageCode, budget: f ? f.budget : 0,
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
-      ai: a ? { verdict: a.verdict, politeness: a.politeness, regulation: a.regulation, deadlines: a.deadlines, quotes: a.quotes } : null,
+      ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [] } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,
       lastTs: last.ts, lastDt: last.dt,
     });
@@ -712,8 +721,23 @@ function main() {
       lossBy[k] = (lossBy[k] || 0) + -w.rub;
     }
     const topLoss = Object.entries(lossBy).sort((a, b) => b[1] - a[1])[0];
+    // --- ИИ-оценка менеджера (уровень 1) -----------------------------------------
+    // Балл = средний ИИ-балл по разобранным сделкам (scores 0-5 -> 0-10). Вердикт и
+    // сильные/слабые стороны берём из manager-разбора ИИ (aiMgr), если он есть.
+    const aiDeals = ds.filter((d) => d.ai && d.ai.scores);
+    let aiGrade: number | null = null, aiCounts = { good: 0, warn: 0, bad: 0 };
+    if (aiDeals.length) {
+      const sc = aiDeals.map((d) => { const s = d.ai.scores; const v = ["polite", "qual", "deadline", "process", "result"].map((k) => Number(s[k] ?? NaN)).filter((x) => !isNaN(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN; }).filter((x) => !isNaN(x));
+      if (sc.length) aiGrade = Number((sc.reduce((a, b) => a + b, 0) / sc.length / 5 * 10).toFixed(1));
+      for (const d of aiDeals) { const t = d.ai.tone; if (t === "bad") aiCounts.bad++; else if (t === "warn") aiCounts.warn++; else aiCounts.good++; }
+    }
+    const aiM = aiMgr[mgr] || null;
+    const ai = aiDeals.length ? {
+      grade: aiGrade, reviewed: aiDeals.length, counts: aiCounts,
+      verdict: aiM ? aiM.verdict : "", strengths: (aiM && aiM.strengths) || [], weaknesses: (aiM && aiM.weaknesses) || [], action: aiM ? aiM.action : "",
+    } : null;
     return {
-      mgr, deals: ds.length, rating, sections,
+      mgr, deals: ds.length, rating, sections, ai,
       lossRub: Math.round(lossRub),
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
       topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,
@@ -771,7 +795,7 @@ function main() {
     queues: QUEUES,
     trend: days.slice(-14),
     calibratedAt: CALIBRATED_AT, baseFallback: Math.round(BASE_FALLBACK * 100), baseRates: BASE_RATES,
-    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length,
+    sections: SECTIONS, minSample: MIN_SAMPLE, aiReviews: Object.keys(ai).length, aiDemo: !!aiFile.demo, aiModel: aiFile.model || "",
     thresholds: { FIRST_ANSWER_MIN, FAST_ANSWER_MIN, SLOW_ANSWER_MIN, BALL_STUCK_MIN, SILENCE_WARN_D, SILENCE_BAD_D, OVERDUE_GRACE_D },
     deptMedians: dept, metricDefs: METRICS.map((m) => ({ key: m.key, label: m.label, unit: m.unit, better: m.better, how: (m as any).how || "" })), tagIndex, deals: deals.sort((a, b) => b.prob - a.prob), managers,
     hiddenMgr: hiddenMgr.sort((a, b) => b.deals - a.deals),

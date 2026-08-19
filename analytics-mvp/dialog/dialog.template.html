@@ -125,6 +125,14 @@ input#q{min-width:220px}
 #tip .qb{white-space:normal;line-height:1.45;color:var(--ink-2)}
 #tip .qn{color:var(--ink-4);font-size:10.5px;margin-top:8px;padding-top:6px;border-top:1px solid #2A3742}
 .malert{display:inline-block;margin-left:7px;font-size:10px;font-weight:800;line-height:15px;height:15px;min-width:15px;padding:0 5px;border-radius:8px;text-align:center;cursor:help;vertical-align:1px;border:1px solid}
+.aigr{display:inline-block;font-size:11px;font-weight:800;line-height:17px;min-width:30px;padding:0 6px;border-radius:6px;text-align:center;cursor:help;border:1px solid}
+.aidot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.aidv{cursor:help;border-bottom:1px dotted var(--ink-4)}
+.aibanner{background:#8B7BF014;border:1px solid #8B7BF04d;border-radius:9px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.aibox{background:#8B7BF00d;border:1px solid;border-radius:9px;padding:9px 11px;margin-bottom:9px}
+.aihead{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
+.airow{font-size:12px;color:var(--ink-2);line-height:1.5;margin:3px 0}
+.t3 .evtag[data-ai]{border-style:dashed}
 .fixids{display:flex;flex-wrap:wrap;gap:5px}
 .fixid{font-size:10.5px;padding:2px 7px;border:1px solid var(--line);border-radius:5px;cursor:pointer;color:var(--ink-2)}
 .fixid:hover{border-color:var(--acc);color:var(--acc)}
@@ -522,13 +530,14 @@ function renderTree(){
     if(k==='hot') return (byM[m.mgr]||[]).filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0); if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
     if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='act') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
+    if(k==='aiG') return m.ai?m.ai.grade:null;
     return p.metrics? p.metrics[k] : null; };
   // Что менеджер делал за выбранный период: суммарная лента по его сделкам.
   const actOf=(mgr)=>{ const t={msg:0,call:0,mail:0,task:0,note:0,ai:0,total:0};
     for(const d of (byM[mgr]||[])){ const m=mixOf(d,dFrom,dTo)||{};
       for(const k of ['msg','call','mail','task','note','ai','total']) t[k]+=(m[k]||0); }
     return t; };
-  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
+  const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'aiG',t:'ИИ'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'act',t:'Активность'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
     .concat([{k:'rating',t:'Рейтинг'}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
@@ -561,6 +570,20 @@ function renderTree(){
       + p.actions.map((a,i)=>`<div class="qh">${i+1}. ${esc(a.title)}<i>${a.n} сделок · ${money(a.money)} ₽</i></div><div class="qb">${esc(a.how)}</div>`).join('')
       + `<div class="qn">Очереди пересчитываются на каждом ночном снимке. Сделки этих очередей - в таблице ниже, столбец «Что горит».</div>`;
     return `<span class="malert" style="color:${col};border-color:${col}66;background:${col}14" data-tip="${body.replace(/"/g,'&quot;')}">?</span>`;
+  };
+  // Уровень 1: ИИ-оценка менеджера. Балл 0-10 = средний ИИ-балл по разобранным сделкам,
+  // в подсказке - вердикт ИИ по всей работе, сильные/слабые стороны и что чинить.
+  const aiGradeCell = (m) => {
+    const a=m.ai; if(!a||a.grade==null) return '<span class="na2" data-tip="ИИ ещё не разбирал сделки этого менеджера за окно снимка">-</span>';
+    const g=a.grade, col=g>=7.5?'#2E9E74':g>=5?'#E8A33D':'#C25252';
+    const body=`<div class="tl">ИИ-оценка · ${esc(m.mgr)}</div>`
+      +`<div class="tip-tot"><span>${g.toFixed(1)} / 10</span><span>${a.reviewed} ${plu(a.reviewed,'сделка','сделки','сделок')} разобрано</span></div>`
+      +(a.verdict?`<div class="qb" style="margin-bottom:6px">${esc(a.verdict)}</div>`:'')
+      +(a.strengths&&a.strengths.length?`<div class="qh" style="color:#2E9E74">Сильные стороны</div>`+a.strengths.map(x=>`<div class="qb">+ ${esc(x)}</div>`).join(''):'')
+      +(a.weaknesses&&a.weaknesses.length?`<div class="qh" style="color:#C25252">Слабые места</div>`+a.weaknesses.map(x=>`<div class="qb">− ${esc(x)}</div>`).join(''):'')
+      +(a.action?`<div class="qh" style="color:#E8A33D">Что чинить</div><div class="qb">${esc(a.action)}</div>`:'')
+      +`<div class="qn">Оценка ИИ дополняет рейтинг по правилам: она читает смысл всей переписки, а не отдельные фразы. Светофор сделок: ${a.counts.good} 🟢 · ${a.counts.warn} 🟡 · ${a.counts.bad} 🔴.</div>`;
+    return `<span class="aigr" style="color:${col};border-color:${col}66;background:${col}14" data-tip="${body.replace(/"/g,'&quot;')}"><b>${g.toFixed(1)}</b></span>`;
   };
   // Инструкция: что означает каждый столбец и по какому правилу считается. Свёрнута по
   // умолчанию, состояние живёт в S.help.
@@ -598,7 +621,8 @@ function renderTree(){
       <div class="lgi" style="margin-top:8px"><b>Разметка в переписке.</b> Красная метка - нарушение регламента с цитатой из сообщения, зелёная - выполненное правило, серая - факт без оценки (вложение, движение по стадии). Кликните строку менеджера, затем сделку - и правило будет видно на конкретной фразе.</div>
       <div class="lgi"><b>Чего в данных нет.</b> Расшифровок звонков Bitrix через API не отдаёт - виден только факт звонка, длительность и короткое резюме BitrixGPT. Звонок с личного телефона в CRM не попадает вовсе, поэтому «нет следов общения» означает «нет следов в CRM», а не «менеджер не работал».</div>
     </div>`:'')+`</div>`;
-  let html=fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  const aiBanner = SC.aiReviews ? `<div class="aibanner">${SC.aiDemo?'✦ ИИ-анализ - превью на '+SC.aiReviews+' сделках (разбор вручную, чтобы показать, как это выглядит). Столбцы «ИИ» у менеджера и сделки, «ИИ-итог» под перепиской и теги «ИИ ·» на сообщениях. Полный ночной разбор всех сделок включится после добавления ключа ANTHROPIC_API_KEY.':'✦ ИИ-анализ активен: '+SC.aiReviews+' сделок разобрано на последнем ночном снимке.'}</div>` : '';
+  let html=fbar+aiBanner+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     const ds=(byM[m.mgr]||[]).slice(); const p=m.profile; const openM=S.tm===m.mgr;
     const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
@@ -608,14 +632,16 @@ function renderTree(){
       +MCOLS.slice(2).map(c=>{ if(c.k==='act'){ const t=actOf(m.mgr);
           const tip=`За период: ${t.msg} сообщений · ${t.call} звонков · ${t.mail} писем · ${t.task} дел · ${t.note} заметок · ${t.ai} резюме BitrixGPT. Это всё, что менеджер сделал по своим сделкам за выбранные даты - ставь период «сегодня» или «вчера», чтобы посмотреть один день.`;
           return `<td data-tip="${esc(tip)}" style="cursor:help">${t.total?fmt2(t.total):'<span class=\"na2\">0</span>'}</td>`; }
+        if(c.k==='aiG'){ return `<td class="aiG">${aiGradeCell(m)}</td>`; }
         return `<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
-        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
-      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
+        {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'aiT',t:'ИИ анализ',l:1},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
+      const aiRank={bad:0,warn:1,good:2};
+      const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='aiT'?(d.ai?aiRank[d.ai.tone]??3:9) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
       ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
@@ -633,6 +659,7 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
+          <td class="l">${aiDealCell(d)}</td>
           <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
           <td class="l">${mixCell(d,dFrom,dTo)}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
@@ -698,12 +725,19 @@ function renderTree(){
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
           <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>
-          <td class="l">${tags.map(t=>`<span class="evtag" style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
+          <td class="l">${tags.map(t=>`<span class="evtag"${t.ai?' data-ai="1"':''} style="color:${tagCol(t.tone)};border-color:${tagCol(t.tone)}55;background:${tagCol(t.tone)}12">${esc(t.t)}</span>`).join(' ')}</td></tr>`;
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
       host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
-        +`<div class="afterdlg"><div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
+        +`<div class="afterdlg">`
+        +(d.ai&&d.ai.verdict?`<div class="aibox" style="border-color:${(AI_DOT[d.ai.tone]||'#8794A5')}55">
+            <div class="aihead"><span class="aidot" style="background:${AI_DOT[d.ai.tone]||'#8794A5'}"></span><b>ИИ-итог по сделке</b></div>
+            <div class="airow"><b>Итог:</b> ${esc(d.ai.verdict)}</div>
+            ${d.ai.problem?`<div class="airow"><b style="color:#C25252">Проблема:</b> ${esc(d.ai.problem)}</div>`:`<div class="airow" style="color:#2E9E74">Проблем не видно, сделка ведётся правильно</div>`}
+            ${d.ai.recommendation?`<div class="airow"><b style="color:#E8A33D">Рекомендация:</b> ${esc(d.ai.recommendation)}</div>`:''}
+          </div>`:'')
+        +`<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
         +`<div class="whob">Переписку вели: ${who}</div>`
         +(d.takeH!=null?`<div class="whob">Взял в работу за ${d.takeH} ч (отсчёт от начала дня создания: времени создания в снимке нет)</div>`:'')
         +(d.slowStage?`<div class="whob">Дольше всего стояла на стадии «${esc(d.slowStage.name)}» - ${d.slowStage.days} дн</div>`:'')
@@ -722,6 +756,19 @@ function renderTree(){
 }
 // У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
 // Показываем тело без повтора, иначе строка читается как каша.
+// Уровень 2: ИИ-итог по сделке. В таблице - светофор + первая фраза вердикта, в подсказке
+// полный разбор. Всю переписку читает ИИ и выдаёт вывод одним взглядом.
+const AI_DOT={good:'#2E9E74',warn:'#E8A33D',bad:'#C25252'};
+function aiDealCell(d){
+  const a=d.ai; if(!a||!a.verdict) return '<span class="na2">-</span>';
+  const c=AI_DOT[a.tone]||'#8794A5';
+  const body=`<div class="tl">ИИ-итог по сделке</div>`
+    +`<div class="qb" style="margin-bottom:6px"><b>Итог:</b> ${esc(a.verdict)}</div>`
+    +(a.problem?`<div class="qh" style="color:#C25252">Проблема</div><div class="qb">${esc(a.problem)}</div>`:'<div class="qb" style="color:#2E9E74">Проблем не видно, сделка ведётся правильно</div>')
+    +(a.recommendation?`<div class="qh" style="color:#E8A33D">Рекомендация</div><div class="qb">${esc(a.recommendation)}</div>`:'')
+    +`<div class="qn">Разбор всей переписки языковой моделью. Обновляется на ночном снимке.</div>`;
+  return `<span class="aidot" style="background:${c}"></span><span class="aidv" data-tip="${body.replace(/"/g,'&quot;')}">${esc(a.verdict.slice(0,40))}${a.verdict.length>40?'…':''}</span>`;
+}
 // Русские окончания: «3 дела», а не «3 дел».
 function plu(n,one,few,many){ const a=Math.abs(n)%100, b=a%10;
   if(a>10&&a<20) return many; if(b>1&&b<5) return few; if(b===1) return one; return many; }

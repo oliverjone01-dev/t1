@@ -35,27 +35,37 @@ const SYSTEM = `Ты аудитор отдела продаж мебельног
 - Отвечай ТОЛЬКО валидным JSON без markdown-обёртки.`;
 
 const SCHEMA = `{
-  "verdict": "одна фраза: что происходит в сделке",
-  "politeness": 0-5,
-  "regulation": 0-5,
-  "deadlines": 0-5,
-  "result": 0-5,
-  "tags": [{"t":"короткий тег","sec":"speed|qual|deadline|polite|process|result","tone":"good|warn|bad"}],
-  "recommendation": "одно конкретное действие с датой",
+  "verdict": "одна фраза: что происходит в сделке и куда она идёт",
+  "problem": "главная проблема в работе менеджера одной фразой, или пустая строка если всё ведётся правильно",
+  "recommendation": "одно конкретное действие на завтра с датой или сроком",
+  "tone": "good|warn|bad — светофор сделки: good всё правильно, warn есть риск, bad грубая ошибка",
+  "scores": {"polite":0-5,"qual":0-5,"deadline":0-5,"process":0-5,"result":0-5},
+  "msgTags": [{"i": номер строки хронологии, "tone":"good|warn|bad", "t":"короткий тег с префиксом 'ИИ · '", "quote":"дословная фраза из этой строки, по которой сработал тег"}],
   "probDelta": -30..20,
   "quotes": ["до 2 цитат из переписки, подтверждающих вердикт"]
 }`;
 
-type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string };
+// Разбор на уровне менеджера: сводка по всем его сделкам за окно.
+const MGR_SYSTEM = `Ты РОП. По списку кратких итогов ИИ о сделках одного менеджера сделай сводную оценку его работы.
+Оцениваешь действия, а не человека. Пиши конкретно, без канцелярита и без «в целом». Запрещён em dash.
+Отвечай ТОЛЬКО валидным JSON без markdown.`;
+const MGR_SCHEMA = `{
+  "verdict": "одна фраза: как менеджер работает в целом",
+  "strengths": ["1-3 сильные стороны, каждая с опорой на факт из сделок"],
+  "weaknesses": ["1-3 повторяющиеся слабые места"],
+  "action": "одно главное, что менеджеру нужно чинить"
+}`;
 
-async function callAI(prompt: string): Promise<any> {
+type Ev = { ts: number; dt: string; dealId: string; leadId: string; mgr: string; type: string; dir: string; who: string; body: string; dealT: string; leadT: string; src?: string };
+
+async function callAI(prompt: string, system: string = SYSTEM): Promise<any> {
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "content-type": "application/json", "x-api-key": KEY, "anthropic-version": "2023-06-01" },
         body: JSON.stringify({
-          model: MODEL, max_tokens: 900, system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+          model: MODEL, max_tokens: 900, system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
           messages: [{ role: "user", content: prompt }],
         }),
         signal: AbortSignal.timeout(90000),
@@ -71,20 +81,28 @@ async function callAI(prompt: string): Promise<any> {
   return null;
 }
 
-function transcript(evs: Ev[]): string {
-  const lines = evs.slice(-40).map((e) => {
+// Нумеруем строки, чтобы ИИ мог привязать msgTags к конкретному сообщению по номеру,
+// а мы потом перевели номер обратно в src. srcs[номер] = src события.
+function transcript(evs: Ev[]): { text: string; srcs: Record<number, string> } {
+  const slice = evs.slice(-40);
+  const srcs: Record<number, string> = {};
+  const lines = slice.map((e, idx) => {
+    const n = idx + 1; srcs[n] = e.src || "";
     const who = e.dir === "входящее" ? "КЛИЕНТ" : e.dir === "исходящее" ? "МЕНЕДЖЕР" : "CRM";
     const body = String(e.body || "").replace(/\s+/g, " ").slice(0, 400);
-    return `${e.dt.slice(5, 16).replace("T", " ")} [${e.type}] ${who}: ${body}`;
+    return `[${n}] ${e.dt.slice(5, 16).replace("T", " ")} [${e.type}] ${who}: ${body}`;
   });
-  return lines.join("\n").slice(0, 12000);
+  return { text: lines.join("\n").slice(0, 12000), srcs };
 }
 
 async function main() {
   const dlg = JSON.parse(readFileSync(DLG, "utf8"));
   const events: Ev[] = dlg.events || [];
   const prev = existsSync(OUT) ? JSON.parse(readFileSync(OUT, "utf8")) : { reviews: {} };
-  const reviews: Record<string, any> = prev.reviews || {};
+  // Демо-файл (разбор вручную) не перетираем: если ключа нет, скрипт вообще не доходит сюда,
+  // а если дошёл - обновляем только реальные разборы, демо остаётся как есть.
+  const reviews: Record<string, any> = prev.demo ? {} : (prev.reviews || {});
+  const mgrOf: Record<string, string> = {};
 
   const byKey: Record<string, Ev[]> = {};
   for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
@@ -104,16 +122,35 @@ async function main() {
       const idx = qi++; if (idx >= queue.length) break;
       const { k, evs, last } = queue[idx]!;
       const head = evs[evs.length - 1]!;
-      const prompt = `Сделка: ${head.dealT || head.leadT || k}\nМенеджер: ${head.mgr}\n\nХронология:\n${transcript(evs)}\n\nВерни JSON строго такой формы:\n${SCHEMA}`;
+      mgrOf[k] = head.mgr || "";
+      const tr = transcript(evs);
+      const prompt = `Сделка: ${head.dealT || head.leadT || k}\nМенеджер: ${head.mgr}\n\nХронология (строки пронумерованы):\n${tr.text}\n\nВерни JSON строго такой формы:\n${SCHEMA}`;
       const r = await callAI(prompt);
-      if (r) { reviews[k] = { ...r, lastTs: last, at: new Date().toISOString(), model: MODEL }; done++; }
-      else failed++;
+      if (r) {
+        // перевод msgTags.i -> src сообщения
+        const msgTags = Array.isArray(r.msgTags) ? r.msgTags.map((t: any) => ({ src: tr.srcs[Number(t.i)] || "", tone: t.tone, t: t.t, quote: t.quote })).filter((t: any) => t.src) : [];
+        reviews[k] = { ...r, msgTags, mgr: head.mgr, lastTs: last, at: new Date().toISOString(), model: MODEL };
+        done++;
+      } else failed++;
       if ((done + failed) % 20 === 0) console.log(`  разобрано ${done}, сбоев ${failed} из ${queue.length}`);
     }
   }));
 
+  // --- Разбор на уровне менеджера: сводим итоги ИИ по всем его сделкам --------------
+  const byMgr: Record<string, any[]> = {};
+  for (const [k, r] of Object.entries(reviews)) { const mg = (r as any).mgr || mgrOf[k]; if (mg) (byMgr[mg] ||= []).push(r); }
+  const managers: Record<string, any> = {};
+  const mgrList = Object.entries(byMgr).filter(([, rs]) => rs.length >= 1);
+  let mdone = 0;
+  await Promise.all(mgrList.map(async ([mgr, rs]) => {
+    const digest = rs.slice(0, 40).map((r: any, i: number) => `${i + 1}. [${r.tone || "?"}] ${r.verdict || ""}${r.problem ? " Проблема: " + r.problem : ""}`).join("\n");
+    const prompt = `Менеджер: ${mgr}\nИтоги ИИ по его сделкам:\n${digest}\n\nВерни JSON строго такой формы:\n${MGR_SCHEMA}`;
+    const r = await callAI(prompt, MGR_SYSTEM);
+    if (r) { managers[mgr] = { ...r, deals: rs.length, at: new Date().toISOString() }; mdone++; }
+  }));
+
   mkdirSync("dialog/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), model: MODEL, reviews }));
-  console.log(`Готово: новых разборов ${done}, сбоев ${failed}, всего в базе ${Object.keys(reviews).length} -> ${OUT}`);
+  writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), model: MODEL, reviews, managers }));
+  console.log(`Готово: разборов сделок ${done}, менеджеров ${mdone}, сбоев ${failed} -> ${OUT}`);
 }
 main().catch((e) => { console.error("FATAL", e); process.exit(1); });

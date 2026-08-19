@@ -99,6 +99,14 @@ input#q{min-width:220px}
 .lgh i{font-style:normal;color:var(--ink-4);margin-right:5px}
 .lgb{padding:0 12px 10px 12px}
 .lgi{color:var(--ink-2);margin-bottom:5px;line-height:1.5}
+.lgcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-bottom:8px}
+.lgc{background:#ffffff05;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;color:var(--ink-3)}
+.lgc b{color:var(--ink);display:inline}
+.lgnote{color:var(--ink-3);font-size:11px}
+.lgcols{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.lgcol{background:#ffffff05;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:10.5px;color:var(--ink-2);cursor:help;white-space:nowrap}
+.lgcol b{color:var(--ink)}.lgcol i{color:var(--ink-4);font-style:normal;font-size:10px}
+.lqm{display:inline-block;font-size:9px;color:var(--ink-4);border:1px solid var(--line);border-radius:50%;width:12px;height:12px;line-height:12px;text-align:center;cursor:help;vertical-align:1px;margin:0 3px}
 .lgi b{color:var(--ink)}
 .sortable{cursor:pointer;user-select:none}
 .sortable:hover{color:var(--acc)}
@@ -603,17 +611,20 @@ function renderTree(){
     ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
     <span class="cnt">${filtered?`сделок в периоде ${DEALS.length} из ${SC.deals.length} · метрики менеджера считаются по всему окну снимка, фильтр меняет только список сделок`:`окно снимка ${esc((DATA.from||'').slice(0,10))} - ${esc((DATA.to||'').slice(0,10))}, коммуникации есть только внутри него`}</span>
   </div>`;
-  const help = `<div class="legend"><div class="lgh" data-help="1"><i>${S.help?'▾':'▸'}</i>Как читать таблицу: что означает каждый столбец и откуда берётся цифра</div>`
+  // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
+  // (наведи на «?»), чтобы блок не растягивался на весь экран.
+  const helpQ=(t)=>`<span class="lqm" data-tip="${String(t).replace(/"/g,'&quot;')}">?</span>`;
+  const help = `<div class="legend"><div class="lgh" data-help="1"><i>${S.help?'▾':'▸'}</i>Как читать таблицу</div>`
    + (S.help?`<div class="lgb">
-      <div class="lgi"><b>Откуда данные.</b> Ночной снимок Bitrix24: переписка WhatsApp, Telegram и MAX через Wazzup, письма, звонки, дела, комментарии и резюме BitrixGPT за последние 7 дней, плюс снимок воронки «GG Заказы РФ» - стадии, бюджеты, открытые дела. Оценивают правила, а не нейросеть: каждый тег ставится по конкретной фразе или факту в CRM, поэтому его можно проверить глазами в переписке.</div>
-      <div class="lgi"><b>Вердикт.</b> Считается от сильных и слабых сторон, а не от рейтинга. Сильная сторона - метрика заметно лучше медианы отдела, слабая - заметно хуже. Слабых нет - «сильный»; сильных больше слабых - «норма»; слабых три и больше - «в разборе». Меньше 10 диалогов в окне - «мало данных», человека не судим.</div>
-      <div class="lgi"><b>Рейтинг.</b> Шесть разделов регламента с весами: Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%. Внутри раздела берётся доля сделок без красных меток, итог приводится к пятибалльной шкале. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.</div>
-      <div class="lgi"><b>Горит.</b> Число сделок, у которых сработала хотя бы одна причина срочности: клиент ждёт ответа, риск отказа, тишина, просроченное дело, нет следующего шага. <b>Под риском</b> - сумма бюджетов этих сделок.</div>
-      <div class="lgi"><b>Цвет цифры в столбце.</b> Зелёная - лучше медианы отдела, красная - хуже, серая - данных не хватает. Медиана отдела в подсказке к заголовку столбца.</div>
-      <div class="lgi" style="margin-top:8px"><b>Столбцы:</b></div>
-      ${MD.map(m=>`<div class="lgi">· <b>${esc(MFULL[m.key]||m.label)}</b> (${esc(m.label)}${m.unit?', '+esc(m.unit):''}, ${m.better==='less'?'меньше - лучше':'больше - лучше'}${dm[m.key]!==undefined&&dm[m.key]!==null?', медиана отдела '+dm[m.key]:''}): ${esc(m.how||'')}</div>`).join('')}
-      <div class="lgi" style="margin-top:8px"><b>Разметка в переписке.</b> Красная метка - нарушение регламента с цитатой из сообщения, зелёная - выполненное правило, серая - факт без оценки (вложение, движение по стадии). Кликните строку менеджера, затем сделку - и правило будет видно на конкретной фразе.</div>
-      <div class="lgi"><b>Чего в данных нет.</b> Расшифровок звонков Bitrix через API не отдаёт - виден только факт звонка, длительность и короткое резюме BitrixGPT. Звонок с личного телефона в CRM не попадает вовсе, поэтому «нет следов общения» означает «нет следов в CRM», а не «менеджер не работал».</div>
+      <div class="lgcards">
+        <div class="lgc"><b>Откуда данные</b> ${helpQ('Ночной снимок Bitrix24: переписка WhatsApp/Telegram/MAX через Wazzup, письма, звонки, дела, комментарии, резюме BitrixGPT за 7 дней + снимок воронки «GG Заказы РФ» (стадии, бюджеты, дела). Оценивают правила, не нейросеть: каждый тег по конкретной фразе или факту, проверяется глазами.')} правила по фактам CRM, за 7 дней</div>
+        <div class="lgc"><b>Вердикт</b> ${helpQ('От сильных и слабых сторон против медианы отдела. Слабых нет - «сильный»; сильных больше - «норма»; слабых 3+ - «в разборе». Меньше 10 диалогов - «мало данных».')} сильный / норма / в разборе</div>
+        <div class="lgc"><b>Рейтинг</b> ${helpQ('Шесть разделов с весами: Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%. Внутри - доля сделок без красных меток, приведено к 5 баллам. Раздел меньше чем в 5 сделках не идёт.')} 6 разделов, шкала 0-5</div>
+        <div class="lgc"><b>Горит / Под риском</b> ${helpQ('Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага). Под риском - сумма их бюджетов.')} срочные сделки и их сумма</div>
+      </div>
+      <div class="lgi lgnote"><b>Цвет цифры:</b> зелёная - лучше медианы отдела, красная - хуже, серая - мало данных. Медиана - в подсказке заголовка. <b>Разметка:</b> красная метка - нарушение с цитатой, зелёная - правило выполнено, серая - факт без оценки.</div>
+      <div class="lgcols">${MD.map(m=>`<span class="lgcol" data-tip="${esc(m.how||'').replace(/"/g,'&quot;')}"><b>${esc(MFULL[m.key]||m.label)}</b> <i>${m.better==='less'?'↓ меньше лучше':'↑ больше лучше'}${dm[m.key]!==undefined&&dm[m.key]!==null?' · мед. '+dm[m.key]:''}</i></span>`).join('')}</div>
+      <div class="lgi lgnote"><b>Чего нет в данных:</b> расшифровок звонков API не отдаёт (виден факт, длительность, резюме BitrixGPT); звонок с личного телефона в CRM не попадает - «нет следов общения» = «нет следов в CRM», а не «не работал».</div>
     </div>`:'')+`</div>`;
   let html=fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){

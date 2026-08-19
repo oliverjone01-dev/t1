@@ -3,7 +3,7 @@
   "keysso": {
    "status": "genglass: ok · glass-memory: ok",
    "date": "2026-08-19",
-   "requests_used": 13,
+   "requests_used": 23,
    "limit": 3000,
    "pending_rid": {}
   },

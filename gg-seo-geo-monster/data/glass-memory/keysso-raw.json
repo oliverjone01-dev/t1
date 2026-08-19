@@ -1,0 +1,604 @@
+{
+ "note": "debug-срез для сверки схемы, удалить после",
+ "dash": {
+  "id": 36413746,
+  "parentid": 0,
+  "parentName": "",
+  "concs": [
+   {
+    "did": 30654137,
+    "name": "m.avito.ru",
+    "cnt": 467,
+    "it50": 19508844,
+    "vis": 4068181,
+    "perc": 0.0023937861207973163
+   },
+   {
+    "did": 29918353,
+    "name": "ozon.ru",
+    "cnt": 292,
+    "it50": 18141846,
+    "vis": 3959464,
+    "perc": 0.0016095385221548018
+   },
+   {
+    "did": 29918348,
+    "name": "wildberries.ru",
+    "cnt": 287,
+    "it50": 13873718,
+    "vis": 2567195,
+    "perc": 0.0020686596051613564
+   }
+  ],
+  "it1": 3,
+  "it3": 11,
+  "it5": 21,
+  "it10": 47,
+  "it50": 592,
+  "childsCount": 228,
+  "keys": [
+   {
+    "pos": 1,
+    "word": "glass memory",
+    "ws": 195,
+    "wsk": 34
+   },
+   {
+    "pos": 1,
+    "word": "глас мемори",
+    "ws": 24,
+    "wsk": 21
+   },
+   {
+    "pos": 1,
+    "word": "расчет памятника",
+    "ws": 541,
+    "wsk": 1
+   }
+  ],
+  "topkeys": 332977,
+  "pages": [
+   {
+    "it50": 74,
+    "url": "/products/loft-mebel/mebel-loft-iz-profilnoj-trubyi-i-dereva"
+   },
+   {
+    "it50": 45,
+    "url": "/products/ritual-products/foto-iz-stekla"
+   },
+   {
+    "it50": 32,
+    "url": "/products/ritual-products/pamyatniki-iz-stekla"
+   }
+  ],
+  "pagesinindex": 88,
+  "vis": 3,
+  "topvis": 643371,
+  "adconcs": [
+   {
+    "did": 310125167,
+    "name": "nbs-granit.ru",
+    "cnt": 5,
+    "it50": 96,
+    "vis": 0,
+    "adkeyscnt": 1370,
+    "adscnt": 268
+   },
+   {
+    "did": 105459319,
+    "name": "pamiatniky.ru",
+    "cnt": 5,
+    "it50": 2241,
+    "vis": 17,
+    "adkeyscnt": 1656,
+    "adscnt": 82
+   },
+   {
+    "did": 30260491,
+    "name": "foto-makeup.ru",
+    "cnt": 4,
+    "it50": 41,
+    "vis": 0,
+    "adkeyscnt": 1867,
+    "adscnt": 329
+   }
+  ],
+  "adkeys": [
+   {
+    "p": [
+     0,
+     24
+    ],
+    "pos": 24,
+    "sr": 0,
+    "word": "изготовление фото на стекле для памятников",
+    "ws": 13,
+    "wsk": 3
+   },
+   {
+    "p": [
+     0,
+     14
+    ],
+    "pos": 14,
+    "sr": 0,
+    "word": "памятники фото под стеклом",
+    "ws": 215,
+    "wsk": 3
+   },
+   {
+    "p": [
+     0,
+     33
+    ],
+    "pos": 33,
+    "sr": 0,
+    "word": "фото на памятник на стекле цена",
+    "ws": 537,
+    "wsk": 52
+   }
+  ],
+  "adkeyscnt": 23,
+  "ads": [
+   {
+    "facts": "",
+    "header": "Фото на стекле на памятник",
+    "id": 1890659225,
+    "keyscnt": 8,
+    "links": "Памятники из стекла, Фотографии из стекла, Ограждения из стекла, Реставрационные накладки",
+    "txt": "Изготовление фото на памятник на заказ любой формы. Индивидуальный подход. Звоните!"
+   },
+   {
+    "facts": "",
+    "header": "Фото на стекле. Керамическая печать.",
+    "id": 696753928,
+    "keyscnt": 4,
+    "links": "",
+    "txt": "Широкий ассортимент, индивидуальный подход к каждому клиенту"
+   },
+   {
+    "facts": "",
+    "header": "Изготовление фотографий из стекла на заказ",
+    "id": 295727430,
+    "keyscnt": 2,
+    "links": "",
+    "txt": "Широкий ассортимент, индивидуальный подход к каждому клиенту."
+   }
+  ],
+  "adscnt": 11,
+  "adtraf": 0,
+  "adcost": {
+   "average": 656,
+   "bdg100": 1565,
+   "bdg5": 55,
+   "bdg62": 698,
+   "bdg85": 907,
+   "bdg9": 55,
+   "max": 1565
+  },
+  "restop5": 4,
+  "history": {
+   "2025.03": {
+    "it1": 3,
+    "it3": 9,
+    "it5": 30,
+    "it10": 108,
+    "it50": 628,
+    "pagesInIndex": 103,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 6,
+    "aiCnt": 0
+   },
+   "2025.04": {
+    "it1": 2,
+    "it3": 8,
+    "it5": 29,
+    "it10": 105,
+    "it50": 613,
+    "pagesInIndex": 104,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 5,
+    "aiCnt": 0
+   },
+   "2025.05": {
+    "it1": 2,
+    "it3": 9,
+    "it5": 27,
+    "it10": 86,
+    "it50": 580,
+    "pagesInIndex": 106,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 5,
+    "aiCnt": 0
+   },
+   "2025.06": {
+    "it1": 2,
+    "it3": 7,
+    "it5": 19,
+    "it10": 80,
+    "it50": 536,
+    "pagesInIndex": 101,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 2,
+    "aiCnt": 0
+   },
+   "2025.07": {
+    "it1": 7,
+    "it3": 18,
+    "it5": 30,
+    "it10": 85,
+    "it50": 460,
+    "pagesInIndex": 86,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 6,
+    "aiCnt": 0
+   },
+   "2025.08": {
+    "it1": 4,
+    "it3": 17,
+    "it5": 26,
+    "it10": 58,
+    "it50": 459,
+    "pagesInIndex": 80,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 7,
+    "aiCnt": 0
+   },
+   "2025.09": {
+    "it1": 4,
+    "it3": 20,
+    "it5": 29,
+    "it10": 64,
+    "it50": 484,
+    "pagesInIndex": 83,
+    "adsCount": 1,
+    "adKeysCount": 1,
+    "visAvg": 8,
+    "aiCnt": 27
+   },
+   "2025.10": {
+    "it1": 5,
+    "it3": 19,
+    "it5": 28,
+    "it10": 63,
+    "it50": 488,
+    "pagesInIndex": 87,
+    "adsCount": 4,
+    "adKeysCount": 4,
+    "visAvg": 7,
+    "aiCnt": 13
+   },
+   "2025.11": {
+    "it1": 5,
+    "it3": 16,
+    "it5": 30,
+    "it10": 81,
+    "it50": 515,
+    "pagesInIndex": 85,
+    "adsCount": 5,
+    "adKeysCount": 6,
+    "visAvg": 8,
+    "aiCnt": 32
+   },
+   "2025.12": {
+    "it1": 3,
+    "it3": 15,
+    "it5": 28,
+    "it10": 83,
+    "it50": 594,
+    "pagesInIndex": 89,
+    "adsCount": 8,
+    "adKeysCount": 21,
+    "visAvg": 7,
+    "aiCnt": 54
+   },
+   "2026.01": {
+    "it1": 3,
+    "it3": 13,
+    "it5": 22,
+    "it10": 69,
+    "it50": 571,
+    "pagesInIndex": 85,
+    "adsCount": 5,
+    "adKeysCount": 16,
+    "visAvg": 3,
+    "aiCnt": 36
+   },
+   "2026.02": {
+    "it1": 3,
+    "it3": 11,
+    "it5": 22,
+    "it10": 61,
+    "it50": 584,
+    "pagesInIndex": 85,
+    "adsCount": 5,
+    "adKeysCount": 12,
+    "visAvg": 2,
+    "aiCnt": 11
+   },
+   "2026.03": {
+    "it1": 3,
+    "it3": 8,
+    "it5": 17,
+    "it10": 60,
+    "it50": 587,
+    "pagesInIndex": 86,
+    "adsCount": 5,
+    "adKeysCount": 8,
+    "visAvg": 1,
+    "aiCnt": 25
+   },
+   "2026.04": {
+    "it1": 3,
+    "it3": 6,
+    "it5": 11,
+    "it10": 40,
+    "it50": 636,
+    "pagesInIndex": 90,
+    "adsCount": 6,
+    "adKeysCount": 21,
+    "visAvg": 1,
+    "aiCnt": 143
+   },
+   "2026.05": {
+    "it1": 3,
+    "it3": 6,
+    "it5": 11,
+    "it10": 36,
+    "it50": 633,
+    "pagesInIndex": 94,
+    "adsCount": 5,
+    "adKeysCount": 22,
+    "visAvg": 1,
+    "aiCnt": 10
+   },
+   "2026.06": {
+    "it1": 2,
+    "it3": 5,
+    "it5": 15,
+    "it10": 37,
+    "it50": 631,
+    "pagesInIndex": 92,
+    "adsCount": 8,
+    "adKeysCount": 13,
+    "visAvg": 1,
+    "aiCnt": 18
+   },
+   "2026.07": {
+    "it1": 2,
+    "it3": 7,
+    "it5": 20,
+    "it10": 48,
+    "it50": 617,
+    "pagesInIndex": 92,
+    "adsCount": 8,
+    "adKeysCount": 12,
+    "visAvg": 3,
+    "aiCnt": 23
+   },
+   "2026.08": {
+    "it1": 3,
+    "it3": 11,
+    "it5": 21,
+    "it10": 47,
+    "it50": 592,
+    "pagesInIndex": 88,
+    "adsCount": 11,
+    "adKeysCount": 23,
+    "visAvg": 3,
+    "aiCnt": 24
+   }
+  },
+  "linksHistory": {
+   "2025.02": [
+    59117,
+    75999,
+    472
+   ],
+   "2025.03": [
+    59538,
+    78376,
+    469
+   ],
+   "2025.04": [
+    59139,
+    80149,
+    472
+   ],
+   "2025.05": [
+    59256,
+    77591,
+    468
+   ],
+   "2025.06": [
+    59223,
+    78292,
+    468
+   ],
+   "2025.07": [
+    59218,
+    77659,
+    468
+   ],
+   "2025.08": [
+    59197,
+    80875,
+    466
+   ],
+   "2025.09": [
+    59595,
+    77786,
+    516
+   ],
+   "2025.10": [
+    59207,
+    78981,
+    508
+   ],
+   "2025.11": [
+    59385,
+    78729,
+    518
+   ],
+   "2025.12": [
+    58982,
+    79540,
+    517
+   ],
+   "2026.01": [
+    59032,
+    78631,
+    523
+   ],
+   "2026.02": [
+    59216,
+    80859,
+    521
+   ],
+   "2026.03": [
+    58783,
+    80846,
+    517
+   ],
+   "2026.04": [
+    58780,
+    74554,
+    517
+   ],
+   "2026.05": [
+    58433,
+    78832,
+    519
+   ],
+   "2026.06": [
+    58699,
+    79353,
+    521
+   ],
+   "2026.07": [
+    58671,
+    75758,
+    520
+   ],
+   "2026.08": [
+    58664,
+    77646,
+    519
+   ]
+  },
+  "aiAnswersCnt": 24,
+  "aiState": 10,
+  "dr": 28,
+  "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/c08b374ac35e2d9c4d832a3cd2e1ab8215c20aa49d0ab7c99376c42838b74a53.png",
+  "name": "glass-memory.ru"
+ },
+ "keywords_response": {
+  "current_page": 1,
+  "per_page": 100,
+  "last_page": 30,
+  "data": [
+   {
+    "id": 1037307,
+    "word": "илики",
+    "weight": 1,
+    "ws": 3248,
+    "wsk": 15,
+    "superwsk": 15,
+    "numwords": 1,
+    "isgeo": 0,
+    "isquest": 0
+   },
+   {
+    "id": 1787959,
+    "word": "профиль для зеркала алюминиевый",
+    "weight": 1,
+    "ws": 483,
+    "wsk": 152,
+    "superwsk": 56,
+    "numwords": 4,
+    "isgeo": 0,
+    "isquest": 0
+   },
+   {
+    "id": 4123083,
+    "word": "красный гранит для памятника",
+    "weight": 1,
+    "ws": 118,
+    "wsk": 26,
+    "superwsk": 26,
+    "numwords": 4,
+    "isgeo": 0,
+    "isquest": 0
+   }
+  ],
+  "total": 2934
+ },
+ "concurents_response": {
+  "current_page": 1,
+  "per_page": 25,
+  "last_page": 2,
+  "data": [
+   {
+    "id": 29921339,
+    "name": "7days.ru",
+    "perc": 0,
+    "theme": 9,
+    "cnt": 4,
+    "it1": 6463,
+    "it3": 34128,
+    "it5": 81868,
+    "it10": 267038,
+    "it50": 1301345,
+    "pagesinindex": 57993,
+    "vis": 61657,
+    "adscnt": 0,
+    "adkeyscnt": 0,
+    "adtraf": 0,
+    "adcost": 0
+   },
+   {
+    "id": 29941139,
+    "name": "pqd.ru",
+    "perc": 0,
+    "theme": 17,
+    "cnt": 8,
+    "it1": 796,
+    "it3": 2971,
+    "it5": 5248,
+    "it10": 10878,
+    "it50": 31337,
+    "pagesinindex": 1230,
+    "vis": 1749,
+    "adscnt": 683,
+    "adkeyscnt": 2455,
+    "adtraf": 25,
+    "adcost": 508431
+   },
+   {
+    "id": 30125403,
+    "name": "ru.m.wikipedia.org",
+    "perc": 0,
+    "theme": 6,
+    "cnt": 3,
+    "it1": 5385371,
+    "it3": 8893720,
+    "it5": 10685694,
+    "it10": 13405362,
+    "it50": 24826099,
+    "pagesinindex": 1010918,
+    "vis": 17941287,
+    "adscnt": 0,
+    "adkeyscnt": 0,
+    "adtraf": 0,
+    "adcost": 0
+   }
+  ],
+  "total": 43
+ }
+}

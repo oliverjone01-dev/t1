@@ -93,13 +93,23 @@ section.blk{padding:44px 0;border-top:1px solid var(--w8)}
 .plan{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
 .planbox{background:var(--surface);border:1px solid var(--w8);border-radius:var(--r-md);padding:24px 30px 30px}
 .planbox .cap{margin-bottom:16px}
-.stand{position:relative;border:1.5px solid var(--muted);border-radius:6px;aspect-ratio:37/24;
+.stand{position:relative;width:100%;max-width:290px;margin:6px auto 0;aspect-ratio:62/78;
+  border:1.5px solid var(--muted);border-radius:6px;display:flex;flex-direction:column;
   background:repeating-linear-gradient(45deg,transparent 0 9px,rgba(255,255,255,.03) 9px 10px)}
-.island{position:absolute;top:9%;left:8%;width:46%;height:68%;border:1.5px solid var(--brass);border-radius:5px;
-  background:rgba(245,179,60,.1);display:grid;place-items:center;text-align:center}
-.island span{font-size:11.5px;font-weight:700;color:var(--brass);line-height:1.25;font-family:var(--mono)}
-.dimx{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
-.dimy{position:absolute;left:-30px;top:0;bottom:0;writing-mode:vertical-rl;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.zone{position:relative;flex:1}
+.zone .zlab{position:absolute;top:8px;left:9px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em}
+.ztop{flex:1.03}.ztop .zlab{color:var(--steel)}
+.zbot .zlab{color:var(--brass)}
+.wallwin{position:absolute;top:15%;left:17%;width:31%;aspect-ratio:1;border:1.5px solid var(--muted);
+  background:repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.07) 4px 5px),repeating-linear-gradient(90deg,transparent 0 4px,rgba(255,255,255,.07) 4px 5px)}
+.shelves{position:absolute;top:17%;right:8%;width:8%;height:50%;display:flex;flex-direction:column;gap:11%}
+.shelves i{flex:1;border:1px solid rgba(143,160,164,.55);border-radius:0 60% 60% 0/0 50% 50% 0}
+.divider{position:relative;height:0;border-top:1.6px solid var(--brass)}
+.divider .pin{position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--surface);
+  border:1.5px solid var(--brass);color:var(--brass);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:700}
+.divider .pl{left:-11px}.divider .pr{right:-11px}
+.islandpill{position:absolute;bottom:14%;left:50%;transform:translateX(-50%);width:54%;height:13%;
+  border:1.5px solid var(--brass);border-radius:999px;background:rgba(245,179,60,.14)}
 .planlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:13px}
 .planlist li{display:flex;gap:11px;font-size:14px;color:var(--ink2);line-height:1.5}
 .planlist li svg{width:18px;height:18px;color:var(--brass);flex:none;margin-top:2px}
@@ -185,8 +195,12 @@ section.blk{padding:44px 0;border-top:1px solid var(--w8)}
 </div>
 <div class="plan rev">
 <div class="planbox">
-<div class="cap">Схема · вид сверху · размеры по стенограмме, уточнить</div>
-<div class="stand"><div class="island"><span>VALONTI<br>2×2</span></div><div class="dimx">370 см</div><div class="dimy">240 см</div></div>
+<div class="cap">Схема · вид сверху · 1 MEBELIT / 2 VALONTI · размеры уточнить</div>
+<div class="stand">
+<div class="zone ztop"><span class="zlab">1 · MEBELIT</span><div class="wallwin"></div><div class="shelves"><i></i><i></i><i></i></div></div>
+<div class="divider"><span class="pin pl">2</span><span class="pin pr">1</span></div>
+<div class="zone zbot"><span class="zlab">2 · VALONTI</span><div class="islandpill"></div></div>
+</div>
 </div>
 <ul class="planlist">
 <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 6L9 17l-5-5"/></svg><span><b>Единая концепция и стиль.</b> Большой красивый общий стенд привлекает больше внимания; визуально как одно пространство.</span></li>

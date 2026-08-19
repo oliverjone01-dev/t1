@@ -183,6 +183,8 @@ input#q{min-width:220px}
 .leadnote.lead-from{background:#C2873C14;border:1px solid #C2873C44;color:#d6a866}
 .leadnote.lead-from a{color:#e4b877;font-weight:600}
 .leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
+.lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
+.t3 tr.lead-stage td.etime{color:#C2873C}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
@@ -583,7 +585,7 @@ function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
 // Карточки диалогов внутри раскрытой строки: тот же рендер, что и в режиме «по сделкам».
 // ===== ОЧЕРЕДЬ ДЕЛ: главный экран. Строка = сделка или лид, сортировка по деньгам под риском =====
 const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round(v/1000)+'к';
-const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5'}[k]||'#5D6B77');
+const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5',lowprob:'#C2873C'}[k]||'#5D6B77');
 function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
@@ -809,8 +811,9 @@ function renderTree(){
         // Выбран период - подсвечиваем прозрачным фоном то, что в него попало: остальная
         // переписка остаётся для контекста, но видно, что именно происходило в эти даты.
         const inR=(dFrom||dTo)&&(!dFrom||e.ts>=dFrom)&&(!dTo||e.ts<=dTo);
-        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
-          <td class="etime">${fmtTime(e.dt)}</td>
+        const onLead = e.stage==='lead' && !e.sys;
+        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${onLead?' lead-stage':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
+          <td class="etime">${fmtTime(e.dt)}${onLead?'<span class="lstage">лид</span>':''}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
           <td class="l ebody">${e.title&&!isM?`<b>${esc(String(e.title).replace(/[\s.:;-]+$/,''))}</b>${bodyNoTitle(e)?': ':''}`:''}${tags.length?hl(bodyNoTitle(e),tags):esc(bodyNoTitle(e))}${e.status?` <span class="st">${esc(e.status)}</span>`:''}${e.type==='Стадия'&&e.days!=null?` <span class="due">${e.days} дн на стадии</span>`:''}${dueChip(e)}${e.link?`<a class="rec" href="${esc(e.link)}" target="_blank">запись</a>`:''}${sumLink(e,SUMBY)}</td>

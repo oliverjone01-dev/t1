@@ -1,0 +1,19 @@
+{
+  "source": "manual-gm (Glass Memory, C21) - образец структуры из GG плана",
+  "generatedAt": "2026-08-04T12:30:00Z",
+  "note": "ВРЕМЕННЫЙ план Glass Memory. rev=4 млн/мес - по указанию Ивана (спидометры ориентируются на план). check/cr2/cr1 - провизорные значения из данных C21: чек ~34к, cr2 0.35 - целевая доводимость воронки, cr1 6% отражает дилерскую модель (большинство сделок идут мимо лидов, поэтому целевой объём лидов из него завышен). Потом подтянем реальный помесячный план по Glass Memory.",
+  "months": [
+    { "month": "2026-01", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-02", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-03", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-04", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-05", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-06", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-07", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-08", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-09", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-10", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-11", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null },
+    { "month": "2026-12", "rev": 4000000, "check": 34000, "cr2": 0.35, "cr1": 0.06, "leads": null, "deals": null }
+  ]
+}

@@ -129,6 +129,15 @@ input#q{min-width:220px}
 .aidot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px}
 .aidv{cursor:help;border-bottom:1px dotted var(--ink-4)}
 .aibanner{background:#8B7BF014;border:1px solid #8B7BF04d;border-radius:9px;padding:8px 12px;margin-bottom:8px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.aimgr{background:#8B7BF00d;border:1px solid;border-radius:10px;padding:11px 13px;margin-bottom:10px}
+.aimgr-h{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.aimgr-h b{font-size:12.5px}
+.aimgr-sub{color:var(--ink-3);font-size:11px}
+.aimgr-v{font-size:13px;color:var(--ink);line-height:1.5;margin-bottom:8px}
+.aimgr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.aimgr-t{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.aimgr-i{font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.aihead-sub{color:var(--ink-4);font-size:10.5px;margin-left:8px;text-transform:none;letter-spacing:0}
 .aibox{background:#8B7BF00d;border:1px solid;border-radius:9px;padding:9px 11px;margin-bottom:9px}
 .aihead{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px}
 .airow{font-size:12px;color:var(--ink-2);line-height:1.5;margin:3px 0}
@@ -637,6 +646,18 @@ function renderTree(){
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
+      // --- ИИ о работе менеджера (уровень 1): вердикт по всем разобранным сделкам ---
+      if(m.ai&&m.ai.grade!=null){ const a=m.ai, gc=a.grade>=7.5?'#2E9E74':a.grade>=5?'#E8A33D':'#C25252';
+        html+=`<div class="aimgr" style="border-color:${gc}55">
+          <div class="aimgr-h"><span class="aigr" style="color:${gc};border-color:${gc}66;background:${gc}14"><b>${a.grade.toFixed(1)}</b></span>
+            <b>ИИ об этом менеджере</b><span class="aimgr-sub">${a.reviewed} ${plu(a.reviewed,'сделка','сделки','сделок')} разобрано · ${a.counts.good} 🟢 ${a.counts.warn} 🟡 ${a.counts.bad} 🔴</span></div>
+          ${a.verdict?`<div class="aimgr-v">${esc(a.verdict)}</div>`:''}
+          <div class="aimgr-grid">
+            ${a.strengths&&a.strengths.length?`<div><div class="aimgr-t" style="color:#2E9E74">Сильные стороны</div>${a.strengths.map(x=>`<div class="aimgr-i">+ ${esc(x)}</div>`).join('')}</div>`:''}
+            ${a.weaknesses&&a.weaknesses.length?`<div><div class="aimgr-t" style="color:#C25252">Слабые места</div>${a.weaknesses.map(x=>`<div class="aimgr-i">− ${esc(x)}</div>`).join('')}</div>`:''}
+            ${a.action?`<div><div class="aimgr-t" style="color:#E8A33D">Что чинить</div><div class="aimgr-i">${esc(a.action)}</div></div>`:''}
+          </div></div>`;
+      }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'aiT',t:'ИИ анализ',l:1},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
@@ -729,14 +750,15 @@ function renderTree(){
       }).join('');
       const parts=(d&&d.participants)||[];
       const who=parts.length? parts.map(x=>`${esc(x.who)} (${x.stage==='lead'?'лид':'сделка'}, ${x.n})`).join(' → ') : 'исходящих не было';
-      host.innerHTML=`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
-        +`<div class="afterdlg">`
-        +(d.ai&&d.ai.verdict?`<div class="aibox" style="border-color:${(AI_DOT[d.ai.tone]||'#8794A5')}55">
-            <div class="aihead"><span class="aidot" style="background:${AI_DOT[d.ai.tone]||'#8794A5'}"></span><b>ИИ-итог по сделке</b></div>
+      // ИИ-Итог по сделке - headline НАД перепиской: ИИ прочитал весь пайплайн сделки.
+      const aiBox=(d.ai&&d.ai.verdict)?`<div class="aibox" style="border-color:${(AI_DOT[d.ai.tone]||'#8794A5')}55">
+            <div class="aihead"><span class="aidot" style="background:${AI_DOT[d.ai.tone]||'#8794A5'}"></span><b>ИИ-Итог по сделке</b><span class="aihead-sub">разбор всего пайплайна сделки</span></div>
             <div class="airow"><b>Итог:</b> ${esc(d.ai.verdict)}</div>
             ${d.ai.problem?`<div class="airow"><b style="color:#C25252">Проблема:</b> ${esc(d.ai.problem)}</div>`:`<div class="airow" style="color:#2E9E74">Проблем не видно, сделка ведётся правильно</div>`}
             ${d.ai.recommendation?`<div class="airow"><b style="color:#E8A33D">Рекомендация:</b> ${esc(d.ai.recommendation)}</div>`:''}
-          </div>`:'')
+          </div>`:'';
+      host.innerHTML=aiBox+`<table class="tbl t3"><tr>`+ECOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="e" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sE,c.k)}</span></th>`).join('')+`</tr>${rows}</table>`
+        +`<div class="afterdlg">`
         +`<div class="qnext"><b>Что сделать:</b> ${esc(d.next)}</div>`
         +`<div class="whob">Переписку вели: ${who}</div>`
         +(d.takeH!=null?`<div class="whob">Взял в работу за ${d.takeH} ч (отсчёт от начала дня создания: времени создания в снимке нет)</div>`:'')

@@ -160,6 +160,13 @@ async function harvestKeyso(p) {
   const top10 = typeof dash.it10 === "number" ? dash.it10 : keywords.filter((k) => k.pos && k.pos <= 10).length;
   const aiAnswers = pick(dash, ["aianswers"], true);
 
+  // Гвард пустого ответа: если сводка не отдала ни it10, ни vis (сервер ответил пустышкой
+  // либо отчёт ещё готовится), НЕ перезаписываем снапшот нулями - иначе в history попадает
+  // ложная точка «обвал до нуля», а статус рапортует ok. Прошлые данные остаются валидными.
+  if (typeof dash.it10 !== "number" && typeof visibility !== "number") {
+    return "empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном)";
+  }
+
   // конкуренты: пересечение из сводки (top overlap) + строки эндпоинта concurents,
   // приоритет доменам из конфига
   const wanted = new Set((p.competitors || []).map((c) => c.toLowerCase()));

@@ -1,181 +1,193 @@
 {
  "counter": "104369223",
- "measured": "2026-07-21",
+ "measured": "2026-08-19",
  "visits_30d": [
-  {
-   "date": "2026-06-21",
-   "visits": 247,
-   "search_visits": 33
-  },
-  {
-   "date": "2026-06-22",
-   "visits": 309,
-   "search_visits": 65
-  },
-  {
-   "date": "2026-06-23",
-   "visits": 315,
-   "search_visits": 63
-  },
-  {
-   "date": "2026-06-24",
-   "visits": 355,
-   "search_visits": 75
-  },
-  {
-   "date": "2026-06-25",
-   "visits": 336,
-   "search_visits": 60
-  },
-  {
-   "date": "2026-06-26",
-   "visits": 303,
-   "search_visits": 61
-  },
-  {
-   "date": "2026-06-27",
-   "visits": 238,
-   "search_visits": 32
-  },
-  {
-   "date": "2026-06-28",
-   "visits": 234,
-   "search_visits": 38
-  },
-  {
-   "date": "2026-06-29",
-   "visits": 336,
-   "search_visits": 77
-  },
-  {
-   "date": "2026-06-30",
-   "visits": 294,
-   "search_visits": 61
-  },
-  {
-   "date": "2026-07-01",
-   "visits": 299,
-   "search_visits": 67
-  },
-  {
-   "date": "2026-07-02",
-   "visits": 303,
-   "search_visits": 63
-  },
-  {
-   "date": "2026-07-03",
-   "visits": 288,
-   "search_visits": 64
-  },
-  {
-   "date": "2026-07-04",
-   "visits": 247,
-   "search_visits": 39
-  },
-  {
-   "date": "2026-07-05",
-   "visits": 212,
-   "search_visits": 34
-  },
-  {
-   "date": "2026-07-06",
-   "visits": 339,
-   "search_visits": 66
-  },
-  {
-   "date": "2026-07-07",
-   "visits": 311,
-   "search_visits": 63
-  },
-  {
-   "date": "2026-07-08",
-   "visits": 271,
-   "search_visits": 70
-  },
-  {
-   "date": "2026-07-09",
-   "visits": 281,
-   "search_visits": 79
-  },
-  {
-   "date": "2026-07-10",
-   "visits": 255,
-   "search_visits": 57
-  },
-  {
-   "date": "2026-07-11",
-   "visits": 194,
-   "search_visits": 39
-  },
-  {
-   "date": "2026-07-12",
-   "visits": 226,
-   "search_visits": 52
-  },
-  {
-   "date": "2026-07-13",
-   "visits": 300,
-   "search_visits": 50
-  },
-  {
-   "date": "2026-07-14",
-   "visits": 278,
-   "search_visits": 64
-  },
-  {
-   "date": "2026-07-15",
-   "visits": 286,
-   "search_visits": 61
-  },
-  {
-   "date": "2026-07-16",
-   "visits": 277,
-   "search_visits": 54
-  },
-  {
-   "date": "2026-07-17",
-   "visits": 288,
-   "search_visits": 58
-  },
-  {
-   "date": "2026-07-18",
-   "visits": 185,
-   "search_visits": 33
-  },
-  {
-   "date": "2026-07-19",
-   "visits": 259,
-   "search_visits": 38
-  },
   {
    "date": "2026-07-20",
    "visits": 268,
    "search_visits": 65
+  },
+  {
+   "date": "2026-07-21",
+   "visits": 258,
+   "search_visits": 68
+  },
+  {
+   "date": "2026-07-22",
+   "visits": 262,
+   "search_visits": 73
+  },
+  {
+   "date": "2026-07-23",
+   "visits": 272,
+   "search_visits": 75
+  },
+  {
+   "date": "2026-07-24",
+   "visits": 216,
+   "search_visits": 68
+  },
+  {
+   "date": "2026-07-25",
+   "visits": 180,
+   "search_visits": 43
+  },
+  {
+   "date": "2026-07-26",
+   "visits": 140,
+   "search_visits": 50
+  },
+  {
+   "date": "2026-07-27",
+   "visits": 229,
+   "search_visits": 59
+  },
+  {
+   "date": "2026-07-28",
+   "visits": 280,
+   "search_visits": 73
+  },
+  {
+   "date": "2026-07-29",
+   "visits": 234,
+   "search_visits": 46
+  },
+  {
+   "date": "2026-07-30",
+   "visits": 238,
+   "search_visits": 62
+  },
+  {
+   "date": "2026-07-31",
+   "visits": 240,
+   "search_visits": 61
+  },
+  {
+   "date": "2026-08-01",
+   "visits": 193,
+   "search_visits": 47
+  },
+  {
+   "date": "2026-08-02",
+   "visits": 181,
+   "search_visits": 49
+  },
+  {
+   "date": "2026-08-03",
+   "visits": 277,
+   "search_visits": 81
+  },
+  {
+   "date": "2026-08-04",
+   "visits": 287,
+   "search_visits": 62
+  },
+  {
+   "date": "2026-08-05",
+   "visits": 257,
+   "search_visits": 85
+  },
+  {
+   "date": "2026-08-06",
+   "visits": 246,
+   "search_visits": 84
+  },
+  {
+   "date": "2026-08-07",
+   "visits": 254,
+   "search_visits": 72
+  },
+  {
+   "date": "2026-08-08",
+   "visits": 203,
+   "search_visits": 63
+  },
+  {
+   "date": "2026-08-09",
+   "visits": 188,
+   "search_visits": 54
+  },
+  {
+   "date": "2026-08-10",
+   "visits": 300,
+   "search_visits": 84
+  },
+  {
+   "date": "2026-08-11",
+   "visits": 326,
+   "search_visits": 93
+  },
+  {
+   "date": "2026-08-12",
+   "visits": 347,
+   "search_visits": 79
+  },
+  {
+   "date": "2026-08-13",
+   "visits": 271,
+   "search_visits": 77
+  },
+  {
+   "date": "2026-08-14",
+   "visits": 240,
+   "search_visits": 68
+  },
+  {
+   "date": "2026-08-15",
+   "visits": 192,
+   "search_visits": 49
+  },
+  {
+   "date": "2026-08-16",
+   "visits": 259,
+   "search_visits": 53
+  },
+  {
+   "date": "2026-08-17",
+   "visits": 337,
+   "search_visits": 84
+  },
+  {
+   "date": "2026-08-18",
+   "visits": 331,
+   "search_visits": 80
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 13
+   "visits": 42
   },
   {
    "phrase": "genglass",
-   "visits": 10
-  },
-  {
-   "phrase": "дженгласс ру",
-   "visits": 9
+   "visits": 25
   },
   {
    "phrase": "генгласс",
-   "visits": 7
+   "visits": 15
+  },
+  {
+   "phrase": "gen glass",
+   "visits": 8
+  },
+  {
+   "phrase": "дженгласс ру",
+   "visits": 8
   },
   {
    "phrase": "интернет магазин зеркало в раме",
-   "visits": 7
+   "visits": 6
   },
   {
-   "phrase": "генгласс зеркала",
+   "phrase": "генглас",
+   "visits": 5
+  },
+  {
+   "phrase": "стол журнальный genglass",
+   "visits": 5
+  },
+  {
+   "phrase": "столы на заказ",
    "visits": 5
   },
   {
@@ -183,301 +195,289 @@
    "visits": 4
   },
   {
-   "phrase": "gen glass",
-   "visits": 3
-  },
-  {
-   "phrase": "genglass.ru",
-   "visits": 3
-  },
-  {
-   "phrase": "генглас",
-   "visits": 3
-  },
-  {
-   "phrase": "интерьерная капсула тон",
-   "visits": 3
-  },
-  {
-   "phrase": "стол на заказ по индивидуальным размерам",
-   "visits": 3
-  },
-  {
-   "phrase": "genglass зеркало настенное",
-   "visits": 2
-  },
-  {
-   "phrase": "genglass официальный",
-   "visits": 2
-  },
-  {
-   "phrase": "Перегородки с черной металлической раскладкой",
-   "visits": 2
-  },
-  {
-   "phrase": "джен гласс",
-   "visits": 2
-  },
-  {
    "phrase": "дженгласс",
-   "visits": 2
+   "visits": 4
   },
   {
-   "phrase": "зеркало на штанге",
-   "visits": 2
-  },
-  {
-   "phrase": "лофт перегородки",
-   "visits": 2
-  },
-  {
-   "phrase": "магнитная доска на заказ по индивидуальным размерам",
-   "visits": 2
-  },
-  {
-   "phrase": "магнитно маркерная доска на заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "магнитно-маркерная доска белая из закаленного стекла",
-   "visits": 2
-  },
-  {
-   "phrase": "маркерные доски под заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "обеденный стол на заказ",
-   "visits": 2
-  },
-  {
-   "phrase": "стол genglass",
-   "visits": 2
+   "phrase": "полки на заказ",
+   "visits": 4
   },
   {
    "phrase": "стол на заказ",
-   "visits": 2
+   "visits": 4
   },
   {
-   "phrase": "стол обеденный на заказ по индивидуальным размерам",
-   "visits": 2
+   "phrase": "genglass официальный",
+   "visits": 3
   },
   {
-   "phrase": "стол овальный с металлическим подстольем genglass violur ggt-20-3-1-16080",
-   "visits": 2
+   "phrase": "дизайнерские зеркала",
+   "visits": 3
   },
   {
-   "phrase": "'info@genglass.ru'",
-   "visits": 1
-  },
-  {
-   "phrase": "+7 (495) 120-75-35",
-   "visits": 1
-  },
-  {
-   "phrase": ": genglass",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGGLASS",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGLASS Arched Gold — мой фаворит",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGLASS Консоль TRUBIS 100х35х80 см белая 5 4 отзыва 1 вопрос Имя скрыто 30 сентября 2025 Стильный и элегантный столик. Оказался очень удобным в использовании. Брали для интерьера, на деле не понимаем, как без консоли раньше обходились😀 Качество упаковки: Отличное Простота сборки: Легкая Качество исполнения: Отличное 35 80 черный черный 0 0 Все отзывы Ширина, см 35 40 Глубина, см 80 100 120 Цвет:",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGLASS Стол кухонный раздвижной в симферополе",
-   "visits": 1
-  },
-  {
-   "phrase": "GENGLASS   Стол раздвижной обеденный KONUX D100/180 х 100см, с металлическими ножками 2 шт в упаковке 5.0 (10)",
-   "visits": 1
+   "phrase": "магнитно-маркерная доска белая из закаленного стекла",
+   "visits": 3
   },
   {
    "phrase": "Genglass",
+   "visits": 2
+  },
+  {
+   "phrase": "gemglass",
+   "visits": 2
+  },
+  {
+   "phrase": "genglass раскладной 100-140-180 см",
+   "visits": 2
+  },
+  {
+   "phrase": "genglass стол",
+   "visits": 2
+  },
+  {
+   "phrase": "арочная перегородка",
+   "visits": 2
+  },
+  {
+   "phrase": "ген гласс",
+   "visits": 2
+  },
+  {
+   "phrase": "генгласс зеркала",
+   "visits": 2
+  },
+  {
+   "phrase": "дизайнерские перегородки для зонирования",
+   "visits": 2
+  },
+  {
+   "phrase": "дизайнерское зеркало",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркала в интерьере 2026",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало genglass",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало в золотой раме",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало в раме genglass halfeo white xl",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало овальное 54х73 в металлической раме",
+   "visits": 2
+  },
+  {
+   "phrase": "каскадная перегородка",
+   "visits": 2
+  },
+  {
+   "phrase": "кухонный стол на заказ по индивидуальным размерам",
+   "visits": 2
+  },
+  {
+   "phrase": "кухонный стол овальный genglass trubis ggt-03-2-2-o-14080",
+   "visits": 2
+  },
+  {
+   "phrase": "межкомнатные перегородки",
+   "visits": 2
+  },
+  {
+   "phrase": "перегородка гармошка",
+   "visits": 2
+  },
+  {
+   "phrase": "перегородки для зонирования пространства",
+   "visits": 2
+  },
+  {
+   "phrase": "раздвижные стеклянные перегородки",
+   "visits": 2
+  },
+  {
+   "phrase": "стол genglass trubis wood",
+   "visits": 2
+  },
+  {
+   "phrase": "стол genglass производитель",
+   "visits": 2
+  },
+  {
+   "phrase": "столы на заказ по индивидуальным размерам",
+   "visits": 2
+  },
+  {
+   "phrase": "09:20 Маркет Дизайнерский раздвижной стол 100/180×100×75 см Превосходное качество Бережная ручная работа Премиальные материалы Стальное подстолье GENGLASS",
+   "visits": 1
+  },
+  {
+   "phrase": "2026 трендовое интерьерное зеркало",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS (например, серия Halfeo NF LED",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS Стол кухонный раздвижной KONUX 100(180)х100х75 см, обеденный, раскладной",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS Стол раскладной TRUBIS R Max 120(160)х80 см, черный",
+   "visits": 1
+  },
+  {
+   "phrase": "GENGLASS. зеркала в ванную",
+   "visits": 1
+  },
+  {
+   "phrase": "GenGlass",
    "visits": 1
   },
   {
    "phrase": "Genglass магазины",
-   "visits": 1
-  },
-  {
-   "phrase": "Nolvis L",
-   "visits": 1
-  },
-  {
-   "phrase": "Trubis L Max Раздвижной прямоугольный стол на металлическом каркасе",
-   "visits": 1
-  },
-  {
-   "phrase": "Zeliso-I зеркало купить",
-   "visits": 1
-  },
-  {
-   "phrase": "arkis nf led l большое арочное зеркало в полный рост, безрамное, три режима led-подсветки, сенсорный выключатель, эффект памяти, ламинированный мдф, универсальное крепление",
-   "visits": 1
-  },
-  {
-   "phrase": "evelix зеркало",
-   "visits": 1
-  },
-  {
-   "phrase": "gemglass",
-   "visits": 1
-  },
-  {
-   "phrase": "gemglass стол",
-   "visits": 1
-  },
-  {
-   "phrase": "gen glass зеркало",
-   "visits": 1
-  },
-  {
-   "phrase": "gen glass мебель",
-   "visits": 1
-  },
-  {
-   "phrase": "gen glass официальный сайт",
-   "visits": 1
-  },
-  {
-   "phrase": "gen glass стол",
-   "visits": 1
-  },
-  {
-   "phrase": "gen gloss",
    "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 319
+   "visits": 397
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 98
+   "visits": 100
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 59
-  },
-  {
-   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 45
-  },
-  {
-   "url": "/product-category/tables/",
-   "visits": 42
+   "visits": 69
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 40
+   "visits": 68
   },
   {
-   "url": "/magnitno-markernie-doski-na-zakaz/",
-   "visits": 34
-  },
-  {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 30
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 30
-  },
-  {
-   "url": "/product-category/steklyannye-doski/",
-   "visits": 28
+   "url": "/product-category/tables/",
+   "visits": 58
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 27
+   "visits": 48
   },
   {
-   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 25
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
+   "visits": 44
   },
   {
-   "url": "/zerkala-na-zakaz/",
-   "visits": 23
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 22
+   "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
+   "visits": 39
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 21
+   "visits": 34
+  },
+  {
+   "url": "/magnitno-markernie-doski-na-zakaz/",
+   "visits": 33
+  },
+  {
+   "url": "/product-category/steklyannye-doski/",
+   "visits": 33
+  },
+  {
+   "url": "/zerkala-na-zakaz/",
+   "visits": 30
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
+   "visits": 28
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
+   "visits": 26
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 21
+   "visits": 26
   },
   {
-   "url": "/product-category/mirrors/floor/",
-   "visits": 20
+   "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
+   "visits": 24
   },
   {
    "url": "/product-category/tables/kitchen-tables/",
-   "visits": 17
+   "visits": 19
   },
   {
-   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 14
-  },
-  {
-   "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz/",
-   "visits": 14
-  },
-  {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 12
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-arka/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/tables/bolshie-stoly/",
-   "visits": 11
-  },
-  {
-   "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj/",
-   "visits": 11
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-v-rame/",
-   "visits": 10
-  },
-  {
-   "url": "/product-category/tables/keramicheskie-stoly/",
-   "visits": 10
-  },
-  {
-   "url": "/product/obedennyj-stol-trubis-wood-l-80-chernyj/",
-   "visits": 10
+   "url": "/product-category/mirrors/wall/",
+   "visits": 16
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
-   "visits": 9
+   "visits": 15
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "visits": 14
+  },
+  {
+   "url": "/product-category/mirrors/zerkalo-v-rame/",
+   "visits": 14
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
+   "visits": 13
   },
   {
    "url": "/product-category/mirrors/led/",
-   "visits": 9
+   "visits": 12
   },
   {
-   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
-   "visits": 9
+   "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
+   "visits": 11
+  },
+  {
+   "url": "/product-category/hranenie/veshalki/",
+   "visits": 11
+  },
+  {
+   "url": "/product-category/tables/metal-tables/",
+   "visits": 11
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/mezhkomnatnye-peregorodki/dizajnerskie-peregorodki/",
+   "visits": 10
+  },
+  {
+   "url": "/product-category/mirrors/rotatable/",
+   "visits": 10
   }
  ],
  "goals": [],
- "bounce_rate": 30,
- "depth": 2.4
+ "bounce_rate": 21.1,
+ "depth": 2.7
 }

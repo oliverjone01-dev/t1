@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="robots" content="noindex">
+<title>ТЗ и раскадровка ролика · GLASS-MEMORY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
+<link rel="stylesheet" href="brand-site.css">
+<style>
+  /* ===== страница-ТЗ для моушен-дизайнера · GLASS-MEMORY ===== */
+  /* локальная материальная палитра ролика (память · стекло · камень · металл) */
+  :root{
+    --gm-ground:#0C1620;         /* memorial blue - фон превью-кадров */
+    --gm-ground-line:#1E2E3C;
+    --mem:#C8A951;               /* золото памяти - керамическая печать, лого, акцент */
+    --mem-deep:#9A7B34;
+    --glass:#A9C4DD;             /* стекло - холодный свет */
+    --glass-deep:#41607E;
+    --stone:#B7AFA3;             /* камень - тёплый гранитный серый */
+    --stone-deep:#5A544C;
+    --steel:#9FA6AD;             /* металл - сталь */
+    --steel-deep:#585E64;
+    --light:#EAEFF3;             /* нейтральные титры */
+  }
+  .vb-hero{padding:52px 0 26px;border:none}
+  .vb-hero .ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);font-weight:700}
+  .vb-hero h1{font-size:clamp(28px,4.6vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-top:8px}
+  .vb-hero p{margin-top:14px;color:var(--ink2);font-size:16.5px;line-height:1.6;max-width:66ch}
+  .specrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .spec{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink);background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 55%,transparent);border-radius:var(--radius-pill);padding:9px 16px;box-shadow:var(--shadow)}
+  .spec i{font-style:normal;color:var(--ink3);font-weight:600}
+  /* позиционирование - три материала */
+  .pos3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  .pos{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .pos::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(158deg,var(--_pt,transparent),transparent 55%)}
+  .pos.glass{--_pt:color-mix(in srgb,var(--glass) 22%,transparent)}
+  .pos.stone{--_pt:color-mix(in srgb,var(--stone) 24%,transparent)}
+  .pos.steel{--_pt:color-mix(in srgb,var(--steel) 22%,transparent)}
+  .pos>*{position:relative}
+  .pos .tag{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px;display:inline-flex;padding:4px 11px;border-radius:var(--radius-pill)}
+  .pos.glass .tag{color:#20455f;background:color-mix(in srgb,var(--glass) 30%,transparent)}
+  .pos.stone .tag{color:#4a4238;background:color-mix(in srgb,var(--stone) 34%,transparent)}
+  .pos.steel .tag{color:#3a4046;background:color-mix(in srgb,var(--steel) 32%,transparent)}
+  .pos h3{font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .pos p{margin-top:8px;font-size:14px;color:var(--ink2);line-height:1.55}
+  .rule-line{margin-top:16px;background:var(--s2);border-radius:var(--radius-s);padding:14px 18px;font-size:14.5px;font-weight:600;color:var(--ink)}
+  .rule-line b{color:var(--gold)}
+  .rule-line .cer{color:var(--mem)}
+  /* лента сцен */
+  .sb{position:relative;padding-left:26px}
+  .sb::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--line2),var(--line));border-radius:2px}
+  .scene{position:relative;background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:22px;overflow:hidden}
+  .scene::after{content:"";position:absolute;left:-26px;top:26px;width:14px;height:14px;border-radius:50%;background:var(--_dot,var(--ink3));box-shadow:0 0 0 4px var(--bg)}
+  .scene.base{--_dot:var(--ink3)}
+  .scene.cer{--_dot:var(--mem)}
+  .scene.glass{--_dot:var(--glass)}
+  .scene.stone{--_dot:var(--stone)}
+  .scene.steel{--_dot:var(--steel)}
+  .scene.mix{--_dot:var(--light)}
+  .sc-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 22px 0}
+  .sc-num{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--ink3)}
+  .sc-tc{font-variant-numeric:tabular-nums;font-size:13px;font-weight:800;color:var(--ink);background:var(--s2);border-radius:var(--radius-pill);padding:5px 13px}
+  .sc-brand{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:var(--radius-pill);color:var(--ink2);background:var(--s2)}
+  .scene.cer .sc-brand{color:#5a4a1f;background:color-mix(in srgb,var(--mem) 26%,transparent)}
+  .scene.glass .sc-brand{color:#20455f;background:color-mix(in srgb,var(--glass) 28%,transparent)}
+  .scene.stone .sc-brand{color:#4a4238;background:color-mix(in srgb,var(--stone) 32%,transparent)}
+  .scene.steel .sc-brand{color:#3a4046;background:color-mix(in srgb,var(--steel) 30%,transparent)}
+  .sc-title{width:100%;font-size:19px;font-weight:800;letter-spacing:-.01em;margin-top:2px}
+  .sc-sense{padding:6px 22px 0;font-size:14px;color:var(--ink2);line-height:1.55;max-width:78ch}
+  /* ===== схематичные кадры 16:9 ===== */
+  .frames{display:flex;gap:14px;overflow-x:auto;padding:16px 22px 8px;scrollbar-width:thin}
+  .fr{flex:0 0 320px;max-width:320px}
+  .frame{aspect-ratio:16/9;background:var(--gm-ground);border-radius:10px;position:relative;overflow:hidden;border:1px solid var(--gm-ground-line);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  .fcap{font-size:11.5px;color:var(--ink3);margin-top:7px;line-height:1.5}
+  .fcap b{color:var(--ink2)}
+  /* зона футажа: штриховка */
+  .fz{position:absolute;background:repeating-linear-gradient(45deg,rgba(234,239,243,.05) 0 7px,transparent 7px 14px);display:grid;place-items:center;border:1px dashed rgba(234,239,243,.22);border-radius:4px}
+  .fz span{font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:rgba(234,239,243,.6);font-weight:700;text-align:center;padding:2px 6px;line-height:1.5}
+  .fz.mem{background:repeating-linear-gradient(45deg,rgba(200,169,81,.09) 0 7px,rgba(200,169,81,.02) 7px 14px);border-color:rgba(200,169,81,.32)}
+  .fz.glass{background:repeating-linear-gradient(45deg,rgba(169,196,221,.08) 0 7px,rgba(169,196,221,.015) 7px 14px);border-color:rgba(169,196,221,.3)}
+  .fz.stone{background:repeating-linear-gradient(45deg,rgba(183,175,163,.08) 0 7px,rgba(183,175,163,.015) 7px 14px);border-color:rgba(183,175,163,.3)}
+  .fz.steel{background:repeating-linear-gradient(45deg,rgba(159,166,173,.08) 0 7px,rgba(159,166,173,.015) 7px 14px);border-color:rgba(159,166,173,.3)}
+  /* титры внутри кадра */
+  .ftt{position:absolute;color:var(--light);font-weight:800;line-height:1.2;letter-spacing:-.01em;z-index:3}
+  .ftt.sub{font-weight:600;color:rgba(234,239,243,.75)}
+  .ftt.glass{color:#A9C4DD}.ftt.stone{color:#CBBFA9}.ftt.steel{color:#B9C0C6}.ftt.gold,.ftt.mem{color:#C8A951}
+  .ftt.mlight{font-weight:300;letter-spacing:.09em;color:#C8A951}
+  .ftt .u{border-bottom:2px solid var(--mem-deep);padding-bottom:1px}
+  .fchips{position:absolute;display:flex;gap:4px;flex-wrap:wrap;z-index:3}
+  .fchip{font-size:7.5px;font-weight:700;letter-spacing:.04em;color:var(--light);background:rgba(234,239,243,.12);border:1px solid rgba(234,239,243,.25);border-radius:20px;padding:2px 7px;line-height:1.4}
+  .fchip.mem{color:#C8A951;background:rgba(200,169,81,.12);border-color:rgba(200,169,81,.35)}
+  .fchip.glass{color:#A9C4DD;background:rgba(169,196,221,.12);border-color:rgba(169,196,221,.35)}
+  .fchip.stone{color:#CBBFA9;background:rgba(183,175,163,.12);border-color:rgba(183,175,163,.35)}
+  .fchip.steel{color:#B9C0C6;background:rgba(159,166,173,.12);border-color:rgba(159,166,173,.35)}
+  /* сплит и служебные элементы кадров */
+  .fseam{position:absolute;top:0;bottom:0;left:50%;width:2px;background:linear-gradient(rgba(234,239,243,0),rgba(234,239,243,.6),rgba(234,239,243,0));z-index:2}
+  .fgrid{position:absolute;display:grid;gap:3px;z-index:2}
+  .fcell{background:rgba(169,196,221,.13);border:1px solid rgba(169,196,221,.32);border-radius:2px}
+  .fcell.hot{background:rgba(200,169,81,.34);border-color:rgba(200,169,81,.5)}
+  .fmx{position:absolute;display:grid;grid-template-columns:repeat(12,1fr);gap:2px;z-index:2}
+  .fmx i{aspect-ratio:1;border-radius:2px;background:rgba(183,175,163,.32)}
+  .fmx i:nth-child(3n){background:rgba(169,196,221,.4)}
+  .fmx i:nth-child(4n){background:rgba(200,169,81,.4)}
+  .fbar{position:absolute;height:9px;border-radius:5px;z-index:3}
+  .fbar.mem{background:linear-gradient(90deg,var(--mem-deep),var(--mem))}
+  .fbar.glass{background:linear-gradient(90deg,var(--glass-deep),var(--glass))}
+  .fbar.grey{background:#4A4C50}
+  .fbl{position:absolute;font-size:8px;font-weight:700;color:rgba(234,239,243,.72);z-index:3;letter-spacing:.03em}
+  .fstamp{position:absolute;font-weight:800;color:var(--mem);border:2px solid var(--mem);border-radius:6px;padding:3px 9px;transform:rotate(-4deg);z-index:3;letter-spacing:.02em}
+  .fqr{position:absolute;background:var(--light);border-radius:4px;z-index:3;background-image:repeating-linear-gradient(0deg,#0C1620 0 3px,transparent 3px 6px),repeating-linear-gradient(90deg,#0C1620 0 3px,transparent 3px 6px);background-size:70% 70%;background-position:center;background-repeat:no-repeat;box-shadow:inset 0 0 0 3px var(--light)}
+  .fline{position:absolute;background:rgba(234,239,243,.5);z-index:2}
+  .fglow{position:absolute;border-radius:50%;filter:blur(14px);z-index:1}
+  .fcallout{position:absolute;font-size:7.5px;color:var(--glass);border-left:1px solid var(--glass);padding-left:5px;line-height:1.5;z-index:3}
+  /* портрет-плейсхолдер (керамическая печать) */
+  .fportr{position:absolute;border-radius:6px;background:linear-gradient(160deg,rgba(200,169,81,.22),rgba(169,196,221,.12));border:1px solid rgba(200,169,81,.4);z-index:2;overflow:hidden}
+  .fportr::before{content:"";position:absolute;left:50%;top:32%;width:34%;aspect-ratio:1;border-radius:50%;transform:translateX(-50%);background:rgba(234,239,243,.28)}
+  .fportr::after{content:"";position:absolute;left:50%;bottom:6%;width:56%;height:34%;transform:translateX(-50%);border-radius:40% 40% 0 0;background:rgba(234,239,243,.22)}
+  /* контур фигурной резки камня */
+  .fshape{position:absolute;border:1.5px solid rgba(183,175,163,.55);z-index:2;background:rgba(183,175,163,.08)}
+  .fslot{position:absolute;border:1px dashed rgba(169,196,221,.7);background:rgba(169,196,221,.14);border-radius:3px;z-index:3}
+  /* раскрывающийся режиссёрский бриф */
+  details.brief{border-top:1px dashed var(--line2)}
+  details.brief>summary{cursor:pointer;list-style:none;padding:13px 22px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:center;gap:9px;user-select:none;transition:background .15s}
+  details.brief>summary:hover{background:var(--s2);color:var(--ink)}
+  details.brief>summary::-webkit-details-marker{display:none}
+  details.brief>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .18s;flex:none;margin-top:-2px}
+  details.brief[open]>summary::before{transform:rotate(45deg);margin-top:-5px}
+  .dirgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+  .dir{padding:14px 22px 20px;border-right:1px dashed var(--line2)}
+  .dir:last-child{border-right:none}
+  .dir .cap{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+  .dir p{margin-top:8px;font-size:13.5px;color:var(--ink2);line-height:1.6}
+  .dir p b{color:var(--ink)}
+  .srcs{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .src-chip{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:var(--radius-pill);background:var(--s2);color:var(--ink2)}
+  .src-chip.gfx{background:color-mix(in srgb,var(--glass) 26%,transparent);color:#20455f}
+  .src-chip.mac{background:color-mix(in srgb,var(--mem) 26%,transparent);color:#5a4a1f}
+  .src-chip.fab{background:color-mix(in srgb,var(--steel) 28%,transparent);color:#3a4046}
+  .src-chip.life{background:color-mix(in srgb,var(--stone) 30%,transparent);color:#4a4238}
+  .expander{margin:0 0 16px;display:flex;justify-content:flex-end}
+  .expander button{font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);background:var(--s2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:8px 16px;cursor:pointer}
+  .expander button:hover{background:var(--s3);color:var(--ink)}
+  /* стайл-гайд, матрица, техтребования */
+  .style2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .stcard{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
+  .stcard h3{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}
+  .stcard h3 .di{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--mem) 22%,transparent);color:var(--mem-deep)}
+  .stcard h3 .di svg{width:14px;height:14px;display:block}
+  .stcard p{margin-top:9px;font-size:13.5px;color:var(--ink2);line-height:1.62}
+  .stcard p b{color:var(--ink)}
+  .dont{background:color-mix(in srgb,var(--danger) 7%,var(--s1))}
+  .dont ul{margin:9px 0 0;padding-left:18px}
+  .dont li{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-top:4px}
+  .amx{overflow-x:auto;border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .amx table{width:100%;border-collapse:collapse;min-width:760px;background:var(--s1);font-size:13px}
+  .amx th{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2)}
+  .amx td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  .amx tr:last-child td{border-bottom:none}
+  .amx td:first-child{font-weight:700}
+  .st-ok{color:#4a7c59;font-weight:700}.st-chk{color:var(--glass-deep);font-weight:700}.st-gfx{color:var(--mem-deep);font-weight:700}
+  .amx td.mut{color:var(--ink2)}
+  .tech{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .tk{background:var(--s1);border:1px solid color-mix(in srgb,var(--line) 50%,transparent);border-radius:var(--radius-s);padding:15px 17px;box-shadow:var(--shadow)}
+  .tk .n{font-size:16px;font-weight:800}
+  .tk .l{font-size:11.5px;color:var(--ink3);margin-top:3px}
+  .footnote{margin-top:16px;background:color-mix(in srgb,var(--mem) 14%,var(--s1));border-radius:var(--radius-s);padding:14px 18px;font-size:13.5px;color:var(--ink);line-height:1.6}
+  .footnote b{color:var(--mem-deep)}
+  @media(max-width:960px){.pos3,.dirgrid{grid-template-columns:1fr}.dir{border-right:none;border-bottom:1px dashed var(--line2)}.dir:last-child{border-bottom:none}.style2{grid-template-columns:1fr}.tech{grid-template-columns:1fr 1fr}}
+  @media(max-width:640px){.sb{padding-left:18px}.scene::after{left:-18px;width:10px;height:10px}.sc-head,.sc-sense{padding-left:16px;padding-right:16px}.dir{padding:14px 16px 16px}.frames{padding:14px 16px 6px}.fr{flex:0 0 272px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">К содержанию</a>
+<header class="top"><div class="top-in">
+  <div class="brand"><span class="dot"></span>GLASS-MEMORY&nbsp;/&nbsp;PRODUCTION</div>
+  <nav class="nav" aria-label="Разделы">
+    <a href="plan.html"><span class="n">↩</span>SMM-инструменты</a>
+  </nav>
+  <div class="tt" role="group" aria-label="Тема"><button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button><button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button></div>
+</div></header>
+
+<main class="wrap" id="main">
+
+  <section class="vb-hero">
+    <span class="ey">ТЗ для моушен-дизайнера · август 2026 · ревизия 1</span>
+    <h1>Ролик GLASS-MEMORY:<br>материал, который держит память</h1>
+    <p>Горизонтальный презентационный ролик для салона и партнёрских выставок GLASS-MEMORY. Аудитория - дилеры ритуального рынка, гранитные мастерские и клиенты в салоне. Задача - за 115 секунд показать полный производственный охват бренда без давления на скорбь: керамическая печать как смысловой центр, виды стёкол, стелы, цветники, памятники с металлом, фигурная резка камня и прорези под стекло, комбинации камень плюс стекло и металл плюс стекло. Тон деликатный: скорбь не аргумент, героем кадра остаётся материал и работа. Ролик обязан работать без звука - титры несут полный смысл. Люди в кадре только фрагментарно (руки мастера); лиц скорбящих нет.</p>
+    <div class="specrow">
+      <span class="spec">16:9 <i>горизонталь</i></span>
+      <span class="spec">~115 сек <i>хронометраж</i></span>
+      <span class="spec">10 сцен · ~31 кадр <i>раскадровка</i></span>
+      <span class="spec">Дилеры · мастерские · салон <i>аудитория</i></span>
+      <span class="spec">Салон и выставки <i>площадка</i></span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Позиционирование <span class="em">в ролике</span></h2></div>
+    <div class="pos3">
+      <div class="pos glass">
+        <span class="tag">Стекло</span>
+        <h3>Образ и свет</h3>
+        <p>Стеклянные стелы и накладки: обычное стекло и Crystalvision (премиум, дороже на 25%). Стекло держит портрет и надпись, пропускает свет, не тускнеет. На стекле - керамическая печать, матирование, пескоструй, гравировка. Формат бренда - мемориальные наборы (стела, накладка, подставка), не отдельные коллекции.</p>
+      </div>
+      <div class="pos stone">
+        <span class="tag">Камень</span>
+        <h3>Форма и основа</h3>
+        <p>Гранит: стелы, цветники, подставки. Фигурная резка любой формы, полировка, прорези и пазы под стеклянную вставку. Камень задаёт силуэт и служит десятилетиями. На нём - надписи, эпитафии, шрифты по согласованию с семьёй.</p>
+      </div>
+      <div class="pos steel">
+        <span class="tag">Металл</span>
+        <h3>Линия и ажур</h3>
+        <p>Сталь с лазерной резкой: ограды, стальные памятники с ажурным орнаментом, столики, мемориальные комплексы со скамьёй. Двойная порошковая покраска. Металл даёт тонкую линию там, где камень слишком массивен.</p>
+      </div>
+    </div>
+    <div class="rule-line">Смысловая формула ролика: <span class="cer">керамическая печать держит лицо</span>, стекло держит свет, камень держит форму, металл держит линию. <b>Один производитель закрывает весь мемориальный комплекс.</b></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Раскадровка <span class="em">~31 кадр · 10 сцен</span></h2><p>Кадры ниже - схема вёрстки: где футаж (штриховая зона), где титры и графика, в каком цвете и в каком углу. Пропорции и позиции соблюдать, диагональная штриховка = живая съёмка или фото. Полный режиссёрский бриф каждой сцены (футаж, моушен, грейдинг) раскрывается по клику.</p></div>
+    <div class="expander"><button type="button" id="expall">Развернуть все брифы</button></div>
+
+    <div class="sb">
+
+      <!-- ============ СЦЕНА 1 ============ -->
+      <article class="scene base">
+        <div class="sc-head"><span class="sc-num">Сцена 01</span><span class="sc-tc">0:00-0:07</span><span class="sc-brand">GLASS-MEMORY · cold open</span>
+          <h3 class="sc-title">Свет входит в материал</h3></div>
+        <p class="sc-sense">Зритель считывает достоинство и качество работы раньше любых слов: свет медленно проявляет портрет в стекле, без единого титра и без надрыва.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Макро slow-mo: луч скользит по кромке стекла, внутри проступает гравировка</span></div>
+              <div class="fglow" style="width:70px;height:44px;background:rgba(169,196,221,.4);left:26%;top:30%"></div>
+            </div>
+            <p class="fcap"><b>1а · 0:00-0:03.</b> Полный кадр, без титров. Единственный свет - холодный блик по кромке (стекло), тьма вокруг.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fportr" style="left:34%;top:20%;width:32%;height:60%"></div>
+              <div class="fglow" style="width:60px;height:60px;background:rgba(200,169,81,.3);left:38%;top:24%"></div>
+            </div>
+            <p class="fcap"><b>1б · 0:03-0:05.</b> Тёплое пятно (керамический портрет) проявляется в центре как единственная человеческая нота. Мягкий фокус.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:0;right:0;top:38%;text-align:center;font-size:16px;letter-spacing:.12em">GLASS-MEMORY</div>
+              <div class="fline" style="left:30%;top:47%;width:40%;height:1px;opacity:.35"></div>
+              <div class="ftt sub" style="left:0;right:0;top:56%;text-align:center;font-size:9px;letter-spacing:.08em">Стекло. Камень. Металл. Память.</div>
+            </div>
+            <p class="fcap"><b>1в · 0:05-0:07.</b> Лого проявляется бликом по стеклу слева направо (0.6 сек), не fade. Подпись мельче, по центру.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>Только реальная макросъёмка, без графики. Первые 3 сек - луч света скользит по фаске стеклянной стелы (300-400 fps): в толще стекла проступает лазерная гравировка. Жёсткая, но мягкая по свету склейка - макро керамического портрета: из темноты проявляется тёплое лицо-плейсхолдер (снимать нейтральный образец или согласованный портрет, не реального человека без разрешения). Лого GLASS-MEMORY появляется не на пустом фоне, а бликом по самому стеклу.</p>
+            <div class="srcs"><span class="src-chip mac">Макро</span><span class="src-chip mac">Керамика</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Два макро-плана по 2.5-3 сек, между ними мягкий cut на второй доле музыки (не в жёсткий бит - это мемориальный бренд). Лого не выезжает и не фейдится: проявляется бликом слева направо за 0.6 сек, будто по стеклу провели светом. Медленное движение внутри кадра, спокойный монтаж.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Мемориальный синий #0C1620 в тенях. Блик по стеклу - холодный (стекло), портрет - единственное тёплое пятно (2900-3100K). Высокий контраст, глубокий чёрный без подъёма теней, зерно минимальное. Достойно, тихо, без глянца.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 2 ============ -->
+      <article class="scene base">
+        <div class="sc-head"><span class="sc-num">Сцена 02</span><span class="sc-tc">0:07-0:18</span><span class="sc-brand">GLASS-MEMORY · производство</span>
+          <h3 class="sc-title">Собственное производство, не посредник</h3></div>
+        <p class="sc-sense">Дилер и клиент понимают: за стекло, камень и металл отвечает один производитель полного цикла, а не перекупщик.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz steel" style="inset:0"><span>Цех: tracking-проезд, лазер режет сталь, искры в глубине</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:9%">
+                <span class="fchip glass">стекло</span><span class="fchip stone">камень</span><span class="fchip steel">металл · лазер</span><span class="fchip mem">керамическая печать</span><span class="fchip">покраска</span><span class="fchip">монтаж</span>
+              </div>
+            </div>
+            <p class="fcap"><b>2а · 0:07-0:11.</b> Проезд по цеху, участки полного цикла подписываются пилюлями каждый у своего поста.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz stone" style="inset:0"><span>Участок камнерезки: гранит на станке, водяная пыль в контровом свете</span></div>
+              <div class="ftt" style="left:7%;bottom:14%;font-size:16px">Полный цикл</div>
+              <div class="ftt sub" style="left:7%;bottom:6%;font-size:8px">стекло · камень · металл под одной крышей</div>
+            </div>
+            <p class="fcap"><b>2б · 0:11-0:14.</b> Титр «прилипает» к плоскости станка (AR-разметка), уходит с параллаксом камеры.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Карта РФ / витрина дилерских образцов</span></div>
+              <div class="ftt" style="right:7%;top:16%;font-size:17px;text-align:right">320+</div>
+              <div class="ftt sub" style="right:7%;top:40%;font-size:8px;text-align:right">партнёров в 250+ городах</div>
+            </div>
+            <p class="fcap"><b>2в · 0:14-0:18.</b> Число партнёрской сети к стене справа. Кегль числа 3:1 к подписи. Источник цифры подтвердить до финала (см. футноут).</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>Проезд по цеху одним движением (слайдер/гимбал): лазер по стали, камнерезный станок с гранитом, участок стекла и керамической печати. Если цельного проезда нет - собрать из 3 планов с единым направлением слева направо. Дилерская сеть - карта РФ или витрина образцов у партнёра. Числа - графика, впечатанная в пространство как AR-разметка, не плашки в углу. Дилерская сеть по кампании: 320+ партнёров в 250+ городах (источник P3/P1 дилерских дек); цифру и её актуальность подтверждает GLASS-MEMORY до финала.</p>
+            <div class="srcs"><span class="src-chip fab">Цех</span><span class="src-chip gfx">Графика</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Один непрерывный tracking-шот, спокойный. Титры «прилипают» к плоскостям цеха и реагируют на параллакс камеры. Inter Bold для числа, Inter Regular для подписи (кегль 3:1). Счётчик 320+ отщёлкивает от нуля за 0.8 сек. План длинный и дышащий - показываем масштаб без спешки.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Холодный индустриальный 5000-5300K, лёгкий стальной оттенок в тенях цеха. Искра лазера - контролируемый акцент в глубине. Гранитная пыль в контровом свете - серебристая. Пол и бетон - нейтральный серый. Это ещё нейтральный производственный слой, материальные акценты придут в своих блоках.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 3 · ГЛАВНЫЙ АКЦЕНТ ============ -->
+      <article class="scene cer">
+        <div class="sc-head"><span class="sc-num">Сцена 03</span><span class="sc-tc">0:18-0:34</span><span class="sc-brand">Керамическая печать · акцент</span>
+          <h3 class="sc-title">Керамическая печать: лицо, которое остаётся</h3></div>
+        <p class="sc-sense">Смысловой центр ролика. Зритель видит, как портрет переносится на керамику и обжигается, и понимает: изображение не выгорает и не боится погоды. Самый содержательный блок.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz mem" style="left:8%;top:12%;width:40%;height:64%"><span>Экран: подготовка фото, ретушь</span></div>
+              <div class="ftt" style="right:6%;top:24%;font-size:11px;text-align:right"><span class="u">Керамическая печать</span></div>
+              <div class="ftt sub" style="right:6%;top:44%;font-size:8px;text-align:right;max-width:34%">фото · печать · обжиг · монтаж</div>
+            </div>
+            <p class="fcap"><b>3а · 0:18-0:22.</b> Слева экран с фото, справа титр с золотым подчёркиванием. Появляется этапная цепочка процесса.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz mem" style="inset:0"><span>Печь обжига: керамическая пластина входит, тёплое свечение изнутри</span></div>
+              <div class="fglow" style="width:120px;height:70px;background:rgba(200,169,81,.42);left:30%;top:26%"></div>
+              <div class="ftt sub" style="left:0;right:0;bottom:9%;text-align:center;font-size:8.5px">обжиг закрепляет изображение в керамике</div>
+            </div>
+            <p class="fcap"><b>3б · 0:22-0:27.</b> Печь - самое тёплое пятно ролика. Свечение пульсирует медленно. Титр внизу по центру, тонкий.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fportr" style="left:12%;top:16%;width:26%;height:64%"></div>
+              <div class="fportr" style="left:42%;top:16%;width:26%;height:64%;filter:grayscale(.2)"></div>
+              <div class="fz glass" style="right:6%;top:16%;width:24%;height:64%"><span>тот же портрет на стекле</span></div>
+              <div class="ftt sub" style="left:0;right:0;bottom:6%;text-align:center;font-size:8px">на керамике · на стекле · формы: овал, прямоугольник, фигурная</div>
+            </div>
+            <p class="fcap"><b>3в · 0:27-0:31.</b> Один портрет показан на керамике и на стекле рядом - носитель на выбор. Формы подписаны мелко.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Улица: портрет на стеле под дождём и солнцем, капли не тронули цвет</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:10%">
+                <span class="fchip mem">не выгорает на солнце</span><span class="fchip mem">не боится мороза</span><span class="fchip mem">устойчив к влаге</span>
+              </div>
+            </div>
+            <p class="fcap"><b>3г · 0:31-0:34.</b> Доказательство стойкости: погода на портрете, цвет держится. Свойства - пилюлями, без числовых сроков на экране.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Подготовка: экран с фото, рука ретуширует, кадрирование под овал/прямоугольник. (2) Печать и обжиг: керамическая пластина или стекло входит в печь, тёплое свечение изнутри - ключевой кадр блока, доснять предметно. (3) Носитель на выбор: один портрет на керамической вставке и на стекле рядом, формы (овал, прямоугольник, фигурная). (4) Стойкость: тот же портрет на установленной стеле под дождём/солнцем, цвет не меняется. Портреты - согласованные образцы или нейтральные лица, реальные фото семей только с письменным разрешением.</p>
+            <div class="srcs"><span class="src-chip mac">Печь · керамика</span><span class="src-chip mac">Макро стекла</span><span class="src-chip life">Установка</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Темп средний, уважительный - не быстрее производственного блока. Процесс читается цепочкой: фото → печать → обжиг → монтаж, этапы всплывают по ходу. Свечение печи пульсирует медленно (дыхание, не мигание). Переход к носителям - мягкий match на форме портрета. Свойства стойкости входят пилюлями по одной, с паузой на чтение. Числовые сроки службы на экран не выводим, пока их не подтвердит паспорт производителя.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Это единственный тёплый блок среди холодных. Печь и керамика - золото 2800-3100K, глубокие тени вокруг. Портрет мягкий, кожа естественная, без глянца и без ретуши в кислоту. Уличный кадр стойкости - нейтральный дневной свет, капли холодные, портрет остаётся тёплым: контраст, который и есть смысл сцены.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 4 ============ -->
+      <article class="scene glass">
+        <div class="sc-head"><span class="sc-num">Сцена 04</span><span class="sc-tc">0:34-0:46</span><span class="sc-brand">Стекло · виды</span>
+          <h3 class="sc-title">Виды стёкол: от обычного до Crystalvision</h3></div>
+        <p class="sc-sense">Зритель понимает выбор носителя: толщина, прозрачность, обработка и премиальный уровень Crystalvision - под задачу и бюджет семьи.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz glass" style="left:8%;top:12%;width:38%;height:64%"><span>Обычное стекло: срез, зелёная кромка</span></div>
+              <div class="fz glass" style="right:8%;top:12%;width:38%;height:64%;opacity:.9"><span>Crystalvision: срез, прозрачная кромка</span></div>
+              <div class="fseam"></div>
+              <div class="ftt glass" style="left:9%;bottom:16%;font-size:9px">обычное стекло</div>
+              <div class="ftt mem" style="right:9%;bottom:16%;font-size:9px;text-align:right">Crystalvision +25%</div>
+            </div>
+            <p class="fcap"><b>4а · 0:34-0:38.</b> Сравнение кромок бок о бок: обычное зеленит, Crystalvision прозрачнее. Разница видна без цифр.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fral" style="left:8%;bottom:12%;display:flex;gap:4px;position:absolute;z-index:3">
+                <i style="width:22px;height:34px;border:1px solid rgba(169,196,221,.5);background:rgba(169,196,221,.10)"></i>
+                <i style="width:22px;height:34px;border:1px solid rgba(169,196,221,.5);background:rgba(169,196,221,.18)"></i>
+                <i style="width:22px;height:34px;border:1px solid rgba(169,196,221,.5);background:rgba(30,46,60,.6)"></i>
+                <i style="width:22px;height:34px;border:1px solid rgba(169,196,221,.5);background:rgba(169,196,221,.30)"></i>
+              </div>
+              <div class="ftt sub" style="left:8%;top:16%;font-size:8px;max-width:44%">толщина · прозрачное · тонированное · чёрное · матовое</div>
+            </div>
+            <p class="fcap"><b>4б · 0:38-0:42.</b> Веер образцов стекла: прозрачное, тонированное, чёрное, матовое. Палец пролистывает, свет играет на каждом.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz glass" style="left:26%;top:14%;width:48%;height:60%"><span>Макро: матирование и гравировка проступают на поверхности</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:8%">
+                <span class="fchip glass">матирование</span><span class="fchip glass">пескоструй</span><span class="fchip glass">гравировка</span><span class="fchip mem">керам. печать</span>
+              </div>
+            </div>
+            <p class="fcap"><b>4в · 0:42-0:46.</b> Обработка поверхности: рисунок проявляется на стекле. Способы - пилюлями внизу.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Сравнение кромок: два среза стекла бок о бок на просвет - обычное с зелёной кромкой и Crystalvision с прозрачной. (2) Веер образцов: прозрачное, тонированное, чёрное, матовое, разной толщины, свет проходит и играет. (3) Макро обработки: матирование, пескоструй, гравировка, керамическая печать на поверхности. Разницу Crystalvision показываем визуально (прозрачность), формулировка «премиум, дороже на 25%» - как в глоссарии, без выдуманной точной цены.</p>
+            <div class="srcs"><span class="src-chip mac">Макро стекла</span><span class="src-chip mac">Образцы</span><span class="src-chip gfx">Графика</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Темп чуть живее, чем в керамике: планы 2-2.5 сек, но переходы мягкие (диссолв или match на кромке, не жёсткий бит). Веер листается синхронно с подписью типа стекла. Обработка проявляется на поверхности как проступающий рисунок. Стальные-холодные подчёркивания под ключевыми словами, Crystalvision - золотом (единственный премиум-акцент сцены).</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Холодный стеклянный ключ 5200-5600K, стекло ловит голубой свет на просвет. Кромка обычного стекла намеренно зеленит для честного сравнения, Crystalvision чище. Фон - мемориальный синий. Единственная тёплая точка - золотой маркер Crystalvision. Чисто, прозрачно, точно.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 5 ============ -->
+      <article class="scene glass">
+        <div class="sc-head"><span class="sc-num">Сцена 05</span><span class="sc-tc">0:46-0:57</span><span class="sc-brand">Стекло · стелы</span>
+          <h3 class="sc-title">Стелы: свет проходит сквозь память</h3></div>
+        <p class="sc-sense">Зритель видит стеклянную стелу как самостоятельное решение: лёгкая, светопроницаемая, с портретом и надписью внутри толщи стекла.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz glass" style="left:30%;top:8%;width:40%;height:80%"><span>Стеклянная стела на подставке, контровой свет, orbit</span></div>
+              <div class="fportr" style="left:40%;top:24%;width:20%;height:34%"></div>
+              <div class="ftt glass" style="left:7%;bottom:11%;font-size:10px">Стеклянные стелы</div>
+            </div>
+            <p class="fcap"><b>5а · 0:46-0:50.</b> Стела на тёмном подиуме, медленный orbit, свет проходит насквозь. Портрет в стекле.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fgrid" style="left:14%;top:16%;width:72%;height:60%;grid-template-columns:repeat(4,1fr)">
+                <div class="fcell" style="border-radius:2px"></div>
+                <div class="fcell" style="border-radius:20px 20px 2px 2px"></div>
+                <div class="fcell" style="border-radius:2px;clip-path:polygon(0 100%,50% 0,100% 100%)"></div>
+                <div class="fcell hot" style="border-radius:2px 40px 2px 2px"></div>
+              </div>
+              <div class="ftt sub" style="left:0;right:0;bottom:8%;text-align:center;font-size:8px">формы: прямая · арочная · фигурная · со скосом</div>
+            </div>
+            <p class="fcap"><b>5б · 0:50-0:54.</b> Ряд силуэтов стел разной формы, одна подсвечена золотом (керам. печать на ней). Формы подписаны.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz glass" style="inset:0"><span>Стела в реальной установке: рассветный свет сквозь стекло на камень</span></div>
+              <div class="fglow" style="width:80px;height:80px;background:rgba(169,196,221,.3);right:20%;top:20%"></div>
+            </div>
+            <p class="fcap"><b>5в · 0:54-0:57.</b> Без титров - воздух. Утренний свет проходит сквозь стелу. Достойно и тихо, людей нет.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Студийная стела: стеклянная стела на тёмном подиуме, контровой свет, медленный orbit, портрет и гравировка в толще стекла. (2) Формы: ряд стел (прямая, арочная, фигурная, со скосом) - реальные образцы или витрина. (3) Установка: стела на объекте в мягком утреннем свете, свет проходит сквозь стекло. Реальные установки снимать без посетителей и без свежих захоронений в кадре.</p>
+            <div class="srcs"><span class="src-chip mac">Студия · стела</span><span class="src-chip life">Установка</span><span class="src-chip gfx">Графика форм</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Медленный дышащий темп: планы 3-4 сек, orbit плавный. Ряд форм собирается слева направо, подсвеченная форма выделяется мягким золотым свечением. Перед кадром установки - 0.4 сек затемнения (воздух). Никаких резких cut'ов, только диссолвы и медленное движение камеры.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Холодный стеклянный свет с голубым pass-through, тени мемориально-синие. Подсвеченная стела - тёплый золотой акцент портрета внутри холодного стекла. Уличный кадр - мягкий рассвет 4300K, без резких контуров. Стекло должно читаться прозрачным и лёгким.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 6 ============ -->
+      <article class="scene stone">
+        <div class="sc-head"><span class="sc-num">Сцена 06</span><span class="sc-tc">0:57-1:08</span><span class="sc-brand">Камень · цветники</span>
+          <h3 class="sc-title">Цветники: гранитная рама памяти</h3></div>
+        <p class="sc-sense">Зритель понимает завершённость комплекса: цветник обрамляет место, задаёт геометрию и сочетается со стелой по камню и стеклу.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz stone" style="inset:0"><span>Макро гранита: полировка кромки цветника, зеркальный блеск, фактура</span></div>
+              <div class="ftt stone" style="left:7%;bottom:12%;font-size:10px">Цветники из гранита</div>
+            </div>
+            <p class="fcap"><b>6а · 0:57-1:01.</b> Макро полированной кромки гранита, свет ведёт по фактуре. Титр внизу слева.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fshape" style="left:14%;top:22%;width:24%;height:44%"></div>
+              <div class="fshape" style="left:40%;top:22%;width:24%;height:44%;border-radius:0 0 40px 40px"></div>
+              <div class="fshape" style="left:66%;top:22%;width:22%;height:44%;clip-path:polygon(0 0,100% 0,80% 100%,20% 100%)"></div>
+              <div class="ftt sub" style="left:0;right:0;bottom:12%;text-align:center;font-size:8px">формы: прямоугольный · с радиусом · трапеция · под стелу</div>
+            </div>
+            <p class="fcap"><b>6б · 1:01-1:04.</b> Контуры цветников разной формы прочерчиваются линией. Формы подписаны мелко.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz stone" style="left:6%;top:10%;width:56%;height:80%"><span>Комплекс сверху: стела + цветник + подставка, единая геометрия</span></div>
+              <div class="fslot" style="left:24%;top:22%;width:18%;height:8%"></div>
+              <div class="ftt sub" style="right:6%;top:24%;font-size:8px;text-align:right;max-width:30%">цветник + стела + подставка = набор</div>
+            </div>
+            <p class="fcap"><b>6в · 1:04-1:08.</b> Вид сверху: цветник в связке со стелой и подставкой как мемориальный набор.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Макро гранита: полированная кромка цветника, фактура камня, зеркальный блеск на свету. (2) Формы цветников: прямоугольный, с радиусом, трапеция, под конкретную стелу - образцы или графические контуры поверх камня. (3) Комплекс: вид сверху на связку цветник + стела + подставка, единая геометрия и один сорт камня. Формат набора - как в глоссарии (стела, накладка, подставка).</p>
+            <div class="srcs"><span class="src-chip mac">Макро гранита</span><span class="src-chip life">Комплекс</span><span class="src-chip gfx">Контуры форм</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Средний спокойный темп, планы 3-3.5 сек. Контуры форм прочерчиваются линией по камню (technical draw-on), затем растворяются. Свет на макро гранита ведёт медленно по кромке. Вид сверху - лёгкий push-in, геометрия набора собирается в кадре.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Тёплый гранитный нейтраль 4200-4600K, камень держит естественный цвет (чёрный, серый, красный гранит - по образцу). Полировка ловит контролируемый блик. Без синевы и без золота в графике сцены, кроме тонкого маркера набора. Камень выглядит плотным и дорогим за счёт света, не за счёт насыщенности.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 7 ============ -->
+      <article class="scene steel">
+        <div class="sc-head"><span class="sc-num">Сцена 07</span><span class="sc-tc">1:08-1:22</span><span class="sc-brand">Металл · лазерная резка</span>
+          <h3 class="sc-title">Памятники с металлом: лазерная и ажурная резка</h3></div>
+        <p class="sc-sense">Дилер видит целое направление: сталь с лазерной резкой закрывает ограды, ажурные памятники, столики и комплексы со скамьёй - тонкая линия там, где камень массивен.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz steel" style="inset:0"><span>Макро: лазер идёт по стали, ажурный орнамент проступает из листа</span></div>
+              <div class="fglow" style="width:50px;height:34px;background:rgba(255,150,60,.4);left:44%;top:40%"></div>
+              <div class="ftt steel" style="left:7%;bottom:12%;font-size:10px">Металл с лазерной резкой</div>
+            </div>
+            <p class="fcap"><b>7а · 1:08-1:12.</b> Луч лазера прорезает орнамент в стали, единственная тёплая точка - искра реза.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz steel" style="left:6%;top:10%;width:26%;height:80%"><span>Ограда, ажур</span></div>
+              <div class="fz steel" style="left:37%;top:10%;width:26%;height:80%"><span>Стальной памятник, орнамент розы</span></div>
+              <div class="fz steel" style="left:68%;top:10%;width:26%;height:80%"><span>Столик со скамьёй</span></div>
+            </div>
+            <p class="fcap"><b>7б · 1:12-1:17.</b> Тройная витрина изделий из стали: ограда, ажурный памятник, столик со скамьёй. Смена в такт, спокойно.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Готовый мемориальный комплекс со скамьёй в установке, вечерний свет</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:10%">
+                <span class="fchip steel">ограды</span><span class="fchip steel">ажурные памятники</span><span class="fchip steel">столики · скамьи</span><span class="fchip">двойная покраска</span>
+              </div>
+            </div>
+            <p class="fcap"><b>7в · 1:17-1:22.</b> Комплекс в реальной среде. Ассортимент направления - пилюлями, покрытие подчёркнуто (двойная покраска).</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Макро лазера: луч режет стальной лист, ажурный орнамент проступает, искра реза. (2) Витрина изделий: ограда с орнаментом, стальной памятник с ажуром (роза, геометрия), столик, скамья - фото и подсъёмки направления есть в партнёрских материалах. (3) Установленный мемориальный комплекс со скамьёй в среде. Покрытие - двойная порошковая покраска, выносим как гарантию долговечности стали на улице.</p>
+            <div class="srcs"><span class="src-chip fab">Лазер · цех</span><span class="src-chip life">Изделия · установка</span><span class="src-chip gfx">Графика</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Темп собранный, чуть ритмичнее камня: планы 2-2.5 сек. Луч лазера ведёт по контуру орнамента (свет реза бежит по линии). Витрина изделий - смены в мягкий такт, без дёрганья. Ажур подчёркиваем светом на просвет: орнамент читается силуэтом. Переход к комплексу - чистый cut.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Стальной холодный 5000K, металл матовый после покраски, блики контролируемые. Искра реза - единственная тёплая точка (оранж 3000K) в холодном блоке. Установленный комплекс - мягкий вечерний свет 3800K, чтобы сталь не выглядела казённо. Ажур на просвет - графичный силуэт.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 8 ============ -->
+      <article class="scene stone">
+        <div class="sc-head"><span class="sc-num">Сцена 08</span><span class="sc-tc">1:22-1:35</span><span class="sc-brand">Камень · резка и прорези</span>
+          <h3 class="sc-title">Фигурная резка камня и прорези под стекло</h3></div>
+        <p class="sc-sense">Зритель понимает инженерную точность: гранит режется в любую форму, а под стеклянную вставку готовится точный паз - здесь стекло и камень встречаются.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz stone" style="inset:0"><span>Камнерезный станок: фреза ведёт фигурный контур по граниту, вода</span></div>
+              <div class="ftt stone" style="left:7%;bottom:12%;font-size:10px">Фигурная резка камня</div>
+            </div>
+            <p class="fcap"><b>8а · 1:22-1:26.</b> Станок режет криволинейный контур в граните, водяная пыль в контровом свете.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fshape" style="left:20%;top:14%;width:60%;height:66%;border-radius:30px 30px 6px 6px"></div>
+              <div class="fslot" style="left:38%;top:28%;width:24%;height:34%"></div>
+              <div class="ftt sub" style="left:0;right:0;bottom:8%;text-align:center;font-size:8px">силуэт стелы + прорезь под стеклянную вставку</div>
+            </div>
+            <p class="fcap"><b>8б · 1:26-1:30.</b> Контур фигурной стелы, внутри прочерчивается прорезь-паз под стекло (пунктир). Технический, точный кадр.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fshape" style="left:20%;top:14%;width:60%;height:66%;border-radius:30px 30px 6px 6px"></div>
+              <div class="fz glass" style="left:38%;top:28%;width:24%;height:34%"><span>стекло входит в паз</span></div>
+              <div class="fglow" style="width:50px;height:50px;background:rgba(169,196,221,.35);left:44%;top:30%"></div>
+            </div>
+            <p class="fcap"><b>8в · 1:30-1:35.</b> Стеклянная вставка входит в прорезь и садится заподлицо. Стекло ловит свет в гранитной раме.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Резка: камнерезный станок или фреза ведёт фигурный контур по граниту, вода и пыль. (2) Прорезь: макро подготовки паза под стеклянную вставку в теле стелы - ключевой технический кадр, доснять на участке. (3) Сборка: стеклянная вставка входит в прорезь и садится заподлицо. Показать точность посадки без числового допуска на экране (допуск выводим только по документу ОТК).</p>
+            <div class="srcs"><span class="src-chip fab">Камнерезка</span><span class="src-chip mac">Макро паза</span><span class="src-chip mac">Сборка стекло+камень</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Темп технический, уверенный: планы 2.5-3 сек. Контур резки прочерчивается по камню, прорезь появляется пунктиром-паз (technical draw-on) внутри силуэта. Кульминация - стекло входит в паз одним плавным движением сверху вниз и садится заподлицо: главный match-cut между материалами. Свет на стекле вспыхивает мягко в момент посадки.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Гранитный нейтраль 4300K на камне, стекло приносит холодный голубой pass-through в тёплую сцену - на стыке материалов рождается контраст температур. Пыль резки серебристая. Момент посадки стекла - самая светлая точка кадра. Инженерно, чисто, точно.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 9 ============ -->
+      <article class="scene mix">
+        <div class="sc-head"><span class="sc-num">Сцена 09</span><span class="sc-tc">1:35-1:47</span><span class="sc-brand">Комбинации · синтез</span>
+          <h3 class="sc-title">Камень плюс стекло, металл плюс стекло</h3></div>
+        <p class="sc-sense">Зритель видит финальный тезис ролика: материалы сочетаются в одном изделии, и это возможно потому, что все они сделаны на одном производстве.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz stone" style="left:0;top:0;bottom:0;width:52%"><span>Гранитная стела</span></div>
+              <div class="fz glass" style="right:0;top:0;bottom:0;width:52%"><span>Стеклянная вставка с портретом</span></div>
+              <div class="fseam"></div>
+              <div class="ftt" style="left:0;right:0;top:12%;text-align:center;font-size:10px">Камень + стекло</div>
+            </div>
+            <p class="fcap"><b>9а · 1:35-1:39.</b> Изделие-герой: гранит и стеклянная вставка в одном силуэте, orbit по стыку материалов.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz steel" style="left:0;top:0;bottom:0;width:52%"><span>Стальной ажур</span></div>
+              <div class="fz glass" style="right:0;top:0;bottom:0;width:52%"><span>Стекло с керам. печатью</span></div>
+              <div class="fseam"></div>
+              <div class="ftt" style="left:0;right:0;top:12%;text-align:center;font-size:10px">Металл + стекло</div>
+            </div>
+            <p class="fcap"><b>9б · 1:39-1:43.</b> Второй герой: ажурная сталь держит стеклянную вставку с портретом. Орнамент играет с прозрачностью.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="inset:0"><span>Полный комплекс в среде: камень + стекло + металл + керам. печать вместе</span></div>
+              <div class="fchips" style="left:6%;right:6%;bottom:10%">
+                <span class="fchip stone">камень</span><span class="fchip glass">стекло</span><span class="fchip steel">металл</span><span class="fchip mem">керам. печать</span>
+              </div>
+            </div>
+            <p class="fcap"><b>9в · 1:43-1:47.</b> Все материалы в одном комплексе. Четыре пилюли-материала собираются вместе как итог.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Камень + стекло: изделие-герой, где гранитная стела несёт стеклянную вставку с портретом, orbit по стыку. (2) Металл + стекло: ажурная стальная рама держит стеклянную вставку с керамической печатью. (3) Полный комплекс в среде: камень, стекло, металл и печать вместе в одном месте. Это витрина возможностей одного производителя - реальные изделия или согласованные рендеры.</p>
+            <div class="srcs"><span class="src-chip mac">Изделия-герои</span><span class="src-chip life">Комплекс в среде</span><span class="src-chip gfx">Графика</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Темп снова замедляется к финалу: планы 3.5-4 сек, orbit медленный по стыку материалов - камера буквально ведёт по шву, где встречаются два материала. Титры «камень + стекло» и «металл + стекло» входят мягко сверху. В третьем кадре четыре материала-пилюли собираются вместе как визуальный итог формулы из начала ролика.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Совмещающий грейд: тёплый камень и холодное стекло в одном кадре, на стыке - тонкая температурная граница (рифма со сценой 08). Сталь нейтральная, портрет на стекле - тёплый. Общий тон уходит в мемориальный синий к финалу, готовя закрытие. Достойно, собрано, без пестроты.</p>
+          </div>
+        </div></details>
+      </article>
+
+      <!-- ============ СЦЕНА 10 ============ -->
+      <article class="scene base">
+        <div class="sc-head"><span class="sc-num">Сцена 10</span><span class="sc-tc">1:47-1:58</span><span class="sc-brand">Доверие · CTA</span>
+          <h3 class="sc-title">Один производитель, весь комплекс</h3></div>
+        <p class="sc-sense">Зритель уходит с простой мыслью и понятным следующим шагом: запросить каталог или образец, стать партнёром.</p>
+        <div class="frames">
+          <div class="fr">
+            <div class="frame">
+              <div class="fz" style="left:8%;top:12%;width:40%;height:64%"><span>Белый монтаж: упаковка, бережная переноска, установка</span></div>
+              <div class="ftt" style="right:6%;top:22%;font-size:9.5px;text-align:right;max-width:40%">производство · доставка · монтаж</div>
+              <div class="ftt sub" style="right:6%;bottom:16%;font-size:8px;text-align:right;max-width:40%">контроль качества на каждом этапе</div>
+            </div>
+            <p class="fcap"><b>10а · 1:47-1:51.</b> Сервисный кадр: бережная доставка и монтаж. Титры справа, строгие, без китча.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:0;right:0;top:16%;text-align:center;font-size:11px;letter-spacing:.08em">GLASS-MEMORY</div>
+              <div class="ftt sub" style="left:8%;right:8%;top:38%;text-align:center;font-size:9px;line-height:1.6">Керамическая печать. Стекло. Камень. Металл.<br>Весь мемориальный комплекс у одного производителя.</div>
+            </div>
+            <p class="fcap"><b>10б · 1:51-1:55.</b> Формула бренда собирается по центру. Рифма с формулой из начала. G-темп спокойный.</p>
+          </div>
+          <div class="fr">
+            <div class="frame">
+              <div class="ftt" style="left:7%;top:24%;font-size:10px;max-width:54%">Запросите каталог и образец</div>
+              <div class="ftt sub" style="left:7%;top:52%;font-size:8.5px">Партнёрам - дилерские условия · glass-memory.ru</div>
+              <div class="fqr" style="right:8%;top:26%;width:48px;height:48px"></div>
+            </div>
+            <p class="fcap"><b>10в · 1:55-1:58.</b> Только QR + две строки крупно: читается с 4-5 метров. Финал - блик по стеклу, закольцовка со сценой 01.</p>
+          </div>
+        </div>
+        <details class="brief"><summary>Режиссёрский бриф: футаж · моушен · грейдинг</summary>
+        <div class="dirgrid">
+          <div class="dir"><span class="cap">Футаж</span>
+            <p>(1) Сервис: многослойная упаковка, бережная переноска, установка на объекте, руки монтажников - без лиц. (2) Формула бренда - графика на мемориальном синем: керамическая печать, стекло, камень, металл. (3) CTA-блок разгруженный: титр «Запросите каталог и образец», строка «Партнёрам - дилерские условия · glass-memory.ru» и QR. Полные контакты (адрес, телефон, домены) - в QR-лендинге, не на экране. Финальный URL и UTM-метку QR подтверждает GLASS-MEMORY на сдаче чернового монтажа. Дикторского голоса нет.</p>
+            <div class="srcs"><span class="src-chip life">Доставка · монтаж</span><span class="src-chip gfx">Графика · QR</span></div>
+          </div>
+          <div class="dir"><span class="cap">Моушен</span>
+            <p>Спокойный собранный темп. Формула собирается по центру сверху вниз (рифма с формулой позиционирования из начала ролика). CTA и QR въезжают последними и держатся статично минимум 3 секунды. Лого GLASS-MEMORY в финале - тот же световой блик по стеклу, что в сцене 01 (закольцовка). Без анимационных трюков.</p>
+          </div>
+          <div class="dir"><span class="cap">Грейдинг</span>
+            <p>Мемориальный синий #0C1620. Формула - нейтрально-белые титры, керамическая печать выделена золотом #C8A951. Сервисный кадр - естественный нейтральный свет 4500K, руки в натуральном тоне. QR - белый на синем, максимальная читаемость. Финал тихий, достойный, тёплая нота печати гаснет последней.</p>
+          </div>
+        </div></details>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Инвентарь исходников <span class="em">asset-matrix</span></h2><p>Сверяется на кик-оффе с моушен-дизайнером: статус каждого шота подтверждается по библиотеке подсъёмок и партнёрским материалам GLASS-MEMORY до начала монтажа. Для рискованных зависимостей указан fallback - ролик собирается при любом статусе.</p></div>
+    <div class="amx">
+      <table>
+        <thead><tr><th>Сцена</th><th>Шот</th><th>Статус</th><th>Fallback, если шота нет</th></tr></thead>
+        <tbody>
+          <tr><td>01, 05</td><td>Макро стекла: блик по кромке, гравировка в толще, high-speed 300-400 fps</td><td class="st-chk">доснять предметно</td><td class="mut">образцы стелы на столе, один направленный свет; либо съёмка 50-100 fps + интерполяция замедления</td></tr>
+          <tr><td>01, 03</td><td>Керамический портрет-образец (макро, обжиг, стойкость)</td><td class="st-chk">доснять предметно</td><td class="mut">образцы фотокерамики бренда; портреты только согласованные или нейтральные, реальные фото семей с письменным разрешением</td></tr>
+          <tr><td>02, 07, 08</td><td>Цех: проезд, лазер по стали, камнерезный станок, участок печати</td><td class="st-ok">есть (подсъёмки производства)</td><td class="mut">цельный проезд собирается из 3 планов единого направления</td></tr>
+          <tr><td>02</td><td>Дилерская сеть: карта РФ 320+ / 250+ городов</td><td class="st-gfx">графика</td><td class="mut">цифру и её актуальность подтверждает GLASS-MEMORY; если не подтверждена - заменить на нейтральный титр «партнёрская сеть по всей РФ» без числа</td></tr>
+          <tr><td>03</td><td>Печь обжига керамики, свечение изнутри</td><td class="st-chk">доснять на участке</td><td class="mut">ключевой кадр акцента, стоком не заменять; при отсутствии печи - макро готовой обожжённой пластины со скользящим светом</td></tr>
+          <tr><td>04</td><td>Сравнение кромок: обычное стекло vs Crystalvision; веер образцов; обработка</td><td class="st-chk">доснять предметно</td><td class="mut">образцы стёкол из витрины бренда, съёмка за полдня одним столом и светом</td></tr>
+          <tr><td>05</td><td>Стеклянная стела на подиуме, orbit; формы стел</td><td class="st-chk">постановка в салоне</td><td class="mut">3D-рендер стелы (при наличии) либо витринные образцы салона</td></tr>
+          <tr><td>06</td><td>Гранитный цветник: макро кромки, формы, комплекс сверху</td><td class="st-chk">доснять предметно</td><td class="mut">образцы гранита + графические контуры форм поверх; вид сверху - дрон или штатив-стрела</td></tr>
+          <tr><td>07</td><td>Металл с лазерной резкой: ограда, ажурный памятник, столик, комплекс со скамьёй</td><td class="st-ok">есть (партнёрские материалы, кампания «Металл с лазерной резкой»)</td><td class="mut">фото изделий из дилерской деки, привести к единому грейду</td></tr>
+          <tr><td>08</td><td>Прорезь под стекло: подготовка паза, посадка вставки заподлицо</td><td class="st-chk">доснять на участке</td><td class="mut">ключевой технический кадр; при отсутствии - собрать из макро паза и отдельного кадра установки стекла</td></tr>
+          <tr><td>09</td><td>Изделия-герои: камень+стекло, металл+стекло, полный комплекс</td><td class="st-chk">постановка в салоне</td><td class="mut">фотореалистичные 3D-рендеры комбинаций либо витрина салона</td></tr>
+          <tr><td>10</td><td>Доставка и белый монтаж; финальная графика формулы + QR</td><td class="st-ok">есть (подсъёмки монтажа) + графика</td><td class="mut">снять на ближайшем монтаже, 1 выезд; графику собирает моушен-дизайнер по граф-киту ниже</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footnote"><b>Кик-офф до монтажа:</b> моушен-дизайнер сверяет статусы, GLASS-MEMORY передаёт архив: вектор-локап GLASS-MEMORY (SVG или AI, не перерисовывать), образцы фотокерамики, фото изделий из металла (кампания «Металл с лазерной резкой»), образцы стёкол и гранита, 3D-рендеры при наличии. Съёмочные дозаказы группируются в 2 смены: предметная (макро стекла, керамика, образцы стёкол и гранита - один стол и свет) и объектная (цех, участок печати, камнерезка, монтаж, постановка в салоне). Цифру дилерской сети 320+ / 250+ городов и любые сроки службы керамической печати выводим на экран только после письменного подтверждения GLASS-MEMORY.</div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Стайл-гайд <span class="em">ролика</span></h2></div>
+    <div class="style2">
+      <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/></svg></span>Темп и ритм</h3>
+        <p>Ролик спокойный по всей длине - это мемориальный бренд, резкий бит запрещён. Три материальные зоны с мягкими сдвигами темпа. <b>Стекло</b> - светлый, чуть живее (планы 2-2.5 сек). <b>Камень</b> - плотный, средний (3-3.5 сек). <b>Металл</b> - собранный, ажурный (2-2.5 сек). <b>Керамическая печать</b> и <b>комбинации</b> - самые медленные и тёплые (3-4 сек). Один темп на все 115 секунд не держать, но и разгона до клипа не давать.</p></div>
+      <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8"/></svg></span>Режиссура и типографика</h3>
+        <p>Документально-предметная режиссура на реальных подсъёмках; графика - только разметка поверх материала и в закрытии. Материал (стекло, камень, металл, керамика) - главный герой, макро-фактуры несут смысл. Шрифт только <b>Inter</b>: Bold - число, Regular - подпись, Light с разрядкой - тонкие мемориальные титры. Титры живут в пространстве кадра, не на плашках в углу. Людей в полный рост и лиц скорбящих в кадре нет - только руки мастера и фрагменты работы.</p></div>
+      <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h6l2-7 4 14 2-7h2"/></svg></span>Переходы</h3>
+        <p>Основа - мягкие cut'ы, диссолвы и match на фактуре. Ключевой приём - <b>match между материалами</b>: стекло входит в паз камня (сцена 08), orbit по стыку в комбинациях (сцена 09). Draw-on для технических контуров форм и прорезей. Wipe - для сравнений бок о бок (стёкла, комбинации). Запрещены: жёсткий бит-cut, glow-вспышки, вращающиеся 3D-кубы, whip-pan, любые «эффектные» переходы, неуместные в мемориальном контексте.</p></div>
+      <div class="stcard"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>Музыка и звук</h3>
+        <p>Единый сдержанный трек, <b>70-84 BPM</b>, длительность от 120 сек. Основа - фортепиано или струнные с мягкой электроникой, без надрыва и без религиозных мотивов. В блоке керамической печати - самая тёплая, человеческая тема. Диегетический звук (луч по стеклу, вода камнерезки, искра лазера, посадка стекла в паз) вплетён тихо. <b>Источник и лицензия:</b> сток-библиотека с коммерческой лицензией (Artlist или Epidemic Sound), покрытие - публичный показ в салоне и на выставках; кандидат-трек присылается на согласование GLASS-MEMORY до чистового монтажа. Без эпик-трейлерных брассов, без траурных клише. Ролик обязан работать и без звука.</p></div>
+      <div class="stcard" style="grid-column:1/-1"><h3><span class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></span>Граф-кит: цвета и шрифтовая спека</h3>
+        <p><b>Цвета графики и титров</b> (HEX для оверлеев; цветовые температуры в сценах относятся к грейду света, не к графике):
+        фон-синий мемориальный <b>#0C1620</b> · титры-нейтраль <b>#EAEFF3</b> · золото памяти (керамическая печать, лого, акцент) основное <b>#C8A951</b>, глубокое <b>#9A7B34</b> · стекло основное <b>#A9C4DD</b>, глубокое <b>#41607E</b> · камень (гранит) <b>#B7AFA3</b>, глубокий <b>#5A544C</b> · металл (сталь) <b>#9FA6AD</b>, глубокий <b>#585E64</b> · серый обесцвеченный для сравнений <b>#6F6F6F</b>. Другие цвета в графику не вводить. Золото - пунктуация памяти: акцент на печати, лого, ключевом слове, не заливка.</p>
+        <p><b>Типографика Inter:</b> числа - Bold 700; подписи - Regular 400, кегль 1:3 от числа; тонкие мемориальные титры - Light 300 с трекингом +8...+12%. Заголовочные титры до 9 слов, одна мысль на титр. Минимальный кегль с учётом просмотра с 4-5 метров: не мельче 28 px в мастере 1080p (56 px в UHD).</p>
+        <p><b>Лого:</b> вектор-локап GLASS-MEMORY передаёт бренд архивом на кик-оффе (SVG или AI). Не перерисовывать, не менять пропорции; появление лого - только приёмом «блик по стеклу» из сцен 01 и 10. Написание бренда - <b>GLASS-MEMORY</b> (через дефис).</p></div>
+      <div class="stcard dont" style="grid-column:1/-1"><h3><span class="di" style="background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span>Запрещено (anti-median и деликатность бренда)</h3>
+        <ul>
+          <li>Эксплуатация скорби: лица скорбящих, слёзы, свечи крупным планом, свежие захоронения, венки и ленты в кадре. Скорбь не продающий аргумент.</li>
+          <li>Титры «вечная память», «единственный шанс», «навсегда», эмоциональные триггеры горя и религиозная символика без запроса.</li>
+          <li>Реальные портреты умерших без письменного разрешения семьи - только согласованные образцы или нейтральные лица.</li>
+          <li>Жёсткий бит-монтаж, whip-pan, glow-вспышки, вращающиеся 3D-кубы - клиповые приёмы, неуместные в контексте.</li>
+          <li>Пёстрая заливка и кислотные цвета; золото как фон, а не как акцент; микс всех материальных акцентов в одной сцене, кроме комбинаций (09) и нейтрали (02, 10).</li>
+          <li>Плашки-титры в углу экрана, em dash в титрах, восклицательные знаки.</li>
+          <li>Числовые сроки службы керамической печати и точные допуски на экране без письменного подтверждения производителя; выдуманные цены Crystalvision (формулировка только «премиум, дороже на 25%»).</li>
+        </ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2 class="sec-title">Технические <span class="em">требования</span></h2></div>
+    <div class="tech">
+      <div class="tk"><div class="n">16:9 · 3840×2160</div><div class="l">мастер UHD, доставка также в 1920×1080</div></div>
+      <div class="tk"><div class="n">25 fps</div><div class="l">slow-mo источники 100-400 fps, конформ в 25</div></div>
+      <div class="tk"><div class="n">~115 сек</div><div class="l">допуск 110-120 сек, границы сцен ±2 сек</div></div>
+      <div class="tk"><div class="n">ProRes 422 HQ + H.264</div><div class="l">мастер + прокси для плеера салона</div></div>
+      <div class="tk"><div class="n">Inter</div><div class="l">единственный шрифт титров</div></div>
+      <div class="tk"><div class="n">Титры в safe-zone</div><div class="l">5% от краёв, читаемость с 4-5 метров</div></div>
+      <div class="tk"><div class="n">Немой ролик</div><div class="l">без диктора и субтитров: титры сцен несут полный смысл</div></div>
+      <div class="tk"><div class="n">Финал: QR + контакт</div><div class="l">статично не менее 3 сек</div></div>
+    </div>
+    <div class="footnote"><b>Сдача:</b> черновой монтаж по сценам 01-10 на согласование, затем чистовой с грейдингом и звуком. Все титры проходят проверку на деликатность бренда (без эксплуатации скорби) и Anti-Slop. Цифры и сроки на экране - только подтверждённые GLASS-MEMORY: дилерская сеть 320+ / 250+ городов подтверждается до финала, сроки службы керамической печати и допуски посадки - по документам производителя. Формулировки менять нельзя без согласования: Crystalvision - «премиум, дороже на 25%», формат бренда - мемориальные наборы (стела, накладка, подставка), написание бренда - GLASS-MEMORY.</div>
+  </section>
+
+  <footer class="foot">
+    <div class="seal"><span class="d"></span>GLASS-MEMORY · ТЗ и раскадровка ролика для салона и выставок · август 2026 · ревизия 1 · внутренний документ, ссылку не публиковать</div>
+  </footer>
+</main>
+<script src="theme.js" defer></script>
+<script>
+(function(){
+  var btn=document.getElementById('expall'); if(!btn) return;
+  function allOpen(){var d=document.querySelectorAll('details.brief');for(var i=0;i<d.length;i++){if(!d[i].open)return false;}return true;}
+  function sync(){btn.textContent=allOpen()?'Свернуть все брифы':'Развернуть все брифы';}
+  btn.addEventListener('click',function(){
+    var open=!allOpen(), d=document.querySelectorAll('details.brief');
+    for(var i=0;i<d.length;i++){d[i].open=open;}
+    sync();
+  });
+  document.addEventListener('toggle',function(){sync();},true);
+})();
+</script>
+</body>
+</html>

@@ -168,7 +168,7 @@ input#q{min-width:220px}
 .mrow2{cursor:pointer}
 .mrow2:hover td{background:#ffffff08}
 .mrow2.on td{background:#22d3ee0d}
-.t1>tbody>tr.subrow>td{padding:0 10px 16px 120px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
+.t1>tbody>tr.subrow>td{padding:0 10px 16px 64px;white-space:normal;background:#ffffff05;border-left:6px solid #22d3ee55;position:relative}
 .subrow>td::before{content:'СДЕЛКИ ▸';position:absolute;left:22px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#22d3eeaa}
 .subrow .t2{border-left:2px solid #22d3ee33;padding-left:12px}
 .whob{color:var(--ink-3);font-size:11px;margin:2px 0 0 0}
@@ -176,7 +176,7 @@ input#q{min-width:220px}
 .t2{margin-top:6px;font-size:11px}
 .t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
 .t2>tbody>tr>td.l{white-space:normal}
-.dtt{white-space:normal}
+.dtt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;display:block}
 .dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}
 .dsig .sdiv{color:var(--ink-4);opacity:.45;margin:0 4px}
 .leadnote{font-size:11px;padding:6px 12px;margin:0 0 6px;border-radius:7px;line-height:1.4}
@@ -214,7 +214,7 @@ input#q{min-width:220px}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
 .drow.on td{background:#22d3ee12}
-.t2>tbody>tr.subrow2>td{padding:0 8px 18px 130px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
+.t2>tbody>tr.subrow2>td{padding:0 8px 18px 80px;white-space:normal;background:#00000055;border-left:6px solid #C2873C99;position:relative}
 .subrow2>td::before{content:'КОММУНИКАЦИЯ ▸';position:absolute;left:34px;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;color:#C2873Ccc}
 .subrow2>td>div{border-left:2px solid #C2873C55;padding-left:14px}
 .t3{margin-top:6px;font-size:11px;table-layout:fixed}
@@ -634,6 +634,9 @@ const STAGE_GRP = [
   {k:'lost', t:'Отказ', s:'✗', col:'#C25252', stages:['Сделка провалена']},
 ];
 const STAGE2GRP = (()=>{ const m={}; for(const g of STAGE_GRP) for(const s of g.stages) m[s]=g.k; return m; })();
+const DEPT_KEY='__ОТДЕЛ__';
+// Категория события для подсветки при клике по чипу «Ленты».
+const evCat=(t)=> (t&&t.indexOf('Сообщение')===0)?'msg' : t==='Мессенджер ОЛ'?'msg' : t==='Звонок'?'call' : t==='Письмо'?'mail' : (t==='Дело'||t==='Задача')?'task' : t==='Комментарий-заметка'?'note' : '';
 // Типы коммуникаций для чипов в таблице менеджеров: тултип + клик-фильтр.
 const COMM_TYPES = [
   {k:'msg', t:'Сообщения', s:'сообщ', col:'#2E9E74'},
@@ -803,7 +806,6 @@ function renderTree(){
     return `Рейтинг - взвешенная оценка по 6 разделам регламента (Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%), шкала 0-5. Меряет дисциплину ведения, не выручку. Разделы: ${secs||'-'}. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.`; };
   // Верхняя строка «ВЕСЬ ОТДЕЛ»: агрегат по всем показанным менеджерам. Клик по её воронке/
   // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
-  const DEPT_KEY='__ОТДЕЛ__';
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
   const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
   let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;

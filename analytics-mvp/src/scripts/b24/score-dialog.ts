@@ -214,6 +214,15 @@ function main() {
   const aiMgr: Record<string, any> = aiFile.managers || {};   // разбор ИИ на уровне менеджера
   if (Object.keys(ai).length) console.log(`Слой ИИ: разборов ${Object.keys(ai).length}, менеджеров ${Object.keys(aiMgr).length}`);
 
+  // Офис-менеджер: работа с лидами под системным пользователем - это Турченко Анна
+  // (решение Ивана). Событиям ЧИСТЫХ лидов (без сделки) с владельцем-системой ставим Аню,
+  // чтобы её лид-интейк был виден отдельной строкой, а не терялся в «роботе портала».
+  const OFFICE_MGR = "Турченко Анна";
+  const isSysUser = (m: string) => /^Системный пользователь/i.test(m || "") || /^\d+$/.test(m || "");
+  let annaLeadEv = 0;
+  for (const e of events) if (!e.dealId && isSysUser(e.mgr || "")) { e.mgr = OFFICE_MGR; annaLeadEv++; }
+  if (annaLeadEv) console.log(`Лид-события системного пользователя отнесены на ${OFFICE_MGR}: ${annaLeadEv}`);
+
   const byKey: Record<string, Ev[]> = {};
   for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
 
@@ -739,8 +748,11 @@ function main() {
       grade: aiGrade, reviewed: aiDeals.length, counts: aiCounts,
       verdict: aiM ? aiM.verdict : "", strengths: (aiM && aiM.strengths) || [], weaknesses: (aiM && aiM.weaknesses) || [], action: aiM ? aiM.action : "",
     } : null;
+    // Офис-менеджер (лиды) не оценивается регламентом продавца-закрывашки: у него другая
+    // работа - принять и квалифицировать лид, а не довести до оплаты. Рейтинг не выставляем.
+    const role = mgr === OFFICE_MGR ? "office" : "sales";
     return {
-      mgr, deals: ds.length, rating, sections, ai,
+      mgr, role, deals: ds.length, rating: role === "office" ? null : rating, sections, ai,
       lossRub: Math.round(lossRub),
       lossPerDeal: Math.round(lossRub / Math.max(ds.length, 1)),
       topLoss: topLoss ? { label: topLoss[0], rub: Math.round(topLoss[1]) } : null,

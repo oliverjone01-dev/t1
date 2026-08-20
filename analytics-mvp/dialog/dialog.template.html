@@ -184,6 +184,15 @@ input#q{min-width:220px}
 .leadnote.lead-from a{color:#e4b877;font-weight:600}
 .leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
 .lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
+/* Мини-воронка и коммуникации в таблице менеджеров */
+.funnel{display:flex;gap:1px;height:8px;border-radius:3px;overflow:hidden;min-width:120px;max-width:220px}
+.funnel .fseg{min-width:3px}
+.fnums{font-size:9.5px;color:var(--ink-4);margin-top:3px;line-height:1.4;white-space:normal}
+.fnums .fdiv{opacity:.4;margin:0 3px}
+.comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
+.cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
+.rolech{display:inline-block;margin-left:7px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#3DAEC2;border:1px solid #3DAEC266;background:#3DAEC214;border-radius:4px;padding:1px 5px;vertical-align:middle;text-transform:uppercase;cursor:help}
 .t3 tr.lead-stage td.etime{color:#C2873C}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
@@ -389,7 +398,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'',
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false,
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -586,6 +595,17 @@ function pctCol(p){ return p>=70?'#2E9E74':p>=40?'#C2873C':'#C25252'; }
 // ===== ОЧЕРЕДЬ ДЕЛ: главный экран. Строка = сделка или лид, сортировка по деньгам под риском =====
 const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round(v/1000)+'к';
 const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5',lowprob:'#C2873C'}[k]||'#5D6B77');
+// Группы стадий для мини-воронки в таблице менеджеров: где сейчас портфель менеджера.
+const STAGE_GRP = [
+  {k:'early', t:'Раннее', s:'Ран', col:'#8794A5', stages:['Новая сделка','Квалификация','Формирование ТЗ','Расчёт']},
+  {k:'kp', t:'КП', s:'КП', col:'#22D3EE', stages:['КП отправлено']},
+  {k:'decide', t:'Решают', s:'Реш', col:'#8B7BF0', stages:['Принимают решение']},
+  {k:'stuck', t:'Долгострой', s:'Долг', col:'#C2873C', stages:['Долгострой']},
+  {k:'paid', t:'В производстве', s:'Пр-во', col:'#3DAEC2', stages:['Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен']},
+  {k:'won', t:'Успех', s:'✓', col:'#2E9E74', stages:['Сделка успешна']},
+  {k:'lost', t:'Отказ', s:'✗', col:'#C25252', stages:['Сделка провалена']},
+];
+const STAGE2GRP = (()=>{ const m={}; for(const g of STAGE_GRP) for(const s of g.stages) m[s]=g.k; return m; })();
 function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
@@ -616,7 +636,7 @@ function renderTree(){
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
   const SHORT={act:'Активность',take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
-  const mval=(m,k)=>{ const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
+  const mval=(m,k)=>{ if(k==='funnel') return (byM[m.mgr]||[]).length; const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
     if(k==='hot') return (byM[m.mgr]||[]).filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0); if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
     if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='act') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
@@ -626,8 +646,23 @@ function renderTree(){
     for(const d of (byM[mgr]||[])){ const m=mixOf(d,dFrom,dTo)||{};
       for(const k of ['msg','call','mail','task','note','ai','total']) t[k]+=(m[k]||0); }
     return t; };
+  // Воронка менеджера: раскладка его сделок по группам стадий - видно, где портфель.
+  const funnelOf=(mgr)=>{ const g={}; for(const d of (byM[mgr]||[])){ const gk=STAGE2GRP[d.stage]||'early'; g[gk]=(g[gk]||0)+1; } return g; };
+  const funnelCell=(mgr)=>{ const g=funnelOf(mgr); const tot=Object.values(g).reduce((a,b)=>a+b,0);
+    if(!tot) return '<span class="na2">-</span>';
+    const parts=STAGE_GRP.filter(s=>g[s.k]);
+    const segs=parts.map(s=>`<span class="fseg" style="flex:${g[s.k]};background:${s.col}"></span>`).join('');
+    const tip=parts.map(s=>`${s.t}: ${g[s.k]}`).join(' · ');
+    const nums=parts.map(s=>`<span style="color:${s.col}">${s.s} ${g[s.k]}</span>`).join('<span class="fdiv">·</span>');
+    return `<div class="funnel" data-tip="${esc(tip)}">${segs}</div><div class="fnums">${nums}</div>`; };
+  const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
+    const p=[]; if(t.msg)p.push([t.msg,'сообщ','#2E9E74']); if(t.call)p.push([t.call,'звон','#3DAEC2']);
+    if(t.mail)p.push([t.mail,'письм','#C2873C']); if(t.task)p.push([t.task,'дел','#8B7BF0']); if(t.note)p.push([t.note,'зам','#8794A5']);
+    const tip=`За период: ${t.msg} сообщений · ${t.call} звонков · ${t.mail} писем · ${t.task} дел · ${t.note} заметок · ${t.ai} резюме BitrixGPT. Период меняется фильтром выше.`;
+    return `<div class="comm" data-tip="${esc(tip)}">${p.map(x=>`<span class="cchip" style="color:${x[2]}">${x[0]}<i>${x[1]}</i></span>`).join('')}</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
-    {k:'act',t:'Активность'},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}].concat(MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})))
+    {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
+    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
     .concat([{k:'rating',t:'Рейтинг'}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   let mgrs=SC.managers.filter(m=>byM[m.mgr]);
@@ -683,6 +718,8 @@ function renderTree(){
     <span class="chip2${S.dMode==='comm'?' on2':''}" data-dmode="comm">по коммуникациям</span>
     <span class="chip2${S.dMode==='created'?' on2':''}" data-dmode="created">по дате создания сделки</span>
     ${(S.dFrom||S.dTo)?`<span class="chip2" data-dreset="1">сбросить</span>`:''}
+    <span style="color:var(--ink-4);margin:0 2px">·</span>
+    <span class="chip2${S.showMetrics?' on2':''}" data-metrics="1">${S.showMetrics?'скрыть метрики регламента':'показать метрики регламента'}</span>
     <span class="cnt">${filtered?`сделок в периоде ${DEALS.length} из ${SC.deals.length} · метрики менеджера считаются по всему окну снимка, фильтр меняет только список сделок`:`окно снимка ${esc((DATA.from||'').slice(0,10))} - ${esc((DATA.to||'').slice(0,10))}, коммуникации есть только внутри него`}</span>
   </div>`;
   // Компактная справка: 4 коротких карточки + сетка столбцов. Полные формулы - в подсказке
@@ -706,14 +743,15 @@ function renderTree(){
   let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
-    const p=m.profile; const openM=S.tm.has(m.mgr);
-    const [vc,vl]= p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ'];
+    const p=m.profile; const openM=S.tm.has(m.mgr); const office=m.role==='office';
+    const [vc,vl]= office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
-      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${alertChip(m,p)}</td>`
+      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${alertChip(m,p)}</td>`
       +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
-      +MCOLS.slice(2).map(c=>{ if(c.k==='act'){ const t=actOf(m.mgr);
-          const tip=`За период: ${t.msg} сообщений · ${t.call} звонков · ${t.mail} писем · ${t.task} дел · ${t.note} заметок · ${t.ai} резюме BitrixGPT. Это всё, что менеджер сделал по своим сделкам за выбранные даты - ставь период «сегодня» или «вчера», чтобы посмотреть один день.`;
-          return `<td data-tip="${esc(tip)}" style="cursor:help">${t.total?fmt2(t.total):'<span class=\"na2\">0</span>'}</td>`; }
+      +MCOLS.slice(2).map(c=>{
+        if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
+        if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
+        if(c.k==='rating'&&office) return `<td><span class="na2" title="Офис-менеджер лидов - рейтинг продавца не считается">-</span></td>`;
         return `<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
     if(openM){
@@ -760,6 +798,7 @@ function renderTree(){
     else { S.dFrom=iso(now-(Number(k)-1)*864e5); S.dTo=iso(now); }
     S.td.clear(); renderTree(); });
   list.querySelectorAll('[data-dmode]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.dMode=b.dataset.dmode; renderTree(); });
+  const mt=list.querySelector('[data-metrics]'); if(mt) mt.onclick=e=>{ e.stopPropagation(); S.showMetrics=!S.showMetrics; renderTree(); };
   const dr=list.querySelector('[data-dreset]'); if(dr) dr.onclick=e=>{ e.stopPropagation(); S.dFrom=''; S.dTo=''; renderTree(); };
   const hb=list.querySelector('[data-help]'); if(hb) hb.onclick=e=>{ e.stopPropagation(); S.help=!S.help; renderTree(); };
   list.querySelectorAll('th.sortable').forEach(th=>th.onclick=e=>{ e.stopPropagation();

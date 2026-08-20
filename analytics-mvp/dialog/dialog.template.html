@@ -198,7 +198,9 @@ input#q{min-width:220px}
 .fnchip .x{margin-left:8px;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:6px;padding:2px 8px;font-size:10.5px}
 .fnchip .x:hover{background:#164050;color:#e7f8fc}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
-.cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;padding:1px 5px;border-radius:6px;border:1px solid transparent;transition:.1s}
+.cchip:hover{background:#ffffff0d;border-color:var(--border)}
+.cchip.con{background:#ffffff14;border-color:currentColor}
 .cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
 .rolech{display:inline-block;margin-left:7px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#3DAEC2;border:1px solid #3DAEC266;background:#3DAEC214;border-radius:4px;padding:1px 5px;vertical-align:middle;text-transform:uppercase;cursor:help}
 .t3 tr.lead-stage td.etime{color:#C2873C}
@@ -406,7 +408,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'',
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'',
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -615,6 +617,14 @@ const STAGE_GRP = [
   {k:'lost', t:'Отказ', s:'✗', col:'#C25252', stages:['Сделка провалена']},
 ];
 const STAGE2GRP = (()=>{ const m={}; for(const g of STAGE_GRP) for(const s of g.stages) m[s]=g.k; return m; })();
+// Типы коммуникаций для чипов в таблице менеджеров: тултип + клик-фильтр.
+const COMM_TYPES = [
+  {k:'msg', t:'Сообщения', s:'сообщ', col:'#2E9E74'},
+  {k:'call', t:'Звонки', s:'звон', col:'#3DAEC2'},
+  {k:'mail', t:'Письма', s:'письм', col:'#C2873C'},
+  {k:'task', t:'Дела', s:'дел', col:'#8B7BF0'},
+  {k:'note', t:'Заметки', s:'зам', col:'#8794A5'},
+];
 function renderTree(){
   const list=document.getElementById('list');
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
@@ -667,10 +677,10 @@ function renderTree(){
     const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
     return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
   const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
-    const p=[]; if(t.msg)p.push([t.msg,'сообщ','#2E9E74']); if(t.call)p.push([t.call,'звон','#3DAEC2']);
-    if(t.mail)p.push([t.mail,'письм','#C2873C']); if(t.task)p.push([t.task,'дел','#8B7BF0']); if(t.note)p.push([t.note,'зам','#8794A5']);
-    const tip=`За период: ${t.msg} сообщений · ${t.call} звонков · ${t.mail} писем · ${t.task} дел · ${t.note} заметок · ${t.ai} резюме BitrixGPT. Период меняется фильтром выше.`;
-    return `<div class="comm" data-tip="${esc(tip)}">${p.map(x=>`<span class="cchip" style="color:${x[2]}">${x[0]}<i>${x[1]}</i></span>`).join('')}</div>`; };
+    // Каждый чип - со своим тултипом (цветная точка + тип + счётчик) и кликом-фильтром.
+    const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=S.cmMgr===mgr&&S.cmType===c.k;
+      return `<span class="cchip${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${t[c.k]}</b> · клик - сделки с этим каналом">${t[c.k]}<i>${c.s}</i></span>`; }).join('');
+    return `<div class="comm">${chips}</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
@@ -772,6 +782,10 @@ function renderTree(){
       if(fnActive){ const grp=STAGE_GRP.find(x=>x.k===S.fnGrp)||{}; const before=ds.length;
         ds=ds.filter(d=>grpOf(d)===S.fnGrp);
         html+=`<div class="fnchip"><span class="tdot" style="background:${grp.col}"></span>Этап: <b>${esc(grp.t)}</b> · ${ds.length} из ${before} <span class="x" data-fnclear="1">показать все стадии</span></div>`; }
+      const cmActive = S.cmMgr===m.mgr && S.cmType;
+      if(cmActive){ const ct=COMM_TYPES.find(x=>x.k===S.cmType)||{}; const before=ds.length;
+        ds=ds.filter(d=>((mixOf(d,dFrom,dTo)||{})[S.cmType]||0)>0);
+        html+=`<div class="fnchip"><span class="tdot" style="background:${ct.col}"></span>Канал: <b>${esc(ct.t)}</b> · ${ds.length} из ${before} <span class="x" data-cmclear="1">показать все каналы</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
@@ -807,6 +821,7 @@ function renderTree(){
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
   list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
+  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -828,9 +843,16 @@ function renderTree(){
     // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
+      S.cmMgr='';S.cmType='';
       if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; } else { S.fnMgr=m; S.fnGrp=grp; S.tm.add(m); }
       renderTree(); return; }
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} } else S.tm.add(m); renderTree(); });
+    // Клик по чипу коммуникации: сделки менеджера с этим каналом.
+    const cc=e.target.closest&&e.target.closest('.cchip');
+    if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
+      S.fnMgr='';S.fnGrp='';
+      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; } else { S.cmMgr=m; S.cmType=ct; S.tm.add(m); }
+      renderTree(); return; }
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);

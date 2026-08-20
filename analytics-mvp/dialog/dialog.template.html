@@ -711,7 +711,12 @@ function renderTree(){
   if(!SC){ list.innerHTML='<div class="empty">разбор не посчитан</div>'; return; }
   // Индекс времени событий по сделкам - для фильтра «по коммуникациям».
   if(!window.EVTS){ window.EVTS={}; window.EVIX={};
-    for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId;
+    // Лид->сделка: события, оставшиеся на лиде (без dealId), индексируем под ключом
+    // конвертированной сделки - той же логикой, что и раскрытая лента. Иначе полнота и фильтр
+    // «по коммуникациям» для сделки-из-лида ложно видят 0 (переписка висит на лиде).
+    const L2D={}; for(const e of DATA.events) if(e.dealId&&e.leadId) L2D[String(e.leadId)]=String(e.dealId);
+    const gk=e=> e.dealId?'D'+e.dealId : (e.leadId&&L2D[String(e.leadId)])?'D'+L2D[String(e.leadId)] : 'L'+e.leadId;
+    for(const e of DATA.events){ const k=gk(e);
       (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
   const dFrom=S.dFrom?Date.parse(S.dFrom+'T00:00:00+03:00'):0;
   const dTo=S.dTo?Date.parse(S.dTo+'T23:59:59+03:00'):0;

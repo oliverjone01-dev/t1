@@ -223,14 +223,28 @@ function main() {
   for (const e of events) if (!e.dealId && isSysUser(e.mgr || "")) { e.mgr = OFFICE_MGR; annaLeadEv++; }
   if (annaLeadEv) console.log(`Лид-события системного пользователя отнесены на ${OFFICE_MGR}: ${annaLeadEv}`);
 
+  // Джойн лид->сделка. События, оставшиеся физически на лиде (dealId пуст, есть только leadId),
+  // вливаем в ленту конвертированной сделки. Обратный индекс строим из событий самой сделки:
+  // они несут leadId (из dealSrcLead при выгрузке), поэтому маппинг leadId->dealId самодостаточен.
+  // Без этого полнота коммуникаций сделки-из-лида ложно = 0 (переписка висит на лиде-первоисточнике).
+  const leadToDeal: Record<string, string> = {};
+  for (const e of events) if (e.dealId && e.leadId) leadToDeal[e.leadId] = e.dealId;
+  const groupKey = (e: Ev): string =>
+    e.dealId ? "D" + e.dealId
+      : e.leadId && leadToDeal[e.leadId] ? "D" + leadToDeal[e.leadId]
+      : "L" + e.leadId;
   const byKey: Record<string, Ev[]> = {};
-  for (const e of events) (byKey[e.dealId ? "D" + e.dealId : "L" + e.leadId] ||= []).push(e);
+  for (const e of events) (byKey[groupKey(e)] ||= []).push(e);
 
   const deals: any[] = [];
   for (const [key, evs] of Object.entries(byKey)) {
     evs.sort((a, b) => a.ts - b.ts);
     const last = evs[evs.length - 1]!;
-    const dealId = last.dealId || "", leadId = last.leadId || "";
+    // dealId/leadId берём из ключа группы, а не из last: last может оказаться лид-событием
+    // (dealId пуст), влитым в группу сделки - тогда сделка ложно прочиталась бы как лид.
+    const isDeal = key[0] === "D";
+    const dealId = isDeal ? key.slice(1) : "";
+    const leadId = isDeal ? (evs.find((e) => e.leadId)?.leadId || "") : key.slice(1);
     const f = dealId ? facts[dealId] : null;
     // Закрытые сделки (успех/отказ) раньше пропускались. Теперь оставляем - ИИ учится на
     // исходах, а в дашборде видны стадии «Сделка успешна/провалена». Из рейтинга и медиан

@@ -1074,18 +1074,30 @@ function render(){
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_cohortWon.length+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
-  // Дилерский канал идёт МИМО лидов (заказ создаётся сразу сделкой), поэтому для «Только дилеры»
-  // строим воронку ОТ СДЕЛОК: Сделки → Продажи. Конверсия = продажи ÷ сделки (успешный переход).
+  // Дилеры заводят заказ в основном сразу сделкой (мимо лида), поэтому для «Только дилеры»
+  // строим ПОЛНЫЙ путь по сделкам с промежуточными стадиями и лидами в начале:
+  // Лиды → Сделки → КП отправлено → Предоплата → Продажи (успех). Первый переход Лиды→Сделки
+  // показываем как «+N прямых» (сделок больше лидов), дальше - обычная конверсия стадия/предыдущая.
   const _dealer=S.channel==='dealer';
-  const _dSales=_cohortWon.length,_dConv=D.length?_dSales/D.length:0;
+  const _cvOrd={};FORDER.forEach((c,i)=>_cvOrd[c]=i);
+  const _cvReach=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&_cvOrd[e[0]]!=null&&_cvOrd[e[0]]>mo)mo=_cvOrd[e[0]];}if(!h.length&&_cvOrd[d.stageCode]!=null)mo=_cvOrd[d.stageCode];if(d.won&&_cvOrd['C21:WON']>mo)mo=_cvOrd['C21:WON'];return mo;};
+  const _reachN=code=>D.filter(d=>_cvReach(d)>=_cvOrd[code]).length;
+  const _dLeads=L.length,_dDeals=D.length,_dFromLead=D.filter(d=>d.fromLead).length,_dDirect=_dDeals-_dFromLead;
+  const _dKP=_reachN('C21:PREPAYMENT_INVOIC'),_dPre=_reachN('C21:UC_5BND99'),_dWon=D.filter(d=>d.won).length;
+  const _dConv=_dDeals?_dWon/_dDeals:0; // сквозная сделка → продажа (успех)
   const _stg=_dealer
-    ? [['Сделки',D.length,'#3DAEC2'],['Продажи',_dSales,'#2E9E74']]
+    ? [['Лиды',_dLeads,'#3DAEC2'],['Сделки',_dDeals,'#3DAEC2'],['КП отправлено',_dKP,'#2E9E74'],['Предоплата',_dPre,'#6366F1'],['Продажи',_dWon,'#2E9E74']]
     : [['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];
-  const _cvs=_dealer?[_dConv]:[_cv1,_cvQS];
+  const _cvs=_dealer
+    ? ['+'+fmt(_dDirect),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)]
+    : [_cv1,_cvQS];
+  const _tips=_dealer
+    ? ['Лиды → сделки · «+N» = прямые сделки без лида (дилеры заводят заказ сразу сделкой)','Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг']
+    : ['Заявка → сделка (CR1)','Сделка → продажа (CR2) · ключевой рычаг'];
   const _e2e=_dealer?_dConv:(_leadN?_wonN/_leadN:0);
   const _e2eLbl=_dealer?'сквозная сделка→продажа':'сквозная заявка→продажа';
   const _cvSub=_dealer
-    ? 'дилер-воронка: сделка → продажа · заказы дилеров идут напрямую, без лида'
+    ? `дилер-воронка: лиды → сделки → КП → предоплата → продажи · <b style="color:#C084FC">прямых без лида: ${fmt(_dDirect)}</b>`
     : `лид-воронка: заявка → сделка → продажа · <b style="color:#C084FC">прямые без лида: ${fmt(_wonDirect)}</b> (дилеры, мимо воронки)`;
   const _cvFunnel=(()=>{const stg=_stg,cvs=_cvs;
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(...stg.map(s=>s[1]),1),n=stg.length,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_e2e;
@@ -1093,8 +1105,9 @@ function render(){
     for(let i=0;i<n-1;i++){const h0=hOf(stg[i][1]),h1=hOf(stg[i+1][1]),x0=nodeX(i)+nodeW,x1=nodeX(i+1),t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='cvf'+i;
       defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${stg[i][2]}" stop-opacity=".4"/><stop offset="1" stop-color="${stg[i+1][2]}" stop-opacity=".4"/></linearGradient>`;
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})"/>`;
-      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?(_dealer?'Сделка → продажа · дилерский канал':'Заявка → сделка (CR1)'):'Сделка → продажа (CR2) · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
-      conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${pct(cvs[i])}</text>`;}
+      const cvv=cvs[i],cvTxt=(typeof cvv==='number')?pct(cvv):cvv;
+      const mp=(x0+x1)/2,cc=i%2?'#3DAEC2':'#2E9E74',td=dt(_tips[i]||'Переход',[['Конверсия',cvTxt,'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
+      conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${cvTxt}</text>`;}
     stg.forEach((s,i)=>{const hh=hOf(s[1]),t=midY-hh/2;
       nodes+=`<rect class="seg-anim" style="animation-delay:${i*.07}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${hh}" rx="6" fill="${s[2]}"/>`;
       if(hh>38)nodes+=`<text x="${cx(i)}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(s[1])}</text>`;

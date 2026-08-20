@@ -48,6 +48,8 @@ const deals = rop.deals.map((d: any) => ({
   assort: d.assort, reason: d.reason, touchReal: d.touchReal || 0, touchAll: d.touchAll || 0, cycle: d.cycle,
   touch90: d.touch90 ?? null, tasksOpen: d.tasksOpen ?? null, tasksNoContact: d.tasksNoContact ?? null,
   stageCode: d.stageCode, dir: d.dir, hist: d.hist || [], dwellCur: dwellOf(d),
+  // Происхождение сделки: пришла из лида (для CR2 «из лида vs прямые» и дилер-воронки).
+  fromLead: !!d.fromLead, leadId: d.leadId ?? null, leadDir: d.leadDir ?? null,
 }));
 
 // --- leads -> схема MVP (+ qual) ---

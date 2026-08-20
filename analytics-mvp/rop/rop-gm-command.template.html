@@ -1074,31 +1074,21 @@ function render(){
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_cohortWon.length+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
-  // Дилеры заводят заказ в основном сразу сделкой (мимо лида), поэтому для «Только дилеры»
-  // строим ПОЛНЫЙ путь по сделкам с промежуточными стадиями и лидами в начале:
-  // Лиды → Сделки → КП отправлено → Предоплата → Продажи (успех). Первый переход Лиды→Сделки
-  // показываем как «+N прямых» (сделок больше лидов), дальше - обычная конверсия стадия/предыдущая.
-  const _dealer=S.channel==='dealer';
+  // ЕДИНАЯ воронка сделок для ВСЕХ каналов (с дилерами / без дилеров / только дилеры).
+  // Лиды в начале, между сделкой и продажей - реальные стадии конвейера:
+  // Лиды → Сделки → КП отправлено → Предоплата → Продажи (успех). Достижение стадии - по истории.
+  // Первый переход Лиды→Сделки: «+N» = сделки без лида (созданы напрямую), в подсказке - % из лида.
   const _cvOrd={};FORDER.forEach((c,i)=>_cvOrd[c]=i);
   const _cvReach=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&_cvOrd[e[0]]!=null&&_cvOrd[e[0]]>mo)mo=_cvOrd[e[0]];}if(!h.length&&_cvOrd[d.stageCode]!=null)mo=_cvOrd[d.stageCode];if(d.won&&_cvOrd['C21:WON']>mo)mo=_cvOrd['C21:WON'];return mo;};
   const _reachN=code=>D.filter(d=>_cvReach(d)>=_cvOrd[code]).length;
   const _dLeads=L.length,_dDeals=D.length,_dFromLead=D.filter(d=>d.fromLead).length,_dDirect=_dDeals-_dFromLead;
   const _dKP=_reachN('C21:PREPAYMENT_INVOIC'),_dPre=_reachN('C21:UC_5BND99'),_dWon=D.filter(d=>d.won).length;
   const _dConv=_dDeals?_dWon/_dDeals:0; // сквозная сделка → продажа (успех)
-  const _stg=_dealer
-    ? [['Лиды',_dLeads,'#3DAEC2'],['Сделки',_dDeals,'#3DAEC2'],['КП отправлено',_dKP,'#2E9E74'],['Предоплата',_dPre,'#6366F1'],['Продажи',_dWon,'#2E9E74']]
-    : [['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];
-  const _cvs=_dealer
-    ? ['+'+fmt(_dDirect),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)]
-    : [_cv1,_cvQS];
-  const _tips=_dealer
-    ? ['Лиды → сделки · «+N» = прямые сделки без лида (дилеры заводят заказ сразу сделкой)','Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг']
-    : ['Заявка → сделка (CR1)','Сделка → продажа (CR2) · ключевой рычаг'];
-  const _e2e=_dealer?_dConv:(_leadN?_wonN/_leadN:0);
-  const _e2eLbl=_dealer?'сквозная сделка→продажа':'сквозная заявка→продажа';
-  const _cvSub=_dealer
-    ? `дилер-воронка: лиды → сделки → КП → предоплата → продажи · <b style="color:#C084FC">прямых без лида: ${fmt(_dDirect)}</b>`
-    : `лид-воронка: заявка → сделка → продажа · <b style="color:#C084FC">прямые без лида: ${fmt(_wonDirect)}</b> (дилеры, мимо воронки)`;
+  const _stg=[['Лиды',_dLeads,'#3DAEC2'],['Сделки',_dDeals,'#3DAEC2'],['КП отправлено',_dKP,'#2E9E74'],['Предоплата',_dPre,'#6366F1'],['Продажи',_dWon,'#2E9E74']];
+  const _cvs=['+'+fmt(_dDirect),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)];
+  const _tips=['Лиды → сделки · «+N» = сделки без лида (созданы напрямую) · из лида '+pct(_dLeads?_dFromLead/_dLeads:0),'Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг'];
+  const _e2e=_dConv,_e2eLbl='сквозная сделка→продажа';
+  const _cvSub=`воронка сделок: лиды → сделки → КП → предоплата → продажи · <b style="color:#C084FC">без лида: ${fmt(_dDirect)}</b> из ${fmt(_dDeals)}`;
   const _cvFunnel=(()=>{const stg=_stg,cvs=_cvs;
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(...stg.map(s=>s[1]),1),n=stg.length,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_e2e;
     let defs='',conns='',nodes='',labels='';
@@ -2436,14 +2426,8 @@ function wireCv(L,D){
   const qc=keys.map(k=>D.filter(d=>bkey(d.created,S.gran)===k).length);
   const wc=keys.map(k=>D.filter(d=>d.won&&bkey(d.created,S.gran)===k).length);
   const r=(num,den)=>keys.map((_,i)=>den[i]?+(num[i]/den[i]*100).toFixed(1):0);
-  // Дилеры идут мимо лидов - показываем один трек «сделка → продажа» (won ÷ сделки) по времени.
-  if(S.channel==='dealer'){
-    multiline([{name:'Сделка → продажа, %',total:true,color:'#22D3EE',vals:r(wc,qc)}],keys,S.gran,false,document.getElementById('cvDyn'));return;}
-  multiline([
-    {name:'CR1 · % в сделку',color:'#10B981',vals:r(qc,lc)},
-    {name:'CR2 · % в продажу',color:'#22D3EE',vals:r(wc,qc)},
-    {name:'Сквозная · заявка→продажа, %',total:true,noArea:true,color:'#A78BFA',vals:r(wc,lc)}
-  ],keys,S.gran,false,document.getElementById('cvDyn'));}
+  // Единый трек «сделка → продажа» (успех ÷ сделки, по дате создания) по времени - для всех каналов.
+  multiline([{name:'Сделка → продажа, %',total:true,color:'#22D3EE',vals:r(wc,qc)}],keys,S.gran,false,document.getElementById('cvDyn'));}
 function wireLeadDyn(L){const keys=buckets(S.gran);
   const q=keys.map(k=>L.filter(x=>x.qual==='квал'&&bkey(x.created,S.gran)===k).length);
   const n=keys.map(k=>L.filter(x=>x.qual==='неквал'&&bkey(x.created,S.gran)===k).length);

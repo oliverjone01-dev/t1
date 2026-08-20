@@ -1205,9 +1205,12 @@ function completeness(d){ const F=S.aiF, m=aiMix(d), inc=F.inc;
 function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
   const ids=F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean);
   const idset=ids.length?new Set(ids):null;
+  // Корзина кликов: список ID - истина; чипы «Менеджеры»/«Стадии» подсвечены для показа
+  // того, что накликано (объединение срезов), но фильтруют выборку не они, а idset.
+  const pickMode=S.picks.length>0;
   return SC.deals.filter(d=>{
-    if(F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
-    if(F.stages.size && !F.stages.has(d.stage||'(без стадии)')) return false;
+    if(!pickMode && F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
+    if(!pickMode && F.stages.size && !F.stages.has(d.stage||'(без стадии)')) return false;
     if(idset){ const id=String(d.dealId||d.leadId||''); if(!idset.has(id)) return false; }
     if(!a&&!b) return true;
     if(F.dMode==='created'){ const ts=EVTS[d.key]||[]; const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0)); if(!c) return true; return (!a||c>=a)&&(!b||c<=b); }
@@ -1472,10 +1475,15 @@ function aiPicksClear(){ S.picks=[]; aiApplyPicks(); renderTree(); }
 // Корзина -> фильтр ИИ: объединяем сделки всех пиков в один список ID, глубина всегда
 // «вся сделка». Пусто - корзина не трогает ручной фильтр панели.
 function aiApplyPicks(){ const F=S.aiF;
-  if(S.picks.length){ const ids=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>ids.add(String(d))));
-    F.mgrs=new Set(); F.stages=new Set(); F.depth='all'; F.dealIds=[...ids].join(', ');
+  if(S.picks.length){ const ids=new Set(), mgrs=new Set(), stages=new Set();
+    // Выборка ИИ = объединение сделок всех пиков (истина - список ID). Плюс отражаем клики
+    // в измерения панели: менеджер пика зажигает чип менеджера, пик воронки - чипы стадий.
+    S.picks.forEach(p=>{ (p.deals||[]).forEach(d=>ids.add(String(d)));
+      if(p.mgr && p.mgr!==DEPT_KEY && p.mgr!=='(лид)') mgrs.add(p.mgr);
+      if(p.kind==='fn'){ const g=STAGE_GRP.find(x=>x.k===p.sub); if(g&&g.stages.length) g.stages.forEach(s=>stages.add(s)); } });
+    F.mgrs=mgrs; F.stages=stages; F.depth='all'; F.dealIds=[...ids].join(', ');
     F.dMode=S.dMode; F.from=S.dFrom; F.to=S.dTo; }
-  else F.dealIds='';
+  else { F.mgrs=new Set(); F.stages=new Set(); F.dealIds=''; }
   aiSave(); if(S.aiOpen) renderAIPanel(); }
 function renderPickTray(){ const el=document.getElementById('picktray'); if(!el) return;
   if(!S.picks.length){ el.classList.remove('on'); el.innerHTML=''; document.body.style.paddingBottom=''; return; }

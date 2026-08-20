@@ -321,6 +321,13 @@ input#q{min-width:220px}
 .scrim.on{opacity:1;pointer-events:auto}
 .apanel{position:fixed;top:0;right:0;height:100%;width:min(470px,95vw);background:var(--card2);border-left:1px solid var(--border);z-index:70;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;box-shadow:-16px 0 40px #0008}
 .apanel.on{transform:none}
+/* Единый стиль скроллов под тему дашборда (тонкий, тёмный, без светлой полосы браузера) */
+.apanel,.mgrbox,.ansbox,.dllist,.scrollx,#list{scrollbar-width:thin;scrollbar-color:var(--border-soft) transparent}
+.apanel::-webkit-scrollbar,.mgrbox::-webkit-scrollbar,.ansbox::-webkit-scrollbar,.dllist::-webkit-scrollbar,.scrollx::-webkit-scrollbar,#list::-webkit-scrollbar{width:9px;height:9px}
+.apanel::-webkit-scrollbar-track,.mgrbox::-webkit-scrollbar-track,.ansbox::-webkit-scrollbar-track,.dllist::-webkit-scrollbar-track,.scrollx::-webkit-scrollbar-track,#list::-webkit-scrollbar-track{background:transparent}
+.apanel::-webkit-scrollbar-thumb,.mgrbox::-webkit-scrollbar-thumb,.ansbox::-webkit-scrollbar-thumb,.dllist::-webkit-scrollbar-thumb,.scrollx::-webkit-scrollbar-thumb,#list::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px;border:2px solid transparent;background-clip:content-box}
+.apanel::-webkit-scrollbar-thumb:hover,.mgrbox::-webkit-scrollbar-thumb:hover,.ansbox::-webkit-scrollbar-thumb:hover,.dllist::-webkit-scrollbar-thumb:hover,.scrollx::-webkit-scrollbar-thumb:hover,#list::-webkit-scrollbar-thumb:hover{background:var(--ink-4);background-clip:content-box}
+.apanel::-webkit-scrollbar-corner,.scrollx::-webkit-scrollbar-corner{background:transparent}
 .apanel .ah{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card2);z-index:2}
 .apanel .ah b{font-size:13.5px}
 .apanel .ah .sub2{color:var(--ink-4);font-size:10.5px;margin-top:2px}

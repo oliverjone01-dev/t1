@@ -232,7 +232,9 @@ function main() {
     const last = evs[evs.length - 1]!;
     const dealId = last.dealId || "", leadId = last.leadId || "";
     const f = dealId ? facts[dealId] : null;
-    if (f && (f.won || f.lost)) continue;
+    // Закрытые сделки (успех/отказ) раньше пропускались. Теперь оставляем - ИИ учится на
+    // исходах, а в дашборде видны стадии «Сделка успешна/провалена». Из рейтинга и медиан
+    // отдела они исключаются ниже (dealsByMgr), чтобы не искажать оценку текущей дисциплины.
     const msgs = evs.filter(isMsg);
     const outs = msgs.filter((m) => m.dir === "исходящее"), ins = msgs.filter((m) => m.dir === "входящее");
     const outText = outs.map((m) => m.body || "").join("\n"), inText = ins.map((m) => m.body || "").join("\n");
@@ -659,8 +661,10 @@ function main() {
       calc: (ds: any[]) => Math.round(ds.filter((d) => d.tags.some((t: Tag) => t.t === "Называет конкретные даты")).length / ds.length * 100),
       good: (v: number) => `называет клиенту конкретные даты в ${v}% сделок`, bad: (v: number) => `конкретные даты только в ${v}% сделок` },
   ];
+  // Рейтинг и медианы отдела - только по открытым сделкам: дисциплина ведения меряется
+  // на живом пайплайне, а не на уже закрытых успехах/отказах.
   const dealsByMgr: Record<string, any[]> = {};
-  for (const d of deals) (dealsByMgr[d.mgr] ||= []).push(d);
+  for (const d of deals) if (d.outcome === "open") (dealsByMgr[d.mgr] ||= []).push(d);
   const scored = Object.entries(dealsByMgr).filter(([m, ds]) => !isHidden(m, fired) && ds.length >= MIN_SAMPLE);
   const dept: Record<string, number | null> = {};
   for (const mt of METRICS) {

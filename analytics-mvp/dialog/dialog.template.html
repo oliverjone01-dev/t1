@@ -329,6 +329,26 @@ input#q{min-width:220px}
 .burger:hover{border-color:var(--acc);color:var(--acc)}
 .scrim{position:fixed;inset:0;background:#0007;opacity:0;pointer-events:none;transition:.2s;z-index:60}
 .scrim.on{opacity:1;pointer-events:auto}
+/* Корзина фильтра по кликам - фиксированная строка внизу экрана */
+.ptray{position:fixed;left:12px;right:12px;bottom:12px;z-index:55;display:none;gap:10px 14px;align-items:center;flex-wrap:wrap;
+  padding:9px 12px;background:var(--card);border:1px solid var(--acc);border-radius:12px;box-shadow:0 8px 30px #0006}
+.ptray.on{display:flex}
+.ptray .ptl{font-size:11.5px;font-weight:700;color:var(--ink-2);display:flex;flex-direction:column;line-height:1.35}
+.ptray .ptn{font-size:10px;font-weight:400;color:var(--ink-4)}
+.ptray .pchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.pchip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);cursor:pointer;
+  padding:2px 8px;border-radius:14px;border:1px solid var(--border);background:#ffffff08;transition:.1s}
+.pchip:hover{border-color:var(--acc);background:var(--acc)14}
+.pchip b{color:var(--ink-3);font-variant-numeric:tabular-nums}
+.pchip .px{color:var(--ink-4);font-size:10px}
+.pchip:hover .px{color:var(--acc)}
+.pacts{display:flex;gap:8px}
+.pbtn{font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:#04202a}
+.pbtn.ghost{background:transparent;color:var(--ink-3);border-color:var(--border)}
+.pbtn.ghost:hover{border-color:var(--ink-4);color:var(--ink-2)}
+.dealcnt{cursor:pointer}
+.dealcnt:hover{color:var(--acc)}
+.dealcnt.allon{outline:2px solid var(--acc);outline-offset:-3px;border-radius:6px;color:var(--acc);font-weight:700}
 .apanel{position:fixed;top:0;right:0;height:100%;width:min(470px,95vw);background:var(--card2);border-left:1px solid var(--border);z-index:70;transform:translateX(100%);transition:transform .22s ease;overflow-y:auto;box-shadow:-16px 0 40px #0008}
 .apanel.on{transform:none}
 /* Единый стиль скроллов под тему дашборда (тонкий, тёмный, без светлой полосы браузера) */
@@ -400,6 +420,7 @@ input#q{min-width:220px}
 <div id="tip"></div>
 <button class="burger" id="burger" title="Настройка ИИ-анализа" onclick="aiToggle(true)">☰</button>
 <div class="scrim" id="scrim" onclick="aiToggle(false)"></div>
+<div class="ptray" id="picktray"></div>
 <aside class="apanel" id="apanel"></aside>
 <div class="wrap">
   <div class="h1">GENGLASS · Диалоги</div>
@@ -435,7 +456,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, evHi:null,
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, evHi:null, picks:[],
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -708,13 +729,13 @@ function renderTree(){
     if(!tot) return '<span class="na2">-</span>';
     const parts=STAGE_GRP.filter(s=>g[s.k]);
     // Клик по сегменту -> фильтр сделок этого этапа у менеджера (подсветка активного сегмента).
-    const segs=parts.map(s=>{ const on=S.fnMgr===mgr&&S.fnGrp===s.k;
+    const segs=parts.map(s=>{ const on=aiPickActive('fn',mgr,s.k);
       return `<span class="fseg${on?' fon':''}" data-grp="${s.k}" style="flex:${g[s.k]};background:${s.col}" data-tip="<span class='tdot' style='background:${s.col}'></span>${esc(s.t)}: <b>${g[s.k]}</b> · клик - показать эти сделки"></span>`; }).join('');
     const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
     return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
   const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
     // Каждый чип - со своим тултипом (цветная точка + тип + счётчик) и кликом-фильтром.
-    const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=S.cmMgr===mgr&&S.cmType===c.k;
+    const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=aiPickActive('cm',mgr,c.k);
       return `<span class="cchip${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${t[c.k]}</b> · клик - сделки с этим каналом">${t[c.k]}<i>${c.s}</i></span>`; }).join('');
     return `<div class="comm">${chips}</div>`; };
   // Полнота коммуникаций сделки: доля коммуникационных событий (сообщения, звонки, письма)
@@ -727,7 +748,7 @@ function renderTree(){
     {k:'empty',ic:'🔴',t:'скудные',col:'#E08585',why:'коммуникации - меньше 30% или совсем пусто, пайплайн держится на системных делах/задачах/комментариях'}];
   const complCell=(mgr)=>{ const ds=byM[mgr]||[]; if(!ds.length) return '<span class="na2">-</span>';
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
-    return `<div class="cwrap">`+COMPL.map(x=>{ const on=S.clMgr===mgr&&S.clKind===x.k; const pct=Math.round(c[x.k]/ds.length*100);
+    return `<div class="cwrap">`+COMPL.map(x=>{ const on=aiPickActive('cl',mgr,x.k); const pct=Math.round(c[x.k]/ds.length*100);
       return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
@@ -849,12 +870,14 @@ function renderTree(){
       +`<td class="l" ${dept?'':'style="padding-left:34px"'}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}</td>`
       +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>{
+        if(c.k==='deals'){ const v=mval(m,'deals')||0; const on=aiPickActive('all',m.mgr,'all');
+          return `<td class="dealcnt${on?' allon':''}" data-allrow="1" data-tip="Все сделки ${m.mgr===DEPT_KEY?'отдела':'менеджера'} в разбор ИИ - со всей коммуникацией до конца. Клик - добавить/убрать из корзины фильтра.">${v}</td>`; }
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
         if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
-        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=S.hotMgr===m.mgr;
+        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
-        if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=S.hotMgr===m.mgr;
+        if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=aiPickActive('hot',m.mgr,'hot');
           return `<td class="${v?'hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Под риском - сумма бюджетов горящих сделок менеджера.${v?' Клик - показать эти сделки.':''}">${money(v)} ₽</td>`; }
         if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;
         return `<td style="${cellCol(c.k,mval(m,c.k))}">${fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
@@ -938,46 +961,43 @@ function renderTree(){
   // Раскрытие многоуровневое: несколько менеджеров и сделок открыты одновременно, чтобы
   // сразу нырнуть во всю выборку фильтра. Закрытие менеджера прячет и его открытые сделки.
   const openRow=(mm)=>{ if(mm===DEPT_KEY) S.deptOpen=true; else S.tm.add(mm); };
+  // Клик по элементу дашборда НЕ сужает таблицу - он набирает фильтр ИИ (корзину внизу).
+  // Любой уровень тянет вниз до самого конца: пик всегда разворачивается в список сделок,
+  // а конфиг ИИ по каждой сделке уносит всю её коммуникацию (глубина до упора).
+  const dealIdsOf=(arr)=>arr.map(d=>d.dealId||d.leadId);
   list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
-    // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
+    // Воронка по стадии - срез сделок менеджера на этом этапе.
     const seg=e.target.closest&&e.target.closest('.fseg');
-    if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
-      S.cmMgr='';S.cmType='';S.hotMgr='';S.clMgr='';S.clKind='';S.evHi=null;
-      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; aiSyncReset(); }
-      else { S.fnMgr=m; S.fnGrp=grp; openRow(m); const g=STAGE_GRP.find(x=>x.k===grp);
-        aiSyncScope({ mgr:m, stages:(g&&g.stages.length)?g.stages:null, deals:(g&&g.stages.length)?null:(byM[m]||[]).filter(d=>grpOf(d)===grp) }); }
-      renderTree(); return; }
-    // Клик по чипу полноты: сделки менеджера с этим уровнем полноты коммуникаций.
+    if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
+      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>grpOf(d)===grp))}); return; }
+    // Полнота коммуникаций - срез сделок менеджера с этим уровнем полноты.
     const clc=e.target.closest&&e.target.closest('[data-compl]');
-    if(clc){ e.stopPropagation(); const kind=clc.dataset.compl;
-      S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.hotMgr='';S.evHi=null;
-      if(S.clMgr===m&&S.clKind===kind){ S.clMgr=''; S.clKind=''; aiSyncReset(); }
-      else { S.clMgr=m; S.clKind=kind; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>complOf(d)===kind) }); }
-      renderTree(); return; }
-    // Клик по чипу коммуникации: сделки менеджера с этим каналом.
+    if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
+      aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:dealIdsOf((byM[m]||[]).filter(d=>complOf(d)===kind))}); return; }
+    // Канал коммуникации - срез сделок менеджера, где этот канал встречается.
     const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
-    if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
-      S.fnMgr='';S.fnGrp='';S.hotMgr='';S.clMgr='';S.clKind='';S.evHi=null;
-      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; aiSyncReset(); }
-      else { S.cmMgr=m; S.cmType=ct; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0) }); }
-      renderTree(); return; }
-    // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
+    if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm; const cm=COMM_TYPES.find(x=>x.k===ct);
+      aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:dealIdsOf((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0))}); return; }
+    // «Горит»/«Под риском» - горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
-    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.clMgr='';S.clKind='';S.evHi=null;
-      const money2=!hc.classList.contains('gorit'); // клик по «Под риском» - денежный ракурс, по «Горит» - счётный
-      if(S.hotMgr===m && S.hotMoney===money2){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; S.hotMoney=money2; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>d.urgency) }); }
-      renderTree(); return; }
-    // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
-    if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} if(S.clMgr===m){S.clMgr='';S.clKind='';} } else S.tm.add(m); renderTree(); });
+    if(hc){ e.stopPropagation();
+      aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
+    // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
+    const ac=e.target.closest&&e.target.closest('[data-allrow]');
+    if(ac){ e.stopPropagation();
+      aiPickToggle({kind:'all',mgr:m,sub:'all',label:`${mLabel(m)} · все сделки`,deals:dealIdsOf(byM[m]||[])}); return; }
+    // Клик по строке отдела - свернуть/развернуть всех менеджеров (навигация, не фильтр).
+    if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
+    // Клик по строке менеджера - раскрыть/свернуть его сделки (навигация, не фильтр).
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
-    // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку и прокрутить к событиям,
-    // плюс подготовить фильтр ИИ на эту сделку.
+    // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку, прокрутить к событиям
+    // и добавить эту сделку в корзину фильтра ИИ.
     const chip=e.target.closest&&e.target.closest('.mixchip[data-mixcat]');
     const urg=e.target.closest&&e.target.closest('.urg');
     if(chip||urg){ S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
-      const d=SCD[k]; if(d) aiSyncScope({ mgr:d.isLead?null:d.mgr, deals:[d] });
-      renderTree(); scrollToDeal(k,cat); return; }
+      const d=SCD[k]; if(d){ const id=d.dealId||d.leadId; aiPickToggle({kind:'deal',mgr:d.isLead?'(лид)':d.mgr,sub:String(id),label:`Сделка ${id}`,deals:[id]}); } else renderTree();
+      scrollToDeal(k,cat); return; }
     S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);
@@ -1051,6 +1071,7 @@ function renderTree(){
   const hot=SC.deals.filter(d=>d.urgency);
   document.getElementById('stat').textContent=`менеджеров ${mgrs.length} · сделок и лидов ${SC.deals.length} · требуют действия ${hot.length} на ${money(hot.reduce((s2,d)=>s2+(d.budget||0),0))} ₽`;
   document.getElementById('foot').textContent=`Три уровня, у каждого свои столбцы и сортировка кликом по заголовку. Менеджер: метрики против медианы отдела, зелёное лучше отдела, красное хуже. Сделка: сумма, шанс, тишина, скорость. Диалог: кто, канал, текст и разметка дефектов.`;
+  renderPickTray();
 }
 // У дел заголовок часто дублируется в начале описания: «Формирование ТЗ: Формирование ТЗ...».
 // Показываем тело без повтора, иначе строка читается как каша.
@@ -1383,7 +1404,7 @@ function renderAns(raw,obj){ const out=document.getElementById('aiAnsOut'); if(!
 const OPEN_CAP = 20; // сколько сделок раскрываем автоматически, чтобы не рендерить сотни лент
 function aiApplyToDash(cfg){ const F=S.aiF;
   let dMode, from, to, mgrs, dealIds, stages;
-  if(cfg){ const f=cfg.фильтр||{};
+  if(cfg){ S.picks=[]; const f=cfg.фильтр||{}; // вставленная настройка замещает корзину кликов
     dMode=/созда/.test(String(f.период_по||''))?'created':'comm';
     from=(f.с&&!/окн/.test(String(f.с)))?f.с:''; to=(f.по&&!/окн/.test(String(f.по)))?f.по:'';
     const ml=Array.isArray(f.менеджеры)?f.менеджеры:(Array.isArray(cfg.менеджеры)?cfg.менеджеры.map(x=>x.менеджер):[]);
@@ -1408,21 +1429,56 @@ function aiApplyToDash(cfg){ const F=S.aiF;
   else S.dashNote=`сделок ${matched.length} - раскрыты менеджеры, переписку открывай кликом по строке`;
   aiSave(); aiToggle(false); render(); window.scrollTo(0,0);
 }
-function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); aiSave(); render(); }
+function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); S.picks=[]; aiApplyPicks(); aiSave(); render(); }
 // Сохранение состояния панели и применённого фильтра в localStorage: обновление страницы
 // (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
 function aiSave(){ try{ const F=S.aiF;
   localStorage.setItem('dlg_ai_v1', JSON.stringify({
     aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],stages:[...F.stages],question:F.question||'',inc:[...F.inc]},
-    fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td],
+    fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td], picks:S.picks||[],
     vdMode:S.dMode, vdFrom:S.dFrom, vdTo:S.dTo, dashNote:S.dashNote||'', ans:S.ansText||'' })); }catch(e){} }
 function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
   if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
     mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),question:j.aiF.question||'',inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
-  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]);
+  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]); S.picks=Array.isArray(j.picks)?j.picks:[];
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }
 function aiQInput(v){ S.aiF.question=v; aiSave(); }
+
+// ===== Фильтр по кликам (корзина внизу) =====
+// 4 уровня: отдел -> менеджер -> сделка -> коммуникация. Клик по любому элементу кладёт
+// «пик» в корзину; каждый пик разворачивается в список сделок, а конфиг ИИ по каждой
+// сделке несёт всю её коммуникацию - глубина всегда до конца. Клики накапливаются
+// (множественный выбор), повторный клик снимает пик, «×» в корзине - тоже.
+const mLabel=(mm)=> mm===DEPT_KEY ? 'Весь отдел' : mm;
+function pickSig(p){ return p.kind+'|'+p.mgr+'|'+p.sub; }
+function aiPickActive(kind,mgr,sub){ return S.picks.some(p=>p.kind===kind&&p.mgr===mgr&&p.sub===sub); }
+function aiPickToggle(p){ const s=pickSig(p); const i=S.picks.findIndex(x=>pickSig(x)===s);
+  if(i>=0) S.picks.splice(i,1); else S.picks.push(p);
+  aiApplyPicks(); renderTree(); }
+function aiPickRemove(sig){ const i=S.picks.findIndex(x=>pickSig(x)===sig); if(i>=0){ S.picks.splice(i,1); aiApplyPicks(); renderTree(); } }
+function aiPicksClear(){ S.picks=[]; aiApplyPicks(); renderTree(); }
+// Корзина -> фильтр ИИ: объединяем сделки всех пиков в один список ID, глубина всегда
+// «вся сделка». Пусто - корзина не трогает ручной фильтр панели.
+function aiApplyPicks(){ const F=S.aiF;
+  if(S.picks.length){ const ids=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>ids.add(String(d))));
+    F.mgrs=new Set(); F.stages=new Set(); F.depth='all'; F.dealIds=[...ids].join(', ');
+    F.dMode=S.dMode; F.from=S.dFrom; F.to=S.dTo; }
+  else F.dealIds='';
+  aiSave(); if(S.aiOpen) renderAIPanel(); }
+function renderPickTray(){ const el=document.getElementById('picktray'); if(!el) return;
+  if(!S.picks.length){ el.classList.remove('on'); el.innerHTML=''; document.body.style.paddingBottom=''; return; }
+  document.body.style.paddingBottom='84px';
+  const total=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>total.add(String(d))));
+  const chips=S.picks.map(p=>`<span class="pchip" data-psig="${esc(pickSig(p))}" title="Убрать из корзины">${esc(p.label)} <b>${(p.deals||[]).length}</b> <span class="px">✕</span></span>`).join('');
+  el.innerHTML=`<div class="ptl">Фильтр по кликам<span class="ptn">${total.size} ${plu(total.size,'сделка','сделки','сделок')} · всё вниз до коммуникаций</span></div>
+    <div class="pchips">${chips}</div>
+    <div class="pacts"><button class="pbtn" id="ptOpen">Открыть фильтр</button><button class="pbtn ghost" id="ptClear">Сбросить всё</button></div>`;
+  el.classList.add('on');
+  el.querySelectorAll('.pchip').forEach(c=>c.onclick=()=>aiPickRemove(c.dataset.psig));
+  const o=el.querySelector('#ptOpen'); if(o) o.onclick=()=>aiToggle(true);
+  const cl=el.querySelector('#ptClear'); if(cl) cl.onclick=aiPicksClear;
+}
 // Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
 // те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.
 // Семантический перенос дрила в фильтр панели: менеджер, стадии и период выставляются

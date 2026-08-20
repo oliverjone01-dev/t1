@@ -973,10 +973,11 @@ function renderTree(){
   if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
-  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; aiSyncReset(); renderTree(); });
-  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; aiSyncReset(); renderTree(); });
-  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; aiSyncReset(); renderTree(); });
-  list.querySelectorAll('[data-clclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.clMgr=''; S.clKind=''; aiSyncReset(); renderTree(); });
+  // Сброс дрила дашборда - только фокус таблицы, корзину фильтра ИИ не трогаем (она отдельно).
+  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
+  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
+  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; renderTree(); });
+  list.querySelectorAll('[data-clclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.clMgr=''; S.clKind=''; renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -999,22 +1000,29 @@ function renderTree(){
   // Любой уровень тянет вниз до самого конца: пик всегда разворачивается в список сделок,
   // а конфиг ИИ по каждой сделке уносит всю её коммуникацию (глубина до упора).
   const dealIdsOf=(arr)=>arr.map(d=>d.dealId||d.leadId);
+  // Сброс всех дрил-фокусов дашборда (клик по значению фокусирует одного менеджера на срезе).
+  const drillReset=()=>{ S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.hotMgr='';S.clMgr='';S.clKind=''; };
   list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
-    // Воронка по стадии - срез сделок менеджера на этом этапе.
+    // Воронка по стадии - клик набирает срез в корзину ИИ И фокусирует дашборд: раскрывает
+    // менеджера и показывает только сделки этого этапа (верхний элемент = фильтр раскрытого).
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
+      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr='';S.fnGrp=''; } else { drillReset(); S.fnMgr=m;S.fnGrp=grp; openRow(m); }
       aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>touchedGrp(d,grp)))}); return; }
-    // Полнота коммуникаций - срез сделок менеджера с этим уровнем полноты.
+    // Полнота коммуникаций - срез сделок менеджера с этим уровнем полноты (+ фокус дашборда).
     const clc=e.target.closest&&e.target.closest('[data-compl]');
     if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
+      if(S.clMgr===m&&S.clKind===kind){ S.clMgr='';S.clKind=''; } else { drillReset(); S.clMgr=m;S.clKind=kind; openRow(m); }
       aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:dealIdsOf((byM[m]||[]).filter(d=>complOf(d)===kind))}); return; }
-    // Канал коммуникации - срез сделок менеджера, где этот канал встречается.
+    // Канал коммуникации - срез сделок менеджера с этим каналом (+ фокус дашборда).
     const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm; const cm=COMM_TYPES.find(x=>x.k===ct);
+      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr='';S.cmType=''; } else { drillReset(); S.cmMgr=m;S.cmType=ct; openRow(m); }
       aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:dealIdsOf((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0))}); return; }
-    // «Горит»/«Под риском» - горящие сделки менеджера.
+    // «Горит»/«Под риском» - горящие сделки менеджера (+ фокус дашборда).
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation();
+      if(S.hotMgr===m){ S.hotMgr=''; } else { drillReset(); S.hotMgr=m; openRow(m); }
       aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
     // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
     const ac=e.target.closest&&e.target.closest('[data-allrow]');

@@ -761,6 +761,21 @@ function renderTree(){
   const scope = (S.fMgrs.size||S.fDealIds.size) ? `<div class="scopebar">
       <span class="sdot">●</span> Фильтр ИИ применён к дашборду: <b>${S.fMgrs.size?S.fMgrs.size+' '+plu(S.fMgrs.size,'менеджер','менеджера','менеджеров'):'весь отдел'}</b>${S.fDealIds.size?` · <b>${S.fDealIds.size} ${plu(S.fDealIds.size,'сделка','сделки','сделок')}</b>`:''}${S.dashNote?` · <span class="snote">${esc(S.dashNote)}</span>`:''}
       <span class="x" data-scopeclear="1">сбросить и показать весь отдел</span></div>` : '';
+  // Тепловой градиент «Горит»: больше горящих сделок - насыщеннее красный (нормируем по максимуму).
+  const maxAlerts=Math.max(1,...mgrs.map(mm=>(byM[mm.mgr]||[]).filter(d=>d.urgency).length));
+  const heatGorit=(v)=>{ if(!v) return {bg:'',ink:'var(--ink-4)'}; const t=Math.min(1,v/maxAlerts);
+    return {bg:`background:rgba(194,82,82,${(0.08+t*0.55).toFixed(2)})`, ink:t>0.5?'#fff':'#E08585'}; };
+  // Подсказки для «Вердикт» и «Рейтинг»: что это и как посчитано у конкретного менеджера.
+  const verdTip=(m)=>{ const p=m.profile;
+    if(m.role==='office') return 'Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается, поэтому вердикт и рейтинг продавца не выставляются.';
+    if(!p) return `Мало данных: у менеджера меньше 10 диалогов в окне (${(byM[m.mgr]||[]).length}). Меньше выборки - не судим, это был бы шум.`;
+    const st=(p.strengths||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
+    const wk=(p.weaknesses||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
+    return `Вердикт - от сильных и слабых сторон против медианы отдела (не от рейтинга). Правило: слабых нет - сильный; сильных больше - норма; слабых 3+ - в разборе.<br><b>Сильные (${st.length}):</b> ${st.length?esc(st.join('; ')):'-'}<br><b>Слабые (${wk.length}):</b> ${wk.length?esc(wk.join('; ')):'-'}`; };
+  const rateTip=(m)=>{ if(m.role==='office') return 'Рейтинг продавца для офис-менеджера не считается: у лид-интейка другая задача, не доведение до оплаты.';
+    if(m.rating===null) return `Рейтинг не выставлен: ${esc(m.noRating||'мало данных')}. Нужно минимум 10 диалогов.`;
+    const secs=(m.sections||[]).map(s=>`${esc(s.label)} ${s.pos==null?'-':s.pos+'%'}`).join(' · ');
+    return `Рейтинг - взвешенная оценка по 6 разделам регламента (Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%), шкала 0-5. Меряет дисциплину ведения, не выручку. Разделы: ${secs||'-'}. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.`; };
   let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
   for(const m of mgrs){
     let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
@@ -768,12 +783,14 @@ function renderTree(){
     const [vc,vl]= office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
     html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
       +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${alertChip(m,p)}</td>`
-      +`<td><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
+      +`<td data-tip="${verdTip(m).replace(/"/g,'&quot;')}" style="cursor:help"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
-        if(c.k==='rating'&&office) return `<td><span class="na2" title="Офис-менеджер лидов - рейтинг продавца не считается">-</span></td>`;
-        return `<td style="${cellCol(c.k,mval(m,c.k))}">${c.k==='rating'&&m.rating!==null?`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`:fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
+        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const h=heatGorit(v);
+          return `<td class="gorit" data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет - тепловая шкала: чем больше горящих, тем насыщеннее." style="${h.bg};color:${h.ink};font-weight:600">${v||'0'}</td>`; }
+        if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;
+        return `<td style="${cellCol(c.k,mval(m,c.k))}">${fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;

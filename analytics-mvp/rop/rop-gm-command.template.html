@@ -1081,27 +1081,28 @@ function render(){
   const _cvOrd={};FORDER.forEach((c,i)=>_cvOrd[c]=i);
   const _cvReach=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&_cvOrd[e[0]]!=null&&_cvOrd[e[0]]>mo)mo=_cvOrd[e[0]];}if(!h.length&&_cvOrd[d.stageCode]!=null)mo=_cvOrd[d.stageCode];if(d.won&&_cvOrd['C21:WON']>mo)mo=_cvOrd['C21:WON'];return mo;};
   const _reachN=code=>D.filter(d=>_cvReach(d)>=_cvOrd[code]).length;
-  // Вариант B: узел «Лиды» = лиды-ИСТОЧНИКИ сделок периода (по d.leadId), а не лиды по календарю.
-  // Тогда «Лиды» и «из лида» сходятся, а первый переход = реальная доля сделок из лида.
+  // Вариант A: «Лиды» = лиды, СОЗДАННЫЕ в периоде (честный календарь). Первый переход - не
+  // конверсия, а состав сделок: «+N» = сделки без лида (прямые). Разбивка из лида/прямых - в подписи.
+  // Лиды-источники сделок могут быть старше периода, поэтому «Лиды» и «из лида» намеренно не равны.
   const _dDeals=D.length,_dFromLead=D.filter(d=>d.fromLead).length,_dDirect=_dDeals-_dFromLead;
-  const _srcLeadSet=new Set(D.filter(d=>d.fromLead&&d.leadId!=null).map(d=>String(d.leadId)));
-  const _dLeads=_srcLeadSet.size||_dFromLead;
+  const _dLeads=L.length;
   const _dKP=_reachN('C21:PREPAYMENT_INVOIC'),_dPre=_reachN('C21:UC_5BND99'),_dWon=D.filter(d=>d.won).length;
   const _dConv=_dDeals?_dWon/_dDeals:0; // сквозная сделка → продажа (успех)
   const _stg=[['Лиды',_dLeads,'#3DAEC2'],['Сделки',_dDeals,'#3DAEC2'],['КП отправлено',_dKP,'#2E9E74'],['Предоплата',_dPre,'#6366F1'],['Продажи',_dWon,'#2E9E74']];
-  const _cvs=[(_dDeals?_dFromLead/_dDeals:0),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)];
-  const _tips=['Лиды → сделки · доля сделок из лида (остальные '+fmt(_dDirect)+' - прямые, без лида) · узел «Лиды» = лиды-источники этих сделок','Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг'];
+  const _cvs=['+'+fmt(_dDirect),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)];
+  const _tips=['Состав сделок · «+N» = сделки без лида (созданы напрямую): '+fmt(_dDirect)+' · из лида: '+fmt(_dFromLead)+' (их лиды могут быть старше периода, поэтому в узле «Лиды» их может не быть)','Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг'];
   const _e2e=_dConv,_e2eLbl='сквозная сделка→продажа';
-  const _cvSub=`воронка сделок · «Лиды» = источники сделок (по лиду) · из лида <b style="color:#C084FC">${fmt(_dFromLead)}</b>, прямых <b style="color:#C084FC">${fmt(_dDirect)}</b> из ${fmt(_dDeals)}`;
+  const _cvSub=`воронка сделок · из ${fmt(_dDeals)} сделок: <b style="color:#C084FC">из лида ${fmt(_dFromLead)}</b>, <b style="color:#C084FC">прямых ${fmt(_dDirect)}</b> · лиды-источники могут быть старше периода`;
   const _cvFunnel=(()=>{const stg=_stg,cvs=_cvs;
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(...stg.map(s=>s[1]),1),n=stg.length,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_e2e;
     let defs='',conns='',nodes='',labels='';
     for(let i=0;i<n-1;i++){const h0=hOf(stg[i][1]),h1=hOf(stg[i+1][1]),x0=nodeX(i)+nodeW,x1=nodeX(i+1),t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='cvf'+i;
       defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${stg[i][2]}" stop-opacity=".4"/><stop offset="1" stop-color="${stg[i+1][2]}" stop-opacity=".4"/></linearGradient>`;
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})"/>`;
-      const cvv=cvs[i],cvTxt=(typeof cvv==='number')?pct(cvv):cvv;
-      const mp=(x0+x1)/2,cc=i%2?'#3DAEC2':'#2E9E74',td=dt(_tips[i]||'Переход',[['Конверсия',cvTxt,'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
-      conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${cvTxt}</text>`;}
+      const cvv=cvs[i],isNum=(typeof cvv==='number'),cvTxt=isNum?pct(cvv):cvv;
+      const mp=(x0+x1)/2,cc=i%2?'#3DAEC2':'#2E9E74',td=dt(_tips[i]||'Переход',[[isNum?'Конверсия':'Состав',cvTxt,'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
+      conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${cvTxt}</text>`;
+      if(!isNum)conns+=`<text x="${mp}" y="${midY+22}" text-anchor="middle" font-size="8.5" fill="var(--ink-2)" pointer-events="none">без лида</text>`;}
     stg.forEach((s,i)=>{const hh=hOf(s[1]),t=midY-hh/2;
       nodes+=`<rect class="seg-anim" style="animation-delay:${i*.07}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${hh}" rx="6" fill="${s[2]}"/>`;
       if(hh>38)nodes+=`<text x="${cx(i)}" y="${midY+6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="17" fill="#06121a" pointer-events="none">${fmt(s[1])}</text>`;

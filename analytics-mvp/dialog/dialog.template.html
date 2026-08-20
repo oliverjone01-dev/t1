@@ -179,6 +179,9 @@ input#q{min-width:220px}
 .afterdlg{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 .t2{margin-top:6px;font-size:11px}
 .t2>tbody>tr>td{padding:6px 6px;white-space:nowrap}
+/* Отступы у краёв вложенных таблиц - видно границу */
+.t2>tbody>tr>td:first-child,.t2 th:first-child,.t3>tbody>tr>td:first-child,.t3 th:first-child{padding-left:12px}
+.t2>tbody>tr>td:last-child,.t2 th:last-child,.t3>tbody>tr>td:last-child,.t3 th:last-child{padding-right:14px}
 .t2>tbody>tr>td.l{white-space:normal}
 .dtt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;display:block}
 .dsig{font-size:9.5px;color:var(--ink-4);margin-top:2px;line-height:1.4}

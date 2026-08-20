@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-19",
+ "measured": "2026-08-20",
  "visits_30d": [
-  {
-   "date": "2026-07-20",
-   "visits": 268,
-   "search_visits": 65
-  },
   {
    "date": "2026-07-21",
    "visits": 258,
@@ -151,6 +146,11 @@
    "date": "2026-08-18",
    "visits": 331,
    "search_visits": 80
+  },
+  {
+   "date": "2026-08-19",
+   "visits": 360,
+   "search_visits": 92
   }
  ],
  "top_phrases": [
@@ -160,11 +160,11 @@
   },
   {
    "phrase": "genglass",
-   "visits": 25
+   "visits": 27
   },
   {
    "phrase": "генгласс",
-   "visits": 15
+   "visits": 18
   },
   {
    "phrase": "gen glass",
@@ -172,7 +172,7 @@
   },
   {
    "phrase": "дженгласс ру",
-   "visits": 8
+   "visits": 7
   },
   {
    "phrase": "интернет магазин зеркало в раме",
@@ -191,11 +191,11 @@
    "visits": 5
   },
   {
-   "phrase": "генгласс столы",
+   "phrase": "genglass официальный",
    "visits": 4
   },
   {
-   "phrase": "дженгласс",
+   "phrase": "генгласс столы",
    "visits": 4
   },
   {
@@ -207,7 +207,7 @@
    "visits": 4
   },
   {
-   "phrase": "genglass официальный",
+   "phrase": "дженгласс",
    "visits": 3
   },
   {
@@ -247,15 +247,7 @@
    "visits": 2
   },
   {
-   "phrase": "дизайнерские перегородки для зонирования",
-   "visits": 2
-  },
-  {
    "phrase": "дизайнерское зеркало",
-   "visits": 2
-  },
-  {
-   "phrase": "зеркала в интерьере 2026",
    "visits": 2
   },
   {
@@ -268,6 +260,10 @@
   },
   {
    "phrase": "зеркало в раме genglass halfeo white xl",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало купить",
    "visits": 2
   },
   {
@@ -299,15 +295,15 @@
    "visits": 2
   },
   {
-   "phrase": "раздвижные стеклянные перегородки",
-   "visits": 2
-  },
-  {
    "phrase": "стол genglass trubis wood",
    "visits": 2
   },
   {
    "phrase": "стол genglass производитель",
+   "visits": 2
+  },
+  {
+   "phrase": "стол обеденный раздвижной реечное подстолье",
    "visits": 2
   },
   {
@@ -351,30 +347,34 @@
    "visits": 1
   },
   {
-   "phrase": "Genglass магазины",
+   "phrase": "arkis black",
+   "visits": 1
+  },
+  {
+   "phrase": "gen glass подстолье",
    "visits": 1
   }
  ],
  "top_pages": [
   {
    "url": "/",
-   "visits": 397
+   "visits": 400
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 100
+   "visits": 102
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
-   "visits": 69
+   "visits": 72
   },
   {
    "url": "/product-category/mirrors/",
-   "visits": 68
+   "visits": 67
   },
   {
    "url": "/product-category/tables/",
-   "visits": 58
+   "visits": 60
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
@@ -386,31 +386,31 @@
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 39
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 34
+   "visits": 40
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
    "visits": 33
   },
   {
+   "url": "/product-category/mirrors/zerkalo-na-shtange/",
+   "visits": 32
+  },
+  {
    "url": "/product-category/steklyannye-doski/",
-   "visits": 33
+   "visits": 32
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 30
+   "visits": 31
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 28
+   "visits": 27
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
-   "visits": 26
+   "visits": 27
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
@@ -426,15 +426,11 @@
   },
   {
    "url": "/product-category/mirrors/wall/",
-   "visits": 16
+   "visits": 17
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 15
-  },
-  {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
-   "visits": 14
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
@@ -446,11 +442,15 @@
   },
   {
    "url": "/product-category/mirrors/led/",
-   "visits": 12
+   "visits": 13
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/",
-   "visits": 11
+   "visits": 12
+  },
+  {
+   "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki/",
+   "visits": 12
   },
   {
    "url": "/product-category/hranenie/veshalki/",
@@ -465,19 +465,19 @@
    "visits": 10
   },
   {
-   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
-   "visits": 10
-  },
-  {
    "url": "/product-category/mezhkomnatnye-peregorodki/dizajnerskie-peregorodki/",
    "visits": 10
   },
   {
    "url": "/product-category/mirrors/rotatable/",
    "visits": 10
+  },
+  {
+   "url": "/product-category/komplektuyushhie/metallicheskie-podstolya/",
+   "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 21.1,
+ "bounce_rate": 20.6,
  "depth": 2.7
 }

@@ -197,6 +197,9 @@ input#q{min-width:220px}
 .fnchip b{color:#e7f8fc;margin:0 3px}
 .fnchip .x{margin-left:8px;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:6px;padding:2px 8px;font-size:10.5px}
 .fnchip .x:hover{background:#164050;color:#e7f8fc}
+.hotcell{cursor:pointer}
+.hotcell:hover{outline:1px solid #C2525288;outline-offset:-1px}
+.hoton{outline:2px solid var(--acc);outline-offset:-2px}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
 .cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;padding:1px 5px;border-radius:6px;border:1px solid transparent;transition:.1s}
 .cchip:hover{background:#ffffff0d;border-color:var(--border)}
@@ -408,7 +411,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'',
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'',
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -787,8 +790,10 @@ function renderTree(){
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
-        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const h=heatGorit(v);
-          return `<td class="gorit" data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет - тепловая шкала: чем больше горящих, тем насыщеннее." style="${h.bg};color:${h.ink};font-weight:600">${v||'0'}</td>`; }
+        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const h=heatGorit(v); const on=S.hotMgr===m.mgr;
+          return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет - тепловая шкала: чем больше горящих, тем насыщеннее.${v?' Клик - показать эти горящие сделки.':''}" style="${h.bg};color:${h.ink};font-weight:600">${v||'0'}</td>`; }
+        if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=S.hotMgr===m.mgr;
+          return `<td class="${v?'hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Под риском - сумма бюджетов горящих сделок менеджера.${v?' Клик - показать эти сделки.':''}">${money(v)} ₽</td>`; }
         if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;
         return `<td style="${cellCol(c.k,mval(m,c.k))}">${fmtM(c.k,mval(m,c.k))}</td>`; }).join('')
       +`</tr>`;
@@ -803,6 +808,9 @@ function renderTree(){
       if(cmActive){ const ct=COMM_TYPES.find(x=>x.k===S.cmType)||{}; const before=ds.length;
         ds=ds.filter(d=>((mixOf(d,dFrom,dTo)||{})[S.cmType]||0)>0);
         html+=`<div class="fnchip"><span class="tdot" style="background:${ct.col}"></span>Канал: <b>${esc(ct.t)}</b> · ${ds.length} из ${before} <span class="x" data-cmclear="1">✕ сбросить фильтр</span></div>`; }
+      const hotActive = S.hotMgr===m.mgr;
+      if(hotActive){ const before=ds.length; ds=ds.filter(d=>d.urgency);
+        html+=`<div class="fnchip"><span class="tdot" style="background:#C25252"></span>Горящие сделки · <b>${ds.length}</b> из ${before} <span class="x" data-hotclear="1">✕ сбросить фильтр</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
@@ -839,6 +847,7 @@ function renderTree(){
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
   list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
   list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
+  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -866,10 +875,15 @@ function renderTree(){
     // Клик по чипу коммуникации: сделки менеджера с этим каналом.
     const cc=e.target.closest&&e.target.closest('.cchip');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
-      S.fnMgr='';S.fnGrp='';
+      S.fnMgr='';S.fnGrp='';S.hotMgr='';
       if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; } else { S.cmMgr=m; S.cmType=ct; S.tm.add(m); }
       renderTree(); return; }
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} } else S.tm.add(m); renderTree(); });
+    // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
+    const hc=e.target.closest&&e.target.closest('[data-hot]');
+    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';
+      if(S.hotMgr===m){ S.hotMgr=''; } else { S.hotMgr=m; S.tm.add(m); }
+      renderTree(); return; }
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);

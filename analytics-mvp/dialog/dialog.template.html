@@ -206,6 +206,10 @@ input#q{min-width:220px}
 .cchip.con{background:#ffffff14;border-color:currentColor}
 .cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
 .rolech{display:inline-block;margin-left:7px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#3DAEC2;border:1px solid #3DAEC266;background:#3DAEC214;border-radius:4px;padding:1px 5px;vertical-align:middle;text-transform:uppercase;cursor:help}
+.deptrow>td{background:#22d3ee0d;border-top:2px solid #22d3ee44;border-bottom:1px solid #22d3ee33}
+.deptrow:hover>td{background:#22d3ee16}
+.deptrow>td:first-child b{color:#bfeff8}
+.dmgrtag{display:inline-block;margin-right:7px;font-size:9.5px;color:#8fd3e2;background:#22d3ee12;border:1px solid #22d3ee33;border-radius:4px;padding:0 5px;vertical-align:middle}
 .t3 tr.lead-stage td.etime{color:#C2873C}
 .drow{cursor:pointer}
 .drow:hover td{background:#ffffff08}
@@ -668,10 +672,15 @@ function renderTree(){
   const MD=SC.metricDefs||[];
   // Полные названия метрик не помещаются в 16 колонок: в шапке короткие, полное - в подсказке.
   const SHORT={act:'Активность',take:'Взял',resp:'Ответ',ball:'Ждёт',silent:'Тишина',step:'Шаг',qual:'Квал.',fake:'Вхолост.',ghost:'Без связи',promise:'Слово',obj:'Возраж.',date:'Даты'};
-  const mval=(m,k)=>{ if(k==='funnel') return (byM[m.mgr]||[]).length; const p=m.profile; if(!p) return null; if(k==='deals') return (byM[m.mgr]||[]).length;
-    if(k==='hot') return (byM[m.mgr]||[]).filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0); if(k==='rating') return m.rating; if(k==='alerts') return (byM[m.mgr]||[]).filter(d=>d.urgency).length;
-    if(k==='sum') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+(d.budget||0),0);
-    if(k==='act') return (byM[m.mgr]||[]).reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
+  const mval=(m,k)=>{ const dsm=byM[m.mgr]||[];
+    // Агрегаты по сделкам считаем всегда (нужны и отделу, и менеджерам с малой выборкой).
+    if(k==='funnel'||k==='deals') return dsm.length;
+    if(k==='hot') return dsm.filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0);
+    if(k==='alerts') return dsm.filter(d=>d.urgency).length;
+    if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
+    if(k==='act') return dsm.reduce((s2,d)=>s2+((mixOf(d,dFrom,dTo)||{}).total||0),0);
+    const p=m.profile; if(!p) return null;
+    if(k==='rating') return m.rating;
     return p.metrics? p.metrics[k] : null; };
   // Что менеджер делал за выбранный период: суммарная лента по его сделкам.
   const actOf=(mgr)=>{ const t={msg:0,call:0,mail:0,task:0,note:0,ai:0,total:0};
@@ -787,18 +796,25 @@ function renderTree(){
     const st=(p.strengths||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
     const wk=(p.weaknesses||[]).map(x=>typeof x==='string'?x:(x.text||x.label||'')).filter(Boolean);
     return `Вердикт - от сильных и слабых сторон против медианы отдела (не от рейтинга). Правило: слабых нет - сильный; сильных больше - норма; слабых 3+ - в разборе.<br><b>Сильные (${st.length}):</b> ${st.length?esc(st.join('; ')):'-'}<br><b>Слабые (${wk.length}):</b> ${wk.length?esc(wk.join('; ')):'-'}`; };
-  const rateTip=(m)=>{ if(m.role==='office') return 'Рейтинг продавца для офис-менеджера не считается: у лид-интейка другая задача, не доведение до оплаты.';
+  const rateTip=(m)=>{ if(m.role==='dept') return 'Сводка по отделу - рейтинг не считается, это агрегат по всем менеджерам.';
+    if(m.role==='office') return 'Рейтинг продавца для офис-менеджера не считается: у лид-интейка другая задача, не доведение до оплаты.';
     if(m.rating===null) return `Рейтинг не выставлен: ${esc(m.noRating||'мало данных')}. Нужно минимум 10 диалогов.`;
     const secs=(m.sections||[]).map(s=>`${esc(s.label)} ${s.pos==null?'-':s.pos+'%'}`).join(' · ');
     return `Рейтинг - взвешенная оценка по 6 разделам регламента (Отклик 22%, Сроки 20%, Ведение 20%, Квалификация 18%, Вежливость 10%, Результат 10%), шкала 0-5. Меряет дисциплину ведения, не выручку. Разделы: ${secs||'-'}. Раздел, затронутый меньше чем в 5 сделках, в рейтинг не идёт.`; };
+  // Верхняя строка «ВЕСЬ ОТДЕЛ»: агрегат по всем показанным менеджерам. Клик по её воронке/
+  // каналу/«Горит» показывает сделки всего отдела на этом этапе - без настройки фильтра.
+  const DEPT_KEY='__ОТДЕЛ__';
+  byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
+  const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
   let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
-  for(const m of mgrs){
+  for(const m of [deptMgr, ...mgrs]){
     let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
-    const p=m.profile; const openM=S.tm.has(m.mgr); const office=m.role==='office';
-    const [vc,vl]= office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
-    html+=`<tr class="mrow2${openM?' on':''}" data-m="${esc(m.mgr)}">`
-      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${esc(m.mgr)}</b>${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${alertChip(m,p)}</td>`
-      +`<td data-tip="${verdTip(m).replace(/"/g,'&quot;')}" style="cursor:help"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
+    const p=m.profile; const openM=S.tm.has(m.mgr); const office=m.role==='office'; const dept=m.role==='dept';
+    const [vc,vl]= dept? ['#22D3EE','ВЕСЬ ОТДЕЛ'] : office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
+    const nameHtml = dept? 'Весь отдел' : esc(m.mgr);
+    html+=`<tr class="mrow2${openM?' on':''}${dept?' deptrow':''}" data-m="${esc(m.mgr)}">`
+      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${nameHtml}</b>${dept?'<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Сводка по всем показанным менеджерам. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">сводка</span>':''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${dept?'':alertChip(m,p)}</td>`
+      +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
@@ -839,7 +855,7 @@ function renderTree(){
           <td><b>${money(d.budget)} ₽</b></td>
           <td><span class="kind ${d.isLead?'k-lead':'k-deal'}">${d.isLead?'лид':'сделка'}</span></td>
           <td><a href="${url}" target="_blank" onclick="event.stopPropagation()" class="did2">${esc(d.dealId||d.leadId)}</a></td>
-          <td class="l"><div class="dtt">${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
+          <td class="l"><div class="dtt">${dept?`<span class="dmgrtag">${esc(d.mgr)}</span>`:''}${esc(d.title.slice(0,46))}</div>${dsig(d)}</td>
           <td class="l dstage">${esc(d.stage||'-')}</td>
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>

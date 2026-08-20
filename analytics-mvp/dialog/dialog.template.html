@@ -89,7 +89,7 @@ input#q{min-width:220px}
 .kind{font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap}
 .k-deal{color:#22d3ee;border-color:#22d3ee55;background:#22d3ee12}
 .k-lead{color:#C2873C;border-color:#C2873C55;background:#C2873C12}
-.urg{font-size:10.5px;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.urg{font-size:10.5px;padding:1px 6px;border-radius:4px;white-space:nowrap;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 .qexp>td{padding:0 10px 10px 10px;background:#ffffff05}
 .qnext{color:var(--ink-2);font-size:11.5px;margin:6px 0 8px 0;line-height:1.5}
 .qnext b{color:var(--ink-3)}
@@ -280,6 +280,8 @@ input#q{min-width:220px}
 .urg{cursor:pointer}
 .t3 tr.erow2.evhi td{background:rgba(34,211,238,.16);box-shadow:inset 3px 0 0 var(--acc)}
 .t2>tbody>tr>td.l .mixchip{font-size:9.5px}
+.t2 td.urgcell{max-width:200px}
+.t2 td.mixcell{max-width:200px;white-space:normal}
 .fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
 .chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
 .pset{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;cursor:pointer;color:var(--ink-3);font-size:10.5px;margin-right:2px}
@@ -928,8 +930,8 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
-          <td class="l">${d.outcome==='won'?`<span class="urg" style="color:#2E9E74;background:#2E9E7418;border:1px solid #2E9E7444">Успех</span>`:d.outcome==='lost'?`<span class="urg" style="color:#C25252;background:#C2525218;border:1px solid #C2525244">Отказ${d.lossReason&&!/не указан/i.test(d.lossReason)?': '+esc(d.lossReason):''}</span>`:d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
-          <td class="l">${mixCell(d,dFrom,dTo)}</td></tr>`;
+          <td class="l urgcell">${d.outcome==='won'?`<span class="urg" style="color:#2E9E74;background:#2E9E7418;border:1px solid #2E9E7444">Успех</span>`:d.outcome==='lost'?`<span class="urg" title="${d.lossReason?esc('Отказ: '+d.lossReason):'Отказ'}" style="color:#C25252;background:#C2525218;border:1px solid #C2525244">Отказ${d.lossReason&&!/не указан/i.test(d.lossReason)?': '+esc(d.lossReason):''}</span>`:d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
+          <td class="l mixcell">${mixCell(d,dFrom,dTo)}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
       html+=`</table></td></tr>`;

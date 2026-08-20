@@ -712,8 +712,7 @@ function renderTree(){
     return `<div class="comm">${chips}</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
-    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
-    .concat([{k:'rating',t:'Рейтинг'}]);
+    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   let mgrs=SC.managers.filter(m=>byM[m.mgr]);
   if(S.fMgrs.size) mgrs=mgrs.filter(m=>S.fMgrs.has(m.mgr));

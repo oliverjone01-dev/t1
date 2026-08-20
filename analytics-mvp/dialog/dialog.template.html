@@ -203,6 +203,15 @@ input#q{min-width:220px}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
 .cwrap{display:inline-grid;grid-template-columns:repeat(3,56px);gap:4px}
 .cwrap .cchip{padding:1px 4px;text-align:left;justify-self:stretch}
+.cgrid{display:inline-grid;grid-template-columns:repeat(3,auto);column-gap:14px;row-gap:3px}
+.cgrid .cgc,.cgrid .cch0{display:inline-flex;align-items:baseline;gap:4px;padding:0;border:0;background:none;border-radius:0}
+.cgrid b{font-variant-numeric:tabular-nums;font-weight:700;text-align:right;min-width:34px}
+.cgrid i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400}
+.cgrid .cch0{opacity:.4}
+.cgrid .cch0 b{color:var(--ink-4)}
+.cgrid .cgc{cursor:pointer}
+.cgrid .cgc:hover{filter:brightness(1.3)}
+.cgrid .cgc.con b{text-decoration:underline}
 .cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;padding:1px 5px;border-radius:6px;border:1px solid transparent;transition:.1s}
 .cchip:hover{background:#ffffff0d;border-color:var(--border)}
 .cchip.con{background:#ffffff14;border-color:currentColor}
@@ -733,6 +742,10 @@ function renderTree(){
     return t; };
   // Воронка менеджера: раскладка его сделок по группам стадий - видно, где портфель.
   const grpOf=(d)=> d.isLead ? 'lead' : (STAGE2GRP[d.stage]||'early');
+  // Касательное попадание в группу стадий: сделка сейчас в группе ИЛИ проходила её в истории.
+  // Для аудита берём максимум данных - подцепляем и тех, кто уже ушёл со стадии дальше/в отказ.
+  const touchedGrp=(d,grp)=>{ if(grpOf(d)===grp) return true; const g=STAGE_GRP.find(x=>x.k===grp);
+    if(!g||!g.stages.length) return false; return (d.stageRows||[]).some(s=>g.stages.includes(s.name)); };
   const funnelOf=(mgr)=>{ const g={}; for(const d of (byM[mgr]||[])){ const gk=grpOf(d); g[gk]=(g[gk]||0)+1; } return g; };
   const funnelCell=(mgr)=>{ const g=funnelOf(mgr); const tot=Object.values(g).reduce((a,b)=>a+b,0);
     if(!tot) return '<span class="na2">-</span>';
@@ -743,10 +756,12 @@ function renderTree(){
     const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
     return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
   const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
-    // Каждый чип - со своим тултипом (цветная точка + тип + счётчик) и кликом-фильтром.
-    const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=aiPickActive('cm',mgr,c.k);
-      return `<span class="cchip${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${t[c.k]}</b> · клик - сделки с этим каналом">${t[c.k]}<i>${c.s}</i></span>`; }).join('');
-    return `<div class="comm">${chips}</div>`; };
+    // Все 5 каналов в фиксированной сетке 3 колонки (сообщ/звон/письм · дел/зам), нули приглушены,
+    // числа выровнены - идентификаторы стоят в столбик по всем строкам. Ненулевые - кликабельны.
+    const cells=COMM_TYPES.map(c=>{ const v=t[c.k]||0; const on=aiPickActive('cm',mgr,c.k);
+      if(!v) return `<span class="cch0"><b>0</b><i>${c.s}</i></span>`;
+      return `<span class="cchip cgc${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${v}</b> · клик - сделки с этим каналом"><b>${v}</b><i>${c.s}</i></span>`; }).join('');
+    return `<div class="cgrid">${cells}</div>`; };
   // Полнота коммуникаций сделки: доля коммуникационных событий (сообщения, звонки, письма)
   // от всех событий сделки (плюс системные - дела, задачи, комментарии). Показывает, ведёт ли
   // менеджер общение в CRM или пайплайн держится на системных инструментах.
@@ -978,7 +993,7 @@ function renderTree(){
     // Воронка по стадии - срез сделок менеджера на этом этапе.
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
-      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>grpOf(d)===grp))}); return; }
+      aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>touchedGrp(d,grp)))}); return; }
     // Полнота коммуникаций - срез сделок менеджера с этим уровнем полноты.
     const clc=e.target.closest&&e.target.closest('[data-compl]');
     if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
@@ -1217,7 +1232,8 @@ function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
   const pickMode=S.picks.length>0;
   return SC.deals.filter(d=>{
     if(!pickMode && F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
-    if(!pickMode && F.stages.size && !F.stages.has(d.stage||'(без стадии)')) return false;
+    // Стадия попадает и по касательной: текущая стадия ИЛИ пройденная в истории (максимум данных).
+    if(!pickMode && F.stages.size){ const touched=F.stages.has(d.stage||'(без стадии)')||(d.stageRows||[]).some(s=>F.stages.has(s.name)); if(!touched) return false; }
     if(idset){ const id=String(d.dealId||d.leadId||''); if(!idset.has(id)) return false; }
     if(!a&&!b) return true;
     if(F.dMode==='created'){ const ts=EVTS[d.key]||[]; const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0)); if(!c) return true; return (!a||c>=a)&&(!b||c<=b); }

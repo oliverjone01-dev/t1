@@ -432,6 +432,10 @@ async function main() {
   const leadSelect = ["ID", "TITLE", "STATUS_ID", "ASSIGNED_BY_ID", "OPPORTUNITY",
     "DATE_CREATE", "DATE_CLOSED", "SOURCE_ID", UF_LEAD_DIR];
   const leadRows = await listAll("crm.lead.list", { select: leadSelect, filter: { ...dateFilter } });
+  // Лиды-источники сделок этой воронки (по LEAD_ID). Воронка одна (C21 = Glass Memory),
+  // поэтому направление лида не обязательно: любой лид, породивший сделку C21, берём в выгрузку
+  // независимо от направления (в т.ч. с пустым). Нужно для честного счёта «из лида» и лага лид->сделка.
+  const srcLeadIds = new Set(dealRows.map((d) => String(d.LEAD_ID)).filter((x) => x && x !== "0"));
   const leads = leadRows.map((l) => {
     const st = String(l.STATUS_ID || "");
     return {
@@ -449,7 +453,7 @@ async function main() {
       source: sourceName[String(l.SOURCE_ID)] || l.SOURCE_ID || "не указан",
       dir: leadDirMap[String(l[UF_LEAD_DIR])] || "не указано",
     };
-  }).filter((l) => ONLY_LEAD_DIRS.length ? ONLY_LEAD_DIRS.includes(l.dir) : !EXCLUDE_LEAD_DIRS.includes(l.dir));
+  }).filter((l) => (ONLY_LEAD_DIRS.length ? ONLY_LEAD_DIRS.includes(l.dir) : !EXCLUDE_LEAD_DIRS.includes(l.dir)) || srcLeadIds.has(String(l.id)));
   console.log(`Лиды (${ONLY_LEAD_DIRS.length ? "только " + ONLY_LEAD_DIRS.join("/") : "кроме " + EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
 
   // Перекрестие «лид -> воронка сделки»: цепляем к каждой сделке направление её лида-источника.

@@ -1074,13 +1074,26 @@ function render(){
   const _wonRev=m.revCohort,_lostRev=D.filter(d=>d.lost).reduce((s,x)=>s+(x.budget||0),0),_openRev=D.filter(d=>!d.won&&!d.lost).reduce((s,x)=>s+(x.budget||0),0);
   const _lostN=D.filter(d=>d.lost).length,_closedN=_cohortWon.length+_lostN,_churnRate=_closedN?_lostN/_closedN:0;
   const _churn=`<div class="churn-row">Отток сделок (Churn) ${info('Отток (Churn) - проигранные сделки ÷ закрытые (выигранные + проигранные). Доля потерянных среди завершённых. Тянется из Б24: won = выигранные, lost = проигранные. Чем ниже, тем лучше.')} <b>${pct(_churnRate)}</b> <span class="churn-sub">${fmt(_lostN)} проигр. из ${fmt(_closedN)} закрытых</span></div>`;
-  const _cvFunnel=(()=>{const stg=[['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];const cvs=[_cv1,_cvQS];
-    const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(stg[0][1],stg[1][1],stg[2][1],1),n=3,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_leadN?_wonN/_leadN:0;
+  // Дилерский канал идёт МИМО лидов (заказ создаётся сразу сделкой), поэтому для «Только дилеры»
+  // строим воронку ОТ СДЕЛОК: Сделки → Продажи. Конверсия = продажи ÷ сделки (успешный переход).
+  const _dealer=S.channel==='dealer';
+  const _dSales=_cohortWon.length,_dConv=D.length?_dSales/D.length:0;
+  const _stg=_dealer
+    ? [['Сделки',D.length,'#3DAEC2'],['Продажи',_dSales,'#2E9E74']]
+    : [['Заявки',_leadN,'#3DAEC2'],['Квал-лиды · сделки',_qualN,'#2E9E74'],['Продажи',_wonN,'#2E9E74']];
+  const _cvs=_dealer?[_dConv]:[_cv1,_cvQS];
+  const _e2e=_dealer?_dConv:(_leadN?_wonN/_leadN:0);
+  const _e2eLbl=_dealer?'сквозная сделка→продажа':'сквозная заявка→продажа';
+  const _cvSub=_dealer
+    ? 'дилер-воронка: сделка → продажа · заказы дилеров идут напрямую, без лида'
+    : `лид-воронка: заявка → сделка → продажа · <b style="color:#C084FC">прямые без лида: ${fmt(_wonDirect)}</b> (дилеры, мимо воронки)`;
+  const _cvFunnel=(()=>{const stg=_stg,cvs=_cvs;
+    const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(...stg.map(s=>s[1]),1),n=stg.length,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_e2e;
     let defs='',conns='',nodes='',labels='';
     for(let i=0;i<n-1;i++){const h0=hOf(stg[i][1]),h1=hOf(stg[i+1][1]),x0=nodeX(i)+nodeW,x1=nodeX(i+1),t0=midY-h0/2,b0=midY+h0/2,t1=midY-h1/2,b1=midY+h1/2,gid='cvf'+i;
       defs+=`<linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${stg[i][2]}" stop-opacity=".4"/><stop offset="1" stop-color="${stg[i+1][2]}" stop-opacity=".4"/></linearGradient>`;
       conns+=`<path d="M${x0} ${t0} L${x1} ${t1} L${x1} ${b1} L${x0} ${b0} Z" fill="url(#${gid})"/>`;
-      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?'Заявка → сделка (CR1)':'Сделка → продажа (CR2) · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
+      const mp=(x0+x1)/2,cc=i===1?'#3DAEC2':'#2E9E74',td=dt(i===0?(_dealer?'Сделка → продажа · дилерский канал':'Заявка → сделка (CR1)'):'Сделка → продажа (CR2) · ключевой рычаг',[['Конверсия',pct(cvs[i]),'hl'],['Из',fmt(stg[i][1]),'dim'],['Стало',fmt(stg[i+1][1]),'dim']]).replace(/"/g,'&quot;');
       conns+=`<rect x="${mp-27}" y="${midY-11}" width="54" height="22" rx="11" fill="rgba(7,9,13,.92)" stroke="${cc}" stroke-opacity=".65" data-tip="${td}"/><text x="${mp}" y="${midY+4.5}" text-anchor="middle" font-size="12" font-weight="800" fill="${cc}" pointer-events="none">${pct(cvs[i])}</text>`;}
     stg.forEach((s,i)=>{const hh=hOf(s[1]),t=midY-hh/2;
       nodes+=`<rect class="seg-anim" style="animation-delay:${i*.07}s;transform-box:fill-box;transform-origin:center" x="${nodeX(i)}" y="${t}" width="${nodeW}" height="${hh}" rx="6" fill="${s[2]}"/>`;
@@ -1088,7 +1101,7 @@ function render(){
       else labels+=`<text x="${cx(i)}" y="${t-6}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="${s[2]}">${fmt(s[1])}</text>`;
       labels+=`<text x="${cx(i)}" y="20" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--ink-2)">${s[0]}</text>`;});
     const bx0=nodeX(0),bx1=nodeX(n-1)+nodeW,bmid=(bx0+bx1)/2,by=150;
-    const brk=`<path d="M${bx0} ${by} L${bx0} ${by+5} L${bmid-7} ${by+5} L${bmid} ${by+12} L${bmid+7} ${by+5} L${bx1} ${by+5} L${bx1} ${by}" fill="none" stroke="var(--ink-4)" stroke-width="1.3"/><text x="${bmid}" y="${by+30}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">сквозная заявка→продажа<tspan font-weight="800" fill="#3DAEC2" font-size="15" dx="6">${pct(e2e)}</tspan></text>`;
+    const brk=`<path d="M${bx0} ${by} L${bx0} ${by+5} L${bmid-7} ${by+5} L${bmid} ${by+12} L${bmid+7} ${by+5} L${bx1} ${by+5} L${bx1} ${by}" fill="none" stroke="var(--ink-4)" stroke-width="1.3"/><text x="${bmid}" y="${by+30}" text-anchor="middle" font-size="11.5" fill="var(--ink-2)">${_e2eLbl}<tspan font-weight="800" fill="#3DAEC2" font-size="15" dx="6">${pct(e2e)}</tspan></text>`;
     return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${defs?`<defs>${defs}</defs>`:''}${conns}${nodes}${labels}${brk}</svg>`;})();
   const _oi=`<div class="oi-h">Деньги по исходу сделок (период)</div><div class="oi">`+
     `<div class="oi-tile"><div class="oi-v" style="color:#10B981">${fmtK(_wonRev)} ₽</div><div class="oi-l">Выиграно</div></div>`+
@@ -1098,7 +1111,7 @@ function render(){
     ? `<div id="cvDyn"></div>`
     : `${_cvFunnel}${_churn}${_oi}`;
   const B_dynLeads=`<div class="card"><div class="card-h"><div><div class="card-title">Динамика заявок ${info('Поток лидов по неделям: квал / неквал / итого во времени. Вопрос: растёт ли входящий поток и его качество, есть ли провалы. Вывод: спад «итого» - вопрос к маркетингу и каналам; рост «неквал» - падает качество трафика.')}</div><div class="card-sub">поток заявок и его качество</div></div><div style="display:flex;align-items:center;gap:9px"><span class="ctl-lbl">Разрез</span><div class="seg" id="dimSeg"></div></div></div><div id="dynBox"></div></div>`;
-  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. В режиме «Динамика» - конверсии по неделям, жирная линия = сквозная заявка→продажа; последние недели всегда занижены циклом сделки (~33 дня): свежие ещё не успели закрыться. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">лид-воронка: заявка → сделка → продажа · <b style="color:#C084FC">прямые без лида: ${fmt(_wonDirect)}</b> (дилеры, мимо воронки)</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
+  const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. В режиме «Динамика» - конверсии по неделям, жирная линия = сквозная заявка→продажа; последние недели всегда занижены циклом сделки (~33 дня): свежие ещё не успели закрыться. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">${_cvSub}</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
   /* 2. ЛИДЫ */
   /* уровни собираются в конце */
   // data-quality: атрибуция направления ЗА ВЫБРАННЫЙ ПЕРИОД - направления берутся из поля динамически
@@ -2410,6 +2423,9 @@ function wireCv(L,D){
   const qc=keys.map(k=>D.filter(d=>bkey(d.created,S.gran)===k).length);
   const wc=keys.map(k=>D.filter(d=>d.won&&bkey(d.created,S.gran)===k).length);
   const r=(num,den)=>keys.map((_,i)=>den[i]?+(num[i]/den[i]*100).toFixed(1):0);
+  // Дилеры идут мимо лидов - показываем один трек «сделка → продажа» (won ÷ сделки) по времени.
+  if(S.channel==='dealer'){
+    multiline([{name:'Сделка → продажа, %',total:true,color:'#22D3EE',vals:r(wc,qc)}],keys,S.gran,false,document.getElementById('cvDyn'));return;}
   multiline([
     {name:'CR1 · % в сделку',color:'#10B981',vals:r(qc,lc)},
     {name:'CR2 · % в продажу',color:'#22D3EE',vals:r(wc,qc)},

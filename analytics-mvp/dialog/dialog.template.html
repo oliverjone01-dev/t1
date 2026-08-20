@@ -429,7 +429,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', deptOpen:true, evHi:null,
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, deptOpen:true, evHi:null,
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -852,12 +852,18 @@ function renderTree(){
         html+=`<div class="fnchip"><span class="tdot" style="background:${ct.col}"></span>Канал: <b>${esc(ct.t)}</b> · ${ds.length} из ${before} <span class="x" data-cmclear="1">✕ сбросить фильтр</span></div>`; }
       const hotActive = S.hotMgr===m.mgr;
       if(hotActive){ const before=ds.length; ds=ds.filter(d=>d.urgency);
-        html+=`<div class="fnchip"><span class="tdot" style="background:#C25252"></span>Горящие сделки · <b>${ds.length}</b> из ${before} <span class="x" data-hotclear="1">✕ сбросить фильтр</span></div>`; }
+        let label;
+        if(S.hotMoney){ ds.sort((a,b)=>(b.budget||0)-(a.budget||0)); const sum=ds.reduce((s2,d)=>s2+(d.budget||0),0);
+          label=`Под риском · <b>${ds.length}</b> ${plu(ds.length,'сделка','сделки','сделок')} на <b>${money(sum)} ₽</b> (по убыванию бюджета)`; }
+        else label=`Горящие сделки · <b>${ds.length}</b> из ${before}`;
+        html+=`<div class="fnchip"><span class="tdot" style="background:#C25252"></span>${label} <span class="x" data-hotclear="1">✕ сбросить фильтр</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
       const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
-      ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
+      // «Под риском» - денежный ракурс: сортируем по бюджету по убыванию (крупные под риском сверху).
+      if(hotActive && S.hotMoney) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
+      else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
       html+=`<table class="tbl t2"><tr>`+DCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="d" data-k="${c.k}">${esc(c.t)}<span class="sarr">${arr(S.sD,c.k)}</span></th>`).join('')+`</tr>`;
@@ -926,7 +932,8 @@ function renderTree(){
     // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.evHi=null;
-      if(S.hotMgr===m){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>d.urgency), m===DEPT_KEY?[]:[m]); }
+      const money2=!hc.classList.contains('gorit'); // клик по «Под риском» - денежный ракурс, по «Горит» - счётный
+      if(S.hotMgr===m && S.hotMoney===money2){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; S.hotMoney=money2; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>d.urgency), m===DEPT_KEY?[]:[m]); }
       renderTree(); return; }
     // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }

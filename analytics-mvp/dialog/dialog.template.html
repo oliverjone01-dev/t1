@@ -342,6 +342,8 @@ input#q{min-width:220px}
 .pchip b{color:var(--ink-3);font-variant-numeric:tabular-nums}
 .pchip .px{color:var(--ink-4);font-size:10px}
 .pchip:hover .px{color:var(--acc)}
+.ppicks{display:flex;flex-wrap:wrap;gap:6px}
+.picksect{border-color:var(--acc)}
 .pacts{display:flex;gap:8px}
 .pbtn{font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:#04202a}
 .pbtn.ghost{background:transparent;color:var(--ink-3);border-color:var(--border)}
@@ -1276,9 +1278,17 @@ function renderRepOnly(){ const el=document.getElementById('aiRep'); if(el) el.i
 function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
   const seg=(cur,val,fn,lbl)=>`<button class="${cur===val?'on':''}" onclick="${fn}('${val}')">${lbl}</button>`;
   const preset=(k,l)=>`<span class="tog" onclick="aiPreset('${k}')">${l}</span>`;
+  const pTot=(()=>{ const s=new Set(); S.picks.forEach(p=>(p.deals||[]).forEach(d=>s.add(String(d)))); return s.size; })();
+  const picksSect = S.picks.length ? `
+    <div class="sect picksect"><h5>Набрано кликами · ${pTot} ${plu(pTot,'сделка','сделки','сделок')}</h5>
+      <div class="ppicks">${S.picks.map(p=>`<span class="pchip" data-psig="${esc(pickSig(p))}" title="Убрать">${esc(p.label)} <b>${(p.deals||[]).length}</b> <span class="px">✕</span></span>`).join('')}</div>
+      <div class="hint">Это срезы, накликанные на дашборде (объединение сделок). Стадии и менеджеры ниже не «зажигаются» - пики уходят готовым списком ID в поле «Сделки». ✕ - убрать срез.</div>
+      <button class="abtn sec" style="margin-top:8px" onclick="aiPicksClear()">Сбросить все клики</button>
+    </div>` : '';
   p.innerHTML=`
     <div class="ah"><div><b>Настройка ИИ-анализа</b><div class="sub2">MVP: собери фильтр → скопируй → пришли в чат → вставь ответ</div></div>
       <span class="ax" onclick="aiToggle(false)">✕</span></div>
+    ${picksSect}
 
     <div class="sect"><h5>Период - считать по</h5>
       <div class="seg">${seg(F.dMode,'comm','aiSetMode','дате коммуникации')}${seg(F.dMode,'created','aiSetMode','дате создания')}</div>
@@ -1347,6 +1357,7 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
       <div class="aimsg" id="aiInMsg"></div>
       <div id="aiAnsOut"></div>
     </div>`;
+  p.querySelectorAll('.picksect .pchip').forEach(c=>c.onclick=()=>aiPickRemove(c.dataset.psig));
   const at=document.getElementById('aiIn'); if(at && S.ansText){ at.value=S.ansText; renderAns(S.ansText); }
   aiSave();
 }

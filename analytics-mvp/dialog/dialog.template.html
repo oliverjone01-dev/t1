@@ -185,10 +185,13 @@ input#q{min-width:220px}
 .leadnote.lead-none{background:#8794A514;border:1px solid var(--border);color:var(--ink-3)}
 .lstage{display:inline-block;margin-left:6px;font-size:8px;font-weight:700;letter-spacing:.05em;color:#C2873C;border:1px solid #C2873C66;border-radius:4px;padding:0 4px;line-height:13px;vertical-align:middle;text-transform:uppercase}
 /* Мини-воронка и коммуникации в таблице менеджеров */
-.funnel{display:flex;gap:1px;height:8px;border-radius:3px;overflow:hidden;min-width:120px;max-width:220px}
-.funnel .fseg{min-width:3px}
-.fnums{font-size:9.5px;color:var(--ink-4);margin-top:3px;line-height:1.4;white-space:normal}
-.fnums .fdiv{opacity:.4;margin:0 3px}
+.funnel{display:flex;gap:1px;height:9px;border-radius:3px;overflow:hidden;min-width:140px;max-width:240px}
+.funnel .fseg{min-width:4px;cursor:help;transition:filter .1s}
+.funnel .fseg:hover{filter:brightness(1.35)}
+.fnrow{display:flex;gap:1px;min-width:140px;max-width:240px;margin-top:3px}
+.fn{font-size:9.5px;color:var(--ink-3);text-align:center;min-width:4px;font-variant-numeric:tabular-nums;border-left:1px solid var(--border);line-height:1.2}
+.fn:first-child{border-left:none}
+.tdot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
 .cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
 .cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
@@ -651,10 +654,11 @@ function renderTree(){
   const funnelCell=(mgr)=>{ const g=funnelOf(mgr); const tot=Object.values(g).reduce((a,b)=>a+b,0);
     if(!tot) return '<span class="na2">-</span>';
     const parts=STAGE_GRP.filter(s=>g[s.k]);
-    const segs=parts.map(s=>`<span class="fseg" style="flex:${g[s.k]};background:${s.col}"></span>`).join('');
-    const tip=parts.map(s=>`${s.t}: ${g[s.k]}`).join(' · ');
-    const nums=parts.map(s=>`<span style="color:${s.col}">${s.s} ${g[s.k]}</span>`).join('<span class="fdiv">·</span>');
-    return `<div class="funnel" data-tip="${esc(tip)}">${segs}</div><div class="fnums">${nums}</div>`; };
+    // Тултип на каждый сегмент отдельно: кружок цвета этапа + название именно того этапа.
+    const segs=parts.map(s=>`<span class="fseg" style="flex:${g[s.k]};background:${s.col}" data-tip="<span class='tdot' style='background:${s.col}'></span>${esc(s.t)}: <b>${g[s.k]}</b>"></span>`).join('');
+    // Числа под сегментами с вертикальными отметками границ (легенду-текст убрали).
+    const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
+    return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
   const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
     const p=[]; if(t.msg)p.push([t.msg,'сообщ','#2E9E74']); if(t.call)p.push([t.call,'звон','#3DAEC2']);
     if(t.mail)p.push([t.mail,'письм','#C2873C']); if(t.task)p.push([t.task,'дел','#8B7BF0']); if(t.note)p.push([t.note,'зам','#8794A5']);

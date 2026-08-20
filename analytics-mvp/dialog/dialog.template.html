@@ -429,7 +429,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, deptOpen:true, evHi:null,
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, clMgr:'', clKind:'', deptOpen:true, evHi:null,
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -682,6 +682,7 @@ function renderTree(){
   const mval=(m,k)=>{ const dsm=byM[m.mgr]||[];
     // Агрегаты по сделкам считаем всегда (нужны и отделу, и менеджерам с малой выборкой).
     if(k==='funnel'||k==='deals') return dsm.length;
+    if(k==='compl') return dsm.filter(d=>complOf(d)==='empty').length; // сортировка: больше пустых - выше
     if(k==='hot') return dsm.filter(d=>d.urgency).reduce((s2,d)=>s2+(d.budget||0),0);
     if(k==='alerts') return dsm.filter(d=>d.urgency).length;
     if(k==='sum') return dsm.reduce((s2,d)=>s2+(d.budget||0),0);
@@ -710,9 +711,21 @@ function renderTree(){
     const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=S.cmMgr===mgr&&S.cmType===c.k;
       return `<span class="cchip${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${t[c.k]}</b> · клик - сделки с этим каналом">${t[c.k]}<i>${c.s}</i></span>`; }).join('');
     return `<div class="comm">${chips}</div>`; };
+  // Полнота коммуникаций сделки: 🟢 есть текстовая переписка (звонки покрыты разбором),
+  // 🟡 только звонки без транскрибации/без текста, 🔴 только системные дела/задачи/заметки.
+  const complOf=(d)=>{ const m=mixOf(d,dFrom,dTo)||{}; const hasText=(m.msg||0)>0||(m.mail||0)>0; const call=m.call||0; const blind=call>0?Math.max(0,call-(m.ai||0)):0;
+    if(!hasText && call===0) return 'empty'; if(blind>0||!hasText) return 'partial'; return 'full'; };
+  const COMPL=[{k:'full',ic:'🟢',t:'полные',col:'#7FD1A6',why:'есть текстовая переписка, звонки покрыты разбором'},
+    {k:'partial',ic:'🟡',t:'частичные',col:'#E4B563',why:'звонки без транскрибации или только звонки без текстовой переписки'},
+    {k:'empty',ic:'🔴',t:'пустые',col:'#E08585',why:'только системные дела, задачи и комментарии - клиентской переписки нет'}];
+  const complCell=(mgr)=>{ const ds=byM[mgr]||[]; if(!ds.length) return '<span class="na2">-</span>';
+    const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
+    return `<div class="comm">`+COMPL.map(x=>{ const on=S.clMgr===mgr&&S.clKind===x.k;
+      return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> - ${esc(x.why)}. Клик - показать эти сделки.">${x.ic}${c[x.k]}</span>`; }).join('')+`</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
-    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[]);
+    .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
+    .concat([{k:'compl',t:'Полнота комм.',l:1}]);
   const arr=(st,k)=> st.k===k ? (st.d<0?' ▼':' ▲') : '';
   let mgrs=SC.managers.filter(m=>byM[m.mgr]);
   if(S.fMgrs.size) mgrs=mgrs.filter(m=>S.fMgrs.has(m.mgr));
@@ -831,6 +844,7 @@ function renderTree(){
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
+        if(c.k==='compl') return `<td class="l">${complCell(m.mgr)}</td>`;
         if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=S.hotMgr===m.mgr;
           return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=S.hotMgr===m.mgr;
@@ -856,6 +870,9 @@ function renderTree(){
           label=`Под риском · <b>${ds.length}</b> ${plu(ds.length,'сделка','сделки','сделок')} на <b>${money(sum)} ₽</b> (по убыванию бюджета)`; }
         else label=`Горящие сделки · <b>${ds.length}</b> из ${before}`;
         html+=`<div class="fnchip"><span class="tdot" style="background:#C25252"></span>${label} <span class="x" data-hotclear="1">✕ сбросить фильтр</span></div>`; }
+      const clActive = S.clMgr===m.mgr && S.clKind;
+      if(clActive){ const cx=COMPL.find(x=>x.k===S.clKind)||{}; const before=ds.length; ds=ds.filter(d=>complOf(d)===S.clKind);
+        html+=`<div class="fnchip"><span class="tdot" style="background:${cx.col}"></span>Полнота: <b>${esc(cx.t)}</b> · ${ds.length} из ${before} <span class="x" data-clclear="1">✕ сбросить фильтр</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
@@ -895,6 +912,7 @@ function renderTree(){
   list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; aiSyncReset(); renderTree(); });
   list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; aiSyncReset(); renderTree(); });
   list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; aiSyncReset(); renderTree(); });
+  list.querySelectorAll('[data-clclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.clMgr=''; S.clKind=''; aiSyncReset(); renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -917,27 +935,34 @@ function renderTree(){
     // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
-      S.cmMgr='';S.cmType='';S.hotMgr='';S.evHi=null;
+      S.cmMgr='';S.cmType='';S.hotMgr='';S.clMgr='';S.clKind='';S.evHi=null;
       if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; aiSyncReset(); }
       else { S.fnMgr=m; S.fnGrp=grp; openRow(m); const g=STAGE_GRP.find(x=>x.k===grp);
         aiSyncScope({ mgr:m, stages:(g&&g.stages.length)?g.stages:null, deals:(g&&g.stages.length)?null:(byM[m]||[]).filter(d=>grpOf(d)===grp) }); }
       renderTree(); return; }
+    // Клик по чипу полноты: сделки менеджера с этим уровнем полноты коммуникаций.
+    const clc=e.target.closest&&e.target.closest('[data-compl]');
+    if(clc){ e.stopPropagation(); const kind=clc.dataset.compl;
+      S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.hotMgr='';S.evHi=null;
+      if(S.clMgr===m&&S.clKind===kind){ S.clMgr=''; S.clKind=''; aiSyncReset(); }
+      else { S.clMgr=m; S.clKind=kind; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>complOf(d)===kind) }); }
+      renderTree(); return; }
     // Клик по чипу коммуникации: сделки менеджера с этим каналом.
-    const cc=e.target.closest&&e.target.closest('.cchip');
+    const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
-      S.fnMgr='';S.fnGrp='';S.hotMgr='';S.evHi=null;
+      S.fnMgr='';S.fnGrp='';S.hotMgr='';S.clMgr='';S.clKind='';S.evHi=null;
       if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; aiSyncReset(); }
       else { S.cmMgr=m; S.cmType=ct; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0) }); }
       renderTree(); return; }
     // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
-    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.evHi=null;
+    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.clMgr='';S.clKind='';S.evHi=null;
       const money2=!hc.classList.contains('gorit'); // клик по «Под риском» - денежный ракурс, по «Горит» - счётный
       if(S.hotMgr===m && S.hotMoney===money2){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; S.hotMoney=money2; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>d.urgency) }); }
       renderTree(); return; }
     // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} } else S.tm.add(m); renderTree(); });
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} if(S.clMgr===m){S.clMgr='';S.clKind='';} } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
     // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку и прокрутить к событиям,
     // плюс подготовить фильтр ИИ на эту сделку.

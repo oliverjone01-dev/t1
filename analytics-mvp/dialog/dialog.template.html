@@ -200,7 +200,9 @@ input#q{min-width:220px}
 .fn:first-child{border-left:none}
 .tdot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
 .funnel .fseg.fon{outline:2px solid var(--acc);outline-offset:-2px;filter:brightness(1.15)}
-.fnchip{display:inline-flex;align-items:center;gap:2px;background:#22d3ee14;border:1px solid #22d3ee44;border-radius:8px;padding:4px 10px;margin:2px 0 8px 64px;font-size:11.5px;color:#bfeff8}
+.fnchip{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;background:#22d3ee14;border:1px solid #22d3ee44;border-radius:8px;padding:4px 10px;margin:2px 0 8px 64px;font-size:11.5px;color:#bfeff8}
+.fnchip .fpk{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:12px;background:#ffffff12;border:1px solid #ffffff22}
+.fnchip .fpk b{color:#fff}
 .fnchip b{color:#e7f8fc;margin:0 3px}
 .fnchip .x{margin-left:8px;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:6px;padding:2px 8px;font-size:10.5px}
 .fnchip .x:hover{background:#164050;color:#e7f8fc}
@@ -918,31 +920,20 @@ function renderTree(){
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
-      // Клик по сегменту воронки: показываем только сделки этого этапа + чип сброса.
-      const fnActive = S.fnMgr===m.mgr && S.fnGrp;
-      if(fnActive){ const grp=STAGE_GRP.find(x=>x.k===S.fnGrp)||{}; const before=ds.length;
-        ds=ds.filter(d=>grpOf(d)===S.fnGrp);
-        html+=`<div class="fnchip"><span class="tdot" style="background:${grp.col}"></span>Этап: <b>${esc(grp.t)}</b> · ${ds.length} из ${before} <span class="x" data-fnclear="1">✕ сбросить фильтр</span></div>`; }
-      const cmActive = S.cmMgr===m.mgr && S.cmType;
-      if(cmActive){ const ct=COMM_TYPES.find(x=>x.k===S.cmType)||{}; const before=ds.length;
-        ds=ds.filter(d=>((mixOf(d,dFrom,dTo)||{})[S.cmType]||0)>0);
-        html+=`<div class="fnchip"><span class="tdot" style="background:${ct.col}"></span>Канал: <b>${esc(ct.t)}</b> · ${ds.length} из ${before} <span class="x" data-cmclear="1">✕ сбросить фильтр</span></div>`; }
-      const hotActive = S.hotMgr===m.mgr;
-      if(hotActive){ const before=ds.length; ds=ds.filter(d=>d.urgency);
-        let label;
-        if(S.hotMoney){ ds.sort((a,b)=>(b.budget||0)-(a.budget||0)); const sum=ds.reduce((s2,d)=>s2+(d.budget||0),0);
-          label=`Под риском · <b>${ds.length}</b> ${plu(ds.length,'сделка','сделки','сделок')} на <b>${money(sum)} ₽</b> (по убыванию бюджета)`; }
-        else label=`Горящие сделки · <b>${ds.length}</b> из ${before}`;
-        html+=`<div class="fnchip"><span class="tdot" style="background:#C25252"></span>${label} <span class="x" data-hotclear="1">✕ сбросить фильтр</span></div>`; }
-      const clActive = S.clMgr===m.mgr && S.clKind;
-      if(clActive){ const cx=COMPL.find(x=>x.k===S.clKind)||{}; const before=ds.length; ds=ds.filter(d=>complOf(d)===S.clKind);
-        html+=`<div class="fnchip"><span class="tdot" style="background:${cx.col}"></span>Полнота: <b>${esc(cx.t)}</b> · ${ds.length} из ${before} <span class="x" data-clclear="1">✕ сбросить фильтр</span></div>`; }
+      // Фильтр раскрытых сделок по КОРЗИНЕ этого менеджера: объединение всех его пиков.
+      // Кликнул несколько значений (стадия + канал + полнота...) - показываем все их сделки.
+      const mgPicks = S.picks.filter(p=>p.mgr===m.mgr);
+      const hotPick = mgPicks.some(p=>p.kind==='hot');
+      if(mgPicks.length){ const ids=new Set(); mgPicks.forEach(p=>(p.deals||[]).forEach(id=>ids.add(String(id))));
+        const before=ds.length; ds=ds.filter(d=>ids.has(String(d.dealId||d.leadId)));
+        const chips = mgPicks.map(p=>`<span class="fpk">${esc(p.label.replace(mLabel(m.mgr)+' · ',''))} <b>${(p.deals||[]).length}</b></span>`).join('');
+        html+=`<div class="fnchip"><b>Фильтр:</b> ${chips} · показано <b>${ds.length}</b> из ${before} <span class="x" data-mgrclear="${esc(m.mgr).replace(/"/g,'&quot;')}">✕ сбросить</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
       const dval=(d,k)=> k==='mix'?((mixOf(d,dFrom,dTo)||{}).total||0) : k==='id'?(d.dealId||d.leadId) : k==='kind'?(d.isLead?1:0) : k==='budget'?(d.budget||0) : k==='respMed'?(d.respMed===null?1e9:d.respMed) : d[k];
-      // «Под риском» - денежный ракурс: сортируем по бюджету по убыванию (крупные под риском сверху).
-      if(hotActive && S.hotMoney) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
+      // Если в фильтре есть «Горит» - показываем крупные сверху (денежный ракурс).
+      if(hotPick) ds.sort((a,b)=>(b.budget||0)-(a.budget||0));
       else ds.sort((a,b)=>{ const x=dval(a,S.sD.k), y=dval(b,S.sD.k);
         if(typeof x==='number'&&typeof y==='number') return (x-y)*S.sD.d;
         return String(x??'').localeCompare(String(y??''))*S.sD.d; });
@@ -1000,33 +991,29 @@ function renderTree(){
   // Любой уровень тянет вниз до самого конца: пик всегда разворачивается в список сделок,
   // а конфиг ИИ по каждой сделке уносит всю её коммуникацию (глубина до упора).
   const dealIdsOf=(arr)=>arr.map(d=>d.dealId||d.leadId);
-  // Сброс всех дрил-фокусов дашборда (клик по значению фокусирует одного менеджера на срезе).
-  const drillReset=()=>{ S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.hotMgr='';S.clMgr='';S.clKind=''; };
   list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
-    // Воронка по стадии - клик набирает срез в корзину ИИ И фокусирует дашборд: раскрывает
-    // менеджера и показывает только сделки этого этапа (верхний элемент = фильтр раскрытого).
+    // Клик по значению = добавить срез в корзину ИИ + раскрыть менеджера и показать его
+    // сделки по корзине. Несколько кликов накапливаются - дашборд фильтрует по всем сразу.
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp; const g=STAGE_GRP.find(x=>x.k===grp);
-      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr='';S.fnGrp=''; } else { drillReset(); S.fnMgr=m;S.fnGrp=grp; openRow(m); }
+      if(!aiPickActive('fn',m,grp)&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'fn',mgr:m,sub:grp,label:`${mLabel(m)} · ${g?g.t:grp}`,deals:dealIdsOf((byM[m]||[]).filter(d=>touchedGrp(d,grp)))}); return; }
-    // Полнота коммуникаций - срез сделок менеджера с этим уровнем полноты (+ фокус дашборда).
     const clc=e.target.closest&&e.target.closest('[data-compl]');
     if(clc){ e.stopPropagation(); const kind=clc.dataset.compl; const cx=COMPL.find(x=>x.k===kind);
-      if(S.clMgr===m&&S.clKind===kind){ S.clMgr='';S.clKind=''; } else { drillReset(); S.clMgr=m;S.clKind=kind; openRow(m); }
+      if(!aiPickActive('cl',m,kind)&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'cl',mgr:m,sub:kind,label:`${mLabel(m)} · ${cx?cx.t:kind}`,deals:dealIdsOf((byM[m]||[]).filter(d=>complOf(d)===kind))}); return; }
-    // Канал коммуникации - срез сделок менеджера с этим каналом (+ фокус дашборда).
     const cc=e.target.closest&&e.target.closest('.cchip[data-comm]');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm; const cm=COMM_TYPES.find(x=>x.k===ct);
-      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr='';S.cmType=''; } else { drillReset(); S.cmMgr=m;S.cmType=ct; openRow(m); }
+      if(!aiPickActive('cm',m,ct)&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'cm',mgr:m,sub:ct,label:`${mLabel(m)} · ${cm?cm.t:ct}`,deals:dealIdsOf((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0))}); return; }
-    // «Горит»/«Под риском» - горящие сделки менеджера (+ фокус дашборда).
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation();
-      if(S.hotMgr===m){ S.hotMgr=''; } else { drillReset(); S.hotMgr=m; openRow(m); }
+      if(!aiPickActive('hot',m,'hot')&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'hot',mgr:m,sub:'hot',label:`${mLabel(m)} · горящие`,deals:dealIdsOf((byM[m]||[]).filter(d=>d.urgency))}); return; }
     // Счётчик «Сделок» - весь уровень целиком (менеджер или отдел) со всеми его сделками.
     const ac=e.target.closest&&e.target.closest('[data-allrow]');
     if(ac){ e.stopPropagation();
+      if(!aiPickActive('all',m,'all')&&m!==DEPT_KEY) openRow(m);
       aiPickToggle({kind:'all',mgr:m,sub:'all',label:`${mLabel(m)} · все сделки`,deals:dealIdsOf(byM[m]||[])}); return; }
     // Клик по строке отдела - свернуть/развернуть всех менеджеров (навигация, не фильтр).
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; renderTree(); return; }
@@ -1041,6 +1028,8 @@ function renderTree(){
       const d=SCD[k]; if(d){ const id=d.dealId||d.leadId; aiPickToggle({kind:'deal',mgr:d.isLead?'(лид)':d.mgr,sub:String(id),label:`Сделка ${id}`,deals:[id]}); } else renderTree();
       scrollToDeal(k,cat); return; }
     S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
+  // Сброс фильтра раскрытых сделок менеджера - убираем его пики из корзины.
+  list.querySelectorAll('[data-mgrclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); aiPicksClearMgr(b.dataset.mgrclear); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);
     if(host){ const d=SCD[dk];
@@ -1572,6 +1561,7 @@ function aiPickToggle(p){ const s=pickSig(p); const i=S.picks.findIndex(x=>pickS
   aiApplyPicks(); renderTree(); }
 function aiPickRemove(sig){ const i=S.picks.findIndex(x=>pickSig(x)===sig); if(i>=0){ S.picks.splice(i,1); aiApplyPicks(); renderTree(); } }
 function aiPicksClear(){ S.picks=[]; aiApplyPicks(); renderTree(); }
+function aiPicksClearMgr(mgr){ S.picks=S.picks.filter(p=>p.mgr!==mgr); aiApplyPicks(); renderTree(); }
 // Корзина -> фильтр ИИ: объединяем сделки всех пиков в один список ID, глубина всегда
 // «вся сделка». Пусто - корзина не трогает ручной фильтр панели.
 function aiApplyPicks(){ const F=S.aiF;

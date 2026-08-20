@@ -273,6 +273,10 @@ input#q{min-width:220px}
 .ebody{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 .sysw{color:var(--ink-4);font-size:10.5px}
 .mixchip{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;border:1px solid;white-space:nowrap;margin:0 2px 2px 0}
+.mixchip[data-mixcat]{cursor:pointer}
+.mixchip[data-mixcat]:hover{filter:brightness(1.35);text-decoration:underline}
+.urg{cursor:pointer}
+.t3 tr.erow2.evhi td{background:rgba(34,211,238,.16);box-shadow:inset 3px 0 0 var(--acc)}
 .t2>tbody>tr>td.l .mixchip{font-size:9.5px}
 .fbar input[type=date]{background:#0f1720;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px}
 .chip2.on2{border-color:var(--acc);color:var(--acc);background:#22d3ee12}
@@ -425,7 +429,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', deptOpen:true,
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', deptOpen:true, evHi:null,
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -883,9 +887,9 @@ function renderTree(){
   if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
-  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
-  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; renderTree(); });
-  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; renderTree(); });
+  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; aiSyncReset(); renderTree(); });
+  list.querySelectorAll('[data-cmclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.cmMgr=''; S.cmType=''; aiSyncReset(); renderTree(); });
+  list.querySelectorAll('[data-hotclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.hotMgr=''; aiSyncReset(); renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -908,24 +912,34 @@ function renderTree(){
     // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
-      S.cmMgr='';S.cmType='';S.hotMgr='';
-      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; } else { S.fnMgr=m; S.fnGrp=grp; openRow(m); }
+      S.cmMgr='';S.cmType='';S.hotMgr='';S.evHi=null;
+      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; aiSyncReset(); }
+      else { S.fnMgr=m; S.fnGrp=grp; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>grpOf(d)===grp), m===DEPT_KEY?[]:[m]); }
       renderTree(); return; }
     // Клик по чипу коммуникации: сделки менеджера с этим каналом.
     const cc=e.target.closest&&e.target.closest('.cchip');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
-      S.fnMgr='';S.fnGrp='';S.hotMgr='';
-      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; } else { S.cmMgr=m; S.cmType=ct; openRow(m); }
+      S.fnMgr='';S.fnGrp='';S.hotMgr='';S.evHi=null;
+      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; aiSyncReset(); }
+      else { S.cmMgr=m; S.cmType=ct; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0), m===DEPT_KEY?[]:[m]); }
       renderTree(); return; }
     // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
-    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';
-      if(S.hotMgr===m){ S.hotMgr=''; } else { S.hotMgr=m; openRow(m); }
+    if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.evHi=null;
+      if(S.hotMgr===m){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>d.urgency), m===DEPT_KEY?[]:[m]); }
       renderTree(); return; }
     // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }
     if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} } else S.tm.add(m); renderTree(); });
-  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
+  list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d;
+    // Клик по чипу «Ленты» или тегу «Что горит»: раскрыть переписку и прокрутить к событиям,
+    // плюс подготовить фильтр ИИ на эту сделку.
+    const chip=e.target.closest&&e.target.closest('.mixchip[data-mixcat]');
+    const urg=e.target.closest&&e.target.closest('.urg');
+    if(chip||urg){ S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
+      const d=SCD[k]; if(d) aiSyncDeals([d], d.isLead?[]:[d.mgr]);
+      renderTree(); scrollToDeal(k,cat); return; }
+    S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);
     if(host){ const d=SCD[dk];
@@ -967,7 +981,7 @@ function renderTree(){
         // переписка остаётся для контекста, но видно, что именно происходило в эти даты.
         const inR=(dFrom||dTo)&&(!dFrom||e.ts>=dFrom)&&(!dTo||e.ts<=dTo);
         const onLead = e.stage==='lead' && !e.sys;
-        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${onLead?' lead-stage':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}">
+        return `<tr class="erow2${e.sys?' sysrow':''}${inR?' inrng':''}${onLead?' lead-stage':''}${bad?' e-bad':good?' e-good':''}" data-src="${esc(e.src||'')}" data-evcat="${evCat(e.type)}">
           <td class="etime">${fmtTime(e.dt)}${onLead?'<span class="lstage">лид</span>':''}</td>
           <td class="${e.dir==='входящее'?'who-cli':e.dir==='исходящее'?'who-mgr':''}">${isM?whoLabel(e):'<span class="sysw">CRM</span>'}</td>
           <td><span class="badge" style="background:${c3}18;color:${c3};border:1px solid ${c3}44">${esc(e.type)}</span></td>
@@ -1043,13 +1057,13 @@ function dsig(d){ const p=[]; const cl=clientShort(d.client); if(cl) p.push([cl.
 function mixCell(d,a,b){
   const m=mixOf(d,a,b); if(!m) return '<span class="na2">-</span>';
   const p=[];
-  if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74']);
-  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков')+(m.ai?' с разбором':''),'#3DAEC2']);
-  if(m.mail) p.push([m.mail+' '+plu(m.mail,'письмо','письма','писем'),'#C2873C']);
-  if(m.task) p.push([m.task+' '+plu(m.task,'дело','дела','дел'),'#8B7BF0']);
-  if(m.note) p.push([m.note+' '+plu(m.note,'заметка','заметки','заметок'),'#8794A5']);
+  if(m.msg) p.push([m.msg+' '+plu(m.msg,'сообщение','сообщения','сообщений')+(m.chan>1?` в ${m.chan} `+plu(m.chan,'канале','каналах','каналах'):''),'#2E9E74','msg']);
+  if(m.call) p.push([m.call+' '+plu(m.call,'звонок','звонка','звонков')+(m.ai?' с разбором':''),'#3DAEC2','call']);
+  if(m.mail) p.push([m.mail+' '+plu(m.mail,'письмо','письма','писем'),'#C2873C','mail']);
+  if(m.task) p.push([m.task+' '+plu(m.task,'дело','дела','дел'),'#8B7BF0','task']);
+  if(m.note) p.push([m.note+' '+plu(m.note,'заметка','заметки','заметок'),'#8794A5','note']);
   if(!p.length) return '<span class="na2">пусто</span>';
-  return p.map(x=>`<span class="mixchip" style="color:${x[1]};border-color:${x[1]}44;background:${x[1]}12">${esc(x[0])}</span>`).join(' ');
+  return p.map(x=>`<span class="mixchip" data-mixcat="${x[2]}" style="color:${x[1]};border-color:${x[1]}44;background:${x[1]}12">${esc(x[0])}</span>`).join(' ');
 }
 // Связка звонка и его разбора BitrixGPT: у звонка - подпись с началом резюме,
 // у самого резюме - к какому звонку и на какое время оно относится.
@@ -1351,6 +1365,18 @@ function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'n
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }
 function aiAnsInput(v){ S.ansText=v; aiSave(); }
+// Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
+// те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.
+function aiSyncDeals(deals, mgrs){ const F=S.aiF;
+  F.stages=new Set(); F.mgrs = mgrs&&mgrs.length ? new Set(mgrs) : new Set();
+  F.dealIds = deals.map(d=>String(d.dealId||d.leadId)).join(', '); aiSave(); }
+function aiSyncReset(){ const F=S.aiF; F.mgrs=new Set(); F.stages=new Set(); F.dealIds=''; aiSave(); }
+// Прокрутка к переписке сделки и подсветка событий нужной категории (клик по чипу «Ленты»).
+function scrollToDeal(key, cat){ setTimeout(()=>{ const host=document.getElementById('tree-'+key); if(!host) return;
+  let target=host;
+  if(cat){ const rows=host.querySelectorAll('.erow2[data-evcat="'+cat+'"]'); rows.forEach(r=>r.classList.add('evhi')); if(rows.length) target=rows[0]; }
+  target.scrollIntoView({behavior:'smooth', block:'center'});
+}, 60); }
 
 aiLoad(); initControls(); render();
 

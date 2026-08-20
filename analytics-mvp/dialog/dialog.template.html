@@ -430,7 +430,7 @@ const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.get
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
   fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', hotMoney:false, deptOpen:true, evHi:null,
-  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
+  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), question:'', inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
 function initControls(){
@@ -1166,7 +1166,9 @@ function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const
       исход:d.outcome||'open', происхождение:(d.dealId? (d.leadId?{из_лида:String(d.leadId)}:{создана_напрямую:true, лида_не_было:true}) : {это_лид:true}),
       вероятность:d.prob, причина_отказа:d.lossReason||'', полнота:c.k, комментарий:c.why,
       лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
-  return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',
+  return {
+    уточняющий_вопрос: (F.question||'').trim() || null,
+    запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет. Если задан уточняющий_вопрос - в первую очередь ответь на него по этой выборке, затем дай разбор.',
     фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', стадии:F.stages.size?[...F.stages]:'все стадии', включено:[...F.inc].map(k=>INCLBL[k]) },
     полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
     менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),
@@ -1211,12 +1213,8 @@ function repHTML(){ const F=S.aiF, deals=aiMatchDeals(); const rep={full:0,parti
       <div class="rc"><b style="color:#E08585">${rep.empty}</b><span>🔴 пустые</span></div>
       <div class="rc"><b>${deals.length}</b><span>всего</span></div>
     </div>
-    <div class="mgrsum" style="margin-top:10px">Менеджеры в выборке: ${mgrLine}</div>
-    <div class="dllist">${rows.length?rows.map(({d,c})=>`<div class="dli">
-        <span class="di">${c.ic} ${esc(String(d.dealId||d.leadId))}</span>
-        <span class="dt" title="${esc(c.why)}">${esc(d.title||'-')}</span>
-        <span class="dw">${esc(d.mgr||'')}</span>
-      </div>`).join(''):'<div class="na2" style="padding:14px 0">по этому фильтру сделок нет</div>'}</div>`;
+    <div class="mgrsum" style="margin-top:9px">Менеджеры: ${mgrLine}</div>
+    <div class="hint" style="margin-top:6px">${deals.length} ${plu(deals.length,'сделка','сделки','сделок')} в выборке. Полный список сделок и полнота по каждой уходят в конфиг для ИИ - здесь читать не нужно.</div>`;
 }
 function renderRepOnly(){ const el=document.getElementById('aiRep'); if(el) el.innerHTML=repHTML(); }
 
@@ -1265,6 +1263,11 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
 
     <div class="sect"><h5>Что включать в разбор</h5>
       <div class="togs">${Object.keys(INCLBL).map(k=>`<span class="tog ${F.inc.has(k)?'on':''}" onclick="aiTogInc('${k}')">${INCLBL[k]}</span>`).join('')}</div>
+    </div>
+
+    <div class="sect"><h5>Уточняющий вопрос к ИИ · необязательно</h5>
+      <textarea class="ansbox" id="aiQuestion" style="min-height:60px" placeholder="Напр.: почему долгострои не двигаются? где теряем крупные сделки? что общего у отказов?" oninput="aiQInput(this.value)">${esc(F.question||'')}</textarea>
+      <div class="hint">Фильтр задаёт, ЧТО анализировать (выборка сделок), а вопрос - НА ЧТО ответить. Полетит вместе с настройкой, анализ будет управляемым.</div>
     </div>
 
     <div class="sect"><h5>Полнота данных под выборку</h5>
@@ -1362,16 +1365,17 @@ function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||''
 // (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
 function aiSave(){ try{ const F=S.aiF;
   localStorage.setItem('dlg_ai_v1', JSON.stringify({
-    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],stages:[...F.stages],inc:[...F.inc]},
+    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],stages:[...F.stages],question:F.question||'',inc:[...F.inc]},
     fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td],
     vdMode:S.dMode, vdFrom:S.dFrom, vdTo:S.dTo, dashNote:S.dashNote||'', ans:S.ansText||'' })); }catch(e){} }
 function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
   if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
-    mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
+    mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),question:j.aiF.question||'',inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
   S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]);
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }
 function aiAnsInput(v){ S.ansText=v; aiSave(); }
+function aiQInput(v){ S.aiF.question=v; aiSave(); }
 // Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
 // те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.
 function aiSyncDeals(deals, mgrs){ const F=S.aiF;

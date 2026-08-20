@@ -1081,14 +1081,18 @@ function render(){
   const _cvOrd={};FORDER.forEach((c,i)=>_cvOrd[c]=i);
   const _cvReach=d=>{let mo=-1;const h=d.hist||[];for(const e of h){if(e[1]<=S.end&&_cvOrd[e[0]]!=null&&_cvOrd[e[0]]>mo)mo=_cvOrd[e[0]];}if(!h.length&&_cvOrd[d.stageCode]!=null)mo=_cvOrd[d.stageCode];if(d.won&&_cvOrd['C21:WON']>mo)mo=_cvOrd['C21:WON'];return mo;};
   const _reachN=code=>D.filter(d=>_cvReach(d)>=_cvOrd[code]).length;
-  const _dLeads=L.length,_dDeals=D.length,_dFromLead=D.filter(d=>d.fromLead).length,_dDirect=_dDeals-_dFromLead;
+  // Вариант B: узел «Лиды» = лиды-ИСТОЧНИКИ сделок периода (по d.leadId), а не лиды по календарю.
+  // Тогда «Лиды» и «из лида» сходятся, а первый переход = реальная доля сделок из лида.
+  const _dDeals=D.length,_dFromLead=D.filter(d=>d.fromLead).length,_dDirect=_dDeals-_dFromLead;
+  const _srcLeadSet=new Set(D.filter(d=>d.fromLead&&d.leadId!=null).map(d=>String(d.leadId)));
+  const _dLeads=_srcLeadSet.size||_dFromLead;
   const _dKP=_reachN('C21:PREPAYMENT_INVOIC'),_dPre=_reachN('C21:UC_5BND99'),_dWon=D.filter(d=>d.won).length;
   const _dConv=_dDeals?_dWon/_dDeals:0; // сквозная сделка → продажа (успех)
   const _stg=[['Лиды',_dLeads,'#3DAEC2'],['Сделки',_dDeals,'#3DAEC2'],['КП отправлено',_dKP,'#2E9E74'],['Предоплата',_dPre,'#6366F1'],['Продажи',_dWon,'#2E9E74']];
-  const _cvs=['+'+fmt(_dDirect),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)];
-  const _tips=['Лиды → сделки · «+N» = сделки без лида (созданы напрямую) · из лида '+pct(_dLeads?_dFromLead/_dLeads:0),'Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг'];
+  const _cvs=[(_dDeals?_dFromLead/_dDeals:0),(_dDeals?_dKP/_dDeals:0),(_dKP?_dPre/_dKP:0),(_dPre?_dWon/_dPre:0)];
+  const _tips=['Лиды → сделки · доля сделок из лида (остальные '+fmt(_dDirect)+' - прямые, без лида) · узел «Лиды» = лиды-источники этих сделок','Сделка → КП отправлено','КП → предоплата','Предоплата → успех · ключевой рычаг'];
   const _e2e=_dConv,_e2eLbl='сквозная сделка→продажа';
-  const _cvSub=`воронка сделок: лиды → сделки → КП → предоплата → продажи · <b style="color:#C084FC">без лида: ${fmt(_dDirect)}</b> из ${fmt(_dDeals)}`;
+  const _cvSub=`воронка сделок · «Лиды» = источники сделок (по лиду) · из лида <b style="color:#C084FC">${fmt(_dFromLead)}</b>, прямых <b style="color:#C084FC">${fmt(_dDirect)}</b> из ${fmt(_dDeals)}`;
   const _cvFunnel=(()=>{const stg=_stg,cvs=_cvs;
     const W=520,H=214,bandH=108,midY=82,nodeW=46,maxC=Math.max(...stg.map(s=>s[1]),1),n=stg.length,colW=W/n,cx=i=>colW*i+colW/2,hOf=c=>Math.max(18,c/maxC*bandH),nodeX=i=>cx(i)-nodeW/2;const e2e=_e2e;
     let defs='',conns='',nodes='',labels='';

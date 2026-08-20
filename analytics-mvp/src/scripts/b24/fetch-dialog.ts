@@ -23,6 +23,11 @@ const fromD = new Date(nowD.getTime() - DAYS * 864e5);
 const iso = (d: Date) => d.toISOString().slice(0, 19);
 const FROM = iso(fromD), TO = iso(nowD);
 const fromMs = fromD.getTime(), toMs = nowD.getTime();
+// Закрытые в окне сделки (успех/отказ) грузим с полной историей переписки, а не за 7 дней:
+// иначе разбор «почему выиграли / почему отказ» будет на обрывке. Окно истории - HDAYS назад.
+const HDAYS = Number(process.env.DIALOG_HIST_DAYS || 180);
+const HFROM = iso(new Date(nowD.getTime() - HDAYS * 864e5));
+const hFromMs = nowD.getTime() - HDAYS * 864e5;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Запрос к Bitrix JSON-телом (как fetch-rop): фильтры-объекты применяются корректно.
@@ -194,7 +199,7 @@ function commentToEvent(c: any, employees: Record<string, 1>, authorName: string
   return { raw: c.CREATED, type: "Комментарий-заметка", dir: "-", who: authorName, title: "", body: cap(stripHtml(raw)), status: "", dur: "", link: "", src: "cmt#" + c.ID };
 }
 
-type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string };
+type Ent = { kind: "deal" | "lead"; id: string; title: string; mgrId: string; closed?: boolean };
 
 async function main() {
   console.log(`Диалог GG: окно ${FROM} -> ${TO} (${DAYS} дн), воронка ${CATEGORY_ID}${WITH_LEADS ? " + лиды" : ""}`);
@@ -212,6 +217,20 @@ async function main() {
     dealTitle[id] = t;
     if (d.LEAD_ID && String(d.LEAD_ID) !== "0") { leadToDeal[String(d.LEAD_ID)] = id; dealSrcLead[id] = String(d.LEAD_ID); }
   }
+  // Закрытые в окне (успех/отказ): у них нет новых сообщений, поэтому берём по CLOSEDATE.
+  // Помечаем closed=true -> по ним грузим всю историю переписки (см. HFROM).
+  const closedDeals = await listAll("crm.deal.list", { select: ["ID", "TITLE", "ASSIGNED_BY_ID", "LEAD_ID"], filter: { CATEGORY_ID: CATEGORY_ID, CLOSED: "Y", ">=CLOSEDATE": FROM } });
+  const dealSeen = new Set(ents.filter((e) => e.kind === "deal").map((e) => e.id));
+  let closedN = 0;
+  for (const d of closedDeals) {
+    const id = String(d.ID); const t = stripHtml(d.TITLE) || ("Сделка " + id);
+    if (dealSeen.has(id)) { const e = ents.find((x) => x.kind === "deal" && x.id === id); if (e) e.closed = true; continue; }
+    dealSeen.add(id); closedN++;
+    ents.push({ kind: "deal", id, title: t, mgrId: String(d.ASSIGNED_BY_ID || ""), closed: true });
+    dealTitle[id] = t;
+    if (d.LEAD_ID && String(d.LEAD_ID) !== "0") { leadToDeal[String(d.LEAD_ID)] = id; dealSrcLead[id] = String(d.LEAD_ID); }
+  }
+  console.log(`Закрытых в окне (успех/отказ) добавлено: ${closedN} (всего закрытых в выборке ${closedDeals.length})`);
   let leadsN = 0;
   if (WITH_LEADS) {
     // Лиды: созданные в окне (реальный intake отдела продаж) + источники сделок в скоупе.
@@ -240,8 +259,10 @@ async function main() {
     const cmds: Record<string, string> = {};
     slice.forEach((e, j) => {
       const ot = e.kind === "deal" ? 2 : 1;
-      cmds["a" + j] = `crm.activity.list?filter[OWNER_TYPE_ID]=${ot}&filter[OWNER_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(FROM)}&order[CREATED]=ASC${aSel}`;
-      cmds["c" + j] = `crm.timeline.comment.list?filter[ENTITY_TYPE]=${e.kind}&filter[ENTITY_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(FROM)}&order[CREATED]=ASC${cSel}`;
+      // Закрытые сделки - вся история (HFROM), остальные - окно снимка (FROM).
+      const efrom = e.closed ? HFROM : FROM;
+      cmds["a" + j] = `crm.activity.list?filter[OWNER_TYPE_ID]=${ot}&filter[OWNER_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${aSel}`;
+      cmds["c" + j] = `crm.timeline.comment.list?filter[ENTITY_TYPE]=${e.kind}&filter[ENTITY_ID]=${e.id}&filter[>CREATED]=${encodeURIComponent(efrom)}&order[CREATED]=ASC${cSel}`;
     });
     const { result } = await callBatch(cmds);
     slice.forEach((e, j) => { const key = e.kind + ":" + e.id; actsBy[key] = result["a" + j] || []; cmtsBy[key] = result["c" + j] || []; });
@@ -279,8 +300,9 @@ async function main() {
     const evs: any[] = [];
     for (const a of (actsBy[key] || [])) { const ev = activityToEvent(a, mgr, callMap, callRefs); if (ev) evs.push(ev); }
     for (const c of (cmtsBy[key] || [])) evs.push(commentToEvent(c, employees, await userName(c.AUTHOR_ID)));
+    const lowMs = e.closed ? hFromMs : fromMs;
     for (const ev of evs) {
-      const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < fromMs || ms > toMs) continue;
+      const ms = Date.parse(ev.raw); if (isNaN(ms) || ms < lowMs || ms > toMs) continue;
       const uid = pair + "|" + ev.src;
       if (seen[uid]) continue; seen[uid] = 1;
       counts[ev.type] = (counts[ev.type] || 0) + 1;

@@ -566,9 +566,11 @@ function main() {
       // Порог по деньгам, чтобы не флудить мелочью; идёт последним - острые причины важнее.
       [prob < 0.25 && (f && f.budget ? f.budget : 0) >= 300000 ? `Шанс низкий (${Math.round(prob * 100)}%)` : "", 0.35, "lowprob"],
     ].filter((x) => x[0]) as [string, number, string][];
-    const urgency = urg.length ? urg[0]![0] : "";
-    const uw = urg.length ? urg[0]![1] : 0.1;
-    const uKey = urg.length ? urg[0]![2] : "ok";
+    // Закрытые сделки (успех/отказ) не «горят»: это исход, а не задача в очереди.
+    const isWon = !!(f && f.won), isLost = !!(f && f.lost), isClosed = isWon || isLost;
+    const urgency = isClosed ? "" : (urg.length ? urg[0]![0] : "");
+    const uw = isClosed ? 0.05 : (urg.length ? urg[0]![1] : 0.1);
+    const uKey = isWon ? "won" : isLost ? "lost" : (urg.length ? urg[0]![2] : "ok");
     // Приоритет = деньги под риском: сумма x шанс закрыть x вес срочности.
     // Сделки без суммы не проваливаются в конец: берём медиану бюджета как ориентир.
     const money = (f && f.budget) ? f.budget : 0;
@@ -582,6 +584,7 @@ function main() {
       // ассортимент, источник лида, бренд, цикл. Идут в ИИ-разбор и компактно в дашборд.
       client: f ? (f.client || "") : "", assort: f ? (f.assort || "") : "", source: f ? (f.source || "") : "",
       dir: f ? (f.dir || "") : "", cycle: f && f.cycle != null ? f.cycle : null, lossReason: f ? (f.reason || "") : "",
+      won: isWon, lost: isLost, outcome: isWon ? "won" : isLost ? "lost" : "open",
       prob: Math.round(prob * 100), base: Math.round(base * 100), factors, tags, next, why, whyProb, mix, firstTs, createdAt, stageRows, slowStage, owners, takeH, ghostMove, movedDays, internalOnly, internalKinds, taskNoContact, promiseBroken, promiseKept, vagueProm, promises, objTotal, objWorked,
       ai: a ? { verdict: a.verdict || "", problem: a.problem || "", recommendation: a.recommendation || "", tone: a.tone || (a.problem ? "warn" : "good"), scores: a.scores || null, quotes: a.quotes || [] } : null,
       msgs: msgs.length, calls, respMed, firstResp, ballWait, silenceD, overdueD, nextStep, stageDays,

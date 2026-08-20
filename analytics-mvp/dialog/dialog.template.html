@@ -390,7 +390,7 @@ const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.get
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
   fMgrs:new Set(), fDealIds:new Set(), dashNote:'',
-  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', inc:new Set(['msg','mail','call','task','note']) } };
+  aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
 function initControls(){
@@ -739,7 +739,7 @@ function renderTree(){
           <td style="color:${pc};font-weight:600">${d.prob}%</td>
           <td>${d.silenceD}</td>
           <td>${d.respMed===null?'<span class="na2">-</span>':fmtMinShort(d.respMed)}</td>
-          <td class="l">${d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
+          <td class="l">${d.outcome==='won'?`<span class="urg" style="color:#2E9E74;background:#2E9E7418;border:1px solid #2E9E7444">Успех</span>`:d.outcome==='lost'?`<span class="urg" style="color:#C25252;background:#C2525218;border:1px solid #C2525244">Отказ${d.lossReason&&!/не указан/i.test(d.lossReason)?': '+esc(d.lossReason):''}</span>`:d.urgency?`<span class="urg" style="color:${c2};background:${c2}18;border:1px solid ${c2}44">${esc(d.urgency)}</span>`:'<span class="na2">в норме</span>'}</td>
           <td class="l">${mixCell(d,dFrom,dTo)}</td></tr>`;
         if(openD) html+=`<tr class="subrow2"><td colspan="${DCOLS.length}"><div id="tree-${esc(d.key)}"></div></td></tr>`;
       }
@@ -946,6 +946,10 @@ function render(){
 function ensureEvtIdx(){ if(window.EVTS) return; window.EVTS={}; window.EVIX={};
   for(const e of DATA.events){ const k=e.dealId?'D'+e.dealId:'L'+e.leadId; (EVTS[k] ||= []).push(e.ts); (EVIX[k] ||= []).push(e); } }
 const AI_MGRS = SC ? [...new Set(SC.deals.map(d=>d.mgr))].filter(Boolean).sort((a,b)=>a.localeCompare(b,'ru')) : [];
+// Стадии для фильтра: по порядку воронки, сколько сделок в каждой. Успех/отказ - в конце.
+const STAGE_ORD = ['Формирование ТЗ','Расчёт','Квалификация','КП отправлено','Принимают решение','Долгострой','Предоплата получена','Заказ в производстве','Заказ произведен','Заказ отправлен','Сделка успешна','Сделка провалена'];
+const AI_STAGES = SC ? (()=>{ const c={}; for(const d of SC.deals){ const s=d.stage||'(без стадии)'; c[s]=(c[s]||0)+1; }
+  return Object.keys(c).sort((a,b)=>{ const ia=STAGE_ORD.indexOf(a),ib=STAGE_ORD.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); }).map(s=>[s,c[s]]); })() : [];
 const INCLBL = { msg:'мессенджеры', mail:'письма', call:'звонки', task:'дела/задачи', note:'комментарии' };
 
 function aiToggle(on){ S.aiOpen=on; document.getElementById('apanel').classList.toggle('on',on);
@@ -970,6 +974,7 @@ function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
   const idset=ids.length?new Set(ids):null;
   return SC.deals.filter(d=>{
     if(F.mgrs.size && !F.mgrs.has(d.mgr)) return false;
+    if(F.stages.size && !F.stages.has(d.stage||'(без стадии)')) return false;
     if(idset){ const id=String(d.dealId||d.leadId||''); if(!idset.has(id)) return false; }
     if(!a&&!b) return true;
     if(F.dMode==='created'){ const ts=EVTS[d.key]||[]; const c=d.createdAt?Date.parse(d.createdAt+'T12:00:00+03:00'):(d.firstTs||(ts.length?Math.min.apply(null,ts):0)); if(!c) return true; return (!a||c>=a)&&(!b||c<=b); }
@@ -982,11 +987,11 @@ function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const
     return { id:d.dealId||d.leadId, kind:d.isLead?'лид':'сделка', менеджер:d.mgr, название:d.title,
       чек:d.budget||0, тип_клиента:d.client||'', ассортимент:d.assort||'', источник:d.source||'', бренд:d.dir||'',
       стадия:d.stage, история_стадий:(d.stageRows||[]).map(s=>({стадия:s.name,дней:s.days})), цикл_дней:d.cycle,
-      происхождение:(d.dealId? (d.leadId?{из_лида:String(d.leadId)}:{создана_напрямую:true, лида_не_было:true}) : {это_лид:true}),
+      исход:d.outcome||'open', происхождение:(d.dealId? (d.leadId?{из_лида:String(d.leadId)}:{создана_напрямую:true, лида_не_было:true}) : {это_лид:true}),
       вероятность:d.prob, причина_отказа:d.lossReason||'', полнота:c.k, комментарий:c.why,
       лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
   return { запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет.',
-    фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', включено:[...F.inc].map(k=>INCLBL[k]) },
+    фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', стадии:F.stages.size?[...F.stages]:'все стадии', включено:[...F.inc].map(k=>INCLBL[k]) },
     полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
     менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),
     сделки:list, снимок:BAKED_AT };
@@ -1003,6 +1008,8 @@ function aiSetDepth(m){ S.aiF.depth=m; renderAIPanel(); }
 function aiTogInc(k){ const s=S.aiF.inc; s.has(k)?s.delete(k):s.add(k); renderAIPanel(); }
 function aiTogMgr(m){ const s=S.aiF.mgrs; s.has(m)?s.delete(m):s.add(m); renderAIPanel(); }
 function aiAllMgr(){ S.aiF.mgrs.clear(); renderAIPanel(); }
+function aiTogStage(s0){ const s=S.aiF.stages; s.has(s0)?s.delete(s0):s.add(s0); renderAIPanel(); }
+function aiAllStage(){ S.aiF.stages.clear(); renderAIPanel(); }
 function aiDate(which,v){ S.aiF[which]=v; renderAIPanel(); }
 function aiDealIds(v){ S.aiF.dealIds=v; scheduleRep(); }
 let _repT; function scheduleRep(){ clearTimeout(_repT); _repT=setTimeout(renderRepOnly,250); }
@@ -1065,6 +1072,14 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
         <span class="tog ${F.mgrs.size?'':'on'}" onclick="aiAllMgr()">весь отдел</span>
         ${AI_MGRS.map(m=>`<span class="tog ${F.mgrs.has(m)?'on':''}" onclick="aiTogMgr('${esc(m).replace(/'/g,"\\'")}')">${esc(m)}</span>`).join('')}
       </div>
+    </div>
+
+    <div class="sect"><h5>Стадии${F.stages.size?` · выбрано ${F.stages.size}`:' · все'}</h5>
+      <div class="mgrbox">
+        <span class="tog ${F.stages.size?'':'on'}" onclick="aiAllStage()">все стадии</span>
+        ${AI_STAGES.map(([s,n])=>`<span class="tog ${F.stages.has(s)?'on':''}" onclick="aiTogStage('${esc(s).replace(/'/g,"\\'")}')">${esc(s)} <i style="color:var(--ink-4);font-style:normal">${n}</i></span>`).join('')}
+      </div>
+      <div class="hint">Успех/отказ появятся, когда в снимок попадут закрытые сделки (следующий ночной прогон) - тогда сможешь смотреть, что довело до успеха, а что до отказа.</div>
     </div>
 
     <div class="sect"><h5>Сделки</h5>
@@ -1133,24 +1148,25 @@ function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').tri
 // Источник настройки - либо текущие контролы панели, либо переданный конфиг-JSON (cfg).
 const OPEN_CAP = 20; // сколько сделок раскрываем автоматически, чтобы не рендерить сотни лент
 function aiApplyToDash(cfg){ const F=S.aiF;
-  let dMode, from, to, mgrs, dealIds;
+  let dMode, from, to, mgrs, dealIds, stages;
   if(cfg){ const f=cfg.фильтр||{};
     dMode=/созда/.test(String(f.период_по||''))?'created':'comm';
     from=(f.с&&!/окн/.test(String(f.с)))?f.с:''; to=(f.по&&!/окн/.test(String(f.по)))?f.по:'';
     const ml=Array.isArray(f.менеджеры)?f.менеджеры:(Array.isArray(cfg.менеджеры)?cfg.менеджеры.map(x=>x.менеджер):[]);
     mgrs=new Set(ml);
+    stages=new Set(Array.isArray(f.стадии)?f.стадии:[]);
     const dl=Array.isArray(cfg.сделки)?cfg.сделки.map(x=>String(x.id)):[];
     dealIds=new Set(dl);
     // Синхронизируем контролы панели с активированным JSON, чтобы при повторном открытии
     // фильтр показывал то же, что применено к дашборду.
-    S.aiF.dMode=dMode; S.aiF.from=from; S.aiF.to=to; S.aiF.mgrs=new Set(mgrs); S.aiF.dealIds=dl.join(', ');
+    S.aiF.dMode=dMode; S.aiF.from=from; S.aiF.to=to; S.aiF.mgrs=new Set(mgrs); S.aiF.stages=new Set(stages); S.aiF.dealIds=dl.join(', ');
   } else {
-    dMode=F.dMode; from=F.from; to=F.to; mgrs=new Set(F.mgrs);
+    dMode=F.dMode; from=F.from; to=F.to; mgrs=new Set(F.mgrs); stages=new Set(F.stages);
     if(F.dealIds.trim()) dealIds=new Set(F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean));
     else dealIds=new Set(aiMatchDeals().map(d=>String(d.dealId||d.leadId)));
   }
   S.dMode=dMode; S.dFrom=from; S.dTo=to;
-  const matched=SC.deals.filter(d=> (!mgrs.size||mgrs.has(d.mgr)) && (!dealIds.size||dealIds.has(String(d.dealId||d.leadId))) );
+  const matched=SC.deals.filter(d=> (!mgrs.size||mgrs.has(d.mgr)) && (!stages.size||stages.has(d.stage||'(без стадии)')) && (!dealIds.size||dealIds.has(String(d.dealId||d.leadId))) );
   S.fMgrs = mgrs.size ? mgrs : (dealIds.size ? new Set(matched.map(d=>d.mgr)) : new Set());
   S.fDealIds = dealIds;
   S.tm=new Set(matched.map(d=>d.mgr)); S.td=new Set();
@@ -1170,12 +1186,12 @@ function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||''
 // (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
 function aiSave(){ try{ const F=S.aiF;
   localStorage.setItem('dlg_ai_v1', JSON.stringify({
-    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],inc:[...F.inc]},
+    aiF:{dMode:F.dMode,from:F.from,to:F.to,dealIds:F.dealIds,depth:F.depth,mgrs:[...F.mgrs],stages:[...F.stages],inc:[...F.inc]},
     fMgrs:[...S.fMgrs], fDealIds:[...S.fDealIds], tm:[...S.tm], td:[...S.td],
     vdMode:S.dMode, vdFrom:S.dFrom, vdTo:S.dTo, dashNote:S.dashNote||'', ans:S.ansText||'' })); }catch(e){} }
 function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
   if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
-    mgrs:new Set(j.aiF.mgrs||[]),inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
+    mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
   S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]);
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }

@@ -425,7 +425,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'',
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'', cmMgr:'', cmType:'', hotMgr:'', deptOpen:true,
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -807,13 +807,21 @@ function renderTree(){
   byM[DEPT_KEY]=mgrs.flatMap(mm=>byM[mm.mgr]||[]);
   const deptMgr={ mgr:DEPT_KEY, role:'dept', profile:null, rating:null, sections:[] };
   let html=scope+fbar+help+`<div class="scrollx"><table class="tbl t1"><tr>`+MCOLS.map(c=>`<th class="${c.l?'l':''} sortable" data-lvl="m" data-k="${c.k}" title="${esc(c.full||c.t)}${c.k in (SC.deptMedians||{})?' · медиана отдела '+SC.deptMedians[c.k]:''}">${esc(c.t)}<span class="sarr">${arr(S.sM,c.k)}</span></th>`).join('')+`</tr>`;
+  // «Весь отдел» - уровень 0: его стрелка сворачивает всех менеджеров. Дрил-фильтр отдела
+  // (клик по воронке/каналу/«Горит») показывает сделки всего отдела вместо списка менеджеров.
+  const deptDrill = (S.fnMgr===DEPT_KEY&&S.fnGrp)||(S.cmMgr===DEPT_KEY&&S.cmType)||(S.hotMgr===DEPT_KEY);
   for(const m of [deptMgr, ...mgrs]){
+    const dept=m.role==='dept';
+    if(!dept && (!S.deptOpen || deptDrill)) continue; // менеджеры скрыты, если отдел свёрнут или идёт дрил по отделу
     let ds=(byM[m.mgr]||[]).slice(); if(S.fDealIds.size) ds=ds.filter(d=>S.fDealIds.has(String(d.dealId||d.leadId)));
-    const p=m.profile; const openM=S.tm.has(m.mgr); const office=m.role==='office'; const dept=m.role==='dept';
+    const p=m.profile; const office=m.role==='office';
+    const arwOpen = dept ? S.deptOpen : S.tm.has(m.mgr);
+    const showSub = dept ? (S.deptOpen && deptDrill) : S.tm.has(m.mgr);
+    const openM = showSub;
     const [vc,vl]= dept? ['#22D3EE','ВЕСЬ ОТДЕЛ'] : office? ['#3DAEC2','ОФИС · ЛИДЫ'] : (p? V[p.verdict] : ['#5D6B77','МАЛО ДАННЫХ']);
     const nameHtml = dept? 'Весь отдел' : esc(m.mgr);
-    html+=`<tr class="mrow2${openM?' on':''}${dept?' deptrow':''}" data-m="${esc(m.mgr)}">`
-      +`<td class="l"><span class="arw4">${openM?'▾':'▸'}</span><b>${nameHtml}</b>${dept?'<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Сводка по всем показанным менеджерам. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">сводка</span>':''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${dept?'':alertChip(m,p)}</td>`
+    html+=`<tr class="mrow2${arwOpen?' on':''}${dept?' deptrow':' mgrrow'}" data-m="${esc(m.mgr)}">`
+      +`<td class="l" ${dept?'':'style="padding-left:34px"'}><span class="arw4">${arwOpen?'▾':'▸'}</span><b>${nameHtml}</b>${dept?`<span class="rolech" style="color:#22D3EE;border-color:#22D3EE66;background:#22D3EE14" title="Уровень отдела. Стрелка - свернуть/развернуть всех менеджеров. Клик по воронке, каналу или «Горит» - сделки всего отдела на этом этапе.">${S.deptOpen?'свернуть отдел':'развернуть отдел'}</span>`:''}${office?'<span class="rolech" title="Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается.">офис</span>':''}${dept?'':alertChip(m,p)}</td>`
       +`<td ${dept?'':`data-tip="${verdTip(m).replace(/"/g,'&quot;')}"`} style="cursor:${dept?'default':'help'}"><span class="vbadge" style="color:${vc};border-color:${vc}66;background:${vc}14">${vl}</span></td>`
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
@@ -893,24 +901,27 @@ function renderTree(){
     renderTree(); });
   // Раскрытие многоуровневое: несколько менеджеров и сделок открыты одновременно, чтобы
   // сразу нырнуть во всю выборку фильтра. Закрытие менеджера прячет и его открытые сделки.
+  const openRow=(mm)=>{ if(mm===DEPT_KEY) S.deptOpen=true; else S.tm.add(mm); };
   list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
     // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
     const seg=e.target.closest&&e.target.closest('.fseg');
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
-      S.cmMgr='';S.cmType='';
-      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; } else { S.fnMgr=m; S.fnGrp=grp; S.tm.add(m); }
+      S.cmMgr='';S.cmType='';S.hotMgr='';
+      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; } else { S.fnMgr=m; S.fnGrp=grp; openRow(m); }
       renderTree(); return; }
     // Клик по чипу коммуникации: сделки менеджера с этим каналом.
     const cc=e.target.closest&&e.target.closest('.cchip');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
       S.fnMgr='';S.fnGrp='';S.hotMgr='';
-      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; } else { S.cmMgr=m; S.cmType=ct; S.tm.add(m); }
+      if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; } else { S.cmMgr=m; S.cmType=ct; openRow(m); }
       renderTree(); return; }
     // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';
-      if(S.hotMgr===m){ S.hotMgr=''; } else { S.hotMgr=m; S.tm.add(m); }
+      if(S.hotMgr===m){ S.hotMgr=''; } else { S.hotMgr=m; openRow(m); }
       renderTree(); return; }
+    // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
+    if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }
     if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===m){S.cmMgr='';S.cmType='';} if(S.hotMgr===m){S.hotMgr='';} } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){

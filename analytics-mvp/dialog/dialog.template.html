@@ -192,6 +192,11 @@ input#q{min-width:220px}
 .fn{font-size:9.5px;color:var(--ink-3);text-align:center;min-width:4px;font-variant-numeric:tabular-nums;border-left:1px solid var(--border);line-height:1.2}
 .fn:first-child{border-left:none}
 .tdot{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.funnel .fseg.fon{outline:2px solid #E7EEF4;outline-offset:-2px;filter:brightness(1.3)}
+.fnchip{display:inline-flex;align-items:center;gap:2px;background:#22d3ee14;border:1px solid #22d3ee44;border-radius:8px;padding:4px 10px;margin:2px 0 8px 64px;font-size:11.5px;color:#bfeff8}
+.fnchip b{color:#e7f8fc;margin:0 3px}
+.fnchip .x{margin-left:8px;cursor:pointer;color:#8fd3e2;border:1px solid #2a7a8e;border-radius:6px;padding:2px 8px;font-size:10.5px}
+.fnchip .x:hover{background:#164050;color:#e7f8fc}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
 .cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
 .cchip i{font-style:normal;color:var(--ink-4);font-size:9px;font-weight:400;margin-left:2px}
@@ -401,7 +406,7 @@ const fmtTime = iso => { const d=new Date(iso); if(isNaN(d)) return ''; return p
 const fmtDay = ts => { const d=new Date(ts); return p2(d.getDate())+'.'+p2(d.getMonth()+1)+' '+p2(d.getHours())+':'+p2(d.getMinutes()); };
 
 const S = { mode:'tree', dMode:'comm', dFrom:'', dTo:'', sM:{k:'hot',d:-1}, sD:{k:'prio',d:-1}, sE:{k:'ts',d:1}, sortK:'prio', sortDir:-1, fStage:'', fKind:'', fMin:0, sec:'', tag:'', exp:null, q4:'', tm:new Set(), td:new Set(), mgr:'', dir:'', id:'', q:'', ord:'desc', types:new Set(),
-  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false,
+  fMgrs:new Set(), fDealIds:new Set(), dashNote:'', showMetrics:false, fnMgr:'', fnGrp:'',
   aiOpen:false, aiF:{ dMode:'comm', from:'', to:'', mgrs:new Set(), dealIds:'', depth:'all', stages:new Set(), inc:new Set(['msg','mail','call','task','note']) } };
 let VIEW = [];
 
@@ -600,6 +605,7 @@ const money = v => !v ? '-' : v>=1e6 ? (v/1e6).toFixed(1)+' млн' : Math.round
 const urgCol = k => ({ready:'#2E9E74',waiting:'#C25252',refuse:'#C25252',objection:'#C2873C',silent:'#C2873C',nopush:'#C2873C',overdue:'#8B7BF0',nostep:'#8794A5',lowprob:'#C2873C'}[k]||'#5D6B77');
 // Группы стадий для мини-воронки в таблице менеджеров: где сейчас портфель менеджера.
 const STAGE_GRP = [
+  {k:'lead', t:'Лиды', s:'Лид', col:'#6E7B8A', stages:[]},
   {k:'early', t:'Раннее', s:'Ран', col:'#8794A5', stages:['Новая сделка','Квалификация','Формирование ТЗ','Расчёт']},
   {k:'kp', t:'КП', s:'КП', col:'#22D3EE', stages:['КП отправлено']},
   {k:'decide', t:'Решают', s:'Реш', col:'#8B7BF0', stages:['Принимают решение']},
@@ -650,13 +656,14 @@ function renderTree(){
       for(const k of ['msg','call','mail','task','note','ai','total']) t[k]+=(m[k]||0); }
     return t; };
   // Воронка менеджера: раскладка его сделок по группам стадий - видно, где портфель.
-  const funnelOf=(mgr)=>{ const g={}; for(const d of (byM[mgr]||[])){ const gk=STAGE2GRP[d.stage]||'early'; g[gk]=(g[gk]||0)+1; } return g; };
+  const grpOf=(d)=> d.isLead ? 'lead' : (STAGE2GRP[d.stage]||'early');
+  const funnelOf=(mgr)=>{ const g={}; for(const d of (byM[mgr]||[])){ const gk=grpOf(d); g[gk]=(g[gk]||0)+1; } return g; };
   const funnelCell=(mgr)=>{ const g=funnelOf(mgr); const tot=Object.values(g).reduce((a,b)=>a+b,0);
     if(!tot) return '<span class="na2">-</span>';
     const parts=STAGE_GRP.filter(s=>g[s.k]);
-    // Тултип на каждый сегмент отдельно: кружок цвета этапа + название именно того этапа.
-    const segs=parts.map(s=>`<span class="fseg" style="flex:${g[s.k]};background:${s.col}" data-tip="<span class='tdot' style='background:${s.col}'></span>${esc(s.t)}: <b>${g[s.k]}</b>"></span>`).join('');
-    // Числа под сегментами с вертикальными отметками границ (легенду-текст убрали).
+    // Клик по сегменту -> фильтр сделок этого этапа у менеджера (подсветка активного сегмента).
+    const segs=parts.map(s=>{ const on=S.fnMgr===mgr&&S.fnGrp===s.k;
+      return `<span class="fseg${on?' fon':''}" data-grp="${s.k}" style="flex:${g[s.k]};background:${s.col}" data-tip="<span class='tdot' style='background:${s.col}'></span>${esc(s.t)}: <b>${g[s.k]}</b> · клик - показать эти сделки"></span>`; }).join('');
     const nums=parts.map(s=>`<span class="fn" style="flex:${g[s.k]}" title="${esc(s.t)}">${g[s.k]}</span>`).join('');
     return `<div class="funnel">${segs}</div><div class="fnrow">${nums}</div>`; };
   const commCell=(mgr)=>{ const t=actOf(mgr); if(!t.total) return '<span class="na2">0</span>';
@@ -760,6 +767,11 @@ function renderTree(){
       +`</tr>`;
     if(openM){
       html+=`<tr class="subrow"><td colspan="${MCOLS.length}">`;
+      // Клик по сегменту воронки: показываем только сделки этого этапа + чип сброса.
+      const fnActive = S.fnMgr===m.mgr && S.fnGrp;
+      if(fnActive){ const grp=STAGE_GRP.find(x=>x.k===S.fnGrp)||{}; const before=ds.length;
+        ds=ds.filter(d=>grpOf(d)===S.fnGrp);
+        html+=`<div class="fnchip"><span class="tdot" style="background:${grp.col}"></span>Этап: <b>${esc(grp.t)}</b> · ${ds.length} из ${before} <span class="x" data-fnclear="1">показать все стадии</span></div>`; }
       // --- уровень 2: таблица сделок ---
       const DCOLS=[{k:'_x',t:''},{k:'budget',t:'Сумма'},{k:'kind',t:'Тип'},{k:'id',t:'ID'},{k:'title',t:'Сделка',l:1},{k:'stage',t:'Стадия',l:1},
         {k:'prob',t:'Шанс'},{k:'silenceD',t:'Тишина, дн'},{k:'respMed',t:'Ответ'},{k:'urgency',t:'Что горит',l:1},{k:'mix',t:'Лента',l:1}];
@@ -794,6 +806,7 @@ function renderTree(){
   if(fF) fF.onchange=e=>{ S.dFrom=e.target.value; S.td.clear(); renderTree(); };
   if(fT) fT.onchange=e=>{ S.dTo=e.target.value; S.td.clear(); renderTree(); };
   const sc=list.querySelector('[data-scopeclear]'); if(sc) sc.onclick=e=>{ e.stopPropagation(); aiClearDash(); };
+  list.querySelectorAll('[data-fnclear]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.fnMgr=''; S.fnGrp=''; renderTree(); });
   list.querySelectorAll('[data-pset]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
     const k=b.dataset.pset, iso=t=>new Date(t).toISOString().slice(0,10), now=Date.now();
     if(k==='all'){ S.dFrom=''; S.dTo=''; }
@@ -811,8 +824,13 @@ function renderTree(){
     renderTree(); });
   // Раскрытие многоуровневое: несколько менеджеров и сделок открыты одновременно, чтобы
   // сразу нырнуть во всю выборку фильтра. Закрытие менеджера прячет и его открытые сделки.
-  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=()=>{ const m=r.dataset.m;
-    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); } else S.tm.add(m); renderTree(); });
+  list.querySelectorAll('.mrow2').forEach(r=>r.onclick=(e)=>{ const m=r.dataset.m;
+    // Клик по сегменту воронки: фильтруем сделки менеджера по этому этапу (не сворачиваем строку).
+    const seg=e.target.closest&&e.target.closest('.fseg');
+    if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
+      if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; } else { S.fnMgr=m; S.fnGrp=grp; S.tm.add(m); }
+      renderTree(); return; }
+    if(S.tm.has(m)){ S.tm.delete(m); for(const d of (byM[m]||[])) S.td.delete(d.key); if(S.fnMgr===m){S.fnMgr='';S.fnGrp='';} } else S.tm.add(m); renderTree(); });
   list.querySelectorAll('.drow').forEach(r=>r.onclick=e=>{ e.stopPropagation(); const k=r.dataset.d; S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
     const host=document.getElementById('tree-'+dk);

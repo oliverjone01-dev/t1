@@ -920,20 +920,21 @@ function renderTree(){
     if(seg&&seg.dataset.grp){ e.stopPropagation(); const grp=seg.dataset.grp;
       S.cmMgr='';S.cmType='';S.hotMgr='';S.evHi=null;
       if(S.fnMgr===m&&S.fnGrp===grp){ S.fnMgr=''; S.fnGrp=''; aiSyncReset(); }
-      else { S.fnMgr=m; S.fnGrp=grp; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>grpOf(d)===grp), m===DEPT_KEY?[]:[m]); }
+      else { S.fnMgr=m; S.fnGrp=grp; openRow(m); const g=STAGE_GRP.find(x=>x.k===grp);
+        aiSyncScope({ mgr:m, stages:(g&&g.stages.length)?g.stages:null, deals:(g&&g.stages.length)?null:(byM[m]||[]).filter(d=>grpOf(d)===grp) }); }
       renderTree(); return; }
     // Клик по чипу коммуникации: сделки менеджера с этим каналом.
     const cc=e.target.closest&&e.target.closest('.cchip');
     if(cc&&cc.dataset.comm){ e.stopPropagation(); const ct=cc.dataset.comm;
       S.fnMgr='';S.fnGrp='';S.hotMgr='';S.evHi=null;
       if(S.cmMgr===m&&S.cmType===ct){ S.cmMgr=''; S.cmType=''; aiSyncReset(); }
-      else { S.cmMgr=m; S.cmType=ct; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0), m===DEPT_KEY?[]:[m]); }
+      else { S.cmMgr=m; S.cmType=ct; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>((mixOf(d,dFrom,dTo)||{})[ct]||0)>0) }); }
       renderTree(); return; }
     // Клик по «Горит»/«Под риском»: только горящие сделки менеджера.
     const hc=e.target.closest&&e.target.closest('[data-hot]');
     if(hc){ e.stopPropagation(); S.fnMgr='';S.fnGrp='';S.cmMgr='';S.cmType='';S.evHi=null;
       const money2=!hc.classList.contains('gorit'); // клик по «Под риском» - денежный ракурс, по «Горит» - счётный
-      if(S.hotMgr===m && S.hotMoney===money2){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; S.hotMoney=money2; openRow(m); aiSyncDeals((byM[m]||[]).filter(d=>d.urgency), m===DEPT_KEY?[]:[m]); }
+      if(S.hotMgr===m && S.hotMoney===money2){ S.hotMgr=''; aiSyncReset(); } else { S.hotMgr=m; S.hotMoney=money2; openRow(m); aiSyncScope({ mgr:m, deals:(byM[m]||[]).filter(d=>d.urgency) }); }
       renderTree(); return; }
     // Клик по строке отдела (стрелка/имя) - свернуть/развернуть всех менеджеров.
     if(m===DEPT_KEY){ S.deptOpen=!S.deptOpen; if(!S.deptOpen){ if(S.fnMgr===DEPT_KEY){S.fnMgr='';S.fnGrp='';} if(S.cmMgr===DEPT_KEY){S.cmMgr='';S.cmType='';} if(S.hotMgr===DEPT_KEY)S.hotMgr=''; } renderTree(); return; }
@@ -944,7 +945,7 @@ function renderTree(){
     const chip=e.target.closest&&e.target.closest('.mixchip[data-mixcat]');
     const urg=e.target.closest&&e.target.closest('.urg');
     if(chip||urg){ S.td.add(k); const cat=chip?chip.dataset.mixcat:''; S.evHi={key:k,cat};
-      const d=SCD[k]; if(d) aiSyncDeals([d], d.isLead?[]:[d.mgr]);
+      const d=SCD[k]; if(d) aiSyncScope({ mgr:d.isLead?null:d.mgr, deals:[d] });
       renderTree(); scrollToDeal(k,cat); return; }
     S.td.has(k)?S.td.delete(k):S.td.add(k); renderTree(); });
   for(const dk of S.td){
@@ -1168,7 +1169,7 @@ function aiScope(){ const F=S.aiF, deals=aiMatchDeals(); const byM={}; for(const
       лента:{сообщения:m.msg,письма:m.mail,звонки:m.call,разбор_звонков:m.ai,дела:m.task,заметки:m.note} }; });
   return {
     уточняющий_вопрос: (F.question||'').trim() || null,
-    запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет. Если задан уточняющий_вопрос - в первую очередь ответь на него по этой выборке, затем дай разбор.',
+    запрос:'Разбери коммуникацию по этим сделкам как аудитор отдела продаж (регламент: отклик, квалификация, сроки, вежливость, ведение, результат). По каждой сделке дай verdict, problem, recommendation, tone. Опирайся на все сигналы сделки: чек, тип клиента (B2B/B2C/дилер), ассортимент, источник лида, стадию и историю стадий, цикл - рекомендация должна учитывать контекст (крупный чек и B2B требуют иного дожима, чем розница). Учитывай отметку полноты: по 🔴/🟡 не делай выводов там, где данных нет. Порядок работы: сначала прими и разбери все данные выборки, пойми общую картину, и только затем прочитай уточняющий_вопрос (если он задан) и через его призму сфокусируй и уточни ответ - вопрос не отдельный ответ вперёд разбора, а линза, которая наводит разбор на нужное.',
     фильтр:{ период_по:F.dMode==='created'?'дате создания сделки':'дате коммуникации', с:F.from||'начало окна снимка', по:F.to||'конец окна снимка', глубина:F.depth==='range'?'только события в диапазоне дат':'вся коммуникация сделки', менеджеры:F.mgrs.size?[...F.mgrs]:'весь отдел', стадии:F.stages.size?[...F.stages]:'все стадии', включено:[...F.inc].map(k=>INCLBL[k]) },
     полнота:{полные:rep.full,неполные:rep.partial,пустые:rep.empty,всего:deals.length},
     менеджеры:Object.entries(byM).map(([m,ds])=>({менеджер:m,сделок:ds.length})),
@@ -1378,9 +1379,15 @@ function aiAnsInput(v){ S.ansText=v; aiSave(); }
 function aiQInput(v){ S.aiF.question=v; aiSave(); }
 // Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
 // те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.
-function aiSyncDeals(deals, mgrs){ const F=S.aiF;
-  F.stages=new Set(); F.mgrs = mgrs&&mgrs.length ? new Set(mgrs) : new Set();
-  F.dealIds = deals.map(d=>String(d.dealId||d.leadId)).join(', '); aiSave(); }
+// Семантический перенос дрила в фильтр панели: менеджер, стадии и период выставляются
+// чипами (видно, что перенеслось); точный список ID - только когда стадией не выразить.
+function aiSyncScope(o){ const F=S.aiF;
+  F.dMode=S.dMode; F.from=S.dFrom; F.to=S.dTo;
+  F.mgrs = (o.mgr && o.mgr!==DEPT_KEY) ? new Set([o.mgr]) : new Set();
+  if(o.stages && o.stages.length){ F.stages=new Set(o.stages); F.dealIds=''; }
+  else if(o.deals){ F.stages=new Set(); F.dealIds=o.deals.map(d=>String(d.dealId||d.leadId)).join(', '); }
+  else { F.stages=new Set(); F.dealIds=''; }
+  aiSave(); }
 function aiSyncReset(){ const F=S.aiF; F.mgrs=new Set(); F.stages=new Set(); F.dealIds=''; aiSave(); }
 // Прокрутка к переписке сделки и подсветка событий нужной категории (клик по чипу «Ленты»).
 function scrollToDeal(key, cat){ setTimeout(()=>{ const host=document.getElementById('tree-'+key); if(!host) return;

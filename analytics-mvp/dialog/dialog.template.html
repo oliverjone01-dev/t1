@@ -201,6 +201,8 @@ input#q{min-width:220px}
 .hotcell:hover{outline:1px solid #C2525288;outline-offset:-1px}
 .hoton{outline:2px solid var(--acc);outline-offset:-2px}
 .comm{display:flex;flex-wrap:wrap;gap:8px;white-space:normal}
+.cwrap{display:inline-grid;grid-template-columns:repeat(3,56px);gap:4px}
+.cwrap .cchip{padding:1px 4px;text-align:left;justify-self:stretch}
 .cchip{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;padding:1px 5px;border-radius:6px;border:1px solid transparent;transition:.1s}
 .cchip:hover{background:#ffffff0d;border-color:var(--border)}
 .cchip.con{background:#ffffff14;border-color:currentColor}
@@ -382,6 +384,10 @@ input#q{min-width:220px}
 .mgcard .mgul{margin:0;padding-left:18px}
 .mgcard .mgul li{margin-bottom:3px;line-height:1.45;color:var(--ink-2)}
 .copied{color:#7FD1A6;font-size:11px;text-align:center;margin-top:6px;height:14px}
+.steps{margin:0 0 12px 0;padding-left:20px;color:var(--ink-3);font-size:11.5px;line-height:1.6}
+.steps li{margin:2px 0}
+.aimsg{color:var(--ink-3);font-size:11.5px;line-height:1.5;margin-top:8px;min-height:14px}
+.aimsg b{color:var(--ink-1)}
 .scopebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#12303a;border:1px solid #1f6b7d;border-radius:10px;padding:9px 13px;margin-bottom:10px;color:#bfeff8;font-size:12px}
 .scopebar b{color:#e7f8fc}
 .scopebar .sdot{color:#22D3EE;font-size:9px}
@@ -711,17 +717,18 @@ function renderTree(){
     const chips=COMM_TYPES.filter(c=>t[c.k]).map(c=>{ const on=S.cmMgr===mgr&&S.cmType===c.k;
       return `<span class="cchip${on?' con':''}" data-comm="${c.k}" style="color:${c.col}" data-tip="<span class='tdot' style='background:${c.col}'></span>${esc(c.t)}: <b>${t[c.k]}</b> · клик - сделки с этим каналом">${t[c.k]}<i>${c.s}</i></span>`; }).join('');
     return `<div class="comm">${chips}</div>`; };
-  // Полнота коммуникаций сделки: 🟢 есть текстовая переписка (звонки покрыты разбором),
-  // 🟡 только звонки без транскрибации/без текста, 🔴 только системные дела/задачи/заметки.
-  const complOf=(d)=>{ const m=mixOf(d,dFrom,dTo)||{}; const hasText=(m.msg||0)>0||(m.mail||0)>0; const call=m.call||0; const blind=call>0?Math.max(0,call-(m.ai||0)):0;
-    if(!hasText && call===0) return 'empty'; if(blind>0||!hasText) return 'partial'; return 'full'; };
-  const COMPL=[{k:'full',ic:'🟢',t:'полные',col:'#7FD1A6',why:'есть текстовая переписка, звонки покрыты разбором'},
-    {k:'partial',ic:'🟡',t:'частичные',col:'#E4B563',why:'звонки без транскрибации или только звонки без текстовой переписки'},
-    {k:'empty',ic:'🔴',t:'пустые',col:'#E08585',why:'только системные дела, задачи и комментарии - клиентской переписки нет'}];
+  // Полнота коммуникаций сделки: доля коммуникационных событий (сообщения, звонки, письма)
+  // от всех событий сделки (плюс системные - дела, задачи, комментарии). Показывает, ведёт ли
+  // менеджер общение в CRM или пайплайн держится на системных инструментах.
+  const complPct=(d)=>{ const m=mixOf(d,dFrom,dTo)||{}; const comm=(m.msg||0)+(m.call||0)+(m.mail||0); const sys=(m.task||0)+(m.note||0); const tot=comm+sys; return tot>0?comm/tot:0; };
+  const complOf=(d)=>{ const r=complPct(d); if(r>=0.6) return 'full'; if(r>=0.3) return 'partial'; return 'empty'; };
+  const COMPL=[{k:'full',ic:'🟢',t:'полные',col:'#7FD1A6',why:'коммуникации - от 60% событий сделки, общение с клиентом преобладает'},
+    {k:'partial',ic:'🟡',t:'частичные',col:'#E4B563',why:'коммуникации - от 30 до 60% событий сделки, часть картины в системных делах'},
+    {k:'empty',ic:'🔴',t:'скудные',col:'#E08585',why:'коммуникации - меньше 30% или совсем пусто, пайплайн держится на системных делах/задачах/комментариях'}];
   const complCell=(mgr)=>{ const ds=byM[mgr]||[]; if(!ds.length) return '<span class="na2">-</span>';
     const c={full:0,partial:0,empty:0}; for(const d of ds) c[complOf(d)]++;
-    return `<div class="comm">`+COMPL.map(x=>{ const on=S.clMgr===mgr&&S.clKind===x.k;
-      return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> - ${esc(x.why)}. Клик - показать эти сделки.">${x.ic}${c[x.k]}</span>`; }).join('')+`</div>`; };
+    return `<div class="cwrap">`+COMPL.map(x=>{ const on=S.clMgr===mgr&&S.clKind===x.k; const pct=Math.round(c[x.k]/ds.length*100);
+      return `<span class="cchip${on?' con':''}" data-compl="${x.k}" style="color:${x.col}" data-tip="<span class='tdot' style='background:${x.col}'></span>${esc(x.t)}: <b>${c[x.k]}</b> из ${ds.length} (${pct}%) - ${esc(x.why)}. Клик - показать и отфильтровать эти сделки.">${x.ic}${pct}%</span>`; }).join('')+`</div>`; };
   const MCOLS=[{k:'mgr',t:'Менеджер',l:1},{k:'verdict',t:'Вердикт'},{k:'deals',t:'Сделок'},{k:'sum',t:'Портфель'},
     {k:'funnel',t:'Воронка по стадиям',l:1},{k:'act',t:'Коммуникации',l:1},{k:'alerts',t:'Горит'},{k:'hot',t:'Под риском'}]
     .concat(S.showMetrics?MD.map(x=>({k:x.key,t:SHORT[x.key]||x.label,unit:x.unit,full:x.label})):[])
@@ -1162,13 +1169,15 @@ function aiBounds(){ const F=S.aiF; return { a:F.from?Date.parse(F.from+'T00:00:
 function aiMix(d){ const F=S.aiF, {a,b}=aiBounds(); const useR=F.depth==='range'&&(a||b);
   return mixOf(d, useR?a:0, useR?b:0) || {msg:0,mail:0,call:0,task:0,note:0,ai:0,total:0}; }
 // Классификация полноты данных под настройку включённых каналов.
+// Полнота = доля коммуникационных событий (сообщения, звонки, письма) от всех событий
+// сделки (плюс системные - дела, задачи, комментарии). Одна модель с дашбордом.
 function completeness(d){ const F=S.aiF, m=aiMix(d), inc=F.inc;
   const msg=inc.has('msg')?m.msg:0, mail=inc.has('mail')?m.mail:0, call=inc.has('call')?m.call:0;
-  const hasText=msg>0||mail>0, blind=call>0?Math.max(0,m.call-m.ai):0;
-  if(!hasText && call===0) return {k:'empty',ic:'🔴',why:'только системные инструменты Б24 (дела, заметки, стадии), клиентской переписки нет'};
-  if(inc.has('call') && blind>0) return {k:'partial',ic:'🟡',why:blind+' '+plu(blind,'звонок','звонка','звонков')+' без транскрибации'+(hasText?'':', текстовой переписки нет')};
-  if(!hasText) return {k:'partial',ic:'🟡',why:'только звонки с разбором, без текстовой переписки'};
-  return {k:'full',ic:'🟢',why:'текстовая переписка есть'+(call>0?', звонки покрыты разбором':'')};
+  const task=inc.has('task')?m.task:0, note=inc.has('note')?m.note:0;
+  const comm=msg+call+mail, sys=task+note, tot=comm+sys; const r=tot>0?comm/tot:0, pct=Math.round(r*100);
+  if(r>=0.6) return {k:'full',ic:'🟢',why:`коммуникации ${pct}% событий сделки`};
+  if(r>=0.3) return {k:'partial',ic:'🟡',why:`коммуникации ${pct}% событий - данные частичные, часть картины в системных делах`};
+  return {k:'empty',ic:'🔴',why:tot?`коммуникации ${pct}% событий - пайплайн держится на системных делах/задачах/комментариях`:'событий нет'};
 }
 function aiMatchDeals(){ ensureEvtIdx(); const F=S.aiF, {a,b}=aiBounds();
   const ids=F.dealIds.split(/[\s,;]+/).map(x=>x.trim().replace(/^[DL]/i,'')).filter(Boolean);
@@ -1299,31 +1308,52 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
       <div id="aiRep">${repHTML()}</div>
     </div>
 
-    <div class="sect">
-      <button class="abtn" onclick="aiApplyToDash()">Показать эти сделки в дашборде</button>
-      <div class="hint">Свернёт таблицу до выбранных менеджеров и сделок, выставит период и раскроет переписку - можно сразу проверить ход коммуникаций по пайплайну.</div>
-      <button class="abtn sec" style="margin-top:10px" onclick="aiCopy()">Скопировать настройку для ИИ</button>
+    <div class="sect"><h5>Рабочее окно ИИ - одно на всё</h5>
+      <ol class="steps">
+        <li>Соберите выборку - кликами по дашборду или полями выше.</li>
+        <li>Нажмите «Скопировать» и пришлите настройку в чат Claude.</li>
+        <li>Что вернётся - вставьте в окно ниже. Я сам пойму, настройка это или разбор, и подскажу следующий шаг.</li>
+      </ol>
+      <button class="abtn" onclick="aiCopy()">Скопировать настройку и отправить в чат</button>
       <div class="copied" id="aiCopied"></div>
-    </div>
-
-    <div class="sect"><h5>Активировать по JSON</h5>
-      <textarea class="ansbox" id="aiCfg" placeholder="Вставь скопированную настройку (JSON) и активируй - дашборд развернёт ровно эти сделки"></textarea>
-      <button class="abtn" style="margin-top:8px" onclick="aiActivateJSON()">Активировать по JSON</button>
-      <div class="copied" id="aiCfgMsg" style="color:var(--ink-4)"></div>
-    </div>
-
-    <div class="sect"><h5>Ответ ИИ - вставь сюда</h5>
-      <textarea class="ansbox" id="aiAns" oninput="aiAnsInput(this.value)" placeholder="Вставь ответ из чата (JSON с полями «менеджер» и «сделки» или обычный текст) и нажми «Показать»"></textarea>
-      <button class="abtn sec" style="margin-top:8px" onclick="aiShowAns()">Показать разбор</button>
+      <button class="abtn sec" style="margin-top:8px" onclick="aiApplyToDash()">Показать эту выборку в дашборде</button>
+      <div class="hint">Свернёт таблицу до выбранных менеджеров и сделок, выставит период и раскроет переписку - проверить ход коммуникаций, не дожидаясь ИИ.</div>
+      <textarea class="ansbox" id="aiIn" style="min-height:96px;margin-top:12px" placeholder="Вставьте сюда одно из двух:
+ • настройку (JSON) - разверну ровно эти сделки в дашборде;
+ • ответ ИИ из чата (JSON или обычный текст) - покажу разбор.
+Распознаю сам."></textarea>
+      <button class="abtn" style="margin-top:8px" onclick="aiProcess()">Распознать и применить</button>
+      <div class="aimsg" id="aiInMsg"></div>
       <div id="aiAnsOut"></div>
     </div>`;
-  const at=document.getElementById('aiAns'); if(at){ at.value=S.ansText||''; if(S.ansText) aiShowAns(); }
+  const at=document.getElementById('aiIn'); if(at && S.ansText){ at.value=S.ansText; renderAns(S.ansText); }
   aiSave();
 }
-function aiShowAns(){ const raw=(document.getElementById('aiAns').value||'').trim(); const out=document.getElementById('aiAnsOut');
-  S.ansText=document.getElementById('aiAns').value||''; aiSave();
-  if(!raw){ out.innerHTML=''; return; }
+// Одно окно на весь цикл: распознаём вставленное и сами решаем, что с ним делать.
+// Настройка (есть ключ «фильтр» или список сделок без вердиктов) - разворачиваем дашборд.
+// Разбор ИИ (вердикты по сделкам / карточка менеджера / просто текст) - показываем ниже.
+function aiProcess(){ const raw=(document.getElementById('aiIn').value||'').trim();
+  const msg=document.getElementById('aiInMsg'), out=document.getElementById('aiAnsOut');
+  if(!raw){ msg.innerHTML='Окно пустое. Соберите выборку кликами по дашборду или полями выше, нажмите «Скопировать», пришлите в чат - и вставьте сюда, что вернулось.'; out.innerHTML=''; S.ansText=''; aiSave(); return; }
   let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
+  if(aiIsConfig(obj)){ // это настройка - применяем к дашборду (панель закроется, будут видны сделки)
+    S.ansText=''; aiApplyToDash(obj); return; }
+  // иначе - разбор ИИ (JSON с вердиктами или обычный текст)
+  S.ansText=raw; renderAns(raw,obj); aiSave();
+  msg.innerHTML='Распознал <b>разбор ИИ</b> - показал ниже. Для новой выборки: соберите её, «Скопировать» → в чат → ответ снова сюда.';
+}
+function aiIsConfig(obj){ if(!obj) return false; // не-JSON (обычный текст) считаем разбором
+  if(obj.фильтр||obj.filter) return true; // наш конфиг всегда несёт блок «фильтр»
+  const arr=obj.сделки||obj.deals||obj.reviews, mg=obj.менеджер||obj.manager;
+  const answerish=(mg&&(mg.вердикт||mg.verdict||mg.сильные||mg.strengths||mg.слабые||mg.weaknesses))
+    ||(Array.isArray(arr)&&arr.some(x=>x&&(x.вердикт||x.verdict||x.проблема||x.problem||x.рекомендация||x.recommendation||x.tone)));
+  if(answerish) return false;
+  if(obj.менеджеры||obj.выборка||Array.isArray(arr)) return true; // список сделок без вердиктов = настройка
+  return false;
+}
+function renderAns(raw,obj){ const out=document.getElementById('aiAnsOut'); if(!out) return;
+  raw=(raw||'').trim(); if(!raw){ out.innerHTML=''; return; }
+  if(obj===undefined){ obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){} }
   const arr = obj && (obj.сделки||obj.deals||obj.reviews);
   const mg = obj && (obj.менеджер||obj.manager);
   if(arr||mg){ const items = arr? (Array.isArray(arr)?arr:Object.entries(arr).map(([id,v])=>({id,...v}))) : [];
@@ -1379,13 +1409,6 @@ function aiApplyToDash(cfg){ const F=S.aiF;
   aiSave(); aiToggle(false); render(); window.scrollTo(0,0);
 }
 function aiClearDash(){ S.fMgrs=new Set(); S.fDealIds=new Set(); S.dashNote=''; S.tm=new Set(); S.td=new Set(); aiSave(); render(); }
-function aiActivateJSON(){ const raw=(document.getElementById('aiCfg').value||'').trim(); const msg=document.getElementById('aiCfgMsg');
-  if(!raw){ if(msg) msg.textContent=''; return; }
-  let obj=null; try{ const m=raw.match(/\{[\s\S]*\}/); obj=m?JSON.parse(m[0]):null; }catch(e){}
-  if(!obj){ if(msg){ msg.textContent='Не разобрал JSON - проверь, что скопирован весь блок'; msg.style.color='#E08585'; } return; }
-  if(msg){ msg.textContent=''; }
-  aiApplyToDash(obj);
-}
 // Сохранение состояния панели и применённого фильтра в localStorage: обновление страницы
 // (в т.ч. авто-деплой) больше не сбрасывает выборку и вставленный разбор.
 function aiSave(){ try{ const F=S.aiF;
@@ -1399,7 +1422,6 @@ function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'n
   S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]);
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }
-function aiAnsInput(v){ S.ansText=v; aiSave(); }
 function aiQInput(v){ S.aiF.question=v; aiSave(); }
 // Любой клик-дрил на дашборде готовит фильтр ИИ (не открывая панель): выборка = ровно
 // те сделки, что сейчас показаны, чтобы «Анализ ИИ» бил по тому, на что смотришь.

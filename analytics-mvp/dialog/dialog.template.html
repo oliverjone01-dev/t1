@@ -776,8 +776,10 @@ function renderTree(){
       <span class="x" data-scopeclear="1">сбросить и показать весь отдел</span></div>` : '';
   // Тепловой градиент «Горит»: больше горящих сделок - насыщеннее красный (нормируем по максимуму).
   const maxAlerts=Math.max(1,...mgrs.map(mm=>(byM[mm.mgr]||[]).filter(d=>d.urgency).length));
-  const heatGorit=(v)=>{ if(!v) return {bg:'',ink:'var(--ink-4)'}; const t=Math.min(1,v/maxAlerts);
-    return {bg:`background:rgba(194,82,82,${(0.08+t*0.55).toFixed(2)})`, ink:t>0.5?'#fff':'#E08585'}; };
+  // Тональность по величине: только цвет цифры, без заливки. Больше горящих - ярче/насыщеннее
+  // красный; мало - приглушённый розовато-красный.
+  const heatGorit=(v)=>{ if(!v) return 'var(--ink-4)'; const t=Math.min(1,v/maxAlerts);
+    return `rgb(${Math.round(198+t*57)},${Math.round(126-t*61)},${Math.round(126-t*61)})`; };
   // Подсказки для «Вердикт» и «Рейтинг»: что это и как посчитано у конкретного менеджера.
   const verdTip=(m)=>{ const p=m.profile;
     if(m.role==='office') return 'Офис-менеджер: приём и квалификация лидов. Регламентом продавца-закрывашки не оценивается, поэтому вердикт и рейтинг продавца не выставляются.';
@@ -800,8 +802,8 @@ function renderTree(){
       +MCOLS.slice(2).map(c=>{
         if(c.k==='funnel') return `<td class="l">${funnelCell(m.mgr)}</td>`;
         if(c.k==='act') return `<td class="l">${commCell(m.mgr)}</td>`;
-        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const h=heatGorit(v); const on=S.hotMgr===m.mgr;
-          return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет - тепловая шкала: чем больше горящих, тем насыщеннее.${v?' Клик - показать эти горящие сделки.':''}" style="${h.bg};color:${h.ink};font-weight:600">${v||'0'}</td>`; }
+        if(c.k==='alerts'){ const v=mval(m,'alerts')||0; const on=S.hotMgr===m.mgr;
+          return `<td class="gorit${v?' hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Горит - число сделок с причиной срочности (клиент ждёт, риск отказа, тишина, просрочка дела, нет шага, низкий шанс). Цвет цифры тем ярче, чем больше горящих.${v?' Клик - показать эти горящие сделки.':''}" style="color:${heatGorit(v)};font-weight:700">${v||'0'}</td>`; }
         if(c.k==='hot'){ const v=mval(m,'hot')||0; const on=S.hotMgr===m.mgr;
           return `<td class="${v?'hotcell':''}${on?' hoton':''}" ${v?'data-hot="1"':''} data-tip="Под риском - сумма бюджетов горящих сделок менеджера.${v?' Клик - показать эти сделки.':''}">${money(v)} ₽</td>`; }
         if(c.k==='rating') return `<td data-tip="${rateTip(m).replace(/"/g,'&quot;')}" style="cursor:help">${office||m.rating===null?'<span class="na2">-</span>':`<b style="color:${pctCol(m.rating*20)}">${m.rating.toFixed(1)}</b>`}</td>`;

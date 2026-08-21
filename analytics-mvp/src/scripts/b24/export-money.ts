@@ -26,7 +26,7 @@ const SP = [
   { etid: 1056, key: "Калькулятор" },
   { etid: 1074, key: "Закупка" },
   { etid: 1086, key: "Производство GG" },
-  { etid: 1120, key: "Производство GM" },
+  // Производство GM (1120) исключено: это Metal-GM, другой бизнес (решение Ивана).
 ] as const;
 
 // Что считаем «с/с»: название содержит с/с/себестоимость. Тип - число ИЛИ строка (в Закупке
@@ -124,6 +124,9 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
     const ssTot = ssVals.reduce((a, b) => a + b, 0);
     // строку с полностью нулевыми деньгами пропускаем, чтобы не раздувать таблицу
     if (!r.opp && !ssTot) continue;
+    // Компактный дамп в stderr - чтобы вытащить с/с через лог CI (артефакт-blob недоступен
+    // из песочницы). Только сделки с заполненной с/с. Формат: SSROW<TAB>id opp ssTot stage.
+    if (ssTot > 0) console.error(`SSROW\t${id}\t${Math.round(r.opp)}\t${ssTot}\t${String(r.stage || "")}`);
     lines.push([
       esc(link(id)), esc(r.title), esc(r.mgr), Math.round(r.opp),
       ...ssVals, ssTot, Math.round(r.opp - ssTot), esc(r.stage), esc(r.close),

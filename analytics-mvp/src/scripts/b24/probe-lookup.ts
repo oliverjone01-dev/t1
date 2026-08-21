@@ -14,7 +14,8 @@ const emails = split(process.env.EMAILS || process.env.EMAIL || "");
 const params = split(process.env.PARAMS || process.env.PARAM || "");
 const needles = [...emails, ...params];
 const CAT = String(process.env.DEAL_CATEGORY || "21");
-const ORPHAN_LIMIT = Number(process.env.ORPHAN_LIMIT || 15);
+const ORPHAN_LIMIT = Number(process.env.ORPHAN_LIMIT || 30);
+const DEAL_FROM = String(process.env.DEAL_FROM || "").trim(); // напр. 2026-04-01
 
 async function call(method: string, p: any = {}): Promise<any> {
   const res = await fetch(`${BASE}/${method}.json`, {
@@ -53,8 +54,10 @@ async function main() {
   // --- загрузка ---
   const leads = await listAll("crm.lead.list", { select: ["ID", "TITLE", "STATUS_ID", "STATUS_SEMANTIC_ID", "DATE_CREATE", "CONTACT_ID", "EMAIL", "PHONE", "UF_*", "ORIGIN_ID", "ORIGINATOR_ID", "SOURCE_DESCRIPTION"] });
   console.log(`Лидов: ${leads.length}`);
-  const deals = await listAll("crm.deal.list", { filter: { CATEGORY_ID: CAT }, select: ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "OPPORTUNITY", "DATE_CREATE", "LEAD_ID", "CONTACT_ID", "UF_*"] });
-  console.log(`Сделок C${CAT}: ${deals.length}`);
+  const dealFilter: any = { CATEGORY_ID: CAT };
+  if (DEAL_FROM) dealFilter[">=DATE_CREATE"] = DEAL_FROM;
+  const deals = await listAll("crm.deal.list", { filter: dealFilter, select: ["ID", "TITLE", "CATEGORY_ID", "STAGE_ID", "OPPORTUNITY", "DATE_CREATE", "LEAD_ID", "CONTACT_ID", "UF_*"] });
+  console.log(`Сделок C${CAT}${DEAL_FROM ? " с " + DEAL_FROM : ""}: ${deals.length}`);
 
   // контакты сделок (для email/телефона)
   const cids = [...new Set(deals.map((d) => String(d.CONTACT_ID || "")).filter((x) => x && x !== "0"))];
@@ -87,9 +90,10 @@ async function main() {
   const keyToLeads = new Map<string, any[]>();
   for (const l of leads) { for (const k of commKeys(l)) { if (!keyToLeads.has(k)) keyToLeads.set(k, []); keyToLeads.get(k)!.push(l); } }
 
-  console.log(`=== ЛИД и СДЕЛКА одного контакта БЕЗ конвертации (deal.LEAD_ID != лид) ===`);
-  let shown = 0;
+  console.log(`=== ЛИД и СДЕЛКА одного контакта БЕЗ конвертации (deal.LEAD_ID != лид)${DEAL_FROM ? ", сделки с " + DEAL_FROM : ""} ===`);
+  const pairs: any[] = [];
   const seenPairs = new Set<string>();
+  const affectedDeals = new Set<string>();
   for (const d of deals) {
     const c = contactsById.get(String(d.CONTACT_ID || ""));
     if (!c) continue;
@@ -101,18 +105,26 @@ async function main() {
         if (convertedLeadIds.has(String(l.ID))) continue;          // лид сконвертирован в другую сделку - не «потеряшка»
         const pair = `${l.ID}-${d.ID}`;
         if (seenPairs.has(pair)) continue; seenPairs.add(pair);
-        const who = ((c.NAME || "") + " " + (c.LAST_NAME || "")).trim();
-        const via = k.startsWith("e:") ? "email " + k.slice(2) : "тел " + k.slice(2);
-        console.log(`\n[${shown + 1}] контакт #${c.ID} ${who} · совпадение по ${via}`);
-        console.log(`   ЛИД #${l.ID} · ${l.STATUS_ID} (${l.STATUS_SEMANTIC_ID || "?"}) · ${String(l.DATE_CREATE || "").slice(0, 10)} · deal.LEAD_ID у сделки=${d.LEAD_ID || "-"}\n     ${leadUrl(l.ID)}`);
-        console.log(`   СДЕЛКА #${d.ID} · ${d.STAGE_ID} · ${Number(d.OPPORTUNITY) || 0}₽ · ${String(d.DATE_CREATE || "").slice(0, 10)}\n     ${dealUrl(d.ID)}`);
-        console.log(`   КОНТАКТ: ${contUrl(c.ID)}`);
-        shown++;
-        if (shown >= ORPHAN_LIMIT) { console.log(`\n(показаны первые ${ORPHAN_LIMIT})`); console.log("\nГотово."); return; }
+        pairs.push({ c, l, d, k, noLink: !(d.LEAD_ID && d.LEAD_ID !== "0") });
+        affectedDeals.add(String(d.ID));
       }
     }
   }
-  if (!shown) console.log("Таких пар не найдено: у каждой сделки C" + CAT + " лид того же контакта либо привязан, либо отсутствует.");
+  // сначала пары, где у сделки вообще нет привязки к лиду (deal.LEAD_ID пустой)
+  pairs.sort((a, b) => (a.noLink === b.noLink ? 0 : a.noLink ? -1 : 1));
+  console.log(`Пар всего: ${pairs.length} · затронуто сделок: ${affectedDeals.size} · из них сделок без всякой привязки к лиду: ${pairs.filter((p) => p.noLink).length}`);
+  let shown = 0;
+  for (const p of pairs) {
+    const { c, l, d, k, noLink } = p;
+    const who = ((c.NAME || "") + " " + (c.LAST_NAME || "")).trim();
+    const via = k.startsWith("e:") ? "email " + k.slice(2) : "тел " + k.slice(2);
+    console.log(`\n[${shown + 1}]${noLink ? " [сделка без лида]" : ""} контакт #${c.ID} ${who} · совпадение по ${via}`);
+    console.log(`   ЛИД #${l.ID} · ${l.STATUS_ID} (${l.STATUS_SEMANTIC_ID || "?"}) · ${String(l.DATE_CREATE || "").slice(0, 10)} · deal.LEAD_ID у сделки=${d.LEAD_ID || "-"}\n     ${leadUrl(l.ID)}`);
+    console.log(`   СДЕЛКА #${d.ID} · ${d.STAGE_ID} · ${Number(d.OPPORTUNITY) || 0}₽ · ${String(d.DATE_CREATE || "").slice(0, 10)}\n     ${dealUrl(d.ID)}`);
+    console.log(`   КОНТАКТ: ${contUrl(c.ID)}`);
+    if (++shown >= ORPHAN_LIMIT) { console.log(`\n(показаны первые ${ORPHAN_LIMIT} из ${pairs.length})`); break; }
+  }
+  if (!pairs.length) console.log(`Таких пар не найдено${DEAL_FROM ? " среди сделок с " + DEAL_FROM : ""}.`);
   console.log("\nГотово.");
 }
 main().catch((e) => { console.error("Проба упала:", e instanceof Error ? e.message : e); process.exit(1); });

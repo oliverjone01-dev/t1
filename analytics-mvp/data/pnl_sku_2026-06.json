@@ -4,6 +4,24 @@
   "skuCount": 230,
   "singleItemOps": 2969,
   "multiItemOps": 39,
+  "serviceTotals": {
+    "MarketplaceRedistributionOfAcquiringOperation": -213634,
+    "MarketplaceServiceBrandCommission": -266414,
+    "ItemAgentServiceStarsMembership": -248877,
+    "MarketplaceServiceItemProductReviewsManagementSubscription": -60651,
+    "PremiumMembershipCommission": -217910,
+    "MarketplaceServiceItemDirectFlowLogistic": -254040,
+    "MarketplaceServiceItemDropoffSC": -3570,
+    "MarketplaceServiceItemDeliveryToHandoverPlaceOzon": -725,
+    "MarketplaceServiceItemRedistributionLastMileCourier": -794,
+    "MarketplaceServiceItemInstallment": -50136,
+    "MarketplaceServiceItemReturnFlowLogistic": -21743,
+    "MarketplaceServiceItemTemporaryStorageRedistribution": -14498,
+    "MarketplaceServiceProcessingOfNonStandardGoods": -15120,
+    "MarketplaceServiceVolumeWeightCharacsProcessing": -3600,
+    "MarketplaceServiceItemRedistributionReturnsPVZ": -135,
+    "PremiumMembershipCommissionCancelled": 610
+  },
   "bySku": {
     "3492786359": {
       "accruals": 104604,

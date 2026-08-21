@@ -86,7 +86,8 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   let start = 0;
   for (;;) {
     const r = await call("crm.deal.list", {
-      select: ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "CLOSEDATE", "STAGE_ID", "CATEGORY_ID"],
+      select: ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "CLOSEDATE", "STAGE_ID", "CATEGORY_ID",
+        "UTM_SOURCE", "UTM_MEDIUM", "UTM_CAMPAIGN", "UTM_CONTENT", "UTM_TERM"],
       order: { ID: "DESC" }, start,
     });
     const items: any[] = r.result || [];
@@ -94,7 +95,8 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
     if (r.next == null) break; start = r.next;
   }
   const dealById = new Map<string, any>();
-  for (const d of deals) dealById.set(String(d.ID), { title: d.TITLE, opp: num(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, close: d.CLOSEDATE, stage: d.STAGE_ID, ss: {} as Record<string, number> });
+  for (const d of deals) dealById.set(String(d.ID), { title: d.TITLE, opp: num(d.OPPORTUNITY), mgr: d.ASSIGNED_BY_ID, close: d.CLOSEDATE, stage: d.STAGE_ID, cat: String(d.CATEGORY_ID || ""),
+    utm: [d.UTM_SOURCE, d.UTM_MEDIUM, d.UTM_CAMPAIGN, d.UTM_CONTENT, d.UTM_TERM].map((v) => String(v ?? "").replace(/[\t\n|]/g, " ")), ss: {} as Record<string, number> });
 
   // 2) По каждому СП: найти с/с-поля, стянуть карточки, просуммировать с/с на сделку.
   for (const sp of SP) {
@@ -140,5 +142,10 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   mkdirSync("prod/data", { recursive: true });
   writeFileSync(OUT, csv);
   console.error(`\nГотово: ${rows.length} сделок -> ${OUT}. Столбцы: ${cols.join(" | ")}`);
+  // Дамп UTM в конце (попадёт в хвост лога CI): только C49 с непустым utm_source.
+  // Формат: UTMROW<TAB>id<TAB>source<TAB>medium<TAB>campaign<TAB>content<TAB>term.
+  let utmN = 0;
+  for (const [id, rr] of dealById) if (rr.cat === "49" && rr.utm[0]) { console.error(`UTMROW\t${id}\t${rr.utm.join("\t")}`); utmN++; }
+  console.error(`UTM-строк (C49 с utm_source): ${utmN}`);
   process.stdout.write(csv); // и в stdout - удобно посмотреть в логе CI или redirect > money.csv
 })();

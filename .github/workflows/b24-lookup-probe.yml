@@ -14,6 +14,10 @@ on:
         description: "Параметр лида (например u2i-...)"
         required: false
         default: ""
+      targets:
+        description: 'Много целей: JSON [{"email":"..","param":".."}]'
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -30,6 +34,7 @@ jobs:
       B24_PORTAL: https://glassmemory.bitrix24.ru
       EMAIL: ${{ github.event.inputs.email }}
       PARAM: ${{ github.event.inputs.param }}
+      TARGETS: ${{ github.event.inputs.targets }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

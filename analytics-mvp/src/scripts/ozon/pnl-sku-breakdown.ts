@@ -20,12 +20,15 @@ type Agg = {
   ops: number;              // число операций (шт. в разрезе доставок)
 };
 
-// Классификация услуги по имени (OZON отдаёт русские названия).
+// Классификация услуги по имени. OZON в транзакциях отдаёт машинные коды (англ.), а не рус.
+// названия. Логистика: DirectFlow/ReturnFlow/LastMile/Dropoff/HandoverPlace/ReturnsPVZ.
+// Эквайринг: Acquiring. Хранение: Storage. Остальное (комиссия бренда, Premium/Stars-подписки,
+// рассрочка, обработка отзывов, обработка нестандарта/ВГХ) -> прочие услуги.
 function svcBucket(name: string): "delivery" | "acquiring" | "storage" | "other" {
   const n = name.toLowerCase();
-  if (/эквайринг/.test(n)) return "acquiring";
-  if (/хранени/.test(n)) return "storage";
-  if (/логист|доставк|достав|отправлени|обработк|последн(яя|ей)\s*мил/.test(n)) return "delivery";
+  if (/эквайринг|acquiring/.test(n)) return "acquiring";
+  if (/хранени|storage/.test(n)) return "storage";
+  if (/логист|доставк|logistic|lastmile|last\s*mile|dropoff|handoverplace|returnspvz|deliveryto/.test(n)) return "delivery";
   return "other";
 }
 

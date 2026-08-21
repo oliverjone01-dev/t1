@@ -1126,66 +1126,10 @@ function render(){
   const _cvBody = S.cvView==='dyn'
     ? `<div id="cvDyn"></div>`
     : `${_cvFunnel}${_churn}${_oi}`;
-  const B_dynLeads=`<div class="card"><div class="card-h"><div><div class="card-title">Динамика заявок ${info('Поток лидов по неделям: квал / неквал / итого во времени. Вопрос: растёт ли входящий поток и его качество, есть ли провалы. Вывод: спад «итого» - вопрос к маркетингу и каналам; рост «неквал» - падает качество трафика.')}</div><div class="card-sub">поток заявок и его качество</div></div><div style="display:flex;align-items:center;gap:9px"><span class="ctl-lbl">Разрез</span><div class="seg" id="dimSeg"></div></div></div><div id="dynBox"></div></div>`;
   const B_cvFunnel=`<div class="card"><div class="card-h"><div><div class="card-title">Сквозная конверсия ${info('Сквозная воронка одной когорты: Заявки - Квал-лиды (созданные сделки) - Продажи и конверсии между ними. В режиме «Динамика» - конверсии по неделям, жирная линия = сквозная заявка→продажа; последние недели всегда занижены циклом сделки (~33 дня): свежие ещё не успели закрыться. Стандарт: квал-лид = созданная сделка, поэтому CR1 здесь совпадает с CR1 в шапке и в «Выполнении плана». Вопрос: на каком переходе теряем больше - заявка в сделку или сделка в продажу. Вывод: самый узкий переход = главный рычаг роста выручки.')}</div><div class="card-sub">${_cvSub}</div></div><div class="seg" id="cvSeg"></div></div>${_cvBody}</div>`;
   /* 2. ЛИДЫ */
   /* уровни собираются в конце */
-  // data-quality: атрибуция направления ЗА ВЫБРАННЫЙ ПЕРИОД - направления берутся из поля динамически
-  const dq=periodDQ(D,L);
-  const dealByDir=dq.dealByDir||{};const dDealEmpty=dealByDir['не указано']||0;
-  const palDir=['#22D3EE','#A78BFA','#10B981','#F472B6','#FB923C','#6366F1','#34D399','#60A5FA','#C084FC','#2DD4BF','#F59E0B','#F87171'];
-  const dirList=dq.dirList||Object.keys(dq.leadByDir||{});
-  const dirOf={};dirList.forEach((nm,i)=>{dirOf[nm]=nm==='glass-memory'?'#22D3EE':palDir[i%palDir.length];});dirOf['не указано']='#F43F5E';
-  const stByDir=dq.leadStatByDir||{};
-  const dirRows=dirList.concat(['не указано']).map(nm=>{const x=stByDir[nm]||{s:(nm==='не указано'?dq.leadQualEmpty:dq.leadQualByDir[nm])||0,f:0,p:0};const tot=(x.s||0)+(x.f||0)+(x.p||0);return [nm,tot,x.s||0,x.f||0,x.p||0];})
-    .filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
-  const dmax=Math.max(...dirRows.map(r=>r[1]))||1;
-  const dirBar=dirRows.map(r=>{const[name,total,s,f,p]=r;const w=(total/dmax*100).toFixed(1);
-    const parts=[[s,'#2E9E74','#06121a'],[f,'#CC5867','#fff'],[p,'#C2873C','#06121a']].filter(x=>x[0]>0);
-    const segs=parts.map((x,i)=>{const wd=(x[0]/total*100).toFixed(1);const rad=parts.length===1?'6px':i===0?'6px 0 0 6px':i===parts.length-1?'0 6px 6px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:${x[2]};white-space:nowrap;overflow:visible">${(x[0]/total)>=0.06?fmt(x[0]):""}</div>`;}).join('');
-    const td=dt(name,[['Всего лидов',fmt(total),'hl'],['Доля от всех лидов',pct(total/dq.leadTotal),'hl'],['Квал',fmt(s),'dim'],['Отказ',fmt(f),'dim'],['В работе',fmt(p),'dim']]).replace(/"/g,'&quot;');
-    const share=dq.leadTotal?total/dq.leadTotal:0;
-    // мягкий масштаб (степень 0.42): длина всё ещё растёт с объёмом, но мелкие направления читаемы
-    const wSoft=(Math.pow(total/dmax,0.42)*100).toFixed(1);
-    return `<div class="fbar"><div class="fl">${name}<div style="font-size:10px;color:var(--ink-4);font-weight:600">${fmt(total)} · ${pct(share)} от всех</div></div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${wSoft}%;min-width:110px;transform-origin:left;animation:grow .8s var(--ease-out) both">${segs}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right" data-tip="Квал % направления (лиды со статусом «квал» ÷ все лиды направления), нейтральный показатель. Не CR1: CR1 = созданные сделки ÷ заявки.">${pct(total?s/total:0)}</div></div>`;}).join('');
-  // ===== метрика блока «Качество разметки» управляется тем же тогглом (loadSeg) =====
-  let QM=(S.loadMetric==='conv'||S.loadMetric==='check'||S.loadMetric==='prod')?'deals':(S.loadMetric||'leads');
-  // «Только дилеры»: лид-канала нет, поэтому качество разметки считаем по СДЕЛКАМ, а не по лидам.
-  if(S.channel==='dealer'&&QM==='leads')QM='deals';
-  const _wonByDir={},_revByDir={};D.forEach(d=>{if(d.won){const k=d.dir||'не указано';_wonByDir[k]=(_wonByDir[k]||0)+1;_revByDir[k]=(_revByDir[k]||0)+(d.budget||0);}});
-  const _noDir=o=>Object.fromEntries(Object.entries(o||{}).filter(([k])=>k!=='не указано'));
-  const _sum=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
-  const _qMeta={
-    leads:{lab:'Лиды',unit:'лидов',titleAll:'Всего лидов',map:dq.leadByDir||{},empty:dq.leadEmpty||0,total:dq.leadTotal||0,money:false},
-    deals:{lab:'Сделки',unit:'сделок',titleAll:'Всего сделок',map:_noDir(dq.dealByDir),empty:(dq.dealByDir||{})['не указано']||0,total:dq.dealTotal||_sum(dq.dealByDir),money:false},
-    won:{lab:'Продажи',unit:'продаж',titleAll:'Всего продаж',map:_noDir(_wonByDir),empty:_wonByDir['не указано']||0,total:_sum(_wonByDir),money:false},
-    rev:{lab:'Выручка',unit:'выручки',titleAll:'Выручка, всего',map:_noDir(_revByDir),empty:_revByDir['не указано']||0,total:_sum(_revByDir),money:true}
-  }[QM];
-  const _qfV=v=>_qMeta.money?fmtK(v)+' ₽':fmt(v);
-  const _qTotal=_qMeta.total||1;
-  const _qTop=dirList.map(nm=>[nm,_qMeta.map[nm]||0]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  const dirTiles=_qTop.map(r=>({k:r[0]==='glass-memory'?'Glass Memory (наш)':(DIRLAB[r[0]]||r[0]),v:_qfV(r[1]),ac:r[0]==='glass-memory'?'accent':(dirOf[r[0]]||'#6366F1'),sub:pct(r[1]/_qTotal)+' от '+_qMeta.unit}));
-  let dirBarM;
-  if(QM==='leads'){dirBarM=dirBar;}
-  else{
-    const _rows=dirList.concat(['не указано']).map(nm=>[nm,nm==='не указано'?_qMeta.empty:(_qMeta.map[nm]||0)]).filter(r=>r[1]>0).sort((a,b)=>b[1]-a[1]);
-    const _mx=Math.max(...(_rows.map(r=>r[1])),1);
-    dirBarM=_rows.map(([name,val])=>{const w=Math.max((val/_mx*100),4).toFixed(1),col=name==='не указано'?'#F43F5E':(dirOf[name]||'#6366F1');
-      const td=dt(name,[[_qMeta.lab,_qfV(val),'hl'],['Доля от Σ',pct(val/_qTotal),'hl']]).replace(/"/g,'&quot;');
-      return `<div class="fbar"><div class="fl">${name}</div><div class="ft" data-tip="${td}" style="overflow:visible"><div style="display:flex;height:100%;width:${w}%;min-width:64px;background:${col};border-radius:6px;align-items:center;justify-content:flex-end;padding-right:8px;font-size:10.5px;font-weight:800;color:#06121a;transform-origin:left;animation:grow .8s var(--ease-out) both">${_qfV(val)}</div></div><div style="width:54px;font-size:11px;font-weight:700;color:var(--ink-2);text-align:right">${pct(val/_qTotal)}</div></div>`;}).join('');
-  }
-  const _qCap = QM==='leads'
-    ? `Лиды по направлению: длина полосы = объём (мягкий масштаб, чтобы мелкие направления были читаемы) · сегменты: <span style="color:#2E9E74">квал</span> · <span style="color:#CC5867">отказ</span> · <span style="color:#C2873C">в работе</span> · под именем объём и доля · справа квал % ${info('Квал % направления - лиды со статусом «квал» ÷ все лиды направления. Нейтральная справка, не оценка. Не путать с CR1 (созданные сделки ÷ заявки).')}. «Не указано» = дыра`
-    : `${_qMeta.lab} по направлению · значение на полосе · справа доля от Σ${QM==='rev'?' '+info('Выручка считается только с успешной (выигранной) стадии сделки - won. Предоплата на стадии перед производством в выручку НЕ входит: учитывается лишь закрытая выигранная сделка.'):QM==='won'?' '+info('Продажи - только выигранные сделки (won), по всем направлениям.'):QM==='deals'?' '+info('Сделки - все созданные сделки в воронке: выигранные + проигранные + открытые.'):''} · «Не указано» = дыра атрибуции`;
-  const B_quality=`<div class="card"><div class="card-h"><div><div class="card-title">Качество разметки ${info('Доля сделок/лидов за период без проставленного направления (атрибуция из поля Б24). Почему направление, а не источник: источник заполняется не всегда - по нему терялось около 78% GG-лидов; источник - второй признак, отдел продаж/системный - третий для добивки пустых. «Всего сделок» = СДЕЛКИ, созданные за период по всем направлениям (включая созданные вручную без лида и по лидам прошлых периодов) - поэтому не совпадает со «Сделками» в «Воронке лидов»: там квал-ЛИДЫ genglass периода. Вопрос: чисто ли менеджеры заполняют направление. Вывод: большая доля «не указано» - дыра в данных, аналитика по направлениям врёт, чинить дисциплину заполнения.')}</div><div class="card-sub">${S.channel==='dealer'?'доля сделок без направления · у дилеров лид-канала нет, считаем по сделкам':'доля сделок и лидов без проставленного направления'}</div></div></div>`+
-    kstrip([
-      {k:_qMeta.titleAll,v:_qfV(_qMeta.total),ac:'#6366F1',sub:'за период'},
-      ...dirTiles,
-      {k:'❗ '+_qMeta.lab+' без направления',v:_qfV(_qMeta.empty),ac: _qMeta.empty?'#F43F5E':'#10B981',sub:pct(_qMeta.empty/_qTotal)+' от '+_qMeta.unit},
-    ], Math.ceil((dirTiles.length+2)/2))+
-    `<div class="card-sub" style="margin:6px 0 8px;font-weight:600;color:var(--ink-2)">${_qCap}</div>`+
-    dirBarM+
-    `</div>`;
+  // Блоки «Динамика заявок» и «Качество разметки» убраны из GM-дашборда (по запросу Ивана).
   const lf=leadFunnel(L);
   const B_leadStrip=kstrip([
     {k:'Поступило лидов',v:fmt(m.leads),ac:'accent',trend:trendChip(m.leads,pm.leads)},
@@ -2308,7 +2252,7 @@ function offerControlBlock(){
 }
 
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
-    + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+G(B_dynLeads,B_quality)+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
+    + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт')+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
     + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()+deptDQBlock()
@@ -2317,7 +2261,7 @@ function offerControlBlock(){
   // post-render wiring
   // Динамика денег - по дате ИСХОДА: берём сделки, закрытые в периоде (а не созданные).
   // Динамика денег: по дате исхода (закрытые в периоде) или по когорте создания - по тумблеру.
-  wireDyn(D,L);wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireDQ();
+  wireCv(L,D);wireLoad();wireMoneyDyn(S.dateBasis==='outcome'?flt(AD,true).filter(d=>(d.won||d.lost)&&inP(d.closed)):D);wirePrepProd();wireDQ();
   document.querySelectorAll('#mt th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(S.mtSort===k)S.mtAsc=!S.mtAsc;else{S.mtSort=k;S.mtAsc=false;}render();});
 }
 function mgrScatter(L){

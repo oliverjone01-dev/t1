@@ -63,7 +63,7 @@ async function ssFields(etid: number): Promise<string[]> {
   const out: string[] = [];
   for (const [id, def] of Object.entries(fields)) {
     const t = String(lbl(def)), type = String(def.type || "");
-    if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_NUM.test(type)) out.push(id);
+    if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_NUM.test(type)) { out.push(id); console.error(`SPFIELD\t${etid}\t${id}\t${t}`); }
   }
   return out;
 }
@@ -110,6 +110,10 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
       if (!rec) continue; // карточка не привязана к сделке (или сделки нет в выгрузке)
       const sum = ss.reduce((s, f) => s + num(it[f]), 0);
       rec.ss[sp.key] = (rec.ss[sp.key] || 0) + sum;
+      // Дамп по карточке СП: etid, id карточки, сделка, сумма и значения по каждому полю.
+      // Нужен, чтобы проверить двойной счёт (итог+компоненты внутри СП, одна с/с в разных СП)
+      // и дать прямые ссылки на карточки. Только карточки с ненулевой с/с.
+      if (sum > 0) console.error(`SPITEM\t${sp.etid}\t${it.id}\t${dealId}\t${Math.round(sum)}\t${ss.map((f) => Math.round(num(it[f]))).join("|")}`);
     }
   }
 

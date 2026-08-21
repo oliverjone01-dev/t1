@@ -1,0 +1,84 @@
+// Финансы по SKU за период с РАЗБИВКОЙ комиссии на составляющие (для Excel-выгрузки по артикулам).
+// Источник - /v3/finance/transaction/list (реальные деньги, а не витрина). Считает ТОЛЬКО операции
+// с ОДНИМ товаром (как pnl-sku.ts) - многотоварные пропускаются (нельзя честно разнести по SKU).
+// Разбивка «всего сборов» = начислено - к выплате раскладывается на:
+//   sale_commission (комиссия за продажу), delivery (логистика), acquiring (эквайринг),
+//   storage (хранение), otherSvc (прочие услуги OZON).
+// Креды из env: OZON_SELLER_CLIENT_ID, OZON_SELLER_API_KEY (GitHub Secrets).
+// Запуск: tsx src/scripts/ozon/pnl-sku-breakdown.ts <dateFrom> <dateTo> <outFile>
+import { writeFileSync } from "node:fs";
+import { OzonSeller } from "../../connector/ozon-seller.js";
+
+type Agg = {
+  accruals: number;         // начислено (accruals_for_sale)
+  sale_commission: number;  // комиссия за продажу
+  delivery: number;         // логистика (доставка + возвратная доставка + услуги «логистика/доставка»)
+  acquiring: number;        // эквайринг
+  storage: number;          // хранение
+  otherSvc: number;         // прочие услуги OZON
+  amount: number;           // к выплате
+  ops: number;              // число операций (шт. в разрезе доставок)
+};
+
+// Классификация услуги по имени (OZON отдаёт русские названия).
+function svcBucket(name: string): "delivery" | "acquiring" | "storage" | "other" {
+  const n = name.toLowerCase();
+  if (/эквайринг/.test(n)) return "acquiring";
+  if (/хранени/.test(n)) return "storage";
+  if (/логист|доставк|достав|отправлени|обработк|последн(яя|ей)\s*мил/.test(n)) return "delivery";
+  return "other";
+}
+
+// Чистая агрегация (тестируется без сети). Только операции с ОДНИМ товаром.
+export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; bySku: Record<string, Agg> } {
+  const bySku: Record<string, Agg> = {};
+  let multi = 0, single = 0;
+  for (const o of ops) {
+    const items = o.items || [];
+    if (items.length !== 1) { if (items.length > 1) multi++; continue; }
+    single++;
+    const sku = String((items[0] && items[0].sku) || "");
+    if (!sku || sku === "0") continue;
+    let a = bySku[sku];
+    if (!a) { a = { accruals: 0, sale_commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, amount: 0, ops: 0 }; bySku[sku] = a; }
+    a.accruals += o.accruals_for_sale || 0;
+    a.sale_commission += o.sale_commission || 0;
+    a.delivery += (o.delivery_charge || 0) + (o.return_delivery_charge || 0);
+    a.amount += o.amount || 0;
+    a.ops++;
+    for (const s of (o.services || [])) {
+      const price = s.price || 0;
+      switch (svcBucket(String(s.name || ""))) {
+        case "acquiring": a.acquiring += price; break;
+        case "storage": a.storage += price; break;
+        case "delivery": a.delivery += price; break;
+        default: a.otherSvc += price;
+      }
+    }
+  }
+  for (const k in bySku) {
+    const a = bySku[k]!;
+    a.accruals = Math.round(a.accruals); a.sale_commission = Math.round(a.sale_commission);
+    a.delivery = Math.round(a.delivery); a.acquiring = Math.round(a.acquiring);
+    a.storage = Math.round(a.storage); a.otherSvc = Math.round(a.otherSvc); a.amount = Math.round(a.amount);
+  }
+  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, bySku };
+}
+
+export async function pnlBreakdown(dateFrom: string, dateTo: string): Promise<any> {
+  const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
+  if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
+  const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
+  return { dateFrom, dateTo, ...aggregateBreakdown(ops) };
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const dateFrom = argv[0], dateTo = argv[1], outFile = argv[2];
+  if (!dateFrom || !dateTo || !outFile) { console.error("usage: pnl-sku-breakdown.ts <dateFrom> <dateTo> <outFile>"); process.exit(1); }
+  const out = await pnlBreakdown(dateFrom, dateTo);
+  writeFileSync(outFile, JSON.stringify(out, null, 2));
+  console.log(`pnl-sku-breakdown: ${out.skuCount} SKU, single-ops ${out.singleItemOps} (multi ${out.multiItemOps}), ${dateFrom}..${dateTo} -> ${outFile}`);
+}
+
+if (process.argv[1] && /pnl-sku-breakdown\.ts$/.test(process.argv[1])) main().catch((e) => { console.error("pnl-sku-breakdown FAILED:", (e as Error).message); process.exit(1); });

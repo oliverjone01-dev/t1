@@ -30,10 +30,12 @@ function svcBucket(name: string): "delivery" | "acquiring" | "storage" | "other"
 }
 
 // Чистая агрегация (тестируется без сети). Только операции с ОДНИМ товаром.
-export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; bySku: Record<string, Agg> } {
+export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; serviceTotals: Record<string, number>; bySku: Record<string, Agg> } {
   const bySku: Record<string, Agg> = {};
+  const serviceTotals: Record<string, number> = {}; // разведка: какие услуги реально есть (по имени, все ops)
   let multi = 0, single = 0;
   for (const o of ops) {
+    for (const s of (o.services || [])) { const n = String(s.name || "?"); serviceTotals[n] = (serviceTotals[n] || 0) + (s.price || 0); }
     const items = o.items || [];
     if (items.length !== 1) { if (items.length > 1) multi++; continue; }
     single++;
@@ -62,7 +64,8 @@ export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOp
     a.delivery = Math.round(a.delivery); a.acquiring = Math.round(a.acquiring);
     a.storage = Math.round(a.storage); a.otherSvc = Math.round(a.otherSvc); a.amount = Math.round(a.amount);
   }
-  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, bySku };
+  for (const k in serviceTotals) serviceTotals[k] = Math.round(serviceTotals[k]!);
+  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, serviceTotals, bySku };
 }
 
 export async function pnlBreakdown(dateFrom: string, dateTo: string): Promise<any> {

@@ -2246,8 +2246,9 @@ function mgmtDecisionsBlock(){
 // возрастные когорты пайплайна. История берётся из hist по датам входа/закрытия.
 function offerAnalytics(){
   const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const dirOk=d=>(!S.fDir||d.dir===S.fDir)&&notForeign(d);
-  const AD=(DATA.deals||[]).filter(dirOk);
+  // Учитываем период (по дате создания) и все фильтры (менеджер/источник/направление/клиент),
+  // как в остальном дашборде через FD(); notForeign отсекает сделки чужого бизнеса (GM).
+  const AD=flt((DATA.deals||[]).filter(d=>notForeign(d)&&inP(d.created)),true);
   const open=AD.filter(d=>OSET.has(d.stageCode)&&!d.won&&!d.lost);
   const passed=AD.filter(d=>(d.hist||[]).some(h=>OSET.has(h[0])));
   if(!passed.length)return "";
@@ -2806,7 +2807,7 @@ function buildShell(){
   document.addEventListener('change',e=>{const ms=e.target.closest('[data-tdmgrsel]');if(ms){S.tdMgr=ms.value||'';if(S.tdMgr)S.tdDept=true;render();return;}});
   const _ac=document.getElementById('applyCustom');
   if(_ac)_ac.onclick=()=>{const a=document.getElementById('cf').value,b=document.getElementById('ct').value;if(a&&b&&a<=b){S.start=a;S.end=b;document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));const _pl=document.getElementById('periodLabel');if(_pl)_pl.textContent=S.start+' → '+S.end;render();}};
-  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}">${p[1]}</button>`).join('');
+  document.getElementById('period').innerHTML=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['all','Всё'],['mig','После переезда']].map(p=>`<button data-p="${p[0]}" class="${p[0]==='30'?'on':''}"${p[0]==='mig'?' title="Сделки, созданные после переезда с AmoCRM (05.03.2026), без залитых при миграции"':''}>${p[1]}</button>`).join('');
   document.querySelectorAll('#period button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#period button').forEach(x=>x.classList.remove('on'));b.classList.add('on');setPeriod(b.dataset.p);render();});
   document.querySelectorAll('#gran button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#gran button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.gran=b.dataset.g;render();});
   const _dirSel=document.getElementById('dirSel');
@@ -2822,6 +2823,7 @@ function setPeriod(p){
   if(p==='all'){S.start=DATA.from;S.end=DATA.to;}
   else if(p==='today'){S.start=S.end=DATA.to;}
   else if(p==='yest'){const e=new Date(DATA.to);e.setDate(e.getDate()-1);S.start=S.end=e.toISOString().slice(0,10);}
+  else if(p==='mig'){const e=new Date(MIGDATE);e.setDate(e.getDate()+1);S.start=e.toISOString().slice(0,10);S.end=DATA.to;} // после переезда с AmoCRM: с 06.03.2026, исключая залитые при миграции 05.03
   else{const e=new Date(DATA.to);e.setDate(e.getDate()-(+p-1));S.start=e.toISOString().slice(0,10);S.end=DATA.to;} // n дней включая сегодня - окно совпадает с дашбордом производства
   const _pl=document.getElementById('periodLabel');if(_pl)_pl.textContent=S.start+' → '+S.end;}
 function freshStamp(){const el=document.getElementById('freshTag');if(!el)return;

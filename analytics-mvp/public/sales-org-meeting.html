@@ -236,12 +236,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 3. MARKETING -->
 <section id="mkt">
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
-  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Живой снимок за август взять не удалось (токены Директ/Метрика не заведены в секреты репозитория, ночной синк падает с 26 июля), поэтому база это последний реальный снимок <b>8 июня – 7 июля</b>. Расход августа по твоему сценарию: всё ×1.5.</p>
+  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Есть два реальных снимка: <b>8 июня – 7 июля</b> (с лидами) и <b>23 июля – 22 августа</b> (расход августа реальный, лиды оценены). Апрель, май и полный помесячный ряд недоступны: токены Яндекса не заведены в секреты, ночной синк падает с 26 июля. Важная правка: CPL Директа около 2 189 ₽, прежние 9 155 ₽ были моей ошибкой расчёта.</p>
   <div class="grid g4" style="margin-bottom:16px">
+    <div class="tile cy"><div class="v">2 189 ₽</div><div class="l">CPL всего кабинета Директа</div><div class="n"><span class="tag data">ДАННЫЕ</span> 100.7к / 46 лидов (июнь-июль). Не 9 155 - это была моя ошибка</div></div>
     <div class="tile good"><div class="v">69</div><div class="l">лидов из SEO / органики</div><div class="n"><span class="tag data">ДАННЫЕ</span> крупнейший источник, ~0 предельных ₽</div></div>
-    <div class="tile cy"><div class="v">33</div><div class="l">лида от ABDM (utm_source=abdm)</div><div class="n"><span class="tag data">ДАННЫЕ</span> размечен в Метрике, самый крупный платный</div></div>
-    <div class="tile"><div class="v" style="color:var(--d6)">11</div><div class="l">лидов из Директа своего (utm=yandex)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 100.7к на 11 лидов</div></div>
-    <div class="tile hot"><div class="v">?</div><div class="l">ABDM и Директ: раздельные бюджеты?</div><div class="n"><span class="tag gap">УТОЧНИТЬ</span> часть abdm идёт через движок Яндекс.Директ</div></div>
+    <div class="tile"><div class="v" style="color:var(--d6)">152к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 30д к 22.08, ≈ твой сценарий ×1.5</div></div>
+    <div class="tile hot"><div class="v">115к</div><div class="l">ABDM: комиссия или отдельный бюджет?</div><div class="n"><span class="tag gap">УТОЧНИТЬ</span> 33 лида размечены abdm внутри того же кабинета</div></div>
   </div>
   <div class="grid g2">
     <div class="card">
@@ -251,26 +251,39 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Все лиды (цель «CRM Все лиды»)</span><span><span class="dot" style="background:var(--d3)"></span>Качественные (отправка контактов)</span></div>
     </div>
     <div class="card">
-      <div class="chart-t">Каналы сведены: расход, лиды, CPL <span class="tag data">ФАКТ</span> + <span class="tag hyp">август ×1.5</span></div>
-      <div class="chart-s">лиды из Метрики по utm_source; расход августа = факт ×1.5</div>
+      <div class="chart-t">Каналы: лиды и стоимость лида <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">лиды из Метрики; расход Директа факт по кабинету</div>
       <div class="scrollx"><table>
-        <thead><tr><th>Канал</th><th>Расход факт</th><th>Расход авг</th><th>Лиды</th><th>Кач.</th><th>CPL*</th></tr></thead>
+        <thead><tr><th>Канал</th><th>Расход</th><th>Лиды</th><th>Кач.</th><th>CPL</th></tr></thead>
         <tbody>
-          <tr><td class="name">SEO / органика</td><td class="dim">~0</td><td class="dim">~0</td><td>69</td><td>44</td><td><span class="pill g">≈0</span></td></tr>
-          <tr><td class="name">ABDM (utm=abdm)</td><td>115.0к</td><td>172.5к</td><td>33</td><td>24</td><td><span class="pill g">3 485</span></td></tr>
-          <tr><td class="name">Директ свой (utm=yandex)</td><td>100.7к</td><td>151.0к</td><td>11</td><td>8</td><td><span class="pill r">9 155</span></td></tr>
-          <tr><td class="name">Прямые / typein</td><td class="dim">0</td><td class="dim">0</td><td>12</td><td>14</td><td class="dim">-</td></tr>
-          <tr><td class="name">Рекоменд. / почта</td><td class="dim">0</td><td class="dim">0</td><td>6</td><td>13</td><td class="dim">-</td></tr>
-          <tr class="tot"><td>Платный итог</td><td>215.7к</td><td>323.5к</td><td>44</td><td>32</td><td><span class="pill y">4 902</span></td></tr>
+          <tr><td class="name">SEO / органика</td><td class="dim">~0</td><td>69</td><td>44</td><td><span class="pill g">≈0</span></td></tr>
+          <tr><td class="name">Яндекс.Директ (весь кабинет)</td><td>100.7к</td><td>46</td><td>33</td><td><span class="pill g">2 189</span></td></tr>
+          <tr><td class="dim" style="padding-left:22px">└ размечено utm=abdm</td><td class="dim">тот же</td><td class="dim">33</td><td class="dim">24</td><td class="dim">-</td></tr>
+          <tr><td class="dim" style="padding-left:22px">└ размечено utm=yandex</td><td class="dim">бюджет</td><td class="dim">11</td><td class="dim">8</td><td class="dim">-</td></tr>
+          <tr><td class="name">Прямые / typein</td><td class="dim">0</td><td>12</td><td>14</td><td class="dim">-</td></tr>
+          <tr><td class="name">Рекоменд. / почта</td><td class="dim">0</td><td>6</td><td>13</td><td class="dim">-</td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px">*CPL по ABDM и Директу верна, <b>если это два раздельных бюджета</b>. Метрика относит часть трафика ABDM к движку «Yandex: Direct», поэтому возможно ABDM крутит рекламу внутри нашего же кабинета Директа. Если так, 100.7к и 115к пересекаются, и честнее блендед-CPL: 4 902 ₽ на платный лид. Нужно подтверждение от тебя.</p>
+      <p class="tiny dim" style="margin-top:10px">Кабинет Директа один: 33 лида размечены ABDM + 11 yandex = 44 из 46 рекламных лидов, бюджет общий 100.7к. Если <b>115к ABDM это комиссия за ведение сверху</b> медийных 100.7к, полная стоимость рекламного лида = (100.7 + 115) / 46 = <b>4 689 ₽</b>. Если 115к это отдельный медийный бюджет - считаем иначе. Нужно твоё подтверждение, что такое ABDM.</p>
     </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
+    <div class="chart-s">два реальных снимка; апрель, май и полный июль недоступны без токенов Яндекса</div>
+    <div class="scrollx"><table>
+      <thead><tr><th>Окно</th><th>Расход Директ</th><th>Клики</th><th>Лиды (реклама)</th><th>CPL</th></tr></thead>
+      <tbody>
+        <tr><td class="name">8 июня – 7 июля</td><td>100.7к</td><td>912</td><td>46</td><td><span class="pill g">2 189</span></td></tr>
+        <tr><td class="name">23 июля – 22 авг (~август)</td><td>152.1к</td><td>1 427</td><td class="dim">~69 <span class="tag hyp">оценка</span></td><td class="dim">~2 200</td></tr>
+        <tr><td class="dim">апрель, май</td><td class="dim" colspan="4">нет снимка: токены Директ/Метрика не заведены, синк падает с 26.07</td></tr>
+      </tbody>
+    </table></div>
+    <p class="tiny dim" style="margin-top:10px">Август: расход реальный (152к, кабинет весь на перегородки), но цели в этом снимке не сохранились, поэтому лиды оценены по клик-конверсии июня-июля (912 кликов → 46 лидов ≈ 5%). CPL держится около 2 200 ₽, а не 9 155. Полную помесячную картину апрель-август дам, как заведёшь токены Яндекса в секреты - перезапущу синк.</p>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
       <h3>Что говорит факт (исправлено)</h3>
-      <p class="muted">ABDM <b>не слепая зона</b>: он размечен как utm_source=abdm и дал 33 лида, больше своего Директа (11). При раздельных бюджетах ABDM (CPL 3 485 ₽) вдвое эффективнее прямого Директа (9 155 ₽). А <b>органика дала 69 лидов почти бесплатно</b> - её недокармливают. Вывод для собрания: не «ABDM вслепую», а «прямой Директ дорогой, SEO недоинвестирован», при условии, что ABDM и Директ не один и тот же бюджет.</p>
+      <p class="muted">CPL Директа около <b>2 189 ₽</b>, а не 9 155 - я ошибся, поделив весь бюджет на 11 лидов одной метки. ABDM <b>не слепая зона</b>: размечен utm=abdm, дал 33 из 46 рекламных лидов, но это тот же кабинет Директа, не отдельные деньги. <b>Органика дала 69 лидов почти бесплатно</b> - её недокармливают. Реальный вопрос не «эффективен ли Директ» (эффективен, 2.2к за лид), а <b>что за 115к ABDM сверху и не переплачиваем ли за посредника</b>.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>

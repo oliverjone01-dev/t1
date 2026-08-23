@@ -236,12 +236,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 3. MARKETING -->
 <section id="mkt">
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
-  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Два разных платных канала: <b>Яндекс.Директ</b> (свой кабинет) и <b>ABDM</b> (программатик, отдельный бюджет). Снимки: 8 июня – 7 июля (с лидами) и 23 июля – 22 августа (расход реальный). Апрель, май и полный помесячный ряд недоступны без токенов Яндекса. Честно: точный CPL Директа сейчас не свести (разметка лидов между Директом и ABDM спорная), даю вилку.</p>
+  <p class="sec-sub">Три канала по твоей схеме: <b>Директ</b> из кабинета Яндекс.Директ, <b>ABDM</b> из Метрики по utm, <b>SEO</b> из поисковых систем. Снимки: 8 июня – 7 июля (лиды) и 23 июля – 22 августа (расход). Всего лидов за 30 дней: 138. Важно: кабинет Директа считает конверсии по мягкой цели (не CRM-лид), поэтому Директ и ABDM в одних единицах пока не сравнить - показываю оба числа с источником.</p>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="tile good"><div class="v">3 485 ₽</div><div class="l">CPL ABDM (программатик)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 33 лида / 115к; дешевле Директа</div></div>
-    <div class="tile"><div class="v" style="color:var(--warn)">2.5–9.2к</div><div class="l">CPL Яндекс.Директа (вилка)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 11 лидов по метке, до 41 по движку - дыра в разметке</div></div>
+    <div class="tile cy"><div class="v">138</div><div class="l">всего лидов за 30 дней</div><div class="n"><span class="tag data">ДАННЫЕ</span> все каналы; раньше я показывал только 47 размеченных</div></div>
     <div class="tile good"><div class="v">69</div><div class="l">лидов из SEO / органики</div><div class="n"><span class="tag data">ДАННЫЕ</span> крупнейший источник, ~0 предельных ₽</div></div>
-    <div class="tile cy"><div class="v">152к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 30д к 22.08, ≈ твой сценарий ×1.5</div></div>
+    <div class="tile"><div class="v" style="color:var(--d6)">46</div><div class="l">лидов из рекламы (Директ + ABDM)</div><div class="n"><span class="tag data">ДАННЫЕ</span> сумма твёрдая; сплит между ними спорный</div></div>
+    <div class="tile hot"><div class="v">797</div><div class="l">«конверсий» в кабинете Директа</div><div class="n"><span class="tag gap">МЯГКАЯ ЦЕЛЬ</span> 87% от кликов - это не CRM-лид; по CRM-цели Директ дал 11-41</div></div>
   </div>
   <div class="grid g2">
     <div class="card">
@@ -251,20 +251,18 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Все лиды (цель «CRM Все лиды»)</span><span><span class="dot" style="background:var(--d3)"></span>Качественные (отправка контактов)</span></div>
     </div>
     <div class="card">
-      <div class="chart-t">Каналы: лиды и стоимость лида <span class="tag data">ФАКТ</span></div>
-      <div class="chart-s">разные каналы: Директ (свой кабинет) и ABDM (программатик, отдельный бюджет)</div>
+      <div class="chart-t">Лиды по каналу: число и источник метрики <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">по твоей схеме: Директ из кабинета, ABDM из Метрики по utm, SEO из поисковых</div>
       <div class="scrollx"><table>
-        <thead><tr><th>Канал</th><th>Расход</th><th>Лиды</th><th>Кач.</th><th>CPL</th></tr></thead>
+        <thead><tr><th>Канал</th><th style="text-align:left">Откуда число</th><th>Лиды</th><th>Расход</th><th>CPL</th></tr></thead>
         <tbody>
-          <tr><td class="name">SEO / органика</td><td class="dim">~0</td><td>69</td><td>44</td><td><span class="pill g">≈0</span></td></tr>
-          <tr><td class="name">ABDM (программатик)</td><td>115.0к</td><td>33</td><td>24</td><td><span class="pill g">3 485</span></td></tr>
-          <tr><td class="name">Яндекс.Директ</td><td>100.7к</td><td>11*</td><td>8</td><td><span class="pill r">9 155*</span></td></tr>
-          <tr><td class="name">Прямые / typein</td><td class="dim">0</td><td>12</td><td>14</td><td class="dim">-</td></tr>
-          <tr><td class="name">Рекоменд. / почта</td><td class="dim">0</td><td>6</td><td>13</td><td class="dim">-</td></tr>
-          <tr class="tot"><td>Платный итог</td><td>215.7к</td><td>44</td><td>32</td><td><span class="pill y">4 902</span></td></tr>
+          <tr><td class="name">SEO / органика</td><td class="small dim" style="text-align:left">Метрика, поисковые системы</td><td>69</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td></tr>
+          <tr><td class="name">ABDM</td><td class="small dim" style="text-align:left">Метрика, utm_source=abdm</td><td>33</td><td>115.0к</td><td><span class="pill g">3 485</span></td></tr>
+          <tr><td class="name">Яндекс.Директ</td><td class="small dim" style="text-align:left">кабинет Директа (мягкая цель)</td><td>797</td><td>100.7к</td><td><span class="pill g">126</span></td></tr>
+          <tr><td class="dim" style="padding-left:22px">└ он же по CRM-цели (Метрика)</td><td class="small dim" style="text-align:left">utm=yandex 11 / движок 41</td><td class="dim">11-41</td><td class="dim">-</td><td class="dim">2.5-9.2к</td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px">*Осторожно с 9 155. По utm-метке Директу засчитано только 11 лидов. Но по рекламному движку Метрика видит у Яндекс.Директа до <b>41 лида</b> (часть трафика ABDM тоже проходит через сеть Яндекса) - тогда CPL Директа ≈ <b>2 456 ₽</b>. Правда между 2.5к и 9.2к, разброс это дыра в разметке. Точную цифру даст сквозная аналитика с ассоциированными конверсиями.</p>
+      <p class="tiny dim" style="margin-top:10px"><b>Внимание, разные цели.</b> Кабинет Директа считает 797 конверсий - это 87% от кликов, мягкая цель кабинета, а не CRM-лид. ABDM (33) и SEO (69) - это CRM-лиды из Метрики. Складывать 797 с 33 нельзя: разные единицы. Чтобы сравнить честно, надо всех считать по одной цели «CRM Все лиды»: тогда SEO 69, ABDM 33, Директ 11-41. Точное число Директа по CRM-цели даст перепривязка цели в кабинете (нужны токены).</p>
     </div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -283,7 +281,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
       <h3>Что говорит факт</h3>
-      <p class="muted">Это <b>два разных канала</b>: Яндекс.Директ (свой кабинет, 100.7к) и ABDM (программатик, отдельный бюджет 115к). По разметке <b>ABDM дешевле</b> (3 485 ₽ за лид) прямого Директа. Но CPL Директа гуляет от 2.5к до 9.2к из-за дыры в разметке (11 лидов по метке против 41 по движку) - без сквозной аналитики точнее не скажешь. Твёрдый вывод один: <b>органика (SEO) дала 69 лидов почти даром</b> и недоинвестирована. По платным каналам решение отложить до нормальной атрибуции.</p>
+      <p class="muted">Три канала, три источника числа: <b>SEO 69</b> (поисковые, Метрика), <b>ABDM 33</b> (utm, Метрика), <b>Директ</b> (кабинет). Загвоздка: кабинет Директа считает 797 «конверсий» по мягкой цели (87% от кликов), а не CRM-лиды - складывать с ABDM нельзя. По одной CRM-цели Директ даёт 11-41 лид. Пока цель в кабинете не перепривязана к «CRM Все лиды», честно сравнить Директ с ABDM нельзя. Твёрдо одно: <b>SEO дал 69 лидов почти даром</b> и недоинвестирован.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>

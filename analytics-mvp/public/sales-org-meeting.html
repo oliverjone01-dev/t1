@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Отдел продаж: состояние и расширение</title>
+<style>
+:root{
+--bg:#0B0F15;--card:#131820;--elev:#1A2029;--soft:#232B36;--border:#1F2731;--border-soft:#161C24;
+--ink:#F1F4F8;--ink-2:#A0AAB8;--ink-3:#6A7484;--ink-4:#3F4855;
+--accent:#22D3EE;--accent-2:#06B6D4;--accent-soft:rgba(34,211,238,.10);
+--d1:#22D3EE;--d2:#6366F1;--d3:#10B981;--d4:#A78BFA;--d5:#F472B6;--d6:#FB923C;
+--up:#10B981;--dn:#F43F5E;--warn:#F59E0B;--info:#A78BFA;
+--radius:12px;--radius-lg:16px;
+--font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+h1{font-size:34px}
+h2{font-size:24px}
+h3{font-size:16px}
+p{margin:.5em 0}
+a{color:var(--accent)}
+.muted{color:var(--ink-2)}
+.dim{color:var(--ink-3)}
+.small{font-size:12.5px}
+.tiny{font-size:11px}
+b,strong{font-weight:700}
+/* top bar */
+.top{position:sticky;top:0;z-index:50;background:rgba(11,15,21,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.top .wrap{display:flex;align-items:center;gap:16px;height:54px}
+.top .brand{font-weight:800;letter-spacing:.02em;font-size:14px;white-space:nowrap}
+.top .brand span{color:var(--accent)}
+.nav{display:flex;gap:2px;overflow-x:auto;margin-left:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{color:var(--ink-2);text-decoration:none;font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:8px;white-space:nowrap}
+.nav a:hover{background:var(--soft);color:var(--ink)}
+/* hero */
+.hero{padding:54px 0 30px;border-bottom:1px solid var(--border)}
+.kick{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(34,211,238,.25);padding:5px 12px;border-radius:999px}
+.hero h1{margin:16px 0 10px;max-width:20ch}
+.hero .lead{font-size:18px;color:var(--ink-2);max-width:70ch}
+.stamp{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12px;color:var(--ink-3)}
+.stamp b{color:var(--ink-2)}
+.draft{color:var(--warn);border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);border-radius:6px;padding:2px 8px;font-weight:700}
+/* sections */
+section{padding:44px 0;border-bottom:1px solid var(--border);scroll-margin-top:64px}
+.sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sec-n{font-size:13px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.sec-sub{color:var(--ink-2);max-width:78ch;margin:4px 0 26px}
+/* cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
+/* stat tiles */
+.tile{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px}
+.tile .v{font-size:30px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.tile .l{font-size:12.5px;color:var(--ink-2);margin-top:8px}
+.tile .n{font-size:11.5px;color:var(--ink-3);margin-top:6px}
+.tile.hot{border-color:rgba(244,63,94,.35)}
+.tile.hot .v{color:#FB7185}
+.tile.good .v{color:var(--up)}
+.tile.cy .v{color:var(--accent)}
+/* chart shells */
+.chart-t{font-size:14px;font-weight:700;margin-bottom:2px}
+.chart-s{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+svg{display:block;overflow:visible}
+.axis{stroke:var(--border);stroke-width:1}
+.grid-l{stroke:var(--border-soft);stroke-width:1}
+.tick{fill:var(--ink-4);font-size:10px}
+.bar-lbl{fill:var(--ink-2);font-size:11px;font-weight:600}
+.bar-val{fill:var(--ink);font-size:11px;font-weight:700}
+/* legend */
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;color:var(--ink-2)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--border)}
+th{color:var(--ink-3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+th:first-child,td:first-child{text-align:left}
+td.name{color:var(--ink);font-weight:600}
+tbody tr:hover{background:var(--elev)}
+tr.tot td{border-top:2px solid var(--border);font-weight:800;color:var(--ink);border-bottom:none}
+.pill{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700}
+.pill.g{background:rgba(16,185,129,.14);color:#34D399}
+.pill.y{background:rgba(245,158,11,.14);color:#FBBF24}
+.pill.r{background:rgba(244,63,94,.14);color:#FB7185}
+/* callout */
+.callout{border-radius:var(--radius-lg);padding:22px 24px;border:1px solid}
+.callout.q{background:linear-gradient(180deg,rgba(245,158,11,.10),rgba(245,158,11,.02));border-color:rgba(245,158,11,.4)}
+.callout.i{background:var(--accent-soft);border-color:rgba(34,211,238,.28)}
+.callout.d{background:rgba(244,63,94,.06);border-color:rgba(244,63,94,.3)}
+.callout h3{margin-bottom:8px}
+/* tag */
+.tag{font-size:10px;font-weight:800;letter-spacing:.03em;padding:1px 6px;border-radius:5px;vertical-align:middle;white-space:nowrap}
+.tag.data{background:rgba(16,185,129,.14);color:#34D399}
+.tag.hyp{background:rgba(167,139,250,.16);color:#C4B5FD}
+.tag.gap{background:rgba(244,63,94,.14);color:#FB7185}
+/* paths */
+.path{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative}
+.path .num{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.05em}
+.path h3{margin:8px 0}
+.path ul{margin:8px 0 0;padding-left:18px;color:var(--ink-2);font-size:13px}
+.path li{margin:4px 0}
+.path .verdict{margin-top:12px;font-size:12px;font-weight:700;padding-top:10px;border-top:1px solid var(--border)}
+/* calc */
+.calc{background:var(--elev);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.calc-row{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.field{flex:1;min-width:150px}
+.field label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:6px;font-weight:600}
+.field .rng{display:flex;align-items:center;gap:10px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.field .num{font-size:20px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.calc-out{margin-top:20px;display:flex;flex-wrap:wrap;gap:14px}
+.calc-out .box{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.calc-out .box .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.calc-out .box .l{font-size:11.5px;color:var(--ink-2);margin-top:4px}
+/* action */
+.act td:first-child{font-weight:700;color:var(--ink)}
+/* tooltip */
+#tip{position:fixed;z-index:100;pointer-events:none;background:var(--elev);border:1px solid var(--border-hot,#2B3441);border-radius:8px;padding:8px 11px;font-size:12px;color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;transition:opacity .1s;max-width:260px}
+#tip .tt{font-weight:700;margin-bottom:3px}
+#tip .tr{color:var(--ink-2);font-size:11.5px}
+.footnote{color:var(--ink-3);font-size:12px}
+.hl{color:var(--ink);font-weight:700}
+.scrollx{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+
+<div class="top"><div class="wrap">
+  <div class="brand">GEN<span>GROUP</span> · Отдел продаж</div>
+  <nav class="nav">
+    <a href="#q">Вопрос</a>
+    <a href="#funnel">Воронка</a>
+    <a href="#mkt">Маркетинг</a>
+    <a href="#money">Деньги по чеку</a>
+    <a href="#mgr">Менеджеры</a>
+    <a href="#calc">Сколько нанимать</a>
+    <a href="#paths">Три пути</a>
+    <a href="#margin">Маржа</a>
+    <a href="#decide">Решения</a>
+  </nav>
+</div></div>
+
+<div class="wrap">
+
+<!-- HERO -->
+<header class="hero">
+  <span class="kick">● Собрание с руководством · черновик к обсуждению</span>
+  <h1>Отдел продаж: где деньги, кто их берёт и сколько людей нам нужно</h1>
+  <p class="lead">Маркетинг наливает поток заявок и КП. Отдел доводит до предоплаты малую долю. Менеджеры говорят: «отправляем КП, но нет времени дожимать, тонем в новых». Но данные показывают не только нехватку рук: конверсия у менеджеров разъезжается в 4 раза при похожей нагрузке. Значит вопрос собрания честнее звучит так: <b>где именно теряем деньги и что это лечит - найм, обучение или замер маржи.</b></p>
+  <div class="stamp">
+    <span><span class="draft">ЧЕРНОВИК</span></span>
+    <span>Источник: <b>Bitrix24, воронка C49 «GG Заказы РФ»</b></span>
+    <span>Окно: <b>апрель – август 2026</b></span>
+    <span>Снимок: <b id="snap">22.08.2026</b></span>
+    <span>Гейт: <b>ФЕНИКС (Step 12.5)</b> + разметка Protocol 9</span>
+  </div>
+</header>
+
+<!-- persistent caveat banner -->
+<div class="callout d" style="margin:22px 0 0;padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  <span class="tag gap">ВАЖНО</span>
+  <span class="small muted" style="flex:1;min-width:280px">Весь дашборд считает <b>выручку, а не прибыль</b>. Полная себестоимость (труд, монтаж, оверхед, доставка) в CRM не записана, поэтому маржа по сегментам не измерена. Ни одной штатной единицы под сегменты не коммитим, пока не посчитана маржа: дорогой по выручке сегмент может оказаться низкомаржинальным.</span>
+</div>
+
+<!-- 1. QUESTION -->
+<section id="q">
+  <div class="sec-h"><span class="sec-n">01</span><h2>Какую проблему мы решаем</h2></div>
+  <p class="sec-sub">Один экран, чтобы не утонуть в графиках. Три цифры задают рамку, дальше их разбираем.</p>
+  <div class="grid g4" style="margin-bottom:18px">
+    <div class="tile cy"><div class="v" id="t-deals">1 169</div><div class="l">сделок в работе за окно</div><div class="n"><span class="tag data">ДАННЫЕ</span> поток есть, маркетинг наливает</div></div>
+    <div class="tile hot"><div class="v">22–97%</div><div class="l">разброс конверсии по менеджерам</div><div class="n"><span class="tag data">ДАННЫЕ</span> при похожей нагрузке = сигнал efficiency</div></div>
+    <div class="tile"><div class="v">2</div><div class="l">менеджера дают 39% успешной выручки</div><div class="n"><span class="tag data">ДАННЫЕ</span> Лысанова + Лакомова = 16.5 из 42.6 млн</div></div>
+    <div class="tile"><div class="v">?</div><div class="l">маржа по чеку неизвестна</div><div class="n"><span class="tag gap">НЕТ ДАННЫХ</span> считаем выручку, не прибыль</div></div>
+  </div>
+  <div class="grid g2">
+    <div class="callout i">
+      <h3>Тезис, который защищаем (переформулирован)</h3>
+      <p class="muted">Не «дело только в нехватке людей». Поток превышает мощность <b>и</b> конверсия разъезжается в 4 раза. Значит теряем деньги сразу по трём каналам: не хватает рук на дожим, разное качество работы, и возможно неверный выбор сегмента по марже. Собрание решает не «нанять ли», а <b>что измерить за 2 недели, чтобы понять, какой канал главный</b>.</p>
+    </div>
+    <div class="callout q">
+      <h3>Почему нельзя просто «нанять больше»</h3>
+      <p class="muted">Лакомова взяла вдвое больше сделок, чем Лысанова, а успехов дала <b>меньше</b> (69 против 89). Досыпать ей людей = масштабировать конверсию 23%: дороже станет, лучше нет. Сначала понять, где именно труба течёт, потом лить в неё поток.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2. FUNNEL -->
+<section id="funnel">
+  <div class="sec-h"><span class="sec-n">02</span><h2>Воронка отдела: где обрыв</h2></div>
+  <p class="sec-sub">Путь сделки от заявки с чеком до предоплаты. «Успех» здесь = дошли до стадии «Предоплата получена» и далее, как договорились: предоплата это и есть деньги в кассе, а не потенциал в карточке.</p>
+  <div class="grid g2">
+    <div class="card">
+      <div class="chart-t">Воронка по сделкам, апрель – август <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">штук на каждой стадии, доля от входа</div>
+      <div id="c-funnel"></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Где мы теряем и почему это важно</div>
+      <div class="chart-s">интерпретация, не новые цифры</div>
+      <ul class="muted" style="padding-left:18px;font-size:13.5px;line-height:1.7">
+        <li>Вход большой, поток есть. Значит маркетинг свою часть делает: заявки с чеком поступают.</li>
+        <li>Главный обрыв на переходе <b>КП → предоплата</b>: из 851 офера до предоплаты дошли 414. Именно тут менеджеры говорят «не хватает времени дожать».</li>
+        <li>А вот дальше потерь почти нет: из 414 предоплат <b>246 закрыты (WON), 156 ещё в производстве</b> (деньги в пути, длинный цикл) и <b>только 12 реально потеряны</b> после предоплаты <span class="tag data">ДАННЫЕ</span>. То есть разрыв 414 → 246 это в основном время, а не утечка. Предоплата = деньги в кассе.</li>
+        <li>Вывод-развилка: лечим именно переход КП → предоплата. И наймом (больше рук на дожим), и обучением (выше конверсия). Что важнее, покажут причины проигрыша и разрез по менеджерам ниже.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3. MARKETING -->
+<section id="mkt">
+  <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: результаты по каналам</h2></div>
+  <p class="sec-sub">Сколько сделок и успешной выручки принёс каждый источник. Это половина картины: расходы по каналам в Bitrix не лежат, поэтому ROMI и стоимость лида честно посчитать пока нельзя.</p>
+  <div class="grid g2">
+    <div class="card">
+      <div class="chart-t">Источники по числу сделок и успешной выручке <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">апрель – август, топ каналов; наведи для деталей</div>
+      <div id="c-src"></div>
+    </div>
+    <div>
+      <div class="callout d" style="margin-bottom:16px">
+        <h3>Чего не хватает для честного вывода о маркетинге <span class="tag gap">НЕТ ДАННЫХ</span></h3>
+        <ul class="muted" style="padding-left:18px;font-size:13px;margin:6px 0 0">
+          <li><b>Расходы по каналам</b> (Яндекс Директ, ABDM, SEO): нет в снимке. Без них нет CAC и ROMI.</li>
+          <li><b>Чистая атрибуция:</b> у 22% сделок источник «не указан», а он лидирует по выручке. Метки грязные.</li>
+          <li>Каналы в CRM смешаны с телефонами и ботами, а не сведены к «Директ / ABDM / SEO / рекомендации».</li>
+        </ul>
+      </div>
+      <div class="calc">
+        <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">ГИПОТЕЗА</span></div>
+        <div class="calc-row">
+          <div class="field"><label>Успешная выручка канала, млн ₽</label><div class="rng"><input type="range" id="r-rev" min="0.1" max="20" step="0.1" value="8.4"><span class="num" id="v-rev">8.4</span></div></div>
+          <div class="field"><label>Расход на канал, млн ₽</label><div class="rng"><input type="range" id="r-spend" min="0.1" max="10" step="0.1" value="1.5"><span class="num" id="v-spend">1.5</span></div></div>
+        </div>
+        <div class="calc-out">
+          <div class="box"><div class="v" id="o-romi" style="color:var(--up)">5.6x</div><div class="l">ROMI по выручке (не по прибыли)</div></div>
+          <div class="box"><div class="v" id="o-share" style="color:var(--accent)">18%</div><div class="l">расход к выручке канала</div></div>
+        </div>
+        <p class="tiny dim" style="margin-top:12px">Подставьте реальный расход из кабинета Директа / актов ABDM, и цифра станет фактом. Сейчас это заготовка, чтобы показать логику на собрании.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. MONEY BY CHECK -->
+<section id="money">
+  <div class="sec-h"><span class="sec-n">04</span><h2>Где деньги: экономика по среднему чеку</h2></div>
+  <p class="sec-sub">Сегментация по размеру чека, апрель – август. Цифры с РОП-дашборда (выборка 256 сделок: сделки с офером в окне). «Успех» = предоплата и далее. Это ответ на «на что давить газу».</p>
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="chart-t">Потенциал и успешная выручка по сегментам <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">млн ₽ на сегмент; конверсия подписью</div>
+      <div id="c-seg"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Потенциал (в карточках)</span><span><span class="dot" style="background:var(--d3)"></span>Успешная выручка (дошли до предоплаты)</span></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Два сегмента: поток против денег <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">объединили до-150 и свыше-150</div>
+      <div id="c-two"></div>
+      <div class="scrollx" style="margin-top:14px"><table>
+        <thead><tr><th>Сегмент</th><th>Сделок</th><th>Успешн. выручка</th><th>Конв.</th><th>Роль</th></tr></thead>
+        <tbody>
+          <tr><td class="name">до 150к</td><td>152</td><td>5.9 млн</td><td><span class="pill g">68%</span></td><td class="small dim">поток, розница</td></tr>
+          <tr><td class="name">свыше 150к</td><td>104</td><td>24.5 млн</td><td><span class="pill y">56%</span></td><td class="small dim">81% денег, длинный цикл</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="chart-t">Свыше 150к: из чего собраны деньги <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">выручка по ассортименту, млн ₽ · % конверсии подписью</div>
+      <div id="c-a1"></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">До 150к: из чего собран поток <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">выручка по ассортименту, млн ₽ · % конверсии подписью</div>
+      <div id="c-a2"></div>
+    </div>
+  </div>
+  <div class="callout i" style="margin-top:16px">
+    <p class="muted"><b>Что видно.</b> Деньги отдела это свыше-150к: 104 сделки дают 81% успешной выручки, но конверсия там ниже (56% против 68%) и цикл длиннее. Ядро дорогих денег это <b>лофт-перегородки и зеркала</b>. В потоке до-150к правят <b>зеркала и столы</b> с высокой конверсией и малым чеком. Это два разных бизнеса внутри одного отдела, и логично, что им нужны разные люди и разный KPI.</p>
+  </div>
+</section>
+
+<!-- 5. MANAGERS -->
+<section id="mgr">
+  <div class="sec-h"><span class="sec-n">05</span><h2>Кто тянет: разрез по менеджерам</h2></div>
+  <p class="sec-sub">Главный график собрания. По горизонтали нагрузка (сколько сделок взял), по вертикали конверсия в предоплату, размер круга это успешная выручка. Он и отвечает на вопрос «нехватка людей или слабые люди».</p>
+  <div class="callout small" style="margin-bottom:18px;padding:10px 16px;border-color:var(--border);background:var(--card)"><span class="tag hyp">SCOPE</span> Внимание на две выборки. Разрез по менеджерам ниже берёт <b>все 1 169 сделок с чеком</b> (полный ростер ОП). Сегментные таблицы выше берут <b>256 сделок с офером в окне</b> с РОП-дашборда. Числа не сходятся по этой причине, не из-за ошибки. Перед финалом собрания зафиксировать один фильтр.</div>
+  <div class="callout d small" style="margin-bottom:18px;padding:12px 16px">
+    <b>Protocol 6.</b> Персональная оценка сотрудников это HITL: цифры для решения Ивана и РОПа, не для общей рассылки по команде. Данные фактические из CRM, без интерпретации «уволить / оставить».
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="chart-t">Нагрузка против конверсии <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">круг = успешная выручка · линии = медиана нагрузки и планка 50% конверсии</div>
+      <div id="c-scatter"></div>
+      <div class="leg">
+        <span><span class="dot" style="background:var(--up)"></span>сильные: высокая конверсия</span>
+        <span><span class="dot" style="background:var(--warn)"></span>перегруз: много сделок, низкая конв.</span>
+        <span><span class="dot" style="background:var(--ink-3)"></span>малая выборка</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Рейтинг по успешной выручке <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">млн ₽ за окно; конверсия и средний чек подписью</div>
+      <div id="c-mgrbar"></div>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="callout i">
+      <h3 class="small" style="color:var(--up)">Эталон</h3>
+      <p class="small muted"><b>Лысанова:</b> 155 сделок, конверсия 57%, чек 150к, 13.3 млн успешной выручки. Держит нагрузку и дожимает. Это профиль «звезды».</p>
+    </div>
+    <div class="callout q">
+      <h3 class="small" style="color:var(--warn)">Перегруз</h3>
+      <p class="small muted"><b>Лакомова:</b> 304 сделки, но конверсия 23%, чек 102к. Взяла вдвое больше всех и захлебнулась на дожиме. Прямая иллюстрация «тону в новых».</p>
+    </div>
+    <div class="callout" style="border-color:var(--border);background:var(--card)">
+      <h3 class="small">Недогруз</h3>
+      <p class="small muted"><b>Ерина, Сячинова, Яровая:</b> конверсия 88 – 97% на 8 – 30 сделках. Умеют закрывать, но потока мало. Кандидаты дать больше сделок и проверить, держат ли планку.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Почему проигрываем: причины отказа как разделитель capacity и efficiency <span class="tag data">ДАННЫЕ</span></div>
+    <div class="chart-s">482 проигранные сделки за окно, сгруппированы по причине из карточки; число сделок · потерянный потенциал</div>
+    <div id="c-loss"></div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="callout q" style="padding:12px 16px"><h3 class="small" style="color:var(--warn)">Сигнал «мало рук / не дожали»</h3><p class="small muted">«Нет контакта» = 135 сделок / 16.8 млн. Клиент не дожат касаниями. Это и capacity (нет времени), и дисциплина дожима.</p></div>
+      <div class="callout" style="padding:12px 16px;border-color:var(--border);background:var(--card)"><h3 class="small" style="color:var(--info)">Сигнал «слабая работа»</h3><p class="small muted">«Цена / возражение» = 92 сделки / 20.5 млн. Это чистый efficiency: возражение по цене отрабатывается скриптом, а не наймом.</p></div>
+      <div class="callout d" style="padding:12px 16px"><h3 class="small">Слепая зона</h3><p class="small muted">«Прочее / без причины» = 149 сделок / 24.3 млн. Треть отказов вообще без причины в CRM. Это дисциплина заполнения, чиним первым.</p></div>
+    </div>
+  </div>
+  <p class="footnote" style="margin-top:14px">Честный вывод: работают <b>оба</b> фактора примерно поровну, ни один не доминирует. «Нет контакта» (135, аргумент за найм и дисциплину дожима) и «цена/возражение» (92, аргумент за обучение) сопоставимы. Разброс конверсии 22 – 97% при похожей нагрузке ясно говорит: качество работы разное. Поэтому решение не «нанять побольше», а <b>и рук больше на дожим, и планка по конверсии, и скрипт на возражение по цене</b>. А чтобы понять, что из этого главный рычаг, нужны метрики-разделители, которых в снимке пока нет (см. блок решений).</p>
+</section>
+
+<!-- 6. CALC -->
+<section id="calc">
+  <div class="sec-h"><span class="sec-n">06</span><h2>Сколько менеджеров нужно под цель</h2></div>
+  <p class="sec-sub">Математика Ивана в интерактиве. Двигайте ползунки: цель по выручке, средний чек сегмента, сколько успешных сделок реально закрывает один менеджер за окно. Получите нужное число людей.</p>
+  <div class="calc">
+    <div class="calc-row">
+      <div class="field"><label>Цель по успешной выручке, млн ₽</label><div class="rng"><input type="range" id="k-goal" min="5" max="60" step="1" value="20"><span class="num" id="kv-goal">20</span></div></div>
+      <div class="field"><label>Средний чек, тыс ₽</label><div class="rng"><input type="range" id="k-check" min="50" max="600" step="5" value="175"><span class="num" id="kv-check">175</span></div></div>
+      <div class="field"><label>Успешных сделок на менеджера за окно</label><div class="rng"><input type="range" id="k-deals" min="5" max="80" step="1" value="20"><span class="num" id="kv-deals">20</span></div></div>
+    </div>
+    <div class="calc-out">
+      <div class="box"><div class="v" id="ko-perm" style="color:var(--accent)">3.5 млн</div><div class="l">выручка одного менеджера</div></div>
+      <div class="box"><div class="v" id="ko-mgr" style="color:var(--up)">6</div><div class="l">менеджеров нужно на цель</div></div>
+      <div class="box"><div class="v" id="ko-now">3</div><div class="l">столько есть сейчас на этом чеке <span class="tag hyp">оценка</span></div></div>
+      <div class="box"><div class="v" id="ko-gap" style="color:#FB7185">+3</div><div class="l">разрыв: сколько добрать</div></div>
+    </div>
+    <p class="tiny dim" style="margin-top:12px">Логика: менеджеров = цель ÷ (чек × сделки на менеджера). При чеке 175к и 20 сделках один делает 3.5 млн, на 20 млн нужно ~6. Снизишь чек до 90к, тому же менеджеру надо ~40 сделок, иначе людей нужно вдвое больше. Это и есть развилка «дорогой чек звёздами или дешёвый поток числом».</p>
+    <div class="callout d small" style="margin-top:14px;padding:10px 14px"><b>Осторожно с этой цифрой.</b> Калькулятор считает <b>выручку, а не прибыль</b>, и не учитывает конверсию. Реальные звёзды делают не 3.5 млн, а 7 – 13 млн успешной выручки (Лакомова 7.05, Лысанова 13.3), но при разной конверсии. CFO справедливо сломает план на «средних константах»: перед наймом подставить сюда маржу сегмента и реальную конверсию профиля, а не выручку.</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Предложение Ивана: KPI и штат по чек-сегментам <span class="tag hyp">ГИПОТЕЗА / план</span></div>
+    <div class="chart-s">сегментируем менеджеров по чеку, а не по типу клиента; у каждого свой план в штуках</div>
+    <div class="scrollx"><table>
+      <thead><tr><th>Сегмент чека</th><th>План, сделок</th><th>Менеджеров</th><th>Профиль</th><th>Логика KPI</th></tr></thead>
+      <tbody>
+        <tr><td class="name">до 90к</td><td>150</td><td>3</td><td class="small dim">junior, поток</td><td class="small dim">учатся на «не жалко», план по числу</td></tr>
+        <tr><td class="name">до 150к</td><td>100</td><td>2</td><td class="small dim">middle</td><td class="small dim">переходный, растим из junior</td></tr>
+        <tr><td class="name">до 500к</td><td>50</td><td>1</td><td class="small dim">star</td><td class="small dim">план по выручке и дожиму</td></tr>
+        <tr><td class="name">свыше 500к</td><td>40</td><td>1</td><td class="small dim">star / b2b</td><td class="small dim">длинный цикл, бонус за WON</td></tr>
+        <tr class="tot"><td>Итого</td><td>340</td><td>7</td><td colspan="2" class="small dim">+ Аня на админ-функцию (договоры, бумаги, ускорение квалификации)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="tiny dim" style="margin-top:10px">Два риска этого плана, которые надо снять до внедрения. <b>1. Маршрутизация:</b> на входе чек неизвестен, KPI по чек-сегменту нероутируем без оценки стоимости по изделию и количеству, иначе менеджера оценят по чужому сегменту. <b>2. Юниоры на потоке:</b> сегмент до-90к сейчас даёт самую высокую конверсию (72%); необученные руки её уронят, а маржа этого сегмента ещё не измерена. Поэтому таблица это гипотеза под пилот, а не решение.</p>
+  </div>
+</section>
+
+<!-- 7. PATHS -->
+<section id="paths">
+  <div class="sec-h"><span class="sec-n">07</span><h2>Три пути и синтез</h2></div>
+  <p class="sec-sub">Иван сформулировал три развилки. Ниже каждая с коротким вердиктом, а затем собранный из них план.</p>
+  <div class="grid g3">
+    <div class="path">
+      <div class="num">ПУТЬ A</div>
+      <h3>Жёсткая квалификация на входе</h3>
+      <ul><li>Отсекать чек ниже порога (например 50к) до передачи менеджеру</li><li>Оценка чека по изделию и количеству</li><li>Экономит время дорогих людей</li></ul>
+      <div class="verdict" style="color:var(--up)">Брать как фильтр, не как стратегию. Работает только вместе с маршрутизацией по сегментам.</div>
+    </div>
+    <div class="path">
+      <div class="num">ПУТЬ B</div>
+      <h3>Фокус на одном типе клиента / продукта</h3>
+      <ul><li>Маркетинг и продажи концентрируются на одном сегменте</li><li>Проще управлять, но режем поток</li><li>Риск: теряем разнообразие спроса</li></ul>
+      <div class="verdict" style="color:var(--warn)">Рано. Сначала надо знать маржу по сегменту, иначе можно сфокусироваться на убыточном.</div>
+    </div>
+    <div class="path">
+      <div class="num">ПУТЬ C</div>
+      <h3>Найм по минимальной выручке + отбор звёзд</h3>
+      <ul><li>Дешёвые junior на поток, планка минимальной выручки</li><li>Из массы ищем сильных, переводим на дорогой чек</li><li>Компании главное не в минус на junior</li></ul>
+      <div class="verdict" style="color:var(--up)">Ядро плана. Нужен бенчмарк «минимальная выручка, при которой менеджер окупается».</div>
+    </div>
+  </div>
+  <div class="callout i" style="margin-top:18px">
+    <h3>Синтез: план, который защищаем</h3>
+    <div class="grid g2" style="margin-top:10px">
+      <ul class="muted" style="padding-left:18px;font-size:13.5px;line-height:1.7;margin:0">
+        <li><b>2 junior</b> на поток до-90к: дешёвые лиды, учатся, план по числу сделок.</li>
+        <li><b>Аня → админ:</b> договоры, бумаги, первичная квалификация. Ускоряет реакцию, снимает рутину с продавцов.</li>
+        <li><b>Звёзды</b> (профиль Лысановой) на свыше-150к и b2b с KPI по выручке и бонусом за WON.</li>
+      </ul>
+      <ul class="muted" style="padding-left:18px;font-size:13.5px;line-height:1.7;margin:0">
+        <li><b>Порог минимальной выручки:</b> ниже него менеджер не окупается, это точка отбора.</li>
+        <li><b>KPI по чек-сегментам,</b> не по типу клиента. Разный план, разный бонус.</li>
+        <li><b>Сначала измерить маржу</b> по сегменту, только потом сажать звёзд на «бабло» (см. ниже).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8. MARGIN -->
+<section id="margin">
+  <div class="sec-h"><span class="sec-n">08</span><h2>Главный вопрос: где на самом деле маржа</h2></div>
+  <p class="sec-sub">Вопрос Дмитрия, который переворачивает стратегию. Мы весь дашборд считаем выручку. Но что если свыше-1млн даёт 10% маржи, а 90к даёт 50%? Тогда сажать звёзд на «бабло» это сажать их на убыток.</p>
+  <div class="callout q" style="margin-bottom:18px">
+    <h3>Что мы знаем и чего не знаем про маржу <span class="tag gap">НЕ ИЗМЕРЕНО</span></h3>
+    <p class="muted">В смарт-процессах есть с/с, но это <b>материальная себестоимость</b> (стекло, металл, фурнитура). Валовая по материалу выходит 79 – 88%. <b>Полная себестоимость</b> (труд, оверхед, доставка, брак) в CRM не записана. Значит настоящую маржу по сегменту мы сейчас показать не можем. Это дыра, которую надо закрыть до найма.</p>
+  </div>
+  <div class="card">
+    <div class="chart-t">Что если маржа разная: выручка против прибыли <span class="tag hyp">МОДЕЛЬ</span></div>
+    <div class="chart-s">двигай маржу по сегментам и смотри, как меняется рейтинг «где деньги»</div>
+    <div class="calc" style="background:transparent;border:none;padding:0;margin:14px 0">
+      <div class="calc-row">
+        <div class="field"><label>Маржа до-150к, %</label><div class="rng"><input type="range" id="m-low" min="5" max="60" step="1" value="35"><span class="num" id="mv-low">35</span></div></div>
+        <div class="field"><label>Маржа свыше-150к, %</label><div class="rng"><input type="range" id="m-high" min="5" max="60" step="1" value="20"><span class="num" id="mv-high">20</span></div></div>
+      </div>
+    </div>
+    <div id="c-margin"></div>
+    <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Успешная выручка</span><span><span class="dot" style="background:var(--d6)"></span>Прибыль при заданной марже</span></div>
+    <p class="tiny dim" style="margin-top:12px">По умолчанию стоят гипотетические 35% и 20%: дорогой сегмент часто маржинальнее в процентах ниже из-за скидок и сложности. Поставьте свыше-150 на 10%, а до-150 на 50%, и «бабловый» сегмент по прибыли проиграет потоку. Пока это только модель: реальные проценты даст замер полной себестоимости.</p>
+  </div>
+</section>
+
+<!-- 9. DECIDE -->
+<section id="decide" style="border-bottom:none">
+  <div class="sec-h"><span class="sec-n">09</span><h2>Решения собрания</h2></div>
+  <p class="sec-sub">Не «продолжаем анализировать», а конкретные шаги с ответственным и датой. Порядок отвечает на «что бы что улучшить».</p>
+  <div class="scrollx"><table class="act">
+    <thead><tr><th>Шаг</th><th>Зачем</th><th>Ответственный</th><th>Срок</th></tr></thead>
+    <tbody>
+      <tr><td>Замерить полную себестоимость по 2 – 3 сделкам каждого сегмента</td><td class="small muted">без маржи любой найм это ставка вслепую; блокер по Protocol 9</td><td>Роман (CFO) + ДАТА</td><td class="small">2 недели</td></tr>
+      <tr><td>Внедрить метрики-разделители: нетронутые лиды, время до 1-го касания, сделок в работе одновременно, обязательная причина отказа</td><td class="small muted">без них нельзя доказать, capacity это или efficiency; тезис собрания повиснет</td><td>Борис (CRM) + ДАТА</td><td class="small">2 недели</td></tr>
+      <tr><td>Вывести бенчмарк «минимальная <b>маржа</b> окупаемости менеджера»</td><td class="small muted">порог по прибыли, не по выручке; менеджер на 3 млн с 50% маржи ценнее, чем на 5 млн с 10%</td><td>Роман + РОП</td><td class="small">1 неделя после замера</td></tr>
+      <tr><td>Пилот: 2 junior на поток + Аня на админ</td><td class="small muted">высвободить сильных из рутины, проверить, растёт ли их конверсия; пилот, не структурное решение</td><td>РОП + Иван (найм = HITL)</td><td class="small">старт через 2 недели</td></tr>
+      <tr><td>Дать Ериной/Сячиновой больше сделок, замерить, держат ли конверсию</td><td class="small muted">дёшево проверить «недогруз звёзд»</td><td>РОП</td><td class="small">1 неделя</td></tr>
+      <tr><td>Ввести оценку чека на входе по изделию и количеству</td><td class="small muted">маршрутизация заявки нужному сегменту</td><td>Борис (CRM) + РОП</td><td class="small">3 недели</td></tr>
+      <tr><td>Подтянуть расходы Директ / ABDM / SEO в единый отчёт с выручкой</td><td class="small muted">достроить ROMI, закрыть дыру по маркетингу</td><td>Тимур + ДАТА</td><td class="small">2 недели</td></tr>
+      <tr><td>Почистить UTM и источники в Bitrix</td><td class="small muted">22% выручки без атрибуции это слепая зона</td><td>Борис + Тимур</td><td class="small">3 недели</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout i" style="margin-top:20px">
+    <h3>Что улучшаем, одной фразой</h3>
+    <p class="muted">Не «эффективность ради эффективности». Улучшаем <b>деньги на одного менеджера</b>: высвобождаем сильных из рутины и потока, сажаем их на маржинальный (после замера) сегмент, а поток закрываем дешёвыми руками с планкой окупаемости. Метрика успеха плана: <b>успешная выручка на одного продавца растёт</b>, а не просто «наняли больше людей».</p>
+  </div>
+  <p class="footnote" style="margin-top:24px">Методология. Источник: Bitrix24, воронка C49 «GG Заказы РФ», снимок 22.08.2026. Окно апрель – август 2026 по дате создания. Исключены сделки Metal-GM и системные пользователи. «Успех» = сделка дошла до стадии «Предоплата получена» или дальше; «WON» = закрыта успешно. <span class="tag data">ДАННЫЕ</span> факт из CRM. <span class="tag hyp">ГИПОТЕЗА</span> допущение или план. <span class="tag gap">НЕТ ДАННЫХ</span> нужен дополнительный источник. Две выборки не сходятся по числу сделок: разрез по менеджерам берёт все сделки с чеком (1 169), сегментный разрез с РОП-дашборда берёт сделки с офером в окне (256). Перед финалом собрания зафиксировать единый фильтр. Гейт: ФЕНИКС (Step 12.5), разметка Protocol 9.</p>
+</section>
+
+</div>
+
+<script>
+const F={
+  fmtM:v=>v>=1000?(v/1000).toFixed(1).replace('.',',')+' млн':Math.round(v)+'к',
+  fmtM2:v=>v>=1?v.toFixed(1).replace('.',',')+' млн':Math.round(v*1000)+'к',
+  pct:v=>Math.round(v*100)+'%'
+};
+const PAL=['#22D3EE','#6366F1','#10B981','#A78BFA','#F472B6','#FB923C'];
+// ---- data ----
+const FUNNEL=[['Заявка с чеком',1169],['КП отправлено / офер',851],['Предоплата (успех)',414],['Закрыта WON',246]];
+const SRC=[
+ ['Не указан',258,17004,0.60],['Сайт genglass.ru',198,3744,0.35],['Создан вручную',134,3130,0.26],
+ ['GEN GROUP',105,8383,0.51],['Бот Max',102,3385,0.26],['Расчёт Горщевский',82,2361,0.29],
+ ['Другое',68,595,0.10],['Telegram API',60,675,0.20],['Avito Metal GM',46,36,0.02]
+];
+const SEG=[
+ ['до 90',122,5436,4054,0.72],['90-150',30,3462,1871,0.53],['150-300',53,11744,6502,0.55],
+ ['300-500',26,9781,6243,0.62],['свыше 500',25,26571,11742,0.52]
+];
+const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
+const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
+const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
+const LOSS=[
+ ['Прочее / без причины',149,24291],['Нет контакта / не дожали',135,16768],['Цена / возражение',92,20503],['Потребность ушла',85,8824],['Дубль / нецелевой',21,1664]
+];
+const MGR=[
+ {m:'Лысанова',n:155,su:89,rev:13335,conv:0.57,chk:150},
+ {m:'Лакомова',n:304,su:69,rev:7050,conv:0.23,chk:102},
+ {m:'Маслова',n:216,su:79,rev:4781,conv:0.37,chk:61},
+ {m:'Шура-Бура',n:121,su:37,rev:4115,conv:0.31,chk:111},
+ {m:'Платонова',n:153,su:33,rev:3547,conv:0.22,chk:107},
+ {m:'Ерина',n:30,su:29,rev:2750,conv:0.97,chk:95},
+ {m:'Лысенко',n:17,su:9,rev:1694,conv:0.53,chk:188},
+ {m:'Кубанова',n:83,su:25,rev:1655,conv:0.30,chk:66},
+ {m:'Сячинова',n:16,su:15,rev:928,conv:0.94,chk:62},
+ {m:'Яровая',n:8,su:7,rev:889,conv:0.88,chk:127},
+ {m:'Зазноба',n:29,su:8,rev:522,conv:0.28,chk:65},
+ {m:'Королькова',n:6,su:3,rev:394,conv:0.50,chk:131},
+ {m:'Лобова',n:22,su:4,rev:205,conv:0.18,chk:51}
+];
+// ---- tooltip ----
+const tip=document.getElementById('tip');
+function showTip(html,e){tip.innerHTML=html;tip.style.opacity=1;moveTip(e);}
+function moveTip(e){const p=12;let x=e.clientX+p,y=e.clientY+p;const r=tip.getBoundingClientRect();if(x+r.width>innerWidth)x=e.clientX-r.width-p;if(y+r.height>innerHeight)y=e.clientY-r.height-p;tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.style.opacity=0;}
+function bind(el,html){el.style.cursor='pointer';el.addEventListener('mousemove',e=>showTip(html,e));el.addEventListener('mouseleave',hideTip);}
+const SVGNS='http://www.w3.org/2000/svg';
+const mk=(t,a={})=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+// ---- horizontal bars (magnitude, single hue) ----
+function hbars(el,rows,{val,label,sub,unit='млн',color=PAL[0],h=34,fmt=F.fmtM}){
+  const W=el.clientWidth||520, pad={l:0,r:70,t:6,b:6}, bw=180;
+  const max=Math.max(...rows.map(val));
+  const H=pad.t+pad.b+rows.length*h;
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H});
+  rows.forEach((r,i)=>{
+    const y=pad.t+i*h, v=val(r), bl=(W-bw-pad.r)*(v/max);
+    const g=mk('g');
+    const lt=mk('text',{x:0,y:y+h/2-3,class:'bar-lbl'});lt.textContent=label(r);g.appendChild(lt);
+    const st=sub&&sub(r);if(st){const s2=mk('text',{x:0,y:y+h/2+11,class:'tick'});s2.textContent=st;g.appendChild(s2);}
+    g.appendChild(mk('rect',{x:bw,y:y+5,width:Math.max(2,bl),height:h-16,rx:4,fill:color,opacity:.9}));
+    const vt=mk('text',{x:bw+bl+8,y:y+h/2+1,class:'bar-val'});vt.textContent=fmt(v);g.appendChild(vt);
+    bind(g,`<div class="tt">${esc(label(r))}</div><div class="tr">${st?esc(st)+' · ':''}${fmt(v)} ${unit}</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
+// ---- funnel ----
+function funnel(el,rows){
+  const W=el.clientWidth||520,h=52,pad=8,max=rows[0][1];
+  const H=pad*2+rows.length*h;
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H});
+  rows.forEach((r,i)=>{
+    const y=pad+i*h,bw=(W-140)*(r[1]/max),x=(W-140-bw)/2;
+    const g=mk('g');
+    g.appendChild(mk('rect',{x,y:y+4,width:Math.max(4,bw),height:h-12,rx:5,fill:PAL[0],opacity:.85-i*.13}));
+    const t=mk('text',{x:W-130,y:y+h/2-2,fill:'#F1F4F8','font-size':13,'font-weight':700});t.textContent=r[1].toLocaleString('ru');g.appendChild(t);
+    const p=mk('text',{x:W-130,y:y+h/2+13,fill:'#6A7484','font-size':11});p.textContent=Math.round(r[1]/max*100)+'% от входа';g.appendChild(p);
+    const l=mk('text',{x:W/2-70,y:y+h/2+4,fill:'#0B0F15','font-size':12,'font-weight':800,'text-anchor':'middle'});l.textContent=r[0];g.appendChild(l);
+    bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1].toLocaleString('ru')} сделок · ${Math.round(r[1]/max*100)}% от входа</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
+// ---- grouped bars: segments potential vs success ----
+function segBars(el,rows){
+  const W=el.clientWidth||520,pad={l:8,r:14,t:14,b:40},h=250;
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,n=rows.length,gw=iw/n;
+  const max=Math.max(...rows.map(r=>r[2]));
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));
+    const v=max*(1-i/4);const t=mk('text',{x:pad.l,y:y-3,class:'tick'});t.textContent=F.fmtM(v);svg.appendChild(t);}
+  rows.forEach((r,i)=>{
+    const cx=pad.l+gw*i+gw/2,bw=Math.min(30,gw/3);
+    const hp=ih*(r[2]/max),hs=ih*(r[3]/max);
+    const g=mk('g');
+    g.appendChild(mk('rect',{x:cx-bw-2,y:pad.t+ih-hp,width:bw,height:hp,rx:4,fill:PAL[0],opacity:.9}));
+    g.appendChild(mk('rect',{x:cx+2,y:pad.t+ih-hs,width:bw,height:hs,rx:4,fill:PAL[2]}));
+    const l=mk('text',{x:cx,y:h-24,'text-anchor':'middle',class:'bar-lbl'});l.textContent=r[0];g.appendChild(l);
+    const c=mk('text',{x:cx,y:h-10,'text-anchor':'middle',class:'tick',fill:'#A0AAB8'});c.textContent='конв '+F.pct(r[4]);g.appendChild(c);
+    bind(g,`<div class="tt">Чек ${esc(r[0])}к</div><div class="tr">${r[1]} сделок · конв ${F.pct(r[4])}</div><div class="tr">Потенциал ${F.fmtM(r[2])} · успех ${F.fmtM(r[3])}</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
+// ---- two-segment split bar ----
+function twoBar(el,rows){
+  const W=el.clientWidth||520,h=120;
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  const totRev=rows.reduce((s,r)=>s+r[3],0),totN=rows.reduce((s,r)=>s+r[1],0);
+  function stack(y,items,tot,fmt,title){
+    let x=0;const bw=W;
+    items.forEach((it,i)=>{const w=bw*(it.v/tot);
+      const g=mk('g');
+      g.appendChild(mk('rect',{x:x+(i?2:0),y,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:it.c}));
+      if(w>60){const t=mk('text',{x:x+w/2,y:y+20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=it.l;g.appendChild(t);}
+      bind(g,`<div class="tt">${esc(title)}: ${esc(it.name)}</div><div class="tr">${fmt(it.v)} · ${Math.round(it.v/tot*100)}%</div>`);
+      x+=w;});
+  }
+  const st=mk('text',{x:0,y:12,class:'tick',fill:'#A0AAB8'});st.textContent='Доля успешной выручки';svg.appendChild(st);
+  const gg=mk('g',{transform:'translate(0,18)'});svg.appendChild(gg);
+  {let x=0;rows.forEach((r,i)=>{const w=W*(r[3]/totRev);const g=mk('g');g.appendChild(mk('rect',{x:x+(i?2:0),y:0,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:i?PAL[5]:PAL[2]}));const t=mk('text',{x:x+w/2,y:20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(r[3]/totRev*100)+'%';g.appendChild(t);bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">Успешная выручка ${F.fmtM(r[3])} · ${Math.round(r[3]/totRev*100)}%</div>`);gg.appendChild(g);x+=w;});}
+  const st2=mk('text',{x:0,y:72,class:'tick',fill:'#A0AAB8'});st2.textContent='Доля числа сделок';svg.appendChild(st2);
+  const gg2=mk('g',{transform:'translate(0,78)'});svg.appendChild(gg2);
+  {let x=0;rows.forEach((r,i)=>{const w=W*(r[1]/totN);const g=mk('g');g.appendChild(mk('rect',{x:x+(i?2:0),y:0,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:i?PAL[5]:PAL[2],opacity:.55}));const t=mk('text',{x:x+w/2,y:20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(r[1]/totN*100)+'%';g.appendChild(t);bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1]} сделок · ${Math.round(r[1]/totN*100)}%</div>`);gg2.appendChild(g);x+=w;});}
+  el.appendChild(svg);
+}
+
+// ---- scatter: load vs conversion ----
+function scatter(el){
+  const W=el.clientWidth||520,pad={l:44,r:20,t:14,b:40},h=320;
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b;
+  const maxN=320,maxR=Math.max(...MGR.map(m=>m.rev));
+  const X=n=>pad.l+iw*(n/maxN),Y=c=>pad.t+ih*(1-c),R=r=>6+Math.sqrt(r/maxR)*26;
+  const medN=155;
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  // grid
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));const t=mk('text',{x:pad.l-6,y:y+3,'text-anchor':'end',class:'tick'});t.textContent=(100-i*25)+'%';svg.appendChild(t);}
+  for(let n=0;n<=300;n+=100){const x=X(n);const t=mk('text',{x,y:h-24,'text-anchor':'middle',class:'tick'});t.textContent=n;svg.appendChild(t);}
+  // quadrant lines
+  svg.appendChild(mk('line',{x1:X(medN),y1:pad.t,x2:X(medN),y2:pad.t+ih,stroke:'#3F4855','stroke-dasharray':'4 4','stroke-width':1}));
+  svg.appendChild(mk('line',{x1:pad.l,y1:Y(0.5),x2:W-pad.r,y2:Y(0.5),stroke:'#3F4855','stroke-dasharray':'4 4','stroke-width':1}));
+  const ax=mk('text',{x:W-pad.r,y:h-24,'text-anchor':'end',class:'tick',fill:'#6A7484'});ax.textContent='сделок взято →';svg.appendChild(ax);
+  const ay=mk('text',{x:pad.l-6,y:pad.t-2,'text-anchor':'end',class:'tick',fill:'#6A7484'});ay.textContent='конв. ↑';svg.appendChild(ay);
+  MGR.forEach(m=>{
+    let col=m.n<40?'#6A7484':(m.conv>=0.5?'#10B981':'#F59E0B');
+    if(m.n<40&&m.conv>=0.5)col='#22D3EE';
+    const g=mk('g');
+    g.appendChild(mk('circle',{cx:X(m.n),cy:Y(m.conv),r:R(m.rev),fill:col,opacity:.32,stroke:col,'stroke-width':1.5}));
+    if(m.rev>=1600||m.n>=120){const t=mk('text',{x:X(m.n),y:Y(m.conv)-R(m.rev)-4,'text-anchor':'middle',fill:'#F1F4F8','font-size':11,'font-weight':700});t.textContent=m.m;g.appendChild(t);}
+    bind(g,`<div class="tt">${esc(m.m)}</div><div class="tr">${m.n} сделок · конверсия ${F.pct(m.conv)}</div><div class="tr">Успешная выручка ${F.fmtM(m.rev)} · чек ${m.chk}к</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
+// ---- manager revenue bar ----
+function mgrBar(el){
+  const rows=MGR.slice().sort((a,b)=>b.rev-a.rev);
+  hbars(el,rows,{val:m=>m.rev,label:m=>m.m,sub:m=>`конв ${F.pct(m.conv)} · чек ${m.chk}к`,color:PAL[2],h:38});
+}
+
+// ---- margin what-if ----
+function marginChart(){
+  const el=document.getElementById('c-margin');el.innerHTML='';
+  const low=+document.getElementById('m-low').value/100, high=+document.getElementById('m-high').value/100;
+  const data=[['до 150к',5925,low],['свыше 150к',24487,high]];
+  const W=el.clientWidth||520,pad={l:8,r:14,t:16,b:30},h=210;
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,n=data.length,gw=iw/n;
+  const max=Math.max(...data.map(r=>r[1]));
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));const t=mk('text',{x:pad.l,y:y-3,class:'tick'});t.textContent=F.fmtM(max*(1-i/4));svg.appendChild(t);}
+  data.forEach((r,i)=>{
+    const cx=pad.l+gw*i+gw/2,bw=Math.min(46,gw/3),profit=r[1]*r[2];
+    const hp=ih*(r[1]/max),hpr=ih*(profit/max);
+    const g=mk('g');
+    g.appendChild(mk('rect',{x:cx-bw-3,y:pad.t+ih-hp,width:bw,height:hp,rx:4,fill:PAL[0],opacity:.9}));
+    g.appendChild(mk('rect',{x:cx+3,y:pad.t+ih-hpr,width:bw,height:Math.max(1,hpr),rx:4,fill:PAL[5]}));
+    const l=mk('text',{x:cx,y:h-14,'text-anchor':'middle',class:'bar-lbl'});l.textContent=r[0];g.appendChild(l);
+    const pl=mk('text',{x:cx+3+bw/2,y:pad.t+ih-hpr-5,'text-anchor':'middle',fill:'#FDBA74','font-size':11,'font-weight':700});pl.textContent=F.fmtM(profit);g.appendChild(pl);
+    bind(g,`<div class="tt">Чек ${esc(r[0])}</div><div class="tr">Выручка ${F.fmtM(r[1])} · маржа ${Math.round(r[2]*100)}%</div><div class="tr">Прибыль ${F.fmtM(profit)}</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
+// ---- ROMI calc ----
+function romi(){
+  const rev=+document.getElementById('r-rev').value, sp=+document.getElementById('r-spend').value;
+  document.getElementById('v-rev').textContent=rev.toFixed(1).replace('.',',');
+  document.getElementById('v-spend').textContent=sp.toFixed(1).replace('.',',');
+  document.getElementById('o-romi').textContent=(rev/sp).toFixed(1).replace('.',',')+'x';
+  document.getElementById('o-share').textContent=Math.round(sp/rev*100)+'%';
+}
+// ---- capacity calc ----
+function capacity(){
+  const goal=+document.getElementById('k-goal').value, chk=+document.getElementById('k-check').value, dl=+document.getElementById('k-deals').value;
+  document.getElementById('kv-goal').textContent=goal;
+  document.getElementById('kv-check').textContent=chk;
+  document.getElementById('kv-deals').textContent=dl;
+  const perM=chk*dl/1000; // млн
+  const need=Math.ceil(goal/perM);
+  const now=3, gap=Math.max(0,need-now);
+  document.getElementById('ko-perm').textContent=perM.toFixed(1).replace('.',',')+' млн';
+  document.getElementById('ko-mgr').textContent=need;
+  document.getElementById('ko-gap').textContent='+'+gap;
+}
+
+// ---- init ----
+function draw(){
+  funnel(document.getElementById('c-funnel'),FUNNEL);
+  hbars(document.getElementById('c-src'),SRC,{val:r=>r[2],label:r=>r[0],sub:r=>`${r[1]} сделок · конв ${F.pct(r[3])}`,color:PAL[0],h:40});
+  segBars(document.getElementById('c-seg'),SEG);
+  twoBar(document.getElementById('c-two'),TWO);
+  hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
+  hbars(document.getElementById('c-a2'),A2,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[3],h:34});
+  scatter(document.getElementById('c-scatter'));
+  mgrBar(document.getElementById('c-mgrbar'));
+  hbars(document.getElementById('c-loss'),LOSS,{val:r=>r[1],label:r=>r[0],sub:r=>`${F.fmtM(r[2])} потенциала`,color:PAL[4],h:38,unit:'сделок',fmt:v=>v+' шт'});
+  marginChart();
+}
+draw();
+romi();capacity();
+['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
+['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
+['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-src,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss').forEach(e=>e.innerHTML='');draw();},200);});
+</script>
+</body>
+</html>

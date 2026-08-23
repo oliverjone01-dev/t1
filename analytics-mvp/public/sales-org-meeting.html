@@ -243,34 +243,42 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 3. MARKETING -->
 <section id="mkt">
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
-  <p class="sec-sub">Три канала по твоей схеме: <b>Директ</b> из кабинета Яндекс.Директ, <b>ABDM</b> из Метрики по utm, <b>SEO</b> из поисковых систем. Снимки: 8 июня – 7 июля (лиды) и 23 июля – 22 августа (расход). Всего лидов за 30 дней: 138. Важно: кабинет Директа считает конверсии по мягкой цели (не CRM-лид), поэтому Директ и ABDM в одних единицах пока не сравнить - показываю оба числа с источником.</p>
+  <p class="sec-sub">Живой синк заработал (починил имена секретов). Данные за <b>август (24.07 – 22.08)</b>, свежий снимок. Всего лидов 253 - почти вдвое больше июня-июля (138). SEO из поисковых, реклама = Директ (кабинет) + ABDM (программатик). Кабинет Директа считает конверсии по мягкой цели (не CRM-лид), поэтому лиды рекламы беру из Метрики.</p>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="tile cy"><div class="v">138</div><div class="l">всего лидов за 30 дней</div><div class="n"><span class="tag data">ДАННЫЕ</span> все каналы; раньше я показывал только 47 размеченных</div></div>
-    <div class="tile good"><div class="v">69</div><div class="l">лидов из SEO / органики</div><div class="n"><span class="tag data">ДАННЫЕ</span> крупнейший источник, ~0 предельных ₽</div></div>
-    <div class="tile"><div class="v" style="color:var(--d6)">46</div><div class="l">лидов из рекламы (Директ + ABDM)</div><div class="n"><span class="tag data">ДАННЫЕ</span> сумма твёрдая; сплит между ними спорный</div></div>
-    <div class="tile hot"><div class="v">797</div><div class="l">«конверсий» в кабинете Директа</div><div class="n"><span class="tag gap">МЯГКАЯ ЦЕЛЬ</span> 87% от кликов - это не CRM-лид; по CRM-цели Директ дал 11-41</div></div>
+    <div class="tile good"><div class="v">125</div><div class="l">лидов из SEO / органики (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 69; крупнейший канал, ~0 ₽, отказ 17%</div></div>
+    <div class="tile cy"><div class="v">87</div><div class="l">лидов из рекламы (Директ+ABDM)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 46; отказ 23%</div></div>
+    <div class="tile"><div class="v" style="color:var(--d6)">151к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> кабинет, 1389 кликов, весь на перегородки</div></div>
+    <div class="tile"><div class="v" style="color:var(--warn)">253</div><div class="l">всего лидов за август</div><div class="n"><span class="tag data">ДАННЫЕ</span> +83% к июню-июлю (138); поток вырос</div></div>
   </div>
   <div class="grid g2">
     <div class="card">
       <div class="chart-t">Лиды по каналу в Метрике: все и качественные <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">8 июня – 7 июля · SEO по типу трафика, платные по utm_source · «качественный» = отправка контактов</div>
+      <div class="chart-s">август (24.07-22.08) · по типу трафика · «качественный» = отправка контактов</div>
       <div id="c-goals"></div>
       <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Все лиды (цель «CRM Все лиды»)</span><span><span class="dot" style="background:var(--d3)"></span>Качественные (отправка контактов)</span></div>
     </div>
     <div class="card">
-      <div class="chart-t">Лиды по каналу: число и источник метрики <span class="tag data">ФАКТ</span></div>
-      <div class="chart-s">по твоей схеме: Директ из кабинета, ABDM из Метрики по utm, SEO из поисковых</div>
+      <div class="chart-t">Каналы за август: лиды, расход, CPL <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">лиды из Метрики (CRM-цель), расход Директа из кабинета</div>
       <div class="scrollx"><table>
-        <thead><tr><th>Канал</th><th style="text-align:left">Откуда число</th><th>Лиды</th><th>Расход</th><th>CPL</th></tr></thead>
+        <thead><tr><th>Канал</th><th>Лиды</th><th>Кач.</th><th>Отказ</th><th>Расход</th><th>CPL</th></tr></thead>
         <tbody>
-          <tr><td class="name">SEO / органика</td><td class="small dim" style="text-align:left">Метрика, поисковые системы</td><td>69</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td></tr>
-          <tr><td class="name">ABDM</td><td class="small dim" style="text-align:left">Метрика, utm_source=abdm</td><td>33</td><td>115.0к</td><td><span class="pill g">3 485</span></td></tr>
-          <tr><td class="name">Яндекс.Директ</td><td class="small dim" style="text-align:left">кабинет Директа (мягкая цель)</td><td>797</td><td>100.7к</td><td><span class="pill g">126</span></td></tr>
-          <tr><td class="dim" style="padding-left:22px">└ он же по CRM-цели (Метрика)</td><td class="small dim" style="text-align:left">utm=yandex 11 / движок 41</td><td class="dim">11-41</td><td class="dim">-</td><td class="dim">2.5-9.2к</td></tr>
+          <tr><td class="name">SEO / органика</td><td>125</td><td>75</td><td>17%</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td></tr>
+          <tr><td class="name">Реклама (Директ+ABDM)</td><td>87</td><td>55</td><td>23%</td><td>151к+ABDM</td><td><span class="pill y">1.7-3.1к</span></td></tr>
+          <tr><td class="name">Прямые / typein</td><td>28</td><td>19</td><td>25%</td><td class="dim">0</td><td class="dim">-</td></tr>
+          <tr><td class="name">Внутренние + реф</td><td>12</td><td>14</td><td>~20%</td><td class="dim">0</td><td class="dim">-</td></tr>
+          <tr class="tot"><td>Всего</td><td>253</td><td>163</td><td>-</td><td>151к+ABDM</td><td>-</td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px"><b>Внимание, разные цели.</b> Кабинет Директа считает 797 конверсий - это 87% от кликов, мягкая цель кабинета, а не CRM-лид. ABDM (33) и SEO (69) - это CRM-лиды из Метрики. Складывать 797 с 33 нельзя: разные единицы. Чтобы сравнить честно, надо всех считать по одной цели «CRM Все лиды»: тогда SEO 69, ABDM 33, Директ 11-41. Точное число Директа по CRM-цели даст перепривязка цели в кабинете (нужны токены).</p>
+      <p class="tiny dim" style="margin-top:10px">CPL рекламы: если считать только Директ (151к / 87) = <b>1 740 ₽</b>; если Директ + ABDM программатик (≈115к) = (266к / 87) = <b>3 057 ₽</b>. По движку Метрики 85 из 87 рекламных лидов - это «Яндекс.Директ» (ABDM-программатик крутит инвентарь Яндекса, отдельно не выделяется). Кабинет Директа рапортует 1182 «конверсии» = 85% от кликов - это мягкая цель, не CRM-лид, в расчёт не берём.</p>
     </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Лиды по каналам: июнь-июль → август <span class="tag data">ФАКТ</span></div>
+    <div class="chart-s">два окна с лидами; поток вырос по всем каналам</div>
+    <div id="c-leadmo"></div>
+    <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>июнь-июль</span><span><span class="dot" style="background:var(--d3)"></span>август</span></div>
+    <p class="tiny dim" style="margin-top:10px">SEO вырос 69→125 (+81%), реклама 46→87 (+89%), всего 138→253. Заявок стало больше, а не меньше - это усиливает вывод ФЕНИКСА: узкое место не в притоке лидов, а в дожиме.</p>
   </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
@@ -279,16 +287,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <thead><tr><th>Окно</th><th>Расход Директ</th><th>Клики</th><th>CPC</th><th>Примечание</th></tr></thead>
       <tbody>
         <tr><td class="name">8 июня – 7 июля</td><td>100.7к</td><td>912</td><td>110 ₽</td><td class="small dim">46 рекл. лидов всего (Директ + ABDM)</td></tr>
-        <tr><td class="name">23 июля – 22 авг (~август)</td><td>152.1к</td><td>1 427</td><td>107 ₽</td><td class="small dim">цели не сохранились в снимке</td></tr>
-        <tr><td class="dim">апрель, май</td><td class="dim" colspan="4">нет снимка: токены Директ/Метрика не заведены, синк падает с 26.07</td></tr>
+        <tr><td class="name">24 июля – 22 авг (август)</td><td>151.4к</td><td>1 389</td><td>109 ₽</td><td class="small dim">рекламных лидов 87 (Метрика)</td></tr>
+        <tr><td class="dim">апрель, май, июнь</td><td class="dim" colspan="4">синк тянет только последние 30 дней; помесячный ряд с апреля - следующим шагом</td></tr>
       </tbody>
     </table></div>
-    <p class="tiny dim" style="margin-top:10px">Расход, клики и CPC из Директа твёрдые. Август 152к реальный (весь кабинет на перегородки), CPC стабилен ~107-110 ₽. Атрибуция лидов Директу против ABDM спорная (см. таблицу каналов и звёздочку) - её чинит сквозная аналитика. Полную помесячную картину апрель-август с лидами дам, как заведёшь токены Яндекса в секреты.</p>
+    <p class="tiny dim" style="margin-top:10px">Синк заработал (починил имена секретов в CI), данные августа живые. Расход/клики/CPC из кабинета твёрдые. Помесячный ряд апрель→август по каналам допишу отдельным прогоном (Reports API умеет произвольные даты) - тогда динамика маркетинга будет с апреля, как у сделок.</p>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
-      <h3>Что говорит факт</h3>
-      <p class="muted">Три канала, три источника числа: <b>SEO 69</b> (поисковые, Метрика), <b>ABDM 33</b> (utm, Метрика), <b>Директ</b> (кабинет). Загвоздка: кабинет Директа считает 797 «конверсий» по мягкой цели (87% от кликов), а не CRM-лиды - складывать с ABDM нельзя. По одной CRM-цели Директ даёт 11-41 лид. Пока цель в кабинете не перепривязана к «CRM Все лиды», честно сравнить Директ с ABDM нельзя. Твёрдо одно: <b>SEO дал 69 лидов почти даром</b> и недоинвестирован.</p>
+      <h3>Что говорит факт (август, живые данные)</h3>
+      <p class="muted">Поток лидов <b>вырос</b> (138→253), значит дефицита заявок нет - подтверждает ФЕНИКСА. <b>SEO - канал №1: 125 лидов почти даром, отказ 17% (лучший)</b>, и недоинвестирован (75% запросов брендовые, небренд можно растить). Реклама 87 лидов при отказе 23%, CPL 1.7-3.1к. Кабинет Директа рапортует 1182 «конверсии» (85% кликов) - это мягкая цель, не лиды; в отчёты её не тащить. Вывод: деньги не в накачке рекламы, а в дожиме (см. воронку) и в небрендовом SEO.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>
@@ -317,9 +325,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <p class="tiny dim" style="margin-top:10px">У <b>SEO самый низкий отказ (16%)</b> и больше всех лидов (69) при нулевой цене - лучший канал по всем осям. Реклама (31%) и прямые (34%) отказывают вдвое чаще. Ещё довод недоинвестирования органики.</p>
     </div>
   </div>
-  <div class="callout d" style="margin-top:16px">
-    <h3>Чего не хватает для помесячного отчёта по категориям <span class="tag gap">НУЖНЫ ТОКЕНЫ</span></h3>
-    <p class="muted small">Помесячная разбивка трафика и лидов по каждому каналу и категории (перегородки / зеркала / столы / брендовые), стоимость лида по категории - в снимках этого нет: одна выборка, а цели в августовском снимке не сохранились. Всё это соберётся живыми запросами Директ+Метрика, как заведёшь <b>YANDEX_DIRECT_TOKEN</b> и <b>YANDEX_METRIKA_TOKEN</b> в секреты репозитория. Тогда дам апрель→август по каналам и категориям: визиты, лиды, CPL, отказы.</p>
+  <div class="callout i" style="margin-top:16px">
+    <h3>Синк заработал <span class="tag data">ГОТОВО</span> · что достраиваю дальше</h3>
+    <p class="muted small">Живые данные Директ+Метрика теперь тянутся (август уже здесь). Осталось: <b>1)</b> помесячный ряд апрель→август по каналам (отдельный прогон с произвольными датами в Reports API); <b>2)</b> лиды и CPL в разрезе категорий (перегородки / зеркала / столы / брендовые) - Метрика умеет цель × страница/utm; <b>3)</b> перепривязать мягкую цель кабинета к «CRM Все лиды», чтобы кабинет Директа и Метрика сошлись. Всё это уже разблокировано, вопрос одного-двух прогонов.</p>
   </div>
 </section>
 
@@ -613,11 +621,12 @@ const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
 // SEO по разделам сайта [категория, визиты] (август, top-страницы)
 const SEOCAT=[['Главная/бренд',403],['Зеркала',299],['Столы',237],['Перегородки',150],['Стеллажи/полки',70],['Доски',65],['Прочее',21]];
-// Отказы по каналам [канал, отказ%, лиды]
-const BOUNCE=[['SEO / поиск',16.4,69],['Реклама (Директ+ABDM)',30.7,46],['Прямые / typein',33.7,12],['Внутренние',23.0,5]];
-// Метрика: лиды по каналу [канал, все лиды, качественные(контакты)] (8 июня-7 июля)
-// SEO по типу трафика (Search), платные по utm_source (abdm/yandex), прямые/рекоменд по типу трафика
-const GOALS=[['SEO / органика',69,44],['ABDM',33,24],['Директ свой',11,8],['Прямые',12,14],['Рекоменд.',6,13]];
+// Отказы по каналам [канал, отказ%, лиды] (АВГУСТ)
+const BOUNCE=[['SEO / поиск',17.1,125],['Реклама (Директ+ABDM)',22.6,87],['Прямые / typein',25.2,28],['Внутренние',24.9,8]];
+// Метрика: лиды по каналу [канал, все лиды, качественные] (АВГУСТ 24.07-22.08, живой синк)
+const GOALS=[['SEO / органика',125,75],['Реклама (Директ+ABDM)',87,55],['Прямые',28,19],['Внутренние',8,8],['Рекоменд.',4,6]];
+// Лиды по месяцам (2 окна) [канал, июнь-июль, август]
+const LEADMO=[['SEO / органика',69,125],['Реклама',46,87],['Прямые',12,28],['Всего',138,253]];
 // Динамика по месяцам (создано): [мес, создано, потенциал_k, успех_шт, успех_k, won_шт, won_k]
 const DYN=[
  ['апр',216,32555,104,12512,85,5860],['май',232,33899,85,7296,66,4850],['июн',246,40729,77,10228,42,2913],
@@ -871,6 +880,7 @@ function draw(){
   gbars(document.getElementById('c-goals'),GOALS,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'Все лиды',t2:'Качественные',h:220});
   hbars(document.getElementById('c-seocat'),SEOCAT,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:34,unit:'визитов',fmt:v=>v+''});
   hbars(document.getElementById('c-bounce'),BOUNCE,{val:r=>r[1],label:r=>r[0],sub:r=>`${r[2]} лидов`,color:PAL[5],h:38,unit:'отказов',fmt:v=>v.toFixed(1).replace('.',',')+'%'});
+  gbars(document.getElementById('c-leadmo'),LEADMO,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'июнь-июль',t2:'август',h:210});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
   hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
@@ -892,7 +902,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-leadmo,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

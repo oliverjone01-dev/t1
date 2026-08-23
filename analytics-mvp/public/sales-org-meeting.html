@@ -213,21 +213,28 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 2. FUNNEL -->
 <section id="funnel">
   <div class="sec-h"><span class="sec-n">02</span><h2>Воронка отдела: где обрыв</h2></div>
-  <p class="sec-sub">Путь сделки от заявки с чеком до предоплаты. «Успех» здесь = дошли до стадии «Предоплата получена» и далее, как договорились: предоплата это и есть деньги в кассе, а не потенциал в карточке.</p>
+  <p class="sec-sub">Полный путь: лид (заявка) → квалификация → сделка с чеком → КП → предоплата → оплата. «Успех» = предоплата и далее (деньги в кассе). Конверсия по методике РОП-дашборда.</p>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="tile cy"><div class="v">35 дн</div><div class="l">медиана цикла сделки (won)</div><div class="n"><span class="tag data">ДАННЫЕ</span> среднее 37 дн; окно апрель-август</div></div>
+    <div class="tile"><div class="v">9%</div><div class="l">сквозная конверсия лид → оплата</div><div class="n"><span class="tag data">ДАННЫЕ</span> 246 оплат из 2 736 лидов</div></div>
+    <div class="tile"><div class="v">49%</div><div class="l">КП → предоплата (главный обрыв)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 414 из 851; тут «нет времени дожать»</div></div>
+    <div class="tile"><div class="v">12.03</div><div class="l">с этой даты видны коммуникации</div><div class="n"><span class="tag gap">ТОНКО</span> касания лишь у 796 сделок; полный разбор в /dialog</div></div>
+  </div>
   <div class="grid g2">
     <div class="card">
-      <div class="chart-t">Воронка по сделкам, апрель – август <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">штук на каждой стадии, доля от входа</div>
+      <div class="chart-t">Воронка отдела продаж, апрель – август <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">штук на каждой стадии, доля от входа · лиды все категории, сделки C49</div>
       <div id="c-funnel"></div>
     </div>
     <div class="card">
       <div class="chart-t">Где мы теряем и почему это важно</div>
       <div class="chart-s">интерпретация, не новые цифры</div>
       <ul class="muted" style="padding-left:18px;font-size:13.5px;line-height:1.7">
-        <li>Вход большой, поток есть. Значит маркетинг свою часть делает: заявки с чеком поступают.</li>
-        <li>Главный обрыв на переходе <b>КП → предоплата</b>: из 851 офера до предоплаты дошли 414. Именно тут менеджеры говорят «не хватает времени дожать».</li>
-        <li>А вот дальше потерь почти нет: из 414 предоплат <b>246 закрыты (WON), 156 ещё в производстве</b> (деньги в пути, длинный цикл) и <b>только 12 реально потеряны</b> после предоплаты <span class="tag data">ДАННЫЕ</span>. То есть разрыв 414 → 246 это в основном время, а не утечка. Предоплата = деньги в кассе.</li>
-        <li>Вывод-развилка: лечим именно переход КП → предоплата. И наймом (больше рук на дожим), и обучением (выше конверсия). Что важнее, покажут причины проигрыша и разрез по менеджерам ниже.</li>
+        <li><b>Лид → квалификация:</b> из 2 736 заявок в дело идёт ~1 223 (45%). Половина отсеивается как спам/джанк/дубль. Это норма, но чистка входа экономит время менеджеров.</li>
+        <li><b>Квал → сделка с чеком → КП:</b> почти все квал-лиды становятся сделками (1 169), до КП доходит 851 (73%).</li>
+        <li>Главный обрыв на переходе <b>КП → предоплата</b>: из 851 до предоплаты дошли 414 (49%). Именно тут менеджеры говорят «не хватает времени дожать».</li>
+        <li>Дальше потерь почти нет: из 414 предоплат <b>246 закрыты (WON), 156 ещё в производстве</b>, только 12 реально потеряны <span class="tag data">ДАННЫЕ</span>. Разрыв 414 → 246 это время (цикл ~35 дн), а не утечка.</li>
+        <li>Коммуникации (диалоги/звонки/письма) в CRM видны с <b>12 марта</b>, но размечены тонко (796 сделок). Полный текстовый разбор (кто, когда, что написал) идёт на отдельном дашборде /dialog по ручной выгрузке Wazzup.</li>
       </ul>
     </div>
   </div>
@@ -295,6 +302,24 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </div>
       <p class="tiny dim" style="margin-top:12px">Расход Директа реальный (0.15 млн август). Выручку канала точно не свести: у сделок в CRM нет UTM (размечено ~8%), Директ в CRM прячется в «Сайт genglass.ru». Поставь свою оценку выручки перегородок от Директа - и увидишь ROMI. По прибыли будет ниже (см. блок про маржу).</p>
     </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="chart-t">SEO по разделам сайта: визиты <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">органика по категориям страниц, август (топ-страницы Метрики)</div>
+      <div id="c-seocat"></div>
+      <p class="tiny dim" style="margin-top:10px">Органика тянет прежде всего <b>зеркала и столы</b> (43% визитов) - это поток до-150к. Перегородки в SEO всего 12%: дорогой сегмент живёт на платной рекламе, не на органике. При этом <b>75% поисковых запросов - брендовые</b> (genglass), небрендовое привлечение слабое: это зона роста SEO.</p>
+    </div>
+    <div class="card">
+      <div class="chart-t">Отказы по каналам: качество трафика <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">процент отказов, ниже = лучше · подпись: лидов за окно</div>
+      <div id="c-bounce"></div>
+      <p class="tiny dim" style="margin-top:10px">У <b>SEO самый низкий отказ (16%)</b> и больше всех лидов (69) при нулевой цене - лучший канал по всем осям. Реклама (31%) и прямые (34%) отказывают вдвое чаще. Ещё довод недоинвестирования органики.</p>
+    </div>
+  </div>
+  <div class="callout d" style="margin-top:16px">
+    <h3>Чего не хватает для помесячного отчёта по категориям <span class="tag gap">НУЖНЫ ТОКЕНЫ</span></h3>
+    <p class="muted small">Помесячная разбивка трафика и лидов по каждому каналу и категории (перегородки / зеркала / столы / брендовые), стоимость лида по категории - в снимках этого нет: одна выборка, а цели в августовском снимке не сохранились. Всё это соберётся живыми запросами Директ+Метрика, как заведёшь <b>YANDEX_DIRECT_TOKEN</b> и <b>YANDEX_METRIKA_TOKEN</b> в секреты репозитория. Тогда дам апрель→август по каналам и категориям: визиты, лиды, CPL, отказы.</p>
   </div>
 </section>
 
@@ -573,7 +598,7 @@ const F={
 };
 const PAL=['#22D3EE','#6366F1','#10B981','#A78BFA','#F472B6','#FB923C'];
 // ---- data ----
-const FUNNEL=[['Заявка с чеком',1169],['КП отправлено / офер',851],['Предоплата (успех)',414],['Закрыта WON',246]];
+const FUNNEL=[['Лиды (заявки)',2736],['Квалифицированы',1223],['Сделки с чеком',1169],['КП отправлено',851],['Предоплата',414],['Оплата (WON)',246]];
 const SRC=[
  ['Не указан',258,17004,0.60],['Сайт genglass.ru',198,3744,0.35],['Создан вручную',134,3130,0.26],
  ['GEN GROUP',105,8383,0.51],['Бот Max',102,3385,0.26],['Расчёт Горщевский',82,2361,0.29],
@@ -586,6 +611,10 @@ const SEG=[
 const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
 const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
+// SEO по разделам сайта [категория, визиты] (август, top-страницы)
+const SEOCAT=[['Главная/бренд',403],['Зеркала',299],['Столы',237],['Перегородки',150],['Стеллажи/полки',70],['Доски',65],['Прочее',21]];
+// Отказы по каналам [канал, отказ%, лиды]
+const BOUNCE=[['SEO / поиск',16.4,69],['Реклама (Директ+ABDM)',30.7,46],['Прямые / typein',33.7,12],['Внутренние',23.0,5]];
 // Метрика: лиды по каналу [канал, все лиды, качественные(контакты)] (8 июня-7 июля)
 // SEO по типу трафика (Search), платные по utm_source (abdm/yandex), прямые/рекоменд по типу трафика
 const GOALS=[['SEO / органика',69,44],['ABDM',33,24],['Директ свой',11,8],['Прямые',12,14],['Рекоменд.',6,13]];
@@ -840,6 +869,8 @@ function capacity(){
 function draw(){
   funnel(document.getElementById('c-funnel'),FUNNEL);
   gbars(document.getElementById('c-goals'),GOALS,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'Все лиды',t2:'Качественные',h:220});
+  hbars(document.getElementById('c-seocat'),SEOCAT,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:34,unit:'визитов',fmt:v=>v+''});
+  hbars(document.getElementById('c-bounce'),BOUNCE,{val:r=>r[1],label:r=>r[0],sub:r=>`${r[2]} лидов`,color:PAL[5],h:38,unit:'отказов',fmt:v=>v.toFixed(1).replace('.',',')+'%'});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
   hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
@@ -861,7 +892,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

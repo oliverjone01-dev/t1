@@ -236,12 +236,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 3. MARKETING -->
 <section id="mkt">
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
-  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Есть два реальных снимка: <b>8 июня – 7 июля</b> (с лидами) и <b>23 июля – 22 августа</b> (расход августа реальный, лиды оценены). Апрель, май и полный помесячный ряд недоступны: токены Яндекса не заведены в секреты, ночной синк падает с 26 июля. Важная правка: CPL Директа около 2 189 ₽, прежние 9 155 ₽ были моей ошибкой расчёта.</p>
+  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Два разных платных канала: <b>Яндекс.Директ</b> (свой кабинет) и <b>ABDM</b> (программатик, отдельный бюджет). Снимки: 8 июня – 7 июля (с лидами) и 23 июля – 22 августа (расход реальный). Апрель, май и полный помесячный ряд недоступны без токенов Яндекса. Честно: точный CPL Директа сейчас не свести (разметка лидов между Директом и ABDM спорная), даю вилку.</p>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="tile cy"><div class="v">2 189 ₽</div><div class="l">CPL всего кабинета Директа</div><div class="n"><span class="tag data">ДАННЫЕ</span> 100.7к / 46 лидов (июнь-июль). Не 9 155 - это была моя ошибка</div></div>
+    <div class="tile good"><div class="v">3 485 ₽</div><div class="l">CPL ABDM (программатик)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 33 лида / 115к; дешевле Директа</div></div>
+    <div class="tile"><div class="v" style="color:var(--warn)">2.5–9.2к</div><div class="l">CPL Яндекс.Директа (вилка)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 11 лидов по метке, до 41 по движку - дыра в разметке</div></div>
     <div class="tile good"><div class="v">69</div><div class="l">лидов из SEO / органики</div><div class="n"><span class="tag data">ДАННЫЕ</span> крупнейший источник, ~0 предельных ₽</div></div>
-    <div class="tile"><div class="v" style="color:var(--d6)">152к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 30д к 22.08, ≈ твой сценарий ×1.5</div></div>
-    <div class="tile hot"><div class="v">115к</div><div class="l">ABDM: комиссия или отдельный бюджет?</div><div class="n"><span class="tag gap">УТОЧНИТЬ</span> 33 лида размечены abdm внутри того же кабинета</div></div>
+    <div class="tile cy"><div class="v">152к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 30д к 22.08, ≈ твой сценарий ×1.5</div></div>
   </div>
   <div class="grid g2">
     <div class="card">
@@ -252,38 +252,38 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
     <div class="card">
       <div class="chart-t">Каналы: лиды и стоимость лида <span class="tag data">ФАКТ</span></div>
-      <div class="chart-s">лиды из Метрики; расход Директа факт по кабинету</div>
+      <div class="chart-s">разные каналы: Директ (свой кабинет) и ABDM (программатик, отдельный бюджет)</div>
       <div class="scrollx"><table>
         <thead><tr><th>Канал</th><th>Расход</th><th>Лиды</th><th>Кач.</th><th>CPL</th></tr></thead>
         <tbody>
           <tr><td class="name">SEO / органика</td><td class="dim">~0</td><td>69</td><td>44</td><td><span class="pill g">≈0</span></td></tr>
-          <tr><td class="name">Яндекс.Директ (весь кабинет)</td><td>100.7к</td><td>46</td><td>33</td><td><span class="pill g">2 189</span></td></tr>
-          <tr><td class="dim" style="padding-left:22px">└ размечено utm=abdm</td><td class="dim">тот же</td><td class="dim">33</td><td class="dim">24</td><td class="dim">-</td></tr>
-          <tr><td class="dim" style="padding-left:22px">└ размечено utm=yandex</td><td class="dim">бюджет</td><td class="dim">11</td><td class="dim">8</td><td class="dim">-</td></tr>
+          <tr><td class="name">ABDM (программатик)</td><td>115.0к</td><td>33</td><td>24</td><td><span class="pill g">3 485</span></td></tr>
+          <tr><td class="name">Яндекс.Директ</td><td>100.7к</td><td>11*</td><td>8</td><td><span class="pill r">9 155*</span></td></tr>
           <tr><td class="name">Прямые / typein</td><td class="dim">0</td><td>12</td><td>14</td><td class="dim">-</td></tr>
           <tr><td class="name">Рекоменд. / почта</td><td class="dim">0</td><td>6</td><td>13</td><td class="dim">-</td></tr>
+          <tr class="tot"><td>Платный итог</td><td>215.7к</td><td>44</td><td>32</td><td><span class="pill y">4 902</span></td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px">Кабинет Директа один: 33 лида размечены ABDM + 11 yandex = 44 из 46 рекламных лидов, бюджет общий 100.7к. Если <b>115к ABDM это комиссия за ведение сверху</b> медийных 100.7к, полная стоимость рекламного лида = (100.7 + 115) / 46 = <b>4 689 ₽</b>. Если 115к это отдельный медийный бюджет - считаем иначе. Нужно твоё подтверждение, что такое ABDM.</p>
+      <p class="tiny dim" style="margin-top:10px">*Осторожно с 9 155. По utm-метке Директу засчитано только 11 лидов. Но по рекламному движку Метрика видит у Яндекс.Директа до <b>41 лида</b> (часть трафика ABDM тоже проходит через сеть Яндекса) - тогда CPL Директа ≈ <b>2 456 ₽</b>. Правда между 2.5к и 9.2к, разброс это дыра в разметке. Точную цифру даст сквозная аналитика с ассоциированными конверсиями.</p>
     </div>
   </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
     <div class="chart-s">два реальных снимка; апрель, май и полный июль недоступны без токенов Яндекса</div>
     <div class="scrollx"><table>
-      <thead><tr><th>Окно</th><th>Расход Директ</th><th>Клики</th><th>Лиды (реклама)</th><th>CPL</th></tr></thead>
+      <thead><tr><th>Окно</th><th>Расход Директ</th><th>Клики</th><th>CPC</th><th>Примечание</th></tr></thead>
       <tbody>
-        <tr><td class="name">8 июня – 7 июля</td><td>100.7к</td><td>912</td><td>46</td><td><span class="pill g">2 189</span></td></tr>
-        <tr><td class="name">23 июля – 22 авг (~август)</td><td>152.1к</td><td>1 427</td><td class="dim">~69 <span class="tag hyp">оценка</span></td><td class="dim">~2 200</td></tr>
+        <tr><td class="name">8 июня – 7 июля</td><td>100.7к</td><td>912</td><td>110 ₽</td><td class="small dim">46 рекл. лидов всего (Директ + ABDM)</td></tr>
+        <tr><td class="name">23 июля – 22 авг (~август)</td><td>152.1к</td><td>1 427</td><td>107 ₽</td><td class="small dim">цели не сохранились в снимке</td></tr>
         <tr><td class="dim">апрель, май</td><td class="dim" colspan="4">нет снимка: токены Директ/Метрика не заведены, синк падает с 26.07</td></tr>
       </tbody>
     </table></div>
-    <p class="tiny dim" style="margin-top:10px">Август: расход реальный (152к, кабинет весь на перегородки), но цели в этом снимке не сохранились, поэтому лиды оценены по клик-конверсии июня-июля (912 кликов → 46 лидов ≈ 5%). CPL держится около 2 200 ₽, а не 9 155. Полную помесячную картину апрель-август дам, как заведёшь токены Яндекса в секреты - перезапущу синк.</p>
+    <p class="tiny dim" style="margin-top:10px">Расход, клики и CPC из Директа твёрдые. Август 152к реальный (весь кабинет на перегородки), CPC стабилен ~107-110 ₽. Атрибуция лидов Директу против ABDM спорная (см. таблицу каналов и звёздочку) - её чинит сквозная аналитика. Полную помесячную картину апрель-август с лидами дам, как заведёшь токены Яндекса в секреты.</p>
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
-      <h3>Что говорит факт (исправлено)</h3>
-      <p class="muted">CPL Директа около <b>2 189 ₽</b>, а не 9 155 - я ошибся, поделив весь бюджет на 11 лидов одной метки. ABDM <b>не слепая зона</b>: размечен utm=abdm, дал 33 из 46 рекламных лидов, но это тот же кабинет Директа, не отдельные деньги. <b>Органика дала 69 лидов почти бесплатно</b> - её недокармливают. Реальный вопрос не «эффективен ли Директ» (эффективен, 2.2к за лид), а <b>что за 115к ABDM сверху и не переплачиваем ли за посредника</b>.</p>
+      <h3>Что говорит факт</h3>
+      <p class="muted">Это <b>два разных канала</b>: Яндекс.Директ (свой кабинет, 100.7к) и ABDM (программатик, отдельный бюджет 115к). По разметке <b>ABDM дешевле</b> (3 485 ₽ за лид) прямого Директа. Но CPL Директа гуляет от 2.5к до 9.2к из-за дыры в разметке (11 лидов по метке против 41 по движку) - без сквозной аналитики точнее не скажешь. Твёрдый вывод один: <b>органика (SEO) дала 69 лидов почти даром</b> и недоинвестирована. По платным каналам решение отложить до нормальной атрибуции.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>
@@ -360,11 +360,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Потенциал</span><span><span class="dot" style="background:var(--d3)"></span>Успешная выручка</span></div>
     </div>
   </div>
-  <div class="card" style="margin-top:16px">
-    <div class="chart-t">Сегменты в динамике: где растёт поток и где деньги <span class="tag data">ДАННЫЕ</span></div>
-    <div class="chart-s">потенциал по месяцам, млн ₽ · до-150к против свыше-150к</div>
-    <div id="c-dyn-seg"></div>
-    <div class="leg"><span><span class="dot" style="background:var(--d4)"></span>до 150к (поток)</span><span><span class="dot" style="background:var(--d6)"></span>свыше 150к (деньги)</span></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="chart-t">Сегменты: потенциал по месяцам <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">млн ₽ в карточках · до-150к против свыше-150к</div>
+      <div id="c-dyn-seg"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d4)"></span>до 150к (поток)</span><span><span class="dot" style="background:var(--d6)"></span>свыше 150к (деньги)</span></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Сегменты: успешная выручка по месяцам <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">млн ₽ дошло до предоплаты · свежие месяцы незрелые</div>
+      <div id="c-dyn-segr"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d4)"></span>до 150к</span><span><span class="dot" style="background:var(--d6)"></span>свыше 150к</span></div>
+    </div>
   </div>
   <div class="scrollx" style="margin-top:16px"><table>
     <thead><tr><th>Месяц</th><th>Создано</th><th>Потенциал</th><th>Успех, шт</th><th>Успех, ₽</th><th>WON, шт</th><th>WON, ₽</th></tr></thead>
@@ -399,6 +407,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="chart-s">млн ₽ за окно; конверсия и средний чек подписью</div>
       <div id="c-mgrbar"></div>
     </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Менеджеры по месяцам: успешная выручка <span class="tag data">ДАННЫЕ</span></div>
+    <div class="chart-s">топ-6 по итогу; каждый мини-график это один менеджер, апрель→август (авг по 23-е)</div>
+    <div id="c-mgr-mo" class="grid g3" style="margin-top:6px"></div>
+    <p class="tiny dim" style="margin-top:10px">Видно тренды, а не только итог: у Лысановой выброс в апреле (6.3 млн), потом норма 1-2.7 млн. У Лакомовой всплеск в июне-июле, но в июле она взяла 112 сделок и конверсия просела. Ериной дают всё меньше сделок (11 в апреле, 1 в августе) - её недогружают, а конверсия у неё высокая.</p>
   </div>
   <div class="grid g3" style="margin-top:16px">
     <div class="callout i">
@@ -583,7 +597,19 @@ const DYN=[
  ['июл',288,43412,87,8821,43,3343],['авг*',188,32594,61,3729,10,346]
 ];
 // Сегменты в динамике: потенциал_k по месяцам [мес, до150, свыше150]
-const DYNSEG=[['апр',9673,22882],['май',11245,22654],['июн',9249,31480],['июл',10010,33401],['авг*',7200,25394]];
+const DYNSEG=[['апр',9673,22882],['май',11245,22654],['июн',9249,31480],['июл',10010,33401],['авг*',7288,25394]];
+// Сегменты: успешная выручка_k по месяцам [мес, до150, свыше150]
+const DYNSEGR=[['апр',4682,7830],['май',3751,3545],['июн',3173,7055],['июл',3298,5523],['авг*',2879,849]];
+// Менеджеры: успешная выручка_k по месяцам (апр,май,июн,июл,авг), топ-6
+const MOLBL=['апр','май','июн','июл','авг*'];
+const MGRMO=[
+ {m:'Лысанова',v:[6321,2083,1222,2675,1034]},
+ {m:'Лакомова',v:[1187,880,2474,2046,462]},
+ {m:'Маслова',v:[409,1001,1398,1006,966]},
+ {m:'Шура-Бура',v:[988,1249,1130,564,184]},
+ {m:'Платонова',v:[228,673,2276,286,85]},
+ {m:'Ерина',v:[1075,899,486,179,112]}
+];
 const LOSS=[
  ['Прочее / без причины',149,24291],['Нет контакта / не дожали',135,16768],['Цена / возражение',92,20503],['Потребность ушла',85,8824],['Дубль / нецелевой',21,1664]
 ];
@@ -773,6 +799,23 @@ function gbars(el,rows,{cat,v1,v2,c1=PAL[0],c2=PAL[2],fmt=F.fmtM,unit='',t1='',t
   el.appendChild(svg);
 }
 
+// ---- small multiples: mini monthly bars per series ----
+function miniBars(container,series,labels){
+  container.innerHTML='';
+  const gmax=Math.max(1,...series.flatMap(s=>s.v));
+  series.forEach(s=>{
+    const peak=Math.max(...s.v),W=260,h=92,pad={l:4,r:4,t:16,b:16},iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,bw=iw/s.v.length;
+    const card=document.createElement('div');card.style.cssText='background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:10px 12px';
+    let svg=`<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px">${esc(s.m)}</div><svg viewBox="0 0 ${W} ${h}" style="width:100%;height:${h}px">`;
+    s.v.forEach((v,i)=>{const bh=ih*(v/gmax),x=pad.l+bw*i+bw*0.18,y=pad.t+ih-bh;const isMax=v===peak;
+      svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${Math.max(1,bh).toFixed(1)}" rx="3" fill="${isMax?PAL[2]:PAL[0]}" opacity="${isMax?1:.65}"/>`;
+      svg+=`<text x="${(pad.l+bw*i+bw/2).toFixed(1)}" y="${(pad.t+ih+11).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--ink-4)">${labels[i]}</text>`;
+      if(isMax)svg+=`<text x="${(pad.l+bw*i+bw/2).toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--ink-2)">${F.fmtM(v)}</text>`;
+    });
+    svg+='</svg>';card.innerHTML=svg;container.appendChild(card);
+  });
+}
+
 // ---- ROMI calc ----
 function romi(){
   const rev=+document.getElementById('r-rev').value, sp=+document.getElementById('r-spend').value;
@@ -809,6 +852,8 @@ function draw(){
   gbars(document.getElementById('c-dyn-n'),DYN,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[3],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' шт',t1:'Создано',t2:'До предоплаты',h:220});
   gbars(document.getElementById('c-dyn-r'),DYN,{cat:r=>r[0],v1:r=>r[2],v2:r=>r[4],c1:PAL[0],c2:PAL[2],fmt:F.fmtM,t1:'Потенциал',t2:'Успешная выручка',h:220});
   gbars(document.getElementById('c-dyn-seg'),DYNSEG,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[3],c2:PAL[5],fmt:F.fmtM,t1:'до 150к',t2:'свыше 150к',h:220});
+  gbars(document.getElementById('c-dyn-segr'),DYNSEGR,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[3],c2:PAL[5],fmt:F.fmtM,t1:'до 150к',t2:'свыше 150к',h:220});
+  const mm=document.getElementById('c-mgr-mo');if(mm)miniBars(mm,MGRMO,MOLBL);
   const tb=document.getElementById('dyn-tbody');
   if(tb) tb.innerHTML=DYN.map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td>${F.fmtM(r[2])}</td><td>${r[3]}</td><td>${F.fmtM(r[4])}</td><td>${r[5]}</td><td>${F.fmtM(r[6])}</td></tr>`).join('');
   marginChart();
@@ -818,7 +863,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

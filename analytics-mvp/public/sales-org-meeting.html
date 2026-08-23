@@ -143,6 +143,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <a href="#funnel">Воронка</a>
     <a href="#mkt">Маркетинг</a>
     <a href="#money">Деньги по чеку</a>
+    <a href="#dyn">Динамика</a>
     <a href="#mgr">Менеджеры</a>
     <a href="#calc">Сколько нанимать</a>
     <a href="#paths">Три пути</a>
@@ -220,35 +221,53 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 3. MARKETING -->
 <section id="mkt">
-  <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: результаты по каналам</h2></div>
-  <p class="sec-sub">Сколько сделок и успешной выручки принёс каждый источник. Это половина картины: расходы по каналам в Bitrix не лежат, поэтому ROMI и стоимость лида честно посчитать пока нельзя.</p>
+  <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
+  <p class="sec-sub">Факт по каналам из Яндекс Директа и Метрики. Живой снимок за август взять не удалось (токены Директ/Метрика не заведены в секреты репозитория, ночной синк падает с 26 июля), поэтому база это последний реальный снимок <b>8 июня – 7 июля</b>. Расход августа по твоему сценарию: всё ×1.5.</p>
+  <div class="grid g4" style="margin-bottom:16px">
+    <div class="tile"><div class="v" style="color:var(--d6)">100.7к</div><div class="l">Директ, расход факт (30 дн)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 100% на перегородки</div></div>
+    <div class="tile cy"><div class="v">2 189 ₽</div><div class="l">стоимость лида в Директе (CPL)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 46 лидов / 100.7к</div></div>
+    <div class="tile good"><div class="v">69</div><div class="l">лидов из SEO / органики</div><div class="n"><span class="tag data">ДАННЫЕ</span> больше Директа, при ~0 предельных ₽</div></div>
+    <div class="tile hot"><div class="v">0</div><div class="l">лидов ABDM размечено в Метрике</div><div class="n"><span class="tag gap">СЛЕПАЯ ЗОНА</span> 115к/мес без трекинга</div></div>
+  </div>
   <div class="grid g2">
     <div class="card">
-      <div class="chart-t">Источники по числу сделок и успешной выручке <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">апрель – август, топ каналов; наведи для деталей</div>
-      <div id="c-src"></div>
+      <div class="chart-t">Достижения целей в Метрике: все лиды и качественные <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">по источнику трафика, 8 июня – 7 июля · «качественный» = отправка контактов</div>
+      <div id="c-goals"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Все лиды (цель «CRM Все лиды»)</span><span><span class="dot" style="background:var(--d3)"></span>Качественные (отправка контактов)</span></div>
     </div>
-    <div>
-      <div class="callout d" style="margin-bottom:16px">
-        <h3>Чего не хватает для честного вывода о маркетинге <span class="tag gap">НЕТ ДАННЫХ</span></h3>
-        <ul class="muted" style="padding-left:18px;font-size:13px;margin:6px 0 0">
-          <li><b>Расходы по каналам</b> (Яндекс Директ, ABDM, SEO): нет в снимке. Без них нет CAC и ROMI.</li>
-          <li><b>Чистая атрибуция:</b> у 22% сделок источник «не указан», а он лидирует по выручке. Метки грязные.</li>
-          <li>Каналы в CRM смешаны с телефонами и ботами, а не сведены к «Директ / ABDM / SEO / рекомендации».</li>
-        </ul>
+    <div class="card">
+      <div class="chart-t">Каналы сведены: расход, лиды, CPL <span class="tag data">ФАКТ</span> + <span class="tag hyp">август ×1.5</span></div>
+      <div class="chart-s">расход августа = факт июнь-июль ×1.5 (твой сценарий)</div>
+      <div class="scrollx"><table>
+        <thead><tr><th>Канал</th><th>Расход факт</th><th>Расход авг</th><th>Лиды</th><th>Кач.</th><th>CPL</th></tr></thead>
+        <tbody>
+          <tr><td class="name">Директ</td><td>100.7к</td><td>151.0к</td><td>46</td><td>33</td><td><span class="pill y">2 189</span></td></tr>
+          <tr><td class="name">SEO / органика</td><td class="dim">~0</td><td class="dim">~0</td><td>69</td><td>44</td><td><span class="pill g">≈0</span></td></tr>
+          <tr><td class="name">ABDM</td><td>115.0к</td><td>172.5к</td><td class="dim">н/д</td><td class="dim">н/д</td><td><span class="pill r">?</span></td></tr>
+          <tr><td class="name">Прямые + рекоменд.</td><td class="dim">0</td><td class="dim">0</td><td>23</td><td>36</td><td class="dim">-</td></tr>
+          <tr class="tot"><td>Платный итог</td><td>215.7к</td><td>323.5к</td><td colspan="3" class="small dim">Директ + ABDM; август по сценарию ×1.5</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tiny dim" style="margin-top:10px">Директ и ABDM почти равны по деньгам (115к против 100.7к), но лиды Директа видны, а лиды ABDM нет вообще. Пока ABDM не размечен, его CPL и ROMI посчитать нельзя, а это уже 115к в месяц вслепую.</p>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="callout i">
+      <h3>Что говорит факт</h3>
+      <p class="muted">Директ работает узко и понятно: весь бюджет на перегородки, CPL 2 189 ₽, качественных лидов 33 из 46. Но <b>органика (SEO) дала 69 лидов почти бесплатно</b> - это самый эффективный канал по стоимости, и его недокармливают. ABDM съедает столько же, сколько Директ, и не оставляет следа в аналитике.</p>
+    </div>
+    <div class="calc">
+      <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>
+      <div class="calc-row">
+        <div class="field"><label>Успешная выручка канала, млн ₽</label><div class="rng"><input type="range" id="r-rev" min="0.1" max="20" step="0.1" value="6"><span class="num" id="v-rev">6</span></div></div>
+        <div class="field"><label>Расход на канал, млн ₽</label><div class="rng"><input type="range" id="r-spend" min="0.05" max="2" step="0.01" value="0.15"><span class="num" id="v-spend">0.15</span></div></div>
       </div>
-      <div class="calc">
-        <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">ГИПОТЕЗА</span></div>
-        <div class="calc-row">
-          <div class="field"><label>Успешная выручка канала, млн ₽</label><div class="rng"><input type="range" id="r-rev" min="0.1" max="20" step="0.1" value="8.4"><span class="num" id="v-rev">8.4</span></div></div>
-          <div class="field"><label>Расход на канал, млн ₽</label><div class="rng"><input type="range" id="r-spend" min="0.1" max="10" step="0.1" value="1.5"><span class="num" id="v-spend">1.5</span></div></div>
-        </div>
-        <div class="calc-out">
-          <div class="box"><div class="v" id="o-romi" style="color:var(--up)">5.6x</div><div class="l">ROMI по выручке (не по прибыли)</div></div>
-          <div class="box"><div class="v" id="o-share" style="color:var(--accent)">18%</div><div class="l">расход к выручке канала</div></div>
-        </div>
-        <p class="tiny dim" style="margin-top:12px">Подставьте реальный расход из кабинета Директа / актов ABDM, и цифра станет фактом. Сейчас это заготовка, чтобы показать логику на собрании.</p>
+      <div class="calc-out">
+        <div class="box"><div class="v" id="o-romi" style="color:var(--up)">40x</div><div class="l">ROMI по выручке (не по прибыли)</div></div>
+        <div class="box"><div class="v" id="o-share" style="color:var(--accent)">3%</div><div class="l">расход к выручке канала</div></div>
       </div>
+      <p class="tiny dim" style="margin-top:12px">Расход Директа реальный (0.15 млн август). Выручку канала точно не свести: у сделок в CRM нет UTM (размечено ~8%), Директ в CRM прячется в «Сайт genglass.ru». Поставь свою оценку выручки перегородок от Директа - и увидишь ROMI. По прибыли будет ниже (см. блок про маржу).</p>
     </div>
   </div>
 </section>
@@ -294,9 +313,43 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
 </section>
 
-<!-- 5. MANAGERS -->
+<!-- 5. DYNAMICS -->
+<section id="dyn">
+  <div class="sec-h"><span class="sec-n">05</span><h2>Динамика по месяцам: факт после переезда</h2></div>
+  <p class="sec-sub">Окно апрель – август 2026, то есть после переезда с amoCRM (март). Всё, что залито при миграции 05.03 (21 090 сделок одним днём), в расчёт не берём, это архив amo. Смотрим, как отдел движется помесячно в штуках и в рублях.</p>
+  <div class="callout d small" style="margin-bottom:18px;padding:10px 16px"><span class="tag hyp">ЗРЕЛОСТЬ</span> Август считается по 23-е и сделки в нём ещё не дозрели: длинный цикл в дорогом сегменте закрывается через 1 – 3 месяца, поэтому «успех» и «won» последних месяцев занижены не из-за провала, а из-за того, что сделки ещё в работе. Приток (создано, потенциал) сравним честно, исход (успех, won) по свежим месяцам читаем как незавершённый.</p></div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="chart-t">Отдел: поток сделок по месяцам <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">создано (шт) и сколько из них дошло до предоплаты; по месяцу создания</div>
+      <div id="c-dyn-n"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Создано сделок</span><span><span class="dot" style="background:var(--d3)"></span>Дошли до предоплаты</span></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Отдел: деньги по месяцам <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">потенциал в карточках и успешная выручка (предоплата+), млн ₽</div>
+      <div id="c-dyn-r"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Потенциал</span><span><span class="dot" style="background:var(--d3)"></span>Успешная выручка</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="chart-t">Сегменты в динамике: где растёт поток и где деньги <span class="tag data">ДАННЫЕ</span></div>
+    <div class="chart-s">потенциал по месяцам, млн ₽ · до-150к против свыше-150к</div>
+    <div id="c-dyn-seg"></div>
+    <div class="leg"><span><span class="dot" style="background:var(--d4)"></span>до 150к (поток)</span><span><span class="dot" style="background:var(--d6)"></span>свыше 150к (деньги)</span></div>
+  </div>
+  <div class="scrollx" style="margin-top:16px"><table>
+    <thead><tr><th>Месяц</th><th>Создано</th><th>Потенциал</th><th>Успех, шт</th><th>Успех, ₽</th><th>WON, шт</th><th>WON, ₽</th></tr></thead>
+    <tbody id="dyn-tbody"></tbody>
+  </table></div>
+  <div class="callout i" style="margin-top:16px">
+    <p class="muted"><b>Что видно.</b> Приток растёт: создано сделок с 216 в апреле до 288 в июле, потенциал с 32.5 до 43.4 млн. Маркетинг наливает всё больше. Но <b>успешная выручка по свежим когортам не поспевает</b> (апрель дал 12.5 млн, дальше видимая просадка), и это ровно тот разрыв, о котором говорят менеджеры: поток на входе растёт быстрее, чем отдел успевает дожимать. Часть просадки это незрелость (сделки ещё открыты), часть - реальный обрыв на дожиме из раздела про менеджеров.</p>
+  </div>
+</section>
+
+<!-- 6. MANAGERS -->
 <section id="mgr">
-  <div class="sec-h"><span class="sec-n">05</span><h2>Кто тянет: разрез по менеджерам</h2></div>
+  <div class="sec-h"><span class="sec-n">06</span><h2>Кто тянет: разрез по менеджерам</h2></div>
   <p class="sec-sub">Главный график собрания. По горизонтали нагрузка (сколько сделок взял), по вертикали конверсия в предоплату, размер круга это успешная выручка. Он и отвечает на вопрос «нехватка людей или слабые люди».</p>
   <div class="callout small" style="margin-bottom:18px;padding:10px 16px;border-color:var(--border);background:var(--card)"><span class="tag hyp">SCOPE</span> Внимание на две выборки. Разрез по менеджерам ниже берёт <b>все 1 169 сделок с чеком</b> (полный ростер ОП). Сегментные таблицы выше берут <b>256 сделок с офером в окне</b> с РОП-дашборда. Числа не сходятся по этой причине, не из-за ошибки. Перед финалом собрания зафиксировать один фильтр.</div>
   <div class="callout d small" style="margin-bottom:18px;padding:12px 16px">
@@ -348,7 +401,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 6. CALC -->
 <section id="calc">
-  <div class="sec-h"><span class="sec-n">06</span><h2>Сколько менеджеров нужно под цель</h2></div>
+  <div class="sec-h"><span class="sec-n">07</span><h2>Сколько менеджеров нужно под цель</h2></div>
   <p class="sec-sub">Математика Ивана в интерактиве. Двигайте ползунки: цель по выручке, средний чек сегмента, сколько успешных сделок реально закрывает один менеджер за окно. Получите нужное число людей.</p>
   <div class="calc">
     <div class="calc-row">
@@ -384,7 +437,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 7. PATHS -->
 <section id="paths">
-  <div class="sec-h"><span class="sec-n">07</span><h2>Три пути и синтез</h2></div>
+  <div class="sec-h"><span class="sec-n">08</span><h2>Три пути и синтез</h2></div>
   <p class="sec-sub">Иван сформулировал три развилки. Ниже каждая с коротким вердиктом, а затем собранный из них план.</p>
   <div class="grid g3">
     <div class="path">
@@ -425,7 +478,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 8. MARGIN -->
 <section id="margin">
-  <div class="sec-h"><span class="sec-n">08</span><h2>Главный вопрос: где на самом деле маржа</h2></div>
+  <div class="sec-h"><span class="sec-n">09</span><h2>Главный вопрос: где на самом деле маржа</h2></div>
   <p class="sec-sub">Вопрос Дмитрия, который переворачивает стратегию. Мы весь дашборд считаем выручку. Но что если свыше-1млн даёт 10% маржи, а 90к даёт 50%? Тогда сажать звёзд на «бабло» это сажать их на убыток.</p>
   <div class="callout q" style="margin-bottom:18px">
     <h3>Что мы знаем и чего не знаем про маржу <span class="tag gap">НЕ ИЗМЕРЕНО</span></h3>
@@ -448,7 +501,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
 <!-- 9. DECIDE -->
 <section id="decide" style="border-bottom:none">
-  <div class="sec-h"><span class="sec-n">09</span><h2>Решения собрания</h2></div>
+  <div class="sec-h"><span class="sec-n">10</span><h2>Решения собрания</h2></div>
   <p class="sec-sub">Не «продолжаем анализировать», а конкретные шаги с ответственным и датой. Порядок отвечает на «что бы что улучшить».</p>
   <div class="scrollx"><table class="act">
     <thead><tr><th>Шаг</th><th>Зачем</th><th>Ответственный</th><th>Срок</th></tr></thead>
@@ -493,6 +546,15 @@ const SEG=[
 const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
 const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
+// Метрика: цели по источнику [источник, все лиды, качественные(контакты)] (8 июня-7 июля)
+const GOALS=[['Директ (Ad)',46,33],['SEO (Search)',69,44],['Прямые',12,14],['Рекоменд.(Link)',5,13],['Внутр.',5,9],['Почта',1,0]];
+// Динамика по месяцам (создано): [мес, создано, потенциал_k, успех_шт, успех_k, won_шт, won_k]
+const DYN=[
+ ['апр',216,32555,104,12512,85,5860],['май',232,33899,85,7296,66,4850],['июн',246,40729,77,10228,42,2913],
+ ['июл',288,43412,87,8821,43,3343],['авг*',188,32594,61,3729,10,346]
+];
+// Сегменты в динамике: потенциал_k по месяцам [мес, до150, свыше150]
+const DYNSEG=[['апр',9673,22882],['май',11245,22654],['июн',9249,31480],['июл',10010,33401],['авг*',7200,25394]];
 const LOSS=[
  ['Прочее / без причины',149,24291],['Нет контакта / не дожали',135,16768],['Цена / возражение',92,20503],['Потребность ушла',85,8824],['Дубль / нецелевой',21,1664]
 ];
@@ -661,11 +723,32 @@ function marginChart(){
   el.appendChild(svg);
 }
 
+// ---- generic 2-series grouped bars ----
+function gbars(el,rows,{cat,v1,v2,c1=PAL[0],c2=PAL[2],fmt=F.fmtM,unit='',t1='',t2='',h=230}){
+  const W=el.clientWidth||520,pad={l:8,r:14,t:14,b:38};
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,n=rows.length,gw=iw/n;
+  const max=Math.max(1,...rows.map(r=>Math.max(v1(r),v2(r))));
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));
+    const tt=mk('text',{x:pad.l,y:y-3,class:'tick'});tt.textContent=fmt(max*(1-i/4));svg.appendChild(tt);}
+  rows.forEach((r,i)=>{
+    const cx=pad.l+gw*i+gw/2,bw=Math.min(26,gw/3.2);
+    const h1=ih*(v1(r)/max),h2=ih*(v2(r)/max);
+    const g=mk('g');
+    g.appendChild(mk('rect',{x:cx-bw-2,y:pad.t+ih-h1,width:bw,height:Math.max(1,h1),rx:4,fill:c1,opacity:.92}));
+    g.appendChild(mk('rect',{x:cx+2,y:pad.t+ih-h2,width:bw,height:Math.max(1,h2),rx:4,fill:c2}));
+    const l=mk('text',{x:cx,y:h-22,'text-anchor':'middle',class:'bar-lbl'});l.textContent=cat(r);g.appendChild(l);
+    bind(g,`<div class="tt">${esc(cat(r))}</div><div class="tr">${t1}: ${fmt(v1(r))}${unit}</div><div class="tr">${t2}: ${fmt(v2(r))}${unit}</div>`);
+    svg.appendChild(g);
+  });
+  el.appendChild(svg);
+}
+
 // ---- ROMI calc ----
 function romi(){
   const rev=+document.getElementById('r-rev').value, sp=+document.getElementById('r-spend').value;
   document.getElementById('v-rev').textContent=rev.toFixed(1).replace('.',',');
-  document.getElementById('v-spend').textContent=sp.toFixed(1).replace('.',',');
+  document.getElementById('v-spend').textContent=(sp<1?sp.toFixed(2):sp.toFixed(1)).replace('.',',');
   document.getElementById('o-romi').textContent=(rev/sp).toFixed(1).replace('.',',')+'x';
   document.getElementById('o-share').textContent=Math.round(sp/rev*100)+'%';
 }
@@ -686,7 +769,7 @@ function capacity(){
 // ---- init ----
 function draw(){
   funnel(document.getElementById('c-funnel'),FUNNEL);
-  hbars(document.getElementById('c-src'),SRC,{val:r=>r[2],label:r=>r[0],sub:r=>`${r[1]} сделок · конв ${F.pct(r[3])}`,color:PAL[0],h:40});
+  gbars(document.getElementById('c-goals'),GOALS,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'Все лиды',t2:'Качественные',h:220});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
   hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
@@ -694,6 +777,11 @@ function draw(){
   scatter(document.getElementById('c-scatter'));
   mgrBar(document.getElementById('c-mgrbar'));
   hbars(document.getElementById('c-loss'),LOSS,{val:r=>r[1],label:r=>r[0],sub:r=>`${F.fmtM(r[2])} потенциала`,color:PAL[4],h:38,unit:'сделок',fmt:v=>v+' шт'});
+  gbars(document.getElementById('c-dyn-n'),DYN,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[3],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' шт',t1:'Создано',t2:'До предоплаты',h:220});
+  gbars(document.getElementById('c-dyn-r'),DYN,{cat:r=>r[0],v1:r=>r[2],v2:r=>r[4],c1:PAL[0],c2:PAL[2],fmt:F.fmtM,t1:'Потенциал',t2:'Успешная выручка',h:220});
+  gbars(document.getElementById('c-dyn-seg'),DYNSEG,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[3],c2:PAL[5],fmt:F.fmtM,t1:'до 150к',t2:'свыше 150к',h:220});
+  const tb=document.getElementById('dyn-tbody');
+  if(tb) tb.innerHTML=DYN.map(r=>`<tr><td class="name">${r[0]}</td><td>${r[1]}</td><td>${F.fmtM(r[2])}</td><td>${r[3]}</td><td>${F.fmtM(r[4])}</td><td>${r[5]}</td><td>${F.fmtM(r[6])}</td></tr>`).join('');
   marginChart();
 }
 draw();
@@ -701,7 +789,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-src,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

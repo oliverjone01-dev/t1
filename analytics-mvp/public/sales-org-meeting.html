@@ -182,10 +182,10 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <thead><tr><th>Блок дашборда</th><th style="text-align:left">Система</th><th style="text-align:left">Период</th><th style="text-align:left">Снимок</th></tr></thead>
     <tbody>
       <tr><td class="name">Воронка, сегменты, менеджеры, динамика</td><td style="text-align:left">Bitrix24, воронка C49 «GG Заказы РФ»</td><td style="text-align:left">апрель – август 2026 (после переезда с amo)</td><td style="text-align:left">22.08.2026</td></tr>
-      <tr><td class="name">Маркетинг: расход, лиды, CPL, цели</td><td style="text-align:left">Яндекс Директ API + Метрика</td><td style="text-align:left">8 июня – 7 июля 2026</td><td style="text-align:left">08.07.2026 <span class="tag gap">живой август недоступен</span></td></tr>
+      <tr><td class="name">Маркетинг: расход, лиды, CPL, отказы</td><td style="text-align:left">Яндекс Директ API + Метрика</td><td style="text-align:left">август: 24 июля – 22 августа 2026</td><td style="text-align:left">23.08.2026 <span class="tag data">живой синк</span></td></tr>
     </tbody>
   </table></div>
-  <p class="tiny dim" style="margin-top:10px">Почему периоды разные: сделки тянутся из ночного снимка Bitrix (свежий, 22.08). Маркетинг застрял на 8 июня – 7 июля, потому что ночной синк Директа падает с 26 июля (в репозитории не заведены токены Яндекса). Всё, что залито при переезде с amoCRM 05.03.2026, в расчёт не берём - это архив amo, не наши продажи после переезда.</p>
+  <p class="tiny dim" style="margin-top:10px">Каналы всегда разделяем: <b>Яндекс.Директ</b> (свой кабинет), <b>ABDM</b> (программатик, отдельный бюджет), <b>SEO</b> (органика). Сделки - из ночного снимка Bitrix (22.08), маркетинг - из живого синка Директ+Метрика (23.08). Всё, что залито при переезде с amoCRM 05.03.2026, в расчёт не берём - это архив amo.</p>
 </div>
 
 <!-- 1. QUESTION -->
@@ -245,9 +245,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
   <p class="sec-sub">Живой синк заработал (починил имена секретов). Данные за <b>август (24.07 – 22.08)</b>, свежий снимок. Всего лидов 253 - почти вдвое больше июня-июля (138). SEO из поисковых, реклама = Директ (кабинет) + ABDM (программатик). Кабинет Директа считает конверсии по мягкой цели (не CRM-лид), поэтому лиды рекламы беру из Метрики.</p>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="tile good"><div class="v">125</div><div class="l">лидов из SEO / органики (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 69; крупнейший канал, ~0 ₽, отказ 17%</div></div>
-    <div class="tile cy"><div class="v">87</div><div class="l">лидов из рекламы (Директ+ABDM)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 46; отказ 23%</div></div>
-    <div class="tile"><div class="v" style="color:var(--d6)">151к</div><div class="l">расход Директа за август (факт)</div><div class="n"><span class="tag data">ДАННЫЕ</span> кабинет, 1389 кликов, весь на перегородки</div></div>
+    <div class="tile good"><div class="v">125</div><div class="l">SEO / органика (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 69; ~0 ₽, отказ 17%, CPL ≈ 0</div></div>
+    <div class="tile cy"><div class="v">45</div><div class="l">ABDM программатик · CPL 2 556 ₽</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 33; расход 115к (программатик)</div></div>
+    <div class="tile"><div class="v" style="color:var(--d6)">39</div><div class="l">Яндекс.Директ · CPL 3 882 ₽</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 11; расход 151.4к из кабинета</div></div>
     <div class="tile"><div class="v" style="color:var(--warn)">253</div><div class="l">всего лидов за август</div><div class="n"><span class="tag data">ДАННЫЕ</span> +83% к июню-июлю (138); поток вырос</div></div>
   </div>
   <div class="grid g2">
@@ -264,13 +264,14 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <thead><tr><th>Канал</th><th>Лиды</th><th>Кач.</th><th>Отказ</th><th>Расход</th><th>CPL</th></tr></thead>
         <tbody>
           <tr><td class="name">SEO / органика</td><td>125</td><td>75</td><td>17%</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td></tr>
-          <tr><td class="name">Реклама (Директ+ABDM)</td><td>87</td><td>55</td><td>23%</td><td>151к+ABDM</td><td><span class="pill y">1.7-3.1к</span></td></tr>
+          <tr><td class="name">ABDM (программатик)</td><td>45</td><td>31</td><td>~22%</td><td>115к</td><td><span class="pill g">2 556</span></td></tr>
+          <tr><td class="name">Яндекс.Директ</td><td>39</td><td>17</td><td>~23%</td><td>151.4к</td><td><span class="pill y">3 882</span></td></tr>
           <tr><td class="name">Прямые / typein</td><td>28</td><td>19</td><td>25%</td><td class="dim">0</td><td class="dim">-</td></tr>
           <tr><td class="name">Внутренние + реф</td><td>12</td><td>14</td><td>~20%</td><td class="dim">0</td><td class="dim">-</td></tr>
-          <tr class="tot"><td>Всего</td><td>253</td><td>163</td><td>-</td><td>151к+ABDM</td><td>-</td></tr>
+          <tr class="tot"><td>Всего</td><td>253</td><td>156</td><td>-</td><td>266к платно</td><td>-</td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px">CPL рекламы: если считать только Директ (151к / 87) = <b>1 740 ₽</b>; если Директ + ABDM программатик (≈115к) = (266к / 87) = <b>3 057 ₽</b>. По движку Метрики 85 из 87 рекламных лидов - это «Яндекс.Директ» (ABDM-программатик крутит инвентарь Яндекса, отдельно не выделяется). Кабинет Директа рапортует 1182 «конверсии» = 85% от кликов - это мягкая цель, не CRM-лид, в расчёт не берём.</p>
+      <p class="tiny dim" style="margin-top:10px">Директ и ABDM разделены по utm-метке кампании: plain «peregorodki» = ABDM (45 лидов), «peregorodki_&lt;id&gt;» = Директ (39). ABDM (CPL 2 556) дешевле Директа (3 882) - как и в июне-июле. Расход ABDM 115к - твоя оценка программатика (в Яндексе не лежит); Директ 151.4к - факт из кабинета. Кабинет Директа рапортует 1182 «конверсии» = 85% кликов, это мягкая цель, не лиды - в расчёт не берём. Точный split по utm_source добавлю в ночной синк.</p>
     </div>
   </div>
   <div class="card" style="margin-top:16px">
@@ -296,7 +297,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
       <h3>Что говорит факт (август, живые данные)</h3>
-      <p class="muted">Поток лидов <b>вырос</b> (138→253), значит дефицита заявок нет - подтверждает ФЕНИКСА. <b>SEO - канал №1: 125 лидов почти даром, отказ 17% (лучший)</b>, и недоинвестирован (75% запросов брендовые, небренд можно растить). Реклама 87 лидов при отказе 23%, CPL 1.7-3.1к. Кабинет Директа рапортует 1182 «конверсии» (85% кликов) - это мягкая цель, не лиды; в отчёты её не тащить. Вывод: деньги не в накачке рекламы, а в дожиме (см. воронку) и в небрендовом SEO.</p>
+      <p class="muted">Поток лидов <b>вырос</b> (138→253), значит дефицита заявок нет - подтверждает ФЕНИКСА. <b>SEO - канал №1: 125 лидов почти даром, отказ 17% (лучший)</b>, и недоинвестирован (75% запросов брендовые, небренд можно растить). Реклама 87 лидов: ABDM 45 (CPL 2 556) дешевле Директа 39 (CPL 3 882). Кабинет Директа рапортует 1182 «конверсии» (85% кликов) - это мягкая цель, не лиды; в отчёты её не тащить. Вывод: деньги не в накачке рекламы, а в дожиме (см. воронку) и в небрендовом SEO.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>
@@ -624,9 +625,10 @@ const SEOCAT=[['Главная/бренд',403],['Зеркала',299],['Сто�
 // Отказы по каналам [канал, отказ%, лиды] (АВГУСТ)
 const BOUNCE=[['SEO / поиск',17.1,125],['Реклама (Директ+ABDM)',22.6,87],['Прямые / typein',25.2,28],['Внутренние',24.9,8]];
 // Метрика: лиды по каналу [канал, все лиды, качественные] (АВГУСТ 24.07-22.08, живой синк)
-const GOALS=[['SEO / органика',125,75],['Реклама (Директ+ABDM)',87,55],['Прямые',28,19],['Внутренние',8,8],['Рекоменд.',4,6]];
+// Директ и ABDM разделены по utm-метке кампании (plain peregorodki=ABDM, peregorodki_<id>=Директ)
+const GOALS=[['SEO / органика',125,75],['ABDM (программатик)',45,31],['Яндекс.Директ',39,17],['Прямые',28,19],['Внутр.+реф',12,14]];
 // Лиды по месяцам (2 окна) [канал, июнь-июль, август]
-const LEADMO=[['SEO / органика',69,125],['Реклама',46,87],['Прямые',12,28],['Всего',138,253]];
+const LEADMO=[['SEO',69,125],['ABDM',33,45],['Директ',11,39],['Прямые',12,28],['Всего',138,253]];
 // Динамика по месяцам (создано): [мес, создано, потенциал_k, успех_шт, успех_k, won_шт, won_k]
 const DYN=[
  ['апр',216,32555,104,12512,85,5860],['май',232,33899,85,7296,66,4850],['июн',246,40729,77,10228,42,2913],

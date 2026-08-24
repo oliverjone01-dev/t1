@@ -166,7 +166,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <span>Снимок Bitrix: <b id="snap">22.08</b> · маркетинг: <b>23.08</b></span>
     <span>Гейт: <b>ФЕНИКС</b> + Protocol 9</span>
   </div>
-  <div class="callout i small" style="margin-top:14px;padding:10px 16px"><b>Период.</b> Весь отчёт - окно <b>апрель – август 2026</b>, разбито помесячно. Где в плитке стоит один месяц (например «август»), это выделенный месяц внутри того же окна, а не другой период отчёта. Всё до переезда с amoCRM (05.03) не считаем - это архив.</div>
+  <div class="callout i small" style="margin-top:14px;padding:10px 16px"><b>Период и методика.</b> Весь отчёт - окно <b>апрель – август 2026</b>, помесячно, <b>строго по дате создания</b> сделки/заявки. Сделки, созданные раньше и залитые при переезде из amoCRM (05.03) на те же этапы, <b>исключены</b> - иначе воронка раздулась бы задвоенными этапами. В плитке один месяц (например «август») - это акцент на месяце внутри того же окна, а не другой период.</div>
 </header>
 
 <!-- persistent caveat banner -->
@@ -246,8 +246,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="sec-h"><span class="sec-n">03</span><h2>Что дал маркетинг: расходы, лиды, стоимость лида</h2></div>
   <p class="sec-sub">Каналы всегда разделяем: <b>Яндекс.Директ</b>, <b>ABDM</b> (программатик), <b>SEO</b>. Платные - из твоего отчёта Метрики по UTM Source (достижения избранных целей, посл. значимый переход): август и квартал. SEO - отдельно (органика, без UTM). Расход Директа - факт из кабинета.</p>
   <div class="grid g4" style="margin-bottom:16px">
-    <div class="tile"><div class="v" style="color:var(--d6)">35</div><div class="l">Яндекс.Директ, цели (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> квартал 72; расход 151.4к; CPL 4 326 ₽</div></div>
-    <div class="tile cy"><div class="v">33</div><div class="l">ABDM программатик, цели (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> квартал 95; расход 115к; CPL 3 485 ₽</div></div>
+    <div class="tile"><div class="v" style="color:var(--d6)">3 985 ₽</div><div class="l">CPL Директа (кабинет, «Все лиды»)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 38 лидов / 151.4к; кач. 21, CPQL 7 211</div></div>
+    <div class="tile cy"><div class="v">3 485 ₽</div><div class="l">CPL ABDM (программатик)</div><div class="n"><span class="tag data">ДАННЫЕ</span> 33 лида / 115к; чуть дешевле Директа</div></div>
     <div class="tile good"><div class="v">125</div><div class="l">SEO / органика (др. цель)</div><div class="n"><span class="tag data">ДАННЫЕ</span> без UTM, отказ 17%, ~0 ₽</div></div>
     <div class="tile"><div class="v" style="color:var(--warn)">≈вровень</div><div class="l">Директ и ABDM в августе</div><div class="n"><span class="tag data">ДАННЫЕ</span> 35 vs 33; за квартал ABDM больше (95 vs 72)</div></div>
   </div>
@@ -262,15 +262,15 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="chart-t">Каналы: цели по UTM Source из Метрики <span class="tag data">ФАКТ</span></div>
       <div class="chart-s">твой отчёт «Метки UTM», достижения избранных целей, посл. значимый переход</div>
       <div class="scrollx"><table>
-        <thead><tr><th>Канал</th><th>Цели авг</th><th>Цели квартал</th><th>Расход авг</th><th>CPL авг</th></tr></thead>
+        <thead><tr><th>Канал</th><th>Лиды авг</th><th>Кач.</th><th>Расход авг</th><th>CPL</th><th>CPQL</th></tr></thead>
         <tbody>
-          <tr><td class="name">Яндекс.Директ (yandex)</td><td>35</td><td>72</td><td>151.4к</td><td><span class="pill y">4 326</span></td></tr>
-          <tr><td class="name">ABDM (abdm)</td><td>33</td><td>95</td><td>115к*</td><td><span class="pill g">3 485</span></td></tr>
-          <tr><td class="dim" style="padding-left:22px">abdm_peregorodki</td><td class="dim">~3</td><td class="dim">4</td><td class="dim">-</td><td class="dim">-</td></tr>
-          <tr><td class="name">SEO / органика **</td><td>125</td><td class="dim">-</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td></tr>
+          <tr><td class="name">SEO / органика</td><td>125</td><td>75</td><td class="dim">~0</td><td><span class="pill g">≈0</span></td><td class="dim">≈0</td></tr>
+          <tr><td class="name">ABDM (abdm)</td><td>33</td><td>24</td><td>115к*</td><td><span class="pill g">3 485</span></td><td class="dim">4 792</td></tr>
+          <tr><td class="name">Яндекс.Директ</td><td>38</td><td>21</td><td>151.4к</td><td><span class="pill g">3 985</span></td><td class="dim">7 211</td></tr>
+          <tr><td class="name">Прямые / typein</td><td>28</td><td>19</td><td class="dim">0</td><td class="dim">-</td><td class="dim">-</td></tr>
         </tbody>
       </table></div>
-      <p class="tiny dim" style="margin-top:10px">Директ и ABDM - из твоего отчёта Метрики по UTM Source (август и квартал). В августе они почти вровень (Директ 35, ABDM 33), за квартал ABDM больше (95 против 72). CPL авг: Директ 151.4к/35 = 4 326 ₽; ABDM 115к/33 = 3 485 ₽. *Расход ABDM 115к - твоя оценка (программатик, в Яндексе не лежит). **SEO 125 - на цели «CRM Все лиды» и без UTM (органика), поэтому в один столбец целей с платными пока не сводится: нужна унификация цели. Кабинет Директа рапортует 1182 «мягких конверсии» (85% кликов) - не лиды, не берём.</p>
+      <p class="tiny dim" style="margin-top:10px">Директ - из <b>кабинета Директа</b> по цели «Все лиды» (посл. знач. переход): 38 лидов, CPL <b>3 985 ₽</b>, качественных 21, CPQL 7 211. Кабинет (38) сходится с Метрикой по UTM (35), это не мягкая цель. ABDM - из Метрики (utm=abdm), 33 лида; расход 115к* твоя оценка (программатик). <b>Итог: ABDM (3 485) и Директ (3 985) по цене лида почти вровень</b>, ABDM чуть дешевле. SEO даёт лиды даром.</p>
     </div>
   </div>
   <div class="grid g2" style="margin-top:16px">
@@ -293,7 +293,6 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>ABDM</span><span><span class="dot" style="background:var(--d3)"></span>Яндекс.Директ</span></div>
     <p class="tiny dim" style="margin-top:10px">Что видно в динамике. <b>SEO держал весь апрель-май</b> (80 и 38 лидов), когда Директ почти не тратил (3к и 1.8к). Платный залив пошёл с июня: расход Директа 72к→160к→113к, лиды рекламы 34→75→70. По UTM в августе Директ (35) обошёл ABDM (33), в июне-июле вёл ABDM. Цифры на цели «CRM Все лиды» (мой синк) - выше, чем «избранные цели» в Метрике; дашь ID избранных - переключу.</p>
   </div>
-  </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
     <div class="chart-s">два реальных снимка; апрель, май и полный июль недоступны без токенов Яндекса</div>
@@ -310,7 +309,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2" style="margin-top:16px">
     <div class="callout i">
       <h3>Что говорит факт (август, живые данные)</h3>
-      <p class="muted">Поток лидов <b>вырос</b> (138→253), значит дефицита заявок нет - подтверждает ФЕНИКСА. <b>SEO - канал №1: 125 лидов почти даром, отказ 17% (лучший)</b>, и недоинвестирован (75% запросов брендовые, небренд можно растить). Реклама: по твоей Метрике за август Директ 35 и ABDM 33 почти вровень, за квартал ABDM больше (95 против 72). CPL авг: Директ 4 326, ABDM 3 485. Кабинет Директа рапортует 1182 «конверсии» (85% кликов) - это мягкая цель, не лиды; в отчёты её не тащить. Вывод: деньги не в накачке рекламы, а в дожиме (см. воронку) и в небрендовом SEO.</p>
+      <p class="muted">Поток лидов <b>вырос</b> (138→253), значит дефицита заявок нет - подтверждает ФЕНИКСА. <b>SEO - канал №1: 125 лидов почти даром, отказ 17% (лучший)</b>, и недоинвестирован (75% запросов брендовые, небренд можно растить). Реклама: по твоей Метрике за август Директ 35 и ABDM 33 почти вровень, за квартал ABDM больше (95 против 72). CPL считаю по кабинету Директа на цели «Все лиды» (см. таблицу). Вывод: деньги не в накачке рекламы, а в дожиме (см. воронку) и в небрендовом SEO.</p>
     </div>
     <div class="calc">
       <div class="chart-t" style="margin-bottom:12px">Калькулятор ROMI по каналу <span class="tag hyp">МОДЕЛЬ</span></div>
@@ -327,16 +326,16 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
   <div class="grid g2" style="margin-top:16px">
     <div class="card">
-      <div class="chart-t">SEO по разделам сайта: визиты <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">органика по категориям страниц, август (топ-страницы Метрики)</div>
+      <div class="chart-t">SEO по разделам сайта: лиды <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">органика, август · достижения цели «Все лиды» по разделу сайта</div>
       <div id="c-seocat"></div>
-      <p class="tiny dim" style="margin-top:10px">Органика тянет прежде всего <b>зеркала и столы</b> (43% визитов) - это поток до-150к. Перегородки в SEO всего 12%: дорогой сегмент живёт на платной рекламе, не на органике. При этом <b>75% поисковых запросов - брендовые</b> (genglass), небрендовое привлечение слабое: это зона роста SEO.</p>
+      <p class="tiny dim" style="margin-top:10px">Это <b>лиды</b> (не визиты). Органика даёт лиды прежде всего с <b>столов и зеркал</b> (52 из 125) - это поток до-150к. Перегородки в SEO лишь 15 лидов: дорогой сегмент живёт на платной рекламе, не на органике. Треть лидов (35) - на бренд/главную (75% запросов брендовые), небрендовое привлечение слабое: зона роста SEO.</p>
     </div>
     <div class="card">
       <div class="chart-t">Отказы по каналам: качество трафика <span class="tag data">ДАННЫЕ</span></div>
       <div class="chart-s">процент отказов, ниже = лучше · подпись: лидов за окно</div>
       <div id="c-bounce"></div>
-      <p class="tiny dim" style="margin-top:10px">У <b>SEO самый низкий отказ (16%)</b> и больше всех лидов (69) при нулевой цене - лучший канал по всем осям. Реклама (31%) и прямые (34%) отказывают вдвое чаще. Ещё довод недоинвестирования органики.</p>
+      <p class="tiny dim" style="margin-top:10px">У <b>SEO самый низкий отказ (17%)</b> и больше всех лидов (125) при нулевой цене - лучший канал по всем осям. Реклама (23%) и прямые (25%) отказывают чаще. Ещё довод недоинвестирования органики.</p>
     </div>
   </div>
   <div class="callout i" style="margin-top:16px">
@@ -489,21 +488,29 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 6. CALC -->
 <section id="calc">
   <div class="sec-h"><span class="sec-n">07</span><h2>Сколько менеджеров нужно под цель</h2></div>
-  <p class="sec-sub">Математика Ивана в интерактиве. Двигайте ползунки: цель по выручке, средний чек сегмента, сколько успешных сделок реально закрывает один менеджер за окно. Получите нужное число людей.</p>
+  <p class="sec-sub">Задай <b>план по выручке</b> и состав отдела - калькулятор покажет прогноз и <b>дотягиваем ли до плана</b>. Двигай ползунки: число менеджеров, средний чек, сколько успешных сделок закрывает один в месяц. Ориентир (факт сейчас): отдел делает <b>~8.5 млн/мес</b> успешной выручки (42.6 млн за 5 мес), ~15 менеджеров.</p>
   <div class="calc">
     <div class="calc-row">
-      <div class="field"><label>Цель по успешной выручке, млн ₽</label><div class="rng"><input type="range" id="k-goal" min="5" max="60" step="1" value="20"><span class="num" id="kv-goal">20</span></div></div>
+      <div class="field"><label>План выручки, млн ₽/мес</label><div class="rng"><input type="range" id="k-plan" min="5" max="40" step="0.5" value="20"><span class="num" id="kv-plan">20</span></div></div>
+      <div class="field"><label>Менеджеров в отделе</label><div class="rng"><input type="range" id="k-mgr" min="1" max="20" step="1" value="6"><span class="num" id="kv-mgr">6</span></div></div>
       <div class="field"><label>Средний чек, тыс ₽</label><div class="rng"><input type="range" id="k-check" min="50" max="600" step="5" value="175"><span class="num" id="kv-check">175</span></div></div>
-      <div class="field"><label>Успешных сделок на менеджера за окно</label><div class="rng"><input type="range" id="k-deals" min="5" max="80" step="1" value="20"><span class="num" id="kv-deals">20</span></div></div>
+      <div class="field"><label>Успешных сделок на менеджера/мес</label><div class="rng"><input type="range" id="k-deals" min="3" max="60" step="1" value="15"><span class="num" id="kv-deals">15</span></div></div>
+    </div>
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:7px"><span class="muted">Прогноз к плану</span><span id="o-status" style="font-weight:800">идём к плану ✓</span></div>
+      <div style="height:18px;background:var(--bg-base);border-radius:9px;overflow:hidden;position:relative;border:1px solid var(--border)">
+        <div id="planfill" style="height:100%;width:79%;background:var(--warn);border-radius:9px;transition:width .18s,background .18s"></div>
+      </div>
+      <div class="tiny dim" style="text-align:right;margin-top:3px">100% = план</div>
     </div>
     <div class="calc-out">
-      <div class="box"><div class="v" id="ko-perm" style="color:var(--accent)">3.5 млн</div><div class="l">выручка одного менеджера</div></div>
-      <div class="box"><div class="v" id="ko-mgr" style="color:var(--up)">6</div><div class="l">менеджеров нужно на цель</div></div>
-      <div class="box"><div class="v" id="ko-now">3</div><div class="l">столько есть сейчас на этом чеке <span class="tag hyp">оценка</span></div></div>
-      <div class="box"><div class="v" id="ko-gap" style="color:#FB7185">+3</div><div class="l">разрыв: сколько добрать</div></div>
+      <div class="box"><div class="v" id="o-fore" style="color:var(--accent)">15,8 млн</div><div class="l">прогноз выручки/мес</div></div>
+      <div class="box"><div class="v" id="o-pct" style="color:var(--warn)">79%</div><div class="l">от плана</div></div>
+      <div class="box"><div class="v" id="o-gap" style="color:#FB7185">-4,2</div><div class="l">разрыв к плану, млн</div></div>
+      <div class="box"><div class="v" id="o-per">2,6 млн</div><div class="l">выручка на менеджера/мес</div></div>
     </div>
-    <p class="tiny dim" style="margin-top:12px">Логика: менеджеров = цель ÷ (чек × сделки на менеджера). При чеке 175к и 20 сделках один делает 3.5 млн, на 20 млн нужно ~6. Снизишь чек до 90к, тому же менеджеру надо ~40 сделок, иначе людей нужно вдвое больше. Это и есть развилка «дорогой чек звёздами или дешёвый поток числом».</p>
-    <div class="callout d small" style="margin-top:14px;padding:10px 14px"><b>Осторожно с этой цифрой.</b> Калькулятор считает <b>выручку, а не прибыль</b>, и не учитывает конверсию. Реальные звёзды делают не 3.5 млн, а 7 – 13 млн успешной выручки (Лакомова 7.05, Лысанова 13.3), но при разной конверсии. CFO справедливо сломает план на «средних константах»: перед наймом подставить сюда маржу сегмента и реальную конверсию профиля, а не выручку.</div>
+    <p class="tiny dim" style="margin-top:12px">Прогноз = менеджеры × чек × сделки/мес. Полоса зелёная и на 100% = план достигнут. Развилка: дорогой чек звёздами (мало людей, большой чек) или дешёвый поток числом (много людей, малый чек, больше сделок).</p>
+    <div class="callout d small" style="margin-top:14px;padding:10px 14px"><b>Осторожно.</b> Калькулятор считает <b>выручку, а не прибыль</b>, и не учитывает конверсию. Реальные звёзды делают 7 – 13 млн успешной выручки за окно при разной конверсии. Перед наймом подставить маржу сегмента и реальную конверсию профиля, а не среднюю выручку.</div>
   </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Предложение Ивана: KPI и штат по чек-сегментам <span class="tag hyp">ГИПОТЕЗА / план</span></div>
@@ -633,8 +640,8 @@ const SEG=[
 const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
 const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
-// SEO по разделам сайта [категория, визиты] (август, top-страницы)
-const SEOCAT=[['Главная/бренд',403],['Зеркала',299],['Столы',237],['Перегородки',150],['Стеллажи/полки',70],['Доски',65],['Прочее',21]];
+// SEO по разделам сайта [категория, лиды] (август, органика, goal reaches по startURLPath)
+const SEOCAT=[['Главная/бренд',35],['Столы',27],['Зеркала',25],['Перегородки',15],['Доски',8],['Прочее',8],['Стеллажи/полки',7]];
 // Отказы по каналам [канал, отказ%, лиды] (АВГУСТ)
 const BOUNCE=[['SEO / поиск',17.1,125],['Реклама (Директ+ABDM)',22.6,87],['Прямые / typein',25.2,28],['Внутренние',24.9,8]];
 // Платные каналы по UTM Source из отчёта Метрики (достижения избранных целей, посл. знач. переход)
@@ -923,25 +930,37 @@ function romi(){
   document.getElementById('o-romi').textContent=(rev/sp).toFixed(1).replace('.',',')+'x';
   document.getElementById('o-share').textContent=Math.round(sp/rev*100)+'%';
 }
-// ---- capacity calc ----
+// ---- plan-anchored capacity calc ----
 function capacity(){
-  const goal=+document.getElementById('k-goal').value, chk=+document.getElementById('k-check').value, dl=+document.getElementById('k-deals').value;
-  document.getElementById('kv-goal').textContent=goal;
-  document.getElementById('kv-check').textContent=chk;
-  document.getElementById('kv-deals').textContent=dl;
-  const perM=chk*dl/1000; // млн
-  const need=Math.ceil(goal/perM);
-  const now=3, gap=Math.max(0,need-now);
-  document.getElementById('ko-perm').textContent=perM.toFixed(1).replace('.',',')+' млн';
-  document.getElementById('ko-mgr').textContent=need;
-  document.getElementById('ko-gap').textContent='+'+gap;
+  const g=id=>+document.getElementById(id).value;
+  const plan=g('k-plan'), mgr=g('k-mgr'), chk=g('k-check'), dl=g('k-deals');
+  const d1=(v,x)=>document.getElementById(v).textContent=x;
+  d1('kv-plan',plan); d1('kv-mgr',mgr); d1('kv-check',chk); d1('kv-deals',dl);
+  const fore=mgr*chk*dl/1000;              // прогноз выручки, млн/мес
+  const pct=plan?fore/plan*100:0;
+  const gap=fore-plan;
+  const per=mgr?fore/mgr:0;
+  const rub=v=>v.toFixed(1).replace('.',',');
+  d1('o-fore',rub(fore)+' млн');
+  d1('o-pct',Math.round(pct)+'%');
+  d1('o-gap',(gap>=0?'+':'')+rub(gap));
+  d1('o-per',rub(per)+' млн');
+  const col=pct>=100?'var(--up)':pct>=70?'var(--warn)':'var(--dn)';
+  const fill=document.getElementById('planfill');
+  fill.style.width=Math.min(100,Math.max(2,pct))+'%';
+  fill.style.background=col;
+  document.getElementById('o-pct').style.color=col;
+  document.getElementById('o-gap').style.color=gap>=0?'var(--up)':'#FB7185';
+  const st=document.getElementById('o-status');
+  st.textContent=pct>=100?('идём к плану ✓ (+'+rub(gap)+' млн сверх)'):('не дотягиваем: '+rub(-gap)+' млн до плана');
+  st.style.color=col;
 }
 
 // ---- init ----
 function draw(){
   funnel(document.getElementById('c-funnel'),FUNNEL);
   gbars(document.getElementById('c-goals'),GOALS,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[2],c2:PAL[1],fmt:v=>Math.round(v),unit:' цел',t1:'август',t2:'квартал',h:220});
-  hbars(document.getElementById('c-seocat'),SEOCAT,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:34,unit:'визитов',fmt:v=>v+''});
+  hbars(document.getElementById('c-seocat'),SEOCAT,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:34,unit:'лидов',fmt:v=>v+''});
   hbars(document.getElementById('c-bounce'),BOUNCE,{val:r=>r[1],label:r=>r[0],sub:r=>`${r[2]} лидов`,color:PAL[5],h:38,unit:'отказов',fmt:v=>v.toFixed(1).replace('.',',')+'%'});
   lineChart(document.getElementById('c-chmo'),CHLINES,MO5,{fmt:v=>Math.round(v)});
   barMonths(document.getElementById('c-dirmo'),DIRSPENDMO,MO5,{fmt:F.fmtM,color:PAL[5]});
@@ -965,7 +984,7 @@ function draw(){
 draw();
 romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
-['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
+['k-plan','k-mgr','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>

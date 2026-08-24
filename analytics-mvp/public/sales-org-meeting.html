@@ -892,13 +892,19 @@ function miniBars(container,series,labels){
   series.forEach(s=>{
     const peak=Math.max(...s.v),W=260,h=92,pad={l:4,r:4,t:16,b:16},iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,bw=iw/s.v.length;
     const card=document.createElement('div');card.style.cssText='background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:10px 12px';
-    let svg=`<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px">${esc(s.m)}</div><svg viewBox="0 0 ${W} ${h}" style="width:100%;height:${h}px">`;
-    s.v.forEach((v,i)=>{const bh=ih*(v/gmax),x=pad.l+bw*i+bw*0.18,y=pad.t+ih-bh;const isMax=v===peak;
-      svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.64).toFixed(1)}" height="${Math.max(1,bh).toFixed(1)}" rx="3" fill="${isMax?PAL[2]:PAL[0]}" opacity="${isMax?1:.65}"/>`;
-      svg+=`<text x="${(pad.l+bw*i+bw/2).toFixed(1)}" y="${(pad.t+ih+11).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--ink-4)">${labels[i]}</text>`;
-      if(isMax)svg+=`<text x="${(pad.l+bw*i+bw/2).toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--ink-2)">${F.fmtM(v)}</text>`;
+    const ttl=document.createElement('div');ttl.style.cssText='font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px';ttl.textContent=s.m;card.appendChild(ttl);
+    const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+    s.v.forEach((v,i)=>{const bh=ih*(v/gmax),x=pad.l+bw*i+bw*0.18,y=pad.t+ih-bh,isMax=v===peak;
+      const g=mk('g');
+      // прозрачная зона наведения на весь столбец-месяц (чтобы попадать по тонкой полоске)
+      g.appendChild(mk('rect',{x:pad.l+bw*i,y:pad.t,width:bw,height:ih,fill:'transparent'}));
+      g.appendChild(mk('rect',{x,y,width:bw*0.64,height:Math.max(1,bh),rx:3,fill:isMax?PAL[2]:PAL[0],opacity:isMax?1:.65}));
+      const lb=mk('text',{x:pad.l+bw*i+bw/2,y:pad.t+ih+11,'text-anchor':'middle','font-size':8.5,fill:'var(--ink-4)'});lb.textContent=labels[i];g.appendChild(lb);
+      if(isMax){const vt=mk('text',{x:pad.l+bw*i+bw/2,y:y-3,'text-anchor':'middle','font-size':9,'font-weight':700,fill:'var(--ink-2)'});vt.textContent=F.fmtM(v);g.appendChild(vt);}
+      bind(g,`<div class="tt">${esc(s.m)} · ${esc(labels[i])}</div><div class="tr">${F.fmtM(v)} успешной выручки</div>`);
+      svg.appendChild(g);
     });
-    svg+='</svg>';card.innerHTML=svg;container.appendChild(card);
+    card.appendChild(svg);container.appendChild(card);
   });
 }
 

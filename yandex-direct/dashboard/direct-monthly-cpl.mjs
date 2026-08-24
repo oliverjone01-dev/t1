@@ -1,5 +1,5 @@
 // Помесячный CPL по каналам, апрель-август: Директ (цели «Все лиды» и «качественные»
-// из кабинета) + ABDM (оценка: спенд 115к/мес ÷ лиды utm=abdm из Метрики).
+// из кабинета) + ABDM (оценка: спенд 115к/мес ÷ лиды utm=abdm из Метрики, отдельно все/кач).
 // Read-only, дамп в stderr (строки DCPL). Токены из env.
 const DTOKEN=process.env.YANDEX_DIRECT_TOKEN,DLOGIN=process.env.YANDEX_DIRECT_LOGIN||'';
 const MTOKEN=process.env.YANDEX_METRIKA_TOKEN,COUNTER=process.env.YANDEX_METRIKA_COUNTER||'104369223';
@@ -23,10 +23,10 @@ async function dg(d1,d2,goal){
   }
   throw new Error('timeout');
 }
-async function abdmLeads(d1,d2){
+async function abdmLeads(d1,d2,goal){
   if(!MTOKEN)return 0;
   const qs=new URLSearchParams({ids:COUNTER,accuracy:'full',limit:'100',date1:d1,date2:d2,
-    dimensions:'ym:s:lastsignUTMSource',metrics:`ym:s:goal${GOAL_LEADS}reaches`,
+    dimensions:'ym:s:lastsignUTMSource',metrics:`ym:s:goal${goal}reaches`,
     filters:"ym:s:lastsignUTMSource=='abdm'"});
   const r=await(await fetch(`https://api-metrika.yandex.net/stat/v1/data?${qs}`,{headers:{Authorization:`OAuth ${MTOKEN}`}})).json();
   if(r.errors)return 0;
@@ -35,10 +35,10 @@ async function abdmLeads(d1,d2){
 (async()=>{
   for(const[m,d1,d2] of MONTHS){
     const b=await dg(d1,d2,null),l=await dg(d1,d2,GOAL_LEADS),q=await dg(d1,d2,GOAL_CONTACTS);
-    const al=await abdmLeads(d1,d2);
+    const al=await abdmLeads(d1,d2,GOAL_LEADS),aq=await abdmLeads(d1,d2,GOAL_CONTACTS);
     const cpl=l.conv?Math.round(b.spend/l.conv):0,cpq=q.conv?Math.round(b.spend/q.conv):0;
-    const acpl=al?Math.round(ABDM_SPEND/al):0;
-    console.error(`DCPL\t${m}\tspendDirect ${b.spend}\tвсе ${l.conv}\tCPLвсе ${cpl}\tкач ${q.conv}\tCPLкач ${cpq}\tabdmЛиды ${al}\tCPLabdm ${acpl}`);
+    const acpl=al?Math.round(ABDM_SPEND/al):0,acpq=aq?Math.round(ABDM_SPEND/aq):0;
+    console.error(`DCPL\t${m}\tspendDirect ${b.spend}\tвсе ${l.conv}\tCPLвсе ${cpl}\tкач ${q.conv}\tCPLкач ${cpq}\tabdmВсе ${al}\tCPLabdmВсе ${acpl}\tabdmКач ${aq}\tCPLabdmКач ${acpq}`);
   }
   console.error('DCPL-DONE');
 })();

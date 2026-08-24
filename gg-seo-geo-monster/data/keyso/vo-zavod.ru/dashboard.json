@@ -2,7 +2,7 @@
   "domain": "vo-zavod.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-17T03:31:01.290Z",
+  "measured": "2026-08-24T03:35:37.028Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=vo-zavod.ru",
   "data": {
     "id": 30965359,
@@ -12,89 +12,89 @@
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 448,
-        "it50": 49979873,
-        "vis": 22556883,
-        "perc": 0.0008963608210849196
+        "cnt": 466,
+        "it50": 48907259,
+        "vis": 21370333,
+        "perc": 0.0009528237924762865
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 417,
-        "it50": 19393993,
-        "vis": 4078126,
-        "perc": 0.0021501503068501676
-      },
-      {
-        "did": 121577103,
-        "name": "uslugi.yandex.ru",
-        "cnt": 296,
-        "it50": 2874543,
-        "vis": 314125,
-        "perc": 0.010297288995155056
+        "cnt": 450,
+        "it50": 19977909,
+        "vis": 3812459,
+        "perc": 0.0022524879856044996
       },
       {
         "did": 29918392,
         "name": "zoon.ru",
-        "cnt": 285,
-        "it50": 12325833,
-        "vis": 934173,
-        "perc": 0.0023122169511788776
+        "cnt": 306,
+        "it50": 12714293,
+        "vis": 804095,
+        "perc": 0.0024067401938904507
+      },
+      {
+        "did": 121577103,
+        "name": "uslugi.yandex.ru",
+        "cnt": 305,
+        "it50": 2945353,
+        "vis": 289552,
+        "perc": 0.010355295273605574
       },
       {
         "did": 29917679,
         "name": "2gis.ru",
-        "cnt": 276,
-        "it50": 15589005,
-        "vis": 6770364,
-        "perc": 0.0017704786161785182
+        "cnt": 303,
+        "it50": 16008804,
+        "vis": 6488468,
+        "perc": 0.0018927085371274455
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 254,
-        "it50": 54734855,
-        "vis": 11270814,
-        "perc": 0.00046405530808476603
+        "cnt": 247,
+        "it50": 52789328,
+        "vis": 10400474,
+        "perc": 0.0004678976023335625
       },
       {
         "did": 258022726,
         "name": "oknafactoria.ru",
-        "cnt": 197,
-        "it50": 48489,
-        "vis": 1574,
-        "perc": 0.4062777124708697
+        "cnt": 213,
+        "it50": 47680,
+        "vis": 1491,
+        "perc": 0.44672818791946306
       },
       {
-        "did": 92800307,
-        "name": "m.vk.com",
-        "cnt": 192,
-        "it50": 44757503,
-        "vis": 7750158,
-        "perc": 0.00042897835475763695
-      },
-      {
-        "did": 30695597,
-        "name": "m.youtube.com",
-        "cnt": 186,
-        "it50": 47372912,
-        "vis": 4162532,
-        "perc": 0.00039262944190553454
+        "did": 31079457,
+        "name": "vk.ru",
+        "cnt": 203,
+        "it50": 31260599,
+        "vis": 8287733,
+        "perc": 0.0006493797511685557
       },
       {
         "did": 30678142,
         "name": "oknazavr.ru",
-        "cnt": 181,
-        "it50": 13439,
-        "vis": 208,
-        "perc": 1.3468264007738673
+        "cnt": 197,
+        "it50": 14843,
+        "vis": 207,
+        "perc": 1.327224954524018
+      },
+      {
+        "did": 30695597,
+        "name": "m.youtube.com",
+        "cnt": 192,
+        "it50": 48095027,
+        "vis": 4224362,
+        "perc": 0.00039920967296681214
       }
     ],
-    "it1": 25,
-    "it3": 58,
-    "it5": 98,
-    "it10": 196,
-    "it50": 697,
+    "it1": 29,
+    "it3": 78,
+    "it5": 122,
+    "it10": 228,
+    "it50": 745,
     "childsCount": 0,
     "keys": [
       {
@@ -114,12 +114,6 @@
         "word": "оконный завод воронеж",
         "ws": 470,
         "wsk": 71
-      },
-      {
-        "pos": 1,
-        "word": "воронеж оконный завод",
-        "ws": 481,
-        "wsk": 62
       },
       {
         "pos": 1,
@@ -156,54 +150,60 @@
         "word": "vo zavod ru",
         "ws": 32,
         "wsk": 12
+      },
+      {
+        "pos": 1,
+        "word": "воронежский оконный завод официальный",
+        "ws": 138,
+        "wsk": 11
       }
     ],
-    "topkeys": 298384,
+    "topkeys": 291124,
     "pages": [
       {
-        "it50": 112,
+        "it50": 117,
         "url": "/"
       },
       {
-        "it50": 81,
+        "it50": 82,
         "url": "/article/plesen-na-okne"
       },
       {
-        "it50": 62,
+        "it50": 55,
         "url": "/article/zamenaokna-gid-po-cenam"
       },
       {
-        "it50": 33,
+        "it50": 38,
         "url": "/plastikokna-rostov-na-donu"
       },
       {
-        "it50": 29,
-        "url": "/article/tihie-okna"
-      },
-      {
-        "it50": 29,
+        "it50": 31,
         "url": "/osteklenie-balkonov-i-lodzhij"
       },
       {
-        "it50": 26,
+        "it50": 28,
         "url": "/kontakty"
       },
       {
-        "it50": 19,
+        "it50": 27,
+        "url": "/article/tihie-okna"
+      },
+      {
+        "it50": 22,
+        "url": "/article/kak-vybrat-okno"
+      },
+      {
+        "it50": 21,
         "url": "/plastikovye-okna-tambov"
       },
       {
-        "it50": 17,
-        "url": "/nedorogie-okna"
-      },
-      {
-        "it50": 16,
-        "url": "/article/kak-vybrat-okno"
+        "it50": 18,
+        "url": "/remont"
       }
     ],
-    "pagesinindex": 74,
-    "vis": 19,
-    "topvis": 230203,
+    "pagesinindex": 78,
+    "vis": 21,
+    "topvis": 214044,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -224,7 +224,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 14,
+    "restop5": 16,
     "history": {
       "2025.03": {
         "it1": 13,
@@ -431,16 +431,16 @@
         "aiCnt": 186
       },
       "2026.08": {
-        "it1": 25,
-        "it3": 58,
-        "it5": 98,
-        "it10": 196,
-        "it50": 697,
-        "pagesInIndex": 74,
+        "it1": 29,
+        "it3": 78,
+        "it5": 122,
+        "it10": 228,
+        "it50": 745,
+        "pagesInIndex": 78,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 19,
-        "aiCnt": 249
+        "visAvg": 21,
+        "aiCnt": 234
       }
     },
     "linksHistory": {
@@ -578,7 +578,7 @@
         201
       ]
     },
-    "aiAnswersCnt": 249,
+    "aiAnswersCnt": 234,
     "aiState": 10,
     "dr": 24,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/40d128efa4c1feca98bc0c1170146507c444f66c3df6e53dc09fede90c30a249.png",

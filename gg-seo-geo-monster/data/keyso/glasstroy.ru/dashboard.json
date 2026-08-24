@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-17T03:33:44.563Z",
+  "measured": "2026-08-24T03:38:18.782Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -10,91 +10,91 @@
     "parentName": "",
     "concs": [
       {
-        "did": 30654137,
-        "name": "m.avito.ru",
-        "cnt": 5561,
-        "it50": 19393993,
-        "vis": 4078126,
-        "perc": 0.028673826993750075
-      },
-      {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5507,
-        "it50": 54734855,
-        "vis": 11270814,
-        "perc": 0.010061230636310262
+        "cnt": 5210,
+        "it50": 52789328,
+        "vis": 10400474,
+        "perc": 0.009869419061367858
       },
       {
-        "did": 29917497,
-        "name": "market.yandex.ru",
-        "cnt": 3463,
-        "it50": 16557226,
-        "vis": 1614998,
-        "perc": 0.02091533932072921
-      },
-      {
-        "did": 374680290,
-        "name": "lemanapro.ru",
-        "cnt": 3388,
-        "it50": 3011476,
-        "vis": 951567,
-        "perc": 0.11250297196457817
+        "did": 30654137,
+        "name": "m.avito.ru",
+        "cnt": 5149,
+        "it50": 19977909,
+        "vis": 3812459,
+        "perc": 0.025773468084172375
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3206,
-        "it50": 47372912,
-        "vis": 4162532,
-        "perc": 0.006767580595425504
+        "cnt": 3296,
+        "it50": 48095027,
+        "vis": 4224362,
+        "perc": 0.006853099385930275
+      },
+      {
+        "did": 29917497,
+        "name": "market.yandex.ru",
+        "cnt": 3210,
+        "it50": 17084728,
+        "vis": 1539671,
+        "perc": 0.018788710010484218
+      },
+      {
+        "did": 374680290,
+        "name": "lemanapro.ru",
+        "cnt": 3065,
+        "it50": 3068265,
+        "vis": 912236,
+        "perc": 0.09989358807013084
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 3110,
-        "it50": 49979873,
-        "vis": 22556883,
-        "perc": 0.006222504807085044
+        "cnt": 2979,
+        "it50": 48907259,
+        "vis": 21370333,
+        "perc": 0.006091120338598407
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 3079,
-        "it50": 1499128,
-        "vis": 41138,
-        "perc": 0.2053860644321232
+        "cnt": 2946,
+        "it50": 1446409,
+        "vis": 34391,
+        "perc": 0.20367682999760095
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2846,
-        "it50": 18031900,
-        "vis": 3953056,
-        "perc": 0.015783139879879546
+        "cnt": 2545,
+        "it50": 18411386,
+        "vis": 3776448,
+        "perc": 0.01382296802641583
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 2476,
-        "it50": 7078164,
-        "vis": 2704359,
-        "perc": 0.03498082271052211
+        "cnt": 2254,
+        "it50": 6708624,
+        "vis": 2470120,
+        "perc": 0.03359854420220897
       },
       {
-        "did": 29918348,
-        "name": "wildberries.ru",
-        "cnt": 2279,
-        "it50": 13760102,
-        "vis": 2571057,
-        "perc": 0.016562377226564166
+        "did": 30015208,
+        "name": "ivd.ru",
+        "cnt": 2123,
+        "it50": 890414,
+        "vis": 27537,
+        "perc": 0.2384284164444854
       }
     ],
-    "it1": 157,
-    "it3": 540,
-    "it5": 958,
-    "it10": 2163,
-    "it50": 9956,
+    "it1": 202,
+    "it3": 612,
+    "it5": 1027,
+    "it10": 2203,
+    "it50": 9593,
     "childsCount": 1,
     "keys": [
       {
@@ -111,15 +111,27 @@
       },
       {
         "pos": 1,
+        "word": "стеклянные перегородки для офиса",
+        "ws": 531,
+        "wsk": 172
+      },
+      {
+        "pos": 1,
         "word": "высота ограждения лестницы",
         "ws": 2859,
         "wsk": 153
       },
       {
         "pos": 1,
-        "word": "стеклянная стена",
-        "ws": 9937,
-        "wsk": 135
+        "word": "высота ограждения",
+        "ws": 37607,
+        "wsk": 124
+      },
+      {
+        "pos": 1,
+        "word": "ванная с душевой кабиной дизайн",
+        "ws": 2778,
+        "wsk": 116
       },
       {
         "pos": 1,
@@ -144,66 +156,54 @@
         "word": "раздвижные двери для беседки",
         "ws": 443,
         "wsk": 85
-      },
-      {
-        "pos": 1,
-        "word": "перегородка для зонирования комнаты стеклянная",
-        "ws": 1242,
-        "wsk": 66
-      },
-      {
-        "pos": 1,
-        "word": "дверь гармошка стеклянная",
-        "ws": 408,
-        "wsk": 56
       }
     ],
-    "topkeys": 39684,
+    "topkeys": 41612,
     "pages": [
       {
-        "it50": 255,
+        "it50": 234,
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
-        "it50": 254,
+        "it50": 228,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "it50": 195,
-        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
-      },
-      {
-        "it50": 193,
-        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
-      },
-      {
-        "it50": 164,
-        "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
-      },
-      {
-        "it50": 157,
-        "url": "/price/peregorodki/dlya-komnat"
-      },
-      {
-        "it50": 148,
+        "it50": 192,
         "url": "/"
       },
       {
-        "it50": 126,
-        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
+        "it50": 191,
+        "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 120,
+        "it50": 189,
+        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
+      },
+      {
+        "it50": 187,
+        "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
+      },
+      {
+        "it50": 132,
+        "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
+      },
+      {
+        "it50": 118,
+        "url": "/price/peregorodki/dlya-komnat"
+      },
+      {
+        "it50": 113,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "it50": 120,
-        "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
+        "it50": 105,
+        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
       }
     ],
-    "pagesinindex": 1122,
-    "vis": 172,
-    "topvis": 57619,
+    "pagesinindex": 1147,
+    "vis": 175,
+    "topvis": 55563,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -224,7 +224,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 10,
+    "restop5": 11,
     "history": {
       "2025.03": {
         "it1": 119,
@@ -431,16 +431,16 @@
         "aiCnt": 3842
       },
       "2026.08": {
-        "it1": 157,
-        "it3": 540,
-        "it5": 958,
-        "it10": 2163,
-        "it50": 9956,
-        "pagesInIndex": 1122,
+        "it1": 202,
+        "it3": 612,
+        "it5": 1027,
+        "it10": 2203,
+        "it50": 9593,
+        "pagesInIndex": 1147,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 172,
-        "aiCnt": 4393
+        "visAvg": 175,
+        "aiCnt": 3487
       }
     },
     "linksHistory": {
@@ -578,7 +578,7 @@
         1348
       ]
     },
-    "aiAnswersCnt": 4393,
+    "aiAnswersCnt": 3487,
     "aiState": 10,
     "dr": 32,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

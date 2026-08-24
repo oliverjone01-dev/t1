@@ -2,7 +2,7 @@
   "domain": "ivegroup.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-17T03:28:23.789Z",
+  "measured": "2026-08-24T03:32:57.463Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=ivegroup.ru",
   "data": {
     "id": 30485583,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 798,
-        "it50": 19393993,
-        "vis": 4078126,
-        "perc": 0.004114676126778019
+        "cnt": 717,
+        "it50": 19977909,
+        "vis": 3812459,
+        "perc": 0.0035889641903965024
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 541,
-        "it50": 16557226,
-        "vis": 1614998,
-        "perc": 0.003267455550827173
+        "cnt": 488,
+        "it50": 17084728,
+        "vis": 1539671,
+        "perc": 0.002856352176048691
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 510,
-        "it50": 54734855,
-        "vis": 11270814,
-        "perc": 0.0009317645949733492
+        "cnt": 465,
+        "it50": 52789328,
+        "vis": 10400474,
+        "perc": 0.0008808598586441562
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 466,
-        "it50": 3011476,
-        "vis": 951567,
-        "perc": 0.01547413959134989
+        "cnt": 412,
+        "it50": 3068265,
+        "vis": 912236,
+        "perc": 0.013427784106001274
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 452,
-        "it50": 18031900,
-        "vis": 3953056,
-        "perc": 0.0025066687370715233
+        "cnt": 406,
+        "it50": 18411386,
+        "vis": 3776448,
+        "perc": 0.002205157178280875
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 424,
-        "it50": 7078164,
-        "vis": 2704359,
-        "perc": 0.005990253969814771
-      },
-      {
-        "did": 29918348,
-        "name": "wildberries.ru",
-        "cnt": 393,
-        "it50": 13760102,
-        "vis": 2571057,
-        "perc": 0.0028560834796137417
+        "cnt": 365,
+        "it50": 6708624,
+        "vis": 2470120,
+        "perc": 0.0054407580451669366
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 389,
-        "it50": 9956,
-        "vis": 172,
-        "perc": 3.9071916432302127
+        "cnt": 351,
+        "it50": 9593,
+        "vis": 175,
+        "perc": 3.6589179610132385
       },
       {
-        "did": 121577103,
-        "name": "uslugi.yandex.ru",
-        "cnt": 280,
-        "it50": 2874543,
-        "vis": 314125,
-        "perc": 0.009740678779200729
+        "did": 29918348,
+        "name": "wildberries.ru",
+        "cnt": 333,
+        "it50": 14256919,
+        "vis": 2406066,
+        "perc": 0.0023357080165777753
       },
       {
-        "did": 272188389,
-        "name": "fdmebel.ru",
-        "cnt": 251,
-        "it50": 2777,
-        "vis": 235,
-        "perc": 9.038530788620815
+        "did": 30695597,
+        "name": "m.youtube.com",
+        "cnt": 240,
+        "it50": 48095027,
+        "vis": 4224362,
+        "perc": 0.0004990120912085152
+      },
+      {
+        "did": 37692261,
+        "name": "m-strana.ru",
+        "cnt": 239,
+        "it50": 1446409,
+        "vis": 34391,
+        "perc": 0.016523680369798583
       }
     ],
-    "it1": 14,
-    "it3": 55,
-    "it5": 72,
-    "it10": 137,
-    "it50": 1024,
+    "it1": 18,
+    "it3": 58,
+    "it5": 73,
+    "it10": 135,
+    "it50": 951,
     "childsCount": 0,
     "keys": [
       {
@@ -108,6 +108,12 @@
         "word": "окно внутреннее",
         "ws": 25937,
         "wsk": 8
+      },
+      {
+        "pos": 1,
+        "word": "окна между комнатами в квартире",
+        "ws": 41,
+        "wsk": 7
       },
       {
         "pos": 1,
@@ -129,6 +135,12 @@
       },
       {
         "pos": 1,
+        "word": "какую дверь можно поставить в арку",
+        "ws": 8,
+        "wsk": 5
+      },
+      {
+        "pos": 1,
         "word": "дверь гармошка фото в интерьере",
         "ws": 8,
         "wsk": 5
@@ -144,66 +156,54 @@
         "word": "ive group",
         "ws": 29,
         "wsk": 4
-      },
-      {
-        "pos": 1,
-        "word": "окно в межкомнатной перегородке",
-        "ws": 44,
-        "wsk": 4
-      },
-      {
-        "pos": 1,
-        "word": "душевая для собак",
-        "ws": 112,
-        "wsk": 2
       }
     ],
-    "topkeys": 230522,
+    "topkeys": 247164,
     "pages": [
       {
-        "it50": 81,
+        "it50": 80,
         "url": "/peregorodki/statsionarnye-peregorodki/mezhkomnatnoe-okno"
       },
       {
-        "it50": 71,
-        "url": "/2023/10/06/arochnye-steklyannye-dveri"
-      },
-      {
-        "it50": 69,
+        "it50": 66,
         "url": "/2023/02/12/materialy-peregorodok"
       },
       {
-        "it50": 66,
-        "url": "/2023/02/05/moyka-dlya-sobak"
-      },
-      {
-        "it50": 62,
-        "url": "/stellazhi"
-      },
-      {
-        "it50": 56,
-        "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri"
-      },
-      {
-        "it50": 53,
+        "it50": 60,
         "url": "/2021/03/22/steklyannyi-tambur-v-dom"
       },
       {
-        "it50": 45,
+        "it50": 57,
+        "url": "/stellazhi"
+      },
+      {
+        "it50": 55,
+        "url": "/2023/10/06/arochnye-steklyannye-dveri"
+      },
+      {
+        "it50": 54,
+        "url": "/2023/02/05/moyka-dlya-sobak"
+      },
+      {
+        "it50": 41,
+        "url": "/peregorodki/mejkomnatnie-dveri-loft/razdvizhnye-dveri"
+      },
+      {
+        "it50": 39,
         "url": "/peregorodki/peregorodki-s-dveryami/peregorodka-garmoshka"
       },
       {
-        "it50": 40,
-        "url": "/2023/02/17/peregorodki_s_matovymi_steklami"
+        "it50": 39,
+        "url": "/"
       },
       {
         "it50": 35,
-        "url": "/product/peregorodka-garmoshka"
+        "url": "/peregorodki/peregorodki-v-vannuyu"
       }
     ],
     "pagesinindex": 61,
-    "vis": 7,
-    "topvis": 409781,
+    "vis": 6,
+    "topvis": 423849,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -224,7 +224,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 7,
+    "restop5": 8,
     "history": {
       "2025.03": {
         "it1": 40,
@@ -431,16 +431,16 @@
         "aiCnt": 73
       },
       "2026.08": {
-        "it1": 14,
-        "it3": 55,
-        "it5": 72,
-        "it10": 137,
-        "it50": 1024,
+        "it1": 18,
+        "it3": 58,
+        "it5": 73,
+        "it10": 135,
+        "it50": 951,
         "pagesInIndex": 61,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 7,
-        "aiCnt": 82
+        "visAvg": 6,
+        "aiCnt": 62
       }
     },
     "linksHistory": {
@@ -578,7 +578,7 @@
         327
       ]
     },
-    "aiAnswersCnt": 82,
+    "aiAnswersCnt": 62,
     "aiState": 10,
     "dr": 18,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/70e3a912fa6972e638ef77425c8d96f9b5763f6148c246533647387db1cf30c2.png",

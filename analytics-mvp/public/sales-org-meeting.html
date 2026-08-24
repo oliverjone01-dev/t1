@@ -369,19 +369,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2" style="margin-bottom:16px">
     <div class="card">
       <div class="chart-t">Потенциал и успешная выручка по сегментам <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">млн ₽ на сегмент; конверсия подписью</div>
+      <div class="chart-s">млн ₽ на сегмент; подпись под столбцом: сделок с КП → дошли до реальной предоплаты (конв%)</div>
       <div id="c-seg"></div>
       <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>Потенциал (в карточках)</span><span><span class="dot" style="background:var(--d3)"></span>Успешная выручка (дошли до предоплаты)</span></div>
     </div>
     <div class="card">
       <div class="chart-t">Два сегмента: поток против денег <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">объединили до-150 и свыше-150</div>
+      <div class="chart-s">объединили до-150 и свыше-150 · три доли: выручка, число сделок с КП, сделки с реальной предоплатой</div>
       <div id="c-two"></div>
       <div class="scrollx" style="margin-top:14px"><table>
-        <thead><tr><th>Сегмент</th><th>Сделок</th><th>Успешн. выручка</th><th>Конв.</th><th>Роль</th></tr></thead>
+        <thead><tr><th>Сегмент</th><th>КП (шт)</th><th>Предоплата (шт)</th><th>Успешн. выручка</th><th>Конв. в предоплату</th><th>Роль</th></tr></thead>
         <tbody>
-          <tr><td class="name">до 150к</td><td>152</td><td>5.9 млн</td><td><span class="pill g">68%</span></td><td class="small dim">поток, розница</td></tr>
-          <tr><td class="name">свыше 150к</td><td>104</td><td>24.5 млн</td><td><span class="pill y">56%</span></td><td class="small dim">81% денег, длинный цикл</td></tr>
+          <tr><td class="name">до 150к</td><td>152</td><td><b>103</b></td><td>5.9 млн</td><td><span class="pill g">68%</span></td><td class="small dim">поток, розница</td></tr>
+          <tr><td class="name">свыше 150к</td><td>104</td><td><b>58</b></td><td>24.5 млн</td><td><span class="pill y">56%</span></td><td class="small dim">81% денег, длинный цикл</td></tr>
         </tbody>
       </table></div>
     </div>
@@ -859,9 +859,10 @@ function segBars(el,rows){
     const g=mk('g');
     g.appendChild(mk('rect',{x:cx-bw-2,y:pad.t+ih-hp,width:bw,height:hp,rx:4,fill:PAL[0],opacity:.9}));
     g.appendChild(mk('rect',{x:cx+2,y:pad.t+ih-hs,width:bw,height:hs,rx:4,fill:PAL[2]}));
+    const paid=Math.round(r[1]*r[4]); // дошли до реальной предоплаты
     const l=mk('text',{x:cx,y:h-24,'text-anchor':'middle',class:'bar-lbl'});l.textContent=r[0];g.appendChild(l);
-    const c=mk('text',{x:cx,y:h-10,'text-anchor':'middle',class:'tick',fill:'#A0AAB8'});c.textContent='конв '+F.pct(r[4]);g.appendChild(c);
-    bind(g,`<div class="tt">Чек ${esc(r[0])}к</div><div class="tr">${r[1]} сделок · конв ${F.pct(r[4])}</div><div class="tr">Потенциал ${F.fmtM(r[2])} · успех ${F.fmtM(r[3])}</div>`);
+    const c=mk('text',{x:cx,y:h-10,'text-anchor':'middle',class:'tick',fill:'#A0AAB8'});c.textContent=r[1]+'→'+paid+' ('+F.pct(r[4])+')';g.appendChild(c);
+    bind(g,`<div class="tt">Чек ${esc(r[0])}к</div><div class="tr">${r[1]} сделок с КП → ${paid} дошли до предоплаты (${F.pct(r[4])})</div><div class="tr">Потенциал ${F.fmtM(r[2])} · успех ${F.fmtM(r[3])}</div>`);
     svg.appendChild(g);
   });
   el.appendChild(svg);
@@ -869,24 +870,22 @@ function segBars(el,rows){
 
 // ---- two-segment split bar ----
 function twoBar(el,rows){
-  const W=el.clientWidth||520,h=120;
+  const W=el.clientWidth||520,h=176;
   const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
   const totRev=rows.reduce((s,r)=>s+r[3],0),totN=rows.reduce((s,r)=>s+r[1],0);
-  function stack(y,items,tot,fmt,title){
-    let x=0;const bw=W;
-    items.forEach((it,i)=>{const w=bw*(it.v/tot);
-      const g=mk('g');
-      g.appendChild(mk('rect',{x:x+(i?2:0),y,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:it.c}));
-      if(w>60){const t=mk('text',{x:x+w/2,y:y+20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=it.l;g.appendChild(t);}
-      bind(g,`<div class="tt">${esc(title)}: ${esc(it.name)}</div><div class="tr">${fmt(it.v)} · ${Math.round(it.v/tot*100)}%</div>`);
-      x+=w;});
+  const paidOf=r=>Math.round(r[1]*r[4]); // дошли до реальной предоплаты
+  const totPaid=rows.reduce((s,r)=>s+paidOf(r),0);
+  // одна полоса-стек: заголовок + доли по сегментам
+  function stack(yLbl,yBar,title,valFn,tot,op,tip){
+    const st=mk('text',{x:0,y:yLbl,class:'tick',fill:'#A0AAB8'});st.textContent=title;svg.appendChild(st);
+    let x=0;rows.forEach((r,i)=>{const v=valFn(r);const w=W*(v/tot);const g=mk('g');
+      g.appendChild(mk('rect',{x:x+(i?2:0),y:yBar,width:Math.max(2,w-(i?2:0)),height:30,rx:4,fill:i?PAL[5]:PAL[2],opacity:op}));
+      if(w>44){const t=mk('text',{x:x+w/2,y:yBar+20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(v/tot*100)+'%';g.appendChild(t);}
+      bind(g,tip(r,v,tot));svg.appendChild(g);x+=w;});
   }
-  const st=mk('text',{x:0,y:12,class:'tick',fill:'#A0AAB8'});st.textContent='Доля успешной выручки';svg.appendChild(st);
-  const gg=mk('g',{transform:'translate(0,18)'});svg.appendChild(gg);
-  {let x=0;rows.forEach((r,i)=>{const w=W*(r[3]/totRev);const g=mk('g');g.appendChild(mk('rect',{x:x+(i?2:0),y:0,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:i?PAL[5]:PAL[2]}));const t=mk('text',{x:x+w/2,y:20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(r[3]/totRev*100)+'%';g.appendChild(t);bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">Успешная выручка ${F.fmtM(r[3])} · ${Math.round(r[3]/totRev*100)}%</div>`);gg.appendChild(g);x+=w;});}
-  const st2=mk('text',{x:0,y:72,class:'tick',fill:'#A0AAB8'});st2.textContent='Доля числа сделок';svg.appendChild(st2);
-  const gg2=mk('g',{transform:'translate(0,78)'});svg.appendChild(gg2);
-  {let x=0;rows.forEach((r,i)=>{const w=W*(r[1]/totN);const g=mk('g');g.appendChild(mk('rect',{x:x+(i?2:0),y:0,width:Math.max(2,w-(i?2:0)),height:32,rx:4,fill:i?PAL[5]:PAL[2],opacity:.55}));const t=mk('text',{x:x+w/2,y:20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(r[1]/totN*100)+'%';g.appendChild(t);bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1]} сделок · ${Math.round(r[1]/totN*100)}%</div>`);gg2.appendChild(g);x+=w;});}
+  stack(12,18,'Доля успешной выручки',r=>r[3],totRev,1,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">Успешная выручка ${F.fmtM(v)} · ${Math.round(v/t*100)}%</div>`);
+  stack(66,72,'Доля числа сделок (КП выставлен)',r=>r[1],totN,.5,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">${v} сделок с КП · ${Math.round(v/t*100)}%</div>`);
+  stack(120,126,'Доля сделок с реальной предоплатой',paidOf,totPaid,.82,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">${v} дошли до предоплаты из ${r[1]} · ${Math.round(v/t*100)}% всех предоплат</div>`);
   el.appendChild(svg);
 }
 

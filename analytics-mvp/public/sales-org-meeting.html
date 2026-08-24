@@ -389,12 +389,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2">
     <div class="card">
       <div class="chart-t">Свыше 150к: из чего собраны деньги <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">выручка по ассортименту, млн ₽ · % конверсии подписью</div>
+      <div class="chart-s">потенциал по ассортименту, млн ₽ · <b>яркая часть столбца = дошли до предоплаты</b>, фейдовая = застряли на КП (доля подписью)</div>
       <div id="c-a1"></div>
     </div>
     <div class="card">
       <div class="chart-t">До 150к: из чего собран поток <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">выручка по ассортименту, млн ₽ · % конверсии подписью</div>
+      <div class="chart-s">потенциал по ассортименту, млн ₽ · <b>яркая часть столбца = дошли до предоплаты</b>, фейдовая = застряли на КП (доля подписью)</div>
       <div id="c-a2"></div>
     </div>
   </div>
@@ -534,7 +534,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="chart-t">Операционка против выхлопа: где кого сажать <span class="tag data">ДАННЫЕ</span></div>
     <div class="chart-s">апрель-август · число сделок = нагрузка/рутина · выхлоп на сделку = сколько денег приносит одна сделка · только сделки с реальным чеком выше 1 ₽ (чек 0-1 ₽ до оценки/мусорные исключены)</div>
     <div class="grid g2" style="margin-top:6px">
-      <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Сделок по сегменту (операционка)</div><div id="c-segn"></div></div>
+      <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Сделок по сегменту · яркая часть = с предоплатой</div><div id="c-segn"></div></div>
       <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Выхлоп на одну сделку, ₽</div><div id="c-segout"></div></div>
     </div>
     <div class="scrollx" style="margin-top:14px"><table>
@@ -730,7 +730,8 @@ const SEG=[
 ];
 const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
 // Операционка vs выхлоп по чек-сегментам [сегмент, сделок, выхлоп/сделку_к]
-const SEGOPS=[['до 90к',645,20],['90-150к',157,26],['150-300к',172,45],['300-500к',66,55],['свыше 500к',70,116]];
+// [сегмент, сделок, выхлоп/сделку_к, конверсия в предоплату]
+const SEGOPS=[['до 90к',645,20,0.46],['90-150к',157,26,0.23],['150-300к',172,45,0.22],['300-500к',66,55,0.15],['свыше 500к',70,116,0.17]];
 const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
 // SEO по разделам сайта [категория, лиды] (август, органика, goal reaches по startURLPath)
@@ -805,7 +806,7 @@ const mk=(t,a={})=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
 // ---- horizontal bars (magnitude, single hue) ----
-function hbars(el,rows,{val,label,sub,unit='млн',color=PAL[0],h=34,fmt=F.fmtM}){
+function hbars(el,rows,{val,label,sub,unit='млн',color=PAL[0],h=34,fmt=F.fmtM,paidFrac,paidTip}){
   const W=el.clientWidth||520, pad={l:0,r:70,t:6,b:6}, bw=180;
   const max=Math.max(...rows.map(val));
   const H=pad.t+pad.b+rows.length*h;
@@ -815,9 +816,16 @@ function hbars(el,rows,{val,label,sub,unit='млн',color=PAL[0],h=34,fmt=F.fmtM
     const g=mk('g');
     const lt=mk('text',{x:0,y:y+h/2-3,class:'bar-lbl'});lt.textContent=label(r);g.appendChild(lt);
     const st=sub&&sub(r);if(st){const s2=mk('text',{x:0,y:y+h/2+11,class:'tick'});s2.textContent=st;g.appendChild(s2);}
-    g.appendChild(mk('rect',{x:bw,y:y+5,width:Math.max(2,bl),height:h-16,rx:4,fill:color,opacity:.9}));
-    const vt=mk('text',{x:bw+bl+8,y:y+h/2+1,class:'bar-val'});vt.textContent=fmt(v);g.appendChild(vt);
-    bind(g,`<div class="tt">${esc(label(r))}</div><div class="tr">${st?esc(st)+' · ':''}${fmt(v)} ${unit}</div>`);
+    const pf=paidFrac?Math.max(0,Math.min(1,paidFrac(r))):null;
+    if(pf!=null){
+      // фейдовая часть = всё с КП, яркая = дошли до реальной предоплаты
+      g.appendChild(mk('rect',{x:bw,y:y+5,width:Math.max(2,bl),height:h-16,rx:4,fill:color,opacity:.26}));
+      g.appendChild(mk('rect',{x:bw,y:y+5,width:Math.max(2,bl*pf),height:h-16,rx:4,fill:color,opacity:.95}));
+    } else {
+      g.appendChild(mk('rect',{x:bw,y:y+5,width:Math.max(2,bl),height:h-16,rx:4,fill:color,opacity:.9}));
+    }
+    const vt=mk('text',{x:bw+bl+8,y:y+h/2+1,class:'bar-val'});vt.textContent=fmt(v)+(pf!=null?' · '+Math.round(pf*100)+'%':'');g.appendChild(vt);
+    bind(g,`<div class="tt">${esc(label(r))}</div><div class="tr">${st?esc(st)+' · ':''}${fmt(v)} ${unit}</div>${pf!=null?`<div class="tr">${paidTip?paidTip(r,pf):('предоплата '+Math.round(pf*100)+'%')}</div>`:''}`);
     svg.appendChild(g);
   });
   el.appendChild(svg);
@@ -1078,10 +1086,10 @@ function draw(){
   gbars(document.getElementById('c-paidmo'),PAIDMO,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'ABDM',t2:'Директ',h:200});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
-  hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
-  hbars(document.getElementById('c-a2'),A2,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[3],h:34});
-  hbars(document.getElementById('c-segn'),SEGOPS,{val:r=>r[1],label:r=>r[0],color:PAL[0],h:34,unit:'сделок',fmt:v=>v+''});
-  hbars(document.getElementById('c-segout'),SEGOPS,{val:r=>r[2],label:r=>r[0],color:PAL[2],h:34,unit:'на сделку',fmt:v=>v+'к'});
+  hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`предоплата ${F.pct(r[2])}`,color:PAL[5],h:34,paidFrac:r=>r[2],paidTip:(r,pf)=>`дошли до предоплаты ${Math.round(pf*100)}% (яркая часть) · остальное застряло на КП`});
+  hbars(document.getElementById('c-a2'),A2,{val:r=>r[1],label:r=>r[0],sub:r=>`предоплата ${F.pct(r[2])}`,color:PAL[3],h:34,paidFrac:r=>r[2],paidTip:(r,pf)=>`дошли до предоплаты ${Math.round(pf*100)}% (яркая часть) · остальное застряло на КП`});
+  hbars(document.getElementById('c-segn'),SEGOPS,{val:r=>r[1],label:r=>r[0],color:PAL[0],h:34,unit:'сделок',fmt:v=>v+'',sub:r=>`${Math.round(r[1]*r[3])} предопл (${F.pct(r[3])})`,paidFrac:r=>r[3],paidTip:(r,pf)=>`${Math.round(r[1]*pf)} из ${r[1]} дошли до предоплаты (${Math.round(pf*100)}%)`});
+  hbars(document.getElementById('c-segout'),SEGOPS,{val:r=>r[2],label:r=>r[0],color:PAL[2],h:34,unit:'на сделку',fmt:v=>v+'к',sub:r=>`предоплата ${F.pct(r[3])}`,paidFrac:r=>r[3],paidTip:(r,pf)=>`выхлоп уже считает только дошедших до предоплаты (${Math.round(pf*100)}% сегмента)`});
   scatter(document.getElementById('c-scatter'));
   mgrBar(document.getElementById('c-mgrbar'));
   hbars(document.getElementById('c-loss'),LOSS,{val:r=>r[1],label:r=>r[0],sub:r=>`${F.fmtM(r[2])} потенциала`,color:PAL[4],h:38,unit:'сделок',fmt:v=>v+' шт'});

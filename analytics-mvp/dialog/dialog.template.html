@@ -492,8 +492,27 @@ let VIEW = [];
 
 function initControls(){
   // Панель старого плоского вида убрана: фильтры дерева живут в шапке таблицы менеджеров.
-  document.getElementById('sub').textContent =
-    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${DATA.scope||''} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · снимок ${BAKED_AT?BAKED_AT.slice(0,16).replace('T',' '):''}`;
+  // Статус снимка - как в РОП-дашборде: цветная метка свежести (зелёная/жёлтая/красная)
+  // со временем по Москве, вместо сырого ISO. Описательная часть остаётся текстом.
+  document.getElementById('sub').innerHTML =
+    `${DATA.from?DATA.from.slice(0,10):''} → ${DATA.to?DATA.to.slice(0,10):''} · ${DATA.days} дн · ${esc(DATA.scope||'')} · сделок ${DATA.dealCount||0} + лидов ${DATA.leadCount||0} · <span id="freshTag" style="font-weight:700">.</span>`;
+  freshStamp();
+}
+
+// Метка свежести снимка - тот же механизм, что в РОП-дашборде: время данных по Москве,
+// цвет по возрасту (зелёный до 30 ч, жёлтый 30-48 ч, красный дальше). «сборка» склеена
+// со временем данных, чтобы не было «свежая сборка на старых данных».
+function freshStamp(){
+  const el=document.getElementById('freshTag'); if(!el) return;
+  const src=DATA.generatedAt||BAKED_AT; if(!src){el.textContent='';return;}
+  const g=new Date(src), ageH=(new Date()-g)/36e5;
+  const m=new Date(g.getTime()+3*36e5); // показываем по Москве (UTC+3)
+  const t=p2(m.getUTCDate())+'.'+p2(m.getUTCMonth()+1)+' '+p2(m.getUTCHours())+':'+p2(m.getUTCMinutes());
+  let col='#2E9E74', pre='данные на';
+  if(ageH>48){col='#F43F5E';pre='данные устарели, на';}else if(ageH>30){col='#F59E0B';}
+  const bb=new Date(g.getTime()+3*36e5);
+  const bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());
+  el.textContent=pre+' '+t+' МСК'+bk; el.style.color=col;
 }
 
 function matchEvent(e){

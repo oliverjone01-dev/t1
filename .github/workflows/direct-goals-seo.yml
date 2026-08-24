@@ -18,3 +18,8 @@ jobs:
           YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
           YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
         run: node yandex-direct/dashboard/direct-goals-seo.mjs
+      - name: Помесячный CPL Директа
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+        run: node yandex-direct/dashboard/direct-monthly-cpl.mjs

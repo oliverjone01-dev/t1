@@ -161,11 +161,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <p class="lead">Маркетинг наливает поток заявок и КП. Отдел доводит до предоплаты малую долю. Менеджеры говорят: «отправляем КП, но нет времени дожимать, тонем в новых». Но данные показывают не только нехватку рук: конверсия у менеджеров разъезжается в 4 раза при похожей нагрузке. Значит вопрос собрания честнее звучит так: <b>где именно теряем деньги и что это лечит - найм, обучение или замер маржи.</b></p>
   <div class="stamp">
     <span><span class="draft">ЧЕРНОВИК</span></span>
-    <span>Источник: <b>Bitrix24, воронка C49 «GG Заказы РФ»</b></span>
-    <span>Окно: <b>апрель – август 2026</b></span>
-    <span>Снимок: <b id="snap">22.08.2026</b></span>
-    <span>Гейт: <b>ФЕНИКС (Step 12.5)</b> + разметка Protocol 9</span>
+    <span>Период всего отчёта: <b style="color:var(--accent)">апрель – август 2026</b> (после переезда с amo)</span>
+    <span>Данные помесячно внутри окна</span>
+    <span>Снимок Bitrix: <b id="snap">22.08</b> · маркетинг: <b>23.08</b></span>
+    <span>Гейт: <b>ФЕНИКС</b> + Protocol 9</span>
   </div>
+  <div class="callout i small" style="margin-top:14px;padding:10px 16px"><b>Период.</b> Весь отчёт - окно <b>апрель – август 2026</b>, разбито помесячно. Где в плитке стоит один месяц (например «август»), это выделенный месяц внутри того же окна, а не другой период отчёта. Всё до переезда с amoCRM (05.03) не считаем - это архив.</div>
 </header>
 
 <!-- persistent caveat banner -->
@@ -213,7 +214,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <!-- 2. FUNNEL -->
 <section id="funnel">
   <div class="sec-h"><span class="sec-n">02</span><h2>Воронка отдела: где обрыв</h2></div>
-  <p class="sec-sub">Полный путь: лид (заявка) → квалификация → сделка с чеком → КП → предоплата → оплата. «Успех» = предоплата и далее (деньги в кассе). Конверсия по методике РОП-дашборда.</p>
+  <p class="sec-sub">Полный путь: лид (заявка) → квалификация → сделка с суммой → КП → предоплата → оплата. <b>«Сделка с суммой»</b> (в РОП-дашборде «с чеком») = сделка, где менеджер заполнил бюджет заказа в рублях, то есть оценил заказ; без суммы сделку в деньгах не посчитать. «Успех» = предоплата и далее (деньги в кассе). Окно: <b>апрель – август 2026</b> (после переезда с amo).</p>
   <div class="grid g4" style="margin-bottom:16px">
     <div class="tile cy"><div class="v">35 дн</div><div class="l">медиана цикла сделки (won)</div><div class="n"><span class="tag data">ДАННЫЕ</span> среднее 37 дн; окно апрель-август</div></div>
     <div class="tile"><div class="v">9%</div><div class="l">сквозная конверсия лид → оплата</div><div class="n"><span class="tag data">ДАННЫЕ</span> 246 оплат из 2 736 лидов</div></div>
@@ -223,7 +224,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="grid g2">
     <div class="card">
       <div class="chart-t">Воронка отдела продаж, апрель – август <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">штук на каждой стадии, доля от входа · лиды все категории, сделки C49</div>
+      <div class="chart-s">штук на каждой стадии, доля от входа · апрель-август · лиды все категории, сделки C49</div>
       <div id="c-funnel"></div>
     </div>
     <div class="card">
@@ -231,7 +232,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="chart-s">интерпретация, не новые цифры</div>
       <ul class="muted" style="padding-left:18px;font-size:13.5px;line-height:1.7">
         <li><b>Лид → квалификация:</b> из 2 736 заявок в дело идёт ~1 223 (45%). Половина отсеивается как спам/джанк/дубль. Это норма, но чистка входа экономит время менеджеров.</li>
-        <li><b>Квал → сделка с чеком → КП:</b> почти все квал-лиды становятся сделками (1 169), до КП доходит 851 (73%).</li>
+        <li><b>Квал → сделка с суммой → КП:</b> почти все квал-лиды становятся сделками с заполненным бюджетом (1 169), до КП доходит 851 (73%).</li>
         <li>Главный обрыв на переходе <b>КП → предоплата</b>: из 851 до предоплаты дошли 414 (49%). Именно тут менеджеры говорят «не хватает времени дожать».</li>
         <li>Дальше потерь почти нет: из 414 предоплат <b>246 закрыты (WON), 156 ещё в производстве</b>, только 12 реально потеряны <span class="tag data">ДАННЫЕ</span>. Разрыв 414 → 246 это время (цикл ~35 дн), а не утечка.</li>
         <li>Коммуникации (диалоги/звонки/письма) в CRM видны с <b>12 марта</b>, но размечены тонко (796 сделок). Полный текстовый разбор (кто, когда, что написал) идёт на отдельном дашборде /dialog по ручной выгрузке Wazzup.</li>
@@ -619,7 +620,7 @@ const F={
 };
 const PAL=['#22D3EE','#6366F1','#10B981','#A78BFA','#F472B6','#FB923C'];
 // ---- data ----
-const FUNNEL=[['Лиды (заявки)',2736],['Квалифицированы',1223],['Сделки с чеком',1169],['КП отправлено',851],['Предоплата',414],['Оплата (WON)',246]];
+const FUNNEL=[['Лиды (заявки)',2736],['Квалифицированы',1223],['Сделки с суммой',1169],['КП отправлено',851],['Предоплата',414],['Оплата (WON)',246]];
 const SRC=[
  ['Не указан',258,17004,0.60],['Сайт genglass.ru',198,3744,0.35],['Создан вручную',134,3130,0.26],
  ['GEN GROUP',105,8383,0.51],['Бот Max',102,3385,0.26],['Расчёт Горщевский',82,2361,0.29],
@@ -714,19 +715,23 @@ function hbars(el,rows,{val,label,sub,unit='млн',color=PAL[0],h=34,fmt=F.fmtM
   el.appendChild(svg);
 }
 
-// ---- funnel ----
+// ---- funnel (подписи слева снаружи, полоса, значение справа) ----
 function funnel(el,rows){
-  const W=el.clientWidth||520,h=52,pad=8,max=rows[0][1];
+  const W=el.clientWidth||520,h=48,pad=8,max=rows[0][1];
+  const labelW=142, valW=96, barMax=Math.max(40,W-labelW-valW);
   const H=pad*2+rows.length*h;
   const svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%',height:H});
   rows.forEach((r,i)=>{
-    const y=pad+i*h,bw=(W-140)*(r[1]/max),x=(W-140-bw)/2;
+    const y=pad+i*h, bw=Math.max(6,barMax*(r[1]/max));
     const g=mk('g');
-    g.appendChild(mk('rect',{x,y:y+4,width:Math.max(4,bw),height:h-12,rx:5,fill:PAL[0],opacity:.85-i*.13}));
-    const t=mk('text',{x:W-130,y:y+h/2-2,fill:'#F1F4F8','font-size':13,'font-weight':700});t.textContent=r[1].toLocaleString('ru');g.appendChild(t);
-    const p=mk('text',{x:W-130,y:y+h/2+13,fill:'#6A7484','font-size':11});p.textContent=Math.round(r[1]/max*100)+'% от входа';g.appendChild(p);
-    const l=mk('text',{x:W/2-70,y:y+h/2+4,fill:'#0B0F15','font-size':12,'font-weight':800,'text-anchor':'middle'});l.textContent=r[0];g.appendChild(l);
-    bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1].toLocaleString('ru')} сделок · ${Math.round(r[1]/max*100)}% от входа</div>`);
+    // подпись стадии слева, вне полосы
+    const l=mk('text',{x:0,y:y+h/2+4,fill:'var(--ink)','font-size':12.5,'font-weight':600});l.textContent=r[0];g.appendChild(l);
+    // полоса
+    g.appendChild(mk('rect',{x:labelW,y:y+7,width:bw,height:h-16,rx:5,fill:PAL[0],opacity:.92-i*.1}));
+    // значение и % справа от полосы
+    const t=mk('text',{x:labelW+bw+8,y:y+h/2-1,fill:'var(--ink)','font-size':13,'font-weight':700});t.textContent=r[1].toLocaleString('ru');g.appendChild(t);
+    const p=mk('text',{x:labelW+bw+8,y:y+h/2+13,fill:'var(--ink-3)','font-size':10.5});p.textContent=Math.round(r[1]/max*100)+'%';g.appendChild(p);
+    bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1].toLocaleString('ru')} · ${Math.round(r[1]/max*100)}% от входа</div>`);
     svg.appendChild(g);
   });
   el.appendChild(svg);

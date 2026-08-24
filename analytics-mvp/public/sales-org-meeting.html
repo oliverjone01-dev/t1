@@ -383,7 +383,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
     <div class="card">
       <div class="chart-t">Два сегмента: поток против денег <span class="tag data">ДАННЫЕ</span></div>
-      <div class="chart-s">объединили до-150 и свыше-150 · три доли: выручка, число сделок с КП, сделки с реальной предоплатой</div>
+      <div class="chart-s">объединили до-150 и свыше-150 · доля выручки и доля сделок между сегментами, плюс доля дошедших до предоплаты внутри каждого сегмента</div>
       <div id="c-two"></div>
       <div class="scrollx" style="margin-top:14px"><table>
         <thead><tr><th>Сегмент</th><th>КП (шт)</th><th>Предоплата (шт)</th><th>Успешн. выручка</th><th>Конв. в предоплату</th><th>Роль</th></tr></thead>
@@ -892,22 +892,22 @@ function segBars(el,rows){
 
 // ---- two-segment split bar ----
 function twoBar(el,rows){
-  const W=el.clientWidth||520,h=176;
+  const W=el.clientWidth||520,h=130;
   const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
   const totRev=rows.reduce((s,r)=>s+r[3],0),totN=rows.reduce((s,r)=>s+r[1],0);
-  const paidOf=r=>Math.round(r[1]*r[4]); // дошли до реальной предоплаты
-  const totPaid=rows.reduce((s,r)=>s+paidOf(r),0);
-  // одна полоса-стек: заголовок + доли по сегментам
-  function stack(yLbl,yBar,title,valFn,tot,op,tip){
-    const st=mk('text',{x:0,y:yLbl,class:'tick',fill:'#A0AAB8'});st.textContent=title;svg.appendChild(st);
-    let x=0;rows.forEach((r,i)=>{const v=valFn(r);const w=W*(v/tot);const g=mk('g');
-      g.appendChild(mk('rect',{x:x+(i?2:0),y:yBar,width:Math.max(2,w-(i?2:0)),height:30,rx:4,fill:i?PAL[5]:PAL[2],opacity:op}));
-      if(w>44){const t=mk('text',{x:x+w/2,y:yBar+20,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(v/tot*100)+'%';g.appendChild(t);}
-      bind(g,tip(r,v,tot));svg.appendChild(g);x+=w;});
-  }
-  stack(12,18,'Доля успешной выручки',r=>r[3],totRev,1,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">Успешная выручка ${F.fmtM(v)} · ${Math.round(v/t*100)}%</div>`);
-  stack(66,72,'Доля числа сделок (КП выставлен)',r=>r[1],totN,.5,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">${v} сделок с КП · ${Math.round(v/t*100)}%</div>`);
-  stack(120,126,'Доля сделок с реальной предоплатой',paidOf,totPaid,.82,(r,v,t)=>`<div class="tt">${esc(r[0])}</div><div class="tr">${v} дошли до предоплаты из ${r[1]} · ${Math.round(v/t*100)}% всех предоплат</div>`);
+  // Полоса 1: доля успешной выручки между сегментами (как было)
+  {const st=mk('text',{x:0,y:12,class:'tick',fill:'#A0AAB8'});st.textContent='Доля успешной выручки';svg.appendChild(st);
+   let x=0;rows.forEach((r,i)=>{const w=W*(r[3]/totRev);const g=mk('g');
+     g.appendChild(mk('rect',{x:x+(i?2:0),y:18,width:Math.max(2,w-(i?2:0)),height:30,rx:4,fill:i?PAL[5]:PAL[2]}));
+     if(w>44){const t=mk('text',{x:x+w/2,y:38,'text-anchor':'middle',fill:'#0B0F15','font-size':12,'font-weight':800});t.textContent=Math.round(r[3]/totRev*100)+'%';g.appendChild(t);}
+     bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">Успешная выручка ${F.fmtM(r[3])} · ${Math.round(r[3]/totRev*100)}%</div>`);svg.appendChild(g);x+=w;});}
+  // Полоса 2: доля числа сделок между сегментами + ВНУТРИ каждого - доля дошедших до предоплаты (яркая)
+  {const st=mk('text',{x:0,y:72,class:'tick',fill:'#A0AAB8'});st.textContent='Доля числа сделок с КП · яркая часть = дошли до предоплаты (доля внутри сегмента)';svg.appendChild(st);
+   let x=0;rows.forEach((r,i)=>{const w=W*(r[1]/totN);const col=i?PAL[5]:PAL[2];const g=mk('g');const x0=x+(i?2:0),wb=Math.max(2,w-(i?2:0));
+     g.appendChild(mk('rect',{x:x0,y:78,width:wb,height:30,rx:4,fill:col,opacity:.32})); // весь сегмент (КП)
+     g.appendChild(mk('rect',{x:x0,y:78,width:Math.max(2,wb*r[4]),height:30,rx:4,fill:col,opacity:.95})); // дошли до предоплаты внутри сегмента
+     if(w>60){const t=mk('text',{x:x+w/2,y:96,'text-anchor':'middle',fill:'#0B0F15','font-size':11,'font-weight':800});t.textContent=Math.round(r[1]/totN*100)+'% · '+F.pct(r[4])+' предопл';g.appendChild(t);}
+     bind(g,`<div class="tt">${esc(r[0])}</div><div class="tr">${r[1]} сделок с КП (${Math.round(r[1]/totN*100)}% от всех)</div><div class="tr">Внутри сегмента ${Math.round(r[1]*r[4])} дошли до предоплаты (${F.pct(r[4])})</div>`);svg.appendChild(g);x+=w;});}
   el.appendChild(svg);
 }
 

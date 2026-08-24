@@ -1,0 +1,23 @@
+name: Direct monthly CPL (апрель-август по каналам)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Помесячный CPL Директ+ABDM
+        env:
+          YANDEX_DIRECT_TOKEN: ${{ secrets.YANDEX_DIRECT_TOKEN || secrets.YD_TOKEN }}
+          YANDEX_DIRECT_LOGIN: ${{ secrets.YANDEX_DIRECT_LOGIN || secrets.YD_LOGIN }}
+          YANDEX_METRIKA_TOKEN: ${{ secrets.YANDEX_METRIKA_TOKEN || secrets.YM_TOKEN }}
+          YANDEX_METRIKA_COUNTER: ${{ secrets.YANDEX_METRIKA_COUNTER || '104369223' }}
+        run: node yandex-direct/dashboard/direct-monthly-cpl.mjs

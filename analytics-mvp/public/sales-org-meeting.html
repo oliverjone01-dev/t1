@@ -294,13 +294,21 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>ABDM</span><span><span class="dot" style="background:var(--d3)"></span>Яндекс.Директ</span></div>
     <p class="tiny dim" style="margin-top:10px">Что видно в динамике. <b>SEO держал весь апрель-май</b> (80 и 38 лидов), когда Директ почти не тратил (3к и 1.8к). Платный залив пошёл с июня: расход Директа 72к→160к→113к, лиды рекламы 34→75→70. По UTM в августе Директ (35) обошёл ABDM (33), в июне-июле вёл ABDM. Цифры на цели «CRM Все лиды» (мой синк) - выше, чем «избранные цели» в Метрике; дашь ID избранных - переключу.</p>
   </div>
-  <div class="card" style="margin-top:16px">
-    <div class="chart-t">Динамика CPL по каналам <span class="tag data">ФАКТ</span></div>
-    <div class="chart-s">стоимость лида по месяцам, апрель-август, ₽ · Директ из кабинета (все и качественные), ABDM оценка</div>
-    <div id="c-cplmo"></div>
-    <div class="leg"><span><span class="dot" style="background:var(--d6)"></span>Директ, все лиды</span><span><span class="dot" style="background:var(--d4)"></span>Директ, качественные</span><span><span class="dot" style="background:var(--d1)"></span>ABDM (оценка)</span></div>
-    <p class="tiny dim" style="margin-top:10px"><b>CPL Директа падает втрое:</b> 11 967 → 5 510 → 3 350 ₽ (июн→авг) - расход растёт, лидов больше, цена лида снижается. Качественный лид тоже дешевеет (12к → 5.7к). ABDM - оценка (спенд 115к/мес ÷ лиды по utm=abdm: 22/40/34); реальный помесячный спенд ABDM даст их отчёт. <b>Апрель-май - разрыв на графике:</b> Директ потратил всего 3.0к и 1.8к ₽ и не дал ни одного лида по цели «Все лиды», поэтому CPL с апреля не считается, линии стартуют с июня (данные кабинета за апрель-август, живые).</p>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="chart-t">CPL «Все лиды» по каналам <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">стоимость лида (цель «Все лиды») по месяцам, апрель-август, ₽</div>
+      <div id="c-cplall"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d6)"></span>Директ, все</span><span><span class="dot" style="background:var(--d1)"></span>ABDM (оценка)</span></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">CPL «Качественные лиды» по каналам <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">стоимость качественного лида (цель «отправка контактов») по месяцам, ₽</div>
+      <div id="c-cplqual"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d4)"></span>Директ, кач.</span><span><span class="dot" style="background:var(--d1)"></span>ABDM, кач. (оценка)</span></div>
+    </div>
   </div>
+  <p class="tiny dim" style="margin-top:10px"><b>CPL Директа падает втрое:</b> все лиды 11 967 → 5 510 → 3 377 ₽ (июн→авг), качественные 11 967 → 9 986 → 5 741 ₽ - расход растёт, лидов больше, цена лида снижается. ABDM - оценка (спенд 115к/мес ÷ лиды utm=abdm: все 22/40/34, кач 21/17/27); реальный помесячный спенд ABDM даст их отчёт. <b>Апрель-май - разрыв на графиках:</b> Директ потратил всего 3.0к и 1.8к ₽ и не дал ни одного лида, поэтому CPL с апреля не считается, линии стартуют с июня (данные кабинета за апрель-август, живые).</p>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
     <div class="chart-s">два реальных снимка; апрель, май и полный июль недоступны без токенов Яндекса</div>
@@ -752,10 +760,13 @@ const DIRSPENDMO=[3.05,1.83,71.8,159.78,113.2]; // тыс ₽ по месяца�
 // Динамика CPL по месяцам (₽), апрель-август. Апрель-май - разрыв: Директ тратил
 // 3.0к/1.8к, но 0 лидов по цели «Все лиды», CPL не считается (null = пропуск).
 const CPLMO=['апр','май','июн','июл','авг'];
-const CPLLINES=[
- {name:'Директ, все', v:[null,null,11967,5510,3350], c:PAL[5]},
- {name:'Директ, кач.', v:[null,null,11967,9986,5696], c:PAL[3]},
+const CPL_ALL=[
+ {name:'Директ, все', v:[null,null,11967,5510,3377], c:PAL[5]},
  {name:'ABDM (оценка)', v:[null,null,5227,2875,3382], c:PAL[0]}
+];
+const CPL_QUAL=[
+ {name:'Директ, кач.', v:[null,null,11967,9986,5741], c:PAL[3]},
+ {name:'ABDM, кач.', v:[null,null,5476,6765,4259], c:PAL[0]}
 ];
 const PAIDMO=[['апр',0,0],['май',0,0],['июн',22,7],['июл',40,30],['авг*',33,35]]; // [мес, ABDM, Директ]
 // Динамика по месяцам (создано): [мес, создано, потенциал_k, успех_шт, успех_k, won_шт, won_k]
@@ -1012,15 +1023,18 @@ function lineChart(el,series,labels,{fmt=v=>Math.round(v)}={}){
   for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));
     const t=mk('text',{x:pad.l-6,y:y+3,'text-anchor':'end',class:'tick'});t.textContent=fmt(max*(1-i/4));svg.appendChild(t);}
   labels.forEach((l,i)=>{const t=mk('text',{x:X(i),y:h-8,'text-anchor':'middle',class:'tick'});t.textContent=l;svg.appendChild(t);});
-  series.forEach(s=>{
+  // если у серий последние точки близко - разносим подписи по вертикали, чтобы не наложились
+  const lastY=series.map(s=>{for(let i=s.v.length-1;i>=0;i--)if(s.v[i]!=null)return Y(s.v[i]);return null;});
+  series.forEach((s,si)=>{
     // пропуски (null) = разрыв линии: месяцы без данных не рисуем
     let path='',pen=false;s.v.forEach((v,i)=>{if(v==null){pen=false;return;}path+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';pen=true;});
     svg.appendChild(mk('path',{d:path,fill:'none',stroke:s.c,'stroke-width':2.5}));
     s.v.forEach((v,i)=>{if(v==null)return;const g=mk('g');g.appendChild(mk('circle',{cx:X(i),cy:Y(v),r:3.5,fill:s.c}));
       bind(g,`<div class="tt">${esc(s.name)} · ${esc(labels[i])}</div><div class="tr">${fmt(v)}</div>`);svg.appendChild(g);});
-    // подпись последней точки с данными
+    // подпись последней точки с данными; при близких значениях серий разносим по вертикали
     let li=-1;for(let i=s.v.length-1;i>=0;i--){if(s.v[i]!=null){li=i;break;}}
-    if(li>=0){const t=mk('text',{x:X(li)+5,y:Y(s.v[li])+3,'font-size':10,'font-weight':700,fill:s.c});t.textContent=s.name;svg.appendChild(t);}
+    if(li>=0){let ly=Y(s.v[li])+3;const other=lastY[1-si];if(other!=null&&Math.abs(ly-other-3)<12)ly+=(si===0?-8:8);
+      const t=mk('text',{x:X(li)+5,y:ly,'font-size':10,'font-weight':700,fill:s.c});t.textContent=s.name;svg.appendChild(t);}
   });
   el.appendChild(svg);
 }
@@ -1082,7 +1096,8 @@ function draw(){
   hbars(document.getElementById('c-bounce'),BOUNCE,{val:r=>r[1],label:r=>r[0],sub:r=>`${r[2]} лидов`,color:PAL[5],h:38,unit:'отказов',fmt:v=>v.toFixed(1).replace('.',',')+'%'});
   lineChart(document.getElementById('c-chmo'),CHLINES,MO5,{fmt:v=>Math.round(v)});
   barMonths(document.getElementById('c-dirmo'),DIRSPENDMO,MO5,{fmt:F.fmtM,color:PAL[5]});
-  lineChart(document.getElementById('c-cplmo'),CPLLINES,CPLMO,{fmt:v=>(v/1000).toFixed(1).replace('.',',')+'к'});
+  lineChart(document.getElementById('c-cplall'),CPL_ALL,CPLMO,{fmt:v=>(v/1000).toFixed(1).replace('.',',')+'к'});
+  lineChart(document.getElementById('c-cplqual'),CPL_QUAL,CPLMO,{fmt:v=>(v/1000).toFixed(1).replace('.',',')+'к'});
   gbars(document.getElementById('c-paidmo'),PAIDMO,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'ABDM',t2:'Директ',h:200});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
@@ -1107,7 +1122,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-plan','k-mgr','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplmo,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-segn,#c-segout,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplall,#c-cplqual,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-segn,#c-segout,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

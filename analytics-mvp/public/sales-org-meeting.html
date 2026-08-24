@@ -148,6 +148,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <a href="#calc">Сколько нанимать</a>
     <a href="#paths">Три пути</a>
     <a href="#margin">Маржа</a>
+    <a href="#vyvody">Выводы</a>
     <a href="#decide">Решения</a>
   </nav>
 </div></div>
@@ -623,9 +624,60 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
 </section>
 
+<!-- 9b. ВЫВОДЫ -->
+<section id="vyvody">
+  <div class="sec-h"><span class="sec-n">10</span><h2>Выводы: путь к цели по выручке</h2></div>
+  <p class="sec-sub">Свожу весь отчёт в одну логику: сколько приходит заявок и какого качества → что с ними делает отдел → что менять, чтобы дойти до цели по выручке. Цель задаётся в калькуляторе (раздел 07).</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="chart-t" style="font-size:15px;margin-bottom:10px">1. Заявки: сколько, растёт ли, какие каналы, цена и качество</div>
+    <div class="grid g4">
+      <div class="tile good"><div class="v">253</div><div class="l">лидов/мес (август)</div><div class="n"><span class="tag data">ДАННЫЕ</span> было 138; +83%, поток растёт</div></div>
+      <div class="tile"><div class="v" style="color:var(--d3)">SEO</div><div class="l">канал №1 и растёт</div><div class="n"><span class="tag data">ДАННЫЕ</span> 80→104/мес; реклама залита с июня</div></div>
+      <div class="tile cy"><div class="v">↓ CPL</div><div class="l">стоимость заявки падает</div><div class="n"><span class="tag data">ДАННЫЕ</span> Директ 12к→3.3к; SEO ≈0; ABDM 3.5к</div></div>
+      <div class="tile"><div class="v" style="color:var(--up)">17%</div><div class="l">отказ SEO (лучший)</div><div class="n"><span class="tag data">ДАННЫЕ</span> реклама 23%, прямые 25%</div></div>
+    </div>
+    <p class="tiny dim" style="margin-top:10px"><b>Вывод по заявкам:</b> дефицита нет, поток растёт по всем каналам, цена лида снижается. Самый эффективный и качественный канал - <b>органика (SEO)</b>, и она недоинвестирована (75% запросов брендовые, небренд можно растить). Значит проблема выручки <b>не в верхе воронки</b>.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="chart-t" style="font-size:15px;margin-bottom:10px">2. Сделки: где деньги по чеку и ассортименту, в штуках и в рублях</div>
+    <div class="grid g3">
+      <div class="callout i" style="padding:12px 16px"><h3 class="small">Операционка внизу</h3><p class="small muted"><b>до-90к = 714 сделок (60%)</b> при выхлопе 19к/сделка. Много рутины, мало денег на сделку.</p></div>
+      <div class="callout i" style="padding:12px 16px"><h3 class="small">Деньги наверху</h3><p class="small muted"><b>свыше-150к = 104 сделки, 81% успешной выручки</b>; свыше-500 даёт 185к/сделка. Ядро - лофт-перегородки и зеркала.</p></div>
+      <div class="callout i" style="padding:12px 16px"><h3 class="small">Поток - розница</h3><p class="small muted">до-150к - зеркала и столы, высокая конверсия (68%), малый чек. Это конвейер, не маржа отдела.</p></div>
+    </div>
+    <p class="tiny dim" style="margin-top:10px"><b>Вывод по сделкам:</b> два разных бизнеса в одном отделе. Приток по месяцам растёт (216→288 сделок), но <b>успешная выручка по свежим когортам не поспевает</b> - деньги теряются не на входе, а внутри отдела (дожим), и разъезжается конверсия менеджеров (22-97%).</p>
+  </div>
+
+  <div class="grid g3">
+    <div class="callout" style="border-color:var(--up);background:rgba(16,185,129,.06)">
+      <h3 style="color:var(--up)">Что делаем уже сейчас (без данных)</h3>
+      <ul class="muted small" style="padding-left:18px;line-height:1.7;margin:6px 0 0">
+        <li><b>Дожим КП→предоплата 49%→60%</b> = +8.3 млн без найма (скрипты viktor + обучение trener). Самый дешёвый рубль.</li>
+        <li><b>Junior на поток до-90к</b> - разгрузить сильных от рутины (60% операционки).</li>
+        <li><b>Недокормленный SEO-небренд</b> - растить самый дешёвый канал.</li>
+        <li>Дать Ериной/Сячиновой больше сделок - проверить недогруз.</li>
+      </ul>
+    </div>
+    <div class="callout q">
+      <h3>Что неизвестно (блокеры)</h3>
+      <ul class="muted small" style="padding-left:18px;line-height:1.7;margin:6px 0 0">
+        <li><b>Маржа по сегменту</b> - считаем выручку, не прибыль. Может, дорогой чек низкомаржинальный. До замера звёзд на «бабло» не сажать.</li>
+        <li><b>Оценка менеджеров по общению</b> - нужна полная выгрузка Wazzup (сейчас размечено 3.5%).</li>
+        <li><b>ROMI в рублях по каналу</b> - у сделок нет UTM (8%); нужна сквозная аналитика.</li>
+      </ul>
+    </div>
+    <div class="callout i">
+      <h3>Как дойти до цели</h3>
+      <p class="muted small">Цель по выручке (калькулятор, раздел 07) достигается не накачкой заявок, а <b>ростом выручки на одного менеджера</b>: сначала дожим и разгрузка сильных, затем найм под сегменты (junior на поток, опытные на дорогой чек), и только после <b>замера маржи</b> - структурные ставки. Сегментировать по <b>чеку</b>, не по типу клиента. Проверяем прогресс: полоса «идём к плану» в калькуляторе + ежемесячная динамика.</p>
+    </div>
+  </div>
+</section>
+
 <!-- 9. DECIDE -->
 <section id="decide" style="border-bottom:none">
-  <div class="sec-h"><span class="sec-n">10</span><h2>Решения собрания</h2></div>
+  <div class="sec-h"><span class="sec-n">11</span><h2>Решения собрания</h2></div>
   <p class="sec-sub">Не «продолжаем анализировать», а конкретные шаги с ответственным и датой. Порядок отвечает на «что бы что улучшить».</p>
   <div class="scrollx"><table class="act">
     <thead><tr><th>Шаг</th><th>Зачем</th><th>Ответственный</th><th>Срок</th></tr></thead>

@@ -272,12 +272,26 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <p class="tiny dim" style="margin-top:10px">Директ и ABDM - из твоего отчёта Метрики по UTM Source (август и квартал). В августе они почти вровень (Директ 35, ABDM 33), за квартал ABDM больше (95 против 72). CPL авг: Директ 151.4к/35 = 4 326 ₽; ABDM 115к/33 = 3 485 ₽. *Расход ABDM 115к - твоя оценка (программатик, в Яндексе не лежит). **SEO 125 - на цели «CRM Все лиды» и без UTM (органика), поэтому в один столбец целей с платными пока не сводится: нужна унификация цели. Кабинет Директа рапортует 1182 «мягких конверсии» (85% кликов) - не лиды, не берём.</p>
     </div>
   </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="chart-t">Лиды по каналам по месяцам <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">апрель→август, цель «CRM Все лиды», по типу трафика</div>
+      <div id="c-chmo"></div>
+      <div class="leg"><span><span class="dot" style="background:var(--d3)"></span>SEO / органика</span><span><span class="dot" style="background:var(--d5)"></span>Реклама (Директ+ABDM)</span><span><span class="dot" style="background:var(--d2)"></span>Прямые</span></div>
+    </div>
+    <div class="card">
+      <div class="chart-t">Директ: расход по месяцам <span class="tag data">ФАКТ</span></div>
+      <div class="chart-s">тыс ₽ из кабинета; платный залив нарастили с июня</div>
+      <div id="c-dirmo"></div>
+    </div>
+  </div>
   <div class="card" style="margin-top:16px">
-    <div class="chart-t">Лиды по каналам: июнь-июль → август <span class="tag data">ФАКТ</span></div>
-    <div class="chart-s">на цели «CRM Все лиды» (мой синк) - другой набор, чем избранные цели выше</div>
-    <div id="c-leadmo"></div>
-    <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>июнь-июль</span><span><span class="dot" style="background:var(--d3)"></span>август</span></div>
-    <p class="tiny dim" style="margin-top:10px">Осторожно: это на цели «CRM Все лиды» и по типу трафика, а таблица выше - на «избранных целях» по UTM Source. Числа Директа/ABDM тут выше, чем в Метрике, из-за другой цели и окна. Но направление одно и надёжное: <b>поток лидов растёт</b> (SEO 69→125, всего 138→253). Заявок больше, а не меньше - подтверждает ФЕНИКСА: узкое место в дожиме, не в притоке. Сведу к одной цели в синке.</p>
+    <div class="chart-t">Платные каналы по месяцам: ABDM vs Директ <span class="tag data">ФАКТ</span></div>
+    <div class="chart-s">лиды по UTM Source (с июня, до этого разметки не было)</div>
+    <div id="c-paidmo"></div>
+    <div class="leg"><span><span class="dot" style="background:var(--d1)"></span>ABDM</span><span><span class="dot" style="background:var(--d3)"></span>Яндекс.Директ</span></div>
+    <p class="tiny dim" style="margin-top:10px">Что видно в динамике. <b>SEO держал весь апрель-май</b> (80 и 38 лидов), когда Директ почти не тратил (3к и 1.8к). Платный залив пошёл с июня: расход Директа 72к→160к→113к, лиды рекламы 34→75→70. По UTM в августе Директ (35) обошёл ABDM (33), в июне-июле вёл ABDM. Цифры на цели «CRM Все лиды» (мой синк) - выше, чем «избранные цели» в Метрике; дашь ID избранных - переключу.</p>
+  </div>
   </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Директ по окнам: расход и лиды <span class="tag data">ФАКТ</span></div>
@@ -625,8 +639,15 @@ const BOUNCE=[['SEO / поиск',17.1,125],['Реклама (Директ+ABDM)
 // Платные каналы по UTM Source из отчёта Метрики (достижения избранных целей, посл. знач. переход)
 // [канал, август, квартал 25.05-24.08]
 const GOALS=[['Яндекс.Директ (yandex)',35,72],['ABDM (abdm)',33,95],['abdm_peregorodki',0,4],['yandex_maps',0,7]];
-// SEO/органика отдельно (без UTM, поисковый трафик) - на цели «CRM Все лиды»
-const LEADMO=[['SEO',69,125],['ABDM',33,45],['Директ',11,39],['Прямые',12,28],['Всего',138,253]];
+// Помесячно апрель→август (цель «CRM Все лиды»)
+const MO5=['апр','май','июн','июл','авг*'];
+const CHLINES=[
+ {name:'SEO',v:[80,38,64,95,104],c:PAL[2]},
+ {name:'Реклама',v:[3,0,34,75,70],c:PAL[4]},
+ {name:'Прямые',v:[18,9,13,19,26],c:PAL[1]}
+];
+const DIRSPENDMO=[3.05,1.83,71.8,159.78,113.2]; // тыс ₽ по месяцам (fmtM: <1000 -> "к")
+const PAIDMO=[['апр',0,0],['май',0,0],['июн',22,7],['июл',40,30],['авг*',33,35]]; // [мес, ABDM, Директ]
 // Динамика по месяцам (создано): [мес, создано, потенциал_k, успех_шт, успех_k, won_шт, won_k]
 const DYN=[
  ['апр',216,32555,104,12512,85,5860],['май',232,33899,85,7296,66,4850],['июн',246,40729,77,10228,42,2913],
@@ -852,6 +873,43 @@ function miniBars(container,series,labels){
   });
 }
 
+// ---- multi-line chart ----
+function lineChart(el,series,labels,{fmt=v=>Math.round(v)}={}){
+  const W=el.clientWidth||520,pad={l:34,r:14,t:16,b:26},h=240;
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,n=labels.length;
+  const max=Math.max(1,...series.flatMap(s=>s.v));
+  const X=i=>pad.l+iw*(n<2?0.5:i/(n-1)),Y=v=>pad.t+ih*(1-v/max);
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));
+    const t=mk('text',{x:pad.l-6,y:y+3,'text-anchor':'end',class:'tick'});t.textContent=fmt(max*(1-i/4));svg.appendChild(t);}
+  labels.forEach((l,i)=>{const t=mk('text',{x:X(i),y:h-8,'text-anchor':'middle',class:'tick'});t.textContent=l;svg.appendChild(t);});
+  series.forEach(s=>{
+    let path='';s.v.forEach((v,i)=>{path+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' ';});
+    svg.appendChild(mk('path',{d:path,fill:'none',stroke:s.c,'stroke-width':2.5}));
+    s.v.forEach((v,i)=>{const g=mk('g');g.appendChild(mk('circle',{cx:X(i),cy:Y(v),r:3.5,fill:s.c}));
+      bind(g,`<div class="tt">${esc(s.name)} · ${esc(labels[i])}</div><div class="tr">${fmt(v)}</div>`);svg.appendChild(g);});
+    // подпись последней точки
+    const li=s.v.length-1;const t=mk('text',{x:X(li)+5,y:Y(s.v[li])+3,'font-size':10,'font-weight':700,fill:s.c});t.textContent=s.name;
+    svg.appendChild(t);
+  });
+  el.appendChild(svg);
+}
+// ---- simple single-series bar by month ----
+function barMonths(el,vals,labels,{fmt=F.fmtM,color=PAL[0]}={}){
+  const W=el.clientWidth||520,pad={l:36,r:12,t:16,b:26},h=240;
+  const iw=W-pad.l-pad.r,ih=h-pad.t-pad.b,n=vals.length,gw=iw/n;
+  const max=Math.max(1,...vals);
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${h}`,width:'100%',height:h});
+  for(let i=0;i<=4;i++){const y=pad.t+ih*(i/4);svg.appendChild(mk('line',{x1:pad.l,y1:y,x2:W-pad.r,y2:y,class:'grid-l'}));
+    const t=mk('text',{x:pad.l-6,y:y+3,'text-anchor':'end',class:'tick'});t.textContent=fmt(max*(1-i/4));svg.appendChild(t);}
+  vals.forEach((v,i)=>{const cx=pad.l+gw*i+gw/2,bw=Math.min(38,gw*0.5),bh=ih*(v/max);
+    const g=mk('g');g.appendChild(mk('rect',{x:cx-bw/2,y:pad.t+ih-bh,width:bw,height:Math.max(1,bh),rx:4,fill:color,opacity:.9}));
+    const vt=mk('text',{x:cx,y:pad.t+ih-bh-4,'text-anchor':'middle',class:'bar-val'});vt.textContent=fmt(v);g.appendChild(vt);
+    const l=mk('text',{x:cx,y:h-8,'text-anchor':'middle',class:'tick'});l.textContent=labels[i];g.appendChild(l);
+    bind(g,`<div class="tt">${esc(labels[i])}</div><div class="tr">${fmt(v)}</div>`);svg.appendChild(g);});
+  el.appendChild(svg);
+}
+
 // ---- ROMI calc ----
 function romi(){
   const rev=+document.getElementById('r-rev').value, sp=+document.getElementById('r-spend').value;
@@ -880,7 +938,9 @@ function draw(){
   gbars(document.getElementById('c-goals'),GOALS,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[2],c2:PAL[1],fmt:v=>Math.round(v),unit:' цел',t1:'август',t2:'квартал',h:220});
   hbars(document.getElementById('c-seocat'),SEOCAT,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:34,unit:'визитов',fmt:v=>v+''});
   hbars(document.getElementById('c-bounce'),BOUNCE,{val:r=>r[1],label:r=>r[0],sub:r=>`${r[2]} лидов`,color:PAL[5],h:38,unit:'отказов',fmt:v=>v.toFixed(1).replace('.',',')+'%'});
-  gbars(document.getElementById('c-leadmo'),LEADMO,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'июнь-июль',t2:'август',h:210});
+  lineChart(document.getElementById('c-chmo'),CHLINES,MO5,{fmt:v=>Math.round(v)});
+  barMonths(document.getElementById('c-dirmo'),DIRSPENDMO,MO5,{fmt:F.fmtM,color:PAL[5]});
+  gbars(document.getElementById('c-paidmo'),PAIDMO,{cat:r=>r[0],v1:r=>r[1],v2:r=>r[2],c1:PAL[0],c2:PAL[2],fmt:v=>Math.round(v),unit:' лид',t1:'ABDM',t2:'Директ',h:200});
   segBars(document.getElementById('c-seg'),SEG);
   twoBar(document.getElementById('c-two'),TWO);
   hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
@@ -902,7 +962,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-goal','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-leadmo,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

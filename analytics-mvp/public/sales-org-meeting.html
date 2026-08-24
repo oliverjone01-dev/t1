@@ -520,6 +520,29 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="callout d small" style="margin-top:14px;padding:10px 14px"><b>Осторожно.</b> Калькулятор считает <b>выручку, а не прибыль</b>, и не учитывает конверсию. Реальные звёзды делают 7 – 13 млн успешной выручки за окно при разной конверсии. Перед наймом подставить маржу сегмента и реальную конверсию профиля, а не среднюю выручку.</div>
   </div>
   <div class="card" style="margin-top:16px">
+    <div class="chart-t">Операционка против выхлопа: где кого сажать <span class="tag data">ДАННЫЕ</span></div>
+    <div class="chart-s">апрель-август · число сделок = нагрузка/рутина · выхлоп на сделку = сколько денег приносит одна сделка</div>
+    <div class="grid g2" style="margin-top:6px">
+      <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Сделок по сегменту (операционка)</div><div id="c-segn"></div></div>
+      <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Выхлоп на одну сделку, ₽</div><div id="c-segout"></div></div>
+    </div>
+    <div class="scrollx" style="margin-top:14px"><table>
+      <thead><tr><th>Сегмент чека</th><th>Сделок</th><th>Успех</th><th>Усп. выручка</th><th>Выхлоп/сделку</th><th>Конв.</th><th style="text-align:left">Кого сажать</th></tr></thead>
+      <tbody>
+        <tr><td class="name">до 90к</td><td>714</td><td>313</td><td>13.5 млн</td><td><span class="pill r">19к</span></td><td>44%</td><td class="small" style="text-align:left;color:var(--ink)">junior / поток</td></tr>
+        <tr><td class="name">90-150к</td><td>157</td><td>38</td><td>4.3 млн</td><td><span class="pill y">27к</span></td><td>24%</td><td class="small" style="text-align:left;color:var(--ink)">middle</td></tr>
+        <tr><td class="name">150-300к</td><td>172</td><td>39</td><td>8.2 млн</td><td><span class="pill y">48к</span></td><td>23%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
+        <tr><td class="name">300-500к</td><td>66</td><td>10</td><td>3.7 млн</td><td><span class="pill g">55к</span></td><td>15%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
+        <tr><td class="name">свыше 500к</td><td>70</td><td>14</td><td>12.9 млн</td><td><span class="pill g">185к</span></td><td>20%</td><td class="small" style="text-align:left;color:var(--ink)">звезда / b2b</td></tr>
+      </tbody>
+    </table></div>
+    <div class="callout i small" style="margin-top:14px;padding:12px 16px"><b>Где первичен найм.</b> Сегмент <b>до-90к съедает 60% всех сделок (714 из 1179), но выхлоп 19к/сделка</b> - это конвейер рутины на дешёвых лидах. Туда <b>junior первым делом</b>: разгрузить сильных, дать новичкам учиться на «не жалко». А <b>свыше-500к: 70 сделок (6%), но 185к/сделка (в 10 раз больше)</b> - туда только опытные/звёзды, длинный цикл и b2b. Разрыв выхлопа в 10 раз между полюсами - это и есть аргумент разной квалификации по чеку.</div>
+  </div>
+  <div class="callout q" style="margin-top:16px">
+    <h3>Стоит ли делить менеджеров по типу клиента?</h3>
+    <p class="muted">Короткий ответ: <b>нет, основа штатки - чек/сложность, а тип клиента - вторичный признак маршрутизации.</b> Три причины из данных. <b>1.</b> Экономику определяет чек: выхлоп на сделку от 19к до 185к - разброс в 10 раз именно по чеку, а не по типу клиента. Менеджер тренируется под сложность и размер сделки, не под ярлык клиента. <b>2.</b> Тип клиента известен, а чек на входе - нет. Делить штат по типу клиента = делить по признаку, который не гарантирует ни денег, ни сложности; лучше оценивать чек по изделию и количеству. <b>3.</b> Деньги концентрируются в дорогих чеках независимо от типа клиента (лофт-перегородки и зеркала есть и у дилеров, и у частных). Тип клиента полезен для <b>скрипта и tone-of-voice</b> (дилеру - опт и условия, частному - визуал и сроки), но не как основа найма и KPI.</p>
+  </div>
+  <div class="card" style="margin-top:16px">
     <div class="chart-t">Предложение Ивана: KPI и штат по чек-сегментам <span class="tag hyp">ГИПОТЕЗА / план</span></div>
     <div class="chart-s">сегментируем менеджеров по чеку, а не по типу клиента; у каждого свой план в штуках</div>
     <div class="scrollx"><table>
@@ -645,6 +668,8 @@ const SEG=[
  ['300-500',26,9781,6243,0.62],['свыше 500',25,26571,11742,0.52]
 ];
 const TWO=[['до 150к',152,8898,5925,0.68],['свыше 150к',104,48096,24487,0.56]];
+// Операционка vs выхлоп по чек-сегментам [сегмент, сделок, выхлоп/сделку_к]
+const SEGOPS=[['до 90к',714,19],['90-150к',157,27],['150-300к',172,48],['300-500к',66,55],['свыше 500к',70,185]];
 const A1=[['Лофт перегородки',17539,0.68],['Зеркала',15097,0.58],['нет данных',5412,0.33],['Душевые перегородки',3837,0.45],['Комплектующие',3598,0.00],['Стеклянные доски',1235,0.50],['Столы+Хранение',1377,0.75]];
 const A2=[['Зеркала',3752,0.77],['Столы',1876,0.73],['нет данных',1065,0.57],['Душевые',656,0.17],['Лофт перегородки',603,0.36],['Комплектующие',542,0.82],['Стеклянные доски',404,0.78]];
 // SEO по разделам сайта [категория, лиды] (август, органика, goal reaches по startURLPath)
@@ -993,6 +1018,8 @@ function draw(){
   twoBar(document.getElementById('c-two'),TWO);
   hbars(document.getElementById('c-a1'),A1,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[5],h:34});
   hbars(document.getElementById('c-a2'),A2,{val:r=>r[1],label:r=>r[0],sub:r=>`конв ${F.pct(r[2])}`,color:PAL[3],h:34});
+  hbars(document.getElementById('c-segn'),SEGOPS,{val:r=>r[1],label:r=>r[0],color:PAL[0],h:34,unit:'сделок',fmt:v=>v+''});
+  hbars(document.getElementById('c-segout'),SEGOPS,{val:r=>r[2],label:r=>r[0],color:PAL[2],h:34,unit:'на сделку',fmt:v=>v+'к'});
   scatter(document.getElementById('c-scatter'));
   mgrBar(document.getElementById('c-mgrbar'));
   hbars(document.getElementById('c-loss'),LOSS,{val:r=>r[1],label:r=>r[0],sub:r=>`${F.fmtM(r[2])} потенциала`,color:PAL[4],h:38,unit:'сделок',fmt:v=>v+' шт'});
@@ -1010,7 +1037,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-plan','k-mgr','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplmo,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplmo,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-segn,#c-segout,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

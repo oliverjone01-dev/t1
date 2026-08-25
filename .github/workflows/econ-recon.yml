@@ -2,8 +2,8 @@ name: ECON recon (связи сделка<->СП<->поля денег -> econ-r
 
 # Разведка: перечисляет все смарт-процессы, денежные поля с заполненностью, по каждой
 # сделке окна фиксирует запущенные СП, поля денег со значениями и ссылки, наличие товаров.
-# Пишет economics/data/econ-recon.json (для экрана) и печатает сводку в лог. Коммитит JSON
-# в ветку данных. Только чтение Bitrix, секрет маскируется. Запуск вручную.
+# Пишет economics/data/econ-recon.json + печёт экран public/econ-control.html и печатает
+# сводку в лог. Коммитит оба в ветку данных. Только чтение Bitrix, секрет маскируется.
 
 on:
   workflow_dispatch:
@@ -43,16 +43,21 @@ jobs:
           echo "::add-mask::$B24_WEBHOOK_URL"
           if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
           npx tsx src/scripts/b24/econ-recon.ts
-          echo "Размер: $(du -h economics/data/econ-recon.json | cut -f1)"
-      - name: Commit econ-recon.json
+          echo "Размер JSON: $(du -h economics/data/econ-recon.json | cut -f1)"
+      - name: Печь экран econ-control.html
+        run: |
+          set -euo pipefail
+          node economics/build-econ-control.mjs
+          echo "Экран: $(du -h public/econ-control.html | cut -f1)"
+      - name: Commit данные + экран
         working-directory: .
         run: |
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/economics/data/econ-recon.json
+          git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/public/econ-control.html
           if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
-          git commit -m "data(econ): снимок разведки связей $(date -u +%F)"
+          git commit -m "data(econ): снимок разведки + экран $(date -u +%F)"
           for i in 1 2 3 4 5; do
             if git push origin "HEAD:$DATA_BRANCH"; then exit 0; fi
             git fetch origin "$DATA_BRANCH"; git rebase "origin/$DATA_BRANCH" || git rebase --abort; sleep $((2**i))

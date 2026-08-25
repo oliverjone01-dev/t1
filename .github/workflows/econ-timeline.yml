@@ -1,0 +1,29 @@
+name: ECON timeline (даты создания/теста/первых боевых сделок по СП)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  timeline:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: economics-dashboard-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Timeline -> лог
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета"; exit 1; fi
+          npx tsx src/scripts/b24/econ-timeline.ts

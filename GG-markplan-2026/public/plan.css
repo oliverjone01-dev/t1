@@ -512,3 +512,12 @@ table.mtx .snote{display:block;font-size:11.5px;color:var(--ink-3);font-weight:4
 .gantt .bar.st-frozen{opacity:.72}
 .gantt .bar.st-frozen .b-fill{fill:url(#g-frozen)}
 .gantt .bar.st-frozen .g-dur{fill:var(--ink-3);font-style:italic}
+
+/* чип «ждём от» и признак фоновой работы */
+.g-chip-ext .g-chip-dot{fill:var(--stop)}
+.g-chip-ext .g-chip-t{fill:var(--stop)}
+.g-chip-ext .g-chip-bg{stroke:color-mix(in oklab,var(--stop) 50%,transparent);fill:color-mix(in oklab,var(--stop) 10%,transparent)}
+.g-chip-rout .g-chip-bg{stroke-dasharray:4 3}
+.g-chip-rout .g-chip-t,.g-chip-rout .g-chip-dot{fill:var(--ink-3)}
+/* источник цифры в раскрытой строке */
+.g-src-exp{fill:var(--ink-3);font-family:var(--sans);font-size:10px;font-style:italic}

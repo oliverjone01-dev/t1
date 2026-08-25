@@ -145,7 +145,9 @@
       why: col("обоснование", "зачем", "why"), author: col("автор", "предложил", "author"),
       who: col("ответственный", "отв.", "отв", "ответств", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"),
       dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate"),
-      pr: col("приоритет", "приор", "priority", "prio") };
+      pr: col("приоритет", "приор", "priority", "prio"),
+      src: col("источник", "source"), typ: col("тип", "type"),
+      hrs: col("часов", "часы", "часов в неделю"), ext: col("ждём от", "ждем от", "внешняя зависимость", "внешние") };
     if (ci.t < 0 || ci.start < 0) return null;
     // Пока в листе нет колонки «Приоритет», считаем его незаполненным и
     // остаёмся на встроенном списке, чтобы не показать чужие задачи.
@@ -166,6 +168,7 @@
         dep: ci.dep >= 0 ? String(row[ci.dep] || "").split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean) : [],
         st: st,
         pr: prCode(cell(row, ci.pr)),
+        src: cell(row, ci.src), typ: cell(row, ci.typ), hrs: cell(row, ci.hrs), ext: cell(row, ci.ext),
         gate: ci.gate >= 0 ? /да|yes|1|гейт/i.test(row[ci.gate] || "") : false
       });
     }
@@ -390,6 +393,8 @@
         if (o.t.pr) cl.push({ txt: PRNAME[o.t.pr], kind: "pr g-chip-pr-" + o.t.pr });
         cl.push({ txt: o.whoTxt, kind: (o.t.who && !frozen) ? "who" : "who-empty" });
         cl.push({ txt: o.finTxt, kind: frozen ? "cal-empty" : "cal" });
+        if (o.t.ext) cl.push({ txt: "ждём: " + o.t.ext, kind: "ext" });
+        if (o.t.typ === "рутина") cl.push({ txt: "фоном, " + (o.t.hrs || "?") + " ч в неделю", kind: "rout" });
         var crows = [[]], rw = 0;
         cl.forEach(function (c) {
           // на узком экране подрезаем подпись, чтобы чип не вылезал за колонку
@@ -401,7 +406,8 @@
         o.chipRows = crows;
         var open = !!ganttOpen[o.t.id];
         var h = 9 + o.tl.length * LH + crows.length * 22 + 8;
-        if (open) h += 4 + o.exWl.length * 13 + (o.t.author ? 16 : 0) + 6;
+        if (o.t.src) o.srcWl = wrapPx("откуда цифра: " + o.t.src, textPx, "g-src-exp", 2); else o.srcWl = [];
+        if (open) h += 4 + o.exWl.length * 13 + o.srcWl.length * 12 + (o.t.author ? 16 : 0) + 8;
         if (h < 58) h = 58;
         o.top = rowY; o.rh = h; o.y = rowY + 18;
         yById[o.t.id] = o; order.push(o); rowY += h;
@@ -499,8 +505,16 @@
         o.exWl.forEach(function (ln, i) {
           var wx = sv("text", { x: taskX, y: ey + i * 13, class: "g-why-exp" }); wx.textContent = ln; lroot.appendChild(wx);
         });
+        var eyy = ey + o.exWl.length * 13 + 3;
+        if (o.t.src) {
+          o.srcWl = o.srcWl || wrapPx("откуда цифра: " + o.t.src, textPx, "g-src-exp", 2);
+          o.srcWl.forEach(function (ln, i) {
+            var sx = sv("text", { x: taskX, y: eyy + i * 12, class: "g-src-exp" }); sx.textContent = ln; lroot.appendChild(sx);
+          });
+          eyy += o.srcWl.length * 12 + 1;
+        }
         if (o.t.author) {
-          var au = sv("text", { x: taskX, y: ey + o.exWl.length * 13 + 3, class: "g-author-exp" }); au.textContent = wrapPx("предложил: " + o.t.author, textPx, "g-author-exp", 1)[0] || ""; lroot.appendChild(au);
+          var au = sv("text", { x: taskX, y: eyy, class: "g-author-exp" }); au.textContent = wrapPx("предложил: " + o.t.author, textPx, "g-author-exp", 1)[0] || ""; lroot.appendChild(au);
         }
       }
       var lh = sv("rect", { x: 0, y: o.top, width: Lw, height: o.rh, fill: "transparent", class: "bar-hit" });
@@ -669,6 +683,9 @@
         '<div class="tt-r"><span>статус</span>' + esc(stName) + "</div>" +
         (o.t.pr ? '<div class="tt-r"><span>важность</span>' + esc(PRNAME[o.t.pr]) + "</div>" : "") +
         (o.t.who ? '<div class="tt-r"><span>кто делает</span>' + esc(o.t.who) + "</div>" : "") +
+        (o.t.hrs ? '<div class="tt-r"><span>нагрузка</span>' + esc(o.t.hrs) + " ч в неделю" + (o.t.typ ? " · " + esc(o.t.typ) : "") + "</div>" : "") +
+        (o.t.ext ? '<div class="tt-r"><span>ждём от</span>' + esc(o.t.ext) + "</div>" : "") +
+        (o.t.src ? '<div class="tt-r"><span>откуда цифра</span>' + esc(o.t.src) + "</div>" : "") +
         (needs.length ? '<div class="tt-r"><span>после</span>' + esc(needs.join(", ")) + "</div>" : "") +
         (opens.length ? '<div class="tt-r"><span>откроет</span>' + esc(opens.join(", ")) + "</div>" : "") +
         '<div class="tt-r tt-hint">клик - раскрыть обоснование и автора</div>';

@@ -34,10 +34,10 @@ async function call(method: string, params: any = {}): Promise<any> {
   }
   throw lastErr;
 }
-async function ssFields(etid: number): Promise<string[]> {
+async function ssFields(etid: number, key = ""): Promise<string[]> {
   const fields: Record<string, any> = (await call("crm.item.fields", { entityTypeId: etid })).result?.fields || {};
   const out: string[] = [];
-  for (const [id, def] of Object.entries(fields)) { const t = String(lbl(def)); if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_NUM.test(String(def.type || ""))) out.push(id); }
+  for (const [id, def] of Object.entries(fields)) { const t = String(lbl(def)); if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_NUM.test(String(def.type || ""))) { out.push(id); console.error(`SSFIELD\t${etid}\t${key}\t${id}\t${t}\t${def.type}`); } }
   return out;
 }
 async function itemsAll(etid: number, select: string[]): Promise<any[]> {
@@ -51,33 +51,53 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   const j = JSON.parse(readFileSync("rop/data/rop.json", "utf8"));
   const D = (j.deals || j).filter((x: any) => x.created >= "2026-04-01" && x.created <= "2026-08-31" && x.budget > 1 && (KP.has(x.stageCode) || SUCC.has(x.stageCode)));
   const byId = new Map<string, any>();
-  for (const x of D) byId.set(String(x.id), { assort: x.assort || "нет данных", budget: x.budget, stage: x.stageCode, ss: 0 });
+  // spss[i] = с/с из i-го СП (по порядку SP); byField хранит вклад каждого поля для диагностики
+  for (const x of D) byId.set(String(x.id), { assort: x.assort || "нет данных", budget: x.budget, stage: x.stageCode, spss: SP.map(() => 0) });
   console.error(`Окно (дошли до КП, чек>1): ${D.length} сделок`);
 
-  // с/с из СП -> на сделку окна
-  for (const sp of SP) {
-    const ss = await ssFields(sp.etid);
+  // с/с из СП -> на сделку окна (по каждому СП раздельно, чтобы видеть двойной счёт)
+  for (let si = 0; si < SP.length; si++) {
+    const sp = SP[si];
+    const ss = await ssFields(sp.etid, sp.key);
     if (!ss.length) { console.error(`СП ${sp.etid} ${sp.key}: с/с-полей нет`); continue; }
     const items = await itemsAll(sp.etid, ["id", "parentId2", ...ss]);
     let hit = 0;
-    for (const it of items) { const rec = byId.get(String(it.parentId2 || "")); if (!rec) continue; rec.ss += ss.reduce((s, f) => s + num(it[f]), 0); hit++; }
+    for (const it of items) {
+      const rec = byId.get(String(it.parentId2 || "")); if (!rec) continue;
+      rec.spss[si] += ss.reduce((s, f) => s + num(it[f]), 0); hit++;
+    }
     console.error(`СП ${sp.etid} ${sp.key}: полей ${ss.length}, карточек ${items.length}, попало в окно ${hit}`);
   }
 
-  // агрегат по типу изделия
+  // диагностика двойного счёта: сумма-по-СП vs максимум одного СП, по покрытым сделкам
+  const sumOf = (r: any) => r.spss.reduce((s: number, v: number) => s + v, 0);
+  const maxOf = (r: any) => Math.max(...r.spss);
+  let dSumSS = 0, dMaxSS = 0, dBud = 0, dN = 0, overBud = 0, multiSP = 0;
+  for (const [, r] of byId) {
+    const s = sumOf(r); if (s <= 0) continue;
+    dN++; dBud += r.budget; dSumSS += s; dMaxSS += maxOf(r);
+    if (s > r.budget) overBud++;
+    if (r.spss.filter((v: number) => v > 0).length > 1) multiSP++;
+  }
+  console.error(`ДИАГ: покрыто ${dN}; сделок с с/с в >1 СП ${multiSP}; с/с>бюджета (нереально) при сумме-СП ${overBud}`);
+  console.error(`ДИАГ: бюджет покрытых ${(dBud / 1e6).toFixed(1)} млн; с/с сумма-по-СП ${(dSumSS / 1e6).toFixed(1)} млн (маржа ${Math.round(100 * (1 - dSumSS / dBud))}%); с/с макс-1-СП ${(dMaxSS / 1e6).toFixed(1)} млн (маржа ${Math.round(100 * (1 - dMaxSS / dBud))}%)`);
+
+  // агрегат по типу изделия. с/с сделки = МАКСИМУМ одного СП (защита от двойного счёта между СП).
+  // covBud/covSS - только покрытые сделки, чтобы маржа считалась apples-to-apples.
   const norm = (a: string) => /перегородк/i.test(a) ? (/душев/i.test(a) ? "Душевые перегородки" : "Лофт перегородки") : a;
   const g: Record<string, any> = {};
   let covN = 0, covBud = 0, covSS = 0;
   for (const [, r] of byId) {
-    const k = norm(r.assort); const a = (g[k] = g[k] || { n: 0, ssN: 0, bud: 0, ss: 0, kpN: 0, pdN: 0 });
+    const k = norm(r.assort); const a = (g[k] = g[k] || { n: 0, ssN: 0, bud: 0, covBud: 0, ss: 0, kpN: 0, pdN: 0 });
+    const ss = maxOf(r);
     a.n++; a.bud += r.budget;
-    if (r.ss > 0) { a.ssN++; a.ss += r.ss; covN++; covBud += r.budget; covSS += r.ss; if (SUCC.has(r.stage)) a.pdN++; else a.kpN++; }
+    if (ss > 0) { a.ssN++; a.ss += ss; a.covBud += r.budget; covN++; covBud += r.budget; covSS += ss; if (SUCC.has(r.stage)) a.pdN++; else a.kpN++; }
   }
-  console.error(`ПОКРЫТИЕ: с/с заполнена у ${covN} из ${D.length} сделок (${Math.round(100 * covN / D.length)}%); их бюджет ${(covBud / 1e6).toFixed(1)} млн, с/с ${(covSS / 1e6).toFixed(1)} млн, маржа ${Math.round(100 * (1 - covSS / covBud))}%`);
-  console.error("COSTAGG\tтип\tвсего_сделок\tс_сс_шт\tбюджет_сс_млн\tсс_млн\tмаржа%\tна_КП\tна_предопл");
+  console.error(`ПОКРЫТИЕ (с/с=макс-1-СП): заполнена у ${covN} из ${D.length} сделок (${Math.round(100 * covN / D.length)}%); их бюджет ${(covBud / 1e6).toFixed(1)} млн, с/с ${(covSS / 1e6).toFixed(1)} млн, маржа ${Math.round(100 * (1 - covSS / covBud))}%`);
+  console.error("COSTAGG\tтип\tвсего\tс_сс_шт\tбюдж_покрытых_млн\tсс_млн\tмаржа%\tна_КП\tна_предопл");
   for (const [k, a] of Object.entries(g).sort((x: any, y: any) => y[1].ss - x[1].ss)) {
     if (!a.ssN) continue;
-    console.error(`COSTAGG\t${k}\t${a.n}\t${a.ssN}\t${(a.bud / 1e6).toFixed(1)}\t${(a.ss / 1e6).toFixed(1)}\t${Math.round(100 * (1 - a.ss / a.bud))}\t${a.kpN}\t${a.pdN}`);
+    console.error(`COSTAGG\t${k}\t${a.n}\t${a.ssN}\t${(a.covBud / 1e6).toFixed(1)}\t${(a.ss / 1e6).toFixed(1)}\t${Math.round(100 * (1 - a.ss / a.covBud))}\t${a.kpN}\t${a.pdN}`);
   }
   console.error("COSTAGG-DONE");
 })();

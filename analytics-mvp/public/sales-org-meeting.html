@@ -598,22 +598,22 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
   <div class="card" style="margin-top:16px">
     <div class="chart-t">Операционка против выхлопа: где кого сажать <span class="tag data">ДАННЫЕ</span></div>
-    <div class="chart-s">апрель-август · число сделок = нагрузка/рутина · выхлоп на сделку = сколько денег приносит одна сделка · только сделки с реальным чеком выше 1 ₽ (чек 0-1 ₽ до оценки/мусорные исключены)</div>
+    <div class="chart-s">апрель-август · <b>операционная выборка: все 1121 сделка с чеком &gt;1 ₽</b> (нагрузка на отдел; шире, чем чек-разрез выше на 668 дошедших до КП) · выхлоп/сделку = усп.выручка ÷ сделок · Потенциал = сумма КП, Предопл = дошли до предоплаты</div>
     <div class="grid g2" style="margin-top:6px">
       <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Сделок по сегменту · яркая часть = с предоплатой</div><div id="c-segn"></div></div>
       <div><div class="chart-t" style="font-size:12px;color:var(--ink-2)">Выхлоп на одну сделку, ₽</div><div id="c-segout"></div></div>
     </div>
     <div class="scrollx" style="margin-top:14px"><table>
-      <thead><tr><th>Сегмент чека</th><th>Сделок</th><th>Успех</th><th>Усп. выручка</th><th>Выхлоп/сделку</th><th>Конв.</th><th style="text-align:left">Кого сажать</th></tr></thead>
+      <thead><tr><th>Сегмент чека</th><th>Сделок</th><th>Потенциал</th><th>Предопл (шт)</th><th>Усп. выручка</th><th>Выхлоп/сделку</th><th>Конв.</th><th style="text-align:left">Кого сажать</th></tr></thead>
       <tbody>
-        <tr><td class="name">до 90к</td><td>645</td><td>297</td><td>13.0 млн</td><td><span class="pill r">20к</span></td><td>46%</td><td class="small" style="text-align:left;color:var(--ink)">junior / поток</td></tr>
-        <tr><td class="name">90-150к</td><td>157</td><td>36</td><td>4.1 млн</td><td><span class="pill y">26к</span></td><td>23%</td><td class="small" style="text-align:left;color:var(--ink)">middle</td></tr>
-        <tr><td class="name">150-300к</td><td>172</td><td>37</td><td>7.8 млн</td><td><span class="pill y">45к</span></td><td>22%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
-        <tr><td class="name">300-500к</td><td>66</td><td>10</td><td>3.7 млн</td><td><span class="pill g">55к</span></td><td>15%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
-        <tr><td class="name">свыше 500к</td><td>70</td><td>12</td><td>8.1 млн</td><td><span class="pill g">116к</span></td><td>17%</td><td class="small" style="text-align:left;color:var(--ink)">звезда / b2b</td></tr>
+        <tr><td class="name">до 90к</td><td>650</td><td>29.7 млн</td><td>299</td><td>13.0 млн</td><td><span class="pill r">20к</span></td><td>46%</td><td class="small" style="text-align:left;color:var(--ink)">junior / поток</td></tr>
+        <tr><td class="name">90-150к</td><td>159</td><td>18.5 млн</td><td>37</td><td>4.2 млн</td><td><span class="pill y">26к</span></td><td>23%</td><td class="small" style="text-align:left;color:var(--ink)">middle</td></tr>
+        <tr><td class="name">150-300к</td><td>175</td><td>37.2 млн</td><td>37</td><td>7.8 млн</td><td><span class="pill y">45к</span></td><td>21%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
+        <tr><td class="name">300-500к</td><td>66</td><td>24.9 млн</td><td>10</td><td>3.7 млн</td><td><span class="pill g">56к</span></td><td>15%</td><td class="small" style="text-align:left;color:var(--ink)">опытный</td></tr>
+        <tr><td class="name">свыше 500к</td><td>71</td><td>75.5 млн</td><td>13</td><td>9.4 млн</td><td><span class="pill g">132к</span></td><td>18%</td><td class="small" style="text-align:left;color:var(--ink)">звезда / b2b</td></tr>
       </tbody>
     </table></div>
-    <div class="callout i small" style="margin-top:14px;padding:12px 16px"><b>Где первичен найм.</b> Сегмент <b>до-90к съедает 58% всех сделок (645 из 1110), но выхлоп 20к/сделка</b> - это конвейер рутины на дешёвых лидах. Туда <b>junior первым делом</b>: разгрузить сильных, дать новичкам учиться на «не жалко». А <b>свыше-500к: 70 сделок (6%), но 116к/сделка (почти в 6 раз больше)</b> - туда только опытные/звёзды, длинный цикл и b2b. Разрыв выхлопа почти в 6 раз между полюсами - это и есть аргумент разной квалификации по чеку.</div>
+    <div class="callout i small" style="margin-top:14px;padding:12px 16px"><b>Где первичен найм.</b> Сегмент <b>до-90к съедает 58% всех сделок (650 из 1121), но выхлоп 20к/сделка</b> - это конвейер рутины на дешёвых лидах. Туда <b>junior первым делом</b>: разгрузить сильных, дать новичкам учиться на «не жалко». А <b>свыше-500к: 71 сделка (6%), но 132к/сделка (почти в 7 раз больше)</b> - туда только опытные/звёзды, длинный цикл и b2b. Разрыв выхлопа почти в 7 раз между полюсами - это и есть аргумент разной квалификации по чеку.</div>
   </div>
   <div class="callout q" style="margin-top:16px">
     <h3>Стоит ли делить менеджеров по типу клиента?</h3>
@@ -798,7 +798,8 @@ const SEG=[
 const TWO=[['до 150к',482,27100,17100,0.695],['свыше 150к',186,83800,20900,0.323]];
 // Операционка vs выхлоп по чек-сегментам [сегмент, сделок, выхлоп/сделку_к]
 // [сегмент, сделок, выхлоп/сделку_к, конверсия в предоплату]
-const SEGOPS=[['до 90к',645,20,0.46],['90-150к',157,26,0.23],['150-300к',172,45,0.22],['300-500к',66,55,0.15],['свыше 500к',70,116,0.17]];
+// [сегмент, сделок(нагрузка), выхлоп/сделку_к, конв, потенциал_k, усп.выручка_k]
+const SEGOPS=[['до 90к',650,20,0.46,29700,13000],['90-150к',159,26,0.233,18500,4200],['150-300к',175,45,0.211,37200,7800],['300-500к',66,56,0.152,24900,3700],['свыше 500к',71,132,0.183,75500,9400]];
 const A1=[['Лофт перегородки',75,17,32010,5080],['Зеркала',41,17,20990,5670],['нет данных',30,5,9460,1750],['Столы',10,5,7270,2750],['Душевые перегородки',18,10,5610,3780],['Комплектующие',4,2,5320,890],['Стеклянные доски',6,3,2190,790],['Хранение',2,1,990,190]];
 const A2=[['Зеркала',203,146,10850,7040],['Столы',94,66,5660,3910],['нет данных',91,71,4250,3240],['Лофт перегородки',29,13,2730,1070],['Стеклянные доски',26,12,1430,670],['Комплектующие',25,19,1220,880],['Душевые перегородки',8,2,720,110],['Хранение',6,6,200,200]];
 // SEO по разделам сайта [категория, лиды] (август, органика, goal reaches по startURLPath)

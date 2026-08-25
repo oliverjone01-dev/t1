@@ -1,29 +1,29 @@
 {
  "domain": "genglass.ru",
- "measured": "2026-08-20",
- "visibility": 39,
- "ai_answers": 21,
- "keywords_total": 2022,
+ "measured": "2026-08-25",
+ "visibility": 38,
+ "ai_answers": 19,
+ "keywords_total": 2081,
  "top1": 15,
- "top3": 65,
- "top10": 410,
- "top50": 2022,
+ "top3": 66,
+ "top10": 423,
+ "top50": 2081,
  "top_pages": [
   {
    "url": "/product-category/mirrors/floor",
-   "keywords_top50": 164
-  },
-  {
-   "url": "/zerkala-na-zakaz",
-   "keywords_top50": 130
+   "keywords_top50": 165
   },
   {
    "url": "/product-category/mirrors",
-   "keywords_top50": 115
+   "keywords_top50": 125
+  },
+  {
+   "url": "/zerkala-na-zakaz",
+   "keywords_top50": 119
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu",
-   "keywords_top50": 113
+   "keywords_top50": 114
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz",
@@ -31,23 +31,23 @@
   },
   {
    "url": "/product-category/mirrors/led",
-   "keywords_top50": 79
+   "keywords_top50": 80
   },
   {
    "url": "/stoly-na-zakaz",
-   "keywords_top50": 71
+   "keywords_top50": 68
   },
   {
    "url": "/product-category/steklyannye-doski",
-   "keywords_top50": 63
-  },
-  {
-   "url": "/product-category/mirrors/zerkalo-ovalnoe",
    "keywords_top50": 62
   },
   {
-   "url": "/mezhkomnatnye-peregorodki-na-zakaz",
-   "keywords_top50": 54
+   "url": "/product-category/mirrors/zerkalo-ovalnoe",
+   "keywords_top50": 57
+  },
+  {
+   "url": "/product-category/tables",
+   "keywords_top50": 52
   }
  ],
  "ad_keywords": [
@@ -64,15 +64,9 @@
    "url": ""
   },
   {
-   "phrase": "зеркальная перегородка раздвижная",
+   "phrase": "межкомнатные перегородки для зонирования пространства в комнате",
    "pos": 1,
-   "freq": 75,
-   "url": ""
-  },
-  {
-   "phrase": "перегородка металлическая для зонирования",
-   "pos": 1,
-   "freq": 220,
+   "freq": 137,
    "url": ""
   },
   {
@@ -100,32 +94,38 @@
    "url": ""
   },
   {
-   "phrase": "раздвижные перегородки для зонирования кухни и гостиной в небольшой квартире",
-   "pos": 1,
-   "freq": 18,
+   "phrase": "перегородки зонирование",
+   "pos": 0,
+   "freq": 46061,
    "url": ""
   },
   {
-   "phrase": "межкомнатные перегородки из стекла раздвижные",
+   "phrase": "перегородки интерьерные для зонирования",
    "pos": 0,
-   "freq": 84,
+   "freq": 171,
+   "url": ""
+  },
+  {
+   "phrase": "перегородки лофт для зонирования",
+   "pos": 1,
+   "freq": 304,
    "url": ""
   }
  ],
  "ad_competitors": [
   {
    "domain": "ddveri.pro",
-   "common_ad_keywords": 78,
-   "ads_count": 758,
-   "ad_keywords_count": 1587,
+   "common_ad_keywords": 86,
+   "ads_count": 763,
+   "ad_keywords_count": 1597,
    "visibility": 1
   },
   {
    "domain": "union.ru",
-   "common_ad_keywords": 54,
-   "ads_count": 2389,
-   "ad_keywords_count": 9140,
-   "visibility": 615
+   "common_ad_keywords": 67,
+   "ads_count": 2437,
+   "ad_keywords_count": 9182,
+   "visibility": 591
   },
   {
    "domain": "keepforyou.ru",
@@ -143,45 +143,45 @@
   },
   {
    "domain": "ofimall.ru",
-   "common_ad_keywords": 41,
-   "ads_count": 320,
-   "ad_keywords_count": 2128,
+   "common_ad_keywords": 43,
+   "ads_count": 310,
+   "ad_keywords_count": 2137,
    "visibility": 9
   },
   {
    "domain": "profilhaus365.ru",
    "common_ad_keywords": 35,
    "ads_count": 21,
-   "ad_keywords_count": 578,
+   "ad_keywords_count": 470,
+   "visibility": 0
+  },
+  {
+   "domain": "peregorodki-fogmebel.ru",
+   "common_ad_keywords": 34,
+   "ads_count": 220,
+   "ad_keywords_count": 343,
    "visibility": 0
   },
   {
    "domain": "фогмебель-перегородки.рф",
    "common_ad_keywords": 33,
    "ads_count": 48,
-   "ad_keywords_count": 568,
+   "ad_keywords_count": 557,
    "visibility": 0
   },
   {
-   "domain": "dver1.ru",
-   "common_ad_keywords": 31,
-   "ads_count": 434,
-   "ad_keywords_count": 2032,
-   "visibility": 395
+   "domain": "alfaporta.ru",
+   "common_ad_keywords": 33,
+   "ads_count": 263,
+   "ad_keywords_count": 1024,
+   "visibility": 3639
   },
   {
    "domain": "loftkrel.ru",
-   "common_ad_keywords": 31,
-   "ads_count": 702,
-   "ad_keywords_count": 1117,
+   "common_ad_keywords": 33,
+   "ads_count": 739,
+   "ad_keywords_count": 1149,
    "visibility": 2
-  },
-  {
-   "domain": "peregorodki-fogmebel.ru",
-   "common_ad_keywords": 29,
-   "ads_count": 201,
-   "ad_keywords_count": 281,
-   "visibility": 0
   }
  ],
  "history": [
@@ -294,700 +294,705 @@
    "date": "2026-08-20",
    "visibility": 39,
    "top10": 410
+  },
+  {
+   "date": "2026-08-25",
+   "visibility": 38,
+   "top10": 423
   }
  ],
  "keywords": [
   {
-   "phrase": "багет купить в спб",
+   "phrase": "окантовка для зеркала",
    "pos": null,
-   "freq": 371,
+   "freq": 328,
    "url": ""
   },
   {
-   "phrase": "стеклянный стол в гостиную",
+   "phrase": "амальгама сайт",
    "pos": null,
-   "freq": 94,
+   "freq": 224,
    "url": ""
   },
   {
-   "phrase": "стеклянный столик купить",
+   "phrase": "купить большое зеркало",
    "pos": null,
-   "freq": 1142,
+   "freq": 3294,
    "url": ""
   },
   {
-   "phrase": "ванная в скандинавском стиле",
+   "phrase": "полки из стекла на заказ",
    "pos": null,
-   "freq": 648,
+   "freq": 142,
    "url": ""
   },
   {
-   "phrase": "купить зеркало на дверь шкафа",
-   "pos": null,
-   "freq": 192,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало под заказ",
-   "pos": null,
-   "freq": 1493,
-   "url": ""
-  },
-  {
-   "phrase": "стекло купить в москве",
-   "pos": null,
-   "freq": 9828,
-   "url": ""
-  },
-  {
-   "phrase": "антивандальное стекло купить",
-   "pos": null,
-   "freq": 37,
-   "url": ""
-  },
-  {
-   "phrase": "прозрачное зеркало",
-   "pos": null,
-   "freq": 2314,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало классическое",
-   "pos": null,
-   "freq": 768,
-   "url": ""
-  },
-  {
-   "phrase": "стекло бронза фото",
-   "pos": null,
-   "freq": 331,
-   "url": ""
-  },
-  {
-   "phrase": "светильник для картины",
-   "pos": null,
-   "freq": 1328,
-   "url": ""
-  },
-  {
-   "phrase": "золотое зеркало",
-   "pos": null,
-   "freq": 5086,
-   "url": ""
-  },
-  {
-   "phrase": "ширма декоративная купить",
-   "pos": null,
-   "freq": 136,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало настенное с фацетом",
-   "pos": null,
-   "freq": 456,
-   "url": ""
-  },
-  {
-   "phrase": "как сделать зеркало с подсветкой",
-   "pos": null,
-   "freq": 572,
-   "url": ""
-  },
-  {
-   "phrase": "бесконечное зеркало купить",
-   "pos": null,
-   "freq": 12,
-   "url": ""
-  },
-  {
-   "phrase": "диван экокожа купить в москве",
-   "pos": null,
-   "freq": 190,
-   "url": ""
-  },
-  {
-   "phrase": "стеллажи перегородки",
-   "pos": null,
-   "freq": 7270,
-   "url": ""
-  },
-  {
-   "phrase": "консоли в прихожую",
-   "pos": null,
-   "freq": 4753,
-   "url": ""
-  },
-  {
-   "phrase": "нагревательный элемент для зеркала",
-   "pos": null,
-   "freq": 178,
-   "url": ""
-  },
-  {
-   "phrase": "зеркальные натяжные потолки",
-   "pos": null,
-   "freq": 496,
-   "url": ""
-  },
-  {
-   "phrase": "mirror зеркало",
-   "pos": null,
-   "freq": 4356,
-   "url": ""
-  },
-  {
-   "phrase": "какие бывают люстры",
-   "pos": null,
-   "freq": 351,
-   "url": ""
-  },
-  {
-   "phrase": "полки для книг на стену со стеклом",
-   "pos": null,
-   "freq": 34,
-   "url": ""
-  },
-  {
-   "phrase": "купить скинали для кухни",
-   "pos": null,
-   "freq": 826,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало в ванной фото",
-   "pos": null,
-   "freq": 1195,
-   "url": ""
-  },
-  {
-   "phrase": "люстры lightstar официальный сайт",
-   "pos": null,
-   "freq": 4,
-   "url": ""
-  },
-  {
-   "phrase": "рамки для зеркала из дерева",
-   "pos": null,
-   "freq": 242,
-   "url": ""
-  },
-  {
-   "phrase": "стеклянные двери гармошка",
-   "pos": null,
-   "freq": 484,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало с лед подсветкой для ванной",
-   "pos": null,
-   "freq": 33,
-   "url": ""
-  },
-  {
-   "phrase": "рамки для зеркал",
-   "pos": null,
-   "freq": 4619,
-   "url": ""
-  },
-  {
-   "phrase": "фальшокно с подсветкой купить",
-   "pos": null,
-   "freq": 46,
-   "url": ""
-  },
-  {
-   "phrase": "полка в прихожую под зеркало",
-   "pos": null,
-   "freq": 218,
-   "url": ""
-  },
-  {
-   "phrase": "торшер тренога дерево",
-   "pos": null,
-   "freq": 52,
-   "url": ""
-  },
-  {
-   "phrase": "гримерные столы",
-   "pos": null,
-   "freq": 1275,
-   "url": ""
-  },
-  {
-   "phrase": "велюровые диваны",
-   "pos": null,
-   "freq": 3828,
-   "url": ""
-  },
-  {
-   "phrase": "рал синий",
-   "pos": null,
-   "freq": 2320,
-   "url": ""
-  },
-  {
-   "phrase": "фасады из стекла для мебели",
-   "pos": null,
-   "freq": 22,
-   "url": ""
-  },
-  {
-   "phrase": "зеркальное панно на стену купить",
-   "pos": null,
-   "freq": 210,
-   "url": ""
-  },
-  {
-   "phrase": "оптивайт",
-   "pos": null,
-   "freq": 1177,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало барокко",
-   "pos": null,
-   "freq": 366,
-   "url": ""
-  },
-  {
-   "phrase": "купить зеркало на стену",
-   "pos": null,
-   "freq": 2645,
-   "url": ""
-  },
-  {
-   "phrase": "рамки для зеркала",
-   "pos": null,
-   "freq": 4619,
-   "url": ""
-  },
-  {
-   "phrase": "витражные зеркала",
-   "pos": null,
-   "freq": 178,
-   "url": ""
-  },
-  {
-   "phrase": "полки из стекла",
-   "pos": null,
-   "freq": 3394,
-   "url": ""
-  },
-  {
-   "phrase": "зеркальный коридор",
-   "pos": null,
-   "freq": 853,
-   "url": ""
-  },
-  {
-   "phrase": "из чего делают зеркало",
-   "pos": null,
-   "freq": 763,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало большое напольное",
-   "pos": null,
-   "freq": 510,
-   "url": ""
-  },
-  {
-   "phrase": "стекла зеркала",
-   "pos": null,
-   "freq": 59074,
-   "url": ""
-  },
-  {
-   "phrase": "зеркала большие",
-   "pos": null,
-   "freq": 28039,
-   "url": ""
-  },
-  {
-   "phrase": "тротуарные светильники",
-   "pos": null,
-   "freq": 1472,
-   "url": ""
-  },
-  {
-   "phrase": "сусальное золото купить в москве",
-   "pos": null,
-   "freq": 178,
-   "url": ""
-  },
-  {
-   "phrase": "купить настольное зеркало с подсветкой для макияжа",
-   "pos": null,
-   "freq": 176,
-   "url": ""
-  },
-  {
-   "phrase": "металлическое зеркало",
-   "pos": null,
-   "freq": 5986,
-   "url": ""
-  },
-  {
-   "phrase": "купить консоль в гостиную",
-   "pos": null,
-   "freq": 141,
-   "url": ""
-  },
-  {
-   "phrase": "купить пластиковый багет для картин",
-   "pos": null,
-   "freq": 71,
-   "url": ""
-  },
-  {
-   "phrase": "разбивается зеркало к чему",
-   "pos": null,
-   "freq": 7236,
-   "url": ""
-  },
-  {
-   "phrase": "зеркало для ванной комнаты с полкой",
-   "pos": null,
-   "freq": 333,
-   "url": ""
-  },
-  {
-   "phrase": "панно на стену в спальню",
+   "phrase": "зеркальная фабрика нагорная 17 официальный сайт",
    "pos": null,
    "freq": 311,
    "url": ""
   },
   {
-   "phrase": "алюминиевые межкомнатные перегородки",
+   "phrase": "декоративные зеркала",
    "pos": null,
-   "freq": 362,
+   "freq": 4476,
    "url": ""
   },
   {
-   "phrase": "консоль на заказ",
+   "phrase": "консольный столик в прихожую купить",
    "pos": null,
-   "freq": 201,
+   "freq": 50,
    "url": ""
   },
   {
-   "phrase": "купить зеркало москва",
+   "phrase": "зеркало в детскую для девочки",
    "pos": null,
-   "freq": 5693,
+   "freq": 77,
    "url": ""
   },
   {
-   "phrase": "зеркало в раме с подсветкой",
+   "phrase": "зеркало ромбами",
    "pos": null,
-   "freq": 1675,
+   "freq": 846,
    "url": ""
   },
   {
-   "phrase": "часы в ванную комнату",
+   "phrase": "маленькие зеркала для декора",
    "pos": null,
-   "freq": 770,
+   "freq": 36,
    "url": ""
   },
   {
-   "phrase": "продажа зеркал",
+   "phrase": "ral слоновая кость",
    "pos": null,
-   "freq": 1694,
+   "freq": 1722,
    "url": ""
   },
   {
-   "phrase": "зеркало для магазина одежды",
+   "phrase": "зеркало на подставке",
    "pos": null,
-   "freq": 80,
+   "freq": 1560,
    "url": ""
   },
   {
-   "phrase": "таблица цветов ral полный каталог",
+   "phrase": "купить столик в прихожую",
    "pos": null,
-   "freq": 206,
+   "freq": 188,
    "url": ""
   },
   {
-   "phrase": "ral стандартные цвета",
+   "phrase": "настенное панно",
    "pos": null,
-   "freq": 462,
+   "freq": 5834,
    "url": ""
   },
   {
-   "phrase": "купить парикмахерское зеркало",
+   "phrase": "система ral",
    "pos": null,
-   "freq": 303,
+   "freq": 2585,
    "url": ""
   },
   {
-   "phrase": "зеркало поворотное настенное",
+   "phrase": "мосзеркала",
    "pos": null,
-   "freq": 342,
+   "freq": 40,
    "url": ""
   },
   {
-   "phrase": "зеркало в оправе",
+   "phrase": "закаленное стекло цена",
    "pos": null,
-   "freq": 1001,
+   "freq": 840,
    "url": ""
   },
   {
-   "phrase": "купить зеркало в белой раме",
+   "phrase": "зеркало 1000х800",
    "pos": null,
-   "freq": 94,
+   "freq": 227,
    "url": ""
   },
   {
-   "phrase": "изготовление столов из дерева на заказ",
+   "phrase": "рал 5015",
    "pos": null,
-   "freq": 31,
+   "freq": 2164,
    "url": ""
   },
   {
-   "phrase": "дизайнерские рамки для фото",
+   "phrase": "рамка под зеркало",
    "pos": null,
-   "freq": 71,
+   "freq": 377,
    "url": ""
   },
   {
-   "phrase": "барный шкаф для дома",
+   "phrase": "зеркало окно",
    "pos": null,
-   "freq": 49,
+   "freq": 8747,
    "url": ""
   },
   {
-   "phrase": "фартук на кухню стекло",
+   "phrase": "графит зеркало",
    "pos": null,
-   "freq": 3759,
+   "freq": 2415,
    "url": ""
   },
   {
-   "phrase": "заказ зеркал",
+   "phrase": "зеркала производство",
    "pos": null,
-   "freq": 11495,
+   "freq": 2262,
    "url": ""
   },
   {
-   "phrase": "тройное зеркало на стену",
+   "phrase": "консоль прикроватная",
    "pos": null,
-   "freq": 38,
+   "freq": 354,
    "url": ""
   },
   {
-   "phrase": "снять зеркало",
+   "phrase": "кто изобрел зеркало",
    "pos": null,
-   "freq": 65689,
+   "freq": 96,
    "url": ""
   },
   {
-   "phrase": "пескоструйный рисунок",
+   "phrase": "консоли мебельные",
    "pos": null,
-   "freq": 806,
+   "freq": 511,
    "url": ""
   },
   {
-   "phrase": "белый нейтральный свет",
+   "phrase": "зеркала для шкафа купе",
    "pos": null,
-   "freq": 4590,
+   "freq": 1693,
    "url": ""
   },
   {
-   "phrase": "зеркало морена",
+   "phrase": "настольное зеркало с подсветкой",
    "pos": null,
-   "freq": 100,
+   "freq": 2447,
    "url": ""
   },
   {
-   "phrase": "декоративные вазы для интерьера",
+   "phrase": "зеркала для дома",
    "pos": null,
-   "freq": 279,
+   "freq": 1500,
    "url": ""
   },
   {
-   "phrase": "туалетный столик с зеркалом для девочки",
+   "phrase": "перегородки стеклянные для душа",
    "pos": null,
-   "freq": 355,
+   "freq": 2275,
    "url": ""
   },
   {
-   "phrase": "стекло lacobel",
+   "phrase": "зеркальное панно",
    "pos": null,
-   "freq": 114,
+   "freq": 5403,
    "url": ""
   },
   {
-   "phrase": "багет дерево",
+   "phrase": "дизайнерские фоторамки",
    "pos": null,
-   "freq": 859,
+   "freq": 44,
    "url": ""
   },
   {
-   "phrase": "панно для интерьера",
+   "phrase": "купить красивое зеркало",
    "pos": null,
-   "freq": 707,
+   "freq": 366,
    "url": ""
   },
   {
-   "phrase": "бутылочно зеленый цвет",
+   "phrase": "зеркало прямоугольное",
    "pos": null,
-   "freq": 403,
+   "freq": 6432,
    "url": ""
   },
   {
-   "phrase": "зеркальная мастерская москва",
+   "phrase": "ral белый цвет",
    "pos": null,
-   "freq": 148,
+   "freq": 3477,
    "url": ""
   },
   {
-   "phrase": "черное стекло",
+   "phrase": "фасад стекло",
    "pos": null,
-   "freq": 50314,
+   "freq": 9741,
    "url": ""
   },
   {
-   "phrase": "большие зеркала купить",
+   "phrase": "полка стеклянная",
    "pos": null,
-   "freq": 3324,
+   "freq": 26509,
    "url": ""
   },
   {
-   "phrase": "барная стойка полукруглая",
+   "phrase": "купить мебель для столовой",
    "pos": null,
-   "freq": 86,
+   "freq": 138,
    "url": ""
   },
   {
-   "phrase": "глаз дизайн",
+   "phrase": "полка в ванную с зеркалом",
    "pos": null,
-   "freq": 7210,
+   "freq": 3847,
    "url": ""
   },
   {
-   "phrase": "зеркальный потолок армстронг",
+   "phrase": "декоративный багет для стен",
    "pos": null,
-   "freq": 76,
+   "freq": 62,
    "url": ""
   },
   {
-   "phrase": "фартук на кухню из стекла с фотопечатью",
+   "phrase": "кухонный стол под заказ",
    "pos": null,
-   "freq": 94,
+   "freq": 137,
    "url": ""
   },
   {
-   "phrase": "сиреневый лизиантус",
+   "phrase": "консоль полукруглая",
    "pos": null,
-   "freq": 65,
+   "freq": 300,
    "url": ""
   },
   {
-   "phrase": "стекла для душевой кабины купить",
+   "phrase": "стеллаж перегородка",
    "pos": null,
-   "freq": 2075,
+   "freq": 7270,
    "url": ""
   },
   {
-   "phrase": "окраска по ral",
+   "phrase": "купить консоль в москве",
    "pos": null,
-   "freq": 388,
+   "freq": 546,
    "url": ""
   },
   {
-   "phrase": "цветное стекло для витражей",
+   "phrase": "блюдо для фруктов",
    "pos": null,
-   "freq": 253,
+   "freq": 1174,
+   "url": ""
+  },
+  {
+   "phrase": "цветовая температура к",
+   "pos": null,
+   "freq": 6943,
+   "url": ""
+  },
+  {
+   "phrase": "рал 1003",
+   "pos": null,
+   "freq": 994,
+   "url": ""
+  },
+  {
+   "phrase": "вазы керамика",
+   "pos": null,
+   "freq": 4057,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало круглое в ванную комнату",
+   "pos": null,
+   "freq": 216,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянное панно в ванную",
+   "pos": null,
+   "freq": 24,
+   "url": ""
+  },
+  {
+   "phrase": "багет для картины купить",
+   "pos": null,
+   "freq": 1543,
+   "url": ""
+  },
+  {
+   "phrase": "ral серый",
+   "pos": null,
+   "freq": 28267,
+   "url": ""
+  },
+  {
+   "phrase": "полка в ванную комнату с зеркалом",
+   "pos": null,
+   "freq": 914,
+   "url": ""
+  },
+  {
+   "phrase": "гримерный стол с зеркалом и подсветкой",
+   "pos": null,
+   "freq": 186,
+   "url": ""
+  },
+  {
+   "phrase": "двери зеркальные для шкафа купе",
+   "pos": null,
+   "freq": 476,
+   "url": ""
+  },
+  {
+   "phrase": "askona terapia pulse",
+   "pos": null,
+   "freq": 17,
+   "url": ""
+  },
+  {
+   "phrase": "багет для фоторамок",
+   "pos": null,
+   "freq": 127,
+   "url": ""
+  },
+  {
+   "phrase": "плитка зеркальная",
+   "pos": null,
+   "freq": 5940,
+   "url": ""
+  },
+  {
+   "phrase": "заказать стол на кухню по своим размерам",
+   "pos": null,
+   "freq": 6,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало в спальню",
+   "pos": null,
+   "freq": 1029,
+   "url": ""
+  },
+  {
+   "phrase": "стекло белое матовое",
+   "pos": null,
+   "freq": 3150,
+   "url": ""
+  },
+  {
+   "phrase": "ral 2000",
+   "pos": null,
+   "freq": 2574,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало косметическое настенное",
+   "pos": null,
+   "freq": 537,
+   "url": ""
+  },
+  {
+   "phrase": "купить стеклянный журнальный столик",
+   "pos": null,
+   "freq": 734,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало овальное с подсветкой",
+   "pos": null,
+   "freq": 1487,
+   "url": ""
+  },
+  {
+   "phrase": "каленое стекло на стол",
+   "pos": null,
+   "freq": 172,
+   "url": ""
+  },
+  {
+   "phrase": "люстра золото",
+   "pos": null,
+   "freq": 2970,
+   "url": ""
+  },
+  {
+   "phrase": "душевая из стекла",
+   "pos": null,
+   "freq": 17398,
+   "url": ""
+  },
+  {
+   "phrase": "кухонный фартук из стекла с фотопечатью",
+   "pos": null,
+   "freq": 78,
+   "url": ""
+  },
+  {
+   "phrase": "фацетная огранка",
+   "pos": null,
+   "freq": 64,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало в детскую",
+   "pos": null,
+   "freq": 1351,
+   "url": ""
+  },
+  {
+   "phrase": "купить керамическую вазу",
+   "pos": null,
+   "freq": 986,
+   "url": ""
+  },
+  {
+   "phrase": "кожаная банкетка",
+   "pos": null,
+   "freq": 192,
+   "url": ""
+  },
+  {
+   "phrase": "матовое зеркало",
+   "pos": null,
+   "freq": 2430,
+   "url": ""
+  },
+  {
+   "phrase": "кухонный стол на заказ",
+   "pos": null,
+   "freq": 460,
+   "url": ""
+  },
+  {
+   "phrase": "пристенный столик консоль",
+   "pos": null,
+   "freq": 15,
+   "url": ""
+  },
+  {
+   "phrase": "купить межкомнатную перегородку",
+   "pos": null,
+   "freq": 1304,
+   "url": ""
+  },
+  {
+   "phrase": "люстры потолочные для спальни",
+   "pos": null,
+   "freq": 683,
+   "url": ""
+  },
+  {
+   "phrase": "бирюзовое кресло",
+   "pos": null,
+   "freq": 625,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало из чего состоит",
+   "pos": null,
+   "freq": 454,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало с часами",
+   "pos": null,
+   "freq": 3279,
+   "url": ""
+  },
+  {
+   "phrase": "купить багет",
+   "pos": null,
+   "freq": 10000,
+   "url": ""
+  },
+  {
+   "phrase": "зеркала италия",
+   "pos": null,
+   "freq": 619,
+   "url": ""
+  },
+  {
+   "phrase": "навесной шкаф с зеркалом в ванную",
+   "pos": null,
+   "freq": 1776,
+   "url": ""
+  },
+  {
+   "phrase": "алюминиевые стеклянные перегородки",
+   "pos": null,
+   "freq": 473,
+   "url": ""
+  },
+  {
+   "phrase": "стекло и мир москва",
+   "pos": null,
+   "freq": 95,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало пластиковое листовое купить",
+   "pos": null,
+   "freq": 28,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянные полки на заказ",
+   "pos": null,
+   "freq": 465,
+   "url": ""
+  },
+  {
+   "phrase": "купить ширму в спб",
+   "pos": null,
+   "freq": 440,
+   "url": ""
+  },
+  {
+   "phrase": "скинали москва",
+   "pos": null,
+   "freq": 343,
+   "url": ""
+  },
+  {
+   "phrase": "акрил зеркальный",
+   "pos": null,
+   "freq": 1400,
+   "url": ""
+  },
+  {
+   "phrase": "пуфики в прихожую",
+   "pos": null,
+   "freq": 7028,
+   "url": ""
+  },
+  {
+   "phrase": "зеркало для прихожей с подсветкой",
+   "pos": null,
+   "freq": 156,
+   "url": ""
+  },
+  {
+   "phrase": "стеклянные полы",
+   "pos": null,
+   "freq": 6937,
+   "url": ""
+  },
+  {
+   "phrase": "купить зеркало дешево",
+   "pos": null,
+   "freq": 487,
+   "url": ""
+  },
+  {
+   "phrase": "стекло для душа на заказ",
+   "pos": null,
+   "freq": 299,
+   "url": ""
+  },
+  {
+   "phrase": "где вешать зеркало в прихожей",
+   "pos": null,
+   "freq": 28,
+   "url": ""
+  },
+  {
+   "phrase": "покраска стекла",
+   "pos": null,
+   "freq": 2969,
+   "url": ""
+  },
+  {
+   "phrase": "как поменять люстру самому",
+   "pos": null,
+   "freq": 118,
+   "url": ""
+  },
+  {
+   "phrase": "большое зеркало в ванной",
+   "pos": null,
+   "freq": 688,
    "url": ""
   }
  ],
  "competitors": [
   {
-   "domain": "rosestar.ru",
-   "visibility": 254,
-   "common_keywords": 884,
-   "delta_visibility": -5.2
-  },
-  {
    "domain": "zerkala-m.ru",
-   "visibility": 322,
-   "common_keywords": 64,
-   "delta_visibility": -1.8
+   "visibility": 305,
+   "common_keywords": 870,
+   "delta_visibility": -5.3
   },
   {
-   "domain": "avazerkala.ru",
-   "visibility": 135,
-   "common_keywords": 51,
-   "delta_visibility": -2.9
+   "domain": "rosestar.ru",
+   "visibility": 240,
+   "common_keywords": 76,
+   "delta_visibility": -5.5
   },
   {
    "domain": "zerkala-mag.ru",
-   "visibility": 50,
-   "common_keywords": 23,
+   "visibility": 47,
+   "common_keywords": 25,
+   "delta_visibility": -6
+  },
+  {
+   "domain": "зеркаловраме.рф",
+   "visibility": 154,
+   "common_keywords": 22,
    "delta_visibility": 0
   },
   {
-   "domain": "alfaporta.ru",
-   "visibility": 3753,
-   "common_keywords": 17,
-   "delta_visibility": -2.7
-  },
-  {
-   "domain": "lemanapro.ru",
-   "visibility": 939202,
-   "common_keywords": 1327,
-   "delta_visibility": -1.2
-  },
-  {
-   "domain": "wildberries.ru",
-   "visibility": 2506896,
-   "common_keywords": 1087,
-   "delta_visibility": -2.3
-  },
-  {
-   "domain": "inmyroom.ru",
-   "visibility": 12181,
-   "common_keywords": 952,
-   "delta_visibility": -3.4
+   "domain": "msk-zerkala.ru",
+   "visibility": 32,
+   "common_keywords": 16,
+   "delta_visibility": 0
   },
   {
    "domain": "m.avito.ru",
-   "visibility": 3981507,
-   "common_keywords": 176,
-   "delta_visibility": -2.1
+   "visibility": 3812459,
+   "common_keywords": 1407,
+   "delta_visibility": -4.2
+  },
+  {
+   "domain": "lemanapro.ru",
+   "visibility": 912236,
+   "common_keywords": 1366,
+   "delta_visibility": -2.9
   },
   {
    "domain": "ozon.ru",
-   "visibility": 3894632,
-   "common_keywords": 171,
-   "delta_visibility": -1.6
+   "visibility": 3776448,
+   "common_keywords": 1304,
+   "delta_visibility": -3
   },
   {
    "domain": "market.yandex.ru",
-   "visibility": 1593348,
-   "common_keywords": 121,
-   "delta_visibility": -1.8
+   "visibility": 1539671,
+   "common_keywords": 1235,
+   "delta_visibility": -3.4
+  },
+  {
+   "domain": "inmyroom.ru",
+   "visibility": 11524,
+   "common_keywords": 962,
+   "delta_visibility": -5.4
+  },
+  {
+   "domain": "wildberries.ru",
+   "visibility": 2406066,
+   "common_keywords": 108,
+   "delta_visibility": -4
   },
   {
    "domain": "livemaster.ru",
-   "visibility": 146093,
-   "common_keywords": 68,
-   "delta_visibility": -3.6
+   "visibility": 138153,
+   "common_keywords": 75,
+   "delta_visibility": -5.4
   },
   {
    "domain": "hoff.ru",
-   "visibility": 331451,
-   "common_keywords": 63,
-   "delta_visibility": -2.4
+   "visibility": 307202,
+   "common_keywords": 64,
+   "delta_visibility": -7.3
   },
   {
    "domain": "bestmebelshop.ru",
-   "visibility": 33921,
-   "common_keywords": 44,
-   "delta_visibility": 0
+   "visibility": 32872,
+   "common_keywords": 42,
+   "delta_visibility": -3.1
   },
   {
-   "domain": "basicdecor.ru",
-   "visibility": 4416,
-   "common_keywords": 39,
-   "delta_visibility": -1.1
+   "domain": "shkaf-kupe.ru",
+   "visibility": 5695,
+   "common_keywords": 40,
+   "delta_visibility": 0
   }
  ],
  "deltas": {

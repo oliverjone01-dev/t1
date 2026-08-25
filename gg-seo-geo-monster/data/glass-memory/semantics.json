@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-19",
+ "measured": "2026-08-25",
  "phrases": [
   {
    "phrase": "илики",
@@ -15,6 +15,14 @@
    "freq": 483,
    "url": "",
    "cluster": "профиль",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала оптом",
+   "pos": null,
+   "freq": 488,
+   "url": "",
+   "cluster": "зеркала",
    "intent": "commercial"
   },
   {
@@ -63,14 +71,6 @@
    "freq": 1622,
    "url": "",
    "cluster": "столешница",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "зеркало в белой рамке",
-   "pos": null,
-   "freq": 143,
-   "url": "",
-   "cluster": "зеркало",
    "intent": "commercial"
   },
   {
@@ -170,14 +170,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "зеркало лофт",
-   "pos": null,
-   "freq": 1288,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
    "phrase": "очистка мрамора",
    "pos": null,
    "freq": 380,
@@ -218,14 +210,6 @@
    "intent": "informational"
   },
   {
-   "phrase": "эпитафии на памятник из библии",
-   "pos": null,
-   "freq": 73,
-   "url": "",
-   "cluster": "эпитафии",
-   "intent": "commercial"
-  },
-  {
    "phrase": "кладбище колпино",
    "pos": null,
    "freq": 862,
@@ -256,14 +240,6 @@
    "url": "",
    "cluster": "сделать",
    "intent": "informational"
-  },
-  {
-   "phrase": "зеркала в стиле лофт",
-   "pos": null,
-   "freq": 291,
-   "url": "",
-   "cluster": "зеркала",
-   "intent": "commercial"
   },
   {
    "phrase": "кладбище памяти жертв 9 го января",
@@ -330,14 +306,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "гранит красный фото",
-   "pos": null,
-   "freq": 253,
-   "url": "",
-   "cluster": "гранит",
-   "intent": "commercial"
-  },
-  {
    "phrase": "что такое брусчатка",
    "pos": null,
    "freq": 1063,
@@ -384,14 +352,6 @@
    "url": "",
    "cluster": "крепче",
    "intent": "informational"
-  },
-  {
-   "phrase": "карелия габбро",
-   "pos": null,
-   "freq": 460,
-   "url": "",
-   "cluster": "карелия",
-   "intent": "commercial"
   },
   {
    "phrase": "как называется надпись на памятнике",
@@ -506,14 +466,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "блоки гранитные",
-   "pos": null,
-   "freq": 912,
-   "url": "",
-   "cluster": "блоки",
-   "intent": "commercial"
-  },
-  {
    "phrase": "как установить памятник",
    "pos": null,
    "freq": 7276,
@@ -538,6 +490,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "кладбище остров декабристов",
+   "pos": null,
+   "freq": 112,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
    "phrase": "столешница из лиственницы для кухни",
    "pos": null,
    "freq": 46,
@@ -554,12 +514,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "картины стекло",
+   "phrase": "каркас для табурета купить",
    "pos": null,
-   "freq": 8800,
+   "freq": 39,
    "url": "",
-   "cluster": "картины",
-   "intent": "commercial"
+   "cluster": "каркас",
+   "intent": "transactional"
   },
   {
    "phrase": "когда лучше ставить памятник на могилу",
@@ -594,12 +554,12 @@
    "intent": "informational"
   },
   {
-   "phrase": "как доехать до северного кладбища",
+   "phrase": "стеклянная мебель",
    "pos": null,
-   "freq": 662,
+   "freq": 1738,
    "url": "",
-   "cluster": "доехать",
-   "intent": "informational"
+   "cluster": "стеклянная",
+   "intent": "commercial"
   },
   {
    "phrase": "что написать на памятнике",
@@ -706,14 +666,6 @@
    "intent": "transactional"
   },
   {
-   "phrase": "профиль алюминиевый для зеркал",
-   "pos": null,
-   "freq": 483,
-   "url": "",
-   "cluster": "профиль",
-   "intent": "commercial"
-  },
-  {
    "phrase": "как сделать отверстие в камне",
    "pos": null,
    "freq": 329,
@@ -786,6 +738,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "инструкция по установке памятника",
+   "pos": null,
+   "freq": 3,
+   "url": "",
+   "cluster": "инструкция",
+   "intent": "commercial"
+  },
+  {
    "phrase": "как выбрать памятник",
    "pos": null,
    "freq": 558,
@@ -800,6 +760,46 @@
    "url": "",
    "cluster": "правильно",
    "intent": "informational"
+  },
+  {
+   "phrase": "как просверлить гранит",
+   "pos": null,
+   "freq": 126,
+   "url": "",
+   "cluster": "просверлить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "как сверлить гранит",
+   "pos": null,
+   "freq": 54,
+   "url": "",
+   "cluster": "сверлить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "как установить памятник на кладбище",
+   "pos": null,
+   "freq": 197,
+   "url": "",
+   "cluster": "установить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "как ухаживать за могилой",
+   "pos": null,
+   "freq": 316,
+   "url": "",
+   "cluster": "ухаживать",
+   "intent": "informational"
+  },
+  {
+   "phrase": "краска по камню для памятников",
+   "pos": null,
+   "freq": 376,
+   "url": "",
+   "cluster": "краска",
+   "intent": "commercial"
   }
  ]
 }

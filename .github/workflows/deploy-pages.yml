@@ -347,9 +347,12 @@ jobs:
             echo "public/economics-command.html ещё не запечён (запусти economics-cron) - пропуск"
           fi
           if [ -f /tmp/economics/analytics-mvp/public/econ-control.html ]; then
-            mkdir -p "$GITHUB_WORKSPACE/_site/econ-control"
+            mkdir -p "$GITHUB_WORKSPACE/_site/economics" "$GITHUB_WORKSPACE/_site/econ-control"
+            # вкладка «Контроль заполнения» грузит control.html через iframe внутри /economics/
+            cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/economics/control.html"
+            # и отдельный прямой адрес /econ-control/ на всякий случай
             cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/econ-control/index.html"
-            echo "Контроль экономики сделок опубликован в /econ-control/"
+            echo "Контроль заполнения опубликован в /economics/control.html и /econ-control/"
           else
             echo "public/econ-control.html ещё не собран (запусти econ-recon) - пропуск"
           fi

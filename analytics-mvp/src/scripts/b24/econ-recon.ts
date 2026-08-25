@@ -13,6 +13,9 @@ if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const OUT = "economics/data/econ-recon.json";
 const CAT = 49;
 const WINDOW_DAYS = Number(process.env.ECON_WINDOW_DAYS || 60);
+// ECON_SINCE (абсолютная дата) имеет приоритет над окном в днях. По умолчанию - операционка
+// после переезда (март 2026 = миграция 21466 сделок, её исключаем).
+const SINCE = process.env.ECON_SINCE || "2026-04-01";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Денежное/стоимостное поле: тип money/double/integer/string и название про деньги/с-с/материал/услугу.
@@ -48,7 +51,7 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
 }
 
 (async () => {
-  const cutoff = new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
+  const cutoff = SINCE || new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString().slice(0, 10);
 
   // 1) Все смарт-процессы (типы). Ищем в т.ч. Сборка/Логистика/Монтаж/Чертёж.
   const types: any[] = (await call("crm.type.list", {})).result?.types || [];
@@ -98,7 +101,7 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   // 5) JSON для экрана
   const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cardId: v.cardId, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, inventory: inv, deals }));
+  writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, inventory: inv, deals }));
 
   // 6) Сводка ответов
   const N = inWin.size;

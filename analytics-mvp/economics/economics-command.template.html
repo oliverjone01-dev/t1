@@ -83,6 +83,14 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="ecotabs" style="display:flex;gap:8px;margin:6px 0 12px">
+    <button id="tabbtn-layers" onclick="ecoTab('layers')" style="background:#22D3EE;color:#04222a;border:1px solid #22D3EE;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer">Экономика по слоям</button>
+    <button id="tabbtn-control" onclick="ecoTab('control')" style="background:#1A2029;color:#A0AAB8;border:1px solid #1F2731;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer">Контроль заполнения</button>
+  </div>
+  <script>
+    function ecoTab(t){var L=document.getElementById('tab-layers'),C=document.getElementById('tab-control');var bl=document.getElementById('tabbtn-layers'),bc=document.getElementById('tabbtn-control');var on='background:#22D3EE;color:#04222a;border:1px solid #22D3EE;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer';var off='background:#1A2029;color:#A0AAB8;border:1px solid #1F2731;border-radius:9px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer';if(t==='control'){L.style.display='none';C.style.display='block';bc.style.cssText=on;bl.style.cssText=off;var f=document.getElementById('ctrl-frame');if(f&&!f.src)f.src=f.dataset.src;}else{L.style.display='block';C.style.display='none';bl.style.cssText=on;bc.style.cssText=off;}}
+  </script>
+  <div id="tab-layers">
   <header>
     <h1>Экономика сделок</h1>
     <span class="sub" id="sub"></span>
@@ -118,6 +126,10 @@
   <div class="rt" id="rowinfo"></div>
   <div class="tblwrap"><table id="deals"></table></div>
   <p class="note" id="foot"></p>
+</div>
+<div id="tab-control" style="display:none">
+  <iframe id="ctrl-frame" data-src="control.html" style="width:100%;height:calc(100vh - 130px);min-height:640px;border:1px solid #1F2731;border-radius:12px;background:#0B0F15" title="Контроль заполнения"></iframe>
+</div>
 </div>
 
 <script>

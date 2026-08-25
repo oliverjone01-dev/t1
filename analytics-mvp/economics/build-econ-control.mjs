@@ -91,8 +91,6 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <body><div class="wrap">
 <h1>Контроль экономики сделок</h1>
 <p class="sub">Воронка «GG Заказы РФ» (49). Строка - сделка: бюджет, этап, кол-во изделий, агрегированные показатели по смарт-процессам и <b>полнота с/с</b>. На уровне сделки - только цифры (без ссылок: у сделки с несколькими товарами карточек СП несколько). <b>Клик по строке разворачивает</b> сделку на товары и карточки смартов - там ссылки и с/с по каждой карточке. Переезд (миграция) - <b>март 2026</b>, операционку показываем с апреля. Обновлено <span id="gen"></span>.</p>
-<div class="tiles" id="tiles"></div>
-
 <h3>Здоровье цепочки (доля сделок где СП запущен / из них с внесённой с/с)</h3>
 <div class="chain" id="chain"></div>
 
@@ -151,19 +149,6 @@ function gate(d){ if(/провал/i.test(d.stage)) return {cls:'lost',t:'про
   return {cls:'',t:''}; }
 
 const N=DATA.deals.length;
-const withProd=DATA.deals.filter(d=>d.hasProducts).length;
-const withRasch=DATA.deals.filter(d=>{const s=spCost(byKey(d,'Расчёт'));return s&&!s.empty;}).length;
-const prodStage=DATA.deals.filter(d=>prodRankOf(d)>=4);
-const prodStageSS=prodStage.filter(d=>{const s=spCost(byKey(d,'Производство  GG'));return s&&!s.empty;}).length;
-const partial=DATA.deals.filter(d=>coverage(d).r>=0&&coverage(d).r<1).length;
-document.getElementById('tiles').innerHTML=[
- ['№',N,'сделок в наборе',''],
- ['📦',Math.round(100*withProd/N)+'%','с товарными строками',withProd+' из '+N],
- ['🧮',Math.round(100*withRasch/N)+'%','с расчётом с/с','Расчёт заполнен у '+withRasch],
- ['🏭',(prodStage.length?Math.round(100*prodStageSS/prodStage.length):0)+'%','произведённых с с/с',prodStageSS+' из '+prodStage.length],
- ['⚠',partial,'сделок с неполной с/с','часть товаров ещё без с/с'],
- ['🚚',ruD(MOVE),'дата переезда','миграция 21466 сделок'],
-].map(t=>'<div class="tile"><div class="v">'+t[1]+'</div><div class="l">'+t[2]+'</div><div class="n">'+esc(t[3])+'</div></div>').join('');
 
 document.getElementById('chain').innerHTML=ORDER.map(k=>{ let L=0,F=0; for(const d of DATA.deals){ const s=byKey(d,k); if(s){L++; const c=spCost(s); if(c&&!c.empty)F++;} }
   const pL=Math.round(100*L/N), pF=L?Math.round(100*F/L):0; let dot=L===0?'o':F===0?'r':pF>=70?'g':'y';

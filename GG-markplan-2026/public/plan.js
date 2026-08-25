@@ -196,7 +196,7 @@
     var editUrl = P.meta.sheetId ? "https://docs.google.com/spreadsheets/d/" + P.meta.sheetId + "/edit" : "";
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
-    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"]];
+    var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"]];
     var here = (location.pathname.split("/").pop() || "plan.html");
     var extra = here === "plan-valonti.html"
       ? '<a href="plan.html">Антикризис →</a>'
@@ -211,13 +211,13 @@
       return '<div class="fcard ' + (f.tone || "") + '"><span class="ftag">' + esc(f.tag) + '</span>' +
         '<div class="fk">' + esc(f.k) + '</div><div class="ft">' + esc(f.t) + '</div><div class="fd">' + esc(f.d) + "</div></div>";
     }).join("");
-    // открытые решения (раздел может быть удалён - тогда пропускаем)
+    // открытые решения и воронка: разделы могли быть удалены - тогда пропускаем
     var ol = $("#open-list");
-    if (ol) ol.innerHTML = P.decisions.map(function (d) {
+    if (ol && P.decisions) ol.innerHTML = P.decisions.map(function (d) {
       return "<li><div class=\"oh\">" + esc(d.h) + '</div><div class="od">' + esc(d.d) + "</div></li>";
     }).join("");
-    // воронка
-    $("#funnel").innerHTML = P.funnel.map(function (f) {
+    var fn = $("#funnel");
+    if (fn && P.funnel) fn.innerHTML = P.funnel.map(function (f) {
       return '<div class="fstep"><div class="fn tnum">' + f.n + '</div><div class="fbody"><div class="fk2">' + esc(f.k) +
         '</div><div class="fd2">' + esc(f.d) + '</div></div><div class="fout"><b>результат</b>' + esc(f.out) + "</div></div>";
     }).join("");
@@ -225,7 +225,7 @@
 
   function renderScenarios() {
     var s = P.scenarios;
-    var host = $("#scen"); if (!host) return; host.innerHTML = "";
+    var host = $("#scen"); if (!host || !s) return; host.innerHTML = "";
     var intro = el("div", "scen-intro"); intro.innerHTML = "<b>Уточнено Иваном:</b> " + esc(s.intro);
     host.appendChild(intro);
     var tbl = el("div", "scen-tbl");

@@ -125,7 +125,18 @@
   }
   // маппинг живой таблицы -> формат tasks.
   // Колонки: ID, Б/Е, Блок, Задача, Обоснование, Автор, Ответственный, Старт, Дней, Зависит, Статус, Гейт
-  var STMAP = { "готово": "done", "done": "done", "в работе": "work", "work": "work", "план": "plan", "не начато": "plan", "plan": "plan", "к обсуждению": "talk", "talk": "talk" };
+  var STMAP = { "готово": "done", "done": "done", "в работе": "work", "work": "work", "план": "plan", "не начато": "plan", "plan": "plan", "к обсуждению": "talk", "talk": "talk", "заморожено": "frozen", "заморожен": "frozen", "заморозка": "frozen", "frozen": "frozen" };
+  var STNAME = { work: "в работе", done: "готово", plan: "план", talk: "к обсуждению", frozen: "заморожено" };
+  // приоритет: hi / mid / lo
+  var PRNAME = { hi: "высокий", mid: "средний", lo: "низкий" };
+  function prCode(v) {
+    var x = String(v || "").toLowerCase().trim();
+    if (!x) return "";
+    if (/^(выс|hi|high|1|p1|a)/.test(x)) return "hi";
+    if (/^(сред|mid|medium|2|p2|b)/.test(x)) return "mid";
+    if (/^(низ|low|lo|3|p3|c)/.test(x)) return "lo";
+    return "";
+  }
   function mapLive(rows) {
     if (!rows || rows.length < 2) return null;
     var head = rows[0].map(function (s) { return String(s).toLowerCase().trim(); });
@@ -133,7 +144,8 @@
     var ci = { id: col("id", "№", "no"), bu: col("б/е", "бе", "бренд", "bu"), b: col("блок", "block"), t: col("задача", "task"),
       why: col("обоснование", "зачем", "why"), author: col("автор", "предложил", "author"),
       who: col("ответственный", "отв.", "отв", "ответств", "кто", "owner"), start: col("старт", "начало", "start"), days: col("дней", "длит", "days"),
-      dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate") };
+      dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate"),
+      pr: col("приоритет", "приор", "priority", "prio") };
     if (ci.t < 0 || ci.start < 0) return null;
     var out = [], blocks = [], bmap = {};
     var cell = function (row, i) { return i >= 0 ? (row[i] || "").trim() : ""; };
@@ -150,6 +162,7 @@
         days: Math.max(1, parseInt(ci.days >= 0 ? row[ci.days] : "1", 10) || 1),
         dep: ci.dep >= 0 ? String(row[ci.dep] || "").split(/[,;]/).map(function (x) { return x.trim(); }).filter(Boolean) : [],
         st: st,
+        pr: prCode(cell(row, ci.pr)),
         gate: ci.gate >= 0 ? /да|yes|1|гейт/i.test(row[ci.gate] || "") : false
       });
     }
@@ -178,7 +191,11 @@
     var link = $("#sheet-link"); if (link && editUrl) link.href = editUrl;
     var top = $("#sheet-top"); if (top) { if (editUrl) top.href = editUrl; else top.style.display = "none"; }
     var nav = [["s-gantt", "График"], ["s-prioritety", "Приоритеты"], ["s-obzor", "Обзор"], ["s-bloki", "Блоки"], ["s-voronka", "Воронка"]];
-    $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("") + '<a href="razbor.html" class="active" title="Адверсариальный разбор стратсессии Квартета">ФЕНИКС-разбор →</a>';
+    var here = (location.pathname.split("/").pop() || "plan.html");
+    var extra = here === "plan-valonti.html"
+      ? '<a href="plan.html">Антикризис →</a>'
+      : '<a href="plan-valonti.html" title="Прежний план мотивации VALONTI, архив">План VALONTI</a>';
+    $("#nav").innerHTML = nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + "</a>"; }).join("") + extra + '<a href="razbor.html" class="active" title="Адверсариальный разбор стратсессии Квартета">ФЕНИКС-разбор →</a>';
     // герой-статы
     $("#hero-stats").innerHTML = P.heroStats.map(function (s) {
       return '<div class="hstat ' + (s.tone || "") + '"><span class="v tnum">' + esc(s.v) + '</span><span class="l">' + esc(s.l) + "</span></div>";
@@ -287,9 +304,14 @@
       '<span class="lg"><i class="st-work"></i>в работе</span>' +
       '<span class="lg"><i class="st-plan"></i>план</span>' +
       '<span class="lg"><i class="st-talk"></i>к обсуждению</span>' +
+      '<span class="lg"><i class="st-frozen"></i>заморожено</span>' +
       '<span class="lg"><i class="st-done"></i>готово</span>' +
       '<span class="lg"><i class="st-gate"></i>гейт</span>' +
       '<span class="lg"><i class="st-today"></i>сегодня</span></div>' +
+      '<div class="lg-set lg-pr"><span class="lg-cap">важность:</span>' +
+      '<span class="lg"><i class="pr-hi"></i>высокий</span>' +
+      '<span class="lg"><i class="pr-mid"></i>средний</span>' +
+      '<span class="lg"><i class="pr-lo"></i>низкий</span></div>' +
       '<div class="g-tools">' +
       (CONFIG.writeUrl ? '<button type="button" class="g-lock' + (ganttEdit ? ' on' : '') + '" data-lock="1" title="' + (ganttEdit ? 'Правка сроков включена - клик, чтобы закрыть' : 'Правка сроков заблокирована - клик и пароль, чтобы открыть') + '">' + (ganttEdit ? '🔓 правка' : '🔒 сроки') + '</button>' : '') +
       '<div class="g-zoom"><button type="button" data-z="out" aria-label="Уменьшить масштаб">&minus;</button>' +
@@ -349,12 +371,23 @@
       bt.forEach(function (o) {
         o.tl = wrapPx(o.t.t, textPx, "g-task-line", 4);
         o.exWl = o.t.why ? wrapPx(o.t.why, textPx, "g-why-exp", 6) : [];
-        o.whoTxt = o.t.who || "не назначен";
-        o.finTxt = "до " + fmt(new Date(o.e.getTime() - MS));
-        var w1 = chipW(o.whoTxt), w2 = chipW(o.finTxt), avail = taskRight - taskX;
-        o.twoChip = (w1 + 6 + w2 > avail) && (w2 <= avail);
+        var frozen = o.t.st === "frozen";
+        o.whoTxt = frozen ? "исполнитель не закреплён" : (o.t.who || "не назначен");
+        o.finTxt = frozen ? "срок не назначен" : ("до " + fmt(new Date(o.e.getTime() - MS)));
+        var avail = taskRight - taskX;
+        var cl = [];
+        if (o.t.pr) cl.push({ txt: PRNAME[o.t.pr], kind: "pr g-chip-pr-" + o.t.pr });
+        cl.push({ txt: o.whoTxt, kind: (o.t.who && !frozen) ? "who" : "who-empty" });
+        cl.push({ txt: o.finTxt, kind: frozen ? "cal-empty" : "cal" });
+        var crows = [[]], rw = 0;
+        cl.forEach(function (c) {
+          c.w = chipW(c.txt);
+          if (rw && rw + 6 + c.w > avail) { crows.push([]); rw = 0; }
+          crows[crows.length - 1].push(c); rw += (rw ? 6 : 0) + c.w;
+        });
+        o.chipRows = crows;
         var open = !!ganttOpen[o.t.id];
-        var h = 9 + o.tl.length * LH + (o.twoChip ? 44 : 24) + 6;
+        var h = 9 + o.tl.length * LH + crows.length * 22 + 8;
         if (open) h += 4 + o.exWl.length * 13 + (o.t.author ? 16 : 0) + 6;
         if (h < 58) h = 58;
         o.top = rowY; o.rh = h; o.y = rowY + 18;
@@ -431,6 +464,7 @@
       var open = !!ganttOpen[o.t.id];
       lroot.appendChild(sv("line", { x1: 0, y1: o.top + 0.5, x2: Lw, y2: o.top + 0.5, class: "g-rowsep" }));
       if (open) lroot.appendChild(sv("rect", { x: 0, y: o.top + 1, width: Lw, height: o.rh - 1, class: "g-rowopen" }));
+      if (o.t.pr) lroot.appendChild(sv("rect", { x: 4, y: o.top + 6, width: 3.5, height: Math.max(o.rh - 12, 10), rx: 1.75, class: "g-prbar g-prbar-" + o.t.pr }));
       lroot.appendChild(sv("rect", { x: 12, y: o.top + 9, width: 32, height: 18, rx: 5, fill: tone, opacity: .17 }));
       var it = sv("text", { x: 28, y: o.top + 22, class: "g-id", "text-anchor": "middle" }); it.textContent = o.t.id; lroot.appendChild(it);
       var cyv = o.top + 16;
@@ -439,11 +473,12 @@
         var tx = sv("text", { x: taskX, y: o.top + 20 + i * LH, class: "g-task-line" }); tx.textContent = ln; lroot.appendChild(tx);
       });
       var chipsY = o.top + 6 + o.tl.length * LH + 4;
-      var used = chip(lroot, taskX, chipsY, o.whoTxt, o.t.who ? "who" : "who-empty");
-      if (o.twoChip) chip(lroot, taskX, chipsY + 22, o.finTxt, "cal");
-      else chip(lroot, taskX + used + 6, chipsY, o.finTxt, "cal");
+      o.chipRows.forEach(function (crow, ri) {
+        var cx2 = taskX;
+        crow.forEach(function (c) { cx2 += chip(lroot, cx2, chipsY + ri * 22, c.txt, c.kind) + 6; });
+      });
       if (open) {
-        var ey = chipsY + (o.twoChip ? 44 : 24) + 4;
+        var ey = chipsY + o.chipRows.length * 22 + 4;
         o.exWl.forEach(function (ln, i) {
           var wx = sv("text", { x: taskX, y: ey + i * 13, class: "g-why-exp" }); wx.textContent = ln; lroot.appendChild(wx);
         });
@@ -468,6 +503,7 @@
     grad("g-work", "#DABB7E", "#B18B39");
     grad("g-done", "#7FCF9C", "#3E5A46");
     grad("g-plan", "#8093AE", "#515F79");
+    grad("g-frozen", "#7E8894", "#4A5058");
     var pat = sv("pattern", { id: "hatch", width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
     pat.appendChild(sv("rect", { width: 8, height: 8, fill: "#6E5A34" }));
     pat.appendChild(sv("rect", { width: 4, height: 8, fill: "#D9BC7E" }));
@@ -518,13 +554,14 @@
     order.forEach(function (o) {
       var x = xR(o.s), w = Math.max(dw * o.t.days, 11), y = o.y - bh / 2;
       var g = sv("g", { class: "bar st-" + o.t.st + (o.t.key ? " key" : "") }); g.setAttribute("data-id", o.t.id);
-      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : o.t.st === "plan" ? "url(#g-plan)" : "var(--paper-3)";
+      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : o.t.st === "plan" ? "url(#g-plan)" : o.t.st === "frozen" ? "url(#g-frozen)" : "var(--paper-3)";
       var rect = sv("rect", { x: x, y: y, width: w, height: bh, rx: bh / 2, class: "b-fill", fill: fill });
       if (o.t.st === "plan") { rect.setAttribute("stroke", "#9DB0CC"); rect.setAttribute("stroke-width", "1.2"); }
       else if (o.t.st === "talk") { rect.setAttribute("stroke", "#E08A5F"); rect.setAttribute("stroke-width", "1.6"); rect.setAttribute("stroke-dasharray", "3.5 2.5"); }
+      else if (o.t.st === "frozen") { rect.setAttribute("stroke", "#8FA6B8"); rect.setAttribute("stroke-width", "1.2"); rect.setAttribute("stroke-dasharray", "2 3"); rect.setAttribute("opacity", ".6"); }
       g.appendChild(rect);
       if (o.t.st === "work" || o.t.st === "done" || o.t.st === "plan") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
-      var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.days + "д"; g.appendChild(dl);
+      var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.st === "frozen" ? "заморожено" : (o.t.days + "д"); g.appendChild(dl);
       o._rect = rect; o._dur = dl; o._bx = x; o._bw = w; o._by = y;
       if (o.t.gate) { var d2 = bh * 0.6, cx = x, cyg = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cyg - d2) + " " + (cx + d2) + "," + cyg + " " + cx + "," + (cyg + d2) + " " + (cx - d2) + "," + cyg, class: "g-gate" })); }
       barLayer.appendChild(g);
@@ -605,12 +642,16 @@
     wrap.style.position = "relative";
     var tip = el("div", "g-tip"); tip.style.display = "none"; wrap.appendChild(tip);
     function showTip(ev, o) {
-      var stName = { work: "в работе", done: "готово", plan: "план", talk: "к обсуждению" }[o.t.st] || o.t.st;
+      var stName = STNAME[o.t.st] || o.t.st;
       var opens = deps.filter(function (d) { return d.a === o.t.id; }).map(function (d) { return d.b; });
       var needs = o.t.dep || [];
       tip.innerHTML = '<div class="tt-h"><b>' + esc(o.t.t) + '</b><span class="tt-id">' + esc(o.t.id) + (o.t.bu ? " · " + esc(o.t.bu) : "") + (o.t.gate ? " · гейт" : "") + "</span></div>" +
-        '<div class="tt-r"><span>срок</span>' + fmt(o.s) + " - " + fmt(new Date(o.e.getTime() - MS)) + " · " + o.t.days + "д</div>" +
+        (o.t.st === "frozen"
+          ? '<div class="tt-r"><span>срок</span>не назначен, задача заморожена</div>'
+          : '<div class="tt-r"><span>срок</span>' + fmt(o.s) + " - " + fmt(new Date(o.e.getTime() - MS)) + " · " + o.t.days + "д</div>") +
         '<div class="tt-r"><span>статус</span>' + esc(stName) + "</div>" +
+        (o.t.pr ? '<div class="tt-r"><span>важность</span>' + esc(PRNAME[o.t.pr]) + "</div>" : "") +
+        (o.t.who ? '<div class="tt-r"><span>кто делает</span>' + esc(o.t.who) + "</div>" : "") +
         (needs.length ? '<div class="tt-r"><span>после</span>' + esc(needs.join(", ")) + "</div>" : "") +
         (opens.length ? '<div class="tt-r"><span>откроет</span>' + esc(opens.join(", ")) + "</div>" : "") +
         '<div class="tt-r tt-hint">клик - раскрыть обоснование и автора</div>';

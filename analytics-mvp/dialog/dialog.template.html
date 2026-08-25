@@ -1566,7 +1566,10 @@ function aiSave(){ try{ const F=S.aiF;
 function aiLoad(){ try{ const j=JSON.parse(localStorage.getItem('dlg_ai_v1')||'null'); if(!j) return;
   if(j.aiF){ S.aiF={dMode:j.aiF.dMode||'comm',from:j.aiF.from||'',to:j.aiF.to||'',dealIds:j.aiF.dealIds||'',depth:j.aiF.depth||'all',
     mgrs:new Set(j.aiF.mgrs||[]),stages:new Set(j.aiF.stages||[]),question:j.aiF.question||'',obj:j.aiF.obj||'auto',inc:new Set(j.aiF.inc&&j.aiF.inc.length?j.aiF.inc:['msg','mail','call','task','note'])}; }
-  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.tm=new Set(j.tm||[]); S.td=new Set(j.td||[]); S.picks=Array.isArray(j.picks)?j.picks:[];
+  S.fMgrs=new Set(j.fMgrs||[]); S.fDealIds=new Set(j.fDealIds||[]); S.picks=Array.isArray(j.picks)?j.picks:[];
+  // Раскрытие строк (tm/td) НЕ восстанавливаем: это навигация, а не анализ. Иначе при
+  // перезагрузке дашборд сам разворачивает менеджера, которого раскрывали в прошлый раз.
+  // Восстанавливаем только применённый ИИ-фильтр и ответ.
   if(j.vdMode)S.dMode=j.vdMode; S.dFrom=j.vdFrom||''; S.dTo=j.vdTo||''; S.dashNote=j.dashNote||''; S.ansText=j.ans||'';
 }catch(e){} }
 function aiQInput(v){ S.aiF.question=v; aiSave(); }

@@ -399,7 +399,15 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </table></div>
     </div>
   </div>
-  <div class="callout i small" style="margin:2px 0 14px;padding:10px 16px"><b>Как читать столбцы ассортимента.</b> Длина столбца = <b>потенциал изделия</b> (все деньги по выставленным КП). <b>Яркая часть</b> = дошло до реальной предоплаты, <b>фейдовая</b> = застряло на КП. Справа: сумма потенциала и % денег, дошедших до предоплаты. Под названием: <b>КП шт → предоплата шт</b>. Наведи на столбец - КП и предоплата в штуках и рублях + доли по деньгам и по сделкам.</div>
+  <div class="callout i small" style="margin:2px 0 14px;padding:10px 16px"><b>Как читать столбцы ассортимента.</b> Длина столбца = <b>потенциал изделия</b> (все деньги по выставленным КП). <b>Яркая часть</b> = дошло до реальной предоплаты, <b>фейдовая</b> = застряло на КП. Справа: сумма потенциала и % денег, дошедших до предоплаты. Под названием: <b>КП шт → предоплата шт</b>. Наведи на столбец - КП и предоплата в штуках и рублях + доли по деньгам и по сделкам.
+    <div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:14px;font-size:12px" class="muted"><b style="color:var(--ink-2)">Цвета в разделе:</b>
+      <span><span class="dot" style="background:#10B981"></span>зелёный / яркая часть = дошло до предоплаты (реальные деньги)</span>
+      <span><span class="dot" style="background:#22D3EE"></span>бирюзовый столбец = весь потенциал КП</span>
+      <span><span class="dot" style="background:#FB923C"></span>оранжевый = свыше-150 (дорогой чек)</span>
+      <span><span class="dot" style="background:#A78BFA"></span>фиолетовый = до-150 (поток)</span>
+      <span><span class="dot" style="background:#2A2A2A;border:1px solid var(--border)"></span>тёмная / фейд = застряло на КП</span>
+      <span><span class="dot" style="background:#F43F5E"></span>красный = заморожено / низкая конверсия / риск</span>
+    </div></div>
   <div class="grid g2">
     <div class="card">
       <div class="chart-t">Свыше 150к: из чего собраны деньги <span class="tag data">ДАННЫЕ</span></div>
@@ -427,6 +435,37 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </table></div>
     <div class="callout i small" style="margin-top:14px;padding:12px 16px"><b>Что видно по обороту.</b> Реально <b>закрытые деньги (WON) почти равны: 12.7 млн у до-150 против 10.1 млн у свыше-150</b> - хотя потенциал дорогого сегмента втрое больше (83.8 млн). Причина: <b>63 млн (68%) свыше-150 заморожено на КП</b> в долгом дожиме, тогда как до-150 закрывает <b>53%</b> и прокручивается примерно за месяц. То есть на горизонте квартала быстрый поток по закрытым деньгам не уступает дорогому, а дорогой чек - это <b>не «уже деньги», а отложенный потенциал под риском</b>. Главный денежный рычаг: <b>разморозить 63 млн, застрявшие на КП свыше-150</b> (дожим дорогого сегмента), а не только гнать новые заявки.</div>
     <p class="footnote" style="margin-top:10px">Цикл в днях по закрытым сделкам показывать не стал: он <b>недостоверен</b> - медленные дорогие проекты ещё открыты и в него не попадают (правое цензурирование), поэтому «дни цикла» у дорогого сегмента выглядели бы обманчиво короткими. Оборачиваемость честнее мерить <b>долей закрытия и долей замороженного на КП</b>. Выборка 668 (дошли до КП, чек &gt;1), снимок 25.08.</p>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <div class="chart-t">Перегородки детально: где деньги и где застревает <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">130 сделок с КП, 41.1 млн потенциала · КП → предоплата, конверсия</div>
+      <div class="scrollx" style="margin-top:12px"><table>
+        <thead><tr><th>Разрез</th><th>КП</th><th>Предопл</th><th>Потенц</th><th>Предопл ₽</th><th>Конв</th></tr></thead>
+        <tbody>
+          <tr><td class="name">Лофт перегородки</td><td>104</td><td>30</td><td>34.7 млн</td><td>6.2 млн</td><td><span class="pill r">29%</span></td></tr>
+          <tr><td class="name">Душевые перегородки</td><td>26</td><td>12</td><td>6.3 млн</td><td>3.9 млн</td><td><span class="pill y">46%</span></td></tr>
+          <tr><td class="name" style="color:var(--ink-3)">· свыше 150к</td><td>93</td><td>27</td><td>37.6 млн</td><td>8.9 млн</td><td><span class="pill r">29%</span></td></tr>
+          <tr><td class="name" style="color:var(--ink-3)">· до 150к</td><td>37</td><td>15</td><td>3.4 млн</td><td>1.2 млн</td><td><span class="pill y">41%</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="tiny dim" style="margin-top:10px"><b>Лофт-перегородки свыше-150 - ядро замороженных денег:</b> 34.7 млн потенциала при конверсии лишь 29% (дорогой сложный продукт, частник долго решает). Душевые дешевле, но конвертят лучше (46%). Именно сюда - целевой дожим и опытные/проектные менеджеры.</p>
+    </div>
+    <div class="card">
+      <div class="chart-t">Тип клиента (b2b и др.): конверсия и деньги <span class="tag data">ДАННЫЕ</span></div>
+      <div class="chart-s">весь отдел, 668 сделок · КП → предоплата, конверсия резко разная по типу</div>
+      <div class="scrollx" style="margin-top:12px"><table>
+        <thead><tr><th>Тип клиента</th><th>КП</th><th>Предопл</th><th>Потенц</th><th>Предопл ₽</th><th>Конв</th></tr></thead>
+        <tbody>
+          <tr><td class="name">B2C (частник)</td><td>324</td><td>166</td><td>38.7 млн</td><td>12.3 млн</td><td><span class="pill y">51%</span></td></tr>
+          <tr><td class="name">B2B</td><td>93</td><td>54</td><td>24.4 млн</td><td>7.9 млн</td><td><span class="pill g">58%</span></td></tr>
+          <tr><td class="name">ДИЗ / АРХ</td><td>85</td><td>34</td><td>18.6 млн</td><td>6.0 млн</td><td><span class="pill r">40%</span></td></tr>
+          <tr><td class="name">Дилер</td><td>95</td><td>82</td><td>18.2 млн</td><td>5.7 млн</td><td><span class="pill g">86%</span></td></tr>
+          <tr><td class="name">Маркетплейс</td><td>39</td><td>39</td><td>3.5 млн</td><td>3.5 млн</td><td><span class="pill g">100%</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="tiny dim" style="margin-top:10px"><b>Тип клиента сильно влияет на конверсию:</b> дилер <b>86%</b> и маркетплейс <b>100%</b> (предоплата вперёд) против ДИЗ/АРХ <b>40%</b> и B2C <b>51%</b>. Это нюанс к «делить по чеку, не по типу»: дилер/МП - почти гарантированные деньги (можно на junior/поток), а B2B и дорогой B2C-проект требуют дожима опытного. Тип клиента - разумная вторичная ось внутри чек-сегмента.</p>
+    </div>
   </div>
 </section>
 

@@ -128,6 +128,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 #tip{position:fixed;z-index:100;pointer-events:none;background:var(--elev);border:1px solid var(--border-hot,#2B3441);border-radius:8px;padding:8px 11px;font-size:12px;color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;transition:opacity .1s;max-width:260px}
 #tip .tt{font-weight:700;margin-bottom:3px}
 #tip .tr{color:var(--ink-2);font-size:11.5px}
+.hchip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--ink-3);border:1px solid var(--border);border-radius:20px;padding:3px 11px;cursor:help;position:relative}
+.hchip:hover{color:var(--ink);border-color:var(--border-hot,#2B3441)}
+.hchip .hpop{display:none;position:absolute;left:0;top:135%;z-index:200;width:min(440px,86vw);background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:12px;font-weight:400;color:var(--ink-2);box-shadow:0 12px 32px rgba(0,0,0,.55);line-height:1.65;text-align:left;white-space:normal}
+.hchip:hover .hpop{display:block}
+.hchip .hpop .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .footnote{color:var(--ink-3);font-size:12px}
 .hl{color:var(--ink);font-weight:700}
 .scrollx{overflow-x:auto}
@@ -399,15 +404,18 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       </table></div>
     </div>
   </div>
-  <div class="callout i small" style="margin:2px 0 14px;padding:10px 16px"><b>Как читать столбцы ассортимента.</b> Длина столбца = <b>потенциал изделия</b> (все деньги по выставленным КП). <b>Яркая часть</b> = дошло до реальной предоплаты, <b>фейдовая</b> = застряло на КП. Справа: сумма потенциала и % денег, дошедших до предоплаты. Под названием: <b>КП шт → предоплата шт</b>. Наведи на столбец - КП и предоплата в штуках и рублях + доли по деньгам и по сделкам.
-    <div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:14px;font-size:12px" class="muted"><b style="color:var(--ink-2)">Цвета в разделе:</b>
-      <span><span class="dot" style="background:#10B981"></span>зелёный / яркая часть = дошло до предоплаты (реальные деньги)</span>
-      <span><span class="dot" style="background:#22D3EE"></span>бирюзовый столбец = весь потенциал КП</span>
-      <span><span class="dot" style="background:#FB923C"></span>оранжевый = свыше-150 (дорогой чек)</span>
-      <span><span class="dot" style="background:#A78BFA"></span>фиолетовый = до-150 (поток)</span>
-      <span><span class="dot" style="background:#2A2A2A;border:1px solid var(--border)"></span>тёмная / фейд = застряло на КП</span>
-      <span><span class="dot" style="background:#F43F5E"></span>красный = заморожено / низкая конверсия / риск</span>
-    </div></div>
+  <div style="margin:2px 0 14px"><span class="hchip">? как читать столбцы и цвета
+    <span class="hpop">
+      <b>Как читать столбцы ассортимента.</b> Длина столбца = <b>потенциал изделия</b> (все деньги по выставленным КП). <b>Яркая часть</b> = дошло до реальной предоплаты, <b>фейдовая</b> = застряло на КП. Справа: сумма потенциала и % денег до предоплаты. Под названием: <b>КП шт → предоплата шт</b>. Наведи на столбец - КП и предоплата в штуках и рублях + доли.
+      <b style="display:block;margin-top:8px;color:var(--ink)">Цвета в разделе:</b>
+      <span style="display:block"><span class="dot" style="background:#10B981"></span>зелёный / яркая часть = дошло до предоплаты (реальные деньги)</span>
+      <span style="display:block"><span class="dot" style="background:#22D3EE"></span>бирюзовый столбец = весь потенциал КП</span>
+      <span style="display:block"><span class="dot" style="background:#FB923C"></span>оранжевый = свыше-150 (дорогой чек)</span>
+      <span style="display:block"><span class="dot" style="background:#A78BFA"></span>фиолетовый = до-150 (поток)</span>
+      <span style="display:block"><span class="dot" style="background:#2A2A2A;border:1px solid var(--border)"></span>тёмная / фейд = застряло на КП</span>
+      <span style="display:block"><span class="dot" style="background:#F43F5E"></span>красный = заморожено / низкая конверсия / риск</span>
+    </span>
+  </span></div>
   <div class="grid g2">
     <div class="card">
       <div class="chart-t">Свыше 150к: из чего собраны деньги <span class="tag data">ДАННЫЕ</span></div>

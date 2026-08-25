@@ -706,8 +706,34 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <div class="sec-h"><span class="sec-n">09</span><h2>Главный вопрос: где на самом деле маржа</h2></div>
   <p class="sec-sub">Вопрос Дмитрия, который переворачивает стратегию. Мы весь дашборд считаем выручку. Но что если свыше-1млн даёт 10% маржи, а 90к даёт 50%? Тогда сажать звёзд на «бабло» это сажать их на убыток.</p>
   <div class="callout q" style="margin-bottom:18px">
-    <h3>Что мы знаем и чего не знаем про маржу <span class="tag gap">НЕ ИЗМЕРЕНО</span></h3>
-    <p class="muted">В смарт-процессах есть с/с, но это <b>материальная себестоимость</b> (стекло, металл, фурнитура). Валовая по материалу выходит 79 – 88%. <b>Полная себестоимость</b> (труд, оверхед, доставка, брак) в CRM не записана. Значит настоящую маржу по сегменту мы сейчас показать не можем. Это дыра, которую надо закрыть до найма.</p>
+    <h3>Что мы знаем и чего не знаем про маржу <span class="tag data">ЧАСТИЧНО ЕСТЬ</span></h3>
+    <p class="muted">В смарт-процессах с/с всё-таки есть - но только <b>материал плюс производство</b> (стекло, металл, фурнитура, покраска, производственные работы) и лишь у <b>41% сделок</b> (278 из 677, дошедших до КП). На этой доле валовая маржа выходит <b>71%</b> и <b>резко разная по типу изделия: от 45% на столах до 83 – 96% на зеркалах и досках</b> (таблица ниже). Но это <b>не полная себестоимость</b>: монтаж, доставка, проектные часы, админ и брак в CRM не записаны (одно из полей так и называется «чисто металл без адм»). Значит настоящую чистую маржу мы пока не видим - особенно у монтажно-проектных перегородок. Дыру надо закрыть до найма, но первый разрез по типу уже есть.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="chart-t">Себестоимость по типу изделия: где маржа выше <span class="tag data">ДАННЫЕ</span> <span class="tag hyp">материал+производство, 41% сделок</span></div>
+    <div class="chart-s">278 сделок из 677 (дошли до КП), где с/с заполнена в смарт-процессах · бюджет 40,0 млн, с/с 11,6 млн, валовая маржа 71%</div>
+    <div class="scrollx" style="margin-top:12px"><table>
+      <thead><tr><th>Тип изделия</th><th>Сделок с с/с</th><th>Бюджет</th><th>С/С</th><th>Вал. прибыль</th><th>Маржа</th></tr></thead>
+      <tbody>
+        <tr><td class="name">Зеркала</td><td>131</td><td>13,0 млн</td><td>2,2 млн</td><td>10,8 млн</td><td><span class="pill g">83%</span></td></tr>
+        <tr><td class="name" style="color:var(--warn)">Столы</td><td>30</td><td>7,8 млн</td><td>4,2 млн</td><td>3,6 млн</td><td><span class="pill r">45%</span></td></tr>
+        <tr><td class="name">Лофт перегородки</td><td>27</td><td>6,2 млн</td><td>1,6 млн</td><td>4,6 млн</td><td><span class="pill g">74%</span></td></tr>
+        <tr><td class="name" style="color:var(--ink-3)">нет данных по типу</td><td>49</td><td>5,4 млн</td><td>1,7 млн</td><td>3,7 млн</td><td><span class="pill y">69%</span></td></tr>
+        <tr><td class="name">Душевые перегородки</td><td>13</td><td>4,3 млн</td><td>1,5 млн</td><td>2,8 млн</td><td><span class="pill y">65%</span></td></tr>
+        <tr><td class="name">Комплектующие</td><td>16</td><td>1,6 млн</td><td>0,3 млн</td><td>1,3 млн</td><td><span class="pill g">84%</span></td></tr>
+        <tr><td class="name">Стеклянные доски</td><td>7</td><td>1,4 млн</td><td>0,1 млн</td><td>1,3 млн</td><td><span class="pill g">96%</span></td></tr>
+        <tr><td class="name">Хранение</td><td>5</td><td>0,4 млн</td><td>0,05 млн</td><td>0,35 млн</td><td><span class="pill g">87%</span></td></tr>
+        <tr style="border-top:2px solid var(--border)"><td class="name"><b>Итого</b></td><td><b>278</b></td><td><b>40,0 млн</b></td><td><b>11,6 млн</b></td><td><b>28,4 млн</b></td><td><span class="pill g">71%</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="tiny dim" style="margin-top:10px"><b>Главный вывод:</b> валовая маржа <b>очень разная по типу</b>. Столы - самый материалоёмкий продукт (<b>45%</b>, металл+стекло на каркас), зеркала и доски - наоборот высокомаржинальные (<b>83 – 96%</b>, дешёвый материал). Дорогой сегмент (лофт-перегородки <b>74%</b>) по валу выглядит здорово - но именно у него больше всего скрытых затрат на монтаж и проект, которых в этих полях нет. Оговорки: покрытие лишь <b>41% сделок</b> (278 из 677), у мелких типов (хранение 5, доски 7) выборка шумная; с/с сделки - максимум из четырёх смарт-процессов (оценка и факт расходятся); 11 сделок с с/с выше бюджета (ошибки ввода) в итог не искажают картину, но говорят о качестве данных.</p>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="chart-t">Разложение покрытых сделок: сколько остаётся после с/с <span class="tag data">ДАННЫЕ</span></div>
+    <div class="chart-s">278 сделок с заполненной с/с · длина столбца = бюджет, яркая часть = валовая прибыль, фейд = материал+производство</div>
+    <div id="c-cost" style="margin-top:12px"></div>
+    <div class="leg"><span><span class="dot" style="background:var(--d3)"></span>Валовая прибыль (что остаётся)</span><span><span class="dot" style="background:var(--d3);opacity:.26"></span>С/С материал+производство</span></div>
+    <p class="tiny dim" style="margin-top:10px">Наведи на столбец - бюджет, с/с и валовая прибыль в рублях. Это тот же разрез, что и таблица выше, но в деньгах: видно, что зеркала дают почти всю валовую прибыль отдела на покрытых сделках (10,8 млн из 28,4 млн), а столы при втором по величине бюджете (7,8 млн) оставляют лишь 3,6 млн из-за высокой материалоёмкости. <span class="tag hyp">ГИПОТЕЗА</span> Это валовая, не чистая: монтаж, доставка и проектные часы не учтены.</p>
   </div>
   <div class="card">
     <div class="chart-t">Что если маржа разная: выручка против прибыли <span class="tag hyp">МОДЕЛЬ</span></div>
@@ -825,6 +851,8 @@ const TWO=[['до 150к',482,27100,17100,0.695],['свыше 150к',186,83800,20
 // [сегмент, сделок(нагрузка), выхлоп/сделку_к, конв, потенциал_k, усп.выручка_k]
 const SEGOPS=[['до 90к',650,20,0.46,29700,13000],['90-150к',159,26,0.233,18500,4200],['150-300к',175,45,0.211,37200,7800],['300-500к',66,56,0.152,24900,3700],['свыше 500к',71,132,0.183,75500,9400]];
 const A1=[['Лофт перегородки',75,17,32010,5080],['Зеркала',41,17,20990,5670],['нет данных',30,5,9460,1750],['Столы',10,5,7270,2750],['Душевые перегородки',18,10,5610,3780],['Комплектующие',4,2,5320,890],['Стеклянные доски',6,3,2190,790],['Хранение',2,1,990,190]];
+// [тип, бюджет покрытых сделок (млн), валовая маржа] - материал+производство из смарт-процессов, 278 сделок из 677
+const COSTTYPE=[['Зеркала',13.0,0.83],['Столы',7.8,0.45],['Лофт перегородки',6.2,0.74],['нет данных по типу',5.4,0.69],['Душевые перегородки',4.3,0.65],['Комплектующие',1.6,0.84],['Стеклянные доски',1.4,0.96],['Хранение',0.4,0.87]];
 const A2=[['Зеркала',203,146,10850,7040],['Столы',94,66,5660,3910],['нет данных',91,71,4250,3240],['Лофт перегородки',29,13,2730,1070],['Стеклянные доски',26,12,1430,670],['Комплектующие',25,19,1220,880],['Душевые перегородки',8,2,720,110],['Хранение',6,6,200,200]];
 // SEO по разделам сайта [категория, лиды] (август, органика, goal reaches по startURLPath)
 const SEOCAT=[['Главная/бренд',35],['Столы',27],['Зеркала',25],['Перегородки',15],['Доски',8],['Прочее',8],['Стеллажи/полки',7]];
@@ -1192,6 +1220,7 @@ function draw(){
   hbars(document.getElementById('c-a2'),A2,{val:r=>r[3],label:r=>r[0],sub:r=>`КП ${r[1]} → предопл ${r[2]}`,unit:'',color:PAL[3],h:38,paidFrac:r=>r[4]/r[3],paidTip:asrtTip});
   hbars(document.getElementById('c-segn'),SEGOPS,{val:r=>r[1],label:r=>r[0],color:PAL[0],h:34,unit:'сделок',fmt:v=>v+'',sub:r=>`${Math.round(r[1]*r[3])} предопл (${F.pct(r[3])})`,paidFrac:r=>r[3],paidTip:(r,pf)=>`${Math.round(r[1]*pf)} из ${r[1]} сделок дошли до предоплаты (${Math.round(pf*100)}%)</div><div class="tr">Деньги: потенциал КП ${F.fmtM(r[4])} → предоплата ${F.fmtM(r[5])}`});
   hbars(document.getElementById('c-segout'),SEGOPS,{val:r=>r[2],label:r=>r[0],color:PAL[2],h:34,unit:'к на сделку',fmt:v=>v+'к',sub:r=>`предоплата ${F.pct(r[3])}`,paidFrac:r=>r[3],paidTip:(r,pf)=>`${r[2]}к на сделку = усп.выручка ${F.fmtM(r[5])} ÷ ${r[1]} сделок</div><div class="tr">Потенциал КП ${F.fmtM(r[4])}, дошло до предоплаты ${Math.round(pf*100)}%`});
+  hbars(document.getElementById('c-cost'),COSTTYPE,{val:r=>r[1],label:r=>r[0],color:PAL[2],h:36,fmt:F.fmtM2,unit:'млн',sub:r=>`валовая ${Math.round(r[2]*100)}%`,paidFrac:r=>r[2],paidTip:(r,pf)=>`Бюджет ${F.fmtM2(r[1])} · с/с ${F.fmtM2(r[1]*(1-r[2]))} · валовая прибыль ${F.fmtM2(r[1]*r[2])} (${Math.round(r[2]*100)}%)`});
   scatter(document.getElementById('c-scatter'));
   mgrBar(document.getElementById('c-mgrbar'));
   hbars(document.getElementById('c-loss'),LOSS,{val:r=>r[1],label:r=>r[0],sub:r=>`${F.fmtM(r[2])} потенциала`,color:PAL[4],h:38,unit:'сделок',fmt:v=>v+' шт'});
@@ -1209,7 +1238,7 @@ romi();capacity();
 ['r-rev','r-spend'].forEach(id=>document.getElementById(id).addEventListener('input',romi));
 ['k-plan','k-mgr','k-check','k-deals'].forEach(id=>document.getElementById(id).addEventListener('input',capacity));
 ['m-low','m-high'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('mv-low').textContent=document.getElementById('m-low').value;document.getElementById('mv-high').textContent=document.getElementById('m-high').value;marginChart();}));
-let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplall,#c-cplqual,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-segn,#c-segout,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{document.querySelectorAll('#c-funnel,#c-goals,#c-seocat,#c-bounce,#c-chmo,#c-dirmo,#c-cplall,#c-cplqual,#c-paidmo,#c-seg,#c-two,#c-a1,#c-a2,#c-segn,#c-segout,#c-cost,#c-scatter,#c-mgrbar,#c-loss,#c-dyn-n,#c-dyn-r,#c-dyn-seg,#c-dyn-segr,#c-mgr-mo').forEach(e=>e.innerHTML='');draw();},200);});
 </script>
 </body>
 </html>

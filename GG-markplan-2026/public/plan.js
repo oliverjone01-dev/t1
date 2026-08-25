@@ -147,6 +147,9 @@
       dep: col("зависит", "зависимость", "dep"), st: col("статус", "status"), gate: col("гейт", "gate"),
       pr: col("приоритет", "приор", "priority", "prio") };
     if (ci.t < 0 || ci.start < 0) return null;
+    // Пока в листе нет колонки «Приоритет», считаем его незаполненным и
+    // остаёмся на встроенном списке, чтобы не показать чужие задачи.
+    if (ci.pr < 0) return null;
     var out = [], blocks = [], bmap = {};
     var cell = function (row, i) { return i >= 0 ? (row[i] || "").trim() : ""; };
     for (var r = 1; r < rows.length; r++) {
@@ -338,9 +341,17 @@
       }, function (e) { alert("Нет связи с таблицей (" + e + "). Проверьте, что Apps Script развёрнут."); renderGantt(); });
     });
 
-    var tasks = P.tasks.map(function (t) { var s = pd(t.start); return { t: t, s: s, e: s ? new Date(s.getTime() + t.days * MS) : null }; })
-      .filter(function (o) { return o.s; });
-    if (!tasks.length) { host.innerHTML = '<div class="g-hint">Нет задач с датами.</div>'; return; }
+    var tasks = P.tasks.map(function (t) { var s = pd(t.start); return { t: t, s: s, e: s ? new Date(s.getTime() + t.days * MS) : null }; });
+    // Замороженные задачи идут без сроков. Чтобы они не пропали из графика,
+    // ставим их в самое начало ленты короткой призрачной полоской.
+    var dated = tasks.filter(function (o) { return o.s; });
+    if (!dated.length) { host.innerHTML = '<div class="g-hint">Нет задач с датами.</div>'; return; }
+    var park = dated[0].s;
+    dated.forEach(function (o) { if (o.s < park) park = o.s; });
+    tasks.forEach(function (o) {
+      if (o.s) return;
+      o.noDate = true; o.s = new Date(park); o.e = new Date(park.getTime() + MS);
+    });
 
     var minD = tasks[0].s, maxD = tasks[0].e;
     tasks.forEach(function (o) { if (o.s < minD) minD = o.s; if (o.e > maxD) maxD = o.e; });
@@ -371,8 +382,8 @@
       bt.forEach(function (o) {
         o.tl = wrapPx(o.t.t, textPx, "g-task-line", 4);
         o.exWl = o.t.why ? wrapPx(o.t.why, textPx, "g-why-exp", 6) : [];
-        var frozen = o.t.st === "frozen";
-        o.whoTxt = frozen ? "исполнитель не закреплён" : (o.t.who || "не назначен");
+        var frozen = o.t.st === "frozen" || o.noDate;
+        o.whoTxt = frozen ? "нет исполнителя" : (o.t.who || "не назначен");
         o.finTxt = frozen ? "срок не назначен" : ("до " + fmt(new Date(o.e.getTime() - MS)));
         var avail = taskRight - taskX;
         var cl = [];
@@ -381,6 +392,8 @@
         cl.push({ txt: o.finTxt, kind: frozen ? "cal-empty" : "cal" });
         var crows = [[]], rw = 0;
         cl.forEach(function (c) {
+          // на узком экране подрезаем подпись, чтобы чип не вылезал за колонку
+          if (chipW(c.txt) > avail) c.txt = wrapPx(c.txt, Math.max(avail - 34, 24), "g-chip-t", 1)[0] || c.txt;
           c.w = chipW(c.txt);
           if (rw && rw + 6 + c.w > avail) { crows.push([]); rw = 0; }
           crows[crows.length - 1].push(c); rw += (rw ? 6 : 0) + c.w;
@@ -446,8 +459,12 @@
       lroot.appendChild(sv("rect", { x: 0, y: b.headY, width: Lw, height: HH, class: "g-headband" }));
       lroot.appendChild(sv("line", { x1: 0, y1: b.headY + 0.5, x2: Lw, y2: b.headY + 0.5, class: "g-rail" }));
       lroot.appendChild(sv("circle", { cx: 21, cy: b.headY + HH / 2, r: 4, fill: toneHex[b.bm.tone] || "#C9A96A" }));
-      var lab = sv("text", { x: 33, y: b.headY + HH / 2 + 4, class: "g-block-label" }); lab.textContent = b.bm.name; lroot.appendChild(lab);
-      var cnt = sv("text", { x: Lw - 12, y: b.headY + HH / 2 + 4, class: "g-block-cnt", "text-anchor": "end" }); cnt.textContent = b.n + " задач"; lroot.appendChild(cnt);
+      var cntTxt = b.n + " задач";
+      var labMax = Lw - 12 - 33 - Math.ceil(measurePx(cntTxt, "g-block-cnt")) - 10;
+      var lab = sv("text", { x: 33, y: b.headY + HH / 2 + 4, class: "g-block-label" });
+      lab.textContent = wrapPx(b.bm.name, Math.max(labMax, 40), "g-block-label", 1)[0] || b.bm.name;
+      lroot.appendChild(lab);
+      var cnt = sv("text", { x: Lw - 12, y: b.headY + HH / 2 + 4, class: "g-block-cnt", "text-anchor": "end" }); cnt.textContent = cntTxt; lroot.appendChild(cnt);
       lroot.appendChild(sv("rect", { x: 0, y: b.headY + HH, width: 3, height: b.y1 - (b.headY + HH), fill: toneHex[b.bm.tone] || "#C9A96A", opacity: .5 }));
     });
     function chip(parent, x, y, text, kind) {
@@ -553,15 +570,15 @@
     var barLayer = sv("g"); rroot.appendChild(barLayer);
     order.forEach(function (o) {
       var x = xR(o.s), w = Math.max(dw * o.t.days, 11), y = o.y - bh / 2;
-      var g = sv("g", { class: "bar st-" + o.t.st + (o.t.key ? " key" : "") }); g.setAttribute("data-id", o.t.id);
-      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : o.t.st === "plan" ? "url(#g-plan)" : o.t.st === "frozen" ? "url(#g-frozen)" : "var(--paper-3)";
+      var g = sv("g", { class: "bar st-" + o.t.st + (o.noDate ? " st-frozen" : "") + (o.t.key ? " key" : "") }); g.setAttribute("data-id", o.t.id);
+      var fill = o.t.st === "work" ? "url(#g-work)" : o.t.st === "done" ? "url(#g-done)" : o.t.st === "talk" ? "url(#hatch)" : o.t.st === "plan" ? "url(#g-plan)" : (o.t.st === "frozen" || o.noDate) ? "url(#g-frozen)" : "var(--paper-3)";
       var rect = sv("rect", { x: x, y: y, width: w, height: bh, rx: bh / 2, class: "b-fill", fill: fill });
       if (o.t.st === "plan") { rect.setAttribute("stroke", "#9DB0CC"); rect.setAttribute("stroke-width", "1.2"); }
       else if (o.t.st === "talk") { rect.setAttribute("stroke", "#E08A5F"); rect.setAttribute("stroke-width", "1.6"); rect.setAttribute("stroke-dasharray", "3.5 2.5"); }
-      else if (o.t.st === "frozen") { rect.setAttribute("stroke", "#8FA6B8"); rect.setAttribute("stroke-width", "1.2"); rect.setAttribute("stroke-dasharray", "2 3"); rect.setAttribute("opacity", ".6"); }
+      else if (o.t.st === "frozen" || o.noDate) { rect.setAttribute("stroke", "#8FA6B8"); rect.setAttribute("stroke-width", "1.2"); rect.setAttribute("stroke-dasharray", "2 3"); rect.setAttribute("opacity", ".6"); }
       g.appendChild(rect);
       if (o.t.st === "work" || o.t.st === "done" || o.t.st === "plan") g.appendChild(sv("rect", { x: x + 2, y: y + 2, width: Math.max(w - 4, 2), height: 2, rx: 1, fill: "#ffffff", opacity: .18 }));
-      var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = o.t.st === "frozen" ? "заморожено" : (o.t.days + "д"); g.appendChild(dl);
+      var dl = sv("text", { x: x + w + 8, y: o.y + 4, class: "g-dur" }); dl.textContent = (o.t.st === "frozen" || o.noDate) ? "заморожено" : (o.t.days + "д"); g.appendChild(dl);
       o._rect = rect; o._dur = dl; o._bx = x; o._bw = w; o._by = y;
       if (o.t.gate) { var d2 = bh * 0.6, cx = x, cyg = o.y; g.appendChild(sv("polygon", { points: cx + "," + (cyg - d2) + " " + (cx + d2) + "," + cyg + " " + cx + "," + (cyg + d2) + " " + (cx - d2) + "," + cyg, class: "g-gate" })); }
       barLayer.appendChild(g);
@@ -646,7 +663,7 @@
       var opens = deps.filter(function (d) { return d.a === o.t.id; }).map(function (d) { return d.b; });
       var needs = o.t.dep || [];
       tip.innerHTML = '<div class="tt-h"><b>' + esc(o.t.t) + '</b><span class="tt-id">' + esc(o.t.id) + (o.t.bu ? " · " + esc(o.t.bu) : "") + (o.t.gate ? " · гейт" : "") + "</span></div>" +
-        (o.t.st === "frozen"
+        ((o.t.st === "frozen" || o.noDate)
           ? '<div class="tt-r"><span>срок</span>не назначен, задача заморожена</div>'
           : '<div class="tt-r"><span>срок</span>' + fmt(o.s) + " - " + fmt(new Date(o.e.getTime() - MS)) + " · " + o.t.days + "д</div>") +
         '<div class="tt-r"><span>статус</span>' + esc(stName) + "</div>" +
@@ -719,7 +736,10 @@
     loadLive(function (ok) {
       var badge = $("#src-badge");
       if (ok) { badge.textContent = "живая таблица"; badge.classList.add("live"); renderGantt(); renderBlocks(); }
-      else { badge.textContent = "снимок"; badge.title = "Живая таблица недоступна - показан встроенный снимок. Как привязать - см. README."; }
+      else {
+        badge.textContent = "список в странице";
+        badge.title = "Таблица GANTT-V2 ещё не заполнена или недоступна. Показан список, вшитый в страницу. После заливки задач в таблицу здесь появится надпись «живая таблица».";
+      }
     });
   });
 })();

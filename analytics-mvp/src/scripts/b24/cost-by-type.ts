@@ -10,14 +10,14 @@ const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL"); process.exit(1); }
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// Явные поля-ИТОГО по каждому СП (лейблы сверены дампом SSFIELD, чтобы не суммировать
+// компонент + итог = двойной счёт). Закупка не имеет поля-итога, там сумма материалов.
 const SP = [
-  { etid: 1060, key: "Расчёт" }, { etid: 1056, key: "Калькулятор" },
-  { etid: 1074, key: "Закупка" }, { etid: 1086, key: "Производство GG" },
+  { etid: 1060, key: "Расчёт", fields: ["ufCrm17_1773905831214"] },                 // Производственная С/С (итог)
+  { etid: 1056, key: "Калькулятор", fields: ["ufCrm15_1769239901"] },               // РАСЧЕТ С/С ИТОГО
+  { etid: 1074, key: "Закупка", fields: ["ufCrm19_1774932241", "ufCrm19_1782743522817", "ufCrm19_1782743567626", "ufCrm19_1782743739088"] }, // металл+стекло+фурнитура+дерево
+  { etid: 1086, key: "Производство GG", fields: ["ufCrm23_1773573698"] },            // Себестоимость производственная (итог)
 ] as const;
-const SS_LABEL = /с\s*\/\s*с|себестоим/i;
-const SS_EXCLUDE = /бюджет|наценк|прибыл|сумма налога|режим расч|комментар/i;
-const SS_NUM = /^(money|double|integer|string)$/i;
-const lbl = (d: any) => d.formLabel || d.listLabel || d.editFormLabel || d.title || "";
 const num = (v: any) => { const n = parseFloat(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
 const KP = new Set(["C49:PREPAYMENT_INVOIC", "C49:3", "C49:UC_8JTBV2"]);
 const SUCC = new Set(["C49:EXECUTING", "C49:FINAL_INVOICE", "C49:1", "C49:2", "C49:WON"]);
@@ -34,12 +34,6 @@ async function call(method: string, params: any = {}): Promise<any> {
   }
   throw lastErr;
 }
-async function ssFields(etid: number, key = ""): Promise<string[]> {
-  const fields: Record<string, any> = (await call("crm.item.fields", { entityTypeId: etid })).result?.fields || {};
-  const out: string[] = [];
-  for (const [id, def] of Object.entries(fields)) { const t = String(lbl(def)); if (SS_LABEL.test(t) && !SS_EXCLUDE.test(t) && SS_NUM.test(String(def.type || ""))) { out.push(id); console.error(`SSFIELD\t${etid}\t${key}\t${id}\t${t}\t${def.type}`); } }
-  return out;
-}
 async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   const all: any[] = []; let lastId = 0;
   for (;;) { const r = (await call("crm.item.list", { entityTypeId: etid, select, filter: { ">id": lastId }, order: { id: "ASC" } })).result?.items || []; if (!r.length) break; all.push(...r); lastId = r[r.length - 1].id; if (r.length < 50) break; }
@@ -55,18 +49,16 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   for (const x of D) byId.set(String(x.id), { assort: x.assort || "нет данных", budget: x.budget, stage: x.stageCode, spss: SP.map(() => 0) });
   console.error(`Окно (дошли до КП, чек>1): ${D.length} сделок`);
 
-  // с/с из СП -> на сделку окна (по каждому СП раздельно, чтобы видеть двойной счёт)
+  // с/с из СП -> на сделку окна (по каждому СП раздельно, поля-ИТОГО заданы явно)
   for (let si = 0; si < SP.length; si++) {
     const sp = SP[si];
-    const ss = await ssFields(sp.etid, sp.key);
-    if (!ss.length) { console.error(`СП ${sp.etid} ${sp.key}: с/с-полей нет`); continue; }
-    const items = await itemsAll(sp.etid, ["id", "parentId2", ...ss]);
+    const items = await itemsAll(sp.etid, ["id", "parentId2", ...sp.fields]);
     let hit = 0;
     for (const it of items) {
       const rec = byId.get(String(it.parentId2 || "")); if (!rec) continue;
-      rec.spss[si] += ss.reduce((s, f) => s + num(it[f]), 0); hit++;
+      rec.spss[si] += sp.fields.reduce((s, f) => s + num(it[f]), 0); hit++;
     }
-    console.error(`СП ${sp.etid} ${sp.key}: полей ${ss.length}, карточек ${items.length}, попало в окно ${hit}`);
+    console.error(`СП ${sp.etid} ${sp.key}: полей ${sp.fields.length}, карточек ${items.length}, попало в окно ${hit}`);
   }
 
   // диагностика двойного счёта: сумма-по-СП vs максимум одного СП, по покрытым сделкам

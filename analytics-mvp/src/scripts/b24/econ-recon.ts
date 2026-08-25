@@ -84,8 +84,10 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
     for (const it of items) {
       const did = String(it.parentId2 || ""); if (!did || !inWin.has(did)) continue;
       linkedItems++; linkedDeals.add(did);
-      const rec = deal[did]; const s = (rec.sps[sp.title] = rec.sps[sp.title] || { etid: sp.etid, cardId: it.id, money: {} as Record<string, number> }); s.cardId = it.id;
-      for (const m of money) { const v = num(it[m.id]); if (v) { fill[m.id] = (fill[m.id] || 0) + 1; s.money[m.label] = (s.money[m.label] || 0) + v; } }
+      const rec = deal[did]; const s = (rec.sps[sp.title] = rec.sps[sp.title] || { etid: sp.etid, cards: [] as any[], money: {} as Record<string, number> });
+      const cardMoney: { label: string; value: number }[] = [];
+      for (const m of money) { const v = num(it[m.id]); if (v) { fill[m.id] = (fill[m.id] || 0) + 1; s.money[m.label] = (s.money[m.label] || 0) + v; cardMoney.push({ label: m.label, value: Math.round(v) }); } }
+      s.cards.push({ id: it.id, money: cardMoney });
     }
     spMeta.push({ etid: sp.etid, title: sp.title, fields: money });
     for (const m of money) inv.push({ etid: sp.etid, sp: sp.title, label: m.label, type: m.type, nonzero: fill[m.id] || 0, linked: linkedItems, fillPct: linkedItems ? Math.round(100 * (fill[m.id] || 0) / linkedItems) : 0 });
@@ -99,7 +101,7 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cardId: v.cardId, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
   writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, inventory: inv, deals }));
 

@@ -154,7 +154,7 @@ mdiv.addEventListener('click',e=>{ const c=e.target.closest('.mo'); if(!c||c.cla
   document.getElementById('dfrom').value=m+'-01'; const y=+m.slice(0,4),mm=+m.slice(5); document.getElementById('dto').value=new Date(Date.UTC(y,mm,0)).toISOString().slice(0,10);
   [...mdiv.children].forEach(x=>x.classList.remove('act')); c.classList.add('act'); [...pdiv.children].forEach(x=>x.classList.remove('act')); render(); });
 
-let sortIdx=0, sortDir=-1;
+let sortIdx=0, sortDir=-1; // по умолчанию переопределим на «Полнота с/с» ниже, чтобы заполненные сделки были сверху
 const spN=ORDER.length;
 const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Изделий',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Полнота с/с','Статус'];
 const I_SS=7+spN, I_MRG=8+spN, I_COV=9+spN, I_STAT=10+spN;
@@ -236,6 +236,7 @@ function render(){
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
 ['q','fstage','fmgr','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();
 document.getElementById('foot').innerHTML='На уровне сделки показатели агрегированы и без ссылок (у сделки с несколькими товарами карточек СП несколько - на какую вести неясно). Клик по строке разворачивает товары и карточки смартов со ссылками и с/с по каждой. «Полнота с/с»: полная = карточек с с/с не меньше числа позиций; частичная X/Y = часть товаров ещё без с/с (висят в смарте). В ячейке СП: зелёное число = агрег. с/с; жёлтое = кол-во изделий без с/с; «·» = не запущен. Σ с/с = производственная (Производство, иначе Расчёт) + стекло; без услуг и без полной себестоимости. Значения очищены от «Сумма»/«Сумма налога». Клик по заголовку - сортировка. Источник: Bitrix24, воронка 49. Состав с/с уточняется с ПТО.';
 </script></body></html>

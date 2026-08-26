@@ -64,7 +64,7 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/public/econ-control.html
+          git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/economics/data/econ-control-history.json analytics-mvp/public/econ-control.html
           if git diff --staged --quiet; then echo "без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(econ): снимок разведки + экран $(date -u +%F)"
           for i in 1 2 3 4 5; do

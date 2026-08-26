@@ -1,9 +1,9 @@
 {
-  "dateFrom": "2026-07-26",
-  "dateTo": "2026-08-24",
-  "skuCount": 192,
-  "singleItemOps": 1785,
-  "multiItemOps": 21,
+  "dateFrom": "2026-07-27",
+  "dateTo": "2026-08-25",
+  "skuCount": 193,
+  "singleItemOps": 1782,
+  "multiItemOps": 22,
   "bySku": {
     "3492790223": {
       "accruals": 0,
@@ -18,10 +18,10 @@
       "ops": 3
     },
     "3492791592": {
-      "accruals": 87800,
-      "commission": -45656,
-      "amount": 35790,
-      "ops": 13
+      "accruals": 131700,
+      "commission": -67606,
+      "amount": 54801,
+      "ops": 17
     },
     "3492791902": {
       "accruals": 201800,
@@ -101,12 +101,6 @@
       "amount": 27330,
       "ops": 4
     },
-    "3492801654": {
-      "accruals": 82225,
-      "commission": -43579,
-      "amount": 36755,
-      "ops": 4
-    },
     "3492802296": {
       "accruals": 41580,
       "commission": -20790,
@@ -116,8 +110,8 @@
     "3492802310": {
       "accruals": 367884,
       "commission": -187621,
-      "amount": 152964,
-      "ops": 32
+      "amount": 153415,
+      "ops": 31
     },
     "3492802339": {
       "accruals": 25300,
@@ -194,26 +188,26 @@
     "3492813002": {
       "accruals": 306446,
       "commission": -154974,
-      "amount": 130463,
-      "ops": 28
+      "amount": 129989,
+      "ops": 30
     },
     "3492813785": {
       "accruals": 68324,
       "commission": -34500,
-      "amount": 30663,
-      "ops": 11
+      "amount": 30001,
+      "ops": 15
     },
     "3492814812": {
-      "accruals": 233952,
-      "commission": -120475,
-      "amount": 100166,
-      "ops": 18
+      "accruals": 175295,
+      "commission": -90560,
+      "amount": 74889,
+      "ops": 14
     },
     "3492815039": {
       "accruals": 101406,
       "commission": -51210,
       "amount": 47539,
-      "ops": 7
+      "ops": 9
     },
     "3492815548": {
       "accruals": 47800,
@@ -228,10 +222,10 @@
       "ops": 4
     },
     "3492822125": {
-      "accruals": 101700,
-      "commission": -52905,
-      "amount": 44248,
-      "ops": 11
+      "accruals": 151500,
+      "commission": -78303,
+      "amount": 67833,
+      "ops": 13
     },
     "3492824859": {
       "accruals": 61900,
@@ -246,10 +240,10 @@
       "ops": 8
     },
     "3492827722": {
-      "accruals": 94186,
-      "commission": -47708,
-      "amount": 42138,
-      "ops": 21
+      "accruals": 65286,
+      "commission": -32969,
+      "amount": 28916,
+      "ops": 17
     },
     "3492828848": {
       "accruals": 96499,
@@ -278,14 +272,14 @@
     "3496061323": {
       "accruals": 132177,
       "commission": -68966,
-      "amount": 55212,
-      "ops": 15
+      "amount": 55042,
+      "ops": 18
     },
     "3496071541": {
       "accruals": 47163,
       "commission": -24053,
       "amount": 16780,
-      "ops": 21
+      "ops": 23
     },
     "3496311550": {
       "accruals": 47900,
@@ -315,7 +309,7 @@
       "accruals": 36900,
       "commission": -18819,
       "amount": 16577,
-      "ops": 5
+      "ops": 4
     },
     "3497337152": {
       "accruals": 38824,
@@ -396,9 +390,9 @@
       "ops": 21
     },
     "3555672541": {
-      "accruals": 389949,
-      "commission": -199237,
-      "amount": 172705,
+      "accruals": 322719,
+      "commission": -164949,
+      "amount": 140982,
       "ops": 39
     },
     "3563472748": {
@@ -534,10 +528,10 @@
       "ops": 5
     },
     "3564825716": {
-      "accruals": 57780,
-      "commission": -28571,
-      "amount": 23879,
-      "ops": 16
+      "accruals": 27880,
+      "commission": -13322,
+      "amount": 10467,
+      "ops": 12
     },
     "3564826162": {
       "accruals": 67900,
@@ -546,10 +540,10 @@
       "ops": 4
     },
     "3564826357": {
-      "accruals": 30900,
-      "commission": -15141,
-      "amount": 14289,
-      "ops": 4
+      "accruals": 92700,
+      "commission": -45423,
+      "amount": 44092,
+      "ops": 10
     },
     "3564827172": {
       "accruals": 0,
@@ -566,8 +560,8 @@
     "3564827469": {
       "accruals": 220962,
       "commission": -109534,
-      "amount": 99608,
-      "ops": 29
+      "amount": 99877,
+      "ops": 28
     },
     "3564827486": {
       "accruals": 92900,
@@ -632,8 +626,8 @@
     "3564831766": {
       "accruals": 1230819,
       "commission": -566177,
-      "amount": 626358,
-      "ops": 72
+      "amount": 627608,
+      "ops": 70
     },
     "3564832479": {
       "accruals": 0,
@@ -668,8 +662,8 @@
     "3564835749": {
       "accruals": 63780,
       "commission": -31601,
-      "amount": 29126,
-      "ops": 13
+      "amount": 28590,
+      "ops": 15
     },
     "3564836245": {
       "accruals": 156342,
@@ -680,8 +674,8 @@
     "3564836537": {
       "accruals": 323928,
       "commission": -149007,
-      "amount": 165967,
-      "ops": 21
+      "amount": 166423,
+      "ops": 20
     },
     "3564836550": {
       "accruals": 0,
@@ -722,8 +716,8 @@
     "3564839538": {
       "accruals": 371916,
       "commission": -171081,
-      "amount": 185099,
-      "ops": 36
+      "amount": 184504,
+      "ops": 37
     },
     "3564840005": {
       "accruals": 13582,
@@ -738,10 +732,10 @@
       "ops": 5
     },
     "3564840043": {
-      "accruals": 0,
-      "commission": 0,
-      "amount": -260,
-      "ops": 1
+      "accruals": 32377,
+      "commission": -15541,
+      "amount": 14932,
+      "ops": 5
     },
     "3564840182": {
       "accruals": 89900,
@@ -782,8 +776,8 @@
     "3564841191": {
       "accruals": 79596,
       "commission": -36614,
-      "amount": 40659,
-      "ops": 5
+      "amount": 41151,
+      "ops": 4
     },
     "3564841231": {
       "accruals": 74332,
@@ -792,10 +786,10 @@
       "ops": 4
     },
     "3564841366": {
-      "accruals": 1527127,
-      "commission": -699154,
-      "amount": 781641,
-      "ops": 106
+      "accruals": 1463191,
+      "commission": -672940,
+      "amount": 745389,
+      "ops": 102
     },
     "3564844613": {
       "accruals": -45533,
@@ -824,8 +818,8 @@
     "3564845410": {
       "accruals": 54470,
       "commission": -22333,
-      "amount": 29311,
-      "ops": 7
+      "amount": 30056,
+      "ops": 8
     },
     "3564845411": {
       "accruals": 79721,
@@ -854,8 +848,8 @@
     "3564845773": {
       "accruals": 75760,
       "commission": -37122,
-      "amount": 31570,
-      "ops": 18
+      "amount": 31889,
+      "ops": 17
     },
     "3564846098": {
       "accruals": 276155,
@@ -876,10 +870,10 @@
       "ops": 4
     },
     "3564847171": {
-      "accruals": 134079,
-      "commission": -58995,
-      "amount": 66790,
-      "ops": 36
+      "accruals": 191979,
+      "commission": -84471,
+      "amount": 97614,
+      "ops": 39
     },
     "3564847187": {
       "accruals": 120615,
@@ -888,10 +882,10 @@
       "ops": 11
     },
     "3564848193": {
-      "accruals": 95560,
-      "commission": -45869,
-      "amount": 40246,
-      "ops": 22
+      "accruals": 71660,
+      "commission": -34397,
+      "amount": 29508,
+      "ops": 18
     },
     "3564848367": {
       "accruals": 82007,
@@ -932,8 +926,8 @@
     "3579702771": {
       "accruals": 63925,
       "commission": -29405,
-      "amount": 32431,
-      "ops": 5
+      "amount": 33049,
+      "ops": 4
     },
     "3579702805": {
       "accruals": 74834,
@@ -956,13 +950,19 @@
     "3579703160": {
       "accruals": 493386,
       "commission": -226958,
-      "amount": 252858,
-      "ops": 29
+      "amount": 253654,
+      "ops": 28
     },
     "3579703196": {
       "accruals": 0,
       "commission": 0,
       "amount": -688,
+      "ops": 1
+    },
+    "3579703229": {
+      "accruals": 0,
+      "commission": 0,
+      "amount": -586,
       "ops": 1
     },
     "3579703274": {
@@ -1032,10 +1032,10 @@
       "ops": 17
     },
     "3734276153": {
-      "accruals": 970204,
-      "commission": -420871,
-      "amount": 527129,
-      "ops": 43
+      "accruals": 885564,
+      "commission": -386169,
+      "amount": 478234,
+      "ops": 40
     },
     "3734276157": {
       "accruals": 453330,
@@ -1044,10 +1044,10 @@
       "ops": 18
     },
     "3734276712": {
-      "accruals": 295180,
-      "commission": -131538,
-      "amount": 154573,
-      "ops": 14
+      "accruals": 210280,
+      "commission": -96729,
+      "amount": 106434,
+      "ops": 10
     },
     "3800630459": {
       "accruals": 0,
@@ -1155,6 +1155,12 @@
       "accruals": 0,
       "commission": 0,
       "amount": -397,
+      "ops": 1
+    },
+    "4865594899": {
+      "accruals": 0,
+      "commission": 0,
+      "amount": -496,
       "ops": 1
     }
   }

@@ -2008,17 +2008,18 @@ function offerCalendarBlock(){
     const coh=COHROWS[r.id],off=r.child?18:0;
     if(isOpen&&mgrSel){
       // выбран один менеджер: стадия/В-работе сразу разворачивается в свои когорты
-      if(coh)html+=coh.map(c=>rowLine(c,scope,c.id,{sub:true,mgr:c.nm,off})).join("");
+      if(coh)html+=coh.map(c=>`<div class="cohzone" style="background:${c.color}0f;border-top:1px solid ${c.color}55;border-bottom:1px solid ${c.color}55;box-shadow:inset 3px 0 0 ${c.color};margin:5px 0;padding:2px 0">`+rowLine(c,scope,c.id,{sub:true,mgr:c.nm,off})+`</div>`).join("");
     }else if(isOpen){
       const lastK=keys[keys.length-1],wm=S.calWipMode||'mgr';
       if(coh&&wm==='age'){
         // сначала когорты по сроку, внутри - менеджеры (для «В работе» и стадий)
-        coh.forEach(c=>{const ckey=c.id;
-          html+=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey,off});
+        coh.forEach(c=>{const ckey=c.id; let zh=rowLine(c,scope,ckey,{sub:true,mgr:c.nm,exp:true,rowKey:ckey,off});
           if(S.calRowOpen&&S.calRowOpen[ckey]){
             const ms=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:dealsFor(c,lastK,msc).length,any:keys.some(k=>dealsFor(c,k,msc).length>0)};}).filter(x=>x.any).sort((a,b)=>b.rank-a.rank);
-            html+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m,off})).join("");
+            zh+=ms.map(x=>rowLine(c,x.msc,ckey+"~"+x.m,{sub:true,sub2:true,mgr:x.m,off})).join("");
           }
+          // визуально выделяем зону (новые/застой/брошенные): фон, рамка сверху/снизу и цветная левая полоса
+          html+=`<div class="cohzone" style="background:${c.color}0f;border-top:1px solid ${c.color}55;border-bottom:1px solid ${c.color}55;box-shadow:inset 3px 0 0 ${c.color};margin:5px 0;padding:2px 0">`+zh+`</div>`;
         });
       }else{
         // сначала менеджеры, внутри - когорты по сроку (если у строки есть возрастные когорты)

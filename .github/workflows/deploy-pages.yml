@@ -342,16 +342,18 @@ jobs:
           if [ -f /tmp/economics/analytics-mvp/public/econ-control.html ]; then
             cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/economics/index.html"
             cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/econ-control/index.html"
-            echo "Контроль заполнения опубликован в /economics/ (главная) и /econ-control/"
+            # версия для авто-перезагрузки (как у РОП): v.txt = bakedAt контрольного экрана
+            CSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/economics/analytics-mvp/public/econ-control.html | head -1 | cut -d'"' -f4)
+            printf '%s' "$CSTAMP" > "$GITHUB_WORKSPACE/_site/economics/v.txt"
+            printf '%s' "$CSTAMP" > "$GITHUB_WORKSPACE/_site/econ-control/v.txt"
+            echo "Контроль заполнения опубликован в /economics/ (главная) и /econ-control/, версия $CSTAMP"
           else
             echo "public/econ-control.html ещё не собран (запусти econ-recon) - пропуск"
           fi
           # Старый слоевой дашборд сохраняем скрытым запасным на /economics/layers.html (не удалён).
           if [ -f /tmp/economics/analytics-mvp/public/economics-command.html ]; then
             cp /tmp/economics/analytics-mvp/public/economics-command.html "$GITHUB_WORKSPACE/_site/economics/layers.html"
-            ESTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/economics/analytics-mvp/public/economics-command.html | head -1 | cut -d'"' -f4)
-            printf '%s' "$ESTAMP" > "$GITHUB_WORKSPACE/_site/economics/v.txt"
-            echo "Слоевой дашборд сохранён в /economics/layers.html, сборка $ESTAMP"
+            echo "Слоевой дашборд сохранён в /economics/layers.html"
           else
             echo "public/economics-command.html ещё не запечён - пропуск layers.html"
           fi

@@ -3,17 +3,25 @@ name: ECON recon (связи сделка<->СП<->поля денег -> econ-r
 # Разведка: перечисляет все смарт-процессы, денежные поля с заполненностью, по каждой
 # сделке окна фиксирует запущенные СП, поля денег со значениями и ссылки, наличие товаров.
 # Пишет economics/data/econ-recon.json + печёт экран public/econ-control.html и печатает
-# сводку в лог. Коммитит оба в ветку данных. Только чтение Bitrix, секрет маскируется.
+# сводку в лог. Коммитит в ветку данных и дёргает deploy-pages (как РОП: авто-обновление).
+# Расписание каждые 3 часа + ручной запуск.
 
 on:
   workflow_dispatch:
     inputs:
       days:
-        description: "ECON_WINDOW_DAYS (окно в днях, по умолчанию 60)"
+        description: "ECON_WINDOW_DAYS (если не задан ECON_SINCE)"
         required: false
+  schedule:
+    - cron: "37 */3 * * *" # каждые 3 часа, минута 37 (уйти от загруженного :00 и :17 РОПа)
 
 permissions:
   contents: write
+  actions: write # чтобы после коммита дёрнуть deploy-pages
+
+concurrency:
+  group: econ-recon-data
+  cancel-in-progress: true
 
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
@@ -50,16 +58,33 @@ jobs:
           node economics/build-econ-control.mjs
           echo "Экран: $(du -h public/econ-control.html | cut -f1)"
       - name: Commit данные + экран
+        id: commit
         working-directory: .
         run: |
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A analytics-mvp/economics/data/econ-recon.json analytics-mvp/public/econ-control.html
-          if git diff --staged --quiet; then echo "без изменений"; exit 0; fi
+          if git diff --staged --quiet; then echo "без изменений"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           git commit -m "data(econ): снимок разведки + экран $(date -u +%F)"
           for i in 1 2 3 4 5; do
-            if git push origin "HEAD:$DATA_BRANCH"; then exit 0; fi
+            if git push origin "HEAD:$DATA_BRANCH"; then echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; fi
             git fetch origin "$DATA_BRANCH"; git rebase "origin/$DATA_BRANCH" || git rebase --abort; sleep $((2**i))
           done
           echo "push не удался"; exit 1
+      - name: Триггер деплоя /economics/ (deploy-pages на main)
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/dispatch.out -w "%{http_code}" -X POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-pages.yml/dispatches" \
+              -d '{"ref":"main"}' || echo 000)
+            if [ "$code" = "204" ]; then ok=1; break; fi
+            echo "попытка $i: HTTP $code $(cat /tmp/dispatch.out)"; sleep $((5*i))
+          done
+          if [ "$ok" != "1" ]; then echo "::error::Публикация не запрошена после 5 попыток"; exit 1; fi
+          echo "Публикация /economics/ запрошена."

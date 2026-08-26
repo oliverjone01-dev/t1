@@ -138,7 +138,6 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <p class="ver">Воронка «GG Заказы РФ» (49) · с/с и Маржа - за партию (с/с за шт × кол-во) · обновлено <span id="gen"></span></p>
 <h3>Ключевые метрики (клик - фильтр таблицы)</h3>
 <div class="kpi" id="kpi"></div>
-<div class="byst" id="byst"></div>
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
@@ -153,6 +152,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 </div>
 <div class="presets" id="presets"></div>
 <div class="months" id="months"></div>
+<div class="byst" id="byst"></div>
 
 <div class="scrollx"><table id="tbl"><thead></thead><tbody></tbody></table></div>
 

@@ -119,8 +119,8 @@ const keyStageStats = KEYS.map(([code, name]) => {
 
 // --- intStaff (по сотрудникам: лиды/сделки/выигрыши) ---
 const staff: Record<string, any> = {};
-const ensure = (n: string) => (staff[n] ??= { name: n, dept: [], leads: 0, deals: 0, won: 0 });
-for (const d of deals) { const s = ensure(d.mgr); s.deals++; if (d.won) s.won++; }
+const ensure = (n: string) => (staff[n] ??= { name: n, dept: [], leads: 0, deals: 0, won: 0, last: null });
+for (const d of deals) { const s = ensure(d.mgr); s.deals++; if (d.won) s.won++; if (d.created && (!s.last || d.created > s.last)) s.last = d.created; }
 for (const l of leads) ensure(l.mgr).leads++;
 const intStaff = Object.values(staff);
 
@@ -130,11 +130,20 @@ const intStaff = Object.values(staff);
 // но из ростера ОП убираем, чтобы план-факт делился только на реальных продавцов.
 const NOT_OP = new Set(["Дмитрий Янчоглов", "Алиса Алексеева"]);
 const isSysName = (n: string) => /систем|^id\s?\d/i.test(n || "");
-const isSalesRep = (s: any) => !NOT_OP.has(s.name) && !isSysName(s.name);
+// Служебные/технические аккаунты (не живые продавцы): «Расчеты», «Удалить», «Тест», боты.
+const isService = (n: string) => /расч[её]т|удалить|тест|бот/i.test(n || "");
+// Уволенные из снимка (rop.firedManagers). Имя нормализуем: trim + схлопнуть пробелы + lower.
+const normName = (n: string) => (n || "").trim().replace(/\s+/g, " ").toLowerCase();
+const FIRED = new Set((rop.firedManagers || []).map(normName));
+// Свежесть: в ростер попадает только тот, у кого есть сделка за последние ACTIVE_DAYS дней.
+// Иначе исторические/уволенные раздувают N и занижают норму на менеджера (было /9 вместо /3).
+const ACTIVE_DAYS = 90, _todayMs = Date.parse(TODAY);
+const isRecent = (s: any) => s.last != null && (_todayMs - Date.parse(s.last)) / 86400000 <= ACTIVE_DAYS;
+const isSalesRep = (s: any) => !NOT_OP.has(s.name) && !isSysName(s.name) && !isService(s.name) && !FIRED.has(normName(s.name));
 const opUsers = Object.values(staff)
-  .filter((s: any) => s.deals > 0 && isSalesRep(s)).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
-const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && !isSalesRep(s)).map((s: any) => s.name);
-console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (нераспределённые): ${_excluded.join(", ") || "-"}`);
+  .filter((s: any) => s.deals > 0 && isSalesRep(s) && isRecent(s)).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
+const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && (!isSalesRep(s) || !isRecent(s))).map((s: any) => s.name);
+console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (уволенные/служебные/неактивные >${ACTIVE_DAYS}д): ${_excluded.join(", ") || "-"}`);
 
 const DATA = {
   from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,

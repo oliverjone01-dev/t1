@@ -91,7 +91,7 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .tlc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:11.5px}
 .tlc b{font-size:12.5px}.tlc .d{color:var(--ink-3);margin-top:3px;font-size:11px}
 .tlc-h{display:flex;gap:6px;align-items:center;margin-bottom:3px}
-.tlc-m{font-size:11.5px;color:var(--ink);margin-bottom:5px}
+.tlc-m{font-size:11.5px;color:var(--ink);margin-top:6px;padding-top:5px;border-top:1px solid var(--border)}
 .months{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .mo{background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--ink-2)}
 .mo:hover{border-color:var(--accent)}
@@ -235,9 +235,9 @@ function spHealth(k){ let L=0,F=0; for(const d of DATA.deals){ const s=byKey(d,k
 document.getElementById('tl').innerHTML=DATA.spTimeline.map(s=>{ const h=spHealth(s.k);
   return '<div class="tlc" title="'+esc(cpTip)+'">'
     +'<div class="tlc-h"><span class="dot '+h.dot+'"></span><b>'+esc(SHORT[s.k]||s.k)+'</b></div>'
-    +'<div class="tlc-m">запуск '+h.pL+'% '+h.tL+' · с/с '+(h.L?h.pF+'% '+h.tF:'нет')+'</div>'
     +'<div class="d">создан '+ruD(s.created)+' · 1-я боевая '+ruD(s.real)+'</div>'
-    +'<div class="d">боевых карточек '+s.cards+'</div></div>'; }).join('');
+    +'<div class="d">боевых карточек '+s.cards+'</div>'
+    +'<div class="tlc-m">запуск '+h.pL+'% '+h.tL+' · с/с '+(h.L?h.pF+'% '+h.tF:'нет')+'</div></div>'; }).join('');
 
 const present=new Set(DATA.deals.map(d=>d.stage));
 const fstage=document.getElementById('fstage');

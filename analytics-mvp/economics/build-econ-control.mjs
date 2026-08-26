@@ -72,7 +72,7 @@ h1{font-size:21px;margin:0 0 4px}
 .byst th,.byst td{padding:5px 10px;border-bottom:1px solid var(--border);white-space:nowrap;text-align:right}
 .byst th:first-child,.byst td:first-child{text-align:left}
 .byst th{color:var(--ink-3);text-transform:uppercase;font-size:10.5px;letter-spacing:.03em}
-.byst tr.br{cursor:pointer} .byst tr.br:hover td{background:rgba(255,255,255,.03)} .byst tr.br.act td{background:rgba(34,211,238,.08)}
+.byst td.bc{cursor:pointer} .byst td.bc:hover{background:rgba(255,255,255,.06)} .byst td.selc{background:rgba(34,211,238,.14);box-shadow:inset 0 0 0 1px var(--accent)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
 .tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
 .tile .v{font-size:21px;font-weight:800}.tile .l{color:var(--ink-2);font-size:11.5px;margin-top:2px}.tile .n{color:var(--ink-3);font-size:10.5px;margin-top:4px}
@@ -375,19 +375,25 @@ function renderKPI(base){
   const cnt={}; for(const d of base){ const c=classify(d); cnt[c]=(cnt[c]||0)+1; } cnt['']=base.length;
   document.getElementById('kpi').innerHTML=TILES.map(t=>'<div class="kt '+t.k+(quick===t.k?' act':'')+'" data-q="'+t.k+'" title="'+esc(t.desc)+'"><div class="v">'+(cnt[t.k]||0)+'</div><div class="l">'+esc(t.label)+'</div></div>').join('');
 }
+function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
 function renderByStage(base){
   const byS={}; for(const d of base){ const s=d.stage||'(без этапа)'; (byS[s]=byS[s]||[]).push(d); }
   const order=DATA.stageOrder.filter(s=>byS[s]); for(const s of Object.keys(byS)) if(!order.includes(s)) order.push(s);
-  const cur=document.getElementById('fstage').value;
+  const cur=document.getElementById('fstage').value, cq=quick;
+  // ячейка = клик по этапу+классу: показать именно эти сделки
+  const cell=(s,qk,v,cls)=>'<td class="bc'+(cls?' '+cls:'')+(cur===s&&cq===qk?' selc':'')+'" data-stage="'+esc(s)+'" data-q="'+qk+'">'+v+'</td>';
   let rows='<tr><th>Этап</th><th>Сделок</th><th>С с/с</th><th>Без с/с</th><th>С запасом</th><th>Слабый</th><th>Убыток/0</th><th>Нет цены</th></tr>';
   for(const s of order){ const L=byS[s]; const c={}; for(const d of L){ const k=classify(d); c[k]=(c[k]||0)+1; } const withSS=L.length-(c.noss||0);
-    rows+='<tr class="br'+(cur===s?' act':'')+'" data-stage="'+esc(s)+'"><td>'+esc(s)+'</td><td>'+L.length+'</td><td>'+withSS+'</td><td>'+(c.noss||0)+'</td><td class="cell-g">'+(c.good||0)+'</td><td class="cell-y">'+(c.weak||0)+'</td><td class="cell-dn">'+(c.loss||0)+'</td><td>'+(c.noprice||0)+'</td></tr>'; }
+    rows+='<tr class="br" data-stage="'+esc(s)+'">'
+      +'<td class="bname bc'+(cur===s&&!cq?' selc':'')+'" data-stage="'+esc(s)+'" data-q="">'+esc(s)+'</td>'
+      +cell(s,'',L.length)+cell(s,'hasss',withSS)+cell(s,'noss',c.noss||0)
+      +cell(s,'good',c.good||0,'cell-g')+cell(s,'weak',c.weak||0,'cell-y')+cell(s,'loss',c.loss||0,'cell-dn')+cell(s,'noprice',c.noprice||0)+'</tr>'; }
   document.getElementById('byst').innerHTML='<table>'+rows+'</table>';
 }
 function render(){
   const base=DATA.deals.filter(passesBase);
   renderKPI(base); renderByStage(base);
-  let list=quick? base.filter(d=>classify(d)===quick) : base.slice();
+  let list=base.filter(matchQuick);
   list.sort((a,b)=>{ const x=sortVal(a,sortIdx),y=sortVal(b,sortIdx); return (x<y?-1:x>y?1:0)*sortDir; });
   let rows='';
   for(const d of list){
@@ -418,7 +424,8 @@ function render(){
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
 ['q','fstage','fmgr','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 document.getElementById('kpi').addEventListener('click',e=>{ const t=e.target.closest('.kt'); if(!t)return; const k=t.dataset.q; quick=(quick===k)?'':k; render(); });
-document.getElementById('byst').addEventListener('click',e=>{ const tr=e.target.closest('tr.br'); if(!tr)return; const s=tr.dataset.stage; const sel=document.getElementById('fstage'); sel.value=(sel.value===s)?'':s; quick=''; render(); });
+document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.closest('td.bc'); if(!td)return; const s=td.dataset.stage, qk=td.dataset.q||''; const sel=document.getElementById('fstage');
+  if(sel.value===s&&quick===qk){ sel.value=''; quick=''; } else { sel.value=s; quick=qk; } render(); });
 sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();
 </script></body></html>`;

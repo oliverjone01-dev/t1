@@ -67,6 +67,10 @@ h1{font-size:21px;margin:0 0 4px}
 .kt:hover{border-color:var(--accent)} .kt.act{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .kt .v{font-size:20px;font-weight:800;line-height:1.1} .kt .l{font-size:11px;color:var(--ink-2);margin-top:3px}
 .kt.good .v{color:var(--up)} .kt.weak .v{color:var(--warn)} .kt.loss .v{color:var(--dn)} .kt.noprice .v{color:var(--warn)} .kt.noss .v{color:var(--ink-3)} .kt.draft .v{color:var(--info)}
+.midrow{display:flex;gap:14px;align-items:flex-start;margin:8px 0 12px}
+.filtcol{flex:1 1 340px;min-width:300px;display:flex;flex-direction:column;gap:8px}
+.filtcol .bar{margin:0}.midrow .byst{margin:0}
+@media(max-width:1180px){.midrow{flex-direction:column}.filtcol,.midrow .byst{width:100%}}
 .byst{margin:0 0 12px;overflow:auto}
 .byst table{border-collapse:collapse;font-size:12px;min-width:0;width:auto}
 .byst th,.byst td{padding:5px 10px;border-bottom:1px solid var(--border);white-space:nowrap;text-align:right}
@@ -85,7 +89,9 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .g{background:var(--up)}.y{background:var(--warn)}.r{background:var(--dn)}.o{background:var(--ink-3)}
 .tl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .tlc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:11.5px}
-.tlc b{font-size:12.5px}.tlc .d{color:var(--ink-2);margin-top:3px}
+.tlc b{font-size:12.5px}.tlc .d{color:var(--ink-3);margin-top:3px;font-size:11px}
+.tlc-h{display:flex;gap:6px;align-items:center;margin-bottom:3px}
+.tlc-m{font-size:11.5px;color:var(--ink);margin-bottom:5px}
 .months{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .mo{background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--ink-2)}
 .mo:hover{border-color:var(--accent)}
@@ -143,9 +149,14 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <body><div class="wrap">
 <h1>Контроль экономики сделок</h1>
 <p class="ver">Воронка «GG Заказы РФ» (49) · с/с и Маржа - за партию (с/с за шт × кол-во) · обновлено <span id="gen"></span></p>
+<h3>Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
+<div class="tl" id="tl"></div>
 <h3>Ключевые метрики (клик - фильтр таблицы)</h3>
 <div class="kpi" id="kpi"></div>
 
+<div class="midrow">
+<div class="byst" id="byst"></div>
+<div class="filtcol">
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
   <select id="fstage"><option value="">все этапы</option></select>
@@ -160,15 +171,10 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="presets" id="presets"></div>
-<div class="months" id="months"></div>
-<div class="byst" id="byst"></div>
+</div>
+</div>
 
 <div class="scrollx"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-
-<h3>Здоровье цепочки (доля сделок где СП запущен / из них с внесённой с/с) · стрелка = изменение к прошлому снимку</h3>
-<div class="chain" id="chain"></div>
-<h3>Таймлайн смарт-процессов: когда создан и пошёл на боевые сделки</h3>
-<div class="tl" id="tl"></div>
 </div>
 <script>
 const DATA=${JSON.stringify(payload)};
@@ -225,12 +231,16 @@ const N=DATA.deals.length;
 const CP=DATA.chainPrev||{}, CPat=DATA.chainPrevAt;
 function trend(cur,prev){ if(prev===null||prev===undefined)return ''; const d=cur-prev; if(d===0)return '<span class="trend flat" title="без изменений">=</span>'; const up=d>0; return '<span class="trend '+(up?'up':'dn')+'" title="было '+prev+'%">'+(up?'▲':'▼')+Math.abs(d)+'</span>'; }
 const cpTip=CPat?('к снимку '+new Date(CPat).toLocaleString('ru')):'первый снимок - динамики пока нет';
-document.getElementById('chain').innerHTML=ORDER.map(k=>{ let L=0,F=0; for(const d of DATA.deals){ const s=byKey(d,k); if(s){L++; const c=spCost(s); if(c&&!c.empty)F++;} }
-  const pL=Math.round(100*L/N), pF=L?Math.round(100*F/L):0; let dot=L===0?'o':F===0?'r':pF>=70?'g':'y';
-  const pv=CP[k]; const tL=pv?trend(pL,pv.pL):'', tF=pv?trend(pF,pv.pF):'';
-  return '<span class="chip" title="'+esc(cpTip)+'"><span class="dot '+dot+'"></span><b>'+esc(SHORT[k]||k)+'</b> запуск '+pL+'% '+tL+' · с/с '+(L?pF+'% '+tF:'нет')+'</span>'; }).join('');
-
-document.getElementById('tl').innerHTML=DATA.spTimeline.map(s=>'<div class="tlc"><b>'+esc(SHORT[s.k]||s.k)+'</b><div class="d">создан '+ruD(s.created)+'</div><div class="d">первая боевая '+ruD(s.real)+'</div><div class="d">боевых карточек '+s.cards+'</div></div>').join('');
+// здоровье цепочки вшито в карточку таймлайна каждого смарта
+function spHealth(k){ let L=0,F=0; for(const d of DATA.deals){ const s=byKey(d,k); if(s){L++; const c=spCost(s); if(c&&!c.empty)F++;} }
+  const pL=Math.round(100*L/N), pF=L?Math.round(100*F/L):0; const dot=L===0?'o':F===0?'r':pF>=70?'g':'y';
+  const pv=CP[k]; return {pL,pF,dot,L,tL:pv?trend(pL,pv.pL):'',tF:pv?trend(pF,pv.pF):''}; }
+document.getElementById('tl').innerHTML=DATA.spTimeline.map(s=>{ const h=spHealth(s.k);
+  return '<div class="tlc" title="'+esc(cpTip)+'">'
+    +'<div class="tlc-h"><span class="dot '+h.dot+'"></span><b>'+esc(SHORT[s.k]||s.k)+'</b></div>'
+    +'<div class="tlc-m">запуск '+h.pL+'% '+h.tL+' · с/с '+(h.L?h.pF+'% '+h.tF:'нет')+'</div>'
+    +'<div class="d">создан '+ruD(s.created)+' · 1-я боевая '+ruD(s.real)+'</div>'
+    +'<div class="d">боевых карточек '+s.cards+'</div></div>'; }).join('');
 
 const present=new Set(DATA.deals.map(d=>d.stage));
 const fstage=document.getElementById('fstage');
@@ -251,19 +261,8 @@ function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=documen
 const pdiv=document.getElementById('presets');
 const clearPeriod=()=>{ [...pdiv.querySelectorAll('.seg button')].forEach(x=>x.classList.remove('on')); };
 pdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:center;margin-right:6px">Период:</span><div class="seg">'+PSET.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='mig'?' title="сделки, созданные после переезда - операционка с апреля 2026"':'')+'>'+esc(p[1])+'</button>').join('')+'</div>';
-pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); [...document.getElementById('months').children].forEach(x=>x.classList.remove('act')); render(); });
-document.getElementById('applyRange').addEventListener('click',()=>{ clearPeriod(); [...document.getElementById('months').children].forEach(x=>x.classList.remove('act')); render(); });
-
-const monset=[...new Set(DATA.deals.map(d=>(d.created||'').slice(0,7)).filter(Boolean))].sort();
-const allMon=['2026-03',...monset.filter(m=>m>'2026-03')];
-const NMO={'01':'янв','02':'фев','03':'мар','04':'апр','05':'май','06':'июн','07':'июл','08':'авг','09':'сен','10':'окт','11':'ноя','12':'дек'};
-const mdiv=document.getElementById('months');
-mdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:center;margin-right:4px">Быстрый месяц:</span>'+allMon.map(m=>{
-  const isMove=m==='2026-03'; const nm=NMO[m.slice(5)]+' '+m.slice(2,4);
-  return '<span class="mo'+(isMove?' move':'')+'" data-m="'+m+'">'+(isMove?'🚚 переезд ':'')+nm+'</span>'; }).join('');
-mdiv.addEventListener('click',e=>{ const c=e.target.closest('.mo'); if(!c||c.classList.contains('move'))return; const m=c.dataset.m;
-  document.getElementById('dfrom').value=m+'-01'; const y=+m.slice(0,4),mm=+m.slice(5); document.getElementById('dto').value=new Date(Date.UTC(y,mm,0)).toISOString().slice(0,10);
-  [...mdiv.children].forEach(x=>x.classList.remove('act')); c.classList.add('act'); clearPeriod(); render(); });
+pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); render(); });
+document.getElementById('applyRange').addEventListener('click',()=>{ clearPeriod(); render(); });
 
 let sortIdx=0, sortDir=-1; // по умолчанию переопределим на «Полнота с/с» ниже, чтобы заполненные сделки были сверху
 // услуги = товарные строки по названию (доставка/монтаж/замер/логистика/сборка), это ДАННЫЕ, не остаток.
@@ -303,7 +302,12 @@ function cellSP(d,k){ const s=byKey(d,k); if(!s) return '<td class="num cell-o">
 
 const OPEN=new Set();
 // с/с одной карточки: поле-итог, иначе сумма денежных полей
-function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label)); return it?it.value:f.reduce((a,m)=>a+m.value,0); }
+// с/с одной карточки за штуку: итог-поле, но не больше суммы своих компонент
+// (защита от опечаток в Bitrix - напр. 39111 вместо ~3900: итог > компонент = мусор -> берём компоненты)
+function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label));
+  const comp=f.filter(m=>!ITOG.test(m.label)).reduce((a,m)=>a+m.value,0);
+  if(it) return comp>0?Math.min(it.value,comp):it.value;
+  return comp; }
 // множитель партии: поля с/с в Bitrix записаны либо ЗА ШТУКУ (тогда «Сумма»≈«Металл-сталь»×кол-во),
 // либо УЖЕ ЗА ПАРТИЮ (тогда «Сумма»≈«Металл-сталь»). Определяем по каждой карточке, чтобы не завышать.
 function cardMult(c){ const raw=c.money||[]; const q=Math.max(1,+c.qty||1);

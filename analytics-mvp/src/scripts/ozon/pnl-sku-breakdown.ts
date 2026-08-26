@@ -78,11 +78,68 @@ export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOp
   return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, serviceTotals, multiOnlySku, bySku };
 }
 
+type Bundle = {
+  posting: string; date: string; items: { sku: string; name: string; qty: number }[];
+  accruals: number; commission: number; delivery: number; acquiring: number; storage: number; otherSvc: number;
+  fees: number; amount: number;
+};
+
+// Многотоварные отправления «как есть» (лист «Комплекты»): группируем ВСЕ операции по номеру
+// отправления, если хотя бы одна операция этого отправления многотоварная. Сборы не разносим по
+// SKU - показываем состав посылки и общую сумму. fees = начислено - к выплате.
+export function buildBundles(ops: any[]): Bundle[] {
+  const bundlePostings = new Set<string>();
+  for (const o of ops) {
+    const pn = String(o.posting?.posting_number || "");
+    if (pn && (o.items || []).length > 1) bundlePostings.add(pn);
+  }
+  const by: Record<string, Bundle> = {};
+  const itemsSeen: Record<string, Record<string, { sku: string; name: string; qty: number }>> = {};
+  for (const o of ops) {
+    const pn = String(o.posting?.posting_number || "");
+    if (!pn || !bundlePostings.has(pn)) continue;
+    let b = by[pn];
+    if (!b) { b = { posting: pn, date: String(o.operation_date || "").slice(0, 10), items: [], accruals: 0, commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, fees: 0, amount: 0 }; by[pn] = b; itemsSeen[pn] = {}; }
+    const d = String(o.operation_date || "").slice(0, 10); if (d && (!b.date || d < b.date)) b.date = d;
+    b.accruals += o.accruals_for_sale || 0;
+    b.commission += o.sale_commission || 0;
+    b.delivery += (o.delivery_charge || 0) + (o.return_delivery_charge || 0);
+    b.amount += o.amount || 0;
+    for (const s of (o.services || [])) {
+      const price = s.price || 0;
+      switch (svcBucket(String(s.name || ""))) {
+        case "acquiring": b.acquiring += price; break;
+        case "storage": b.storage += price; break;
+        case "delivery": b.delivery += price; break;
+        default: b.otherSvc += price;
+      }
+    }
+    for (const it of (o.items || [])) {
+      const sku = String((it && it.sku) || ""); if (!sku || sku === "0") continue;
+      const seen = itemsSeen[pn]!;
+      if (!seen[sku]) seen[sku] = { sku, name: String(it.name || ""), qty: 0 };
+      seen[sku]!.qty += 1;
+    }
+  }
+  const out: Bundle[] = [];
+  for (const pn in by) {
+    const b = by[pn]!;
+    b.items = Object.values(itemsSeen[pn]!);
+    b.accruals = Math.round(b.accruals); b.commission = Math.round(b.commission);
+    b.delivery = Math.round(b.delivery); b.acquiring = Math.round(b.acquiring);
+    b.storage = Math.round(b.storage); b.otherSvc = Math.round(b.otherSvc);
+    b.amount = Math.round(b.amount); b.fees = Math.round(b.accruals - b.amount);
+    out.push(b);
+  }
+  out.sort((x, y) => y.fees - x.fees);
+  return out;
+}
+
 export async function pnlBreakdown(dateFrom: string, dateTo: string): Promise<any> {
   const clientId = process.env.OZON_SELLER_CLIENT_ID || "", apiKey = process.env.OZON_SELLER_API_KEY || "";
   if (!clientId || !apiKey) throw new Error("OZON_SELLER_CLIENT_ID / OZON_SELLER_API_KEY не заданы (GitHub Secrets)");
   const ops = await new OzonSeller({ clientId, apiKey }).transactions(dateFrom, dateTo);
-  return { dateFrom, dateTo, ...aggregateBreakdown(ops) };
+  return { dateFrom, dateTo, ...aggregateBreakdown(ops), bundles: buildBundles(ops) };
 }
 
 async function main() {

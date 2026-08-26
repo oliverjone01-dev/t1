@@ -2330,5 +2330,470 @@
       "amount": -727,
       "ops": 1
     }
-  }
+  },
+  "bundles": [
+    {
+      "posting": "13218949-1043-1",
+      "date": "2026-06-29",
+      "items": [
+        {
+          "sku": "3492819858",
+          "name": "GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED XL 200x100 см, овальное, большое",
+          "qty": 12
+        }
+      ],
+      "accruals": 185700,
+      "commission": -98421,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4271,
+      "fees": 100012,
+      "amount": 85688
+    },
+    {
+      "posting": "18904107-0087-1",
+      "date": "2026-06-27",
+      "items": [
+        {
+          "sku": "3564840010",
+          "name": "GENGLASS Стол кухонный мраморный овальный черный TRUBIS Wood 140х80 см",
+          "qty": 8
+        },
+        {
+          "sku": "3579703276",
+          "name": "GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный мрамор",
+          "qty": 8
+        }
+      ],
+      "accruals": 227092,
+      "commission": -93108,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -5223,
+      "fees": 93351,
+      "amount": 133741
+    },
+    {
+      "posting": "74790013-0160-1",
+      "date": "2026-06-11",
+      "items": [
+        {
+          "sku": "3563473177",
+          "name": "GENGLASS Перегородка лофт для зонирования ZONIQUE 240х100 см стеклянная",
+          "qty": 4
+        }
+      ],
+      "accruals": 185332,
+      "commission": -87106,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1853,
+      "fees": 83979,
+      "amount": 101353
+    },
+    {
+      "posting": "42955824-0118-1",
+      "date": "2026-06-29",
+      "items": [
+        {
+          "sku": "3564836537",
+          "name": "GENGLASS Стол кухонный овальный черный TRUBIS Wood 160х80 см",
+          "qty": 4
+        },
+        {
+          "sku": "3579703108",
+          "name": "GENGLASS Стол кухонный обеденный со столешницей из керамогранита TRUBIS Stone 160х80х76 см",
+          "qty": 4
+        }
+      ],
+      "accruals": 192680,
+      "commission": -78999,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4432,
+      "fees": 79250,
+      "amount": 113430
+    },
+    {
+      "posting": "0254050659-0003-1",
+      "date": "2026-06-29",
+      "items": [
+        {
+          "sku": "3564837592",
+          "name": "GENGLASS Доска маркерная BASE 100х200 см, на стену, стеклянная",
+          "qty": 8
+        }
+      ],
+      "accruals": 99452,
+      "commission": -48731,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2287,
+      "fees": 47339,
+      "amount": 52113
+    },
+    {
+      "posting": "0124267673-0056-1",
+      "date": "2026-06-17",
+      "items": [
+        {
+          "sku": "3564836726",
+          "name": "GENGLASS Магнитная доска на стену BASE 100х150 см, белая, стеклянная",
+          "qty": 10
+        },
+        {
+          "sku": "3564837592",
+          "name": "GENGLASS Доска маркерная BASE 100х200 см, на стену, стеклянная",
+          "qty": 6
+        }
+      ],
+      "accruals": 75800,
+      "commission": -37142,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4669,
+      "fees": 39031,
+      "amount": 36769
+    },
+    {
+      "posting": "18904107-0087",
+      "date": "2026-06-16",
+      "items": [
+        {
+          "sku": "3564840010",
+          "name": "GENGLASS Стол кухонный мраморный овальный черный TRUBIS Wood 140х80 см",
+          "qty": 2
+        },
+        {
+          "sku": "3579703276",
+          "name": "GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный мрамор",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -2537,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 2537,
+      "amount": -2537
+    },
+    {
+      "posting": "42955824-0118",
+      "date": "2026-06-20",
+      "items": [
+        {
+          "sku": "3564836537",
+          "name": "GENGLASS Стол кухонный овальный черный TRUBIS Wood 160х80 см",
+          "qty": 1
+        },
+        {
+          "sku": "3579703108",
+          "name": "GENGLASS Стол кухонный обеденный со столешницей из керамогранита TRUBIS Stone 160х80х76 см",
+          "qty": 1
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -1822,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 1822,
+      "amount": -1822
+    },
+    {
+      "posting": "13218949-1043",
+      "date": "2026-06-24",
+      "items": [
+        {
+          "sku": "3492791015",
+          "name": "GENGLASS Зеркало с подсветкой настенное NOLVIS NF LED L 180x60 см, овальное, в полный рост",
+          "qty": 1
+        },
+        {
+          "sku": "3492819858",
+          "name": "GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED XL 200x100 см, овальное, большое",
+          "qty": 3
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -1736,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 1736,
+      "amount": -1736
+    },
+    {
+      "posting": "0149529815-0119",
+      "date": "2026-06-11",
+      "items": [
+        {
+          "sku": "3564840043",
+          "name": "GENGLASS Стол журнальный белый RILONI, прямоугольный, в стиле лофт",
+          "qty": 6
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -1531,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 1531,
+      "amount": -1531
+    },
+    {
+      "posting": "0243489759-0033",
+      "date": "2026-06-18",
+      "items": [
+        {
+          "sku": "3492804359",
+          "name": "GENGLASS Зеркало настенное и напольное в полный рост ARKIS Black 180х80, арка, интерьерное, большое",
+          "qty": 1
+        },
+        {
+          "sku": "3492814812",
+          "name": "GENGLASS Зеркало настенное в полный рост NOLVIS L Gold 180х60 см, интерьерное, овальное",
+          "qty": 1
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -843,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 843,
+      "amount": -843
+    },
+    {
+      "posting": "0153696246-0055",
+      "date": "2026-06-30",
+      "items": [
+        {
+          "sku": "3492802310",
+          "name": "GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L Black, интерьерное в черной раме",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -770,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 770,
+      "amount": -770
+    },
+    {
+      "posting": "0209453696-0081",
+      "date": "2026-06-09",
+      "items": [
+        {
+          "sku": "3564844613",
+          "name": "GENGLASS Подстолье для столешницы металлическое трубчатое черное TRUBIS, круг D60 cм",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -702,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 702,
+      "amount": -702
+    },
+    {
+      "posting": "43282007-0681",
+      "date": "2026-06-16",
+      "items": [
+        {
+          "sku": "3564840043",
+          "name": "GENGLASS Стол журнальный белый RILONI, прямоугольный, в стиле лофт",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -612,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 612,
+      "amount": -612
+    },
+    {
+      "posting": "75157879-0076",
+      "date": "2026-06-14",
+      "items": [
+        {
+          "sku": "3492796662",
+          "name": "GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED M 135x50 см, овальное",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -523,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 523,
+      "amount": -523
+    },
+    {
+      "posting": "86169582-0049",
+      "date": "2026-06-03",
+      "items": [
+        {
+          "sku": "3492811273",
+          "name": "GENGLASS Зеркало в прихожую настенное RAUNTEL Gold M 80х80 см, круглое, интерьерное",
+          "qty": 3
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -506,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 506,
+      "amount": -506
+    },
+    {
+      "posting": "55803484-1021",
+      "date": "2026-06-09",
+      "items": [
+        {
+          "sku": "3492827722",
+          "name": "GENGLASS Зеркало настенное EVELIX S Gold 100x50 см, овальное, в прихожую",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -400,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 400,
+      "amount": -400
+    },
+    {
+      "posting": "0200210634-0123",
+      "date": "2026-06-25",
+      "items": [
+        {
+          "sku": "3492815039",
+          "name": "GENGLASS Зеркало настенное в прихожую KUVINO Gold M 150x50 см, прямоугольное",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -254,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 254,
+      "amount": -254
+    },
+    {
+      "posting": "78782234-0442",
+      "date": "2026-06-28",
+      "items": [
+        {
+          "sku": "3555672541",
+          "name": "GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для консоли, в прихожую",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -247,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 247,
+      "amount": -247
+    },
+    {
+      "posting": "09217595-0118",
+      "date": "2026-06-18",
+      "items": [
+        {
+          "sku": "3564845773",
+          "name": "GENGLASS Подстолье для столешницы металлическое ARFEO 25х45х78 см 1 шт.",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -236,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 236,
+      "amount": -236
+    },
+    {
+      "posting": "69650985-0172",
+      "date": "2026-06-19",
+      "items": [
+        {
+          "sku": "3492813785",
+          "name": "GENGLASS Зеркало настенное в прихожую EVELIX S Black 100x50 см, овальное, интерьерное",
+          "qty": 2
+        },
+        {
+          "sku": "3497337157",
+          "name": "GENGLASS Зеркало в прихожую настенное ARKELO Black 100x50 см, арка",
+          "qty": 1
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -205,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 205,
+      "amount": -205
+    },
+    {
+      "posting": "0243489759-0032",
+      "date": "2026-06-18",
+      "items": [
+        {
+          "sku": "3492797992",
+          "name": "GENGLASS Зеркало настенное в прихожую NOLVIS L Black 180х60 см, овальное, в полный рост",
+          "qty": 2
+        },
+        {
+          "sku": "3492804359",
+          "name": "GENGLASS Зеркало настенное и напольное в полный рост ARKIS Black 180х80, арка, интерьерное, большое",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 0,
+      "amount": 0
+    }
+  ]
 }

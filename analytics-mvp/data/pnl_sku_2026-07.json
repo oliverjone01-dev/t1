@@ -2116,5 +2116,316 @@
       "amount": 62579,
       "ops": 4
     }
-  }
+  },
+  "bundles": [
+    {
+      "posting": "0123850900-0038-1",
+      "date": "2026-07-12",
+      "items": [
+        {
+          "sku": "3563474543",
+          "name": "GENGLASS Перегородка для зонирования ширма ZONIQUE 240х70 см черная с эффектом рифленого стекла",
+          "qty": 20
+        }
+      ],
+      "accruals": 339708,
+      "commission": -159663,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -13249,
+      "fees": 169431,
+      "amount": 170277
+    },
+    {
+      "posting": "0246543337-0012-1",
+      "date": "2026-07-20",
+      "items": [
+        {
+          "sku": "3564827455",
+          "name": "GENGLASS Стол кухонный обеденный круглый TRUBIS Wood L D120 см черный",
+          "qty": 12
+        }
+      ],
+      "accruals": 167580,
+      "commission": -68708,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3854,
+      "fees": 68882,
+      "amount": 98698
+    },
+    {
+      "posting": "75141295-0036-1",
+      "date": "2026-07-29",
+      "items": [
+        {
+          "sku": "3564848193",
+          "name": "GENGLASS Опора для стола VIOLUR из металла черная 1шт.",
+          "qty": 8
+        }
+      ],
+      "accruals": 47800,
+      "commission": -24378,
+      "delivery": -1409,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1099,
+      "fees": 26886,
+      "amount": 20914
+    },
+    {
+      "posting": "99589421-0433",
+      "date": "2026-07-15",
+      "items": [
+        {
+          "sku": "3564831423",
+          "name": "GENGLASS Обеденный стол VIOLUR 160х80 см овальный",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -1450,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 1450,
+      "amount": -1450
+    },
+    {
+      "posting": "05223346-0617",
+      "date": "2026-07-02",
+      "items": [
+        {
+          "sku": "3564852634",
+          "name": "GENGLASS Подстолье для стола ARFEO из металла черное 1шт.",
+          "qty": 3
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -996,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 996,
+      "amount": -996
+    },
+    {
+      "posting": "78782234-0454",
+      "date": "2026-07-05",
+      "items": [
+        {
+          "sku": "3555672541",
+          "name": "GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для консоли, в прихожую",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -830,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 830,
+      "amount": -830
+    },
+    {
+      "posting": "50219733-0666",
+      "date": "2026-07-27",
+      "items": [
+        {
+          "sku": "3564824197",
+          "name": "GENGLASS Стол кухонный TRUBIS Wood 120х80 см черный",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -828,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 828,
+      "amount": -828
+    },
+    {
+      "posting": "15913548-0274",
+      "date": "2026-07-22",
+      "items": [
+        {
+          "sku": "3492813002",
+          "name": "GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, овальное",
+          "qty": 1
+        },
+        {
+          "sku": "3492818910",
+          "name": "GENGLASS Зеркало настенное в прихожую KVADEN L Gold 180x60 см, овальное, интерьерное, в раме",
+          "qty": 1
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -700,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 700,
+      "amount": -700
+    },
+    {
+      "posting": "39452911-0102",
+      "date": "2026-07-16",
+      "items": [
+        {
+          "sku": "3492799566",
+          "name": "GENGLASS Зеркало настенное в прихожую EVELIX L Black 180x50 см, в полный рост, интерьерное",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -689,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 689,
+      "amount": -689
+    },
+    {
+      "posting": "30069500-0251",
+      "date": "2026-07-27",
+      "items": [
+        {
+          "sku": "3492799566",
+          "name": "GENGLASS Зеркало настенное в прихожую EVELIX L Black 180x50 см, в полный рост, интерьерное",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -673,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 673,
+      "amount": -673
+    },
+    {
+      "posting": "47791092-0451",
+      "date": "2026-07-30",
+      "items": [
+        {
+          "sku": "3492813002",
+          "name": "GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, овальное",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -589,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 589,
+      "amount": -589
+    },
+    {
+      "posting": "0178662796-0037",
+      "date": "2026-07-27",
+      "items": [
+        {
+          "sku": "3564818585",
+          "name": "GENGLASS Вешалка в прихожую напольная EVESA Black163х54 см",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -522,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 522,
+      "amount": -522
+    },
+    {
+      "posting": "46027676-0255",
+      "date": "2026-07-18",
+      "items": [
+        {
+          "sku": "4865595144",
+          "name": "Обеденный стол круглый 90x90 см, GENTRIS, белый, стол кухонный для гостиной и столовой",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -329,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 329,
+      "amount": -329
+    },
+    {
+      "posting": "75141295-0036",
+      "date": "2026-07-25",
+      "items": [
+        {
+          "sku": "3564848193",
+          "name": "GENGLASS Опора для стола VIOLUR из металла черная 1шт.",
+          "qty": 2
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -162,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 162,
+      "amount": -162
+    },
+    {
+      "posting": "83234293-0147",
+      "date": "2026-07-09",
+      "items": [
+        {
+          "sku": "3564844613",
+          "name": "GENGLASS Подстолье для столешницы металлическое трубчатое черное TRUBIS, круг D60 cм",
+          "qty": 4
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 0,
+      "amount": 0
+    },
+    {
+      "posting": "47791092-0443",
+      "date": "2026-07-21",
+      "items": [
+        {
+          "sku": "3492813002",
+          "name": "GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, овальное",
+          "qty": 4
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 0,
+      "amount": 0
+    }
+  ]
 }

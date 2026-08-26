@@ -98,6 +98,13 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .pbtn{background:var(--elev);border:1px solid var(--border);color:var(--ink-2);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
 .pbtn:hover{border-color:var(--accent)}.pbtn.act{background:var(--accent);color:#04222a;border-color:var(--accent);font-weight:700}
+.seg{display:inline-flex;background:var(--elev);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:0;border-right:1px solid var(--border);color:var(--ink-3);font:inherit;font-size:12px;padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button:hover:not(.on){color:var(--ink)}
+.seg button.on{background:var(--accent);color:#04222a;font-weight:700}
+.dbtn{background:var(--accent);border:1px solid var(--accent);color:#04222a;border-radius:8px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.dsep{color:var(--ink-4)}
 .cnt{color:var(--ink-3);font-size:12px;margin-left:auto}
 .scrollx{overflow:auto;max-height:74vh;border:1px solid var(--border);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:12px;min-width:1380px}
@@ -144,7 +151,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   <select id="fstage"><option value="">все этапы</option></select>
   <select id="fmgr"><option value="">все менеджеры</option></select>
   <label>с <input type="date" id="dfrom"></label>
+  <span class="dsep">–</span>
   <label>по <input type="date" id="dto"></label>
+  <button class="dbtn" id="applyRange">ОК</button>
   <label><input type="checkbox" id="fnoprod"> без товаров</label>
   <label><input type="checkbox" id="fgap"> произв. без с/с</label>
   <label><input type="checkbox" id="fpart"> неполная с/с</label>
@@ -231,10 +240,19 @@ const fmgr=document.getElementById('fmgr'); mgrs.forEach(m=>fmgr.insertAdjacentH
 
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
-const PRESETS=[['после переезда','2026-04-01'],['30 дней',daysAgo(30)],['60 дней',daysAgo(60)],['90 дней',daysAgo(90)],['всё','']];
+// пресеты периода по образцу РОП: сегмент-пилюля + диапазон с–по с кнопкой ОК
+const PSET=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['90','90 дн'],['all','Всё'],['mig','После переезда']];
+function econSetPeriod(p){ const df=document.getElementById('dfrom'), dt=document.getElementById('dto');
+  if(p==='all'){ df.value=''; dt.value=''; }
+  else if(p==='today'){ df.value=today; dt.value=today; }
+  else if(p==='yest'){ df.value=daysAgo(1); dt.value=daysAgo(1); }
+  else if(p==='mig'){ df.value='2026-04-01'; dt.value=''; }
+  else { df.value=daysAgo(+p-1); dt.value=today; } }
 const pdiv=document.getElementById('presets');
-pdiv.innerHTML=PRESETS.map(p=>'<button class="pbtn" data-from="'+p[1]+'">'+esc(p[0])+'</button>').join('');
-pdiv.addEventListener('click',e=>{ const b=e.target.closest('.pbtn'); if(!b)return; document.getElementById('dfrom').value=b.dataset.from; document.getElementById('dto').value=''; [...pdiv.children].forEach(x=>x.classList.remove('act')); b.classList.add('act'); [...document.getElementById('months').children].forEach(x=>x.classList.remove('act')); render(); });
+const clearPeriod=()=>{ [...pdiv.querySelectorAll('.seg button')].forEach(x=>x.classList.remove('on')); };
+pdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:center;margin-right:6px">Период:</span><div class="seg">'+PSET.map(p=>'<button data-p="'+p[0]+'"'+(p[0]==='mig'?' title="сделки, созданные после переезда - операционка с апреля 2026"':'')+'>'+esc(p[1])+'</button>').join('')+'</div>';
+pdiv.addEventListener('click',e=>{ const b=e.target.closest('.seg button'); if(!b)return; clearPeriod(); b.classList.add('on'); econSetPeriod(b.dataset.p); [...document.getElementById('months').children].forEach(x=>x.classList.remove('act')); render(); });
+document.getElementById('applyRange').addEventListener('click',()=>{ clearPeriod(); [...document.getElementById('months').children].forEach(x=>x.classList.remove('act')); render(); });
 
 const monset=[...new Set(DATA.deals.map(d=>(d.created||'').slice(0,7)).filter(Boolean))].sort();
 const allMon=['2026-03',...monset.filter(m=>m>'2026-03')];
@@ -245,7 +263,7 @@ mdiv.innerHTML='<span style="color:var(--ink-3);font-size:11.5px;align-self:cent
   return '<span class="mo'+(isMove?' move':'')+'" data-m="'+m+'">'+(isMove?'🚚 переезд ':'')+nm+'</span>'; }).join('');
 mdiv.addEventListener('click',e=>{ const c=e.target.closest('.mo'); if(!c||c.classList.contains('move'))return; const m=c.dataset.m;
   document.getElementById('dfrom').value=m+'-01'; const y=+m.slice(0,4),mm=+m.slice(5); document.getElementById('dto').value=new Date(Date.UTC(y,mm,0)).toISOString().slice(0,10);
-  [...mdiv.children].forEach(x=>x.classList.remove('act')); c.classList.add('act'); [...pdiv.children].forEach(x=>x.classList.remove('act')); render(); });
+  [...mdiv.children].forEach(x=>x.classList.remove('act')); c.classList.add('act'); clearPeriod(); render(); });
 
 let sortIdx=0, sortDir=-1; // по умолчанию переопределим на «Полнота с/с» ниже, чтобы заполненные сделки были сверху
 // услуги = товарные строки по названию (доставка/монтаж/замер/логистика/сборка), это ДАННЫЕ, не остаток.

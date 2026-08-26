@@ -21,6 +21,10 @@
     "MarketplaceServiceItemDeliveryToHandoverPlaceOzon": -600,
     "PremiumMembershipCommissionCancelled": 447
   },
+  "multiOnlySku": {
+    "3563474543": 20,
+    "3564827455": 12
+  },
   "bySku": {
     "3492791592": {
       "accruals": 38563,

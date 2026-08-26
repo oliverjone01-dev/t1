@@ -1,9 +1,9 @@
 {
   "dateFrom": "2026-06-01",
   "dateTo": "2026-06-30",
-  "skuCount": 230,
-  "singleItemOps": 2969,
-  "multiItemOps": 39,
+  "skuCount": 232,
+  "singleItemOps": 2989,
+  "multiItemOps": 19,
   "serviceTotals": {
     "MarketplaceRedistributionOfAcquiringOperation": -213634,
     "MarketplaceServiceBrandCommission": -266414,
@@ -23,11 +23,9 @@
     "PremiumMembershipCommissionCancelled": 610
   },
   "multiOnlySku": {
-    "3492819858": 15,
-    "3563473177": 4,
-    "3564836726": 10,
+    "3564836726": 5,
     "3579703108": 5,
-    "3579703276": 10
+    "3579703276": 5
   },
   "bySku": {
     "3492786359": {
@@ -144,11 +142,11 @@
       "accruals": 68040,
       "sale_commission": -34700,
       "delivery": -942,
-      "acquiring": -252,
+      "acquiring": -775,
       "storage": 0,
       "otherSvc": -2586,
-      "amount": 29560,
-      "ops": 11
+      "amount": 29037,
+      "ops": 12
     },
     "3492796838": {
       "accruals": 119120,
@@ -224,11 +222,11 @@
       "accruals": 452556,
       "sale_commission": -229786,
       "delivery": -16616,
-      "acquiring": -1198,
+      "acquiring": -1969,
       "storage": 0,
       "otherSvc": -16329,
-      "amount": 188628,
-      "ops": 47
+      "amount": 187857,
+      "ops": 48
     },
     "3492802417": {
       "accruals": 30900,
@@ -334,11 +332,11 @@
       "accruals": 93564,
       "sale_commission": -47718,
       "delivery": -1519,
-      "acquiring": 0,
+      "acquiring": -506,
       "storage": 0,
       "otherSvc": -3555,
-      "amount": 40772,
-      "ops": 15
+      "amount": 40266,
+      "ops": 16
     },
     "3492811903": {
       "accruals": 230662,
@@ -394,11 +392,11 @@
       "accruals": 0,
       "sale_commission": 0,
       "delivery": -524,
-      "acquiring": -328,
+      "acquiring": -583,
       "storage": 0,
       "otherSvc": -1010,
-      "amount": -1862,
-      "ops": 7
+      "amount": -2117,
+      "ops": 8
     },
     "3492815548": {
       "accruals": 80769,
@@ -429,6 +427,16 @@
       "otherSvc": -1934,
       "amount": 21989,
       "ops": 5
+    },
+    "3492819858": {
+      "accruals": 185700,
+      "sale_commission": -98421,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4271,
+      "amount": 83008,
+      "ops": 4
     },
     "3492822125": {
       "accruals": 202094,
@@ -464,11 +472,11 @@
       "accruals": 249576,
       "sale_commission": -124068,
       "delivery": -2997,
-      "acquiring": -1167,
+      "acquiring": -1568,
       "storage": -420,
       "otherSvc": -8503,
-      "amount": 112420,
-      "ops": 50
+      "amount": 112020,
+      "ops": 51
     },
     "3492828848": {
       "accruals": 83800,
@@ -714,11 +722,21 @@
       "accruals": 665970,
       "sale_commission": -343836,
       "delivery": -11009,
-      "acquiring": -3953,
+      "acquiring": -4200,
       "storage": -2910,
       "otherSvc": -24882,
-      "amount": 279380,
-      "ops": 98
+      "amount": 279133,
+      "ops": 99
+    },
+    "3563473177": {
+      "accruals": 185332,
+      "sale_commission": -87106,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1853,
+      "amount": 96373,
+      "ops": 2
     },
     "3563474226": {
       "accruals": 0,
@@ -1461,14 +1479,14 @@
       "ops": 11
     },
     "3564837592": {
-      "accruals": 2,
-      "sale_commission": -1,
+      "accruals": 99454,
+      "sale_commission": -48732,
       "delivery": 0,
       "acquiring": 0,
       "storage": 0,
-      "otherSvc": -1789,
-      "amount": -1788,
-      "ops": 6
+      "otherSvc": -4076,
+      "amount": 46645,
+      "ops": 10
     },
     "3564837914": {
       "accruals": 44660,
@@ -1544,11 +1562,11 @@
       "accruals": 494394,
       "sale_commission": -226537,
       "delivery": -21987,
-      "acquiring": -696,
+      "acquiring": -2838,
       "storage": 0,
       "otherSvc": -18508,
-      "amount": 226667,
-      "ops": 82
+      "amount": 224524,
+      "ops": 84
     },
     "3564840182": {
       "accruals": 208416,
@@ -1654,11 +1672,11 @@
       "accruals": 123688,
       "sale_commission": -58133,
       "delivery": -5167,
-      "acquiring": 0,
+      "acquiring": -702,
       "storage": 0,
       "otherSvc": -5260,
-      "amount": 55127,
-      "ops": 17
+      "amount": 54425,
+      "ops": 18
     },
     "3564844618": {
       "accruals": 71367,
@@ -1714,11 +1732,11 @@
       "accruals": 178188,
       "sale_commission": -79048,
       "delivery": -4102,
-      "acquiring": -641,
+      "acquiring": -876,
       "storage": 0,
       "otherSvc": -8456,
-      "amount": 85941,
-      "ops": 29
+      "amount": 85706,
+      "ops": 30
     },
     "3564845774": {
       "accruals": 47460,
@@ -2333,25 +2351,6 @@
   },
   "bundles": [
     {
-      "posting": "13218949-1043-1",
-      "date": "2026-06-29",
-      "items": [
-        {
-          "sku": "3492819858",
-          "name": "GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED XL 200x100 см, овальное, большое",
-          "qty": 12
-        }
-      ],
-      "accruals": 185700,
-      "commission": -98421,
-      "delivery": 0,
-      "acquiring": 0,
-      "storage": 0,
-      "otherSvc": -4271,
-      "fees": 100012,
-      "amount": 85688
-    },
-    {
       "posting": "18904107-0087-1",
       "date": "2026-06-27",
       "items": [
@@ -2376,25 +2375,6 @@
       "amount": 133741
     },
     {
-      "posting": "74790013-0160-1",
-      "date": "2026-06-11",
-      "items": [
-        {
-          "sku": "3563473177",
-          "name": "GENGLASS Перегородка лофт для зонирования ZONIQUE 240х100 см стеклянная",
-          "qty": 4
-        }
-      ],
-      "accruals": 185332,
-      "commission": -87106,
-      "delivery": 0,
-      "acquiring": 0,
-      "storage": 0,
-      "otherSvc": -1853,
-      "fees": 83979,
-      "amount": 101353
-    },
-    {
       "posting": "42955824-0118-1",
       "date": "2026-06-29",
       "items": [
@@ -2417,25 +2397,6 @@
       "otherSvc": -4432,
       "fees": 79250,
       "amount": 113430
-    },
-    {
-      "posting": "0254050659-0003-1",
-      "date": "2026-06-29",
-      "items": [
-        {
-          "sku": "3564837592",
-          "name": "GENGLASS Доска маркерная BASE 100х200 см, на стену, стеклянная",
-          "qty": 8
-        }
-      ],
-      "accruals": 99452,
-      "commission": -48731,
-      "delivery": 0,
-      "acquiring": 0,
-      "storage": 0,
-      "otherSvc": -2287,
-      "fees": 47339,
-      "amount": 52113
     },
     {
       "posting": "0124267673-0056-1",
@@ -2534,25 +2495,6 @@
       "amount": -1736
     },
     {
-      "posting": "0149529815-0119",
-      "date": "2026-06-11",
-      "items": [
-        {
-          "sku": "3564840043",
-          "name": "GENGLASS Стол журнальный белый RILONI, прямоугольный, в стиле лофт",
-          "qty": 6
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -1531,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 1531,
-      "amount": -1531
-    },
-    {
       "posting": "0243489759-0033",
       "date": "2026-06-18",
       "items": [
@@ -2575,177 +2517,6 @@
       "otherSvc": 0,
       "fees": 843,
       "amount": -843
-    },
-    {
-      "posting": "0153696246-0055",
-      "date": "2026-06-30",
-      "items": [
-        {
-          "sku": "3492802310",
-          "name": "GENGLASS Зеркало настенное в прихожую прямоугольное 180x55 см KUVINO L Black, интерьерное в черной раме",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -770,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 770,
-      "amount": -770
-    },
-    {
-      "posting": "0209453696-0081",
-      "date": "2026-06-09",
-      "items": [
-        {
-          "sku": "3564844613",
-          "name": "GENGLASS Подстолье для столешницы металлическое трубчатое черное TRUBIS, круг D60 cм",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -702,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 702,
-      "amount": -702
-    },
-    {
-      "posting": "43282007-0681",
-      "date": "2026-06-16",
-      "items": [
-        {
-          "sku": "3564840043",
-          "name": "GENGLASS Стол журнальный белый RILONI, прямоугольный, в стиле лофт",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -612,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 612,
-      "amount": -612
-    },
-    {
-      "posting": "75157879-0076",
-      "date": "2026-06-14",
-      "items": [
-        {
-          "sku": "3492796662",
-          "name": "GENGLASS Зеркало настенное с подсветкой NOLVIS NF LED M 135x50 см, овальное",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -523,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 523,
-      "amount": -523
-    },
-    {
-      "posting": "86169582-0049",
-      "date": "2026-06-03",
-      "items": [
-        {
-          "sku": "3492811273",
-          "name": "GENGLASS Зеркало в прихожую настенное RAUNTEL Gold M 80х80 см, круглое, интерьерное",
-          "qty": 3
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -506,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 506,
-      "amount": -506
-    },
-    {
-      "posting": "55803484-1021",
-      "date": "2026-06-09",
-      "items": [
-        {
-          "sku": "3492827722",
-          "name": "GENGLASS Зеркало настенное EVELIX S Gold 100x50 см, овальное, в прихожую",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -400,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 400,
-      "amount": -400
-    },
-    {
-      "posting": "0200210634-0123",
-      "date": "2026-06-25",
-      "items": [
-        {
-          "sku": "3492815039",
-          "name": "GENGLASS Зеркало настенное в прихожую KUVINO Gold M 150x50 см, прямоугольное",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -254,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 254,
-      "amount": -254
-    },
-    {
-      "posting": "78782234-0442",
-      "date": "2026-06-28",
-      "items": [
-        {
-          "sku": "3555672541",
-          "name": "GENGLASS Зеркало настенное с подсветкой OSOLIS NF LED 190х70 см, для консоли, в прихожую",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -247,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 247,
-      "amount": -247
-    },
-    {
-      "posting": "09217595-0118",
-      "date": "2026-06-18",
-      "items": [
-        {
-          "sku": "3564845773",
-          "name": "GENGLASS Подстолье для столешницы металлическое ARFEO 25х45х78 см 1 шт.",
-          "qty": 2
-        }
-      ],
-      "accruals": 0,
-      "commission": 0,
-      "delivery": 0,
-      "acquiring": -236,
-      "storage": 0,
-      "otherSvc": 0,
-      "fees": 236,
-      "amount": -236
     },
     {
       "posting": "69650985-0172",

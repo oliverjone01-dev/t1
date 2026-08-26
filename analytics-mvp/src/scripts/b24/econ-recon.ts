@@ -88,17 +88,19 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
     if (!money.length) continue;
     const ax = SP_ART[sp.etid] || {};
     const extra = [ax.art, ax.qty].filter(Boolean) as string[];
-    const items = await itemsAll(sp.etid, ["id", "parentId2", ...money.map((m) => m.id), ...extra]);
+    const items = await itemsAll(sp.etid, ["id", "parentId2", "stageId", ...money.map((m) => m.id), ...extra]);
     const fill: Record<string, number> = {}; let linkedItems = 0, linkedDeals = new Set<string>();
     for (const it of items) {
       const did = String(it.parentId2 || ""); if (!did || !inWin.has(did)) continue;
       linkedItems++; linkedDeals.add(did);
       const rec = deal[did]; const s = (rec.sps[sp.title] = rec.sps[sp.title] || { etid: sp.etid, cards: [] as any[], money: {} as Record<string, number> });
+      const st = String(it.stageId || "");
+      const bad = /:FAIL/i.test(st); // провальная/проигранная стадия карточки смарта - в с/с не берём
       const cardMoney: { label: string; value: number }[] = [];
-      for (const m of money) { const v = num(it[m.id]); if (v) { fill[m.id] = (fill[m.id] || 0) + 1; s.money[m.label] = (s.money[m.label] || 0) + v; cardMoney.push({ label: m.label, value: Math.round(v) }); } }
+      for (const m of money) { const v = num(it[m.id]); if (v) { fill[m.id] = (fill[m.id] || 0) + 1; if (!bad) s.money[m.label] = (s.money[m.label] || 0) + v; cardMoney.push({ label: m.label, value: Math.round(v) }); } }
       const art = ax.art ? String(it[ax.art] ?? "").trim() : "";
       const qty = ax.qty ? num(it[ax.qty]) : 0;
-      s.cards.push({ id: it.id, money: cardMoney, art, qty });
+      s.cards.push({ id: it.id, money: cardMoney, art, qty, st, bad });
     }
     spMeta.push({ etid: sp.etid, title: sp.title, fields: money });
     for (const m of money) inv.push({ etid: sp.etid, sp: sp.title, label: m.label, type: m.type, nonzero: fill[m.id] || 0, linked: linkedItems, fillPct: linkedItems ? Math.round(100 * (fill[m.id] || 0) / linkedItems) : 0 });

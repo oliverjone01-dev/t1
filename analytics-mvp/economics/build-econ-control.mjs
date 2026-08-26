@@ -302,12 +302,9 @@ function cellSP(d,k){ const s=byKey(d,k); if(!s) return '<td class="num cell-o">
 
 const OPEN=new Set();
 // с/с одной карточки: поле-итог, иначе сумма денежных полей
-// с/с одной карточки за штуку: итог-поле, но не больше суммы своих компонент
-// (защита от опечаток в Bitrix - напр. 39111 вместо ~3900: итог > компонент = мусор -> берём компоненты)
-function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label));
-  const comp=f.filter(m=>!ITOG.test(m.label)).reduce((a,m)=>a+m.value,0);
-  if(it) return comp>0?Math.min(it.value,comp):it.value;
-  return comp; }
+// с/с одной карточки за штуку: итог-поле, иначе сумма денежных полей.
+// Высокую с/с НЕ режем - может быть реальной (рекламация/переделка); показываем как есть с флагом убытка.
+function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label)); return it?it.value:f.reduce((a,m)=>a+m.value,0); }
 // множитель партии: поля с/с в Bitrix записаны либо ЗА ШТУКУ (тогда «Сумма»≈«Металл-сталь»×кол-во),
 // либо УЖЕ ЗА ПАРТИЮ (тогда «Сумма»≈«Металл-сталь»). Определяем по каждой карточке, чтобы не завышать.
 function cardMult(c){ const raw=c.money||[]; const q=Math.max(1,+c.qty||1);

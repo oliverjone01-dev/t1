@@ -14,7 +14,24 @@
   // сегодня (фиксируем в полдень, чтобы не плыло по таймзоне)
   var TODAY = new Date(); TODAY = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
   var MS = 86400000;
-  function pd(s) { if (!s) return null; var m = String(s).trim().match(/(\d{4})-(\d{2})-(\d{2})/); if (m) return new Date(+m[1], +m[2] - 1, +m[3]); var d = String(s).trim().match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/); if (d) { var y = +d[3]; if (y < 100) y += 2000; return new Date(y, +d[2] - 1, +d[1]); } return null; }
+  // Разбор даты. Google-таблица отдаёт даты в своём формате, месяц первым
+  // (8/26/2026), а мы пишем ISO (2026-08-26) и в России принято ДД.ММ.ГГГГ.
+  // Понимаем все три, иначе 26-й месяц уносит задачу в февраль.
+  function pd(s) {
+    s = String(s == null ? "" : s).trim();
+    if (!s) return null;
+    var iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+    var us = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (us) {
+      var mo = +us[1], dd = +us[2], y = +us[3]; if (y < 100) y += 2000;
+      if (mo > 12 && dd <= 12) { var t = mo; mo = dd; dd = t; } // подстраховка на чужую локаль
+      return new Date(y, mo - 1, dd);
+    }
+    var ru = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/);
+    if (ru) { var y2 = +ru[3]; if (y2 < 100) y2 += 2000; return new Date(y2, +ru[2] - 1, +ru[1]); }
+    return null;
+  }
   function diffDays(a, b) { return Math.round((a - b) / MS); }
   var MON = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
   var WD = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]; // 0=Вс

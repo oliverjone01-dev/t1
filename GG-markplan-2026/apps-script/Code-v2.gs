@@ -53,7 +53,13 @@ function importFromSite() {
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) sh = ss.insertSheet(SHEET_NAME);
   sh.clear();
-  sh.getRange(1, 1, rows.length, width).setValues(rows);
+  var range = sh.getRange(1, 1, rows.length, width);
+  // ВАЖНО: сначала переводим весь диапазон в текст, потом пишем.
+  // Иначе Google распознаёт 2026-08-26 как дату и хранит её в своём формате
+  // (месяц первым), а страница читает первое число как день и уносит
+  // задачу на полгода вперёд.
+  range.setNumberFormat('@');
+  range.setValues(rows);
   sh.setFrozenRows(1);
   sh.getRange(1, 1, 1, width).setFontWeight('bold');
   sh.setColumnWidth(4, 320); // Задача

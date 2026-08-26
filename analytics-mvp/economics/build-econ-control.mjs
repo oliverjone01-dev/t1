@@ -137,7 +137,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .flag.lost{background:rgba(106,116,132,.14);color:var(--ink-3)}
 .izd td{background:#0E141C}
 .izd .izcol{color:var(--accent);text-align:center;width:22px}
-.izd .iname{color:var(--ink-2);padding-left:6px}
+.izd .iname{color:var(--ink-2);padding-left:6px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+.art-code{color:var(--ink-4);font-size:10px;font-variant-numeric:tabular-nums}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -189,6 +190,8 @@ function byKey(d,key){ return d.sps.find(s=>s.key===key); }
 function ssCardsOf(sp){ return sp?(sp.cards||[]).filter(c=>!c.bad&&realMoney(c.money).length>0).length:0; }
 const fmt=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// заголовок карточки «<сделка>/<артикул>. <название>» -> чистое название товара
+const cleanNm=s=>String(s||'').replace(/^\\s*\\d+\\s*[\\/\\\\][^.]*\\.\\s*/,'').trim();
 const dealUrl=id=>PORTAL+'/crm/deal/details/'+id+'/';
 const spUrl=(etid,card)=>PORTAL+'/crm/type/'+etid+'/details/'+card+'/';
 const ruD=s=>{ if(!s)return''; const p=s.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; };
@@ -315,8 +318,9 @@ function cardBatch(c){ const u=cardSS(c); return u?u*cardMult(c):0; } // с/с �
 function izdelia(d){
   const g={};
   for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const q=Math.max(1,+c.qty||1); const key=c.art||(ss>0?'(без артикула)':null); if(key===null)continue;
-    const it=g[key]=g[key]||{art:c.art||'(без артикула)',qty:0,sp:{}};
+    const it=g[key]=g[key]||{art:c.art||'(без артикула)',qty:0,sp:{},nm:''};
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
+    if(c.nm&&!it.nm)it.nm=c.nm; // название изделия из заголовка карточки
     const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid}); } }
   return Object.values(g).filter(it=>it.art!=='(без артикула)'||Object.values(it.sp).some(e=>e.vB>0));
 }
@@ -336,7 +340,7 @@ function izdRow(d,g){
   const ssTip='с/с за партию '+fmt(ssTot);
   return '<tr class="izd">'
     +'<td class="izcol">↳</td>'
-    +'<td class="iname" title="'+esc(g.art)+'">'+esc(g.art)+'</td>'
+    +'<td class="iname" title="'+esc(g.art+(g.nm?' · '+g.nm:''))+'">'+(g.nm?('<span class="art-code">'+esc(g.art)+'</span> '+esc(cleanNm(g.nm).slice(0,60))):esc(g.art))+'</td>'
     +'<td></td><td></td><td></td><td></td>'
     +'<td></td>'
     +'<td class="num">'+(g.qty?g.qty+' <span class="cell-o">шт</span>':'')+'</td>'

@@ -123,6 +123,7 @@ tr.drow{cursor:pointer}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .st{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--elev);border:1px solid var(--border);color:var(--ink-2)}
 .cell-g{color:var(--up);font-weight:700}.cell-y{color:var(--warn)}.cell-o{color:var(--ink-4)}.cell-dn{color:var(--dn);font-weight:800}
+.nocs{color:var(--ink-3);font-size:11px;border-bottom:1px dashed var(--ink-4)}.nocs:hover{color:var(--ink-2)}
 .exp{color:var(--ink-3);display:inline-block;width:12px}
 .dots{display:inline-flex;gap:3px;align-items:center;flex-wrap:wrap;max-width:96px;justify-content:flex-end}
 .sd{width:7px;height:7px;border-radius:50%;border:1px solid var(--ink-4);display:inline-block}
@@ -326,8 +327,11 @@ function izdRow(d,g){
   const glassB=(g.sp['Закупка']&&g.sp['Закупка'].vB)||0, glassU=(g.sp['Закупка']&&g.sp['Закупка'].vU)||0;
   const ssTot=baseB+glassB, ssU=baseU+glassU;
   const perU=k=>{ const e=g.sp[k]; if(!e||!e.vB)return ''; return (g.qty&&Math.abs(e.vB-e.vU*g.qty)<1)?(fmt(e.vU)+'/шт × '+g.qty+' шт = '+fmt(e.vB)):('с/с за партию '+fmt(e.vB)); };
-  const spCells=ORDER.map(k=>{ const e=g.sp[k]; if(!e||!e.vB) return '<td class="num cell-o">·</td>';
-    return '<td class="num cell-g" title="'+esc(perU(k))+'"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>'; }).join('');
+  const spCells=ORDER.map(k=>{ const e=g.sp[k];
+    if(e&&e.vB) return '<td class="num cell-g" title="'+esc(perU(k))+'"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
+    // карточка товара в смарте есть, но с/с не внесена - серый линк на карточку, проверить в смарте
+    if(e&&e.cards&&e.cards.length) return '<td class="num" title="карточка есть, с/с не внесена - открыть в смарте"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
+    return '<td class="num cell-o">·</td>'; }).join('');
   const cov=(baseB>0)?'<span class="flag ok">есть</span>':'<span class="cell-o">-</span>';
   const ssTip='с/с за партию '+fmt(ssTot);
   return '<tr class="izd">'

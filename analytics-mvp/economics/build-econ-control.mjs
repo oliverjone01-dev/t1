@@ -22,7 +22,8 @@ const SP_TL = [
   { k: "Монтаж", created: "2026-03-31", real: "2026-03-31", cards: 2 },
 ];
 
-const payload = { generated_at: J.generated_at, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, deals: J.deals };
+const BAKED_AT = new Date().toISOString(); // штамп сборки (версия) - для v.txt и авто-перезагрузки
+const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, deals: J.deals };
 
 const HTML = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Контроль экономики сделок</title>
@@ -116,7 +117,10 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 </div>
 <script>
 const DATA=${JSON.stringify(payload)};
-document.getElementById('gen').textContent=new Date(DATA.generated_at).toLocaleString('ru');
+document.getElementById('gen').textContent=new Date(DATA.generated_at).toLocaleString('ru')+' · версия '+new Date(DATA.bakedAt).toLocaleString('ru');
+// авто-обновление как у РОП: опрашиваем v.txt, при новой сборке перезагружаем
+function autoReload(){ if(!DATA.bakedAt||location.search.indexOf('cb=')>=0)return; setInterval(function(){ fetch('v.txt?ts='+Date.now()).then(function(r){return r.ok?r.text():'';}).then(function(t){ t=(t||'').trim(); if(t&&t!==DATA.bakedAt) location.replace(location.pathname+'?cb='+Date.now()); }).catch(function(){}); }, 180000); }
+autoReload();
 const ORDER=DATA.order, SHORT=DATA.short, PORTAL=DATA.portal, RANK=DATA.rank, PROD=DATA.prodRank, MOVE=DATA.moveDate;
 const EXCL=/сумма|налог|наценк|прибыл|бюджет|коэфф|адрес|номер|исполнител|отч[её]т|тип доставки|данные из сп|^id |удалить|расход материал|макет|шаблон|обрешет|домгласс|полная себестоимость по заказу/i;
 const ITOG=/производственная с\\/с|с\\/?с итог|расчет с\\/с итого|себестоимость производ/i;
@@ -181,13 +185,20 @@ mdiv.addEventListener('click',e=>{ const c=e.target.closest('.mo'); if(!c||c.cla
   [...mdiv.children].forEach(x=>x.classList.remove('act')); c.classList.add('act'); [...pdiv.children].forEach(x=>x.classList.remove('act')); render(); });
 
 let sortIdx=0, sortDir=-1; // по умолчанию переопределим на «Полнота с/с» ниже, чтобы заполненные сделки были сверху
-const spN=ORDER.length;
-const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Изделий',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Полнота с/с','Статус'];
-const I_SS=7+spN, I_MRG=8+spN, I_COV=9+spN, I_STAT=10+spN;
+// услуги = товарные строки по названию (доставка/монтаж/замер/логистика/сборка), это ДАННЫЕ, не остаток.
+const SVC=/доставк|монтаж|логист|сборк|подъ[её]м|пронос|разгруз|замер|установк|услуг|пэк/i;
+const svcRows=d=>(d.products||[]).filter(p=>SVC.test(p.name||''));
+const goodRows=d=>(d.products||[]).filter(p=>!SVC.test(p.name||''));
+const sumRows=rs=>rs.reduce((a,p)=>a+(+p.price||0)*(+p.qty||0),0);
+const svcSum=d=>sumRows(svcRows(d));
+const goodsQty=d=>goodRows(d).reduce((a,p)=>a+(+p.qty||0),0);
+const spN=ORDER.length, SP0=8;
+const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Изделий','Услуги ₽',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Полнота с/с','Статус'];
+const I_SS=SP0+spN, I_MRG=SP0+spN+1, I_COV=SP0+spN+2, I_STAT=SP0+spN+3;
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
-  if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return qtyOf(d);
-  if(i>=7&&i<7+spN){ const c=spCost(byKey(d,ORDER[i-7])); return c?(c.empty?-1:c.v):-2; }
+  if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return goodsQty(d); if(i===7)return svcSum(d);
+  if(i>=SP0&&i<SP0+spN){ const c=spCost(byKey(d,ORDER[i-SP0])); return c?(c.empty?-1:c.v):-2; }
   if(i===I_SS)return prodSS(d);
   if(i===I_MRG){ const pr=spCost(byKey(d,'Производство  GG')); return (pr&&!pr.empty)||prodRankOf(d)>=5? d.budget-prodSS(d) : -1e15; }
   if(i===I_COV)return coverage(d).r;
@@ -208,16 +219,22 @@ function cellSP(d,k){ const s=byKey(d,k); if(!s) return '<td class="num cell-o">
   return '<td title="'+esc(title)+'"><span class="dots">'+dots+more+'</span></td>'; }
 
 const OPEN=new Set();
+function pTable(rows){ return '<table class="dtab"><thead><tr><th>Строка</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Сумма</th></tr></thead><tbody>'+rows.map(p=>'<tr><td>'+esc(p.name||'-')+'</td><td class="num">'+(p.qty||0)+'</td><td class="num">'+fmt(p.price||0)+'</td><td class="num">'+fmt((+p.price||0)*(+p.qty||0))+'</td></tr>').join('')+'</tbody></table>'; }
 function detailRow(d){
-  const prod=(d.products||[]);
-  const prodHtml=prod.length?('<table class="dtab"><thead><tr><th>Товар</th><th class="num">Кол-во</th><th class="num">Цена</th></tr></thead><tbody>'+prod.map(p=>'<tr><td>'+esc(p.name||'-')+'</td><td class="num">'+(p.qty||0)+'</td><td class="num">'+fmt(p.price||0)+'</td></tr>').join('')+'</tbody></table>'):'<div class="card-line">товарных строк нет в CRM</div>';
+  const prod=(d.products||[]); const goods=goodRows(d), svc=svcRows(d);
+  const gSum=sumRows(goods), sSum=sumRows(svc);
+  const prodHtml=prod.length
+    ? '<div class="dh" style="margin-top:0">Изделия ('+goods.length+' поз., '+fmt(gSum)+')</div>'+(goods.length?pTable(goods):'<div class="card-line">нет</div>')
+      +'<div class="dh" style="margin-top:10px">Услуги: доставка/монтаж/замер ('+svc.length+' поз., '+fmt(sSum)+') <span class="cell-o">данные из названий строк</span></div>'+(svc.length?pTable(svc):'<div class="card-line">услуг в товарных строках нет</div>')
+      +'<div class="card-line" style="margin-top:8px">Бюджет '+fmt(d.budget)+' = изделия '+fmt(gSum)+' + услуги '+fmt(sSum)+(Math.abs(d.budget-gSum-sSum)>1?' <span style="color:var(--warn)">(расхождение '+fmt(d.budget-gSum-sSum)+')</span>':'')+'</div>'
+    : '<div class="card-line">товарных строк нет в CRM</div>';
   let spHtml='';
   for(const k of ORDER){ const s=byKey(d,k); if(!s||!(s.cards||[]).length)continue;
     const cards=s.cards.map(c=>{ const rm=realMoney(c.money); const val=rm.length?rm.map(m=>esc(m.label)+' '+fmt(m.value)).join(', '):'с/с не внесена';
       return '<div class="card-line"><a href="'+spUrl(s.etid,c.id)+'" target="_blank" onclick="event.stopPropagation()">↗ карточка '+c.id+'</a> - '+val+'</div>'; }).join('');
     spHtml+='<div class="spblock"><span class="spname">'+esc(SHORT[k]||k)+'</span> ('+s.cards.length+' карт.)'+cards+'</div>'; }
   if(!spHtml)spHtml='<div class="card-line">ни один смарт-процесс не запущен</div>';
-  return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="dgrid"><div><p class="dh">Товары ('+prod.length+' поз., '+qtyOf(d)+' шт)</p>'+prodHtml+'</div><div><p class="dh">Смарт-процессы и карточки (ссылки, с/с)</p>'+spHtml+'</div></div></td></tr>';
+  return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="dgrid"><div><p class="dh">Состав сделки: изделия и услуги</p>'+prodHtml+'</div><div><p class="dh">Смарт-процессы и карточки (ссылки, с/с)</p>'+spHtml+'</div></div></td></tr>';
 }
 
 function render(){
@@ -240,7 +257,8 @@ function render(){
   let rows='';
   for(const d of list){
     const ss=prodSS(d); const pr=spCost(byKey(d,'Производство  GG')); const g=gate(d); const cv=coverage(d);
-    const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5; const pos=posOf(d), qty=qtyOf(d); const op=OPEN.has(d.id);
+    const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5; const op=OPEN.has(d.id);
+    const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
     rows+='<tr class="drow" data-id="'+d.id+'">'
       +'<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
       +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
@@ -248,7 +266,8 @@ function render(){
       +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
       +'<td class="num">'+ruD(d.created)+'</td>'
       +'<td class="num">'+fmt(d.budget)+'</td>'
-      +'<td class="num" title="'+esc((d.products||[]).map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(pos?qty+' <span class="cell-o">('+pos+' поз.)</span>':'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">('+goods.length+' поз.)</span>':'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
       +ORDER.map(k=>cellSP(d,k)).join('')
       +'<td class="num">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num">'+(marginShown&&ss?fmt(d.budget-ss):'<span class="cell-o">-</span>')+'</td>'
@@ -264,7 +283,7 @@ document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.c
 ['q','fstage','fmgr','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();
-document.getElementById('foot').innerHTML='На уровне сделки показатели агрегированы и без ссылок (у сделки с несколькими товарами карточек СП несколько - на какую вести неясно). Клик по строке разворачивает товары и карточки смартов со ссылками и с/с по каждой. «Полнота с/с»: полная = карточек с с/с не меньше числа позиций; частичная X/Y = часть товаров ещё без с/с (висят в смарте). В ячейке СП: зелёное число = агрег. с/с; жёлтое = кол-во изделий без с/с; «·» = не запущен. Σ с/с = производственная (Производство, иначе Расчёт) + стекло; без услуг и без полной себестоимости. Значения очищены от «Сумма»/«Сумма налога». Клик по заголовку - сортировка. Источник: Bitrix24, воронка 49. Состав с/с уточняется с ПТО.';
+document.getElementById('foot').innerHTML='На уровне сделки показатели агрегированы и без ссылок (у сделки с несколькими товарами карточек СП несколько - на какую вести неясно). Клик по строке разворачивает товары и карточки смартов со ссылками и с/с по каждой. «Полнота с/с»: полная = карточек с с/с не меньше числа позиций; частичная X/Y = часть товаров ещё без с/с (висят в смарте). В ячейке СП: зелёное число = агрег. с/с; жёлтое = кол-во изделий без с/с; «·» = не запущен. «Услуги ₽» = товарные строки доставки/монтажа/замера (по названию, ДАННЫЕ); в развороте бюджет сверяется как изделия + услуги, расхождение подсвечивается. Σ с/с = производственная (Производство, иначе Расчёт) + стекло; без услуг и без полной себестоимости. Значения очищены от «Сумма»/«Сумма налога». Клик по заголовку - сортировка. Источник: Bitrix24, воронка 49. Состав с/с уточняется с ПТО.';
 </script></body></html>`;
 
 writeFileSync("public/econ-control.html", HTML.replace(/—/g, "-"));

@@ -41,13 +41,15 @@ export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOp
   for (const o of ops) {
     for (const s of (o.services || [])) { const n = String(s.name || "?"); serviceTotals[n] = (serviceTotals[n] || 0) + (s.price || 0); }
     const items = o.items || [];
-    if (items.length !== 1) {
-      if (items.length > 1) { multi++; for (const it of items) { const s = String((it && it.sku) || ""); if (s && s !== "0") multiSku[s] = (multiSku[s] || 0) + 1; } }
+    // Разносим по SKU операцию с ОДНИМ РАЗНЫМ артикулом (даже если товара много штук - опт одного
+    // артикула это чистый SKU). Пропускаем только посылки с РАЗНЫМИ артикулами (их нельзя разнести).
+    const distinct = Array.from(new Set(items.map((it: any) => String((it && it.sku) || "")).filter((s: string) => s && s !== "0")));
+    if (distinct.length !== 1) {
+      if (distinct.length > 1) { multi++; for (const s of distinct) multiSku[s] = (multiSku[s] || 0) + 1; }
       continue;
     }
     single++;
-    const sku = String((items[0] && items[0].sku) || "");
-    if (!sku || sku === "0") continue;
+    const sku = distinct[0]!;
     let a = bySku[sku];
     if (!a) { a = { accruals: 0, sale_commission: 0, delivery: 0, acquiring: 0, storage: 0, otherSvc: 0, amount: 0, ops: 0 }; bySku[sku] = a; }
     a.accruals += o.accruals_for_sale || 0;
@@ -88,10 +90,14 @@ type Bundle = {
 // отправления, если хотя бы одна операция этого отправления многотоварная. Сборы не разносим по
 // SKU - показываем состав посылки и общую сумму. fees = начислено - к выплате.
 export function buildBundles(ops: any[]): Bundle[] {
+  // Комплект = отправление, где в одной операции РАЗНЫЕ артикулы (>1 distinct sku). Опт одного
+  // артикула (20 одинаковых) комплектом НЕ считается - он ушёл в финансы по SKU.
   const bundlePostings = new Set<string>();
   for (const o of ops) {
     const pn = String(o.posting?.posting_number || "");
-    if (pn && (o.items || []).length > 1) bundlePostings.add(pn);
+    if (!pn) continue;
+    const distinct = new Set((o.items || []).map((it: any) => String((it && it.sku) || "")).filter((s: string) => s && s !== "0"));
+    if (distinct.size > 1) bundlePostings.add(pn);
   }
   const by: Record<string, Bundle> = {};
   const itemsSeen: Record<string, Record<string, { sku: string; name: string; qty: number }>> = {};

@@ -191,7 +191,7 @@ function ssCardsOf(sp){ return sp?(sp.cards||[]).filter(c=>!c.bad&&realMoney(c.m
 const fmt=v=>v>=1e6?(v/1e6).toFixed(1).replace('.',',')+' млн':v>=1000?Math.round(v/1000)+'к':Math.round(v)+'';
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // заголовок карточки «<сделка>/<артикул>. <название>» -> чистое название товара
-const cleanNm=s=>String(s||'').replace(/^\\s*\\d+\\s*[\\/\\\\][^.]*\\.\\s*/,'').trim();
+const cleanNm=s=>String(s||'').replace(/^\\s*\\d+\\s*(?:[\\/\\\\][^.]*)?\\.\\s*/,'').trim();
 const dealUrl=id=>PORTAL+'/crm/deal/details/'+id+'/';
 const spUrl=(etid,card)=>PORTAL+'/crm/type/'+etid+'/details/'+card+'/';
 const ruD=s=>{ if(!s)return''; const p=s.split('-'); return p[2]+'.'+p[1]+'.'+p[0]; };

@@ -80,6 +80,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .flag.warn{background:rgba(245,158,11,.14);color:var(--warn)}
 .flag.bad{background:rgba(244,63,94,.16);color:var(--dn)}
 .flag.lost{background:rgba(106,116,132,.14);color:var(--ink-3)}
+.izd td{background:#0E141C}
+.izd .izcol{color:var(--accent);text-align:center;width:22px}
+.izd .iname{color:var(--ink-2);padding-left:6px}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -219,23 +222,46 @@ function cellSP(d,k){ const s=byKey(d,k); if(!s) return '<td class="num cell-o">
   return '<td title="'+esc(title)+'"><span class="dots">'+dots+more+'</span></td>'; }
 
 const OPEN=new Set();
-function pTable(rows){ return '<table class="dtab"><thead><tr><th>Строка</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Сумма</th></tr></thead><tbody>'+rows.map(p=>'<tr><td>'+esc(p.name||'-')+'</td><td class="num">'+(p.qty||0)+'</td><td class="num">'+fmt(p.price||0)+'</td><td class="num">'+fmt((+p.price||0)*(+p.qty||0))+'</td></tr>').join('')+'</tbody></table>'; }
-function detailRow(d){
-  const prod=(d.products||[]); const goods=goodRows(d), svc=svcRows(d);
-  const gSum=sumRows(goods), sSum=sumRows(svc);
-  const prodHtml=prod.length
-    ? '<div class="dh" style="margin-top:0">Изделия ('+goods.length+' поз., '+fmt(gSum)+')</div>'+(goods.length?pTable(goods):'<div class="card-line">нет</div>')
-      +'<div class="dh" style="margin-top:10px">Услуги: доставка/монтаж/замер ('+svc.length+' поз., '+fmt(sSum)+') <span class="cell-o">данные из названий строк</span></div>'+(svc.length?pTable(svc):'<div class="card-line">услуг в товарных строках нет</div>')
-      +'<div class="card-line" style="margin-top:8px">Бюджет '+fmt(d.budget)+' = изделия '+fmt(gSum)+' + услуги '+fmt(sSum)+(Math.abs(d.budget-gSum-sSum)>1?' <span style="color:var(--warn)">(расхождение '+fmt(d.budget-gSum-sSum)+')</span>':'')+'</div>'
-    : '<div class="card-line">товарных строк нет в CRM</div>';
-  let spHtml='';
-  for(const k of ORDER){ const s=byKey(d,k); if(!s||!(s.cards||[]).length)continue;
-    const cards=s.cards.map(c=>{ const rm=realMoney(c.money); const val=rm.length?rm.map(m=>esc(m.label)+' '+fmt(m.value)).join(', '):'с/с не внесена';
-      return '<div class="card-line"><a href="'+spUrl(s.etid,c.id)+'" target="_blank" onclick="event.stopPropagation()">↗ карточка '+c.id+'</a> - '+val+'</div>'; }).join('');
-    spHtml+='<div class="spblock"><span class="spname">'+esc(SHORT[k]||k)+'</span> ('+s.cards.length+' карт.)'+cards+'</div>'; }
-  if(!spHtml)spHtml='<div class="card-line">ни один смарт-процесс не запущен</div>';
-  return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="dgrid"><div><p class="dh">Состав сделки: изделия и услуги</p>'+prodHtml+'</div><div><p class="dh">Смарт-процессы и карточки (ссылки, с/с)</p>'+spHtml+'</div></div></td></tr>';
+// с/с одной карточки: поле-итог, иначе сумма денежных полей
+function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label)); return it?it.value:f.reduce((a,m)=>a+m.value,0); }
+// изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
+function izdelia(d){
+  const g={};
+  for(const s of d.sps){ for(const c of (s.cards||[])){ const ss=cardSS(c); const key=c.art||(ss>0?'(без артикула)':null); if(key===null)continue;
+    const it=g[key]=g[key]||{art:c.art||'(без артикула)',qty:0,sp:{}};
+    if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
+    const e=it.sp[s.key]=it.sp[s.key]||{v:0,cards:[]}; e.v+=ss; e.cards.push({id:c.id,etid:s.etid}); } }
+  return Object.values(g).filter(it=>it.art!=='(без артикула)'||Object.values(it.sp).some(e=>e.v>0));
 }
+function izdRow(d,g){
+  const ssTot=Object.values(g.sp).reduce((a,e)=>a+e.v,0);
+  const spCells=ORDER.map(k=>{ const e=g.sp[k]; if(!e||!e.v) return '<td class="num cell-o">·</td>';
+    return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.v)+'</a></td>'; }).join('');
+  const cov=((g.sp['Расчёт']&&g.sp['Расчёт'].v)||(g.sp['Производство  GG']&&g.sp['Производство  GG'].v))?'<span class="flag ok">есть</span>':'<span class="cell-o">-</span>';
+  return '<tr class="izd">'
+    +'<td class="izcol">↳</td>'
+    +'<td class="iname" title="'+esc(g.art)+'">'+esc(g.art)+'</td>'
+    +'<td></td><td></td><td></td><td></td>'
+    +'<td class="num">'+(g.qty?g.qty:'')+'</td>'
+    +'<td></td>'
+    +spCells
+    +'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td>'
+    +'<td class="num cell-o">-</td>'
+    +'<td>'+cov+'</td>'
+    +'<td></td>'
+    +'</tr>';
+}
+// строка услуг (доставка/монтаж/замер по товарным строкам) в той же таблице
+function svcRow(d,svc){ const sum=sumRows(svc);
+  return '<tr class="izd"><td class="izcol">↳</td>'
+    +'<td class="iname" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; '))+'">Услуги: доставка / монтаж / замер</td>'
+    +'<td></td><td></td><td></td><td></td>'
+    +'<td class="num">'+svc.length+'</td>'
+    +'<td class="num cell-g">'+fmt(sum)+'</td>'
+    +ORDER.map(()=>'<td class="num cell-o">·</td>').join('')
+    +'<td class="num cell-o">-</td><td class="num cell-o">-</td><td></td><td></td></tr>'; }
+// строка-заглушка, когда в карточках нет изделий с артикулом
+function emptyRow(d){ return '<tr class="izd"><td class="izcol">↳</td><td colspan="'+(COLS.length-1)+'" class="iname">изделий с артикулом в карточках нет'+(d.sps.length?' (смарты запущены, артикул не заполнен)':'; смарты не запущены')+'</td></tr>'; }
 
 function render(){
   const q=document.getElementById('q').value.trim().toLowerCase();
@@ -274,7 +300,7 @@ function render(){
       +'<td>'+(cv.cls?'<span class="flag '+cv.cls+'">'+esc(cv.t)+'</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td><span class="flag '+(g.cls||'')+'">'+esc(g.t||'')+'</span></td>'
       +'</tr>';
-    if(op)rows+=detailRow(d);
+    if(op){ const izd=izdelia(d); izd.forEach(g=>rows+=izdRow(d,g)); const svc=svcRows(d); if(svc.length)rows+=svcRow(d,svc); if(!izd.length&&!svc.length)rows+=emptyRow(d); }
   }
   document.querySelector('#tbl tbody').innerHTML=rows;
   document.getElementById('cnt').textContent='показано '+list.length+' из '+DATA.deals.length;

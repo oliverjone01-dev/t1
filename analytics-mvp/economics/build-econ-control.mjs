@@ -183,7 +183,7 @@ const posOf=d=>(d.products||[]).length;
 const qtyOf=d=>(d.products||[]).reduce((a,p)=>a+(+p.qty||0),0);
 // с/с за партию = Σ по карточкам (с/с за 1 шт × Кол-во товара). Поля с/с в Bitrix - за 1 шт,
 // бюджет и «Сумма» - за партию, поэтому маржу считаем на одной базе (за партию).
-function spBatch(sp){ if(!sp) return {v:0,empty:true}; let v=0,any=false; for(const c of (sp.cards||[])){ if(c.bad)continue; const u=cardSS(c); if(u>0){any=true; v+=u*Math.max(1,+c.qty||1);} } return {v,empty:!any}; }
+function spBatch(sp){ if(!sp) return {v:0,empty:true}; let v=0,any=false; for(const c of (sp.cards||[])){ if(c.bad)continue; const b=cardBatch(c); if(b>0){any=true; v+=b;} } return {v,empty:!any}; }
 function prodSS(d){ const pr=spBatch(byKey(d,'Производство  GG')),ra=spBatch(byKey(d,'Расчёт')),za=spBatch(byKey(d,'Закупка'));
   const base=(pr&&!pr.empty)?pr.v:((ra&&!ra.empty)?ra.v:0); const glass=(za&&!za.empty)?za.v:0; return base+glass; }
 // ячейка Маржа с чтением минуса: бюджет≈0 при наличии с/с = «нет цены» (ложный минус); цена реальная < с/с = «убыток»
@@ -286,13 +286,21 @@ function cellSP(d,k){ const s=byKey(d,k); if(!s) return '<td class="num cell-o">
 const OPEN=new Set();
 // с/с одной карточки: поле-итог, иначе сумма денежных полей
 function cardSS(c){ const f=realMoney(c.money); if(!f.length)return 0; const it=f.find(m=>ITOG.test(m.label)); return it?it.value:f.reduce((a,m)=>a+m.value,0); }
+// множитель партии: поля с/с в Bitrix записаны либо ЗА ШТУКУ (тогда «Сумма»≈«Металл-сталь»×кол-во),
+// либо УЖЕ ЗА ПАРТИЮ (тогда «Сумма»≈«Металл-сталь»). Определяем по каждой карточке, чтобы не завышать.
+function cardMult(c){ const raw=c.money||[]; const q=Math.max(1,+c.qty||1);
+  const S=(raw.find(m=>/^сумма$/i.test(m.label))||{}).value||0;
+  const M=(raw.find(m=>/металл-сталь/i.test(m.label))||{}).value||0;
+  if(M>0&&S>0&&Math.abs(S-M*q)<Math.abs(S-M))return q; // с/с за штуку -> умножаем
+  return 1; }                                          // с/с уже за партию -> не умножаем
+function cardBatch(c){ const u=cardSS(c); return u?u*cardMult(c):0; } // с/с карточки за партию
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
 function izdelia(d){
   const g={};
   for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const q=Math.max(1,+c.qty||1); const key=c.art||(ss>0?'(без артикула)':null); if(key===null)continue;
     const it=g[key]=g[key]||{art:c.art||'(без артикула)',qty:0,sp:{}};
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
-    const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=ss*q; e.cards.push({id:c.id,etid:s.etid}); } }
+    const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid}); } }
   return Object.values(g).filter(it=>it.art!=='(без артикула)'||Object.values(it.sp).some(e=>e.vB>0));
 }
 function izdRow(d,g){
@@ -301,11 +309,11 @@ function izdRow(d,g){
   const baseU=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vU)||(g.sp['Расчёт']&&g.sp['Расчёт'].vU)||0);
   const glassB=(g.sp['Закупка']&&g.sp['Закупка'].vB)||0, glassU=(g.sp['Закупка']&&g.sp['Закупка'].vU)||0;
   const ssTot=baseB+glassB, ssU=baseU+glassU;
+  const perU=k=>{ const e=g.sp[k]; if(!e||!e.vB)return ''; return (g.qty&&Math.abs(e.vB-e.vU*g.qty)<1)?(fmt(e.vU)+'/шт × '+g.qty+' шт = '+fmt(e.vB)):('с/с за партию '+fmt(e.vB)); };
   const spCells=ORDER.map(k=>{ const e=g.sp[k]; if(!e||!e.vB) return '<td class="num cell-o">·</td>';
-    const tip=(e.vU&&g.qty)?(fmt(e.vU)+'/шт × '+g.qty+' шт = '+fmt(e.vB)):'';
-    return '<td class="num cell-g" title="'+esc(tip)+'"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>'; }).join('');
+    return '<td class="num cell-g" title="'+esc(perU(k))+'"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>'; }).join('');
   const cov=(baseB>0)?'<span class="flag ok">есть</span>':'<span class="cell-o">-</span>';
-  const ssTip=(ssU&&g.qty)?(fmt(ssU)+'/шт × '+g.qty+' шт = '+fmt(ssTot)+' за партию'):'';
+  const ssTip='с/с за партию '+fmt(ssTot);
   return '<tr class="izd">'
     +'<td class="izcol">↳</td>'
     +'<td class="iname" title="'+esc(g.art)+'">'+esc(g.art)+'</td>'

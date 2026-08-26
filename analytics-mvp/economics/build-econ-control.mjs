@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const J = JSON.parse(readFileSync("economics/data/econ-recon.json", "utf8"));
 const PORTAL = J.b24Portal || "https://glassmemory.bitrix24.ru";
 
@@ -23,7 +23,34 @@ const SP_TL = [
 ];
 
 const BAKED_AT = new Date().toISOString(); // штамп сборки (версия) - для v.txt и авто-перезагрузки
-const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, deals: J.deals };
+
+// --- Динамика здоровья цепочки: история метрик между снимками разведки ---
+// Считаем те же цифры, что рисует чип (запуск % и с/с %), но серверно, и храним по снимкам.
+// Один снимок разведки (generated_at) = одна запись. Дельта считается к предыдущему снимку.
+const EXCL_N = /сумма|налог|наценк|прибыл|бюджет|коэфф|адрес|номер|исполнител|отч[её]т|тип доставки|данные из сп|^id |удалить|расход материал|макет|шаблон|обрешет|домгласс|полная себестоимость по заказу/i;
+const realMoneyN = (arr) => (arr || []).filter((m) => !EXCL_N.test(m.label));
+function chainMetrics() {
+  const N = J.deals.length || 1;
+  return ORDER.map((k) => {
+    let L = 0, F = 0;
+    for (const d of J.deals) { const s = (d.sps || []).find((x) => x.key === k); if (s) { L++; if (realMoneyN(s.money).length > 0) F++; } }
+    return { key: k, pL: Math.round((100 * L) / N), pF: L ? Math.round((100 * F) / L) : 0, L, F };
+  });
+}
+const HIST_PATH = "economics/data/econ-control-history.json";
+let hist = [];
+try { if (existsSync(HIST_PATH)) hist = JSON.parse(readFileSync(HIST_PATH, "utf8")) || []; } catch { hist = []; }
+if (!Array.isArray(hist)) hist = [];
+const curEntry = { gen: J.generated_at, at: BAKED_AT, chain: chainMetrics() };
+hist = hist.filter((h) => h.gen !== J.generated_at); // тот же снимок разведки не плодит записи
+const prevEntry = hist.length ? hist[hist.length - 1] : null;
+hist.push(curEntry);
+hist = hist.slice(-120); // ~15 суток при cron каждые 3 часа
+writeFileSync(HIST_PATH, JSON.stringify(hist));
+const chainPrev = {};
+if (prevEntry) for (const c of prevEntry.chain) chainPrev[c.key] = { pL: c.pL, pF: c.pF };
+
+const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, chainPrev, chainPrevAt: prevEntry ? prevEntry.gen : null, deals: J.deals };
 
 const HTML = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Контроль экономики сделок</title>
@@ -41,6 +68,8 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .chain{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
 .chip{background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.trend{font-size:10.5px;font-weight:800;margin-left:1px;font-variant-numeric:tabular-nums}
+.trend.up{color:var(--up)}.trend.dn{color:var(--dn)}.trend.flat{color:var(--ink-4)}
 .g{background:var(--up)}.y{background:var(--warn)}.r{background:var(--dn)}.o{background:var(--ink-3)}
 .tl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .tlc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:11.5px}
@@ -95,7 +124,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <body><div class="wrap">
 <h1>Контроль экономики сделок</h1>
 <p class="sub">Воронка «GG Заказы РФ» (49). Строка - сделка: бюджет, этап, кол-во изделий, агрегированные показатели по смарт-процессам и <b>полнота с/с</b>. На уровне сделки - только цифры (без ссылок: у сделки с несколькими товарами карточек СП несколько). <b>Клик по строке разворачивает</b> сделку на изделия - те же столбцы, что и у сделки: у каждого изделия (по артикулу) видна с/с по каждому смарту (ссылки), Σ с/с и полнота; услуги (доставка/монтаж) - отдельной строкой. Переезд (миграция) - <b>март 2026</b>, операционку показываем с апреля. Обновлено <span id="gen"></span>.</p>
-<h3>Здоровье цепочки (доля сделок где СП запущен / из них с внесённой с/с)</h3>
+<h3>Здоровье цепочки (доля сделок где СП запущен / из них с внесённой с/с) · стрелка = изменение к прошлому снимку</h3>
 <div class="chain" id="chain"></div>
 
 <h3>Таймлайн смарт-процессов: когда создан и пошёл на боевые сделки</h3>
@@ -157,9 +186,13 @@ function gate(d){ if(/провал/i.test(d.stage)) return {cls:'lost',t:'про
 
 const N=DATA.deals.length;
 
+const CP=DATA.chainPrev||{}, CPat=DATA.chainPrevAt;
+function trend(cur,prev){ if(prev===null||prev===undefined)return ''; const d=cur-prev; if(d===0)return '<span class="trend flat" title="без изменений">=</span>'; const up=d>0; return '<span class="trend '+(up?'up':'dn')+'" title="было '+prev+'%">'+(up?'▲':'▼')+Math.abs(d)+'</span>'; }
+const cpTip=CPat?('к снимку '+new Date(CPat).toLocaleString('ru')):'первый снимок - динамики пока нет';
 document.getElementById('chain').innerHTML=ORDER.map(k=>{ let L=0,F=0; for(const d of DATA.deals){ const s=byKey(d,k); if(s){L++; const c=spCost(s); if(c&&!c.empty)F++;} }
   const pL=Math.round(100*L/N), pF=L?Math.round(100*F/L):0; let dot=L===0?'o':F===0?'r':pF>=70?'g':'y';
-  return '<span class="chip"><span class="dot '+dot+'"></span><b>'+esc(SHORT[k]||k)+'</b> запуск '+pL+'% · с/с '+(L?pF+'%':'нет')+'</span>'; }).join('');
+  const pv=CP[k]; const tL=pv?trend(pL,pv.pL):'', tF=pv?trend(pF,pv.pF):'';
+  return '<span class="chip" title="'+esc(cpTip)+'"><span class="dot '+dot+'"></span><b>'+esc(SHORT[k]||k)+'</b> запуск '+pL+'% '+tL+' · с/с '+(L?pF+'% '+tF:'нет')+'</span>'; }).join('');
 
 document.getElementById('tl').innerHTML=DATA.spTimeline.map(s=>'<div class="tlc"><b>'+esc(SHORT[s.k]||s.k)+'</b><div class="d">создан '+ruD(s.created)+'</div><div class="d">первая боевая '+ruD(s.real)+'</div><div class="d">боевых карточек '+s.cards+'</div></div>').join('');
 

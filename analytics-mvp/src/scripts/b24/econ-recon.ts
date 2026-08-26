@@ -22,6 +22,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const MONEY_HINT = /с\s*\/\s*с|себестоим|стоим|цен|сумм|наценк|прибыл|маржа|бюджет|доставк|логист|монтаж|сборк|металл|сталь|алюмин|стекл|зеркал|фурнитур|дерев|профил|раскрой|сварк|зачист|нарезк|трубогиб|листогиб|покрас|токарн|слесар|гибк|сверл|зинковк|работ|материал/i;
 const NOISE = /дата|срок|номер сделк|описан|коммент|ссылк|url|ответствен|статус|этап|воронк/i;
 const MONEY_TYPES = /^(money|double|integer|string)$/i;
+// Поля «Артикул» и «Кол-во товара» по карточкам СП (id из probe econ-tovar-probe) -
+// чтобы собрать ИЗДЕЛИЯ (группировка карточек по артикулу) и с/с по каждому изделию.
+const SP_ART: Record<number, { art?: string; qty?: string }> = {
+  1060: { art: "ufCrm17_1772460985", qty: "ufCrm17_1773903995458" },
+  1074: { art: "ufCrm19_1772433709", qty: "ufCrm19_1774931804" },
+  1086: { art: "ufCrm23_1773571102", qty: "ufCrm23_1774846599942" },
+};
 const lbl = (d: any) => d.formLabel || d.listLabel || d.editFormLabel || d.title || "";
 const num = (v: any) => { const n = parseFloat(String(v ?? "").replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
 const d10 = (s?: string) => (s ? String(s).slice(0, 10) : null);
@@ -79,7 +86,9 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
     const money: { id: string; label: string; type: string }[] = [];
     for (const [id, def] of Object.entries(fields)) { const t = String(lbl(def)).trim(), ty = String((def as any).type || ""); if (!MONEY_TYPES.test(ty)) continue; if (!MONEY_HINT.test(t) || NOISE.test(t)) continue; money.push({ id, label: t, type: ty }); }
     if (!money.length) continue;
-    const items = await itemsAll(sp.etid, ["id", "parentId2", ...money.map((m) => m.id)]);
+    const ax = SP_ART[sp.etid] || {};
+    const extra = [ax.art, ax.qty].filter(Boolean) as string[];
+    const items = await itemsAll(sp.etid, ["id", "parentId2", ...money.map((m) => m.id), ...extra]);
     const fill: Record<string, number> = {}; let linkedItems = 0, linkedDeals = new Set<string>();
     for (const it of items) {
       const did = String(it.parentId2 || ""); if (!did || !inWin.has(did)) continue;
@@ -87,7 +96,9 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
       const rec = deal[did]; const s = (rec.sps[sp.title] = rec.sps[sp.title] || { etid: sp.etid, cards: [] as any[], money: {} as Record<string, number> });
       const cardMoney: { label: string; value: number }[] = [];
       for (const m of money) { const v = num(it[m.id]); if (v) { fill[m.id] = (fill[m.id] || 0) + 1; s.money[m.label] = (s.money[m.label] || 0) + v; cardMoney.push({ label: m.label, value: Math.round(v) }); } }
-      s.cards.push({ id: it.id, money: cardMoney });
+      const art = ax.art ? String(it[ax.art] ?? "").trim() : "";
+      const qty = ax.qty ? num(it[ax.qty]) : 0;
+      s.cards.push({ id: it.id, money: cardMoney, art, qty });
     }
     spMeta.push({ etid: sp.etid, title: sp.title, fields: money });
     for (const m of money) inv.push({ etid: sp.etid, sp: sp.title, label: m.label, type: m.type, nonzero: fill[m.id] || 0, linked: linkedItems, fillPct: linkedItems ? Math.round(100 * (fill[m.id] || 0) / linkedItems) : 0 });

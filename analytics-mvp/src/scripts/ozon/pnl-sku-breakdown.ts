@@ -33,14 +33,18 @@ function svcBucket(name: string): "delivery" | "acquiring" | "storage" | "other"
 }
 
 // Чистая агрегация (тестируется без сети). Только операции с ОДНИМ товаром.
-export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; serviceTotals: Record<string, number>; bySku: Record<string, Agg> } {
+export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOps: number; multiItemOps: number; serviceTotals: Record<string, number>; multiOnlySku: Record<string, number>; bySku: Record<string, Agg> } {
   const bySku: Record<string, Agg> = {};
   const serviceTotals: Record<string, number> = {}; // разведка: какие услуги реально есть (по имени, все ops)
+  const multiSku: Record<string, number> = {};      // SKU в многотоварных ops (сколько раз встретился)
   let multi = 0, single = 0;
   for (const o of ops) {
     for (const s of (o.services || [])) { const n = String(s.name || "?"); serviceTotals[n] = (serviceTotals[n] || 0) + (s.price || 0); }
     const items = o.items || [];
-    if (items.length !== 1) { if (items.length > 1) multi++; continue; }
+    if (items.length !== 1) {
+      if (items.length > 1) { multi++; for (const it of items) { const s = String((it && it.sku) || ""); if (s && s !== "0") multiSku[s] = (multiSku[s] || 0) + 1; } }
+      continue;
+    }
     single++;
     const sku = String((items[0] && items[0].sku) || "");
     if (!sku || sku === "0") continue;
@@ -68,7 +72,10 @@ export function aggregateBreakdown(ops: any[]): { skuCount: number; singleItemOp
     a.storage = Math.round(a.storage); a.otherSvc = Math.round(a.otherSvc); a.amount = Math.round(a.amount);
   }
   for (const k in serviceTotals) serviceTotals[k] = Math.round(serviceTotals[k]!);
-  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, serviceTotals, bySku };
+  // SKU, которые были ТОЛЬКО в многотоварных ops (в single-item их нет -> в финансах по SKU пусто)
+  const multiOnlySku: Record<string, number> = {};
+  for (const k in multiSku) if (!bySku[k]) multiOnlySku[k] = multiSku[k]!;
+  return { skuCount: Object.keys(bySku).length, singleItemOps: single, multiItemOps: multi, serviceTotals, multiOnlySku, bySku };
 }
 
 export async function pnlBreakdown(dateFrom: string, dateTo: string): Promise<any> {

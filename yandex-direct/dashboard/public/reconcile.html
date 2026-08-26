@@ -93,56 +93,56 @@ footer{margin-top:40px;padding:16px 24px;border-top:1px solid var(--line);color:
 @media(max-width:900px){.hero,.grid2{grid-template-columns:1fr}.bars .row{grid-template-columns:120px 1fr 70px}}
 </style></head><body>
 <div class="topbar"><div class="logo">YD</div><div class="tt">Директ GENGLASS<small>кабинет e-20085264 · счётчик 104369223</small></div>
-<nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html" class="on">Сверка</a><a href="audit.html">Аудит</a></nav><div class="stamp">данные: 2026-07-26 .. 2026-08-24 · собрано 2026-08-25 07:09 UTC</div></div>
+<nav><a href="index.html">Обзор</a><a href="campaigns.html">Кампании</a><a href="keywords.html">Ключи</a><a href="queries.html">Запросы</a><a href="reconcile.html" class="on">Сверка</a><a href="audit.html">Аудит</a></nav><div class="stamp">данные: 2026-07-27 .. 2026-08-25 · собрано 2026-08-26 07:09 UTC</div></div>
 <div class="wrap"><h1>Сверка: Директ vs Метрика vs CRM</h1><div class="sub">разрыв атрибуции P0 · счётчик 104369223</div>
 <div class="note"><b>P0 открыта.</b> Пока разрыв не объяснён, CPL и бюджет-решения по кабинету - [ГИПОТЕЗА]. Мутации кабинета заблокированы техническим гейтом.</div>
 <div class="sec">Воронка: Директ → Метрика → CRM-цели <span class="badge b-d">[ДАННЫЕ] 30 дней</span></div>
 <div class="card"><div class="cf">
-<div class="cf-step"><div class="cf-v">52 463</div><div class="cf-l">Показы</div></div>
-<div class="cf-conv">CTR 2,64%</div>
-<div class="cf-step"><div class="cf-v">1 386</div><div class="cf-l">Клики кабинета</div></div>
+<div class="cf-step"><div class="cf-v">55 065</div><div class="cf-l">Показы</div></div>
+<div class="cf-conv">CTR 2,56%</div>
+<div class="cf-step"><div class="cf-v">1 408</div><div class="cf-l">Клики кабинета</div></div>
 <div class="cf-conv key">x2,7 ?!</div>
-<div class="cf-step" style="border-color:#F43F5E"><div class="cf-v">3 707</div><div class="cf-l">Визиты Yandex.Direct</div></div>
-<div class="cf-conv">2,37%</div>
-<div class="cf-step"><div class="cf-v">88</div><div class="cf-l">CRM-лиды</div></div>
+<div class="cf-step" style="border-color:#F43F5E"><div class="cf-v">3 815</div><div class="cf-l">Визиты Yandex.Direct</div></div>
+<div class="cf-conv">2,49%</div>
+<div class="cf-step"><div class="cf-v">95</div><div class="cf-l">CRM-лиды</div></div>
 </div>
 <div class="hnote" style="margin-top:12px">Ключевая аномалия отмечена: визитов из Yandex.Direct в 2,7 раза больше, чем кликов оплачено кабинетом e-20085264. Значит, на счётчик льёт ещё минимум один источник с разметкой Директа.</div>
-<div class="note" style="margin-top:10px"><b>Мост по лидам (сведение с аудитом):</b> 88 CRM-лидов всего YD-трафика = <b>35 активные кампании кабинета</b> (6 у Поиска + 4 у ТГ, запрос lastsignUTMCampaign, T-1) + 6 архивные (лаг-атрибуция старых кликов) + <b>43 abdm/peregorodki без ID</b> (источник P0, не оплачены кабинетом) + 4 без разметки. Страница Аудит считает лиды кабинета по своему окну T-0 и даёт 8 - расхождение 8 vs 35 объясняется окном и лаг-атрибуцией, оба числа на два порядка ниже «конверсий» кабинета. Примечание к методике: «4 без разметки» - вычисленный остаток (лиды engine-based минус utm-атрибуцированные слагаемые), а не прямой счёт; суммы by_engine и by_utm расходятся на ~1 лид из-за разных моделей атрибуции Метрики.</div></div>
+<div class="note" style="margin-top:10px"><b>Мост по лидам (сведение с аудитом):</b> 95 CRM-лидов всего YD-трафика = <b>39 активные кампании кабинета</b> (6 у Поиска + 4 у ТГ, запрос lastsignUTMCampaign, T-1) + 6 архивные (лаг-атрибуция старых кликов) + <b>46 abdm/peregorodki без ID</b> (источник P0, не оплачены кабинетом) + 4 без разметки. Страница Аудит считает лиды кабинета по своему окну T-0 и даёт 8 - расхождение 8 vs 39 объясняется окном и лаг-атрибуцией, оба числа на два порядка ниже «конверсий» кабинета. Примечание к методике: «4 без разметки» - вычисленный остаток (лиды engine-based минус utm-атрибуцированные слагаемые), а не прямой счёт; суммы by_engine и by_utm расходятся на ~1 лид из-за разных моделей атрибуции Метрики.</div></div>
 <div class="sec">Рекламные движки по Метрике</div>
 <div class="card tblwrap"><table><tr><th>Движок</th><th class="n">Визиты</th><th class="n">Посетители</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
-<tr><td>Yandex: Direct</td><td class="n">3 616</td><td class="n">3 062</td>
-<td class="n">86</td><td class="n">57</td></tr><tr><td>Yandex.Direct: Undetermined</td><td class="n">91</td><td class="n">59</td>
+<tr><td>Yandex: Direct</td><td class="n">3 722</td><td class="n">3 142</td>
+<td class="n">93</td><td class="n">64</td></tr><tr><td>Yandex.Direct: Undetermined</td><td class="n">93</td><td class="n">59</td>
 <td class="n">2</td><td class="n">1</td></tr><tr><td>Other ad: identified by tags</td><td class="n">39</td><td class="n">16</td>
-<td class="n">0</td><td class="n">0</td></tr><tr><td>Instagram</td><td class="n">33</td><td class="n">11</td>
+<td class="n">0</td><td class="n">0</td></tr><tr><td>Instagram</td><td class="n">37</td><td class="n">12</td>
 <td class="n">0</td><td class="n">0</td></tr><tr><td>VK</td><td class="n">2</td><td class="n">2</td>
 <td class="n">0</td><td class="n">0</td></tr>
 </table></div>
 <div class="sec">Разбор UTM: где теряется атрибуция</div>
 <div class="card tblwrap"><table><tr><th>utm_campaign</th><th class="n">Визиты</th><th class="n">Лиды</th><th>Диагноз</th></tr>
-<tr><td>peregorodki</td><td class="n">2 339</td><td class="n">43</td>
-<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_712877517</td><td class="n">380</td><td class="n">16</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877525</td><td class="n">313</td><td class="n">11</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877513</td><td class="n">197</td><td class="n">5</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877530</td><td class="n">150</td><td class="n">2</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_713589837</td><td class="n">93</td><td class="n">3</td>
+<tr><td>peregorodki</td><td class="n">2 419</td><td class="n">46</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_712877517</td><td class="n">386</td><td class="n">17</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877525</td><td class="n">318</td><td class="n">11</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877513</td><td class="n">204</td><td class="n">7</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877530</td><td class="n">148</td><td class="n">2</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_713589837</td><td class="n">101</td><td class="n">4</td>
 <td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_712877535</td><td class="n">79</td><td class="n">2</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>organization</td><td class="n">60</td><td class="n">5</td>
-<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_712877541</td><td class="n">36</td><td class="n">1</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>sale</td><td class="n">26</td><td class="n">0</td>
-<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_713496953</td><td class="n">20</td><td class="n">0</td>
-<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>news_GENGLASS</td><td class="n">12</td><td class="n">0</td>
-<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>organization</td><td class="n">65</td><td class="n">5</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_712877541</td><td class="n">35</td><td class="n">1</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>sale</td><td class="n">28</td><td class="n">0</td>
+<td><span class="pill p-hot">без ID кампании - источник P0</span></td></tr><tr><td>peregorodki_713496953</td><td class="n">26</td><td class="n">0</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr><tr><td>peregorodki_710919957</td><td class="n">11</td><td class="n">0</td>
+<td><span class="pill p-ok">кампания кабинета</span></td></tr>
 </table>
 <div class="hnote" style="margin-top:10px"><b>Улика найдена (атомный аудит TIMUR-001, [ДАННЫЕ]):</b> из визитов с engine «Yandex: Direct» только ~37/день несут utm_source=yandex (разметка кабинета e-20085264, сходится с его кликами). Остальные 70-75/день размечены utm_source=abdm или без разметки; за 30 дней abdm-источник дал 3801 визит и 30 CRM-лидов - больше собственного объёма кабинета. Следующий шаг (человеку): выяснить, какой сервис/кабинет ставит utm_source=abdm (вероятен сторонний сервис автопометки или второй кабинет). До этого P0 открыта.</div></div>
 <div class="sec">Все источники трафика (контекст)</div>
 <div class="card tblwrap"><table><tr><th>Источник</th><th class="n">Визиты</th><th class="n">Отказы</th><th class="n">CRM-лиды</th><th class="n">Отпр. контактов</th></tr>
-<tr><td>Ad traffic</td><td class="n">3 781</td>
-<td class="n">22,5%</td><td class="n">88</td><td class="n">58</td></tr><tr><td>Search engine traffic</td><td class="n">2 609</td>
-<td class="n">17,3%</td><td class="n">131</td><td class="n">81</td></tr><tr><td>Direct traffic</td><td class="n">916</td>
-<td class="n">27%</td><td class="n">28</td><td class="n">20</td></tr><tr><td>Link traffic</td><td class="n">362</td>
-<td class="n">10,5%</td><td class="n">4</td><td class="n">6</td></tr><tr><td>Internal traffic</td><td class="n">268</td>
-<td class="n">26,5%</td><td class="n">8</td><td class="n">8</td></tr><tr><td>Mailing traffic</td><td class="n">22</td>
-<td class="n">9,1%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Social network traffic</td><td class="n">17</td>
+<tr><td>Ad traffic</td><td class="n">3 893</td>
+<td class="n">22,4%</td><td class="n">95</td><td class="n">65</td></tr><tr><td>Search engine traffic</td><td class="n">2 663</td>
+<td class="n">17%</td><td class="n">138</td><td class="n">86</td></tr><tr><td>Direct traffic</td><td class="n">970</td>
+<td class="n">27,9%</td><td class="n">28</td><td class="n">19</td></tr><tr><td>Link traffic</td><td class="n">390</td>
+<td class="n">9,7%</td><td class="n">4</td><td class="n">6</td></tr><tr><td>Internal traffic</td><td class="n">272</td>
+<td class="n">26,1%</td><td class="n">8</td><td class="n">8</td></tr><tr><td>Mailing traffic</td><td class="n">19</td>
+<td class="n">10,5%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Social network traffic</td><td class="n">17</td>
 <td class="n">5,9%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Messenger traffic</td><td class="n">9</td>
 <td class="n">11,1%</td><td class="n">1</td><td class="n">1</td></tr><tr><td>Recommendation system traffic</td><td class="n">5</td>
 <td class="n">20%</td><td class="n">0</td><td class="n">0</td></tr><tr><td>Clicks by QR code</td><td class="n">4</td>

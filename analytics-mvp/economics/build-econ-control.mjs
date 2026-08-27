@@ -315,15 +315,25 @@ function cardMult(c){ const raw=c.money||[]; const q=Math.max(1,+c.qty||1);
   if(M>0&&S>0&&Math.abs(S-M*q)<Math.abs(S-M))return q; // с/с за штуку -> умножаем
   return 1; }                                          // с/с уже за партию -> не умножаем
 function cardBatch(c){ const u=cardSS(c); return u?u*cardMult(c):0; } // с/с карточки за партию
+// НС-код из названия карточки - единый номер изделия, связывает Расчёт<->Производство
+const NSRE=/НС\\s*\\d+\\s*-\\s*\\d+/i;
+function nsCode(nm){ const m=String(nm||'').match(NSRE); return m?m[0].replace(/\\s+/g,'').toUpperCase():''; }
+// сигнатура названия (срезаем номер сделки, НС, город капсом, Nшт, пунктуацию) - запасной ключ
+function nameSig(nm){ let s=String(nm||'');
+  s=s.replace(/^\\s*№?\\s*\\d+[.\\d]*\\s*/,'').replace(NSRE,' ').replace(/МАХАЧКАЛА/gi,' ').replace(/\\d+\\s*шт/gi,' ');
+  return s.replace(/[^\\p{L}\\p{N}]+/gu,'').toLowerCase().slice(0,48); }
+// ключ изделия по приоритету: артикул -> НС-код (единый б24-номер) -> название -> айди карточки
+function izdKey(c){ if(c.art) return 'art:'+c.art; const ns=nsCode(c.nm); if(ns) return 'ns:'+ns; const sg=nameSig(c.nm); if(sg) return 'sig:'+sg; return 'id:'+c.id; }
 // изделия сделки: группируем карточки СП по артикулу, с/с по каждому смарту
 function izdelia(d){
   const g={};
-  for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const q=Math.max(1,+c.qty||1); const key=c.art||(ss>0?'(без артикула)':null); if(key===null)continue;
-    const it=g[key]=g[key]||{art:c.art||'(без артикула)',qty:0,sp:{},nm:''};
+  for(const s of d.sps){ for(const c of (s.cards||[])){ if(c.bad)continue; const ss=cardSS(c); const key=izdKey(c);
+    const it=g[key]=g[key]||{art:c.art||'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
-    if(c.nm&&!it.nm)it.nm=c.nm; // название изделия из заголовка карточки
+    if(c.nm&&c.nm.length>(it.nm||'').length)it.nm=c.nm; // самое полное название изделия из заголовка карточки
     const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid}); } }
-  return Object.values(g).filter(it=>it.art!=='(без артикула)'||Object.values(it.sp).some(e=>e.vB>0));
+  // строка изделия имеет смысл, если по нему есть с/с или дошло до Расчёта/Производства (там живёт единый НС-номер)
+  return Object.values(g).filter(it=>Object.values(it.sp).some(e=>e.vB>0)||(it.sp['Расчёт']&&it.sp['Расчёт'].cards.length)||(it.sp['Производство  GG']&&it.sp['Производство  GG'].cards.length));
 }
 function izdRow(d,g){
   // Σ с/с за партию = производственная база (Производство, иначе Расчёт) + стекло (Закупка), уже × кол-во
@@ -341,7 +351,7 @@ function izdRow(d,g){
   const ssTip='с/с за партию '+fmt(ssTot);
   return '<tr class="izd">'
     +'<td class="izcol">↳</td>'
-    +'<td class="iname" title="'+esc(g.art+(g.nm?' · '+g.nm:''))+'">'+(g.nm?('<span class="art-code">'+esc(g.art)+'</span> '+esc(cleanNm(g.nm).slice(0,60))):esc(g.art))+'</td>'
+    +'<td class="iname" title="'+esc((g.art||g.ns||('#'+g.firstId))+(g.nm?' · '+g.nm:''))+'"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span>'+(g.nm?' '+esc(cleanNm(g.nm).slice(0,60)):'')+'</td>'
     +'<td></td><td></td><td></td><td></td>'
     +'<td></td>'
     +'<td class="num">'+(g.qty?g.qty+' <span class="cell-o">шт</span>':'')+'</td>'

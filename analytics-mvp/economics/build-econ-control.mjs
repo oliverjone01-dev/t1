@@ -270,7 +270,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
       <tr><td>Кальк. Расчёт Закупка Произв. Сборка Логист. Монтаж</td><td>точки = карточки смарт-процесса; зелёная точка = с/с внесена. В развороте число с/с - ссылка на карточку смарта</td></tr>
       <tr><td>Σ с/с</td><td>себестоимость за партию (с/с за штуку × количество товара)</td></tr>
       <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях. Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
-      <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>зелёный</b> - выше верхней трети по портфелю, <b>белый</b> - середина, <b>красный</b> - ниже нижней трети или убыток. Пороги считаются по фактическим данным</td></tr>
+      <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>красный</b> ниже 50%, <b>белый</b> 50-70%, <b>зелёный</b> выше 70%</td></tr>
       <tr><td>Бюджет (тег К/Р)</td><td>каким смартом сформирован бюджет: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = бюджет вбит вручную</td></tr>
       <tr><td>Тип</td><td>тип ассортимента из поля сделки Bitrix (чип в «Название»)</td></tr>
       <tr><td>Полнота с/с</td><td>доля смартов с внесённой с/с по сделке</td></tr>
@@ -342,12 +342,11 @@ function marginPctVal(d){ const pr=spCost(byKey(d,'Производство  GG'
   if(d.budget<=100||d.budget<ss*0.05)return null; // «нет цены» - процент бессмысленный
   return Math.round((d.budget-ss)/d.budget*100); }
 // пороги подсветки - терцили по фактическим данным (адаптивно): красный низ, белый середина, зелёный верх
-const MPCTS=DATA.deals.map(marginPctVal).filter(v=>v!==null&&v>=0).sort((a,b)=>a-b);
-const MPCT_LO=MPCTS.length?MPCTS[Math.floor(MPCTS.length/3)]:0, MPCT_HI=MPCTS.length?MPCTS[Math.floor(MPCTS.length*2/3)]:0;
+const MPCT_LO=50, MPCT_HI=70; // фиксированные пороги: красный <50%, белый 50-70%, зелёный >70%
 function mpctCell(d){ const mv=marginPctVal(d);
   if(mv===null)return '<td class="num"><span class="cell-o">-</span></td>';
-  const cls=mv<0?'mp-red':mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-wht';
-  const tip='маржинальность '+mv+'% · пороги по данным: красный <'+MPCT_LO+'%, белый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%';
+  const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-wht';
+  const tip='маржинальность '+mv+'% · красный <'+MPCT_LO+'%, белый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%';
   return '<td class="num mp '+cls+'" title="'+esc(tip)+'">'+mv+'%</td>'; }
 function rankOf(d){ return RANK[d.stage]!==undefined?RANK[d.stage]:2; }
 function prodRankOf(d){ return PROD[d.stage]||0; }

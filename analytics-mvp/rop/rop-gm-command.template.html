@@ -378,6 +378,43 @@ function soldSet(a,b){a=a||S.start;b=b||S.end;
 function lostSet(a,b){a=a||S.start;b=b||S.end;
   if(S.dateBasis==='outcome')return flt(AD,true).filter(d=>d.lost&&d.closed&&d.closed>=a&&d.closed<=b);
   return flt(AD,true).filter(d=>d.lost&&d.created>=a&&d.created<=b);}
+// Конверсия блока «факт × план», зависящая от двух верхних тумблеров (ТЗ Ивана):
+//  1) «дата создания» + «от предоплаты»: (созданные в периоде, дошедшие до предоплаты) / (созданные в периоде)
+//  2) «дата создания» + «по успеху»:     (созданные в периоде, ставшие успешными) / (созданные в периоде)
+//  3) «дата продажи»  + «от предоплаты»: (оплаченные в периоде, по дате предоплаты) / (оплаченные + открытые сделки на этапах ДО предоплаты)
+//  4) «дата продажи»  + «по успеху»:     (успешные в периоде, по дате закрытия) / (успешные + открытые сделки на этапах ДО успеха)
+// Числитель «дошёл до предоплаты» = стадия предоплата/производство/успех уже пройдена.
+function _reachedPrepay(d){return d.won||REV_SET.has(d.stageCode)||prepayDate(d)!=null;}
+function _convDef(){const created=S.dateBasis!=='outcome',prepay=S.revMode!=='won';
+  return created
+    ?(prepay?'создано → дошло до предоплаты, делённое на созданные в периоде'
+            :'создано → успех, делённое на созданные в периоде')
+    :(prepay?'оплачено в периоде (по дате предоплаты) ÷ (оплаченные + открытые сделки до предоплаты)'
+            :'успех в периоде (по дате закрытия) ÷ (успешные + открытые сделки до успеха)');}
+function mgrConvCalc(keys){
+  const created=S.dateBasis!=='outcome',prepay=S.revMode!=='won';
+  const ORD={};FORDER.forEach((c,i)=>ORD[c]=i);
+  const PREI=ORD['C21:UC_5BND99'],WONI=ORD['C21:WON'];
+  const sidx=d=>{const i=ORD[d.stageCode];return i==null?-1:i;};
+  const U=flt(AD,true).filter(d=>isOP(d.mgr));
+  const A={},E=m=>A[m]=A[m]||{num:0,den:0,nw:{},dw:{}};
+  if(created){
+    U.forEach(d=>{if(d.created<S.start||d.created>S.end)return;const a=E(d.mgr),k=bkey(d.created,S.gran);
+      a.den++;a.dw[k]=(a.dw[k]||0)+1;
+      if(prepay?_reachedPrepay(d):d.won){a.num++;a.nw[k]=(a.nw[k]||0)+1;}});
+  }else{
+    const evD=d=>prepay?prepayDate(d):(d.won?d.closed:null);
+    const openBefore=prepay
+      ?(d=>!d.won&&!d.lost&&prepayDate(d)==null&&d.created<=S.end&&sidx(d)>=0&&sidx(d)<PREI)
+      :(d=>!d.won&&!d.lost&&d.created<=S.end&&sidx(d)>=0&&sidx(d)<WONI);
+    U.forEach(d=>{const a=E(d.mgr),e=evD(d);
+      if(e&&e>=S.start&&e<=S.end){a.num++;a.den++;const k=bkey(e,S.gran);a.nw[k]=(a.nw[k]||0)+1;a.dw[k]=(a.dw[k]||0)+1;}
+      else if(openBefore(d)){a.den++;const k=bkey(d.created,S.gran);a.dw[k]=(a.dw[k]||0)+1;}});
+  }
+  const arr=Object.entries(A).map(([m,a])=>{const w={};keys.forEach(k=>{const dd=a.dw[k]||0;w[k]=dd?(a.nw[k]||0)/dd:0;});
+    return {m,tot:a.den?a.num/a.den:0,w,_num:a.num,_den:a.den};}).filter(x=>x._den>0).sort((x,y)=>y.tot-x.tot);
+  const tn=arr.reduce((s,x)=>s+x._num,0),td=arr.reduce((s,x)=>s+x._den,0);
+  return {arr,teamTot:td?tn/td:0,teamNum:tn,teamDen:td};}
 // metrics. D/L = когорта по дате СОЗДАНИЯ (intake: лиды, создано сделок, конверсии).
 // so/lo = продажи/потери по дате ИСХОДА в периоде (деньги/результат). Если не переданы -
 // откат к когортному расчёту (обратная совместимость).
@@ -1163,12 +1200,14 @@ function render(){
     const segs=parts.map((x,i)=>{const wd=(x[0]/a.t*100).toFixed(1);const rad=parts.length===1?'5px':i===0?'5px 0 0 5px':i===parts.length-1?'0 5px 5px 0':'0';return `<div style="width:${wd}%;background:${x[1]};border-radius:${rad};display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;color:${x[2]};min-width:0"></div>`;}).join('');
     const td=dt(nm,[['Всего лидов',fmt(a.t),'hl'],['Квал',fmt(a.q),'dim'],['Отказ',fmt(a.f),'dim'],['В работе',fmt(a.p),'dim'],['Квал %',pct(a.t?a.q/a.t:0),'dim']]).replace(/"/g,'&quot;');
     return `<div class="mg-row"><div class="mg-name" data-tip="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
-  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads',_marr=mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
+  const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads';
+  const _convData=mgrConvCalc(_mkeys); // конверсия по 4 режимам (зависит от верхних тумблеров)
+  const _marr=_lm==='conv'?_convData.arr:mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
   // Факт команды по счётным метрикам ВКЛЮЧАЕТ нераспределённых: это реальные лиды/сделки,
   // пришедшие в GM (бот - лишь holding pen, менеджер обязан взять заявку и сменить
   // ответственного). Поэтому «Лиды» = все 155, а не только распределённые по менеджерам.
   const _unFact=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0;
-  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?m.conv:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)+_unFact),_attain=(_lm!=='leads');
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?_convData.teamTot:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)+_unFact),_attain=(_lm!=='leads');
   const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='prod'?(Math.round(_mP.winT)||_factTot):_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',prod:'В производство',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
@@ -1191,7 +1230,7 @@ function render(){
     const arr=mgrPF(L,ds,metric,_mkeys);
     const un=unassignedAgg(L,ds,metric,_mkeys);
     const unT=(un&&metric!=='conv'&&metric!=='check')?un.tot:0; // нераспределённые входят в тотал
-    const fact=metric==='conv'?m.conv:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0)+unT;
+    const fact=metric==='conv'?_convData.teamTot:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0)+unT;
     const planTot=metric==='conv'?0.15:metric==='check'?(_mP.check||60000):metric==='leads'?fact:metric==='prod'?(Math.round(_mP.winT)||fact):metric==='deals'?(_mP.targets.deals||fact):(metric==='won'?Math.round(_mP.winT):_mP.targets.rev);
     const plan=metric==='leads'?(_mP.targets.leads||fact):planTot;
     return {fact,plan,pct:plan?fact/plan:0};
@@ -1228,7 +1267,7 @@ function render(){
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). «В пр-во» считается в СДЕЛКАХ, переданных в производство (изделия и штуки - на дашборде производства); план по нему = план продаж периода из таблицы: каждая проданная сделка должна уйти в цех. Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже; «В пр-во» сильно ниже плана продаж - продажи не доезжают до цеха или передачи просели.')}</div><div class="card-sub">все метрики отдела в одном блоке · факт vs план за выбранный период</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица</a></div></div>
     <div style="padding:6px 14px 8px;background:var(--bg-elevated);border-radius:10px">${_teamRows}</div></div>`;
   const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">кто тянет, а кто отстаёт от плана</div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">вклад каждого менеджера по периодам</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">${_lm==='conv'?'конверсия по фильтрам сверху: '+_convDef():'вклад каждого менеджера по периодам'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));

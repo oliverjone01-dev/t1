@@ -139,6 +139,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .izd .izcol{color:var(--accent);text-align:center;width:22px}
 .izd .iname{color:var(--ink-2);padding-left:6px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .art-code{color:var(--ink-4);font-size:10px;font-variant-numeric:tabular-nums}
+.atype{font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(90,140,200,.14);border:1px solid rgba(90,140,200,.3);color:var(--ink-2);white-space:nowrap;margin-left:4px}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -156,6 +157,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   <input type="text" id="q" placeholder="Поиск: номер или название">
   <select id="fstage"><option value="">все этапы</option></select>
   <select id="fmgr"><option value="">все менеджеры</option></select>
+  <select id="fassort"><option value="">весь ассортимент</option></select>
   <label>с <input type="date" id="dfrom"></label>
   <span class="dsep">–</span>
   <label>по <input type="date" id="dto"></label>
@@ -249,6 +251,7 @@ const fstage=document.getElementById('fstage');
 DATA.stageOrder.filter(s=>present.has(s)).forEach(s=>fstage.insertAdjacentHTML('beforeend','<option>'+esc(s)+'</option>'));
 const mgrs=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
 const fmgr=document.getElementById('fmgr'); mgrs.forEach(m=>fmgr.insertAdjacentHTML('beforeend','<option>'+esc(m)+'</option>'));
+const fassort=document.getElementById('fassort'); const assorts=[...new Set(DATA.deals.map(d=>d.assort).filter(Boolean))].sort(); assorts.forEach(a=>fassort.insertAdjacentHTML('beforeend','<option>'+esc(a)+'</option>'));
 
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
@@ -401,12 +404,13 @@ const TILES=[
 let quick='';
 function passesBase(d){
   const q=document.getElementById('q').value.trim().toLowerCase();
-  const fs=document.getElementById('fstage').value, fm=document.getElementById('fmgr').value;
+  const fs=document.getElementById('fstage').value, fm=document.getElementById('fmgr').value, fa=document.getElementById('fassort').value;
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
   const noprod=document.getElementById('fnoprod').checked, gap=document.getElementById('fgap').checked, part=document.getElementById('fpart').checked;
   if(q && !(String(d.id).includes(q)||(d.title||'').toLowerCase().includes(q))) return false;
   if(fs && d.stage!==fs) return false;
   if(fm && d.mgr!==fm) return false;
+  if(fa && (d.assort||'')!==fa) return false;
   if(df && (d.created||'')<df) return false;
   if(dt && (d.created||'')>dt) return false;
   if(noprod && d.hasProducts) return false;
@@ -445,7 +449,7 @@ function render(){
     const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
     rows+='<tr class="drow" data-id="'+d.id+'">'
       +'<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
-      +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
+      +'<td title="'+esc(d.title+(d.assort?' · тип: '+d.assort:''))+'">'+esc((d.title||'').slice(0,38))+(d.assort?' <span class="atype">'+esc(d.assort)+'</span>':'')+'</td>'
       +'<td>'+esc(d.mgr||'')+'</td>'
       +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
       +'<td class="num">'+ruD(d.created)+'</td>'
@@ -465,7 +469,7 @@ function render(){
   document.getElementById('cnt').textContent='показано '+list.length+' из '+DATA.deals.length;
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
-['q','fstage','fmgr','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['q','fstage','fmgr','fassort','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 document.getElementById('kpi').addEventListener('click',e=>{ const t=e.target.closest('.kt'); if(!t)return; const k=t.dataset.q; quick=(quick===k)?'':k; render(); });
 document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.closest('td.bc'); if(!td)return; const s=td.dataset.stage, qk=td.dataset.q||''; const sel=document.getElementById('fstage');
   if(sel.value===s&&quick===qk){ sel.value=''; quick=''; } else { sel.value=s; quick=qk; } render(); });

@@ -416,7 +416,7 @@ const spN=ORDER.length, SP0=10;
 const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Позиций','Штук','Услуги ₽','Тип',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
 const I_SS=SP0+spN, I_MRG=SP0+spN+1, I_MPCT=SP0+spN+2, I_COV=SP0+spN+3, I_STAT=SP0+spN+4;
 // фиксированные ширины колонок (table-layout:fixed) - чтобы таблица влезала без горизонтального скролла
-const COLW=[50,150,90,80,60,74,48,42,58,88,...ORDER.map(()=>42),54,84,60,68,80];
+const COLW=[52,98,94,86,62,80,50,44,60,90,...ORDER.map(()=>44),58,86,64,72,84];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return goodsPos(d); if(i===7)return goodsQty(d); if(i===8)return svcSum(d); if(i===9)return (d.assort||'').toLowerCase();

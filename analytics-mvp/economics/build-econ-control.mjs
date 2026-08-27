@@ -178,7 +178,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .burger:hover{color:var(--ink-1);border-color:var(--accent)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s;z-index:70}
 .scrim.open{opacity:1;visibility:visible}
-.drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,92vw);background:var(--bg-1,#0b0f16);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .24s ease;z-index:80;display:flex;flex-direction:column}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(600px,62vw);background:var(--bg-1,#0b0f16);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .24s ease;z-index:80;display:flex;flex-direction:column}
 .drawer.open{transform:translateX(0)}
 .dhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;color:var(--ink-1)}
 .dx{cursor:pointer;background:none;border:none;color:var(--ink-3);font-size:16px}.dx:hover{color:var(--ink-1)}

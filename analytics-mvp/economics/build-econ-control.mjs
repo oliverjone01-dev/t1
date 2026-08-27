@@ -140,6 +140,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .izd .iname{color:var(--ink-2);padding-left:6px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .art-code{color:var(--ink-4);font-size:10px;font-variant-numeric:tabular-nums}
 .atype{font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(90,140,200,.14);border:1px solid rgba(90,140,200,.3);color:var(--ink-2);white-space:nowrap;margin-left:4px}
+.mpct{font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.mpct.dn{color:var(--dn,#e0687a)}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -208,12 +210,14 @@ function prodSS(d){ const pr=spBatch(byKey(d,'Производство  GG')),ra
 // ячейка Маржа с чтением минуса: бюджет≈0 при наличии с/с = «нет цены» (ложный минус); цена реальная < с/с = «убыток»
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
-  const m=d.budget-ss;
-  if(m>=0) return '<td class="num" title="бюджет за партию − с/с за партию">'+fmt(m)+'</td>';
+  const m=d.budget-ss; const pct=d.budget>0?Math.round(m/d.budget*100):null;
+  if(m>=0) return '<td class="num" title="бюджет за партию − с/с за партию · маржинальность = маржа / бюджет">'+fmt(m)+(pct!==null?' <span class="mpct">'+pct+'%</span>':'')+'</td>';
   const lowPrice=d.budget<=100||d.budget<ss*0.05;
   const tag=lowPrice?'нет цены':'убыток', fl=lowPrice?'warn':'bad';
-  const tip=lowPrice?('бюджет '+fmt(d.budget)+' не заполнен, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(d.budget)+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать');
-  return '<td class="num" title="'+esc(tip)+'"><span class="cell-dn">'+fmt(m)+'</span> <span class="flag '+fl+'">'+tag+'</span></td>';
+  const tip=lowPrice?('бюджет '+fmt(d.budget)+' не заполнен, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(d.budget)+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать · маржинальность '+pct+'%');
+  // при «нет цены» бюджет≈0 - процент бессмысленный, не показываем
+  const lossPct=(!lowPrice&&pct!==null)?' <span class="mpct dn">'+pct+'%</span>':'';
+  return '<td class="num" title="'+esc(tip)+'"><span class="cell-dn">'+fmt(m)+'</span>'+lossPct+' <span class="flag '+fl+'">'+tag+'</span></td>';
 }
 function rankOf(d){ return RANK[d.stage]!==undefined?RANK[d.stage]:2; }
 function prodRankOf(d){ return PROD[d.stage]||0; }

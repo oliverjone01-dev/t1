@@ -220,6 +220,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .card-line{color:var(--ink-2);font-size:11.5px;margin:2px 0 2px 10px}
 .foot{color:var(--ink-3);font-size:11.5px;margin-top:16px;max-width:1300px}
 .barhint{color:var(--ink-3);font-size:11px}
+.sect{cursor:pointer;user-select:none}
+.sect:hover{color:var(--ink-1)}
+.sect .cv{display:inline-block;width:12px;color:var(--ink-3);font-size:11px}
 #ftr td{padding:2px 3px;background:var(--elev);border-bottom:1px solid var(--border);overflow:visible;position:relative;vertical-align:middle}
 .fcx{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-1)}
 .fcx.fcn{text-align:right}
@@ -252,13 +255,15 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 </div>
 <div class="presets" id="presets"></div>
 
-<h3>Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
-<div class="tl" id="tl"></div>
+<h3 class="sect" data-sect="sp"><span class="cv">▾</span> Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
+<div class="sbody" id="sp_body"><div class="tl" id="tl"></div></div>
 
-<h3>Ключевые метрики (клик - фильтр таблицы) · сводка учитывает фильтры и диапазон дат</h3>
+<h3 class="sect" data-sect="m"><span class="cv">▾</span> Ключевые метрики (клик - фильтр таблицы) · сводка учитывает фильтры и диапазон дат</h3>
+<div class="sbody" id="m_body">
 <div class="sums" id="sums"></div>
 <div class="kpi" id="kpi"></div>
 <div class="byst" id="byst"></div>
+</div>
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-label="Инструкция">
   <div class="dhead"><b>Как читать таблицу</b><button class="dx" id="drawerX" aria-label="Закрыть">✕</button></div>
@@ -688,6 +693,10 @@ document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.
   if(qk===''){ if(stageSet.has(s))stageSet.delete(s); else stageSet.add(s); if(!stageSet.size)quick=''; }
   else { if(stageSet.has(s)&&quick===qk){ stageSet.delete(s); quick=''; } else { stageSet.add(s); quick=qk; } }
   syncStage(); render(); });
+// сворачивание блоков смарт-процессов и метрик (состояние в localStorage)
+function applySect(k,collapsed){ const body=document.getElementById(k+'_body'), h=document.querySelector('.sect[data-sect="'+k+'"]'); if(!body||!h)return; body.style.display=collapsed?'none':''; h.querySelector('.cv').textContent=collapsed?'▸':'▾'; }
+['sp','m'].forEach(k=>{ let c=false; try{c=localStorage.getItem('econ_sect_'+k)==='1';}catch(e){} applySect(k,c); });
+document.querySelectorAll('.sect').forEach(h=>h.addEventListener('click',()=>{ const k=h.dataset.sect, body=document.getElementById(k+'_body'); const collapse=body.style.display!=='none'; applySect(k,collapse); try{localStorage.setItem('econ_sect_'+k,collapse?'1':'0');}catch(e){} }));
 sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();
 </script></body></html>`;

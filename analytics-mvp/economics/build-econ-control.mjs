@@ -208,6 +208,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .frlg.fr-mid{background:rgba(200,205,215,.12);color:var(--ink-1)}
 .frlg.fr-no{background:rgba(214,92,110,.2);color:#ec93a4;opacity:1}
 .dnote{color:var(--ink-3);font-size:11px;font-style:italic;margin-top:8px}
+.warnbox{border-left:3px solid #e0687a;background:rgba(214,92,110,.10);padding:2px 12px;margin:12px 0;border-radius:0 6px 6px 0}
+.warnbox .dsub{color:#ec93a4;margin-top:8px !important}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -216,6 +218,19 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .spblock{margin-bottom:8px}.spname{font-weight:700;font-size:12px}
 .card-line{color:var(--ink-2);font-size:11.5px;margin:2px 0 2px 10px}
 .foot{color:var(--ink-3);font-size:11.5px;margin-top:16px;max-width:1300px}
+.barhint{color:var(--ink-3);font-size:11px}
+#ftr td{padding:2px 3px;background:var(--elev);border-bottom:1px solid var(--border);overflow:visible;position:relative;vertical-align:middle}
+.fcx{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-1)}
+.fcx.fcn{text-align:right}
+.fcbtn{width:100%;min-width:0;box-sizing:border-box;font-size:10px;padding:2px 4px;background:var(--bg-1,#0b0f16);border:1px solid var(--border);border-radius:4px;color:var(--ink-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fcbtn:hover{color:var(--ink-1);border-color:var(--accent)}
+.fcpop{display:none;position:fixed;z-index:90;background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:6px;max-height:300px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45);min-width:200px}
+.fcpop.open{display:block}
+.fcpop label{display:block;font-size:11.5px;color:var(--ink-2);padding:3px 6px;white-space:nowrap;cursor:pointer;border-radius:4px}
+.fcpop label:hover{color:var(--ink-1);background:var(--bg-1,#0b0f16)}
+.fcpa{border-top:1px solid var(--border);margin-top:4px;padding-top:5px;text-align:right}
+.fcpa button{font-size:10px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--ink-3);cursor:pointer;padding:2px 8px}
+.fcpa button:hover{color:var(--ink-1)}
 </style></head>
 <body><div class="wrap">
 <button class="burger" id="burger" title="Инструкция: как читать таблицу" aria-label="Инструкция">☰ инструкция</button>
@@ -224,9 +239,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
-  <select id="fstage"><option value="">все этапы</option></select>
-  <select id="fmgr"><option value="">все менеджеры</option></select>
-  <select id="fassort"><option value="">весь ассортимент</option></select>
+  <span class="barhint">фильтры по столбцам - в строке под шапкой таблицы ↓</span>
   <label>с <input type="date" id="dfrom"></label>
   <span class="dsep">–</span>
   <label>по <input type="date" id="dto"></label>
@@ -265,8 +278,10 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
     </table>
     <p class="dsub"><b>Разворот сделки (▸)</b></p>
     <p>Строки изделий - по НС-коду (единый номер изделия). У каждой своё количество и ссылки на карточки Расчёта / Производства / Сборки. Отдельная строка «Услуги» - расшифровка доставки / монтажа / замера.</p>
+    <div class="warnbox">
     <p class="dsub"><b>Что НЕ входит в Σ с/с</b></p>
     <p>Показана цеховая металло-себестоимость. Вне её: административные накладные (поле Bitrix «без адм»), сборка, монтаж, доставка. Для изделий со стеклом и монтажом реальная маржа ниже показанной.</p>
+    </div>
     <p class="dsub"><b>Окно данных</b></p>
     <p>Воронка «GG Заказы РФ» (49), сделки с 2026-04-01 (после переезда). Обновление - каждые 3 часа.</p>
 
@@ -366,11 +381,11 @@ document.getElementById('tl').innerHTML=DATA.spTimeline.map(s=>{ const h=spHealt
     +'<div class="tlc-m">запуск '+h.pL+'% '+h.tL+' · с/с '+(h.L?h.pF+'% '+h.tF:'нет')+'</div></div>'; }).join('');
 
 const present=new Set(DATA.deals.map(d=>d.stage));
-const fstage=document.getElementById('fstage');
-DATA.stageOrder.filter(s=>present.has(s)).forEach(s=>fstage.insertAdjacentHTML('beforeend','<option>'+esc(s)+'</option>'));
-const mgrs=[...new Set(DATA.deals.map(d=>d.mgr).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
-const fmgr=document.getElementById('fmgr'); mgrs.forEach(m=>fmgr.insertAdjacentHTML('beforeend','<option>'+esc(m)+'</option>'));
-const fassort=document.getElementById('fassort'); const assorts=[...new Set(DATA.deals.map(d=>d.assort).filter(Boolean))].sort(); assorts.forEach(a=>fassort.insertAdjacentHTML('beforeend','<option>'+esc(a)+'</option>'));
+// справочники для фильтров-столбцов
+const stageList=DATA.stageOrder.filter(s=>present.has(s));
+const assorts=[...new Set(DATA.deals.map(d=>d.assort).filter(Boolean))].sort();
+const statuses=[...new Set(DATA.deals.map(d=>gate(d).t).filter(Boolean))];
+const stageSet=new Set(); // мультивыбор этапов (из строки фильтров и из таблицы разбивки)
 
 const today=DATA.deals.reduce((mx,d)=>d.created>mx?d.created:mx, '2026-01-01');
 function daysAgo(n){ const t=new Date(today+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()-n); return t.toISOString().slice(0,10); }
@@ -414,10 +429,38 @@ function sortVal(d,i){
   if(i===I_STAT)return rankOf(d);
   return 0;
 }
+// ячейка строки фильтров под соответствующим столбцом
+function fcell(i){
+  if(i===1)return '<input class="fcx" id="fcTitle" placeholder="фильтр">';
+  if(i===2)return '<input class="fcx" id="fcMgr" placeholder="фильтр">';
+  if(i===3)return '<button type="button" class="fcbtn" id="fcStageBtn">все ▾</button><div class="fcpop" id="fcStagePop"></div>';
+  if(i===9)return '<select class="fcx" id="fcType"><option value="">все</option>'+assorts.map(a=>'<option>'+esc(a)+'</option>').join('')+'</select>';
+  if(i===I_STAT)return '<select class="fcx" id="fcStat"><option value="">все</option>'+statuses.map(s=>'<option>'+esc(s)+'</option>').join('')+'</select>';
+  if([5,6,7,8,I_SS,I_MRG,I_MPCT].includes(i))return '<input class="fcx fcn" id="fcMin_'+i+'" placeholder="≥" title="минимум">';
+  return '';
+}
+function syncStage(){ const btn=document.getElementById('fcStageBtn'); if(btn)btn.textContent=(stageSet.size?stageSet.size+' этап.':'все')+' ▾';
+  const pop=document.getElementById('fcStagePop'); if(pop)pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=stageSet.has(cb.value)); }
+function wireFilters(){
+  ['fcTitle','fcMgr','fcType','fcStat','fcMin_5','fcMin_6','fcMin_7','fcMin_8','fcMin_'+I_SS,'fcMin_'+I_MRG,'fcMin_'+I_MPCT].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',render);});
+  document.getElementById('ftr').addEventListener('click',e=>e.stopPropagation());
+  const pop=document.getElementById('fcStagePop'), btn=document.getElementById('fcStageBtn');
+  pop.innerHTML=stageList.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"> '+esc(s)+'</label>').join('')+'<div class="fcpa"><button type="button" id="fcStageClear">сброс</button></div>';
+  btn.addEventListener('click',e=>{e.stopPropagation(); const open=!pop.classList.contains('open'); if(open){const r=btn.getBoundingClientRect(); pop.style.left=Math.max(4,r.left)+'px'; pop.style.top=(r.bottom+2)+'px';} pop.classList.toggle('open',open);});
+  pop.addEventListener('click',e=>e.stopPropagation());
+  pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change',()=>{ if(cb.checked)stageSet.add(cb.value);else stageSet.delete(cb.value); syncStage(); render(); }));
+  document.getElementById('fcStageClear').addEventListener('click',()=>{ stageSet.clear(); syncStage(); render(); pop.classList.remove('open'); });
+  document.addEventListener('click',()=>pop.classList.remove('open'));
+}
 function head(){ const tbl=document.getElementById('tbl'); const oc=tbl.querySelector('colgroup'); if(oc)oc.remove();
   tbl.insertAdjacentHTML('afterbegin','<colgroup>'+COLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
-  document.querySelector('#tbl thead').innerHTML='<tr>'+COLS.map((h,i)=>'<th class="'+((i>=5&&i!==I_COV&&i!==I_STAT)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('')+'</tr>';
-  document.querySelectorAll('#tbl thead th').forEach(th=>th.addEventListener('click',()=>{ const i=+th.dataset.i; if(i===sortIdx)sortDir=-sortDir; else{sortIdx=i;sortDir=(i===0?-1:1);} head(); render(); })); }
+  const thead=document.querySelector('#tbl thead');
+  if(!document.getElementById('ftr')){
+    thead.innerHTML='<tr id="htr"></tr><tr id="ftr" class="frow">'+COLS.map((h,i)=>'<td>'+fcell(i)+'</td>').join('')+'</tr>';
+    wireFilters(); syncStage();
+  }
+  document.getElementById('htr').innerHTML=COLS.map((h,i)=>'<th class="'+((i>=5&&i!==I_COV&&i!==I_STAT)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
+  document.querySelectorAll('#htr th').forEach(th=>th.addEventListener('click',()=>{ const i=+th.dataset.i; if(i===sortIdx)sortDir=-sortDir; else{sortIdx=i;sortDir=(i===0?-1:1);} head(); render(); })); }
 
 // ячейка СП на уровне сделки: точки по товарам в этом смарте (одна на карточку).
 // Горит = товар вернул с/с из смарта; тусклая = товар ещё в смарте (данные не вернулись).
@@ -529,20 +572,31 @@ const TILES=[
   {k:'noss',label:'Без с/с',desc:'нет данных о с/с ни в одном смарте'}
 ];
 let quick='';
-function passesBase(d){
+const _gv=id=>{const e=document.getElementById(id);return e?e.value:'';};
+function passesBase(d,skipStage){
   const q=document.getElementById('q').value.trim().toLowerCase();
-  const fs=document.getElementById('fstage').value, fm=document.getElementById('fmgr').value, fa=document.getElementById('fassort').value;
   const df=document.getElementById('dfrom').value, dt=document.getElementById('dto').value;
   const noprod=document.getElementById('fnoprod').checked, gap=document.getElementById('fgap').checked, part=document.getElementById('fpart').checked;
   if(q && !(String(d.id).includes(q)||(d.title||'').toLowerCase().includes(q))) return false;
-  if(fs && d.stage!==fs) return false;
-  if(fm && d.mgr!==fm) return false;
-  if(fa && (d.assort||'')!==fa) return false;
   if(df && (d.created||'')<df) return false;
   if(dt && (d.created||'')>dt) return false;
   if(noprod && d.hasProducts) return false;
   if(gap && gate(d).cls!=='bad') return false;
   if(part){ const r=coverage(d).r; if(!(r>=0&&r<1)) return false; }
+  // фильтры-столбцы
+  const ft=_gv('fcTitle').trim().toLowerCase(); if(ft && !(d.title||'').toLowerCase().includes(ft)) return false;
+  const fm=_gv('fcMgr').trim().toLowerCase(); if(fm && !(d.mgr||'').toLowerCase().includes(fm)) return false;
+  if(!skipStage && stageSet.size && !stageSet.has(d.stage)) return false;
+  const fty=_gv('fcType'); if(fty && (d.assort||'')!==fty) return false;
+  const fst=_gv('fcStat'); if(fst && gate(d).t!==fst) return false;
+  const minChk=(id,val)=>{const s=_gv(id).replace(/[^0-9.\\-]/g,'');if(s===''||isNaN(+s))return true;return val!=null&&val>=+s;};
+  if(!minChk('fcMin_5',d.budget))return false;
+  if(!minChk('fcMin_6',goodsPos(d)))return false;
+  if(!minChk('fcMin_7',goodsQty(d)))return false;
+  if(!minChk('fcMin_8',svcSum(d)))return false;
+  if(!minChk('fcMin_'+I_SS,prodSS(d)))return false;
+  if(!minChk('fcMin_'+I_MRG,d.budget-prodSS(d)))return false;
+  if(!minChk('fcMin_'+I_MPCT,marginPctVal(d)))return false;
   return true;
 }
 function renderKPI(base){
@@ -576,20 +630,21 @@ function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classif
 function renderByStage(base){
   const byS={}; for(const d of base){ const s=d.stage||'(без этапа)'; (byS[s]=byS[s]||[]).push(d); }
   const order=DATA.stageOrder.filter(s=>byS[s]); for(const s of Object.keys(byS)) if(!order.includes(s)) order.push(s);
-  const cur=document.getElementById('fstage').value, cq=quick;
+  const cur=stageSet, cq=quick;
   // ячейка = клик по этапу+классу: показать именно эти сделки
-  const cell=(s,qk,v,cls)=>'<td class="bc'+(cls?' '+cls:'')+(cur===s&&cq===qk?' selc':'')+'" data-stage="'+esc(s)+'" data-q="'+qk+'">'+v+'</td>';
+  const cell=(s,qk,v,cls)=>'<td class="bc'+(cls?' '+cls:'')+((cur.has(s)&&cq===qk)?' selc':'')+'" data-stage="'+esc(s)+'" data-q="'+qk+'">'+v+'</td>';
   let rows='<tr><th>Этап</th><th>Сделок</th><th>С с/с</th><th>Без с/с</th><th>С запасом</th><th>Слабый</th><th>Убыток/0</th><th>Нет цены</th></tr>';
   for(const s of order){ const L=byS[s]; const c={}; for(const d of L){ const k=classify(d); c[k]=(c[k]||0)+1; } const withSS=L.length-(c.noss||0);
     rows+='<tr class="br" data-stage="'+esc(s)+'">'
-      +'<td class="bname bc'+(cur===s&&!cq?' selc':'')+'" data-stage="'+esc(s)+'" data-q="">'+esc(s)+'</td>'
+      +'<td class="bname bc'+((cur.has(s)&&!cq)?' selc':'')+'" data-stage="'+esc(s)+'" data-q="">'+esc(s)+'</td>'
       +cell(s,'',L.length)+cell(s,'hasss',withSS)+cell(s,'noss',c.noss||0)
       +cell(s,'good',c.good||0,'cell-g')+cell(s,'weak',c.weak||0,'cell-y')+cell(s,'loss',c.loss||0,'cell-dn')+cell(s,'noprice',c.noprice||0)+'</tr>'; }
   document.getElementById('byst').innerHTML='<table>'+rows+'</table>';
 }
 function render(){
-  const base=DATA.deals.filter(passesBase);
-  renderSummary(base); renderKPI(base); renderByStage(base);
+  const base=DATA.deals.filter(d=>passesBase(d));
+  renderSummary(base); renderKPI(base);
+  renderByStage(DATA.deals.filter(d=>passesBase(d,true))); // разбивка по этапам - все этапы видимы для мультивыбора
   let list=base.filter(matchQuick);
   list.sort((a,b)=>{ const x=sortVal(a,sortIdx),y=sortVal(b,sortIdx); return (x<y?-1:x>y?1:0)*sortDir; });
   let rows='';
@@ -621,7 +676,7 @@ function render(){
   document.getElementById('cnt').textContent='показано '+list.length+' из '+DATA.deals.length;
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
-['q','fstage','fmgr','fassort','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['q','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 const _drawer=document.getElementById('drawer'), _scrim=document.getElementById('scrim');
 function drawerOpen(o){ _drawer.classList.toggle('open',o); _scrim.classList.toggle('open',o); }
 document.getElementById('burger').addEventListener('click',()=>drawerOpen(!_drawer.classList.contains('open')));
@@ -629,8 +684,10 @@ document.getElementById('drawerX').addEventListener('click',()=>drawerOpen(false
 _scrim.addEventListener('click',()=>drawerOpen(false));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape')drawerOpen(false); });
 document.getElementById('kpi').addEventListener('click',e=>{ const t=e.target.closest('.kt'); if(!t)return; const k=t.dataset.q; quick=(quick===k)?'':k; render(); });
-document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.closest('td.bc'); if(!td)return; const s=td.dataset.stage, qk=td.dataset.q||''; const sel=document.getElementById('fstage');
-  if(sel.value===s&&quick===qk){ sel.value=''; quick=''; } else { sel.value=s; quick=qk; } render(); });
+document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.closest('td.bc'); if(!td)return; const s=td.dataset.stage, qk=td.dataset.q||'';
+  if(qk===''){ if(stageSet.has(s))stageSet.delete(s); else stageSet.add(s); if(!stageSet.size)quick=''; }
+  else { if(stageSet.has(s)&&quick===qk){ stageSet.delete(s); quick=''; } else { stageSet.add(s); quick=qk; } }
+  syncStage(); render(); });
 sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();
 </script></body></html>`;

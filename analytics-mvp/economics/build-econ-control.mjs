@@ -142,6 +142,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .atype{font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(90,140,200,.14);border:1px solid rgba(90,140,200,.3);color:var(--ink-2);white-space:nowrap;margin-left:4px}
 .mpct{font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .mpct.dn{color:var(--dn,#e0687a)}
+.bsrc{font-size:9.5px;padding:0 4px;border-radius:4px;background:rgba(120,150,120,.16);border:1px solid rgba(120,150,120,.32);color:var(--ink-2);font-weight:700}
+.note{color:var(--ink-3);font-size:11.5px;line-height:1.55;max-width:1300px;margin:2px 0 12px;padding:8px 10px;background:var(--elev);border:1px solid var(--border);border-radius:8px}
+.note b{color:var(--ink-2)}.note i{color:var(--ink-2);font-style:normal}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -177,6 +180,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <h3>Ключевые метрики (клик - фильтр таблицы)</h3>
 <div class="kpi" id="kpi"></div>
 <div class="byst" id="byst"></div>
+<p class="note"><b>Колонки-подсказки.</b> <b>Услуги ₽</b> - сумма товарных строк-услуг по цене клиента (не себестоимость): распознаются по словам <i>доставка, монтаж, логистика, сборка, подъём, пронос, разгрузка, замер, установка, услуга, пэк</i>; в скобках - сколько строк. Разверните сделку (▸) - внизу строка «Услуги» с расшифровкой каждой. <b>Маржа</b> - рубли + маржинальность (маржа / бюджет). <b>Тип</b> - тип ассортимента из поля сделки. <b>Бюджет из</b> - каким смартом сформирован бюджет: К - Калькулятор, Р - Расчёт, З - Закупка и т.д.</p>
 
 <div class="scrollx"><table id="tbl"><thead></thead><tbody></tbody></table></div>
 </div>
@@ -208,6 +212,11 @@ function spBatch(sp){ if(!sp) return {v:0,empty:true}; let v=0,any=false; for(co
 function prodSS(d){ const pr=spBatch(byKey(d,'Производство  GG')),ra=spBatch(byKey(d,'Расчёт')),za=spBatch(byKey(d,'Закупка'));
   const base=(pr&&!pr.empty)?pr.v:((ra&&!ra.empty)?ra.v:0); const glass=(za&&!za.empty)?za.v:0; return base+glass; }
 // ячейка Маржа с чтением минуса: бюджет≈0 при наличии с/с = «нет цены» (ложный минус); цена реальная < с/с = «убыток»
+// источник бюджета: какой смарт несёт бюджет-поле (Сумма/БЮДЖЕТ/Бюджет заказ). Приоритет Р>К>...
+const BUDF=/^сумма$|бюджет/i;
+const BUDPRIO=[['Расчёт','Р'],['Калькулятор GG','К'],['Закупка','З'],['Производство  GG','Пр'],['Сборка','Сб'],['Логистика','Л'],['Монтаж','М']];
+const BUDNAME={'Р':'Расчёт','К':'Калькулятор','З':'Закупка','Пр':'Производство','Сб':'Сборка','Л':'Логистика','М':'Монтаж'};
+function budgetSrc(d){ for(const [k,tag] of BUDPRIO){ const sp=byKey(d,k); if(!sp)continue; let v=0; for(const c of (sp.cards||[]))for(const m of (c.money||[]))if(BUDF.test(m.label))v=Math.max(v,m.value||0); if(v>0)return {tag,v}; } return null; }
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
   const m=d.budget-ss; const pct=d.budget>0?Math.round(m/d.budget*100):null;
@@ -449,7 +458,7 @@ function render(){
   let rows='';
   for(const d of list){
     const ss=prodSS(d); const pr=spCost(byKey(d,'Производство  GG')); const g=gate(d); const cv=coverage(d);
-    const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5; const op=OPEN.has(d.id);
+    const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5; const op=OPEN.has(d.id); const bs=budgetSrc(d);
     const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
     rows+='<tr class="drow" data-id="'+d.id+'">'
       +'<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
@@ -457,7 +466,7 @@ function render(){
       +'<td>'+esc(d.mgr||'')+'</td>'
       +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
       +'<td class="num">'+ruD(d.created)+'</td>'
-      +'<td class="num">'+fmt(d.budget)+'</td>'
+      +'<td class="num" title="'+esc(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал')+'">'+fmt(d.budget)+(bs?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
       +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'

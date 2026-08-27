@@ -362,6 +362,7 @@ function readiness(d){
 }
 // колонка «Смарты»: цепочка меток - запущен/с·с/источник итоговой с/с
 const SMLET={'Калькулятор GG':'К','Расчёт':'Р','Закупка':'З','Производство  GG':'Пр','Сборка':'Сб','Логистика':'Л','Монтаж':'М'};
+const SMFULL={'Калькулятор GG':'Калькулятор','Расчёт':'Расчёт','Закупка':'Закупка','Производство  GG':'Производство','Сборка':'Сборка','Логистика':'Логистика','Монтаж':'Монтаж'};
 function ssSource(d){ if(hasSP(byKey(d,'Производство  GG')))return 'Производство  GG'; if(hasSP(byKey(d,'Расчёт')))return 'Расчёт'; return null; }
 function smartCell(d){ const src=ssSource(d); let html='';
   for(const k of ORDER){ const sp=byKey(d,k); const cards=sp?(sp.cards||[]).filter(c=>!c.bad):[]; const launched=cards.length>0; const hasss=cards.some(c=>realMoney(c.money).length>0); const isSrc=(k===src);
@@ -377,7 +378,7 @@ function ssCell(d,ss){ const r=readiness(d);
 // разворот сделки - панель: по каждому изделию с/с по смартам со ссылками
 function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   if(izd.length){
-    inner+='<table class="ptab"><tr><th>Изделие (НС/артикул)</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMLET[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
+    inner+='<table class="ptab"><tr><th>Изделие (НС/артикул)</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
     for(const g of izd){ const cells=ORDER.map(k=>{ const e=g.sp[k];
         if(e&&e.vB) return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';

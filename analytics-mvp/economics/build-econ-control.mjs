@@ -151,8 +151,6 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <body><div class="wrap">
 <h1>Контроль экономики сделок</h1>
 <p class="ver">Воронка «GG Заказы РФ» (49) · с/с и Маржа - за партию (с/с за шт × кол-во) · обновлено <span id="gen"></span></p>
-<h3>Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
-<div class="tl" id="tl"></div>
 
 <div class="bar">
   <input type="text" id="q" placeholder="Поиск: номер или название">
@@ -168,6 +166,9 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="presets" id="presets"></div>
+
+<h3>Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
+<div class="tl" id="tl"></div>
 
 <h3>Ключевые метрики (клик - фильтр таблицы)</h3>
 <div class="kpi" id="kpi"></div>

@@ -52,6 +52,23 @@ if (prevEntry) for (const c of prevEntry.chain) chainPrev[c.key] = { pL: c.pL, p
 
 const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, chainPrev, chainPrevAt: prevEntry ? prevEntry.gen : null, deals: J.deals };
 
+// Справка по полям смартов: что учитывается в Σ с/с (генерируется из метаданных полей)
+const ITOG_S = /производственная с\/с|с\/?с итог|расчет с\/с итого|себестоимость производ/i;
+const EXCL_S = /сумма|налог|наценк|прибыл|бюджет|коэфф|адрес|номер|исполнител|отч[её]т|тип доставки|данные из сп|^id |удалить|расход материал|макет|шаблон|обрешет|домгласс|полная себестоимость по заказу/i;
+const escS = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const invMap = {}; for (const r of (J.inventory || [])) invMap[r.sp + "|" + r.label] = r.fillPct;
+function fieldStatus(label) {
+  if (ITOG_S.test(label)) return ["ok", "итог с/с"];
+  if (EXCL_S.test(label)) { const why = /сумма|бюджет/i.test(label) ? "цена/бюджет" : /налог/i.test(label) ? "налог" : /наценк|прибыл|маржа/i.test(label) ? "наценка/прибыль" : "служебное"; return ["no", "не в с/с · " + why]; }
+  return ["mid", "в с/с (компонент)"];
+}
+let FIELDS_REF = "";
+for (const sp of (J.spMeta || [])) {
+  const rows = (sp.fields || []).map(f => { const st = fieldStatus(f.label); const fp = invMap[sp.title + "|" + f.label];
+    return `<tr class="fr-${st[0]}"><td>${escS(f.label)}</td><td class="frp">${fp != null ? fp + "%" : "-"}</td><td class="frs">${st[1]}</td></tr>`; }).join("");
+  FIELDS_REF += `<div class="frsp">${escS(sp.title)}</div><table class="dtab frtab"><tr><th>Денежное поле</th><th>Запол.</th><th>В с/с?</th></tr>${rows}</table>`;
+}
+
 const HTML = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Контроль экономики сделок</title>
 <style>
@@ -63,6 +80,10 @@ h1{font-size:21px;margin:0 0 4px}
 .sub{color:var(--ink-2);font-size:12.5px;margin:0 0 14px;max-width:1200px}
 .ver{color:var(--ink-3);font-size:12px;margin:0 0 12px}
 .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:6px 0 10px}
+.sums{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:6px 0 10px}
+.sm{background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+.smv{font-size:17px;font-weight:800;color:var(--ink-1);font-variant-numeric:tabular-nums}
+.sml{font-size:11px;color:var(--ink-3);margin-top:2px}
 .kt{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;transition:border-color .1s}
 .kt:hover{border-color:var(--accent)} .kt.act{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .kt .v{font-size:20px;font-weight:800;line-height:1.1} .kt .l{font-size:11px;color:var(--ink-2);margin-top:3px}
@@ -165,6 +186,18 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .dtab td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:top}
 .dtab td:first-child{color:var(--ink-1);white-space:nowrap;font-weight:600;padding-right:10px}
 .dtab i{font-style:normal;color:var(--ink-1)}.dtab b{color:var(--ink-1)}
+.frsp{margin:12px 0 3px;color:var(--ink-1);font-weight:700;font-size:12px}
+.frtab td{font-size:11px;padding:3px 6px}
+.frtab td:first-child{white-space:normal;font-weight:400;color:var(--ink-2)}
+.frtab .frp{color:var(--ink-3);text-align:right;white-space:nowrap}
+.frtab .frs{color:var(--ink-3);white-space:nowrap}
+.fr-ok .frs{color:#82dcaa}.fr-ok td:first-child{color:var(--ink-1)}
+.fr-no{opacity:.6}.fr-no .frs{color:#ec93a4}
+.frlg{display:inline-block;padding:0 6px;border-radius:4px;font-size:10px;margin-left:2px}
+.frlg.fr-ok{background:rgba(60,170,110,.2);color:#82dcaa;opacity:1}
+.frlg.fr-mid{background:rgba(200,205,215,.12);color:var(--ink-1)}
+.frlg.fr-no{background:rgba(214,92,110,.2);color:#ec93a4;opacity:1}
+.dnote{color:var(--ink-3);font-size:11px;font-style:italic;margin-top:8px}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -198,7 +231,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <h3>Смарт-процессы: запуск / внесённая с/с (стрелка - к прошлому снимку) · создан и первая боевая сделка</h3>
 <div class="tl" id="tl"></div>
 
-<h3>Ключевые метрики (клик - фильтр таблицы)</h3>
+<h3>Ключевые метрики (клик - фильтр таблицы) · сводка учитывает фильтры и диапазон дат</h3>
+<div class="sums" id="sums"></div>
 <div class="kpi" id="kpi"></div>
 <div class="byst" id="byst"></div>
 <div class="scrim" id="scrim"></div>
@@ -225,6 +259,11 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
     <p>Показана цеховая металло-себестоимость. Вне её: административные накладные (поле Bitrix «без адм»), сборка, монтаж, доставка. Для изделий со стеклом и монтажом реальная маржа ниже показанной.</p>
     <p class="dsub"><b>Окно данных</b></p>
     <p>Воронка «GG Заказы РФ» (49), сделки с 2026-04-01 (после переезда). Обновление - каждые 3 часа.</p>
+
+    <p class="dsub"><b>Поля смартов: что идёт в с/с</b></p>
+    <p>Как считается с/с карточки: если есть поле-<b>итог</b> (Производственная С/С) - берётся оно; иначе суммируются поля-компоненты «в с/с». Поля цены/бюджета/налога/наценки в с/с НЕ идут (это выручка и служебное). «Запол.» - доля карточек смарта, где поле заполнено. Цвет: <span class="frlg fr-ok">итог</span> <span class="frlg fr-mid">в с/с</span> <span class="frlg fr-no">не в с/с</span>.</p>
+    ${FIELDS_REF}
+    <p class="dnote">Поля не про деньги (даты, адреса, исполнители, статусы) в этот список не входят - на с/с они не влияют.</p>
   </div>
 </aside>
 
@@ -498,6 +537,22 @@ function renderKPI(base){
   const cnt={}; for(const d of base){ const c=classify(d); cnt[c]=(cnt[c]||0)+1; } cnt['']=base.length;
   document.getElementById('kpi').innerHTML=TILES.map(t=>'<div class="kt '+t.k+(quick===t.k?' act':'')+'" data-q="'+t.k+'" title="'+esc(t.desc)+'"><div class="v">'+(cnt[t.k]||0)+'</div><div class="l">'+esc(t.label)+'</div></div>').join('');
 }
+// денежная сводка по текущей выборке (реагирует на фильтры и диапазон дат)
+function renderSummary(base){
+  let bud=0,svc=0,ss=0,mrg=0,budM=0,mCnt=0;
+  for(const d of base){ bud+=d.budget||0; svc+=svcSum(d); const s=prodSS(d); if(s)ss+=s;
+    const pr=spCost(byKey(d,'Производство  GG')); const shown=(pr&&!pr.empty)||prodRankOf(d)>=5;
+    if(shown&&s){ mrg+=(d.budget-s); budM+=d.budget; mCnt++; } }
+  const mpct=budM>0?Math.round(mrg/budM*100):null;
+  const tile=(l,v,tip)=>'<div class="sm" title="'+esc(tip||'')+'"><div class="smv">'+v+'</div><div class="sml">'+esc(l)+'</div></div>';
+  document.getElementById('sums').innerHTML=
+    tile('сделок',base.length,'в выборке с учётом фильтров и дат')
+    +tile('Σ бюджет',fmt(bud),'сумма бюджетов выборки')
+    +tile('Σ услуги',fmt(svc),'доставка/монтаж/замер по цене клиента')
+    +tile('Σ с/с',fmt(ss),'себестоимость за партию по выборке')
+    +tile('Σ маржа',fmt(mrg),'бюджет − с/с там, где маржа считается ('+mCnt+' сделок)')
+    +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'Σ маржа / Σ бюджет по '+mCnt+' сделкам с расчётом');
+}
 function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
 function renderByStage(base){
   const byS={}; for(const d of base){ const s=d.stage||'(без этапа)'; (byS[s]=byS[s]||[]).push(d); }
@@ -515,7 +570,7 @@ function renderByStage(base){
 }
 function render(){
   const base=DATA.deals.filter(passesBase);
-  renderKPI(base); renderByStage(base);
+  renderSummary(base); renderKPI(base); renderByStage(base);
   let list=base.filter(matchQuick);
   list.sort((a,b)=>{ const x=sortVal(a,sortIdx),y=sortVal(b,sortIdx); return (x<y?-1:x>y?1:0)*sortDir; });
   let rows='';

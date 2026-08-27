@@ -220,6 +220,24 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .card-line{color:var(--ink-2);font-size:11.5px;margin:2px 0 2px 10px}
 .foot{color:var(--ink-3);font-size:11.5px;margin-top:16px;max-width:1300px}
 #tbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent,#4a90d9);font-weight:700;color:var(--ink-1);z-index:5}
+.smcell{white-space:nowrap;line-height:1.4;overflow:visible}
+.smseg{display:inline-block;min-width:15px;text-align:center;font-size:9px;font-weight:700;padding:1px 2px;margin:0 1px 0 0;border-radius:3px;border:1px solid transparent}
+.smoff{color:var(--ink-4);opacity:.4}
+.smon{color:var(--ink-2);border-color:var(--border)}
+.smss{color:#0b0f16;background:#4fb387}
+.smsrc{outline:2px solid #e6c069;outline-offset:1px}
+.rdbar{display:inline-flex;gap:1px;vertical-align:middle;margin-left:4px}
+.rdbar i{width:5px;height:11px;background:rgba(200,205,215,.14);border-radius:1px;display:inline-block}
+.rdbar.rd1 i:nth-child(1){background:#d98b45}
+.rdbar.rd2 i:nth-child(1),.rdbar.rd2 i:nth-child(2){background:#e6c069}
+.rdbar.rd3 i{background:#4fb387}
+.detail td{background:#0d141d;padding:10px 14px;overflow:visible;white-space:normal}
+.pwrap{overflow-x:auto;max-width:100%}
+.detail table.ptab{table-layout:auto;width:auto;border-collapse:collapse;font-size:11px;margin:0}
+.ptab th{color:var(--ink-3);font-weight:600;text-align:left;padding:3px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.ptab td{padding:3px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.ptab .pnm{max-width:340px;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.pusl{color:var(--ink-2);font-size:11.5px;margin-top:8px}.pusl b{color:var(--ink-1)}
 .barhint{color:var(--ink-3);font-size:11px}
 .sect{cursor:pointer;user-select:none}
 .sect:hover{color:var(--ink-1)}
@@ -334,6 +352,44 @@ const BUDF=/^сумма$|бюджет/i;
 const BUDPRIO=[['Расчёт','Р'],['Калькулятор GG','К'],['Закупка','З'],['Производство  GG','Пр'],['Сборка','Сб'],['Логистика','Л'],['Монтаж','М']];
 const BUDNAME={'Р':'Расчёт','К':'Калькулятор','З':'Закупка','Пр':'Производство','Сб':'Сборка','Л':'Логистика','М':'Монтаж'};
 function budgetSrc(d){ for(const [k,tag] of BUDPRIO){ const sp=byKey(d,k); if(!sp)continue; let v=0; for(const c of (sp.cards||[]))for(const m of (c.money||[]))if(BUDF.test(m.label))v=Math.max(v,m.value||0); if(v>0)return {tag,v}; } return null; }
+// готовность с/с: 3 = готова (Производство), 2 = формируется (Расчёт), 1 = черновая (Калькулятор/Закупка), 0 = нет расчёта
+const hasSP=k=>{const c=spCost(k);return c&&!c.empty;};
+function readiness(d){
+  if(hasSP(byKey(d,'Производство  GG'))) return {lvl:3,txt:'готова - можно верить (Производство)',cls:'rd3'};
+  if(hasSP(byKey(d,'Расчёт'))) return {lvl:2,txt:'формируется - предварительная (Расчёт)',cls:'rd2'};
+  if(hasSP(byKey(d,'Калькулятор GG'))||hasSP(byKey(d,'Закупка'))) return {lvl:1,txt:'черновая - только прикидка (Калькулятор)',cls:'rd1'};
+  return {lvl:0,txt:'нет расчёта - с/с ещё не формировалась',cls:'rd0'};
+}
+// колонка «Смарты»: цепочка меток - запущен/с·с/источник итоговой с/с
+const SMLET={'Калькулятор GG':'К','Расчёт':'Р','Закупка':'З','Производство  GG':'Пр','Сборка':'Сб','Логистика':'Л','Монтаж':'М'};
+function ssSource(d){ if(hasSP(byKey(d,'Производство  GG')))return 'Производство  GG'; if(hasSP(byKey(d,'Расчёт')))return 'Расчёт'; return null; }
+function smartCell(d){ const src=ssSource(d); let html='';
+  for(const k of ORDER){ const sp=byKey(d,k); const cards=sp?(sp.cards||[]).filter(c=>!c.bad):[]; const launched=cards.length>0; const hasss=cards.some(c=>realMoney(c.money).length>0); const isSrc=(k===src);
+    let cls='smseg'; if(!launched)cls+=' smoff'; else if(hasss)cls+=' smss'; else cls+=' smon'; if(isSrc)cls+=' smsrc';
+    const tip=(SMLET[k]||k)+(hasss?' - с/с внесена':(launched?' - запущен, с/с нет':' - не запущен'))+(isSrc?' · источник итоговой с/с':'');
+    html+='<span class="'+cls+'" title="'+esc(tip)+'">'+esc(SMLET[k]||k)+'</span>'; }
+  return '<td class="smcell">'+html+'</td>';
+}
+// Σ с/с с цветовой гистограммой готовности
+function ssCell(d,ss){ const r=readiness(d);
+  return '<td class="num" title="с/с за партию · '+esc(r.txt)+'">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+' <span class="rdbar '+r.cls+'"><i></i><i></i><i></i></span></td>';
+}
+// разворот сделки - панель: по каждому изделию с/с по смартам со ссылками
+function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
+  if(izd.length){
+    inner+='<table class="ptab"><tr><th>Изделие (НС/артикул)</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMLET[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
+    for(const g of izd){ const cells=ORDER.map(k=>{ const e=g.sp[k];
+        if(e&&e.vB) return '<td class="num cell-g"><a href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">'+fmt(e.vB)+'</a></td>';
+        if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
+        return '<td class="num cell-o">·</td>'; }).join('');
+      const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
+      inner+='<tr><td class="pnm" title="'+esc(g.nm||'')+'"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span> '+esc(cleanNm(g.nm).slice(0,50))+'</td><td class="num">'+(g.qty?g.qty+' шт':'')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td></tr>'; }
+    inner+='</table>';
+  }
+  if(svc.length){ inner+='<div class="pusl"><b>Услуги:</b> '+svc.map(p=>esc(p.name)+' - '+fmt((+p.price||0)*(+p.qty||0))).join(' · ')+'</div>'; }
+  if(!izd.length&&!svc.length) inner='<div class="pusl">изделий с артикулом в карточках нет'+(d.sps.length?' (смарты запущены, артикул не заполнен)':'; смарты не запущены')+'</div>';
+  return '<tr class="detail"><td colspan="'+COLS.length+'"><div class="pwrap">'+inner+'</div></td></tr>';
+}
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
   const m=d.budget-ss;
@@ -418,17 +474,17 @@ const sumRows=rs=>rs.reduce((a,p)=>a+(+p.price||0)*(+p.qty||0),0);
 const svcSum=d=>sumRows(svcRows(d));
 const goodsQty=d=>goodRows(d).reduce((a,p)=>a+(+p.qty||0),0);
 const goodsPos=d=>goodRows(d).length;
-const spN=ORDER.length, SP0=6;
+const spN=ORDER.length; // ORDER всё ещё нужен для цепочки «Смарты» и панели разворота
+const I_SM=6; // одна колонка «Смарты» вместо 7 колонок СП
 // «Позиций» = число наименований (товарных строк). «Штук» = суммарное количество изделий.
-const COLS=['Сделка','Название','Менеджер','Этап','Создана','Тип',...ORDER.map(k=>SHORT[k]||k),'Услуги ₽','Бюджет','Позиций','Штук','Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
-const I_SVC=SP0+spN, I_BUD=SP0+spN+1, I_POS=SP0+spN+2, I_QTY=SP0+spN+3, I_SS=SP0+spN+4, I_MRG=SP0+spN+5, I_MPCT=SP0+spN+6, I_COV=SP0+spN+7, I_STAT=SP0+spN+8;
-// фиксированные ширины колонок (table-layout:fixed) - чтобы таблица влезала без горизонтального скролла
-// порядок: Сделка,Название,Менеджер,Этап,Создана,Тип,[СП×7],Услуги,Бюджет,Позиций,Штук,Σсс,Маржа,Маржин%,Полнота,Статус
-const COLW=[52,98,94,86,62,90,...ORDER.map(()=>44),60,80,50,44,58,86,64,72,84];
+const COLS=['Сделка','Название','Менеджер','Этап','Создана','Тип','Смарты','Услуги ₽','Бюджет','Позиций','Штук','Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
+const I_SVC=7, I_BUD=8, I_POS=9, I_QTY=10, I_SS=11, I_MRG=12, I_MPCT=13, I_COV=14, I_STAT=15;
+// порядок: Сделка,Название,Менеджер,Этап,Создана,Тип,Смарты,Услуги,Бюджет,Позиций,Штук,Σсс,Маржа,Маржин%,Полнота,Статус
+const COLW=[56,180,110,92,64,96,112,64,84,52,46,66,90,66,74,88];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return (d.assort||'').toLowerCase();
-  if(i>=SP0&&i<SP0+spN){ const c=spCost(byKey(d,ORDER[i-SP0])); return c?(c.empty?-1:c.v):-2; }
+  if(i===I_SM)return readiness(d).lvl;
   if(i===I_SVC)return svcSum(d);
   if(i===I_BUD)return d.budget;
   if(i===I_POS)return goodsPos(d);
@@ -470,7 +526,7 @@ function head(){ const tbl=document.getElementById('tbl'); const oc=tbl.querySel
     thead.innerHTML='<tr id="htr"></tr><tr id="ftr" class="frow">'+COLS.map((h,i)=>'<td>'+fcell(i)+'</td>').join('')+'</tr>';
     wireFilters(); syncStage();
   }
-  document.getElementById('htr').innerHTML=COLS.map((h,i)=>'<th class="'+((i>=SP0&&i!==I_COV&&i!==I_STAT)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
+  document.getElementById('htr').innerHTML=COLS.map((h,i)=>'<th class="'+([I_SVC,I_BUD,I_POS,I_QTY,I_SS,I_MRG,I_MPCT].includes(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('');
   document.querySelectorAll('#htr th').forEach(th=>th.addEventListener('click',()=>{ const i=+th.dataset.i; if(i===sortIdx)sortDir=-sortDir; else{sortIdx=i;sortDir=(i===0?-1:1);} head(); render(); })); }
 
 // ячейка СП на уровне сделки: точки по товарам в этом смарте (одна на карточку).
@@ -669,7 +725,7 @@ function renderTotals(list){
     +'<td>ИТОГО '+list.length+'</td>'
     +'<td></td><td></td><td></td><td></td>'
     +'<td></td>'
-    +ORDER.map(()=>'<td></td>').join('')
+    +'<td></td>'
     +'<td class="num">'+fmt(svc)+'</td>'
     +'<td class="num">'+fmt(bud)+'</td>'
     +'<td class="num">'+pos+'</td>'
@@ -699,18 +755,18 @@ function render(){
       +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
       +'<td class="num">'+ruD(d.created)+'</td>'
       +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
-      +ORDER.map(k=>cellSP(d,k)).join('')
+      +smartCell(d)
       +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(bs?('бюджет сформирован смартом: '+(BUDNAME[bs.tag]||bs.tag)+' ('+fmt(bs.v)+')'):'бюджет проставлен вручную, ни один смарт его не формировал')+'">'+fmt(d.budget)+(bs?' <span class="bsrc">'+bs.tag+'</span>':'')+'</td>'
       +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
-      +'<td class="num" title="с/с за партию (с/с за шт × кол-во товара)">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+'</td>'
+      +ssCell(d,ss)
       +marginCell(d,ss,marginShown)
       +mpctCell(d)
       +'<td>'+(cv.cls?'<span class="flag '+cv.cls+'">'+esc(cv.t)+'</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td><span class="flag '+(g.cls||'')+'">'+esc(g.t||'')+'</span></td>'
       +'</tr>';
-    if(op){ const izd=izdelia(d); izd.forEach(g=>rows+=izdRow(d,g)); const svc=svcRows(d); if(svc.length)rows+=svcRow(d,svc); if(!izd.length&&!svc.length)rows+=emptyRow(d); }
+    if(op){ rows+=detailRow(d); }
   }
   document.querySelector('#tbl tbody').innerHTML=rows;
   renderTotals(list);
@@ -731,7 +787,7 @@ document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.
   syncStage(); render(); });
 // сворачивание блоков смарт-процессов и метрик (состояние в localStorage)
 function applySect(k,collapsed){ const body=document.getElementById(k+'_body'), h=document.querySelector('.sect[data-sect="'+k+'"]'); if(!body||!h)return; body.style.display=collapsed?'none':''; h.querySelector('.cv').textContent=collapsed?'▸':'▾'; }
-['sp','m'].forEach(k=>{ let c=false; try{c=localStorage.getItem('econ_sect_'+k)==='1';}catch(e){} applySect(k,c); });
+['sp','m'].forEach(k=>{ let c=true; try{const v=localStorage.getItem('econ_sect_'+k); if(v!==null)c=(v==='1');}catch(e){} applySect(k,c); }); // по умолчанию свёрнуто
 document.querySelectorAll('.sect').forEach(h=>h.addEventListener('click',()=>{ const k=h.dataset.sect, body=document.getElementById(k+'_body'); const collapse=body.style.display!=='none'; applySect(k,collapse); try{localStorage.setItem('econ_sect_'+k,collapse?'1':'0');}catch(e){} }));
 sortIdx=I_COV; sortDir=-1; // старт: сделки с заполненной с/с (горящие точки, разворот) - сверху
 head(); render();

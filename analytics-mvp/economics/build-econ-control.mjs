@@ -113,8 +113,12 @@ h3{font-size:12px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04
 .dsep{color:var(--ink-4)}
 .cnt{color:var(--ink-3);font-size:12px;margin-left:auto}
 .scrollx{overflow:auto;max-height:74vh;border:1px solid var(--border);border-radius:12px}
-table{border-collapse:collapse;width:100%;font-size:12px;min-width:1380px}
-th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+table{border-collapse:collapse;width:100%;font-size:11px;min-width:0;table-layout:fixed}
+th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.mp-grn{background:rgba(60,170,110,.20);color:#82dcaa}
+.mp-wht{background:rgba(200,205,215,.09);color:var(--ink-1)}
+.mp-red{background:rgba(214,92,110,.22);color:#ec93a4}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
 th:hover{color:var(--ink)} th .ar{color:var(--accent);font-size:10px}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -208,7 +212,8 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
       <tr><td>Услуги ₽</td><td>сумма строк-услуг по <b>цене клиента</b> (не себестоимость). Слова: <i>доставка, монтаж, логистика, сборка, подъём, пронос, разгрузка, замер, установка, услуга, пэк</i>. В скобках - сколько строк</td></tr>
       <tr><td>Кальк. Расчёт Закупка Произв. Сборка Логист. Монтаж</td><td>точки = карточки смарт-процесса; зелёная точка = с/с внесена. В развороте число с/с - ссылка на карточку смарта</td></tr>
       <tr><td>Σ с/с</td><td>себестоимость за партию (с/с за штуку × количество товара)</td></tr>
-      <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях + маржинальность (маржа / бюджет). Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
+      <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях. Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
+      <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>зелёный</b> - выше верхней трети по портфелю, <b>белый</b> - середина, <b>красный</b> - ниже нижней трети или убыток. Пороги считаются по фактическим данным</td></tr>
       <tr><td>Бюджет (тег К/Р)</td><td>каким смартом сформирован бюджет: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = бюджет вбит вручную</td></tr>
       <tr><td>Тип</td><td>тип ассортимента из поля сделки Bitrix (чип в «Название»)</td></tr>
       <tr><td>Полнота с/с</td><td>доля смартов с внесённой с/с по сделке</td></tr>
@@ -260,15 +265,26 @@ const BUDNAME={'Р':'Расчёт','К':'Калькулятор','З':'Заку�
 function budgetSrc(d){ for(const [k,tag] of BUDPRIO){ const sp=byKey(d,k); if(!sp)continue; let v=0; for(const c of (sp.cards||[]))for(const m of (c.money||[]))if(BUDF.test(m.label))v=Math.max(v,m.value||0); if(v>0)return {tag,v}; } return null; }
 function marginCell(d,ss,marginShown){
   if(!(marginShown&&ss)) return '<td class="num" title="маржа считается со стадии производства"><span class="cell-o">-</span></td>';
-  const m=d.budget-ss; const pct=d.budget>0?Math.round(m/d.budget*100):null;
-  if(m>=0) return '<td class="num" title="бюджет за партию − с/с за партию · маржинальность = маржа / бюджет">'+fmt(m)+(pct!==null?' <span class="mpct">'+pct+'%</span>':'')+'</td>';
+  const m=d.budget-ss;
+  if(m>=0) return '<td class="num" title="бюджет за партию − с/с за партию">'+fmt(m)+'</td>';
   const lowPrice=d.budget<=100||d.budget<ss*0.05;
   const tag=lowPrice?'нет цены':'убыток', fl=lowPrice?'warn':'bad';
-  const tip=lowPrice?('бюджет '+fmt(d.budget)+' не заполнен, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(d.budget)+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать · маржинальность '+pct+'%');
-  // при «нет цены» бюджет≈0 - процент бессмысленный, не показываем
-  const lossPct=(!lowPrice&&pct!==null)?' <span class="mpct dn">'+pct+'%</span>':'';
-  return '<td class="num" title="'+esc(tip)+'"><span class="cell-dn">'+fmt(m)+'</span>'+lossPct+' <span class="flag '+fl+'">'+tag+'</span></td>';
+  const tip=lowPrice?('бюджет '+fmt(d.budget)+' не заполнен, а с/с '+fmt(ss)+' есть - минус ложный, проставить цену'):('цена '+fmt(d.budget)+' ниже с/с '+fmt(ss)+' - убыток по данным, разобрать');
+  return '<td class="num" title="'+esc(tip)+'"><span class="cell-dn">'+fmt(m)+'</span> <span class="flag '+fl+'">'+tag+'</span></td>';
 }
+// маржинальность % = (бюджет − Σ с/с)/бюджет. null там, где маржа не считается или «нет цены»
+function marginPctVal(d){ const pr=spCost(byKey(d,'Производство  GG')); const marginShown=(pr&&!pr.empty)||prodRankOf(d)>=5;
+  const ss=prodSS(d); if(!(marginShown&&ss)||!(d.budget>0))return null;
+  if(d.budget<=100||d.budget<ss*0.05)return null; // «нет цены» - процент бессмысленный
+  return Math.round((d.budget-ss)/d.budget*100); }
+// пороги подсветки - терцили по фактическим данным (адаптивно): красный низ, белый середина, зелёный верх
+const MPCTS=DATA.deals.map(marginPctVal).filter(v=>v!==null&&v>=0).sort((a,b)=>a-b);
+const MPCT_LO=MPCTS.length?MPCTS[Math.floor(MPCTS.length/3)]:0, MPCT_HI=MPCTS.length?MPCTS[Math.floor(MPCTS.length*2/3)]:0;
+function mpctCell(d){ const mv=marginPctVal(d);
+  if(mv===null)return '<td class="num"><span class="cell-o">-</span></td>';
+  const cls=mv<0?'mp-red':mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-wht';
+  const tip='маржинальность '+mv+'% · пороги по данным: красный <'+MPCT_LO+'%, белый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%';
+  return '<td class="num mp '+cls+'" title="'+esc(tip)+'">'+mv+'%</td>'; }
 function rankOf(d){ return RANK[d.stage]!==undefined?RANK[d.stage]:2; }
 function prodRankOf(d){ return PROD[d.stage]||0; }
 // полнота с/с: сколько карточек с с/с против числа позиций
@@ -334,19 +350,24 @@ const goodsQty=d=>goodRows(d).reduce((a,p)=>a+(+p.qty||0),0);
 const goodsPos=d=>goodRows(d).length;
 const spN=ORDER.length, SP0=9;
 // «Позиций» = число наименований (товарных строк). «Штук» = суммарное количество изделий.
-const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Позиций','Штук','Услуги ₽',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Полнота с/с','Статус'];
-const I_SS=SP0+spN, I_MRG=SP0+spN+1, I_COV=SP0+spN+2, I_STAT=SP0+spN+3;
+const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Позиций','Штук','Услуги ₽',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
+const I_SS=SP0+spN, I_MRG=SP0+spN+1, I_MPCT=SP0+spN+2, I_COV=SP0+spN+3, I_STAT=SP0+spN+4;
+// фиксированные ширины колонок (table-layout:fixed) - чтобы таблица влезала без горизонтального скролла
+const COLW=[52,172,98,84,62,78,50,44,60,...ORDER.map(()=>42),56,88,62,72,88];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
   if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return goodsPos(d); if(i===7)return goodsQty(d); if(i===8)return svcSum(d);
   if(i>=SP0&&i<SP0+spN){ const c=spCost(byKey(d,ORDER[i-SP0])); return c?(c.empty?-1:c.v):-2; }
   if(i===I_SS)return prodSS(d);
   if(i===I_MRG){ const pr=spCost(byKey(d,'Производство  GG')); return (pr&&!pr.empty)||prodRankOf(d)>=5? d.budget-prodSS(d) : -1e15; }
+  if(i===I_MPCT){ const mv=marginPctVal(d); return mv===null?-1e15:mv; }
   if(i===I_COV)return coverage(d).r;
   if(i===I_STAT)return rankOf(d);
   return 0;
 }
-function head(){ document.querySelector('#tbl thead').innerHTML='<tr>'+COLS.map((h,i)=>'<th class="'+((i>=5&&i!==I_COV&&i!==I_STAT)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('')+'</tr>';
+function head(){ const tbl=document.getElementById('tbl'); const oc=tbl.querySelector('colgroup'); if(oc)oc.remove();
+  tbl.insertAdjacentHTML('afterbegin','<colgroup>'+COLW.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>');
+  document.querySelector('#tbl thead').innerHTML='<tr>'+COLS.map((h,i)=>'<th class="'+((i>=5&&i!==I_COV&&i!==I_STAT)?'num':'')+'" data-i="'+i+'">'+esc(h)+(i===sortIdx?' <span class="ar">'+(sortDir>0?'▲':'▼')+'</span>':'')+'</th>').join('')+'</tr>';
   document.querySelectorAll('#tbl thead th').forEach(th=>th.addEventListener('click',()=>{ const i=+th.dataset.i; if(i===sortIdx)sortDir=-sortDir; else{sortIdx=i;sortDir=(i===0?-1:1);} head(); render(); })); }
 
 // ячейка СП на уровне сделки: точки по товарам в этом смарте (одна на карточку).
@@ -416,6 +437,7 @@ function izdRow(d,g){
     +spCells
     +'<td class="num" title="'+esc(ssTip)+'">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td>'
     +'<td class="num cell-o">-</td>'
+    +'<td class="num cell-o">-</td>'
     +'<td>'+cov+'</td>'
     +'<td></td>'
     +'</tr>';
@@ -429,7 +451,7 @@ function svcRow(d,svc){ const sum=sumRows(svc);
     +'<td></td>'
     +'<td class="num cell-g">'+fmt(sum)+'</td>'
     +ORDER.map(()=>'<td class="num cell-o">·</td>').join('')
-    +'<td class="num cell-o">-</td><td class="num cell-o">-</td><td></td><td></td></tr>'; }
+    +'<td class="num cell-o">-</td><td class="num cell-o">-</td><td class="num cell-o">-</td><td></td><td></td></tr>'; }
 // строка-заглушка, когда в карточках нет изделий с артикулом
 function emptyRow(d){ return '<tr class="izd"><td class="izcol">↳</td><td colspan="'+(COLS.length-1)+'" class="iname">изделий с артикулом в карточках нет'+(d.sps.length?' (смарты запущены, артикул не заполнен)':'; смарты не запущены')+'</td></tr>'; }
 
@@ -514,6 +536,7 @@ function render(){
       +ORDER.map(k=>cellSP(d,k)).join('')
       +'<td class="num" title="с/с за партию (с/с за шт × кол-во товара)">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+'</td>'
       +marginCell(d,ss,marginShown)
+      +mpctCell(d)
       +'<td>'+(cv.cls?'<span class="flag '+cv.cls+'">'+esc(cv.t)+'</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td><span class="flag '+(g.cls||'')+'">'+esc(g.t||'')+'</span></td>'
       +'</tr>';

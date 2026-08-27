@@ -84,6 +84,10 @@ h1{font-size:21px;margin:0 0 4px}
 .sm{background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
 .smv{font-size:17px;font-weight:800;color:var(--ink-1);font-variant-numeric:tabular-nums}
 .sml{font-size:11px;color:var(--ink-3);margin-top:2px}
+.smsub{color:var(--ink-2);font-weight:700}
+.sm-ok{border-color:rgba(60,170,110,.4)}.sm-ok .smsub{color:#82dcaa}
+.sm-lo{border-color:rgba(214,92,110,.45)}.sm-lo .smsub{color:#ec93a4}
+.ctype{color:var(--ink-2);font-size:10.5px}
 .kt{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;transition:border-color .1s}
 .kt:hover{border-color:var(--accent)} .kt.act{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .kt .v{font-size:20px;font-weight:800;line-height:1.1} .kt .l{font-size:11px;color:var(--ink-2);margin-top:3px}
@@ -184,13 +188,19 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .dtab{width:100%;border-collapse:collapse;margin-bottom:6px}
 .dtab th{text-align:left;color:var(--ink-3);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px}
 .dtab td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:top}
-.dtab td:first-child{color:var(--ink-1);white-space:nowrap;font-weight:600;padding-right:10px}
+.dtab td:first-child{color:var(--ink-1);font-weight:600;padding-right:10px}
+.drawer table{table-layout:fixed;width:100%;min-width:0}
+.drawer th,.drawer td{white-space:normal !important;overflow:visible;text-overflow:clip;word-break:break-word;max-width:none}
+.dtab td:first-child,.dtab th:first-child{width:40%}
+.frtab td:first-child,.frtab th:first-child{width:56%}
+.frtab .frp{width:15%}.frtab .frs{width:29%}
+.dbody{overflow-x:hidden}
 .dtab i{font-style:normal;color:var(--ink-1)}.dtab b{color:var(--ink-1)}
 .frsp{margin:12px 0 3px;color:var(--ink-1);font-weight:700;font-size:12px}
 .frtab td{font-size:11px;padding:3px 6px}
 .frtab td:first-child{white-space:normal;font-weight:400;color:var(--ink-2)}
-.frtab .frp{color:var(--ink-3);text-align:right;white-space:nowrap}
-.frtab .frs{color:var(--ink-3);white-space:nowrap}
+.frtab .frp{color:var(--ink-3);text-align:right}
+.frtab .frs{color:var(--ink-3)}
 .fr-ok .frs{color:#82dcaa}.fr-ok td:first-child{color:var(--ink-1)}
 .fr-no{opacity:.6}.fr-no .frs{color:#ec93a4}
 .frlg{display:inline-block;padding:0 6px;border-radius:4px;font-size:10px;margin-left:2px}
@@ -387,15 +397,15 @@ const sumRows=rs=>rs.reduce((a,p)=>a+(+p.price||0)*(+p.qty||0),0);
 const svcSum=d=>sumRows(svcRows(d));
 const goodsQty=d=>goodRows(d).reduce((a,p)=>a+(+p.qty||0),0);
 const goodsPos=d=>goodRows(d).length;
-const spN=ORDER.length, SP0=9;
+const spN=ORDER.length, SP0=10;
 // «Позиций» = число наименований (товарных строк). «Штук» = суммарное количество изделий.
-const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Позиций','Штук','Услуги ₽',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
+const COLS=['Сделка','Название','Менеджер','Этап','Создана','Бюджет','Позиций','Штук','Услуги ₽','Тип',...ORDER.map(k=>SHORT[k]||k),'Σ с/с','Маржа','Маржин.%','Полнота','Статус'];
 const I_SS=SP0+spN, I_MRG=SP0+spN+1, I_MPCT=SP0+spN+2, I_COV=SP0+spN+3, I_STAT=SP0+spN+4;
 // фиксированные ширины колонок (table-layout:fixed) - чтобы таблица влезала без горизонтального скролла
-const COLW=[52,172,98,84,62,78,50,44,60,...ORDER.map(()=>42),56,88,62,72,88];
+const COLW=[50,150,90,80,60,74,48,42,58,88,...ORDER.map(()=>42),54,84,60,68,80];
 function sortVal(d,i){
   if(i===0)return d.id; if(i===1)return (d.title||'').toLowerCase(); if(i===2)return (d.mgr||'').toLowerCase();
-  if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return goodsPos(d); if(i===7)return goodsQty(d); if(i===8)return svcSum(d);
+  if(i===3)return rankOf(d); if(i===4)return d.created||''; if(i===5)return d.budget; if(i===6)return goodsPos(d); if(i===7)return goodsQty(d); if(i===8)return svcSum(d); if(i===9)return (d.assort||'').toLowerCase();
   if(i>=SP0&&i<SP0+spN){ const c=spCost(byKey(d,ORDER[i-SP0])); return c?(c.empty?-1:c.v):-2; }
   if(i===I_SS)return prodSS(d);
   if(i===I_MRG){ const pr=spCost(byKey(d,'Производство  GG')); return (pr&&!pr.empty)||prodRankOf(d)>=5? d.budget-prodSS(d) : -1e15; }
@@ -473,6 +483,7 @@ function izdRow(d,g){
     +'<td></td>'
     +'<td class="num">'+(g.qty?g.qty+' <span class="cell-o">шт</span>':'')+'</td>'
     +'<td></td>'
+    +'<td></td>'
     +spCells
     +'<td class="num" title="'+esc(ssTip)+'">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td>'
     +'<td class="num cell-o">-</td>'
@@ -489,6 +500,7 @@ function svcRow(d,svc){ const sum=sumRows(svc);
     +'<td class="num">'+svc.length+'</td>'
     +'<td></td>'
     +'<td class="num cell-g">'+fmt(sum)+'</td>'
+    +'<td></td>'
     +ORDER.map(()=>'<td class="num cell-o">·</td>').join('')
     +'<td class="num cell-o">-</td><td class="num cell-o">-</td><td class="num cell-o">-</td><td></td><td></td></tr>'; }
 // строка-заглушка, когда в карточках нет изделий с артикулом
@@ -539,19 +551,26 @@ function renderKPI(base){
 }
 // денежная сводка по текущей выборке (реагирует на фильтры и диапазон дат)
 function renderSummary(base){
-  let bud=0,svc=0,ss=0,mrg=0,budM=0,mCnt=0;
-  for(const d of base){ bud+=d.budget||0; svc+=svcSum(d); const s=prodSS(d); if(s)ss+=s;
+  const n=base.length;
+  let bud=0,budN=0,svc=0,svcCnt=0,ss=0,ssCnt=0,mrg=0,budM=0,mCnt=0;
+  for(const d of base){ if(d.budget>0){bud+=d.budget;budN++;}
+    const sv=svcSum(d); if(sv){svc+=sv;svcCnt++;}
+    const s=prodSS(d); if(s){ss+=s;ssCnt++;}
     const pr=spCost(byKey(d,'Производство  GG')); const shown=(pr&&!pr.empty)||prodRankOf(d)>=5;
     if(shown&&s){ mrg+=(d.budget-s); budM+=d.budget; mCnt++; } }
   const mpct=budM>0?Math.round(mrg/budM*100):null;
-  const tile=(l,v,tip)=>'<div class="sm" title="'+esc(tip||'')+'"><div class="smv">'+v+'</div><div class="sml">'+esc(l)+'</div></div>';
+  const pc=x=>n?Math.round(100*x/n)+'%':'0%';
+  const tile=(l,v,sub,cls,tip)=>'<div class="sm'+(cls?' '+cls:'')+'" title="'+esc(tip||'')+'"><div class="smv">'+v+'</div><div class="sml">'+esc(l)+(sub?' <span class="smsub">'+esc(sub)+'</span>':'')+'</div></div>';
   document.getElementById('sums').innerHTML=
-    tile('сделок',base.length,'в выборке с учётом фильтров и дат')
-    +tile('Σ бюджет',fmt(bud),'сумма бюджетов выборки')
-    +tile('Σ услуги',fmt(svc),'доставка/монтаж/замер по цене клиента')
-    +tile('Σ с/с',fmt(ss),'себестоимость за партию по выборке')
-    +tile('Σ маржа',fmt(mrg),'бюджет − с/с там, где маржа считается ('+mCnt+' сделок)')
-    +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'Σ маржа / Σ бюджет по '+mCnt+' сделкам с расчётом');
+    tile('сделок',n,'','','всего в выборке (фильтры + даты)')
+    +tile('бюджет есть',budN,pc(budN),'sm-ok','сделок с ценой - на них считается доход')
+    +tile('с/с есть',ssCnt,pc(ssCnt),ssCnt/(n||1)<0.3?'sm-lo':'sm-ok','сделок с посчитанной с/с - ТОЛЬКО на них репрезентативны затраты и маржа')
+    +tile('услуги есть',svcCnt,pc(svcCnt),'','сделок с доставкой/монтажом/замером')
+    +tile('Σ бюджет',fmt(bud),'','','доход по '+budN+' сделкам с ценой')
+    +tile('Σ услуги',fmt(svc),'','','по '+svcCnt+' сделкам')
+    +tile('Σ с/с',fmt(ss),'','','затраты по '+ssCnt+' сделкам с с/с')
+    +tile('Σ маржа',fmt(mrg),'','','по '+mCnt+' сделкам, где есть и цена, и с/с')
+    +tile('маржин-ть',(mpct!==null?mpct+'%':'-'),'','','Σ маржа / Σ бюджет по '+mCnt+' сделкам');
 }
 function matchQuick(d){ if(!quick)return true; if(quick==='hasss')return classify(d)!=='noss'; return classify(d)===quick; }
 function renderByStage(base){
@@ -580,7 +599,7 @@ function render(){
     const goods=goodRows(d), svc=svcRows(d), gQty=goodsQty(d), sSum=svcSum(d);
     rows+='<tr class="drow" data-id="'+d.id+'">'
       +'<td><span class="exp">'+(op?'▾':'▸')+'</span> <a href="'+dealUrl(d.id)+'" target="_blank" onclick="event.stopPropagation()">'+d.id+'</a></td>'
-      +'<td title="'+esc(d.title+(d.assort?' · тип: '+d.assort:''))+'">'+esc((d.title||'').slice(0,38))+(d.assort?' <span class="atype">'+esc(d.assort)+'</span>':'')+'</td>'
+      +'<td title="'+esc(d.title)+'">'+esc((d.title||'').slice(0,38))+'</td>'
       +'<td>'+esc(d.mgr||'')+'</td>'
       +'<td><span class="st">'+esc(d.stage||'')+'</span></td>'
       +'<td class="num">'+ruD(d.created)+'</td>'
@@ -588,6 +607,7 @@ function render(){
       +'<td class="num" title="наименований (товарных строк): '+goods.length+'">'+(goods.length?goods.length:'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(goods.map(p=>p.name+' x'+p.qty).join('; ').slice(0,300))+'">'+(goods.length?gQty+' <span class="cell-o">шт</span>':'<span class="cell-o">-</span>')+'</td>'
       +'<td class="num" title="'+esc(svc.map(p=>p.name+' '+fmt((+p.price||0)*(+p.qty||0))).join('; ').slice(0,300))+'">'+(svc.length?'<span class="cell-g">'+fmt(sSum)+'</span> <span class="cell-o">('+svc.length+')</span>':'<span class="cell-o">-</span>')+'</td>'
+      +'<td class="ctype" title="'+esc(d.assort||'')+'">'+(d.assort?esc(d.assort):'<span class="cell-o">-</span>')+'</td>'
       +ORDER.map(k=>cellSP(d,k)).join('')
       +'<td class="num" title="с/с за партию (с/с за шт × кол-во товара)">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+'</td>'
       +marginCell(d,ss,marginShown)

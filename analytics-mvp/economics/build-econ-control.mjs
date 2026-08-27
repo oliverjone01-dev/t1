@@ -142,6 +142,7 @@ table{border-collapse:collapse;width:100%;font-size:11px;min-width:0;table-layou
 th,td{padding:5px 6px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
 .mp-grn{background:rgba(60,170,110,.20);color:#82dcaa}
+.mp-yel{background:rgba(217,164,65,.20);color:#e6c069}
 .mp-wht{background:rgba(200,205,215,.09);color:var(--ink-1)}
 .mp-red{background:rgba(214,92,110,.22);color:#ec93a4}
 th{position:sticky;top:0;background:var(--elev);z-index:2;font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none}
@@ -270,7 +271,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
       <tr><td>Кальк. Расчёт Закупка Произв. Сборка Логист. Монтаж</td><td>точки = карточки смарт-процесса; зелёная точка = с/с внесена. В развороте число с/с - ссылка на карточку смарта</td></tr>
       <tr><td>Σ с/с</td><td>себестоимость за партию (с/с за штуку × количество товара)</td></tr>
       <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях. Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
-      <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>красный</b> ниже 50%, <b>белый</b> 50-70%, <b>зелёный</b> выше 70%</td></tr>
+      <tr><td>Маржин.%</td><td>маржинальность (маржа / бюджет) с подсветкой: <b>красный</b> ниже 20%, <b>жёлтый</b> 20-50%, <b>зелёный</b> выше 50%</td></tr>
       <tr><td>Бюджет (тег К/Р)</td><td>каким смартом сформирован бюджет: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = бюджет вбит вручную</td></tr>
       <tr><td>Тип</td><td>тип ассортимента из поля сделки Bitrix (чип в «Название»)</td></tr>
       <tr><td>Полнота с/с</td><td>доля смартов с внесённой с/с по сделке</td></tr>
@@ -342,11 +343,11 @@ function marginPctVal(d){ const pr=spCost(byKey(d,'Производство  GG'
   if(d.budget<=100||d.budget<ss*0.05)return null; // «нет цены» - процент бессмысленный
   return Math.round((d.budget-ss)/d.budget*100); }
 // пороги подсветки - терцили по фактическим данным (адаптивно): красный низ, белый середина, зелёный верх
-const MPCT_LO=50, MPCT_HI=70; // фиксированные пороги: красный <50%, белый 50-70%, зелёный >70%
+const MPCT_LO=20, MPCT_HI=50; // фиксированные пороги: красный <20%, жёлтый 20-50%, зелёный >50%
 function mpctCell(d){ const mv=marginPctVal(d);
   if(mv===null)return '<td class="num"><span class="cell-o">-</span></td>';
-  const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-wht';
-  const tip='маржинальность '+mv+'% · красный <'+MPCT_LO+'%, белый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%';
+  const cls=mv<MPCT_LO?'mp-red':mv>MPCT_HI?'mp-grn':'mp-yel';
+  const tip='маржинальность '+mv+'% · красный <'+MPCT_LO+'%, жёлтый '+MPCT_LO+'-'+MPCT_HI+'%, зелёный >'+MPCT_HI+'%';
   return '<td class="num mp '+cls+'" title="'+esc(tip)+'">'+mv+'%</td>'; }
 function rankOf(d){ return RANK[d.stage]!==undefined?RANK[d.stage]:2; }
 function prodRankOf(d){ return PROD[d.stage]||0; }

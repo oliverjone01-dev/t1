@@ -145,6 +145,22 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .bsrc{font-size:9.5px;padding:0 4px;border-radius:4px;background:rgba(120,150,120,.16);border:1px solid rgba(120,150,120,.32);color:var(--ink-2);font-weight:700}
 .note{color:var(--ink-3);font-size:11.5px;line-height:1.55;max-width:1300px;margin:2px 0 12px;padding:8px 10px;background:var(--elev);border:1px solid var(--border);border-radius:8px}
 .note b{color:var(--ink-2)}.note i{color:var(--ink-2);font-style:normal}
+.burger{position:fixed;top:12px;right:14px;z-index:60;cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-2);background:var(--elev);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+.burger:hover{color:var(--ink-1);border-color:var(--accent)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s;z-index:70}
+.scrim.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,92vw);background:var(--bg-1,#0b0f16);border-left:1px solid var(--border);box-shadow:-12px 0 30px rgba(0,0,0,.4);transform:translateX(100%);transition:transform .24s ease;z-index:80;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.dhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;color:var(--ink-1)}
+.dx{cursor:pointer;background:none;border:none;color:var(--ink-3);font-size:16px}.dx:hover{color:var(--ink-1)}
+.dbody{overflow:auto;padding:12px 16px 24px;color:var(--ink-2);font-size:12px;line-height:1.55}
+.dbody p{margin:4px 0 10px}
+.dsub{margin:14px 0 4px !important;color:var(--ink-1)}
+.dtab{width:100%;border-collapse:collapse;margin-bottom:6px}
+.dtab th{text-align:left;color:var(--ink-3);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--border);font-size:11px}
+.dtab td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+.dtab td:first-child{color:var(--ink-1);white-space:nowrap;font-weight:600;padding-right:10px}
+.dtab i{font-style:normal;color:var(--ink-1)}.dtab b{color:var(--ink-1)}
 .detail td{background:#0E141C;padding:12px 16px;white-space:normal}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .dh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:0 0 6px}
@@ -155,6 +171,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .foot{color:var(--ink-3);font-size:11.5px;margin-top:16px;max-width:1300px}
 </style></head>
 <body><div class="wrap">
+<button class="burger" id="burger" title="Инструкция: как читать таблицу" aria-label="Инструкция">☰ инструкция</button>
 <h1>Контроль экономики сделок</h1>
 <p class="ver">Воронка «GG Заказы РФ» (49) · с/с и Маржа - за партию (с/с за шт × кол-во) · обновлено <span id="gen"></span></p>
 
@@ -180,7 +197,31 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 <h3>Ключевые метрики (клик - фильтр таблицы)</h3>
 <div class="kpi" id="kpi"></div>
 <div class="byst" id="byst"></div>
-<p class="note"><b>Колонки-подсказки.</b> <b>Услуги ₽</b> - сумма товарных строк-услуг по цене клиента (не себестоимость): распознаются по словам <i>доставка, монтаж, логистика, сборка, подъём, пронос, разгрузка, замер, установка, услуга, пэк</i>; в скобках - сколько строк. Разверните сделку (▸) - внизу строка «Услуги» с расшифровкой каждой. <b>Маржа</b> - рубли + маржинальность (маржа / бюджет). <b>Тип</b> - тип ассортимента из поля сделки. <b>Бюджет из</b> - каким смартом сформирован бюджет: К - Калькулятор, Р - Расчёт, З - Закупка и т.д.</p>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Инструкция">
+  <div class="dhead"><b>Как читать таблицу</b><button class="dx" id="drawerX" aria-label="Закрыть">✕</button></div>
+  <div class="dbody">
+    <table class="dtab">
+      <tr><th>Колонка</th><th>Что значит</th></tr>
+      <tr><td>Позиций</td><td>наименований (товарных строк) в сделке</td></tr>
+      <tr><td>Штук</td><td>суммарное количество изделий по всем позициям</td></tr>
+      <tr><td>Услуги ₽</td><td>сумма строк-услуг по <b>цене клиента</b> (не себестоимость). Слова: <i>доставка, монтаж, логистика, сборка, подъём, пронос, разгрузка, замер, установка, услуга, пэк</i>. В скобках - сколько строк</td></tr>
+      <tr><td>Кальк. Расчёт Закупка Произв. Сборка Логист. Монтаж</td><td>точки = карточки смарт-процесса; зелёная точка = с/с внесена. В развороте число с/с - ссылка на карточку смарта</td></tr>
+      <tr><td>Σ с/с</td><td>себестоимость за партию (с/с за штуку × количество товара)</td></tr>
+      <tr><td>Маржа</td><td>бюджет − Σ с/с, в рублях + маржинальность (маржа / бюджет). Убыток красным. «нет цены» - бюджет ≈ 0, минус ложный</td></tr>
+      <tr><td>Бюджет (тег К/Р)</td><td>каким смартом сформирован бюджет: <b>Р</b> Расчёт, <b>К</b> Калькулятор, З Закупка, Пр Производство, Сб Сборка, Л Логистика. Нет тега = бюджет вбит вручную</td></tr>
+      <tr><td>Тип</td><td>тип ассортимента из поля сделки Bitrix (чип в «Название»)</td></tr>
+      <tr><td>Полнота с/с</td><td>доля смартов с внесённой с/с по сделке</td></tr>
+      <tr><td>Статус</td><td>гейт: ок / КП без расчёта / в произв., с/с нет / провалена и т.п.</td></tr>
+    </table>
+    <p class="dsub"><b>Разворот сделки (▸)</b></p>
+    <p>Строки изделий - по НС-коду (единый номер изделия). У каждой своё количество и ссылки на карточки Расчёта / Производства / Сборки. Отдельная строка «Услуги» - расшифровка доставки / монтажа / замера.</p>
+    <p class="dsub"><b>Что НЕ входит в Σ с/с</b></p>
+    <p>Показана цеховая металло-себестоимость. Вне её: административные накладные (поле Bitrix «без адм»), сборка, монтаж, доставка. Для изделий со стеклом и монтажом реальная маржа ниже показанной.</p>
+    <p class="dsub"><b>Окно данных</b></p>
+    <p>Воронка «GG Заказы РФ» (49), сделки с 2026-04-01 (после переезда). Обновление - каждые 3 часа.</p>
+  </div>
+</aside>
 
 <div class="scrollx"><table id="tbl"><thead></thead><tbody></tbody></table></div>
 </div>
@@ -483,6 +524,12 @@ function render(){
 }
 document.querySelector('#tbl tbody').addEventListener('click',e=>{ if(e.target.closest('a'))return; const tr=e.target.closest('tr.drow'); if(!tr)return; const id=+tr.dataset.id; if(OPEN.has(id))OPEN.delete(id); else OPEN.add(id); render(); });
 ['q','fstage','fmgr','fassort','dfrom','dto','fnoprod','fgap','fpart'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+const _drawer=document.getElementById('drawer'), _scrim=document.getElementById('scrim');
+function drawerOpen(o){ _drawer.classList.toggle('open',o); _scrim.classList.toggle('open',o); }
+document.getElementById('burger').addEventListener('click',()=>drawerOpen(!_drawer.classList.contains('open')));
+document.getElementById('drawerX').addEventListener('click',()=>drawerOpen(false));
+_scrim.addEventListener('click',()=>drawerOpen(false));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')drawerOpen(false); });
 document.getElementById('kpi').addEventListener('click',e=>{ const t=e.target.closest('.kt'); if(!t)return; const k=t.dataset.q; quick=(quick===k)?'':k; render(); });
 document.getElementById('byst').addEventListener('click',e=>{ const td=e.target.closest('td.bc'); if(!td)return; const s=td.dataset.stage, qk=td.dataset.q||''; const sel=document.getElementById('fstage');
   if(sel.value===s&&quick===qk){ sel.value=''; quick=''; } else { sel.value=s; quick=qk; } render(); });

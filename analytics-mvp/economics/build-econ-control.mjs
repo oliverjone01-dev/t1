@@ -441,7 +441,7 @@ function fcell(i){
 function syncStage(){ const btn=document.getElementById('fcStageBtn'); if(btn)btn.textContent=(stageSet.size?stageSet.size+' этап.':'все')+' ▾';
   const pop=document.getElementById('fcStagePop'); if(pop)pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=stageSet.has(cb.value)); }
 function wireFilters(){
-  ['fcTitle','fcMgr','fcType','fcStat','fcMin_5','fcMin_6','fcMin_7','fcMin_8','fcMin_'+I_SS,'fcMin_'+I_MRG,'fcMin_'+I_MPCT].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',render);});
+  ['fcTitle','fcMgr','fcType','fcStat','fcMin_5','fcMin_6','fcMin_7','fcMin_8','fcMin_'+I_SS,'fcMin_'+I_MRG,'fcMin_'+I_MPCT].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',render);e.addEventListener('change',render);}});
   document.getElementById('ftr').addEventListener('click',e=>e.stopPropagation());
   const pop=document.getElementById('fcStagePop'), btn=document.getElementById('fcStageBtn');
   pop.innerHTML=stageList.map(s=>'<label><input type="checkbox" value="'+esc(s)+'"> '+esc(s)+'</label>').join('')+'<div class="fcpa"><button type="button" id="fcStageClear">сброс</button></div>';

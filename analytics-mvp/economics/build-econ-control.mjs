@@ -220,12 +220,13 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .card-line{color:var(--ink-2);font-size:11.5px;margin:2px 0 2px 10px}
 .foot{color:var(--ink-3);font-size:11.5px;margin-top:16px;max-width:1300px}
 #tbl tfoot td{position:sticky;bottom:0;background:#111a24;border-top:2px solid var(--accent,#4a90d9);font-weight:700;color:var(--ink-1);z-index:5}
-.smcell{white-space:nowrap;line-height:1.4;overflow:visible}
-.smseg{display:inline-block;min-width:15px;text-align:center;font-size:9px;font-weight:700;padding:1px 2px;margin:0 1px 0 0;border-radius:3px;border:1px solid transparent}
-.smoff{color:var(--ink-4);opacity:.4}
-.smon{color:var(--ink-2);border-color:var(--border)}
-.smss{color:#0b0f16;background:#4fb387}
-.smsrc{outline:2px solid #e6c069;outline-offset:1px}
+.smcell{white-space:nowrap;overflow:visible}
+.smbar{display:inline-flex;gap:3px;align-items:center;height:16px}
+.smb{width:6px;height:16px;border-radius:2px;display:inline-block;background:rgba(200,205,215,.12)}
+.smb-off{background:rgba(200,205,215,.10)}
+.smb-on{background:rgba(200,205,215,.42)}
+.smb-ss{background:#4fb387}
+.smb-src{outline:2px solid #e6c069;outline-offset:1px}
 .rdbar{display:inline-flex;gap:1px;vertical-align:middle;margin-left:4px}
 .rdbar i{width:5px;height:11px;background:rgba(200,205,215,.14);border-radius:1px;display:inline-block}
 .rdbar.rd1 i:nth-child(1){background:#d98b45}
@@ -366,10 +367,10 @@ const SMFULL={'Калькулятор GG':'Калькулятор','Расчёт
 function ssSource(d){ if(hasSP(byKey(d,'Производство  GG')))return 'Производство  GG'; if(hasSP(byKey(d,'Расчёт')))return 'Расчёт'; return null; }
 function smartCell(d){ const src=ssSource(d); let html='';
   for(const k of ORDER){ const sp=byKey(d,k); const cards=sp?(sp.cards||[]).filter(c=>!c.bad):[]; const launched=cards.length>0; const hasss=cards.some(c=>realMoney(c.money).length>0); const isSrc=(k===src);
-    let cls='smseg'; if(!launched)cls+=' smoff'; else if(hasss)cls+=' smss'; else cls+=' smon'; if(isSrc)cls+=' smsrc';
-    const tip=(SMLET[k]||k)+(hasss?' - с/с внесена':(launched?' - запущен, с/с нет':' - не запущен'))+(isSrc?' · источник итоговой с/с':'');
-    html+='<span class="'+cls+'" title="'+esc(tip)+'">'+esc(SMLET[k]||k)+'</span>'; }
-  return '<td class="smcell">'+html+'</td>';
+    let cls='smb'; if(!launched)cls+=' smb-off'; else if(hasss)cls+=' smb-ss'; else cls+=' smb-on'; if(isSrc)cls+=' smb-src';
+    const tip=(SMFULL[k]||k)+(hasss?' - с/с внесена':(launched?' - запущен, с/с нет':' - не запущен'))+(isSrc?' · источник итоговой с/с':'');
+    html+='<span class="'+cls+'" title="'+esc(tip)+'"></span>'; }
+  return '<td class="smcell"><span class="smbar">'+html+'</span></td>';
 }
 // Σ с/с с цветовой гистограммой готовности
 function ssCell(d,ss){ const r=readiness(d);

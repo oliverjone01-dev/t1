@@ -47,6 +47,15 @@ h1{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:6px 0 2px}
 .chip.up{background:var(--ok-soft);color:var(--ok)}
 .chip.dn{background:var(--bad-soft);color:var(--bad)}
 .chip.mid{background:var(--warn-soft);color:var(--warn)}
+/* бар фильтра периода (как в РОП-дашборде) */
+.pbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 14px;margin-bottom:16px;font-size:12.5px}
+.pbar .lbl{color:var(--ink3);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pseg{display:inline-flex;background:#eef2f6;border-radius:9px;padding:3px;gap:2px}
+.pseg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
+.pseg button.on{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,26,52,.12)}
+.pbar input[type=date]{border:1px solid var(--line2);border-radius:8px;padding:5px 8px;font:inherit;font-size:12.5px;color:var(--ink)}
+.pbar .ok{border:0;background:var(--blue);color:#fff;font-weight:800;font-size:12.5px;border-radius:8px;padding:6px 14px;cursor:pointer}
+.pbar .pnote{color:var(--ink3);flex-basis:100%;font-size:11.5px}
 /* карточки-секции */
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
 .card h2{font-size:16px;font-weight:800;display:flex;align-items:center;flex-wrap:wrap}
@@ -122,6 +131,8 @@ td.name{font-weight:700;color:var(--ink)}
 
   <div class="note">Каждая цифра помечена: <span class="tagD">ДАННЫЕ</span> - взято из снимка Битрикс24 как есть · <span class="tagC">РАСЧЁТ</span> - арифметика над данными, формула в подсказке «?» · <span class="tagH">ГИПОТЕЗА</span> - допущение, а не факт. Наведите или нажмите на «?» у любого блока - там объяснение простыми словами, что это и откуда взялось (работает и с телефона).</div>
 
+  <div class="pbar" id="pbar"></div>
+
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
@@ -146,8 +157,8 @@ td.name{font-weight:700;color:var(--ink)}
       <div id="trendbox"></div>
     </div>
     <div class="card">
-      <h2>Сколько денег реалистично дожать <span class="tagC">РАСЧЁТ</span><span class="q" data-t="Формула: по каждой открытой сделке недели берём её бюджет из Битрикс24 [ДАННЫЕ] и умножаем на шанс успеха. Шанс = историческая доля выигрыша сделок этой стадии (посчитана на 1000+ сделках с апреля 2026) [ДАННЫЕ], скорректированная движком на поведение по сделке (тишина, дожим, возражения) [ГИПОТЕЗА]. Итог - взвешенная сумма: не обещание, а ориентир.">?</span></h2>
-      <div class="hint">Взвешенная оценка открытого портфеля недели.</div>
+      <h2>Потенциал открытого портфеля <span class="tagC">РАСЧЁТ</span><span class="q" data-t="Формула: по каждой открытой сделке без предоплаты берём её бюджет из Битрикс24 [ДАННЫЕ] и умножаем на шанс успеха. Шанс = историческая доля выигрыша сделок этой стадии (посчитана на 1000+ сделках с апреля 2026) [ДАННЫЕ], скорректированная движком на поведение по сделке (тишина, дожим, возражения) [ГИПОТЕЗА]. Итог - взвешенная сумма на жизненном цикле сделок (недели), а не «к концу месяца»: не обещание, а ориентир.">?</span></h2>
+      <div class="hint" id="fc-hint"></div>
       <div id="forecast"></div>
     </div>
   </div>
@@ -203,31 +214,69 @@ let sortKey='wonRub',sortAsc=false,curQ=null,curMgr=null;
   document.getElementById('foot').innerHTML=`Свод собирается из трёх готовых снимков (диалоги Битрикс24, РОП, план из Google-таблицы). Ничего не вводится вручную и не придумывается: у каждой цифры указано происхождение. Вероятности успеха - историческая статистика стадий [ДАННЫЕ, калибровка ${esc(DATA.calibratedAt||'-')}] с поведенческой поправкой движка [ГИПОТЕЗА].<br>Дизайн - по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным материалам Ozon Design; живой кабинет за логином, прямое сравнение недоступно].`;
 })();
 
+/* ---------- фильтр периода продаж (как в РОП-дашборде) ----------
+   Управляет ТОЛЬКО деньгами продаж: плиткой «Продано», процентом плана и колонками
+   «Продано/Продаж» в таблице. Очереди, рейтинг недели и потенциал портфеля - состояние
+   на последний снимок, к календарному фильтру они не привязаны (и это подписано). */
+const REC=DATA.soldRecs||[];
+const ropDay=(M.ropGenerated||'').slice(0,10)||new Date().toISOString().slice(0,10);
+const dShift=(base,n)=>{const d=new Date(base+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+const PKEYS=[['today','Сегодня'],['yest','Вчера'],['7','7 дн'],['30','30 дн'],['60','60 дн'],['month','Этот месяц']];
+let PERIOD={key:'month',from:(M.month||ropDay.slice(0,7))+'-01',to:ropDay};
+function setPeriod(key,from,to){
+  if(key==='today')PERIOD={key,from:ropDay,to:ropDay};
+  else if(key==='yest'){const y=dShift(ropDay,-1);PERIOD={key,from:y,to:y};}
+  else if(key==='7')PERIOD={key,from:dShift(ropDay,-6),to:ropDay};
+  else if(key==='30')PERIOD={key,from:dShift(ropDay,-29),to:ropDay};
+  else if(key==='60')PERIOD={key,from:dShift(ropDay,-59),to:ropDay};
+  else if(key==='custom'&&from&&to)PERIOD={key,from,to};
+  else PERIOD={key:'month',from:(M.month||ropDay.slice(0,7))+'-01',to:ropDay};
+  renderPBar();renderKPIs();renderTable();armTips();
+}
+function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;if(f&&t&&f<=t)setPeriod('custom',f,t);}
+function periodTitle(){
+  if(PERIOD.key==='month')return 'за '+new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
+  if(PERIOD.key==='today')return 'сегодня';
+  if(PERIOD.key==='yest')return 'вчера';
+  return 'за '+dd(PERIOD.from)+' - '+dd(PERIOD.to);
+}
+const soldSel=()=>REC.filter(r=>r.d>=PERIOD.from&&r.d<=PERIOD.to);
+function renderPBar(){
+  document.getElementById('pbar').innerHTML=
+    `<span class="lbl">Продажи за период</span><span class="pseg">${PKEYS.map(([k,l])=>`<button class="${PERIOD.key===k?'on':''}" onclick="setPeriod('${k}')">${l}</button>`).join('')}</span>
+     <input type="date" id="pfrom" value="${PERIOD.from}"> - <input type="date" id="pto" value="${PERIOD.to}"> <button class="ok" onclick="applyCustom()">ОК</button>
+     <span class="q" data-t="Фильтр управляет плиткой «Продано», процентом плана и колонками «Продано/Продаж» в таблице менеджеров. Дата продажи = день получения предоплаты (правило учёта, как в РОП-дашборде). Глубина данных о продажах на этой странице - ${M.depthDays||180} дней от снимка РОПа. «Сегодня» - по состоянию на момент ночного снимка. Очереди, рейтинг недели и потенциал портфеля - это состояние на последний снимок, фильтр дат на них не влияет.">?</span>
+     <span class="pnote">Очереди и рейтинг - фиксированное окно разбора диалогов ${dd(M.dlgFrom)}-${dd(M.dlgTo)} (последний ночной снимок), фильтр на них не действует.</span>`;
+}
+
 /* ---------- KPI ---------- */
 const OU=DATA.deals.filter(isOU);                                    /* открытые без предоплаты */
 const OPAID=DATA.deals.filter(d=>d.outcome==='open'&&PAIDS.has(d.stageCode)); /* открытые, но предоплата уже есть */
 const OPAIDRUB=OPAID.reduce((s,d)=>s+(d.budget||0),0);
-(function(){
+function renderKPIs(){
   const risk=OU.filter(d=>BADQ.includes(d.uKey));
   const riskRub=risk.reduce((s,d)=>s+(d.budget||0),0);
   const ouRub=OU.reduce((s,d)=>s+(d.budget||0),0);
   const zeroN=risk.filter(d=>!(d.budget>0)).length;
   const wsum=OU.reduce((s,d)=>s+(d.budget||0)*(d.prob||0)/100,0);
+  const sel=soldSel();
+  const done=sel.reduce((s,r)=>s+r.b,0),doneN=sel.length;
+  const isMonth=PERIOD.key==='month';
   const plan=M.planRev;
-  const done=DATA.deptWonRub;
-  const pct=plan?Math.round(done/plan*100):null;
+  const pct=isMonth&&plan?Math.round(done/plan*100):null;
   const monthName=new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
   /* план-выброс: месяц в 1,8+ раза выше обоих соседей - похоже на опечатку или разовую цель,
      до подтверждения владельцем таблицы честно помечаем гипотезой */
   const outlier=plan&&M.planPrev&&M.planNext&&plan>=1.8*M.planPrev&&plan>=1.8*M.planNext;
+  const cyc=M.cycle;
   const k=[
-    {l:'Продано за '+monthName,tag:'D',v:fmtR(done),d:`${nSale(DATA.deptWonN)} · снимок РОПа`,q:'Сумма бюджетов сделок, по которым в этом месяце получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24. Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде).'+(outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),chip:plan?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
-    {l:'План на '+monthName,tag:'D',v:plan?fmtR(plan):'не задан',d:plan?'из Google-таблицы руководителя':'файл плана недоступен',q:'План выручки отдела на месяц из Google-таблицы руководителя (тот же источник, что в РОП-дашборде). Персональные планы по менеджерам в системе не заданы - поэтому мы их не показываем и не выдумываем.'+(outlier?` Внимание: план этого месяца (${fmtR(plan)}) в ${(plan/Math.max(M.planPrev,M.planNext)).toFixed(1).replace('.',',')} раза выше соседних (${fmtR(M.planPrev)} и ${fmtR(M.planNext)}) - до подтверждения владельцем таблицы считаем цифру гипотезой.`:''),chip:outlier?['mid','выброс? соседние месяцы '+fmtR(M.planPrev)+' и '+fmtR(M.planNext)+' [ГИПОТЕЗА]']:null},
-    {l:'Под риском на неделе',tag:'D',v:fmtR(riskRub),d:`${nDeal(risk.length)} · ${ouRub?Math.round(riskRub/ouRub*100):0}% открытого портфеля · ${zeroN} записей с бюджетом 0 ₽`,q:'Сумма бюджетов открытых сделок недели, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.). Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Важно для чтения: очереди помечают большую часть открытого портфеля, а у части записей (в основном лидов) бюджет ещё не проставлен - поэтому приоритизируйте не по числу сделок, а по деньгам внутри очередей.'},
-    {l:'Реалистично дожать',tag:'C',v:fmtR(wsum),d:`портфель ${fmt(OU.length)} открытых сделок без предоплаты`+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:''),q:'РАСЧЁТ: каждая открытая сделка недели БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. Сделки с полученной предоплатой не считаем - они уже в «Продано», иначе одни деньги посчитались бы дважды. Это ориентир, не обещание.'},
+    {l:'Продано '+periodTitle(),tag:'D',v:fmtR(done),d:`${nSale(doneN)} · снимок РОПа`,q:'Сумма бюджетов сделок, по которым в выбранный период получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24. Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде). Период меняется фильтром сверху.'+(isMonth&&outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),chip:pct!=null?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
+    {l:'План на '+monthName,tag:'D',v:plan?fmtR(plan):'не задан',d:plan?(isMonth?'из Google-таблицы руководителя':'планы помесячные · % виден в режиме «Этот месяц»'):'файл плана недоступен',q:'План выручки отдела на месяц из Google-таблицы руководителя (тот же источник, что в РОП-дашборде). Планы заданы помесячно, поэтому процент выполнения показывается только в режиме «Этот месяц». Персональные планы по менеджерам в системе не заданы - мы их не показываем и не выдумываем.'+(outlier?` Внимание: план этого месяца (${fmtR(plan)}) в ${(plan/Math.max(M.planPrev,M.planNext)).toFixed(1).replace('.',',')} раза выше соседних (${fmtR(M.planPrev)} и ${fmtR(M.planNext)}) - до подтверждения владельцем таблицы считаем цифру гипотезой.`:''),chip:outlier?['mid','выброс? соседние месяцы '+fmtR(M.planPrev)+' и '+fmtR(M.planNext)+' [ГИПОТЕЗА]']:null},
+    {l:'Под риском сейчас',tag:'D',v:fmtR(riskRub),d:`${nDeal(risk.length)} · ${ouRub?Math.round(riskRub/ouRub*100):0}% открытого портфеля · ${zeroN} записей с бюджетом 0 ₽`,q:'Сумма бюджетов открытых сделок, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.) по состоянию на последний снимок разбора. Фильтр дат на эту плитку не влияет - это «прямо сейчас», а не за период. Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Приоритизируйте не по числу сделок, а по деньгам внутри очередей: у части записей (в основном лидов) бюджет ещё не проставлен.'},
+    {l:'Потенциал портфеля',tag:'C',v:fmtR(wsum),d:(cyc?`горизонт - цикл сделки: половина предоплат за ${cyc.medD} ${plural(cyc.medD,['день','дня','дней'])}, каждая десятая - дольше ${cyc.p90D} дн`:`портфель ${fmt(OU.length)} открытых сделок без предоплаты`)+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:''),q:'РАСЧЁТ: каждая открытая сделка БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. ВАЖНО: это ожидаемая ценность портфеля на его жизненном цикле, а НЕ сумма «к концу месяца»'+(cyc?` - по факту этого месяца половина продаж приходит к предоплате за ${cyc.medD} ${plural(cyc.medD,['день','дня','дней'])} от создания сделки, но у четверти цикл дольше ${cyc.p75D} дн, у каждой десятой - дольше ${cyc.p90D} дн [ДАННЫЕ, n=${cyc.n}]`:'')+'. Сделки с полученной предоплатой не считаем - они уже в «Продано». Ориентир, не обещание.'},
   ];
   document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x.l}<span class="tag${x.tag}">${x.tag==='D'?'ДАННЫЕ':x.tag==='C'?'РАСЧЁТ':'ГИПОТЕЗА'}</span><span class="q" data-t="${esc(x.q)}">?</span></div><div class="v">${x.v}</div><div class="d">${x.d}</div>${x.chip?`<div class="chip ${x.chip[0]}">${esc(x.chip[1])}</div>`:''}</div>`).join('');
-})();
+}
 
 /* ---------- очереди ---------- */
 /* Плитки считаем прямо из списка сделок (те же сделки, что в KPI «Под риском») -
@@ -269,12 +318,21 @@ function verdict(m){
   return '<span class="pill r">в разборе</span>';
 }
 function renderTable(){
-  const rows=[...DATA.managers].filter(m=>m.role!=='office').sort((a,b)=>{
+  /* продажи в колонках - по выбранному периоду (фильтр сверху), из тех же записей, что плитка «Продано» */
+  const sel=soldSel();
+  const perMgr={};let hidRub=0,hidN=0;const hidNames={};
+  for(const r of sel){
+    if(r.s){(perMgr[r.s]||={rub:0,n:0});perMgr[r.s].rub+=r.b;perMgr[r.s].n++;}
+    else{hidRub+=r.b;hidN++;hidNames[r.m]=(hidNames[r.m]||0)+r.b;}
+  }
+  const rows=[...DATA.managers].filter(m=>m.role!=='office')
+    .map(m=>({...m,wonRub:(perMgr[m.mgr]||{}).rub||0,wonN:(perMgr[m.mgr]||{}).n||0}))
+    .sort((a,b)=>{
     if(sortKey==='mgr')return sortAsc?String(a.mgr).localeCompare(String(b.mgr),'ru'):String(b.mgr).localeCompare(String(a.mgr),'ru');
     const va=a[sortKey]??-1,vb=b[sortKey]??-1;return sortAsc?va-vb:vb-va;});
-  const TH=[['mgr','Менеджер',0],['rating','Рейтинг недели',1],['deals','Диалогов',1],['lossRub','Просадка недели',1],['wonRub','Продано за месяц',1],['wonN','Продаж',1]];
+  const TH=[['mgr','Менеджер',0],['rating','Рейтинг недели',1],['deals','Диалогов',1],['lossRub','Просадка недели',1],['wonRub','Продано '+periodTitle(),1],['wonN','Продаж',1]];
   document.getElementById('mtable').innerHTML=`<thead><tr>
-    ${TH.map(([k,l,r])=>`<th class="${r?'r ':''}${sortKey===k?'sorted':''}" onclick="sortBy('${k}')">${l}${k==='rating'?'<span class=q data-t="Оценка недели 0-5 звёзд по 6 разделам регламента (скорость ответа, квалификация, сроки, вежливость, ведение, результат). Считает движок разбора диалогов по фактам переписки, звонков и дел. Меньше '+(DATA.minSample||10)+' наблюдений - оценки нет, чтобы не судить по случайности.">?</span>':''}${k==='deals'?'<span class=q data-t="Сколько сделок и лидов менеджера попало в недельное окно разбора: по ним были события (переписка, звонки, дела) или они открыты и требуют действий.">?</span>':''}${k==='lossRub'?'<span class=q data-t="РАСЧЁТ: не «потерянные бюджеты целиком», а рублёвая оценка просадки шанса. По каждой сделке с дефектом недели (клиент ждёт, тишина, КП без дожима) движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает эту просадку на бюджет сделки. Сумма таких просадок - эта колонка. Деньги не потеряны навсегда: отработал дефект - вернул шанс.">?</span>':''}${k==='wonRub'?'<span class=q data-t="Продажи менеджера за текущий месяц из ночного снимка РОПа: сделки, дошедшие до предоплаты и дальше. Другой снимок и другое окно, чем у диалогов - поэтому подписано отдельно.">?</span>':''}</th>`).join('')}
+    ${TH.map(([k,l,r])=>`<th class="${r?'r ':''}${sortKey===k?'sorted':''}" onclick="sortBy('${k}')">${l}${k==='rating'?'<span class=q data-t="Оценка недели 0-5 звёзд по 6 разделам регламента (скорость ответа, квалификация, сроки, вежливость, ведение, результат). Считает движок разбора диалогов по фактам переписки, звонков и дел. Меньше '+(DATA.minSample||10)+' наблюдений - оценки нет, чтобы не судить по случайности.">?</span>':''}${k==='deals'?'<span class=q data-t="Сколько сделок и лидов менеджера попало в недельное окно разбора: по ним были события (переписка, звонки, дела) или они открыты и требуют действий.">?</span>':''}${k==='lossRub'?'<span class=q data-t="РАСЧЁТ: не «потерянные бюджеты целиком», а рублёвая оценка просадки шанса. По каждой сделке с дефектом недели (клиент ждёт, тишина, КП без дожима) движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает эту просадку на бюджет сделки. Сумма таких просадок - эта колонка. Деньги не потеряны навсегда: отработал дефект - вернул шанс.">?</span>':''}${k==='wonRub'?'<span class=q data-t="Продажи менеджера за выбранный в фильтре период, из ночного снимка РОПа: сделки, дошедшие до предоплаты и дальше. Другой снимок и другое окно, чем у диалогов - поэтому подписано отдельно. Офисные роли и продавцы вне недельного разбора учтены в строке сверки под таблицей.">?</span>':''}</th>`).join('')}
     <th>Регламент по разделам<span class="q" data-t="6 плиток = 6 разделов регламента: Отклик, Квалификация, Сроки, Вежливость, Ведение, Результат. Зелёная - раздел в порядке (70%+ наблюдений хорошие), жёлтая - середина, красная - западает, серая - мало данных. Наведите на плитку - подробность.">?</span></th><th>Вердикт<span class="q" data-t="ГИПОТЕЗА: пороги вердикта выбраны при постройке свода, в регламенте их нет. 3,5+ звезды - «сильная неделя», от 2,5 до 3,5 - «норма», ниже 2,5 - «в разборе», меньше ${DATA.minSample||10} наблюдений - «мало данных». Обсуждаемо и настраивается.">?</span></th></tr></thead><tbody>
     ${rows.map(m=>`<tr class="mrow" onclick="openMgr('${esc(m.mgr)}')">
       <td class="name">${esc(m.mgr)}</td>
@@ -286,11 +344,17 @@ function renderTable(){
       <td>${sectBar(m)}</td>
       <td>${verdict(m)}</td></tr>`).join('')}
     </tbody>`;
-  const h=DATA.hiddenMgr;
-  const colSum=rows.reduce((s,m)=>s+(m.wonRub||0),0)+(DATA.managers.filter(m=>m.role==='office').reduce((s,m)=>s+(m.wonRub||0),0));
-  document.getElementById('mrecon').innerHTML=(h&&h.n)
-    ?`Сумма по колонке «Продано за месяц» плюс ${fmtR(h.rub)} (${nSale(h.n)}) от ${h.names.length} сотрудников вне недельного разбора диалогов - ${esc(h.names.map(x=>x.name).join(', '))} - даёт ровно плитку «Продано за месяц» наверху. Ничего не спрятано.`
-    :(Math.round(colSum)!==Math.round(DATA.deptWonRub)?'Внимание: сумма колонки не сходится с плиткой отдела - сообщите разработчику.':'Сумма колонки сходится с плиткой «Продано за месяц» наверху.');
+  /* сверка: колонка + офисные роли + продавцы вне разбора = плитка «Продано» за тот же период */
+  const officeRub=DATA.managers.filter(m=>m.role==='office').reduce((s,m)=>s+((perMgr[m.mgr]||{}).rub||0),0);
+  const colSum=rows.reduce((s,m)=>s+(m.wonRub||0),0);
+  const total=sel.reduce((s,r)=>s+r.b,0);
+  const parts=[];
+  if(officeRub)parts.push(`${fmtR(officeRub)} офисных ролей`);
+  if(hidN)parts.push(`${fmtR(hidRub)} (${nSale(hidN)}) от ${Object.keys(hidNames).length} сотрудников вне недельного разбора - ${esc(Object.keys(hidNames).sort((a,b)=>hidNames[b]-hidNames[a]).join(', '))}`);
+  document.getElementById('mrecon').innerHTML=
+    Math.round(colSum+officeRub+hidRub)===Math.round(total)
+    ?`Сумма по колонке «Продано»${parts.length?' плюс '+parts.join(' плюс '):''} даёт ровно плитку «Продано ${esc(periodTitle())}» наверху. Ничего не спрятано.`
+    :'Внимание: сумма колонки не сходится с плиткой «Продано» - сообщите разработчику.';
 }
 function sortBy(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=false;}renderTable();armTips();}
 
@@ -438,6 +502,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')tipHide();});
 /* все «?» доступны с клавиатуры */
 function armTips(){for(const el of document.querySelectorAll('.q[data-t]')){el.setAttribute('tabindex','0');el.setAttribute('role','button');el.setAttribute('aria-label','Пояснение');}}
 
-renderQueues();renderTable();armTips();
+renderPBar();renderKPIs();renderQueues();renderTable();armTips();
+(function(){const c=M.cycle;document.getElementById('fc-hint').textContent=c?`Горизонт - жизненный цикл сделок: половина предоплат приходит за ${c.medD} дн от создания, четверть - дольше ${c.p75D} дн, каждая десятая - дольше ${c.p90D} дн [ДАННЫЕ этого месяца, n=${c.n}]. Это не «сумма к концу месяца».`:'Взвешенная оценка открытого портфеля по этапам. Горизонт - жизненный цикл сделок (недели), не конец месяца.';})();
 </script>
 </body></html>

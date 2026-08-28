@@ -62,6 +62,27 @@ ck('в прогнозе нет безымянных этапов',!emptyStageCel
 if(DATA.deals.some(x=>isOU(x)&&!x.stage))ck('записи без этапа оговорены под прогнозом',t('forecast').includes('без этапа'));
 // 7) русские числительные проверяются ниже - по видимому тексту всех страниц разом
 
+// 8) фильтр периодов продаж
+ck('бар фильтра: 6 пресетов',d.querySelectorAll('#pbar .pseg button').length===6);
+ck('бар фильтра: календарные поля',!!d.getElementById('pfrom')&&!!d.getElementById('pto'));
+const recs=DATA.soldRecs||[];
+ck('записи продаж переданы из сборки',recs.length>0);
+const mFrom=DATA.meta.month+'-01',mTo=(DATA.meta.ropGenerated||'').slice(0,10);
+const mSum=recs.filter(r=>r.d>=mFrom&&r.d<=mTo).reduce((s,r)=>s+r.b,0);
+// кросс-источниковая сверка: месячная сумма из per-сделочных записей = deptWonRub из агрегата
+ck('записи продаж сходятся с месячным агрегатом',Math.round(mSum)===Math.round(DATA.deptWonRub),`${mSum} vs ${DATA.deptWonRub}`);
+ck('потенциал портфеля подписан горизонтом',t('kpis').includes('Потенциал портфеля')&&!t('kpis').includes('Реалистично дожать'));
+ck('горизонт цикла сделки виден',!DATA.meta.cycle||t('kpis').includes('цикл сделки'));
+dom.window.eval("setPeriod('7')");
+ck('фильтр «7 дн» переключился',dom.window.eval('PERIOD.key')==='7');
+const from7=dom.window.eval('PERIOD.from');
+const sum7=recs.filter(r=>r.d>=from7&&r.d<=mTo).reduce((s,r)=>s+r.b,0);
+const kpiV=d.querySelector('#kpis .kpi .v').textContent;
+ck('плитка «Продано» пересчиталась за 7 дн',kpiV===dom.window.eval(`fmtR(${Math.round(sum7)})`),`${kpiV} vs ${sum7}`);
+ck('в режиме 7 дн процент плана скрыт (планы помесячные)',!d.querySelectorAll('#kpis .kpi')[0].querySelector('.chip'));
+ck('сверка под таблицей сходится в режиме 7 дн',t('mrecon').includes('Ничего не спрятано'));
+dom.window.eval("setPeriod('month')");
+ck('возврат в режим месяца',dom.window.eval('PERIOD.key')==='month'&&t('kpis').includes('Продано за'));
 ck('дизайн-дисклеймер Ozon виден в подвале',t('foot').includes('Ozon')&&t('foot').includes('ГИПОТЕЗА'));
 
 // --- интерактив ---

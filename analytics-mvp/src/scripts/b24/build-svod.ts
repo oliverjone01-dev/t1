@@ -44,6 +44,28 @@ for (const d of rop.deals || []) {
   (monthAgg[d.mgr] ||= { wonN: 0, wonRub: 0 });
   monthAgg[d.mgr].wonN++; monthAgg[d.mgr].wonRub += d.budget || 0;
 }
+
+// --- Пер-сделочные записи продаж за последние 180 дней - для фильтра периодов на фронте.
+// Каждая запись: имя в РОПе (m), имя в разборе диалогов (s, null если менеджера там нет),
+// дата предоплаты (d), бюджет (b). Глубже 180 дней СВОД не показывает - подписано на странице.
+const DEPTH_DAYS = 180;
+const depthCut = new Date(new Date(ropGen || Date.now()).getTime() - DEPTH_DAYS * 864e5).toISOString().slice(0, 10);
+// (soldRecs собираются ниже, после managers - нужен маппинг имён)
+
+// --- Цикл сделки создание -> предоплата, только по датам ИЗ ИСТОРИИ стадий (fallback на
+// created дал бы фиктивные нули). Считаем по продажам текущего месяца.
+const histSoldDate = (d: any) => { for (const h of (d.hist || [])) if (SOLD.has(h[0])) return h[1]; return null; };
+const cycles: number[] = [];
+for (const d of rop.deals || []) {
+  if (!isSold(d)) continue;
+  const hd = histSoldDate(d);
+  if (!hd || String(hd).slice(0, 7) !== MONTH) continue;
+  const days = (new Date(hd).getTime() - new Date(d.created).getTime()) / 864e5;
+  if (days >= 0) cycles.push(days);
+}
+cycles.sort((a, b) => a - b);
+const q = (p: number) => cycles.length ? Math.round(cycles[Math.min(cycles.length - 1, Math.floor(cycles.length * p))]) : null;
+const cycle = cycles.length >= 20 ? { medD: q(0.5), p75D: q(0.75), p90D: q(0.9), n: cycles.length } : null;
 const deptWonRub = Object.values(monthAgg).reduce((s, x) => s + x.wonRub, 0);
 const deptWonN = Object.values(monthAgg).reduce((s, x) => s + x.wonN, 0);
 
@@ -67,6 +89,21 @@ const managers = (sc.managers as any[]).map((m) => {
 // диалогов (другой отдел, уволенные, разовые). Отдаём фронту явно, чтобы сумма колонки
 // «Продано за месяц» сходилась с плиткой отдела до копейки - без «дыры» в цифрах.
 const hiddenNames = Object.keys(monthAgg).filter((n) => !(sc.managers as any[]).some((m) => sameName(m.mgr, n)));
+
+// Записи продаж для фильтра периодов (см. DEPTH_DAYS выше)
+const scoredByRop: Record<string, string | null> = {};
+const scoredName = (ropName: string) => {
+  if (ropName in scoredByRop) return scoredByRop[ropName];
+  const hit = (sc.managers as any[]).find((m) => sameName(m.mgr, ropName));
+  return (scoredByRop[ropName] = hit ? hit.mgr : null);
+};
+const soldRecs: { m: string; s: string | null; d: string; b: number }[] = [];
+for (const d of rop.deals || []) {
+  if (!isSold(d)) continue;
+  const sd = String(soldDate(d) || "").slice(0, 10);
+  if (!sd || sd < depthCut) continue;
+  soldRecs.push({ m: d.mgr, s: scoredName(d.mgr), d: sd, b: d.budget || 0 });
+}
 const hiddenMgr = {
   n: hiddenNames.reduce((s, n) => s + monthAgg[n].wonN, 0),
   rub: hiddenNames.reduce((s, n) => s + monthAgg[n].wonRub, 0),
@@ -87,13 +124,14 @@ const DATA = {
   meta: {
     dlgFrom: dlg.from, dlgTo: dlg.to, dlgDays: dlg.days, dlgGenerated: dlg.generatedAt,
     ropGenerated: ropGen, month: MONTH, planRev, planPrev, planNext,
+    cycle, depthDays: DEPTH_DAYS,
     planSource: plan ? "Google-таблица руководителя (plan.json)" : null,
     portal: dlg.portal, scope: dlg.scope,
   },
   sections: sc.sections, deptMedians: sc.deptMedians, metricDefs: sc.metricDefs,
   baseRates: sc.baseRates, calibratedAt: sc.calibratedAt, baseFallback: sc.baseFallback,
   minSample: sc.minSample, queues: sc.queues, aiDemo: sc.aiDemo,
-  managers, deals, deptWonRub, deptWonN, hiddenMgr,
+  managers, deals, deptWonRub, deptWonN, hiddenMgr, soldRecs,
   trend: trend.days || [],
 };
 

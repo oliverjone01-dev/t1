@@ -40,6 +40,8 @@ traces/**/kostya*
 kostya-overrides/
 PASSWORDS.local.json
 analytics-mvp/public/platform/
+# СВОД (песочница диалогов): собирается CI на лету, локальная сборка - черновик
+analytics-mvp/public/svod.html
 
 # Библиотека отдела продаж (контур 1A) собирается на деплое из build-library.mjs,
 # локальная сборка в public/ это черновик и в git не идёт.

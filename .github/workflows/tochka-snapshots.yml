@@ -47,25 +47,6 @@ jobs:
         with:
           node-version: "22"
 
-      - name: DIAG2 (временно) - проверка секретов второго доступа Точки
-        env:
-          A: ${{ secrets.TOCHKA2_TOKEN }}
-          B: ${{ secrets.TOCHKA2_CLIENT_ID }}
-          C: ${{ secrets.TOCHKA_2_TOKEN }}
-          D: ${{ secrets.TOCHKA_IP_TOKEN }}
-          E: ${{ secrets.TOCHKA2 }}
-          F: ${{ secrets.TOCHKA_TOKEN2 }}
-          G: ${{ secrets.TOCHKA2_CLIENT }}
-        run: |
-          set -euo pipefail
-          declare -A N=( [A]=TOCHKA2_TOKEN [B]=TOCHKA2_CLIENT_ID [C]=TOCHKA_2_TOKEN [D]=TOCHKA_IP_TOKEN [E]=TOCHKA2 [F]=TOCHKA_TOKEN2 [G]=TOCHKA2_CLIENT )
-          echo "=== Проверка секретов второго доступа Точки ==="
-          for k in A B C D E F G; do
-            v="${!k:-}"
-            if [ -n "$v" ]; then echo "::add-mask::$v"; echo "  ${N[$k]}: SET (длина ${#v})"; else echo "  ${N[$k]}: empty"; fi
-          done
-          echo "=== конец ==="
-
       - name: Маскировка кредов и выбор контура (прод/песочница)
         run: |
           set -euo pipefail

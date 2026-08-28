@@ -455,6 +455,25 @@ jobs:
           cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/v1.html"
           echo "v1 backup доступен в /rop-preview/v1.html из ветки $ROP_PREVIEW_REF"
 
+      # === РОП ЭКСПЕРИМЕНТЫ (песочница Ивана, в /rop-experiments/) ===
+      # Личная копия Диминого проекта для экспериментов Ивана (ветка dima-dashboard-experiments,
+      # отрезана от rop-dashboard-v1 2026-08-28). Ни /rop/ (эталон Димы), ни /rop-preview/ (v2)
+      # не затрагиваются. continue-on-error - падение песочницы не валит остальной сайт.
+      - name: Build ROP experiments (isolated, /rop-experiments/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin dima-dashboard-experiments
+          git worktree add /tmp/rop-exp FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop-experiments"
+          # если в песочнице собран v2 - он главный, иначе Димин v1
+          if [ -f /tmp/rop-exp/analytics-mvp/public/rop-command-v2.html ]; then
+            cp /tmp/rop-exp/analytics-mvp/public/rop-command-v2.html "$GITHUB_WORKSPACE/_site/rop-experiments/index.html"
+          else
+            cp /tmp/rop-exp/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-experiments/index.html"
+          fi
+          echo "Песочница опубликована в /rop-experiments/ из ветки dima-dashboard-experiments"
+
       - uses: actions/configure-pages@v5
         with:
           enablement: true

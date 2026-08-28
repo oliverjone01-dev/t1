@@ -48,8 +48,13 @@ const deptWonRub = Object.values(monthAgg).reduce((s, x) => s + x.wonRub, 0);
 const deptWonN = Object.values(monthAgg).reduce((s, x) => s + x.wonN, 0);
 
 // План месяца из Google-таблицы (rev). Персональных планов в системе НЕТ - и мы их не выдумываем.
-const planRow = plan && Array.isArray(plan.months) ? plan.months.find((m: any) => m.month === MONTH) : null;
-const planRev = planRow ? planRow.rev : null;
+// Соседние месяцы отдаём тоже: фронт показывает предупреждение, если план месяца резко
+// выбивается из ряда (например 20 млн между 10 и 7,5) - такое надо сверять с владельцем таблицы.
+const months: any[] = plan && Array.isArray(plan.months) ? plan.months : [];
+const mIdx = months.findIndex((m: any) => m.month === MONTH);
+const planRev = mIdx >= 0 ? months[mIdx].rev : null;
+const planPrev = mIdx > 0 ? months[mIdx - 1].rev : null;
+const planNext = mIdx >= 0 && months[mIdx + 1] ? months[mIdx + 1].rev : null;
 
 // --- managers: scoring + продажи месяца ---
 const managers = (sc.managers as any[]).map((m) => {
@@ -57,6 +62,16 @@ const managers = (sc.managers as any[]).map((m) => {
   const mm = key ? monthAgg[key] : { wonN: 0, wonRub: 0 };
   return { ...m, wonN: mm.wonN, wonRub: mm.wonRub };
 });
+
+// Продавцы, у которых есть продажи месяца в rop.json, но которых нет в недельном разборе
+// диалогов (другой отдел, уволенные, разовые). Отдаём фронту явно, чтобы сумма колонки
+// «Продано за месяц» сходилась с плиткой отдела до копейки - без «дыры» в цифрах.
+const hiddenNames = Object.keys(monthAgg).filter((n) => !(sc.managers as any[]).some((m) => sameName(m.mgr, n)));
+const hiddenMgr = {
+  n: hiddenNames.reduce((s, n) => s + monthAgg[n].wonN, 0),
+  rub: hiddenNames.reduce((s, n) => s + monthAgg[n].wonRub, 0),
+  names: hiddenNames.map((n) => ({ name: n, rub: monthAgg[n].wonRub })).sort((a, b) => b.rub - a.rub),
+};
 
 // --- deals: только поля, нужные СВОДу (страница лёгкая, события не тащим) ---
 const deals = (sc.deals as any[]).map((d) => ({
@@ -71,14 +86,14 @@ const deals = (sc.deals as any[]).map((d) => ({
 const DATA = {
   meta: {
     dlgFrom: dlg.from, dlgTo: dlg.to, dlgDays: dlg.days, dlgGenerated: dlg.generatedAt,
-    ropGenerated: ropGen, month: MONTH, planRev,
+    ropGenerated: ropGen, month: MONTH, planRev, planPrev, planNext,
     planSource: plan ? "Google-таблица руководителя (plan.json)" : null,
     portal: dlg.portal, scope: dlg.scope,
   },
   sections: sc.sections, deptMedians: sc.deptMedians, metricDefs: sc.metricDefs,
   baseRates: sc.baseRates, calibratedAt: sc.calibratedAt, baseFallback: sc.baseFallback,
   minSample: sc.minSample, queues: sc.queues, aiDemo: sc.aiDemo,
-  managers, deals, deptWonRub, deptWonN,
+  managers, deals, deptWonRub, deptWonN, hiddenMgr,
   trend: trend.days || [],
 };
 

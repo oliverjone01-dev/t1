@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>liveedit: демо интерфейса</title>
+<!--
+  Стенд оформления модуля. Нужен, чтобы смотреть панель и тулбар без боевого
+  проекта: на боевом они прячутся за паролем, шифром и логином, и одна правка
+  в CSS проверяется десятью минутами кликов.
+
+  Открывать так:
+    python3 -m http.server 8099   (из папки smm/public)
+    /liveedit/demo.html            тёмная страница
+    /liveedit/demo.html?light=1    светлая страница
+
+  Хранилище локальное, сервер не нужен. Кнопка «Насыпать версий» кладёт
+  историю с разным возрастом, подписями и разным числом отличий: без этого
+  карточки не показывают ни относительное время, ни склонения.
+-->
+<style>
+  :root{
+    --page:#0B0C0F; --page-ink:#EDEEF1; --page-mut:#9AA0A8; --page-line:rgba(255,255,255,.1);
+    /* Так проект подключает свой акцент. Одна строка, оба модуля. */
+    --le-accent:#C7FF39; --le-accent-ink:#0B1004;
+  }
+  :root.light{
+    --page:#FBFBFC; --page-ink:#14161A; --page-mut:#5B616B; --page-line:rgba(0,0,0,.12);
+    --le-accent:#2B6BE4; --le-accent-ink:#FFFFFF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--page-ink);
+    font:16px/1.6 ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+  #doc{max-width:760px;margin:0 auto;padding:56px 24px 160px}
+  h1{font-size:clamp(1.9rem,5vw,2.8rem);line-height:1.1;letter-spacing:-.02em;margin:0 0 18px}
+  h2{font-size:1.35rem;margin:38px 0 12px}
+  p{margin:0 0 14px;color:var(--page-mut)}
+  p.lead{color:var(--page-ink);font-size:1.05rem}
+  table{width:100%;border-collapse:collapse;margin:18px 0}
+  th,td{border:1px solid var(--page-line);padding:9px 11px;text-align:left;font-size:14px}
+  th{color:var(--page-ink)}
+  td{color:var(--page-mut)}
+  .bar{position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;flex-wrap:wrap}
+  .bar button{background:transparent;border:1px solid var(--page-line);color:var(--page-ink);
+    border-radius:999px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;
+    line-height:1;min-height:32px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div id="doc" data-doc="demo">
+  <h1>Стенд оформления модуля правки</h1>
+  <p class="lead">Эта страница существует ради двух панелей: тулбара в правом нижнем углу и истории версий. Текст здесь настоящий ровно настолько, чтобы по нему можно было кликнуть и проверить правку.</p>
+
+  <h2>Что проверять глазами</h2>
+  <p>Заголовок панели читается, а не сливается с фоном. Дата версии стоит первой строкой карточки, рядом с ней возраст словами. Кнопки действий помещаются в одну строку, удаление отжато вправо значком.</p>
+  <p>Переключите тему кнопкой внизу слева. Модуль определяет её по фактическому фону страницы, а не по настройке системы, поэтому цвета обязаны перевернуться сами.</p>
+
+  <h2>Таблица: адресация ячеек</h2>
+  <table>
+    <tr><th>Что</th><th>Как считается адрес</th></tr>
+    <tr><td>Абзац</td><td>документ, секция, тег, хэш текста</td></tr>
+    <tr><td>Ячейка</td><td>то же плюс подпись строки и номер колонки</td></tr>
+    <tr><td>Ручной</td><td>значение data-edit как есть</td></tr>
+  </table>
+</div>
+
+<div class="bar">
+  <button type="button" id="theme">Сменить тему страницы</button>
+  <button type="button" id="seed">Насыпать версий</button>
+  <button type="button" id="wipe">Очистить историю</button>
+</div>
+
+<script>
+  if (/[?&]light=1/.test(location.search)) document.documentElement.classList.add('light');
+
+  document.getElementById('theme').onclick = function () {
+    document.documentElement.classList.toggle('light');
+    // Тема модуля меряется по фону: после смены фона её надо перемерить.
+    if (window.LiveTheme) window.LiveTheme.apply('#doc');
+  };
+
+  // История с разным возрастом. Реальные снимки пишет сам модуль, но
+  // «неделю назад» иначе пришлось бы ждать неделю.
+  document.getElementById('seed').onclick = function () {
+    var st = window.BLOCKEDIT_STATE ? window.BLOCKEDIT_STATE() : { v: 1, blocks: {} };
+    var mins = [1, 47, 190, 60 * 26, 60 * 24 * 6, 60 * 24 * 40];
+    var labels = [null, 'перед откатом', null, 'после правок Ивана', null, 'первая сборка'];
+    var rows = mins.map(function (m, i) {
+      var s = { v: 1, blocks: {} };
+      // Число блоков и число отличий разное у каждой версии: одинаковые цифры
+      // не показали бы ни склонений, ни строки «совпадает с текущей».
+      for (var k = 0; k < 4 + i * 3; k++) s.blocks['demo/b' + k] = 'текст ' + i + '-' + k;
+      return {
+        id: 'demo-' + i, label: labels[i], author: 'Иван',
+        created_at: new Date(Date.now() - m * 60000).toISOString(),
+        snapshot: JSON.stringify(s), crypt: false
+      };
+    });
+    // Локальное хранилище отдаёт список перевёрнутым, свежая версия лежит в
+    // конце массива. Пишем от старой к новой, иначе история встанет вверх ногами.
+    localStorage.setItem('liveedit:versions:demo', JSON.stringify(rows.slice().reverse()));
+    if (window.VERSIONS_RELOAD) window.VERSIONS_RELOAD();
+  };
+
+  document.getElementById('wipe').onclick = function () {
+    localStorage.removeItem('liveedit:versions:demo');
+    localStorage.removeItem('liveedit:blocks:demo');
+    if (window.VERSIONS_RELOAD) window.VERSIONS_RELOAD();
+    if (window.BLOCKEDIT_RELOAD) window.BLOCKEDIT_RELOAD();
+  };
+</script>
+
+<script src="liveedit-init.js" data-doc="demo" data-root="#doc"
+        data-storage="local" data-always="1" data-code="1234" defer></script>
+</body>
+</html>

@@ -430,14 +430,20 @@ jobs:
           set -euo pipefail
           git fetch origin dialog-experiments
           git worktree add /tmp/dlg-exp origin/dialog-experiments
+          # rop.json + plan.json для СВОДа берём из Диминой ветки (ночной синк - свежие продажи и план)
+          git fetch origin rop-dashboard-v1
+          git worktree add /tmp/dlg-rop origin/rop-dashboard-v1
           ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg-exp/analytics-mvp/node_modules
           cd /tmp/dlg-exp/analytics-mvp
           npx tsx src/scripts/b24/build-dialog.ts
+          # СВОД (Диалоги + РОП + План) - главная страница песочницы; разбор диалогов рядом
+          ROP_JSON=/tmp/dlg-rop/analytics-mvp/rop/data/rop.json           PLAN_JSON=/tmp/dlg-rop/analytics-mvp/rop/plan/plan.json             npx tsx src/scripts/b24/build-svod.ts
           mkdir -p "$GITHUB_WORKSPACE/_site/dialog-experiments"
-          cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          cp public/svod.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog-experiments/dialog.html"
           STAMP=$(grep -o 'const BAKED_AT = "[^"]*"' public/dialog.html | head -1 | cut -d'"' -f2)
           printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog-experiments/v.txt"
-          echo "Песочница DIALOG опубликована в /dialog-experiments/, сборка $STAMP"
+          echo "Песочница: СВОД -> /dialog-experiments/, разбор диалогов -> /dialog-experiments/dialog.html (сборка $STAMP)"
 
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.

@@ -233,7 +233,12 @@ function setPeriod(key,from,to){
   else PERIOD={key:'month',from:(M.month||ropDay.slice(0,7))+'-01',to:ropDay};
   renderPBar();renderKPIs();renderTable();armTips();
 }
-function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;if(f&&t&&f<=t)setPeriod('custom',f,t);}
+function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;
+  if(f&&t&&f<=t)setPeriod('custom',f,t);
+  else{const e=document.getElementById('perr');if(e)e.textContent='Диапазон не применён: дата «с» должна быть не позже даты «по», обе заполнены.';}}
+/* граница глубины данных: раньше этой даты записей на странице просто нет */
+const depthFrom=dShift(ropDay,-(M.depthDays||180));
+const snapT=M.ropGenerated?new Date(M.ropGenerated).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
 function periodTitle(){
   if(PERIOD.key==='month')return 'за '+new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
   if(PERIOD.key==='today')return 'сегодня';
@@ -244,7 +249,7 @@ const soldSel=()=>REC.filter(r=>r.d>=PERIOD.from&&r.d<=PERIOD.to);
 function renderPBar(){
   document.getElementById('pbar').innerHTML=
     `<span class="lbl">Продажи за период</span><span class="pseg">${PKEYS.map(([k,l])=>`<button class="${PERIOD.key===k?'on':''}" onclick="setPeriod('${k}')">${l}</button>`).join('')}</span>
-     <input type="date" id="pfrom" value="${PERIOD.from}"> - <input type="date" id="pto" value="${PERIOD.to}"> <button class="ok" onclick="applyCustom()">ОК</button>
+     <input type="date" id="pfrom" value="${PERIOD.from}" min="${depthFrom}" max="${ropDay}"> - <input type="date" id="pto" value="${PERIOD.to}" min="${depthFrom}" max="${ropDay}"> <button class="ok" onclick="applyCustom()">ОК</button> <span id="perr" style="color:var(--bad);font-weight:700"></span>
      <span class="q" data-t="Фильтр управляет плиткой «Продано», процентом плана и колонками «Продано/Продаж» в таблице менеджеров. Дата продажи = день получения предоплаты (правило учёта, как в РОП-дашборде). Глубина данных о продажах на этой странице - ${M.depthDays||180} дней от снимка РОПа. «Сегодня» - по состоянию на момент ночного снимка. Очереди, рейтинг недели и потенциал портфеля - это состояние на последний снимок, фильтр дат на них не влияет.">?</span>
      <span class="pnote">Очереди и рейтинг - фиксированное окно разбора диалогов ${dd(M.dlgFrom)}-${dd(M.dlgTo)} (последний ночной снимок), фильтр на них не действует.</span>`;
 }
@@ -260,20 +265,40 @@ function renderKPIs(){
   const zeroN=risk.filter(d=>!(d.budget>0)).length;
   const wsum=OU.reduce((s,d)=>s+(d.budget||0)*(d.prob||0)/100,0);
   const sel=soldSel();
-  const done=sel.reduce((s,r)=>s+r.b,0),doneN=sel.length;
+  const done=sel.reduce((s,r)=>s+r.b,0),doneN=sel.reduce((s,r)=>s+(r.n||1),0);
   const isMonth=PERIOD.key==='month';
+  /* честность на краях периода: запрос старше глубины данных и «сегодня» до ночного снимка */
+  const beyondAll=PERIOD.to<depthFrom;
+  const beyondPart=!beyondAll&&PERIOD.from<depthFrom;
+  const inclToday=PERIOD.to>=ropDay;
   const plan=M.planRev;
-  const pct=isMonth&&plan?Math.round(done/plan*100):null;
+  const pct=isMonth&&plan&&!beyondAll?Math.round(done/plan*100):null;
   const monthName=new Date((M.month||'2026-01')+'-15').toLocaleString('ru-RU',{month:'long'});
   /* план-выброс: месяц в 1,8+ раза выше обоих соседей - похоже на опечатку или разовую цель,
      до подтверждения владельцем таблицы честно помечаем гипотезой */
   const outlier=plan&&M.planPrev&&M.planNext&&plan>=1.8*M.planPrev&&plan>=1.8*M.planNext;
   const cyc=M.cycle;
   const k=[
-    {l:'Продано '+periodTitle(),tag:'D',v:fmtR(done),d:`${nSale(doneN)} · снимок РОПа`,q:'Сумма бюджетов сделок, по которым в выбранный период получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24. Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде). Период меняется фильтром сверху.'+(isMonth&&outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),chip:pct!=null?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
+    {l:'Продано '+periodTitle(),tag:'D',
+     v:beyondAll?'нет данных':fmtR(done),
+     d:beyondAll?`страница хранит продажи за ${M.depthDays||180} дней - с ${dd(depthFrom)}.${depthFrom.slice(0,4)}`
+       :`${nSale(doneN)} · снимок РОПа`
+        +(beyondPart?` · ЦИФРА НЕПОЛНАЯ: запрошено с ${dd(PERIOD.from)}, данные только с ${dd(depthFrom)}.${depthFrom.slice(0,4)}`:'')
+        +(inclToday?(PERIOD.key==='today'?` · снимок сделан ${snapT} - сегодняшний день ещё не измерен`:` · по снимку ${snapT}`):''),
+     q:'Сумма бюджетов сделок, по которым в выбранный период получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24, глубина данных на странице - '+(M.depthDays||180)+' дней. Снимок делается ночью: «сегодня» до следующего снимка почти всегда покажет ноль - это не «нет продаж», а «день ещё не измерен». Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде). Период меняется фильтром сверху.'+(isMonth&&outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),
+     chip:beyondPart?['dn','период шире глубины данных - сумма занижена']:pct!=null?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
     {l:'План на '+monthName,tag:'D',v:plan?fmtR(plan):'не задан',d:plan?(isMonth?'из Google-таблицы руководителя':'планы помесячные · % виден в режиме «Этот месяц»'):'файл плана недоступен',q:'План выручки отдела на месяц из Google-таблицы руководителя (тот же источник, что в РОП-дашборде). Планы заданы помесячно, поэтому процент выполнения показывается только в режиме «Этот месяц». Персональные планы по менеджерам в системе не заданы - мы их не показываем и не выдумываем.'+(outlier?` Внимание: план этого месяца (${fmtR(plan)}) в ${(plan/Math.max(M.planPrev,M.planNext)).toFixed(1).replace('.',',')} раза выше соседних (${fmtR(M.planPrev)} и ${fmtR(M.planNext)}) - до подтверждения владельцем таблицы считаем цифру гипотезой.`:''),chip:outlier?['mid','выброс? соседние месяцы '+fmtR(M.planPrev)+' и '+fmtR(M.planNext)+' [ГИПОТЕЗА]']:null},
     {l:'Под риском сейчас',tag:'D',v:fmtR(riskRub),d:`${nDeal(risk.length)} · ${ouRub?Math.round(riskRub/ouRub*100):0}% открытого портфеля · ${zeroN} записей с бюджетом 0 ₽`,q:'Сумма бюджетов открытых сделок, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.) по состоянию на последний снимок разбора. Фильтр дат на эту плитку не влияет - это «прямо сейчас», а не за период. Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Приоритизируйте не по числу сделок, а по деньгам внутри очередей: у части записей (в основном лидов) бюджет ещё не проставлен.'},
-    {l:'Потенциал портфеля',tag:'C',v:fmtR(wsum),d:(cyc?`горизонт - цикл сделки: половина предоплат за ${cyc.medD} ${plural(cyc.medD,['день','дня','дней'])}, каждая десятая - дольше ${cyc.p90D} дн`:`портфель ${fmt(OU.length)} открытых сделок без предоплаты`)+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:''),q:'РАСЧЁТ: каждая открытая сделка БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. ВАЖНО: это ожидаемая ценность портфеля на его жизненном цикле, а НЕ сумма «к концу месяца»'+(cyc?` - по факту этого месяца половина продаж приходит к предоплате за ${cyc.medD} ${plural(cyc.medD,['день','дня','дней'])} от создания сделки, но у четверти цикл дольше ${cyc.p75D} дн, у каждой десятой - дольше ${cyc.p90D} дн [ДАННЫЕ, n=${cyc.n}]`:'')+'. Сделки с полученной предоплатой не считаем - они уже в «Продано». Ориентир, не обещание.'},
+    {l:'Потенциал портфеля',tag:'C',v:fmtR(wsum),
+     /* Горизонт подписываем ПО ДЕНЬГАМ, не по числу сделок (урок ФЕНИКС D3): основная
+        сумма потенциала лежит в крупных сделках, а у них цикл в разы длиннее мелочи */
+     d:(function(){
+       if(!cyc||!cyc.big)return `портфель ${fmt(OU.length)} открытых сделок без предоплаты`+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:'');
+       const wBig=OU.filter(x=>(x.budget||0)>=cyc.thr).reduce((s,x)=>s+(x.budget||0)*(x.prob||0)/100,0);
+       const shareBig=wsum?Math.round(wBig/wsum*100):0;
+       return `${shareBig}% суммы - сделки от ${fmtR(cyc.thr)}: половина их предоплат за ${cyc.big.medD} дн, каждая десятая - дольше ${cyc.big.p90D} дн`;
+     })(),
+     q:'РАСЧЁТ: каждая открытая сделка БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. ВАЖНО: это ожидаемая ценность портфеля на его жизненном цикле, а НЕ сумма «к концу месяца».'+(cyc&&cyc.big?` Горизонт по деньгам: основная часть этой суммы - сделки от ${fmtR(cyc.thr)}, у них половина предоплат приходит за ${cyc.big.medD} ${plural(cyc.big.medD,['день','дня','дней'])} от создания, четверть - дольше ${cyc.big.p75D} дн, каждая десятая - дольше ${cyc.big.p90D} дн [ДАННЫЕ этого месяца, n=${cyc.big.n}].`:'')+(cyc&&cyc.small?` Мелкие сделки (до ${fmtR(cyc.thr)}) продаются быстро - половина за ${cyc.small.medD} ${plural(cyc.small.medD,['день','дня','дней'])} [n=${cyc.small.n}] - но их доля в этой сумме мала.`:'')+(OPAID.length?` Ещё ${fmtR(OPAIDRUB)} открытых сделок уже с предоплатой - они в «Продано», сюда не входят.`:'')+' Ориентир, не обещание.'},
   ];
   document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x.l}<span class="tag${x.tag}">${x.tag==='D'?'ДАННЫЕ':x.tag==='C'?'РАСЧЁТ':'ГИПОТЕЗА'}</span><span class="q" data-t="${esc(x.q)}">?</span></div><div class="v">${x.v}</div><div class="d">${x.d}</div>${x.chip?`<div class="chip ${x.chip[0]}">${esc(x.chip[1])}</div>`:''}</div>`).join('');
 }
@@ -322,8 +347,8 @@ function renderTable(){
   const sel=soldSel();
   const perMgr={};let hidRub=0,hidN=0;const hidNames={};
   for(const r of sel){
-    if(r.s){(perMgr[r.s]||={rub:0,n:0});perMgr[r.s].rub+=r.b;perMgr[r.s].n++;}
-    else{hidRub+=r.b;hidN++;hidNames[r.m]=(hidNames[r.m]||0)+r.b;}
+    if(r.s){(perMgr[r.s]||={rub:0,n:0});perMgr[r.s].rub+=r.b;perMgr[r.s].n+=r.n||1;}
+    else{hidRub+=r.b;hidN+=r.n||1;hidNames[r.m]=(hidNames[r.m]||0)+r.b;}
   }
   const rows=[...DATA.managers].filter(m=>m.role!=='office')
     .map(m=>({...m,wonRub:(perMgr[m.mgr]||{}).rub||0,wonN:(perMgr[m.mgr]||{}).n||0}))
@@ -503,6 +528,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')tipHide();});
 function armTips(){for(const el of document.querySelectorAll('.q[data-t]')){el.setAttribute('tabindex','0');el.setAttribute('role','button');el.setAttribute('aria-label','Пояснение');}}
 
 renderPBar();renderKPIs();renderQueues();renderTable();armTips();
-(function(){const c=M.cycle;document.getElementById('fc-hint').textContent=c?`Горизонт - жизненный цикл сделок: половина предоплат приходит за ${c.medD} дн от создания, четверть - дольше ${c.p75D} дн, каждая десятая - дольше ${c.p90D} дн [ДАННЫЕ этого месяца, n=${c.n}]. Это не «сумма к концу месяца».`:'Взвешенная оценка открытого портфеля по этапам. Горизонт - жизненный цикл сделок (недели), не конец месяца.';})();
+(function(){const c=M.cycle;document.getElementById('fc-hint').textContent=(c&&c.big)?`Горизонт по деньгам: основная сумма - в сделках от ${fmtR(c.thr)}, у них половина предоплат за ${c.big.medD} дн от создания, четверть - дольше ${c.big.p75D} дн, каждая десятая - дольше ${c.big.p90D} дн [ДАННЫЕ этого месяца, n=${c.big.n}]. Мелкие (до ${fmtR(c.thr)}) продаются за ${c.small?c.small.medD+' ':''}дн медианно, но денег в них мало. Это не «сумма к концу месяца».`:'Взвешенная оценка открытого портфеля по этапам. Горизонт - жизненный цикл сделок (недели), не конец месяца.';})();
 </script>
 </body></html>

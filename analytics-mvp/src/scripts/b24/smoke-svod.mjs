@@ -68,11 +68,13 @@ ck('бар фильтра: календарные поля',!!d.getElementById('
 const recs=DATA.soldRecs||[];
 ck('записи продаж переданы из сборки',recs.length>0);
 const mFrom=DATA.meta.month+'-01',mTo=(DATA.meta.ropGenerated||'').slice(0,10);
-const mSum=recs.filter(r=>r.d>=mFrom&&r.d<=mTo).reduce((s,r)=>s+r.b,0);
+const mRecs=recs.filter(r=>r.d>=mFrom&&r.d<=mTo);
+const mSum=mRecs.reduce((s,r)=>s+r.b,0);
+ck('число продаж месяца сходится с агрегатом',mRecs.reduce((s,r)=>s+(r.n||1),0)===DATA.deptWonN,`vs ${DATA.deptWonN}`);
 // кросс-источниковая сверка: месячная сумма из per-сделочных записей = deptWonRub из агрегата
 ck('записи продаж сходятся с месячным агрегатом',Math.round(mSum)===Math.round(DATA.deptWonRub),`${mSum} vs ${DATA.deptWonRub}`);
 ck('потенциал портфеля подписан горизонтом',t('kpis').includes('Потенциал портфеля')&&!t('kpis').includes('Реалистично дожать'));
-ck('горизонт цикла сделки виден',!DATA.meta.cycle||t('kpis').includes('цикл сделки'));
+ck('горизонт подписан по деньгам (сделки от порога)',!DATA.meta.cycle?.big||t('kpis').includes('сделки от'));
 dom.window.eval("setPeriod('7')");
 ck('фильтр «7 дн» переключился',dom.window.eval('PERIOD.key')==='7');
 const from7=dom.window.eval('PERIOD.from');
@@ -81,6 +83,12 @@ const kpiV=d.querySelector('#kpis .kpi .v').textContent;
 ck('плитка «Продано» пересчиталась за 7 дн',kpiV===dom.window.eval(`fmtR(${Math.round(sum7)})`),`${kpiV} vs ${sum7}`);
 ck('в режиме 7 дн процент плана скрыт (планы помесячные)',!d.querySelectorAll('#kpis .kpi')[0].querySelector('.chip'));
 ck('сверка под таблицей сходится в режиме 7 дн',t('mrecon').includes('Ничего не спрятано'));
+dom.window.eval("setPeriod('today')");
+ck('«Сегодня»: оговорка «день ещё не измерен»',t('kpis').includes('ещё не измерен'));
+dom.window.eval("setPeriod('custom','2025-01-01','2025-03-01')");
+ck('период вне глубины: «нет данных», не «0 ₽»',d.querySelector('#kpis .kpi .v').textContent.includes('нет данных'));
+dom.window.eval(`setPeriod('custom','2025-06-01',${JSON.stringify(mTo)})`);
+ck('период шире глубины: предупреждение о неполноте',t('kpis').includes('НЕПОЛНАЯ')&&t('kpis').includes('занижена'));
 dom.window.eval("setPeriod('month')");
 ck('возврат в режим месяца',dom.window.eval('PERIOD.key')==='month'&&t('kpis').includes('Продано за'));
 ck('дизайн-дисклеймер Ozon виден в подвале',t('foot').includes('Ozon')&&t('foot').includes('ГИПОТЕЗА'));
@@ -115,7 +123,7 @@ for(const m of DATA.managers){dom.window.eval(`openMgr(${JSON.stringify(m.mgr)})
 ck('нет выдуманной «медианы отдела»',!allText.includes('медиана отдела выше'));
 // ВАЖНО: \b в JS-регексах не работает рядом с кириллицей, поэтому границы - явные
 // пробелы/скобки. Guard проверен мутацией: убери deN() из шаблона - обязан упасть.
-const nHit=/«\s*[N\u041D](?![a-zа-яё0-9])|«[^»]*[\s(][N\u041D](?![a-zа-яё0-9])[^»]*»/i.exec(allText);
+const nHit=/«\s*[N\u041D](?![a-z0-9])(?![\u0430-\u044F\u0451])|«[^»]*[\s(][N\u041D](?![a-z0-9])(?![\u0430-\u044F\u0451])[^»]*»/i.exec(allText);
 ck('нет литерального плейсхолдера N в ярлыках (все личные страницы)',!nHit,nHit&&nHit[0]);
 ck('нет удвоенного «дольше нормы»',!/дольше нормы[^»]{0,5}дольше нормы/.test(allText));
 ck('нет «возвратов мало» без источника',!allText.includes('возвратов мало'));

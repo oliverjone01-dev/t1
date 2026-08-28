@@ -55,17 +55,25 @@ const depthCut = new Date(new Date(ropGen || Date.now()).getTime() - DEPTH_DAYS 
 // --- Цикл сделки создание -> предоплата, только по датам ИЗ ИСТОРИИ стадий (fallback на
 // created дал бы фиктивные нули). Считаем по продажам текущего месяца.
 const histSoldDate = (d: any) => { for (const h of (d.hist || [])) if (SOLD.has(h[0])) return h[1]; return null; };
-const cycles: number[] = [];
+// Урок ФЕНИКС D3: медиана по ЧИСЛУ сделок описывает мелочь, а деньги потенциала лежат
+// в крупных сделках с совсем другим циклом. Считаем два сегмента по порогу бюджета.
+const CYC_THR = 100000;
+const cycBig: number[] = [], cycSmall: number[] = [];
 for (const d of rop.deals || []) {
   if (!isSold(d)) continue;
   const hd = histSoldDate(d);
   if (!hd || String(hd).slice(0, 7) !== MONTH) continue;
   const days = (new Date(hd).getTime() - new Date(d.created).getTime()) / 864e5;
-  if (days >= 0) cycles.push(days);
+  if (days >= 0) ((d.budget || 0) >= CYC_THR ? cycBig : cycSmall).push(days);
 }
-cycles.sort((a, b) => a - b);
-const q = (p: number) => cycles.length ? Math.round(cycles[Math.min(cycles.length - 1, Math.floor(cycles.length * p))]) : null;
-const cycle = cycles.length >= 20 ? { medD: q(0.5), p75D: q(0.75), p90D: q(0.9), n: cycles.length } : null;
+const seg = (arr: number[]) => {
+  if (arr.length < 15) return null;
+  arr.sort((a, b) => a - b);
+  const q = (p: number) => Math.round(arr[Math.min(arr.length - 1, Math.floor(arr.length * p))]);
+  return { medD: q(0.5), p75D: q(0.75), p90D: q(0.9), n: arr.length };
+};
+const big = seg(cycBig), small = seg(cycSmall);
+const cycle = (big || small) ? { thr: CYC_THR, big, small } : null;
 const deptWonRub = Object.values(monthAgg).reduce((s, x) => s + x.wonRub, 0);
 const deptWonN = Object.values(monthAgg).reduce((s, x) => s + x.wonN, 0);
 
@@ -97,13 +105,18 @@ const scoredName = (ropName: string) => {
   const hit = (sc.managers as any[]).find((m) => sameName(m.mgr, ropName));
   return (scoredByRop[ropName] = hit ? hit.mgr : null);
 };
-const soldRecs: { m: string; s: string | null; d: string; b: number }[] = [];
+// Посуточные агрегаты «день × продавец» вместо пер-сделочных записей: фильтр периодов
+// работает по дням, а страница легче в ~20 раз (урок ФЕНИКС D6 - открывают с телефона).
+const recMap: Record<string, { m: string; s: string | null; d: string; b: number; n: number }> = {};
 for (const d of rop.deals || []) {
   if (!isSold(d)) continue;
   const sd = String(soldDate(d) || "").slice(0, 10);
   if (!sd || sd < depthCut) continue;
-  soldRecs.push({ m: d.mgr, s: scoredName(d.mgr), d: sd, b: d.budget || 0 });
+  const key = sd + "|" + d.mgr;
+  (recMap[key] ||= { m: d.mgr, s: scoredName(d.mgr), d: sd, b: 0, n: 0 });
+  recMap[key].b += d.budget || 0; recMap[key].n++;
 }
+const soldRecs = Object.values(recMap).sort((a, b) => a.d < b.d ? -1 : 1);
 const hiddenMgr = {
   n: hiddenNames.reduce((s, n) => s + monthAgg[n].wonN, 0),
   rub: hiddenNames.reduce((s, n) => s + monthAgg[n].wonRub, 0),

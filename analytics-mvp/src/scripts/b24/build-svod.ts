@@ -116,7 +116,16 @@ for (const d of rop.deals || []) {
   (recMap[key] ||= { m: d.mgr, s: scoredName(d.mgr), d: sd, b: 0, n: 0 });
   recMap[key].b += d.budget || 0; recMap[key].n++;
 }
-const soldRecs = Object.values(recMap).sort((a, b) => a.d < b.d ? -1 : 1);
+const soldRecs: any[] = Object.values(recMap).sort((a, b) => a.d < b.d ? -1 : 1);
+
+// Урок ФЕНИКС R2: в истории есть дни массового переноса из старой CRM (05.03.2026 -
+// 12,6 тыс «продаж» разом). Помечаем аномальные дни (продаж в день больше 10 медиан
+// и больше 50 шт) флагом a - фронт предупредит, что сумма за такой период искажена.
+const dayN: Record<string, number> = {};
+for (const r of soldRecs) dayN[r.d] = (dayN[r.d] || 0) + r.n;
+const dayVals = Object.values(dayN).sort((a, b) => a - b);
+const dayMed = dayVals.length ? dayVals[Math.floor(dayVals.length / 2)] : 0;
+for (const r of soldRecs) if (dayN[r.d] > Math.max(50, dayMed * 10)) r.a = 1;
 const hiddenMgr = {
   n: hiddenNames.reduce((s, n) => s + monthAgg[n].wonN, 0),
   rub: hiddenNames.reduce((s, n) => s + monthAgg[n].wonRub, 0),

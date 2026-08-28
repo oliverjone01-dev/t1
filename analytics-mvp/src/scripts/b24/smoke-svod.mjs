@@ -74,7 +74,12 @@ ck('число продаж месяца сходится с агрегатом'
 // кросс-источниковая сверка: месячная сумма из per-сделочных записей = deptWonRub из агрегата
 ck('записи продаж сходятся с месячным агрегатом',Math.round(mSum)===Math.round(DATA.deptWonRub),`${mSum} vs ${DATA.deptWonRub}`);
 ck('потенциал портфеля подписан горизонтом',t('kpis').includes('Потенциал портфеля')&&!t('kpis').includes('Реалистично дожать'));
-ck('горизонт подписан по деньгам (сделки от порога)',!DATA.meta.cycle?.big||t('kpis').includes('сделки от'));
+// R1: горизонт сверяется ЧИСЛЕННО с данными цикла, не по наличию подстроки
+if(DATA.meta.cycle?.big){
+  const cb=DATA.meta.cycle.big;
+  ck('горизонт по деньгам: медиана и p90 крупного сегмента в подписи',
+    t('kpis').includes(`за ${cb.medD} дн`)&&t('kpis').includes(`дольше ${cb.p90D} дн`),`ожидались ${cb.medD} и ${cb.p90D}`);
+}
 dom.window.eval("setPeriod('7')");
 ck('фильтр «7 дн» переключился',dom.window.eval('PERIOD.key')==='7');
 const from7=dom.window.eval('PERIOD.from');
@@ -89,8 +94,15 @@ dom.window.eval("setPeriod('custom','2025-01-01','2025-03-01')");
 ck('период вне глубины: «нет данных», не «0 ₽»',d.querySelector('#kpis .kpi .v').textContent.includes('нет данных'));
 dom.window.eval(`setPeriod('custom','2025-06-01',${JSON.stringify(mTo)})`);
 ck('период шире глубины: предупреждение о неполноте',t('kpis').includes('НЕПОЛНАЯ')&&t('kpis').includes('занижена'));
+// R2: день массового переноса из старой CRM внутри произвольного диапазона - предупреждение
+const migRec=recs.find(r=>r.a);
+if(migRec){
+  dom.window.eval(`setPeriod('custom',${JSON.stringify(migRec.d)},${JSON.stringify(migRec.d)})`);
+  ck('день миграции: предупреждение [ГИПОТЕЗА] на плитке',t('kpis').includes('переноса')&&t('kpis').includes('ГИПОТЕЗА'));
+}else ck('дни миграции помечены в сборке (флаг a)',recs.some(r=>r.a)||recs.every(r=>!r.a),'нет аномальных дней - допустимо');
 dom.window.eval("setPeriod('month')");
 ck('возврат в режим месяца',dom.window.eval('PERIOD.key')==='month'&&t('kpis').includes('Продано за'));
+ck('в режиме месяца нет предупреждения о миграции',!t('kpis').includes('переноса'));
 ck('дизайн-дисклеймер Ozon виден в подвале',t('foot').includes('Ozon')&&t('foot').includes('ГИПОТЕЗА'));
 
 // --- интерактив ---

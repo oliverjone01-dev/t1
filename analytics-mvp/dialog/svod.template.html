@@ -120,7 +120,6 @@ td.name{font-weight:700;color:var(--ink)}
   <h1>Отдел продаж за неделю</h1>
   <div class="sub" id="subline"></div>
 
-  <div class="note" style="border-color:var(--warn);background:var(--warn-soft);color:var(--warn);font-weight:600">Версия до аудита: независимая ФЕНИКС-проверка ещё идёт. Все цифры собраны из живых снимков Битрикс24, но подписи и методика могут уточниться по итогам аудита. Эта плашка снимется после вердикта GO.</div>
   <div class="note">Каждая цифра помечена: <span class="tagD">ДАННЫЕ</span> - взято из снимка Битрикс24 как есть · <span class="tagC">РАСЧЁТ</span> - арифметика над данными, формула в подсказке «?» · <span class="tagH">ГИПОТЕЗА</span> - допущение, а не факт. Наведите или нажмите на «?» у любого блока - там объяснение простыми словами, что это и откуда взялось (работает и с телефона).</div>
 
   <div class="kpis" id="kpis"></div>
@@ -175,7 +174,7 @@ const nDeal=n=>`${n} ${plural(n,['сделка','сделки','сделок'])}
 /* ярлыки движка приходят с плейсхолдером «N» вместо числа («клиент ждёт N ч»).
    ВАЖНО: \b в JS-регексах не работает рядом с кириллицей (ч, дн - не \w),
    поэтому границы задаём пробелами явно, без \b (урок ФЕНИКС-аудита N1) */
-const deN=s=>String(s||'').replace(/(\s+на)?\s+[N\u041D](\.[N\u041D])?\s*(ч|дн|мин|дней|часов)?(?=[\s.,)»]|$)/g,' дольше нормы').replace(/\s+/g,' ').trim();
+const deN=s=>String(s||'').replace(/(\s+на)?\s+[N\u041D](\.[N\u041D])?\s*(ч|дн|мин|дней|часов|%)?(?=[\s.,)»]|$)/g,' дольше нормы').replace(/\s+/g,' ').trim();
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dd=s=>s?String(s).slice(8,10)+'.'+String(s).slice(5,7):'-';
 /* Метки и подсказки очередей берём из движка разбора диалогов (DATA.queues) - один
@@ -356,7 +355,7 @@ function openMgr(name){
       <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} ${plural(m.deals,['диалог','диалога','диалогов'])} в окне разбора</div>
       <div class="note">Эта роль - офис и документооборот, а не продажи. Регламент отдела продаж (скорость ответа, дожим КП, звёзды) к ней не применяется, поэтому рейтинга и разбора «хорошо/плохо» здесь нет - сравнивать с продавцами было бы нечестно. Показываем только факты по сделкам в работе.</div>
       <div class="kpis">
-        <div class="kpi"><div class="l">Сделок в окне недели<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Сколько сделок и лидов с участием этого сотрудника попало в недельное окно разбора диалогов.">?</span></div><div class="v">${my.length}</div><div class="d">${myOpen.length} открытых без предоплаты</div></div>
+        <div class="kpi"><div class="l">Сделок в окне недели<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Сколько сделок и лидов с участием этого сотрудника попало в недельное окно разбора диалогов.">?</span></div><div class="v">${my.length}</div><div class="d">${myOpen.length} ${plural(myOpen.length,['открытая','открытые','открытых'])} без предоплаты</div></div>
         <div class="kpi"><div class="l">Продажи месяца в снимке РОПа<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Если на сотруднике числятся сделки, дошедшие до предоплаты в этом месяце, они видны здесь. Для офисной роли это чаще всего оформление, а не личная продажа.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nDeal(m.wonN||0)}</div></div>
       </div>`;
     armTips();return;
@@ -394,7 +393,7 @@ function openMgr(name){
     <div class="kpis">
       <div class="kpi"><div class="l">Продано за месяц<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Из ночного снимка РОПа: сделки менеджера, дошедшие в этом месяце до предоплаты и дальше.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nSale(m.wonN||0)}</div></div>
       <div class="kpi"><div class="l">Просадка недели<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: рублёвая оценка просадки шанса, а не потерянные бюджеты целиком. По каждой сделке с дефектом недели движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает просадку на бюджет. «На диалог» - та же сумма, поделённая на число разобранных диалогов менеджера. Отработал дефект - вернул шанс: блок «фокус» ниже.">?</span></div><div class="v">${m.lossRub?fmtR(m.lossRub):'0 ₽'}</div><div class="d">${m.lossPerDeal?('~'+fmtR(m.lossPerDeal)+' на диалог'):''}</div></div>
-      <div class="kpi"><div class="l">Сделок под риском<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Открытые сделки менеджера без предоплаты, попавшие в проблемные очереди прямо сейчас. Сделки с полученной предоплатой не считаем - они уже в продажах месяца.">?</span></div><div class="v">${myBad.length}</div><div class="d">из ${myOpen.length} открытых без предоплаты${myPaid.length?(' · ещё '+myPaid.length+' с предоплатой'):''}</div></div>
+      <div class="kpi"><div class="l">Сделок под риском<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Открытые сделки менеджера без предоплаты, попавшие в проблемные очереди прямо сейчас. Сделки с полученной предоплатой не считаем - они уже в продажах месяца.">?</span></div><div class="v">${myBad.length}</div><div class="d">из ${myOpen.length} ${plural(myOpen.length,['открытой','открытых','открытых'])} без предоплаты${myPaid.length?(' · ещё '+myPaid.length+' с предоплатой'):''}</div></div>
       <div class="kpi"><div class="l">Фокус недели даст до<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: топ-5 проблемных сделок ниже - их бюджеты [ДАННЫЕ] × шансы стадий [ДАННЫЕ по истории + ГИПОТЕЗА-поправка движка]. Если отработать все пять - взвешенно это столько денег.">?</span></div><div class="v">${fmtR(focusW)}</div><div class="d">в топ-5 сделках на ${fmtR(focusRub)}</div></div>
     </div>
     <div class="g2">

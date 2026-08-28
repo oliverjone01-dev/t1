@@ -243,4 +243,11 @@ async function main() {
   console.log(`OK ${day}${CFG.sandbox ? " [SANDBOX]" : ""}: счетов ${out.accounts.length}, остаток ${out.balanceTotal.toLocaleString("ru-RU")} ₽, поступлений ${out.incoming.count} на ${out.incoming.total.toLocaleString("ru-RU")} ₽`);
 }
 
-main().catch(e => { console.error(`::error::Синк Точки упал: ${e.message}`); process.exit(1); });
+main().catch(e => {
+  console.error(`::error::Синк Точки упал: ${e.message}`);
+  // Детали сетевой ошибки (fetch failed без HTTP-кода) - код и причина, чтобы понять,
+  // это блокировка IP/DNS/TLS/таймаут. База печатается для контекста (в ней нет секретов).
+  const c = e.cause || {};
+  console.error(`::error::Причина: code=${c.code || "-"} errno=${c.errno || "-"} msg=${c.message || String(e.cause || "-")} | база=${CFG.base}`);
+  process.exit(1);
+});

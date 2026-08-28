@@ -420,6 +420,25 @@ jobs:
           printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog/v.txt"
           echo "DIALOG опубликован в /dialog/, сборка $STAMP"
 
+      # === DIALOG ЭКСПЕРИМЕНТЫ (песочница Ивана, в /dialog-experiments/) ===
+      # Личная копия DIALOG-дашборда для экспериментов Ивана (ветка dialog-experiments,
+      # отрезана от dialog-export-v1 2026-08-28). Боевой /dialog/ не затрагивается.
+      # Та же сборка на деплое (build-dialog.ts + снимок dialog.json из ветки-копии).
+      - name: Build DIALOG experiments (isolated, /dialog-experiments/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin dialog-experiments
+          git worktree add /tmp/dlg-exp origin/dialog-experiments
+          ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg-exp/analytics-mvp/node_modules
+          cd /tmp/dlg-exp/analytics-mvp
+          npx tsx src/scripts/b24/build-dialog.ts
+          mkdir -p "$GITHUB_WORKSPACE/_site/dialog-experiments"
+          cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          STAMP=$(grep -o 'const BAKED_AT = "[^"]*"' public/dialog.html | head -1 | cut -d'"' -f2)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog-experiments/v.txt"
+          echo "Песочница DIALOG опубликована в /dialog-experiments/, сборка $STAMP"
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при

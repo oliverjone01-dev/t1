@@ -50,14 +50,18 @@ for(const k of ['overdue','objection']){
 }
 // 5) план-выброс помечен гипотезой, если месяц в 1,8+ раза выше соседей
 const M2=DATA.meta;
-if(M2.planRev&&M2.planPrev&&M2.planNext&&M2.planRev>=1.8*M2.planPrev&&M2.planRev>=1.8*M2.planNext)
+if(M2.planRev&&M2.planPrev&&M2.planNext&&M2.planRev>=1.8*M2.planPrev&&M2.planRev>=1.8*M2.planNext){
   ck('план-выброс помечен [ГИПОТЕЗА]',t('kpis').includes('выброс')&&t('kpis').includes('ГИПОТЕЗА'));
+  // процент выполнения, посчитанный от спорного плана, не должен светиться зелёным
+  const doneChip=[...d.querySelectorAll('#kpis .kpi')].find(k=>k.textContent.includes('Продано'))?.querySelector('.chip');
+  ck('чип «Продано» не зелёный при спорном плане',!!doneChip&&!doneChip.classList.contains('up')&&doneChip.textContent.includes('ГИПОТЕЗА'));
+}
+// 6) прогноз: нет пустых клеток «Этап», записи без этапа оговорены
+const emptyStageCell=[...d.querySelectorAll('#forecast tbody td:first-child')].some(td=>!td.textContent.trim());
+ck('в прогнозе нет безымянных этапов',!emptyStageCell);
+if(DATA.deals.some(x=>isOU(x)&&!x.stage))ck('записи без этапа оговорены под прогнозом',t('forecast').includes('без этапа'));
+// 7) русские числительные проверяются ниже - по видимому тексту всех страниц разом
 
-// --- запрещённые формулировки (уроки ФЕНИКС-вето) ---
-const body=d.body.textContent;
-ck('нет выдуманной «медианы отдела»',!body.includes('медиана отдела выше'));
-ck('нет литеральной «N» в ярлыках',!/«[^»]*\bN\s*ч\b[^»]*»/.test(body));
-ck('нет «возвратов мало» без источника',!body.includes('возвратов мало'));
 ck('дизайн-дисклеймер Ozon виден в подвале',t('foot').includes('Ozon')&&t('foot').includes('ГИПОТЕЗА'));
 
 // --- интерактив ---
@@ -79,6 +83,23 @@ if(office){dom.window.eval(`openMgr(${JSON.stringify(office.mgr)})`);
   const ob=t('mgr-body');
   ck('офисная роль: отдельная страница без рейтинга',ob.includes('документооборот')&&!ob.includes('Что плохо'));
 }
+// --- запрещённые формулировки (уроки ФЕНИКС-вето) ---
+// Ярлыки «главной утечки» живут ТОЛЬКО на личных страницах, поэтому сперва
+// рендерим личную страницу КАЖДОГО менеджера и копим текст - иначе guard слепой.
+// body.textContent включает текст <script> с сырым JSON (там плейсхолдеры легитимны),
+// поэтому берём только видимые элементы страницы
+const visText=()=>[...d.querySelectorAll('body>*:not(script)')].map(e=>e.textContent).join('\n');
+let allText=visText();
+for(const m of DATA.managers){dom.window.eval(`openMgr(${JSON.stringify(m.mgr)})`);allText+='\n'+t('mgr-body');}
+ck('нет выдуманной «медианы отдела»',!allText.includes('медиана отдела выше'));
+// ВАЖНО: \b в JS-регексах не работает рядом с кириллицей, поэтому границы - явные
+// пробелы/скобки. Guard проверен мутацией: убери deN() из шаблона - обязан упасть.
+const nHit=/«[^»]*[\s(«][NН]([.\s»]|$)[^»]*»/.exec(allText);
+ck('нет литерального плейсхолдера N в ярлыках (все личные страницы)',!nHit,nHit&&nHit[0]);
+ck('нет удвоенного «дольше нормы»',!/дольше нормы[^»]{0,5}дольше нормы/.test(allText));
+ck('нет «возвратов мало» без источника',!allText.includes('возвратов мало'));
+ck('числительные согласованы на личных страницах',!/(^|\D)([2-9]?1)\s+(продаж|сделок|диалогов)([^а-яё]|$)/.test(allText.replace(/(^|\D)11\s+(продаж|сделок|диалогов)/g,'$1')));
+
 // подсказки: расставлены и доступны с клавиатуры
 ck('подсказки "?" расставлены',d.querySelectorAll('[data-t]').length>=15);
 ck('подсказки доступны с клавиатуры (tabindex)',[...d.querySelectorAll('.q[data-t]')].every(el=>el.getAttribute('tabindex')==='0'));

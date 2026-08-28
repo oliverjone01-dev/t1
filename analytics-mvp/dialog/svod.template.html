@@ -168,6 +168,14 @@ const DATA={"placeholder":true,"meta":{},"sections":[],"managers":[],"deals":[],
 const M=DATA.meta||{};
 const fmtR=n=>{n=Math.round(n||0);if(Math.abs(n)>=1e6)return (n/1e6).toFixed(1).replace('.',',')+' млн ₽';if(Math.abs(n)>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс ₽';return n.toLocaleString('ru-RU')+' ₽';};
 const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
+/* русские числительные: plural(21,['продажа','продажи','продаж']) -> «продажа» */
+const plural=(n,f)=>{n=Math.abs(Math.round(n||0));const m10=n%10,m100=n%100;return f[(m10===1&&m100!==11)?0:(m10>=2&&m10<=4&&(m100<10||m100>=20))?1:2];};
+const nSale=n=>`${n} ${plural(n,['продажа','продажи','продаж'])}`;
+const nDeal=n=>`${n} ${plural(n,['сделка','сделки','сделок'])}`;
+/* ярлыки движка приходят с плейсхолдером «N» вместо числа («клиент ждёт N ч»).
+   ВАЖНО: \b в JS-регексах не работает рядом с кириллицей (ч, дн - не \w),
+   поэтому границы задаём пробелами явно, без \b (урок ФЕНИКС-аудита N1) */
+const deN=s=>String(s||'').replace(/(\s+на)?\s+[NН](\.[NН])?\s*(ч|дн|мин|дней|часов)?(?=[\s.,)»]|$)/g,' дольше нормы').replace(/\s+/g,' ').trim();
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dd=s=>s?String(s).slice(8,10)+'.'+String(s).slice(5,7):'-';
 /* Метки и подсказки очередей берём из движка разбора диалогов (DATA.queues) - один
@@ -203,6 +211,8 @@ const OPAIDRUB=OPAID.reduce((s,d)=>s+(d.budget||0),0);
 (function(){
   const risk=OU.filter(d=>BADQ.includes(d.uKey));
   const riskRub=risk.reduce((s,d)=>s+(d.budget||0),0);
+  const ouRub=OU.reduce((s,d)=>s+(d.budget||0),0);
+  const zeroN=risk.filter(d=>!(d.budget>0)).length;
   const wsum=OU.reduce((s,d)=>s+(d.budget||0)*(d.prob||0)/100,0);
   const plan=M.planRev;
   const done=DATA.deptWonRub;
@@ -212,9 +222,9 @@ const OPAIDRUB=OPAID.reduce((s,d)=>s+(d.budget||0),0);
      до подтверждения владельцем таблицы честно помечаем гипотезой */
   const outlier=plan&&M.planPrev&&M.planNext&&plan>=1.8*M.planPrev&&plan>=1.8*M.planNext;
   const k=[
-    {l:'Продано за '+monthName,tag:'D',v:fmtR(done),d:`${fmt(DATA.deptWonN)} продаж · снимок РОПа`,q:'Сумма бюджетов сделок, по которым в этом месяце получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24. Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде).',chip:plan?(pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
+    {l:'Продано за '+monthName,tag:'D',v:fmtR(done),d:`${nSale(DATA.deptWonN)} · снимок РОПа`,q:'Сумма бюджетов сделок, по которым в этом месяце получена предоплата или продажа закрыта. Источник - ночной снимок РОПа из Битрикс24. Продажу считаем с момента предоплаты - так принято в учёте компании (то же правило, что в РОП-дашборде).'+(outlier?' Процент выполнения плана считается от плана месяца, который помечен как возможный выброс [ГИПОТЕЗА] - если план уточнится, процент изменится.':''),chip:plan?(outlier?['mid',pct+'% плана, но план месяца под вопросом [ГИПОТЕЗА]']:pct>=90?['up','план выполняется: '+pct+'%']:pct>=60?['mid','выполнено '+pct+'% плана']:['dn','только '+pct+'% плана']):null},
     {l:'План на '+monthName,tag:'D',v:plan?fmtR(plan):'не задан',d:plan?'из Google-таблицы руководителя':'файл плана недоступен',q:'План выручки отдела на месяц из Google-таблицы руководителя (тот же источник, что в РОП-дашборде). Персональные планы по менеджерам в системе не заданы - поэтому мы их не показываем и не выдумываем.'+(outlier?` Внимание: план этого месяца (${fmtR(plan)}) в ${(plan/Math.max(M.planPrev,M.planNext)).toFixed(1).replace('.',',')} раза выше соседних (${fmtR(M.planPrev)} и ${fmtR(M.planNext)}) - до подтверждения владельцем таблицы считаем цифру гипотезой.`:''),chip:outlier?['mid','выброс? соседние месяцы '+fmtR(M.planPrev)+' и '+fmtR(M.planNext)+' [ГИПОТЕЗА]']:null},
-    {l:'Под риском на неделе',tag:'D',v:fmtR(riskRub),d:`${fmt(risk.length)} сделок в проблемных очередях`,q:'Сумма бюджетов открытых сделок недели, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.). Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Это деньги, которые прямо сейчас зависят от действий менеджеров.'},
+    {l:'Под риском на неделе',tag:'D',v:fmtR(riskRub),d:`${nDeal(risk.length)} · ${ouRub?Math.round(riskRub/ouRub*100):0}% открытого портфеля · ${zeroN} записей с бюджетом 0 ₽`,q:'Сумма бюджетов открытых сделок недели, попавших хотя бы в одну проблемную очередь (клиент ждёт, тишина, КП без дожима и т.д.). Сделки, уже дошедшие до предоплаты, сюда не входят - их деньги уже посчитаны в «Продано». Важно для чтения: очереди помечают большую часть открытого портфеля, а у части записей (в основном лидов) бюджет ещё не проставлен - поэтому приоритизируйте не по числу сделок, а по деньгам внутри очередей.'},
     {l:'Реалистично дожать',tag:'C',v:fmtR(wsum),d:`портфель ${fmt(OU.length)} открытых сделок без предоплаты`+(OPAID.length?` · ещё ${fmtR(OPAIDRUB)} уже с предоплатой`:''),q:'РАСЧЁТ: каждая открытая сделка недели БЕЗ предоплаты = бюджет [ДАННЫЕ] × шанс успеха её стадии по истории 1000+ сделок [ДАННЫЕ] с поправкой на поведение (тишина, дожим) [ГИПОТЕЗА]. Складываем. Сделки с полученной предоплатой не считаем - они уже в «Продано», иначе одни деньги посчитались бы дважды. Это ориентир, не обещание.'},
   ];
   document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="l">${x.l}<span class="tag${x.tag}">${x.tag==='D'?'ДАННЫЕ':x.tag==='C'?'РАСЧЁТ':'ГИПОТЕЗА'}</span><span class="q" data-t="${esc(x.q)}">?</span></div><div class="v">${x.v}</div><div class="d">${x.d}</div>${x.chip?`<div class="chip ${x.chip[0]}">${esc(x.chip[1])}</div>`:''}</div>`).join('');
@@ -234,11 +244,15 @@ function renderQueues(){
   recon.innerHTML=`Сумма плиток равна плитке «Под риском» - это одни и те же сделки, каждая в своей главной очереди.`+(OPAID.length?` Ещё ${OPAID.length} открытых сделок на ${fmtR(OPAIDRUB)} уже с предоплатой - они в продажах месяца, в очередях их нет.`:'');
   const el=document.getElementById('qdrill');
   if(!curQ){el.innerHTML='';return;}
-  const list=OU.filter(d=>d.uKey===curQ&&!isBot(d.mgr)).sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,12);
+  /* Ботов НЕ выкидываем из списка: их сделки сидят в плитках и в KPI «Под риском»,
+     молча прятать строку, чьи деньги посчитаны, нечестно - помечаем пилюлей */
+  const all=OU.filter(d=>d.uKey===curQ).sort((a,b)=>(b.budget||0)-(a.budget||0));
+  const list=all.slice(0,12);
   el.innerHTML=`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+    ${all.length>list.length?`<div class="hint" style="margin-bottom:8px">Показаны ${list.length} из ${all.length} - самые дорогие по бюджету.</div>`:''}
     <table><thead><tr><th>Сделка</th><th>Менеджер</th><th>Этап</th><th class="r">Бюджет</th><th class="r">Шанс</th><th>Что делать (движок)</th></tr></thead><tbody>
-    ${list.map(d=>{const known=DATA.managers.some(x=>x.mgr===d.mgr);
-      return `<tr class="mrow" ${known?`onclick="openMgr('${esc(d.mgr)}')"`:''}><td class="name">${esc((d.title||('#'+d.dealId)).slice(0,42))}</td><td>${esc(d.mgr)}${known?'':' <span class="pill n">вне разбора</span>'}</td><td><span class="pill n">${esc(d.stage)}</span></td><td class="r">${d.budget?fmtR(d.budget):'-'}</td><td class="r">${d.prob!=null?d.prob+'%':'-'}</td><td style="white-space:normal;max-width:340px;font-size:12px;color:var(--ink2)">${esc((d.next||'-').slice(0,120))}</td></tr>`;}).join('')}
+    ${list.map(d=>{const bot=isBot(d.mgr);const known=!bot&&DATA.managers.some(x=>x.mgr===d.mgr);
+      return `<tr class="mrow" ${known?`onclick="openMgr('${esc(d.mgr)}')"`:''}><td class="name">${esc((d.title||('#'+d.dealId)).slice(0,42))}</td><td>${esc(d.mgr)}${bot?' <span class="pill n">системная запись</span>':known?'':' <span class="pill n">вне разбора</span>'}</td><td><span class="pill n">${esc(d.stage||'без этапа')}</span></td><td class="r">${d.budget?fmtR(d.budget):'-'}</td><td class="r">${d.prob!=null?d.prob+'%':'-'}</td><td style="white-space:normal;max-width:340px;font-size:12px;color:var(--ink2)">${esc((d.next||'-').slice(0,120))}</td></tr>`;}).join('')}
     </tbody></table></div>`;
 }
 function drillQ(k){curQ=curQ===k?null:k;renderQueues();armTips();}
@@ -276,7 +290,7 @@ function renderTable(){
   const h=DATA.hiddenMgr;
   const colSum=rows.reduce((s,m)=>s+(m.wonRub||0),0)+(DATA.managers.filter(m=>m.role==='office').reduce((s,m)=>s+(m.wonRub||0),0));
   document.getElementById('mrecon').innerHTML=(h&&h.n)
-    ?`Сумма по колонке «Продано за месяц» плюс ${fmtR(h.rub)} (${h.n} продаж) от ${h.names.length} сотрудников вне недельного разбора диалогов - ${esc(h.names.map(x=>x.name).join(', '))} - даёт ровно плитку «Продано за месяц» наверху. Ничего не спрятано.`
+    ?`Сумма по колонке «Продано за месяц» плюс ${fmtR(h.rub)} (${nSale(h.n)}) от ${h.names.length} сотрудников вне недельного разбора диалогов - ${esc(h.names.map(x=>x.name).join(', '))} - даёт ровно плитку «Продано за месяц» наверху. Ничего не спрятано.`
     :(Math.round(colSum)!==Math.round(DATA.deptWonRub)?'Внимание: сумма колонки не сходится с плиткой отдела - сообщите разработчику.':'Сумма колонки сходится с плиткой «Продано за месяц» наверху.');
 }
 function sortBy(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=false;}renderTable();armTips();}
@@ -309,13 +323,16 @@ function sortBy(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=false;
 
 /* ---------- прогноз-блок ---------- */
 (function(){
-  const byStage={};
-  for(const d of OU){(byStage[d.stage]||={n:0,rub:0,w:0});byStage[d.stage].n++;byStage[d.stage].rub+=d.budget||0;byStage[d.stage].w+=(d.budget||0)*(d.prob||0)/100;}
+  const byStage={};const noStage={n:0,rub:0};
+  for(const d of OU){
+    if(!d.stage){noStage.n++;noStage.rub+=d.budget||0;continue;}
+    (byStage[d.stage]||={n:0,rub:0,w:0});byStage[d.stage].n++;byStage[d.stage].rub+=d.budget||0;byStage[d.stage].w+=(d.budget||0)*(d.prob||0)/100;}
   const rows=Object.entries(byStage).sort((a,b)=>b[1].w-a[1].w).slice(0,7);
   document.getElementById('forecast').innerHTML=`<table><thead><tr><th>Этап</th><th class="r">Сделок</th><th class="r">Бюджеты</th><th class="r">Взвешенно</th></tr></thead><tbody>
     ${rows.map(([s,v])=>`<tr><td>${esc(s)}</td><td class="r">${v.n}</td><td class="r">${fmtR(v.rub)}</td><td class="r"><b>${fmtR(v.w)}</b></td></tr>`).join('')}
   </tbody></table>
-  ${OPAID.length?`<div class="hint" style="margin-top:10px">Ещё ${OPAID.length} открытых сделок на ${fmtR(OPAIDRUB)} уже прошли предоплату - в прогноз не входят, эти деньги уже посчитаны в «Продано за месяц».</div>`:''}`;
+  ${noStage.n?`<div class="hint" style="margin-top:10px">Ещё ${nDeal(noStage.n)} без этапа (в основном свежие лиды, бюджеты ${fmtR(noStage.rub)}) - в таблицу прогноза не входят.</div>`:''}
+  ${OPAID.length?`<div class="hint" style="margin-top:${noStage.n?'4px':'10px'}">Ещё ${OPAID.length} открытых сделок на ${fmtR(OPAIDRUB)} уже прошли предоплату - в прогноз не входят, эти деньги уже посчитаны в «Продано за месяц».</div>`:''}`;
 })();
 
 /* ---------- личная страница ---------- */
@@ -336,11 +353,11 @@ function openMgr(name){
   if(m.role==='office'){
     document.getElementById('mgr-body').innerHTML=`
       <h1>${esc(name)} <span class="pill b">офис / документооборот</span></h1>
-      <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} диалогов в окне разбора</div>
+      <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} ${plural(m.deals,['диалог','диалога','диалогов'])} в окне разбора</div>
       <div class="note">Эта роль - офис и документооборот, а не продажи. Регламент отдела продаж (скорость ответа, дожим КП, звёзды) к ней не применяется, поэтому рейтинга и разбора «хорошо/плохо» здесь нет - сравнивать с продавцами было бы нечестно. Показываем только факты по сделкам в работе.</div>
       <div class="kpis">
         <div class="kpi"><div class="l">Сделок в окне недели<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Сколько сделок и лидов с участием этого сотрудника попало в недельное окно разбора диалогов.">?</span></div><div class="v">${my.length}</div><div class="d">${myOpen.length} открытых без предоплаты</div></div>
-        <div class="kpi"><div class="l">Продажи месяца в снимке РОПа<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Если на сотруднике числятся сделки, дошедшие до предоплаты в этом месяце, они видны здесь. Для офисной роли это чаще всего оформление, а не личная продажа.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${m.wonN||0} сделок</div></div>
+        <div class="kpi"><div class="l">Продажи месяца в снимке РОПа<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Если на сотруднике числятся сделки, дошедшие до предоплаты в этом месяце, они видны здесь. Для офисной роли это чаще всего оформление, а не личная продажа.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nDeal(m.wonN||0)}</div></div>
       </div>`;
     armTips();return;
   }
@@ -350,17 +367,17 @@ function openMgr(name){
   for(const s of (m.sections||[])) if(s.pos!=null&&s.pos>=70) good.push(`<div class="li good"><div class="ic">✓</div><div><b>${esc(s.label)}: ${s.pos}% наблюдений в порядке</b> <span class="tagD">ДАННЫЕ</span><div class="m">${s.n} наблюдений за неделю по фактам переписки и дел</div></div></div>`);
   if(m.wonRub) good.push(`<div class="li good"><div class="ic">₽</div><div><b>Продажи месяца: ${fmtR(m.wonRub)} (${m.wonN} шт)</b> <span class="tagD">ДАННЫЕ</span><div class="m">снимок РОПа, продажа от предоплаты</div></div></div>`);
   const okDeals=myOpen.filter(d=>d.uKey==='ok').length;
-  if(okDeals) good.push(`<div class="li good"><div class="ic">✓</div><div><b>${okDeals} сделок ведутся чисто</b> <span class="tagD">ДАННЫЕ</span><div class="m">без единой проблемной очереди на этой неделе</div></div></div>`);
+  if(okDeals) good.push(`<div class="li good"><div class="ic">✓</div><div><b>${nDeal(okDeals)} - без единого дефекта</b> <span class="tagD">ДАННЫЕ</span><div class="m">без единой проблемной очереди на этой неделе</div></div></div>`);
   if(!good.length) good.push(`<div class="li good"><div class="ic">·</div><div><b>Явных сильных сторон на этой неделе движок не зафиксировал</b><div class="m">это не приговор - мало наблюдений</div></div></div>`);
 
   /* плохо: секции <40% с bad, topLoss, плохие очереди с деньгами */
   const bad=[];
   if(!small){
     for(const s of (m.sections||[])) if(s.pos!=null&&s.pos<40&&s.bad>0) bad.push(`<div class="li badi"><div class="ic">!</div><div><b>${esc(s.label)}: только ${s.pos}% в порядке, ${s.bad} нарушений</b> <span class="tagD">ДАННЫЕ</span><div class="m">по фактам недели из переписки, звонков и дел</div></div></div>`);
-    if(m.topLoss&&m.topLoss.label) bad.push(`<div class="li badi"><div class="ic">₽</div><div><b>Главная утечка: «${esc(String(m.topLoss.label).replace(/\bN\s*ч\b/,'дольше нормы').replace(/\bN\b/g,'дольше нормы'))}» - ${fmtR(m.topLoss.rub||0)}</b> <span class="tagC">РАСЧЁТ</span><div class="m">самая дорогая категория дефектов недели: оценка просадки шанса в рублях</div></div></div>`);
+    if(m.topLoss&&m.topLoss.label) bad.push(`<div class="li badi"><div class="ic">₽</div><div><b>Главная утечка: «${esc(deN(m.topLoss.label))}» - ${fmtR(m.topLoss.rub||0)}</b> <span class="tagC">РАСЧЁТ</span><div class="m">самая дорогая категория дефектов недели: оценка просадки шанса в рублях</div></div></div>`);
     const qAgg={};for(const d of myBad){(qAgg[d.uKey]||={n:0,rub:0});qAgg[d.uKey].n++;qAgg[d.uKey].rub+=d.budget||0;}
     for(const [k,v] of Object.entries(qAgg).sort((a,b)=>b[1].rub-a[1].rub).slice(0,3))
-      bad.push(`<div class="li badi"><div class="ic">${v.n}</div><div><b>${esc(qLabel(k))}: ${v.n} сделок на ${fmtR(v.rub)}</b> <span class="tagD">ДАННЫЕ</span><div class="m">${esc(qHint(k))}</div></div></div>`);
+      bad.push(`<div class="li badi"><div class="ic">${v.n}</div><div><b>${esc(qLabel(k))}: ${nDeal(v.n)} на ${fmtR(v.rub)}</b> <span class="tagD">ДАННЫЕ</span><div class="m">${esc(qHint(k))}</div></div></div>`);
   }
   if(!bad.length) bad.push(`<div class="li badi"><div class="ic">·</div><div><b>${small?'Мало данных за неделю - негативные выводы не делаем':'Серьёзных дефектов на этой неделе не зафиксировано'}</b><div class="m">${small?('диалогов меньше порога '+(DATA.minSample||10)):'держать уровень'}</div></div></div>`);
 
@@ -373,9 +390,9 @@ function openMgr(name){
 
   document.getElementById('mgr-body').innerHTML=`
     <h1>${esc(name)}</h1>
-    <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} диалогов разобрано · ${m.rating!=null?('рейтинг '+m.rating.toFixed(1)+' ★'):'рейтинга нет - мало данных'}</div>
+    <div class="sub">неделя ${dd(M.dlgFrom)}-${dd(M.dlgTo)} · ${m.deals} ${plural(m.deals,['диалог разобран','диалога разобрано','диалогов разобрано'])} · ${m.rating!=null?('рейтинг '+m.rating.toFixed(1)+' ★'):'рейтинга нет - мало данных'}</div>
     <div class="kpis">
-      <div class="kpi"><div class="l">Продано за месяц<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Из ночного снимка РОПа: сделки менеджера, дошедшие в этом месяце до предоплаты и дальше.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${m.wonN||0} продаж</div></div>
+      <div class="kpi"><div class="l">Продано за месяц<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Из ночного снимка РОПа: сделки менеджера, дошедшие в этом месяце до предоплаты и дальше.">?</span></div><div class="v">${m.wonRub?fmtR(m.wonRub):'0 ₽'}</div><div class="d">${nSale(m.wonN||0)}</div></div>
       <div class="kpi"><div class="l">Просадка недели<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: рублёвая оценка просадки шанса, а не потерянные бюджеты целиком. По каждой сделке с дефектом недели движок оценивает, на сколько процентов дефект снизил шанс успеха, и умножает просадку на бюджет. «На диалог» - та же сумма, поделённая на число разобранных диалогов менеджера. Отработал дефект - вернул шанс: блок «фокус» ниже.">?</span></div><div class="v">${m.lossRub?fmtR(m.lossRub):'0 ₽'}</div><div class="d">${m.lossPerDeal?('~'+fmtR(m.lossPerDeal)+' на диалог'):''}</div></div>
       <div class="kpi"><div class="l">Сделок под риском<span class="tagD">ДАННЫЕ</span><span class="q" data-t="Открытые сделки менеджера без предоплаты, попавшие в проблемные очереди прямо сейчас. Сделки с полученной предоплатой не считаем - они уже в продажах месяца.">?</span></div><div class="v">${myBad.length}</div><div class="d">из ${myOpen.length} открытых без предоплаты${myPaid.length?(' · ещё '+myPaid.length+' с предоплатой'):''}</div></div>
       <div class="kpi"><div class="l">Фокус недели даст до<span class="tagC">РАСЧЁТ</span><span class="q" data-t="РАСЧЁТ: топ-5 проблемных сделок ниже - их бюджеты [ДАННЫЕ] × шансы стадий [ДАННЫЕ по истории + ГИПОТЕЗА-поправка движка]. Если отработать все пять - взвешенно это столько денег.">?</span></div><div class="v">${fmtR(focusW)}</div><div class="d">в топ-5 сделках на ${fmtR(focusRub)}</div></div>

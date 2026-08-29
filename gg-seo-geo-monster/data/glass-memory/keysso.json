@@ -1,6 +1,6 @@
 {
  "domain": "glass-memory.ru",
- "measured": "2026-08-28",
+ "measured": "2026-08-29",
  "visibility": 3,
  "ai_answers": 24,
  "keywords_total": 571,
@@ -302,6 +302,11 @@
   },
   {
    "date": "2026-08-28",
+   "visibility": 3,
+   "top10": 46
+  },
+  {
+   "date": "2026-08-29",
    "visibility": 3,
    "top10": 46
   }
@@ -913,25 +918,25 @@
    "domain": "m.avito.ru",
    "visibility": 3765553,
    "common_keywords": 429,
-   "delta_visibility": -1.2
+   "delta_visibility": 0
   },
   {
    "domain": "ozon.ru",
    "visibility": 3722419,
    "common_keywords": 295,
-   "delta_visibility": -1.4
+   "delta_visibility": 0
   },
   {
    "domain": "wildberries.ru",
    "visibility": 2342085,
    "common_keywords": 278,
-   "delta_visibility": -2.7
+   "delta_visibility": 0
   },
   {
    "domain": "market.yandex.ru",
    "visibility": 1513767,
    "common_keywords": 273,
-   "delta_visibility": -1.7
+   "delta_visibility": 0
   },
   {
    "domain": "lemanapro.ru",
@@ -943,25 +948,25 @@
    "domain": "dzen.ru",
    "visibility": 10134567,
    "common_keywords": 211,
-   "delta_visibility": -2.6
+   "delta_visibility": 0
   },
   {
    "domain": "uslugi.yandex.ru",
    "visibility": 278674,
    "common_keywords": 178,
-   "delta_visibility": -3.8
+   "delta_visibility": 0
   },
   {
    "domain": "postament.ru",
    "visibility": 2566,
    "common_keywords": 14,
-   "delta_visibility": -0.6
+   "delta_visibility": 0
   },
   {
    "domain": "yandex.ru",
    "visibility": 21161970,
    "common_keywords": 12,
-   "delta_visibility": -1
+   "delta_visibility": 0
   },
   {
    "domain": "glassphoto.ru",
@@ -973,25 +978,25 @@
    "domain": "livemaster.ru",
    "visibility": 138254,
    "common_keywords": 10,
-   "delta_visibility": 0.1
+   "delta_visibility": 0
   },
   {
    "domain": "pqd.ru",
    "visibility": 1741,
    "common_keywords": 10,
-   "delta_visibility": 2.6
+   "delta_visibility": 0
   },
   {
    "domain": "talkingstone.ru",
    "visibility": 637,
    "common_keywords": 10,
-   "delta_visibility": -0.8
+   "delta_visibility": 0
   },
   {
    "domain": "ru.pinterest.com",
    "visibility": 2409311,
    "common_keywords": 9,
-   "delta_visibility": -2.5
+   "delta_visibility": 0
   },
   {
    "domain": "grad-ex.ru",

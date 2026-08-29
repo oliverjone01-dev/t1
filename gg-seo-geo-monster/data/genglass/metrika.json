@@ -1,12 +1,7 @@
 {
  "counter": "104369223",
- "measured": "2026-08-28",
+ "measured": "2026-08-29",
  "visits_30d": [
-  {
-   "date": "2026-07-29",
-   "visits": 234,
-   "search_visits": 46
-  },
   {
    "date": "2026-07-30",
    "visits": 238,
@@ -151,23 +146,32 @@
    "date": "2026-08-27",
    "visits": 356,
    "search_visits": 66
+  },
+  {
+   "date": "2026-08-28",
+   "visits": 318,
+   "search_visits": 69
   }
  ],
  "top_phrases": [
   {
    "phrase": "genglass официальный сайт",
-   "visits": 47
+   "visits": 50
   },
   {
    "phrase": "genglass",
-   "visits": 26
+   "visits": 25
   },
   {
    "phrase": "генгласс",
-   "visits": 14
+   "visits": 15
   },
   {
    "phrase": "дженгласс ру",
+   "visits": 8
+  },
+  {
+   "phrase": "интернет магазин зеркало в раме",
    "visits": 7
   },
   {
@@ -176,10 +180,6 @@
   },
   {
    "phrase": "ген гласс",
-   "visits": 6
-  },
-  {
-   "phrase": "интернет магазин зеркало в раме",
    "visits": 6
   },
   {
@@ -211,11 +211,7 @@
    "visits": 4
   },
   {
-   "phrase": "генгласс столы",
-   "visits": 3
-  },
-  {
-   "phrase": "дизайнерские зеркала",
+   "phrase": "genglass стол",
    "visits": 3
   },
   {
@@ -235,10 +231,6 @@
    "visits": 2
   },
   {
-   "phrase": "gemglass",
-   "visits": 2
-  },
-  {
    "phrase": "genglass зеркало",
    "visits": 2
   },
@@ -247,15 +239,19 @@
    "visits": 2
   },
   {
-   "phrase": "genglass стол",
-   "visits": 2
-  },
-  {
    "phrase": "genglass стол кухонный раздвижной konux 100(180)х100х75 см, обеденный, раскладной",
    "visits": 2
   },
   {
    "phrase": "kuvino m",
+   "visits": 2
+  },
+  {
+   "phrase": "генгласс столы",
+   "visits": 2
+  },
+  {
+   "phrase": "дизайнерские зеркала",
    "visits": 2
   },
   {
@@ -276,6 +272,10 @@
   },
   {
    "phrase": "зеркало в раме genglass halfeo white xl",
+   "visits": 2
+  },
+  {
+   "phrase": "зеркало дизайнерское",
    "visits": 2
   },
   {
@@ -358,11 +358,11 @@
  "top_pages": [
   {
    "url": "/",
-   "visits": 426
+   "visits": 435
   },
   {
    "url": "/stoly-na-zakaz/",
-   "visits": 103
+   "visits": 104
   },
   {
    "url": "/stellazhi-i-polki-na-zakaz/",
@@ -374,31 +374,31 @@
   },
   {
    "url": "/product-category/tables/",
-   "visits": 64
+   "visits": 62
   },
   {
    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-peregorodki-na-zakaz/",
-   "visits": 52
+   "visits": 54
   },
   {
    "url": "/product-category/mirrors/dizajnerskie/",
-   "visits": 51
+   "visits": 52
   },
   {
    "url": "/product-category/mirrors/zerkalo-na-shtange/",
-   "visits": 40
+   "visits": 41
   },
   {
    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya/",
-   "visits": 37
+   "visits": 38
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/",
-   "visits": 36
+   "visits": 37
   },
   {
    "url": "/zerkala-na-zakaz/",
-   "visits": 36
+   "visits": 37
   },
   {
    "url": "/magnitno-markernie-doski-na-zakaz/",
@@ -410,27 +410,27 @@
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame/",
-   "visits": 27
+   "visits": 26
   },
   {
    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz/",
-   "visits": 25
+   "visits": 23
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki/",
    "visits": 21
   },
   {
+   "url": "/product-category/tables/kitchen-tables/",
+   "visits": 20
+  },
+  {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki/",
    "visits": 19
   },
   {
-   "url": "/product-category/tables/kitchen-tables/",
-   "visits": 19
-  },
-  {
    "url": "/product-category/mirrors/wall/",
-   "visits": 15
+   "visits": 14
   },
   {
    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka/",
@@ -442,6 +442,10 @@
   },
   {
    "url": "/product-category/mirrors/zerkalo-v-rame/",
+   "visits": 13
+  },
+  {
+   "url": "/product-category/hranenie/veshalki/",
    "visits": 12
   },
   {
@@ -449,7 +453,7 @@
    "visits": 12
   },
   {
-   "url": "/product-category/hranenie/veshalki/",
+   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
    "visits": 11
   },
   {
@@ -461,10 +465,6 @@
    "visits": 10
   },
   {
-   "url": "/product-category/mezhkomnatnye-peregorodki/",
-   "visits": 10
-  },
-  {
    "url": "/product-category/mirrors/led/",
    "visits": 10
   },
@@ -473,11 +473,11 @@
    "visits": 10
   },
   {
-   "url": "/product/zerkalo-v-zolotoj-rame-arkelo-s-102h52-sm/",
-   "visits": 10
+   "url": "/product-category/",
+   "visits": 9
   }
  ],
  "goals": [],
- "bounce_rate": 20.5,
+ "bounce_rate": 20.3,
  "depth": 2.7
 }

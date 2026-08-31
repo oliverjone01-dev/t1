@@ -1,9 +1,9 @@
 {
  "sources": {
   "keysso": {
-   "status": "genglass: ok · glass-memory: ok",
+   "status": "genglass: ok · glass-memory: empty-response (сводка пуста, снапшот не перезаписан - добрать следующим прогоном)",
    "date": "2026-08-31",
-   "requests_used": 11,
+   "requests_used": 23,
    "limit": 3000,
    "pending_rid": {}
   },

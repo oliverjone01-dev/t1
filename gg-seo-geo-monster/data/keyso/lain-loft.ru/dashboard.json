@@ -2,7 +2,7 @@
   "domain": "lain-loft.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-24T03:38:14.169Z",
+  "measured": "2026-08-31T08:58:22.220Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=lain-loft.ru",
   "data": {
     "id": 322813373,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5609,
-        "it50": 19977909,
-        "vis": 3812459,
-        "perc": 0.02807601135834586
+        "cnt": 5446,
+        "it50": 20139461,
+        "vis": 3622015,
+        "perc": 0.027041438695901546
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3844,
-        "it50": 17084728,
-        "vis": 1539671,
-        "perc": 0.022499626567072065
+        "cnt": 3743,
+        "it50": 17255939,
+        "vis": 1464113,
+        "perc": 0.021691082704916837
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 3280,
-        "it50": 18411386,
-        "vis": 3776448,
-        "perc": 0.017815062918131206
+        "cnt": 3170,
+        "it50": 18452922,
+        "vis": 3591264,
+        "perc": 0.01717885113262821
       },
       {
         "did": 29918348,
         "name": "wildberries.ru",
-        "cnt": 3057,
-        "it50": 14256919,
-        "vis": 2406066,
-        "perc": 0.02144222044047525
+        "cnt": 2946,
+        "it50": 14392901,
+        "vis": 2244875,
+        "perc": 0.02046842398207283
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 2950,
-        "it50": 3068265,
-        "vis": 912236,
-        "perc": 0.09614554153568873
+        "cnt": 2874,
+        "it50": 3089578,
+        "vis": 890766,
+        "perc": 0.09302241276964039
       },
       {
         "did": 121577103,
         "name": "uslugi.yandex.ru",
-        "cnt": 2386,
-        "it50": 2945353,
-        "vis": 289552,
-        "perc": 0.08100896564859968
+        "cnt": 2329,
+        "it50": 2968818,
+        "vis": 262699,
+        "perc": 0.07844872942699754
       },
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 2128,
-        "it50": 52789328,
-        "vis": 10400474,
-        "perc": 0.004031117804719923
+        "cnt": 2031,
+        "it50": 51997165,
+        "vis": 9729732,
+        "perc": 0.003905982181913187
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 1863,
-        "it50": 19977909,
-        "vis": 3812459,
-        "perc": 0.009325300260402628
+        "cnt": 1741,
+        "it50": 20139461,
+        "vis": 3622015,
+        "perc": 0.008644719935652698
       },
       {
         "did": 333146076,
         "name": "glassstore.org",
-        "cnt": 1535,
-        "it50": 4332,
-        "vis": 933,
-        "perc": 35.43397968605725
+        "cnt": 1494,
+        "it50": 4316,
+        "vis": 887,
+        "perc": 34.61538461538462
       },
       {
         "did": 29918498,
         "name": "livemaster.ru",
-        "cnt": 1457,
-        "it50": 2682788,
-        "vis": 138153,
-        "perc": 0.05430917388925252
+        "cnt": 1444,
+        "it50": 2696557,
+        "vis": 132356,
+        "perc": 0.0535497673514782
       }
     ],
-    "it1": 158,
-    "it3": 583,
-    "it5": 1109,
-    "it10": 2331,
-    "it50": 6690,
+    "it1": 155,
+    "it3": 562,
+    "it5": 1065,
+    "it10": 2277,
+    "it50": 6642,
     "childsCount": 0,
     "keys": [
       {
@@ -158,52 +158,52 @@
         "wsk": 64
       }
     ],
-    "topkeys": 56588,
+    "topkeys": 57346,
     "pages": [
       {
-        "it50": 549,
+        "it50": 552,
         "url": "/kupit-steklo/kalenoe-steklo"
       },
       {
-        "it50": 333,
+        "it50": 317,
         "url": "/dver-garmoshka"
       },
       {
-        "it50": 258,
+        "it50": 262,
         "url": "/"
       },
       {
-        "it50": 208,
-        "url": "/kupit-steklo/riflenoe-steklo"
-      },
-      {
-        "it50": 206,
+        "it50": 198,
         "url": "/shkafy-na-balkon"
       },
       {
-        "it50": 180,
-        "url": "/dekorativnye-peregorodki"
+        "it50": 195,
+        "url": "/kupit-steklo/riflenoe-steklo"
       },
       {
-        "it50": 180,
+        "it50": 181,
         "url": "/razdvizhnye-peregorodki"
       },
       {
-        "it50": 158,
+        "it50": 175,
+        "url": "/dekorativnye-peregorodki"
+      },
+      {
+        "it50": 160,
         "url": "/kupit-steklo/smart-steklo"
       },
       {
-        "it50": 158,
-        "url": "/dver-garmoshka/dveri-garmoshka-dlya-shkafa"
+        "it50": 148,
+        "url": "/santehnicheskie-peregorodki"
       },
       {
-        "it50": 151,
-        "url": "/santehnicheskie-peregorodki"
+        "it50": 144,
+        "url": "/kupit-steklo/steklo-tripleks"
       }
     ],
-    "pagesinindex": 180,
-    "vis": 390,
-    "topvis": 31329,
+    "pagesinindex": 182,
+    "vis": 367,
+    "topvis": 32045,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -224,7 +224,7 @@
         "adkeys": 0
       }
     },
-    "restop5": 17,
+    "restop5": 16,
     "history": {
       "2025.03": {
         "it1": 80,
@@ -431,26 +431,19 @@
         "aiCnt": 591
       },
       "2026.08": {
-        "it1": 158,
-        "it3": 583,
-        "it5": 1109,
-        "it10": 2331,
-        "it50": 6690,
-        "pagesInIndex": 180,
+        "it1": 155,
+        "it3": 562,
+        "it5": 1065,
+        "it10": 2277,
+        "it50": 6642,
+        "pagesInIndex": 182,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 390,
-        "aiCnt": 525
+        "visAvg": 367,
+        "aiCnt": 516
       }
     },
     "linksHistory": {
-      "2025.02": [
-        13,
-        658,
-        9,
-        3,
-        0
-      ],
       "2025.03": [
         12,
         625,
@@ -571,14 +564,14 @@
         67
       ],
       "2026.08": [
-        102,
-        732,
-        34,
+        100,
+        736,
+        33,
         3,
         67
       ]
     },
-    "aiAnswersCnt": 525,
+    "aiAnswersCnt": 516,
     "aiState": 10,
     "dr": 25,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/916abd6bc0d80423a48405381227b1fd7cc9111e9d1679fca0cbf87dacad7673.png",

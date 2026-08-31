@@ -2,7 +2,7 @@
   "domain": "peregorodki-glass.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-24T03:34:45.414Z",
+  "measured": "2026-08-31T08:54:08.103Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=peregorodki-glass.ru",
   "data": {
     "id": 309180640,
@@ -12,89 +12,89 @@
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 168,
-        "it50": 19977909,
-        "vis": 3812459,
-        "perc": 0.0008409288479590131
+        "cnt": 160,
+        "it50": 20139461,
+        "vis": 3622015,
+        "perc": 0.0007944601893764685
       },
       {
         "did": 30700481,
         "name": "gstrong.ru",
         "cnt": 154,
-        "it50": 3756,
-        "vis": 73,
-        "perc": 4.10010649627263
+        "it50": 3743,
+        "vis": 67,
+        "perc": 4.114346780657227
       },
       {
         "did": 30202337,
         "name": "glasstroy.ru",
-        "cnt": 143,
-        "it50": 9593,
-        "vis": 175,
-        "perc": 1.490670280412801
+        "cnt": 137,
+        "it50": 9454,
+        "vis": 172,
+        "perc": 1.4491220647345038
       },
       {
         "did": 278166136,
         "name": "zavod-peregorodok.ru",
-        "cnt": 133,
-        "it50": 1127,
-        "vis": 27,
-        "perc": 11.801242236024844
-      },
-      {
-        "did": 30670319,
-        "name": "oki-doki.ru",
-        "cnt": 122,
-        "it50": 2024,
-        "vis": 63,
-        "perc": 6.027667984189724
-      },
-      {
-        "did": 30773214,
-        "name": "zerist.ru",
-        "cnt": 120,
-        "it50": 4205,
-        "vis": 83,
-        "perc": 2.8537455410225925
+        "cnt": 129,
+        "it50": 1090,
+        "vis": 26,
+        "perc": 11.8348623853211
       },
       {
         "did": 272188389,
         "name": "fdmebel.ru",
-        "cnt": 118,
-        "it50": 2553,
-        "vis": 226,
-        "perc": 4.622013317665491
+        "cnt": 117,
+        "it50": 2501,
+        "vis": 223,
+        "perc": 4.678128748500599
       },
       {
         "did": 30153427,
         "name": "perilaglavsnab.ru",
-        "cnt": 118,
-        "it50": 13371,
-        "vis": 1318,
-        "perc": 0.882506917956772
+        "cnt": 116,
+        "it50": 13614,
+        "vis": 1281,
+        "perc": 0.8520640517114736
       },
       {
-        "did": 405727645,
-        "name": "lbspace.ru",
-        "cnt": 112,
-        "it50": 1283,
-        "vis": 29,
-        "perc": 8.72954014029618
+        "did": 30773214,
+        "name": "zerist.ru",
+        "cnt": 113,
+        "it50": 4117,
+        "vis": 87,
+        "perc": 2.7447170269613794
+      },
+      {
+        "did": 30670319,
+        "name": "oki-doki.ru",
+        "cnt": 113,
+        "it50": 2023,
+        "vis": 60,
+        "perc": 5.585763717251607
       },
       {
         "did": 329921063,
         "name": "doors4u.ru",
-        "cnt": 111,
-        "it50": 10320,
-        "vis": 2227,
-        "perc": 1.0755813953488371
+        "cnt": 108,
+        "it50": 10207,
+        "vis": 2068,
+        "perc": 1.0580973841481338
+      },
+      {
+        "did": 405727645,
+        "name": "lbspace.ru",
+        "cnt": 107,
+        "it50": 1211,
+        "vis": 26,
+        "perc": 8.835672997522709
       }
     ],
     "it1": 0,
     "it3": 0,
     "it5": 0,
     "it10": 3,
-    "it50": 193,
+    "it50": 191,
     "childsCount": 0,
     "keys": [
       {
@@ -129,12 +129,6 @@
       },
       {
         "pos": 12,
-        "word": "стеклянные перегородки бу",
-        "ws": 107,
-        "wsk": 12
-      },
-      {
-        "pos": 12,
         "word": "монтажник стеклянных перегородок",
         "ws": 22,
         "wsk": 5
@@ -147,29 +141,35 @@
       },
       {
         "pos": 12,
-        "word": "стеклянные перегородки на заказ в москве",
-        "ws": 24,
-        "wsk": 2
-      },
-      {
-        "pos": 12,
         "word": "стеклянные перегородки стоимость м2",
         "ws": 6,
         "wsk": 1
+      },
+      {
+        "pos": 13,
+        "word": "стеклянная перегородка на заказ",
+        "ws": 968,
+        "wsk": 20
+      },
+      {
+        "pos": 15,
+        "word": "перегородки из стекла цена за м2",
+        "ws": 3,
+        "wsk": 1
       }
     ],
-    "topkeys": 682124,
+    "topkeys": 694284,
     "pages": [
       {
-        "it50": 146,
+        "it50": 141,
         "url": "/"
       },
       {
-        "it50": 13,
+        "it50": 14,
         "url": "/our-works/loft-peregorodki"
       },
       {
-        "it50": 8,
+        "it50": 9,
         "url": "/our-works/razdvizhnyie-peregorodki"
       },
       {
@@ -182,15 +182,11 @@
       },
       {
         "it50": 4,
-        "url": "/our-works/skladnyie-peregorodki"
-      },
-      {
-        "it50": 3,
         "url": "/our-works/nedorogie-peregorodki"
       },
       {
-        "it50": 2,
-        "url": "/articles/mobilnyie-peregorodki-dlya-zonirovaniya-prostranstva"
+        "it50": 3,
+        "url": "/our-works/skladnyie-peregorodki"
       },
       {
         "it50": 2,
@@ -198,10 +194,14 @@
       },
       {
         "it50": 2,
+        "url": "/articles/mobilnyie-peregorodki-dlya-zonirovaniya-prostranstva"
+      },
+      {
+        "it50": 2,
         "url": "/calculator"
       }
     ],
-    "pagesinindex": 14,
+    "pagesinindex": 15,
     "vis": 0,
     "topvis": 1000000,
     "adconcs": [],
@@ -435,12 +435,12 @@
         "it3": 0,
         "it5": 0,
         "it10": 3,
-        "it50": 193,
-        "pagesInIndex": 14,
+        "it50": 191,
+        "pagesInIndex": 15,
         "adsCount": 0,
         "adKeysCount": 0,
         "visAvg": 0,
-        "aiCnt": 10
+        "aiCnt": 14
       }
     },
     "linksHistory": {
@@ -558,13 +558,13 @@
       ],
       "2026.08": [
         0,
-        25,
+        27,
         0,
         2,
         0
       ]
     },
-    "aiAnswersCnt": 10,
+    "aiAnswersCnt": 14,
     "aiState": 0,
     "dr": 0,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/10df735f4ea2b936f65758356dd87113282d06ab4b80560bea1bf14626d01a24.png",

@@ -2,7 +2,7 @@
   "domain": "glasstroy.ru",
   "report": "dashboard",
   "db": "msk",
-  "measured": "2026-08-24T03:38:18.782Z",
+  "measured": "2026-08-31T08:59:15.125Z",
   "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=glasstroy.ru",
   "data": {
     "id": 30202337,
@@ -12,89 +12,89 @@
       {
         "did": 262623812,
         "name": "dzen.ru",
-        "cnt": 5210,
-        "it50": 52789328,
-        "vis": 10400474,
-        "perc": 0.009869419061367858
+        "cnt": 5096,
+        "it50": 51997165,
+        "vis": 9729732,
+        "perc": 0.009800534317592122
       },
       {
         "did": 30654137,
         "name": "m.avito.ru",
-        "cnt": 5149,
-        "it50": 19977909,
-        "vis": 3812459,
-        "perc": 0.025773468084172375
+        "cnt": 4911,
+        "it50": 20139461,
+        "vis": 3622015,
+        "perc": 0.02438496243767398
       },
       {
         "did": 30695597,
         "name": "m.youtube.com",
-        "cnt": 3296,
-        "it50": 48095027,
-        "vis": 4224362,
-        "perc": 0.006853099385930275
+        "cnt": 3398,
+        "it50": 48556411,
+        "vis": 4284480,
+        "perc": 0.006998046045866116
       },
       {
         "did": 29917497,
         "name": "market.yandex.ru",
-        "cnt": 3210,
-        "it50": 17084728,
-        "vis": 1539671,
-        "perc": 0.018788710010484218
+        "cnt": 3072,
+        "it50": 17255939,
+        "vis": 1464113,
+        "perc": 0.017802566409164982
       },
       {
         "did": 374680290,
         "name": "lemanapro.ru",
-        "cnt": 3065,
-        "it50": 3068265,
-        "vis": 912236,
-        "perc": 0.09989358807013084
+        "cnt": 2941,
+        "it50": 3089578,
+        "vis": 890766,
+        "perc": 0.09519099372147265
       },
       {
         "did": 29918164,
         "name": "yandex.ru",
-        "cnt": 2979,
-        "it50": 48907259,
-        "vis": 21370333,
-        "perc": 0.006091120338598407
+        "cnt": 2920,
+        "it50": 48344302,
+        "vis": 20517540,
+        "perc": 0.006040008603288967
       },
       {
         "did": 37692261,
         "name": "m-strana.ru",
-        "cnt": 2946,
-        "it50": 1446409,
-        "vis": 34391,
-        "perc": 0.20367682999760095
+        "cnt": 2882,
+        "it50": 1415682,
+        "vis": 30178,
+        "perc": 0.2035767919631669
       },
       {
         "did": 29918353,
         "name": "ozon.ru",
-        "cnt": 2545,
-        "it50": 18411386,
-        "vis": 3776448,
-        "perc": 0.01382296802641583
+        "cnt": 2371,
+        "it50": 18452922,
+        "vis": 3591264,
+        "perc": 0.012848913575855358
       },
       {
         "did": 140677055,
         "name": "ru.pinterest.com",
-        "cnt": 2254,
-        "it50": 6708624,
-        "vis": 2470120,
-        "perc": 0.03359854420220897
+        "cnt": 2156,
+        "it50": 6564307,
+        "vis": 2263568,
+        "perc": 0.032844289579996785
       },
       {
         "did": 30015208,
         "name": "ivd.ru",
-        "cnt": 2123,
-        "it50": 890414,
-        "vis": 27537,
-        "perc": 0.2384284164444854
+        "cnt": 2072,
+        "it50": 885133,
+        "vis": 24609,
+        "perc": 0.2340891142912986
       }
     ],
-    "it1": 202,
-    "it3": 612,
-    "it5": 1027,
-    "it10": 2203,
-    "it50": 9593,
+    "it1": 225,
+    "it3": 632,
+    "it5": 1038,
+    "it10": 2236,
+    "it50": 9454,
     "childsCount": 1,
     "keys": [
       {
@@ -108,6 +108,18 @@
         "word": "перегородка стеклянная межкомнатная",
         "ws": 2484,
         "wsk": 331
+      },
+      {
+        "pos": 1,
+        "word": "прозрачная крыша",
+        "ws": 12626,
+        "wsk": 190
+      },
+      {
+        "pos": 1,
+        "word": "стеклянные перегородки для зонирования",
+        "ws": 2262,
+        "wsk": 182
       },
       {
         "pos": 1,
@@ -144,66 +156,54 @@
         "word": "раздвижные двери в беседку",
         "ws": 471,
         "wsk": 101
-      },
-      {
-        "pos": 1,
-        "word": "стоечно ригельная система фасадного остекления",
-        "ws": 179,
-        "wsk": 91
-      },
-      {
-        "pos": 1,
-        "word": "раздвижные двери для беседки",
-        "ws": 443,
-        "wsk": 85
       }
     ],
-    "topkeys": 41612,
+    "topkeys": 42450,
     "pages": [
       {
-        "it50": 234,
+        "it50": 220,
         "url": "/dushevye-ograzhdeniya-i-kabiny/razmery-dushevykh-kabin-kak-vybrat-gabarity-dlya-komfortnogo-dusha"
       },
       {
-        "it50": 228,
+        "it50": 217,
         "url": "/ofisnye-peregorodki/montazh-karkasa-peregorodok-iz-profiley-dlya-gipsokartona"
       },
       {
-        "it50": 192,
+        "it50": 207,
         "url": "/"
       },
       {
-        "it50": 191,
+        "it50": 204,
         "url": "/perila-i-poruchni/vysota-poruchney-i-peril-lestnicy-normy-gost-i-snip"
       },
       {
-        "it50": 189,
-        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
-      },
-      {
-        "it50": 187,
+        "it50": 192,
         "url": "/dushevye-ograzhdeniya-i-kabiny/dizayn-vannoy-komnaty-s-dushevoy-kabinoy"
       },
       {
-        "it50": 132,
-        "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
+        "it50": 187,
+        "url": "/fasadnoe-osteklenie/zasteklennye-verandy-i-terrasy-v-chastnom-dome"
       },
       {
-        "it50": 118,
-        "url": "/price/peregorodki/dlya-komnat"
+        "it50": 140,
+        "url": "/steklyannye-dveri-dlya-doma/vkhodnaya-gruppa-dlya-chastnogo-doma"
       },
       {
         "it50": 113,
         "url": "/glass-doors-for-houses/zerkalnye-dveri-po-fen-shuy-kak-pravilno-ispolzovat-v-zerkalnye-poverhnosti"
       },
       {
-        "it50": 105,
-        "url": "/glass-partitions-for-home/mezhkomnatnye-peregorodki-dlya-kvartiry-gipsokarton-derevo-ili-steklo"
+        "it50": 99,
+        "url": "/steklyannye-dveri-dlya-doma/dver-v-parnuyu-razmery"
+      },
+      {
+        "it50": 95,
+        "url": "/price/peregorodki/dlya-komnat"
       }
     ],
-    "pagesinindex": 1147,
-    "vis": 175,
-    "topvis": 55563,
+    "pagesinindex": 1154,
+    "vis": 172,
+    "topvis": 55122,
     "adconcs": [],
     "adkeys": [],
     "adkeyscnt": 0,
@@ -431,26 +431,19 @@
         "aiCnt": 3842
       },
       "2026.08": {
-        "it1": 202,
-        "it3": 612,
-        "it5": 1027,
-        "it10": 2203,
-        "it50": 9593,
-        "pagesInIndex": 1147,
+        "it1": 225,
+        "it3": 632,
+        "it5": 1038,
+        "it10": 2236,
+        "it50": 9454,
+        "pagesInIndex": 1154,
         "adsCount": 0,
         "adKeysCount": 0,
-        "visAvg": 175,
-        "aiCnt": 3487
+        "visAvg": 172,
+        "aiCnt": 3441
       }
     },
     "linksHistory": {
-      "2025.02": [
-        1771,
-        15639,
-        354,
-        19,
-        276
-      ],
       "2025.03": [
         1783,
         15937,
@@ -571,14 +564,14 @@
         1347
       ],
       "2026.08": [
-        3784,
-        18683,
+        3787,
+        19178,
         483,
-        20,
-        1348
+        19,
+        1349
       ]
     },
-    "aiAnswersCnt": 3487,
+    "aiAnswersCnt": 3441,
     "aiState": 10,
     "dr": 32,
     "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/4ff777aadedf2ca6a84ac6266ef9ca9fec6258c3137399ffb2e6028eca34ebaf.png",

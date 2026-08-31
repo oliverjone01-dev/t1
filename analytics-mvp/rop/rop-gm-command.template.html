@@ -904,7 +904,10 @@ function kstrip(items,cols){return `<div class="kpi-strip" style="--cols:${cols|
   const money=x.money?`<div class="kpi-money">${x.money}</div>`:'';
   const qty=x.qty!=null?`<div class="kpi-qty"><b>${x.qty}</b><span>${x.qtyLabel||'шт'}</span></div>`:'';
   const foot=x.trend||(x.sub?`<div class="kpi-sub" style="font-size:10.5px;color:var(--ink-3)">${x.sub}</div>`:'');
-  return `<div class="kpi-cell" style="--ac:${ac}"><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}<div class="kpi-foot" style="margin-top:auto;padding-top:8px">${foot}</div></div>`;}).join('')+'</div>';}
+  // Кликабельная карточка (x.click): открывает список под полосой KPI. x.open - подсветка активного.
+  const clk=x.click?` data-kcard="${x.click}" style="--ac:${ac};cursor:pointer${x.open?';outline:2px solid '+ac+';outline-offset:-2px':''}" role="button" tabindex="0"`:` style="--ac:${ac}"`;
+  const hint=x.click?`<div style="font-size:9.5px;font-weight:700;color:${ac};margin-top:5px">${x.open?'▴ скрыть список':'▾ показать список'}</div>`:'';
+  return `<div class="kpi-cell"${clk}><div class="kpi-k">${x.k}</div>${qty}<div class="kpi-v" style="color:${x.ac==='accent'?'var(--accent)':'var(--ink)'}">${x.v}<span class="u">${x.u||''}</span></div>${money}<div class="kpi-foot" style="margin-top:auto;padding-top:8px">${foot}${hint}</div></div>`;}).join('')+'</div>';}
 function divider(n,title,hint){return `<div class="sec-div" id="sec${n}"><div class="sec-num">${n}</div><h2>${title}</h2><div class="ln"></div><div class="hint">${hint||''}</div></div>`;}
 
 // Порядок стадий воронки C21 (прогрессия сделки). Деньги появляются на «Счёт оплачен» (UC_5BND99),
@@ -1380,9 +1383,22 @@ function render(){
     {k:'Передано в деньгах',v:fmtK(_pdM),u:'₽',ac:'#2DD4BF',trend:trendChip(_pdM,_pdMPrev)},
     {k:'Доля от предоплат',v:_prepN?pct(_prodN/_prepN):'—',ac:'#38BDF8',trend:trendChip(_prepN?_prodN/_prepN:0,_prepP?_prodP/_prepP:0)+_sub(`передано ÷ предоплачено (${fmt(_prodN)} из ${fmt(_prepN)})`)},
     {k:'Средний чек передачи',v:_prodN?fmtK(_pdM/_prodN):'—',u:'₽',ac:'#A78BFA',trend:trendChip(_prodN?_pdM/_prodN:0,_prodP?_pdMPrev/_prodP:0)+_sub('деньги передач ÷ штуки')},
-    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',trend:trendChip(_queue.length,_queueP)+_sub(fmtK(_queueM)+' ₽ · предоплата получена, в цех ещё не передано · сейчас vs конец пред. периода')},
+    {k:'На подходе к цеху',v:fmt(_queue.length),ac:'#F59E0B',click:'queue',open:!!S.queueOpen,trend:trendChip(_queue.length,_queueP)+_sub(fmtK(_queueM)+' ₽ · предоплата получена, в цех ещё не передано · сейчас vs конец пред. периода')},
     {k:'Потенциал в расчётах',v:fmt(_qDeals.length),ac:'#22D3EE',trend:trendChip(_qDeals.length,_qPrevN)+_sub(fmtK(_qM)+' ₽ · открытые сделки в просчёте · сейчас vs конец пред. периода')},
   ]);
+  // Раскрываемый список сделок «на подходе к цеху» (клик по карточке). Оплачены (стадия
+  // «Счет оплачен»), но не переданы в цех. Сортировка - дольше всех ждущие сверху.
+  const B_queueList=(()=>{
+    if(!S.queueOpen)return '';
+    const _p=DATA.b24Portal||'',dl=id=>_p?`<a href="${_p}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:id;
+    const nowMs=Date.parse(DATA.to||new Date().toISOString().slice(0,10));
+    const rows=_queue.map(d=>{const pd=prepayDate(d);const wait=pd?Math.max(0,Math.round((nowMs-Date.parse(pd))/864e5)):null;return {d,pd,wait};})
+      .sort((a,b)=>(b.wait||0)-(a.wait||0));
+    if(!rows.length)return `<div class="card" style="margin-top:10px"><div class="card-sub">сейчас очередь пуста - все оплаченные сделки переданы в цех</div></div>`;
+    const wc=w=>w==null?'var(--ink-4)':w>60?'#F43F5E':w>30?'#F59E0B':'#2E9E74';
+    const body=rows.map(({d,pd,wait})=>`<tr><td style="text-align:center">${dl(d.id)}</td><td class="name" style="text-align:left">${esc(d.mgr||'—')}${isEx(d.mgr)?' <span style="font-size:9px;font-weight:700;color:'+EX_COL+'">⚑ уволен</span>':''}</td><td style="text-align:center">${fmtK(d.budget||0)}</td><td style="text-align:center;color:var(--ink-3);white-space:nowrap">${pd?pd.slice(0,10):'—'}</td><td style="text-align:center;font-weight:700;color:${wc(wait)}">${wait==null?'—':wait+' дн'}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc(d.category||'—')} · ${esc(d.client||'—')}</td><td style="text-align:left;font-size:11px;color:var(--ink-3)">${esc((d.title||'').slice(0,60))}</td></tr>`).join('');
+    return `<div class="card" style="margin-top:10px;border:1px solid rgba(245,158,11,.35)"><div class="card-h"><div><div class="card-title" style="color:#F59E0B">На подходе к цеху - ${fmt(rows.length)} сделок · ${fmtK(_queueM)} ₽</div><div class="card-sub">оплачены (стадия «Счет оплачен»), но не переданы в производство. «Ждёт» - дней с даты оплаты (красный >60, жёлтый >30). Сортировка: дольше всех сверху.</div></div></div><div class="scroll" style="margin-top:8px;max-height:360px"><table class="tbl"><thead><tr><th>Сделка</th><th style="text-align:left">Менеджер</th><th>Бюджет</th><th>Оплачено</th><th>Ждёт</th><th style="text-align:left">Категория / клиент</th><th style="text-align:left">Название</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  })();
   // Сквозная воронка «от предоплат до изделий» - копия дашборда производства (те же цифры).
   const prodFunnel=(()=>{
     const IT=(DATA.prodItems||[]).filter(i=>i.dealId); // только карточки со сделкой: расчётные/без сделки не считаем
@@ -2302,7 +2318,7 @@ function offerControlBlock(){
   h = B_migWarn + divider(1,'Компания','здоровье бизнеса: в плане ли мы и куда движемся · стрелки = к прошлому равному периоду')+B_kpi+B_gauges+G(B_dynRev,B_cvFunnel)+B_donuts
     + divider(2,'Отдел продаж','что в воронке, где и почему теряем · от входящего потока до потерь')+B_leadStrip+B_teamPlan+B_leadFunnelPair+B_truba+G(B_dwellStage,B_lossReasons)
     + divider(3,'Менеджеры','кто тянет, кто отстаёт')+B_rating+taskDisciplineBlock()+B_mgrPlanFactPair
-    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_prodChart+B_prodMgr+noCardBlock()
+    + divider(4,'Передача в производство','точка стыковки с цехом: сколько передаём, кто передаёт и что на подходе')+B_prodKpi+B_queueList+B_prodChart+B_prodMgr+noCardBlock()
     + divider(5,'Дисциплина данных','чистота заполнения карточек: от неё зависит точность всех цифр этих дашбордов')+disciplineBlock()+deptDQBlock()
     + divider(6,'Со сделанным предложением','горячий пайплайн: оффер у клиента - берём под контроль · клик по менеджеру раскрывает сделки')+offerControlBlock()+offerAnalytics()+offerCalendarBlock()+healthBlock()+offerReasonsBlock();
   document.getElementById('root').innerHTML=h;
@@ -2638,6 +2654,7 @@ function buildShell(){
   if(_ds)_ds.querySelectorAll('button').forEach(b=>b.onclick=()=>{_ds.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.dateBasis=b.dataset.b;render();});
   document.addEventListener('click',e=>{const sb=e.target.closest('#dwellSort button');if(sb){S.dwellSort=sb.dataset.s;render();}});
   document.addEventListener('click',e=>{const mb=e.target.closest('#mgrMetricSeg button');if(mb){S.loadMetric=mb.dataset.m;render();}});
+  document.addEventListener('click',e=>{const kc=e.target.closest('[data-kcard="queue"]');if(kc){S.queueOpen=!S.queueOpen;render();}});
   document.addEventListener('click',e=>{const onBtn=e.target.closest('#lossMgrBtn'),inPanel=e.target.closest('#lossMgrPanel');if(onBtn){S.lossMgrOpen=!S.lossMgrOpen;render();return;}if(S.lossMgrOpen&&!inPanel){S.lossMgrOpen=false;render();}});
   document.addEventListener('change',e=>{const cb=e.target&&e.target.closest&&e.target.closest('#lossMgrPanel input[data-lmgr]');if(cb){const m=cb.dataset.lmgr;const s=new Set(S.lossMgrSel||[]);if(cb.checked)s.add(m);else s.delete(m);S.lossMgrSel=[...s];render();}});
   document.addEventListener('click',e=>{if(e.target&&e.target.id==='lossMgrClear'){S.lossMgrSel=[];render();}});

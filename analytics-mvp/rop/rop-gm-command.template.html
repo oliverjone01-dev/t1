@@ -1867,8 +1867,9 @@ function offerCalendarBlock(){
   const ROWS=[
     {id:"in",nm:"Пришло офферов",color:"#22D3EE",df:firstOffer,grp:"вход"},
     {id:"wip",nm:"В работе (на конец)",color:"#818CF8",wip:true,grp:"в работе"},
-    {id:"kp",nm:"КП отправлено",color:"#60A5FA",df:d=>enterStage(d,"C21:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
-    {id:"dec",nm:"Ожидание оплаты",color:"#C2873C",df:d=>enterStage(d,"C21:FINAL_INVOICE"),grp:"в работе",child:true},
+    {id:"kp",nm:"КП отправлено",color:"#60A5FA",stg:"C21:PREPAYMENT_INVOIC",df:d=>enterStage(d,"C21:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
+    {id:"dec",nm:"Ожидание оплаты",color:"#C2873C",stg:"C21:FINAL_INVOICE",df:d=>enterStage(d,"C21:FINAL_INVOICE"),grp:"в работе",child:true},
+    {id:"early",nm:"на др. стадиях (вернулись раньше)",color:"#6A7484",stgOther:true,grp:"в работе",child:true},
     {id:"vyhod",nm:"Выход (успех + отказ)",color:"#9AA4B2",df:d=>enterExec(d)||enterLose(d),grp:"выход"},
     {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход",child:true},
     {id:"loss",nm:"Отказ",color:"#CC5867",df:enterLose,grp:"выход",child:true},
@@ -1889,8 +1890,10 @@ function offerCalendarBlock(){
   const COHROWS={};COHSRC.forEach(([rid,stg])=>{COHROWS[rid]=COHDEF.map(c=>({...c,wip:true,id:rid+"@"+c.key,stg,base:rid}));});
   const RBY2={};Object.values(COHROWS).forEach(arr=>arr.forEach(c=>RBY2[c.id]=c));
   const cohBase=(r,k,sc)=>r.stg?stageWipAt(k,sc,r.stg):wipAt(k,sc);
-  const dealsFor=(r,k,sc)=>r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
-  const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
+  // r.stg (КП/Ожидание оплаты под «В работе») - СНИМОК: сколько открытых офферов стоит на этой
+  // стадии на конец недели (как родитель «В работе»), а не поток входов. Тогда стадии - разбивка остатка.
+  const dealsFor=(r,k,sc)=>r.cohort?cohBase(r,k,sc).filter(d=>{const a=ageAt(d,k);return a>=r.cohort[0]&&a<=r.cohort[1];}):r.stg?stageWipAt(k,sc,r.stg):r.stgOther?wipAt(k,sc).filter(d=>{const st=stageAtT(d,endDate(k));return st!=="C21:PREPAYMENT_INVOIC"&&st!=="C21:FINAL_INVOICE";}):r.wip?wipAt(k,sc):sc.filter(d=>{const dt=r.df(d);return dt&&inR(dt)&&bkey(dt.slice(0,10),g)===k;});
+  const serie=(r,sc)=>{const cnt={},mon={};let tot=0,totM=0;keys.forEach(k=>{const ds=dealsFor(r,k,sc);cnt[k]=ds.length;mon[k]=money(ds);if(!r.wip&&!r.stg&&!r.stgOther){tot+=ds.length;totM+=mon[k];}});return {cnt,mon,mx:Math.max(1,...keys.map(k=>cnt[k])),mxM:Math.max(1,...keys.map(k=>mon[k])),tot,totM};};
 
   const hx=(c,t)=>c+Math.round((0.18+t*0.75)*255).toString(16).padStart(2,"0");
   const fs=keys.length>60?6.5:keys.length>40?7:keys.length>24?8:9;
@@ -1902,13 +1905,13 @@ function offerCalendarBlock(){
     const rowKey=opts.rowKey||r.id;
     let sig;
     if(r.cohort){const tw=cohBase(r,lastK,sc).length,cc=s.cnt[lastK];sig=`${cc} · ${tw?Math.round(cc/tw*100):0}%`;}
-    else if(r.wip)sig=fmt(s.cnt[lastK]);
+    else if(r.wip||r.stg||r.stgOther)sig=fmt(s.cnt[lastK]);
     else sig=unit==="money"?fmtK(s.totM):fmt(s.tot);
-    const canExp=opts.exp||(!opts.sub&&(COHROWS[r.id]||!mgrSel));
+    const canExp=opts.exp||(!opts.sub&&!r.stgOther&&(COHROWS[r.id]||!mgrSel));
     const arw=canExp?`<span style="color:#A78BFA">${(S.calRowOpen&&S.calRowOpen[rowKey])?'▾ ':'▸ '}</span>`:'';
     const baseIndent=r.child?'padding-left:18px;':'';
     const bullet=r.cohort?`<span style="color:${r.color};font-size:8px">● </span>`:'';
-    const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
+    const nmeHTML=opts.sub?`<span style="padding-left:${(opts.off||0)+(opts.sub2?30:16)}px;color:${r.cohort?'var(--ink-2)':'var(--ink-3)'}">${arw}${bullet}${esc(opts.mgr)}</span>`:`<span style="${baseIndent}">${arw}${r.nm}${(!r.wip&&!r.cohort&&!r.stg&&!r.stgOther)?` <b style="color:${r.color}">${sig}</b>`:''}</span>`;
     let rightHTML;
     if(opts.cup){const cf=opts.cup.fact,ct=opts.cup.target,inv=opts.cup.inv,mny=opts.cup.money,_fv=v=>mny?fmtK(v):fmt(v),sc=Math.max(1,cf,ct),fh=Math.min(100,cf/sc*100).toFixed(0),ph=Math.min(100,ct/sc*100).toFixed(0);
       // inv = потолок (отказы): меньше плана = зелёный, больше = красный, ровно = серый.

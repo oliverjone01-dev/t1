@@ -1,0 +1,517 @@
+{
+ "domain": "nayada.ru",
+ "vs": [
+  "nayada.ru",
+  "genglass.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-08-31T22:12:26.403Z",
+ "data": {
+  "current_page": 1,
+  "per_page": 50,
+  "last_page": 10,
+  "data": [
+   {
+    "url": "/",
+    "domain": "genglass.ru",
+    "it1": 3,
+    "it3": 3,
+    "it5": 3,
+    "it10": 5,
+    "it50": 22,
+    "vis": 144
+   },
+   {
+    "url": "/about-us",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 3,
+    "vis": 18
+   },
+   {
+    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 165
+   },
+   {
+    "url": "/blog/razdvizhnye-peregorodki-kakie-byvayut-i-kak-vybrat-pod-interer",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/vidy-mezhkomnatnyh-peregorodok-polnyj-obzor-reshenij-dlya-kvartiry-i-doma",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/contact-us",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 2
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/razdvizhnye-dushevye-dveri-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-ugolki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 3,
+    "vis": 14
+   },
+   {
+    "url": "/magnitno-markernie-doski-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 6,
+    "it10": 10,
+    "it50": 14,
+    "vis": 4
+   },
+   {
+    "url": "/materialy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 6,
+    "it10": 11,
+    "it50": 45,
+    "vis": 43
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/alyuminievye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 5,
+    "it50": 6,
+    "vis": 15
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dekorativnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 15
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dekorativnye-peregorodki/peregorodki-s-risunkom-ili-uzorom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/czvetnye-dekorativnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 5
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 5,
+    "it10": 13,
+    "it50": 31,
+    "vis": 12
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/ofisnye-peregorodki/akusticheskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 3,
+    "it50": 26,
+    "vis": 6
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 6,
+    "it50": 18,
+    "vis": 1
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-stellazhi",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 29,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/raspashnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 21,
+    "vis": 5
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/skladnye-peregorodki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 3
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 5,
+    "vis": 2
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 2,
+    "it3": 5,
+    "it5": 5,
+    "it10": 5,
+    "it50": 10,
+    "vis": 69
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product-category",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 4,
+    "vis": 10
+   },
+   {
+    "url": "/product-category/hranenie/polki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/hranenie/stellazhi",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/hranenie/veshalki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/komplektuyushhie/derevyannye-stoleshniczy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 33,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 6,
+    "vis": 1
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/dizajnerskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/loft-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/metallicheskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-s-tonirovannym-steklom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/raspashnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/razdvizhnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/reechnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/staczionarnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 4
+   }
+  ],
+  "total": 491
+ }
+}

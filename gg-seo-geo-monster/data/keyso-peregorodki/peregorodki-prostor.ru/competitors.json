@@ -1,0 +1,14 @@
+{
+  "domain": "peregorodki-prostor.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-08-31T22:14:55.255Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=peregorodki-prostor.ru&top=10",
+  "data": {
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 0,
+    "data": [],
+    "total": 0
+  }
+}

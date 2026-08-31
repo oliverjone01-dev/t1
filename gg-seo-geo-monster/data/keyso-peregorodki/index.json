@@ -1,0 +1,107 @@
+{
+  "updated": "2026-08-31T22:04:00.254Z",
+  "source": "keys.so",
+  "db": "msk",
+  "targets": [
+    {
+      "domain": "genglass.ru",
+      "brand": "GENGLASS",
+      "role": "own",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "fdmebel.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": "error: HTTP 500 {\"code\":500,\"message\":\"Возникла критическая ошибка, наши специалисты уже оповещены.\"}"
+    },
+    {
+      "domain": "oki-doki.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "nayada.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "loftcase.ru",
+      "brand": null,
+      "role": "competitor-peregorodki",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "peregorodki-prostor.ru",
+      "brand": null,
+      "role": "competitor-ad-new",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    },
+    {
+      "domain": "kristal360.ru",
+      "brand": null,
+      "role": "competitor-ad-new",
+      "reports": {
+        "dashboard": "ok",
+        "competitors": "ok"
+      },
+      "deep": {
+        "organic_keywords": "ok",
+        "context_keywords": "ok",
+        "context_ads": "ok",
+        "sitepages": "ok"
+      }
+    }
+  ]
+}

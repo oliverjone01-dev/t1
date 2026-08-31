@@ -1460,9 +1460,9 @@ function render(){
       (leakH>0.5?`<rect x="${nodeX(0)}" y="${t1+passH}" width="${nw}" height="${leakH}" fill="#F59E0B" data-tip="${q(dt('Не передано в цех',[['Разрыв за период','+'+fmt(NL),'hl'],['Ждут сейчас',fmt(_queue.length)+' · '+fmtK(_queueM)+' ₽','dim']]))}" style="cursor:help"/>`:'')+`</g>`;
     if(passH>26)v+=`<text x="${cx(0)}" y="${t1+passH/2+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#06121a" pointer-events="none">${fmt(Math.min(N2,N1))}</text>`;
     if(leakH>22)v+=`<text x="${cx(0)}" y="${t1+passH+leakH/2+5}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="14" fill="#06121a" pointer-events="none">${fmt(NL)}</text>`;
-    // Плашка «всего предоплат» (N1) держится ВНУТРИ узла, не ниже b1-13, чтобы не залезать
-    // на подпись выручки под узлом (при 100% конверсии passH=h1 и плашка иначе села бы на низ).
-    const _n1y=Math.min(t1+passH,b1-13);
+    // Плашка «всего предоплат» (N1) - вверху ВНУТРИ узла, чтобы не залезать на подпись выручки
+    // под узлом (при 100% конверсии низ узла занят и подпись ₽ идёт сразу под ним).
+    const _n1y=t1+13;
     v+=`<g data-tip="${q(dt('Всего предоплат за период',[['Сделок',fmt(N1),'hl'],['Деньги',fmtK(prepM)+' ₽','dim'],['Из них в цех',fmt(Math.min(N2,N1)),'dim'],['Не передано',fmt(NL),'dim']]))}" style="cursor:help"><rect x="${cx(0)-25}" y="${_n1y-11}" width="50" height="22" rx="11" fill="rgba(7,9,13,.94)" stroke="#A78BFA" stroke-opacity=".7"/><text x="${cx(0)}" y="${_n1y+4}" text-anchor="middle" font-family="Manrope" font-size="12" font-weight="800" fill="#A78BFA" pointer-events="none">${fmt(N1)}</text></g>`;
     const tds=[
       q(dt('Передано в производство',[['Сделок за период',fmt(N2),'hl'],['Деньги',fmtK(startM)+' ₽','dim'],['Считаем','первый запуск карточки сделки в цех','dim']])),

@@ -143,10 +143,19 @@ const isSalesRep = (s: any) => !NOT_OP.has(s.name) && !isSysName(s.name) && !isS
 const opUsers = Object.values(staff)
   .filter((s: any) => s.deals > 0 && isSalesRep(s) && isRecent(s)).sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
 const _excluded = Object.values(staff).filter((s: any) => s.deals > 0 && (!isSalesRep(s) || !isRecent(s))).map((s: any) => s.name);
-console.log(`Ростер ОП: ${opUsers.length} продавцов. Вне ОП (уволенные/служебные/неактивные >${ACTIVE_DAYS}д): ${_excluded.join(", ") || "-"}`);
+// exUsers: ЖИВЫЕ продавцы (не система/сервис/владелец), выпавшие из ростера ТОЛЬКО потому, что
+// уволены или неактивны >ACTIVE_DAYS. Их книга (сделки/лиды/выигрыши) остаётся на дашборде
+// отдельной строкой другого цвета - для наглядности и перераспределения на действующих. В план
+// они НЕ входят (норма делится только на opUsers). Системные/сервисные аккаунты сюда НЕ попадают.
+const isHumanRep = (s: any) => !NOT_OP.has(s.name) && !isSysName(s.name) && !isService(s.name);
+const opSet = new Set(opUsers);
+const exUsers = Object.values(staff)
+  .filter((s: any) => s.deals > 0 && isHumanRep(s) && !opSet.has(s.name))
+  .sort((a: any, b: any) => b.deals - a.deals).map((s: any) => s.name);
+console.log(`Ростер ОП: ${opUsers.length} продавцов. Уволенные/неактивные с книгой (exUsers): ${exUsers.join(", ") || "-"}. Прочие вне ОП: ${_excluded.filter((n: string) => !exUsers.includes(n)).join(", ") || "-"}`);
 
 const DATA = {
-  from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
+  from, to, deals, leads, groups: [], keyStageStats, funnel, dq, opUsers, exUsers, intStaff,
   sysUsers: [], deptOf: {},
   // Метка свежести: когда данные сняты из Bitrix (для видимого штампа на странице).
   generatedAt: rop.generated_at || null,

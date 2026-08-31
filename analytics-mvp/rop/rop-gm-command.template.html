@@ -292,7 +292,11 @@ function mergedReason(d){let r=d.reason;if(r==='не указана'||r==='Др�
 function tgl(id){const e=document.getElementById(id);if(e)e.style.display=e.style.display==='none'?'block':'none';}
 const isSys=n=>/систем|^id\s?\d/i.test(n||'');
 const OP=new Set(DATA.opUsers||[]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
+// EX: уволенные/неактивные ЖИВЫЕ продавцы с книгой (сделки/лиды остались). Показываем их
+// отдельной строкой цвета «уволен» для наглядности и перераспределения; в план они НЕ входят.
+const EX=new Set(DATA.exUsers||[]);const isEx=n=>EX.has(n);
 const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
+const EX_COL='#C2873C'; // янтарный - цвет строки уволенного менеджера (книга на распределение)
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
 // Дата переезда CRM из AmoCRM в Битрикс24: вся история сделок залита одним днём
 // (см. данные: 94% сделок имеют created/closed = этой дате). Данные по сделкам в этот
@@ -321,7 +325,7 @@ const DEALER_SRC=new Set(['ДИЛЕР Glass Memory']);
 // dirOk). Защита: если ростер ОП не загрузился (OP пуст) - не блокируем всех, показываем
 // как есть, чтобы дашборд не обнулился при сбое выгрузки.
 const GM_BOT='Системный пользователь GM';
-const inGM=x=>OP.size===0?true:(isOP(x.mgr)||x.mgr===GM_BOT);
+const inGM=x=>OP.size===0?true:(isOP(x.mgr)||isEx(x.mgr)||x.mgr===GM_BOT);
 const chOk=x=>inGM(x)&&(S.channel==='all'?true:(S.channel==='dealer'?DEALER_SRC.has(x.source):!DEALER_SRC.has(x.source)));
 const flt=(arr,withCli)=>arr.filter(x=>(!S.fMgr||x.mgr===S.fMgr)&&(!S.fSrc||x.source===S.fSrc)&&(!S.fDir||x.dir===S.fDir)&&chOk(x)&&(withCli? (!S.fCli||x.client===S.fCli):true));
 function FD(){return flt(AD,true).filter(d=>inP(d.created));}
@@ -391,12 +395,12 @@ function _convDef(){const created=S.dateBasis!=='outcome',prepay=S.revMode!=='wo
             :'создано → успех, делённое на созданные в периоде')
     :(prepay?'оплачено в периоде (по дате предоплаты) ÷ (оплаченные + открытые сделки до предоплаты)'
             :'успех в периоде (по дате закрытия) ÷ (успешные + открытые сделки до успеха)');}
-function mgrConvCalc(keys){
+function mgrConvCalc(keys,pred){pred=pred||isOP;
   const created=S.dateBasis!=='outcome',prepay=S.revMode!=='won';
   const ORD={};FORDER.forEach((c,i)=>ORD[c]=i);
   const PREI=ORD['C21:UC_5BND99'],WONI=ORD['C21:WON'];
   const sidx=d=>{const i=ORD[d.stageCode];return i==null?-1:i;};
-  const U=flt(AD,true).filter(d=>isOP(d.mgr));
+  const U=flt(AD,true).filter(d=>pred(d.mgr));
   const A={},E=m=>A[m]=A[m]||{num:0,den:0,nw:{},dw:{}};
   if(created){
     U.forEach(d=>{if(d.created<S.start||d.created>S.end)return;const a=E(d.mgr),k=bkey(d.created,S.gran);
@@ -1202,12 +1206,16 @@ function render(){
     return `<div class="mg-row"><div class="mg-name" data-tip="${nm.replace(/"/g,'&quot;')}">${nm}</div><div class="mg-track" data-tip="${td}"><div class="mg-bar" style="width:${w}%">${segs}</div></div><div class="mg-tot">${fmt(a.t)}</div></div>`;}).join(''):`<div class="card-sub">в периоде нет лидов на менеджерах ОП</div>`;
   const _mkeys=buckets(S.gran),_mP=planModel(D,L,m),_lm=S.loadMetric||'leads';
   const _convData=mgrConvCalc(_mkeys); // конверсия по 4 режимам (зависит от верхних тумблеров)
-  const _marr=_lm==='conv'?_convData.arr:mgrPF(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys),_unassigned=unassignedAgg(L,(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D,_lm,_mkeys);
+  const _mDs=(_lm==='won'||_lm==='rev'||_lm==='check')?soldSet():_lm==='prod'?prodSet():D;
+  const _marr=_lm==='conv'?_convData.arr:mgrPF(L,_mDs,_lm,_mkeys),_unassigned=unassignedAgg(L,_mDs,_lm,_mkeys);
+  // Уволенные продавцы с книгой (EX): отдельные янтарные строки, в план НЕ входят.
+  const _exArr=EX.size?(_lm==='conv'?mgrConvCalc(_mkeys,isEx).arr:mgrPF(L,_mDs,_lm,_mkeys,isEx)).map(x=>({...x,ex:true})):[];
   // Факт команды по счётным метрикам ВКЛЮЧАЕТ нераспределённых: это реальные лиды/сделки,
   // пришедшие в GM (бот - лишь holding pen, менеджер обязан взять заявку и сменить
   // ответственного). Поэтому «Лиды» = все 155, а не только распределённые по менеджерам.
   const _unFact=(_unassigned&&_lm!=='conv'&&_lm!=='check')?_unassigned.tot:0;
-  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?_convData.teamTot:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)+_unFact),_attain=(_lm!=='leads');
+  const _exFact=(_lm!=='conv'&&_lm!=='check')?_exArr.reduce((a,x)=>a+x.tot,0):0; // книги уволенных - в тотал отдела
+  const _mN=OP.size||_marr.length||1,_factTot=(_lm==='conv'?_convData.teamTot:_lm==='check'?m.check:_marr.reduce((a,x)=>a+x.tot,0)+_unFact+_exFact),_attain=(_lm!=='leads');
   const _mPlanTot=_lm==='conv'?0.15:_lm==='check'?(_mP.check||60000):_lm==='leads'?_factTot:_lm==='prod'?(Math.round(_mP.winT)||_factTot):_lm==='deals'?(_mP.targets.deals||_factTot):(_lm==='won'?Math.round(_mP.winT):_mP.targets.rev);
   const _isRatio=(_lm==='conv'||_lm==='check'),_mPlanMgr=_isRatio?_mPlanTot:_mPlanTot/_mN,_mPlanCell=_isRatio?_mPlanMgr:_mPlanMgr/(_mkeys.length||1),_mLab={leads:'Лиды',deals:'Сделки',won:'Продажи',prod:'В производство',rev:'Выручка',conv:'Конверсия',check:'Ср.чек'}[_lm],_mGran=S.gran==='day'?'дням':S.gran==='month'?'месяцам':'неделям';
   const _teamFact=_factTot,_teamPlan=_lm==='leads'?(_mP.targets.leads||_factTot):_mPlanTot,_teamPct=_teamPlan?_teamFact/_teamPlan:0,_tc=planTone(_teamPct);
@@ -1218,7 +1226,7 @@ function render(){
   const _greenPct=Math.min(100,_teamPct*100),_unPct=(_unTot&&_teamPlan)?Math.min(_greenPct,_unTot/_teamPlan*100):0;
   const _greySeg=_unPct>0.3?`<div style="position:absolute;left:${(_greenPct-_unPct).toFixed(1)}%;top:0;height:100%;width:${_unPct.toFixed(1)}%;background:repeating-linear-gradient(45deg,#3A4250,#3A4250 5px,#2C333E 5px,#2C333E 10px);opacity:.92" data-tip="Не распределены (на боте, ждут менеджера): ${_fMt(_unTot)} · ${pct(_unShare)} от всех ${_mLab.toLowerCase()} · входят в тотал"></div>`:'';
   const _teamHTML=`<div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap">Команда · ${_mLab}${_lm==='leads'?' <span style="color:var(--ink-3)">(под выручку)</span>':''}</div><div style="position:relative;flex:1;min-width:240px;height:22px;background:var(--bg-base);border-radius:11px;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:${Math.min(100,_teamPct*100).toFixed(1)}%;background:${_tc};transition:width .8s var(--ease-out)"></div>${_greySeg}<span style="position:absolute;left:10px;top:0;line-height:22px;font-size:11px;font-weight:800;color:#fff;z-index:2;text-shadow:0 1px 2px rgba(0,0,0,.45)">${_fMt(_teamFact)}</span><span style="position:absolute;right:10px;top:0;line-height:22px;font-size:11px;font-weight:600;color:var(--ink-3);z-index:2">из ${_fMt(_teamPlan)}</span></div><div style="font-family:'Manrope';font-weight:800;font-size:18px;color:${_tc};white-space:nowrap">${pct(_teamPct)}</div>`;
-  const _noL=L.filter(l=>!isOP(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)),_noMap={};
+  const _noL=L.filter(l=>!isOP(l.mgr)&&!isEx(l.mgr)),_noD=D.filter(d=>!isOP(d.mgr)&&!isEx(d.mgr)),_noMap={};
   _noL.forEach(l=>{(_noMap[l.mgr]=_noMap[l.mgr]||{l:0,d:0}).l++;});_noD.forEach(d=>{(_noMap[d.mgr]=_noMap[d.mgr]||{l:0,d:0}).d++;});
   const _noBear=Object.entries(_noMap).sort((a,b)=>(b[1].l+b[1].d)-(a[1].l+a[1].d)).slice(0,5).map(([n,v])=>`${n} <span style="color:var(--ink-4)">(${v.l}л/${v.d}с)</span>`).join(' · ');
   const _unLab={leads:'лидов',deals:'сделок',won:'продаж',prod:'запусков производства',rev:'выручки'}[_lm];
@@ -1230,7 +1238,8 @@ function render(){
     const arr=mgrPF(L,ds,metric,_mkeys);
     const un=unassignedAgg(L,ds,metric,_mkeys);
     const unT=(un&&metric!=='conv'&&metric!=='check')?un.tot:0; // нераспределённые входят в тотал
-    const fact=metric==='conv'?_convData.teamTot:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0)+unT;
+    const exT=(EX.size&&metric!=='conv'&&metric!=='check')?mgrPF(L,ds,metric,_mkeys,isEx).reduce((a,x)=>a+x.tot,0):0; // книги уволенных
+    const fact=metric==='conv'?_convData.teamTot:metric==='check'?m.check:arr.reduce((a,x)=>a+x.tot,0)+unT+exT;
     const planTot=metric==='conv'?0.15:metric==='check'?(_mP.check||60000):metric==='leads'?fact:metric==='prod'?(Math.round(_mP.winT)||fact):metric==='deals'?(_mP.targets.deals||fact):(metric==='won'?Math.round(_mP.winT):_mP.targets.rev);
     const plan=metric==='leads'?(_mP.targets.leads||fact):planTot;
     return {fact,plan,pct:plan?fact/plan:0};
@@ -1266,8 +1275,8 @@ function render(){
     return `<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-soft)"><div style="flex:0 0 96px;font-size:12.5px;color:var(--ink-2);font-weight:700">${x.lab}</div>${bar}<div style="flex:0 0 54px;text-align:right;font-family:'Manrope';font-weight:800;font-size:14.5px;color:${tc}">${pct(x.attn)}</div><div style="flex:0 0 116px;text-align:right;font-size:11px;color:var(--ink-3)">${done?'<span style="color:#2E9E74;font-weight:700">выполнен ✓</span>':'осталось <b style="color:var(--ink-2)">'+(x.remDisp||x.f(x.remaining))+'</b>'}</div><div style="flex:0 0 84px;text-align:center"><span style="display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;color:${x.risk.c};background:${x.risk.c}22;border:1px solid ${x.risk.c}66;border-radius:6px;padding:2px 8px">${x.risk.l}</span></div></div>`;}).join('');
   const B_teamPlan=`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><div class="card-title">Команда - план-факт ${info('Сводный факт vs план всей команды по выбранной метрике (переключай метрику сверху). «В пр-во» считается в СДЕЛКАХ, переданных в производство (изделия и штуки - на дашборде производства); план по нему = план продаж периода из таблицы: каждая проданная сделка должна уйти в цех. Вопрос: выполняет ли отдел план в целом за период. Вывод: % ниже 100 - разбирайся по менеджерам в блоках ниже; «В пр-во» сильно ниже плана продаж - продажи не доезжают до цеха или передачи просели.')}</div><div class="card-sub">все метрики отдела в одном блоке · факт vs план за выбранный период</div></div><div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap"><span class="ctl-lbl">План за период</span><span style="font-family:'Manrope';font-weight:800;font-size:13px;padding:5px 11px;border-radius:8px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(46,158,116,.35)" data-tip="${(_mP.fromSheet?'План из Google Таблицы (источник истины). Динамический: зависит от выбранного диапазона дат. На стыке месяцев режется по дням - берётся доля дней каждого месяца, попавших в период. Цели по сделкам и лидам выводятся из целевых чека и CR месяца.':'Выбранный период вне месяцев таблицы плана - показан запасной расчёт. Добавь нужные месяцы в Google Таблицу.').replace(/"/g,'&quot;')}">${_mP.fromSheet?fmtK(_mP.targets.rev)+' ₽':'вне диапазона'}</span><a class="dbtn" href="${DATA.planUrl||'#'}" target="_blank" rel="noopener" style="text-decoration:none" data-tip="Открыть таблицу плана в Google">↗ Таблица</a></div></div>
     <div style="padding:6px 14px 8px;background:var(--bg-elevated);border-radius:10px">${_teamRows}</div></div>`;
-  const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">кто тянет, а кто отстаёт от плана</div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned)}</div>`+
-    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">${_lm==='conv'?'конверсия по фильтрам сверху: '+_convDef():'вклад каждого менеджера по периодам'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned)}</div></div>`;
+  const B_mgrPlanFactPair=`<div class="grid2"><div class="card"><div class="card-h"><div><div class="card-title">План-факт по менеджерам ${info('Факт каждого менеджера vs норма на менеджера (общий план ÷ число менеджеров). Вопрос: кто тянет, кто отстаёт. Вывод: красные ниже нормы - на разбор; зелёные сверх плана - тиражировать их практики.')}</div><div class="card-sub">кто тянет, а кто отстаёт от плана${EX.size?' · <span style="color:'+EX_COL+'">янтарные - уволенные, их книга на распределение</span>':''}</div></div></div>${mgrPlanFactBars(_marr,_mPlanMgr,_lm,_attain,_unassigned,_exArr)}</div>`+
+    `<div class="card"><div class="card-h"><div><div class="card-title">${_mLab} по менеджерам: факт × план ${info('Тепло-матрица: вклад каждого менеджера по неделям/дням + Σ/план/% за период. Вопрос: стабильно работает менеджер или рывками. Вывод: провалы по неделям = неравномерная работа; смотри строку «Итог по отделу» внизу.')}</div><div class="card-sub">${_lm==='conv'?'конверсия по фильтрам сверху: '+_convDef():'вклад каждого менеджера по периодам'}</div></div><div class="seg" id="mgrMetricSeg">${[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${_lm===x[0]?'on':''}">${x[1]}</button>`).join('')}</div></div>${mgrMatrix(_marr,_mPlanCell,_mPlanMgr,_lm,_mkeys,_attain,_teamFact,_teamPlan,_unassigned,_exArr)}</div></div>`;
   // распределение лидов (системные = нераспределённые)
   const opL=L.filter(l=>isOP(l.mgr)),sysL=L.filter(l=>isSys(l.mgr)),intL=L.filter(l=>isInt(l.mgr));
   const notOpL=L.filter(l=>!isOP(l.mgr));
@@ -2331,10 +2340,10 @@ function mgrHeatmap(L){
   const rows=arr.map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell;const bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)';const col=t>0.55?'#06121a':'var(--ink-2)';const td=dt(x.m+' · '+blabel(k,S.gran),[['Лидов',fmt(v),'hl']]).replace(/"/g,'&quot;');return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?(v||''):''}</div>`;}).join('');
     return `<div class="hm-row"><div class="hm-name" data-tip="${x.m.replace(/"/g,'&quot;')}">${x.m}</div>${cells}<div class="hm-tot">${fmt(x.t)}</div></div>`;}).join('');
   return `<div class="hm" style="--wk:${keys.length}">${head}${rows}</div>`;}
-function mgrPF(L,D,metric,keys){const A={};
+function mgrPF(L,D,metric,keys,pred){pred=pred||isOP;const A={};
   const E=m=>A[m]=A[m]||{leads:0,deals:0,won:0,rev:0,prod:0,lw:{},dw:{},ww:{},rw:{},pw:{}};
-  L.filter(l=>isOP(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
-  D.filter(d=>isOP(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+  L.filter(l=>pred(l.mgr)).forEach(l=>{const a=E(l.mgr);a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
+  D.filter(d=>pred(d.mgr)).forEach(d=>{const a=E(d.mgr);a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
     if(prodDate(d)){a.prod++;const kp=bkey(prodKey(d),S.gran);a.pw[kp]=(a.pw[kp]||0)+1;}
     if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
   const tot=a=>metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='prod'?a.prod:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
@@ -2344,31 +2353,32 @@ function mgrPF(L,D,metric,keys){const A={};
 // Агрегат «Нераспределённые»: все НЕ-ОП (системные, владелец, не-продажные) одной строкой.
 // Показывается серым, но в распределение плана не входит (план делится только на ОП).
 function unassignedAgg(L,D,metric,keys){const a={leads:0,deals:0,won:0,rev:0,prod:0,lw:{},dw:{},ww:{},rw:{},pw:{}};let any=false;
-  L.filter(l=>!isOP(l.mgr)).forEach(l=>{any=true;a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
-  D.filter(d=>!isOP(d.mgr)).forEach(d=>{any=true;a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
+  const un=n=>!isOP(n)&&!isEx(n); // серые = бот/системные; уволенные (EX) идут отдельными строками
+  L.filter(l=>un(l.mgr)).forEach(l=>{any=true;a.leads++;const k=bkey(l.created,S.gran);a.lw[k]=(a.lw[k]||0)+1;});
+  D.filter(d=>un(d.mgr)).forEach(d=>{any=true;a.deals++;const kc=bkey(d.created,S.gran);a.dw[kc]=(a.dw[kc]||0)+1;
     if(prodDate(d)){a.prod++;const kp=bkey(prodKey(d),S.gran);a.pw[kp]=(a.pw[kp]||0)+1;}
     if(SOLD(d)){a.won++;a.rev+=(d.budget||0);const kw=bkey(soldDate(d)||d.closed||d.created,S.gran);a.ww[kw]=(a.ww[kw]||0)+1;a.rw[kw]=(a.rw[kw]||0)+(d.budget||0);}});
   if(!any)return null;
   const tot=metric==='leads'?a.leads:metric==='deals'?a.deals:metric==='rev'?a.rev:metric==='prod'?a.prod:metric==='conv'?(a.deals?a.won/a.deals:0):metric==='check'?(a.won?a.rev/a.won:0):a.won;
   let w;if(metric==='leads')w=a.lw;else if(metric==='deals')w=a.dw;else if(metric==='rev')w=a.rw;else if(metric==='prod')w=a.pw;else if(metric==='won')w=a.ww;else{w={};keys.forEach(k=>{if(metric==='conv'){const dd=a.dw[k]||0;w[k]=dd?(a.ww[k]||0)/dd:0;}else{const ww=a.ww[k]||0;w[k]=ww?(a.rw[k]||0)/ww:0;}});}
   return {m:'Нераспределённые',tot,w,unassigned:true};}
-function mgrPlanFactBars(arr,planMgr,metric,attain,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtK(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v));
-  const all=(extra&&metric!=='conv'&&metric!=='check')?arr.concat([extra]):arr;
+function mgrPlanFactBars(arr,planMgr,metric,attain,extra,exRows){exRows=exRows||[];const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtK(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtK(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v));
+  const all=(extra&&metric!=='conv'&&metric!=='check')?arr.concat(exRows,[extra]):arr.concat(exRows);
   if(!all.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const W=560,H=320,pl=18,pr=14,pt=22,pb=66,n=all.length;
   const maxV=Math.max(planMgr,...all.map(x=>x.tot),1)*1.14,gap=(W-pl-pr)/n,bw=Math.min(34,gap*0.6),Y=v=>H-pb-(H-pt-pb)*v/maxV,planY=Y(planMgr);
   let bars='',labels='';
-  all.forEach((x,i)=>{const cx=pl+gap*i+gap/2,un=!!x.unassigned,att=planMgr?x.tot/planMgr:0,c=un?'#6A7484':planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
-    const td=un?dt('Нераспределённые',[['План','не начисляется','dim'],['Факт',fM(x.tot),'hl']]).replace(/"/g,'&quot;'):dt(x.m,[['План на менеджера',fP(planMgr),'dim'],['Факт',fM(x.tot),'hl'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
-    bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}"${un?' opacity=".5"':''} data-tip="${td}"/>`;
+  all.forEach((x,i)=>{const cx=pl+gap*i+gap/2,un=!!x.unassigned,ex=!!x.ex,att=planMgr?x.tot/planMgr:0,c=un?'#6A7484':ex?EX_COL:planTone(att),y=Y(x.tot),h=Math.max(0,H-pb-y);
+    const td=un?dt('Нераспределённые',[['План','не начисляется','dim'],['Факт',fM(x.tot),'hl']]).replace(/"/g,'&quot;'):ex?dt(x.m+' · уволен',[['Статус','книга на распределение','dim'],['План','не начисляется','dim'],['Факт',fM(x.tot),'hl']]).replace(/"/g,'&quot;'):dt(x.m,[['План на менеджера',fP(planMgr),'dim'],['Факт',fM(x.tot),'hl'],['Выполнение',pct(att),'hl']]).replace(/"/g,'&quot;');
+    bars+=`<rect class="seg-anim" style="transform-box:fill-box;transform-origin:bottom;animation-delay:${(i*.04).toFixed(2)}s" x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${c}"${un?' opacity=".5"':ex?' opacity=".82"':''} data-tip="${td}"/>`;
     if(h>14)bars+=`<text x="${cx.toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="800" fill="${c}">${fM(x.tot)}</text>`;
-    labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]}</text>`;});
+    labels+=`<text x="${cx.toFixed(1)}" y="${H-pb+13}" text-anchor="end" font-size="9" fill="${un?'#6A7484':ex?EX_COL:'var(--ink-3)'}" transform="rotate(-38 ${cx.toFixed(1)} ${H-pb+13})">${un?'Нераспр.':x.m.split(' ')[0]+(ex?' ⚑':'')}</text>`;});
   const planLine=`<line x1="${pl}" y1="${planY.toFixed(1)}" x2="${W-pr}" y2="${planY.toFixed(1)}" stroke="var(--ink-2)" stroke-dasharray="5 4" opacity=".85"/><text x="${W-pr}" y="${(planY-5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--ink-2)">${attain?'план':'норма'} ${fP(planMgr)} / менеджера</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${planLine}${bars}${labels}</svg>`;}
-function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra){const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtKc(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v)),showNum=keys.length<=14;
-  if(!arr.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
+function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,extra,exRows){exRows=exRows||[];const money=(metric==='rev'||metric==='check'),fM=v=>metric==='conv'?pct(v):money?fmtKc(v):fmt(v),fP=v=>metric==='conv'?pct(v):money?fmtKc(v):(Math.abs(v-Math.round(v))<0.05?fmt(v):d1(v)),showNum=keys.length<=14;
+  if(!arr.length&&!exRows.length)return '<div class="card-sub" style="margin-top:14px">нет данных в периоде</div>';
   const isR=(metric==='conv'||metric==='check');
-  let maxCell=1;arr.forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
+  let maxCell=1;arr.concat(exRows).forEach(x=>keys.forEach(k=>{if((x.w[k]||0)>maxCell)maxCell=x.w[k];}));
   const head=`<div class="hm-row hm-head"><div class="hm-name"></div>${keys.map(k=>`<div class="hm-cell-h">${blabel(k,S.gran)}</div>`).join('')}<div class="hm-tot">Σ</div><div class="hm-tot">${attain?'план':'норма'}</div><div class="hm-tot">%</div></div>`;
   const rows=arr.slice(0,12).map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(46,158,116,${(0.16+t*0.74).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#06121a':'var(--ink-2)';
       const td=dt(x.m+' · '+blabel(k,S.gran),[['План на период',fP(planCell),'dim'],['Факт',fM(v),'hl']]).replace(/"/g,'&quot;');
@@ -2380,9 +2390,14 @@ function mgrMatrix(arr,planCell,planMgr,metric,keys,attain,teamFact,teamPlan,ext
   const _ta=_tp?_tf/_tp:0,_tac=planTone(_ta);
   const totCells=keys.map(k=>{const cv=isR?null:arr.reduce((s,x)=>s+(x.w[k]||0),0);return `<div class="hm-cell" style="background:var(--bg-soft);color:var(--ink);font-weight:800">${cv==null?'':(showNum?fM(cv):'')}</div>`;}).join('');
   const totRow=`<div class="hm-row hm-total" style="border-top:3px solid var(--accent);background:var(--accent-soft);margin-top:5px;padding-top:5px;border-radius:0 0 6px 6px"><div class="hm-name" style="font-weight:800;color:var(--accent)">Σ Итог</div>${totCells}<div class="hm-tot hm-sum" style="font-weight:800;color:var(--accent)">${fM(_tf)}</div><div class="hm-tot hm-plan">${fP(_tp)}</div><div class="hm-pct"><div class="hm-pct-fill" style="width:${Math.min(_ta*100,100).toFixed(0)}%;background:${_tac}"></div><span>${pct(_ta)}</span></div></div>`;
+  // Янтарные строки уволенных продавцов (EX): книга видна, но в план не входит (план/% = «-»).
+  const exHTML=exRows.map(x=>{const cells=keys.map(k=>{const v=x.w[k]||0,t=v/maxCell,bg=v?`rgba(194,135,60,${(0.16+t*0.66).toFixed(2)})`:'var(--bg-elevated)',col=t>0.55?'#1a1206':EX_COL;
+      const td=dt(x.m+' · уволен · '+blabel(k,S.gran),[['Статус','книга на распределение','dim'],['Факт',fM(v),'hl']]).replace(/"/g,'&quot;');
+      return `<div class="hm-cell" style="background:${bg};color:${col}" data-tip="${td}">${showNum?(fM(v)||''):''}</div>`;}).join('');
+    return `<div class="hm-row" style="margin-top:4px"><div class="hm-name" style="color:${EX_COL};font-weight:700" data-tip="${(x.m+' - уволен, книга на распределение (в план не входит)').replace(/"/g,'&quot;')}">⚑ ${x.m}</div>${cells}<div class="hm-tot hm-sum" style="color:${EX_COL}">${fM(x.tot)}</div><div class="hm-tot hm-plan" style="color:var(--ink-4)">-</div><div class="hm-pct"><span style="color:${EX_COL};font-size:10px">на распред.</span></div></div>`;}).join('');
   // Серая строка «Нераспределённые» (не-ОП): видна, но в план не входит (план/% = «-»).
   const extraRow=(extra&&metric!=='conv'&&metric!=='check')?`<div class="hm-row" style="opacity:.9;margin-top:4px"><div class="hm-name" style="color:#8A94A6" data-tip="Нераспределённые - системные/не-продажные, в план не входят">Нераспределённые</div>${keys.map(k=>{const v=extra.w[k]||0;return `<div class="hm-cell" style="background:var(--bg-elevated);color:#8A94A6">${showNum?(fM(v)||''):''}</div>`;}).join('')}<div class="hm-tot hm-sum" style="color:#8A94A6">${fM(extra.tot)}</div><div class="hm-tot hm-plan" style="color:var(--ink-4)">-</div><div class="hm-pct"><span style="color:var(--ink-4);font-size:10px">вне плана</span></div></div>`:'';
-  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}${extraRow}</div>`;}
+  return `<div class="hm hm-pf" style="--wk:${keys.length}">${head}${rows}${totRow}${exHTML}${extraRow}</div>`;}
 function wireLoad(){const seg=document.getElementById('loadSeg');if(!seg)return;
   seg.innerHTML=[['leads','Лиды'],['deals','Сделки'],['won','Продажи'],['prod','В пр-во'],['rev','Выручка'],['conv','Конверсия'],['check','Ср.чек']].map(x=>`<button data-m="${x[0]}" class="${(S.loadMetric||'leads')===x[0]?'on':''}">${x[1]}</button>`).join('');
   seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.loadMetric=b.dataset.m;render();});

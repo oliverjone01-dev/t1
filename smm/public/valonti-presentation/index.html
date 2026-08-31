@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>VALONTI · Инструмент дизайнера. Презентация для дизайнеров, архитекторов, комплектовщиков</title>
+<meta name="description" content="VALONTI - bespoke-мебель из камня, металла и стекла для дизайнеров и архитекторов. Материалы, экспертиза, авторские изделия по проекту.">
+<style>
+:root{
+  /* --- Финальные бренд-токены VALONTI (dark, галерейная подача) --- */
+  --bg:#131418; --s1:#1E2025; --s2:#26282E; --s3:#303239;
+  --line:#2E3036; --line2:#3C3F47;
+  --ink:#F3F2EF; --ink2:#B4B6B8; --ink3:#888A8D;
+  --gold:#E3BD72; --gold2:#EFC976; --gold-soft:rgba(227,189,114,.15);
+  --gold-line:rgba(227,189,114,.32);
+  --v:#E7A93C; --v-soft:rgba(231,169,60,.12);
+  --cta:#E3BD72; --cta-ink:#1A1408;
+  --stone:#9C948A;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.35);
+  --shadow-lg:0 8px 20px rgba(0,0,0,.45),0 34px 70px rgba(0,0,0,.55);
+  --radius:20px; --radius-s:13px; --pill:999px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --font:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--ink);
+  line-height:1.55;font-weight:400;letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow:hidden;
+}
+::selection{background:var(--gold);color:var(--cta-ink)}
+img{max-width:100%;display:block}
+
+/* ---------- Deck mechanics ---------- */
+.deck{position:fixed;inset:0;overflow:hidden}
+.track{display:flex;height:100%;transition:transform .8s var(--ease);will-change:transform}
+.slide{
+  flex:0 0 100%;height:100%;position:relative;overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;justify-content:safe center;
+  padding:clamp(76px,8vh,104px) clamp(22px,6vw,110px) clamp(64px,8vh,88px);
+  scrollbar-width:none;
+}
+.slide::-webkit-scrollbar{display:none}
+.slide-in{max-width:1240px;width:100%;margin:0 auto;position:relative;z-index:3}
+
+/* gallery-глубина: два радиальных свечения золото+сталь */
+.deck::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    radial-gradient(1200px 620px at 84% -10%, rgba(227,189,114,.10), transparent 60%),
+    radial-gradient(900px 520px at -8% 112%, rgba(110,146,181,.06), transparent 55%);
+}
+/* тонкое зерно поверх фона */
+.deck::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Chrome: progress, nav, counter ---------- */
+.progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:60;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .5s var(--ease);box-shadow:0 0 14px rgba(227,189,114,.5)}
+.topline{position:fixed;top:0;left:0;right:0;z-index:55;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(22px,6vw,110px)}
+.mono{display:flex;align-items:center;gap:12px}
+.mono .v{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--cta-ink);background:linear-gradient(150deg,var(--gold2),var(--gold) 60%,#C9A24E);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 6px 18px rgba(227,189,114,.22)}
+.mono .wm{font-size:13px;font-weight:700;letter-spacing:.28em;color:var(--ink)}
+.mono .wm span{color:var(--ink3);font-weight:600}
+.counter{font-size:12px;font-weight:600;letter-spacing:.14em;color:var(--ink3);font-variant-numeric:tabular-nums}
+.counter b{color:var(--gold);font-weight:800}
+
+.dots{position:fixed;right:clamp(14px,2.4vw,30px);top:50%;transform:translateY(-50%);z-index:56;display:flex;flex-direction:column;gap:11px}
+.dots button{width:8px;height:8px;padding:0;border:none;border-radius:var(--pill);background:var(--line2);cursor:pointer;transition:.35s var(--ease)}
+.dots button:hover{background:var(--ink3)}
+.dots button.on{background:var(--gold);height:22px;box-shadow:0 0 10px rgba(227,189,114,.5)}
+
+.arrows{position:fixed;bottom:22px;right:clamp(22px,6vw,110px);z-index:56;display:flex;gap:10px}
+.arrows button{width:46px;height:46px;border-radius:var(--pill);border:1px solid var(--line2);background:rgba(30,32,37,.7);backdrop-filter:blur(10px);color:var(--ink);font-size:18px;cursor:pointer;transition:.3s var(--ease);display:grid;place-items:center}
+.arrows button:hover:not(:disabled){border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
+.arrows button:disabled{opacity:.32;cursor:default}
+.hint{position:fixed;bottom:34px;left:clamp(22px,6vw,110px);z-index:56;font-size:11.5px;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase}
+.hint b{color:var(--ink2);font-weight:700}
+
+/* ---------- Type & atoms ---------- */
+.eyebrow{display:inline-flex;align-items:center;gap:11px;font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:22px}
+.eyebrow .bar{width:34px;height:1px;background:var(--gold)}
+.eyebrow.mut{color:var(--ink3)}.eyebrow.mut .bar{background:var(--ink3)}
+h1{font-size:clamp(40px,7.4vw,92px);font-weight:800;line-height:1;letter-spacing:-.035em}
+h1 .hl{color:var(--gold)}
+h2{font-size:clamp(27px,4.3vw,50px);font-weight:800;line-height:1.06;letter-spacing:-.03em;margin-bottom:14px}
+h2 .em{color:var(--gold)}
+.lead{font-size:clamp(16px,2vw,21px);color:var(--ink2);font-weight:300;line-height:1.55;max-width:60ch}
+.lead b{color:var(--ink);font-weight:600}
+.kick2{font-size:13px;font-weight:700;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:26px}
+.big-quote{font-size:clamp(26px,4.4vw,52px);font-weight:700;line-height:1.16;letter-spacing:-.025em;max-width:20ch}
+.big-quote .g{color:var(--gold)}
+
+/* covers with image */
+.cover{padding:0}
+.cover .bgimg{position:absolute;inset:0;z-index:0}
+.cover .bgimg img{width:100%;height:100%;object-fit:cover;object-position:center 42%}
+.cover .veil{position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(19,20,24,.96) 0%,rgba(19,20,24,.82) 42%,rgba(19,20,24,.44) 100%),linear-gradient(0deg,rgba(19,20,24,.85),transparent 55%)}
+.cover .slide-in{padding:clamp(28px,5vw,84px) clamp(22px,6vw,110px);align-self:center}
+.cover .stamps{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
+.stamp{font-size:11.5px;font-weight:600;letter-spacing:.06em;color:var(--ink2);border:1px solid var(--line2);border-radius:var(--pill);padding:8px 15px;background:rgba(30,32,37,.5);backdrop-filter:blur(6px)}
+.stamp b{color:var(--gold);font-weight:700}
+
+/* grids & cards */
+.two{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(26px,4vw,64px);align-items:center}
+.two.wide-img{grid-template-columns:1fr 1.15fr}
+.stack>*+*{margin-top:18px}
+.imgframe{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line2);box-shadow:var(--shadow-lg);position:relative;background:var(--s1)}
+.imgframe img{width:100%;height:100%;object-fit:cover}
+.imgframe .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;background:linear-gradient(0deg,rgba(15,16,19,.92),transparent);font-size:12.5px;color:var(--ink2)}
+.imgframe .cap b{color:var(--gold);font-weight:700}
+
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--line);border-radius:var(--radius-s);padding:22px 22px;transition:.3s var(--ease)}
+.card:hover{border-color:var(--gold-line);transform:translateY(-3px);box-shadow:var(--shadow)}
+.card .n{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:11px}
+.card h4{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+.card p{font-size:14px;color:var(--ink2);line-height:1.5}
+.card p b{color:var(--ink);font-weight:600}
+
+/* positioning 4-slot */
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.slot{border:1px solid var(--line);border-radius:var(--radius-s);padding:22px 24px;background:var(--s1);border-left:3px solid var(--gold-line)}
+.slot .k{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:9px}
+.slot p{font-size:15px;color:var(--ink2);line-height:1.55}.slot p b{color:var(--ink);font-weight:600}
+
+/* materials swatches */
+.matrows{display:flex;flex-direction:column}
+.matrow{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:start;padding:18px 0;border-top:1px solid var(--line)}
+.matrow:last-child{border-bottom:1px solid var(--line)}
+.matrow .ml{font-size:15px;font-weight:800;letter-spacing:.02em;padding-top:5px}
+.matrow .ml b{display:block;font-size:11.5px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw span{font-size:13px;color:var(--ink2);border:1px solid var(--line2);border-radius:var(--pill);padding:7px 13px;background:var(--s1);transition:.25s var(--ease)}
+.sw span:hover{border-color:var(--gold-line);color:var(--ink)}
+.sw span.opt{color:var(--gold);border-color:var(--gold-line);background:var(--gold-soft)}
+@media(max-width:640px){.matrow{grid-template-columns:1fr;gap:10px}}
+
+/* process flow */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.step{border:1px solid var(--line);border-radius:var(--radius-s);padding:20px;background:var(--s1);position:relative}
+.step .k{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.08em;margin-bottom:10px}
+.step h5{font-size:15px;font-weight:700;margin-bottom:6px;letter-spacing:-.01em}
+.step p{font-size:13px;color:var(--ink2);line-height:1.5}
+
+/* Q&A objections */
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qrow{border:1px solid var(--line);border-radius:var(--radius-s);padding:18px 20px;background:var(--s1)}
+.qrow .q{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45;margin-bottom:9px}
+.qrow .q::before{content:"«";color:var(--gold);font-weight:800}
+.qrow .q::after{content:"»";color:var(--gold);font-weight:800}
+.qrow .a{font-size:13.5px;color:var(--ink2);line-height:1.5;padding-left:15px;border-left:2px solid var(--gold-line)}
+.qrow .a b{color:var(--gold2);font-weight:700}
+
+/* audience */
+.persona{border:1px solid var(--gold-line);border-radius:var(--radius);padding:26px 28px;background:linear-gradient(135deg,var(--gold-soft),transparent 62%);margin-bottom:18px}
+.persona .lbl{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:9px}
+.persona p{font-size:16px;color:var(--ink);line-height:1.55;font-weight:300}
+.persona p b{font-weight:600}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+/* metric strip */
+.metrics{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.metric{border:1px solid var(--line);border-radius:var(--radius-s);padding:18px 22px;background:var(--s1);flex:1;min-width:150px}
+.metric .num{font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.03em;color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.metric .cap{font-size:12.5px;color:var(--ink2);margin-top:9px;line-height:1.4}
+
+/* diff table */
+.diff{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.dcol{border:1px solid var(--line);border-radius:var(--radius-s);padding:24px;background:var(--s1);border-top:3px solid var(--gold)}
+.dcol .t{font-size:12.5px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.dcol h4{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+.dcol p{font-size:14px;color:var(--ink2);line-height:1.55}
+.dcol p b{color:var(--ink);font-weight:600}
+
+/* CTA */
+.cta-slide .slide-in{text-align:left}
+.cta-box{margin-top:30px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.cta-btn{display:inline-flex;align-items:center;gap:11px;font-size:15px;font-weight:700;letter-spacing:.01em;color:var(--cta-ink);background:linear-gradient(150deg,var(--gold2),var(--gold));border-radius:var(--pill);padding:15px 26px;box-shadow:0 6px 20px rgba(227,189,114,.28);text-decoration:none;transition:.3s var(--ease)}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(227,189,114,.4)}
+.cta-mut{font-size:14px;color:var(--ink2)}
+.cta-mut b{color:var(--ink);font-weight:600}
+.contacts{margin-top:26px;display:flex;flex-wrap:wrap;gap:26px;font-size:14.5px;color:var(--ink2)}
+.contacts a{color:var(--gold);text-decoration:none;font-weight:600}
+.contacts a:hover{text-decoration:underline}
+
+/* gallery slide */
+.gal{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:1fr 1fr;gap:14px;height:min(60vh,520px);margin-top:8px}
+.gal .imgframe:first-child{grid-row:1 / span 2}
+.footnote{font-size:12px;color:var(--ink3);margin-top:18px;line-height:1.5}
+
+/* reveal */
+.js .rv{opacity:0;transform:translateY(20px)}
+.slide.active .rv{opacity:1;transform:none;transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.slide.active .rv:nth-child(2){transition-delay:.06s}
+.slide.active .rv:nth-child(3){transition-delay:.12s}
+.slide.active .rv:nth-child(4){transition-delay:.18s}
+.slide.active .rv:nth-child(5){transition-delay:.24s}
+.slide.active .rv:nth-child(6){transition-delay:.30s}
+
+@media(max-width:920px){
+  .two,.two.wide-img{grid-template-columns:1fr;gap:24px}
+  .grid3,.grid4,.matcols,.flow,.diff,.seg,.slots,.qa{grid-template-columns:1fr 1fr}
+  .gal{grid-template-columns:1fr;grid-template-rows:none;height:auto}
+  .gal .imgframe:first-child{grid-row:auto}
+  .gal .imgframe{height:220px}
+  .dots{display:none}
+  h1{font-size:clamp(38px,11vw,60px)}
+}
+@media(max-width:560px){
+  .grid3,.grid4,.matcols,.flow,.diff,.seg,.slots,.qa{grid-template-columns:1fr}
+  .cover .veil{background:linear-gradient(0deg,rgba(19,20,24,.96) 30%,rgba(19,20,24,.6) 100%)}
+  .hint{display:none}
+}
+@media print{
+  body{overflow:visible}.deck{position:static}.track{display:block;transition:none}
+  .slide{height:auto;min-height:100vh;page-break-after:always;break-after:page}
+  .progress,.topline,.dots,.arrows,.hint{display:none}
+  .js .rv{opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="prog"></div>
+
+<div class="topline">
+  <div class="mono">
+    <div class="v">V</div>
+    <div class="wm">VALONTI <span>· для дизайнеров</span></div>
+  </div>
+  <div class="counter"><b id="cnum">01</b> / <span id="ctot">12</span></div>
+</div>
+
+<div class="deck">
+  <div class="track" id="track">
+
+    <!-- 01 · COVER -->
+    <section class="slide cover active">
+      <div class="bgimg"><img src="assets/table-agisum.jpg" alt="Стол Agisum: камень в массиве и латунь"></div>
+      <div class="veil"></div>
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>bespoke · камень · металл · стекло</div>
+        <h1 class="rv">VALONTI</h1>
+        <h1 class="rv" style="font-size:clamp(24px,4.2vw,50px);margin-top:12px"><span class="hl">Инструмент дизайнера.</span></h1>
+        <p class="lead rv" style="margin-top:24px">Материалы и мастерство для тех, кто создаёт пространство, за которое готов <b>поставить своё имя</b>. Покупатель здесь не конечный клиент, а автор интерьера.</p>
+        <div class="stamps rv">
+          <div class="stamp">Мебель из <b>камня, металла, стекла</b></div>
+          <div class="stamp">Bespoke по чертежу</div>
+          <div class="stamp">Собственное производство · мастера <b>15+ лет</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 · МАНИФЕСТ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="kick2 rv">Кто мы для вас</div>
+        <div class="big-quote rv">VALONTI это про <span class="g">материал, который вы выбираете</span>, и руки, которые сделают <span class="g">по вашему чертежу</span>.</div>
+        <p class="lead rv" style="margin-top:30px">Не ярлык, а высказывание. Объект собирают мастера на собственном производстве: камень в массиве, металл, стекло. Узел и допуск решаются внутри и не возвращаются к вам вопросом «а как вы хотите».</p>
+        <div class="metrics rv" style="margin-top:34px">
+          <div class="metric"><div class="num">15+</div><div class="cap">лет опыта у мастеров на ключевых этапах</div></div>
+          <div class="metric"><div class="num">1</div><div class="cap">производство, один станочный парк на серию и нестандарт</div></div>
+          <div class="metric"><div class="num">24 ч</div><div class="cap">на смету по вашему ТЗ</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 · ЧТО ЭТО -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>что такое VALONTI</div>
+        <h2 class="rv">Мебель из камня, металла <span class="em">и стекла по чертежу</span></h2>
+        <p class="lead rv">Российский производитель. Берём и проект целиком, и штучную позицию под комплектацию, но всегда говорим спецификацией, а не прайсом.</p>
+        <div class="grid3 rv" style="margin-top:30px">
+          <div class="card"><div class="n">Столы</div><h4>Обеденные и журнальные</h4><p>Камень в массиве на металлическом основании. Круг, овал, прямоугольник под размер проекта.</p></div>
+          <div class="card"><div class="n">Консоли</div><h4>Консоли и столики</h4><p>Приставные и акцентные. Комбинация камня, металла и стекла в одном предмете.</p></div>
+          <div class="card"><div class="n">Зеркала</div><h4>Зеркала и LED</h4><p>Настенные и напольные, рама любого профиля, окрашивание по RAL, подсветка.</p></div>
+          <div class="card"><div class="n">Корпус</div><h4>Стеллажи</h4><p>Открытые корпуса, металлическая рама, каменные и стеклянные полки.</p></div>
+          <div class="card"><div class="n">Малые формы</div><h4>Банкетки и вешалки</h4><p>Металл, стекло, каменные вставки. Штучные предметы под зону.</p></div>
+          <div class="card"><div class="n">Зонирование</div><h4>Перегородки</h4><p>Фиксированные, распашные, раздвижные, каскадные, реечные.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 · ПОЗИЦИОНИРОВАНИЕ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>позиционирование</div>
+        <h2 class="rv">Где мы стоим <span class="em">на вашей полке решений</span></h2>
+        <div class="slots rv" style="margin-top:26px">
+          <div class="slot"><div class="k">Для кого</div><p>Дизайнеры и архитекторы, которым нужен <b>материал и исполнение уровня проекта</b> без долгого ожидания и наценки за логистику.</p></div>
+          <div class="slot"><div class="k">Что даём</div><p><b>Bespoke-мебель из камня в массиве, металла и стекла</b> в режиме диалога на уровне материала, с комиссией и сопровождением дизайнера.</p></div>
+          <div class="slot"><div class="k">В отличие от</div><p>Типовых поставщиков отделки: мы работаем <b>по спецификации проекта</b>, а не по прайсу со склада.</p></div>
+          <div class="slot"><div class="k">Почему верить</div><p>Собственное производство <b>плюс отдельная контрольная линия под bespoke</b>: камень, ручная финишная отделка, именная бирка мастера.</p></div>
+        </div>
+        <p class="footnote rv">Мы не соревнуемся вывеской. Соревнуемся тем, что останется в проекте через десять лет.</p>
+      </div>
+    </section>
+
+    <!-- 05 · МАТЕРИАЛЫ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>материалы под проект</div>
+        <h2 class="rv">Материал говорит <span class="em">сам за себя</span></h2>
+        <p class="lead rv">Не нужно объяснять, почему камень хорош. Нужно правильно его обработать. Палитра собирается под проект, а не под склад.</p>
+        <div class="matrows rv" style="margin-top:24px">
+          <div class="matrow">
+            <div class="ml">Камень <b>11</b></div>
+            <div class="sw"><span>Statuario Maximus</span><span>Vanilla Noir</span><span>Bianco Drift</span><span>Impala Black</span><span>Charcoal</span><span>Napoli Beige</span><span>Granada</span><span>St.&nbsp;Helens White</span><span>Shitake</span><span>Sleek Concrete</span><span>Cloudburst</span></div>
+          </div>
+          <div class="matrow">
+            <div class="ml">Металл <b>12 отделок</b></div>
+            <div class="sw"><span>Золото матовое</span><span>Золото сатин</span><span>Золото глянец</span><span>Серебро</span><span>Хром сатин</span><span>Хром глянец</span><span>Бронза сатин</span><span>Бронза глянец</span><span>Шампань</span><span>Слоновая кость</span><span>Белый матовый</span><span>Чёрный матовый</span><span class="opt">+ RAL под проект</span></div>
+          </div>
+          <div class="matrow">
+            <div class="ml">Стекло <b>6 типов</b></div>
+            <div class="sw"><span>Осветлённое</span><span>Тонированное светлое</span><span>Тонированное тёмное</span><span>Рифлёное</span><span>Крашеное</span><span>Матовое</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 · АВТОРСКИЕ ИЗДЕЛИЯ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>авторские изделия</div>
+        <h2 class="rv">Каждая работа <span class="em">именная</span></h2>
+        <p class="lead rv">Конкретный мастер, конкретный проект, именная бирка. Изделие должно хорошо смотреться и через десять лет.</p>
+        <div class="gal rv">
+          <div class="imgframe"><img src="assets/table-agisum.jpg" alt="Обеденный стол Agisum, камень в массиве и латунь"><div class="cap"><b>Стол Agisum</b> · столешница камень в массиве, рифлёное латунное основание</div></div>
+          <div class="imgframe"><img src="assets/vl2-main.jpg" alt="Стеллаж VALONTI: камень, латунь, дымчатое стекло"><div class="cap"><b>Стеллаж</b> · каменные полки, латунная рама, дымчатое стекло</div></div>
+          <div class="imgframe"><img src="assets/dsc3228.jpg" alt="Камень и латунь в жилом интерьере"><div class="cap"><b>В интерьере</b> · камень и латунь в жилой зоне</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 · ЭКСПЕРТИЗА -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>экспертиза производства</div>
+        <h2 class="rv">Высокоточная техника <span class="em">плюс рука мастера</span></h2>
+        <p class="lead rv">Детали создаются на современном оборудовании, ключевые этапы выполняют мастера с опытом более 15 лет, финиш оттачивается вручную.</p>
+        <div class="grid3 rv" style="margin-top:30px">
+          <div class="card"><div class="n">Происхождение</div><h4>Камень в массиве</h4><p>Настоящий камень, не имитация и не «похожее на». Карьер и партию уточняем по запросу под проект.</p></div>
+          <div class="card"><div class="n">Металл</div><h4>PVD, не покраска</h4><p>Покрытие физическим осаждением. Стабильнее краски и <b>не сотрётся за год</b>.</p></div>
+          <div class="card"><div class="n">Точность</div><h4>ЧПУ-раскрой</h4><p>Стекло и камень режутся на станке, стык слэбов ведём единым узором прожилки.</p></div>
+          <div class="card"><div class="n">Рука</div><h4>Финиш вручную</h4><p>Мастера 15+ лет на сборке и финишной отделке. Каждая работа именная.</p></div>
+          <div class="card"><div class="n">База</div><h4>Одно производство</h4><p>Тот же станочный парк, что делает серию, делает и ваш нестандарт.</p></div>
+          <div class="card"><div class="n">Контроль</div><h4>Отдельная линия bespoke</h4><p>Нестандарт идёт по контрольной линии под проект, а не в общем потоке.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 · ОТСТРОЙКА -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>отстройка от импорта</div>
+        <h2 class="rv">Уровень импорта <span class="em">без ожидания импорта</span></h2>
+        <div class="diff rv" style="margin-top:26px">
+          <div class="dcol"><div class="t">Материал</div><h4>Комбинаций больше</h4><p>Много сочетаний камня в массиве и отделок металла в <b>одном производстве</b> против одного-трёх вариантов у типовых поставщиков. Камень это центр компетенции.</p></div>
+          <div class="dcol"><div class="t">Сервис</div><h4>Проектный, не складской</h4><p>Спецификация, sample-box с образцами в руки, 3D-визуализация в проекте. <b>Сопровождение от эскиза до монтажа под ключ.</b></p></div>
+          <div class="dcol"><div class="t">Срок</div><h4>14&ndash;45 дней локально</h4><p>Bespoke <b>без таможни, валютных скачков и логистической наценки</b>, при сопоставимом камне и металле. Смета за 24 часа.</p></div>
+        </div>
+        <p class="footnote rv">Срок зависит от сложности изделия. Точную дату называем вместе со сметой в течение 24 часов.</p>
+      </div>
+    </section>
+
+    <!-- 09 · КАК РАБОТАЕМ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>как работаем с дизайнером</div>
+        <h2 class="rv">Партнёрство, <span class="em">не сервис</span></h2>
+        <p class="lead rv">Дизайнер соавтор, а не покупатель. Ведёт проект арт-куратор, от чертежа до бирки.</p>
+        <div class="flow rv" style="margin-top:28px">
+          <div class="step"><div class="k">01</div><h5>Чертёж и ТЗ</h5><p>Приходите с чертежом. Обсуждаем допуски, финиши, толщину на языке материала.</p></div>
+          <div class="step"><div class="k">02</div><h5>Смета за 24 ч</h5><p>Коммерческое предложение и подбор материала под проект. Sample-box с образцами.</p></div>
+          <div class="step"><div class="k">03</div><h5>CAD и 3D</h5><p>Чертежи и 3D-модель для согласования с вашим клиентом до запуска.</p></div>
+          <div class="step"><div class="k">04</div><h5>Изготовление</h5><p>14&ndash;45 дней на контрольной линии bespoke. Монтаж под ключ, гарантия 12 месяцев.</p></div>
+        </div>
+        <div class="grid3 rv" style="margin-top:22px">
+          <div class="card"><div class="n">Образцы</div><h4>Sample-box</h4><p>Образцы камня, металла и стекла под проект вам в руки, до запуска.</p></div>
+          <div class="card"><div class="n">Партнёрство</div><h4>Комиссия дизайнеру</h4><p>Вознаграждение за заведённый проект. Условия фиксируем договором.</p></div>
+          <div class="card"><div class="n">Доставка</div><h4>Россия и Казахстан</h4><p>Логистика, упаковка, страхование по запросу. Монтаж под ключ.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · ВОЗРАЖЕНИЯ -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>что спрашивает дизайнер</div>
+        <h2 class="rv">Прямые вопросы <span class="em">прямые ответы</span></h2>
+        <div class="qa rv" style="margin-top:24px">
+          <div class="qrow"><div class="q">Сделаете точно по моему чертежу или предложите как у вас принято</div><div class="a">По чертежу. Bespoke это <b>отдельная контрольная линия</b>, а не адаптация серии.</div></div>
+          <div class="qrow"><div class="q">У вас PVD-осаждение или крашеный металл, который сотрётся за год</div><div class="a">PVD, физическое осаждение. <b>Стабильнее краски, не сотрётся за год.</b></div></div>
+          <div class="qrow"><div class="q">Как стыкуете слэбы, чтобы прожилка шла единым узором</div><div class="a">Ведём рисунок камня <b>единым узором</b>, раскрой на ЧПУ, финиш вручную.</div></div>
+          <div class="qrow"><div class="q">Дадите образцы в руки, чтобы я показал клиенту до запуска</div><div class="a">Да, <b>sample-box</b> под проект плюс 3D-визуализация для согласования.</div></div>
+          <div class="qrow"><div class="q">За этим стоит реальный цех или перепродажа под красивым именем</div><div class="a">Собственное производство, <b>один станочный парк</b>, мастера 15+ лет.</div></div>
+          <div class="qrow"><div class="q">Реально уложитесь в срок или это маркетинг</div><div class="a">Срок в каталоге <b>14&ndash;45 дней</b> по сложности, монтаж под ключ, гарантия 12 месяцев.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 · ДЛЯ КОГО -->
+    <section class="slide">
+      <div class="slide-in">
+        <div class="eyebrow rv"><span class="bar"></span>для кого мы работаем</div>
+        <div class="persona rv">
+          <div class="lbl">Наш клиент · Анна, 38, главный архитектор бюро</div>
+          <p>Отличает Statuario Maximus от Impala Black на ощупь. Не объясняет базовых вещей. Если что-то не так, <b>не скандалит, но больше не возвращается</b>. Ценит профессиональное уважение, предсказуемость в деталях и партнёрство без иерархии.</p>
+        </div>
+        <div class="seg rv">
+          <div class="card"><div class="n">Дизайнер-партнёр</div><h4>Ведёт проект клиента</h4><p>Нужен камень в массиве руками мастеров, а не имитация. Триггер: новый проект под конкретное ТЗ.</p></div>
+          <div class="card"><div class="n">Архитектор</div><h4>Держит геометрию</h4><p>Производство под кастом, которое не боится сложной геометрии. Триггер: стадия рабочей документации.</p></div>
+          <div class="card"><div class="n">Декоратор · комплектовщик</div><h4>Закрывает штучную позицию</h4><p>Предмет, которого нет в серии, под финальную комплектацию объекта. Триггер: сборка проекта.</p></div>
+        </div>
+        <p class="footnote rv">Решение по такой мебели принимается через дизайнера. Имя бренда стоит последним в списке критериев, первым идёт материал и исполнение.</p>
+      </div>
+    </section>
+
+    <!-- 12 · CTA -->
+    <section class="slide cta-slide">
+      <div class="slide-in">
+        <div class="kick2 rv">Проверяемое обещание</div>
+        <div class="big-quote rv">Не стыдно <span class="g">показать в портфолио</span> через годы.</div>
+        <p class="lead rv" style="margin-top:26px">Материал и исполнение на уровне, который вы закладываете в проект и не беспокоитесь, что через полгода клиент напишет про качество.</p>
+        <div class="cta-box rv">
+          <a class="cta-btn" href="mailto:info@genglass.ru?subject=VALONTI%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20%D0%BF%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%83">Пришлите чертёж &rarr;</a>
+          <a class="cta-btn" style="background:transparent;color:var(--gold);border:1px solid var(--gold-line);box-shadow:none" href="mailto:info@genglass.ru?subject=VALONTI%20%D0%B7%D0%B0%D0%BF%D1%80%D0%BE%D1%81%20sample-box">Ещё нет чертежа? Sample-box</a>
+        </div>
+        <div class="cta-mut rv" style="margin-top:16px">Смета за <b>24 часа</b> · образцы под проект · комиссия дизайнеру по договору</div>
+        <div class="contacts rv">
+          <div>Почта: <a href="mailto:info@genglass.ru">info@genglass.ru</a></div>
+          <div>Телефон: <a href="tel:+74958450535">8 (495) 845-05-35</a></div>
+          <div>Производство и монтаж: Россия и Казахстан</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="dots" id="dots"></div>
+<div class="arrows">
+  <button id="prev" aria-label="Назад">&larr;</button>
+  <button id="next" aria-label="Вперёд">&rarr;</button>
+</div>
+<div class="hint"><b>&larr; &rarr;</b> листать · <b>F</b> полный экран</div>
+
+<script>
+document.body.classList.add('js');
+(function(){
+  var track=document.getElementById('track');
+  var slides=Array.prototype.slice.call(track.children);
+  var total=slides.length, i=0;
+  var prog=document.getElementById('prog'), cnum=document.getElementById('cnum');
+  var prev=document.getElementById('prev'), next=document.getElementById('next');
+  var dotsWrap=document.getElementById('dots');
+  document.getElementById('ctot').textContent=String(total).padStart(2,'0');
+
+  slides.forEach(function(s,idx){
+    var b=document.createElement('button');
+    b.setAttribute('aria-label','Слайд '+(idx+1));
+    b.addEventListener('click',function(){go(idx)});
+    dotsWrap.appendChild(b);
+  });
+  var dots=Array.prototype.slice.call(dotsWrap.children);
+
+  function render(){
+    track.style.transform='translateX('+(-i*100)+'%)';
+    prog.style.width=((i)/(total-1)*100)+'%';
+    cnum.textContent=String(i+1).padStart(2,'0');
+    slides.forEach(function(s,idx){s.classList.toggle('active',idx===i)});
+    dots.forEach(function(d,idx){d.classList.toggle('on',idx===i)});
+    prev.disabled=(i===0); next.disabled=(i===total-1);
+  }
+  function go(n){ i=Math.max(0,Math.min(total-1,n)); render(); }
+  window.__go=go;
+
+  prev.addEventListener('click',function(){go(i-1)});
+  next.addEventListener('click',function(){go(i+1)});
+
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(i+1);}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(i-1);}
+    else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(total-1);}
+    else if(e.key==='f'||e.key==='F'){toggleFs();}
+  });
+
+  // wheel: horizontal intent or when slide not internally scrollable
+  var wlock=false;
+  track.addEventListener('wheel',function(e){
+    var s=slides[i];
+    var canScroll=s.scrollHeight>s.clientHeight+2;
+    var atTop=s.scrollTop<=0, atBot=s.scrollTop+s.clientHeight>=s.scrollHeight-2;
+    if(Math.abs(e.deltaX)>Math.abs(e.deltaY)){
+      if(wlock)return; wlock=true; setTimeout(function(){wlock=false},700);
+      go(i+(e.deltaX>0?1:-1)); e.preventDefault(); return;
+    }
+    if(canScroll && !((e.deltaY>0&&atBot)||(e.deltaY<0&&atTop))) return; // let content scroll
+    if(wlock)return; wlock=true; setTimeout(function(){wlock=false},700);
+    go(i+(e.deltaY>0?1:-1)); e.preventDefault();
+  },{passive:false});
+
+  // touch swipe
+  var x0=null,y0=null;
+  track.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+  track.addEventListener('touchend',function(e){
+    if(x0===null)return;
+    var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)){go(i+(dx<0?1:-1));}
+    x0=y0=null;
+  },{passive:true});
+
+  function toggleFs(){
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
+    else { (document.exitFullscreen||function(){})(); }
+  }
+
+  // deep-link #s3
+  var m=location.hash.match(/^#s(\d+)$/); if(m){i=Math.max(0,Math.min(total-1,parseInt(m[1],10)-1));}
+  render();
+})();
+</script>
+</body>
+</html>

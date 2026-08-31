@@ -744,11 +744,17 @@ function deptDQBlock(){
   if(!allRows.length)return `<div class="card" id="deptdqfix"><div class="card-h"><div><div class="card-title">Сделки для исправления по отделу ${_info}</div></div></div><div style="text-align:center;padding:26px 16px"><div style="font-size:40px;line-height:1">🎉</div><div style="font-family:'Manrope';font-weight:800;font-size:16px;color:#2E9E74;margin-top:8px">В CRM порядок по всему отделу</div><div style="font-size:12px;color:var(--ink-3);margin-top:5px">Причина, категория, тип клиента и бюджет проставлены у всех сделок, дошедших до предложения. Отличная дисциплина - так держать!</div></div></div>`;
   // сводка по менеджерам (совпадает с логикой челленджа в личных дашбордах)
   const perM={};allRows.forEach(d=>{const m=perM[d.mgr]=perM[d.mgr]||{n:d.mgr,cnt:0};m.cnt++;});
-  const mtop=Object.values(perM).sort((a,b)=>b.cnt-a.cnt);
+  // Порядок чипов: действующие ОП → системный (бот) → уволенные; внутри - по числу проблем.
+  const _grpF=m=>isOP(m.n)?0:(m.n===GM_BOT?1:isEx(m.n)?2:1);
+  const mtop=Object.values(perM).sort((a,b)=>{const ga=_grpF(a),gb=_grpF(b);if(ga!==gb)return ga-gb;return b.cnt-a.cnt;});
   const sel=S.ddqMgr||'';
   const chips=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 8px">`+
     `<span data-ddqmgr="" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:11px;border:1px solid ${sel?'var(--border)':'#22D3EE'};background:${sel?'transparent':'#22D3EE22'};color:${sel?'var(--ink-3)':'#22D3EE'}">Все ${fmt(allRows.length)}</span>`+
-    mtop.map(m=>{const on=sel===m.n;return `<span data-ddqmgr="${esc(m.n)}" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:11px;white-space:nowrap;border:1px solid ${on?'#F59E0B':'var(--border)'};background:${on?'#F59E0B22':'transparent'};color:${on?'#F59E0B':'var(--ink-3)'}">${esc(m.n)} <b>${m.cnt}</b></span>`;}).join('')+`</div>`;
+    mtop.map(m=>{const on=sel===m.n,ex=isEx(m.n),bot=m.n===GM_BOT;
+      const accent=ex?EX_COL:bot?'#8A94A6':'#22D3EE';
+      const bc=on||ex||bot?accent:'var(--border)',bg=on?accent+'22':'transparent',col=on?accent:(ex?EX_COL:bot?'#8A94A6':'var(--ink-3)');
+      const tag=ex?' уволен':bot?' система':'';
+      return `<span data-ddqmgr="${esc(m.n)}" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:11px;white-space:nowrap;border:1px solid ${bc};background:${bg};color:${col}">${esc(m.n)} <b>${m.cnt}</b>${tag?`<span style="font-weight:600;opacity:.85">${tag}</span>`:''}</span>`;}).join('')+`</div>`;
   const rows=sel?allRows.filter(d=>d.mgr===sel):allRows;
   const cRsn=rows.filter(eRsn).length,cCat=rows.filter(eCat).length,cCli=rows.filter(eCli).length,cBud=rows.filter(eBud).length;
   if(!S.ddqSort)S.ddqSort={k:'cnt',a:false};
@@ -759,7 +765,7 @@ function deptDQBlock(){
   const miss=(bad,val)=>`<td style="text-align:center;${bad?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${bad?'нет':esc(val||'')}</td>`;
   const body=sorted.slice(0,400).map(d=>`<tr>`+
     `<td style="text-align:center">${dl(d.id)}</td>`+
-    `<td class="name" style="text-align:left;white-space:nowrap">${esc(d.mgr)}</td>`+
+    `<td class="name" style="text-align:left;white-space:nowrap${isEx(d.mgr)?';color:'+EX_COL:d.mgr===GM_BOT?';color:#8A94A6':''}">${esc(d.mgr)}${isEx(d.mgr)?' <span style="font-size:9px;font-weight:700;color:'+EX_COL+'">уволен</span>':d.mgr===GM_BOT?' <span style="font-size:9px;font-weight:700;color:#8A94A6">система</span>':''}</td>`+
     `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(d.stage||'')}</td>`+
     `<td style="text-align:center;${eRsn(d)?'color:#F8717A;font-weight:700':'color:var(--ink-3)'}">${d.lost?(eRsn(d)?'нет':esc(d.reason)):'—'}</td>`+
     miss(eCli(d),d.client)+

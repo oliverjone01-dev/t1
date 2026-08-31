@@ -1505,7 +1505,7 @@ function render(){
     const T='rgba(45,212,191,.14)',BB='rgba(96,165,250,.14)',V='rgba(139,123,240,.14)',AMB='rgba(245,158,11,.12)',PU='rgba(167,139,250,.13)';
     const cell=(v,m2,col,mxV,bgc)=>`<td style="text-align:center;white-space:nowrap;${hg(m2,mxV,bgc)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink-3)"> · ${fmtK(m2)} ₽</span>`:'<span style="color:var(--ink-3)">·</span>'}</td>`;
     const row=(r,isDep)=>{const opn=isDep?(S.rdeptOpen&&S.rdeptOpen.GG):(S.rmgrOpen&&S.rmgrOpen[r.mgr]);
-      const canOpen=!isDep&&r.qN>0;
+      const canOpen=!isDep&&(r.inN>0||r.qwN>0); // раскрываем, если есть пакет или сделки в просчёте
       const _isEx=!isDep&&isEx(r.mgr); // уволенный/неактивный продавец - выделяем жёлтым
       const mm=isDep?{tD:Math.max(r.tD,1e-9),tM:Math.max(r.tM,1e-9),tPos:Math.max(r.tPos,1e-9),tPcs:Math.max(r.tPcs,1e-9),inM:Math.max(r.inM,1e-9),qM:Math.max(r.qM,1e-9),qwM:Math.max(r.qwM,1e-9),qbN:Math.max(r.qbN,1e-9)}:mx;
       return `<tr ${isDep?`data-rdept="GG" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid rgba(148,163,184,.25)"`:(canOpen?`data-rmgr="${esc(r.mgr)}" style="cursor:pointer"`:'')}>
@@ -1518,12 +1518,19 @@ function render(){
         ${cell(r.qwN,r.qwM,'#A78BFA',mm.qwM,PU)}
         <td style="text-align:center;white-space:nowrap;${hg(r.qbN,mm.qbN,'rgba(106,116,132,.14)')}">${r.qbN?`<b style="color:#6A7484">${fmt(r.qbN)}</b>`:'<span style="color:var(--ink-3)">·</span>'}</td></tr>`};
     // третий уровень: сделки менеджера в просчёте, по сумме
-    const qtBy={};_qDeals.forEach(d=>{const k=d.mgr||'—';(qtBy[k]=qtBy[k]||[]).push(d)});
-    const mgrDetail=m=>{const list=(qtBy[m.mgr]||[]).slice().sort((a,b)=>(b.budget||0)-(a.budget||0));
-      if(!list.length)return '';
-      const rowsQ=list.slice(0,40).map(d=>{const t=new Date(d.created).getTime();const age=isFinite(t)?Math.max(0,Math.round((NOWD.getTime()-t)/DAYMS)):null;
-        return `<tr style="font-size:11px"><td style="padding-left:44px;text-align:left"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="color:#3DAEC2" onclick="event.stopPropagation()">${d.id}</a></td><td style="text-align:center">${esc(d.stage||'-')}</td><td style="text-align:center">${fmtK(d.budget||0)} ₽</td><td style="text-align:center;color:${age>30?'#CC5867':age>14?'#C2873C':'var(--ink-3)'}">${age!=null?age+' дн в просчёте':'—'}</td></tr>`}).join('');
-      return `<tr><td colspan="8" style="padding:0"><table class="tbl" style="margin:2px 0 8px"><tbody>${rowsQ}</tbody></table>${list.length>40?`<div class="card-sub" style="padding-left:44px;margin-bottom:6px">показаны 40 из ${fmt(list.length)} (по сумме)</div>`:''}</td></tr>`};
+    // Раскрытие менеджера: только «пакет» (оплачено, ждёт цеха) и «в просчёте» (с бюджетом).
+    // «Прозвон» (сделки без суммы) в детализацию НЕ выводим.
+    const pkBy={};_queue.forEach(d=>{const k=d.mgr||'—';(pkBy[k]=pkBy[k]||[]).push(d)});
+    const qwBy={};_qDeals.forEach(d=>{if((d.budget||0)>0){const k=d.mgr||'—';(qwBy[k]=qwBy[k]||[]).push(d)}});
+    const drow=(d,type)=>{const ref=type==='pk'?prepayDate(d):d.created;const t=ref?new Date(ref).getTime():NaN;const age=isFinite(t)?Math.max(0,Math.round((NOWD.getTime()-t)/DAYMS)):null;
+      const bdg=type==='pk'?'<span style="font-size:9px;font-weight:700;color:#F59E0B;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.4);border-radius:4px;padding:0 5px">пакет</span>':'<span style="font-size:9px;font-weight:700;color:#A78BFA;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.4);border-radius:4px;padding:0 5px">в просчёте</span>';
+      const lbl=type==='pk'?'дн с оплаты':'дн в просчёте';
+      return `<tr style="font-size:11px"><td style="padding-left:44px;text-align:left"><a href="${B24D}${d.id}/" target="_blank" rel="noopener" style="color:#3DAEC2" onclick="event.stopPropagation()">${d.id}</a></td><td style="text-align:center">${bdg}</td><td style="text-align:center">${esc(d.stage||'-')}</td><td style="text-align:center">${fmtK(d.budget||0)} ₽</td><td style="text-align:center;color:${age>30?'#CC5867':age>14?'#C2873C':'var(--ink-3)'}">${age!=null?age+' '+lbl:'—'}</td></tr>`};
+    const mgrDetail=m=>{const pk=(pkBy[m.mgr]||[]).slice().sort((a,b)=>(b.budget||0)-(a.budget||0));const qw=(qwBy[m.mgr]||[]).slice().sort((a,b)=>(b.budget||0)-(a.budget||0));
+      const all=[...pk.map(d=>[d,'pk']),...qw.map(d=>[d,'qw'])];
+      if(!all.length)return '';
+      const rowsQ=all.slice(0,40).map(([d,tp])=>drow(d,tp)).join('');
+      return `<tr><td colspan="8" style="padding:0"><table class="tbl" style="margin:2px 0 8px"><tbody>${rowsQ}</tbody></table>${all.length>40?`<div class="card-sub" style="padding-left:44px;margin-bottom:6px">показаны 40 из ${fmt(all.length)} (пакет + в просчёте, по сумме)</div>`:''}</td></tr>`};
     let body=row(dep,true);
     if(S.rdeptOpen&&S.rdeptOpen.GG)msS.forEach(m=>{body+=row(m,false);if(S.rmgrOpen&&S.rmgrOpen[m.mgr])body+=mgrDetail(m)});
     const dth=(k,l,left)=>`<th data-rdk="${k}" style="${left?'text-align:left;':'text-align:center;'}cursor:pointer;user-select:none${DS.k===k?';color:#22D3EE':''}">${l}${DS.k===k?(DS.a?' ▲':' ▼'):''}</th>`;

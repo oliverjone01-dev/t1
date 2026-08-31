@@ -433,6 +433,11 @@ jobs:
           # rop.json + plan.json для СВОДа берём из Диминой ветки (ночной синк - свежие продажи и план)
           git fetch origin rop-dashboard-v1
           git worktree add /tmp/dlg-rop origin/rop-dashboard-v1
+          # Данные диалогов - ВСЕГДА из боевой ветки ночного снимка, не из копии в песочнице:
+          # песочница отрезана 28.08 и сама ночные данные не получает. Код - песочница, данные - боевые.
+          git fetch origin dialog-export-v1
+          git worktree add /tmp/dlg-live origin/dialog-export-v1
+          cp /tmp/dlg-live/analytics-mvp/dialog/data/*.json /tmp/dlg-exp/analytics-mvp/dialog/data/
           ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg-exp/analytics-mvp/node_modules
           cd /tmp/dlg-exp/analytics-mvp
           npx tsx src/scripts/b24/build-dialog.ts

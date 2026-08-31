@@ -1837,6 +1837,10 @@ function offerCalendarBlock(){
   const firstOffer=d=>{for(const h of (d.hist||[]))if(OSET.has(h[0]))return h[1];return null;};
   const enterStage=(d,code)=>{for(const h of (d.hist||[]))if(h[0]===code&&h[1])return h[1];return null;};
   const enterExec=d=>enterStage(d,"C21:UC_5BND99");
+  // Дата успеха: вход в предоплату, а если её в истории нет (сделку двинули сразу в «Успех»,
+  // минуя фиксацию «Счет оплачен») - дата закрытия выигранной сделки. Иначе успешные сделки
+  // не попадали в «Успех» и фантомами висели в «В работе».
+  const winDate=d=>enterExec(d)||(d.won?d.closed:null);
   const enterLose=d=>{let r=null;for(const h of (d.hist||[]))if(/LOSE|APOLOGY/.test(h[0]))r=h[1];return r||(d.lost?d.closed:null);};
   const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
   const g=S.gran,keys=buckets(g);
@@ -1870,12 +1874,12 @@ function offerCalendarBlock(){
     {id:"kp",nm:"КП отправлено",color:"#60A5FA",stg:"C21:PREPAYMENT_INVOIC",df:d=>enterStage(d,"C21:PREPAYMENT_INVOIC"),grp:"в работе",child:true},
     {id:"dec",nm:"Ожидание оплаты",color:"#C2873C",stg:"C21:FINAL_INVOICE",df:d=>enterStage(d,"C21:FINAL_INVOICE"),grp:"в работе",child:true},
     {id:"early",nm:"на др. стадиях (вернулись раньше)",color:"#6A7484",stgOther:true,grp:"в работе",child:true},
-    {id:"vyhod",nm:"Выход (успех + отказ)",color:"#9AA4B2",df:d=>enterExec(d)||enterLose(d),grp:"выход"},
-    {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:enterExec,grp:"выход",child:true},
+    {id:"vyhod",nm:"Выход (успех + отказ)",color:"#9AA4B2",df:d=>winDate(d)||enterLose(d),grp:"выход"},
+    {id:"win",nm:"Успех (предоплата)",color:"#2E9E74",df:winDate,grp:"выход",child:true},
     {id:"loss",nm:"Отказ",color:"#CC5867",df:enterLose,grp:"выход",child:true},
   ];
   const RBY={};ROWS.forEach(r=>RBY[r.id]=r);
-  const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=enterExec(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
+  const wipAt=(k,sc)=>sc.filter(d=>{const f=firstOffer(d);if(!f||f.slice(0,10)>endDate(k))return false;const ex=winDate(d),lo=enterLose(d);return !((ex&&ex.slice(0,10)<=endDate(k))||(lo&&lo.slice(0,10)<=endDate(k)));});
   const stageAtT=(d,t)=>{let st=null,bd="";(d.hist||[]).forEach(h=>{const hd=(h[1]||"").slice(0,10);if(hd&&hd<=t&&hd>=bd){bd=hd;st=h[0];}});return st;};
   const stageWipAt=(k,sc,stg)=>{const e=endDate(k);return sc.filter(d=>stageAtT(d,e)===stg);};
   // Возраст когорт - по ДАТЕ ПОСЛЕДНЕЙ АКТИВНОСТИ (дела в таймлайне), а не по дате создания:

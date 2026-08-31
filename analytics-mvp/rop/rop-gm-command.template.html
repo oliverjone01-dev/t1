@@ -1497,7 +1497,9 @@ function render(){
     if(!ms.length)return '';
     const DS=S.rdSort||{k:'qwM',a:false};
     const _gv={nm:r=>r.mgr,tD:r=>r.tD,tM:r=>r.tM,tPos:r=>r.tPos,tPcs:r=>r.tPcs,inM:r=>r.inM,qM:r=>r.qM,qwM:r=>r.qwM,qbN:r=>r.qbN}[DS.k]||(r=>r.qwM);
-    const msS=ms.slice().sort((a,b)=>{const x=_gv(a),y=_gv(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y||0)-(x||0));return DS.a?-d:d});
+    // Порядок групп: действующие ОП → системный пользователь (бот) → уволенные. Внутри группы - по метрике.
+    const _grp=m=>isOP(m.mgr)?0:(m.mgr===GM_BOT?1:isEx(m.mgr)?2:1);
+    const msS=ms.slice().sort((a,b)=>{const ga=_grp(a),gb=_grp(b);if(ga!==gb)return ga-gb;const x=_gv(a),y=_gv(b);const d=(typeof x==='string')?String(x).localeCompare(String(y),'ru'):((y||0)-(x||0));return DS.a?-d:d});
     const dep={mgr:'Glass Memory'};['tD','tM','tPos','tPcs','inN','inM','qN','qM','qwN','qwM','qbN'].forEach(k=>dep[k]=ms.reduce((s,m)=>s+m[k],0));
     const mxOf=f=>Math.max(1e-9,...ms.map(f));
     const mx={tD:mxOf(r=>r.tD),tM:mxOf(r=>r.tM),tPos:mxOf(r=>r.tPos),tPcs:mxOf(r=>r.tPcs),inM:mxOf(r=>r.inM),qM:mxOf(r=>r.qM),qwM:mxOf(r=>r.qwM),qbN:mxOf(r=>r.qbN)};
@@ -1507,9 +1509,10 @@ function render(){
     const row=(r,isDep)=>{const opn=isDep?(S.rdeptOpen&&S.rdeptOpen.GG):(S.rmgrOpen&&S.rmgrOpen[r.mgr]);
       const canOpen=!isDep&&(r.inN>0||r.qwN>0); // раскрываем, если есть пакет или сделки в просчёте
       const _isEx=!isDep&&isEx(r.mgr); // уволенный/неактивный продавец - выделяем жёлтым
+      const _isBot=!isDep&&r.mgr===GM_BOT; // системный пользователь - серым
       const mm=isDep?{tD:Math.max(r.tD,1e-9),tM:Math.max(r.tM,1e-9),tPos:Math.max(r.tPos,1e-9),tPcs:Math.max(r.tPcs,1e-9),inM:Math.max(r.inM,1e-9),qM:Math.max(r.qM,1e-9),qwM:Math.max(r.qwM,1e-9),qbN:Math.max(r.qbN,1e-9)}:mx;
       return `<tr ${isDep?`data-rdept="GG" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid rgba(148,163,184,.25)"`:(canOpen?`data-rmgr="${esc(r.mgr)}" style="cursor:pointer"`:'')}>
-        <td class="nm" style="text-align:left;white-space:nowrap;font-weight:${isDep?800:600}${_isEx?';color:'+EX_COL:''}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px;color:${_isEx?EX_COL:'inherit'}">${esc(r.mgr)}</span>`}${_isEx?' <span style="font-size:9px;font-weight:700;color:'+EX_COL+'">уволен</span>':''}</td>
+        <td class="nm" style="text-align:left;white-space:nowrap;font-weight:${isDep?800:600}${_isEx?';color:'+EX_COL:_isBot?';color:#8A94A6':''}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px;color:${_isEx?EX_COL:_isBot?'#8A94A6':'inherit'}">${esc(r.mgr)}</span>`}${_isEx?' <span style="font-size:9px;font-weight:700;color:'+EX_COL+'">уволен</span>':''}${_isBot?' <span style="font-size:9px;font-weight:700;color:#8A94A6">система</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mm.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;white-space:nowrap;${hg(r.tM,mm.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mm.tPos,BB)}">${r.tPos||'<span style="color:var(--ink-3)">·</span>'}</td>

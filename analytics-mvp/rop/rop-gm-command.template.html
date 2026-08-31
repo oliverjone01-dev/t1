@@ -1506,10 +1506,10 @@ function render(){
     const cell=(v,m2,col,mxV,bgc)=>`<td style="text-align:center;white-space:nowrap;${hg(m2,mxV,bgc)}">${v?`<b style="color:${col}">${fmt(v)}</b><span style="color:var(--ink-3)"> · ${fmtK(m2)} ₽</span>`:'<span style="color:var(--ink-3)">·</span>'}</td>`;
     const row=(r,isDep)=>{const opn=isDep?(S.rdeptOpen&&S.rdeptOpen.GG):(S.rmgrOpen&&S.rmgrOpen[r.mgr]);
       const canOpen=!isDep&&r.qN>0;
-      const idle=!isDep&&!r.tD&&(r.qN||r.inN);
+      const _isEx=!isDep&&isEx(r.mgr); // уволенный/неактивный продавец - выделяем жёлтым
       const mm=isDep?{tD:Math.max(r.tD,1e-9),tM:Math.max(r.tM,1e-9),tPos:Math.max(r.tPos,1e-9),tPcs:Math.max(r.tPcs,1e-9),inM:Math.max(r.inM,1e-9),qM:Math.max(r.qM,1e-9),qwM:Math.max(r.qwM,1e-9),qbN:Math.max(r.qbN,1e-9)}:mx;
       return `<tr ${isDep?`data-rdept="GG" style="cursor:pointer;background:rgba(34,211,238,.05);border-top:2px solid rgba(148,163,184,.25)"`:(canOpen?`data-rmgr="${esc(r.mgr)}" style="cursor:pointer"`:'')}>
-        <td class="nm" style="text-align:left;white-space:nowrap;font-weight:${isDep?800:600}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px">${esc(r.mgr)}</span>`}${idle?'<span style="display:inline-block;white-space:nowrap;font-size:9px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.5);color:#F59E0B;border-radius:5px;padding:1px 5px;font-weight:700;margin-left:5px;vertical-align:1px">не передаёт</span>':''}</td>
+        <td class="nm" style="text-align:left;white-space:nowrap;font-weight:${isDep?800:600}${_isEx?';color:'+EX_COL:''}">${isDep?(opn?'▾ ':'▸ '):(canOpen?(opn?'<span style="color:#A78BFA">▾ </span>':'<span style="color:#A78BFA">▸ </span>'):'')}${isDep?r.mgr:`<span style="padding-left:16px;color:${_isEx?EX_COL:'inherit'}">${esc(r.mgr)}</span>`}${_isEx?' <span style="font-size:9px;font-weight:700;color:'+EX_COL+'">уволен</span>':''}</td>
         <td style="text-align:center;${hg(r.tD,mm.tD,T)}">${r.tD?`<b>${fmt(r.tD)}</b>`:'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;white-space:nowrap;${hg(r.tM,mm.tM,T)}">${r.tM?fmtK(r.tM)+' ₽':'<span style="color:var(--ink-3)">·</span>'}</td>
         <td style="text-align:center;${hg(r.tPos,mm.tPos,BB)}">${r.tPos||'<span style="color:var(--ink-3)">·</span>'}</td>

@@ -21,7 +21,36 @@
 import json, re, html, sys
 from collections import defaultdict
 
-R = lambda p: json.load(open(p, encoding="utf-8"))
+# Отчёт - снимок на конкретную дату, поэтому сверять его надо с теми данными, из которых
+# он собран, а не с текущими. Ночной сбор обновляет выгрузки каждый день, и без привязки
+# к ревизии скрипт начал бы «находить» расхождения там, где просто уехали данные.
+# При обновлении отчёта поднять SNAPSHOT_REV на коммит с новым замером.
+SNAPSHOT_REV = "a71cb82a"   # main на момент выпуска отчёта, замер 31.08.2026
+
+import subprocess
+def R(path):
+    """Читает файл данных из ревизии снимка, а не из рабочего дерева."""
+    try:
+        blob = subprocess.run(["git", "show", f"{SNAPSHOT_REV}:{path}"],
+                              capture_output=True, check=True).stdout
+        return json.loads(blob)
+    except subprocess.CalledProcessError:
+        return json.load(open(path, encoding="utf-8"))
+
+def drift_report():
+    """Отдельно сообщает, разошлись ли текущие данные со снимком: это не ошибка отчёта,
+    а сигнал, что пора делать новый замер."""
+    import os
+    out = []
+    for path in ("gg-seo-geo-monster/data/genglass/metrika.json",
+                 "gg-seo-geo-monster/data/genglass/keysso.json"):
+        if not os.path.exists(path):
+            continue
+        live = json.load(open(path, encoding="utf-8"))
+        snap = R(path)
+        if live.get("measured") != snap.get("measured"):
+            out.append(f"  {path}: снимок {snap.get('measured')}, сейчас {live.get('measured')}")
+    return out
 camp  = R("yandex-direct/data/direct_campaigns.json")
 daily = R("yandex-direct/data/direct_daily.json")
 quer  = R("yandex-direct/data/direct_queries.json")
@@ -122,6 +151,20 @@ check("Тема гардероб",    (5,504,101),   theme(r"гардероб"))
 check("Отношение стекло/зонирование", 2.8, round(theme(r"стекл")[2]/theme(r"зониров")[2], 1))
 check("«межкомнатные перегородки» в СЧ: 44 показа 0 кликов", True,
       any(r["imp"]==44 and r["clicks"]==0 and r["query"]=="межкомнатные перегородки" and "СЧ" in r["camp"] for r in qr))
+
+# устойчивость вывода про расход: среднее чувствительно к слабым дням, медиана нет.
+# Если документ утверждает рост дневного расхода, а медиана его не подтверждает - это дефект.
+import statistics as _st
+_a=[tot[d] for d in A]; _b=[tot[d] for d in B]
+_as=[srchd[d] for d in A]; _bs=[srchd[d] for d in B]
+check("Медиана расхода до",  5376, round(_st.median(_a)))
+check("Медиана расхода после",5348, round(_st.median(_b)))
+check("По медиане расход НЕ вырос", True, _st.median(_b) <= _st.median(_a)*1.02)
+check("Документы не утверждают рост дневного расхода", True,
+      "вырос на 13,5%" not in HTX and "расход после этого вырос" not in TS)
+check("Поиск вырос по обоим способам", True, _st.mean(_bs) > _st.mean(_as) and _st.median(_bs) > _st.median(_as))
+check("Рост Поиска по медиане %", 20, round(100*(_st.median(_bs)/_st.median(_as)-1)))
+check("Экономии нет: 14 дней после против 16 до", True, sum(_b) > sum(_a)*0.97)
 
 # ---------- МЕТРИКА ----------
 bs = {r["source"]: r for r in dmet["by_source"]}
@@ -245,7 +288,8 @@ check("Наше место по рекламным ключам", 3,
 check("Наше место по топ-3", 4, 1+len([d for d in D if D[d]["it3"] > D["genglass.ru"]["it3"]]))
 
 # ---------- ЦЕНЫ ----------
-PB = open("gg-seo-geo-monster/knowledge/price-benchmark-peregorodki-july.md", encoding="utf-8").read()
+PB = subprocess.run(["git","show",f"{SNAPSHOT_REV}:gg-seo-geo-monster/knowledge/price-benchmark-peregorodki-july.md"],
+                    capture_output=True).stdout.decode("utf-8")
 for label, us, mk, dl in (("Стационарная",93896,165454,"-43,25%"),("Распашная",251976,327460,"-23,05%"),("Раздвижная",271736,342256,"-20,60%")):
     check(f"Цена {label} наша",  True, str(us)[:3]+" "+str(us)[3:] in PB or f"{us//1000} {us%1000:03d}" in PB)
     check(f"Цена {label} рынок", True, f"{mk//1000} {mk%1000:03d}" in PB)
@@ -265,6 +309,12 @@ for f_, txt in (("data.ts",TS),("sections.tsx",open("phoenix/src/sections.tsx",e
                 ("styles.css",open("phoenix/src/styles.css",encoding="utf-8").read()),("отчёт",HT)):
     check(f"Тире в {f_}", 0, txt.count("—")+txt.count("–"))
 
+drift = drift_report()
+print(f"Снимок данных: ревизия {SNAPSHOT_REV}")
 print(f"СОШЛОСЬ: {len(ok)}   РАСХОЖДЕНИЙ: {len(bad)}\n")
+if drift:
+    print("Данные в рабочем дереве ушли вперёд снимка (это не ошибка отчёта, а повод обновить замер):")
+    for d_ in drift: print(d_)
+    print()
 for n,e,gv,note in bad: print(f"  РАСХОЖДЕНИЕ  {n}\n      в документе: {e}\n      по данным:   {gv}  {note}")
 sys.exit(1 if bad else 0)

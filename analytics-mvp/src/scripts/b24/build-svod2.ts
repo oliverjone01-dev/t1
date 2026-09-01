@@ -58,7 +58,11 @@ for (const d of rop.deals || []) {
   if (!(d.hist || []).length) cohortNoHist++;
   const t = touched(d);
   const sold = [...SOLD].some((s) => t.has(s));
-  cohort.push({ c, m: d.mgr, s: sn, tz: (t.has("C49:PREPARATION") || sold) ? 1 : 0, kp: (t.has("C49:PREPAYMENT_INVOIC") || sold) ? 1 : 0, sold: sold ? 1 : 0 });
+  // ФАЗА 0 (аудит СПАРТАК/ФЕНИКС): флаги стадий ЧЕСТНЫЕ и независимые - без "|| sold".
+  // Продажа, оформленная мимо стадии, стадию НЕ засчитывает: это отдельный сигнал
+  // дисциплины воронки (mk = продана мимо «КП отправлено»).
+  const kp = t.has("C49:PREPAYMENT_INVOIC") ? 1 : 0;
+  cohort.push({ c, m: d.mgr, s: sn, tz: t.has("C49:PREPARATION") ? 1 : 0, kp, dec: t.has("C49:3") ? 1 : 0, sold: sold ? 1 : 0, mk: (sold && !kp) ? 1 : 0 });
 }
 
 // --- Мёрзнет портфель: открытые сделки по этапам, деньги старше 30 дней в этапе.
@@ -97,6 +101,57 @@ const deals = (sc.deals as any[]).map((d) => ({
   u: d.uKey, o: d.outcome, next: (d.next || "").slice(0, 160), sil: d.silenceD, rm: d.respMed,
 }));
 
+// ===== ФИЧА 1: «Долг по ответам» - из журнала событий недельного окна =====
+// Пары «клиент написал -> мы ответили» + текущий непогашенный долг. Проверено на
+// аудите СПАРТАКА: 486 пар, обрыв ответа клиента после суток (78% -> 46%).
+const evAll = (dlg.events || []).filter((e: any) => e.ts && (e.dir === "входящее" || e.dir === "исходящее") && (e.dealId || e.leadId)).sort((a: any, b: any) => a.ts - b.ts);
+const evByObj: Record<string, any[]> = {};
+for (const e of evAll) { const k = (e.dealId ? "d" : "l") + (e.dealId || e.leadId); (evByObj[k] ||= []).push(e); }
+const scByKey: Record<string, any> = {};
+for (const d of (sc.deals as any[])) scByKey[(d.isLead ? "l" : "d") + d.dealId] = d;
+const NOWTS = new Date(dlg.to).getTime();
+const debt: any[] = [];
+for (const [k, list] of Object.entries(evByObj)) {
+  const d = scByKey[k]; if (!d || d.outcome !== "open") continue;
+  let lastIn: any = null, lastOut: any = null;
+  for (const e of list) { if (e.dir === "входящее") lastIn = e; else lastOut = e; }
+  if (lastIn && (!lastOut || lastOut.ts < lastIn.ts))
+    debt.push({ id: d.dealId || d.leadId, lead: d.isLead ? 1 : 0, m: d.mgr, b: Math.round(d.budget || 0), t: noDash(d.title).slice(0, 42), ageH: Math.round((NOWTS - lastIn.ts) / 36e5), next: String(d.next || "").slice(0, 140) });
+}
+debt.sort((a, b) => b.b - a.b);
+const pairs: { day: string; respMin: number; back: number }[] = [];
+for (const list of Object.values(evByObj)) {
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].dir !== "входящее") continue;
+    let j = i + 1; while (j < list.length && list[j].dir === "входящее") j++;
+    if (j >= list.length) continue;
+    const respMin = (list[j].ts - list[i].ts) / 6e4;
+    if (respMin < 0) continue;
+    let back = 0; for (let m2 = j + 1; m2 < list.length; m2++) if (list[m2].dir === "входящее" && (list[m2].ts - list[j].ts) <= 72 * 36e5) { back = 1; break; }
+    pairs.push({ day: new Date(list[j].ts).toISOString().slice(0, 10), respMin: Math.round(respMin), back });
+    i = j - 1;
+  }
+}
+const rDays = [...new Set(pairs.map((p2) => p2.day))].sort();
+const replyLine = rDays.map((day) => { const pp = pairs.filter((p2) => p2.day === day); return { day, n: pp.length, back: pp.filter((p2) => p2.back).length }; });
+const over24 = pairs.filter((p2) => p2.respMin > 1440);
+const replyStats = { pairs: pairs.length, deptPct: pairs.length ? Math.round(100 * pairs.filter((p2) => p2.back).length / pairs.length) : 0, over24: over24.length, over24back: over24.filter((p2) => p2.back).length };
+
+// ===== ФИЧА 2: труба и дожим по менеджерам (Wilson 95%) =====
+const wilson = (k2: number, n2: number): [number, number] => { if (!n2) return [0, 0]; const pr = k2 / n2, z = 1.96, z2 = z * z, den = 1 + z2 / n2; const c2 = (pr + z2 / (2 * n2)) / den, mrg = z * Math.sqrt((pr * (1 - pr) + z2 / (4 * n2)) / n2) / den; return [Math.max(0, c2 - mrg), Math.min(1, c2 + mrg)]; };
+const pipeF = { created: cohort.length, tz: 0, kp: 0, dec: 0, sold: 0, mk: 0 };
+for (const c2 of cohort) { pipeF.tz += c2.tz; pipeF.kp += c2.kp; pipeF.dec += c2.dec; pipeF.sold += c2.sold; pipeF.mk += c2.mk; }
+const pipeByM: Record<string, { kp: number; sold: number; mk: number }> = {};
+for (const c2 of cohort) { (pipeByM[c2.s] ||= { kp: 0, sold: 0, mk: 0 }); pipeByM[c2.s].kp += c2.kp; if (c2.sold && c2.kp) pipeByM[c2.s].sold++; pipeByM[c2.s].mk += c2.mk; }
+const deptPipe = { kp: 0, sold: 0 };
+for (const v of Object.values(pipeByM)) { deptPipe.kp += v.kp; deptPipe.sold += v.sold; }
+const [dplo, dphi] = wilson(deptPipe.sold, deptPipe.kp);
+const mrows = Object.entries(pipeByM).filter(([, v]) => v.kp >= 20).map(([m2, v]) => { const [lo, hi] = wilson(v.sold, v.kp); return { m: m2, kp: v.kp, sold: v.sold, cr: Math.round(1000 * v.sold / v.kp) / 10, lo: Math.round(lo * 1000) / 10, hi: Math.round(hi * 1000) / 10, mk: v.mk }; }).sort((a, b) => b.cr - a.cr);
+
+// ===== ФИЧА 3: стык лид -> сделка (честный режим: полного слоя лидов в снимке НЕТ) =====
+const leadIds = new Set<string>(); for (const e of evAll) if (e.leadId && !e.dealId) leadIds.add(String(e.leadId));
+const stik = { leads: dlg.leadCount || 0, seen: leadIds.size, note: "по остальным лидам снимок не выгружает ни владельца, ни статуса - подключение полного слоя лидов = задача фетчера (фаза 2)" };
+
 const DATA = {
   meta: {
     dlgFrom: dlg.from, dlgTo: dlg.to, dlgGenerated: dlg.generatedAt, ropGenerated: ropGen,
@@ -108,6 +163,7 @@ const DATA = {
   managers: (sc.managers as any[]).map((m) => ({ mgr: m.mgr, role: m.role, rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0), sections: m.sections })),
   queuesMeta: sc.queues, minSample: sc.minSample, calibratedAt: sc.calibratedAt,
   deals, cohort, rot, hist: hist.days || [],
+  debt, replyLine, replyStats, pipe: { F: pipeF, mrows, dept: { ...deptPipe, cr: deptPipe.kp ? Math.round(1000 * deptPipe.sold / deptPipe.kp) / 10 : 0, lo: Math.round(dplo * 1000) / 10, hi: Math.round(dphi * 1000) / 10 } }, stik,
   ai: ai || { mgrs: {}, dept: null, deals: {} },
 };
 

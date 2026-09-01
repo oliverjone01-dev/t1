@@ -94,6 +94,34 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 .spark2 rect{cursor:pointer}
 .screen{display:none}.screen.on{display:block}
 .foot{color:var(--ink3);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
+/* блоки CR-фич */
+.flow{display:flex;gap:0;align-items:stretch;margin:8px 0}
+.fcell{flex:1;text-align:center;padding:10px 6px;border-right:1px dashed var(--line2)}
+.fcell:last-child{border-right:0}
+.fcell .fv{font-size:24px;font-weight:800}
+.fcell .fl{font-size:11px;color:var(--ink2);font-weight:700}
+.fcell .fm{font-size:11px;color:var(--ink3)}
+.fcell.hot{background:var(--bad-soft);border-radius:10px}
+.comb{display:flex;align-items:flex-end;gap:10px;height:170px;padding:6px 4px;border-bottom:1px solid var(--line);position:relative}
+.cbb{flex:1;text-align:center;position:relative;cursor:pointer}
+.cbb .bar{background:#c9d6e4;border-radius:5px 5px 0 0;margin:0 8px;transition:.15s}
+.cbb:hover .bar{background:var(--blue)}
+.cbb.hot .bar{background:var(--bad)}
+.cbb .cn{font-size:15px;font-weight:800;position:absolute;top:-22px;left:0;right:0}
+.cbb .cl{font-size:10.5px;color:var(--ink3);font-weight:700;margin-top:4px}
+.cbb .cm{font-size:10.5px;color:var(--ink2);font-weight:700}
+.vline{position:absolute;top:-2px;bottom:18px;width:2px;background:var(--bad);opacity:.55}
+.strip{display:flex;height:40px;border-radius:9px;overflow:hidden;margin:8px 0 4px}
+.sseg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;cursor:pointer;min-width:34px;white-space:nowrap;overflow:hidden}
+.pipe2{display:flex;align-items:center;margin:14px 0 4px}
+.pseg2{background:linear-gradient(180deg,#4d8dff,#005bff);color:#fff;display:flex;flex-direction:column;justify-content:center;text-align:center;border-right:2px solid #fff}
+.pseg2 b{font-size:16px}.pseg2 span{font-size:10.5px;opacity:.9}
+.leak{color:var(--bad);font-size:11.5px;font-weight:700;text-align:center;margin-top:2px}
+.ci{position:relative;height:14px;background:#eef2f6;border-radius:7px}
+.ci i{position:absolute;top:3px;bottom:3px;background:var(--blue);border-radius:4px;opacity:.75}
+.ci s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.ci.grey i{background:#b6c2cf}
+.replysvg{width:100%;height:120px}
 .tip{position:fixed;z-index:99;max-width:340px;background:#0b1f33;color:#fff;font-size:12px;line-height:1.5;padding:9px 11px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .1s}
 .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
 .pill.n{background:#eef2f6;color:var(--ink3)}.pill.b{background:var(--blue-soft);color:var(--blue)}
@@ -116,7 +144,36 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 
 <div class="pbar" id="pbar"></div>
 
+<!-- ФИЧА 3: ВХОД -->
+<div class="card">
+  <h2>Вход: сколько заявок мы вообще видим <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="stik-help">?</span></h2>
+  <div class="pop2" id="pop-stik-help">Простыми словами: заявка (лид) - это человек, который написал или позвонил, но сделки в CRM у него ещё нет. Пока заявку не разобрали - это деньги, лежащие в почтовом ящике. Здесь видно, сколько заявок пришло и сколько из них система вообще способна показать.</div>
+  <div class="hint">Прежде чем считать конверсию, честно ответим: весь ли вход мы видим? Пока - нет, и это написано прямо.</div>
+  <div class="flow" id="stik"></div>
+  <div class="hint" id="stik-note" style="margin-top:6px"></div>
+</div>
+
 <div class="kpis" id="kpis"></div>
+
+<!-- ФИЧА 1: ДОЛГ ПО ОТВЕТАМ -->
+<div class="card">
+  <h2>Долг по ответам: клиенты написали нам - и ждут <span class="tagD">ДАННЫЕ</span> <span class="pill r" id="debt-total"></span><span class="q" data-pop="debt-help">?</span></h2>
+  <div class="pop2" id="pop-debt-help">Простыми словами: «долг» - это переписки, где последним написал КЛИЕНТ, а мы ещё не ответили. Каждая такая позиция - живой человек с деньгами, который ждёт. Чем дольше ждёт, тем холоднее: по нашим 486 перепискам недели, если ответить в течение суток - клиент продолжает разговор в 78 случаях из 100, если позже суток - только в 46. Поэтому главная красная линия - сутки.</div>
+  <div class="hint">Смотрим не «сколько сделок в очереди» (это число всегда одинаковое), а КОМУ и СКОЛЬКО мы должны ответов - в деньгах и часах.</div>
+  <div style="font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase;margin-bottom:4px">Чей долг: ширина полоски = деньги клиента, цвет = сколько ждёт самый забытый (серый - до 4 ч, жёлтый - до суток, красный - дольше). Нажмите - список.</div>
+  <div class="strip" id="dstrip"></div>
+  <div style="font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase;margin:10px 0 22px">Сколько ждут: столбик = число клиентов, подпись под ним = их деньги. Нажмите на столбик - кто именно.</div>
+  <div class="comb" id="dcomb"></div>
+  <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3);margin-top:2px"><span>только что написали</span><span id="dcomb-note"></span><span>ждут давно</span></div>
+  <div class="g2" style="margin-top:12px">
+    <div>
+      <div style="font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase">Отвечаем ли мы так, чтобы разговор продолжался</div>
+      <svg class="replysvg" id="dreply" viewBox="0 0 560 120" preserveAspectRatio="none"></svg>
+      <div class="hint">Каждая точка - день. Доля наших ответов, после которых клиент продолжил разговор в течение 3 суток. Пунктир - уровень отдела. «Сколько штук отписали» не показываем нарочно: это накручивается пустыми отписками, а продолжение разговора клиентом - нет. Последние 2 точки - предварительные.</div>
+    </div>
+    <div id="dpanel"><div class="pill n">Нажмите на полоску менеджера или столбик - появится список: кто ждёт, сколько денег, что написать</div></div>
+  </div>
+</div>
 
 <!-- КОМАНДА (над очередями по правке Ивана) -->
 <div class="card">
@@ -128,6 +185,21 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   <div class="hint" id="team-hint"></div>
   <table class="mt" id="team"></table>
   <div id="mgr-day-ann"></div>
+</div>
+
+<!-- ФИЧА 2: ТРУБА -->
+<div class="card">
+  <h2>Путь сделки: где теряем больше всего <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="pipe-help">?</span></h2>
+  <div class="pop2" id="pop-pipe-help">Простыми словами: каждая сделка идёт по шагам - создали, сняли задачу (ТЗ), отправили цену (КП), клиент думает, клиент оплатил. На каждом шаге часть сделок отваливается - как вода из дырявой трубы. Здесь видно, где дыра самая большая и у кого шаг проседает сильнее отдела. Считается по реальной истории стадий Битрикс24, 180 дней, только сделки отдела.</div>
+  <div class="hint" id="pipe-hint"></div>
+  <div class="pipe2" id="pipe2"></div>
+  <div id="pipe-leaks" style="display:flex"></div>
+  <div class="ann" id="pipe-note"></div>
+  <h2 style="margin-top:16px;font-size:14px">Дожим после отправки цены - единственное место, где менеджеры реально различаются<span class="q" data-pop="mp-help">?</span></h2>
+  <div class="pop2" id="pop-mp-help">Простыми словами: «дожим» - из тех, кому отправили цену, сколько дошло до оплаты. Полоска справа - коридор погрешности: при малом числе сделок цифра прыгает случайно, полоска показывает, где правда может находиться. Если полоска менеджера пересекается с чертой отдела - разница может быть случайной: такая строка серая, и выводов по ней НЕ делаем. По общей конверсии менеджеры отдела статистически не различаются - различие есть только здесь.</div>
+  <div class="hint">Нажмите на имя - что делать конкретно по этому менеджеру.</div>
+  <table class="mt" id="mpipe"></table>
+  <div id="mcoach"></div>
 </div>
 
 <!-- ОЧЕРЕДИ -->
@@ -300,7 +372,7 @@ function renderKPIs(){
   document.getElementById('kpis').innerHTML=`
   <div class="kpi"><div class="l">Воронка ${esc(periodTitle())}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="conv">?</span></div>
     <div class="fun">${[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,210*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${pcv(v,f.created)}</span></div>`).join('')}</div>
-    <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежая когорта ещё зреет':''}</div>
+    <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежие сделки ещё зреют':''}</div>
     <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (создано ≥5 в период)</b><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>CR</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
   <div class="kpi"><div class="l">Под риском на ${sd?df(sd.day):'-'}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="risk">?</span></div>
     <div class="v">${sd?fmtR(riskRub):'нет данных'}</div><div class="d">${sd?nDeal(riskN)+' в проблемных очередях':'история очередей на эту дату не велась'}${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}${sd&&paidInQ.length?` · из них ${nDeal(paidInQ.length)} на ${fmtR(paidInQRub)} уже с предоплатой [по окну разбора ${dfs(M.dlgFrom)}-${dfs(M.dlgTo)}] - сервисный риск, не риск продажи`:''}</div>
@@ -489,7 +561,7 @@ function renderFunnelBig(){
   const f={created:sel.length,tz:sel.filter(c=>c.tz).length,kp:sel.filter(c=>c.kp).length,sold:sel.filter(c=>c.sold).length};
   document.getElementById('fun-h').firstChild.textContent='Воронка '+periodTitle()+' ';
   const young=(new Date(ropDay)-new Date(PERIOD.to))/864e5<30;
-  document.getElementById('fun-hint').textContent=`Когорта: ${nDeal(f.created)}, созданных за период. Проценты - от созданного.`+(young&&M.cycle&&M.cycle.big?` Свежая когорта ещё зреет: у крупных сделок половина предоплат приходит за ${M.cycle.big.medD} дн - конверсия дорастёт.`:'')+(M.migDays&&M.migDays.length?` Дни переноса из старой CRM (${M.migDays.map(df).join(', ')}) из когорт исключены [РАСЧЁТ].`:'');
+  document.getElementById('fun-hint').textContent=`Взяли ${nDeal(f.created)}, созданных за период, и посмотрели, до какого шага дошла каждая. Проценты - от созданного.`+(young&&M.cycle&&M.cycle.big?` Свежие сделки ещё зреют: у крупных половина оплат приходит через ${M.cycle.big.medD} дн - проценты дорастут сами.`:'')+(M.migDays&&M.migDays.length?` Дни переноса из старой CRM (${M.migDays.map(df).join(', ')}) исключены [РАСЧЁТ].`:'');
   document.getElementById('funnel-big').innerHTML=[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,220*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${f.created?Math.round(100*v/f.created)+'%':''}</span></div>`).join('');
   document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше. В когорте только 11 менеджеров отдела: сделки других владельцев, тестовые и системные исключены'+(M.cohortDropped?' - '+M.cohortDropped+' шт за '+M.depthDays+' дней':'')+'.'+(M.cohortNoHist?' У '+M.cohortNoHist+' сделок когорты нет истории стадий - их шаги могут занижаться [РАСЧЁТ].':'');
   const fn=AI.dept&&AI.dept.funnelNote;const fa=document.getElementById('funnel-ann');
@@ -498,7 +570,7 @@ function renderFunnelBig(){
 let curZ=null;
 function renderFreeze(){
   const mx=Math.max(...DATA.rot.map(r=>r.frozenRub),1);
-  document.getElementById('freeze').innerHTML=DATA.rot.map((r,i)=>`<div class="fr" onclick="zDrill(${i})"><div class="fb" style="width:${Math.max(40,420*r.frozenRub/mx)}px">${fmtR(r.frozenRub)}</div><span><b>${esc(r.stage)}</b> · ${nDeal(r.frozenN)} дольше 30 дн · медиана этапа ${r.medD} дн</span></div>`).join('');
+  document.getElementById('freeze').innerHTML=DATA.rot.map((r,i)=>`<div class="fr" onclick="zDrill(${i})"><div class="fb" style="width:${Math.max(40,420*r.frozenRub/mx)}px">${fmtR(r.frozenRub)}</div><span><b>${esc(r.stage)}</b> · ${nDeal(r.frozenN)} дольше 30 дн · обычно сделка сидит тут ${r.medD} дн</span></div>`).join('');
   document.getElementById('pop-z-help').innerHTML='«Мёрзнет» = деньги открытых сделок (бюджет от 10 тыс ₽), сидящие в своём этапе дольше 30 дней (по состоянию на снимок РОПа, фильтр периода не влияет - это «сейчас»). Время в этапе - от входа в текущую стадию по истории Битрикс24.'+(M.rotNoHist?' У '+M.rotNoHist+' открытых сделок истории стадий нет - для них берётся дата создания, оценка может завышаться [РАСЧЁТ].':'');
   const zn=AI.dept&&AI.dept.freezeNote;const za=document.getElementById('freeze-ann');
   if(zn){za.hidden=false;za.innerHTML=`<span class="ttl">ИИ-РОП о заморозке</span>${esc(zn)}`;}
@@ -595,7 +667,83 @@ document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-t]');
     tip.style.left=Math.min(e.clientX+12,innerWidth-350)+'px';tip.style.top=(e.clientY+12)+'px';}
   else tip.style.opacity=0;});
 
-function renderAll(){renderPBar();renderKPIs();renderTeam();renderQueues();renderPulse();renderFunnelBig();renderFreeze();renderAI();
+/* ========== CR-ФИЧИ (согласованы Иваном 01.09, аудит СПАРТАК + 2×ФЕНИКС) ========== */
+/* ФИЧА 3: вход */
+function renderStik(){
+  const st=DATA.stik||{};
+  const unseen=(st.leads||0)-(st.seen||0);
+  document.getElementById('stik').innerHTML=[
+    ['Заявок пришло',st.leads,'за неделю окна','D',''],
+    ['Видит разбор',st.seen,'по ним есть переписка и оценка','D',''],
+    ['Не видит никто',unseen,'снимок их не выгружает','H','hot'],
+  ].map(([l,v,m2,tag,cls])=>`<div class="fcell ${cls}"><div class="fv">${v}</div><div class="fl">${l} ${tag==='D'?'<span class=tagD>ДАННЫЕ</span>':'<span class=tagH>ПРОВЕРЕНО: НЕТ ДАННЫХ</span>'}</div><div class="fm">${m2}</div></div>`).join('');
+  document.getElementById('stik-note').textContent='Честно: по '+unseen+' заявкам из '+(st.leads||0)+' в выгрузке нет ни имени ответственного, ни статуса - '+(st.note||'');
+}
+/* ФИЧА 1: долг */
+const DBUCKETS=[['до 1 часа',0,1],['1-4 часа',1,4],['4-8 часов',4,8],['8-24 часа',8,24],['1-3 суток',24,72],['дольше 3 суток',72,1e9]];
+function ageTxt(h){return h<48?h+' ч':Math.round(h/24)+' сут';}
+function renderDebt(){
+  const debt=DATA.debt||[];
+  const total=debt.reduce((s2,x)=>s2+x.b,0);
+  document.getElementById('debt-total').textContent=nDeal(debt.length)+' на '+fmtR(total);
+  const byM={};
+  for(const x of debt){(byM[x.m]||={b:0,n:0,worst:0});byM[x.m].b+=x.b;byM[x.m].n++;byM[x.m].worst=Math.max(byM[x.m].worst,x.ageH);}
+  document.getElementById('dstrip').innerHTML=Object.entries(byM).sort((a,b)=>b[1].b-a[1].b).map(([m2,v])=>{
+    const col=v.worst>24?'var(--bad)':v.worst>4?'#d99a00':'#8a97a6';
+    return `<div class="sseg" style="width:${Math.max(4,100*v.b/(total||1))}%;background:${col}" data-t="${esc(m2)}: должен ответов ${v.n} клиентам на ${fmtR(v.b)}; самый забытый ждёт ${ageTxt(v.worst)}. Нажмите - список." onclick="debtList('m','${esc(m2)}')">${esc(m2.split(' ')[0])}</div>`;
+  }).join('');
+  const bs=DBUCKETS.map(([l,a,b])=>{const it=debt.filter(x=>x.ageH>=a&&x.ageH<b);return {l,n:it.length,rub:it.reduce((s2,x)=>s2+x.b,0)};});
+  const mx=Math.max(...bs.map(b=>b.n),1);
+  document.getElementById('dcomb').innerHTML=bs.map((b,i)=>`<div class="cbb ${i>=4?'hot':''}" data-t="${b.l} ждут ${nDeal(b.n)} на ${fmtR(b.rub)}. Нажмите - кто именно." onclick="debtList('b',${i})"><div class="cn">${b.n}</div><div class="bar" style="height:${Math.max(4,120*b.n/mx)}px"></div><div class="cl">${b.l}</div><div class="cm">${fmtR(b.rub)}</div></div>`).join('')
+    +'<div class="vline" style="left:33.3%" data-t="4 часа: норматив регламента - до этой линии ждать клиенту ещё терпимо"></div><div class="vline" style="left:66.6%;width:3px" data-t="Сутки: после этой линии клиент продолжает разговор только в 46 случаях из 100 вместо 78 [ДАННЫЕ недели]"></div>';
+  const old24=debt.filter(x=>x.ageH>24);
+  document.getElementById('dcomb-note').textContent='дольше суток ждут '+nDeal(old24.length)+' на '+fmtR(old24.reduce((s2,x)=>s2+x.b,0));
+  const rl=(DATA.replyLine||[]).filter(r=>r.n>=3);
+  if(rl.length>=2){
+    const W=560,H=120,step=W/(rl.length-1||1),base=DATA.replyStats?DATA.replyStats.deptPct:77;
+    const pts=rl.map((r,i)=>[i*step,H-10-(H-25)*Math.min(100,100*r.back/r.n)/100]);
+    document.getElementById('dreply').innerHTML=
+      `<line x1="0" x2="${W}" y1="${H-10-(H-25)*base/100}" y2="${H-10-(H-25)*base/100}" stroke="#b6c2cf" stroke-width="1.5" stroke-dasharray="5 4"/>`+
+      `<text x="4" y="${H-14-(H-25)*base/100}" font-size="10" fill="#8a97a6">${base}% - уровень отдела за неделю</text>`+
+      `<polyline fill="none" stroke="var(--blue)" stroke-width="2.5" points="${pts.map(pt=>pt.map(v=>v.toFixed(1)).join(',')).join(' ')}"/>`+
+      pts.map((pt,i)=>{const pct=Math.round(100*rl[i].back/rl[i].n);const last=i>=rl.length-2;
+        return `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="4" fill="${pct>=base?'var(--ok)':'var(--bad)'}" ${last?'opacity="0.45"':''} data-t="${df(rl[i].day)}: клиент продолжил разговор после ${rl[i].back} из ${rl[i].n} наших ответов (${pct}%)${last?' - предварительно, трое суток ещё не прошли':''}"/>`;}).join('');
+  }
+}
+function debtList(kind,key){
+  const src=DATA.debt||[];
+  const items=(kind==='m'?src.filter(x=>x.m===key):src.filter(x=>{const b=DBUCKETS[key];return x.ageH>=b[1]&&x.ageH<b[2];})).sort((a,b)=>b.b-a.b).slice(0,6);
+  const title=kind==='m'?key:DBUCKETS[key][0];
+  document.getElementById('dpanel').innerHTML=`<div style="font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase">Кому ответить · ${esc(title)} · самые дорогие первыми</div>`+
+    (items.length?items.map(x=>`<a class="dl" href="${crmUrl({lead:x.lead,id:x.id})}" target="_blank" rel="noopener"><span class="db">${fmtR(x.b)}</span><span><b>${esc(x.t||('#'+x.id))}</b> · ${esc(x.m)} · ждёт ${ageTxt(x.ageH)}<br><span style="color:var(--ink3)">${esc(deN(x.next)||'ответить сегодня и назвать точный срок')}</span> · открыть в CRM →</span></a>`).join(''):'<div class="pill g" style="margin-top:8px">Долга нет - все клиенты получили ответ</div>');
+}
+/* ФИЧА 2: труба */
+function renderPipe(){
+  const P2=DATA.pipe;if(!P2){return;}
+  const F=P2.F;
+  document.getElementById('pipe-hint').textContent='Взяли '+nDeal(F.created)+' отдела за 180 дней (тесты и чужие владельцы исключены) и проследили путь каждой по истории Битрикс24. Шаг «Клиент думает» добавлен - раньше его не было видно вовсе, а сделки умирают именно там.';
+  const seq=[['Создали',F.created],['Сняли задачу (ТЗ)',F.tz],['Отправили цену (КП)',F.kp],['Клиент думает',F.dec],['Клиент оплатил',F.sold]];
+  const mx=F.created;
+  document.getElementById('pipe2').innerHTML=seq.map(([l,v])=>`<div class="pseg2" style="flex:${Math.max(v,40)};height:${34+56*v/mx}px" data-t="${l}: ${nDeal(v)} проходили этот шаг по истории Битрикс24"><b>${v}</b><span>${l}</span></div>`).join('');
+  document.getElementById('pipe-leaks').innerHTML=seq.slice(0,-1).map(([l,v],i)=>{const leak=v-seq[i+1][1];return `<div class="leak" style="flex:1">${leak>0?'⇣ '+leak:''}</div>`;}).join('');
+  document.getElementById('pipe-note').innerHTML=`<span class="ttl">Что это говорит [ДАННЫЕ]</span>Числа - «сколько сделок реально проходили шаг». Они не обязаны убывать слева направо: ${F.mk} продаж оформлены ВООБЩЕ мимо шага «Отправили цену» - воронка в CRM не всегда отражает реальный путь. Это вопрос дисциплины стадий, и теперь он на виду. Дожим отдела после цены: ${P2.dept.sold} из ${P2.dept.kp} = ${P2.dept.cr}%.`;
+  const sc2=v=>4+92*(v/60);
+  document.getElementById('mpipe').innerHTML=`<tr><th>Менеджер</th><th>Дожим: цена → оплата</th><th style="width:40%">Коридор погрешности (черта - отдел ${P2.dept.cr}%)</th><th>Продано мимо шага цены</th></tr>`+
+    P2.mrows.map(r=>{
+      const grey=!(r.lo>P2.dept.hi||r.hi<P2.dept.lo);
+      return `<tr><td><span class="name-l" onclick="pipeCoach('${esc(r.m)}',${r.cr},${grey})">${esc(r.m)}</span></td>
+      <td><b>${r.sold} из ${r.kp}</b> = ${r.cr}%</td>
+      <td><div class="ci ${grey?'grey':''}" data-t="${esc(r.m)}: правда где-то между ${r.lo}% и ${r.hi}%.${grey?' Пересекается с отделом - разница может быть случайной, выводов не делаем.':' НЕ пересекается с отделом - различие настоящее.'}"><i style="left:${sc2(r.lo)}%;width:${Math.max(2,sc2(r.hi)-sc2(r.lo))}%"></i><s style="left:${sc2(P2.dept.cr)}%"></s></div></td>
+      <td>${r.mk?`<span class="pill r" data-t="${r.mk} продаж этого менеджера прошли мимо стадии «КП отправлено» - оплата есть, дисциплины стадий нет">${r.mk}</span>`:'<span class="pill n">0</span>'}</td></tr>`;
+    }).join('');
+}
+function pipeCoach(name,cr,grey){
+  const mv=(AI.mgrs[name]||{}).move;
+  document.getElementById('mcoach').innerHTML=`<div class="ann"><span class="ttl">Что делать · ${esc(name)}</span>${grey?'Дожим '+cr+'% - в пределах погрешности отдела: оргвыводов не делаем, работаем по конкретным сделкам из блока «Долг по ответам» выше.':'Дожим '+cr+'% значимо отличается от отдела - это уже разговор на планёрке.'}${mv?'\n\n'+esc(mv):''}\n\nРечевые модули для дожима - по решению ФЕНИКСА (готовятся из реальной практики отдела), появятся здесь после приёмки.</div>`;
+  try{document.getElementById('mcoach').scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+}
+
+function renderAll(){renderStik();renderDebt();renderPipe();renderPBar();renderKPIs();renderTeam();renderQueues();renderPulse();renderFunnelBig();renderFreeze();renderAI();
   document.getElementById('subline').textContent=`${M.scope||''} · период ${df(PERIOD.from)} - ${df(PERIOD.to)}`;
   document.getElementById('qpanel').innerHTML='';document.getElementById('ppanel').innerHTML='';document.getElementById('zpanel').innerHTML='';document.getElementById('mgr-day-ann').innerHTML='';}
 try{renderAll();}catch(e){document.body.insertAdjacentHTML('afterbegin','<div style="background:#ffe8ee;color:#e00045;padding:10px 20px;font-weight:700">Ошибка рендера: '+esc(e.message)+'</div>');throw e;}

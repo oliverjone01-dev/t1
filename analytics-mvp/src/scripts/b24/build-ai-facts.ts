@@ -22,7 +22,8 @@ const tokens = (s: string) => new Set(String(s || "").toLowerCase().split(/\s+/)
 const sameName = (a: string, b: string) => { const ta = tokens(a), tb = tokens(b); if (!ta.size || !tb.size) return false; for (const t of ta) if (!tb.has(t)) return false; return ta.size === tb.size; };
 const isTestDeal = (d: any) => (/(^|[^а-яё])тест/i.test(d.title || "") && (d.budget || 0) <= 10) || /систем|робот/i.test(d.mgr || "");
 const touched = (d: any) => { const s = new Set([d.stageCode]); for (const h of (d.hist || [])) s.add(h[0]); return s; };
-const funnel = (set: any[]) => { const f = { created: set.length, tz: 0, kp: 0, sold: 0 }; for (const d of set) { const t = touched(d); const sold = [...SOLD].some((s) => t.has(s)); if (sold) f.sold++; if (t.has("C49:PREPARATION") || sold) f.tz++; if (t.has("C49:PREPAYMENT_INVOIC") || sold) f.kp++; } return f; };
+// ФАЗА 0: флаги стадий честные, без "|| sold"; mk = продажи мимо стадии КП (дисциплина воронки)
+const funnel = (set: any[]) => { const f = { created: set.length, tz: 0, kp: 0, sold: 0, mk: 0 }; for (const d of set) { const t = touched(d); const sold = [...SOLD].some((s) => t.has(s)); const kp = t.has("C49:PREPAYMENT_INVOIC"); if (sold) f.sold++; if (t.has("C49:PREPARATION")) f.tz++; if (kp) f.kp++; if (sold && !kp) f.mk++; } return f; };
 const firstPaid = (d: any) => { for (const h of (d.hist || [])) if (SOLD.has(h[0])) return String(h[1]).slice(0, 10); return null; };
 
 const scMgrs = (sc.managers as any[]).map((m) => m.mgr);

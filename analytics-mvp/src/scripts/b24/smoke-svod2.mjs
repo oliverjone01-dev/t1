@@ -129,6 +129,37 @@ try{
   ck('R7: без истории - честная заглушка пульса',dt.includes('истории')&&dt.includes('нет данных'));
   ck('R2: воронка и заморозка отрисованы после пульса',ddom.window.document.querySelectorAll('#freeze .fr').length>0&&ddom.window.document.getElementById('funnel-big').textContent.length>10);
 }catch(e){ck('R2: деградационная сборка выполнилась',false,String(e).slice(0,120));}
+// --- CR-ФИЧИ (согласованы 01.09): независимые пересчёты
+{
+  // Фича 1: долг - сумма сегментов полосы = итогу; пересчёт непогашенных из deals невозможен без events,
+  // поэтому сверяем внутреннюю согласованность payload и вёрстки
+  const debt=DATA.debt||[];
+  const total=debt.reduce((s2,x)=>s2+x.b,0);
+  ck('фича1: итог долга в бейдже',t('debt-total').includes(fmtR(total)),fmtR(total));
+  ck('фича1: сегментов полосы = менеджеров с долгом',d.querySelectorAll('#dstrip .sseg').length===new Set(debt.map(x=>x.m)).size);
+  const combN=[...d.querySelectorAll('#dcomb .cn')].reduce((s2,el)=>s2+(+el.textContent||0),0);
+  ck('фича1: сумма столбиков гребёнки = позиций долга',combN===debt.length,combN+' vs '+debt.length);
+  dom.window.eval("debtList('b',5)");
+  ck('фича1: клик по столбику - список с CRM-ссылками',d.querySelectorAll('#dpanel a.dl').length>0||t('dpanel').includes('Долга нет'));
+  const rl=(DATA.replyLine||[]).filter(r=>r.n>=3);
+  ck('фича1: линия ответа клиента отрисована',d.querySelectorAll('#dreply circle').length===rl.length,rl.length);
+  // Фича 2: труба - пересчёт из cohort
+  const C=DATA.cohort;
+  const f={created:C.length,tz:C.filter(c=>c.tz).length,kp:C.filter(c=>c.kp).length,dec:C.filter(c=>c.dec).length,sold:C.filter(c=>c.sold).length,mk:C.filter(c=>c.mk).length};
+  for(const k of ['created','tz','kp','dec','sold','mk'])
+    ck('фича2: pipe.F.'+k+' = пересчёту когорты',DATA.pipe.F[k]===f[k],DATA.pipe.F[k]+' vs '+f[k]);
+  ck('фича2: честные флаги - продажи мимо КП существуют и видны',f.mk>0?t('pipe-note').includes(String(f.mk)):true);
+  ck('фича2: НЕТ бага «|| sold» (kp < sold+kp_честный максимум)',f.kp<f.created&&C.some(c=>c.sold&&!c.kp));
+  const grey=[...d.querySelectorAll('#mpipe .ci.grey')].length;
+  ck('фича2: серые строки погрешности присутствуют',grey>0,grey);
+  dom.window.eval("pipeCoach('Лакомова Татьяна',17.4,true)");
+  ck('фича2: клик по имени - слой действия',t('mcoach').includes('погрешности')||t('mcoach').includes('планёрке'));
+  // Фича 3: вход - честный режим
+  const unseen=DATA.stik.leads-DATA.stik.seen;
+  ck('фича3: все три числа входа на месте',t('stik').includes(String(DATA.stik.leads))&&t('stik').includes(String(DATA.stik.seen))&&t('stik').includes(String(unseen)));
+  ck('фича3: невидимые заявки названы честно («не выгружает»)',t('stik-note').includes('не выгружает'));
+  ck('фича3: выдуманных счётчиков разбора нет (норматив/конвертация не показаны цифрами)',!/разобрано\s+\d|конвертировано\s+\d/i.test(t('stik')));
+}
 // --- JS-ошибки последними
 ck('нет JS-ошибок за весь прогон',errors.length===0);if(errors.length)console.log(errors.slice(0,5));
 console.log(fail?`SMOKE FAIL: ${fail}`:'SMOKE PASS: все проверки зелёные');

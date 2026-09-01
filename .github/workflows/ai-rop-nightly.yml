@@ -2,7 +2,7 @@
 # 05:00 UTC = 08:00 МСК - к 8:30 тексты уже на странице (правка Ивана 01.09).
 # Требует секрет ANTHROPIC_API_KEY (Settings -> Secrets -> Actions). Без него шаг
 # честно пропускается с warning, прежние тексты остаются (дата генерации видна на странице).
-# Модель: vars.AI_ROP_MODEL, по умолчанию claude-haiku-4-5 (дешёвая); поднять до
+# Модель: vars.AI_ROP_MODEL, по умолчанию claude-sonnet-5 (решение Ивана 01.09); сменить -
 # claude-sonnet-4-6 - одна переменная репозитория, без правок кода.
 name: AI-ROP nightly
 on:
@@ -28,7 +28,7 @@ jobs:
       - name: Регенерация срезов (факты -> генерация -> числовой валидатор)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          MODEL: ${{ vars.AI_ROP_MODEL || 'claude-haiku-4-5' }}
+          MODEL: ${{ vars.AI_ROP_MODEL || 'claude-sonnet-5' }}
         run: |
           set -euo pipefail
           if [ -z "${ANTHROPIC_API_KEY}" ]; then

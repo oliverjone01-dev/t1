@@ -210,9 +210,10 @@ td.num{font-family:var(--mono);font-size:15px;white-space:nowrap;font-variant-nu
 }
 .f textarea{height:auto;min-height:62px;padding-top:8px;resize:vertical;line-height:1.45;}
 .f input::placeholder,.f textarea::placeholder{color:rgba(110,112,116,.6);}
-.consent{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--muted);line-height:1.4;cursor:pointer;}
+.consent{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;font-size:14.5px;color:var(--muted);line-height:1.4;}
 .consent input{width:15px;height:15px;flex:0 0 15px;margin:3px 0 0;accent-color:var(--ink);}
-.consent a{color:var(--muted);}
+.consent label{cursor:pointer;}
+.consent-link a{color:var(--muted);}
 .coupon .fine{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:2px;}
 .coupon-note{font-family:var(--hand);font-weight:500;font-size:20px;color:var(--blue);line-height:1.25;transform:rotate(1.2deg);margin:18px 0 0;}
 
@@ -285,7 +286,7 @@ td.num{font-family:var(--mono);font-size:15px;white-space:nowrap;font-variant-nu
 
 /* ── мобильная полоса ── */
 .mbar{display:none;}
-@media(max-width:760px){
+@media(max-width:1000px){
   .mbar{
     display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;
     background:var(--ink);color:#FAFAF8;align-items:center;justify-content:space-between;
@@ -302,7 +303,7 @@ td.num{font-family:var(--mono);font-size:15px;white-space:nowrap;font-variant-nu
   color:var(--ink);font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;
   padding:11px 15px;border-radius:2px;cursor:pointer;box-shadow:0 6px 18px rgba(22,24,26,.16);
 }
-@media(max-width:760px){.anntoggle{bottom:70px;}}
+@media(max-width:1000px){.anntoggle{bottom:70px;}}
 .anntoggle[aria-pressed="true"]{background:var(--ink);color:#FAFAF8;}
 [data-ann]{position:relative;}
 body.ann [data-ann]{outline:1px dashed rgba(39,71,154,.55);outline-offset:5px;}
@@ -337,10 +338,8 @@ body.ann [data-ann]::before{
     <a href="#" class="here">Нет заявок</a>
     <a href="#">Заявки мусорные</a>
     <a href="#">Дорого</a>
-    <a href="#">Вернуть клиентов</a>
-    <a href="#">Больше продаж</a>
-    <a href="#">Проверить подрядчика</a>
-    <a href="#">Отчётность</a>
+    <a href="#">Все выпуски</a>
+    <a href="#">Услуги</a>
     <a href="#">Об авторе</a>
   </nav>
 </header>
@@ -492,7 +491,7 @@ body.ann [data-ann]::before{
         <div><label for="c-bud">Бюджет в месяц</label><input id="c-bud" name="lead_budget" inputmode="numeric" placeholder="120 000 ₽"></div>
       </div>
       <div><label for="c-task">Что не сходится</label><textarea id="c-task" name="lead_task" placeholder="Заявки есть, но дорогие и почти все нецелевые"></textarea></div>
-      <label class="consent"><input type="checkbox" id="c-pd" name="lead_consent" required value="1"><span>Согласен на обработку персональных данных и ознакомился с <a href="#">политикой</a></span></label>
+      <div class="consent"><input type="checkbox" id="c-pd" name="lead_consent" required value="1"><label for="c-pd">Согласен на обработку персональных данных</label><span class="consent-link"><a href="#">Политика</a></span></div>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
         <button class="btn" type="submit" data-goal="lead_audit">Отправить купон</button>
         <div class="fine">Отвечаю в течение рабочего дня.<br>Кабинет остаётся у вас, я работаю по доступу.</div>
@@ -526,8 +525,8 @@ body.ann [data-ann]::before{
         <div class="rel-meta">выпуск №6 · 8 мин</div>
       </div>
       <div class="rel-item">
-        <div class="rel-rub">Отчётность</div>
-        <a href="#">Директ показывает одно, Метрика другое, CRM третье. Как свести</a>
+        <div class="rel-rub">Дорогие клики и клиенты</div>
+        <a href="#">Цена обращения выросла вдвое за месяц. Что смотреть первым</a>
         <div class="rel-meta">выпуск №4 · 11 мин</div>
       </div>
     </div>
@@ -555,16 +554,12 @@ body.ann [data-ann]::before{
 
   <div class="side-block" data-ann="Виджет 2 · рубрики = задачи бизнеса">
     <div class="side-h">Рубрики</div>
-    <!-- ЗАГЛУШКА: счётчики. Скрывать рубрику, пока в ней меньше трёх статей -->
+    <!-- ЗАГЛУШКА: счётчики. Показано стартовое состояние: три рубрики, 12 статей.
+         Рубрика открывается в сайдбаре, когда в ней набралось три статьи -->
     <ul class="rubs">
-      <li><a href="#" class="on">Нет заявок <span class="n">6</span></a></li>
+      <li><a href="#" class="on">Нет заявок <span class="n">5</span></a></li>
       <li><a href="#">Заявки мусорные <span class="n">4</span></a></li>
-      <li><a href="#">Дорогие клики и клиенты <span class="n">5</span></a></li>
-      <li><a href="#">Вернуть ушедших клиентов <span class="n">3</span></a></li>
-      <li><a href="#">Больше продаж с того же бюджета <span class="n">3</span></a></li>
-      <li><a href="#">Проверить подрядчика <span class="n">3</span></a></li>
-      <li><a href="#">Отчётность и учёт денег <span class="n">3</span></a></li>
-      <li><a href="#">Запуск с нуля <span class="n">3</span></a></li>
+      <li><a href="#">Дорогие клики и клиенты <span class="n">3</span></a></li>
     </ul>
   </div>
 
@@ -610,7 +605,7 @@ body.ann [data-ann]::before{
 
 <div class="mbar" data-ann="Мобильная полоса: только ТГ">
   <div class="t">Разбор чужого кабинета<br>каждый вторник</div>
-  <a href="#" data-goal="tg_sub_mobile">Подписаться</a>
+  <a href="#" data-goal="tg_sub_mobile">Подписаться на разборы</a>
 </div>
 
 <button class="anntoggle" type="button" aria-pressed="false" id="annBtn">Разметка Astra</button>

@@ -116,4 +116,3 @@ export function plural(n: number, one: string, few: string, many: string) {
 }
 export const zayavki = (n: number) => `${n} ${plural(n, "заявка", "заявки", "заявок")}`;
 export const stranicy = (n: number) => `${n} ${plural(n, "страница", "страницы", "страниц")}`;
-export const zaprosy = (n: number) => `${n} ${plural(n, "запрос", "запроса", "запросов")}`;

@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html,body{margin:0;padding:0}*{box-sizing:border-box}img{max-width:100%}</style>
+<title>Деньги в Директе</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,700;0,800;1,500;1,700&family=Alegreya+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16181A;
+  --ground:#DCDCD5;
+  --paper:#E6E6E1;
+  --card:#FAFAF8;
+  --cut:#EAEAE5;
+  --muted:#6E7074;
+  --rule:rgba(22,24,26,.2);
+  --blue:#27479A;
+  --orange:#C2620C;
+  --green:#146B47;
+  --serif:'Alegreya', Georgia, 'Times New Roman', serif;
+  --sans:'Alegreya Sans', system-ui, -apple-system, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --hand:'Caveat', 'Segoe Script', cursive;
+  color-scheme: light;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:18px;
+  line-height:1.62;
+  font-variant-numeric:lining-nums proportional-nums;
+  -webkit-font-smoothing:antialiased;
+  text-wrap:pretty;
+}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:rgba(22,24,26,.45);text-underline-offset:3px;}
+a:hover{color:var(--blue);}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+button{font-family:var(--sans);}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+
+/* ── каркас полосы ── */
+.ground{padding:0 12px 0;}
+.paper{
+  position:relative;max-width:1180px;margin:0 auto;background:var(--paper);
+  padding:0 clamp(16px,3vw,40px);
+  box-shadow:0 1px 2px rgba(22,24,26,.06),0 18px 50px rgba(22,24,26,.07);
+}
+.grain{
+  position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.03;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+}
+.paper > *{position:relative;z-index:1;}
+
+/* ── линейки-ранги ── */
+.rule-1{height:3px;background:var(--ink);}
+.rule-2{height:1px;background:var(--ink);margin-top:3px;}
+.rule-thin{height:1px;background:var(--rule);}
+.rule-mid{height:2px;background:var(--ink);}
+
+/* ── мастхед сайта ── */
+.masthead{padding-top:26px;}
+.mast-name{
+  font-family:var(--serif);font-weight:800;text-transform:uppercase;
+  font-size:clamp(30px,5.4vw,58px);line-height:1.03;letter-spacing:.012em;margin:0;
+}
+.mast-sub{font-size:16px;color:var(--muted);margin-top:5px;}
+.mast-meta{
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  padding:9px 0;border-bottom:1px solid var(--rule);
+}
+.mast-meta .who{font-weight:500;font-size:15px;}
+.mast-meta .when{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right;line-height:1.7;}
+.topnav{
+  display:flex;gap:0 22px;flex-wrap:wrap;padding:9px 0;
+  font-family:var(--mono);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;
+  border-bottom:1px solid var(--rule);
+}
+.topnav a{text-decoration:none;}
+.topnav a:hover{text-decoration:underline;}
+.topnav .here{color:var(--orange);font-weight:500;}
+
+/* ── сетка полоса + сайдбар ── */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 312px;gap:0 44px;padding-top:30px;}
+.col-side{border-left:1px solid var(--rule);padding-left:26px;display:flex;flex-direction:column;}
+@media (max-width:1000px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0;}
+  .col-side{border-left:0;padding-left:0;padding-top:44px;margin-top:44px;border-top:2px solid var(--ink);}
+}
+
+/* ── шапка статьи ── */
+.kicker{
+  font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;gap:14px;flex-wrap:wrap;align-items:center;color:var(--muted);
+}
+.kicker .rub{color:var(--orange);font-weight:500;}
+h1{
+  font-family:var(--serif);font-weight:800;letter-spacing:-.014em;
+  font-size:clamp(32px,4.6vw,56px);line-height:1.05;margin:14px 0 0;text-wrap:balance;
+}
+.lede{font-size:20.5px;margin:20px 0 0;max-width:34em;}
+.byline{display:flex;gap:12px;align-items:center;margin-top:22px;flex-wrap:wrap;}
+.byline .ava{
+  width:44px;height:44px;flex:0 0 44px;border:1px solid var(--ink);background:var(--cut);
+  font-family:var(--serif);font-weight:800;font-size:19px;display:grid;place-items:center;
+}
+.byline .nm{font-weight:700;font-size:16px;line-height:1.25;}
+.byline .rl{font-family:var(--mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+
+/* ── тело статьи ── */
+.body{max-width:35em;}
+.body p{margin:0 0 18px;}
+.body h2{
+  font-family:var(--serif);font-weight:800;font-size:clamp(24px,3vw,33px);line-height:1.16;
+  margin:40px 0 6px;text-wrap:balance;
+}
+.body h2 + .rule-thin{margin-bottom:18px;}
+.body h3{font-family:var(--serif);font-weight:700;font-size:22px;line-height:1.25;margin:28px 0 8px;}
+.body ul,.body ol{margin:0 0 18px;padding-left:22px;}
+.body li{margin-bottom:8px;}
+.body strong{font-weight:700;}
+
+/* оглавление */
+.toc{background:var(--cut);border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);padding:18px 20px;margin:28px 0 34px;}
+.toc-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.toc ol{margin:0;padding-left:20px;font-family:var(--serif);font-size:18px;}
+.toc li{margin-bottom:5px;}
+.toc a{text-decoration-color:rgba(22,24,26,.25);}
+
+/* маргиналия */
+.note{
+  font-family:var(--hand);font-weight:500;font-size:20px;line-height:1.25;color:var(--blue);
+  border-left:2px solid var(--blue);padding-left:14px;max-width:26em;margin:26px 0;transform:rotate(-.6deg);
+}
+.note.warm{color:var(--orange);border-left-color:var(--orange);font-weight:700;font-size:21px;transform:rotate(.8deg);}
+
+/* сводка-таблица */
+.tbl{margin:30px 0;border-top:2px solid var(--ink);}
+.tbl-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:9px 0;}
+table{width:100%;border-collapse:collapse;font-size:16.5px;}
+th{text-align:left;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
+td{padding:10px 10px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top;}
+td.num{font-family:var(--mono);font-size:15px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.flag{display:inline-block;width:7px;height:7px;margin-right:7px;vertical-align:middle;}
+.f-bad{background:var(--orange);}
+.f-ok{background:var(--green);}
+.tbl-wrap{overflow-x:auto;}
+
+/* самопроверка */
+.check{background:var(--card);border:1px solid var(--ink);padding:22px 24px;margin:34px 0;box-shadow:0 8px 22px rgba(22,24,26,.05);}
+.check-h{font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;}
+.check ul{list-style:none;margin:0;padding:0;}
+.check li{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--rule);font-size:16.5px;}
+.check li:last-child{border-bottom:0;}
+.check .box{width:15px;height:15px;flex:0 0 15px;border:1px solid var(--ink);margin-top:4px;}
+</style>
+<style>
+/* ═══ КОНВЕРТОР 1: Telegram (врезка в теле) ═══ */
+.tg-inline{
+  position:relative;background:var(--cut);border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);
+  padding:24px 26px 26px;margin:40px 0;transform:rotate(-.25deg);
+  box-shadow:0 6px 18px rgba(22,24,26,.07);
+}
+.tg-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+.tg-inline h4{font-family:var(--serif);font-weight:800;font-size:26px;line-height:1.16;margin:0 0 8px;}
+.tg-inline p{margin:0 0 16px;font-size:16.5px;color:var(--muted);max-width:32em;}
+.btn{
+  display:inline-block;border:0;background:var(--ink);color:#FAFAF8;font-weight:700;font-size:17px;
+  height:52px;line-height:52px;padding:0 24px;border-radius:2px;cursor:pointer;text-decoration:none;white-space:nowrap;
+}
+.btn:hover{background:var(--blue);color:#FAFAF8;}
+.btn-ghost{
+  display:inline-block;border:1px solid var(--ink);background:transparent;color:var(--ink);font-weight:700;font-size:16px;
+  height:46px;line-height:44px;padding:0 20px;border-radius:2px;cursor:pointer;text-decoration:none;white-space:nowrap;
+}
+.btn-ghost:hover{background:var(--card);color:var(--ink);}
+.tg-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
+
+/* ═══ КОНВЕРТОР 2: купон на разбор (один, в конце) ═══ */
+.coupon{
+  position:relative;background:var(--card);border:1px dashed var(--ink);border-left:0;
+  padding:30px 30px 32px 34px;margin:52px 0 0;box-shadow:0 10px 26px rgba(22,24,26,.06);
+}
+.coupon::before{
+  content:"";position:absolute;left:-1px;top:0;width:11px;height:100%;
+  background:
+    radial-gradient(circle at 0 6px, var(--paper) 5px, transparent 5.5px) 0 0/11px 22px repeat-y;
+}
+.coupon::after{
+  content:"";position:absolute;right:0;bottom:0;width:0;height:0;
+  border-left:22px solid transparent;border-bottom:22px solid #DEDEDA;
+}
+.coupon-h{font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px;}
+.coupon h3{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3vw,32px);line-height:1.14;margin:0 0 10px;}
+.coupon .intro{margin:0 0 22px;color:var(--muted);font-size:17px;max-width:34em;}
+.form{display:grid;gap:16px;max-width:34em;}
+.f-row{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+@media(max-width:560px){.f-row{grid-template-columns:1fr;}}
+.f label{display:block;font-size:14.5px;color:var(--muted);margin-bottom:3px;}
+.f input,.f textarea{
+  width:100%;border:0;border-bottom:1px solid var(--ink);background:transparent;
+  padding:0 3px;height:44px;font-family:var(--sans);font-size:17px;color:var(--ink);
+}
+.f textarea{height:auto;min-height:62px;padding-top:8px;resize:vertical;line-height:1.45;}
+.f input::placeholder,.f textarea::placeholder{color:rgba(110,112,116,.6);}
+.coupon .fine{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:2px;}
+.coupon-note{font-family:var(--hand);font-weight:500;font-size:20px;color:var(--blue);line-height:1.25;transform:rotate(1.2deg);margin:18px 0 0;}
+
+/* FAQ */
+.faq{margin-top:48px;}
+.faq h2{font-family:var(--serif);font-weight:800;font-size:28px;margin:0 0 4px;}
+.faq details{border-bottom:1px solid var(--rule);padding:14px 0;}
+.faq summary{cursor:pointer;font-family:var(--serif);font-weight:700;font-size:20px;list-style:none;display:flex;justify-content:space-between;gap:16px;}
+.faq summary::-webkit-details-marker{display:none;}
+.faq summary::after{content:"+";font-family:var(--mono);color:var(--muted);font-size:19px;}
+.faq details[open] summary::after{content:"\2212";}
+.faq details p{margin:10px 0 0;font-size:16.5px;color:var(--muted);max-width:34em;}
+
+/* связанные */
+.related{margin-top:48px;}
+.related-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:9px 0;}
+.rel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:26px;}
+.rel-item .rel-rub{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--orange);margin-bottom:5px;}
+.rel-item a{font-family:var(--serif);font-weight:700;font-size:19px;line-height:1.24;text-decoration:none;display:block;}
+.rel-item a:hover{text-decoration:underline;}
+.rel-item .rel-meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:6px;}
+
+/* ═══ САЙДБАР ═══ */
+.side-block{margin-bottom:36px;}
+.side-h{
+  font-family:var(--sans);font-weight:700;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  padding-bottom:8px;border-bottom:2px solid var(--ink);margin-bottom:14px;
+}
+.side-tail{margin-top:auto;position:sticky;bottom:20px;padding-top:22px;border-top:2px solid var(--ink);}
+.side-tail .st-h{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.side-tail p{font-family:var(--serif);font-weight:700;font-size:19px;line-height:1.2;margin:0 0 12px;}
+.side-tail .btn-ghost{width:100%;text-align:center;}
+.tg-card{background:var(--card);border:1px solid var(--ink);padding:20px;box-shadow:0 8px 22px rgba(22,24,26,.06);}
+.tg-card .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.tg-card h4{font-family:var(--serif);font-weight:800;font-size:23px;line-height:1.14;margin:7px 0 9px;}
+.tg-card p{margin:0 0 13px;font-size:15.5px;color:var(--muted);}
+.tg-card ul{list-style:none;margin:0 0 15px;padding:0;font-size:15px;}
+.tg-card ul li{padding:6px 0;border-bottom:1px solid var(--rule);display:flex;gap:9px;}
+.tg-card ul li:last-child{border-bottom:0;}
+.tg-card ul li span{color:var(--orange);font-family:var(--mono);font-size:13px;line-height:1.55;}
+.tg-card .btn{width:100%;text-align:center;height:48px;line-height:48px;font-size:16px;}
+.tg-card .cnt{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px;text-align:center;}
+
+.rubs{list-style:none;margin:0;padding:0;}
+.rubs li{border-bottom:1px solid var(--rule);}
+.rubs a{display:flex;justify-content:space-between;gap:12px;padding:9px 0;text-decoration:none;font-size:16.5px;}
+.rubs a:hover{color:var(--blue);}
+.rubs a.on{color:var(--orange);font-weight:700;}
+.rubs .n{font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+
+.latest{list-style:none;margin:0;padding:0;counter-reset:iss;}
+.latest li{padding:12px 0;border-bottom:1px solid var(--rule);}
+.latest li:last-child{border-bottom:0;}
+.latest .iss{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.05em;}
+.latest a{font-family:var(--serif);font-weight:700;font-size:17.5px;line-height:1.22;text-decoration:none;display:block;margin-top:3px;}
+.latest a:hover{text-decoration:underline;}
+
+.about{display:flex;gap:14px;align-items:flex-start;}
+.about .ph{width:66px;height:82px;flex:0 0 66px;border:1px solid var(--ink);background:var(--cut);position:relative;overflow:hidden;}
+.about .ph::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,#16181A 1.1px,transparent 1.2px);background-size:3px 3px;opacity:.16;}
+.about .ph i{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--serif);font-style:normal;font-weight:800;font-size:22px;color:var(--muted);}
+.about p{margin:0;font-size:15px;color:var(--muted);line-height:1.5;}
+.about .nm{font-family:var(--serif);font-weight:800;font-size:18px;color:var(--ink);margin-bottom:4px;line-height:1.2;}
+
+/* ── подвал ── */
+.foot{margin-top:64px;border-top:3px solid var(--ink);padding:16px 0 44px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:12px;color:var(--muted);}
+.foot a{color:var(--muted);}
+
+/* ── мобильная полоса ── */
+.mbar{display:none;}
+@media(max-width:760px){
+  .mbar{
+    display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--ink);color:#FAFAF8;align-items:center;justify-content:space-between;
+    gap:12px;padding:10px 14px;box-shadow:0 -6px 20px rgba(22,24,26,.2);
+  }
+  .mbar .t{font-size:14.5px;line-height:1.2;}
+  .mbar a{background:#FAFAF8;color:var(--ink);text-decoration:none;font-weight:700;font-size:14.5px;padding:9px 15px;border-radius:2px;white-space:nowrap;}
+  .ground{padding-bottom:64px;}
+}
+
+/* ── слой разметки Astra ── */
+.anntoggle{
+  position:fixed;right:16px;bottom:16px;z-index:60;border:1px solid var(--ink);background:var(--card);
+  color:var(--ink);font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+  padding:11px 15px;border-radius:2px;cursor:pointer;box-shadow:0 6px 18px rgba(22,24,26,.16);
+}
+@media(max-width:760px){.anntoggle{bottom:70px;}}
+.anntoggle[aria-pressed="true"]{background:var(--ink);color:#FAFAF8;}
+[data-ann]{position:relative;}
+body.ann [data-ann]{outline:1px dashed rgba(39,71,154,.55);outline-offset:5px;}
+body.ann [data-ann]::before{
+  content:attr(data-ann);position:absolute;top:-9px;left:-5px;z-index:30;
+  font-family:var(--mono);font-size:10px;letter-spacing:.03em;text-transform:uppercase;
+  background:var(--blue);color:#FAFAF8;padding:2px 7px;white-space:nowrap;pointer-events:none;
+  max-width:calc(100% + 10px);overflow:hidden;text-overflow:ellipsis;
+}
+</style>
+</head>
+<body>
+<div class="ground">
+<div class="paper">
+<div class="grain" aria-hidden="true"></div>
+
+<header class="masthead" data-ann="Astra header → hook astra_header, свой мастхед">
+  <div class="mast-name">Деньги в Директе</div>
+  <div class="mast-sub">Разбор проблем и задач в Яндекс Директе · услуги, B2B и лидген</div>
+  <div class="rule-1"></div>
+  <div class="rule-2"></div>
+  <div class="mast-meta">
+    <div class="who">Издаёт Дмитрий Янчоглов, Москва</div>
+    <div class="when">
+      <div>вторник, 1 сентября 2026 · выпуск №47</div>
+      <div>в работе 4 проекта · свободно 2</div>
+    </div>
+  </div>
+  <nav class="topnav" data-ann="Меню WP: рубрики = задачи бизнеса">
+    <a href="#" class="here">Нет заявок</a>
+    <a href="#">Заявки мусорные</a>
+    <a href="#">Дорого</a>
+    <a href="#">Вернуть клиентов</a>
+    <a href="#">Больше продаж</a>
+    <a href="#">Проверить подрядчика</a>
+    <a href="#">Отчётность</a>
+    <a href="#">Об авторе</a>
+  </nav>
+</header>
+
+<div class="layout">
+<main class="col-main">
+<article>
+
+  <div class="kicker" data-ann="Рубрика + дата + время чтения">
+    <span class="rub">Нет заявок</span>
+    <span>·</span>
+    <span>выпуск №47</span>
+    <span>·</span>
+    <span>1 сентября 2026</span>
+    <span>·</span>
+    <span>читать 9 минут</span>
+  </div>
+
+  <h1 data-ann="H1 = поисковый запрос">Бюджет тратится, заявок нет. Где именно теряются деньги</h1>
+
+  <div class="rule-1" style="margin:22px 0 3px;"></div>
+  <div class="rule-2" style="margin-bottom:20px;"></div>
+
+  <p class="lede" data-ann="Лид = ответ за 2 предложения (для AI-выдачи)">Заявок нет по одной из пяти причин, и четыре из них видно за вечер без доступа к кабинету. Разбираю по порядку: от формы на сайте до стратегии, которой нечему обучаться.</p>
+
+  <div class="byline">
+    <div class="ava">ДЯ</div>
+    <div>
+      <div class="nm">Дмитрий Янчоглов</div>
+      <div class="rl">8 лет в контексте · 4 года внутренним маркетологом</div>
+    </div>
+  </div>
+
+  <div class="toc" data-ann="Оглавление: якоря для сниппетов">
+    <div class="toc-h">В этом выпуске</div>
+    <ol>
+      <li><a href="#p1">Заявки приходят, но вы их не видите</a></li>
+      <li><a href="#p2">Показы идут не по тем запросам</a></li>
+      <li><a href="#p3">Стратегии нечему обучаться</a></li>
+      <li><a href="#p4">Страница получает трафик и теряет его</a></li>
+      <li><a href="#p5">Что делать по порядку</a></li>
+    </ol>
+  </div>
+
+  <div class="body">
+
+    <p>Каждый второй разговор начинается одинаково: «Бюджет откручивается, а телефон молчит». Дальше собственник обычно называет виновного: подрядчик, алгоритм, кризис, конкуренты демпингуют.</p>
+    <p>За восемь лет я видел этот разговор десятки раз. В большинстве случаев виноват не алгоритм. Виновата цепочка, где каждое звено по отдельности выглядит рабочим, а вместе они не доводят человека до менеджера.</p>
+
+    <div class="note">«ну сейчас скажет, что нужен аудит за 50 тысяч»</div>
+
+    <p>Ниже пять мест, где чаще всего рвётся. Порядок не случайный: он идёт от самого дешёвого в проверке к самому дорогому. Начинать всегда стоит сверху.</p>
+
+    <h2 id="p1">1. Заявки приходят, но вы их не видите</h2>
+    <div class="rule-thin"></div>
+    <p>Самая обидная причина и самая частая. Реклама работает, человек оставил номер, а заявка осела в спаме, в чужой почте или в форме, которая после обновления плагина перестала отправлять письма.</p>
+    <p>Проверяется за 20 минут. Отправьте заявку с телефона через мобильный интернет, не из офисной сети. Позвоните на рекламный номер и посмотрите, попал ли звонок в отчёт. Откройте почту, куда падают формы, и проверьте папку «Спам» за последние две недели.</p>
+
+    <div class="tbl" data-ann="Таблица данных: mono + флаги">
+      <div class="tbl-h">Где теряются обращения чаще всего</div>
+      <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Место разрыва</th><th>Как проверить</th><th>Время</th></tr></thead>
+        <tbody>
+          <tr><td><span class="flag f-bad"></span>Форма не отправляет письмо</td><td>Тестовая заявка с телефона</td><td class="num">10 мин</td></tr>
+          <tr><td><span class="flag f-bad"></span>Письма уходят в спам</td><td>Папка «Спам» за 14 дней</td><td class="num">5 мин</td></tr>
+          <tr><td><span class="flag f-bad"></span>Звонки не считаются</td><td>Звонок на номер из объявления</td><td class="num">10 мин</td></tr>
+          <tr><td><span class="flag f-ok"></span>Цели в Метрике настроены</td><td>Отчёт «Конверсии» за месяц</td><td class="num">15 мин</td></tr>
+          <tr><td><span class="flag f-ok"></span>Заявки доходят до CRM</td><td>Сверка форма против сделок</td><td class="num">30 мин</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <p>Если хотя бы одна строка красная, дальше идти бессмысленно. Вы будете чинить рекламу, которая работает.</p>
+
+    <h2 id="p2">2. Показы идут не по тем запросам</h2>
+    <div class="rule-thin"></div>
+    <p>Ключевые слова в кабинете и реальные запросы людей это два разных списка. Смотреть надо на второй.</p>
+    <p>Откройте отчёт по поисковым запросам за последние 30 дней и отсортируйте по расходу. В половине кабинетов, которые я разбираю, в первой двадцатке по тратам стоят запросы со словами «своими руками», «бесплатно», «вакансия», «отзывы сотрудников» и названия конкурентов, по которым человек ищет их сайт, а не вас.</p>
+    <p>Отдельная история это автотаргетинг. Он включён по умолчанию и в кампаниях без присмотра съедает от трети бюджета, приводя запросы, которые к вашей услуге отношения не имеют.</p>
+
+    <div class="note warm">не «мало ключей». Слишком много не тех</div>
+
+    <h2 id="p3">3. Стратегии нечему обучаться</h2>
+    <div class="rule-thin"></div>
+    <p>Автостратегия с оплатой за конверсии выглядит безопасной: платите только за заявки. На деле у неё есть порог. Если целевое действие происходит реже десяти раз в неделю, алгоритму не на чем учиться, и он либо стоит, либо откручивает бюджет наугад.</p>
+    <p>Отсюда типичная картина: кампанию запустили, неделю почти нет показов, потом резкий расход и ни одной заявки.</p>
+    <p>Что помогает: собрать конверсии в одну цель вместо пяти, добавить микроцель ближе к верху воронки на время обучения, не менять настройки каждые три дня. Каждое изменение сбрасывает накопленную статистику.</p>
+
+    <h2 id="p4">4. Страница получает трафик и теряет его</h2>
+    <div class="rule-thin"></div>
+    <p>Объявление обещает «монтаж за 3 дня», человек попадает на общую страницу услуг, где про сроки ни слова. Он не ищет, он закрывает вкладку.</p>
+    <p>Три вещи, которые проверяю первыми: совпадает ли заголовок страницы с текстом объявления, видно ли цену или хотя бы вилку, есть ли способ связаться кроме формы из шести полей.</p>
+    <p>И скорость ответа. По моим наблюдениям на разборах, если менеджер перезванивает через два часа, до разговора доходит заметно меньше половины оставивших заявку. Реклама тут ни при чём, а деньги списаны.</p>
+
+    <div class="tg-inline" data-ann="КОНВЕРТОР 1 · единственная врезка в теле">
+      <div class="tg-eyebrow">Объявление · Telegram-канал</div>
+      <h4>Разбираю чужие кабинеты по вторникам</h4>
+      <p>Один разбор в неделю: что было настроено, что откручивало бюджет впустую, что поменяли и что получилось. Без рекламы курсов и без «10 секретов Директа».</p>
+      <p style="margin-bottom:14px;">В закрепе лежат оба файла, по которым я работаю сам: список из 90 проверок кабинета и таблица «окупится или нет».</p>
+      <a class="btn" href="#" data-goal="tg_sub_inline">Подписаться и забрать файлы</a>
+      <div class="tg-sub">1 240 подписчиков · 4 письма в месяц · отписаться в один клик</div>
+    </div>
+
+    <h2 id="p5">5. Что делать по порядку</h2>
+    <div class="rule-thin"></div>
+    <p>Порядок важнее скорости. Каждый следующий шаг имеет смысл только если предыдущий закрыт.</p>
+    <ol>
+      <li><strong>Проверьте приём заявок.</strong> Тестовая заявка, тестовый звонок, папка «Спам». Один вечер.</li>
+      <li><strong>Выгрузите поисковые запросы за 30 дней.</strong> Отсортируйте по расходу, минусуйте всё, по чему не продаёте.</li>
+      <li><strong>Отключите автотаргетинг</strong> в кампаниях, где он тратит больше 20 процентов бюджета без конверсий.</li>
+      <li><strong>Сведите цели.</strong> Одна главная цель вместо пяти, если конверсий меньше десяти в неделю.</li>
+      <li><strong>Сверьте объявление и страницу.</strong> Обещание в заголовке должно повторяться на первом экране.</li>
+      <li><strong>Замерьте скорость ответа менеджера.</strong> Не «сколько по регламенту», а сколько по факту за прошлую неделю.</li>
+    </ol>
+
+    <div class="check" data-ann="Самопроверка: микро-вовлечение, не форма">
+      <div class="check-h">Проверьте у себя за вечер</div>
+      <ul>
+        <li><span class="box"></span><span>Тестовая заявка с мобильного интернета дошла до почты</span></li>
+        <li><span class="box"></span><span>Звонок с рекламного номера попал в отчёт</span></li>
+        <li><span class="box"></span><span>В топ-20 запросов по расходу нет слов «бесплатно», «своими руками», «вакансии»</span></li>
+        <li><span class="box"></span><span>Автотаргетинг не съедает больше пятой части бюджета</span></li>
+        <li><span class="box"></span><span>Целевых действий больше десяти в неделю</span></li>
+        <li><span class="box"></span><span>Заголовок посадочной повторяет обещание из объявления</span></li>
+      </ul>
+    </div>
+
+    <p>Если после этих шести пунктов заявок всё ещё нет, проблема не в настройках, а в экономике: либо цена обращения выше того, что вы можете за него заплатить, либо до сделки доходит слишком малая доля обратившихся. Это считается на бумаге за час, до любых правок в кабинете.</p>
+
+    <div class="note">«ладно, звучит как человек, а не как продажник»</div>
+
+  </div><!-- /.body -->
+
+  <!-- ═══ КОНВЕРТОР 2 ═══ -->
+  <section class="coupon" data-ann="КОНВЕРТОР 2 · единственная форма на странице">
+    <div class="coupon-h">Купон на разбор</div>
+    <h3>Посмотрю ваш кабинет и назову оценку от 0 до 100</h3>
+    <p class="intro">Бесплатно, один раз, без созвона на полтора часа. Пришлю документ: что настроено, что тратит впустую, что чинить первым. Если по цифрам реклама не окупается, скажу это до того, как вы заплатите.</p>
+    <form class="form f" onsubmit="return false;">
+      <div class="f-row">
+        <div><label for="c-name">Имя</label><input id="c-name" placeholder="Как к вам обращаться"></div>
+        <div><label for="c-tg">Telegram или почта</label><input id="c-tg" placeholder="@nickname"></div>
+      </div>
+      <div class="f-row">
+        <div><label for="c-site">Сайт</label><input id="c-site" placeholder="company.ru"></div>
+        <div><label for="c-bud">Бюджет в месяц</label><input id="c-bud" placeholder="120 000 ₽"></div>
+      </div>
+      <div><label for="c-task">Что не сходится</label><textarea id="c-task" placeholder="Заявки есть, но дорогие и почти все нецелевые"></textarea></div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+        <button class="btn" type="submit" data-goal="lead_audit">Отправить купон</button>
+        <div class="fine">Отвечаю в течение рабочего дня.<br>Кабинет остаётся у вас, я работаю по доступу.</div>
+      </div>
+    </form>
+    <div class="coupon-note">разбор занимает у меня 2 часа. Поэтому беру 4 в неделю</div>
+  </section>
+
+  <section class="faq" data-ann="FAQ → schema.org FAQPage">
+    <h2>Короткие ответы</h2>
+    <div class="rule-mid" style="margin-bottom:4px;"></div>
+    <details open><summary>Сколько ждать заявок после запуска</summary><p>Первые обращения обычно идут в первую неделю. Стабильная картина складывается за три-четыре недели: раньше алгоритму не хватает данных, а вам не хватает статистики, чтобы отличить сигнал от шума.</p></details>
+    <details><summary>Может, просто мало бюджета</summary><p>Иногда да. Но это проверяется расчётом, а не увеличением бюджета. Если при текущей цене обращения и текущей доле доходящих до сделки экономика не сходится, добавленные деньги ускорят убыток, а не исправят его.</p></details>
+    <details><summary>Стоит ли менять подрядчика</summary><p>Сначала выгрузите поисковые запросы и отчёт по конверсиям за 30 дней. Если там видно, за что платили, подрядчик работает. Если отчёт состоит из показов, нажатий и слова «оптимизировали», вопрос закрыт.</p></details>
+    <details><summary>Что если у меня нет CRM</summary><p>Начните с таблицы и записи звонков. Считать доходимость до сделки можно и вручную. Внедрение CRM тоже считается: оно должно окупаться, а не появляться «потому что надо».</p></details>
+  </section>
+
+  <section class="related" data-ann="Связанные: соседи по кластеру, не случайные">
+    <div class="rule-mid"></div>
+    <div class="related-h">Из этой рубрики</div>
+    <div class="rel-grid">
+      <div class="rel-item">
+        <div class="rel-rub">Нет заявок</div>
+        <a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a>
+        <div class="rel-meta">выпуск №44 · 7 мин</div>
+      </div>
+      <div class="rel-item">
+        <div class="rel-rub">Заявки мусорные</div>
+        <a href="#">Звонят спросить, точно ли бесплатно. Как чинить качество лидов</a>
+        <div class="rel-meta">выпуск №41 · 8 мин</div>
+      </div>
+      <div class="rel-item">
+        <div class="rel-rub">Отчётность</div>
+        <a href="#">Директ показывает одно, Метрика другое, CRM третье. Как свести</a>
+        <div class="rel-meta">выпуск №38 · 11 мин</div>
+      </div>
+    </div>
+  </section>
+
+</article>
+</main>
+<aside class="col-side">
+
+  <div class="side-block" data-ann="Виджет 1 · Telegram">
+    <div class="side-h">Подписка</div>
+    <div class="tg-card">
+      <div class="tag">Telegram · бесплатно</div>
+      <h4>Один разбор кабинета в неделю</h4>
+      <p>По вторникам показываю чужой кабинет: что нашёл, что поменял, что из этого вышло.</p>
+      <ul>
+        <li><span>01</span><span>Список из 90 проверок кабинета, XLSX</span></li>
+        <li><span>02</span><span>Таблица «окупится или нет», формулы открыты</span></li>
+        <li><span>03</span><span>Разборы по вторникам, 4 письма в месяц</span></li>
+      </ul>
+      <a class="btn" href="#" data-goal="tg_sub_side">Подписаться</a>
+      <div class="cnt">1 240 подписчиков · оба файла в закрепе</div>
+    </div>
+  </div>
+
+  <div class="side-block" data-ann="Виджет 2 · рубрики = задачи бизнеса">
+    <div class="side-h">Рубрики</div>
+    <ul class="rubs">
+      <li><a href="#" class="on">Нет заявок <span class="n">14</span></a></li>
+      <li><a href="#">Заявки мусорные <span class="n">9</span></a></li>
+      <li><a href="#">Дорогие клики и клиенты <span class="n">11</span></a></li>
+      <li><a href="#">Вернуть ушедших клиентов <span class="n">6</span></a></li>
+      <li><a href="#">Больше продаж с того же бюджета <span class="n">12</span></a></li>
+      <li><a href="#">Проверить подрядчика <span class="n">7</span></a></li>
+      <li><a href="#">Отчётность и учёт денег <span class="n">10</span></a></li>
+      <li><a href="#">Запуск с нуля <span class="n">8</span></a></li>
+    </ul>
+  </div>
+
+  <div class="side-block" data-ann="Виджет 3 · последние выпуски">
+    <div class="side-h">Последние выпуски</div>
+    <ul class="latest">
+      <li><div class="iss">№46 · 25 августа</div><a href="#">Заявки есть, продаж нет. Разрыв между рекламой и отделом продаж</a></li>
+      <li><div class="iss">№45 · 18 августа</div><a href="#">Как вернуть клиентов, которые уже покупали: ретаргетинг по своей базе</a></li>
+      <li><div class="iss">№44 · 11 августа</div><a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a></li>
+      <li><div class="iss">№43 · 4 августа</div><a href="#">Цена обращения выросла вдвое за месяц. Что смотреть первым</a></li>
+      <li><div class="iss">№42 · 28 июля</div><a href="#">Сколько на самом деле стоит клиент, если считать по кассе</a></li>
+    </ul>
+  </div>
+
+  <div class="side-block" data-ann="Виджет 4 · автор (E-E-A-T)">
+    <div class="side-h">Кто издаёт</div>
+    <div class="about">
+      <div class="ph"><i>ДЯ</i></div>
+      <div>
+        <div class="nm">Дмитрий Янчоглов</div>
+        <p>Восемь лет в контексте, четыре из них внутренним маркетологом. Услуги, B2B и лидген. Работаю один, четыре проекта одновременно.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-tail" data-ann="Хвост колонки: тот же ТГ, тихо">
+    <div class="st-h">Следующий разбор</div>
+    <p>Вторник, кабинет в грузоперевозках</p>
+    <a class="btn-ghost" href="#" data-goal="tg_sub_tail">Читать в Telegram</a>
+  </div>
+
+</aside>
+</div><!-- /.layout -->
+
+<footer class="foot">
+  <div>Деньги в Директе · выпуск №47 · 1 сентября 2026</div>
+  <div><a href="#">Все выпуски</a> · <a href="#">Telegram</a> · <a href="#">Об авторе</a> · <a href="#">Политика данных</a></div>
+</footer>
+
+</div><!-- /.paper -->
+</div><!-- /.ground -->
+
+<div class="mbar" data-ann="Мобильная полоса: только ТГ">
+  <div class="t">Разбор чужого кабинета<br>каждый вторник</div>
+  <a href="#" data-goal="tg_sub_mobile">Подписаться</a>
+</div>
+
+<button class="anntoggle" type="button" aria-pressed="false" id="annBtn">Разметка Astra</button>
+
+<script>
+(function(){
+  var b=document.getElementById('annBtn');
+  b.addEventListener('click',function(){
+    var on=document.body.classList.toggle('ann');
+    b.setAttribute('aria-pressed',on?'true':'false');
+    b.textContent=on?'Скрыть разметку':'Разметка Astra';
+  });
+})();
+</script>
+</body>
+</html>

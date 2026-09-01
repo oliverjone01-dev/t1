@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>html,body{margin:0;padding:0}*{box-sizing:border-box}img{max-width:100%}</style>
-<title>Деньги в Директе</title>
+<title>Рубрика «Нет заявок»</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,700;0,800;1,500;1,700&family=Alegreya+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
@@ -314,6 +314,64 @@ body.ann [data-ann]::before{
   max-width:calc(100% + 10px);overflow:hidden;text-overflow:ellipsis;
 }
 </style>
+<style>
+/* ═══ СТРАНИЦА РУБРИКИ ═══ */
+.arch-head{padding-bottom:4px;}
+.arch-kicker{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;}
+.arch-kicker .rub{color:var(--orange);font-weight:500;}
+.arch-head h1{font-size:clamp(30px,4.2vw,50px);}
+.arch-intro{font-size:19px;margin:18px 0 0;max-width:34em;}
+.arch-intro p{margin:0 0 12px;}
+
+/* рубрикатор-полоса */
+.rubricator{margin:34px 0 8px;border-top:2px solid var(--ink);}
+.rubricator .rh{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:9px 0 12px;}
+.rub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 30px;}
+.rub-card{border-top:1px solid var(--rule);padding:12px 0 16px;}
+.rub-card a{font-family:var(--serif);font-weight:800;font-size:20px;line-height:1.18;text-decoration:none;display:block;}
+.rub-card a:hover{text-decoration:underline;}
+.rub-card.on a{color:var(--orange);}
+.rub-card p{margin:6px 0 0;font-size:15.5px;color:var(--muted);line-height:1.45;}
+.rub-card .n{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:7px;display:block;}
+.rub-more{font-family:var(--mono);font-size:12px;color:var(--muted);border-top:1px solid var(--rule);padding-top:12px;margin-top:4px;}
+
+/* передовица рубрики */
+.lead-issue{margin:38px 0 0;border-top:3px solid var(--ink);padding-top:18px;}
+.lead-issue .li-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:0 34px;}
+@media(max-width:720px){.lead-issue .li-grid{grid-template-columns:minmax(0,1fr);gap:0;}}
+.iss-meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;}
+.lead-issue h2{font-family:var(--serif);font-weight:800;font-size:clamp(26px,3.4vw,38px);line-height:1.1;margin:8px 0 0;text-wrap:balance;}
+.lead-issue h2 a{text-decoration:none;}
+.lead-issue h2 a:hover{text-decoration:underline;}
+.lead-issue .li-lede{font-size:18px;margin:14px 0 0;}
+.lead-issue .li-side{border-left:1px solid var(--rule);padding-left:26px;}
+@media(max-width:720px){.lead-issue .li-side{border-left:0;padding-left:0;border-top:1px solid var(--rule);padding-top:16px;margin-top:18px;}}
+.li-side .lsh{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.li-side ul{list-style:none;margin:0;padding:0;font-size:16px;}
+.li-side li{padding:7px 0;border-bottom:1px solid var(--rule);display:flex;gap:10px;}
+.li-side li:last-child{border-bottom:0;}
+.li-side li b{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--orange);line-height:1.5;}
+
+/* список выпусков */
+.issues{margin-top:44px;border-top:2px solid var(--ink);}
+.issues-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:9px 0 4px;}
+.issue{display:grid;grid-template-columns:82px minmax(0,1fr);gap:0 22px;padding:20px 0;border-bottom:1px solid var(--rule);}
+@media(max-width:560px){.issue{grid-template-columns:minmax(0,1fr);gap:6px;}}
+.issue .num{font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.5;padding-top:5px;}
+.issue h3{font-family:var(--serif);font-weight:800;font-size:23px;line-height:1.18;margin:0;text-wrap:balance;}
+.issue h3 a{text-decoration:none;}
+.issue h3 a:hover{text-decoration:underline;}
+.issue p{margin:7px 0 0;font-size:16.5px;color:var(--muted);max-width:36em;}
+.issue .tail{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:9px;display:flex;gap:12px;flex-wrap:wrap;}
+.issue .tail .r{color:var(--orange);}
+
+/* пагинация */
+.pager{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:22px 0 0;font-family:var(--mono);font-size:13px;}
+.pager a,.pager span{min-width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid var(--rule);text-decoration:none;padding:0 9px;}
+.pager .cur{border-color:var(--ink);background:var(--ink);color:#FAFAF8;}
+.pager a:hover{border-color:var(--ink);color:var(--blue);}
+.pager .all{border:0;color:var(--muted);padding-left:6px;}
+</style>
 </head>
 <body>
 <div class="ground">
@@ -346,95 +404,83 @@ body.ann [data-ann]::before{
 
 <div class="layout">
 <main class="col-main">
-<article>
 
-  <div class="kicker" data-ann="Рубрика + дата + время чтения">
-    <span class="rub">Нет заявок</span>
-    <span>·</span>
-    <span>выпуск №12</span>
-    <span>·</span>
-    <span>1 сентября 2026</span>
-    <span>·</span>
-    <span>читать 4 минуты</span>
-  </div>
-
-  <h1 data-ann="H1 = поисковый запрос">Бюджет тратится, заявок нет. Где именно теряются деньги</h1>
-
-  <div class="rule-1" style="margin:22px 0 3px;"></div>
-  <div class="rule-2" style="margin-bottom:20px;"></div>
-
-  <p class="lede" data-ann="Лид = ответ за 2 предложения (для AI-выдачи)">Заявок нет по одной из пяти причин, и четыре из них видно за вечер без доступа к кабинету. Разбираю по порядку: от формы на сайте до стратегии, которой нечему обучаться.</p>
-
-  <div class="byline">
-    <div class="ava">ДЯ</div>
-    <div>
-      <div class="nm">Дмитрий Янчоглов</div>
-      <div class="rl">8 лет в контексте · 4 года внутренним маркетологом</div>
+  <section class="arch-head" data-ann="Шапка рубрики: H1 + вводный текст">
+    <div class="arch-kicker">
+      <span class="rub">Рубрика</span><span>·</span>
+      <span>5 выпусков</span><span>·</span>
+      <span>обновлено 1 сентября 2026</span>
     </div>
-  </div>
+    <h1>Нет заявок из Яндекс Директа</h1>
+    <div class="rule-1" style="margin:20px 0 3px;"></div>
+    <div class="rule-2" style="margin-bottom:18px;"></div>
+    <div class="arch-intro">
+      <p>Бюджет откручивается, а телефон молчит. В этой рубрике разбираю, где именно рвётся цепочка между показом объявления и звонком менеджеру: приём заявок, поисковые запросы, автостратегии, посадочная страница, скорость ответа.</p>
+      <p>Каждый выпуск это разбор конкретного кабинета или конкретной поломки, с цифрами и порядком действий. Начинать стоит с первого: он идёт от самого дешёвого в проверке к самому дорогому.</p>
+    </div>
+  </section>
 
-  <div class="toc" data-ann="Оглавление: якоря для сниппетов">
-    <div class="toc-h">В этом выпуске</div>
-    <ol>
-      <li><a href="#p1">Заявки приходят, но вы их не видите</a></li>
-      <li><a href="#p2">Показы идут не по тем запросам</a></li>
-      <li><a href="#p3">Стратегии нечему обучаться</a></li>
-      <li><a href="#p4">Страница получает трафик и теряет его</a></li>
-      <li><a href="#p5">Что делать по порядку</a></li>
-    </ol>
-  </div>
-
-  <div class="body">
-
-    <p>Каждый второй разговор начинается одинаково: «Бюджет откручивается, а телефон молчит». Дальше собственник обычно называет виновного: подрядчик, алгоритм, кризис, конкуренты демпингуют.</p>
-    <p>За восемь лет я видел этот разговор десятки раз. В большинстве случаев виноват не алгоритм. Виновата цепочка, где каждое звено по отдельности выглядит рабочим, а вместе они не доводят человека до менеджера.</p>
-
-    <div class="note">«ну сейчас скажет, что нужен аудит за 50 тысяч»</div>
-
-    <p>Ниже пять мест, где чаще всего рвётся. Порядок не случайный: он идёт от самого дешёвого в проверке к самому дорогому. Начинать всегда стоит сверху.</p>
-
-    <h2 id="p1">1. Заявки приходят, но вы их не видите</h2>
-    <div class="rule-thin"></div>
-    <p>Самая обидная причина и самая частая. Реклама работает, человек оставил номер, а заявка осела в спаме, в чужой почте или в форме, которая после обновления плагина перестала отправлять письма.</p>
-    <p>Проверяется за 20 минут. Отправьте заявку с телефона через мобильный интернет, не из офисной сети. Позвоните на рекламный номер и посмотрите, попал ли звонок в отчёт. Откройте почту, куда падают формы, и проверьте папку «Спам» за последние две недели.</p>
-
-    <div class="tbl" data-ann="Таблица данных: mono + флаги">
-      <div class="tbl-h">Где теряются обращения чаще всего</div>
-      <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Место разрыва</th><th>Как проверить</th><th>Время</th></tr></thead>
-        <tbody>
-          <tr><td><span class="flag f-bad"></span>Форма не отправляет письмо</td><td>Тестовая заявка с телефона</td><td class="num">10 мин</td></tr>
-          <tr><td><span class="flag f-bad"></span>Письма уходят в спам</td><td>Папка «Спам» за 14 дней</td><td class="num">5 мин</td></tr>
-          <tr><td><span class="flag f-bad"></span>Звонки не считаются</td><td>Звонок на номер из объявления</td><td class="num">10 мин</td></tr>
-          <tr><td><span class="flag f-ok"></span>Цели в Метрике настроены</td><td>Отчёт «Конверсии» за месяц</td><td class="num">15 мин</td></tr>
-          <tr><td><span class="flag f-ok"></span>Заявки доходят до CRM</td><td>Сверка форма против сделок</td><td class="num">30 мин</td></tr>
-        </tbody>
-      </table>
+  <section class="rubricator" data-ann="Рубрикатор: открытые рубрики">
+    <div class="rh">Рубрики блога</div>
+    <div class="rub-grid">
+      <div class="rub-card on">
+        <a href="#">Нет заявок</a>
+        <p>Бюджет тратится, обращений нет. Диагностика по шагам.</p>
+        <span class="n">5 выпусков</span>
+      </div>
+      <div class="rub-card">
+        <a href="#">Заявки мусорные</a>
+        <p>Звонят не те. Качество лидов, минус-слова, фильтры.</p>
+        <span class="n">4 выпуска</span>
+      </div>
+      <div class="rub-card">
+        <a href="#">Дорогие клики и клиенты</a>
+        <p>Цена обращения растёт. Ставки, аукцион, счёт по кассе.</p>
+        <span class="n">3 выпуска</span>
       </div>
     </div>
+    <div class="rub-more">Готовятся: вернуть ушедших клиентов · больше продаж с того же бюджета · проверить подрядчика · отчётность и учёт денег · запуск с нуля. Рубрика открывается, когда в ней набирается три выпуска.</div>
+  </section>
 
-    <p>Если хотя бы одна строка красная, дальше идти бессмысленно. Вы будете чинить рекламу, которая работает.</p>
+  <section class="lead-issue" data-ann="Передовица рубрики: последний выпуск">
+    <div class="li-grid">
+      <div>
+        <div class="iss-meta">Выпуск №12 · 1 сентября 2026 · читать 4 минуты</div>
+        <h2><a href="#">Бюджет тратится, заявок нет. Где именно теряются деньги</a></h2>
+        <p class="li-lede">Заявок нет по одной из пяти причин, и четыре из них видно за вечер без доступа к кабинету. Разбираю по порядку: от формы на сайте до стратегии, которой нечему обучаться.</p>
+      </div>
+      <div class="li-side">
+        <div class="lsh">С чего начать</div>
+        <ul>
+          <li><b>01</b><span>Проверить, доходят ли заявки вообще</span></li>
+          <li><b>02</b><span>Выгрузить поисковые запросы за 30 дней</span></li>
+          <li><b>03</b><span>Посмотреть, есть ли чему обучаться стратегии</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
-    <h2 id="p2">2. Показы идут не по тем запросам</h2>
-    <div class="rule-thin"></div>
-    <p>Ключевые слова в кабинете и реальные запросы людей это два разных списка. Смотреть надо на второй.</p>
-    <p>Откройте отчёт по поисковым запросам за последние 30 дней и отсортируйте по расходу. В половине кабинетов, которые я разбираю, в первой двадцатке по тратам стоят запросы со словами «своими руками», «бесплатно», «вакансия», «отзывы сотрудников» и названия конкурентов, по которым человек ищет их сайт, а не вас.</p>
-    <p>Отдельная история это автотаргетинг. Он включён по умолчанию, и в кабинетах, которые я разбирал, на него уходило до трети расхода: запросы, к вашей услуге отношения не имеющие.</p>
+  <section class="issues" data-ann="Список выпусков рубрики">
+    <div class="issues-h">Остальные выпуски</div>
 
-    <div class="note warm">не «мало ключей». Слишком много не тех</div>
+    <article class="issue">
+      <div class="num">№11<br>25 авг</div>
+      <div>
+        <h3><a href="#">Заявки есть, продаж нет. Разрыв между рекламой и отделом продаж</a></h3>
+        <p>Реклама привела 34 обращения, до разговора дошло 11. Считаем, где потерялись остальные, и сколько это стоило в рублях.</p>
+        <div class="tail"><span class="r">Нет заявок</span><span>·</span><span>9 минут</span></div>
+      </div>
+    </article>
 
-    <h2 id="p3">3. Стратегии нечему обучаться</h2>
-    <div class="rule-thin"></div>
-    <p>Автостратегия с оплатой за конверсии выглядит безопасной: платите только за заявки. На деле у неё есть порог. Если целевое действие происходит реже десяти раз в неделю, алгоритму не на чем учиться, и он либо стоит, либо откручивает бюджет наугад.</p>
-    <p>Отсюда типичная картина: кампанию запустили, неделю почти нет показов, потом резкий расход и ни одной заявки.</p>
-    <p>Что помогает: собрать конверсии в одну цель вместо пяти, добавить микроцель ближе к верху воронки на время обучения, не менять настройки каждые три дня. Каждое изменение сбрасывает накопленную статистику.</p>
+    <article class="issue">
+      <div class="num">№9<br>11 авг</div>
+      <div>
+        <h3><a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a></h3>
+        <p>Кабинет на 180 000 ₽ в месяц. Показываю отчёт по поисковым запросам, отмечаю, за что платили зря, и что осталось после чистки.</p>
+        <div class="tail"><span class="r">Нет заявок</span><span>·</span><span>7 минут</span></div>
+      </div>
+    </article>
 
-    <h2 id="p4">4. Страница получает трафик и теряет его</h2>
-    <div class="rule-thin"></div>
-    <p>Объявление обещает «монтаж за 3 дня», человек попадает на общую страницу услуг, где про сроки ни слова. Он не ищет, он закрывает вкладку.</p>
-    <p>Три вещи, которые проверяю первыми: совпадает ли заголовок страницы с текстом объявления, видно ли цену или хотя бы вилку, есть ли способ связаться кроме формы из шести полей.</p>
-    <p>И скорость ответа. По моим наблюдениям на разборах, если менеджер перезванивает через два часа, до разговора доходит заметно меньше половины оставивших заявку. Реклама тут ни при чём, а деньги списаны.</p>
 
     <div class="tg-inline" data-ann="КОНВЕРТОР 1 · единственная врезка в теле">
       <div class="tg-eyebrow">Объявление · Telegram-канал</div>
@@ -444,38 +490,29 @@ body.ann [data-ann]::before{
       <a class="btn" href="#" data-goal="tg_sub_inline">Подписаться на разборы</a>
       <!-- ЗАГЛУШКА: число подписчиков --><div class="tg-sub">1 240 подписчиков · 4 разбора в месяц · отписаться в один клик</div>
     </div>
+    <article class="issue">
+      <div class="num">№5<br>14 июл</div>
+      <div>
+        <h3><a href="#">Кампания запустилась и встала. Почему стратегии нечему обучаться</a></h3>
+        <p>Оплата за конверсии выглядит безопасной, но у неё есть порог. Меньше десяти целевых действий в неделю значит алгоритм либо стоит, либо тратит наугад.</p>
+        <div class="tail"><span class="r">Нет заявок</span><span>·</span><span>6 минут</span></div>
+      </div>
+    </article>
 
-    <h2 id="p5">5. Что делать по порядку</h2>
-    <div class="rule-thin"></div>
-    <p>Порядок важнее скорости. Каждый следующий шаг имеет смысл только если предыдущий закрыт.</p>
-    <ol>
-      <li><strong>Проверьте приём заявок.</strong> Тестовая заявка, тестовый звонок, папка «Спам». Один вечер.</li>
-      <li><strong>Выгрузите поисковые запросы за 30 дней.</strong> Отсортируйте по расходу, минусуйте всё, по чему не продаёте.</li>
-      <li><strong>Отключите автотаргетинг</strong> в кампаниях, где он тратит больше 20 процентов бюджета без конверсий.</li>
-      <li><strong>Сведите цели.</strong> Одна главная цель вместо пяти, если конверсий меньше десяти в неделю.</li>
-      <li><strong>Сверьте объявление и страницу.</strong> Обещание в заголовке должно повторяться на первом экране.</li>
-      <li><strong>Замерьте скорость ответа менеджера.</strong> Не «сколько по регламенту», а сколько по факту за прошлую неделю.</li>
-    </ol>
+    <article class="issue">
+      <div class="num">№2<br>23 июн</div>
+      <div>
+        <h3><a href="#">Форма на сайте молчит месяц. Как проверить приём заявок за вечер</a></h3>
+        <p>Самая обидная поломка: реклама работает, а письма падают в спам или не уходят вовсе. Шесть проверок, каждая занимает от пяти до тридцати минут.</p>
+        <div class="tail"><span class="r">Нет заявок</span><span>·</span><span>5 минут</span></div>
+      </div>
+    </article>
 
-    <div class="check" data-ann="Самопроверка: микро-вовлечение, не форма">
-      <div class="check-h">Проверьте у себя за вечер</div>
-      <ul>
-        <li><span class="box"></span><span>Тестовая заявка с мобильного интернета дошла до почты</span></li>
-        <li><span class="box"></span><span>Звонок с рекламного номера попал в отчёт</span></li>
-        <li><span class="box"></span><span>В топ-20 запросов по расходу нет слов «бесплатно», «своими руками», «вакансии»</span></li>
-        <li><span class="box"></span><span>Автотаргетинг не съедает больше пятой части бюджета</span></li>
-        <li><span class="box"></span><span>Целевых действий больше десяти в неделю</span></li>
-        <li><span class="box"></span><span>Заголовок посадочной повторяет обещание из объявления</span></li>
-      </ul>
-    </div>
+    <!-- пагинация появляется, когда в рубрике больше восьми выпусков -->
+    <div class="rub-more" style="margin-top:20px;">Показаны все 5 выпусков рубрики. <a href="#">Все выпуски блога (12)</a></div>
+  </section>
 
-    <p>Если после этих шести пунктов заявок всё ещё нет, проблема не в настройках, а в экономике: либо цена обращения выше того, что вы можете за него заплатить, либо до сделки доходит слишком малая доля обратившихся. Это считается на бумаге за час, до любых правок в кабинете.</p>
 
-    <div class="note">«ладно, звучит как человек, а не как продажник»</div>
-
-  </div><!-- /.body -->
-
-  <!-- ═══ КОНВЕРТОР 2 ═══ -->
   <section class="coupon" data-ann="КОНВЕРТОР 2 · единственная форма на странице">
     <div class="coupon-h">Купон на разбор</div>
     <h3>Посмотрю ваш кабинет и назову оценку от 0 до 100</h3>
@@ -501,39 +538,6 @@ body.ann [data-ann]::before{
     <div class="coupon-note">разбор занимает у меня 2 часа. Поэтому беру 4 в неделю</div>
   </section>
 
-  <section class="faq" data-ann="FAQ → schema.org FAQPage">
-    <h2>Короткие ответы</h2>
-    <div class="rule-mid" style="margin-bottom:4px;"></div>
-    <details open><summary>Сколько ждать заявок после запуска</summary><p>Первые обращения обычно идут в первую неделю. Стабильная картина складывается за три-четыре недели: раньше алгоритму не хватает данных, а вам не хватает статистики, чтобы отличить сигнал от шума.</p></details>
-    <details><summary>Может, просто мало бюджета</summary><p>Иногда да. Но это проверяется расчётом, а не увеличением бюджета. Если при текущей цене обращения и текущей доле доходящих до сделки экономика не сходится, добавленные деньги ускорят убыток, а не исправят его.</p></details>
-    <details><summary>Стоит ли менять подрядчика</summary><p>Сначала выгрузите поисковые запросы и отчёт по конверсиям за 30 дней. Если там видно, за что платили, подрядчик работает. Если отчёт состоит из показов, нажатий и слова «оптимизировали», вопрос закрыт.</p></details>
-    <details><summary>Что если у меня нет CRM</summary><p>Начните с таблицы и записи звонков. Считать доходимость до сделки можно и вручную. Внедрение CRM тоже считается: оно должно окупаться, а не появляться «потому что надо».</p></details>
-  </section>
-
-  <section class="related" data-ann="Связанные: соседи по кластеру, не случайные">
-    <div class="rule-mid"></div>
-    <div class="related-h">Из этой рубрики</div>
-    <!-- ЗАГЛУШКА: соседи по кластеру, выводятся WP_Query -->
-    <div class="rel-grid">
-      <div class="rel-item">
-        <div class="rel-rub">Нет заявок</div>
-        <a href="#">Заявки есть, продаж нет. Разрыв между рекламой и отделом продаж</a>
-        <div class="rel-meta">выпуск №11 · 9 мин</div>
-      </div>
-      <div class="rel-item">
-        <div class="rel-rub">Нет заявок</div>
-        <a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a>
-        <div class="rel-meta">выпуск №9 · 7 мин</div>
-      </div>
-      <div class="rel-item">
-        <div class="rel-rub">Нет заявок</div>
-        <a href="#">Кампания запустилась и встала. Почему стратегии нечему обучаться</a>
-        <div class="rel-meta">выпуск №5 · 6 мин</div>
-      </div>
-    </div>
-  </section>
-
-</article>
 </main>
 <aside class="col-side">
 
@@ -553,18 +557,7 @@ body.ann [data-ann]::before{
     </div>
   </div>
 
-  <div class="side-block" data-ann="Виджет 2 · рубрики = задачи бизнеса">
-    <div class="side-h">Рубрики</div>
-    <!-- ЗАГЛУШКА: счётчики. Показано стартовое состояние: три рубрики, 12 статей.
-         Рубрика открывается в сайдбаре, когда в ней набралось три статьи -->
-    <ul class="rubs">
-      <li><a href="#" class="on">Нет заявок <span class="n">5</span></a></li>
-      <li><a href="#">Заявки мусорные <span class="n">4</span></a></li>
-      <li><a href="#">Дорогие клики и клиенты <span class="n">3</span></a></li>
-    </ul>
-  </div>
-
-  <div class="side-block" data-ann="Виджет 3 · последние выпуски">
+  <div class="side-block" data-ann="Виджет 2 · последние выпуски по всему блогу">
     <div class="side-h">Последние выпуски</div>
     <!-- ЗАГЛУШКА: список выпусков, выводится WP_Query -->
     <ul class="latest">
@@ -576,7 +569,7 @@ body.ann [data-ann]::before{
     </ul>
   </div>
 
-  <div class="side-block" data-ann="Виджет 4 · автор (E-E-A-T)">
+  <div class="side-block" data-ann="Виджет 3 · автор (E-E-A-T)">
     <div class="side-h">Кто издаёт</div>
     <div class="about">
       <div class="ph"><i>ДЯ</i></div>
@@ -597,7 +590,7 @@ body.ann [data-ann]::before{
 </div><!-- /.layout -->
 
 <footer class="foot">
-  <div>Деньги в Директе · выпуск №12 · 1 сентября 2026</div>
+  <div>Деньги в Директе · рубрика «Нет заявок» · 5 выпусков</div>
   <div><a href="#">Все выпуски</a> · <a href="#">Telegram</a> · <a href="#">Об авторе</a> · <a href="#">Политика данных</a></div>
 </footer>
 

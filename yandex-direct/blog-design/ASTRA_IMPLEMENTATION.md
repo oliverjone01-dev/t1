@@ -276,7 +276,8 @@ add_filter( 'the_content', function ( $content ) {
         return $content;
     }
 
-    // Позиции только у абзацев, начинающихся с новой строки (верхний уровень)
+    // Абзацы, начинающиеся с новой строки. Уровень вложенности не различается,
+    // см. оговорку выше
     if ( ! preg_match_all( '/(?:^|\n)<p[ >]/', $content, $m, PREG_OFFSET_CAPTURE ) ) {
         return $content;
     }
@@ -332,27 +333,38 @@ add_action( 'admin_post_nopriv_blog_lead', 'blog_handle_lead' );
 add_action( 'admin_post_blog_lead', 'blog_handle_lead' );
 
 function blog_back_with_error( $code ) {
-    wp_safe_redirect( add_query_arg( 'lead_error', $code, wp_get_referer() ?: home_url( '/' ) ) );
+    // wp_get_referer опирается на _wp_http_referer, а его печатал wp_nonce_field,
+    // которого здесь нет. HTTP_REFERER же режется политикой no-referrer,
+    // поэтому адрес возврата приходит скрытым полем формы
+    $back = esc_url_raw( $_POST['lead_return'] ?? '' );
+    if ( '' === $back || 0 !== strpos( $back, home_url() ) ) {
+        $back = home_url( '/' );
+    }
+    wp_safe_redirect( add_query_arg( 'lead_error', $code, $back ) );
     exit;
 }
 
 function blog_handle_lead() {
-    // Honeypot: поле скрыто стилями, человек его не заполняет
-    if ( ! empty( $_POST['lead_site_url'] ) ) {
-        exit;
+    // Honeypot. Имя нейтральное: поле вроде lead_site_url попадает под
+    // автозаполнение браузеров рядом с настоящим lead_site, и человек
+    // получил бы отказ ни за что
+    if ( ! empty( $_POST['lead_extra'] ) ) {
+        blog_back_with_error( 'bot' );
     }
-    // Форма, отправленная быстрее трёх секунд после отрисовки, это бот
-    $started = (int) ( $_POST['lead_ts'] ?? 0 );
-    if ( $started < 1 || ( time() - $started ) < 3 ) {
-        exit;
+    // Не больше трёх отправок с адреса в час.
+    // ВНИМАНИЕ: за CDN или реверс-прокси REMOTE_ADDR одинаков у всех
+    // посетителей, и лимит превращается в «три заявки в час на весь сайт».
+    // Проверить это до включения формы и при необходимости брать адрес
+    // из доверенного заголовка, который ставит именно ваш прокси
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    if ( defined( 'BLOG_TRUSTED_IP_HEADER' ) && ! empty( $_SERVER[ BLOG_TRUSTED_IP_HEADER ] ) ) {
+        $ip = trim( explode( ',', $_SERVER[ BLOG_TRUSTED_IP_HEADER ] )[0] );
     }
-    // Не больше трёх отправок с адреса в час
-    $key = 'lead_rate_' . md5( $_SERVER['REMOTE_ADDR'] ?? '' );
+    $key  = 'lead_rate_' . md5( $ip );
     $hits = (int) get_transient( $key );
     if ( $hits >= 3 ) {
         blog_back_with_error( 'rate' );
     }
-    set_transient( $key, $hits + 1, HOUR_IN_SECONDS );
 
     if ( empty( $_POST['lead_consent'] ) ) {
         blog_back_with_error( 'consent' );
@@ -377,16 +389,27 @@ function blog_handle_lead() {
     wp_safe_redirect( home_url( '/spasibo/' ) );
     exit;
 }
+    set_transient( $key, $hits + 1, HOUR_IN_SECONDS );
 ```
+
+Счётчик лимита увеличивается после валидации, а не до неё: иначе серверная
+ошибка согласия сжигала бы попытку.
 
 Ошибки возвращают читателя на статью с параметром `lead_error`, а не в
 `wp_die`: на конверторе терять напечатанное дороже, чем кажется. Шаблон
-купона читает параметр и показывает строку над формой.
+купона читает параметр и показывает строку над формой. Значения полей редирект
+не восстанавливает, но `required` на имени, контакте и согласии отсекает эти
+случаи в браузере, так что по этому пути реально приходит только `rate`.
 
 В шаблоне купона: `action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"`,
-скрытые поля `action=blog_lead`, `lead_ts` со значением `time()` и honeypot
-`lead_site_url`, спрятанный не через `display:none`, а уводом за экран
+скрытые поля `action=blog_lead`, `lead_return` с текущим пермалинком и honeypot
+`lead_extra`, спрятанный не через `display:none`, а уводом за экран
 (`position:absolute;left:-9999px`) с `tabindex="-1"` и `autocomplete="off"`.
+
+**Проверку времени заполнения не ставим.** Её обезвредил бы тот же кэш, которым
+обоснован отказ от нонса: на закэшированной странице отметка времени заморожена
+на момент сборки, и разница всегда велика. Реальные защиты здесь honeypot
+и лимит частоты.
 
 Страницу `/spasibo/` создать до запуска: на неё уходит редирект, и на ней же
 считается цель заявки.
@@ -467,6 +490,8 @@ document.addEventListener('click', function (e) {
 - [ ] `BLOG_YM_ID` задан строкой, без ведущих нулей
 - [ ] Купон отправляется, письмо доходит и не падает в спам
 - [ ] Honeypot и лимит частоты работают, форма без нонса, кэш её не ломает
+- [ ] За CDN или прокси проверено, что лимит считает по реальному адресу, а не по одному общему
+- [ ] Скрытое поле `lead_return` заполняется пермалинком, ошибка возвращает на ту же страницу
 - [ ] Страница `/spasibo/` создана, редирект после отправки ведёт на неё
 - [ ] Ошибка валидации возвращает на статью, а не в `wp_die`
 - [ ] Чекбокс согласия обязателен, политика обработки данных опубликована

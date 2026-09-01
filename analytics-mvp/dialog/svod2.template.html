@@ -158,7 +158,7 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 <!-- ФИЧА 1: ДОЛГ ПО ОТВЕТАМ -->
 <div class="card">
   <h2>Долг по ответам: клиенты написали нам - и ждут <span class="tagD">ДАННЫЕ</span> <span class="pill r" id="debt-total"></span><span class="q" data-pop="debt-help">?</span></h2>
-  <div class="pop2" id="pop-debt-help">Простыми словами: «долг» - это переписки, где последним написал КЛИЕНТ, а мы ещё не ответили. Каждая такая позиция - живой человек с деньгами, который ждёт. Чем дольше ждёт, тем холоднее: по нашим 486 перепискам недели, если ответить в течение суток - клиент продолжает разговор в 78 случаях из 100, если позже суток - только в 46. Поэтому главная красная линия - сутки.</div>
+  <div class="pop2" id="pop-debt-help"></div>
   <div class="hint">Смотрим не «сколько сделок в очереди» (это число всегда одинаковое), а КОМУ и СКОЛЬКО мы должны ответов - в деньгах и часах.</div>
   <div style="font-size:11px;color:var(--ink3);font-weight:700;text-transform:uppercase;margin-bottom:4px">Чей долг: ширина полоски = деньги клиента, цвет = сколько ждёт самый забытый (серый - до 4 ч, жёлтый - до суток, красный - дольше). Нажмите - список.</div>
   <div class="strip" id="dstrip"></div>
@@ -196,10 +196,10 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   <div id="pipe-leaks" style="display:flex"></div>
   <div class="ann" id="pipe-note"></div>
   <h2 style="margin-top:16px;font-size:14px">Дожим после отправки цены - единственное место, где менеджеры реально различаются<span class="q" data-pop="mp-help">?</span></h2>
-  <div class="pop2" id="pop-mp-help">Простыми словами: «дожим» - из тех, кому отправили цену, сколько дошло до оплаты. Полоска справа - коридор погрешности: при малом числе сделок цифра прыгает случайно, полоска показывает, где правда может находиться. Если полоска менеджера пересекается с чертой отдела - разница может быть случайной: такая строка серая, и выводов по ней НЕ делаем. По общей конверсии менеджеры отдела статистически не различаются - различие есть только здесь.</div>
+  <div class="pop2" id="pop-mp-help">Простыми словами: «дожим» - из тех, кому отправили цену, сколько дошло до оплаты. Полоска справа - коридор погрешности: при малом числе сделок цифра прыгает случайно, полоска показывает, где правда может находиться. Если полоска менеджера пересекается с чертой отдела - разница может быть случайной: такая строка серая, и выводов по ней НЕ делаем. По общей доле дошедших до оплаты менеджеры отдела статистически не различаются - различие есть только здесь.</div>
   <div class="hint">Нажмите на имя - что делать конкретно по этому менеджеру.</div>
   <table class="mt" id="mpipe"></table>
-  <div class="hint" style="margin-top:8px">Осторожно с выводами о «лучших»: высокая цифра может объясняться СОСТАВОМ клиентов, а не техникой. Проверка ФЕНИКСА: у лидера таблицы дилерская книга повторных заказов (39% сделок - один постоянный клиент), а на сопоставимом срезе новых B2B-клиентов отличий от отдела нет [РАСЧЁТ]. Разрез по типам клиентов - фаза 2. Никого не коронуем и не хороним по одной цифре.</div>
+  <div class="hint" style="margin-top:8px">Осторожно с выводами о «лучших»: высокая цифра может объясняться СОСТАВОМ клиентов, а не техникой. Пример из проверки ФЕНИКСА: у одного из лидеров дожима заметная часть сделок - повторные заказы одного постоянного дилера, а на срезе только новых B2B-клиентов отличий от отдела не видно [ГИПОТЕЗА: точный разрез по типам клиентов - фаза 2]. Никого не коронуем и не хороним по одной цифре.</div>
   <div id="mcoach"></div>
 </div>
 
@@ -257,6 +257,7 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   <div id="ai-names" style="font-size:12px;margin-bottom:8px"></div>
   <div class="tg" id="ai-text"></div>
   <div class="tg" id="ai-cmp" hidden style="margin-top:10px;border-color:var(--blue)"></div>
+  <div class="hint" style="margin-top:8px">Словарик к текстам: «медиана» - середина ряда, половина случаев меньше, половина больше; «когорта» - сделки, созданные за выбранный период; «конверсия» - доля дошедших до оплаты.</div>
 </div>
 
 <div class="foot" id="foot"></div>
@@ -374,7 +375,7 @@ function renderKPIs(){
   <div class="kpi"><div class="l">Воронка ${esc(periodTitle())}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="conv">?</span></div>
     <div class="fun">${[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,210*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${pcv(v,f.created)}</span></div>`).join('')}</div>
     <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежие сделки ещё зреют':''}</div>
-    <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (создано ≥5 в период)</b><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>CR</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
+    <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (от 5 созданных сделок за период)</b><div class="hint" style="margin:4px 0 6px">Конверсия - какая доля созданных сделок дошла до оплаты.</div><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>дошло до оплаты</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
   <div class="kpi"><div class="l">Под риском на ${sd?df(sd.day):'-'}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="risk">?</span></div>
     <div class="v">${sd?fmtR(riskRub):'нет данных'}</div><div class="d">${sd?nDeal(riskN)+' в проблемных очередях':'история очередей на эту дату не велась'}${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}${sd&&paidInQ.length?` · из них ${nDeal(paidInQ.length)} на ${fmtR(paidInQRub)} уже с предоплатой [по окну разбора ${dfs(M.dlgFrom)}-${dfs(M.dlgTo)}] - сервисный риск, не риск продажи`:''}</div>
     <div class="pop2" id="pop-risk"><b>Очереди на ${sd?df(sd.day):'-'}</b><table>${sd?BADQ.filter(k=>sd.queues[k]).map(k=>`<tr class="lnk" onclick="gotoQueue('${k}')"><td>${QICON[k]||''} ${esc(qLabel(k))} →</td><td>${sd.queues[k].n}</td><td>${fmtR(sd.queues[k].money)}</td></tr>`).join(''):'<tr><td>нет истории на эту дату</td></tr>'}</table></div></div>
@@ -696,6 +697,11 @@ const DBUCKETS=[['до 1 часа',0,1],['1-4 часа',1,4],['4-8 часов',4
 function ageTxt(h){return h<48?h+' ч':Math.round(h/24)+' сут';}
 function renderDebt(){
   const debt=DATA.debt||[];
+  // G1 (ФЕНИКС): проценты ответа считаются из данных на рендере, констант в тексте нет
+  const RS=DATA.replyStats||{};
+  const in24=(RS.pairs||0)-(RS.over24||0), in24b=(RS.back||0)-(RS.over24back||0);
+  const p24=in24?Math.round(100*in24b/in24):0, pLate=RS.over24?Math.round(100*(RS.over24back||0)/RS.over24):0;
+  document.getElementById('pop-debt-help').textContent='Простыми словами: «долг» - это переписки, где последним написал КЛИЕНТ, а мы ещё не ответили. Каждая такая позиция - живой человек с деньгами, который ждёт. По нашим '+(RS.pairs||0)+' перепискам недели: ответили в течение суток - клиент продолжил разговор в '+p24+' случаях из 100 ('+in24b+' из '+in24+'); ответили позже суток - в '+pLate+' из 100 ('+(RS.over24back||0)+' из '+(RS.over24||0)+' - наблюдений мало, цифра будет гулять). Честная оговорка: это связь, а не доказанная причина - поздние ответы чаще приходятся на уже остывшие переписки. Но рабочий ориентир от этого не меняется: главная красная линия - сутки.';
   const total=debt.reduce((s2,x)=>s2+x.b,0);
   document.getElementById('debt-total').textContent=nDeal(debt.length)+' на '+fmtR(total);
   const byM={};
@@ -707,7 +713,7 @@ function renderDebt(){
   const bs=DBUCKETS.map(([l,a,b])=>{const it=debt.filter(x=>x.ageH>=a&&x.ageH<b);return {l,n:it.length,rub:it.reduce((s2,x)=>s2+x.b,0)};});
   const mx=Math.max(...bs.map(b=>b.n),1);
   document.getElementById('dcomb').innerHTML=bs.map((b,i)=>`<div class="cbb ${i>=4?'hot':''}" data-t="${b.l} ждут ${nDeal(b.n)} на ${fmtR(b.rub)}. Нажмите - кто именно." onclick="debtList('b',${i})"><div class="cn">${b.n}</div><div class="bar" style="height:${Math.max(4,120*b.n/mx)}px"></div><div class="cl">${b.l}</div><div class="cm">${fmtR(b.rub)}</div></div>`).join('')
-    +'<div class="vline" style="left:33.3%" data-t="4 часа: норматив регламента - до этой линии ждать клиенту ещё терпимо"></div><div class="vline" style="left:66.6%;width:3px" data-t="Сутки: после этой линии клиент продолжает разговор только в 46 случаях из 100 вместо 78 [ДАННЫЕ недели]"></div>';
+    +'<div class="vline" style="left:33.3%" data-t="4 часа: норматив регламента - до этой линии ждать клиенту ещё терпимо"></div><div class="vline" style="left:66.6%;width:3px" data-t="Сутки: после этой линии клиент продолжает разговор в '+pLate+' случаях из 100 вместо '+p24+' [ДАННЫЕ недели; поздних ответов всего '+(RS.over24||0)+' - оценка приблизительная]"></div>';
   const old24=debt.filter(x=>x.ageH>24);
   document.getElementById('dcomb-note').textContent='дольше суток ждут '+nDeal(old24.length)+' на '+fmtR(old24.reduce((s2,x)=>s2+x.b,0));
   const rl=(DATA.replyLine||[]).filter(r=>r.n>=3);

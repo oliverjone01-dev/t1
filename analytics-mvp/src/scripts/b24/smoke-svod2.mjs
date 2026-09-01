@@ -143,6 +143,18 @@ try{
   ck('фича1: клик по столбику - список с CRM-ссылками',d.querySelectorAll('#dpanel a.dl').length>0||t('dpanel').includes('Долга нет'));
   const rl=(DATA.replyLine||[]).filter(r=>r.n>=3);
   ck('фича1: линия ответа клиента отрисована',d.querySelectorAll('#dreply circle').length===rl.length,rl.length);
+  // G1 (ФЕНИКС): проценты «в течение суток vs позже» - из DATA.replyStats, не константы
+  const RS=DATA.replyStats||{};
+  const in24=(RS.pairs||0)-(RS.over24||0), in24b=(RS.back||0)-(RS.over24back||0);
+  const p24=in24?Math.round(100*in24b/in24):0, pLate=RS.over24?Math.round(100*(RS.over24back||0)/RS.over24):0;
+  const dh=t('pop-debt-help');
+  ck('G1: справка долга цитирует пересчитанные проценты',dh.includes('в '+p24+' случаях')&&dh.includes('в '+pLate+' из 100'),p24+'/'+pLate);
+  ck('G1: справка называет число поздних наблюдений',dh.includes(String(RS.over24||0))&&dh.includes('наблюдений мало'));
+  const vis=[...d.querySelectorAll('body>*:not(script)')].map(e=>e.textContent).join('\n');
+  ck('G1: захардкоженный «только в 46» исчез',!vis.includes('только в 46'));
+  // G3 (ФЕНИКС): невоспроизводимый «39%» снят, разрез по типам клиентов помечен гипотезой
+  ck('G3: «39% сделок - один клиент» удалён',!vis.includes('39% сделок'));
+  ck('G3: разрез по типам клиентов помечен как гипотеза фазы 2',vis.includes('точный разрез по типам клиентов - фаза 2'));
   // Фича 2: труба - пересчёт из cohort
   const C=DATA.cohort;
   const f={created:C.length,tz:C.filter(c=>c.tz).length,kp:C.filter(c=>c.kp).length,dec:C.filter(c=>c.dec).length,sold:C.filter(c=>c.sold).length,mk:C.filter(c=>c.mk).length};

@@ -137,7 +137,7 @@ for (const list of Object.values(evByObj)) {
 const rDays = [...new Set(pairs.map((p2) => p2.day))].sort();
 const replyLine = rDays.map((day) => { const pp = pairs.filter((p2) => p2.day === day); return { day, n: pp.length, back: pp.filter((p2) => p2.back).length }; });
 const over24 = pairs.filter((p2) => p2.respMin > 1440);
-const replyStats = { pairs: pairs.length, deptPct: pairs.length ? Math.round(100 * pairs.filter((p2) => p2.back).length / pairs.length) : 0, over24: over24.length, over24back: over24.filter((p2) => p2.back).length };
+const replyStats = { pairs: pairs.length, back: pairs.filter((p2) => p2.back).length, deptPct: pairs.length ? Math.round(100 * pairs.filter((p2) => p2.back).length / pairs.length) : 0, over24: over24.length, over24back: over24.filter((p2) => p2.back).length };
 
 // ===== ФИЧА 2: труба и дожим по менеджерам (Wilson 95%) =====
 const wilson = (k2: number, n2: number): [number, number] => { if (!n2) return [0, 0]; const pr = k2 / n2, z = 1.96, z2 = z * z, den = 1 + z2 / n2; const c2 = (pr + z2 / (2 * n2)) / den, mrg = z * Math.sqrt((pr * (1 - pr) + z2 / (4 * n2)) / n2) / den; return [Math.max(0, c2 - mrg), Math.min(1, c2 + mrg)]; };

@@ -69,8 +69,11 @@ const run = async () => {
   const dept = await genDept(minis); console.log('  срез отдела');
   // канон недельного итога - ДЕТЕРМИНИРОВАННО из фактов, не выпрашиваем у модели (гонка формулировок)
   const wsT = args.dept?.weekSales?.total;
-  if (wsT && !new RegExp('Продажи\\s+недели[^0-9]{0,10}' + wsT.n + '\\s+сдел', 'i').test(dept.summary || ''))
-    dept.summary = 'Продажи недели: ' + wsT.n + ' сделок на ' + Math.round(wsT.rub).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₽.\n\n' + (dept.summary || '');
+  // Вариант модели убираем целиком, иначе сводка открывается дублем (G5 ФЕНИКСА)
+  if (wsT) {
+    const body = (dept.summary || '').split('\n').filter((l) => !/^\s*Продажи\s+недели\s*:/i.test(l)).join('\n').replace(/^\n+/, '');
+    dept.summary = 'Продажи недели: ' + wsT.n + ' сделок на ' + Math.round(wsT.rub).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₽.\n\n' + body;
+  }
   const deals = {};
   for (const [q, items] of Object.entries(args.topDeals || {})) { deals[q] = await genDeals(q, items); console.log('  сделки:', q); }
   let out = { generatedAt: today, window: args.window, mgrs, dept, deals };

@@ -60,7 +60,8 @@ const nums = (text) => {
     // к '_' или букве - не метрика; «14 сделок» (пробел между) проверяется как раньше
     const glued = !/\s$/.test(m[0]) && m[0].slice(-1) !== ' ';
     const after = str[m.index + m[0].length] || '';
-    if (glued && (after === '_' || /[a-z]/i.test(after) || /[а-яё]/i.test(after))) continue;
+    // G2 ФЕНИКСА: скип по букве дыряв (пропускал бы «99999тыс», «7777x») - буквы НЕ освобождают
+    if (glued && after === '_') continue;
     const raw = m[0].replace(/[\s ]/g, '').replace(',', '.');
     const n = parseFloat(raw);
     if (!isNaN(n)) out.push({ n, at: m.index, raw: m[0].trim() });

@@ -303,7 +303,7 @@ function renderKPIs(){
     <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежая когорта ещё зреет':''}</div>
     <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (создано ≥5 в период)</b><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>CR</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
   <div class="kpi"><div class="l">Под риском на ${sd?df(sd.day):'-'}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="risk">?</span></div>
-    <div class="v">${sd?fmtR(riskRub):'нет данных'}</div><div class="d">${sd?nDeal(riskN)+' в проблемных очередях':'история очередей на эту дату не велась'}${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}${sd&&paidInQ.length?` · из них ${nDeal(paidInQ.length)} на ${fmtR(paidInQRub)} уже с предоплатой - сервисный риск, не риск продажи`:''}</div>
+    <div class="v">${sd?fmtR(riskRub):'нет данных'}</div><div class="d">${sd?nDeal(riskN)+' в проблемных очередях':'история очередей на эту дату не велась'}${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}${sd&&paidInQ.length?` · из них ${nDeal(paidInQ.length)} на ${fmtR(paidInQRub)} уже с предоплатой [по окну разбора ${dfs(M.dlgFrom)}-${dfs(M.dlgTo)}] - сервисный риск, не риск продажи`:''}</div>
     <div class="pop2" id="pop-risk"><b>Очереди на ${sd?df(sd.day):'-'}</b><table>${sd?BADQ.filter(k=>sd.queues[k]).map(k=>`<tr class="lnk" onclick="gotoQueue('${k}')"><td>${QICON[k]||''} ${esc(qLabel(k))} →</td><td>${sd.queues[k].n}</td><td>${fmtR(sd.queues[k].money)}</td></tr>`).join(''):'<tr><td>нет истории на эту дату</td></tr>'}</table></div></div>
   <div class="kpi"><div class="l">Потенциал портфеля<span class="tagC">РАСЧЁТ</span><span class="q" data-pop="pot">?</span></div>
     <div class="v">${fmtR(wsum)}</div><div class="d">${big?`${shareBig}% суммы - сделки от ${fmtR(cyc.thr)}: половина их предоплат за ${big.medD} дн, каждая десятая - дольше ${big.p90D} дн`:'горизонт - цикл сделки'} · состояние на сейчас</div>
@@ -418,6 +418,7 @@ function qcandle(key){
 }
 function renderQueues(){
   const sd=stateDay(),cd=cmpDay();
+  winDays(); /* D2: флаг фолбэка должен быть от ТЕКУЩЕГО периода, не от прошлого рендера */
   document.getElementById('q-hint').textContent=sd?`${winFellBack?'В выбранном периоде меньше 2 дней истории - свечи показаны за всю доступную историю. ':''}Состояние на ${df(sd.day)}. Красная свеча - день, когда очередь распухла сильнее обычного [ГИПОТЕЗА: выше среднего периода на 1,5 отклонения]. Клик по свече - сделки дня с комментарием ИИ-РОПа, клик по сделке - переход в CRM.`:'Нет дневной истории на выбранный период.';
   if(!sd){document.getElementById('queues').innerHTML='';return;}
   document.getElementById('queues').innerHTML=BADQ.filter(k=>sd.queues[k]&&sd.queues[k].n>0).map(k=>{
@@ -456,7 +457,8 @@ const PULSE=[['waiting','Клиенты ждут нашего ответа, сд
 function renderPulse(){
   const w=winDays();
   if(!w.length){document.getElementById('pulse').innerHTML='<div class="pill n">На выбранный период дневной истории очередей нет - она копится с '+(QDAYS[0]?df(QDAYS[0].day):'первого ночного снимка')+'.</div>';return;}
-  document.getElementById('pulse').innerHTML=PULSE.map(([k,label,color])=>{
+  const fbNote=winFellBack?`<div class="aiph" style="margin-bottom:8px">В выбранном периоде срезов очередей нет или один - показаны все дни с данными: ${df(w[0].day)} - ${df(w[w.length-1].day)}.</div>`:'';
+  document.getElementById('pulse').innerHTML=fbNote+PULSE.map(([k,label,color])=>{
     const vals=w.map(h=>h.queues[k]?h.queues[k].n:0);
     const mx=Math.max(...vals,1),W=580,H=42,step=W/(vals.length-1||1);
     return `<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--ink2)">${label}</div>
@@ -489,7 +491,7 @@ function renderFunnelBig(){
   const young=(new Date(ropDay)-new Date(PERIOD.to))/864e5<30;
   document.getElementById('fun-hint').textContent=`Когорта: ${nDeal(f.created)}, созданных за период. Проценты - от созданного.`+(young&&M.cycle&&M.cycle.big?` Свежая когорта ещё зреет: у крупных сделок половина предоплат приходит за ${M.cycle.big.medD} дн - конверсия дорастёт.`:'')+(M.migDays&&M.migDays.length?` Дни переноса из старой CRM (${M.migDays.map(df).join(', ')}) из когорт исключены [РАСЧЁТ].`:'');
   document.getElementById('funnel-big').innerHTML=[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,220*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${f.created?Math.round(100*v/f.created)+'%':''}</span></div>`).join('');
-  document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше. В когорте только сделки менеджеров отдела; тестовые и системные исключены'+(M.cohortDropped?' ('+M.cohortDropped+' шт за '+M.depthDays+' дней)':'')+'.'+(M.cohortNoHist?' У '+M.cohortNoHist+' сделок когорты нет истории стадий - их шаги могут занижаться [РАСЧЁТ].':'');
+  document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше. В когорте только 11 менеджеров отдела: сделки других владельцев, тестовые и системные исключены'+(M.cohortDropped?' - '+M.cohortDropped+' шт за '+M.depthDays+' дней':'')+'.'+(M.cohortNoHist?' У '+M.cohortNoHist+' сделок когорты нет истории стадий - их шаги могут занижаться [РАСЧЁТ].':'');
   const fn=AI.dept&&AI.dept.funnelNote;const fa=document.getElementById('funnel-ann');
   if(fn){fa.hidden=false;fa.innerHTML=`<span class="ttl">ИИ-РОП о воронке</span>${esc(fn)}`;}
 }

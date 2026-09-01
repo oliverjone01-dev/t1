@@ -96,6 +96,19 @@ ck('нет em dash в текстах',!all.includes(String.fromCharCode(8212)));
 ck('числительные согласованы',!/(^|\D)([2-9]?1)\s+(продаж|сделок|диалогов)([^а-яё]|$)/.test(all.replace(/(^|\D)11\s+(продаж|сделок|диалогов)/g,'$1')));
 ck('даты в формате дд.мм.гггг присутствуют',/\d{2}\.\d{2}\.\d{4}/.test(all));
 ck('честная пометка генерации ИИ',t('foot').includes('РАСЧЁТ+ГИПОТЕЗА')||t('ai-hint').includes('РАСЧЁТ+ГИПОТЕЗА'));
+// --- iter-3: приёмки п.3/п.4/п.5 + сверка августа в ИИ-текстах со страницей
+ck('п.3: на неделе разбора нет ложной пометки фолбэка',!t('q-hint').includes('меньше 2 дней'));
+dom.window.eval("setPeriod('today')");
+ck('п.3: на однодневном периоде пометка фолбэка есть',t('q-hint').includes('меньше 2 дней'));
+ck('п.4: пульс честно называет подставленные дни',t('pulse').includes('показаны все дни с данными'));
+dom.window.eval("setPeriod('win')");
+ck('п.5: у сервисного риска указано окно данных',t('kpis').includes('по окну разбора')||!t('kpis').includes('сервисный риск'));
+{const augc=DATA.cohort.filter(c=>c.c>='2026-08-01'&&c.c<='2026-08-31');
+ const augSold=augc.filter(c=>c.sold).length,augCreated=augc.length;
+ const dtxt=[DATA.ai?.dept?.summary,DATA.ai?.dept?.funnelNote].join(' ');
+ if(/август/i.test(dtxt)&&/создано\s+\d+/i.test(dtxt))
+   ck('п.1: август в ИИ-тексте = когорте страницы',dtxt.includes(String(augCreated))&&dtxt.includes(String(augSold)),`ждали ${augCreated}/${augSold}`);
+ ck('п.1: старая общая когорта (364/76) не цитируется',!/(^|\D)364(\D|$)/.test(dtxt));}
 // --- R1: ВСЕ CRM-ссылки страницы и панелей имеют непустой id
 let badLinks=0;
 for(const dd2 of DATA.deals){ if(!dd2.id){badLinks++;} }

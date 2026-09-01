@@ -13,6 +13,19 @@ const args = JSON.parse(readFileSync(ARGS, 'utf-8'));
 let fail = 0;
 const bad = (who, msg) => { console.log('FAIL ' + who + ': ' + msg); fail++; };
 
+// --- п.2 (ФЕНИКС iter-2): согласованность самих входов ДО сверки текстов.
+// Сумма funnelAug по досье обязана равняться dept.augustFunnel - иначе тексты
+// сверяются с внутренне противоречивым бандлом и валидатор слеп по построению.
+{
+  const sum = Object.values(sheets).reduce((a, sh) => { const f = sh.funnelAug || {}; a.created += f.created || 0; a.kp += f.kp || 0; a.sold += f.sold || 0; return a; }, { created: 0, kp: 0, sold: 0 });
+  const af = args.dept?.augustFunnel || {};
+  for (const k of ['created', 'kp', 'sold'])
+    if (sum[k] !== (af[k] ?? sum[k])) bad('inputs', `sum(sheets.funnelAug.${k})=${sum[k]} != dept.augustFunnel.${k}=${af[k]} - входы противоречат друг другу`);
+  const ws = args.dept?.weekSales;
+  if (ws) { const bySum = Object.values(ws.byMgr || {}).reduce((a, x) => a + x.n, 0);
+    if (bySum !== ws.total.n) bad('inputs', `weekSales.byMgr сумма ${bySum} != total ${ws.total.n}`); }
+}
+
 // --- корпус допустимых чисел: всё из досье, dept-фактов и аннотируемых сделок ---
 const allowed = new Set();
 const addNum = (n) => {
@@ -34,8 +47,9 @@ const walk = (v) => {
 walk(sheets); walk(args.dept || {}); walk(args.topDeals || {});
 for (let d = 1; d <= 31; d++) addNum(d);           // даты
 for (let y of [2025, 2026]) addNum(y);
-for (let p = 0; p <= 100; p++) addNum(p);          // проценты и часы ожидания до 100
-for (let h = 0; h <= 200; h++) addNum(h);          // часы/дни в свободном тексте
+for (let p = 0; p <= 100; p++) addNum(p);          // проценты, часы ожидания, дни - до 100
+
+const fmtHuman = (n) => { n = Math.round(n || 0); if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',') + ' млн'; if (n >= 1e3) return Math.round(n / 1e3) + ' тыс'; return String(n); };
 
 // --- извлечение чисел из текста ---
 const nums = (text) => {
@@ -63,10 +77,17 @@ for (const [name, t] of Object.entries(ai.mgrs || {})) {
   if (!sh) { bad(name, 'нет досье'); continue; }
   const all = [t.mini, t.move, t.full].join('\n');
   // продажи недели: любые «N продаж/предоплат(ы) за неделю» обязаны равняться wonWeek
-  for (const m of all.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат)[а-яё]*\s+(?:за\s+)?недел/gi))
+  const weekClaims=[...all.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат)[а-яё]*(?:\s+нед|[а-яё\s]{0,14}?\s+(?:за\s+)?недел)/gi)];
+  for (const m of weekClaims)
     if (+m[1] !== (sh.wonWeek || 0)) bad(name, `«${m[0]}» при wonWeek=${sh.wonWeek}`);
-  if (/продаж[а-яё]*\s+за\s+неделю\s*[-:]?\s*0|за неделю\s+0(?![0-9])|ноль продаж за неделю/i.test(all) && (sh.wonWeek || 0) > 0)
-    bad(name, `текст говорит «0 продаж за неделю», факты: wonWeek=${sh.wonWeek}`);
+  // покрытие: у продавца с продажами недели каноническая форма обязана присутствовать
+  const flat=all.replace(/[\s ]+/g,' ');
+  const wordOne=(sh.wonWeek===1)&&/(продаж|предоплат|оплат)[а-яё]*\s+недели?\s*(?:-|:)?\s*одн/i.test(flat);
+  if (sh.role !== 'office' && (sh.wonWeek || 0) > 0 && !weekClaims.length && !wordOne && !all.replace(/[\s ]/g,'').includes(String(sh.wonWeekRub)) && !all.includes(fmtHuman(sh.wonWeekRub)))
+    bad(name, `wonWeek=${sh.wonWeek}, но каноническое «N продаж/предоплат недели» в тексте отсутствует`);
+  // безцифровые нули: «продаж нет / ни одной / без продаж» при wonWeek>0
+  if ((sh.wonWeek || 0) > 0 && /(продаж|предоплат|оплат)[а-яё]*\s+(?:за\s+недел[а-яё]*\s+)?(?:нет|не\s+было)|ни\s+одной\s+(?:продажи|предоплаты|оплаты)|без\s+продаж|ноль\s+продаж/i.test(all))
+    bad(name, `текст отрицает продажи недели, факты: wonWeek=${sh.wonWeek}`);
   // рейтинг в заголовке full = досье (+-0.05)
   const rm = t.full.match(/(\d[.,]\d)\s*[★⭐]/);
   if (rm && sh.rating != null && Math.abs(parseFloat(rm[1].replace(',', '.')) - sh.rating) > 0.051)
@@ -76,9 +97,23 @@ for (const [name, t] of Object.entries(ai.mgrs || {})) {
 if (ai.dept) {
   const dtext = [ai.dept.summary, ai.dept.compare, ai.dept.pulseNote, ai.dept.funnelNote, ai.dept.freezeNote].join('\n');
   checkText('dept', dtext);
+  // недельный итог отдела в текстах = weekSales.total.n
+  const ws = args.dept?.weekSales;
+  if (ws) for (const m of dtext.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат|вход)[а-яё]*(?:\s+нед|[а-яё\s]{0,14}?\s+(?:за\s+)?недел|\s+в\s+оплат)/gi))
+    if (+m[1] !== ws.total.n && !Object.values(ws.byMgr||{}).some(x=>x.n===+m[1])) bad('dept', `«${m[0]}» - недельный итог не равен ${ws.total.n} и не является личным числом`);
+  // августовская воронка: если рядом с «август» стоят счётчики воронки - только из augustFunnel
+  const af = args.dept?.augustFunnel;
+  if (af && /август/i.test(dtext)) {
+    for (const m of dtext.matchAll(/создано\s+(\d+)|(\d+)\s+продаж(?![а-яё]*\s*(?:нед|за нед))/gi)) {
+      const v = +(m[1] || m[2]);
+      const wf = args.dept?.weekCohortFunnel || {};
+      const okvals = new Set([af.created, af.tz, af.kp, af.sold, wf.created, wf.tz, wf.kp, wf.sold, ws?ws.total.n:-1, ...Object.values(sheets).flatMap(sh=>[sh.funnelAug?.created??-1, sh.funnelAug?.sold??-1, sh.wonWeek??-1])]);
+      if (!okvals.has(v)) bad('dept', `воронка августа: «${m[0]}» не из augustFunnel/досье (ждали ${af.created}/${af.tz}/${af.kp}/${af.sold})`);
+    }
+  }
   const dr = args.dept?.deptRatingMedian;
   if (dr) {
-    const m = dtext.match(/рейтинг[^.\n]*?(\d[.,]\d)\s*(?:→|->)\s*(\d[.,]\d)/i);
+    const m = dtext.match(/рейтинг[^.\n]*?(\d(?:[.,]\d)?)\s*(?:→|->)\s*(\d(?:[.,]\d)?)/i);
     if (m) {
       const a = parseFloat(m[1].replace(',', '.')), b = parseFloat(m[2].replace(',', '.'));
       if ((b - a) * ((dr['30.08'] ?? 0) - (dr['23.08'] ?? 0)) < 0) bad('dept', `направление рейтинга перевёрнуто: «${m[0]}», факты ${dr['23.08']} -> ${dr['30.08']}`);

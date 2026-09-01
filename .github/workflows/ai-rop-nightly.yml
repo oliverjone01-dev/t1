@@ -1,0 +1,70 @@
+# Ночная регенерация ИИ-РОП срезов для СВОДа v2 (/dialog-experiments/).
+# 05:00 UTC = 08:00 МСК - к 8:30 тексты уже на странице (правка Ивана 01.09).
+# Требует секрет ANTHROPIC_API_KEY (Settings -> Secrets -> Actions). Без него шаг
+# честно пропускается с warning, прежние тексты остаются (дата генерации видна на странице).
+# Модель: vars.AI_ROP_MODEL, по умолчанию claude-haiku-4-5 (дешёвая); поднять до
+# claude-sonnet-4-6 - одна переменная репозитория, без правок кода.
+name: AI-ROP nightly
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: ai-rop-nightly
+  cancel-in-progress: false
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Регенерация срезов (факты -> генерация -> числовой валидатор)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODEL: ${{ vars.AI_ROP_MODEL || 'claude-haiku-4-5' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "::warning::секрет ANTHROPIC_API_KEY не задан - регенерация пропущена, на странице остаются прежние тексты с их датой"
+            exit 0
+          fi
+          git fetch origin dialog-experiments dialog-export-v1 rop-dashboard-v1
+          git worktree add /tmp/exp origin/dialog-experiments
+          git worktree add /tmp/live origin/dialog-export-v1
+          git worktree add /tmp/rop origin/rop-dashboard-v1
+          # данные диалогов - всегда свежие из ночной ветки (ai-rop.json остаётся из песочницы)
+          cp /tmp/live/analytics-mvp/dialog/data/dialog.json /tmp/live/analytics-mvp/dialog/data/trend.json /tmp/exp/analytics-mvp/dialog/data/ || true
+          cd /tmp/exp/analytics-mvp
+          npm ci
+          HIST_REF=origin/dialog-export-v1 HIST_OUT=/tmp/history.json npx tsx src/scripts/b24/extract-dlg-history.ts
+          ROP_JSON=/tmp/rop/analytics-mvp/rop/data/rop.json HIST_JSON=/tmp/history.json \
+            SHEETS_OUT=/tmp/sheets.json ARGS_OUT=/tmp/args.json npx tsx src/scripts/b24/build-ai-facts.ts
+          SHEETS=/tmp/sheets.json ARGS=/tmp/args.json OUT=dialog/data/ai-rop.json \
+            node src/scripts/b24/generate-ai-rop.mjs
+          cd /tmp/exp
+          if git diff --quiet -- analytics-mvp/dialog/data/ai-rop.json; then
+            echo "тексты не изменились - коммит не нужен"
+            exit 0
+          fi
+          git config user.name 'ai-rop-bot'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add analytics-mvp/dialog/data/ai-rop.json
+          git commit -m "ai-rop: ночная регенерация срезов $(date -u -d '+3 hours' +%d.%m.%Y)"
+          git push origin HEAD:dialog-experiments
+      - name: Передеплой песочницы
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/deploy-pages.yml/dispatches" \
+            -d '{"ref":"main"}'

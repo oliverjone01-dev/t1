@@ -89,10 +89,10 @@ export function SpendSplit() {
   const cols = [C.ink, "color-mix(in oklch, var(--ink) 74%, var(--paper))", "color-mix(in oklch, var(--ink) 52%, var(--paper))", C.brass, C.slate, C.rule];
   let acc = 0;
   return (
-    <Frame title="Куда ушли 150 096 ₽ за август" h={H}
+    <Frame title="Куда ушли 150 096 ₽ за 30 дней августа" h={H}
       note="Работали восемь кампаний, все перегородочные: семь тратили деньги, восьмая, ретаргетинг, работала с нулевым расходом. Поиск забирает 75% денег и даёт 67% кликов, Товарная галерея остановлена 16 августа."
     >
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Структура рекламного расхода">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Структура рекламного расхода за 30 дней августа">
         {D.CAMPAIGNS.map((c, i) => {
           const w = x(c.spend), x0 = acc; acc += w;
           if (w < 1) return null;
@@ -130,7 +130,7 @@ export function DailySpend() {
       note="Товарная галерея остановлена 16 августа. Дневной расход после этого не упал, а вырос на 13,5%: освободившиеся деньги ушли на Поиск, потому что у кампаний задан дневной бюджет, а не общий потолок."
       h={H}
     >
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="График дневного расхода за август">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="График дневного расхода за 30 дней августа">
         {[0, max / 2, max].map((t, i) => (
           <g key={i}>
             <line className="grid" x1={L} y1={y(t)} x2={W - R} y2={y(t)} />

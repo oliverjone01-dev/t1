@@ -22,7 +22,7 @@ h1{font-size:23px;font-weight:800;margin:4px 0 2px}
 .q{display:inline-flex;width:16px;height:16px;border-radius:50%;background:#eef2f6;border:1px solid var(--line2);color:var(--ink3);font-size:10px;font-weight:700;align-items:center;justify-content:center;margin-left:6px;cursor:pointer;vertical-align:-2px}
 .q:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
 .note{background:#fff;border:1px dashed var(--line2);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--ink2);margin-bottom:14px}
-.pbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 14px;margin-bottom:16px;font-size:12.5px}
+.pbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 14px;margin-bottom:16px;font-size:12.5px;position:relative}
 .pbar .lbl{color:var(--ink3);font-weight:700;font-size:11px;text-transform:uppercase}
 .pseg{display:inline-flex;background:#eef2f6;border-radius:9px;padding:3px;gap:2px}
 .pseg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
@@ -50,7 +50,7 @@ h1{font-size:23px;font-weight:800;margin:4px 0 2px}
 .pop2 td,.pop2 th{padding:4px 6px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:12px}
 .pop2 td:first-child,.pop2 th:first-child{text-align:left}
 .pop2 tr.lnk{cursor:pointer}.pop2 tr.lnk:hover td{background:#f7faff;color:var(--blue)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;position:relative}
 .card h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .hint{font-size:12px;color:var(--ink3);margin:2px 0 10px}
 table.mt{width:100%;border-collapse:collapse;font-size:13px}
@@ -73,7 +73,7 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 @media(max-width:1000px){.gw{grid-template-columns:1fr}}
 .qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 @media(max-width:1100px){.qgrid{grid-template-columns:repeat(2,1fr)}}
-.qcell{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px}
+.qcell{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;position:relative}
 .qcell .qn{font-size:12px;color:var(--ink2);font-weight:700;display:flex;gap:6px;align-items:center}
 .qcell .qv{font-size:19px;font-weight:800;margin-top:2px}
 .qcell .qm{font-size:12px;color:var(--ink3)}
@@ -173,7 +173,7 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 
 <!-- ИИ-РОП -->
 <div class="card">
-  <h2>ИИ-РОП срез <span class="tagC">РАСЧЁТ</span><span class="q" data-pop="ai-help">?</span>
+  <h2>ИИ-РОП срез <span class="tagC">РАСЧЁТ</span><span class="tagH">ГИПОТЕЗА</span><span class="q" data-pop="ai-help">?</span>
     <span style="flex:1"></span>
     <button class="btn" id="aiCmpBtn" onclick="aiCmp()">СРАВНИТЬ</button>
     <button class="btn pri" onclick="copyText('ai-text','TG-пост скопирован - вставьте в чат продаж')">Скопировать TG-пост</button>
@@ -240,10 +240,13 @@ function setPeriod(key,from,to){
 function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;
   if(f&&t&&f<=t)setPeriod('custom',f,t);
   else document.getElementById('perr').textContent='Диапазон не применён: «с» должна быть не позже «по».';}
-const stateDay=()=>{let best=null;for(const h of HIST)if(h.day<=PERIOD.to)best=h;return best;};
+const stateDay=()=>{let best=null;for(const h of QDAYS)if(h.day<=PERIOD.to)best=h;return best;};
 const prevPeriod=()=>{const len=(new Date(PERIOD.to)-new Date(PERIOD.from))/864e5+1;return {from:dShift(PERIOD.from,-len),to:dShift(PERIOD.from,-1)};};
-const cmpDay=()=>{const p=prevPeriod();let best=null;for(const h of HIST)if(h.day<=p.to)best=h;return best;};
-const winDays=()=>{const w=HIST.filter(h=>h.day>=PERIOD.from&&h.day<=PERIOD.to);return w.length>=2?w:HIST;};
+const cmpDay=()=>{const p=prevPeriod();let best=null;for(const h of QDAYS)if(h.day<=p.to)best=h;return best;};
+const QDAYS=HIST.filter(h=>h.hasQ); /* дни, где есть срез очередей (R7: ноль != нет данных) */
+let winFellBack=false;
+const winDays=()=>{const w=QDAYS.filter(h=>h.day>=PERIOD.from&&h.day<=PERIOD.to);winFellBack=w.length<2;return w.length>=2?w:QDAYS;};
+const winDaysR=()=>{const w=HIST.filter(h=>h.day>=PERIOD.from&&h.day<=PERIOD.to);return w.length>=2?w:HIST;};
 let CMP={m:true,q:true};
 function toggleCmp(k){CMP[k]=!CMP[k];document.getElementById(k==='m'?'cmpM':'cmpQ').classList.toggle('on',CMP[k]);k==='m'?renderTeam():renderQueues();}
 
@@ -260,7 +263,7 @@ document.addEventListener('click',e=>{
 (function(){
   const g=d=>d?df(d)+', '+String(d).slice(11,16):'-';
   document.getElementById('src').innerHTML=`Диалоги: снимок <b>${g(M.dlgGenerated)}</b> · Продажи: снимок РОПа <b>${g(M.ropGenerated)}</b> · История: ${HIST.length} ${plural(HIST.length,['день','дня','дней'])}`;
-  document.getElementById('foot').innerHTML=`Свод собирается из снимков Битрикс24 (диалоги + РОП) и ${HIST.length} ежедневных срезов истории. Ничего не вводится вручную: у каждой цифры указано происхождение. Тексты ИИ-РОПа сгенерированы ${M.aiGeneratedAt?df(M.aiGeneratedAt):'-'} по данным окна ${M.aiWindow||'-'} - это [РАСЧЁТ+ГИПОТЕЗА]: чтение тех же цифр, не новые факты.<br>Дизайн - по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным материалам; живой кабинет за логином].`;
+  document.getElementById('foot').innerHTML=`Свод собирается из снимков Битрикс24 (диалоги + РОП) и ${HIST.length} ${plural(HIST.length,['ежедневного среза','ежедневных срезов','ежедневных срезов'])} истории. Ничего не вводится вручную: у каждой цифры указано происхождение. Тексты ИИ-РОПа сгенерированы ${M.aiGeneratedAt?df(M.aiGeneratedAt):'-'} по данным окна ${M.aiWindow||'-'} - это [РАСЧЁТ+ГИПОТЕЗА]: чтение тех же цифр, не новые факты.<br>Дизайн - по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным материалам; живой кабинет за логином].`;
 })();
 
 /* ---------- бар периода ---------- */
@@ -283,6 +286,9 @@ function renderKPIs(){
   const sd=stateDay();
   let riskN=0,riskRub=0;
   if(sd)for(const k of BADQ){const q=sd.queues[k];if(q){riskN+=q.n;riskRub+=q.money;}}
+  /* R6: в очередях есть сделки, уже прошедшие предоплату - это сервисный риск, не риск продажи */
+  const paidInQ=DATA.deals.filter(d=>d.o==='open'&&PAIDS.has(d.sc)&&BADQ.includes(d.u));
+  const paidInQRub=paidInQ.reduce((s,d)=>s+(d.b||0),0);
   const OU=DATA.deals.filter(isOU);
   const wsum=OU.reduce((s,d)=>s+(d.b||0)*(d.p||0)/100,0);
   const cyc=M.cycle,big=cyc&&cyc.big;
@@ -297,7 +303,7 @@ function renderKPIs(){
     <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежая когорта ещё зреет':''}</div>
     <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (создано ≥5 в период)</b><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>CR</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
   <div class="kpi"><div class="l">Под риском на ${sd?df(sd.day):'-'}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="risk">?</span></div>
-    <div class="v">${fmtR(riskRub)}</div><div class="d">${nDeal(riskN)} в проблемных очередях${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}</div>
+    <div class="v">${sd?fmtR(riskRub):'нет данных'}</div><div class="d">${sd?nDeal(riskN)+' в проблемных очередях':'история очередей на эту дату не велась'}${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}${sd&&paidInQ.length?` · из них ${nDeal(paidInQ.length)} на ${fmtR(paidInQRub)} уже с предоплатой - сервисный риск, не риск продажи`:''}</div>
     <div class="pop2" id="pop-risk"><b>Очереди на ${sd?df(sd.day):'-'}</b><table>${sd?BADQ.filter(k=>sd.queues[k]).map(k=>`<tr class="lnk" onclick="gotoQueue('${k}')"><td>${QICON[k]||''} ${esc(qLabel(k))} →</td><td>${sd.queues[k].n}</td><td>${fmtR(sd.queues[k].money)}</td></tr>`).join(''):'<tr><td>нет истории на эту дату</td></tr>'}</table></div></div>
   <div class="kpi"><div class="l">Потенциал портфеля<span class="tagC">РАСЧЁТ</span><span class="q" data-pop="pot">?</span></div>
     <div class="v">${fmtR(wsum)}</div><div class="d">${big?`${shareBig}% суммы - сделки от ${fmtR(cyc.thr)}: половина их предоплат за ${big.medD} дн, каждая десятая - дольше ${big.p90D} дн`:'горизонт - цикл сделки'} · состояние на сейчас</div>
@@ -307,7 +313,7 @@ function renderKPIs(){
 /* ---------- КОМАНДА ---------- */
 const SECN=['Отклик','Квалиф.','Сроки','Вежлив.','Ведение','Результат'];
 let openRow=null;
-function mgrTraj(name){const w=winDays();return w.filter(h=>h.mgrs[name]&&h.mgrs[name].rating!=null).map(h=>({d:h.day,r:h.mgrs[name].rating,loss:h.mgrs[name].lossRub||0}));}
+function mgrTraj(name){const w=winDaysR();return w.filter(h=>h.mgrs[name]&&h.mgrs[name].rating!=null).map(h=>({d:h.day,r:h.mgrs[name].rating,loss:h.mgrs[name].lossRub||0}));}
 function mcandle(name,big){
   const t=mgrTraj(name);
   if(t.length<3)return '<span class="pill n">мало истории в периоде</span>';
@@ -333,7 +339,7 @@ function secbars(m){
 }
 function renderTeam(){
   const sd=stateDay(),cd=cmpDay();
-  document.getElementById('team-hint').textContent=sd?`Состояние на ${df(sd.day)}. Клик по имени - полный срез ИИ-РОПа. Свечи за ${periodTitle()}: зелёная вверх - день лучше обычного, красная вниз - провал (клик - разбор дня). СРАВНИТЬ - с ${cd?df(cd.day):'прошлым периодом'}.`:'Дневная история на выбранный период отсутствует.';
+  document.getElementById('team-hint').textContent=sd?`Состояние на ${df(sd.day)}. Клик по имени - полный срез ИИ-РОПа. Свечи (${periodTitle()}): зелёная вверх - день лучше обычного, красная вниз - провал (клик - разбор дня). СРАВНИТЬ - с ${cd?df(cd.day):'прошлым периодом'}.`:'Дневная история на выбранный период отсутствует.';
   if(!sd){document.getElementById('team').innerHTML='';return;}
   const rows=DATA.managers.filter(m=>m.role!=='office'&&sd.mgrs[m.mgr]).map(m=>({...m,rating:sd.mgrs[m.mgr].rating,lossRub:sd.mgrs[m.mgr].lossRub})).sort((a,b)=>(b.rating||0)-(a.rating||0));
   document.getElementById('team').innerHTML=`<tr><th>Менеджер</th><th>Рейтинг + свечи периода</th><th>Разделы регламента</th><th>Просадка</th><th></th></tr>`+
@@ -368,7 +374,7 @@ function miniDash(m){
 }
 function dealRow(d){
   const note=aiDealNote(d.id);
-  return `<a class="dl" href="${crmUrl(d)}" target="_blank" rel="noopener"><span class="db">${fmtR(d.b)}</span><span><b>${esc(d.t||('#'+d.id))}</b> · ${esc(d.m)} · <span class="pill b">${esc(qLabel(d.u))}</span> · ${esc(d.stage||'без этапа')}<br><span style="color:var(--ink3)">${esc(note||deN(d.next)||'открыть в CRM')}</span></span></a>`;
+  return `<a class="dl" href="${crmUrl(d)}" target="_blank" rel="noopener"><span class="db">${fmtR(d.b)}</span><span><b>${esc(d.t||('#'+d.id))}</b> · ${esc(d.m)} · <span class="pill b">${esc(qLabel(d.u))}</span>${PAIDS.has(d.sc)?' <span class="pill n">предоплата уже есть</span>':''} · ${esc(d.stage||'без этапа')}<br><span style="color:var(--ink3)">${esc(note||deN(d.next)||'открыть в CRM')}</span></span></a>`;
 }
 function expand(i){openRow=openRow===i?null:i;renderTeam();}
 function showMoveAnn(name){
@@ -396,6 +402,7 @@ let curQ=null;
 function gotoQueue(k){curQ=k;renderQueues();try{document.getElementById('queues').scrollIntoView({behavior:'smooth'});}catch(e){}qDayPanel(k,null);}
 function qcandle(key){
   const w=winDays();
+  if(!w.length)return '<span class="pill n">нет истории</span>';
   const vals=w.map(h=>h.queues[key]?h.queues[key].n:0);
   const mean=vals.reduce((a,b)=>a+b,0)/(vals.length||1);
   const sd2=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length||1))||1;
@@ -411,7 +418,7 @@ function qcandle(key){
 }
 function renderQueues(){
   const sd=stateDay(),cd=cmpDay();
-  document.getElementById('q-hint').textContent=sd?`Состояние на ${df(sd.day)}. Красная свеча - день, когда очередь распухла сильнее обычного [ГИПОТЕЗА: выше среднего периода на 1,5 отклонения]. Клик по свече - сделки дня с комментарием ИИ-РОПа, клик по сделке - переход в CRM.`:'Нет дневной истории на выбранный период.';
+  document.getElementById('q-hint').textContent=sd?`${winFellBack?'В выбранном периоде меньше 2 дней истории - свечи показаны за всю доступную историю. ':''}Состояние на ${df(sd.day)}. Красная свеча - день, когда очередь распухла сильнее обычного [ГИПОТЕЗА: выше среднего периода на 1,5 отклонения]. Клик по свече - сделки дня с комментарием ИИ-РОПа, клик по сделке - переход в CRM.`:'Нет дневной истории на выбранный период.';
   if(!sd){document.getElementById('queues').innerHTML='';return;}
   document.getElementById('queues').innerHTML=BADQ.filter(k=>sd.queues[k]&&sd.queues[k].n>0).map(k=>{
     const q=sd.queues[k];
@@ -425,7 +432,7 @@ function renderQueues(){
 }
 function qDayPanel(key,day){
   const cur=lastHistDay&&stateDay()&&stateDay().day===lastHistDay;
-  const deals=DATA.deals.filter(d=>d.u===key&&isOU(d)).sort((a,b)=>(b.b||0)-(a.b||0)).slice(0,5);
+  const deals=DATA.deals.filter(d=>d.u===key&&d.o==='open').sort((a,b)=>(b.b||0)-(a.b||0)).slice(0,5);
   let head='';
   if(day){
     const h=HIST.find(x=>x.day===day);const idx=HIST.findIndex(x=>x.day===day);
@@ -448,6 +455,7 @@ document.addEventListener('click',e=>{
 const PULSE=[['waiting','Клиенты ждут нашего ответа, сделок','var(--bad)'],['silent','Сделки в тишине 4+ дней, шт','#f5a623'],['fakedone','Дела «вхолостую», шт','var(--blue)']];
 function renderPulse(){
   const w=winDays();
+  if(!w.length){document.getElementById('pulse').innerHTML='<div class="pill n">На выбранный период дневной истории очередей нет - она копится с '+(QDAYS[0]?df(QDAYS[0].day):'первого ночного снимка')+'.</div>';return;}
   document.getElementById('pulse').innerHTML=PULSE.map(([k,label,color])=>{
     const vals=w.map(h=>h.queues[k]?h.queues[k].n:0);
     const mx=Math.max(...vals,1),W=580,H=42,step=W/(vals.length-1||1);
@@ -481,7 +489,7 @@ function renderFunnelBig(){
   const young=(new Date(ropDay)-new Date(PERIOD.to))/864e5<30;
   document.getElementById('fun-hint').textContent=`Когорта: ${nDeal(f.created)}, созданных за период. Проценты - от созданного.`+(young&&M.cycle&&M.cycle.big?` Свежая когорта ещё зреет: у крупных сделок половина предоплат приходит за ${M.cycle.big.medD} дн - конверсия дорастёт.`:'')+(M.migDays&&M.migDays.length?` Дни переноса из старой CRM (${M.migDays.map(df).join(', ')}) из когорт исключены [РАСЧЁТ].`:'');
   document.getElementById('funnel-big').innerHTML=[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,220*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${f.created?Math.round(100*v/f.created)+'%':''}</span></div>`).join('');
-  document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше.';
+  document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше. В когорте только сделки менеджеров отдела; тестовые и системные исключены'+(M.cohortDropped?' ('+M.cohortDropped+' шт за '+M.depthDays+' дней)':'')+'.'+(M.cohortNoHist?' У '+M.cohortNoHist+' сделок когорты нет истории стадий - их шаги могут занижаться [РАСЧЁТ].':'');
   const fn=AI.dept&&AI.dept.funnelNote;const fa=document.getElementById('funnel-ann');
   if(fn){fa.hidden=false;fa.innerHTML=`<span class="ttl">ИИ-РОП о воронке</span>${esc(fn)}`;}
 }
@@ -489,7 +497,7 @@ let curZ=null;
 function renderFreeze(){
   const mx=Math.max(...DATA.rot.map(r=>r.frozenRub),1);
   document.getElementById('freeze').innerHTML=DATA.rot.map((r,i)=>`<div class="fr" onclick="zDrill(${i})"><div class="fb" style="width:${Math.max(40,420*r.frozenRub/mx)}px">${fmtR(r.frozenRub)}</div><span><b>${esc(r.stage)}</b> · ${nDeal(r.frozenN)} дольше 30 дн · медиана этапа ${r.medD} дн</span></div>`).join('');
-  document.getElementById('pop-z-help').innerHTML='«Мёрзнет» = деньги открытых сделок, сидящие в своём этапе дольше 30 дней (по состоянию на снимок РОПа, фильтр периода не влияет - это «сейчас»). Время в этапе - от входа в текущую стадию по истории Битрикс24.';
+  document.getElementById('pop-z-help').innerHTML='«Мёрзнет» = деньги открытых сделок (бюджет от 10 тыс ₽), сидящие в своём этапе дольше 30 дней (по состоянию на снимок РОПа, фильтр периода не влияет - это «сейчас»). Время в этапе - от входа в текущую стадию по истории Битрикс24.'+(M.rotNoHist?' У '+M.rotNoHist+' открытых сделок истории стадий нет - для них берётся дата создания, оценка может завышаться [РАСЧЁТ].':'');
   const zn=AI.dept&&AI.dept.freezeNote;const za=document.getElementById('freeze-ann');
   if(zn){za.hidden=false;za.innerHTML=`<span class="ttl">ИИ-РОП о заморозке</span>${esc(zn)}`;}
 }
@@ -566,7 +574,8 @@ function openSlice(name){
 }
 function copyText(id,msg){
   const t=document.getElementById(id).textContent;
-  navigator.clipboard.writeText(t).then(()=>{const b=document.createElement('div');b.className='aiph';b.textContent=msg;document.getElementById(id).after(b);setTimeout(()=>b.remove(),2500);});
+  if(!navigator.clipboard){alert('Буфер недоступен в этом браузере - выделите текст вручную.');return;}
+  navigator.clipboard.writeText(t).catch(()=>{}).then(()=>{const b=document.createElement('div');b.className='aiph';b.textContent=msg;document.getElementById(id).after(b);setTimeout(()=>b.remove(),2500);});
 }
 
 /* ---------- помощь-списки в шапках карточек ---------- */

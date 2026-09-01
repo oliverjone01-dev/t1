@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const DLG = "dialog/data/dialog.json";
 const TPL = "dialog/svod2.template.html";
-const OUT = "public/svod2.html";
+const OUT = process.env.OUT || "public/svod2.html";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
 const HIST = process.env.HIST_JSON || "dialog/data/history.json";
 const AI = process.env.AI_JSON || "dialog/data/ai-rop.json";
@@ -45,13 +45,20 @@ for (const d of rop.deals || []) { const c = String(d.created || "").slice(0, 10
 const cVals = Object.values(createdByDay).sort((a, b) => a - b);
 const cMed = cVals.length ? cVals[Math.floor(cVals.length / 2)] : 0;
 const migDays = Object.keys(createdByDay).filter((d) => createdByDay[d] > Math.max(60, cMed * 10)).sort();
+// R4 (ФЕНИКС): в когорту отдела входят только сделки 11 менеджеров разбора;
+// тестовые и системные отсечены (бюджет <= 10 руб с "тест" в имени, системные владельцы)
+const isTestDeal = (d: any) => (/\bтест/i.test(d.title || "") && (d.budget || 0) <= 10) || /систем|робот/i.test(d.mgr || "");
+let cohortDropped = 0, cohortNoHist = 0;
 const cohort: any[] = [];
 for (const d of rop.deals || []) {
   const c = String(d.created || "").slice(0, 10);
   if (!c || c < depthCut || migDays.includes(c)) continue;
+  const sn = scoredName(d.mgr);
+  if (!sn || isTestDeal(d)) { cohortDropped++; continue; }
+  if (!(d.hist || []).length) cohortNoHist++;
   const t = touched(d);
   const sold = [...SOLD].some((s) => t.has(s));
-  cohort.push({ c, m: d.mgr, s: scoredName(d.mgr), tz: (t.has("C49:PREPARATION") || sold) ? 1 : 0, kp: (t.has("C49:PREPAYMENT_INVOIC") || sold) ? 1 : 0, sold: sold ? 1 : 0 });
+  cohort.push({ c, m: d.mgr, s: sn, tz: (t.has("C49:PREPARATION") || sold) ? 1 : 0, kp: (t.has("C49:PREPAYMENT_INVOIC") || sold) ? 1 : 0, sold: sold ? 1 : 0 });
 }
 
 // --- Мёрзнет портфель: открытые сделки по этапам, деньги старше 30 дней в этапе.
@@ -65,7 +72,7 @@ for (const d of open) {
 }
 const rot = Object.entries(rotMap).map(([stage, arr]) => {
   const ds = arr.map((x) => x.days).sort((a, b) => a - b);
-  const frozen = arr.filter((x) => x.days > 30 && x.b > 0).sort((a, b) => b.b - a.b);
+  const frozen = arr.filter((x) => x.days > 30 && x.b >= 10000).sort((a, b) => b.b - a.b); // мусорные бюджеты (1-21 руб) не считаем деньгами
   return { stage, n: arr.length, medD: ds[Math.floor(ds.length / 2)] || 0, frozenRub: frozen.reduce((s, x) => s + x.b, 0), frozenN: frozen.length, top: frozen.slice(0, 5) };
 }).filter((r) => r.frozenRub > 0).sort((a, b) => b.frozenRub - a.frozenRub);
 
@@ -85,7 +92,7 @@ const cycle = { thr: 100000, big: seg(cycBig), small: seg(cycSmall) };
 
 // --- Сделки недельного окна (риск/потенциал/дриллы) - как в v1.
 const deals = (sc.deals as any[]).map((d) => ({
-  id: d.dealId, lead: d.isLead ? 1 : 0, t: noDash(d.title).slice(0, 50), m: d.mgr,
+  id: d.dealId || d.leadId, lead: d.isLead ? 1 : 0, t: noDash(d.title).slice(0, 50), m: d.mgr,
   stage: d.stage, sc: d.stageCode, b: Math.round(d.budget || 0), p: d.prob,
   u: d.uKey, o: d.outcome, next: (d.next || "").slice(0, 160), sil: d.silenceD, rm: d.respMed,
 }));
@@ -95,9 +102,10 @@ const DATA = {
     dlgFrom: dlg.from, dlgTo: dlg.to, dlgGenerated: dlg.generatedAt, ropGenerated: ropGen,
     portal: dlg.portal || "https://glassmemory.bitrix24.ru", scope: dlg.scope,
     depthDays: DEPTH_DAYS, depthCut, cycle, migDays,
+    cohortDropped, cohortNoHist, rotNoHist: open.filter((d: any) => !(d.hist || []).length).length,
     aiGeneratedAt: ai ? ai.generatedAt : null, aiWindow: ai ? ai.window : null,
   },
-  managers: (sc.managers as any[]).map((m) => ({ mgr: m.mgr, role: m.role, rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0), sections: m.sections, topLoss: m.topLoss })),
+  managers: (sc.managers as any[]).map((m) => ({ mgr: m.mgr, role: m.role, rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0), sections: m.sections })),
   queuesMeta: sc.queues, minSample: sc.minSample, calibratedAt: sc.calibratedAt,
   deals, cohort, rot, hist: hist.days || [],
   ai: ai || { mgrs: {}, dept: null, deals: {} },

@@ -32,7 +32,7 @@ for (const day of days) {
     }
     const mgrs: Record<string, any> = {};
     for (const m of (sc.managers || [])) mgrs[m.mgr] = { rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0) };
-    hist.push({ day, queues, mgrs });
+    hist.push({ day, queues, mgrs, hasQ: Object.keys(queues).length > 0 ? 1 : 0 });
   } catch { /* повреждённый снимок дня пропускаем - лучше дыра в истории, чем падение сборки */ }
 }
 writeFileSync(OUT, JSON.stringify({ generatedFrom: REF, days: hist }));

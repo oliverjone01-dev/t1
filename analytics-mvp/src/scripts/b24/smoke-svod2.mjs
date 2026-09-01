@@ -96,6 +96,26 @@ ck('нет em dash в текстах',!all.includes(String.fromCharCode(8212)));
 ck('числительные согласованы',!/(^|\D)([2-9]?1)\s+(продаж|сделок|диалогов)([^а-яё]|$)/.test(all.replace(/(^|\D)11\s+(продаж|сделок|диалогов)/g,'$1')));
 ck('даты в формате дд.мм.гггг присутствуют',/\d{2}\.\d{2}\.\d{4}/.test(all));
 ck('честная пометка генерации ИИ',t('foot').includes('РАСЧЁТ+ГИПОТЕЗА')||t('ai-hint').includes('РАСЧЁТ+ГИПОТЕЗА'));
+// --- R1: ВСЕ CRM-ссылки страницы и панелей имеют непустой id
+let badLinks=0;
+for(const dd2 of DATA.deals){ if(!dd2.id){badLinks++;} }
+ck('R1: у всех сделок есть id для CRM-ссылки',badLinks===0,badLinks+' без id');
+ck('R1: нет ссылок вида /details//',![...d.querySelectorAll('a.dl')].some(a=>/\/details\/\//.test(a.href)));
+// --- R6: пометка сервисного риска на KPI
+ck('R6: оговорка про предоплату в очередях',t('kpis').includes('сервисный риск')||!DATA.deals.some(x=>x.o==='open'&&['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON'].includes(x.sc)&&BADQ.includes(x.u)));
+// --- R2/R7: деградация - сборка без истории обязана жить
+import {execSync} from 'node:child_process';
+try{
+  execSync('HIST_JSON=/nonexistent AI_JSON=/nonexistent OUT=/tmp/svod2-degrade.html ROP_JSON='+(process.env.ROP_JSON||'/tmp/rop.json')+' npx tsx src/scripts/b24/build-svod2.ts',{stdio:'pipe'});
+  const dhtml=readFileSync('/tmp/svod2-degrade.html','utf-8');
+  const derr=[];
+  const ddom=new JSDOM(dhtml,{runScripts:'dangerously',beforeParse(w){w.addEventListener('error',e=>derr.push(e.message));}});
+  const dt=[...ddom.window.document.querySelectorAll('body>*:not(script)')].map(e=>e.textContent).join('\n');
+  ck('R2: без истории - ни одной JS-ошибки',derr.length===0,derr[0]);
+  ck('R2: без истории - нет баннера «Ошибка рендера»',!dt.includes('Ошибка рендера'));
+  ck('R7: без истории - честная заглушка пульса',dt.includes('истории')&&dt.includes('нет данных'));
+  ck('R2: воронка и заморозка отрисованы после пульса',ddom.window.document.querySelectorAll('#freeze .fr').length>0&&ddom.window.document.getElementById('funnel-big').textContent.length>10);
+}catch(e){ck('R2: деградационная сборка выполнилась',false,String(e).slice(0,120));}
 // --- JS-ошибки последними
 ck('нет JS-ошибок за весь прогон',errors.length===0);if(errors.length)console.log(errors.slice(0,5));
 console.log(fail?`SMOKE FAIL: ${fail}`:'SMOKE PASS: все проверки зелёные');

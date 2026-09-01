@@ -454,10 +454,14 @@ jobs:
           ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg-exp/analytics-mvp/node_modules
           cd /tmp/dlg-exp/analytics-mvp
           npx tsx src/scripts/b24/build-dialog.ts
-          # СВОД (Диалоги + РОП + План) - главная страница песочницы; разбор диалогов рядом
+          # История дневных снимков (свечи/СРАВНИТЬ/пульс в СВОДе v2) - из git-ветки ночного синка
+          HIST_REF=origin/dialog-export-v1 HIST_OUT=dialog/data/history.json npx tsx src/scripts/b24/extract-dlg-history.ts
+          # СВОД v2 (главная страница песочницы) + v1 рядом как svod-v1.html
+          ROP_JSON=/tmp/dlg-rop/analytics-mvp/rop/data/rop.json             npx tsx src/scripts/b24/build-svod2.ts
           ROP_JSON=/tmp/dlg-rop/analytics-mvp/rop/data/rop.json           PLAN_JSON=/tmp/dlg-rop/analytics-mvp/rop/plan/plan.json             npx tsx src/scripts/b24/build-svod.ts
           mkdir -p "$GITHUB_WORKSPACE/_site/dialog-experiments"
-          cp public/svod.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          cp public/svod2.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          cp public/svod.html "$GITHUB_WORKSPACE/_site/dialog-experiments/svod-v1.html"
           cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog-experiments/dialog.html"
           STAMP=$(grep -o 'const BAKED_AT = "[^"]*"' public/dialog.html | head -1 | cut -d'"' -f2)
           printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog-experiments/v.txt"

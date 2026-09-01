@@ -260,7 +260,6 @@ tr.us td{ font-weight:600 }
 .foot__src{ font-size:.74rem; color:var(--ink-3); line-height:1.85; margin-top:1rem; max-width:80ch }
 .foot__src li{ list-style:none }
 .verdict{ display:flex; gap:1.4rem; align-items:baseline; flex-wrap:wrap; margin-top:1.4rem }
-.verdict__v{ font-family:var(--display); font-weight:800; font-size:clamp(2.2rem,5vw,3.6rem); color:var(--moss); letter-spacing:-.04em }
 
 /* ---------- появление ---------- */
 .rv{ opacity:0; transform:translateY(14px); transition:opacity .75s var(--ease), transform .75s var(--ease) }

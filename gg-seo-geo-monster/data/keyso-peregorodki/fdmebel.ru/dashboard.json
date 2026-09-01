@@ -1,0 +1,599 @@
+{
+  "domain": "fdmebel.ru",
+  "report": "dashboard",
+  "db": "msk",
+  "measured": "2026-08-31T22:08:41.591Z",
+  "url": "https://api.keys.so/report/simple/domain_dashboard?base=msk&domain=fdmebel.ru",
+  "data": {
+    "id": 272188389,
+    "parentid": 0,
+    "parentName": "",
+    "concs": [
+      {
+        "did": 30654137,
+        "name": "m.avito.ru",
+        "cnt": 1832,
+        "it50": 20314255,
+        "vis": 3459855,
+        "perc": 0.009018297742152001
+      },
+      {
+        "did": 29917497,
+        "name": "market.yandex.ru",
+        "cnt": 1435,
+        "it50": 17367898,
+        "vis": 1379249,
+        "perc": 0.00826237003464668
+      },
+      {
+        "did": 29918353,
+        "name": "ozon.ru",
+        "cnt": 1210,
+        "it50": 18479904,
+        "vis": 3379642,
+        "perc": 0.006547653061401184
+      },
+      {
+        "did": 29918348,
+        "name": "wildberries.ru",
+        "cnt": 1180,
+        "it50": 14434039,
+        "vis": 2090456,
+        "perc": 0.008175119936976753
+      },
+      {
+        "did": 374680290,
+        "name": "lemanapro.ru",
+        "cnt": 1110,
+        "it50": 3092865,
+        "vis": 833920,
+        "perc": 0.03588905432341857
+      },
+      {
+        "did": 121577103,
+        "name": "uslugi.yandex.ru",
+        "cnt": 856,
+        "it50": 3007449,
+        "vis": 237995,
+        "perc": 0.028462660547194648
+      },
+      {
+        "did": 30026489,
+        "name": "shkaffkupe.ru",
+        "cnt": 750,
+        "it50": 3922,
+        "vis": 9,
+        "perc": 19.12289648138705
+      },
+      {
+        "did": 125649525,
+        "name": "alfaporta.ru",
+        "cnt": 726,
+        "it50": 10634,
+        "vis": 3178,
+        "perc": 6.827158171901448
+      },
+      {
+        "did": 380174818,
+        "name": "ekalum.ru",
+        "cnt": 726,
+        "it50": 2798,
+        "vis": 71,
+        "perc": 25.94710507505361
+      },
+      {
+        "did": 30202337,
+        "name": "glasstroy.ru",
+        "cnt": 719,
+        "it50": 9380,
+        "vis": 164,
+        "perc": 7.665245202558635
+      }
+    ],
+    "it1": 123,
+    "it3": 306,
+    "it5": 468,
+    "it10": 750,
+    "it50": 2389,
+    "childsCount": 1,
+    "keys": [
+      {
+        "pos": 1,
+        "word": "межкомнатная раздвижная перегородка",
+        "ws": 7173,
+        "wsk": 751
+      },
+      {
+        "pos": 1,
+        "word": "раздвижная межкомнатная перегородка",
+        "ws": 6931,
+        "wsk": 746
+      },
+      {
+        "pos": 1,
+        "word": "перегородки межкомнатные стеклянные",
+        "ws": 2484,
+        "wsk": 330
+      },
+      {
+        "pos": 1,
+        "word": "стеклянная перегородка между кухней и гостиной",
+        "ws": 263,
+        "wsk": 78
+      },
+      {
+        "pos": 1,
+        "word": "раздвижные перегородки между кухней и гостиной",
+        "ws": 415,
+        "wsk": 59
+      },
+      {
+        "pos": 1,
+        "word": "перегородка алюминиевая с остеклением",
+        "ws": 385,
+        "wsk": 55
+      },
+      {
+        "pos": 1,
+        "word": "металлические перегородки",
+        "ws": 5596,
+        "wsk": 54
+      },
+      {
+        "pos": 1,
+        "word": "перегородки для душа из стекла",
+        "ws": 3444,
+        "wsk": 51
+      },
+      {
+        "pos": 1,
+        "word": "стеклянная перегородка в ванну",
+        "ws": 1696,
+        "wsk": 47
+      },
+      {
+        "pos": 1,
+        "word": "стеклянная стена в квартире",
+        "ws": 146,
+        "wsk": 47
+      }
+    ],
+    "topkeys": 130308,
+    "pages": [
+      {
+        "it50": 274,
+        "url": "/product_cat/razdvizhnye-peregorodki"
+      },
+      {
+        "it50": 267,
+        "url": "/"
+      },
+      {
+        "it50": 262,
+        "url": "/product_type/v-dush"
+      },
+      {
+        "it50": 75,
+        "url": "/product_type/v-komnatu"
+      },
+      {
+        "it50": 63,
+        "url": "/product_type/v-vannuyu"
+      },
+      {
+        "it50": 62,
+        "url": "/product_cat/dekorativnye-peregorodki"
+      },
+      {
+        "it50": 61,
+        "url": "/product_cat/peregorodki-mezhkomnatnye-reechnye"
+      },
+      {
+        "it50": 46,
+        "url": "/product_cat/alyuminievye-peregorodki"
+      },
+      {
+        "it50": 44,
+        "url": "/product_cat/steklyannye-peregorodki"
+      },
+      {
+        "it50": 42,
+        "url": "/product_type/v-kuhnyu"
+      }
+    ],
+    "pagesinindex": 197,
+    "vis": 196,
+    "topvis": 48327,
+    "adconcs": [],
+    "adkeys": [],
+    "adkeyscnt": 0,
+    "ads": [],
+    "adscnt": 0,
+    "adtraf": 0,
+    "adcost": {
+      "bdg100": 0,
+      "bdg85": 0,
+      "bdg62": 0,
+      "bdg9": 0,
+      "bdg5": 0,
+      "average": 0,
+      "max": 0,
+      "contextTotals": {
+        "ads": 0,
+        "ad_concs": 0,
+        "adkeys": 0
+      }
+    },
+    "restop5": 20,
+    "history": {
+      "2025.03": {
+        "it1": 7,
+        "it3": 9,
+        "it5": 10,
+        "it10": 11,
+        "it50": 147,
+        "pagesInIndex": 14,
+        "adsCount": 70,
+        "adKeysCount": 70,
+        "visAvg": 2,
+        "aiCnt": 0
+      },
+      "2025.04": {
+        "it1": 7,
+        "it3": 9,
+        "it5": 9,
+        "it10": 10,
+        "it50": 154,
+        "pagesInIndex": 14,
+        "adsCount": 77,
+        "adKeysCount": 77,
+        "visAvg": 2,
+        "aiCnt": 0
+      },
+      "2025.05": {
+        "it1": 7,
+        "it3": 10,
+        "it5": 10,
+        "it10": 11,
+        "it50": 172,
+        "pagesInIndex": 21,
+        "adsCount": 124,
+        "adKeysCount": 124,
+        "visAvg": 2,
+        "aiCnt": 0
+      },
+      "2025.06": {
+        "it1": 10,
+        "it3": 24,
+        "it5": 34,
+        "it10": 74,
+        "it50": 400,
+        "pagesInIndex": 40,
+        "adsCount": 100,
+        "adKeysCount": 100,
+        "visAvg": 38,
+        "aiCnt": 0
+      },
+      "2025.07": {
+        "it1": 27,
+        "it3": 94,
+        "it5": 176,
+        "it10": 369,
+        "it50": 1098,
+        "pagesInIndex": 50,
+        "adsCount": 23,
+        "adKeysCount": 23,
+        "visAvg": 42,
+        "aiCnt": 0
+      },
+      "2025.08": {
+        "it1": 9,
+        "it3": 96,
+        "it5": 220,
+        "it10": 479,
+        "it50": 1194,
+        "pagesInIndex": 50,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 39,
+        "aiCnt": 0
+      },
+      "2025.09": {
+        "it1": 15,
+        "it3": 100,
+        "it5": 228,
+        "it10": 501,
+        "it50": 1197,
+        "pagesInIndex": 53,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 189,
+        "aiCnt": 162
+      },
+      "2025.10": {
+        "it1": 30,
+        "it3": 139,
+        "it5": 279,
+        "it10": 549,
+        "it50": 1227,
+        "pagesInIndex": 55,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 198,
+        "aiCnt": 277
+      },
+      "2025.11": {
+        "it1": 117,
+        "it3": 315,
+        "it5": 477,
+        "it10": 806,
+        "it50": 1486,
+        "pagesInIndex": 60,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 315,
+        "aiCnt": 216
+      },
+      "2025.12": {
+        "it1": 165,
+        "it3": 408,
+        "it5": 612,
+        "it10": 982,
+        "it50": 1863,
+        "pagesInIndex": 62,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 450,
+        "aiCnt": 643
+      },
+      "2026.01": {
+        "it1": 159,
+        "it3": 359,
+        "it5": 543,
+        "it10": 909,
+        "it50": 1824,
+        "pagesInIndex": 65,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 481,
+        "aiCnt": 335
+      },
+      "2026.02": {
+        "it1": 105,
+        "it3": 260,
+        "it5": 406,
+        "it10": 726,
+        "it50": 1687,
+        "pagesInIndex": 72,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 260,
+        "aiCnt": 76
+      },
+      "2026.03": {
+        "it1": 86,
+        "it3": 227,
+        "it5": 367,
+        "it10": 671,
+        "it50": 1707,
+        "pagesInIndex": 90,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 235,
+        "aiCnt": 3
+      },
+      "2026.04": {
+        "it1": 85,
+        "it3": 258,
+        "it5": 437,
+        "it10": 817,
+        "it50": 2158,
+        "pagesInIndex": 138,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 162,
+        "aiCnt": 472
+      },
+      "2026.05": {
+        "it1": 171,
+        "it3": 359,
+        "it5": 542,
+        "it10": 900,
+        "it50": 2429,
+        "pagesInIndex": 141,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 225,
+        "aiCnt": 168
+      },
+      "2026.06": {
+        "it1": 210,
+        "it3": 435,
+        "it5": 597,
+        "it10": 969,
+        "it50": 2515,
+        "pagesInIndex": 146,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 279,
+        "aiCnt": 347
+      },
+      "2026.07": {
+        "it1": 189,
+        "it3": 414,
+        "it5": 597,
+        "it10": 943,
+        "it50": 2654,
+        "pagesInIndex": 157,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 280,
+        "aiCnt": 147
+      },
+      "2026.08": {
+        "it1": 123,
+        "it3": 306,
+        "it5": 468,
+        "it10": 750,
+        "it50": 2389,
+        "pagesInIndex": 197,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 196,
+        "aiCnt": 119
+      },
+      "2026.09": {
+        "it1": 123,
+        "it3": 306,
+        "it5": 468,
+        "it10": 750,
+        "it50": 2389,
+        "pagesInIndex": 197,
+        "adsCount": 0,
+        "adKeysCount": 0,
+        "visAvg": 196,
+        "aiCnt": 119
+      }
+    },
+    "linksHistory": {
+      "2025.03": [
+        26,
+        82,
+        14,
+        8,
+        17
+      ],
+      "2025.04": [
+        27,
+        104,
+        16,
+        9,
+        16
+      ],
+      "2025.05": [
+        16,
+        105,
+        12,
+        10,
+        14
+      ],
+      "2025.06": [
+        17,
+        101,
+        14,
+        10,
+        14
+      ],
+      "2025.07": [
+        17,
+        101,
+        14,
+        10,
+        16
+      ],
+      "2025.08": [
+        18,
+        98,
+        15,
+        10,
+        17
+      ],
+      "2025.09": [
+        22,
+        178,
+        18,
+        10,
+        20
+      ],
+      "2025.10": [
+        21,
+        248,
+        18,
+        11,
+        20
+      ],
+      "2025.11": [
+        20,
+        243,
+        16,
+        11,
+        3
+      ],
+      "2025.12": [
+        23,
+        280,
+        19,
+        11,
+        4
+      ],
+      "2026.01": [
+        31,
+        325,
+        25,
+        11,
+        8
+      ],
+      "2026.02": [
+        32,
+        340,
+        27,
+        11,
+        7
+      ],
+      "2026.03": [
+        30,
+        339,
+        25,
+        11,
+        9
+      ],
+      "2026.04": [
+        27,
+        399,
+        23,
+        12,
+        28
+      ],
+      "2026.05": [
+        29,
+        515,
+        25,
+        12,
+        26
+      ],
+      "2026.06": [
+        31,
+        584,
+        25,
+        12,
+        29
+      ],
+      "2026.07": [
+        29,
+        518,
+        23,
+        12,
+        28
+      ],
+      "2026.08": [
+        27,
+        579,
+        22,
+        12,
+        27
+      ],
+      "2026.09": [
+        27,
+        579,
+        22,
+        12,
+        27
+      ]
+    },
+    "aiAnswersCnt": 119,
+    "aiState": 0,
+    "dr": 19,
+    "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/565f5edfee5acaa6898b4505c54de5d287f45faf71d051636cad7ffc02531098.png",
+    "name": "fdmebel.ru"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "domain": "kristal360.ru",
+  "report": "competitors",
+  "db": "msk",
+  "measured": "2026-08-31T22:16:34.463Z",
+  "url": "https://api.keys.so/report/simple/organic/concurents?base=msk&domain=kristal360.ru&top=10",
+  "data": {
+    "current_page": 1,
+    "per_page": 25,
+    "last_page": 0,
+    "data": [],
+    "total": 0
+  }
+}

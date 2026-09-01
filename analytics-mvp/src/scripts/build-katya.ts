@@ -100,6 +100,17 @@ const catOf = (sku: string) => taxOf(sku).category || autoTax(skuName[sku] || ""
 const subOf = (sku: string) => taxOf(sku).sub || autoTax(skuName[sku] || "").sub || NO_TAX_SUB;
 const modelOf = (sku: string) => taxOf(sku).model || taxOf(sku).offer || skuName[sku] || sku;
 
+// Канон линии для per-line представлений (heatmap, топ-SKU). OZON часто отдаёт line="прочее" у
+// перегородок/столешниц/подстолий, из-за чего они сваливались в «прочее» на «Товарах», хотя на
+// «Обзоре» по таксономии считаются в своей категории (Перегородки и т.д.) - отсюда рассинхрон.
+// Если line пуст/«прочее», но по названию определяется категория - подставляем категорию как линию.
+for (const sk of allSkus) {
+  const ln = skuLine[sk];
+  if (ln && ln !== "прочее") continue;
+  const c = autoTax(skuName[sk] || "").category;
+  if (c) skuLine[sk] = c;
+}
+
 // --- дерево категорий ---
 const groups = new Map<string, Map<string, string[]>>();
 for (const sk of allSkus) {

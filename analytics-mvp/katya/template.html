@@ -3780,12 +3780,18 @@ function renderMatrixCompare(){
   const fmtTip = v => metric === 'ord' ? `${fmt0(v)} шт` : `${fmt(v,2)} млн ₽`;
   const colLbl = metric === 'ord' ? 'Заказы' : 'Выручка';
 
-  // показатель подкатегории за период: выручка (млн) или заказы (шт = выручка × заказы/выручка подкат — без поденного округления)
+  // показатель подкатегории за период: выручка (млн) или заказы (шт).
+  // Заказы берём из РЕАЛЬНОГО дневного ряда подкатегории (DAILY_ORD_CAT = __SUB_D_O за период),
+  // а не оцениваем через выручку - иначе матрица «Категории × Каналы» расходилась со страницей
+  // «Товары» (там честные заказы за период). Фолбэк на оценку только если ряда заказов нет.
   const childVal = (child, from, to) => {
-    const rev = sumRangeDates(DAILY_REV_CAT[child.id], from, to);
-    return metric === 'ord'
-      ? (child.rev > 0 ? rev * (child.orders / child.rev) : 0)
-      : rev;
+    if (metric === 'ord') {
+      const od = sumRangeDates(DAILY_ORD_CAT[child.id], from, to);
+      if (od != null && !isNaN(od)) return od;
+      const rev = sumRangeDates(DAILY_REV_CAT[child.id], from, to);
+      return child.rev > 0 ? rev * (child.orders / child.rev) : 0;
+    }
+    return sumRangeDates(DAILY_REV_CAT[child.id], from, to);
   };
   // значение канала по набору подкатегорий за период (доля канала × показатель подкатегории)
   const chValForPeriod = (chId, children, from, to) => children.reduce((s, ch) => {
@@ -3927,6 +3933,15 @@ function renderMatrix(){
   const dir = sortDir === 'desc' ? -1 : 1;
   const subRatios = subRatiosForPeriod();
   const ratioOf = id => subRatios[id] !== undefined ? subRatios[id] : 1;
+  // Заказы за период - из РЕАЛЬНОГО дневного ряда подкатегории (DAILY_ORD_CAT), а не оценка
+  // «полные заказы × доля выручки». Иначе матрица расходилась со страницей «Товары» (там
+  // честные заказы за период). Фолбэк на оценку только если ряда заказов нет.
+  const _mxRange = getDateRange();
+  const periodOrd = (id, fullOrders) => {
+    const s = DAILY_ORD_CAT[id];
+    if(s){ const v = sumRange(s, _mxRange.startIdx, _mxRange.endIdx); if(v != null && !isNaN(v)) return v; }
+    return (fullOrders || 0) * ratioOf(id);
+  };
   // Метрика, отображаемая в ячейках каналов (кнопки над матрицей). Данные только по Озону.
   const MM = state.mx.metric || 'rev';
   const ozFmt = (rev, margin, orders, share) =>
@@ -3952,7 +3967,7 @@ function renderMatrix(){
       }, 0);
     });
     const totalRev = g.children.reduce((s, c) => s + c.rev * ratioOf(c.id), 0);
-    const totalOrd = g.children.reduce((s, c) => s + c.orders * ratioOf(c.id), 0);
+    const totalOrd = g.children.reduce((s, c) => s + periodOrd(c.id, c.orders), 0);
     // Взвешенная маржа: Σ(rev_sub × margin_sub) / Σ(rev_sub)
     // (используем долю выручки внутри группы как вес — период сокращается)
     const groupRevBase = g.children.reduce((s, c) => s + c.rev, 0);
@@ -4037,8 +4052,7 @@ function renderMatrix(){
         const ratio = ratioOf(c.id);
         const byCh = {};
         CHANNELS.forEach(ch => { byCh[ch.id] = (MX_DATA[ch.id]?.[c.id] || 0) * ratio; });
-        const subOrd = getOrdersByChannel(c.id);
-        const totalOrdSub = CHANNELS.reduce((s, ch) => s + (subOrd[ch.id] || 0), 0) * ratio;
+        const totalOrdSub = periodOrd(c.id, c.orders);
         const margin = SUBCAT_MARGIN[c.id] ?? 35;
         return {...c, byCh, totalOrd: totalOrdSub, revPeriod: c.rev * ratio, margin};
       });

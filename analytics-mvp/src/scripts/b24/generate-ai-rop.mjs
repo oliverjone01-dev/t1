@@ -72,7 +72,7 @@ const run = async () => {
   // Вариант модели убираем целиком, иначе сводка открывается дублем (G5 ФЕНИКСА)
   if (wsT) {
     const body = (dept.summary || '').split('\n').filter((l) => !/^\s*Продажи\s+недели\s*:/i.test(l)).join('\n').replace(/^\n+/, '');
-    dept.summary = 'Продажи недели: ' + wsT.n + ' сделок на ' + Math.round(wsT.rub).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₽.\n\n' + body;
+    dept.summary = ('Продажи недели: ' + wsT.n + ' сделок на ' + Math.round(wsT.rub).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₽.\n\n' + body).replace(/\n{3,}/g, '\n\n');
   }
   const deals = {};
   for (const [q, items] of Object.entries(args.topDeals || {})) { deals[q] = await genDeals(q, items); console.log('  сделки:', q); }

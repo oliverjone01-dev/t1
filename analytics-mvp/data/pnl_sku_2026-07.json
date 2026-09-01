@@ -1,0 +1,2163 @@
+{
+  "dateFrom": "2026-07-01",
+  "dateTo": "2026-07-31",
+  "skuCount": 211,
+  "singleItemOps": 2138,
+  "multiItemOps": 1,
+  "serviceTotals": {
+    "MarketplaceRedistributionOfAcquiringOperation": -122313,
+    "MarketplaceServiceItemProductReviewsManagementSubscription": -67173,
+    "PremiumMembershipCommission": -227631,
+    "MarketplaceServiceBrandCommission": -229646,
+    "MarketplaceServiceItemReturnFlowLogistic": -14270,
+    "MarketplaceServiceItemRedistributionReturnsPVZ": -135,
+    "ItemAgentServiceStarsMembership": -49542,
+    "MarketplaceServiceItemDirectFlowLogistic": -220521,
+    "MarketplaceServiceItemDropoffSC": -3110,
+    "MarketplaceServiceItemRedistributionLastMileCourier": -964,
+    "MarketplaceServiceProcessingOfNonStandardGoods": -12600,
+    "MarketplaceServiceItemTemporaryStorageRedistribution": -15655,
+    "MarketplaceServiceItemInstallment": -31045,
+    "MarketplaceServiceItemDeliveryToHandoverPlaceOzon": -600,
+    "PremiumMembershipCommissionCancelled": 447
+  },
+  "multiOnlySku": {},
+  "bySku": {
+    "3492791592": {
+      "accruals": 38563,
+      "sale_commission": -19667,
+      "delivery": -1136,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1167,
+      "amount": 16593,
+      "ops": 5
+    },
+    "3492791704": {
+      "accruals": 47900,
+      "sale_commission": -23950,
+      "delivery": -675,
+      "acquiring": -392,
+      "storage": 0,
+      "otherSvc": -1102,
+      "amount": 21781,
+      "ops": 5
+    },
+    "3492791902": {
+      "accruals": 247950,
+      "sale_commission": -131413,
+      "delivery": -8544,
+      "acquiring": 0,
+      "storage": -2500,
+      "otherSvc": -6543,
+      "amount": 98950,
+      "ops": 22
+    },
+    "3492793642": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -154,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -154,
+      "ops": 1
+    },
+    "3492794622": {
+      "accruals": 263700,
+      "sale_commission": -139761,
+      "delivery": 0,
+      "acquiring": -880,
+      "storage": 0,
+      "otherSvc": -6065,
+      "amount": 116994,
+      "ops": 13
+    },
+    "3492794724": {
+      "accruals": 297205,
+      "sale_commission": -153331,
+      "delivery": -35469,
+      "acquiring": -1276,
+      "storage": -1500,
+      "otherSvc": -7799,
+      "amount": 97829,
+      "ops": 48
+    },
+    "3492795221": {
+      "accruals": 60900,
+      "sale_commission": -32277,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1401,
+      "amount": 27222,
+      "ops": 4
+    },
+    "3492796112": {
+      "accruals": 36900,
+      "sale_commission": -19557,
+      "delivery": -1021,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1812,
+      "amount": 14509,
+      "ops": 13
+    },
+    "3492796662": {
+      "accruals": -32140,
+      "sale_commission": 16391,
+      "delivery": -1399,
+      "acquiring": 523,
+      "storage": 0,
+      "otherSvc": -826,
+      "amount": -17450,
+      "ops": 10
+    },
+    "3492796838": {
+      "accruals": 65900,
+      "sale_commission": -33609,
+      "delivery": -1100,
+      "acquiring": -545,
+      "storage": 0,
+      "otherSvc": -1796,
+      "amount": 28851,
+      "ops": 6
+    },
+    "3492797992": {
+      "accruals": 179202,
+      "sale_commission": -92480,
+      "delivery": -1842,
+      "acquiring": -2043,
+      "storage": 0,
+      "otherSvc": -4122,
+      "amount": 78715,
+      "ops": 17
+    },
+    "3492799566": {
+      "accruals": 215300,
+      "sale_commission": -108847,
+      "delivery": -13076,
+      "acquiring": -1362,
+      "storage": 0,
+      "otherSvc": -5550,
+      "amount": 86464,
+      "ops": 23
+    },
+    "3492799589": {
+      "accruals": 183475,
+      "sale_commission": -96015,
+      "delivery": -1181,
+      "acquiring": -1073,
+      "storage": 0,
+      "otherSvc": -4220,
+      "amount": 80985,
+      "ops": 15
+    },
+    "3492799869": {
+      "accruals": 53230,
+      "sale_commission": -28212,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1224,
+      "amount": 23794,
+      "ops": 4
+    },
+    "3492801654": {
+      "accruals": 82225,
+      "sale_commission": -43579,
+      "delivery": 0,
+      "acquiring": -731,
+      "storage": 0,
+      "otherSvc": -1891,
+      "amount": 36023,
+      "ops": 5
+    },
+    "3492802296": {
+      "accruals": 41388,
+      "sale_commission": -20694,
+      "delivery": -356,
+      "acquiring": -328,
+      "storage": 0,
+      "otherSvc": -952,
+      "amount": 19058,
+      "ops": 5
+    },
+    "3492802310": {
+      "accruals": 221600,
+      "sale_commission": -113485,
+      "delivery": -12335,
+      "acquiring": -1339,
+      "storage": 0,
+      "otherSvc": -5097,
+      "amount": 89344,
+      "ops": 19
+    },
+    "3492802339": {
+      "accruals": 52200,
+      "sale_commission": -27160,
+      "delivery": -640,
+      "acquiring": -330,
+      "storage": 0,
+      "otherSvc": -1201,
+      "amount": 22870,
+      "ops": 10
+    },
+    "3492803714": {
+      "accruals": 101778,
+      "sale_commission": -51378,
+      "delivery": -1647,
+      "acquiring": -882,
+      "storage": 0,
+      "otherSvc": -2341,
+      "amount": 45529,
+      "ops": 10
+    },
+    "3492803806": {
+      "accruals": 164800,
+      "sale_commission": -85686,
+      "delivery": -2282,
+      "acquiring": 0,
+      "storage": -1000,
+      "otherSvc": -4350,
+      "amount": 71481,
+      "ops": 11
+    },
+    "3492803949": {
+      "accruals": 39900,
+      "sale_commission": -21147,
+      "delivery": -397,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -918,
+      "amount": 17438,
+      "ops": 4
+    },
+    "3492804359": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -510,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -510,
+      "ops": 1
+    },
+    "3492805958": {
+      "accruals": 80900,
+      "sale_commission": -41259,
+      "delivery": -5764,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2141,
+      "amount": 31736,
+      "ops": 5
+    },
+    "3492809339": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -471,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -471,
+      "ops": 1
+    },
+    "3492809616": {
+      "accruals": 130700,
+      "sale_commission": -65789,
+      "delivery": -1980,
+      "acquiring": -717,
+      "storage": 0,
+      "otherSvc": -3006,
+      "amount": 59208,
+      "ops": 14
+    },
+    "3492810262": {
+      "accruals": 35774,
+      "sale_commission": -18960,
+      "delivery": -1136,
+      "acquiring": -313,
+      "storage": 0,
+      "otherSvc": -823,
+      "amount": 14542,
+      "ops": 7
+    },
+    "3492811302": {
+      "accruals": 39900,
+      "sale_commission": -20349,
+      "delivery": -2132,
+      "acquiring": -302,
+      "storage": 0,
+      "otherSvc": -1819,
+      "amount": 15299,
+      "ops": 14
+    },
+    "3492811903": {
+      "accruals": 164906,
+      "sale_commission": -83278,
+      "delivery": -2132,
+      "acquiring": -1350,
+      "storage": 0,
+      "otherSvc": -3793,
+      "amount": 74354,
+      "ops": 10
+    },
+    "3492813002": {
+      "accruals": 128241,
+      "sale_commission": -66241,
+      "delivery": -5679,
+      "acquiring": -903,
+      "storage": -3500,
+      "otherSvc": -2950,
+      "amount": 48968,
+      "ops": 22
+    },
+    "3492813506": {
+      "accruals": 48900,
+      "sale_commission": -24939,
+      "delivery": -1079,
+      "acquiring": -393,
+      "storage": 0,
+      "otherSvc": -1125,
+      "amount": 21365,
+      "ops": 5
+    },
+    "3492813785": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -278,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -278,
+      "ops": 1
+    },
+    "3492814812": {
+      "accruals": 338374,
+      "sale_commission": -174781,
+      "delivery": -10484,
+      "acquiring": -1666,
+      "storage": 0,
+      "otherSvc": -7783,
+      "amount": 143660,
+      "ops": 33
+    },
+    "3492815039": {
+      "accruals": 136700,
+      "sale_commission": -69717,
+      "delivery": -2239,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3144,
+      "amount": 61600,
+      "ops": 12
+    },
+    "3492815548": {
+      "accruals": 95800,
+      "sale_commission": -50774,
+      "delivery": -794,
+      "acquiring": -369,
+      "storage": 0,
+      "otherSvc": -2203,
+      "amount": 41660,
+      "ops": 11
+    },
+    "3492818798": {
+      "accruals": 55900,
+      "sale_commission": -29627,
+      "delivery": 0,
+      "acquiring": -489,
+      "storage": 0,
+      "otherSvc": -1286,
+      "amount": 24498,
+      "ops": 5
+    },
+    "3492818910": {
+      "accruals": 49900,
+      "sale_commission": -25449,
+      "delivery": -396,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1148,
+      "amount": 22908,
+      "ops": 4
+    },
+    "3492822125": {
+      "accruals": 49260,
+      "sale_commission": -25123,
+      "delivery": -595,
+      "acquiring": -395,
+      "storage": 0,
+      "otherSvc": -1133,
+      "amount": 22014,
+      "ops": 7
+    },
+    "3492824859": {
+      "accruals": 185700,
+      "sale_commission": -98421,
+      "delivery": -3379,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4271,
+      "amount": 79629,
+      "ops": 12
+    },
+    "3492825290": {
+      "accruals": 54305,
+      "sale_commission": -27696,
+      "delivery": -1899,
+      "acquiring": -101,
+      "storage": -1242,
+      "otherSvc": -2282,
+      "amount": 21085,
+      "ops": 14
+    },
+    "3492827722": {
+      "accruals": 120824,
+      "sale_commission": -62513,
+      "delivery": -1441,
+      "acquiring": -480,
+      "storage": 0,
+      "otherSvc": -2779,
+      "amount": 53611,
+      "ops": 18
+    },
+    "3492828848": {
+      "accruals": 140852,
+      "sale_commission": -71416,
+      "delivery": -1666,
+      "acquiring": -1196,
+      "storage": 0,
+      "otherSvc": -3240,
+      "amount": 63335,
+      "ops": 17
+    },
+    "3492835691": {
+      "accruals": 59887,
+      "sale_commission": -29943,
+      "delivery": -647,
+      "acquiring": -535,
+      "storage": 0,
+      "otherSvc": -1377,
+      "amount": 27384,
+      "ops": 7
+    },
+    "3492837337": {
+      "accruals": 35305,
+      "sale_commission": -18006,
+      "delivery": -552,
+      "acquiring": -269,
+      "storage": 0,
+      "otherSvc": -812,
+      "amount": 15667,
+      "ops": 5
+    },
+    "3496061323": {
+      "accruals": 92674,
+      "sale_commission": -46881,
+      "delivery": -3295,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2691,
+      "amount": 39807,
+      "ops": 10
+    },
+    "3496311024": {
+      "accruals": 34868,
+      "sale_commission": -18480,
+      "delivery": -615,
+      "acquiring": -165,
+      "storage": 0,
+      "otherSvc": -802,
+      "amount": 14806,
+      "ops": 5
+    },
+    "3496311550": {
+      "accruals": 47900,
+      "sale_commission": -24429,
+      "delivery": -675,
+      "acquiring": -391,
+      "storage": 0,
+      "otherSvc": -1102,
+      "amount": 21304,
+      "ops": 5
+    },
+    "3496394792": {
+      "accruals": 32900,
+      "sale_commission": -17437,
+      "delivery": -1718,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -757,
+      "amount": 12989,
+      "ops": 4
+    },
+    "3496480746": {
+      "accruals": 57900,
+      "sale_commission": -30687,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2200,
+      "amount": 25013,
+      "ops": 5
+    },
+    "3496612248": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": -478,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -478,
+      "ops": 3
+    },
+    "3496613345": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -309,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -309,
+      "ops": 1
+    },
+    "3496613560": {
+      "accruals": 50900,
+      "sale_commission": -26977,
+      "delivery": 0,
+      "acquiring": -448,
+      "storage": 0,
+      "otherSvc": -1171,
+      "amount": 22304,
+      "ops": 5
+    },
+    "3496735355": {
+      "accruals": 42900,
+      "sale_commission": -22737,
+      "delivery": -1166,
+      "acquiring": 313,
+      "storage": -456,
+      "otherSvc": -1950,
+      "amount": 16903,
+      "ops": 13
+    },
+    "3496738366": {
+      "accruals": 73800,
+      "sale_commission": -38376,
+      "delivery": -1053,
+      "acquiring": -312,
+      "storage": 0,
+      "otherSvc": -1697,
+      "amount": 32362,
+      "ops": 10
+    },
+    "3497336203": {
+      "accruals": 44393,
+      "sale_commission": -23528,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1021,
+      "amount": 19844,
+      "ops": 4
+    },
+    "3497337157": {
+      "accruals": 80565,
+      "sale_commission": -41032,
+      "delivery": -1719,
+      "acquiring": -58,
+      "storage": 0,
+      "otherSvc": -1853,
+      "amount": 35903,
+      "ops": 13
+    },
+    "3497337286": {
+      "accruals": 50815,
+      "sale_commission": -26932,
+      "delivery": -584,
+      "acquiring": -417,
+      "storage": 0,
+      "otherSvc": -1169,
+      "amount": 21713,
+      "ops": 5
+    },
+    "3497337738": {
+      "accruals": 50900,
+      "sale_commission": -25450,
+      "delivery": -3127,
+      "acquiring": -371,
+      "storage": 0,
+      "otherSvc": -1171,
+      "amount": 20781,
+      "ops": 5
+    },
+    "3497338217": {
+      "accruals": 47900,
+      "sale_commission": -24429,
+      "delivery": -765,
+      "acquiring": -395,
+      "storage": 0,
+      "otherSvc": -1102,
+      "amount": 21209,
+      "ops": 5
+    },
+    "3497362666": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -1111,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -1111,
+      "ops": 2
+    },
+    "3497362889": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 574,
+      "storage": -918,
+      "otherSvc": 0,
+      "amount": -344,
+      "ops": 2
+    },
+    "3497363945": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": -1183,
+      "acquiring": -552,
+      "storage": 0,
+      "otherSvc": -1934,
+      "amount": -3669,
+      "ops": 6
+    },
+    "3497363987": {
+      "accruals": 61188,
+      "sale_commission": -32430,
+      "delivery": -315,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1687,
+      "amount": 26756,
+      "ops": 5
+    },
+    "3501466983": {
+      "accruals": 53861,
+      "sale_commission": -28546,
+      "delivery": -2433,
+      "acquiring": 363,
+      "storage": 0,
+      "otherSvc": -1239,
+      "amount": 22006,
+      "ops": 10
+    },
+    "3501468502": {
+      "accruals": 47722,
+      "sale_commission": -24338,
+      "delivery": -1079,
+      "acquiring": -385,
+      "storage": 0,
+      "otherSvc": -1378,
+      "amount": 20542,
+      "ops": 6
+    },
+    "3501468573": {
+      "accruals": 205253,
+      "sale_commission": -104679,
+      "delivery": -2660,
+      "acquiring": -712,
+      "storage": 0,
+      "otherSvc": -4721,
+      "amount": 92481,
+      "ops": 13
+    },
+    "3555657576": {
+      "accruals": 363994,
+      "sale_commission": -192917,
+      "delivery": -10,
+      "acquiring": -1038,
+      "storage": 0,
+      "otherSvc": -11984,
+      "amount": 158045,
+      "ops": 34
+    },
+    "3555672541": {
+      "accruals": 657519,
+      "sale_commission": -342457,
+      "delivery": -14237,
+      "acquiring": -4106,
+      "storage": -1746,
+      "otherSvc": -15123,
+      "amount": 279851,
+      "ops": 77
+    },
+    "3563467919": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 683,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 683,
+      "ops": 1
+    },
+    "3563474226": {
+      "accruals": 107900,
+      "sale_commission": -50713,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3776,
+      "amount": 53411,
+      "ops": 4
+    },
+    "3563474543": {
+      "accruals": 339708,
+      "sale_commission": -159663,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -13249,
+      "amount": 166797,
+      "ops": 5
+    },
+    "3563831154": {
+      "accruals": 21900,
+      "sale_commission": -10293,
+      "delivery": -1100,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -504,
+      "amount": 10003,
+      "ops": 4
+    },
+    "3563989512": {
+      "accruals": 38900,
+      "sale_commission": -19839,
+      "delivery": -1104,
+      "acquiring": -361,
+      "storage": 0,
+      "otherSvc": -1175,
+      "amount": 16421,
+      "ops": 6
+    },
+    "3563989798": {
+      "accruals": 57900,
+      "sale_commission": -29529,
+      "delivery": -1161,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1612,
+      "amount": 25598,
+      "ops": 5
+    },
+    "3563990090": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -361,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -361,
+      "ops": 1
+    },
+    "3563990293": {
+      "accruals": 57900,
+      "sale_commission": -29529,
+      "delivery": -3388,
+      "acquiring": -418,
+      "storage": -1500,
+      "otherSvc": -1892,
+      "amount": 21173,
+      "ops": 13
+    },
+    "3563990351": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 0,
+      "ops": 2
+    },
+    "3564022730": {
+      "accruals": 17900,
+      "sale_commission": -8234,
+      "delivery": -387,
+      "acquiring": -185,
+      "storage": 0,
+      "otherSvc": -692,
+      "amount": 8402,
+      "ops": 6
+    },
+    "3564022815": {
+      "accruals": 35800,
+      "sale_commission": -14857,
+      "delivery": -2118,
+      "acquiring": -166,
+      "storage": 0,
+      "otherSvc": -1383,
+      "amount": 17275,
+      "ops": 11
+    },
+    "3564022836": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 0,
+      "ops": 2
+    },
+    "3564022917": {
+      "accruals": 19900,
+      "sale_commission": -9154,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -458,
+      "amount": 10288,
+      "ops": 6
+    },
+    "3564022989": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": -1239,
+      "acquiring": 0,
+      "storage": -420,
+      "otherSvc": -692,
+      "amount": -2350,
+      "ops": 13
+    },
+    "3564023072": {
+      "accruals": 13900,
+      "sale_commission": -6394,
+      "delivery": -541,
+      "acquiring": -134,
+      "storage": 0,
+      "otherSvc": -600,
+      "amount": 6231,
+      "ops": 6
+    },
+    "3564023264": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 317,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 317,
+      "ops": 5
+    },
+    "3564023316": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -281,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -281,
+      "ops": 1
+    },
+    "3564023604": {
+      "accruals": 14900,
+      "sale_commission": -6854,
+      "delivery": -1076,
+      "acquiring": -158,
+      "storage": 0,
+      "otherSvc": -623,
+      "amount": 6189,
+      "ops": 6
+    },
+    "3564023717": {
+      "accruals": 20900,
+      "sale_commission": -8569,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -481,
+      "amount": 11850,
+      "ops": 4
+    },
+    "3564815815": {
+      "accruals": 53900,
+      "sale_commission": -27489,
+      "delivery": -460,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1520,
+      "amount": 24431,
+      "ops": 5
+    },
+    "3564816068": {
+      "accruals": 85900,
+      "sale_commission": -35219,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1976,
+      "amount": 48705,
+      "ops": 4
+    },
+    "3564816779": {
+      "accruals": 50127,
+      "sale_commission": -20552,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1153,
+      "amount": 28422,
+      "ops": 4
+    },
+    "3564817123": {
+      "accruals": 81250,
+      "sale_commission": -37380,
+      "delivery": -8014,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1869,
+      "amount": 33987,
+      "ops": 8
+    },
+    "3564818585": {
+      "accruals": 87700,
+      "sale_commission": -41578,
+      "delivery": -2676,
+      "acquiring": -522,
+      "storage": 0,
+      "otherSvc": -2017,
+      "amount": 40907,
+      "ops": 13
+    },
+    "3564819759": {
+      "accruals": 63602,
+      "sale_commission": -26077,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1463,
+      "amount": 36062,
+      "ops": 4
+    },
+    "3564819819": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 0,
+      "ops": 2
+    },
+    "3564820696": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -193,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -193,
+      "ops": 1
+    },
+    "3564821455": {
+      "accruals": 58044,
+      "sale_commission": -23798,
+      "delivery": 0,
+      "acquiring": -755,
+      "storage": 0,
+      "otherSvc": -4105,
+      "amount": 29386,
+      "ops": 6
+    },
+    "3564822409": {
+      "accruals": 69860,
+      "sale_commission": -28643,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1746,
+      "amount": 39471,
+      "ops": 3
+    },
+    "3564822657": {
+      "accruals": 123854,
+      "sale_commission": -53876,
+      "delivery": 0,
+      "acquiring": -609,
+      "storage": 0,
+      "otherSvc": -2849,
+      "amount": 66520,
+      "ops": 9
+    },
+    "3564823085": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -718,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -718,
+      "ops": 3
+    },
+    "3564823254": {
+      "accruals": 61460,
+      "sale_commission": -25199,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1414,
+      "amount": 34848,
+      "ops": 4
+    },
+    "3564823847": {
+      "accruals": 93900,
+      "sale_commission": -43194,
+      "delivery": 0,
+      "acquiring": -701,
+      "storage": 0,
+      "otherSvc": -2160,
+      "amount": 47845,
+      "ops": 5
+    },
+    "3564824197": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -1273,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -1273,
+      "ops": 2
+    },
+    "3564824198": {
+      "accruals": 167620,
+      "sale_commission": -68724,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4694,
+      "amount": 94202,
+      "ops": 13
+    },
+    "3564825153": {
+      "accruals": 77900,
+      "sale_commission": -31939,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1792,
+      "amount": 44169,
+      "ops": 4
+    },
+    "3564825716": {
+      "accruals": 57800,
+      "sale_commission": -28362,
+      "delivery": -5610,
+      "acquiring": -277,
+      "storage": -339,
+      "otherSvc": -2017,
+      "amount": 21195,
+      "ops": 22
+    },
+    "3564825723": {
+      "accruals": 184700,
+      "sale_commission": -82017,
+      "delivery": 0,
+      "acquiring": -1240,
+      "storage": 0,
+      "otherSvc": -4248,
+      "amount": 97195,
+      "ops": 14
+    },
+    "3564826162": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -594,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -594,
+      "ops": 1
+    },
+    "3564826342": {
+      "accruals": 55900,
+      "sale_commission": -22919,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1956,
+      "amount": 31025,
+      "ops": 4
+    },
+    "3564826357": {
+      "accruals": 92700,
+      "sale_commission": -45423,
+      "delivery": -1777,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2132,
+      "amount": 43368,
+      "ops": 12
+    },
+    "3564827455": {
+      "accruals": 167580,
+      "sale_commission": -68708,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3854,
+      "amount": 95018,
+      "ops": 4
+    },
+    "3564827469": {
+      "accruals": 124949,
+      "sale_commission": -61251,
+      "delivery": -4031,
+      "acquiring": -1067,
+      "storage": 0,
+      "otherSvc": -4429,
+      "amount": 54171,
+      "ops": 23
+    },
+    "3564827486": {
+      "accruals": 74850,
+      "sale_commission": -30688,
+      "delivery": 0,
+      "acquiring": -823,
+      "storage": 0,
+      "otherSvc": -1722,
+      "amount": 41617,
+      "ops": 5
+    },
+    "3564829537": {
+      "accruals": 36900,
+      "sale_commission": -15129,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -849,
+      "amount": 20922,
+      "ops": 4
+    },
+    "3564830713": {
+      "accruals": 82900,
+      "sale_commission": -42279,
+      "delivery": 0,
+      "acquiring": -786,
+      "storage": 0,
+      "otherSvc": -1907,
+      "amount": 37929,
+      "ops": 5
+    },
+    "3564830765": {
+      "accruals": 74850,
+      "sale_commission": -30688,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2844,
+      "amount": 41317,
+      "ops": 7
+    },
+    "3564830777": {
+      "accruals": 60351,
+      "sale_commission": -24744,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1388,
+      "amount": 34219,
+      "ops": 4
+    },
+    "3564831114": {
+      "accruals": 370679,
+      "sale_commission": -159703,
+      "delivery": 0,
+      "acquiring": -3362,
+      "storage": 0,
+      "otherSvc": -9597,
+      "amount": 198016,
+      "ops": 25
+    },
+    "3564831225": {
+      "accruals": 71900,
+      "sale_commission": -29479,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1654,
+      "amount": 40767,
+      "ops": 4
+    },
+    "3564831423": {
+      "accruals": 140640,
+      "sale_commission": -64694,
+      "delivery": 0,
+      "acquiring": -1450,
+      "storage": 0,
+      "otherSvc": -3235,
+      "amount": 71261,
+      "ops": 9
+    },
+    "3564831530": {
+      "accruals": 396217,
+      "sale_commission": -173777,
+      "delivery": 0,
+      "acquiring": -1805,
+      "storage": 0,
+      "otherSvc": -9113,
+      "amount": 211523,
+      "ops": 28
+    },
+    "3564831766": {
+      "accruals": 1321932,
+      "sale_commission": -581748,
+      "delivery": 0,
+      "acquiring": -14924,
+      "storage": 0,
+      "otherSvc": -42901,
+      "amount": 682359,
+      "ops": 114
+    },
+    "3564831927": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 0,
+      "ops": 2
+    },
+    "3564832476": {
+      "accruals": 29800,
+      "sale_commission": -13708,
+      "delivery": -827,
+      "acquiring": -282,
+      "storage": 0,
+      "otherSvc": -1245,
+      "amount": 13738,
+      "ops": 12
+    },
+    "3564832479": {
+      "accruals": 112514,
+      "sale_commission": -48963,
+      "delivery": 0,
+      "acquiring": -535,
+      "storage": 0,
+      "otherSvc": -2588,
+      "amount": 60428,
+      "ops": 10
+    },
+    "3564832758": {
+      "accruals": 67120,
+      "sale_commission": -30875,
+      "delivery": 0,
+      "acquiring": -681,
+      "storage": 0,
+      "otherSvc": -1544,
+      "amount": 34020,
+      "ops": 5
+    },
+    "3564832777": {
+      "accruals": 73970,
+      "sale_commission": -30328,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1701,
+      "amount": 41941,
+      "ops": 4
+    },
+    "3564833953": {
+      "accruals": 56900,
+      "sale_commission": -23329,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1309,
+      "amount": 32262,
+      "ops": 4
+    },
+    "3564834089": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 614,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 614,
+      "ops": 1
+    },
+    "3564834969": {
+      "accruals": 88749,
+      "sale_commission": -36387,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2041,
+      "amount": 50321,
+      "ops": 4
+    },
+    "3564835749": {
+      "accruals": 127600,
+      "sale_commission": -62873,
+      "delivery": -3477,
+      "acquiring": -994,
+      "storage": 0,
+      "otherSvc": -2935,
+      "amount": 57321,
+      "ops": 20
+    },
+    "3564836245": {
+      "accruals": 137220,
+      "sale_commission": -60176,
+      "delivery": 0,
+      "acquiring": -735,
+      "storage": 0,
+      "otherSvc": -3156,
+      "amount": 73153,
+      "ops": 9
+    },
+    "3564836537": {
+      "accruals": 206463,
+      "sale_commission": -91900,
+      "delivery": 0,
+      "acquiring": -2670,
+      "storage": 0,
+      "otherSvc": -4749,
+      "amount": 107145,
+      "ops": 16
+    },
+    "3564836550": {
+      "accruals": 53900,
+      "sale_commission": -22099,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1886,
+      "amount": 29915,
+      "ops": 4
+    },
+    "3564837102": {
+      "accruals": 74900,
+      "sale_commission": -30709,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1723,
+      "amount": 42468,
+      "ops": 4
+    },
+    "3564837455": {
+      "accruals": 52900,
+      "sale_commission": -21689,
+      "delivery": 0,
+      "acquiring": 507,
+      "storage": 0,
+      "otherSvc": -1217,
+      "amount": 30501,
+      "ops": 5
+    },
+    "3564837459": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -659,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -659,
+      "ops": 1
+    },
+    "3564837519": {
+      "accruals": 71900,
+      "sale_commission": -29479,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -5897,
+      "amount": 36524,
+      "ops": 5
+    },
+    "3564837533": {
+      "accruals": 75900,
+      "sale_commission": -31119,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1746,
+      "amount": 43035,
+      "ops": 4
+    },
+    "3564837540": {
+      "accruals": 61460,
+      "sale_commission": -25199,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2335,
+      "amount": 33926,
+      "ops": 5
+    },
+    "3564837576": {
+      "accruals": 68258,
+      "sale_commission": -27986,
+      "delivery": 0,
+      "acquiring": -878,
+      "storage": 0,
+      "otherSvc": -1570,
+      "amount": 37824,
+      "ops": 5
+    },
+    "3564837580": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -859,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -859,
+      "ops": 1
+    },
+    "3564838131": {
+      "accruals": 20900,
+      "sale_commission": -9614,
+      "delivery": 0,
+      "acquiring": -315,
+      "storage": 0,
+      "otherSvc": -481,
+      "amount": 10490,
+      "ops": 6
+    },
+    "3564839215": {
+      "accruals": 73900,
+      "sale_commission": -30299,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2808,
+      "amount": 40793,
+      "ops": 5
+    },
+    "3564839538": {
+      "accruals": 313830,
+      "sale_commission": -135563,
+      "delivery": 0,
+      "acquiring": -1885,
+      "storage": 0,
+      "otherSvc": -7218,
+      "amount": 169164,
+      "ops": 23
+    },
+    "3564840005": {
+      "accruals": 13350,
+      "sale_commission": -5874,
+      "delivery": -301,
+      "acquiring": -235,
+      "storage": 0,
+      "otherSvc": -587,
+      "amount": 6353,
+      "ops": 9
+    },
+    "3564840043": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": -512,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -512,
+      "ops": 2
+    },
+    "3564840623": {
+      "accruals": 97900,
+      "sale_commission": -45034,
+      "delivery": 0,
+      "acquiring": -968,
+      "storage": 0,
+      "otherSvc": -2252,
+      "amount": 49646,
+      "ops": 5
+    },
+    "3564840998": {
+      "accruals": 116640,
+      "sale_commission": -47822,
+      "delivery": 0,
+      "acquiring": -1345,
+      "storage": 0,
+      "otherSvc": -2683,
+      "amount": 64790,
+      "ops": 5
+    },
+    "3564841184": {
+      "accruals": 169275,
+      "sale_commission": -77866,
+      "delivery": 0,
+      "acquiring": -2459,
+      "storage": 0,
+      "otherSvc": -3893,
+      "amount": 85056,
+      "ops": 13
+    },
+    "3564841191": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -492,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -492,
+      "ops": 1
+    },
+    "3564841231": {
+      "accruals": 194756,
+      "sale_commission": -79850,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -7464,
+      "amount": 107442,
+      "ops": 18
+    },
+    "3564841366": {
+      "accruals": 1583886,
+      "sale_commission": -703889,
+      "delivery": 0,
+      "acquiring": -13556,
+      "storage": 0,
+      "otherSvc": -42924,
+      "amount": 823517,
+      "ops": 138
+    },
+    "3564844613": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": -5112,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2625,
+      "amount": -7737,
+      "ops": 15
+    },
+    "3564845365": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -245,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -245,
+      "ops": 1
+    },
+    "3564845410": {
+      "accruals": 173679,
+      "sale_commission": -74263,
+      "delivery": 0,
+      "acquiring": -1352,
+      "storage": 0,
+      "otherSvc": -4104,
+      "amount": 93961,
+      "ops": 13
+    },
+    "3564845550": {
+      "accruals": 57900,
+      "sale_commission": -27213,
+      "delivery": 0,
+      "acquiring": -543,
+      "storage": 0,
+      "otherSvc": -1332,
+      "amount": 28813,
+      "ops": 5
+    },
+    "3564845759": {
+      "accruals": 145750,
+      "sale_commission": -59757,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3352,
+      "amount": 82640,
+      "ops": 8
+    },
+    "3564845773": {
+      "accruals": 109390,
+      "sale_commission": -55069,
+      "delivery": -2772,
+      "acquiring": -1267,
+      "storage": 0,
+      "otherSvc": -5206,
+      "amount": 45076,
+      "ops": 20
+    },
+    "3564846098": {
+      "accruals": 284497,
+      "sale_commission": -119729,
+      "delivery": 0,
+      "acquiring": -710,
+      "storage": 0,
+      "otherSvc": -9504,
+      "amount": 154554,
+      "ops": 30
+    },
+    "3564846907": {
+      "accruals": 71850,
+      "sale_commission": -29458,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1653,
+      "amount": 40739,
+      "ops": 4
+    },
+    "3564847171": {
+      "accruals": 168979,
+      "sale_commission": -72410,
+      "delivery": -5242,
+      "acquiring": -1384,
+      "storage": -534,
+      "otherSvc": -5847,
+      "amount": 83563,
+      "ops": 55
+    },
+    "3564847187": {
+      "accruals": 122700,
+      "sale_commission": -61759,
+      "delivery": -12166,
+      "acquiring": -1104,
+      "storage": 0,
+      "otherSvc": -3763,
+      "amount": 43909,
+      "ops": 20
+    },
+    "3564848193": {
+      "accruals": 119500,
+      "sale_commission": -58794,
+      "delivery": -4437,
+      "acquiring": -656,
+      "storage": 0,
+      "otherSvc": -2749,
+      "amount": 52865,
+      "ops": 20
+    },
+    "3564848367": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -750,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -750,
+      "ops": 1
+    },
+    "3564849231": {
+      "accruals": 55900,
+      "sale_commission": -22919,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1286,
+      "amount": 31695,
+      "ops": 4
+    },
+    "3564852116": {
+      "accruals": 130286,
+      "sale_commission": -56862,
+      "delivery": 0,
+      "acquiring": -1449,
+      "storage": 0,
+      "otherSvc": -2997,
+      "amount": 68978,
+      "ops": 10
+    },
+    "3564852634": {
+      "accruals": 185059,
+      "sale_commission": -91426,
+      "delivery": -4420,
+      "acquiring": -1608,
+      "storage": 0,
+      "otherSvc": -5656,
+      "amount": 81949,
+      "ops": 30
+    },
+    "3579701458": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -867,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -867,
+      "ops": 1
+    },
+    "3579702607": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -793,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -793,
+      "ops": 1
+    },
+    "3579702764": {
+      "accruals": 123020,
+      "sale_commission": -56589,
+      "delivery": 0,
+      "acquiring": -1208,
+      "storage": 0,
+      "otherSvc": -2829,
+      "amount": 62394,
+      "ops": 10
+    },
+    "3579702771": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -618,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -618,
+      "ops": 1
+    },
+    "3579702776": {
+      "accruals": 100237,
+      "sale_commission": -41097,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3069,
+      "amount": 56071,
+      "ops": 9
+    },
+    "3579703160": {
+      "accruals": 82320,
+      "sale_commission": -37867,
+      "delivery": 0,
+      "acquiring": -4139,
+      "storage": 0,
+      "otherSvc": -1893,
+      "amount": 38420,
+      "ops": 12
+    },
+    "3579703342": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": 0,
+      "ops": 2
+    },
+    "3579703350": {
+      "accruals": 53900,
+      "sale_commission": -22099,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1240,
+      "amount": 30561,
+      "ops": 4
+    },
+    "3579703352": {
+      "accruals": 53900,
+      "sale_commission": -22099,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1886,
+      "amount": 29915,
+      "ops": 4
+    },
+    "3579703459": {
+      "accruals": 51406,
+      "sale_commission": -21076,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1953,
+      "amount": 28376,
+      "ops": 5
+    },
+    "3579703510": {
+      "accruals": 93520,
+      "sale_commission": -43019,
+      "delivery": 0,
+      "acquiring": -705,
+      "storage": 0,
+      "otherSvc": -2151,
+      "amount": 47645,
+      "ops": 7
+    },
+    "3579703573": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -944,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -944,
+      "ops": 1
+    },
+    "3579703693": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -194,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -194,
+      "ops": 2
+    },
+    "3579703930": {
+      "accruals": 143700,
+      "sale_commission": -58917,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3305,
+      "amount": 81478,
+      "ops": 8
+    },
+    "3584651520": {
+      "accruals": 124127,
+      "sale_commission": -53982,
+      "delivery": 0,
+      "acquiring": -616,
+      "storage": 0,
+      "otherSvc": -2855,
+      "amount": 66674,
+      "ops": 9
+    },
+    "3589914151": {
+      "accruals": 64900,
+      "sale_commission": -30503,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1493,
+      "amount": 32904,
+      "ops": 4
+    },
+    "3589920221": {
+      "accruals": 61900,
+      "sale_commission": -31569,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1424,
+      "amount": 28907,
+      "ops": 4
+    },
+    "3589920479": {
+      "accruals": 70900,
+      "sale_commission": -36159,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1631,
+      "amount": 33110,
+      "ops": 4
+    },
+    "3590031896": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -156,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -156,
+      "ops": 1
+    },
+    "3590034399": {
+      "accruals": 38900,
+      "sale_commission": -15949,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -895,
+      "amount": 22056,
+      "ops": 4
+    },
+    "3590034551": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -708,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -708,
+      "ops": 1
+    },
+    "3590034731": {
+      "accruals": 63920,
+      "sale_commission": -29403,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -1470,
+      "amount": 33047,
+      "ops": 4
+    },
+    "3595055077": {
+      "accruals": 189147,
+      "sale_commission": -100248,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -6237,
+      "amount": 82662,
+      "ops": 14
+    },
+    "3595126858": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -594,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -594,
+      "ops": 1
+    },
+    "3734276021": {
+      "accruals": 269290,
+      "sale_commission": -110409,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -6194,
+      "amount": 152687,
+      "ops": 12
+    },
+    "3734276153": {
+      "accruals": 1605980,
+      "sale_commission": -658452,
+      "delivery": 0,
+      "acquiring": 634,
+      "storage": 0,
+      "otherSvc": -47091,
+      "amount": 901072,
+      "ops": 85
+    },
+    "3734276157": {
+      "accruals": 844303,
+      "sale_commission": -346164,
+      "delivery": 0,
+      "acquiring": -1636,
+      "storage": 0,
+      "otherSvc": -28022,
+      "amount": 468481,
+      "ops": 50
+    },
+    "3734276712": {
+      "accruals": 169800,
+      "sale_commission": -69618,
+      "delivery": 0,
+      "acquiring": -1959,
+      "storage": 0,
+      "otherSvc": -4924,
+      "amount": 93299,
+      "ops": 10
+    },
+    "3800630459": {
+      "accruals": 34561,
+      "sale_commission": -17626,
+      "delivery": -309,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -795,
+      "amount": 15831,
+      "ops": 4
+    },
+    "3800630878": {
+      "accruals": 35265,
+      "sale_commission": -18690,
+      "delivery": 0,
+      "acquiring": -273,
+      "storage": 0,
+      "otherSvc": -811,
+      "amount": 15491,
+      "ops": 5
+    },
+    "3931529413": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -96,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -96,
+      "ops": 3
+    },
+    "3931902768": {
+      "accruals": 43900,
+      "sale_commission": -23267,
+      "delivery": -1136,
+      "acquiring": -316,
+      "storage": 0,
+      "otherSvc": -1290,
+      "amount": 17891,
+      "ops": 6
+    },
+    "3932017511": {
+      "accruals": 27900,
+      "sale_commission": -14229,
+      "delivery": 0,
+      "acquiring": -259,
+      "storage": 0,
+      "otherSvc": -642,
+      "amount": 12770,
+      "ops": 5
+    },
+    "3932069101": {
+      "accruals": 30900,
+      "sale_commission": -15759,
+      "delivery": 0,
+      "acquiring": -289,
+      "storage": 0,
+      "otherSvc": -711,
+      "amount": 14141,
+      "ops": 5
+    },
+    "3932314355": {
+      "accruals": 54376,
+      "sale_commission": -22294,
+      "delivery": 0,
+      "acquiring": 590,
+      "storage": 0,
+      "otherSvc": -1251,
+      "amount": 31421,
+      "ops": 5
+    },
+    "3970792393": {
+      "accruals": 121900,
+      "sale_commission": -49979,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -3047,
+      "amount": 68874,
+      "ops": 3
+    },
+    "4142521392": {
+      "accruals": 0,
+      "sale_commission": 0,
+      "delivery": 0,
+      "acquiring": -798,
+      "storage": 0,
+      "otherSvc": 0,
+      "amount": -798,
+      "ops": 1
+    },
+    "4865594859": {
+      "accruals": 63689,
+      "sale_commission": -29297,
+      "delivery": 0,
+      "acquiring": -205,
+      "storage": 0,
+      "otherSvc": -1465,
+      "amount": 32722,
+      "ops": 10
+    },
+    "4865595144": {
+      "accruals": 5791,
+      "sale_commission": -2664,
+      "delivery": 0,
+      "acquiring": -840,
+      "storage": 0,
+      "otherSvc": -133,
+      "amount": 2154,
+      "ops": 7
+    },
+    "4865595261": {
+      "accruals": 145800,
+      "sale_commission": -63273,
+      "delivery": 0,
+      "acquiring": -690,
+      "storage": 0,
+      "otherSvc": -3353,
+      "amount": 78483,
+      "ops": 9
+    },
+    "4865596894": {
+      "accruals": 4851,
+      "sale_commission": -2231,
+      "delivery": 0,
+      "acquiring": -469,
+      "storage": 0,
+      "otherSvc": -112,
+      "amount": 2039,
+      "ops": 6
+    },
+    "4379586760": {
+      "accruals": 108302,
+      "sale_commission": -44404,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -4115,
+      "amount": 59783,
+      "ops": 5
+    },
+    "4466133623": {
+      "accruals": 80900,
+      "sale_commission": -41259,
+      "delivery": 0,
+      "acquiring": -741,
+      "storage": 0,
+      "otherSvc": -1861,
+      "amount": 37039,
+      "ops": 5
+    },
+    "4379507810": {
+      "accruals": 108900,
+      "sale_commission": -44649,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2505,
+      "amount": 61746,
+      "ops": 4
+    },
+    "4379492951": {
+      "accruals": 110369,
+      "sale_commission": -45251,
+      "delivery": 0,
+      "acquiring": 0,
+      "storage": 0,
+      "otherSvc": -2538,
+      "amount": 62579,
+      "ops": 4
+    }
+  },
+  "bundles": [
+    {
+      "posting": "15913548-0274",
+      "date": "2026-07-22",
+      "items": [
+        {
+          "sku": "3492813002",
+          "name": "GENGLASS Зеркало настенное EVELIX L Gold 180x50 см, в полный рост, овальное",
+          "qty": 1
+        },
+        {
+          "sku": "3492818910",
+          "name": "GENGLASS Зеркало настенное в прихожую KVADEN L Gold 180x60 см, овальное, интерьерное, в раме",
+          "qty": 1
+        }
+      ],
+      "accruals": 0,
+      "commission": 0,
+      "delivery": 0,
+      "acquiring": -700,
+      "storage": 0,
+      "otherSvc": 0,
+      "fees": 700,
+      "amount": -700
+    }
+  ]
+}

@@ -47,7 +47,7 @@ const cMed = cVals.length ? cVals[Math.floor(cVals.length / 2)] : 0;
 const migDays = Object.keys(createdByDay).filter((d) => createdByDay[d] > Math.max(60, cMed * 10)).sort();
 // R4 (ФЕНИКС): в когорту отдела входят только сделки 11 менеджеров разбора;
 // тестовые и системные отсечены (бюджет <= 10 руб с "тест" в имени, системные владельцы)
-const isTestDeal = (d: any) => (/\bтест/i.test(d.title || "") && (d.budget || 0) <= 10) || /систем|робот/i.test(d.mgr || "");
+const isTestDeal = (d: any) => (/(^|[^а-яё])тест/i.test(d.title || "") && (d.budget || 0) <= 10) || /систем|робот/i.test(d.mgr || "");
 let cohortDropped = 0, cohortNoHist = 0;
 const cohort: any[] = [];
 for (const d of rop.deals || []) {

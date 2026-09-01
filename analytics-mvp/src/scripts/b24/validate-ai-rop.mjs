@@ -63,9 +63,9 @@ for (const [name, t] of Object.entries(ai.mgrs || {})) {
   if (!sh) { bad(name, 'нет досье'); continue; }
   const all = [t.mini, t.move, t.full].join('\n');
   // продажи недели: любые «N продаж/предоплат(ы) за неделю» обязаны равняться wonWeek
-  for (const m of all.matchAll(/(\d+)\s+(?:продаж|предоплат)\w*\s+за\s+недел/gi))
+  for (const m of all.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат)[а-яё]*\s+(?:за\s+)?недел/gi))
     if (+m[1] !== (sh.wonWeek || 0)) bad(name, `«${m[0]}» при wonWeek=${sh.wonWeek}`);
-  if (/продаж\w*\s+за\s+неделю\s*[-:]?\s*0|за неделю\s+0\b|ноль продаж за неделю/i.test(all) && (sh.wonWeek || 0) > 0)
+  if (/продаж[а-яё]*\s+за\s+неделю\s*[-:]?\s*0|за неделю\s+0(?![0-9])|ноль продаж за неделю/i.test(all) && (sh.wonWeek || 0) > 0)
     bad(name, `текст говорит «0 продаж за неделю», факты: wonWeek=${sh.wonWeek}`);
   // рейтинг в заголовке full = досье (+-0.05)
   const rm = t.full.match(/(\d[.,]\d)\s*[★⭐]/);

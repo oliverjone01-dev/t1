@@ -29,7 +29,9 @@ export function ChannelBars() {
   const W = 760, rowH = 46, pad = 168, gap = 30, top = 30;
   const H = top + D.CHANNELS.length * rowH + 8;
   const visMax = niceMax(D.CHANNELS[0].visits);
-  const crMax = 5;                                  // доли выше 5% в данных нет
+  // Верх шкалы берём из самих данных: при следующем замере с долей выше 5%
+  // полоса иначе молча уехала бы за пределы полотна.
+  const crMax = Math.max(5, Math.ceil(Math.max(...D.CHANNELS.map((c) => (c.leads / c.visits) * 100))));
   const visRight = 470, crLeft = visRight + gap;    // граница двух панелей
   const xv = scale(0, visMax, pad, visRight - 84);
   const xc = scale(0, crMax, crLeft, W - 58);

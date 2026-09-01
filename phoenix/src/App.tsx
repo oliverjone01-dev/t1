@@ -18,7 +18,7 @@ function Gate({ onOpen }: { onOpen: () => void }) {
   const [err, setErr] = useState("");
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (await sha256(v.trim()) === HASH) { sessionStorage.setItem(KEY, "1"); onOpen(); }
+    if (await sha256(v.trim()) === HASH) { try { sessionStorage.setItem(KEY, "1"); } catch { /* не запомним, но пустим */ } onOpen(); }
     else setErr("Неверный пароль");
   };
   return (
@@ -97,7 +97,7 @@ function Rail({ active, progress }: { active: string; progress: number }) {
 }
 
 export default function App() {
-  const [open, setOpen] = useState(() => sessionStorage.getItem(KEY) === "1");
+  const [open, setOpen] = useState(() => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } });
   const [active, setActive] = useState(S.SECTIONS[0].id);
   const [progress, setProgress] = useState(0);
 
@@ -129,6 +129,7 @@ export default function App() {
       <main className="main">
         <TopBar active={active} progress={progress} />
         <S.Hero />
+        <S.Slovar />
         <S.Glavnoe /><S.Zayavki /><S.Dengi /><S.Poisk /><S.Rynok /><S.Obyavleniya />
         <S.Cena /><S.Neiroseti /><S.PlanIyul /><S.PlanSentyabr /><S.Stop /><S.Neizvestno />
         <S.Foot />

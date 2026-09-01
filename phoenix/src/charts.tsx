@@ -9,7 +9,7 @@ function Frame({ title, note, children, h = 260 }:
   return (
     <figure className="chart rv" ref={ref}>
       <figcaption className="chart__t">{title}</figcaption>
-      <div style={{ minHeight: h }}>{children}</div>
+      <div className="chart__scroll" style={{ minHeight: h }}>{children}</div>
       {note && <p className="chart__n">{note}</p>}
     </figure>
   );
@@ -21,39 +21,51 @@ const C = {
   soft: { oxide: "var(--oxide-soft)", moss: "var(--moss-soft)", slate: "var(--slate-soft)", brass: "color-mix(in oklch, var(--brass) 22%, transparent)" },
 };
 
-/* ====== 1. Заявки по каналам: длина полосы - визиты, доля - заявки ====== */
+/* ====== 1. Заявки по каналам ======
+   Две панели с РАЗНЫМИ величинами и своими осями: визиты и доля обращений.
+   Раньше доля рисовалась увеличенной в десять раз поверх оси, размеченной в визитах,
+   и кончик полосы садился на подписанное деление как будто это визиты. Читалось неверно. */
 export function ChannelBars() {
-  const W = 760, rowH = 46, pad = 168, right = 210, top = 24;
+  const W = 760, rowH = 46, pad = 168, gap = 30, top = 30;
   const H = top + D.CHANNELS.length * rowH + 8;
-  const max = niceMax(D.CHANNELS[0].visits);
-  const x = scale(0, max, pad, W - right);
+  const visMax = niceMax(D.CHANNELS[0].visits);
+  const crMax = 5;                                  // доли выше 5% в данных нет
+  const visRight = 470, crLeft = visRight + gap;    // граница двух панелей
+  const xv = scale(0, visMax, pad, visRight - 84);
+  const xc = scale(0, crMax, crLeft, W - 58);
   return (
     <Frame
-      title="Откуда приходят заявки: визиты, заявки и доля обращений за 30 дней"
-      note="Длина полосы - визиты. Насыщенная часть слева - та доля визитов, которая закончилась заявкой, увеличенная в десять раз, иначе её не видно. Справа - сама доля."
+      title="Откуда приходят заявки за 30 дней"
+      note="Слева визиты, справа доля визитов, закончившихся заявкой. Это две разные величины, поэтому у каждой своя шкала и своя половина полотна: длину полос слева и справа между собой сравнивать нельзя."
       h={H}
     >
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Сравнение каналов по визитам и заявкам">
-        {[0, max / 2, max].map((t, i) => (
-          <g key={i}>
-            <line className="grid" x1={x(t)} y1={top - 10} x2={x(t)} y2={H - 14} />
-            <text className="ax" x={x(t)} y={top - 16} textAnchor="middle">{fmt(t)}</text>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Каналы: визиты и доля обращений">
+        <text className="ax" x={pad} y={top - 18} fill="var(--ink-2)">визиты</text>
+        <text className="ax" x={crLeft} y={top - 18} fill="var(--ink-2)">доля визитов с заявкой</text>
+        {[0, visMax / 2, visMax].map((t, i) => (
+          <g key={"v" + i}>
+            <line className="grid" x1={xv(t)} y1={top - 8} x2={xv(t)} y2={H - 14} />
+            <text className="ax" x={xv(t)} y={top - 2} textAnchor={i === 2 ? "end" : "middle"}>{fmt(t)}</text>
+          </g>
+        ))}
+        {[0, crMax].map((t, i) => (
+          <g key={"c" + i}>
+            <line className="grid" x1={xc(t)} y1={top - 8} x2={xc(t)} y2={H - 14} />
+            <text className="ax" x={xc(t)} y={top - 2} textAnchor="middle">{pct(t, 0)}</text>
           </g>
         ))}
         {D.CHANNELS.map((c, i) => {
           const y = top + i * rowH;
-          const cr = c.leads / c.visits;
-          const full = x(c.visits) - pad;
-          const lead = full * Math.min(1, cr * 10);
+          const cr = (c.leads / c.visits) * 100;
           const col = c.accent === "moss" ? C.moss : c.accent === "oxide" ? C.oxide : C.slate;
           const soft = c.accent === "moss" ? C.soft.moss : c.accent === "oxide" ? C.soft.oxide : C.soft.slate;
           return (
             <g key={c.key} style={{ ["--i" as string]: i }}>
-              <text className="lbl" x={pad - 12} y={y + 19} textAnchor="end" fill="var(--ink-2)">{c.label}</text>
-              <rect className="bar" x={pad} y={y + 8} width={full} height={17} fill={soft} />
-              <rect className="bar" x={pad} y={y + 8} width={lead} height={17} fill={col} />
-              <text className="ax fade" x={x(c.visits) + 10} y={y + 21}>{zayavki(c.leads)}</text>
-              <text className="val fade" x={W} y={y + 21} textAnchor="end">{pct(cr * 100, 2)}</text>
+              <text className="lbl" x={pad - 12} y={y + 21} textAnchor="end" fill="var(--ink-2)">{c.label}</text>
+              <rect className="bar" x={pad} y={y + 10} width={xv(c.visits) - pad} height={17} fill={soft} />
+              <text className="ax fade" x={visRight - 6} y={y + 23} textAnchor="end">{zayavki(c.leads)}</text>
+              <rect className="bar" x={crLeft} y={y + 10} width={Math.max(xc(cr) - crLeft, 1)} height={17} fill={col} />
+              <text className="val fade" x={W} y={y + 23} textAnchor="end">{pct(cr, 2)}</text>
             </g>
           );
         })}
@@ -76,7 +88,7 @@ export function SpendSplit() {
   let acc = 0;
   return (
     <Frame title="Куда ушли 150 096 ₽ за август" h={H}
-      note="Все восемь работавших кампаний перегородочные. Поиск забирает 75% денег и даёт 67% кликов, Товарная галерея остановлена 16 августа."
+      note="Работали восемь кампаний, все перегородочные: семь тратили деньги, восьмая, ретаргетинг, работала с нулевым расходом. Поиск забирает 75% денег и даёт 67% кликов, Товарная галерея остановлена 16 августа."
     >
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Структура рекламного расхода">
         {D.CAMPAIGNS.map((c, i) => {
@@ -87,12 +99,15 @@ export function SpendSplit() {
             <g key={c.name} style={{ ["--i" as string]: i }}>
               <rect className="bar" x={x0} y={y} width={Math.max(w - 2, 1)} height={bar} fill={cols[i]} />
               {showIn && <text className="val fade" x={x0 + 10} y={y + 27} fill={i < 3 ? "var(--paper)" : "var(--ink)"}>{Math.round((c.spend / total) * 100)}%</text>}
-              <text className="ax fade" x={x0} y={y + bar + 18} fill="var(--ink-2)">{c.name}</text>
-              <text className="ax fade" x={x0} y={y + bar + 33}>{fmt(c.spend)} ₽</text>
+              <text className="ax fade" x={Math.min(x0, W - 96)} y={y + bar + 18} fill="var(--ink-2)">{c.name.replace(" (три кампании)", "")}</text>
+              <text className="ax fade" x={Math.min(x0, W - 96)} y={y + bar + 33}>{fmt(c.spend)} ₽</text>
             </g>
           );
         })}
         <text className="ax" x={0} y={16}>0 ₽</text>
+        <text className="ax fade" x={W} y={y + bar + 33} textAnchor="end" style={{ ["--i" as string]: 7 }}>
+          ретаргетинг: 0 ₽ при 36 переходах
+        </text>
         <text className="ax" x={W} y={16} textAnchor="end">150 096 ₽</text>
       </svg>
     </Frame>
@@ -124,7 +139,7 @@ export function DailySpend() {
         <path d={area} fill="color-mix(in oklch, var(--ink) 8%, transparent)" className="fade" />
         <path d={line} className="draw" style={{ ["--len" as string]: 2400 }} fill="none" stroke={C.ink} strokeWidth={2} strokeLinejoin="round" />
         <line x1={L} y1={y(D.DAILY_BEFORE.perDay)} x2={cut} y2={y(D.DAILY_BEFORE.perDay)} stroke={C.brass} strokeWidth={1.5} strokeDasharray="5 4" className="fade" />
-        <line x1={cut} y1={y(D.DAILY_AFTER.perDay)} x2={W - R} y2={y(D.DAILY_AFTER.perDay)} stroke={C.oxide} strokeWidth={1.5} strokeDasharray="5 4" className="fade" style={{ ["--i" as string]: 2 }} />
+        <line x1={x(D.TG_STOP_INDEX + 1)} y1={y(D.DAILY_AFTER.perDay)} x2={W - R} y2={y(D.DAILY_AFTER.perDay)} stroke={C.oxide} strokeWidth={1.5} strokeDasharray="5 4" className="fade" style={{ ["--i" as string]: 2 }} />
         <line x1={cut} y1={T} x2={cut} y2={H - B} stroke={C.ink} strokeWidth={1} className="fade" />
         <text className="ax fade" x={cut + 6} y={T + 10} fill="var(--ink-2)">16.08 остановка</text>
         <text className="val fade" x={L + 6} y={y(D.DAILY_BEFORE.perDay) + 17} fill={C.brass}>{fmt(D.DAILY_BEFORE.perDay)} ₽/день</text>
@@ -222,7 +237,7 @@ export function CpcThemes() {
   const x = scale(0, max, pad, W - 118);
   return (
     <Frame title="Сколько стоит клик по каждой теме" h={H}
-      note="Сплошные полосы посчитаны на сотне кликов и надёжны. Полупрозрачные - на девяти и пяти кликах: направление видно, точная цифра случайна."
+      note="Сплошные полосы посчитаны на сотне кликов и надёжны. Полупрозрачные - на девяти и пяти кликах: направление видно, точная цифра случайна. Темы пересекаются между собой: один запрос может попасть сразу в две строки, поэтому складывать строки нельзя. Красным отмечено дороже 150 ₽ за клик."
     >
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Цена клика по темам запросов">
         {rows.map((r, i) => {
@@ -280,7 +295,7 @@ export function PriceDelta() {
   const x = scale(0, max, pad, W - 116);
   return (
     <Frame title="Цена под ключ: мы и средняя по рынку" h={H}
-      note="Сравнение внутри одного типа и одного размера. Размеры разные, поэтому строки сравнивать между собой нельзя: стационарная дешевле не втрое, она вдвое меньше по площади."
+      note="Снимок цен июль 2026, сравнение внутри одного типа и одного размера: стационарная против шести компаний, распашная и раздвижная против восьми. Размеры разные, поэтому строки между собой сравнивать нельзя: стационарная дешевле не втрое, она вдвое меньше по площади."
     >
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Сравнение цен с рынком">
         {D.PRICES.map((p, i) => {
@@ -316,7 +331,7 @@ export function AiCitations() {
   const x = scale(0, max, pad, W - 150);
   return (
     <Frame title="Цитирований в ответах нейросетей на одну страницу сайта" h={H}
-      note="У нас больше всех страниц в индексе (269) и втрое меньше цитирований на страницу, чем у трёх лидеров. Цитируют тех, у кого есть разъясняющий материал, а не только карточки товаров."
+      note={"У нас больше всех страниц в индексе (269) и втрое меньше цитирований на страницу, чем у трёх лидеров. " + D.AI_HYPOTHESIS}
     >
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Цитируемость в нейросетях">
         {rows.map((r, i) => {
@@ -344,8 +359,8 @@ export function PageTraffic() {
   const max = niceMax(D.PAGE_TRAFFIC[0].visits);
   const x = scale(0, max, pad, W - 96);
   return (
-    <Frame title="Визиты за 30 дней в срезе тридцати самых посещаемых страниц" h={H}
-      note="Срез покрывает 1 293 визита из 8 611, то есть 15% трафика. Значит, 120 визитов на перегородочных страницах - это нижняя граница, а не полная сумма."
+    <Frame title="Визиты за 30 дней: четыре группы страниц из среза тридцати" h={H}
+      note="Срез покрывает 1 293 визита из 8 611, это 15% трафика. Показаны четыре группы на 615 визитов, остальные 678 визитов среза сюда не вошли, крупнейший из них - главная страница, 415. Значит, 120 визитов на перегородочных страницах это нижняя граница, а не полная сумма."
     >
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Визиты по группам страниц">
         {D.PAGE_TRAFFIC.map((p, i) => {

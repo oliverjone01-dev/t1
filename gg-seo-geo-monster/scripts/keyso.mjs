@@ -133,26 +133,55 @@ async function deepCollect(domain, token, outBase) {
   });
   const rid = created.rid || created.id;
   if (!rid) throw new Error("rid не получен: " + JSON.stringify(created).slice(0, 120));
+  // per_page у среза и максимум страниц. Срезы страниц и объявлений keys.so отдаёт
+  // ПОСТРАНИЧНО и отсортированными ПО АЛФАВИТУ URL, а не по силе. Раньше мы брали
+  // только page=1 и считали её выборкой сайта - это давало окно, в которое у genglass
+  // не попала ни одна из десяти сильнейших страниц, потому что они сортируются после
+  // точки обрыва. Любая доля, посчитанная по такому окну, была артефактом сортировки.
+  // Поэтому срезы, по которым считаются доли, тянем целиком.
+  const PAGES = Number(process.env.KEYSO_MAX_PAGES || "12");
   const SLICES = [
-    ["organic_keywords", `/report/group/organic/keywords/${rid}?page=1&per_page=${PER}`],
-    ["context_keywords", `/report/group/context/keywords/${rid}?page=1&per_page=${PER}`],
-    ["context_ads", `/report/group/context/ads/${rid}?page=1&per_page=50`],
-    ["sitepages", `/report/group/organic/sitepages/${rid}?page=1&per_page=50`]
+    ["organic_keywords", (pg) => `/report/group/organic/keywords/${rid}?page=${pg}&per_page=${PER}`, 1],
+    ["context_keywords", (pg) => `/report/group/context/keywords/${rid}?page=${pg}&per_page=${PER}`, 1],
+    ["context_ads",      (pg) => `/report/group/context/ads/${rid}?page=${pg}&per_page=50`, PAGES],
+    ["sitepages",        (pg) => `/report/group/organic/sitepages/${rid}?page=${pg}&per_page=50`, PAGES]
   ];
   const status = {};
-  for (const [name, path] of SLICES) {
-    let json = null;
-    for (let a = 1; a <= 5; a++) {
-      json = await callJSON(BASE + path, token);
-      if (!(json && json.code === 202)) break;
-      console.warn(`    ${name}: отчёт готовится (202), жду 40с (${a}/5)`);
-      await sleep(40000);
+  for (const [name, mkPath, maxPages] of SLICES) {
+    const all = [];
+    let meta = null, pending = false;
+    for (let pg = 1; pg <= maxPages; pg++) {
+      let json = null;
+      for (let a = 1; a <= 5; a++) {
+        json = await callJSON(BASE + mkPath(pg), token);
+        if (!(json && json.code === 202)) break;
+        console.warn(`    ${name} стр.${pg}: отчёт готовится (202), жду 40с (${a}/5)`);
+        await sleep(40000);
+      }
+      if (json && json.code === 202) { pending = true; break; }
+      const rows = (json && json.data) || [];
+      if (!meta) meta = json;
+      all.push(...rows);
+      const last = Number(json && json.last_page) || 1;
+      if (pg >= last) break;          // страницы кончились
+      if (pg >= maxPages) {
+        console.warn(`    ${name}: остановились на стр.${pg} из ${last}, срез неполный`);
+      }
+      await sleep(900);
     }
-    if (json && json.code === 202) { status[name] = "pending-202"; continue; }
+    if (pending && !all.length) { status[name] = "pending-202"; continue; }
+    const lastPage = Number(meta && meta.last_page) || 1;
+    const total = Number(meta && meta.total) || all.length;
+    const complete = all.length >= total;
     const file = join(outBase, `${name}.json`);
     mkdirSync(dirname(file), { recursive: true });
-    writeFileSync(file, JSON.stringify({ domain, vs: domains, report: name, measured: nowIso(), data: json }, null, 1) + "\n");
-    status[name] = "ok";
+    // Флаг complete обязателен: по неполному срезу нельзя считать доли и сравнивать домены.
+    writeFileSync(file, JSON.stringify({
+      domain, vs: domains, report: name, measured: nowIso(),
+      pagination: { pages_fetched: Math.min(lastPage, maxPages), last_page: lastPage, total, rows: all.length, complete },
+      data: Object.assign({}, meta, { data: all, current_page: 1, per_page: all.length })
+    }, null, 1) + "\n");
+    status[name] = complete ? `ok (${all.length}/${total})` : `частично (${all.length}/${total})`;
     await sleep(1200);
   }
   return status;

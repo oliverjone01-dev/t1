@@ -1,0 +1,591 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GENGROUP · Свод по менеджерам v2</title>
+<style>
+/* Дизайн-язык по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным
+   материалам; живой кабинет за логином, прямой скан недоступен]. */
+:root{--bg:#f2f5f8;--card:#fff;--line:#e6eaef;--line2:#d5dbe3;--ink:#001a34;--ink2:#4d5a6a;--ink3:#8a97a6;
+--blue:#005bff;--blue-soft:#e7efff;--ok:#10a44b;--ok-soft:#e3f6ea;--warn:#b57e00;--warn-soft:#fff3d6;--bad:#e00045;--bad-soft:#ffe8ee;
+--ice:#0369a1;--ice-soft:#e0f2fe;--r:16px;--r-sm:10px;--shadow:0 1px 2px rgba(0,26,52,.06),0 4px 16px rgba(0,26,52,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif}
+a{color:var(--blue);text-decoration:none}
+.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.brand b{font-size:15px}.brand span{display:block;font-size:11.5px;color:var(--ink3)}
+.top .sp{flex:1}.src{font-size:11.5px;color:var(--ink3);text-align:right;line-height:1.4}.src b{color:var(--ink2)}
+.wrap{max-width:1440px;margin:0 auto;padding:20px 24px 80px}
+h1{font-size:23px;font-weight:800;margin:4px 0 2px}
+.sub{color:var(--ink2);font-size:13px;margin-bottom:14px}
+.tagD,.tagC,.tagH{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;vertical-align:middle;margin-left:6px;letter-spacing:.02em}
+.tagD{background:var(--ok-soft);color:var(--ok)}.tagC{background:var(--blue-soft);color:var(--blue)}.tagH{background:var(--warn-soft);color:var(--warn)}
+.q{display:inline-flex;width:16px;height:16px;border-radius:50%;background:#eef2f6;border:1px solid var(--line2);color:var(--ink3);font-size:10px;font-weight:700;align-items:center;justify-content:center;margin-left:6px;cursor:pointer;vertical-align:-2px}
+.q:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.note{background:#fff;border:1px dashed var(--line2);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--ink2);margin-bottom:14px}
+.pbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px 14px;margin-bottom:16px;font-size:12.5px}
+.pbar .lbl{color:var(--ink3);font-weight:700;font-size:11px;text-transform:uppercase}
+.pseg{display:inline-flex;background:#eef2f6;border-radius:9px;padding:3px;gap:2px}
+.pseg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
+.pseg button.on{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,26,52,.12)}
+.pbar input[type=date]{border:1px solid var(--line2);border-radius:8px;padding:5px 8px;font:inherit;font-size:12.5px}
+.btn{border:1px solid var(--line2);background:#fff;border-radius:9px;padding:7px 14px;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.on{border-color:var(--blue);color:var(--blue);background:var(--blue-soft)}
+.pnote{color:var(--ink3);flex-basis:100%;font-size:11.5px}
+.kpis{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:1000px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px 16px;position:relative}
+.kpi .l{font-size:12px;color:var(--ink2);font-weight:700;display:flex;align-items:center}
+.kpi .v{font-size:26px;font-weight:800;margin-top:4px}
+.kpi .d{font-size:12px;color:var(--ink3);margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:6px}
+.chip.up{background:var(--ok-soft);color:var(--ok)}.chip.dn{background:var(--bad-soft);color:var(--bad)}.chip.mid{background:var(--warn-soft);color:var(--warn)}
+.fun{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.fun .fr{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:default}
+.fun .fb{height:20px;background:linear-gradient(90deg,#005bff,#4d8dff);border-radius:6px;min-width:8px;transition:.15s}
+.fun .fc{color:var(--ink3);font-size:11.5px;font-weight:700}
+.pop2{display:none;position:absolute;z-index:60;top:calc(100% - 6px);left:8px;right:8px;background:#fff;border:1px solid var(--line2);border-radius:12px;box-shadow:0 14px 44px rgba(0,26,52,.28);padding:12px 14px;font-size:12.5px;max-height:340px;overflow:auto}
+.pop2.on{display:block}
+.pop2 table{width:100%;border-collapse:collapse}
+.pop2 td,.pop2 th{padding:4px 6px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:12px}
+.pop2 td:first-child,.pop2 th:first-child{text-align:left}
+.pop2 tr.lnk{cursor:pointer}.pop2 tr.lnk:hover td{background:#f7faff;color:var(--blue)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--ink3);margin:2px 0 10px}
+table.mt{width:100%;border-collapse:collapse;font-size:13px}
+table.mt th{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;vertical-align:middle}
+.star{color:#f5a623;font-weight:800}
+.name-l{font-weight:700;color:var(--ink);cursor:pointer;border-bottom:1px dashed var(--line2)}
+.name-l:hover{color:var(--blue);border-color:var(--blue)}
+.secbars{display:flex;gap:7px}
+.secb{text-align:center;font-size:9.5px;color:var(--ink3);font-weight:700;width:50px}
+.secb .bar{height:32px;background:#eef2f6;border-radius:5px;position:relative;overflow:hidden;margin-bottom:2px}
+.secb .bar i{position:absolute;bottom:0;left:0;right:0}
+.secb .pc{font-size:10.5px;color:var(--ink);font-weight:800}
+.cmp{background:var(--blue-soft);border-radius:9px;padding:2px 8px;font-size:11.5px;font-weight:700;color:var(--blue);cursor:pointer}
+.cmp.up{background:var(--ok-soft);color:var(--ok)}.cmp.dn{background:var(--bad-soft);color:var(--bad)}
+.exp{background:#f7faff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:6px 0 10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:1000px){.g3{grid-template-columns:1fr}}
+.gw{display:grid;grid-template-columns:1fr 1.6fr;gap:16px;margin-bottom:16px}
+@media(max-width:1000px){.gw{grid-template-columns:1fr}}
+.qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:1100px){.qgrid{grid-template-columns:repeat(2,1fr)}}
+.qcell{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px}
+.qcell .qn{font-size:12px;color:var(--ink2);font-weight:700;display:flex;gap:6px;align-items:center}
+.qcell .qv{font-size:19px;font-weight:800;margin-top:2px}
+.qcell .qm{font-size:12px;color:var(--ink3)}
+.ann{background:#0b1f33;color:#e8f0fa;border-radius:12px;padding:13px 16px;font-size:13px;line-height:1.55;margin-top:10px;white-space:pre-wrap}
+.ann b{color:#ffd166}
+.ann .ttl{color:#7dd3fc;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px}
+.aiph{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;margin-top:8px}
+.dl{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:8px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start}
+.dl:hover{border-color:var(--blue);background:#f7faff}
+.dl .db{font-weight:800;white-space:nowrap}
+.freeze .fr{display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:7px;cursor:pointer;padding:4px 6px;border-radius:8px}
+.freeze .fr:hover{background:var(--ice-soft)}
+.freeze .fb{height:26px;background:linear-gradient(90deg,#7dd3fc,#0369a1);border-radius:7px;min-width:10px;display:flex;align-items:center;justify-content:flex-end;color:#fff;font-weight:800;font-size:12px;padding-right:8px}
+.tg{background:#f4f8fb;border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:13.5px;white-space:pre-wrap;line-height:1.55}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs .tb{border:1px solid var(--line2);border-radius:999px;padding:5px 13px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;background:#fff}
+.tabs .tb.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.spark2 rect{cursor:pointer}
+.screen{display:none}.screen.on{display:block}
+.foot{color:var(--ink3);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
+.tip{position:fixed;z-index:99;max-width:340px;background:#0b1f33;color:#fff;font-size:12px;line-height:1.5;padding:9px 11px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .1s}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.pill.n{background:#eef2f6;color:var(--ink3)}.pill.b{background:var(--blue-soft);color:var(--blue)}
+</style></head><body>
+
+<div class="top">
+  <div class="logo">GG</div>
+  <div class="brand"><b>Свод по менеджерам · v2</b><span>качество общения и сервиса ОП · Диалоги + РОП + История</span></div>
+  <a href="dialog.html" style="font-size:12.5px;font-weight:700">Разбор диалогов →</a>
+  <a href="svod-v1.html" style="font-size:12.5px;font-weight:700;color:var(--ink3)">v1</a>
+  <div class="sp"></div>
+  <div class="src" id="src"></div>
+</div>
+
+<div class="wrap">
+<h1>Отдел продаж</h1>
+<div class="sub" id="subline"></div>
+
+<div class="note">Каждая цифра помечена: <span class="tagD">ДАННЫЕ</span> - из снимка Битрикс24 как есть · <span class="tagC">РАСЧЁТ</span> - арифметика над данными · <span class="tagH">ГИПОТЕЗА</span> - допущение. Значок «?» открывает по клику список с переходами внутрь. Тёмные врезки - комментарий ИИ-РОПа: он читает те же цифры и говорит, куда смотреть.</div>
+
+<div class="pbar" id="pbar"></div>
+
+<div class="kpis" id="kpis"></div>
+
+<!-- КОМАНДА (над очередями по правке Ивана) -->
+<div class="card">
+  <h2>Команда <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="team-help">?</span>
+    <span style="flex:1"></span>
+    <button class="btn on" id="cmpM" onclick="toggleCmp('m')">СРАВНИТЬ ▸</button>
+  </h2>
+  <div class="pop2" id="pop-team-help"></div>
+  <div class="hint" id="team-hint"></div>
+  <table class="mt" id="team"></table>
+  <div id="mgr-day-ann"></div>
+</div>
+
+<!-- ОЧЕРЕДИ -->
+<div class="card">
+  <h2>Где застряли деньги - очереди <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="q-help">?</span>
+    <span style="flex:1"></span>
+    <button class="btn on" id="cmpQ" onclick="toggleCmp('q')">СРАВНИТЬ ▸</button>
+  </h2>
+  <div class="pop2" id="pop-q-help"></div>
+  <div class="hint" id="q-hint"></div>
+  <div class="qgrid" id="queues"></div>
+  <div id="qpanel"></div>
+</div>
+
+<!-- ПУЛЬС -->
+<div class="card">
+  <h2>Пульс сервиса, по дням <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="p-help">?</span></h2>
+  <div class="pop2" id="pop-p-help"></div>
+  <div class="hint">Три линии о качестве общения с клиентами. Ниже - лучше. Наведите на точку - разбивка по менеджерам, клик - подробности дня внизу.</div>
+  <div id="pulse"></div>
+  <div id="ppanel"></div>
+  <div class="ann" id="pulse-ann" hidden></div>
+</div>
+
+<!-- ВОРОНКА + МЁРЗНЕТ -->
+<div class="gw">
+  <div class="card" style="margin:0">
+    <h2 id="fun-h">Воронка периода <span class="tagD">ДАННЫЕ</span><span class="q" data-pop="f-help">?</span></h2>
+    <div class="pop2" id="pop-f-help"></div>
+    <div class="hint" id="fun-hint"></div>
+    <div class="fun" id="funnel-big"></div>
+    <div class="ann" id="funnel-ann" hidden></div>
+  </div>
+  <div class="card" style="margin:0">
+    <h2>Мёрзнет портфель ❄️ <span class="tagC">РАСЧЁТ</span><span class="q" data-pop="z-help">?</span></h2>
+    <div class="pop2" id="pop-z-help"></div>
+    <div class="hint">Деньги, застрявшие в этапе дольше 30 дней, по состоянию на снимок. Ширина полосы - замёрзшая сумма. Клик по этапу - топ-5 замёрзших сделок с переходом в CRM.</div>
+    <div class="freeze" id="freeze"></div>
+    <div id="zpanel"></div>
+    <div class="ann" id="freeze-ann" hidden></div>
+  </div>
+</div>
+
+<!-- ИИ-РОП -->
+<div class="card">
+  <h2>ИИ-РОП срез <span class="tagC">РАСЧЁТ</span><span class="q" data-pop="ai-help">?</span>
+    <span style="flex:1"></span>
+    <button class="btn" id="aiCmpBtn" onclick="aiCmp()">СРАВНИТЬ</button>
+    <button class="btn pri" onclick="copyText('ai-text','TG-пост скопирован - вставьте в чат продаж')">Скопировать TG-пост</button>
+  </h2>
+  <div class="pop2" id="pop-ai-help"></div>
+  <div class="hint" id="ai-hint"></div>
+  <div class="tabs" id="ai-tabs"></div>
+  <div id="ai-names" style="font-size:12px;margin-bottom:8px"></div>
+  <div class="tg" id="ai-text"></div>
+  <div class="tg" id="ai-cmp" hidden style="margin-top:10px;border-color:var(--blue)"></div>
+</div>
+
+<div class="foot" id="foot"></div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const DATA={"placeholder":true,"meta":{},"managers":[],"deals":[],"cohort":[],"rot":[],"hist":[],"ai":{"mgrs":{},"dept":null,"deals":{}}};
+const M=DATA.meta||{};
+const fmtR=n=>{n=Math.round(n||0);if(Math.abs(n)>=1e6)return (n/1e6).toFixed(1).replace('.',',')+' млн ₽';if(Math.abs(n)>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс ₽';return n.toLocaleString('ru-RU')+' ₽';};
+const fmt=n=>Math.round(n||0).toLocaleString('ru-RU');
+const plural=(n,f)=>{n=Math.abs(Math.round(n||0));const a=n%10,b=n%100;return f[(a===1&&b!==11)?0:(a>=2&&a<=4&&(b<10||b>=20))?1:2];};
+const nDeal=n=>`${n} ${plural(n,['сделка','сделки','сделок'])}`;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* даты по правке Ивана - всегда дд.мм.гггг */
+const df=s=>{if(!s)return '-';s=String(s);return s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4);};
+const dfs=s=>{if(!s)return '-';s=String(s);return s.slice(8,10)+'.'+s.slice(5,7);};
+/* \b не работает с кириллицей - границы пробелами (урок ФЕНИКС N1) */
+const deN=s=>String(s||'').replace(/(\s+на)?\s+[N\u041D](\.[N\u041D])?\s*(ч|дн|мин|дней|часов|%)?(?=[\s.,)»]|$)/g,' дольше нормы').replace(/\s+/g,' ').trim();
+const QFB={ok:['Ведутся чисто',''],won:['Продажа',''],lost:['Закрыта неуспешно',''],overdue:['Просроченные дела','Дела в CRM просрочены дольше 3 рабочих дней.'],objection:['Возражение висит','Клиент возразил, ответа по возражению не видно.']};
+const QMETA={};for(const q of (DATA.queuesMeta||[]))QMETA[q.key]=[q.label,q.hint||''];
+for(const k in QFB)if(!QMETA[k])QMETA[k]=QFB[k];
+const qLabel=k=>(QMETA[k]||[k,''])[0],qHint=k=>(QMETA[k]||['',''])[1];
+const QICON={waiting:'⏳',ready:'💳',silent:'🔇',nostep:'🧭',nopush:'📨',fakedone:'🎭',internal:'🗒️',overdue:'⏰',lowprob:'🥶',promise:'🤝',refuse:'🚪',objection:'🙅'};
+const BADQ=['waiting','ready','silent','nostep','nopush','fakedone','internal','overdue','promise','refuse','objection','lowprob'];
+const PAIDS=new Set(['C49:EXECUTING','C49:FINAL_INVOICE','C49:1','C49:2','C49:WON']);
+const isOU=d=>d.o==='open'&&!PAIDS.has(d.sc);
+const crmUrl=d=>(M.portal||'').replace(/\/$/,'')+(d.lead?'/crm/lead/details/':'/crm/deal/details/')+d.id+'/';
+const AI=DATA.ai||{mgrs:{},dept:null,deals:{}};
+const aiDealNote=id=>{for(const arr of Object.values(AI.deals||{})){const hit=(arr||[]).find(x=>x.id===id);if(hit)return hit.note;}return null;};
+const HIST=DATA.hist||[];
+const lastHistDay=HIST.length?HIST[HIST.length-1].day:null;
+
+/* ---------- ПЕРИОД: управляет ВСЕМИ блоками ----------
+   Воронка - когорта по дате создания. Команда, очереди, риск - СОСТОЯНИЕ на конец
+   периода (ближайший исторический снимок). Свечи и пульс - дни внутри периода.
+   История снимков начинается ${первый день} - раньше честно пишем «нет истории». */
+const ropDay=(M.ropGenerated||'').slice(0,10);
+const dShift=(base,n)=>{const d=new Date(base+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+const winFrom=(M.dlgFrom||'').slice(0,10),winTo=(M.dlgTo||'').slice(0,10);
+const PKEYS=[['win','Неделя разбора'],['today','Сегодня'],['7','7 дн'],['30','30 дн'],['month','Этот месяц']];
+let PERIOD={key:'win',from:winFrom||dShift(ropDay,-6),to:winTo||ropDay};
+function periodTitle(){if(PERIOD.key==='win')return 'недели разбора '+dfs(PERIOD.from)+' - '+dfs(PERIOD.to);if(PERIOD.key==='month')return 'за '+new Date((ropDay.slice(0,7))+'-15').toLocaleString('ru-RU',{month:'long'});if(PERIOD.key==='today')return 'сегодня';if(PERIOD.key==='yest')return 'вчера';return df(PERIOD.from)+' - '+df(PERIOD.to);}
+function setPeriod(key,from,to){
+  if(key==='win')PERIOD={key,from:winFrom,to:winTo};
+  else if(key==='today')PERIOD={key,from:ropDay,to:ropDay};
+  else if(key==='yest'){const y=dShift(ropDay,-1);PERIOD={key,from:y,to:y};}
+  else if(key==='7')PERIOD={key,from:dShift(ropDay,-6),to:ropDay};
+  else if(key==='30')PERIOD={key,from:dShift(ropDay,-29),to:ropDay};
+  else if(key==='month')PERIOD={key,from:ropDay.slice(0,7)+'-01',to:ropDay};
+  else if(key==='custom'&&from&&to&&from<=to)PERIOD={key,from,to};
+  renderAll();
+}
+function applyCustom(){const f=document.getElementById('pfrom').value,t=document.getElementById('pto').value;
+  if(f&&t&&f<=t)setPeriod('custom',f,t);
+  else document.getElementById('perr').textContent='Диапазон не применён: «с» должна быть не позже «по».';}
+const stateDay=()=>{let best=null;for(const h of HIST)if(h.day<=PERIOD.to)best=h;return best;};
+const prevPeriod=()=>{const len=(new Date(PERIOD.to)-new Date(PERIOD.from))/864e5+1;return {from:dShift(PERIOD.from,-len),to:dShift(PERIOD.from,-1)};};
+const cmpDay=()=>{const p=prevPeriod();let best=null;for(const h of HIST)if(h.day<=p.to)best=h;return best;};
+const winDays=()=>{const w=HIST.filter(h=>h.day>=PERIOD.from&&h.day<=PERIOD.to);return w.length>=2?w:HIST;};
+let CMP={m:true,q:true};
+function toggleCmp(k){CMP[k]=!CMP[k];document.getElementById(k==='m'?'cmpM':'cmpQ').classList.toggle('on',CMP[k]);k==='m'?renderTeam():renderQueues();}
+
+/* ---------- всплывающие списки на «?» (клик, второй клик - переход) ---------- */
+function togglePop(id){const el=document.getElementById('pop-'+id);const was=el.classList.contains('on');
+  document.querySelectorAll('.pop2.on').forEach(p=>p.classList.remove('on'));if(!was)el.classList.add('on');}
+document.addEventListener('click',e=>{
+  const q=e.target.closest('[data-pop]');
+  if(q){e.stopPropagation();togglePop(q.getAttribute('data-pop'));return;}
+  if(!e.target.closest('.pop2'))document.querySelectorAll('.pop2.on').forEach(p=>p.classList.remove('on'));
+},true);
+
+/* ---------- шапка/подвал ---------- */
+(function(){
+  const g=d=>d?df(d)+', '+String(d).slice(11,16):'-';
+  document.getElementById('src').innerHTML=`Диалоги: снимок <b>${g(M.dlgGenerated)}</b> · Продажи: снимок РОПа <b>${g(M.ropGenerated)}</b> · История: ${HIST.length} ${plural(HIST.length,['день','дня','дней'])}`;
+  document.getElementById('foot').innerHTML=`Свод собирается из снимков Битрикс24 (диалоги + РОП) и ${HIST.length} ежедневных срезов истории. Ничего не вводится вручную: у каждой цифры указано происхождение. Тексты ИИ-РОПа сгенерированы ${M.aiGeneratedAt?df(M.aiGeneratedAt):'-'} по данным окна ${M.aiWindow||'-'} - это [РАСЧЁТ+ГИПОТЕЗА]: чтение тех же цифр, не новые факты.<br>Дизайн - по мотивам кабинета Ozon Seller [ГИПОТЕЗА: реконструкция по публичным материалам; живой кабинет за логином].`;
+})();
+
+/* ---------- бар периода ---------- */
+function renderPBar(){
+  const histFrom=HIST.length?HIST[0].day:null;
+  document.getElementById('pbar').innerHTML=
+  `<span class="lbl">Период</span><span class="pseg">${PKEYS.map(([k,l])=>`<button class="${PERIOD.key===k?'on':''}" onclick="setPeriod('${k}')">${l}</button>`).join('')}</span>
+   <input type="date" id="pfrom" value="${PERIOD.from}" min="${M.depthCut||''}" max="${ropDay}"> - <input type="date" id="pto" value="${PERIOD.to}" min="${M.depthCut||''}" max="${ropDay}"> <button class="btn pri" onclick="applyCustom()">ОК</button> <span id="perr" style="color:var(--bad);font-weight:700"></span>
+   <span class="q" data-pop="pb-help">?</span>
+   <span class="pnote">Период пересчитывает все блоки: воронка - по дате создания сделок, команда и очереди - состояние на конец периода (ближайший дневной срез), свечи и пульс - дни внутри периода. История дневных срезов ведётся с ${histFrom?df(histFrom):'-'} и копится каждую ночь.</span>
+   <div class="pop2" id="pop-pb-help"><b>Как работает период</b><br>· Воронка: сделки, СОЗДАННЫЕ в период (глубина ${M.depthDays} дней, с ${df(M.depthCut)}).<br>· Команда/очереди/риск: снимок на конец периода.<br>· «Мёрзнет» и «Потенциал»: всегда состояние на сейчас - так и подписаны.<br>· Раньше ${histFrom?df(histFrom):'-'} дневной истории нет - честно покажем «нет истории».</div>`;
+}
+
+/* ---------- KPI ---------- */
+function cohortSel(){return DATA.cohort.filter(c=>c.c>=PERIOD.from&&c.c<=PERIOD.to);}
+function renderKPIs(){
+  const sel=cohortSel();
+  const f={created:sel.length,tz:sel.filter(c=>c.tz).length,kp:sel.filter(c=>c.kp).length,sold:sel.filter(c=>c.sold).length};
+  const pcv=(a,b)=>b?Math.round(100*a/b)+'%':'-';
+  const sd=stateDay();
+  let riskN=0,riskRub=0;
+  if(sd)for(const k of BADQ){const q=sd.queues[k];if(q){riskN+=q.n;riskRub+=q.money;}}
+  const OU=DATA.deals.filter(isOU);
+  const wsum=OU.reduce((s,d)=>s+(d.b||0)*(d.p||0)/100,0);
+  const cyc=M.cycle,big=cyc&&cyc.big;
+  const wBig=big?OU.filter(x=>(x.b||0)>=cyc.thr).reduce((s,x)=>s+(x.b||0)*(x.p||0)/100,0):0;
+  const shareBig=big&&wsum?Math.round(wBig/wsum*100):0;
+  /* по менеджерам для выпадающего списка */
+  const byM={};for(const c of sel){(byM[c.m]||={n:0,kp:0,sold:0});byM[c.m].n++;byM[c.m].kp+=c.kp;byM[c.m].sold+=c.sold;}
+  const rows=Object.entries(byM).filter(([,v])=>v.n>=5).sort((a,b)=>(b[1].sold/b[1].n)-(a[1].sold/a[1].n));
+  document.getElementById('kpis').innerHTML=`
+  <div class="kpi"><div class="l">Воронка ${esc(periodTitle())}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="conv">?</span></div>
+    <div class="fun">${[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,210*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${pcv(v,f.created)}</span></div>`).join('')}</div>
+    <div class="d">сделки, созданные в период · по истории стадий Битрикс24 · «?» - разбивка по менеджерам с переходом${(new Date(ropDay)-new Date(PERIOD.to))/864e5<30?' · свежая когорта ещё зреет':''}</div>
+    <div class="pop2" id="pop-conv"><b>Конверсия по менеджерам (создано ≥5 в период)</b><table><tr><th>Менеджер</th><th>Создано</th><th>до КП</th><th>до ₽</th><th>CR</th></tr>${rows.map(([m,v])=>{const sn=DATA.managers.find(x=>{const p=m.split(' ');return p.every(w=>x.mgr.includes(w));});return `<tr class="lnk" ${sn?`onclick="openSlice('${esc(sn.mgr)}')"`:''}><td>${esc(m)}${sn?' →':''}</td><td>${v.n}</td><td>${pcv(v.kp,v.n)}</td><td>${v.sold}</td><td><b>${pcv(v.sold,v.n)}</b></td></tr>`;}).join('')}</table><div class="hint" style="margin:8px 0 0">Клик по строке - персональный срез ИИ-РОПа. Плитки «Продано/План» убраны до сверки с внутренним учётом.</div></div></div>
+  <div class="kpi"><div class="l">Под риском на ${sd?df(sd.day):'-'}<span class="tagD">ДАННЫЕ</span><span class="q" data-pop="risk">?</span></div>
+    <div class="v">${fmtR(riskRub)}</div><div class="d">${nDeal(riskN)} в проблемных очередях${sd&&sd.day!==lastHistDay?' · состояние на конец периода':''}</div>
+    <div class="pop2" id="pop-risk"><b>Очереди на ${sd?df(sd.day):'-'}</b><table>${sd?BADQ.filter(k=>sd.queues[k]).map(k=>`<tr class="lnk" onclick="gotoQueue('${k}')"><td>${QICON[k]||''} ${esc(qLabel(k))} →</td><td>${sd.queues[k].n}</td><td>${fmtR(sd.queues[k].money)}</td></tr>`).join(''):'<tr><td>нет истории на эту дату</td></tr>'}</table></div></div>
+  <div class="kpi"><div class="l">Потенциал портфеля<span class="tagC">РАСЧЁТ</span><span class="q" data-pop="pot">?</span></div>
+    <div class="v">${fmtR(wsum)}</div><div class="d">${big?`${shareBig}% суммы - сделки от ${fmtR(cyc.thr)}: половина их предоплат за ${big.medD} дн, каждая десятая - дольше ${big.p90D} дн`:'горизонт - цикл сделки'} · состояние на сейчас</div>
+    <div class="pop2" id="pop-pot">РАСЧЁТ: открытые сделки без предоплаты, бюджет [ДАННЫЕ] × шанс стадии по истории [ДАННЫЕ] с поправкой движка [ГИПОТЕЗА]. Это ценность портфеля на его жизненном цикле, НЕ сумма к концу месяца. Фильтр периода на плитку не влияет - это «сейчас», подписано.</div></div>`;
+}
+
+/* ---------- КОМАНДА ---------- */
+const SECN=['Отклик','Квалиф.','Сроки','Вежлив.','Ведение','Результат'];
+let openRow=null;
+function mgrTraj(name){const w=winDays();return w.filter(h=>h.mgrs[name]&&h.mgrs[name].rating!=null).map(h=>({d:h.day,r:h.mgrs[name].rating,loss:h.mgrs[name].lossRub||0}));}
+function mcandle(name,big){
+  const t=mgrTraj(name);
+  if(t.length<3)return '<span class="pill n">мало истории в периоде</span>';
+  const W=(big?16:12)*t.length,H=big?40:26,mid=H/2;
+  let prev=null;
+  return `<svg width="${W}" height="${H}" class="spark2">`+t.map((p,i)=>{
+    const delta=prev==null?0:p.r-prev;prev=p.r;
+    const up=delta>=0.15,dn=delta<=-0.15;
+    const h=Math.min(mid-2,Math.abs(delta)*(big?34:22)+3);
+    const tt=df(p.d)+': рейтинг '+p.r.toFixed(1)+(dn?' - провал дня, клик - разбор':up?' - день лучше обычного, клик - разбор':'');
+    const step=big?16:12;
+    if(!up&&!dn)return `<rect x="${i*step+2}" y="${mid-1.5}" width="${step-4}" height="3" rx="1.5" fill="#c9d6e4" data-t="${esc(tt)}" data-day="${p.d}" data-mgr="${esc(name)}"/>`;
+    return `<rect x="${i*step+2}" y="${up?mid-h:mid}" width="${step-4}" height="${h}" rx="2" fill="${up?'var(--ok)':'var(--bad)'}" data-t="${esc(tt)}" data-day="${p.d}" data-mgr="${esc(name)}"/>`;
+  }).join('')+'</svg>';
+}
+function secbars(m){
+  const cur=stateDay()&&stateDay().day===lastHistDay;
+  if(!cur)return '<span class="pill n">разделы доступны для текущего окна</span>';
+  return '<div class="secbars">'+(m.sections||[]).map((s,i)=>{const p=s.pos;
+    const col=p==null?'#e8edf2':p>=70?'var(--ok)':p>=40?'#f5a623':'var(--bad)';
+    return `<div class="secb"><div class="bar" data-t="${esc(SECN[i])}: ${p==null?'мало данных':p+'% наблюдений в порядке, '+s.bad+' нарушений'}"><i style="height:${p||0}%;background:${col}"></i></div>${SECN[i]}<div class="pc">${p==null?'-':p+'%'}</div></div>`;
+  }).join('')+'</div>';
+}
+function renderTeam(){
+  const sd=stateDay(),cd=cmpDay();
+  document.getElementById('team-hint').textContent=sd?`Состояние на ${df(sd.day)}. Клик по имени - полный срез ИИ-РОПа. Свечи за ${periodTitle()}: зелёная вверх - день лучше обычного, красная вниз - провал (клик - разбор дня). СРАВНИТЬ - с ${cd?df(cd.day):'прошлым периодом'}.`:'Дневная история на выбранный период отсутствует.';
+  if(!sd){document.getElementById('team').innerHTML='';return;}
+  const rows=DATA.managers.filter(m=>m.role!=='office'&&sd.mgrs[m.mgr]).map(m=>({...m,rating:sd.mgrs[m.mgr].rating,lossRub:sd.mgrs[m.mgr].lossRub})).sort((a,b)=>(b.rating||0)-(a.rating||0));
+  document.getElementById('team').innerHTML=`<tr><th>Менеджер</th><th>Рейтинг + свечи периода</th><th>Разделы регламента</th><th>Просадка</th><th></th></tr>`+
+  rows.map((m,i)=>{
+    const pr=cd&&cd.mgrs[m.mgr];
+    const d=CMP.m&&pr&&pr.rating!=null&&m.rating!=null?m.rating-pr.rating:null;
+    const move=(AI.mgrs[m.mgr]||{}).move;
+    return `<tr><td><span class="name-l" onclick="openSlice('${esc(m.mgr)}')">${esc(m.mgr)}</span></td>
+    <td>${m.rating!=null?`<span class="star">${m.rating.toFixed(1)} ★</span> `:'<span class="pill n">мало данных</span> '}${d!=null?`<span class="cmp ${d>=0?'up':'dn'}" data-t="${esc(move||'аннотация ИИ-РОПа появится после следующей генерации')}" onclick="showMoveAnn('${esc(m.mgr)}')">${d>0?'+':''}${d.toFixed(1)}</span> `:''}${mcandle(m.mgr)}</td>
+    <td>${secbars(m)}</td><td>${m.lossRub?fmtR(m.lossRub):'0 ₽'}</td>
+    <td><button class="btn ${openRow===i?'on':'pri'}" onclick="expand(${i})">${openRow===i?'▲ Свернуть':'▼ Мини-дашборд'}</button></td></tr>`+
+    (openRow===i?`<tr><td colspan="5"><div class="exp">${miniDash(m)}</div></td></tr>`:'');
+  }).join('');
+  window.__teamRows=rows;
+}
+function miniDash(m){
+  const sel=cohortSel().filter(c=>{const p=m.mgr.split(' ');return p.every(w=>c.m.includes(w));});
+  const f={created:sel.length,kp:sel.filter(c=>c.kp).length,sold:sel.filter(c=>c.sold).length};
+  const sd=stateDay();
+  const myQ=[];if(sd)for(const k of BADQ){const q=sd.queues[k];if(q&&q.byMgr[m.mgr])myQ.push({k,n:q.byMgr[m.mgr]});}
+  myQ.sort((a,b)=>b.n-a.n);
+  const cur=sd&&sd.day===lastHistDay;
+  const myDeals=cur?DATA.deals.filter(d=>d.m===m.mgr&&isOU(d)&&BADQ.includes(d.u)).sort((a,b)=>(b.b||0)-(a.b||0)).slice(0,5):[];
+  const ann=(AI.mgrs[m.mgr]||{}).move;
+  return `<div class="g3">
+    <div><b>Личная воронка ${esc(periodTitle())}</b> <span class="tagD">ДАННЫЕ</span><div class="fun" style="margin-top:6px">${f.created?[['Создано',f.created],['до КП',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(6,150*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${f.created?Math.round(100*v/f.created)+'%':''}</span></div>`).join(''):'<span class="pill n">в период сделок не создавалось</span>'}</div></div>
+    <div><b>Очереди менеджера (топ-5)</b> <span class="tagD">ДАННЫЕ</span>${myQ.length?myQ.slice(0,5).map(x=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span>${QICON[x.k]||''} ${esc(qLabel(x.k))}</span><b>${x.n}</b></div>`).join(''):'<div class="pill n" style="margin-top:6px">в проблемных очередях пусто</div>'}</div>
+    <div><b>История рейтинга крупно</b><div style="margin-top:6px">${mcandle(m.mgr,true)}</div></div>
+  </div>
+  ${myDeals.length?`<div style="margin-top:10px"><b>Сделки, которые ждут (топ-5 по бюджету)</b> <span class="tagD">ДАННЫЕ</span>${myDeals.map(d=>dealRow(d)).join('')}</div>`:''}
+  ${ann?`<div class="ann" style="margin-top:10px"><span class="ttl">ИИ-РОП о неделе</span>${esc(ann)}</div>`:''}`;
+}
+function dealRow(d){
+  const note=aiDealNote(d.id);
+  return `<a class="dl" href="${crmUrl(d)}" target="_blank" rel="noopener"><span class="db">${fmtR(d.b)}</span><span><b>${esc(d.t||('#'+d.id))}</b> · ${esc(d.m)} · <span class="pill b">${esc(qLabel(d.u))}</span> · ${esc(d.stage||'без этапа')}<br><span style="color:var(--ink3)">${esc(note||deN(d.next)||'открыть в CRM')}</span></span></a>`;
+}
+function expand(i){openRow=openRow===i?null:i;renderTeam();}
+function showMoveAnn(name){
+  const el=document.getElementById('mgr-day-ann');
+  const t=(AI.mgrs[name]||{}).move;
+  el.innerHTML=t?`<div class="ann"><span class="ttl">ИИ-РОП · ${esc(name)} · движение недели</span>${esc(t)}</div>`:`<div class="aiph">Аннотация для ${esc(name)} появится после следующей генерации срезов.</div>`;
+}
+/* клик по свече - разбор дня из данных + голос ИИ-РОПа */
+document.addEventListener('click',e=>{
+  const r=e.target.closest('rect[data-day]');if(!r)return;
+  const day=r.getAttribute('data-day'),name=r.getAttribute('data-mgr');
+  const idx=HIST.findIndex(h=>h.day===day);if(idx<0)return;
+  const cur=HIST[idx].mgrs[name]||{},prev=idx>0?(HIST[idx-1].mgrs[name]||{}):{};
+  const dr=cur.rating!=null&&prev.rating!=null?(cur.rating-prev.rating):null;
+  const dl=(cur.lossRub||0)-(prev.lossRub||0);
+  let worst=null;for(const k of BADQ){const a=HIST[idx].queues[k]?.byMgr?.[name]||0,b=idx>0?(HIST[idx-1].queues[k]?.byMgr?.[name]||0):0;if(a-b>0&&(!worst||a-b>worst.d))worst={k,d:a-b,n:a};}
+  const move=(AI.mgrs[name]||{}).move;
+  document.getElementById('mgr-day-ann').innerHTML=`<div class="ann"><span class="ttl">Разбор дня ${df(day)} · ${esc(name)} [РАСЧЁТ по дневным срезам]</span>Рейтинг ${cur.rating!=null?cur.rating.toFixed(1):'-'}${dr!=null?` (${dr>0?'+':''}${dr.toFixed(1)} к прошлому дню)`:''} · просадка ${fmtR(cur.lossRub||0)}${dl?` (${dl>0?'+':''}${fmtR(dl)})`:''}${worst?` · главный вклад дня: «${esc(qLabel(worst.k))}» +${worst.d} (стало ${worst.n})`:''}.
+${move?'\n'+esc(move):''}</div>`;
+  try{document.getElementById('mgr-day-ann').scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+});
+
+/* ---------- ОЧЕРЕДИ ---------- */
+let curQ=null;
+function gotoQueue(k){curQ=k;renderQueues();try{document.getElementById('queues').scrollIntoView({behavior:'smooth'});}catch(e){}qDayPanel(k,null);}
+function qcandle(key){
+  const w=winDays();
+  const vals=w.map(h=>h.queues[key]?h.queues[key].n:0);
+  const mean=vals.reduce((a,b)=>a+b,0)/(vals.length||1);
+  const sd2=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length||1))||1;
+  const W=13*vals.length,H=30;
+  return `<svg class="spark2" width="${W}" height="${H}">`+vals.map((v,i)=>{
+    const badDay=v>mean+1.5*sd2;
+    const h=Math.max(3,(v/Math.max(...vals,1))*(H-4));
+    const bm=w[i].queues[key]?w[i].queues[key].byMgr:{};
+    const top=Object.entries(bm).sort((a,b)=>b[1]-a[1])[0];
+    const tt=df(w[i].day)+': '+v+' сделок'+(top?' · больше всех у '+top[0]+' ('+top[1]+')':'')+' · клик - сделки и разбор дня';
+    return `<rect x="${i*13+1}" y="${H-h}" width="9" height="${h}" rx="2" fill="${badDay?'var(--bad)':'#c9d6e4'}" data-t="${esc(tt)}" data-qday="${w[i].day}" data-qkey="${key}"/>`;
+  }).join('')+'</svg>';
+}
+function renderQueues(){
+  const sd=stateDay(),cd=cmpDay();
+  document.getElementById('q-hint').textContent=sd?`Состояние на ${df(sd.day)}. Красная свеча - день, когда очередь распухла сильнее обычного [ГИПОТЕЗА: выше среднего периода на 1,5 отклонения]. Клик по свече - сделки дня с комментарием ИИ-РОПа, клик по сделке - переход в CRM.`:'Нет дневной истории на выбранный период.';
+  if(!sd){document.getElementById('queues').innerHTML='';return;}
+  document.getElementById('queues').innerHTML=BADQ.filter(k=>sd.queues[k]&&sd.queues[k].n>0).map(k=>{
+    const q=sd.queues[k];
+    const pv=cd&&cd.queues[k]?cd.queues[k].n:0;
+    const d=q.n-pv;
+    return `<div class="qcell" id="qc-${k}"><div class="qn"><span>${QICON[k]||'▫️'}</span>${esc(qLabel(k))}<span class="q" data-pop="qh-${k}">?</span></div>
+    <div class="qv">${q.n}${CMP.q&&cd?` <span class="cmp ${d<=0?'up':'dn'}">${d>0?'+':''}${d} к ${dfs(cd.day)}</span>`:''}</div>
+    <div class="qm">${fmtR(q.money)}</div>${qcandle(k)}
+    <div class="pop2" id="pop-qh-${k}"><b>${esc(qLabel(k))}</b><br>${esc(qHint(k))}<br><b>Кто в очереди на ${df(sd.day)}:</b><table>${Object.entries(q.byMgr).sort((a,b)=>b[1]-a[1]).map(([m,n])=>{const known=DATA.managers.some(x=>x.mgr===m);return `<tr class="${known?'lnk':''}" ${known?`onclick="openSlice('${esc(m)}')"`:''}><td>${esc(m)}${known?' →':''}</td><td>${n}</td></tr>`;}).join('')}</table></div></div>`;
+  }).join('');
+}
+function qDayPanel(key,day){
+  const cur=lastHistDay&&stateDay()&&stateDay().day===lastHistDay;
+  const deals=DATA.deals.filter(d=>d.u===key&&isOU(d)).sort((a,b)=>(b.b||0)-(a.b||0)).slice(0,5);
+  let head='';
+  if(day){
+    const h=HIST.find(x=>x.day===day);const idx=HIST.findIndex(x=>x.day===day);
+    const bm=h&&h.queues[key]?h.queues[key].byMgr:{};
+    const prevN=idx>0&&HIST[idx-1].queues[key]?HIST[idx-1].queues[key].n:0;
+    const nowN=h&&h.queues[key]?h.queues[key].n:0;
+    head=`<div class="ann"><span class="ttl">День ${df(day)} · «${esc(qLabel(key))}» [ДАННЫЕ дневного среза]</span>В очереди ${nDeal(nowN)}${prevN?` (${nowN-prevN>0?'+':''}${nowN-prevN} к прошлому дню)`:''}. Вклад: ${Object.entries(bm).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([m,n])=>`${esc(m)} - ${n}`).join(', ')||'нет данных'}.</div>`;
+  }
+  document.getElementById('qpanel').innerHTML=head+
+    (deals.length?`<div style="margin-top:10px"><b>Сделки очереди сейчас (топ-5 по бюджету${cur?'':' · показано текущее состояние - подневных сделок история не хранит'})</b>${deals.map(d=>dealRow(d)).join('')}</div>`:'<div class="pill n" style="margin-top:8px">в очереди пусто</div>');
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('rect[data-qday]');if(!r)return;
+  curQ=r.getAttribute('data-qkey');
+  qDayPanel(curQ,r.getAttribute('data-qday'));
+  try{document.getElementById('qpanel').scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+});
+
+/* ---------- ПУЛЬС ---------- */
+const PULSE=[['waiting','Клиенты ждут нашего ответа, сделок','var(--bad)'],['silent','Сделки в тишине 4+ дней, шт','#f5a623'],['fakedone','Дела «вхолостую», шт','var(--blue)']];
+function renderPulse(){
+  const w=winDays();
+  document.getElementById('pulse').innerHTML=PULSE.map(([k,label,color])=>{
+    const vals=w.map(h=>h.queues[k]?h.queues[k].n:0);
+    const mx=Math.max(...vals,1),W=580,H=42,step=W/(vals.length-1||1);
+    return `<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:700;color:var(--ink2)">${label}</div>
+    <svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:42px"><polyline fill="none" stroke="${color}" stroke-width="2" points="${vals.map((v,i)=>(i*step).toFixed(0)+','+(H-5-(H-10)*v/mx).toFixed(0)).join(' ')}"/>${vals.map((v,i)=>{
+      const bm=w[i].queues[k]?w[i].queues[k].byMgr:{};
+      const top=Object.entries(bm).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([m,n])=>m.split(' ')[0]+' '+n).join(', ');
+      return `<circle cx="${(i*step).toFixed(0)}" cy="${(H-5-(H-10)*v/mx).toFixed(0)}" r="4" fill="${color}" style="cursor:pointer" data-t="${esc(df(w[i].day)+': '+v+' шт'+(top?' · '+top:'')+' · клик - разбор дня')}" data-pday="${w[i].day}" data-pkey="${k}"/>`;}).join('')}</svg>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3)"><span>${df(w[0].day)}</span><span>макс ${mx} шт</span><span>${df(w[w.length-1].day)}</span></div></div>`;
+  }).join('');
+  const pn=AI.dept&&AI.dept.pulseNote;
+  const pa=document.getElementById('pulse-ann');
+  if(pn){pa.hidden=false;pa.innerHTML=`<span class="ttl">ИИ-РОП о пульсе</span>${esc(pn)}`;}
+}
+document.addEventListener('click',e=>{
+  const c=e.target.closest('circle[data-pday]');if(!c)return;
+  const day=c.getAttribute('data-pday'),k=c.getAttribute('data-pkey');
+  const h=HIST.find(x=>x.day===day);if(!h)return;
+  const bm=h.queues[k]?h.queues[k].byMgr:{};
+  const rows=Object.entries(bm).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('ppanel').innerHTML=`<div class="ann"><span class="ttl">День ${df(day)} · «${esc(qLabel(k))}» по менеджерам [ДАННЫЕ]</span>${rows.map(([m,n])=>{
+    const mv=(AI.mgrs[m]||{}).move;return `<div style="margin:6px 0"><b>${esc(m)}</b> - ${nDeal(n)}${mv?`<br><span style="opacity:.85">${esc(mv)}</span>`:''}</div>`;}).join('')||'нет данных'}</div>`;
+  try{document.getElementById('ppanel').scrollIntoView({behavior:'smooth',block:'nearest'});}catch(e){}
+});
+
+/* ---------- ВОРОНКА БОЛЬШАЯ + МЁРЗНЕТ ---------- */
+function renderFunnelBig(){
+  const sel=cohortSel();
+  const f={created:sel.length,tz:sel.filter(c=>c.tz).length,kp:sel.filter(c=>c.kp).length,sold:sel.filter(c=>c.sold).length};
+  document.getElementById('fun-h').firstChild.textContent='Воронка '+periodTitle()+' ';
+  const young=(new Date(ropDay)-new Date(PERIOD.to))/864e5<30;
+  document.getElementById('fun-hint').textContent=`Когорта: ${nDeal(f.created)}, созданных за период. Проценты - от созданного.`+(young&&M.cycle&&M.cycle.big?` Свежая когорта ещё зреет: у крупных сделок половина предоплат приходит за ${M.cycle.big.medD} дн - конверсия дорастёт.`:'')+(M.migDays&&M.migDays.length?` Дни переноса из старой CRM (${M.migDays.map(df).join(', ')}) из когорт исключены [РАСЧЁТ].`:'');
+  document.getElementById('funnel-big').innerHTML=[['Создано',f.created],['Формирование ТЗ',f.tz],['КП отправлено',f.kp],['Предоплата',f.sold]].map(([l,v])=>`<div class="fr"><div class="fb" style="width:${Math.max(8,220*v/(f.created||1))}px"></div><b>${v}</b> ${l} <span class="fc">${f.created?Math.round(100*v/f.created)+'%':''}</span></div>`).join('');
+  document.getElementById('pop-f-help').innerHTML='Воронка считается по сделкам, СОЗДАННЫМ в выбранный период (дата создания из Битрикс24), достижение шага - по истории стадий. Предоплата = стадии от «Предоплата получена» и дальше.';
+  const fn=AI.dept&&AI.dept.funnelNote;const fa=document.getElementById('funnel-ann');
+  if(fn){fa.hidden=false;fa.innerHTML=`<span class="ttl">ИИ-РОП о воронке</span>${esc(fn)}`;}
+}
+let curZ=null;
+function renderFreeze(){
+  const mx=Math.max(...DATA.rot.map(r=>r.frozenRub),1);
+  document.getElementById('freeze').innerHTML=DATA.rot.map((r,i)=>`<div class="fr" onclick="zDrill(${i})"><div class="fb" style="width:${Math.max(40,420*r.frozenRub/mx)}px">${fmtR(r.frozenRub)}</div><span><b>${esc(r.stage)}</b> · ${nDeal(r.frozenN)} дольше 30 дн · медиана этапа ${r.medD} дн</span></div>`).join('');
+  document.getElementById('pop-z-help').innerHTML='«Мёрзнет» = деньги открытых сделок, сидящие в своём этапе дольше 30 дней (по состоянию на снимок РОПа, фильтр периода не влияет - это «сейчас»). Время в этапе - от входа в текущую стадию по истории Битрикс24.';
+  const zn=AI.dept&&AI.dept.freezeNote;const za=document.getElementById('freeze-ann');
+  if(zn){za.hidden=false;za.innerHTML=`<span class="ttl">ИИ-РОП о заморозке</span>${esc(zn)}`;}
+}
+function zDrill(i){
+  const r=DATA.rot[i];curZ=i;
+  document.getElementById('zpanel').innerHTML=`<div style="margin-top:10px"><b>«${esc(r.stage)}»: топ-5 замёрзших</b>${r.top.map(d=>`<a class="dl" href="${(M.portal||'').replace(/\/$/,'')}/crm/deal/details/${d.id}/" target="_blank" rel="noopener"><span class="db">${fmtR(d.b)}</span><span><b>${esc(d.t)}</b> · ${esc(d.m)} · в этапе ${d.days} дн · открыть в CRM →</span></a>`).join('')}</div>`;
+}
+
+/* ---------- ИИ-РОП ---------- */
+let aiTab='dept';
+function renderAI(){
+  const names=DATA.managers.filter(m=>AI.mgrs[m.mgr]&&AI.mgrs[m.mgr].full).map(m=>m.mgr);
+  document.getElementById('ai-tabs').innerHTML=`<span class="tb ${aiTab==='dept'?'on':''}" onclick="setAiTab('dept')">Отдел</span>`+names.map(n=>`<span class="tb ${aiTab===n?'on':''}" onclick="setAiTab('${esc(n)}')">${esc(n.split(' ')[0])}</span>`).join('');
+  const el=document.getElementById('ai-text');
+  const hintEl=document.getElementById('ai-hint');
+  const winMatch=PERIOD.key==='win'||(M.aiWindow&&M.aiWindow.includes(dfs(PERIOD.from))&&M.aiWindow.includes(dfs(PERIOD.to)));
+  hintEl.innerHTML=`Тексты сгенерированы ${M.aiGeneratedAt?df(M.aiGeneratedAt):'-'} по окну ${esc(M.aiWindow||'-')} [РАСЧЁТ+ГИПОТЕЗА: чтение цифр свода, не новые факты]. ${winMatch?'':'Выбранный период отличается от окна генерации - ниже автосводка по данным периода, живой текст обновится следующей генерацией.'} Имена в срезе отдела кликабельны.`;
+  document.getElementById('ai-names').innerHTML='<span style="font-size:11px;color:var(--ink3);font-weight:700;margin-right:4px">ПОЛНЫЕ СРЕЗЫ:</span>'+names.map(n=>`<span class="name-l" onclick="openSlice('${esc(n)}')">${esc(n)}</span>`).join(' · ');
+  if(aiTab==='dept'){
+    if(AI.dept&&winMatch!==false&&AI.dept.summary){el.innerHTML=linkNames(esc(AI.dept.summary));}
+    else if(AI.dept&&AI.dept.summary&&!winMatch){el.innerHTML=autoSlice()+`\n\n<span style="color:var(--ink3)">Последний живой срез (окно ${esc(M.aiWindow||'')}):</span>\n`+linkNames(esc(AI.dept.summary));}
+    else el.innerHTML=autoSlice();
+  }else{
+    const t=AI.mgrs[aiTab];
+    el.innerHTML=t?esc(t.full):'Срез не сгенерирован.';
+  }
+  document.getElementById('ai-cmp').hidden=true;
+}
+function setAiTab(t){aiTab=t;renderAI();}
+function linkNames(text){
+  for(const m of DATA.managers){
+    if(!AI.mgrs[m.mgr])continue;
+    const [a,b]=m.mgr.split(' ');if(!a||!b)continue;
+    for(const v of [a+' '+b,b+' '+a]){
+      text=text.split(v).join(`<span class="name-l" onclick="openSlice('${esc(m.mgr)}')">${v}</span>`);
+    }
+  }
+  return text;
+}
+function autoSlice(){
+  /* автосводка по данным выбранного периода - без ИИ, чистый [РАСЧЁТ] */
+  const sel=cohortSel();
+  const f={created:sel.length,kp:sel.filter(c=>c.kp).length,sold:sel.filter(c=>c.sold).length};
+  const sd=stateDay(),cd=cmpDay();
+  let lines=[`🧭 Автосводка ${periodTitle()} [РАСЧЁТ по данным, без ИИ-текста]`];
+  lines.push(`Воронка: создано ${f.created}, до КП ${f.kp}${f.created?' ('+Math.round(100*f.kp/f.created)+'%)':''}, предоплат ${f.sold}${f.created?' ('+Math.round(100*f.sold/f.created)+'%)':''}.`);
+  if(sd){const w=sd.queues.waiting,s=sd.queues.silent;
+    lines.push(`Очереди на ${df(sd.day)}: «Ждут ответа» ${w?w.n:0} (${fmtR(w?w.money:0)}), «Тишина» ${s?s.n:0}.`);
+    if(cd&&cd.queues.waiting)lines.push(`К ${df(cd.day)}: «Ждут ответа» ${w.n-cd.queues.waiting.n>0?'+':''}${w.n-cd.queues.waiting.n}.`);}
+  if(DATA.rot[0])lines.push(`Мёрзнет сильнее всего: «${DATA.rot[0].stage}» - ${fmtR(DATA.rot[0].frozenRub)} дольше 30 дней.`);
+  return lines.join('\n');
+}
+function aiCmp(){
+  const el=document.getElementById('ai-cmp');
+  if(!el.hidden){el.hidden=true;return;}
+  el.hidden=false;
+  el.textContent=(AI.dept&&AI.dept.compare)?AI.dept.compare:autoCompare();
+}
+function autoCompare(){
+  const sd=stateDay(),cd=cmpDay();
+  if(!sd||!cd)return 'Для сравнения не хватает дневной истории.';
+  const lines=[`📊 Сравнение: ${df(cd.day)} → ${df(sd.day)} [РАСЧЁТ]`];
+  for(const k of ['waiting','silent','nopush','fakedone']){
+    const a=cd.queues[k]?cd.queues[k].n:0,b=sd.queues[k]?sd.queues[k].n:0;
+    lines.push(`· ${qLabel(k)}: ${a} → ${b} (${b-a>0?'+':''}${b-a})`);
+  }
+  return lines.join('\n');
+}
+function openSlice(name){
+  aiTab=AI.mgrs[name]&&AI.mgrs[name].full?name:'dept';
+  renderAI();
+  try{document.getElementById('ai-text').scrollIntoView({behavior:'smooth'});}catch(e){}
+  if(!(AI.mgrs[name]&&AI.mgrs[name].full))document.getElementById('ai-text').innerHTML=`Персональный срез для ${esc(name)} ещё не сгенерирован.\n\n`+autoSlice();
+}
+function copyText(id,msg){
+  const t=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(t).then(()=>{const b=document.createElement('div');b.className='aiph';b.textContent=msg;document.getElementById(id).after(b);setTimeout(()=>b.remove(),2500);});
+}
+
+/* ---------- помощь-списки в шапках карточек ---------- */
+(function(){
+  document.getElementById('pop-team-help').innerHTML='Рейтинг 0-5 звёзд по 6 разделам регламента, считает движок разбора диалогов по фактам переписки, звонков и дел. Свечи [РАСЧЁТ]: изменение рейтинга к прошлому дню, порог ±0.15. Чип «+0.1» - клик даёт комментарий ИИ-РОПа. Меньше '+(DATA.minSample||10)+' наблюдений - оценок нет.';
+  document.getElementById('pop-q-help').innerHTML='Каждая открытая сделка без предоплаты попадает в одну главную очередь по правилам регламента. «?» на плитке - кто в очереди, с переходом в персональный срез.';
+  document.getElementById('pop-p-help').innerHTML='Дневные срезы движка: «Ждут ответа» - последним написал клиент; «Тишина» - 4+ дня без касания; «Вхолостую» - дело закрыто без следа реального контакта.';
+  document.getElementById('pop-ai-help').innerHTML='ИИ-РОП читает те же цифры свода и пишет выводы человеческим языком. Это [РАСЧЁТ+ГИПОТЕЗА]: интерпретация, не новые данные. Тексты генерируются по ночному окну; на произвольный период - автосводка по данным.';
+})();
+
+/* ---------- tooltips ---------- */
+const tip=document.getElementById('tip');
+document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-t]');
+  if(el){tip.textContent=el.getAttribute('data-t');tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX+12,innerWidth-350)+'px';tip.style.top=(e.clientY+12)+'px';}
+  else tip.style.opacity=0;});
+
+function renderAll(){renderPBar();renderKPIs();renderTeam();renderQueues();renderPulse();renderFunnelBig();renderFreeze();renderAI();
+  document.getElementById('subline').textContent=`${M.scope||''} · период ${df(PERIOD.from)} - ${df(PERIOD.to)}`;
+  document.getElementById('qpanel').innerHTML='';document.getElementById('ppanel').innerHTML='';document.getElementById('zpanel').innerHTML='';document.getElementById('mgr-day-ann').innerHTML='';}
+try{renderAll();}catch(e){document.body.insertAdjacentHTML('afterbegin','<div style="background:#ffe8ee;color:#e00045;padding:10px 20px;font-weight:700">Ошибка рендера: '+esc(e.message)+'</div>');throw e;}
+</script></body></html>

@@ -37,7 +37,7 @@ const addNum = (n) => {
   allowed.add(Math.round(n / 100) * 100);
   allowed.add(Math.round(n / 1000) * 1000);
   if (n >= 1e5) { allowed.add(Math.round(n / 1e4)); allowed.add(Math.round(n / 1e4) / 10 * 10); }
-  if (n >= 1e6) { allowed.add(Math.round(n / 1e5) / 10); allowed.add(Math.round(n / 1e6 * 100) / 100); }
+  if (n >= 1e6) { allowed.add(Math.round(n / 1e5) / 10); allowed.add(Math.round(n / 1e6 * 100) / 100); allowed.add(Math.round(n / 1e5) * 1e5); allowed.add(Math.round(n / 1e6) * 1e6); }
 };
 const walk = (v) => {
   if (typeof v === 'number') addNum(v);

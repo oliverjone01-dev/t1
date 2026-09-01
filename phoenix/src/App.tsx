@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import * as S from "./sections";
 import { MEASURED } from "./data";
 
-/* Заглушка от случайных глаз. Не криптография: внутри страницы нет ничего,
-   что нельзя показать команде, но финансовые цифры не должны открываться
-   по прямой ссылке кому попало. Хэш тот же, что у хаба GEO-MONSTER. */
+/* Заглушка от случайных глаз, и только. Содержимое она НЕ защищает: репозиторий
+   публичный, и этот бандл вместе со всеми цифрами открывается по прямой ссылке
+   на github.com без пароля. Подробности и варианты решения - в phoenix/README.md.
+   Хэш тот же, что у хаба GEO-MONSTER, на деплое подменяется из секрета HUB_PASS. */
 const HASH = "2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868";
 const KEY = "gg-phoenix-open";
 
@@ -26,7 +27,7 @@ function Gate({ onOpen }: { onOpen: () => void }) {
       <div className="gate__box">
         <div className="gate__mark">GENGROUP · внутренний документ</div>
         <h1>Перегородки</h1>
-        <p>Разбор направления и план действий. Замер {MEASURED}. Внутри финансовые цифры, поэтому вход по паролю.</p>
+        <p>Разбор направления и план действий. Замер {MEASURED}. Вход по паролю - чтобы страница не открывалась случайно, а не потому, что данные закрыты: репозиторий публичный.</p>
         <form onSubmit={submit}>
           <input type="password" value={v} autoFocus autoComplete="current-password"
             onChange={(e) => { setV(e.target.value); setErr(""); }} placeholder="Пароль" aria-label="Пароль" />

@@ -312,7 +312,7 @@ tr.us td{ font-weight:600 }
 .gloss summary{ cursor:pointer; list-style:none; padding:.85rem 0; display:flex; gap:.9rem; align-items:baseline; flex-wrap:wrap }
 .gloss summary::-webkit-details-marker{ display:none }
 .gloss summary::before{ content:"+"; font-family:var(--display); color:var(--brass); font-size:1.1rem; line-height:1 }
-.gloss[open] summary::before{ content:"–" }
+.gloss[open] summary::before{ content:"-" }
 .gloss__t{ font-family:var(--display); font-weight:700; font-size:1rem }
 .gloss__h{ font-size:.78rem; color:var(--ink-3) }
 .gloss__list{ display:grid; grid-template-columns:repeat(auto-fit,minmax(19rem,1fr)); gap:.1rem 2.2rem; padding:.3rem 0 1rem 1.9rem }
@@ -320,6 +320,9 @@ tr.us td{ font-weight:600 }
 .gloss__list dt{ font-weight:600; font-size:.86rem }
 .gloss__list dd{ font-size:.83rem; color:var(--ink-2); margin-top:.1rem }
 .gloss__foot{ padding:0 0 1.1rem 1.9rem; font-size:.83rem; color:var(--ink-2); max-width:var(--measure) }
+.gloss__foot .p-P0,.gloss__foot .p-P1,.gloss__foot .p-P2{
+  font-size:.66rem; letter-spacing:.12em; padding:.16rem .42rem; border:1px solid currentColor; margin-right:.15rem;
+}
 @media (max-width:40rem){ .gloss__list, .gloss__foot{ padding-left:0 } }
 @media print{ .gloss__list, .gloss__foot{ display:grid !important; padding-left:0 } .gloss summary::before{ content:"" } }
 

@@ -172,7 +172,7 @@ for (const sk of allSkus) { const m = modelOf(sk); (modelMap.get(m) || modelMap.
 const modelAbc = abcMap([...modelMap.entries()].map(([m, sks]) => ({ k: m, rev: mln(sks.reduce((a, sk) => a + totRevWin(sk), 0)) })));
 const cv = (arr: number[]) => { const nz = arr.filter((x) => x > 0); if (nz.length < 2) return 0; const mean = nz.reduce((a, b) => a + b, 0) / nz.length; const sd = Math.sqrt(nz.reduce((a, b) => a + (b - mean) ** 2, 0) / nz.length); return Math.round((sd / mean) * 100) / 100; };
 
-type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; leadDays: number; stockQty: number; mr: number[]; mc: number[]; mo: number[] };
+type Variant = { sku: string; sub: string; rev: number; cost: number; costNA: boolean; orders: number; returns: number; retCnt: number; leadDays: number; stockQty: number; mr: number[]; mc: number[]; mo: number[] };
 const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
   const mr = z16(), mo = z16(), mc = z16();
   const variants: Variant[] = sks.map((sk) => {
@@ -181,15 +181,19 @@ const buildModels = () => [...modelMap.entries()].map(([model, sks]) => {
     const cu = cogs[sk] || 0;
     const vmc = vmo.map((u) => mln(cu * u));
     for (let i = 0; i < 16; i++) { mr[i] += vmr[i]!; mo[i] += vmo[i]!; mc[i] += vmc[i]!; }
-    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * (skuUnits[sk] || 0)), costNA: cu <= 0, orders: skuUnits[sk] || 0, returns: skuRet[sk] || 0, leadDays: 0, stockQty: stockOf[sk] || 0, mr: vmr, mc: vmc, mo: vmo };
+    const vo = skuUnits[sk] || 0, vr = skuRet[sk] || 0;
+    return { sku: taxOf(sk).offer || sk, sub: skuName[sk] || sk, rev: mln(totRevWin(sk)), cost: mln(cu * vo), costNA: cu <= 0, orders: vo, returns: vo > 0 ? Math.round((vr / vo) * 1000) / 10 : 0, retCnt: vr, leadDays: 0, stockQty: stockOf[sk] || 0, mr: vmr, mc: vmc, mo: vmo };
   });
   const g = catOf(sks[0]!), sub = subOf(sks[0]!);
   const costNA = variants.some((v) => v.costNA);
   const round3 = (a: number[]) => a.map((x) => Math.round(x * 1000) / 1000);
+  // Возврат-ставка модели, % = сумма возвратов / сумма заказов по вариантам (окно данных).
+  const mOrd = variants.reduce((s, v) => s + v.orders, 0), mRet = variants.reduce((s, v) => s + v.retCnt, 0);
   return {
     nm: model, line: skuLine[sks[0]!] || g, sub: sub + " · " + sks.length + " арт.",
     subcatId: subIdOf(g, sub), groupId: grIdOf(g), abc: modelAbc[model] || "C", cv: cv(mr),
     cost: Math.round(variants.reduce((s, v) => s + v.cost, 0) * 1000) / 1000, costNA,
+    returns: mOrd > 0 ? Math.round((mRet / mOrd) * 1000) / 10 : 0, retCnt: mRet,
     mr: round3(mr), mc: round3(mc), mo, variants,
   };
 }).sort((a, b) => b.mr.reduce((s, x) => s + x, 0) - a.mr.reduce((s, x) => s + x, 0));

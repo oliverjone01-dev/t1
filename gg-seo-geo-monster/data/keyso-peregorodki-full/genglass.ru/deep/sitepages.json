@@ -1,0 +1,4094 @@
+{
+ "domain": "genglass.ru",
+ "vs": [
+  "genglass.ru",
+  "loftcase.ru"
+ ],
+ "report": "sitepages",
+ "measured": "2026-09-01T07:55:54.178Z",
+ "pagination": {
+  "pages_fetched": 9,
+  "last_page": 9,
+  "total": 407,
+  "rows": 407,
+  "complete": true
+ },
+ "data": {
+  "current_page": 1,
+  "per_page": 407,
+  "last_page": 9,
+  "data": [
+   {
+    "url": "/",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 64,
+    "vis": 25
+   },
+   {
+    "url": "/arochnaya_razdvizhnaya_peregorodka_iz_matovogo_stekla_s_chernym_profilem",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/belaya_razdvizhnaya_peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-loftcase_x_intervju_s_dizajnerom__anna_popova",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-mezhkomnatnye_peregorodki_s_rifljonym_steklom_pochemu_rifljonoe_steklo_populyarno_v_interere",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/post-sovremennyj_komfort_dizajn_stomatologicheskoj_kliniki_kotoryj_vdohnovlyaet",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/bolshoj_stellazh_dlya_hranenia_iz_metalla_i_dereva",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/carved",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 6,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/chernye_peregorodki_s_matovym_steklom_v_vannuju_komnatu_i_tualet",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/chernye_razdvizhnaya_loft_peregorodka_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/contacts",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dushevaya_loft_peregorodka_s_shirokim_profilem",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dveri_kupe__ident_35",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dveri_s_riflenym_steklom_v_zolotom_profile",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/garderobnaya_westline",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/garderobnyj_shkaf_bergen_4",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/garderobnyj_shkaf_brookstone_s_rifljonym_steklom_dostupen_k_prosmotru_v_shourume",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/garderobnyj_shkaf_westline_s_razdvizhnymi_dveryami",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/kaskadnaya_peregorodka_iz_trjoh_stvorok",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/kaskadnaya_peregorodka_s_rifljonym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/kaskadnaya_peregorodka_so_statikoy",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/kaskadnaya_razdvizhnaya_peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/kuhonnaya_razdvizhnaya_peregorodka_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 4,
+    "it50": 6,
+    "vis": 16
+   },
+   {
+    "url": "/loft_peregorodka_mezhdu_balkonom_i_gostinoj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/loft_peregorodka_mezhkomnatnaya_s_dverju_chernaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 16,
+    "vis": 1
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-garderobnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 11,
+    "vis": 55
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-obedennye_stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-rabochie_stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-stellazhi",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 26,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-stoly",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/kategoriya_mebeli-zerkala",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/mebel/f/pomeshchenie-dlya_ofisa/kategoriya_mebeli-stellazhi",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/partition",
+    "domain": "loftcase.ru",
+    "it1": 5,
+    "it3": 11,
+    "it5": 17,
+    "it10": 21,
+    "it50": 32,
+    "vis": 503
+   },
+   {
+    "url": "/peregorodka_dlya_vhodnoj_gruppy",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodka_iz_profilnoj_truby__s_dekorativnoj_raskladkoj",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 3,
+    "it5": 6,
+    "it10": 6,
+    "it50": 9,
+    "vis": 23
+   },
+   {
+    "url": "/peregorodka_loft_s_razdvizhnoj_dverju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodka_mezhdu_kuhnej_i_koridorom_s_dverju_chernaya",
+    "domain": "loftcase.ru",
+    "it1": 2,
+    "it3": 4,
+    "it5": 5,
+    "it10": 5,
+    "it50": 5,
+    "vis": 54
+   },
+   {
+    "url": "/peregorodka_portal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodka_s_matovym_steklom__v_garderobnuju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 6,
+    "it5": 13,
+    "it10": 62,
+    "it50": 455,
+    "vis": 441
+   },
+   {
+    "url": "/peregorodki/f/cvet-belyj",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/peregorodki/f/cvet-chernyj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/cvet-zelenyj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-cvetnie",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-klassicheskij_profil",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-matovoe-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-metal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 6,
+    "it50": 18,
+    "vis": 1
+   },
+   {
+    "url": "/peregorodki/f/material-metal/4",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-metal/room-ofis",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-ne-do-potolka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 8
+   },
+   {
+    "url": "/peregorodki/f/material-s_steklom_volna",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 5,
+    "it10": 6,
+    "it50": 12,
+    "vis": 40
+   },
+   {
+    "url": "/peregorodki/f/material-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 16,
+    "it50": 59,
+    "vis": 44
+   },
+   {
+    "url": "/peregorodki/f/material-steklo/po_komnatam-garderobnaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 6,
+    "it10": 10,
+    "it50": 22,
+    "vis": 114
+   },
+   {
+    "url": "/peregorodki/f/material-steklo/room-ofis",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/material-tonkiy_profil",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-detskaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-dushevaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-garderobnaya",
+    "domain": "loftcase.ru",
+    "it1": 2,
+    "it3": 11,
+    "it5": 19,
+    "it10": 27,
+    "it50": 38,
+    "vis": 297
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-gostinaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-koridor",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 4,
+    "vis": 8
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-kuhnya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 4,
+    "it50": 8,
+    "vis": 1
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-spalnya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/po_komnatam-vannaya",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 5,
+    "it50": 23,
+    "vis": 1
+   },
+   {
+    "url": "/peregorodki/f/room-cafe_restoran",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 9,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/room-ofis",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-arochnie",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 12
+   },
+   {
+    "url": "/peregorodki/f/tip-kaskadnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-mansardnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-raspashnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 5,
+    "it10": 9,
+    "it50": 14,
+    "vis": 38
+   },
+   {
+    "url": "/peregorodki/f/tip-raspashnye/material-metal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-raspashnye/material-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-razdvizhnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 11,
+    "it10": 33,
+    "it50": 99,
+    "vis": 165
+   },
+   {
+    "url": "/peregorodki/f/tip-razdvizhnye/material-metal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 4,
+    "it50": 4,
+    "vis": 8
+   },
+   {
+    "url": "/peregorodki/f/tip-razdvizhnye/material-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 3,
+    "it10": 8,
+    "it50": 24,
+    "vis": 399
+   },
+   {
+    "url": "/peregorodki/f/tip-reechnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-stacionarnye",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 4,
+    "it10": 6,
+    "it50": 8,
+    "vis": 31
+   },
+   {
+    "url": "/peregorodki/f/tip-stacionarnye/material-steklo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki/f/tip-vitrazhnie",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki_mezhkomnatnye_s_razdvizhnoj_dverju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/peregorodki_reechnye_v_stile_loft_dlya_zonirovania_garderobnoj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/dizajner_anna_modzharo",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/proekt_dizajnera_eleny_bunak",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/raspashnaya_peregorodka_i_mezhkomnatnoe_okno",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/statichnoe_loft_okno",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/statichnoe_mezhkomnatnoe_okno",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/portfolio/Стеллаж",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/rabochij_stol_s_vydvizhnymi_yathikami",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnaya_peregorodka_na_balkon",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnaya_peregorodka_tambur",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnaya_peregorodka_v_garderobnuju_tonkij_profil",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnaya_uglovaya_peregorodka_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnye_dveri_s_arochnymi_elementami",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnye_dveri_s_framugoj_v_kvartiru",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnye_dveri_s_uzorchatym_steklom_v_metallicheskom_profile",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/raspashnye_dveri_v_kafe",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_dver_steklo_rifljonoe",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_loft_peregorodka_iz_metalla_i_stekla_v_chastnyj_dom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_cvet_9003_belyj_matovyj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_mezhdu_balkonom_i_komnatoj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 5,
+    "vis": 11
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_mezhdu_kuhnej",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_mezhdu_kuhnej_i_balkonom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 4
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_na_balkon",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_s_rifljonym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 10
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_s_tonirovannym_steklom_mozhno_posmotret_vzhivuju_u_nas_v_shourume",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/razdvizhnaya_peregorodka_v_garderobnuju_komnatu",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnaya_reechnaya_dver",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 6,
+    "it50": 10,
+    "vis": 3
+   },
+   {
+    "url": "/razdvizhnye_peregorodki__s_riflenym_steklom_volna",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 16,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnye_peregorodki_s_matovym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 4,
+    "vis": 5
+   },
+   {
+    "url": "/razdvizhnye_peregorodki_s_tonkim_profilem",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/razdvizhnye_peregorodki_ubirajuthiesya_v_penal",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/reechnaya_peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/reechnaya_peregorodka_so_steklom",
+    "domain": "loftcase.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/reznaya_peregorodka_iz_mdf_risunok_ident_n_a027",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/shkaf_iz_metalla_i_stekla_dlya_hranenia_posudy",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/sroki_proizvodstva",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stacionarnaya_peregorodka_s_dverju_i_riflenym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnaya_gobraznaya_peregorodka__s_prozrachnym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnaya_loft_peregorodka_s_perforaciej",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 3,
+    "it50": 7,
+    "vis": 4
+   },
+   {
+    "url": "/statichnaya_loft_peregorodka_v_studiju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnaya_peregorodka_s_prozrachnym_steklom_v_koridor",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnaya_peregorodka_s_vstavkami_iz_metalla_i_dekorativnogo_stekla",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnaya_reznaya_peregorodka_risunok_ident_n_a031",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnoe_dekorativnoe_okno",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/statichnoe_falsh_okno_iz_metalla_i_stekla",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/statichnoe_zerkalo_v_metallicheskoj_rame",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnye_peregorodki_dlya_kafe",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnye_peregorodki_v_koridor_i_gostinuju_s_prozrachnym_steklom",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/statichnyj_portal_v_gostinuju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stellazh_black_and_black_1",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/stellazh_iz_duba_so_svetodiodnoj__podsvetkoj",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stellazh_westline",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/uglovaya_razdvizhnaya__peregorodka",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/uzkie_razdvizhnye_peregorodki_v_kvartiru",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/zerkalnye_peregorodki_v_garderobnuju",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 2
+   },
+   {
+    "url": "/zerkalo_v_metallicheskoj_rame_v_stile_loft",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/zhurnalnyj_stol_island",
+    "domain": "loftcase.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/",
+    "domain": "genglass.ru",
+    "it1": 3,
+    "it3": 3,
+    "it5": 3,
+    "it10": 5,
+    "it50": 22,
+    "vis": 144
+   },
+   {
+    "url": "/about-us",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/blog/idei-zonirovaniya-komnaty-peregorodkami",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/led-podsvetka-u-zerkala-sovremennoe-reshenie-dlya-komfortnogo-osveshheniya-i-stilnogo-interera",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 3,
+    "it10": 3,
+    "it50": 3,
+    "vis": 18
+   },
+   {
+    "url": "/blog/populyarnye-modeli-zerkal-2026-goda-i-aktualnye-interernye-resheniya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 165
+   },
+   {
+    "url": "/blog/razdvizhnye-peregorodki-kakie-byvayut-i-kak-vybrat-pod-interer",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/blog/vidy-mezhkomnatnyh-peregorodok-polnyj-obzor-reshenij-dlya-kvartiry-i-doma",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/contact-us",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 2
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-dveri-na-zakaz/razdvizhnye-dushevye-dveri-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/dushevye-ograzhdeniya-na-zakaz/dushevye-ugolki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 3,
+    "vis": 14
+   },
+   {
+    "url": "/magnitno-markernie-doski-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 6,
+    "it10": 10,
+    "it50": 14,
+    "vis": 4
+   },
+   {
+    "url": "/materialy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 4,
+    "it5": 6,
+    "it10": 11,
+    "it50": 45,
+    "vis": 43
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/alyuminievye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/arochnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 5,
+    "it50": 6,
+    "vis": 15
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dekorativnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 6,
+    "vis": 15
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dekorativnye-peregorodki/peregorodki-s-risunkom-ili-uzorom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/dizajnerskie-peregorodki/czvetnye-dekorativnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 5
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/loft-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 5,
+    "it10": 13,
+    "it50": 31,
+    "vis": 12
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/matovye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/ofisnye-peregorodki/akusticheskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-dlya-zonirovaniya-komnaty",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 2,
+    "it10": 3,
+    "it50": 26,
+    "vis": 6
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-garmoshka",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 6,
+    "it50": 18,
+    "vis": 1
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-s-dveryu",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/peregorodki-stellazhi",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 29,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/raspashnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/razdvizhnye-steklyannye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 21,
+    "vis": 5
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/skladnye-peregorodki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 3
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/stalnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 5,
+    "vis": 2
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 2,
+    "it3": 5,
+    "it5": 5,
+    "it10": 5,
+    "it50": 10,
+    "vis": 69
+   },
+   {
+    "url": "/mezhkomnatnye-peregorodki-na-zakaz/zerkalnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product-category",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 4,
+    "vis": 10
+   },
+   {
+    "url": "/product-category/hranenie/polki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 7,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/hranenie/stellazhi",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/hranenie/veshalki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/komplektuyushhie/derevyannye-stoleshniczy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/komplektuyushhie/metallicheskie-podstolya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 33,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 6,
+    "vis": 1
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/dizajnerskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/loft-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/metallicheskie-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-garmoshka",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/peregorodki-s-tonirovannym-steklom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/raspashnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/razdvizhnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 12,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/reechnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mezhkomnatnye-peregorodki/staczionarnye-peregorodki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 4
+   },
+   {
+    "url": "/product-category/mirrors",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 6,
+    "it5": 11,
+    "it10": 31,
+    "it50": 141,
+    "vis": 1876
+   },
+   {
+    "url": "/product-category/mirrors/bez-ramy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 10,
+    "it50": 31,
+    "vis": 5
+   },
+   {
+    "url": "/product-category/mirrors/dizajnerskie",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 4,
+    "it50": 47,
+    "vis": 6
+   },
+   {
+    "url": "/product-category/mirrors/figurnye",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/floor",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 9,
+    "it50": 156,
+    "vis": 194
+   },
+   {
+    "url": "/product-category/mirrors/grimernye-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/kosmeticheskie-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/kvadratnye-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 7,
+    "vis": 1
+   },
+   {
+    "url": "/product-category/mirrors/led",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 86,
+    "vis": 4
+   },
+   {
+    "url": "/product-category/mirrors/polukruglye-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 38,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/rostovye-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 5,
+    "it50": 14,
+    "vis": 1
+   },
+   {
+    "url": "/product-category/mirrors/rotatable",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 10,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/sensornye-zerkala",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 3,
+    "it10": 6,
+    "it50": 11,
+    "vis": 35
+   },
+   {
+    "url": "/product-category/mirrors/v-spalnyu",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 16,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/wall",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 23,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkala-bez-podsvetki",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkala-s-zakruglennymi-uglami",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 4,
+    "it50": 8,
+    "vis": 24
+   },
+   {
+    "url": "/product-category/mirrors/zerkala-v-stile-loft",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 10,
+    "vis": 2
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-arka",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 3,
+    "it10": 10,
+    "it50": 27,
+    "vis": 23
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-krugloe",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 28,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-na-shtange",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 3,
+    "it50": 10,
+    "vis": 7
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-ovalnoe",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 7,
+    "it50": 54,
+    "vis": 26
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-pryamougolnoe",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 28,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-v-beloj-rame",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-v-chernoj-rame",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 19,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 94,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-v-rame",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 4,
+    "it50": 27,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/mirrors/zerkalo-v-zolotoj-rame",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 6,
+    "it50": 40,
+    "vis": 2
+   },
+   {
+    "url": "/product-category/myagkaya-mebel/pufy",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/rasprodaja",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/steklyannye-doski",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 60,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/steklyannye-doski/magnitno-markernaya-doska",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/steklyannye-doski/magnitno-markernaya-doska-srednyaya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/steklyannye-doski/prozrachnye-markernye-doski",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 49,
+    "vis": 40
+   },
+   {
+    "url": "/product-category/tables/glass-tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/keramicheskie-stoly",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/kitchen-tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 5,
+    "it50": 8,
+    "vis": 5
+   },
+   {
+    "url": "/product-category/tables/konsoli",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/kruglye",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/metal-tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/ovalnye-stoly",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/pryamougolnye-stoly",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/side-tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product-category/tables/work-tables",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/kaskadnaya-peregorodka-borkuma",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/product/kaskadnaya-peregorodka-calistasa",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/kaskadnaya-peregorodka-methoya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/kaskadnaya-peregorodka-s-besczvetnym-steklom-methoya-240-h-260-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/kaskadnaya-peregorodka-s-riflenym-steklom-flyiot-240-h-260-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 2,
+    "vis": 29
+   },
+   {
+    "url": "/product/konsol-arfeo-120-belyj-mramor-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 5,
+    "vis": 1
+   },
+   {
+    "url": "/product/konsol-arfeo-80-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/konsol-etazium-124-h-34-h-90-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/konsol-trubis-100-temnyj-mramor-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 3
+   },
+   {
+    "url": "/product/konsol-trubis-80-belyj-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/konsol-violur-120-belyj-mramor-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/konsol-violur-70-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/metallicheskaya-peregorodka-flowrombo-260-x-100-sm-chernaya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/mirrors/floor/floor-full-height/ggm-27",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-razdvizhnoj-stol-konux-d100-180-h-100-sm-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/product/obedennyj-razdvizhnoj-stol-violur-120-190h80-belyj-mramor-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-keramicheskij-trubis-120-h-71-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-keramicheskij-zolotoj-trubis-stone-160-h-80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-steklyannyj-beyso-180-h-80-tonirovannoe-steklo-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-steklyannyj-farfetto-chernyj-d120-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-steklyannyj-rondo-d120-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-steklyannyj-s-fotopechatyu-trubis-glass-xl-120-temnyj-mramor-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-steklyannyj-vetlix-200-h-90-besczvetnoe-steklo-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/product/obedennyj-stol-teydor-16070-oreh-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-s-kvarczevym-aglomeratom-160-h-80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-clever-90-sm-chernyj-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-kvadrat-90-oreh-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-l-100-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-l-100-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-l-100-temnyj-mramor-chernyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-oval-120-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 4,
+    "it50": 4,
+    "vis": 2
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-rectangle-160-belyj-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-trubis-wood-rectangle-180-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-violur-160-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/obedennyj-stol-violur-180-belyj-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-garmoshka-calistasa",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-garmoshka-flyiot",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-garmoshka-s-osvetlennym-steklom-aloyas-kopirovat",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-chairovia-205-7-h-260-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-garmoshka-s-riflenym-steklom-florovia-205-7-h-260-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 4,
+    "it50": 5,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-s-riflenym-steklom-zonique-chernaya-20070-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/peregorodka-s-riflenym-steklom-zonique-chernaya-240h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-beloe-trubis-ellipse-50h30-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-beloe-trubis-xl-50",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-chernoe-arfeo",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-chernoe-trubis-80h40-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/product/podstole-chernoe-trubis-c-35h35-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-chernoe-trubis-square-40h40-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-chernoe-violur-60h32-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-zolotoe-trubis-80h40-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/podstole-zolotoe-trubis-oval-70h35-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/rabochij-stol-pingum-duo-chernyj-200h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/rabochij-stol-steklyannyj-s-fotopechatyu-trubis-glass-temnyj-mramor-chernyj-180-h-90-sm-r150",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/razdvizhnaya-peregorodka-borkuma",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/razdvizhnaya-peregorodka-chairovia",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/razdvizhnaya-peregorodka-dironta",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/razdvizhnaya-peregorodka-s-riflenym-steklom-chairovia-300-h-260-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 6,
+    "vis": 2
+   },
+   {
+    "url": "/product/statichnaya-povorotnaya-peregorodka-amamel",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-120-x-200-sm-chernaya",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-100-x-150-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 8,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-100-x-150-sm-s-zakalennym-steklom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-100-x-200-sm-s-zakalennym-steklom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-120-x-200-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-120-x-240-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 4,
+    "it10": 5,
+    "it50": 8,
+    "vis": 83
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-60-x-90-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-belaya-90-x-120-sm-s-zakalennym-steklom",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 11,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-chernaya-100-x-200-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-magnitno-markernaya-doska-sinyaya-100-x-200-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-markernaya-doska-prozrachnaya-100-x-150-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 2,
+    "it50": 4,
+    "vis": 3
+   },
+   {
+    "url": "/product/steklyannaya-markernaya-doska-prozrachnaya-100-x-200-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/steklyannaya-markernaya-doska-prozrachnaya-60-x-90-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 3,
+    "it5": 6,
+    "it10": 7,
+    "it50": 9,
+    "vis": 75
+   },
+   {
+    "url": "/product/stellazh-trubis-chernyj-37-h-100-h-180-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belaya-ldsp-140h80h1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/product/stoleshnicza-belaya-ldsp-160h80h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 2,
+    "it5": 3,
+    "it10": 4,
+    "it50": 4,
+    "vis": 32
+   },
+   {
+    "url": "/product/stoleshnicza-belaya-ldsp-200h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 3,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/product/stoleshnicza-belaya-ldsp-d120-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-ldsp-180h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-ldsp-d110-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-140h80h1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-160h80h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-180h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-200h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 8,
+    "vis": 1
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-d110-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-d120-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-belyj-mramor-ldsp-d80-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-chernaya-ldsp-200h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-chernaya-ldsp-d40-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-chernyj-ldsp-180h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-ldsp-16-mm-d40",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-oreh-ldsp-120h80h1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-oreh-ldsp-200h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-oreh-ldsp-d100-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-oreh-ldsp-d120-1-6-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 0
+   },
+   {
+    "url": "/product/stoleshnicza-temnyj-mramor-ldsp-200h90h2-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/tumba-120-h-40-h-42-sm",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/product/tumba-zolotaya-boscur-184-5h39-5-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/veshalka-zolotaya-evesa-163h54-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-okno-v-chernoj-rame-windix-4-8-200-h-120-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-s-frontalnoj-podsvetkoj-illumora-duo-nf-led",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 3
+   },
+   {
+    "url": "/product/zerkalo-s-frontalnoj-podsvetkoj-illumora-nf-led-160-h-60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-s-holodnoj-podsvetkoj-arkelo-nf-led-s-90-x-50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/product/zerkalo-s-nejtralnoj-podsvetkoj-nolvis-nf-led-m-135-x-50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-s-podsvetkoj-3-v-1-kvanel-nf-led",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-stellazh-kataris-xl-chernyj-200-x-80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-arkis-180h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-arkis-m-160h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-evelum-163h54-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-halfeo-l-slim-170h70-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-halfeo-slim-leg-220h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-halfeo-xl-slim-200h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 1
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-kuvino-m-150h50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-nolvis-l-180h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 3,
+    "vis": 2
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-ozevis-165-h-46-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-ozevis-165h46-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-s-nejtralnoj-podsvetkoj-evelix-l-led-178-h-48-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 11
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-s-nejtralnoj-podsvetkoj-halfeo-xl-slim-led-200x80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-beloj-rame-s-teploj-podsvetkoj-kvaden-l-led-180x60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-bronzovoj-rame-cerchios-100-x-100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-arkis-180h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-arkis-m-160h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-c-teploj-podsvetkoj-rauntel-m-led-150-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-evelix-l-178h48-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-halfeo-l-slim-170h70-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-halfeo-m-slim-140h50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-halfeo-s-slim-120h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-halfeo-xl-slim-200h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-kuvino-l-180h55-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 2,
+    "it10": 2,
+    "it50": 3,
+    "vis": 1
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-kuvino-m-150h50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-kvaden-l-180h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-kvaden-xl-200h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-nolvis-l-180h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-ozevis-165h46-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-rauntel-m-80h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-rontus-m-160h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-s-nejtralnoj-podsvetkoj-arkelo-led-102-x-52-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 6,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-s-nejtralnoj-podsvetkoj-kuvino-l-led-180-x-55-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-s-nejtralnoj-podsvetkoj-nolvis-s-led-81x51-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-s-teploj-podsvetkoj-arkelo-led-102-x-52-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-chernoj-rame-veruf-m",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 5
+   },
+   {
+    "url": "/product/zerkalo-v-rozovoj-rame-halfeo-s-slim-120-h-80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-arkis-180h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 3,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-arkis-m-160h60-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-evelum-163h54-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-halfeo-s-slim-120h80-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-halfeo-xl-slim-200h100-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-kuvino-l-180h55-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-kuvino-m-150h50-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 2
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-s-teploj-podsvetkoj-arkelo-led-102-x-52-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zerkalo-v-zolotoj-rame-zeliso-1-185h45-sm-2",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zhurnalnyj-stol-steklyannyj-s-fotopechatyu-selmus-d40-sm-belyj-mramor-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-horsix-wood-40h40-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-horsix-wood-40h40-belyj-zolotoj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 1,
+    "it50": 4,
+    "vis": 1
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-belyj",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-riloni-60-h-40-sm-chernyj",
+    "domain": "genglass.ru",
+    "it1": 1,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 2
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-steklyannyj-cryloxar-chyornyj-100-h-100-h-43-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/product/zhurnalnyj-stolik-steklyannyj-steeluxe-chernyj-zolotoj-100-h-100-h-44-sm",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/proekty-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/project/butik-dizajnerskoj-odezhdy-larne-studio",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 13,
+    "vis": 2
+   },
+   {
+    "url": "/project/kreativnoe-prostranstvo-loft-creative",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/project/salon-krasoty-fevral-byuti",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 3,
+    "it50": 5,
+    "vis": 12
+   },
+   {
+    "url": "/project/zags-czentralnogo-okruga",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 2,
+    "vis": 0
+   },
+   {
+    "url": "/stante-nashim-partnerom-for-designers",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/steklyannye-shtorki-v-vannu-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stellazhi-i-polki-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 13,
+    "it10": 42,
+    "it50": 98,
+    "vis": 51
+   },
+   {
+    "url": "/stoly-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 2,
+    "it5": 6,
+    "it10": 26,
+    "it50": 67,
+    "vis": 101
+   },
+   {
+    "url": "/stoly-na-zakaz/kamennye-stoly",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/stoly-na-zakaz/keramicheskie-stoly",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/stoly-na-zakaz/steklyannye-stoly-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 2,
+    "it3": 5,
+    "it5": 8,
+    "it10": 8,
+    "it50": 20,
+    "vis": 19
+   },
+   {
+    "url": "/usefullinks",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 1,
+    "it10": 1,
+    "it50": 1,
+    "vis": 1
+   },
+   {
+    "url": "/wp-content/uploads/2022/05/Реквизиты-ИП-Валайко-Б.С..doc",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/wp-content/uploads/2025/09/gengroup_.pdf",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 3,
+    "it50": 3,
+    "vis": 4
+   },
+   {
+    "url": "/wp-content/uploads/2026/04/rekvizity-ip-churikov-m.a.pdf",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 0,
+    "it50": 1,
+    "vis": 0
+   },
+   {
+    "url": "/zerkala-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 1,
+    "it5": 2,
+    "it10": 10,
+    "it50": 101,
+    "vis": 20
+   },
+   {
+    "url": "/zerkala-na-zakaz/zerkala-s-podsvetkoj-na-zakaz",
+    "domain": "genglass.ru",
+    "it1": 0,
+    "it3": 0,
+    "it5": 0,
+    "it10": 2,
+    "it50": 13,
+    "vis": 0
+   }
+  ],
+  "total": 407
+ }
+}

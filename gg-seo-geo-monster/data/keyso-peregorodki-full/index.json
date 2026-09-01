@@ -1,0 +1,21 @@
+{
+  "updated": "2026-09-01T07:54:31.187Z",
+  "source": "keys.so",
+  "db": "msk",
+  "targets": [
+    {
+      "domain": "genglass.ru",
+      "brand": "GENGLASS",
+      "role": "own",
+      "reports": {
+        "dashboard": "ok"
+      },
+      "deep": {
+        "organic_keywords": "частично (100/3105)",
+        "context_keywords": "частично (100/374)",
+        "context_ads": "ok (303/303)",
+        "sitepages": "ok (407/407)"
+      }
+    }
+  ]
+}

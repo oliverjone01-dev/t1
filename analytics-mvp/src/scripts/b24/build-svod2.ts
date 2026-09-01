@@ -13,12 +13,14 @@ const OUT = process.env.OUT || "public/svod2.html";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
 const HIST = process.env.HIST_JSON || "dialog/data/history.json";
 const AI = process.env.AI_JSON || "dialog/data/ai-rop.json";
+const PHR = process.env.PHRASES_JSON || "dialog/data/phrases.json";
 
 const noDash = (x: string) => String(x || "").replace(/\u2014/g, "-"); // em dash из названий CRM -> дефис (отображение)
 const dlg = JSON.parse(readFileSync(DLG, "utf-8"));
 const rop = JSON.parse(readFileSync(ROP, "utf-8"));
 const hist = existsSync(HIST) ? JSON.parse(readFileSync(HIST, "utf-8")) : { days: [] };
 const ai = existsSync(AI) ? JSON.parse(readFileSync(AI, "utf-8")) : null;
+const phrases = existsSync(PHR) ? JSON.parse(readFileSync(PHR, "utf-8")) : { phrases: [] };
 
 const sc = dlg.scoring || {};
 if (!sc.managers || !sc.deals) { console.error("В dialog.json нет scoring - снимок старого движка"); process.exit(1); }
@@ -116,7 +118,7 @@ for (const [k, list] of Object.entries(evByObj)) {
   let lastIn: any = null, lastOut: any = null;
   for (const e of list) { if (e.dir === "входящее") lastIn = e; else lastOut = e; }
   if (lastIn && (!lastOut || lastOut.ts < lastIn.ts))
-    debt.push({ id: d.dealId || d.leadId, lead: d.isLead ? 1 : 0, m: d.mgr, b: Math.round(d.budget || 0), t: noDash(d.title).slice(0, 42), ageH: Math.round((NOWTS - lastIn.ts) / 36e5), next: String(d.next || "").slice(0, 140) });
+    debt.push({ id: d.dealId || d.leadId, lead: d.isLead ? 1 : 0, m: d.mgr, b: Math.round(d.budget || 0), t: noDash(d.title).slice(0, 42), ageH: Math.round((NOWTS - lastIn.ts) / 36e5), u: d.uKey, next: String(d.next || "").slice(0, 140) });
 }
 debt.sort((a, b) => b.b - a.b);
 const pairs: { day: string; respMin: number; back: number }[] = [];
@@ -163,7 +165,7 @@ const DATA = {
   managers: (sc.managers as any[]).map((m) => ({ mgr: m.mgr, role: m.role, rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0), sections: m.sections })),
   queuesMeta: sc.queues, minSample: sc.minSample, calibratedAt: sc.calibratedAt,
   deals, cohort, rot, hist: hist.days || [],
-  debt, replyLine, replyStats, pipe: { F: pipeF, mrows, dept: { ...deptPipe, cr: deptPipe.kp ? Math.round(1000 * deptPipe.sold / deptPipe.kp) / 10 : 0, lo: Math.round(dplo * 1000) / 10, hi: Math.round(dphi * 1000) / 10 } }, stik,
+  debt, replyLine, replyStats, phrases: phrases.phrases || [], pipe: { F: pipeF, mrows, dept: { ...deptPipe, cr: deptPipe.kp ? Math.round(1000 * deptPipe.sold / deptPipe.kp) / 10 : 0, lo: Math.round(dplo * 1000) / 10, hi: Math.round(dphi * 1000) / 10 } }, stik,
   ai: ai || { mgrs: {}, dept: null, deals: {} },
 };
 

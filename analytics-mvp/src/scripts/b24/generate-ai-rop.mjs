@@ -3,13 +3,13 @@
 // Каждый прогон гейтится validate-ai-rop.mjs; при FAIL - до 2 поправочных кругов
 // с передачей ошибок в промпт; финальный FAIL = exit 1, прежний ai-rop.json остаётся.
 // Запуск: ANTHROPIC_API_KEY=... SHEETS=... ARGS=... OUT=dialog/data/ai-rop.json node src/scripts/b24/generate-ai-rop.mjs
-// Модель: MODEL env, по умолчанию claude-haiku-4-5 (дешёвая; поднять до claude-sonnet-4-6 одной переменной).
+// Модель: MODEL env, по умолчанию claude-sonnet-5 (решение Ивана 01.09).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 const KEY = process.env.ANTHROPIC_API_KEY;
 if (!KEY) { console.error('generate-ai-rop: нет ANTHROPIC_API_KEY - генерация пропущена'); process.exit(2); }
-const MODEL = process.env.MODEL || 'claude-haiku-4-5';
+const MODEL = process.env.MODEL || 'claude-sonnet-5';
 const SHEETS_P = process.env.SHEETS, ARGS_P = process.env.ARGS;
 const OUT = process.env.OUT || 'dialog/data/ai-rop.json';
 const sheets = JSON.parse(readFileSync(SHEETS_P, 'utf-8'));

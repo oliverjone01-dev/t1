@@ -54,7 +54,13 @@ const fmtHuman = (n) => { n = Math.round(n || 0); if (n >= 1e6) return (n / 1e6)
 // --- извлечение чисел из текста ---
 const nums = (text) => {
   const out = [];
-  for (const m of String(text).matchAll(/\d[\d\s ]*(?:[.,]\d+)?/g)) {
+  const str = String(text);
+  for (const m of str.matchAll(/\d[\d\s ]*(?:[.,]\d+)?/g)) {
+    // артикулы из названий сделок («2508.4_Блогер...»): число, приклеенное БЕЗ пробела
+    // к '_' или букве - не метрика; «14 сделок» (пробел между) проверяется как раньше
+    const glued = !/\s$/.test(m[0]) && m[0].slice(-1) !== ' ';
+    const after = str[m.index + m[0].length] || '';
+    if (glued && (after === '_' || /[a-z]/i.test(after) || /[а-яё]/i.test(after))) continue;
     const raw = m[0].replace(/[\s ]/g, '').replace(',', '.');
     const n = parseFloat(raw);
     if (!isNaN(n)) out.push({ n, at: m.index, raw: m[0].trim() });
@@ -108,7 +114,7 @@ if (ai.dept) {
     for (const m of dtext.matchAll(/создано\s+(\d+)|(\d+)\s+продаж(?![а-яё]*\s*(?:нед|за нед))/gi)) {
       const v = +(m[1] || m[2]);
       const wf = args.dept?.weekCohortFunnel || {};
-      const okvals = new Set([af.created, af.tz, af.kp, af.sold, wf.created, wf.tz, wf.kp, wf.sold, ws?ws.total.n:-1, ...Object.values(sheets).flatMap(sh=>[sh.funnelAug?.created??-1, sh.funnelAug?.sold??-1, sh.wonWeek??-1])]);
+      const okvals = new Set([af.created, af.tz, af.kp, af.sold, af.mk ?? -1, wf.created, wf.tz, wf.kp, wf.sold, wf.mk ?? -1, ws?ws.total.n:-1, ...Object.values(sheets).flatMap(sh=>[sh.funnelAug?.created??-1, sh.funnelAug?.sold??-1, sh.wonWeek??-1])]);
       if (!okvals.has(v)) bad('dept', `воронка августа: «${m[0]}» не из augustFunnel/досье (ждали ${af.created}/${af.tz}/${af.kp}/${af.sold})`);
     }
   }

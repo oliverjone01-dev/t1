@@ -67,6 +67,10 @@ const run = async () => {
   for (const [name, sh] of Object.entries(sheets)) { mgrs[name] = await genMgr(name, sh); console.log('  срез:', name); }
   const minis = Object.values(mgrs).map((m) => m.mini).join('\n');
   const dept = await genDept(minis); console.log('  срез отдела');
+  // канон недельного итога - ДЕТЕРМИНИРОВАННО из фактов, не выпрашиваем у модели (гонка формулировок)
+  const wsT = args.dept?.weekSales?.total;
+  if (wsT && !new RegExp('Продажи\\s+недели[^0-9]{0,10}' + wsT.n + '\\s+сдел', 'i').test(dept.summary || ''))
+    dept.summary = 'Продажи недели: ' + wsT.n + ' сделок на ' + Math.round(wsT.rub).toLocaleString('ru-RU').replace(/\u00a0/g, ' ') + ' ₽.\n\n' + (dept.summary || '');
   const deals = {};
   for (const [q, items] of Object.entries(args.topDeals || {})) { deals[q] = await genDeals(q, items); console.log('  сделки:', q); }
   let out = { generatedAt: today, window: args.window, mgrs, dept, deals };

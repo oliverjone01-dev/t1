@@ -160,11 +160,35 @@ _as=[srchd[d] for d in A]; _bs=[srchd[d] for d in B]
 check("Медиана расхода до",  5376, round(_st.median(_a)))
 check("Медиана расхода после",5348, round(_st.median(_b)))
 check("По медиане расход НЕ вырос", True, _st.median(_b) <= _st.median(_a)*1.02)
-check("Документы не утверждают рост дневного расхода", True,
-      "вырос на 13,5%" not in HTX and "расход после этого вырос" not in TS)
+# «Вырос на 13,5%» допустимо только рядом с медианой и с новой РСЯ: без них это
+# утверждение опирается на три слабых дня и на канал, включённый в тот же день.
+def _qualified(txt):
+    i = txt.find("13,5%")
+    if i < 0:
+        return True
+    around = txt[max(0, i - 400): i + 700]
+    return "медиан" in around and "РСЯ" in around
+check("Рост 13,5% всегда с оговоркой (отчёт)", True, _qualified(HTX))
+check("Рост 13,5% всегда с оговоркой (лендинг)", True, _qualified(TS))
 check("Поиск вырос по обоим способам", True, _st.mean(_bs) > _st.mean(_as) and _st.median(_bs) > _st.median(_as))
 check("Рост Поиска по медиане %", 20, round(100*(_st.median(_bs)/_st.median(_as)-1)))
 check("Экономии нет: 14 дней после против 16 до", True, sum(_b) > sum(_a)*0.97)
+# Разложение изменения дневного расхода: новая РСЯ запущена 16.08, в тот же день,
+# когда остановили Товарную галерею. Без неё расход падает, а не растёт.
+_rs = defaultdict(float)
+for r in daily["days"]:
+    if "РСЯ" in r["camp"]: _rs[r["date"]] += r["spend"]
+_f = lambda src, P: sum(src[d] for d in P) / len(P)
+check("Старт РСЯ", "2026-08-16", [c["start"] for c in camp["campaigns"] if "РСЯ - ПК" in c["name"]][0])
+check("РСЯ добавила ₽/день", 945, round(_f(_rs, B) - _f(_rs, A)))
+check("Поиск забрал ₽/день", 1184, round(_f(srchd, B) - _f(srchd, A)))
+check("ТГ освободила ₽/день", -1492, round(_f(tgd, B) - _f(tgd, A)))
+_bez = lambda P: sum(tot[d] - _rs[d] for d in P) / len(P)
+check("Без новой РСЯ расход упал %", -6.6, round(100 * (_bez(B) / _bez(A) - 1), 1))
+check("Документы не приписывают рост перетоку", True,
+      "автоматически ушли в поисковые кампании, потому что" not in HTX)
+check("Дневной бюджет нигде не задан", True,
+      all(c["dailyBudget"] is None for c in camp["campaigns"] if c["spend"] > 0))
 
 # ---------- МЕТРИКА ----------
 bs = {r["source"]: r for r in dmet["by_source"]}
@@ -234,29 +258,41 @@ for d, exp in {
     check(f"keys.so {d}", exp, (x["it3"],x["it10"],x["it50"],x["vis"],x["adkeyscnt"],x["aiAnswersCnt"],x["pagesinindex"],x["dr"]))
 for d, exp in {"nayada.ru":0.59,"fdmebel.ru":0.60,"oki-doki.ru":0.60,"genglass.ru":0.20,"loftcase.ru":0.18}.items():
     check(f"ИИ на страницу {d}", exp, round(D[d]["aiAnswersCnt"]/D[d]["pagesinindex"], 2))
-sp = lambda group, dom: [r for r in R(f"{KP}/{group}/deep/sitepages.json")["data"]["data"] if r["domain"] == dom]
-gg, lc = sp("kristal360.ru","genglass.ru"), sp("loftcase.ru","loftcase.ru")
+# Полный постраничный срез. Первая страница выгрузки отсортирована по алфавиту адреса,
+# и считать по ней доли нельзя: у genglass в неё не попала ни одна из десяти сильнейших
+# страниц сайта. Проверяем, что срез действительно полный, и только потом считаем.
+FULL = json.load(open("gg-seo-geo-monster/data/keyso-peregorodki-full/genglass.ru/deep/sitepages.json", encoding="utf-8"))
+check("Срез страниц собран целиком", True, FULL["pagination"]["complete"])
+check("Строк в полном срезе", FULL["pagination"]["total"], FULL["pagination"]["rows"])
+_all = FULL["data"]["data"]
+gg = [r for r in _all if r["domain"] == "genglass.ru"]
+lc = [r for r in _all if r["domain"] == "loftcase.ru"]
+check("Полнота genglass сходится со сводкой", 269, len(gg))
+check("Полнота loftcase сходится со сводкой", 138, len(lc))
 ggp = [r for r in gg if "peregorod" in r["url"]]
 lcp = [r for r in lc if "peregorod" in r["url"] or "partition" in r["url"]]
-check("Наших страниц в срезе", 50, len(gg))
-check("Наших перегородочных", 33, len(ggp))
-check("Наша заметность всего", 540, sum(r["vis"] for r in gg))
-check("Наша заметность перегородок", 183, sum(r["vis"] for r in ggp))
-check("Доля перегородок %", 34, round(100*sum(r["vis"] for r in ggp)/sum(r["vis"] for r in gg)))
-check("loftcase перегородочных", 30, len(lcp))
-check("loftcase заметность всего", 1126, sum(r["vis"] for r in lc))
-check("loftcase заметность перегородок", 1042, sum(r["vis"] for r in lcp))
-check("loftcase доля %", 93, round(100*sum(r["vis"] for r in lcp)/sum(r["vis"] for r in lc)))
-check("Разрыв раз", 5.7, round(sum(r["vis"] for r in lcp)/sum(r["vis"] for r in ggp), 1))
+check("Наших страниц в индексе", 269, len(gg))
+check("Наших перегородочных", 51, len(ggp))
+check("Наша заметность всего", 3277, sum(r["vis"] for r in gg))
+check("Наша заметность перегородок", 217, sum(r["vis"] for r in ggp))
+check("Доля перегородок %", 7, round(100*sum(r["vis"] for r in ggp)/sum(r["vis"] for r in gg)))
+check("loftcase перегородочных", 94, len(lcp))
+check("loftcase заметность всего", 2336, sum(r["vis"] for r in lc))
+check("loftcase заметность перегородок", 2249, sum(r["vis"] for r in lcp))
+check("loftcase доля %", 96, round(100*sum(r["vis"] for r in lcp)/sum(r["vis"] for r in lc)))
+check("Разрыв раз", 10.4, round(sum(r["vis"] for r in lcp)/sum(r["vis"] for r in ggp), 1))
 m = {r["url"]: r for r in lc}
 check("loftcase /partition", (503,11,21,32), tuple(m["/partition"][k] for k in ("vis","it3","it10","it50")))
 check("loftcase /peregorodki", (441,6,62,455), tuple(m["/peregorodki"][k] for k in ("vis","it3","it10","it50")))
 check("Две страницы дают", 944, m["/partition"]["vis"]+m["/peregorodki"]["vis"])
+check("Их доля в перегородках loftcase %", 42, round(100*944/sum(r["vis"] for r in lcp)))
 check("loftcase гардеробные", 55, m["/mebel/f/kategoriya_mebeli-garderobnye"]["vis"])
 f = [r for r in lc if r["url"].startswith("/peregorodki/f/")]
-check("Фильтров у loftcase", 9, len(f))
-check("Фильтры дают", 4, sum(r["vis"] for r in f))
-check("Фильтров с нулём", 7, len([r for r in f if r["vis"] == 0]))
+check("Фильтров у loftcase", 38, len(f))
+check("Фильтры дают", 1170, sum(r["vis"] for r in f))
+check("Доля фильтров в сайте loftcase %", 50, round(100*sum(r["vis"] for r in f)/sum(r["vis"] for r in lc)))
+check("Фильтров с нулём", 22, len([r for r in f if r["vis"] == 0]))
+check("Гардеробный фильтр", 297, {r["url"]: r["vis"] for r in lc}["/peregorodki/f/po_komnatam-garderobnaya"])
 g = {r["url"]: r for r in gg}
 for u_, exp in {
   "/mezhkomnatnye-peregorodki-na-zakaz/teleskopicheskie-i-kaskadnye-peregorodki":(69,5,5,10),
@@ -276,8 +312,13 @@ check("Сирот в старом дереве", 5, len(orph))
 check("Заметность сирот", 6, sum(g[pc+o]["vis"] for o in orph))
 check("Гардеробных у нас", 0, len([u_ for u_ in g if "garderob" in u_]))
 check("Фильтров у нас",   0, len([u_ for u_ in g if "/f/" in u_]))
-check("8-я по силе страница сайта", ("steklyannye-doski", 64),
-      (gkey["top_pages"][7]["url"].rsplit("/",1)[-1], gkey["top_pages"][7]["keywords_top50"]))
+# Восьмую по силе берём из ТОГО ЖЕ полного среза, что и остальные страничные цифры.
+# Раньше она приходила из другого прогона того же дня и давала 64 вместо 60.
+_strong = sorted(gg, key=lambda r: -r["it50"])
+check("8-я по силе страница сайта", ("steklyannye-doski", 60),
+      (_strong[7]["url"].rsplit("/",1)[-1], _strong[7]["it50"]))
+check("1-я по силе страница сайта", 156, _strong[0]["it50"])
+check("Хаб перегородок против неё", 45, {r["url"]: r for r in gg}["/mezhkomnatnye-peregorodki-na-zakaz"]["it50"])
 check("Перегородок в топ-10 сильнейших", 0, len([p for p in gkey["top_pages"] if "peregorod" in p["url"]]))
 adc = gkey["ad_competitors"]
 check("Рекламных конкурентов", 10, len(adc))

@@ -63,7 +63,7 @@ const nums = (text) => {
 };
 const checkText = (who, text) => {
   for (const { n, raw } of nums(text)) {
-    if (raw.replace(/[\s .,]/g, '').length >= 8) continue; // телефоны и ID из названий сделок - не деньги
+    if (/^\d{8,}$/.test(raw)) continue; // телефон/ID = слитные 8+ цифр; деньги всегда с разделителями (N1)
     const r = Math.abs(Math.round(n));
     const frac = Math.abs(n) < 10 && String(n).includes('.');
     if (frac) continue;                              // рейтинги 2,5 и дельты 0,1 - отдельная проверка ниже
@@ -112,9 +112,23 @@ if (ai.dept) {
       if (!okvals.has(v)) bad('dept', `воронка августа: «${m[0]}» не из augustFunnel/досье (ждали ${af.created}/${af.tz}/${af.kp}/${af.sold})`);
     }
   }
+  // N2: недельный итог отдела - требуем каноническую строку с точным числом
+  if (ws) {
+    const canon = new RegExp('Продажи\\s+недели[^0-9]{0,10}' + ws.total.n + '\\s+сдел', 'i');
+    if (!canon.test(dtext)) bad('dept', `нет канонической строки «Продажи недели: ${ws.total.n} сделок...»`);
+    for (const m of dtext.matchAll(/Продажи\s+недели[^0-9]{0,10}(\d+)\s+сдел/gi))
+      if (+m[1] !== ws.total.n) bad('dept', `«${m[0]}» != ${ws.total.n}`);
+  }
   const dr = args.dept?.deptRatingMedian;
   if (dr) {
-    const m = dtext.match(/рейтинг[^.\n]*?(\d(?:[.,]\d)?)\s*(?:→|->)\s*(\d(?:[.,]\d)?)/i);
+    // направление проверяем только там, где речь про ОТДЕЛ - личные движения менеджеров не трогаем
+    let m = null;
+    for (const sent of dtext.split('\n')) { /* только переносы: точка внутри дат 23.08 */
+      if (!/отдел/i.test(sent) || !/рейтинг/i.test(sent)) continue;
+      m = sent.match(/(\d(?:[.,]\d)?)\s*(?:\([^)]*\))?\s*(?:→|->|до)\s+?(\d(?:[.,]\d)?)/)
+        || sent.match(/с\s+(\d(?:[.,]\d)?)\s*(?:\([^)]*\))?\s*до\s+(\d(?:[.,]\d)?)/i);
+      if (m) break;
+    }
     if (m) {
       const a = parseFloat(m[1].replace(',', '.')), b = parseFloat(m[2].replace(',', '.'));
       if ((b - a) * ((dr['30.08'] ?? 0) - (dr['23.08'] ?? 0)) < 0) bad('dept', `направление рейтинга перевёрнуто: «${m[0]}», факты ${dr['23.08']} -> ${dr['30.08']}`);

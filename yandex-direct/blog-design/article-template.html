@@ -92,6 +92,7 @@ button{font-family:var(--sans);}
 @media (max-width:1000px){
   .layout{grid-template-columns:minmax(0,1fr);gap:0;}
   .col-side{border-left:0;padding-left:0;padding-top:44px;margin-top:44px;border-top:2px solid var(--ink);}
+  .side-tail{display:none;}
 }
 
 /* ── шапка статьи ── */
@@ -209,6 +210,9 @@ td.num{font-family:var(--mono);font-size:15px;white-space:nowrap;font-variant-nu
 }
 .f textarea{height:auto;min-height:62px;padding-top:8px;resize:vertical;line-height:1.45;}
 .f input::placeholder,.f textarea::placeholder{color:rgba(110,112,116,.6);}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--muted);line-height:1.4;cursor:pointer;}
+.consent input{width:15px;height:15px;flex:0 0 15px;margin:3px 0 0;accent-color:var(--ink);}
+.consent a{color:var(--muted);}
 .coupon .fine{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:2px;}
 .coupon-note{font-family:var(--hand);font-weight:500;font-size:20px;color:var(--blue);line-height:1.25;transform:rotate(1.2deg);margin:18px 0 0;}
 
@@ -322,8 +326,10 @@ body.ann [data-ann]::before{
   <div class="rule-2"></div>
   <div class="mast-meta">
     <div class="who">Издаёт Дмитрий Янчоглов, Москва</div>
+    <!-- ЗАГЛУШКА: нумерация выпусков начинается с №1 от первой публикации, задним числом не проставлять -->
+    <!-- ЗАГЛУШКА: «в работе / свободно» это заявление о загрузке, подставлять только фактическое -->
     <div class="when">
-      <div>вторник, 1 сентября 2026 · выпуск №47</div>
+      <div>вторник, 1 сентября 2026 · выпуск №12</div>
       <div>в работе 4 проекта · свободно 2</div>
     </div>
   </div>
@@ -346,11 +352,11 @@ body.ann [data-ann]::before{
   <div class="kicker" data-ann="Рубрика + дата + время чтения">
     <span class="rub">Нет заявок</span>
     <span>·</span>
-    <span>выпуск №47</span>
+    <span>выпуск №12</span>
     <span>·</span>
     <span>1 сентября 2026</span>
     <span>·</span>
-    <span>читать 9 минут</span>
+    <span>читать 4 минуты</span>
   </div>
 
   <h1 data-ann="H1 = поисковый запрос">Бюджет тратится, заявок нет. Где именно теряются деньги</h1>
@@ -415,7 +421,7 @@ body.ann [data-ann]::before{
     <div class="rule-thin"></div>
     <p>Ключевые слова в кабинете и реальные запросы людей это два разных списка. Смотреть надо на второй.</p>
     <p>Откройте отчёт по поисковым запросам за последние 30 дней и отсортируйте по расходу. В половине кабинетов, которые я разбираю, в первой двадцатке по тратам стоят запросы со словами «своими руками», «бесплатно», «вакансия», «отзывы сотрудников» и названия конкурентов, по которым человек ищет их сайт, а не вас.</p>
-    <p>Отдельная история это автотаргетинг. Он включён по умолчанию и в кампаниях без присмотра съедает от трети бюджета, приводя запросы, которые к вашей услуге отношения не имеют.</p>
+    <p>Отдельная история это автотаргетинг. Он включён по умолчанию, и в кабинетах, которые я разбирал, на него уходило до трети расхода: запросы, к вашей услуге отношения не имеющие.</p>
 
     <div class="note warm">не «мало ключей». Слишком много не тех</div>
 
@@ -436,8 +442,8 @@ body.ann [data-ann]::before{
       <h4>Разбираю чужие кабинеты по вторникам</h4>
       <p>Один разбор в неделю: что было настроено, что откручивало бюджет впустую, что поменяли и что получилось. Без рекламы курсов и без «10 секретов Директа».</p>
       <p style="margin-bottom:14px;">В закрепе лежат оба файла, по которым я работаю сам: список из 90 проверок кабинета и таблица «окупится или нет».</p>
-      <a class="btn" href="#" data-goal="tg_sub_inline">Подписаться и забрать файлы</a>
-      <div class="tg-sub">1 240 подписчиков · 4 письма в месяц · отписаться в один клик</div>
+      <a class="btn" href="#" data-goal="tg_sub_inline">Подписаться на разборы</a>
+      <!-- ЗАГЛУШКА: число подписчиков --><div class="tg-sub">1 240 подписчиков · 4 разбора в месяц · отписаться в один клик</div>
     </div>
 
     <h2 id="p5">5. Что делать по порядку</h2>
@@ -475,16 +481,18 @@ body.ann [data-ann]::before{
     <div class="coupon-h">Купон на разбор</div>
     <h3>Посмотрю ваш кабинет и назову оценку от 0 до 100</h3>
     <p class="intro">Бесплатно, один раз, без созвона на полтора часа. Пришлю документ: что настроено, что тратит впустую, что чинить первым. Если по цифрам реклама не окупается, скажу это до того, как вы заплатите.</p>
-    <form class="form f" onsubmit="return false;">
+    <!-- ЗАГЛУШКА: action и метод отправки подставить, см. ASTRA_IMPLEMENTATION.md §6 -->
+    <form class="form f" method="post" action="#" onsubmit="return false;">
       <div class="f-row">
-        <div><label for="c-name">Имя</label><input id="c-name" placeholder="Как к вам обращаться"></div>
-        <div><label for="c-tg">Telegram или почта</label><input id="c-tg" placeholder="@nickname"></div>
+        <div><label for="c-name">Имя</label><input id="c-name" name="lead_name" required placeholder="Как к вам обращаться"></div>
+        <div><label for="c-tg">Telegram или почта</label><input id="c-tg" name="lead_contact" required placeholder="@nickname"></div>
       </div>
       <div class="f-row">
-        <div><label for="c-site">Сайт</label><input id="c-site" placeholder="company.ru"></div>
-        <div><label for="c-bud">Бюджет в месяц</label><input id="c-bud" placeholder="120 000 ₽"></div>
+        <div><label for="c-site">Сайт</label><input id="c-site" name="lead_site" placeholder="company.ru"></div>
+        <div><label for="c-bud">Бюджет в месяц</label><input id="c-bud" name="lead_budget" inputmode="numeric" placeholder="120 000 ₽"></div>
       </div>
-      <div><label for="c-task">Что не сходится</label><textarea id="c-task" placeholder="Заявки есть, но дорогие и почти все нецелевые"></textarea></div>
+      <div><label for="c-task">Что не сходится</label><textarea id="c-task" name="lead_task" placeholder="Заявки есть, но дорогие и почти все нецелевые"></textarea></div>
+      <label class="consent"><input type="checkbox" id="c-pd" name="lead_consent" required value="1"><span>Согласен на обработку персональных данных и ознакомился с <a href="#">политикой</a></span></label>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
         <button class="btn" type="submit" data-goal="lead_audit">Отправить купон</button>
         <div class="fine">Отвечаю в течение рабочего дня.<br>Кабинет остаётся у вас, я работаю по доступу.</div>
@@ -505,21 +513,22 @@ body.ann [data-ann]::before{
   <section class="related" data-ann="Связанные: соседи по кластеру, не случайные">
     <div class="rule-mid"></div>
     <div class="related-h">Из этой рубрики</div>
+    <!-- ЗАГЛУШКА: соседи по кластеру, выводятся WP_Query -->
     <div class="rel-grid">
       <div class="rel-item">
         <div class="rel-rub">Нет заявок</div>
         <a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a>
-        <div class="rel-meta">выпуск №44 · 7 мин</div>
+        <div class="rel-meta">выпуск №9 · 7 мин</div>
       </div>
       <div class="rel-item">
         <div class="rel-rub">Заявки мусорные</div>
         <a href="#">Звонят спросить, точно ли бесплатно. Как чинить качество лидов</a>
-        <div class="rel-meta">выпуск №41 · 8 мин</div>
+        <div class="rel-meta">выпуск №6 · 8 мин</div>
       </div>
       <div class="rel-item">
         <div class="rel-rub">Отчётность</div>
         <a href="#">Директ показывает одно, Метрика другое, CRM третье. Как свести</a>
-        <div class="rel-meta">выпуск №38 · 11 мин</div>
+        <div class="rel-meta">выпуск №4 · 11 мин</div>
       </div>
     </div>
   </section>
@@ -537,35 +546,37 @@ body.ann [data-ann]::before{
       <ul>
         <li><span>01</span><span>Список из 90 проверок кабинета, XLSX</span></li>
         <li><span>02</span><span>Таблица «окупится или нет», формулы открыты</span></li>
-        <li><span>03</span><span>Разборы по вторникам, 4 письма в месяц</span></li>
+        <li><span>03</span><span>Разборы по вторникам, 4 в месяц</span></li>
       </ul>
-      <a class="btn" href="#" data-goal="tg_sub_side">Подписаться</a>
-      <div class="cnt">1 240 подписчиков · оба файла в закрепе</div>
+      <a class="btn" href="#" data-goal="tg_sub_side">Подписаться на разборы</a>
+      <!-- ЗАГЛУШКА: число подписчиков --><div class="cnt">1 240 подписчиков · оба файла в закрепе</div>
     </div>
   </div>
 
   <div class="side-block" data-ann="Виджет 2 · рубрики = задачи бизнеса">
     <div class="side-h">Рубрики</div>
+    <!-- ЗАГЛУШКА: счётчики. Скрывать рубрику, пока в ней меньше трёх статей -->
     <ul class="rubs">
-      <li><a href="#" class="on">Нет заявок <span class="n">14</span></a></li>
-      <li><a href="#">Заявки мусорные <span class="n">9</span></a></li>
-      <li><a href="#">Дорогие клики и клиенты <span class="n">11</span></a></li>
-      <li><a href="#">Вернуть ушедших клиентов <span class="n">6</span></a></li>
-      <li><a href="#">Больше продаж с того же бюджета <span class="n">12</span></a></li>
-      <li><a href="#">Проверить подрядчика <span class="n">7</span></a></li>
-      <li><a href="#">Отчётность и учёт денег <span class="n">10</span></a></li>
-      <li><a href="#">Запуск с нуля <span class="n">8</span></a></li>
+      <li><a href="#" class="on">Нет заявок <span class="n">6</span></a></li>
+      <li><a href="#">Заявки мусорные <span class="n">4</span></a></li>
+      <li><a href="#">Дорогие клики и клиенты <span class="n">5</span></a></li>
+      <li><a href="#">Вернуть ушедших клиентов <span class="n">3</span></a></li>
+      <li><a href="#">Больше продаж с того же бюджета <span class="n">3</span></a></li>
+      <li><a href="#">Проверить подрядчика <span class="n">3</span></a></li>
+      <li><a href="#">Отчётность и учёт денег <span class="n">3</span></a></li>
+      <li><a href="#">Запуск с нуля <span class="n">3</span></a></li>
     </ul>
   </div>
 
   <div class="side-block" data-ann="Виджет 3 · последние выпуски">
     <div class="side-h">Последние выпуски</div>
+    <!-- ЗАГЛУШКА: список выпусков, выводится WP_Query -->
     <ul class="latest">
-      <li><div class="iss">№46 · 25 августа</div><a href="#">Заявки есть, продаж нет. Разрыв между рекламой и отделом продаж</a></li>
-      <li><div class="iss">№45 · 18 августа</div><a href="#">Как вернуть клиентов, которые уже покупали: ретаргетинг по своей базе</a></li>
-      <li><div class="iss">№44 · 11 августа</div><a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a></li>
-      <li><div class="iss">№43 · 4 августа</div><a href="#">Цена обращения выросла вдвое за месяц. Что смотреть первым</a></li>
-      <li><div class="iss">№42 · 28 июля</div><a href="#">Сколько на самом деле стоит клиент, если считать по кассе</a></li>
+      <li><div class="iss">№11 · 25 августа</div><a href="#">Заявки есть, продаж нет. Разрыв между рекламой и отделом продаж</a></li>
+      <li><div class="iss">№10 · 18 августа</div><a href="#">Как вернуть клиентов, которые уже покупали: ретаргетинг по своей базе</a></li>
+      <li><div class="iss">№9 · 11 августа</div><a href="#">Автотаргетинг съел треть бюджета. Разбор кабинета в монтаже</a></li>
+      <li><div class="iss">№8 · 4 августа</div><a href="#">Цена обращения выросла вдвое за месяц. Что смотреть первым</a></li>
+      <li><div class="iss">№7 · 28 июля</div><a href="#">Сколько на самом деле стоит клиент, если считать по кассе</a></li>
     </ul>
   </div>
 
@@ -583,14 +594,14 @@ body.ann [data-ann]::before{
   <div class="side-tail" data-ann="Хвост колонки: тот же ТГ, тихо">
     <div class="st-h">Следующий разбор</div>
     <p>Вторник, кабинет в грузоперевозках</p>
-    <a class="btn-ghost" href="#" data-goal="tg_sub_tail">Читать в Telegram</a>
+    <a class="btn-ghost" href="#" data-goal="tg_sub_tail">Подписаться на разборы</a>
   </div>
 
 </aside>
 </div><!-- /.layout -->
 
 <footer class="foot">
-  <div>Деньги в Директе · выпуск №47 · 1 сентября 2026</div>
+  <div>Деньги в Директе · выпуск №12 · 1 сентября 2026</div>
   <div><a href="#">Все выпуски</a> · <a href="#">Telegram</a> · <a href="#">Об авторе</a> · <a href="#">Политика данных</a></div>
 </footer>
 

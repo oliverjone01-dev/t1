@@ -63,6 +63,7 @@ const nums = (text) => {
 };
 const checkText = (who, text) => {
   for (const { n, raw } of nums(text)) {
+    if (raw.replace(/[\s .,]/g, '').length >= 8) continue; // телефоны и ID из названий сделок - не деньги
     const r = Math.abs(Math.round(n));
     const frac = Math.abs(n) < 10 && String(n).includes('.');
     if (frac) continue;                              // рейтинги 2,5 и дельты 0,1 - отдельная проверка ниже

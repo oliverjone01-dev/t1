@@ -57,3 +57,7 @@ gg-sales-academy/public/
 registry.json
 cases.json
 msgs.jsonl
+
+# Лендинг /phoenix: зависимости не коммитим, собранный dist коммитим намеренно,
+# чтобы деплой Pages не зависел от доступности npm в CI.
+phoenix/node_modules/

@@ -7,6 +7,7 @@ name: Deploy to GitHub Pages
 #   /smm/              - SMM-стратегия, БОЙ (из ветки main)
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
 #   /seo/              - GG-SEO/GEO Монстр, БОЙ (из ветки main, статика public/)
+#   /phoenix/          - Перегородки: разбор направления (из main, собранный React из phoenix/dist)
 #   /markplan/         - GG-MarkPlan 2026 (маркетинговый план по 5 брендам), БОЙ (из main, статика public/)
 #   /stand-protocol/   - Протокол стенда MEBELIT x VALONTI, БОЙ (из main, статика public/, правка ?edit=1)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
@@ -40,7 +41,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -105,6 +106,14 @@ jobs:
           mkdir -p _site/seo/data
           cp -r gg-seo-geo-monster/public/. _site/seo/
           if [ -d gg-seo-geo-monster/data ]; then cp -r gg-seo-geo-monster/data/. _site/seo/data/; fi
+          # Перегородки, разбор направления: собранный React (Vite) из phoenix/dist.
+          # dist лежит в git намеренно: деплой не должен зависеть от доступности npm в CI.
+          # Пересобирается локально командой npm run build в папке phoenix/.
+          if [ -d phoenix/dist ]; then
+            mkdir -p _site/phoenix
+            cp -r phoenix/dist/. _site/phoenix/
+            echo "Phoenix: /phoenix/ собрана"
+          fi
           # MarkPlan 2026: маркетинговый план по 5 брендам, статика public/ (данные в public/data/)
           mkdir -p _site/markplan
           cp -r GG-markplan-2026/public/. _site/markplan/
@@ -164,6 +173,10 @@ jobs:
           if [ -n "${HUB_PASS:-}" ]; then
             HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
             sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" _site/seo/index.html
+            # Тот же пароль у лендинга /phoenix: хэш зашит в собранный бандл, меняем в нём.
+            if [ -d _site/phoenix/a ]; then
+              sed -i "s/2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868/$HASH/g" _site/phoenix/a/*.js
+            fi
             echo "HUB_PASS: хэш подменён из секрета"
           fi
 

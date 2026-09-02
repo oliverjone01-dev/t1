@@ -196,12 +196,23 @@ try {
     const msgs = evs.filter((e: any) => e.dir === "входящее" || e.dir === "исходящее" || MSG.has(e.type));
     const last = msgs[msgs.length - 1];
     const gpt = evs.filter((e: any) => e.type === "Резюме BitrixGPT").pop();
-    if (!last) { dialogMap[id] = { ball: "none", gpt: gpt ? clip(gpt.body, 240) : null }; continue; }
+    // Выжимка всей переписки: приоритет - AI-резюме BitrixGPT; иначе последняя реплика клиента и наша.
+    const summarize = (): string | null => {
+      if (gpt && gpt.body) return clip(gpt.body, 320);
+      const rev = msgs.slice().reverse();
+      const lastIn = rev.find((e: any) => e.dir === "входящее");
+      const lastOut = rev.find((e: any) => e.dir === "исходящее");
+      const parts: string[] = [];
+      if (lastIn) parts.push("Клиент: " + clip(lastIn.body || lastIn.title, 110));
+      if (lastOut) parts.push("Мы: " + clip(lastOut.body || lastOut.title, 110));
+      return parts.length ? parts.join(" · ") : clip((last && (last.body || last.title)) || "", 160);
+    };
+    if (!last) { dialogMap[id] = { ball: "none", gpt: gpt && gpt.body ? clip(gpt.body, 320) : null }; continue; }
     dialogMap[id] = {
       ball: last.dir === "входящее" ? "us" : last.dir === "исходящее" ? "client" : "unk",
       silent: Math.round((NOWMS - last.ts) / 864e5),
       chan: last.type, who: last.who,
-      gpt: gpt ? clip(gpt.body, 240) : clip(last.body || last.title, 160),
+      gpt: summarize(),
     };
   }
   console.log(`Диалоги: сопоставлено ${Object.keys(dialogMap).length} сделок из ${MINE_D.length} своих`);

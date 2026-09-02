@@ -132,6 +132,7 @@ jobs:
           const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
           const funnel='Открытый пайплайн с КП (шт · сумма):\n'
             +[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n')
+            +'\n'+pad('Итого по отделу',15)+pad(dep.port,4,true)+' шт · '+M(dep.rub)
             +'\n\nЗа месяц '+monName+' · предоплаты: '+prepN+' шт · '+M(prepR);
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
@@ -141,23 +142,22 @@ jobs:
           const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
           const slugOf=n=>(n.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
           const E=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          // Цвет по ВЫРУЧКЕ предоплат за месяц: передовые 🟢, отстающие/без выручки 🔴, середина 🟡. Терцили по значению (ничьи - один цвет).
-          const nT=Math.max(1,Math.round(rows.length/3));
-          const revS=rows.map(r=>r.pR).sort((a,b)=>a-b);
-          const redThr=revS[nT-1], greenThr=revS[revS.length-nT];
-          const tier=r=>(r.pR>=greenThr&&r.pR>0)?'🟢':(r.pR<=redThr?'🔴':'🟡');
-          const NW=Math.max(8,...rows.map(r=>[...r.m].length));
-          // Табличную форму сохраняем: <pre> строим вручную (не через esc), чтобы имя-ссылка не экранировалась.
-          // Имя - кликабельная ссылка на блок «Приоритет к предоплате». Строгое выравнивание: имя добито РОВНО до NW, затем фикс-разделитель (без сдвига у самой длинной фамилии).
-          const nameCell=r=>'<a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+' '.repeat(NW-[...r.m].length);
+          // Цвет по выручке предоплат за месяц ОТНОСИТЕЛЬНО СРЕДНЕГО ПО ОТДЕЛУ (выручка отдела ÷ число менеджеров):
+          // ниже среднего - 🔴 (тянут отдел вниз, даже если выручка есть, но малая), около среднего - 🟡, на уровне/выше - 🟢.
+          const avgRev=rows.length?prepR/rows.length:0, band=avgRev*0.15;
+          const tier=r=>{const d=r.pR-avgRev;return Math.abs(d)<=band?'🟡':(d>0?'🟢':'🔴');};
+          // Имя-ссылка стоит ПОСЛЕДНЕЙ в строке. В Telegram текст ссылки внутри <pre> рендерится не строго
+          // моноширинно, и если фамилия стоит слева, она сдвигает цифры. Числовые колонки - чистый esc-моноблок
+          // (строго выровнены), затем цветовой флаг, затем кликабельная фамилия-ссылка на блок «Приоритет к предоплате».
           const restCell=r=>pad(r.port+(r.neu?('+'+r.neu):''),6,true)+' '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+pad(r.pN?(r.pN+'·'+K(r.pR)):'-',8)+pad(r.miss,5,true);
-          const tblHdr=pad('Менеджер',NW)+' '+pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',5,true);
-          const table='<pre>'+E(tblHdr)+'\n'+rows.map(r=>nameCell(r)+' '+E(restCell(r))+' '+tier(r)).join('\n')+'</pre>';
+          const tblHdr=pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',5,true)+'  Менеджер';
+          const rowLine=r=>E(restCell(r))+' '+tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>';
+          const table='<pre>'+E(tblHdr)+'\n'+rows.map(rowLine).join('\n')+'</pre>';
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';
           sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';
           sum+='Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих без предоплаты)';
-          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу. Каждый менеджер видит свою строку, имя ведёт в его блок «Приоритет к предоплате»:\n\n'+sum+'\n\n'+table+'\n🟢 передовые по выручке · 🟡 середина · 🔴 отстают / без выручки за месяц';
+          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу. Каждый менеджер видит свою строку, имя ведёт в его блок «Приоритет к предоплате»:\n\n'+sum+'\n\n'+table+'\nЦвет по выручке относительно среднего по отделу: 🟢 на уровне/выше · 🟡 около среднего · 🔴 ниже (тянут отдел вниз)';
           let body=funnel;
           if(MODE==='itogi')body+='\n\nДо 20 млн осталось: '+M(Math.max(0,20e6-prepR));
           const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';

@@ -1582,13 +1582,19 @@ function myTaskCombinedBlock(){
 function priorityDealsBlock(){
   // Только сделки со СДЕЛАННЫМ предложением (КП направлено): КП/счёт, Принимают решение, Долгострой.
   // Ранние стадии (Расчёт, Формирование ТЗ) - без КП - в приоритет к предоплате не идут.
-  const HOT={"C49:PREPAYMENT_INVOIC":["КП/счёт",0.22],"C49:3":["Решение",0.26],"C49:UC_8JTBV2":["Долгострой",0.05]};
+  // Лесенка близости к предоплате (не историческая вероятность, а «насколько дожата»):
+  // 1.0 = предоплата уже получена (в списке не показываем), поэтому максимум 0.9. Порядок стадий
+  // воронки C49: КП отправлено -> Принимают решение -> [Предоплата]. Долгострой = застрявшая сделка.
+  const HOT={"C49:PREPAYMENT_INVOIC":["КП отправлено",0.55],"C49:3":["Принимают решение",0.75],"C49:UC_8JTBV2":["Долгострой",0.30]};
   const MINE=(AD||[]).filter(d=>!d.won&&!d.lost&&HOT[d.stageCode]);
-  const _info=info('Приоритет сделок к предоплате. Оценка (макс 0.9) = вероятность довести до предоплаты: вес стадии по факту конверсии, помноженный на анализ коммуникаций. Мяч у нас (клиент написал последним и ждёт ответ) поднимает оценку; тишина и «нет связи» опускают. Дожимай сверху вниз, сначала где мяч у нас. «О чём договорились» - из Резюме BitrixGPT. Клик по заголовку столбца - сортировка.');
+  const _info=info('Оценка 0..0.9 = насколько сделка близка к предоплате (1.0 = предоплата уже получена, поэтому в списке максимум 0.9). Считается от стадии воронки (Принимают решение ближе, чем КП отправлено; Долгострой - застряла) и от коммуникаций: «мяч у нас» (клиент написал последним и ждёт ответ) поднимает к 0.9; тишина и «нет связи» опускают. ПРИОРИТЕТ = ожидаемая касса (бюджет × оценка): большая близкая сделка - выше. Дожимай сверху вниз. Этапы - из воронки Bitrix «GG Заказы РФ» (C49). «О чём договорились» - из Резюме BitrixGPT. Клик по заголовку - сортировка.');
   if(!MINE.length)return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div></div></div><div style="text-align:center;padding:24px;color:var(--ink-3)">Нет открытых сделок на стадиях до предоплаты.</div></div>`;
   const DLG=DATA.dialog||{};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">#${id}</a>`:('#'+id);
-  const scoreOf=d=>{const base=HOT[d.stageCode][1];const c=DLG[d.id]||{ball:'none'};let f;if(c.ball==='us')f=1.35;else if(c.ball==='client')f=(c.silent>14?0.6:1.0);else if(c.ball==='unk')f=0.8;else f=0.45;return Math.min(0.9,base*f);};
+  const cliV=d=>{const c=d.client;return (!c||c==="нет данных"||c==="не указан")?'—':String(c).replace(/^Конечный клиент\s*/i,'');};
+  const catV=d=>{const a=d.assort;return (!a||a==="нет данных"||a==="не указана")?'—':a;};
+  // Оценка = близость к предоплате: база стадии × сигнал коммуникации. Мяч у нас -> к 0.9; тишина/нет связи -> вниз.
+  const scoreOf=d=>{const base=HOT[d.stageCode][1];const c=DLG[d.id]||{ball:'none'};let f;if(c.ball==='us')f=1.2;else if(c.ball==='client')f=(c.silent==null?0.9:c.silent<=7?1.0:c.silent<=21?0.8:0.55);else if(c.ball==='unk')f=0.7;else f=0.4;return Math.min(0.9,base*f);};
   const ballTxt=c=>(!c||c.ball==='none')?'⚪ нет связи':c.ball==='us'?'🔵 мяч у нас':c.ball==='client'?'⏳ ждём клиента':'⚪ внутр.';
   const ballRank=c=>(!c||c.ball==='none')?0:c.ball==='us'?3:c.ball==='client'?2:1;
   const rows=MINE.map(d=>{const c=DLG[d.id]||{ball:'none'};return {d,c,score:scoreOf(d),bud:d.budget||0,silent:(c.silent==null?9999:c.silent)};});
@@ -1596,7 +1602,7 @@ function priorityDealsBlock(){
   rows.forEach((r,i)=>r.prio=i+1);
   if(!S.prioSort)S.prioSort={k:'prio',a:true};
   const sk=S.prioSort.k,sa=S.prioSort.a?1:-1;
-  const sv={prio:r=>r.prio,score:r=>-r.score,ball:r=>-ballRank(r.c),bud:r=>-r.bud,stage:r=>HOT[r.d.stageCode][0],silent:r=>r.silent};
+  const sv={prio:r=>r.prio,score:r=>-r.score,ball:r=>-ballRank(r.c),bud:r=>-r.bud,cat:r=>catV(r.d),cli:r=>cliV(r.d),stage:r=>HOT[r.d.stageCode][0],silent:r=>r.silent};
   const sorted=rows.slice().sort((a,b)=>{const x=sv[sk](a),y=sv[sk](b);return (x>y?1:x<y?-1:0)*sa;});
   const th=(k,lab,al)=>`<th data-priosort="${k}" style="cursor:pointer;text-align:${al||'center'};white-space:nowrap${S.prioSort.k===k?';color:#22D3EE':''}">${lab}${S.prioSort.k===k?(sa>0?' ▲':' ▼'):''}</th>`;
   const scoreCol=s=>s>=0.5?'#2E9E74':s>=0.3?'#C2873C':'#CC5867';
@@ -1609,13 +1615,15 @@ function priorityDealsBlock(){
       `<td style="text-align:center;font-family:'Manrope';font-weight:800;color:${scoreCol(r.score)}">${r.score.toFixed(2)}</td>`+
       `<td style="text-align:center;white-space:nowrap">${ballTxt(c)}</td>`+
       `<td style="text-align:right;font-weight:700">${fmtK(d.budget||0)}</td>`+
+      `<td style="text-align:left;font-size:11px;color:var(--ink-2);white-space:nowrap">${esc(catV(d))}</td>`+
+      `<td style="text-align:left;font-size:11px;color:var(--ink-2);white-space:nowrap">${esc(cliV(d))}</td>`+
       `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(snm)}</td>`+
       `<td style="text-align:right;color:${(c.silent!=null&&c.silent>21)?'#F8717A':'var(--ink-3)'};font-size:11px">${sil}</td>`+
       `<td style="text-align:left">${gpt}</td>`+
       `</tr>`;}).join("");
   const us=rows.filter(r=>r.c&&r.c.ball==='us');const nUs=us.length,sumUs=us.reduce((s,r)=>s+r.bud,0);
   const sub=`Сделки, ближе всего к предоплате после анализа стадии, сроков и диалогов`+(nUs?` · <b style="color:#22D3EE">мяч у нас: ${nUs} на ${fmtK(sumUs)}</b>`:'');
-  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:520px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:520px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('cat','Ассортимент','left')}${th('cli','Клиент','left')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 function challengeWidget(){
@@ -2886,7 +2894,7 @@ function buildShell(){
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
-  document.addEventListener('click',e=>{const ps=e.target.closest('[data-priosort]');if(ps){const k=ps.dataset.priosort;if(!S.prioSort)S.prioSort={k:'prio',a:true};if(S.prioSort.k===k)S.prioSort.a=!S.prioSort.a;else{S.prioSort.k=k;S.prioSort.a=(k==='prio'||k==='stage'||k==='silent');}render();}});
+  document.addEventListener('click',e=>{const ps=e.target.closest('[data-priosort]');if(ps){const k=ps.dataset.priosort;if(!S.prioSort)S.prioSort={k:'prio',a:true};if(S.prioSort.k===k)S.prioSort.a=!S.prioSort.a;else{S.prioSort.k=k;S.prioSort.a=(k==='prio'||k==='stage'||k==='silent'||k==='cat'||k==='cli');}render();}});
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeToggle')){S.chalMin=!S.chalMin;render();return;}});
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('prio')||document.getElementById('dqfix')||document.getElementById('mytaskdisc');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
   document.addEventListener('click',e=>{const mp=e.target.closest('[data-mtdprob]');if(mp){S.mtdProb=mp.dataset.mtdprob;render();return;}});

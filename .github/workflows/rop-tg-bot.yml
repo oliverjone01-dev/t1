@@ -126,13 +126,17 @@ jobs:
           rows.sort((a,b)=>b.port-a.port);
           const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
           const line=r=>pad(short(r.m),13)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+'  '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+(r.pN?(r.pN+'·'+K(r.pR)):'');
-          const funnel='Сделки с КП и предоплаты (шт · сумма):\n'+[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR],['Предоплаты',prepN,prepR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n');
+          const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+          const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
+          const funnel='Открытый пайплайн с КП (шт · сумма):\n'
+            +[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n')
+            +'\n\nЗа месяц '+monName+' · предоплаты: '+prepN+' шт · '+M(prepR);
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
           const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
           let depMiss=0;{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const wd=dt.getUTCDay();if(wd===0||wd===6)continue;if(!depPrepDays.has(dt.toISOString().slice(0,10)))depMiss++;}}
           let body=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
-          body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n`;
+          body+=`Цель 700к/день · 20 млн/мес\n`;
           body+=`Выполнение плана по выручке: ${pct}% · ${M(prepR)} из 20 млн · осталось ${M(leftRev)}\n`;
           body+=`Дней невыполнения плана в этом месяце (рабочих без предоплаты): ${depMiss}\n\n`;
           body+=pad('Менеджер',13)+pad('Портф',6,true)+'  '+pad('КП/Р/Д',9)+'Предопл\n';

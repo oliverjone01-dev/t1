@@ -1068,46 +1068,12 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Реклама по категориям</div><div class="card-sub">расход/выручка/заказы/ДРР за период (по категории продвигаемого SKU, топ-кампании)</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Категория</th><th class="r">Расход</th><th class="r">Выручка</th><th class="r">Заказы</th><th class="r">ДРР</th></tr></thead><tbody id="lines"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Индекс цены против рынка</div><div class="card-sub">Индекс цены - на дату снимка <b>${maxD}</b> (всегда текущий, не историчен). Оборот - за 30 дней: <b>${live.dateFrom || ""} – ${live.dateTo || maxD}</b>.</div></div></div><div id="price"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Полная сводка по каждому артикулу за период из верхнего фильтра: продажи (history OZON) + реклама (атрибуция продвижения) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать.</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
-    <th>Категория / SKU</th>
-    <th class="r">Выручка</th><th class="r">Заказано</th><th class="r">Ср.цена</th><th class="r">Доставлено</th><th class="r">Возвраты</th><th class="r">Отмены</th><th class="r">Выкуплено</th>
-    <th class="r">Расход рекл.</th><th class="r">Продвиж. осн.</th><th class="r">Продано осн.</th><th class="r">Объединённая</th><th class="r">ДРР</th>
-    <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
-  </tr></thead><tbody id="skuan"></tbody></table></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}#skuan-t th,#skuan-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}.ad-exp{cursor:pointer}.ad-exp:hover{background:rgba(255,255,255,.03)}.ad-art{display:inline-block;background:var(--bg-soft);border-radius:5px;padding:1px 7px;margin:2px 3px 2px 0;font-size:11.5px;color:var(--ink-2)}</style>`;
   const skuMap: Record<string, string> = {};
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
-
-  // === данные раздела «Аналитика по SKU» (за выбранный период) ===
-  // Продажи по SKU/день (history), реклама по SKU/день (ads_attr, сумма по кампаниям),
-  // финансы по SKU/день (pnl_sku_daily). Компактно {sku:[[d,...],...]}. Клиент суммирует за период.
-  const anSales: Record<string, any[]> = {};
-  for (const f of facts) {
-    const sk = String(f.sku); if (!sk || sk === "__empty__" || sk === "0") continue;
-    const rev = Math.round(f.revenue || 0), u = f.units || 0, dv = f.delivered || 0, rt = f.returns || 0, cn = f.cancellations || 0;
-    if (!rev && !u && !dv && !rt && !cn) continue;
-    (anSales[sk] ||= []).push([f.date, rev, u, dv, rt, cn]);
-  }
-  const anAdsMap: Record<string, Record<string, number[]>> = {};
-  for (const cid in adsAttrByCamp) for (const r of adsAttrByCamp[cid]) {
-    const sk = String(r.sku); if (!sk) continue;
-    const dm = (anAdsMap[sk] ||= {}); const a = dm[r.d] || (dm[r.d] = [0, 0, 0, 0, 0]);
-    a[0]! += r.sp || 0; a[1]! += r.sold || 0; a[2]! += r.om || 0; a[3]! += r.soldM || 0; a[4]! += r.omM || 0;
-  }
-  const anAds: Record<string, any[]> = {};
-  for (const sk in anAdsMap) { anAds[sk] = []; for (const d in anAdsMap[sk]) { const a = anAdsMap[sk]![d]!; anAds[sk]!.push([d, Math.round(a[0]!), a[1], Math.round(a[2]!), a[3], Math.round(a[4]!)]); } }
-  let anFinRows: any[] = [];
-  try { anFinRows = readFileSync("data/pnl_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { anFinRows = []; }
-  const anFin: Record<string, any[]> = {};
-  for (const r of anFinRows) { const sk = String(r.sku); (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]); }
-  const anMeta: Record<string, any> = {};
-  for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
-    anMeta[sk] = { off: taxOf(sk).offer || skuMap[sk] || sk, nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk), sub: subOf(sk) };
-  }
   const pageJs = `
 const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
-const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
 // Per-SKU «Основная карточка» за период из кампании (без снимка RCACHE): SKU кампании + её
 // суммы за выбранное окно (они уже точные из aggFromDaily). Синхронно, без async-загрузки.
 function cardRep(c){var cd=CAMP_CARD[String(c.id)];return cd?[{sku:cd.sku,name:cd.name,sp:c.sp||0,om:c.om||0,sold:c.o||0,omModel:0,soldModel:0}]:[];}
@@ -1289,38 +1255,6 @@ function renderUecon(a){
   }).join('');
 }
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}
-// === раздел «Аналитика по SKU» за выбранный период ===
-var anOpen={}; // категория -> раскрыта ли
-function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
-function anCells(x){
-  var avg=x.units?Math.round(x.rev/x.units):0;var bought=x.units-x.canc;var drr=x.comb?Math.round(x.sp/x.comb*1000)/10:0;var fees=x.acc-x.amt;
-  var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
-  var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
-  return R(x.rev)+I(x.units)+R(avg)+I(x.deliv)+I(x.ret)+I(x.canc)+I(bought)
-    +R(x.sp)+R(x.omO)+I(x.soldO)+R(x.comb)+'<td class="r" style="color:var(--ink-3)">'+(x.comb?drr+'%':'—')+'</td>'
-    +R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt);
-}
-function renderSkuAnalytics(cur){
-  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};
-  for(var sk in AN_META){
-    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
-    if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
-    var m=AN_META[sk];
-    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:sa[1],deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6]};
-    (groups[x.cat]||(groups[x.cat]=[])).push(x);
-  }
-  var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','amt'];
-  var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
-  if(!cats.length){el.innerHTML='<tr><td colspan="21" class="kt-note">нет данных за период</td></tr>';return;}
-  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
-  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
-    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){html+='<tr class="an-sku" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+' <span style="color:var(--ink-3)">'+String(x.nm).slice(0,34)+'</span></td>'+anCells(x)+'</tr>';});
-  });
-  html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
-  el.innerHTML=html;
-  el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
-}
 function render(cur,cmp){
   mCur=cur; // окно периода
   setAds('load','считаю рекламу за период…');
@@ -1330,7 +1264,6 @@ function render(cur,cmp){
   loadCommission(cur); // комиссия по SKU из снимка -> юнит-экономика
   setAds('ok','готов к работе');
   loadAllReports(); // per-SKU разбивка из кэша снимка (ближайший 7/30/90)
-  renderSkuAnalytics(cur); // аналитика по SKU за период
 }`;
   writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }
@@ -1344,6 +1277,39 @@ function render(cur,cmp){
   const closed = JSON.parse(readFileSync("data/closed_pnl.json", "utf-8"));
   const skuNames: Record<string, string> = {};
   for (const sk of allSkus) skuNames[sk] = (skuName[sk] || sk).slice(0, 70);
+
+  // === данные раздела «Аналитика по SKU» (за выбранный период) ===
+  // Продажи по SKU/день (history), реклама по SKU/день (ads_attr_daily, сумма по кампаниям),
+  // финансы по SKU/день (pnl_sku_daily). Компактно {sku:[[d,...],...]}. Клиент суммирует за период.
+  const anSales: Record<string, any[]> = {};
+  for (const f of facts) {
+    const sk = String(f.sku); if (!sk || sk === "__empty__" || sk === "0") continue;
+    const rev = Math.round(f.revenue || 0), u = f.units || 0, dv = f.delivered || 0, rt = f.returns || 0, cn = f.cancellations || 0;
+    if (!rev && !u && !dv && !rt && !cn) continue;
+    (anSales[sk] ||= []).push([f.date, rev, u, dv, rt, cn]);
+  }
+  const anAdsMap: Record<string, Record<string, number[]>> = {};
+  try {
+    for (const l of readFileSync("data/ads_attr_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku); if (!sk) continue;
+      const dm = (anAdsMap[sk] ||= {}); const a = dm[r.d] || (dm[r.d] = [0, 0, 0, 0, 0]);
+      a[0]! += r.sp || 0; a[1]! += r.sold || 0; a[2]! += r.om || 0; a[3]! += r.soldM || 0; a[4]! += r.omM || 0;
+    }
+  } catch { /* нет файла - реклама по SKU пустая */ }
+  const anAds: Record<string, any[]> = {};
+  for (const sk in anAdsMap) { anAds[sk] = []; for (const d in anAdsMap[sk]) { const a = anAdsMap[sk]![d]!; anAds[sk]!.push([d, Math.round(a[0]!), a[1], Math.round(a[2]!), a[3], Math.round(a[4]!)]); } }
+  const anFin: Record<string, any[]> = {};
+  try {
+    for (const l of readFileSync("data/pnl_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku);
+      (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]);
+    }
+  } catch { /* нет файла - финансы по SKU пустые */ }
+  const anMeta: Record<string, any> = {};
+  for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
+    anMeta[sk] = { off: taxOf(sk).offer || sk, nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
+  }
+
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям; чистая прибыль - только по закрытым месяцам ниже.</div></section>
@@ -1352,9 +1318,16 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Полная сводка по каждому артикулу за период из верхнего фильтра: продажи (history OZON) + реклама (атрибуция продвижения) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать.</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+    <th>Категория / SKU</th>
+    <th class="r">Выручка</th><th class="r">Заказано</th><th class="r">Ср.цена</th><th class="r">Доставлено</th><th class="r">Возвраты</th><th class="r">Отмены</th><th class="r">Выкуплено</th>
+    <th class="r">Расход рекл.</th><th class="r">Продвиж. осн.</th><th class="r">Продано осн.</th><th class="r">Объединённая</th><th class="r">ДРР</th>
+    <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
+  </tr></thead><tbody id="skuan"></tbody></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
+const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1396,11 +1369,44 @@ function paintSku(t,src){
   document.getElementById('tsku').innerHTML=rows.map(x=>'<tr><td>'+(NAMES[x.sku]||x.sku)+'</td><td class="r">'+fmtRu(x.accruals)+'</td><td class="r" style="color:var(--dn)">'+fmtRu(x.commission)+'</td><td class="r" style="color:var(--up)">'+fmtRu(x.amount)+'</td><td class="r">'+(x.accruals?Math.round(x.amount/x.accruals*100):0)+'%</td></tr>').join('');
 }
 document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'<tr><td>'+(m.label||m.month||'')+'</td><td class="r">'+fMln(m.realization??0)+'</td><td class="r" style="color:'+((m.profit??0)>=0?'var(--up)':'var(--dn)')+'">'+fMln(m.profit??0)+'</td></tr>').join('')||'<tr><td colspan="3" class="kt-note">нет закрытых месяцев</td></tr>';
+// === раздел «Аналитика по SKU» за выбранный период ===
+var anOpen={}; // категория -> раскрыта ли
+function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
+function anCells(x){
+  var avg=x.units?Math.round(x.rev/x.units):0;var bought=x.units-x.canc;var drr=x.comb?Math.round(x.sp/x.comb*1000)/10:0;var fees=x.acc-x.amt;
+  var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
+  return R(x.rev)+I(x.units)+R(avg)+I(x.deliv)+I(x.ret)+I(x.canc)+I(bought)
+    +R(x.sp)+R(x.omO)+I(x.soldO)+R(x.comb)+'<td class="r" style="color:var(--ink-3)">'+(x.comb?drr+'%':'—')+'</td>'
+    +R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt);
+}
+function renderSkuAnalytics(cur){
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};
+  for(var sk in AN_META){
+    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
+    if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
+    var m=AN_META[sk];
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:sa[1],deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6]};
+    (groups[x.cat]||(groups[x.cat]=[])).push(x);
+  }
+  var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','amt'];
+  var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
+  if(!cats.length){el.innerHTML='<tr><td colspan="21" class="kt-note">нет данных за период</td></tr>';return;}
+  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
+  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
+    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
+    g.arr.forEach(function(x){html+='<tr class="an-sku" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+' <span style="color:var(--ink-3)">'+String(x.nm).slice(0,34)+'</span></td>'+anCells(x)+'</tr>';});
+  });
+  html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  el.innerHTML=html;
+  el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
+}
 function render(cur,cmp){
   // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.
   var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
   paint(p,p.daily?'daily':'snap');
   paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap'); // топ SKU - снимок 30 дн
+  renderSkuAnalytics(cur); // аналитика по SKU за период
 }`;
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }

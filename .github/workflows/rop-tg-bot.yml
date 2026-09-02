@@ -13,6 +13,9 @@ on:
       chat:
         description: "chat_id (пусто = группа по умолчанию)"
         default: ""
+      mgr:
+        description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
+        default: ""
   # schedule включим ПОСЛЕ проверки теста (времена МСК: 08:00 / 13:00 / 18:30 = UTC 05:00 / 10:00 / 15:30)
   # schedule:
   #   - cron: "0 5 * * *"
@@ -34,6 +37,7 @@ jobs:
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
           MODE: ${{ github.event.inputs.mode }}
+          MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail
           git fetch --depth=1 origin rop-dashboard-v1
@@ -41,7 +45,7 @@ jobs:
           cat > /tmp/digest.mjs <<'MJS'
           import fs from 'node:fs';
           const TOKEN=(process.env.BOT_TOKEN||process.env.BOT_TOKEN_ALT||'').trim();
-          const CHAT=process.env.CHAT_ID; const MODE=(process.env.MODE||'plan').trim();
+          const CHAT=process.env.CHAT_ID; const MODE=(process.env.MODE||'plan').trim(); const MGR=(process.env.MGR_NAME||'').trim();
           if(!TOKEN){console.error('Нет секрета ROPCACHE_BOT_TOKEN (и BOT_TOKEN пуст). Добавь токен бота в Settings > Secrets > Actions.');process.exit(1);}
           if(MODE==='probe'){
             const me=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getMe`)).json();
@@ -64,23 +68,56 @@ jobs:
           const epAt=x=>{for(const h of (x.hist||[]))if(h[0]==='C49:EXECUTING'&&h[1])return h[1];return x.won?x.closed:null;};
           const M=v=>(v/1e6).toFixed(1)+' млн', K=v=>Math.round(v/1000)+'к';
           const short=n=>{const p=n.split(' ');return p[1]?p[1]+(p[0]?' '+p[0][0]+'.':''):n;};
-          let dep={kp:0,dec:0,long:0,rub:0,port:0,neu:0}, prepN=0, prepR=0;
+          let dep={kp:0,dec:0,long:0,kpR:0,decR:0,longR:0,rub:0,port:0,neu:0}, prepN=0, prepR=0;
+          const sumOf=(a,c)=>a.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
+          const send=async(txt)=>{const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text:'<pre>'+txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>',parse_mode:'HTML',disable_web_page_preview:true})});const jj=await res.json();if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}console.log('Отправлено в',CHAT,'· msg',jj.result.message_id);};
+          if(MGR){
+            const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
+            const SN={'C49:PREPAYMENT_INVOIC':'КП отправлено','C49:3':'Принимают решение','C49:UC_8JTBV2':'Долгострой'};
+            const my=deals.filter(x=>x.mgr===MGR&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
+            const cnt=c=>my.filter(x=>x.stageCode===c).length, sm=c=>my.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
+            const portRub=my.reduce((s,x)=>s+(x.budget||0),0);
+            let mN=0,mR=0,tN=0;deals.filter(x=>x.mgr===MGR).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===TODAY.slice(0,7)){mN++;mR+=x.budget||0;if(ep.slice(0,10)===TODAY)tN++;}});
+            let depRub=0;PLAN.forEach(m=>deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null).forEach(x=>depRub+=x.budget||0));
+            const monTgt=Math.round(depRub?portRub/depRub*20e6:0), dayTgt=Math.round(monTgt/28.6);
+            const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
+            const top=my.slice().sort((a,b)=>(b.budget||0)-(a.budget||0)).slice(0,8);
+            const head={plan:'🌅 ПЛАН',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
+            let b=`${head} · ${MGR} · ${TODAY}\n`;
+            b+=`Портфель с КП: ${my.length}${neu?(' (+'+neu+' сегодня)'):''} · ${M(portRub)}\n`;
+            b+=`Цель: минимум 1 предоплата/день · ~${K(dayTgt)}\n`;
+            b+=`Предоплаты за месяц: ${mN} · ${M(mR)} из плана ~${M(monTgt)}${tN?(' · сегодня '+tN):''}\n\n`;
+            b+='Твоя воронка (шт · сумма):\n';
+            b+=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'].map(c=>pad(SN[c],17)+pad(cnt(c),3,true)+' · '+M(sm(c))).join('\n');
+            if(MODE==='srez'){
+              b+=`\n\nПолдень. Предоплаты сегодня: ${tN} · нужна минимум 1.\nДожми ближайшие по чеку:\n`;
+              b+=top.slice(0,3).map((x,i)=>(i+1)+'. '+K(x.budget||0)+' · '+SN[x.stageCode]+' · #'+x.id).join('\n');
+            } else if(MODE==='itogi'){
+              b+=`\n\nИтог дня: предоплаты сегодня ${tN}, за месяц ${mN} · ${M(mR)}.\nДо плана осталось ${M(Math.max(0,monTgt-mR))}.\nЗавтра в топе:\n`;
+              b+=top.slice(0,3).map((x,i)=>(i+1)+'. '+K(x.budget||0)+' · '+SN[x.stageCode]+' · #'+x.id).join('\n');
+            } else {
+              b+='\n\nДожать первыми (по чеку):\n';
+              b+=top.map((x,i)=>(i+1)+'. '+K(x.budget||0)+' · '+SN[x.stageCode]+' · #'+x.id).join('\n');
+            }
+            await send(b); process.exit(0);
+          }
           const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
             const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;
             const dec=my.filter(x=>x.stageCode==='C49:3').length;
             const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
             const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
             let pN=0,pR=0;deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;}});
-            dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
+            dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
             return {m,port:my.length,kp,dec,lo,neu,pN,pR};});
           rows.sort((a,b)=>b.port-a.port);
-          const line=r=>`${short(r.m).padEnd(13)}${String(r.port).padStart(3)}${r.neu?(' +'+r.neu):'   '}  ${r.kp}/${r.dec}/${r.lo}${r.pN?('  '+r.pN+'·'+K(r.pR)):''}`;
-          const funnel=`Воронка: КП ${dep.kp} · Решение ${dep.dec} · Долгострой ${dep.long}`;
+          const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
+          const line=r=>pad(short(r.m),13)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+'  '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+(r.pN?(r.pN+'·'+K(r.pR)):'');
+          const funnel='Сделки с КП и предоплаты (шт · сумма):\n'+[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR],['Предоплаты',prepN,prepR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n');
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           let body=`${head} · ${TODAY}\n`;
           body+=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
           body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n\n`;
-          body+=`Менеджер     Портф  КП/Реш/Долг  Предопл\n`;
+          body+=pad('Менеджер',13)+pad('Портф',6,true)+'  '+pad('КП/Р/Д',9)+'Предопл\n';
           body+=rows.map(line).join('\n')+'\n\n'+funnel;
           if(MODE==='itogi')body+=`\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
           const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');

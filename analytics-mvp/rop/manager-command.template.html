@@ -1616,6 +1616,8 @@ function priorityDealsBlock(){
   const sorted=rows.slice().sort((a,b)=>{const x=sv[sk](a),y=sv[sk](b);return (x>y?1:x<y?-1:0)*sa;});
   const th=(k,lab,al)=>`<th data-priosort="${k}" style="cursor:pointer;text-align:${al||'center'};white-space:nowrap${S.prioSort.k===k?';color:#22D3EE':''}">${lab}${S.prioSort.k===k?(sa>0?' ▲':' ▼'):''}</th>`;
   const scoreCol=s=>s>=0.5?'#2E9E74':s>=0.3?'#C2873C':'#CC5867';
+  // Срок ожидания (дней без ответа): 1-2 зелёный, 3-6 жёлтый, от 7 краснее с ростом.
+  const silCol=n=>n==null?'var(--ink-4)':n<=2?'#2E9E74':n<=6?'#D9A441':n<=13?'#E0776F':n<=20?'#D14F42':'#B83227';
   // Почему сделка на этом месте - словами, без формул (всплывает на номере приоритета).
   const whyText=r=>{const c=r.c,snm=HOT[r.d.stageCode][0],big=r.bud>=400000;
     if(c.ball==='us')return 'Мяч у нас: клиент написал последним и ждёт ответ на стадии «'+snm+'»'+(big?', сделка крупная':'')+'. Ответь и дожми - это самая быстрая касса.';
@@ -1640,13 +1642,13 @@ function priorityDealsBlock(){
       `<td style="text-align:left;font-size:11px;color:var(--ink-2);white-space:nowrap">${esc(catV(d))}</td>`+
       `<td style="text-align:left;font-size:11px;color:var(--ink-2);white-space:nowrap">${esc(cliV(d))}</td>`+
       `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(snm)}</td>`+
-      `<td style="text-align:right;color:${(c.silent!=null&&c.silent>21)?'#F8717A':'var(--ink-3)'};font-size:11px">${sil}</td>`+
+      `<td style="text-align:right;color:${silCol(c.silent)};font-weight:${(c.silent!=null&&c.silent>=7)?'700':'600'};font-size:11px">${sil}</td>`+
       `<td style="text-align:left">${taskCell(d)}</td>`+
       `<td style="text-align:left">${gpt}</td>`+
       `</tr>`;}).join("");
   const us=rows.filter(r=>r.c&&r.c.ball==='us');const nUs=us.length,sumUs=us.reduce((s,r)=>s+r.bud,0);
   const sub=`Сделки, ближе всего к предоплате после анализа стадии, сроков и диалогов`+(nUs?` · <b style="color:#22D3EE">мяч у нас: ${nUs} на ${fmtK(sumUs)}</b>`:'');
-  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div>${_help}<div class="scroll" style="max-height:560px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('cat','Ассортимент','left')}${th('cli','Клиент','left')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">Дела / срок</th><th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div>${_help}<div class="scroll" style="max-height:560px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('cat','Ассортимент','left')}${th('cli','Клиент','left')}${th('stage','Стадия','left')}${th('silent','Срок ожидания')}<th style="text-align:left">Дела / срок</th><th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 function challengeWidget(){

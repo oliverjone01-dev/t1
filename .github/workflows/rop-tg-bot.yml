@@ -115,17 +115,20 @@ jobs:
             const after='\n🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n\n'+q;
             await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro+'\n', after); process.exit(0);
           }
+          // Рабочие дни этого месяца (пн-пт до сегодня) - знаменатель «дней невыполнения» по каждому.
+          const WD=[];{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6)WD.push(dt.toISOString().slice(0,10));}}
           const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
             const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;
             const dec=my.filter(x=>x.stageCode==='C49:3').length;
             const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
             const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
-            let pN=0,pR=0;deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;depPrepDays.add(ep.slice(0,10));}});
+            let pN=0,pR=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);pDays.add(dd);}});
+            const miss=WD.filter(d=>!pDays.has(d)).length;
             dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
-            return {m,port:my.length,kp,dec,lo,neu,pN,pR};});
+            return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss};});
           rows.sort((a,b)=>b.port-a.port);
           const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
-          const line=r=>pad(short(r.m),13)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+'  '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+(r.pN?(r.pN+'·'+K(r.pR)):'');
+          const line=r=>pad(short(r.m),12)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+' '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+pad(r.pN?(r.pN+'·'+K(r.pR)):'-',8)+pad(r.miss,4,true);
           const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
           const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
           const funnel='Открытый пайплайн с КП (шт · сумма):\n'
@@ -134,13 +137,13 @@ jobs:
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
           const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
-          let depMiss=0;{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const wd=dt.getUTCDay();if(wd===0||wd===6)continue;if(!depPrepDays.has(dt.toISOString().slice(0,10)))depMiss++;}}
+          const depMiss=WD.filter(d=>!depPrepDays.has(d)).length;
           let body=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
           body+=`Цель 700к/день · 20 млн/мес\n`;
           body+=`Выполнение плана по выручке: ${pct}% · ${M(prepR)} из 20 млн · осталось ${M(leftRev)}\n`;
           body+=`Дней невыполнения плана в этом месяце (рабочих без предоплаты): ${depMiss}\n\n`;
-          body+=pad('Менеджер',13)+pad('Портф',6,true)+'  '+pad('КП/Р/Д',9)+'Предопл\n';
-          body+=rows.map(line).join('\n')+'\n\n'+funnel;
+          body+=pad('Менеджер',12)+pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',4,true)+'\n';
+          body+=rows.map(line).join('\n')+'\nНевып - рабочих дней месяца без предоплаты\n\n'+funnel;
           if(MODE==='itogi')body+=`\n\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
           const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n';
           const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';

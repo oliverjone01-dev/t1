@@ -80,6 +80,10 @@ jobs:
         run: |
           set -euo pipefail
           npm run pnl:account:daily
+      - name: Полный бэкфилл месячной реализации по SKU (УПД)
+        run: |
+          set -euo pipefail
+          npm run pnl:realization
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |
@@ -224,6 +228,13 @@ jobs:
           # data/pnl_account_daily.ndjson: реклама/штрафы/realFBS/подписки/доставка от покупателя
           # по дням (операции не с одним SKU). Перетягивает хвост 45 дней. Без Seller-кредов пропуск.
           npm run pnl:account:daily || echo "::warning::сборы уровня заказа не обновлены"
+
+      - name: Месячная реализация по SKU (перетяжка последних месяцев, УПД)
+        run: |
+          set -euo pipefail
+          # data/realization_monthly.ndjson: реализовано/возвращено по SKU за месяц (основа УПД).
+          # Перетягивает текущий + предыдущий месяц (доначисления/поздние возвраты). Без кредов - пропуск.
+          npm run pnl:realization || echo "::warning::месячная реализация не обновлена"
 
       - name: Пересборка сайта из свежих снимков
         run: |

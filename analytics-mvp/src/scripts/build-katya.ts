@@ -1318,6 +1318,15 @@ function render(cur,cmp){
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
   // Последний день с данными по сборам уровня заказа (для отсечки факт/прогноз). Fallback - maxD.
   const anAcctMaxD = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : maxD;
+  // Месячная реализация по УПД (data/realization_monthly.ndjson) -> канальные итоги по месяцу
+  // [ym, sold, ret]. Для сверки «Реализовано» (дневное) vs бухгалтерская реализация (УПД).
+  const anRealMap: Record<string, number[]> = {};
+  try {
+    for (const l of readFileSync("data/realization_monthly.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const a = anRealMap[r.ym] || (anRealMap[r.ym] = [0, 0]); a[0]! += r.sold || 0; a[1]! += r.ret || 0;
+    }
+  } catch { /* нет файла - сверка по УПД пустая */ }
+  const anReal = Object.keys(anRealMap).sort().map((ym) => [ym, Math.round(anRealMap[ym]![0]!), Math.round(anRealMap[ym]![1]!)]);
 
   const body = `
   <section class="kt-kpi" id="kpis"></section>
@@ -1327,9 +1336,9 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, заказы) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО и разнесена по колонкам: realFBS и доставка от покупателя - в «Логистику», остальное - в «Прочие».</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, реализация с учётом возвратов) + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = доставлено − возвраты по дате события (дневной ряд, бьётся с любым периодом). Строка «Реализация по УПД» - бухгалтерская реализация из отчёта /v2/finance/realization за целые месяцы периода (за июль 383); дневная сумма и УПД расходятся на 1-3 шт из-за разницы дата события vs бухгалтерский период. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО и разнесена по колонкам: realFBS и доставка от покупателя - в «Логистику», остальное - в «Прочие».</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / SKU</th>
-    <th class="r">Выручка</th><th class="r">Заказано</th>
+    <th class="r">Выручка</th><th class="r">Реализовано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
   </tr></thead><tbody id="skuan"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Сборы уровня заказа/кабинета (не по SKU)</div><div class="card-sub">За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по SKU. «Сумма по SKU (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead><tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr></thead><tbody id="acct"></tbody></table></div></section>
@@ -1337,7 +1346,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REAL=${J(anReal)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1394,7 +1403,8 @@ function renderSkuAnalytics(cur){
     var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
     if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
     var m=AN_META[sk];
-    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:sa[1],deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6]};
+    // units = «Реализовано с учётом возвратов» = доставлено − возвраты (по дате события, дневной ряд)
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:sa[2]-sa[3],deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6]};
     (groups[x.cat]||(groups[x.cat]=[])).push(x);
   }
   var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','amt'];
@@ -1417,6 +1427,14 @@ function renderSkuAnalytics(cur){
     html+='<tr style="cursor:default;font-weight:600" title="realFBS + доставка от покупателя -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. Операции OZON не по одному SKU, детально - в блоке ниже."><td>Сборы уровня заказа/кабинета <span style="color:var(--ink-3);font-weight:400">(не по SKU)</span></td>'+anCells(acct)+'</tr>';
   }
   html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  // Сверка по УПД: бухгалтерская реализация (/v2/finance/realization) за ЦЕЛЫЕ календарные
+  // месяцы внутри периода. Дневное «Реализовано» (по дате события) и УПД (бухг. период) могут
+  // расходиться на 1-3 шт. Показываем только для целых месяцев - месячный отчёт не делится по дням.
+  var upM=[],upNet=0;
+  for(var ui=0;ui<AN_REAL.length;ui++){var rr=AN_REAL[ui];var yy=+rr[0].slice(0,4),mm=+rr[0].slice(5,7);var mS=rr[0]+'-01',mE=rr[0]+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate());
+    if(mS>=from&&mE<=to){upM.push(rr[0]);upNet+=(rr[1]-rr[2]);}}
+  if(upM.length){var dl=grand.units-upNet;var dtxt=dl?' <span style="color:var(--ink-3);font-weight:400">(дельта к дневному '+(dl>0?'+':'')+fmtRu(dl)+')</span>':'';
+    html+='<tr style="color:var(--ink-2);border-top:1px dashed var(--bd)" title="бухгалтерская реализация из отчёта /v2/finance/realization (основа УПД) за целые месяцы периода"><td>Реализация по УПД <span style="color:var(--ink-3);font-weight:400">('+upM.join(', ')+')</span></td><td class="r">—</td><td class="r"><b>'+fmtRu(upNet)+'</b>'+dtxt+'</td><td class="r" colspan="8"></td></tr>';}
   el.innerHTML=html;
   el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
 }

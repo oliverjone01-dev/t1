@@ -220,6 +220,15 @@ export class OzonSeller {
     return data.items ?? data.result?.items ?? [];
   }
 
+  // POST /v2/finance/realization - месячный «Отчёт о реализации товаров» (бухгалтерская
+  // реализация, основа УПД). По каждому SKU: delivery_commission.quantity (продано) и
+  // return_commission.quantity (возвращено, может быть null). Возвращаем result.rows как есть.
+  async realization(month: number, year: number): Promise<any[]> {
+    const data = await this.post<any>("/v2/finance/realization", { month, year });
+    const result = data.result ?? data ?? {};
+    return result.rows ?? [];
+  }
+
   // POST /v3/finance/transaction/list - все операции за период. Пагинация по page/page_count.
   // Защита от «битого» page_count (OZON иногда отдаёт 1 при наличии данных): продолжаем,
   // пока последняя страница ПОЛНАЯ (1000), даже если page_count это не отражает. withRetry

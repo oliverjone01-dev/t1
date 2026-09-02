@@ -43,7 +43,18 @@ jobs:
           const TOKEN=(process.env.BOT_TOKEN||process.env.BOT_TOKEN_ALT||'').trim();
           const CHAT=process.env.CHAT_ID; const MODE=(process.env.MODE||'plan').trim();
           if(!TOKEN){console.error('Нет секрета ROPCACHE_BOT_TOKEN (и BOT_TOKEN пуст). Добавь токен бота в Settings > Secrets > Actions.');process.exit(1);}
-          if(MODE==='probe'){const r=await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates`);const j=await r.json();const chats={};(j.result||[]).forEach(u=>{const c=(u.message||u.my_chat_member||u.channel_post||u.edited_message||{}).chat;if(c)chats[c.id]=(c.title||c.username||'')+' ['+c.type+']';});console.log('getUpdates ok:',j.ok,'· updates:',(j.result||[]).length);console.log('Чаты, которые видит бот (id -> название):');console.log(JSON.stringify(chats,null,2));console.log('Возьми id нужной группы (начинается с -100) и пришли мне - подставлю в CHAT_ID.');process.exit(0);}
+          if(MODE==='probe'){
+            const me=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getMe`)).json();
+            const wh=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getWebhookInfo`)).json();
+            const j=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates?limit=100`)).json();
+            console.log('getMe:',JSON.stringify(me.result||me));
+            console.log('webhook:',JSON.stringify(wh.result||wh));
+            const chats={};(j.result||[]).forEach(u=>{const c=(u.message||u.my_chat_member||u.channel_post||u.edited_message||u.edited_channel_post||{}).chat;if(c)chats[c.id]=(c.title||c.username||'')+' ['+c.type+']';});
+            console.log('updates:',(j.result||[]).length,'· chats бот видит:');
+            console.log(JSON.stringify(chats,null,2));
+            console.log('Нужен id группы (начинается с -100). Если webhook.url не пуст - сначала уберём webhook.');
+            process.exit(0);
+          }
           const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
           const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
           const PLAN=["Ольга Лысенко","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];

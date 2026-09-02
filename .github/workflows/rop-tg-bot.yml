@@ -131,7 +131,7 @@ jobs:
           body+=rows.map(line).join('\n')+'\n\n'+funnel;
           if(MODE==='itogi')body+=`\n\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
           const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n';
-          const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/">РОП-дашборд отдела</a>';
+          const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';
           await send(body, before, after); process.exit(0);
           MJS
           node /tmp/digest.mjs

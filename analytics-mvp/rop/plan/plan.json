@@ -1,114 +1,18 @@
 {
- "source": "ROP_plan_template.xlsx",
- "generatedAt": "2026-07-26T14:31:00.578122Z",
+ "source": "ROP_plan_template (Google Sheet 14jm7EvJcZSMvmWe2leRG8hHfIvpCLDzY)",
+ "generatedAt": "2026-09-02T00:00:00.000000Z",
  "months": [
-  {
-   "month": "2026-01",
-   "rev": 5000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-02",
-   "rev": 5500000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-03",
-   "rev": 6500000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-04",
-   "rev": 7000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-05",
-   "rev": 7000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-06",
-   "rev": 6500000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-07",
-   "rev": 10000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-08",
-   "rev": 20000000,
-   "check": 122500,
-   "cr2": 0.25,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-09",
-   "rev": 7500000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-10",
-   "rev": 8000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-11",
-   "rev": 8500000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  },
-  {
-   "month": "2026-12",
-   "rev": 7000000,
-   "check": 80000,
-   "cr2": 0.16,
-   "cr1": 0.55,
-   "leads": null,
-   "deals": null
-  }
+  { "month": "2026-01", "rev": 5000000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-02", "rev": 5500000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-03", "rev": 6500000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-04", "rev": 7000000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-05", "rev": 7000000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-06", "rev": 6500000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-07", "rev": 10000000, "check": 80000, "cr2": 0.16, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-08", "rev": 20000000, "check": 122500, "cr2": 0.25, "cr1": 0.55, "leads": null, "deals": null },
+  { "month": "2026-09", "rev": 20000000, "check": 114200, "cr2": 0.30, "cr1": 0.60, "leads": null, "deals": null },
+  { "month": "2026-10", "rev": 25000000, "check": null, "cr2": null, "cr1": null, "leads": null, "deals": null },
+  { "month": "2026-11", "rev": 30000000, "check": null, "cr2": null, "cr1": null, "leads": null, "deals": null },
+  { "month": "2026-12", "rev": 35000000, "check": null, "cr2": null, "cr1": null, "leads": null, "deals": null }
  ]
 }

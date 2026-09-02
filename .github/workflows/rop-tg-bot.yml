@@ -16,11 +16,11 @@ on:
       mgr:
         description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
         default: ""
-  # schedule включим ПОСЛЕ проверки теста (времена МСК: 08:00 / 13:00 / 18:30 = UTC 05:00 / 10:00 / 15:30)
-  # schedule:
-  #   - cron: "0 5 * * *"
-  #   - cron: "0 10 * * *"
-  #   - cron: "30 15 * * *"
+  # Расписание МСК 09:00 / 14:00 / 17:30 = UTC 06:00 / 11:00 / 14:30. Режим определяется по времени.
+  schedule:
+    - cron: "0 6 * * *"
+    - cron: "0 11 * * *"
+    - cron: "30 14 * * *"
 
 permissions:
   contents: read
@@ -36,7 +36,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
-          MODE: ${{ github.event.inputs.mode }}
+          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * *' && 'plan') || (github.event.schedule == '0 11 * * *' && 'srez') || (github.event.schedule == '30 14 * * *' && 'itogi') || 'plan' }}
           MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail
@@ -107,7 +107,7 @@ jobs:
             if(MODE==='srez')b+=`\n\nПолдень. Предоплаты сегодня: ${tN} · нужна минимум 1.`;
             else if(MODE==='itogi')b+=`\n\nИтог дня: предоплаты сегодня ${tN}, за месяц ${mN} · ${M(mR)}. До плана осталось ${M(Math.max(0,monTgt-mR))}.`;
             const done=tN>=1;
-            const q={plan:'✅ План на день зафиксирован. Подтверди, что принял(а) в работу - ответь «Принято».',srez:'❓ Отчитайся по дневному плану: сколько предоплат сделал(а), что дожимаешь?',itogi:done?'🙌 План дня выполнен - спасибо за работу!':'❓ План дня не выполнен. Напиши, почему и что помешало?'}[MODE];
+            const q={plan:'✅ План на день зафиксирован. Подтверди В ОТВЕТ на это сообщение - напиши «Принято».',srez:'❓ Ответь на это сообщение: сколько предоплат сделал(а) сегодня и что дожимаешь?',itogi:done?'🙌 План дня выполнен - спасибо за работу! Черкни пару слов в ответ, что сработало.':'❓ Ответь на это сообщение: почему план дня не выполнен и что помешало?'}[MODE];
             const after='\n🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n\n'+q;
             await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro+'\n', after); process.exit(0);
           }

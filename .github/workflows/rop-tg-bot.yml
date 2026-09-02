@@ -122,10 +122,10 @@ jobs:
             const dec=my.filter(x=>x.stageCode==='C49:3').length;
             const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
             const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
-            let pN=0,pR=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);pDays.add(dd);}});
+            let pN=0,pR=0,tN=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);pDays.add(dd);if(dd===TODAY)tN++;}});
             const miss=WD.filter(d=>!pDays.has(d)).length;
             dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
-            return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss,today:pDays.has(TODAY)};});
+            return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss,todayN:tN};});
           rows.sort((a,b)=>b.port-a.port);
           const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
           const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
@@ -148,7 +148,7 @@ jobs:
           const tier=r=>maxR===minR?'🟡':(r.pR===maxR?'🟢':(r.pR===minR?'🔴':'🟡'));
           // Ссылки внутри <pre> у части клиентов Telegram НЕ кликаются, поэтому строки менеджеров выносим ИЗ моноблока:
           // имя - настоящая кликабельная ссылка на его блок «Приоритет к предоплате», показатели через « · », цветовой флаг спереди.
-          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>🔴 без предоплат</b>')+' · сегодня '+(r.today?'✅':'⛔')+' · невып '+r.miss+' дн';
+          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+' · '+r.miss+' дн без предоплат';
           const table=rows.map(mgrLine).join('\n');
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';

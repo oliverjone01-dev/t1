@@ -80,10 +80,6 @@ jobs:
         run: |
           set -euo pipefail
           npm run pnl:account:daily
-      - name: РАЗВЕДКА реализации (лог, без коммита)
-        run: |
-          set -euo pipefail
-          npx tsx src/scripts/ozon/realization-probe.ts 2026 7 || true
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |

@@ -1621,7 +1621,7 @@ function priorityDealsBlock(){
     const head=due?(overdue?`<span style="color:#F8717A;font-weight:800">⚠ просрочено ${_dmy(due)}</span>`:`<span style="color:var(--ink-2);font-weight:700">${_dmy(due)}</span>`):'<span style="color:var(--ink-4)">без срока</span>';
     return `<div style="font-size:11px;line-height:1.3">${head}${subj?`<div style="color:var(--ink-3);font-size:10.5px;max-width:150px;white-space:normal">${esc(subj)}</div>`:''}</div>`;};
   const body=sorted.slice(0,200).map(r=>{const d=r.d,c=r.c,snm=HOT[d.stageCode][0];
-    const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:400px;white-space:normal;line-height:1.35" data-tip="${esc(c.gpt).replace(/"/g,'&quot;')}">${esc(c.gpt.length>150?c.gpt.slice(0,150)+'…':c.gpt)}</div>`:'<span style="color:var(--ink-4)">нет переписки</span>';
+    const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:480px;white-space:normal;line-height:1.4">${esc(c.gpt)}</div>`:'<span style="color:var(--ink-4)">нет переписки</span>';
     const sil=c.silent==null?'—':(c.silent+' дн');
     return `<tr>`+
       `<td style="text-align:center;font-weight:700">${dl(d.id)}</td>`+

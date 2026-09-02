@@ -1318,10 +1318,9 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Полная сводка по каждому артикулу за период из верхнего фильтра: продажи (history OZON) + реклама (атрибуция продвижения) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать.</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, заказы) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать.</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / SKU</th>
-    <th class="r">Выручка</th><th class="r">Заказано</th><th class="r">Ср.цена</th><th class="r">Доставлено</th><th class="r">Возвраты</th><th class="r">Отмены</th><th class="r">Выкуплено</th>
-    <th class="r">Расход рекл.</th><th class="r">Продвиж. осн.</th><th class="r">Продано осн.</th><th class="r">Объединённая</th><th class="r">ДРР</th>
+    <th class="r">Выручка</th><th class="r">Заказано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
   </tr></thead><tbody id="skuan"></tbody></table></div></section>
   <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
@@ -1373,12 +1372,10 @@ document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'
 var anOpen={}; // категория -> раскрыта ли
 function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
 function anCells(x){
-  var avg=x.units?Math.round(x.rev/x.units):0;var bought=x.units-x.canc;var drr=x.comb?Math.round(x.sp/x.comb*1000)/10:0;var fees=x.acc-x.amt;
+  var fees=x.acc-x.amt;
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
-  return R(x.rev)+I(x.units)+R(avg)+I(x.deliv)+I(x.ret)+I(x.canc)+I(bought)
-    +R(x.sp)+R(x.omO)+I(x.soldO)+R(x.comb)+'<td class="r" style="color:var(--ink-3)">'+(x.comb?drr+'%':'—')+'</td>'
-    +R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt);
+  return R(x.rev)+I(x.units)+R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt);
 }
 function renderSkuAnalytics(cur){
   var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};
@@ -1391,7 +1388,7 @@ function renderSkuAnalytics(cur){
   }
   var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','amt'];
   var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
-  if(!cats.length){el.innerHTML='<tr><td colspan="21" class="kt-note">нет данных за период</td></tr>';return;}
+  if(!cats.length){el.innerHTML='<tr><td colspan="11" class="kt-note">нет данных за период</td></tr>';return;}
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
   cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
     html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';

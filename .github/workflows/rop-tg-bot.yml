@@ -1,0 +1,78 @@
+name: ROP TG bot (digest)
+
+# Дайджест отдела продаж в Telegram-группу 3 раза в день: план / срез / итоги.
+# Данные - rop.json из ветки rop-dashboard-v1 (тот же снимок, что и дашборды). Без ИИ,
+# чистый агрегат по воронке (сделки с КП по стадиям) + предоплаты + портфель менеджеров.
+# Токен бота - секрет ROPCACHE_BOT_TOKEN; chat_id группы задан ниже (не секрет).
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan | srez | itogi"
+        default: "plan"
+  # schedule включим ПОСЛЕ проверки теста (времена МСК: 08:00 / 13:00 / 18:30 = UTC 05:00 / 10:00 / 15:30)
+  # schedule:
+  #   - cron: "0 5 * * *"
+  #   - cron: "0 10 * * *"
+  #   - cron: "30 15 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - name: Build digest and send to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
+          BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: "-1004401671894"
+          MODE: ${{ github.event.inputs.mode }}
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin rop-dashboard-v1
+          git show FETCH_HEAD:analytics-mvp/rop/data/rop.json > /tmp/rop.json
+          cat > /tmp/digest.mjs <<'MJS'
+          import fs from 'node:fs';
+          const TOKEN=(process.env.BOT_TOKEN||process.env.BOT_TOKEN_ALT||'').trim();
+          const CHAT=process.env.CHAT_ID; const MODE=(process.env.MODE||'plan').trim();
+          if(!TOKEN){console.error('Нет секрета ROPCACHE_BOT_TOKEN (и BOT_TOKEN пуст). Добавь токен бота в Settings > Secrets > Actions.');process.exit(1);}
+          const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
+          const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
+          const PLAN=["Ольга Лысенко","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
+          const TODAY=(d.generated_at||'').slice(0,10);
+          const KP={"C49:PREPAYMENT_INVOIC":0,"C49:3":1,"C49:UC_8JTBV2":2};
+          const firstKP=x=>{for(const h of (x.hist||[]))if(KP[h[0]]!=null&&h[1])return h[1].slice(0,10);return null;};
+          const epAt=x=>{for(const h of (x.hist||[]))if(h[0]==='C49:EXECUTING'&&h[1])return h[1];return x.won?x.closed:null;};
+          const M=v=>(v/1e6).toFixed(1)+' млн', K=v=>Math.round(v/1000)+'к';
+          const short=n=>{const p=n.split(' ');return p[1]?p[1]+(p[0]?' '+p[0][0]+'.':''):n;};
+          let dep={kp:0,dec:0,long:0,rub:0,port:0,neu:0}, prepN=0, prepR=0;
+          const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
+            const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;
+            const dec=my.filter(x=>x.stageCode==='C49:3').length;
+            const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
+            const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
+            let pN=0,pR=0;deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;}});
+            dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
+            return {m,port:my.length,kp,dec,lo,neu,pN,pR};});
+          rows.sort((a,b)=>b.port-a.port);
+          const line=r=>`${short(r.m).padEnd(13)}${String(r.port).padStart(3)}${r.neu?(' +'+r.neu):'   '}  ${r.kp}/${r.dec}/${r.lo}${r.pN?('  '+r.pN+'·'+K(r.pR)):''}`;
+          const funnel=`Воронка: КП ${dep.kp} · Решение ${dep.dec} · Долгострой ${dep.long}`;
+          const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
+          let body=`${head} · ${TODAY}\n`;
+          body+=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
+          body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n\n`;
+          body+=`Менеджер     Портф  КП/Реш/Долг  Предопл\n`;
+          body+=rows.map(line).join('\n')+'\n\n'+funnel;
+          if(MODE==='itogi')body+=`\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
+          const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const text='<pre>'+esc(body)+'</pre>';
+          const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text,parse_mode:'HTML',disable_web_page_preview:true})});
+          const j=await res.json();
+          if(!j.ok){console.error('Telegram error:',JSON.stringify(j));process.exit(1);}
+          console.log('Отправлено в чат',CHAT,'· message_id',j.result.message_id);
+          MJS
+          node /tmp/digest.mjs

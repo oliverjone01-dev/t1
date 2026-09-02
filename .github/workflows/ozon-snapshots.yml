@@ -76,10 +76,10 @@ jobs:
         run: |
           set -euo pipefail
           npm run pnl:sku:daily
-      - name: РАЗВЕДКА типов операций (лог, без коммита)
+      - name: Полный бэкфилл сборов уровня заказа/кабинета по дням
         run: |
           set -euo pipefail
-          npx tsx src/scripts/ozon/tx-types-probe.ts 2026-07-01 2026-07-31 || true
+          npm run pnl:account:daily
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |
@@ -217,6 +217,13 @@ jobs:
           # последние 45 дней (доначисления задним числом), старые дни оставляет. Первый прогон -
           # полный бэкфилл от 01.02. Без Seller-кредов синк уже упал выше.
           npm run pnl:sku:daily || echo "::warning::per-SKU финансы по дням не обновлены"
+
+      - name: Сборы уровня заказа/кабинета по дням (перетяжка хвоста)
+        run: |
+          set -euo pipefail
+          # data/pnl_account_daily.ndjson: реклама/штрафы/realFBS/подписки/доставка от покупателя
+          # по дням (операции не с одним SKU). Перетягивает хвост 45 дней. Без Seller-кредов пропуск.
+          npm run pnl:account:daily || echo "::warning::сборы уровня заказа не обновлены"
 
       - name: Пересборка сайта из свежих снимков
         run: |

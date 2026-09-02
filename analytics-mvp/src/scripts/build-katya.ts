@@ -1309,6 +1309,15 @@ function render(cur,cmp){
   for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
     anMeta[sk] = { off: taxOf(sk).offer || sk, nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
   }
+  // Сборы уровня заказа/кабинета по дням (реклама/штрафы/realFBS/подписки/доставка от покупателя).
+  const anAcct: any[] = [];
+  try {
+    for (const l of readFileSync("data/pnl_account_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]);
+    }
+  } catch { /* нет файла - блок сборов уровня заказа пустой */ }
+  // Последний день с данными по сборам уровня заказа (для отсечки факт/прогноз). Fallback - maxD.
+  const anAcctMaxD = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : maxD;
 
   const body = `
   <section class="kt-kpi" id="kpis"></section>
@@ -1323,10 +1332,12 @@ function render(cur,cmp){
     <th class="r">Выручка</th><th class="r">Заказано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
   </tr></thead><tbody id="skuan"></tbody></table></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">Сборы уровня заказа/кабинета (не по SKU)</div><div class="card-sub">За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по SKU. «Сумма по SKU (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead><tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr></thead><tbody id="acct"></tbody></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1398,12 +1409,35 @@ function renderSkuAnalytics(cur){
   el.innerHTML=html;
   el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
 }
+// === блок «Сборы уровня заказа/кабинета» за выбранный период (факт + прогноз [ГИПОТЕЗА]) ===
+// AN_ACCT: [d, adv, fines, realfbs, badge, delivery, other]. Значения signed как в транзакциях
+// OZON (сборы отрицательны, доставка от покупателя положительна). Прогноз до конца периода -
+// «Гибрид по статьям»: реклама/realFBS/бейдж/доставка экстраполируем run-rate по прошедшим дням;
+// штрафы и прочее - по факту (не прогнозируем). Данные есть только до AN_MAXD.
+function renderAccountFees(cur){
+  var el=document.getElementById('acct');if(!el)return;var from=cur.from,to=cur.to;
+  var f={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0},any=false;
+  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;any=true;f.adv+=r[1]||0;f.fines+=r[2]||0;f.realfbs+=r[3]||0;f.badge+=r[4]||0;f.delivery+=r[5]||0;f.other+=r[6]||0;}
+  var day=864e5,parse=function(s){return Date.parse(s+'T00:00Z');};
+  var dataEnd=(to<AN_MAXD)?to:AN_MAXD; // последний день периода, по который есть данные
+  var totalDays=Math.round((parse(to)-parse(from))/day)+1;
+  var elapsed=Math.round((parse(dataEnd)-parse(from))/day)+1;
+  var k=(elapsed>0&&totalDays>elapsed)?(totalDays/elapsed):1; // множитель run-rate
+  var fc={adv:Math.round(f.adv*k),fines:f.fines,realfbs:Math.round(f.realfbs*k),badge:Math.round(f.badge*k),delivery:Math.round(f.delivery*k),other:f.other};
+  var money=function(v){var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var cells=function(o){var tot=o.adv+o.fines+o.realfbs+o.badge+o.delivery+o.other;return money(o.adv)+money(o.fines)+money(o.realfbs)+money(o.badge)+money(o.delivery)+money(o.other)+'<td class="r"><b>'+fmtRu(Math.round(tot))+'</b></td>';};
+  if(!any){el.innerHTML='<tr><td colspan="8" class="kt-note">нет данных за период (нужен бэкфилл pnl_account_daily)</td></tr>';return;}
+  var html='<tr><td><b>Факт</b> <span style="color:var(--ink-3);font-weight:400">'+from+'..'+dataEnd+'</span></td>'+cells(f)+'</tr>';
+  if(k>1)html+='<tr style="color:var(--ink-2)"><td><b>Прогноз</b> <span style="color:#E5B567;font-weight:400">[ГИПОТЕЗА] до '+to+'</span></td>'+cells(fc)+'</tr>';
+  el.innerHTML=html;
+}
 function render(cur,cmp){
   // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.
   var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
   paint(p,p.daily?'daily':'snap');
   paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap'); // топ SKU - снимок 30 дн
   renderSkuAnalytics(cur); // аналитика по SKU за период
+  renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }

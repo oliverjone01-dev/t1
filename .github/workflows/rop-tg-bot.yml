@@ -108,8 +108,8 @@ jobs:
             else if(MODE==='itogi')b+=`\n\nИтог дня: предоплаты сегодня ${tN}, за месяц ${mN} · ${M(mR)}. До плана осталось ${M(Math.max(0,monTgt-mR))}.`;
             const done=tN>=1;
             const q={plan:'✅ План на день зафиксирован. Подтверди, что принял(а) в работу - ответь «Принято».',srez:'❓ Отчитайся по дневному плану: сколько предоплат сделал(а), что дожимаешь?',itogi:done?'🙌 План дня выполнен - спасибо за работу!':'❓ План дня не выполнен. Напиши, почему и что помешало?'}[MODE];
-            const after='🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n'+q;
-            await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro, after); process.exit(0);
+            const after='\n🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n\n'+q;
+            await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro+'\n', after); process.exit(0);
           }
           const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
             const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;

@@ -128,7 +128,6 @@ jobs:
             return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss};});
           rows.sort((a,b)=>b.port-a.port);
           const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
-          const line=r=>pad(short(r.m),12)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+' '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+pad(r.pN?(r.pN+'·'+K(r.pR)):'-',8)+pad(r.miss,4,true);
           const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
           const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
           const funnel='Открытый пайплайн с КП (шт · сумма):\n'
@@ -138,14 +137,26 @@ jobs:
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
           const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
           const depMiss=WD.filter(d=>!depPrepDays.has(d)).length;
-          let body=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
-          body+=`Цель 700к/день · 20 млн/мес\n`;
-          body+=`Выполнение плана по выручке: ${pct}% · ${M(prepR)} из 20 млн · осталось ${M(leftRev)}\n`;
-          body+=`Дней невыполнения плана в этом месяце (рабочих без предоплаты): ${depMiss}\n\n`;
-          body+=pad('Менеджер',12)+pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',4,true)+'\n';
-          body+=rows.map(line).join('\n')+'\nНевып - рабочих дней месяца без предоплаты\n\n'+funnel;
-          if(MODE==='itogi')body+=`\n\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
-          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n';
+          // Слаг фамилии для ссылки на дашборд менеджера (как в build-managers-all): транслит последнего слова имени.
+          const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+          const slugOf=n=>(n.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
+          // Цвет текста Telegram не поддерживает - невыполнение плана метим эмодзи в конце строки: 🟢 план есть, 🟡 1-2 дня, 🔴 3+.
+          const dotOf=m=>m===0?'🟢':m<=2?'🟡':'🔴';
+          const E=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const NW=Math.max(8,...rows.map(r=>[...r.m].length));
+          // Табличную форму сохраняем: <pre> строим вручную (не через esc), чтобы имя-ссылка не экранировалась.
+          // Имя менеджера - кликабельная ссылка на его блок «Приоритет к предоплате»; цветовой флаг в конце строки (не ломает колонки).
+          const nameCell=r=>'<a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+' '.repeat(Math.max(1,NW-[...r.m].length));
+          const restCell=r=>pad(r.port+(r.neu?('+'+r.neu):''),6,true)+' '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+pad(r.pN?(r.pN+'·'+K(r.pR)):'-',8)+pad(r.miss,5,true);
+          const tblHdr=pad('Менеджер',NW)+pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',5,true);
+          const table='<pre>'+E(tblHdr)+'\n'+rows.map(r=>nameCell(r)+E(restCell(r))+' '+dotOf(r.miss)).join('\n')+'</pre>';
+          let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
+          sum+='Цель 700к/день · 20 млн/мес\n';
+          sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';
+          sum+=dotOf(depMiss)+' Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих без предоплаты)';
+          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу. Каждый менеджер видит свою строку, имя ведёт в его блок «Приоритет к предоплате»:\n\n'+sum+'\n\n'+table+'\n🟢 план дня есть · 🟡 1-2 дня без предоплаты · 🔴 3+ дней простоя (столбец «Невып»)';
+          let body=funnel;
+          if(MODE==='itogi')body+='\n\nДо 20 млн осталось: '+M(Math.max(0,20e6-prepR));
           const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';
           await send(body, before, after); process.exit(0);
           MJS

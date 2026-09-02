@@ -1604,6 +1604,7 @@ function priorityDealsBlock(){
     const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:360px;white-space:normal;line-height:1.35" data-tip="${esc(c.gpt).replace(/"/g,'&quot;')}">${esc(c.gpt.length>96?c.gpt.slice(0,96)+'…':c.gpt)}</div>`:'<span style="color:var(--ink-4)">—</span>';
     const sil=c.silent==null?'—':(c.silent+' дн');
     return `<tr>`+
+      `<td style="text-align:center;font-weight:700">${dl(d.id)}</td>`+
       `<td style="text-align:center;font-weight:800;color:var(--ink-2)">${r.prio}</td>`+
       `<td style="text-align:center;font-family:'Manrope';font-weight:800;color:${scoreCol(r.score)}">${r.score.toFixed(2)}</td>`+
       `<td style="text-align:center;white-space:nowrap">${ballTxt(c)}</td>`+
@@ -1611,11 +1612,10 @@ function priorityDealsBlock(){
       `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(snm)}</td>`+
       `<td style="text-align:right;color:${(c.silent!=null&&c.silent>21)?'#F8717A':'var(--ink-3)'};font-size:11px">${sil}</td>`+
       `<td style="text-align:left">${gpt}</td>`+
-      `<td style="text-align:center">${dl(d.id)}</td>`+
       `</tr>`;}).join("");
   const us=rows.filter(r=>r.c&&r.c.ball==='us');const nUs=us.length,sumUs=us.reduce((s,r)=>s+r.bud,0);
   const sub=`Сделки, ближе всего к предоплате после анализа стадии, сроков и диалогов`+(nUs?` · <b style="color:#22D3EE">мяч у нас: ${nUs} на ${fmtK(sumUs)}</b>`:'');
-  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:520px;margin-top:6px"><table class="tbl"><thead><tr>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">О чём договорились</th><th style="text-align:center">Сделка</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:520px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 function challengeWidget(){

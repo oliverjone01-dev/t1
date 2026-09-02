@@ -125,8 +125,10 @@ jobs:
           const funnel='Сделки с КП и предоплаты (шт · сумма):\n'+[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR],['Предоплаты',prepN,prepR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n');
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
+          const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
           let body=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
-          body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n\n`;
+          body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n`;
+          body+=`Выполнение плана по выручке: ${pct}% · ${M(prepR)} из 20 млн · осталось ${M(leftRev)}\n\n`;
           body+=pad('Менеджер',13)+pad('Портф',6,true)+'  '+pad('КП/Р/Д',9)+'Предопл\n';
           body+=rows.map(line).join('\n')+'\n\n'+funnel;
           if(MODE==='itogi')body+=`\n\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;

@@ -1,805 +1,805 @@
 {
- "measured": "2026-08-31",
+ "measured": "2026-09-02",
  "phrases": [
   {
-   "phrase": "стеклянная картина",
+   "phrase": "голубой гранит",
    "pos": null,
-   "freq": 1369,
+   "freq": 507,
    "url": "",
-   "cluster": "стеклянная",
+   "cluster": "голубой",
    "intent": "commercial"
   },
   {
-   "phrase": "премьер лазер",
+   "phrase": "гравировка на граните",
    "pos": null,
-   "freq": 197,
+   "freq": 1786,
    "url": "",
-   "cluster": "премьер",
+   "cluster": "гравировка",
    "intent": "commercial"
   },
   {
-   "phrase": "мемориальный памятник",
+   "phrase": "могильный камень",
    "pos": null,
-   "freq": 3095,
+   "freq": 2156,
    "url": "",
-   "cluster": "мемориальный",
+   "cluster": "могильный",
    "intent": "commercial"
   },
   {
-   "phrase": "изготовление памятников на могилу в спб цены",
+   "phrase": "камни черного цвета названия",
    "pos": null,
-   "freq": 14,
+   "freq": 279,
    "url": "",
-   "cluster": "изготовление",
+   "cluster": "камни",
    "intent": "commercial"
   },
   {
-   "phrase": "декоративные изделия из металла",
+   "phrase": "какой гранит лучше для памятника",
    "pos": null,
-   "freq": 272,
+   "freq": 350,
    "url": "",
-   "cluster": "декоративные",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "мрамор радиоактивен",
-   "pos": null,
-   "freq": 120,
-   "url": "",
-   "cluster": "мрамор",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "макет памятника",
-   "pos": null,
-   "freq": 2443,
-   "url": "",
-   "cluster": "макет",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "что такое брусчатка фото",
-   "pos": null,
-   "freq": 71,
-   "url": "",
-   "cluster": "такое",
+   "cluster": "какой",
    "intent": "informational"
   },
   {
-   "phrase": "стекло и камень",
+   "phrase": "еврейское кладбище спб",
    "pos": null,
-   "freq": 4526,
-   "url": "",
-   "cluster": "стекло",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "стеклянные полки на заказ",
-   "pos": null,
-   "freq": 465,
-   "url": "",
-   "cluster": "стеклянные",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "памятник купить в спб",
-   "pos": null,
-   "freq": 336,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "полки из стекла на заказ в москве",
-   "pos": null,
-   "freq": 5,
-   "url": "",
-   "cluster": "полки",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "памятник жанны фриске фото",
-   "pos": null,
-   "freq": 142,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "когда ставить памятник после похорон",
-   "pos": null,
-   "freq": 380,
-   "url": "",
-   "cluster": "когда",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "мурино кладбище",
-   "pos": null,
-   "freq": 305,
-   "url": "",
-   "cluster": "мурино",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "мемориал это",
-   "pos": null,
-   "freq": 2993,
-   "url": "",
-   "cluster": "мемориал",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "сверление гранита",
-   "pos": null,
-   "freq": 211,
-   "url": "",
-   "cluster": "сверление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "чем сверлить мрамор",
-   "pos": null,
-   "freq": 185,
-   "url": "",
-   "cluster": "сверлить",
-   "intent": "informational"
-  },
-  {
-   "phrase": "зачем кладут камень на могилу",
-   "pos": null,
-   "freq": 151,
-   "url": "",
-   "cluster": "зачем",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "богословское кладбище",
-   "pos": null,
-   "freq": 14060,
-   "url": "",
-   "cluster": "богословское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "чем мыть мрамор",
-   "pos": null,
-   "freq": 447,
-   "url": "",
-   "cluster": "мыть",
-   "intent": "informational"
-  },
-  {
-   "phrase": "blue pearl гранит",
-   "pos": null,
-   "freq": 47,
-   "url": "",
-   "cluster": "blue",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "пушкин кладбище",
-   "pos": null,
-   "freq": 2733,
-   "url": "",
-   "cluster": "пушкин",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "укладка гранитной плитки",
-   "pos": null,
-   "freq": 982,
-   "url": "",
-   "cluster": "укладка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "комаровское поселковое кладбище",
-   "pos": null,
-   "freq": 266,
-   "url": "",
-   "cluster": "комаровское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище пушкин",
-   "pos": null,
-   "freq": 2799,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "еврейское кладбище санкт петербург",
-   "pos": null,
-   "freq": 678,
+   "freq": 267,
    "url": "",
    "cluster": "еврейское",
    "intent": "commercial"
   },
   {
-   "phrase": "лютеранское кладбище",
+   "phrase": "сколько весит памятник из гранита",
    "pos": null,
-   "freq": 4060,
+   "freq": 170,
    "url": "",
-   "cluster": "лютеранское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "установка памятника на могилу своими руками",
-   "pos": null,
-   "freq": 120,
-   "url": "",
-   "cluster": "установка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище в мурино",
-   "pos": null,
-   "freq": 154,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "изготовление полок из стекла на заказ",
-   "pos": null,
-   "freq": 258,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "ножка стула",
-   "pos": null,
-   "freq": 43998,
-   "url": "",
-   "cluster": "ножка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "сестрорецкое кладбище официальный сайт",
-   "pos": null,
-   "freq": 12,
-   "url": "",
-   "cluster": "сестрорецкое",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "изготовление памятников спб",
-   "pos": null,
-   "freq": 866,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "что такое обелиск",
-   "pos": null,
-   "freq": 373,
-   "url": "",
-   "cluster": "такое",
+   "cluster": "сколько",
    "intent": "informational"
   },
   {
-   "phrase": "для чего нужны памятники",
-   "pos": null,
-   "freq": 504,
-   "url": "",
-   "cluster": "чего",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "северное кладбище спб",
-   "pos": null,
-   "freq": 1450,
-   "url": "",
-   "cluster": "северное",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "краска для ограды на кладбище",
-   "pos": null,
-   "freq": 1115,
-   "url": "",
-   "cluster": "краска",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "лестница в стиле лофт",
-   "pos": null,
-   "freq": 445,
-   "url": "",
-   "cluster": "лестница",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище комарово",
+   "phrase": "комарово кладбище",
    "pos": null,
    "freq": 731,
    "url": "",
-   "cluster": "кладбище",
+   "cluster": "комарово",
    "intent": "commercial"
   },
   {
-   "phrase": "пороховское кладбище",
+   "phrase": "сколько стоит установить памятник на могилу",
    "pos": null,
-   "freq": 603,
+   "freq": 61,
    "url": "",
-   "cluster": "пороховское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "богословское кладбище как добраться",
-   "pos": null,
-   "freq": 132,
-   "url": "",
-   "cluster": "богословское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "стеклянные полки на стену",
-   "pos": null,
-   "freq": 432,
-   "url": "",
-   "cluster": "стеклянные",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "белоостровское кладбище",
-   "pos": null,
-   "freq": 1658,
-   "url": "",
-   "cluster": "белоостровское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "сестрорецкое кладбище",
-   "pos": null,
-   "freq": 558,
-   "url": "",
-   "cluster": "сестрорецкое",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "ковалевское кладбище адрес",
-   "pos": null,
-   "freq": 25,
-   "url": "",
-   "cluster": "ковалевское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "франшиза мебельного производства",
-   "pos": null,
-   "freq": 9,
-   "url": "",
-   "cluster": "франшиза",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "всеволожское кладбище 1",
-   "pos": null,
-   "freq": 23,
-   "url": "",
-   "cluster": "всеволожское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "укладка тротуарной плитки на кладбище",
-   "pos": null,
-   "freq": 72,
-   "url": "",
-   "cluster": "укладка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "что прочнее гранит или мрамор",
-   "pos": null,
-   "freq": 142,
-   "url": "",
-   "cluster": "прочнее",
+   "cluster": "сколько",
    "intent": "informational"
   },
   {
-   "phrase": "алюминиевый профиль для зеркал",
+   "phrase": "оформление могилы на кладбище своими руками",
    "pos": null,
-   "freq": 540,
-   "url": "",
-   "cluster": "алюминиевый",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "металлическая перегородка",
-   "pos": null,
-   "freq": 5596,
-   "url": "",
-   "cluster": "металлическая",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "никольское кладбище санкт петербург",
-   "pos": null,
-   "freq": 212,
-   "url": "",
-   "cluster": "никольское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "как добраться до северного кладбища",
-   "pos": null,
-   "freq": 89,
-   "url": "",
-   "cluster": "добраться",
-   "intent": "informational"
-  },
-  {
-   "phrase": "большеохтинское кладбище",
-   "pos": null,
-   "freq": 2961,
-   "url": "",
-   "cluster": "большеохтинское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "порошкинское кладбище официальный сайт",
-   "pos": null,
-   "freq": 20,
-   "url": "",
-   "cluster": "порошкинское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "поставить памятник на могилу",
-   "pos": null,
-   "freq": 2285,
-   "url": "",
-   "cluster": "поставить",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "франшиза ритуальных услуг",
-   "pos": null,
-   "freq": 35,
-   "url": "",
-   "cluster": "франшиза",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "что пишут на памятниках",
-   "pos": null,
-   "freq": 904,
-   "url": "",
-   "cluster": "пишут",
-   "intent": "informational"
-  },
-  {
-   "phrase": "богословское кладбище адрес",
-   "pos": null,
-   "freq": 326,
-   "url": "",
-   "cluster": "богословское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище в песочном спб",
-   "pos": null,
-   "freq": 20,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "плотность габбро",
-   "pos": null,
-   "freq": 194,
-   "url": "",
-   "cluster": "плотность",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "брусчатка виды",
-   "pos": null,
-   "freq": 2046,
-   "url": "",
-   "cluster": "брусчатка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "шушарское кладбище",
-   "pos": null,
-   "freq": 195,
-   "url": "",
-   "cluster": "шушарское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "красный гранит фото",
-   "pos": null,
-   "freq": 264,
-   "url": "",
-   "cluster": "красный",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "южное кладбище санкт петербург",
-   "pos": null,
-   "freq": 2637,
-   "url": "",
-   "cluster": "южное",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "отделка могил плиткой",
-   "pos": null,
-   "freq": 153,
-   "url": "",
-   "cluster": "отделка",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "оформление могилы на кладбище плиткой",
-   "pos": null,
-   "freq": 63,
+   "freq": 19,
    "url": "",
    "cluster": "оформление",
    "intent": "commercial"
   },
   {
-   "phrase": "чем сверлить гранит",
+   "phrase": "серафимовское кладбище",
    "pos": null,
-   "freq": 239,
+   "freq": 6388,
    "url": "",
-   "cluster": "сверлить",
-   "intent": "informational"
-  },
-  {
-   "phrase": "памятник мемориал",
-   "pos": null,
-   "freq": 4563,
-   "url": "",
-   "cluster": "памятник",
+   "cluster": "серафимовское",
    "intent": "commercial"
   },
   {
-   "phrase": "ковалево кладбище",
+   "phrase": "муринское кладбище как доехать",
    "pos": null,
-   "freq": 472,
+   "freq": 19,
    "url": "",
-   "cluster": "ковалево",
+   "cluster": "муринское",
    "intent": "commercial"
   },
   {
-   "phrase": "павловское кладбище",
+   "phrase": "шуваловское кладбище",
    "pos": null,
-   "freq": 1095,
-   "url": "",
-   "cluster": "павловское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятник жанна фриске",
-   "pos": null,
-   "freq": 430,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "шуваловское кладбище санкт петербург",
-   "pos": null,
-   "freq": 144,
+   "freq": 595,
    "url": "",
    "cluster": "шуваловское",
    "intent": "commercial"
   },
   {
-   "phrase": "слова на памятник родителям",
+   "phrase": "стеклянная полка на заказ",
    "pos": null,
-   "freq": 197,
+   "freq": 465,
    "url": "",
-   "cluster": "слова",
+   "cluster": "стеклянная",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "как установить памятник самостоятельно",
+   "pos": null,
+   "freq": 161,
+   "url": "",
+   "cluster": "установить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "лучшие памятники на могилу",
+   "pos": null,
+   "freq": 1555,
+   "url": "",
+   "cluster": "лучшие",
    "intent": "commercial"
   },
   {
-   "phrase": "как доехать до богословского кладбища",
-   "pos": null,
-   "freq": 53,
-   "url": "",
-   "cluster": "доехать",
-   "intent": "informational"
-  },
-  {
-   "phrase": "как устанавливают памятники на кладбище",
-   "pos": null,
-   "freq": 197,
-   "url": "",
-   "cluster": "устанавливают",
-   "intent": "informational"
-  },
-  {
-   "phrase": "изготовление памятников в спб",
-   "pos": null,
-   "freq": 590,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "как благоустроить могилу",
-   "pos": null,
-   "freq": 459,
-   "url": "",
-   "cluster": "благоустроить",
-   "intent": "informational"
-  },
-  {
-   "phrase": "какой краской лучше покрасить ограду на кладбище",
+   "phrase": "как установить памятник на кладбище самостоятельно",
    "pos": null,
    "freq": 52,
    "url": "",
-   "cluster": "какой",
+   "cluster": "установить",
    "intent": "informational"
   },
   {
-   "phrase": "макеты памятников",
+   "phrase": "как сделать памятник своими руками",
    "pos": null,
-   "freq": 2443,
-   "url": "",
-   "cluster": "макеты",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятник на могилу своими руками",
-   "pos": null,
-   "freq": 2227,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятники из цветного гранита",
-   "pos": null,
-   "freq": 419,
-   "url": "",
-   "cluster": "памятники",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "садовая мебель из профильной трубы фото",
-   "pos": null,
-   "freq": 52,
-   "url": "",
-   "cluster": "садовая",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "смоленское кладбище время работы",
-   "pos": null,
-   "freq": 98,
-   "url": "",
-   "cluster": "смоленское",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "уход за местом захоронения",
-   "pos": null,
-   "freq": 163,
-   "url": "",
-   "cluster": "уход",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "эпитафия бабушке",
-   "pos": null,
-   "freq": 526,
-   "url": "",
-   "cluster": "эпитафия",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "памятник это",
-   "pos": null,
-   "freq": 23386,
-   "url": "",
-   "cluster": "памятник",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "когда ставят",
-   "pos": null,
-   "freq": 209061,
-   "url": "",
-   "cluster": "когда",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "столб памятник",
-   "pos": null,
-   "freq": 968,
-   "url": "",
-   "cluster": "столб",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "какой памятник",
-   "pos": null,
-   "freq": 92737,
-   "url": "",
-   "cluster": "какой",
-   "intent": "informational"
-  },
-  {
-   "phrase": "карелия гранит петрозаводск",
-   "pos": null,
-   "freq": 74,
-   "url": "",
-   "cluster": "карелия",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "изготовление стеклянных полок",
-   "pos": null,
-   "freq": 135,
-   "url": "",
-   "cluster": "изготовление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище во всеволожске",
-   "pos": null,
-   "freq": 92,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "из чего делается брусчатка",
-   "pos": null,
-   "freq": 35,
-   "url": "",
-   "cluster": "чего",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "кладбище павловск",
-   "pos": null,
-   "freq": 484,
-   "url": "",
-   "cluster": "кладбище",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "как сделать фото на памятник",
-   "pos": null,
-   "freq": 243,
+   "freq": 191,
    "url": "",
    "cluster": "сделать",
    "intent": "informational"
   },
   {
-   "phrase": "перегородки из металла и стекла",
+   "phrase": "шушары кладбище",
    "pos": null,
-   "freq": 106,
+   "freq": 209,
    "url": "",
-   "cluster": "перегородки",
+   "cluster": "шушары",
    "intent": "commercial"
   },
   {
-   "phrase": "волковское православное кладбище",
+   "phrase": "могила жанны фриске фото",
    "pos": null,
-   "freq": 298,
+   "freq": 197,
+   "url": "",
+   "cluster": "могила",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "когда ставят памятник на могилу",
+   "pos": null,
+   "freq": 1008,
+   "url": "",
+   "cluster": "когда",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "могила фриске фото",
+   "pos": null,
+   "freq": 193,
+   "url": "",
+   "cluster": "могила",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "когда ставить памятник на могилу",
+   "pos": null,
+   "freq": 1008,
+   "url": "",
+   "cluster": "когда",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "керамическая печать на стекле",
+   "pos": null,
+   "freq": 76,
+   "url": "",
+   "cluster": "керамическая",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кладбище порошкино",
+   "pos": null,
+   "freq": 200,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "казанское кладбище пушкин",
+   "pos": null,
+   "freq": 1213,
+   "url": "",
+   "cluster": "казанское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "заказать стеклянную полку по своим размерам",
+   "pos": null,
+   "freq": 55,
+   "url": "",
+   "cluster": "стеклянную",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "керамогранит на кладбище",
+   "pos": null,
+   "freq": 1103,
+   "url": "",
+   "cluster": "керамогранит",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркала оптом от производителя",
+   "pos": null,
+   "freq": 15,
+   "url": "",
+   "cluster": "зеркала",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кладбище ковалево",
+   "pos": null,
+   "freq": 472,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мемориал значение слова",
+   "pos": null,
+   "freq": 70,
+   "url": "",
+   "cluster": "мемориал",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "памятник фриске",
+   "pos": null,
+   "freq": 537,
+   "url": "",
+   "cluster": "памятник",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "брусчатка размер",
+   "pos": null,
+   "freq": 5319,
+   "url": "",
+   "cluster": "брусчатка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "перегородка из металлопрофиля",
+   "pos": null,
+   "freq": 315,
+   "url": "",
+   "cluster": "перегородка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "богословское",
+   "pos": null,
+   "freq": 65753,
+   "url": "",
+   "cluster": "богословское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "памятники на могилу в спб недорого",
+   "pos": null,
+   "freq": 101,
+   "url": "",
+   "cluster": "памятники",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "южное кладбище спб",
+   "pos": null,
+   "freq": 2388,
+   "url": "",
+   "cluster": "южное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "серафимовское кладбище спб",
+   "pos": null,
+   "freq": 385,
+   "url": "",
+   "cluster": "серафимовское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мебель из профильной трубы",
+   "pos": null,
+   "freq": 1630,
+   "url": "",
+   "cluster": "мебель",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "волковское лютеранское кладбище",
+   "pos": null,
+   "freq": 470,
    "url": "",
    "cluster": "волковское",
    "intent": "commercial"
   },
   {
-   "phrase": "ножки для стульев металлические купить",
+   "phrase": "столешница из лиственницы",
    "pos": null,
-   "freq": 425,
+   "freq": 864,
    "url": "",
-   "cluster": "ножки",
+   "cluster": "столешница",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "колпинское кладбище",
+   "pos": null,
+   "freq": 1051,
+   "url": "",
+   "cluster": "колпинское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "фундамент под памятник на кладбище",
+   "pos": null,
+   "freq": 247,
+   "url": "",
+   "cluster": "фундамент",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало в стиле лофт",
+   "pos": null,
+   "freq": 291,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "установка памятника видео",
+   "pos": null,
+   "freq": 345,
+   "url": "",
+   "cluster": "установка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ковалевское кладбище спб",
+   "pos": null,
+   "freq": 131,
+   "url": "",
+   "cluster": "ковалевское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ясень столешница",
+   "pos": null,
+   "freq": 1714,
+   "url": "",
+   "cluster": "ясень",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "сертоловское кладбище",
+   "pos": null,
+   "freq": 134,
+   "url": "",
+   "cluster": "сертоловское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "технология укладки гранитной брусчатки",
+   "pos": null,
+   "freq": 44,
+   "url": "",
+   "cluster": "технология",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "муринское кладбище",
+   "pos": null,
+   "freq": 862,
+   "url": "",
+   "cluster": "муринское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "гласс стор",
+   "pos": null,
+   "freq": 40,
+   "url": "",
+   "cluster": "гласс",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "южное кладбище спб адрес",
+   "pos": null,
+   "freq": 9,
+   "url": "",
+   "cluster": "южное",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "плитка на могилу",
+   "pos": null,
+   "freq": 7208,
+   "url": "",
+   "cluster": "плитка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "блю перл гранит",
+   "pos": null,
+   "freq": 285,
+   "url": "",
+   "cluster": "перл",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стеклянные полки на заказ москва",
+   "pos": null,
+   "freq": 67,
+   "url": "",
+   "cluster": "стеклянные",
    "intent": "transactional"
+  },
+  {
+   "phrase": "озерковское кладбище",
+   "pos": null,
+   "freq": 303,
+   "url": "",
+   "cluster": "озерковское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "серафимовское кладбище санкт петербург",
+   "pos": null,
+   "freq": 1609,
+   "url": "",
+   "cluster": "серафимовское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ковалевское кладбище санкт петербург",
+   "pos": null,
+   "freq": 495,
+   "url": "",
+   "cluster": "ковалевское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "надгробные памятники спб",
+   "pos": null,
+   "freq": 24,
+   "url": "",
+   "cluster": "надгробные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "масса гранита",
+   "pos": null,
+   "freq": 319,
+   "url": "",
+   "cluster": "масса",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как делают памятники из гранита",
+   "pos": null,
+   "freq": 63,
+   "url": "",
+   "cluster": "делают",
+   "intent": "informational"
+  },
+  {
+   "phrase": "изготовление памятников своими руками",
+   "pos": null,
+   "freq": 16,
+   "url": "",
+   "cluster": "изготовление",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как правильно поставить памятник на могилу",
+   "pos": null,
+   "freq": 25,
+   "url": "",
+   "cluster": "правильно",
+   "intent": "informational"
+  },
+  {
+   "phrase": "гравировка портрета на памятнике",
+   "pos": null,
+   "freq": 398,
+   "url": "",
+   "cluster": "гравировка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "казанское кладбище пушкин адрес",
+   "pos": null,
+   "freq": 28,
+   "url": "",
+   "cluster": "казанское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как правильно установить памятник на кладбище",
+   "pos": null,
+   "freq": 58,
+   "url": "",
+   "cluster": "правильно",
+   "intent": "informational"
+  },
+  {
+   "phrase": "как установить гранитный памятник",
+   "pos": null,
+   "freq": 355,
+   "url": "",
+   "cluster": "установить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "краска для памятников",
+   "pos": null,
+   "freq": 2577,
+   "url": "",
+   "cluster": "краска",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "крепление гранита к стене узлы",
+   "pos": null,
+   "freq": 2,
+   "url": "",
+   "cluster": "крепление",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "надгробие своими руками",
+   "pos": null,
+   "freq": 230,
+   "url": "",
+   "cluster": "надгробие",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "сверление камня",
+   "pos": null,
+   "freq": 562,
+   "url": "",
+   "cluster": "сверление",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "чем отмыть мраморный памятник",
+   "pos": null,
+   "freq": 262,
+   "url": "",
+   "cluster": "отмыть",
+   "intent": "informational"
+  },
+  {
+   "phrase": "шокша гранит",
+   "pos": null,
+   "freq": 45,
+   "url": "",
+   "cluster": "шокша",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кладбище жертв 9 января адрес",
+   "pos": null,
+   "freq": 37,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "скамейка на кладбище купить в спб",
+   "pos": null,
+   "freq": 73,
+   "url": "",
+   "cluster": "скамейка",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "гранит питкяранта",
+   "pos": null,
+   "freq": 84,
+   "url": "",
+   "cluster": "гранит",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "памятник скала",
+   "pos": null,
+   "freq": 1694,
+   "url": "",
+   "cluster": "памятник",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "надпись на памятнике родителям обоим",
+   "pos": null,
+   "freq": 20,
+   "url": "",
+   "cluster": "надпись",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "фото на памятник варианты",
+   "pos": null,
+   "freq": 528,
+   "url": "",
+   "cluster": "фото",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "облицовка могилы гранитной плиткой",
+   "pos": null,
+   "freq": 87,
+   "url": "",
+   "cluster": "облицовка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "стандартный памятник на могилу",
+   "pos": null,
+   "freq": 171,
+   "url": "",
+   "cluster": "стандартный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "муринское кладбище адрес",
+   "pos": null,
+   "freq": 34,
+   "url": "",
+   "cluster": "муринское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "декор из нержавеющей стали",
+   "pos": null,
+   "freq": 154,
+   "url": "",
+   "cluster": "декор",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "серафимовское кладбище как доехать",
+   "pos": null,
+   "freq": 101,
+   "url": "",
+   "cluster": "серафимовское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "конструктор памятников онлайн",
+   "pos": null,
+   "freq": 349,
+   "url": "",
+   "cluster": "конструктор",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "репинское кладбище",
+   "pos": null,
+   "freq": 66,
+   "url": "",
+   "cluster": "репинское",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "павловск кладбище",
+   "pos": null,
+   "freq": 519,
+   "url": "",
+   "cluster": "павловск",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как установить гранитный памятник своими руками",
+   "pos": null,
+   "freq": 75,
+   "url": "",
+   "cluster": "установить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "через какое время ставят памятник на могилу",
+   "pos": null,
+   "freq": 222,
+   "url": "",
+   "cluster": "через",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ножка для стула",
+   "pos": null,
+   "freq": 12224,
+   "url": "",
+   "cluster": "ножка",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "карельский черный гранит",
+   "pos": null,
+   "freq": 129,
+   "url": "",
+   "cluster": "карельский",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "кладбище арбузово",
+   "pos": null,
+   "freq": 210,
+   "url": "",
+   "cluster": "кладбище",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "создать памятник онлайн",
+   "pos": null,
+   "freq": 245,
+   "url": "",
+   "cluster": "создать",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "зеркало напольное лофт",
+   "pos": null,
+   "freq": 35,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как склеить мраморный памятник",
+   "pos": null,
+   "freq": 10,
+   "url": "",
+   "cluster": "склеить",
+   "intent": "informational"
+  },
+  {
+   "phrase": "барный стол в стиле лофт",
+   "pos": null,
+   "freq": 50,
+   "url": "",
+   "cluster": "барный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "через сколько ставят памятник на могилу",
+   "pos": null,
+   "freq": 390,
+   "url": "",
+   "cluster": "через",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "столешница из массива ясеня",
+   "pos": null,
+   "freq": 67,
+   "url": "",
+   "cluster": "столешница",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "памятник фриске фото",
+   "pos": null,
+   "freq": 179,
+   "url": "",
+   "cluster": "памятник",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "как делают памятники",
+   "pos": null,
+   "freq": 1430,
+   "url": "",
+   "cluster": "делают",
+   "intent": "informational"
   }
  ]
 }

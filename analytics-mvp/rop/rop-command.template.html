@@ -917,7 +917,7 @@ function managerDashboardsBlock(){
   const MK=S.mdMet||'chal';
   const mval=r=>MK==='rev'?r.rev:MK==='won'?r.fact:MK==='chal'?(r.miss==null?-9999:-r.miss):(r.cr==null?-1:r.cr);
   const mlab={conv:'Конверсия',rev:'Выручка',won:'Предоплаты',chal:'Дни без предоплат'}[MK];
-  const mfmt=r=>MK==='rev'?fmtK(r.rev)+' ₽':MK==='won'?fmt(r.fact):MK==='chal'?(r.miss==null?'—':r.miss+' дн'+(r.miss===0?' ✓':'')):(r.cr==null?'—':pct(r.cr));
+  const mfmt=r=>MK==='rev'?fmtK(r.rev)+' ₽':MK==='won'?fmt(r.fact):MK==='chal'?(r.miss==null?'—':r.miss+' дн'+(r.todayPrep?' · сегодня ✓':'')):(r.cr==null?'—':pct(r.cr));
   const barCol=r=>MK==='conv'?crC(r.cr):MK==='rev'?'#A78BFA':MK==='chal'?(r.miss==null?'var(--ink-4)':r.miss===0?'#2E9E74':r.miss<=2?'#C2873C':'#CC5867'):'#2E9E74';
   // Челлендж «чистота CRM»: доля сделок с заполненной карточкой (бюджет с «КП отправлено», тип изделия, тип клиента)
   // среди ОТКРЫТЫХ, дошедших до предложения. Та же логика, что в личном челлендже менеджера - места совпадают.
@@ -926,15 +926,18 @@ function managerDashboardsBlock(){
   const _PRICED=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:EXECUTING","C49:FINAL_INVOICE","C49:1","C49:2","C49:WON"]);
   const _eBud=d=>_PRICED.has(d.stageCode)&&(d.budget||0)<=1;
   const _isDirty=d=>_eCat(d)||_eCli(d)||_eBud(d);
-  // Челлендж = дни без предоплат: рабочие дни (пн-пт) выбранного периода до сегодня, в которые
-  // у менеджера не было ни одной предоплаты. План - минимум 1 предоплата в день (как в ТГ-боте).
-  const _wEnd=(DATA.to&&String(DATA.to).slice(0,10)<S.end)?String(DATA.to).slice(0,10):S.end;
-  const WD=[];{const s=new Date(String(S.start).slice(0,10)+'T00:00:00Z'),e=new Date(String(_wEnd).slice(0,10)+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6)WD.push(dt.toISOString().slice(0,10));}}
+  // Челлендж = дни без предоплат: рабочие дни (пн-пт) ТЕКУЩЕГО МЕСЯЦА до даты снимка, в которые у менеджера
+  // НЕ было ни одной предоплаты. НЕ зависит от периода дашборда - это дисциплина месяца (как «Невып» в ТГ-боте).
+  // Поэтому у кого предоплата была сегодня/вчера, тот НЕ считается «без предоплат» за эти дни.
+  const _curMon=String(DATA.to||'').slice(0,7);
+  const WD=[];{const s=new Date(_curMon+'-01T00:00:00Z'),e=new Date(String(DATA.to).slice(0,10)+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6)WD.push(dt.toISOString().slice(0,10));}}
   const _byDept={};
   // Рейтинг (места/кубки) считаем по тому же белому списку, что и свайп: только действующие продавцы ОП.
   // Уволенные, офис-менеджеры и CEO в расчёт мест не идут - иначе они держат верхние места, а показанные съезжают вниз.
-  passed.filter(d=>isOP(d.mgr)&&_MShow.has(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0,pdays:new Set()});o.mine.push(d);const e=enterExec(d);if(e&&inR(e)){o.fact++;o.rev+=d.budget||0;o.pdays.add(e.slice(0,10));}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;if(!d.lost){o.ctot++;if(_isDirty(d))o.cbad++;}});
-  const deptRows=Object.entries(_byDept).map(([m,o])=>{const wip=wipMgr(o.mine);const miss=WD.filter(x=>!o.pdays.has(x)).length;return {name:m,fact:o.fact,otk:o.otk,rev:o.rev,wip,cr:wip?o.fact/wip:null,clean:o.ctot?(o.ctot-o.cbad)/o.ctot:null,bad:o.cbad,ctot:o.ctot,miss};});
+  // pmDays - дни ТЕКУЩЕГО МЕСЯЦА с предоплатой (не зависит от периода дашборда); fact/rev - за выбранный период (для других вкладок).
+  passed.filter(d=>isOP(d.mgr)&&_MShow.has(d.mgr)).forEach(d=>{const m=d.mgr,o=_byDept[m]||(_byDept[m]={fact:0,otk:0,rev:0,mine:[],ctot:0,cbad:0,pmDays:new Set()});o.mine.push(d);const e=enterExec(d);if(e){if(inR(e)){o.fact++;o.rev+=d.budget||0;}if(e.slice(0,7)===_curMon)o.pmDays.add(e.slice(0,10));}const l=enterLoseOff(d);if(l&&inR(l))o.otk++;if(!d.lost){o.ctot++;if(_isDirty(d))o.cbad++;}});
+  const _TODAY=String(DATA.to||'').slice(0,10);
+  const deptRows=Object.entries(_byDept).map(([m,o])=>{const wip=wipMgr(o.mine);const miss=WD.filter(x=>!o.pmDays.has(x)).length;return {name:m,fact:o.fact,otk:o.otk,rev:o.rev,wip,cr:wip?o.fact/wip:null,clean:o.ctot?(o.ctot-o.cbad)/o.ctot:null,bad:o.cbad,ctot:o.ctot,miss,todayPrep:o.pmDays.has(_TODAY)};});
   const chalBy={};deptRows.forEach(d=>chalBy[d.name]={clean:d.clean,bad:d.bad,miss:d.miss});
   const NDEPT=Math.max(deptRows.length,1);
   const ranked=[...deptRows].sort((a,b)=>mval(b)-mval(a));

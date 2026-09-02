@@ -1327,7 +1327,7 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
   </div>
   <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, заказы) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО, в колонке «Прочие».</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, заказы) + финансы по транзакциям OZON с разбивкой сборов. Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО и разнесена по колонкам: realFBS и доставка от покупателя - в «Логистику», остальное - в «Прочие».</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / SKU</th>
     <th class="r">Выручка</th><th class="r">Заказано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th>
@@ -1405,13 +1405,16 @@ function renderSkuAnalytics(cur){
     html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
     g.arr.forEach(function(x){html+='<tr class="an-sku" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+' <span style="color:var(--ink-3)">'+String(x.nm).slice(0,34)+'</span></td>'+anCells(x)+'</tr>';});
   });
-  // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО. Всё
-  // сваливаем в «Прочие» (у этих операций нет разреза по колонкам таблицы SKU); детальная
-  // разбивка по статьям - в блоке ниже. at<0 (сборы) -> «Прочие»/«Всего сборов» положительные, «К выплате» отрицательна.
-  var at=0;for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;at+=(ar[1]+ar[2]+ar[3]+ar[4]+ar[5]+ar[6]);}
-  if(at){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:0,acq:0,sto:0,oth:-at,amt:at};
-    grand.oth+=acct.oth;grand.amt+=acct.amt;
-    html+='<tr style="cursor:default;font-weight:600" title="реклама, штрафы, realFBS, бейдж, доставка от покупателя, эквайринг/компенсации - операции OZON не по одному SKU. Детально - в блоке ниже."><td>Сборы уровня заказа/кабинета <span style="color:var(--ink-3);font-weight:400">(не по SKU, в «Прочие»)</span></td>'+anCells(acct)+'</tr>';
+  // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО, разнесены
+  // по колонкам по смыслу: realFBS + доставка от покупателя -> «Логистика»; реклама/штрафы/бейдж/
+  // эквайринг/компенсации -> «Прочие». Детальная разбивка по статьям - в блоке ниже. Значения в
+  // AN_ACCT signed (сборы < 0), колонки показывают сбор положительным -> берём со знаком минус.
+  var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
+  for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
+  var aDel=aB.realfbs+aB.delivery,aOth=aB.adv+aB.fines+aB.badge+aB.other,at=aDel+aOth;
+  if(at){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,oth:-aOth,amt:at};
+    grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;
+    html+='<tr style="cursor:default;font-weight:600" title="realFBS + доставка от покупателя -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. Операции OZON не по одному SKU, детально - в блоке ниже."><td>Сборы уровня заказа/кабинета <span style="color:var(--ink-3);font-weight:400">(не по SKU)</span></td>'+anCells(acct)+'</tr>';
   }
   html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=html;

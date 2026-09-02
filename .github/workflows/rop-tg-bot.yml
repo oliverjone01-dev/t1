@@ -63,7 +63,8 @@ jobs:
           }
           const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
           const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
-          const PLAN=["Ольга Лысенко","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
+          // Ольга Лысенко - РОП (@Olgal89), в списке плановых менеджеров не участвует (тег РОПа в сводке).
+          const PLAN=["Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
           const TODAY=(d.generated_at||'').slice(0,10);
           const KP={"C49:PREPAYMENT_INVOIC":0,"C49:3":1,"C49:UC_8JTBV2":2};
           const firstKP=x=>{for(const h of (x.hist||[]))if(KP[h[0]]!=null&&h[1])return h[1].slice(0,10);return null;};
@@ -95,7 +96,7 @@ jobs:
             const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
             const slug=(MGR.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
             const url='https://oliverjone01-dev.github.io/t1/rop-'+slug+'/#prio';
-            const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba'};
+            const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
             const first=MGR.trim().split(/\s+/)[0], handle=HANDLE[MGR];
             const head={plan:'🌅 ПЛАН',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
             const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';

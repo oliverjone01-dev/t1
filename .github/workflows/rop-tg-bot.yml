@@ -8,8 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "plan | srez | itogi"
+        description: "plan | srez | itogi | probe"
         default: "plan"
+      chat:
+        description: "chat_id (пусто = группа по умолчанию)"
+        default: ""
   # schedule включим ПОСЛЕ проверки теста (времена МСК: 08:00 / 13:00 / 18:30 = UTC 05:00 / 10:00 / 15:30)
   # schedule:
   #   - cron: "0 5 * * *"
@@ -29,7 +32,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: "-1004401671894"
+          CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
           MODE: ${{ github.event.inputs.mode }}
         run: |
           set -euo pipefail

@@ -1,5 +1,5 @@
 {
- "measured": "2026-08-19",
+ "measured": "2026-09-02",
  "phrases": [
   {
    "phrase": "темно синий диван",
@@ -26,30 +26,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "зеркала с подсветкой для ванной комнаты",
-   "pos": null,
-   "freq": 874,
-   "url": "",
-   "cluster": "зеркала",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "диван рекамье",
-   "pos": null,
-   "freq": 47,
-   "url": "",
-   "cluster": "диван",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "заказ зеркала",
-   "pos": null,
-   "freq": 11495,
-   "url": "",
-   "cluster": "заказ",
-   "intent": "transactional"
-  },
-  {
    "phrase": "перегородка между столами в офисе",
    "pos": null,
    "freq": 131,
@@ -58,19 +34,19 @@
    "intent": "commercial"
   },
   {
+   "phrase": "как помыть люстру не снимая с потолка",
+   "pos": null,
+   "freq": 182,
+   "url": "",
+   "cluster": "помыть",
+   "intent": "informational"
+  },
+  {
    "phrase": "фабрика зеркал на нагорной официальный сайт",
    "pos": null,
    "freq": 17,
    "url": "",
    "cluster": "фабрика",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "журнальный стол со стеклом",
-   "pos": null,
-   "freq": 239,
-   "url": "",
-   "cluster": "журнальный",
    "intent": "commercial"
   },
   {
@@ -87,6 +63,14 @@
    "freq": 2031,
    "url": "",
    "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "межкомнатные перегородки фото",
+   "pos": null,
+   "freq": 621,
+   "url": "",
+   "cluster": "межкомнатные",
    "intent": "commercial"
   },
   {
@@ -114,20 +98,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "козырьки стеклянные",
+   "phrase": "люстры в стиле хай тек",
    "pos": null,
-   "freq": 4153,
+   "freq": 110,
    "url": "",
-   "cluster": "козырьки",
+   "cluster": "люстры",
    "intent": "commercial"
-  },
-  {
-   "phrase": "купить бронестекло",
-   "pos": null,
-   "freq": 432,
-   "url": "",
-   "cluster": "бронестекло",
-   "intent": "transactional"
   },
   {
    "phrase": "туалетный столик с зеркалом икеа",
@@ -135,14 +111,6 @@
    "freq": 247,
    "url": "",
    "cluster": "туалетный",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "мир стиля",
-   "pos": null,
-   "freq": 19518,
-   "url": "",
-   "cluster": "стиля",
    "intent": "commercial"
   },
   {
@@ -175,14 +143,6 @@
    "freq": 29,
    "url": "",
    "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "листовое зеркало",
-   "pos": null,
-   "freq": 650,
-   "url": "",
-   "cluster": "листовое",
    "intent": "commercial"
   },
   {
@@ -258,11 +218,11 @@
    "intent": "commercial"
   },
   {
-   "phrase": "круглые зеркала с подсветкой",
+   "phrase": "larne dress",
    "pos": null,
-   "freq": 3580,
+   "freq": 7,
    "url": "",
-   "cluster": "круглые",
+   "cluster": "larne",
    "intent": "commercial"
   },
   {
@@ -282,11 +242,11 @@
    "intent": "commercial"
   },
   {
-   "phrase": "материал зеркало",
+   "phrase": "овальное зеркало в белой раме",
    "pos": null,
-   "freq": 2283,
+   "freq": 31,
    "url": "",
-   "cluster": "материал",
+   "cluster": "овальное",
    "intent": "commercial"
   },
   {
@@ -314,12 +274,12 @@
    "intent": "transactional"
   },
   {
-   "phrase": "купить стол стеклянный на кухню",
+   "phrase": "лувр магазин",
    "pos": null,
-   "freq": 339,
+   "freq": 92,
    "url": "",
-   "cluster": "стол",
-   "intent": "transactional"
+   "cluster": "лувр",
+   "intent": "commercial"
   },
   {
    "phrase": "оформление зеркала в прихожей",
@@ -327,14 +287,6 @@
    "freq": 51,
    "url": "",
    "cluster": "оформление",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "зеркало настольное круглое",
-   "pos": null,
-   "freq": 235,
-   "url": "",
-   "cluster": "зеркало",
    "intent": "commercial"
   },
   {
@@ -354,11 +306,11 @@
    "intent": "commercial"
   },
   {
-   "phrase": "багет картины",
+   "phrase": "шкаф бар угловой",
    "pos": null,
-   "freq": 8249,
+   "freq": 71,
    "url": "",
-   "cluster": "багет",
+   "cluster": "шкаф",
    "intent": "commercial"
   },
   {
@@ -394,22 +346,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "вырезать зеркало для автомобиля",
-   "pos": null,
-   "freq": 171,
-   "url": "",
-   "cluster": "вырезать",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "обеденный стол на заказ по индивидуальным размерам",
-   "pos": null,
-   "freq": 48,
-   "url": "",
-   "cluster": "обеденный",
-   "intent": "transactional"
-  },
-  {
    "phrase": "туалетный столик с подсветкой и зеркалом",
    "pos": null,
    "freq": 4444,
@@ -442,6 +378,14 @@
    "intent": "commercial"
   },
   {
+   "phrase": "стол со стеклянной столешницей купить",
+   "pos": null,
+   "freq": 218,
+   "url": "",
+   "cluster": "стол",
+   "intent": "transactional"
+  },
+  {
    "phrase": "рекамье мебель",
    "pos": null,
    "freq": 120,
@@ -458,28 +402,12 @@
    "intent": "transactional"
   },
   {
-   "phrase": "зеркальный подвесной потолок",
-   "pos": null,
-   "freq": 87,
-   "url": "",
-   "cluster": "зеркальный",
-   "intent": "commercial"
-  },
-  {
    "phrase": "купить зеркало в ванную комнату",
    "pos": null,
    "freq": 4349,
    "url": "",
    "cluster": "зеркало",
    "intent": "transactional"
-  },
-  {
-   "phrase": "зеркало напольное на подставке",
-   "pos": null,
-   "freq": 226,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "commercial"
   },
   {
    "phrase": "стол для макияжа с подсветкой",
@@ -498,36 +426,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "банкетка на металлических ножках",
-   "pos": null,
-   "freq": 86,
-   "url": "",
-   "cluster": "банкетка",
-   "intent": "commercial"
-  },
-  {
    "phrase": "цвет свечения светодиодных ламп",
    "pos": null,
    "freq": 260,
    "url": "",
    "cluster": "цвет",
    "intent": "commercial"
-  },
-  {
-   "phrase": "зеркало с полкой для ванной комнаты",
-   "pos": null,
-   "freq": 333,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "люстра для спальни купить",
-   "pos": null,
-   "freq": 307,
-   "url": "",
-   "cluster": "люстра",
-   "intent": "transactional"
   },
   {
    "phrase": "зеркало иллюминатор",
@@ -546,27 +450,11 @@
    "intent": "commercial"
   },
   {
-   "phrase": "цвет белый ral",
-   "pos": null,
-   "freq": 3620,
-   "url": "",
-   "cluster": "цвет",
-   "intent": "commercial"
-  },
-  {
    "phrase": "лизиантус фиолетовый",
    "pos": null,
    "freq": 53,
    "url": "",
    "cluster": "лизиантус",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "рама для зеркала резная",
-   "pos": null,
-   "freq": 184,
-   "url": "",
-   "cluster": "рама",
    "intent": "commercial"
   },
   {
@@ -581,14 +469,6 @@
    "phrase": "панно в интерьере",
    "pos": null,
    "freq": 1356,
-   "url": "",
-   "cluster": "панно",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "панно из картин на стену",
-   "pos": null,
-   "freq": 68,
    "url": "",
    "cluster": "панно",
    "intent": "commercial"
@@ -615,14 +495,6 @@
    "freq": 115,
    "url": "",
    "cluster": "фабрика",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "схема люстры",
-   "pos": null,
-   "freq": 5841,
-   "url": "",
-   "cluster": "схема",
    "intent": "commercial"
   },
   {
@@ -658,19 +530,19 @@
    "intent": "commercial"
   },
   {
-   "phrase": "красивые зеркала в прихожую",
+   "phrase": "диван экокожа раскладной",
    "pos": null,
-   "freq": 233,
+   "freq": 649,
    "url": "",
-   "cluster": "красивые",
+   "cluster": "диван",
    "intent": "commercial"
   },
   {
-   "phrase": "черный цвет по ралу",
+   "phrase": "экран под ванну с полками",
    "pos": null,
-   "freq": 218,
+   "freq": 99,
    "url": "",
-   "cluster": "черный",
+   "cluster": "экран",
    "intent": "commercial"
   },
   {
@@ -698,12 +570,12 @@
    "intent": "commercial"
   },
   {
-   "phrase": "декоративные зеркала на стену",
+   "phrase": "бронестекло цена",
    "pos": null,
-   "freq": 510,
+   "freq": 71,
    "url": "",
-   "cluster": "декоративные",
-   "intent": "commercial"
+   "cluster": "бронестекло",
+   "intent": "transactional"
   },
   {
    "phrase": "как подсоединить люстру",
@@ -712,22 +584,6 @@
    "url": "",
    "cluster": "подсоединить",
    "intent": "informational"
-  },
-  {
-   "phrase": "купить зеркало для шкафа",
-   "pos": null,
-   "freq": 1667,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "transactional"
-  },
-  {
-   "phrase": "зеркало в белой рамке",
-   "pos": null,
-   "freq": 143,
-   "url": "",
-   "cluster": "зеркало",
-   "intent": "commercial"
   },
   {
    "phrase": "куда вешать зеркало в прихожей",
@@ -743,14 +599,6 @@
    "freq": 108,
    "url": "",
    "cluster": "зеркало",
-   "intent": "commercial"
-  },
-  {
-   "phrase": "часы стеклянные",
-   "pos": null,
-   "freq": 2761,
-   "url": "",
-   "cluster": "часы",
    "intent": "commercial"
   },
   {
@@ -770,14 +618,6 @@
    "intent": "commercial"
   },
   {
-   "phrase": "купить тумбу с зеркалом в прихожую",
-   "pos": null,
-   "freq": 153,
-   "url": "",
-   "cluster": "тумбу",
-   "intent": "transactional"
-  },
-  {
    "phrase": "зеркало состаренное",
    "pos": null,
    "freq": 2537,
@@ -794,11 +634,171 @@
    "intent": "commercial"
   },
   {
-   "phrase": "панно в спальню над кроватью",
+   "phrase": "зеркало для парикмахерской",
    "pos": null,
-   "freq": 206,
+   "freq": 486,
    "url": "",
-   "cluster": "панно",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "древние зеркала",
+   "pos": null,
+   "freq": 810,
+   "url": "",
+   "cluster": "древние",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "консоль классика",
+   "pos": null,
+   "freq": 532,
+   "url": "",
+   "cluster": "консоль",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "косметическое зеркало с подсветкой настенное",
+   "pos": null,
+   "freq": 265,
+   "url": "",
+   "cluster": "косметическое",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "сколько стоит зеркало в ванную",
+   "pos": null,
+   "freq": 186,
+   "url": "",
+   "cluster": "сколько",
+   "intent": "informational"
+  },
+  {
+   "phrase": "бархатный диван",
+   "pos": null,
+   "freq": 714,
+   "url": "",
+   "cluster": "бархатный",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "какое зеркало выбрать в ванную",
+   "pos": null,
+   "freq": 428,
+   "url": "",
+   "cluster": "какое",
+   "intent": "informational"
+  },
+  {
+   "phrase": "консоль в прихожую купить",
+   "pos": null,
+   "freq": 529,
+   "url": "",
+   "cluster": "консоль",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "фартук для кухни прозрачный",
+   "pos": null,
+   "freq": 574,
+   "url": "",
+   "cluster": "фартук",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ремонт люстры своими руками",
+   "pos": null,
+   "freq": 292,
+   "url": "",
+   "cluster": "ремонт",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "мир стекла и зеркал",
+   "pos": null,
+   "freq": 629,
+   "url": "",
+   "cluster": "стекла",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "декоративные игрушки",
+   "pos": null,
+   "freq": 1582,
+   "url": "",
+   "cluster": "декоративные",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "купить зеркало в деревянной раме настенное",
+   "pos": null,
+   "freq": 38,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "зеркало на ножке",
+   "pos": null,
+   "freq": 1642,
+   "url": "",
+   "cluster": "зеркало",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "консоль золото",
+   "pos": null,
+   "freq": 538,
+   "url": "",
+   "cluster": "консоль",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "столешница стеклянная",
+   "pos": null,
+   "freq": 7098,
+   "url": "",
+   "cluster": "столешница",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "багет на стену",
+   "pos": null,
+   "freq": 1402,
+   "url": "",
+   "cluster": "багет",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "ооо мир стекла",
+   "pos": null,
+   "freq": 75,
+   "url": "",
+   "cluster": "стекла",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "люстры хай тек потолочные",
+   "pos": null,
+   "freq": 76,
+   "url": "",
+   "cluster": "люстры",
+   "intent": "commercial"
+  },
+  {
+   "phrase": "лакобель цена",
+   "pos": null,
+   "freq": 70,
+   "url": "",
+   "cluster": "лакобель",
+   "intent": "transactional"
+  },
+  {
+   "phrase": "встраиваемое радио для душа",
+   "pos": null,
+   "freq": 3,
+   "url": "",
+   "cluster": "встраиваемое",
    "intent": "commercial"
   }
  ]

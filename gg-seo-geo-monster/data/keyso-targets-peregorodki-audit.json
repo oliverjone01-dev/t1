@@ -1,0 +1,14 @@
+{
+ "_note": "Аудит направления «межкомнатные перегородки» 31.08.2026. own=genglass.ru. Ключевые конкуренты ниши: органика (fdmebel, oki-doki, nayada, loftcase, alfaporta) + новые рекламные (peregorodki-prostor, ddveri.pro, kristal360).",
+ "updated": "2026-08-31",
+ "own": "genglass.ru",
+ "targets": [
+  {"domain":"genglass.ru","brand":"GENGLASS","role":"own","reports":["dashboard","competitors"]},
+  {"domain":"fdmebel.ru","role":"competitor-peregorodki","reports":["dashboard","competitors"]},
+  {"domain":"oki-doki.ru","role":"competitor-peregorodki","reports":["dashboard","competitors"]},
+  {"domain":"nayada.ru","role":"competitor-peregorodki","reports":["dashboard","competitors"]},
+  {"domain":"loftcase.ru","role":"competitor-peregorodki","reports":["dashboard","competitors"]},
+  {"domain":"peregorodki-prostor.ru","role":"competitor-ad-new","reports":["dashboard","competitors"]},
+  {"domain":"kristal360.ru","role":"competitor-ad-new","reports":["dashboard","competitors"]}
+ ]
+}

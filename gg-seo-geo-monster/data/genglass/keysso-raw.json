@@ -1,0 +1,604 @@
+{
+ "note": "debug-срез для сверки схемы, удалить после",
+ "dash": {
+  "id": 261778331,
+  "parentid": 0,
+  "parentName": "",
+  "concs": [
+   {
+    "did": 30654137,
+    "name": "m.avito.ru",
+    "cnt": 1420,
+    "it50": 19508844,
+    "vis": 4068181,
+    "perc": 0.007278750088934024
+   },
+   {
+    "did": 374680290,
+    "name": "lemanapro.ru",
+    "cnt": 1322,
+    "it50": 3022209,
+    "vis": 950253,
+    "perc": 0.043742838433741674
+   },
+   {
+    "did": 29918353,
+    "name": "ozon.ru",
+    "cnt": 1271,
+    "it50": 18141846,
+    "vis": 3959464,
+    "perc": 0.007005902265954634
+   }
+  ],
+  "it1": 12,
+  "it3": 58,
+  "it5": 119,
+  "it10": 374,
+  "it50": 1989,
+  "childsCount": 1,
+  "keys": [
+   {
+    "pos": 1,
+    "word": "зеркало с подсветкой напольное",
+    "ws": 761,
+    "wsk": 188
+   },
+   {
+    "pos": 1,
+    "word": "genglass",
+    "ws": 997,
+    "wsk": 106
+   },
+   {
+    "pos": 1,
+    "word": "зеркало с подсветкой в золотой раме",
+    "ws": 159,
+    "wsk": 32
+   }
+  ],
+  "topkeys": 144185,
+  "pages": [
+   {
+    "it50": 185,
+    "url": "/product-category/mirrors/floor"
+   },
+   {
+    "it50": 132,
+    "url": "/zerkala-na-zakaz"
+   },
+   {
+    "it50": 124,
+    "url": "/product-category/mirrors/zerkalo-v-prikhozhuyu"
+   }
+  ],
+  "pagesinindex": 197,
+  "vis": 42,
+  "topvis": 144238,
+  "adconcs": [
+   {
+    "did": 259614127,
+    "name": "ddveri.pro",
+    "cnt": 92,
+    "it50": 208,
+    "vis": 1,
+    "adkeyscnt": 1609,
+    "adscnt": 763
+   },
+   {
+    "did": 30329275,
+    "name": "union.ru",
+    "cnt": 51,
+    "it50": 7639,
+    "vis": 622,
+    "adkeyscnt": 9076,
+    "adscnt": 2362
+   },
+   {
+    "did": 423845669,
+    "name": "peregorodki-prostor.ru",
+    "cnt": 42,
+    "it50": 1,
+    "vis": 0,
+    "adkeyscnt": 428,
+    "adscnt": 30
+   }
+  ],
+  "adkeys": [
+   {
+    "p": [
+     0,
+     12
+    ],
+    "pos": 12,
+    "sr": 0,
+    "word": "genglass",
+    "ws": 997,
+    "wsk": 106
+   },
+   {
+    "p": [
+     0,
+     14
+    ],
+    "pos": 14,
+    "sr": 0,
+    "word": "межкомнатные перегородки в каркасном доме",
+    "ws": 149,
+    "wsk": 17
+   },
+   {
+    "p": [
+     1,
+     1
+    ],
+    "pos": 1,
+    "sr": 1,
+    "word": "перегородка металлическая для зонирования",
+    "ws": 220,
+    "wsk": 18
+   }
+  ],
+  "adkeyscnt": 263,
+  "ads": [
+   {
+    "facts": "",
+    "header": "Межкомнатные перегородки на заказ в Москве для зонирования пространства | GenGlass",
+    "id": 3926909620,
+    "keyscnt": 15,
+    "links": "Распродажа, Каталог, О компании, Контакты",
+    "txt": "Перегородки для зонирования комнаты позволяют грамотно разделить пространство без потери света и визуальной легкости."
+   },
+   {
+    "facts": "",
+    "header": "Межкомнатные перегородки на заказ в Москве для зонирования пространства | GenGlass",
+    "id": 2957836743,
+    "keyscnt": 9,
+    "links": "Распродажа, Каталог, О компании, Контакты",
+    "txt": "Перегородки для зонирования комнаты. ... Доставка межкомнатных перегородок от GENGLASS доступна по Москве и МО или через транспортную компанию по всей России."
+   },
+   {
+    "facts": "",
+    "header": "Межкомнатные перегородки на заказ в Москве для зонирования пространства | GenGlass",
+    "id": 1937897155,
+    "keyscnt": 7,
+    "links": "Распродажа, Каталог, О компании, Контакты",
+    "txt": "Межкомнатные перегородки для зонирования дома и офиса. Профессиональное изготовление межкомнатных перегородок на заказ эффективно исправляет недостатки планировки."
+   }
+  ],
+  "adscnt": 152,
+  "adtraf": 7,
+  "adcost": {
+   "average": 56600,
+   "bdg100": 132197,
+   "bdg5": 3752,
+   "bdg62": 61178,
+   "bdg85": 81978,
+   "bdg9": 3891,
+   "max": 132197
+  },
+  "restop5": 6,
+  "history": {
+   "2025.03": {
+    "it1": 11,
+    "it3": 26,
+    "it5": 77,
+    "it10": 254,
+    "it50": 1232,
+    "pagesInIndex": 130,
+    "adsCount": 109,
+    "adKeysCount": 114,
+    "visAvg": 19,
+    "aiCnt": 0
+   },
+   "2025.04": {
+    "it1": 11,
+    "it3": 26,
+    "it5": 78,
+    "it10": 250,
+    "it50": 1199,
+    "pagesInIndex": 130,
+    "adsCount": 88,
+    "adKeysCount": 90,
+    "visAvg": 20,
+    "aiCnt": 0
+   },
+   "2025.05": {
+    "it1": 11,
+    "it3": 27,
+    "it5": 76,
+    "it10": 268,
+    "it50": 1228,
+    "pagesInIndex": 131,
+    "adsCount": 106,
+    "adKeysCount": 110,
+    "visAvg": 16,
+    "aiCnt": 0
+   },
+   "2025.06": {
+    "it1": 11,
+    "it3": 26,
+    "it5": 83,
+    "it10": 293,
+    "it50": 1206,
+    "pagesInIndex": 133,
+    "adsCount": 18,
+    "adKeysCount": 18,
+    "visAvg": 15,
+    "aiCnt": 0
+   },
+   "2025.07": {
+    "it1": 7,
+    "it3": 32,
+    "it5": 82,
+    "it10": 324,
+    "it50": 1202,
+    "pagesInIndex": 116,
+    "adsCount": 4,
+    "adKeysCount": 4,
+    "visAvg": 16,
+    "aiCnt": 0
+   },
+   "2025.08": {
+    "it1": 11,
+    "it3": 33,
+    "it5": 88,
+    "it10": 329,
+    "it50": 1314,
+    "pagesInIndex": 117,
+    "adsCount": 1,
+    "adKeysCount": 1,
+    "visAvg": 26,
+    "aiCnt": 3
+   },
+   "2025.09": {
+    "it1": 9,
+    "it3": 35,
+    "it5": 105,
+    "it10": 338,
+    "it50": 1312,
+    "pagesInIndex": 114,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 24,
+    "aiCnt": 309
+   },
+   "2025.10": {
+    "it1": 9,
+    "it3": 35,
+    "it5": 112,
+    "it10": 351,
+    "it50": 1345,
+    "pagesInIndex": 114,
+    "adsCount": 0,
+    "adKeysCount": 0,
+    "visAvg": 23,
+    "aiCnt": 254
+   },
+   "2025.11": {
+    "it1": 16,
+    "it3": 49,
+    "it5": 125,
+    "it10": 337,
+    "it50": 1539,
+    "pagesInIndex": 170,
+    "adsCount": 2,
+    "adKeysCount": 61,
+    "visAvg": 31,
+    "aiCnt": 277
+   },
+   "2025.12": {
+    "it1": 14,
+    "it3": 49,
+    "it5": 110,
+    "it10": 319,
+    "it50": 1557,
+    "pagesInIndex": 159,
+    "adsCount": 437,
+    "adKeysCount": 763,
+    "visAvg": 32,
+    "aiCnt": 97
+   },
+   "2026.01": {
+    "it1": 15,
+    "it3": 41,
+    "it5": 91,
+    "it10": 278,
+    "it50": 1465,
+    "pagesInIndex": 105,
+    "adsCount": 423,
+    "adKeysCount": 804,
+    "visAvg": 22,
+    "aiCnt": 410
+   },
+   "2026.02": {
+    "it1": 27,
+    "it3": 70,
+    "it5": 134,
+    "it10": 364,
+    "it50": 1784,
+    "pagesInIndex": 121,
+    "adsCount": 305,
+    "adKeysCount": 671,
+    "visAvg": 27,
+    "aiCnt": 288
+   },
+   "2026.03": {
+    "it1": 27,
+    "it3": 77,
+    "it5": 142,
+    "it10": 385,
+    "it50": 1971,
+    "pagesInIndex": 139,
+    "adsCount": 188,
+    "adKeysCount": 498,
+    "visAvg": 29,
+    "aiCnt": 94
+   },
+   "2026.04": {
+    "it1": 17,
+    "it3": 58,
+    "it5": 115,
+    "it10": 352,
+    "it50": 2025,
+    "pagesInIndex": 183,
+    "adsCount": 93,
+    "adKeysCount": 202,
+    "visAvg": 18,
+    "aiCnt": 157
+   },
+   "2026.05": {
+    "it1": 14,
+    "it3": 42,
+    "it5": 77,
+    "it10": 276,
+    "it50": 1986,
+    "pagesInIndex": 181,
+    "adsCount": 24,
+    "adKeysCount": 34,
+    "visAvg": 10,
+    "aiCnt": 74
+   },
+   "2026.06": {
+    "it1": 12,
+    "it3": 36,
+    "it5": 73,
+    "it10": 244,
+    "it50": 1978,
+    "pagesInIndex": 212,
+    "adsCount": 30,
+    "adKeysCount": 38,
+    "visAvg": 10,
+    "aiCnt": 31
+   },
+   "2026.07": {
+    "it1": 12,
+    "it3": 40,
+    "it5": 84,
+    "it10": 279,
+    "it50": 1904,
+    "pagesInIndex": 175,
+    "adsCount": 126,
+    "adKeysCount": 209,
+    "visAvg": 15,
+    "aiCnt": 18
+   },
+   "2026.08": {
+    "it1": 12,
+    "it3": 58,
+    "it5": 119,
+    "it10": 374,
+    "it50": 1989,
+    "pagesInIndex": 197,
+    "adsCount": 152,
+    "adKeysCount": 263,
+    "visAvg": 42,
+    "aiCnt": 21
+   }
+  },
+  "linksHistory": {
+   "2025.02": [
+    91,
+    5508,
+    34
+   ],
+   "2025.03": [
+    92,
+    1882,
+    34
+   ],
+   "2025.04": [
+    88,
+    1414,
+    34
+   ],
+   "2025.05": [
+    93,
+    1349,
+    35
+   ],
+   "2025.06": [
+    90,
+    1405,
+    34
+   ],
+   "2025.07": [
+    91,
+    1420,
+    35
+   ],
+   "2025.08": [
+    91,
+    1409,
+    35
+   ],
+   "2025.09": [
+    149,
+    1494,
+    55
+   ],
+   "2025.10": [
+    152,
+    1436,
+    49
+   ],
+   "2025.11": [
+    162,
+    1482,
+    55
+   ],
+   "2025.12": [
+    175,
+    1655,
+    59
+   ],
+   "2026.01": [
+    179,
+    1826,
+    58
+   ],
+   "2026.02": [
+    180,
+    2018,
+    60
+   ],
+   "2026.03": [
+    178,
+    2008,
+    60
+   ],
+   "2026.04": [
+    161,
+    2235,
+    59
+   ],
+   "2026.05": [
+    164,
+    2537,
+    58
+   ],
+   "2026.06": [
+    163,
+    2578,
+    58
+   ],
+   "2026.07": [
+    163,
+    2604,
+    57
+   ],
+   "2026.08": [
+    164,
+    2603,
+    56
+   ]
+  },
+  "aiAnswersCnt": 21,
+  "aiState": 0,
+  "dr": 25,
+  "iconUrl": "https://keys-so-domain-icons.keys.so/domain-icons/d3ec590c3ffdcb7e4aaabce5a8b2f3982a3b5940ad96fec6ecc8dee9d124560f.png",
+  "name": "genglass.ru"
+ },
+ "keywords_response": {
+  "current_page": 1,
+  "per_page": 100,
+  "last_page": 193,
+  "data": [
+   {
+    "id": 10585,
+    "word": "багет купить в спб",
+    "weight": 1,
+    "ws": 371,
+    "wsk": 12,
+    "superwsk": 7,
+    "numwords": 4,
+    "isgeo": 0,
+    "isquest": 0
+   },
+   {
+    "id": 44109,
+    "word": "стеклянный стол в гостиную",
+    "weight": 1,
+    "ws": 94,
+    "wsk": 12,
+    "superwsk": 9,
+    "numwords": 4,
+    "isgeo": 0,
+    "isquest": 0
+   },
+   {
+    "id": 251793,
+    "word": "стеклянный столик купить",
+    "weight": 1,
+    "ws": 1142,
+    "wsk": 53,
+    "superwsk": 6,
+    "numwords": 3,
+    "isgeo": 0,
+    "isquest": 0
+   }
+  ],
+  "total": 19226
+ },
+ "concurents_response": {
+  "current_page": 1,
+  "per_page": 25,
+  "last_page": 3,
+  "data": [
+   {
+    "id": 322813373,
+    "name": "lain-loft.ru",
+    "perc": 0,
+    "theme": 6,
+    "cnt": 23,
+    "it1": 150,
+    "it3": 590,
+    "it5": 1149,
+    "it10": 2398,
+    "it50": 6734,
+    "pagesinindex": 173,
+    "vis": 400,
+    "adscnt": 0,
+    "adkeyscnt": 0,
+    "adtraf": 0,
+    "adcost": 0
+   },
+   {
+    "id": 271566921,
+    "name": "zerkala-m.ru",
+    "perc": 1,
+    "theme": 15,
+    "cnt": 57,
+    "it1": 89,
+    "it3": 449,
+    "it5": 855,
+    "it10": 1795,
+    "it50": 4731,
+    "pagesinindex": 759,
+    "vis": 328,
+    "adscnt": 4,
+    "adkeyscnt": 6,
+    "adtraf": 0,
+    "adcost": 1665
+   },
+   {
+    "id": 272188389,
+    "name": "fdmebel.ru",
+    "perc": 1,
+    "theme": 7,
+    "cnt": 27,
+    "it1": 166,
+    "it3": 366,
+    "it5": 555,
+    "it10": 918,
+    "it50": 2742,
+    "pagesinindex": 181,
+    "vis": 236,
+    "adscnt": 0,
+    "adkeyscnt": 0,
+    "adtraf": 0,
+    "adcost": 0
+   }
+  ],
+  "total": 69
+ }
+}

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GENGROUP · План мотивации VALONTI 2026 (архив)</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Маркетинговый план GENGROUP: мотивация дизайнеров, воронка прогрева, розница, сроки. Живая привязка к Google-таблице.">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>(function(){var t;try{t=localStorage.getItem('gg.theme');}catch(e){}document.documentElement.setAttribute('data-theme',(t==='light'||t==='dark')?t:'dark');})();</script>
+  <link rel="stylesheet" href="plan.css?v=20260825-1">
+</head>
+<body>
+<div class="prog" id="prog" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ХЕДЕР -->
+<header class="masthead">
+  <div class="mast-inner">
+    <div class="mast-brand">
+      <span class="mast-holding">GENGROUP</span>
+      <span class="mast-sub">Маркетинговый штаб</span>
+    </div>
+    <nav class="mast-nav" id="nav"></nav>
+    <div class="mast-meta">
+      <a class="sheet-top" id="sheet-top" target="_blank" rel="noopener" title="Открыть Google-таблицу плана и править её"><span class="lbl-full">✎ Править в таблице</span><span class="lbl-mini">✎ Таблица</span><span class="lbl-icon">✎</span></a>
+      <div class="ttoggle" role="group" aria-label="Тема">
+        <button data-t="light" type="button" aria-label="Светлая тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></button>
+        <button data-t="dark" type="button" aria-label="Тёмная тема"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></button>
+      </div>
+      <span class="src" id="src-badge" title="Источник данных плана">снимок</span>
+      <span class="mast-date" id="mast-date"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ГЕРОЙ -->
+  <section class="hero" id="s-obzor">
+    <div class="hero-grid">
+      <div class="hero-lead">
+        <p class="eyebrow">План 2026 · мотивация и приоритеты</p>
+        <h1 class="hero-title">Один большой чек <br>важнее десяти мелких.</h1>
+        <p class="hero-dek" id="hero-dek"></p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#s-gantt">Смотреть график</a>
+          <a class="btn btn-ghost" href="#s-prioritety">Приоритеты</a>
+        </div>
+      </div>
+      <aside class="hero-side">
+        <div class="hero-stat" id="hero-stats"></div>
+      </aside>
+    </div>
+    <div class="hero-note" id="hero-note"></div>
+  </section>
+
+  <!-- РАЗВИЛКА / СТОП-ГЕЙТ -->
+  <section class="band band-gate" id="s-razvilka">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">03</span>
+        <h2 class="sec-title">Развилка, которую решаем первой</h2>
+      </div>
+      <div class="fork" id="fork"></div>
+    </div>
+  </section>
+
+  <!-- ГАНТ -->
+  <section class="band band-plan" id="s-gantt">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">01</span>
+        <h2 class="sec-title">План маркетинга VALONTI 2026</h2>
+        <p class="sec-dek">Задачи, ответственные и сроки - прямо из Google-таблицы.</p>
+      </div>
+      <div class="gantt-legend" id="gantt-legend"></div>
+      <div class="gantt-wrap" id="gantt-wrap">
+        <div class="gantt-scroll" id="gantt-scroll"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ПРИОРИТЕТЫ (sales-director + ФЕНИКС) -->
+  <section class="band band-prio" id="s-prioritety">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">02</span>
+        <h2 class="sec-title">Приоритеты - по скорости денег</h2>
+        <p class="sec-dek" id="prio-dek"></p>
+      </div>
+      <div class="prio" id="prio"></div>
+      <div class="prio-note" id="prio-note"></div>
+    </div>
+  </section>
+
+  <!-- БЛОКИ ПЛАНА -->
+  <section class="band" id="s-bloki">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">04</span>
+        <h2 class="sec-title">План по блокам</h2>
+        <p class="sec-dek">Тот же список задач, что в графике и в таблице - развёрнуто.</p>
+      </div>
+      <div class="blocks" id="blocks"></div>
+    </div>
+  </section>
+
+  <!-- ВОРОНКА ПРОГРЕВА -->
+  <section class="band band-funnel" id="s-voronka">
+    <div class="band-inner">
+      <div class="sec-head">
+        <span class="sec-no">05</span>
+        <h2 class="sec-title">Воронка прогрева дизайнера</h2>
+        <p class="sec-dek">От тёплого лида до фаната бренда. Работаем с теми, кто уже нас знает, а не с холодными.</p>
+      </div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-col">
+      <span class="foot-h">GENGROUP · MarkPlan 2026</span>
+      <span class="foot-p" id="foot-audit"></span>
+    </div>
+    <div class="foot-col foot-links">
+      <a href="./">← Аналитика</a>
+      <a href="index.html">MarkPlan</a>
+      <a id="sheet-link" target="_blank" rel="noopener">Google-таблица</a>
+    </div>
+    <div class="foot-col">
+      <span class="foot-p">Все цифры - гипотезы Богдана и Ивана от 10.07.2026. Утверждаем на встрече. Прошло гейт ФЕНИКСА (6,8/10, доработано).</span>
+    </div>
+  </div>
+</footer>
+
+<script src="plan-valonti-data.js?v=20260825-1"></script>
+<script src="plan.js?v=20260825-1"></script>
+</body>
+</html>

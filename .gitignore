@@ -40,6 +40,8 @@ traces/**/kostya*
 kostya-overrides/
 PASSWORDS.local.json
 analytics-mvp/public/platform/
+# СВОД (песочница диалогов): собирается CI на лету, локальная сборка - черновик
+analytics-mvp/public/svod.html
 
 # Библиотека отдела продаж (контур 1A) собирается на деплое из build-library.mjs,
 # локальная сборка в public/ это черновик и в git не идёт.
@@ -55,3 +57,7 @@ gg-sales-academy/public/
 registry.json
 cases.json
 msgs.jsonl
+
+# Лендинг /phoenix: зависимости не коммитим, собранный dist коммитим намеренно,
+# чтобы деплой Pages не зависел от доступности npm в CI.
+phoenix/node_modules/

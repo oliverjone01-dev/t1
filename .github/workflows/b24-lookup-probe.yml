@@ -1,0 +1,50 @@
+name: B24 lookup probe (Glass Memory, read-only)
+
+# Разовая read-only проба Bitrix24: контакт по email + его сделки, лид по трекинг-параметру.
+# Один полный проход по лидам/сделкам/контактам, затем подстрочный поиск иголок + анализ пар.
+# Результат печатается в лог задания. Ничего не коммитит, боевые данные не трогает.
+
+on:
+  workflow_dispatch:
+    inputs:
+      emails:
+        description: "EMAIL(ы) через запятую"
+        required: false
+        default: ""
+      params:
+        description: "Параметр(ы) через запятую (u2i-...)"
+        required: false
+        default: ""
+      deal_from:
+        description: "Сделки от даты (YYYY-MM-DD), напр. 2026-04-01"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+        shell: bash
+    env:
+      B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+      B24_PORTAL: https://glassmemory.bitrix24.ru
+      EMAILS: ${{ github.event.inputs.emails }}
+      PARAMS: ${{ github.event.inputs.params }}
+      DEAL_FROM: ${{ github.event.inputs.deal_from }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Проба
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/probe-lookup.ts

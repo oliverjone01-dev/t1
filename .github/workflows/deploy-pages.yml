@@ -7,6 +7,7 @@ name: Deploy to GitHub Pages
 #   /smm/              - SMM-стратегия, БОЙ (из ветки main)
 #   /smm/preview/      - SMM-стратегия, ПРЕВЬЮ (из рабочей ветки)
 #   /seo/              - GG-SEO/GEO Монстр, БОЙ (из ветки main, статика public/)
+#   /phoenix/          - Перегородки: разбор направления (из main, собранный React из phoenix/dist)
 #   /markplan/         - GG-MarkPlan 2026 (маркетинговый план по 5 брендам), БОЙ (из main, статика public/)
 #   /stand-protocol/   - Протокол стенда MEBELIT x VALONTI, БОЙ (из main, статика public/, правка ?edit=1)
 #   /rop/              - РОП-дашборд, БОЙ (из ветки rop-dashboard-v1, эталон Димы)
@@ -40,7 +41,7 @@ on:
         default: "claude/token-verification-9re2i9"
   push:
     branches: [main]
-    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, .github/workflows/deploy-pages.yml]
+    paths: [analytics-mvp/**, smm/**, gg-seo-geo-monster/**, GG-markplan-2026/**, yandex-direct/**, gg-sales-academy/**, genglass-plan-calculator/**, stand-protocol/**, phoenix/dist/**, .github/workflows/deploy-pages.yml]
   # Авто-деплой после ежедневного синка данных. Пуш бота (GITHUB_TOKEN) сам по себе
   # не триггерит push-воркфлоу (защита GitHub от зацикливания), поэтому ловим завершение синка.
   # Источник один - прямой ночной синк OZON (ozon-snapshots); n8n удалён.
@@ -105,6 +106,14 @@ jobs:
           mkdir -p _site/seo/data
           cp -r gg-seo-geo-monster/public/. _site/seo/
           if [ -d gg-seo-geo-monster/data ]; then cp -r gg-seo-geo-monster/data/. _site/seo/data/; fi
+          # Перегородки, разбор направления: собранный React (Vite) из phoenix/dist.
+          # dist лежит в git намеренно: деплой не должен зависеть от доступности npm в CI.
+          # Пересобирается локально командой npm run build в папке phoenix/.
+          if [ -d phoenix/dist ]; then
+            mkdir -p _site/phoenix
+            cp -r phoenix/dist/. _site/phoenix/
+            echo "Phoenix: /phoenix/ собрана"
+          fi
           # MarkPlan 2026: маркетинговый план по 5 брендам, статика public/ (данные в public/data/)
           mkdir -p _site/markplan
           cp -r GG-markplan-2026/public/. _site/markplan/
@@ -164,6 +173,10 @@ jobs:
           if [ -n "${HUB_PASS:-}" ]; then
             HASH=$(printf '%s' "$HUB_PASS" | sha256sum | cut -d' ' -f1)
             sed -i "s/window.HUB_PASS_HASH = \"[a-f0-9]*\"/window.HUB_PASS_HASH = \"$HASH\"/" _site/seo/index.html
+            # Тот же пароль у лендинга /phoenix: хэш зашит в собранный бандл, меняем в нём.
+            if [ -d _site/phoenix/a ]; then
+              sed -i "s/2ef8f96e6281d75d01cec0c80866292dbeff89683f008467ab13fae421a5f868/$HASH/g" _site/phoenix/a/*.js
+            fi
             echo "HUB_PASS: хэш подменён из секрета"
           fi
 
@@ -337,14 +350,25 @@ jobs:
           set -euo pipefail
           git fetch origin economics-dashboard-v1
           git worktree add /tmp/economics FETCH_HEAD
-          if [ -f /tmp/economics/analytics-mvp/public/economics-command.html ]; then
-            mkdir -p "$GITHUB_WORKSPACE/_site/economics"
-            cp /tmp/economics/analytics-mvp/public/economics-command.html "$GITHUB_WORKSPACE/_site/economics/index.html"
-            ESTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/economics/analytics-mvp/public/economics-command.html | head -1 | cut -d'"' -f4)
-            printf '%s' "$ESTAMP" > "$GITHUB_WORKSPACE/_site/economics/v.txt"
-            echo "Экономика сделок опубликована в /economics/, сборка $ESTAMP"
+          mkdir -p "$GITHUB_WORKSPACE/_site/economics" "$GITHUB_WORKSPACE/_site/econ-control"
+          # ГЛАВНАЯ /economics/ = экран «Контроль заполнения» (решение Ивана 25.08: слоевой не актуален).
+          if [ -f /tmp/economics/analytics-mvp/public/econ-control.html ]; then
+            cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/economics/index.html"
+            cp /tmp/economics/analytics-mvp/public/econ-control.html "$GITHUB_WORKSPACE/_site/econ-control/index.html"
+            # версия для авто-перезагрузки (как у РОП): v.txt = bakedAt контрольного экрана
+            CSTAMP=$(grep -o '"bakedAt":"[^"]*"' /tmp/economics/analytics-mvp/public/econ-control.html | head -1 | cut -d'"' -f4)
+            printf '%s' "$CSTAMP" > "$GITHUB_WORKSPACE/_site/economics/v.txt"
+            printf '%s' "$CSTAMP" > "$GITHUB_WORKSPACE/_site/econ-control/v.txt"
+            echo "Контроль заполнения опубликован в /economics/ (главная) и /econ-control/, версия $CSTAMP"
           else
-            echo "public/economics-command.html ещё не запечён (запусти economics-cron) - пропуск"
+            echo "public/econ-control.html ещё не собран (запусти econ-recon) - пропуск"
+          fi
+          # Старый слоевой дашборд сохраняем скрытым запасным на /economics/layers.html (не удалён).
+          if [ -f /tmp/economics/analytics-mvp/public/economics-command.html ]; then
+            cp /tmp/economics/analytics-mvp/public/economics-command.html "$GITHUB_WORKSPACE/_site/economics/layers.html"
+            echo "Слоевой дашборд сохранён в /economics/layers.html"
+          else
+            echo "public/economics-command.html ещё не запечён - пропуск layers.html"
           fi
 
       # === ПЕРСОНАЛЬНЫЕ ДАШБОРДЫ МЕНЕДЖЕРОВ (в /rop-<фамилия>/) ===
@@ -409,6 +433,40 @@ jobs:
           printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog/v.txt"
           echo "DIALOG опубликован в /dialog/, сборка $STAMP"
 
+      # === DIALOG ЭКСПЕРИМЕНТЫ (песочница Ивана, в /dialog-experiments/) ===
+      # Личная копия DIALOG-дашборда для экспериментов Ивана (ветка dialog-experiments,
+      # отрезана от dialog-export-v1 2026-08-28). Боевой /dialog/ не затрагивается.
+      # Та же сборка на деплое (build-dialog.ts + снимок dialog.json из ветки-копии).
+      - name: Build DIALOG experiments (isolated, /dialog-experiments/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin dialog-experiments
+          git worktree add /tmp/dlg-exp origin/dialog-experiments
+          # rop.json + plan.json для СВОДа берём из Диминой ветки (ночной синк - свежие продажи и план)
+          git fetch origin rop-dashboard-v1
+          git worktree add /tmp/dlg-rop origin/rop-dashboard-v1
+          # Данные диалогов - ВСЕГДА из боевой ветки ночного снимка, не из копии в песочнице:
+          # песочница отрезана 28.08 и сама ночные данные не получает. Код - песочница, данные - боевые.
+          git fetch origin dialog-export-v1
+          git worktree add /tmp/dlg-live origin/dialog-export-v1
+          cp /tmp/dlg-live/analytics-mvp/dialog/data/*.json /tmp/dlg-exp/analytics-mvp/dialog/data/
+          ln -s "$GITHUB_WORKSPACE/analytics-mvp/node_modules" /tmp/dlg-exp/analytics-mvp/node_modules
+          cd /tmp/dlg-exp/analytics-mvp
+          npx tsx src/scripts/b24/build-dialog.ts
+          # История дневных снимков (свечи/СРАВНИТЬ/пульс в СВОДе v2) - из git-ветки ночного синка
+          HIST_REF=origin/dialog-export-v1 HIST_OUT=dialog/data/history.json npx tsx src/scripts/b24/extract-dlg-history.ts
+          # СВОД v2 (главная страница песочницы) + v1 рядом как svod-v1.html
+          ROP_JSON=/tmp/dlg-rop/analytics-mvp/rop/data/rop.json             npx tsx src/scripts/b24/build-svod2.ts
+          ROP_JSON=/tmp/dlg-rop/analytics-mvp/rop/data/rop.json           PLAN_JSON=/tmp/dlg-rop/analytics-mvp/rop/plan/plan.json             npx tsx src/scripts/b24/build-svod.ts
+          mkdir -p "$GITHUB_WORKSPACE/_site/dialog-experiments"
+          cp public/svod2.html "$GITHUB_WORKSPACE/_site/dialog-experiments/index.html"
+          cp public/svod.html "$GITHUB_WORKSPACE/_site/dialog-experiments/svod-v1.html"
+          cp public/dialog.html "$GITHUB_WORKSPACE/_site/dialog-experiments/dialog.html"
+          STAMP=$(grep -o 'const BAKED_AT = "[^"]*"' public/dialog.html | head -1 | cut -d'"' -f2)
+          printf '%s' "$STAMP" > "$GITHUB_WORKSPACE/_site/dialog-experiments/v.txt"
+          echo "Песочница: СВОД -> /dialog-experiments/, разбор диалогов -> /dialog-experiments/dialog.html (сборка $STAMP)"
+
       # === РОП ПРЕВЬЮ (из fork-ветки Ивана, в /rop-preview/) ===
       # Изолированная копия РОП-дашборда для доработки без риска для боевого /rop/.
       # Fork создан от rop-dashboard-v1 на коммите 861f5ca (2026-06-30). Обновляется при
@@ -443,6 +501,25 @@ jobs:
           # v1 - всегда доступен как /rop-preview/v1.html для сравнения
           cp /tmp/rop-preview/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-preview/v1.html"
           echo "v1 backup доступен в /rop-preview/v1.html из ветки $ROP_PREVIEW_REF"
+
+      # === РОП ЭКСПЕРИМЕНТЫ (песочница Ивана, в /rop-experiments/) ===
+      # Личная копия Диминого проекта для экспериментов Ивана (ветка dima-dashboard-experiments,
+      # отрезана от rop-dashboard-v1 2026-08-28). Ни /rop/ (эталон Димы), ни /rop-preview/ (v2)
+      # не затрагиваются. continue-on-error - падение песочницы не валит остальной сайт.
+      - name: Build ROP experiments (isolated, /rop-experiments/)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch origin dima-dashboard-experiments
+          git worktree add /tmp/rop-exp FETCH_HEAD
+          mkdir -p "$GITHUB_WORKSPACE/_site/rop-experiments"
+          # если в песочнице собран v2 - он главный, иначе Димин v1
+          if [ -f /tmp/rop-exp/analytics-mvp/public/rop-command-v2.html ]; then
+            cp /tmp/rop-exp/analytics-mvp/public/rop-command-v2.html "$GITHUB_WORKSPACE/_site/rop-experiments/index.html"
+          else
+            cp /tmp/rop-exp/analytics-mvp/public/rop-command.html "$GITHUB_WORKSPACE/_site/rop-experiments/index.html"
+          fi
+          echo "Песочница опубликована в /rop-experiments/ из ветки dima-dashboard-experiments"
 
       - uses: actions/configure-pages@v5
         with:

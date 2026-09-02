@@ -1,0 +1,35 @@
+name: B24 cost by type (себестоимость по типу изделия -> COSTAGG в лог)
+
+# Считает с/с по типу изделия для окна апр-авг (дошли до КП, чек>1). Тянет с/с из
+# смарт-процессов, агрегирует по ассортименту + стадии и печатает компактные строки
+# COSTAGG/ПОКРЫТИЕ в stderr (читаются из лога). Скрипт живёт на rop-dashboard-v1.
+# Запуск вручную (workflow_dispatch). Секрет маскируется, ничего не коммитит.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cost:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: analytics-mvp
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: rop-dashboard-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Cost by type -> COSTAGG
+        env:
+          B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
+          B24_PORTAL: https://glassmemory.bitrix24.ru
+        run: |
+          echo "::add-mask::$B24_WEBHOOK_URL"
+          if [ -z "${B24_WEBHOOK_URL:-}" ]; then echo "::error::Нет секрета B24_WEBHOOK_URL"; exit 1; fi
+          npx tsx src/scripts/b24/cost-by-type.ts

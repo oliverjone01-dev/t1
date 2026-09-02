@@ -124,17 +124,14 @@ jobs:
           const line=r=>pad(short(r.m),13)+pad(r.port+(r.neu?('+'+r.neu):''),6,true)+'  '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+(r.pN?(r.pN+'·'+K(r.pR)):'');
           const funnel='Сделки с КП и предоплаты (шт · сумма):\n'+[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR],['Предоплаты',prepN,prepR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n');
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
-          let body=`${head} · ${TODAY}\n`;
-          body+=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
+          const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
+          let body=`Отдел: портфель с КП ${dep.port}${dep.neu?(' (+'+dep.neu+' за день)'):''}\n`;
           body+=`Цель 700к/день · 20 млн/мес · предоплаты ${prepN} · ${M(prepR)}\n\n`;
           body+=pad('Менеджер',13)+pad('Портф',6,true)+'  '+pad('КП/Р/Д',9)+'Предопл\n';
           body+=rows.map(line).join('\n')+'\n\n'+funnel;
-          if(MODE==='itogi')body+=`\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
-          const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          const text='<pre>'+esc(body)+'</pre>';
-          const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text,parse_mode:'HTML',disable_web_page_preview:true})});
-          const j=await res.json();
-          if(!j.ok){console.error('Telegram error:',JSON.stringify(j));process.exit(1);}
-          console.log('Отправлено в чат',CHAT,'· message_id',j.result.message_id);
+          if(MODE==='itogi')body+=`\n\nДо 20 млн осталось: ${M(Math.max(0,20e6-prepR))}`;
+          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n';
+          const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/">РОП-дашборд отдела</a>';
+          await send(body, before, after); process.exit(0);
           MJS
           node /tmp/digest.mjs

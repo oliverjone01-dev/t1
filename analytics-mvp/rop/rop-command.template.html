@@ -303,6 +303,10 @@ function classifyText(t){t=(t||'').toLowerCase();for(const[k,rx]of KW)if(rx.test
 function mergedReason(d){let r=d.reason;if(r==='не указана'||r==='Другое'||!r){const dv=classifyText(d.reasonText);r=dv||'Другое (не распознано)';}return r;}
 function tgl(id){const e=document.getElementById(id);if(e)e.style.display=e.style.display==='none'?'block':'none';}
 const isSys=n=>/систем|^id\s?\d/i.test(n||'');
+// Ростер плана ОП (решение Ивана): единственный источник имён, по которым считаем план и портфель.
+// Используется и в «Дашбордах менеджеров» (_MShow), и в «Календаре горячих сделок» (все с планом видны,
+// даже при нуле успехов). Нового менеджера добавлять сюда - подхватят оба блока.
+const PLAN_MGRS=["Ольга Лысенко","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
 const OP=new Set(DATA.opUsers||[]);const INTSET=new Set((DATA.intStaff||[]).map(x=>x.name));
 const isOP=n=>OP.has(n);const isInt=n=>INTSET.has(n);
 const NOWD=new Date(DATA.to+'T23:59:00+03:00');const DAYMS=864e5;
@@ -860,7 +864,7 @@ function managerDashboardsBlock(){
   // Белый список действующих продавцов ОП (решение Ивана): в свайпе показываем ТОЛЬКО их.
   // Явный список надёжнее фильтра-исключения - дрейф данных и однофамильцы (два Валайко) не протекают.
   // Нового менеджера добавлять сюда вручную. Слаги считаются против ПОЛНОГО ростера, чтобы совпадать со /rop-<slug>/.
-  const _MShow=new Set(["Ольга Лысенко","Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"]);
+  const _MShow=new Set(PLAN_MGRS);
   const _Msys=n=>/систем|^id\s?\d/i.test(n||"");
   const _Mcnt={};(DATA.deals||[]).filter(d=>!_MExcl.has(d.mgr)&&d.dir!=="glass-memory").forEach(d=>{if(d.mgr)_Mcnt[d.mgr]=(_Mcnt[d.mgr]||0)+1;});
   const _Mtl={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
@@ -2025,7 +2029,12 @@ function offerCalendarBlock(){
         // сначала менеджеры, внутри - когорты по сроку (если у строки есть возрастные когорты)
         let subs;
         if(r.wip)subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m);return {m,msc,rank:wipAt(lastK,msc).length,any:keys.some(k=>wipAt(k,msc).length>0)};}).filter(x=>x.any);
-        else subs=names.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,rankM:s.totM,any:s.tot>0};}).filter(x=>x.any);
+        else{
+          // «Успех (предоплата)»: показываем ВСЕХ менеджеров плана, даже при нуле успехов -
+          // чтобы у каждого был виден его план (стакан справа). Остальные строки - только с фактом.
+          const roster=r.id==="win"?[...new Set([...PLAN_MGRS,...names])]:names;
+          subs=roster.map(m=>{const msc=passed.filter(d=>d.mgr===m),s=serie(r,msc);return {m,msc,rank:s.tot,rankM:s.totM,any:s.tot>0||(r.id==="win"&&PLAN_MGRS.includes(m))};}).filter(x=>x.any);
+        }
         subs.sort((a,b)=>b.rank-a.rank);
         subs.forEach(x=>{const mkey=r.id+"~"+x.m;const _m2=unit==="money",_ac2=_m2?_avgChk(x.msc):0;const cup=r.id==="win"?{fact:_m2?(x.rankM||0):x.rank,target:_m2?Math.round(mgrTarget(x.m)*_ac2):mgrTarget(x.m),money:_m2}:r.id==="loss"?{fact:_m2?(x.rankM||0):x.rank,target:_m2?Math.round(lossCap(x.m)*_ac2):lossCap(x.m),inv:true,money:_m2}:null;
           html+=rowLine(r,x.msc,mkey,{sub:true,mgr:x.m,exp:!!coh,rowKey:mkey,cup,off});

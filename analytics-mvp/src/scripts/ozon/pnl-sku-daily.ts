@@ -14,7 +14,22 @@ const TAIL = 45;                   // сколько последних дней
 const pad = (n: number) => String(n).padStart(2, "0");
 const fmt = (d: Date) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 function yesterday(): string { const d = new Date(); d.setUTCDate(d.getUTCDate() - 1); return fmt(d); }
-function minusDays(date: string, n: number): string { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - n); return fmt(d); }
+function shiftDays(date: string, n: number): string { const d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return fmt(d); }
+function minusDays(date: string, n: number): string { return shiftDays(date, -n); }
+
+// OZON /v3/finance/transaction/list разрешает период не больше месяца за запрос -> тянем чанками
+// по 28 дней (безопасно < 1 месяца) и склеиваем.
+async function fetchChunked(seller: OzonSeller, from: string, to: string): Promise<any[]> {
+  const ops: any[] = [];
+  let s = from;
+  while (s <= to) {
+    let e = shiftDays(s, 27); if (e > to) e = to;
+    const part = await seller.transactions(s, e);
+    for (const o of part) ops.push(o);
+    s = shiftDays(e, 1);
+  }
+  return ops;
+}
 
 function svcBucket(name: string): "delivery" | "acquiring" | "storage" | "other" {
   const n = name.toLowerCase();
@@ -78,7 +93,7 @@ async function main() {
   if (from < FLOOR) from = FLOOR;
   if (from > to) { console.log(`pnl-sku-daily: перетягивать нечего (${from} > ${to})`); return; }
 
-  const ops = await new OzonSeller({ clientId, apiKey }).transactions(from, to);
+  const ops = await fetchChunked(new OzonSeller({ clientId, apiKey }), from, to);
   const fresh = aggregateDaily(ops);
   // склейка: старые дни (< from) + свежие (>= from). Дни в [from..to] полностью заменяются свежими.
   const kept = existing.filter((r) => r.d < from);

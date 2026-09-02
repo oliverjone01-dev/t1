@@ -82,7 +82,7 @@ jobs:
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/data/pnl_sku_2026-06.json analytics-mvp/data/pnl_sku_2026-07.json analytics-mvp/data/pnl_sku_daily.ndjson
+          git add -A analytics-mvp/data/
           if git diff --staged --quiet; then echo "финансы без изменений"; exit 0; fi
           git commit -m "data: финансы по SKU июнь/июль 2026 (для Excel)"
           for i in 1 2 3 4 5; do

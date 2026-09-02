@@ -211,6 +211,7 @@ try {
     dialogMap[id] = {
       ball: last.dir === "входящее" ? "us" : last.dir === "исходящее" ? "client" : "unk",
       silent: Math.round((NOWMS - last.ts) / 864e5),
+      date: new Date(last.ts).toISOString().slice(0, 10),
       chan: last.type, who: last.who,
       gpt: summarize(),
     };

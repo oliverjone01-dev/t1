@@ -1587,7 +1587,7 @@ function priorityDealsBlock(){
   // воронки C49: КП отправлено -> Принимают решение -> [Предоплата]. Долгострой = застрявшая сделка.
   const HOT={"C49:PREPAYMENT_INVOIC":["КП отправлено",0.55],"C49:3":["Принимают решение",0.75],"C49:UC_8JTBV2":["Долгострой",0.30]};
   const MINE=(AD||[]).filter(d=>!d.won&&!d.lost&&HOT[d.stageCode]);
-  const _info=info('Очередь сделок к предоплате: сверху те, что дожимать первым, чтобы быстрее получить деньги. Оценка (0..0.9) - насколько сделка близка к предоплате: 0.9 = клиент принимает решение и ждёт нас (на пороге), пониже - КП отправлено, внизу - застряла или без переписки; единицу не показываем, это уже полученная предоплата. Мяч показывает, чей ход: у нас (клиент ждёт наш ответ - горячо), ждём клиента, нет связи. Приоритет = ожидаемая касса (бюджет × оценка): крупная и близкая сделка выше. Стадии - из воронки Bitrix «GG Заказы РФ», только сделки с направленным КП. «О чём договорились» - выжимка переписки из Bitrix. Вопрос: какие сделки дожимать первыми, чтобы закрыть предоплату сегодня. Вывод: работай сверху вниз, начиная с тех, где мяч у нас; наведи на номер приоритета - покажет, почему сделка тут; красный «Срок ожидания» - клиент давно без ответа, теряем.');
+  const _info=info('Очередь сделок к предоплате: сверху те, что дожимать первым, чтобы быстрее получить деньги. Оценка (0..0.9) - насколько сделка близка к предоплате: 0.9 = клиент принимает решение и ждёт нас (на пороге), пониже - КП отправлено, внизу - застряла или без переписки; единицу не показываем, это уже полученная предоплата. Мяч показывает, чей ход: у нас (клиент ждёт наш ответ - горячо), ждём клиента, нет связи. Приоритет = ожидаемая касса (бюджет × оценка): крупная и близкая сделка выше. Стадии - из воронки Bitrix «GG Заказы РФ», только сделки с направленным КП. «О чём договорились» - выжимка переписки из Bitrix с датой последней коммуникации; зелёное «● сегодня» - общались в день снимка (диалог живой), серая дата - когда касались последний раз. Вопрос: какие сделки дожимать первыми, чтобы закрыть предоплату сегодня. Вывод: работай сверху вниз, начиная с тех, где мяч у нас; наведи на номер приоритета - покажет, почему сделка тут; красный «Срок ожидания» - клиент давно без ответа, теряем.');
   if(!MINE.length)return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div></div></div><div style="text-align:center;padding:24px;color:var(--ink-3)">Нет открытых сделок на стадиях до предоплаты.</div></div>`;
   const DLG=DATA.dialog||{};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">${id}</a>`:(''+id);
@@ -1620,8 +1620,10 @@ function priorityDealsBlock(){
     const overdue=due&&due<DATA.to;
     const head=due?(overdue?`<span style="color:#F8717A;font-weight:800">⚠ просрочено ${_dmy(due)}</span>`:`<span style="color:var(--ink-2);font-weight:700">${_dmy(due)}</span>`):'<span style="color:var(--ink-4)">без срока</span>';
     return `<div style="font-size:11px;line-height:1.3">${head}${subj?`<div style="color:var(--ink-3);font-size:10.5px;max-width:150px;white-space:normal">${esc(subj)}</div>`:''}</div>`;};
-  const body=sorted.slice(0,200).map(r=>{const d=r.d,c=r.c,snm=HOT[d.stageCode][0];
-    const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:480px;white-space:normal;line-height:1.4">${esc(c.gpt)}</div>`:'<span style="color:var(--ink-4)">нет переписки</span>';
+  // Дата последней коммуникации: зелёным «сегодня», если общались в день снимка; иначе серая дата.
+  const commDate=c=>!c||!c.date?'':(c.date===DATA.to?`<span style="color:#2E9E74;font-weight:800">● сегодня</span>`:`<span style="color:var(--ink-4);font-weight:600">${_dmy(c.date)}</span>`);
+  const body=sorted.slice(0,200).map(r=>{const d=r.d,c=r.c,snm=HOT[d.stageCode][0];const cd=commDate(c);
+    const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:480px;white-space:normal;line-height:1.4">${cd?cd+' &middot; ':''}${esc(c.gpt)}</div>`:(cd?`<div style="font-size:11px;line-height:1.4">${cd}</div>`:'<span style="color:var(--ink-4)">нет переписки</span>');
     const sil=c.silent==null?'—':(c.silent+' дн');
     return `<tr>`+
       `<td style="text-align:center;font-weight:700">${dl(d.id)}</td>`+
@@ -1656,6 +1658,14 @@ function challengeWidget(){
   rows.sort((a,b)=>b.cnt-a.cnt||b.rub-a.rub);
   rows.forEach((m,i)=>m.rank=i+1);
   const me=rows.find(m=>m.n===MANAGER);
+  // Личный срез за КАЛЕНДАРНЫЙ месяц снимка: предоплаты + рабочих дней без предоплаты (как в ТГ-боте).
+  const TODM=(DATA.to||'').slice(0,10), curMon=TODM.slice(0,7);
+  const MON=['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
+  const monName=MON[parseInt(TODM.slice(5,7),10)-1]||curMon;
+  let myPrepCnt=0,myPrepRub=0;const myPrepDays=new Set();
+  (ALL_DEALS||[]).forEach(d=>{if(d.mgr!==MANAGER)return;const e=enterExec(d);if(e&&e.slice(0,7)===curMon){myPrepCnt++;myPrepRub+=d.budget||0;myPrepDays.add(e.slice(0,10));}});
+  let missMon=0;{const s=new Date(curMon+'-01T00:00:00Z'),e=new Date(TODM+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6&&!myPrepDays.has(dt.toISOString().slice(0,10)))missMon++;}}
+  const missCol=missMon===0?'#2E9E74':missMon<=2?'#C2873C':'#CC5867';
   const top=rows.slice(0,3);
   const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
   const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
@@ -1681,6 +1691,7 @@ function challengeWidget(){
     `<div id="crmChallengeRibbon" style="position:absolute;left:1px;top:11px;bottom:11px;width:7px;border-radius:7px;background:linear-gradient(180deg,#8B5CF6,#22D3EE);box-shadow:0 0 12px rgba(34,211,238,.6);cursor:pointer"></div>`+
     `<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Предоплаты · гонка отдела <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
     `<div style="background:rgba(34,211,238,.07);border:1px solid var(--line);border-radius:9px;padding:6px 9px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3)"><span>отдел за период</span><span style="color:var(--ink-1);font-weight:800">${deptCnt}${goalCnt?' / '+goalCnt:''} шт</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:1px"><span>выручка</span><span style="color:var(--ink-1);font-weight:800">${fmtKc(deptRub)}${goalRub?' / '+fmtKc(goalRub):''}</span></div>${goalRub?`<div style="height:6px;border-radius:4px;background:#0d141d;border:1px solid var(--line);overflow:hidden;margin-top:5px"><i style="display:block;height:100%;width:${cvRub}%;background:#2E9E74"></i></div>`:''}</div>`+
+    `<div data-tip="Твои предоплаты за ${monName} и сколько рабочих дней месяца прошло без единой предоплаты (план - минимум 1 в день). Зелёный - плана держишься, красный - копятся дни простоя." style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-3);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:9px;padding:6px 9px;margin-bottom:7px"><span>Ты в ${monName}: <b style="color:var(--ink-1)">${myPrepCnt}</b> предопл</span><span>без плана <b style="color:${missCol}">${missMon}</b> дн</span></div>`+
     top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
     `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои приоритетные сделки ↓</button>`+
     `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;

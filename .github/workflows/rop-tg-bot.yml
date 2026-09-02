@@ -72,7 +72,7 @@ jobs:
           const short=n=>{const p=n.split(' ');return p[1]?p[1]+(p[0]?' '+p[0][0]+'.':''):n;};
           let dep={kp:0,dec:0,long:0,kpR:0,decR:0,longR:0,rub:0,port:0,neu:0}, prepN=0, prepR=0;
           const sumOf=(a,c)=>a.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
-          const send=async(txt,before,after)=>{const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const html=(before?esc(before)+'\n':'')+'<pre>'+esc(txt)+'</pre>'+(after?'\n'+after:'');const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text:html,parse_mode:'HTML',disable_web_page_preview:true})});const jj=await res.json();if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}console.log('Отправлено в',CHAT,'· msg',jj.result.message_id);};
+          const send=async(txt,before,after)=>{const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const html=(before?before+'\n':'')+'<pre>'+esc(txt)+'</pre>'+(after?'\n'+after:'');const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text:html,parse_mode:'HTML',disable_web_page_preview:true})});const jj=await res.json();if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}console.log('Отправлено в',CHAT,'· msg',jj.result.message_id);};
           if(MGR){
             const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
             const SN={'C49:PREPAYMENT_INVOIC':'КП отправлено','C49:3':'Принимают решение','C49:UC_8JTBV2':'Долгострой'};
@@ -83,6 +83,8 @@ jobs:
             let depRub=0;PLAN.forEach(m=>deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null).forEach(x=>depRub+=x.budget||0));
             const monTgt=Math.round(depRub?portRub/depRub*20e6:0), dayTgt=Math.round(monTgt/28.6);
             const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
+            let lastPrep=null;deals.filter(x=>x.mgr===MGR).forEach(x=>{const ep=epAt(x);if(ep){const dd=ep.slice(0,10);if(!lastPrep||dd>lastPrep)lastPrep=dd;}});
+            const daysNoPlan=lastPrep?Math.max(0,Math.round((new Date(TODAY)-new Date(lastPrep))/864e5)):null;
             // Оценка близости к предоплате (как в дашборде): вес стадии x сигнал диалога. Считаем 0.5-0.9.
             let DLG={};try{const dlg=JSON.parse(fs.readFileSync('/tmp/dialog.json','utf8'));const MSG=new Set(["Сообщение Telegram","Сообщение MAX","Сообщение WhatsApp","Мессенджер ОЛ","Письмо","Звонок"]);const NOWMS=new Date(d.generated_at||new Date().toISOString()).getTime();const ids=new Set(my.map(x=>String(x.id)));const bd={};for(const e of (dlg.events||[])){if(!e.dealId||!ids.has(String(e.dealId)))continue;(bd[e.dealId]=bd[e.dealId]||[]).push(e);}for(const id of Object.keys(bd)){const ev=bd[id].sort((a,b)=>a.ts-b.ts);const ms=ev.filter(e=>e.dir==='входящее'||e.dir==='исходящее'||MSG.has(e.type));const l=ms[ms.length-1];DLG[id]=l?{ball:l.dir==='входящее'?'us':l.dir==='исходящее'?'client':'unk',silent:Math.round((NOWMS-l.ts)/864e5)}:{ball:'none'};}}catch(e){}
             const HW={'C49:PREPAYMENT_INVOIC':0.55,'C49:3':0.75,'C49:UC_8JTBV2':0.30};
@@ -96,10 +98,10 @@ jobs:
             const head={plan:'🌅 ПЛАН',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
             const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
             const intro=first+(handle?(' @'+handle):'')+', '+greet+':';
-            let b=`${head} · ${TODAY}\n`;
-            b+=`Портфель с КП: ${my.length}${neu?(' (+'+neu+' сегодня)'):''} · ${M(portRub)}\n`;
+            let b=`Портфель с КП: ${my.length}${neu?(' (+'+neu+' сегодня)'):''} · ${M(portRub)}\n`;
             b+=`Цель: минимум 1 предоплата/день · ~${K(dayTgt)}\n`;
-            b+=`Предоплаты за месяц: ${mN} · ${M(mR)} из плана ~${M(monTgt)}${tN?(' · сегодня '+tN):''}\n\n`;
+            b+=`Предоплаты за месяц: ${mN} · ${M(mR)} из плана ~${M(monTgt)}${tN?(' · сегодня '+tN):''}\n`;
+            b+=(daysNoPlan===0?'✅ предоплата сегодня есть\n\n':('⛔ Дней без предоплаты (план не выполнен): '+(lastPrep?daysNoPlan:'ни одной')+'\n\n'));
             b+='Твоя воронка (шт · сумма):\n';
             b+=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'].map(c=>pad(SN[c],17)+pad(cnt(c),3,true)+' · '+M(sm(c))).join('\n');
             if(MODE==='srez')b+=`\n\nПолдень. Предоплаты сегодня: ${tN} · нужна минимум 1.`;
@@ -107,7 +109,7 @@ jobs:
             const done=tN>=1;
             const q={plan:'✅ План на день зафиксирован. Подтверди, что принял(а) в работу - ответь «Принято».',srez:'❓ Отчитайся по дневному плану: сколько предоплат сделал(а), что дожимаешь?',itogi:done?'🙌 План дня выполнен - спасибо за работу!':'❓ План дня не выполнен. Напиши, почему и что помешало?'}[MODE];
             const after='🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n'+q;
-            await send(b, intro, after); process.exit(0);
+            await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro, after); process.exit(0);
           }
           const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
             const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;

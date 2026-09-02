@@ -1587,17 +1587,7 @@ function priorityDealsBlock(){
   // воронки C49: КП отправлено -> Принимают решение -> [Предоплата]. Долгострой = застрявшая сделка.
   const HOT={"C49:PREPAYMENT_INVOIC":["КП отправлено",0.55],"C49:3":["Принимают решение",0.75],"C49:UC_8JTBV2":["Долгострой",0.30]};
   const MINE=(AD||[]).filter(d=>!d.won&&!d.lost&&HOT[d.stageCode]);
-  const _info=info('Очередь сделок к предоплате. Подробное объяснение - в блоке «Как расставлен приоритет» под подзаголовком. Наведи на номер приоритета - покажет, почему именно эта сделка тут. Клик по заголовку столбца - сортировка.');
-  // Пояснение с заголовками (раскрывается), словами - почему что идёт в приоритет, без формул.
-  const _H=t=>`<div style="font-family:'Manrope';font-weight:800;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#A78BFA;margin:11px 0 3px">${t}</div>`;
-  const _help=`<details style="margin:2px 2px 6px"><summary style="cursor:pointer;color:#22D3EE;font-size:12px;font-weight:700;user-select:none">❔ Как расставлен приоритет и что значит оценка</summary>`+
-    `<div style="font-size:12.5px;color:var(--ink-2);line-height:1.5;margin-top:8px;background:var(--bg-base,#0d141d);border:1px solid var(--line);border-radius:10px;padding:12px 16px;max-width:820px">`+
-    _H('Что это')+`<div>Очередь сделок к предоплате. Сверху - то, что дожимать первым, чтобы быстрее получить деньги.</div>`+
-    _H('Почему одна сделка стоит выше другой')+`<div>Сделку поднимаем, если по ней <b style="color:#7fd0e0">мяч у нас</b> - клиент написал последним и ждёт нашего ответа: она горячая, надо просто ответить и дожать. Крупные сделки, близкие к решению, тоже выше - одна такая закрывает дневную цель. Опускаем те, где <b>тишина</b> и где <b>нет связи</b>: они остыли, их сперва оживить, а не ждать у моря погоды.</div>`+
-    _H('Оценка (от 0 до 0.9)')+`<div>Показывает, насколько сделка близка к предоплате. <b style="color:#2E9E74">0.9</b> - на пороге: клиент принимает решение и ждёт нас. Пониже - КП отправлено, ждём ответа. Внизу - застряла или без переписки. Единицу (1.0) не показываем: это уже полученная предоплата.</div>`+
-    _H('Мяч - чей сейчас ход')+`<div>🔵 <b>у нас</b> - клиент ждёт наш ответ, действуй сразу. ⏳ <b>ждём клиента</b> - ход за ним, напомни о себе, если тянет. ⚪ <b>нет связи</b> - переписки в системе не было, оживляй звонком.</div>`+
-    _H('Откуда стадии и о чём договорились')+`<div>Стадии - из воронки Bitrix «GG Заказы РФ»: берём только сделки с направленным КП (КП отправлено, Принимают решение, Долгострой). «О чём договорились» - краткое AI-резюме диалога из Bitrix.</div>`+
-    `</div></details>`;
+  const _info=info('Очередь сделок к предоплате: сверху те, что дожимать первым, чтобы быстрее получить деньги. Оценка (0..0.9) - насколько сделка близка к предоплате: 0.9 = клиент принимает решение и ждёт нас (на пороге), пониже - КП отправлено, внизу - застряла или без переписки; единицу не показываем, это уже полученная предоплата. Мяч показывает, чей ход: у нас (клиент ждёт наш ответ - горячо), ждём клиента, нет связи. Приоритет = ожидаемая касса (бюджет × оценка): крупная и близкая сделка выше. Стадии - из воронки Bitrix «GG Заказы РФ», только сделки с направленным КП. «О чём договорились» - выжимка переписки из Bitrix. Вопрос: какие сделки дожимать первыми, чтобы закрыть предоплату сегодня. Вывод: работай сверху вниз, начиная с тех, где мяч у нас; наведи на номер приоритета - покажет, почему сделка тут; красный «Срок ожидания» - клиент давно без ответа, теряем.');
   if(!MINE.length)return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div></div></div><div style="text-align:center;padding:24px;color:var(--ink-3)">Нет открытых сделок на стадиях до предоплаты.</div></div>`;
   const DLG=DATA.dialog||{};
   const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">#${id}</a>`:('#'+id);
@@ -1648,7 +1638,7 @@ function priorityDealsBlock(){
       `</tr>`;}).join("");
   const us=rows.filter(r=>r.c&&r.c.ball==='us');const nUs=us.length,sumUs=us.reduce((s,r)=>s+r.bud,0);
   const sub=`Сделки, ближе всего к предоплате после анализа стадии, сроков и диалогов`+(nUs?` · <b style="color:#22D3EE">мяч у нас: ${nUs} на ${fmtK(sumUs)}</b>`:'');
-  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div>${_help}<div class="scroll" style="max-height:560px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('cat','Ассортимент','left')}${th('cli','Клиент','left')}${th('stage','Стадия','left')}${th('silent','Срок ожидания')}<th style="text-align:left">Дела / срок</th><th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:560px;margin-top:6px"><table class="tbl"><thead><tr><th style="text-align:center">Сделка</th>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('cat','Ассортимент','left')}${th('cli','Клиент','left')}${th('stage','Стадия','left')}${th('silent','Срок ожидания')}<th style="text-align:left">Дела / срок</th><th style="text-align:left">О чём договорились</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
 }
 
 function challengeWidget(){
@@ -1683,10 +1673,7 @@ function challengeWidget(){
   const _sep=`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>`;
   const meOut=(me&&me.rank>3)?`${_sep}${line(me,true)}`:'';
   const _trow=(l,t)=>`<div style="margin:5px 0 0;line-height:1.4"><b style="color:#22D3EE">${l}:</b> ${t}</div>`;
-  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Предоплаты»</div>`+
-    _trow('Гонка','кто больше предоплат получил за период. Справа число = штуки, серым = выручка ₽')+
-    _trow('Цель отдела','20 млн/мес · 700к/день · у каждого минимум 1 предоплата в день')+
-    _trow('Твоя задача','дожимай сделки из блока «Приоритет к предоплате» - начни с тех, где мяч у нас')).replace(/"/g,'&quot;');
+  const tip=('Гонка отдела за предоплаты: место каждого менеджера за период. Число справа = сколько предоплат получил, серым - выручка по ним. Цель отдела: 20 млн в месяц, 700к в день, у каждого минимум 1 предоплата в день. Вопрос: кто из отдела впереди по предоплатам, а кто отстаёт. Вывод: дожимай сделки из блока «Приоритет к предоплате», начиная с тех, где мяч у нас.').replace(/"/g,'&quot;');
   const cta=me?(me.cnt>0?`ты ${me.cnt} предоплат · ${fmtKc(me.rub)}`:'сегодня нужна минимум 1 предоплата'):'к списку';
   const badge=me?`<span style="background:${me.cnt>0?'#2E9E74':'#CC5867'};color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.cnt}</span>`:'';
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;

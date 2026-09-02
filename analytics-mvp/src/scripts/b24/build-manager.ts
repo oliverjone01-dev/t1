@@ -172,6 +172,41 @@ const dept = {
 };
 console.log(`Свои: сделок ${MINE_D.length}, лидов ${MINE_L.length} | отдел (компактно): ${dept.r.length} сделок`);
 
+// --- Диалоги (снимок dialog.json ветки dialog-export-v1): кто написал последним, на чьей стороне
+// мяч, о чём договорились (Резюме BitrixGPT). Только по СВОИМ сделкам. Файла может не быть -
+// тогда слой диалогов пустой, блок приоритета работает на стадиях/сроках без «мяча». ------------
+let dialogMap: Record<string, any> = {};
+try {
+  const dlg = JSON.parse(readFileSync("rop/data/dialog.json", "utf-8"));
+  const MSG = new Set(["Сообщение Telegram", "Сообщение MAX", "Сообщение WhatsApp", "Мессенджер ОЛ", "Письмо", "Звонок"]);
+  const NOWMS = new Date(rop.generated_at || new Date().toISOString()).getTime();
+  const clip = (s: string, n: number): string | null => {
+    if (!s) return null;
+    s = String(s).replace(/\s*-{3,}[\s\S]*$/, "").replace(/:[0-9a-f]{6,}:/gi, "").replace(/\s+/g, " ").trim();
+    return s.length > n ? s.slice(0, n) + "…" : s;
+  };
+  const mineIds = new Set(MINE_D.map((d: any) => String(d.id)));
+  const byDeal: Record<string, any[]> = {};
+  for (const e of (dlg.events || [])) {
+    if (!e.dealId || !mineIds.has(String(e.dealId))) continue;
+    (byDeal[e.dealId] = byDeal[e.dealId] || []).push(e);
+  }
+  for (const id of Object.keys(byDeal)) {
+    const evs = byDeal[id].sort((a: any, b: any) => a.ts - b.ts);
+    const msgs = evs.filter((e: any) => e.dir === "входящее" || e.dir === "исходящее" || MSG.has(e.type));
+    const last = msgs[msgs.length - 1];
+    const gpt = evs.filter((e: any) => e.type === "Резюме BitrixGPT").pop();
+    if (!last) { dialogMap[id] = { ball: "none", gpt: gpt ? clip(gpt.body, 240) : null }; continue; }
+    dialogMap[id] = {
+      ball: last.dir === "входящее" ? "us" : last.dir === "исходящее" ? "client" : "unk",
+      silent: Math.round((NOWMS - last.ts) / 864e5),
+      chan: last.type, who: last.who,
+      gpt: gpt ? clip(gpt.body, 240) : clip(last.body || last.title, 160),
+    };
+  }
+  console.log(`Диалоги: сопоставлено ${Object.keys(dialogMap).length} сделок из ${MINE_D.length} своих`);
+} catch (e: any) { console.log(`Диалоги: пропуск (${e.message})`); dialogMap = {}; }
+
 const DATA = {
   from, to, deals: MINE_D, leads: MINE_L, dept, groups: [], keyStageStats, funnel, dq, opUsers, intStaff,
   sysUsers: [], deptOf: {},
@@ -194,6 +229,8 @@ const DATA = {
   channelMix: rop.channelMix || null,
   // Фото профилей из Bitrix (имя -> URL) для аватара в шапке дашборда. undefined = старый снимок.
   managerPhotos: rop.managerPhotos || undefined,
+  // Диалоги по своим сделкам: {dealId: {ball, silent, chan, who, gpt}}. {} = снимок без диалогов.
+  dialog: dialogMap,
 };
 
 // --- инъекция в шаблон (замена литерала const DATA={...}) ---

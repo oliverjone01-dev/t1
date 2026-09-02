@@ -826,7 +826,7 @@ function render(){
   const D=FD(),L=FL(),PDd=PD(),PLd=PL();const _pw=prevWin();
   if(typeof MANAGER!=='undefined'&&MANAGER){
     const MS=mgrStats();
-    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+myTaskCombinedBlock()+dataQualityBlock()+challengeWidget();
+    const h=managerHeaderBlock()+managerPlanBlock(MS)+managerKpiBlock(MS)+offerCalendarBlock()+`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;align-items:start">${managerDynBlock()}${managerSignalsBlock(MS)}</div>`+myTaskCombinedBlock()+priorityDealsBlock()+dataQualityBlock()+challengeWidget();
     document.getElementById('root').innerHTML=h;freshStamp();
     // Авто-задвижение челленджа: показать сейчас, через 5 сек простоя уехать вправо (остаётся яркая ленточка-вкладка).
     clearTimeout(window.__ct);{const _e=document.getElementById('crmChallenge')||document.getElementById('crmChallengeToggle');if(_e){_e.style.transition='transform .45s cubic-bezier(.4,0,.2,1)';_e.style.transform='translateX(0)';_e.style.opacity='1';}}
@@ -1579,79 +1579,90 @@ function myTaskCombinedBlock(){
 // ===== ЧЕЛЛЕНДЖ «Дисциплина дел»: ТОП-3 менеджеров по доле живых сделок (дело + касание) =====
 // Считаем по всему отделу (ALL_DEALS), не по фильтру - рейтинг общий. Метрика: доля
 // чистых сделок среди дошедших до предложения. Виджет в правом углу, кнопка ведёт к #dqfix.
+function priorityDealsBlock(){
+  // Только сделки со СДЕЛАННЫМ предложением (КП направлено): КП/счёт, Принимают решение, Долгострой.
+  // Ранние стадии (Расчёт, Формирование ТЗ) - без КП - в приоритет к предоплате не идут.
+  const HOT={"C49:PREPAYMENT_INVOIC":["КП/счёт",0.22],"C49:3":["Решение",0.26],"C49:UC_8JTBV2":["Долгострой",0.05]};
+  const MINE=(AD||[]).filter(d=>!d.won&&!d.lost&&HOT[d.stageCode]);
+  const _info=info('Приоритет сделок к предоплате. Оценка (макс 0.9) = вероятность довести до предоплаты: вес стадии по факту конверсии, помноженный на анализ коммуникаций. Мяч у нас (клиент написал последним и ждёт ответ) поднимает оценку; тишина и «нет связи» опускают. Дожимай сверху вниз, сначала где мяч у нас. «О чём договорились» - из Резюме BitrixGPT. Клик по заголовку столбца - сортировка.');
+  if(!MINE.length)return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div></div></div><div style="text-align:center;padding:24px;color:var(--ink-3)">Нет открытых сделок на стадиях до предоплаты.</div></div>`;
+  const DLG=DATA.dialog||{};
+  const portal=DATA.b24Portal||"",dl=id=>portal?`<a href="${portal}/crm/deal/details/${id}/" target="_blank" rel="noopener" style="color:#3DAEC2">#${id}</a>`:('#'+id);
+  const scoreOf=d=>{const base=HOT[d.stageCode][1];const c=DLG[d.id]||{ball:'none'};let f;if(c.ball==='us')f=1.35;else if(c.ball==='client')f=(c.silent>14?0.6:1.0);else if(c.ball==='unk')f=0.8;else f=0.45;return Math.min(0.9,base*f);};
+  const ballTxt=c=>(!c||c.ball==='none')?'⚪ нет связи':c.ball==='us'?'🔵 мяч у нас':c.ball==='client'?'⏳ ждём клиента':'⚪ внутр.';
+  const ballRank=c=>(!c||c.ball==='none')?0:c.ball==='us'?3:c.ball==='client'?2:1;
+  const rows=MINE.map(d=>{const c=DLG[d.id]||{ball:'none'};return {d,c,score:scoreOf(d),bud:d.budget||0,silent:(c.silent==null?9999:c.silent)};});
+  rows.sort((a,b)=>(b.bud*b.score)-(a.bud*a.score)||ballRank(b.c)-ballRank(a.c)||b.score-a.score);
+  rows.forEach((r,i)=>r.prio=i+1);
+  if(!S.prioSort)S.prioSort={k:'prio',a:true};
+  const sk=S.prioSort.k,sa=S.prioSort.a?1:-1;
+  const sv={prio:r=>r.prio,score:r=>-r.score,ball:r=>-ballRank(r.c),bud:r=>-r.bud,stage:r=>HOT[r.d.stageCode][0],silent:r=>r.silent};
+  const sorted=rows.slice().sort((a,b)=>{const x=sv[sk](a),y=sv[sk](b);return (x>y?1:x<y?-1:0)*sa;});
+  const th=(k,lab,al)=>`<th data-priosort="${k}" style="cursor:pointer;text-align:${al||'center'};white-space:nowrap${S.prioSort.k===k?';color:#22D3EE':''}">${lab}${S.prioSort.k===k?(sa>0?' ▲':' ▼'):''}</th>`;
+  const scoreCol=s=>s>=0.5?'#2E9E74':s>=0.3?'#C2873C':'#CC5867';
+  const body=sorted.slice(0,200).map(r=>{const d=r.d,c=r.c,snm=HOT[d.stageCode][0];
+    const gpt=c.gpt?`<div style="font-size:11px;color:var(--ink-3);max-width:360px;white-space:normal;line-height:1.35" data-tip="${esc(c.gpt).replace(/"/g,'&quot;')}">${esc(c.gpt.length>96?c.gpt.slice(0,96)+'…':c.gpt)}</div>`:'<span style="color:var(--ink-4)">—</span>';
+    const sil=c.silent==null?'—':(c.silent+' дн');
+    return `<tr>`+
+      `<td style="text-align:center;font-weight:800;color:var(--ink-2)">${r.prio}</td>`+
+      `<td style="text-align:center;font-family:'Manrope';font-weight:800;color:${scoreCol(r.score)}">${r.score.toFixed(2)}</td>`+
+      `<td style="text-align:center;white-space:nowrap">${ballTxt(c)}</td>`+
+      `<td style="text-align:right;font-weight:700">${fmtK(d.budget||0)}</td>`+
+      `<td style="text-align:left;color:var(--ink-3);font-size:11px;white-space:nowrap">${esc(snm)}</td>`+
+      `<td style="text-align:right;color:${(c.silent!=null&&c.silent>21)?'#F8717A':'var(--ink-3)'};font-size:11px">${sil}</td>`+
+      `<td style="text-align:left">${gpt}</td>`+
+      `<td style="text-align:center">${dl(d.id)}</td>`+
+      `</tr>`;}).join("");
+  const us=rows.filter(r=>r.c&&r.c.ball==='us');const nUs=us.length,sumUs=us.reduce((s,r)=>s+r.bud,0);
+  const sub=`Сделки, ближе всего к предоплате после анализа стадии, сроков и диалогов`+(nUs?` · <b style="color:#22D3EE">мяч у нас: ${nUs} на ${fmtK(sumUs)}</b>`:'');
+  return `<div class="card" id="prio"><div class="card-h"><div><div class="card-title">Приоритет к предоплате ${_info}</div><div class="card-sub">${sub}</div></div></div><div class="scroll" style="max-height:520px;margin-top:6px"><table class="tbl"><thead><tr>${th('prio','Приоритет')}${th('score','Оценка')}${th('ball','Мяч')}${th('bud','Бюджет')}${th('stage','Стадия','left')}${th('silent','Тишина')}<th style="text-align:left">О чём договорились</th><th style="text-align:center">Сделка</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+}
+
 function challengeWidget(){
-  const PD2=s=>new Date(String(s).slice(0,10)+"T12:00:00+03:00");
-  const now=NOWD.getTime(), PARK=30;
-  const cls=d=>{if(!d.taskDue)return 'none';const dy=Math.round((PD2(d.taskDue).getTime()-now)/DAYMS);return dy<0?'over':dy>PARK?'park':'ok';};
-  // «Проблемная» открытая сделка: нет дела, дело просрочено, или дело есть, а реального касания
-  // за 90 дней не было. Живая = дело на срок и был контакт. Челлендж - доля живых сделок.
-  // Челлендж за ЧИСТОТУ CRM: та же логика, что «Сделки для исправления» (заполнены ли
-  // бюджет, категория/тип изделия, тип клиента у сделок, дошедших до предложения).
-  const OSET=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:UC_8JTBV2"]);
-  const eCat=d=>{const a=d.assort;return !a||a==="нет данных"||a==="не указана";};
-  const eCli=d=>{const c=d.client;return !c||c==="нет данных"||c==="не указан";};
-  const PRICED=new Set(["C49:PREPAYMENT_INVOIC","C49:3","C49:EXECUTING","C49:FINAL_INVOICE","C49:1","C49:2","C49:WON"]);
-  const eBud=d=>PRICED.has(d.stageCode)&&(d.budget||0)<=1; // цена обязательна только с «КП отправлено» и дальше; на «Формирование ТЗ»/«Долгострой» пустая цена - норма, не дыра
-  const isDirty=d=>eCat(d)||eCli(d)||eBud(d);
-  // Из челленджа исключаем РОПа: он руководит менеджерами, а не соревнуется с ними.
+  const enterExec=d=>{for(const h of (d.hist||[]))if(h[0]==="C49:EXECUTING"&&h[1])return h[1];return d.won?(d.closed||null):null;};
+  const inR=ds=>ds&&ds.slice(0,10)>=S.start&&ds.slice(0,10)<=S.end;
+  // РОПа и вспомогательные роли в гонку не берём (они руководят, а не соревнуются).
   const CHAL_EXCLUDE=new Set(["Ольга Лысенко","Алёна Кубанова"]);
-  // Пост-продажные стадии (производство/логистика/монтаж) в челлендж не идут: продажа состоялась,
-  // это уже сопровождение, а не дисциплина активных продаж - иначе рейтинг искажается.
-  const scope=(ALL_DEALS||[]).filter(d=>!d.lost&&isOP(d.mgr)&&!CHAL_EXCLUDE.has(d.mgr)&&(d.hist||[]).some(h=>OSET.has(h[0])));
-  const byM={};scope.forEach(d=>{const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,tot:0,bad:0};m.tot++;if(isDirty(d))m.bad++;});
-  const all=Object.values(byM);
-  // Порог объёма: медаль честная у тех, у кого ≥ FLOOR открытых сделок (иначе 1-2 идеальные
-  // сделки дают незаслуженный подиум). Порог мягко снижаем, если участников мало.
-  let FLOOR=15;while(FLOOR>3&&all.filter(m=>m.tot>=FLOOR).length<3)FLOOR=Math.floor(FLOOR/2);
-  const rows=all.filter(m=>m.tot>=FLOOR).map(m=>({...m,clean:(m.tot-m.bad)/m.tot}));
+  // Челлендж за ПРЕДОПЛАТЫ: сколько предоплат получил каждый менеджер ОП за период.
+  const byM={};
+  (ALL_DEALS||[]).forEach(d=>{if(!isOP(d.mgr)||CHAL_EXCLUDE.has(d.mgr))return;const e=enterExec(d);if(e&&inR(e)){const m=byM[d.mgr]=byM[d.mgr]||{n:d.mgr,cnt:0,rub:0};m.cnt++;m.rub+=d.budget||0;}});
+  let rows=Object.values(byM);
+  // менеджер всегда видит себя, даже при 0 предоплат
+  if(!rows.some(m=>m.n===MANAGER)&&isOP(MANAGER)&&!CHAL_EXCLUDE.has(MANAGER))rows.push({n:MANAGER,cnt:0,rub:0});
   if(!rows.length)return "";
-  // сортировка: больше доля живых → выше; при равенстве меньше сделок к разбору
-  rows.sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
+  rows.sort((a,b)=>b.cnt-a.cnt||b.rub-a.rub);
   rows.forEach((m,i)=>m.rank=i+1);
   const me=rows.find(m=>m.n===MANAGER);
-  // Место среди ВСЕХ участников (любой объём) - чтобы менеджер ВСЕГДА видел себя, даже вне медального зачёта (<FLOOR сделок до предложения).
-  const allRk=all.map(m=>({...m,clean:(m.tot-m.bad)/m.tot})).sort((a,b)=>b.clean-a.clean||a.bad-b.bad||b.tot-a.tot);
-  allRk.forEach((m,i)=>m.arank=i+1);
-  const meAny=allRk.find(m=>m.n===MANAGER), meX=me||meAny;
-  const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
   const top=rows.slice(0,3);
   const short=n=>{const p=String(n||'').trim().split(/\s+/);return p.length>1?p[0]+' '+p[1][0]+'.':n;};
-  // Цвет - по МЕСТУ: лидеры ТОП-3 зелёные, нижняя треть красная, середина янтарная; без проблем - зелёный.
-  const _n=rows.length,_lowCut=_n-Math.max(1,Math.ceil(_n/3));
-  const rankCol=m=>m.bad===0?'#2E9E74':m.rank<=3?'#2E9E74':m.rank>_lowCut?'#CC5867':'#C2873C';
+  const medal=r=>r===1?'🥇':r===2?'🥈':r===3?'🥉':'';
+  const deptCnt=rows.reduce((s,m)=>s+m.cnt,0),deptRub=rows.reduce((s,m)=>s+m.rub,0);
+  const pm=(DATA.plan&&DATA.plan.months)?DATA.plan.months.find(x=>x.month===S.end.slice(0,7)):null;
+  const goalRub=pm?(pm.rev||0):0,goalCnt=(pm&&pm.check)?Math.round((pm.rev||0)/pm.check):0;
+  const cvRub=goalRub?Math.min(100,Math.round(deptRub/goalRub*100)):0;
+  const _low=rows.length-Math.max(1,Math.ceil(rows.length/3));
+  const rankCol=m=>m.rank<=3?'#2E9E74':m.rank>_low?'#CC5867':'#C2873C';
   const line=(m,hi)=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0${hi?';font-weight:800':''}">`+
     `<span style="width:20px;text-align:center;font-size:14px">${medal(m.rank)||m.rank}</span>`+
     `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:${hi?'#22D3EE':'var(--ink-2)'}">${esc(short(m.n))}</span>`+
-    `<span style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${Math.round(m.clean*100)}%</span>`+
-    `<span data-tip="сколько сделок надо дозаполнить в CRM (0 - всё чисто)" style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
-  // Строка «я» для менеджера ВНЕ медального зачёта (мало сделок): место среди всех участников.
-  const lineMe=m=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;font-weight:800">`+
-    `<span style="width:20px;text-align:center;font-size:12px;color:var(--ink-3)">${m.arank}</span>`+
-    `<span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#22D3EE">${esc(short(m.n))}</span>`+
-    `<span style="font-family:'Manrope';font-weight:800;color:${m.bad===0?'#2E9E74':'#C2873C'}">${Math.round(m.clean*100)}%</span>`+
-    `<span style="color:${m.bad===0?'#2E9E74':'var(--ink-4)'};font-size:11px;width:46px;text-align:right">${m.bad?('-'+m.bad):'✓'}</span></div>`;
+    `<span data-tip="предоплат за период" style="font-family:'Manrope';font-weight:800;color:${rankCol(m)}">${m.cnt}</span>`+
+    `<span data-tip="выручка предоплат за период" style="color:var(--ink-4);font-size:11px;width:52px;text-align:right">${fmtKc(m.rub)}</span></div>`;
   const _sep=`<div style="border-top:1px dashed var(--line);margin:5px 0 2px"></div>`;
-  // Менеджер ВСЕГДА видит себя: в зачёте вне ТОП-3 - медальной строкой; вне зачёта - строкой с местом среди всех + пометка; нет офферов - подсказка.
-  const meOut=(me&&me.rank>3)?`${_sep}${line(me,true)}`
-    :(!me&&meAny)?`${_sep}${lineMe(meAny)}<div style="text-align:center;font-size:9px;color:var(--ink-4);margin-top:1px">твоё место среди всех · для медали нужно ≥${FLOOR} сделок до предложения</div>`
-    :(!me&&!meAny)?`${_sep}<div style="text-align:center;font-size:10px;color:var(--ink-4);padding:3px 0">Пока нет сделок, дошедших до предложения - челлендж стартует с первой.</div>`
-    :'';
+  const meOut=(me&&me.rank>3)?`${_sep}${line(me,true)}`:'';
   const _trow=(l,t)=>`<div style="margin:5px 0 0;line-height:1.4"><b style="color:#22D3EE">${l}:</b> ${t}</div>`;
-  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Порядок в CRM»</div>`+
-    _trow('Как считаем','доля сделок с чисто заполненной карточкой среди дошедших до предложения: заполнены бюджет, тип изделия и тип клиента')+
-    _trow('Что такое «проблема»','в карточке не заполнен бюджет, тип изделия (категория) или тип клиента')+
-    _trow('В зачёт идут','менеджеры с ≥'+FLOOR+' сделок, дошедших до предложения')+
-    _trow('Цифра справа','сколько сделок надо дозаполнить в CRM')+
-    _trow('Цель','100% чистых карточек - тогда аналитика по деньгам, изделиям и клиентам точная')+
-    _trow('Твоя задача','дозаполни бюджет, тип изделия и тип клиента в красных сделках')).replace(/"/g,'&quot;');
-  const cta=(meX&&meX.bad>0)?`дозаполни свои ${meX.bad}`:(meX?'карточки чистые ✓':'к списку');
-  const badge=(meX&&meX.bad>0)?`<span style="background:#CC5867;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${meX.bad}</span>`:(meX?'<span style="color:#2E9E74;margin-left:6px">✓</span>':'');
+  const tip=(`<div class="tl" style="margin-bottom:2px">Челлендж «Предоплаты»</div>`+
+    _trow('Гонка','кто больше предоплат получил за период. Справа число = штуки, серым = выручка ₽')+
+    _trow('Цель отдела','20 млн/мес · 700к/день · у каждого минимум 1 предоплата в день')+
+    _trow('Твоя задача','дожимай сделки из блока «Приоритет к предоплате» - начни с тех, где мяч у нас')).replace(/"/g,'&quot;');
+  const cta=me?(me.cnt>0?`ты ${me.cnt} предоплат · ${fmtKc(me.rub)}`:'сегодня нужна минимум 1 предоплата'):'к списку';
+  const badge=me?`<span style="background:${me.cnt>0?'#2E9E74':'#CC5867'};color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:800;margin-left:6px">${me.cnt}</span>`:'';
   if(S.chalMin)return `<button id="crmChallengeToggle" data-tip="${tip}" style="position:fixed;right:14px;top:150px;z-index:60;border:1px solid var(--line);border-radius:12px;padding:8px 12px;cursor:pointer;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));box-shadow:0 8px 24px rgba(0,0,0,.45);font-family:'Manrope';font-weight:800;font-size:12px;color:var(--ink-1)">🏆 Челлендж${badge}</button>`;
-  return `<div id="crmChallenge" style="position:fixed;right:0;top:150px;z-index:60;width:230px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px);transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform">`+
+  return `<div id="crmChallenge" style="position:fixed;right:0;top:150px;z-index:60;width:238px;background:linear-gradient(180deg,rgba(20,24,33,.98),rgba(14,17,24,.98));border:1px solid var(--line);border-right:none;border-radius:14px 0 0 14px;box-shadow:0 12px 34px rgba(0,0,0,.5);padding:12px 13px;backdrop-filter:blur(6px);transition:transform .45s cubic-bezier(.4,0,.2,1);will-change:transform">`+
     `<div id="crmChallengeRibbon" style="position:absolute;left:1px;top:11px;bottom:11px;width:7px;border-radius:7px;background:linear-gradient(180deg,#8B5CF6,#22D3EE);box-shadow:0 0 12px rgba(34,211,238,.6);cursor:pointer"></div>`+
-    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Порядок в CRM · ТОП-3 <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+    `<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span style="font-size:17px">🏆</span><span style="flex:1;font-family:'Manrope';font-weight:800;font-size:13px;color:var(--ink-1);line-height:1.1">Челлендж<br><span style="font-size:11px;color:var(--ink-3);font-weight:600">Предоплаты · гонка отдела <span class="qm" data-tip="${tip}" style="font-size:10px">?</span></span></span><button id="crmChallengeToggle" data-tip="свернуть" style="border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px">–</button></div>`+
+    `<div style="background:rgba(34,211,238,.07);border:1px solid var(--line);border-radius:9px;padding:6px 9px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3)"><span>отдел за период</span><span style="color:var(--ink-1);font-weight:800">${deptCnt}${goalCnt?' / '+goalCnt:''} шт</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:1px"><span>выручка</span><span style="color:var(--ink-1);font-weight:800">${fmtKc(deptRub)}${goalRub?' / '+fmtKc(goalRub):''}</span></div>${goalRub?`<div style="height:6px;border-radius:4px;background:#0d141d;border:1px solid var(--line);overflow:hidden;margin-top:5px"><i style="display:block;height:100%;width:${cvRub}%;background:#2E9E74"></i></div>`:''}</div>`+
     top.map(m=>line(m,m.n===MANAGER)).join('')+meOut+
-    `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои сделки на разбор ↓</button>`+
+    `<button id="crmChallengeGo" style="margin-top:9px;width:100%;border:0;border-radius:9px;padding:8px;cursor:pointer;font-family:'Manrope';font-weight:800;font-size:12px;color:#04110C;background:linear-gradient(180deg,#3DE0A0,#2E9E74)">Мои приоритетные сделки ↓</button>`+
     `<div style="text-align:center;font-size:10px;color:var(--ink-4);margin-top:5px">${esc(cta)}</div></div>`;
 }
 
@@ -2875,8 +2886,9 @@ function buildShell(){
   document.addEventListener('click',e=>{const su=e.target.closest('[data-st]');if(su){const k=su.dataset.st;if(S.stSort===k)S.stAsc=!S.stAsc;else{S.stSort=k;S.stAsc=(k==='created'||k==='mgr'||k==='biz'||k==='emp'||k==='stage'||k==='src'||k==='id');}render();}});
   document.addEventListener('click',e=>{const m=e.target.closest('[data-ocmgr]');if(m){const k=m.dataset.ocmgr;S.ocOpen=S.ocOpen||{};S.ocOpen[k]=!S.ocOpen[k];render();return;}const so=e.target.closest('[data-ocsort]');if(so){const k=so.dataset.ocsort;if(S.ocSort===k)S.ocAsc=!S.ocAsc;else{S.ocSort=k;S.ocAsc=false;}render();return;}if(e.target&&e.target.id==='ocReasonsToggle'){S.ocReasons=!S.ocReasons;render();return;}});
   document.addEventListener('click',e=>{const dq=e.target.closest('[data-dqsort]');if(dq){const k=dq.dataset.dqsort;if(!S.dqSort)S.dqSort={k:'cnt',a:false};if(S.dqSort.k===k)S.dqSort.a=!S.dqSort.a;else{S.dqSort.k=k;S.dqSort.a=(k==='stage'||k==='cat'||k==='cli'||k==='rsn');}render();}});
+  document.addEventListener('click',e=>{const ps=e.target.closest('[data-priosort]');if(ps){const k=ps.dataset.priosort;if(!S.prioSort)S.prioSort={k:'prio',a:true};if(S.prioSort.k===k)S.prioSort.a=!S.prioSort.a;else{S.prioSort.k=k;S.prioSort.a=(k==='prio'||k==='stage'||k==='silent');}render();}});
   document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeToggle')){S.chalMin=!S.chalMin;render();return;}});
-  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('dqfix')||document.getElementById('mytaskdisc');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
+  document.addEventListener('click',e=>{if(e.target.closest('#crmChallengeGo')){const el=document.getElementById('prio')||document.getElementById('dqfix')||document.getElementById('mytaskdisc');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px #3DE0A0';setTimeout(()=>{el.style.boxShadow='';},1600);}}});
   document.addEventListener('click',e=>{const mp=e.target.closest('[data-mtdprob]');if(mp){S.mtdProb=mp.dataset.mtdprob;render();return;}});
   document.addEventListener('click',e=>{const lb=e.target.closest('[data-lbseg]');if(lb){S.lbSeg=lb.dataset.lbseg;render();return;}});
   document.addEventListener('click',e=>{const tv=e.target.closest('[data-taskview]');if(tv){S.taskView=tv.dataset.taskview;render();return;}});

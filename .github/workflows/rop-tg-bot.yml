@@ -146,13 +146,13 @@ jobs:
           // ниже среднего - 🔴 (тянут отдел вниз, даже если выручка есть, но малая), около среднего - 🟡, на уровне/выше - 🟢.
           const avgRev=rows.length?prepR/rows.length:0, band=avgRev*0.15;
           const tier=r=>{const d=r.pR-avgRev;return Math.abs(d)<=band?'🟡':(d>0?'🟢':'🔴');};
-          // Имя-ссылка стоит ПОСЛЕДНЕЙ в строке. В Telegram текст ссылки внутри <pre> рендерится не строго
-          // моноширинно, и если фамилия стоит слева, она сдвигает цифры. Числовые колонки - чистый esc-моноблок
-          // (строго выровнены), затем цветовой флаг, затем кликабельная фамилия-ссылка на блок «Приоритет к предоплате».
+          // Имя менеджера ПЕРВЫМ (кликабельная ссылка на его блок «Приоритет к предоплате»), затем показатели и цветовой флаг.
+          // Имя добито пробелами до NW (ширина самой длинной фамилии), дальше числовые колонки.
+          const NW=Math.max(8,...rows.map(r=>[...r.m].length));
+          const nameCell=r=>'<a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+' '.repeat(NW-[...r.m].length);
           const restCell=r=>pad(r.port+(r.neu?('+'+r.neu):''),6,true)+' '+pad(r.kp+'/'+r.dec+'/'+r.lo,9)+pad(r.pN?(r.pN+'·'+K(r.pR)):'-',8)+pad(r.miss,5,true);
-          const tblHdr=pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',5,true)+'  Менеджер';
-          const rowLine=r=>E(restCell(r))+' '+tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>';
-          const table='<pre>'+E(tblHdr)+'\n'+rows.map(rowLine).join('\n')+'</pre>';
+          const tblHdr=pad('Менеджер',NW)+' '+pad('Портф',6,true)+' '+pad('КП/Р/Д',9)+pad('Предопл',8)+pad('Невып',5,true);
+          const table='<pre>'+E(tblHdr)+'\n'+rows.map(r=>nameCell(r)+' '+E(restCell(r))+' '+tier(r)).join('\n')+'</pre>';
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';
           sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';

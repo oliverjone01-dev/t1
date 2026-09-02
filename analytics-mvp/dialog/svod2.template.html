@@ -167,7 +167,7 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 .ci.grey i{background:#b6c2cf}
 .replysvg{width:100%;height:var(--h-line);max-width:var(--chart-max)}
 .chartbox{position:relative}
-.chartlab{position:absolute;left:0;font-size:var(--fs-cap);color:var(--ink3);background:linear-gradient(90deg,#fff 70%,transparent);padding-right:6px;pointer-events:none}
+.mlab{color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0}
 .g2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:var(--s4);align-items:start}
 #pulse{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s4)}
 #pulse .aiph,#pulse .pill{grid-column:1/-1}
@@ -193,7 +193,9 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   .secb{width:38px}.secb .bar{height:26px}
   .comb{gap:var(--s1)}
   .pipe2{flex-direction:column;align-items:stretch;gap:var(--s1)}
-  .pseg2{flex:none!important;height:auto!important;width:var(--w,100%);flex-direction:row;justify-content:space-between;padding:var(--s2) var(--s3);border-right:0;border-radius:var(--r-xs)}
+  .pseg2{flex:none!important;height:auto!important;width:var(--w,100%);min-width:132px;flex-direction:row;justify-content:space-between;gap:var(--s2);padding:var(--s2) var(--s3);border-right:0;border-radius:var(--r-xs)}
+  .strip{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .sseg{flex-basis:auto;flex-shrink:0;min-width:max-content;padding:0 10px}
   #pipe-leaks{display:none!important}
   .pop2.on{position:fixed;inset:auto var(--s2) var(--s2) var(--s2);top:auto;max-height:62vh;border-radius:var(--r-lg);box-shadow:var(--sh-3)}
 }
@@ -239,8 +241,8 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   <div class="pax"><span>только что написали</span><span id="dcomb-note"></span><span>ждут давно</span></div>
   <div class="g2" style="margin-top:12px">
     <div>
-      <div class="mh">Отвечаем ли мы так, чтобы разговор продолжался</div>
-      <div class="chartbox"><svg class="replysvg chart" id="dreply" role="img" aria-label="Доля ответов, после которых клиент продолжил разговор"></svg><span class="chartlab" id="dreply-lab" hidden></span></div>
+      <div class="mh">Отвечаем ли мы так, чтобы разговор продолжался <span class="mlab" id="dreply-lab" hidden></span></div>
+      <div class="chartbox"><svg class="replysvg chart" id="dreply" role="img" aria-label="Доля ответов, после которых клиент продолжил разговор"></svg></div>
       <div class="pill n" id="dreply-empty" hidden>Дней с 3+ нашими ответами в периоде нет - линия появится, когда накопятся наблюдения.</div>
       <div class="hint">Каждая точка - день. Доля наших ответов, после которых клиент продолжил разговор в течение 3 суток. Пунктир - уровень отдела. «Сколько штук отписали» не показываем нарочно: это накручивается пустыми отписками, а продолжение разговора клиентом - нет. Последние 2 точки - предварительные.</div>
     </div>
@@ -808,7 +810,7 @@ function renderDebt(){
   }).join('');
   const bs=DBUCKETS.map(([l,a,b])=>{const it=debt.filter(x=>x.ageH>=a&&x.ageH<b);return {l,n:it.length,rub:it.reduce((s2,x)=>s2+x.b,0)};});
   const mx=Math.max(...bs.map(b=>b.n),1);
-  document.getElementById('dcomb').innerHTML=bs.map((b,i)=>`<div class="cbb ${i>=4?'hot':''}" role="button" tabindex="0" data-t="${b.l} ждут ${nDeal(b.n)} на ${fmtR(b.rub)}. Нажмите - кто именно." onclick="debtList('b',${i})"><div class="cn">${b.n}</div><div class="bar" style="height:${Math.max(6,140*b.n/mx)}px"></div><div class="cl">${b.l}</div><div class="cm">${fmtR(b.rub)}</div></div>`).join('')
+  document.getElementById('dcomb').innerHTML=bs.map((b,i)=>`<div class="cbb ${i>=4?'hot':''}" role="button" tabindex="0" data-t="${b.l} ждут ${nDeal(b.n)} на ${fmtR(b.rub)}. Нажмите - кто именно." onclick="debtList('b',${i})"><div class="cn">${b.n}</div><div class="bar" style="height:${b.n?Math.max(6,140*b.n/mx):0}px"></div><div class="cl">${b.l}</div><div class="cm">${fmtR(b.rub)}</div></div>`).join('')
     +'<div class="vline" style="left:calc(100%/3)" data-t="4 часа: норматив регламента - до этой линии ждать клиенту ещё терпимо"></div><div class="vline" style="left:calc(200%/3);width:3px" data-t="Сутки: после этой линии клиент продолжает разговор в '+pLate+' случаях из 100 вместо '+p24+' [ДАННЫЕ недели; поздних ответов всего '+(RS.over24||0)+' - оценка приблизительная]"></div>';
   const old24=debt.filter(x=>x.ageH>24);
   document.getElementById('dcomb-note').textContent='дольше суток ждут '+nDeal(old24.length)+' на '+fmtR(old24.reduce((s2,x)=>s2+x.b,0));
@@ -829,7 +831,7 @@ function renderDebt(){
     if(base!=null){
       const by=H-10-(H-25)*base/100;
       svg+=`<line x1="0" x2="${W}" y1="${by.toFixed(1)}" y2="${by.toFixed(1)}" stroke="#b6c2cf" stroke-width="1.5" stroke-dasharray="5 4"/>`;
-      if(rlab){rlab.hidden=false;rlab.textContent=base+'% - уровень отдела за неделю';rlab.style.top=Math.max(0,by-16)+'px';}
+      if(rlab){rlab.hidden=false;rlab.textContent='· пунктир - уровень отдела за неделю: '+base+'%';}
     }else if(rlab)rlab.hidden=true;
     /* hit-зоны на всю вертикаль столбца - тултип ловится не только на точке 8px (P0-12).
        Именно rect: smoke считает #dreply circle строго по числу дней */
@@ -861,7 +863,7 @@ function renderPipe(){
   document.getElementById('pipe-hint').textContent='Взяли '+nDeal(F.created)+' отдела за 180 дней (тесты и чужие владельцы исключены) и проследили путь каждой по истории Битрикс24. Шаг «Клиент думает» добавлен - раньше его не было видно вовсе, а сделки умирают именно там.';
   const seq=[['Создали',F.created],['Сняли задачу (ТЗ)',F.tz],['Отправили цену (КП)',F.kp],['Клиент думает',F.dec],['Клиент оплатил',F.sold]];
   const mx=F.created;
-  document.getElementById('pipe2').innerHTML=seq.map(([l,v])=>`<div class="pseg2" style="flex:${Math.max(v,40)};height:${34+56*v/mx}px;--w:${Math.max(30,Math.round(100*v/mx))}%" data-t="${l}: ${nDeal(v)} проходили этот шаг по истории Битрикс24"><b>${v}</b><span>${l}</span></div>`).join('');
+  document.getElementById('pipe2').innerHTML=seq.map(([l,v])=>`<div class="pseg2" style="flex:${Math.max(v,40)};height:${34+56*v/mx}px;--w:${Math.max(8,Math.round(100*v/mx))}%" data-t="${l}: ${nDeal(v)} проходили этот шаг по истории Битрикс24"><b>${v}</b><span>${l}</span></div>`).join('');
   document.getElementById('pipe-leaks').innerHTML=seq.slice(0,-1).map(([l,v],i)=>{const leak=v-seq[i+1][1];return `<div class="leak" style="flex:1">${leak>0?'⇣ '+leak:''}</div>`;}).join('');
   document.getElementById('pipe-note').innerHTML=`<span class="ttl">Что это говорит [ДАННЫЕ]</span>Числа - «сколько сделок реально проходили шаг», поэтому не обязаны убывать слева направо: ${F.mk} продаж оформлены без шага «Отправили цену». Для повторных дилерских заказов по прайсу это нормальный короткий путь; для новых клиентов - повод спросить, почему цена не фиксировалась в CRM [РАСЧЁТ, проверка ФЕНИКСА]. Дожим отдела после цены: ${P2.dept.sold} из ${P2.dept.kp} = ${P2.dept.cr}%.`;
   const sc2=v=>4+92*(v/60);
@@ -886,11 +888,15 @@ function renderAll(){renderStik();renderDebt();renderPipe();renderPBar();renderK
   /* клавиатурная доступность кликабельных span/div (P2-7) */
   document.querySelectorAll('.q,.name-l').forEach(el=>{el.setAttribute('role','button');el.setAttribute('tabindex','0');});}
 try{renderAll();}catch(e){document.body.insertAdjacentHTML('afterbegin','<div class="err">Ошибка рендера: '+esc(e.message)+'</div>');throw e;}
+/* scroll-padding от фактической высоты sticky-шапки: на мобиле она до 190px,
+   константа 72px прятала бы верх панелей после scrollIntoView (D1 ФЕНИКСА) */
+const setScrollPad=()=>{try{const t=document.querySelector('.top');if(t&&t.offsetHeight)document.documentElement.style.scrollPaddingTop=(t.offsetHeight+14)+'px';}catch(e){}};
+setScrollPad();
 /* перерисовка резиновых графиков по ресайзу - viewBox считается от ширины (P0-13) */
 let _rw=innerWidth,_rt;
 addEventListener('resize',()=>{
   if(Math.abs(innerWidth-_rw)<24)return;
   _rw=innerWidth;clearTimeout(_rt);
-  _rt=setTimeout(()=>{try{renderDebt();renderPulse();}catch(e){}},150);
+  _rt=setTimeout(()=>{try{renderDebt();renderPulse();setScrollPad();}catch(e){}},150);
 });
 </script></body></html>

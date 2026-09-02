@@ -148,7 +148,7 @@ jobs:
           const tier=r=>maxR===minR?'🟡':(r.pR===maxR?'🟢':(r.pR===minR?'🔴':'🟡'));
           // Ссылки внутри <pre> у части клиентов Telegram НЕ кликаются, поэтому строки менеджеров выносим ИЗ моноблока:
           // имя - настоящая кликабельная ссылка на его блок «Приоритет к предоплате», показатели через « · », цветовой флаг спереди.
-          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a> · портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>🔴 без предоплат</b>')+' · сегодня '+(r.today?'✅':'⛔')+' · невып '+r.miss+' дн';
+          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>🔴 без предоплат</b>')+' · сегодня '+(r.today?'✅':'⛔')+' · невып '+r.miss+' дн';
           const table=rows.map(mgrLine).join('\n');
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';

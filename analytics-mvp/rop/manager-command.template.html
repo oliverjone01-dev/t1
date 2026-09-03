@@ -238,7 +238,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 <div class="hdr">
 <div class="topbar">
   <div class="logo">GG</div>
-  <div class="brand"><b>GENGLASS · Менеджер ОП</b><span>Личный дашборд · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span></div>
+  <div class="brand"><b>GENGLASS · Менеджер ОП</b><span>Личный дашборд · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span><span id="nextUpd" style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;border:1px solid var(--line,#2a3b34);background:rgba(46,158,116,.10)" data-tip="Плановое ежедневное обновление данных ~09:30 МСК: ночной снимок Bitrix + утренняя дострахова ботом РОПа и автопубликация. Точное время может отличаться на 1-3 ч из-за очереди GitHub. Когда новая сборка приезжает - страница обновляется сама."></span></div>
 </div>
 <div class="controls">
   <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created">дате создания</button><button data-b="outcome" class="on">дате продажи</button></div><span class="qm" data-tip="Определяет, по какой дате сделка попадает в выбранный период - по дате создания или по дате продажи. Отличие: «дате создания» - когорта заведённых за период (сколько из них дошло до денег); сделка, созданная в мае и оплаченная в июле, в июль НЕ попадёт. «дате продажи» - сделка засчитывается туда, где пришли деньги, даже если создана раньше. Польза: «дате продажи» показывает твой реальный результат периода (что оплачено), «дате создания» - качество набора (сколько из заведённого доходит до денег). Лиды и число созданных сделок всегда по дате создания.">?</span></div>
@@ -2964,6 +2964,23 @@ function freshStamp(){const el=document.getElementById('freshTag');if(!el)return
   // (сборка = данные) и не было «свежая сборка на старых данных». bakedAt остаётся для кэш-бастера.
   let bk='';if(DATA.generatedAt){const bb=new Date(new Date(DATA.generatedAt).getTime()+3*36e5);bk=' · сборка '+p2(bb.getUTCDate())+'.'+p2(bb.getUTCMonth()+1)+' '+p2(bb.getUTCHours())+':'+p2(bb.getUTCMinutes());}
   el.textContent=pre+' '+t+' МСК'+bk;el.style.color=col;}
+// Шильдик «сколько до планового обновления». Данные обновляются раз в сутки утром:
+// ночной снимок Bitrix (~05:20 МСК, GitHub задерживает 1-3 ч) + утренняя дострахова ботом
+// РОПа (будни ~09:00 МСК) и автопубликация. Ориентир «данные готовы к» - 09:30 МСК (=06:30 UTC).
+function updBadge(){const el=document.getElementById('nextUpd');if(!el)return;
+  const now=new Date(),mskWall=dt=>new Date(dt.getTime()+3*36e5); // .getUTC* = стенное время МСК
+  const todayMsk=mskWall(now).toISOString().slice(0,10);
+  const genMsk=DATA.generatedAt?mskWall(new Date(DATA.generatedAt)).toISOString().slice(0,10):null;
+  const isFresh=genMsk===todayMsk;
+  const mkTarget=s=>{const p=s.split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2],9,30,0)-3*36e5);}; // 09:30 МСК -> UTC-инстант
+  const todayTgt=mkTarget(todayMsk);
+  let target;
+  if(isFresh){const tmw=mskWall(now);tmw.setUTCDate(tmw.getUTCDate()+1);target=mkTarget(tmw.toISOString().slice(0,10));}
+  else if(now>=todayTgt){el.textContent='⏳ идёт обновление, ожидается';el.style.color='#F59E0B';el.style.borderColor='#F59E0B';el.style.background='rgba(245,158,11,.12)';return;}
+  else target=todayTgt;
+  const ms=Math.max(0,target-now),h=Math.floor(ms/36e5),mn=Math.floor((ms%36e5)/6e4);
+  el.textContent='🕒 обновление через '+(h>0?h+' ч ':'')+mn+' мин';
+  const col=isFresh?'var(--accent)':'#F59E0B';el.style.color=col;el.style.borderColor=isFresh?'var(--line,#2a3b34)':'#F59E0B';el.style.background=isFresh?'rgba(46,158,116,.10)':'rgba(245,158,11,.12)';}
 function showToast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:9999;background:#0E2A22;color:#E6F0EA;border:1px solid #2E9E74;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:540px;text-align:center;opacity:0;transition:opacity .25s';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.opacity='0';},6000);}
 function parsePlanCSV(text){const num=s=>{s=(s||'').replace(/"/g,'').replace(/[^\d.,-]/g,'').replace(/\s/g,'');if(!s)return null;if(s.indexOf(',')>=0&&s.indexOf('.')<0)s=s.replace(',','.');else s=s.replace(/,/g,'');const v=parseFloat(s);return isNaN(v)?null:v;};
   const pc=s=>{const n=num(s);return n==null?null:(n>1.5?n/100:n);};
@@ -2978,7 +2995,7 @@ async function refreshPlan(){const url=DATA.planCsv;if(!url){showToast('В сб�
     showToast('План обновлён из таблицы: '+months.length+' мес');
   }catch(e){showToast('Не удалось прочитать таблицу онлайн ('+e.message+'). Нужно: файл сохранён как Google Таблица + доступ по ссылке. Иначе скажи мне - обновлю вручную.');}}
 function wirePlanBtns(){const o=document.getElementById('planOpen');if(o)o.href=DATA.planUrl||'#';const r=document.getElementById('planRefresh');if(r)r.onclick=refreshPlan;}
-setPeriod('month');buildShell();render();freshStamp();wirePlanBtns();
+setPeriod('month');buildShell();render();freshStamp();updBadge();setInterval(updBadge,30000);wirePlanBtns();
 // Анти-кэш для боевого адреса /rop/: деплой кладёт рядом v.txt со штампом сборки.
 // Проверяем при загрузке, при возврате на вкладку и раз в 15 минут: давно открытая
 // вкладка тоже подтянет свежую сборку. Перезагрузка одна на версию (sessionStorage).

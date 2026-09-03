@@ -1304,9 +1304,23 @@ function render(cur,cmp){
       (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]);
     }
   } catch { /* нет файла - финансы по SKU пустые */ }
+  // Артикул (offer_id) не всегда есть в таксономии - добираем из каталожного маппинга (sku_offer,
+  // накопительный снимок /product/info/stocks по всему каталогу), живого снимка и card_groups,
+  // иначе в подписи оставался бы числовой SKU (внутренний ID OZON) вместо артикула.
+  const offerAlt: Record<string, string> = {};
+  try {
+    const cat = JSON.parse(readFileSync("data/sku_offer.json", "utf-8")); // {sku: offer}
+    for (const sk in cat) { if (cat[sk]) offerAlt[String(sk)] ||= String(cat[sk]); }
+  } catch { /* нет sku_offer - соберётся ночным offer:sku */ }
+  for (const s of (live.sku_table || [])) { if (s.sku != null && s.offer) offerAlt[String(s.sku)] ||= String(s.offer); }
+  try {
+    const cg = JSON.parse(readFileSync("data/card_groups.json", "utf-8"));
+    for (const g of (cg.groups || cg)) for (const x of (g.skus || [])) { if (x.sku != null && x.offer) offerAlt[String(x.sku)] ||= String(x.offer); }
+  } catch { /* нет card_groups - пропуск */ }
+  const offerOf = (sk: string) => taxOf(sk).offer || offerAlt[sk] || sk;
   const anMeta: Record<string, any> = {};
   for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
-    anMeta[sk] = { off: taxOf(sk).offer || sk, nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
+    anMeta[sk] = { off: offerOf(sk), nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
   }
   // Сборы уровня заказа/кабинета по дням (реклама/штрафы/realFBS/подписки/доставка от покупателя).
   const anAcct: any[] = [];

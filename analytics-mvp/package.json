@@ -30,6 +30,7 @@
     "pnl:account:daily": "tsx src/scripts/ozon/pnl-account-daily.ts",
     "pnl:realization": "tsx src/scripts/ozon/pnl-realization.ts",
     "ads:sku:daily": "tsx src/scripts/ozon/ad-sku-daily.ts",
+    "offer:sku": "tsx src/scripts/ozon/sku-offer.ts",
     "import:cards": "tsx src/scripts/ozon/import-card-groups.ts"
   },
   "dependencies": {

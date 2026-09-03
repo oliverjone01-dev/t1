@@ -1010,6 +1010,12 @@ function render(cur,cmp){
   // Дневной ряд per-SKU атрибуции (основная/объединённая), индекс по кампании -> точная разбивка за любой период.
   let adsAttrByCamp: Record<string, any[]> = {};
   try { for (const l of readFileSync("data/ads_attr_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsAttrByCamp[String(r.id)] || (adsAttrByCamp[String(r.id)] = [])).push({ d: r.d, sku: String(r.sku), nm: r.nm, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldM, omM: r.omM }); } } catch { adsAttrByCamp = {}; }
+  // Второй per-SKU источник по кампаниям: ads_sku_daily (накопительный коллектор ad-sku-daily.ts,
+  // те же attribution-отчёты, но своё окно). Фолбэк для кампаний, которых нет в ads_attr_daily.
+  // Строка {d,cid,sku,sp,om}; единиц (sold) в нём нет. CPO «Оплата за заказ» здесь тоже нет -
+  // OZON не отдаёт атрибуцию по SKU для них.
+  const adsSkuByCamp: Record<string, any[]> = {};
+  try { for (const l of readFileSync("data/ads_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsSkuByCamp[String(r.cid)] || (adsSkuByCamp[String(r.cid)] = [])).push({ d: r.d, sku: String(r.sku), sp: r.sp, om: r.om }); } } catch { /* нет файла - пропуск */ }
   const campMeta: Record<string, { off: string; line: string; instr: string; place: string; status: string }> = {};
   const addMeta = (list: any[]) => (list || []).forEach((c: any) => { if (c && c.id && !campMeta[String(c.id)]) campMeta[String(c.id)] = { off: c.off || "", line: c.line || "прочее", instr: c.instr || "", place: c.place || "-", status: c.status || "" }; });
   addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
@@ -1073,7 +1079,7 @@ function render(cur,cmp){
   const skuCat: Record<string, string> = {};
   for (const s of live.sku_table) { if (s.sku != null) { const sk = String(s.sku); skuMap[sk] = s.offer || s.name || sk; skuCat[sk] = taxOf(sk).category || autoTax(s.name || "").category || "Прочее"; } }
   const pageJs = `
-const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
+const SNAP=${J(adsSnap)};const PRICE=${J(PRICE)};const PERIODS=${J(adsPeriods)};const RCACHE=${J(adsReports)};const SKU_MAP=${J(skuMap)};const SKU_CAT=${J(skuCat)};const ECON=${J(SKU_ECON)};const PRICE_LIVE=${J(priceLive)};const SKUS_BY_CAMP=${J(skuByCamp)};const CARDG=${J(cardBySku)};const ADS_DAILY=${J(adsDaily)};const ATTR_DAILY=${J(adsAttrByCamp)};const ADS_SKU_CAMP=${J(adsSkuByCamp)};const CAMP_META=${J(campMeta)};const CAMP_CARD=${J(campCard)};
 // Per-SKU «Основная карточка» за период из кампании (без снимка RCACHE): SKU кампании + её
 // суммы за выбранное окно (они уже точные из aggFromDaily). Синхронно, без async-загрузки.
 function cardRep(c){var cd=CAMP_CARD[String(c.id)];return cd?[{sku:cd.sku,name:cd.name,sp:c.sp||0,om:c.om||0,sold:c.o||0,omModel:0,soldModel:0}]:[];}
@@ -1116,8 +1122,12 @@ function repWin(id){if(!RCACHE)return null;var order=[curLabel(),'p30','p7','p90
 function attrFor(id){var arr=ATTR_DAILY[String(id)];if(!arr||!arr.length)return null;var pd=periodDates(CURP);var by={},any=false;
   for(var i=0;i<arr.length;i++){var r=arr[i];if(r.d<pd.from||r.d>pd.to)continue;any=true;var o=by[r.sku]||(by[r.sku]={sku:r.sku,name:r.nm,sp:0,sold:0,om:0,soldModel:0,omModel:0,drr:0});o.sp+=r.sp;o.sold+=r.sold;o.om+=r.om;o.soldModel+=r.soldM;o.omModel+=r.omM;}
   if(!any)return null;var out=[];for(var k in by){var o=by[k];o.drr=o.om?Math.round(o.sp/o.om*1000)/10:0;out.push(o);}return out;}
-// разбивка: точный дневной ряд > снимок RCACHE. {rows, exact, from, to}
-function repInfo(id){var a=attrFor(id);if(a){var pd=periodDates(CURP);return {rows:a,exact:true,from:pd.from,to:pd.to};}var c=cacheStats(id);if(c!==null){var w=repWin(id);return {rows:c,exact:false,from:w?w.from:'',to:w?w.to:''};}return null;}
+// Фолбэк per-SKU из ads_sku_daily (мой коллектор). Единиц (sold) в нём нет -> sold:null (показываем «—»).
+function attrForSku(id){var arr=ADS_SKU_CAMP[String(id)];if(!arr||!arr.length)return null;var pd=periodDates(CURP);var by={},any=false;
+  for(var i=0;i<arr.length;i++){var r=arr[i];if(r.d<pd.from||r.d>pd.to)continue;any=true;var o=by[r.sku]||(by[r.sku]={sku:r.sku,name:SKU_MAP[r.sku]||'',sp:0,sold:null,om:0,soldModel:0,omModel:0,drr:0});o.sp+=r.sp||0;o.om+=r.om||0;}
+  if(!any)return null;var out=[];for(var k in by){var o=by[k];o.drr=o.om?Math.round(o.sp/o.om*1000)/10:0;out.push(o);}return out;}
+// разбивка: точный дневной ряд (ads_attr) > снимок RCACHE > мой ads_sku (фолбэк). {rows, exact, from, to}
+function repInfo(id){var a=attrFor(id);if(a){var pd=periodDates(CURP);return {rows:a,exact:true,from:pd.from,to:pd.to};}var c=cacheStats(id);if(c!==null){var w=repWin(id);return {rows:c,exact:false,from:w?w.from:'',to:w?w.to:''};}var b=attrForSku(id);if(b){var pd2=periodDates(CURP);return {rows:b,exact:true,from:pd2.from,to:pd2.to};}return null;}
 function loadReport(id,cb){var k=rptKey(id);if(REPORTS[k]!==undefined){if(cb)cb(REPORTS[k]);return;}var c=cacheStats(id);if(c!==null){REPORTS[k]=c;if(cb)cb(c);return;} // из кэша мгновенно
   // Живой per-SKU отчёт жил на n8n; после миграции - только кэш снимка (RCACHE) выше, иначе пусто.
   REPORTS[k]=[];if(cb)cb([]);}
@@ -1139,7 +1149,7 @@ function renderTop(){var a=lastA;if(!a)return;
       sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:#E5B567;font-size:11px">'+noteTxt+'</td></tr>';
       var _osp=0,_oom=0,_oso=0;rep.forEach(function(s){_osp+=s.sp||0;_oom+=s.om||0;_oso+=s.sold||0;});
       rep.forEach(function(s){var art=SKU_MAP[s.sku]||s.sku;var dr=s.om?Math.round(s.sp/s.om*1000)/10:0;
-        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold||0)+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
+        sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px" title="'+String(s.name||'').replace(/"/g,'&quot;')+'">Основная карточка <span style="color:var(--ink-3)">'+art+'</span></td><td style="color:var(--ink-3);font-size:11px">'+iLabel(c.instr)+'</td><td style="color:var(--ink-3);font-size:11px">'+(c.place||'-')+'</td><td class="r">'+fmtRu(s.sp)+'</td><td class="r">'+fmtRu(s.om)+'</td><td class="r">'+(s.sold==null?'—':(s.sold||0))+'</td><td class="r" style="color:'+drrCol(dr)+'">'+dr+'%</td></tr>';
         var omO=(s.omModel||0),soO=(s.soldModel||0);
         if(omO>0||soO>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="продажи в продвижении с заказов модели (другие SKU объединённой карточки)">Объединённая карточка (др. SKU)</td><td></td><td></td><td class="r">—</td><td class="r">'+fmtRu(omO)+'</td><td class="r">'+soO+'</td><td class="r">—</td></tr>';}
         var cg=CARDG[String(s.sku)];if(cg&&cg.others&&cg.others.length){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:40px;color:var(--ink-3);font-size:11px">↳ объединённая «'+esc(cg.model)+'» · др. SKU: '+cg.others.map(function(o){return esc(o.offer||o.sku);}).join(", ")+'</td></tr>';}});
@@ -1147,7 +1157,7 @@ function renderTop(){var a=lastA;if(!a)return;
       // кампании). Основные + этот остаток = итог кампании - чтобы расход/выручка/заказы сходились.
       if(!isCPO(c)){var rsp=Math.round((c.sp||0)-_osp),rom=Math.round((c.om||0)-_oom),ro=(c.o||0)-_oso;
         if(rsp>1||rom>1||ro>0){sub+='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td style="padding-left:26px;color:var(--ink-3)" title="Часть расхода/выручки/заказов кампании, которую отчёт продвижения OZON не разнёс по конкретным SKU. Основные + эта строка = итог кампании.">Атрибуцией не разнесено</td><td></td><td></td><td class="r" style="color:var(--ink-3)">'+fmtRu(rsp)+'</td><td class="r" style="color:var(--ink-3)">'+fmtRu(rom)+'</td><td class="r" style="color:var(--ink-3)">'+ro+'</td><td class="r">—</td></tr>';}}
-    } else {sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">разбивка по SKU недоступна (каталожная кампания или нет в отчёте продвижения)</td></tr>';}
+    } else {var naTxt=isCPO(c)?'разбивка по SKU недоступна: OZON не отдаёт атрибуцию по SKU для кампаний «Оплата за заказ» (CPO) - расход реальный, но по каким SKU, API не сообщает':'разбивка по SKU недоступна (каталожная кампания или ещё не собрана в отчёте продвижения)';sub='<tr class="ad-sub" data-i="'+ci+'" style="'+disp+'"><td colspan="7" style="padding-left:26px;color:var(--ink-3);font-size:12px">'+naTxt+'</td></tr>';}
     return main+sub;
   }).join('');
   document.getElementById('top').innerHTML=html;

@@ -1,0 +1,37 @@
+name: Publish site to gh-pages
+on:
+  push:
+    branches: [main]
+    paths: ['www/**', 'site/**', 'strategy/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build site
+        run: |
+          mkdir -p _site
+          # public marketing site at root
+          cp -r www/* _site/
+          # locked internal brand platform at /platform/
+          mkdir -p _site/platform
+          cp site/turbium-locked.html _site/platform/index.html
+          # locked internal strategy room at /strategy/
+          mkdir -p _site/strategy
+          cp strategy/strategy-locked.html _site/strategy/index.html
+          touch _site/.nojekyll
+      - name: Push to gh-pages
+        run: |
+          cd _site
+          git init -b gh-pages
+          git config user.name "turbium-ci"
+          git config user.email "ci@turbium.local"
+          git add -A
+          git commit -m "deploy: $GITHUB_SHA"
+          git push --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages

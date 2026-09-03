@@ -154,7 +154,7 @@ jobs:
           const epAt=x=>{for(const h of (x.hist||[]))if(h[0]==='C49:EXECUTING'&&h[1])return h[1];return x.won?x.closed:null;};
           const M=v=>(v/1e6).toFixed(1)+' млн', K=v=>Math.round(v/1000)+'к';
           const short=n=>{const p=n.split(' ');return p[1]?p[1]+(p[0]?' '+p[0][0]+'.':''):n;};
-          let dep={kp:0,dec:0,long:0,kpR:0,decR:0,longR:0,rub:0,port:0,neu:0}, prepN=0, prepR=0; const depPrepDays=new Set();
+          let dep={kp:0,dec:0,long:0,kpR:0,decR:0,longR:0,rub:0,port:0,neu:0}, prepN=0, prepR=0; const depPrepDays=new Set(); const depPrepByDay={};
           const sumOf=(a,c)=>a.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
           const send=async(txt,before,after)=>{const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const html=(before?before+'\n':'')+'<pre>'+esc(txt)+'</pre>'+(after?'\n'+after:'');const body=JSON.stringify({chat_id:CHAT,text:html,parse_mode:'HTML',disable_web_page_preview:true});let jj,lastErr;for(let a=0;a<3;a++){try{const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body});jj=await res.json();break;}catch(e){lastErr=e;console.error('Сеть, попытка '+(a+1)+'/3:',e.message);if(a<2)await new Promise(r=>setTimeout(r,1500*(a+1)));}}if(!jj){console.error('Не удалось достучаться до Telegram:',lastErr&&lastErr.message);process.exit(1);}if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}console.log('Отправлено в',CHAT,'· msg',jj.result.message_id);};
           if(MGR){
@@ -207,7 +207,7 @@ jobs:
             const dec=my.filter(x=>x.stageCode==='C49:3').length;
             const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
             const neu=my.filter(x=>(x.created||'').slice(0,10)===YEST||firstKP(x)===YEST).length;
-            let pN=0,pR=0,tN=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);pDays.add(dd);if(dd===TODAY)tN++;}});
+            let pN=0,pR=0,tN=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);depPrepByDay[dd]=(depPrepByDay[dd]||0)+(x.budget||0);pDays.add(dd);if(dd===TODAY)tN++;}});
             const miss=WD.filter(d=>!pDays.has(d)).length;
             dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
             return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss,todayN:tN};});
@@ -222,7 +222,10 @@ jobs:
           const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
           const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
           const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
-          const depMiss=WD.filter(d=>!depPrepDays.has(d)).length;
+          // День невыполнения плана (отдел) = завершённый рабочий день, когда отдел не добрал дневную цель 700к
+          // по выручке предоплат. Сегодня исключаем: день ещё не закончен, снимок утренний (данные за сегодня неполные).
+          const DAY_TARGET=700000;
+          const depMiss=WD.filter(d=>d!==TODAY&&(depPrepByDay[d]||0)<DAY_TARGET).length;
           // Слаг фамилии для ссылки на дашборд менеджера (как в build-managers-all): транслит последнего слова имени.
           const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
           const slugOf=n=>(n.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
@@ -239,7 +242,7 @@ jobs:
           let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за вчера)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';
           sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';
-          sum+='Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих без предоплаты)';
+          sum+='Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих дней ниже цели 700к)';
           // Смысл по режимам: План - ставим задачу (каждому ≥1 предоплата); Срез - кто сколько сделал; Итог - спрашиваем почему у невыполнивших.
           const doneT=rows.filter(r=>r.todayN>0), notT=rows.filter(r=>r.todayN===0), nTot=rows.length;
           const tagOf=r=>HANDLE[r.m]?('@'+HANDLE[r.m]):short(r.m);

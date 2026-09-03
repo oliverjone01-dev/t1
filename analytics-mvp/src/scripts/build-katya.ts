@@ -1329,6 +1329,10 @@ function render(cur,cmp){
       (anRealSku[sk] ||= []).push([r.ym, r.sold || 0, r.ret || 0]);
     }
   } catch { /* нет файла - реализация по SKU пустая */ }
+  // Глобальный список месяцев, по которым ЕСТЬ отчёт о реализации (для решения «месяц закрыт
+  // отчётом» на уровне месяца, а не отдельного SKU - иначе SKU без строки в отчёте ошибочно
+  // добавлял бы дневные штуки поверх УПД-итога).
+  const anRealYm = Array.from(new Set(([] as any[]).concat(...Object.values(anRealSku)).map((r) => r[0]))).sort();
 
   const body = `
   <section class="kt-kpi" id="kpis"></section>
@@ -1347,7 +1351,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_COGS=${J(cogs)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1389,13 +1393,18 @@ function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)r
 // «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
 // реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
 // месяц, где отчёта ещё нет) - по дневному ряду (доставлено − возвраты). Без двойного счёта.
-function realUnits(sk,from,to){
-  var u=0,covered={};var rr=AN_REALSKU[sk]||[];
-  for(var i=0;i<rr.length;i++){var ym=rr[i][0],yy=+ym.slice(0,4),mm=+ym.slice(5,7);
+// Множество «закрытых отчётом» месяцев ЦЕЛИКОМ внутри периода - считается один раз на рендер.
+function coveredMonths(from,to){
+  var c={};for(var i=0;i<AN_REALYM.length;i++){var ym=AN_REALYM[i],yy=+ym.slice(0,4),mm=+ym.slice(5,7);
     var mS=ym+'-01',mE=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
-    if(mS>=from&&mE<=to){u+=(rr[i][1]-rr[i][2]);covered[ym]=1;}}
+    if(mS>=from&&mE<=to)c[ym]=1;}
+  return c;
+}
+function realUnits(sk,covM,from,to){
+  var u=0;var rr=AN_REALSKU[sk]||[];
+  for(var i=0;i<rr.length;i++){if(covM[rr[i][0]])u+=(rr[i][1]-rr[i][2]);} // закрытый месяц - только по отчёту (SKU без строки = 0)
   var sd=AN_SALES[sk]||[];
-  for(var j=0;j<sd.length;j++){var d=sd[j];if(d[0]<from||d[0]>to)continue;if(covered[d[0].slice(0,7)])continue;u+=(d[3]||0)-(d[4]||0);}
+  for(var j=0;j<sd.length;j++){var d=sd[j];if(d[0]<from||d[0]>to)continue;if(covM[d[0].slice(0,7)])continue;u+=(d[3]||0)-(d[4]||0);} // дни вне закрытых месяцев - дневной ряд
   return u;
 }
 function anCells(x){
@@ -1411,13 +1420,13 @@ function anCells(x){
   return R(x.rev)+I(x.units)+R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt)+R(x.cc)+P(gp)+R(adm)+R(tax)+P(net)+PC(rent);
 }
 function renderSkuAnalytics(cur){
-  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);
   for(var sk in AN_META){
     var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
     if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
     var m=AN_META[sk];
     // units = «Реализовано с учётом возвратов» по отчёту о реализации (УПД); cc = СС/шт × реализовано
-    var ru=realUnits(sk,from,to);
+    var ru=realUnits(sk,covM,from,to);
     var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6],cc:(AN_COGS[sk]||0)*ru};
     (groups[x.cat]||(groups[x.cat]=[])).push(x);
   }

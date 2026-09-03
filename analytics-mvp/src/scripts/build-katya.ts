@@ -1351,7 +1351,7 @@ function render(cur,cmp){
   const body = `
   <section class="kt-kpi" id="kpis"></section>
   <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. Факт - по API за выбранный месяц; выполнение = факт / план. Реклама - потолок бюджета: до краёв зелёным = в рамках, перелив красным = перерасход. <a href="https://github.com/oliverjone01-dev/t1/edit/claude/focused-davinci-tKJCt/analytics-mvp/data/plan_monthly.json" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям.</div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для SKU без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / SKU</th>
     <th class="r">Реализовано</th>
@@ -1391,9 +1391,17 @@ function paint(p,src){
   const badge='<span class="kt-src">'+(p.daily?'за период ':'снимок ')+p.dateFrom+'..'+p.dateTo+'</span>'+note;
   document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list (прямой) '+badge;
   const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
-  const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat([['К выплате',p.payout,'#34D399']]);
+  // Продолжаем водопад до чистой прибыли по данным аналитики по SKU (один источник правды).
+  // Канальный «К выплате» = К выплате по SKU + «Доставка от покупателя» (она компенсируется и в
+  // расчёт НЕ входит) -> вычитаем её мостом. Далее: −СС произв. −(АДМ 30% + Налоги 15%) = Чистая,
+  // совпадающая с ИТОГО таблицы по SKU (расхождение с суммой баров - в пределах округления).
+  var pt=periodTotals(p.dateFrom,p.dateTo);var deliv=pt.delivery,ccv=pt.cc,admtax=0.45*pt.amtS,netv=pt.net;
+  var tail=[['К выплате',p.payout,'#34D399']];
+  if(deliv)tail.push(['Доставка от покупателя',-deliv,'#F59E0B']);
+  tail.push(['СС произв.',-ccv,'#F59E0B'],['АДМ+Налоги',-admtax,'#F59E0B'],['Чистая прибыль',netv,netv>=0?'#34D399':'#FF5A5F']);
+  const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat(tail);
   const mx=Math.max(1,p.accruals||1);
-  document.getElementById('wf').innerHTML=steps.map(s=>{const h=Math.max(4,Math.abs(s[1])/mx*150);return '<div title="'+s[0]+': '+fmtRu(s[1])+' ₽"><div class="bar" style="height:'+h+'px;background:'+s[2]+'"></div>'+s[0].split(' ')[0]+'<br><b style="color:var(--ink-1)">'+fMln(s[1])+'</b></div>';}).join('');
+  document.getElementById('wf').innerHTML=steps.map(s=>{const h=Math.max(4,Math.abs(s[1])/mx*150);var lab=(s[0]==='АДМ+Налоги')?s[0]:s[0].split(' ')[0];return '<div title="'+s[0]+': '+fmtRu(s[1])+' ₽"><div class="bar" style="height:'+h+'px;background:'+s[2]+'"></div>'+lab+'<br><b style="color:var(--ink-1)">'+fMln(s[1])+'</b></div>';}).join('');
 }
 // === раздел «Аналитика по SKU» за выбранный период ===
 var anOpen={}; // категория -> раскрыта ли
@@ -1510,16 +1518,25 @@ function renderAccountFees(cur){
 function planFmtMon(ym){var n=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];return n[+ym.slice(5,7)]+' '+ym.slice(0,4);}
 function planMonthList(){var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][0].slice(0,7)]=1;for(var k in AN_PLAN)if(/^[0-9]{4}-[0-9]{2}$/.test(k))s[k]=1;return Object.keys(s).sort();}
 // Факт за месяц (те же формулы, что ИТОГО таблицы): реклама (финансовая), рентабельность и пр.
+// Итоги за период по ТОЙ ЖЕ логике, что ИТОГО таблицы по SKU (renderSkuAnalytics): К выплате
+// после разнесённой рекламы, база АДМ/налогов amtS (только по SKU с реализовано>0 + сборы
+// кабинета), доставка от покупателя - отдельно (в расчёт НЕ входит). Один источник правды для
+// плана, водопада и таблицы - одна «Чистая прибыль» на странице.
+function periodTotals(from,to){
+  var covM=coveredMonths(from,to);var rev=0,amt=0,amtS=0,cc=0,realized=0,gadv=0;
+  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
+    var adv=anSum(AN_ADSSKU[sk],from,to,1)[0]||0;var amtNet=(fi[6]||0)-adv; // К выплате после разнесённой рекламы
+    rev+=sa[0]||0;realized+=ru;amt+=amtNet;if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
+  var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
+  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
+  var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
+  amt+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
+  var net=(amt-cc)-0.45*amtS,rent=(amt>0)?net/amt*100:null; // рентаб только при положительной базе «К выплате»
+  return {ad:-aB.adv,rev:rev,realized:realized,amt:amt,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
+}
 function monthTotals(ym){
   var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
-  var covM=coveredMonths(from,to);var rev=0,amt=0,amtS=0,cc=0,realized=0;
-  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
-    rev+=sa[0]||0;realized+=ru;var am=fi[6]||0;amt+=am;if(ru>0)amtS+=am;cc+=(AN_COGS[sk]||0)*ru;}
-  var adv=0,f=0,rf=0,bd=0,ot=0;
-  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;adv+=r[1];f+=r[2];rf+=r[3];bd+=r[4];ot+=r[6];}
-  var acctNet=adv+f+rf+bd+ot;amt+=acctNet;amtS+=acctNet;
-  var net=(amt-cc)-0.45*amtS,rent=(amt>0)?net/amt*100:null; // рентаб только при положительной базе «К выплате»
-  return {ad:-adv,rev:rev,realized:realized,net:net,rent:rent};
+  return periodTotals(from,to);
 }
 // «Колбочка»: SVG-флакон, залитый снизу до уровня выполнения (0-100% визуально), с цветом статуса.
 function planFlask(i,lvl,color){
@@ -1537,17 +1554,17 @@ function planFlask(i,lvl,color){
 }
 function renderPlan(ym){
   var el=document.getElementById('plan');if(!el)return;var a=monthTotals(ym),p=(AN_PLAN[ym]||{});
-  var rows=[['Реклама',p.adSpend,a.ad,'cap','₽'],['Рентабельность',p.rentab,a.rent,'pct','%'],['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Чистая прибыль',p.netProfit,a.net,'up','₽']];
+  var rows=[['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Реклама',p.adSpend,a.ad,'cap','₽'],['Чистая прибыль',p.netProfit,a.net,'up','₽'],['Рентабельность',p.rentab,a.rent,'pct','%']];
   el.innerHTML=rows.map(function(r,i){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],unit=r[4],isPct=(unit==='%');
     var planS=(plan==null||plan==='')?'—':(isPct?plan+'%':fmtRu(Math.round(plan)));
     var noFact=(fact==null); // рентаб не определена (база «К выплате»<=0, месяц убыточный)
-    var factS=noFact?'н/д':(isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact)));
+    var factS=noFact?'—':(isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact)));
     var pct=null,color='var(--ink-3)',lvl=0;
     if(noFact){color='var(--dn)';lvl=0;}
     else if(plan!=null&&plan!==''&&plan!=0){pct=fact/plan*100;lvl=pct;
       if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');
       else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));}
-    var pctTxt=noFact?'<b style="color:var(--dn);font-size:18px">н/д</b>':((pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>');
+    var pctTxt=noFact?'<b style="color:var(--dn);font-size:18px">—</b>':((pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>');
     return '<div style="width:132px;text-align:center">'
       +planFlask(i,lvl,color)
       +'<div style="margin-top:2px">'+pctTxt+'</div>'

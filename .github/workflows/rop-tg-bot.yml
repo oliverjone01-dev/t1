@@ -24,19 +24,88 @@ on:
 
 permissions:
   contents: read
+  actions: write # диспатч deploy-pages / b24-snapshots и опрос статуса ранов перед отправкой
 
 jobs:
   send:
     runs-on: ubuntu-latest
+    env:
+      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * 1-5' && 'plan') || (github.event.schedule == '0 12 * * 1-5' && 'srez') || (github.event.schedule == '30 14 * * 1-5' && 'itogi') || 'plan' }}
+      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
+
+      # Дашборды (РОП + менеджерские) должны показывать те же данные, что и цифры в дайджесте,
+      # ИНАЧЕ ссылка в чате ведёт на устаревший дашборд. Перед отправкой:
+      #   1) План: если снимок Bitrix ещё не за сегодня (ночной cron GitHub задерживает на 1-3 ч) -
+      #      запускаем b24-snapshots и ЖДЁМ; данные приезжают в rop-dashboard-v1.
+      #   2) Сверяем bakedAt задеплоенного /rop/ со снимком: если дашборды уже собраны на этом
+      #      снимке - деплой не нужен (срез/итог днём обычно попадают сюда, данные не менялись).
+      #   3) Иначе диспатчим deploy-pages и ЖДЁМ завершения - только потом уходит сообщение.
+      # -e не ставим: ни одна сетевая осечка не должна заблокировать сам дайджест (в худшем случае
+      # шлём как есть с предупреждением в лог), но штатно закладываем запас по времени на пересборку.
+      - name: Обновить дашборды (РОП + менеджеры) до отправки дайджеста
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          API="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+          case "$MODE" in
+            plan|srez|itogi) : ;;
+            *) echo "MODE=$MODE - служебный режим, дашборды не трогаем"; exit 0 ;;
+          esac
+          gen_of() { git fetch --depth=1 origin rop-dashboard-v1 -q 2>/dev/null || true
+            git show FETCH_HEAD:analytics-mvp/rop/data/rop.json 2>/dev/null | head -c 400 \
+              | tr ',' '\n' | sed -n 's/.*"generated_at":"\([^"]*\)".*/\1/p' | head -1; }
+          # Диспатч воркфлоу + ожидание завершения свежего рана (до ~15 мин), не валит job при неудаче.
+          dispatch_and_wait() {
+            local wf="$1" nm="$2" t0 code run status concl created cts
+            t0=$(date -u +%s)
+            for i in 1 2 3 4 5; do
+              code=$(curl -sS -o /tmp/d.out -w '%{http_code}' -X POST -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d '{"ref":"main"}' || echo 000)
+              [ "$code" = "204" ] && { echo "$nm: запрос на запуск принят"; break; }
+              echo "$nm dispatch попытка $i: HTTP $code $(cat /tmp/d.out 2>/dev/null || true)"; sleep $((3*i))
+            done
+            for i in $(seq 1 45); do
+              sleep 20
+              run=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/runs?event=workflow_dispatch&per_page=1" 2>/dev/null || echo '{}')
+              status=$(printf '%s' "$run" | jq -r '.workflow_runs[0].status // "?"' 2>/dev/null || echo '?')
+              concl=$(printf '%s' "$run" | jq -r '.workflow_runs[0].conclusion // "-"' 2>/dev/null || echo '-')
+              created=$(printf '%s' "$run" | jq -r '.workflow_runs[0].created_at // ""' 2>/dev/null || echo '')
+              cts=$(date -u -d "$created" +%s 2>/dev/null || echo 0)
+              echo "$nm: status=$status conclusion=$concl created=$created (${i}/45)"
+              if [ "$status" = "completed" ] && [ "$cts" -ge $((t0-90)) ]; then echo "$nm завершён: $concl"; return 0; fi
+            done
+            echo "::warning::$nm не завершился за отведённое время - продолжаю"; return 0
+          }
+          GEN="$(gen_of)"; D="${GEN:0:10}"; TODAY="$(date -u +%F)"
+          echo "Снимок rop.json: generated_at=$GEN (дата $D) · сегодня(UTC)=$TODAY · MODE=$MODE"
+          # 1) План: подтянуть свежий снимок, если ночной ещё не за сегодня
+          if [ "$MODE" = "plan" ] && [ -n "$GEN" ] && [ "$D" != "$TODAY" ]; then
+            echo "Данные не за сегодня - запускаю снимок Bitrix (b24-snapshots) и жду"
+            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
+            GEN="$(gen_of)"; D="${GEN:0:10}"
+            echo "После снимка: generated_at=$GEN"
+          fi
+          # 2) Свежесть деплоя: bakedAt /rop/ должен быть не старше снимка (тот же деплой пересобирает и менеджеров)
+          ROPBAKED="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
+          echo "Задеплоенный /rop/ bakedAt=$ROPBAKED"
+          if [ -n "$GEN" ] && [ -n "$ROPBAKED" ] && ! [[ "$ROPBAKED" < "$GEN" ]]; then
+            echo "Дашборды уже собраны на снимке $D - пересборка не нужна"
+          else
+            echo "Дашборды устарели (bakedAt=$ROPBAKED, снимок=$GEN) - запускаю deploy-pages и жду"
+            dispatch_and_wait "deploy-pages.yml" "Публикация дашбордов"
+            ROPBAKED="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
+            echo "После деплоя /rop/ bakedAt=$ROPBAKED"
+          fi
+          echo "Готово - дашборды актуальны, можно отправлять дайджест."
+
       - name: Build digest and send to Telegram
         env:
           BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
-          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * 1-5' && 'plan') || (github.event.schedule == '0 12 * * 1-5' && 'srez') || (github.event.schedule == '30 14 * * 1-5' && 'itogi') || 'plan' }}
           MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail

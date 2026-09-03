@@ -16,11 +16,11 @@ on:
       mgr:
         description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
         default: ""
-  # Расписание МСК 09:00 / 14:00 / 17:30 = UTC 06:00 / 11:00 / 14:30. Режим определяется по времени.
+  # Расписание МСК 09:00 / 15:00 / 17:30 = UTC 06:00 / 12:00 / 14:30, только пн-пт (1-5). Режим определяется по времени.
   schedule:
-    - cron: "0 6 * * *"
-    - cron: "0 11 * * *"
-    - cron: "30 14 * * *"
+    - cron: "0 6 * * 1-5"
+    - cron: "0 12 * * 1-5"
+    - cron: "30 14 * * 1-5"
 
 permissions:
   contents: read
@@ -35,8 +35,8 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
           BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1003652568523' }}
-          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * *' && 'plan') || (github.event.schedule == '0 11 * * *' && 'srez') || (github.event.schedule == '30 14 * * *' && 'itogi') || 'plan' }}
+          CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
+          MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * 1-5' && 'plan') || (github.event.schedule == '0 12 * * 1-5' && 'srez') || (github.event.schedule == '30 14 * * 1-5' && 'itogi') || 'plan' }}
           MGR_NAME: ${{ github.event.inputs.mgr }}
         run: |
           set -euo pipefail

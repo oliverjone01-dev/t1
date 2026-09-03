@@ -159,8 +159,12 @@ const stik = { leads: dlg.leadCount || 0, seen: leadIds.size, note: "по ост
 // Правила и точность живут в pamyatka-rules.ts - ЕДИНЫЙ код с ночными фактами
 // (урок ФЕНИКС D1/D7: страница и досье обязаны считаться одним кодом).
 const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").map((m: any) => m.mgr);
-const kIsSeller = (n: string) => kSellers.some((x: string) => sameName(x, n));
-const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash, kIsSeller);
+// B1 ФЕНИКСА: e.who в двух форматах - в копилку идёт только КАНОН ростера
+const kCanon = (n: string) => kSellers.find((x: string) => sameName(x, n)) || null;
+const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash, kCanon);
+// калибровка детекторов (условие 4 песочницы ФЕНИКСА): файл разметки, если есть
+const KCAL = "dialog/data/kurator-calibration.json";
+(kurator as any).calibration = existsSync(KCAL) ? JSON.parse(readFileSync(KCAL, "utf-8")) : null;
 
 const DATA = {
   meta: {

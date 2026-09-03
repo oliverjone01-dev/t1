@@ -51,16 +51,20 @@ export function workMinutes(t1: number, t2: number): number {
   const step = 6e4;
   // грубый, но честный счёт по минутам; окна недели - максимум ~10 тыс минут на пару
   for (let t = t1; t < t2 && min < 60 * 24 * 14; t += step) {
-    const h = new Date(t).getUTCHours() + 3; // снимок в +03:00
-    const hh = ((h % 24) + 24) % 24;
+    const loc = new Date(t + 3 * 36e5); // снимок в +03:00
+    const dow = loc.getUTCDay();
+    if (dow === 0 || dow === 6) continue; // N1 ФЕНИКСА: сб/вс - не рабочее время (§1)
+    const hh = loc.getUTCHours();
     if (hh >= H0 && hh < H1) min++;
   }
   return min;
 }
 
 // dlg - снимок диалогов (events + from/to); dealLookup(key 'd123'|'l123') - сделка снимка;
-// clip - санитайзер; isSeller(name) - продавец ли автор (роль из скоринга).
-export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s: string) => string, isSeller: (name: string) => boolean): Kurator {
+// clip - санитайзер; canonSeller(name) - КАНОНИЧЕСКОЕ имя продавца из ростера или null.
+// B1 ФЕНИКСА: e.who приходит в двух форматах («Татьяна Лакомова» из мессенджеров и
+// «Лакомова Татьяна» из Звонок/Письмо) - ключом копилки может быть только канон ростера.
+export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s: string) => string, canonSeller: (name: string) => string | null): Kurator {
   const WIN_FROM = new Date(dlg.from).getTime(), WIN_TO = new Date(dlg.to).getTime();
   const evByObj: Record<string, any[]> = {};
   for (const e of dlg.events || []) {
@@ -89,29 +93,31 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
     const fin = win.find((e) => e.dir === "входящее" && isRealMsg(e));
     const fout = fin ? win.find((e) => e.dir === "исходящее" && +e.ts > +fin.ts && isRealMsg(e)) : null;
     if (fin && fout) {
-      const author = String(fout.who || d?.mgr || "").trim() || "?";
+      const author = canonSeller(String(fout.who || d?.mgr || "").trim());
       const wm = workMinutes(+fin.ts, +fout.ts);
-      if (isSeller(author)) {
+      if (author) {
         const s = st(author);
         s.fr++; if (wm <= 15) s.frOk++;
         else V.push({ author, v: { r: "R1", q: "Клиент написал " + kDT(fin) + ", ответ ушёл через " + (wm >= 60 ? Math.floor(wm / 60) + " ч " + (wm % 60) + " мин" : wm + " мин") + " рабочего времени", d: kDT(fout) } });
-      } else { firstLine.fr++; if (wm <= 15) firstLine.frOk++; flAuthors.add(author); }
+      } else { firstLine.fr++; if (wm <= 15) firstLine.frOk++; flAuthors.add(String(fout.who || "?").trim()); }
     }
     const seenAttachMin = new Set<string>();
     for (const e of win) {
       if (e.dir !== "исходящее") continue;
       const body = String(e.body || "").trim(); if (!body || !isRealMsg(e) && !K_ATTACH.test(body)) continue;
-      const author = String(e.who || d?.mgr || "").trim() || "?";
-      const seller = isSeller(author);
+      const rawWho = String(e.who || d?.mgr || "").trim();
+      const author = canonSeller(rawWho);
+      const seller = !!author;
       const marker = K_ATTACH.test(body) && body.length < 60;
-      if (seller && !marker) { const s = st(author); s.out++; qual.out++;
+      if (seller && !marker) { const s = st(author!); s.out++; qual.out++;
         if (K_BUDGQ.test(body)) qual.bud++; if (K_TERMQ.test(body)) qual.term++; if (K_LPRQ.test(body)) qual.lpr++; }
       const flaggedSents: string[] = [];
+      // N4 ФЕНИКСА: счёт симметричен - КАЖДОЕ предложение-обещание учитывается и в pr,
+      // и в уликах (раньше улика делала break, а prOk считался по всем предложениям)
       if (!marker) for (const sent of body.split(/[.!?\n]+/)) {
         if (K_PROMISE.test(sent) && !K_DONE.test(sent) && !K_DATE.test(sent) && !K_NOTPROM.test(sent) && sent.length > 12 && sent.length < 220) {
-          if (seller) { st(author).pr++; flaggedSents.push(sent); V.push({ author, v: { r: "R2", q: "«" + clip(sent.trim()).slice(0, 140) + "»", d: kDT(e) } }); } else firstLine.viol++;
-          break;
-        } else if (K_PROMISE.test(sent) && K_DATE.test(sent) && seller) { st(author).pr++; st(author).prOk++; }
+          if (seller) { st(author!).pr++; flaggedSents.push(sent); V.push({ author: author!, v: { r: "R2", q: "«" + clip(sent.trim()).slice(0, 140) + "»", d: kDT(e) } }); } else firstLine.viol++;
+        } else if (K_PROMISE.test(sent) && K_DATE.test(sent) && seller) { st(author!).pr++; st(author!).prOk++; }
       }
       if (marker) {
         // батч вложений одной минуты = одно событие (G3); текст-сосед: >12 знаков, окно 10 мин
@@ -119,13 +125,13 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
         if (!seenAttachMin.has(minuteKey)) {
           seenAttachMin.add(minuteKey);
           const near = win.some((x: any) => x !== e && x.dir === "исходящее" && Math.abs(+x.ts - +e.ts) < 600e3 && String(x.body || "").trim().length > 12 && !K_ATTACH.test(String(x.body || "").trim()));
-          if (!near) { if (seller) V.push({ author, v: { r: "R3", q: "«" + clip(body).slice(0, 60) + "» - и ни строки текста в пределах 10 минут", d: kDT(e) } }); else firstLine.viol++; }
+          if (!near) { if (seller) V.push({ author: author!, v: { r: "R3", q: "«" + clip(body).slice(0, 60) + "» - и ни строки текста в пределах 10 минут", d: kDT(e) } }); else firstLine.viol++; }
         }
       }
       const sm = body.match(K_STOP);
       // R2+R5 на одном предложении - одна улика (G5): если предложение уже помечено R2, R5 молчит
       if (sm && !flaggedSents.some((s2) => s2.includes(sm[0]))) {
-        if (seller) V.push({ author, v: { r: "R5", q: "«…" + clip(body.slice(Math.max(0, (sm.index || 0) - 40), (sm.index || 0) + sm[0].length + 40).trim()) + "…»", d: kDT(e) } }); else firstLine.viol++;
+        if (seller) V.push({ author: author!, v: { r: "R5", q: "«…" + clip(body.slice(Math.max(0, (sm.index || 0) - 40), (sm.index || 0) + sm[0].length + 40).trim()) + "…»", d: kDT(e) } }); else firstLine.viol++;
       }
     }
     // R7/R9: чаты; письма-треды и звонки не в счёт (подписи дают ложных «директоров»),
@@ -136,8 +142,8 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
       const rep = win.slice(i + 1).find((x: any) => x.dir === "исходящее" && isRealMsg(x));
       if (!rep) continue;
       const outB = String(rep.body || "");
-      const author = String(rep.who || d?.mgr || "").trim() || "?";
-      if (!isSeller(author)) continue;
+      const author = canonSeller(String(rep.who || d?.mgr || "").trim());
+      if (!author) continue;
       if (K_EXPENSIVE.test(inB) && !K_BUDGQ.test(outB) && !K_ALT.test(outB) && !outB.includes("?"))
         V.push({ author, v: { r: "R7", q: "Клиент: «…" + clip(inB).slice(0, 70) + "…» -> ответ без вопроса о бюджете и без альтернативы: «" + clip(outB).slice(0, 90) + "»", d: kDT(rep) } });
       if (K_ESCAL.test(inB) && outB && !K_APOLOGY.test(outB))

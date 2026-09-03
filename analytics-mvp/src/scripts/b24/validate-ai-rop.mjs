@@ -88,11 +88,16 @@ for (const [name, t] of Object.entries(ai.mgrs || {})) {
   // в досье менеджера - модель не имеет права выдумывать «цитаты из переписки»
   // нормализация: ё->е (модель восстанавливает ё), сверка по первым 40 знакам -
   // заголовки в досье обрезаны на 50, хвост цитаты может быть длиннее
+  // N3 ФЕНИКСА: корпус цитируемого - только то, что реально можно цитировать
+  // (улики pamyatka.top + названия и next-шаги сделок), а не весь JSON досье
   const norm = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[«»"…]/g, '').replace(/[\s ]+/g, ' ').trim();
-  const shNorm = norm(JSON.stringify(sh));
+  const quotable = norm([
+    ...((sh.pamyatka && sh.pamyatka.top) || []).map((x) => x.quote + ' ' + x.deal),
+    ...((sh.badDeals || []).map((x) => x.title + ' ' + (x.next || ''))),
+  ].join(' \n '));
   for (const qm of all.matchAll(/«([^»]{35,220})»/g)) {
     const q = norm(qm[1]).slice(0, 40);
-    if (q.length >= 30 && !shNorm.includes(q)) bad(name, 'цитата не из досье (выдумана или искажена): «' + qm[1].slice(0, 80) + '…»');
+    if (q.length >= 30 && !quotable.includes(q)) bad(name, 'цитата не из досье (выдумана или искажена): «' + qm[1].slice(0, 80) + '…»');
   }
   // продажи недели: любые «N продаж/предоплат(ы) за неделю» обязаны равняться wonWeek
   const weekClaims=[...all.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат)[а-яё]*(?:\s+нед|[а-яё\s]{0,14}?\s+(?:за\s+)?недел)/gi)];

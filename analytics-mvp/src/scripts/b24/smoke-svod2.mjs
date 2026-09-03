@@ -159,9 +159,21 @@ try{
   const K=DATA.kurator;
   ck('куратор: payload присутствует',!!K&&!!K.mgrs);
   const sellers=new Set(DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr));
-  const kRows=[...d.querySelectorAll('#kur-table tr')].length-1;
-  const kExp=Object.keys(K.mgrs).filter(m=>sellers.has(m)).length+(K.firstLine&&K.firstLine.fr?1:0);
-  ck('куратор: строк таблицы = продавцы с данными + первая линия',kRows===kExp,kRows+' vs '+kExp);
+  // B2 ФЕНИКСА: инварианты от ПРАВДЫ, не от реализации - сверка через независимый sameName
+  const kTok=s=>[...String(s).toLowerCase().split(/\s+/).filter(Boolean)].sort().join('|');
+  const kSame=(a,b)=>kTok(a)===kTok(b);
+  const roster=DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr);
+  // (б) каждая строка ростера присутствует ровно один раз, даже пустая
+  const rowNames=[...d.querySelectorAll('#kur-table tr')].slice(1).map(tr=>tr.querySelector('td')?.textContent.trim()).filter(Boolean);
+  const missing=roster.filter(m=>!rowNames.some(n=>kSame(n,m)));
+  ck('куратор Б2(б): каждый продавец ростера - ровно одна строка',missing.length===0&&rowNames.filter(n=>roster.some(m=>kSame(n,m))).length===roster.length,'нет строк: '+missing.join(', '));
+  // (в) ни один ключ payload не остаётся неотнесённым к ростеру (канонизация сработала)
+  const orphan=Object.keys(K.mgrs).filter(k2=>!roster.some(m=>kSame(k2,m)));
+  ck('куратор Б2(в): ключи payload = канонические имена ростера',orphan.length===0,'сироты: '+orphan.join(', '));
+  // (а) сумма улик в ТАБЛИЦЕ = сумме viol в payload по ростеру (независимый пересчёт)
+  const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol,0);
+  const tblSum=[...d.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
+  ck('куратор Б2(а): сумма улик таблицы = сумме payload',tblSum===paySum,tblSum+' vs '+paySum);
   // МУТАЦИОННЫЕ фикстуры движка (G11 ФЕНИКСА): синтетика с известным ответом,
   // любой дрейф правил валит tsx-прогон - литеральных grep-гвардов больше нет
   let fixOut='';

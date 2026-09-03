@@ -873,12 +873,17 @@ const KRULE={R1:['Первый ответ дольше 15 рабочих мин�
 const KFIX={R1:'Холдинг-сообщение в 15 минут: «Имя, добрый день! Заявку получил, беру в расчёт. Вернусь с цифрой завтра до 11:00»',R2:'Дописать дату в то же предложение: «отправлю завтра до 12:00». Срок без даты клиент читает как отказ',R3:'«Имя, направляю <счёт / КП / макет> по вашему заказу. Прошу подтвердить получение»',R5:'Заменить конкретной датой: вместо «в ближайшее время» - «завтра до 15:00»',R7:'«Какой бюджет для вас рабочий? Назовите цифру, я честно скажу, попадаем мы в неё или нет»',R9:'«Имя, мне очень жаль, что так вышло. Приношу извинения» - и только потом причина и план'};
 function renderKurator(){
   const K=DATA.kurator;const tb=document.getElementById('kur-table');
-  if(!K||!Object.keys(K.mgrs||{}).length){if(tb)tb.innerHTML='';const t2=document.getElementById('kur-total');if(t2)t2.textContent='';return;}
-  const sellers=new Set(DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr));
-  /* сортировка по ПЛОТНОСТИ улик (на 10 сообщений), не по абсолюту - иначе таблица
-     наказывает за объём работы (G10 ФЕНИКСА) */
-  const dens=v=>v.out?v.viol/v.out*10:0;
-  const rows=Object.entries(K.mgrs).filter(([m])=>sellers.has(m)).sort((a,b)=>dens(b[1])-dens(a[1]));
+  if(!K||!K.mgrs){if(tb)tb.innerHTML='';const t2=document.getElementById('kur-total');if(t2)t2.textContent='';return;}
+  /* калибровка (условие 4 песочницы ФЕНИКСА): правило с измеренной точностью <90% скрыто */
+  const cal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
+  const ruleOk=r=>{if(!cal||!cal[r]||!cal[r].n)return true;return 100*cal[r].ok/cal[r].n>=90;};
+  const hideV=v=>!ruleOk(v.r);
+  /* B1 ФЕНИКСА: строка на КАЖДОГО продавца ростера, даже пустого - канон имён в движке */
+  const sellers=DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr);
+  const dens=v=>v.out?v.viol/v.out*10:0; /* плотность, не абсолют (G10) */
+  const rows=sellers.map(m=>{const v=K.mgrs[m]||{fr:0,frOk:0,pr:0,prOk:0,out:0,viol:0,deals:[]};
+    const deals=(v.deals||[]).map(d2=>({...d2,viol:d2.viol.filter(x=>!hideV(x))})).filter(d2=>d2.viol.length);
+    return [m,{...v,deals}];}).sort((a,b)=>dens(b[1])-dens(a[1]));
   const tot=rows.reduce((s2,[,v])=>s2+v.viol,0);
   document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю';
   tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th>Обещания с датой</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
@@ -891,7 +896,8 @@ function renderKurator(){
     (K.firstLine&&K.firstLine.fr?`<tr><td><span style="color:var(--ink3)">Первая линия (офис)</span></td><td>${K.firstLine.frOk} из ${K.firstLine.fr}</td><td colspan="2" style="color:var(--ink3)">${K.firstLine.viol} ${plural(K.firstLine.viol,['улика','улики','улик'])} - вне таблицы продавцов: регламент продаж к офисной роли не применяется</td><td></td></tr>`:'');
   window.__kurRows=rows;
   const q=K.qual;
-  document.getElementById('kur-qual').textContent=q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} ${K.note||''}`:'';
+  const calLine=cal?`Точность по разметке ${esc(K.calibration.measuredAt||'')}: `+Object.entries(cal).map(([r,c])=>`${r} ${c.n?Math.round(100*c.ok/c.n):'-'}% (${c.ok}/${c.n})`).join(', ')+' - правила с точностью ниже 90% скрыты. ':'Ручная разметка улик ещё не проводилась - точность детекторов не измерена. ';
+  document.getElementById('kur-qual').textContent=(q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} `:'')+calLine+`Почтовый канал (письма-треды) в разбор пока не входит - жалобы почтой движок не видит, это фаза 2. ${K.note||''}`;
 }
 function kurPanel(i){
   const [m,v]=window.__kurRows[i];

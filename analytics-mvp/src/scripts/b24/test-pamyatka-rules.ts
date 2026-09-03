@@ -34,16 +34,29 @@ const dlg = {
     // сделка 4: ответ писал ОФИСНЫЙ сотрудник -> продавцу не атрибутируется, идёт в первую линию
     ev(0, "входящее", "Посчитайте стол", "Клиент", "4"),
     ev(200, "исходящее", "Передала менеджеру, посчитает и пришлёт", "Офисова Ольга", "4"),
+    // сделка 6: продавец пишет под ВТОРЫМ написанием имени («Анна Продавцова») - копилка одна
+    ev(0, "входящее", "Нужен стеллаж", "Клиент", "6"),
+    ev(30, "исходящее", "Стеллаж посчитаю и пришлю", "Анна Продавцова", "6"),
+    // сделка 7: G3-регрессы - текст 20 знаков в ту же минуту -> R3 НЕТ; и за 8 минут -> R3 НЕТ
+    ev(0, "входящее", "Пришлите образец", "Клиент", "7"),
+    ev(5, "исходящее", "Вот образец берёзы", "Продавцова Анна", "7"),
+    ev(5.5, "исходящее", "Отправлено Изображение", "Продавцова Анна", "7"),
+    ev(20, "исходящее", "Ещё вариант из ясеня для сравнения", "Продавцова Анна", "7"),
+    ev(27, "исходящее", "Отправлено Файл", "Продавцова Анна", "7"),
     // событие ВНЕ окна -> не считается вовсе
     { ts: String(new Date("2026-06-01T12:00:00+03:00").getTime()), dt: "2026-06-01T12:00:00+03:00", dealId: "5", leadId: "", dir: "исходящее", who: "Продавцова Анна", body: "Пришлю расчёт когда-нибудь", mgr: "Продавцова Анна" },
   ],
 };
 const lookup = (k: string) => ({ dealId: k.slice(1), isLead: 0, mgr: "Продавцова Анна", title: "Тест " + k, budget: 100000 });
-const isSeller = (n: string) => n === "Продавцова Анна";
-const K = kuratorAudit(dlg as any, lookup, (s) => s, isSeller);
+// B1 ФЕНИКСА: канонизация - «Анна Продавцова» и «Продавцова Анна» это ОДИН человек
+const ROSTER = ["Продавцова Анна"];
+const tokset = (x: string) => new Set(x.toLowerCase().split(/\s+/).filter(Boolean));
+const same = (a: string, b: string) => { const ta = tokset(a), tb = tokset(b); if (ta.size !== tb.size || !ta.size) return false; for (const t of ta) if (!tb.has(t)) return false; return true; };
+const canon = (n: string) => ROSTER.find((x) => same(x, n)) || null;
+const K = kuratorAudit(dlg as any, lookup, (s) => s, canon);
 
-let fails = 0;
-const ck = (name: string, ok: boolean, info = "") => { if (ok) console.log("OK  ", name); else { fails++; console.log("FAIL", name, info); } };
+let fails = 0, total = 0;
+const ck = (name: string, ok: boolean, info = "") => { total++; if (ok) console.log("OK  ", name); else { fails++; console.log("FAIL", name, info); } };
 const A = K.mgrs["Продавцова Анна"] || ({} as any);
 const allV = (A.deals || []).flatMap((d: any) => d.viol.map((v: any) => v.r + "|" + v.q));
 ck("R1: 40 рабочих минут - улика есть", allV.some((v: string) => v.startsWith("R1|")));
@@ -58,10 +71,17 @@ ck("R3: батч вложений минуты = одна улика", allV.filt
 ck("R3: вложение с текстом-соседом (сделка 2) не улика", !allV.some((v: string) => v.startsWith("R3|") && v.includes("Тест d2")));
 ck("R5: «в ближайшее время» - улика", allV.some((v: string) => v.startsWith("R5|")));
 ck("R9: «руководитель» в письме-треде НЕ эскалация", !allV.some((v: string) => v.startsWith("R9|")));
-ck("Звонок и письмо-тред не считаются «клиент написал» (сделка 3 пары не даёт)", A.fr === 2, "fr=" + A.fr);
+ck("Звонок и письмо-тред не считаются «клиент написал» (сделка 3 пары не даёт: пары только d1,d2,d6,d7)", A.fr === 4, "fr=" + A.fr);
 ck("Офисный автор: улика НЕ у продавца, пара в первой линии", K.firstLine.fr === 1 && !allV.some((v: string) => v.includes("Передала менеджеру")), "flFr=" + K.firstLine.fr);
 ck("Событие вне окна не считается", !allV.some((v: string) => v.includes("когда-нибудь")));
 ck("workMinutes: ночь не считается", workMinutes(new Date("2026-08-25T17:50:00+03:00").getTime(), new Date("2026-08-26T09:10:00+03:00").getTime()) <= 25, String(workMinutes(new Date("2026-08-25T17:50:00+03:00").getTime(), new Date("2026-08-26T09:10:00+03:00").getTime())));
+ck("workMinutes: суббота не считается (N1)", workMinutes(new Date("2026-08-29T10:00:00+03:00").getTime(), new Date("2026-08-29T11:00:00+03:00").getTime()) === 0, String(workMinutes(new Date("2026-08-29T10:00:00+03:00").getTime(), new Date("2026-08-29T11:00:00+03:00").getTime())));
+ck("B1: два написания имени - одна копилка", Object.keys(K.mgrs).length === 1 && !K.mgrs["Анна Продавцова"], JSON.stringify(Object.keys(K.mgrs)));
+ck("B1: улика второго написания легла в канон", allV.some((v: string) => v.includes("Стеллаж посчитаю")));
+ck("G3-регресс: текст 20 знаков в ту же минуту гасит R3", !allV.some((v: string) => v.startsWith("R3|") && v.includes("Изображение") && v.includes("d7")) && !K.mgrs["Продавцова Анна"].deals.some((d2: any) => d2.t === "Тест d7" && d2.viol.some((x: any) => x.r === "R3" && x.q.includes("Изображение"))));
+ck("G3-регресс: текст за 8 минут гасит R3 (окно 10 мин)", !K.mgrs["Продавцова Анна"].deals.some((d2: any) => d2.t === "Тест d7" && d2.viol.some((x: any) => x.r === "R3" && x.q.includes("Файл"))));
+ck("Неопознанный автор не теряется: 4 пары продавца + 1 первой линии = 5 всего", K.firstLine.fr === 1 && K.mgrs["Продавцова Анна"].fr === 4, "fl=" + K.firstLine.fr + " fr=" + K.mgrs["Продавцова Анна"].fr);
 
-if (fails) { console.error("PAMYATKA-RULES TEST: " + fails + " FAIL"); process.exit(1); }
-console.log("PAMYATKA-RULES TEST PASS: " + (16 - fails) + "/16");
+if (fails) { console.error("PAMYATKA-RULES TEST: " + fails + " FAIL из " + total); process.exit(1); }
+if (total < 20) { console.error("PAMYATKA-RULES TEST: проверок " + total + " < 20 - кто-то удалил фикстуры"); process.exit(1); }
+console.log("PAMYATKA-RULES TEST PASS: " + total + "/" + total);

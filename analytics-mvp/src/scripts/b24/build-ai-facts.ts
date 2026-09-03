@@ -66,16 +66,22 @@ for (const m of (sc.managers as any[])) {
 // (pamyatka-rules.ts). ИИ-РОП цитирует конкретные сообщения, а не выдумывает.
 const scByKey: Record<string, any> = {};
 for (const d of (sc.deals as any[])) scByKey[(d.isLead ? "l" : "d") + d.dealId] = d;
-const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").map((m: any) => m.mgr);
-const kur = kuratorAudit(dlg, (k) => scByKey[k] || null, (s) => String(s || "").replace(/\u2014/g, "-"), (n) => kSellers.some((x) => sameName(x, n)));
-for (const [name, s] of Object.entries(sheets)) {
-  const km = Object.keys(kur.mgrs).find((x) => sameName(x, name));
-  if (!km) continue;
-  const v = kur.mgrs[km];
-  (s as any).pamyatka = {
-    firstReply15min: v.frOk + " из " + v.fr, promisesWithDate: v.prOk + " из " + v.pr, evidenceTotal: v.viol,
-    top: v.deals.slice(0, 3).map((dd) => ({ deal: dd.t, budget: dd.b, rule: KURATOR_RULES[dd.viol[0].r] || dd.viol[0].r, quote: dd.viol[0].q.slice(0, 120) })),
-  };
+// УСЛОВИЕ 3 ПЕСОЧНИЦЫ ФЕНИКСА (iter2, 03.09): блок pamyatka НЕ уходит в ночную
+// генерацию досье, пока precision детекторов не измерен ручной разметкой (порог 90%).
+// Включение - только env PAMYATKA_AI=1 после разметки, с повторным гейтом ФЕНИКСА.
+if (process.env.PAMYATKA_AI === "1") {
+  const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").map((m: any) => m.mgr);
+  const kCanon = (n: string) => kSellers.find((x: string) => sameName(x, n)) || null;
+  const kur = kuratorAudit(dlg, (k) => scByKey[k] || null, (s) => String(s || "").replace(/\u2014/g, "-"), kCanon);
+  for (const [name, s] of Object.entries(sheets)) {
+    const km = Object.keys(kur.mgrs).find((x) => sameName(x, name));
+    if (!km) continue;
+    const v = kur.mgrs[km];
+    (s as any).pamyatka = {
+      firstReply15min: v.frOk + " из " + v.fr, promisesWithDate: v.prOk + " из " + v.pr, evidenceTotal: v.viol,
+      top: v.deals.slice(0, 3).map((dd) => ({ deal: dd.t, budget: dd.b, rule: KURATOR_RULES[dd.viol[0].r] || dd.viol[0].r, quote: dd.viol[0].q.slice(0, 120) })),
+    };
+  }
 }
 
 // границы недель по дневной истории (только дни с очередями)

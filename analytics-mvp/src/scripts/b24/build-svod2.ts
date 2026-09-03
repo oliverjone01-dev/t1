@@ -6,6 +6,7 @@
 // Запуск: ROP_JSON=... PLAN_JSON=... HIST_JSON=dialog/data/history.json AI_JSON=dialog/data/ai-rop.json \
 //         npx tsx src/scripts/b24/build-svod2.ts
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { kuratorAudit } from "./pamyatka-rules";
 
 const DLG = "dialog/data/dialog.json";
 const TPL = "dialog/svod2.template.html";
@@ -154,6 +155,11 @@ const mrows = Object.entries(pipeByM).filter(([, v]) => v.kp >= 20).map(([m2, v]
 const leadIds = new Set<string>(); for (const e of evAll) if (e.leadId && !e.dealId) leadIds.add(String(e.leadId));
 const stik = { leads: dlg.leadCount || 0, seen: leadIds.size, note: "по остальным лидам снимок не выгружает ни владельца, ни статуса - подключение полного слоя лидов = задача фетчера (фаза 2)" };
 
+// ===== КУРАТОР ПО ПАМЯТКЕ v2.3 (согласовано Иваном 03.09: отдел видит всех) =====
+// Правила и точность живут в pamyatka-rules.ts - ЕДИНЫЙ код с ночными фактами
+// (урок ФЕНИКС D1/D7: страница и досье обязаны считаться одним кодом).
+const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash);
+
 const DATA = {
   meta: {
     dlgFrom: dlg.from, dlgTo: dlg.to, dlgGenerated: dlg.generatedAt, ropGenerated: ropGen,
@@ -165,7 +171,7 @@ const DATA = {
   managers: (sc.managers as any[]).map((m) => ({ mgr: m.mgr, role: m.role, rating: m.rating, deals: m.deals, lossRub: Math.round(m.lossRub || 0), sections: m.sections })),
   queuesMeta: sc.queues, minSample: sc.minSample, calibratedAt: sc.calibratedAt,
   deals, cohort, rot, hist: hist.days || [],
-  debt, replyLine, replyStats, phrases: phrases.phrases || [], pipe: { F: pipeF, mrows, dept: { ...deptPipe, cr: deptPipe.kp ? Math.round(1000 * deptPipe.sold / deptPipe.kp) / 10 : 0, lo: Math.round(dplo * 1000) / 10, hi: Math.round(dphi * 1000) / 10 } }, stik,
+  debt, replyLine, replyStats, phrases: phrases.phrases || [], pipe: { F: pipeF, mrows, dept: { ...deptPipe, cr: deptPipe.kp ? Math.round(1000 * deptPipe.sold / deptPipe.kp) / 10 : 0, lo: Math.round(dplo * 1000) / 10, hi: Math.round(dphi * 1000) / 10 } }, stik, kurator,
   ai: ai || { mgrs: {}, dept: null, deals: {} },
 };
 

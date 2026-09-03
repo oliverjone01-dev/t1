@@ -155,6 +155,30 @@ try{
   // G3 (ФЕНИКС): невоспроизводимый «39%» снят, разрез по типам клиентов помечен гипотезой
   ck('G3: «39% сделок - один клиент» удалён',!vis.includes('39% сделок'));
   ck('G3: разрез по типам клиентов помечен как гипотеза фазы 2',vis.includes('точный разрез по типам клиентов - фаза 2'));
+  // Куратор по памятке (решение Ивана 03.09: отдел видит всех)
+  const K=DATA.kurator;
+  ck('куратор: payload присутствует',!!K&&!!K.mgrs);
+  const sellers=new Set(DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr));
+  const kRows=[...d.querySelectorAll('#kur-table tr')].length-1;
+  const kExp=Object.keys(K.mgrs).filter(m=>sellers.has(m)).length;
+  ck('куратор: строк таблицы = продавцов с данными',kRows===kExp,kRows+' vs '+kExp);
+  // precision-гварды: то, что чистили на прототипе, не должно вернуться
+  let badQuote=null,winFrom=DATA.meta.dlgFrom.slice(5,10),winTo=DATA.meta.dlgTo.slice(5,10);
+  for(const s of Object.values(K.mgrs))for(const dd2 of s.deals)for(const v of dd2.viol){
+    if(v.r==='R2'&&/^«?Отправлено/i.test(v.q))badQuote='R2 на маркере вложения: '+v.q.slice(0,60);
+    if((v.r==='R7'||v.r==='R9')&&/Тема:/i.test(v.q))badQuote='R7/R9 на письме-треде: '+v.q.slice(0,60);
+    if(v.r==='R2'&&/с радостью|всегда готов/i.test(v.q))badQuote='R2 на вежливой формуле: '+v.q.slice(0,60);
+  }
+  ck('куратор: precision-гварды прототипа держатся',!badQuote,badQuote||'');
+  // улики только из окна: дата в цитате R1 не раньше начала окна (месяц.день сравнимы в пределах окна недели)
+  ck('куратор: тотал в бейдже = сумме по продавцам',(function(){const tot=Object.entries(K.mgrs).filter(([m])=>sellers.has(m)).reduce((s2,[,v])=>s2+v.viol,0);return t('kur-total').includes(String(tot));})());
+  // клик «Разбор» рисует панель с CRM-ссылками и заменами
+  const kbtn=[...d.querySelectorAll('#kur-table button')].find(b=>!b.disabled);
+  if(kbtn){kbtn.click();
+    ck('куратор: разбор открылся с CRM-ссылками',d.querySelectorAll('#kur-panel a[href*="/crm/"]').length>0);
+    ck('куратор: у каждой улики есть «Как надо»',[...d.querySelectorAll('#kur-panel [style*="border-left"]')].length>0&&t('kur-panel').includes('Как надо'));
+  }
+  ck('куратор: квалификация отдела названа честно',t('kur-qual').includes('бюджете')&&t('kur-qual').includes('исходящих'));
   // Фича 2: труба - пересчёт из cohort
   const C=DATA.cohort;
   const f={created:C.length,tz:C.filter(c=>c.tz).length,kp:C.filter(c=>c.kp).length,dec:C.filter(c=>c.dec).length,sold:C.filter(c=>c.sold).length,mk:C.filter(c=>c.mk).length};

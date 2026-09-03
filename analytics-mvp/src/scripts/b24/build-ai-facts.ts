@@ -4,6 +4,7 @@
 // Выход двумя файлами под валидатор validate-ai-rop.mjs: SHEETS_OUT и ARGS_OUT.
 // Запуск: ROP_JSON=... HIST_JSON=... SHEETS_OUT=... ARGS_OUT=... npx tsx src/scripts/b24/build-ai-facts.ts
 import { readFileSync, writeFileSync } from "node:fs";
+import { kuratorAudit, KURATOR_RULES } from "./pamyatka-rules";
 
 const DLG = process.env.DLG_JSON || "dialog/data/dialog.json";
 const ROP = process.env.ROP_JSON || "/tmp/rop.json";
@@ -58,6 +59,21 @@ for (const m of (sc.managers as any[])) {
     wonWeek: w.n, wonWeekRub: Math.round(w.rub),
     badDeals: bad.slice(0, 6).map((d) => ({ id: d.dealId || d.leadId, title: String(d.title || "").slice(0, 50), budget: Math.round(d.budget || 0), stage: d.stage, uKey: d.uKey, silenceD: d.silenceD, next: String(d.next || "").slice(0, 160), prob: d.prob })),
     okDeals: my.filter((d) => d.uKey === "ok").length,
+  };
+}
+
+// Куратор по памятке v2.3: улики недели в досье - ЕДИНЫЙ код со страницей
+// (pamyatka-rules.ts). ИИ-РОП цитирует конкретные сообщения, а не выдумывает.
+const scByKey: Record<string, any> = {};
+for (const d of (sc.deals as any[])) scByKey[(d.isLead ? "l" : "d") + d.dealId] = d;
+const kur = kuratorAudit(dlg, (k) => scByKey[k] || null, (s) => String(s || "").replace(/\u2014/g, "-"));
+for (const [name, s] of Object.entries(sheets)) {
+  const km = Object.keys(kur.mgrs).find((x) => sameName(x, name));
+  if (!km) continue;
+  const v = kur.mgrs[km];
+  (s as any).pamyatka = {
+    firstReply15min: v.frOk + " из " + v.fr, promisesWithDate: v.prOk + " из " + v.pr, evidenceTotal: v.viol,
+    top: v.deals.slice(0, 3).map((dd) => ({ deal: dd.t, budget: dd.b, rule: KURATOR_RULES[dd.viol[0].r] || dd.viol[0].r, quote: dd.viol[0].q.slice(0, 120) })),
   };
 }
 

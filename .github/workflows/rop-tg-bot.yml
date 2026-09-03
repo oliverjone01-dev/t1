@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "plan | srez | itogi | probe"
+        description: "plan | srez | itogi | probe | test"
         default: "plan"
       chat:
         description: "chat_id (пусто = группа по умолчанию)"
@@ -59,6 +59,14 @@ jobs:
             console.log('updates:',(j.result||[]).length,'· chats бот видит:');
             console.log(JSON.stringify(chats,null,2));
             console.log('Нужен id группы (начинается с -100). Если webhook.url не пуст - сначала уберём webhook.');
+            process.exit(0);
+          }
+          if(MODE==='test'){
+            // Простой тест доставки: шлём в CHAT слово «тест» (проверка, что бот в чате и может писать). Отчёты сюда не идут.
+            const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text:'тест'})});
+            const jj=await res.json();
+            if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}
+            console.log('Тест отправлен в',CHAT,'· msg',jj.result.message_id);
             process.exit(0);
           }
           const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));

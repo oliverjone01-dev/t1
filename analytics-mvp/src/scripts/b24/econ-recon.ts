@@ -69,6 +69,14 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   // 2) Сделки воронки 49 за окно
   const stages = await pageAll("crm.status.list", { filter: {} });
   const stageName: Record<string, string> = {}; for (const s of stages) stageName[s.STATUS_ID] = s.NAME;
+  // Таксономия этапов смарт-процессов - для окраски изделия по прогрессу («ближе к закрытию темнее»).
+  // Статусы смартов приходят кодом вида DT<etid>_<cat>:CODE; группируем по смарту, сортируем по SORT.
+  const spStages: Record<string, { code: string; name: string; sort: number; success: boolean; fail: boolean }[]> = {};
+  for (const s of stages) {
+    const m = /^DT(\d+)_\d+:/.exec(String(s.STATUS_ID || "")); if (!m) continue;
+    (spStages[m[1]] = spStages[m[1]] || []).push({ code: String(s.STATUS_ID), name: String(s.NAME || ""), sort: Number(s.SORT) || 0, success: /:SUCCESS$/.test(String(s.STATUS_ID)), fail: /:FAIL$/.test(String(s.STATUS_ID)) });
+  }
+  for (const k of Object.keys(spStages)) spStages[k].sort((a, b) => a.sort - b.sort);
   const users = await pageAll("user.get", {});
   const uName: Record<string, string> = {}; for (const u of users) uName[String(u.ID)] = `${u.LAST_NAME || ""} ${u.NAME || ""}`.trim() || `id${u.ID}`;
   // 2.0) Поле «Тип ассортимента» в сделке (справочник) - тянем как есть, значение расшифровываем по items
@@ -86,10 +94,10 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   } catch (e) { console.error("RECON-ASSORT\tошибка чтения crm.deal.fields:", String(e)); }
   const resolveAssort = (v: any): string => !assortId ? "" : Array.isArray(v) ? v.map((x) => assortMap[String(x)] || String(x)).filter(Boolean).join(", ") : (assortMap[String(v)] || (v ? String(v) : ""));
 
-  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", ...(assortId ? [assortId] : [])];
+  const dealSelect = ["ID", "TITLE", "OPPORTUNITY", "ASSIGNED_BY_ID", "STAGE_ID", "DATE_CREATE", "DATE_MODIFY", ...(assortId ? [assortId] : [])];
   const dealRows = await pageAll("crm.deal.list", { filter: { CATEGORY_ID: CAT, ">=DATE_CREATE": cutoff }, select: dealSelect, order: { ID: "DESC" } });
   const deal: Record<string, any> = {};
-  for (const d of dealRows) deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stageName[d.STAGE_ID] || d.STAGE_ID, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false };
+  for (const d of dealRows) deal[String(d.ID)] = { id: Number(d.ID), title: d.TITLE || "", mgr: uName[String(d.ASSIGNED_BY_ID)] || null, stageCode: String(d.STAGE_ID || "").replace(/^C49:/, ""), stage: stageName[d.STAGE_ID] || d.STAGE_ID, budget: Math.round(num(d.OPPORTUNITY)), created: d10(d.DATE_CREATE), modified: d10(d.DATE_MODIFY), assort: assortId ? resolveAssort(d[assortId]) : "", sps: {} as Record<string, any>, products: [] as any[], hasProducts: false };
   const inWin = new Set(Object.keys(deal));
   console.error(`Сделок воронки ${CAT} за ${WINDOW_DAYS} дн (с ${cutoff}): ${inWin.size}`);
 
@@ -132,9 +140,9 @@ async function itemsAll(etid: number, select: string[]): Promise<any[]> {
   }
 
   // 5) JSON для экрана
-  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
+  const deals = [...inWin].map((id) => { const r = deal[id]; return { id: r.id, title: r.title, mgr: r.mgr, stage: r.stage, stageCode: r.stageCode, budget: r.budget, created: r.created, modified: r.modified || null, assort: r.assort || "", hasProducts: r.hasProducts, products: r.products, sps: Object.entries(r.sps).map(([k, v]: any) => ({ key: k, etid: v.etid, cards: v.cards, money: Object.entries(v.money).map(([label, value]) => ({ label, value: Math.round(value as number) })) })) }; }).sort((a, b) => b.id - a.id);
   mkdirSync("economics/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, inventory: inv, deals }));
+  writeFileSync(OUT, JSON.stringify({ generated_at: new Date().toISOString(), category: CAT, windowDays: WINDOW_DAYS, since: cutoff, b24Portal: (process.env.B24_PORTAL || "https://glassmemory.bitrix24.ru").replace(/\/+$/, ""), spMeta, spStages, inventory: inv, deals }));
 
   // 6) Сводка ответов
   const N = inWin.size;

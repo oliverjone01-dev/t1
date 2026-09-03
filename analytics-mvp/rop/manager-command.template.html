@@ -380,7 +380,7 @@ function qfmt(h){if(/Отличие:|Польза:/.test(h)){let x='<div class="
   x=x.replace(/\s*Вопрос:\s*/,'</div><div class="qh qq">На какие вопросы отвечает?</div><div class="qb">');
   x=x.replace(/\s*Вывод:\s*/,'</div><div class="qh qc">Какие выводы сделать?</div><div class="qb">');
   return x+'</div>'}
-function tipShow(html,x,y){var _c=String(html);var _i=_c.indexOf('::');if(_i>0&&!/[<>]/.test(_c.slice(0,_i))){_c='<div class="tip-hd">'+_c.slice(0,_i).trim()+'</div>'+_c.slice(_i+2).trim();}tip.innerHTML=qfmt(_c);tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
+function tipShow(html,x,y){var _c=String(html);if(!/[<>]/.test(_c)){var _i=_c.indexOf('::');var _h=_i>0?_c.slice(0,_i).trim():'Пояснение';var _b=_i>0?_c.slice(_i+2).trim():_c;_c='<div class="tip-hd">'+_h+'</div>'+_b;}tip.innerHTML=qfmt(_c);tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
 function tipHide(){tip.style.opacity=0;}
 document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t){tipShow(t.getAttribute('data-tip'),e.clientX,e.clientY);}else tipHide();});
 function dt(title,rows){return `<div class="tl">${title}</div>`+rows.map(r=>{const st=r[2]==='dim'?' style="opacity:.45;font-size:10px"':r[2]==='hl'?' style="font-weight:800"':'';return `<div class="tr"${st}><span>${r[0]}</span><span>${r[1]}</span></div>`;}).join('');}

@@ -1341,7 +1341,7 @@ function render(cur,cmp){
     <section class="card"><div class="card-h"><div><div class="card-title">Сборы по статьям</div><div class="card-sub">за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Статья</th><th class="r">Сумма, ₽</th></tr></thead><tbody id="fees"></tbody></table></div></section>
     <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
   </div>
-  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, реализация с учётом возвратов) + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» = 30% от К выплате; «Налоги 15%» = 15% от К выплате; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / Выручка. Для SKU без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО и разнесена по колонкам: realFBS и доставка от покупателя - в «Логистику», остальное - в «Прочие».</div></div></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по SKU (за выбранный период)</div><div class="card-sub">Сводка по каждому артикулу за период из верхнего фильтра: продажи (выручка, реализация с учётом возвратов) + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» = 30% от К выплате; «Налоги 15%» = 15% от К выплате; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / Выручка. Для SKU без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). Начислено (дата финоперации) и Выручка (дата заказа) считаются по разным датам, поэтому по одному SKU не обязаны совпадать. Отдельная строка «Сборы уровня заказа/кабинета» - реклама/штрафы/realFBS/бейдж/доставка/эквайринг, которые OZON списывает не по одному SKU (детально в блоке ниже); включена в ИТОГО и разнесена по колонкам: realFBS и доставка от покупателя - в «Логистику», остальное - в «Прочие».</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / SKU</th>
     <th class="r">Выручка</th><th class="r">Реализовано</th>
     <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>
@@ -1420,14 +1420,17 @@ function anCells(x){
   return R(x.rev)+I(x.units)+R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(fees)+R(x.amt)+R(x.cc)+P(gp)+R(adm)+R(tax)+P(net)+PC(rent);
 }
 function renderSkuAnalytics(cur){
-  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
   for(var sk in AN_META){
     var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
     if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
     var m=AN_META[sk];
     // units = «Реализовано с учётом возвратов» по отчёту о реализации (УПД); cc = СС/шт × реализовано
     var ru=realUnits(sk,covM,from,to);
-    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6],cc:(AN_COGS[sk]||0)*ru};
+    // noCs: реализован, но производственной СС нет в листе -> СС/валовая/чистая/рентаб неполные
+    var noCs=(ru>0 && (AN_COGS[sk]==null));
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],amt:fi[6],cc:(AN_COGS[sk]||0)*ru,noCs:noCs};
+    if(noCs)miss.push(x);
     (groups[x.cat]||(groups[x.cat]=[])).push(x);
   }
   var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','amt','cc'];
@@ -1436,7 +1439,7 @@ function renderSkuAnalytics(cur){
   var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
   cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
     html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
-    g.arr.forEach(function(x){html+='<tr class="an-sku" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+' <span style="color:var(--ink-3)">'+String(x.nm).slice(0,34)+'</span></td>'+anCells(x)+'</tr>';});
+    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому SKU неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+' <span style="color:var(--ink-3)">'+String(x.nm).slice(0,34)+'</span>'+badge+'</td>'+anCells(x)+'</tr>';});
   });
   // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО, разнесены
   // по колонкам по смыслу: realFBS + доставка от покупателя -> «Логистика»; реклама/штрафы/бейдж/
@@ -1451,6 +1454,17 @@ function renderSkuAnalytics(cur){
   }
   html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
   el.innerHTML=html;
+  // Сводка-предупреждение о пробелах в данных (нет производственной СС) - чтобы дырка была видна
+  var warn=document.getElementById('skuan-warn');
+  if(warn){
+    if(miss.length){
+      var mu=0;miss.forEach(function(x){mu+=x.units;});miss.sort(function(a,b){return b.units-a.units;});
+      var lst=miss.slice(0,10).map(function(x){return (x.off||x.sk)+' ('+x.units+' шт)';}).join(', ');
+      var sh=grand.units?Math.round(mu/grand.units*100):0;
+      warn.innerHTML='<b style="color:#E5B567">⚠ Нет производственной СС по '+miss.length+' SKU</b> ('+mu+' шт, '+sh+'% реализации периода) - по ним СС, валовая и чистая прибыль, рентабельность неполные. Добавьте СС в лист «СС GEN - OZON»: '+lst+(miss.length>10?' и ещё '+(miss.length-10):'');
+      warn.style.display='';
+    } else warn.style.display='none';
+  }
   el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
 }
 // === блок «Сборы уровня заказа/кабинета» за выбранный период (факт + прогноз [ГИПОТЕЗА]) ===

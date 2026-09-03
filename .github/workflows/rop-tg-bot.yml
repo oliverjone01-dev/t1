@@ -16,11 +16,18 @@ on:
       mgr:
         description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
         default: ""
-  # Расписание МСК 09:00 / 15:00 / 17:30 = UTC 06:00 / 12:00 / 14:30, только пн-пт (1-5). Режим определяется по времени.
+  # Staged-доставка (пн-пт). Каждый слот идёт СНАЧАЛА в тест-чат (окно на проверку данных Иваном),
+  # затем через +15 мин чистовик в основной чат. МСК: план 09:00→09:15, срез 15:00→15:15, итог 17:30→17:45.
+  # UTC: 06:00→06:15, 12:00→12:15, 14:30→14:45. Режим и чат определяются по времени крона.
+  # Первый (тестовый) прогон делает снимок+деплой (~5-8 мин); чистовой прогон переиспользует те же
+  # свежие данные и уходит быстро - реальное окно на проверку между сообщениями ~7-8 мин.
   schedule:
-    - cron: "0 6 * * 1-5"
-    - cron: "0 12 * * 1-5"
-    - cron: "30 14 * * 1-5"
+    - cron: "0 6 * * 1-5"    # план · тест
+    - cron: "15 6 * * 1-5"   # план · основной
+    - cron: "0 12 * * 1-5"   # срез · тест
+    - cron: "15 12 * * 1-5"  # срез · основной
+    - cron: "30 14 * * 1-5"  # итог · тест
+    - cron: "45 14 * * 1-5"  # итог · основной
 
 permissions:
   contents: read
@@ -30,8 +37,9 @@ jobs:
   send:
     runs-on: ubuntu-latest
     env:
-      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * 1-5' && 'plan') || (github.event.schedule == '0 12 * * 1-5' && 'srez') || (github.event.schedule == '30 14 * * 1-5' && 'itogi') || 'plan' }}
-      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
+      MODE: ${{ github.event.inputs.mode || ((github.event.schedule == '0 6 * * 1-5' || github.event.schedule == '15 6 * * 1-5') && 'plan') || ((github.event.schedule == '0 12 * * 1-5' || github.event.schedule == '15 12 * * 1-5') && 'srez') || ((github.event.schedule == '30 14 * * 1-5' || github.event.schedule == '45 14 * * 1-5') && 'itogi') || 'plan' }}
+      # Чистовые (main) слоты идут в основной чат; тестовые слоты и ручной запуск без chat - в тест-чат.
+      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || (github.event.schedule == '15 6 * * 1-5' && '-1004401671894') || (github.event.schedule == '15 12 * * 1-5' && '-1004401671894') || (github.event.schedule == '45 14 * * 1-5' && '-1004401671894') || '-1003652568523' }}
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
@@ -88,12 +96,25 @@ jobs:
           }
           GEN="$(gen_of)"; D="${GEN:0:10}"; TODAY="$(date -u +%F)"
           echo "Снимок rop.json: generated_at=$GEN (дата $D) · сегодня(UTC)=$TODAY · MODE=$MODE"
-          # 1) План: подтянуть свежий снимок, если ночной ещё не за сегодня
-          if [ "$MODE" = "plan" ] && [ -n "$GEN" ] && [ "$D" != "$TODAY" ]; then
-            echo "Данные не за сегодня - запускаю снимок Bitrix (b24-snapshots) и жду"
+          # 1) Данные 3 раза в день: свежий снимок Bitrix перед КАЖДЫМ дайджестом, чтобы Срез/Итог
+          #    показывали живой прогресс дня. Для слота ждём данные не старше времени слота (UTC):
+          #    план 06:00 (=09:00 МСК), срез 12:00 (=15:00 МСК), итог 14:30 (=17:30 МСК).
+          case "$MODE" in plan) SLOT="06:00";; srez) SLOT="12:00";; itogi) SLOT="14:30";; *) SLOT="06:00";; esac
+          SLOT_TS=$(date -u -d "$TODAY $SLOT" +%s 2>/dev/null || echo 0)
+          GEN_TS=$(date -u -d "$GEN" +%s 2>/dev/null || echo 0)
+          if [ -n "$GEN" ] && [ "$GEN_TS" -lt "$SLOT_TS" ]; then
+            echo "Снимок ($GEN) старше времени слота $SLOT UTC - обновляю данные Bitrix и жду"
             dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
             GEN="$(gen_of)"; D="${GEN:0:10}"
             echo "После снимка: generated_at=$GEN"
+            # b24-snapshots в конце САМ триггерит deploy-pages. Дожидаемся, пока задеплоенный /rop/
+            # догонит свежий снимок, ПРЕЖДЕ чем решать про свой деплой - иначе второй деплой
+            # конфликтует с первым (concurrency cancel-in-progress) и оба висят. До ~10 мин.
+            for i in $(seq 1 30); do
+              RB="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
+              if [ -n "$RB" ] && ! [[ "$RB" < "$GEN" ]]; then echo "Деплой от снимка доехал (bakedAt=$RB)"; break; fi
+              echo "Жду деплой от снимка: /rop/ bakedAt=$RB vs снимок=$GEN (${i}/30)"; sleep 20
+            done
           fi
           # 2) Свежесть деплоя: bakedAt /rop/ должен быть не старше снимка (тот же деплой пересобирает и менеджеров)
           ROPBAKED="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"

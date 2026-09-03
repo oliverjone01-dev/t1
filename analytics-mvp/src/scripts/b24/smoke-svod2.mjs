@@ -160,17 +160,27 @@ try{
   ck('куратор: payload присутствует',!!K&&!!K.mgrs);
   const sellers=new Set(DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr));
   const kRows=[...d.querySelectorAll('#kur-table tr')].length-1;
-  const kExp=Object.keys(K.mgrs).filter(m=>sellers.has(m)).length;
-  ck('куратор: строк таблицы = продавцов с данными',kRows===kExp,kRows+' vs '+kExp);
-  // precision-гварды: то, что чистили на прототипе, не должно вернуться
-  let badQuote=null,winFrom=DATA.meta.dlgFrom.slice(5,10),winTo=DATA.meta.dlgTo.slice(5,10);
-  for(const s of Object.values(K.mgrs))for(const dd2 of s.deals)for(const v of dd2.viol){
-    if(v.r==='R2'&&/^«?Отправлено/i.test(v.q))badQuote='R2 на маркере вложения: '+v.q.slice(0,60);
-    if((v.r==='R7'||v.r==='R9')&&/Тема:/i.test(v.q))badQuote='R7/R9 на письме-треде: '+v.q.slice(0,60);
-    if(v.r==='R2'&&/с радостью|всегда готов/i.test(v.q))badQuote='R2 на вежливой формуле: '+v.q.slice(0,60);
+  const kExp=Object.keys(K.mgrs).filter(m=>sellers.has(m)).length+(K.firstLine&&K.firstLine.fr?1:0);
+  ck('куратор: строк таблицы = продавцы с данными + первая линия',kRows===kExp,kRows+' vs '+kExp);
+  // МУТАЦИОННЫЕ фикстуры движка (G11 ФЕНИКСА): синтетика с известным ответом,
+  // любой дрейф правил валит tsx-прогон - литеральных grep-гвардов больше нет
+  let fixOut='';
+  try{fixOut=execSync('npx tsx src/scripts/b24/test-pamyatka-rules.ts',{stdio:'pipe'}).toString();}catch(e){fixOut=(e.stdout||Buffer.from('')).toString()+(e.stderr||Buffer.from('')).toString();}
+  ck('куратор: мутационные фикстуры движка зелёные',fixOut.includes('PAMYATKA-RULES TEST PASS'),fixOut.split('\n').filter(l=>l.startsWith('FAIL')).join('; ').slice(0,200));
+  // настоящий гвард окна: каждая дата в уликах (дд.мм) существует в диапазоне окна
+  const winDates=new Set();{
+    let t0=new Date(DATA.meta.dlgFrom),t1=new Date(DATA.meta.dlgTo);
+    for(let t=t0.getTime();t<=t1.getTime()+864e5;t+=864e5){const d2=new Date(t);winDates.add(String(d2.getUTCDate()).padStart(2,'0')+'.'+String(d2.getUTCMonth()+1).padStart(2,'0'));}
   }
-  ck('куратор: precision-гварды прототипа держатся',!badQuote,badQuote||'');
-  // улики только из окна: дата в цитате R1 не раньше начала окна (месяц.день сравнимы в пределах окна недели)
+  let outOfWin=null;
+  for(const s of Object.values(K.mgrs))for(const dd2 of s.deals)for(const v of dd2.viol){
+    const m2=v.d.match(/^(\d{2}\.\d{2})/);
+    if(m2&&!winDates.has(m2[1]))outOfWin=v.r+' '+v.d;
+  }
+  ck('куратор: все улики датированы внутри окна',!outOfWin,outOfWin||'');
+  // атрибуция: офисные авторы не в таблице продавцов, первая линия отдельно
+  ck('куратор: у офисной первой линии свой счёт',!!K.firstLine&&typeof K.firstLine.fr==='number');
+  ck('куратор: бейдж честности - черновик, не ДАННЫЕ',(function(){const h2=[...d.querySelectorAll('.card h2')].find(x=>x.textContent.includes('Разбор недели по памятке'));return h2&&h2.textContent.includes('ЧЕРНОВИК');})());
   ck('куратор: тотал в бейдже = сумме по продавцам',(function(){const tot=Object.entries(K.mgrs).filter(([m])=>sellers.has(m)).reduce((s2,[,v])=>s2+v.viol,0);return t('kur-total').includes(String(tot));})());
   // клик «Разбор» рисует панель с CRM-ссылками и заменами
   const kbtn=[...d.querySelectorAll('#kur-table button')].find(b=>!b.disabled);

@@ -189,6 +189,8 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
   .g2,.qgrid{grid-template-columns:1fr}
   .tscroll table.mt{min-width:720px}
   .tscroll th,.tscroll td{white-space:nowrap}
+  /* имя менеджера закреплено при горизонтальной прокрутке (G17 ФЕНИКСА) */
+  .tscroll td:first-child,.tscroll th:first-child{position:sticky;left:0;background:var(--card);z-index:2;box-shadow:2px 0 4px rgba(0,26,52,.06)}
   .btn,.pseg button,.tabs .tb,.cmp{min-height:var(--tap);display:inline-flex;align-items:center}
   .secb{width:38px}.secb .bar{height:26px}
   .comb{gap:var(--s1)}
@@ -264,9 +266,9 @@ table.mt td{padding:8px;border-bottom:1px solid var(--line);font-variant-numeric
 
 <!-- КУРАТОР ПО ПАМЯТКЕ (решение Ивана 03.09: отдел видит всех) -->
 <div class="card">
-  <h2>Разбор недели по памятке <span class="tagD">ДАННЫЕ</span> <span class="pill b" id="kur-total"></span><span class="q" data-pop="kur-help">?</span></h2>
-  <div class="pop2" id="pop-kur-help">Простыми словами: движок читает переписку недели и сверяет её с памяткой менеджера v2.3. Улика - конкретное сообщение: что написали, какое правило нарушено, готовая замена с кнопкой «Скопировать». Это не приговор, а список для пятничной чистки: спорную улику откройте в CRM и разберите с РОПом - детекторы дообучаются по спорным случаям. Отдел видит всех: планка у всех одна.</div>
-  <div class="hint">Числа пятницы из памятки (§6) посчитаны автоматически. Нажмите «Разбор» - сделки менеджера с уликами, самые дорогие первыми. Никого не коронуем и не хороним по одной цифре: оргвыводы - на разборе с РОПом, не по строке таблицы.</div>
+  <h2>Разбор недели по памятке <span class="tagH">ЧЕРНОВИК ДЕТЕКТОРА</span> <span class="pill b" id="kur-total"></span><span class="q" data-pop="kur-help">?</span></h2>
+  <div class="pop2" id="pop-kur-help">Простыми словами: движок читает переписку недели и сверяет её с памяткой менеджера v2.3. Улика - конкретное сообщение: что написали, какое правило нарушено, готовая замена с кнопкой «Скопировать». Улика принадлежит АВТОРУ сообщения, а не владельцу сделки; первый ответ меряется в рабочих минутах (9:00-18:00), звонки, боты и письма-треды не считаются «клиент написал». Это не приговор, а список для пятничной чистки: спорную улику откройте в CRM и разберите с РОПом - по спорным случаям детекторы дообучаются. Отдел видит всех (решение Ивана 03.09): планка у всех одна.</div>
+  <div class="hint">ЧЕСТНО: точность детекторов ещё не измерена - до ручной разметки 60 улик РОПом выводы по людям не делаются, это черновик для калибровки. Два из четырёх чисел пятницы (§6) посчитаны автоматически; «первый ответ» здесь - первая пара сделки в рабочих минутах (не путать с 486 парами ответов линии выше - там все ответы недели). Нажмите «Разбор» - сделки с уликами, самые дорогие первыми. Никого не коронуем и не хороним по одной цифре.</div>
   <div class="tscroll"><table class="mt" id="kur-table"></table></div>
   <div id="kur-panel"></div>
   <div class="hint" id="kur-qual" style="margin-top:8px"></div>
@@ -867,25 +869,29 @@ function debtList(kind,key){
     (items.length?items.map(x=>`<a class="dl" href="${crmUrl({lead:x.lead,id:x.id})}" target="_blank" rel="noopener"><span class="db">${fmtR(x.b)}</span><span><b>${esc(x.t||('#'+x.id))}</b> · ${esc(x.m)} · ждёт ${ageTxt(x.ageH)}<br><span style="color:var(--ink3)">${esc(deN(x.next)||'ответить сегодня и назвать точный срок')}</span>${(function(){const ph=pickPhrase(x.u,x.ageH);return ph?`<br><button class="btn" style="margin-top:5px" onclick="event.preventDefault();copyPhrase('${esc(ph.id)}')">Скопировать фразу${ph.verified===false?' (непроверено)':''}</button>`:'';})()} · открыть в CRM →</span></a>`).join(''):'<div class="pill g" style="margin-top:8px">Долга нет - все клиенты получили ответ</div>');
 }
 /* КУРАТОР ПО ПАМЯТКЕ: улики недели по правилам v2.3 */
-const KRULE={R1:['Первый ответ дольше 15 минут','§1 · норматив: 15 минут, цель 100%'],R2:['Обещание без даты','§1 · дефект отдела номер один'],R3:['Вложение без сопроводительного текста','§3 · второй по частоте дефект'],R5:['Стоп-слово из блоклиста','§1 · «срок, которого нет»'],R7:['«Дорого» без вопроса о бюджете','§3 · первый ход - вопрос, не скидка'],R9:['Эскалация без извинения','§3 · извинений не было в 13 из 16']};
+const KRULE={R1:['Первый ответ дольше 15 рабочих минут','§1 · норматив: 15 минут рабочего времени, цель 100%'],R2:['Обещание без даты','§1 · дефект отдела номер один'],R3:['Вложение без сопроводительного текста','§3 · второй по частоте дефект'],R5:['Стоп-слово из блоклиста','§1 · «срок, которого нет»'],R7:['«Дорого» без вопроса о бюджете','§3 · первый ход - вопрос, не скидка'],R9:['Эскалация без извинения','§3 · извинений не было в 13 из 16']};
 const KFIX={R1:'Холдинг-сообщение в 15 минут: «Имя, добрый день! Заявку получил, беру в расчёт. Вернусь с цифрой завтра до 11:00»',R2:'Дописать дату в то же предложение: «отправлю завтра до 12:00». Срок без даты клиент читает как отказ',R3:'«Имя, направляю <счёт / КП / макет> по вашему заказу. Прошу подтвердить получение»',R5:'Заменить конкретной датой: вместо «в ближайшее время» - «завтра до 15:00»',R7:'«Какой бюджет для вас рабочий? Назовите цифру, я честно скажу, попадаем мы в неё или нет»',R9:'«Имя, мне очень жаль, что так вышло. Приношу извинения» - и только потом причина и план'};
 function renderKurator(){
   const K=DATA.kurator;const tb=document.getElementById('kur-table');
   if(!K||!Object.keys(K.mgrs||{}).length){if(tb)tb.innerHTML='';const t2=document.getElementById('kur-total');if(t2)t2.textContent='';return;}
   const sellers=new Set(DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr));
-  const rows=Object.entries(K.mgrs).filter(([m])=>sellers.has(m)).sort((a,b)=>b[1].viol-a[1].viol);
+  /* сортировка по ПЛОТНОСТИ улик (на 10 сообщений), не по абсолюту - иначе таблица
+     наказывает за объём работы (G10 ФЕНИКСА) */
+  const dens=v=>v.out?v.viol/v.out*10:0;
+  const rows=Object.entries(K.mgrs).filter(([m])=>sellers.has(m)).sort((a,b)=>dens(b[1])-dens(a[1]));
   const tot=rows.reduce((s2,[,v])=>s2+v.viol,0);
   document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю';
-  tb.innerHTML='<tr><th>Менеджер</th><th>Ответ в 15 минут</th><th>Обещания с датой</th><th>Улик</th><th></th></tr>'+
+  tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th>Обещания с датой</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
     rows.map(([m,v],i)=>{const frP=v.fr?Math.round(100*v.frOk/v.fr):null,prP=v.pr?Math.round(100*v.prOk/v.pr):null;
     return `<tr><td><span class="name-l" onclick="openSlice('${esc(m)}')">${esc(m)}</span></td>
     <td>${v.fr?`<b>${v.frOk} из ${v.fr}</b> <span class="cmp ${frP>=50?'up':'dn'}">${frP}%</span>`:'<span class="pill n">пар нет</span>'}</td>
     <td>${v.pr?`<b>${v.prOk} из ${v.pr}</b> <span class="cmp ${prP>=50?'up':'dn'}">${prP}%</span>`:'<span class="pill n">обещаний нет</span>'}</td>
-    <td><b>${v.viol}</b></td>
-    <td><button class="btn ${v.deals.length?'pri':''}" ${v.deals.length?`onclick="kurPanel(${i})"`:'disabled'}>▼ Разбор</button></td></tr>`;}).join('');
+    <td><b>${v.viol}</b> · ${dens(v).toFixed(1)}</td>
+    <td><button class="btn ${v.deals.length?'pri':''}" ${v.deals.length?`onclick="kurPanel(${i})"`:'disabled'}>▼ Разбор</button></td></tr>`;}).join('')+
+    (K.firstLine&&K.firstLine.fr?`<tr><td><span style="color:var(--ink3)">Первая линия (офис)</span></td><td>${K.firstLine.frOk} из ${K.firstLine.fr}</td><td colspan="2" style="color:var(--ink3)">${K.firstLine.viol} ${plural(K.firstLine.viol,['улика','улики','улик'])} - вне таблицы продавцов: регламент продаж к офисной роли не применяется</td><td></td></tr>`:'');
   window.__kurRows=rows;
   const q=K.qual;
-  document.getElementById('kur-qual').textContent=q&&q.out?`Квалификация за неделю по всему отделу (памятка §3): вопрос о бюджете прозвучал ${q.bud} ${plural(q.bud,['раз','раза','раз'])} на ${q.out} исходящих, о сроке - ${q.term}, про ЛПР - ${q.lpr}. ${K.note||''}`:'';
+  document.getElementById('kur-qual').textContent=q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} ${K.note||''}`:'';
 }
 function kurPanel(i){
   const [m,v]=window.__kurRows[i];

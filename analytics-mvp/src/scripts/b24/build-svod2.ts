@@ -158,7 +158,9 @@ const stik = { leads: dlg.leadCount || 0, seen: leadIds.size, note: "по ост
 // ===== КУРАТОР ПО ПАМЯТКЕ v2.3 (согласовано Иваном 03.09: отдел видит всех) =====
 // Правила и точность живут в pamyatka-rules.ts - ЕДИНЫЙ код с ночными фактами
 // (урок ФЕНИКС D1/D7: страница и досье обязаны считаться одним кодом).
-const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash);
+const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").map((m: any) => m.mgr);
+const kIsSeller = (n: string) => kSellers.some((x: string) => sameName(x, n));
+const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash, kIsSeller);
 
 const DATA = {
   meta: {

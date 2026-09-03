@@ -84,6 +84,16 @@ for (const [name, t] of Object.entries(ai.mgrs || {})) {
   const sh = Object.entries(sheets).find(([k]) => tok(k) === tok(name))?.[1];
   if (!sh) { bad(name, 'нет досье'); continue; }
   const all = [t.mini, t.move, t.full].join('\n');
+  // G12 ФЕНИКСА: длинная цитата в «ёлочках» обязана дословно (по нормализации) найтись
+  // в досье менеджера - модель не имеет права выдумывать «цитаты из переписки»
+  // нормализация: ё->е (модель восстанавливает ё), сверка по первым 40 знакам -
+  // заголовки в досье обрезаны на 50, хвост цитаты может быть длиннее
+  const norm = (s) => String(s).toLowerCase().replace(/ё/g, 'е').replace(/[«»"…]/g, '').replace(/[\s ]+/g, ' ').trim();
+  const shNorm = norm(JSON.stringify(sh));
+  for (const qm of all.matchAll(/«([^»]{35,220})»/g)) {
+    const q = norm(qm[1]).slice(0, 40);
+    if (q.length >= 30 && !shNorm.includes(q)) bad(name, 'цитата не из досье (выдумана или искажена): «' + qm[1].slice(0, 80) + '…»');
+  }
   // продажи недели: любые «N продаж/предоплат(ы) за неделю» обязаны равняться wonWeek
   const weekClaims=[...all.matchAll(/(\d+)\s+(?:продаж|предоплат|оплат)[а-яё]*(?:\s+нед|[а-яё\s]{0,14}?\s+(?:за\s+)?недел)/gi)];
   for (const m of weekClaims)

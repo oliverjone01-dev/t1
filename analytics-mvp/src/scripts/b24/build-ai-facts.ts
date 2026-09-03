@@ -66,7 +66,8 @@ for (const m of (sc.managers as any[])) {
 // (pamyatka-rules.ts). ИИ-РОП цитирует конкретные сообщения, а не выдумывает.
 const scByKey: Record<string, any> = {};
 for (const d of (sc.deals as any[])) scByKey[(d.isLead ? "l" : "d") + d.dealId] = d;
-const kur = kuratorAudit(dlg, (k) => scByKey[k] || null, (s) => String(s || "").replace(/\u2014/g, "-"));
+const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").map((m: any) => m.mgr);
+const kur = kuratorAudit(dlg, (k) => scByKey[k] || null, (s) => String(s || "").replace(/\u2014/g, "-"), (n) => kSellers.some((x) => sameName(x, n)));
 for (const [name, s] of Object.entries(sheets)) {
   const km = Object.keys(kur.mgrs).find((x) => sameName(x, name));
   if (!km) continue;

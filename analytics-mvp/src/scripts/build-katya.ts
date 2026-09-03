@@ -1222,18 +1222,14 @@ function renderUecon(a){
     var sku=campSku(c);if(!sku)return;total++;
     var art=c.off||SKU_MAP[sku]||sku;var e=ECON[sku];var sp=c.sp||0,om=c.om||0,drr=c.drr||0; // артикул = название кампании (оффер промо-SKU)
     if(!e||e.be==null){naSp+=sp;rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,na:true,why:e?(e.why||'нет данных'):'нет продаж за период'});return;}
-    // Взвешенно по SKU из РЕАЛЬНОЙ атрибуции (выручка/заказы per-SKU из отчёта продвижения):
-    // эфф. ставка сборов = Σ(выручка_sku×ставка_sku)/Σвыручка_sku; с/с ед. = Σ(с/с_sku×заказы_sku)/Σзаказы_sku.
-    // Веса реальные, применяются к авторитетным итогам кампании. Нет атрибуции (CPO/не собрано) -> главный SKU.
-    var com=e.com, cu=e.cogsRub, wSrc='по главному SKU (нет атрибуции по SKU)';
-    var _rr=repInfo(c.id); var _rows=_rr?_rr.rows:null;
-    if(_rows&&_rows.length){var sOm=0,sOmR=0,sSold=0,sSoldC=0;
-      _rows.forEach(function(s){var es=ECON[String(s.sku)];if(!es)return;
-        if(s.om>0&&es.com!=null){sOm+=s.om;sOmR+=s.om*es.com;}
-        if(s.sold!=null&&s.sold>0&&es.cogsRub!=null){sSold+=s.sold;sSoldC+=s.sold*es.cogsRub;}});
-      if(sOm>0){com=Math.round(sOmR/sOm*10)/10;wSrc='взвешенно по SKU из атрибуции OZON';}
-      if(sSold>0){cu=Math.round(sSoldC/sSold);}}
-    var ord=c.o||0; // заказы кампании ЗА ВЫБРАННЫЙ ПЕРИОД (дневной ряд)
+    // Только по ОСНОВНОЙ карточке кампании (продвигаемый SKU). Выручка и заказы - атрибуция ИМЕННО
+    // этого SKU за выбранный период (в отчёте атрибуции есть только дни, когда кампания работала,
+    // так учитывается и период фильтра, и период действия кампании). Ставка сборов и с/с - его.
+    // Нет атрибуции осн. SKU (одиночная кампания/CPO/не собрано) - фолбэк на итоги кампании.
+    var com=e.com, cu=e.cogsRub, rSrc='итоги кампании (нет атрибуции осн. SKU)';
+    var ord=c.o||0; // заказы (фолбэк - вся кампания)
+    var _ar=attrFor(c.id)||[];
+    for(var _i=0;_i<_ar.length;_i++){if(String(_ar[_i].sku)===String(sku)){om=Math.round(_ar[_i].om||0);ord=_ar[_i].sold||0;drr=om>0?Math.round(sp/om*1000)/10:drr;rSrc='основная карточка (атрибуция OZON за период)';break;}}
     var price=ord>0?Math.round(om/ord):null; // ср цена за период = выручка ÷ заказы
     var comRub=Math.round(om*com/100); // ПОЛНАЯ комиссия за период = выручка × ставка
     var cogsRub=(cu!=null&&ord>0)?cu*ord:null; // ПОЛНАЯ с/с за период = с/с единицы × заказы
@@ -1244,7 +1240,7 @@ function renderUecon(a){
     var priceClient=PRICE_LIVE[String(sku)]!=null?PRICE_LIVE[String(sku)]:null; // текущая цена с витрины
     var profit=Math.round(om*(1-com/100)-(cogsRub||0)); // прибыль до рекламы = выручка − сборы OZON − с/с
     var profitAds=profit-sp; // прибыль ПОСЛЕ рекламы = до рекламы − расход на рекламу
-    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,ord:ord,com:com,cogs:cogsPct,price:price,priceClient:priceClient,comRub:comRub,cogsRub:cogsRub,profit:profit,profitAds:profitAds,be:be,head:head,v:v,wSrc:wSrc});
+    rows.push({camp:c.id,art:art,status:c.status,sp:sp,om:om,drr:drr,ord:ord,com:com,cogs:cogsPct,price:price,priceClient:priceClient,comRub:comRub,cogsRub:cogsRub,profit:profit,profitAds:profitAds,be:be,head:head,v:v,rSrc:rSrc});
   });
   var el=document.getElementById('uecon');var elk=document.getElementById('uecon-kpi');if(!el)return;
   if(!total){el.innerHTML='<tr><td colspan="10" class="kt-note">нет кампаний с продвигаемым SKU за период</td></tr>';if(elk)elk.innerHTML='';return;}
@@ -1261,7 +1257,7 @@ function renderUecon(a){
     if(r.na)return '<tr style="opacity:.65">'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r" colspan="6" style="color:var(--ink-3)">⚪ '+r.why+'</td></tr>';
     var hc=r.head>=7?'var(--up)':(r.head>=0?'#E5B567':'var(--dn)');
     var bec=r.be<0?'<span style="color:var(--dn)">убыток до рекл.</span>':'<b>'+r.be+'%</b>'; // FENIX N1: be<0 словом, не сырым %
-    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+(r.price==null?'—':fmtRu(r.price))+'</td><td class="r">'+(r.comRub==null?'—':fmtRu(r.comRub))+'</td><td class="r" style="color:var(--ink-3)" title="ставка сборов: '+(r.wSrc||'')+'">'+r.com+'%'+(/взвешенно/.test(r.wSrc||'')?' <span style="color:#22D3EE" title="взвешенно по SKU из реальной атрибуции OZON">⚖</span>':'')+'</td><td class="r">'+(r.cogsRub==null?'—':fmtRu(r.cogsRub))+'</td><td class="r" style="color:'+(r.profit>=0?'var(--up)':'var(--dn)')+'">'+(r.profit==null?'—':fmtRu(r.profit))+'</td><td class="r" style="color:'+(r.profitAds>=0?'var(--up)':'var(--dn)')+'"><b>'+(r.profitAds==null?'—':fmtRu(r.profitAds))+'</b></td></tr>';
+    return '<tr>'+nm+'<td class="r">'+fmtRu(r.sp)+'</td><td class="r" title="выручка: '+(r.rSrc||'')+'">'+fmtRu(r.om)+'</td><td class="r">'+(r.drr||0)+'%</td><td class="r">'+(r.price==null?'—':fmtRu(r.price))+'</td><td class="r">'+(r.comRub==null?'—':fmtRu(r.comRub))+'</td><td class="r" style="color:var(--ink-3)">'+r.com+'%</td><td class="r">'+(r.cogsRub==null?'—':fmtRu(r.cogsRub))+'</td><td class="r" style="color:'+(r.profit>=0?'var(--up)':'var(--dn)')+'">'+(r.profit==null?'—':fmtRu(r.profit))+'</td><td class="r" style="color:'+(r.profitAds>=0?'var(--up)':'var(--dn)')+'"><b>'+(r.profitAds==null?'—':fmtRu(r.profitAds))+'</b></td></tr>';
   }).join('');
 }
 function setAds(s,msg){var d=document.getElementById('ads-dot'),m=document.getElementById('ads-msg');if(!d||!m)return;d.style.background=s==='ok'?'#34D399':(s==='warn'?'#FF5A5F':'#E5B567');m.textContent=msg;}

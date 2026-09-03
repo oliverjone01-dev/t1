@@ -1,14 +1,14 @@
 // Smoke СВОД v2: исполняем собранный HTML, пересчитываем цифры независимо, кликаем
 // интерактив, проверяем запрещённые формулировки. Guard'ы числовые (уроки ФЕНИКС v1):
 // presence-чеки без пересчёта не принимаются.
-import {readFileSync} from 'node:fs';
+import {readFileSync,writeFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const html=readFileSync('public/svod2.html','utf-8');
 const errors=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',beforeParse(w){w.addEventListener('error',e=>errors.push(e.message));}});
 const d=dom.window.document;
 const t=id=>d.getElementById(id)?.textContent||'';
-let fail=0;const ck=(n,ok,extra)=>{console.log((ok?'OK  ':'FAIL')+' '+n+(ok||extra==null?'':' | '+extra));if(!ok)fail++;};
+let fail=0,total=0;const ck=(n,ok,extra)=>{total++;console.log((ok?'OK  ':'FAIL')+' '+n+(ok||extra==null?'':' | '+extra));if(!ok)fail++;};
 const DATA=dom.window.eval('DATA');
 const HIST=DATA.hist,last=HIST[HIST.length-1];
 const BADQ=['waiting','ready','silent','nostep','nopush','fakedone','internal','overdue','promise','refuse','objection','lowprob'];
@@ -174,6 +174,25 @@ try{
   const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol,0);
   const tblSum=[...d.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
   ck('куратор Б2(а): сумма улик таблицы = сумме payload',tblSum===paySum,tblSum+' vs '+paySum);
+  // K3 ФЕНИКСА: второй независимый инвариант - ключи payload СТРОГО равны строкам ростера
+  // (никакой токенизации: расщепление «Татьяна Лакомова»/«Лакомова Татьяна» валит его)
+  ck('куратор K3: ключи payload строго === именам ростера',Object.keys(K.mgrs).every(k2=>roster.includes(k2)),Object.keys(K.mgrs).filter(k2=>!roster.includes(k2)).join(', '));
+  // K4 ФЕНИКСА: калибровка с правилом <90% - бейдж и таблица пересчитываются, а не прячут
+  // улики молча; проверяется на подложенном файле разметки
+  try{
+    writeFileSync('/tmp/kcal-test.json',JSON.stringify({measuredAt:'тест',by:'smoke',sampleRef:'фикстура',byRule:{R1:{n:30,ok:9}}}));
+    execSync('KCAL_JSON=/tmp/kcal-test.json OUT=/tmp/svod2-cal.html HIST_JSON='+(process.env.HIST_JSON||'dialog/data/history.json')+' ROP_JSON='+(process.env.ROP_JSON||'/tmp/rop.json')+' npx tsx src/scripts/b24/build-svod2.ts',{stdio:'pipe'});
+    const chtml=readFileSync('/tmp/svod2-cal.html','utf-8');
+    const cdom=new JSDOM(chtml,{runScripts:'dangerously'});
+    const cd=cdom.window.document;
+    const cK=cdom.window.eval('DATA').kurator;
+    const hidR1=Object.entries(cK.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+((v.byRule||{}).R1||0),0);
+    const expTot=paySum-hidR1;
+    const cTbl=[...cd.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
+    ck('куратор K4: при калибровке R1<90% таблица = payload минус скрытые',cTbl===expTot,cTbl+' vs '+expTot+' (спрятано R1: '+hidR1+')');
+    ck('куратор K4: бейдж пересчитан по отфильтрованным',(cd.getElementById('kur-total')?.textContent||'').includes(String(expTot)));
+    ck('куратор K4: провенанс разметки печатается',(cd.getElementById('kur-qual')?.textContent||'').includes('smoke'));
+  }catch(e){ck('куратор K4: калиброванная сборка прошла',false,String(e.message||e).slice(0,160));}
   // МУТАЦИОННЫЕ фикстуры движка (G11 ФЕНИКСА): синтетика с известным ответом,
   // любой дрейф правил валит tsx-прогон - литеральных grep-гвардов больше нет
   let fixOut='';
@@ -220,5 +239,5 @@ try{
 }
 // --- JS-ошибки последними
 ck('нет JS-ошибок за весь прогон',errors.length===0);if(errors.length)console.log(errors.slice(0,5));
-console.log(fail?`SMOKE FAIL: ${fail}`:'SMOKE PASS: все проверки зелёные');
+console.log(fail?`SMOKE FAIL: ${fail} из ${total}`:`SMOKE PASS: ${total}/${total} проверок зелёные`);
 process.exit(fail?1:0);

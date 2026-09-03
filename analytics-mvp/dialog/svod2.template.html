@@ -874,29 +874,38 @@ const KFIX={R1:'Холдинг-сообщение в 15 минут: «Имя, д
 function renderKurator(){
   const K=DATA.kurator;const tb=document.getElementById('kur-table');
   if(!K||!K.mgrs){if(tb)tb.innerHTML='';const t2=document.getElementById('kur-total');if(t2)t2.textContent='';return;}
-  /* калибровка (условие 4 песочницы ФЕНИКСА): правило с измеренной точностью <90% скрыто */
+  /* калибровка (условие 4 песочницы ФЕНИКСА): правило с измеренной точностью <90% скрыто.
+     K1: ВСЕ числа - бейдж, колонка, плотность - считаются от отфильтрованных улик,
+     а не от сырого viol: цифра без показываемого доказательства запрещена */
   const cal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
   const ruleOk=r=>{if(!cal||!cal[r]||!cal[r].n)return true;return 100*cal[r].ok/cal[r].n>=90;};
   const hideV=v=>!ruleOk(v.r);
+  const hiddenRules=cal?Object.keys(KRULE).filter(r=>!ruleOk(r)):[];
+  const effViol=v=>{if(!cal)return v.viol;const br=v.byRule||{};return Math.max(0,v.viol-hiddenRules.reduce((s2,r)=>s2+(br[r]||0),0));};
   /* B1 ФЕНИКСА: строка на КАЖДОГО продавца ростера, даже пустого - канон имён в движке */
   const sellers=DATA.managers.filter(m=>m.role!=='office').map(m=>m.mgr);
-  const dens=v=>v.out?v.viol/v.out*10:0; /* плотность, не абсолют (G10) */
-  const rows=sellers.map(m=>{const v=K.mgrs[m]||{fr:0,frOk:0,pr:0,prOk:0,out:0,viol:0,deals:[]};
+  /* K2: плотность ранжирует только выборки от minSample сообщений - «1 улика на
+     1 сообщении» не может возглавлять отдел; мелкие выборки отдельной группой внизу */
+  const MINS=DATA.minSample||10;
+  const dens=v=>v.out?v.eff/v.out*10:0;
+  const rows=sellers.map(m=>{const v=K.mgrs[m]||{fr:0,frOk:0,pr:0,prOk:0,out:0,viol:0,byRule:{},deals:[]};
     const deals=(v.deals||[]).map(d2=>({...d2,viol:d2.viol.filter(x=>!hideV(x))})).filter(d2=>d2.viol.length);
-    return [m,{...v,deals}];}).sort((a,b)=>dens(b[1])-dens(a[1]));
-  const tot=rows.reduce((s2,[,v])=>s2+v.viol,0);
-  document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю';
+    return [m,{...v,deals,eff:effViol(v)}];})
+    .sort((a,b)=>{const sa=a[1].out>=MINS?1:0,sb=b[1].out>=MINS?1:0;if(sa!==sb)return sb-sa;return dens(b[1])-dens(a[1]);});
+  const tot=rows.reduce((s2,[,v])=>s2+v.eff,0);
+  document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю'+(cal?' (по правилам с точностью от 90%)':'');
   tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th>Обещания с датой</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
     rows.map(([m,v],i)=>{const frP=v.fr?Math.round(100*v.frOk/v.fr):null,prP=v.pr?Math.round(100*v.prOk/v.pr):null;
+    const small=v.out<MINS;
     return `<tr><td><span class="name-l" onclick="openSlice('${esc(m)}')">${esc(m)}</span></td>
     <td>${v.fr?`<b>${v.frOk} из ${v.fr}</b> <span class="cmp ${frP>=50?'up':'dn'}">${frP}%</span>`:'<span class="pill n">пар нет</span>'}</td>
     <td>${v.pr?`<b>${v.prOk} из ${v.pr}</b> <span class="cmp ${prP>=50?'up':'dn'}">${prP}%</span>`:'<span class="pill n">обещаний нет</span>'}</td>
-    <td><b>${v.viol}</b> · ${dens(v).toFixed(1)}</td>
+    <td>${cal&&v.eff===0&&v.viol>0?'<span class="pill n">улик по надёжным правилам нет</span>':`<b>${v.eff}</b> · ${small?'<span class="pill n" data-t="меньше '+MINS+' сообщений за неделю - плотность не ранжируется">мало данных</span>':dens(v).toFixed(1)}`}</td>
     <td><button class="btn ${v.deals.length?'pri':''}" ${v.deals.length?`onclick="kurPanel(${i})"`:'disabled'}>▼ Разбор</button></td></tr>`;}).join('')+
     (K.firstLine&&K.firstLine.fr?`<tr><td><span style="color:var(--ink3)">Первая линия (офис)</span></td><td>${K.firstLine.frOk} из ${K.firstLine.fr}</td><td colspan="2" style="color:var(--ink3)">${K.firstLine.viol} ${plural(K.firstLine.viol,['улика','улики','улик'])} - вне таблицы продавцов: регламент продаж к офисной роли не применяется</td><td></td></tr>`:'');
   window.__kurRows=rows;
   const q=K.qual;
-  const calLine=cal?`Точность по разметке ${esc(K.calibration.measuredAt||'')}: `+Object.entries(cal).map(([r,c])=>`${r} ${c.n?Math.round(100*c.ok/c.n):'-'}% (${c.ok}/${c.n})`).join(', ')+' - правила с точностью ниже 90% скрыты. ':'Ручная разметка улик ещё не проводилась - точность детекторов не измерена. ';
+  const calLine=cal?`Точность по разметке ${esc(K.calibration.measuredAt||'')}${K.calibration.by?' ('+esc(K.calibration.by)+(K.calibration.sampleRef?', выборка '+esc(K.calibration.sampleRef):'')+')':''}: `+Object.entries(cal).map(([r,c])=>`${r} ${c.n?Math.round(100*c.ok/c.n):'-'}% (${c.ok}/${c.n})`).join(', ')+' - правила с точностью ниже 90% скрыты вместе со своими счётчиками. ':'Ручная разметка улик ещё не проводилась - точность детекторов не измерена. ';
   document.getElementById('kur-qual').textContent=(q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} `:'')+calLine+`Почтовый канал (письма-треды) в разбор пока не входит - жалобы почтой движок не видит, это фаза 2. ${K.note||''}`;
 }
 function kurPanel(i){

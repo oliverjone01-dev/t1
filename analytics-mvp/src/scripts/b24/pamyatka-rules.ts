@@ -35,7 +35,7 @@ export const KURATOR_RULES: Record<string, string> = {
 export type KViol = { r: string; q: string; d: string };
 export type KDeal = { id: any; lead: number; m: string; t: string; b: number; viol: KViol[] };
 export type Kurator = {
-  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; viol: number; deals: KDeal[] }>;
+  mgrs: Record<string, { fr: number; frOk: number; pr: number; prOk: number; out: number; viol: number; byRule: Record<string, number>; deals: KDeal[] }>;
   firstLine: { fr: number; frOk: number; viol: number; authors: string[] };
   qual: { bud: number; term: number; lpr: number; out: number; note: string };
   note: string;
@@ -81,7 +81,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
   const dealEv: Record<string, KDeal> = {};
   const qual = { bud: 0, term: 0, lpr: 0, out: 0, note: "по списку зашитых формулировок; полнота детектора не измерена - «не найдено» значит «не найдено этим списком», а не «не спрашивали»" };
   // per-author копилки: улика принадлежит АВТОРУ сообщения (G2 ФЕНИКСА)
-  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, viol: 0, deals: [] });
+  const st = (a: string) => (mgrs[a] ||= { fr: 0, frOk: 0, pr: 0, prOk: 0, out: 0, viol: 0, byRule: {}, deals: [] });
   const violByDeal: Record<string, { author: string; v: KViol }[]> = {};
   for (const [k, list] of Object.entries(evByObj)) {
     const win = list.filter((e) => +e.ts >= WIN_FROM && +e.ts <= WIN_TO);
@@ -174,7 +174,7 @@ export function kuratorAudit(dlg: any, dealLookup: (k: string) => any, clip: (s:
     if (!uniq.length) continue;
     const d = dealLookup(k);
     const win0 = evByObj[k].find((e) => +e.ts >= WIN_FROM) || evByObj[k][0];
-    for (const it of uniq) st(it.author).viol++;
+    for (const it of uniq) { const s2 = st(it.author); s2.viol++; s2.byRule[it.v.r] = (s2.byRule[it.v.r] || 0) + 1; }
     const byAuthor: Record<string, KViol[]> = {};
     for (const it of uniq) (byAuthor[it.author] ||= []).push(it.v);
     for (const [author, vs] of Object.entries(byAuthor)) {

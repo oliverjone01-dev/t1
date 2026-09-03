@@ -163,7 +163,7 @@ const kSellers = (sc.managers as any[]).filter((m: any) => m.role !== "office").
 const kCanon = (n: string) => kSellers.find((x: string) => sameName(x, n)) || null;
 const kurator = kuratorAudit(dlg, (k) => scByKey[k] || null, noDash, kCanon);
 // калибровка детекторов (условие 4 песочницы ФЕНИКСА): файл разметки, если есть
-const KCAL = "dialog/data/kurator-calibration.json";
+const KCAL = process.env.KCAL_JSON || "dialog/data/kurator-calibration.json";
 (kurator as any).calibration = existsSync(KCAL) ? JSON.parse(readFileSync(KCAL, "utf-8")) : null;
 
 const DATA = {

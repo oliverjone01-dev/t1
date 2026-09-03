@@ -50,7 +50,7 @@ writeFileSync(HIST_PATH, JSON.stringify(hist));
 const chainPrev = {};
 if (prevEntry) for (const c of prevEntry.chain) chainPrev[c.key] = { pL: c.pL, pF: c.pF };
 
-const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, chainPrev, chainPrevAt: prevEntry ? prevEntry.gen : null, deals: J.deals };
+const payload = { generated_at: J.generated_at, bakedAt: BAKED_AT, since: J.since || null, portal: PORTAL, order: ORDER, short: SHORT, etid: etidByKey, stageOrder: STAGE_ORDER, spStages: J.spStages || {}, rank: RANK, prodRank: PROD_RANK, moveDate: MOVE_DATE, spTimeline: SP_TL, chainPrev, chainPrevAt: prevEntry ? prevEntry.gen : null, deals: J.deals };
 
 // Справка по полям смартов: что учитывается в Σ с/с (генерируется из метаданных полей)
 const ITOG_S = /производственная с\/с|с\/?с итог|расчет с\/с итого|себестоимость производ/i;
@@ -169,6 +169,7 @@ a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 .izd .izcol{color:var(--accent);text-align:center;width:22px}
 .izd .iname{color:var(--ink-2);padding-left:6px;max-width:340px;overflow:hidden;text-overflow:ellipsis}
 .art-code{color:var(--ink-4);font-size:10px;font-variant-numeric:tabular-nums}
+.izst{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:6px;margin-right:6px;vertical-align:middle;white-space:nowrap}
 .atype{font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(90,140,200,.14);border:1px solid rgba(90,140,200,.3);color:var(--ink-2);white-space:nowrap;margin-left:4px}
 .mpct{font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .mpct.dn{color:var(--dn,#e0687a)}
@@ -380,6 +381,20 @@ function ssCell(d,ss){ const r=readiness(d);
   return '<td class="num" title="с/с за партию · '+esc(r.txt)+'">'+(ss?fmt(ss):'<span class="cell-o">-</span>')+' <span class="rdbar '+r.cls+'"><i></i><i></i><i></i></span></td>';
 }
 // разворот сделки - панель: по каждому изделию с/с по смартам со ссылками
+// Текущий этап изделия по смарт-процессам + прогресс по цепочке (Калькулятор→…→Монтаж).
+// Берём самый дальний по цепочке смарт с живой карточкой, внутри него - позицию этапа (по SORT).
+// prog: 0 = самый ранний этап, 1 = ближе к закрытию (SUCCESS/конец цепочки).
+function izdStageInfo(g){ let idx=-1,card=null,key=null;
+  for(let i=0;i<ORDER.length;i++){ const e=g.sp[ORDER[i]]; if(e&&e.cards&&e.cards.length){ idx=i; card=e.cards[e.cards.length-1]; key=ORDER[i]; } }
+  if(idx<0||!card) return null;
+  const stages=(DATA.spStages&&DATA.spStages[String(card.etid)])||[]; const live=stages.filter(s=>!s.fail);
+  let frac=0.5, name=SMFULL[key]||key, fail=false; const cur=stages.find(s=>s.code===card.st);
+  if(cur){ name=cur.name||name; if(cur.fail){fail=true;frac=1;} else if(cur.success){frac=1;} else { const p=live.findIndex(s=>s.code===cur.code); frac=(live.length>1&&p>=0)?p/(live.length-1):0.5; } }
+  return {prog:Math.max(0,Math.min(1,(idx+frac)/ORDER.length)), name, smart:SMFULL[key]||key, fail}; }
+// Оттенок по прогрессу: светлее ранние, темнее ближе к закрытию (dark-тема, зелёная шкала).
+function izdShade(p){ const L=Math.round(46-p*32); return {bg:'hsl(162,42%,'+L+'%)', fg:(L>32?'#06231b':'#dff7ee')}; }
+function izdBadge(g){ const si=izdStageInfo(g); if(!si) return '';
+  const sh=izdShade(si.prog); return '<span class="izst" style="background:'+sh.bg+';color:'+sh.fg+(si.fail?';outline:1px solid var(--dn)':'')+'" title="Этап смарт-процесса '+esc(si.smart)+': '+esc(si.name)+(si.fail?' (провал)':'')+' · чем темнее, тем ближе к закрытию">'+esc(si.name.length>20?si.name.slice(0,20)+'…':si.name)+'</span> '; }
 function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
   if(izd.length){
     inner+='<table class="ptab"><tr><th>Изделие (НС/артикул)</th><th>Кол-во</th>'+ORDER.map(k=>'<th>'+esc(SMFULL[k]||k)+'</th>').join('')+'<th>Σ с/с</th></tr>';
@@ -388,7 +403,7 @@ function detailRow(d){ const izd=izdelia(d), svc=svcRows(d); let inner='';
         if(e&&e.cards&&e.cards.length) return '<td class="num"><a class="nocs" href="'+spUrl(e.cards[0].etid,e.cards[0].id)+'" target="_blank" onclick="event.stopPropagation()">нет с/с</a></td>';
         return '<td class="num cell-o">·</td>'; }).join('');
       const ssTot=((g.sp['Производство  GG']&&g.sp['Производство  GG'].vB)||(g.sp['Расчёт']&&g.sp['Расчёт'].vB)||0)+((g.sp['Закупка']&&g.sp['Закупка'].vB)||0);
-      inner+='<tr><td class="pnm" title="'+esc(g.nm||'')+'"><span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span> '+esc(cleanNm(g.nm).slice(0,50))+'</td><td class="num">'+(g.qty?g.qty+' шт':'')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td></tr>'; }
+      inner+='<tr><td class="pnm" title="'+esc(g.nm||'')+'">'+izdBadge(g)+'<span class="art-code">'+esc(g.art||g.ns||('#'+g.firstId))+'</span> '+esc(cleanNm(g.nm).slice(0,50))+'</td><td class="num">'+(g.qty?g.qty+' шт':'')+'</td>'+cells+'<td class="num">'+(ssTot?fmt(ssTot):'<span class="cell-o">-</span>')+'</td></tr>'; }
     inner+='</table>';
   }
   if(svc.length){ inner+='<div class="pusl"><b>Услуги:</b> '+svc.map(p=>esc(p.name)+' - '+fmt((+p.price||0)*(+p.qty||0))).join(' · ')+'</div>'; }
@@ -573,7 +588,7 @@ function izdelia(d){
     const it=g[key]=g[key]||{art:c.art||'',ns:nsCode(c.nm),firstId:c.id,qty:0,sp:{},nm:''};
     if((+c.qty||0)>it.qty)it.qty=+c.qty||0;
     if(c.nm&&c.nm.length>(it.nm||'').length)it.nm=c.nm; // самое полное название изделия из заголовка карточки
-    const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid}); } }
+    const e=it.sp[s.key]=it.sp[s.key]||{vU:0,vB:0,cards:[]}; e.vU+=ss; e.vB+=cardBatch(c); e.cards.push({id:c.id,etid:s.etid,st:c.st}); } }
   // строка изделия имеет смысл, если по нему есть с/с или дошло до Расчёта/Производства (там живёт единый НС-номер)
   return Object.values(g).filter(it=>Object.values(it.sp).some(e=>e.vB>0)||(it.sp['Расчёт']&&it.sp['Расчёт'].cards.length)||(it.sp['Производство  GG']&&it.sp['Производство  GG'].cards.length));
 }

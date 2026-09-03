@@ -84,6 +84,14 @@ jobs:
         run: |
           set -euo pipefail
           npm run pnl:realization
+      - name: Бэкфилл рекламы по SKU (все кампании CPC+CPO, большой бюджет)
+        env:
+          ADS_SKU_BUDGET_MIN: "40"
+        run: |
+          set -euo pipefail
+          # data/ads_sku_daily.ndjson: расход рекламы по SKU по дням из Performance API (все кампании).
+          # Отчёты OZON медленные - самовосстанавливающийся ряд, недобранное догрузит ночной синк.
+          npm run ads:sku:daily || echo "::warning::реклама по SKU не обновлена"
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |
@@ -235,6 +243,15 @@ jobs:
           # data/realization_monthly.ndjson: реализовано/возвращено по SKU за месяц (основа УПД).
           # Перетягивает текущий + предыдущий месяц (доначисления/поздние возвраты). Без кредов - пропуск.
           npm run pnl:realization || echo "::warning::месячная реализация не обновлена"
+
+      - name: Реклама по SKU (перетяжка хвоста, все кампании)
+        env:
+          ADS_SKU_BUDGET_MIN: "8"
+        run: |
+          set -euo pipefail
+          # data/ads_sku_daily.ndjson: расход рекламы по SKU (CPC+CPO). Перетяжка хвоста 45 дн,
+          # бюджет ~8 мин (отчёты OZON медленные). Без Perf-кредов - пропуск.
+          npm run ads:sku:daily || echo "::warning::реклама по SKU не обновлена"
 
       - name: Пересборка сайта из свежих снимков
         run: |

@@ -37,8 +37,16 @@ function main() {
     unmatched.add(model || "(нет в таксономии) " + (s.offer || s.name));
   }
 
+  // ВАЖНО: раньше СС писалась только для SKU из живого снимка 30 дн. Но аналитика/реализация
+  // по SKU за период включает и артикулы вне снимка (продавались раньше, малоактивны и т.п.) -
+  // по ним СС терялась, хотя в листе она есть. Дозаписываем СС для ВСЕХ артикулов листа с прямым
+  // ключом по SKU, чтобы любой реализованный SKU получил свою производственную СС.
+  let nExtra = 0;
+  for (const [sku, cost] of skuCost) { if (!(sku in map)) { map[sku] = cost; nExtra++; } }
+
   writeFileSync("data/sku_cogs.json", JSON.stringify(map, null, 0));
   const nCov = nDirect + nFuzzyNew + nFuzzyOld;
+  console.log(`Плюс ${nExtra} SKU из листа СС вне живого снимка (прямой ключ) - чтобы не терять СС по неактивным артикулам.`);
   console.log(`СС произв.: ${prodRows.length} строк (ключ по SKU), ${prodModelRows.length} моделей для fuzzy.`);
   console.log(`Связка sku->СС: ${nCov}/${nSku} SKU (${Math.round((nCov / nSku) * 100)}%): прямой SKU ${nDirect}, fuzzy(новый лист) ${nFuzzyNew}, fuzzy(старый лист) ${nFuzzyOld}. Покрытие оборота ${Math.round((revCov / revTotal) * 100)}%.`);
   console.log(`Не сматчено: ${unmatched.size}. Примеры: ${[...unmatched].slice(0, 12).join(" | ")}`);

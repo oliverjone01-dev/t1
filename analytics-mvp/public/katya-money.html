@@ -688,7 +688,7 @@
 </header>
 <main class="main">
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. План - из plan_monthly.json (заполняется вручную), факт - по API за выбранный месяц. Выполнение = факт / план. Для рекламы это потолок бюджета: ≤100% (в рамках) зелёным, перерасход - красным.</div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Показатель</th><th class="r">План</th><th class="r">Факт</th><th class="r">Выполнение</th></tr></thead><tbody id="plan"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. Факт - по API за выбранный месяц; выполнение = факт / план. Реклама - потолок бюджета: до краёв зелёным = в рамках, перелив красным = перерасход. <a href="https://github.com/oliverjone01-dev/t1/edit/claude/focused-davinci-tKJCt/analytics-mvp/data/plan_monthly.json" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям; чистая прибыль - только по закрытым месяцам ниже.</div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сборы по статьям</div><div class="card-sub">за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Статья</th><th class="r">Сумма, ₽</th></tr></thead><tbody id="fees"></tbody></table></div></section>
@@ -893,14 +893,38 @@ function monthTotals(ym){
   var net=(amt-cc)-0.45*amtS,rent=amt?net/amt*100:0;
   return {ad:-adv,rev:rev,realized:realized,net:net,rent:rent};
 }
+// «Колбочка»: SVG-флакон, залитый снизу до уровня выполнения (0-100% визуально), с цветом статуса.
+function planFlask(i,lvl,color){
+  var L=Math.max(0,Math.min(100,lvl||0));
+  var top=8,bot=86,H=bot-top;var px=L/100*H;var ly=bot-px; // высота заливки
+  var d='M26,8 L38,8 L38,34 L53,80 Q53,86 47,86 L17,86 Q11,86 11,80 L26,34 Z';
+  return '<svg viewBox="0 0 64 96" width="66" height="98" style="overflow:visible">'
+    +'<defs><clipPath id="fc'+i+'"><path d="'+d+'"/></clipPath>'
+    +'<linearGradient id="fg'+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.95"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.6"/></linearGradient></defs>'
+    +'<path d="'+d+'" fill="rgba(255,255,255,.04)"/>'
+    +'<rect x="0" y="'+ly.toFixed(1)+'" width="64" height="'+px.toFixed(1)+'" fill="url(#fg'+i+')" clip-path="url(#fc'+i+')"/>'
+    +'<path d="'+d+'" fill="none" stroke="var(--bd)" stroke-width="2"/>'
+    +'<rect x="22" y="4" width="20" height="4.5" rx="2.25" fill="var(--ink-3)"/>'
+    +'</svg>';
+}
 function renderPlan(ym){
   var el=document.getElementById('plan');if(!el)return;var a=monthTotals(ym),p=(AN_PLAN[ym]||{});
-  var rows=[['Реклама, расход ₽',p.adSpend,a.ad,'cap'],['Рентабельность, %',p.rentab,a.rent,'pct'],['Выручка/продажи, ₽',p.revenue,a.rev,'up'],['Реализация, шт',p.realized,a.realized,'up'],['Чистая прибыль, ₽',p.netProfit,a.net,'up']];
-  el.innerHTML=rows.map(function(r){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],isPct=(kind==='pct');
-    var planS=(plan==null||plan==='')?'<span style="color:var(--ink-3)">— задай цель</span>':(isPct?plan+'%':fmtRu(Math.round(plan)));
-    var factS=isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact));var pctS='—';
-    if(plan!=null&&plan!==''&&plan!=0){var pct=fact/plan*100,color;if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));pctS='<b style="color:'+color+'">'+Math.round(pct)+'%</b>';}
-    return '<tr><td>'+lab+'</td><td class="r">'+planS+'</td><td class="r">'+factS+'</td><td class="r">'+pctS+'</td></tr>';}).join('');
+  var rows=[['Реклама',p.adSpend,a.ad,'cap','₽'],['Рентабельность',p.rentab,a.rent,'pct','%'],['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Чистая прибыль',p.netProfit,a.net,'up','₽']];
+  el.innerHTML=rows.map(function(r,i){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],unit=r[4],isPct=(unit==='%');
+    var planS=(plan==null||plan==='')?'—':(isPct?plan+'%':fmtRu(Math.round(plan)));
+    var factS=isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact));
+    var pct=null,color='var(--ink-3)',lvl=0;
+    if(plan!=null&&plan!==''&&plan!=0){pct=fact/plan*100;lvl=pct;
+      if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');
+      else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));}
+    var pctTxt=(pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>';
+    return '<div style="width:132px;text-align:center">'
+      +planFlask(i,lvl,color)
+      +'<div style="margin-top:2px">'+pctTxt+'</div>'
+      +'<div style="font-weight:600;font-size:12.5px;margin-top:4px">'+lab+'</div>'
+      +'<div style="color:var(--ink-2);font-size:11px;margin-top:2px">факт '+factS+'</div>'
+      +'<div style="color:var(--ink-3);font-size:11px">план '+planS+'</div>'
+      +'</div>';}).join('');
 }
 var planInited=false;
 function initPlan(){

@@ -794,7 +794,7 @@ function anCells(x){
   // АДМ и налоги - только с К выплате по SKU, где ЕСТЬ продажи (amtS). По чистым расходам
   // (SKU без продаж, сборы кабинета) АДМ/налоги не начисляем. Рентаб = чистая / К выплате.
   var gp=(x.amt||0)-(x.cc||0), adm=0.30*(x.amtS||0), tax=0.15*(x.amtS||0), net=gp-adm-tax;
-  var rent=x.amt?net/x.amt*100:null;
+  var rent=(x.amt>0)?net/x.amt*100:null; // база «К выплате»<=0 -> рентаб не определена (не считаем ложный плюс)
   var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
   var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
   var P=function(v){var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
@@ -890,7 +890,7 @@ function monthTotals(ym){
   var adv=0,f=0,rf=0,bd=0,ot=0;
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;adv+=r[1];f+=r[2];rf+=r[3];bd+=r[4];ot+=r[6];}
   var acctNet=adv+f+rf+bd+ot;amt+=acctNet;amtS+=acctNet;
-  var net=(amt-cc)-0.45*amtS,rent=amt?net/amt*100:0;
+  var net=(amt-cc)-0.45*amtS,rent=(amt>0)?net/amt*100:null; // рентаб только при положительной базе «К выплате»
   return {ad:-adv,rev:rev,realized:realized,net:net,rent:rent};
 }
 // «Колбочка»: SVG-флакон, залитый снизу до уровня выполнения (0-100% визуально), с цветом статуса.
@@ -912,12 +912,14 @@ function renderPlan(ym){
   var rows=[['Реклама',p.adSpend,a.ad,'cap','₽'],['Рентабельность',p.rentab,a.rent,'pct','%'],['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Чистая прибыль',p.netProfit,a.net,'up','₽']];
   el.innerHTML=rows.map(function(r,i){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],unit=r[4],isPct=(unit==='%');
     var planS=(plan==null||plan==='')?'—':(isPct?plan+'%':fmtRu(Math.round(plan)));
-    var factS=isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact));
+    var noFact=(fact==null); // рентаб не определена (база «К выплате»<=0, месяц убыточный)
+    var factS=noFact?'н/д':(isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact)));
     var pct=null,color='var(--ink-3)',lvl=0;
-    if(plan!=null&&plan!==''&&plan!=0){pct=fact/plan*100;lvl=pct;
+    if(noFact){color='var(--dn)';lvl=0;}
+    else if(plan!=null&&plan!==''&&plan!=0){pct=fact/plan*100;lvl=pct;
       if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');
       else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));}
-    var pctTxt=(pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>';
+    var pctTxt=noFact?'<b style="color:var(--dn);font-size:18px">н/д</b>':((pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>');
     return '<div style="width:132px;text-align:center">'
       +planFlask(i,lvl,color)
       +'<div style="margin-top:2px">'+pctTxt+'</div>'

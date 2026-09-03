@@ -117,11 +117,13 @@ jobs:
           }
           // Рабочие дни этого месяца (пн-пт до сегодня) - знаменатель «дней невыполнения» по каждому.
           const WD=[];{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6)WD.push(dt.toISOString().slice(0,10));}}
+          // Прирост портфеля показываем ЗА ВЧЕРА (утром «за сегодня» почти пусто - день только начался).
+          const YEST=new Date(new Date(TODAY+'T00:00:00Z').getTime()-864e5).toISOString().slice(0,10);
           const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
             const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;
             const dec=my.filter(x=>x.stageCode==='C49:3').length;
             const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
-            const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
+            const neu=my.filter(x=>(x.created||'').slice(0,10)===YEST||firstKP(x)===YEST).length;
             let pN=0,pR=0,tN=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);pDays.add(dd);if(dd===TODAY)tN++;}});
             const miss=WD.filter(d=>!pDays.has(d)).length;
             dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
@@ -151,7 +153,7 @@ jobs:
           const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
           const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+(HANDLE[r.m]?(' @'+HANDLE[r.m]):'')+'\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+' · '+r.miss+' дн без предоплат';
           const table=rows.map(mgrLine).join('\n');
-          let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за день)'):'')+'\n';
+          let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за вчера)'):'')+'\n';
           sum+='Цель 700к/день · 20 млн/мес\n';
           sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';
           sum+='Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих без предоплаты)';

@@ -32,6 +32,23 @@ export function parseCogs(text: string): CogsRow[] {
   return out;
 }
 
+// Производственная СС с прямым ключом по SKU (лист «Copy of СС GEN - OZON»,
+// экспорт fixtures/cogs_prod_sku.csv: sku, offer, model, cost_prod). Точнее нечёткого
+// матча по имени модели - привязка прямо к артикулу OZON.
+export interface CogsSkuRow { sku: string; offer: string; model: string; cost: number; }
+export function parseCogsSku(text: string): CogsSkuRow[] {
+  const rows = parseCsv(text);
+  const out: CogsSkuRow[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i]!;
+    const sku = (r[0] || "").trim();
+    const cost = parseCogsNumber(r[3] || "");
+    if (!/^\d+$/.test(sku) || cost <= 0) continue;
+    out.push({ sku, offer: (r[1] || "").trim(), model: (r[2] || "").trim(), cost });
+  }
+  return out;
+}
+
 // Синонимы материалов (в листе и таксономии называют по-разному).
 const SYN: Record<string, string> = {
   STONE: "KER", КЕРАМИЧЕСКИЙ: "KER", КЕРАМИЧЕСКИ: "KER", КЕРАМОГРАНИТ: "KER", КЕРАМ: "KER", КЕРАМИЧ: "KER",

@@ -72,13 +72,39 @@ jobs:
           set -euo pipefail
           npx tsx src/scripts/ozon/pnl-sku-breakdown.ts 2026-06-01 2026-06-30 data/pnl_sku_2026-06.json
           npx tsx src/scripts/ozon/pnl-sku-breakdown.ts 2026-07-01 2026-07-31 data/pnl_sku_2026-07.json
+      - name: Полный бэкфилл per-SKU финансов по дням (для раздела «Аналитика по SKU»)
+        run: |
+          set -euo pipefail
+          npm run pnl:sku:daily
+      - name: Полный бэкфилл сборов уровня заказа/кабинета по дням
+        run: |
+          set -euo pipefail
+          npm run pnl:account:daily
+      - name: Полный бэкфилл месячной реализации по SKU (УПД)
+        run: |
+          set -euo pipefail
+          npm run pnl:realization
+      - name: Каталожный маппинг SKU -> артикул (offer_id)
+        run: |
+          set -euo pipefail
+          # data/sku_offer.json: SKU -> артикул по всему каталогу (product/info/stocks, накопительно).
+          # Чтобы у старых/неактивных SKU в дашборде был артикул, а не числовой ID. Без кредов - пропуск.
+          npm run offer:sku || echo "::warning::маппинг артикулов не обновлён"
+      - name: Бэкфилл рекламы по SKU (все кампании CPC+CPO, большой бюджет)
+        env:
+          ADS_SKU_BUDGET_MIN: "40"
+        run: |
+          set -euo pipefail
+          # data/ads_sku_daily.ndjson: расход рекламы по SKU по дням из Performance API (все кампании).
+          # Отчёты OZON медленные - самовосстанавливающийся ряд, недобранное догрузит ночной синк.
+          npm run ads:sku:daily || echo "::warning::реклама по SKU не обновлена"
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |
           set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A analytics-mvp/data/pnl_sku_2026-06.json analytics-mvp/data/pnl_sku_2026-07.json
+          git add -A analytics-mvp/data/
           if git diff --staged --quiet; then echo "финансы без изменений"; exit 0; fi
           git commit -m "data: финансы по SKU июнь/июль 2026 (для Excel)"
           for i in 1 2 3 4 5; do
@@ -201,6 +227,45 @@ jobs:
           # Транзакции по дням -> data/pnl_daily.ndjson (весь ряд от 01.02 до вчера; финоперации
           # до-постируются задним числом, поэтому перезапись). Без Seller-кредов синк уже упал выше.
           npx tsx src/scripts/ozon/pnl-daily.ts || echo "::warning::финансы по дням не обновлены"
+
+      - name: Per-SKU финансы по дням (раздел «Аналитика по SKU», перетяжка хвоста)
+        run: |
+          set -euo pipefail
+          # data/pnl_sku_daily.ndjson: финансы по SKU по дням с разбивкой сборов. Перетягивает
+          # последние 45 дней (доначисления задним числом), старые дни оставляет. Первый прогон -
+          # полный бэкфилл от 01.02. Без Seller-кредов синк уже упал выше.
+          npm run pnl:sku:daily || echo "::warning::per-SKU финансы по дням не обновлены"
+
+      - name: Сборы уровня заказа/кабинета по дням (перетяжка хвоста)
+        run: |
+          set -euo pipefail
+          # data/pnl_account_daily.ndjson: реклама/штрафы/realFBS/подписки/доставка от покупателя
+          # по дням (операции не с одним SKU). Перетягивает хвост 45 дней. Без Seller-кредов пропуск.
+          npm run pnl:account:daily || echo "::warning::сборы уровня заказа не обновлены"
+
+      - name: Месячная реализация по SKU (перетяжка последних месяцев, УПД)
+        run: |
+          set -euo pipefail
+          # data/realization_monthly.ndjson: реализовано/возвращено по SKU за месяц (основа УПД).
+          # Перетягивает текущий + предыдущий месяц (доначисления/поздние возвраты). Без кредов - пропуск.
+          npm run pnl:realization || echo "::warning::месячная реализация не обновлена"
+
+      - name: "Каталожный маппинг SKU -> артикул (offer_id)"
+        run: |
+          set -euo pipefail
+          # data/sku_offer.json: SKU -> артикул по каталогу (product/info/stocks), НАКОПИТЕЛЬНО.
+          # Раз увиденный артикул не теряем. Чтобы старые SKU в дашборде были с артикулом. Без кредов - пропуск.
+          npm run offer:sku || echo "::warning::маппинг артикулов не обновлён"
+
+      - name: "Реклама по SKU (накопление, добираем несобранные кампании)"
+        env:
+          ADS_SKU_BUDGET_MIN: "12"
+        run: |
+          set -euo pipefail
+          # data/ads_sku_daily.ndjson: расход рекламы по SKU (CPC+CPO), НАКОПИТЕЛЬНО. Каждую ночь
+          # добираем несобранные кампании (отчёты OZON медленные ~2 мин/кампания), уже собранные не
+          # теряются. Бюджет ~12 мин (~5 кампаний/ночь). Без Perf-кредов - пропуск.
+          npm run ads:sku:daily || echo "::warning::реклама по SKU не обновлена"
 
       - name: Пересборка сайта из свежих снимков
         run: |

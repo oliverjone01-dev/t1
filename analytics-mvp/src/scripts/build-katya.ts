@@ -1274,20 +1274,109 @@ function render(cur,cmp){
   // Фаза 2b: дневной ряд P&L канала (pnl_daily.ndjson) - агрегат за ЛЮБОЙ период.
   let pnlDaily: any[] = [];
   try { pnlDaily = readFileSync("data/pnl_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
-  const closed = JSON.parse(readFileSync("data/closed_pnl.json", "utf-8"));
   const skuNames: Record<string, string> = {};
   for (const sk of allSkus) skuNames[sk] = (skuName[sk] || sk).slice(0, 70);
+
+  // === данные раздела «Аналитика по SKU» (за выбранный период) ===
+  // Продажи по SKU/день (history), реклама по SKU/день (ads_attr_daily, сумма по кампаниям),
+  // финансы по SKU/день (pnl_sku_daily). Компактно {sku:[[d,...],...]}. Клиент суммирует за период.
+  const anSales: Record<string, any[]> = {};
+  for (const f of facts) {
+    const sk = String(f.sku); if (!sk || sk === "__empty__" || sk === "0") continue;
+    const rev = Math.round(f.revenue || 0), u = f.units || 0, dv = f.delivered || 0, rt = f.returns || 0, cn = f.cancellations || 0;
+    if (!rev && !u && !dv && !rt && !cn) continue;
+    (anSales[sk] ||= []).push([f.date, rev, u, dv, rt, cn]);
+  }
+  const anAdsMap: Record<string, Record<string, number[]>> = {};
+  try {
+    for (const l of readFileSync("data/ads_attr_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku); if (!sk) continue;
+      const dm = (anAdsMap[sk] ||= {}); const a = dm[r.d] || (dm[r.d] = [0, 0, 0, 0, 0]);
+      a[0]! += r.sp || 0; a[1]! += r.sold || 0; a[2]! += r.om || 0; a[3]! += r.soldM || 0; a[4]! += r.omM || 0;
+    }
+  } catch { /* нет файла - реклама по SKU пустая */ }
+  const anAds: Record<string, any[]> = {};
+  for (const sk in anAdsMap) { anAds[sk] = []; for (const d in anAdsMap[sk]) { const a = anAdsMap[sk]![d]!; anAds[sk]!.push([d, Math.round(a[0]!), a[1], Math.round(a[2]!), a[3], Math.round(a[4]!)]); } }
+  const anFin: Record<string, any[]> = {};
+  try {
+    for (const l of readFileSync("data/pnl_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku);
+      (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]);
+    }
+  } catch { /* нет файла - финансы по SKU пустые */ }
+  // Артикул (offer_id) не всегда есть в таксономии - добираем из каталожного маппинга (sku_offer,
+  // накопительный снимок /product/info/stocks по всему каталогу), живого снимка и card_groups,
+  // иначе в подписи оставался бы числовой SKU (внутренний ID OZON) вместо артикула.
+  const offerAlt: Record<string, string> = {};
+  try {
+    const cat = JSON.parse(readFileSync("data/sku_offer.json", "utf-8")); // {sku: offer}
+    for (const sk in cat) { if (cat[sk]) offerAlt[String(sk)] ||= String(cat[sk]); }
+  } catch { /* нет sku_offer - соберётся ночным offer:sku */ }
+  for (const s of (live.sku_table || [])) { if (s.sku != null && s.offer) offerAlt[String(s.sku)] ||= String(s.offer); }
+  try {
+    const cg = JSON.parse(readFileSync("data/card_groups.json", "utf-8"));
+    for (const g of (cg.groups || cg)) for (const x of (g.skus || [])) { if (x.sku != null && x.offer) offerAlt[String(x.sku)] ||= String(x.offer); }
+  } catch { /* нет card_groups - пропуск */ }
+  const offerOf = (sk: string) => taxOf(sk).offer || offerAlt[sk] || sk;
+  const anMeta: Record<string, any> = {};
+  for (const sk of new Set([...Object.keys(anSales), ...Object.keys(anAds), ...Object.keys(anFin)])) {
+    anMeta[sk] = { off: offerOf(sk), nm: (skuName[sk] || sk).slice(0, 58), cat: catOf(sk) };
+  }
+  // Сборы уровня заказа/кабинета по дням (реклама/штрафы/realFBS/подписки/доставка от покупателя).
+  const anAcct: any[] = [];
+  try {
+    for (const l of readFileSync("data/pnl_account_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]);
+    }
+  } catch { /* нет файла - блок сборов уровня заказа пустой */ }
+  // Последний день с данными по сборам уровня заказа (для отсечки факт/прогноз). Fallback - maxD.
+  const anAcctMaxD = anAcct.length ? anAcct.map((r) => r[0]).sort().slice(-1)[0] : maxD;
+  // Месячная реализация по SKU (data/realization_monthly.ndjson) -> {sku:[[ym,sold,ret],...]}.
+  // Это бухгалтерская реализация (основа УПД). «Реализовано» в таблице = продано − возвраты
+  // по этому отчёту за закрытые месяцы; для текущего/частичного месяца (отчёта ещё нет) -
+  // фолбэк на дневной ряд (доставлено − возвраты).
+  const anRealSku: Record<string, any[]> = {};
+  try {
+    for (const l of readFileSync("data/realization_monthly.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku); if (!sk || sk === "0") continue;
+      (anRealSku[sk] ||= []).push([r.ym, r.sold || 0, r.ret || 0]);
+    }
+  } catch { /* нет файла - реализация по SKU пустая */ }
+  // Глобальный список месяцев, по которым ЕСТЬ отчёт о реализации (для решения «месяц закрыт
+  // отчётом» на уровне месяца, а не отдельного SKU - иначе SKU без строки в отчёте ошибочно
+  // добавлял бы дневные штуки поверх УПД-итога).
+  const anRealYm = Array.from(new Set(([] as any[]).concat(...Object.values(anRealSku)).map((r) => r[0]))).sort();
+  // План по месяцам (data/plan_monthly.json) - цели для блока «План на месяц».
+  let planMonthly: any = {};
+  try { planMonthly = JSON.parse(readFileSync("data/plan_monthly.json", "utf-8")); } catch { planMonthly = {}; }
+  // Реклама по SKU (data/ads_sku_daily.ndjson) - собранная per-SKU часть (накопительно). Агрегируем
+  // расход sp по (sku, день) поверх кампаний. Что собрано - разносим в колонку «Реклама»; остаток
+  // (несобранные кампании) остаётся в блоке «Сборы уровня заказа». Схема строки {d,cid,sku,sp,om}.
+  const anAdsSkuMap: Record<string, Record<string, number>> = {};
+  try {
+    for (const l of readFileSync("data/ads_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+      const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
+      (anAdsSkuMap[sk] ||= {})[r.d] = (anAdsSkuMap[sk]![r.d] || 0) + (r.sp || 0);
+    }
+  } catch { /* нет файла - реклама по SKU пустая, вся реклама в сборах */ }
+  const anAdsSku: Record<string, any[]> = {};
+  for (const sk in anAdsSkuMap) { anAdsSku[sk] = []; for (const d in anAdsSkuMap[sk]) anAdsSku[sk]!.push([d, Math.round(anAdsSkuMap[sk]![d]!)]); }
+
   const body = `
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям; чистая прибыль - только по закрытым месяцам ниже.</div></section>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
-    <section class="card"><div class="card-h"><div><div class="card-title">Сборы по статьям</div><div class="card-sub">за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Статья</th><th class="r">Сумма, ₽</th></tr></thead><tbody id="fees"></tbody></table></div></section>
-    <section class="card"><div class="card-h"><div><div class="card-title">Закрытые месяцы (Акты OZON)</div><div class="card-sub">чистая прибыль - бухгалтерски разнесено [ДАННЫЕ]</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Месяц</th><th class="r">Реализация</th><th class="r">Чистая прибыль</th></tr></thead><tbody id="closed"></tbody></table></div></section>
-  </div>
-  <section class="card"><div class="card-h"><div><div class="card-title">Топ SKU: к выплате после сборов</div><div class="card-sub" id="src2"></div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>SKU</th><th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">К выплате</th><th class="r">Доля выплаты</th></tr></thead><tbody id="tsku"></tbody></table></div></section>
-  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}</style>`;
+  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. Факт - по API за выбранный месяц; выполнение = факт / план. Реклама - потолок бюджета: до краёв зелёным = в рамках, перелив красным = перерасход. <a href="https://github.com/oliverjone01-dev/t1/edit/claude/focused-davinci-tKJCt/analytics-mvp/data/plan_monthly.json" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
+    <th>Категория / Артикул</th>
+    <th class="r">Реализовано</th>
+    <th class="r">Начислено</th><th class="r">Комиссия</th><th class="r">Логистика</th><th class="r">Эквайринг</th><th class="r">Хранение</th><th class="r">Прочие</th><th class="r">Реклама</th><th class="r">Всего сборов</th><th class="r">К выплате</th><th class="r">СС произв.</th><th class="r">Валовая прибыль</th><th class="r">АДМ 30%</th><th class="r">Налоги 15%</th><th class="r">Чистая прибыль</th><th class="r">Рентаб.</th>
+  </tr></thead><tbody id="skuan"></tbody></table></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">Общие расходы</div><div class="card-sub" style="display:none">За выбранный период. Это то, что OZON списывает отдельными операциями, не привязанными к одному артикулу - поэтому их нет в таблице по артикулам. «Сумма по артикулам (К выплате) + Итого этого блока = P&L канала». Источник - транзакции OZON (operation_type_name). Прогноз до конца периода - <b>[ГИПОТЕЗА]</b>: реклама/realFBS/подписки/доставка экстраполируются по дневному run-rate, штрафы и прочее - по факту (не прогнозируются). За закрытый прошлый месяц прогноз = факт.</div></div></div><div class="kt-scroll"><table class="kt-table" id="acct-t"><thead><tr><th></th><th class="r">Реклама (клик+заказ)</th><th class="r">Штрафы + гибкий график</th><th class="r">realFBS + сервис + страховка</th><th class="r">Бейдж/сеть/отзывы/Premium</th><th class="r">Доставка от покупателя</th><th class="r">Прочее (компенс./эквайринг)</th><th class="r">Итого сборов</th></tr></thead><tbody id="acct"></tbody></table></div></section>
+  <style>@media (max-width:900px){.kt-two{grid-template-columns:1fr!important}}#skuan-t th,#skuan-t td{white-space:nowrap}#acct-t th,#acct-t td{white-space:nowrap}.an-cat{cursor:pointer;font-weight:700}.an-cat:hover{background:rgba(255,255,255,.03)}.an-sku td:first-child{padding-left:24px;color:var(--ink-2)}</style>`;
   const pageJs = `
-const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
+const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const NAMES=${J(skuNames)};
+const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};const AN_ADSSKU=${J(anAdsSku)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1297,7 +1386,6 @@ function aggPnlDaily(from,to){
   var breakdown={'Комиссия за продажу':comm};if(deliv)breakdown['Логистика']=deliv;if(other)breakdown['Прочие услуги OZON']=other;
   return {accruals:accr,commission:comm,payout:pay,ops:ops,fees:fees,breakdown:breakdown,dateFrom:from,dateTo:to,daily:true};
 }
-const SKU_SNAP=${J(Object.fromEntries(Object.entries(JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku).filter(([, v]: any) => v.accruals > 0).sort((a: any, b: any) => b[1].amount - a[1].amount).slice(0, 15)))};
 function catSvc(name){const n=name.toLowerCase();
   if(n.includes('brand'))return 'Бренд-комиссия';if(n.includes('acquir'))return 'Эквайринг';if(n.includes('installment'))return 'Рассрочка';if(n.includes('storage'))return 'Хранение';
   if(n.includes('membership')||n.includes('premium')||n.includes('subscription')||n.includes('stars'))return 'Подписки (Stars/Premium/отзывы)';
@@ -1317,23 +1405,201 @@ function paint(p,src){
   const badge='<span class="kt-src">'+(p.daily?'за период ':'снимок ')+p.dateFrom+'..'+p.dateTo+'</span>'+note;
   document.getElementById('src1').innerHTML='OZON /v3/finance/transaction/list (прямой) '+badge;
   const fees=Object.entries(p.breakdown).sort((a,b)=>a[1]-b[1]);
-  const sumFees=fees.reduce((s,f)=>s+f[1],0);
-  const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat([['К выплате',p.payout,'#34D399']]);
+  // Продолжаем водопад до чистой прибыли по данным аналитики по SKU (один источник правды).
+  // Канальный «К выплате» = К выплате по SKU + «Доставка от покупателя» (она компенсируется и в
+  // расчёт НЕ входит) -> вычитаем её мостом. Далее: −СС произв. −(АДМ 30% + Налоги 15%) = Чистая,
+  // совпадающая с ИТОГО таблицы по SKU (расхождение с суммой баров - в пределах округления).
+  var pt=periodTotals(p.dateFrom,p.dateTo);var deliv=pt.delivery,ccv=pt.cc,admtax=0.45*pt.amtS,netv=pt.net;
+  var tail=[['К выплате',p.payout,'#34D399']];
+  if(deliv)tail.push(['Доставка от покупателя',-deliv,'#F59E0B']);
+  tail.push(['СС произв.',-ccv,'#F59E0B'],['АДМ+Налоги',-admtax,'#F59E0B'],['Чистая прибыль',netv,netv>=0?'#34D399':'#FF5A5F']);
+  const steps=[['Начислено',p.accruals,'#22D3EE']].concat(fees.map(f=>[f[0],f[1],'#FF5A5F'])).concat(tail);
   const mx=Math.max(1,p.accruals||1);
-  document.getElementById('wf').innerHTML=steps.map(s=>{const h=Math.max(4,Math.abs(s[1])/mx*150);return '<div title="'+s[0]+': '+fmtRu(s[1])+' ₽"><div class="bar" style="height:'+h+'px;background:'+s[2]+'"></div>'+s[0].split(' ')[0]+'<br><b style="color:var(--ink-1)">'+fMln(s[1])+'</b></div>';}).join('');
-  document.getElementById('fees').innerHTML=fees.map(f=>'<tr><td>'+f[0]+'</td><td class="r" style="color:var(--dn)">'+fmtRu(f[1])+'</td></tr>').join('')+'<tr><td><b>Итого сборы</b></td><td class="r"><b>'+fmtRu(sumFees)+'</b></td></tr>';
+  document.getElementById('wf').innerHTML=steps.map(s=>{const h=Math.max(4,Math.abs(s[1])/mx*150);var lab=(s[0]==='АДМ+Налоги')?s[0]:s[0].split(' ')[0];return '<div title="'+s[0]+': '+fmtRu(s[1])+' ₽"><div class="bar" style="height:'+h+'px;background:'+s[2]+'"></div>'+lab+'<br><b style="color:var(--ink-1)">'+fMln(s[1])+'</b></div>';}).join('');
 }
-function paintSku(t,src){
-  const rows=Object.entries(t.bySku||{}).map(([sku,v])=>({sku,...v})).filter(x=>x.accruals>0).sort((a,b)=>b.amount-a.amount).slice(0,15);
-  document.getElementById('src2').innerHTML='операции с одним товаром · <span class="kt-src">снимок 30 дн</span>';
-  document.getElementById('tsku').innerHTML=rows.map(x=>'<tr><td>'+(NAMES[x.sku]||x.sku)+'</td><td class="r">'+fmtRu(x.accruals)+'</td><td class="r" style="color:var(--dn)">'+fmtRu(x.commission)+'</td><td class="r" style="color:var(--up)">'+fmtRu(x.amount)+'</td><td class="r">'+(x.accruals?Math.round(x.amount/x.accruals*100):0)+'%</td></tr>').join('');
+// === раздел «Аналитика по SKU» за выбранный период ===
+var anOpen={}; // категория -> раскрыта ли
+function anSum(rows,from,to,n){var s=[];for(var k=0;k<n;k++)s.push(0);if(!rows)return s;for(var i=0;i<rows.length;i++){var r=rows[i];if(r[0]<from||r[0]>to)continue;for(var k2=0;k2<n;k2++)s[k2]+=r[k2+1]||0;}return s;}
+// «Реализовано с учётом возвратов» по SKU за период: за ЦЕЛЫЕ закрытые месяцы (есть отчёт о
+// реализации) - продано − возвраты по отчёту (=УПД); дни вне таких месяцев (текущий/частичный
+// месяц, где отчёта ещё нет) - по дневному ряду (доставлено − возвраты). Без двойного счёта.
+// Множество «закрытых отчётом» месяцев ЦЕЛИКОМ внутри периода - считается один раз на рендер.
+function coveredMonths(from,to){
+  var c={};for(var i=0;i<AN_REALYM.length;i++){var ym=AN_REALYM[i],yy=+ym.slice(0,4),mm=+ym.slice(5,7);
+    var mS=ym+'-01',mE=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
+    if(mS>=from&&mE<=to)c[ym]=1;}
+  return c;
 }
-document.getElementById('closed').innerHTML=(CLOSED.months||CLOSED||[]).map(m=>'<tr><td>'+(m.label||m.month||'')+'</td><td class="r">'+fMln(m.realization??0)+'</td><td class="r" style="color:'+((m.profit??0)>=0?'var(--up)':'var(--dn)')+'">'+fMln(m.profit??0)+'</td></tr>').join('')||'<tr><td colspan="3" class="kt-note">нет закрытых месяцев</td></tr>';
+function realUnits(sk,covM,from,to){
+  var u=0;var rr=AN_REALSKU[sk]||[];
+  for(var i=0;i<rr.length;i++){if(covM[rr[i][0]])u+=(rr[i][1]-rr[i][2]);} // закрытый месяц - только по отчёту (SKU без строки = 0)
+  var sd=AN_SALES[sk]||[];
+  for(var j=0;j<sd.length;j++){var d=sd[j];if(d[0]<from||d[0]>to)continue;if(covM[d[0].slice(0,7)])continue;u+=(d[3]||0)-(d[4]||0);} // дни вне закрытых месяцев - дневной ряд
+  return u;
+}
+function anCells(x){
+  var fees=x.acc-x.amt;
+  // Валовая прибыль = К выплате − СС произв.; АДМ = 30% К выплате; Налоги = 15% К выплате;
+  // Чистая = Валовая − АДМ − Налоги; Рентабельность = Чистая / Выручка.
+  // АДМ и налоги - только с К выплате по SKU, где ЕСТЬ продажи (amtS). По чистым расходам
+  // (SKU без продаж, сборы кабинета) АДМ/налоги не начисляем. Рентаб = чистая / К выплате.
+  var gp=(x.amt||0)-(x.cc||0), adm=0.30*(x.amtS||0), tax=0.15*(x.amtS||0), net=gp-adm-tax;
+  var rent=(x.amt>0)?net/x.amt*100:null; // база «К выплате»<=0 -> рентаб не определена (не считаем ложный плюс)
+  var R=function(v){return '<td class="r">'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var I=function(v){return '<td class="r">'+(v?fmtRu(v):'—')+'</td>';};
+  var P=function(v){var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var PC=function(v){if(v==null)return '<td class="r">—</td>';var c=v<0?'var(--dn)':'var(--up)';return '<td class="r" style="color:'+c+'">'+(Math.round(v*10)/10)+'%</td>';};
+  return I(x.units)+R(x.acc)+R(x.com)+R(x.del)+R(x.acq)+R(x.sto)+R(x.oth)+R(x.adv)+R(fees)+R(x.amt)+R(x.cc)+P(gp)+R(adm)+R(tax)+P(net)+PC(rent);
+}
+function renderSkuAnalytics(cur){
+  var el=document.getElementById('skuan');if(!el)return;var from=cur.from,to=cur.to;var groups={};var covM=coveredMonths(from,to);var miss=[];
+  for(var sk in AN_META){
+    var sa=anSum(AN_SALES[sk],from,to,5),ad=anSum(AN_ADS[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);
+    if(!sa[0]&&!sa[1]&&!sa[2]&&!sa[3]&&!sa[4]&&!ad[0]&&!fi[0]&&!fi[6])continue;
+    var m=AN_META[sk];
+    // units = «Реализовано с учётом возвратов» по отчёту о реализации (УПД); cc = СС/шт × реализовано
+    var ru=realUnits(sk,covM,from,to);
+    // noCs: реализован, но производственной СС нет в листе -> СС/валовая/чистая/рентаб неполные
+    var noCs=(ru>0 && (AN_COGS[sk]==null));
+    // adv = собранная реклама по SKU за период (положит. расход); вычитается из К выплате (amt).
+    var adv=anSum(AN_ADSSKU[sk],from,to,1)[0]||0;
+    var amtNet=fi[6]-adv; // К выплате после разнесённой рекламы
+    // amtS = К выплате как база АДМ/налогов; по позициям с реализовано=0 не начисляем (amtS=0)
+    var x={sk:sk,nm:m.nm,off:m.off,cat:m.cat||'Прочее',rev:sa[0],units:ru,deliv:sa[2],ret:sa[3],canc:sa[4],sp:ad[0],soldO:ad[1],omO:ad[2],comb:ad[2]+ad[4],acc:fi[0],com:-fi[1],del:-fi[2],acq:-fi[3],sto:-fi[4],oth:-fi[5],adv:adv,amt:amtNet,amtS:(ru>0?amtNet:0),cc:(AN_COGS[sk]||0)*ru,noCs:noCs};
+    if(noCs)miss.push(x);
+    (groups[x.cat]||(groups[x.cat]=[])).push(x);
+  }
+  var SUMK=['rev','units','deliv','ret','canc','sp','soldO','omO','comb','acc','com','del','acq','sto','oth','adv','amt','amtS','cc'];
+  var cats=Object.keys(groups).map(function(c){var arr=groups[c];var t={};SUMK.forEach(function(k){t[k]=0;});arr.forEach(function(x){SUMK.forEach(function(k){t[k]+=x[k]||0;});});arr.sort(function(a,b){return b.rev-a.rev;});return {cat:c,arr:arr,t:t};}).sort(function(a,b){return b.t.rev-a.t.rev;});
+  if(!cats.length){el.innerHTML='<tr><td colspan="17" class="kt-note">нет данных за период</td></tr>';return;}
+  var grand={};SUMK.forEach(function(k){grand[k]=0;});var html='';
+  cats.forEach(function(g){SUMK.forEach(function(k){grand[k]+=g.t[k]||0;});var op=!!anOpen[g.cat];var ck=g.cat.replace(/"/g,'');
+    html+='<tr class="an-cat" data-cat="'+ck+'"><td>'+(op?'▾ ':'▸ ')+g.cat+' <span style="color:var(--ink-3);font-weight:400">('+g.arr.length+')</span></td>'+anCells(g.t)+'</tr>';
+    g.arr.forEach(function(x){var badge=x.noCs?' <span style="color:#E5B567" title="Нет производственной СС в листе - СС/прибыль/рентабельность по этому артикулу неполные">⚠ нет СС</span>':'';html+='<tr class="an-sku'+(x.noCs?' an-nocs':'')+'" data-cat="'+ck+'" style="'+(op?'':'display:none')+'"><td title="'+String(x.nm).replace(/"/g,'&quot;')+'">'+(x.off||x.sk)+badge+'</td>'+anCells(x)+'</tr>';});
+  });
+  // Сборы уровня заказа/кабинета (не по SKU) за период - отдельной строкой и в ИТОГО, разнесены
+  // по колонкам по смыслу: realFBS+сервис+страхование -> «Логистика»; реклама/штрафы/бейдж/
+  // эквайринг/компенсации -> «Прочие». ИСКЛЮЧЕНИЕ: «Доставка от покупателя» в расчёт НЕ входит
+  // (компенсируется) - её нет в ИТОГО, только в информационном блоке ниже. Значения в AN_ACCT
+  // signed (сборы < 0), колонки показывают сбор положительным -> берём со знаком минус.
+  var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
+  for(var ai=0;ai<AN_ACCT.length;ai++){var ar=AN_ACCT[ai];if(ar[0]<from||ar[0]>to)continue;aB.adv+=ar[1];aB.fines+=ar[2];aB.realfbs+=ar[3];aB.badge+=ar[4];aB.delivery+=ar[5];aB.other+=ar[6];}
+  // Реклама: собранная per-SKU часть (grand.adv) уже разнесена в колонку «Реклама» и вычтена из
+  // К выплате артикулов -> в «Прочие» кабинета оставляем ТОЛЬКО остаток (aB.adv отрицателен + собранное).
+  var aDel=aB.realfbs,aOth=(aB.adv+grand.adv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // delivery исключена
+  if(at){var acct={rev:0,units:0,deliv:0,ret:0,canc:0,sp:0,soldO:0,omO:0,comb:0,acc:0,com:0,del:-aDel,acq:0,sto:0,oth:-aOth,adv:0,amt:at,amtS:at};
+    grand.del+=acct.del;grand.oth+=acct.oth;grand.amt+=acct.amt;grand.amtS+=acct.amtS; // сборы кабинета - в базе АДМ/налогов
+    html+='<tr style="cursor:default;font-weight:600" title="realFBS/сервис/страхование -> Логистика; реклама/штрафы/бейдж/эквайринг/компенсации -> Прочие. Доставка от покупателя исключена (компенсируется). Детально - в блоке ниже."><td>Общие расходы</td>'+anCells(acct)+'</tr>';
+  }
+  html+='<tr style="font-weight:700;border-top:2px solid var(--bd);background:rgba(255,255,255,.03)"><td>ИТОГО</td>'+anCells(grand)+'</tr>';
+  el.innerHTML=html;
+  // Сводка-предупреждение о пробелах в данных (нет производственной СС) - чтобы дырка была видна
+  var warn=document.getElementById('skuan-warn');
+  if(warn){
+    if(miss.length){
+      var mu=0;miss.forEach(function(x){mu+=x.units;});miss.sort(function(a,b){return b.units-a.units;});
+      var lst=miss.slice(0,10).map(function(x){return (x.off||x.sk)+' ('+x.units+' шт)';}).join(', ');
+      var sh=grand.units?Math.round(mu/grand.units*100):0;
+      warn.innerHTML='<b style="color:#E5B567">⚠ Нет производственной СС по '+miss.length+' SKU</b> ('+mu+' шт, '+sh+'% реализации периода) - по ним СС, валовая и чистая прибыль, рентабельность неполные. Добавьте СС в лист «СС GEN - OZON»: '+lst+(miss.length>10?' и ещё '+(miss.length-10):'');
+      warn.style.display='';
+    } else warn.style.display='none';
+  }
+  el.querySelectorAll('.an-cat').forEach(function(tr){tr.onclick=function(){var c=tr.getAttribute('data-cat');anOpen[c]=!anOpen[c];var td=tr.querySelector('td');td.innerHTML=td.innerHTML.replace(anOpen[c]?'▸':'▾',anOpen[c]?'▾':'▸');el.querySelectorAll('.an-sku[data-cat="'+(window.CSS&&CSS.escape?CSS.escape(c):c)+'"]').forEach(function(s){s.style.display=anOpen[c]?'':'none';});};});
+}
+// === блок «Сборы уровня заказа/кабинета» за выбранный период (факт + прогноз [ГИПОТЕЗА]) ===
+// AN_ACCT: [d, adv, fines, realfbs, badge, delivery, other]. Значения signed как в транзакциях
+// OZON (сборы отрицательны, доставка от покупателя положительна). Прогноз до конца периода -
+// «Гибрид по статьям»: реклама/realFBS/бейдж/доставка экстраполируем run-rate по прошедшим дням;
+// штрафы и прочее - по факту (не прогнозируем). Данные есть только до AN_MAXD.
+function renderAccountFees(cur){
+  var el=document.getElementById('acct');if(!el)return;var from=cur.from,to=cur.to;
+  var f={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0},any=false;
+  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;any=true;f.adv+=r[1]||0;f.fines+=r[2]||0;f.realfbs+=r[3]||0;f.badge+=r[4]||0;f.delivery+=r[5]||0;f.other+=r[6]||0;}
+  var day=864e5,parse=function(s){return Date.parse(s+'T00:00Z');};
+  var dataEnd=(to<AN_MAXD)?to:AN_MAXD; // последний день периода, по который есть данные
+  var totalDays=Math.round((parse(to)-parse(from))/day)+1;
+  var elapsed=Math.round((parse(dataEnd)-parse(from))/day)+1;
+  var k=(elapsed>0&&totalDays>elapsed)?(totalDays/elapsed):1; // множитель run-rate
+  var fc={adv:Math.round(f.adv*k),fines:f.fines,realfbs:Math.round(f.realfbs*k),badge:Math.round(f.badge*k),delivery:Math.round(f.delivery*k),other:f.other};
+  var money=function(v){var c=v<0?'var(--dn)':(v>0?'var(--up)':'');return '<td class="r"'+(c?' style="color:'+c+'"':'')+'>'+(v?fmtRu(Math.round(v)):'—')+'</td>';};
+  var cells=function(o){var tot=o.adv+o.fines+o.realfbs+o.badge+o.delivery+o.other;return money(o.adv)+money(o.fines)+money(o.realfbs)+money(o.badge)+money(o.delivery)+money(o.other)+'<td class="r"><b>'+fmtRu(Math.round(tot))+'</b></td>';};
+  if(!any){el.innerHTML='<tr><td colspan="8" class="kt-note">нет данных за период (нужен бэкфилл pnl_account_daily)</td></tr>';return;}
+  var html='<tr><td><b>Факт</b> <span style="color:var(--ink-3);font-weight:400">'+from+'..'+dataEnd+'</span></td>'+cells(f)+'</tr>';
+  if(k>1)html+='<tr style="color:var(--ink-2)"><td><b>Прогноз</b> <span style="color:#E5B567;font-weight:400">[ГИПОТЕЗА] до '+to+'</span></td>'+cells(fc)+'</tr>';
+  el.innerHTML=html;
+}
+// === блок «План на месяц и выполнение» (независим от верхнего фильтра, свой выбор месяца) ===
+function planFmtMon(ym){var n=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];return n[+ym.slice(5,7)]+' '+ym.slice(0,4);}
+function planMonthList(){var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][0].slice(0,7)]=1;for(var k in AN_PLAN)if(/^[0-9]{4}-[0-9]{2}$/.test(k))s[k]=1;return Object.keys(s).sort();}
+// Факт за месяц (те же формулы, что ИТОГО таблицы): реклама (финансовая), рентабельность и пр.
+// Итоги за период по ТОЙ ЖЕ логике, что ИТОГО таблицы по SKU (renderSkuAnalytics): К выплате
+// после разнесённой рекламы, база АДМ/налогов amtS (только по SKU с реализовано>0 + сборы
+// кабинета), доставка от покупателя - отдельно (в расчёт НЕ входит). Один источник правды для
+// плана, водопада и таблицы - одна «Чистая прибыль» на странице.
+function periodTotals(from,to){
+  var covM=coveredMonths(from,to);var rev=0,amt=0,amtS=0,cc=0,realized=0,gadv=0;
+  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
+    var adv=anSum(AN_ADSSKU[sk],from,to,1)[0]||0;var amtNet=(fi[6]||0)-adv; // К выплате после разнесённой рекламы
+    rev+=sa[0]||0;realized+=ru;amt+=amtNet;if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
+  var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
+  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
+  var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
+  amt+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
+  var net=(amt-cc)-0.45*amtS,rent=(amt>0)?net/amt*100:null; // рентаб только при положительной базе «К выплате»
+  return {ad:-aB.adv,rev:rev,realized:realized,amt:amt,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
+}
+function monthTotals(ym){
+  var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
+  return periodTotals(from,to);
+}
+// «Колбочка»: SVG-флакон, залитый снизу до уровня выполнения (0-100% визуально), с цветом статуса.
+function planFlask(i,lvl,color){
+  var L=Math.max(0,Math.min(100,lvl||0));
+  var top=8,bot=86,H=bot-top;var px=L/100*H;var ly=bot-px; // высота заливки
+  var d='M26,8 L38,8 L38,34 L53,80 Q53,86 47,86 L17,86 Q11,86 11,80 L26,34 Z';
+  return '<svg viewBox="0 0 64 96" width="66" height="98" style="overflow:visible">'
+    +'<defs><clipPath id="fc'+i+'"><path d="'+d+'"/></clipPath>'
+    +'<linearGradient id="fg'+i+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity="0.95"/><stop offset="1" stop-color="'+color+'" stop-opacity="0.6"/></linearGradient></defs>'
+    +'<path d="'+d+'" fill="rgba(255,255,255,.04)"/>'
+    +'<rect x="0" y="'+ly.toFixed(1)+'" width="64" height="'+px.toFixed(1)+'" fill="url(#fg'+i+')" clip-path="url(#fc'+i+')"/>'
+    +'<path d="'+d+'" fill="none" stroke="var(--bd)" stroke-width="2"/>'
+    +'<rect x="22" y="4" width="20" height="4.5" rx="2.25" fill="var(--ink-3)"/>'
+    +'</svg>';
+}
+function renderPlan(ym){
+  var el=document.getElementById('plan');if(!el)return;var a=monthTotals(ym),p=(AN_PLAN[ym]||{});
+  var rows=[['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Реклама',p.adSpend,a.ad,'cap','₽'],['Чистая прибыль',p.netProfit,a.net,'up','₽'],['Рентабельность',p.rentab,a.rent,'pct','%']];
+  el.innerHTML=rows.map(function(r,i){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],unit=r[4],isPct=(unit==='%');
+    var planS=(plan==null||plan==='')?'—':(isPct?plan+'%':fmtRu(Math.round(plan)));
+    var noFact=(fact==null); // рентаб не определена (база «К выплате»<=0, месяц убыточный)
+    var factS=noFact?'—':(isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact)));
+    var pct=null,color='var(--ink-3)',lvl=0;
+    if(noFact){color='var(--dn)';lvl=0;}
+    else if(plan!=null&&plan!==''&&plan!=0){pct=fact/plan*100;lvl=pct;
+      if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');
+      else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));}
+    var pctTxt=noFact?'<b style="color:var(--dn);font-size:18px">—</b>':((pct==null)?'<span style="color:var(--ink-3)">задай план</span>':'<b style="color:'+color+';font-size:18px">'+Math.round(pct)+'%</b>');
+    return '<div style="width:132px;text-align:center">'
+      +planFlask(i,lvl,color)
+      +'<div style="margin-top:2px">'+pctTxt+'</div>'
+      +'<div style="font-weight:600;font-size:12.5px;margin-top:4px">'+lab+'</div>'
+      +'<div style="color:var(--ink-2);font-size:11px;margin-top:2px">факт '+factS+'</div>'
+      +'<div style="color:var(--ink-3);font-size:11px">план '+planS+'</div>'
+      +'</div>';}).join('');
+}
+var planInited=false;
+function initPlan(){
+  if(planInited)return;var sel=document.getElementById('plan-month');if(!sel)return;var ms=planMonthList();if(!ms.length)return;planInited=true;
+  sel.innerHTML=ms.map(function(m){return '<option value="'+m+'">'+planFmtMon(m)+'</option>';}).join('');
+  var def=ms[ms.length-1];sel.value=def;sel.onchange=function(){renderPlan(sel.value);};renderPlan(def);
+}
 function render(cur,cmp){
   // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.
   var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
   paint(p,p.daily?'daily':'snap');
-  paintSku({bySku:SKU_SNAP,dateFrom:'',dateTo:''},'snap'); // топ SKU - снимок 30 дн
+  initPlan(); // блок плана - один раз, со своим выбором месяца
+  renderSkuAnalytics(cur); // аналитика по SKU за период
+  renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
   writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
 }

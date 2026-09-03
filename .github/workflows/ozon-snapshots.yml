@@ -84,10 +84,6 @@ jobs:
         run: |
           set -euo pipefail
           npm run pnl:realization
-      - name: РАЗВЕДКА полноты рекламы (CPO, лог, без коммита)
-        run: |
-          set -euo pipefail
-          npx tsx src/scripts/ozon/ads-cpo-probe.ts 2026-08-01 2026-08-31 || true
       - name: Commit финансовых JSON (если есть изменения)
         working-directory: .
         run: |

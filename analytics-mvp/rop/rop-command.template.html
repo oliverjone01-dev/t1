@@ -130,6 +130,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 .line-anim{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.1s var(--ease-out) forwards}
 .dpath{cursor:pointer}.dpath:hover{opacity:1!important;filter:drop-shadow(0 0 8px currentColor)}
 #tip{position:fixed;z-index:200;pointer-events:none;background:rgba(7,9,13,.96);border:1px solid var(--border-hot);border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .12s;max-width:280px}
+#tip .tip-hd{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);border-bottom:1px solid var(--border-hot);padding-bottom:5px;margin-bottom:6px}
 
 #tip .qh{font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.05em;margin:7px 0 2px}
 #tip .qh:first-child{margin-top:0}
@@ -241,7 +242,7 @@ select{background:var(--bg-elevated);border:1px solid var(--border);color:var(--
 <div class="hdr">
 <div class="topbar">
   <div class="logo">GG</div>
-  <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span><span id="nextUpd" style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;border:1px solid var(--line,#2a3b34);background:rgba(46,158,116,.10)" data-tip="Плановое ежедневное обновление данных ~09:30 МСК: ночной снимок Bitrix + утренняя дострахова ботом РОПа и автопубликация. Точное время может отличаться на 1-3 ч из-за очереди GitHub. Когда новая сборка приезжает - страница обновляется сама."></span></div>
+  <div class="brand"><b>GENGLASS · Отдел продаж</b><span>Командный центр РОПа · воронка «GG Заказы РФ»</span><span id="freshTag" style="font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:2px" data-tip="Актуальность данных :: Когда данные в последний раз сняты из Bitrix24. Зелёный - свежие (до 30 ч). Жёлтый - стоит проверить (30-48 ч). Красный - данные устарели, ночной сбор не доехал.">.</span><span id="nextUpd" style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 8px;border-radius:999px;border:1px solid var(--line,#2a3b34);background:rgba(46,158,116,.10)" data-tip="Обновление данных :: Плановое ежедневное обновление данных ~09:30 МСК: ночной снимок Bitrix + утренняя дострахова ботом РОПа и автопубликация. Точное время может отличаться на 1-3 ч из-за очереди GitHub. Когда новая сборка приезжает - страница обновляется сама."></span></div>
 </div>
 <div class="controls">
   <div class="rev-toggle"><span class="ctl-lbl">Период по</span><div class="seg" id="dateSeg"><button data-b="created" class="on">дате создания</button><button data-b="outcome">дате продажи</button></div><span class="qm" data-tip="«По дате создания» (как было): продажи, выручка, потери и труба считаются по когорте сделок, СОЗДАННЫХ в выбранном периоде - сколько из заведённых за период дошло до продажи. «По дате продажи» (дата исхода): продажи/выручка/потери считаются по дате, когда они СОСТОЯЛИСЬ (закрытие; в режиме предоплаты - вход в стадию предоплаты), труба переходит в режим активных в периоде. Лиды и число созданных сделок всегда по дате создания.">?</span></div>
@@ -400,7 +401,7 @@ function qfmt(h){if(!/Вопрос:|Вывод:/.test(h))return h;
   x=x.replace(/\s*Вопрос:\s*/,'</div><div class="qh qq">На какие вопросы отвечает?</div><div class="qb">');
   x=x.replace(/\s*Вывод:\s*/,'</div><div class="qh qc">Какие выводы сделать?</div><div class="qb">');
   return x+'</div>'}
-function tipShow(html,x,y){tip.innerHTML=qfmt(html);tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
+function tipShow(html,x,y){var _c=String(html);var _i=_c.indexOf('::');if(_i>0&&!/[<>]/.test(_c.slice(0,_i))){_c='<div class="tip-hd">'+_c.slice(0,_i).trim()+'</div>'+_c.slice(_i+2).trim();}tip.innerHTML=qfmt(_c);tip.style.opacity=1;let nx=x+14,ny=y+14;if(nx+tip.offsetWidth>innerWidth)nx=x-tip.offsetWidth-14;if(ny+tip.offsetHeight>innerHeight)ny=y-tip.offsetHeight-14;tip.style.left=nx+'px';tip.style.top=ny+'px';}
 function tipHide(){tip.style.opacity=0;}
 document.addEventListener('mousemove',e=>{const t=e.target.closest('[data-tip]');if(t){tipShow(t.getAttribute('data-tip'),e.clientX,e.clientY);}else tipHide();});
 function dt(title,rows){return `<div class="tl">${title}</div>`+rows.map(r=>{const st=r[2]==='dim'?' style="opacity:.45;font-size:10px"':r[2]==='hl'?' style="font-weight:800"':'';return `<div class="tr"${st}><span>${r[0]}</span><span>${r[1]}</span></div>`;}).join('');}

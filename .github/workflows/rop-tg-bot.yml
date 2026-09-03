@@ -1,0 +1,260 @@
+name: ROP TG bot (digest)
+
+# Дайджест отдела продаж в Telegram-группу 3 раза в день: план / срез / итоги.
+# Данные - rop.json из ветки rop-dashboard-v1 (тот же снимок, что и дашборды). Без ИИ,
+# чистый агрегат по воронке (сделки с КП по стадиям) + предоплаты + портфель менеджеров.
+# Токен бота - секрет ROPCACHE_BOT_TOKEN; chat_id группы задан ниже (не секрет).
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "plan | srez | itogi | probe | test"
+        default: "plan"
+      chat:
+        description: "chat_id (пусто = группа по умолчанию)"
+        default: ""
+      mgr:
+        description: "имя менеджера для личного дайджеста (пусто = сводка по отделу)"
+        default: ""
+  # Расписание МСК 09:00 / 15:00 / 17:30 = UTC 06:00 / 12:00 / 14:30, только пн-пт (1-5). Режим определяется по времени.
+  schedule:
+    - cron: "0 6 * * 1-5"
+    - cron: "0 12 * * 1-5"
+    - cron: "30 14 * * 1-5"
+
+permissions:
+  contents: read
+  actions: write # диспатч deploy-pages / b24-snapshots и опрос статуса ранов перед отправкой
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    env:
+      MODE: ${{ github.event.inputs.mode || (github.event.schedule == '0 6 * * 1-5' && 'plan') || (github.event.schedule == '0 12 * * 1-5' && 'srez') || (github.event.schedule == '30 14 * * 1-5' && 'itogi') || 'plan' }}
+      CHAT_ID: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || '-1004401671894' }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      # Дашборды (РОП + менеджерские) должны показывать те же данные, что и цифры в дайджесте,
+      # ИНАЧЕ ссылка в чате ведёт на устаревший дашборд. Перед отправкой:
+      #   1) План: если снимок Bitrix ещё не за сегодня (ночной cron GitHub задерживает на 1-3 ч) -
+      #      запускаем b24-snapshots и ЖДЁМ; данные приезжают в rop-dashboard-v1.
+      #   2) Сверяем bakedAt задеплоенного /rop/ со снимком: если дашборды уже собраны на этом
+      #      снимке - деплой не нужен (срез/итог днём обычно попадают сюда, данные не менялись).
+      #   3) Иначе диспатчим deploy-pages и ЖДЁМ завершения - только потом уходит сообщение.
+      # -e не ставим: ни одна сетевая осечка не должна заблокировать сам дайджест (в худшем случае
+      # шлём как есть с предупреждением в лог), но штатно закладываем запас по времени на пересборку.
+      - name: Обновить дашборды (РОП + менеджеры) до отправки дайджеста
+        # ВАЖНО: по умолчанию GitHub запускает шаг как `bash -eo pipefail`. С -e и pipefail
+        # безобидный `git show <20МБ> | head -c 400` падает по SIGPIPE (код 141) и валит шаг, из-за
+        # чего отправка пропускается. Переопределяем shell без -e/pipefail: шаг best-effort, каждая
+        # сетевая команда защищена своим `|| true`, последняя строка - echo, поэтому job не падает,
+        # и дайджест уходит всегда; свежесть при этом обеспечивается ожиданием снимка/деплоя.
+        shell: bash --noprofile --norc {0}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e +o pipefail
+          API="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
+          case "$MODE" in
+            plan|srez|itogi) : ;;
+            *) echo "MODE=$MODE - служебный режим, дашборды не трогаем"; exit 0 ;;
+          esac
+          gen_of() { git fetch --depth=1 origin rop-dashboard-v1 -q 2>/dev/null || true
+            git show FETCH_HEAD:analytics-mvp/rop/data/rop.json 2>/dev/null | head -c 400 \
+              | tr ',' '\n' | sed -n 's/.*"generated_at":"\([^"]*\)".*/\1/p' | head -1; }
+          # Диспатч воркфлоу + ожидание завершения свежего рана (до ~15 мин), не валит job при неудаче.
+          dispatch_and_wait() {
+            local wf="$1" nm="$2" t0 code run status concl created cts
+            t0=$(date -u +%s)
+            for i in 1 2 3 4 5; do
+              code=$(curl -sS -o /tmp/d.out -w '%{http_code}' -X POST -H 'Accept: application/vnd.github+json' \
+                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d '{"ref":"main"}' || echo 000)
+              [ "$code" = "204" ] && { echo "$nm: запрос на запуск принят"; break; }
+              echo "$nm dispatch попытка $i: HTTP $code $(cat /tmp/d.out 2>/dev/null || true)"; sleep $((3*i))
+            done
+            for i in $(seq 1 45); do
+              sleep 20
+              run=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/runs?event=workflow_dispatch&per_page=1" 2>/dev/null || echo '{}')
+              status=$(printf '%s' "$run" | jq -r '.workflow_runs[0].status // "?"' 2>/dev/null || echo '?')
+              concl=$(printf '%s' "$run" | jq -r '.workflow_runs[0].conclusion // "-"' 2>/dev/null || echo '-')
+              created=$(printf '%s' "$run" | jq -r '.workflow_runs[0].created_at // ""' 2>/dev/null || echo '')
+              cts=$(date -u -d "$created" +%s 2>/dev/null || echo 0)
+              echo "$nm: status=$status conclusion=$concl created=$created (${i}/45)"
+              if [ "$status" = "completed" ] && [ "$cts" -ge $((t0-90)) ]; then echo "$nm завершён: $concl"; return 0; fi
+            done
+            echo "::warning::$nm не завершился за отведённое время - продолжаю"; return 0
+          }
+          GEN="$(gen_of)"; D="${GEN:0:10}"; TODAY="$(date -u +%F)"
+          echo "Снимок rop.json: generated_at=$GEN (дата $D) · сегодня(UTC)=$TODAY · MODE=$MODE"
+          # 1) План: подтянуть свежий снимок, если ночной ещё не за сегодня
+          if [ "$MODE" = "plan" ] && [ -n "$GEN" ] && [ "$D" != "$TODAY" ]; then
+            echo "Данные не за сегодня - запускаю снимок Bitrix (b24-snapshots) и жду"
+            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
+            GEN="$(gen_of)"; D="${GEN:0:10}"
+            echo "После снимка: generated_at=$GEN"
+          fi
+          # 2) Свежесть деплоя: bakedAt /rop/ должен быть не старше снимка (тот же деплой пересобирает и менеджеров)
+          ROPBAKED="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
+          echo "Задеплоенный /rop/ bakedAt=$ROPBAKED"
+          if [ -n "$GEN" ] && [ -n "$ROPBAKED" ] && ! [[ "$ROPBAKED" < "$GEN" ]]; then
+            echo "Дашборды уже собраны на снимке $D - пересборка не нужна"
+          else
+            echo "Дашборды устарели (bakedAt=$ROPBAKED, снимок=$GEN) - запускаю deploy-pages и жду"
+            dispatch_and_wait "deploy-pages.yml" "Публикация дашбордов"
+            ROPBAKED="$(curl -fsS "https://oliverjone01-dev.github.io/t1/rop/v.txt" 2>/dev/null | tr -d '[:space:]' || true)"
+            echo "После деплоя /rop/ bakedAt=$ROPBAKED"
+          fi
+          echo "Готово - дашборды актуальны, можно отправлять дайджест."
+
+      - name: Build digest and send to Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.ROPCACHE_BOT_TOKEN }}
+          BOT_TOKEN_ALT: ${{ secrets.BOT_TOKEN }}
+          MGR_NAME: ${{ github.event.inputs.mgr }}
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin rop-dashboard-v1
+          git show FETCH_HEAD:analytics-mvp/rop/data/rop.json > /tmp/rop.json
+          git fetch --depth=1 origin dialog-export-v1
+          git show FETCH_HEAD:analytics-mvp/dialog/data/dialog.json > /tmp/dialog.json || echo '{}' > /tmp/dialog.json
+          cat > /tmp/digest.mjs <<'MJS'
+          import fs from 'node:fs';
+          const TOKEN=(process.env.BOT_TOKEN||process.env.BOT_TOKEN_ALT||'').trim();
+          const CHAT=process.env.CHAT_ID; const MODE=(process.env.MODE||'plan').trim(); const MGR=(process.env.MGR_NAME||'').trim();
+          if(!TOKEN){console.error('Нет секрета ROPCACHE_BOT_TOKEN (и BOT_TOKEN пуст). Добавь токен бота в Settings > Secrets > Actions.');process.exit(1);}
+          if(MODE==='probe'){
+            const me=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getMe`)).json();
+            const wh=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getWebhookInfo`)).json();
+            const j=await (await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates?limit=100`)).json();
+            console.log('getMe:',JSON.stringify(me.result||me));
+            console.log('webhook:',JSON.stringify(wh.result||wh));
+            const chats={};(j.result||[]).forEach(u=>{const c=(u.message||u.my_chat_member||u.channel_post||u.edited_message||u.edited_channel_post||{}).chat;if(c)chats[c.id]=(c.title||c.username||'')+' ['+c.type+']';});
+            console.log('updates:',(j.result||[]).length,'· chats бот видит:');
+            console.log(JSON.stringify(chats,null,2));
+            console.log('Нужен id группы (начинается с -100). Если webhook.url не пуст - сначала уберём webhook.');
+            process.exit(0);
+          }
+          if(MODE==='test'){
+            // Простой тест доставки: шлём в CHAT слово «тест» (проверка, что бот в чате и может писать). Отчёты сюда не идут.
+            const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:CHAT,text:'тест'})});
+            const jj=await res.json();
+            if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}
+            console.log('Тест отправлен в',CHAT,'· msg',jj.result.message_id);
+            process.exit(0);
+          }
+          const d=JSON.parse(fs.readFileSync('/tmp/rop.json','utf8'));
+          const deals=(d.deals||[]).filter(x=>String(x.category)==='49');
+          // Ольга Лысенко - РОП (@Olgal89), в списке плановых менеджеров не участвует (тег РОПа в сводке).
+          const PLAN=["Юлия Лысанова","Ольга Маслова","Татьяна Лакомова","Юлия Шура-Бура","Алина Платонова","Екатерина Зазноба","Надежда Лобова"];
+          const TODAY=(d.generated_at||'').slice(0,10);
+          const KP={"C49:PREPAYMENT_INVOIC":0,"C49:3":1,"C49:UC_8JTBV2":2};
+          const firstKP=x=>{for(const h of (x.hist||[]))if(KP[h[0]]!=null&&h[1])return h[1].slice(0,10);return null;};
+          const epAt=x=>{for(const h of (x.hist||[]))if(h[0]==='C49:EXECUTING'&&h[1])return h[1];return x.won?x.closed:null;};
+          const M=v=>(v/1e6).toFixed(1)+' млн', K=v=>Math.round(v/1000)+'к';
+          const short=n=>{const p=n.split(' ');return p[1]?p[1]+(p[0]?' '+p[0][0]+'.':''):n;};
+          let dep={kp:0,dec:0,long:0,kpR:0,decR:0,longR:0,rub:0,port:0,neu:0}, prepN=0, prepR=0; const depPrepDays=new Set(); const depPrepByDay={};
+          const sumOf=(a,c)=>a.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
+          const send=async(txt,before,after)=>{const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const html=(before?before+'\n':'')+'<pre>'+esc(txt)+'</pre>'+(after?'\n'+after:'');const body=JSON.stringify({chat_id:CHAT,text:html,parse_mode:'HTML',disable_web_page_preview:true});let jj,lastErr;for(let a=0;a<3;a++){try{const res=await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{method:'POST',headers:{'content-type':'application/json'},body});jj=await res.json();break;}catch(e){lastErr=e;console.error('Сеть, попытка '+(a+1)+'/3:',e.message);if(a<2)await new Promise(r=>setTimeout(r,1500*(a+1)));}}if(!jj){console.error('Не удалось достучаться до Telegram:',lastErr&&lastErr.message);process.exit(1);}if(!jj.ok){console.error('Telegram error:',JSON.stringify(jj));process.exit(1);}console.log('Отправлено в',CHAT,'· msg',jj.result.message_id);};
+          if(MGR){
+            const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
+            const SN={'C49:PREPAYMENT_INVOIC':'КП отправлено','C49:3':'Принимают решение','C49:UC_8JTBV2':'Долгострой'};
+            const my=deals.filter(x=>x.mgr===MGR&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
+            const cnt=c=>my.filter(x=>x.stageCode===c).length, sm=c=>my.filter(x=>x.stageCode===c).reduce((s,x)=>s+(x.budget||0),0);
+            const portRub=my.reduce((s,x)=>s+(x.budget||0),0);
+            let mN=0,mR=0,tN=0;deals.filter(x=>x.mgr===MGR).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===TODAY.slice(0,7)){mN++;mR+=x.budget||0;if(ep.slice(0,10)===TODAY)tN++;}});
+            let depRub=0;PLAN.forEach(m=>deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null).forEach(x=>depRub+=x.budget||0));
+            const monTgt=Math.round(depRub?portRub/depRub*20e6:0), dayTgt=Math.round(monTgt/28.6);
+            const neu=my.filter(x=>(x.created||'').slice(0,10)===TODAY||firstKP(x)===TODAY).length;
+            let lastPrep=null;const prepDays=new Set();deals.filter(x=>x.mgr===MGR).forEach(x=>{const ep=epAt(x);if(ep){const dd=ep.slice(0,10);if(!lastPrep||dd>lastPrep)lastPrep=dd;if(ep.slice(0,7)===TODAY.slice(0,7))prepDays.add(dd);}});
+            const daysNoPlan=lastPrep?Math.max(0,Math.round((new Date(TODAY)-new Date(lastPrep))/864e5)):null;
+            // Рабочие дни этого месяца (пн-пт до сегодня) без ни одной предоплаты = дни невыполнения плана
+            let missMonth=0;{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const wd=dt.getUTCDay();if(wd===0||wd===6)continue;if(!prepDays.has(dt.toISOString().slice(0,10)))missMonth++;}}
+            // Оценка близости к предоплате (как в дашборде): вес стадии x сигнал диалога. Считаем 0.5-0.9.
+            let DLG={};try{const dlg=JSON.parse(fs.readFileSync('/tmp/dialog.json','utf8'));const MSG=new Set(["Сообщение Telegram","Сообщение MAX","Сообщение WhatsApp","Мессенджер ОЛ","Письмо","Звонок"]);const NOWMS=new Date(d.generated_at||new Date().toISOString()).getTime();const ids=new Set(my.map(x=>String(x.id)));const bd={};for(const e of (dlg.events||[])){if(!e.dealId||!ids.has(String(e.dealId)))continue;(bd[e.dealId]=bd[e.dealId]||[]).push(e);}for(const id of Object.keys(bd)){const ev=bd[id].sort((a,b)=>a.ts-b.ts);const ms=ev.filter(e=>e.dir==='входящее'||e.dir==='исходящее'||MSG.has(e.type));const l=ms[ms.length-1];DLG[id]=l?{ball:l.dir==='входящее'?'us':l.dir==='исходящее'?'client':'unk',silent:Math.round((NOWMS-l.ts)/864e5)}:{ball:'none'};}}catch(e){}
+            const HW={'C49:PREPAYMENT_INVOIC':0.55,'C49:3':0.75,'C49:UC_8JTBV2':0.30};
+            const scoreOf=x=>{const base=HW[x.stageCode]||0.3;const c=DLG[x.id]||{ball:'none'};let f;if(c.ball==='us')f=1.2;else if(c.ball==='client')f=(c.silent==null?0.9:c.silent<=7?1.0:c.silent<=21?0.8:0.55);else if(c.ball==='unk')f=0.7;else f=0.4;return Math.min(0.9,base*f);};
+            const hot=my.filter(x=>scoreOf(x)>=0.5);const hotN=hot.length,hotR=hot.reduce((s,x)=>s+(x.budget||0),0);
+            const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+            const slug=(MGR.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
+            const url='https://oliverjone01-dev.github.io/t1/rop-'+slug+'/#prio';
+            const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
+            const first=MGR.trim().split(/\s+/)[0], handle=HANDLE[MGR];
+            const head={plan:'🌅 ПЛАН',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
+            const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
+            const intro=first+(handle?(' @'+handle):'')+', '+greet+':';
+            let b=`Портфель с КП: ${my.length}${neu?(' (+'+neu+' сегодня)'):''} · ${M(portRub)}\n`;
+            b+=`Цель: минимум 1 предоплата/день · ~${K(dayTgt)}\n`;
+            b+=`Предоплаты за месяц: ${mN} · ${M(mR)} из плана ~${M(monTgt)}${tN?(' · сегодня '+tN):''}\n`;
+            b+=`Дней невыполнения плана в этом месяце (рабочих без предоплаты): ${missMonth}\n`;
+            b+=(daysNoPlan===0?'✅ предоплата сегодня есть\n\n':('⛔ Подряд без предоплаты: '+(lastPrep?daysNoPlan+' дн':'ни одной')+'\n\n'));
+            b+='Твоя воронка (шт · сумма):\n';
+            b+=['C49:PREPAYMENT_INVOIC','C49:3','C49:UC_8JTBV2'].map(c=>pad(SN[c],17)+pad(cnt(c),3,true)+' · '+M(sm(c))).join('\n');
+            if(MODE==='srez')b+=`\n\nПолдень. Предоплаты сегодня: ${tN} · нужна минимум 1.`;
+            else if(MODE==='itogi')b+=`\n\nИтог дня: предоплаты сегодня ${tN}, за месяц ${mN} · ${M(mR)}. До плана осталось ${M(Math.max(0,monTgt-mR))}.`;
+            const done=tN>=1;
+            const q={plan:'✅ План на день зафиксирован. Подтверди В ОТВЕТ на это сообщение - напиши «Принято».',srez:'❓ Ответь на это сообщение: сколько предоплат сделал(а) сегодня и что дожимаешь?',itogi:done?'🙌 План дня выполнен - спасибо за работу! Черкни пару слов в ответ, что сработало.':'❓ Ответь на это сообщение: почему план дня не выполнен и что помешало?'}[MODE];
+            const after='\n🔥 Близко к предоплате (оценка 0.5-0.9): '+hotN+' сд · '+M(hotR)+'\n🔗 <a href="'+url+'">Приоритет к предоплате - что дожать</a>\n\n'+q;
+            await send(b, '<b>'+head+' · '+TODAY+'</b>\n'+intro+'\n', after); process.exit(0);
+          }
+          // Рабочие дни этого месяца (пн-пт до сегодня) - знаменатель «дней невыполнения» по каждому.
+          const WD=[];{const s=new Date(TODAY.slice(0,7)+'-01T00:00:00Z'),e=new Date(TODAY+'T00:00:00Z');for(let dt=new Date(s);dt<=e;dt.setUTCDate(dt.getUTCDate()+1)){const w=dt.getUTCDay();if(w!==0&&w!==6)WD.push(dt.toISOString().slice(0,10));}}
+          // Прирост портфеля показываем ЗА ВЧЕРА (утром «за сегодня» почти пусто - день только начался).
+          const YEST=new Date(new Date(TODAY+'T00:00:00Z').getTime()-864e5).toISOString().slice(0,10);
+          const rows=PLAN.map(m=>{const my=deals.filter(x=>x.mgr===m&&!x.won&&!x.lost&&KP[x.stageCode]!=null);
+            const kp=my.filter(x=>x.stageCode==='C49:PREPAYMENT_INVOIC').length;
+            const dec=my.filter(x=>x.stageCode==='C49:3').length;
+            const lo=my.filter(x=>x.stageCode==='C49:UC_8JTBV2').length;
+            const neu=my.filter(x=>(x.created||'').slice(0,10)===YEST||firstKP(x)===YEST).length;
+            let pN=0,pR=0,tN=0;const pDays=new Set();deals.filter(x=>x.mgr===m).forEach(x=>{const ep=epAt(x);if(ep&&ep.slice(0,7)===(TODAY.slice(0,7))){pN++;pR+=x.budget||0;const dd=ep.slice(0,10);depPrepDays.add(dd);depPrepByDay[dd]=(depPrepByDay[dd]||0)+(x.budget||0);pDays.add(dd);if(dd===TODAY)tN++;}});
+            const miss=WD.filter(d=>!pDays.has(d)).length;
+            dep.kp+=kp;dep.dec+=dec;dep.long+=lo;dep.kpR+=sumOf(my,'C49:PREPAYMENT_INVOIC');dep.decR+=sumOf(my,'C49:3');dep.longR+=sumOf(my,'C49:UC_8JTBV2');dep.port+=my.length;dep.neu+=neu;dep.rub+=my.reduce((s,x)=>s+(x.budget||0),0);prepN+=pN;prepR+=pR;
+            return {m,port:my.length,kp,dec,lo,neu,pN,pR,miss,todayN:tN};});
+          rows.sort((a,b)=>b.port-a.port);
+          const pad=(s,w,r)=>{s=String(s);const n=w-[...s].length;return n<=0?s:(r?' '.repeat(n)+s:s+' '.repeat(n));};
+          const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+          const monName=MON[parseInt(TODAY.slice(5,7),10)-1]||TODAY.slice(0,7);
+          const funnel='Открытый пайплайн с КП (шт · сумма):\n'
+            +[['КП отправлено',dep.kp,dep.kpR],['Принимают реш.',dep.dec,dep.decR],['Долгострой',dep.long,dep.longR]].map(x=>pad(x[0],15)+pad(x[1],4,true)+' шт · '+M(x[2])).join('\n')
+            +'\n'+pad('Итого по отделу',15)+pad(dep.port,4,true)+' шт · '+M(dep.rub)
+            +'\n\nЗа месяц '+monName+' · предоплаты: '+prepN+' шт · '+M(prepR);
+          const head={plan:'🌅 ПЛАН НА ДЕНЬ',srez:'☀️ СРЕЗ ДНЯ',itogi:'🌙 ИТОГИ ДНЯ'}[MODE]||'📊 ДАЙДЖЕСТ';
+          const greet={plan:'план на день',srez:'дневной срез',itogi:'итог дня'}[MODE]||'сводка';
+          const planRev=20e6, pct=Math.round(prepR/planRev*100), leftRev=Math.max(0,planRev-prepR);
+          // День невыполнения плана (отдел) = завершённый рабочий день, когда отдел не добрал дневную цель 700к
+          // по выручке предоплат. Сегодня исключаем: день ещё не закончен, снимок утренний (данные за сегодня неполные).
+          const DAY_TARGET=700000;
+          const depMiss=WD.filter(d=>d!==TODAY&&(depPrepByDay[d]||0)<DAY_TARGET).length;
+          // Слаг фамилии для ссылки на дашборд менеджера (как в build-managers-all): транслит последнего слова имени.
+          const TL={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+          const slugOf=n=>(n.trim().split(/\s+/).pop()||'').toLowerCase().split('').map(c=>c in TL?TL[c]:c).join('').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
+          const E=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          // Цвет по выручке предоплат за месяц: 🟢 только ЛИДЕР (максимум по выручке), 🔴 только АУТСАЙДЕР (минимум),
+          // все остальные - 🟡. При ничьих на краю все с этим значением красятся одинаково.
+          const _rv=rows.map(r=>r.pR), maxR=Math.max(..._rv), minR=Math.min(..._rv);
+          const tier=r=>maxR===minR?'🟡':(r.pR===maxR?'🟢':(r.pR===minR?'🔴':'🟡'));
+          // Ссылки внутри <pre> у части клиентов Telegram НЕ кликаются, поэтому строки менеджеров выносим ИЗ моноблока:
+          // имя - настоящая кликабельная ссылка на его блок «Приоритет к предоплате», показатели через « · », цветовой флаг спереди.
+          const HANDLE={'Татьяна Лакомова':'GenGroupTatiana','Юлия Лысанова':'yuliaaa_ly','Екатерина Зазноба':'Ekaterina_Zaznoba','Юлия Шура-Бура':'YuliyaShB','Ольга Маслова':'vuinochan','Алина Платонова':'alina_platt','Надежда Лобова':'Nadia_LNA90'};
+          const mgrLine=r=>tier(r)+' <a href="https://oliverjone01-dev.github.io/t1/rop-'+slugOf(r.m)+'/#prio">'+E(r.m)+'</a>'+(HANDLE[r.m]?(' @'+HANDLE[r.m]):'')+'\n    портф '+r.port+(r.neu?('(+'+r.neu+')'):'')+' · КП '+r.kp+'/'+r.dec+'/'+r.lo+(r.pN?(' · предопл '+r.pN+'·'+K(r.pR)):' · <b>без предоплат</b>')+' · сегодня '+r.todayN+' · '+r.miss+' дн без предоплат';
+          const table=rows.map(mgrLine).join('\n');
+          let sum='Отдел: портфель с КП '+dep.port+(dep.neu?(' (+'+dep.neu+' за вчера)'):'')+'\n';
+          sum+='Цель 700к/день · 20 млн/мес\n';
+          sum+='Выполнение плана по выручке: '+pct+'% · '+M(prepR)+' из 20 млн · осталось '+M(leftRev)+'\n';
+          sum+='Дней невыполнения плана в этом месяце: '+depMiss+' (рабочих дней ниже цели 700к)';
+          // Смысл по режимам: План - ставим задачу (каждому ≥1 предоплата); Срез - кто сколько сделал; Итог - спрашиваем почему у невыполнивших.
+          const doneT=rows.filter(r=>r.todayN>0), notT=rows.filter(r=>r.todayN===0), nTot=rows.length;
+          const tagOf=r=>HANDLE[r.m]?('@'+HANDLE[r.m]):short(r.m);
+          const modeBlock=MODE==='plan'
+            ? '🎯 Задача на сегодня: каждому минимум 1 предоплата (отдел - 700к/день). Дожимаем сделки из блока «Приоритет к предоплате».'
+            : MODE==='srez'
+            ? '☀️ Кто сколько сделал к обеду: предоплату сегодня получили '+doneT.length+' из '+nTot+'.'+(notT.length?(' Ещё без предоплаты: '+notT.map(tagOf).join(' ')+' - успеваем добить до вечера.'):' Все с предоплатой - отлично!')
+            : '🌙 Итог дня: план (минимум 1 предоплата) выполнили '+doneT.length+' из '+nTot+'.'+(notT.length?(' Не выполнили: '+notT.map(tagOf).join(' ')+'. Напишите в ответ на это сообщение, почему сегодня не получилось?'):' Все выполнили план - отличная работа!');
+          const before='<b>'+head+' · '+TODAY+'</b>\nОльга @Olgal89, '+greet+' по отделу:\n\n<pre>'+E(sum)+'</pre>\n\n'+modeBlock+'\n\n'+table+'\n\nЦвет по выручке предоплат за месяц: 🟢 лидер · 🟡 середина · 🔴 аутсайдер\n';
+          let body=funnel;
+          if(MODE==='itogi')body+='\n\nДо 20 млн осталось: '+M(Math.max(0,20e6-prepR));
+          const after='\n🔗 <a href="https://oliverjone01-dev.github.io/t1/rop/?focus=cal">Календарь успехов по менеджерам (РОП-дашборд)</a>';
+          await send(body, before, after); process.exit(0);
+          MJS
+          node /tmp/digest.mjs

@@ -1333,9 +1333,13 @@ function render(cur,cmp){
   // отчётом» на уровне месяца, а не отдельного SKU - иначе SKU без строки в отчёте ошибочно
   // добавлял бы дневные штуки поверх УПД-итога).
   const anRealYm = Array.from(new Set(([] as any[]).concat(...Object.values(anRealSku)).map((r) => r[0]))).sort();
+  // План по месяцам (data/plan_monthly.json) - цели для блока «План на месяц».
+  let planMonthly: any = {};
+  try { planMonthly = JSON.parse(readFileSync("data/plan_monthly.json", "utf-8")); } catch { planMonthly = {}; }
 
   const body = `
   <section class="kt-kpi" id="kpis"></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. План - из plan_monthly.json (заполняется вручную), факт - по API за выбранный месяц. Выполнение = факт / план. Для рекламы это потолок бюджета: ≤100% (в рамках) зелёным, перерасход - красным.</div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Показатель</th><th class="r">План</th><th class="r">Факт</th><th class="r">Выполнение</th></tr></thead><tbody id="plan"></tbody></table></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note">начислено → комиссия → услуги OZON → к выплате. Канальный P&L по транзакциям; чистая прибыль - только по закрытым месяцам ниже.</div></section>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="kt-two">
     <section class="card"><div class="card-h"><div><div class="card-title">Сборы по статьям</div><div class="card-sub">за период</div></div></div><div class="kt-scroll"><table class="kt-table"><thead><tr><th>Статья</th><th class="r">Сумма, ₽</th></tr></thead><tbody id="fees"></tbody></table></div></section>
@@ -1351,7 +1355,7 @@ function render(cur,cmp){
   const pageJs = `
 const SNAP=${J(pnlSnap)};const PNL_DAILY=${J(pnlDaily)};const CLOSED=${J(closed)};const NAMES=${J(skuNames)};
 const AN_SALES=${J(anSales)};const AN_ADS=${J(anAds)};const AN_FIN=${J(anFin)};const AN_META=${J(anMeta)};
-const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};
+const AN_ACCT=${J(anAcct)};const AN_MAXD=${J(anAcctMaxD)};const AN_REALSKU=${J(anRealSku)};const AN_REALYM=${J(anRealYm)};const AN_COGS=${J(cogs)};const AN_PLAN=${J(planMonthly)};
 // Фаза 2b: P&L канала за ПРОИЗВОЛЬНЫЙ период из дневного ряда. breakdown коарсе (комиссия/
 // логистика/прочие услуги) - детальная разбивка по статьям остаётся в снимке 30 дн.
 function aggPnlDaily(from,to){
@@ -1493,10 +1497,41 @@ function renderAccountFees(cur){
   if(k>1)html+='<tr style="color:var(--ink-2)"><td><b>Прогноз</b> <span style="color:#E5B567;font-weight:400">[ГИПОТЕЗА] до '+to+'</span></td>'+cells(fc)+'</tr>';
   el.innerHTML=html;
 }
+// === блок «План на месяц и выполнение» (независим от верхнего фильтра, свой выбор месяца) ===
+function planFmtMon(ym){var n=['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];return n[+ym.slice(5,7)]+' '+ym.slice(0,4);}
+function planMonthList(){var s={};for(var i=0;i<AN_ACCT.length;i++)s[AN_ACCT[i][0].slice(0,7)]=1;for(var k in AN_PLAN)if(/^[0-9]{4}-[0-9]{2}$/.test(k))s[k]=1;return Object.keys(s).sort();}
+// Факт за месяц (те же формулы, что ИТОГО таблицы): реклама (финансовая), рентабельность и пр.
+function monthTotals(ym){
+  var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
+  var covM=coveredMonths(from,to);var rev=0,amt=0,amtS=0,cc=0,realized=0;
+  for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
+    rev+=sa[0]||0;realized+=ru;var am=fi[6]||0;amt+=am;if(ru>0)amtS+=am;cc+=(AN_COGS[sk]||0)*ru;}
+  var adv=0,f=0,rf=0,bd=0,ot=0;
+  for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;adv+=r[1];f+=r[2];rf+=r[3];bd+=r[4];ot+=r[6];}
+  var acctNet=adv+f+rf+bd+ot;amt+=acctNet;amtS+=acctNet;
+  var net=(amt-cc)-0.45*amtS,rent=amt?net/amt*100:0;
+  return {ad:-adv,rev:rev,realized:realized,net:net,rent:rent};
+}
+function renderPlan(ym){
+  var el=document.getElementById('plan');if(!el)return;var a=monthTotals(ym),p=(AN_PLAN[ym]||{});
+  var rows=[['Реклама, расход ₽',p.adSpend,a.ad,'cap'],['Рентабельность, %',p.rentab,a.rent,'pct'],['Выручка/продажи, ₽',p.revenue,a.rev,'up'],['Реализация, шт',p.realized,a.realized,'up'],['Чистая прибыль, ₽',p.netProfit,a.net,'up']];
+  el.innerHTML=rows.map(function(r){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],isPct=(kind==='pct');
+    var planS=(plan==null||plan==='')?'<span style="color:var(--ink-3)">— задай цель</span>':(isPct?plan+'%':fmtRu(Math.round(plan)));
+    var factS=isPct?(Math.round(fact*10)/10)+'%':fmtRu(Math.round(fact));var pctS='—';
+    if(plan!=null&&plan!==''&&plan!=0){var pct=fact/plan*100,color;if(kind==='cap')color=(pct<=100?'var(--up)':'var(--dn)');else color=(pct>=100?'var(--up)':(pct>=80?'#E5B567':'var(--dn)'));pctS='<b style="color:'+color+'">'+Math.round(pct)+'%</b>';}
+    return '<tr><td>'+lab+'</td><td class="r">'+planS+'</td><td class="r">'+factS+'</td><td class="r">'+pctS+'</td></tr>';}).join('');
+}
+var planInited=false;
+function initPlan(){
+  if(planInited)return;var sel=document.getElementById('plan-month');if(!sel)return;var ms=planMonthList();if(!ms.length)return;planInited=true;
+  sel.innerHTML=ms.map(function(m){return '<option value="'+m+'">'+planFmtMon(m)+'</option>';}).join('');
+  var def=ms[ms.length-1];sel.value=def;sel.onchange=function(){renderPlan(sel.value);};renderPlan(def);
+}
 function render(cur,cmp){
   // Фаза 2b: P&L канала за выбранный период из дневного ряда. Фолбэк на снимок 30 дн.
   var p=(PNL_DAILY&&PNL_DAILY.length)?aggPnlDaily(cur.from,cur.to):SNAP;
   paint(p,p.daily?'daily':'snap');
+  initPlan(); // блок плана - один раз, со своим выбором месяца
   renderSkuAnalytics(cur); // аналитика по SKU за период
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;

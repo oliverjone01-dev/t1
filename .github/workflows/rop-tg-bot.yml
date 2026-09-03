@@ -88,9 +88,14 @@ jobs:
           }
           GEN="$(gen_of)"; D="${GEN:0:10}"; TODAY="$(date -u +%F)"
           echo "Снимок rop.json: generated_at=$GEN (дата $D) · сегодня(UTC)=$TODAY · MODE=$MODE"
-          # 1) План: подтянуть свежий снимок, если ночной ещё не за сегодня
-          if [ "$MODE" = "plan" ] && [ -n "$GEN" ] && [ "$D" != "$TODAY" ]; then
-            echo "Данные не за сегодня - запускаю снимок Bitrix (b24-snapshots) и жду"
+          # 1) Данные 3 раза в день: свежий снимок Bitrix перед КАЖДЫМ дайджестом, чтобы Срез/Итог
+          #    показывали живой прогресс дня. Для слота ждём данные не старше времени слота (UTC):
+          #    план 06:00 (=09:00 МСК), срез 12:00 (=15:00 МСК), итог 14:30 (=17:30 МСК).
+          case "$MODE" in plan) SLOT="06:00";; srez) SLOT="12:00";; itogi) SLOT="14:30";; *) SLOT="06:00";; esac
+          SLOT_TS=$(date -u -d "$TODAY $SLOT" +%s 2>/dev/null || echo 0)
+          GEN_TS=$(date -u -d "$GEN" +%s 2>/dev/null || echo 0)
+          if [ -n "$GEN" ] && [ "$GEN_TS" -lt "$SLOT_TS" ]; then
+            echo "Снимок ($GEN) старше времени слота $SLOT UTC - обновляю данные Bitrix и жду"
             dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
             GEN="$(gen_of)"; D="${GEN:0:10}"
             echo "После снимка: generated_at=$GEN"

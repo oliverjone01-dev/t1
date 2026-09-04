@@ -173,7 +173,8 @@ try{
   // (а) сумма улик в ТАБЛИЦЕ = сумме viol в payload по ростеру МИНУС правила, скрытые
   // боевой калибровкой (K1: с 04.09 файл разметки Ивана живёт в данных)
   const kcal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
-  const kHidden=kcal?Object.keys(kcal).filter(r=>kcal[r].n&&100*kcal[r].ok/kcal[r].n<90):[];
+  /* порог песочницы ФЕНИКСА 04.09: 85% при n>=15, иначе 90 (синхронно с ruleOk страницы) */
+  const kHidden=kcal?Object.keys(kcal).filter(r=>{const c=kcal[r];if(!c.n)return false;const p=100*c.ok/c.n;return c.n>=15?p<85:p<90;}):[];
   const payRaw=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol,0);
   const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol-kHidden.reduce((h,r)=>h+((v.byRule||{})[r]||0),0),0);
   const tblSum=[...d.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);

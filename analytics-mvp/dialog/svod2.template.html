@@ -883,8 +883,11 @@ function renderKurator(){
   /* калибровка (условие 4 песочницы ФЕНИКСА): правило с измеренной точностью <90% скрыто.
      K1: ВСЕ числа - бейдж, колонка, плотность - считаются от отфильтрованных улик,
      а не от сырого viol: цифра без показываемого доказательства запрещена */
+  /* пороги ФЕНИКСА разведены по аудиториям (вердикт 04.09): песочница-черновик - 85%
+     точечной оценки при n>=15; публикация по именам на отдел - 90% при n>=30 (тот гейт
+     отдельный и не открыт). Порог песочницы защищает калибровку от потери предмета */
   const cal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
-  const ruleOk=r=>{if(!cal||!cal[r]||!cal[r].n)return true;return 100*cal[r].ok/cal[r].n>=90;};
+  const ruleOk=r=>{if(!cal||!cal[r]||!cal[r].n)return true;const p=100*cal[r].ok/cal[r].n;return cal[r].n>=15?p>=85:p>=90;};
   const hideV=v=>!ruleOk(v.r);
   const hiddenRules=cal?Object.keys(KRULE).filter(r=>!ruleOk(r)):[];
   const effViol=v=>{if(!cal)return v.viol;const br=v.byRule||{};return Math.max(0,v.viol-hiddenRules.reduce((s2,r)=>s2+(br[r]||0),0));};
@@ -900,7 +903,7 @@ function renderKurator(){
     .sort((a,b)=>{const sa=a[1].out>=MINS?1:0,sb=b[1].out>=MINS?1:0;if(sa!==sb)return sb-sa;return dens(b[1])-dens(a[1]);});
   const tot=rows.reduce((s2,[,v])=>s2+v.eff,0);
   document.getElementById('kur-total').textContent=tot+' '+plural(tot,['улика','улики','улик'])+' за неделю'+(cal?' (по правилам с точностью от 90%)':'');
-  tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th>Обещания с датой</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
+  tb.innerHTML='<tr><th>Менеджер</th><th>Первый ответ ≤15 раб. минут</th><th data-t="Считается тем же детектором, что правило «Обещание без даты», и наследует его измеренную точность (89,5% по разметке 04.09)">Обещания с датой*</th><th>Улик · на 10 сообщений</th><th></th></tr>'+
     rows.map(([m,v],i)=>{const frP=v.fr?Math.round(100*v.frOk/v.fr):null,prP=v.pr?Math.round(100*v.prOk/v.pr):null;
     const small=v.out<MINS;
     return `<tr><td><span class="name-l" onclick="openSlice('${esc(m)}')">${esc(m)}</span></td>
@@ -911,7 +914,7 @@ function renderKurator(){
     (K.firstLine&&K.firstLine.fr?`<tr><td><span style="color:var(--ink3)">Первая линия (офис)</span></td><td>${K.firstLine.frOk} из ${K.firstLine.fr}</td><td colspan="2" style="color:var(--ink3)">${K.firstLine.viol} ${plural(K.firstLine.viol,['улика','улики','улик'])} - вне таблицы продавцов: регламент продаж к офисной роли не применяется</td><td></td></tr>`:'');
   window.__kurRows=rows;
   const q=K.qual;
-  const calLine=cal?`Точность по разметке ${esc(K.calibration.measuredAt||'')}${K.calibration.by?' ('+esc(K.calibration.by)+(K.calibration.sampleRef?', выборка '+esc(K.calibration.sampleRef):'')+')':''}: `+Object.entries(cal).map(([r,c])=>`${r} ${c.n?Math.round(100*c.ok/c.n):'-'}% (${c.ok}/${c.n})`).join(', ')+' - правила с точностью ниже 90% скрыты вместе со своими счётчиками. ':'Ручная разметка улик ещё не проводилась - точность детекторов не измерена. ';
+  const calLine=cal?`Точность по разметке ${esc(K.calibration.measuredAt||'')}${K.calibration.by?' ('+esc(K.calibration.by)+(K.calibration.sampleRef?', выборка '+esc(K.calibration.sampleRef):'')+')':''}: `+Object.entries(cal).map(([r,c])=>`${r} ${c.n?(Math.round(1000*c.ok/c.n)/10)+'%':'-'} (${c.ok}/${c.n}${c.n<30?', выборка мала':''})`).join(', ')+' - порог песочницы 85% при 15+ наблюдениях; для публикации на отдел ФЕНИКС требует 90% при 30+ на правило. ':'Ручная разметка улик ещё не проводилась - точность детекторов не измерена. ';
   document.getElementById('kur-qual').textContent=(q&&q.out?`Квалификация за неделю по продавцам (памятка §3): по списку зашитых формулировок найдено - вопрос о бюджете ${q.bud}, о сроке ${q.term}, про ЛПР ${q.lpr} на ${q.out} исходящих. ${q.note||''} `:'')+calLine+`Почтовый канал (письма-треды) в разбор пока не входит - жалобы почтой движок не видит, это фаза 2. ${K.note||''}`;
 }
 function kurPanel(i){

@@ -1,0 +1,429 @@
+{
+  "at": "2026-09-04T16:24:35.233Z",
+  "note": "сырые заказы по номерам из YM_DUMP_ORDERS - точечная диагностика расхождения с отчётом взаиморасчётов",
+  "orders": {
+    "53778717443": {
+      "id": 53778717443,
+      "creationDate": "2026-02-01",
+      "statusUpdateDate": "2026-02-05T09:17:03.171+03:00",
+      "status": "DELIVERED",
+      "partnerOrderId": "53778717443",
+      "paymentType": "PREPAID",
+      "fake": false,
+      "deliveryRegion": {
+        "id": 51,
+        "name": "Самара"
+      },
+      "items": [
+        {
+          "offerName": "GEN GROUP Стол обеденный круглый TRUBIS Wood D100 см черный с металлическим подстольем",
+          "marketSku": 102196144505,
+          "shopSku": "GGT-03-2-2-L-100",
+          "count": 1,
+          "prices": [
+            {
+              "type": "MARKETPLACE",
+              "costPerItem": 20640,
+              "total": 20640
+            },
+            {
+              "type": "BUYER",
+              "costPerItem": 23018,
+              "total": 23018
+            }
+          ],
+          "warehouse": {
+            "id": 740092,
+            "name": "GEN GROUP"
+          },
+          "bidFee": 1000
+        }
+      ],
+      "payments": [
+        {
+          "id": "1310535618",
+          "date": "2026-02-01",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 23018,
+          "paymentOrder": {
+            "id": "193489",
+            "date": "2026-02-20"
+          }
+        }
+      ],
+      "commissions": [
+        {
+          "type": "AGENCY",
+          "actual": 0.12
+        },
+        {
+          "type": "DELIVERY_TO_CUSTOMER",
+          "actual": 1000
+        },
+        {
+          "type": "AUCTION_PROMOTION",
+          "actual": 43.66
+        },
+        {
+          "type": "FEE",
+          "actual": 117.88
+        },
+        {
+          "type": "PAYMENT_TRANSFER",
+          "actual": 575.45
+        },
+        {
+          "type": "DELIVERY_TO_CUSTOMER",
+          "actual": 4352
+        }
+      ],
+      "subsidies": [
+        {
+          "operationType": "ACCRUAL",
+          "type": "SUBSIDY",
+          "amount": 20640
+        }
+      ],
+      "buyerType": "PERSON",
+      "currency": "RUR"
+    },
+    "54313821955": {
+      "id": 54313821955,
+      "creationDate": "2026-02-18",
+      "statusUpdateDate": "2026-02-22T14:14:51.363+03:00",
+      "status": "DELIVERED",
+      "partnerOrderId": "54313821955",
+      "paymentType": "PREPAID",
+      "fake": false,
+      "deliveryRegion": {
+        "id": 35,
+        "name": "Краснодар"
+      },
+      "items": [
+        {
+          "offerName": "GEN GROUP Стол овальный обеденный 120*80см TRUBIS Wood, столешница орех с черным металлическим подстольем",
+          "marketSku": 4360443641,
+          "shopSku": "GGT-03-2-1-E-12080",
+          "count": 1,
+          "prices": [
+            {
+              "type": "MARKETPLACE",
+              "costPerItem": 14592,
+              "total": 14592
+            },
+            {
+              "type": "CASHBACK",
+              "costPerItem": 8457,
+              "total": 8457
+            },
+            {
+              "type": "BUYER",
+              "costPerItem": 17767,
+              "total": 17767
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 1085
+        },
+        {
+          "offerName": "Доставка КГТ без подъема на этаж",
+          "marketSku": 4360443641,
+          "shopSku": "GGT-03-2-1-E-12080",
+          "count": 1,
+          "prices": [
+            {
+              "type": "BUYER",
+              "costPerItem": 3500,
+              "total": 3500
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 1085
+        }
+      ],
+      "payments": [
+        {
+          "id": "1330281387",
+          "date": "2026-02-19",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 17767,
+          "paymentOrder": {
+            "id": "576802",
+            "date": "2026-03-04"
+          }
+        },
+        {
+          "id": "1330282030",
+          "date": "2026-02-19",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 3500,
+          "paymentOrder": {
+            "id": "576802",
+            "date": "2026-03-04"
+          }
+        }
+      ],
+      "commissions": [
+        {
+          "type": "AGENCY",
+          "actual": 0.24
+        },
+        {
+          "type": "PAYMENT_TRANSFER",
+          "actual": 531.68
+        },
+        {
+          "type": "FEE",
+          "actual": 138.78
+        },
+        {
+          "type": "AUCTION_PROMOTION",
+          "actual": 44.29
+        }
+      ],
+      "subsidies": [
+        {
+          "operationType": "ACCRUAL",
+          "type": "YANDEX_CASHBACK",
+          "amount": 8457
+        },
+        {
+          "operationType": "ACCRUAL",
+          "type": "SUBSIDY",
+          "amount": 14592
+        }
+      ],
+      "buyerType": "PERSON",
+      "currency": "RUR"
+    },
+    "53909875393": {
+      "id": 53909875393,
+      "creationDate": "2026-02-05",
+      "statusUpdateDate": "2026-02-13T15:20:01.512+03:00",
+      "status": "DELIVERED",
+      "partnerOrderId": "53909875393",
+      "paymentType": "PREPAID",
+      "fake": false,
+      "deliveryRegion": {
+        "id": 18,
+        "name": "Петрозаводск"
+      },
+      "items": [
+        {
+          "offerName": "GEN GROUP Журнальный столик для ноутбука RILONI, металлический в стиле лофт",
+          "marketSku": 102095478471,
+          "shopSku": "GGT-12-3",
+          "count": 1,
+          "prices": [
+            {
+              "type": "MARKETPLACE",
+              "costPerItem": 8218,
+              "total": 8218
+            },
+            {
+              "type": "CASHBACK",
+              "costPerItem": 12421,
+              "total": 12421
+            },
+            {
+              "type": "BUYER",
+              "costPerItem": 2207,
+              "total": 2207
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 0
+        },
+        {
+          "offerName": "Доставка",
+          "marketSku": 102095478471,
+          "shopSku": "GGT-12-3",
+          "count": 1,
+          "prices": [
+            {
+              "type": "BUYER",
+              "costPerItem": 3500,
+              "total": 3500
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 0
+        }
+      ],
+      "payments": [
+        {
+          "id": "1315045956",
+          "date": "2026-02-05",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 2207,
+          "paymentOrder": {
+            "id": "439357",
+            "date": "2026-02-20"
+          }
+        },
+        {
+          "id": "1315049232",
+          "date": "2026-02-05",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 3500,
+          "paymentOrder": {
+            "id": "439357",
+            "date": "2026-02-20"
+          }
+        }
+      ],
+      "commissions": [
+        {
+          "type": "PAYMENT_TRANSFER",
+          "actual": 142.68
+        },
+        {
+          "type": "FEE",
+          "actual": 77.68
+        },
+        {
+          "type": "AGENCY",
+          "actual": 0.24
+        }
+      ],
+      "subsidies": [
+        {
+          "operationType": "ACCRUAL",
+          "type": "SUBSIDY",
+          "amount": 8218
+        },
+        {
+          "operationType": "ACCRUAL",
+          "type": "YANDEX_CASHBACK",
+          "amount": 12421
+        }
+      ],
+      "buyerType": "PERSON",
+      "currency": "RUR"
+    },
+    "55204502850": {
+      "id": 55204502850,
+      "creationDate": "2026-03-18",
+      "statusUpdateDate": "2026-03-30T16:34:47.24+03:00",
+      "status": "DELIVERED",
+      "partnerOrderId": "55204502850",
+      "paymentType": "PREPAID",
+      "fake": false,
+      "deliveryRegion": {
+        "id": 99781,
+        "name": "Тукаевский район"
+      },
+      "items": [
+        {
+          "offerName": "GEN GROUP Стол обеденный овальный 160х80 см TRUBIS Wood белый мрамор с золотым металлическим подстольем",
+          "marketSku": 103759502821,
+          "shopSku": "GGT-03-1-5-E-16080",
+          "count": 1,
+          "prices": [
+            {
+              "type": "MARKETPLACE",
+              "costPerItem": 13267,
+              "total": 13267
+            },
+            {
+              "type": "BUYER",
+              "costPerItem": 30530,
+              "total": 30530
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 221
+        },
+        {
+          "offerName": "Доставка КГТ без подъема на этаж",
+          "marketSku": 103759502821,
+          "shopSku": "GGT-03-1-5-E-16080",
+          "count": 1,
+          "prices": [
+            {
+              "type": "BUYER",
+              "costPerItem": 3500,
+              "total": 3500
+            }
+          ],
+          "warehouse": {
+            "id": 2133767,
+            "name": "GEN GROUP 4"
+          },
+          "bidFee": 221
+        }
+      ],
+      "payments": [
+        {
+          "id": "1360732009",
+          "date": "2026-03-18",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 30530,
+          "paymentOrder": {
+            "id": "25995",
+            "date": "2026-04-13"
+          }
+        },
+        {
+          "id": "1360738776",
+          "date": "2026-03-18",
+          "type": "PAYMENT",
+          "source": "BUYER",
+          "total": 3500,
+          "paymentOrder": {
+            "id": "25995",
+            "date": "2026-04-13"
+          }
+        }
+      ],
+      "commissions": [
+        {
+          "type": "PAYMENT_TRANSFER",
+          "actual": 1087.83
+        },
+        {
+          "type": "AUCTION_PROMOTION",
+          "actual": 9.68
+        },
+        {
+          "type": "FEE",
+          "actual": 148.91
+        },
+        {
+          "type": "AGENCY",
+          "actual": 0.24
+        }
+      ],
+      "subsidies": [
+        {
+          "operationType": "ACCRUAL",
+          "type": "SUBSIDY",
+          "amount": 13267
+        }
+      ],
+      "buyerType": "PERSON",
+      "currency": "RUR"
+    }
+  }
+}

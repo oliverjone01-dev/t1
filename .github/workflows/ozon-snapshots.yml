@@ -67,6 +67,27 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
+      - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
+        run: |
+          set -euo pipefail
+          # data/ads_daily.ndjson: показы(vw)/клики(cl)/корзина(ca). Разовый полный пересбор, если
+          # полей ещё нет; дальше инкрементально. Идёт ПЕРЕД тяжёлыми шагами и коммитится сразу, чтобы
+          # рекламная статистика попала в дашборд быстро, не дожидаясь всего бэкофилла.
+          npx tsx src/scripts/ozon/ads-daily.ts || echo "::warning::реклама по дням не обновлена (OZON Performance недоступен)"
+      - name: Commit рекламной статистики по дням (ранний)
+        working-directory: .
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A analytics-mvp/data/ads_daily.ndjson
+          if git diff --staged --quiet; then echo "ads_daily без изменений"; exit 0; fi
+          git commit -m "data: рекламная статистика по дням (показы/клики/корзина) $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin "$GITHUB_REF_NAME" && git push; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((2**i))
+          done
+          echo "push не удался"; exit 1
       - name: Финансы по SKU за июнь и июль (с разбивкой комиссии)
         run: |
           set -euo pipefail

@@ -11,7 +11,7 @@ export const PLATFORM = "ym" as const;
 // Статусы заказа Маркета (stats/orders). Отменённые - без денег и без единиц в доставке.
 export const CANCELLED_STATUSES = new Set(["CANCELLED_BEFORE_PROCESSING", "CANCELLED_IN_DELIVERY", "CANCELLED_IN_PROCESSING", "REJECTED", "UNPAID"]);
 // Доставленные (деньги начислены): доставлен, частично возвращён, возвращён целиком.
-export const DELIVERED_STATUSES = new Set(["DELIVERED", "PARTIALLY_RETURNED", "RETURNED"]);
+export const DELIVERED_STATUSES = new Set(["DELIVERED", "PARTIALLY_RETURNED", "RETURNED", "PARTIALLY_DELIVERED"]); // PARTIALLY_DELIVERED встречен вживую 2026-09-04
 
 // Типы цен в позиции: сумма всех типов = стоимость товара для продавца (покупатель платит BUYER,
 // Маркет докладывает софинансирование MARKETPLACE, баллы CASHBACK/SPASIBO). [ГИПОТЕЗА] до сверки

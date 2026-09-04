@@ -5,7 +5,7 @@
 //   ads_30d.json, ads_periods.json, ads_reports.json (заглушки: реклама не подключена).
 // Без сети. Запуск: npm run ym:derive [days=30]
 import { existsSync } from "node:fs";
-import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays } from "./common.js";
+import { yp, ensureDir, readNdjson, writeNdjson, writeJson, readJson, FLOOR, yesterday, windowDays, addDays } from "./common.js";
 import { buildHistory, buildDailyTotals, buildSkusLive, buildPnl, buildPnlSku, buildPnlDaily, buildPnlSkuDaily, buildAccountDaily, buildSkuOffer, adsStub, type OrderRow } from "./derive-lib.js";
 
 function main() {
@@ -22,6 +22,7 @@ function main() {
   const viewsBy = new Map<string, { views: number; cart: number }>();
   const dayViews = new Map<string, { views: number; vsearch: number; pdp: number; cart: number }>();
   for (const v of views) {
+    if (v.aggregate) continue; // агрегат за окно - не дневные данные (см. reports.ts shows)
     const k = `${v.date}|${v.sku}`; const cur = viewsBy.get(k) || { views: 0, cart: 0 }; cur.views += v.views || 0; cur.cart += v.cart || 0; viewsBy.set(k, cur);
     const d = dayViews.get(v.date) || { views: 0, vsearch: 0, pdp: 0, cart: 0 }; d.views += v.views || 0; d.vsearch += v.vsearch || 0; d.pdp += v.pdp || 0; d.cart += v.cart || 0; dayViews.set(v.date, d);
   }
@@ -33,7 +34,11 @@ function main() {
   const days = Number(process.argv[2] || 30) || 30;
   const w = windowDays(days, to);
   const skuViews = new Map<string, { views: number; cart: number }>();
-  for (const v of views) if (v.date >= w.dateFrom && v.date <= w.dateTo) { const c = skuViews.get(v.sku) || { views: 0, cart: 0 }; c.views += v.views || 0; c.cart += v.cart || 0; skuViews.set(v.sku, c); }
+  for (const v of views) {
+    // дневные строки внутри окна; агрегат берём, если его окно совпадает с окном skus_live с точностью до 2 дней
+    const inWin = v.aggregate ? (v.date >= addDays(w.dateTo, -2) && v.period_from <= addDays(w.dateFrom, 2)) : (v.date >= w.dateFrom && v.date <= w.dateTo);
+    if (inWin) { const c = skuViews.get(v.sku) || { views: 0, cart: 0 }; c.views += v.views || 0; c.cart += v.cart || 0; skuViews.set(v.sku, c); }
+  }
   const live = buildSkusLive(rows, facts, catalog, w.dateFrom, w.dateTo, skuViews.size ? skuViews : undefined);
   writeJson(yp("skus_live_30d.json"), live);
   writeJson(yp("pnl_30d.json"), buildPnl(rows, w.dateFrom, w.dateTo), 0);

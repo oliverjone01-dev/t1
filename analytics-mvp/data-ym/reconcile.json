@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-04T16:12:24.733Z",
+  "generated_at": "2026-09-04T16:44:31.894Z",
   "today": "2026-09-04",
   "periods": [
     {
@@ -289,7 +289,8 @@
     "realization": {
       "months": [
         "2026-02",
-        "2026-03"
+        "2026-03",
+        "2026-04"
       ],
       "sku_prev_month": 0
     },

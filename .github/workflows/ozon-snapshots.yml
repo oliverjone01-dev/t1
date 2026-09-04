@@ -67,10 +67,6 @@ jobs:
             echo "::error::OZON Seller креды не заданы (ни Secrets, ни input)."; exit 1
           fi
           echo "Seller-креды на месте."
-      - name: "PROBE v4: заказы по SKU (свежее окно, CSV, CPO)"
-        run: |
-          set +e
-          npm run ads:orders:probe || echo "::warning::probe с ошибкой"
       - name: Рекламная статистика по дням (показы/клики/корзина -> ads_daily)
         run: |
           set -euo pipefail

@@ -162,6 +162,10 @@ export class OzonPerformance {
     return String(data.UUID ?? data.uuid ?? data.id ?? "");
   }
 
+  // Сырые вызовы - только для probe (разведка эндпоинтов/тел отчётов).
+  async rawPost(path: string, body: unknown): Promise<any> { return this.post<any>(path, body); }
+  async rawGet(path: string): Promise<any> { return this.get<any>(path); }
+
   // Сырой текст отчёта (CSV или содержимое ZIP) - разбор отдельно после probe.
   async downloadStatistics(uuid: string): Promise<string> {
     return withRetry(async () => {

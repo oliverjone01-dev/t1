@@ -1,0 +1,42 @@
+{
+  "_note": "Синтетический образец ответа stats/orders Маркета для тестов и локального dry-run. НЕ данные кабинета. В отчёты не подавать.",
+  "campaignId": "21000001", "businessId": "1023124",
+  "orders": [
+    {
+      "id": 500001, "creationDate": "05-08-2026", "statusUpdateDate": "09-08-2026", "status": "DELIVERED", "paymentType": "PREPAID", "fake": false,
+      "deliveryRegion": {"id": 213, "name": "Москва"},
+      "items": [
+        {"offerName": "GENGLASS Зеркало настенное NOLVIS M LED 135х50", "marketSku": 100200300, "shopSku": "GGM-16-2-2", "count": 1, "initialCount": 1,
+         "prices": [{"type": "BUYER", "costPerItem": 18000, "total": 18000}, {"type": "MARKETPLACE", "costPerItem": 2000, "total": 2000}], "details": []},
+        {"offerName": "GENGLASS Стол кухонный овальный белый TRUBIS Wood 200х90", "marketSku": 100200301, "shopSku": "GGT-03-3-3-O-20090", "count": 2, "initialCount": 2,
+         "prices": [{"type": "BUYER", "costPerItem": 40000, "total": 80000}], "details": []}
+      ],
+      "commissions": [{"type": "FEE", "actual": 15000, "predicted": 14000}, {"type": "AGENCY", "actual": 1000, "predicted": 1000}, {"type": "DELIVERY_TO_CUSTOMER", "actual": 3000, "predicted": 3000}],
+      "payments": [{"id": "p1", "date": "12-08-2026", "type": "PAYMENT", "source": "PAYMENT", "total": 81000, "paymentOrder": {"id": "po-1", "date": "12-08-2026"}}]
+    },
+    {
+      "id": 500002, "creationDate": "10-08-2026", "statusUpdateDate": "16-08-2026", "status": "PARTIALLY_RETURNED", "paymentType": "PREPAID", "fake": false,
+      "items": [
+        {"offerName": "GENGLASS Стол кухонный овальный белый TRUBIS Wood 200х90", "marketSku": 100200301, "shopSku": "GGT-03-3-3-O-20090", "count": 2, "initialCount": 3,
+         "prices": [{"type": "BUYER", "costPerItem": 40000, "total": 80000}], "details": [{"itemStatus": "REJECTED", "itemCount": 1, "updateDate": "11-08-2026"}, {"itemStatus": "RETURNED", "itemCount": 1, "updateDate": "16-08-2026"}]}
+      ],
+      "commissions": [{"type": "FEE", "actual": null, "predicted": 6000}, {"type": "DELIVERY_TO_CUSTOMER_RETURN", "actual": null, "predicted": 500}],
+      "payments": []
+    },
+    {
+      "id": 500003, "creationDate": "2026-08-20", "statusUpdateDate": "2026-08-21", "status": "CANCELLED_IN_PROCESSING", "fake": false,
+      "items": [{"offerName": "GENGLASS Зеркало настенное NOLVIS M LED 135х50", "marketSku": 100200300, "shopSku": "GGM-16-2-2", "count": 1, "initialCount": 1, "prices": [{"type": "BUYER", "costPerItem": 18000, "total": 18000}], "details": []}],
+      "commissions": [], "payments": []
+    },
+    {
+      "id": 500004, "creationDate": "28-08-2026", "statusUpdateDate": "29-08-2026", "status": "DELIVERY", "fake": false,
+      "items": [{"offerName": "GENGLASS Зеркало настенное NOLVIS M LED 135х50", "marketSku": 100200300, "shopSku": "GGM-16-2-2", "count": 1, "initialCount": 1, "prices": [{"type": "BUYER", "costPerItem": 17000, "total": 17000}, {"type": "CASHBACK", "costPerItem": 1000, "total": 1000}], "details": []}],
+      "commissions": [{"type": "FEE", "actual": null, "predicted": 2700}], "payments": []
+    },
+    {
+      "id": 500005, "creationDate": "01-08-2026", "statusUpdateDate": "02-08-2026", "status": "DELIVERED", "fake": true,
+      "items": [{"offerName": "тестовый заказ", "marketSku": 1, "shopSku": "TEST-1", "count": 1, "initialCount": 1, "prices": [{"type": "BUYER", "costPerItem": 1, "total": 1}], "details": []}],
+      "commissions": [], "payments": []
+    }
+  ]
+}

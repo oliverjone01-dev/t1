@@ -4,8 +4,9 @@
 // чипы и ввод ассистента. Любая рантайм-ошибка = тест падает.
 import { JSDOM, VirtualConsole } from "jsdom";
 import { readFileSync, readdirSync } from "node:fs";
+import { OUT_DIR } from "../paths.js";
 
-const PAGES = readdirSync("public").filter((f) => f.endsWith(".html"));
+const PAGES = readdirSync(OUT_DIR).filter((f) => f.endsWith(".html"));
 
 function fire(el: any, type: string) {
   const win = el.ownerDocument.defaultView;
@@ -20,7 +21,7 @@ for (const page of PAGES) {
   const errors: string[] = [];
   const vc = new VirtualConsole();
   vc.on("jsdomError", (e: Error) => errors.push("jsdomError: " + e.message));
-  const html = readFileSync(`public/${page}`, "utf-8");
+  const html = readFileSync(`${OUT_DIR}/${page}`, "utf-8");
   let dom: JSDOM;
   try {
     dom = new JSDOM(html, { runScripts: "dangerously", virtualConsole: vc, pretendToBeVisual: true });

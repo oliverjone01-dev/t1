@@ -5,6 +5,8 @@
 import { readFileSync } from "node:fs";
 
 const DROP_GATE = 0.4; // просадка ключевой метрики >40% относительно прошлого снимка = блок (FENIX G3)
+// Минимум строк SKU в снимке. OZON: 10 (default). Маркет (SNAPSHOT_MIN_SKUS=1): каталог меньше, порог ниже.
+const MIN_SKUS = Math.max(1, Number(process.env.SNAPSHOT_MIN_SKUS || 10) || 10);
 
 function fail(msg: string): never {
   console.error(`SNAPSHOT INVALID: ${msg}`);
@@ -40,7 +42,7 @@ function main() {
 
   switch (type) {
     case "skus":
-      if (!Array.isArray(data.sku_table) || data.sku_table.length < 10) fail("sku_table пустой/короткий");
+      if (!Array.isArray(data.sku_table) || data.sku_table.length < MIN_SKUS) fail(`sku_table пустой/короткий (<${MIN_SKUS})`);
       if (!data.totals || !(data.totals.rev > 0)) fail("totals.rev не положителен");
       break;
     case "ads":
@@ -53,7 +55,7 @@ function main() {
       break;
     case "pnlsku": {
       const n = data.bySku ? Object.keys(data.bySku).length : 0;
-      if (n < 10) fail("pnl-sku bySku пустой/короткий");
+      if (n < MIN_SKUS) fail(`pnl-sku bySku пустой/короткий (<${MIN_SKUS})`);
       if (typeof data.skuCount === "number" && data.skuCount !== n) fail(`skuCount ${data.skuCount} != ключей ${n}`);
       break;
     }

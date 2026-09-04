@@ -4,7 +4,10 @@
 // Берём её CSS/DOM/JS, балансной заменой подставляем только константы-данные.
 // Реальные числа - канал OZON. Прочие каналы, клиенты, план - нет данных (честно пусто).
 // Запуск: tsx src/scripts/build-katya.ts (после fetch:live). Источник: data/, не fixtures.
-import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync as _writeFileSync, readdirSync } from "node:fs";
+import { dp, fp, op, platformize } from "../paths.js";
+// Запись страниц через platformize: для OZON - identity (байт-в-байт), для Маркета - подписи платформы.
+const writeFileSync = (path: string, html: string): void => _writeFileSync(path, platformize(html));
 
 type Fact = { date: string; sku: string; name: string; line: string; revenue: number; units: number; returns?: number };
 const RUMON = ["Янв","Фев","Мар","Апр","Май","Июн","Июл","Авг","Сен","Окт","Ноя","Дек"];
@@ -12,10 +15,10 @@ const mln = (n: number) => Math.round((n / 1e6) * 1000) / 1000;
 const slug = (s: string) => "s_" + s.toLowerCase().replace(/[^a-zа-я0-9]+/gi, "_").replace(/^_|_$/g, "").slice(0, 60);
 
 // --- данные ---
-const facts: Fact[] = readFileSync("data/history.ndjson", "utf-8").trim().split("\n").map((l) => JSON.parse(l));
-const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
-const tax: Record<string, any> = JSON.parse(readFileSync("data/sku_taxonomy.json", "utf-8"));
-const cogs: Record<string, number> = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8"));
+const facts: Fact[] = readFileSync(dp("history.ndjson"), "utf-8").trim().split("\n").map((l) => JSON.parse(l));
+const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
+const tax: Record<string, any> = JSON.parse(readFileSync(dp("sku_taxonomy.json"), "utf-8"));
+const cogs: Record<string, number> = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8"));
 const stockOf: Record<string, number> = {};
 for (const s of live.sku_table) stockOf[String(s.sku)] = s.stock || 0;
 
@@ -158,7 +161,7 @@ for (const [g, gr] of groups) for (const [sub, sks] of gr) {
 // --- комиссия за продажу OZON по подкатегориям из снимка pnl-sku (как на листе Деньги) ---
 // Ставка % от выручки на подкатегорию; на странице Обзор взвешивается выручкой бакета за период.
 let pnlBySkuComm: Record<string, { accruals?: number; commission?: number }> = {};
-try { pnlBySkuComm = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { pnlBySkuComm = {}; }
+try { pnlBySkuComm = JSON.parse(readFileSync(dp("pnl_sku_30d.json"), "utf-8")).bySku || {}; } catch { pnlBySkuComm = {}; }
 const SUBCAT_COMM: Record<string, number> = {};
 for (const [g, gr] of groups) for (const [sub, sks] of gr) {
   let acc = 0, comm = 0;
@@ -406,6 +409,24 @@ const KPAGES: [string, string, string][] = [
   ["katya-money.html", "Деньги", "money"],
   ["katya-competitors.html", "Конкуренты", "competitors"],
 ];
+// --- Отчёт о покрытии и пробелы по SKU (CLAUDE.md §15 п.3): читаем reconcile.json, если продьюсер
+// платформы его положил (Маркет: ym:reconcile). Нет файла - ничего не добавляем (OZON без изменений).
+const RECON: any = (() => { try { return JSON.parse(readFileSync(dp("reconcile.json"), "utf-8")); } catch { return null; } })();
+function coverageStrip(): string {
+  if (!RECON || !RECON.coverage) return "";
+  const c = RECON.coverage, gapsN = Object.keys(c.gaps || {}).length;
+  const pill = (ok: boolean, t: string) => `<span style="display:inline-block;border:1px solid ${ok ? "#34D399" : "#E5B567"};color:${ok ? "#34D399" : "#E5B567"};border-radius:7px;padding:1px 8px;margin:2px 4px 2px 0;white-space:nowrap">${t}</span>`;
+  const per = (RECON.periods || []).map((p: any) => `<div style="margin-top:3px"><b>${p.label}</b>: штуки ${p.units.orders_delivered}−${p.units.orders_returned} vs реализация ${p.units.realization_sold ?? "—"}−${p.units.realization_ret ?? "—"} (${p.units.status}); деньги к выплате ${p.money.payout_derived.toLocaleString("ru-RU")} ₽ vs ЛК ${p.money.netting_paid == null ? "—" : p.money.netting_paid.toLocaleString("ru-RU") + " ₽"} (${p.money.status}); СС ${p.cogs.pct_rev}% оборота</div>`).join("");
+  return `<div id="gg-cov" style="background:#141c26;border-bottom:1px solid #2a3a4a;color:#cfe8ef;font:12px/1.6 system-ui;padding:6px 18px">
+  <div><b style="color:${RECON.verdict === "go" ? "#34D399" : "#E5B567"}">Сверка §15: ${RECON.verdict === "go" ? "GO" : "RETURN"}</b> · покрытие за ${c.window?.dateFrom}..${c.window?.dateTo}, SKU ${c.sku_total}:
+  ${pill(c.cogs.pct_rev >= 90, `СС ${c.cogs.pct_sku}% SKU / ${c.cogs.pct_rev}% оборота`)}${pill(c.taxonomy.pct_rev >= 90, `таксономия ${c.taxonomy.pct_sku}% / ${c.taxonomy.pct_rev}%`)}${pill(!!(c.realization && c.realization.months && c.realization.months.length), `реализация: ${c.realization && c.realization.months && c.realization.months.length ? c.realization.months.join(", ") : "нет отчёта"}`)}${pill(!!c.netting, `выплаты ЛК: ${c.netting ? c.netting.months.join(", ") : "нет отчёта"}`)}${pill(c.views && c.views.days > 0, `показы: ${c.views ? c.views.days : 0} дн`)}${pill(false, `реклама: ${c.ads}`)}${pill(gapsN === 0, `пробелов по SKU: ${gapsN}`)}
+  <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer;color:#22D3EE">три периода</summary>${per}${(RECON.blockers || []).length ? `<div style="margin-top:3px;color:#E5B567">Блокеры: ${RECON.blockers.join("; ")}</div>` : ""}</details></div></div>`;
+}
+// Бейджи у затронутых строк: ячейка, чей текст равен артикулу/SKU с пробелом, получает пометку.
+const GAPS_JS = RECON && RECON.coverage && Object.keys(RECON.coverage.gaps || {}).length ? `<script>(function(){var G=${JSON.stringify(RECON.coverage.gaps)};
+function mark(){document.querySelectorAll('td,.pv-name,.model-name,.name').forEach(function(td){if(td.dataset.ggGap)return;var t=(td.textContent||'').trim();var g=G[t];if(!g){var m=t.match(/[A-ZА-Я]{2,4}-[A-Z0-9-]{3,}/);if(m)g=G[m[0]];}if(!g)return;td.dataset.ggGap='1';var b=document.createElement('span');b.textContent='⚠ '+g.join(', ');b.title='Пробел данных по SKU (сверка §15): '+g.join(', ');b.style.cssText='margin-left:6px;font-size:10px;color:#E5B567;border:1px solid #E5B567;border-radius:5px;padding:0 5px;white-space:nowrap';td.appendChild(b);});}
+mark();setInterval(mark,1500);})();</script>` : "";
+
 function banner(active: string): string {
   const snap = `${MONTHS[11]?.m || ""}-${MONTHS[15]?.m || ""}`;
   const k = (href: string, label: string, on: boolean) =>
@@ -414,7 +435,7 @@ function banner(active: string): string {
   <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center">
     ${KPAGES.map(([h, l, key]) => k(h, l, key === active)).join(" ")}
     <span style="color:#5d7484;margin-left:8px">живой OZON (${snap}) · прочие каналы/клиенты/план - нет данных</span>
-  </div></div>`;
+  </div></div>${coverageStrip()}`;
 }
 
 // --- Гуру-виджет: всплывающий ИИ-аналитик на каждой странице ---
@@ -634,7 +655,7 @@ const _adsHasId = (x: any): boolean => !!x && (
 );
 function freshAds(name: string): any {
   const rd = (p: string): any => { try { return JSON.parse(readFileSync(p, "utf-8")); } catch { return null; } };
-  const d = rd(`data/${name}`), f = rd(`fixtures/${name}`);
+  const d = rd(dp(name)), f = rd(fp(name));
   if (_adsHasId(d)) return d;
   if (_adsHasId(f)) return f;
   return d || f;
@@ -648,7 +669,7 @@ function warnStale(): void {
   const daysOld = (d?: string): number | null => { if (!d || !/^\d{4}-\d\d-\d\d/.test(d)) return null; return Math.round((ystd.getTime() - new Date(d.slice(0, 10) + "T00:00:00Z").getTime()) / 86400000); };
   // Дата снимка из data/: dateTo (окно) или generated_at (когда снят). Не валим, если файла нет.
   const snapDate = (file: string): string | undefined => {
-    try { const j = JSON.parse(readFileSync(`data/${file}`, "utf-8")); return j.dateTo || (j.generated_at ? String(j.generated_at).slice(0, 10) : undefined); }
+    try { const j = JSON.parse(readFileSync(dp(file), "utf-8")); return j.dateTo || (j.generated_at ? String(j.generated_at).slice(0, 10) : undefined); }
     catch { return undefined; }
   };
   const checks: [string, string | undefined][] = [
@@ -749,7 +770,7 @@ applyPeriod();
 </script>
 ${GURU_JS}
 ${HELP_JS}
-${CHANNEL_JS}
+${CHANNEL_JS}${GAPS_JS}
 </body></html>`;
 }
 
@@ -768,7 +789,7 @@ const catFun: Record<string, Fun> = {};
 const subFun: Record<string, Fun & { name: string; cat: string }> = {};
 const catSubs: Record<string, Set<string>> = {};
 let viewRows: any[] = [];
-try { viewRows = readFileSync("data/sku_views.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
+try { viewRows = readFileSync(dp("sku_views.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { viewRows = []; }
 const fromViews = viewRows.length > 0;
 const funSrc: any[] = fromViews ? viewRows : facts;
 for (const r of funSrc) {
@@ -796,7 +817,7 @@ for (const r of funSrc) {
   (catSubs[cat] ||= new Set()).add(sid);
 }
 let dailyTotals: any[] = [];
-try { dailyTotals = readFileSync("data/daily_totals.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
+try { dailyTotals = readFileSync(dp("daily_totals.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { dailyTotals = []; }
 if (dailyTotals.length) {
   for (const t of dailyTotals) {
     const i = dayIdx(t.date); if (i < 0 || i >= TOTAL) continue;
@@ -826,8 +847,8 @@ if (dailyTotals.length) {
   html = patchXyzMatrix(html);
   html = patchRealDaily(html, {});
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("obzor") + REAL_DAILY_JS(false) + `<script>window.__GG_MAXD='${maxD}'</script>`);
-  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + "\n</body>");
-  writeFileSync("public/katya.html", html);
+  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + GAPS_JS + "\n</body>");
+  writeFileSync(op("katya.html"), html);
 }
 
 // --- страница 2: товары и заказы (v63) ---
@@ -843,8 +864,8 @@ if (dailyTotals.length) {
   html = patchMarginHonesty(html);
   html = patchRealDaily(html, { products: true });
   html = html.replace(/<body[^>]*>/, (m) => m + "\n" + banner("tovary") + REAL_DAILY_JS(true) + `<script>window.__GG_MAXD='${maxD}'</script>`);
-  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + "\n</body>");
-  writeFileSync("public/katya-tovary.html", html);
+  html = html.replace("</body>", PERSIST_JS + "\n" + GURU_JS + "\n" + HELP_JS + "\n" + CHANNEL_JS + GAPS_JS + "\n</body>");
+  writeFileSync(op("katya-tovary.html"), html);
 }
 
 // --- страница 3: Воронка (реальные дни, динамика по периоду) ---
@@ -953,7 +974,7 @@ function render(cur,cmp){
   const p1=(a,b)=>b?(a/b*100).toFixed(1):'0'; // брошено = добавили в корзину, но не заказали
   document.getElementById('retl').innerHTML=rows.map(x=>{const drop=Math.max(0,x.ct-x.u);return '<tr><td>'+x.k+'</td><td class="r">'+fmtRu(x.u)+'</td><td class="r">'+fmtRu(x.r)+'</td><td class="r" style="color:'+(x.u&&x.r/x.u>0.05?'var(--dn)':'inherit')+'">'+p1(x.r,x.u)+'%</td><td class="r">'+fmtRu(x.c)+'</td><td class="r" style="color:'+(x.u&&x.c/x.u>0.1?'var(--dn)':'inherit')+'">'+p1(x.c,x.u)+'%</td><td class="r">'+fmtRu(drop)+'</td><td class="r" style="color:'+(x.ct&&drop/x.ct>0.9?'var(--dn)':'inherit')+'">'+p1(drop,x.ct)+'%</td></tr>';}).join('')||'<tr><td colspan="8" class="kt-note">нет данных за период</td></tr>';
 }`;
-  writeFileSync("public/katya-voronka.html", kshell("Воронка", "voronka", body, pageJs));
+  writeFileSync(op("katya-voronka.html"), kshell("Воронка", "voronka", body, pageJs));
 }
 
 // --- страница 4: Маркетинг (период МГНОВЕННО из запечённых снимков 7/30/90 + живое обновление) ---
@@ -981,13 +1002,13 @@ function render(cur,cmp){
     adsPeriods = (hp7 || hp30 || hp90) ? { p7: hp7 || adsSnap, p30: hp30 || adsSnap, p90: hp90 || adsSnap } : { p7: adsSnap, p30: adsSnap, p90: adsSnap };
   }
   let adsReports: any = {};
-  try { adsReports = JSON.parse(readFileSync("data/ads_reports.json", "utf-8")); } catch { adsReports = {}; }
+  try { adsReports = JSON.parse(readFileSync(dp("ads_reports.json"), "utf-8")); } catch { adsReports = {}; }
   // Объединённые карточки (карта из Google-таблицы): sku -> {модель, состав др. SKU}.
   // Состыковка кампания -> карточка: в развороте показываем состав карточки (факт),
   // ad-attributed дробление не выдумываем (его в прямом API нет).
   let cardBySku: Record<string, { model: string; others: Array<{ sku: string; offer: string }> }> = {};
   try {
-    const cg = JSON.parse(readFileSync("data/card_groups.json", "utf-8"));
+    const cg = JSON.parse(readFileSync(dp("card_groups.json"), "utf-8"));
     for (const g of cg.groups || []) {
       for (const s of g.skus || []) {
         cardBySku[String(s.sku)] = {
@@ -1006,15 +1027,15 @@ function render(cur,cmp){
   // Фаза 1b: дневной ряд рекламы (ads_daily.ndjson) + мета кампаний (line/instr/place/status
   // из снимка - в дневном ряду их нет). Дашборд агрегирует ЛЮБОЙ период из дневного ряда.
   let adsDaily: any[] = [];
-  try { adsDaily = readFileSync("data/ads_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { adsDaily = []; }
+  try { adsDaily = readFileSync(dp("ads_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { adsDaily = []; }
   // Дневной ряд per-SKU атрибуции (основная/объединённая), индекс по кампании -> точная разбивка за любой период.
   let adsAttrByCamp: Record<string, any[]> = {};
-  try { for (const l of readFileSync("data/ads_attr_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsAttrByCamp[String(r.id)] || (adsAttrByCamp[String(r.id)] = [])).push({ d: r.d, sku: String(r.sku), nm: r.nm, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldM, omM: r.omM }); } } catch { adsAttrByCamp = {}; }
+  try { for (const l of readFileSync(dp("ads_attr_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsAttrByCamp[String(r.id)] || (adsAttrByCamp[String(r.id)] = [])).push({ d: r.d, sku: String(r.sku), nm: r.nm, sp: r.sp, sold: r.sold, om: r.om, soldM: r.soldM, omM: r.omM }); } } catch { adsAttrByCamp = {}; }
   const campMeta: Record<string, { off: string; line: string; instr: string; place: string; status: string }> = {};
   const addMeta = (list: any[]) => (list || []).forEach((c: any) => { if (c && c.id && !campMeta[String(c.id)]) campMeta[String(c.id)] = { off: c.off || "", line: c.line || "прочее", instr: c.instr || "", place: c.place || "-", status: c.status || "" }; });
   addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
   for (const k of ["p7", "p30", "p90"]) { addMeta((adsPeriods[k] || {}).top_spend); addMeta((adsPeriods[k] || {}).burners); }
-  const live = JSON.parse(readFileSync("data/skus_live_30d.json", "utf-8"));
+  const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));
   let cheaper = 0, even = 0, pricier = 0, noIdx = 0;
   const worst: any[] = [];
   for (const s of live.sku_table) {
@@ -1031,9 +1052,9 @@ function render(cur,cmp){
   for (const [id, m] of Object.entries(campMeta)) { const c = offerToCard[(m as any).off]; if (c) campCard[id] = c; }
   // --- Юнит-экономика рекламы (модель Романа): безубыточная ДРР по SKU из комиссий+с/с ---
   // ECON[sku] = {com: комиссия% OZON, cogs: с/с%, be: безубыточная ДРР%, accr: выручка}. be=null если нет с/с/продаж.
-  const econCogs: Record<string, number> = JSON.parse(readFileSync("data/sku_cogs.json", "utf-8"));
+  const econCogs: Record<string, number> = JSON.parse(readFileSync(dp("sku_cogs.json"), "utf-8"));
   let econPnl: Record<string, any> = {};
-  try { econPnl = JSON.parse(readFileSync("data/pnl_sku_30d.json", "utf-8")).bySku || {}; } catch { econPnl = {}; }
+  try { econPnl = JSON.parse(readFileSync(dp("pnl_sku_30d.json"), "utf-8")).bySku || {}; } catch { econPnl = {}; }
   const econUnits: Record<string, number> = {};
   for (const s of live.sku_table) econUnits[String(s.sku)] = s.units || 0;
   const priceLive: Record<string, number> = {}; // текущая цена с витрины OZON, ₽ (live-снимок)
@@ -1265,15 +1286,15 @@ function render(cur,cmp){
   setAds('ok','готов к работе');
   loadAllReports(); // per-SKU разбивка из кэша снимка (ближайший 7/30/90)
 }`;
-  writeFileSync("public/katya-marketing.html", kshell("Маркетинг и реклама", "marketing", body, pageJs));
+  writeFileSync(op("katya-marketing.html"), kshell("Маркетинг и реклама", "marketing", body, pageJs));
 }
 
 // --- страница 5: Деньги (ЖИВЫЕ P&L-вебхуки по периоду, fallback - снимок) ---
 {
-  const pnlSnap = JSON.parse(readFileSync("data/pnl_30d.json", "utf-8"));
+  const pnlSnap = JSON.parse(readFileSync(dp("pnl_30d.json"), "utf-8"));
   // Фаза 2b: дневной ряд P&L канала (pnl_daily.ndjson) - агрегат за ЛЮБОЙ период.
   let pnlDaily: any[] = [];
-  try { pnlDaily = readFileSync("data/pnl_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
+  try { pnlDaily = readFileSync(dp("pnl_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l)); } catch { pnlDaily = []; }
   const skuNames: Record<string, string> = {};
   for (const sk of allSkus) skuNames[sk] = (skuName[sk] || sk).slice(0, 70);
 
@@ -1289,7 +1310,7 @@ function render(cur,cmp){
   }
   const anAdsMap: Record<string, Record<string, number[]>> = {};
   try {
-    for (const l of readFileSync("data/ads_attr_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of readFileSync(dp("ads_attr_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku); if (!sk) continue;
       const dm = (anAdsMap[sk] ||= {}); const a = dm[r.d] || (dm[r.d] = [0, 0, 0, 0, 0]);
       a[0]! += r.sp || 0; a[1]! += r.sold || 0; a[2]! += r.om || 0; a[3]! += r.soldM || 0; a[4]! += r.omM || 0;
@@ -1299,7 +1320,7 @@ function render(cur,cmp){
   for (const sk in anAdsMap) { anAds[sk] = []; for (const d in anAdsMap[sk]) { const a = anAdsMap[sk]![d]!; anAds[sk]!.push([d, Math.round(a[0]!), a[1], Math.round(a[2]!), a[3], Math.round(a[4]!)]); } }
   const anFin: Record<string, any[]> = {};
   try {
-    for (const l of readFileSync("data/pnl_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of readFileSync(dp("pnl_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku);
       (anFin[sk] ||= []).push([r.d, r.accruals, r.commission, r.delivery, r.acquiring, r.storage, r.otherSvc, r.amount]);
     }
@@ -1309,12 +1330,12 @@ function render(cur,cmp){
   // иначе в подписи оставался бы числовой SKU (внутренний ID OZON) вместо артикула.
   const offerAlt: Record<string, string> = {};
   try {
-    const cat = JSON.parse(readFileSync("data/sku_offer.json", "utf-8")); // {sku: offer}
+    const cat = JSON.parse(readFileSync(dp("sku_offer.json"), "utf-8")); // {sku: offer}
     for (const sk in cat) { if (cat[sk]) offerAlt[String(sk)] ||= String(cat[sk]); }
   } catch { /* нет sku_offer - соберётся ночным offer:sku */ }
   for (const s of (live.sku_table || [])) { if (s.sku != null && s.offer) offerAlt[String(s.sku)] ||= String(s.offer); }
   try {
-    const cg = JSON.parse(readFileSync("data/card_groups.json", "utf-8"));
+    const cg = JSON.parse(readFileSync(dp("card_groups.json"), "utf-8"));
     for (const g of (cg.groups || cg)) for (const x of (g.skus || [])) { if (x.sku != null && x.offer) offerAlt[String(x.sku)] ||= String(x.offer); }
   } catch { /* нет card_groups - пропуск */ }
   const offerOf = (sk: string) => taxOf(sk).offer || offerAlt[sk] || sk;
@@ -1325,7 +1346,7 @@ function render(cur,cmp){
   // Сборы уровня заказа/кабинета по дням (реклама/штрафы/realFBS/подписки/доставка от покупателя).
   const anAcct: any[] = [];
   try {
-    for (const l of readFileSync("data/pnl_account_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of readFileSync(dp("pnl_account_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); anAcct.push([r.d, r.adv || 0, r.fines || 0, r.realfbs || 0, r.badge || 0, r.delivery || 0, r.other || 0]);
     }
   } catch { /* нет файла - блок сборов уровня заказа пустой */ }
@@ -1337,7 +1358,7 @@ function render(cur,cmp){
   // фолбэк на дневной ряд (доставлено − возвраты).
   const anRealSku: Record<string, any[]> = {};
   try {
-    for (const l of readFileSync("data/realization_monthly.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of readFileSync(dp("realization_monthly.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku); if (!sk || sk === "0") continue;
       (anRealSku[sk] ||= []).push([r.ym, r.sold || 0, r.ret || 0]);
     }
@@ -1348,13 +1369,13 @@ function render(cur,cmp){
   const anRealYm = Array.from(new Set(([] as any[]).concat(...Object.values(anRealSku)).map((r) => r[0]))).sort();
   // План по месяцам (data/plan_monthly.json) - цели для блока «План на месяц».
   let planMonthly: any = {};
-  try { planMonthly = JSON.parse(readFileSync("data/plan_monthly.json", "utf-8")); } catch { planMonthly = {}; }
+  try { planMonthly = JSON.parse(readFileSync(dp("plan_monthly.json"), "utf-8")); } catch { planMonthly = {}; }
   // Реклама по SKU (data/ads_sku_daily.ndjson) - собранная per-SKU часть (накопительно). Агрегируем
   // расход sp по (sku, день) поверх кампаний. Что собрано - разносим в колонку «Реклама»; остаток
   // (несобранные кампании) остаётся в блоке «Сборы уровня заказа». Схема строки {d,cid,sku,sp,om}.
   const anAdsSkuMap: Record<string, Record<string, number>> = {};
   try {
-    for (const l of readFileSync("data/ads_sku_daily.ndjson", "utf-8").trim().split("\n").filter(Boolean)) {
+    for (const l of readFileSync(dp("ads_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) {
       const r = JSON.parse(l); const sk = String(r.sku || ""); if (!sk) continue;
       (anAdsSkuMap[sk] ||= {})[r.d] = (anAdsSkuMap[sk]![r.d] || 0) + (r.sp || 0);
     }
@@ -1601,7 +1622,7 @@ function render(cur,cmp){
   renderSkuAnalytics(cur); // аналитика по SKU за период
   renderAccountFees(cur); // сборы уровня заказа/кабинета за период (+прогноз)
 }`;
-  writeFileSync("public/katya-money.html", kshell("Деньги", "money", body, pageJs));
+  writeFileSync(op("katya-money.html"), kshell("Деньги", "money", body, pageJs));
 }
 
 // --- страница 0: КОМАНДНЫЙ ЦЕНТР (war-room, флагман Pro) ---
@@ -1699,7 +1720,7 @@ function render(cur,cmp){
     return '<div class="alert-card" data-q="'+esc(a.q)+'" style="border:1px solid '+col+'55;border-left:3px solid '+col+';border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.02);cursor:'+(a.q?'pointer':'default')+'"><div style="font-weight:700;color:'+col+';font-size:13px;margin-bottom:3px">'+a.t+'</div><div style="font-size:11.5px;color:var(--ink-2);line-height:1.45">'+esc(a.s)+'</div>'+(a.q?'<div style="font-size:10.5px;color:#22D3EE;margin-top:5px">разобрать у Гуру →</div>':'')+'</div>';}).join('')+'</div>';
   document.querySelectorAll('.alert-card[data-q]').forEach(c=>{const q=c.getAttribute('data-q');if(q)c.onclick=()=>{if(window.__guruAsk)window.__guruAsk(q,'Командный центр, алёрт: '+c.querySelector('div').textContent);};});
 }`;
-  writeFileSync("public/katya-command.html", kshell("Командный центр", "command", body, pageJs));
+  writeFileSync(op("katya-command.html"), kshell("Командный центр", "command", body, pageJs));
 }
 
 // --- страница 7: Конкуренты (ДЕМО-заглушка) ---
@@ -1716,9 +1737,9 @@ function render(cur,cmp){
   // Пилот из облака (Actions/контейнер) OZON блокирует (анти-бот) - снимок кладётся локальным прогоном.
   const compReal: Record<string, any> = {}; let compRealDate = ""; let compRealOk = 0;
   try {
-    const files = readdirSync("data/competitors").filter((f) => /^competitors_.*\.json$/.test(f)).sort();
+    const files = readdirSync(dp("competitors")).filter((f) => /^competitors_.*\.json$/.test(f)).sort();
     if (files.length) {
-      const snap = JSON.parse(readFileSync(`data/competitors/${files[files.length - 1]}`, "utf-8"));
+      const snap = JSON.parse(readFileSync(`${dp("competitors")}/${files[files.length - 1]}`, "utf-8"));
       compRealDate = snap.date || "";
       for (const r of (snap.rows || [])) if (r.ok && r.price != null) { compReal[String(r.sku)] = r; compRealOk++; }
     }
@@ -1855,7 +1876,7 @@ function render(cur,cmp){
   paintCatSummary();
   paintTable();
 }`;
-  writeFileSync("public/katya-competitors.html", kshell("Конкуренты", "competitors", body, pageJs));
+  writeFileSync(op("katya-competitors.html"), kshell("Конкуренты", "competitors", body, pageJs));
 }
 
 console.log(`katya: командный центр + 5 страниц + конкуренты(ДЕМО) · ${PRODUCTS.length} моделей, ${allSkus.length} SKU, категорий ${CAT_TREE.length}, окно ${WIN[0]}..${WIN[15]}, OZON ${ozRev} млн / ${ozOrd} заказов`);

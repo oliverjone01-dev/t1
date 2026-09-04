@@ -63,8 +63,14 @@ async function main() {
 
   const dq = runDq(store, from, to);
   console.log("DQ:", JSON.stringify({ ok: dq.ok, freshness: dq.freshness.ok, gaps: dq.gaps.length, volumeDrop: dq.volumeDrop?.ok }));
+  if (dq.volumeDrop && !dq.volumeDrop.ok) {
+    // НЕ фатал: последний день ещё не устоялся (OZON досчитывает продажи с задержкой). Данные
+    // всё равно коммитим - дашборд помечает такой день как «частичный». Иначе свежий день никогда
+    // не попадёт в репозиторий и дашборд застрянет на пред-предыдущем дне.
+    console.warn(`DQ warn: объём последнего дня ${dq.volumeDrop.date} = ${dq.volumeDrop.revenue} ниже медианы ${dq.volumeDrop.median} - вероятно ещё не устоялся. Коммитим, день частичный.`);
+  }
   if (!dq.ok) {
-    console.error("DQ провалена:", JSON.stringify(dq, null, 2));
+    console.error("DQ провалена (fatal: нет свежего дня или дыры в датах):", JSON.stringify(dq, null, 2));
     process.exit(2);
   }
   store.close();

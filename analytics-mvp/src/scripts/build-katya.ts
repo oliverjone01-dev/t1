@@ -53,6 +53,9 @@ for (const f of facts) {
 const allSkus = Object.keys(skuMonRev);
 const dates = [...new Set(facts.map((f) => f.date))].sort();
 const maxD = dates[dates.length - 1]!;
+// Время сборки дашборда (= последнее обновление) в МСК. Дашборд пересобирается после ночного
+// синка и после ручного «Обновить данные», поэтому это и есть отметка «когда обновлено».
+const BUILD_TS = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Moscow", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(",", "") + " МСК";
 const totRevWin = (sk: string) => (skuMonRev[sk] ?? []).reduce((a, b) => a + b, 0);
 
 // --- канонизация категорий ---
@@ -703,7 +706,8 @@ function kshell(title: string, activeKey: string, body: string, pageJs: string):
 <title>GENGLASS · ${title}</title><style>${KCSS}${EXTRA_CSS}</style></head><body>
 ${banner(activeKey)}
 <header class="topbar" style="position:relative">
-  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · данные по ${snapTo}</div></div></div>
+  <div class="brand"><div class="brand-logo">GG</div><div><div class="brand-name">GENGLASS</div><div class="brand-sub">${title} · живой OZON · данные по ${snapTo}</div><div class="brand-sub" style="font-size:11px;opacity:.75">обновлено ${BUILD_TS}</div></div></div>
+  <a class="kt-refresh" href="https://github.com/oliverjone01-dev/t1/actions/workflows/${IS_OZON ? "ozon-snapshots.yml" : "ym-snapshots.yml"}" target="_blank" rel="noopener" title="Открыть GitHub Actions и нажать «Run workflow» - синк соберёт свежий день. Дашборд обновится сам после автосборки (обычно 10-15 мин). Нужен вход в GitHub как владелец." style="align-self:center;margin-left:12px;padding:6px 12px;border:1px solid var(--bd,#2a2f3a);border-radius:8px;color:#22D3EE;font-weight:600;font-size:12.5px;text-decoration:none;white-space:nowrap">🔄 Обновить данные</a>
   <div class="topbar-spacer"></div>
   <div class="periods" id="periods">
     <button class="pb" data-p="today">Вчера</button>

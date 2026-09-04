@@ -170,8 +170,11 @@ try{
   // (в) ни один ключ payload не остаётся неотнесённым к ростеру (канонизация сработала)
   const orphan=Object.keys(K.mgrs).filter(k2=>!roster.some(m=>kSame(k2,m)));
   ck('куратор Б2(в): ключи payload = канонические имена ростера',orphan.length===0,'сироты: '+orphan.join(', '));
-  // (а) сумма улик в ТАБЛИЦЕ = сумме viol в payload по ростеру (независимый пересчёт)
-  const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol,0);
+  // (а) сумма улик в ТАБЛИЦЕ = сумме viol в payload по ростеру МИНУС правила, скрытые
+  // боевой калибровкой (K1: с 04.09 файл разметки Ивана живёт в данных)
+  const kcal=K.calibration&&K.calibration.byRule?K.calibration.byRule:null;
+  const kHidden=kcal?Object.keys(kcal).filter(r=>kcal[r].n&&100*kcal[r].ok/kcal[r].n<90):[];
+  const paySum=Object.entries(K.mgrs).filter(([k2])=>roster.some(m=>kSame(k2,m))).reduce((s2,[,v])=>s2+v.viol-kHidden.reduce((h,r)=>h+((v.byRule||{})[r]||0),0),0);
   const tblSum=[...d.querySelectorAll('#kur-table tr')].slice(1).filter(tr=>roster.some(m=>kSame(tr.querySelector('td')?.textContent.trim()||'',m))).reduce((s2,tr)=>{const b=tr.querySelectorAll('td')[3]?.querySelector('b');return s2+(b?+b.textContent:0);},0);
   ck('куратор Б2(а): сумма улик таблицы = сумме payload',tblSum===paySum,tblSum+' vs '+paySum);
   // K3 ФЕНИКСА: второй независимый инвариант - ключи payload СТРОГО равны строкам ростера

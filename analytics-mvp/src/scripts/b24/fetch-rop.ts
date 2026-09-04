@@ -8,11 +8,19 @@
 // Запуск: B24_WEBHOOK_URL=... npx tsx src/scripts/b24/fetch-rop.ts
 // Опц.: ROP_DATE_FROM=YYYY-MM-DD ограничивает по дате создания (пусто = всё).
 
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 
 const BASE = (process.env.B24_WEBHOOK_URL || "").replace(/\/+$/, "");
 if (!BASE) { console.error("Нет B24_WEBHOOK_URL в окружении"); process.exit(1); }
 const OUT = "rop/data/rop.json";
+// LIGHT (внутридневной срез/итог): тянем ТОЛЬКО быстрые и точные для дайджеста части -
+// сделки + история стадий + лиды (предоплаты, воронка, бюджеты - всегда свежие). Медленное
+// обогащение (касания/активности, Wazzup-переписка, канал-микс 90д, товарные строки СП) НЕ
+// перезапрашиваем, а переносим из прошлого ПОЛНОГО снимка: эти поля меняются медленно и на
+// цифры дайджеста не влияют. Ночной прогон (ROP_LIGHT пуст) остаётся полным = эталон данных.
+// Любая осечка (нет базового снимка, подозрительно мало сделок) -> НЕ пишем, выходим с ошибкой,
+// прошлый корректный снимок остаётся нетронутым. Так дайджест точен, а прогон ~3-4 мин вместо ~13.
+const LIGHT = (process.env.ROP_LIGHT || "") === "1";
 const DATE_FROM = process.env.ROP_DATE_FROM || "";
 // Дашборд v1: одна воронка сделок (49 = Заказы GG RF) + лиды всех направлений кроме Glass Memory.
 const DEAL_CATEGORY = process.env.ROP_DEAL_CATEGORY || "49";
@@ -390,9 +398,16 @@ async function main() {
   }
   for (const k in histByDeal) histByDeal[k].sort((a, b) => (a[1] < b[1] ? -1 : 1));
   console.log(`История стадий: ${histRows.length} записей на ${Object.keys(histByDeal).length} сделок`);
-  // Касания (звонки/письма/встречи/чаты) по каждой сделке.
-  const acts = await activityCounts();
-  const tasks = await openTasks();
+  // LIGHT: базовый (прошлый ПОЛНЫЙ) снимок - источник переноса медленного обогащения.
+  const base: any = LIGHT && existsSync(OUT)
+    ? (() => { try { return JSON.parse(readFileSync(OUT, "utf8")); } catch { return null; } })()
+    : null;
+  const useLight = LIGHT && base && Array.isArray(base.deals) && base.deals.length > 0;
+  if (LIGHT && !useLight) { console.error("LIGHT: нет корректного базового снимка (нужен полный прогон). Не пишу, оставляю прошлый."); process.exit(1); }
+  // Касания (звонки/письма/встречи/чаты) и дела по каждой сделке: в LIGHT не перезапрашиваем
+  // (перенесём из базы ниже), в полном прогоне - тянем как обычно.
+  const acts = useLight ? ({} as Record<string, { real: number; all: number }>) : await activityCounts();
+  const tasks = useLight ? ({ nearest: {} as Record<string, { due: string; subj: string }>, dues: {} as Record<string, string[]> }) : await openTasks();
   const deals = dealRows.map((d) => {
     const ac = acts[String(d.ID)] || { real: 0, all: 0 };
     const tk = tasks.nearest[String(d.ID)];
@@ -450,6 +465,49 @@ async function main() {
     };
   }).filter((l) => !EXCLUDE_LEAD_DIRS.includes(l.dir));
   console.log(`Лиды (кроме ${EXCLUDE_LEAD_DIRS.join("/")}): ${leads.length} из ${leadRows.length}`);
+
+  // === LIGHT: переносим медленное обогащение из базы и пишем снимок без тяжёлых вызовов ===
+  if (useLight) {
+    const baseById: Record<string, any> = {};
+    for (const b of base.deals) baseById[String(b.id)] = b;
+    let carried = 0;
+    for (const dl of deals as any[]) {
+      const b = baseById[String(dl.id)];
+      if (b) {
+        dl.touchReal = b.touchReal ?? 0; dl.touchAll = b.touchAll ?? 0;
+        dl.lastTouch = b.lastTouch ?? null; dl.lastTouchChan = b.lastTouchChan ?? null;
+        dl.touch90 = b.touch90 ?? 0; dl.tasksOpen = b.tasksOpen ?? 0; dl.tasksNoContact = b.tasksNoContact ?? 0;
+        dl.taskDue = b.taskDue ?? null; dl.taskSubj = b.taskSubj ?? null;
+        carried++;
+      } else {
+        // Новая сделка, которой не было в базе: обогащение появится в ночном полном прогоне.
+        dl.lastTouch = null; dl.lastTouchChan = null; dl.touch90 = 0; dl.tasksOpen = 0; dl.tasksNoContact = 0;
+      }
+    }
+    // Санити: LIGHT не должен внезапно потерять массив сделок (сбой выгрузки). Порог 80% от базы.
+    if (deals.length < base.deals.length * 0.8) {
+      console.error(`LIGHT: свежих сделок ${deals.length} < 80% базы ${base.deals.length} - похоже на сбой выгрузки. Не пишу, оставляю прошлый снимок.`);
+      process.exit(1);
+    }
+    const outLight = {
+      generated_at: new Date().toISOString(),
+      source: "bitrix24:glassmemory",
+      date_from: DATE_FROM || null,
+      mode: "light",
+      counts: { deals: deals.length, leads: leads.length },
+      refs: { managers: mgrName, dealStages: stageName, leadStatuses: leadStatus, categories: catName, dirs: dirMap },
+      deals,
+      leads,
+      prodItems: base.prodItems || [],
+      firedManagers,
+      managerPhotos: mgrPhoto,
+      channelMix: base.channelMix || {},
+    };
+    mkdirSync("rop/data", { recursive: true });
+    writeFileSync(OUT, JSON.stringify(outLight));
+    console.log(`LIGHT готово: сделок ${deals.length} (обогащение с базы: ${carried}), лидов ${leads.length}; касания/Wazzup/канал-микс/СП перенесены из базы -> ${OUT}`);
+    return;
+  }
 
   // Каналы коммуникации по менеджеру (лиды + сделки воронки 49), 90 дней.
   const channels = await channelMix(dealRows, leadRows, mgrName);

@@ -18,9 +18,13 @@ on:
       date_from:
         description: "ROP_DATE_FROM (YYYY-MM-DD, пусто = всё)"
         required: false
+      mode:
+        description: "full | light (light = быстрый внутридневной снимок, обогащение из прошлого полного)"
+        required: false
+        default: "full"
   schedule:
-    - cron: "20 2 * * *" # запрос 05:20 МСК. GitHub задерживает schedule на 1-3 ч, поэтому ставим
-                         # рано: даже с задержкой снимок+деплой успевают ДО 9:00 МСК (требование Ивана)
+    - cron: "20 2 * * *" # запрос 05:20 МСК (ПОЛНЫЙ снимок = эталон). GitHub задерживает schedule на
+                         # 1-3 ч, поэтому ставим рано: даже с задержкой снимок+деплой успевают ДО 9:00 МСК
 
 concurrency:
   group: b24-rop-data
@@ -33,6 +37,10 @@ permissions:
 env:
   B24_WEBHOOK_URL: ${{ secrets.B24_WEBHOOK_URL }}
   ROP_DATE_FROM: ${{ github.event.inputs.date_from || '' }}
+  # LIGHT-режим (mode=light): быстрый внутридневной снимок для среза/итога (~3-4 мин).
+  # Тянет сделки/историю/лиды свежими, медленное обогащение переносит из прошлого полного
+  # снимка. Пусто = ПОЛНЫЙ прогон (ночной cron и ручной запуск по умолчанию) = эталон данных.
+  ROP_LIGHT: ${{ github.event.inputs.mode == 'light' && '1' || '' }}
   B24_PORTAL: https://glassmemory.bitrix24.ru # домен портала для кликабельных ID (не секрет)
   DATA_BRANCH: rop-dashboard-v1 # единый источник данных РОП + менеджеров
 

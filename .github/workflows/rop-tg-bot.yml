@@ -81,11 +81,12 @@ jobs:
               | tr ',' '\n' | sed -n 's/.*"generated_at":"\([^"]*\)".*/\1/p' | head -1; }
           # Диспатч воркфлоу + ожидание завершения свежего рана (до ~15 мин), не валит job при неудаче.
           dispatch_and_wait() {
-            local wf="$1" nm="$2" t0 code run status concl created cts
+            local wf="$1" nm="$2" inp="${3:-}" body t0 code run status concl created cts
+            if [ -n "$inp" ]; then body="{\"ref\":\"main\",\"inputs\":$inp}"; else body='{"ref":"main"}'; fi
             t0=$(date -u +%s)
             for i in 1 2 3 4 5; do
               code=$(curl -sS -o /tmp/d.out -w '%{http_code}' -X POST -H 'Accept: application/vnd.github+json' \
-                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d '{"ref":"main"}' || echo 000)
+                -H "Authorization: Bearer $GH_TOKEN" "$API/actions/workflows/$wf/dispatches" -d "$body" || echo 000)
               [ "$code" = "204" ] && { echo "$nm: запрос на запуск принят"; break; }
               echo "$nm dispatch попытка $i: HTTP $code $(cat /tmp/d.out 2>/dev/null || true)"; sleep $((3*i))
             done
@@ -116,7 +117,9 @@ jobs:
           GEN_TS=$(date -u -d "$GEN" +%s 2>/dev/null || echo 0)
           if [ -n "$GEN" ] && [ "$GEN_TS" -lt "$ACCEPT_TS" ]; then
             echo "Снимок ($GEN) старше порога свежести для слота $SLOT UTC (минус $((LEAD/60)) мин) - обновляю данные Bitrix и жду"
-            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix"
+            # Внутридневной снимок - LIGHT (быстрый ~3-4 мин): сделки/история/лиды свежие, медленное
+            # обогащение из прошлого полного (ночного) снимка. Ночной b24-snapshots остаётся полным.
+            dispatch_and_wait "b24-snapshots.yml" "Снимок Bitrix (light)" '{"mode":"light"}'
             GEN="$(gen_of)"; D="${GEN:0:10}"
             echo "После снимка: generated_at=$GEN"
             # b24-snapshots в конце САМ триггерит deploy-pages. Дожидаемся, пока задеплоенный /rop/

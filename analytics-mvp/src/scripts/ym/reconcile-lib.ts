@@ -11,6 +11,7 @@ export interface ReconInput {
   rows: OrderRow[]; realization: RealizationRow[]; netting: NettingRow[] | null;
   cogs: Record<string, number>; tax: Record<string, any>; live: { dateFrom?: string; dateTo?: string; sku_table: any[] };
   views: Array<{ date: string }>; ads: any; badCells?: number;
+  skippedCampaigns?: Array<{ campaign: string; business: string; reason: string }>;
 }
 
 const r0 = (n: number) => Math.round(n);
@@ -153,6 +154,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
     bad_cells: inp.badCells || 0,
     by_business: byBusiness,
+    campaigns_skipped: inp.skippedCampaigns || [],
     orders_rows: rows.length, orders_fake: rows.filter((r) => r.fake).length,
     gaps,
   };
@@ -167,5 +169,6 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (cp.orders_with_payments && Math.abs(cp.diff) > moneyTol(cp.payments_actual)) blockers.push(`«к выплате» расходится с фактическими платежами Маркета на ${cp.diff} ₽ (${cp.payout_with_payments ? Math.round((cp.diff / cp.payout_with_payments) * 1000) / 10 : 0}% по ${cp.orders_with_payments} заказам) - формула денег неверна`);
   if (sk && pct(rC, rt) < 90) blockers.push(`СС покрывает ${pct(rC, rt)}% оборота (<90%)`);
   if ((inp.badCells || 0) > 0) blockers.push(`битых ячеек в отчётах: ${inp.badCells}`);
+  for (const sc of inp.skippedCampaigns || []) blockers.push(`кампания ${sc.campaign} (кабинет ${sc.business}) не отдаёт данные: ${sc.reason}`);
   return { platform: "ym", generated_at: new Date().toISOString(), today, periods, cumulative, coverage, verdict: blockers.length ? "return" : "go", blockers, rule: "CLAUDE.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии" };
 }

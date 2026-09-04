@@ -107,6 +107,18 @@ export async function resolveBusinesses(accs = accounts()): Promise<Array<{ busi
   return out;
 }
 
+// Кампания недоступна по причине на стороне Маркета, а не из-за нашей ошибки: отключённый API
+// (API_DISABLED - «отключён из-за неактивности», живой случай 2026-09-04 на кампании зеркал),
+// нет прав у ключа (FORBIDDEN), кампания удалена (NOT_FOUND). Такие пропускаем с warning:
+// одна мёртвая кампания не должна ронять сбор по остальным шестнадцати.
+export function campaignUnavailable(e: unknown): string | null {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/API_DISABLED/i.test(msg)) return "API кампании отключён Маркетом из-за неактивности";
+  if (/HTTP 403/.test(msg) || /FORBIDDEN/i.test(msg)) return "нет доступа к кампании по этому ключу (403)";
+  if (/HTTP 404/.test(msg) || /NOT_FOUND/i.test(msg)) return "кампания не найдена (404)";
+  return null;
+}
+
 export function bizName(id: string, fallback = ""): string { return BUSINESS_NAMES[id] || fallback || id; }
 
 export function campaignSummary(cs: YmCampaign[]): string {

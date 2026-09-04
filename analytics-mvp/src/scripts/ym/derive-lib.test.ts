@@ -133,6 +133,17 @@ describe("сборы уровня кабинета из netting", () => {
   });
 });
 
+describe("классификация недоступных кампаний", () => {
+  it("API_DISABLED, 403 и 404 - пропуск; прочие ошибки - настоящие", async () => {
+    const { campaignUnavailable } = await import("./common.js");
+    expect(campaignUnavailable(new Error('HTTP 403: {"errors":[{"code":"API_DISABLED"}]}'))).toContain("неактивности");
+    expect(campaignUnavailable(new Error("Market POST /x -> HTTP 403: forbidden"))).toContain("403");
+    expect(campaignUnavailable(new Error("Market POST /x -> HTTP 404"))).toContain("404");
+    expect(campaignUnavailable(new Error("Market POST /x -> HTTP 500: server error"))).toBeNull();
+    expect(campaignUnavailable(new Error("fetch failed"))).toBeNull();
+  });
+});
+
 describe("decodeReport", () => {
   it("utf-8 с BOM как есть", () => {
     const { text } = decodeReport(Buffer.from("﻿Дата;Сумма\n01.08.2026;10", "utf-8"));

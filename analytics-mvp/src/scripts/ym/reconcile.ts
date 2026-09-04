@@ -17,6 +17,7 @@ function main() {
     views: readNdjson<any>(yp("sku_views.ndjson")),
     ads: readJson<any>(yp("ads_30d.json"), null),
     badCells: readJson<any>(yp("_probe/bad_cells.json"), { total: 0 }).total || 0,
+    skippedCampaigns: readJson<any>(yp("_probe/skipped_campaigns.json"), { skipped: [] }).skipped || [],
   }, today());
   writeJson(yp("reconcile.json"), out);
 
@@ -35,6 +36,8 @@ function main() {
   const c = out.coverage;
   md.push(`Покрытие 30 дн: SKU ${c.sku_total}, СС ${c.cogs.pct_sku}% SKU / ${c.cogs.pct_rev}% оборота, таксономия ${c.taxonomy.pct_sku}% / ${c.taxonomy.pct_rev}%, показы ${c.views.days} дн, реклама: ${c.ads}, сборы кабинета: ${c.account_fees.note}. Пробелов по SKU: ${Object.keys(c.gaps).length}. Битых ячеек: ${c.bad_cells}.`);
   const bb = (c as any).by_business || {};
+  const sk = (c as any).campaigns_skipped || [];
+  if (sk.length) md.push(`Пропущенные кампании: ${sk.map((x: any) => `${x.campaign} (${x.reason})`).join("; ")}`);
   if (Object.keys(bb).length) md.push("Кабинеты: " + Object.entries(bb).map(([b, v]: [string, any]) => `${b} - ${v.skus} SKU, ${v.orders} заказов, заказано ${v.revenue} ₽`).join("; "));
   if (out.blockers.length) md.push("", "Блокеры: " + out.blockers.join("; "));
   const text = md.join("\n");

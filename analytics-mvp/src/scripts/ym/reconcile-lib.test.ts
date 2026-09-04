@@ -26,6 +26,12 @@ describe("несколько кабинетов (свой ключ на каби
     if (save.a) process.env.YM_API_KEY = save.a; if (save.b) process.env.YM_API_KEY_2 = save.b;
     if (save.c) process.env.YM_DASHBOARD_1 = save.c; if (save.d) process.env.YM_DASHBOARD_ZERKALA_2 = save.d;
   });
+  it("недоступные кампании попадают в покрытие и в блокеры", () => {
+    const skippedCampaigns = [{ campaign: "21985942", business: "1023124", reason: "API кампании отключён Маркетом из-за неактивности" }];
+    const r = buildReconcile({ ...base, realization: [], netting: null, skippedCampaigns }, TODAY);
+    expect((r.coverage as any).campaigns_skipped).toEqual(skippedCampaigns);
+    expect(r.blockers.some((b) => b.includes("21985942") && b.includes("неактивности"))).toBe(true);
+  });
   it("покрытие разложено по кабинетам", () => {
     const rows2 = rows.map((r, i) => ({ ...r, business: i % 2 ? "1023124" : "74986385" }));
     const r = buildReconcile({ ...base, rows: rows2, realization: [], netting: null }, TODAY);

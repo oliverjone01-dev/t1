@@ -10,9 +10,9 @@
 // Запуск: npm run ym:realization | ym:netting | ym:shows
 import { readFileSync } from "node:fs";
 import { loadEnv } from "../../env.js";
-import { client, resolveCampaigns, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad } from "./common.js";
+import { accounts, resolveTargets, resolveBusinesses, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
-import { ymBusinessIdsFromEnv, type YmPartner } from "../../connector/ym-partner.js";
+import { type YmPartner } from "../../connector/ym-partner.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -53,19 +53,26 @@ function cols(type: string, headers: string[], required: string[]): Record<strin
   return idx;
 }
 
-async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ headers: string[]; rows: string[][] } | null> {
+type Tbl = { name: string; headers: string[]; rows: string[][] };
+// Все таблицы отчёта (zip может нести несколько CSV: доставки + возвраты). null = нет данных/ошибка.
+async function fetchReportAll(api: YmPartner, type: string, body: any): Promise<Tbl[] | null> {
   if (!budgetLeft()) return null;
   const r = await api.report(type, body, { timeoutMs: Number(process.env.YM_REPORT_TIMEOUT_MS || 15 * 60 * 1000) });
-  if (r.status !== "DONE" || r.text == null) { console.warn(`::warning::отчёт ${type} ${JSON.stringify(body)}: status ${r.status}${r.subStatus ? "/" + r.subStatus : ""} - данных нет`); return null; }
-  const t = toTable(r.text);
-  console.log(`  ${type}: ${r.fileName || "file"} ${r.bytes} байт, строк ${t.rows.length}, разделитель '${t.delimiter}'`);
-  return { headers: t.headers, rows: t.rows };
+  if (r.status !== "DONE" || !r.files.length) { console.warn(`::warning::отчёт ${type} ${JSON.stringify(body)}: status ${r.status}${r.subStatus ? "/" + r.subStatus : ""} - данных нет`); return null; }
+  const out: Tbl[] = [];
+  for (const f of r.files) { const t = toTable(f.text); console.log(`  ${type}: ${f.name} строк ${t.rows.length}, разделитель '${t.delimiter}'`); out.push({ name: f.name, headers: t.headers, rows: t.rows }); }
+  return out;
+}
+async function fetchReport(api: YmPartner, type: string, body: any): Promise<{ headers: string[]; rows: string[][] } | null> {
+  const all = await fetchReportAll(api, type, body);
+  return all && all[0] ? { headers: all[0].headers, rows: all[0].rows } : null;
 }
 
+
 // ---- goods-realization: {campaignId, year, month} -> {ym, sku, sold, ret} ----
-async function realization(api: YmPartner, months: string[]) {
+async function realization(months: string[]) {
   const OUT = yp("realization_monthly.ndjson");
-  const camps = await resolveCampaigns(api);
+  const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
   const done = new Set<string>();
   const fresh: any[] = [];
@@ -73,18 +80,24 @@ async function realization(api: YmPartner, months: string[]) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
     const bySku: Record<string, { sold: number; ret: number; amount: number }> = {};
     let ok = 0;
-    for (const c of camps) {
-      const t = await fetchReport(api, "goods-realization", { campaignId: Number(c.id), year: y, month: m });
-      if (!t) continue;
-      probe("goods-realization", t.headers, t.rows, { campaign: c.id, ym });
-      const ix = cols("goods-realization", t.headers, ["sku", "sold"]);
-      if (!ix) continue;
-      ok++;
-      for (const r of t.rows) {
-        const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-        const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
-        a.sold += num("goods-realization", r[ix.sold!]); if (ix.returned! >= 0) a.ret += num("goods-realization", r[ix.returned!]); if (ix.amount! >= 0) a.amount += num("goods-realization", r[ix.amount!]);
+    for (const { campaign: c, account } of targets) {
+      const tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m });
+      if (!tables) continue;
+      let parsed = false;
+      for (const t of tables) {
+        probe(`goods-realization${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { campaign: c.id, ym, file: t.name });
+        const isReturns = /return|возврат/i.test(t.name) || (findCol(t.headers, ["RETURN.*COUNT"]) >= 0 && findCol(t.headers, ["^TRANSFERRED_TO_DELIVERY_COUNT$"]) < 0);
+        const ix = cols("goods-realization", t.headers, isReturns ? ["sku", "returned"] : ["sku", "sold"]);
+        if (!ix) continue;
+        parsed = true;
+        for (const r of t.rows) {
+          const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
+          const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
+          if (isReturns) { a.ret += num("goods-realization", r[ix.returned!]); if (ix.amount! >= 0) a.amount -= num("goods-realization", r[ix.amount!]); }
+          else { a.sold += num("goods-realization", r[ix.sold!]); if (ix.amount! >= 0) a.amount += num("goods-realization", r[ix.amount!]); }
+        }
       }
+      if (parsed) ok++;
     }
     if (!ok) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
     done.add(ym);
@@ -97,18 +110,18 @@ async function realization(api: YmPartner, months: string[]) {
 }
 
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
-async function netting(api: YmPartner, from: string, to: string) {
+async function netting(from: string, to: string) {
   const OUT = yp("netting.ndjson");
   const existing = readNdjson<any>(OUT).filter((r) => !(r.d >= from && r.d <= to));
   const fresh: any[] = [];
   let ok = 0;
-  for (const b of ymBusinessIdsFromEnv()) {
+  for (const { businessId: b, account } of await resolveBusinesses()) {
     // помесячно (лимит диапазона отчёта)
     let s = from;
     while (s <= to) {
       const mb = monthBounds(s.slice(0, 7));
       const e = mb.dateTo < to ? mb.dateTo : to;
-      const t = await fetchReport(api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e });
+      const t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e });
       if (t) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
@@ -132,45 +145,47 @@ async function netting(api: YmPartner, from: string, to: string) {
   console.log(`netting: строк ${merged.length} (${from}..${to} обновлено ${fresh.length}) -> ${OUT}`);
 }
 
-// ---- shows-sales по дням: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----
-async function shows(api: YmPartner, days: number) {
+// ---- shows-sales: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----
+// Живой факт 2026-09-04: Маркет режет генерацию shows-sales до 1 отчёта на 6 минут (HTTP 420), поэтому
+// ОДИН отчёт за всё недостающее окно на кабинет, не по дням. Если в отчёте есть колонка даты - строки
+// дневные; иначе агрегат за окно помечается period_from/aggregate и используется только для
+// окна skus_live (derive), а не для дневной воронки.
+async function shows(days: number) {
   const OUT = yp("sku_views.ndjson");
   const existing = readNdjson<any>(OUT);
   const have = new Set(existing.map((r) => r.date));
   const to = yesterday();
   let from = addDays(to, -(days - 1)); if (from < FLOOR) from = FLOOR;
-  const targets: string[] = []; for (let d = from; d <= to; d = addDays(d, 1)) if (!have.has(d)) targets.push(d);
-  const maxReports = Math.min(Number(process.env.YM_SHOWS_MAX_REPORTS || 40), BUDGET);
-  console.log(`shows: дней к сбору ${targets.length} (${targets[0] || "-"}..${targets[targets.length - 1] || "-"}), лимит отчётов за прогон ${maxReports}`);
-  const fresh: any[] = []; let n = 0, fails = 0;
-  outer: for (const d of targets) {
-    const dayRows: any[] = [];
-    for (const b of ymBusinessIdsFromEnv()) {
-      if (n >= maxReports) break outer;
-      n++;
-      let t: { headers: string[]; rows: string[][] } | null = null;
-      try { t = await fetchReport(api, "shows-sales", { businessId: Number(b), dateFrom: d, dateTo: d, grouping: "OFFERS" }); }
-      catch (e) { fails++; console.warn(`::warning::shows ${d} ${b}: ${(e as Error).message.slice(0, 160)}`); if (fails >= 3) break outer; continue; }
-      if (!t) continue;
-      probe("shows-sales", t.headers, t.rows, { business: b, date: d });
-      const ix = cols("shows-sales", t.headers, ["sku", "shows"]);
-      if (!ix) break outer;
-      for (const r of t.rows) {
-        const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-        dayRows.push({ date: d, sku, name: ix.name! >= 0 ? (r[ix.name!] || "").trim() : "", line: "", views: Math.round(num("shows-sales", r[ix.shows!])), vsearch: 0, pdp: ix.clicks! >= 0 ? Math.round(num("shows-sales", r[ix.clicks!])) : 0, cart: ix.cart! >= 0 ? Math.round(num("shows-sales", r[ix.cart!])) : 0, units: ix.units! >= 0 ? Math.round(num("shows-sales", r[ix.units!])) : 0, deliv: 0, ret: 0, canc: 0, business: b, platform: "ym" });
-      }
+  while (from <= to && have.has(from)) from = addDays(from, 1);
+  if (from > to) { console.log("shows: окно уже собрано"); return; }
+  console.log(`shows: окно ${from}..${to}, по одному отчёту на кабинет (лимит Маркета 1 генерация / 6 мин)`);
+  const fresh: any[] = [];
+  for (const { businessId: b, account } of await resolveBusinesses()) {
+    let t: { headers: string[]; rows: string[][] } | null = null;
+    try { t = await fetchReport(account.api, "shows-sales", { businessId: Number(b), dateFrom: from, dateTo: to, grouping: "OFFERS" }); }
+    catch (e) { console.warn(`::warning::shows ${from}..${to} ${b}: ${(e as Error).message.slice(0, 200)}`); continue; }
+    if (!t) continue;
+    probe("shows-sales", t.headers, t.rows, { business: b, from, to });
+    const ix = cols("shows-sales", t.headers, ["sku", "shows"]);
+    if (!ix) continue;
+    const hasDate = ix.date! >= 0;
+    for (const r of t.rows) {
+      const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
+      const d = hasDate ? cellDate(r[ix.date!]) : "";
+      fresh.push({ date: d || to, ...(d ? {} : { period_from: from, aggregate: true }), sku, name: ix.name! >= 0 ? (r[ix.name!] || "").trim() : "", line: "", views: Math.round(num("shows-sales", r[ix.shows!])), vsearch: 0, pdp: ix.clicks! >= 0 ? Math.round(num("shows-sales", r[ix.clicks!])) : 0, cart: ix.cart! >= 0 ? Math.round(num("shows-sales", r[ix.cart!])) : 0, units: ix.units! >= 0 ? Math.round(num("shows-sales", r[ix.units!])) : 0, deliv: 0, ret: 0, canc: 0, business: b, platform: "ym" });
     }
-    fresh.push(...dayRows);
   }
   if (!fresh.length) { console.log("shows: новых строк нет"); return; }
-  const merged = existing.concat(fresh).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  // агрегаты за пересекающееся окно заменяем свежим
+  const kept = existing.filter((r) => !(r.aggregate && r.date >= from && r.date <= to) && !(fresh.some((f) => !f.aggregate && f.date === r.date && f.sku === r.sku && f.business === r.business)));
+  const merged = kept.concat(fresh).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   writeNdjson(OUT, merged);
-  console.log(`shows: +${fresh.length} строк, всего ${merged.length} -> ${OUT}`);
+  console.log(`shows: +${fresh.length} строк (${fresh[0].aggregate ? "агрегат за окно" : "по дням"}), всего ${merged.length} -> ${OUT}`);
 }
 
 async function main() {
   loadEnv(); ensureDir();
-  const api = client();
+  accounts(); // ранняя проверка, что хотя бы один ключ задан
   const cmd = process.argv[2];
   const now = new Date();
   if (cmd === "realization") {
@@ -185,13 +200,13 @@ async function main() {
         while (d.getTime() <= now.getTime()) { months.push(`${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)); }
       }
     }
-    await realization(api, months);
+    await realization(months);
   } else if (cmd === "netting") {
     const to = process.argv[4] || yesterday();
     const from = process.argv[3] || (readNdjson(yp("netting.ndjson")).length ? addDays(to, -59) : FLOOR);
-    await netting(api, from, to);
+    await netting(from, to);
   } else if (cmd === "shows") {
-    await shows(api, Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
+    await shows(Number(process.argv[3] || process.env.YM_SHOWS_DAYS || 7) || 7);
   } else { console.error("usage: reports.ts realization [YYYY-MM...] | netting [from] [to] | shows [days]"); process.exit(2); }
   flushBad();
 }

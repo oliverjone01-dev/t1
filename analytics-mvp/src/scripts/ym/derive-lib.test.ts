@@ -49,6 +49,15 @@ describe("normalizeOrder", () => {
     const r = rows.find((x) => x.order === "500004")!;
     expect(r.revenue).toBe(18000); expect(r.accruals).toBe(0); expect(r.payout).toBe(0); expect(r.fee_total).toBe(0);
   });
+  it("платежи разложены по типам и разнесены по позициям; субсидии сохранены", () => {
+    const o1 = rows.filter((r) => r.order === "500001");
+    const paid = o1.reduce((s, r) => s + r.paid, 0);
+    expect(Math.round(paid)).toBe(62000); // 60000 PAYMENT + 2000 SUBSIDY
+    const mirror = o1.find((r) => r.sku === "GGM-16-2-2")!;
+    expect(Math.round(mirror.paid_by_type["PAYMENT"]!)).toBe(12000); // доля 20%
+    expect(Math.round(mirror.paid_by_type["SUBSIDY"]!)).toBe(400);
+    expect(Math.round(o1.reduce((s, r) => s + r.subsidy, 0))).toBe(2000);
+  });
   it("группы комиссий", () => {
     expect(feeGroup("FEE")).toBe("Комиссия за продажу");
     expect(feeGroup("delivery_to_customer")).toBe("Логистика (прямая+возвратная)");

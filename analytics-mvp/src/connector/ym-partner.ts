@@ -54,6 +54,7 @@ export interface YmOrder {
   items: YmOrderItem[];
   commissions: Array<{ type: string; actual: number | null; predicted: number | null }>;
   payments: Array<{ id?: string; date: string; type: string; source?: string; total: number; paymentOrderId?: string; paymentOrderDate?: string }>;
+  subsidies: Array<{ operationType: string; type: string; amount: number }>;
 }
 
 export interface YmOffer {
@@ -70,7 +71,7 @@ export interface YmOffer {
 export interface YmStock { offerId: string; warehouseId: string; available: number; fit: number; updatedAt: string }
 
 export type ReportStatus = "PENDING" | "PROCESSING" | "DONE" | "FAILED" | "NO_DATA" | string;
-export interface ReportResult { reportId: string; status: ReportStatus; fileName: string; text: string | null; bytes: number; subStatus?: string }
+export interface ReportResult { reportId: string; status: ReportStatus; fileName: string; text: string | null; files: Array<{ name: string; text: string }>; bytes: number; subStatus?: string }
 
 // Дата Маркета -> YYYY-MM-DD. Маркет в stats/orders отдаёт "DD-MM-YYYY", в других местах ISO.
 export function ymDate(s: string | undefined | null): string {
@@ -114,6 +115,7 @@ export function parseOrder(o: any): YmOrder {
     deliveryRegion: o?.deliveryRegion?.name ? str(o.deliveryRegion.name) : undefined,
     items,
     commissions: (o?.commissions ?? []).map((c: any) => ({ type: str(c.type), actual: c.actual != null ? num(c.actual) : null, predicted: c.predicted != null ? num(c.predicted) : null })),
+    subsidies: (o?.subsidies ?? []).map((x: any) => ({ operationType: str(x.operationType), type: str(x.type), amount: num(x.amount) })),
     payments: (o?.payments ?? []).map((p: any) => ({
       id: p.id != null ? str(p.id) : undefined, date: ymDate(p.date), type: str(p.type), source: p.source ? str(p.source) : undefined,
       total: num(p.total), paymentOrderId: p.paymentOrder?.id != null ? str(p.paymentOrder.id) : undefined, paymentOrderDate: ymDate(p.paymentOrder?.date),
@@ -293,16 +295,40 @@ export class YmPartner {
       await sleep(wait);
       const info = await this.reportInfo(reportId);
       if (info.status === "DONE") {
-        if (!info.file) return { reportId, status: "DONE", fileName: "", text: null, bytes: 0, subStatus: info.subStatus };
+        if (!info.file) return { reportId, status: "DONE", fileName: "", text: null, files: [], bytes: 0, subStatus: info.subStatus };
         const buf = await this.download(info.file);
-        const { name, text } = decodeReport(buf);
-        return { reportId, status: "DONE", fileName: name, text, bytes: buf.length, subStatus: info.subStatus };
+        const files = decodeReportAll(buf);
+        const first = files[0];
+        return { reportId, status: first ? "DONE" : "NO_DATA", fileName: first?.name || "", text: first?.text ?? null, files, bytes: buf.length, subStatus: info.subStatus };
       }
-      if (info.status === "FAILED" || info.status === "NO_DATA") return { reportId, status: info.status, fileName: "", text: null, bytes: 0, subStatus: info.subStatus };
+      if (info.status === "FAILED" || info.status === "NO_DATA") return { reportId, status: info.status, fileName: "", text: null, files: [], bytes: 0, subStatus: info.subStatus };
       if (Date.now() - t0 > timeoutMs) throw new Error(`Market report ${type} ${reportId}: не готов за ${Math.round(timeoutMs / 1000)} с (status ${info.status})`);
       wait = opts.pollMs ?? Math.min(30000, Math.max(5000, info.estimatedSec * 1000 || 10000));
     }
   }
+}
+
+// Все текстовые файлы отчёта (zip Маркета может нести несколько CSV: доставки + возвраты).
+// Пустой архив (PK\x05\x06, только EOCD) = нет данных, а не ошибка.
+export function decodeReportAll(buf: Buffer): Array<{ name: string; text: string }> {
+  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x05 && buf[3] === 0x06) return [];
+  if (isZip(buf)) {
+    const out: Array<{ name: string; text: string }> = [];
+    for (const e of unzip(buf)) {
+      if (/\.xlsx$/i.test(e.name)) throw new Error(`Market report: внутри zip xlsx (${e.name}) - запрашивай format=CSV`);
+      if (!/\.(csv|txt|json)$/i.test(e.name)) continue;
+      out.push({ name: e.name, text: decodeText(e.data) });
+    }
+    return out;
+  }
+  const one = decodeReport(buf);
+  return one.text.trim() ? [one] : [];
+}
+function decodeText(data: Buffer): string {
+  let text = data.toString("utf-8");
+  const bad = (text.match(/\uFFFD/g) || []).length;
+  if (bad > 3) { try { text = new TextDecoder("windows-1251").decode(data); } catch { /* utf-8 */ } }
+  return text;
 }
 
 // Файл отчёта -> текст. zip -> первая текстовая запись; xlsx -> ошибка с понятным текстом

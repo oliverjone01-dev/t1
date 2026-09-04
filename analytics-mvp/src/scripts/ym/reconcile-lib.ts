@@ -36,6 +36,25 @@ export function buildReconcile(inp: ReconInput, today: string) {
   let nettingAccount = 0;
   for (const n of netRows) { const o = String(n.order || "").trim(); if (o) netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount); else nettingAccount += n.amount; }
 
+  // Сверка с ФАКТИЧЕСКИМИ выплатами Маркета из самого stats/orders (блок payments заказа).
+  // Это эталон денег, не зависящий от доступа к финансовым отчётам ЛК: если расчётное «к выплате»
+  // расходится с тем, что Маркет реально заплатил по тем же заказам, цифра дашборда неверна.
+  const paymentsCheck = (d: OrderRow[], label: string) => {
+    const withPay = d.filter((r) => r.paid !== 0);
+    const orders = new Set(withPay.map((r) => r.order));
+    const allOrders = new Set(d.map((r) => r.order));
+    const payout = withPay.reduce((s, r) => s + r.payout, 0);
+    const paid = withPay.reduce((s, r) => s + r.paid, 0);
+    const diff = r0(payout - paid);
+    const cov = pct(orders.size, allOrders.size);
+    const byType: Record<string, number> = {};
+    for (const r of withPay) for (const [k, v] of Object.entries(r.paid_by_type || {})) byType[k] = r0((byType[k] || 0) + v);
+    const status = !orders.size ? "в заказах нет платежей (Маркет ещё не выплатил за период)"
+      : Math.abs(diff) <= moneyTol(paid) ? `сошлось с платежами Маркета по ${orders.size}/${allOrders.size} заказам`
+      : `РАСХОЖДЕНИЕ ${diff} ₽ (${payout ? Math.round((diff / payout) * 1000) / 10 : 0}%): расчётное «к выплате» ${r0(payout)} vs фактические платежи Маркета ${r0(paid)} по ${orders.size}/${allOrders.size} заказам${label === "cum" ? "" : "; для незакрытого периода часть платежей могла не прийти"}`;
+    return { payout_with_payments: r0(payout), payments_actual: r0(paid), diff, orders_with_payments: orders.size, orders_total: allOrders.size, coverage_pct: cov, by_type: byType, status };
+  };
+
   const moneyCheck = (d: OrderRow[]) => {
     const orders = new Map<string, number>();
     for (const r of d) orders.set(r.order, (orders.get(r.order) || 0) + r.payout);
@@ -64,7 +83,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
       : udiff === 0 ? "сошлось" : `расхождение ${udiff} шт: заказы vs реализация (доначисления, поздние возвраты, месяц ещё не закрыт)`;
     const acc = d.reduce((s, r) => s + r.accruals, 0), fees = d.reduce((s, r) => s + r.fee_total, 0);
     const predShare = d.length ? pct(d.filter((r) => !r.fee_actual).length, d.length) : 0;
-    const money = { ...moneyCheck(d), accruals: r0(acc), fees: r0(fees), predicted_share: predShare };
+    const money = { ...moneyCheck(d), accruals: r0(acc), fees: r0(fees), predicted_share: predShare, payments: paymentsCheck(d, kind) };
     // выручка vs реализация (G7): начислено за доставленные vs amount отчёта; подбор состава типов цен
     let revenue: any = null;
     if (fullMonth && hasRz && rz.some((r) => r.amount != null)) {
@@ -96,8 +115,9 @@ export function buildReconcile(inp: ReconInput, today: string) {
     check("half_month", `часть месяца ${prevYm}-01..15`, pb.dateFrom, `${prevYm}-15`, prevYm, false),
     check("current_month", `текущий месяц ${curYm} (по ${curTo})`, cb.dateFrom, curTo, curYm, false),
   ];
-  const cumM = moneyCheck(delivered.filter((r) => r.fin <= yesterday));
-  const cumulative = { ...cumM, netting_account: netting ? r0(nettingAccount) : null, status: cumM.status };
+  const cumD = delivered.filter((r) => r.fin <= yesterday);
+  const cumM = moneyCheck(cumD);
+  const cumulative = { ...cumM, netting_account: netting ? r0(nettingAccount) : null, status: cumM.status, payments: paymentsCheck(cumD, "cum") };
 
   const gaps: Record<string, string[]> = {};
   const add = (sku: string, g: string) => { (gaps[sku] ||= []).push(g); };
@@ -111,6 +131,17 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const prevDelivered = new Set(delivered.filter((r) => r.fin >= pb.dateFrom && r.fin <= pb.dateTo).map((r) => r.sku));
   if (rzSkus.size) for (const s of prevDelivered) if (!rzSkus.has(s)) add(s, `нет в реализации ${prevYm}`);
   const viewDays = new Set(views.map((v) => v.date));
+  // Разбивка по бизнес-кабинетам: у каждого кабинета свой ключ, и по каждому надо видеть, что он вообще
+  // отдаёт данные (кабинет без строк = ключ не подключён или в кабинете нет продаж).
+  const byBusiness: Record<string, { orders: number; rows: number; revenue: number; delivered: number; payout: number; skus: number }> = {};
+  const bizSku: Record<string, Set<string>> = {}, bizOrd: Record<string, Set<string>> = {};
+  for (const r of real(rows)) {
+    const b = r.business || "?";
+    const a = byBusiness[b] || (byBusiness[b] = { orders: 0, rows: 0, revenue: 0, delivered: 0, payout: 0, skus: 0 });
+    a.rows++; a.revenue += r.revenue; a.delivered += r.delivered; a.payout += r.payout;
+    (bizSku[b] ||= new Set()).add(r.sku); (bizOrd[b] ||= new Set()).add(r.order);
+  }
+  for (const [b, a] of Object.entries(byBusiness)) { a.revenue = r0(a.revenue); a.payout = r0(a.payout); a.skus = bizSku[b]!.size; a.orders = bizOrd[b]!.size; }
   const accountRows = netRows.filter((n) => !String(n.order || "").trim()).length;
   const coverage = {
     window: { dateFrom: live.dateFrom, dateTo: live.dateTo },
@@ -121,6 +152,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
     ads: ads && ads.totals && ads.totals.spend > 0 ? "есть расход" : "нет источника (реклама Маркета не подключена)",
     bad_cells: inp.badCells || 0,
+    by_business: byBusiness,
     orders_rows: rows.length, orders_fake: rows.filter((r) => r.fake).length,
     gaps,
   };
@@ -131,6 +163,8 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (closed.units.diff != null && closed.units.diff !== 0) blockers.push(`штуки закрытого месяца расходятся с реализацией на ${closed.units.diff}`);
   if (closed.money.diff != null && Math.abs(closed.money.diff) > moneyTol(closed.money.payout_matched)) blockers.push(`деньги закрытого месяца расходятся с выплатами ЛК на ${closed.money.diff} ₽`);
   if (closed.revenue && closed.revenue.status !== "сошлось") blockers.push(`выручка закрытого месяца vs реализация: ${closed.revenue.status}`);
+  const cp = cumulative.payments;
+  if (cp.orders_with_payments && Math.abs(cp.diff) > moneyTol(cp.payments_actual)) blockers.push(`«к выплате» расходится с фактическими платежами Маркета на ${cp.diff} ₽ (${cp.payout_with_payments ? Math.round((cp.diff / cp.payout_with_payments) * 1000) / 10 : 0}% по ${cp.orders_with_payments} заказам) - формула денег неверна`);
   if (sk && pct(rC, rt) < 90) blockers.push(`СС покрывает ${pct(rC, rt)}% оборота (<90%)`);
   if ((inp.badCells || 0) > 0) blockers.push(`битых ячеек в отчётах: ${inp.badCells}`);
   return { platform: "ym", generated_at: new Date().toISOString(), today, periods, cumulative, coverage, verdict: blockers.length ? "return" : "go", blockers, rule: "CLAUDE.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии" };

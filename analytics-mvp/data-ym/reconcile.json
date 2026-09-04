@@ -1,6 +1,6 @@
 {
   "platform": "ym",
-  "generated_at": "2026-09-04T10:46:21.332Z",
+  "generated_at": "2026-09-04T11:34:57.679Z",
   "today": "2026-09-04",
   "periods": [
     {
@@ -27,7 +27,17 @@
         "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
         "accruals": 1086071,
         "fees": 171480,
-        "predicted_share": 0
+        "predicted_share": 0,
+        "payments": {
+          "payout_with_payments": 916118,
+          "payments_actual": 556079,
+          "diff": 360039,
+          "orders_with_payments": 72,
+          "orders_total": 73,
+          "coverage_pct": 98.6,
+          "by_type": {},
+          "status": "РАСХОЖДЕНИЕ 360039 ₽ (39.3%): расчётное «к выплате» 916118 vs фактические платежи Маркета 556079 по 72/73 заказам; для незакрытого периода часть платежей могла не прийти"
+        }
       },
       "revenue": null,
       "cogs": {
@@ -64,7 +74,17 @@
         "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
         "accruals": 643867,
         "fees": 92835,
-        "predicted_share": 0
+        "predicted_share": 0,
+        "payments": {
+          "payout_with_payments": 552558,
+          "payments_actual": 348399,
+          "diff": 204160,
+          "orders_with_payments": 40,
+          "orders_total": 41,
+          "coverage_pct": 97.6,
+          "by_type": {},
+          "status": "РАСХОЖДЕНИЕ 204160 ₽ (36.9%): расчётное «к выплате» 552558 vs фактические платежи Маркета 348399 по 40/41 заказам; для незакрытого периода часть платежей могла не прийти"
+        }
       },
       "revenue": null,
       "cogs": {
@@ -101,7 +121,17 @@
         "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
         "accruals": 82262,
         "fees": 3684,
-        "predicted_share": 0
+        "predicted_share": 0,
+        "payments": {
+          "payout_with_payments": 78578,
+          "payments_actual": 44121,
+          "diff": 34457,
+          "orders_with_payments": 14,
+          "orders_total": 14,
+          "coverage_pct": 100,
+          "by_type": {},
+          "status": "РАСХОЖДЕНИЕ 34457 ₽ (43.9%): расчётное «к выплате» 78578 vs фактические платежи Маркета 44121 по 14/14 заказам; для незакрытого периода часть платежей могла не прийти"
+        }
       },
       "revenue": null,
       "cogs": {
@@ -119,11 +149,21 @@
     "payout_derived": 9722116,
     "payout_matched": 0,
     "netting_by_order": null,
-    "orders_total": 779,
+    "orders_total": 780,
     "orders_matched": 0,
     "diff": null,
     "status": "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены",
-    "netting_account": null
+    "netting_account": null,
+    "payments": {
+      "payout_with_payments": 9899864,
+      "payments_actual": 6677755,
+      "diff": 3222109,
+      "orders_with_payments": 756,
+      "orders_total": 780,
+      "coverage_pct": 96.9,
+      "by_type": {},
+      "status": "РАСХОЖДЕНИЕ 3222109 ₽ (32.5%): расчётное «к выплате» 9899864 vs фактические платежи Маркета 6677755 по 756/780 заказам"
+    }
   },
   "coverage": {
     "window": {
@@ -157,6 +197,16 @@
     },
     "ads": "нет источника (реклама Маркета не подключена)",
     "bad_cells": 0,
+    "by_business": {
+      "74986385": {
+        "orders": 1193,
+        "rows": 1201,
+        "revenue": 19408132,
+        "delivered": 777,
+        "payout": 9738116,
+        "skus": 303
+      }
+    },
     "orders_rows": 1201,
     "orders_fake": 0,
     "gaps": {
@@ -202,7 +252,8 @@
   "verdict": "return",
   "blockers": [
     "нет отчёта о реализации (штуки не сверены с УПД-аналогом)",
-    "нет отчёта по взаиморасчётам (выплаты ЛК не сверены)"
+    "нет отчёта по взаиморасчётам (выплаты ЛК не сверены)",
+    "«к выплате» расходится с фактическими платежами Маркета на 3222109 ₽ (32.5% по 756 заказам) - формула денег неверна"
   ],
   "rule": "CLAUDE.md §15: цифра готова только после сверки с эталоном, трёх типов периода и отчёта о покрытии"
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { toTable, findCol, cellNum, cellNumStrict, cellDate, detectDelimiter, maskCell } from "./table.js";
 import { unzip, isZip } from "./zip.js";
+import { decodeReportAll } from "../connector/ym-partner.js";
 import { deflateRawSync } from "node:zlib";
 
 describe("table", () => {
@@ -46,6 +47,19 @@ function makeZip(name: string, content: Buffer): Buffer {
   eocd.writeUInt32LE(central.length, 12); eocd.writeUInt32LE(local.length, 16);
   return Buffer.concat([local, central, eocd]);
 }
+
+describe("decodeReportAll (отчёты Маркета)", () => {
+  it("пустой архив (только EOCD) = нет данных, а не ошибка", () => {
+    const eocd = Buffer.alloc(22); eocd.writeUInt32LE(0x06054b50, 0);
+    expect(decodeReportAll(eocd)).toEqual([]);
+  });
+  it("обычный csv без архива - одна таблица; zip - все csv-записи", () => {
+    expect(decodeReportAll(Buffer.from("a;b\n1;2\n")).length).toBe(1);
+    const z = makeZip("transferred_to_delivery.csv", Buffer.from("YOUR_SKU,TRANSFERRED_TO_DELIVERY_COUNT\nGGT-1,2\n"));
+    const files = decodeReportAll(z);
+    expect(files.length).toBe(1); expect(files[0]!.name).toBe("transferred_to_delivery.csv"); expect(files[0]!.text).toContain("YOUR_SKU");
+  });
+});
 
 describe("zip", () => {
   it("распаковка deflate-записи", () => {

@@ -1,7 +1,7 @@
 // Общее для продьюсеров Маркета: каталог данных, окна дат, клиент, выбор кампаний, ndjson.
 // Данные Маркета живут ОТДЕЛЬНО от OZON: data-ym/ (контракт файлов тот же, поле platform="ym").
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "node:fs";
-import { YmPartner, ymApiKeyFromEnv, ymBusinessIdsFromEnv, BUSINESS_NAMES, type YmCampaign } from "../../connector/ym-partner.js";
+import { YmPartner, ymBusinessIdsFromEnv, BUSINESS_NAMES, type YmCampaign } from "../../connector/ym-partner.js";
 
 export const PLATFORM = "ym";
 export const YM_DIR: string = process.env.YM_DATA_DIR || "data-ym";
@@ -36,35 +36,83 @@ export function appendNdjson(file: string, rows: any[]): void { if (rows.length)
 export function writeJson(file: string, obj: any, pretty = 2): void { writeFileSync(file, JSON.stringify(obj, null, pretty)); }
 export function readJson<T = any>(file: string, fallback: T): T { try { return JSON.parse(readFileSync(file, "utf-8")); } catch { return fallback; } }
 
-export function client(): YmPartner {
-  const key = ymApiKeyFromEnv();
-  if (!key) throw new Error("Нет ключа Маркета: задай YM_API_KEY (локально) или секрет YM_DASHBOARD_1 (GitHub Actions). YM_TOKEN - это Метрика, не подходит.");
-  return new YmPartner({ apiKey: key });
+// --- Несколько кабинетов = несколько ключей ---------------------------------------------------
+// У Маркета Api-Key выпускается в конкретном кабинете, поэтому кабинет мебели и кабинет зеркал
+// живут под разными ключами. Аккаунт = ключ + кампании, которые он видит. Все продьюсеры ходят
+// по списку аккаунтов, а не по одному клиенту.
+//   YM_API_KEY  / YM_DASHBOARD_1           - кабинет мебели (GEN GROUP, 74986385)
+//   YM_API_KEY_2 / YM_DASHBOARD_ZERKALA_2  - кабинет зеркал (GENGLASS, 1023124)
+// Дополнительные ключи: YM_API_KEY_3.. / YM_DASHBOARD_3.. (расширяется без правки кода).
+export interface YmAccount { label: string; env: string; api: YmPartner }
+
+export function accounts(): YmAccount[] {
+  const out: YmAccount[] = [];
+  const add = (env: string, key: string | undefined, label: string) => {
+    const k = (key || "").trim();
+    if (!k) return;
+    out.push({ label, env, api: new YmPartner({ apiKey: k }) });
+  };
+  add("YM_DASHBOARD_1", process.env.YM_API_KEY || process.env.YM_DASHBOARD_1, "ключ 1 (мебель)");
+  add("YM_DASHBOARD_ZERKALA_2", process.env.YM_API_KEY_2 || process.env.YM_DASHBOARD_ZERKALA_2, "ключ 2 (зеркала)");
+  for (let i = 3; i <= 6; i++) add(`YM_DASHBOARD_${i}`, process.env[`YM_API_KEY_${i}`] || process.env[`YM_DASHBOARD_${i}`], `ключ ${i}`);
+  if (!out.length) throw new Error("Нет ключей Маркета: задай YM_API_KEY / YM_API_KEY_2 (локально) или секреты YM_DASHBOARD_1 / YM_DASHBOARD_ZERKALA_2 (GitHub Actions). YM_TOKEN - это Метрика, не подходит.");
+  return out;
 }
 
-// Кампании к обработке: явный YM_CAMPAIGN_IDS, иначе все кампании ключа в известных бизнес-кабинетах
-// (YM_BUSINESS_IDS / DEFAULT_BUSINESS_IDS). Если Маркет вернул кампании только вне списка - берём все
-// и предупреждаем (кабинет мог сменить id): лучше лишние данные с warning, чем тихо пусто.
+// Совместимость с одиночными вызовами (ping печатает по каждому аккаунту сам).
+export function client(): YmPartner {
+  const a = accounts()[0]!;
+  return a.api;
+}
+
+// Кампании к обработке по ОДНОМУ аккаунту: явный YM_CAMPAIGN_IDS (фильтр), иначе все кампании ключа.
+// Фильтр по кабинетам больше не нужен: ключ и так видит только свой кабинет; лишние id из
+// YM_CAMPAIGN_IDS, не найденные у этого ключа, молча пропускаются (они принадлежат другому ключу).
 export async function resolveCampaigns(api: YmPartner): Promise<YmCampaign[]> {
   const all = await api.campaigns();
   const explicit = (process.env.YM_CAMPAIGN_IDS || "").split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
-  if (explicit.length) {
-    const set = new Set(explicit);
-    const picked = all.filter((c) => set.has(c.id));
-    for (const id of explicit) if (!picked.some((c) => c.id === id)) console.warn(`::warning::кампания ${id} из YM_CAMPAIGN_IDS не найдена среди кампаний ключа`);
-    return picked;
+  if (explicit.length) { const set = new Set(explicit); return all.filter((c) => set.has(c.id)); }
+  return all;
+}
+
+export interface YmTarget { campaign: YmCampaign; account: YmAccount }
+
+// Все кампании всех аккаунтов. Дубли по campaignId (если два ключа видят одну кампанию) схлопываем.
+export async function resolveTargets(accs = accounts()): Promise<YmTarget[]> {
+  const out: YmTarget[] = [];
+  const seen = new Set<string>();
+  for (const account of accs) {
+    let cs: YmCampaign[] = [];
+    try { cs = await resolveCampaigns(account.api); }
+    catch (e) { console.warn(`::warning::${account.label} (${account.env}): список кампаний не прочитан - ${(e as Error).message.slice(0, 200)}`); continue; }
+    if (!cs.length) console.warn(`::warning::${account.label} (${account.env}): у ключа нет кампаний - проверь, что аккаунт ключа принят в кабинет`);
+    for (const c of cs) { if (seen.has(c.id)) continue; seen.add(c.id); out.push({ campaign: c, account }); }
   }
-  const biz = new Set(ymBusinessIdsFromEnv());
-  const inBiz = all.filter((c) => biz.has(c.businessId));
-  if (!inBiz.length && all.length) {
-    console.warn(`::warning::ни одна кампания не принадлежит кабинетам ${[...biz].join(",")} - беру все ${all.length} кампаний ключа`);
-    return all;
+  const explicit = (process.env.YM_CAMPAIGN_IDS || "").split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
+  for (const id of explicit) if (!out.some((t) => t.campaign.id === id)) console.warn(`::warning::кампания ${id} из YM_CAMPAIGN_IDS не найдена ни у одного ключа`);
+  return out;
+}
+
+// Бизнес-кабинеты для отчётов уровня business: только те, где у ключа реально есть кампании.
+export async function resolveBusinesses(accs = accounts()): Promise<Array<{ businessId: string; account: YmAccount }>> {
+  const targets = await resolveTargets(accs);
+  const out: Array<{ businessId: string; account: YmAccount }> = [];
+  const seen = new Set<string>();
+  for (const t of targets) {
+    const b = t.campaign.businessId;
+    if (!b || seen.has(b)) continue;
+    seen.add(b); out.push({ businessId: b, account: t.account });
   }
-  return inBiz;
+  for (const b of ymBusinessIdsFromEnv()) if (!seen.has(b)) console.warn(`::warning::кабинет ${b} (${bizName(b)}): ни один ключ не видит его кампаний - отчёты по нему не запрашиваю`);
+  return out;
 }
 
 export function bizName(id: string, fallback = ""): string { return BUSINESS_NAMES[id] || fallback || id; }
 
 export function campaignSummary(cs: YmCampaign[]): string {
   return cs.map((c) => `  campaignId=${c.id}  ${c.placementType.padEnd(7)} ${c.domain || "-"}  business=${c.businessId} (${bizName(c.businessId, c.businessName)})`).join("\n");
+}
+
+export function targetSummary(ts: YmTarget[]): string {
+  return ts.map((t) => `  campaignId=${t.campaign.id}  ${t.campaign.placementType.padEnd(7)} ${t.campaign.domain || "-"}  business=${t.campaign.businessId} (${bizName(t.campaign.businessId, t.campaign.businessName)})  <- ${t.account.label}`).join("\n");
 }

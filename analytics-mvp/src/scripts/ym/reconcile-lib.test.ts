@@ -10,6 +10,31 @@ const live = { dateFrom: "2026-08-05", dateTo: "2026-09-03", sku_table: [{ sku: 
 const base = { rows, cogs: { "GGT-03-3-3-O-20090": 15000 }, tax: { "GGT-03-3-3-O-20090": {} }, live, views: [], ads: null };
 const TODAY = "2026-09-04";
 
+describe("несколько кабинетов (свой ключ на кабинет)", () => {
+  it("accounts() собирает все заданные ключи и падает, если не задан ни один", async () => {
+    const mod = await import("./common.js");
+    const save = { a: process.env.YM_API_KEY, b: process.env.YM_API_KEY_2, c: process.env.YM_DASHBOARD_1, d: process.env.YM_DASHBOARD_ZERKALA_2 };
+    delete process.env.YM_DASHBOARD_1; delete process.env.YM_DASHBOARD_ZERKALA_2;
+    process.env.YM_API_KEY = "k1"; process.env.YM_API_KEY_2 = "k2";
+    const accs = mod.accounts();
+    expect(accs.map((a) => a.env)).toEqual(["YM_DASHBOARD_1", "YM_DASHBOARD_ZERKALA_2"]);
+    delete process.env.YM_API_KEY; delete process.env.YM_API_KEY_2;
+    expect(() => mod.accounts()).toThrow(/Нет ключей Маркета/);
+    process.env.YM_API_KEY_2 = "only-mirrors";
+    expect(mod.accounts().map((a) => a.env)).toEqual(["YM_DASHBOARD_ZERKALA_2"]); // один кабинет тоже работает
+    delete process.env.YM_API_KEY_2;
+    if (save.a) process.env.YM_API_KEY = save.a; if (save.b) process.env.YM_API_KEY_2 = save.b;
+    if (save.c) process.env.YM_DASHBOARD_1 = save.c; if (save.d) process.env.YM_DASHBOARD_ZERKALA_2 = save.d;
+  });
+  it("покрытие разложено по кабинетам", () => {
+    const rows2 = rows.map((r, i) => ({ ...r, business: i % 2 ? "1023124" : "74986385" }));
+    const r = buildReconcile({ ...base, rows: rows2, realization: [], netting: null }, TODAY);
+    const bb = (r.coverage as any).by_business;
+    expect(Object.keys(bb).sort()).toEqual(["1023124", "74986385"]);
+    expect(bb["1023124"].rows + bb["74986385"].rows).toBe(rows2.filter((x) => !x.fake).length);
+  });
+});
+
 describe("reconcile §15", () => {
   it("штуки: нетто заказов vs нетто реализации, без двойного вычета возвратов (G1)", () => {
     // август: 500001 доставлен (1+2), 500002 частично возвращён (2 − 1) => нетто 4, возвраты 1
@@ -37,6 +62,19 @@ describe("reconcile §15", () => {
     expect(r.cumulative.netting_account).toBe(-700);
     expect(moneyTol(1000)).toBe(50); expect(moneyTol(100000)).toBe(500);
     expect(r.blockers.some((b) => b.includes("деньги закрытого месяца"))).toBe(true);
+  });
+  it("сверка с фактическими платежами Маркета из заказов: ловит завышенное «к выплате»", () => {
+    const r = buildReconcile({ ...base, realization: [], netting: null }, TODAY);
+    const cp = r.cumulative.payments;
+    // по заказу 500001 расчёт 81000, фактически Маркет заплатил 62000 -> расхождение видно
+    expect(cp.orders_with_payments).toBe(1);
+    expect(cp.payout_with_payments).toBe(81000);
+    expect(cp.payments_actual).toBe(62000);
+    expect(cp.diff).toBe(19000);
+    expect(cp.status).toContain("РАСХОЖДЕНИЕ");
+    expect(cp.by_type).toMatchObject({ PAYMENT: 60000, SUBSIDY: 2000 });
+    expect(r.blockers.some((b) => b.includes("фактическими платежами"))).toBe(true);
+    expect(r.verdict).toBe("return");
   });
   it("выручка vs реализация: подбор состава типов цен (G7)", () => {
     // accruals августа = 100000 (BUYER 98000 + MARKETPLACE 2000) + 40000 = 140000; amount отчёта 138000 => ближе BUYER-only

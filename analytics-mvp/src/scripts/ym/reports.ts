@@ -10,7 +10,7 @@
 // Запуск: npm run ym:realization | ym:netting | ym:shows
 import { readFileSync } from "node:fs";
 import { loadEnv } from "../../env.js";
-import { accounts, resolveTargets, resolveBusinesses, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
+import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
 
@@ -81,7 +81,9 @@ async function realization(months: string[]) {
     const bySku: Record<string, { sold: number; ret: number; amount: number }> = {};
     let ok = 0;
     for (const { campaign: c, account } of targets) {
-      const tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m });
+      let tables: Tbl[] | null = null;
+      try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
+      catch (e) { const why = campaignUnavailable(e); if (!why) throw e; console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); continue; }
       if (!tables) continue;
       let parsed = false;
       for (const t of tables) {

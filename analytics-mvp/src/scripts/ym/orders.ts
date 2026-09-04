@@ -7,7 +7,7 @@
 // predicted -> actual. Первый прогон - полный бэкфилл от FLOOR. Дедуп по (campaign, order, sku).
 // Запуск: npm run ym:orders  (env: YM_API_KEY|YM_DASHBOARD_1, YM_BUSINESS_IDS, YM_CAMPAIGN_IDS, YM_TAIL_DAYS)
 import { loadEnv } from "../../env.js";
-import { accounts, resolveTargets, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, targetSummary } from "./common.js";
+import { accounts, resolveTargets, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, yp, FLOOR, yesterday, addDays, targetSummary } from "./common.js";
 import { shape } from "../../connector/ym-partner.js";
 import { normalizeOrder, type OrderRow } from "./derive-lib.js";
 
@@ -42,10 +42,11 @@ async function main() {
 
   const fresh: OrderRow[] = [];
   let nOrders = 0;
-  let probeApi: typeof targets[number]["account"]["api"] | null = null;
+  const skipped: Array<{ campaign: string; business: string; reason: string }> = [];
+  let okCampaigns = 0;
   for (const { campaign: c, account } of targets) {
     const api = account.api;
-    if (!probeApi) probeApi = api;
+    try {
     // 1) новые заказы по дате создания
     if (fullFrom <= to) for (const [wf, wt] of windows(fullFrom, to)) {
       const orders = await api.ordersStats(c.id, { dateFrom: wf, dateTo: wt });
@@ -62,6 +63,7 @@ async function main() {
         console.log(`  ${c.id} updated ${wf}..${wt}: заказов ${orders.length}`);
       }
     } catch (e) {
+      if (campaignUnavailable(e)) throw e; // недоступную кампанию обрабатываем уровнем выше
       // updateFrom может быть не поддержан на этом типе размещения - тогда перетягиваем по дате создания
       console.warn(`::warning::ym-orders ${c.id}: фильтр updateFrom не сработал (${(e as Error).message.slice(0, 120)}) - перетягиваю хвост по дате создания`);
       for (const [wf, wt] of windows(tailFrom, to)) {
@@ -69,7 +71,18 @@ async function main() {
         for (const o of orders) fresh.push(...normalizeOrder(o, c.id, c.businessId));
       }
     }
+    okCampaigns++;
+    } catch (e) {
+      const why = campaignUnavailable(e);
+      if (!why) throw e; // настоящая ошибка (сеть, 5xx, битый ответ) - падаем, чтобы не подменить данные тишиной
+      console.warn(`::warning::кампания ${c.id} (${c.domain || c.placementType}, кабинет ${c.businessId}) пропущена: ${why}`);
+      skipped.push({ campaign: c.id, business: c.businessId, reason: why });
+    }
   }
+  // Все кампании недоступны - это не «нет продаж», а сломанный доступ: падаем громко.
+  if (!okCampaigns) { console.error(`ym-orders: ни одна из ${targets.length} кампаний не отдала заказы (${skipped.map((s) => s.reason).join("; ")})`); process.exit(1); }
+  if (skipped.length) writeJson(yp("_probe/skipped_campaigns.json"), { at: new Date().toISOString(), skipped });
+  else writeJson(yp("_probe/skipped_campaigns.json"), { at: new Date().toISOString(), skipped: [] });
 
   // Самодиагностика первого живого прогона (ФЕНИКС G6): форма сырого заказа (ключи/типы, без значений)
   // и принятый формат дат запроса -> data-ym/_probe/orders.json.
@@ -95,7 +108,7 @@ async function main() {
   for (const r of fresh) { if (map.has(key(r))) replaced++; else added++; map.set(key(r), r); }
   const merged = [...map.values()].sort((a, b) => (a.created < b.created ? -1 : a.created > b.created ? 1 : a.order < b.order ? -1 : 1));
   writeNdjson(OUT, merged);
-  console.log(`ym-orders: заказов прочитано ${nOrders}, строк новых ${added}, обновлено ${replaced}, всего ${merged.length} -> ${OUT}`);
+  console.log(`ym-orders: кампаний ${okCampaigns}/${targets.length} (пропущено ${skipped.length}), заказов прочитано ${nOrders}, строк новых ${added}, обновлено ${replaced}, всего ${merged.length} -> ${OUT}`);
 }
 
 main().catch((e) => { console.error("ym-orders FAILED:", (e as Error).message); process.exit(1); });

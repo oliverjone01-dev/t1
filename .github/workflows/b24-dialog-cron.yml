@@ -17,8 +17,11 @@ on:
       ai_batch:
         description: "AI_BATCH (1 = Batch API пакетом, 0 = синхронно/быстрее для теста; пусто = 1)"
         required: false
+      ai_enable:
+        description: "ИИ-разбор через API. Пусто/0 = НЕ вызывать API (правило Ивана: API только в дашборде). 1 = разрешить разово вручную."
+        required: false
   schedule:
-    - cron: "37 5 * * *" # ~08:37 МСК
+    - cron: "37 5 * * *" # ~08:37 МСК (снимок диалогов; ИИ-разбор по API приостановлен, см. шаг ниже)
 
 permissions:
   contents: write
@@ -66,11 +69,14 @@ jobs:
           npx tsx src/scripts/b24/fetch-dialog.ts
           echo "Размер: $(du -h dialog/data/dialog.json | cut -f1)"
 
-      - name: ИИ-разбор коммуникаций (если задан ключ)
+      # ИИ-разбор через Anthropic API ПРИОСТАНОВЛЕН по правилу Ивана: API вызывается только из
+      # дашборда (его ключ, в браузере), никаких авто-вызовов из крона. Шаг не запускается по
+      # расписанию и не запускается вручную, пока явно не передан ai_enable=1 (разовый обход).
+      # Снимок диалогов (dialog.json) собирается как раньше - он API не трогает.
+      - name: ИИ-разбор коммуникаций (по API; приостановлен - только ручной ai_enable=1)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.ai_enable == '1'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Ручки для теста: AI_LIMIT=5 разберёт только 5 диалогов, AI_BATCH=0 - синхронно (ответ сразу).
-          # Пусто = штатно (120 диалогов, Batch API). Ночной прогон запускается без inputs -> штатно.
           AI_LIMIT: ${{ github.event.inputs.ai_limit || '' }}
           AI_BATCH: ${{ github.event.inputs.ai_batch || '' }}
         run: |

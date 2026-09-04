@@ -688,7 +688,7 @@
 </header>
 <main class="main">
   <section class="kt-kpi" id="kpis"></section>
-  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. Факт - по API за выбранный месяц; выполнение = факт / план. Реклама - потолок бюджета: до краёв зелёным = в рамках, перелив красным = перерасход. <a href="https://github.com/oliverjone01-dev/t1/edit/claude/focused-davinci-tKJCt/analytics-mvp/data/plan_monthly.json" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
+  <section class="card"><div class="card-h"><div><div class="card-title">План на месяц и выполнение</div><div class="card-sub">Контроль рекламных расходов и рентабельности. Факт - по API за выбранный месяц; выполнение = факт / план. Реклама - потолок бюджета: до краёв зелёным = в рамках, перелив красным = перерасход. Источник данных - <b>OZON</b> (по фильтру вверху; другие источники - позже). <a href="https://docs.google.com/spreadsheets/d/1Mt7UDX9sfVaVxb-c4u0Nno2dOWOZG7AIxlwTMYGAFCY/edit" target="_blank" rel="noopener" style="color:#22D3EE;font-weight:600">✎ заполнить план (Google-таблица, лист OZON)</a></div></div><select id="plan-month" style="background:var(--bg-2,#12151c);color:var(--ink-1);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;font:inherit"></select></div><div id="plan" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-around;padding:16px 4px 6px"></div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Водопад P&L канала</div><div class="card-sub" id="src1"></div></div></div><div class="kt-wf" id="wf"></div><div class="kt-note" style="display:none">начислено → комиссия → услуги OZON → к выплате (канал) → −доставка от покупателя (компенсируется, в расчёт не входит) → −СС произв. → −(АДМ 30% + Налоги 15%) → чистая прибыль. Канальный «к выплате» = к выплате по SKU + доставка от покупателя; СС, база АДМ/налогов и чистая - из аналитики по SKU за тот же период (совпадают с ИТОГО таблицы).</div></section>
   <section class="card"><div class="card-h"><div><div class="card-title">Аналитика по артикулам (за выбранный период)</div><div class="card-sub" style="display:none">Сводка по каждому артикулу за период из верхнего фильтра: реализация с учётом возвратов + финансы по транзакциям OZON с разбивкой сборов. «Реализовано» = продано − возвраты по отчёту о реализации OZON (бухгалтерская реализация, основа УПД) за закрытые месяцы периода; для текущего/частичного месяца, где отчёта ещё нет, - по дневному ряду (доставлено − возвраты). «СС произв.» = производственная себестоимость за период = СС/шт × реализовано (прямой ключ по SKU из листа СС; где данных нет - «—»). «Валовая прибыль» = К выплате − СС произв.; «АДМ 30%» и «Налоги 15%» - от К выплате (сборы кабинета входят в базу, доставка от покупателя - нет); по позициям с реализовано=0 не начисляются; «Чистая прибыль» = Валовая − АДМ − Налоги; «Рентаб.» = Чистая прибыль / К выплате. Для артикулов без СС валовая прибыль и рентабельность завышены (СС не вычтена). Строки сгруппированы по категориям - клик по категории раскрывает артикулы. Сборы (комиссия/логистика/эквайринг/хранение/прочие) показаны положительными; «Всего сборов» = Начислено − К выплате. Финансы - только по операциям с одним артикулом (комплекты из разных SKU не разносятся). «Реклама» - расход на продвижение по SKU (CPC+CPO из Performance API), где собрано; вычтен из «К выплате». Несобранная реклама и прочие сборы, которые OZON списывает не по одному SKU (штрафы/realFBS/бейдж/эквайринг), - в отдельной строке «Сборы уровня заказа/кабинета» и в ИТОГО (realFBS - в «Логистику», остаток рекламы и прочее - в «Прочие»). «Доставка от покупателя» в расчёт НЕ входит (компенсируется) - она только в информационном блоке ниже.</div></div></div><div id="skuan-warn" class="kt-note" style="display:none;margin:2px 0 8px;padding:6px 10px;border-left:3px solid #E5B567;background:rgba(229,181,103,.08)"></div><div class="kt-scroll"><table class="kt-table" id="skuan-t"><thead><tr>
     <th>Категория / Артикул</th>
@@ -893,16 +893,16 @@ function periodTotals(from,to){
   // (возвраты/расходы), а положительные «висящие» заказы (начислены, но ещё не выкуплены -
   // типично для последних дней открытого месяца) в прибыль НЕ считаем, иначе чистая/рентаб
   // раздуваются (АДМ/налоги-то берутся только с реализованных). Для закрытых месяцев amtReal=amt.
-  var covM=coveredMonths(from,to);var rev=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0;
+  var covM=coveredMonths(from,to);var rev=0,accr=0,amt=0,amtReal=0,amtS=0,cc=0,realized=0,gadv=0;
   for(var sk in AN_META){var sa=anSum(AN_SALES[sk],from,to,5),fi=anSum(AN_FIN[sk],from,to,7);var ru=realUnits(sk,covM,from,to);
     var adv=anSum(AN_ADSSKU[sk],from,to,1)[0]||0;var amtNet=(fi[6]||0)-adv; // К выплате после разнесённой рекламы
-    rev+=sa[0]||0;realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
+    rev+=sa[0]||0;accr+=(fi[0]||0);realized+=ru;amt+=amtNet;amtReal+=(ru>0?amtNet:Math.min(0,amtNet));if(ru>0)amtS+=amtNet;cc+=(AN_COGS[sk]||0)*ru;gadv+=adv;}
   var aB={adv:0,fines:0,realfbs:0,badge:0,delivery:0,other:0};
   for(var i=0;i<AN_ACCT.length;i++){var r=AN_ACCT[i];if(r[0]<from||r[0]>to)continue;aB.adv+=r[1];aB.fines+=r[2];aB.realfbs+=r[3];aB.badge+=r[4];aB.delivery+=r[5];aB.other+=r[6];}
   var aDel=aB.realfbs,aOth=(aB.adv+gadv)+aB.fines+aB.badge+aB.other,at=aDel+aOth; // доставка от покупателя исключена
   amt+=at;amtReal+=at;amtS+=at; // сборы кабинета - в базе АДМ/налогов
   var net=(amtReal-cc)-0.45*amtS,rent=(amtReal>0)?net/amtReal*100:null; // прибыль/рентаб - на реализованной базе (без висящих заказов)
-  return {ad:-aB.adv,rev:rev,realized:realized,amt:amt,amtReal:amtReal,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
+  return {ad:-aB.adv,rev:rev,accr:accr,realized:realized,amt:amt,amtReal:amtReal,amtS:amtS,cc:cc,delivery:aB.delivery,net:net,rent:rent};
 }
 function monthTotals(ym){
   var yy=+ym.slice(0,4),mm=+ym.slice(5,7),from=ym+'-01',to=ym+'-'+String(new Date(Date.UTC(yy,mm,0)).getUTCDate()).padStart(2,'0');
@@ -924,7 +924,7 @@ function planFlask(i,lvl,color){
 }
 function renderPlan(ym){
   var el=document.getElementById('plan');if(!el)return;var a=monthTotals(ym),p=(AN_PLAN[ym]||{});
-  var rows=[['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Реклама',p.adSpend,a.ad,'cap','₽'],['Чистая прибыль',p.netProfit,a.net,'up','₽'],['Рентабельность',p.rentab,a.rent,'pct','%']];
+  var rows=[['Начислено',p.accrued,a.accr,'up','₽'],['Выручка',p.revenue,a.rev,'up','₽'],['Реализация',p.realized,a.realized,'up','шт'],['Реклама',p.adSpend,a.ad,'cap','₽'],['Чистая прибыль',p.netProfit,a.net,'up','₽'],['Рентабельность',p.rentab,a.rent,'pct','%']];
   el.innerHTML=rows.map(function(r,i){var lab=r[0],plan=r[1],fact=r[2],kind=r[3],unit=r[4],isPct=(unit==='%');
     var planS=(plan==null||plan==='')?'—':(isPct?plan+'%':fmtRu(Math.round(plan)));
     var noFact=(fact==null); // рентаб не определена (база «К выплате»<=0, месяц убыточный)

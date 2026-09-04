@@ -26,12 +26,14 @@ function main() {
     md.push(`**${p.label}** (${p.dateFrom}..${p.dateTo})`,
       `- штуки: доставлено нетто ${p.units.orders_delivered_net} (возвраты ${p.units.orders_returned}) vs реализация нетто ${p.units.realization_net ?? "—"} → ${p.units.status}`,
       `- деньги: к выплате ${p.money.payout_derived} (сопоставлено ${p.money.payout_matched}) vs ЛК по заказам ${p.money.netting_by_order ?? "—"}, заказов ${p.money.orders_matched}/${p.money.orders_total} → ${p.money.status}`,
-      `- платежи Маркета (из заказов): ${p.money.payments.payments_actual} vs расчёт ${p.money.payments.payout_with_payments} → ${p.money.payments.status}`);
+      `- платежи Маркета (из заказов): фактически ${p.money.payments.payments_actual} vs покупательская нога ${p.money.payments.buyer_leg_derived} (начислено ${p.money.payments.accruals} − софинансирование ${p.money.payments.subsidy_leg}) → ${p.money.payments.status}`);
     if (p.revenue) md.push(`- выручка: начислено ${p.revenue.accruals} vs реализация ${p.revenue.realization_amount} → ${p.revenue.status}`);
     md.push(`- СС: ${p.cogs.sku_with_cogs}/${p.cogs.sku_total} SKU, ${p.cogs.pct_rev}% оборота → ${p.cogs.status}`, "");
   }
   md.push(`**с начала данных**: к выплате ${out.cumulative.payout_derived} vs ЛК по заказам ${out.cumulative.netting_by_order ?? "—"} → ${out.cumulative.status}; сборы уровня кабинета ${out.cumulative.netting_account ?? "—"}`,
-    `**платежи Маркета за всю историю**: фактически ${out.cumulative.payments.payments_actual} vs расчёт ${out.cumulative.payments.payout_with_payments} (заказов с платежами ${out.cumulative.payments.orders_with_payments}/${out.cumulative.payments.orders_total}, ${out.cumulative.payments.coverage_pct}%) → ${out.cumulative.payments.status}`,
+    `**платежи Маркета за всю историю**: фактически ${out.cumulative.payments.payments_actual} vs покупательская нога ${out.cumulative.payments.buyer_leg_derived} (заказов с платежами ${out.cumulative.payments.orders_with_payments}/${out.cumulative.payments.orders_total}, ${out.cumulative.payments.coverage_pct}%) → ${out.cumulative.payments.status}`,
+    `позаказно: сошлось ${out.cumulative.payments.orders_matched}/${out.cumulative.payments.orders_with_payments}, не сошлись ${out.cumulative.payments.orders_off} на ${out.cumulative.payments.off_amount} ₽${out.cumulative.payments.off_orders.length ? ` (${out.cumulative.payments.off_orders.slice(0, 5).map((x: any) => `${x.order}: ожид ${x.expected}, факт ${x.actual}`).join("; ")})` : ""}`,
+    `полное «к выплате» ${out.cumulative.payments.payout_full} этой сверкой не покрыто: ${out.cumulative.payments.covers}`,
     `типы платежей: ${JSON.stringify(out.cumulative.payments.by_type)}`);
   const c = out.coverage;
   md.push(`Покрытие 30 дн: SKU ${c.sku_total}, СС ${c.cogs.pct_sku}% SKU / ${c.cogs.pct_rev}% оборота, таксономия ${c.taxonomy.pct_sku}% / ${c.taxonomy.pct_rev}%, показы ${c.views.days} дн, реклама: ${c.ads}, сборы кабинета: ${c.account_fees.note}. Пробелов по SKU: ${Object.keys(c.gaps).length}. Битых ячеек: ${c.bad_cells}.`);

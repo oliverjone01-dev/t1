@@ -44,7 +44,7 @@
     "ym:reconcile": "tsx src/scripts/ym/reconcile.ts",
     "ym:join": "DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-taxonomy-join.ts && DATA_DIR=data-ym PLATFORM=ym tsx src/scripts/build-cogs-join.ts",
     "ym:build": "DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-site.ts && DATA_DIR=data-ym OUT_DIR=public/market PLATFORM=ym tsx src/scripts/build-katya.ts",
-    "ym:smoke": "OUT_DIR=public/market tsx src/scripts/smoke.ts"
+    "ym:smoke": "DATA_DIR=data-ym PLATFORM=ym OUT_DIR=public/market tsx src/scripts/smoke.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"

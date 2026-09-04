@@ -20,3 +20,19 @@ export function isRateLimit(e: unknown): boolean {
   const m = e instanceof Error ? e.message : String(e);
   return /HTTP 420/.test(m) || /rate limit/i.test(m) || /METHOD_FAILURE/.test(m);
 }
+
+// Дедуп проводок взаиморасчётов. Ключ - TRANSACTION_ID: он уникален у Маркета и переживает
+// пересечение месячных окон. Строки без id (старые выгрузки до появления колонки) схлопываются по
+// составному ключу - это может съесть две буквально одинаковые проводки, поэтому такой путь только
+// запасной. Порядок входа задаёт приоритет: первым передавайте свежую выгрузку.
+export interface NettingLike { d: string; tx?: string; order?: string; sku?: string; type?: string; service?: string; amount: number; po?: string }
+export function dedupeNetting<T extends NettingLike>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const r of rows) {
+    const k = r.tx ? `tx:${r.tx}` : `k:${r.d}|${r.order || ""}|${r.sku || ""}|${r.type || ""}|${r.service || ""}|${r.amount}|${r.po || ""}`;
+    if (seen.has(k)) continue;
+    seen.add(k); out.push(r);
+  }
+  return out;
+}

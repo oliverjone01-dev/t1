@@ -6,7 +6,7 @@
 import { DELIVERED_STATUSES, real, type OrderRow } from "./derive-lib.js";
 
 export interface RealizationRow { ym: string; sku: string; sold: number; ret: number; amount?: number }
-export interface NettingRow { d: string; order?: string; sku?: string; service?: string; type?: string; amount: number }
+export interface NettingRow { d: string; order?: string; shop_order?: string; sku?: string; service?: string; type?: string; amount: number }
 export interface ReconInput {
   rows: OrderRow[]; realization: RealizationRow[]; netting: NettingRow[] | null;
   cogs: Record<string, number>; tax: Record<string, any>; live: { dateFrom?: string; dateTo?: string; sku_table: any[] };
@@ -36,6 +36,30 @@ export function buildReconcile(inp: ReconInput, today: string) {
   const netByOrder = new Map<string, number>();
   let nettingAccount = 0;
   for (const n of netRows) { const o = String(n.order || "").trim(); if (o) netByOrder.set(o, (netByOrder.get(o) || 0) + n.amount); else nettingAccount += n.amount; }
+
+  // Проверка, что ORDER_ID отчёта и id заказа из stats/orders - ОДИН И ТОТ ЖЕ ключ. Живая находка
+  // 2026-09-04: по одному id наш заказ показывал начисление 3500 ₽, а отчёт - 43 797 ₽ по тому же
+  // артикулу; медианное отношение по всем заказам 13.5x. Такое расхождение не объясняется ни ценами,
+  // ни комиссиями, поэтому сначала подтверждаем ключ: у строки отчёта есть SHOP_ORDER_ID (наш внешний
+  // номер), у заказа - partnerOrderId. Если они массово не совпадают, id разные, и сверка денег по
+  // номеру заказа НЕДОСТОВЕРНА - показывать её расхождение в рублях нельзя, это выдуманная цифра.
+  const shopOf = new Map<string, string>();
+  for (const r of real(rows)) { const so = String(r.shop_order || "").trim(); if (so) shopOf.set(r.order, so); }
+  let keyChecked = 0, keyAgree = 0;
+  for (const n of netRows) {
+    const o = String(n.order || "").trim(), so = String(n.shop_order || "").trim();
+    if (!o || !so || !shopOf.has(o)) continue;
+    keyChecked++; if (shopOf.get(o) === so) keyAgree++;
+  }
+  const keyPct = pct(keyAgree, keyChecked);
+  const keyTrusted = keyChecked === 0 ? null : keyPct >= 90;
+  const keyCheck = {
+    checked: keyChecked, agree: keyAgree, pct: keyPct, trusted: keyTrusted,
+    status: keyChecked === 0
+      ? "[ГИПОТЕЗА] ключ заказа не проверен: в отчёте или в заказах нет внешнего номера (SHOP_ORDER_ID / partnerOrderId) - сверку денег по номеру заказа считать предварительной"
+      : keyTrusted ? `ключ заказа подтверждён: SHOP_ORDER_ID совпал с partnerOrderId у ${keyAgree}/${keyChecked} строк (${keyPct}%)`
+      : `КЛЮЧ ЗАКАЗА НЕ ПОДТВЕРЖДЁН: SHOP_ORDER_ID совпал лишь у ${keyAgree}/${keyChecked} строк (${keyPct}%) - ORDER_ID отчёта и id заказа это РАЗНЫЕ номера, сверка денег по заказу недостоверна`,
+  };
 
   // Сверка с ФАКТИЧЕСКИМИ выплатами Маркета из самого stats/orders (блок payments заказа).
   // Это эталон денег, не зависящий от доступа к финансовым отчётам ЛК: если расчётное «к выплате»
@@ -93,9 +117,10 @@ export function buildReconcile(inp: ReconInput, today: string) {
     const status = !netting ? "нет отчёта по взаиморасчётам (netting не собран) - выплаты ЛК не сверены"
       : orders.size === 0 ? "доставленных заказов нет"
       : matched === 0 ? "в отчёте взаиморасчётов нет номеров этих заказов (колонка order пуста? см. _probe/united-netting.json)"
+      : keyTrusted === false ? keyCheck.status
       : Math.abs(diff!) <= moneyTol(payMatched) ? `сошлось по ${matched}/${orders.size} заказам (допуск ${r0(moneyTol(payMatched))} ₽)`
-      : `расхождение ${diff} ₽ по ${matched}/${orders.size} сопоставленным заказам (predicted-комиссии, удержания вне позиций)`;
-    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff, status };
+      : `расхождение ${diff} ₽ по ${matched}/${orders.size} сопоставленным заказам (predicted-комиссии, удержания вне позиций)${keyTrusted === null ? "; " + keyCheck.status : ""}`;
+    return { payout_derived: r0(pay), payout_matched: r0(payMatched), netting_by_order: netting ? r0(net) : null, orders_total: orders.size, orders_matched: matched, diff, key_check: keyCheck, status };
   };
 
   const check = (kind: "closed_month" | "half_month" | "current_month", label: string, dateFrom: string, dateTo: string, ym: string, fullMonth: boolean) => {
@@ -175,6 +200,7 @@ export function buildReconcile(inp: ReconInput, today: string) {
     window: { dateFrom: live.dateFrom, dateTo: live.dateTo },
     sku_total: sk, cogs: { sku: skC, pct_sku: pct(skC, sk), pct_rev: pct(rC, rt) }, taxonomy: { sku: skT, pct_sku: pct(skT, sk), pct_rev: pct(rT, rt) },
     realization: { months: [...new Set(realz.map((r) => r.ym))].sort(), sku_prev_month: rzSkus.size },
+    netting_key: keyCheck,
     netting: netting ? { rows: netRows.length, months: [...new Set(netRows.map((n) => n.d.slice(0, 7)))].sort(), orders_with_number: netByOrder.size } : null,
     account_fees: { rows: accountRows, note: accountRows ? "строки взаиморасчётов без номера заказа -> pnl_account_daily" : "[ГИПОТЕЗА] сборы уровня кабинета не подключены - в pnl_account_daily нули" },
     views: { days: viewDays.size, last: [...viewDays].sort().pop() || null, note: viewDays.size ? "показы per-SKU из отчёта shows-sales" : "показы не собраны (отчёт shows-sales) - воронка без верха" },
@@ -190,7 +216,8 @@ export function buildReconcile(inp: ReconInput, today: string) {
   if (!netting) blockers.push("нет отчёта по взаиморасчётам (выплаты ЛК не сверены)");
   const closed = periods[0]!;
   if (closed.units.diff != null && closed.units.diff !== 0) blockers.push(`штуки закрытого месяца расходятся с реализацией на ${closed.units.diff}`);
-  if (closed.money.diff != null && Math.abs(closed.money.diff) > moneyTol(closed.money.payout_matched)) blockers.push(`деньги закрытого месяца расходятся с выплатами ЛК на ${closed.money.diff} ₽`);
+  if (keyTrusted === false) blockers.push(keyCheck.status);
+  else if (closed.money.diff != null && Math.abs(closed.money.diff) > moneyTol(closed.money.payout_matched)) blockers.push(`деньги закрытого месяца расходятся с выплатами ЛК на ${closed.money.diff} ₽${keyTrusted === null ? " (ключ заказа не подтверждён - цифра предварительная)" : ""}`);
   if (closed.revenue && closed.revenue.status !== "сошлось") blockers.push(`выручка закрытого месяца vs реализация: ${closed.revenue.status}`);
   const cp = cumulative.payments;
   if (cp.orders_with_payments && cp.orders_off_pct > 2) blockers.push(`покупательская нога не сходится с платежами Маркета у ${cp.orders_off}/${cp.orders_with_payments} заказов (${cp.orders_off_pct}%) на ${cp.off_amount} ₽ - формула денег неверна`);

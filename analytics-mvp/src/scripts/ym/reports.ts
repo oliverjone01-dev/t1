@@ -13,7 +13,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
-import { realizationRole, isRateLimit } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -173,7 +173,7 @@ async function netting(from: string, to: string) {
           ok++;
           for (const r of t.rows) {
             const d = cellDate(r[ix.date!]); if (!d) continue;
-            fresh.push({ d, business: b, type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
+            fresh.push({ d, business: b, tx: ix.transaction! >= 0 ? (r[ix.transaction!] || "").trim() : "", shop_order: ix.shop_order! >= 0 ? (r[ix.shop_order!] || "").trim() : "", type: ix.type! >= 0 ? (r[ix.type!] || "").trim() : "", service: ix.service! >= 0 ? (r[ix.service!] || "").trim() : "", amount: num("united-netting", r[ix.amount!]), order: ix.order! >= 0 ? (r[ix.order!] || "").trim() : "", sku: ix.sku! >= 0 ? (r[ix.sku!] || "").trim() : "", po: ix.payment_order! >= 0 ? (r[ix.payment_order!] || "").trim() : "", platform: "ym" });
           }
         }
       }
@@ -186,12 +186,16 @@ async function netting(from: string, to: string) {
   // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
   const covered = new Set(fresh.map((r) => r.d.slice(0, 7)));
   const keep = rateLimited ? readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7))) : existing;
-  const merged = keep.concat(fresh).sort((a, b) => (a.d < b.d ? -1 : 1));
+  // Живой факт 2026-09-04: отчёт отдаёт проводки и за пределами запрошенного окна (в выгрузке за
+  // февраль пришли январские), поэтому соседние месячные запросы ПЕРЕСЕКАЮТСЯ. Без дедупа одна и та
+  // же проводка попадает дважды: на первом прогоне так задвоилось 2935 строк на 17.6 млн ₽, и сверка
+  // денег показала расхождение -26 млн. Дедуп строго по TRANSACTION_ID.
+  const merged = dedupeNetting(fresh.concat(keep)).sort((a, b) => (a.d < b.d ? -1 : 1));
   writeNdjson(OUT, merged);
   const byDate: Record<string, number> = {}, byMonth: Record<string, number> = {};
   for (const r of merged) { byDate[r.d] = Math.round(((byDate[r.d] || 0) + r.amount) * 100) / 100; const m = r.d.slice(0, 7); byMonth[m] = Math.round(((byMonth[m] || 0) + r.amount) * 100) / 100; }
   writeJson(yp("netting_summary.json"), { platform: "ym", generated_at: new Date().toISOString(), rows: merged.length, byDate, byMonth, note: "сумма строк отчёта по взаиморасчётам по дате; знак как в отчёте (выплаты +, удержания -). [ГИПОТЕЗА] до сверки колонок" });
-  console.log(`netting: строк ${merged.length} (${from}..${to} обновлено ${fresh.length}) -> ${OUT}`);
+  console.log(`netting: строк ${merged.length} (${from}..${to} получено ${fresh.length}, дублей отброшено ${fresh.length + keep.length - merged.length}) -> ${OUT}`);
 }
 
 // ---- shows-sales: {businessId, dateFrom, dateTo, grouping:"OFFERS"} -> sku_views.ndjson ----

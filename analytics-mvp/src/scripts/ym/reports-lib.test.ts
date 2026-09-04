@@ -5,7 +5,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { findCol } from "../../util/table.js";
-import { realizationRole, isRateLimit } from "./reports-lib.js";
+import { realizationRole, isRateLimit, dedupeNetting } from "./reports-lib.js";
 
 const COLS = JSON.parse(readFileSync("src/scripts/ym/report-columns.json", "utf-8")) as Record<string, Record<string, string[]>>;
 const H = JSON.parse(readFileSync("fixtures/ym/report-headers.json", "utf-8")) as Record<string, string[]>;
@@ -63,5 +63,34 @@ describe("лимит генерации отчётов Маркета - мягк
     expect(isRateLimit(new Error('Market POST /reports/united-netting/generate -> HTTP 420: {"errors":[{"code":"METHOD_FAILURE","message":"Hit rate limit of 1 points per 2 minutes"}]}'))).toBe(true);
     expect(isRateLimit(new Error("HTTP 403: API_DISABLED"))).toBe(false);
     expect(isRateLimit(new Error("ECONNRESET"))).toBe(false);
+  });
+});
+
+describe("дедуп проводок взаиморасчётов", () => {
+  it("схлопывает по TRANSACTION_ID: пересекающиеся месячные окна не удваивают суммы", () => {
+    // Живой факт 2026-09-04: выгрузка за месяц несёт проводки и за соседний, поэтому соседние
+    // запросы пересекаются. Без дедупа задвоилось 2935 строк на 17.6 млн ₽.
+    const rows = [
+      { d: "2026-03-18", tx: "t1", order: "1", amount: 30530 },
+      { d: "2026-03-18", tx: "t2", order: "1", amount: 13267 },
+      { d: "2026-03-18", tx: "t1", order: "1", amount: 30530 }, // тот же tx из соседнего окна
+      { d: "2026-03-30", tx: "t3", order: "1", amount: -1007 },
+    ];
+    const out = dedupeNetting(rows);
+    expect(out.map((r) => r.tx)).toEqual(["t1", "t2", "t3"]);
+    expect(out.reduce((s, r) => s + r.amount, 0)).toBe(30530 + 13267 - 1007);
+  });
+  it("первым идёт свежее: при совпадении id остаётся строка из новой выгрузки", () => {
+    const fresh = [{ d: "2026-03-18", tx: "t1", amount: 100, service: "новое" }];
+    const old = [{ d: "2026-03-18", tx: "t1", amount: 100, service: "старое" }];
+    expect(dedupeNetting(fresh.concat(old))[0]!.service).toBe("новое");
+  });
+  it("без TRANSACTION_ID работает запасной составной ключ (старые выгрузки)", () => {
+    const rows = [
+      { d: "2026-03-18", order: "1", sku: "A", type: "Начисление", service: "стол", amount: 100, po: "9" },
+      { d: "2026-03-18", order: "1", sku: "A", type: "Начисление", service: "стол", amount: 100, po: "9" },
+      { d: "2026-03-18", order: "1", sku: "A", type: "Начисление", service: "стол", amount: 200, po: "9" },
+    ];
+    expect(dedupeNetting(rows).length).toBe(2);
   });
 });

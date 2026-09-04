@@ -131,6 +131,35 @@ describe("reconcile §15", () => {
     expect(cp.status).toContain("краевые случаи");
     expect(r.blockers.some((b) => b.includes("формула денег неверна"))).toBe(false);
   });
+  it("ключ заказа: расхождение денег не объявляется, пока ORDER_ID не подтверждён внешним номером", () => {
+    // Живая находка 2026-09-04: по одному id наш заказ давал начисление 3500 ₽, а отчёт - 43 797 ₽
+    // по тому же артикулу (медиана по всем заказам 13.5x). Пока не доказано, что ORDER_ID отчёта и
+    // id заказа - один номер, рубли расхождения показывать нельзя: это выдуманная цифра.
+    const rs = rows.map((r) => ({ ...r, shop_order: "GG-" + r.order }));
+    const bad = [
+      { d: "2026-08-12", order: "500001", shop_order: "GG-ЧУЖОЙ", amount: 400000 },
+      { d: "2026-08-20", order: "500002", shop_order: "GG-ТОЖЕ-ЧУЖОЙ", amount: 300000 },
+    ];
+    const r = buildReconcile({ ...base, rows: rs, realization: [], netting: bad }, TODAY);
+    const kc = r.periods[0]!.money.key_check;
+    expect(kc.checked).toBe(2); expect(kc.agree).toBe(0); expect(kc.trusted).toBe(false);
+    expect(r.periods[0]!.money.status).toContain("КЛЮЧ ЗАКАЗА НЕ ПОДТВЕРЖДЁН");
+    // рублёвого блокера быть не должно - вместо него блокер про ключ
+    expect(r.blockers.some((b) => b.includes("деньги закрытого месяца расходятся"))).toBe(false);
+    expect(r.blockers.some((b) => b.includes("КЛЮЧ ЗАКАЗА НЕ ПОДТВЕРЖДЁН"))).toBe(true);
+    expect((r.coverage as any).netting_key.pct).toBe(0);
+  });
+  it("ключ заказа подтверждён - сверка денег работает как раньше", () => {
+    const rs = rows.map((r) => ({ ...r, shop_order: "GG-" + r.order }));
+    const good = [
+      { d: "2026-08-12", order: "500001", shop_order: "GG-500001", amount: 81000 },
+      { d: "2026-08-20", order: "500002", shop_order: "GG-500002", amount: 32000 },
+    ];
+    const r = buildReconcile({ ...base, rows: rs, realization: [], netting: good }, TODAY);
+    expect(r.periods[0]!.money.key_check.trusted).toBe(true);
+    expect(r.periods[0]!.money.diff).toBe(1500);
+    expect(r.blockers.some((b) => b.includes("деньги закрытого месяца расходятся с выплатами ЛК на 1500"))).toBe(true);
+  });
   it("выручка vs реализация: подбор состава типов цен (G7)", () => {
     // accruals августа = 100000 (BUYER 98000 + MARKETPLACE 2000) + 40000 = 140000; amount отчёта 138000 => ближе BUYER-only
     const realz = [{ ym: "2026-08", sku: "GGT-03-3-3-O-20090", sold: 4, ret: 1, amount: 138000 }, { ym: "2026-08", sku: "GGM-16-2-2", sold: 1, ret: 0 }];

@@ -152,6 +152,16 @@ export class OzonPerformance {
     return this.get<any>(`/api/client/statistics/${encodeURIComponent(uuid)}`);
   }
 
+  // «Отчёт по заказам» продвижения: заказы по SKU за период (включая CPO «оплата за заказ»,
+  // которых нет в attribution-отчёте). POST -> UUID; далее statisticsState + downloadStatistics.
+  // Точный путь/тело подтверждаются probe-прогоном (ads-orders-probe).
+  async requestOrders(campaigns: string[], dateFrom: string, dateTo: string): Promise<string> {
+    const data = await this.post<any>("/api/client/statistics/orders/generate/json", {
+      campaigns, from: `${dateFrom}T00:00:00.000Z`, to: `${dateTo}T23:59:59.000Z`,
+    });
+    return String(data.UUID ?? data.uuid ?? data.id ?? "");
+  }
+
   // Сырой текст отчёта (CSV или содержимое ZIP) - разбор отдельно после probe.
   async downloadStatistics(uuid: string): Promise<string> {
     return withRetry(async () => {

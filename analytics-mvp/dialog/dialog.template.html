@@ -1418,11 +1418,6 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
       <div class="togs">${Object.keys(INCLBL).map(k=>`<span class="tog ${F.inc.has(k)?'on':''}" onclick="aiTogInc('${k}')">${INCLBL[k]}</span>`).join('')}</div>
     </div>
 
-    <div class="sect"><h5>Уточняющий вопрос к ИИ · необязательно</h5>
-      <textarea class="ansbox" id="aiQuestion" style="min-height:60px" placeholder="Напр.: почему долгострои не двигаются? где теряем крупные сделки? что общего у отказов?" oninput="aiQInput(this.value)">${esc(F.question||'')}</textarea>
-      <div class="hint">Фильтр задаёт, ЧТО анализировать (выборка сделок), а вопрос - НА ЧТО ответить. Полетит вместе с настройкой, анализ будет управляемым.</div>
-    </div>
-
     <div class="sect"><h5>Полнота данных под выборку</h5>
       <div id="aiRep">${repHTML()}</div>
     </div>
@@ -1430,6 +1425,8 @@ function renderAIPanel(){ const F=S.aiF, p=document.getElementById('apanel');
     <div class="sect"><h5>Разбор ИИ</h5>
       <input type="password" id="aiKey" autocomplete="off" placeholder="Ключ Anthropic (sk-ant-…) - вставить один раз" style="width:100%;box-sizing:border-box" value="${esc(aiKeyGet())}" oninput="aiKeySet(this.value)">
       <div class="hint">Ключ вставляется один раз и хранится только в этом браузере (localStorage), дальше просто «Получить разбор». Не в коде и не в гите.</div>
+      <textarea class="ansbox" id="aiQuestion" style="min-height:60px;margin-top:10px" placeholder="Уточняющий вопрос к ИИ (необязательно). Напр.: почему долгострои не двигаются? где теряем крупные сделки?" oninput="aiQInput(this.value)">${esc(F.question||'')}</textarea>
+      <div class="hint">Фильтр задаёт, ЧТО анализировать (выборка), а вопрос - НА ЧТО ответить. Летит вместе с выборкой.</div>
       <button class="abtn" style="margin-top:10px" onclick="aiRun()">Получить разбор</button>
       <div class="aimsg" id="aiInMsg"></div>
       <div id="aiAnsOut"></div>

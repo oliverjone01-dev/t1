@@ -1026,6 +1026,10 @@ function render(cur,cmp){
   try { for (const l of readFileSync(dp("ads_sku_daily.ndjson"), "utf-8").trim().split("\n").filter(Boolean)) { const r = JSON.parse(l); (adsSkuByCamp[String(r.cid)] || (adsSkuByCamp[String(r.cid)] = [])).push({ d: r.d, sku: String(r.sku), sp: r.sp, om: r.om, ca: r.ca }); } } catch { /* нет файла - пропуск */ }
   const campMeta: Record<string, { off: string; line: string; instr: string; place: string; status: string }> = {};
   const addMeta = (list: any[]) => (list || []).forEach((c: any) => { if (c && c.id && !campMeta[String(c.id)]) campMeta[String(c.id)] = { off: c.off || "", line: c.line || "прочее", instr: c.instr || "", place: c.place || "-", status: c.status || "" }; });
+  // База: полная мета ВСЕХ кампаний из снимка (ads_30d.camp_meta) - чтобы хвостовые/закрытые
+  // кампании (их нет в top_spend/burners) тоже показывали инструмент и статус, а не прочерк.
+  const cm = (adsSnap && adsSnap.camp_meta) || {};
+  for (const id in cm) { const m = cm[id]; campMeta[String(id)] = { off: m.off || "", line: m.line || "прочее", instr: m.instr || "", place: m.place || "-", status: m.status || "" }; }
   addMeta(adsSnap.top_spend); addMeta(adsSnap.burners);
   for (const k of ["p7", "p30", "p90"]) { addMeta((adsPeriods[k] || {}).top_spend); addMeta((adsPeriods[k] || {}).burners); }
   const live = JSON.parse(readFileSync(dp("skus_live_30d.json"), "utf-8"));

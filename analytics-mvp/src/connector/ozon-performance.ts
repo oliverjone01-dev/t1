@@ -152,6 +152,14 @@ export class OzonPerformance {
     return this.get<any>(`/api/client/statistics/${encodeURIComponent(uuid)}`);
   }
 
+  // Сырые вызовы - только для probe (разведка эндпоинтов/тел отчётов).
+  async rawPost(path: string, body: unknown): Promise<any> { return this.post<any>(path, body); }
+  async rawGetText(path: string): Promise<string> {
+    const token = await this.getToken();
+    const res = await fetch(`${PERF_HOST}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+    return `HTTP ${res.status}: ${(await res.text()).slice(0, 1200)}`;
+  }
+
 
   // Сырой текст отчёта (CSV или содержимое ZIP) - разбор отдельно после probe.
   async downloadStatistics(uuid: string): Promise<string> {

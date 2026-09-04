@@ -1451,7 +1451,15 @@ async function aiRun(){
   const scope=aiScope(); const n=(scope.сделки||[]).length;
   if(!n){ msg.innerHTML='В выборке нет сделок - задайте фильтр (даты, менеджеры, стадии или клики по дашборду).'; return; }
   msg.innerHTML='Отправляю '+n+' '+plu(n,'сделку','сделки','сделок')+' в Anthropic (Sonnet 5)… 1-3 мин'+(n>60?' (большая выборка - дольше; при обрезке сузьте фильтр)':'')+'.'; out.innerHTML='';
-  const sys=scope.запрос+' Верни ТОЛЬКО валидный JSON строго по полю формат_вывода, без markdown-обёртки.';
+  // Предварительные лимиты по символам на каждое поле вывода - чтобы разбор не раздувался и не
+  // обрезался по токенам на большой выборке. Меняются здесь (символы).
+  const LIM={verdict:160,razbor:1200,svodka:400,item:160,deal:160};
+  const limits=' ЖЁСТКИЕ ЛИМИТЫ ДЛИНЫ (в символах, строго соблюдай, ужимай формулировки, не превышай):'
+    +' "вердикт"/"verdict" <= '+LIM.verdict+'; "разбор" <= '+LIM.razbor+'; "сводка_менеджеров"/"сводка_сделок" <= '+LIM.svodka+';'
+    +' каждый элемент списков ("сильные"/"слабые"/"действия") <= '+LIM.item+';'
+    +' по каждой сделке ("почему"/"проблема"/"рекомендация") <= '+LIM.deal+'.'
+    +' Лучше меньше и по делу. Ответ НЕ должен обрезаться - укладывайся в лимиты.';
+  const sys=scope.запрос+limits+' Верни ТОЛЬКО валидный JSON строго по полю формат_вывода, без markdown-обёртки.';
   const body={ model:'claude-sonnet-5', max_tokens:32000, system:[{type:'text',text:sys}], messages:[{role:'user',content:JSON.stringify(scope)}] };
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{ method:'POST',

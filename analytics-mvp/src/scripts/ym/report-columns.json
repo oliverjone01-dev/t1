@@ -1,9 +1,10 @@
 {
-  "_note": "Регулярки заголовков CSV-отчётов Маркета (регистр не важен, первое совпадение). Отчёты приходят файлом с русскими заголовками; при первом живом прогоне сверь с data-ym/_probe/<type>.json и поправь здесь. [ГИПОТЕЗА] до первого прогона.",
+  "_note": "Регулярки заголовков CSV-отчётов Маркета (регистр не важен, первое совпадение). ЖИВОЙ ФАКТ 2026-09-04: Маркет отдаёт заголовки АНГЛИЙСКИМИ КОДАМИ (TRANSACTION_SUM, SHOWS, DELIVERED_COUNT), а не русскими подписями. Русские варианты оставлены запасными на случай смены локали отчёта. Сырые заголовки каждого отчёта - в data-ym/_probe/<type>.json.",
   "goods-realization": {
-    "_live": "по probe 2026-09-04: файл transferred_to_delivery.csv, строка = позиция заказа; возвраты - отдельный файл в том же zip (колонка RETURN*COUNT)",
+    "_live": "по probe 2026-09-04: в zip 5 CSV по ролям - delivered.csv (реализовано, = УПД), returned.csv (возвраты), unredeemed.csv (невыкуп), transferred_to_delivery.csv (передано в доставку, надмножество), lost_items.csv (потери). В штуки реализации идут ТОЛЬКО delivered и returned, иначе тройной счёт.",
     "sku": [
       "^YOUR_SKU$",
+      "^SHOP_SKU$",
       "^Ваш SKU$",
       "^SKU$",
       "Артикул"
@@ -14,27 +15,27 @@
       "Наименование"
     ],
     "sold": [
-      "^TRANSFERRED_TO_DELIVERY_COUNT$",
-      "DELIVERED_COUNT",
+      "^DELIVERED_COUNT$",
+      "Доставлено",
       "Продано",
-      "Реализовано",
-      "Доставлено"
+      "Реализовано"
     ],
     "returned": [
-      "RETURN.*COUNT",
+      "^RETURNED_COUNT$",
       "Возвращено",
       "Возврат"
     ],
     "amount": [
-      "^TRANSFERRED_TO_DELIVERY_PRICE_SUM_WITH_VAT_AND_DISCOUNTS$",
-      "RETURN.*PRICE_SUM.*DISCOUNTS$",
+      "^DELIVERED_PRICE_SUM_WITH_VAT_AND_DISCOUNTS$",
       "Стоимость реализ",
       "Сумма реализ"
     ],
+    "amount_returned": [
+      "^RETURN_PRICE_SUM_WITH_VAT_AND_DISCOUNTS$"
+    ],
     "date": [
       "^DELIVERY_DATE$",
-      "^TRANSFERRED_TO_DELIVERY_DATE$",
-      "RETURN.*DATE"
+      "^RETURN_WAREHOUSE_OR_SC_ACCEPT_DATE$"
     ],
     "order": [
       "^ORDER_ID$",
@@ -46,87 +47,107 @@
     ]
   },
   "united-netting": {
+    "_live": "по probe 2026-09-04: файл transaction_date.csv, заголовки английские; строка = проводка (продажа, комиссия, услуга, выплата). Сумма - TRANSACTION_SUM, знак как в отчёте.",
     "date": [
+      "^TRANSACTION_DATE$",
+      "^BANK_ORDER_DATE$",
       "Дата платёжного поручения",
       "Дата п/п",
-      "Дата платежа",
-      "Дата выплаты",
       "Дата операции",
       "^Дата"
     ],
     "type": [
+      "^TRANSACTION_TYPE$",
       "Тип операции",
       "Тип платежа",
-      "Операция",
       "^Тип"
     ],
     "service": [
+      "^OFFER_OR_SERVICE_NAME$",
       "Услуга",
       "Название услуги",
-      "Тип услуги",
       "Назначение"
     ],
     "amount": [
+      "^TRANSACTION_SUM$",
       "Сумма, руб",
       "Сумма к выплате",
-      "Сумма операции",
-      "^Сумма$",
-      "^Итого"
+      "^Сумма$"
     ],
     "order": [
+      "^ORDER_ID$",
       "Номер заказа",
       "Заказ"
     ],
     "sku": [
+      "^SHOP_SKU$",
       "Ваш SKU",
       "^SKU$",
       "Артикул"
     ],
     "payment_order": [
+      "^BANK_ORDER_ID$",
       "Номер платёжного поручения",
-      "Номер п/п",
-      "Платёжное поручение"
+      "Номер п/п"
     ]
   },
   "shows-sales": {
+    "_live": "по probe 2026-09-04: файл sales_funnel_report.csv, заголовки английские, дата разложена на DAY/MONTH/YEAR (собирается в day+month+year). Лимит Маркета: 1 генерация на 6 минут -> один отчёт за окно на кабинет.",
+    "day": [
+      "^DAY$"
+    ],
+    "month": [
+      "^MONTH$"
+    ],
+    "year": [
+      "^YEAR$"
+    ],
     "date": [
+      "^DATE$",
       "^Дата"
     ],
     "sku": [
+      "^OFFER_ID$",
       "Ваш SKU",
       "^SKU$",
       "Артикул"
     ],
     "name": [
+      "^OFFER_NAME$",
       "Название товара",
       "Название"
     ],
     "shows": [
+      "^SHOWS$",
       "Показы товара",
       "Показы",
       "Показов"
     ],
     "clicks": [
+      "^CLICKS$",
       "Переходы",
       "Клики",
       "Кликов"
     ],
     "cart": [
+      "^TO_CART$",
       "Добавлен.* в корзину",
       "В корзину"
     ],
     "units": [
+      "^ORDER_ITEMS$",
       "Заказано, шт",
       "Заказано товаров",
-      "Товаров заказано",
       "Заказы, шт"
     ],
     "revenue": [
+      "^ORDER_ITEMS_TOTAL_AMOUNT$",
       "Выручка",
       "Сумма заказов",
-      "Стоимость заказ",
       "GMV"
     ],
-    "_live": "rate limit Маркета: 1 генерация на 6 минут -> один отчёт за окно, не по дням"
+    "delivered": [
+      "^ORDER_ITEMS_DELIVERED_COUNT$"
+    ]
   }
 }

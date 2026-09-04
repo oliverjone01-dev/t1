@@ -13,6 +13,7 @@ import { loadEnv } from "../../env.js";
 import { accounts, resolveTargets, resolveBusinesses, campaignUnavailable, ensureDir, readNdjson, writeNdjson, writeJson, readJson, yp, yesterday, addDays, monthBounds, FLOOR, pad, type YmAccount } from "./common.js";
 import { toTable, findCol, cellNumStrict, cellDate, maskCell } from "../../util/table.js";
 import { type YmPartner } from "../../connector/ym-partner.js";
+import { realizationRole, isRateLimit } from "./reports-lib.js";
 
 type ColMap = Record<string, string[]>;
 const COLS: Record<string, ColMap> = JSON.parse(readFileSync(new URL("./report-columns.json", import.meta.url), "utf-8"));
@@ -42,7 +43,20 @@ function flushBad() {
 // упирается в timeout job и теряет всё. По умолчанию 10 отчётов, переопределяется YM_REPORT_BUDGET.
 const BUDGET = Math.max(1, Number(process.env.YM_REPORT_BUDGET || 10) || 10);
 let used = 0;
-function budgetLeft(): boolean { if (used >= BUDGET) { console.warn(`::warning::бюджет отчётов исчерпан (${BUDGET}) - остальное доберёт следующий прогон`); return false; } used++; return true; }
+let budgetSpent = false;
+function budgetLeft(): boolean { if (used >= BUDGET) { budgetSpent = true; console.warn(`::warning::бюджет отчётов исчерпан (${BUDGET}) - остальное доберёт следующий прогон`); return false; } used++; return true; }
+
+// Живой факт 2026-09-04: Маркет режет ГЕНЕРАЦИЮ отчётов до 1 запроса на 2 минуты на кабинет
+// (goods-realization, united-netting) и 1 на 6 минут (shows-sales). Полный бэкфилл (8 месяцев x 14
+// кампаний) в один прогон физически не влезает. Поэтому лимит - это не ошибка: продьюсер
+// останавливается мягко, СОХРАНЯЕТ уже разобранное, а остаток добирает следующий прогон.
+let rateLimited = false;
+function stopOnRateLimit(e: unknown, what: string): boolean {
+  if (!isRateLimit(e)) return false;
+  rateLimited = true;
+  console.warn(`::warning::${what}: лимит генерации отчётов Маркета - сохраняю собранное, остальное доберёт следующий прогон`);
+  return true;
+}
 
 function cols(type: string, headers: string[], required: string[]): Record<string, number> | null {
   const map = COLS[type] || {};
@@ -74,41 +88,67 @@ async function realization(months: string[]) {
   const OUT = yp("realization_monthly.ndjson");
   const targets = await resolveTargets();
   const existing = readNdjson<any>(OUT);
-  const done = new Set<string>();
   const fresh: any[] = [];
+  // Возобновляемость: бэкфилл 8 месяцев x 14 кампаний не влезает в лимит генерации (1 / 2 мин на
+  // кабинет), поэтому помним разобранные пары (месяц, кампания) в realization_state.json и каждый
+  // прогон двигаем бэкфилл дальше, а не начинаем с нуля.
+  const STATE = yp("realization_state.json");
+  const state = readJson<{ pairs: string[] }>(STATE, { pairs: [] });
+  const donePairs = new Set(state.pairs || []);
+  const byMonth: Record<string, Record<string, { sold: number; ret: number; amount: number }>> = {};
+  for (const r of existing) { const b = byMonth[r.ym] || (byMonth[r.ym] = {}); b[r.sku] = { sold: r.sold || 0, ret: r.ret || 0, amount: r.amount || 0 }; }
+  outer:
   for (const ym of months) {
     const [y, m] = ym.split("-").map(Number) as [number, number];
-    const bySku: Record<string, { sold: number; ret: number; amount: number }> = {};
+    const bySku: Record<string, { sold: number; ret: number; amount: number }> = byMonth[ym] || (byMonth[ym] = {});
     let ok = 0;
     for (const { campaign: c, account } of targets) {
+      const pair = `${ym}/${c.id}`;
+      if (donePairs.has(pair)) continue;
       let tables: Tbl[] | null = null;
       try { tables = await fetchReportAll(account.api, "goods-realization", { campaignId: Number(c.id), year: y, month: m }); }
-      catch (e) { const why = campaignUnavailable(e); if (!why) throw e; console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); continue; }
-      if (!tables) continue;
+      catch (e) {
+        if (stopOnRateLimit(e, `реализация ${ym}`)) break outer;
+        const why = campaignUnavailable(e); if (!why) throw e;
+        console.warn(`::warning::реализация ${ym}: кампания ${c.id} пропущена (${why})`); donePairs.add(pair); continue;
+      }
+      // NO_DATA - это законный «нечего собирать» (месяц без продаж по кампании): пара закрыта.
+      // Исчерпанный бюджет или лимит Маркета - НЕ закрыты, иначе пара выпадет из бэкфилла навсегда.
+      if (!tables) { if (!rateLimited && !budgetSpent) donePairs.add(pair); if (budgetSpent) break outer; continue; }
       let parsed = false;
       for (const t of tables) {
         probe(`goods-realization${tables.length > 1 ? "-" + t.name.replace(/[^a-z0-9_]/gi, "_") : ""}`, t.headers, t.rows, { campaign: c.id, ym, file: t.name });
-        const isReturns = /return|возврат/i.test(t.name) || (findCol(t.headers, ["RETURN.*COUNT"]) >= 0 && findCol(t.headers, ["^TRANSFERRED_TO_DELIVERY_COUNT$"]) < 0);
-        const ix = cols("goods-realization", t.headers, isReturns ? ["sku", "returned"] : ["sku", "sold"]);
+        // Живой факт 2026-09-04: zip несёт 5 CSV по ролям. Реализация (аналог УПД) = delivered.csv;
+        // возвраты = returned.csv. transferred_to_delivery/unredeemed/lost_items - надмножества и
+        // отдельные события: суммировать их в «продано» значит считать одну штуку по три раза.
+        const role = realizationRole(t.name, t.headers);
+        if (!role) { console.log(`  goods-realization: ${t.name} - роль не учитывается в штуках реализации`); continue; }
+        const ix = cols("goods-realization", t.headers, role === "returned" ? ["sku", "returned"] : ["sku", "sold"]);
         if (!ix) continue;
         parsed = true;
         for (const r of t.rows) {
           const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
           const a = bySku[sku] || (bySku[sku] = { sold: 0, ret: 0, amount: 0 });
-          if (isReturns) { a.ret += num("goods-realization", r[ix.returned!]); if (ix.amount! >= 0) a.amount -= num("goods-realization", r[ix.amount!]); }
-          else { a.sold += num("goods-realization", r[ix.sold!]); if (ix.amount! >= 0) a.amount += num("goods-realization", r[ix.amount!]); }
+          if (role === "returned") {
+            a.ret += num("goods-realization", r[ix.returned!]);
+            if (ix.amount_returned! >= 0) a.amount -= num("goods-realization", r[ix.amount_returned!]);
+          } else {
+            a.sold += num("goods-realization", r[ix.sold!]);
+            if (ix.amount! >= 0) a.amount += num("goods-realization", r[ix.amount!]);
+          }
         }
       }
-      if (parsed) ok++;
+      if (parsed) { ok++; donePairs.add(pair); }
     }
-    if (!ok) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
-    done.add(ym);
-    for (const [sku, a] of Object.entries(bySku)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), platform: "ym", source: "goods-realization" });
-    console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт`);
+    if (!ok && !Object.keys(bySku).length) { console.warn(`::warning::realization ${ym}: ни один отчёт не разобран - месяц не трогаю`); continue; }
+    console.log(`realization ${ym}: SKU ${Object.keys(bySku).length}, реализовано нетто ${Object.values(bySku).reduce((s, a) => s + a.sold - a.ret, 0)} шт${ok ? "" : " (из ранее собранного)"}`);
   }
-  const merged = existing.filter((r) => !done.has(r.ym)).concat(fresh).sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
+  for (const ym of Object.keys(byMonth)) for (const [sku, a] of Object.entries(byMonth[ym]!)) fresh.push({ ym, sku, sold: Math.round(a.sold), ret: Math.round(a.ret), amount: Math.round(a.amount), platform: "ym", source: "goods-realization" });
+  const merged = fresh.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : a.sku < b.sku ? -1 : 1));
   writeNdjson(OUT, merged);
-  console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес) -> ${OUT}`);
+  writeJson(STATE, { at: new Date().toISOString(), pairs: [...donePairs].sort(), note: "разобранные пары месяц/кампания отчёта о реализации; лимит генерации Маркета не даёт собрать бэкфилл за один прогон" });
+  const total = targets.length * months.length;
+  console.log(`realization: всего ${merged.length} строк (${new Set(merged.map((r) => r.ym)).size} мес), пар месяц/кампания ${donePairs.size}/${total}${rateLimited ? " - упёрлись в лимит Маркета, продолжу в следующий прогон" : ""} -> ${OUT}`);
 }
 
 // ---- united-netting: {businessId, dateFrom, dateTo} -> платежи по датам ----
@@ -123,7 +163,9 @@ async function netting(from: string, to: string) {
     while (s <= to) {
       const mb = monthBounds(s.slice(0, 7));
       const e = mb.dateTo < to ? mb.dateTo : to;
-      const t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e });
+      let t: { headers: string[]; rows: string[][] } | null = null;
+      try { t = await fetchReport(account.api, "united-netting", { businessId: Number(b), dateFrom: s, dateTo: e }); }
+      catch (err) { if (stopOnRateLimit(err, `взаиморасчёты ${s}..${e}`)) break; throw err; }
       if (t) {
         probe("united-netting", t.headers, t.rows, { business: b, from: s, to: e });
         const ix = cols("united-netting", t.headers, ["date", "amount"]);
@@ -137,9 +179,14 @@ async function netting(from: string, to: string) {
       }
       s = addDays(e, 1);
     }
+    if (rateLimited) break;
   }
   if (!ok) { console.warn("::warning::netting: ни один отчёт не разобран - файлы не трогаю"); return; }
-  const merged = existing.concat(fresh).sort((a, b) => (a.d < b.d ? -1 : 1));
+  // При мягком стопе по лимиту часть периода не добрана: старые строки этого периода не выкидываем,
+  // иначе один упёршийся в лимит прогон обнулит уже собранные месяцы.
+  const covered = new Set(fresh.map((r) => r.d.slice(0, 7)));
+  const keep = rateLimited ? readNdjson<any>(OUT).filter((r) => !covered.has(r.d.slice(0, 7))) : existing;
+  const merged = keep.concat(fresh).sort((a, b) => (a.d < b.d ? -1 : 1));
   writeNdjson(OUT, merged);
   const byDate: Record<string, number> = {}, byMonth: Record<string, number> = {};
   for (const r of merged) { byDate[r.d] = Math.round(((byDate[r.d] || 0) + r.amount) * 100) / 100; const m = r.d.slice(0, 7); byMonth[m] = Math.round(((byMonth[m] || 0) + r.amount) * 100) / 100; }
@@ -170,10 +217,18 @@ async function shows(days: number) {
     probe("shows-sales", t.headers, t.rows, { business: b, from, to });
     const ix = cols("shows-sales", t.headers, ["sku", "shows"]);
     if (!ix) continue;
-    const hasDate = ix.date! >= 0;
+    // Живой факт 2026-09-04: даты в sales_funnel_report.csv разложены на DAY / MONTH / YEAR,
+    // отдельной колонки даты нет - собираем ISO из трёх, иначе воронка схлопывается в агрегат.
+    const hasParts = ix.day! >= 0 && ix.month! >= 0 && ix.year! >= 0;
+    const hasDate = ix.date! >= 0 || hasParts;
+    const partsDate = (r: string[]) => {
+      const y = Number(r[ix.year!]), m = Number(r[ix.month!]), dd = Number(r[ix.day!]);
+      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(dd) || y < 2000 || m < 1 || m > 12 || dd < 1 || dd > 31) return "";
+      return `${y}-${pad(m)}-${pad(dd)}`;
+    };
     for (const r of t.rows) {
       const sku = (r[ix.sku!] || "").trim(); if (!sku) continue;
-      const d = hasDate ? cellDate(r[ix.date!]) : "";
+      const d = ix.date! >= 0 ? cellDate(r[ix.date!]) : hasParts ? partsDate(r) : "";
       fresh.push({ date: d || to, ...(d ? {} : { period_from: from, aggregate: true }), sku, name: ix.name! >= 0 ? (r[ix.name!] || "").trim() : "", line: "", views: Math.round(num("shows-sales", r[ix.shows!])), vsearch: 0, pdp: ix.clicks! >= 0 ? Math.round(num("shows-sales", r[ix.clicks!])) : 0, cart: ix.cart! >= 0 ? Math.round(num("shows-sales", r[ix.cart!])) : 0, units: ix.units! >= 0 ? Math.round(num("shows-sales", r[ix.units!])) : 0, deliv: 0, ret: 0, canc: 0, business: b, platform: "ym" });
     }
   }

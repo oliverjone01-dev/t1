@@ -129,6 +129,11 @@ export function toDmy(iso: string): string { const m = iso.match(/^(\d{4})-(\d{2
 export class YmPartner {
   // Сырой первый заказ последнего stats/orders (для _probe/orders.json: ключи и типы, без значений).
   public lastRawOrder: any = null;
+  // Точечная диагностика: сырые заказы по номерам из YM_DUMP_ORDERS. Нужна, когда цифра заказа
+  // расходится с отчётом и надо увидеть, ЧТО именно отдал Маркет, а не гадать по нормализованной
+  // строке. Данные свои (уже лежат в data-ym), ключа в ответе нет.
+  public dumpIds: Set<string> = new Set(String(process.env.YM_DUMP_ORDERS || "").split(/[,\s]+/).filter(Boolean));
+  public dumped: Record<string, any> = {};
   // Формат дат запроса, который принял Маркет: "iso" | "dmy" (выясняется на первом 400, ФЕНИКС G6).
   public orderDateFormat: "iso" | "dmy" | null = null;
   constructor(private creds: YmCreds, private host: string = YM_HOST) {}
@@ -198,6 +203,7 @@ export class YmPartner {
       }
       const r = j?.result ?? j ?? {};
       if (this.lastRawOrder == null && (r.orders ?? []).length) this.lastRawOrder = r.orders[0];
+      if (this.dumpIds.size) for (const o of r.orders ?? []) { const id = String(o?.id ?? ""); if (this.dumpIds.has(id)) this.dumped[id] = o; }
       for (const o of r.orders ?? []) out.push(parseOrder(o));
       pageToken = r.paging?.nextPageToken || undefined;
     } while (pageToken && ++guard < 2000);

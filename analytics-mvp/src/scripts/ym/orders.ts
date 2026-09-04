@@ -98,6 +98,12 @@ async function main() {
   writeJson(yp("_probe/payment_types.json"), { at: new Date().toISOString(), note: "агрегат за прогон: типы платежей, субсидии и группы сборов (суммы разнесены по позициям)", payments: pt, subsidies: sub, fees: com });
 
   const pa = targets.map((t) => t.account.api).find((a) => a.lastRawOrder);
+  const dumped: Record<string, any> = {};
+  for (const t of targets) Object.assign(dumped, t.account.api.dumped);
+  if (Object.keys(dumped).length) {
+    writeJson(yp("_probe/orders_raw.json"), { at: new Date().toISOString(), note: "сырые заказы по номерам из YM_DUMP_ORDERS - точечная диагностика расхождения с отчётом взаиморасчётов", orders: dumped });
+    console.log(`ym-orders: сырых заказов для диагностики выгружено ${Object.keys(dumped).length} -> _probe/orders_raw.json`);
+  }
   if (pa) writeJson(yp("_probe/orders.json"), { at: new Date().toISOString(), dateFormatAccepted: pa.orderDateFormat, shape: shape(pa.lastRawOrder), creationDateSample: String(pa.lastRawOrder.creationDate || "").replace(/\d/g, "9") });
 
   // Дедуп: свежая строка побеждает старую по ключу (campaign, order, sku).

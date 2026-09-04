@@ -29,6 +29,10 @@ on:
         description: "Максимум отчётов Маркета (generate/poll/download) за прогон; каждый до 15 мин"
         required: false
         default: "10"
+      dump_orders:
+        description: "Номера заказов через запятую - выгрузить их сырыми в _probe/orders_raw.json (диагностика расхождений с отчётом)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -45,6 +49,7 @@ env:
   SNAPSHOT_MIN_SKUS: "1"
   YM_REPORT_BUDGET: ${{ github.event.inputs.report_budget || '10' }}
   YM_ORDERS_REFETCH: ${{ github.event.inputs.orders_refetch == 'yes' && '1' || '' }}
+  YM_DUMP_ORDERS: ${{ github.event.inputs.dump_orders }}
 
 jobs:
   snapshots:
